@@ -15,14 +15,22 @@ Sh'elah is a Flask-based Jewish learning and halachic assistant that combines:
 ```bash
 pip install -r requirements.txt
 ```
-
+If on Mac, use this instead:
+```bash
+pip install -r requirements.txt --break-system-packages
+```
 3. Set environment variables (see `.env.example`).
 4. Run the app:
 
 ```bash
+cd ~/(Location_of_file)
 python app.py
 ```
-
+If on Mac, use this instead:
+```bash
+cd ~/(Location_of_file)
+python3 app.py
+```
 Default local URL: http://127.0.0.1:5001
 
 ## Project Structure
