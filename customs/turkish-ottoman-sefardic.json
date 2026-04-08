@@ -1,0 +1,360 @@
+{
+  "version": "2.0",
+  "type": "academic_halachic_reference",
+  "heritage_id": "turkish",
+  "name": "Turkish",
+  "aliases": [
+    "Ottoman Sephardi",
+    "Turkish Jews",
+    "Ladino-speaking Jews of Turkey"
+  ],
+  "database_scope": {
+    "purpose": "Academic and halachic reference database for Turkish Jewish heritage, minhagim, and halachic practice.",
+    "coverage_note": "This file models broad Ottoman Sephardi and Turkish Jewish practice and includes common halachic domains. Local customs vary by city, family, rabbinic lineage, and subgroup (e.g., Istanbul vs. Izmir, Sephardi vs. Ashkenazi/Romaniote elements).",
+    "classification_note": "Turkish Jewish practice is typically Sephardi‑oriented, shaped by Ottoman and later Turkish social and legal structures, with distinctive communal and family minhagim."
+  },
+  "identity": {
+    "primary_origin": "Ottoman Empire Jewish communities, especially Turkish‑based Sephardi settlements after 1492",
+    "secondary_centers": [
+      "Istanbul (Constantinople)",
+      "Izmir (Smyrna)",
+      "Edirne",
+      "Bursa",
+      "Manissa",
+      "Turkey-wide diaspora communities in Israel, United States, Latin America, and Europe"
+    ],
+    "cultural_profile": [
+      "Strong Sephardi textual and liturgical tradition adapted to Anatolian life",
+      "Vibrant Ladino language and culture",
+      "Communal interaction with Turkish majority and minority groups",
+      "Unique blend of Iberian, Ottoman, and Balkan cultural elements"
+    ]
+  },
+  "languages": [
+    "Ladino (Judeo‑Spanish)",
+    "Hebrew",
+    "Turkish",
+    "Greek in some families",
+    "French or Italian in some diaspora contexts"
+  ],
+  "genealogy": {
+    "common_surname_patterns": [
+      "Iberian exile surnames adapted in Ottoman forms",
+      "Names reflecting cities or regions (e.g., Constantinopoli, Izmiri)",
+      "Occupational and honorific surnames",
+      "Names influenced by Ottoman and later Turkish transliteration"
+    ],
+    "research_notes": [
+      "Surname spellings vary widely by Ladino, Turkish, Hebrew, and Western scripts.",
+      "Family oral history and synagogue records are crucial for tracing Ottoman‑era lineages.",
+      "Migration paths often run through Istanbul, Izmir, or Bursa to modern diaspora centers."
+    ],
+    "recommended_genealogy_fields": [
+      "surname",
+      "alternate_spellings",
+      "town_of_origin",
+      "family_branch",
+      "immigration_wave",
+      "ritual_minhag",
+      "language_used"
+    ]
+  },
+  "historical_background": {
+    "timeline": [
+      {
+        "period": "Byzantine and early Ottoman era",
+        "event": "Jewish communities existed in Anatolia and the Aegean region before and after Ottoman conquest.",
+        "halachic_impact": "Local customs blended with later Sephardi traditions."
+      },
+      {
+        "period": "1492 and after",
+        "event": "Sultan Bayezid II welcomed Sephardi exiles into the Ottoman Empire.",
+        "halachic_impact": "Iberian Sephardi practice became dominant in many Turkish communities."
+      },
+      {
+        "period": "Tanzimat and modern reforms",
+        "event": "Ottoman modernization and later Republic of Turkey changed legal and social status.",
+        "halachic_impact": "Communal institutions and religious practice adapted to new national frameworks."
+      },
+      {
+        "period": "20th century and after",
+        "event": "Emigration and upheaval transformed the demographic landscape.",
+        "halachic_impact": "Diaspora communities preserved Turkish Sephardi liturgy and family customs."
+      }
+    ]
+  },
+  "core_halachic_authorities": {
+    "primary_codes": [
+      "Shulchan Aruch",
+      "Beit Yosef",
+      "Mishneh Torah"
+    ],
+    "major_rishonim_base": [
+      "Rif",
+      "Rambam",
+      "Rosh"
+    ],
+    "later_turkish_poskim": [
+      "Rav Hayyim Bechor Chazzan",
+      "Rav Refael Saban",
+      "Rav Yosef Faur",
+      "Community rabbis of Istanbul and Izmir"
+    ],
+    "decision_principle": "Follow Shulchan Aruch with Sephardi methodology, while respecting established Ottoman and Turkish communal minhagim and adapting to modern conditions."
+  },
+  "halacha_index": [
+    {
+      "index": "halacha.1",
+      "category": "Prayer",
+      "topic": "Nusach and liturgy",
+      "summary": "Turkish Sephardi prayer follows Sephardi nusach with local Ottoman and Anatolian melodies and textual additions.",
+      "common_practices": [
+        "Use Sephardi siddurim adjusted to local rite where customary",
+        "Preserve Ladino‑based piyyutim and piyutim in Hebrew",
+        "Follow synagogue order for weekday, Shabbat, and festival services"
+      ]
+    },
+    {
+      "index": "halacha.2",
+      "category": "Prayer",
+      "topic": "Torah reading and seating",
+      "summary": "Torah reading and seating customs often reflect Ottoman communal norms, such as taking off shoes when approaching the aron hakodesh.",
+      "common_practices": [
+        "Read Torah with Sephardi trop or local variant",
+        "Honor elders and family leaders appropriately",
+        "Preserve local synagogue etiquette for aliyot and seating"
+      ]
+    },
+    {
+      "index": "halacha.3",
+      "category": "Prayer",
+      "topic": "Hijabs and synagogue customs",
+      "summary": "Synagogue layout and customs developed in a Muslim‑majority environment, influencing local minhagim.",
+      "common_practices": [
+        "Maintain local rules for separation and seating",
+        "Use modest dress standards",
+        "Preserve inherited customs for bowing and blessings"
+      ]
+    },
+    {
+      "index": "halacha.4",
+      "category": "Shabbat",
+      "topic": "Candle lighting",
+      "summary": "Shabbat candle lighting follows Sephardi halacha with family‑and‑city customs in timing and arrangement.",
+      "common_practices": [
+        "Light before Shabbat begins",
+        "Use customary blessing wording",
+        "Preserve number‑of‑candles customs where inherited"
+      ]
+    },
+    {
+      "index": "halacha.5",
+      "category": "Shabbat",
+      "topic": "Shabbat meals",
+      "summary": "Shabbat and holiday meals are central and often feature Anatolian‑Sephardi foods.",
+      "common_practices": [
+        "Prepare food before Shabbat",
+        "Honor guests and family according to local custom",
+        "Use traditional dishes and condiments"
+      ]
+    },
+    {
+      "index": "halacha.6",
+      "category": "Shabbat",
+      "topic": "Cooking and carrying",
+      "summary": "Cooking and carrying are restricted according to standard halacha, with local customs for warming and eruv‑like arrangements where accepted.",
+      "common_practices": [
+        "Cook before Shabbat",
+        "Use permitted warming methods under halachic guidance",
+        "Avoid direct cooking or prohibited carrying"
+      ]
+    },
+    {
+      "index": "halacha.7",
+      "category": "Kashrut",
+      "topic": "Meat and dairy",
+      "summary": "Meat and dairy separation follows Sephardi standards, with practical customs shaped by Ottoman and later Turkish food environments.",
+      "common_practices": [
+        "Keep separate utensils and cookware",
+        "Observe customary waiting periods after meat",
+        "Maintain clean separation in home kitchens"
+      ]
+    },
+    {
+      "index": "halacha.8",
+      "category": "Kashrut",
+      "topic": "Shechita and supervision",
+      "summary": "Ritual slaughter and supervision were central to communal kashrut and remain important in diaspora settings.",
+      "common_practices": [
+        "Use qualified shochtim",
+        "Inspect animals and meat carefully",
+        "Follow local standards for supervision and glatt stringency where customary"
+      ]
+    },
+    {
+      "index": "halacha.9",
+      "category": "Kashrut",
+      "topic": "Wine and beverages",
+      "summary": "Wine standards are respected for ritual and social use, often under local supervision.",
+      "common_practices": [
+        "Use kosher wine for Kiddush and Havdalah",
+        "Follow local minhag on handling and storage",
+        "Observe communal standards in commercial and family settings"
+      ]
+    },
+    {
+      "index": "halacha.10",
+      "category": "Pesach",
+      "topic": "Pesach customs",
+      "summary": "Pesach practice is broadly Sephardi, with city‑specific variations in foods and customs.",
+      "common_practices": [
+        "Remove chametz carefully before Pesach",
+        "Kasher utensils or use dedicated Pesach sets",
+        "Follow local guidance on kitniyot and regional dishes"
+      ]
+    },
+    {
+      "index": "halacha.11",
+      "category": "Pesach",
+      "topic": "Seder and Haggadah",
+      "summary": "The Seder combines halachic structure with Turkish Sephardi piyutim, melodies, and family foods.",
+      "common_practices": [
+        "Use accepted Haggadah rite",
+        "Sing piyyutim in Ladino and Hebrew",
+        "Preserve local customs for seder plate and sequence"
+      ]
+    },
+    {
+      "index": "halacha.12",
+      "category": "Lifecycle",
+      "topic": "Brit milah",
+      "summary": "Brit milah is performed according to halacha with strong communal and family ceremony.",
+      "common_practices": [
+        "Use a qualified mohel",
+        "Observe naming traditions and blessings",
+        "Preserve songs and family customs"
+      ]
+    },
+    {
+      "index": "halacha.13",
+      "category": "Lifecycle",
+      "topic": "Marriage and celebrations",
+      "summary": "Marriage follows halacha and may include local customs such as Fashadura (pregnancy celebration) and other women‑centered family rituals.",
+      "common_practices": [
+        "Use a valid ketubah",
+        "Perform kiddushin and nissuin according to Sephardi custom",
+        "Observe local customs for engagement, gifts, and wedding festivities"
+      ]
+    },
+    {
+      "index": "halacha.14",
+      "category": "Family law",
+      "topic": "Niddah and mikveh",
+      "summary": "Family purity laws are observed carefully, often conservatively, in traditional Turkish communities.",
+      "common_practices": [
+        "Observe niddah separation laws",
+        "Use mikveh according to halacha",
+        "Follow local rabbinic guidance for household practice"
+      ]
+    },
+    {
+      "index": "halacha.15",
+      "category": "Mourning",
+      "topic": "Funeral customs",
+      "summary": "Mourning follows halachic structure with Anatolian‑Sephardi elements such as specific foods and symbolism.",
+      "common_practices": [
+        "Observe shiva and related customs",
+        "Use traditional foods and drinks at levaya or shiva settings",
+        "Preserve local customs for memorial prayers and visits"
+      ]
+    },
+    {
+      "index": "halacha.16",
+      "category": "Calendar",
+      "topic": "High Holidays",
+      "summary": "Rosh Hashanah and Yom Kippur are observed with seriousness and rich local melodies and piyyutim.",
+      "common_practices": [
+        "Use the Sephardi machzor or local rite",
+        "Preserve selichot and shofar customs",
+        "Follow synagogue‑specific order and family traditions"
+      ]
+    },
+    {
+      "index": "halacha.17",
+      "category": "Calendar",
+      "topic": "Chanukah",
+      "summary": "Chanukah is celebrated with standard halacha and family lighting customs, often accompanied by traditional foods.",
+      "common_practices": [
+        "Light candles nightly",
+        "Recite blessings according to local custom",
+        "Prepare traditional Turkish‑Sephardi Chanukah foods"
+      ]
+    },
+    {
+      "index": "halacha.18",
+      "category": "Calendar",
+      "topic": "Purim",
+      "summary": "Purim is communal and festive, with public Megillah reading and celebratory foods.",
+      "common_practices": [
+        "Read the Megillah publicly",
+        "Exchange gifts to the poor and friends",
+        "Observe local Purim celebrations and foods"
+      ]
+    },
+    {
+      "index": "halacha.19",
+      "category": "Education",
+      "topic": "Torah and language transmission",
+      "summary": "Transmission is strongly text‑based and also includes Ladino and oral traditions.",
+      "common_practices": [
+        "Teach children Hebrew and prayer forms",
+        "Preserve Ladino phrases and piyyutim",
+        "Use both formal study and family‑based education"
+      ]
+    },
+    {
+      "index": "halacha.20",
+      "category": "Community",
+      "topic": "Synagogue and communal structure",
+      "summary": "Turkish Jewry historically maintained strong synagogue‑based communities and communal leadership.",
+      "common_practices": [
+        "Organize life around main synagogues and smaller kehillot",
+        "Follow recognized rabbinic authority",
+        "Preserve local customs for synagogue governance and ritual"
+      ]
+    },
+    {
+      "index": "halacha.21",
+      "category": "Community",
+      "topic": "Interactions with majority society",
+      "summary": "Halachic norms regulated behavior in a Muslim‑majority Ottoman and later Turkish context.",
+      "common_practices": [
+        "Observe Shabbat and kashrut carefully in public life",
+        "Use halachic leniency or stringency where applicable for social harmony",
+        "Preserve customs related to interactions with neighbors"
+      ]
+    }
+  ],
+  "unique_minhagim": {
+    "examples": [
+      "Taking off shoes when approaching the aron hakodesh in some congregations",
+      "Use of Ladino and Ladino‑piyutim in synagogue and home life",
+      "Fashadura celebration for expecting mothers",
+      "Funeral customs involving specific foods and alcoholic drinks such as rakı‑based pastries",
+      "Strong city‑based distinctions such as Istanbul vs. Izmir vs. Bursa"
+    ],
+    "notes": "Turkish Jewish practice is diverse; subgroup and city‑of‑origin information should be recorded whenever possible."
+  },
+  "source_registry": {
+    "primary": [
+      "Shulchan Aruch",
+      "Beit Yosef",
+      "Ottoman Sephardi halachic sources"
+    ],
+    "secondary": [
+      "Turkish community archives and publications",
+      "JewishGen Ottoman/Turkish collections",
+      "Ladino‑language and Sephardic education resources"
+    ]
+  }
+}

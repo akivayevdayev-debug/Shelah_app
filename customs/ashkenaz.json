@@ -1,0 +1,357 @@
+{
+  "version": "2.0",
+  "type": "academic_halachic_reference",
+  "heritage_id": "ashkenazi",
+  "name": "Ashkenazi",
+  "aliases": [
+    "Ashkenazic Jews",
+    "Ashkenazim"
+  ],
+  "database_scope": {
+    "purpose": "Academic and halachic reference database for Ashkenazi Jewish heritage, minhagim, and halachic practice.",
+    "coverage_note": "This file models broad Ashkenazi practice and includes common halachic domains. Local customs vary by region, yeshiva tradition, family, and denomination.",
+    "classification_note": "Ashkenazi halacha is traditionally organized around medieval Ashkenaz and later codifiers such as the Rema, Magen Avraham, Mishnah Berurah, and Aruch HaShulchan."
+  },
+  "identity": {
+    "primary_origin": "Jewish communities of medieval and early modern Central and Eastern Europe",
+    "secondary_centers": [
+      "Germany",
+      "France",
+      "Poland",
+      "Lithuania",
+      "Belarus",
+      "Ukraine",
+      "Hungary",
+      "Russia",
+      "United States",
+      "Israel"
+    ],
+    "cultural_profile": [
+      "Strong legal and liturgical tradition",
+      "Wide range from Hasidic to Lithuanian and Modern Orthodox practice",
+      "Distinctive historical foods, languages, and folklore",
+      "Significant diaspora diversification"
+    ]
+  },
+  "languages": [
+    "Hebrew",
+    "Yiddish",
+    "Judeo-German in historical contexts",
+    "English",
+    "Russian",
+    "Polish",
+    "German"
+  ],
+  "genealogy": {
+    "common_surname_patterns": [
+      "Patronymic surnames",
+      "Occupational surnames",
+      "Place-based surnames",
+      "Germanic, Slavic, and Hebrew-derived surnames"
+    ],
+    "research_notes": [
+      "Surname spelling changes are common across immigration records and transliteration systems.",
+      "Town of origin is often more useful than surname alone.",
+      "Cemetery records, ketubot, shtetl documents, and immigration papers are important sources."
+    ],
+    "recommended_genealogy_fields": [
+      "surname",
+      "alternate_spellings",
+      "town_of_origin",
+      "family_branch",
+      "migration_route",
+      "community_type",
+      "ritual_minhag"
+    ]
+  },
+  "historical_background": {
+    "timeline": [
+      {
+        "period": "Medieval Germany and France",
+        "event": "Ashkenazi communities developed in Central Europe.",
+        "halachic_impact": "Distinct minhagim formed around prayer, law, and communal life."
+      },
+      {
+        "period": "Late medieval and early modern period",
+        "event": "Communities spread eastward into Poland-Lithuania and beyond.",
+        "halachic_impact": "Ashkenazi law and custom diversified regionally."
+      },
+      {
+        "period": "18th-19th centuries",
+        "event": "Hasidic and Lithuanian traditions emerged as major internal streams.",
+        "halachic_impact": "Different prayer, learning, and lifestyle norms developed."
+      },
+      {
+        "period": "19th-20th centuries",
+        "event": "Mass migration to North America and other regions transformed the diaspora.",
+        "halachic_impact": "New denominational and communal variations appeared."
+      }
+    ]
+  },
+  "core_halachic_authorities": {
+    "primary_codes": [
+      "Rema",
+      "Mishnah Berurah",
+      "Aruch HaShulchan",
+      "Chayei Adam",
+      "Chochmat Adam"
+    ],
+    "major_rishonim_base": [
+      "Tosafot",
+      "Rosh",
+      "Mordechai",
+      "Tur"
+    ],
+    "later_ashkenazi_poskim": [
+      "Rav Moshe Feinstein",
+      "Rav Yaakov Kamenetsky",
+      "Rav Shlomo Zalman Auerbach",
+      "Rav Yosef Shalom Elyashiv"
+    ],
+    "decision_principle": "Follow the accepted Ashkenazi minhag and later Ashkenazi codifiers, especially where they differ from Sephardi practice."
+  },
+  "halacha_index": [
+    {
+      "index": "halacha.1",
+      "category": "Prayer",
+      "topic": "Nusach Ashkenaz and Nusach Sfard",
+      "summary": "Ashkenazi communities may use Nusach Ashkenaz, Nusach Sfard, or related variants depending on subcommunity.",
+      "common_practices": [
+        "Use the community siddur",
+        "Preserve local tune and phrasing",
+        "Follow yeshiva or Hasidic custom where applicable"
+      ]
+    },
+    {
+      "index": "halacha.2",
+      "category": "Prayer",
+      "topic": "Kaddish, Kedushah, and communal service",
+      "summary": "Prayer is highly structured and minyan-centered.",
+      "common_practices": [
+        "Recite Kaddish in a minyan",
+        "Follow local order for davening",
+        "Maintain community minhag in repetition and responsive sections"
+      ]
+    },
+    {
+      "index": "halacha.3",
+      "category": "Prayer",
+      "topic": "Torah reading",
+      "summary": "Torah reading follows standard halachic practice with local trope variations.",
+      "common_practices": [
+        "Use trained ba'alei kri'ah",
+        "Follow Ashkenazi trop or local variant",
+        "Preserve aliyah and honor customs"
+      ]
+    },
+    {
+      "index": "halacha.4",
+      "category": "Shabbat",
+      "topic": "Candle lighting",
+      "summary": "Shabbat candle lighting follows halacha with family and community customs.",
+      "common_practices": [
+        "Light before sunset or accepted cutoff",
+        "Use customary blessing wording",
+        "Observe family candle traditions where inherited"
+      ]
+    },
+    {
+      "index": "halacha.5",
+      "category": "Shabbat",
+      "topic": "Cooking and warming",
+      "summary": "Cooking is prohibited on Shabbat, and warming arrangements are governed by detailed community practice.",
+      "common_practices": [
+        "Prepare food before Shabbat",
+        "Use permitted warming methods",
+        "Avoid prohibited cooking and rewarming actions"
+      ]
+    },
+    {
+      "index": "halacha.6",
+      "category": "Shabbat",
+      "topic": "Carrying and eruv",
+      "summary": "Carrying outside a valid eruv is prohibited and often a major communal concern.",
+      "common_practices": [
+        "Check validity of the eruv",
+        "Follow local rabbinic guidance",
+        "Do not carry where no eruv exists"
+      ]
+    },
+    {
+      "index": "halacha.7",
+      "category": "Kashrut",
+      "topic": "Meat and dairy separation",
+      "summary": "Meat and dairy separation is strictly observed with clear kitchen segmentation.",
+      "common_practices": [
+        "Keep separate utensils and cookware",
+        "Observe waiting periods after meat before dairy according to Ashkenazi custom",
+        "Maintain separate dishes and cleaning systems"
+      ]
+    },
+    {
+      "index": "halacha.8",
+      "category": "Kashrut",
+      "topic": "Kitniyot on Pesach",
+      "summary": "Ashkenazi custom generally avoids kitniyot on Pesach.",
+      "common_practices": [
+        "Do not eat rice, legumes, and other kitniyot as custom dictates",
+        "Keep kitniyot in the house if permitted by local practice",
+        "Use separate Pesach goods and supervision"
+      ]
+    },
+    {
+      "index": "halacha.9",
+      "category": "Kashrut",
+      "topic": "Baked goods and chametz concerns",
+      "summary": "Pesach food preparation includes detailed concern for flour, wheat, and cross-contamination.",
+      "common_practices": [
+        "Check labels and ingredients carefully",
+        "Use dedicated Pesach equipment",
+        "Avoid any chametz mixture"
+      ]
+    },
+    {
+      "index": "halacha.10",
+      "category": "Pesach",
+      "topic": "Chametz removal",
+      "summary": "Chametz is removed thoroughly before Pesach.",
+      "common_practices": [
+        "Search for chametz before Pesach",
+        "Sell or destroy chametz properly",
+        "Kasher surfaces and utensils as needed"
+      ]
+    },
+    {
+      "index": "halacha.11",
+      "category": "Pesach",
+      "topic": "Seder and Haggadah",
+      "summary": "The Seder is structured according to halacha and Ashkenazi minhag.",
+      "common_practices": [
+        "Use Ashkenazi Haggadah tradition",
+        "Sing customary songs",
+        "Follow family and community seder order"
+      ]
+    },
+    {
+      "index": "halacha.12",
+      "category": "Lifecycle",
+      "topic": "Brit milah",
+      "summary": "Brit milah follows halacha with Ashkenazi naming and celebration customs.",
+      "common_practices": [
+        "Use a qualified mohel",
+        "Observe naming customs",
+        "Use community songs and ceremonies where customary"
+      ]
+    },
+    {
+      "index": "halacha.13",
+      "category": "Lifecycle",
+      "topic": "Marriage and wedding customs",
+      "summary": "Marriage is halachically standard and often includes distinct Ashkenazi wedding customs.",
+      "common_practices": [
+        "Use a valid ketubah",
+        "Perform kiddushin and nissuin properly",
+        "Observe ketubah reading, bedeken, and other local customs where relevant"
+      ]
+    },
+    {
+      "index": "halacha.14",
+      "category": "Family law",
+      "topic": "Niddah and mikveh",
+      "summary": "Family purity laws are observed carefully and often strictly.",
+      "common_practices": [
+        "Observe niddah separation laws",
+        "Use mikveh according to halacha",
+        "Follow accepted community practice and rabbinic guidance"
+      ]
+    },
+    {
+      "index": "halacha.15",
+      "category": "Mourning",
+      "topic": "Avelut",
+      "summary": "Mourning customs are highly structured and widely observed.",
+      "common_practices": [
+        "Observe shiva, shloshim, and yahrzeit customs",
+        "Recite Kaddish according to community practice",
+        "Use Yizkor or related memorial forms where customary"
+      ]
+    },
+    {
+      "index": "halacha.16",
+      "category": "Calendar",
+      "topic": "High Holidays",
+      "summary": "Rosh Hashanah and Yom Kippur are observed with serious communal prayer and distinct liturgy.",
+      "common_practices": [
+        "Use the community machzor",
+        "Preserve selichot and shofar customs",
+        "Follow local tune and reading traditions"
+      ]
+    },
+    {
+      "index": "halacha.17",
+      "category": "Calendar",
+      "topic": "Chanukah",
+      "summary": "Chanukah is observed with candle lighting, Hallel, and customary songs and foods.",
+      "common_practices": [
+        "Light candles nightly",
+        "Recite blessings and Hallel",
+        "Use family food customs and songs"
+      ]
+    },
+    {
+      "index": "halacha.18",
+      "category": "Calendar",
+      "topic": "Purim",
+      "summary": "Purim is celebrated with public Megillah reading and communal joy.",
+      "common_practices": [
+        "Read the Megillah publicly",
+        "Exchange mishloach manot and gifts to the poor",
+        "Follow local minhag on costumes, meals, and celebration"
+      ]
+    },
+    {
+      "index": "halacha.19",
+      "category": "Education",
+      "topic": "Torah study",
+      "summary": "Learning is central, especially in yeshiva, cheder, and home education traditions.",
+      "common_practices": [
+        "Study Torah, Gemara, and halacha regularly",
+        "Teach children Hebrew and prayer",
+        "Preserve family custom through education"
+      ]
+    },
+    {
+      "index": "halacha.20",
+      "category": "Community",
+      "topic": "Subgroups and minhag",
+      "summary": "Ashkenazi practice includes important internal divisions such as Hasidic, Lithuanian, and modern community variants.",
+      "common_practices": [
+        "Index by subgroup where possible",
+        "Record liturgy and ritual differences",
+        "Preserve local and yeshiva-derived minhagim"
+      ]
+    }
+  ],
+  "unique_minhagim": {
+    "examples": [
+      "Avoidance of kitniyot on Pesach",
+      "Different nusach traditions such as Ashkenaz and Sfard",
+      "Strong yahrzeit and Yizkor memorial culture",
+      "Distinct wedding customs such as bedeken in some communities"
+    ],
+    "notes": "Ashkenazi practice is extremely diverse and should be indexed by subgroup and location."
+  },
+  "source_registry": {
+    "primary": [
+      "Rema",
+      "Mishnah Berurah",
+      "Aruch HaShulchan",
+      "Chayei Adam"
+    ],
+    "secondary": [
+      "Ashkenazi community siddurim and minhag guides",
+      "Jewish studies reference works",
+      "Genealogical and shtetl records"
+    ]
+  }
+}

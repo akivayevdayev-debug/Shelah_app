@@ -1,0 +1,374 @@
+{
+  "version": "2.0",
+  "type": "academic_halachic_reference",
+  "heritage_id": "moroccan",
+  "name": "Moroccan",
+  "aliases": [
+    "Maghrebi",
+    "Moroccan Jews",
+    "Marrakesh/Fez/Tangier traditions"
+  ],
+  "database_scope": {
+    "purpose": "Academic and halachic reference database for Moroccan Jewish heritage, minhagim, and halachic practice.",
+    "coverage_note": "This file models broad Moroccan practice and includes common halachic domains. Local customs vary by city, family, rabbinic lineage, and the distinction between toshavim and megorashim.",
+    "classification_note": "Moroccan halacha is Sephardi in broad framework, but it contains multiple strong regional and historical subtraditions."
+  },
+  "identity": {
+    "primary_origin": "Historic Jewish communities of Morocco and the wider Maghreb",
+    "secondary_centers": [
+      "Fez",
+      "Marrakesh",
+      "Casablanca",
+      "Tangier",
+      "Rabat",
+      "Tetouan",
+      "Essaouira",
+      "Jewish diaspora communities in Israel, France, Canada, and Latin America"
+    ],
+    "cultural_profile": [
+      "Strong preservation of city-based minhagim",
+      "Distinct liturgical and melodic traditions",
+      "Blend of ancient North African and Sephardi exilic customs",
+      "Highly developed rabbinic and communal literature"
+    ]
+  },
+  "languages": [
+    "Hebrew",
+    "Arabic",
+    "Haketia in some communities",
+    "French in modern diaspora settings",
+    "Spanish/Portuguese in some family histories"
+  ],
+  "genealogy": {
+    "common_surname_patterns": [
+      "Names tied to towns or regions",
+      "Arabic-root surnames",
+      "Spanish-Portuguese exile surnames in megorashim families",
+      "Occupational, tribal, or honorific surnames"
+    ],
+    "research_notes": [
+      "Moroccan genealogy often requires distinguishing between toshavim and megorashim.",
+      "Surname spellings vary by French, Spanish, English, Arabic, and Hebrew transcription.",
+      "Cemetery records, ketubot, communal ledgers, and synagogue membership lists are especially useful."
+    ],
+    "recommended_genealogy_fields": [
+      "surname",
+      "alternate_spellings",
+      "town_of_origin",
+      "family_branch",
+      "toshavim_or_megorashim",
+      "migration_route",
+      "ritual_minhag"
+    ]
+  },
+  "historical_background": {
+    "timeline": [
+      {
+        "period": "Ancient and early medieval era",
+        "event": "Jewish communities existed across Morocco and the Maghreb for many centuries.",
+        "halachic_impact": "Local North African custom developed alongside broader Jewish law."
+      },
+      {
+        "period": "1492 and after",
+        "event": "Sephardi exiles from Spain and Portugal settled in Morocco.",
+        "halachic_impact": "Megorashim customs entered and interacted with older toshavim traditions."
+      },
+      {
+        "period": "Ottoman and early modern periods",
+        "event": "Rabbinic literature and intercommunity contact expanded.",
+        "halachic_impact": "Many communities accepted the Shulchan Aruch while preserving local customs."
+      },
+      {
+        "period": "20th century and after",
+        "event": "Large-scale emigration changed the demographic map of Moroccan Jewry.",
+        "halachic_impact": "Diaspora communities preserved rabbinic and family practice in new countries."
+      }
+    ]
+  },
+  "core_halachic_authorities": {
+    "primary_codes": [
+      "Shulchan Aruch",
+      "Beit Yosef",
+      "Mishneh Torah"
+    ],
+    "major_rishonim_base": [
+      "Rif",
+      "Rambam",
+      "Rosh"
+    ],
+    "later_moroccan_poskim": [
+      "Rav Shalom Messas",
+      "Rav Yosef Messas",
+      "Rav Shlomo Amar",
+      "Moroccan communal dayanim and rabbis"
+    ],
+    "decision_principle": "Follow the Shulchan Aruch as primary authority while preserving established Moroccan minhagim and, where accepted locally, additional rulings from Moroccan rabbinic tradition."
+  },
+  "halacha_index": [
+    {
+      "index": "halacha.1",
+      "category": "Prayer",
+      "topic": "Nusach and liturgy",
+      "summary": "Moroccan prayer uses a Sephardi framework with strong local tradition and city-based variation.",
+      "common_practices": [
+        "Use Moroccan siddurim or accepted local rite",
+        "Preserve piyutim and local melodies",
+        "Follow synagogue and family custom for weekday and festival prayers"
+      ]
+    },
+    {
+      "index": "halacha.2",
+      "category": "Prayer",
+      "topic": "Piyutim and poetry",
+      "summary": "Poetic and liturgical composition is highly developed and central to Moroccan worship.",
+      "common_practices": [
+        "Recite piyutim on Shabbat and festivals where customary",
+        "Use local maqam or melody traditions in some communities",
+        "Preserve family and regional liturgical cycles"
+      ]
+    },
+    {
+      "index": "halacha.3",
+      "category": "Prayer",
+      "topic": "Selichot and penitential prayers",
+      "summary": "Selichot are often a major feature of Moroccan religious life, especially before the High Holidays.",
+      "common_practices": [
+        "Recite selichot according to community schedule",
+        "Use local melodies and cadence",
+        "Preserve communal traditions for special nights and public prayer"
+      ]
+    },
+    {
+      "index": "halacha.4",
+      "category": "Shabbat",
+      "topic": "Candle lighting",
+      "summary": "Shabbat candle lighting follows standard halacha with family and city-based customs.",
+      "common_practices": [
+        "Light before Shabbat begins",
+        "Use customary blessing wording",
+        "Preserve traditions for the number and arrangement of candles"
+      ]
+    },
+    {
+      "index": "halacha.5",
+      "category": "Shabbat",
+      "topic": "Meals and hospitality",
+      "summary": "Shabbat meals are central to Moroccan life and often include distinctive traditional foods.",
+      "common_practices": [
+        "Prepare food before Shabbat",
+        "Honor guests and family with customary hospitality",
+        "Use traditional Moroccan dishes where kosher and appropriate"
+      ]
+    },
+    {
+      "index": "halacha.6",
+      "category": "Shabbat",
+      "topic": "Cooking and warming",
+      "summary": "Cooking is prohibited on Shabbat while approved warming methods may be used.",
+      "common_practices": [
+        "Cook before Shabbat",
+        "Use permitted warming arrangements under halachic guidance",
+        "Avoid direct cooking or prohibited manipulation"
+      ]
+    },
+    {
+      "index": "halacha.7",
+      "category": "Shabbat",
+      "topic": "Carrying and eruv",
+      "summary": "Carrying depends on valid eruv status and local communal infrastructure.",
+      "common_practices": [
+        "Do not carry where no valid eruv exists",
+        "Follow local rabbinic guidance on public and private space",
+        "Use community standards rather than assumptions"
+      ]
+    },
+    {
+      "index": "halacha.8",
+      "category": "Kashrut",
+      "topic": "Meat and dairy separation",
+      "summary": "Meat and dairy separation is observed carefully, with practical customs varying across families and cities.",
+      "common_practices": [
+        "Keep separate utensils and cookware",
+        "Observe customary waiting periods after meat according to local practice",
+        "Maintain a clean and supervised kitchen"
+      ]
+    },
+    {
+      "index": "halacha.9",
+      "category": "Kashrut",
+      "topic": "Shechita",
+      "summary": "Ritual slaughter and meat supervision are central to communal kashrut standards.",
+      "common_practices": [
+        "Use a qualified shochet",
+        "Inspect knives and meat carefully",
+        "Rely on recognized community supervision"
+      ]
+    },
+    {
+      "index": "halacha.10",
+      "category": "Kashrut",
+      "topic": "Wine and ritual beverages",
+      "summary": "Wine handling is treated carefully for Kiddush, Havdalah, and other ritual uses.",
+      "common_practices": [
+        "Use kosher wine or accepted alternatives",
+        "Follow local custom on handling and supervision",
+        "Observe communal norms for blessing sequence"
+      ]
+    },
+    {
+      "index": "halacha.11",
+      "category": "Pesach",
+      "topic": "Chametz removal",
+      "summary": "Chametz removal before Pesach is careful and often family-organized.",
+      "common_practices": [
+        "Search for chametz before Pesach",
+        "Sell or dispose of chametz properly",
+        "Use dedicated Pesach utensils or kasher equipment"
+      ]
+    },
+    {
+      "index": "halacha.12",
+      "category": "Pesach",
+      "topic": "Kitniyot and regional foods",
+      "summary": "Moroccan Pesach practice is generally compatible with Sephardi permission of kitniyot, though local custom matters greatly.",
+      "common_practices": [
+        "Rice and legumes may be used where permitted",
+        "Inspect foods for chametz contamination",
+        "Follow family and rabbinic guidance for packaged foods"
+      ],
+      "notes": "Some Moroccan subgroups preserve very specific local Pesach customs."
+    },
+    {
+      "index": "halacha.13",
+      "category": "Pesach",
+      "topic": "Seder practice",
+      "summary": "The Seder follows halachic structure with rich Moroccan song and food traditions.",
+      "common_practices": [
+        "Use community Haggadot or annotated family copies",
+        "Preserve songs, readings, and piyutim",
+        "Follow local custom for seder foods and sequence"
+      ]
+    },
+    {
+      "index": "halacha.14",
+      "category": "Lifecycle",
+      "topic": "Brit milah",
+      "summary": "Brit milah is performed according to halacha with strong ceremonial family traditions.",
+      "common_practices": [
+        "Use a qualified mohel",
+        "Observe naming and celebration customs",
+        "Preserve traditional blessings and songs"
+      ]
+    },
+    {
+      "index": "halacha.15",
+      "category": "Lifecycle",
+      "topic": "Marriage and henna customs",
+      "summary": "Marriage follows halacha and may include henna and other North African customs.",
+      "common_practices": [
+        "Use a valid ketubah",
+        "Perform kiddushin and nissuin properly",
+        "Observe local customs for pre-wedding celebration and henna"
+      ]
+    },
+    {
+      "index": "halacha.16",
+      "category": "Family law",
+      "topic": "Niddah and mikveh",
+      "summary": "Family purity laws are observed carefully and are a central part of traditional practice.",
+      "common_practices": [
+        "Observe separation laws during niddah",
+        "Use mikveh according to halacha",
+        "Follow local rabbinic guidance for household practice"
+      ]
+    },
+    {
+      "index": "halacha.17",
+      "category": "Mourning",
+      "topic": "Avelut and hashkava",
+      "summary": "Mourning follows halachic structure and may include distinctive memorial customs such as hashkava practices.",
+      "common_practices": [
+        "Observe shiva, shloshim, and yahrzeit customs",
+        "Use memorial prayer forms where customary",
+        "Maintain family etiquette for condolence and remembrance"
+      ]
+    },
+    {
+      "index": "halacha.18",
+      "category": "Calendar",
+      "topic": "High Holidays",
+      "summary": "Rosh Hashanah and Yom Kippur are observed with solemnity, selichot, and local melody traditions.",
+      "common_practices": [
+        "Use the Moroccan machzor or accepted rite",
+        "Preserve selichot and shofar customs",
+        "Follow local synagogue melodies and order"
+      ]
+    },
+    {
+      "index": "halacha.19",
+      "category": "Calendar",
+      "topic": "Chanukah",
+      "summary": "Chanukah is celebrated with standard halacha and local wordings and customs.",
+      "common_practices": [
+        "Light candles nightly",
+        "Recite blessings according to community custom",
+        "Preserve family food and song traditions"
+      ]
+    },
+    {
+      "index": "halacha.20",
+      "category": "Calendar",
+      "topic": "Purim",
+      "summary": "Purim is communal and festive with public Megillah reading and special foods.",
+      "common_practices": [
+        "Read the Megillah publicly",
+        "Exchange gifts to the poor and friends",
+        "Observe local Purim foods and celebration customs"
+      ]
+    },
+    {
+      "index": "halacha.21",
+      "category": "Education",
+      "topic": "Torah transmission",
+      "summary": "Education emphasizes rabbinic learning, communal memory, and family traditions.",
+      "common_practices": [
+        "Teach children prayers and readings",
+        "Preserve family and local custom",
+        "Use both text study and oral transmission"
+      ]
+    },
+    {
+      "index": "halacha.22",
+      "category": "Community",
+      "topic": "Toshavim and megorashim",
+      "summary": "A major internal distinction in Moroccan heritage is between older local Jews and exiled Sephardi arrivals.",
+      "common_practices": [
+        "Index lineage by subgroup when possible",
+        "Note city-specific and family-specific minhagim",
+        "Distinguish inherited practice from later external influence"
+      ]
+    }
+  ],
+  "unique_minhagim": {
+    "examples": [
+      "Hashkava communal memorial practice in some communities",
+      "Henna customs associated with weddings",
+      "Strong city-based differentiation such as Fez, Marrakesh, Tangier, and Tetouan",
+      "Rich piyut and melody traditions"
+    ],
+    "notes": "Moroccan halachic life is highly diverse; city and family subgrouping is important for accurate indexing."
+  },
+  "source_registry": {
+    "primary": [
+      "Shulchan Aruch",
+      "Beit Yosef",
+      "Mishneh Torah",
+      "Moroccan rabbinic literature"
+    ],
+    "secondary": [
+      "JewishGen Morocco Database",
+      "National Library of Israel Moroccan collections",
+      "Moroccan communal archives"
+    ]
+  }
+}

@@ -1,0 +1,346 @@
+{
+  "version": "2.0",
+  "type": "academic_halachic_reference",
+  "heritage_id": "iraqi",
+  "name": "Iraqi",
+  "aliases": [
+    "Baghdadi",
+    "Babylonian",
+    "Iraqi Jews"
+  ],
+  "database_scope": {
+    "purpose": "Academic and halachic reference database for Iraqi Jewish heritage, minhagim, and halachic practice.",
+    "coverage_note": "This file models broad Iraqi Jewish practice and includes common halachic domains. Local customs vary by city, family, synagogue, and migration history.",
+    "classification_note": "Iraqi Jewish practice is one of the most historically important Mizrahi traditions, shaped by Babylonian Jewish learning and later Sephardi influence."
+  },
+  "identity": {
+    "primary_origin": "Historic Jewish communities of Iraq, especially Baghdad, Basra, and Mosul",
+    "secondary_centers": [
+      "Baghdad",
+      "Basra",
+      "Mosul",
+      "Iraqi Jewish diaspora in Israel",
+      "Iraqi Jewish communities in the United Kingdom, India, Singapore, and North America"
+    ],
+    "cultural_profile": [
+      "Strong Babylonian rabbinic heritage",
+      "Sephardi-aligned liturgy in many settings",
+      "Distinctive Arabic-speaking and commercial communal culture",
+      "High value placed on scholarship, family continuity, and communal memory"
+    ]
+  },
+  "languages": [
+    "Hebrew",
+    "Arabic",
+    "Judeo-Arabic",
+    "English in diaspora",
+    "some Aramaic scholarly inheritance"
+  ],
+  "genealogy": {
+    "common_surname_patterns": [
+      "Arabic-root surnames",
+      "Names tied to cities, trades, or honorifics",
+      "Family names adapted in English, Hebrew, and colonial records"
+    ],
+    "research_notes": [
+      "Family branch and city are often more helpful than surname alone.",
+      "Migration records from Iraq to India, Israel, and other centers are important.",
+      "Orthographic changes across scripts are common."
+    ],
+    "recommended_genealogy_fields": [
+      "surname",
+      "alternate_spellings",
+      "town_of_origin",
+      "family_branch",
+      "migration_route",
+      "synagogue_affiliation",
+      "ritual_minhag"
+    ]
+  },
+  "historical_background": {
+    "timeline": [
+      {
+        "period": "Ancient Babylonian era",
+        "event": "Jewish learning in Babylonia became foundational to Rabbinic Judaism.",
+        "halachic_impact": "The Bavli and Babylonian rabbinic tradition shaped global Jewish law."
+      },
+      {
+        "period": "Islamic era",
+        "event": "Jewish communities flourished in Iraq under changing political rule.",
+        "halachic_impact": "Community institutions, commerce, and scholarship developed strongly."
+      },
+      {
+        "period": "Ottoman and modern periods",
+        "event": "Iraqi Jews maintained strong identity in Baghdad and other centers.",
+        "halachic_impact": "Sephardi influence and local Babylonian tradition coexisted."
+      },
+      {
+        "period": "20th century and after",
+        "event": "Mass emigration to Israel, India-linked routes, Europe, and the Americas transformed the community.",
+        "halachic_impact": "Diaspora communities worked to preserve liturgy, cuisine, and family practice."
+      }
+    ]
+  },
+  "core_halachic_authorities": {
+    "primary_codes": [
+      "Shulchan Aruch",
+      "Mishneh Torah",
+      "Babylonian rabbinic tradition"
+    ],
+    "major_rishonim_base": [
+      "Rambam",
+      "Rif",
+      "Rosh"
+    ],
+    "later_authorities_and_guides": [
+      "Baghdad rabbis such as the Ben Ish Chai",
+      "Rav Abdallah Somekh",
+      "Rav Yosef Chaim",
+      "Local Iraqi communal rabbis"
+    ],
+    "decision_principle": "Follow established Iraqi minhag, often with strong respect for Babylonian scholarship and Sephardi-style legal structure."
+  },
+  "halacha_index": [
+    {
+      "index": "halacha.1",
+      "category": "Prayer",
+      "topic": "Nusach and liturgy",
+      "summary": "Iraqi prayer tradition is often Sephardi in framework while preserving distinctive Babylonian and local Iraqi forms.",
+      "common_practices": [
+        "Use Iraqi siddurim or accepted Sephardi rite",
+        "Preserve local melodies and prayers",
+        "Include piyyutim and special festival additions where customary"
+      ]
+    },
+    {
+      "index": "halacha.2",
+      "category": "Prayer",
+      "topic": "Torah reading",
+      "summary": "Torah reading is central and reflects strong scholarly and communal discipline.",
+      "common_practices": [
+        "Use trained readers",
+        "Follow local cantillation",
+        "Preserve aliyah and honor customs"
+      ]
+    },
+    {
+      "index": "halacha.3",
+      "category": "Prayer",
+      "topic": "Study and synagogue life",
+      "summary": "Learning and prayer are tightly linked in Iraqi Jewish tradition.",
+      "common_practices": [
+        "Maintain a strong study culture",
+        "Use synagogue as a communal learning center",
+        "Preserve local teaching methods and recitation"
+      ]
+    },
+    {
+      "index": "halacha.4",
+      "category": "Shabbat",
+      "topic": "Candle lighting",
+      "summary": "Shabbat candle lighting is observed carefully with family customs and timing.",
+      "common_practices": [
+        "Light before Shabbat begins",
+        "Use customary blessing wording",
+        "Preserve family candle traditions where inherited"
+      ]
+    },
+    {
+      "index": "halacha.5",
+      "category": "Shabbat",
+      "topic": "Meals and hospitality",
+      "summary": "Shabbat meals often reflect a strong hospitality ethic and traditional Iraqi cuisine.",
+      "common_practices": [
+        "Prepare food before Shabbat",
+        "Honor guests and family according to custom",
+        "Serve traditional Iraqi-Jewish dishes where kosher"
+      ]
+    },
+    {
+      "index": "halacha.6",
+      "category": "Shabbat",
+      "topic": "Cooking and warming",
+      "summary": "Cooking is prohibited on Shabbat, while permitted warming methods may be used under halachic guidance.",
+      "common_practices": [
+        "Cook before Shabbat",
+        "Use permitted warming arrangements where accepted",
+        "Avoid prohibited cooking and direct heating"
+      ]
+    },
+    {
+      "index": "halacha.7",
+      "category": "Shabbat",
+      "topic": "Carrying and eruv",
+      "summary": "Carrying outside a valid eruv is prohibited and depends on local infrastructure.",
+      "common_practices": [
+        "Check eruv validity",
+        "Follow local rabbinic guidance",
+        "Do not carry where no eruv exists"
+      ]
+    },
+    {
+      "index": "halacha.8",
+      "category": "Kashrut",
+      "topic": "Meat and dairy separation",
+      "summary": "Meat and dairy separation is strictly observed and embedded in the home kitchen.",
+      "common_practices": [
+        "Keep separate utensils and cookware",
+        "Observe waiting periods after meat according to community custom",
+        "Maintain strict household separation"
+      ]
+    },
+    {
+      "index": "halacha.9",
+      "category": "Kashrut",
+      "topic": "Shechita and supervision",
+      "summary": "Ritual slaughter and kosher supervision are central communal concerns.",
+      "common_practices": [
+        "Use qualified shochtim",
+        "Inspect meat and utensils carefully",
+        "Follow recognized community supervision"
+      ]
+    },
+    {
+      "index": "halacha.10",
+      "category": "Kashrut",
+      "topic": "Wine and ritual use",
+      "summary": "Wine for Kiddush and other rituals is handled carefully.",
+      "common_practices": [
+        "Use kosher wine for ritual use",
+        "Follow local customs on handling and purchase",
+        "Observe communal standards in food and beverage supervision"
+      ]
+    },
+    {
+      "index": "halacha.11",
+      "category": "Pesach",
+      "topic": "Chametz removal",
+      "summary": "Chametz is removed thoroughly before Pesach.",
+      "common_practices": [
+        "Search for chametz before Pesach",
+        "Sell or destroy chametz properly",
+        "Kasher utensils and surfaces as needed"
+      ]
+    },
+    {
+      "index": "halacha.12",
+      "category": "Pesach",
+      "topic": "Kitniyot and regional foods",
+      "summary": "Iraqi Pesach practice is generally compatible with Sephardi permissibility of kitniyot, subject to local custom.",
+      "common_practices": [
+        "Rice and legumes may be used where community custom permits",
+        "Inspect food for chametz contamination",
+        "Follow family and rabbinic guidance for packaged foods"
+      ]
+    },
+    {
+      "index": "halacha.13",
+      "category": "Pesach",
+      "topic": "Seder practice",
+      "summary": "The Seder is marked by halachic structure and Iraqi family customs.",
+      "common_practices": [
+        "Use accepted Haggadah rite",
+        "Preserve songs and recitation customs",
+        "Follow local food and symbolic customs"
+      ]
+    },
+    {
+      "index": "halacha.14",
+      "category": "Lifecycle",
+      "topic": "Brit milah",
+      "summary": "Brit milah is performed with halachic precision and family celebration.",
+      "common_practices": [
+        "Use a qualified mohel",
+        "Observe naming and blessing customs",
+        "Preserve songs and family traditions"
+      ]
+    },
+    {
+      "index": "halacha.15",
+      "category": "Lifecycle",
+      "topic": "Marriage and ketubah",
+      "summary": "Marriage is halachically standard and often strongly family-centered.",
+      "common_practices": [
+        "Use a valid ketubah",
+        "Perform kiddushin and nissuin properly",
+        "Observe local engagement and wedding customs"
+      ]
+    },
+    {
+      "index": "halacha.16",
+      "category": "Family law",
+      "topic": "Niddah and mikveh",
+      "summary": "Family purity laws are observed carefully and are central to traditional practice.",
+      "common_practices": [
+        "Observe niddah separation laws",
+        "Use mikveh according to halacha",
+        "Follow local rabbinic guidance for household practice"
+      ]
+    },
+    {
+      "index": "halacha.17",
+      "category": "Mourning",
+      "topic": "Avelut",
+      "summary": "Mourning follows standard halachic structure with strong family and communal support.",
+      "common_practices": [
+        "Observe shiva, shloshim, and yahrzeit customs",
+        "Use memorial prayer forms according to local practice",
+        "Maintain condolence etiquette and community structure"
+      ]
+    },
+    {
+      "index": "halacha.18",
+      "category": "Calendar",
+      "topic": "High Holidays",
+      "summary": "Rosh Hashanah and Yom Kippur are observed with seriousness and local liturgical tradition.",
+      "common_practices": [
+        "Use the community machzor or accepted rite",
+        "Preserve selichot and shofar customs",
+        "Follow synagogue order and family tradition"
+      ]
+    },
+    {
+      "index": "halacha.19",
+      "category": "Calendar",
+      "topic": "Chanukah and Purim",
+      "summary": "Minor festivals are observed according to halacha and Iraqi Jewish custom.",
+      "common_practices": [
+        "Light Chanukah candles nightly",
+        "Read the Megillah on Purim",
+        "Use family foods and celebration customs"
+      ]
+    },
+    {
+      "index": "halacha.20",
+      "category": "Education",
+      "topic": "Torah transmission",
+      "summary": "Torah study, especially around the Talmud and halacha, is central to Iraqi Jewish identity.",
+      "common_practices": [
+        "Teach children Hebrew and prayer",
+        "Preserve oral family memory",
+        "Use both formal scholarship and inherited communal tradition"
+      ]
+    }
+  ],
+  "unique_minhagim": {
+    "examples": [
+      "Strong Babylonian scholarly identity",
+      "Sephardi-aligned rite with Iraqi distinctives",
+      "Family and synagogue-centered communal culture",
+      "Traditions tied to Baghdad, Basra, and Mosul"
+    ],
+    "notes": "Iraqi Jewish practice should be indexed by city and family branch whenever possible."
+  },
+  "source_registry": {
+    "primary": [
+      "Shulchan Aruch",
+      "Mishneh Torah",
+      "Babylonian rabbinic tradition"
+    ],
+    "secondary": [
+      "Iraqi Jewish community sources",
+      "Jewish studies reference works",
+      "Genealogical and historical collections"
+    ]
+  }
+}

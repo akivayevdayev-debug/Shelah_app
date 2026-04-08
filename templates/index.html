@@ -1,0 +1,2913 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sheilah - Torah Encyclopedia</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- Scholarly Typography -->
+    <link
+        href="https://fonts.googleapis.com/css2?family=Cardo:wght@400;700&family=Frank+Ruhl+Libre:wght@400;500;700&family=Inter:wght@400;500;600&display=swap"
+        rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <link rel="stylesheet" href="/static/style.css">
+
+    <!-- FullCalendar -->
+    <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.15/index.global.min.js"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                        serif: ['Cardo', 'serif'],
+                        hebrew: ['"Frank Ruhl Libre"', 'serif'],
+                    },
+                    colors: {
+                        navy: '#002147',
+                        gold: '#D4AF37',
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 4px;
+        }
+    </style>
+</head>
+
+<body class="library-shell bg-slate-50 font-sans text-slate-900 h-screen overflow-hidden flex flex-col">
+
+    <!-- TOP NAVIGATION BAR (Sefaria Style) -->
+    <header
+        class="topbar bg-white text-slate-800 p-2 lg:p-2.5 shadow-sm border-b flex justify-between items-center z-50 flex-shrink-0 gap-3">
+        <div class="flex items-center gap-2 cursor-pointer" onclick="goHome()">
+            <div class="text-navy font-hebrew text-4xl font-semibold leading-tight -mt-1">
+                ש
+            </div>
+            <h1 class="text-xl font-serif tracking-tight text-navy font-semibold hidden md:block">Sheilah <span
+                    class="text-xs font-normal text-slate-500 italic block -mt-0.5">Torah Encyclopedia</span></h1>
+        </div>
+
+        <!-- Top Navigation Menu Toggle + Search Bar -->
+        <div class="flex-1 max-w-4xl flex items-center justify-center gap-2">
+            <!-- Browse Texts Button (Top Menu) -->
+            <button onclick="openTextsMenu()"
+                class="px-3 py-1.5 text-sm font-semibold text-navy bg-slate-100 rounded-full hover:bg-slate-200 transition whitespace-nowrap"
+                data-en="Browse Texts" data-he="עיון בטקסטים">
+                Browse Texts
+            </button>
+
+            <div class="w-full">
+                <!-- Search Form -->
+                <form id="searchForm" class="w-full relative">
+                    <input type="text" id="searchInput" placeholder="Search for a topic, halacha, or custom..."
+                        class="w-full bg-slate-100 hover:bg-slate-200 transition text-base p-2 pl-4 pr-10 rounded-full border-none focus:ring-2 focus:ring-blue-400 focus:bg-white focus:outline-none"
+                        autocomplete="off" required>
+                    <div id="searchIcon" class="absolute right-3 top-2 text-slate-400">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                            <path fill-rule="evenodd"
+                                d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z"
+                                clip-rule="evenodd" />
+                        </svg>
+                    </div>
+
+                    <div id="searchSuggestions"
+                        class="hidden absolute left-0 right-0 mt-2 bg-white border border-slate-200 rounded-2xl shadow-lg z-[80] max-h-80 overflow-y-auto">
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <div class="flex gap-2 items-center">
+            <div id="settingsMenuContainer" class="relative">
+                <button id="settingsMenuBtn" type="button" aria-expanded="false" aria-haspopup="true"
+                    class="px-2 py-1.5 border border-slate-300 rounded bg-slate-100 hover:bg-slate-200 transition text-slate-700"
+                    title="Open settings menu">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
+                        <path
+                            d="M3 5.5A1.5 1.5 0 014.5 4h11A1.5 1.5 0 0117 5.5v.25A1.75 1.75 0 0115.25 7.5h-3.5A1.75 1.75 0 0110 5.75V5h-5a.5.5 0 000 1h2a1 1 0 010 2H4.5A1.5 1.5 0 013 6.5v-1zM3 13.5A1.5 1.5 0 014.5 12H8a1.75 1.75 0 011.75 1.75V14A1.5 1.5 0 018.25 15.5h-3.75A1.5 1.5 0 013 14v-.5zM12 12a1 1 0 000 2h3.5a.5.5 0 010 1H13a1 1 0 100 2h2.5A1.5 1.5 0 0017 15.5v-2A1.5 1.5 0 0015.5 12H12z" />
+                    </svg>
+                </button>
+
+                <div id="settingsPanel"
+                    class="hidden absolute right-0 mt-2 w-72 bg-white border border-slate-200 rounded-xl shadow-lg p-3 z-[90] space-y-3">
+                    <p class="text-[11px] uppercase tracking-widest text-slate-400 font-bold">Quick Settings</p>
+
+                    <label class="block text-xs text-slate-600">
+                        Mode
+                        <select id="answerModeSelect"
+                            class="mt-1 w-full px-2 py-1.5 rounded border border-slate-200 bg-slate-50 text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-400">
+                            <option value="balanced">Balanced</option>
+                            <option value="practical">Practical First</option>
+                            <option value="sources">Deep Sources</option>
+                        </select>
+                    </label>
+
+                    <label class="block text-xs text-slate-600">
+                        Community
+                        <select id="communityLensSelect"
+                            class="mt-1 w-full px-2 py-1.5 rounded border border-slate-200 bg-slate-50 text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-400">
+                            <option value="All">All</option>
+                            <option value="Ashkenaz">Ashkenaz</option>
+                            <option value="Sefardic">Sefardic</option>
+                            <option value="Iraqi">Iraqi</option>
+                            <option value="Syrian">Syrian</option>
+                            <option value="Yemenite">Yemenite</option>
+                            <option value="Moroccan">Moroccan</option>
+                            <option value="Kavkazi">Kavkazi</option>
+                            <option value="Israeli">Israeli</option>
+                        </select>
+                    </label>
+
+                    <div class="grid grid-cols-2 gap-2">
+                        <button id="bookmarkCurrentBtn" type="button"
+                            class="px-3 py-1.5 rounded bg-navy text-white hover:bg-blue-900 transition font-semibold text-xs">
+                            Save Current
+                        </button>
+
+                        <button id="sidebarToggleBtn" type="button"
+                            class="px-3 py-1.5 rounded bg-slate-100 text-slate-700 border border-slate-200 hover:bg-slate-200 transition font-semibold text-xs">
+                            Hide Sidebars
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="hidden md:block text-xs font-serif italic text-slate-500 mr-2">{{ daily.hebrew_date if daily
+                else "Today" }}</div>
+            <!-- Translator Toggles -->
+            <button onclick="toggleLanguage('en')"
+                class="px-2 py-1 text-xs border border-slate-300 rounded bg-slate-100 font-serif transition hover:bg-blue-100 lang-btn"
+                data-lang="en">English</button>
+            <button onclick="toggleLanguage('he')"
+                class="px-2 py-1 text-xs border border-slate-300 rounded font-hebrew hover:bg-slate-100 transition lang-btn"
+                data-lang="he">עברית</button>
+        </div>
+    </header>
+
+    <div class="flex flex-1 overflow-hidden">
+
+        <!-- Column 1: Navigator (Left) -->
+        <nav
+            class="navigator-pane w-64 xl:w-72 border-r bg-white p-6 overflow-y-auto hidden lg:block flex-shrink-0 custom-scrollbar">
+            <h3 class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-6" data-en="Table of Contents"
+                data-he="תוכן עניינים">Table of Contents</h3>
+            <div class="space-y-4 text-sm text-slate-700">
+                <details class="group cursor-pointer" open>
+                    <summary
+                        class="font-semibold hover:text-[#004e5f] list-none border-b pb-2 mb-2 flex justify-between">
+                        <span data-en="Tanakh" data-he="תנ״ך">Tanakh</span><span
+                            class="text-slate-300 group-open:rotate-90 transform transition">›</span>
+                    </summary>
+                    <ul class="ml-2 space-y-1 border-l-2 pl-3 border-[#004e5f]/30">
+                        <details class="group">
+                            <summary class="text-slate-600 hover:text-[#004e5f] cursor-pointer font-medium text-sm">
+                                Torah (5 Books)</summary>
+                            <ul class="ml-3 space-y-1 mt-1">
+                                <li><button id="parashaQuickLink" onclick="readText('Genesis 1')"
+                                        class="text-left text-[#0f4d67] hover:text-[#003049] bg-[#f0f7fb] border border-[#d3e7f1] rounded px-2 py-1 text-sm w-full font-semibold">Parashat
+                                        HaShavua</button></li>
+                                <li><button onclick="readText('Genesis 1')"
+                                        class="text-left text-slate-600 hover:text-[#004e5f] text-sm w-full py-0.5">Genesis
+                                        (Bereishit)</button></li>
+                                <li><button onclick="readText('Exodus 1')"
+                                        class="text-left text-slate-600 hover:text-[#004e5f] text-sm w-full py-0.5">Exodus
+                                        (Shemot)</button></li>
+                                <li><button onclick="readText('Leviticus 1')"
+                                        class="text-left text-slate-600 hover:text-[#004e5f] text-sm w-full py-0.5">Leviticus
+                                        (Vayikra)</button></li>
+                                <li><button onclick="readText('Numbers 1')"
+                                        class="text-left text-slate-600 hover:text-[#004e5f] text-sm w-full py-0.5">Numbers
+                                        (Bamidbar)</button></li>
+                                <li><button onclick="readText('Deuteronomy 1')"
+                                        class="text-left text-slate-600 hover:text-[#004e5f] text-sm w-full py-0.5">Deuteronomy
+                                        (Devarim)</button></li>
+                            </ul>
+                        </details>
+                        <details class="group">
+                            <summary class="text-slate-600 hover:text-[#004e5f] cursor-pointer font-medium text-sm">
+                                Prophets</summary>
+                            <ul class="ml-3 space-y-1 mt-1">
+                                <li><button onclick="readText('Joshua 1')"
+                                        class="text-left text-slate-600 hover:text-[#004e5f] text-sm w-full py-0.5">Joshua</button>
+                                </li>
+                                <li><button onclick="readText('Judges 1')"
+                                        class="text-left text-slate-600 hover:text-[#004e5f] text-sm w-full py-0.5">Judges</button>
+                                </li>
+                                <li><button onclick="readText('I Samuel 1')"
+                                        class="text-left text-slate-600 hover:text-[#004e5f] text-sm w-full py-0.5">I
+                                        Samuel</button></li>
+                                <li><button onclick="readText('II Samuel 1')"
+                                        class="text-left text-slate-600 hover:text-[#004e5f] text-sm w-full py-0.5">II
+                                        Samuel</button></li>
+                                <li><button onclick="readText('Isaiah 1')"
+                                        class="text-left text-slate-600 hover:text-[#004e5f] text-sm w-full py-0.5">Isaiah</button>
+                                </li>
+                                <li><button onclick="readText('Jeremiah 1')"
+                                        class="text-left text-slate-600 hover:text-[#004e5f] text-sm w-full py-0.5">Jeremiah</button>
+                                </li>
+                                <li><button onclick="readText('Ezekiel 1')"
+                                        class="text-left text-slate-600 hover:text-[#004e5f] text-sm w-full py-0.5">Ezekiel</button>
+                                </li>
+                                <li><button onclick="readText('Hosea 1')"
+                                        class="text-left text-slate-600 hover:text-[#004e5f] text-sm w-full py-0.5">Hosea</button>
+                                </li>
+                                <li><button onclick="readText('Joel 1')"
+                                        class="text-left text-slate-600 hover:text-[#004e5f] text-sm w-full py-0.5">Joel</button>
+                                </li>
+                                <li><button onclick="readText('Amos 1')"
+                                        class="text-left text-slate-600 hover:text-[#004e5f] text-sm w-full py-0.5">Amos</button>
+                                </li>
+                                <li><button onclick="readText('Obadiah 1')"
+                                        class="text-left text-slate-600 hover:text-[#004e5f] text-sm w-full py-0.5">Obadiah</button>
+                                </li>
+                                <li><button onclick="readText('Jonah 1')"
+                                        class="text-left text-slate-600 hover:text-[#004e5f] text-sm w-full py-0.5">Jonah</button>
+                                </li>
+                                <li><button onclick="readText('Micah 1')"
+                                        class="text-left text-slate-600 hover:text-[#004e5f] text-sm w-full py-0.5">Micah</button>
+                                </li>
+                                <li><button onclick="readText('Nahum 1')"
+                                        class="text-left text-slate-600 hover:text-[#004e5f] text-sm w-full py-0.5">Nahum</button>
+                                </li>
+                                <li><button onclick="readText('Habakkuk 1')"
+                                        class="text-left text-slate-600 hover:text-[#004e5f] text-sm w-full py-0.5">Habakkuk</button>
+                                </li>
+                                <li><button onclick="readText('Zephaniah 1')"
+                                        class="text-left text-slate-600 hover:text-[#004e5f] text-sm w-full py-0.5">Zephaniah</button>
+                                </li>
+                                <li><button onclick="readText('Haggai 1')"
+                                        class="text-left text-slate-600 hover:text-[#004e5f] text-sm w-full py-0.5">Haggai</button>
+                                </li>
+                                <li><button onclick="readText('Zechariah 1')"
+                                        class="text-left text-slate-600 hover:text-[#004e5f] text-sm w-full py-0.5">Zechariah</button>
+                                </li>
+                                <li><button onclick="readText('Malachi 1')"
+                                        class="text-left text-slate-600 hover:text-[#004e5f] text-sm w-full py-0.5">Malachi</button>
+                                </li>
+                            </ul>
+                        </details>
+                        <details class="group">
+                            <summary class="text-slate-600 hover:text-[#004e5f] cursor-pointer font-medium text-sm">
+                                Writings</summary>
+                            <ul class="ml-3 space-y-1 mt-1">
+                                <li><button onclick="readText('Psalms 1')"
+                                        class="text-left text-slate-600 hover:text-[#004e5f] text-sm w-full py-0.5">Psalms
+                                        (Tehillim)</button></li>
+                                <li><button onclick="readText('Proverbs 1')"
+                                        class="text-left text-slate-600 hover:text-[#004e5f] text-sm w-full py-0.5">Proverbs
+                                        (Mishlei)</button></li>
+                                <li><button onclick="readText('Job 1')"
+                                        class="text-left text-slate-600 hover:text-[#004e5f] text-sm w-full py-0.5">Job
+                                        (Iyov)</button></li>
+                                <li><button onclick="readText('Song of Songs 1')"
+                                        class="text-left text-slate-600 hover:text-[#004e5f] text-sm w-full py-0.5">Song
+                                        of Songs</button></li>
+                                <li><button onclick="readText('Ruth 1')"
+                                        class="text-left text-slate-600 hover:text-[#004e5f] text-sm w-full py-0.5">Ruth</button>
+                                </li>
+                                <li><button onclick="readText('Lamentations 1')"
+                                        class="text-left text-slate-600 hover:text-[#004e5f] text-sm w-full py-0.5">Lamentations
+                                        (Eicha)</button></li>
+                                <li><button onclick="readText('Ecclesiastes 1')"
+                                        class="text-left text-slate-600 hover:text-[#004e5f] text-sm w-full py-0.5">Ecclesiastes
+                                        (Kohelet)</button></li>
+                                <li><button onclick="readText('Esther 1')"
+                                        class="text-left text-slate-600 hover:text-[#004e5f] text-sm w-full py-0.5">Esther</button>
+                                </li>
+                                <li><button onclick="readText('Daniel 1')"
+                                        class="text-left text-slate-600 hover:text-[#004e5f] text-sm w-full py-0.5">Daniel</button>
+                                </li>
+                                <li><button onclick="readText('Ezra 1')"
+                                        class="text-left text-slate-600 hover:text-[#004e5f] text-sm w-full py-0.5">Ezra</button>
+                                </li>
+                                <li><button onclick="readText('Nehemiah 1')"
+                                        class="text-left text-slate-600 hover:text-[#004e5f] text-sm w-full py-0.5">Nehemiah</button>
+                                </li>
+                                <li><button onclick="readText('I Chronicles 1')"
+                                        class="text-left text-slate-600 hover:text-[#004e5f] text-sm w-full py-0.5">I
+                                        Chronicles</button></li>
+                                <li><button onclick="readText('II Chronicles 1')"
+                                        class="text-left text-slate-600 hover:text-[#004e5f] text-sm w-full py-0.5">II
+                                        Chronicles</button></li>
+                            </ul>
+                        </details>
+                    </ul>
+                </details>
+                <details class="group cursor-pointer">
+                    <summary class="font-semibold hover:text-[#5a99b7] list-none border-b pb-2 mb-2" data-en="Mishnah"
+                        data-he="משנה">Mishnah</summary>
+                    <ul class="ml-2 space-y-1 border-l-2 pl-3 border-[#5a99b7]/30">
+                        <li><button onclick="readText('Mishnah Berakhot 1')"
+                                class="text-left text-slate-600 hover:text-[#5a99b7] text-sm w-full py-0.5">Berakhot
+                                (Blessings)</button></li>
+                        <li><button onclick="readText('Mishnah Shabbat 1')"
+                                class="text-left text-slate-600 hover:text-[#5a99b7] text-sm w-full py-0.5">Shabbat</button>
+                        </li>
+                        <li><button onclick="readText('Mishnah Pesachim 1')"
+                                class="text-left text-slate-600 hover:text-[#5a99b7] text-sm w-full py-0.5">Pesachim
+                                (Passover)</button></li>
+                        <li><button onclick="readText('Mishnah Sukkah 1')"
+                                class="text-left text-slate-600 hover:text-[#5a99b7] text-sm w-full py-0.5">Sukkah</button>
+                        </li>
+                        <li><button onclick="readText('Mishnah Yom Tov 1')"
+                                class="text-left text-slate-600 hover:text-[#5a99b7] text-sm w-full py-0.5">Yom
+                                Tov</button></li>
+                        <li><button onclick="readText('Mishnah Rosh Hashanah 1')"
+                                class="text-left text-slate-600 hover:text-[#5a99b7] text-sm w-full py-0.5">Rosh
+                                Hashanah</button></li>
+                        <li><button onclick="readText('Mishnah Taanit 1')"
+                                class="text-left text-slate-600 hover:text-[#5a99b7] text-sm w-full py-0.5">Taanit
+                                (Fasting)</button></li>
+                        <li><button onclick="readText('Pirkei Avot 1')"
+                                class="text-left text-slate-600 hover:text-[#5a99b7] text-sm w-full py-0.5">Pirkei Avot
+                                (Ethics)</button></li>
+                        <li><button onclick="readText('Mishnah Niddah 1')"
+                                class="text-left text-slate-600 hover:text-[#5a99b7] text-sm w-full py-0.5">Niddah
+                                (Family Purity)</button></li>
+                    </ul>
+                </details>
+                <details class="group cursor-pointer">
+                    <summary class="font-semibold hover:text-[#a08a4a] list-none border-b pb-2 mb-2"
+                        data-en="Talmud Bavli" data-he="תלמוד בבלי">Talmud Bavli
+                    </summary>
+                    <ul class="ml-2 space-y-1 border-l-2 pl-3 border-[#ccb479]/50">
+                        <li><button onclick="readText('Berakhot 2a')"
+                                class="text-left text-slate-600 hover:text-[#a08a4a] text-sm w-full py-0.5">Berakhot</button>
+                        </li>
+                        <li><button onclick="readText('Shabbat 2a')"
+                                class="text-left text-slate-600 hover:text-[#a08a4a] text-sm w-full py-0.5">Shabbat</button>
+                        </li>
+                        <li><button onclick="readText('Pesachim 2a')"
+                                class="text-left text-slate-600 hover:text-[#a08a4a] text-sm w-full py-0.5">Pesachim</button>
+                        </li>
+                        <li><button onclick="readText('Sukkah 2a')"
+                                class="text-left text-slate-600 hover:text-[#a08a4a] text-sm w-full py-0.5">Sukkah</button>
+                        </li>
+                        <li><button onclick="readText('Sanhedrin 37a')"
+                                class="text-left text-slate-600 hover:text-[#a08a4a] text-sm w-full py-0.5">Sanhedrin</button>
+                        </li>
+                        <li><button onclick="readText('Kiddushin 2a')"
+                                class="text-left text-slate-600 hover:text-[#a08a4a] text-sm w-full py-0.5">Kiddushin</button>
+                        </li>
+                        <li><button onclick="readText('Gittin 2a')"
+                                class="text-left text-slate-600 hover:text-[#a08a4a] text-sm w-full py-0.5">Gittin</button>
+                        </li>
+                        <li><button onclick="readText('Niddah 2a')"
+                                class="text-left text-slate-600 hover:text-[#a08a4a] text-sm w-full py-0.5">Niddah</button>
+                        </li>
+                    </ul>
+                </details>
+                <details class="group cursor-pointer">
+                    <summary class="font-semibold hover:text-[#802f3e] list-none border-b pb-2 mb-2" data-en="Halakhah"
+                        data-he="הלכה">Halakhah</summary>
+                    <ul class="ml-2 space-y-1 border-l-2 pl-3 border-[#802f3e]/30">
+                        <li><button onclick="readText('Shulchan Arukh, Orach Chayim 1')"
+                                class="text-left text-slate-600 hover:text-[#802f3e] text-sm w-full py-0.5">Shulchan
+                                Arukh OC</button></li>
+                        <li><button onclick="readText('Shulchan Arukh, Yoreh Deah 1')"
+                                class="text-left text-slate-600 hover:text-[#802f3e] text-sm w-full py-0.5">Shulchan
+                                Arukh YD</button></li>
+                        <li><button onclick="readText('Shulchan Arukh, Even HaEzer 1')"
+                                class="text-left text-slate-600 hover:text-[#802f3e] text-sm w-full py-0.5">Shulchan
+                                Arukh EH</button></li>
+                        <li><button onclick="readText('Shulchan Arukh, Choshen Mishpat 1')"
+                                class="text-left text-slate-600 hover:text-[#802f3e] text-sm w-full py-0.5">Shulchan
+                                Arukh CM</button></li>
+                        <li><button onclick="readText('Mishneh Torah, Torah Study 1')"
+                                class="text-left text-slate-600 hover:text-[#802f3e] text-sm w-full py-0.5">Mishneh
+                                Torah</button></li>
+                        <li><button onclick="readText('Kitzur Shulchan Arukh 1')"
+                                class="text-left text-slate-600 hover:text-[#802f3e] text-sm w-full py-0.5">Kitzur
+                                Shulchan Arukh</button></li>
+                        <li><button onclick="readText('Mishnah Berurah 1')"
+                                class="text-left text-slate-600 hover:text-[#802f3e] text-sm w-full py-0.5">Mishnah
+                                Berurah</button></li>
+                    </ul>
+                </details>
+
+                <h3 class="text-xs font-bold text-slate-400 uppercase tracking-widest mt-6 mb-3"
+                    data-en="Prayer Services" data-he="שירות תפילה">
+                    Prayer Services</h3>
+                <details class="group cursor-pointer">
+                    <summary class="font-semibold hover:text-[#00827f] list-none border-b pb-2 mb-2"
+                        data-en="Prayer Books (Sefaria)" data-he="סידורי תפילה (ספריא)">Prayer Books (Sefaria)</summary>
+                    <ul class="ml-2 space-y-1 border-l-2 pl-3 border-[#00827f]/30">
+                        <li><button onclick="displayPrayer('Weekday Shacharit')"
+                                class="text-left text-slate-600 hover:text-[#00827f] text-sm w-full py-0.5"
+                                data-en="Shacharit (Morning)" data-he="שחרית">Shacharit (Morning)</button></li>
+                        <li><button onclick="displayPrayer('Weekday Mincha')"
+                                class="text-left text-slate-600 hover:text-[#00827f] text-sm w-full py-0.5"
+                                data-en="Mincha (Afternoon)" data-he="מנחה">Mincha
+                                (Afternoon)</button></li>
+                        <li><button onclick="displayPrayer('Weekday Maariv')"
+                                class="text-left text-slate-600 hover:text-[#00827f] text-sm w-full py-0.5"
+                                data-en="Maariv (Evening)" data-he="מעריב">Maariv
+                                (Evening)</button></li>
+                        <li><button onclick="displayPrayer('Shabbat Shacharit')"
+                                class="text-left text-slate-600 hover:text-[#00827f] text-sm w-full py-0.5"
+                                data-en="Shabbat Prayers" data-he="תפילות שבת">Shabbat Prayers</button></li>
+                        <li><button onclick="displayPrayer('Holiday Prayers')"
+                                class="text-left text-slate-600 hover:text-[#00827f] text-sm w-full py-0.5"
+                                data-en="Holiday Prayers" data-he="תפילות חגים">Holiday Prayers</button></li>
+                        <li><button onclick="displayPrayer('Kiddush')"
+                                class="text-left text-slate-600 hover:text-[#00827f] text-sm w-full py-0.5"
+                                data-en="Kiddush &amp; Havdalah" data-he="קידוש והבדלה">Kiddush &amp; Havdalah</button>
+                        </li>
+                        <li><button onclick="displayPrayer('Upon Arising')"
+                                class="text-left text-slate-600 hover:text-[#00827f] text-sm w-full py-0.5"
+                                data-en="Morning Blessings" data-he="ברכות ההשכמה">Morning Blessings</button></li>
+                    </ul>
+                </details>
+                <details class="group cursor-pointer">
+                    <summary class="font-semibold hover:text-[#594176] list-none border-b pb-2 mb-2"
+                        data-en="Community Customs (Merkava)" data-he="מנהגים קהילתיים">Community Customs (Merkava)
+                    </summary>
+                    <ul class="ml-2 space-y-1 border-l-2 pl-3 border-[#594176]/30">
+                        <li><button onclick="displayCommunity('Ashkenaz')"
+                                class="text-left text-slate-600 hover:text-[#594176] text-sm w-full py-0.5"
+                                data-en="Ashkenaz" data-he="אשכנז">Ashkenaz</button>
+                        </li>
+                        <li><button onclick="displayCommunity('Sefardic')"
+                                class="text-left text-slate-600 hover:text-[#594176] text-sm w-full py-0.5"
+                                data-en="Sefardic" data-he="ספרדי">Sefardic</button></li>
+                        <li><button onclick="displayCommunity('Iraqi')"
+                                class="text-left text-slate-600 hover:text-[#594176] text-sm w-full py-0.5"
+                                data-en="Iraqi" data-he="עיראקי">Iraqi</button></li>
+                        <li><button onclick="displayCommunity('Syrian')"
+                                class="text-left text-slate-600 hover:text-[#594176] text-sm w-full py-0.5"
+                                data-en="Syrian" data-he="סורי">Syrian</button></li>
+                        <li><button onclick="displayCommunity('Yemenite')"
+                                class="text-left text-slate-600 hover:text-[#594176] text-sm w-full py-0.5"
+                                data-en="Yemenite" data-he="תימני">Yemenite</button></li>
+                        <li><button onclick="displayCommunity('Moroccan')"
+                                class="text-left text-slate-600 hover:text-[#594176] text-sm w-full py-0.5"
+                                data-en="Moroccan" data-he="מרוקאי">Moroccan</button></li>
+                        <li><button onclick="displayCommunity('Kavkazi')"
+                                class="text-left text-slate-600 hover:text-[#594176] text-sm w-full py-0.5"
+                                data-en="Kavkazi" data-he="קווקזי">Kavkazi</button></li>
+                        <li><button onclick="displayCommunity('Israeli')"
+                                class="text-left text-slate-600 hover:text-[#594176] text-sm w-full py-0.5"
+                                data-en="Israeli" data-he="ישראלי">Israeli</button></li>
+                    </ul>
+                </details>
+
+                <h3 class="text-xs font-bold text-slate-400 uppercase tracking-widest mt-10 mb-4"
+                    data-en="Active Synthesis" data-he="סינתזה פעילה">
+                    Active Synthesis</h3>
+                <div id="sourcesDynamicContent" class="text-sm text-slate-600 pb-10">
+                    <p class="italic text-slate-400"
+                        data-en="Search a halacha to view cross-referenced Encyclopedia and Customs data..."
+                        data-he="חפש הלכה כדי לצפות בנתונים מהאנציקלופדיה והמנהגים המצוינים בחוצה ברference...">
+                        Search a halacha to view cross-referenced Encyclopedia and Customs data...</p>
+                </div>
+
+                <h3 class="text-xs font-bold text-slate-400 uppercase tracking-widest mt-2 mb-3">Personal Shelf</h3>
+                <div id="personalShelf" class="text-sm text-slate-600 pb-10">
+                    <p class="italic text-slate-400">Your recent reads and saved items will appear here.</p>
+                </div>
+        </nav>
+
+        <!-- Column 2: Main Area (Center) -->
+        <main class="content-canvas flex-1 overflow-y-auto bg-white relative flex justify-center custom-scrollbar"
+            id="mainContainer">
+
+            <div id="loadingOverlay"
+                class="hidden absolute inset-0 bg-white/80 backdrop-blur-sm z-20 flex flex-col items-center justify-center">
+                <div class="animate-pulse flex flex-col items-center">
+                    <div class="text-navy font-hebrew text-5xl font-semibold leading-tight mb-3">
+                        ש
+                    </div>
+                    <p class="text-slate-500 font-serif italic text-lg" data-en="Synthesizing Halachic Library..."
+                        data-he="סינתזה של ספרייה הלכתית...">Synthesizing Halachic Library...</p>
+                </div>
+            </div>
+
+            <!-- HOME: BROWSE THE LIBRARY GRID -->
+            <div id="homeGrid" class="w-full max-w-5xl p-8 lg:p-12 transition-opacity duration-300">
+                <h2 class="text-3xl font-serif text-slate-800 mb-8 border-b pb-4" data-en="Browse the Library"
+                    data-he="עיין בספרייה">Browse the Library</h2>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+
+                    <div class="bg-white border-t-[3px] border-[#004e5f] p-6 rounded shadow-sm hover:shadow-md transition cursor-pointer group"
+                        onclick="readText('Genesis 1')">
+                        <h3 class="text-lg font-medium text-[#1a1a1a] mb-2 font-serif" data-en="Tanakh" data-he="תנ״ך">
+                            Tanakh</h3>
+                        <p class="text-sm text-slate-500 leading-relaxed mb-4"
+                            data-en="Torah, Prophets, and Writings, which together make up the Hebrew Bible, Israel's foundational text."
+                            data-he="התורה, הנביאים והכתובים, המהווים יחד את התנ״ך, הטקסט המייסד של ישראל.">
+                            Torah, Prophets, and Writings, which
+                            together make up the Hebrew Bible, Israel's foundational text.</p>
+                        <span data-en="Read Inline" data-he="קרא בקו"
+                            class="text-[#004e5f] text-xs font-bold uppercase tracking-wide group-hover:underline">Read
+                            Inline &rarr;</span>
+                    </div>
+
+                    <div class="bg-white border-t-[3px] border-[#5a99b7] p-6 rounded shadow-sm hover:shadow-md transition cursor-pointer group"
+                        onclick="readText('Mishnah Berakhot 1')">
+                        <h3 class="text-lg font-medium text-[#1a1a1a] mb-2 font-serif" data-en="Mishnah" data-he="משנה">
+                            Mishnah</h3>
+                        <p class="text-sm text-slate-500 leading-relaxed mb-4"
+                            data-en="First major work of rabbinic literature, compiled around 200 CE, documenting the oral tradition."
+                            data-he="היצירה הראשונה והעיקרית של הספרות הרבנית, שנערכה בסביבות 200 לספירה, תיעדה את ההגדה.">
+                            First major work of rabbinic literature,
+                            compiled around 200 CE, documenting the oral tradition.</p>
+                        <span data-en="Read Inline" data-he="קרא בקו"
+                            class="text-[#5a99b7] text-xs font-bold uppercase tracking-wide group-hover:underline">Read
+                            Inline &rarr;</span>
+                    </div>
+
+                    <div class="bg-white border-t-[3px] border-[#ccb479] p-6 rounded shadow-sm hover:shadow-md transition cursor-pointer group"
+                        onclick="readText('Berakhot 2a')">
+                        <h3 class="text-lg font-medium text-[#1a1a1a] mb-2 font-serif" data-en="Talmud" data-he="תלמוד">
+                            Talmud</h3>
+                        <p class="text-sm text-slate-500 leading-relaxed mb-4"
+                            data-en="Generations of rabbinic debate on law, ethics, and Bible, structured as commentary on the Mishnah."
+                            data-he="דורות של דיון רבני על חוק, אתיקה ותנ״ך, מובנה כפירוש על המשנה.">
+                            Generations of rabbinic debate on law,
+                            ethics, and Bible, structured as commentary on the Mishnah.</p>
+                        <span data-en="Read Inline" data-he="קרא בקו"
+                            class="text-[#a08a4a] text-xs font-bold uppercase tracking-wide group-hover:underline">Read
+                            Inline &rarr;</span>
+                    </div>
+
+                    <div class="bg-white border-t-[3px] border-[#802f3e] p-6 rounded shadow-sm hover:shadow-md transition cursor-pointer group"
+                        onclick="readText('Shulchan Arukh, Orach Chayim 1')">
+                        <h3 class="text-lg font-medium text-[#1a1a1a] mb-2 font-serif" data-en="Halakhah"
+                            data-he="הלכה">Halakhah</h3>
+                        <p class="text-sm text-slate-500 leading-relaxed mb-4"
+                            data-en="Legal works providing guidance on all aspects of Jewish life, rooted in past sources."
+                            data-he="יצירות חוקיות המספקות הנחיות על כל היבטי החיים היהודיים, מושרשות במקורות קודמים.">
+                            Legal works providing guidance on all
+                            aspects of Jewish life, rooted in past sources.</p>
+                        <span data-en="Read Inline" data-he="קרא בקו"
+                            class="text-[#802f3e] text-xs font-bold uppercase tracking-wide group-hover:underline">Read
+                            Inline &rarr;</span>
+                    </div>
+
+                    <div class="bg-white border-t-[3px] border-[#594176] p-6 rounded shadow-sm hover:shadow-md transition cursor-pointer group"
+                        onclick="setQuery('Bukharian customs on Pesach')">
+                        <h3 class="text-lg font-medium text-[#1a1a1a] mb-2 font-serif" data-en="Community Customs"
+                            data-he="מנהגים קהילתיים">Community
+                            Customs</h3>
+                        <p class="text-sm text-slate-500 leading-relaxed mb-4"
+                            data-en="Traditions spanning Iraqi, Syrian, Yemenite, Moroccan, Ashkenaz, Israeli, Sefardic, and Kavkazi communities."
+                            data-he="מסורות של קהילות עיראקיות, סוריות, תימניות, מרוקאיות, אשכנז, ישראליות, ספרדיות וקווקזיות.">
+                            Traditions spanning Iraqi, Syrian,
+                            Yemenite, Moroccan, Ashkenaz, Israeli, Sefardic, and Kavkazi communities.</p>
+                        <span class="text-[#594176] text-xs font-bold uppercase tracking-wide group-hover:underline"
+                            data-en="Ask Sheilah" data-he="שאל שאילה">Ask
+                            Sheilah &rarr;</span>
+                    </div>
+
+                    <div class="bg-white border-t-[3px] border-[#00827f] p-6 rounded shadow-sm hover:shadow-md transition cursor-pointer group"
+                        onclick="readText('Pirkei Avot 1')">
+                        <h3 class="text-lg font-medium text-[#1a1a1a] mb-2 font-serif" data-en="Kabbalah &amp; Thought"
+                            data-he="קבלה ומחשבה">Kabbalah &amp;
+                            Thought</h3>
+                        <p class="text-sm text-slate-500 leading-relaxed mb-4"
+                            data-en="Mystical works and Jewish philosophy addressing God's attributes and the nature of existence."
+                            data-he="יצירות מיסטיות וaphilosophia יהודיות העוסקות בתכונות אלוהיות ובאופי הקיום.">
+                            Mystical works and Jewish philosophy
+                            addressing God's attributes and the nature of existence.</p>
+                        <span data-en="Read Inline" data-he="קרא בקו"
+                            class="text-[#00827f] text-xs font-bold uppercase tracking-wide group-hover:underline">Read
+                            Inline &rarr;</span>
+                    </div>
+                </div>
+
+                <!-- POPULAR TEXTS QUICK ACCESS -->
+                <div class="mt-12 border-t pt-8">
+                    <h3 class="text-lg font-serif text-slate-700 mb-6" data-en="Popular Texts"
+                        data-he="טקסטים פופולריים">Popular Texts
+                    </h3>
+                    <div class="grid grid-cols-2 md:grid-cols-4 gap-3" id="popularTextsGrid">
+                        <!-- Populated via JS from /api/library/popular -->
+                        <div class="text-center text-slate-400 col-span-4 py-4 text-sm italic animate-pulse"
+                            data-en="Loading library..." data-he="טוען ספרייה...">Loading
+                            library...</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- READER: SCHOLARLY ARTICLE VIEW -->
+            <article id="reader" class="hidden w-full max-w-4xl p-8 lg:p-12 pb-32">
+                <header class="mb-10 text-center">
+                    <h1 id="readerTitle" class="text-2xl lg:text-3xl font-serif text-navy mb-4 font-bold"></h1>
+                    <p id="readerSubtitle" class="hidden text-sm text-slate-500 font-serif -mt-2 mb-4"></p>
+                    <div
+                        class="flex justify-center items-center gap-2 text-sm text-slate-500 uppercase tracking-widest font-bold">
+                        <span class="bg-slate-100 px-3 py-1 rounded" data-en="Sheilah Synthesis"
+                            data-he="סינתזת שאילה">Sheilah Synthesis</span>
+                    </div>
+
+                    <div class="mt-4 flex flex-wrap justify-center items-center gap-2 text-xs">
+                        <label class="bg-slate-100 border border-slate-200 rounded-full px-3 py-1 text-slate-600">
+                            Layout
+                            <select id="readerLayoutSelect"
+                                class="ml-1 bg-transparent font-semibold focus:outline-none">
+                                <option value="bilingual">Bilingual</option>
+                                <option value="english">English</option>
+                                <option value="hebrew">Hebrew</option>
+                            </select>
+                        </label>
+
+                        <label class="bg-slate-100 border border-slate-200 rounded-full px-3 py-1 text-slate-600">
+                            Text Size
+                            <input id="readerFontSize" type="range" min="14" max="30" value="18"
+                                class="align-middle ml-1" />
+                        </label>
+
+                        <label class="bg-slate-100 border border-slate-200 rounded-full px-3 py-1 text-slate-600">
+                            Density
+                            <input id="readerLineHeight" type="range" min="1.4" max="2.4" step="0.1" value="1.8"
+                                class="align-middle ml-1" />
+                        </label>
+                    </div>
+                </header>
+
+                <!-- Main Synthesis Text -->
+                <div id="readerContent" class="prose prose-slate max-w-none font-serif leading-relaxed text-slate-800">
+                </div>
+
+                <!-- Sefaria Side-by-Side Dual Pane Sources -->
+                <div id="readerSources" class="mt-12 space-y-8 border-t border-slate-200 pt-10"></div>
+
+                <!-- Media Elements (Videos/Audio) -->
+                <div id="readerMedia" class="mt-8 space-y-4"></div>
+            </article>
+
+        </main>
+
+        <!-- Column 3: The Pulse Sidebar (Right) -->
+        <aside
+            class="pulse-pane w-80 border-l bg-slate-50 p-6 overflow-y-auto lg:block hidden flex-shrink-0 custom-scrollbar">
+
+            <!-- Zmanim -->
+            <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-5 mb-6">
+                <h4
+                    class="text-center font-bold text-slate-400 text-xs uppercase tracking-widest mb-4 flex justify-between">
+                    <span data-en="Zmanim" data-he="זמנים">Zmanim</span>
+                    <span id="zmanLoc" class="font-normal normal-case opacity-70" data-en="Loading..."
+                        data-he="טוען...">Loading...</span>
+                </h4>
+
+                <div id="zmanimWarning"
+                    class="hidden text-orange-600 text-xs font-bold bg-orange-50 border-l-2 border-orange-600 p-2 mb-4">
+                </div>
+
+                <!-- Full Zmanim Table -->
+                <div class="space-y-1 text-xs">
+                    <div id="zRowDawn" data-zman-row="Dawn (16.1° / 72m)"
+                        class="flex justify-between items-center py-1.5 border-b border-slate-100">
+                        <span class="text-slate-500" data-en="Dawn (16.1° / 72m)"
+                            data-he="עלות השחר (16.1° / 72 דק׳)">Dawn (16.1° / 72m)</span>
+                        <b class="text-slate-700 tabular-nums" id="zDawn">--:--</b>
+                    </div>
+                    <div id="zRowTalit" data-zman-row="Earliest Tallit/Tefillin (10.2°)"
+                        class="flex justify-between items-center py-1.5 border-b border-slate-100">
+                        <span class="text-slate-500" data-en="Earliest Tallit/Tefillin (10.2°)"
+                            data-he="זמן טלית ותפילין (10.2°)">Earliest Tallit/Tefillin (10.2°)</span>
+                        <b class="text-slate-700 tabular-nums" id="zTalit">--:--</b>
+                    </div>
+                    <div id="zRowSunrise" data-zman-row="Sunrise"
+                        class="flex justify-between items-center py-1.5 border-b border-slate-100">
+                        <span class="text-slate-500" data-en="Sunrise" data-he="זריחה">Sunrise</span>
+                        <b class="text-slate-700 tabular-nums" id="zSunrise">--:--</b>
+                    </div>
+                    <div id="shemaGraRow" data-zman-row="Latest Shema (GRA)"
+                        class="flex justify-between items-center py-1.5 border-b border-slate-100">
+                        <span id="shemaGraLabel" class="text-slate-500" data-en="Latest Shema (GRA)"
+                            data-he="סוף זמן שמע (גר״א)">Latest
+                            Shema (GRA)</span>
+                        <b class="text-slate-700 tabular-nums" id="zShemaGra">--:--</b>
+                    </div>
+                    <div id="shemaBhtRow" data-zman-row="Latest Shema (Baal HaTanya)"
+                        class="flex justify-between items-center py-1.5 border-b border-slate-100">
+                        <span class="text-slate-500" data-en="Latest Shema (Baal HaTanya)"
+                            data-he="סוף זמן שמע (בעל התניא)">Latest Shema (Baal HaTanya)</span>
+                        <b class="text-slate-700 tabular-nums" id="zShemaBht">--:--</b>
+                    </div>
+                    <div id="shacharitGraRow" data-zman-row="Latest Shacharit (GRA)"
+                        class="flex justify-between items-center py-1.5 border-b border-slate-100">
+                        <span id="shacharitGraLabel" class="text-slate-500" data-en="Latest Shacharit (GRA)"
+                            data-he="סוף זמן תפילת שחרית (גר״א)">Latest Shacharit (GRA)</span>
+                        <b class="text-slate-700 tabular-nums" id="zShacharitGra">--:--</b>
+                    </div>
+                    <div id="shacharitBhtRow" data-zman-row="Latest Shacharit (Baal HaTanya)"
+                        class="flex justify-between items-center py-1.5 border-b border-slate-100">
+                        <span class="text-slate-500" data-en="Latest Shacharit (Baal HaTanya)"
+                            data-he="סוף זמן תפילת שחרית (בעל התניא)">Latest Shacharit (Baal HaTanya)</span>
+                        <b class="text-slate-700 tabular-nums" id="zShacharitBht">--:--</b>
+                    </div>
+                    <div id="zRowChatzot" data-zman-row="Chatzot (Midday)"
+                        class="flex justify-between items-center py-1.5 border-b border-slate-100">
+                        <span class="text-slate-500" data-en="Midday (Chatzot)" data-he="חצות היום">Midday
+                            (Chatzot)</span>
+                        <b class="text-slate-700 tabular-nums" id="zChatzot">--:--</b>
+                    </div>
+                    <div id="zRowMincha" data-zman-row="Earliest Mincha (Mincha Gedola)"
+                        class="flex justify-between items-center py-1.5 border-b border-slate-100">
+                        <span class="text-slate-500" data-en="Earliest Mincha" data-he="מנחה גדולה">Earliest
+                            Mincha</span>
+                        <b class="text-slate-700 tabular-nums" id="zMincha">--:--</b>
+                    </div>
+                    <div id="zRowMusaf" data-zman-row="Latest Musaf (Holidays)"
+                        class="flex justify-between items-center py-1.5 border-b border-slate-100">
+                        <span class="text-slate-500" data-en="Latest Musaf (Holidays)"
+                            data-he="סוף זמן מוסף (בחגים)">Latest Musaf (Holidays)</span>
+                        <b class="text-slate-700 tabular-nums" id="zMusaf">--:--</b>
+                    </div>
+                    <div id="zRowPlag" data-zman-row="Plag HaMincha"
+                        class="flex justify-between items-center py-1.5 border-b border-slate-100">
+                        <span class="text-slate-500" data-en="Plag HaMincha" data-he="פלג המנחה">Plag HaMincha</span>
+                        <b class="text-slate-700 tabular-nums" id="zPlag">--:--</b>
+                    </div>
+                    <div id="zRowCandles" data-zman-row="Candle Lighting (Holidays)"
+                        class="flex justify-between items-center py-1.5 border-b border-slate-100">
+                        <span class="text-slate-500" data-en="Candle Lighting (Holidays)"
+                            data-he="הדלקת נרות (בחגים)">Candle Lighting (Holidays)</span>
+                        <b class="text-slate-700 tabular-nums" id="zCandles">--:--</b>
+                    </div>
+                    <div id="zRowSunset" data-zman-row="Sunset"
+                        class="flex justify-between items-center py-1.5 border-b border-slate-100">
+                        <span class="text-slate-500" data-en="Sunset" data-he="שקיעת החמה">Shkiya (Sunset)</span>
+                        <b class="text-slate-700 tabular-nums" id="zSunset">--:--</b>
+                    </div>
+                    <div id="zRowNight" data-zman-row="Nightfall (3 Stars)"
+                        class="flex justify-between items-center py-1.5 border-b border-slate-100">
+                        <span class="text-slate-500" data-en="Nightfall (3 Stars)"
+                            data-he="צאת הכוכבים (3 כוכבים)">Nightfall (3 Stars)</span>
+                        <b class="text-slate-700 tabular-nums" id="zNight">--:--</b>
+                    </div>
+                    <div id="zRowMidnight" data-zman-row="Chatzot HaLailah (Midnight)"
+                        class="flex justify-between items-center py-1.5">
+                        <span class="text-slate-500" data-en="Midnight (Chatzot HaLailah)" data-he="חצות הלילה">Midnight
+                            (Chatzot HaLailah)</span>
+                        <b class="text-slate-700 tabular-nums" id="zMidnight">--:--</b>
+                    </div>
+                </div>
+
+                <button onclick="openCalendarModal()"
+                    class="w-full mt-4 text-xs font-bold text-[#002147] bg-slate-100 py-2 rounded border border-slate-200 hover:bg-slate-200 transition"
+                    data-en="Monthly Holiday Calendar" data-he="לוח חגים חודשי">
+                    Monthly Holiday Calendar</button>
+            </div>
+
+            <!-- Holiday Season Info -->
+            <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-5 mb-6">
+                <h4 class="text-center font-bold text-slate-400 text-xs uppercase tracking-widest mb-4"
+                    data-en="Holiday Season" data-he="עונת חגים">
+                    Holiday Season
+                </h4>
+
+                <div class="space-y-2 text-xs">
+                    <div class="flex justify-between items-center py-1.5 border-b border-slate-100">
+                        <span class="text-slate-500" data-en="Today" data-he="היום">Today</span>
+                        <b id="holidayName" class="text-slate-700 text-right max-w-[60%]">Regular Day</b>
+                    </div>
+
+                    <div id="omerRow" class="hidden flex justify-between items-center py-1.5 border-b border-slate-100">
+                        <span class="text-slate-500" data-en="Omer Count" data-he="ספירת העומר">Omer Count</span>
+                        <b id="omerCount" class="text-slate-700">--</b>
+                    </div>
+
+                    <p id="omerHint" class="text-slate-500 italic py-1" data-en="Outside Omer counting period."
+                        data-he="מחוץ לתקופת ספירת העומר.">
+                        Outside Omer counting period.
+                    </p>
+                </div>
+            </div>
+
+            <!-- Daily Study -->
+            <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-5">
+                <h4 class="text-center font-bold text-slate-400 text-xs uppercase tracking-widest mb-4"
+                    data-en="Daily Study" data-he="לימוד יומי">
+                    Daily Study</h4>
+                <div class="space-y-4">
+                    {% if daily %}
+                    {% if daily.daf_yomi %}
+                    <div class="border-l-4 border-blue-500 pl-3 py-1">
+                        <span class="block text-xs uppercase text-slate-500 tracking-wide font-semibold mb-1"
+                            data-en="Daf Yomi" data-he="דף יומי">Daf
+                            Yomi</span>
+                        <button type="button"
+                            data-daily-ref="{{ daily.daf_yomi.ref if daily and daily.daf_yomi else '' }}"
+                            class="daily-study-link text-sm font-serif text-slate-800 hover:text-blue-600 transition text-left">
+                            {{ daily.daf_yomi.title }}
+                        </button>
+                    </div>
+                    {% endif %}
+                    {% if daily.mishnah_yomi %}
+                    <div class="border-l-4 border-gold pl-3 py-1">
+                        <span class="block text-xs uppercase text-slate-500 tracking-wide font-semibold mb-1"
+                            data-en="Mishnah Yomi" data-he="משנה יומית">Mishnah
+                            Yomi</span>
+                        <button type="button"
+                            data-daily-ref="{{ daily.mishnah_yomi.ref if daily and daily.mishnah_yomi else '' }}"
+                            class="daily-study-link text-sm font-serif text-slate-800 hover:text-blue-600 transition text-left">
+                            {{ daily.mishnah_yomi.title }}
+                        </button>
+                    </div>
+                    {% endif %}
+                    {% if daily.rambam %}
+                    <div class="border-l-4 border-red-500 pl-3 py-1">
+                        <span class="block text-xs uppercase text-slate-500 tracking-wide font-semibold mb-1"
+                            data-en="Daily Rambam" data-he="רמב״ם יומי">Daily
+                            Rambam</span>
+                        <button type="button" data-daily-ref="{{ daily.rambam.ref if daily and daily.rambam else '' }}"
+                            class="daily-study-link text-sm font-serif text-slate-800 hover:text-blue-600 transition text-left">
+                            {{ daily.rambam.title }}
+                        </button>
+                    </div>
+                    {% endif %}
+                    {% else %}
+                    <p class="text-xs text-slate-500 text-center py-4 bg-slate-50 rounded"
+                        data-en="No active schedule fetched." data-he="לא הועלתה לוח זמנים פעיל.">No active schedule
+                        fetched.
+                    </p>
+                    {% endif %}
+                </div>
+            </div>
+        </aside>
+    </div>
+
+    <!-- Calendar Modal -->
+    <div id="calendarModal"
+        class="hidden fixed inset-0 z-[100] bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4">
+        <div class="bg-white rounded-xl shadow-xl w-full max-w-4xl max-h-[90vh] overflow-hidden flex flex-col relative">
+            <button onclick="closeCalendarModal()"
+                class="absolute top-4 right-4 text-2xl text-slate-400 hover:text-slate-800">&times;</button>
+            <div class="p-6 overflow-y-auto">
+                <h2 class="font-serif text-2xl text-navy mb-6">Monthly Jewish Holiday Calendar</h2>
+                <div id="calendar"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Texts Menu Modal (Browse Prayers, Communities, Sefaria) -->
+    <div id="textsMenuModal"
+        class="fixed inset-0 z-[100] bg-slate-900/60 backdrop-blur-sm items-center justify-center p-4 hidden">
+        <div
+            class="bg-white rounded-2xl shadow-2xl w-full max-w-2xl max-h-[85vh] overflow-hidden flex flex-col relative">
+            <button onclick="closeTextsMenu()"
+                class="absolute top-4 right-4 text-2xl text-slate-400 hover:text-slate-800 z-10">&times;</button>
+
+            <div class="bg-gradient-to-r from-navy to-blue-900 text-white px-6 py-4 border-b">
+                <h2 class="font-serif text-xl font-bold" data-en="Browse All Texts" data-he="עיין בכל הטקסטים">Browse
+                    All Texts</h2>
+                <p class="text-blue-100 text-sm mt-1" data-en="Siddur, Communities, and Sefaria Library"
+                    data-he="סידור, קהילות וספריית סיפד">Siddur, Communities, and Sefaria Library</p>
+            </div>
+
+            <div class="overflow-y-auto flex-1 px-6 py-6 custom-scrollbar">
+                <!-- Siddur Section -->
+                <div class="mb-8">
+                    <h3 class="font-serif text-lg font-bold text-[#00827f] mb-4 pb-2 border-b"
+                        data-en="Prayer Books (Sefaria Liturgy)" data-he="סידורי תפילה (ליטורגיה בספריא)">Prayer
+                        Books
+                    </h3>
+                    <div id="prayersList" class="space-y-2">
+                        <p class="text-slate-400 italic text-sm" data-en="Loading..." data-he="טוען...">Loading...</p>
+                    </div>
+                </div>
+
+                <!-- Communities Section -->
+                <div class="mb-8">
+                    <h3 class="font-serif text-lg font-bold text-[#594176] mb-4 pb-2 border-b"
+                        data-en="Community Customs (Merkava)" data-he="מנהגים קהילתיים (מרכבה)">Community Customs
+                    </h3>
+                    <div id="communitiesList" class="space-y-2">
+                        <p class="text-slate-400 italic text-sm" data-en="Loading..." data-he="טוען...">Loading...</p>
+                    </div>
+                </div>
+
+                <!-- Sefaria Section -->
+                <div>
+                    <h3 class="font-serif text-lg font-bold text-[#802f3e] mb-4 pb-2 border-b"
+                        data-en="Sefaria Library (Browse Categories)" data-he="ספריית סיפד">Sefaria Library</h3>
+                    <div class="space-y-2">
+                        <button onclick="readText('Genesis 1')"
+                            class="block w-full text-left px-3 py-2 rounded hover:bg-slate-100 transition text-slate-700">Tanakh</button>
+                        <button onclick="readText('Mishnah Berakhot 1')"
+                            class="block w-full text-left px-3 py-2 rounded hover:bg-slate-100 transition text-slate-700">Mishnah</button>
+                        <button onclick="readText('Berakhot 2a')"
+                            class="block w-full text-left px-3 py-2 rounded hover:bg-slate-100 transition text-slate-700">Talmud</button>
+                        <button onclick="readText('Shulchan Arukh, Orach Chayim 1')"
+                            class="block w-full text-left px-3 py-2 rounded hover:bg-slate-100 transition text-slate-700">Halakhah</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-slate-50 border-t px-6 py-4 flex justify-end">
+                <button onclick="closeTextsMenu()"
+                    class="px-4 py-2 text-slate-700 hover:bg-slate-100 rounded transition" data-en="Close"
+                    data-he="סגור">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- AI Assistant Modal -->
+    <div id="aiAssistantModal"
+        class="hidden fixed inset-0 z-[100] bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4">
+        <div
+            class="bg-white rounded-2xl shadow-2xl w-full max-w-3xl max-h-[85vh] overflow-hidden flex flex-col relative">
+            <!-- Close Button -->
+            <button onclick="closeAiModal()"
+                class="absolute top-4 right-4 text-2xl text-slate-400 hover:text-slate-800 z-10">&times;</button>
+
+            <!-- Modal Header -->
+            <div class="bg-gradient-to-r from-navy to-blue-900 text-white px-6 py-4 border-b">
+                <h2 id="aiModalTitle" class="font-serif text-xl font-bold">Halachic Inquiry</h2>
+                <p class="text-blue-100 text-sm mt-1" data-en="Synthesized from Sefaria, Customs, and Halachic Sources"
+                    data-he="סונתז מסיפד, מנהגים ומקורות הלכתיים">Synthesized from Sefaria,
+                    Customs, and Halachic Sources</p>
+            </div>
+
+            <!-- Modal Content - Scrollable -->
+            <div class="overflow-y-auto flex-1 px-6 py-6 space-y-6">
+                <!-- AI Synthesis -->
+                <div>
+                    <h3 class="font-serif text-lg font-bold text-navy mb-3">Answer</h3>
+                    <div id="aiSynthesis"
+                        class="prose prose-sm prose-slate max-w-none font-serif text-slate-800 leading-relaxed">
+                        <p class="text-slate-400 italic">Loading...</p>
+                    </div>
+                </div>
+
+                <div id="aiTrustSection" class="bg-slate-50 border border-slate-200 rounded-lg p-4">
+                    <h4 class="text-xs font-bold uppercase tracking-widest text-slate-500 mb-2">Trust & Method</h4>
+                    <div class="flex flex-wrap gap-2 text-xs">
+                        <span id="aiConfidenceBadge"
+                            class="px-2 py-1 rounded-full bg-slate-200 text-slate-700">Confidence: --</span>
+                        <span id="aiModeBadge" class="px-2 py-1 rounded-full bg-slate-200 text-slate-700">Mode:
+                            --</span>
+                        <span id="aiCommunityBadge"
+                            class="px-2 py-1 rounded-full bg-slate-200 text-slate-700">Community: --</span>
+                        <span id="aiSourcesBadge" class="px-2 py-1 rounded-full bg-slate-200 text-slate-700">Sources:
+                            --</span>
+                        <span id="aiFallbackBadge"
+                            class="hidden px-2 py-1 rounded-full bg-amber-100 text-amber-800 border border-amber-200">Fallback
+                            Summary</span>
+                    </div>
+                </div>
+
+                <!-- Sources Section -->
+                <div id="aiSourcesSection" class="hidden">
+                    <h3 class="font-serif text-lg font-bold text-navy mb-3 border-t pt-4">Primary Sources</h3>
+                    <div id="aiSources" class="space-y-4">
+                        <!-- Sources populated via JS -->
+                    </div>
+                </div>
+
+                <!-- Customs Section -->
+                <div id="aiCustomsSection" class="hidden">
+                    <h3 class="font-serif text-lg font-bold text-navy mb-3 border-t pt-4">Community Traditions</h3>
+                    <div id="aiCustoms" class="space-y-3">
+                        <!-- Customs populated via JS -->
+                    </div>
+                </div>
+
+                <!-- Encyclopedia Section -->
+                <div id="aiWikiSection" class="hidden">
+                    <h3 class="font-serif text-lg font-bold text-navy mb-3 border-t pt-4">Encyclopedia Context</h3>
+                    <div id="aiWiki" class="space-y-3">
+                        <!-- Wiki populated via JS -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- Modal Footer -->
+            <div class="bg-slate-50 border-t px-6 py-4 flex justify-between items-center">
+                <button onclick="closeAiModal()" class="px-4 py-2 text-slate-700 hover:bg-slate-100 rounded transition"
+                    data-en="Close" data-he="סגור">Close</button>
+                <button onclick="viewFullArticle()"
+                    class="px-4 py-2 bg-navy text-white hover:bg-blue-900 rounded transition font-semibold"
+                    data-en="View Full Article" data-he="הצג מאמר מלא">View Full
+                    Article</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Template for Dual Sources -->
+    <template id="sourceDualTemplate">
+        <div class="border border-slate-300 rounded-lg bg-white overflow-hidden shadow-sm mb-6">
+            <div
+                class="bg-slate-50 px-4 py-2 text-xs font-bold text-slate-500 uppercase tracking-wider border-b source-title flex justify-between">
+                <span>Source Name</span>
+                <a href="#" target="_blank" class="text-blue-500 hover:underline source-link">View in Library &rarr;</a>
+            </div>
+            <!-- Grid Split -->
+            <div class="source-grid grid grid-cols-1 lg:grid-cols-2 text-base">
+                <div class="source-he bg-white text-right font-hebrew text-xl lg:text-2xl leading-[1.8] border-b lg:border-b-0 lg:border-r border-slate-200 p-6"
+                    dir="rtl"></div>
+                <div class="source-en bg-slate-50 font-serif leading-relaxed p-6 text-slate-700 text-lg"></div>
+            </div>
+        </div>
+    </template>
+
+    <script>
+        const searchForm = document.getElementById('searchForm');
+        const searchInput = document.getElementById('searchInput');
+        const searchSuggestions = document.getElementById('searchSuggestions');
+        const answerModeSelect = document.getElementById('answerModeSelect');
+        const communityLensSelect = document.getElementById('communityLensSelect');
+        const bookmarkCurrentBtn = document.getElementById('bookmarkCurrentBtn');
+        const sidebarToggleBtn = document.getElementById('sidebarToggleBtn');
+        const settingsMenuBtn = document.getElementById('settingsMenuBtn');
+        const settingsPanel = document.getElementById('settingsPanel');
+        const settingsMenuContainer = document.getElementById('settingsMenuContainer');
+        const readerSubtitle = document.getElementById('readerSubtitle');
+        const personalShelf = document.getElementById('personalShelf');
+
+        const readerLayoutSelect = document.getElementById('readerLayoutSelect');
+        const readerFontSize = document.getElementById('readerFontSize');
+        const readerLineHeight = document.getElementById('readerLineHeight');
+
+        const homeGrid = document.getElementById('homeGrid');
+        const reader = document.getElementById('reader');
+        const loadingOverlay = document.getElementById('loadingOverlay');
+        const mainContainer = document.getElementById('mainContainer');
+
+        const sidebarContent = document.getElementById('sourcesDynamicContent');
+        const sourceDualTemplate = document.getElementById('sourceDualTemplate');
+
+        let zmanimData = null;
+        let countdownInterval = null;
+
+        const APP_PREFS_KEY = 'sheilahPrefs';
+        const APP_SHELF_KEY = 'sheilahShelf';
+        const TORAH_PARASHA_BY_BOOK = {
+            'Genesis': [
+                { chapter: 1, name: 'Bereshit' },
+                { chapter: 6, name: 'Noach' },
+                { chapter: 12, name: 'Lech-Lecha' },
+                { chapter: 18, name: 'Vayera' },
+                { chapter: 23, name: 'Chayei Sara' },
+                { chapter: 25, name: 'Toldot' },
+                { chapter: 28, name: 'Vayetze' },
+                { chapter: 32, name: 'Vayishlach' },
+                { chapter: 37, name: 'Vayeshev' },
+                { chapter: 41, name: 'Miketz' },
+                { chapter: 44, name: 'Vayigash' },
+                { chapter: 47, name: 'Vayechi' },
+            ],
+            'Exodus': [
+                { chapter: 1, name: 'Shemot' },
+                { chapter: 6, name: 'Vaera' },
+                { chapter: 10, name: 'Bo' },
+                { chapter: 13, name: 'Beshalach' },
+                { chapter: 18, name: 'Yitro' },
+                { chapter: 21, name: 'Mishpatim' },
+                { chapter: 25, name: 'Terumah' },
+                { chapter: 27, name: 'Tetzaveh' },
+                { chapter: 30, name: 'Ki Tisa' },
+                { chapter: 35, name: 'Vayakhel' },
+                { chapter: 38, name: 'Pekudei' },
+            ],
+            'Leviticus': [
+                { chapter: 1, name: 'Vayikra' },
+                { chapter: 6, name: 'Tzav' },
+                { chapter: 9, name: 'Shemini' },
+                { chapter: 12, name: 'Tazria' },
+                { chapter: 14, name: 'Metzora' },
+                { chapter: 16, name: 'Achrei Mot' },
+                { chapter: 19, name: 'Kedoshim' },
+                { chapter: 21, name: 'Emor' },
+                { chapter: 25, name: 'Behar' },
+                { chapter: 26, name: 'Bechukotai' },
+            ],
+            'Numbers': [
+                { chapter: 1, name: 'Bamidbar' },
+                { chapter: 4, name: 'Naso' },
+                { chapter: 8, name: 'Behaalotecha' },
+                { chapter: 13, name: 'Shelach' },
+                { chapter: 16, name: 'Korach' },
+                { chapter: 19, name: 'Chukat' },
+                { chapter: 22, name: 'Balak' },
+                { chapter: 25, name: 'Pinchas' },
+                { chapter: 30, name: 'Matot' },
+                { chapter: 33, name: 'Masei' },
+            ],
+            'Deuteronomy': [
+                { chapter: 1, name: 'Devarim' },
+                { chapter: 3, name: 'Vaetchanan' },
+                { chapter: 7, name: 'Eikev' },
+                { chapter: 11, name: 'Reeh' },
+                { chapter: 16, name: 'Shoftim' },
+                { chapter: 21, name: 'Ki Teitzei' },
+                { chapter: 26, name: 'Ki Tavo' },
+                { chapter: 29, name: 'Nitzavim' },
+                { chapter: 31, name: 'Vayelech' },
+                { chapter: 32, name: 'Haazinu' },
+                { chapter: 33, name: 'Vezot Haberakhah' },
+            ],
+        };
+        const appState = {
+            suggestionItems: [],
+            activeSuggestionIndex: -1,
+            prefs: {
+                mode: 'balanced',
+                community: 'All',
+                readerLayout: 'bilingual',
+                fontSize: 18,
+                lineHeight: 1.8,
+                showSidebars: true,
+            },
+            currentView: null,
+        };
+
+        function escapeHtml(text) {
+            return (text || '')
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#039;');
+        }
+
+        function debounce(fn, delay = 180) {
+            let timer = null;
+            return (...args) => {
+                if (timer) clearTimeout(timer);
+                timer = setTimeout(() => fn(...args), delay);
+            };
+        }
+
+        // ─── CLIENT-SIDE CACHE FOR PRAYERS & COMMUNITIES ─────────────────────
+        const textsCache = {
+            prayers: {},
+            communities: {},
+            prayersList: null,
+            communitiesList: null
+        };
+
+        function getShelfData() {
+            try {
+                const raw = localStorage.getItem(APP_SHELF_KEY);
+                const parsed = raw ? JSON.parse(raw) : null;
+                if (!parsed || !Array.isArray(parsed.recent) || !Array.isArray(parsed.bookmarks)) {
+                    return { recent: [], bookmarks: [] };
+                }
+                return parsed;
+            } catch (_) {
+                return { recent: [], bookmarks: [] };
+            }
+        }
+
+        function saveShelfData(shelf) {
+            localStorage.setItem(APP_SHELF_KEY, JSON.stringify(shelf));
+        }
+
+        function savePrefs() {
+            localStorage.setItem(APP_PREFS_KEY, JSON.stringify(appState.prefs));
+        }
+
+        function setReaderSubtitle(text = '') {
+            if (!readerSubtitle) return;
+            const value = String(text || '').trim();
+            if (!value) {
+                readerSubtitle.textContent = '';
+                readerSubtitle.classList.add('hidden');
+                return;
+            }
+            readerSubtitle.textContent = value;
+            readerSubtitle.classList.remove('hidden');
+        }
+
+        function getTorahParashaForRef(ref, categories = []) {
+            if (!Array.isArray(categories) || !categories.includes('Torah')) {
+                return null;
+            }
+
+            const refText = String(ref || '').trim();
+            if (!refText) return null;
+
+            for (const [book, parashot] of Object.entries(TORAH_PARASHA_BY_BOOK)) {
+                if (!(refText === book || refText.startsWith(`${book} `))) continue;
+
+                const rest = refText.slice(book.length).trim();
+                const chapterMatch = rest.match(/^(\d+)/);
+                if (!chapterMatch) return null;
+
+                const chapter = Number(chapterMatch[1]);
+                if (!Number.isFinite(chapter)) return null;
+
+                let matched = parashot[0] || null;
+                for (const parasha of parashot) {
+                    if (chapter >= parasha.chapter) {
+                        matched = parasha;
+                    }
+                }
+                return matched ? { ...matched, chapter } : null;
+            }
+            return null;
+        }
+
+        function applySidebarVisibility() {
+            const leftSidebar = document.querySelector('.navigator-pane');
+            const rightSidebar = document.querySelector('.pulse-pane');
+            const showSidebars = appState.prefs.showSidebars !== false;
+
+            if (leftSidebar) {
+                leftSidebar.style.display = showSidebars ? '' : 'none';
+            }
+            if (rightSidebar) {
+                rightSidebar.style.display = showSidebars ? '' : 'none';
+            }
+
+            if (sidebarToggleBtn) {
+                sidebarToggleBtn.textContent = showSidebars ? 'Hide Sidebars' : 'Show Sidebars';
+            }
+        }
+
+        function toggleSidebars() {
+            appState.prefs.showSidebars = !(appState.prefs.showSidebars !== false);
+            savePrefs();
+            applySidebarVisibility();
+        }
+
+        function closeSettingsMenu() {
+            if (!settingsPanel) return;
+            settingsPanel.classList.add('hidden');
+            if (settingsMenuBtn) settingsMenuBtn.setAttribute('aria-expanded', 'false');
+        }
+
+        function toggleSettingsMenu() {
+            if (!settingsPanel) return;
+            const willOpen = settingsPanel.classList.contains('hidden');
+            settingsPanel.classList.toggle('hidden');
+            if (settingsMenuBtn) settingsMenuBtn.setAttribute('aria-expanded', willOpen ? 'true' : 'false');
+        }
+
+        function renderSearchSuggestions() {
+            if (!appState.suggestionItems.length) {
+                searchSuggestions.classList.add('hidden');
+                searchSuggestions.innerHTML = '';
+                return;
+            }
+
+            const iconByType = {
+                text: 'Text',
+                prayer: 'Prayer',
+                community: 'Community',
+                ask: 'Ask',
+            };
+
+            searchSuggestions.innerHTML = appState.suggestionItems.map((item, index) => {
+                const isActive = index === appState.activeSuggestionIndex;
+                const baseLabel = String(item.label || '').trim();
+                const typePrefix = iconByType[item.type] || '';
+                const hasPrefix = typePrefix
+                    && baseLabel.toLowerCase().startsWith(`${typePrefix.toLowerCase()} `);
+                const displayLabel = hasPrefix
+                    ? baseLabel
+                    : `${typePrefix} ${baseLabel}`.trim();
+                return `
+                    <button type="button" class="suggestion-item w-full text-left px-4 py-3 border-b border-slate-100 last:border-b-0 ${isActive ? 'bg-blue-50' : 'hover:bg-slate-50'}"
+                        data-index="${index}">
+                        <div class="flex items-center justify-between gap-3">
+                            <div class="min-w-0">
+                                <div class="text-sm text-slate-800 font-medium truncate">${escapeHtml(displayLabel)}</div>
+                                <div class="text-xs text-slate-500 truncate">${escapeHtml(item.subtitle || '')}</div>
+                            </div>
+                            <span class="text-[10px] uppercase tracking-widest text-slate-400">${escapeHtml(item.type)}</span>
+                        </div>
+                    </button>
+                `;
+            }).join('');
+
+            searchSuggestions.classList.remove('hidden');
+        }
+
+        function hideSearchSuggestions() {
+            appState.suggestionItems = [];
+            appState.activeSuggestionIndex = -1;
+            searchSuggestions.classList.add('hidden');
+            searchSuggestions.innerHTML = '';
+        }
+
+        async function fetchOmniboxSuggestions(query) {
+            const q = (query || '').trim();
+            if (q.length < 2) {
+                hideSearchSuggestions();
+                return;
+            }
+
+            try {
+                const resp = await fetch(`/api/search/suggest?q=${encodeURIComponent(q)}&size=8`);
+                if (!resp.ok) {
+                    hideSearchSuggestions();
+                    return;
+                }
+                const results = await resp.json();
+                appState.suggestionItems = Array.isArray(results) ? results : [];
+                appState.activeSuggestionIndex = -1;
+                renderSearchSuggestions();
+            } catch (_) {
+                hideSearchSuggestions();
+            }
+        }
+
+        function addRecentItem(item) {
+            if (!item || !item.type || !item.value) return;
+            const shelf = getShelfData();
+            const key = `${item.type}:${item.value}`;
+            shelf.recent = shelf.recent.filter(i => `${i.type}:${i.value}` !== key);
+            shelf.recent.unshift(item);
+            shelf.recent = shelf.recent.slice(0, 10);
+            saveShelfData(shelf);
+            renderPersonalShelf();
+        }
+
+        function setCurrentView(type, value, label) {
+            appState.currentView = { type, value, label: label || value };
+            addRecentItem(appState.currentView);
+            updateBookmarkButton();
+        }
+
+        function updateBookmarkButton() {
+            const current = appState.currentView;
+            if (!current || !bookmarkCurrentBtn) {
+                bookmarkCurrentBtn.textContent = 'Save Current';
+                return;
+            }
+
+            const shelf = getShelfData();
+            const key = `${current.type}:${current.value}`;
+            const exists = shelf.bookmarks.some(i => `${i.type}:${i.value}` === key);
+            bookmarkCurrentBtn.textContent = exists ? 'Saved' : 'Save Current';
+            bookmarkCurrentBtn.classList.toggle('bg-emerald-700', exists);
+            bookmarkCurrentBtn.classList.toggle('bg-navy', !exists);
+        }
+
+        function toggleBookmarkCurrent() {
+            const current = appState.currentView;
+            if (!current) return;
+
+            const shelf = getShelfData();
+            const key = `${current.type}:${current.value}`;
+            const exists = shelf.bookmarks.some(i => `${i.type}:${i.value}` === key);
+
+            if (exists) {
+                shelf.bookmarks = shelf.bookmarks.filter(i => `${i.type}:${i.value}` !== key);
+            } else {
+                shelf.bookmarks.unshift(current);
+                shelf.bookmarks = shelf.bookmarks.slice(0, 20);
+            }
+
+            saveShelfData(shelf);
+            renderPersonalShelf();
+            updateBookmarkButton();
+        }
+
+        function renderShelfList(items) {
+            if (!items.length) {
+                return '<p class="text-xs italic text-slate-400">No items yet.</p>';
+            }
+
+            return items.map((item) => {
+                return `
+                    <button class="shelf-open w-full text-left px-2 py-1 rounded hover:bg-slate-100 transition"
+                        data-type="${escapeHtml(item.type)}"
+                        data-value="${escapeHtml(item.value)}"
+                        data-label="${escapeHtml(item.label || item.value)}">
+                        <span class="text-xs text-slate-700 block truncate">${escapeHtml(item.label || item.value)}</span>
+                        <span class="text-[10px] uppercase tracking-widest text-slate-400">${escapeHtml(item.type)}</span>
+                    </button>
+                `;
+            }).join('');
+        }
+
+        function renderPersonalShelf() {
+            const shelf = getShelfData();
+            personalShelf.innerHTML = `
+                <div class="space-y-4">
+                    <div>
+                        <div class="flex justify-between items-center mb-2">
+                            <h4 class="text-xs font-bold uppercase tracking-wider text-slate-500">Bookmarks</h4>
+                        </div>
+                        <div class="space-y-1">${renderShelfList(shelf.bookmarks.slice(0, 6))}</div>
+                    </div>
+                    <div>
+                        <div class="flex justify-between items-center mb-2">
+                            <h4 class="text-xs font-bold uppercase tracking-wider text-slate-500">Recent</h4>
+                            <button type="button" class="text-[10px] text-slate-400 hover:text-slate-700" data-action="clear-recents">Clear</button>
+                        </div>
+                        <div class="space-y-1">${renderShelfList(shelf.recent.slice(0, 6))}</div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function applyReaderPreferences() {
+            reader.style.setProperty('--reader-font-size', `${appState.prefs.fontSize}px`);
+            reader.style.setProperty('--reader-line-height', `${appState.prefs.lineHeight}`);
+
+            const sizePx = `${appState.prefs.fontSize}px`;
+            const lineHeight = String(appState.prefs.lineHeight);
+
+            document.querySelectorAll('#reader #readerContent, #reader .source-he, #reader .source-en, #reader #prayer-display').forEach(el => {
+                el.style.fontSize = sizePx;
+                el.style.lineHeight = lineHeight;
+            });
+
+            const layout = appState.prefs.readerLayout;
+            document.querySelectorAll('#reader .source-grid').forEach(grid => {
+                grid.classList.remove('lg:grid-cols-2', 'lg:grid-cols-1');
+                grid.classList.add(layout === 'bilingual' ? 'lg:grid-cols-2' : 'lg:grid-cols-1');
+            });
+
+            document.querySelectorAll('#reader .source-he').forEach(el => {
+                el.classList.toggle('hidden', layout === 'english');
+            });
+
+            document.querySelectorAll('#reader .source-en').forEach(el => {
+                el.classList.toggle('hidden', layout === 'hebrew');
+            });
+
+            if (window.currentPrayerContent) {
+                renderPrayerDisplayByLayout();
+            }
+        }
+
+        function renderPrayerDisplayByLayout(selectedLang = null) {
+            const contentDiv = document.getElementById('prayer-display');
+            if (!contentDiv || !window.currentPrayerContent) return;
+
+            const layout = appState.prefs.readerLayout;
+            const isHtml = Boolean(window.currentPrayerIsHtml);
+
+            if (layout === 'bilingual') {
+                const he = window.currentPrayerContent.he || '';
+                const en = window.currentPrayerContent.en || '';
+
+                const heBlock = isHtml
+                    ? `<div dir="rtl" class="font-hebrew leading-loose">${he}</div>`
+                    : `<p dir="rtl" class="leading-loose whitespace-pre-wrap">${he}</p>`;
+                const enBlock = isHtml
+                    ? `<div dir="ltr" class="font-serif leading-relaxed">${en}</div>`
+                    : `<p dir="ltr" class="leading-relaxed whitespace-pre-wrap">${en}</p>`;
+
+                contentDiv.innerHTML = `
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                        <div class="bg-white rounded border border-slate-200 p-4">${heBlock}</div>
+                        <div class="bg-white rounded border border-slate-200 p-4">${enBlock}</div>
+                    </div>
+                `;
+            } else {
+                const lang = selectedLang || (layout === 'hebrew' ? 'he' : 'en');
+                const dir = lang === 'he' ? 'rtl' : 'ltr';
+                const content = window.currentPrayerContent[lang] || window.currentPrayerContent.en || '';
+
+                if (isHtml && (lang === 'he' || lang === 'en')) {
+                    const fontClass = lang === 'he'
+                        ? 'font-hebrew leading-loose'
+                        : 'font-serif leading-relaxed';
+                    contentDiv.innerHTML = `<div dir="${dir}" class="${fontClass}">${content}</div>`;
+                } else {
+                    contentDiv.innerHTML = `<p dir="${dir}" class="leading-relaxed whitespace-pre-wrap">${content}</p>`;
+                }
+            }
+
+            const sizePx = `${appState.prefs.fontSize}px`;
+            const lineHeight = String(appState.prefs.lineHeight);
+            contentDiv.style.fontSize = sizePx;
+            contentDiv.style.lineHeight = lineHeight;
+        }
+
+        function hydratePreferences() {
+            try {
+                const saved = JSON.parse(localStorage.getItem(APP_PREFS_KEY) || '{}');
+                appState.prefs = {
+                    ...appState.prefs,
+                    ...saved,
+                };
+            } catch (_) {
+                // Keep defaults when no saved prefs are available.
+            }
+
+            const legacyCommunityMap = {
+                Ashkenazi: 'Ashkenaz',
+                Sefardi: 'Sefardic',
+                Mizrahi: 'Iraqi',
+            };
+            if (legacyCommunityMap[appState.prefs.community]) {
+                appState.prefs.community = legacyCommunityMap[appState.prefs.community];
+            }
+
+            if (typeof appState.prefs.showSidebars !== 'boolean') {
+                appState.prefs.showSidebars = true;
+            }
+
+            answerModeSelect.value = appState.prefs.mode;
+            communityLensSelect.value = appState.prefs.community;
+            readerLayoutSelect.value = appState.prefs.readerLayout;
+            readerFontSize.value = String(appState.prefs.fontSize);
+            readerLineHeight.value = String(appState.prefs.lineHeight);
+
+            applyReaderPreferences();
+            applySidebarVisibility();
+            renderPersonalShelf();
+            updateBookmarkButton();
+        }
+
+        async function openShelfItem(type, value, label) {
+            if (type === 'text') {
+                await readText(value);
+                return;
+            }
+            if (type === 'prayer') {
+                await displayPrayer(value);
+                return;
+            }
+            if (type === 'community') {
+                await displayCommunity(value);
+                return;
+            }
+            if (type === 'ask') {
+                await handleAiSearch(value || label || '');
+            }
+        }
+
+        answerModeSelect.addEventListener('change', () => {
+            appState.prefs.mode = answerModeSelect.value;
+            savePrefs();
+        });
+
+        communityLensSelect.addEventListener('change', () => {
+            appState.prefs.community = communityLensSelect.value;
+            savePrefs();
+        });
+
+        readerLayoutSelect.addEventListener('change', () => {
+            appState.prefs.readerLayout = readerLayoutSelect.value;
+            savePrefs();
+            applyReaderPreferences();
+        });
+
+        readerFontSize.addEventListener('input', () => {
+            appState.prefs.fontSize = Number(readerFontSize.value);
+            savePrefs();
+            applyReaderPreferences();
+        });
+
+        readerLineHeight.addEventListener('input', () => {
+            appState.prefs.lineHeight = Number(readerLineHeight.value);
+            savePrefs();
+            applyReaderPreferences();
+        });
+
+        bookmarkCurrentBtn.addEventListener('click', toggleBookmarkCurrent);
+        if (sidebarToggleBtn) {
+            sidebarToggleBtn.addEventListener('click', toggleSidebars);
+        }
+        if (settingsMenuBtn) {
+            settingsMenuBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                toggleSettingsMenu();
+            });
+        }
+
+        personalShelf.addEventListener('click', async (e) => {
+            const clearBtn = e.target.closest('[data-action="clear-recents"]');
+            if (clearBtn) {
+                const shelf = getShelfData();
+                shelf.recent = [];
+                saveShelfData(shelf);
+                renderPersonalShelf();
+                return;
+            }
+
+            const itemBtn = e.target.closest('.shelf-open');
+            if (!itemBtn) return;
+            const type = itemBtn.dataset.type;
+            const value = itemBtn.dataset.value;
+            const label = itemBtn.dataset.label;
+            await openShelfItem(type, value, label);
+        });
+
+        // ─── TEXTS MENU FUNCTIONS ───────────────────────────────────────────
+        function openTextsMenu() {
+            const modal = document.getElementById('textsMenuModal');
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+            loadPrayersMenu();
+            loadCommunitiesMenu();
+        }
+
+        function closeTextsMenu() {
+            const modal = document.getElementById('textsMenuModal');
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
+        }
+
+        async function loadPrayersMenu() {
+            const list = document.getElementById('prayersList');
+
+            if (textsCache.prayersList !== null) {
+                populatePrayersListHTML(textsCache.prayersList);
+                return;
+            }
+
+            try {
+                const response = await fetch('/api/prayers/list');
+                const prayers = await response.json();
+                textsCache.prayersList = prayers;
+                populatePrayersListHTML(prayers);
+            } catch (err) {
+                list.innerHTML = '<p class="text-red-500 text-sm">Error loading prayers</p>';
+            }
+        }
+
+        function populatePrayersListHTML(prayers) {
+            const list = document.getElementById('prayersList');
+            let html = '';
+            prayers.forEach(prayer => {
+                html += `<button onclick="displayPrayer('${prayer.name}')" class="block w-full text-left px-3 py-2 rounded hover:bg-[#00827f]/10 transition text-slate-700 hover:text-[#00827f]">${prayer.name}</button>`;
+            });
+            list.innerHTML = html;
+        }
+
+        async function loadCommunitiesMenu() {
+            const list = document.getElementById('communitiesList');
+
+            if (textsCache.communitiesList !== null) {
+                populateCommunitiesListHTML(textsCache.communitiesList);
+                return;
+            }
+
+            try {
+                const response = await fetch('/api/communities/list');
+                const communities = await response.json();
+                textsCache.communitiesList = communities;
+                populateCommunitiesListHTML(communities);
+            } catch (err) {
+                list.innerHTML = '<p class="text-red-500 text-sm">Error loading communities</p>';
+            }
+        }
+
+        function populateCommunitiesListHTML(communities) {
+            const list = document.getElementById('communitiesList');
+            let html = '';
+            communities.forEach(community => {
+                html += `<button onclick="displayCommunity('${community.name}')" class="block w-full text-left px-3 py-2 rounded hover:bg-[#594176]/10 transition text-slate-700 hover:text-[#594176]">${community.name}</button>`;
+            });
+            list.innerHTML = html;
+        }
+
+        async function displayPrayer(prayerName) {
+            homeGrid.style.display = 'none';
+            reader.classList.add('hidden');
+            loadingOverlay.classList.remove('hidden');
+            closeTextsMenu();
+            setReaderSubtitle('');
+
+            try {
+                let prayerData = textsCache.prayers[prayerName];
+
+                if (!prayerData) {
+                    // Fetch prayer preview and Sefaria full text in parallel.
+                    const [staticResp, sefariaResp] = await Promise.all([
+                        fetch(`/api/prayer/${encodeURIComponent(prayerName)}`),
+                        fetch(`/api/siddur/full/${encodeURIComponent(prayerName)}`)
+                    ]);
+                    if (!staticResp.ok) throw new Error('Prayer not found');
+                    prayerData = await staticResp.json();
+
+                    // Augment he/en with full Sefaria liturgical text if available
+                    if (sefariaResp.ok) {
+                        const sefariaData = await sefariaResp.json();
+                        if (sefariaData.lines && sefariaData.lines.length > 0) {
+                            let heHtml = '', enHtml = '';
+                            sefariaData.lines.forEach(line => {
+                                if (line.type === 'header') {
+                                    heHtml += `<h3 class="text-xl font-bold font-hebrew mt-8 mb-3 pb-1 border-b border-slate-200">${line.he || ''}</h3>`;
+                                    enHtml += `<h3 class="text-xl font-bold font-serif mt-8 mb-3 pb-1 border-b border-slate-200">${line.en || ''}</h3>`;
+                                } else {
+                                    if (line.he) heHtml += `<p class="mb-3 leading-loose">${line.he}</p>`;
+                                    if (line.en) enHtml += `<p class="mb-3">${line.en}</p>`;
+                                }
+                            });
+                            prayerData.content.he = heHtml;
+                            prayerData.content.en = enHtml;
+                            prayerData.hasSefaria = true;
+                        }
+                    }
+                    textsCache.prayers[prayerName] = prayerData;
+                }
+
+                loadingOverlay.classList.add('hidden');
+                reader.classList.remove('hidden');
+
+                document.getElementById('readerTitle').innerText = prayerData.title;
+                setCurrentView('prayer', prayerName, prayerData.title || prayerName);
+
+                // Store current prayer content globally for language switching
+                window.currentPrayerContent = prayerData.content;
+                window.currentPrayerIsHtml = prayerData.hasSefaria || false;
+                window.currentCommunityData = null;
+
+                document.getElementById('readerContent').innerHTML = renderPrayerContent(prayerData.content);
+                document.getElementById('readerSources').innerHTML = '';
+                document.getElementById('readerMedia').innerHTML = '';
+                applyReaderPreferences();
+
+                sidebarContent.innerHTML = `
+                    <div class="text-xs space-y-2">
+                        <div><span class="font-bold text-slate-700">From:</span> <span class="text-slate-500">${prayerData.hasSefaria ? 'Sefaria Liturgy Collection' : 'Sefaria Prayer Book Preview'}</span></div>
+                        <div><span class="font-bold text-slate-700">Languages:</span> <span class="text-slate-500">Hebrew &amp; English</span></div>
+                    </div>`;
+
+                mainContainer.scrollTo({ top: 0, behavior: 'smooth' });
+
+            } catch (err) {
+                loadingOverlay.classList.add('hidden');
+                reader.classList.remove('hidden');
+                document.getElementById('readerContent').innerHTML = `<p class="text-red-500">Error loading prayer: ${err.message}</p>`;
+            }
+        }
+
+        function renderPrayerContent(content) {
+            const storedLang = localStorage.getItem('preferredLanguage') || 'en';
+            const currentLang = storedLang === 'he' ? 'he' : 'en';
+            let html = '<div class="prose prose-slate max-w-none font-serif leading-relaxed text-slate-800">';
+
+            // Show content with language tabs
+            html += `<div class="bg-slate-50 rounded-lg p-6 border border-slate-200">`;
+            html += `<div class="mb-4 flex gap-2 border-b pb-2 flex-wrap">`;
+
+            const langs = [
+                { code: 'en', name: 'English' },
+                { code: 'he', name: 'עברית' },
+            ];
+
+            langs.forEach(lang => {
+                const isActive = currentLang === lang.code;
+                html += `<button onclick="switchPrayerLanguage('${lang.code}')" class="px-3 py-1 rounded text-sm transition ${isActive ? 'bg-navy text-white' : 'bg-slate-200 text-slate-700 hover:bg-slate-300'}" id="lang-btn-${lang.code}">${lang.name}</button>`;
+            });
+
+            html += `</div>`;
+            html += `<div id="prayer-display">`;
+
+            const dir = currentLang === 'he' ? 'rtl' : 'ltr';
+            const isHtmlContent = window.currentPrayerIsHtml && (currentLang === 'he' || currentLang === 'en');
+            const contentToShow = content[currentLang] || content['en'] || '';
+
+            if (isHtmlContent) {
+                const fontClass = currentLang === 'he'
+                    ? 'font-hebrew text-2xl leading-loose'
+                    : 'font-serif text-lg leading-relaxed';
+                html += `<div dir="${dir}" class="${fontClass}">${contentToShow}</div>`;
+            } else {
+                html += `<p dir="${dir}" class="text-lg leading-relaxed whitespace-pre-wrap">${contentToShow}</p>`;
+            }
+
+            html += `</div>`;
+            html += `</div>`;
+            html += `</div>`;
+
+            return html;
+        }
+
+        window.switchPrayerLanguage = function (lang) {
+            const contentDiv = document.getElementById('prayer-display');
+            const buttons = document.querySelectorAll('button[id^="lang-btn-"]');
+
+            // If user clicks a specific language while in bilingual mode, switch to that focused layout.
+            if (appState.prefs.readerLayout === 'bilingual') {
+                appState.prefs.readerLayout = lang === 'he' ? 'hebrew' : 'english';
+                readerLayoutSelect.value = appState.prefs.readerLayout;
+                savePrefs();
+            }
+
+            // Update buttons
+            buttons.forEach(btn => {
+                btn.classList.remove('bg-navy', 'text-white');
+                btn.classList.add('bg-slate-200', 'text-slate-700');
+            });
+
+            const activeBtn = document.querySelector(`#lang-btn-${lang}`);
+            if (activeBtn) {
+                activeBtn.classList.remove('bg-slate-200', 'text-slate-700');
+                activeBtn.classList.add('bg-navy', 'text-white');
+            }
+
+            if (contentDiv && window.currentPrayerContent) {
+                renderPrayerDisplayByLayout(lang);
+            }
+        };
+
+        async function displayCommunity(communityName) {
+            homeGrid.style.display = 'none';
+            reader.classList.add('hidden');
+            loadingOverlay.classList.remove('hidden');
+            closeTextsMenu();
+            setReaderSubtitle('');
+
+            try {
+                let communityData = textsCache.communities[communityName];
+
+                if (!communityData) {
+                    const response = await fetch(`/api/community/${encodeURIComponent(communityName)}`);
+                    if (!response.ok) throw new Error('Community not found');
+                    communityData = await response.json();
+                    textsCache.communities[communityName] = communityData;
+                }
+
+                loadingOverlay.classList.add('hidden');
+                reader.classList.remove('hidden');
+
+                document.getElementById('readerTitle').innerText = `${communityName} Community Customs`;
+                setCurrentView('community', communityName, `${communityName} Community Customs`);
+                document.getElementById('readerContent').innerHTML = renderCommunityContent(communityData);
+                window.currentCommunityData = communityData;
+                window.currentPrayerContent = null;
+                document.getElementById('readerSources').innerHTML = '';
+                document.getElementById('readerMedia').innerHTML = '';
+
+                sidebarContent.innerHTML = `
+                    <div class="text-xs space-y-2">
+                        <div><span class="font-bold text-slate-700">Community:</span> <span class="text-slate-500">${communityName}</span></div>
+                        <div><span class="font-bold text-slate-700">From:</span> <span class="text-slate-500">Merkava Customs Database</span></div>
+                        <div><span class="font-bold text-slate-700">Primary Origin:</span> <span class="text-slate-500">${communityData.primary_origin}</span></div>
+                    </div>`;
+
+                mainContainer.scrollTo({ top: 0, behavior: 'smooth' });
+
+            } catch (err) {
+                loadingOverlay.classList.add('hidden');
+                reader.classList.remove('hidden');
+                document.getElementById('readerContent').innerHTML = `<p class="text-red-500">Error loading community: ${err.message}</p>`;
+            }
+        }
+
+        function renderCommunityContent(communityData) {
+            const currentLang = localStorage.getItem('preferredLanguage') || 'en';
+            let html = '<div class="prose prose-slate max-w-none font-serif leading-relaxed text-slate-800">';
+
+            html += `<div class="bg-slate-50 rounded-lg p-6 border-l-4 border-[#594176]">`;
+            html += `<h2 class="text-2xl font-bold mb-3 text-[#594176]">${communityData.name} Jewish Community</h2>`;
+
+            if (communityData.primary_origin) {
+                html += `<p class="text-slate-700 mb-4"><strong>Primary Origin:</strong> ${communityData.primary_origin}</p>`;
+            }
+
+            const customs = communityData.customs || {};
+            if (Object.keys(customs).length > 0) {
+                html += `<div class="mt-6 space-y-4">`;
+                html += `<h3 class="text-lg font-bold text-slate-800 mb-3">Halachic Practices & Customs</h3>`;
+
+                Object.entries(customs).forEach(([key, practices]) => {
+                    const title = (practices && practices.topic) ? practices.topic : key.replace(/_/g, ' ');
+                    html += `<div class="bg-white p-4 rounded border border-slate-200">`;
+                    html += `<h4 class="font-bold text-slate-800 mb-2 capitalize">${title}</h4>`;
+                    if (practices && practices.ruling) {
+                        html += `<p class="text-slate-700 mb-2">${practices.ruling}</p>`;
+                    }
+                    if (practices && Array.isArray(practices.common_practices) && practices.common_practices.length > 0) {
+                        html += `<ul class="list-disc ml-5 text-slate-600 text-sm space-y-1">`;
+                        practices.common_practices.forEach(item => {
+                            html += `<li>${item}</li>`;
+                        });
+                        html += `</ul>`;
+                    }
+                    html += `</div>`;
+                });
+                html += `</div>`;
+            } else {
+                html += `<p class="text-slate-500 italic">Detailed customs data is available. Check the raw community database for comprehensive information.</p>`;
+            }
+
+            html += `</div>`;
+            html += `</div>`;
+
+            return html;
+        }
+
+        function goHome() {
+            reader.classList.add('hidden');
+            homeGrid.style.display = 'block';
+            searchInput.value = '';
+            hideSearchSuggestions();
+            appState.currentView = null;
+            updateBookmarkButton();
+            setTimeout(() => { homeGrid.classList.remove('opacity-0'); }, 10);
+            sidebarContent.innerHTML = `<p class="italic text-slate-400">Search a halacha to view cross-referenced Encyclopedia and Customs data...</p>`;
+        }
+
+        function setQuery(q) {
+            searchInput.value = q;
+            searchForm.dispatchEvent(new Event('submit'));
+        }
+
+        function normalizeSearchKey(text) {
+            return (text || '').toLowerCase().replace(/[^a-z0-9\s]/g, ' ').replace(/\s+/g, ' ').trim();
+        }
+
+        function shouldPreferAiSearch(query) {
+            const q = (query || '').toLowerCase().trim();
+            if (!q) return false;
+            if (q.includes('?')) return true;
+            if (/^(who|what|when|where|why|how|can|should|is|are|do|does|did|which)\b/.test(q)) return true;
+
+            const aiKeywords = [
+                'halacha', 'halakh', 'custom', 'minhag', 'kashrut', 'ruling',
+                'permitted', 'forbidden', 'psak', 'practice', 'community'
+            ];
+            return aiKeywords.some(k => q.includes(k));
+        }
+
+        async function getPrayerTitlesForSearch() {
+            if (Array.isArray(textsCache.prayersList) && textsCache.prayersList.length > 0) {
+                return textsCache.prayersList.map(p => p.title || p.name).filter(Boolean);
+            }
+
+            try {
+                const resp = await fetch('/api/prayers/list');
+                if (!resp.ok) return [];
+                const list = await resp.json();
+                textsCache.prayersList = list;
+                return list.map(p => p.title || p.name).filter(Boolean);
+            } catch (_) {
+                return [];
+            }
+        }
+
+        async function resolveSearchTarget(query) {
+            const key = normalizeSearchKey(query);
+
+            // Resolve prayer books/services first so liturgy searches open in the prayer reader flow.
+            const prayerTitles = await getPrayerTitlesForSearch();
+            const exactPrayer = prayerTitles.find(t => normalizeSearchKey(t) === key);
+            if (exactPrayer) {
+                return { type: 'prayer', value: exactPrayer };
+            }
+
+            const partialPrayer = prayerTitles.find(t => {
+                const tKey = normalizeSearchKey(t);
+                return key.length >= 4 && (tKey.includes(key) || key.includes(tKey));
+            });
+            if (partialPrayer) {
+                return { type: 'prayer', value: partialPrayer };
+            }
+
+            // Fast aliases for common book/topic lookups
+            const quickMap = {
+                'genesis': 'Genesis 1',
+                'bereishit': 'Genesis 1',
+                'exodus': 'Exodus 1',
+                'shemot': 'Exodus 1',
+                'leviticus': 'Leviticus 1',
+                'vayikra': 'Leviticus 1',
+                'numbers': 'Numbers 1',
+                'bamidbar': 'Numbers 1',
+                'deuteronomy': 'Deuteronomy 1',
+                'devarim': 'Deuteronomy 1',
+                'psalms': 'Psalms 1',
+                'tehillim': 'Psalms 1',
+                'proverbs': 'Proverbs 1',
+                'mishlei': 'Proverbs 1',
+                'siddur ashkenaz': 'Siddur Ashkenaz',
+                'siddur sefard': 'Siddur Sefard',
+                'birkat hamazon': 'Birkat Hamazon'
+            };
+
+            if (quickMap[key]) return { type: 'text', value: quickMap[key] };
+
+            // Try direct lookup first (book name / direct ref).
+            const directCandidates = [query, `${query} 1`];
+            for (const candidate of directCandidates) {
+                try {
+                    const r = await fetch(`/api/text/${encodeURIComponent(candidate)}`);
+                    if (!r.ok) continue;
+                    const data = await r.json();
+                    if (!data.error && (data.ref || data.title)) {
+                        return { type: 'text', value: data.ref || candidate };
+                    }
+                } catch (_) {
+                    // Keep searching using fallback strategy below.
+                }
+            }
+
+            // Fallback to library search and pick the best textual hit.
+            const searchResp = await fetch(`/api/library/search?q=${encodeURIComponent(query)}&size=8`);
+            if (!searchResp.ok) return null;
+
+            const results = await searchResp.json();
+            if (!Array.isArray(results) || results.length === 0) return null;
+
+            const nonCommentary = results.find(r => !(r.categories || []).includes('Commentary'));
+            const best = nonCommentary || results[0];
+            return best.ref ? { type: 'text', value: best.ref } : null;
+        }
+
+        async function openSearchTarget(target, fallbackQuestion = '') {
+            if (!target) return false;
+
+            if (target.type === 'prayer') {
+                await displayPrayer(target.value);
+                hideSearchSuggestions();
+                return true;
+            }
+
+            if (target.type === 'community') {
+                await displayCommunity(target.value);
+                hideSearchSuggestions();
+                return true;
+            }
+
+            if (target.type === 'text') {
+                await readText(target.value);
+                hideSearchSuggestions();
+                return true;
+            }
+
+            if (target.type === 'ask') {
+                await handleAiSearch(target.value || fallbackQuestion);
+                hideSearchSuggestions();
+                return true;
+            }
+
+            return false;
+        }
+
+        async function handleAiSearch(question) {
+            setCurrentView('ask', question, question);
+            // Show loading modal
+            const aiModal = document.getElementById('aiAssistantModal');
+            aiModal.style.display = 'flex';
+
+            // Reset modal content
+            document.getElementById('aiSynthesis').innerHTML = '<p class="text-slate-400 italic animate-pulse">Synthesizing answer from Sefaria, customs, and halachic sources...</p>';
+            document.getElementById('aiModalTitle').textContent = question;
+            document.getElementById('aiSourcesSection').classList.add('hidden');
+            document.getElementById('aiCustomsSection').classList.add('hidden');
+            document.getElementById('aiWikiSection').classList.add('hidden');
+            document.getElementById('aiConfidenceBadge').textContent = 'Confidence: --';
+            document.getElementById('aiModeBadge').textContent = `Mode: ${appState.prefs.mode}`;
+            document.getElementById('aiCommunityBadge').textContent = `Community: ${appState.prefs.community}`;
+            document.getElementById('aiSourcesBadge').textContent = 'Sources: --';
+            document.getElementById('aiFallbackBadge').classList.add('hidden');
+
+            try {
+                const response = await fetch('/ask', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        question,
+                        mode: appState.prefs.mode,
+                        community: appState.prefs.community,
+                    })
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    populateAiModal(data, question);
+                } else {
+                    document.getElementById('aiSynthesis').innerHTML = `<p class="text-red-600 font-bold">Error: ${data.error}</p>`;
+                }
+
+            } catch (error) {
+                document.getElementById('aiSynthesis').innerHTML = `<p class="text-red-600">Network error: ${error.message}</p>`;
+            }
+        }
+
+        // ─── INLINE SEFARIA TEXT READER ───────────────────────────────────────
+        async function readText(ref) {
+            homeGrid.style.display = 'none';
+            reader.classList.add('hidden');
+            loadingOverlay.classList.remove('hidden');
+            setReaderSubtitle('');
+
+            document.getElementById('readerTitle').innerText = ref;
+            document.getElementById('readerContent').innerHTML = '';
+            document.getElementById('readerSources').innerHTML = '';
+            document.getElementById('readerMedia').innerHTML = '';
+
+            try {
+                const r = await fetch(`/api/text/${encodeURIComponent(ref)}`);
+                const data = await r.json();
+
+                loadingOverlay.classList.add('hidden');
+                reader.classList.remove('hidden');
+
+                if (data.error) {
+                    document.getElementById('readerTitle').innerText = ref;
+                    document.getElementById('readerContent').innerHTML =
+                        `<p class="text-red-500">Could not load text: ${data.error}</p>`;
+                    return;
+                }
+
+                // Title
+                const titleEl = document.getElementById('readerTitle');
+                titleEl.innerText = data.heTitle ? `${data.title} · ${data.heTitle}` : data.title || ref;
+                setCurrentView('text', data.ref || ref, data.title || data.ref || ref);
+
+                // Badge
+                const categories = data.categories || [];
+                document.querySelector('#reader header .bg-slate-100').textContent =
+                    categories.join(' › ') || 'Sheilah Library';
+
+                const parashaMatch = getTorahParashaForRef(data.ref || ref, categories);
+                if (parashaMatch) {
+                    setReaderSubtitle(`Parashah for Chapter ${parashaMatch.chapter}: ${parashaMatch.name}`);
+                }
+
+                // Build bilingual side-by-side blocks inline
+                const sourcesDiv = document.getElementById('readerSources');
+                sourcesDiv.innerHTML = '';
+
+                // Navigation prev/next
+                let navHTML = '<div class="flex justify-between mb-8 text-sm">';
+                if (data.prev)
+                    navHTML += `<button onclick="readText('${data.prev}')" class="px-4 py-2 bg-slate-100 rounded hover:bg-slate-200 font-serif">&#8592; ${data.prev}</button>`;
+                else navHTML += '<span></span>';
+                if (data.next)
+                    navHTML += `<button onclick="readText('${data.next}')" class="px-4 py-2 bg-slate-100 rounded hover:bg-slate-200 font-serif">${data.next} &#8594;</button>`;
+                navHTML += '</div>';
+
+                document.getElementById('readerContent').innerHTML = navHTML;
+
+                if (data.lines && data.lines.length > 0) {
+                    const cleanLine = (text = '') => escapeHtml(String(text).replace(/<[^>]*>/gm, '').trim()).replace(/\n/g, '<br>');
+                    const formatSegmentLabel = (segment, idx) => {
+                        if (!segment) return `Segment ${idx + 1}`;
+                        const raw = String(segment).trim();
+                        if (!raw) return `Segment ${idx + 1}`;
+                        const parts = raw.split('.').filter(Boolean);
+                        if (parts.length >= 2) {
+                            return `§ ${parts[0]}:${parts.slice(1).join(':')}`;
+                        }
+                        return `§ ${parts[0] || idx + 1}`;
+                    };
+
+                    const rows = data.lines.map((line, idx) => {
+                        const label = formatSegmentLabel(line.segment, idx);
+                        const he = cleanLine(line.he || '');
+                        const en = cleanLine(line.en || '');
+
+                        return `
+                            <div class="source-grid segment-row grid grid-cols-1 lg:grid-cols-2 border-b border-slate-100 last:border-b-0">
+                                <div class="source-he bg-white text-right font-hebrew text-xl lg:text-2xl leading-[1.8] p-5" dir="rtl">
+                                    <div class="segment-label">${label}</div>
+                                    ${he ? `<p>${he}</p>` : '<p class="text-slate-300 italic">—</p>'}
+                                </div>
+                                <div class="source-en bg-slate-50 font-serif leading-relaxed p-5 text-slate-700 text-lg">
+                                    <div class="segment-label">${label}</div>
+                                    ${en ? `<p>${en}</p>` : '<p class="text-slate-300 italic">—</p>'}
+                                </div>
+                            </div>
+                        `;
+                    }).join('');
+
+                    sourcesDiv.innerHTML = `
+                        <div class="border border-slate-300 rounded-lg bg-white overflow-hidden shadow-sm mb-6">
+                            <div class="bg-slate-50 px-4 py-2 text-xs font-bold text-slate-500 uppercase tracking-wider border-b source-title">
+                                <span>${escapeHtml(data.ref || ref)}</span>
+                            </div>
+                            ${rows}
+                        </div>
+                    `;
+                } else {
+                    sourcesDiv.innerHTML = '<p class="text-slate-500 italic">No text content found for this reference.</p>';
+                }
+
+                applyReaderPreferences();
+
+                // Update left sidebar with metadata
+                sidebarContent.innerHTML = `
+                    <div class="text-xs space-y-2">
+                        <div><span class="font-bold text-slate-700">Reference:</span> <span class="text-slate-500">${data.ref}</span></div>
+                        ${data.heTitle ? `<div><span class="font-bold text-slate-700">Hebrew:</span> <span class="font-hebrew text-slate-600">${data.heTitle}</span></div>` : ''}
+                        ${categories.length ? `<div><span class="font-bold text-slate-700">Category:</span> <span class="text-slate-500">${categories.join(' › ')}</span></div>` : ''}
+                        ${data.era ? `<div><span class="font-bold text-slate-700">Era:</span> <span class="text-slate-500">${data.era}</span></div>` : ''}
+                    </div>`;
+
+                mainContainer.scrollTo({ top: 0, behavior: 'smooth' });
+
+            } catch (err) {
+                loadingOverlay.classList.add('hidden');
+                reader.classList.remove('hidden');
+                document.getElementById('readerContent').innerHTML =
+                    `<p class="text-red-500">Network error loading text.</p>`;
+            }
+        }
+
+        // ─── POPULAR TEXTS PANEL ─────────────────────────────────────────────
+        async function loadParashaQuickLink() {
+            const quickLink = document.getElementById('parashaQuickLink');
+            if (!quickLink) return;
+
+            try {
+                const resp = await fetch('/api/parasha');
+                if (!resp.ok) return;
+
+                const data = await resp.json();
+                const ref = data.ref || 'Genesis 1';
+                const enTitle = (data.title || 'Parashat HaShavua').trim();
+                const heTitle = (data.heTitle || '').trim();
+
+                quickLink.textContent = heTitle ? `${enTitle} · ${heTitle}` : enTitle;
+                quickLink.title = heTitle
+                    ? `Open ${enTitle} (${heTitle})`
+                    : `Open ${enTitle}`;
+                quickLink.onclick = () => readText(ref);
+            } catch (_) {
+                // Keep default quick-link state when parasha endpoint is unavailable.
+            }
+        }
+
+        function bindDailyStudyLinks() {
+            document.querySelectorAll('.daily-study-link').forEach((btn) => {
+                btn.addEventListener('click', async () => {
+                    const ref = (btn.dataset.dailyRef || '').trim();
+                    if (!ref) return;
+                    await readText(ref);
+                });
+            });
+        }
+
+        async function populatePopularTexts() {
+            const grid = document.getElementById('popularTextsGrid');
+            try {
+                const r = await fetch('/api/library/popular');
+                const data = await r.json();
+                let html = '';
+                const colors = {
+                    'Tanakh': '#004e5f', 'Mishnah': '#5a99b7',
+                    'Talmud': '#a08a4a', 'Halakhah': '#802f3e'
+                };
+                Object.entries(data).forEach(([cat, texts]) => {
+                    const color = colors[cat] || '#374151';
+                    texts.forEach(t => {
+                        html += `
+                        <button onclick="readText('${t.ref}')"
+                            class="text-left p-3 rounded border border-slate-200 hover:border-[${color}] hover:shadow-sm transition group bg-white">
+                            <div class="font-hebrew text-lg text-slate-700 group-hover:text-[${color}]">${t.he}</div>
+                            <div class="text-xs font-serif text-slate-800 mt-1">${t.title}</div>
+                            <div class="text-xs text-slate-400 mt-0.5">${t.description}</div>
+                        </button>`;
+                    });
+                });
+                grid.innerHTML = html;
+            } catch (e) {
+                grid.innerHTML = '<p class="text-slate-400 text-sm col-span-4 italic">Could not load popular texts.</p>';
+            }
+        }
+
+        // Load popular texts on page load
+        window.addEventListener('load', () => {
+            hydratePreferences();
+            bindDailyStudyLinks();
+            loadParashaQuickLink();
+            populatePopularTexts();
+        });
+
+        // Multi-language Toggle with data attributes
+        function toggleLanguage(lang) {
+            if (lang !== 'en' && lang !== 'he') {
+                lang = 'en';
+            }
+
+            // Update all elements with data-* attributes
+            document.querySelectorAll('[data-en], [data-he]').forEach(el => {
+                if (el.dataset[lang]) {
+                    el.textContent = el.dataset[lang];
+                }
+            });
+
+            // Handle RTL for Hebrew.
+            const html = document.documentElement;
+            const searchIcon = document.getElementById('searchIcon');
+            if (lang === 'he') {
+                html.setAttribute('dir', 'rtl');
+                html.classList.add('rtl');
+                // Swap search icon position for RTL
+                if (searchIcon) {
+                    searchIcon.classList.remove('right-3');
+                    searchIcon.classList.add('left-3');
+                }
+            } else {
+                html.setAttribute('dir', 'ltr');
+                html.classList.remove('rtl');
+                // Swap search icon position back to right for LTR
+                if (searchIcon) {
+                    searchIcon.classList.remove('left-3');
+                    searchIcon.classList.add('right-3');
+                }
+            }
+
+            // Update language button styles
+            document.querySelectorAll('.lang-btn').forEach(btn => {
+                btn.classList.remove('bg-blue-100', 'bg-slate-100');
+                if (btn.dataset.lang === lang) {
+                    btn.classList.add('bg-blue-100');
+                } else {
+                    btn.classList.add('bg-slate-100');
+                }
+            });
+
+            // Adjust search input padding for RTL
+            const searchInput = document.getElementById('searchInput');
+            if (searchInput) {
+                if (lang === 'he') {
+                    // RTL: padding on left for icon space created by JavaScript
+                    searchInput.classList.remove('pl-4', 'pr-10');
+                    searchInput.classList.add('pl-10', 'pr-4');
+                    // Update placeholder for RTL
+                    searchInput.placeholder = 'חפש נושא, הלכה, מנהג...';
+                } else {
+                    // LTR: padding on right for icon space
+                    searchInput.classList.remove('pl-10', 'pr-4');
+                    searchInput.classList.add('pl-4', 'pr-10');
+                    searchInput.placeholder = 'Search for a topic, halacha, or custom...';
+                }
+            }
+
+            // Update modal titles
+            const aiModalTitle = document.getElementById('aiModalTitle');
+            if (aiModalTitle) {
+                const titles = {
+                    'en': 'Halachic Inquiry',
+                    'he': 'שאלה הלכתית',
+                };
+                aiModalTitle.textContent = titles[lang] || titles['en'];
+            }
+
+            // Update modal section titles dynamically
+            const modalSections = {
+                'Answer': { 'en': 'Answer', 'he': 'תשובה' },
+                'Primary Sources': { 'en': 'Primary Sources', 'he': 'מקורות ראשוניים' },
+                'Community Traditions': { 'en': 'Community Traditions', 'he': 'מסורות קהילתיות' },
+                'Encyclopedia Context': { 'en': 'Encyclopedia Context', 'he': 'הקשר אנציקלופדי' }
+            };
+
+            document.querySelectorAll('#aiSynthesis').forEach(el => {
+                const h3 = el.parentElement.querySelector('h3');
+                if (h3 && h3.textContent === 'Answer') {
+                    h3.textContent = modalSections['Answer'][lang] || modalSections['Answer']['en'];
+                }
+            });
+
+            document.querySelectorAll('#aiSourcesSection h3').forEach(h3 => {
+                if (h3.textContent.includes('Primary')) h3.textContent = modalSections['Primary Sources'][lang] || modalSections['Primary Sources']['en'];
+            });
+
+            document.querySelectorAll('#aiCustomsSection h3').forEach(h3 => {
+                if (h3.textContent.includes('Community'))
+                    h3.textContent = modalSections['Community Traditions'][lang] || modalSections['Community Traditions']['en'];
+            });
+
+            document.querySelectorAll('#aiWikiSection h3').forEach(h3 => {
+                if (h3.textContent.includes('Encyclopedia') || h3.textContent.includes('אנציקלופדי') || h3.textContent.includes('موسوعة'))
+                    h3.textContent = modalSections['Encyclopedia Context'][lang] || modalSections['Encyclopedia Context']['en'];
+            });
+
+            // Keep pane visibility/layout controlled by reader preferences.
+            applyReaderPreferences();
+
+            // Update reader content if showing prayer or community
+            if (reader && !reader.classList.contains('hidden')) {
+                if (window.currentPrayerContent) {
+                    renderPrayerDisplayByLayout(lang);
+                } else if (window.currentCommunityData) {
+                    document.getElementById('readerContent').innerHTML = renderCommunityContent(window.currentCommunityData);
+                }
+            }
+
+            // Store language preference
+            localStorage.setItem('preferredLanguage', lang);
+        }
+
+        // Load saved language preference on page load
+        const rawSavedLang = localStorage.getItem('preferredLanguage') || 'en';
+        const savedLang = (rawSavedLang === 'he' || rawSavedLang === 'en') ? rawSavedLang : 'en';
+        toggleLanguage(savedLang);
+
+        // ZMANIM LOGIC
+        function initZmanim() {
+            // First check if location exists on IP fallback via direct API call just in case,
+            // but the server backend automatically does IP fallback now if session is empty!
+            fetchZmanimAPI(); // Start fetching immediately using IP fallback
+
+            // Try accurate GPS in background to override IP
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition(pos => {
+                    fetch('/set_location', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ lat: pos.coords.latitude, lon: pos.coords.longitude })
+                    }).then(() => fetchZmanimAPI()); // Refresh accurate
+                }, err => { console.log('Location rejected/failed, keeping IP fallback.'); });
+            }
+        }
+
+        function fetchZmanimAPI() {
+            fetch('/api/zmanim')
+                .then(r => r.json())
+                .then(data => {
+                    if (!data.error) {
+                        zmanimData = data;
+                        const z = data.zmanim;
+                        const meta = data.metadata || {};
+                        document.getElementById('zmanLoc').innerText = data.metadata.timezone;
+                        document.getElementById('zDawn').innerText = z['Dawn (16.1° / 72m)'] || 'N/A';
+                        document.getElementById('zTalit').innerText = z['Earliest Tallit/Tefillin (10.2°)'] || 'N/A';
+                        document.getElementById('zSunrise').innerText = z['Sunrise'] || 'N/A';
+                        const shemaGra = z['Latest Shema (GRA)'] || 'N/A';
+                        const shemaBht = z['Latest Shema (Baal HaTanya)'] || 'N/A';
+                        const shacharitGra = z['Latest Shacharit (GRA)'] || 'N/A';
+                        const shacharitBht = z['Latest Shacharit (Baal HaTanya)'] || 'N/A';
+
+                        document.getElementById('zShemaGra').innerText = shemaGra;
+                        document.getElementById('zShemaBht').innerText = shemaBht;
+                        document.getElementById('zShacharitGra').innerText = shacharitGra;
+                        document.getElementById('zShacharitBht').innerText = shacharitBht;
+
+                        const shemaGraRow = document.getElementById('shemaGraRow');
+                        const shemaBhtRow = document.getElementById('shemaBhtRow');
+                        const shemaGraLabel = document.getElementById('shemaGraLabel');
+                        if (shemaGraRow && shemaBhtRow && shemaGraLabel) {
+                            if (shemaGra !== 'N/A' && shemaGra === shemaBht) {
+                                shemaGraLabel.innerText = 'Latest Shema (GRA / Baal HaTanya)';
+                                shemaBhtRow.classList.add('hidden');
+                            } else {
+                                shemaGraLabel.innerText = 'Latest Shema (GRA)';
+                                shemaBhtRow.classList.remove('hidden');
+                            }
+                        }
+
+                        const shacharitGraRow = document.getElementById('shacharitGraRow');
+                        const shacharitBhtRow = document.getElementById('shacharitBhtRow');
+                        const shacharitGraLabel = document.getElementById('shacharitGraLabel');
+                        if (shacharitGraRow && shacharitBhtRow && shacharitGraLabel) {
+                            if (shacharitGra !== 'N/A' && shacharitGra === shacharitBht) {
+                                shacharitGraLabel.innerText = 'Latest Shacharit (GRA / Baal HaTanya)';
+                                shacharitBhtRow.classList.add('hidden');
+                            } else {
+                                shacharitGraLabel.innerText = 'Latest Shacharit (GRA)';
+                                shacharitBhtRow.classList.remove('hidden');
+                            }
+                        }
+                        document.getElementById('zChatzot').innerText = z['Chatzot (Midday)'] || 'N/A';
+                        document.getElementById('zMincha').innerText = z['Earliest Mincha (Mincha Gedola)'] || 'N/A';
+                        document.getElementById('zMusaf').innerText = z['Latest Musaf (Holidays)'] || 'N/A';
+                        document.getElementById('zPlag').innerText = z['Plag HaMincha'] || 'N/A';
+                        document.getElementById('zCandles').innerText = z['Candle Lighting (Holidays)'] || 'N/A';
+                        document.getElementById('zSunset').innerText = z['Sunset'] || 'N/A';
+                        document.getElementById('zNight').innerText = z['Nightfall (3 Stars)'] || 'N/A';
+                        document.getElementById('zMidnight').innerText = z['Chatzot HaLailah (Midnight)'] || 'N/A';
+
+                        const holidayName = document.getElementById('holidayName');
+                        const omerRow = document.getElementById('omerRow');
+                        const omerCount = document.getElementById('omerCount');
+                        const omerHint = document.getElementById('omerHint');
+                        if (holidayName) {
+                            holidayName.innerText = meta.holiday || 'Regular Day';
+                        }
+                        if (omerRow && omerCount && omerHint) {
+                            if (meta.omer_day) {
+                                omerCount.innerText = meta.omer_label || `Day ${meta.omer_day} of 49`;
+                                omerRow.classList.remove('hidden');
+                                omerHint.classList.add('hidden');
+                            } else {
+                                omerRow.classList.add('hidden');
+                                omerHint.classList.remove('hidden');
+                            }
+                        }
+
+                        if (data.metadata.shabbat_warning) {
+                            const w = document.getElementById('zmanimWarning');
+                            w.innerText = data.metadata.shabbat_warning;
+                            w.classList.remove('hidden');
+                        }
+
+                        startCountdown();
+                    }
+                });
+        }
+
+        function startCountdown() {
+            if (countdownInterval) clearInterval(countdownInterval);
+            const times = [];
+            const now = new Date();
+            if (!zmanimData) return;
+
+            const isoMap = (zmanimData.metadata && zmanimData.metadata.zmanim_iso) || {};
+
+            Object.entries(zmanimData.zmanim).forEach(([key, val]) => {
+                if (!val || val === 'N/A') return;
+
+                let t = null;
+                const iso = isoMap[key];
+                if (iso) {
+                    const parsed = new Date(iso);
+                    if (!Number.isNaN(parsed.getTime())) {
+                        t = parsed;
+                    }
+                }
+
+                // Fallback for older payloads without ISO timestamps.
+                if (!t) {
+                    const match = val.match(/(\d+):(\d+)\s+(AM|PM)/);
+                    if (!match) return;
+                    let h = parseInt(match[1]);
+                    let m = parseInt(match[2]);
+                    if (match[3] === 'PM' && h !== 12) h += 12;
+                    if (match[3] === 'AM' && h === 12) h = 0;
+                    t = new Date();
+                    t.setHours(h, m, 0, 0);
+                }
+
+                if (t > now) {
+                    times.push({ name: key, t });
+                }
+            });
+
+            const rowByKey = {
+                'Dawn (16.1° / 72m)': 'zRowDawn',
+                'Earliest Tallit/Tefillin (10.2°)': 'zRowTalit',
+                'Sunrise': 'zRowSunrise',
+                'Latest Shema (GRA)': 'shemaGraRow',
+                'Latest Shema (Baal HaTanya)': 'shemaBhtRow',
+                'Latest Shacharit (GRA)': 'shacharitGraRow',
+                'Latest Shacharit (Baal HaTanya)': 'shacharitBhtRow',
+                'Chatzot (Midday)': 'zRowChatzot',
+                'Earliest Mincha (Mincha Gedola)': 'zRowMincha',
+                'Latest Musaf (Holidays)': 'zRowMusaf',
+                'Plag HaMincha': 'zRowPlag',
+                'Candle Lighting (Holidays)': 'zRowCandles',
+                'Sunset': 'zRowSunset',
+                'Nightfall (3 Stars)': 'zRowNight',
+                'Chatzot HaLailah (Midnight)': 'zRowMidnight',
+            };
+
+            document.querySelectorAll('[data-zman-row]').forEach((row) => {
+                row.classList.remove('bg-blue-50', 'rounded-md');
+            });
+
+            times.sort((a, b) => a.t - b.t);
+            const nextZman = times.length > 0 ? times[0] : null;
+
+            if (!nextZman) {
+                countdownInterval = setInterval(() => startCountdown(), 30000);
+                return;
+            }
+
+            let highlightRowId = rowByKey[nextZman.name];
+            if (nextZman.name === 'Latest Shema (Baal HaTanya)' && document.getElementById('shemaBhtRow')?.classList.contains('hidden')) {
+                highlightRowId = 'shemaGraRow';
+            }
+            if (nextZman.name === 'Latest Shacharit (Baal HaTanya)' && document.getElementById('shacharitBhtRow')?.classList.contains('hidden')) {
+                highlightRowId = 'shacharitGraRow';
+            }
+
+            const row = highlightRowId ? document.getElementById(highlightRowId) : null;
+            if (row) {
+                row.classList.add('bg-blue-50', 'rounded-md');
+            }
+
+            countdownInterval = setInterval(() => startCountdown(), 30000);
+        }
+
+        let holidaysCalendar = null;
+
+        function ensureCalendarReady() {
+            if (holidaysCalendar) return;
+            const calendarEl = document.getElementById('calendar');
+            holidaysCalendar = new FullCalendar.Calendar(calendarEl, {
+                initialView: 'dayGridMonth',
+                events: function (fetchInfo, successCallback, failureCallback) {
+                    const year = fetchInfo.start.getFullYear();
+                    fetch(`/api/holidays?year=${year}`)
+                        .then(r => r.json())
+                        .then(data => successCallback(Array.isArray(data) ? data : (data.items || [])))
+                        .catch(e => failureCallback(e));
+                },
+                eventColor: '#002147',
+                height: 'auto'
+            });
+            holidaysCalendar.render();
+        }
+
+        window.openCalendarModal = function () {
+            const modal = document.getElementById('calendarModal');
+            modal.classList.remove('hidden');
+            modal.style.display = 'flex';
+            ensureCalendarReady();
+            setTimeout(() => {
+                if (holidaysCalendar) holidaysCalendar.updateSize();
+            }, 80);
+        };
+
+        window.closeCalendarModal = function () {
+            const modal = document.getElementById('calendarModal');
+            modal.style.display = 'none';
+            modal.classList.add('hidden');
+        };
+
+        initZmanim();
+
+        const debouncedSuggestionFetch = debounce(fetchOmniboxSuggestions, 180);
+
+        searchInput.addEventListener('input', () => {
+            debouncedSuggestionFetch(searchInput.value);
+        });
+
+        searchInput.addEventListener('focus', () => {
+            if ((searchInput.value || '').trim().length >= 2) {
+                fetchOmniboxSuggestions(searchInput.value);
+            }
+        });
+
+        searchInput.addEventListener('keydown', async (e) => {
+            if (searchSuggestions.classList.contains('hidden')) return;
+
+            if (e.key === 'ArrowDown') {
+                e.preventDefault();
+                appState.activeSuggestionIndex = Math.min(
+                    appState.activeSuggestionIndex + 1,
+                    appState.suggestionItems.length - 1
+                );
+                renderSearchSuggestions();
+                return;
+            }
+
+            if (e.key === 'ArrowUp') {
+                e.preventDefault();
+                appState.activeSuggestionIndex = Math.max(appState.activeSuggestionIndex - 1, -1);
+                renderSearchSuggestions();
+                return;
+            }
+
+            if (e.key === 'Escape') {
+                hideSearchSuggestions();
+                return;
+            }
+
+            if (e.key === 'Enter' && appState.activeSuggestionIndex >= 0) {
+                e.preventDefault();
+                const selected = appState.suggestionItems[appState.activeSuggestionIndex];
+                await openSearchTarget(selected, searchInput.value.trim());
+            }
+        });
+
+        searchSuggestions.addEventListener('click', async (e) => {
+            const btn = e.target.closest('.suggestion-item');
+            if (!btn) return;
+            const index = Number(btn.dataset.index);
+            const selected = appState.suggestionItems[index];
+            await openSearchTarget(selected, searchInput.value.trim());
+        });
+
+        document.addEventListener('click', (e) => {
+            if (!searchForm.contains(e.target)) {
+                hideSearchSuggestions();
+            }
+            if (settingsMenuContainer && !settingsMenuContainer.contains(e.target)) {
+                closeSettingsMenu();
+            }
+        });
+
+        // SUBMIT SEARCH LOGIC - Inline text navigation first, AI fallback second
+        searchForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const question = searchInput.value.trim();
+            if (!question) return;
+
+            if (appState.activeSuggestionIndex >= 0 && appState.suggestionItems[appState.activeSuggestionIndex]) {
+                await openSearchTarget(appState.suggestionItems[appState.activeSuggestionIndex], question);
+                return;
+            }
+
+            // Use search as in-page navigation for topical/book lookups (e.g., "Genesis").
+            if (!shouldPreferAiSearch(question)) {
+                try {
+                    const target = await resolveSearchTarget(question);
+                    if (target && await openSearchTarget(target, question)) {
+                        return;
+                    }
+                } catch (_) {
+                    // Fall back to AI search below when text resolution fails.
+                }
+            }
+
+            await handleAiSearch(question);
+            hideSearchSuggestions();
+        });
+
+        function renderArticle(data, queryTitle) {
+            // Title already set
+
+            // 1. Content Synthesis
+            document.getElementById('readerContent').innerHTML = marked.parse(data.answer || "No synthesis available.");
+
+            // 2. Bilingual Sefaria Side-by-Side Sources
+            const sourcesDiv = document.getElementById('readerSources');
+            if (data.sources && data.sources.length > 0) {
+                data.sources.forEach(src => {
+                    const clone = sourceDualTemplate.content.cloneNode(true);
+                    clone.querySelector('.source-title span').textContent = src.title || src.ref || "Sefaria Source";
+                    clone.querySelector('.source-link').href = `https://www.sefaria.org/${src.ref}`;
+
+                    const heDiv = clone.querySelector('.source-he');
+                    const enDiv = clone.querySelector('.source-en');
+
+                    let heMarkup = "";
+                    let enMarkup = "";
+
+                    const lines = src.lines.slice(0, 5); // Limit slightly to avoid massive block scrolling on large sources
+                    lines.forEach(l => {
+                        if (l.he) heMarkup += `<p class="mb-4">${l.he}</p>`;
+                        if (l.en) enMarkup += `<p class="mb-4">${l.en.replace(/<[^>]*>?/gm, '')}</p>`; // clean HTML
+                    });
+
+                    heDiv.innerHTML = heMarkup;
+                    enDiv.innerHTML = enMarkup;
+
+                    sourcesDiv.appendChild(clone);
+                });
+            }
+
+            // 3. Media Items (Customs videos)
+            const mediaDiv = document.getElementById('readerMedia');
+            if (data.customs && data.customs.length > 0) {
+                let mediaHTML = "";
+                data.customs.forEach(c => {
+                    if (c.media_url) {
+                        if (c.media_url.match(/\.(mp4|webm|ogg)$/)) {
+                            mediaHTML += `<div class="bg-slate-50 p-4 border rounded"><strong class="block mb-2 text-navy">${c.community} custom:</strong><video controls src="${c.media_url}" class="w-full max-w-lg rounded shadow-sm"></video></div>`;
+                        } else if (c.media_url.includes("youtube.com") || c.media_url.includes("youtu.be")) {
+                            mediaHTML += `<div class="bg-indigo-50 text-indigo-800 p-4 border border-indigo-200 rounded font-semibold"><a href="${c.media_url}" target="_blank">Watch Video Guide for ${c.community} Custom &rarr;</a></div>`;
+                        }
+                    }
+                });
+                if (mediaHTML) mediaDiv.innerHTML = `<h3 class="text-xl font-bold font-serif mb-4 text-navy border-t pt-8">Customs Media</h3>` + mediaHTML;
+            }
+
+            // 4. Update Left Sidebar
+            updateSidebar(data);
+
+            // Scroll to top of article
+            mainContainer.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        function updateSidebar(data) {
+            let html = "";
+            let added = false;
+
+            if (data.wiki && data.wiki.length > 0) {
+                html += '<h4 class="font-bold text-slate-800 mb-3 uppercase tracking-wider text-xs">Encyclopedia</h4>';
+                data.wiki.forEach(w => {
+                    if (w) html += `<div class="bg-slate-50 p-3 rounded border mb-3 text-xs leading-relaxed shadow-sm hover:shadow transition"><strong class="block text-navy mb-1 text-sm">${w.title}</strong><span class="text-slate-500">${w.summary.substring(0, 250)}...</span></div>`;
+                });
+                added = true;
+            }
+
+            if (data.customs && data.customs.length > 0) {
+                html += '<h4 class="font-bold text-slate-800 mb-3 mt-6 uppercase tracking-wider text-xs">Community Traditions</h4>';
+                data.customs.forEach(c => {
+                    html += `<div class="bg-indigo-50 p-3 rounded border border-indigo-100 mb-3 text-xs leading-relaxed shadow-sm"><strong class="block text-indigo-900 mb-1">${c.community}</strong><span class="text-indigo-800">${c.ruling || c.notes}</span></div>`;
+                });
+                added = true;
+            }
+
+            if (added) {
+                sidebarContent.innerHTML = html;
+            } else {
+                sidebarContent.innerHTML = `<p class="italic text-slate-400">Context evaluated strictly internally via LLM weights.</p>`;
+            }
+        }
+
+        function populateAiModal(data, queryTitle) {
+            // 1. Populate synthesis
+            document.getElementById('aiSynthesis').innerHTML = marked.parse(data.answer || "No synthesis available.");
+
+            const meta = data.meta || {};
+            const confidence = typeof data.confidence === 'number'
+                ? `${Math.round(data.confidence * 100)}%`
+                : '--';
+            document.getElementById('aiConfidenceBadge').textContent = `Confidence: ${confidence}`;
+            document.getElementById('aiModeBadge').textContent = `Mode: ${meta.mode || appState.prefs.mode}`;
+            document.getElementById('aiCommunityBadge').textContent = `Community: ${meta.community_lens || appState.prefs.community}`;
+            document.getElementById('aiSourcesBadge').textContent = `Sources: ${meta.source_count ?? (data.sources || []).length}`;
+
+            const fallbackBadge = document.getElementById('aiFallbackBadge');
+            if (meta.fallback) {
+                fallbackBadge.classList.remove('hidden');
+            } else {
+                fallbackBadge.classList.add('hidden');
+            }
+
+            // 2. Populate sources
+            if (data.sources && data.sources.length > 0) {
+                const sourcesDiv = document.getElementById('aiSources');
+                sourcesDiv.innerHTML = '';
+                data.sources.forEach((src, idx) => {
+                    const sourceHtml = `
+                        <div class="bg-slate-50 p-4 rounded border border-slate-200 hover:border-navy transition">
+                            <div class="flex justify-between items-start mb-2">
+                                <h4 class="font-hebrew text-sm font-bold text-navy">${src.ref}</h4>
+                                <a href="https://www.sefaria.org/${src.ref}" target="_blank" class="text-xs text-blue-600 hover:underline">Sefaria ↗</a>
+                            </div>
+                            <div class="text-xs text-slate-600 bg-white p-2 rounded max-h-32 overflow-y-auto">
+                                ${src.lines.slice(0, 3).map(l => `<p>${l.en ? l.en.replace(/<[^>]*>/gm, '') : l.he}</p>`).join('')}
+                            </div>
+                        </div>
+                    `;
+                    sourcesDiv.innerHTML += sourceHtml;
+                });
+                document.getElementById('aiSourcesSection').classList.remove('hidden');
+            }
+
+            // 3. Populate customs
+            if (data.customs && data.customs.length > 0) {
+                const customsDiv = document.getElementById('aiCustoms');
+                customsDiv.innerHTML = '';
+                data.customs.forEach(c => {
+                    const customHtml = `
+                        <div class="bg-indigo-50 border border-indigo-200 p-3 rounded">
+                            <div class="font-bold text-indigo-900 text-sm mb-1">${c.community}</div>
+                            <div class="text-xs text-indigo-800">${c.ruling || c.notes}</div>
+                        </div>
+                    `;
+                    customsDiv.innerHTML += customHtml;
+                });
+                document.getElementById('aiCustomsSection').classList.remove('hidden');
+            }
+
+            // 4. Populate encyclopedia/wiki
+            if (data.wiki && data.wiki.length > 0) {
+                const wikiDiv = document.getElementById('aiWiki');
+                wikiDiv.innerHTML = '';
+                data.wiki.forEach(w => {
+                    if (w) {
+                        const wikiHtml = `
+                            <div class="bg-blue-50 border border-blue-200 p-3 rounded">
+                                <div class="font-bold text-blue-900 text-sm mb-1">${w.title}</div>
+                                <div class="text-xs text-blue-800">${w.summary.substring(0, 150)}...</div>
+                            </div>
+                        `;
+                        wikiDiv.innerHTML += wikiHtml;
+                    }
+                });
+                document.getElementById('aiWikiSection').classList.remove('hidden');
+            }
+        }
+
+        function closeAiModal() {
+            document.getElementById('aiAssistantModal').style.display = 'none';
+            searchInput.value = '';
+        }
+
+        function viewFullArticle() {
+            // Hide modal and show full reader view instead
+            closeAiModal();
+            const question = document.getElementById('aiModalTitle').textContent;
+            setCurrentView('ask', question, question);
+            setReaderSubtitle('');
+
+            // Transition UI to Reader View
+            homeGrid.style.display = 'none';
+            reader.classList.add('hidden');
+            loadingOverlay.classList.remove('hidden');
+
+            document.getElementById('readerTitle').innerText = question;
+            document.getElementById('readerContent').innerHTML = document.getElementById('aiSynthesis').innerHTML;
+
+            // Show full article with all sources
+            setTimeout(() => {
+                loadingOverlay.classList.add('hidden');
+                reader.classList.remove('hidden');
+            }, 300);
+        }
+
+        // Allow closing modal with Escape key
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') {
+                closeSettingsMenu();
+                closeAiModal();
+            }
+        });
+    </script>
+</body>
+
+</html>

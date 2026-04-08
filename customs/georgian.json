@@ -1,0 +1,348 @@
+{
+  "version": "2.0",
+  "type": "academic_halachic_reference",
+  "heritage_id": "georgian",
+  "name": "Georgian",
+  "aliases": [
+    "Georgian Jews",
+    "Gurj",
+    "Qartveli Yidn"
+  ],
+  "database_scope": {
+    "purpose": "Academic and halachic reference database for Georgian Jewish heritage, minhagim, and halachic practice.",
+    "coverage_note": "This file models broad Georgian Jewish practice and includes common halachic domains. Local customs vary by city, family, and migration history.",
+    "classification_note": "Georgian Jewish practice is a distinct Caucasus Jewish tradition with deep local continuity, later interacting with Sephardi and broader rabbinic norms."
+  },
+  "identity": {
+    "primary_origin": "Historic Jewish communities of Georgia, especially Tbilisi, Kutaisi, and surrounding regions",
+    "secondary_centers": [
+      "Tbilisi",
+      "Kutaisi",
+      "Batumi",
+      "Gori",
+      "Georgia-wide diaspora communities",
+      "Israel",
+      "Russia",
+      "United States"
+    ],
+    "cultural_profile": [
+      "Strong Georgian language and identity",
+      "Distinct synagogue and family customs",
+      "Long historical continuity in the Caucasus",
+      "Blend of local Georgian culture and Jewish ritual tradition"
+    ]
+  },
+  "languages": [
+    "Judeo-Georgian",
+    "Georgian",
+    "Hebrew",
+    "Russian",
+    "English in diaspora"
+  ],
+  "genealogy": {
+    "common_surname_patterns": [
+      "Georgian surnames ending in -shvili, -dze, and related forms",
+      "Family names adapted in Russian or Hebrew transliteration",
+      "Town-based and lineage-based identity markers"
+    ],
+    "research_notes": [
+      "Many families are identified by town, synagogue, and extended kin network.",
+      "Surname spelling can change significantly between Georgian, Russian, Hebrew, and English records.",
+      "Oral family memory is often important alongside civil records."
+    ],
+    "recommended_genealogy_fields": [
+      "surname",
+      "alternate_spellings",
+      "town_of_origin",
+      "family_branch",
+      "migration_route",
+      "language_used",
+      "ritual_minhag"
+    ]
+  },
+  "historical_background": {
+    "timeline": [
+      {
+        "period": "Ancient and medieval era",
+        "event": "Jewish communities established longstanding roots in Georgia.",
+        "halachic_impact": "Local Georgian Jewish custom developed with strong continuity."
+      },
+      {
+        "period": "Imperial Russian period",
+        "event": "Georgia entered broader Russian political structures.",
+        "halachic_impact": "Naming, recordkeeping, and public life increasingly reflected Russian administration."
+      },
+      {
+        "period": "Soviet era",
+        "event": "Religious life faced pressure and limitation.",
+        "halachic_impact": "Family and oral transmission became especially important."
+      },
+      {
+        "period": "Modern diaspora",
+        "event": "Large migration to Israel and elsewhere expanded Georgian Jewish communities abroad.",
+        "halachic_impact": "Some customs were preserved, others adapted to new settings."
+      }
+    ]
+  },
+  "core_halachic_authorities": {
+    "primary_codes": [
+      "Shulchan Aruch",
+      "Mishneh Torah",
+      "local Georgian Jewish tradition"
+    ],
+    "major_rishonim_base": [
+      "Rambam",
+      "Rif",
+      "Rosh"
+    ],
+    "later_authorities_and_guides": [
+      "Sephardi poskim used in Georgian diaspora settings",
+      "Local Georgian rabbis and community leaders",
+      "Modern halachic authorities in Israel and diaspora"
+    ],
+    "decision_principle": "Follow inherited Georgian Jewish custom within a traditional halachic framework, often leaning Sephardi in liturgy and legal orientation where local custom permits."
+  },
+  "halacha_index": [
+    {
+      "index": "halacha.1",
+      "category": "Prayer",
+      "topic": "Nusach and liturgy",
+      "summary": "Georgian prayer practice is traditional and community-centered, with local rite and melody.",
+      "common_practices": [
+        "Use Georgian or Sephardi-adjacent siddurim where customary",
+        "Preserve local melodies and recitation patterns",
+        "Retain piyutim and festival additions where inherited"
+      ]
+    },
+    {
+      "index": "halacha.2",
+      "category": "Prayer",
+      "topic": "Hebrew pronunciation",
+      "summary": "Hebrew recitation may preserve Georgian/Caucasus pronunciations in older communities.",
+      "common_practices": [
+        "Use inherited pronunciation in prayer and Torah reading",
+        "Teach community-specific phonetic patterns",
+        "Preserve oral transmission of melodies and trop"
+      ]
+    },
+    {
+      "index": "halacha.3",
+      "category": "Prayer",
+      "topic": "Torah reading",
+      "summary": "Torah reading is central, with local cantillation and aliyah customs.",
+      "common_practices": [
+        "Use trained ba'alei kri'ah",
+        "Follow local cantillation and honor customs",
+        "Preserve synagogue etiquette and reading order"
+      ]
+    },
+    {
+      "index": "halacha.4",
+      "category": "Shabbat",
+      "topic": "Candle lighting",
+      "summary": "Shabbat candle lighting follows halacha with family and community custom.",
+      "common_practices": [
+        "Light before Shabbat begins",
+        "Use customary blessing wording",
+        "Preserve family traditions for candle arrangement"
+      ]
+    },
+    {
+      "index": "halacha.5",
+      "category": "Shabbat",
+      "topic": "Meals and hospitality",
+      "summary": "Shabbat meals are a major part of Georgian Jewish life and often include strong hospitality norms.",
+      "common_practices": [
+        "Prepare food before Shabbat",
+        "Honor guests and elders",
+        "Use traditional Georgian-Jewish foods within kosher practice"
+      ]
+    },
+    {
+      "index": "halacha.6",
+      "category": "Shabbat",
+      "topic": "Cooking and warming",
+      "summary": "Cooking is prohibited on Shabbat, and warming arrangements follow accepted halachic practice.",
+      "common_practices": [
+        "Cook before Shabbat",
+        "Use permitted warming methods where accepted",
+        "Avoid direct cooking or prohibited manipulation"
+      ]
+    },
+    {
+      "index": "halacha.7",
+      "category": "Shabbat",
+      "topic": "Carrying and eruv",
+      "summary": "Carrying outside a valid eruv is prohibited and depends on local infrastructure.",
+      "common_practices": [
+        "Check eruv validity",
+        "Follow local rabbinic guidance",
+        "Do not carry where no eruv exists"
+      ]
+    },
+    {
+      "index": "halacha.8",
+      "category": "Kashrut",
+      "topic": "Meat and dairy separation",
+      "summary": "Meat and dairy separation is maintained in the home and community kitchen.",
+      "common_practices": [
+        "Keep separate utensils and cookware",
+        "Observe waiting periods after meat according to local custom",
+        "Maintain clean kitchen separation"
+      ]
+    },
+    {
+      "index": "halacha.9",
+      "category": "Kashrut",
+      "topic": "Shechita and meat supervision",
+      "summary": "Meat supervision is central to community trust and observance.",
+      "common_practices": [
+        "Use a qualified shochet",
+        "Inspect meat and utensils carefully",
+        "Follow recognized supervision and communal standards"
+      ]
+    },
+    {
+      "index": "halacha.10",
+      "category": "Kashrut",
+      "topic": "Food customs",
+      "summary": "Georgian Jewish cuisine is adapted to kosher practice and local tradition.",
+      "common_practices": [
+        "Use kosher ingredients and supervision",
+        "Preserve traditional recipes where possible",
+        "Check wine, cheese, and processed foods carefully"
+      ]
+    },
+    {
+      "index": "halacha.11",
+      "category": "Pesach",
+      "topic": "Chametz removal",
+      "summary": "Chametz is removed carefully before Pesach.",
+      "common_practices": [
+        "Search for and remove chametz before Pesach",
+        "Use Pesach-specific utensils or kasher equipment",
+        "Follow local customs for sale or disposal"
+      ]
+    },
+    {
+      "index": "halacha.12",
+      "category": "Pesach",
+      "topic": "Kitniyot and grains",
+      "summary": "Georgian practice is generally closer to Sephardi patterns regarding kitniyot, though local custom matters.",
+      "common_practices": [
+        "Rice and legumes may be used where permitted",
+        "Inspect food for chametz contamination",
+        "Follow family and rabbinic guidance"
+      ]
+    },
+    {
+      "index": "halacha.13",
+      "category": "Pesach",
+      "topic": "Seder practice",
+      "summary": "The Seder combines halachic structure with Georgian family customs and melody.",
+      "common_practices": [
+        "Use accepted Haggadah rite",
+        "Preserve songs and recitation style",
+        "Follow local food and symbolic customs"
+      ]
+    },
+    {
+      "index": "halacha.14",
+      "category": "Lifecycle",
+      "topic": "Brit milah",
+      "summary": "Brit milah follows halacha with communal family celebration.",
+      "common_practices": [
+        "Use a qualified mohel",
+        "Preserve naming and celebration customs",
+        "Include traditional prayers and songs"
+      ]
+    },
+    {
+      "index": "halacha.15",
+      "category": "Lifecycle",
+      "topic": "Marriage and ketubah",
+      "summary": "Marriage is halachically standard and often marked by strong family participation.",
+      "common_practices": [
+        "Use a valid ketubah",
+        "Perform kiddushin and nissuin properly",
+        "Observe local engagement and wedding customs"
+      ]
+    },
+    {
+      "index": "halacha.16",
+      "category": "Family law",
+      "topic": "Niddah and mikveh",
+      "summary": "Family purity laws are observed carefully and are part of traditional continuity.",
+      "common_practices": [
+        "Observe niddah separation laws",
+        "Use mikveh according to halacha",
+        "Follow local rabbinic guidance in diaspora and Israel"
+      ]
+    },
+    {
+      "index": "halacha.17",
+      "category": "Mourning",
+      "topic": "Avelut",
+      "summary": "Mourning follows standard halachic structure with family and communal support.",
+      "common_practices": [
+        "Observe shiva, shloshim, and yahrzeit customs",
+        "Use memorial prayers according to community practice",
+        "Maintain local condolence etiquette"
+      ]
+    },
+    {
+      "index": "halacha.18",
+      "category": "Calendar",
+      "topic": "High Holidays",
+      "summary": "Rosh Hashanah and Yom Kippur are observed with solemnity and inherited liturgical forms.",
+      "common_practices": [
+        "Use the accepted machzor or local rite",
+        "Preserve selichot and shofar customs",
+        "Follow synagogue melody and order"
+      ]
+    },
+    {
+      "index": "halacha.19",
+      "category": "Calendar",
+      "topic": "Chanukah and Purim",
+      "summary": "Minor festivals are observed according to halacha and local Georgian Jewish custom.",
+      "common_practices": [
+        "Light Chanukah candles nightly",
+        "Read the Megillah on Purim",
+        "Use family food and celebration customs"
+      ]
+    },
+    {
+      "index": "halacha.20",
+      "category": "Education",
+      "topic": "Torah transmission",
+      "summary": "Torah, prayer, and custom are transmitted through family memory and communal schooling.",
+      "common_practices": [
+        "Teach children Hebrew and prayer",
+        "Preserve oral family memory",
+        "Use both text study and inherited communal tradition"
+      ]
+    }
+  ],
+  "unique_minhagim": {
+    "examples": [
+      "Strong Georgian language and identity retention",
+      "Caucasus synagogue and family customs",
+      "Town-based subidentities such as Tbilisi and Kutaisi",
+      "Preservation of melody and oral transmission across generations"
+    ],
+    "notes": "Georgian Jewish practice should be indexed by locality and family branch where possible."
+  },
+  "source_registry": {
+    "primary": [
+      "Shulchan Aruch",
+      "Mishneh Torah",
+      "local Georgian Jewish tradition"
+    ],
+    "secondary": [
+      "Jewish language and history resources",
+      "Community archives and family records",
+      "Modern diaspora Jewish educational materials"
+    ]
+  }
+}

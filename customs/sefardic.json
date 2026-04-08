@@ -1,0 +1,375 @@
+{
+  "version": "2.0",
+  "type": "academic_halachic_reference",
+  "heritage_id": "sephardi",
+  "name": "Sephardi",
+  "aliases": [
+    "Sefardi",
+    "Sephardic Jews"
+  ],
+  "database_scope": {
+    "purpose": "Academic and halachic reference database for Sephardi heritage, minhagim, and halachic practice.",
+    "coverage_note": "This file models broad Sephardi practice and includes common halachic domains. Local customs may differ by city, family, rabbinic lineage, and diaspora community.",
+    "classification_note": "Sephardi halacha is commonly organized around the Shulchan Aruch and later Sephardi authorities."
+  },
+  "identity": {
+    "primary_origin": "Iberian Jewish civilization before and after the 1492 expulsion from Spain",
+    "secondary_centers": [
+      "Ottoman Empire",
+      "North Africa",
+      "Balkans",
+      "Levant",
+      "Italy",
+      "Western Europe",
+      "North and South America"
+    ],
+    "cultural_profile": [
+      "Strong text-based halachic tradition",
+      "Local minhagim preserved by city and family",
+      "Integration of rabbinic rulings with communal custom",
+      "Prayer rites shaped by regional migration history"
+    ]
+  },
+  "languages": [
+    "Hebrew",
+    "Ladino",
+    "Judeo-Spanish",
+    "Arabic in some communities",
+    "Turkish in some communities",
+    "French in some communities"
+  ],
+  "genealogy": {
+    "common_surname_patterns": [
+      "Iberian surnames adapted after expulsion",
+      "Ottoman-era communal surnames",
+      "North African family names tied to towns or tribes",
+      "Names reflecting occupations, ancestry, or honorifics"
+    ],
+    "research_notes": [
+      "Surname spelling may vary by country and transliteration.",
+      "Community and town of origin often matter more than surname alone.",
+      "Genealogy should be cross-referenced with immigration records, cemetery records, ketubot, and communal archives."
+    ],
+    "recommended_genealogy_fields": [
+      "surname",
+      "alternate_spellings",
+      "town_of_origin",
+      "migration_route",
+      "community_branch",
+      "marriage_networks",
+      "ritual_minhag"
+    ]
+  },
+  "historical_background": {
+    "timeline": [
+      {
+        "period": "Pre-1492",
+        "event": "Jewish life in Iberia flourished in multiple centers before the expulsion.",
+        "halachic_impact": "Local Iberian customs were diverse and not fully standardized."
+      },
+      {
+        "period": "1492 and after",
+        "event": "Expulsion from Spain produced a widespread Sephardi diaspora.",
+        "halachic_impact": "Need for greater legal standardization increased."
+      },
+      {
+        "period": "16th century",
+        "event": "Shulchan Aruch became a major unifying halachic code.",
+        "halachic_impact": "Sephardi communities increasingly treated it as primary authority."
+      },
+      {
+        "period": "Ottoman and post-Ottoman eras",
+        "event": "Sephardi communities spread through the Mediterranean, Middle East, North Africa, and beyond.",
+        "halachic_impact": "Local minhagim developed within a shared Sephardi legal framework."
+      }
+    ]
+  },
+  "core_halachic_authorities": {
+    "primary_codes": [
+      "Shulchan Aruch",
+      "Mishneh Torah",
+      "Beit Yosef"
+    ],
+    "major_rishonim_base": [
+      "Rif",
+      "Rambam",
+      "Rosh"
+    ],
+    "later_sephardi_poskim": [
+      "Rav Chaim Benveniste",
+      "Ben Ish Chai",
+      "Chida",
+      "Rav Ovadia Yosef",
+      "Rav Yosef Karo"
+    ],
+    "decision_principle": "Follow Shulchan Aruch and established Sephardi minhag unless a community has a strong contrary inherited practice."
+  },
+  "halacha_index": [
+    {
+      "index": "halacha.1",
+      "category": "Prayer",
+      "topic": "Nusach and liturgy",
+      "summary": "Sephardi communities generally use Sephardi nusach with local additions or omissions.",
+      "common_practices": [
+        "Use a Sephardi siddur or community-specific rite",
+        "Incorporate Piyutim in some congregations",
+        "Maintain minhag-based variations for weekday and festival prayers"
+      ],
+      "notes": "Prayer practice may differ significantly among Moroccan, Syrian, Ottoman, Iraqi, and other Sephardi communities."
+    },
+    {
+      "index": "halacha.2",
+      "category": "Prayer",
+      "topic": "Tefillah order",
+      "summary": "The structure of prayers generally follows classical halachic order with Sephardi liturgical customs.",
+      "common_practices": [
+        "Maintain the traditional order of blessings and sections of prayer",
+        "Use communal custom for additions before and after services",
+        "Follow local synagogue practice for repetitions and responsa"
+      ]
+    },
+    {
+      "index": "halacha.3",
+      "category": "Shabbat",
+      "topic": "Candle lighting",
+      "summary": "Shabbat candle lighting is observed according to accepted halachic timeframes and communal custom.",
+      "common_practices": [
+        "Light before sunset or according to the local accepted cutoff",
+        "Use the customary blessing formula of the community",
+        "Preserve family-specific minhagim for number and placement of candles"
+      ]
+    },
+    {
+      "index": "halacha.4",
+      "category": "Shabbat",
+      "topic": "Kabbalat Shabbat",
+      "summary": "Friday night welcome prayers and songs vary by community but remain a major part of Sephardi Shabbat observance.",
+      "common_practices": [
+        "Recite customary psalms and liturgical songs",
+        "Use local synagogue melodies",
+        "Preserve family and city-based song traditions"
+      ]
+    },
+    {
+      "index": "halacha.5",
+      "category": "Shabbat",
+      "topic": "Cooking and reheating",
+      "summary": "Food preparation on Shabbat follows standard halachic restrictions, with careful attention to warming food before Shabbat.",
+      "common_practices": [
+        "Prepare food before Shabbat",
+        "Use permitted warming arrangements according to local rabbinic guidance",
+        "Avoid prohibited cooking and direct heating during Shabbat"
+      ]
+    },
+    {
+      "index": "halacha.6",
+      "category": "Shabbat",
+      "topic": "Carrying and eruv",
+      "summary": "Carrying outside permitted areas depends on the presence and status of an eruv.",
+      "common_practices": [
+        "Do not rely on carrying where no valid eruv exists",
+        "Follow local rabbinic standards for public and private domains",
+        "Use community practice to determine practical boundaries"
+      ]
+    },
+    {
+      "index": "halacha.7",
+      "category": "Kashrut",
+      "topic": "Meat and dairy separation",
+      "summary": "Sephardi practice generally follows the standard waiting and separation rules established in classical halacha.",
+      "common_practices": [
+        "Maintain separate meat and dairy utensils",
+        "Observe the customary waiting period after meat before dairy according to community practice",
+        "Follow local rabbinic guidance on the handling of dishes and cookware"
+      ],
+      "notes": "Specific waiting customs can differ in some communities, but the core separation is universal."
+    },
+    {
+      "index": "halacha.8",
+      "category": "Kashrut",
+      "topic": "Shechita and meat supervision",
+      "summary": "Kosher slaughter and meat supervision are central, with strong attention to local communal reliability.",
+      "common_practices": [
+        "Use a qualified shochet",
+        "Inspect meat and poultry through recognized supervision",
+        "Follow community standards on glatt and other stringencies where applicable"
+      ]
+    },
+    {
+      "index": "halacha.9",
+      "category": "Kashrut",
+      "topic": "Stam yeinam and wine",
+      "summary": "Wine standards are observed carefully, especially in mixed social settings.",
+      "common_practices": [
+        "Use kosher-certified wine for ritual purposes",
+        "Avoid questionable wine handling according to halachic norms",
+        "Follow local customs for Kiddush wine selection"
+      ]
+    },
+    {
+      "index": "halacha.10",
+      "category": "Pesach",
+      "topic": "Kitniyot",
+      "summary": "Sephardi communities generally permit kitniyot on Pesach, subject to local minhag.",
+      "common_practices": [
+        "Rice and legumes are often permitted",
+        "Inspect food carefully for chametz contamination",
+        "Follow community custom regarding packaged foods and supervision"
+      ],
+      "notes": "This is one of the most visible practical differences from Ashkenazi custom."
+    },
+    {
+      "index": "halacha.11",
+      "category": "Pesach",
+      "topic": "Chametz removal",
+      "summary": "Chametz is removed thoroughly before Pesach according to standard halachic requirements.",
+      "common_practices": [
+        "Search for chametz before Pesach",
+        "Sell or dispose of chametz properly",
+        "Use dedicated Pesach utensils or kasher equipment as needed"
+      ]
+    },
+    {
+      "index": "halacha.12",
+      "category": "Pesach",
+      "topic": "Seder customs",
+      "summary": "The Seder follows the halachic order of the Haggadah with distinct Sephardi liturgical and musical traditions.",
+      "common_practices": [
+        "Use Sephardi Haggadot and piyutim where customary",
+        "Maintain family customs for songs and food order",
+        "Observe local minhagim for timing and reading customs"
+      ]
+    },
+    {
+      "index": "halacha.13",
+      "category": "Tefillin",
+      "topic": "Tefillin practice",
+      "summary": "Sephardi communities generally use the standard tefillin practice aligned with their halachic tradition.",
+      "common_practices": [
+        "Wear tefillin for weekday prayer",
+        "Follow accepted Sephardi arrangement and blessing practice",
+        "Use qualified tefillin checked according to halachic standards"
+      ]
+    },
+    {
+      "index": "halacha.14",
+      "category": "Tzitzit",
+      "topic": "Tallit and fringes",
+      "summary": "Tallit and tzitzit follow general halachic standards with community-specific customs in size, wrapping, and blessing practice.",
+      "common_practices": [
+        "Wear tzitzit daily by customary standard",
+        "Use family or synagogue custom for tallit katan and tallit gadol",
+        "Follow local practice for blessing sequence"
+      ]
+    },
+    {
+      "index": "halacha.15",
+      "category": "Lifecycle",
+      "topic": "Brit milah",
+      "summary": "Brit milah is performed according to halacha with communal celebration and inherited ceremony style.",
+      "common_practices": [
+        "Use a qualified mohel",
+        "Honor family naming customs",
+        "Preserve local liturgical songs and blessings"
+      ]
+    },
+    {
+      "index": "halacha.16",
+      "category": "Lifecycle",
+      "topic": "Marriage and ketubah",
+      "summary": "Marriage follows standard halachic requirements, often with strong family and communal involvement.",
+      "common_practices": [
+        "Use a valid ketubah",
+        "Perform kiddushin and nissuin properly",
+        "Observe local customs for engagement, dowry, and wedding sequence"
+      ]
+    },
+    {
+      "index": "halacha.17",
+      "category": "Family law",
+      "topic": "Niddah and family purity",
+      "summary": "Family purity laws are observed carefully and usually conservatively in traditional Sephardi communities.",
+      "common_practices": [
+        "Observe separation laws during niddah",
+        "Use mikveh according to local rabbinic guidance",
+        "Follow inherited customs where they do not conflict with halacha"
+      ]
+    },
+    {
+      "index": "halacha.18",
+      "category": "Mourning",
+      "topic": "Avelut",
+      "summary": "Mourning practice follows classical halachic structure with community-specific details.",
+      "common_practices": [
+        "Observe shiva, shloshim, and yahrzeit customs",
+        "Use local synagogue or family prayer forms for memorials",
+        "Maintain inherited customs for mourning meals and recitation"
+      ]
+    },
+    {
+      "index": "halacha.19",
+      "category": "Calendar",
+      "topic": "Chanukah",
+      "summary": "Chanukah observance follows standard halacha with local songs, foods, and liturgical additions.",
+      "common_practices": [
+        "Light Chanukah candles nightly",
+        "Recite customary prayers and songs",
+        "Use community food customs where inherited"
+      ]
+    },
+    {
+      "index": "halacha.20",
+      "category": "Calendar",
+      "topic": "Purim",
+      "summary": "Purim is celebrated with Megillah reading, gifts to the poor, food exchange, and communal joy.",
+      "common_practices": [
+        "Read the Megillah publicly",
+        "Exchange mishloach manot",
+        "Maintain local Purim food and song customs"
+      ]
+    },
+    {
+      "index": "halacha.21",
+      "category": "Calendar",
+      "topic": "Tishah B'Av and fasts",
+      "summary": "Fast-day practice is generally strict, with customs for mourning and recitation varying by community.",
+      "common_practices": [
+        "Observe full-day fasts as required",
+        "Use communal kinot or lamentations where customary",
+        "Follow local custom for restrictions on music, bathing, and greetings"
+      ]
+    },
+    {
+      "index": "halacha.22",
+      "category": "Education",
+      "topic": "Torah study and transmission",
+      "summary": "Transmission is text-based and community-based, with major importance placed on rabbinic learning and family tradition.",
+      "common_practices": [
+        "Study halachic works and responsa",
+        "Teach children prayers, customs, and Torah reading",
+        "Preserve oral family minhag alongside written sources"
+      ]
+    }
+  ],
+  "unique_minhagim": {
+    "examples": [
+      "Ladino-based piyyutim in some communities",
+      "Local festival foods such as Sephardi sweets and fried dough in some regions",
+      "Distinct synagogue melodies by city or diaspora branch",
+      "Community-specific arrangements for Selichot and High Holidays"
+    ],
+    "notes": "These are examples of common Sephardi cultural patterns rather than universal rules."
+  },
+  "source_registry": {
+    "primary": [
+      "Shulchan Aruch",
+      "Beit Yosef",
+      "Mishneh Torah"
+    ],
+    "secondary": [
+      "Sephardi education resources",
+      "Sephardic genealogy databases",
+      "Community siddurim and local responsa"
+    ]
+  }
+}

@@ -1,0 +1,378 @@
+{
+  "version": "2.0",
+  "type": "academic_halachic_reference",
+  "heritage_id": "syrian",
+  "name": "Syrian",
+  "aliases": [
+    "Halabi",
+    "Shami",
+    "Syrian Jews"
+  ],
+  "database_scope": {
+    "purpose": "Academic and halachic reference database for Syrian Jewish heritage, minhagim, and halachic practice.",
+    "coverage_note": "This file models broad Syrian Jewish practice and includes common halachic domains. Local customs vary by city, family, synagogue, and migration history.",
+    "classification_note": "Syrian Jewish practice is generally Sephardi in halachic orientation, combining ancient Levantine Jewish continuity with post-1492 Sephardi influence."
+  },
+  "identity": {
+    "primary_origin": "Ancient Jewish communities of Syria, especially Aleppo and Damascus",
+    "secondary_centers": [
+      "Aleppo (Halab / Aram Tzova)",
+      "Damascus (Sham)",
+      "Beirut",
+      "Istanbul and Ottoman-era diaspora",
+      "New York",
+      "Brooklyn",
+      "Los Angeles",
+      "Israeli diaspora communities"
+    ],
+    "cultural_profile": [
+      "Strong communal structure",
+      "Deep attachment to synagogue tradition",
+      "Highly preserved family and marriage customs",
+      "Rich liturgical and musical heritage"
+    ]
+  },
+  "languages": [
+    "Hebrew",
+    "Arabic",
+    "Judeo-Arabic in historical settings",
+    "English in diaspora settings",
+    "Ladino in some Sephardi-influenced contexts"
+  ],
+  "genealogy": {
+    "common_surname_patterns": [
+      "Family names tied to rabbis, judges, merchants, or ancestors",
+      "Aleppan and Damascene family lineages",
+      "Names preserved through ketubot and communal registers",
+      "Variant transliterations in English, French, Arabic, and Hebrew"
+    ],
+    "research_notes": [
+      "Syrian Jewish genealogy often depends on family branch and community origin more than surname alone.",
+      "Aleppo and Damascus lineages should be separated when possible.",
+      "Marriage networks are often essential for reconstruction of family trees."
+    ],
+    "recommended_genealogy_fields": [
+      "surname",
+      "alternate_spellings",
+      "town_of_origin",
+      "community_branch",
+      "rabbinic_lineage",
+      "marriage_networks",
+      "migration_route",
+      "ritual_minhag"
+    ]
+  },
+  "historical_background": {
+    "timeline": [
+      {
+        "period": "Ancient era",
+        "event": "Jewish communities existed in Syria in antiquity.",
+        "halachic_impact": "A long-standing local Jewish presence created durable communal institutions."
+      },
+      {
+        "period": "Medieval era",
+        "event": "Aleppo and Damascus became major Jewish centers.",
+        "halachic_impact": "Communal custom and rabbinic leadership became highly developed."
+      },
+      {
+        "period": "Post-1492",
+        "event": "Sephardi refugees joined Syrian Jewish communities after expulsion from Spain.",
+        "halachic_impact": "Sephardi ritual influence increased while older local structures remained."
+      },
+      {
+        "period": "Ottoman era",
+        "event": "Syrian Jews flourished in commerce and communal life under Ottoman rule.",
+        "halachic_impact": "Distinct communal authority and synagogue culture were reinforced."
+      },
+      {
+        "period": "20th century diaspora",
+        "event": "Large-scale migration to the Americas and Israel.",
+        "halachic_impact": "Syrian customs were preserved through tightly organized diaspora institutions."
+      }
+    ]
+  },
+  "core_halachic_authorities": {
+    "primary_codes": [
+      "Shulchan Aruch",
+      "Mishneh Torah",
+      "Sephardi communal psak"
+    ],
+    "major_rishonim_base": [
+      "Rambam",
+      "Rif",
+      "Rosh"
+    ],
+    "later_syrian_poskim": [
+      "Rav Shmuel Laniado",
+      "Rav Yosef Chaim",
+      "Rav Ovadia Yosef",
+      "Syrian communal rabbinic leadership"
+    ],
+    "decision_principle": "Follow Shulchan Aruch and inherited Syrian communal custom, with strong weight given to local Sephardi-Syrian minhag and established communal rulings."
+  },
+  "halacha_index": [
+    {
+      "index": "halacha.1",
+      "category": "Prayer",
+      "topic": "Nusach and liturgy",
+      "summary": "Syrian Jews generally follow Sephardi liturgy with deeply preserved Syrian melodies, piyyutim, and synagogue customs.",
+      "common_practices": [
+        "Use Syrian Sephardi siddur or machzor tradition",
+        "Preserve bakkashot and other local hymn traditions",
+        "Follow synagogue-specific rite and melody"
+      ]
+    },
+    {
+      "index": "halacha.2",
+      "category": "Prayer",
+      "topic": "Bakkashot",
+      "summary": "Winter Shabbat morning hymn traditions are a major Syrian communal feature.",
+      "common_practices": [
+        "Sing bakkashot in season where customary",
+        "Use community-established tune cycles",
+        "Preserve repertoire by family and congregation"
+      ]
+    },
+    {
+      "index": "halacha.3",
+      "category": "Prayer",
+      "topic": "Torah reading",
+      "summary": "Torah reading is carefully preserved with communal reading melody and honor distribution.",
+      "common_practices": [
+        "Use trained ba'alei kri'ah",
+        "Follow accepted Syrian cantillation",
+        "Maintain synagogue norms for aliyot and honors"
+      ]
+    },
+    {
+      "index": "halacha.4",
+      "category": "Shabbat",
+      "topic": "Candle lighting",
+      "summary": "Shabbat candle lighting is observed according to halacha and family tradition.",
+      "common_practices": [
+        "Light before Shabbat begins",
+        "Use inherited blessing and candle-count customs",
+        "Preserve family-specific timing and arrangement traditions"
+      ]
+    },
+    {
+      "index": "halacha.5",
+      "category": "Shabbat",
+      "topic": "Shabbat meals",
+      "summary": "Shabbat meals are central to Syrian Jewish life and include inherited hospitality customs.",
+      "common_practices": [
+        "Prepare food before Shabbat",
+        "Use traditional Syrian dishes",
+        "Honor guests and family members according to communal etiquette"
+      ]
+    },
+    {
+      "index": "halacha.6",
+      "category": "Shabbat",
+      "topic": "Cooking and warming",
+      "summary": "Cooking is prohibited on Shabbat, while permitted warming methods may be used according to halacha.",
+      "common_practices": [
+        "Cook before Shabbat",
+        "Use permitted warming arrangements if accepted locally",
+        "Avoid direct cooking and prohibited adjustments"
+      ]
+    },
+    {
+      "index": "halacha.7",
+      "category": "Shabbat",
+      "topic": "Carrying and eruv",
+      "summary": "Carrying depends on the validity of the local eruv and communal standards.",
+      "common_practices": [
+        "Do not carry where no valid eruv exists",
+        "Follow local rabbinic guidance",
+        "Observe neighborhood-specific rules carefully"
+      ]
+    },
+    {
+      "index": "halacha.8",
+      "category": "Kashrut",
+      "topic": "Meat and dairy separation",
+      "summary": "Syrian kitchens maintain strict meat and dairy separation as a central halachic norm.",
+      "common_practices": [
+        "Keep separate meat and dairy utensils",
+        "Observe customary waiting period after meat according to family and community practice",
+        "Maintain clean separation in home and institutional kitchens"
+      ]
+    },
+    {
+      "index": "halacha.9",
+      "category": "Kashrut",
+      "topic": "Shechita and supervision",
+      "summary": "Meat supervision is handled carefully through trusted communal standards.",
+      "common_practices": [
+        "Use qualified shochtim and mashgichim",
+        "Inspect meat and poultry under accepted supervision",
+        "Observe local stringencies on glatt or alternative standards where established"
+      ]
+    },
+    {
+      "index": "halacha.10",
+      "category": "Kashrut",
+      "topic": "Wine",
+      "summary": "Wine for ritual and table use follows strict supervision and communal trust norms.",
+      "common_practices": [
+        "Use kosher wine for Kiddush and ritual needs",
+        "Avoid questionable handling of wine",
+        "Follow communal practice for wine brands and supervision"
+      ]
+    },
+    {
+      "index": "halacha.11",
+      "category": "Pesach",
+      "topic": "Chametz removal",
+      "summary": "Chametz removal before Pesach is performed carefully and thoroughly.",
+      "common_practices": [
+        "Search for chametz before Pesach",
+        "Remove or sell chametz properly",
+        "Use dedicated Pesach utensils or kashering where required"
+      ]
+    },
+    {
+      "index": "halacha.12",
+      "category": "Pesach",
+      "topic": "Kitniyot",
+      "summary": "Syrian practice generally permits kitniyot in the Sephardi tradition, subject to local custom.",
+      "common_practices": [
+        "Rice and legumes may be permitted",
+        "Inspect all packaged foods carefully",
+        "Follow inherited family and synagogue standards"
+      ]
+    },
+    {
+      "index": "halacha.13",
+      "category": "Pesach",
+      "topic": "Seder customs",
+      "summary": "The Seder is observed with Syrian family order, melodies, and communal customs.",
+      "common_practices": [
+        "Use Syrian Haggadah traditions",
+        "Preserve family songs and recitation order",
+        "Follow local customs for matzah, maror, and afikoman"
+      ]
+    },
+    {
+      "index": "halacha.14",
+      "category": "Tefillin",
+      "topic": "Tefillin practice",
+      "summary": "Tefillin are worn daily on weekdays in the standard halachic manner.",
+      "common_practices": [
+        "Wear tefillin for weekday prayer",
+        "Use properly checked tefillin",
+        "Follow inherited wrapping and blessing customs"
+      ]
+    },
+    {
+      "index": "halacha.15",
+      "category": "Tzitzit",
+      "topic": "Tallit and fringes",
+      "summary": "Tzitzit are observed according to halacha with Syrian family customs in tallit style and blessing practice.",
+      "common_practices": [
+        "Wear tzitzit by communal norm",
+        "Use family custom for tallit materials and size",
+        "Preserve inherited donning order"
+      ]
+    },
+    {
+      "index": "halacha.16",
+      "category": "Lifecycle",
+      "topic": "Brit milah",
+      "summary": "Brit milah is a major communal event with strong ceremonial traditions.",
+      "common_practices": [
+        "Use a qualified mohel",
+        "Preserve naming customs and seating order",
+        "Include traditional songs and blessings where customary"
+      ]
+    },
+    {
+      "index": "halacha.17",
+      "category": "Lifecycle",
+      "topic": "Marriage and ketubah",
+      "summary": "Marriage is halachically standard but highly structured by Syrian communal custom.",
+      "common_practices": [
+        "Use a valid ketubah",
+        "Perform kiddushin and nissuin properly",
+        "Follow family customs for ring or coin traditions, feasts, and ceremonial order"
+      ]
+    },
+    {
+      "index": "halacha.18",
+      "category": "Family law",
+      "topic": "Niddah and mikveh",
+      "summary": "Family purity laws are observed carefully and are a major feature of Syrian communal life.",
+      "common_practices": [
+        "Observe niddah separation laws",
+        "Use mikveh according to halacha",
+        "Follow local rabbinic guidance on family practice"
+      ]
+    },
+    {
+      "index": "halacha.19",
+      "category": "Mourning",
+      "topic": "Avelut",
+      "summary": "Mourning follows standard halachic structure with strong communal support and memorial forms.",
+      "common_practices": [
+        "Observe shiva, shloshim, and yahrzeit customs",
+        "Use inherited memorial prayers",
+        "Maintain Syrian community etiquette for consolation"
+      ]
+    },
+    {
+      "index": "halacha.20",
+      "category": "Calendar",
+      "topic": "High Holidays",
+      "summary": "Rosh Hashanah and Yom Kippur are observed with elevated liturgy, selichot, and communal melody.",
+      "common_practices": [
+        "Use Syrian machzor or rite",
+        "Preserve selichot and shofar customs",
+        "Follow local synagogue order and musical tradition"
+      ]
+    },
+    {
+      "index": "halacha.21",
+      "category": "Calendar",
+      "topic": "Chanukah and Purim",
+      "summary": "Minor festivals are celebrated with standard halacha and distinctive Syrian cultural expression.",
+      "common_practices": [
+        "Light Chanukah candles nightly",
+        "Read the Megillah on Purim",
+        "Preserve family foods, songs, and charity customs"
+      ]
+    },
+    {
+      "index": "halacha.22",
+      "category": "Education",
+      "topic": "Torah transmission",
+      "summary": "Torah and custom are transmitted through schools, families, and communal institutions.",
+      "common_practices": [
+        "Teach children prayers and reading forms",
+        "Preserve rabbinic and family tradition",
+        "Use both texts and oral instruction"
+      ]
+    }
+  ],
+  "unique_minhagim": {
+    "examples": [
+      "Bakkashot hymn tradition",
+      "Strong emphasis on synagogue music and liturgy",
+      "Family-based communal endogamy in some historical periods",
+      "Distinct Aleppo and Damascus branches with overlapping but separate customs"
+    ],
+    "notes": "Syrian Jewish practice should be indexed by branch and city where possible, especially for Aleppo and Damascus lineages."
+  },
+  "source_registry": {
+    "primary": [
+      "Shulchan Aruch",
+      "Mishneh Torah",
+      "Syrian communal tradition"
+    ],
+    "secondary": [
+      "Jewish studies reference works",
+      "Syrian synagogue tradition",
+      "Community histories and genealogical records"
+    ]
+  }
+}

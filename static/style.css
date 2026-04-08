@@ -1,0 +1,482 @@
+/* 
+  style.css
+  Enhanced with clean Merkava-inspired design patterns.
+  Base styles provided here; most layout handled by Tailwind CSS in index.html.
+*/
+
+/* ═══════════════════════════════════════════════════════════════════ */
+/* TYPOGRAPHY & HEBREW SUPPORT */
+/* ═══════════════════════════════════════════════════════════════════ */
+
+html {
+    scroll-behavior: smooth;
+}
+
+body {
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+    word-break: break-word;
+}
+
+/* Hebrew text support */
+[lang="he"],
+.font-hebrew {
+    font-family: 'Frank Ruhl Libre', 'Cardo', serif;
+    direction: rtl;
+    text-align: right;
+}
+
+/* Proper line height for Hebrew */
+[dir="rtl"] {
+    line-height: 1.8;
+}
+
+/* ═══════════════════════════════════════════════════════════════════ */
+/* CARD & CONTAINER STYLING (Merkava-inspired) */
+/* ═══════════════════════════════════════════════════════════════════ */
+
+.source-card {
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    background: #ffffff;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+    transition: all 0.3s ease;
+}
+
+.source-card:hover {
+    border-color: #d4af37;
+    box-shadow: 0 4px 12px rgba(212, 175, 55, 0.1);
+}
+
+.source-card.featured {
+    border-left: 4px solid #002147;
+    background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+}
+
+/* ═══════════════════════════════════════════════════════════════════ */
+/* HALACHA SECTIONS WITH VISUAL HIERARCHY */
+/* ═══════════════════════════════════════════════════════════════════ */
+
+.halacha-section {
+    padding: 1.5rem;
+    margin-bottom: 1.5rem;
+    border-radius: 8px;
+    border-left: 4px solid transparent;
+}
+
+.halacha-section.ruling {
+    border-left-color: #002147;
+    background-color: #f0f4f8;
+}
+
+.halacha-section.custom {
+    border-left-color: #7c3aed;
+    background-color: #f5f3ff;
+}
+
+.halacha-section.source {
+    border-left-color: #d4af37;
+    background-color: #fffbf0;
+}
+
+.halacha-title {
+    font-weight: 700;
+    color: #002147;
+    margin-bottom: 0.75rem;
+    font-size: 1rem;
+}
+
+.halacha-text {
+    color: #334155;
+    line-height: 1.6;
+    margin-bottom: 0.5rem;
+    font-size: 0.9rem;
+}
+
+/* ═══════════════════════════════════════════════════════════════════ */
+/* SIDDUR PRAYER LAYOUT (Clean & Readable) */
+/* ═══════════════════════════════════════════════════════════════════ */
+
+.prayer-section {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 2rem;
+    margin: 2rem 0;
+    padding: 2rem;
+    background: #ffffff;
+    border-radius: 12px;
+    border: 1px solid #e2e8f0;
+}
+
+.prayer-section.bilingual-english {
+    grid-template-columns: 1fr;
+}
+
+.prayer-hebrew {
+    font-family: 'Frank Ruhl Libre', serif;
+    font-size: 0.95rem;
+    line-height: 1.8;
+    text-align: right;
+    color: #1e293b;
+    direction: rtl;
+}
+
+.prayer-english {
+    font-family: 'Cardo', serif;
+    font-size: 0.9rem;
+    line-height: 1.6;
+    color: #475569;
+}
+
+.prayer-rubric {
+    font-style: italic;
+    color: #64748b;
+    font-size: 0.925rem;
+    margin: 1rem 0;
+    padding: 0.75rem;
+    background-color: #f8fafc;
+    border-radius: 4px;
+    border-left: 3px solid #d4af37;
+}
+
+/* ═══════════════════════════════════════════════════════════════════ */
+/* MERKAVA-INSPIRED CUSTOM BOXES */
+/* ═══════════════════════════════════════════════════════════════════ */
+
+.custom-ruling {
+    background: linear-gradient(135deg, #f5f3ff 0%, #faf5ff 100%);
+    border-left: 4px solid #7c3aed;
+    padding: 1rem;
+    border-radius: 6px;
+    margin: 1rem 0;
+}
+
+.custom-ruling.ashkenazi {
+    border-left-color: #0891b2;
+    background: linear-gradient(135deg, #ecf0ff 0%, #f0f4ff 100%);
+}
+
+.custom-ruling.sefardi {
+    border-left-color: #ea580c;
+    background: linear-gradient(135deg, #fff7ed 0%, #fffbf0 100%);
+}
+
+.custom-ruling.yemenite {
+    border-left-color: #059669;
+    background: linear-gradient(135deg, #f0fdf4 0%, #f4fdf7 100%);
+}
+
+.custom-ruling.bukharian {
+    border-left-color: #d946ef;
+    background: linear-gradient(135deg, #faf5ff 0%, #fdf2f8 100%);
+}
+
+.custom-label {
+    display: inline-block;
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 0.5rem;
+    padding: 0.25rem 0.75rem;
+    border-radius: 4px;
+    background-color: rgba(124, 58, 237, 0.1);
+    color: #7c3aed;
+}
+
+/* ═══════════════════════════════════════════════════════════════════ */
+/* SOURCE REFERENCE STYLING */
+/* ═══════════════════════════════════════════════════════════════════ */
+
+.source-ref {
+    display: inline-block;
+    background: #f1f5f9;
+    color: #0c4a6e;
+    padding: 0.25rem 0.65rem;
+    border-radius: 4px;
+    font-size: 0.875rem;
+    font-weight: 500;
+    margin: 0 0.25rem;
+    font-family: 'Courier New', monospace;
+}
+
+.source-ref:hover {
+    background: #e2e8f0;
+    cursor: pointer;
+}
+
+/* ═══════════════════════════════════════════════════════════════════ */
+/* SHEILAH LAYOUT POLISH (Sefaria/Merkava-inspired) */
+/* ═══════════════════════════════════════════════════════════════════ */
+
+.library-shell {
+    background:
+        radial-gradient(circle at 12% 10%, rgba(0, 33, 71, 0.05) 0%, transparent 38%),
+        radial-gradient(circle at 90% 92%, rgba(18, 87, 126, 0.06) 0%, transparent 40%),
+        linear-gradient(180deg, #f7fafc 0%, #f4f8fb 100%);
+}
+
+.topbar {
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.97) 0%, rgba(248, 251, 255, 0.97) 100%);
+    backdrop-filter: blur(8px);
+}
+
+.navigator-pane {
+    background:
+        linear-gradient(180deg, rgba(255, 255, 255, 0.98) 0%, rgba(246, 250, 254, 0.98) 100%),
+        repeating-linear-gradient(45deg,
+            rgba(0, 33, 71, 0.02) 0,
+            rgba(0, 33, 71, 0.02) 4px,
+            transparent 4px,
+            transparent 10px);
+}
+
+.pulse-pane {
+    background:
+        linear-gradient(180deg, #f8fbfd 0%, #f3f8fc 100%),
+        radial-gradient(circle at 85% 10%, rgba(0, 78, 95, 0.05) 0%, transparent 42%);
+}
+
+#parashaQuickLink {
+    box-shadow: inset 0 0 0 1px rgba(0, 78, 95, 0.08);
+}
+
+#parashaQuickLink:hover {
+    transform: translateY(-1px);
+}
+
+.segment-row {
+    position: relative;
+}
+
+.segment-label {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    font-size: 0.7rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: #64748b;
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 999px;
+    padding: 0.2rem 0.6rem;
+    margin-bottom: 0.65rem;
+    font-family: 'Inter', sans-serif;
+}
+
+/* ═══════════════════════════════════════════════════════════════════ */
+/* CUSTOM SCROLLBAR (Modern look) */
+/* ═══════════════════════════════════════════════════════════════════ */
+
+::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
+
+::-webkit-scrollbar-track {
+    background: #f1f5f9;
+    border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb {
+    background: #cbd5e1;
+    border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: #94a3b8;
+}
+
+/* ═══════════════════════════════════════════════════════════════════ */
+/* FullCalendar Overrides */
+/* ═══════════════════════════════════════════════════════════════════ */
+
+.fc {
+    font-family: 'Inter', sans-serif;
+    --fc-border-color: #e2e8f0;
+    --fc-button-bg-color: #002147;
+    --fc-button-border-color: #002147;
+}
+
+.fc .fc-toolbar-title {
+    font-size: 1.25em;
+    font-weight: 600;
+    color: #002147;
+}
+
+.fc-event {
+    cursor: pointer;
+    border: none !important;
+    border-radius: 4px;
+    font-size: 0.85rem;
+}
+
+.fc-event.holiday {
+    background-color: #802f3e !important;
+    border: 1px solid #5a1f2a !important;
+}
+
+.fc-event.shabbat {
+    background-color: #064e3b !important;
+    border: 1px solid #022c1f !important;
+}
+
+.fc-col-header-cell-cushion,
+.fc-daygrid-day-number {
+    color: #475569;
+    text-decoration: none !important;
+}
+
+.fc-day-today {
+    background: #F0F9FF !important;
+}
+
+/* ═══════════════════════════════════════════════════════════════════ */
+/* MARKDOWN RENDERING (marked.js) */
+/* ═══════════════════════════════════════════════════════════════════ */
+
+.prose {
+    max-width: none;
+}
+
+.prose p {
+    margin: 1rem 0;
+    line-height: 1.75;
+    color: #334155;
+}
+
+.prose blockquote {
+    border-left-color: #D4AF37;
+    background-color: #fffbf0;
+    padding: 1rem;
+    font-style: italic;
+    border-radius: 4px;
+    color: #475569;
+    margin-bottom: 1.5rem;
+    border-left-width: 4px;
+}
+
+.prose p {
+    font-size: 0.95rem;
+    line-height: 1.7;
+    color: #334155;
+    margin-bottom: 1rem;
+}
+
+.prose strong {
+    color: #002147;
+    font-weight: 700;
+}
+
+.prose em {
+    font-style: italic;
+    color: #475569;
+}
+
+.prose code {
+    background: #f1f5f9;
+    color: #0c4a6e;
+    padding: 0.2rem 0.5rem;
+    border-radius: 3px;
+    font-family: 'Courier New', monospace;
+    font-size: 0.9em;
+}
+
+.prose h2 {
+    color: #002147;
+    font-size: 1.25rem;
+    font-weight: 700;
+    margin-top: 1.5rem;
+    margin-bottom: 0.75rem;
+}
+
+.prose h3 {
+    color: #1e293b;
+    font-size: 1.1rem;
+    font-weight: 600;
+    margin-top: 1.25rem;
+    margin-bottom: 0.5rem;
+}
+
+/* ═══════════════════════════════════════════════════════════════════ */
+/* AI MODAL & SYNTHESIS STYLING */
+/* ═══════════════════════════════════════════════════════════════════ */
+
+.ai-synthesis {
+    background: linear-gradient(135deg, #f0f4f8 0%, #f4f8fc 100%);
+    border: 1px solid #cbd5e1;
+    border-radius: 12px;
+    padding: 2rem;
+    margin-bottom: 2rem;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+.ai-sources {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 1.5rem;
+    margin: 2rem 0;
+}
+
+.ai-source-card {
+    background: white;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    padding: 1.5rem;
+    transition: all 0.3s ease;
+}
+
+.ai-source-card:hover {
+    border-color: #d4af37;
+    box-shadow: 0 8px 16px rgba(212, 175, 55, 0.12);
+}
+
+.ai-custom-card {
+    background: linear-gradient(135deg, #faf5ff 0%, #f5f3ff 100%);
+    border-left: 4px solid #7c3aed;
+}
+
+.ai-wiki-card {
+    background: linear-gradient(135deg, #eff6ff 0%, #f0f9ff 100%);
+    border-left: 4px solid #0284c7;
+}
+
+/* Omnibox suggestion list */
+#searchSuggestions .suggestion-item {
+    transition: background-color 0.2s ease;
+}
+
+#searchSuggestions .suggestion-item:focus {
+    outline: none;
+    background: #eff6ff;
+}
+
+/* Reader personalization */
+#reader {
+    --reader-font-size: 18px;
+    --reader-line-height: 1.8;
+}
+
+#reader #readerContent,
+#reader .source-he,
+#reader .source-en {
+    font-size: var(--reader-font-size);
+    line-height: var(--reader-line-height);
+}
+
+@media (max-width: 1024px) {
+
+    #reader .source-he,
+    #reader .source-en {
+        font-size: calc(var(--reader-font-size) - 1px);
+    }
+}

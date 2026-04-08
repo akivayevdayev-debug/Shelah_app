@@ -1,0 +1,8 @@
+flask
+python-dotenv
+requests
+pyluach
+pytz
+timezonefinder
+zmanim
+anthropic

@@ -1,0 +1,344 @@
+{
+  "version": "2.0",
+  "type": "academic_halachic_reference",
+  "heritage_id": "ethiopian",
+  "name": "Ethiopian",
+  "aliases": [
+    "Beta Israel",
+    "Ethiopian Jews"
+  ],
+  "database_scope": {
+    "purpose": "Academic and halachic reference database for Ethiopian Jewish heritage, minhagim, and halachic practice.",
+    "coverage_note": "This file models broad Beta Israel practice and includes common halachic domains. Local customs vary by village, family, and the degree of later rabbinic integration.",
+    "classification_note": "Ethiopian Jewish practice is historically distinct from both Ashkenazi and Sephardi frameworks, with its own scriptural, liturgical, and communal traditions."
+  },
+  "identity": {
+    "primary_origin": "Ethiopia, especially the communities historically associated with Beta Israel",
+    "secondary_centers": [
+      "Gondar",
+      "Wollo",
+      "Tigray",
+      "Addis Ababa",
+      "Israeli Ethiopian diaspora communities"
+    ],
+    "cultural_profile": [
+      "Distinct biblical and liturgical tradition",
+      "Strong communal identity and oral transmission",
+      "Historically separate ritual development",
+      "Later integration with mainstream rabbinic Jewish practice in many settings"
+    ]
+  },
+  "languages": [
+    "Amharic",
+    "Tigrinya",
+    "Hebrew",
+    "Ge'ez in liturgical contexts",
+    "English in diaspora"
+  ],
+  "genealogy": {
+    "common_surname_patterns": [
+      "Patronymic naming patterns",
+      "Place-based identity markers",
+      "Family names adapted in modern civil records"
+    ],
+    "research_notes": [
+      "Genealogy may depend more on village and family memory than on fixed surnames.",
+      "Migration records and community testimony are often important.",
+      "Record both pre-migration Ethiopian identity and post-migration surname forms."
+    ],
+    "recommended_genealogy_fields": [
+      "surname",
+      "alternate_spellings",
+      "village_of_origin",
+      "regional_branch",
+      "migration_route",
+      "ritual_minhag",
+      "language_used"
+    ]
+  },
+  "historical_background": {
+    "timeline": [
+      {
+        "period": "Ancient and medieval Ethiopia",
+        "event": "Jewish communities developed and preserved distinct practice.",
+        "halachic_impact": "A separate ritual tradition emerged."
+      },
+      {
+        "period": "Modern Ethiopian kingdom era",
+        "event": "Beta Israel lived as a distinct community under changing regional conditions.",
+        "halachic_impact": "Community continuity remained strong despite social pressures."
+      },
+      {
+        "period": "20th century",
+        "event": "Wider rabbinic recognition and connection increased.",
+        "halachic_impact": "Halachic integration and dialogue expanded."
+      },
+      {
+        "period": "Late 20th century and after",
+        "event": "Mass aliyah to Israel transformed communal life.",
+        "halachic_impact": "Practice adapted to new rabbinic and institutional contexts."
+      }
+    ]
+  },
+  "core_halachic_authorities": {
+    "primary_codes": [
+      "Biblical tradition as preserved in Beta Israel practice",
+      "Rabbinic halacha as adopted in later integration",
+      "Local Ethiopian communal custom"
+    ],
+    "major_textual_base": [
+      "Torah",
+      "Community liturgical tradition",
+      "Later rabbinic guidance in integration settings"
+    ],
+    "later_authorities_and_guides": [
+      "Israeli rabbinic authorities",
+      "Beta Israel community leaders",
+      "Religious educators and dayanim working with Ethiopian communities"
+    ],
+    "decision_principle": "Preserve inherited Beta Israel tradition where possible, while recognizing that many Ethiopian Jews now observe mainstream halacha under rabbinic guidance."
+  },
+  "halacha_index": [
+    {
+      "index": "halacha.1",
+      "category": "Prayer",
+      "topic": "Nusach and liturgy",
+      "summary": "Ethiopian Jewish liturgy historically used distinct forms and scriptural patterns rather than a standard Sephardi or Ashkenazi rite.",
+      "common_practices": [
+        "Use community prayer tradition where preserved",
+        "Recite prayers in inherited forms and language style",
+        "Preserve communal readings and liturgical memory"
+      ]
+    },
+    {
+      "index": "halacha.2",
+      "category": "Prayer",
+      "topic": "Ge'ez and Hebrew usage",
+      "summary": "Liturgical language may include Ge'ez traditions alongside Hebrew use in modern settings.",
+      "common_practices": [
+        "Use Hebrew in synagogues and schools where adopted",
+        "Preserve older liturgical formulas where known",
+        "Teach language and text together"
+      ]
+    },
+    {
+      "index": "halacha.3",
+      "category": "Prayer",
+      "topic": "Torah and scriptural focus",
+      "summary": "Scripture and biblical tradition are central to Ethiopian Jewish religious life.",
+      "common_practices": [
+        "Read and study Torah regularly",
+        "Preserve scriptural memory and community teaching",
+        "Maintain strong public reading traditions"
+      ]
+    },
+    {
+      "index": "halacha.4",
+      "category": "Shabbat",
+      "topic": "Shabbat observance",
+      "summary": "Shabbat is observed as a core covenantal practice, with details varying by community and later integration.",
+      "common_practices": [
+        "Cease labor on Shabbat according to accepted practice",
+        "Use community guidance for candle lighting and prayer",
+        "Preserve traditional household observance"
+      ]
+    },
+    {
+      "index": "halacha.5",
+      "category": "Shabbat",
+      "topic": "Cooking and food preparation",
+      "summary": "Cooking restrictions are observed with strong attention to preparing food before Shabbat.",
+      "common_practices": [
+        "Prepare food before Shabbat",
+        "Avoid prohibited cooking during Shabbat",
+        "Follow local rabbinic guidance in modern settings"
+      ]
+    },
+    {
+      "index": "halacha.6",
+      "category": "Shabbat",
+      "topic": "Community gathering",
+      "summary": "Shabbat is often marked by communal prayer and shared observance.",
+      "common_practices": [
+        "Gather for prayer and reading",
+        "Preserve community meal customs",
+        "Use inherited songs and teachings where transmitted"
+      ]
+    },
+    {
+      "index": "halacha.7",
+      "category": "Kashrut",
+      "topic": "Dietary separation",
+      "summary": "Ethiopian Jewish food practice historically included its own methods of purity and separation.",
+      "common_practices": [
+        "Maintain food discipline according to community norms",
+        "Follow rabbinic guidance in integrated settings",
+        "Preserve inherited food rules where still known"
+      ]
+    },
+    {
+      "index": "halacha.8",
+      "category": "Kashrut",
+      "topic": "Meat and slaughter",
+      "summary": "Meat preparation and slaughter practices were governed by community tradition and later rabbinic integration.",
+      "common_practices": [
+        "Use kosher supervision where available",
+        "Follow local standards for slaughter and inspection",
+        "Preserve traditional food practices where compatible with halacha"
+      ]
+    },
+    {
+      "index": "halacha.9",
+      "category": "Kashrut",
+      "topic": "Food purity and utensils",
+      "summary": "Utensil and food separation practices reflect both traditional Ethiopian custom and modern rabbinic guidance.",
+      "common_practices": [
+        "Use separate utensils where required",
+        "Follow community guidance for cooking vessels",
+        "Adapt home practice to halachic supervision in diaspora"
+      ]
+    },
+    {
+      "index": "halacha.10",
+      "category": "Pesach",
+      "topic": "Passover observance",
+      "summary": "Pesach is a major festival and may preserve unique Ethiopian scriptural and communal features.",
+      "common_practices": [
+        "Remove chametz before Pesach",
+        "Use community customs for seder or pre-seder observance",
+        "Follow rabbinic guidance for modern halachic practice"
+      ]
+    },
+    {
+      "index": "halacha.11",
+      "category": "Pesach",
+      "topic": "Matzah and festival foods",
+      "summary": "Pesach foods are prepared carefully and may reflect local Ethiopian taste and tradition.",
+      "common_practices": [
+        "Use kosher matzah",
+        "Prepare foods according to local custom and rabbinic guidance",
+        "Observe festival restrictions carefully"
+      ]
+    },
+    {
+      "index": "halacha.12",
+      "category": "Lifecycle",
+      "topic": "Brit milah",
+      "summary": "Brit milah is performed as a covenantal act and may be accompanied by community-specific celebration.",
+      "common_practices": [
+        "Use a qualified mohel or accepted halachic procedure",
+        "Preserve naming customs where known",
+        "Celebrate with community participation"
+      ]
+    },
+    {
+      "index": "halacha.13",
+      "category": "Lifecycle",
+      "topic": "Marriage and family formation",
+      "summary": "Marriage customs were traditionally community-centered and are now often aligned with broader halacha.",
+      "common_practices": [
+        "Use a valid ketubah in modern practice",
+        "Observe marriage according to halachic standards",
+        "Preserve family and community customs where compatible"
+      ]
+    },
+    {
+      "index": "halacha.14",
+      "category": "Family law",
+      "topic": "Family purity",
+      "summary": "Family purity norms are observed according to the level of halachic integration and local guidance.",
+      "common_practices": [
+        "Observe separation laws in mainstream halachic settings",
+        "Use mikveh where required",
+        "Receive instruction from knowledgeable authorities"
+      ]
+    },
+    {
+      "index": "halacha.15",
+      "category": "Mourning",
+      "topic": "Avelut",
+      "summary": "Mourning follows halachic norms in modern communities, with possible retention of older communal forms.",
+      "common_practices": [
+        "Observe shiva and memorial customs",
+        "Use community prayer and remembrance practices",
+        "Follow local guidance on mourning procedures"
+      ]
+    },
+    {
+      "index": "halacha.16",
+      "category": "Calendar",
+      "topic": "High Holidays",
+      "summary": "Rosh Hashanah and Yom Kippur are observed according to mainstream halacha in most current communities, with traces of older practice in some settings.",
+      "common_practices": [
+        "Use accepted machzor or local prayer book",
+        "Observe fasting and prayer carefully",
+        "Preserve communal memory where available"
+      ]
+    },
+    {
+      "index": "halacha.17",
+      "category": "Calendar",
+      "topic": "Chanukah and Purim",
+      "summary": "These festivals are observed in line with standard halacha in most modern settings.",
+      "common_practices": [
+        "Light Chanukah candles",
+        "Read the Megillah on Purim",
+        "Observe family and synagogue customs"
+      ]
+    },
+    {
+      "index": "halacha.18",
+      "category": "Education",
+      "topic": "Torah transmission",
+      "summary": "Education combines traditional Ethiopian transmission with modern Jewish study.",
+      "common_practices": [
+        "Teach Torah and Hebrew literacy",
+        "Preserve oral community memory",
+        "Use both Ethiopian and mainstream Jewish educational frameworks"
+      ]
+    },
+    {
+      "index": "halacha.19",
+      "category": "Community",
+      "topic": "Community authority",
+      "summary": "Ethiopian Jewish communities have historically relied on elders and later on rabbinic institutions.",
+      "common_practices": [
+        "Respect community elders and leaders",
+        "Use qualified rabbinic guidance in integrated settings",
+        "Preserve heritage alongside mainstream observance"
+      ]
+    },
+    {
+      "index": "halacha.20",
+      "category": "Community",
+      "topic": "Heritage preservation",
+      "summary": "A major concern is preserving Beta Israel identity while functioning within broader Jewish institutional life.",
+      "common_practices": [
+        "Document oral traditions and family memory",
+        "Record village and regional identity",
+        "Preserve ritual memory where possible"
+      ]
+    }
+  ],
+  "unique_minhagim": {
+    "examples": [
+      "Distinct Ethiopian liturgical and biblical tradition",
+      "Strong use of oral transmission",
+      "Village-based identity markers",
+      "Later integration with mainstream rabbinic life"
+    ],
+    "notes": "Ethiopian Jewish practice should be treated as its own heritage stream, not simply as a variant of Sephardi or Ashkenazi custom."
+  },
+  "source_registry": {
+    "primary": [
+      "Torah",
+      "Beta Israel communal tradition",
+      "Later rabbinic guidance"
+    ],
+    "secondary": [
+      "Academic studies of Beta Israel",
+      "Community oral histories",
+      "Modern Israeli and diaspora educational sources"
+    ]
+  }
+}

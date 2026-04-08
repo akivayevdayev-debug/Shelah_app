@@ -1,0 +1,348 @@
+{
+  "version": "2.0",
+  "type": "academic_halachic_reference",
+  "heritage_id": "persian",
+  "name": "Persian",
+  "aliases": [
+    "Iranian",
+    "Judeo-Persian",
+    "Persian Jews"
+  ],
+  "database_scope": {
+    "purpose": "Academic and halachic reference database for Persian Jewish heritage, minhagim, and halachic practice.",
+    "coverage_note": "This file models broad Persian Jewish practice and includes common halachic domains. Local customs vary by city, family, synagogue, and migration history.",
+    "classification_note": "Persian Jewish practice is a major Mizrahi tradition shaped by ancient Iranian Jewish life, local Persian culture, and later Sephardi influence."
+  },
+  "identity": {
+    "primary_origin": "Historic Jewish communities of Iran, especially Tehran, Isfahan, Shiraz, and other Persian centers",
+    "secondary_centers": [
+      "Tehran",
+      "Isfahan",
+      "Shiraz",
+      "Mashhad",
+      "Yazd",
+      "Kashan",
+      "Iranian Jewish diaspora in Israel, the United States, Europe, and Latin America"
+    ],
+    "cultural_profile": [
+      "Strong Persian-language and cultural identity",
+      "Ancient local Jewish continuity",
+      "Sephardi-influenced halachic framework in many communities",
+      "Distinct foodways, melodies, and family customs"
+    ]
+  },
+  "languages": [
+    "Judeo-Persian",
+    "Hebrew",
+    "Persian",
+    "English in diaspora",
+    "some Arabic in regional historical contexts"
+  ],
+  "genealogy": {
+    "common_surname_patterns": [
+      "Town-based names",
+      "Occupational names",
+      "Family names adapted from Persian or Hebrew roots",
+      "Names modified by immigration to English, Hebrew, and other scripts"
+    ],
+    "research_notes": [
+      "City and family branch are often more useful than surname alone.",
+      "Spelling changes between Persian, Hebrew, and Latin scripts are common.",
+      "Migration routes and synagogue affiliation are important for accurate research."
+    ],
+    "recommended_genealogy_fields": [
+      "surname",
+      "alternate_spellings",
+      "town_of_origin",
+      "family_branch",
+      "migration_route",
+      "language_used",
+      "ritual_minhag"
+    ]
+  },
+  "historical_background": {
+    "timeline": [
+      {
+        "period": "Ancient Persian and biblical era",
+        "event": "Jewish communities existed in the Persian sphere for a very long time.",
+        "halachic_impact": "A deep local tradition developed alongside broader Jewish law."
+      },
+      {
+        "period": "Medieval and early modern era",
+        "event": "Persian Jewish communities maintained continuity under changing political conditions.",
+        "halachic_impact": "Local custom and textual scholarship remained important."
+      },
+      {
+        "period": "Qajar and modern era",
+        "event": "Community life continued in major Persian cities while facing modernization and migration.",
+        "halachic_impact": "Some communities aligned more closely with Sephardi legal practice."
+      },
+      {
+        "period": "20th century and after",
+        "event": "Migration to Israel, the United States, and elsewhere reshaped Persian Jewish life.",
+        "halachic_impact": "Diaspora communities preserved liturgy, cuisine, and family patterns."
+      }
+    ]
+  },
+  "core_halachic_authorities": {
+    "primary_codes": [
+      "Shulchan Aruch",
+      "Mishneh Torah",
+      "local Persian communal custom"
+    ],
+    "major_rishonim_base": [
+      "Rambam",
+      "Rif",
+      "Rosh"
+    ],
+    "later_authorities_and_guides": [
+      "Persian and Iranian rabbis",
+      "Sephardi poskim used in diaspora settings",
+      "Local dayanim and community leaders"
+    ],
+    "decision_principle": "Follow inherited Persian minhag within a traditional halachic framework, often with Sephardi-leaning legal structure and strong respect for local family customs."
+  },
+  "halacha_index": [
+    {
+      "index": "halacha.1",
+      "category": "Prayer",
+      "topic": "Nusach and liturgy",
+      "summary": "Persian Jewish prayer uses traditional local rite, often with Sephardi influence in many modern communities.",
+      "common_practices": [
+        "Use Persian or Sephardi-adjacent siddurim where customary",
+        "Preserve local melodies and recitation patterns",
+        "Retain festival additions and piyutim where inherited"
+      ]
+    },
+    {
+      "index": "halacha.2",
+      "category": "Prayer",
+      "topic": "Hebrew pronunciation",
+      "summary": "Hebrew pronunciation may preserve Persian phonetic patterns or adapted diaspora forms.",
+      "common_practices": [
+        "Use inherited pronunciation in prayer and Torah reading",
+        "Teach community-specific sounds and stress patterns",
+        "Preserve oral transmission of melody and trope"
+      ]
+    },
+    {
+      "index": "halacha.3",
+      "category": "Prayer",
+      "topic": "Torah reading",
+      "summary": "Torah reading is central and follows local cantillation traditions.",
+      "common_practices": [
+        "Use trained ba'alei kri'ah",
+        "Follow local trope or chant style",
+        "Preserve aliyah and honor customs"
+      ]
+    },
+    {
+      "index": "halacha.4",
+      "category": "Shabbat",
+      "topic": "Candle lighting",
+      "summary": "Shabbat candle lighting follows standard halacha with family custom.",
+      "common_practices": [
+        "Light before Shabbat begins",
+        "Use customary blessing wording",
+        "Preserve family candle traditions where inherited"
+      ]
+    },
+    {
+      "index": "halacha.5",
+      "category": "Shabbat",
+      "topic": "Meals and hospitality",
+      "summary": "Shabbat meals are central to Persian Jewish life and often feature distinctive Persian cuisine.",
+      "common_practices": [
+        "Prepare food before Shabbat",
+        "Honor guests and family according to custom",
+        "Serve traditional Persian-Jewish dishes where kosher"
+      ]
+    },
+    {
+      "index": "halacha.6",
+      "category": "Shabbat",
+      "topic": "Cooking and warming",
+      "summary": "Cooking is prohibited on Shabbat while permitted warming methods may be used according to halacha.",
+      "common_practices": [
+        "Cook before Shabbat",
+        "Use permitted warming arrangements under halachic guidance",
+        "Avoid direct cooking and prohibited reheating actions"
+      ]
+    },
+    {
+      "index": "halacha.7",
+      "category": "Shabbat",
+      "topic": "Carrying and eruv",
+      "summary": "Carrying outside a valid eruv is prohibited and depends on local infrastructure.",
+      "common_practices": [
+        "Check eruv validity",
+        "Follow local rabbinic guidance",
+        "Do not carry where no eruv exists"
+      ]
+    },
+    {
+      "index": "halacha.8",
+      "category": "Kashrut",
+      "topic": "Meat and dairy separation",
+      "summary": "Meat and dairy separation is carefully observed in the home and communal kitchen.",
+      "common_practices": [
+        "Keep separate utensils and cookware",
+        "Observe waiting periods after meat according to community custom",
+        "Maintain strict household separation"
+      ]
+    },
+    {
+      "index": "halacha.9",
+      "category": "Kashrut",
+      "topic": "Shechita and supervision",
+      "summary": "Ritual slaughter and kosher supervision are central to community trust.",
+      "common_practices": [
+        "Use qualified shochtim",
+        "Inspect meat and utensils carefully",
+        "Follow recognized community supervision"
+      ]
+    },
+    {
+      "index": "halacha.10",
+      "category": "Kashrut",
+      "topic": "Wine and ritual use",
+      "summary": "Wine is handled carefully for Kiddush and ritual use.",
+      "common_practices": [
+        "Use kosher wine for ritual use",
+        "Follow local customs on handling and purchase",
+        "Observe communal standards in food supervision"
+      ]
+    },
+    {
+      "index": "halacha.11",
+      "category": "Pesach",
+      "topic": "Chametz removal",
+      "summary": "Chametz is removed thoroughly before Pesach.",
+      "common_practices": [
+        "Search for chametz before Pesach",
+        "Sell or destroy chametz properly",
+        "Kasher utensils and surfaces as needed"
+      ]
+    },
+    {
+      "index": "halacha.12",
+      "category": "Pesach",
+      "topic": "Kitniyot and regional foods",
+      "summary": "Persian Pesach practice is generally compatible with Sephardi permissibility of kitniyot, subject to local custom.",
+      "common_practices": [
+        "Rice and legumes may be used where community custom permits",
+        "Inspect foods for chametz contamination",
+        "Follow family and rabbinic guidance for packaged foods"
+      ]
+    },
+    {
+      "index": "halacha.13",
+      "category": "Pesach",
+      "topic": "Seder practice",
+      "summary": "The Seder is marked by halachic structure and Persian Jewish family customs.",
+      "common_practices": [
+        "Use accepted Haggadah rite",
+        "Preserve songs and recitation customs",
+        "Follow local food and symbolic customs"
+      ]
+    },
+    {
+      "index": "halacha.14",
+      "category": "Lifecycle",
+      "topic": "Brit milah",
+      "summary": "Brit milah is performed with halachic precision and family celebration.",
+      "common_practices": [
+        "Use a qualified mohel",
+        "Observe naming and blessing customs",
+        "Preserve songs and family traditions"
+      ]
+    },
+    {
+      "index": "halacha.15",
+      "category": "Lifecycle",
+      "topic": "Marriage and ketubah",
+      "summary": "Marriage is halachically standard and often strongly family-centered.",
+      "common_practices": [
+        "Use a valid ketubah",
+        "Perform kiddushin and nissuin properly",
+        "Observe local engagement and wedding customs"
+      ]
+    },
+    {
+      "index": "halacha.16",
+      "category": "Family law",
+      "topic": "Niddah and mikveh",
+      "summary": "Family purity laws are observed carefully and are central to traditional practice.",
+      "common_practices": [
+        "Observe niddah separation laws",
+        "Use mikveh according to halacha",
+        "Follow local rabbinic guidance for household practice"
+      ]
+    },
+    {
+      "index": "halacha.17",
+      "category": "Mourning",
+      "topic": "Avelut",
+      "summary": "Mourning follows standard halachic structure with strong family and communal support.",
+      "common_practices": [
+        "Observe shiva, shloshim, and yahrzeit customs",
+        "Use memorial prayer forms according to local practice",
+        "Maintain condolence etiquette and community structure"
+      ]
+    },
+    {
+      "index": "halacha.18",
+      "category": "Calendar",
+      "topic": "High Holidays",
+      "summary": "Rosh Hashanah and Yom Kippur are observed with seriousness and local liturgical tradition.",
+      "common_practices": [
+        "Use the community machzor or accepted rite",
+        "Preserve selichot and shofar customs",
+        "Follow synagogue order and family tradition"
+      ]
+    },
+    {
+      "index": "halacha.19",
+      "category": "Calendar",
+      "topic": "Chanukah and Purim",
+      "summary": "Minor festivals are observed according to halacha and Persian Jewish custom.",
+      "common_practices": [
+        "Light Chanukah candles nightly",
+        "Read the Megillah on Purim",
+        "Use family foods and celebration customs"
+      ]
+    },
+    {
+      "index": "halacha.20",
+      "category": "Education",
+      "topic": "Torah transmission",
+      "summary": "Torah study, prayer, and custom are transmitted through family memory and communal schooling.",
+      "common_practices": [
+        "Teach children Hebrew and prayer",
+        "Preserve oral family memory",
+        "Use both formal study and inherited communal tradition"
+      ]
+    }
+  ],
+  "unique_minhagim": {
+    "examples": [
+      "Strong Persian language and cultural identity",
+      "Sephardi-adjacent liturgy with Persian local features",
+      "City-based subidentities such as Tehran, Isfahan, and Shiraz",
+      "Distinct Persian-Jewish culinary and family customs"
+    ],
+    "notes": "Persian Jewish practice should be indexed by city and family branch whenever possible."
+  },
+  "source_registry": {
+    "primary": [
+      "Shulchan Aruch",
+      "Mishneh Torah",
+      "local Persian Jewish tradition"
+    ],
+    "secondary": [
+      "Jewish studies reference works",
+      "Community archives and family records",
+      "Modern diaspora educational sources"
+    ]
+  }
+}

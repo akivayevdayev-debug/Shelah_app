@@ -1,0 +1,368 @@
+{
+  "version": "2.0",
+  "type": "academic_halachic_reference",
+  "heritage_id": "yemenite",
+  "name": "Yemenite",
+  "aliases": [
+    "Teimani",
+    "Yemenite Jews"
+  ],
+  "database_scope": {
+    "purpose": "Academic and halachic reference database for Yemenite Jewish heritage, minhagim, and halachic practice.",
+    "coverage_note": "This file models broad Yemenite practice and includes common halachic domains. Local customs vary by region, family, and sub-tradition.",
+    "classification_note": "Yemenite halacha is often discussed as a highly preserved and textually conservative tradition, with distinct internal branches."
+  },
+  "identity": {
+    "primary_origin": "Ancient Jewish communities in Yemen and the Arabian Peninsula",
+    "secondary_centers": [
+      "Northern Yemen",
+      "Southern Yemen",
+      "San'a",
+      "Aden",
+      "Modern Israeli Yemenite diaspora"
+    ],
+    "cultural_profile": [
+      "Strong preservation of older liturgical forms",
+      "Careful oral transmission of prayer and legal practice",
+      "Distinctive community structure and family customs",
+      "Close connection between halacha, melody, and pronunciation"
+    ]
+  },
+  "languages": [
+    "Hebrew",
+    "Judeo-Arabic",
+    "Arabic",
+    "Liturgical Hebrew pronunciation with Yemenite features"
+  ],
+  "genealogy": {
+    "common_surname_patterns": [
+      "Patronymic-style surnames",
+      "Names tied to towns or tribes",
+      "Names reflecting ancestral occupations or honorifics",
+      "Family branches preserved through communal memory"
+    ],
+    "research_notes": [
+      "Surname spellings vary greatly across transliteration systems.",
+      "Genealogy often requires town, synagogue, and family oral history.",
+      "Marriage networks and migration records are especially important."
+    ],
+    "recommended_genealogy_fields": [
+      "surname",
+      "alternate_spellings",
+      "town_of_origin",
+      "family_branch",
+      "tribal_or_regional_link",
+      "migration_route",
+      "ritual_minhag"
+    ]
+  },
+  "historical_background": {
+    "timeline": [
+      {
+        "period": "Early centuries",
+        "event": "Jewish communities established in Yemen and maintained long-term continuity.",
+        "halachic_impact": "Local halachic and liturgical forms developed with strong continuity."
+      },
+      {
+        "period": "Medieval era",
+        "event": "Rabbis and manuscripts helped preserve Yemenite legal tradition.",
+        "halachic_impact": "Texts and oral transmission reinforced community continuity."
+      },
+      {
+        "period": "Modern era",
+        "event": "Migration to Israel and other countries accelerated.",
+        "halachic_impact": "Some local customs were preserved, others adapted in diaspora settings."
+      },
+      {
+        "period": "20th century and after",
+        "event": "Community dispersion intensified after major political changes in Yemen.",
+        "halachic_impact": "Separate Yemenite sub-traditions continued within new communities."
+      }
+    ]
+  },
+  "core_halachic_authorities": {
+    "primary_codes": [
+      "Mishneh Torah",
+      "Shulchan Aruch",
+      "Yemenite legal tradition"
+    ],
+    "major_rishonim_base": [
+      "Rambam",
+      "Rif",
+      "Rosh"
+    ],
+    "later_yemenite_poskim": [
+      "Rav Yihye Qafih",
+      "Rav Shalom Shabazi",
+      "Rav Yosef Kafih",
+      "Rav Meir Mazuz"
+    ],
+    "decision_principle": "Follow inherited Yemenite tradition, often with a strong preference for textually conservative rulings and local transmission."
+  },
+  "halacha_index": [
+    {
+      "index": "halacha.1",
+      "category": "Prayer",
+      "topic": "Nusach and pronunciation",
+      "summary": "Yemenite prayer rite is highly distinctive and often preserves older pronunciation and structure.",
+      "common_practices": [
+        "Use Yemenite nusach in synagogue and home prayer",
+        "Preserve traditional Hebrew pronunciation",
+        "Maintain community-specific melodies and cantillation"
+      ]
+    },
+    {
+      "index": "halacha.2",
+      "category": "Prayer",
+      "topic": "Tefillah order",
+      "summary": "The order of prayer often reflects a conservative liturgical structure and close attention to texts.",
+      "common_practices": [
+        "Follow traditional Siddur structure",
+        "Retain customary piyyutim where preserved",
+        "Use community accepted insertions and omissions"
+      ]
+    },
+    {
+      "index": "halacha.3",
+      "category": "Prayer",
+      "topic": "Torah reading cantillation",
+      "summary": "Torah reading and cantillation are strongly tied to inherited community tradition.",
+      "common_practices": [
+        "Use Yemenite trop or recitation patterns",
+        "Maintain accurate communal reading customs",
+        "Train readers through oral and textual transmission"
+      ]
+    },
+    {
+      "index": "halacha.4",
+      "category": "Shabbat",
+      "topic": "Candle lighting",
+      "summary": "Shabbat candle lighting follows standard halacha with Yemenite family and community custom.",
+      "common_practices": [
+        "Light before Shabbat begins",
+        "Use inherited blessing and candle customs",
+        "Preserve number-of-candles customs where applicable"
+      ]
+    },
+    {
+      "index": "halacha.5",
+      "category": "Shabbat",
+      "topic": "Cooking and warming food",
+      "summary": "Shabbat cooking laws are observed carefully, with traditional warming methods used where permitted.",
+      "common_practices": [
+        "Prepare food before Shabbat",
+        "Use permitted warming methods",
+        "Avoid prohibited cooking and direct heating"
+      ],
+      "notes": "Local practice may differ between communities that identify as Baladi or Shami in orientation."
+    },
+    {
+      "index": "halacha.6",
+      "category": "Shabbat",
+      "topic": "Carrying and eruv",
+      "summary": "Carrying restrictions are observed according to halacha and local communal infrastructure.",
+      "common_practices": [
+        "Do not carry where no valid eruv exists",
+        "Follow inherited local standards",
+        "Use communal guidance for urban and rural settings"
+      ]
+    },
+    {
+      "index": "halacha.7",
+      "category": "Kashrut",
+      "topic": "Meat and dairy separation",
+      "summary": "Meat and dairy laws are observed strictly with community-specific details in timing and utensils.",
+      "common_practices": [
+        "Maintain separate vessels and cookware",
+        "Observe the community’s customary waiting period after meat",
+        "Avoid cross-contamination in kitchen practice"
+      ]
+    },
+    {
+      "index": "halacha.8",
+      "category": "Kashrut",
+      "topic": "Shechita and meat inspection",
+      "summary": "Slaughter and meat inspection follow strict halachic standards and communal trust structures.",
+      "common_practices": [
+        "Use qualified shochtim",
+        "Inspect animals and meat carefully",
+        "Follow local standards for glatt and supervision"
+      ]
+    },
+    {
+      "index": "halacha.9",
+      "category": "Kashrut",
+      "topic": "Bishul akum and food preparation",
+      "summary": "Food preparation with non-Jews is handled carefully in accordance with standard halachic rules and Yemenite communal practice.",
+      "common_practices": [
+        "Observe the rules of bishul akum",
+        "Use kosher supervision for processed foods",
+        "Follow local stringency customs where established"
+      ]
+    },
+    {
+      "index": "halacha.10",
+      "category": "Pesach",
+      "topic": "Chametz removal",
+      "summary": "Chametz removal before Pesach is taken seriously and often preserved as a communal family event.",
+      "common_practices": [
+        "Search and remove chametz before Pesach",
+        "Kasher utensils where needed",
+        "Follow local customs for sale and disposal"
+      ]
+    },
+    {
+      "index": "halacha.11",
+      "category": "Pesach",
+      "topic": "Kitniyot and grains",
+      "summary": "Yemenite practice differs from Ashkenazi custom and may include broader allowance of grains and staple foods according to local minhag.",
+      "common_practices": [
+        "Follow community guidance on rice and legumes",
+        "Inspect food carefully for chametz contamination",
+        "Use inherited family custom when recognized by local rabbinic authority"
+      ]
+    },
+    {
+      "index": "halacha.12",
+      "category": "Pesach",
+      "topic": "Seder customs",
+      "summary": "The Seder is observed with Yemenite liturgical and melodic traditions.",
+      "common_practices": [
+        "Use Yemenite Haggadah traditions",
+        "Preserve family songs and recitation style",
+        "Follow community order for Seder plate and readings"
+      ]
+    },
+    {
+      "index": "halacha.13",
+      "category": "Tefillin",
+      "topic": "Tefillin practice",
+      "summary": "Tefillin are worn according to Yemenite custom, which may reflect distinctive binding and textual traditions.",
+      "common_practices": [
+        "Wear tefillin on weekday mornings",
+        "Use traditionally prepared tefillin",
+        "Follow inherited wrapping and blessing customs"
+      ]
+    },
+    {
+      "index": "halacha.14",
+      "category": "Tzitzit",
+      "topic": "Tallit and fringes",
+      "summary": "Tzitzit practice is standard in halachic terms but may preserve Yemenite style and pronunciation traditions.",
+      "common_practices": [
+        "Wear tzitzit according to communal norm",
+        "Use traditional tallit style where preserved",
+        "Preserve blessing and donning order"
+      ]
+    },
+    {
+      "index": "halacha.15",
+      "category": "Lifecycle",
+      "topic": "Brit milah",
+      "summary": "Brit milah follows halacha with Yemenite family and communal customs in naming and celebration.",
+      "common_practices": [
+        "Use a qualified mohel",
+        "Preserve traditional naming customs",
+        "Include community songs or recitations where customary"
+      ]
+    },
+    {
+      "index": "halacha.16",
+      "category": "Lifecycle",
+      "topic": "Marriage and ketubah",
+      "summary": "Marriage is halachically standard but deeply shaped by family and community custom.",
+      "common_practices": [
+        "Use a valid ketubah",
+        "Perform kiddushin and nissuin properly",
+        "Observe family and regional customs in the wedding sequence"
+      ]
+    },
+    {
+      "index": "halacha.17",
+      "category": "Family law",
+      "topic": "Niddah and mikveh",
+      "summary": "Family purity laws are observed carefully and are an important part of Yemenite religious continuity.",
+      "common_practices": [
+        "Observe separation laws during niddah",
+        "Use mikveh according to halacha",
+        "Follow locally transmitted customs where they do not contradict law"
+      ]
+    },
+    {
+      "index": "halacha.18",
+      "category": "Mourning",
+      "topic": "Avelut",
+      "summary": "Mourning practices follow standard halachic structure with preserved community forms.",
+      "common_practices": [
+        "Observe shiva and related periods",
+        "Use inherited recitation customs for memorials",
+        "Follow local norms for visitation and consolation"
+      ]
+    },
+    {
+      "index": "halacha.19",
+      "category": "Calendar",
+      "topic": "High Holidays",
+      "summary": "Rosh Hashanah and Yom Kippur are observed with Yemenite melody, text, and customs.",
+      "common_practices": [
+        "Use Yemenite machzor or local rite",
+        "Preserve selichot and piyutim traditions",
+        "Follow communal custom for shofar and prayer sequence"
+      ]
+    },
+    {
+      "index": "halacha.20",
+      "category": "Calendar",
+      "topic": "Chanukah",
+      "summary": "Chanukah observance follows halacha with local songs and customary family practices.",
+      "common_practices": [
+        "Light candles nightly",
+        "Recite blessings and Hallel as required",
+        "Use traditional foods and melodies where preserved"
+      ]
+    },
+    {
+      "index": "halacha.21",
+      "category": "Calendar",
+      "topic": "Purim",
+      "summary": "Purim is celebrated with public Megillah reading and traditional Yemenite community joy.",
+      "common_practices": [
+        "Read Megillah publicly",
+        "Exchange gifts to the poor and friends",
+        "Preserve local musical or poetic customs"
+      ]
+    },
+    {
+      "index": "halacha.22",
+      "category": "Education",
+      "topic": "Torah transmission",
+      "summary": "Transmission is strongly oral and textual, with great emphasis on preserving precise recitation and interpretation.",
+      "common_practices": [
+        "Memorize prayer and reading forms",
+        "Teach children the inherited pronunciation and melodies",
+        "Study halachic texts alongside communal practice"
+      ]
+    }
+  ],
+  "unique_minhagim": {
+    "examples": [
+      "Distinct Yemenite Hebrew pronunciation",
+      "Careful preservation of liturgical structure",
+      "Strong oral transmission of melodies and reading patterns",
+      "Community-specific piyyutim and ritual forms"
+    ],
+    "notes": "These are broad examples; Yemenite communities may differ internally by historical branch and place."
+  },
+  "source_registry": {
+    "primary": [
+      "Mishneh Torah",
+      "Shulchan Aruch",
+      "Yemenite communal tradition"
+    ],
+    "secondary": [
+      "Jewish studies reference works",
+      "Yemenite community siddurim",
+      "Historical and genealogical resources"
+    ]
+  }
+}

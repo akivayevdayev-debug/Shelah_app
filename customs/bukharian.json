@@ -1,0 +1,370 @@
+{
+  "version": "2.0",
+  "type": "academic_halachic_reference",
+  "heritage_id": "bukharan",
+  "name": "Bukharan",
+  "aliases": [
+    "Bukhari",
+    "Bukharian",
+    "Bukharian Jews"
+  ],
+  "database_scope": {
+    "purpose": "Academic and halachic reference database for Bukharan Jewish heritage, minhagim, and halachic practice.",
+    "coverage_note": "This file models broad Bukharan practice and includes common halachic domains. Local customs vary by city, family, rabbinic lineage, and migration history.",
+    "classification_note": "Bukharan Jewish tradition is a Central Asian Jewish heritage with strong Persian, Turkish, and regional influence, while remaining broadly within a traditional halachic framework."
+  },
+  "identity": {
+    "primary_origin": "Central Asia, especially the historic Jewish communities of Bukhara and surrounding regions",
+    "secondary_centers": [
+      "Bukhara",
+      "Samarkand",
+      "Tashkent",
+      "Central Asian diaspora communities",
+      "Israel",
+      "New York",
+      "Other urban diaspora centers"
+    ],
+    "cultural_profile": [
+      "Strong communal continuity and family networks",
+      "Central Asian liturgical and musical traditions",
+      "Distinctive foodways and festival customs",
+      "Preservation of local identity across migration"
+    ]
+  },
+  "languages": [
+    "Bukhari",
+    "Hebrew",
+    "Russian",
+    "Uzbek in some historical settings",
+    "Tajik in some historical settings"
+  ],
+  "genealogy": {
+    "common_surname_patterns": [
+      "Names tied to towns or regions",
+      "Patronymic surnames",
+      "Persian or Turkic-root names adapted over time",
+      "Russified spellings during the Soviet period"
+    ],
+    "research_notes": [
+      "Surname spellings may vary substantially across transliteration systems.",
+      "Migration records are often as important as surnames.",
+      "Family oral history and community membership can be crucial to identification."
+    ],
+    "recommended_genealogy_fields": [
+      "surname",
+      "alternate_spellings",
+      "town_of_origin",
+      "community_branch",
+      "migration_route",
+      "language_used",
+      "ritual_minhag"
+    ]
+  },
+  "historical_background": {
+    "timeline": [
+      {
+        "period": "Early Central Asian period",
+        "event": "Jewish communities developed in the Bukhara region and surrounding Central Asian cities.",
+        "halachic_impact": "Distinct local practice formed alongside broader Jewish halacha."
+      },
+      {
+        "period": "Islamic and regional rule",
+        "event": "Communities lived under changing local political systems.",
+        "halachic_impact": "Family and communal structures preserved religious practice."
+      },
+      {
+        "period": "Russian imperial and Soviet eras",
+        "event": "Administrative and political changes transformed public life and records.",
+        "halachic_impact": "Prayer, marriage, and education increasingly depended on oral and family transmission."
+      },
+      {
+        "period": "Modern diaspora",
+        "event": "Large migration to Israel, the United States, and elsewhere.",
+        "halachic_impact": "Many customs were preserved in diaspora synagogues and family networks."
+      }
+    ]
+  },
+  "core_halachic_authorities": {
+    "primary_codes": [
+      "Shulchan Aruch",
+      "Mishneh Torah",
+      "local Bukharan custom"
+    ],
+    "major_rishonim_base": [
+      "Rambam",
+      "Rif",
+      "Rosh"
+    ],
+    "later_authorities_and_guides": [
+      "Sephardi poskim used in diaspora settings",
+      "Local Central Asian rabbis",
+      "Community minhag-based guidance"
+    ],
+    "decision_principle": "Follow inherited Bukharan community custom within the broad framework of traditional halacha, with attention to local family and synagogue norms."
+  },
+  "halacha_index": [
+    {
+      "index": "halacha.1",
+      "category": "Prayer",
+      "topic": "Nusach and liturgy",
+      "summary": "Bukharan prayer practice is traditional and community-centered, often with distinctive Central Asian melodies and local text traditions.",
+      "common_practices": [
+        "Use Bukharan or Bukharan-adjacent siddurim where available",
+        "Preserve local melodies and recitation patterns",
+        "Retain festival and communal piyyutim where customary"
+      ]
+    },
+    {
+      "index": "halacha.2",
+      "category": "Prayer",
+      "topic": "Hebrew pronunciation",
+      "summary": "Hebrew recitation may preserve Central Asian phonetic and melodic features.",
+      "common_practices": [
+        "Follow inherited pronunciation in prayer and Torah reading",
+        "Use family and community models for vowel and consonant sounds",
+        "Teach pronunciation orally across generations"
+      ]
+    },
+    {
+      "index": "halacha.3",
+      "category": "Prayer",
+      "topic": "Torah reading",
+      "summary": "Torah reading is treated with care and may reflect local cantillation and honor customs.",
+      "common_practices": [
+        "Use trained ba'alei kri'ah from the community",
+        "Follow local trop or chant style",
+        "Preserve aliyah distribution customs"
+      ]
+    },
+    {
+      "index": "halacha.4",
+      "category": "Shabbat",
+      "topic": "Candle lighting",
+      "summary": "Shabbat candle lighting follows halacha with family and community custom in timing and format.",
+      "common_practices": [
+        "Light before Shabbat begins",
+        "Use customary blessing wording",
+        "Follow family traditions for number and arrangement of candles"
+      ]
+    },
+    {
+      "index": "halacha.5",
+      "category": "Shabbat",
+      "topic": "Meals and hospitality",
+      "summary": "Shabbat meals and hospitality are central to Bukharan communal culture.",
+      "common_practices": [
+        "Prepare food before Shabbat",
+        "Honor guests and family according to community custom",
+        "Use traditional dishes and table customs"
+      ]
+    },
+    {
+      "index": "halacha.6",
+      "category": "Shabbat",
+      "topic": "Cooking and warming",
+      "summary": "Cooking is prohibited on Shabbat while permitted warming methods may be used according to halacha.",
+      "common_practices": [
+        "Cook before Shabbat",
+        "Use permitted warming arrangements if accepted locally",
+        "Avoid direct cooking or prohibited manipulation"
+      ]
+    },
+    {
+      "index": "halacha.7",
+      "category": "Shabbat",
+      "topic": "Carrying and eruv",
+      "summary": "Carrying depends on valid eruv status and local communal arrangement.",
+      "common_practices": [
+        "Do not carry where no valid eruv exists",
+        "Follow local rabbinic guidance on public and private domains",
+        "Use community standards rather than assumptions"
+      ]
+    },
+    {
+      "index": "halacha.8",
+      "category": "Kashrut",
+      "topic": "Meat and dairy separation",
+      "summary": "Meat and dairy separation follows standard halacha with inherited community timing and kitchen practice.",
+      "common_practices": [
+        "Keep separate meat and dairy utensils",
+        "Observe the customary waiting period after meat according to community practice",
+        "Maintain careful kitchen separation"
+      ]
+    },
+    {
+      "index": "halacha.9",
+      "category": "Kashrut",
+      "topic": "Shechita",
+      "summary": "Ritual slaughter is central and relies on trusted shochtim and communal supervision.",
+      "common_practices": [
+        "Use a qualified shochet",
+        "Inspect knives and meat according to halacha",
+        "Rely on accepted supervision and local trust structures"
+      ]
+    },
+    {
+      "index": "halacha.10",
+      "category": "Kashrut",
+      "topic": "Food customs",
+      "summary": "Bukharan cuisine includes traditional dishes that must be prepared under kosher standards.",
+      "common_practices": [
+        "Use kosher supervision for processed foods",
+        "Check ingredients for wine, gelatin, and other concerns",
+        "Keep traditional recipes within halachic limits"
+      ]
+    },
+    {
+      "index": "halacha.11",
+      "category": "Pesach",
+      "topic": "Chametz removal",
+      "summary": "Chametz removal before Pesach is strict and usually organized carefully in the home.",
+      "common_practices": [
+        "Search for and remove chametz",
+        "Use Pesach-dedicated utensils or kasher equipment",
+        "Follow local practice for sale of chametz"
+      ]
+    },
+    {
+      "index": "halacha.12",
+      "category": "Pesach",
+      "topic": "Kitniyot and rice",
+      "summary": "Bukharan Pesach practice is generally compatible with Sephardi-style permissibility of kitniyot, subject to local custom.",
+      "common_practices": [
+        "Rice and legumes may be used where community custom permits",
+        "Inspect food for chametz contamination",
+        "Follow family and rabbinic guidance for all packaged foods"
+      ]
+    },
+    {
+      "index": "halacha.13",
+      "category": "Pesach",
+      "topic": "Seder and Haggadah",
+      "summary": "The Seder is structured according to halacha and enriched by Bukharan family custom.",
+      "common_practices": [
+        "Use the accepted Haggadah rite",
+        "Preserve songs and recital patterns",
+        "Use community foods and symbolic customs where inherited"
+      ]
+    },
+    {
+      "index": "halacha.14",
+      "category": "Tefillin",
+      "topic": "Tefillin practice",
+      "summary": "Tefillin are worn daily on weekdays in the standard halachic manner with community-specific binding customs.",
+      "common_practices": [
+        "Wear tefillin for weekday prayer",
+        "Use properly checked tefillin",
+        "Follow family custom for wrapping and blessing"
+      ]
+    },
+    {
+      "index": "halacha.15",
+      "category": "Tzitzit",
+      "topic": "Tallit and fringes",
+      "summary": "Tzitzit observance follows halacha with traditional Bukharan tallit customs preserved in some families.",
+      "common_practices": [
+        "Wear tzitzit according to communal norm",
+        "Use customary tallit style where preserved",
+        "Maintain inherited blessing sequence"
+      ]
+    },
+    {
+      "index": "halacha.16",
+      "category": "Lifecycle",
+      "topic": "Brit milah",
+      "summary": "Brit milah is performed according to halacha with strong communal celebration and naming traditions.",
+      "common_practices": [
+        "Use a qualified mohel",
+        "Preserve inherited naming customs",
+        "Include community songs and ceremonial structure where customary"
+      ]
+    },
+    {
+      "index": "halacha.17",
+      "category": "Lifecycle",
+      "topic": "Marriage and ketubah",
+      "summary": "Marriage is halachically standard but deeply influenced by family and community networks.",
+      "common_practices": [
+        "Use a valid ketubah",
+        "Perform kiddushin and nissuin properly",
+        "Observe family customs for engagement, gifts, and wedding sequence"
+      ]
+    },
+    {
+      "index": "halacha.18",
+      "category": "Family law",
+      "topic": "Niddah and mikveh",
+      "summary": "Family purity laws are a major part of traditional observance and are maintained with care.",
+      "common_practices": [
+        "Observe niddah separation laws",
+        "Use mikveh according to halacha",
+        "Follow inherited customs where accepted by community authority"
+      ]
+    },
+    {
+      "index": "halacha.19",
+      "category": "Mourning",
+      "topic": "Avelut",
+      "summary": "Mourning follows standard halachic structure with strong family support and memorial customs.",
+      "common_practices": [
+        "Observe shiva, shloshim, and yahrzeit customs",
+        "Use customary prayers for memorials",
+        "Preserve family etiquette for consolation"
+      ]
+    },
+    {
+      "index": "halacha.20",
+      "category": "Calendar",
+      "topic": "High Holidays",
+      "summary": "Rosh Hashanah and Yom Kippur are marked by solemn prayer, traditional melody, and community continuity.",
+      "common_practices": [
+        "Use the community machzor or rite",
+        "Preserve selichot and shofar customs",
+        "Follow local synagogue order and family practice"
+      ]
+    },
+    {
+      "index": "halacha.21",
+      "category": "Calendar",
+      "topic": "Chanukah and Purim",
+      "summary": "Minor festivals are observed with standard halacha and distinctive Bukharan family joy and foods.",
+      "common_practices": [
+        "Light Chanukah candles nightly",
+        "Read the Megillah on Purim",
+        "Preserve local food, song, and gift customs"
+      ]
+    },
+    {
+      "index": "halacha.22",
+      "category": "Education",
+      "topic": "Torah transmission",
+      "summary": "Torah, prayer, and custom are transmitted through family memory, teachers, and communal continuity.",
+      "common_practices": [
+        "Teach children prayers and readings",
+        "Preserve oral family custom",
+        "Use both texts and community tradition in education"
+      ]
+    }
+  ],
+  "unique_minhagim": {
+    "examples": [
+      "Central Asian communal meals and hospitality norms",
+      "Distinct Bukhari language use in family and liturgical settings",
+      "Strong preservation of music and ceremonial forms",
+      "Town-based identity tied to Bukhara and Samarkand"
+    ],
+    "notes": "These are broad examples rather than universal rules. Bukharan practice should be indexed by subcommunity and migration history where possible."
+  },
+  "source_registry": {
+    "primary": [
+      "Shulchan Aruch",
+      "Mishneh Torah",
+      "local Bukharan tradition"
+    ],
+    "secondary": [
+      "Jewish studies reference works",
+      "Jewish community databases",
+      "Central Asian community histories"
+    ]
+  }
+}

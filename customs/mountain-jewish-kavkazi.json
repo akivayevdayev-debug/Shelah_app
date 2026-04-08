@@ -1,0 +1,375 @@
+{
+  "version": "2.0",
+  "type": "academic_halachic_reference",
+  "heritage_id": "mountain_kavkazi",
+  "name": "Mountain (Kavkazi)",
+  "aliases": [
+    "Juhuro",
+    "Juhuri",
+    "Mountain Jews",
+    "Kavkazi Jews"
+  ],
+  "database_scope": {
+    "purpose": "Academic and halachic reference database for Mountain Jewish heritage, minhagim, and halachic practice.",
+    "coverage_note": "This file models broad Mountain Jewish practice and includes common halachic domains. Local customs vary by town, family, and migration history.",
+    "classification_note": "Mountain Jewish practice is often described as a distinct Caucasus tradition with historical interaction with Persian, Turkic, Russian, and broader Sephardi frameworks."
+  },
+  "identity": {
+    "primary_origin": "Ancient Jewish communities of the Caucasus region, especially Dagestan and Azerbaijan",
+    "secondary_centers": [
+      "Derbent",
+      "Quba / Red Village",
+      "Dagestan",
+      "Azerbaijan",
+      "Russian diaspora",
+      "Israeli diaspora"
+    ],
+    "cultural_profile": [
+      "Strong preservation of communal identity",
+      "Town-based and family-based continuity",
+      "Distinctive Juhuri language and oral tradition",
+      "Interaction of Jewish law with Caucasus social structure"
+    ]
+  },
+  "languages": [
+    "Juhuri",
+    "Hebrew",
+    "Russian",
+    "Azerbaijani in some communities",
+    "Persian loanwords in some speech traditions"
+  ],
+  "genealogy": {
+    "common_surname_patterns": [
+      "Hebrew-root surnames with Russian suffixes",
+      "Family names tied to local towns or villages",
+      "Patronymic surnames",
+      "Russified spellings from the imperial and Soviet periods"
+    ],
+    "research_notes": [
+      "Surname spellings often vary by transliteration and historical period.",
+      "Village, synagogue, and family lineage are often more reliable than surname alone.",
+      "Community records may reflect Russian, Soviet, Azerbaijani, or Israeli documentation formats."
+    ],
+    "recommended_genealogy_fields": [
+      "surname",
+      "alternate_spellings",
+      "town_of_origin",
+      "community_branch",
+      "migration_route",
+      "language_used",
+      "ritual_minhag"
+    ]
+  },
+  "historical_background": {
+    "timeline": [
+      {
+        "period": "Early settlement era",
+        "event": "Jewish communities developed in the Caucasus over long historical periods.",
+        "halachic_impact": "Local custom and communal identity became strongly rooted."
+      },
+      {
+        "period": "Persian and regional influence",
+        "event": "Mountain Jews interacted with surrounding Persian and Caucasus cultures.",
+        "halachic_impact": "Some customs reflected regional social and linguistic influence while retaining Jewish legal structure."
+      },
+      {
+        "period": "Russian imperial period",
+        "event": "Political and administrative change brought Russian influence.",
+        "halachic_impact": "Names, records, and public life were increasingly Russified."
+      },
+      {
+        "period": "Soviet period",
+        "event": "Religious practice was pressured underground.",
+        "halachic_impact": "Oral transmission and family observance became especially important."
+      },
+      {
+        "period": "Modern diaspora",
+        "event": "Large-scale migration to Israel, Russia, and elsewhere.",
+        "halachic_impact": "Some customs remained intact while others adapted to new communal settings."
+      }
+    ]
+  },
+  "core_halachic_authorities": {
+    "primary_codes": [
+      "Shulchan Aruch",
+      "Mishneh Torah",
+      "local community tradition"
+    ],
+    "major_rishonim_base": [
+      "Rambam",
+      "Rif",
+      "Rosh"
+    ],
+    "later_authorities_and_guides": [
+      "Regional Sephardi authorities used in diaspora settings",
+      "Community rabbis and shochtim",
+      "Modern poskim consulted in Israel and Russia"
+    ],
+    "decision_principle": "Follow inherited community practice, typically within a Sephardi-adjacent halachic framework, while preserving local Mountain Jewish minhagim where established."
+  },
+  "halacha_index": [
+    {
+      "index": "halacha.1",
+      "category": "Prayer",
+      "topic": "Nusach and liturgy",
+      "summary": "Mountain Jewish prayer practice generally reflects a traditional rite with local historical development and Juhuri-based explanation in some settings.",
+      "common_practices": [
+        "Use community siddurim or inherited prayer order",
+        "Preserve local melodies and pronunciations",
+        "Retain communal piyyutim and festival readings where customary"
+      ]
+    },
+    {
+      "index": "halacha.2",
+      "category": "Prayer",
+      "topic": "Hebrew pronunciation",
+      "summary": "Hebrew recitation may preserve distinctive Caucasus phonetic patterns.",
+      "common_practices": [
+        "Use inherited pronunciation in prayer and Torah reading",
+        "Preserve older family vocalization traditions where taught",
+        "Teach pronunciation through oral transmission"
+      ]
+    },
+    {
+      "index": "halacha.3",
+      "category": "Prayer",
+      "topic": "Torah reading",
+      "summary": "Torah reading is communal and highly traditional, with local reading melodies and pacing.",
+      "common_practices": [
+        "Use trained ba'alei kri'ah from the community",
+        "Follow local cantillation style",
+        "Preserve traditional honor distribution during aliyot"
+      ]
+    },
+    {
+      "index": "halacha.4",
+      "category": "Shabbat",
+      "topic": "Candle lighting",
+      "summary": "Shabbat candle lighting is observed according to standard halacha with strong family custom.",
+      "common_practices": [
+        "Light before sunset or according to accepted local cutoff",
+        "Use family custom for number and arrangement of candles",
+        "Recite the customary blessing"
+      ]
+    },
+    {
+      "index": "halacha.5",
+      "category": "Shabbat",
+      "topic": "Shabbat meals",
+      "summary": "Shabbat meals are central to communal identity and often preserve traditional foods and seating customs.",
+      "common_practices": [
+        "Prepare food before Shabbat",
+        "Use customary family dishes",
+        "Preserve guest and honor traditions around the table"
+      ]
+    },
+    {
+      "index": "halacha.6",
+      "category": "Shabbat",
+      "topic": "Cooking and warming",
+      "summary": "Cooking is prohibited on Shabbat, while permitted warming arrangements may be used according to halacha.",
+      "common_practices": [
+        "Cook before Shabbat",
+        "Use permitted warming arrangements when accepted locally",
+        "Avoid direct reheating and prohibited manipulation"
+      ]
+    },
+    {
+      "index": "halacha.7",
+      "category": "Shabbat",
+      "topic": "Carrying and eruv",
+      "summary": "Carrying outside permitted domains depends on valid eruv status and communal infrastructure.",
+      "common_practices": [
+        "Do not carry where no valid eruv exists",
+        "Follow local rabbinic guidance on public space",
+        "Use communal standards rather than assumptions"
+      ]
+    },
+    {
+      "index": "halacha.8",
+      "category": "Kashrut",
+      "topic": "Meat and dairy separation",
+      "summary": "Meat and dairy separation follows standard halacha with community-specific timing and utensil customs.",
+      "common_practices": [
+        "Keep separate meat and dairy vessels",
+        "Follow community custom for waiting periods",
+        "Maintain clean separation in home kitchens"
+      ]
+    },
+    {
+      "index": "halacha.9",
+      "category": "Kashrut",
+      "topic": "Shechita",
+      "summary": "Ritual slaughter is a major communal responsibility and is performed by trusted shochtim.",
+      "common_practices": [
+        "Use a qualified shochet",
+        "Inspect knives and meat carefully",
+        "Follow recognized communal supervision"
+      ]
+    },
+    {
+      "index": "halacha.10",
+      "category": "Kashrut",
+      "topic": "Milk, meat, and local foodways",
+      "summary": "Traditional foods are prepared under strict kosher practice and reflect mountain-region culinary habits.",
+      "common_practices": [
+        "Use kosher supervision for processed foods",
+        "Maintain inherited family recipes within halachic constraints",
+        "Check ingredients for gelatin, wine, and other concerns"
+      ]
+    },
+    {
+      "index": "halacha.11",
+      "category": "Pesach",
+      "topic": "Chametz removal",
+      "summary": "Chametz removal before Pesach is strict and often deeply rooted in family observance.",
+      "common_practices": [
+        "Search and remove chametz before Pesach",
+        "Use dedicated Pesach utensils or kasher equipment",
+        "Follow local guidance for bedikat chametz and sale of chametz"
+      ]
+    },
+    {
+      "index": "halacha.12",
+      "category": "Pesach",
+      "topic": "Kitniyot and grain customs",
+      "summary": "Mountain Jewish Pesach practice is often closer to Sephardi than Ashkenazi norms regarding kitniyot, but local custom matters.",
+      "common_practices": [
+        "Rice and legumes may be used where community custom permits",
+        "Inspect food carefully for chametz contamination",
+        "Follow family and rabbinic tradition for all grain products"
+      ]
+    },
+    {
+      "index": "halacha.13",
+      "category": "Pesach",
+      "topic": "Seder practice",
+      "summary": "The Seder combines standard halachic structure with local songs, foods, and recitation forms.",
+      "common_practices": [
+        "Read the Haggadah in the accepted local rite",
+        "Preserve family songs and explanations",
+        "Use community custom for matzah, maror, and afikoman practice"
+      ]
+    },
+    {
+      "index": "halacha.14",
+      "category": "Tefillin",
+      "topic": "Tefillin practice",
+      "summary": "Tefillin are used according to standard halacha and community custom for placement and wrapping.",
+      "common_practices": [
+        "Wear tefillin on weekday mornings",
+        "Use properly checked tefillin",
+        "Follow inherited wrapping and blessing customs"
+      ]
+    },
+    {
+      "index": "halacha.15",
+      "category": "Tzitzit",
+      "topic": "Tallit and fringes",
+      "summary": "Tzitzit practice is standard halachically, with local tallit customs preserved in family life.",
+      "common_practices": [
+        "Wear tzitzit by communal norm",
+        "Use customary tallit styles where preserved",
+        "Preserve family blessing order and fabric custom"
+      ]
+    },
+    {
+      "index": "halacha.16",
+      "category": "Lifecycle",
+      "topic": "Brit milah",
+      "summary": "Brit milah is performed according to halacha with strong communal ceremony and naming customs.",
+      "common_practices": [
+        "Use a qualified mohel",
+        "Observe inherited naming practices",
+        "Include traditional songs and blessings where customary"
+      ]
+    },
+    {
+      "index": "halacha.17",
+      "category": "Lifecycle",
+      "topic": "Marriage and ketubah",
+      "summary": "Marriage follows halacha and is often shaped by strong community endogamy and family alliance.",
+      "common_practices": [
+        "Use a valid ketubah",
+        "Perform kiddushin and nissuin properly",
+        "Preserve family customs for engagement and wedding sequence"
+      ]
+    },
+    {
+      "index": "halacha.18",
+      "category": "Family law",
+      "topic": "Niddah and mikveh",
+      "summary": "Family purity laws are observed carefully and are a major marker of continuity.",
+      "common_practices": [
+        "Observe niddah separation laws",
+        "Use mikveh according to halacha",
+        "Retain inherited customs where they do not conflict with law"
+      ]
+    },
+    {
+      "index": "halacha.19",
+      "category": "Mourning",
+      "topic": "Avelut",
+      "summary": "Mourning follows standard halachic structure with strong family and communal support.",
+      "common_practices": [
+        "Observe shiva, shloshim, and yahrzeit customs",
+        "Use customary memorial prayer forms",
+        "Maintain local visitation and condolence etiquette"
+      ]
+    },
+    {
+      "index": "halacha.20",
+      "category": "Calendar",
+      "topic": "High Holidays",
+      "summary": "Rosh Hashanah and Yom Kippur are observed with local solemnity, prayer forms, and selichot traditions.",
+      "common_practices": [
+        "Use the community machzor or rite",
+        "Preserve selichot and shofar customs",
+        "Follow local synagogue order and melodies"
+      ]
+    },
+    {
+      "index": "halacha.21",
+      "category": "Calendar",
+      "topic": "Chanukah and Purim",
+      "summary": "Minor festivals are celebrated with standard halacha and community-specific foods, songs, and customs.",
+      "common_practices": [
+        "Light Chanukah candles nightly",
+        "Read the Megillah on Purim",
+        "Preserve family songs, foods, and gift customs"
+      ]
+    },
+    {
+      "index": "halacha.22",
+      "category": "Education",
+      "topic": "Torah transmission",
+      "summary": "Torah and custom are transmitted through family memory, oral teaching, and local communal institutions.",
+      "common_practices": [
+        "Teach children prayers and reading forms",
+        "Preserve family stories and genealogy",
+        "Use both texts and oral tradition in instruction"
+      ]
+    }
+  ],
+  "unique_minhagim": {
+    "examples": [
+      "Juhuri language preserved in religious explanation and family life",
+      "Strong oral continuity after Soviet suppression",
+      "Town-based identity such as Derbent or Quba/Red Village",
+      "Distinct synagogue melodies and honor customs"
+    ],
+    "notes": "These are broad patterns rather than universal rules. Mountain Jewish communities should be indexed by locality where possible."
+  },
+  "source_registry": {
+    "primary": [
+      "Shulchan Aruch",
+      "Mishneh Torah",
+      "local Mountain Jewish tradition"
+    ],
+    "secondary": [
+      "Jewish languages resources",
+      "Jewish community databases",
+      "regional historical studies"
+    ]
+  }
+}
