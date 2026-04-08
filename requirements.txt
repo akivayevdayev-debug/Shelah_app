@@ -6,3 +6,5 @@ pytz
 timezonefinder
 zmanim
 anthropic
+PyJWT[crypto]
+supabase

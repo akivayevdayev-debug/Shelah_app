@@ -1,10 +1,17 @@
 import json
 import requests
-from flask import Flask, render_template, request, jsonify, session
+from flask import Flask, render_template, request, jsonify, session, g
 from dotenv import load_dotenv
 import time
 import os
-from datetime import date as greg_date, timedelta
+from datetime import date as greg_date, timedelta, datetime
+from functools import wraps
+
+import jwt
+try:
+    from supabase import create_client
+except Exception:
+    create_client = None
 
 from pyluach import dates as pyluach_dates
 
@@ -179,6 +186,110 @@ load_dotenv()
 app = Flask(__name__)
 app.secret_key = os.environ.get("FLASK_SECRET_KEY") or os.urandom(32)
 
+CLERK_PUBLISHABLE_KEY = (os.environ.get("CLERK_PUBLISHABLE_KEY") or "").strip()
+CLERK_JWT_ISSUER = (os.environ.get("CLERK_JWT_ISSUER")
+                    or "").strip().rstrip("/")
+CLERK_AUDIENCE = (os.environ.get("CLERK_AUDIENCE") or "").strip()
+CLERK_ENFORCE_AUTH = (os.environ.get("CLERK_ENFORCE_AUTH")
+                      or "false").strip().lower() == "true"
+_clerk_jwks_client = None
+
+SUPABASE_URL = (os.environ.get("SUPABASE_URL") or "").strip()
+SUPABASE_SERVICE_ROLE_KEY = (os.environ.get(
+    "SUPABASE_SERVICE_ROLE_KEY") or "").strip()
+SUPABASE_PREFS_TABLE = (os.environ.get(
+    "SUPABASE_PREFS_TABLE") or "user_preferences").strip()
+_supabase_client = None
+
+
+def _extract_bearer_token():
+    auth_header = request.headers.get("Authorization", "")
+    if not auth_header.lower().startswith("bearer "):
+        return None
+    token = auth_header.split(" ", 1)[1].strip()
+    return token or None
+
+
+def _get_clerk_jwks_client():
+    global _clerk_jwks_client
+    if not CLERK_JWT_ISSUER:
+        return None
+    if _clerk_jwks_client is None:
+        jwks_url = f"{CLERK_JWT_ISSUER}/.well-known/jwks.json"
+        _clerk_jwks_client = jwt.PyJWKClient(jwks_url)
+    return _clerk_jwks_client
+
+
+def _verify_clerk_token(token):
+    if not token:
+        raise ValueError("Missing bearer token")
+    if not CLERK_JWT_ISSUER:
+        raise ValueError("Server missing CLERK_JWT_ISSUER")
+
+    jwks_client = _get_clerk_jwks_client()
+    if jwks_client is None:
+        raise ValueError("Clerk JWKS client unavailable")
+
+    signing_key = jwks_client.get_signing_key_from_jwt(token).key
+    decode_kwargs = {
+        "algorithms": ["RS256"],
+        "issuer": CLERK_JWT_ISSUER,
+    }
+    if CLERK_AUDIENCE:
+        decode_kwargs["audience"] = CLERK_AUDIENCE
+    else:
+        decode_kwargs["options"] = {"verify_aud": False}
+
+    return jwt.decode(token, signing_key, **decode_kwargs)
+
+
+def _get_supabase_client():
+    global _supabase_client
+    if create_client is None:
+        return None
+    if not SUPABASE_URL or not SUPABASE_SERVICE_ROLE_KEY:
+        return None
+    if _supabase_client is None:
+        _supabase_client = create_client(
+            SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY)
+    return _supabase_client
+
+
+def maybe_require_clerk_auth(route_fn):
+    @wraps(route_fn)
+    def wrapped(*args, **kwargs):
+        token = _extract_bearer_token()
+        if not token:
+            if CLERK_ENFORCE_AUTH:
+                return jsonify({"error": "Authentication required"}), 401
+            return route_fn(*args, **kwargs)
+
+        try:
+            g.clerk_claims = _verify_clerk_token(token)
+        except Exception:
+            return jsonify({"error": "Invalid or expired Clerk token"}), 401
+
+        return route_fn(*args, **kwargs)
+
+    return wrapped
+
+
+def require_clerk_auth(route_fn):
+    @wraps(route_fn)
+    def wrapped(*args, **kwargs):
+        token = _extract_bearer_token()
+        if not token:
+            return jsonify({"error": "Authentication required"}), 401
+
+        try:
+            g.clerk_claims = _verify_clerk_token(token)
+        except Exception:
+            return jsonify({"error": "Invalid or expired Clerk token"}), 401
+
+        return route_fn(*args, **kwargs)
+
+    return wrapped
+
 
 def _get_prayer_refs(prayer_name):
     """Resolve prayer/service name to a list of Sefaria refs."""
@@ -216,7 +327,12 @@ def index():
     daily_study = engine.get_daily_learning()
 
     # We no longer need hebcal learning as per new architecture, relying on Sefaria cal
-    return render_template("index.html", daily=daily_study)
+    return render_template(
+        "index.html",
+        daily=daily_study,
+        clerk_publishable_key=CLERK_PUBLISHABLE_KEY,
+        clerk_enforce_auth=CLERK_ENFORCE_AUTH,
+    )
 
 
 @app.route('/set_location', methods=['POST'])
@@ -243,6 +359,7 @@ def get_zmanim_month():
 
 
 @app.route("/ask", methods=["POST"])
+@maybe_require_clerk_auth
 def ask_question():
     data = request.json
     question = data.get("question", "")
@@ -372,6 +489,93 @@ def ask_question():
         import traceback
         print(traceback.format_exc())
         return jsonify({"error": str(e)}), 500
+
+
+@app.route("/api/stack/health")
+def stack_health():
+    """Return runtime readiness for Bento stack components."""
+    supabase_ready = bool(_get_supabase_client())
+    return jsonify({
+        "flask": True,
+        "vercel": True,
+        "clerk": {
+            "configured": bool(CLERK_PUBLISHABLE_KEY and CLERK_JWT_ISSUER),
+            "enforced": CLERK_ENFORCE_AUTH,
+        },
+        "supabase": {
+            "configured": bool(SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY),
+            "ready": supabase_ready,
+            "prefs_table": SUPABASE_PREFS_TABLE,
+        },
+        "calendar": {
+            "pyluach": True,
+            "zmanim": True,
+        }
+    })
+
+
+@app.route("/api/auth/me")
+def clerk_auth_me():
+    """Returns Clerk auth status and a minimal user payload."""
+    token = _extract_bearer_token()
+    if not token:
+        return jsonify({"authenticated": False})
+
+    try:
+        claims = _verify_clerk_token(token)
+        return jsonify({
+            "authenticated": True,
+            "user_id": claims.get("sub"),
+            "session_id": claims.get("sid"),
+        })
+    except Exception:
+        return jsonify({"authenticated": False}), 401
+
+
+@app.route("/api/user/preferences", methods=["GET", "PUT"])
+@require_clerk_auth
+def user_preferences():
+    """Persist and fetch per-user UI preferences from Supabase."""
+    claims = getattr(g, "clerk_claims", {}) or {}
+    user_id = claims.get("sub")
+    if not user_id:
+        return jsonify({"error": "Missing user identity"}), 401
+
+    supabase = _get_supabase_client()
+    if not supabase:
+        return jsonify({"error": "Supabase not configured"}), 503
+
+    table = supabase.table(SUPABASE_PREFS_TABLE)
+
+    try:
+        if request.method == "GET":
+            result = table.select("prefs,updated_at").eq(
+                "user_id", user_id).limit(1).execute()
+            rows = result.data or []
+            if not rows:
+                return jsonify({"prefs": None, "updated_at": None})
+
+            record = rows[0]
+            return jsonify({
+                "prefs": record.get("prefs"),
+                "updated_at": record.get("updated_at"),
+            })
+
+        payload = request.get_json(silent=True) or {}
+        prefs = payload.get("prefs")
+        if not isinstance(prefs, dict):
+            return jsonify({"error": "prefs must be an object"}), 400
+
+        now_iso = datetime.utcnow().isoformat() + "Z"
+        upsert_payload = {
+            "user_id": user_id,
+            "prefs": prefs,
+            "updated_at": now_iso,
+        }
+        table.upsert(upsert_payload, on_conflict="user_id").execute()
+        return jsonify({"ok": True, "updated_at": now_iso})
+    except Exception as e:
+        return jsonify({"error": f"Supabase operation failed: {str(e)}"}), 500
 
 
 @app.route("/api/library/index")
