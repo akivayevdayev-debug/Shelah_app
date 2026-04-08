@@ -6,12 +6,18 @@ import time
 import os
 from datetime import date as greg_date, timedelta, datetime
 from functools import wraps
+from urllib.parse import unquote
 
 import jwt
 try:
     from supabase import create_client
+    try:
+        from supabase.lib.client_options import ClientOptions
+    except Exception:
+        ClientOptions = None
 except Exception:
     create_client = None
+    ClientOptions = None
 
 from pyluach import dates as pyluach_dates
 
@@ -186,7 +192,11 @@ load_dotenv()
 app = Flask(__name__)
 app.secret_key = os.environ.get("FLASK_SECRET_KEY") or os.urandom(32)
 
-CLERK_PUBLISHABLE_KEY = (os.environ.get("CLERK_PUBLISHABLE_KEY") or "").strip()
+CLERK_PUBLISHABLE_KEY = (
+    os.environ.get("CLERK_PUBLISHABLE_KEY")
+    or os.environ.get("NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY")
+    or ""
+).strip()
 CLERK_JWT_ISSUER = (os.environ.get("CLERK_JWT_ISSUER")
                     or "").strip().rstrip("/")
 CLERK_AUDIENCE = (os.environ.get("CLERK_AUDIENCE") or "").strip()
@@ -195,6 +205,16 @@ CLERK_ENFORCE_AUTH = (os.environ.get("CLERK_ENFORCE_AUTH")
 _clerk_jwks_client = None
 
 SUPABASE_URL = (os.environ.get("SUPABASE_URL") or "").strip()
+if not SUPABASE_URL:
+    SUPABASE_URL = (os.environ.get("NEXT_PUBLIC_SUPABASE_URL") or "").strip()
+
+SUPABASE_PUBLISHABLE_KEY = (
+    os.environ.get("SUPABASE_ANON_KEY")
+    or os.environ.get("NEXT_PUBLIC_SUPABASE_PUBLISHABLE_DEFAULT_KEY")
+    or os.environ.get("NEXT_PUBLIC_SUPABASE_ANON_KEY")
+    or ""
+).strip()
+
 SUPABASE_SERVICE_ROLE_KEY = (os.environ.get(
     "SUPABASE_SERVICE_ROLE_KEY") or "").strip()
 SUPABASE_PREFS_TABLE = (os.environ.get(
@@ -253,6 +273,108 @@ def _get_supabase_client():
         _supabase_client = create_client(
             SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY)
     return _supabase_client
+
+
+def _looks_like_jwt(value):
+    if not isinstance(value, str):
+        return False
+    parts = value.split(".")
+    return len(parts) == 3 and all(parts)
+
+
+def _extract_supabase_token_from_cookie_value(raw_value):
+    if not raw_value:
+        return None
+
+    decoded = unquote(raw_value)
+    if _looks_like_jwt(decoded):
+        return decoded
+
+    try:
+        parsed = json.loads(decoded)
+    except Exception:
+        return None
+
+    if isinstance(parsed, dict):
+        token = parsed.get("access_token") or parsed.get("accessToken")
+        return token if isinstance(token, str) and token else None
+
+    if isinstance(parsed, list):
+        for item in parsed:
+            if isinstance(item, str) and _looks_like_jwt(item):
+                return item
+            if isinstance(item, dict):
+                token = item.get("access_token") or item.get("accessToken")
+                if isinstance(token, str) and token:
+                    return token
+
+    return None
+
+
+def _extract_supabase_access_token():
+    # Prefer Authorization header so API clients can override cookie auth.
+    bearer = _extract_bearer_token()
+    if bearer:
+        return bearer
+
+    direct_cookie_names = [
+        "sb-access-token",
+        "supabase-access-token",
+    ]
+    for cookie_name in direct_cookie_names:
+        direct_value = request.cookies.get(cookie_name)
+        token = _extract_supabase_token_from_cookie_value(direct_value)
+        if token:
+            return token
+
+    session_cookie_values = []
+    chunked_cookies = {}
+    for cookie_name, cookie_value in request.cookies.items():
+        if not (cookie_name.startswith("sb-") and "-auth-token" in cookie_name):
+            continue
+
+        if "." in cookie_name:
+            base, suffix = cookie_name.rsplit(".", 1)
+            if suffix.isdigit():
+                chunked_cookies.setdefault(base, []).append(
+                    (int(suffix), cookie_value))
+                continue
+
+        session_cookie_values.append(cookie_value)
+
+    for cookie_value in session_cookie_values:
+        token = _extract_supabase_token_from_cookie_value(cookie_value)
+        if token:
+            return token
+
+    for _, chunk_parts in chunked_cookies.items():
+        sorted_parts = sorted(chunk_parts, key=lambda part: part[0])
+        joined_value = "".join(part[1] for part in sorted_parts)
+        token = _extract_supabase_token_from_cookie_value(joined_value)
+        if token:
+            return token
+
+    return None
+
+
+def _get_request_supabase_client():
+    """Flask equivalent of Next.js createServerClient for request-scoped reads."""
+    if create_client is None:
+        return None
+    if not SUPABASE_URL or not SUPABASE_PUBLISHABLE_KEY:
+        return None
+
+    access_token = _extract_supabase_access_token()
+    if not access_token or ClientOptions is None:
+        return create_client(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY)
+
+    auth_headers = {"Authorization": f"Bearer {access_token}"}
+    try:
+        options = ClientOptions(headers=auth_headers)
+        return create_client(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY, options=options)
+    except TypeError:
+        # Compatibility fallback for older supabase-py signatures.
+        return create_client(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY)
 
 
 def maybe_require_clerk_auth(route_fn):
@@ -504,6 +626,7 @@ def stack_health():
         },
         "supabase": {
             "configured": bool(SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY),
+            "publishable_configured": bool(SUPABASE_URL and SUPABASE_PUBLISHABLE_KEY),
             "ready": supabase_ready,
             "prefs_table": SUPABASE_PREFS_TABLE,
         },
@@ -576,6 +699,23 @@ def user_preferences():
         return jsonify({"ok": True, "updated_at": now_iso})
     except Exception as e:
         return jsonify({"error": f"Supabase operation failed: {str(e)}"}), 500
+
+
+@app.route("/api/todos")
+def list_todos():
+    """Flask equivalent of the Next.js server query for todos."""
+    supabase = _get_request_supabase_client()
+    if not supabase:
+        return jsonify({
+            "error": "Supabase publishable client is not configured",
+            "hint": "Set NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_PUBLISHABLE_DEFAULT_KEY",
+        }), 503
+
+    try:
+        result = supabase.from_("todos").select("id,name").execute()
+        return jsonify({"todos": result.data or []})
+    except Exception as e:
+        return jsonify({"error": f"Failed to load todos: {str(e)}"}), 500
 
 
 @app.route("/api/library/index")
