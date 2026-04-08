@@ -91,9 +91,6 @@ def get_community_zmanim(lat, lon, timezone_str=None, community="standard"):
             date=today + timedelta(days=1)
         )
 
-        holiday_info = calendar_engine.is_holiday()
-        omer_info = _get_omer_info(today)
-
         # 2. Calculate requested key Halachic times
         dawn_16_1 = calendar.alos({'degrees': 16.1})
         talit_tefillin_10_2 = calendar.sunrise_offset_by_degrees(100.2)
@@ -101,6 +98,20 @@ def get_community_zmanim(lat, lon, timezone_str=None, community="standard"):
 
         shema_gra = calendar.sof_zman_shma_gra()
         sunset_for_day = calendar.sunset()
+
+        # Jewish dates roll at sunset, not midnight.
+        now = datetime.now(tz)
+        halachic_date = today + \
+            timedelta(
+                days=1) if sunset_for_day and now >= sunset_for_day else today
+
+        # Keep zmanim calculations aligned to civil day while metadata follows halachic day.
+        civil_holiday_info = calendar_engine.is_holiday(today)
+        holiday_info = calendar_engine.is_holiday(halachic_date)
+        omer_info = _get_omer_info(halachic_date)
+        hebrew_date_info = calendar_engine.gregorian_to_hebrew(halachic_date)
+        parasha_name = calendar_engine.get_parasha(halachic_date)
+
         shema_baal_hatanya = (
             calendar.sof_zman_shma(day_start=sunrise, day_end=sunset_for_day)
             if sunrise and sunset_for_day else None
@@ -116,14 +127,14 @@ def get_community_zmanim(lat, lon, timezone_str=None, community="standard"):
         mincha_gedola = calendar.mincha_gedola()
         sunset = sunset_for_day
         latest_musaf = None
-        if holiday_info.get('is_holiday') and sunrise and sunset:
+        if civil_holiday_info.get('is_holiday') and sunrise and sunset:
             shaah_zmanit = (sunset - sunrise) / 12
             latest_musaf = sunrise + (shaah_zmanit * 7)
 
         plag = calendar.plag_hamincha()
 
         candle_lighting = _get_today_candle_lighting(lat, lon, tz_name, today)
-        if candle_lighting is None and (today.weekday() == 4 or holiday_info.get('is_holiday')):
+        if candle_lighting is None and (today.weekday() == 4 or civil_holiday_info.get('is_holiday')):
             candle_lighting = calendar.candle_lighting()
 
         nightfall_3stars = calendar.tzais({'degrees': 8.5})
@@ -138,7 +149,6 @@ def get_community_zmanim(lat, lon, timezone_str=None, community="standard"):
         is_friday = today.weekday() == 4
         shabbat_warning = ""
 
-        now = datetime.now(tz)
         if is_friday and sunset:
             time_until_sunset = (sunset - now).total_seconds() / 60.0
             if 0 < time_until_sunset <= 18:
@@ -157,8 +167,8 @@ def get_community_zmanim(lat, lon, timezone_str=None, community="standard"):
         return {
             "metadata": {
                 "date": today.strftime('%B %d, %Y'),
-                "hebrew_date": calendar_engine.gregorian_to_hebrew()['hebrew_date'],
-                "parasha": calendar_engine.get_parasha(),
+                "hebrew_date": hebrew_date_info.get('hebrew_date', 'Unknown Date'),
+                "parasha": parasha_name,
                 "holiday": holiday_info.get('holiday_name'),
                 "is_holiday": bool(holiday_info.get('is_holiday')),
                 "omer_day": omer_info.get('day') if omer_info else None,
