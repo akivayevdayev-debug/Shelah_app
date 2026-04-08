@@ -630,7 +630,7 @@ def search_suggest():
     suggestions = []
     seen = set()
 
-    def add_item(item_type, label, value, subtitle="", score=0):
+    def add_item(item_type, label, value, subtitle="", score=0, label_he="", subtitle_he=""):
         key = (item_type, (value or "").lower())
         if key in seen:
             return
@@ -638,8 +638,10 @@ def search_suggest():
         suggestions.append({
             "type": item_type,
             "label": label,
+            "label_he": label_he,
             "value": value,
             "subtitle": subtitle,
+            "subtitle_he": subtitle_he,
             "score": score,
         })
 
@@ -664,9 +666,17 @@ def search_suggest():
 
     for hit in search_library(query, size=size):
         ref = hit.get("ref", "")
+        he_ref = (hit.get("heRef", "") or "").strip()
         categories = " > ".join(hit.get("categories", [])[:3])
         if ref:
-            add_item("text", ref, ref, categories or "Sefaria text", 70)
+            add_item(
+                "text",
+                ref,
+                ref,
+                categories or "Sefaria text",
+                70,
+                label_he=he_ref or ref,
+            )
 
     add_item("ask", f"Ask Sh'elah: {query}", query,
              "AI synthesis", 40)

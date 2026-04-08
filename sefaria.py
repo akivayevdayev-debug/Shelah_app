@@ -457,16 +457,19 @@ def get_daily_study():
             if "Daily Rambam" in title:
                 info["rambam"] = {
                     "title": item.get("displayValue", {}).get("en", ""),
+                    "title_he": item.get("displayValue", {}).get("he", ""),
                     "ref": item.get("ref", "")
                 }
             elif "Daf Yomi" in title:
                 info["daf_yomi"] = {
                     "title": item.get("displayValue", {}).get("en", ""),
+                    "title_he": item.get("displayValue", {}).get("he", ""),
                     "ref": item.get("ref", "")
                 }
             elif "Mishnah Yomi" in title:
                 info["mishnah_yomi"] = {
                     "title": item.get("displayValue", {}).get("en", ""),
+                    "title_he": item.get("displayValue", {}).get("he", ""),
                     "ref": item.get("ref", "")
                 }
 

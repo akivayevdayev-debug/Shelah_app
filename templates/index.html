@@ -69,7 +69,8 @@
                 ש
             </div>
             <h1 class="text-xl font-serif tracking-tight text-navy font-semibold hidden md:block">Sh'elah <span
-                    class="text-xs font-normal text-slate-500 italic block -mt-0.5">Torah Encyclopedia</span></h1>
+                    class="text-xs font-normal text-slate-500 italic block -mt-0.5" data-en="Torah Encyclopedia"
+                    data-he="אנציקלופדיית תורה">Torah Encyclopedia</span></h1>
         </div>
 
         <!-- Top Navigation Menu Toggle + Search Bar -->
@@ -115,31 +116,34 @@
 
                 <div id="settingsPanel"
                     class="hidden absolute right-0 mt-2 w-72 bg-white border border-slate-200 rounded-xl shadow-lg p-3 z-[90] space-y-3">
-                    <p class="text-[11px] uppercase tracking-widest text-slate-400 font-bold">Quick Settings</p>
+                    <p class="text-[11px] uppercase tracking-widest text-slate-400 font-bold" data-en="Quick Settings"
+                        data-he="הגדרות מהירות">Quick Settings</p>
 
                     <label class="block text-xs text-slate-600">
-                        Mode
+                        <span data-en="Mode" data-he="מצב">Mode</span>
                         <select id="answerModeSelect"
                             class="mt-1 w-full px-2 py-1.5 rounded border border-slate-200 bg-slate-50 text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-400">
-                            <option value="balanced">Balanced</option>
-                            <option value="practical">Practical First</option>
-                            <option value="sources">Deep Sources</option>
+                            <option value="balanced" data-en="Balanced" data-he="מאוזן">Balanced</option>
+                            <option value="practical" data-en="Practical First" data-he="מעשי תחילה">Practical First
+                            </option>
+                            <option value="sources" data-en="Deep Sources" data-he="מקורות מעמיקים">Deep Sources
+                            </option>
                         </select>
                     </label>
 
                     <label class="block text-xs text-slate-600">
-                        Community
+                        <span data-en="Community" data-he="קהילה">Community</span>
                         <select id="communityLensSelect"
                             class="mt-1 w-full px-2 py-1.5 rounded border border-slate-200 bg-slate-50 text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-400">
-                            <option value="All">All</option>
-                            <option value="Ashkenaz">Ashkenaz</option>
-                            <option value="Sefardic">Sefardic</option>
-                            <option value="Iraqi">Iraqi</option>
-                            <option value="Syrian">Syrian</option>
-                            <option value="Yemenite">Yemenite</option>
-                            <option value="Moroccan">Moroccan</option>
-                            <option value="Kavkazi">Kavkazi</option>
-                            <option value="Israeli">Israeli</option>
+                            <option value="All" data-en="All" data-he="הכל">All</option>
+                            <option value="Ashkenaz" data-en="Ashkenaz" data-he="אשכנז">Ashkenaz</option>
+                            <option value="Sefardic" data-en="Sefardic" data-he="ספרדי">Sefardic</option>
+                            <option value="Iraqi" data-en="Iraqi" data-he="עיראקי">Iraqi</option>
+                            <option value="Syrian" data-en="Syrian" data-he="סורי">Syrian</option>
+                            <option value="Yemenite" data-en="Yemenite" data-he="תימני">Yemenite</option>
+                            <option value="Moroccan" data-en="Moroccan" data-he="מרוקאי">Moroccan</option>
+                            <option value="Kavkazi" data-en="Kavkazi" data-he="קווקזי">Kavkazi</option>
+                            <option value="Israeli" data-en="Israeli" data-he="ישראלי">Israeli</option>
                         </select>
                     </label>
 
@@ -497,9 +501,12 @@
                         Search a halacha to view cross-referenced Encyclopedia and Customs data...</p>
                 </div>
 
-                <h3 class="text-xs font-bold text-slate-400 uppercase tracking-widest mt-2 mb-3">Personal Shelf</h3>
+                <h3 class="text-xs font-bold text-slate-400 uppercase tracking-widest mt-2 mb-3"
+                    data-en="Personal Shelf" data-he="מדף אישי">Personal Shelf</h3>
                 <div id="personalShelf" class="text-sm text-slate-600 pb-10">
-                    <p class="italic text-slate-400">Your recent reads and saved items will appear here.</p>
+                    <p class="italic text-slate-400" data-en="Your recent reads and saved items will appear here."
+                        data-he="הקריאות האחרונות והפריטים השמורים יופיעו כאן.">Your recent reads and saved items will
+                        appear here.</p>
                 </div>
         </nav>
 
@@ -829,6 +836,8 @@
                             Yomi</span>
                         <button type="button"
                             data-daily-ref="{{ daily.daf_yomi.ref if daily and daily.daf_yomi else '' }}"
+                            data-en="{{ daily.daf_yomi.title if daily and daily.daf_yomi else '' }}"
+                            data-he="{{ daily.daf_yomi.title_he if daily and daily.daf_yomi and daily.daf_yomi.title_he else (daily.daf_yomi.title if daily and daily.daf_yomi else '') }}"
                             class="daily-study-link text-sm font-serif text-slate-800 hover:text-blue-600 transition text-left">
                             {{ daily.daf_yomi.title }}
                         </button>
@@ -841,6 +850,8 @@
                             Yomi</span>
                         <button type="button"
                             data-daily-ref="{{ daily.mishnah_yomi.ref if daily and daily.mishnah_yomi else '' }}"
+                            data-en="{{ daily.mishnah_yomi.title if daily and daily.mishnah_yomi else '' }}"
+                            data-he="{{ daily.mishnah_yomi.title_he if daily and daily.mishnah_yomi and daily.mishnah_yomi.title_he else (daily.mishnah_yomi.title if daily and daily.mishnah_yomi else '') }}"
                             class="daily-study-link text-sm font-serif text-slate-800 hover:text-blue-600 transition text-left">
                             {{ daily.mishnah_yomi.title }}
                         </button>
@@ -852,6 +863,8 @@
                             data-en="Daily Rambam" data-he="רמב״ם יומי">Daily
                             Rambam</span>
                         <button type="button" data-daily-ref="{{ daily.rambam.ref if daily and daily.rambam else '' }}"
+                            data-en="{{ daily.rambam.title if daily and daily.rambam else '' }}"
+                            data-he="{{ daily.rambam.title_he if daily and daily.rambam and daily.rambam.title_he else (daily.rambam.title if daily and daily.rambam else '') }}"
                             class="daily-study-link text-sm font-serif text-slate-800 hover:text-blue-600 transition text-left">
                             {{ daily.rambam.title }}
                         </button>
@@ -859,7 +872,8 @@
                     {% endif %}
                     {% else %}
                     <p class="text-xs text-slate-500 text-center py-4 bg-slate-50 rounded"
-                        data-en="No active schedule fetched." data-he="לא הועלתה לוח זמנים פעיל.">No active schedule
+                        data-en="No active schedule fetched." data-he="לא נמצאה תוכנית לימוד יומית פעילה.">No active
+                        schedule
                         fetched.
                     </p>
                     {% endif %}
@@ -875,7 +889,8 @@
             <button onclick="closeCalendarModal()"
                 class="absolute top-4 right-4 text-2xl text-slate-400 hover:text-slate-800">&times;</button>
             <div class="p-6 overflow-y-auto">
-                <h2 class="font-serif text-2xl text-navy mb-6">Monthly Jewish Holiday Calendar</h2>
+                <h2 class="font-serif text-2xl text-navy mb-6" data-en="Monthly Jewish Holiday Calendar"
+                    data-he="לוח חגים יהודי חודשי">Monthly Jewish Holiday Calendar</h2>
                 <div id="calendar"></div>
             </div>
         </div>
@@ -1158,6 +1173,130 @@
         };
         let syncedPrefsUserId = null;
 
+        function getCurrentLanguage() {
+            const raw = localStorage.getItem('preferredLanguage') || 'en';
+            return raw === 'he' ? 'he' : 'en';
+        }
+
+        function isHebrewMode() {
+            return getCurrentLanguage() === 'he';
+        }
+
+        function t(enText, heText) {
+            return isHebrewMode() ? heText : enText;
+        }
+
+        const UI_TYPE_LABELS = {
+            en: { text: 'Text', prayer: 'Prayer', community: 'Community', ask: 'Ask' },
+            he: { text: 'טקסט', prayer: 'תפילה', community: 'קהילה', ask: 'שאלה' },
+        };
+
+        const CATEGORY_HE_MAP = {
+            'Tanakh': 'תנ״ך',
+            'Torah': 'תורה',
+            'Prophets': 'נביאים',
+            'Writings': 'כתובים',
+            'Mishnah': 'משנה',
+            'Talmud': 'תלמוד',
+            'Talmud Bavli': 'תלמוד בבלי',
+            'Halakhah': 'הלכה',
+            'Liturgy': 'ליטורגיה',
+            'Sefaria text': 'טקסט מספריא',
+            'Sefaria liturgy': 'ליטורגיה מספריא',
+            'Community customs': 'מנהגי קהילה',
+            'Popular Torah alias': 'כינוי נפוץ מהתורה',
+            'AI synthesis': 'סינתזת בינה מלאכותית',
+            'Chasidut': 'חסידות',
+            'Other Chasidut Works': 'כתבי חסידות נוספים',
+        };
+
+        const HOLIDAY_HE_MAP = {
+            'Regular Day': 'יום חול',
+            'Shabbat': 'שבת',
+            'Pesach': 'פסח',
+            'Passover': 'פסח',
+            'Shavuot': 'שבועות',
+            'Sukkot': 'סוכות',
+            'Shemini Atzeret': 'שמיני עצרת',
+            'Simchat Torah': 'שמחת תורה',
+            'Rosh Hashanah': 'ראש השנה',
+            'Yom Kippur': 'יום כיפור',
+            'Purim': 'פורים',
+            'Chanukah': 'חנוכה',
+            'Hanukkah': 'חנוכה',
+            'Tu BiShvat': 'ט״ו בשבט',
+            'Lag BaOmer': 'ל"ג בעומר',
+            'Tisha BAv': 'תשעה באב',
+            'Yom HaAtzmaut': 'יום העצמאות',
+            'Yom HaShoah': 'יום השואה',
+            'Yom Yerushalayim': 'יום ירושלים',
+        };
+
+        const PARASHA_HE_MAP = {
+            'Bereshit': 'בראשית', 'Noach': 'נח', 'Lech-Lecha': 'לך לך', 'Vayera': 'וירא',
+            'Chayei Sara': 'חיי שרה', 'Toldot': 'תולדות', 'Vayetze': 'ויצא', 'Vayishlach': 'וישלח',
+            'Vayeshev': 'וישב', 'Miketz': 'מקץ', 'Vayigash': 'ויגש', 'Vayechi': 'ויחי',
+            'Shemot': 'שמות', 'Vaera': 'וארא', 'Bo': 'בא', 'Beshalach': 'בשלח',
+            'Yitro': 'יתרו', 'Mishpatim': 'משפטים', 'Terumah': 'תרומה', 'Tetzaveh': 'תצוה',
+            'Ki Tisa': 'כי תשא', 'Vayakhel': 'ויקהל', 'Pekudei': 'פקודי',
+            'Vayikra': 'ויקרא', 'Tzav': 'צו', 'Shemini': 'שמיני', 'Tazria': 'תזריע',
+            'Metzora': 'מצורע', 'Achrei Mot': 'אחרי מות', 'Kedoshim': 'קדושים', 'Emor': 'אמור',
+            'Behar': 'בהר', 'Bechukotai': 'בחוקותי', 'Bamidbar': 'במדבר', 'Naso': 'נשא',
+            'Behaalotecha': 'בהעלותך', 'Shelach': 'שלח', 'Korach': 'קרח', 'Chukat': 'חקת',
+            'Balak': 'בלק', 'Pinchas': 'פינחס', 'Matot': 'מטות', 'Masei': 'מסעי',
+            'Devarim': 'דברים', 'Vaetchanan': 'ואתחנן', 'Eikev': 'עקב', 'Reeh': 'ראה',
+            'Shoftim': 'שופטים', 'Ki Teitzei': 'כי תצא', 'Ki Tavo': 'כי תבוא', 'Nitzavim': 'נצבים',
+            'Vayelech': 'וילך', 'Haazinu': 'האזינו', 'Vezot Haberakhah': 'וזאת הברכה',
+        };
+
+        function translateCategoryToken(token) {
+            if (!isHebrewMode()) return token;
+            return CATEGORY_HE_MAP[token] || token;
+        }
+
+        function translateCategoryPath(path) {
+            const text = String(path || '').trim();
+            if (!text || !isHebrewMode()) return text;
+            const parts = text.split(/\s*[>›]\s*/g).map(part => part.trim()).filter(Boolean);
+            if (!parts.length) return translateCategoryToken(text);
+            return parts.map(translateCategoryToken).join(' › ');
+        }
+
+        function translateSuggestionSubtitle(subtitle, type) {
+            if (!isHebrewMode()) return subtitle || '';
+
+            if (type === 'ask') return 'סינתזת בינה מלאכותית';
+            if (type === 'community' && (!subtitle || subtitle.toLowerCase().includes('community'))) {
+                return 'מנהגי קהילה';
+            }
+            if (type === 'prayer' && (!subtitle || subtitle.toLowerCase().includes('liturgy'))) {
+                return 'ליטורגיה מספריא';
+            }
+
+            return translateCategoryPath(subtitle || '');
+        }
+
+        function translateHolidayName(name) {
+            const raw = String(name || '').trim();
+            if (!raw || !isHebrewMode()) return raw;
+            return HOLIDAY_HE_MAP[raw] || raw;
+        }
+
+        function formatOmerLabel(meta) {
+            if (!meta || !meta.omer_day) return '--';
+            if (!isHebrewMode()) return meta.omer_label || `Day ${meta.omer_day} of 49`;
+            return `יום ${meta.omer_day} לעומר`;
+        }
+
+        function translateShabbatWarning(message) {
+            const raw = String(message || '').trim();
+            if (!raw || !isHebrewMode()) return raw;
+            if (raw.includes('Shabbat is approaching')) {
+                return 'השבת מתקרבת. נותרו פחות מ-18 דקות לשקיעה.';
+            }
+            return raw;
+        }
+
         function escapeHtml(text) {
             return (text || '')
                 .replace(/&/g, '&amp;')
@@ -1399,7 +1538,9 @@
             }
 
             if (sidebarToggleBtn) {
-                sidebarToggleBtn.textContent = showSidebars ? 'Hide Sidebars' : 'Show Sidebars';
+                sidebarToggleBtn.textContent = showSidebars
+                    ? t('Hide Sidebars', 'הסתר סרגלים')
+                    : t('Show Sidebars', 'הצג סרגלים');
             }
         }
 
@@ -1429,31 +1570,40 @@
                 return;
             }
 
-            const iconByType = {
-                text: 'Text',
-                prayer: 'Prayer',
-                community: 'Community',
-                ask: 'Ask',
-            };
+            const lang = getCurrentLanguage();
+            const typeLabels = UI_TYPE_LABELS[lang] || UI_TYPE_LABELS.en;
 
             searchSuggestions.innerHTML = appState.suggestionItems.map((item, index) => {
                 const isActive = index === appState.activeSuggestionIndex;
-                const baseLabel = String(item.label || '').trim();
-                const typePrefix = iconByType[item.type] || '';
+                const baseLabel = String((isHebrewMode() ? item.label_he : item.label) || item.label || '').trim();
+                const typePrefix = typeLabels[item.type] || item.type || '';
                 const hasPrefix = typePrefix
                     && baseLabel.toLowerCase().startsWith(`${typePrefix.toLowerCase()} `);
-                const displayLabel = hasPrefix
+                let displayLabel = hasPrefix
                     ? baseLabel
                     : `${typePrefix} ${baseLabel}`.trim();
+
+                if (item.type === 'ask') {
+                    const askValue = String(item.value || '').trim();
+                    displayLabel = isHebrewMode()
+                        ? `שאל את ש'אלה: ${askValue}`
+                        : `Ask Sh'elah: ${askValue}`;
+                }
+
+                const subtitle = isHebrewMode()
+                    ? (item.subtitle_he || translateSuggestionSubtitle(item.subtitle, item.type))
+                    : (item.subtitle || '');
+
+                const typeBadge = typeLabels[item.type] || item.type || '';
                 return `
                     <button type="button" class="suggestion-item w-full text-left px-4 py-3 border-b border-slate-100 last:border-b-0 ${isActive ? 'bg-blue-50' : 'hover:bg-slate-50'}"
                         data-index="${index}">
                         <div class="flex items-center justify-between gap-3">
                             <div class="min-w-0">
                                 <div class="text-sm text-slate-800 font-medium truncate">${escapeHtml(displayLabel)}</div>
-                                <div class="text-xs text-slate-500 truncate">${escapeHtml(item.subtitle || '')}</div>
+                                <div class="text-xs text-slate-500 truncate">${escapeHtml(subtitle)}</div>
                             </div>
-                            <span class="text-[10px] uppercase tracking-widest text-slate-400">${escapeHtml(item.type)}</span>
+                            <span class="text-[10px] uppercase tracking-widest text-slate-400">${escapeHtml(typeBadge)}</span>
                         </div>
                     </button>
                 `;
@@ -1511,14 +1661,16 @@
         function updateBookmarkButton() {
             const current = appState.currentView;
             if (!current || !bookmarkCurrentBtn) {
-                bookmarkCurrentBtn.textContent = 'Save Current';
+                bookmarkCurrentBtn.textContent = t('Save Current', 'שמור נוכחי');
                 return;
             }
 
             const shelf = getShelfData();
             const key = `${current.type}:${current.value}`;
             const exists = shelf.bookmarks.some(i => `${i.type}:${i.value}` === key);
-            bookmarkCurrentBtn.textContent = exists ? 'Saved' : 'Save Current';
+            bookmarkCurrentBtn.textContent = exists
+                ? t('Saved', 'נשמר')
+                : t('Save Current', 'שמור נוכחי');
             bookmarkCurrentBtn.classList.toggle('bg-emerald-700', exists);
             bookmarkCurrentBtn.classList.toggle('bg-navy', !exists);
         }
@@ -1545,7 +1697,7 @@
 
         function renderShelfList(items) {
             if (!items.length) {
-                return '<p class="text-xs italic text-slate-400">No items yet.</p>';
+                return `<p class="text-xs italic text-slate-400">${t('No items yet.', 'אין פריטים עדיין.')}</p>`;
             }
 
             return items.map((item) => {
@@ -1555,7 +1707,7 @@
                         data-value="${escapeHtml(item.value)}"
                         data-label="${escapeHtml(item.label || item.value)}">
                         <span class="text-xs text-slate-700 block truncate">${escapeHtml(item.label || item.value)}</span>
-                        <span class="text-[10px] uppercase tracking-widest text-slate-400">${escapeHtml(item.type)}</span>
+                        <span class="text-[10px] uppercase tracking-widest text-slate-400">${escapeHtml((UI_TYPE_LABELS[getCurrentLanguage()] || UI_TYPE_LABELS.en)[item.type] || item.type)}</span>
                     </button>
                 `;
             }).join('');
@@ -1567,14 +1719,14 @@
                 <div class="space-y-4">
                     <div>
                         <div class="flex justify-between items-center mb-2">
-                            <h4 class="text-xs font-bold uppercase tracking-wider text-slate-500">Bookmarks</h4>
+                            <h4 class="text-xs font-bold uppercase tracking-wider text-slate-500">${t('Bookmarks', 'סימניות')}</h4>
                         </div>
                         <div class="space-y-1">${renderShelfList(shelf.bookmarks.slice(0, 6))}</div>
                     </div>
                     <div>
                         <div class="flex justify-between items-center mb-2">
-                            <h4 class="text-xs font-bold uppercase tracking-wider text-slate-500">Recent</h4>
-                            <button type="button" class="text-[10px] text-slate-400 hover:text-slate-700" data-action="clear-recents">Clear</button>
+                            <h4 class="text-xs font-bold uppercase tracking-wider text-slate-500">${t('Recent', 'אחרונים')}</h4>
+                            <button type="button" class="text-[10px] text-slate-400 hover:text-slate-700" data-action="clear-recents">${t('Clear', 'נקה')}</button>
                         </div>
                         <div class="space-y-1">${renderShelfList(shelf.recent.slice(0, 6))}</div>
                     </div>
@@ -1798,7 +1950,7 @@
                 textsCache.prayersList = prayers;
                 populatePrayersListHTML(prayers);
             } catch (err) {
-                list.innerHTML = '<p class="text-red-500 text-sm">Error loading prayers</p>';
+                list.innerHTML = `<p class="text-red-500 text-sm">${t('Error loading prayers', 'שגיאה בטעינת התפילות')}</p>`;
             }
         }
 
@@ -1825,7 +1977,7 @@
                 textsCache.communitiesList = communities;
                 populateCommunitiesListHTML(communities);
             } catch (err) {
-                list.innerHTML = '<p class="text-red-500 text-sm">Error loading communities</p>';
+                list.innerHTML = `<p class="text-red-500 text-sm">${t('Error loading communities', 'שגיאה בטעינת הקהילות')}</p>`;
             }
         }
 
@@ -1897,8 +2049,8 @@
 
                 sidebarContent.innerHTML = `
                     <div class="text-xs space-y-2">
-                        <div><span class="font-bold text-slate-700">From:</span> <span class="text-slate-500">${prayerData.hasSefaria ? 'Sefaria Liturgy Collection' : 'Sefaria Prayer Book Preview'}</span></div>
-                        <div><span class="font-bold text-slate-700">Languages:</span> <span class="text-slate-500">Hebrew &amp; English</span></div>
+                        <div><span class="font-bold text-slate-700">${t('From:', 'מקור:')}</span> <span class="text-slate-500">${prayerData.hasSefaria ? t('Sefaria Liturgy Collection', 'אוסף ליטורגיה מספריא') : t('Sefaria Prayer Book Preview', 'תצוגה מקדימה של סידור מספריא')}</span></div>
+                        <div><span class="font-bold text-slate-700">${t('Languages:', 'שפות:')}</span> <span class="text-slate-500">${t('Hebrew &amp; English', 'עברית ואנגלית')}</span></div>
                     </div>`;
 
                 mainContainer.scrollTo({ top: 0, behavior: 'smooth' });
@@ -1906,7 +2058,7 @@
             } catch (err) {
                 loadingOverlay.classList.add('hidden');
                 reader.classList.remove('hidden');
-                document.getElementById('readerContent').innerHTML = `<p class="text-red-500">Error loading prayer: ${err.message}</p>`;
+                document.getElementById('readerContent').innerHTML = `<p class="text-red-500">${t('Error loading prayer:', 'שגיאה בטעינת התפילה:')} ${err.message}</p>`;
             }
         }
 
@@ -2000,8 +2152,11 @@
                 loadingOverlay.classList.add('hidden');
                 reader.classList.remove('hidden');
 
-                document.getElementById('readerTitle').innerText = `${communityName} Community Customs`;
-                setCurrentView('community', communityName, `${communityName} Community Customs`);
+                const communityTitle = isHebrewMode()
+                    ? `מנהגי קהילת ${communityName}`
+                    : `${communityName} Community Customs`;
+                document.getElementById('readerTitle').innerText = communityTitle;
+                setCurrentView('community', communityName, communityTitle);
                 document.getElementById('readerContent').innerHTML = renderCommunityContent(communityData);
                 window.currentCommunityData = communityData;
                 window.currentPrayerContent = null;
@@ -2010,9 +2165,9 @@
 
                 sidebarContent.innerHTML = `
                     <div class="text-xs space-y-2">
-                        <div><span class="font-bold text-slate-700">Community:</span> <span class="text-slate-500">${communityName}</span></div>
-                        <div><span class="font-bold text-slate-700">From:</span> <span class="text-slate-500">Merkava Customs Database</span></div>
-                        <div><span class="font-bold text-slate-700">Primary Origin:</span> <span class="text-slate-500">${communityData.primary_origin}</span></div>
+                        <div><span class="font-bold text-slate-700">${t('Community:', 'קהילה:')}</span> <span class="text-slate-500">${communityName}</span></div>
+                        <div><span class="font-bold text-slate-700">${t('From:', 'מקור:')}</span> <span class="text-slate-500">${t('Merkava Customs Database', 'מאגר המנהגים של מרכבה')}</span></div>
+                        <div><span class="font-bold text-slate-700">${t('Primary Origin:', 'מוצא עיקרי:')}</span> <span class="text-slate-500">${communityData.primary_origin || '--'}</span></div>
                     </div>`;
 
                 mainContainer.scrollTo({ top: 0, behavior: 'smooth' });
@@ -2020,7 +2175,7 @@
             } catch (err) {
                 loadingOverlay.classList.add('hidden');
                 reader.classList.remove('hidden');
-                document.getElementById('readerContent').innerHTML = `<p class="text-red-500">Error loading community: ${err.message}</p>`;
+                document.getElementById('readerContent').innerHTML = `<p class="text-red-500">${t('Error loading community:', 'שגיאה בטעינת קהילה:')} ${err.message}</p>`;
             }
         }
 
@@ -2029,16 +2184,16 @@
             let html = '<div class="prose prose-slate max-w-none font-serif leading-relaxed text-slate-800">';
 
             html += `<div class="bg-slate-50 rounded-lg p-6 border-l-4 border-[#594176]">`;
-            html += `<h2 class="text-2xl font-bold mb-3 text-[#594176]">${communityData.name} Jewish Community</h2>`;
+            html += `<h2 class="text-2xl font-bold mb-3 text-[#594176]">${isHebrewMode() ? `הקהילה היהודית ${communityData.name}` : `${communityData.name} Jewish Community`}</h2>`;
 
             if (communityData.primary_origin) {
-                html += `<p class="text-slate-700 mb-4"><strong>Primary Origin:</strong> ${communityData.primary_origin}</p>`;
+                html += `<p class="text-slate-700 mb-4"><strong>${t('Primary Origin:', 'מוצא עיקרי:')}</strong> ${communityData.primary_origin}</p>`;
             }
 
             const customs = communityData.customs || {};
             if (Object.keys(customs).length > 0) {
                 html += `<div class="mt-6 space-y-4">`;
-                html += `<h3 class="text-lg font-bold text-slate-800 mb-3">Halachic Practices & Customs</h3>`;
+                html += `<h3 class="text-lg font-bold text-slate-800 mb-3">${t('Halachic Practices & Customs', 'הלכות ומנהגים')}</h3>`;
 
                 Object.entries(customs).forEach(([key, practices]) => {
                     const title = (practices && practices.topic) ? practices.topic : key.replace(/_/g, ' ');
@@ -2058,7 +2213,7 @@
                 });
                 html += `</div>`;
             } else {
-                html += `<p class="text-slate-500 italic">Detailed customs data is available. Check the raw community database for comprehensive information.</p>`;
+                html += `<p class="text-slate-500 italic">${t('Detailed customs data is available. Check the raw community database for comprehensive information.', 'נתוני המנהגים המפורטים זמינים. ניתן לעיין במאגר הקהילה למידע מלא.')}</p>`;
             }
 
             html += `</div>`;
@@ -2075,7 +2230,7 @@
             appState.currentView = null;
             updateBookmarkButton();
             setTimeout(() => { homeGrid.classList.remove('opacity-0'); }, 10);
-            sidebarContent.innerHTML = `<p class="italic text-slate-400">Search a halacha to view cross-referenced Encyclopedia and Customs data...</p>`;
+            sidebarContent.innerHTML = `<p class="italic text-slate-400">${t('Search a halacha to view cross-referenced Encyclopedia and Customs data...', 'חפש הלכה כדי לצפות בנתונים מקושרים מהאנציקלופדיה ומהמנהגים...')}</p>`;
         }
 
         function setQuery(q) {
@@ -2221,15 +2376,19 @@
             aiModal.style.display = 'flex';
 
             // Reset modal content
-            document.getElementById('aiSynthesis').innerHTML = '<p class="text-slate-400 italic animate-pulse">Synthesizing answer from Sefaria, customs, and halachic sources...</p>';
+            document.getElementById('aiSynthesis').innerHTML = `<p class="text-slate-400 italic animate-pulse">${t('Synthesizing answer from Sefaria, customs, and halachic sources...', 'מסנתז תשובה מספריא, ממנהגים וממקורות הלכתיים...')}</p>`;
             document.getElementById('aiModalTitle').textContent = question;
             document.getElementById('aiSourcesSection').classList.add('hidden');
             document.getElementById('aiCustomsSection').classList.add('hidden');
             document.getElementById('aiWikiSection').classList.add('hidden');
-            document.getElementById('aiConfidenceBadge').textContent = 'Confidence: --';
-            document.getElementById('aiModeBadge').textContent = `Mode: ${appState.prefs.mode}`;
-            document.getElementById('aiCommunityBadge').textContent = `Community: ${appState.prefs.community}`;
-            document.getElementById('aiSourcesBadge').textContent = 'Sources: --';
+            document.getElementById('aiConfidenceBadge').textContent = t('Confidence: --', 'רמת ודאות: --');
+            document.getElementById('aiModeBadge').textContent = isHebrewMode()
+                ? `מצב: ${appState.prefs.mode}`
+                : `Mode: ${appState.prefs.mode}`;
+            document.getElementById('aiCommunityBadge').textContent = isHebrewMode()
+                ? `קהילה: ${appState.prefs.community}`
+                : `Community: ${appState.prefs.community}`;
+            document.getElementById('aiSourcesBadge').textContent = t('Sources: --', 'מקורות: --');
             document.getElementById('aiFallbackBadge').classList.add('hidden');
 
             try {
@@ -2249,11 +2408,11 @@
                 if (response.ok) {
                     populateAiModal(data, question);
                 } else {
-                    document.getElementById('aiSynthesis').innerHTML = `<p class="text-red-600 font-bold">Error: ${data.error}</p>`;
+                    document.getElementById('aiSynthesis').innerHTML = `<p class="text-red-600 font-bold">${t('Error:', 'שגיאה:')} ${data.error}</p>`;
                 }
 
             } catch (error) {
-                document.getElementById('aiSynthesis').innerHTML = `<p class="text-red-600">Network error: ${error.message}</p>`;
+                document.getElementById('aiSynthesis').innerHTML = `<p class="text-red-600">${t('Network error:', 'שגיאת רשת:')} ${error.message}</p>`;
             }
         }
 
@@ -2279,7 +2438,7 @@
                 if (data.error) {
                     document.getElementById('readerTitle').innerText = ref;
                     document.getElementById('readerContent').innerHTML =
-                        `<p class="text-red-500">Could not load text: ${data.error}</p>`;
+                        `<p class="text-red-500">${t('Could not load text:', 'לא ניתן לטעון את הטקסט:')} ${data.error}</p>`;
                     return;
                 }
 
@@ -2291,11 +2450,18 @@
                 // Badge
                 const categories = data.categories || [];
                 document.querySelector('#reader header .bg-slate-100').textContent =
-                    categories.join(' › ') || "Sh'elah Library";
+                    (isHebrewMode() ? categories.map(translateCategoryToken).join(' › ') : categories.join(' › ')) || t("Sh'elah Library", "ספריית ש'אלה");
 
                 const parashaMatch = getTorahParashaForRef(data.ref || ref, categories);
                 if (parashaMatch) {
-                    setReaderSubtitle(`Parashah for Chapter ${parashaMatch.chapter}: ${parashaMatch.name}`);
+                    const parashaName = isHebrewMode()
+                        ? (PARASHA_HE_MAP[parashaMatch.name] || parashaMatch.name)
+                        : parashaMatch.name;
+                    setReaderSubtitle(
+                        isHebrewMode()
+                            ? `פרשת השבוע לפרק ${parashaMatch.chapter}: ${parashaName}`
+                            : `Parashah for Chapter ${parashaMatch.chapter}: ${parashaName}`
+                    );
                 }
 
                 // Build bilingual side-by-side blocks inline
@@ -2316,9 +2482,9 @@
                 if (data.lines && data.lines.length > 0) {
                     const cleanLine = (text = '') => escapeHtml(String(text).replace(/<[^>]*>/gm, '').trim()).replace(/\n/g, '<br>');
                     const formatSegmentLabel = (segment, idx) => {
-                        if (!segment) return `Segment ${idx + 1}`;
+                        if (!segment) return isHebrewMode() ? `קטע ${idx + 1}` : `Segment ${idx + 1}`;
                         const raw = String(segment).trim();
-                        if (!raw) return `Segment ${idx + 1}`;
+                        if (!raw) return isHebrewMode() ? `קטע ${idx + 1}` : `Segment ${idx + 1}`;
                         const parts = raw.split('.').filter(Boolean);
                         if (parts.length >= 2) {
                             return `§ ${parts[0]}:${parts.slice(1).join(':')}`;
@@ -2335,11 +2501,11 @@
                             <div class="source-grid segment-row grid grid-cols-1 lg:grid-cols-2 border-b border-slate-100 last:border-b-0">
                                 <div class="source-he bg-white text-right font-hebrew text-xl lg:text-2xl leading-[1.8] p-5" dir="rtl">
                                     <div class="segment-label">${label}</div>
-                                    ${he ? `<p>${he}</p>` : '<p class="text-slate-300 italic">—</p>'}
+                                    ${he ? `<p>${he}</p>` : `<p class="text-slate-300 italic">${t('—', '—')}</p>`}
                                 </div>
                                 <div class="source-en bg-slate-50 font-serif leading-relaxed p-5 text-slate-700 text-lg">
                                     <div class="segment-label">${label}</div>
-                                    ${en ? `<p>${en}</p>` : '<p class="text-slate-300 italic">—</p>'}
+                                    ${en ? `<p>${en}</p>` : `<p class="text-slate-300 italic">${t('—', '—')}</p>`}
                                 </div>
                             </div>
                         `;
@@ -2354,7 +2520,7 @@
                         </div>
                     `;
                 } else {
-                    sourcesDiv.innerHTML = '<p class="text-slate-500 italic">No text content found for this reference.</p>';
+                    sourcesDiv.innerHTML = `<p class="text-slate-500 italic">${t('No text content found for this reference.', 'לא נמצא תוכן טקסט עבור הפניה זו.')}</p>`;
                 }
 
                 applyReaderPreferences();
@@ -2362,10 +2528,10 @@
                 // Update left sidebar with metadata
                 sidebarContent.innerHTML = `
                     <div class="text-xs space-y-2">
-                        <div><span class="font-bold text-slate-700">Reference:</span> <span class="text-slate-500">${data.ref}</span></div>
-                        ${data.heTitle ? `<div><span class="font-bold text-slate-700">Hebrew:</span> <span class="font-hebrew text-slate-600">${data.heTitle}</span></div>` : ''}
-                        ${categories.length ? `<div><span class="font-bold text-slate-700">Category:</span> <span class="text-slate-500">${categories.join(' › ')}</span></div>` : ''}
-                        ${data.era ? `<div><span class="font-bold text-slate-700">Era:</span> <span class="text-slate-500">${data.era}</span></div>` : ''}
+                        <div><span class="font-bold text-slate-700">${t('Reference:', 'הפניה:')}</span> <span class="text-slate-500">${data.ref}</span></div>
+                        ${data.heTitle ? `<div><span class="font-bold text-slate-700">${t('Hebrew:', 'עברית:')}</span> <span class="font-hebrew text-slate-600">${data.heTitle}</span></div>` : ''}
+                        ${categories.length ? `<div><span class="font-bold text-slate-700">${t('Category:', 'קטגוריה:')}</span> <span class="text-slate-500">${isHebrewMode() ? categories.map(translateCategoryToken).join(' › ') : categories.join(' › ')}</span></div>` : ''}
+                        ${data.era ? `<div><span class="font-bold text-slate-700">${t('Era:', 'תקופה:')}</span> <span class="text-slate-500">${data.era}</span></div>` : ''}
                     </div>`;
 
                 mainContainer.scrollTo({ top: 0, behavior: 'smooth' });
@@ -2374,7 +2540,7 @@
                 loadingOverlay.classList.add('hidden');
                 reader.classList.remove('hidden');
                 document.getElementById('readerContent').innerHTML =
-                    `<p class="text-red-500">Network error loading text.</p>`;
+                    `<p class="text-red-500">${t('Network error loading text.', 'שגיאת רשת בטעינת הטקסט.')}</p>`;
             }
         }
 
@@ -2392,10 +2558,12 @@
                 const enTitle = (data.title || 'Parashat HaShavua').trim();
                 const heTitle = (data.heTitle || '').trim();
 
-                quickLink.textContent = heTitle ? `${enTitle} · ${heTitle}` : enTitle;
-                quickLink.title = heTitle
-                    ? `Open ${enTitle} (${heTitle})`
-                    : `Open ${enTitle}`;
+                quickLink.textContent = isHebrewMode()
+                    ? (heTitle || enTitle)
+                    : (heTitle ? `${enTitle} · ${heTitle}` : enTitle);
+                quickLink.title = isHebrewMode()
+                    ? (heTitle ? `פתח ${heTitle}` : `פתח ${enTitle}`)
+                    : (heTitle ? `Open ${enTitle} (${heTitle})` : `Open ${enTitle}`);
                 quickLink.onclick = () => readText(ref);
             } catch (_) {
                 // Keep default quick-link state when parasha endpoint is unavailable.
@@ -2436,7 +2604,7 @@
                 });
                 grid.innerHTML = html;
             } catch (e) {
-                grid.innerHTML = '<p class="text-slate-400 text-sm col-span-4 italic">Could not load popular texts.</p>';
+                grid.innerHTML = `<p class="text-slate-400 text-sm col-span-4 italic">${t('Could not load popular texts.', 'לא ניתן לטעון טקסטים פופולריים.')}</p>`;
             }
         }
 
@@ -2453,6 +2621,9 @@
             if (lang !== 'en' && lang !== 'he') {
                 lang = 'en';
             }
+
+            // Persist early so dynamic render helpers read the new language immediately.
+            localStorage.setItem('preferredLanguage', lang);
 
             // Update all elements with data-* attributes
             document.querySelectorAll('[data-en], [data-he]').forEach(el => {
@@ -2548,6 +2719,54 @@
                     h3.textContent = modalSections['Encyclopedia Context'][lang] || modalSections['Encyclopedia Context']['en'];
             });
 
+            if (signInBtn) signInBtn.textContent = lang === 'he' ? 'התחברות' : 'Sign In';
+            if (signOutBtn) signOutBtn.textContent = lang === 'he' ? 'התנתקות' : 'Sign Out';
+            if (authUserPill && authUserPill.textContent === 'Signed in') {
+                authUserPill.textContent = lang === 'he' ? 'מחובר' : 'Signed in';
+            }
+
+            // Re-render dynamic widgets so their generated labels follow the selected language.
+            renderPersonalShelf();
+            updateBookmarkButton();
+            applySidebarVisibility();
+            if (appState.suggestionItems.length) {
+                renderSearchSuggestions();
+            }
+
+            if (zmanimData && zmanimData.metadata) {
+                const meta = zmanimData.metadata;
+                const holidayName = document.getElementById('holidayName');
+                if (holidayName) {
+                    holidayName.innerText = translateHolidayName(meta.holiday || 'Regular Day');
+                }
+
+                const omerCount = document.getElementById('omerCount');
+                if (omerCount && meta.omer_day) {
+                    omerCount.innerText = formatOmerLabel(meta);
+                }
+
+                const warningEl = document.getElementById('zmanimWarning');
+                if (warningEl && meta.shabbat_warning) {
+                    warningEl.innerText = translateShabbatWarning(meta.shabbat_warning);
+                }
+
+                const shemaGraLabel = document.getElementById('shemaGraLabel');
+                const shemaBhtRow = document.getElementById('shemaBhtRow');
+                if (shemaGraLabel && shemaBhtRow) {
+                    shemaGraLabel.innerText = shemaBhtRow.classList.contains('hidden')
+                        ? t('Latest Shema (GRA / Baal HaTanya)', 'סוף זמן שמע (גר״א / בעל התניא)')
+                        : t('Latest Shema (GRA)', 'סוף זמן שמע (גר״א)');
+                }
+
+                const shacharitGraLabel = document.getElementById('shacharitGraLabel');
+                const shacharitBhtRow = document.getElementById('shacharitBhtRow');
+                if (shacharitGraLabel && shacharitBhtRow) {
+                    shacharitGraLabel.innerText = shacharitBhtRow.classList.contains('hidden')
+                        ? t('Latest Shacharit (GRA / Baal HaTanya)', 'סוף זמן תפילת שחרית (גר״א / בעל התניא)')
+                        : t('Latest Shacharit (GRA)', 'סוף זמן תפילת שחרית (גר״א)');
+                }
+            }
+
             // Keep pane visibility/layout controlled by reader preferences.
             applyReaderPreferences();
 
@@ -2560,8 +2779,6 @@
                 }
             }
 
-            // Store language preference
-            localStorage.setItem('preferredLanguage', lang);
         }
 
         // Load saved language preference on page load
@@ -2614,10 +2831,10 @@
                         const shemaGraLabel = document.getElementById('shemaGraLabel');
                         if (shemaGraRow && shemaBhtRow && shemaGraLabel) {
                             if (shemaGra !== 'N/A' && shemaGra === shemaBht) {
-                                shemaGraLabel.innerText = 'Latest Shema (GRA / Baal HaTanya)';
+                                shemaGraLabel.innerText = t('Latest Shema (GRA / Baal HaTanya)', 'סוף זמן שמע (גר״א / בעל התניא)');
                                 shemaBhtRow.classList.add('hidden');
                             } else {
-                                shemaGraLabel.innerText = 'Latest Shema (GRA)';
+                                shemaGraLabel.innerText = t('Latest Shema (GRA)', 'סוף זמן שמע (גר״א)');
                                 shemaBhtRow.classList.remove('hidden');
                             }
                         }
@@ -2627,10 +2844,10 @@
                         const shacharitGraLabel = document.getElementById('shacharitGraLabel');
                         if (shacharitGraRow && shacharitBhtRow && shacharitGraLabel) {
                             if (shacharitGra !== 'N/A' && shacharitGra === shacharitBht) {
-                                shacharitGraLabel.innerText = 'Latest Shacharit (GRA / Baal HaTanya)';
+                                shacharitGraLabel.innerText = t('Latest Shacharit (GRA / Baal HaTanya)', 'סוף זמן תפילת שחרית (גר״א / בעל התניא)');
                                 shacharitBhtRow.classList.add('hidden');
                             } else {
-                                shacharitGraLabel.innerText = 'Latest Shacharit (GRA)';
+                                shacharitGraLabel.innerText = t('Latest Shacharit (GRA)', 'סוף זמן תפילת שחרית (גר״א)');
                                 shacharitBhtRow.classList.remove('hidden');
                             }
                         }
@@ -2648,11 +2865,11 @@
                         const omerCount = document.getElementById('omerCount');
                         const omerHint = document.getElementById('omerHint');
                         if (holidayName) {
-                            holidayName.innerText = meta.holiday || 'Regular Day';
+                            holidayName.innerText = translateHolidayName(meta.holiday || 'Regular Day');
                         }
                         if (omerRow && omerCount && omerHint) {
                             if (meta.omer_day) {
-                                omerCount.innerText = meta.omer_label || `Day ${meta.omer_day} of 49`;
+                                omerCount.innerText = formatOmerLabel(meta);
                                 omerRow.classList.remove('hidden');
                                 omerHint.classList.add('hidden');
                             } else {
@@ -2663,7 +2880,7 @@
 
                         if (data.metadata.shabbat_warning) {
                             const w = document.getElementById('zmanimWarning');
-                            w.innerText = data.metadata.shabbat_warning;
+                            w.innerText = translateShabbatWarning(data.metadata.shabbat_warning);
                             w.classList.remove('hidden');
                         }
 
@@ -2956,7 +3173,7 @@
             let added = false;
 
             if (data.wiki && data.wiki.length > 0) {
-                html += '<h4 class="font-bold text-slate-800 mb-3 uppercase tracking-wider text-xs">Encyclopedia</h4>';
+                html += `<h4 class="font-bold text-slate-800 mb-3 uppercase tracking-wider text-xs">${t('Encyclopedia', 'אנציקלופדיה')}</h4>`;
                 data.wiki.forEach(w => {
                     if (w) html += `<div class="bg-slate-50 p-3 rounded border mb-3 text-xs leading-relaxed shadow-sm hover:shadow transition"><strong class="block text-navy mb-1 text-sm">${w.title}</strong><span class="text-slate-500">${w.summary.substring(0, 250)}...</span></div>`;
                 });
@@ -2964,7 +3181,7 @@
             }
 
             if (data.customs && data.customs.length > 0) {
-                html += '<h4 class="font-bold text-slate-800 mb-3 mt-6 uppercase tracking-wider text-xs">Community Traditions</h4>';
+                html += `<h4 class="font-bold text-slate-800 mb-3 mt-6 uppercase tracking-wider text-xs">${t('Community Traditions', 'מסורות קהילתיות')}</h4>`;
                 data.customs.forEach(c => {
                     html += `<div class="bg-indigo-50 p-3 rounded border border-indigo-100 mb-3 text-xs leading-relaxed shadow-sm"><strong class="block text-indigo-900 mb-1">${c.community}</strong><span class="text-indigo-800">${c.ruling || c.notes}</span></div>`;
                 });
@@ -2974,7 +3191,7 @@
             if (added) {
                 sidebarContent.innerHTML = html;
             } else {
-                sidebarContent.innerHTML = `<p class="italic text-slate-400">Context evaluated strictly internally via LLM weights.</p>`;
+                sidebarContent.innerHTML = `<p class="italic text-slate-400">${t('Context evaluated strictly internally via LLM weights.', 'ההקשר נותח פנימית באמצעות מודל השפה.')}</p>`;
             }
         }
 
@@ -2986,10 +3203,18 @@
             const confidence = typeof data.confidence === 'number'
                 ? `${Math.round(data.confidence * 100)}%`
                 : '--';
-            document.getElementById('aiConfidenceBadge').textContent = `Confidence: ${confidence}`;
-            document.getElementById('aiModeBadge').textContent = `Mode: ${meta.mode || appState.prefs.mode}`;
-            document.getElementById('aiCommunityBadge').textContent = `Community: ${meta.community_lens || appState.prefs.community}`;
-            document.getElementById('aiSourcesBadge').textContent = `Sources: ${meta.source_count ?? (data.sources || []).length}`;
+            document.getElementById('aiConfidenceBadge').textContent = isHebrewMode()
+                ? `רמת ודאות: ${confidence}`
+                : `Confidence: ${confidence}`;
+            document.getElementById('aiModeBadge').textContent = isHebrewMode()
+                ? `מצב: ${meta.mode || appState.prefs.mode}`
+                : `Mode: ${meta.mode || appState.prefs.mode}`;
+            document.getElementById('aiCommunityBadge').textContent = isHebrewMode()
+                ? `קהילה: ${meta.community_lens || appState.prefs.community}`
+                : `Community: ${meta.community_lens || appState.prefs.community}`;
+            document.getElementById('aiSourcesBadge').textContent = isHebrewMode()
+                ? `מקורות: ${meta.source_count ?? (data.sources || []).length}`
+                : `Sources: ${meta.source_count ?? (data.sources || []).length}`;
 
             const fallbackBadge = document.getElementById('aiFallbackBadge');
             if (meta.fallback) {
