@@ -12,12 +12,12 @@ import jwt
 try:
     from supabase import create_client
     try:
-        from supabase.lib.client_options import ClientOptions
+        from supabase.lib.client_options import SyncClientOptions
     except Exception:
-        ClientOptions = None
+        SyncClientOptions = None
 except Exception:
     create_client = None
-    ClientOptions = None
+    SyncClientOptions = None
 
 from pyluach import dates as pyluach_dates
 
@@ -365,12 +365,12 @@ def _get_request_supabase_client():
         return None
 
     access_token = _extract_supabase_access_token()
-    if not access_token or ClientOptions is None:
+    if not access_token or SyncClientOptions is None:
         return create_client(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY)
 
     auth_headers = {"Authorization": f"Bearer {access_token}"}
     try:
-        options = ClientOptions(headers=auth_headers)
+        options = SyncClientOptions(headers=auth_headers)
         return create_client(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY, options=options)
     except TypeError:
         # Compatibility fallback for older supabase-py signatures.
@@ -679,6 +679,9 @@ def user_preferences():
                 return jsonify({"prefs": None, "updated_at": None})
 
             record = rows[0]
+            if not isinstance(record, dict):
+                return jsonify({"prefs": None, "updated_at": None})
+
             return jsonify({
                 "prefs": record.get("prefs"),
                 "updated_at": record.get("updated_at"),
