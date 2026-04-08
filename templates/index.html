@@ -18,6 +18,15 @@
     <!-- FullCalendar -->
     <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.15/index.global.min.js"></script>
     <script>
+        window.APP_CLERK = {
+            publishableKey: "{{ clerk_publishable_key or '' }}",
+            enforceAuth: {{ 'true' if clerk_enforce_auth else 'false' }}
+        };
+    </script>
+    {% if clerk_publishable_key %}
+    <script crossorigin="anonymous" src="https://cdn.jsdelivr.net/npm/@clerk/clerk-js@5/dist/clerk.browser.js"></script>
+    {% endif %}
+    <script>
         tailwind.config = {
             theme: {
                 extend: {
@@ -146,6 +155,17 @@
                         </button>
                     </div>
                 </div>
+            </div>
+
+            <div id="authControls" class="hidden items-center gap-2 mr-1">
+                <span id="authUserPill"
+                    class="hidden max-w-[180px] truncate text-xs px-2 py-1 rounded-full bg-emerald-50 text-emerald-800 border border-emerald-200"></span>
+                <button id="signInBtn" type="button"
+                    class="px-2 py-1 text-xs border border-slate-300 rounded bg-white hover:bg-slate-100 transition">Sign
+                    In</button>
+                <button id="signOutBtn" type="button"
+                    class="hidden px-2 py-1 text-xs border border-slate-300 rounded bg-white hover:bg-slate-100 transition">Sign
+                    Out</button>
             </div>
 
             <div class="hidden md:block text-xs font-serif italic text-slate-500 mr-2">{{ daily.hebrew_date if daily
@@ -1035,6 +1055,10 @@
         const settingsMenuContainer = document.getElementById('settingsMenuContainer');
         const readerSubtitle = document.getElementById('readerSubtitle');
         const personalShelf = document.getElementById('personalShelf');
+        const authControls = document.getElementById('authControls');
+        const authUserPill = document.getElementById('authUserPill');
+        const signInBtn = document.getElementById('signInBtn');
+        const signOutBtn = document.getElementById('signOutBtn');
 
         const readerLayoutSelect = document.getElementById('readerLayoutSelect');
         const readerFontSize = document.getElementById('readerFontSize');
@@ -1132,6 +1156,7 @@
             },
             currentView: null,
         };
+        let syncedPrefsUserId = null;
 
         function escapeHtml(text) {
             return (text || '')
@@ -1148,6 +1173,93 @@
                 if (timer) clearTimeout(timer);
                 timer = setTimeout(() => fn(...args), delay);
             };
+        }
+
+        function isClerkConfigured() {
+            return Boolean(window.APP_CLERK && window.APP_CLERK.publishableKey);
+        }
+
+        async function refreshAuthUi() {
+            if (!authControls) return;
+            if (!isClerkConfigured()) {
+                authControls.classList.add('hidden');
+                return;
+            }
+
+            authControls.classList.remove('hidden');
+            authControls.classList.add('flex');
+
+            const user = window.Clerk?.user || null;
+            const email = user?.primaryEmailAddress?.emailAddress || user?.emailAddresses?.[0]?.emailAddress || '';
+            const displayName = user?.firstName || user?.username || email || '';
+            const userId = user?.id || null;
+
+            if (user) {
+                signInBtn?.classList.add('hidden');
+                signOutBtn?.classList.remove('hidden');
+                if (authUserPill) {
+                    authUserPill.textContent = displayName || 'Signed in';
+                    authUserPill.classList.remove('hidden');
+                }
+
+                if (syncedPrefsUserId !== userId) {
+                    syncedPrefsUserId = userId;
+                    await loadPrefsFromServerIfSignedIn();
+                }
+            } else {
+                signInBtn?.classList.remove('hidden');
+                signOutBtn?.classList.add('hidden');
+                authUserPill?.classList.add('hidden');
+                syncedPrefsUserId = null;
+            }
+        }
+
+        async function initClerkAuth() {
+            if (!isClerkConfigured()) return;
+            if (!window.Clerk) {
+                console.warn('Clerk script did not load.');
+                return;
+            }
+
+            try {
+                await window.Clerk.load({ publishableKey: window.APP_CLERK.publishableKey });
+                window.Clerk.addListener(() => {
+                    refreshAuthUi();
+                });
+                await refreshAuthUi();
+            } catch (err) {
+                console.error('Failed to initialize Clerk:', err);
+            }
+        }
+
+        async function authHeaders(baseHeaders = {}) {
+            if (!isClerkConfigured() || !window.Clerk?.session) {
+                return baseHeaders;
+            }
+            try {
+                const token = await window.Clerk.session.getToken();
+                if (!token) return baseHeaders;
+                return {
+                    ...baseHeaders,
+                    Authorization: `Bearer ${token}`,
+                };
+            } catch (_) {
+                return baseHeaders;
+            }
+        }
+
+        async function handleSignIn() {
+            if (!window.Clerk) return;
+            await window.Clerk.openSignIn({
+                afterSignInUrl: window.location.href,
+                afterSignUpUrl: window.location.href,
+            });
+        }
+
+        async function handleSignOut() {
+            if (!window.Clerk) return;
+            await window.Clerk.signOut();
+            await refreshAuthUi();
         }
 
         // ─── CLIENT-SIDE CACHE FOR PRAYERS & COMMUNITIES ─────────────────────
@@ -1177,6 +1289,60 @@
 
         function savePrefs() {
             localStorage.setItem(APP_PREFS_KEY, JSON.stringify(appState.prefs));
+            void pushPrefsToServer();
+        }
+
+        async function loadPrefsFromServerIfSignedIn() {
+            if (!isClerkConfigured() || !window.Clerk?.session || !window.Clerk?.user) {
+                return;
+            }
+
+            try {
+                const headers = await authHeaders();
+                const response = await fetch('/api/user/preferences', { headers });
+                if (!response.ok) {
+                    return;
+                }
+
+                const data = await response.json();
+                if (!data || !data.prefs || typeof data.prefs !== 'object') {
+                    return;
+                }
+
+                appState.prefs = {
+                    ...appState.prefs,
+                    ...data.prefs,
+                };
+
+                answerModeSelect.value = appState.prefs.mode;
+                communityLensSelect.value = appState.prefs.community;
+                readerLayoutSelect.value = appState.prefs.readerLayout;
+                readerFontSize.value = String(appState.prefs.fontSize);
+                readerLineHeight.value = String(appState.prefs.lineHeight);
+
+                localStorage.setItem(APP_PREFS_KEY, JSON.stringify(appState.prefs));
+                applyReaderPreferences();
+                applySidebarVisibility();
+            } catch (_) {
+                // Keep local preferences if remote sync is unavailable.
+            }
+        }
+
+        async function pushPrefsToServer() {
+            if (!isClerkConfigured() || !window.Clerk?.session || !window.Clerk?.user) {
+                return;
+            }
+
+            try {
+                const headers = await authHeaders({ 'Content-Type': 'application/json' });
+                await fetch('/api/user/preferences', {
+                    method: 'PUT',
+                    headers,
+                    body: JSON.stringify({ prefs: appState.prefs }),
+                });
+            } catch (_) {
+                // Ignore sync errors and continue using local preferences.
+            }
         }
 
         function setReaderSubtitle(text = '') {
@@ -2067,9 +2233,10 @@
             document.getElementById('aiFallbackBadge').classList.add('hidden');
 
             try {
+                const headers = await authHeaders({ 'Content-Type': 'application/json' });
                 const response = await fetch('/ask', {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
+                    headers,
                     body: JSON.stringify({
                         question,
                         mode: appState.prefs.mode,
@@ -2504,6 +2671,20 @@
                     }
                 });
         }
+
+        if (signInBtn) {
+            signInBtn.addEventListener('click', () => {
+                handleSignIn();
+            });
+        }
+
+        if (signOutBtn) {
+            signOutBtn.addEventListener('click', () => {
+                handleSignOut();
+            });
+        }
+
+        initClerkAuth();
 
         function startCountdown() {
             if (countdownInterval) clearInterval(countdownInterval);
