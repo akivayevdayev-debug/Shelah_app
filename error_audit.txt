@@ -1,5 +1,5 @@
 =================================================================
-COMPREHENSIVE CODE AUDIT REPORT - Sheilah App
+COMPREHENSIVE CODE AUDIT REPORT - Sh'elah App
 =================================================================
 
 ISSUES FOUND:

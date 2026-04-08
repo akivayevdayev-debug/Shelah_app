@@ -3,7 +3,7 @@ sefaria_library.py
 
 Provides a cached, structured interface to Sefaria's text library.
 Instead of redirecting users to sefaria.org, every text is fetched
-from the Sefaria API and rendered inline within Sheilah.
+from the Sefaria API and rendered inline within Sh'elah.
 
 Features:
 - get_library_index(): Full category tree from Sefaria's /api/index

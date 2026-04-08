@@ -9,7 +9,7 @@ from zmanim_engine import get_community_zmanim, get_monthly_events
 from calendar_service import calendar_engine
 
 
-class SheilahEngine:
+class ShelahEngine:
     def __init__(self, lat=40.7128, lon=-74.0060, timezone_str=None):
         self.lat = lat
         self.lon = lon

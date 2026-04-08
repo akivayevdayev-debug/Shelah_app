@@ -1,11 +1,11 @@
-# Shoel App
+# Sh'elah App
 
-Shoel is a Flask-based Jewish learning and halachic assistant that combines:
+Sh'elah is a Flask-based Jewish learning and halachic assistant that combines:
 - text browsing from Sefaria
 - community customs data
 - prayer access
 - zmanim and holiday context
-- AI-assisted sheilah synthesis
+- AI-assisted Sh'elah synthesis
 
 ## Quick Start
 

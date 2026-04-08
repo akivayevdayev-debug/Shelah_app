@@ -1,5 +1,5 @@
 """
-Calendar Service - Pyluach-first date orchestrator for Sheilah
+Calendar Service - Pyluach-first date orchestrator for Sh'elah
 Primary source of truth for Hebrew/Gregorian conversions, holiday detection, and parasha lookups.
 Validates against Hebcal API to ensure consistency across calendar systems.
 """

@@ -1,4 +1,4 @@
-# Sheilah App - Code Audit Summary
+# Sh'elah App - Code Audit Summary
 
 **Audit Date:** Code Review Session  
 **Auditor:** Comprehensive Static Analysis + Dynamic Testing  

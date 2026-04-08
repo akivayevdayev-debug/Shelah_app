@@ -417,7 +417,7 @@ Output: Comprehensive guide for YOUR tradition
 
 *Last Updated: April 6, 2026*  
 *Integration Version: 1.0*  
-*Sheilah Knowledge Center*
+*Sh'elah Knowledge Center*
 
 ---
 Last Sync Check: 2026-04-07

@@ -2,13 +2,13 @@
 
 **Status:** ✅ Complete Integration  
 **Date:** April 6, 2026  
-**Author:** Sheilah Knowledge Center
+**Author:** Sh'elah Knowledge Center
 
 ---
 
 ## Overview
 
-The Sheilah application now integrates three major Jewish text sources:
+The Sh'elah application now integrates three major Jewish text sources:
 
 1. **Sefaria** - Comprehensive halachic source database (100+ topics)
 2. **Merkava** - Clean, structured halachic resources with multi-community customs
@@ -269,7 +269,7 @@ The CSS has been enhanced with professional styling inspired by Merkava's clean 
 ### Data Service Integration
 ```python
 # In data_service.py
-engine = SheilahEngine(lat, lon)
+engine = ShelahEngine(lat, lon)
 sources = engine.get_library_text(reference)  # Now enhanced with Merkava
 ```
 
