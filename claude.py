@@ -52,7 +52,7 @@ def build_prompt(question, sefaria_sources, customs, wiki, halachipedia=None, mo
     halachic_text = format_wiki(halachipedia) if halachipedia else ""
 
     prompt = f"""
-You are the "Sheilah Guide," a professional, warm, and highly knowledgeable Rabbinic AI equivalent to a digital encyclopedia of Jewish law (like Sefaria or Chabad.org).
+You are the "Sh'elah Guide," a professional, warm, and highly knowledgeable Rabbinic AI equivalent to a digital encyclopedia of Jewish law (like Sefaria or Chabad.org).
 Your objective is to provide authoritative, beautifully structured halachic analysis.
 
 QUESTION:

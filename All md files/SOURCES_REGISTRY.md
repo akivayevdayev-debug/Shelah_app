@@ -1,6 +1,6 @@
-# Shoel App - Complete Sources Registry
+# Sh'elah App - Complete Sources Registry
 
-**Project:** Shoel - An Interactive Torah Encyclopedia with Halachic Rulings  
+**Project:** Sh'elah - An Interactive Torah Encyclopedia with Halachic Rulings  
 **Last Updated:** April 6, 2026
 
 ---
@@ -464,7 +464,7 @@ Community background information for all 14 communities:
 ## ✅ VERIFICATION STATUS
 
 All sources are:
-- ✅ Integrated into the Shoel application
+- ✅ Integrated into the Sh'elah application
 - ✅ Accessible via REST APIs
 - ✅ Searchable and indexable
 - ✅ Served in multiple languages
@@ -498,7 +498,7 @@ All sources are:
 
 **Document Version:** 1.0  
 **Last Updated:** April 6, 2026  
-**Project:** Shoel - Interactive Torah Encyclopedia  
+**Project:** Sh'elah - Interactive Torah Encyclopedia  
 **Status:** Complete & Current
 
 ---

@@ -15,7 +15,7 @@ except Exception:
 
 from pyluach import dates as pyluach_dates
 
-from data_service import SheilahEngine
+from data_service import ShelahEngine
 import sefaria
 import claude
 
@@ -318,7 +318,7 @@ def get_engine():
         except Exception:
             lat, lon = (40.7128, -74.0060)
 
-    return SheilahEngine(lat=lat, lon=lon)
+    return ShelahEngine(lat=lat, lon=lon)
 
 
 @app.route("/")
@@ -668,7 +668,7 @@ def search_suggest():
         if ref:
             add_item("text", ref, ref, categories or "Sefaria text", 70)
 
-    add_item("ask", f"Ask Sheilah: {query}", query,
+    add_item("ask", f"Ask Sh'elah: {query}", query,
              "AI synthesis", 40)
 
     suggestions.sort(key=lambda x: x.get("score", 0), reverse=True)

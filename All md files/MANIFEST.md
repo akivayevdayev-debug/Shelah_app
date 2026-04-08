@@ -363,7 +363,7 @@ Code tested and verified.
 ---
 
 *Created: April 6, 2026*  
-*Sheilah Knowledge Center*  
+*Sh'elah Knowledge Center*  
 *Version: 1.0 Production Ready*
 
 ---

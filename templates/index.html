@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sheilah - Torah Encyclopedia</title>
+    <title>Sh'elah - Torah Encyclopedia</title>
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
 
@@ -68,7 +68,7 @@
             <div class="text-navy font-hebrew text-4xl font-semibold leading-tight -mt-1">
                 ש
             </div>
-            <h1 class="text-xl font-serif tracking-tight text-navy font-semibold hidden md:block">Sheilah <span
+            <h1 class="text-xl font-serif tracking-tight text-navy font-semibold hidden md:block">Sh'elah <span
                     class="text-xs font-normal text-slate-500 italic block -mt-0.5">Torah Encyclopedia</span></h1>
         </div>
 
@@ -592,8 +592,8 @@
                             Traditions spanning Iraqi, Syrian,
                             Yemenite, Moroccan, Ashkenaz, Israeli, Sefardic, and Kavkazi communities.</p>
                         <span class="text-[#594176] text-xs font-bold uppercase tracking-wide group-hover:underline"
-                            data-en="Ask Sheilah" data-he="שאל שאילה">Ask
-                            Sheilah &rarr;</span>
+                            data-en="Ask Sh'elah" data-he="שאל שאילה">Ask
+                            Sh'elah &rarr;</span>
                     </div>
 
                     <div class="bg-white border-t-[3px] border-[#00827f] p-6 rounded shadow-sm hover:shadow-md transition cursor-pointer group"
@@ -633,8 +633,8 @@
                     <p id="readerSubtitle" class="hidden text-sm text-slate-500 font-serif -mt-2 mb-4"></p>
                     <div
                         class="flex justify-center items-center gap-2 text-sm text-slate-500 uppercase tracking-widest font-bold">
-                        <span class="bg-slate-100 px-3 py-1 rounded" data-en="Sheilah Synthesis"
-                            data-he="סינתזת שאילה">Sheilah Synthesis</span>
+                        <span class="bg-slate-100 px-3 py-1 rounded" data-en="Sh'elah Synthesis"
+                            data-he="סינתזת שאילה">Sh'elah Synthesis</span>
                     </div>
 
                     <div class="mt-4 flex flex-wrap justify-center items-center gap-2 text-xs">
@@ -1075,8 +1075,8 @@
         let zmanimData = null;
         let countdownInterval = null;
 
-        const APP_PREFS_KEY = 'sheilahPrefs';
-        const APP_SHELF_KEY = 'sheilahShelf';
+        const APP_PREFS_KEY = "Sh'elahPrefs";
+        const APP_SHELF_KEY = "Sh'elahShelf";
         const TORAH_PARASHA_BY_BOOK = {
             'Genesis': [
                 { chapter: 1, name: 'Bereshit' },
@@ -2291,7 +2291,7 @@
                 // Badge
                 const categories = data.categories || [];
                 document.querySelector('#reader header .bg-slate-100').textContent =
-                    categories.join(' › ') || 'Sheilah Library';
+                    categories.join(' › ') || "Sh'elah Library";
 
                 const parashaMatch = getTorahParashaForRef(data.ref || ref, categories);
                 if (parashaMatch) {
