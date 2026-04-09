@@ -269,8 +269,14 @@ h6 {
     border: 1px solid #e2e8f0;
     border-radius: 999px;
     padding: 0.2rem 0.6rem;
-    margin-bottom: 0.65rem;
+    margin-bottom: 0;
     font-family: 'Inter', sans-serif;
+}
+
+.segment-label.inline-label {
+    white-space: nowrap;
+    line-height: 1;
+    margin-top: 0.2rem;
 }
 
 /* ═══════════════════════════════════════════════════════════════════ */
@@ -471,6 +477,12 @@ h6 {
 #reader .source-en {
     font-size: var(--reader-font-size);
     line-height: var(--reader-line-height);
+}
+
+#reader .source-he {
+    letter-spacing: normal;
+    word-spacing: normal;
+    font-kerning: normal;
 }
 
 @media (max-width: 1024px) {
