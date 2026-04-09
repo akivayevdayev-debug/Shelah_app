@@ -1777,16 +1777,16 @@
                 const en = window.currentPrayerContent.en || '';
 
                 const heBlock = isHtml
-                    ? `<div dir="rtl" class="font-hebrew leading-loose">${he}</div>`
-                    : `<p dir="rtl" class="leading-loose whitespace-pre-wrap">${he}</p>`;
+                    ? `<div dir="rtl" class="font-hebrew leading-normal space-y-2">${he}</div>`
+                    : `<p dir="rtl" class="leading-normal whitespace-pre-wrap">${he}</p>`;
                 const enBlock = isHtml
-                    ? `<div dir="ltr" class="font-serif leading-relaxed">${en}</div>`
-                    : `<p dir="ltr" class="leading-relaxed whitespace-pre-wrap">${en}</p>`;
+                    ? `<div dir="ltr" class="font-serif leading-normal space-y-2">${en}</div>`
+                    : `<p dir="ltr" class="leading-normal whitespace-pre-wrap">${en}</p>`;
 
                 contentDiv.innerHTML = `
-                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                        <div class="bg-white rounded border border-slate-200 p-4">${heBlock}</div>
-                        <div class="bg-white rounded border border-slate-200 p-4">${enBlock}</div>
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                        <div class="bg-white rounded border border-slate-200 p-3">${heBlock}</div>
+                        <div class="bg-white rounded border border-slate-200 p-3">${enBlock}</div>
                     </div>
                 `;
             } else {
@@ -1796,11 +1796,11 @@
 
                 if (isHtml && (lang === 'he' || lang === 'en')) {
                     const fontClass = lang === 'he'
-                        ? 'font-hebrew leading-loose'
-                        : 'font-serif leading-relaxed';
+                        ? 'font-hebrew leading-normal space-y-2'
+                        : 'font-serif leading-normal space-y-2';
                     contentDiv.innerHTML = `<div dir="${dir}" class="${fontClass}">${content}</div>`;
                 } else {
-                    contentDiv.innerHTML = `<p dir="${dir}" class="leading-relaxed whitespace-pre-wrap">${content}</p>`;
+                    contentDiv.innerHTML = `<p dir="${dir}" class="leading-normal whitespace-pre-wrap">${content}</p>`;
                 }
             }
 
@@ -2016,11 +2016,11 @@
                             let heHtml = '', enHtml = '';
                             sefariaData.lines.forEach(line => {
                                 if (line.type === 'header') {
-                                    heHtml += `<h3 class="text-xl font-bold font-hebrew mt-8 mb-3 pb-1 border-b border-slate-200">${line.he || ''}</h3>`;
-                                    enHtml += `<h3 class="text-xl font-bold font-serif mt-8 mb-3 pb-1 border-b border-slate-200">${line.en || ''}</h3>`;
+                                    heHtml += `<h3 class="text-lg font-bold font-hebrew mt-4 mb-2 pb-1 border-b border-slate-200">${line.he || ''}</h3>`;
+                                    enHtml += `<h3 class="text-lg font-bold font-serif mt-4 mb-2 pb-1 border-b border-slate-200">${line.en || ''}</h3>`;
                                 } else {
-                                    if (line.he) heHtml += `<p class="mb-3 leading-loose">${line.he}</p>`;
-                                    if (line.en) enHtml += `<p class="mb-3">${line.en}</p>`;
+                                    if (line.he) heHtml += `<p class="mb-2 leading-normal">${line.he}</p>`;
+                                    if (line.en) enHtml += `<p class="mb-2">${line.en}</p>`;
                                 }
                             });
                             prayerData.content.he = heHtml;
@@ -2065,11 +2065,11 @@
         function renderPrayerContent(content) {
             const storedLang = localStorage.getItem('preferredLanguage') || 'en';
             const currentLang = storedLang === 'he' ? 'he' : 'en';
-            let html = '<div class="prose prose-slate max-w-none font-serif leading-relaxed text-slate-800">';
+            let html = '<div class="prose prose-slate max-w-none font-serif leading-normal text-slate-800">';
 
             // Show content with language tabs
-            html += `<div class="bg-slate-50 rounded-lg p-6 border border-slate-200">`;
-            html += `<div class="mb-4 flex gap-2 border-b pb-2 flex-wrap">`;
+            html += `<div class="bg-slate-50 rounded-lg p-4 border border-slate-200">`;
+            html += `<div class="mb-3 flex gap-2 border-b pb-2 flex-wrap"`;
 
             const langs = [
                 { code: 'en', name: 'English' },
@@ -2499,13 +2499,13 @@
 
                         return `
                             <div class="source-grid segment-row grid grid-cols-1 lg:grid-cols-2 border-b border-slate-100 last:border-b-0">
-                                <div class="source-he bg-white text-right font-hebrew text-xl lg:text-2xl leading-[1.8] p-5" dir="rtl">
-                                    <div class="segment-label">${label}</div>
-                                    ${he ? `<p>${he}</p>` : `<p class="text-slate-300 italic">${t('—', '—')}</p>`}
+                                <div class="source-he bg-white text-right font-hebrew text-lg leading-normal p-3" dir="rtl">
+                                    <div class="segment-label text-sm">${label}</div>
+                                    ${he ? `<p class="mt-1">${he}</p>` : `<p class="text-slate-300 italic">${t('—', '—')}</p>`}
                                 </div>
-                                <div class="source-en bg-slate-50 font-serif leading-relaxed p-5 text-slate-700 text-lg">
-                                    <div class="segment-label">${label}</div>
-                                    ${en ? `<p>${en}</p>` : `<p class="text-slate-300 italic">${t('—', '—')}</p>`}
+                                <div class="source-en bg-slate-50 font-serif leading-normal p-3 text-slate-700 text-base">
+                                    <div class="segment-label text-sm">${label}</div>
+                                    ${en ? `<p class="mt-1">${en}</p>` : `<p class="text-slate-300 italic">${t('—', '—')}</p>`}
                                 </div>
                             </div>
                         `;
