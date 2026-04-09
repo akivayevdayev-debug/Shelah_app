@@ -149,8 +149,8 @@
                             <option value="Yemenite" data-en="Yemenite" data-he="תימני">Yemenite</option>
                             <option value="Moroccan" data-en="Moroccan" data-he="מרוקאי">Moroccan</option>
                             <option value="Kavkazi" data-en="Kavkazi" data-he="קווקזי">Kavkazi</option>
-                            <option value="Turkish-Ottoman Sefardic" data-en="Turkish-Ottoman Sefardic"
-                                data-he="ספרדי טורקי-עות׳מאני">Turkish-Ottoman Sefardic</option>
+                            <option value="turkish-ottoman-sefardic" data-en="turkish-ottoman-sefardic"
+                                data-he="ספרדי טורקי-עות׳מאני">turkish-ottoman-sefardic</option>
                             <option value="Israeli" data-en="Israeli" data-he="ישראלי">Israeli</option>
                         </select>
                     </label>
@@ -508,10 +508,9 @@
                         <li><button onclick="displayCommunity('Kavkazi')"
                                 class="text-left text-slate-600 hover:text-[#594176] text-sm w-full py-0.5"
                                 data-en="Kavkazi" data-he="קווקזי">Kavkazi</button></li>
-                        <li><button onclick="displayCommunity('Turkish-Ottoman Sefardic')"
+                        <li><button onclick="displayCommunity('turkish-ottoman-sefardic')"
                                 class="text-left text-slate-600 hover:text-[#594176] text-sm w-full py-0.5"
-                                data-en="Turkish-Ottoman Sefardic" data-he="ספרדי טורקי-עות׳מאני">Turkish-Ottoman
-                                Sefardic</button></li>
+                            data-en="turkish-ottoman-sefardic" data-he="ספרדי טורקי-עות׳מאני">turkish-ottoman-sefardic</button></li>
                         <li><button onclick="displayCommunity('Israeli')"
                                 class="text-left text-slate-600 hover:text-[#594176] text-sm w-full py-0.5"
                                 data-en="Israeli" data-he="ישראלי">Israeli</button></li>
@@ -1420,6 +1419,7 @@
             'Ethiopian': 'אתיופי',
             'Georgian': 'גרוזיני',
             'Greek-Romaniote': 'רומניוטי',
+            'turkish-ottoman-sefardic': 'ספרדי טורקי-עות׳מאני',
             'Turkish-Ottoman Sefardic': 'ספרדי טורקי-עות׳מאני',
             'Legacy Customs DB': 'מסד מנהגים ישן',
         };
@@ -2060,7 +2060,7 @@
                         if (heText && !enText) {
                             return `
                                 <div class="bg-white rounded border border-slate-200 p-4" dir="rtl">
-                                    <p class="font-hebrew leading-loose">${heText}</p>
+                                    <p class="font-hebrew">${heText}</p>
                                     <p class="text-xs text-slate-400 mt-2">${t('English translation not available for this source segment', 'אין תרגום אנגלי זמין לקטע מקור זה')}</p>
                                 </div>
                             `;
@@ -2069,7 +2069,7 @@
                         if (enText && !heText) {
                             return `
                                 <div class="bg-white rounded border border-slate-200 p-4" dir="ltr">
-                                    <p class="font-serif leading-relaxed">${enText}</p>
+                                    <p class="font-serif">${enText}</p>
                                     <p class="text-xs text-slate-400 mt-2">${t('Hebrew text not available for this source segment', 'אין טקסט עברי זמין לקטע מקור זה')}</p>
                                 </div>
                             `;
@@ -2079,12 +2079,12 @@
                             <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
                                 <div class="bg-white rounded border border-slate-200 p-4" dir="rtl">
                                     ${heText
-                                ? `<p class="font-hebrew leading-loose">${heText}</p>`
+                                ? `<p class="font-hebrew">${heText}</p>`
                                 : `<p class="text-slate-300 italic">${t('No Hebrew text in source', 'אין טקסט עברי במקור')}</p>`}
                                 </div>
                                 <div class="bg-white rounded border border-slate-200 p-4" dir="ltr">
                                     ${enText
-                                ? `<p class="font-serif leading-relaxed">${enText}</p>`
+                                ? `<p class="font-serif">${enText}</p>`
                                 : `<p class="text-slate-300 italic">${t('No English translation in source', 'אין תרגום אנגלי במקור')}</p>`}
                                 </div>
                             </div>
@@ -2094,11 +2094,11 @@
                     contentDiv.innerHTML = `<div class="space-y-3">${rows}</div>`;
                 } else {
                     const heBlock = isHtml
-                        ? `<div dir="rtl" class="font-hebrew leading-loose">${he}</div>`
-                        : `<p dir="rtl" class="leading-loose whitespace-pre-wrap">${he}</p>`;
+                        ? `<div dir="rtl" class="font-hebrew">${he}</div>`
+                        : `<p dir="rtl" class="whitespace-pre-wrap">${he}</p>`;
                     const enBlock = isHtml
-                        ? `<div dir="ltr" class="font-serif leading-relaxed">${en}</div>`
-                        : `<p dir="ltr" class="leading-relaxed whitespace-pre-wrap">${en}</p>`;
+                        ? `<div dir="ltr" class="font-serif">${en}</div>`
+                        : `<p dir="ltr" class="whitespace-pre-wrap">${en}</p>`;
 
                     contentDiv.innerHTML = `
                         <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -2114,11 +2114,11 @@
 
                 if (isHtml && (lang === 'he' || lang === 'en')) {
                     const fontClass = lang === 'he'
-                        ? 'font-hebrew leading-loose'
-                        : 'font-serif leading-relaxed';
+                        ? 'font-hebrew'
+                        : 'font-serif';
                     contentDiv.innerHTML = `<div dir="${dir}" class="${fontClass}">${content}</div>`;
                 } else {
-                    contentDiv.innerHTML = `<p dir="${dir}" class="leading-relaxed whitespace-pre-wrap">${content}</p>`;
+                    contentDiv.innerHTML = `<p dir="${dir}" class="whitespace-pre-wrap">${content}</p>`;
                 }
             }
 
@@ -2126,6 +2126,15 @@
             const lineHeight = String(appState.prefs.lineHeight);
             contentDiv.style.fontSize = sizePx;
             contentDiv.style.lineHeight = lineHeight;
+
+            // Prayer content is re-rendered dynamically; force descendants to inherit
+            // current reader typography so size/density controls always apply.
+            contentDiv.querySelectorAll('*').forEach((el) => {
+                if (!el.classList.contains('text-xs')) {
+                    el.style.fontSize = 'inherit';
+                }
+                el.style.lineHeight = 'inherit';
+            });
         }
 
         function hydratePreferences() {
@@ -2143,6 +2152,7 @@
                 Ashkenazi: 'Ashkenaz',
                 Sefardi: 'Sefardic',
                 Mizrahi: 'Iraqi',
+                'Turkish-Ottoman Sefardic': 'turkish-ottoman-sefardic',
             };
             if (legacyCommunityMap[appState.prefs.community]) {
                 appState.prefs.community = legacyCommunityMap[appState.prefs.community];
@@ -2383,10 +2393,10 @@
                                     }
 
                                     if (heParagraph) {
-                                        heHtml += `<p class="mb-3 leading-relaxed">${heParagraph}</p>`;
+                                        heHtml += `<p class="mb-3">${heParagraph}</p>`;
                                     }
                                     if (enParagraph) {
-                                        enHtml += `<p class="mb-3 leading-relaxed">${enParagraph}</p>`;
+                                        enHtml += `<p class="mb-3">${enParagraph}</p>`;
                                     }
 
                                     paragraphPairs.push({
