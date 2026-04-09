@@ -112,6 +112,12 @@
             <button id="mobilePulseBtn" type="button"
                 class="lg:hidden px-2.5 py-1.5 text-xs border border-slate-300 rounded bg-white hover:bg-slate-100 transition"
                 data-en="Today" data-he="היום">Today</button>
+            <button id="showLeftSidebarTopBtn" type="button"
+                class="hidden px-2.5 py-1.5 text-xs border border-slate-300 rounded bg-white hover:bg-slate-100 transition"
+                data-en="Show Navigator" data-he="הצג ניווט">Show Navigator</button>
+            <button id="showRightSidebarTopBtn" type="button"
+                class="hidden px-2.5 py-1.5 text-xs border border-slate-300 rounded bg-white hover:bg-slate-100 transition"
+                data-en="Show Today" data-he="הצג היום">Show Today</button>
 
             <div id="settingsMenuContainer" class="relative">
                 <button id="settingsMenuBtn" type="button" aria-expanded="false" aria-haspopup="true"
@@ -241,10 +247,6 @@
 
     <div class="flex flex-1 relative">
 
-        <button id="sidebarTabBtn" type="button"
-            class="hidden lg:flex items-center gap-1 fixed left-0 top-1/2 -translate-y-1/2 z-40 px-2 py-1.5 border border-slate-300 border-l-0 rounded-r-lg bg-white/95 text-slate-600 text-[11px] font-semibold uppercase tracking-wide shadow-sm hover:bg-slate-100 transition"
-            data-en="Hide Sidebars" data-he="הסתר סרגלים">Hide Sidebars</button>
-
         <!-- Column 1: Navigator (Left) -->
         <nav id="leftSidebar"
             class="navigator-pane mobile-drawer mobile-drawer-left w-64 xl:w-72 border-r bg-white p-6 overflow-y-auto hidden lg:block flex-shrink-0 custom-scrollbar">
@@ -255,6 +257,14 @@
                 <button id="closeLeftSidebarBtn" type="button"
                     class="px-2 py-1 text-xs border border-slate-300 rounded bg-white hover:bg-slate-100 transition"
                     data-en="Close" data-he="סגור">Close</button>
+            </div>
+            <div class="hidden lg:flex items-center justify-between mb-4 pb-3 border-b border-slate-200">
+                <h3 class="text-xs font-bold text-slate-500 uppercase tracking-widest" data-en="Navigator"
+                    data-he="ניווט">
+                    Navigator</h3>
+                <button id="hideLeftSidebarBtn" type="button"
+                    class="text-xs text-slate-500 hover:text-slate-800 font-semibold uppercase tracking-wide"
+                    data-en="Hide" data-he="הסתר">Hide</button>
             </div>
             <h3 class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-6" data-en="Table of Contents"
                 data-he="תוכן עניינים">Table of Contents</h3>
@@ -861,6 +871,13 @@
                     class="px-2 py-1 text-xs border border-slate-300 rounded bg-white hover:bg-slate-100 transition"
                     data-en="Close" data-he="סגור">Close</button>
             </div>
+            <div class="hidden lg:flex items-center justify-between mb-4 pb-3 border-b border-slate-200">
+                <h3 class="text-xs font-bold text-slate-500 uppercase tracking-widest" data-en="Today Panel"
+                    data-he="פאנל יומי">Today Panel</h3>
+                <button id="hideRightSidebarBtn" type="button"
+                    class="text-xs text-slate-500 hover:text-slate-800 font-semibold uppercase tracking-wide"
+                    data-en="Hide" data-he="הסתר">Hide</button>
+            </div>
 
             <!-- Zmanim -->
             <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-5 mb-6">
@@ -1303,7 +1320,8 @@
         const answerModeSelect = document.getElementById('answerModeSelect');
         const communityLensSelect = document.getElementById('communityLensSelect');
         const bookmarkCurrentBtn = document.getElementById('bookmarkCurrentBtn');
-        const sidebarTabBtn = document.getElementById('sidebarTabBtn');
+        const showLeftSidebarTopBtn = document.getElementById('showLeftSidebarTopBtn');
+        const showRightSidebarTopBtn = document.getElementById('showRightSidebarTopBtn');
         const settingsMenuBtn = document.getElementById('settingsMenuBtn');
         const settingsPanel = document.getElementById('settingsPanel');
         const settingsMenuContainer = document.getElementById('settingsMenuContainer');
@@ -1341,6 +1359,8 @@
         const mobilePulseBtn = document.getElementById('mobilePulseBtn');
         const closeLeftSidebarBtn = document.getElementById('closeLeftSidebarBtn');
         const closeRightSidebarBtn = document.getElementById('closeRightSidebarBtn');
+        const hideLeftSidebarBtn = document.getElementById('hideLeftSidebarBtn');
+        const hideRightSidebarBtn = document.getElementById('hideRightSidebarBtn');
         const mobileDrawerBackdrop = document.getElementById('mobileDrawerBackdrop');
         const leftSidebar = document.getElementById('leftSidebar');
         const rightSidebar = document.getElementById('rightSidebar');
@@ -1458,7 +1478,8 @@
                 readerLayout: 'bilingual',
                 fontSize: 18,
                 lineHeight: 1.8,
-                showSidebars: true,
+                showLeftSidebar: true,
+                showRightSidebar: true,
                 metadataFilters: {
                     era: '',
                     author: '',
@@ -2355,8 +2376,10 @@
         }
 
         function applySidebarVisibility() {
-            const showSidebars = appState.prefs.showSidebars !== false;
+            const showLeftSidebar = appState.prefs.showLeftSidebar !== false;
+            const showRightSidebar = appState.prefs.showRightSidebar !== false;
             const mobile = isMobileViewport();
+            const shulMode = Boolean(appState.prefs.shulMode);
 
             if (mobile) {
                 if (leftSidebar) {
@@ -2370,12 +2393,12 @@
                 if (leftSidebar) {
                     leftSidebar.classList.remove('mobile-open');
                     leftSidebar.classList.remove('hidden');
-                    leftSidebar.style.display = showSidebars ? '' : 'none';
+                    leftSidebar.style.display = (showLeftSidebar && !shulMode) ? '' : 'none';
                 }
                 if (rightSidebar) {
                     rightSidebar.classList.remove('mobile-open');
                     rightSidebar.classList.remove('hidden');
-                    rightSidebar.style.display = showSidebars ? '' : 'none';
+                    rightSidebar.style.display = (showRightSidebar && !shulMode) ? '' : 'none';
                 }
 
                 if (mobileDrawerBackdrop) {
@@ -2384,22 +2407,23 @@
                 document.body.classList.remove('mobile-panel-open');
             }
 
-            if (sidebarTabBtn) {
-                sidebarTabBtn.classList.toggle('hidden', mobile);
-                if (mobile) {
-                    sidebarTabBtn.textContent = t('Desktop Sidebars', 'סרגלי שולחן עבודה');
-                    sidebarTabBtn.title = t('Use Menu and Today buttons on mobile', 'במובייל השתמש בכפתורי תפריט והיום');
-                } else {
-                    sidebarTabBtn.textContent = showSidebars
-                        ? t('Hide Sidebars', 'הסתר סרגלים')
-                        : t('Show Sidebars', 'הצג סרגלים');
-                    sidebarTabBtn.title = '';
-                }
+            if (showLeftSidebarTopBtn) {
+                const showLeftRestore = !mobile && !shulMode && !showLeftSidebar;
+                showLeftSidebarTopBtn.classList.toggle('hidden', !showLeftRestore);
+            }
+
+            if (showRightSidebarTopBtn) {
+                const showRightRestore = !mobile && !shulMode && !showRightSidebar;
+                showRightSidebarTopBtn.classList.toggle('hidden', !showRightRestore);
             }
         }
 
-        function toggleSidebars() {
-            appState.prefs.showSidebars = !(appState.prefs.showSidebars !== false);
+        function setSidebarVisibility(side, visible) {
+            if (side === 'left') {
+                appState.prefs.showLeftSidebar = Boolean(visible);
+            } else if (side === 'right') {
+                appState.prefs.showRightSidebar = Boolean(visible);
+            }
             savePrefs();
             applySidebarVisibility();
         }
@@ -2490,9 +2514,8 @@
             if (enabled) {
                 if (leftSidebar) leftSidebar.style.display = 'none';
                 if (rightSidebar) rightSidebar.style.display = 'none';
-                if (sidebarTabBtn) {
-                    sidebarTabBtn.textContent = t('Shul Mode Active', 'מצב בית כנסת פעיל');
-                }
+                if (showLeftSidebarTopBtn) showLeftSidebarTopBtn.classList.add('hidden');
+                if (showRightSidebarTopBtn) showRightSidebarTopBtn.classList.add('hidden');
                 if (appState.prefs.shulAutoScroll) {
                     startShulAutoScroll();
                 } else {
@@ -3287,9 +3310,14 @@
                 appState.prefs.community = legacyCommunityMap[appState.prefs.community];
             }
 
-            if (typeof appState.prefs.showSidebars !== 'boolean') {
-                appState.prefs.showSidebars = true;
+            const legacyShowSidebars = appState.prefs.showSidebars !== false;
+            if (typeof appState.prefs.showLeftSidebar !== 'boolean') {
+                appState.prefs.showLeftSidebar = legacyShowSidebars;
             }
+            if (typeof appState.prefs.showRightSidebar !== 'boolean') {
+                appState.prefs.showRightSidebar = legacyShowSidebars;
+            }
+            delete appState.prefs.showSidebars;
 
             appState.prefs.metadataFilters = normalizeMetadataFilters(appState.prefs.metadataFilters || {});
             if (!['bilingual', 'stacked', 'english', 'hebrew'].includes(appState.prefs.readerLayout)) {
@@ -3440,9 +3468,6 @@
         }
 
         bookmarkCurrentBtn.addEventListener('click', toggleBookmarkCurrent);
-        if (sidebarTabBtn) {
-            sidebarTabBtn.addEventListener('click', toggleSidebars);
-        }
         if (mobileNavBtn) {
             mobileNavBtn.addEventListener('click', () => toggleMobilePanel('left'));
         }
@@ -3457,6 +3482,18 @@
         }
         if (mobileDrawerBackdrop) {
             mobileDrawerBackdrop.addEventListener('click', closeMobilePanels);
+        }
+        if (hideLeftSidebarBtn) {
+            hideLeftSidebarBtn.addEventListener('click', () => setSidebarVisibility('left', false));
+        }
+        if (hideRightSidebarBtn) {
+            hideRightSidebarBtn.addEventListener('click', () => setSidebarVisibility('right', false));
+        }
+        if (showLeftSidebarTopBtn) {
+            showLeftSidebarTopBtn.addEventListener('click', () => setSidebarVisibility('left', true));
+        }
+        if (showRightSidebarTopBtn) {
+            showRightSidebarTopBtn.addEventListener('click', () => setSidebarVisibility('right', true));
         }
         window.addEventListener('resize', () => {
             applySidebarVisibility();
