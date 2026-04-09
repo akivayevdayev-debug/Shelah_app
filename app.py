@@ -429,23 +429,15 @@ def get_engine():
 
     if not lat or not lon:
         try:
-            # ip-api.com is free, no key required, ~45 req/min limit (use HTTPS)
+            # ip-api.com is free, no key required, ~45 req/min limit
             r = requests.get(
-                'https://ip-api.com/json/?fields=lat,lon,timezone', timeout=5)
+                'http://ip-api.com/json/?fields=lat,lon,timezone', timeout=3)
             data = r.json()
-            if data.get('status') == 'success':
-                lat = data.get('lat')
-                lon = data.get('lon')
-                if lat and lon:
-                    session['lat'] = lat
-                    session['lon'] = lon
-        except Exception as e:
-            # If IP geolocation fails, don't store coordinates yet
-            # Wait for GPS or user to set location explicitly
-            pass
-
-        # Only use NY fallback if we still have no location at all
-        if not lat or not lon:
+            lat = data.get('lat', 40.7128)
+            lon = data.get('lon', -74.0060)
+            session['lat'] = lat
+            session['lon'] = lon
+        except Exception:
             lat, lon = (40.7128, -74.0060)
 
     return ShelahEngine(lat=lat, lon=lon)
