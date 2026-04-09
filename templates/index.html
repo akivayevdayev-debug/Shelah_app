@@ -426,7 +426,7 @@
                 </details>
 
                 <h3 class="text-xs font-bold text-slate-400 uppercase tracking-widest mt-6 mb-3"
-                    data-en="Prayer Services" data-he="שירות תפילה">
+                    data-en="Prayer Services" data-he="שירותי תפילה">
                     Prayer Services</h3>
                 <details class="group cursor-pointer">
                     <summary class="font-semibold hover:text-[#00827f] list-none border-b pb-2 mb-2"
@@ -497,7 +497,7 @@
                 <div id="sourcesDynamicContent" class="text-sm text-slate-600 pb-10">
                     <p class="italic text-slate-400"
                         data-en="Search a halacha to view cross-referenced Encyclopedia and Customs data..."
-                        data-he="חפש הלכה כדי לצפות בנתונים מהאנציקלופדיה והמנהגים המצוינים בחוצה ברference...">
+                        data-he="חפש הלכה כדי לצפות בנתונים מהאנציקלופדיה ומהמנהגים המקושרים...">
                         Search a halacha to view cross-referenced Encyclopedia and Customs data...</p>
                 </div>
 
@@ -610,7 +610,7 @@
                             Thought</h3>
                         <p class="text-sm text-slate-500 leading-relaxed mb-4"
                             data-en="Mystical works and Jewish philosophy addressing God's attributes and the nature of existence."
-                            data-he="יצירות מיסטיות וaphilosophia יהודיות העוסקות בתכונות אלוהיות ובאופי הקיום.">
+                            data-he="יצירות מיסטיות ופילוסופיה יהודית העוסקות בתכונות האלוהות ובמהות הקיום.">
                             Mystical works and Jewish philosophy
                             addressing God's attributes and the nature of existence.</p>
                         <span data-en="Read Inline" data-he="קרא בקו"
@@ -646,23 +646,23 @@
 
                     <div class="mt-4 flex flex-wrap justify-center items-center gap-2 text-xs">
                         <label class="bg-slate-100 border border-slate-200 rounded-full px-3 py-1 text-slate-600">
-                            Layout
+                            <span data-en="Layout" data-he="פריסה">Layout</span>
                             <select id="readerLayoutSelect"
                                 class="ml-1 bg-transparent font-semibold focus:outline-none">
-                                <option value="bilingual">Bilingual</option>
-                                <option value="english">English</option>
-                                <option value="hebrew">Hebrew</option>
+                                <option value="bilingual" data-en="Bilingual" data-he="דו-לשוני">Bilingual</option>
+                                <option value="english" data-en="English" data-he="אנגלית">English</option>
+                                <option value="hebrew" data-en="Hebrew" data-he="עברית">Hebrew</option>
                             </select>
                         </label>
 
                         <label class="bg-slate-100 border border-slate-200 rounded-full px-3 py-1 text-slate-600">
-                            Text Size
+                            <span data-en="Text Size" data-he="גודל טקסט">Text Size</span>
                             <input id="readerFontSize" type="range" min="14" max="30" value="18"
                                 class="align-middle ml-1" />
                         </label>
 
                         <label class="bg-slate-100 border border-slate-200 rounded-full px-3 py-1 text-slate-600">
-                            Density
+                            <span data-en="Density" data-he="ריווח">Density</span>
                             <input id="readerLineHeight" type="range" min="1.4" max="2.4" step="0.1" value="1.8"
                                 class="align-middle ml-1" />
                         </label>
@@ -908,7 +908,7 @@
                 <h2 class="font-serif text-xl font-bold" data-en="Browse All Texts" data-he="עיין בכל הטקסטים">Browse
                     All Texts</h2>
                 <p class="text-blue-100 text-sm mt-1" data-en="Siddur, Communities, and Sefaria Library"
-                    data-he="סידור, קהילות וספריית סיפד">Siddur, Communities, and Sefaria Library</p>
+                    data-he="סידור, קהילות וספריית ספריא">Siddur, Communities, and Sefaria Library</p>
             </div>
 
             <div class="overflow-y-auto flex-1 px-6 py-6 custom-scrollbar">
@@ -936,16 +936,20 @@
                 <!-- Sefaria Section -->
                 <div>
                     <h3 class="font-serif text-lg font-bold text-[#802f3e] mb-4 pb-2 border-b"
-                        data-en="Sefaria Library (Browse Categories)" data-he="ספריית סיפד">Sefaria Library</h3>
+                        data-en="Sefaria Library (Browse Categories)" data-he="ספריית ספריא">Sefaria Library</h3>
                     <div class="space-y-2">
                         <button onclick="readText('Genesis 1')"
-                            class="block w-full text-left px-3 py-2 rounded hover:bg-slate-100 transition text-slate-700">Tanakh</button>
+                            class="block w-full text-left px-3 py-2 rounded hover:bg-slate-100 transition text-slate-700"
+                            data-en="Tanakh" data-he="תנ״ך">Tanakh</button>
                         <button onclick="readText('Mishnah Berakhot 1')"
-                            class="block w-full text-left px-3 py-2 rounded hover:bg-slate-100 transition text-slate-700">Mishnah</button>
+                            class="block w-full text-left px-3 py-2 rounded hover:bg-slate-100 transition text-slate-700"
+                            data-en="Mishnah" data-he="משנה">Mishnah</button>
                         <button onclick="readText('Berakhot 2a')"
-                            class="block w-full text-left px-3 py-2 rounded hover:bg-slate-100 transition text-slate-700">Talmud</button>
+                            class="block w-full text-left px-3 py-2 rounded hover:bg-slate-100 transition text-slate-700"
+                            data-en="Talmud" data-he="תלמוד">Talmud</button>
                         <button onclick="readText('Shulchan Arukh, Orach Chayim 1')"
-                            class="block w-full text-left px-3 py-2 rounded hover:bg-slate-100 transition text-slate-700">Halakhah</button>
+                            class="block w-full text-left px-3 py-2 rounded hover:bg-slate-100 transition text-slate-700"
+                            data-en="Halakhah" data-he="הלכה">Halakhah</button>
                     </div>
                 </div>
             </div>
@@ -971,7 +975,7 @@
             <div class="bg-gradient-to-r from-navy to-blue-900 text-white px-6 py-4 border-b">
                 <h2 id="aiModalTitle" class="font-serif text-xl font-bold">Halachic Inquiry</h2>
                 <p class="text-blue-100 text-sm mt-1" data-en="Synthesized from Sefaria, Customs, and Halachic Sources"
-                    data-he="סונתז מסיפד, מנהגים ומקורות הלכתיים">Synthesized from Sefaria,
+                    data-he="סונתז מספריא, ממנהגים וממקורות הלכתיים">Synthesized from Sefaria,
                     Customs, and Halachic Sources</p>
             </div>
 
@@ -979,33 +983,33 @@
             <div class="overflow-y-auto flex-1 px-6 py-6 space-y-6">
                 <!-- AI Synthesis -->
                 <div>
-                    <h3 class="font-serif text-lg font-bold text-navy mb-3">Answer</h3>
+                    <h3 class="font-serif text-lg font-bold text-navy mb-3" data-en="Answer" data-he="תשובה">Answer</h3>
                     <div id="aiSynthesis"
                         class="prose prose-sm prose-slate max-w-none font-serif text-slate-800 leading-relaxed">
-                        <p class="text-slate-400 italic">Loading...</p>
+                        <p class="text-slate-400 italic" data-en="Loading..." data-he="טוען...">Loading...</p>
                     </div>
                 </div>
 
                 <div id="aiTrustSection" class="bg-slate-50 border border-slate-200 rounded-lg p-4">
-                    <h4 class="text-xs font-bold uppercase tracking-widest text-slate-500 mb-2">Trust & Method</h4>
+                    <h4 class="text-xs font-bold uppercase tracking-widest text-slate-500 mb-2" data-en="Trust & Method" data-he="אמינות ושיטה">Trust & Method</h4>
                     <div class="flex flex-wrap gap-2 text-xs">
                         <span id="aiConfidenceBadge"
-                            class="px-2 py-1 rounded-full bg-slate-200 text-slate-700">Confidence: --</span>
-                        <span id="aiModeBadge" class="px-2 py-1 rounded-full bg-slate-200 text-slate-700">Mode:
+                            class="px-2 py-1 rounded-full bg-slate-200 text-slate-700" data-en="Confidence: --" data-he="רמת ודאות: --">Confidence: --</span>
+                        <span id="aiModeBadge" class="px-2 py-1 rounded-full bg-slate-200 text-slate-700" data-en="Mode: --" data-he="מצב: --">Mode:
                             --</span>
                         <span id="aiCommunityBadge"
-                            class="px-2 py-1 rounded-full bg-slate-200 text-slate-700">Community: --</span>
-                        <span id="aiSourcesBadge" class="px-2 py-1 rounded-full bg-slate-200 text-slate-700">Sources:
+                            class="px-2 py-1 rounded-full bg-slate-200 text-slate-700" data-en="Community: --" data-he="קהילה: --">Community: --</span>
+                        <span id="aiSourcesBadge" class="px-2 py-1 rounded-full bg-slate-200 text-slate-700" data-en="Sources: --" data-he="מקורות: --">Sources:
                             --</span>
                         <span id="aiFallbackBadge"
-                            class="hidden px-2 py-1 rounded-full bg-amber-100 text-amber-800 border border-amber-200">Fallback
+                            class="hidden px-2 py-1 rounded-full bg-amber-100 text-amber-800 border border-amber-200" data-en="Fallback Summary" data-he="סיכום חלופי">Fallback
                             Summary</span>
                     </div>
                 </div>
 
                 <!-- Sources Section -->
                 <div id="aiSourcesSection" class="hidden">
-                    <h3 class="font-serif text-lg font-bold text-navy mb-3 border-t pt-4">Primary Sources</h3>
+                    <h3 class="font-serif text-lg font-bold text-navy mb-3 border-t pt-4" data-en="Primary Sources" data-he="מקורות ראשוניים">Primary Sources</h3>
                     <div id="aiSources" class="space-y-4">
                         <!-- Sources populated via JS -->
                     </div>
@@ -1013,7 +1017,7 @@
 
                 <!-- Customs Section -->
                 <div id="aiCustomsSection" class="hidden">
-                    <h3 class="font-serif text-lg font-bold text-navy mb-3 border-t pt-4">Community Traditions</h3>
+                    <h3 class="font-serif text-lg font-bold text-navy mb-3 border-t pt-4" data-en="Community Traditions" data-he="מסורות קהילתיות">Community Traditions</h3>
                     <div id="aiCustoms" class="space-y-3">
                         <!-- Customs populated via JS -->
                     </div>
@@ -1021,7 +1025,7 @@
 
                 <!-- Encyclopedia Section -->
                 <div id="aiWikiSection" class="hidden">
-                    <h3 class="font-serif text-lg font-bold text-navy mb-3 border-t pt-4">Encyclopedia Context</h3>
+                    <h3 class="font-serif text-lg font-bold text-navy mb-3 border-t pt-4" data-en="Encyclopedia Context" data-he="הקשר אנציקלופדי">Encyclopedia Context</h3>
                     <div id="aiWiki" class="space-y-3">
                         <!-- Wiki populated via JS -->
                     </div>
@@ -1045,8 +1049,8 @@
         <div class="border border-slate-300 rounded-lg bg-white overflow-hidden shadow-sm mb-6">
             <div
                 class="bg-slate-50 px-4 py-2 text-xs font-bold text-slate-500 uppercase tracking-wider border-b source-title flex justify-between">
-                <span>Source Name</span>
-                <a href="#" target="_blank" class="text-blue-500 hover:underline source-link">View in Library &rarr;</a>
+                <span data-en="Source Name" data-he="שם המקור">Source Name</span>
+                <a href="#" target="_blank" class="text-blue-500 hover:underline source-link" data-en="View in Library ↗" data-he="צפה בספריה ↗">View in Library &rarr;</a>
             </div>
             <!-- Grid Split -->
             <div class="source-grid grid grid-cols-1 lg:grid-cols-2 text-base">
@@ -1249,6 +1253,203 @@
             'Shoftim': 'שופטים', 'Ki Teitzei': 'כי תצא', 'Ki Tavo': 'כי תבוא', 'Nitzavim': 'נצבים',
             'Vayelech': 'וילך', 'Haazinu': 'האזינו', 'Vezot Haberakhah': 'וזאת הברכה',
         };
+
+        const STATIC_HEBREW_TEXT_MAP = {
+            'Save Current': 'שמור נוכחי',
+            'Hide Sidebars': 'הסתר סרגלים',
+            'Show Sidebars': 'הצג סרגלים',
+            'Sign In': 'התחבר',
+            'Sign Out': 'התנתק',
+            'Torah (5 Books)': 'תורה (חמשה חומשי תורה)',
+            'Parashat HaShavua': 'פרשת השבוע',
+            'Genesis (Bereishit)': 'בראשית',
+            'Exodus (Shemot)': 'שמות',
+            'Leviticus (Vayikra)': 'ויקרא',
+            'Numbers (Bamidbar)': 'במדבר',
+            'Deuteronomy (Devarim)': 'דברים',
+            'Prophets': 'נביאים',
+            'Writings': 'כתובים',
+            'Joshua': 'יהושע',
+            'Judges': 'שופטים',
+            'I Samuel': 'שמואל א׳',
+            'II Samuel': 'שמואל ב׳',
+            'Isaiah': 'ישעיהו',
+            'Jeremiah': 'ירמיהו',
+            'Ezekiel': 'יחזקאל',
+            'Hosea': 'הושע',
+            'Joel': 'יואל',
+            'Amos': 'עמוס',
+            'Obadiah': 'עובדיה',
+            'Jonah': 'יונה',
+            'Micah': 'מיכה',
+            'Nahum': 'נחום',
+            'Habakkuk': 'חבקוק',
+            'Zephaniah': 'צפניה',
+            'Haggai': 'חגי',
+            'Zechariah': 'זכריה',
+            'Malachi': 'מלאכי',
+            'Psalms (Tehillim)': 'תהילים',
+            'Proverbs (Mishlei)': 'משלי',
+            'Job (Iyov)': 'איוב',
+            'Song of Songs': 'שיר השירים',
+            'Ruth': 'רות',
+            'Lamentations (Eicha)': 'איכה',
+            'Ecclesiastes (Kohelet)': 'קהלת',
+            'Esther': 'אסתר',
+            'Daniel': 'דניאל',
+            'Ezra': 'עזרא',
+            'Nehemiah': 'נחמיה',
+            'I Chronicles': 'דברי הימים א׳',
+            'II Chronicles': 'דברי הימים ב׳',
+            'Berakhot (Blessings)': 'ברכות',
+            'Shabbat': 'שבת',
+            'Pesachim (Passover)': 'פסחים',
+            'Sukkah': 'סוכה',
+            'Yom Tov': 'יום טוב',
+            'Rosh Hashanah': 'ראש השנה',
+            'Taanit (Fasting)': 'תענית',
+            'Pirkei Avot (Ethics)': 'פרקי אבות',
+            'Niddah (Family Purity)': 'נדה',
+            'Berakhot': 'ברכות',
+            'Pesachim': 'פסחים',
+            'Sanhedrin': 'סנהדרין',
+            'Kiddushin': 'קידושין',
+            'Gittin': 'גיטין',
+            'Niddah': 'נדה',
+            'Shulchan Arukh OC': 'שולחן ערוך או״ח',
+            'Shulchan Arukh YD': 'שולחן ערוך יו״ד',
+            'Shulchan Arukh EH': 'שולחן ערוך אה״ע',
+            'Shulchan Arukh CM': 'שולחן ערוך חו״מ',
+            'Mishneh Torah': 'משנה תורה',
+            'Kitzur Shulchan Arukh': 'קיצור שולחן ערוך',
+            'Mishnah Berurah': 'משנה ברורה',
+            'Layout': 'פריסה',
+            'Text Size': 'גודל טקסט',
+            'Density': 'ריווח',
+            'Bilingual': 'דו-לשוני',
+            'English': 'אנגלית',
+            'Hebrew': 'עברית',
+            'Answer': 'תשובה',
+            'Trust & Method': 'אמינות ושיטה',
+            'Fallback Summary': 'סיכום חלופי',
+            'Primary Sources': 'מקורות ראשוניים',
+            'Community Traditions': 'מסורות קהילתיות',
+            'Encyclopedia Context': 'הקשר אנציקלופדי',
+            'Source Name': 'שם המקור',
+            'View in Library ↗': 'צפה בספריה ↗',
+            'Laws of blessings and prayer': 'הלכות ברכות ותפילה',
+            'Abridged code of Jewish law': 'קיצור ההלכה היהודית',
+            'The laws of Torah study': 'הלכות תלמוד תורה',
+            'Morning conduct': 'הנהגת הבוקר',
+            'First page of Talmud Bavli': 'הדף הראשון בתלמוד הבבלי',
+            'Ethics of the Fathers': 'מסכת אבות',
+            'Laws of Passover': 'הלכות פסח',
+            'Laws of the Sabbath': 'הלכות שבת',
+            'The Exodus from Egypt': 'יציאת מצרים',
+            'The beginning of creation': 'תחילת הבריאה',
+            'Proverbs of Solomon': 'משלי שלמה',
+            'Psalms of David': 'תהילים לדוד',
+        };
+
+        const PRAYER_HE_MAP = {
+            'Upon Arising': 'ברכות השחר',
+            'Weekday Shacharit': 'שחרית (ימי חול)',
+            'Weekday Mincha': 'מנחה (ימי חול)',
+            'Weekday Maariv': 'מעריב (ימי חול)',
+            'Shabbat Shacharit': 'שחרית של שבת',
+            'Shabbat Mincha': 'מנחה של שבת',
+            'Kiddush': 'קידוש',
+            'Havdalah': 'הבדלה',
+            'Bedtime Shema': 'קריאת שמע שעל המיטה',
+            'Kiddush Levanah': 'קידוש לבנה',
+            'Holiday Prayers': 'תפילות חגים',
+            'Shacharit (Morning)': 'שחרית',
+            'Mincha (Afternoon)': 'מנחה',
+            'Maariv (Evening)': 'מעריב',
+            'Shabbat Prayers': 'תפילות שבת',
+            'Kiddush & Havdalah': 'קידוש והבדלה',
+            'Morning Blessings': 'ברכות הבוקר',
+        };
+
+        const COMMUNITY_HE_MAP = {
+            'Ashkenaz': 'אשכנז',
+            'Sefardic': 'ספרדי',
+            'Iraqi': 'עיראקי',
+            'Syrian': 'סורי',
+            'Yemenite': 'תימני',
+            'Moroccan': 'מרוקאי',
+            'Kavkazi': 'קווקזי',
+            'Israeli': 'ישראלי',
+            'Bukharian': 'בוכרי',
+            'Persian': 'פרסי',
+            'Ethiopian': 'אתיופי',
+            'Greek-Romaniote': 'רומניוטי',
+            'Turkish-Ottoman Sefardic': 'ספרדי טורקי-עות׳מאני',
+        };
+
+        function getHebrewStaticLabel(text) {
+            const key = String(text || '').replace(/\s+/g, ' ').trim();
+            if (!key) return null;
+            return STATIC_HEBREW_TEXT_MAP[key] || null;
+        }
+
+        function translateStaticLabel(text) {
+            const key = String(text || '').replace(/\s+/g, ' ').trim();
+            if (!key) return key;
+            if (!isHebrewMode()) return key;
+            return getHebrewStaticLabel(key) || key;
+        }
+
+        function getPrayerDisplayName(name) {
+            const raw = String(name || '').trim();
+            if (!raw) return raw;
+            if (!isHebrewMode()) return raw;
+            return PRAYER_HE_MAP[raw] || raw;
+        }
+
+        function getCommunityDisplayName(name) {
+            const raw = String(name || '').trim();
+            if (!raw) return raw;
+            if (!isHebrewMode()) return raw;
+            return COMMUNITY_HE_MAP[raw] || raw;
+        }
+
+        function applyStaticHebrewFallbackTranslations(lang = getCurrentLanguage()) {
+            const selectors = [
+                '.navigator-pane summary',
+                '.navigator-pane button',
+                '#textsMenuModal .space-y-2 > button',
+                '#readerLayoutSelect option',
+                '#aiTrustSection h4',
+                '#aiSourcesSection > h3',
+                '#aiCustomsSection > h3',
+                '#aiWikiSection > h3',
+                '#aiFallbackBadge',
+                '.source-title span',
+                '.source-link',
+            ];
+
+            document.querySelectorAll(selectors.join(',')).forEach((el) => {
+                if (!el) return;
+                if (el.childElementCount > 0 && el.tagName !== 'OPTION') return;
+
+                const englishLabel = String(el.dataset.en || el.textContent || '').replace(/\s+/g, ' ').trim();
+                if (!englishLabel) return;
+
+                const hebrewLabel = getHebrewStaticLabel(englishLabel);
+                if (!hebrewLabel) return;
+
+                if (!el.dataset.en) {
+                    el.dataset.en = englishLabel;
+                }
+                el.dataset.he = hebrewLabel;
+                el.textContent = lang === 'he' ? hebrewLabel : el.dataset.en;
+            });
+
+            if (settingsMenuBtn) {
+                settingsMenuBtn.title = lang === 'he' ? 'פתח תפריט הגדרות' : 'Open settings menu';
+            }
+        }
 
         function translateCategoryToken(token) {
             if (!isHebrewMode()) return token;
@@ -1980,9 +2181,12 @@
             const list = document.getElementById('prayersList');
             let html = '';
             prayers.forEach(prayer => {
-                html += `<button onclick="displayPrayer('${prayer.name}')" class="block w-full text-left px-3 py-2 rounded hover:bg-[#00827f]/10 transition text-slate-700 hover:text-[#00827f]">${prayer.name}</button>`;
+                const name = prayer.name || prayer.title || '';
+                const label = getPrayerDisplayName(name);
+                html += `<button onclick="displayPrayer('${name}')" class="block w-full text-left px-3 py-2 rounded hover:bg-[#00827f]/10 transition text-slate-700 hover:text-[#00827f]">${escapeHtml(label)}</button>`;
             });
             list.innerHTML = html;
+            applyStaticHebrewFallbackTranslations();
         }
 
         async function loadCommunitiesMenu() {
@@ -2007,9 +2211,12 @@
             const list = document.getElementById('communitiesList');
             let html = '';
             communities.forEach(community => {
-                html += `<button onclick="displayCommunity('${community.name}')" class="block w-full text-left px-3 py-2 rounded hover:bg-[#594176]/10 transition text-slate-700 hover:text-[#594176]">${community.name}</button>`;
+                const name = community.name || '';
+                const label = getCommunityDisplayName(name);
+                html += `<button onclick="displayCommunity('${name}')" class="block w-full text-left px-3 py-2 rounded hover:bg-[#594176]/10 transition text-slate-700 hover:text-[#594176]">${escapeHtml(label)}</button>`;
             });
             list.innerHTML = html;
+            applyStaticHebrewFallbackTranslations();
         }
 
         async function displayPrayer(prayerName) {
@@ -2212,8 +2419,9 @@
                 loadingOverlay.classList.add('hidden');
                 reader.classList.remove('hidden');
 
+                const communityLabel = getCommunityDisplayName(communityName);
                 const communityTitle = isHebrewMode()
-                    ? `מנהגי קהילת ${communityName}`
+                    ? `מנהגי קהילת ${communityLabel}`
                     : `${communityName} Community Customs`;
                 document.getElementById('readerTitle').innerText = communityTitle;
                 setCurrentView('community', communityName, communityTitle);
@@ -2225,7 +2433,7 @@
 
                 sidebarContent.innerHTML = `
                     <div class="text-xs space-y-2">
-                        <div><span class="font-bold text-slate-700">${t('Community:', 'קהילה:')}</span> <span class="text-slate-500">${communityName}</span></div>
+                        <div><span class="font-bold text-slate-700">${t('Community:', 'קהילה:')}</span> <span class="text-slate-500">${communityLabel}</span></div>
                         <div><span class="font-bold text-slate-700">${t('From:', 'מקור:')}</span> <span class="text-slate-500">${t('Merkava Customs Database', 'מאגר המנהגים של מרכבה')}</span></div>
                         <div><span class="font-bold text-slate-700">${t('Primary Origin:', 'מוצא עיקרי:')}</span> <span class="text-slate-500">${communityData.primary_origin || '--'}</span></div>
                     </div>`;
@@ -2243,8 +2451,9 @@
             const currentLang = localStorage.getItem('preferredLanguage') || 'en';
             let html = '<div class="prose prose-slate max-w-none font-serif leading-relaxed text-slate-800">';
 
+            const communityLabel = getCommunityDisplayName(communityData.name || '');
             html += `<div class="bg-slate-50 rounded-lg p-6 border-l-4 border-[#594176]">`;
-            html += `<h2 class="text-2xl font-bold mb-3 text-[#594176]">${isHebrewMode() ? `הקהילה היהודית ${communityData.name}` : `${communityData.name} Jewish Community`}</h2>`;
+            html += `<h2 class="text-2xl font-bold mb-3 text-[#594176]">${isHebrewMode() ? `הקהילה היהודית ${communityLabel}` : `${communityData.name} Jewish Community`}</h2>`;
 
             if (communityData.primary_origin) {
                 html += `<p class="text-slate-700 mb-4"><strong>${t('Primary Origin:', 'מוצא עיקרי:')}</strong> ${communityData.primary_origin}</p>`;
@@ -2651,16 +2860,23 @@
                 Object.entries(data).forEach(([cat, texts]) => {
                     const color = colors[cat] || '#374151';
                     texts.forEach(t => {
+                        const title = isHebrewMode()
+                            ? (getHebrewStaticLabel(t.title) || t.he || t.title)
+                            : t.title;
+                        const description = isHebrewMode()
+                            ? (getHebrewStaticLabel(t.description) || t.description)
+                            : t.description;
                         html += `
                         <button onclick="readText('${t.ref}')"
                             class="text-left p-3 rounded border border-slate-200 hover:border-[${color}] hover:shadow-sm transition group bg-white">
                             <div class="font-hebrew text-lg text-slate-700 group-hover:text-[${color}]">${t.he}</div>
-                            <div class="text-xs font-serif text-slate-800 mt-1">${t.title}</div>
-                            <div class="text-xs text-slate-400 mt-0.5">${t.description}</div>
+                            <div class="text-xs font-serif text-slate-800 mt-1">${escapeHtml(title)}</div>
+                            <div class="text-xs text-slate-400 mt-0.5">${escapeHtml(description)}</div>
                         </button>`;
                     });
                 });
                 grid.innerHTML = html;
+                applyStaticHebrewFallbackTranslations();
             } catch (e) {
                 grid.innerHTML = `<p class="text-slate-400 text-sm col-span-4 italic">${t('Could not load popular texts.', 'לא ניתן לטעון טקסטים פופולריים.')}</p>`;
             }
@@ -2827,6 +3043,16 @@
 
             // Keep pane visibility/layout controlled by reader preferences.
             applyReaderPreferences();
+
+            applyStaticHebrewFallbackTranslations(lang);
+
+            if (Array.isArray(textsCache.prayersList)) {
+                populatePrayersListHTML(textsCache.prayersList);
+            }
+            if (Array.isArray(textsCache.communitiesList)) {
+                populateCommunitiesListHTML(textsCache.communitiesList);
+            }
+            populatePopularTexts();
 
             // Update reader content if showing prayer or community
             if (reader && !reader.classList.contains('hidden')) {
@@ -3221,8 +3447,9 @@
             if (data.sources && data.sources.length > 0) {
                 data.sources.forEach(src => {
                     const clone = sourceDualTemplate.content.cloneNode(true);
-                    clone.querySelector('.source-title span').textContent = src.title || src.ref || "Sefaria Source";
+                    clone.querySelector('.source-title span').textContent = src.title || src.ref || t("Sefaria Source", "מקור מספריא");
                     clone.querySelector('.source-link').href = `https://www.sefaria.org/${src.ref}`;
+                    clone.querySelector('.source-link').textContent = t('View in Library ↗', 'צפה בספריה ↗');
 
                     const heDiv = clone.querySelector('.source-he');
                     const enDiv = clone.querySelector('.source-en');
@@ -3252,11 +3479,11 @@
                         if (c.media_url.match(/\.(mp4|webm|ogg)$/)) {
                             mediaHTML += `<div class="bg-slate-50 p-4 border rounded"><strong class="block mb-2 text-navy">${c.community} custom:</strong><video controls src="${c.media_url}" class="w-full max-w-lg rounded shadow-sm"></video></div>`;
                         } else if (c.media_url.includes("youtube.com") || c.media_url.includes("youtu.be")) {
-                            mediaHTML += `<div class="bg-indigo-50 text-indigo-800 p-4 border border-indigo-200 rounded font-semibold"><a href="${c.media_url}" target="_blank">Watch Video Guide for ${c.community} Custom &rarr;</a></div>`;
+                            mediaHTML += `<div class="bg-indigo-50 text-indigo-800 p-4 border border-indigo-200 rounded font-semibold"><a href="${c.media_url}" target="_blank">${isHebrewMode() ? `צפה במדריך וידאו למנהג ${getCommunityDisplayName(c.community)} ↗` : `Watch Video Guide for ${c.community} Custom ↗`}</a></div>`;
                         }
                     }
                 });
-                if (mediaHTML) mediaDiv.innerHTML = `<h3 class="text-xl font-bold font-serif mb-4 text-navy border-t pt-8">Customs Media</h3>` + mediaHTML;
+                if (mediaHTML) mediaDiv.innerHTML = `<h3 class="text-xl font-bold font-serif mb-4 text-navy border-t pt-8">${t('Customs Media', 'מדיה למנהגים')}</h3>` + mediaHTML;
             }
 
             // 4. Update Left Sidebar
@@ -3330,7 +3557,7 @@
                         <div class="bg-slate-50 p-4 rounded border border-slate-200 hover:border-navy transition">
                             <div class="flex justify-between items-start mb-2">
                                 <h4 class="font-hebrew text-sm font-bold text-navy">${src.ref}</h4>
-                                <a href="https://www.sefaria.org/${src.ref}" target="_blank" class="text-xs text-blue-600 hover:underline">Sefaria ↗</a>
+                                <a href="https://www.sefaria.org/${src.ref}" target="_blank" class="text-xs text-blue-600 hover:underline">${t('Sefaria ↗', 'ספריא ↗')}</a>
                             </div>
                             <div class="text-xs text-slate-600 bg-white p-2 rounded max-h-32 overflow-y-auto">
                                 ${src.lines.slice(0, 3).map(l => `<p>${l.en ? l.en.replace(/<[^>]*>/gm, '') : l.he}</p>`).join('')}
@@ -3349,7 +3576,7 @@
                 data.customs.forEach(c => {
                     const customHtml = `
                         <div class="bg-indigo-50 border border-indigo-200 p-3 rounded">
-                            <div class="font-bold text-indigo-900 text-sm mb-1">${c.community}</div>
+                            <div class="font-bold text-indigo-900 text-sm mb-1">${getCommunityDisplayName(c.community)}</div>
                             <div class="text-xs text-indigo-800">${c.ruling || c.notes}</div>
                         </div>
                     `;
