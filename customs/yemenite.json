@@ -108,7 +108,10 @@
       "common_practices": [
         "Use Yemenite nusach in synagogue and home prayer",
         "Preserve traditional Hebrew pronunciation",
-        "Maintain community-specific melodies and cantillation"
+        "Maintain community-specific melodies and cantillation",
+        "Preserve inherited nusach and pronunciation in public prayer.",
+        "Coordinate weekday, Shabbat, and festival insertions with local rabbinic guidance.",
+        "Maintain community niggunim and piyyutim where accepted."
       ]
     },
     {
@@ -119,7 +122,10 @@
       "common_practices": [
         "Follow traditional Siddur structure",
         "Retain customary piyyutim where preserved",
-        "Use community accepted insertions and omissions"
+        "Use community accepted insertions and omissions",
+        "Preserve inherited nusach and pronunciation in public prayer.",
+        "Coordinate weekday, Shabbat, and festival insertions with local rabbinic guidance.",
+        "Maintain community niggunim and piyyutim where accepted."
       ]
     },
     {
@@ -130,7 +136,10 @@
       "common_practices": [
         "Use Yemenite trop or recitation patterns",
         "Maintain accurate communal reading customs",
-        "Train readers through oral and textual transmission"
+        "Train readers through oral and textual transmission",
+        "Preserve inherited nusach and pronunciation in public prayer.",
+        "Coordinate weekday, Shabbat, and festival insertions with local rabbinic guidance.",
+        "Maintain community niggunim and piyyutim where accepted."
       ]
     },
     {
@@ -141,7 +150,10 @@
       "common_practices": [
         "Light before Shabbat begins",
         "Use inherited blessing and candle customs",
-        "Preserve number-of-candles customs where applicable"
+        "Preserve number-of-candles customs where applicable",
+        "Prepare practical needs before candle lighting to avoid melacha.",
+        "Use approved warming and lighting setups established before Shabbat.",
+        "Follow local zmanim for candle lighting, shekia, and havdalah."
       ]
     },
     {
@@ -152,7 +164,10 @@
       "common_practices": [
         "Prepare food before Shabbat",
         "Use permitted warming methods",
-        "Avoid prohibited cooking and direct heating"
+        "Avoid prohibited cooking and direct heating",
+        "Prepare practical needs before candle lighting to avoid melacha.",
+        "Use approved warming and lighting setups established before Shabbat.",
+        "Follow local zmanim for candle lighting, shekia, and havdalah."
       ],
       "notes": "Local practice may differ between communities that identify as Baladi or Shami in orientation."
     },
@@ -164,7 +179,10 @@
       "common_practices": [
         "Do not carry where no valid eruv exists",
         "Follow inherited local standards",
-        "Use communal guidance for urban and rural settings"
+        "Use communal guidance for urban and rural settings",
+        "Prepare practical needs before candle lighting to avoid melacha.",
+        "Use approved warming and lighting setups established before Shabbat.",
+        "Follow local zmanim for candle lighting, shekia, and havdalah."
       ]
     },
     {
@@ -175,7 +193,10 @@
       "common_practices": [
         "Maintain separate vessels and cookware",
         "Observe the community’s customary waiting period after meat",
-        "Avoid cross-contamination in kitchen practice"
+        "Avoid cross-contamination in kitchen practice",
+        "Keep clear separation of meat and dairy utensils, storage, and prep zones.",
+        "Verify supervision standards according to trusted local rabbinic authority.",
+        "Apply inherited waiting-time custom for meat and dairy under halachic guidance."
       ]
     },
     {
@@ -186,7 +207,10 @@
       "common_practices": [
         "Use qualified shochtim",
         "Inspect animals and meat carefully",
-        "Follow local standards for glatt and supervision"
+        "Follow local standards for glatt and supervision",
+        "Keep clear separation of meat and dairy utensils, storage, and prep zones.",
+        "Verify supervision standards according to trusted local rabbinic authority.",
+        "Apply inherited waiting-time custom for meat and dairy under halachic guidance."
       ]
     },
     {
@@ -197,7 +221,10 @@
       "common_practices": [
         "Observe the rules of bishul akum",
         "Use kosher supervision for processed foods",
-        "Follow local stringency customs where established"
+        "Follow local stringency customs where established",
+        "Keep clear separation of meat and dairy utensils, storage, and prep zones.",
+        "Verify supervision standards according to trusted local rabbinic authority.",
+        "Apply inherited waiting-time custom for meat and dairy under halachic guidance."
       ]
     },
     {
@@ -208,7 +235,10 @@
       "common_practices": [
         "Search and remove chametz before Pesach",
         "Kasher utensils where needed",
-        "Follow local customs for sale and disposal"
+        "Follow local customs for sale and disposal",
+        "Review chametz cleaning and kashering checklists before the festival.",
+        "Follow community custom on kitniyot and festival kitchen workflow.",
+        "Use community haggadah flow and family minhagim within halachic structure."
       ]
     },
     {
@@ -219,7 +249,10 @@
       "common_practices": [
         "Follow community guidance on rice and legumes",
         "Inspect food carefully for chametz contamination",
-        "Use inherited family custom when recognized by local rabbinic authority"
+        "Use inherited family custom when recognized by local rabbinic authority",
+        "Review chametz cleaning and kashering checklists before the festival.",
+        "Follow community custom on kitniyot and festival kitchen workflow.",
+        "Use community haggadah flow and family minhagim within halachic structure."
       ]
     },
     {
@@ -230,7 +263,10 @@
       "common_practices": [
         "Use Yemenite Haggadah traditions",
         "Preserve family songs and recitation style",
-        "Follow community order for Seder plate and readings"
+        "Follow community order for Seder plate and readings",
+        "Review chametz cleaning and kashering checklists before the festival.",
+        "Follow community custom on kitniyot and festival kitchen workflow.",
+        "Use community haggadah flow and family minhagim within halachic structure."
       ]
     },
     {
@@ -241,7 +277,10 @@
       "common_practices": [
         "Wear tefillin on weekday mornings",
         "Use traditionally prepared tefillin",
-        "Follow inherited wrapping and blessing customs"
+        "Follow inherited wrapping and blessing customs",
+        "Follow local minhag for wrapping style, knot positioning, and sequence.",
+        "Use checked batim and retzuot under reliable supervision.",
+        "Teach youth practical donning order with community standards."
       ]
     },
     {
@@ -252,7 +291,10 @@
       "common_practices": [
         "Wear tzitzit according to communal norm",
         "Use traditional tallit style where preserved",
-        "Preserve blessing and donning order"
+        "Preserve blessing and donning order",
+        "Follow local custom for tallit katan and tallit gadol usage.",
+        "Maintain knot and winding patterns according to inherited minhag.",
+        "Inspect tzitzit regularly for halachic validity."
       ]
     },
     {
@@ -263,7 +305,10 @@
       "common_practices": [
         "Use a qualified mohel",
         "Preserve traditional naming customs",
-        "Include community songs or recitations where customary"
+        "Include community songs or recitations where customary",
+        "Keep core lifecycle ceremonies aligned with halachic requirements.",
+        "Document family minhagim for naming, honors, and celebration order.",
+        "Consult community rabbi for local protocol differences."
       ]
     },
     {
@@ -274,7 +319,10 @@
       "common_practices": [
         "Use a valid ketubah",
         "Perform kiddushin and nissuin properly",
-        "Observe family and regional customs in the wedding sequence"
+        "Observe family and regional customs in the wedding sequence",
+        "Keep core lifecycle ceremonies aligned with halachic requirements.",
+        "Document family minhagim for naming, honors, and celebration order.",
+        "Consult community rabbi for local protocol differences."
       ]
     },
     {
@@ -285,7 +333,10 @@
       "common_practices": [
         "Observe separation laws during niddah",
         "Use mikveh according to halacha",
-        "Follow locally transmitted customs where they do not contradict law"
+        "Follow locally transmitted customs where they do not contradict law",
+        "Use a consistent halachic calendar and consultation process for sensitive questions.",
+        "Coordinate household observance with qualified rabbinic guidance.",
+        "Preserve family minhag where compatible with accepted psak."
       ]
     },
     {
@@ -296,7 +347,10 @@
       "common_practices": [
         "Observe shiva and related periods",
         "Use inherited recitation customs for memorials",
-        "Follow local norms for visitation and consolation"
+        "Follow local norms for visitation and consolation",
+        "Observe shiva, shloshim, and yahrzeit in the accepted local format.",
+        "Coordinate memorial prayer customs with synagogue practice.",
+        "Preserve condolence and visitation etiquette used by the community."
       ]
     },
     {
@@ -307,7 +361,10 @@
       "common_practices": [
         "Use Yemenite machzor or local rite",
         "Preserve selichot and piyutim traditions",
-        "Follow communal custom for shofar and prayer sequence"
+        "Follow communal custom for shofar and prayer sequence",
+        "Anchor observance times to local halachic zmanim.",
+        "Coordinate fasts, selichot, and festival timing with community schedule.",
+        "Use a single trusted local calendar authority for consistency."
       ]
     },
     {
@@ -318,7 +375,10 @@
       "common_practices": [
         "Light candles nightly",
         "Recite blessings and Hallel as required",
-        "Use traditional foods and melodies where preserved"
+        "Use traditional foods and melodies where preserved",
+        "Anchor observance times to local halachic zmanim.",
+        "Coordinate fasts, selichot, and festival timing with community schedule.",
+        "Use a single trusted local calendar authority for consistency."
       ]
     },
     {
@@ -329,7 +389,10 @@
       "common_practices": [
         "Read Megillah publicly",
         "Exchange gifts to the poor and friends",
-        "Preserve local musical or poetic customs"
+        "Preserve local musical or poetic customs",
+        "Anchor observance times to local halachic zmanim.",
+        "Coordinate fasts, selichot, and festival timing with community schedule.",
+        "Use a single trusted local calendar authority for consistency."
       ]
     },
     {
@@ -340,7 +403,10 @@
       "common_practices": [
         "Memorize prayer and reading forms",
         "Teach children the inherited pronunciation and melodies",
-        "Study halachic texts alongside communal practice"
+        "Study halachic texts alongside communal practice",
+        "Teach children both baseline halacha and family minhag distinctions.",
+        "Preserve community pronunciation and liturgical pedagogy.",
+        "Document oral traditions to reduce minhag drift across generations."
       ]
     }
   ],
