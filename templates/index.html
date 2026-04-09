@@ -112,12 +112,6 @@
             <button id="mobilePulseBtn" type="button"
                 class="lg:hidden px-2.5 py-1.5 text-xs border border-slate-300 rounded bg-white hover:bg-slate-100 transition"
                 data-en="Today" data-he="היום">Today</button>
-            <button id="showLeftSidebarTopBtn" type="button"
-                class="hidden px-2.5 py-1.5 text-xs border border-slate-300 rounded bg-white hover:bg-slate-100 transition"
-                data-en="Show Navigator" data-he="הצג ניווט">Show Navigator</button>
-            <button id="showRightSidebarTopBtn" type="button"
-                class="hidden px-2.5 py-1.5 text-xs border border-slate-300 rounded bg-white hover:bg-slate-100 transition"
-                data-en="Show Today" data-he="הצג היום">Show Today</button>
 
             <div id="settingsMenuContainer" class="relative">
                 <button id="settingsMenuBtn" type="button" aria-expanded="false" aria-haspopup="true"
@@ -246,6 +240,14 @@
     </div>
 
     <div class="flex flex-1 relative">
+
+        <button id="showLeftSidebarTopBtn" type="button"
+            class="sidebar-show-tab hidden lg:flex items-center gap-1 fixed left-0 top-1/2 -translate-y-1/2 z-40 px-2 py-1.5 border border-slate-300 border-l-0 rounded-r-lg bg-white/95 text-slate-600 text-[11px] font-semibold uppercase tracking-wide shadow-sm hover:bg-slate-100 transition"
+            data-en="Show Navigator" data-he="הצג ניווט">Show Navigator</button>
+
+        <button id="showRightSidebarTopBtn" type="button"
+            class="sidebar-show-tab hidden lg:flex items-center gap-1 fixed right-0 top-1/2 -translate-y-1/2 z-40 px-2 py-1.5 border border-slate-300 border-r-0 rounded-l-lg bg-white/95 text-slate-600 text-[11px] font-semibold uppercase tracking-wide shadow-sm hover:bg-slate-100 transition"
+            data-en="Show Today" data-he="הצג היום">Show Today</button>
 
         <!-- Column 1: Navigator (Left) -->
         <nav id="leftSidebar"
