@@ -1,6 +1,6 @@
 import json
 import requests
-from flask import Flask, render_template, request, jsonify, session, g
+from flask import Flask, render_template, request, jsonify, session, g, send_from_directory
 from dotenv import load_dotenv
 import time
 import os
@@ -77,7 +77,14 @@ SIDDUR_SECTION_MAP = {
     ],
 }
 
-ANSWER_MODES = {"balanced", "practical", "sources"}
+ANSWER_MODES = {"balanced", "practical", "sources", "strict"}
+
+DEVTOOLS_STATS = {
+    "answers_total": 0,
+    "fallback_answers": 0,
+    "strict_blocks": 0,
+    "segment_reports": 0,
+}
 
 QUICK_TEXT_ALIASES = {
     "genesis": "Genesis 1",
@@ -107,6 +114,7 @@ def _augment_question(original_question, mode, community_lens):
         "balanced": "Give a concise answer first, then explain sources and differences in minhagim.",
         "practical": "Lead with practical next steps and real-life guidance before deeper analysis.",
         "sources": "Prioritize detailed source analysis and cite mekorot carefully before practical summary.",
+        "strict": "Use only directly cited primary sources. If adequate sources are unavailable, explicitly say so instead of speculating.",
     }
 
     parts = [
@@ -115,6 +123,9 @@ def _augment_question(original_question, mode, community_lens):
     ]
     if community_lens and community_lens.lower() != "all":
         parts.append(f"Community lens requested: {community_lens}")
+    if mode == "strict":
+        parts.append(
+            "Strict sources mode: do not rely on unsupported inference.")
     return "\n".join(parts)
 
 
@@ -433,6 +444,35 @@ def _coerce_coordinate(value, min_value, max_value):
     return numeric
 
 
+def _coerce_int(value, default, min_value=1, max_value=100):
+    try:
+        parsed = int(value)
+    except (TypeError, ValueError):
+        return default
+    return max(min_value, min(parsed, max_value))
+
+
+def _parse_multi_value_arg(name):
+    raw = (request.args.get(name, "") or "").strip()
+    if not raw:
+        return []
+    parts = []
+    for chunk in raw.split(","):
+        value = chunk.strip()
+        if value:
+            parts.append(value)
+    return parts
+
+
+def _extract_search_metadata_filters():
+    metadata_filters = {}
+    for key in ("era", "author", "category", "geography", "nusach"):
+        values = _parse_multi_value_arg(key)
+        if values:
+            metadata_filters[key] = values
+    return metadata_filters
+
+
 def _extract_client_ip():
     forwarded_for = (request.headers.get("X-Forwarded-For")
                      or "").split(",")[0].strip()
@@ -556,10 +596,23 @@ def get_zmanim_month():
     return jsonify(events)
 
 
+@app.route("/manifest.webmanifest")
+def web_manifest():
+    return send_from_directory("static", "manifest.webmanifest", mimetype="application/manifest+json")
+
+
+@app.route("/service-worker.js")
+def service_worker():
+    response = send_from_directory(
+        "static", "service-worker.js", mimetype="application/javascript")
+    response.headers["Cache-Control"] = "no-cache"
+    return response
+
+
 @app.route("/ask", methods=["POST"])
 @maybe_require_clerk_auth
 def ask_question():
-    data = request.json
+    data = request.json or {}
     question = data.get("question", "")
 
     if not question:
@@ -576,6 +629,7 @@ def ask_question():
         # Check for direct prayer-service questions
         if any(prayer in question for prayer in ["Shacharit", "Mincha", "Maariv", "Kiddush", "Havdalah"]):
             # Return a prayer service focused response
+            DEVTOOLS_STATS["answers_total"] += 1
             return jsonify({
                 "answer": f"Prayer Service Guide\n\n{question}\n\nYou can browse full liturgy books and services from the prayer sections. For practical application, compare local community custom with your rabbi's guidance.",
                 "confidence": 0.85,
@@ -604,6 +658,7 @@ def ask_question():
             if canonical_lens != "All":
                 customs_query = f"{question} {canonical_lens}"
             customs_info = engine.get_customs(customs_query)
+            DEVTOOLS_STATS["answers_total"] += 1
             return jsonify({
                 "answer": f"Community Customs ({community})\n\n{question}\n\nJewish communities from different diaspora regions developed distinct customs and practices while maintaining core halakhic principles. These traditions reflect the unique historical, cultural, and environmental contexts of each community.",
                 "confidence": 0.8,
@@ -656,6 +711,30 @@ def ask_question():
                 'text': ' '.join(en_lines)
             })
 
+        if mode == "strict" and not flat_sources_for_claude:
+            DEVTOOLS_STATS["answers_total"] += 1
+            DEVTOOLS_STATS["strict_blocks"] += 1
+            DEVTOOLS_STATS["fallback_answers"] += 1
+            return jsonify({
+                "answer": (
+                    "Strict Sources Mode could not complete this request because no primary Sefaria sources "
+                    "were matched with sufficient confidence. Please refine the question with a text reference."
+                ),
+                "confidence": 0.2,
+                "wiki": wiki_list + halachipedia_list,
+                "customs": customs_info,
+                "sources": primary_sources,
+                "meta": {
+                    "mode": mode,
+                    "community_lens": canonical_lens,
+                    "source_count": 0,
+                    "custom_count": len(customs_info),
+                    "generated_at": int(time.time()),
+                    "fallback": True,
+                    "strict_blocked": True,
+                }
+            })
+
         result = claude.get_halachic_answer(
             question=question,
             sefaria_sources=flat_sources_for_claude,
@@ -665,6 +744,12 @@ def ask_question():
             mode=mode,
             community_lens=canonical_lens,
         )
+
+        fallback_used = bool(result.get("is_fallback")
+                             ) or result.get("confidence", 1) < 0.5
+        DEVTOOLS_STATS["answers_total"] += 1
+        if fallback_used:
+            DEVTOOLS_STATS["fallback_answers"] += 1
 
         # Send all context back to the frontend
         return jsonify({
@@ -679,7 +764,7 @@ def ask_question():
                 "source_count": len(primary_sources),
                 "custom_count": len(customs_info),
                 "generated_at": int(time.time()),
-                "fallback": result.get("confidence", 1) < 0.5,
+                "fallback": fallback_used,
             }
         })
 
@@ -709,8 +794,70 @@ def stack_health():
         "calendar": {
             "pyluach": True,
             "zmanim": True,
-        }
+        },
+        "reliability": DEVTOOLS_STATS,
     })
+
+
+@app.route("/api/devtools/heartbeat")
+def devtools_heartbeat():
+    """Low-noise diagnostics endpoint for inspector/devtools mode."""
+    started = time.time()
+
+    checks = {
+        "clerk_configured": bool(CLERK_PUBLISHABLE_KEY and CLERK_JWT_ISSUER),
+        "supabase_service_ready": bool(_get_supabase_client()),
+        "supabase_publishable_ready": bool(SUPABASE_URL and SUPABASE_PUBLISHABLE_KEY),
+    }
+
+    from sefaria_library import get_popular_texts
+    popular_started = time.time()
+    popular = get_popular_texts()
+    checks["library_popular_ready"] = bool(popular)
+    checks["library_popular_ms"] = int((time.time() - popular_started) * 1000)
+
+    return jsonify({
+        "ok": all(v for k, v in checks.items() if not k.endswith("_ms")),
+        "ts": int(time.time()),
+        "elapsed_ms": int((time.time() - started) * 1000),
+        "checks": checks,
+        "stats": DEVTOOLS_STATS,
+    })
+
+
+@app.route("/api/devtools/reliability")
+def devtools_reliability():
+    return jsonify({
+        "stats": DEVTOOLS_STATS,
+        "ts": int(time.time()),
+    })
+
+
+@app.route("/api/devtools/segment-report", methods=["POST"])
+@maybe_require_clerk_auth
+def report_segment_issue():
+    payload = request.get_json(silent=True) or {}
+    report = {
+        "ts": int(time.time()),
+        "kind": (payload.get("kind") or "segment").strip()[:60],
+        "message": (payload.get("message") or "").strip()[:2000],
+        "segment": (payload.get("segment") or "").strip()[:160],
+        "ref": (payload.get("ref") or "").strip()[:200],
+        "view_type": (payload.get("view_type") or "").strip()[:40],
+        "view_value": (payload.get("view_value") or "").strip()[:200],
+        "client": {
+            "ua": (request.headers.get("User-Agent") or "")[:300],
+            "ip": _extract_client_ip() or "",
+        },
+    }
+    claims = getattr(g, "clerk_claims", {}) or {}
+    if claims.get("sub"):
+        report["user_id"] = claims.get("sub")
+
+    app.logger.warning("SEGMENT_REPORT %s",
+                       json.dumps(report, ensure_ascii=True))
+    DEVTOOLS_STATS["segment_reports"] += 1
+    return jsonify({"ok": True, "logged": True})
 
 
 @app.route("/api/auth/me")
@@ -752,14 +899,48 @@ def user_preferences():
                 "user_id", user_id).limit(1).execute()
             rows = result.data or []
             if not rows:
-                return jsonify({"prefs": None, "updated_at": None})
+                return jsonify({
+                    "prefs": None,
+                    "shelf": None,
+                    "notes": None,
+                    "reading_state": None,
+                    "updated_at": None,
+                })
 
             record = rows[0]
             if not isinstance(record, dict):
-                return jsonify({"prefs": None, "updated_at": None})
+                return jsonify({
+                    "prefs": None,
+                    "shelf": None,
+                    "notes": None,
+                    "reading_state": None,
+                    "updated_at": None,
+                })
+
+            stored = record.get("prefs")
+            prefs = None
+            shelf = None
+            notes = None
+            reading_state = None
+            if isinstance(stored, dict):
+                if any(key in stored for key in ("prefs", "shelf", "notes", "reading_state")):
+                    prefs = stored.get("prefs") if isinstance(
+                        stored.get("prefs"), dict) else None
+                    shelf = stored.get("shelf") if isinstance(
+                        stored.get("shelf"), dict) else None
+                    notes = stored.get("notes") if isinstance(
+                        stored.get("notes"), dict) else None
+                    reading_state = stored.get("reading_state") if isinstance(
+                        stored.get("reading_state"), dict) else None
+                else:
+                    # Legacy shape where prefs JSON was stored directly.
+                    prefs = stored
 
             return jsonify({
-                "prefs": record.get("prefs"),
+                "prefs": prefs,
+                "shelf": shelf,
+                "notes": notes,
+                "reading_state": reading_state,
                 "updated_at": record.get("updated_at"),
             })
 
@@ -768,10 +949,34 @@ def user_preferences():
         if not isinstance(prefs, dict):
             return jsonify({"error": "prefs must be an object"}), 400
 
+        shelf = payload.get("shelf")
+        notes = payload.get("notes")
+        reading_state = payload.get("reading_state")
+
+        if shelf is None:
+            shelf = {}
+        if notes is None:
+            notes = {}
+        if reading_state is None:
+            reading_state = {}
+
+        if not isinstance(shelf, dict):
+            return jsonify({"error": "shelf must be an object"}), 400
+        if not isinstance(notes, dict):
+            return jsonify({"error": "notes must be an object"}), 400
+        if not isinstance(reading_state, dict):
+            return jsonify({"error": "reading_state must be an object"}), 400
+
         now_iso = datetime.utcnow().isoformat() + "Z"
+        stored_payload = {
+            "prefs": prefs,
+            "shelf": shelf,
+            "notes": notes,
+            "reading_state": reading_state,
+        }
         upsert_payload = {
             "user_id": user_id,
-            "prefs": prefs,
+            "prefs": stored_payload,
             "updated_at": now_iso,
         }
         table.upsert(upsert_payload, on_conflict="user_id").execute()
@@ -825,10 +1030,12 @@ def library_search():
     """Full-text search across all Sefaria texts."""
     from sefaria_library import search_library
     query = request.args.get("q", "")
-    size = int(request.args.get("size", 10))
+    size = _coerce_int(request.args.get("size"), 10, min_value=1, max_value=50)
+    metadata_filters = _extract_search_metadata_filters()
     if not query:
         return jsonify([])
-    results = search_library(query, size=size)
+    results = search_library(
+        query, size=size, metadata_filters=metadata_filters)
     return jsonify(results)
 
 
@@ -838,10 +1045,8 @@ def search_suggest():
     from sefaria_library import search_library, get_liturgy_books
 
     query = (request.args.get("q", "") or "").strip()
-    try:
-        size = max(1, min(int(request.args.get("size", 8)), 20))
-    except ValueError:
-        size = 8
+    size = _coerce_int(request.args.get("size"), 8, min_value=1, max_value=20)
+    metadata_filters = _extract_search_metadata_filters()
     if not query:
         return jsonify([])
 
@@ -883,7 +1088,7 @@ def search_suggest():
         if title and q_lower in title.lower():
             add_item("prayer", title, title, "Sefaria liturgy", 85)
 
-    for hit in search_library(query, size=size):
+    for hit in search_library(query, size=size, metadata_filters=metadata_filters):
         ref = hit.get("ref", "")
         he_ref = (hit.get("heRef", "") or "").strip()
         categories = " > ".join(hit.get("categories", [])[:3])
@@ -909,6 +1114,42 @@ def get_text_links(ref):
     """Returns all linked commentaries & parallel texts for a given ref."""
     from sefaria_library import get_linked_texts
     return jsonify(get_linked_texts(ref))
+
+
+@app.route("/api/text/<path:ref>/graph")
+def get_text_graph(ref):
+    """Build a lightweight source graph around a text reference."""
+    from sefaria_library import get_linked_texts
+
+    links = get_linked_texts(ref)
+    nodes = [{"id": ref, "label": ref, "kind": "root"}]
+    edges = []
+    seen = {ref}
+
+    for category, items in (links or {}).items():
+        for item in (items or [])[:14]:
+            target = (item or {}).get("ref", "")
+            if not target:
+                continue
+            if target not in seen:
+                seen.add(target)
+                nodes.append({
+                    "id": target,
+                    "label": target,
+                    "kind": "linked",
+                    "category": category,
+                })
+            edges.append({
+                "source": ref,
+                "target": target,
+                "label": category,
+            })
+
+    return jsonify({
+        "ref": ref,
+        "nodes": nodes,
+        "edges": edges,
+    })
 
 
 @app.route("/api/library/category/<path:category>")
@@ -1138,6 +1379,71 @@ def get_community(name):
         })
     except Exception as e:
         return jsonify({"error": f"Could not load community data: {str(e)}"}), 500
+
+
+@app.route("/api/community/<name>/timeline")
+def get_community_timeline(name):
+    """Returns a normalized community timeline for timeline view components."""
+    resolved_name = (unquote(name or "") or "").strip()
+    canonical_name = _canonicalize_community_name(resolved_name)
+    if canonical_name is None:
+        return jsonify({"error": f"Community '{resolved_name}' not found"}), 404
+
+    filename = COMMUNITIES[canonical_name]
+    filepath = os.path.join(os.path.dirname(__file__),
+                            "customs", f"{filename}.json")
+    try:
+        with open(filepath, 'r', encoding='utf-8') as f:
+            data = json.load(f)
+    except Exception as e:
+        return jsonify({"error": f"Could not load community data: {str(e)}"}), 500
+
+    timeline = []
+
+    identity = data.get("identity", {}) if isinstance(data, dict) else {}
+    origin = identity.get("primary_origin") if isinstance(
+        identity, dict) else ""
+    if origin:
+        timeline.append({
+            "title": "Primary Origin",
+            "description": origin,
+            "approx_period": "Historic",
+        })
+
+    for key in ("timeline", "history", "historical_timeline", "migration_story"):
+        value = data.get(key) if isinstance(data, dict) else None
+        if isinstance(value, list):
+            for item in value:
+                if isinstance(item, dict):
+                    timeline.append({
+                        "title": str(item.get("title") or item.get("period") or key).strip()[:120],
+                        "description": str(item.get("description") or item.get("event") or "").strip()[:400],
+                        "approx_period": str(item.get("year") or item.get("period") or "").strip()[:80],
+                    })
+                elif isinstance(item, str):
+                    timeline.append({
+                        "title": key.replace("_", " ").title(),
+                        "description": item.strip()[:400],
+                        "approx_period": "",
+                    })
+        elif isinstance(value, str) and value.strip():
+            timeline.append({
+                "title": key.replace("_", " ").title(),
+                "description": value.strip()[:400],
+                "approx_period": "",
+            })
+
+    if not timeline:
+        timeline.append({
+            "title": "Tradition",
+            "description": f"{canonical_name} customs are preserved through local minhagim and halachic practice.",
+            "approx_period": "Ongoing",
+        })
+
+    return jsonify({
+        "name": canonical_name,
+        "events": timeline[:30],
+    })
 
 
 # ─── TEXTS INDEX (for top menu) ───────────────────────────────────────────────
