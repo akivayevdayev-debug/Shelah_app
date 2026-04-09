@@ -112,6 +112,12 @@
             <button id="mobilePulseBtn" type="button"
                 class="lg:hidden px-2.5 py-1.5 text-xs border border-slate-300 rounded bg-white hover:bg-slate-100 transition"
                 data-en="Today" data-he="היום">Today</button>
+            <button id="showLeftSidebarTopBtn" type="button"
+                class="hidden px-2.5 py-1.5 text-xs border border-slate-300 rounded bg-white hover:bg-slate-100 transition"
+                data-en="Show Navigator" data-he="הצג ניווט">Show Navigator</button>
+            <button id="showRightSidebarTopBtn" type="button"
+                class="hidden px-2.5 py-1.5 text-xs border border-slate-300 rounded bg-white hover:bg-slate-100 transition"
+                data-en="Show Today" data-he="הצג היום">Show Today</button>
 
             <div id="settingsMenuContainer" class="relative">
                 <button id="settingsMenuBtn" type="button" aria-expanded="false" aria-haspopup="true"
@@ -240,20 +246,6 @@
     </div>
 
     <div class="flex flex-1 relative">
-
-        <button id="showLeftSidebarTopBtn" type="button"
-            class="sidebar-restore-chip hidden lg:inline-flex items-center gap-1.5 absolute top-3 left-3 z-30 px-2.5 py-1.5 text-[11px] font-semibold text-slate-600 bg-white/92 border border-slate-200 rounded-full shadow-sm hover:bg-white hover:text-slate-900 transition"
-            data-en="Navigator" data-he="ניווט" aria-label="Show navigator sidebar" title="Show navigator">
-            <span aria-hidden="true">&#8250;</span>
-            <span data-en="Navigator" data-he="ניווט">Navigator</span>
-        </button>
-
-        <button id="showRightSidebarTopBtn" type="button"
-            class="sidebar-restore-chip hidden lg:inline-flex items-center gap-1.5 absolute top-3 right-3 z-30 px-2.5 py-1.5 text-[11px] font-semibold text-slate-600 bg-white/92 border border-slate-200 rounded-full shadow-sm hover:bg-white hover:text-slate-900 transition"
-            data-en="Today" data-he="היום" aria-label="Show today sidebar" title="Show today panel">
-            <span data-en="Today" data-he="היום">Today</span>
-            <span aria-hidden="true">&#8249;</span>
-        </button>
 
         <!-- Column 1: Navigator (Left) -->
         <nav id="leftSidebar"
