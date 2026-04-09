@@ -2057,17 +2057,35 @@
                             `;
                         }
 
+                        if (heText && !enText) {
+                            return `
+                                <div class="bg-white rounded border border-slate-200 p-4" dir="rtl">
+                                    <p class="font-hebrew leading-loose">${heText}</p>
+                                    <p class="text-xs text-slate-400 mt-2">${t('English translation not available for this source segment', 'אין תרגום אנגלי זמין לקטע מקור זה')}</p>
+                                </div>
+                            `;
+                        }
+
+                        if (enText && !heText) {
+                            return `
+                                <div class="bg-white rounded border border-slate-200 p-4" dir="ltr">
+                                    <p class="font-serif leading-relaxed">${enText}</p>
+                                    <p class="text-xs text-slate-400 mt-2">${t('Hebrew text not available for this source segment', 'אין טקסט עברי זמין לקטע מקור זה')}</p>
+                                </div>
+                            `;
+                        }
+
                         return `
                             <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
                                 <div class="bg-white rounded border border-slate-200 p-4" dir="rtl">
                                     ${heText
                                 ? `<p class="font-hebrew leading-loose">${heText}</p>`
-                                : `<p class="text-slate-300 italic">${t('—', '—')}</p>`}
+                                : `<p class="text-slate-300 italic">${t('No Hebrew text in source', 'אין טקסט עברי במקור')}</p>`}
                                 </div>
                                 <div class="bg-white rounded border border-slate-200 p-4" dir="ltr">
                                     ${enText
                                 ? `<p class="font-serif leading-relaxed">${enText}</p>`
-                                : `<p class="text-slate-300 italic">${t('—', '—')}</p>`}
+                                : `<p class="text-slate-300 italic">${t('No English translation in source', 'אין תרגום אנגלי במקור')}</p>`}
                                 </div>
                             </div>
                         `;
@@ -2298,6 +2316,16 @@
             applyStaticHebrewFallbackTranslations();
         }
 
+        function getPrayerFallbackParagraphs(rawText) {
+            const normalized = normalizeDisplayText(String(rawText || '')).replace(/\r/g, '').trim();
+            if (!normalized) return [];
+            return normalized
+                .split(/\n{2,}/)
+                .map(p => p.trim())
+                .filter(Boolean)
+                .map(p => escapeHtml(p));
+        }
+
         async function displayPrayer(prayerName) {
             homeGrid.style.display = 'none';
             reader.classList.add('hidden');
@@ -2316,6 +2344,8 @@
                     ]);
                     if (!staticResp.ok) throw new Error('Prayer not found');
                     prayerData = await staticResp.json();
+                    const fallbackHeParagraphs = getPrayerFallbackParagraphs(prayerData?.content?.he || '');
+                    const fallbackEnParagraphs = getPrayerFallbackParagraphs(prayerData?.content?.en || '');
 
                     // Augment he/en with full Sefaria liturgical text if available
                     if (sefariaResp.ok) {
@@ -2338,8 +2368,15 @@
                                 } else {
                                     const heLine = normalizeDisplayText(line.he || '');
                                     const enLine = normalizeDisplayText(line.en || '');
-                                    const heParagraph = heLine ? escapeHtml(heLine) : '';
-                                    const enParagraph = enLine ? escapeHtml(enLine) : '';
+                                    let heParagraph = heLine ? escapeHtml(heLine) : '';
+                                    let enParagraph = enLine ? escapeHtml(enLine) : '';
+
+                                    if (!heParagraph && fallbackHeParagraphs.length > 0) {
+                                        heParagraph = fallbackHeParagraphs.shift();
+                                    }
+                                    if (!enParagraph && fallbackEnParagraphs.length > 0) {
+                                        enParagraph = fallbackEnParagraphs.shift();
+                                    }
 
                                     if (!heParagraph && !enParagraph) {
                                         return;
@@ -2402,74 +2439,15 @@
         }
 
         function renderPrayerContent(content) {
-            const storedLang = localStorage.getItem('preferredLanguage') || 'en';
-            const currentLang = storedLang === 'he' ? 'he' : 'en';
             let html = '<div class="prose prose-slate max-w-none font-serif leading-relaxed text-slate-800">';
-
-            // Show content with language tabs
             html += `<div class="bg-slate-50 rounded-lg p-6 border border-slate-200">`;
-            html += `<div class="mb-4 flex gap-2 border-b pb-2 flex-wrap">`;
-
-            const langs = [
-                { code: 'en', name: 'English' },
-                { code: 'he', name: 'עברית' },
-            ];
-
-            langs.forEach(lang => {
-                const isActive = currentLang === lang.code;
-                html += `<button onclick="switchPrayerLanguage('${lang.code}')" class="px-3 py-1 rounded text-sm transition ${isActive ? 'bg-navy text-white' : 'bg-slate-200 text-slate-700 hover:bg-slate-300'}" id="lang-btn-${lang.code}">${lang.name}</button>`;
-            });
-
-            html += `</div>`;
             html += `<div id="prayer-display">`;
-
-            const dir = currentLang === 'he' ? 'rtl' : 'ltr';
-            const isHtmlContent = window.currentPrayerIsHtml && (currentLang === 'he' || currentLang === 'en');
-            const contentToShow = content[currentLang] || content['en'] || '';
-
-            if (isHtmlContent) {
-                const fontClass = currentLang === 'he'
-                    ? 'font-hebrew text-2xl leading-loose'
-                    : 'font-serif text-lg leading-relaxed';
-                html += `<div dir="${dir}" class="${fontClass}">${contentToShow}</div>`;
-            } else {
-                html += `<p dir="${dir}" class="text-lg leading-relaxed whitespace-pre-wrap">${contentToShow}</p>`;
-            }
-
             html += `</div>`;
             html += `</div>`;
             html += `</div>`;
 
             return html;
         }
-
-        window.switchPrayerLanguage = function (lang) {
-            const contentDiv = document.getElementById('prayer-display');
-            const buttons = document.querySelectorAll('button[id^="lang-btn-"]');
-
-            // If user clicks a specific language while in bilingual mode, switch to that focused layout.
-            if (appState.prefs.readerLayout === 'bilingual') {
-                appState.prefs.readerLayout = lang === 'he' ? 'hebrew' : 'english';
-                readerLayoutSelect.value = appState.prefs.readerLayout;
-                savePrefs();
-            }
-
-            // Update buttons
-            buttons.forEach(btn => {
-                btn.classList.remove('bg-navy', 'text-white');
-                btn.classList.add('bg-slate-200', 'text-slate-700');
-            });
-
-            const activeBtn = document.querySelector(`#lang-btn-${lang}`);
-            if (activeBtn) {
-                activeBtn.classList.remove('bg-slate-200', 'text-slate-700');
-                activeBtn.classList.add('bg-navy', 'text-white');
-            }
-
-            if (contentDiv && window.currentPrayerContent) {
-                renderPrayerDisplayByLayout(lang);
-            }
-        };
 
         async function displayCommunity(communityName) {
             homeGrid.style.display = 'none';
@@ -2483,7 +2461,6 @@
 
                 if (!communityData) {
                     const response = await fetch(`/api/community/${encodeURIComponent(communityName)}`);
-                    if (!response.ok) throw new Error('Community not found');
                     communityData = await response.json();
                     textsCache.communities[communityName] = communityData;
                 }
