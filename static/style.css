@@ -483,6 +483,30 @@ h6 {
     overflow-y: auto;
 }
 
+.sidebar-show-tab {
+    backdrop-filter: blur(8px);
+}
+
+.sidebar-show-tab:hover {
+    box-shadow: 0 8px 24px rgba(15, 23, 42, 0.12);
+}
+
+html.rtl #showLeftSidebarTopBtn {
+    left: auto;
+    right: 0;
+    border-left: 1px solid #cbd5e1;
+    border-right: 0;
+    border-radius: 0.5rem 0 0 0.5rem;
+}
+
+html.rtl #showRightSidebarTopBtn {
+    right: auto;
+    left: 0;
+    border-right: 1px solid #cbd5e1;
+    border-left: 0;
+    border-radius: 0 0.5rem 0.5rem 0;
+}
+
 #reader #readerContent,
 #reader .source-he,
 #reader .source-en {
