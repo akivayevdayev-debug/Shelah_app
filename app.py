@@ -461,18 +461,32 @@ def get_engine():
         try:
             # ip-api.com is free, no key required, ~45 req/min limit.
             # Use request IP from Vercel headers instead of server runtime IP.
-            lookup_url = f"https://ip-api.com/json/{ip_target}?fields=status,lat,lon,timezone,query"
-            r = requests.get(
-                lookup_url, timeout=3)
-            data = r.json() if r.ok else {}
-            if data.get("status") == "success":
-                ip_lat = _coerce_coordinate(data.get('lat'), -90, 90)
-                ip_lon = _coerce_coordinate(data.get('lon'), -180, 180)
+            # ip-api free tier only supports HTTP; ipwho.is is HTTPS fallback.
+            lookup_urls = [
+                f"http://ip-api.com/json/{ip_target}?fields=status,lat,lon,timezone,query",
+                f"https://ipwho.is/{ip_target}" if ip_target else "https://ipwho.is/",
+            ]
+
+            for lookup_url in lookup_urls:
+                r = requests.get(lookup_url, timeout=3)
+                data = r.json() if r.ok else {}
+
+                ip_lat = None
+                ip_lon = None
+                if data.get("status") == "success":
+                    ip_lat = _coerce_coordinate(data.get('lat'), -90, 90)
+                    ip_lon = _coerce_coordinate(data.get('lon'), -180, 180)
+                elif data.get("success") is True:
+                    ip_lat = _coerce_coordinate(data.get('latitude'), -90, 90)
+                    ip_lon = _coerce_coordinate(
+                        data.get('longitude'), -180, 180)
+
                 if ip_lat is not None and ip_lon is not None:
                     lat = ip_lat
                     lon = ip_lon
                     session['lat'] = lat
                     session['lon'] = lon
+                    break
         except Exception:
             pass
 
@@ -1009,14 +1023,21 @@ def get_siddur_full(prayer_name):
 # ─── COMMUNITY CUSTOMS API (Merkava) ──────────────────────────────────────────
 
 COMMUNITIES = {
+    "Ashkenaz": "ashkenaz",
+    "Bukharian": "bukharian",
+    "Ethiopian": "ethiopian",
+    "Georgian": "georgian",
+    "Greek-Romaniote": "greek-romaniote",
     "Iraqi": "iraqi",
+    "Kavkazi": "mountain-jewish-kavkazi",
     "Syrian": "syrian",
+    "Persian": "persian",
+    "Sefardic": "sefardic",
+    "Turkish-Ottoman Sefardic": "turkish-ottoman-sefardic",
     "Yemenite": "yemenite",
     "Moroccan": "moroccan",
-    "Ashkenaz": "ashkenaz",
     "Israeli": "sefardic",
-    "Sefardic": "sefardic",
-    "Kavkazi": "mountain-jewish-kavkazi",
+    "Legacy Customs DB": "customs_db",
 }
 
 COMMUNITY_ALIASES = {
@@ -1039,13 +1060,30 @@ COMMUNITY_ALIASES = {
     "mountain jewish": "Kavkazi",
     "mountain-jewish": "Kavkazi",
     "kavkazi jews": "Kavkazi",
+    "mountain-jewish-kavkazi": "Kavkazi",
+    "bukharan": "Bukharian",
+    "bukharian": "Bukharian",
+    "ethiopian": "Ethiopian",
+    "beta israel": "Ethiopian",
+    "georgian": "Georgian",
+    "persian": "Persian",
+    "iranian": "Persian",
+    "greek": "Greek-Romaniote",
+    "romaniote": "Greek-Romaniote",
+    "greek-romaniote": "Greek-Romaniote",
+    "turkish": "Turkish-Ottoman Sefardic",
+    "ottoman": "Turkish-Ottoman Sefardic",
+    "turkish-ottoman": "Turkish-Ottoman Sefardic",
+    "turkish-ottoman-sefardic": "Turkish-Ottoman Sefardic",
+    "legacy customs db": "Legacy Customs DB",
+    "customs_db": "Legacy Customs DB",
 }
 
 
 @app.route("/api/communities/list")
 def get_communities_list():
     """Returns list of available communities."""
-    communities = list(COMMUNITIES.keys())
+    communities = sorted(COMMUNITIES.keys())
     return jsonify([{"name": c} for c in communities])
 
 
@@ -1069,10 +1107,12 @@ def get_community(name):
 
         # Extract customs from halacha_index
         customs_content = {}
-        for item in data.get("halacha_index", []):
+        for item in data.get("halacha_index", []) if isinstance(data, dict) else []:
+            if not isinstance(item, dict):
+                continue
             topic = item.get("topic", "").lower()
             category = item.get("category", "").lower()
-            key = f"{category}_{topic}"
+            key = f"{category}_{topic}".strip("_")
             customs_content[key] = {
                 "category": category,
                 "topic": topic,
@@ -1081,12 +1121,14 @@ def get_community(name):
                 "source": item.get("source", "")
             }
 
+        fallback_customs = data if isinstance(data, dict) else {}
+
         return jsonify({
             "name": canonical_name,
             "requested_name": name,
-            "heritage_id": data.get("heritage_id"),
-            "primary_origin": identity.get("primary_origin", ""),
-            "customs": customs_content if customs_content else data.get("halacha_index", []),
+            "heritage_id": data.get("heritage_id") if isinstance(data, dict) else None,
+            "primary_origin": identity.get("primary_origin", "") if isinstance(identity, dict) else "",
+            "customs": customs_content if customs_content else fallback_customs,
             "raw_data": data  # Full data available if needed
         })
     except Exception as e:

@@ -194,6 +194,57 @@ MERKAVA_TEXTS = {
     }
 }
 
+MERKAVA_FALLBACK_HALACHA = {
+    "shabbat": {
+        "ruling": "Prepare before sunset and avoid melacha; follow local rabbinic guidance for modern devices and warming setups.",
+        "details": [
+            "Establish candle-lighting and havdalah times from local zmanim.",
+            "Use only pre-set warming and lighting arrangements.",
+        ],
+        "customs": {},
+    },
+    "kashrut": {
+        "ruling": "Maintain strict separation of meat and dairy, trusted supervision, and community minhag on waiting times.",
+        "details": [
+            "Use separate utensils and preparation areas.",
+            "Verify supervision standards according to local rabbinic policy.",
+        ],
+        "customs": {},
+    },
+    "family": {
+        "ruling": "Observe family purity laws with consistent calendaring and direct halachic consultation for practical questions.",
+        "details": [
+            "Keep a reliable taharat hamishpacha calendar.",
+            "Consult a qualified posek for edge cases.",
+        ],
+        "customs": {},
+    },
+    "holidays": {
+        "ruling": "Follow yom tov restrictions, prayer order, and family/synagogue minhagim for each festival.",
+        "details": [
+            "Use community machzor and piyyut order.",
+            "Coordinate with local calendar timing and observance windows.",
+        ],
+        "customs": {},
+    },
+    "prayer": {
+        "ruling": "Preserve nusach consistency while maintaining halachic requirements for timing, minyan, and kavanah.",
+        "details": [
+            "Use the community nusach and pronunciation standards.",
+            "Keep prayer times aligned with local zmanim.",
+        ],
+        "customs": {},
+    },
+}
+
+MERKAVA_FALLBACK_CUSTOMS = {
+    "ashkenazi": ["Preserve inherited nusach and piyyut order", "Keep local minhag for yom tov liturgy"],
+    "sefardi": ["Follow sefardi prayer order and psak lineage", "Preserve family holiday table customs"],
+    "mizrahi": ["Maintain regional liturgical melodies", "Apply local minhag for food and prayer variations"],
+    "yemenite": ["Preserve teimani pronunciation and rite", "Use community customs for Torah reading cadence"],
+    "bukharian": ["Maintain bukharian synagogue melodies", "Preserve inherited festival hospitality customs"],
+}
+
 
 def fetch_merkava_halacha(topic):
     """Fetch halachic rulings from Merkava database"""
@@ -212,6 +263,16 @@ def fetch_merkava_halacha(topic):
                 }
     except Exception as e:
         print(f"[Merkava Error] {topic}: {e}")
+
+    fallback = MERKAVA_FALLBACK_HALACHA.get(topic)
+    if fallback:
+        return {
+            "source": "Merkava (fallback)",
+            "topic": topic,
+            "halacha": fallback.get("ruling", ""),
+            "explanations": fallback.get("details", []),
+            "customs": fallback.get("customs", {}),
+        }
     return None
 
 
@@ -231,6 +292,15 @@ def fetch_merkava_customs(community):
                 }
     except Exception as e:
         print(f"[Merkava Customs Error] {community}: {e}")
+
+    fallback = MERKAVA_FALLBACK_CUSTOMS.get(community.lower(), [])
+    if fallback:
+        return {
+            "community": community,
+            "source": "Merkava (fallback)",
+            "customs": fallback,
+            "holidays_customs": {},
+        }
     return None
 
 
