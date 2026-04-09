@@ -428,20 +428,22 @@ def get_engine():
     lon = session.get('lon')
 
     if not lat or not lon:
+        # Try IP geolocation ONLY as last resort (unreliable for VPN users)
         try:
             # ip-api.com is free, no key required, ~45 req/min limit (use HTTPS)
             r = requests.get(
                 'https://ip-api.com/json/?fields=lat,lon,timezone', timeout=5)
             data = r.json()
-            if data.get('status') == 'success':
+            # Only accept IP geo result if not a VPN/proxy (check status)
+            if data.get('status') == 'success' and data.get('proxy') != True:
                 lat = data.get('lat')
                 lon = data.get('lon')
                 if lat and lon:
                     session['lat'] = lat
                     session['lon'] = lon
-        except Exception as e:
-            # If IP geolocation fails, don't store coordinates yet
-            # Wait for GPS or user to set location explicitly
+        except Exception:
+            # If IP geolocation fails, don't store coordinates
+            # Frontend GPS will override this
             pass
 
         # Only use NY fallback if we still have no location at all
