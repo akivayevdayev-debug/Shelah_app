@@ -22,7 +22,6 @@ except Exception:
 from pyluach import dates as pyluach_dates
 
 from data_service import ShelahEngine
-from prayer_data_service import get_prayers_data
 import sefaria
 import claude
 
@@ -191,9 +190,7 @@ def _build_pyluach_holiday_events(year):
 
 load_dotenv()
 app = Flask(__name__)
-# Keep a stable fallback secret so session cookies survive serverless cold starts.
-app.secret_key = os.environ.get(
-    "FLASK_SECRET_KEY") or "shelah-dev-secret-change-me"
+app.secret_key = os.environ.get("FLASK_SECRET_KEY") or os.urandom(32)
 
 CLERK_PUBLISHABLE_KEY = (
     os.environ.get("CLERK_PUBLISHABLE_KEY")
@@ -425,112 +422,10 @@ def _get_prayer_refs(prayer_name):
     return get_index_leaf_refs(prayer_name, max_refs=80)
 
 
-def _coerce_location(lat_value, lon_value):
-    """Parse and validate latitude/longitude values."""
-    try:
-        lat = float(lat_value)
-        lon = float(lon_value)
-    except (TypeError, ValueError):
-        return None, None
-
-    if not (-90 <= lat <= 90 and -180 <= lon <= 180):
-        return None, None
-
-    return lat, lon
-
-
-def _extract_location_from_request_args():
-    return _coerce_location(request.args.get("lat"), request.args.get("lon"))
-
-
-def _segment_parent_key(segment):
-    text = str(segment or "").strip()
-    if not text:
-        return ""
-    parts = [p for p in text.split(".") if p]
-    if len(parts) <= 1:
-        return text
-    return ".".join(parts[:-1])
-
-
-def _group_lines_into_paragraphs(lines):
-    """Group flat line data into paragraph-sized chunks by segment parent."""
-    paragraphs = []
-    current = None
-
-    for line in lines or []:
-        if not isinstance(line, dict):
-            continue
-
-        he = (line.get("he") or "").strip()
-        en = (line.get("en") or "").strip()
-        if not he and not en:
-            continue
-
-        key = _segment_parent_key(line.get("segment") or "")
-        if current is None or current["key"] != key:
-            if current is not None:
-                paragraphs.append({
-                    "type": "paragraph",
-                    "segment": current["key"],
-                    "he": " ".join(current["he_parts"]).strip(),
-                    "en": " ".join(current["en_parts"]).strip(),
-                })
-            current = {
-                "key": key,
-                "he_parts": [],
-                "en_parts": [],
-            }
-
-        if he:
-            current["he_parts"].append(he)
-        if en:
-            current["en_parts"].append(en)
-
-    if current is not None:
-        paragraphs.append({
-            "type": "paragraph",
-            "segment": current["key"],
-            "he": " ".join(current["he_parts"]).strip(),
-            "en": " ".join(current["en_parts"]).strip(),
-        })
-
-    return paragraphs
-
-
-def _split_text_paragraphs(text):
-    chunks = []
-    for part in str(text or "").split("\n\n"):
-        clean = part.strip()
-        if clean:
-            chunks.append(clean)
-    return chunks
-
-
-def _build_fallback_paragraphs(name):
-    """Fallback to local prayer corpus when Sefaria full text is unavailable."""
-    prayer_entry = (get_prayers_data() or {}).get(name)
-    if not isinstance(prayer_entry, dict):
-        return []
-
-    he_parts = _split_text_paragraphs(prayer_entry.get("he", ""))
-    en_parts = _split_text_paragraphs(prayer_entry.get("en", ""))
-    total = max(len(he_parts), len(en_parts))
-    if total == 0:
-        return []
-
-    return [{
-        "type": "paragraph",
-        "segment": str(i + 1),
-        "he": he_parts[i] if i < len(he_parts) else "",
-        "en": en_parts[i] if i < len(en_parts) else "",
-    } for i in range(total)]
-
-
-def get_engine(lat_override=None, lon_override=None):
+def get_engine():
     # Instantiate engine using session location or IP fallback
-    lat = lat_override if lat_override is not None else session.get('lat')
-    lon = lon_override if lon_override is not None else session.get('lon')
+    lat = session.get('lat')
+    lon = session.get('lon')
 
     if not lat or not lon:
         # Try IP geolocation ONLY as last resort (unreliable for VPN users)
@@ -574,37 +469,23 @@ def index():
 
 @app.route('/set_location', methods=['POST'])
 def set_location():
-    data = request.get_json(silent=True) or {}
-    lat, lon = _coerce_location(data.get('lat'), data.get('lon'))
-    if lat is None or lon is None:
-        return jsonify({"error": "Invalid location coordinates"}), 400
-
-    session['lat'] = lat
-    session['lon'] = lon
-    return jsonify({"status": "success", "lat": lat, "lon": lon})
+    data = request.get_json()
+    session['lat'] = data.get('lat')
+    session['lon'] = data.get('lon')
+    return jsonify({"status": "success"})
 
 
 @app.route('/api/zmanim')
 def get_zmanim_api():
     community = request.args.get('community', 'standard')
-    lat, lon = _extract_location_from_request_args()
-    if lat is not None and lon is not None:
-        session['lat'] = lat
-        session['lon'] = lon
-
-    engine = get_engine(lat_override=lat, lon_override=lon)
+    engine = get_engine()
     times = engine.get_zmanim(community)
     return jsonify(times)
 
 
 @app.route('/api/zmanim/month')
 def get_zmanim_month():
-    lat, lon = _extract_location_from_request_args()
-    if lat is not None and lon is not None:
-        session['lat'] = lat
-        session['lon'] = lon
-
-    engine = get_engine(lat_override=lat, lon_override=lon)
+    engine = get_engine()
     events = engine.get_monthly_zmanim()
     return jsonify(events)
 
@@ -1003,68 +884,40 @@ def get_prayer(name):
     """Returns prayer-book preview content in English and Hebrew."""
     from sefaria_library import get_text
 
-    fallback_entry = (get_prayers_data() or {}).get(name)
     refs = _get_prayer_refs(name)
     if not refs:
-        if isinstance(fallback_entry, dict):
-            return jsonify({
-                "name": name,
-                "title": name,
-                "content": {
-                    "en": fallback_entry.get("en", ""),
-                    "he": fallback_entry.get("he", ""),
-                },
-                "languages": ["en", "he"],
-                "fallback": True,
-            })
         return jsonify({"error": f"Prayer '{name}' not found"}), 404
 
     preview = None
-    for ref in refs[:80]:
+    for ref in refs[:12]:
         data = get_text(ref)
         if "error" not in data and (data.get("he") or data.get("en")):
             preview = data
             break
 
     if not preview:
-        direct = get_text(name)
-        if "error" not in direct and (direct.get("he") or direct.get("en")):
-            preview = direct
+        return jsonify({"error": f"Could not load prayer '{name}' from Sefaria"}), 404
 
-    if preview:
-        en_preview = "\n".join([l.get("en", "") for l in preview.get(
-            "lines", []) if l.get("en")][:8]).strip()
-        he_preview = "\n".join([l.get("he", "") for l in preview.get(
-            "lines", []) if l.get("he")][:8]).strip()
-        if not en_preview:
-            en_preview = f"Preview available in Hebrew for {name}."
-        if not he_preview:
-            he_preview = f"תצוגה מקדימה זמינה באנגלית עבור {name}."
+    en_preview = "\n".join([l.get("en", "") for l in preview.get(
+        "lines", []) if l.get("en")][:8]).strip()
+    he_preview = "\n".join([l.get("he", "") for l in preview.get(
+        "lines", []) if l.get("he")][:8]).strip()
+    if not en_preview:
+        en_preview = f"Preview available in Hebrew for {name}."
+    if not he_preview:
+        he_preview = f"תצוגה מקדימה זמינה באנגלית עבור {name}."
 
-        return jsonify({
-            "name": name,
-            "title": name,
-            "content": {
-                "en": en_preview,
-                "he": he_preview,
-            },
-            "languages": ["en", "he"],
-            "fallback": False,
-        })
+    prayer_data = {
+        "en": en_preview,
+        "he": he_preview,
+    }
 
-    if isinstance(fallback_entry, dict):
-        return jsonify({
-            "name": name,
-            "title": name,
-            "content": {
-                "en": fallback_entry.get("en", ""),
-                "he": fallback_entry.get("he", ""),
-            },
-            "languages": ["en", "he"],
-            "fallback": True,
-        })
-
-    return jsonify({"error": f"Could not load prayer '{name}'"}), 404
+    return jsonify({
+        "name": name,
+        "title": name,
+        "content": prayer_data,
+        "languages": ["en", "he"]
+    })
 
 
 @app.route("/api/siddur/full/<path:prayer_name>")
@@ -1077,50 +930,25 @@ def get_siddur_full(prayer_name):
         return jsonify({"error": f"No Sefaria mapping for '{prayer_name}'"}), 404
 
     combined_lines = []
-    combined_paragraphs = []
     for ref in refs:
         data = get_text(ref)
         if "error" not in data and (data.get("he") or data.get("en")):
             section_title = ref.split(", ")[-1] if ", " in ref else ref
             he_title = data.get("heTitle", section_title)
-            header_entry = {
-                "he": he_title,
-                "en": section_title,
+            combined_lines.append({
+                "he": f"<strong class='text-navy'>{he_title}</strong>",
+                "en": f"<strong class='text-navy'>{section_title}</strong>",
                 "type": "header"
-            }
-            combined_lines.append(header_entry)
-            combined_paragraphs.append(header_entry)
-
-            grouped = _group_lines_into_paragraphs(data.get("lines", []))
-            if grouped:
-                combined_paragraphs.extend(grouped)
-            else:
-                for raw_line in data.get("lines", []):
-                    combined_paragraphs.append({
-                        "type": "paragraph",
-                        "segment": raw_line.get("segment", ""),
-                        "he": raw_line.get("he", ""),
-                        "en": raw_line.get("en", ""),
-                    })
-
+            })
             combined_lines.extend(data.get("lines", []))
 
-    fallback_used = False
-    if not combined_paragraphs:
-        fallback_paragraphs = _build_fallback_paragraphs(prayer_name)
-        if fallback_paragraphs:
-            combined_paragraphs = fallback_paragraphs
-            fallback_used = True
-
-    if not combined_paragraphs:
+    if not combined_lines:
         return jsonify({"error": "Could not fetch prayer text from Sefaria"}), 404
 
     return jsonify({
         "prayer": prayer_name,
-        "paragraphs": combined_paragraphs,
         "lines": combined_lines,
-        "sources": refs,
-        "fallback": fallback_used,
+        "sources": refs
     })
 
 
