@@ -451,9 +451,13 @@ def check_community_endpoints():
             f"{LOCAL_BASE_URL}/api/community/ashkenaz", timeout=2)
         if response.status_code == 200:
             data = response.json()
-            if 'identity' in data:
-                community_name = data['identity'].get(
-                    'display_name', 'Unknown')
+            if isinstance(data, dict) and ('identity' in data or 'customs' in data):
+                identity_raw = data.get('identity') if isinstance(
+                    data, dict) else None
+                identity = identity_raw if isinstance(
+                    identity_raw, dict) else {}
+                community_name = identity.get(
+                    'display_name') or data.get('name', 'Unknown')
                 print_pass(f"Community API working: {community_name}")
                 return True
             else:

@@ -41,6 +41,72 @@ def _cached_get(url, ttl=CACHE_TTL):
         return None
 
 
+def _normalize_filter_values(raw_values):
+    if raw_values is None:
+        return []
+    if isinstance(raw_values, str):
+        values = [part.strip()
+                  for part in raw_values.split(",") if part.strip()]
+    elif isinstance(raw_values, (list, tuple, set)):
+        values = [str(part).strip()
+                  for part in raw_values if str(part).strip()]
+    else:
+        values = [str(raw_values).strip()] if str(raw_values).strip() else []
+    return [value.lower() for value in values]
+
+
+def _normalize_to_list(value):
+    if isinstance(value, list):
+        return [str(item) for item in value if item]
+    if isinstance(value, str):
+        return [value]
+    return []
+
+
+def _infer_nusach(ref_value, categories=None):
+    haystack = " ".join([
+        str(ref_value or ""),
+        " ".join(categories or []),
+    ]).lower()
+    if "ashkenaz" in haystack:
+        return "Ashkenaz"
+    if "sefard" in haystack or "sephard" in haystack:
+        return "Sefardic"
+    if "mizrahi" in haystack:
+        return "Mizrahi"
+    if "yemen" in haystack:
+        return "Yemenite"
+    return ""
+
+
+def _matches_metadata_filters(result, metadata_filters=None):
+    if not metadata_filters:
+        return True
+
+    candidates = {
+        "era": [result.get("era", "")],
+        "author": _normalize_to_list(result.get("authors", [])),
+        "category": _normalize_to_list(result.get("categories", [])) + [result.get("path", "")],
+        "geography": [result.get("geography", ""), result.get("path", ""), result.get("ref", "")],
+        "nusach": [result.get("nusach", ""), result.get("path", ""), result.get("ref", "")],
+    }
+
+    for key, raw_values in metadata_filters.items():
+        needles = _normalize_filter_values(raw_values)
+        if not needles:
+            continue
+
+        haystack = [str(value).lower()
+                    for value in candidates.get(key, []) if value]
+        if not haystack:
+            return False
+
+        if not any(any(needle in text for text in haystack) for needle in needles):
+            return False
+
+    return True
+
+
 def get_library_index():
     """
     Fetches the full Sefaria library category tree.
@@ -193,7 +259,7 @@ def get_full_book(title, start_section=1, max_sections=10):
     return results
 
 
-def search_library(query, size=10, filters=None):
+def search_library(query, size=10, filters=None, metadata_filters=None):
     """
     Full text search across all of Sefaria.
     Returns a list of results with refs, text snippets, and categories.
@@ -227,13 +293,36 @@ def search_library(query, size=10, filters=None):
         ref = src.get("ref", "")
         if not ref:
             continue
+
+        authors = src.get("authors", [])
+        if isinstance(authors, str):
+            authors = [authors]
+        if not isinstance(authors, list):
+            authors = []
+
+        categories = src.get("categories", [])
+        if not isinstance(categories, list):
+            categories = []
+
+        era = src.get("era") or src.get(
+            "compDateString") or src.get("period") or ""
+        geography = src.get("compPlaceString") or src.get("place") or ""
+        nusach = src.get("nusach") or _infer_nusach(ref, categories)
+
         results.append({
             "ref": ref,
             "heRef": src.get("heRef", ""),
             "text": src.get("exact", "")[:300],  # snippet
-            "categories": src.get("categories", []),
-            "path": src.get("path", "")
+            "categories": categories,
+            "path": src.get("path", ""),
+            "authors": authors,
+            "era": era,
+            "geography": geography,
+            "nusach": nusach,
         })
+
+    results = [result for result in results if _matches_metadata_filters(
+        result, metadata_filters)]
 
     if results:
         return results[:size]
@@ -261,14 +350,41 @@ def search_library(query, size=10, filters=None):
         ref_value = (ref_value or "").strip()
         if not ref_value or ref_value in seen_refs:
             return
-        seen_refs.add(ref_value)
-        results.append({
+
+        categories = get_categories_for_ref(ref_value)
+        book = ref_value.split(",", 1)[0].strip()
+        index_entry = get_index_entry(book) if book else {}
+        authors = index_entry.get("authors", []) if isinstance(
+            index_entry, dict) else []
+        if isinstance(authors, str):
+            authors = [authors]
+        if not isinstance(authors, list):
+            authors = []
+
+        era = ""
+        geography = ""
+        if isinstance(index_entry, dict):
+            era = index_entry.get("era") or index_entry.get(
+                "compDateString") or ""
+            geography = index_entry.get("compPlaceString") or ""
+
+        result = {
             "ref": ref_value,
             "heRef": "",
             "text": title_value or ref_value,
-            "categories": get_categories_for_ref(ref_value),
+            "categories": categories,
             "path": ref_value,
-        })
+            "authors": authors,
+            "era": era,
+            "geography": geography,
+            "nusach": _infer_nusach(ref_value, categories),
+        }
+
+        if not _matches_metadata_filters(result, metadata_filters):
+            return
+
+        seen_refs.add(ref_value)
+        results.append(result)
 
     if name_data.get("is_ref") and name_data.get("ref"):
         add_ref_result(name_data.get("ref"), name_data.get("book", ""))
