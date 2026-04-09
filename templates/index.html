@@ -2026,6 +2026,8 @@
                             prayerData.content.he = heHtml;
                             prayerData.content.en = enHtml;
                             prayerData.hasSefaria = true;
+                        } else if (sefariaData.error) {
+                            console.error('Sefaria error:', sefariaData.error);
                         }
                     }
                     textsCache.prayers[prayerName] = prayerData;
@@ -2500,12 +2502,10 @@
                         return `
                             <div class="source-grid segment-row grid grid-cols-1 lg:grid-cols-2 border-b border-slate-100 last:border-b-0">
                                 <div class="source-he bg-white text-right font-hebrew text-lg leading-normal p-3" dir="rtl">
-                                    <div class="segment-label text-sm">${label}</div>
-                                    ${he ? `<p class="mt-1">${he}</p>` : `<p class="text-slate-300 italic">${t('—', '—')}</p>`}
+                                    ${he ? `<p><span class="segment-label text-xs font-bold text-slate-500 ml-2">${label}</span> ${he}</p>` : `<p class="text-slate-300 italic">${t('—', '—')}</p>`}
                                 </div>
                                 <div class="source-en bg-slate-50 font-serif leading-normal p-3 text-slate-700 text-base">
-                                    <div class="segment-label text-sm">${label}</div>
-                                    ${en ? `<p class="mt-1">${en}</p>` : `<p class="text-slate-300 italic">${t('—', '—')}</p>`}
+                                    ${en ? `<p><span class="segment-label text-xs font-bold text-slate-500 mr-2">${label}</span> ${en}</p>` : `<p class="text-slate-300 italic">${t('—', '—')}</p>`}
                                 </div>
                             </div>
                         `;
@@ -2788,19 +2788,27 @@
 
         // ZMANIM LOGIC
         function initZmanim() {
-            // First check if location exists on IP fallback via direct API call just in case,
-            // but the server backend automatically does IP fallback now if session is empty!
-            fetchZmanimAPI(); // Start fetching immediately using IP fallback
-
-            // Try accurate GPS in background to override IP
+            // PRIORITY: Get GPS location first (avoid VPN/IP spoofing issues)
             if (navigator.geolocation) {
-                navigator.geolocation.getCurrentPosition(pos => {
-                    fetch('/set_location', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ lat: pos.coords.latitude, lon: pos.coords.longitude })
-                    }).then(() => fetchZmanimAPI()); // Refresh accurate
-                }, err => { console.log('Location rejected/failed, keeping IP fallback.'); });
+                navigator.geolocation.getCurrentPosition(
+                    pos => {
+                        // GPS succeeded: set location and fetch zmanim
+                        fetch('/set_location', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ lat: pos.coords.latitude, lon: pos.coords.longitude })
+                        }).then(() => fetchZmanimAPI());
+                    },
+                    err => {
+                        // GPS failed or denied: fall back to IP
+                        console.log('GPS unavailable, using IP fallback.');
+                        fetchZmanimAPI();
+                    },
+                    { timeout: 8000, maximumAge: 3600000 } // 8s timeout, cache 1hr
+                );
+            } else {
+                // No geolocation support: use IP fallback immediately
+                fetchZmanimAPI();
             }
         }
 
