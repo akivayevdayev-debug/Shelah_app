@@ -422,23 +422,61 @@ def _get_prayer_refs(prayer_name):
     return get_index_leaf_refs(prayer_name, max_refs=80)
 
 
+def _coerce_coordinate(value, min_value, max_value):
+    try:
+        numeric = float(value)
+    except (TypeError, ValueError):
+        return None
+    if numeric < min_value or numeric > max_value:
+        return None
+    return numeric
+
+
+def _extract_client_ip():
+    forwarded_for = (request.headers.get("X-Forwarded-For")
+                     or "").split(",")[0].strip()
+    if forwarded_for:
+        return forwarded_for
+
+    real_ip = (request.headers.get("X-Real-IP") or "").strip()
+    if real_ip:
+        return real_ip
+
+    remote_ip = (request.remote_addr or "").strip()
+    return remote_ip or None
+
+
 def get_engine():
     # Instantiate engine using session location or IP fallback
-    lat = session.get('lat')
-    lon = session.get('lon')
+    lat = _coerce_coordinate(session.get('lat'), -90, 90)
+    lon = _coerce_coordinate(session.get('lon'), -180, 180)
 
-    if not lat or not lon:
+    if lat is None or lon is None:
+        client_ip = _extract_client_ip()
+        ip_target = ""
+        if client_ip and client_ip not in {"127.0.0.1", "::1"}:
+            ip_target = client_ip
+
         try:
-            # ip-api.com is free, no key required, ~45 req/min limit
+            # ip-api.com is free, no key required, ~45 req/min limit.
+            # Use request IP from Vercel headers instead of server runtime IP.
+            lookup_url = f"https://ip-api.com/json/{ip_target}?fields=status,lat,lon,timezone,query"
             r = requests.get(
-                'http://ip-api.com/json/?fields=lat,lon,timezone', timeout=3)
-            data = r.json()
-            lat = data.get('lat', 40.7128)
-            lon = data.get('lon', -74.0060)
-            session['lat'] = lat
-            session['lon'] = lon
+                lookup_url, timeout=3)
+            data = r.json() if r.ok else {}
+            if data.get("status") == "success":
+                ip_lat = _coerce_coordinate(data.get('lat'), -90, 90)
+                ip_lon = _coerce_coordinate(data.get('lon'), -180, 180)
+                if ip_lat is not None and ip_lon is not None:
+                    lat = ip_lat
+                    lon = ip_lon
+                    session['lat'] = lat
+                    session['lon'] = lon
         except Exception:
-            lat, lon = (40.7128, -74.0060)
+            pass
+
+    if lat is None or lon is None:
+        lat, lon = (40.7128, -74.0060)
 
     return ShelahEngine(lat=lat, lon=lon)
 
@@ -459,23 +497,46 @@ def index():
 
 @app.route('/set_location', methods=['POST'])
 def set_location():
-    data = request.get_json()
-    session['lat'] = data.get('lat')
-    session['lon'] = data.get('lon')
-    return jsonify({"status": "success"})
+    data = request.get_json(silent=True) or {}
+    lat = _coerce_coordinate(data.get('lat'), -90, 90)
+    lon = _coerce_coordinate(data.get('lon'), -180, 180)
+    if lat is None or lon is None:
+        return jsonify({"error": "Invalid coordinates"}), 400
+
+    session['lat'] = lat
+    session['lon'] = lon
+    return jsonify({"status": "success", "lat": lat, "lon": lon})
 
 
 @app.route('/api/zmanim')
 def get_zmanim_api():
     community = request.args.get('community', 'standard')
-    engine = get_engine()
+    lat = _coerce_coordinate(request.args.get('lat'), -90, 90)
+    lon = _coerce_coordinate(request.args.get('lon'), -180, 180)
+
+    if lat is not None and lon is not None:
+        session['lat'] = lat
+        session['lon'] = lon
+        engine = ShelahEngine(lat=lat, lon=lon)
+    else:
+        engine = get_engine()
+
     times = engine.get_zmanim(community)
     return jsonify(times)
 
 
 @app.route('/api/zmanim/month')
 def get_zmanim_month():
-    engine = get_engine()
+    lat = _coerce_coordinate(request.args.get('lat'), -90, 90)
+    lon = _coerce_coordinate(request.args.get('lon'), -180, 180)
+
+    if lat is not None and lon is not None:
+        session['lat'] = lat
+        session['lon'] = lon
+        engine = ShelahEngine(lat=lat, lon=lon)
+    else:
+        engine = get_engine()
+
     events = engine.get_monthly_zmanim()
     return jsonify(events)
 
