@@ -258,18 +258,21 @@ h6 {
 }
 
 .segment-label {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.35rem;
-    font-size: 0.7rem;
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
+    display: inline-block;
+    font-size: 0.72rem;
+    line-height: 1;
+    letter-spacing: 0.02em;
     color: #64748b;
     background: #f8fafc;
     border: 1px solid #e2e8f0;
     border-radius: 999px;
-    padding: 0.2rem 0.6rem;
-    margin-bottom: 0.65rem;
+    padding: 0.18rem 0.55rem;
+    margin: 0;
+    margin-inline-end: 0.45rem;
+    vertical-align: baseline;
+    white-space: nowrap;
+    direction: ltr;
+    unicode-bidi: isolate;
     font-family: 'Inter', sans-serif;
 }
 
