@@ -415,11 +415,12 @@ def require_clerk_auth(route_fn):
 
 def _get_prayer_refs(prayer_name):
     """Resolve prayer/service name to a list of Sefaria refs."""
-    if prayer_name in SIDDUR_SECTION_MAP:
-        return SIDDUR_SECTION_MAP[prayer_name]
+    resolved_name = (unquote(prayer_name or "") or "").strip()
+    if resolved_name in SIDDUR_SECTION_MAP:
+        return SIDDUR_SECTION_MAP[resolved_name]
 
     from sefaria_library import get_index_leaf_refs
-    return get_index_leaf_refs(prayer_name, max_refs=80)
+    return get_index_leaf_refs(resolved_name, max_refs=80)
 
 
 def _coerce_coordinate(value, min_value, max_value):
@@ -935,9 +936,10 @@ def get_prayer(name):
     """Returns prayer-book preview content in English and Hebrew."""
     from sefaria_library import get_text
 
-    refs = _get_prayer_refs(name)
+    resolved_name = (unquote(name or "") or "").strip()
+    refs = _get_prayer_refs(resolved_name)
     if not refs:
-        return jsonify({"error": f"Prayer '{name}' not found"}), 404
+        return jsonify({"error": f"Prayer '{resolved_name}' not found"}), 404
 
     preview = None
     for ref in refs[:12]:
@@ -947,16 +949,16 @@ def get_prayer(name):
             break
 
     if not preview:
-        return jsonify({"error": f"Could not load prayer '{name}' from Sefaria"}), 404
+        return jsonify({"error": f"Could not load prayer '{resolved_name}' from Sefaria"}), 404
 
     en_preview = "\n".join([l.get("en", "") for l in preview.get(
         "lines", []) if l.get("en")][:8]).strip()
     he_preview = "\n".join([l.get("he", "") for l in preview.get(
         "lines", []) if l.get("he")][:8]).strip()
     if not en_preview:
-        en_preview = f"Preview available in Hebrew for {name}."
+        en_preview = f"Preview available in Hebrew for {resolved_name}."
     if not he_preview:
-        he_preview = f"תצוגה מקדימה זמינה באנגלית עבור {name}."
+        he_preview = f"תצוגה מקדימה זמינה באנגלית עבור {resolved_name}."
 
     prayer_data = {
         "en": en_preview,
@@ -964,8 +966,8 @@ def get_prayer(name):
     }
 
     return jsonify({
-        "name": name,
-        "title": name,
+        "name": resolved_name,
+        "title": resolved_name,
         "content": prayer_data,
         "languages": ["en", "he"]
     })
@@ -976,9 +978,10 @@ def get_siddur_full(prayer_name):
     """Fetch full prayer text from Sefaria for any supported prayer service/book."""
     from sefaria_library import get_text
 
-    refs = _get_prayer_refs(prayer_name)
+    resolved_name = (unquote(prayer_name or "") or "").strip()
+    refs = _get_prayer_refs(resolved_name)
     if not refs:
-        return jsonify({"error": f"No Sefaria mapping for '{prayer_name}'"}), 404
+        return jsonify({"error": f"No Sefaria mapping for '{resolved_name}'"}), 404
 
     combined_lines = []
     for ref in refs:
@@ -997,7 +1000,7 @@ def get_siddur_full(prayer_name):
         return jsonify({"error": "Could not fetch prayer text from Sefaria"}), 404
 
     return jsonify({
-        "prayer": prayer_name,
+        "prayer": resolved_name,
         "lines": combined_lines,
         "sources": refs
     })
