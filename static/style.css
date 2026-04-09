@@ -484,27 +484,24 @@ h6 {
 }
 
 .sidebar-show-tab {
-    backdrop-filter: blur(8px);
+    backdrop-filter: blur(10px);
+    letter-spacing: 0.02em;
+    opacity: 0.85;
 }
 
 .sidebar-show-tab:hover {
-    box-shadow: 0 8px 24px rgba(15, 23, 42, 0.12);
+    opacity: 1;
+    box-shadow: 0 6px 18px rgba(15, 23, 42, 0.08);
 }
 
 html.rtl #showLeftSidebarTopBtn {
-    left: auto;
-    right: 0;
-    border-left: 1px solid #cbd5e1;
-    border-right: 0;
-    border-radius: 0.5rem 0 0 0.5rem;
+    left: 0.75rem;
+    right: auto;
 }
 
 html.rtl #showRightSidebarTopBtn {
-    right: auto;
-    left: 0;
-    border-right: 1px solid #cbd5e1;
-    border-left: 0;
-    border-radius: 0 0.5rem 0.5rem 0;
+    right: 0.75rem;
+    left: auto;
 }
 
 #reader #readerContent,
