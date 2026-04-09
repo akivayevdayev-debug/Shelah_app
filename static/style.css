@@ -483,6 +483,25 @@ h6 {
     overflow-y: auto;
 }
 
+.sidebar-restore-chip {
+    backdrop-filter: blur(10px);
+    letter-spacing: 0.02em;
+}
+
+.sidebar-restore-chip:hover {
+    box-shadow: 0 8px 24px rgba(15, 23, 42, 0.08);
+}
+
+html.rtl #showLeftSidebarTopBtn {
+    left: auto;
+    right: 0.75rem;
+}
+
+html.rtl #showRightSidebarTopBtn {
+    right: auto;
+    left: 0.75rem;
+}
+
 #reader #readerContent,
 #reader .source-he,
 #reader .source-en {
