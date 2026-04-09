@@ -79,6 +79,7 @@ INSTRUCTIONS:
 8. DO NOT output any code, JSON logic, or "If/Then" terminal-style arrays. Output pure narrative markdown ONLY.
 9. Response mode requested: {mode}
 10. Community lens requested: {community_lens}
+11. If mode is strict: do not answer claims that are not explicitly grounded in the provided primary sources.
 """
 
     return prompt
@@ -97,7 +98,7 @@ def limit_words(text, max_words=500):
 def ask_claude(prompt):
     """Send prompt to Claude API with word limit"""
     if client is None:
-        return {"answer": "AI provider is currently unavailable.", "confidence": 0, "error": "unavailable"}
+        return {"answer": "AI provider is currently unavailable.", "confidence": 0, "error": "unavailable", "is_fallback": True}
 
     try:
         message = client.messages.create(
@@ -110,9 +111,9 @@ def ask_claude(prompt):
         response_text = message.content[0].text
         # Apply additional word limit as safety measure
         response_text = limit_words(response_text, max_words=500)
-        return {"answer": response_text, "confidence": 0}
+        return {"answer": response_text, "confidence": 0.78, "is_fallback": False}
     except Exception as e:
-        return {"answer": "AI provider is currently unavailable.", "confidence": 0, "error": str(e)}
+        return {"answer": "AI provider is currently unavailable.", "confidence": 0, "error": str(e), "is_fallback": True}
 
 
 def build_fallback_answer(question: str, sefaria_sources: List[Dict], customs: List[Dict], wiki: List[Dict], halachipedia: List[Dict], mode: str = "balanced", community_lens: str = "All"):
@@ -133,19 +134,23 @@ def build_fallback_answer(question: str, sefaria_sources: List[Dict], customs: L
         "",
     ]
 
-    if mode == "sources":
+    if mode in ("sources", "strict"):
         answer_lines.append("### Primary Sources")
     elif mode == "practical":
         answer_lines.append("### Practical Notes")
     else:
         answer_lines.append("### Key Points")
 
-    if mode in ("sources", "balanced"):
+    if mode in ("sources", "balanced", "strict"):
         if source_refs:
             for ref in source_refs:
                 answer_lines.append(f"- {ref}")
         else:
             answer_lines.append("- No primary source references were matched.")
+
+    if mode == "strict" and not source_refs:
+        answer_lines.append(
+            "- Strict sources mode prevented an inferred ruling without explicit mekorot.")
 
     if mode == "practical":
         answer_lines.append(
@@ -176,6 +181,16 @@ def build_fallback_answer(question: str, sefaria_sources: List[Dict], customs: L
 
 def get_halachic_answer(question, sefaria_sources, customs, wiki=None, halachipedia=None, mode="balanced", community_lens="All"):
     """Main function to get answer"""
+    if mode == "strict" and not sefaria_sources:
+        return {
+            "answer": (
+                "Strict Sources Mode could not generate a ruling because no direct primary sources were found. "
+                "Please provide a specific textual reference."
+            ),
+            "confidence": 0.2,
+            "is_fallback": True,
+        }
+
     prompt = build_prompt(question, sefaria_sources,
                           customs, wiki or [], halachipedia or [], mode=mode, community_lens=community_lens)
     result = ask_claude(prompt)
@@ -189,5 +204,5 @@ def get_halachic_answer(question, sefaria_sources, customs, wiki=None, halachipe
             mode=mode,
             community_lens=community_lens,
         )
-        return {"answer": fallback, "confidence": 0.35}
+        return {"answer": fallback, "confidence": 0.35, "is_fallback": True}
     return result

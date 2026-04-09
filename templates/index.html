@@ -4,7 +4,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#002147">
     <title>Sh'elah - Torah Encyclopedia</title>
+    <link rel="manifest" href="/manifest.webmanifest">
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
 
@@ -63,8 +65,8 @@
 
     <!-- TOP NAVIGATION BAR (Sefaria Style) -->
     <header
-        class="topbar bg-white text-slate-800 p-2 lg:p-2.5 shadow-sm border-b flex justify-between items-center z-50 flex-shrink-0 gap-3">
-        <div class="flex items-center gap-2 cursor-pointer" onclick="goHome()">
+        class="topbar bg-white text-slate-800 p-2 lg:p-2.5 shadow-sm border-b flex flex-wrap lg:flex-nowrap justify-between items-center z-50 flex-shrink-0 gap-2 lg:gap-3">
+        <div class="flex items-center gap-2 cursor-pointer shrink-0" onclick="goHome()">
             <div class="text-navy font-hebrew text-4xl font-semibold leading-tight -mt-1">
                 ש
             </div>
@@ -74,10 +76,10 @@
         </div>
 
         <!-- Top Navigation Menu Toggle + Search Bar -->
-        <div class="flex-1 max-w-4xl flex items-center justify-center gap-2">
+        <div class="order-3 w-full lg:order-none lg:w-auto flex-1 max-w-4xl flex items-center justify-center gap-2">
             <!-- Browse Texts Button (Top Menu) -->
             <button onclick="openTextsMenu()"
-                class="px-3 py-1.5 text-sm font-semibold text-navy bg-slate-100 rounded-full hover:bg-slate-200 transition whitespace-nowrap"
+                class="px-3 py-1.5 text-xs sm:text-sm font-semibold text-navy bg-slate-100 rounded-full hover:bg-slate-200 transition whitespace-nowrap"
                 data-en="Browse Texts" data-he="עיון בטקסטים">
                 Browse Texts
             </button>
@@ -86,7 +88,7 @@
                 <!-- Search Form -->
                 <form id="searchForm" class="w-full relative">
                     <input type="text" id="searchInput" placeholder="Search for a topic, halacha, or custom..."
-                        class="w-full bg-slate-100 hover:bg-slate-200 transition text-base p-2 pl-4 pr-10 rounded-full border-none focus:ring-2 focus:ring-blue-400 focus:bg-white focus:outline-none"
+                        class="w-full bg-slate-100 hover:bg-slate-200 transition text-sm sm:text-base p-2 pl-4 pr-10 rounded-full border-none focus:ring-2 focus:ring-blue-400 focus:bg-white focus:outline-none"
                         autocomplete="off" required>
                     <div id="searchIcon" class="absolute right-3 top-2 text-slate-400">
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
@@ -103,7 +105,14 @@
             </div>
         </div>
 
-        <div class="flex gap-2 items-center">
+        <div class="flex gap-2 items-center flex-wrap justify-end">
+            <button id="mobileNavBtn" type="button"
+                class="lg:hidden px-2.5 py-1.5 text-xs border border-slate-300 rounded bg-white hover:bg-slate-100 transition"
+                data-en="Menu" data-he="תפריט">Menu</button>
+            <button id="mobilePulseBtn" type="button"
+                class="lg:hidden px-2.5 py-1.5 text-xs border border-slate-300 rounded bg-white hover:bg-slate-100 transition"
+                data-en="Today" data-he="היום">Today</button>
+
             <div id="settingsMenuContainer" class="relative">
                 <button id="settingsMenuBtn" type="button" aria-expanded="false" aria-haspopup="true"
                     class="px-2 py-1.5 border border-slate-300 rounded bg-slate-100 hover:bg-slate-200 transition text-slate-700"
@@ -127,6 +136,8 @@
                             <option value="practical" data-en="Practical First" data-he="מעשי תחילה">Practical First
                             </option>
                             <option value="sources" data-en="Deep Sources" data-he="מקורות מעמיקים">Deep Sources
+                            </option>
+                            <option value="strict" data-en="Strict Sources" data-he="מקורות בלבד">Strict Sources
                             </option>
                         </select>
                     </label>
@@ -155,6 +166,44 @@
                         </select>
                     </label>
 
+                    <div class="space-y-2 border-t border-slate-100 pt-2">
+                        <p class="text-[11px] uppercase tracking-widest text-slate-400 font-bold"
+                            data-en="Metadata Filters" data-he="סינון מטא-דאטה">Metadata Filters</p>
+                        <input id="metadataEraInput" type="text" placeholder="Era (e.g. Rishonim)"
+                            class="w-full px-2 py-1.5 rounded border border-slate-200 bg-slate-50 text-xs text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-300" />
+                        <input id="metadataAuthorInput" type="text" placeholder="Author"
+                            class="w-full px-2 py-1.5 rounded border border-slate-200 bg-slate-50 text-xs text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-300" />
+                        <input id="metadataCategoryInput" type="text" placeholder="Category"
+                            class="w-full px-2 py-1.5 rounded border border-slate-200 bg-slate-50 text-xs text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-300" />
+                        <input id="metadataGeographyInput" type="text" placeholder="Geography"
+                            class="w-full px-2 py-1.5 rounded border border-slate-200 bg-slate-50 text-xs text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-300" />
+                        <input id="metadataNusachInput" type="text" placeholder="Nusach"
+                            class="w-full px-2 py-1.5 rounded border border-slate-200 bg-slate-50 text-xs text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-300" />
+                    </div>
+
+                    <div class="space-y-2 border-t border-slate-100 pt-2">
+                        <label class="flex items-center justify-between text-xs text-slate-600">
+                            <span data-en="Transliteration" data-he="תעתיק">Transliteration</span>
+                            <input id="transliterationToggle" type="checkbox" class="h-4 w-4" />
+                        </label>
+                        <label class="flex items-center justify-between text-xs text-slate-600">
+                            <span data-en="Compare Mode" data-he="מצב השוואה">Compare Mode</span>
+                            <input id="compareModeToggle" type="checkbox" class="h-4 w-4" />
+                        </label>
+                        <label class="flex items-center justify-between text-xs text-slate-600">
+                            <span data-en="Shul Mode" data-he="מצב בית כנסת">Shul Mode</span>
+                            <input id="shulModeToggle" type="checkbox" class="h-4 w-4" />
+                        </label>
+                        <label class="flex items-center justify-between text-xs text-slate-600">
+                            <span data-en="Auto Scroll" data-he="גלילה אוטומטית">Auto Scroll</span>
+                            <input id="shulAutoScrollToggle" type="checkbox" class="h-4 w-4" />
+                        </label>
+                        <label class="block text-xs text-slate-600">
+                            <span data-en="Scroll Speed" data-he="מהירות גלילה">Scroll Speed</span>
+                            <input id="shulScrollSpeed" type="range" min="8" max="80" value="28" class="mt-1 w-full" />
+                        </label>
+                    </div>
+
                     <div class="grid grid-cols-2 gap-2">
                         <button id="bookmarkCurrentBtn" type="button"
                             class="px-3 py-1.5 rounded bg-navy text-white hover:bg-blue-900 transition font-semibold text-xs">
@@ -165,6 +214,31 @@
                             class="px-3 py-1.5 rounded bg-slate-100 text-slate-700 border border-slate-200 hover:bg-slate-200 transition font-semibold text-xs">
                             Hide Sidebars
                         </button>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-2 border-t border-slate-100 pt-2">
+                        <button id="devtoolsInspectorBtn" type="button"
+                            class="px-3 py-1.5 rounded bg-slate-100 text-slate-700 border border-slate-200 hover:bg-slate-200 transition font-semibold text-xs"
+                            data-en="Inspector" data-he="בודק">Inspector</button>
+                        <button id="exportCitationBtn" type="button"
+                            class="px-3 py-1.5 rounded bg-slate-100 text-slate-700 border border-slate-200 hover:bg-slate-200 transition font-semibold text-xs"
+                            data-en="Export" data-he="ייצוא">Export</button>
+                        <button id="shareShelfBtn" type="button"
+                            class="px-3 py-1.5 rounded bg-slate-100 text-slate-700 border border-slate-200 hover:bg-slate-200 transition font-semibold text-xs"
+                            data-en="Share Shelf" data-he="שתף מדף">Share Shelf</button>
+                        <button id="importShelfBtn" type="button"
+                            class="px-3 py-1.5 rounded bg-slate-100 text-slate-700 border border-slate-200 hover:bg-slate-200 transition font-semibold text-xs"
+                            data-en="Import Shelf" data-he="ייבא מדף">Import Shelf</button>
+                        <button id="sourceGraphBtn" type="button"
+                            class="px-3 py-1.5 rounded bg-slate-100 text-slate-700 border border-slate-200 hover:bg-slate-200 transition font-semibold text-xs"
+                            data-en="Source Graph" data-he="גרף מקורות">Source Graph</button>
+                        <button id="communityTimelineBtn" type="button"
+                            class="px-3 py-1.5 rounded bg-slate-100 text-slate-700 border border-slate-200 hover:bg-slate-200 transition font-semibold text-xs"
+                            data-en="Timeline" data-he="ציר זמן">Timeline</button>
+                        <button id="trackCurrentBtn" type="button"
+                            class="col-span-2 px-3 py-1.5 rounded bg-slate-100 text-slate-700 border border-slate-200 hover:bg-slate-200 transition font-semibold text-xs"
+                            data-en="Add Current to Study Track" data-he="הוסף פריט נוכחי למסלול לימוד">Add Current to
+                            Study Track</button>
                     </div>
                 </div>
             </div>
@@ -192,11 +266,22 @@
         </div>
     </header>
 
+    <div id="mobileDrawerBackdrop" class="hidden fixed inset-0 bg-slate-900/45 backdrop-blur-[1px] z-[85] lg:hidden">
+    </div>
+
     <div class="flex flex-1 overflow-hidden">
 
         <!-- Column 1: Navigator (Left) -->
-        <nav
-            class="navigator-pane w-64 xl:w-72 border-r bg-white p-6 overflow-y-auto hidden lg:block flex-shrink-0 custom-scrollbar">
+        <nav id="leftSidebar"
+            class="navigator-pane mobile-drawer mobile-drawer-left w-64 xl:w-72 border-r bg-white p-6 overflow-y-auto hidden lg:block flex-shrink-0 custom-scrollbar">
+            <div class="flex lg:hidden items-center justify-between mb-4 pb-3 border-b border-slate-200">
+                <h3 class="text-xs font-bold text-slate-500 uppercase tracking-widest" data-en="Navigator"
+                    data-he="ניווט">
+                    Navigator</h3>
+                <button id="closeLeftSidebarBtn" type="button"
+                    class="px-2 py-1 text-xs border border-slate-300 rounded bg-white hover:bg-slate-100 transition"
+                    data-en="Close" data-he="סגור">Close</button>
+            </div>
             <h3 class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-6" data-en="Table of Contents"
                 data-he="תוכן עניינים">Table of Contents</h3>
             <div class="space-y-4 text-sm text-slate-700">
@@ -438,7 +523,7 @@
                     Prayer Services</h3>
                 <details class="group cursor-pointer">
                     <summary class="font-semibold hover:text-[#00827f] list-none border-b pb-2 mb-2"
-                        data-en="Prayer Books (Sefaria)" data-he="סידורי תפילה (ספריא)">Prayer Books (Sefaria)</summary>
+                        data-en="Prayer Books" data-he="סידורי תפילה">Prayer Books</summary>
                     <ul class="ml-2 space-y-1 border-l-2 pl-3 border-[#00827f]/30">
                         <li><button onclick="displayPrayer('Weekday Shacharit')"
                                 class="text-left text-slate-600 hover:text-[#00827f] text-sm w-full py-0.5"
@@ -468,7 +553,7 @@
                 </details>
                 <details class="group cursor-pointer">
                     <summary class="font-semibold hover:text-[#594176] list-none border-b pb-2 mb-2"
-                        data-en="Community Customs (Merkava)" data-he="מנהגים קהילתיים">Community Customs (Merkava)
+                        data-en="Community Customs" data-he="מנהגים קהילתיים">Community Customs
                     </summary>
                     <ul class="ml-2 space-y-1 border-l-2 pl-3 border-[#594176]/30">
                         <li><button onclick="displayCommunity('Ashkenaz')"
@@ -553,7 +638,7 @@
             </div>
 
             <!-- HOME: BROWSE THE LIBRARY GRID -->
-            <div id="homeGrid" class="w-full max-w-5xl p-8 lg:p-12 transition-opacity duration-300">
+            <div id="homeGrid" class="w-full max-w-5xl p-4 sm:p-6 lg:p-12 transition-opacity duration-300">
                 <h2 class="text-3xl font-serif text-slate-800 mb-8 border-b pb-4" data-en="Browse the Library"
                     data-he="עיין בספרייה">Browse the Library</h2>
 
@@ -661,7 +746,7 @@
             </div>
 
             <!-- READER: SCHOLARLY ARTICLE VIEW -->
-            <article id="reader" class="hidden w-full max-w-4xl p-8 lg:p-12 pb-32">
+            <article id="reader" class="hidden w-full max-w-4xl p-4 sm:p-6 lg:p-12 pb-24 sm:pb-32">
                 <header class="mb-10 text-center">
                     <h1 id="readerTitle" class="text-2xl lg:text-3xl font-serif text-navy mb-4 font-bold"></h1>
                     <p id="readerSubtitle" class="hidden text-sm text-slate-500 font-serif -mt-2 mb-4"></p>
@@ -694,7 +779,29 @@
                                 class="align-middle ml-1" />
                         </label>
                     </div>
+
+                    <div id="readerActionBar"
+                        class="mt-4 grid grid-cols-1 lg:grid-cols-[1fr_auto_auto_auto] gap-2 text-xs">
+                        <input id="compareRefInput" type="text" placeholder="Compare with reference..."
+                            class="px-3 py-2 border border-slate-200 rounded bg-slate-50 text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-300" />
+                        <button id="compareOpenBtn" type="button"
+                            class="px-3 py-2 rounded bg-slate-100 border border-slate-200 text-slate-700 hover:bg-slate-200 transition"
+                            data-en="Compare" data-he="השווה">Compare</button>
+                        <button id="compareClearBtn" type="button"
+                            class="px-3 py-2 rounded bg-slate-100 border border-slate-200 text-slate-700 hover:bg-slate-200 transition"
+                            data-en="Clear" data-he="נקה">Clear</button>
+                        <button id="reportCurrentViewBtn" type="button"
+                            class="px-3 py-2 rounded bg-slate-100 border border-slate-200 text-slate-700 hover:bg-slate-200 transition"
+                            data-en="Report View" data-he="דווח על תצוגה">Report View</button>
+                    </div>
+
+                    <p id="shulAutoScrollStatus" class="hidden mt-2 text-xs text-emerald-700 font-semibold"
+                        data-en="Shul mode auto-scroll active" data-he="מצב בית כנסת: גלילה פעילה">Shul mode auto-scroll
+                        active</p>
                 </header>
+
+                <section id="compareContainer" class="hidden mb-8 border border-slate-200 rounded-xl p-4 bg-slate-50">
+                </section>
 
                 <!-- Main Synthesis Text -->
                 <div id="readerContent" class="prose prose-slate max-w-none font-serif leading-relaxed text-slate-800">
@@ -710,8 +817,16 @@
         </main>
 
         <!-- Column 3: The Pulse Sidebar (Right) -->
-        <aside
-            class="pulse-pane w-80 border-l bg-slate-50 p-6 overflow-y-auto lg:block hidden flex-shrink-0 custom-scrollbar">
+        <aside id="rightSidebar"
+            class="pulse-pane mobile-drawer mobile-drawer-right w-80 border-l bg-slate-50 p-6 overflow-y-auto lg:block hidden flex-shrink-0 custom-scrollbar">
+
+            <div class="flex lg:hidden items-center justify-between mb-4 pb-3 border-b border-slate-200">
+                <h3 class="text-xs font-bold text-slate-500 uppercase tracking-widest" data-en="Today Panel"
+                    data-he="פאנל יומי">Today Panel</h3>
+                <button id="closeRightSidebarBtn" type="button"
+                    class="px-2 py-1 text-xs border border-slate-300 rounded bg-white hover:bg-slate-100 transition"
+                    data-en="Close" data-he="סגור">Close</button>
+            </div>
 
             <!-- Zmanim -->
             <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-5 mb-6">
@@ -941,8 +1056,8 @@
             <div class="overflow-y-auto flex-1 px-6 py-6 custom-scrollbar">
                 <!-- Siddur Section -->
                 <div class="mb-8">
-                    <h3 class="font-serif text-lg font-bold text-[#00827f] mb-4 pb-2 border-b"
-                        data-en="Prayer Books (Sefaria Liturgy)" data-he="סידורי תפילה (ליטורגיה בספריא)">Prayer
+                    <h3 class="font-serif text-lg font-bold text-[#00827f] mb-4 pb-2 border-b" data-en="Prayer Books"
+                        data-he="סידורי תפילה">Prayer
                         Books
                     </h3>
                     <div id="prayersList" class="space-y-2">
@@ -953,7 +1068,7 @@
                 <!-- Communities Section -->
                 <div class="mb-8">
                     <h3 class="font-serif text-lg font-bold text-[#594176] mb-4 pb-2 border-b"
-                        data-en="Community Customs (Merkava)" data-he="מנהגים קהילתיים (מרכבה)">Community Customs
+                        data-en="Community Customs" data-he="מנהגים קהילתיים">Community Customs
                     </h3>
                     <div id="communitiesList" class="space-y-2">
                         <p class="text-slate-400 italic text-sm" data-en="Loading..." data-he="טוען...">Loading...</p>
@@ -1078,6 +1193,58 @@
         </div>
     </div>
 
+    <div id="devtoolsInspectorModal"
+        class="hidden fixed inset-0 z-[110] bg-slate-900/70 backdrop-blur-sm items-center justify-center p-4">
+        <div
+            class="bg-white rounded-2xl shadow-2xl w-full max-w-3xl max-h-[85vh] overflow-hidden flex flex-col relative">
+            <button id="closeDevtoolsInspectorBtn" type="button"
+                class="absolute top-4 right-4 text-2xl text-slate-400 hover:text-slate-800 z-10">&times;</button>
+            <div class="bg-gradient-to-r from-navy to-blue-900 text-white px-6 py-4 border-b">
+                <h2 class="font-serif text-xl font-bold" data-en="System Inspector" data-he="בודק מערכת">System
+                    Inspector</h2>
+                <p class="text-blue-100 text-sm mt-1" data-en="Diagnostics and reliability logs" data-he="אבחון ולוגים">
+                    Diagnostics and reliability logs</p>
+            </div>
+            <div class="overflow-y-auto flex-1 px-6 py-4 space-y-3 bg-slate-50">
+                <pre id="devtoolsLog"
+                    class="text-xs leading-relaxed bg-slate-900 text-slate-100 p-4 rounded-lg overflow-x-auto">Inspector idle...</pre>
+            </div>
+        </div>
+    </div>
+
+    <div id="sourceGraphModal"
+        class="hidden fixed inset-0 z-[110] bg-slate-900/70 backdrop-blur-sm items-center justify-center p-4">
+        <div
+            class="bg-white rounded-2xl shadow-2xl w-full max-w-4xl max-h-[88vh] overflow-hidden flex flex-col relative">
+            <button id="closeSourceGraphBtn" type="button"
+                class="absolute top-4 right-4 text-2xl text-slate-400 hover:text-slate-800 z-10">&times;</button>
+            <div class="bg-gradient-to-r from-navy to-blue-900 text-white px-6 py-4 border-b">
+                <h2 class="font-serif text-xl font-bold" data-en="Source Graph" data-he="גרף מקורות">Source Graph</h2>
+            </div>
+            <div class="overflow-y-auto flex-1 px-6 py-5 space-y-4 bg-slate-50">
+                <svg id="sourceGraphCanvas" viewBox="0 0 820 420"
+                    class="w-full h-[320px] bg-white rounded border border-slate-200"></svg>
+                <div id="sourceGraphList" class="text-sm text-slate-700 space-y-1"></div>
+            </div>
+        </div>
+    </div>
+
+    <div id="communityTimelineModal"
+        class="hidden fixed inset-0 z-[110] bg-slate-900/70 backdrop-blur-sm items-center justify-center p-4">
+        <div
+            class="bg-white rounded-2xl shadow-2xl w-full max-w-3xl max-h-[88vh] overflow-hidden flex flex-col relative">
+            <button id="closeCommunityTimelineBtn" type="button"
+                class="absolute top-4 right-4 text-2xl text-slate-400 hover:text-slate-800 z-10">&times;</button>
+            <div class="bg-gradient-to-r from-navy to-blue-900 text-white px-6 py-4 border-b">
+                <h2 id="communityTimelineTitle" class="font-serif text-xl font-bold" data-en="Community Timeline"
+                    data-he="ציר זמן קהילתי">Community Timeline</h2>
+            </div>
+            <div id="communityTimelineBody" class="overflow-y-auto flex-1 px-6 py-5 space-y-3 bg-slate-50 text-sm">
+                <p class="text-slate-500 italic">Timeline unavailable.</p>
+            </div>
+        </div>
+    </div>
+
     <!-- Template for Dual Sources -->
     <template id="sourceDualTemplate">
         <div class="border border-slate-300 rounded-lg bg-white overflow-hidden shadow-sm mb-6">
@@ -1107,16 +1274,58 @@
         const settingsMenuBtn = document.getElementById('settingsMenuBtn');
         const settingsPanel = document.getElementById('settingsPanel');
         const settingsMenuContainer = document.getElementById('settingsMenuContainer');
+        const metadataEraInput = document.getElementById('metadataEraInput');
+        const metadataAuthorInput = document.getElementById('metadataAuthorInput');
+        const metadataCategoryInput = document.getElementById('metadataCategoryInput');
+        const metadataGeographyInput = document.getElementById('metadataGeographyInput');
+        const metadataNusachInput = document.getElementById('metadataNusachInput');
+        const transliterationToggle = document.getElementById('transliterationToggle');
+        const compareModeToggle = document.getElementById('compareModeToggle');
+        const shulModeToggle = document.getElementById('shulModeToggle');
+        const shulAutoScrollToggle = document.getElementById('shulAutoScrollToggle');
+        const shulScrollSpeed = document.getElementById('shulScrollSpeed');
+        const devtoolsInspectorBtn = document.getElementById('devtoolsInspectorBtn');
+        const exportCitationBtn = document.getElementById('exportCitationBtn');
+        const shareShelfBtn = document.getElementById('shareShelfBtn');
+        const importShelfBtn = document.getElementById('importShelfBtn');
+        const sourceGraphBtn = document.getElementById('sourceGraphBtn');
+        const communityTimelineBtn = document.getElementById('communityTimelineBtn');
+        const trackCurrentBtn = document.getElementById('trackCurrentBtn');
         const readerSubtitle = document.getElementById('readerSubtitle');
         const personalShelf = document.getElementById('personalShelf');
         const authControls = document.getElementById('authControls');
         const authUserPill = document.getElementById('authUserPill');
         const signInBtn = document.getElementById('signInBtn');
         const signOutBtn = document.getElementById('signOutBtn');
+        const mobileNavBtn = document.getElementById('mobileNavBtn');
+        const mobilePulseBtn = document.getElementById('mobilePulseBtn');
+        const closeLeftSidebarBtn = document.getElementById('closeLeftSidebarBtn');
+        const closeRightSidebarBtn = document.getElementById('closeRightSidebarBtn');
+        const mobileDrawerBackdrop = document.getElementById('mobileDrawerBackdrop');
+        const leftSidebar = document.getElementById('leftSidebar');
+        const rightSidebar = document.getElementById('rightSidebar');
 
         const readerLayoutSelect = document.getElementById('readerLayoutSelect');
         const readerFontSize = document.getElementById('readerFontSize');
         const readerLineHeight = document.getElementById('readerLineHeight');
+        const compareRefInput = document.getElementById('compareRefInput');
+        const compareOpenBtn = document.getElementById('compareOpenBtn');
+        const compareClearBtn = document.getElementById('compareClearBtn');
+        const reportCurrentViewBtn = document.getElementById('reportCurrentViewBtn');
+        const compareContainer = document.getElementById('compareContainer');
+        const shulAutoScrollStatus = document.getElementById('shulAutoScrollStatus');
+
+        const devtoolsInspectorModal = document.getElementById('devtoolsInspectorModal');
+        const closeDevtoolsInspectorBtn = document.getElementById('closeDevtoolsInspectorBtn');
+        const devtoolsLog = document.getElementById('devtoolsLog');
+        const sourceGraphModal = document.getElementById('sourceGraphModal');
+        const closeSourceGraphBtn = document.getElementById('closeSourceGraphBtn');
+        const sourceGraphCanvas = document.getElementById('sourceGraphCanvas');
+        const sourceGraphList = document.getElementById('sourceGraphList');
+        const communityTimelineModal = document.getElementById('communityTimelineModal');
+        const closeCommunityTimelineBtn = document.getElementById('closeCommunityTimelineBtn');
+        const communityTimelineTitle = document.getElementById('communityTimelineTitle');
+        const communityTimelineBody = document.getElementById('communityTimelineBody');
 
         const homeGrid = document.getElementById('homeGrid');
         const reader = document.getElementById('reader');
@@ -1208,10 +1417,30 @@
                 fontSize: 18,
                 lineHeight: 1.8,
                 showSidebars: true,
+                metadataFilters: {
+                    era: '',
+                    author: '',
+                    category: '',
+                    geography: '',
+                    nusach: '',
+                },
+                transliteration: false,
+                compareMode: false,
+                compareRef: '',
+                shulMode: false,
+                shulAutoScroll: false,
+                shulScrollSpeed: 28,
             },
             currentView: null,
+            readingState: {},
+            reliability: {
+                lastHeartbeat: null,
+                stats: null,
+            },
         };
         let syncedPrefsUserId = null;
+        let shulScrollFrame = null;
+        let inspectorPollInterval = null;
 
         function getCurrentLanguage() {
             const raw = localStorage.getItem('preferredLanguage') || 'en';
@@ -1575,6 +1804,79 @@
             };
         }
 
+        const debouncedPushPrefsToServer = debounce(() => {
+            void pushPrefsToServer();
+        }, 700);
+
+        function normalizeMetadataFilters(raw = {}) {
+            return {
+                era: String(raw.era || '').trim(),
+                author: String(raw.author || '').trim(),
+                category: String(raw.category || '').trim(),
+                geography: String(raw.geography || '').trim(),
+                nusach: String(raw.nusach || '').trim(),
+            };
+        }
+
+        function appendMetadataFilters(params) {
+            const metadata = normalizeMetadataFilters(appState.prefs.metadataFilters || {});
+            Object.entries(metadata).forEach(([key, value]) => {
+                if (value) {
+                    params.set(key, value);
+                }
+            });
+            return params;
+        }
+
+        const HEBREW_TRANSLIT_MAP = {
+            'א': 'a', 'ב': 'b', 'ג': 'g', 'ד': 'd', 'ה': 'h',
+            'ו': 'v', 'ז': 'z', 'ח': 'ch', 'ט': 't', 'י': 'y',
+            'כ': 'k', 'ך': 'k', 'ל': 'l', 'מ': 'm', 'ם': 'm',
+            'נ': 'n', 'ן': 'n', 'ס': 's', 'ע': 'a', 'פ': 'p',
+            'ף': 'p', 'צ': 'tz', 'ץ': 'tz', 'ק': 'k', 'ר': 'r',
+            'ש': 'sh', 'ת': 't', '׳': "'", '״': '"',
+        };
+
+        function transliterateHebrewText(text = '') {
+            return String(text || '')
+                .replace(/[\u0591-\u05C7]/g, '')
+                .split('')
+                .map((char) => HEBREW_TRANSLIT_MAP[char] || char)
+                .join('')
+                .replace(/\s+/g, ' ')
+                .trim();
+        }
+
+        function transliterationMarkup(rawHebrew) {
+            if (!appState.prefs.transliteration) return '';
+            const plain = normalizeDisplayText(rawHebrew || '');
+            if (!plain) return '';
+            const transliterated = escapeHtml(transliterateHebrewText(plain));
+            return `<p class="segment-translit mt-2 text-sm text-slate-500 italic">${transliterated}</p>`;
+        }
+
+        function appendDevtoolsLog(entry) {
+            if (!devtoolsLog) return;
+            const timestamp = new Date().toLocaleTimeString();
+            devtoolsLog.textContent = `[${timestamp}] ${entry}\n${devtoolsLog.textContent}`.slice(0, 9000);
+        }
+
+        function logReliability(eventName, details = null) {
+            const payload = details ? `${eventName} ${JSON.stringify(details)}` : eventName;
+            console.info('[Reliability]', payload);
+            appendDevtoolsLog(payload);
+        }
+
+        async function registerServiceWorker() {
+            if (!('serviceWorker' in navigator)) return;
+            try {
+                await navigator.serviceWorker.register('/service-worker.js');
+                logReliability('service-worker-registered');
+            } catch (error) {
+                logReliability('service-worker-register-failed', { message: error.message });
+            }
+        }
+
         function isClerkConfigured() {
             return Boolean(window.APP_CLERK && window.APP_CLERK.publishableKey);
         }
@@ -1670,26 +1972,71 @@
             communitiesList: null
         };
 
+        function normalizeShelfShape(value) {
+            const base = {
+                recent: [],
+                bookmarks: [],
+                notes: {},
+                tracks: { 'Daily Study': [] },
+            };
+            if (!value || typeof value !== 'object') return base;
+
+            const recent = Array.isArray(value.recent) ? value.recent : [];
+            const bookmarks = Array.isArray(value.bookmarks) ? value.bookmarks : [];
+            const notes = value.notes && typeof value.notes === 'object' ? value.notes : {};
+            const tracks = value.tracks && typeof value.tracks === 'object' ? value.tracks : { 'Daily Study': [] };
+
+            if (!Array.isArray(tracks['Daily Study'])) {
+                tracks['Daily Study'] = [];
+            }
+
+            return {
+                recent,
+                bookmarks,
+                notes,
+                tracks,
+            };
+        }
+
         function getShelfData() {
             try {
                 const raw = localStorage.getItem(APP_SHELF_KEY);
                 const parsed = raw ? JSON.parse(raw) : null;
-                if (!parsed || !Array.isArray(parsed.recent) || !Array.isArray(parsed.bookmarks)) {
-                    return { recent: [], bookmarks: [] };
-                }
-                return parsed;
+                return normalizeShelfShape(parsed);
             } catch (_) {
-                return { recent: [], bookmarks: [] };
+                return normalizeShelfShape(null);
             }
         }
 
         function saveShelfData(shelf) {
-            localStorage.setItem(APP_SHELF_KEY, JSON.stringify(shelf));
+            localStorage.setItem(APP_SHELF_KEY, JSON.stringify(normalizeShelfShape(shelf)));
+            debouncedPushPrefsToServer();
         }
 
         function savePrefs() {
             localStorage.setItem(APP_PREFS_KEY, JSON.stringify(appState.prefs));
-            void pushPrefsToServer();
+            debouncedPushPrefsToServer();
+        }
+
+        function syncPrefsInputsFromState() {
+            answerModeSelect.value = appState.prefs.mode;
+            communityLensSelect.value = appState.prefs.community;
+            readerLayoutSelect.value = appState.prefs.readerLayout;
+            readerFontSize.value = String(appState.prefs.fontSize);
+            readerLineHeight.value = String(appState.prefs.lineHeight);
+
+            if (metadataEraInput) metadataEraInput.value = appState.prefs.metadataFilters?.era || '';
+            if (metadataAuthorInput) metadataAuthorInput.value = appState.prefs.metadataFilters?.author || '';
+            if (metadataCategoryInput) metadataCategoryInput.value = appState.prefs.metadataFilters?.category || '';
+            if (metadataGeographyInput) metadataGeographyInput.value = appState.prefs.metadataFilters?.geography || '';
+            if (metadataNusachInput) metadataNusachInput.value = appState.prefs.metadataFilters?.nusach || '';
+
+            if (transliterationToggle) transliterationToggle.checked = Boolean(appState.prefs.transliteration);
+            if (compareModeToggle) compareModeToggle.checked = Boolean(appState.prefs.compareMode);
+            if (shulModeToggle) shulModeToggle.checked = Boolean(appState.prefs.shulMode);
+            if (shulAutoScrollToggle) shulAutoScrollToggle.checked = Boolean(appState.prefs.shulAutoScroll);
+            if (shulScrollSpeed) shulScrollSpeed.value = String(appState.prefs.shulScrollSpeed || 28);
+            if (compareRefInput && appState.prefs.compareRef) compareRefInput.value = appState.prefs.compareRef;
         }
 
         async function loadPrefsFromServerIfSignedIn() {
@@ -1712,17 +2059,32 @@
                 appState.prefs = {
                     ...appState.prefs,
                     ...data.prefs,
+                    metadataFilters: normalizeMetadataFilters(data.prefs.metadataFilters || appState.prefs.metadataFilters),
                 };
 
-                answerModeSelect.value = appState.prefs.mode;
-                communityLensSelect.value = appState.prefs.community;
-                readerLayoutSelect.value = appState.prefs.readerLayout;
-                readerFontSize.value = String(appState.prefs.fontSize);
-                readerLineHeight.value = String(appState.prefs.lineHeight);
+                if (data.reading_state && typeof data.reading_state === 'object') {
+                    appState.readingState = data.reading_state;
+                }
+
+                const incomingShelf = (data.shelf && typeof data.shelf === 'object')
+                    ? normalizeShelfShape(data.shelf)
+                    : getShelfData();
+                const incomingNotes = (data.notes && typeof data.notes === 'object') ? data.notes : {};
+                incomingShelf.notes = {
+                    ...incomingShelf.notes,
+                    ...incomingNotes,
+                };
+                localStorage.setItem(APP_SHELF_KEY, JSON.stringify(incomingShelf));
+
+                syncPrefsInputsFromState();
 
                 localStorage.setItem(APP_PREFS_KEY, JSON.stringify(appState.prefs));
                 applyReaderPreferences();
                 applySidebarVisibility();
+                applyShulMode();
+                renderPersonalShelf();
+                updateBookmarkButton();
+                logReliability('prefs-synced-from-server');
             } catch (_) {
                 // Keep local preferences if remote sync is unavailable.
             }
@@ -1734,11 +2096,17 @@
             }
 
             try {
+                const shelf = getShelfData();
                 const headers = await authHeaders({ 'Content-Type': 'application/json' });
                 await fetch('/api/user/preferences', {
                     method: 'PUT',
                     headers,
-                    body: JSON.stringify({ prefs: appState.prefs }),
+                    body: JSON.stringify({
+                        prefs: appState.prefs,
+                        shelf,
+                        notes: shelf.notes || {},
+                        reading_state: appState.readingState || {},
+                    }),
                 });
             } catch (_) {
                 // Ignore sync errors and continue using local preferences.
@@ -1786,22 +2154,99 @@
             return null;
         }
 
-        function applySidebarVisibility() {
-            const leftSidebar = document.querySelector('.navigator-pane');
-            const rightSidebar = document.querySelector('.pulse-pane');
-            const showSidebars = appState.prefs.showSidebars !== false;
+        function isMobileViewport() {
+            return window.matchMedia('(max-width: 1023px)').matches;
+        }
 
-            if (leftSidebar) {
-                leftSidebar.style.display = showSidebars ? '' : 'none';
+        function setMobileDrawerState(drawer, open) {
+            if (!drawer) return;
+            drawer.classList.toggle('mobile-open', open);
+            drawer.classList.toggle('hidden', !open);
+        }
+
+        function closeMobilePanels() {
+            if (!isMobileViewport()) {
+                if (mobileDrawerBackdrop) {
+                    mobileDrawerBackdrop.classList.add('hidden');
+                }
+                document.body.classList.remove('mobile-panel-open');
+                return;
             }
-            if (rightSidebar) {
-                rightSidebar.style.display = showSidebars ? '' : 'none';
+
+            setMobileDrawerState(leftSidebar, false);
+            setMobileDrawerState(rightSidebar, false);
+            if (mobileDrawerBackdrop) {
+                mobileDrawerBackdrop.classList.add('hidden');
+            }
+            document.body.classList.remove('mobile-panel-open');
+        }
+
+        function openMobilePanel(panel) {
+            if (!isMobileViewport()) return;
+
+            const openLeft = panel === 'left';
+            const openRight = panel === 'right';
+            setMobileDrawerState(leftSidebar, openLeft);
+            setMobileDrawerState(rightSidebar, openRight);
+
+            if (mobileDrawerBackdrop) {
+                mobileDrawerBackdrop.classList.remove('hidden');
+            }
+            document.body.classList.add('mobile-panel-open');
+        }
+
+        function toggleMobilePanel(panel) {
+            if (!isMobileViewport()) return;
+            const drawer = panel === 'left' ? leftSidebar : rightSidebar;
+            if (!drawer) return;
+            const isOpen = drawer.classList.contains('mobile-open');
+            if (isOpen) {
+                closeMobilePanels();
+                return;
+            }
+            openMobilePanel(panel);
+        }
+
+        function applySidebarVisibility() {
+            const showSidebars = appState.prefs.showSidebars !== false;
+            const mobile = isMobileViewport();
+
+            if (mobile) {
+                if (leftSidebar) {
+                    leftSidebar.style.removeProperty('display');
+                }
+                if (rightSidebar) {
+                    rightSidebar.style.removeProperty('display');
+                }
+                closeMobilePanels();
+            } else {
+                if (leftSidebar) {
+                    leftSidebar.classList.remove('mobile-open');
+                    leftSidebar.classList.remove('hidden');
+                    leftSidebar.style.display = showSidebars ? '' : 'none';
+                }
+                if (rightSidebar) {
+                    rightSidebar.classList.remove('mobile-open');
+                    rightSidebar.classList.remove('hidden');
+                    rightSidebar.style.display = showSidebars ? '' : 'none';
+                }
+
+                if (mobileDrawerBackdrop) {
+                    mobileDrawerBackdrop.classList.add('hidden');
+                }
+                document.body.classList.remove('mobile-panel-open');
             }
 
             if (sidebarToggleBtn) {
-                sidebarToggleBtn.textContent = showSidebars
-                    ? t('Hide Sidebars', 'הסתר סרגלים')
-                    : t('Show Sidebars', 'הצג סרגלים');
+                if (mobile) {
+                    sidebarToggleBtn.textContent = t('Desktop Sidebars', 'סרגלי שולחן עבודה');
+                    sidebarToggleBtn.title = t('Use Menu and Today buttons on mobile', 'במובייל השתמש בכפתורי תפריט והיום');
+                } else {
+                    sidebarToggleBtn.textContent = showSidebars
+                        ? t('Hide Sidebars', 'הסתר סרגלים')
+                        : t('Show Sidebars', 'הצג סרגלים');
+                    sidebarToggleBtn.title = '';
+                }
             }
         }
 
@@ -1822,6 +2267,410 @@
             const willOpen = settingsPanel.classList.contains('hidden');
             settingsPanel.classList.toggle('hidden');
             if (settingsMenuBtn) settingsMenuBtn.setAttribute('aria-expanded', willOpen ? 'true' : 'false');
+        }
+
+        function stopShulAutoScroll() {
+            if (shulScrollFrame) {
+                cancelAnimationFrame(shulScrollFrame);
+                shulScrollFrame = null;
+            }
+            if (shulAutoScrollStatus) {
+                shulAutoScrollStatus.classList.add('hidden');
+            }
+        }
+
+        function startShulAutoScroll() {
+            stopShulAutoScroll();
+            if (!appState.prefs.shulMode || !appState.prefs.shulAutoScroll) return;
+
+            if (shulAutoScrollStatus) {
+                shulAutoScrollStatus.classList.remove('hidden');
+            }
+
+            let lastTs = null;
+            const step = (ts) => {
+                if (!appState.prefs.shulMode || !appState.prefs.shulAutoScroll) {
+                    stopShulAutoScroll();
+                    return;
+                }
+                if (lastTs !== null) {
+                    const deltaSeconds = (ts - lastTs) / 1000;
+                    const speed = Number(appState.prefs.shulScrollSpeed || 28);
+                    mainContainer.scrollTop += speed * deltaSeconds;
+                }
+                lastTs = ts;
+                shulScrollFrame = requestAnimationFrame(step);
+            };
+            shulScrollFrame = requestAnimationFrame(step);
+        }
+
+        function applyShulMode() {
+            const enabled = Boolean(appState.prefs.shulMode);
+            document.body.classList.toggle('shul-mode', enabled);
+
+            if (enabled) {
+                if (leftSidebar) leftSidebar.style.display = 'none';
+                if (rightSidebar) rightSidebar.style.display = 'none';
+                if (sidebarToggleBtn) {
+                    sidebarToggleBtn.textContent = t('Shul Mode Active', 'מצב בית כנסת פעיל');
+                }
+                if (appState.prefs.shulAutoScroll) {
+                    startShulAutoScroll();
+                } else {
+                    stopShulAutoScroll();
+                }
+            } else {
+                stopShulAutoScroll();
+                applySidebarVisibility();
+            }
+        }
+
+        async function fetchDevtoolsHeartbeat() {
+            try {
+                const response = await fetch('/api/devtools/heartbeat');
+                if (!response.ok) return;
+                const data = await response.json();
+                appState.reliability.lastHeartbeat = data.ts;
+                appState.reliability.stats = data.stats || null;
+                appendDevtoolsLog(`heartbeat ${JSON.stringify(data)}`);
+            } catch (error) {
+                appendDevtoolsLog(`heartbeat-error ${error.message}`);
+            }
+        }
+
+        function openDevtoolsInspector() {
+            if (!devtoolsInspectorModal) return;
+            devtoolsInspectorModal.classList.remove('hidden');
+            devtoolsInspectorModal.classList.add('flex');
+            fetchDevtoolsHeartbeat();
+            if (inspectorPollInterval) clearInterval(inspectorPollInterval);
+            inspectorPollInterval = setInterval(fetchDevtoolsHeartbeat, 15000);
+        }
+
+        function closeDevtoolsInspector() {
+            if (!devtoolsInspectorModal) return;
+            devtoolsInspectorModal.classList.add('hidden');
+            devtoolsInspectorModal.classList.remove('flex');
+            if (inspectorPollInterval) {
+                clearInterval(inspectorPollInterval);
+                inspectorPollInterval = null;
+            }
+        }
+
+        async function reportSegmentIssue(payload = {}) {
+            const view = appState.currentView || {};
+            const report = {
+                kind: payload.kind || 'segment',
+                message: payload.message || '',
+                segment: payload.segment || '',
+                ref: payload.ref || view.value || '',
+                view_type: view.type || '',
+                view_value: view.value || '',
+            };
+
+            try {
+                const headers = await authHeaders({ 'Content-Type': 'application/json' });
+                await fetch('/api/devtools/segment-report', {
+                    method: 'POST',
+                    headers,
+                    body: JSON.stringify(report),
+                });
+                appendDevtoolsLog(`segment-report ${JSON.stringify(report)}`);
+            } catch (error) {
+                appendDevtoolsLog(`segment-report-error ${error.message}`);
+            }
+        }
+
+        function encodeShelfSharePayload(shelf) {
+            try {
+                return btoa(unescape(encodeURIComponent(JSON.stringify(normalizeShelfShape(shelf)))));
+            } catch (_) {
+                return '';
+            }
+        }
+
+        function decodeShelfSharePayload(encoded) {
+            try {
+                const decoded = decodeURIComponent(escape(atob(encoded)));
+                return normalizeShelfShape(JSON.parse(decoded));
+            } catch (_) {
+                return null;
+            }
+        }
+
+        async function shareShelf() {
+            const code = encodeShelfSharePayload(getShelfData());
+            if (!code) return;
+            const shareUrl = `${window.location.origin}${window.location.pathname}#shelf=${encodeURIComponent(code)}`;
+            try {
+                await navigator.clipboard.writeText(shareUrl);
+                appendDevtoolsLog('shelf-shared-url-copied');
+            } catch (_) {
+                appendDevtoolsLog('shelf-share-copy-failed');
+            }
+        }
+
+        function importShelfFromPrompt() {
+            const raw = window.prompt("Paste shared shelf code or URL:", "");
+            if (!raw) return;
+
+            let code = raw.trim();
+            if (code.includes('#shelf=')) {
+                code = code.split('#shelf=')[1] || '';
+            }
+
+            const shelf = decodeShelfSharePayload(decodeURIComponent(code));
+            if (!shelf) {
+                appendDevtoolsLog('shelf-import-invalid');
+                return;
+            }
+
+            saveShelfData(shelf);
+            renderPersonalShelf();
+            appendDevtoolsLog('shelf-import-success');
+        }
+
+        function importShelfFromHashIfPresent() {
+            const hash = window.location.hash || '';
+            if (!hash.startsWith('#shelf=')) return;
+
+            const code = decodeURIComponent(hash.slice('#shelf='.length));
+            const shelf = decodeShelfSharePayload(code);
+            if (!shelf) return;
+
+            saveShelfData(shelf);
+            renderPersonalShelf();
+            history.replaceState(null, '', window.location.pathname + window.location.search);
+            appendDevtoolsLog('shelf-imported-from-hash');
+        }
+
+        function addCurrentToStudyTrack() {
+            const current = appState.currentView;
+            if (!current) return;
+
+            const shelf = getShelfData();
+            const track = Array.isArray(shelf.tracks['Daily Study']) ? shelf.tracks['Daily Study'] : [];
+            const exists = track.some((item) => `${item.type}:${item.value}` === `${current.type}:${current.value}`);
+            if (!exists) {
+                track.unshift({
+                    type: current.type,
+                    value: current.value,
+                    label: current.label,
+                    completed: false,
+                });
+            }
+            shelf.tracks['Daily Study'] = track.slice(0, 40);
+            saveShelfData(shelf);
+            renderPersonalShelf();
+        }
+
+        function toggleTrackItem(index) {
+            const shelf = getShelfData();
+            const track = Array.isArray(shelf.tracks['Daily Study']) ? shelf.tracks['Daily Study'] : [];
+            if (!track[index]) return;
+            track[index].completed = !track[index].completed;
+            shelf.tracks['Daily Study'] = track;
+            saveShelfData(shelf);
+            renderPersonalShelf();
+        }
+
+        function buildCurrentCitationMarkdown() {
+            const current = appState.currentView;
+            if (!current) return '';
+
+            let lines = [`# ${current.label || current.value}`, '', `Type: ${current.type}`, `Reference: ${current.value}`, ''];
+            if (current.type === 'text' && window.currentTextPayload?.lines) {
+                const sample = window.currentTextPayload.lines.slice(0, 4);
+                sample.forEach((line, idx) => {
+                    const he = normalizeDisplayText(line.he || '');
+                    const en = normalizeDisplayText(line.en || '');
+                    lines.push(`## Segment ${idx + 1}`);
+                    if (he) lines.push(`Hebrew: ${he}`);
+                    if (en) lines.push(`English: ${en}`);
+                    lines.push('');
+                });
+            }
+            return lines.join('\n');
+        }
+
+        async function exportCurrentCitation() {
+            const content = buildCurrentCitationMarkdown();
+            if (!content) return;
+
+            const fileSafe = (appState.currentView?.label || 'shelah-citation').replace(/[^a-z0-9]+/gi, '-').toLowerCase();
+            const blob = new Blob([content], { type: 'text/markdown;charset=utf-8' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `${fileSafe}.md`;
+            document.body.appendChild(a);
+            a.click();
+            a.remove();
+            URL.revokeObjectURL(url);
+
+            try {
+                await navigator.clipboard.writeText(content);
+            } catch (_) {
+                // Clipboard copy is best-effort only.
+            }
+            appendDevtoolsLog('citation-exported');
+        }
+
+        function closeSourceGraph() {
+            if (!sourceGraphModal) return;
+            sourceGraphModal.classList.add('hidden');
+            sourceGraphModal.classList.remove('flex');
+        }
+
+        function renderSourceGraph(data) {
+            if (!sourceGraphCanvas) return;
+            const root = data.nodes?.find((node) => node.kind === 'root') || data.nodes?.[0];
+            const linked = (data.nodes || []).filter((node) => node.id !== root?.id).slice(0, 12);
+
+            const cx = 410;
+            const cy = 200;
+            const radius = 140;
+
+            let svg = `<rect x="0" y="0" width="820" height="420" fill="#ffffff" />`;
+            linked.forEach((node, idx) => {
+                const angle = (Math.PI * 2 * idx) / Math.max(linked.length, 1);
+                const nx = cx + radius * Math.cos(angle);
+                const ny = cy + radius * Math.sin(angle);
+                svg += `<line x1="${cx}" y1="${cy}" x2="${nx}" y2="${ny}" stroke="#cbd5e1" stroke-width="1.5" />`;
+                svg += `<circle cx="${nx}" cy="${ny}" r="16" fill="#e2e8f0" />`;
+                svg += `<text x="${nx}" y="${ny + 31}" text-anchor="middle" font-size="10" fill="#475569">${escapeHtml((node.label || '').slice(0, 24))}</text>`;
+            });
+            svg += `<circle cx="${cx}" cy="${cy}" r="22" fill="#002147" />`;
+            svg += `<text x="${cx}" y="${cy + 36}" text-anchor="middle" font-size="11" font-weight="700" fill="#0f172a">${escapeHtml((root?.label || '').slice(0, 40))}</text>`;
+            sourceGraphCanvas.innerHTML = svg;
+
+            if (sourceGraphList) {
+                const list = (data.edges || []).slice(0, 20).map((edge) => {
+                    return `<div class="bg-white border border-slate-200 rounded px-3 py-2"><span class="font-semibold text-slate-700">${escapeHtml(edge.label || 'Link')}</span>: ${escapeHtml(edge.target || '')}</div>`;
+                }).join('');
+                sourceGraphList.innerHTML = list || `<p class="text-slate-500 italic">${t('No linked sources found.', 'לא נמצאו מקורות מקושרים.')}</p>`;
+            }
+        }
+
+        async function openSourceGraph() {
+            const current = appState.currentView;
+            if (!current || current.type !== 'text') {
+                appendDevtoolsLog('source-graph-open-blocked current view is not text');
+                return;
+            }
+
+            try {
+                const response = await fetch(`/api/text/${encodeURIComponent(current.value)}/graph`);
+                if (!response.ok) return;
+                const data = await response.json();
+                renderSourceGraph(data);
+                sourceGraphModal.classList.remove('hidden');
+                sourceGraphModal.classList.add('flex');
+            } catch (error) {
+                appendDevtoolsLog(`source-graph-error ${error.message}`);
+            }
+        }
+
+        function closeCommunityTimeline() {
+            if (!communityTimelineModal) return;
+            communityTimelineModal.classList.add('hidden');
+            communityTimelineModal.classList.remove('flex');
+        }
+
+        async function openCommunityTimeline() {
+            const current = appState.currentView;
+            if (!current || current.type !== 'community') {
+                appendDevtoolsLog('timeline-open-blocked current view is not community');
+                return;
+            }
+
+            try {
+                const response = await fetch(`/api/community/${encodeURIComponent(current.value)}/timeline`);
+                if (!response.ok) return;
+                const data = await response.json();
+                communityTimelineTitle.textContent = isHebrewMode()
+                    ? `ציר זמן ${getCommunityDisplayName(data.name || current.value)}`
+                    : `${data.name || current.value} Timeline`;
+                communityTimelineBody.innerHTML = (data.events || []).map((event) => {
+                    return `
+                        <div class="bg-white border border-slate-200 rounded-lg p-3">
+                            <p class="text-xs uppercase tracking-widest text-slate-400">${escapeHtml(event.approx_period || '')}</p>
+                            <h4 class="font-semibold text-slate-800 mt-1">${escapeHtml(event.title || '')}</h4>
+                            <p class="text-slate-600 mt-1">${escapeHtml(event.description || '')}</p>
+                        </div>
+                    `;
+                }).join('') || `<p class="text-slate-500 italic">${t('No timeline events were found.', 'לא נמצאו אירועים בציר הזמן.')}</p>`;
+                communityTimelineModal.classList.remove('hidden');
+                communityTimelineModal.classList.add('flex');
+            } catch (error) {
+                appendDevtoolsLog(`timeline-error ${error.message}`);
+            }
+        }
+
+        async function loadCompareReference() {
+            if (!compareContainer) return;
+            const base = window.currentTextPayload;
+            const compareRef = String(compareRefInput?.value || appState.prefs.compareRef || '').trim();
+            if (!base || !compareRef) {
+                compareContainer.classList.add('hidden');
+                compareContainer.innerHTML = '';
+                return;
+            }
+
+            try {
+                const response = await fetch(`/api/text/${encodeURIComponent(compareRef)}`);
+                if (!response.ok) return;
+                const other = await response.json();
+                if (other.error) return;
+
+                appState.prefs.compareRef = compareRef;
+                savePrefs();
+
+                const leftSample = (base.lines || []).slice(0, 8);
+                const rightSample = (other.lines || []).slice(0, 8);
+                const maxRows = Math.max(leftSample.length, rightSample.length);
+
+                let rows = '';
+                for (let i = 0; i < maxRows; i += 1) {
+                    const left = leftSample[i] || {};
+                    const right = rightSample[i] || {};
+                    rows += `
+                        <div class="grid grid-cols-1 lg:grid-cols-2 gap-3 border-b border-slate-100 pb-3 mb-3 last:border-b-0">
+                            <div class="bg-white border border-slate-200 rounded p-3">
+                                <p class="font-hebrew text-lg" dir="rtl">${escapeHtml(normalizeDisplayText(left.he || left.en || ''))}</p>
+                                ${transliterationMarkup(left.he || '')}
+                            </div>
+                            <div class="bg-white border border-slate-200 rounded p-3">
+                                <p class="font-hebrew text-lg" dir="rtl">${escapeHtml(normalizeDisplayText(right.he || right.en || ''))}</p>
+                                ${transliterationMarkup(right.he || '')}
+                            </div>
+                        </div>
+                    `;
+                }
+
+                compareContainer.innerHTML = `
+                    <div class="flex items-center justify-between mb-3">
+                        <h3 class="font-bold text-slate-700">${escapeHtml(base.ref || appState.currentView?.value || '')} vs ${escapeHtml(other.ref || compareRef)}</h3>
+                        <button type="button" class="text-xs text-slate-500 hover:text-slate-700 report-segment-btn" data-kind="compare" data-segment="compare-view" data-ref="${encodeURIComponent(base.ref || '')}">${t('Report', 'דווח')}</button>
+                    </div>
+                    ${rows}
+                `;
+                compareContainer.classList.remove('hidden');
+            } catch (error) {
+                appendDevtoolsLog(`compare-load-error ${error.message}`);
+            }
+        }
+
+        function clearCompareReference(persist = true) {
+            appState.prefs.compareRef = '';
+            if (compareRefInput) compareRefInput.value = '';
+            if (compareContainer) {
+                compareContainer.classList.add('hidden');
+                compareContainer.innerHTML = '';
+            }
+            if (persist) {
+                savePrefs();
+            }
         }
 
         function renderSearchSuggestions() {
@@ -1888,7 +2737,8 @@
             }
 
             try {
-                const resp = await fetch(`/api/search/suggest?q=${encodeURIComponent(q)}&size=8`);
+                const params = appendMetadataFilters(new URLSearchParams({ q, size: '8' }));
+                const resp = await fetch(`/api/search/suggest?${params.toString()}`);
                 if (!resp.ok) {
                     hideSearchSuggestions();
                     return;
@@ -1899,6 +2749,7 @@
                 renderSearchSuggestions();
             } catch (_) {
                 hideSearchSuggestions();
+                logReliability('suggestions-error');
             }
         }
 
@@ -1915,6 +2766,13 @@
 
         function setCurrentView(type, value, label) {
             appState.currentView = { type, value, label: label || value };
+            appState.readingState = {
+                ...appState.readingState,
+                last_type: type,
+                last_value: value,
+                last_label: label || value,
+                last_opened_at: new Date().toISOString(),
+            };
             addRecentItem(appState.currentView);
             updateBookmarkButton();
         }
@@ -1976,6 +2834,8 @@
 
         function renderPersonalShelf() {
             const shelf = getShelfData();
+            const track = Array.isArray(shelf.tracks['Daily Study']) ? shelf.tracks['Daily Study'] : [];
+            const completed = track.filter((item) => item.completed).length;
             personalShelf.innerHTML = `
                 <div class="space-y-4">
                     <div>
@@ -1990,6 +2850,25 @@
                             <button type="button" class="text-[10px] text-slate-400 hover:text-slate-700" data-action="clear-recents">${t('Clear', 'נקה')}</button>
                         </div>
                         <div class="space-y-1">${renderShelfList(shelf.recent.slice(0, 6))}</div>
+                    </div>
+                    <div>
+                        <div class="flex justify-between items-center mb-2">
+                            <h4 class="text-xs font-bold uppercase tracking-wider text-slate-500">${t('Study Track', 'מסלול לימוד')}</h4>
+                            <span class="text-[10px] text-slate-400">${completed}/${track.length}</span>
+                        </div>
+                        <div class="space-y-1">
+                            ${track.length
+                    ? track.slice(0, 6).map((item, index) => {
+                        return `
+                                        <button class="track-toggle w-full text-left px-2 py-1 rounded border border-slate-200 bg-white hover:bg-slate-100 transition"
+                                            data-index="${index}">
+                                            <span class="text-xs ${item.completed ? 'line-through text-slate-400' : 'text-slate-700'} block truncate">${escapeHtml(item.label || item.value)}</span>
+                                            <span class="text-[10px] uppercase tracking-widest ${item.completed ? 'text-emerald-500' : 'text-slate-300'}">${item.completed ? t('Complete', 'הושלם') : t('Pending', 'ממתין')}</span>
+                                        </button>
+                                    `;
+                    }).join('')
+                    : `<p class="text-xs italic text-slate-400">${t('No track items yet.', 'אין עדיין פריטים במסלול.')}</p>`}
+                        </div>
                     </div>
                 </div>
             `;
@@ -2024,6 +2903,17 @@
             if (window.currentPrayerContent) {
                 renderPrayerDisplayByLayout();
             }
+
+            if (appState.prefs.compareMode && window.currentTextPayload) {
+                void loadCompareReference();
+            } else {
+                if (compareContainer) {
+                    compareContainer.classList.add('hidden');
+                    compareContainer.innerHTML = '';
+                }
+            }
+
+            applyShulMode();
         }
 
         function renderPrayerDisplayByLayout(selectedLang = null) {
@@ -2062,6 +2952,7 @@
                             return `
                                 <div class="bg-white rounded border border-slate-200 p-4" dir="rtl">
                                     <p class="font-hebrew">${heText}</p>
+                                    ${transliterationMarkup(heText)}
                                     <p class="text-xs text-slate-400 mt-2">${t('English translation not available for this source segment', 'אין תרגום אנגלי זמין לקטע מקור זה')}</p>
                                 </div>
                             `;
@@ -2080,7 +2971,7 @@
                             <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
                                 <div class="bg-white rounded border border-slate-200 p-4" dir="rtl">
                                     ${heText
-                                ? `<p class="font-hebrew">${heText}</p>`
+                                ? `<p class="font-hebrew">${heText}</p>${transliterationMarkup(heText)}`
                                 : `<p class="text-slate-300 italic">${t('No Hebrew text in source', 'אין טקסט עברי במקור')}</p>`}
                                 </div>
                                 <div class="bg-white rounded border border-slate-200 p-4" dir="ltr">
@@ -2103,7 +2994,7 @@
 
                     contentDiv.innerHTML = `
                         <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                            <div class="bg-white rounded border border-slate-200 p-4">${heBlock}</div>
+                            <div class="bg-white rounded border border-slate-200 p-4">${heBlock}${transliterationMarkup(he)}</div>
                             <div class="bg-white rounded border border-slate-200 p-4">${enBlock}</div>
                         </div>
                     `;
@@ -2117,9 +3008,9 @@
                     const fontClass = lang === 'he'
                         ? 'font-hebrew'
                         : 'font-serif';
-                    contentDiv.innerHTML = `<div dir="${dir}" class="${fontClass}">${content}</div>`;
+                    contentDiv.innerHTML = `<div dir="${dir}" class="${fontClass}">${content}</div>${lang === 'he' ? transliterationMarkup(content) : ''}`;
                 } else {
-                    contentDiv.innerHTML = `<p dir="${dir}" class="whitespace-pre-wrap">${content}</p>`;
+                    contentDiv.innerHTML = `<p dir="${dir}" class="whitespace-pre-wrap">${content}</p>${lang === 'he' ? transliterationMarkup(content) : ''}`;
                 }
             }
 
@@ -2163,11 +3054,17 @@
                 appState.prefs.showSidebars = true;
             }
 
-            answerModeSelect.value = appState.prefs.mode;
-            communityLensSelect.value = appState.prefs.community;
-            readerLayoutSelect.value = appState.prefs.readerLayout;
-            readerFontSize.value = String(appState.prefs.fontSize);
-            readerLineHeight.value = String(appState.prefs.lineHeight);
+            appState.prefs.metadataFilters = normalizeMetadataFilters(appState.prefs.metadataFilters || {});
+            appState.prefs.transliteration = Boolean(appState.prefs.transliteration);
+            appState.prefs.compareMode = Boolean(appState.prefs.compareMode);
+            appState.prefs.compareRef = String(appState.prefs.compareRef || '');
+            appState.prefs.shulMode = Boolean(appState.prefs.shulMode);
+            appState.prefs.shulAutoScroll = Boolean(appState.prefs.shulAutoScroll);
+            appState.prefs.shulScrollSpeed = Number(appState.prefs.shulScrollSpeed || 28);
+
+            syncPrefsInputsFromState();
+
+            importShelfFromHashIfPresent();
 
             applyReaderPreferences();
             applySidebarVisibility();
@@ -2221,15 +3118,166 @@
             applyReaderPreferences();
         });
 
+        function updateMetadataFilterFromInputs() {
+            appState.prefs.metadataFilters = normalizeMetadataFilters({
+                era: metadataEraInput?.value,
+                author: metadataAuthorInput?.value,
+                category: metadataCategoryInput?.value,
+                geography: metadataGeographyInput?.value,
+                nusach: metadataNusachInput?.value,
+            });
+            savePrefs();
+            if ((searchInput.value || '').trim().length >= 2) {
+                fetchOmniboxSuggestions(searchInput.value);
+            }
+        }
+
+        [metadataEraInput, metadataAuthorInput, metadataCategoryInput, metadataGeographyInput, metadataNusachInput]
+            .filter(Boolean)
+            .forEach((inputEl) => {
+                inputEl.addEventListener('change', updateMetadataFilterFromInputs);
+            });
+
+        if (transliterationToggle) {
+            transliterationToggle.addEventListener('change', () => {
+                appState.prefs.transliteration = transliterationToggle.checked;
+                savePrefs();
+                applyReaderPreferences();
+            });
+        }
+
+        if (compareModeToggle) {
+            compareModeToggle.addEventListener('change', () => {
+                appState.prefs.compareMode = compareModeToggle.checked;
+                savePrefs();
+                applyReaderPreferences();
+            });
+        }
+
+        if (shulModeToggle) {
+            shulModeToggle.addEventListener('change', () => {
+                appState.prefs.shulMode = shulModeToggle.checked;
+                savePrefs();
+                applyShulMode();
+            });
+        }
+
+        if (shulAutoScrollToggle) {
+            shulAutoScrollToggle.addEventListener('change', () => {
+                appState.prefs.shulAutoScroll = shulAutoScrollToggle.checked;
+                savePrefs();
+                applyShulMode();
+            });
+        }
+
+        if (shulScrollSpeed) {
+            shulScrollSpeed.addEventListener('input', () => {
+                appState.prefs.shulScrollSpeed = Number(shulScrollSpeed.value || 28);
+                savePrefs();
+                if (appState.prefs.shulMode && appState.prefs.shulAutoScroll) {
+                    startShulAutoScroll();
+                }
+            });
+        }
+
         bookmarkCurrentBtn.addEventListener('click', toggleBookmarkCurrent);
         if (sidebarToggleBtn) {
             sidebarToggleBtn.addEventListener('click', toggleSidebars);
         }
+        if (mobileNavBtn) {
+            mobileNavBtn.addEventListener('click', () => toggleMobilePanel('left'));
+        }
+        if (mobilePulseBtn) {
+            mobilePulseBtn.addEventListener('click', () => toggleMobilePanel('right'));
+        }
+        if (closeLeftSidebarBtn) {
+            closeLeftSidebarBtn.addEventListener('click', closeMobilePanels);
+        }
+        if (closeRightSidebarBtn) {
+            closeRightSidebarBtn.addEventListener('click', closeMobilePanels);
+        }
+        if (mobileDrawerBackdrop) {
+            mobileDrawerBackdrop.addEventListener('click', closeMobilePanels);
+        }
+        window.addEventListener('resize', () => {
+            applySidebarVisibility();
+            if (appState.prefs.shulMode) {
+                applyShulMode();
+            }
+        });
         if (settingsMenuBtn) {
             settingsMenuBtn.addEventListener('click', (e) => {
                 e.stopPropagation();
                 toggleSettingsMenu();
             });
+        }
+
+        if (compareOpenBtn) {
+            compareOpenBtn.addEventListener('click', () => {
+                appState.prefs.compareMode = true;
+                if (compareModeToggle) compareModeToggle.checked = true;
+                appState.prefs.compareRef = String(compareRefInput?.value || '').trim();
+                savePrefs();
+                void loadCompareReference();
+            });
+        }
+
+        if (compareRefInput) {
+            compareRefInput.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    compareOpenBtn?.click();
+                }
+            });
+        }
+
+        if (compareClearBtn) {
+            compareClearBtn.addEventListener('click', () => clearCompareReference(true));
+        }
+
+        if (reportCurrentViewBtn) {
+            reportCurrentViewBtn.addEventListener('click', () => {
+                void reportSegmentIssue({ kind: 'view', message: 'User reported current view' });
+            });
+        }
+
+        if (devtoolsInspectorBtn) {
+            devtoolsInspectorBtn.addEventListener('click', openDevtoolsInspector);
+        }
+        if (closeDevtoolsInspectorBtn) {
+            closeDevtoolsInspectorBtn.addEventListener('click', closeDevtoolsInspector);
+        }
+        if (sourceGraphBtn) {
+            sourceGraphBtn.addEventListener('click', () => {
+                void openSourceGraph();
+            });
+        }
+        if (closeSourceGraphBtn) {
+            closeSourceGraphBtn.addEventListener('click', closeSourceGraph);
+        }
+        if (communityTimelineBtn) {
+            communityTimelineBtn.addEventListener('click', () => {
+                void openCommunityTimeline();
+            });
+        }
+        if (closeCommunityTimelineBtn) {
+            closeCommunityTimelineBtn.addEventListener('click', closeCommunityTimeline);
+        }
+        if (exportCitationBtn) {
+            exportCitationBtn.addEventListener('click', () => {
+                void exportCurrentCitation();
+            });
+        }
+        if (shareShelfBtn) {
+            shareShelfBtn.addEventListener('click', () => {
+                void shareShelf();
+            });
+        }
+        if (importShelfBtn) {
+            importShelfBtn.addEventListener('click', importShelfFromPrompt);
+        }
+        if (trackCurrentBtn) {
+            trackCurrentBtn.addEventListener('click', addCurrentToStudyTrack);
         }
 
         personalShelf.addEventListener('click', async (e) => {
@@ -2242,6 +3290,15 @@
                 return;
             }
 
+            const trackBtn = e.target.closest('.track-toggle');
+            if (trackBtn) {
+                const index = Number(trackBtn.dataset.index);
+                if (Number.isFinite(index)) {
+                    toggleTrackItem(index);
+                }
+                return;
+            }
+
             const itemBtn = e.target.closest('.shelf-open');
             if (!itemBtn) return;
             const type = itemBtn.dataset.type;
@@ -2250,8 +3307,34 @@
             await openShelfItem(type, value, label);
         });
 
+        if (reader) {
+            reader.addEventListener('click', (e) => {
+                const reportBtn = e.target.closest('.report-segment-btn');
+                if (!reportBtn) return;
+
+                const decodeSafe = (value) => {
+                    try {
+                        return decodeURIComponent(value || '');
+                    } catch (_) {
+                        return String(value || '');
+                    }
+                };
+
+                const kind = reportBtn.dataset.kind || 'segment';
+                const segment = decodeSafe(reportBtn.dataset.segment || '');
+                const ref = decodeSafe(reportBtn.dataset.ref || '');
+                void reportSegmentIssue({
+                    kind,
+                    segment,
+                    ref,
+                    message: `Reported ${kind} issue`,
+                });
+            });
+        }
+
         // ─── TEXTS MENU FUNCTIONS ───────────────────────────────────────────
         function openTextsMenu() {
+            closeMobilePanels();
             const modal = document.getElementById('textsMenuModal');
             modal.classList.remove('hidden');
             modal.classList.add('flex');
@@ -2341,6 +3424,7 @@
             homeGrid.style.display = 'none';
             reader.classList.add('hidden');
             loadingOverlay.classList.remove('hidden');
+            closeMobilePanels();
             closeTextsMenu();
             setReaderSubtitle('');
 
@@ -2428,6 +3512,8 @@
                 window.currentPrayerParagraphPairs = prayerData.paragraphPairs || [];
                 window.currentPrayerIsHtml = prayerData.hasSefaria || false;
                 window.currentCommunityData = null;
+                window.currentTextPayload = null;
+                clearCompareReference(false);
 
                 document.getElementById('readerContent').innerHTML = renderPrayerContent(prayerData.content);
                 document.getElementById('readerSources').innerHTML = '';
@@ -2464,6 +3550,7 @@
             homeGrid.style.display = 'none';
             reader.classList.add('hidden');
             loadingOverlay.classList.remove('hidden');
+            closeMobilePanels();
             closeTextsMenu();
             setReaderSubtitle('');
 
@@ -2489,6 +3576,8 @@
                 window.currentCommunityData = communityData;
                 window.currentPrayerContent = null;
                 window.currentPrayerParagraphPairs = [];
+                window.currentTextPayload = null;
+                clearCompareReference(false);
                 document.getElementById('readerSources').innerHTML = '';
                 document.getElementById('readerMedia').innerHTML = '';
 
@@ -2553,11 +3642,14 @@
         }
 
         function goHome() {
+            closeMobilePanels();
             reader.classList.add('hidden');
             homeGrid.style.display = 'block';
             searchInput.value = '';
             hideSearchSuggestions();
             appState.currentView = null;
+            window.currentTextPayload = null;
+            clearCompareReference(false);
             updateBookmarkButton();
             setTimeout(() => { homeGrid.classList.remove('opacity-0'); }, 10);
             sidebarContent.innerHTML = `<p class="italic text-slate-400">${t('Search a halacha to view cross-referenced Encyclopedia and Customs data...', 'חפש הלכה כדי לצפות בנתונים מקושרים מהאנציקלופדיה ומהמנהגים...')}</p>`;
@@ -2658,7 +3750,8 @@
             }
 
             // Fallback to library search and pick the best textual hit.
-            const searchResp = await fetch(`/api/library/search?q=${encodeURIComponent(query)}&size=8`);
+            const searchParams = appendMetadataFilters(new URLSearchParams({ q: query, size: '8' }));
+            const searchResp = await fetch(`/api/library/search?${searchParams.toString()}`);
             if (!searchResp.ok) return null;
 
             const results = await searchResp.json();
@@ -2737,12 +3830,20 @@
 
                 if (response.ok) {
                     populateAiModal(data, question);
+                    if (data?.meta?.fallback) {
+                        logReliability('ai-fallback-used', {
+                            mode: data?.meta?.mode,
+                            source_count: data?.meta?.source_count,
+                        });
+                    }
                 } else {
                     document.getElementById('aiSynthesis').innerHTML = `<p class="text-red-600 font-bold">${t('Error:', 'שגיאה:')} ${data.error}</p>`;
+                    logReliability('ai-response-error', { message: data.error || 'request failed' });
                 }
 
             } catch (error) {
                 document.getElementById('aiSynthesis').innerHTML = `<p class="text-red-600">${t('Network error:', 'שגיאת רשת:')} ${error.message}</p>`;
+                logReliability('ai-network-error', { message: error.message });
             }
         }
 
@@ -2751,6 +3852,7 @@
             homeGrid.style.display = 'none';
             reader.classList.add('hidden');
             loadingOverlay.classList.remove('hidden');
+            closeMobilePanels();
             setReaderSubtitle('');
 
             document.getElementById('readerTitle').innerText = ref;
@@ -2769,6 +3871,7 @@
                     document.getElementById('readerTitle').innerText = ref;
                     document.getElementById('readerContent').innerHTML =
                         `<p class="text-red-500">${t('Could not load text:', 'לא ניתן לטעון את הטקסט:')} ${data.error}</p>`;
+                    logReliability('text-load-error', { ref, error: data.error });
                     return;
                 }
 
@@ -2776,6 +3879,7 @@
                 const titleEl = document.getElementById('readerTitle');
                 titleEl.innerText = data.heTitle ? `${data.title} · ${data.heTitle}` : data.title || ref;
                 setCurrentView('text', data.ref || ref, data.title || data.ref || ref);
+                window.currentTextPayload = data;
 
                 // Badge
                 const categories = data.categories || [];
@@ -2824,16 +3928,20 @@
 
                     const rows = data.lines.map((line, idx) => {
                         const label = formatSegmentLabel(line.segment, idx);
+                        const heRaw = normalizeDisplayText(line.he || '');
                         const he = cleanLine(line.he || '');
                         const en = cleanLine(line.en || '');
+                        const reportSegment = encodeURIComponent(label);
+                        const translit = appState.prefs.transliteration ? transliterationMarkup(heRaw) : '';
 
                         return `
                             <div class="source-grid segment-row grid grid-cols-1 lg:grid-cols-2 border-b border-slate-100 last:border-b-0">
                                 <div class="source-he bg-white text-right font-hebrew text-xl lg:text-2xl leading-[1.8] p-5" dir="rtl">
-                                    ${he ? `<p class="flex flex-row-reverse items-start gap-2"><span class="segment-label inline-label">${label}</span><span>${he}</span></p>` : `<p class="text-slate-300 italic">${t('—', '—')}</p>`}
+                                    ${he ? `<p class="flex flex-row-reverse items-start gap-2"><span class="segment-label inline-label">${label}</span><span>${he}</span></p>${translit}` : `<p class="text-slate-300 italic">${t('—', '—')}</p>`}
                                 </div>
                                 <div class="source-en bg-slate-50 font-serif leading-relaxed p-5 text-slate-700 text-lg">
                                     ${en ? `<p class="flex items-start gap-2"><span class="segment-label inline-label">${label}</span><span>${en}</span></p>` : `<p class="text-slate-300 italic">${t('—', '—')}</p>`}
+                                    <button type="button" class="report-segment-btn mt-3 text-xs text-slate-400 hover:text-slate-700" data-kind="segment" data-segment="${reportSegment}" data-ref="${encodeURIComponent(data.ref || ref)}">${t('Report Segment', 'דווח על קטע')}</button>
                                 </div>
                             </div>
                         `;
@@ -2852,6 +3960,9 @@
                 }
 
                 applyReaderPreferences();
+                if (appState.prefs.compareMode) {
+                    void loadCompareReference();
+                }
 
                 // Update left sidebar with metadata
                 sidebarContent.innerHTML = `
@@ -2869,6 +3980,7 @@
                 reader.classList.remove('hidden');
                 document.getElementById('readerContent').innerHTML =
                     `<p class="text-red-500">${t('Network error loading text.', 'שגיאת רשת בטעינת הטקסט.')}</p>`;
+                logReliability('text-network-error', { ref, message: err.message });
             }
         }
 
@@ -2949,6 +4061,8 @@
             bindDailyStudyLinks();
             loadParashaQuickLink();
             populatePopularTexts();
+            registerServiceWorker();
+            fetchDevtoolsHeartbeat();
         });
 
         // Multi-language Toggle with data attributes
@@ -3013,6 +4127,25 @@
                     searchInput.classList.add('pl-4', 'pr-10');
                     searchInput.placeholder = 'Search for a topic, halacha, or custom...';
                 }
+            }
+
+            if (metadataEraInput) {
+                metadataEraInput.placeholder = lang === 'he' ? 'תקופה (לדוגמה: ראשונים)' : 'Era (e.g. Rishonim)';
+            }
+            if (metadataAuthorInput) {
+                metadataAuthorInput.placeholder = lang === 'he' ? 'מחבר' : 'Author';
+            }
+            if (metadataCategoryInput) {
+                metadataCategoryInput.placeholder = lang === 'he' ? 'קטגוריה' : 'Category';
+            }
+            if (metadataGeographyInput) {
+                metadataGeographyInput.placeholder = lang === 'he' ? 'אזור גאוגרפי' : 'Geography';
+            }
+            if (metadataNusachInput) {
+                metadataNusachInput.placeholder = lang === 'he' ? 'נוסח' : 'Nusach';
+            }
+            if (compareRefInput) {
+                compareRefInput.placeholder = lang === 'he' ? 'השווה מול הפניה אחרת...' : 'Compare with reference...';
             }
 
             // Update modal titles
@@ -3697,6 +4830,11 @@
             if (e.key === 'Escape') {
                 closeSettingsMenu();
                 closeAiModal();
+                closeTextsMenu();
+                closeMobilePanels();
+                closeDevtoolsInspector();
+                closeSourceGraph();
+                closeCommunityTimeline();
             }
         });
     </script>

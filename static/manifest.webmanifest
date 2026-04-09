@@ -1,0 +1,11 @@
+{
+    "name": "Sh'elah Torah Encyclopedia",
+    "short_name": "Sh'elah",
+    "start_url": "/",
+    "scope": "/",
+    "display": "standalone",
+    "background_color": "#f8fafc",
+    "theme_color": "#002147",
+    "description": "Jewish text study, customs comparison, and source-driven halachic guidance.",
+    "lang": "en"
+}
