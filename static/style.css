@@ -483,18 +483,6 @@ h6 {
     overflow-y: auto;
 }
 
-#sidebarTabBtn {
-    backdrop-filter: blur(6px);
-}
-
-html.rtl #sidebarTabBtn {
-    left: auto;
-    right: 0;
-    border-right: 0;
-    border-left: 1px solid #cbd5e1;
-    border-radius: 0.5rem 0 0 0.5rem;
-}
-
 #reader #readerContent,
 #reader .source-he,
 #reader .source-en {
