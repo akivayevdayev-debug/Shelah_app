@@ -109,26 +109,6 @@ def _sanitize_answer_mode(mode_value):
     return mode if mode in ANSWER_MODES else "balanced"
 
 
-def _augment_question(original_question, mode, community_lens):
-    guidance = {
-        "balanced": "Give a concise answer first, then explain sources and differences in minhagim.",
-        "practical": "Lead with practical next steps and real-life guidance before deeper analysis.",
-        "sources": "Prioritize detailed source analysis and cite mekorot carefully before practical summary.",
-        "strict": "Use only directly cited primary sources. If adequate sources are unavailable, explicitly say so instead of speculating.",
-    }
-
-    parts = [
-        f"User question: {original_question}",
-        f"Answer style: {guidance.get(mode, guidance['balanced'])}",
-    ]
-    if community_lens and community_lens.lower() != "all":
-        parts.append(f"Community lens requested: {community_lens}")
-    if mode == "strict":
-        parts.append(
-            "Strict sources mode: do not rely on unsupported inference.")
-    return "\n".join(parts)
-
-
 def _canonicalize_community_name(name):
     if not name:
         return None
@@ -624,7 +604,6 @@ def ask_question():
 
     try:
         engine = get_engine()
-        augmented_question = _augment_question(question, mode, community_lens)
 
         # Check for direct prayer-service questions
         if any(prayer in question for prayer in ["Shacharit", "Mincha", "Maariv", "Kiddush", "Havdalah"]):
@@ -1160,8 +1139,7 @@ def library_category(category):
 
 
 # ─── PRAYER BOOK API (Siddur Sefard - Sefardic/Mediterranean Siddur) ──────────
-# Prayer data is imported from siddur_sefard.py which contains the complete Sefardic
-# prayer book downloaded from Sefaria and enhanced with traditional liturgical content.
+# Prayer content is fetched live from Sefaria refs listed in SIDDUR_SECTION_MAP.
 
 
 @app.route("/api/prayers/list")
