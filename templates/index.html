@@ -1092,6 +1092,7 @@
 
         const APP_PREFS_KEY = "Sh'elahPrefs";
         const APP_SHELF_KEY = "Sh'elahShelf";
+        const ZMANIM_LOCATION_CACHE_KEY = "Sh'elahLastLocation";
         const TORAH_PARASHA_BY_BOOK = {
             'Genesis': [
                 { chapter: 1, name: 'Bereshit' },
@@ -1304,6 +1305,27 @@
                 .replace(/>/g, '&gt;')
                 .replace(/"/g, '&quot;')
                 .replace(/'/g, '&#039;');
+        }
+
+        function decodeHtmlEntities(text) {
+            const parser = document.createElement('textarea');
+            parser.innerHTML = String(text || '');
+            return parser.value;
+        }
+
+        function normalizeDisplayText(text = '') {
+            const withoutTags = String(text)
+                .replace(/<br\s*\/?>/gi, '\n')
+                .replace(/<[^>]*>/g, ' ');
+
+            return decodeHtmlEntities(withoutTags)
+                .replace(/\u00a0/g, ' ')
+                .replace(/&nbsp;/gi, ' ')
+                .replace(/&thinsp;/gi, ' ')
+                .replace(/[ \t]+/g, ' ')
+                .replace(/\s*\n\s*/g, '\n')
+                .replace(/\n{3,}/g, '\n\n')
+                .trim();
         }
 
         function debounce(fn, delay = 180) {
@@ -2014,15 +2036,53 @@
                         const sefariaData = await sefariaResp.json();
                         if (sefariaData.lines && sefariaData.lines.length > 0) {
                             let heHtml = '', enHtml = '';
+                            let heParagraphParts = [];
+                            let enParagraphParts = [];
+                            let linesInParagraph = 0;
+
+                            const flushParagraph = () => {
+                                if (heParagraphParts.length > 0) {
+                                    heHtml += `<p class="mb-3 leading-relaxed">${heParagraphParts.join(' ')}</p>`;
+                                }
+                                if (enParagraphParts.length > 0) {
+                                    enHtml += `<p class="mb-3 leading-relaxed">${enParagraphParts.join(' ')}</p>`;
+                                }
+                                heParagraphParts = [];
+                                enParagraphParts = [];
+                                linesInParagraph = 0;
+                            };
+
                             sefariaData.lines.forEach(line => {
                                 if (line.type === 'header') {
-                                    heHtml += `<h3 class="text-xl font-bold font-hebrew mt-8 mb-3 pb-1 border-b border-slate-200">${line.he || ''}</h3>`;
-                                    enHtml += `<h3 class="text-xl font-bold font-serif mt-8 mb-3 pb-1 border-b border-slate-200">${line.en || ''}</h3>`;
+                                    flushParagraph();
+                                    const heHeader = escapeHtml(normalizeDisplayText(line.he || ''));
+                                    const enHeader = escapeHtml(normalizeDisplayText(line.en || ''));
+                                    heHtml += `<h3 class="text-xl font-bold font-hebrew mt-8 mb-3 pb-1 border-b border-slate-200">${heHeader}</h3>`;
+                                    enHtml += `<h3 class="text-xl font-bold font-serif mt-8 mb-3 pb-1 border-b border-slate-200">${enHeader}</h3>`;
                                 } else {
-                                    if (line.he) heHtml += `<p class="mb-3 leading-loose">${line.he}</p>`;
-                                    if (line.en) enHtml += `<p class="mb-3">${line.en}</p>`;
+                                    const heLine = normalizeDisplayText(line.he || '');
+                                    const enLine = normalizeDisplayText(line.en || '');
+
+                                    if (heLine) {
+                                        heParagraphParts.push(escapeHtml(heLine));
+                                    }
+                                    if (enLine) {
+                                        enParagraphParts.push(escapeHtml(enLine));
+                                    }
+
+                                    if (heLine || enLine) {
+                                        linesInParagraph += 1;
+                                    }
+
+                                    const tail = (heLine || enLine || '').trim();
+                                    const endsSentence = /[.!?׃:]$/.test(tail);
+                                    if (linesInParagraph >= 3 || (endsSentence && linesInParagraph >= 2)) {
+                                        flushParagraph();
+                                    }
                                 }
                             });
+
+                            flushParagraph();
                             prayerData.content.he = heHtml;
                             prayerData.content.en = enHtml;
                             prayerData.hasSefaria = true;
@@ -2480,7 +2540,7 @@
                 document.getElementById('readerContent').innerHTML = navHTML;
 
                 if (data.lines && data.lines.length > 0) {
-                    const cleanLine = (text = '') => escapeHtml(String(text).replace(/<[^>]*>/gm, '').trim()).replace(/\n/g, '<br>');
+                    const cleanLine = (text = '') => escapeHtml(normalizeDisplayText(text)).replace(/\n/g, '<br>');
                     const formatSegmentLabel = (segment, idx) => {
                         if (!segment) return isHebrewMode() ? `קטע ${idx + 1}` : `Segment ${idx + 1}`;
                         const raw = String(segment).trim();
@@ -2500,12 +2560,10 @@
                         return `
                             <div class="source-grid segment-row grid grid-cols-1 lg:grid-cols-2 border-b border-slate-100 last:border-b-0">
                                 <div class="source-he bg-white text-right font-hebrew text-xl lg:text-2xl leading-[1.8] p-5" dir="rtl">
-                                    <div class="segment-label">${label}</div>
-                                    ${he ? `<p>${he}</p>` : `<p class="text-slate-300 italic">${t('—', '—')}</p>`}
+                                    ${he ? `<p class="flex flex-row-reverse items-start gap-2"><span class="segment-label inline-label">${label}</span><span>${he}</span></p>` : `<p class="text-slate-300 italic">${t('—', '—')}</p>`}
                                 </div>
                                 <div class="source-en bg-slate-50 font-serif leading-relaxed p-5 text-slate-700 text-lg">
-                                    <div class="segment-label">${label}</div>
-                                    ${en ? `<p>${en}</p>` : `<p class="text-slate-300 italic">${t('—', '—')}</p>`}
+                                    ${en ? `<p class="flex items-start gap-2"><span class="segment-label inline-label">${label}</span><span>${en}</span></p>` : `<p class="text-slate-300 italic">${t('—', '—')}</p>`}
                                 </div>
                             </div>
                         `;
@@ -2788,24 +2846,64 @@
 
         // ZMANIM LOGIC
         function initZmanim() {
-            // First check if location exists on IP fallback via direct API call just in case,
-            // but the server backend automatically does IP fallback now if session is empty!
-            fetchZmanimAPI(); // Start fetching immediately using IP fallback
+            const cachedRaw = localStorage.getItem(ZMANIM_LOCATION_CACHE_KEY);
+            let cachedLocation = null;
+            if (cachedRaw) {
+                try {
+                    const parsed = JSON.parse(cachedRaw);
+                    if (Number.isFinite(parsed?.lat) && Number.isFinite(parsed?.lon)) {
+                        cachedLocation = { lat: parsed.lat, lon: parsed.lon };
+                    }
+                } catch (_) {
+                    cachedLocation = null;
+                }
+            }
 
-            // Try accurate GPS in background to override IP
+            if (cachedLocation) {
+                fetchZmanimAPI(cachedLocation);
+            }
+
             if (navigator.geolocation) {
-                navigator.geolocation.getCurrentPosition(pos => {
-                    fetch('/set_location', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ lat: pos.coords.latitude, lon: pos.coords.longitude })
-                    }).then(() => fetchZmanimAPI()); // Refresh accurate
-                }, err => { console.log('Location rejected/failed, keeping IP fallback.'); });
+                navigator.geolocation.getCurrentPosition(
+                    (pos) => {
+                        const location = {
+                            lat: Number(pos.coords.latitude),
+                            lon: Number(pos.coords.longitude),
+                        };
+                        localStorage.setItem(ZMANIM_LOCATION_CACHE_KEY, JSON.stringify(location));
+
+                        fetch('/set_location', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify(location)
+                        }).then(() => fetchZmanimAPI(location));
+                    },
+                    () => {
+                        if (!cachedLocation) {
+                            fetchZmanimAPI();
+                        }
+                    },
+                    { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
+                );
+                return;
+            }
+
+            if (!cachedLocation) {
+                fetchZmanimAPI();
             }
         }
 
-        function fetchZmanimAPI() {
-            fetch('/api/zmanim')
+        function fetchZmanimAPI(location = null) {
+            let url = '/api/zmanim';
+            if (location && Number.isFinite(location.lat) && Number.isFinite(location.lon)) {
+                const query = new URLSearchParams({
+                    lat: String(location.lat),
+                    lon: String(location.lon),
+                });
+                url = `/api/zmanim?${query.toString()}`;
+            }
+
+            fetch(url)
                 .then(r => r.json())
                 .then(data => {
                     if (!data.error) {
