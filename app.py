@@ -1094,9 +1094,10 @@ def get_communities_list():
 @app.route("/api/community/<name>")
 def get_community(name):
     """Returns community customs data."""
-    canonical_name = _canonicalize_community_name(name)
+    resolved_name = (unquote(name or "") or "").strip()
+    canonical_name = _canonicalize_community_name(resolved_name)
     if canonical_name is None:
-        return jsonify({"error": f"Community '{name}' not found"}), 404
+        return jsonify({"error": f"Community '{resolved_name}' not found"}), 404
 
     filename = COMMUNITIES[canonical_name]
     filepath = os.path.join(os.path.dirname(__file__),
@@ -1129,7 +1130,7 @@ def get_community(name):
 
         return jsonify({
             "name": canonical_name,
-            "requested_name": name,
+            "requested_name": resolved_name,
             "heritage_id": data.get("heritage_id") if isinstance(data, dict) else None,
             "primary_origin": identity.get("primary_origin", "") if isinstance(identity, dict) else "",
             "customs": customs_content if customs_content else fallback_customs,
