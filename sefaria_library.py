@@ -17,6 +17,7 @@ import requests
 import functools
 import time
 import difflib
+from urllib.parse import quote
 
 SEFARIA_API = "https://www.sefaria.org/api"
 
@@ -116,9 +117,9 @@ def get_text(ref, lang="both", context=0):
         "commentary": list (optional)
       }
     """
-    # Clean the ref for URL encoding
-    safe_ref = ref.replace(" ", "_").replace(
-        ":", ".").replace("/", "_").replace("&", "%26")
+    # Encode refs safely so liturgy titles with punctuation still resolve.
+    normalized_ref = ref.replace(" ", "_").replace(":", ".").replace("/", "_")
+    safe_ref = quote(normalized_ref, safe="_,.")
     url = f"{SEFARIA_API}/texts/{safe_ref}?lang={lang}&context={context}&pad=0"
     data = _cached_get(url, ttl=86400)  # cache texts for 24h
 

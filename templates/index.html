@@ -1089,9 +1089,12 @@
 
         let zmanimData = null;
         let countdownInterval = null;
+        let currentUserCoords = null;
+        let activePrayerRequest = 0;
 
         const APP_PREFS_KEY = "Sh'elahPrefs";
         const APP_SHELF_KEY = "Sh'elahShelf";
+        const USER_COORDS_KEY = "Sh'elahUserCoords";
         const TORAH_PARASHA_BY_BOOK = {
             'Genesis': [
                 { chapter: 1, name: 'Bereshit' },
@@ -1304,6 +1307,40 @@
                 .replace(/>/g, '&gt;')
                 .replace(/"/g, '&quot;')
                 .replace(/'/g, '&#039;');
+        }
+
+        function normalizeCoords(raw) {
+            if (!raw || typeof raw !== 'object') return null;
+            const lat = Number(raw.lat);
+            const lon = Number(raw.lon);
+            if (!Number.isFinite(lat) || !Number.isFinite(lon)) return null;
+            if (lat < -90 || lat > 90 || lon < -180 || lon > 180) return null;
+            return { lat, lon };
+        }
+
+        function loadStoredCoords() {
+            try {
+                return normalizeCoords(JSON.parse(localStorage.getItem(USER_COORDS_KEY) || 'null'));
+            } catch (_) {
+                return null;
+            }
+        }
+
+        function persistUserCoords(coords) {
+            const normalized = normalizeCoords(coords);
+            if (!normalized) return;
+            currentUserCoords = normalized;
+            localStorage.setItem(USER_COORDS_KEY, JSON.stringify(normalized));
+        }
+
+        function buildZmanimQuery(coords) {
+            const normalized = normalizeCoords(coords);
+            if (!normalized) return '';
+            const params = new URLSearchParams({
+                lat: String(normalized.lat),
+                lon: String(normalized.lon),
+            });
+            return `?${params.toString()}`;
         }
 
         function debounce(fn, delay = 180) {
@@ -1990,7 +2027,78 @@
             list.innerHTML = html;
         }
 
+        function buildPrayerHtmlFromParagraphs(paragraphs) {
+            let heHtml = '';
+            let enHtml = '';
+
+            (paragraphs || []).forEach((item) => {
+                const type = item && item.type ? String(item.type) : 'paragraph';
+                const he = escapeHtml(item?.he || '').replace(/\n/g, '<br>');
+                const en = escapeHtml(item?.en || '').replace(/\n/g, '<br>');
+
+                if (type === 'header') {
+                    if (he) heHtml += `<h3 class="text-lg font-bold font-hebrew mt-4 mb-2 pb-1 border-b border-slate-200">${he}</h3>`;
+                    if (en) enHtml += `<h3 class="text-lg font-bold font-serif mt-4 mb-2 pb-1 border-b border-slate-200">${en}</h3>`;
+                    return;
+                }
+
+                if (he) heHtml += `<p class="mb-4 leading-relaxed">${he}</p>`;
+                if (en) enHtml += `<p class="mb-4 leading-relaxed">${en}</p>`;
+            });
+
+            return { heHtml, enHtml };
+        }
+
+        function applyPrayerToReader(prayerName, prayerData) {
+            document.getElementById('readerTitle').innerText = prayerData.title || prayerName;
+            setCurrentView('prayer', prayerName, prayerData.title || prayerName);
+
+            window.currentPrayerContent = prayerData.content || { en: '', he: '' };
+            window.currentPrayerIsHtml = prayerData.hasSefaria || false;
+            window.currentCommunityData = null;
+
+            document.getElementById('readerContent').innerHTML = renderPrayerContent(window.currentPrayerContent);
+            document.getElementById('readerSources').innerHTML = '';
+            document.getElementById('readerMedia').innerHTML = '';
+            applyReaderPreferences();
+
+            sidebarContent.innerHTML = `
+                <div class="text-xs space-y-2">
+                    <div><span class="font-bold text-slate-700">${t('From:', 'מקור:')}</span> <span class="text-slate-500">${prayerData.hasSefaria ? t('Sefaria Liturgy Collection', 'אוסף ליטורגיה מספריא') : t('Sefaria Prayer Book Preview', 'תצוגה מקדימה של סידור מספריא')}</span></div>
+                    <div><span class="font-bold text-slate-700">${t('Languages:', 'שפות:')}</span> <span class="text-slate-500">${t('Hebrew &amp; English', 'עברית ואנגלית')}</span></div>
+                </div>`;
+        }
+
+        async function hydratePrayerWithFullText(prayerName, requestId) {
+            try {
+                const response = await fetch(`/api/siddur/full/${encodeURIComponent(prayerName)}`);
+                if (!response.ok) return;
+
+                const sefariaData = await response.json();
+                const paragraphs = Array.isArray(sefariaData.paragraphs) ? sefariaData.paragraphs : [];
+                if (!paragraphs.length) return;
+
+                const cached = textsCache.prayers[prayerName];
+                if (!cached || !cached.content) return;
+
+                const { heHtml, enHtml } = buildPrayerHtmlFromParagraphs(paragraphs);
+                if (!heHtml && !enHtml) return;
+
+                cached.content.he = heHtml || cached.content.he || '';
+                cached.content.en = enHtml || cached.content.en || '';
+                cached.hasSefaria = true;
+
+                const currentView = appState.currentView;
+                if (requestId === activePrayerRequest && currentView && currentView.type === 'prayer' && currentView.value === prayerName) {
+                    applyPrayerToReader(prayerName, cached);
+                }
+            } catch (err) {
+                console.error('Failed to hydrate full prayer text:', err);
+            }
+        }
+
         async function displayPrayer(prayerName) {
+            const requestId = ++activePrayerRequest;
             homeGrid.style.display = 'none';
             reader.classList.add('hidden');
             loadingOverlay.classList.remove('hidden');
@@ -2001,61 +2109,21 @@
                 let prayerData = textsCache.prayers[prayerName];
 
                 if (!prayerData) {
-                    // Fetch prayer preview and Sefaria full text in parallel.
-                    const [staticResp, sefariaResp] = await Promise.all([
-                        fetch(`/api/prayer/${encodeURIComponent(prayerName)}`),
-                        fetch(`/api/siddur/full/${encodeURIComponent(prayerName)}`)
-                    ]);
+                    const staticResp = await fetch(`/api/prayer/${encodeURIComponent(prayerName)}`);
                     if (!staticResp.ok) throw new Error('Prayer not found');
                     prayerData = await staticResp.json();
-
-                    // Augment he/en with full Sefaria liturgical text if available
-                    if (sefariaResp.ok) {
-                        const sefariaData = await sefariaResp.json();
-                        if (sefariaData.lines && sefariaData.lines.length > 0) {
-                            let heHtml = '', enHtml = '';
-                            sefariaData.lines.forEach(line => {
-                                if (line.type === 'header') {
-                                    heHtml += `<h3 class="text-lg font-bold font-hebrew mt-4 mb-2 pb-1 border-b border-slate-200">${line.he || ''}</h3>`;
-                                    enHtml += `<h3 class="text-lg font-bold font-serif mt-4 mb-2 pb-1 border-b border-slate-200">${line.en || ''}</h3>`;
-                                } else {
-                                    if (line.he) heHtml += `<p class="mb-2 leading-normal">${line.he}</p>`;
-                                    if (line.en) enHtml += `<p class="mb-2">${line.en}</p>`;
-                                }
-                            });
-                            prayerData.content.he = heHtml;
-                            prayerData.content.en = enHtml;
-                            prayerData.hasSefaria = true;
-                        } else if (sefariaData.error) {
-                            console.error('Sefaria error:', sefariaData.error);
-                        }
-                    }
+                    prayerData.hasSefaria = Boolean(prayerData.hasSefaria);
                     textsCache.prayers[prayerName] = prayerData;
                 }
 
                 loadingOverlay.classList.add('hidden');
                 reader.classList.remove('hidden');
-
-                document.getElementById('readerTitle').innerText = prayerData.title;
-                setCurrentView('prayer', prayerName, prayerData.title || prayerName);
-
-                // Store current prayer content globally for language switching
-                window.currentPrayerContent = prayerData.content;
-                window.currentPrayerIsHtml = prayerData.hasSefaria || false;
-                window.currentCommunityData = null;
-
-                document.getElementById('readerContent').innerHTML = renderPrayerContent(prayerData.content);
-                document.getElementById('readerSources').innerHTML = '';
-                document.getElementById('readerMedia').innerHTML = '';
-                applyReaderPreferences();
-
-                sidebarContent.innerHTML = `
-                    <div class="text-xs space-y-2">
-                        <div><span class="font-bold text-slate-700">${t('From:', 'מקור:')}</span> <span class="text-slate-500">${prayerData.hasSefaria ? t('Sefaria Liturgy Collection', 'אוסף ליטורגיה מספריא') : t('Sefaria Prayer Book Preview', 'תצוגה מקדימה של סידור מספריא')}</span></div>
-                        <div><span class="font-bold text-slate-700">${t('Languages:', 'שפות:')}</span> <span class="text-slate-500">${t('Hebrew &amp; English', 'עברית ואנגלית')}</span></div>
-                    </div>`;
-
+                applyPrayerToReader(prayerName, prayerData);
                 mainContainer.scrollTo({ top: 0, behavior: 'smooth' });
+
+                if (!prayerData.hasSefaria) {
+                    void hydratePrayerWithFullText(prayerName, requestId);
+                }
 
             } catch (err) {
                 loadingOverlay.classList.add('hidden');
@@ -2071,7 +2139,7 @@
 
             // Show content with language tabs
             html += `<div class="bg-slate-50 rounded-lg p-4 border border-slate-200">`;
-            html += `<div class="mb-3 flex gap-2 border-b pb-2 flex-wrap"`;
+            html += `<div class="mb-3 flex gap-2 border-b pb-2 flex-wrap">`;
 
             const langs = [
                 { code: 'en', name: 'English' },
@@ -2502,10 +2570,10 @@
                         return `
                             <div class="source-grid segment-row grid grid-cols-1 lg:grid-cols-2 border-b border-slate-100 last:border-b-0">
                                 <div class="source-he bg-white text-right font-hebrew text-lg leading-normal p-3" dir="rtl">
-                                    ${he ? `<p><span class="segment-label text-xs font-bold text-slate-500 ml-2">${label}</span> ${he}</p>` : `<p class="text-slate-300 italic">${t('—', '—')}</p>`}
+                                    ${he ? `<p class="m-0"><span class="segment-label">${label}</span>${he}</p>` : `<p class="text-slate-300 italic m-0">${t('—', '—')}</p>`}
                                 </div>
                                 <div class="source-en bg-slate-50 font-serif leading-normal p-3 text-slate-700 text-base">
-                                    ${en ? `<p><span class="segment-label text-xs font-bold text-slate-500 mr-2">${label}</span> ${en}</p>` : `<p class="text-slate-300 italic">${t('—', '—')}</p>`}
+                                    ${en ? `<p class="m-0"><span class="segment-label">${label}</span>${en}</p>` : `<p class="text-slate-300 italic m-0">${t('—', '—')}</p>`}
                                 </div>
                             </div>
                         `;
@@ -2788,39 +2856,72 @@
 
         // ZMANIM LOGIC
         function initZmanim() {
+            const stored = loadStoredCoords();
+            if (stored) {
+                currentUserCoords = stored;
+                fetchZmanimAPI(stored);
+            }
+
             // PRIORITY: Get GPS location first (avoid VPN/IP spoofing issues)
             if (navigator.geolocation) {
                 navigator.geolocation.getCurrentPosition(
                     pos => {
-                        // GPS succeeded: set location and fetch zmanim
+                        const coords = {
+                            lat: pos.coords.latitude,
+                            lon: pos.coords.longitude,
+                        };
+                        persistUserCoords(coords);
+
+                        // GPS succeeded: save location and fetch zmanim with explicit coordinates.
                         fetch('/set_location', {
                             method: 'POST',
                             headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify({ lat: pos.coords.latitude, lon: pos.coords.longitude })
-                        }).then(() => fetchZmanimAPI());
+                            body: JSON.stringify(coords)
+                        }).catch(() => {
+                            // Session save is best-effort; explicit coords query is the source of truth.
+                        }).finally(() => {
+                            fetchZmanimAPI(coords);
+                        });
                     },
-                    err => {
+                    () => {
                         // GPS failed or denied: fall back to IP
                         console.log('GPS unavailable, using IP fallback.');
-                        fetchZmanimAPI();
+                        if (!stored) {
+                            fetchZmanimAPI();
+                        }
                     },
-                    { timeout: 8000, maximumAge: 3600000 } // 8s timeout, cache 1hr
+                    { enableHighAccuracy: true, timeout: 10000, maximumAge: 3600000 } // 10s timeout, cache 1hr
                 );
             } else {
                 // No geolocation support: use IP fallback immediately
-                fetchZmanimAPI();
+                if (!stored) {
+                    fetchZmanimAPI();
+                }
             }
         }
 
-        function fetchZmanimAPI() {
-            fetch('/api/zmanim')
+        function fetchZmanimAPI(coords = currentUserCoords) {
+            const normalized = normalizeCoords(coords);
+            if (normalized) {
+                currentUserCoords = normalized;
+            }
+
+            const url = `/api/zmanim${buildZmanimQuery(normalized)}`;
+
+            fetch(url)
                 .then(r => r.json())
                 .then(data => {
                     if (!data.error) {
                         zmanimData = data;
                         const z = data.zmanim;
                         const meta = data.metadata || {};
-                        document.getElementById('zmanLoc').innerText = data.metadata.timezone;
+                        const lat = Number(meta.lat);
+                        const lon = Number(meta.lon);
+                        const hasCoords = Number.isFinite(lat) && Number.isFinite(lon);
+                        const locLabel = hasCoords
+                            ? `${meta.timezone || ''} (${lat.toFixed(2)}, ${lon.toFixed(2)})`
+                            : (meta.timezone || 'Unknown');
+                        document.getElementById('zmanLoc').innerText = locLabel;
                         document.getElementById('zDawn').innerText = z['Dawn (16.1° / 72m)'] || 'N/A';
                         document.getElementById('zTalit').innerText = z['Earliest Tallit/Tefillin (10.2°)'] || 'N/A';
                         document.getElementById('zSunrise').innerText = z['Sunrise'] || 'N/A';
