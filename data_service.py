@@ -1,12 +1,8 @@
-import pytz
-from datetime import date, datetime
-
 import sefaria
 import customs
 import search
 from sefaria_library import get_text
 from zmanim_engine import get_community_zmanim, get_monthly_events
-from calendar_service import calendar_engine
 
 
 class ShelahEngine:
@@ -38,22 +34,6 @@ class ShelahEngine:
     def get_wiki(self, topic):
         """Fetch Wikipedia background"""
         return search.search_wikipedia(topic)
-
-    def get_hebrew_date(self):
-        """Get today's Hebrew date using Pyluach engine"""
-        return calendar_engine.gregorian_to_hebrew()
-
-    def get_parasha(self):
-        """Get this week's Torah portion using Pyluach engine"""
-        return calendar_engine.get_parasha()
-
-    def is_holiday_today(self):
-        """Check if today is a holiday using Pyluach engine"""
-        return calendar_engine.is_holiday()
-
-    def validate_dates_against_hebcal(self):
-        """Cross-check Pyluach calculations against Hebcal API"""
-        return calendar_engine.validate_against_hebcal()
 
     def get_library_text(self, reference):
         """Sefaria API: Fetches BOTH English and Hebrew arrays for side-by-side reading"""

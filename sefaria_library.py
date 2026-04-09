@@ -14,7 +14,6 @@ Features:
 """
 
 import requests
-import functools
 import time
 import difflib
 
@@ -241,22 +240,6 @@ def get_text(ref, lang="both", context=0):
         "authors": data.get("authors", []),
         "era": data.get("era", "")
     }
-
-
-def get_full_book(title, start_section=1, max_sections=10):
-    """
-    Fetches multiple sections of a book for the inline reader.
-    Returns a list of text objects.
-    """
-    results = []
-    for i in range(start_section, start_section + max_sections):
-        ref = f"{title} {i}"
-        text = get_text(ref)
-        if "error" not in text and (text["he"] or text["en"]):
-            results.append(text)
-        else:
-            break
-    return results
 
 
 def search_library(query, size=10, filters=None, metadata_filters=None):
