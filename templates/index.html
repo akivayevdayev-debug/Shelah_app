@@ -242,11 +242,11 @@
     <div class="flex flex-1 relative">
 
         <button id="showLeftSidebarTopBtn" type="button"
-            class="sidebar-show-tab hidden lg:flex items-center gap-1 fixed left-0 top-1/2 -translate-y-1/2 z-40 px-2 py-1.5 border border-slate-300 border-l-0 rounded-r-lg bg-white/95 text-slate-600 text-[11px] font-semibold uppercase tracking-wide shadow-sm hover:bg-slate-100 transition"
+            class="sidebar-show-tab hidden items-center gap-1 fixed left-0 top-1/2 -translate-y-1/2 z-40 px-2 py-1.5 border border-slate-300 border-l-0 rounded-r-lg bg-white/95 text-slate-600 text-[11px] font-semibold uppercase tracking-wide shadow-sm hover:bg-slate-100 transition"
             data-en="Show Navigator" data-he="הצג ניווט">Show Navigator</button>
 
         <button id="showRightSidebarTopBtn" type="button"
-            class="sidebar-show-tab hidden lg:flex items-center gap-1 fixed right-0 top-1/2 -translate-y-1/2 z-40 px-2 py-1.5 border border-slate-300 border-r-0 rounded-l-lg bg-white/95 text-slate-600 text-[11px] font-semibold uppercase tracking-wide shadow-sm hover:bg-slate-100 transition"
+            class="sidebar-show-tab hidden items-center gap-1 fixed right-0 top-1/2 -translate-y-1/2 z-40 px-2 py-1.5 border border-slate-300 border-r-0 rounded-l-lg bg-white/95 text-slate-600 text-[11px] font-semibold uppercase tracking-wide shadow-sm hover:bg-slate-100 transition"
             data-en="Show Today" data-he="הצג היום">Show Today</button>
 
         <!-- Column 1: Navigator (Left) -->
@@ -2411,12 +2411,12 @@
 
             if (showLeftSidebarTopBtn) {
                 const showLeftRestore = !mobile && !shulMode && !showLeftSidebar;
-                showLeftSidebarTopBtn.classList.toggle('hidden', !showLeftRestore);
+                showLeftSidebarTopBtn.style.display = showLeftRestore ? 'flex' : 'none';
             }
 
             if (showRightSidebarTopBtn) {
                 const showRightRestore = !mobile && !shulMode && !showRightSidebar;
-                showRightSidebarTopBtn.classList.toggle('hidden', !showRightRestore);
+                showRightSidebarTopBtn.style.display = showRightRestore ? 'flex' : 'none';
             }
         }
 
@@ -2516,8 +2516,8 @@
             if (enabled) {
                 if (leftSidebar) leftSidebar.style.display = 'none';
                 if (rightSidebar) rightSidebar.style.display = 'none';
-                if (showLeftSidebarTopBtn) showLeftSidebarTopBtn.classList.add('hidden');
-                if (showRightSidebarTopBtn) showRightSidebarTopBtn.classList.add('hidden');
+                if (showLeftSidebarTopBtn) showLeftSidebarTopBtn.style.display = 'none';
+                if (showRightSidebarTopBtn) showRightSidebarTopBtn.style.display = 'none';
                 if (appState.prefs.shulAutoScroll) {
                     startShulAutoScroll();
                 } else {
