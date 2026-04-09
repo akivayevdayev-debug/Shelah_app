@@ -138,11 +138,19 @@
                             <option value="All" data-en="All" data-he="הכל">All</option>
                             <option value="Ashkenaz" data-en="Ashkenaz" data-he="אשכנז">Ashkenaz</option>
                             <option value="Sefardic" data-en="Sefardic" data-he="ספרדי">Sefardic</option>
+                            <option value="Bukharian" data-en="Bukharian" data-he="בוכרי">Bukharian</option>
+                            <option value="Persian" data-en="Persian" data-he="פרסי">Persian</option>
+                            <option value="Ethiopian" data-en="Ethiopian" data-he="אתיופי">Ethiopian</option>
+                            <option value="Georgian" data-en="Georgian" data-he="גרוזיני">Georgian</option>
+                            <option value="Greek-Romaniote" data-en="Greek-Romaniote" data-he="רומניוטי">Greek-Romaniote
+                            </option>
                             <option value="Iraqi" data-en="Iraqi" data-he="עיראקי">Iraqi</option>
                             <option value="Syrian" data-en="Syrian" data-he="סורי">Syrian</option>
                             <option value="Yemenite" data-en="Yemenite" data-he="תימני">Yemenite</option>
                             <option value="Moroccan" data-en="Moroccan" data-he="מרוקאי">Moroccan</option>
                             <option value="Kavkazi" data-en="Kavkazi" data-he="קווקזי">Kavkazi</option>
+                            <option value="Turkish-Ottoman Sefardic" data-en="Turkish-Ottoman Sefardic"
+                                data-he="ספרדי טורקי-עות׳מאני">Turkish-Ottoman Sefardic</option>
                             <option value="Israeli" data-en="Israeli" data-he="ישראלי">Israeli</option>
                         </select>
                     </label>
@@ -482,9 +490,28 @@
                         <li><button onclick="displayCommunity('Moroccan')"
                                 class="text-left text-slate-600 hover:text-[#594176] text-sm w-full py-0.5"
                                 data-en="Moroccan" data-he="מרוקאי">Moroccan</button></li>
+                        <li><button onclick="displayCommunity('Bukharian')"
+                                class="text-left text-slate-600 hover:text-[#594176] text-sm w-full py-0.5"
+                                data-en="Bukharian" data-he="בוכרי">Bukharian</button></li>
+                        <li><button onclick="displayCommunity('Persian')"
+                                class="text-left text-slate-600 hover:text-[#594176] text-sm w-full py-0.5"
+                                data-en="Persian" data-he="פרסי">Persian</button></li>
+                        <li><button onclick="displayCommunity('Ethiopian')"
+                                class="text-left text-slate-600 hover:text-[#594176] text-sm w-full py-0.5"
+                                data-en="Ethiopian" data-he="אתיופי">Ethiopian</button></li>
+                        <li><button onclick="displayCommunity('Georgian')"
+                                class="text-left text-slate-600 hover:text-[#594176] text-sm w-full py-0.5"
+                                data-en="Georgian" data-he="גרוזיני">Georgian</button></li>
+                        <li><button onclick="displayCommunity('Greek-Romaniote')"
+                                class="text-left text-slate-600 hover:text-[#594176] text-sm w-full py-0.5"
+                                data-en="Greek-Romaniote" data-he="רומניוטי">Greek-Romaniote</button></li>
                         <li><button onclick="displayCommunity('Kavkazi')"
                                 class="text-left text-slate-600 hover:text-[#594176] text-sm w-full py-0.5"
                                 data-en="Kavkazi" data-he="קווקזי">Kavkazi</button></li>
+                        <li><button onclick="displayCommunity('Turkish-Ottoman Sefardic')"
+                                class="text-left text-slate-600 hover:text-[#594176] text-sm w-full py-0.5"
+                                data-en="Turkish-Ottoman Sefardic" data-he="ספרדי טורקי-עות׳מאני">Turkish-Ottoman
+                                Sefardic</button></li>
                         <li><button onclick="displayCommunity('Israeli')"
                                 class="text-left text-slate-600 hover:text-[#594176] text-sm w-full py-0.5"
                                 data-en="Israeli" data-he="ישראלי">Israeli</button></li>
@@ -1391,8 +1418,10 @@
             'Bukharian': 'בוכרי',
             'Persian': 'פרסי',
             'Ethiopian': 'אתיופי',
+            'Georgian': 'גרוזיני',
             'Greek-Romaniote': 'רומניוטי',
             'Turkish-Ottoman Sefardic': 'ספרדי טורקי-עות׳מאני',
+            'Legacy Customs DB': 'מסד מנהגים ישן',
         };
 
         function getHebrewStaticLabel(text) {
@@ -2002,24 +2031,64 @@
 
             const layout = appState.prefs.readerLayout;
             const isHtml = Boolean(window.currentPrayerIsHtml);
+            const paragraphPairs = Array.isArray(window.currentPrayerParagraphPairs)
+                ? window.currentPrayerParagraphPairs
+                : [];
 
             if (layout === 'bilingual') {
                 const he = window.currentPrayerContent.he || '';
                 const en = window.currentPrayerContent.en || '';
 
-                const heBlock = isHtml
-                    ? `<div dir="rtl" class="font-hebrew leading-loose">${he}</div>`
-                    : `<p dir="rtl" class="leading-loose whitespace-pre-wrap">${he}</p>`;
-                const enBlock = isHtml
-                    ? `<div dir="ltr" class="font-serif leading-relaxed">${en}</div>`
-                    : `<p dir="ltr" class="leading-relaxed whitespace-pre-wrap">${en}</p>`;
+                if (isHtml && paragraphPairs.length > 0) {
+                    const rows = paragraphPairs.map((pair) => {
+                        const heText = pair.he || '';
+                        const enText = pair.en || '';
 
-                contentDiv.innerHTML = `
-                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                        <div class="bg-white rounded border border-slate-200 p-4">${heBlock}</div>
-                        <div class="bg-white rounded border border-slate-200 p-4">${enBlock}</div>
-                    </div>
-                `;
+                        if (pair.type === 'header') {
+                            return `
+                                <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                                    <div class="bg-white rounded border border-slate-200 p-4" dir="rtl">
+                                        <h3 class="text-xl font-bold font-hebrew">${heText || '&nbsp;'}</h3>
+                                    </div>
+                                    <div class="bg-white rounded border border-slate-200 p-4" dir="ltr">
+                                        <h3 class="text-xl font-bold font-serif">${enText || '&nbsp;'}</h3>
+                                    </div>
+                                </div>
+                            `;
+                        }
+
+                        return `
+                            <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                                <div class="bg-white rounded border border-slate-200 p-4" dir="rtl">
+                                    ${heText
+                                ? `<p class="font-hebrew leading-loose">${heText}</p>`
+                                : `<p class="text-slate-300 italic">${t('—', '—')}</p>`}
+                                </div>
+                                <div class="bg-white rounded border border-slate-200 p-4" dir="ltr">
+                                    ${enText
+                                ? `<p class="font-serif leading-relaxed">${enText}</p>`
+                                : `<p class="text-slate-300 italic">${t('—', '—')}</p>`}
+                                </div>
+                            </div>
+                        `;
+                    }).join('');
+
+                    contentDiv.innerHTML = `<div class="space-y-3">${rows}</div>`;
+                } else {
+                    const heBlock = isHtml
+                        ? `<div dir="rtl" class="font-hebrew leading-loose">${he}</div>`
+                        : `<p dir="rtl" class="leading-loose whitespace-pre-wrap">${he}</p>`;
+                    const enBlock = isHtml
+                        ? `<div dir="ltr" class="font-serif leading-relaxed">${en}</div>`
+                        : `<p dir="ltr" class="leading-relaxed whitespace-pre-wrap">${en}</p>`;
+
+                    contentDiv.innerHTML = `
+                        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                            <div class="bg-white rounded border border-slate-200 p-4">${heBlock}</div>
+                            <div class="bg-white rounded border border-slate-200 p-4">${enBlock}</div>
+                        </div>
+                    `;
+                }
             } else {
                 const lang = selectedLang || (layout === 'hebrew' ? 'he' : 'en');
                 const dir = lang === 'he' ? 'rtl' : 'ltr';
@@ -2253,55 +2322,47 @@
                         const sefariaData = await sefariaResp.json();
                         if (sefariaData.lines && sefariaData.lines.length > 0) {
                             let heHtml = '', enHtml = '';
-                            let heParagraphParts = [];
-                            let enParagraphParts = [];
-                            let linesInParagraph = 0;
-
-                            const flushParagraph = () => {
-                                if (heParagraphParts.length > 0) {
-                                    heHtml += `<p class="mb-3 leading-relaxed">${heParagraphParts.join(' ')}</p>`;
-                                }
-                                if (enParagraphParts.length > 0) {
-                                    enHtml += `<p class="mb-3 leading-relaxed">${enParagraphParts.join(' ')}</p>`;
-                                }
-                                heParagraphParts = [];
-                                enParagraphParts = [];
-                                linesInParagraph = 0;
-                            };
+                            const paragraphPairs = [];
 
                             sefariaData.lines.forEach(line => {
                                 if (line.type === 'header') {
-                                    flushParagraph();
                                     const heHeader = escapeHtml(normalizeDisplayText(line.he || ''));
                                     const enHeader = escapeHtml(normalizeDisplayText(line.en || ''));
                                     heHtml += `<h3 class="text-xl font-bold font-hebrew mt-8 mb-3 pb-1 border-b border-slate-200">${heHeader}</h3>`;
                                     enHtml += `<h3 class="text-xl font-bold font-serif mt-8 mb-3 pb-1 border-b border-slate-200">${enHeader}</h3>`;
+                                    paragraphPairs.push({
+                                        type: 'header',
+                                        he: heHeader,
+                                        en: enHeader,
+                                    });
                                 } else {
                                     const heLine = normalizeDisplayText(line.he || '');
                                     const enLine = normalizeDisplayText(line.en || '');
+                                    const heParagraph = heLine ? escapeHtml(heLine) : '';
+                                    const enParagraph = enLine ? escapeHtml(enLine) : '';
 
-                                    if (heLine) {
-                                        heParagraphParts.push(escapeHtml(heLine));
-                                    }
-                                    if (enLine) {
-                                        enParagraphParts.push(escapeHtml(enLine));
-                                    }
-
-                                    if (heLine || enLine) {
-                                        linesInParagraph += 1;
+                                    if (!heParagraph && !enParagraph) {
+                                        return;
                                     }
 
-                                    const tail = (heLine || enLine || '').trim();
-                                    const endsSentence = /[.!?׃:]$/.test(tail);
-                                    if (linesInParagraph >= 3 || (endsSentence && linesInParagraph >= 2)) {
-                                        flushParagraph();
+                                    if (heParagraph) {
+                                        heHtml += `<p class="mb-3 leading-relaxed">${heParagraph}</p>`;
                                     }
+                                    if (enParagraph) {
+                                        enHtml += `<p class="mb-3 leading-relaxed">${enParagraph}</p>`;
+                                    }
+
+                                    paragraphPairs.push({
+                                        type: 'paragraph',
+                                        he: heParagraph,
+                                        en: enParagraph,
+                                    });
                                 }
                             });
 
-                            flushParagraph();
                             prayerData.content.he = heHtml;
                             prayerData.content.en = enHtml;
+                            prayerData.paragraphPairs = paragraphPairs;
                             prayerData.hasSefaria = true;
                         }
                     }
@@ -2316,6 +2377,7 @@
 
                 // Store current prayer content globally for language switching
                 window.currentPrayerContent = prayerData.content;
+                window.currentPrayerParagraphPairs = prayerData.paragraphPairs || [];
                 window.currentPrayerIsHtml = prayerData.hasSefaria || false;
                 window.currentCommunityData = null;
 
@@ -2438,6 +2500,7 @@
                 document.getElementById('readerContent').innerHTML = renderCommunityContent(communityData);
                 window.currentCommunityData = communityData;
                 window.currentPrayerContent = null;
+                window.currentPrayerParagraphPairs = [];
                 document.getElementById('readerSources').innerHTML = '';
                 document.getElementById('readerMedia').innerHTML = '';
 
