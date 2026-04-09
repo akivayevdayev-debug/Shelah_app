@@ -2191,7 +2191,8 @@
             prayers.forEach(prayer => {
                 const name = prayer.name || prayer.title || '';
                 const label = getPrayerDisplayName(name);
-                html += `<button onclick="displayPrayer('${name}')" class="block w-full text-left px-3 py-2 rounded hover:bg-[#00827f]/10 transition text-slate-700 hover:text-[#00827f]">${escapeHtml(label)}</button>`;
+                const encodedName = encodeURIComponent(name);
+                html += `<button onclick="displayPrayer(decodeURIComponent('${encodedName}'))" class="block w-full text-left px-3 py-2 rounded hover:bg-[#00827f]/10 transition text-slate-700 hover:text-[#00827f]">${escapeHtml(label)}</button>`;
             });
             list.innerHTML = html;
             applyStaticHebrewFallbackTranslations();
@@ -2221,7 +2222,8 @@
             communities.forEach(community => {
                 const name = community.name || '';
                 const label = getCommunityDisplayName(name);
-                html += `<button onclick="displayCommunity('${name}')" class="block w-full text-left px-3 py-2 rounded hover:bg-[#594176]/10 transition text-slate-700 hover:text-[#594176]">${escapeHtml(label)}</button>`;
+                const encodedName = encodeURIComponent(name);
+                html += `<button onclick="displayCommunity(decodeURIComponent('${encodedName}'))" class="block w-full text-left px-3 py-2 rounded hover:bg-[#594176]/10 transition text-slate-700 hover:text-[#594176]">${escapeHtml(label)}</button>`;
             });
             list.innerHTML = html;
             applyStaticHebrewFallbackTranslations();
