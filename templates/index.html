@@ -3238,16 +3238,17 @@
                 const translit = appState.prefs.transliteration ? transliterationMarkup(heSourceRaw) : '';
 
                 const hebrewLine = he
-                    ? `<p class="flex flex-row-reverse items-start gap-2"><span class="segment-label inline-label">${label}</span><span>${he}</span></p>${translit}`
+                    ? `<p>${he}</p>${translit}`
                     : `<p class="text-slate-300 italic">${t('No Hebrew text in this segment.', 'אין טקסט עברי בקטע זה.')}</p>`;
                 const englishLine = en
-                    ? `<p class="flex items-start gap-2"><span class="segment-label inline-label">${label}</span><span>${en}</span></p>`
+                    ? `<p>${en}</p>`
                     : `<p class="text-slate-300 italic">${t('No English translation in this segment.', 'אין תרגום אנגלי בקטע זה.')}</p>`;
 
                 if (layout === 'english') {
                     return `
-                        <div class="source-grid segment-row reader-text-row grid grid-cols-1 border-b border-slate-200 last:border-b-0">
-                            <div class="source-en reader-text-en font-serif leading-relaxed py-2 text-slate-700 text-lg">
+                        <div class="source-grid segment-row reader-text-row reader-single-row grid grid-cols-1 border-b border-slate-200 last:border-b-0">
+                            <span class="segment-label reader-row-right-label">${label}</span>
+                            <div class="source-en reader-text-en font-serif leading-relaxed py-2 text-slate-700 text-lg" dir="ltr">
                                 ${englishLine}
                             </div>
                         </div>
@@ -3256,7 +3257,8 @@
 
                 if (layout === 'hebrew') {
                     return `
-                        <div class="source-grid segment-row reader-text-row grid grid-cols-1 border-b border-slate-200 last:border-b-0">
+                        <div class="source-grid segment-row reader-text-row reader-single-row grid grid-cols-1 border-b border-slate-200 last:border-b-0">
+                            <span class="segment-label reader-row-right-label">${label}</span>
                             <div class="source-he reader-text-he text-right font-hebrew text-xl lg:text-2xl leading-[1.8] py-2" dir="rtl">
                                 ${hebrewLine}
                             </div>
@@ -3266,29 +3268,36 @@
 
                 if (layout === 'interleaved') {
                     return `
-                        <div class="source-grid source-grid-interleaved segment-row reader-text-row grid grid-cols-1 border-b border-slate-200 last:border-b-0">
-                            <div class="py-2">
-                                <div class="source-he reader-text-he text-right font-hebrew text-xl lg:text-2xl leading-[1.8]" dir="rtl">${hebrewLine}</div>
-                                <div class="source-en reader-text-en mt-2 font-serif leading-relaxed text-slate-700 text-lg" dir="ltr">${englishLine}</div>
-                            </div>
+                        <div class="source-grid source-grid-interleaved segment-row reader-text-row reader-interleaved-row grid grid-cols-1 lg:grid-cols-2 border-b border-slate-200 last:border-b-0">
+                            <span class="segment-label reader-row-right-label">${label}</span>
+                            <div class="source-en reader-text-en font-serif leading-relaxed py-2 text-slate-700 text-lg" dir="ltr">${englishLine}</div>
+                            <div class="source-he reader-text-he text-right font-hebrew text-xl lg:text-2xl leading-[1.8] py-2" dir="rtl">${hebrewLine}</div>
                         </div>
                     `;
                 }
 
-                const reverseClass = layout === 'bilingual-reverse' ? 'layout-reverse' : '';
-                const stackedClass = layout === 'stacked' ? 'stacked-layout' : '';
-                const gridClass = layout === 'stacked'
-                    ? 'grid-cols-1'
-                    : 'grid-cols-1 lg:grid-cols-2';
+                if (layout === 'stacked') {
+                    return `
+                        <div class="source-grid source-grid-interleaved segment-row reader-text-row reader-single-row grid grid-cols-1 border-b border-slate-200 last:border-b-0">
+                            <span class="segment-label reader-row-right-label">${label}</span>
+                            <div class="source-he reader-text-he text-right font-hebrew text-xl lg:text-2xl leading-[1.8] py-2" dir="rtl">${hebrewLine}</div>
+                            <div class="source-en reader-text-en mt-2 font-serif leading-relaxed py-2 text-slate-700 text-lg" dir="ltr">${englishLine}</div>
+                        </div>
+                    `;
+                }
+
+                const sideBySideLeft = layout === 'bilingual-reverse'
+                    ? `<div class="source-en reader-text-en font-serif leading-relaxed py-2 text-slate-700 text-lg" dir="ltr">${englishLine}</div>`
+                    : `<div class="source-he reader-text-he text-right font-hebrew text-xl lg:text-2xl leading-[1.8] py-2" dir="rtl">${hebrewLine}</div>`;
+                const sideBySideRight = layout === 'bilingual-reverse'
+                    ? `<div class="source-he reader-text-he text-right font-hebrew text-xl lg:text-2xl leading-[1.8] py-2" dir="rtl">${hebrewLine}</div>`
+                    : `<div class="source-en reader-text-en font-serif leading-relaxed py-2 text-slate-700 text-lg" dir="ltr">${englishLine}</div>`;
 
                 return `
-                    <div class="source-grid segment-row reader-text-row ${reverseClass} ${stackedClass} grid ${gridClass} border-b border-slate-200 last:border-b-0">
-                        <div class="source-he reader-text-he text-right font-hebrew text-xl lg:text-2xl leading-[1.8] py-2 ${layout === 'stacked' ? 'border-b border-slate-200' : 'lg:pr-5'}" dir="rtl">
-                            ${hebrewLine}
-                        </div>
-                        <div class="source-en reader-text-en font-serif leading-relaxed py-2 text-slate-700 text-lg ${layout === 'stacked' ? 'pt-2' : 'lg:pl-5'}">
-                            ${englishLine}
-                        </div>
+                    <div class="source-grid segment-row reader-text-row reader-side-row grid grid-cols-1 lg:grid-cols-2 border-b border-slate-200 last:border-b-0">
+                        <span class="segment-label reader-row-mid-label">${label}</span>
+                        ${sideBySideLeft}
+                        ${sideBySideRight}
                     </div>
                 `;
             }).join('');
@@ -3335,16 +3344,19 @@
                 el.style.lineHeight = lineHeight;
             });
 
-            document.querySelectorAll('#reader .source-grid').forEach(grid => {
-                grid.classList.remove('lg:grid-cols-2', 'lg:grid-cols-1', 'stacked-layout', 'layout-reverse');
-                grid.classList.add(isDualColumnReaderLayout(layout) ? 'lg:grid-cols-2' : 'lg:grid-cols-1');
-                if (layout === 'stacked') {
-                    grid.classList.add('stacked-layout');
-                }
-                if (layout === 'bilingual-reverse') {
-                    grid.classList.add('layout-reverse');
-                }
-            });
+            const textViewActive = Boolean(window.currentTextPayload && appState.currentView?.type === 'text');
+            if (!textViewActive) {
+                document.querySelectorAll('#reader .source-grid').forEach(grid => {
+                    grid.classList.remove('lg:grid-cols-2', 'lg:grid-cols-1', 'stacked-layout', 'layout-reverse');
+                    grid.classList.add(isDualColumnReaderLayout(layout) ? 'lg:grid-cols-2' : 'lg:grid-cols-1');
+                    if (layout === 'stacked') {
+                        grid.classList.add('stacked-layout');
+                    }
+                    if (layout === 'bilingual-reverse') {
+                        grid.classList.add('layout-reverse');
+                    }
+                });
+            }
 
             document.querySelectorAll('#reader .source-he').forEach(el => {
                 el.classList.toggle('hidden', layout === 'english');
@@ -3378,117 +3390,146 @@
 
             const layout = getNormalizedReaderLayout();
             const reverseColumns = layout === 'bilingual-reverse';
-            const bilingualLike = ['bilingual', 'bilingual-reverse', 'stacked', 'interleaved'].includes(layout);
+            const dualColumnLayout = layout === 'bilingual' || layout === 'bilingual-reverse';
             const isHtml = Boolean(window.currentPrayerIsHtml);
             const paragraphPairs = Array.isArray(window.currentPrayerParagraphPairs)
                 ? window.currentPrayerParagraphPairs
                 : [];
-            const pairGridClass = (layout === 'stacked' || layout === 'interleaved')
-                ? 'grid grid-cols-1 gap-3'
-                : `grid grid-cols-1 lg:grid-cols-2 gap-4 ${reverseColumns ? 'layout-reverse' : ''}`;
+            const splitPrayerParagraphs = (value = '') => {
+                const normalized = normalizeDisplayText(String(value || '')).replace(/\r/g, '').trim();
+                if (!normalized) return [];
+                return normalized
+                    .split(/\n{2,}/)
+                    .map((p) => p.trim())
+                    .filter(Boolean);
+            };
 
-            if (bilingualLike) {
-                const he = applyHebrewDisplaySettings(window.currentPrayerContent.he || '');
-                const en = window.currentPrayerContent.en || '';
+            const renderHebrewParagraph = (rawText = '', includeTransliteration = true) => {
+                const displayText = applyHebrewDisplaySettings(rawText || '');
+                if (!displayText) {
+                    return `<p class="text-slate-300 italic">${t('No Hebrew text in source', 'אין טקסט עברי במקור')}</p>`;
+                }
+                return `<p class="font-hebrew">${displayText}</p>${includeTransliteration ? transliterationMarkup(displayText) : ''}`;
+            };
 
-                if (isHtml && paragraphPairs.length > 0) {
-                    const rows = paragraphPairs.map((pair) => {
-                        const heText = applyHebrewDisplaySettings(pair.he || '');
-                        const enText = pair.en || '';
+            const renderEnglishParagraph = (rawText = '') => {
+                const displayText = String(rawText || '').trim();
+                if (!displayText) {
+                    return `<p class="text-slate-300 italic">${t('No English translation in source', 'אין תרגום אנגלי במקור')}</p>`;
+                }
+                return `<p class="font-serif">${displayText}</p>`;
+            };
 
-                        if (pair.type === 'header') {
-                            const heHeader = `
-                                <div class="bg-white rounded border border-slate-200 p-4" dir="rtl">
-                                    <h3 class="text-xl font-bold font-hebrew">${heText || '&nbsp;'}</h3>
-                                </div>
-                            `;
-                            const enHeader = `
-                                <div class="bg-white rounded border border-slate-200 p-4" dir="ltr">
-                                    <h3 class="text-xl font-bold font-serif">${enText || '&nbsp;'}</h3>
-                                </div>
-                            `;
-                            return `
-                                <div class="${pairGridClass}">
-                                    ${reverseColumns ? `${enHeader}${heHeader}` : `${heHeader}${enHeader}`}
-                                </div>
-                            `;
-                        }
+            const renderPrayerBilingualRow = ({ heText = '', enText = '', isHeader = false }) => {
+                const heDisplay = applyHebrewDisplaySettings(heText || '');
+                const enDisplay = String(enText || '').trim();
+                const rowPadding = isHeader ? 'pt-3 pb-2' : 'py-2';
 
-                        if (heText && !enText) {
-                            return `
-                                <div class="bg-white rounded border border-slate-200 p-4" dir="rtl">
-                                    <p class="font-hebrew">${heText}</p>
-                                    ${transliterationMarkup(heText)}
-                                    <p class="text-xs text-slate-400 mt-2">${t('English translation not available for this source segment', 'אין תרגום אנגלי זמין לקטע מקור זה')}</p>
-                                </div>
-                            `;
-                        }
+                const hebrewContent = isHeader
+                    ? `<h3 class="font-hebrew text-xl font-bold">${heDisplay || '&nbsp;'}</h3>`
+                    : renderHebrewParagraph(heText, true);
+                const englishContent = isHeader
+                    ? `<h3 class="font-serif text-xl font-bold">${enDisplay || '&nbsp;'}</h3>`
+                    : renderEnglishParagraph(enText);
 
-                        if (enText && !heText) {
-                            return `
-                                <div class="bg-white rounded border border-slate-200 p-4" dir="ltr">
-                                    <p class="font-serif">${enText}</p>
-                                    <p class="text-xs text-slate-400 mt-2">${t('Hebrew text not available for this source segment', 'אין טקסט עברי זמין לקטע מקור זה')}</p>
-                                </div>
-                            `;
-                        }
-
-                        const heCard = `
-                            <div class="bg-white rounded border border-slate-200 p-4" dir="rtl">
-                                ${heText
-                                ? `<p class="font-hebrew">${heText}</p>${transliterationMarkup(heText)}`
-                                : `<p class="text-slate-300 italic">${t('No Hebrew text in source', 'אין טקסט עברי במקור')}</p>`}
-                            </div>
-                        `;
-                        const enCard = `
-                            <div class="bg-white rounded border border-slate-200 p-4" dir="ltr">
-                                ${enText
-                                ? `<p class="font-serif">${enText}</p>`
-                                : `<p class="text-slate-300 italic">${t('No English translation in source', 'אין תרגום אנגלי במקור')}</p>`}
-                            </div>
-                        `;
-
-                        return `
-                            <div class="${pairGridClass}">
-                                ${reverseColumns ? `${enCard}${heCard}` : `${heCard}${enCard}`}
-                            </div>
-                        `;
-                    }).join('');
-
-                    contentDiv.innerHTML = `<div class="space-y-3">${rows}</div>`;
-                } else {
-                    const heBlock = isHtml
-                        ? `<div dir="rtl" class="font-hebrew">${he}</div>`
-                        : `<p dir="rtl" class="whitespace-pre-wrap">${he}</p>`;
-                    const enBlock = isHtml
-                        ? `<div dir="ltr" class="font-serif">${en}</div>`
-                        : `<p dir="ltr" class="whitespace-pre-wrap">${en}</p>`;
-
-                    const heContainer = `<div class="bg-white rounded border border-slate-200 p-4">${heBlock}${transliterationMarkup(he)}</div>`;
-                    const enContainer = `<div class="bg-white rounded border border-slate-200 p-4">${enBlock}</div>`;
-                    const containerClass = (layout === 'stacked' || layout === 'interleaved')
-                        ? 'grid grid-cols-1 gap-4'
-                        : `grid grid-cols-1 lg:grid-cols-2 gap-6 ${reverseColumns ? 'layout-reverse' : ''}`;
-
-                    contentDiv.innerHTML = `
-                        <div class="${containerClass}">
-                            ${reverseColumns ? `${enContainer}${heContainer}` : `${heContainer}${enContainer}`}
+                if (layout === 'interleaved') {
+                    return `
+                        <div class="prayer-clean-row prayer-clean-row-dual grid grid-cols-1 lg:grid-cols-2 gap-4 border-b border-slate-200 last:border-b-0 ${rowPadding}">
+                            <div class="prayer-clean-en" dir="ltr">${englishContent}</div>
+                            <div class="prayer-clean-he text-right" dir="rtl">${hebrewContent}</div>
                         </div>
                     `;
                 }
+
+                if (layout === 'stacked') {
+                    return `
+                        <div class="prayer-clean-row border-b border-slate-200 last:border-b-0 ${rowPadding}">
+                            <div class="prayer-clean-he text-right" dir="rtl">${hebrewContent}</div>
+                            <div class="prayer-clean-en mt-2" dir="ltr">${englishContent}</div>
+                        </div>
+                    `;
+                }
+
+                const leftColumn = reverseColumns
+                    ? `<div class="prayer-clean-en" dir="ltr">${englishContent}</div>`
+                    : `<div class="prayer-clean-he text-right" dir="rtl">${hebrewContent}</div>`;
+                const rightColumn = reverseColumns
+                    ? `<div class="prayer-clean-he text-right" dir="rtl">${hebrewContent}</div>`
+                    : `<div class="prayer-clean-en" dir="ltr">${englishContent}</div>`;
+
+                return `
+                    <div class="prayer-clean-row prayer-clean-row-dual grid grid-cols-1 lg:grid-cols-2 gap-4 border-b border-slate-200 last:border-b-0 ${rowPadding}">
+                        ${leftColumn}
+                        ${rightColumn}
+                    </div>
+                `;
+            };
+
+            if (dualColumnLayout || layout === 'stacked' || layout === 'interleaved') {
+                let rows = '';
+
+                if (paragraphPairs.length > 0) {
+                    rows = paragraphPairs.map((pair) => {
+                        return renderPrayerBilingualRow({
+                            heText: pair.he || '',
+                            enText: pair.en || '',
+                            isHeader: pair.type === 'header',
+                        });
+                    }).join('');
+                } else {
+                    const heParagraphs = splitPrayerParagraphs(window.currentPrayerContent.he || '');
+                    const enParagraphs = splitPrayerParagraphs(window.currentPrayerContent.en || '');
+                    const maxRows = Math.max(heParagraphs.length, enParagraphs.length, 1);
+                    const generatedRows = [];
+
+                    for (let idx = 0; idx < maxRows; idx += 1) {
+                        generatedRows.push(renderPrayerBilingualRow({
+                            heText: heParagraphs[idx] || '',
+                            enText: enParagraphs[idx] || '',
+                            isHeader: false,
+                        }));
+                    }
+
+                    rows = generatedRows.join('');
+                }
+
+                contentDiv.innerHTML = `<div class="prayer-clean-lines">${rows}</div>`;
             } else {
                 const lang = selectedLang || (layout === 'hebrew' ? 'he' : 'en');
                 const dir = lang === 'he' ? 'rtl' : 'ltr';
                 const contentRaw = window.currentPrayerContent[lang] || window.currentPrayerContent.en || '';
-                const content = lang === 'he' ? applyHebrewDisplaySettings(contentRaw) : contentRaw;
 
                 if (isHtml && (lang === 'he' || lang === 'en')) {
-                    const fontClass = lang === 'he'
-                        ? 'font-hebrew'
-                        : 'font-serif';
-                    contentDiv.innerHTML = `<div dir="${dir}" class="${fontClass}">${content}</div>${lang === 'he' ? transliterationMarkup(content) : ''}`;
+                    const contentDisplay = lang === 'he'
+                        ? applyHebrewDisplaySettings(contentRaw)
+                        : contentRaw;
+                    const fontClass = lang === 'he' ? 'font-hebrew' : 'font-serif';
+                    const translit = lang === 'he' ? transliterationMarkup(normalizeDisplayText(contentRaw || '')) : '';
+
+                    contentDiv.innerHTML = `
+                        <div class="prayer-clean-lines">
+                            <div class="prayer-clean-row border-b border-slate-200 last:border-b-0 py-2">
+                                <div class="${lang === 'he' ? 'prayer-clean-he text-right' : 'prayer-clean-en'}" dir="${dir}">
+                                    <div class="${fontClass}">${contentDisplay}</div>
+                                    ${translit}
+                                </div>
+                            </div>
+                        </div>
+                    `;
                 } else {
-                    contentDiv.innerHTML = `<p dir="${dir}" class="whitespace-pre-wrap">${content}</p>${lang === 'he' ? transliterationMarkup(content) : ''}`;
+                    const paragraphs = splitPrayerParagraphs(contentRaw);
+                    const list = (paragraphs.length ? paragraphs : [String(contentRaw || '')]).map((paragraph) => {
+                        const rendered = lang === 'he'
+                            ? renderHebrewParagraph(paragraph, true)
+                            : renderEnglishParagraph(paragraph);
+                        return `
+                            <div class="prayer-clean-row border-b border-slate-200 last:border-b-0 py-2">
+                                <div class="${lang === 'he' ? 'prayer-clean-he text-right' : 'prayer-clean-en'}" dir="${dir}">${rendered}</div>
+                            </div>
+                        `;
+                    }).join('');
+
+                    contentDiv.innerHTML = `<div class="prayer-clean-lines">${list}</div>`;
                 }
             }
 
@@ -4218,10 +4259,7 @@
 
         function renderPrayerContent(content) {
             let html = '<div class="prose prose-slate max-w-none font-serif leading-relaxed text-slate-800">';
-            html += `<div class="bg-slate-50 rounded-lg p-6 border border-slate-200">`;
-            html += `<div id="prayer-display">`;
-            html += `</div>`;
-            html += `</div>`;
+            html += `<div id="prayer-display" class="prayer-clean-lines"></div>`;
             html += `</div>`;
 
             return html;
