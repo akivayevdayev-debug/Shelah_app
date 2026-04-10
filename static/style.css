@@ -511,6 +511,26 @@ html.rtl #showRightSidebarTopBtn {
     line-height: var(--reader-line-height);
 }
 
+#reader .source-grid.layout-reverse .source-he {
+    order: 2;
+    border-right: 0 !important;
+    border-left: 1px solid #e2e8f0;
+}
+
+#reader .source-grid.layout-reverse .source-en {
+    order: 1;
+}
+
+#reader .source-grid.source-grid-interleaved .source-he,
+#reader .source-grid.source-grid-interleaved .source-en {
+    background: transparent;
+    padding: 0;
+}
+
+#reader.reader-hebrew-plain .source-he {
+    font-size: calc(var(--reader-font-size) + 2px) !important;
+}
+
 #reader .source-he {
     letter-spacing: normal;
     word-spacing: normal;

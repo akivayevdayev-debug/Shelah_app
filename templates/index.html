@@ -765,8 +765,13 @@
                                     <span data-en="Layout" data-he="פריסה">Layout</span>
                                     <select id="readerLayoutSelect"
                                         class="mt-1 w-full px-2 py-1.5 rounded border border-slate-200 bg-slate-50 text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-300">
-                                        <option value="bilingual" data-en="Side by Side" data-he="דו-עמודי">Side by Side
+                                        <option value="bilingual" data-en="Side by Side (Hebrew Left)"
+                                            data-he="דו-עמודי (עברית משמאל)">Side by Side (Hebrew Left)
                                         </option>
+                                        <option value="bilingual-reverse" data-en="Side by Side (English Left)"
+                                            data-he="דו-עמודי (אנגלית משמאל)">Side by Side (English Left)</option>
+                                        <option value="interleaved" data-en="Interleaved" data-he="משולב שורה-שורה">
+                                            Interleaved</option>
                                         <option value="stacked" data-en="Stacked" data-he="מדורג">Stacked</option>
                                         <option value="english" data-en="English" data-he="אנגלית">English</option>
                                         <option value="hebrew" data-en="Hebrew" data-he="עברית">Hebrew</option>
@@ -3128,9 +3133,190 @@
             `;
         }
 
+        function getNormalizedReaderLayout(layout = appState.prefs.readerLayout) {
+            const supportedLayouts = ['bilingual', 'bilingual-reverse', 'interleaved', 'stacked', 'english', 'hebrew'];
+            return supportedLayouts.includes(layout) ? layout : 'bilingual';
+        }
+
+        function isDualColumnReaderLayout(layout = appState.prefs.readerLayout) {
+            const normalized = getNormalizedReaderLayout(layout);
+            return normalized === 'bilingual' || normalized === 'bilingual-reverse';
+        }
+
+        function captureReaderScrollState() {
+            const target = getPrimaryScrollElement();
+            const pageTarget = target === document.documentElement || target === document.body;
+            const top = getPrimaryScrollTop();
+            const max = pageTarget
+                ? Math.max(0, (document.documentElement.scrollHeight || 0) - window.innerHeight)
+                : Math.max(0, target.scrollHeight - target.clientHeight);
+
+            return {
+                pageTarget,
+                top,
+                ratio: max > 0 ? top / max : 0,
+            };
+        }
+
+        function restoreReaderScrollState(state) {
+            if (!state) return;
+
+            const target = state.pageTarget
+                ? (document.scrollingElement || document.documentElement)
+                : getPrimaryScrollElement();
+            const pageTarget = target === document.documentElement || target === document.body;
+            const max = pageTarget
+                ? Math.max(0, (document.documentElement.scrollHeight || 0) - window.innerHeight)
+                : Math.max(0, target.scrollHeight - target.clientHeight);
+            const nextTop = max > 0
+                ? Math.max(0, Math.min(max, Math.round(state.ratio * max)))
+                : Math.max(0, state.top || 0);
+
+            if (pageTarget) {
+                window.scrollTo({ top: nextTop, behavior: 'auto' });
+                return;
+            }
+
+            target.scrollTop = nextTop;
+        }
+
+        function formatSegmentLabel(segment, idx) {
+            if (!segment) return isHebrewMode() ? `קטע ${idx + 1}` : `Segment ${idx + 1}`;
+            const raw = String(segment).trim();
+            if (!raw) return isHebrewMode() ? `קטע ${idx + 1}` : `Segment ${idx + 1}`;
+            const parts = raw.split('.').filter(Boolean);
+            if (parts.length >= 2) {
+                return `§ ${parts[0]}:${parts.slice(1).join(':')}`;
+            }
+            return `§ ${parts[0] || idx + 1}`;
+        }
+
+        function renderCurrentTextByLayout(options = {}) {
+            const { preserveScroll = false } = options;
+            const data = window.currentTextPayload;
+            const readerContent = document.getElementById('readerContent');
+            const sourcesDiv = document.getElementById('readerSources');
+
+            if (!data || !readerContent || !sourcesDiv) return;
+
+            const scrollState = preserveScroll ? captureReaderScrollState() : null;
+            const layout = getNormalizedReaderLayout();
+            const cleanLine = (text = '') => escapeHtml(normalizeDisplayText(text)).replace(/\n/g, '<br>');
+
+            let navHTML = '<div class="flex justify-between mb-8 text-sm">';
+            if (data.prev) {
+                navHTML += `<button onclick="readText('${data.prev}')" class="px-4 py-2 bg-slate-100 rounded hover:bg-slate-200 font-serif">&#8592; ${data.prev}</button>`;
+            } else {
+                navHTML += '<span></span>';
+            }
+            if (data.next) {
+                navHTML += `<button onclick="readText('${data.next}')" class="px-4 py-2 bg-slate-100 rounded hover:bg-slate-200 font-serif">${data.next} &#8594;</button>`;
+            }
+            navHTML += '</div>';
+            readerContent.innerHTML = navHTML;
+
+            if (!Array.isArray(data.lines) || data.lines.length === 0) {
+                sourcesDiv.innerHTML = `<p class="text-slate-500 italic">${t('No text content found for this reference.', 'לא נמצא תוכן טקסט עבור הפניה זו.')}</p>`;
+                if (scrollState) {
+                    requestAnimationFrame(() => restoreReaderScrollState(scrollState));
+                }
+                return;
+            }
+
+            const rows = data.lines.map((line, idx) => {
+                const label = formatSegmentLabel(line.segment, idx);
+                const heSourceRaw = normalizeDisplayText(line.he || line.en || '');
+                const he = cleanLine(applyHebrewDisplaySettings(line.he || line.en || ''));
+                const en = cleanLine(line.en || '');
+                const translit = appState.prefs.transliteration ? transliterationMarkup(heSourceRaw) : '';
+
+                const hebrewLine = he
+                    ? `<p class="flex flex-row-reverse items-start gap-2"><span class="segment-label inline-label">${label}</span><span>${he}</span></p>${translit}`
+                    : `<p class="text-slate-300 italic">${t('No Hebrew text in this segment.', 'אין טקסט עברי בקטע זה.')}</p>`;
+                const englishLine = en
+                    ? `<p class="flex items-start gap-2"><span class="segment-label inline-label">${label}</span><span>${en}</span></p>`
+                    : `<p class="text-slate-300 italic">${t('No English translation in this segment.', 'אין תרגום אנגלי בקטע זה.')}</p>`;
+
+                if (layout === 'english') {
+                    return `
+                        <div class="source-grid segment-row grid grid-cols-1 border-b border-slate-100 last:border-b-0">
+                            <div class="source-en bg-slate-50 font-serif leading-relaxed p-5 text-slate-700 text-lg">
+                                ${englishLine}
+                            </div>
+                        </div>
+                    `;
+                }
+
+                if (layout === 'hebrew') {
+                    return `
+                        <div class="source-grid segment-row grid grid-cols-1 border-b border-slate-100 last:border-b-0">
+                            <div class="source-he bg-white text-right font-hebrew text-xl lg:text-2xl leading-[1.8] p-5" dir="rtl">
+                                ${hebrewLine}
+                            </div>
+                        </div>
+                    `;
+                }
+
+                if (layout === 'interleaved') {
+                    return `
+                        <div class="source-grid source-grid-interleaved segment-row grid grid-cols-1 border-b border-slate-100 last:border-b-0">
+                            <div class="bg-white p-5">
+                                <div class="source-he text-right font-hebrew text-xl lg:text-2xl leading-[1.8]" dir="rtl">${hebrewLine}</div>
+                                <div class="source-en mt-3 font-serif leading-relaxed text-slate-700 text-lg" dir="ltr">${englishLine}</div>
+                            </div>
+                        </div>
+                    `;
+                }
+
+                const reverseClass = layout === 'bilingual-reverse' ? 'layout-reverse' : '';
+                const stackedClass = layout === 'stacked' ? 'stacked-layout' : '';
+                const gridClass = layout === 'stacked'
+                    ? 'grid-cols-1'
+                    : 'grid-cols-1 lg:grid-cols-2';
+
+                return `
+                    <div class="source-grid segment-row ${reverseClass} ${stackedClass} grid ${gridClass} border-b border-slate-100 last:border-b-0">
+                        <div class="source-he bg-white text-right font-hebrew text-xl lg:text-2xl leading-[1.8] p-5 ${layout === 'stacked' ? 'border-b border-slate-100' : 'lg:border-r border-slate-200'}" dir="rtl">
+                            ${hebrewLine}
+                        </div>
+                        <div class="source-en bg-slate-50 font-serif leading-relaxed p-5 text-slate-700 text-lg">
+                            ${englishLine}
+                        </div>
+                    </div>
+                `;
+            }).join('');
+
+            sourcesDiv.innerHTML = `
+                <div class="border border-slate-300 rounded-lg bg-white overflow-hidden shadow-sm mb-6">
+                    <div class="bg-slate-50 px-4 py-2 text-xs font-bold text-slate-500 uppercase tracking-wider border-b source-title">
+                        <span>${escapeHtml(data.ref || appState.currentView?.value || '')}</span>
+                    </div>
+                    ${rows}
+                </div>
+            `;
+
+            if (scrollState) {
+                requestAnimationFrame(() => restoreReaderScrollState(scrollState));
+            }
+        }
+
         function applyReaderPreferences() {
+            const layout = getNormalizedReaderLayout();
+            appState.prefs.readerLayout = layout;
+
             reader.style.setProperty('--reader-font-size', `${appState.prefs.fontSize}px`);
             reader.style.setProperty('--reader-line-height', `${appState.prefs.lineHeight}`);
+
+            const shouldBoostHebrew = appState.currentView?.type === 'text'
+                && appState.prefs.showVowels === false
+                && appState.prefs.showCantillation === false;
+            reader.classList.toggle('reader-hebrew-plain', shouldBoostHebrew);
+
+            if (window.currentTextPayload && appState.currentView?.type === 'text') {
+                const sourcesDiv = document.getElementById('readerSources');
+                const hasRenderedText = Boolean(sourcesDiv && sourcesDiv.children.length > 0);
+                renderCurrentTextByLayout({ preserveScroll: hasRenderedText });
+            }
 
             const sizePx = `${appState.prefs.fontSize}px`;
             const lineHeight = String(appState.prefs.lineHeight);
@@ -3140,12 +3326,14 @@
                 el.style.lineHeight = lineHeight;
             });
 
-            const layout = appState.prefs.readerLayout;
             document.querySelectorAll('#reader .source-grid').forEach(grid => {
-                grid.classList.remove('lg:grid-cols-2', 'lg:grid-cols-1', 'stacked-layout');
-                grid.classList.add(layout === 'bilingual' ? 'lg:grid-cols-2' : 'lg:grid-cols-1');
+                grid.classList.remove('lg:grid-cols-2', 'lg:grid-cols-1', 'stacked-layout', 'layout-reverse');
+                grid.classList.add(isDualColumnReaderLayout(layout) ? 'lg:grid-cols-2' : 'lg:grid-cols-1');
                 if (layout === 'stacked') {
                     grid.classList.add('stacked-layout');
+                }
+                if (layout === 'bilingual-reverse') {
+                    grid.classList.add('layout-reverse');
                 }
             });
 
@@ -3179,13 +3367,16 @@
             const contentDiv = document.getElementById('prayer-display');
             if (!contentDiv || !window.currentPrayerContent) return;
 
-            const layout = appState.prefs.readerLayout;
-            const bilingualLike = layout === 'bilingual' || layout === 'stacked';
+            const layout = getNormalizedReaderLayout();
+            const reverseColumns = layout === 'bilingual-reverse';
+            const bilingualLike = ['bilingual', 'bilingual-reverse', 'stacked', 'interleaved'].includes(layout);
             const isHtml = Boolean(window.currentPrayerIsHtml);
             const paragraphPairs = Array.isArray(window.currentPrayerParagraphPairs)
                 ? window.currentPrayerParagraphPairs
                 : [];
-            const pairGridClass = layout === 'stacked' ? 'grid grid-cols-1 gap-3' : 'grid grid-cols-1 lg:grid-cols-2 gap-4';
+            const pairGridClass = (layout === 'stacked' || layout === 'interleaved')
+                ? 'grid grid-cols-1 gap-3'
+                : `grid grid-cols-1 lg:grid-cols-2 gap-4 ${reverseColumns ? 'layout-reverse' : ''}`;
 
             if (bilingualLike) {
                 const he = applyHebrewDisplaySettings(window.currentPrayerContent.he || '');
@@ -3197,14 +3388,19 @@
                         const enText = pair.en || '';
 
                         if (pair.type === 'header') {
+                            const heHeader = `
+                                <div class="bg-white rounded border border-slate-200 p-4" dir="rtl">
+                                    <h3 class="text-xl font-bold font-hebrew">${heText || '&nbsp;'}</h3>
+                                </div>
+                            `;
+                            const enHeader = `
+                                <div class="bg-white rounded border border-slate-200 p-4" dir="ltr">
+                                    <h3 class="text-xl font-bold font-serif">${enText || '&nbsp;'}</h3>
+                                </div>
+                            `;
                             return `
                                 <div class="${pairGridClass}">
-                                    <div class="bg-white rounded border border-slate-200 p-4" dir="rtl">
-                                        <h3 class="text-xl font-bold font-hebrew">${heText || '&nbsp;'}</h3>
-                                    </div>
-                                    <div class="bg-white rounded border border-slate-200 p-4" dir="ltr">
-                                        <h3 class="text-xl font-bold font-serif">${enText || '&nbsp;'}</h3>
-                                    </div>
+                                    ${reverseColumns ? `${enHeader}${heHeader}` : `${heHeader}${enHeader}`}
                                 </div>
                             `;
                         }
@@ -3228,18 +3424,24 @@
                             `;
                         }
 
-                        return `
-                            <div class="${pairGridClass}">
-                                <div class="bg-white rounded border border-slate-200 p-4" dir="rtl">
-                                    ${heText
+                        const heCard = `
+                            <div class="bg-white rounded border border-slate-200 p-4" dir="rtl">
+                                ${heText
                                 ? `<p class="font-hebrew">${heText}</p>${transliterationMarkup(heText)}`
                                 : `<p class="text-slate-300 italic">${t('No Hebrew text in source', 'אין טקסט עברי במקור')}</p>`}
-                                </div>
-                                <div class="bg-white rounded border border-slate-200 p-4" dir="ltr">
-                                    ${enText
+                            </div>
+                        `;
+                        const enCard = `
+                            <div class="bg-white rounded border border-slate-200 p-4" dir="ltr">
+                                ${enText
                                 ? `<p class="font-serif">${enText}</p>`
                                 : `<p class="text-slate-300 italic">${t('No English translation in source', 'אין תרגום אנגלי במקור')}</p>`}
-                                </div>
+                            </div>
+                        `;
+
+                        return `
+                            <div class="${pairGridClass}">
+                                ${reverseColumns ? `${enCard}${heCard}` : `${heCard}${enCard}`}
                             </div>
                         `;
                     }).join('');
@@ -3253,10 +3455,15 @@
                         ? `<div dir="ltr" class="font-serif">${en}</div>`
                         : `<p dir="ltr" class="whitespace-pre-wrap">${en}</p>`;
 
+                    const heContainer = `<div class="bg-white rounded border border-slate-200 p-4">${heBlock}${transliterationMarkup(he)}</div>`;
+                    const enContainer = `<div class="bg-white rounded border border-slate-200 p-4">${enBlock}</div>`;
+                    const containerClass = (layout === 'stacked' || layout === 'interleaved')
+                        ? 'grid grid-cols-1 gap-4'
+                        : `grid grid-cols-1 lg:grid-cols-2 gap-6 ${reverseColumns ? 'layout-reverse' : ''}`;
+
                     contentDiv.innerHTML = `
-                        <div class="${layout === 'stacked' ? 'grid grid-cols-1 gap-4' : 'grid grid-cols-1 lg:grid-cols-2 gap-6'}">
-                            <div class="bg-white rounded border border-slate-200 p-4">${heBlock}${transliterationMarkup(he)}</div>
-                            <div class="bg-white rounded border border-slate-200 p-4">${enBlock}</div>
+                        <div class="${containerClass}">
+                            ${reverseColumns ? `${enContainer}${heContainer}` : `${heContainer}${enContainer}`}
                         </div>
                     `;
                 }
@@ -3322,7 +3529,7 @@
             delete appState.prefs.showSidebars;
 
             appState.prefs.metadataFilters = normalizeMetadataFilters(appState.prefs.metadataFilters || {});
-            if (!['bilingual', 'stacked', 'english', 'hebrew'].includes(appState.prefs.readerLayout)) {
+            if (!['bilingual', 'bilingual-reverse', 'interleaved', 'stacked', 'english', 'hebrew'].includes(appState.prefs.readerLayout)) {
                 appState.prefs.readerLayout = 'bilingual';
             }
             appState.prefs.transliteration = Boolean(appState.prefs.transliteration);
@@ -4364,65 +4571,6 @@
                             ? `פרשת השבוע לפרק ${parashaMatch.chapter}: ${parashaName}`
                             : `Parashah for Chapter ${parashaMatch.chapter}: ${parashaName}`
                     );
-                }
-
-                // Build bilingual side-by-side blocks inline
-                const sourcesDiv = document.getElementById('readerSources');
-                sourcesDiv.innerHTML = '';
-
-                // Navigation prev/next
-                let navHTML = '<div class="flex justify-between mb-8 text-sm">';
-                if (data.prev)
-                    navHTML += `<button onclick="readText('${data.prev}')" class="px-4 py-2 bg-slate-100 rounded hover:bg-slate-200 font-serif">&#8592; ${data.prev}</button>`;
-                else navHTML += '<span></span>';
-                if (data.next)
-                    navHTML += `<button onclick="readText('${data.next}')" class="px-4 py-2 bg-slate-100 rounded hover:bg-slate-200 font-serif">${data.next} &#8594;</button>`;
-                navHTML += '</div>';
-
-                document.getElementById('readerContent').innerHTML = navHTML;
-
-                if (data.lines && data.lines.length > 0) {
-                    const cleanLine = (text = '') => escapeHtml(normalizeDisplayText(text)).replace(/\n/g, '<br>');
-                    const formatSegmentLabel = (segment, idx) => {
-                        if (!segment) return isHebrewMode() ? `קטע ${idx + 1}` : `Segment ${idx + 1}`;
-                        const raw = String(segment).trim();
-                        if (!raw) return isHebrewMode() ? `קטע ${idx + 1}` : `Segment ${idx + 1}`;
-                        const parts = raw.split('.').filter(Boolean);
-                        if (parts.length >= 2) {
-                            return `§ ${parts[0]}:${parts.slice(1).join(':')}`;
-                        }
-                        return `§ ${parts[0] || idx + 1}`;
-                    };
-
-                    const rows = data.lines.map((line, idx) => {
-                        const label = formatSegmentLabel(line.segment, idx);
-                        const heSourceRaw = normalizeDisplayText(line.he || line.en || '');
-                        const he = cleanLine(applyHebrewDisplaySettings(line.he || line.en || ''));
-                        const en = cleanLine(line.en || '');
-                        const translit = appState.prefs.transliteration ? transliterationMarkup(heSourceRaw) : '';
-
-                        return `
-                            <div class="source-grid segment-row grid grid-cols-1 lg:grid-cols-2 border-b border-slate-100 last:border-b-0">
-                                <div class="source-he bg-white text-right font-hebrew text-xl lg:text-2xl leading-[1.8] p-5" dir="rtl">
-                                    ${he ? `<p class="flex flex-row-reverse items-start gap-2"><span class="segment-label inline-label">${label}</span><span>${he}</span></p>${translit}` : `<p class="text-slate-300 italic">${t('—', '—')}</p>`}
-                                </div>
-                                <div class="source-en bg-slate-50 font-serif leading-relaxed p-5 text-slate-700 text-lg">
-                                    ${en ? `<p class="flex items-start gap-2"><span class="segment-label inline-label">${label}</span><span>${en}</span></p>` : `<p class="text-slate-300 italic">${t('—', '—')}</p>`}
-                                </div>
-                            </div>
-                        `;
-                    }).join('');
-
-                    sourcesDiv.innerHTML = `
-                        <div class="border border-slate-300 rounded-lg bg-white overflow-hidden shadow-sm mb-6">
-                            <div class="bg-slate-50 px-4 py-2 text-xs font-bold text-slate-500 uppercase tracking-wider border-b source-title">
-                                <span>${escapeHtml(data.ref || ref)}</span>
-                            </div>
-                            ${rows}
-                        </div>
-                    `;
-                } else {
-                    sourcesDiv.innerHTML = `<p class="text-slate-500 italic">${t('No text content found for this reference.', 'לא נמצא תוכן טקסט עבור הפניה זו.')}</p>`;
                 }
 
                 applyReaderPreferences();
