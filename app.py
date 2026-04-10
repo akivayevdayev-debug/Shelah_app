@@ -432,6 +432,79 @@ def _coerce_int(value, default, min_value=1, max_value=100):
     return max(min_value, min(parsed, max_value))
 
 
+# Browser cache/session cadence defaults to 2 days so clients revalidate often.
+RESOURCE_RELOAD_SECONDS = _coerce_int(
+    os.environ.get("RESOURCE_RELOAD_SECONDS"),
+    default=60 * 60 * 24 * 2,
+    min_value=60 * 60,
+    max_value=60 * 60 * 24 * 14,
+)
+SESSION_RELOAD_SECONDS = _coerce_int(
+    os.environ.get("SESSION_RELOAD_SECONDS"),
+    default=RESOURCE_RELOAD_SECONDS,
+    min_value=60 * 60,
+    max_value=60 * 60 * 24 * 30,
+)
+STATIC_STALE_WHILE_REVALIDATE_SECONDS = max(
+    60 * 60,
+    min(60 * 60 * 24, RESOURCE_RELOAD_SECONDS // 2),
+)
+
+is_production_runtime = (
+    os.environ.get("VERCEL") == "1"
+    or os.environ.get("FLASK_ENV", "").strip().lower() == "production"
+)
+
+app.config["PERMANENT_SESSION_LIFETIME"] = timedelta(
+    seconds=SESSION_RELOAD_SECONDS)
+app.config["SESSION_REFRESH_EACH_REQUEST"] = True
+app.config["SESSION_COOKIE_HTTPONLY"] = True
+app.config["SESSION_COOKIE_SAMESITE"] = "Lax"
+app.config["SESSION_COOKIE_SECURE"] = is_production_runtime
+app.config["SEND_FILE_MAX_AGE_DEFAULT"] = RESOURCE_RELOAD_SECONDS
+
+
+@app.before_request
+def apply_session_cookie_policy():
+    # Ensure Flask issues an expiring cookie instead of a browser-session cookie.
+    session.permanent = True
+
+
+@app.after_request
+def apply_response_cache_policy(response):
+    path = request.path or ""
+
+    if path.startswith("/api/") or path in {"/ask", "/set_location"}:
+        response.headers["Cache-Control"] = "no-store"
+        return response
+
+    if path == "/service-worker.js":
+        response.headers["Cache-Control"] = "no-cache, no-store, must-revalidate"
+        response.headers["Pragma"] = "no-cache"
+        response.headers["Expires"] = "0"
+        return response
+
+    if path.startswith("/static/"):
+        response.headers["Cache-Control"] = (
+            f"public, max-age={RESOURCE_RELOAD_SECONDS}, "
+            f"stale-while-revalidate={STATIC_STALE_WHILE_REVALIDATE_SECONDS}"
+        )
+        return response
+
+    if path == "/manifest.webmanifest":
+        response.headers["Cache-Control"] = (
+            f"public, max-age={RESOURCE_RELOAD_SECONDS}, must-revalidate"
+        )
+        return response
+
+    if response.mimetype in {"text/html", "application/xhtml+xml"}:
+        response.headers["Cache-Control"] = (
+            f"public, max-age={RESOURCE_RELOAD_SECONDS}, must-revalidate"
+        )
+
+    return response
+
+
 def _parse_multi_value_arg(name):
     raw = (request.args.get(name, "") or "").strip()
     if not raw:
