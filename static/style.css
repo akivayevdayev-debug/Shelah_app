@@ -286,8 +286,14 @@ h6 {
     box-shadow: none;
 }
 
+#reader .reader-source-title {
+    margin-bottom: 0;
+}
+
 #reader .reader-source-lines {
-    border-top: 0;
+    margin-top: 0.42rem;
+    padding-top: 0.9rem;
+    border-top: 1px solid rgba(148, 163, 184, 0.28);
 }
 
 #reader .reader-text-row {
