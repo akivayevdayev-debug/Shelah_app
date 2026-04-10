@@ -258,25 +258,61 @@ h6 {
 }
 
 .segment-label {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.35rem;
-    font-size: 0.7rem;
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
-    color: #64748b;
-    background: #f8fafc;
-    border: 1px solid #e2e8f0;
-    border-radius: 999px;
-    padding: 0.2rem 0.6rem;
+    display: inline-block;
+    min-width: 1.15rem;
+    text-align: center;
+    font-size: 0.72rem;
+    letter-spacing: 0;
+    text-transform: none;
+    color: #94a3b8;
+    background: transparent;
+    border: 0;
+    border-radius: 0;
+    padding: 0;
     margin-bottom: 0;
     font-family: 'Inter', sans-serif;
+    font-weight: 600;
 }
 
 .segment-label.inline-label {
     white-space: nowrap;
-    line-height: 1;
-    margin-top: 0.2rem;
+    line-height: 1.15;
+    margin-top: 0.22rem;
+}
+
+#reader .reader-source-clean {
+    background: transparent;
+    border: 0;
+    box-shadow: none;
+}
+
+#reader .reader-source-lines {
+    border-top: 1px solid rgba(148, 163, 184, 0.25);
+}
+
+#reader .reader-text-row {
+    background: transparent;
+    border-color: rgba(148, 163, 184, 0.24);
+}
+
+#reader .reader-text-he,
+#reader .reader-text-en {
+    background: transparent;
+}
+
+#reader .reader-text-he {
+    border-right: 1px solid rgba(148, 163, 184, 0.2);
+}
+
+#reader .source-grid.layout-reverse .reader-text-he {
+    border-right: 0;
+    border-left: 1px solid rgba(148, 163, 184, 0.2);
+}
+
+#reader .stacked-layout .reader-text-he,
+#reader .source-grid.source-grid-interleaved .reader-text-he {
+    border-right: 0;
+    border-left: 0;
 }
 
 .segment-translit {
@@ -511,10 +547,16 @@ html.rtl #showRightSidebarTopBtn {
     line-height: var(--reader-line-height);
 }
 
-#reader .source-grid.layout-reverse .source-he {
+#reader .source-grid.layout-reverse .source-he:not(.reader-text-he) {
     order: 2;
     border-right: 0 !important;
     border-left: 1px solid #e2e8f0;
+}
+
+#reader .source-grid.layout-reverse .reader-text-he {
+    order: 2;
+    border-right: 0 !important;
+    border-left: 1px solid rgba(148, 163, 184, 0.2);
 }
 
 #reader .source-grid.layout-reverse .source-en {

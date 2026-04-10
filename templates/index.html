@@ -3181,14 +3181,21 @@
         }
 
         function formatSegmentLabel(segment, idx) {
-            if (!segment) return isHebrewMode() ? `קטע ${idx + 1}` : `Segment ${idx + 1}`;
+            const fallback = String(idx + 1);
+            if (!segment) return fallback;
+
             const raw = String(segment).trim();
-            if (!raw) return isHebrewMode() ? `קטע ${idx + 1}` : `Segment ${idx + 1}`;
+            if (!raw) return fallback;
+
             const parts = raw.split('.').filter(Boolean);
-            if (parts.length >= 2) {
-                return `§ ${parts[0]}:${parts.slice(1).join(':')}`;
+            const lastPart = parts[parts.length - 1] || raw;
+            const digitMatch = lastPart.match(/\d+/);
+
+            if (digitMatch && Number.isFinite(Number(digitMatch[0]))) {
+                return String(Number(digitMatch[0]));
             }
-            return `§ ${parts[0] || idx + 1}`;
+
+            return fallback;
         }
 
         function renderCurrentTextByLayout(options = {}) {
@@ -3239,8 +3246,8 @@
 
                 if (layout === 'english') {
                     return `
-                        <div class="source-grid segment-row grid grid-cols-1 border-b border-slate-100 last:border-b-0">
-                            <div class="source-en bg-slate-50 font-serif leading-relaxed p-5 text-slate-700 text-lg">
+                        <div class="source-grid segment-row reader-text-row grid grid-cols-1 border-b border-slate-200 last:border-b-0">
+                            <div class="source-en reader-text-en font-serif leading-relaxed py-2 text-slate-700 text-lg">
                                 ${englishLine}
                             </div>
                         </div>
@@ -3249,8 +3256,8 @@
 
                 if (layout === 'hebrew') {
                     return `
-                        <div class="source-grid segment-row grid grid-cols-1 border-b border-slate-100 last:border-b-0">
-                            <div class="source-he bg-white text-right font-hebrew text-xl lg:text-2xl leading-[1.8] p-5" dir="rtl">
+                        <div class="source-grid segment-row reader-text-row grid grid-cols-1 border-b border-slate-200 last:border-b-0">
+                            <div class="source-he reader-text-he text-right font-hebrew text-xl lg:text-2xl leading-[1.8] py-2" dir="rtl">
                                 ${hebrewLine}
                             </div>
                         </div>
@@ -3259,10 +3266,10 @@
 
                 if (layout === 'interleaved') {
                     return `
-                        <div class="source-grid source-grid-interleaved segment-row grid grid-cols-1 border-b border-slate-100 last:border-b-0">
-                            <div class="bg-white p-5">
-                                <div class="source-he text-right font-hebrew text-xl lg:text-2xl leading-[1.8]" dir="rtl">${hebrewLine}</div>
-                                <div class="source-en mt-3 font-serif leading-relaxed text-slate-700 text-lg" dir="ltr">${englishLine}</div>
+                        <div class="source-grid source-grid-interleaved segment-row reader-text-row grid grid-cols-1 border-b border-slate-200 last:border-b-0">
+                            <div class="py-2">
+                                <div class="source-he reader-text-he text-right font-hebrew text-xl lg:text-2xl leading-[1.8]" dir="rtl">${hebrewLine}</div>
+                                <div class="source-en reader-text-en mt-2 font-serif leading-relaxed text-slate-700 text-lg" dir="ltr">${englishLine}</div>
                             </div>
                         </div>
                     `;
@@ -3275,11 +3282,11 @@
                     : 'grid-cols-1 lg:grid-cols-2';
 
                 return `
-                    <div class="source-grid segment-row ${reverseClass} ${stackedClass} grid ${gridClass} border-b border-slate-100 last:border-b-0">
-                        <div class="source-he bg-white text-right font-hebrew text-xl lg:text-2xl leading-[1.8] p-5 ${layout === 'stacked' ? 'border-b border-slate-100' : 'lg:border-r border-slate-200'}" dir="rtl">
+                    <div class="source-grid segment-row reader-text-row ${reverseClass} ${stackedClass} grid ${gridClass} border-b border-slate-200 last:border-b-0">
+                        <div class="source-he reader-text-he text-right font-hebrew text-xl lg:text-2xl leading-[1.8] py-2 ${layout === 'stacked' ? 'border-b border-slate-200' : 'lg:pr-5'}" dir="rtl">
                             ${hebrewLine}
                         </div>
-                        <div class="source-en bg-slate-50 font-serif leading-relaxed p-5 text-slate-700 text-lg">
+                        <div class="source-en reader-text-en font-serif leading-relaxed py-2 text-slate-700 text-lg ${layout === 'stacked' ? 'pt-2' : 'lg:pl-5'}">
                             ${englishLine}
                         </div>
                     </div>
@@ -3287,11 +3294,13 @@
             }).join('');
 
             sourcesDiv.innerHTML = `
-                <div class="border border-slate-300 rounded-lg bg-white overflow-hidden shadow-sm mb-6">
-                    <div class="bg-slate-50 px-4 py-2 text-xs font-bold text-slate-500 uppercase tracking-wider border-b source-title">
+                <div class="reader-source-clean mb-6">
+                    <div class="reader-source-title text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-2">
                         <span>${escapeHtml(data.ref || appState.currentView?.value || '')}</span>
                     </div>
-                    ${rows}
+                    <div class="reader-source-lines">
+                        ${rows}
+                    </div>
                 </div>
             `;
 
