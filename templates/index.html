@@ -772,7 +772,6 @@
                                             data-he="דו-עמודי (אנגלית משמאל)">Side by Side (English Left)</option>
                                         <option value="interleaved" data-en="Interleaved" data-he="משולב שורה-שורה">
                                             Interleaved</option>
-                                        <option value="stacked" data-en="Stacked" data-he="מדורג">Stacked</option>
                                         <option value="english" data-en="English" data-he="אנגלית">English</option>
                                         <option value="hebrew" data-en="Hebrew" data-he="עברית">Hebrew</option>
                                     </select>
@@ -3134,7 +3133,11 @@
         }
 
         function getNormalizedReaderLayout(layout = appState.prefs.readerLayout) {
-            const supportedLayouts = ['bilingual', 'bilingual-reverse', 'interleaved', 'stacked', 'english', 'hebrew'];
+            if (layout === 'stacked') {
+                return 'interleaved';
+            }
+
+            const supportedLayouts = ['bilingual', 'bilingual-reverse', 'interleaved', 'english', 'hebrew'];
             return supportedLayouts.includes(layout) ? layout : 'bilingual';
         }
 
@@ -3276,16 +3279,6 @@
                     `;
                 }
 
-                if (layout === 'stacked') {
-                    return `
-                        <div class="source-grid source-grid-interleaved segment-row reader-text-row reader-single-row grid grid-cols-1 border-b border-slate-200 last:border-b-0">
-                            <span class="segment-label reader-row-right-label">${label}</span>
-                            <div class="source-he reader-text-he text-right font-hebrew text-xl lg:text-2xl leading-[1.8] py-2" dir="rtl">${hebrewLine}</div>
-                            <div class="source-en reader-text-en mt-2 font-serif leading-relaxed py-2 text-slate-700 text-lg" dir="ltr">${englishLine}</div>
-                        </div>
-                    `;
-                }
-
                 const sideBySideLeft = layout === 'bilingual-reverse'
                     ? `<div class="source-en reader-text-en font-serif leading-relaxed py-2 text-slate-700 text-lg" dir="ltr">${englishLine}</div>`
                     : `<div class="source-he reader-text-he text-right font-hebrew text-xl lg:text-2xl leading-[1.8] py-2" dir="rtl">${hebrewLine}</div>`;
@@ -3294,7 +3287,7 @@
                     : `<div class="source-en reader-text-en font-serif leading-relaxed py-2 text-slate-700 text-lg" dir="ltr">${englishLine}</div>`;
 
                 return `
-                    <div class="source-grid segment-row reader-text-row reader-side-row grid grid-cols-1 lg:grid-cols-2 border-b border-slate-200 last:border-b-0">
+                    <div class="source-grid segment-row reader-text-row reader-side-row grid grid-cols-1 lg:grid-cols-2 lg:gap-x-12 border-b border-slate-200 last:border-b-0">
                         <span class="segment-label reader-row-mid-label">${label}</span>
                         ${sideBySideLeft}
                         ${sideBySideRight}
@@ -3347,11 +3340,8 @@
             const textViewActive = Boolean(window.currentTextPayload && appState.currentView?.type === 'text');
             if (!textViewActive) {
                 document.querySelectorAll('#reader .source-grid').forEach(grid => {
-                    grid.classList.remove('lg:grid-cols-2', 'lg:grid-cols-1', 'stacked-layout', 'layout-reverse');
+                    grid.classList.remove('lg:grid-cols-2', 'lg:grid-cols-1', 'layout-reverse');
                     grid.classList.add(isDualColumnReaderLayout(layout) ? 'lg:grid-cols-2' : 'lg:grid-cols-1');
-                    if (layout === 'stacked') {
-                        grid.classList.add('stacked-layout');
-                    }
                     if (layout === 'bilingual-reverse') {
                         grid.classList.add('layout-reverse');
                     }
@@ -3441,15 +3431,6 @@
                     `;
                 }
 
-                if (layout === 'stacked') {
-                    return `
-                        <div class="prayer-clean-row border-b border-slate-200 last:border-b-0 ${rowPadding}">
-                            <div class="prayer-clean-he text-right" dir="rtl">${hebrewContent}</div>
-                            <div class="prayer-clean-en mt-2" dir="ltr">${englishContent}</div>
-                        </div>
-                    `;
-                }
-
                 const leftColumn = reverseColumns
                     ? `<div class="prayer-clean-en" dir="ltr">${englishContent}</div>`
                     : `<div class="prayer-clean-he text-right" dir="rtl">${hebrewContent}</div>`;
@@ -3465,7 +3446,7 @@
                 `;
             };
 
-            if (dualColumnLayout || layout === 'stacked' || layout === 'interleaved') {
+            if (dualColumnLayout || layout === 'interleaved') {
                 let rows = '';
 
                 if (paragraphPairs.length > 0) {
@@ -3579,7 +3560,11 @@
             delete appState.prefs.showSidebars;
 
             appState.prefs.metadataFilters = normalizeMetadataFilters(appState.prefs.metadataFilters || {});
-            if (!['bilingual', 'bilingual-reverse', 'interleaved', 'stacked', 'english', 'hebrew'].includes(appState.prefs.readerLayout)) {
+            if (appState.prefs.readerLayout === 'stacked') {
+                appState.prefs.readerLayout = 'interleaved';
+            }
+
+            if (!['bilingual', 'bilingual-reverse', 'interleaved', 'english', 'hebrew'].includes(appState.prefs.readerLayout)) {
                 appState.prefs.readerLayout = 'bilingual';
             }
             appState.prefs.transliteration = Boolean(appState.prefs.transliteration);

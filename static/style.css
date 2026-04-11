@@ -316,6 +316,7 @@ h6 {
     padding: 0 0.18rem;
     background: #f8fafc;
     line-height: 1;
+    pointer-events: none;
 }
 
 #reader .reader-row-right-label {
@@ -340,6 +341,14 @@ h6 {
 #reader .reader-single-row .reader-text-he,
 #reader .reader-single-row .reader-text-en {
     padding-right: 1.15rem;
+}
+
+#reader .reader-side-row .reader-text-he {
+    padding-right: 0.35rem;
+}
+
+#reader .reader-side-row .reader-text-en {
+    padding-left: 0.35rem;
 }
 
 #reader .prayer-clean-lines {
@@ -630,15 +639,6 @@ html.rtl #showRightSidebarTopBtn {
     letter-spacing: normal;
     word-spacing: normal;
     font-kerning: normal;
-}
-
-#reader .stacked-layout .source-he {
-    border-right: 0 !important;
-    border-bottom: 1px solid #e2e8f0;
-}
-
-#reader .stacked-layout .source-en {
-    border-top: 0;
 }
 
 #compareContainer {
