@@ -1,3 +1,14 @@
+"""
+Sefaria topic-to-reference lookup table and helpers.
+
+Responsibilities:
+- Maintain curated TOPIC_REFS mappings for common halachic queries.
+- Resolve user question keywords into likely Sefaria references.
+- Provide retrieval helpers consumed by app.py/data_service.py.
+
+This file is mostly curated domain mapping data plus matching utilities.
+"""
+
 import requests
 
 # ═══════════════════════════════════════════════════════════════════════
