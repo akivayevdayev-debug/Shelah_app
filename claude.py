@@ -1,3 +1,15 @@
+"""
+Anthropic/Claude prompt and response helper for Sh'elah.
+
+Responsibilities:
+- Format source/custom/wiki payloads into prompt-ready text blocks.
+- Build the structured prompt used for halachic responses.
+- Call Anthropic when configured, with safe fallback behavior when SDK/key is absent.
+
+This module is intentionally stateless: app.py and data_service.py prepare context,
+then this file focuses on LLM formatting and call execution.
+"""
+
 import os
 from typing import List, Dict
 

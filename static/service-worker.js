@@ -1,3 +1,13 @@
+/*
+    Service worker for offline-first behavior.
+
+    Responsibilities:
+    - Precache core shell assets (home, CSS, offline page, manifest).
+    - Serve cached responses first, then network.
+    - Cache successful same-origin GET responses on demand.
+    - Return /static/offline.html when navigation requests fail offline.
+*/
+
 const CACHE_NAME = "shelah-cache-v1";
 const CORE_ASSETS = [
     "/",

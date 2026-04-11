@@ -1,3 +1,15 @@
+"""
+External knowledge search connectors.
+
+Contains lightweight wrappers for:
+- Wikipedia summaries.
+- Hebcal daily-learning feed parsing.
+- Halachipedia search and extract retrieval.
+
+These helpers are intentionally simple and resilient because they are best-effort
+enrichment sources, not the primary authoritative text source.
+"""
+
 import requests
 
 

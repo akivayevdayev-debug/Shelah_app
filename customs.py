@@ -1,3 +1,14 @@
+"""
+Community customs data loader and matcher.
+
+Responsibilities:
+- Load all JSON files from customs/.
+- Normalize different JSON shapes into a searchable in-memory structure.
+- Perform keyword and fuzzy matching for minhag/custom responses.
+
+Used by data_service.ShelahEngine.get_customs and exposed in API responses.
+"""
+
 import json
 import os
 import glob
