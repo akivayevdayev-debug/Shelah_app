@@ -29,7 +29,7 @@ h6 {
 /* Hebrew text support */
 [lang="he"],
 .font-hebrew {
-    font-family: 'Frank Ruhl Libre', 'Cardo', serif;
+    font-family: 'Ezra SIL', 'Cardo', serif;
     direction: rtl;
     text-align: right;
 }
