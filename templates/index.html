@@ -3267,7 +3267,7 @@
                     return `
                         <div class="source-grid segment-row reader-text-row reader-single-row grid grid-cols-1 border-b border-slate-200 last:border-b-0">
                             <span class="segment-label reader-row-right-label">${label}</span>
-                            <div class="source-he reader-text-he text-right font-hebrew text-xl lg:text-2xl leading-[1.8] py-2" dir="rtl">
+                            <div class="source-he reader-text-he text-right font-hebrew text-2xl lg:text-3xl leading-[1.8] py-2" dir="rtl">
                                 ${hebrewLine}
                             </div>
                         </div>
@@ -3278,7 +3278,7 @@
                     return `
                         <div class="source-grid source-grid-interleaved segment-row reader-text-row reader-interleaved-row grid grid-cols-1 border-b border-slate-200 last:border-b-0">
                             <span class="segment-label reader-row-right-label">${label}</span>
-                            <div class="source-he reader-text-he text-right font-hebrew text-xl lg:text-2xl leading-[1.8] py-2" dir="rtl">${hebrewLine}</div>
+                            <div class="source-he reader-text-he text-right font-hebrew text-2xl lg:text-3xl leading-[1.8] py-2" dir="rtl">${hebrewLine}</div>
                             <div class="source-en reader-text-en mt-2 text-left font-serif leading-relaxed py-2 text-slate-700 text-lg" dir="ltr">${englishLine}</div>
                         </div>
                     `;
@@ -3286,9 +3286,9 @@
 
                 const sideBySideLeft = layout === 'bilingual-reverse'
                     ? `<div class="source-en reader-text-en font-serif leading-relaxed py-2 text-slate-700 text-lg" dir="ltr">${englishLine}</div>`
-                    : `<div class="source-he reader-text-he text-right font-hebrew text-xl lg:text-2xl leading-[1.8] py-2" dir="rtl">${hebrewLine}</div>`;
+                    : `<div class="source-he reader-text-he text-right font-hebrew text-2xl lg:text-3xl leading-[1.8] py-2" dir="rtl">${hebrewLine}</div>`;
                 const sideBySideRight = layout === 'bilingual-reverse'
-                    ? `<div class="source-he reader-text-he text-right font-hebrew text-xl lg:text-2xl leading-[1.8] py-2" dir="rtl">${hebrewLine}</div>`
+                    ? `<div class="source-he reader-text-he text-right font-hebrew text-2xl lg:text-3xl leading-[1.8] py-2" dir="rtl">${hebrewLine}</div>`
                     : `<div class="source-en reader-text-en font-serif leading-relaxed py-2 text-slate-700 text-lg" dir="ltr">${englishLine}</div>`;
 
                 return `
