@@ -582,6 +582,18 @@ h6 {
     --reader-line-height: 1.8;
 }
 
+@media (min-width: 1024px) {
+
+    body:not(.shul-mode).left-sidebar-hidden #reader,
+    body:not(.shul-mode).right-sidebar-hidden #reader {
+        max-width: 63rem;
+    }
+
+    body:not(.shul-mode).left-sidebar-hidden.right-sidebar-hidden #reader {
+        max-width: 70rem;
+    }
+}
+
 #readerSettingsPanel {
     max-height: min(70vh, 32rem);
     overflow-y: auto;
