@@ -36,8 +36,9 @@ def _resolve_timezone(lat, lon, given_tz=None):
     return pytz.timezone(tz_str), tz_str
 
 
-def _get_today_candle_lighting(lat, lon, timezone_str, current_date):
-    """Fetch today's candle lighting time from Hebcal when available."""
+def _get_hebcal_day_times(lat, lon, timezone_str, current_date):
+    """Fetch today's candle-lighting and havdalah timestamps from Hebcal when available."""
+    result = {"candles": None, "havdalah": None}
     try:
         year = current_date.year
         month = current_date.month
@@ -51,16 +52,38 @@ def _get_today_candle_lighting(lat, lon, timezone_str, current_date):
         iso_day = current_date.isoformat()
 
         for item in data.get("items", []):
-            if item.get("category") != "candles":
-                continue
             stamp = item.get("date", "")
             if not stamp.startswith(iso_day):
                 continue
-            return datetime.fromisoformat(stamp)
+            category = item.get("category", "")
+            if category == "candles":
+                result["candles"] = datetime.fromisoformat(stamp)
+            elif category == "havdalah":
+                result["havdalah"] = datetime.fromisoformat(stamp)
     except Exception:
-        return None
+        return result
 
-    return None
+    return result
+
+
+def _get_weekly_shabbat_parasha(current_date):
+    """Resolve this week's Shabbat parasha name (normalized without `Parashat` prefix)."""
+    try:
+        # Monday=0 ... Saturday=5 in Python's weekday numbering.
+        days_until_shabbat = (5 - current_date.weekday()) % 7
+        shabbat_date = current_date + timedelta(days=days_until_shabbat)
+        raw = (calendar_engine.get_parasha(shabbat_date) or "").strip()
+        if not raw:
+            return ""
+
+        lowered = raw.lower()
+        if lowered.startswith("parashat "):
+            return raw.split(" ", 1)[1].strip()
+        if lowered.startswith("parasha "):
+            return raw.split(" ", 1)[1].strip()
+        return raw
+    except Exception:
+        return ""
 
 
 def _get_omer_info(gregorian_day):
@@ -120,10 +143,15 @@ def get_community_zmanim(lat, lon, timezone_str=None, community="standard"):
 
         # Keep zmanim calculations aligned to civil day while metadata follows halachic day.
         civil_holiday_info = calendar_engine.is_holiday(today)
+        yesterday_holiday_info = calendar_engine.is_holiday(
+            today - timedelta(days=1))
+        tomorrow_holiday_info = calendar_engine.is_holiday(
+            today + timedelta(days=1))
         holiday_info = calendar_engine.is_holiday(halachic_date)
         omer_info = _get_omer_info(halachic_date)
         hebrew_date_info = calendar_engine.gregorian_to_hebrew(halachic_date)
         parasha_name = calendar_engine.get_parasha(halachic_date)
+        weekly_shabbat_parasha = _get_weekly_shabbat_parasha(today)
 
         shema_baal_hatanya = (
             calendar.sof_zman_shma(day_start=sunrise, day_end=sunset_for_day)
@@ -139,18 +167,38 @@ def get_community_zmanim(lat, lon, timezone_str=None, community="standard"):
         chatzos = calendar.chatzos()
         mincha_gedola = calendar.mincha_gedola()
         sunset = sunset_for_day
+        is_holiday_today = bool(civil_holiday_info.get('is_holiday'))
+        is_holiday_start_day = is_holiday_today and not bool(
+            yesterday_holiday_info.get('is_holiday'))
+        is_holiday_last_day = is_holiday_today and not bool(
+            tomorrow_holiday_info.get('is_holiday'))
+        is_friday = today.weekday() == 4
+        is_shabbat = today.weekday() == 5
+
         latest_musaf = None
-        if civil_holiday_info.get('is_holiday') and sunrise and sunset:
+        if (is_holiday_today or is_shabbat) and sunrise and sunset:
             shaah_zmanit = (sunset - sunrise) / 12
             latest_musaf = sunrise + (shaah_zmanit * 7)
 
         plag = calendar.plag_hamincha()
 
-        candle_lighting = _get_today_candle_lighting(lat, lon, tz_name, today)
-        if candle_lighting is None and (today.weekday() == 4 or civil_holiday_info.get('is_holiday')):
+        hebcal_day_times = _get_hebcal_day_times(lat, lon, tz_name, today)
+        candle_lighting = hebcal_day_times.get("candles")
+        show_candle_lighting = is_friday or is_holiday_start_day
+        if show_candle_lighting and candle_lighting is None:
             candle_lighting = calendar.candle_lighting()
+        if not show_candle_lighting:
+            candle_lighting = None
 
         nightfall_3stars = calendar.tzais({'degrees': 8.5})
+        maariv_time = nightfall_3stars
+
+        havdalah_time = hebcal_day_times.get("havdalah")
+        show_havdalah = is_shabbat or is_holiday_last_day
+        if show_havdalah and havdalah_time is None:
+            havdalah_time = nightfall_3stars
+        if not show_havdalah:
+            havdalah_time = None
 
         next_alos_16_1 = next_day_calendar.alos({'degrees': 16.1})
         if sunset and next_alos_16_1 and next_alos_16_1 > sunset:
@@ -159,7 +207,6 @@ def get_community_zmanim(lat, lon, timezone_str=None, community="standard"):
             midnight = chatzos + timedelta(hours=12) if chatzos else None
 
         # Custom Community Offsets
-        is_friday = today.weekday() == 4
         shabbat_warning = ""
 
         if is_friday and sunset:
@@ -182,8 +229,12 @@ def get_community_zmanim(lat, lon, timezone_str=None, community="standard"):
                 "date": today.strftime('%B %d, %Y'),
                 "hebrew_date": hebrew_date_info.get('hebrew_date', 'Unknown Date'),
                 "parasha": parasha_name,
+                "weekly_shabbat_parasha": weekly_shabbat_parasha,
                 "holiday": holiday_info.get('holiday_name'),
                 "is_holiday": bool(holiday_info.get('is_holiday')),
+                "is_holiday_start_day": is_holiday_start_day,
+                "is_holiday_last_day": is_holiday_last_day,
+                "is_shabbat": is_shabbat,
                 "omer_day": omer_info.get('day') if omer_info else None,
                 "omer_label": omer_info.get('label') if omer_info else "",
                 "lat": lat,
@@ -200,11 +251,13 @@ def get_community_zmanim(lat, lon, timezone_str=None, community="standard"):
                     "Latest Shacharit (Baal HaTanya)": fmt_iso(tefilah_baal_hatanya),
                     "Chatzot (Midday)": fmt_iso(chatzos),
                     "Earliest Mincha (Mincha Gedola)": fmt_iso(mincha_gedola),
-                    "Latest Musaf (Holidays)": fmt_iso(latest_musaf),
+                    "Latest Musaf": fmt_iso(latest_musaf),
                     "Plag HaMincha": fmt_iso(plag),
-                    "Candle Lighting (Holidays)": fmt_iso(candle_lighting),
+                    "Candle Lighting": fmt_iso(candle_lighting),
                     "Sunset": fmt_iso(sunset_display),
+                    "Arvit (Maariv)": fmt_iso(maariv_time),
                     "Nightfall (3 Stars)": fmt_iso(nightfall_3stars),
+                    "Havdalah": fmt_iso(havdalah_time),
                     "Chatzot HaLailah (Midnight)": fmt_iso(midnight),
                 }
             },
@@ -218,11 +271,13 @@ def get_community_zmanim(lat, lon, timezone_str=None, community="standard"):
                 "Latest Shacharit (Baal HaTanya)": fmt(tefilah_baal_hatanya),
                 "Chatzot (Midday)": fmt(chatzos),
                 "Earliest Mincha (Mincha Gedola)": fmt(mincha_gedola),
-                "Latest Musaf (Holidays)": fmt(latest_musaf),
+                "Latest Musaf": fmt(latest_musaf),
                 "Plag HaMincha": fmt(plag),
-                "Candle Lighting (Holidays)": fmt(candle_lighting),
+                "Candle Lighting": fmt(candle_lighting),
                 "Sunset": fmt(sunset_display) + (" (-20m)" if community.lower() == "bukharian" else ""),
+                "Arvit (Maariv)": fmt(maariv_time),
                 "Nightfall (3 Stars)": fmt(nightfall_3stars),
+                "Havdalah": fmt(havdalah_time),
                 "Chatzot HaLailah (Midnight)": fmt(midnight),
             }
         }
