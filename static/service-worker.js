@@ -8,7 +8,7 @@
     - Return /static/offline.html when navigation requests fail offline.
 */
 
-const CACHE_NAME = "shelah-cache-v2";
+const CACHE_NAME = "shelah-cache-v3";
 const CORE_ASSETS = [
     "/static/style.css",
     "/static/offline.html",
@@ -43,6 +43,7 @@ self.addEventListener("fetch", (event) => {
     const requestUrl = new URL(event.request.url);
     const isSameOrigin = requestUrl.origin === self.location.origin;
     const isApiRequest = isSameOrigin && requestUrl.pathname.startsWith("/api/");
+    const isStylesheet = isSameOrigin && requestUrl.pathname === "/static/style.css";
     const isNavigation = event.request.mode === "navigate";
 
     // Always fetch live API data so zmanim/holidays/preferences don't get stale.
@@ -55,6 +56,26 @@ self.addEventListener("fetch", (event) => {
                     headers: { "Content-Type": "application/json" }
                 });
             })
+        );
+        return;
+    }
+
+    // Keep CSS fresh: try network first, then cached fallback when offline.
+    if (isStylesheet) {
+        event.respondWith(
+            fetch(event.request)
+                .then((response) => {
+                    if (response.ok && isSameOrigin) {
+                        const cloned = response.clone();
+                        caches.open(CACHE_NAME).then((cache) => cache.put(event.request, cloned));
+                    }
+                    return response;
+                })
+                .catch(() => {
+                    return caches.match(event.request).then((cached) => {
+                        return cached || new Response("", { status: 503, statusText: "Offline" });
+                    });
+                })
         );
         return;
     }
