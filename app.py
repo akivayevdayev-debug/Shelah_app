@@ -14,6 +14,7 @@ How to navigate this file:
 """
 
 import json
+import re
 import requests
 from flask import Flask, render_template, request, jsonify, session, g, send_from_directory
 from dotenv import load_dotenv
@@ -178,8 +179,9 @@ def _build_pyluach_holiday_events(year):
                 current.year, current.month, current.day).to_heb()
             holiday_name = heb.holiday()
             if holiday_name:
+                emoji = _holiday_emoji_for_event(holiday_name, "major")
                 events.append({
-                    "title": f"🕎 {holiday_name}",
+                    "title": f"{emoji} {holiday_name}",
                     "start": current.isoformat(),
                     "allDay": True,
                     "display": "block",
@@ -192,6 +194,61 @@ def _build_pyluach_holiday_events(year):
         current += timedelta(days=1)
 
     return events
+
+
+def _strip_leading_symbol_prefix(text):
+    raw = str(text or "").strip()
+    if not raw:
+        return ""
+    return re.sub(r"^[^\w\u0590-\u05FF]+", "", raw).strip()
+
+
+def _holiday_emoji_for_event(title, category=""):
+    lowered = str(title or "").strip().lower()
+    cat = str(category or "").strip().lower()
+
+    if "hanukkah" in lowered or "chanukah" in lowered:
+        return "🕎"
+    if "erev rosh hashana" in lowered or "rosh hashana" in lowered:
+        return "🍎🍯"
+    if "lag ba'omer" in lowered or "lag baomer" in lowered:
+        return "🔥"
+    if "yom yerushalayim" in lowered:
+        return "🇮🇱"
+    if "erev shavuot" in lowered:
+        return "⛰️"
+    if "shavuot" in lowered:
+        return "🌸"
+    if any(token in lowered for token in ("sukkot", "succot", "sukkos", "succos")):
+        return "🍋🌿"
+    if "rosh chodesh" in lowered or cat == "roshchodesh":
+        return "🌙"
+    if cat == "fast" or any(token in lowered for token in (
+        "taanis", "taanit", "fast", "tzom", "tisha b'av", "17 of tamuz", "gedaliah", "esther"
+    )):
+        return "✡️"
+    if "shabbat" in lowered or cat in {"shabbat", "parashat"}:
+        return "🕍"
+    if cat in {"modern"}:
+        return "🇮🇱"
+    if cat in {"major", "minor", "holiday", "special"}:
+        return "📜"
+    return "📅"
+
+
+def _holiday_color_for_category(category):
+    palette = {
+        "major": "#802f3e",
+        "minor": "#594176",
+        "modern": "#2563eb",
+        "fast": "#374151",
+        "roshchodesh": "#5a99b7",
+        "shabbat": "#004e5f",
+        "parashat": "#004e5f",
+        "holiday": "#802f3e",
+        "special": "#6b7280",
+    }
+    return palette.get(str(category or "").strip().lower(), "#6b7280")
 
 
 load_dotenv()
@@ -1543,18 +1600,42 @@ def get_holidays():
     """Returns Jewish holiday events for FullCalendar via Hebcal API."""
     year = request.args.get('year', str(greg_date.today().year))
     url = (
-        f"https://www.hebcal.com/hebcal?v=1&cfg=fc&maj=on&min=on&mod=on"
-        f"&nx=on&year={year}&month=x&ss=on&mf=on&c=off&geo=none"
+        f"https://www.hebcal.com/hebcal?v=1&cfg=json&maj=on&min=on&mod=on"
+        f"&nx=on&year={year}&month=x&ss=on&s=on&mf=on&c=off&geo=none"
     )
     try:
         r = requests.get(url, timeout=5)
         data = r.json()
         if isinstance(data, dict) and data.get("error"):
             raise ValueError(data.get("error"))
-        if isinstance(data, dict):
-            return jsonify(data.get("items", []))
-        if isinstance(data, list):
-            return jsonify(data)
+        items = data.get("items", []) if isinstance(data, dict) else data
+        if not isinstance(items, list):
+            items = []
+
+        events = []
+        for item in items:
+            if not isinstance(item, dict):
+                continue
+
+            category = str(item.get("category") or "").strip().lower()
+            title_raw = item.get("title") or ""
+            title_clean = _strip_leading_symbol_prefix(title_raw)
+            start = item.get("date") or item.get("start")
+
+            if not title_clean or not start:
+                continue
+
+            emoji = _holiday_emoji_for_event(title_clean, category)
+            events.append({
+                "title": f"{emoji} {title_clean}",
+                "start": start,
+                "allDay": "T" not in str(start),
+                "display": "block",
+                "color": _holiday_color_for_category(category),
+                "textColor": "#ffffff",
+            })
+
+        return jsonify(events)
     except Exception:
         fallback = _build_pyluach_holiday_events(year)
         if fallback:
