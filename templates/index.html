@@ -2386,6 +2386,11 @@
             const showRightSidebar = appState.prefs.showRightSidebar !== false;
             const mobile = isMobileViewport();
             const shulMode = Boolean(appState.prefs.shulMode);
+            const leftHiddenDesktop = !mobile && (!showLeftSidebar || shulMode);
+            const rightHiddenDesktop = !mobile && (!showRightSidebar || shulMode);
+
+            document.body.classList.toggle('left-sidebar-hidden', leftHiddenDesktop);
+            document.body.classList.toggle('right-sidebar-hidden', rightHiddenDesktop);
 
             if (mobile) {
                 if (leftSidebar) {
@@ -3287,7 +3292,7 @@
                     : `<div class="source-en reader-text-en font-serif leading-relaxed py-2 text-slate-700 text-lg" dir="ltr">${englishLine}</div>`;
 
                 return `
-                    <div class="source-grid segment-row reader-text-row reader-side-row grid grid-cols-1 lg:grid-cols-2 lg:gap-x-12 border-b border-slate-200 last:border-b-0">
+                    <div class="source-grid segment-row reader-text-row reader-side-row grid grid-cols-1 lg:grid-cols-2 lg:gap-x-6 border-b border-slate-200 last:border-b-0">
                         <span class="segment-label reader-row-mid-label">${label}</span>
                         ${sideBySideLeft}
                         ${sideBySideRight}
