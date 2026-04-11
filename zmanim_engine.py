@@ -1,3 +1,16 @@
+"""
+Zmanim and calendar event engine.
+
+Responsibilities:
+- Resolve timezone from coordinates.
+- Compute daily zmanim values via zmanim library.
+- Enrich schedule with Hebcal candle-lighting and holiday context.
+- Produce monthly event payloads for FullCalendar in the UI.
+
+This module is the core time/calendar backend used by /api/zmanim and
+/api/zmanim/month routes.
+"""
+
 import pytz
 from datetime import date, datetime, timedelta
 from pyluach import dates as heb_dates

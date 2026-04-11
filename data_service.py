@@ -1,3 +1,14 @@
+"""
+ShelahEngine service facade.
+
+This module provides a single class that aggregates external data providers:
+- Zmanim/monthly calendar events from zmanim_engine.
+- Daily study and textual sources from sefaria/sefaria_library.
+- Community customs and background lookups from customs/search.
+
+app.py route handlers call this facade to keep endpoint code thin and consistent.
+"""
+
 import sefaria
 import customs
 import search

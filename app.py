@@ -1,3 +1,18 @@
+"""
+Main Flask application for Sh'elah.
+
+What this file owns:
+- App bootstrapping, environment wiring, and cache/session policy.
+- Public web routes (/, manifest, service worker) and all JSON API routes.
+- Integration glue for Supabase preferences, Clerk auth checks, and Sefaria-backed text/prayer/community APIs.
+- Calendar and zmanim delivery used by the dashboard (including Hebcal-backed holiday/parasha endpoints).
+
+How to navigate this file:
+1) Configuration and helper utilities near the top.
+2) Auth and Supabase client helpers.
+3) Route handlers grouped by feature (health/devtools, preferences, library/text, prayers, communities, calendar/zmanim).
+"""
+
 import json
 import requests
 from flask import Flask, render_template, request, jsonify, session, g, send_from_directory
@@ -1051,7 +1066,11 @@ def list_todos():
         result = supabase.from_("todos").select("id,name").execute()
         return jsonify({"todos": result.data or []})
     except Exception as e:
-        return jsonify({"error": f"Failed to load todos: {str(e)}"}), 500
+        message = str(e)
+        if "PGRST205" in message or "Could not find the table 'public.todos'" in message:
+            # Treat a missing optional table as an empty list so the UI keeps working.
+            return jsonify({"todos": [], "warning": "Supabase todos table is not configured"})
+        return jsonify({"error": f"Failed to load todos: {message}"}), 500
 
 
 @app.route("/api/library/index")
