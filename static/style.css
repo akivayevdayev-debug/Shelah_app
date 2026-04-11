@@ -709,6 +709,7 @@ body.shul-mode #reader #prayer-display {
 
 body.mobile-panel-open {
     overflow: hidden;
+    overscroll-behavior: none;
 }
 
 @media (max-width: 1023px) {
@@ -720,12 +721,22 @@ body.mobile-panel-open {
         position: fixed;
         top: 0;
         bottom: 0;
+        height: 100dvh;
+        max-height: 100dvh;
         width: min(90vw, 22rem);
         max-width: 22rem;
         overflow-y: auto;
+        overflow-x: hidden;
+        -webkit-overflow-scrolling: touch;
+        touch-action: pan-y;
         overscroll-behavior: contain;
         z-index: 95;
         box-shadow: 0 12px 34px rgba(15, 23, 42, 0.3);
+    }
+
+    #leftSidebar.mobile-drawer,
+    #rightSidebar.mobile-drawer {
+        padding-bottom: max(1.5rem, env(safe-area-inset-bottom));
     }
 
     .mobile-drawer-left {
