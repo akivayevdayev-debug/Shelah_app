@@ -2030,7 +2030,30 @@
         async function registerServiceWorker() {
             if (!('serviceWorker' in navigator)) return;
             try {
-                await navigator.serviceWorker.register('/service-worker.js');
+                const migrationKey = 'shelah-sw-v2-migrated';
+                if (localStorage.getItem(migrationKey) !== 'true') {
+                    try {
+                        const registrations = await navigator.serviceWorker.getRegistrations();
+                        for (const registration of registrations) {
+                            await registration.unregister();
+                        }
+
+                        if ('caches' in window) {
+                            const cacheKeys = await caches.keys();
+                            await Promise.all(
+                                cacheKeys
+                                    .filter((key) => key.startsWith('shelah-cache-'))
+                                    .map((key) => caches.delete(key))
+                            );
+                        }
+                    } catch (_) {
+                        // Continue with registration even if migration cleanup fails.
+                    }
+
+                    localStorage.setItem(migrationKey, 'true');
+                }
+
+                await navigator.serviceWorker.register('/service-worker.js?swv=2', { updateViaCache: 'none' });
                 logReliability('service-worker-registered');
             } catch (error) {
                 logReliability('service-worker-register-failed', { message: error.message });
