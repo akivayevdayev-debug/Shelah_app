@@ -8,9 +8,8 @@
     - Return /static/offline.html when navigation requests fail offline.
 */
 
-const CACHE_NAME = "shelah-cache-v1";
+const CACHE_NAME = "shelah-cache-v2";
 const CORE_ASSETS = [
-    "/",
     "/static/style.css",
     "/static/offline.html",
     "/manifest.webmanifest"
@@ -41,6 +40,45 @@ self.addEventListener("fetch", (event) => {
         return;
     }
 
+    const requestUrl = new URL(event.request.url);
+    const isSameOrigin = requestUrl.origin === self.location.origin;
+    const isApiRequest = isSameOrigin && requestUrl.pathname.startsWith("/api/");
+    const isNavigation = event.request.mode === "navigate";
+
+    // Always fetch live API data so zmanim/holidays/preferences don't get stale.
+    if (isApiRequest) {
+        event.respondWith(
+            fetch(event.request).catch(() => {
+                return new Response(JSON.stringify({ error: "Offline" }), {
+                    status: 503,
+                    statusText: "Offline",
+                    headers: { "Content-Type": "application/json" }
+                });
+            })
+        );
+        return;
+    }
+
+    // Prefer live HTML for navigation, with offline fallback when unavailable.
+    if (isNavigation) {
+        event.respondWith(
+            fetch(event.request)
+                .then((response) => {
+                    if (response.ok && isSameOrigin) {
+                        const cloned = response.clone();
+                        caches.open(CACHE_NAME).then((cache) => cache.put(event.request, cloned));
+                    }
+                    return response;
+                })
+                .catch(() => {
+                    return caches.match(event.request).then((cached) => {
+                        return cached || caches.match("/static/offline.html");
+                    });
+                })
+        );
+        return;
+    }
+
     event.respondWith(
         caches.match(event.request).then((cached) => {
             if (cached) {
@@ -50,7 +88,7 @@ self.addEventListener("fetch", (event) => {
             return fetch(event.request)
                 .then((response) => {
                     const cloned = response.clone();
-                    if (response.ok && event.request.url.startsWith(self.location.origin)) {
+                    if (response.ok && isSameOrigin) {
                         caches.open(CACHE_NAME).then((cache) => {
                             cache.put(event.request, cloned);
                         });
