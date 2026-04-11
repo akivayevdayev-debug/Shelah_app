@@ -11,8 +11,7 @@
     <script src="https://cdn.tailwindcss.com"></script>
 
     <!-- Scholarly Typography -->
-    <link
-        href="https://fonts.googleapis.com/css2?family=Cardo:wght@400;700&family=Ezra+SIL:wght@400&family=Inter:wght@400;500;600&display=swap"
+    <link href="https://fonts.googleapis.com/css2?family=Cardo:wght@400;700&family=Inter:wght@400;500;600&display=swap"
         rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <link rel="stylesheet" href="/static/style.css">
@@ -3323,11 +3322,6 @@
             reader.style.setProperty('--reader-font-size', `${appState.prefs.fontSize}px`);
             reader.style.setProperty('--reader-line-height', `${appState.prefs.lineHeight}`);
 
-            const shouldBoostHebrew = appState.currentView?.type === 'text'
-                && appState.prefs.showVowels === false
-                && appState.prefs.showCantillation === false;
-            reader.classList.toggle('reader-hebrew-plain', shouldBoostHebrew);
-
             if (window.currentTextPayload && appState.currentView?.type === 'text') {
                 const sourcesDiv = document.getElementById('readerSources');
                 const hasRenderedText = Boolean(sourcesDiv && sourcesDiv.children.length > 0);
@@ -3337,9 +3331,14 @@
             const sizePx = `${appState.prefs.fontSize}px`;
             const lineHeight = String(appState.prefs.lineHeight);
 
-            document.querySelectorAll('#reader #readerContent, #reader .source-he, #reader .source-en, #reader #prayer-display').forEach(el => {
+            document.querySelectorAll('#reader #readerContent, #reader #prayer-display').forEach(el => {
                 el.style.fontSize = sizePx;
                 el.style.lineHeight = lineHeight;
+            });
+
+            document.querySelectorAll('#reader .source-he, #reader .source-en').forEach(el => {
+                el.style.fontSize = '';
+                el.style.lineHeight = '';
             });
 
             const textViewActive = Boolean(window.currentTextPayload && appState.currentView?.type === 'text');

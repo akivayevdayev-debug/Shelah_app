@@ -26,6 +26,14 @@ h6 {
     word-break: break-word;
 }
 
+@font-face {
+    font-family: 'Ezra SIL';
+    src: url('/static/fonts/SILEOT.woff') format('woff');
+    font-weight: 400;
+    font-style: normal;
+    font-display: swap;
+}
+
 /* Hebrew text support */
 [lang="he"],
 .font-hebrew {
@@ -580,6 +588,7 @@ h6 {
 #reader {
     --reader-font-size: 18px;
     --reader-line-height: 1.8;
+    --reader-hebrew-size-offset: 2px;
 }
 
 @media (min-width: 1024px) {
@@ -621,9 +630,13 @@ html.rtl #showRightSidebarTopBtn {
 }
 
 #reader #readerContent,
-#reader .source-he,
 #reader .source-en {
     font-size: var(--reader-font-size);
+    line-height: var(--reader-line-height);
+}
+
+#reader .source-he {
+    font-size: calc(var(--reader-font-size) + var(--reader-hebrew-size-offset));
     line-height: var(--reader-line-height);
 }
 
@@ -641,10 +654,6 @@ html.rtl #showRightSidebarTopBtn {
 #reader .source-grid.source-grid-interleaved .source-en:not(.reader-text-en) {
     background: transparent;
     padding: 0;
-}
-
-#reader.reader-hebrew-plain .source-he {
-    font-size: calc(var(--reader-font-size) + 2px) !important;
 }
 
 #reader .source-he {
@@ -685,9 +694,12 @@ body.shul-mode #reader #prayer-display {
 
 @media (max-width: 1024px) {
 
-    #reader .source-he,
     #reader .source-en {
         font-size: calc(var(--reader-font-size) - 1px);
+    }
+
+    #reader .source-he {
+        font-size: calc(var(--reader-font-size) + var(--reader-hebrew-size-offset) - 1px);
     }
 }
 
