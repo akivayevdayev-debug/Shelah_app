@@ -953,10 +953,10 @@
                             Mincha</span>
                         <b class="text-slate-700 tabular-nums" id="zMincha">--:--</b>
                     </div>
-                    <div id="zRowMusaf" data-zman-row="Latest Musaf (Holidays)"
+                    <div id="zRowMusaf" data-zman-row="Latest Musaf"
                         class="flex justify-between items-center py-1.5 border-b border-slate-100">
-                        <span class="text-slate-500" data-en="Latest Musaf (Holidays)"
-                            data-he="סוף זמן מוסף (בחגים)">Latest Musaf (Holidays)</span>
+                        <span class="text-slate-500" data-en="Latest Musaf"
+                            data-he="סוף זמן מוסף">Latest Musaf</span>
                         <b class="text-slate-700 tabular-nums" id="zMusaf">--:--</b>
                     </div>
                     <div id="zRowPlag" data-zman-row="Plag HaMincha"
@@ -964,10 +964,10 @@
                         <span class="text-slate-500" data-en="Plag HaMincha" data-he="פלג המנחה">Plag HaMincha</span>
                         <b class="text-slate-700 tabular-nums" id="zPlag">--:--</b>
                     </div>
-                    <div id="zRowCandles" data-zman-row="Candle Lighting (Holidays)"
+                    <div id="zRowCandles" data-zman-row="Candle Lighting"
                         class="flex justify-between items-center py-1.5 border-b border-slate-100">
-                        <span class="text-slate-500" data-en="Candle Lighting (Holidays)"
-                            data-he="הדלקת נרות (בחגים)">Candle Lighting (Holidays)</span>
+                        <span class="text-slate-500" data-en="Candle Lighting"
+                            data-he="הדלקת נרות">Candle Lighting</span>
                         <b class="text-slate-700 tabular-nums" id="zCandles">--:--</b>
                     </div>
                     <div id="zRowSunset" data-zman-row="Sunset"
@@ -975,11 +975,21 @@
                         <span class="text-slate-500" data-en="Sunset" data-he="שקיעת החמה">Shkiya (Sunset)</span>
                         <b class="text-slate-700 tabular-nums" id="zSunset">--:--</b>
                     </div>
+                    <div id="zRowMaariv" data-zman-row="Arvit (Maariv)"
+                        class="flex justify-between items-center py-1.5 border-b border-slate-100">
+                        <span class="text-slate-500" data-en="Arvit (Maariv)" data-he="ערבית (מעריב)">Arvit (Maariv)</span>
+                        <b class="text-slate-700 tabular-nums" id="zMaariv">--:--</b>
+                    </div>
                     <div id="zRowNight" data-zman-row="Nightfall (3 Stars)"
                         class="flex justify-between items-center py-1.5 border-b border-slate-100">
                         <span class="text-slate-500" data-en="Nightfall (3 Stars)"
                             data-he="צאת הכוכבים (3 כוכבים)">Nightfall (3 Stars)</span>
                         <b class="text-slate-700 tabular-nums" id="zNight">--:--</b>
+                    </div>
+                    <div id="zRowHavdalah" data-zman-row="Havdalah"
+                        class="flex justify-between items-center py-1.5 border-b border-slate-100">
+                        <span class="text-slate-500" data-en="Havdalah" data-he="הבדלה">Havdalah</span>
+                        <b class="text-slate-700 tabular-nums" id="zHavdalah">--:--</b>
                     </div>
                     <div id="zRowMidnight" data-zman-row="Chatzot HaLailah (Midnight)"
                         class="flex justify-between items-center py-1.5">
@@ -1006,6 +1016,11 @@
                     <div class="flex justify-between items-center py-1.5 border-b border-slate-100">
                         <span class="text-slate-500" data-en="Today" data-he="היום">Today</span>
                         <b id="holidayName" class="text-slate-700 text-right max-w-[60%]">Regular Day</b>
+                    </div>
+
+                    <div class="flex justify-between items-center py-1.5 border-b border-slate-100">
+                        <span class="text-slate-500" data-en="This Week's Shabbat" data-he="שבת השבוע">This Week's Shabbat</span>
+                        <b id="shabbatWeekName" class="text-slate-700 text-right max-w-[60%]">--</b>
                     </div>
 
                     <div id="omerRow" class="hidden flex justify-between items-center py-1.5 border-b border-slate-100">
@@ -1825,6 +1840,14 @@
             if (!meta || !meta.omer_day) return '--';
             if (!isHebrewMode()) return meta.omer_label || `Day ${meta.omer_day} of 49`;
             return `יום ${meta.omer_day} לעומר`;
+        }
+
+        function formatWeeklyShabbatLabel(meta) {
+            const raw = String(meta?.weekly_shabbat_parasha || '').trim();
+            if (!raw) return '--';
+            if (!isHebrewMode()) return `Shabbat ${raw}`;
+            const he = PARASHA_HE_MAP[raw] || raw;
+            return `שבת ${he}`;
         }
 
         function translateShabbatWarning(message) {
@@ -4861,6 +4884,11 @@
                     holidayName.innerText = translateHolidayName(meta.holiday || 'Regular Day');
                 }
 
+                const shabbatWeekName = document.getElementById('shabbatWeekName');
+                if (shabbatWeekName) {
+                    shabbatWeekName.innerText = formatWeeklyShabbatLabel(meta);
+                }
+
                 const omerCount = document.getElementById('omerCount');
                 if (omerCount && meta.omer_day) {
                     omerCount.innerText = formatOmerLabel(meta);
@@ -4919,6 +4947,23 @@
         toggleLanguage(savedLang);
 
         // ZMANIM LOGIC
+        function hasRealZman(value) {
+            const raw = String(value || '').trim();
+            return Boolean(raw && raw !== 'N/A' && raw !== '--:--');
+        }
+
+        function setZmanRowVisibility(rowId, visible) {
+            const row = document.getElementById(rowId);
+            if (!row) return;
+            row.classList.toggle('hidden', !visible);
+        }
+
+        function applyOptionalZmanRows(zmanim) {
+            setZmanRowVisibility('zRowMusaf', hasRealZman(zmanim['Latest Musaf']));
+            setZmanRowVisibility('zRowCandles', hasRealZman(zmanim['Candle Lighting']));
+            setZmanRowVisibility('zRowHavdalah', hasRealZman(zmanim['Havdalah']));
+        }
+
         function initZmanim() {
             const cachedRaw = localStorage.getItem(ZMANIM_LOCATION_CACHE_KEY);
             let cachedLocation = null;
@@ -5025,19 +5070,27 @@
                         }
                         document.getElementById('zChatzot').innerText = z['Chatzot (Midday)'] || 'N/A';
                         document.getElementById('zMincha').innerText = z['Earliest Mincha (Mincha Gedola)'] || 'N/A';
-                        document.getElementById('zMusaf').innerText = z['Latest Musaf (Holidays)'] || 'N/A';
+                        document.getElementById('zMusaf').innerText = z['Latest Musaf'] || 'N/A';
                         document.getElementById('zPlag').innerText = z['Plag HaMincha'] || 'N/A';
-                        document.getElementById('zCandles').innerText = z['Candle Lighting (Holidays)'] || 'N/A';
+                        document.getElementById('zCandles').innerText = z['Candle Lighting'] || 'N/A';
                         document.getElementById('zSunset').innerText = z['Sunset'] || 'N/A';
+                        document.getElementById('zMaariv').innerText = z['Arvit (Maariv)'] || 'N/A';
                         document.getElementById('zNight').innerText = z['Nightfall (3 Stars)'] || 'N/A';
+                        document.getElementById('zHavdalah').innerText = z['Havdalah'] || 'N/A';
                         document.getElementById('zMidnight').innerText = z['Chatzot HaLailah (Midnight)'] || 'N/A';
 
+                        applyOptionalZmanRows(z);
+
                         const holidayName = document.getElementById('holidayName');
+                        const shabbatWeekName = document.getElementById('shabbatWeekName');
                         const omerRow = document.getElementById('omerRow');
                         const omerCount = document.getElementById('omerCount');
                         const omerHint = document.getElementById('omerHint');
                         if (holidayName) {
                             holidayName.innerText = translateHolidayName(meta.holiday || 'Regular Day');
+                        }
+                        if (shabbatWeekName) {
+                            shabbatWeekName.innerText = formatWeeklyShabbatLabel(meta);
                         }
                         if (omerRow && omerCount && omerHint) {
                             if (meta.omer_day) {
@@ -5050,10 +5103,14 @@
                             }
                         }
 
-                        if (data.metadata.shabbat_warning) {
-                            const w = document.getElementById('zmanimWarning');
-                            w.innerText = translateShabbatWarning(data.metadata.shabbat_warning);
-                            w.classList.remove('hidden');
+                        const warningEl = document.getElementById('zmanimWarning');
+                        if (warningEl) {
+                            if (data.metadata.shabbat_warning) {
+                                warningEl.innerText = translateShabbatWarning(data.metadata.shabbat_warning);
+                                warningEl.classList.remove('hidden');
+                            } else {
+                                warningEl.classList.add('hidden');
+                            }
                         }
 
                         startCountdown();
@@ -5122,11 +5179,13 @@
                 'Latest Shacharit (Baal HaTanya)': 'shacharitBhtRow',
                 'Chatzot (Midday)': 'zRowChatzot',
                 'Earliest Mincha (Mincha Gedola)': 'zRowMincha',
-                'Latest Musaf (Holidays)': 'zRowMusaf',
+                'Latest Musaf': 'zRowMusaf',
                 'Plag HaMincha': 'zRowPlag',
-                'Candle Lighting (Holidays)': 'zRowCandles',
+                'Candle Lighting': 'zRowCandles',
                 'Sunset': 'zRowSunset',
+                'Arvit (Maariv)': 'zRowMaariv',
                 'Nightfall (3 Stars)': 'zRowNight',
+                'Havdalah': 'zRowHavdalah',
                 'Chatzot HaLailah (Midnight)': 'zRowMidnight',
             };
 
