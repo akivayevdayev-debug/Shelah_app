@@ -2,10 +2,12 @@
   "version": "2.0",
   "type": "academic_halachic_reference",
   "heritage_id": "turkish",
-  "name": "Turkish",
+  "name": "Turkish-Ottoman",
   "aliases": [
+    "Turkish-Ottoman",
     "Ottoman Sephardi",
     "Turkish Jews",
+    "turkish-ottoman-sefardic",
     "Ladino-speaking Jews of Turkey"
   ],
   "database_scope": {
@@ -121,7 +123,7 @@
       "index": "halacha.2",
       "category": "Prayer",
       "topic": "Torah reading and seating",
-      "summary": "Torah reading and seating customs often reflect Ottoman communal norms, such as taking off shoes when approaching the aron hakodesh.",
+      "summary": "Torah reading and seating customs reflect local synagogue protocol and inherited Ottoman-Sephardi community norms.",
       "common_practices": [
         "Read Torah with Sephardi trop or local variant",
         "Honor elders and family leaders appropriately",
@@ -134,8 +136,8 @@
     {
       "index": "halacha.3",
       "category": "Prayer",
-      "topic": "Hijabs and synagogue customs",
-      "summary": "Synagogue layout and customs developed in a Muslim‑majority environment, influencing local minhagim.",
+      "topic": "Head coverings and synagogue decorum",
+      "summary": "Synagogue decorum follows halachic standards together with locally inherited community customs.",
       "common_practices": [
         "Maintain local rules for separation and seating",
         "Use modest dress standards",
@@ -275,7 +277,7 @@
       "index": "halacha.13",
       "category": "Lifecycle",
       "topic": "Marriage and celebrations",
-      "summary": "Marriage follows halacha and may include local customs such as Fashadura (pregnancy celebration) and other women‑centered family rituals.",
+      "summary": "Marriage follows halacha and includes local family celebration customs that vary by city and lineage.",
       "common_practices": [
         "Use a valid ketubah",
         "Perform kiddushin and nissuin according to Sephardi custom",
@@ -400,10 +402,10 @@
   ],
   "unique_minhagim": {
     "examples": [
-      "Taking off shoes when approaching the aron hakodesh in some congregations",
       "Use of Ladino and Ladino‑piyutim in synagogue and home life",
-      "Fashadura celebration for expecting mothers",
-      "Funeral customs involving specific foods and alcoholic drinks such as rakı‑based pastries",
+      "Ottoman-Sephardi piyyut and melody traditions in communal prayer",
+      "City-based custom variation (for example Istanbul, Izmir, and Bursa)",
+      "Family-centered lifecycle and hospitality traditions within halachic practice",
       "Strong city‑based distinctions such as Istanbul vs. Izmir vs. Bursa"
     ],
     "notes": "Turkish Jewish practice is diverse; subgroup and city‑of‑origin information should be recorded whenever possible."

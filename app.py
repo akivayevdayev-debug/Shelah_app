@@ -1401,11 +1401,10 @@ COMMUNITIES = {
     "Syrian": "syrian",
     "Persian": "persian",
     "Sefardic": "sefardic",
-    "turkish-ottoman-sefardic": "turkish-ottoman-sefardic",
+    "Turkish-Ottoman": "turkish-ottoman-sefardic",
     "Yemenite": "yemenite",
     "Moroccan": "moroccan",
     "Israeli": "sefardic",
-    "Legacy Customs DB": "customs_db",
 }
 
 COMMUNITY_ALIASES = {
@@ -1439,16 +1438,15 @@ COMMUNITY_ALIASES = {
     "greek": "Greek-Romaniote",
     "romaniote": "Greek-Romaniote",
     "greek-romaniote": "Greek-Romaniote",
-    "turkish": "turkish-ottoman-sefardic",
-    "ottoman": "turkish-ottoman-sefardic",
-    "ottoman sefardic": "turkish-ottoman-sefardic",
-    "turkish ottoman": "turkish-ottoman-sefardic",
-    "turkish-ottoman community": "turkish-ottoman-sefardic",
-    "turkish ottoman community": "turkish-ottoman-sefardic",
-    "turkish-ottoman": "turkish-ottoman-sefardic",
-    "turkish-ottoman-sefardic": "turkish-ottoman-sefardic",
-    "legacy customs db": "Legacy Customs DB",
-    "customs_db": "Legacy Customs DB",
+    "turkish": "Turkish-Ottoman",
+    "ottoman": "Turkish-Ottoman",
+    "ottoman sefardic": "Turkish-Ottoman",
+    "turkish ottoman": "Turkish-Ottoman",
+    "turkish ottoman sefardic": "Turkish-Ottoman",
+    "turkish-ottoman community": "Turkish-Ottoman",
+    "turkish ottoman community": "Turkish-Ottoman",
+    "turkish-ottoman": "Turkish-Ottoman",
+    "turkish-ottoman-sefardic": "Turkish-Ottoman",
 }
 
 
