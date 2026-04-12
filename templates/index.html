@@ -3,7 +3,7 @@
 
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <meta name="theme-color" content="#002147">
     <title>Sh'elah - Torah Encyclopedia</title>
     <link rel="manifest" href="/manifest.webmanifest">
@@ -14,7 +14,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Cardo:wght@400;700&family=Inter:wght@400;500;600&display=swap"
         rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
-    <link rel="stylesheet" href="/static/style.css?v=20260411-mobile-scroll-fix">
+    <link rel="stylesheet" href="/static/style.css?v=20260412-ui-rollback-mobile-fix">
 
     <!-- FullCalendar -->
     <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.15/index.global.min.js"></script>
@@ -75,10 +75,10 @@
         </div>
 
         <!-- Top Navigation Menu Toggle + Search Bar -->
-        <div class="order-3 w-full lg:order-none lg:w-auto flex-1 max-w-4xl flex items-center justify-center gap-2">
-            <div class="w-full">
+        <div class="topbar-search-wrap order-3 w-full lg:order-none lg:w-auto flex-1 max-w-4xl flex items-center justify-center gap-2 min-w-0">
+            <div class="w-full min-w-0">
                 <!-- Search Form -->
-                <form id="searchForm" class="w-full relative">
+                <form id="searchForm" class="w-full relative min-w-0">
                     <input type="text" id="searchInput" placeholder="Search for a topic, halacha, or custom..."
                         class="w-full bg-slate-100 hover:bg-slate-200 transition text-sm sm:text-base p-2 pl-4 pr-10 rounded-full border-none focus:ring-2 focus:ring-blue-400 focus:bg-white focus:outline-none"
                         autocomplete="off" required>
@@ -97,7 +97,7 @@
             </div>
         </div>
 
-        <div class="flex gap-2 items-center flex-wrap justify-end">
+        <div id="topbarControls" class="topbar-controls flex gap-2 items-center flex-wrap justify-end w-full lg:w-auto">
             <button id="mobileNavBtn" type="button"
                 class="lg:hidden px-2.5 py-1.5 text-xs border border-slate-300 rounded bg-white hover:bg-slate-100 transition"
                 data-en="Menu" data-he="תפריט">Menu</button>
@@ -116,7 +116,7 @@
                 </button>
 
                 <div id="settingsPanel"
-                    class="hidden absolute right-0 mt-2 w-72 bg-white border border-slate-200 rounded-xl shadow-lg p-3 z-[90] space-y-3">
+                    class="hidden absolute right-0 mt-2 w-72 max-w-[calc(100vw-1rem)] bg-white border border-slate-200 rounded-xl shadow-lg p-3 z-[90] space-y-3">
                     <p class="text-[11px] uppercase tracking-widest text-slate-400 font-bold" data-en="Quick Settings"
                         data-he="הגדרות מהירות">Quick Settings</p>
 
@@ -871,16 +871,6 @@
                 <!-- Sefaria Side-by-Side Dual Pane Sources -->
                 <div id="readerSources" class="mt-12 space-y-8 pt-10"></div>
 
-                <section id="selectionInsights" class="mt-8 border border-slate-200 rounded-xl bg-slate-50 p-4">
-                    <h3 class="text-sm font-bold text-slate-700 uppercase tracking-widest" data-en="Selected Passage Tools"
-                        data-he="כלים לקטע שנבחר">Selected Passage Tools</h3>
-                    <p id="selectionInsightsHint" class="text-xs text-slate-500 mt-2"
-                        data-en="Highlight a passage to load linked commentaries. Highlight one word to see its meaning."
-                        data-he="סמן קטע כדי לטעון מפרשים מקושרים. סמן מילה אחת כדי לראות את פירושה.">Highlight a
-                        passage to load linked commentaries. Highlight one word to see its meaning.</p>
-                    <div id="selectionInsightsBody" class="mt-3 space-y-3"></div>
-                </section>
-
                 <!-- Media Elements (Videos/Audio) -->
                 <div id="readerMedia" class="mt-8 space-y-4"></div>
             </article>
@@ -905,6 +895,16 @@
                     class="text-xs text-slate-500 hover:text-slate-800 font-semibold uppercase tracking-wide"
                     data-en="Hide" data-he="הסתר">Hide</button>
             </div>
+
+            <section id="selectionInsights" class="hidden mb-6 border border-slate-200 rounded-xl bg-white p-4">
+                <h3 class="text-sm font-bold text-slate-700 uppercase tracking-widest" data-en="Selected Passage Tools"
+                    data-he="כלים לקטע שנבחר">Selected Passage Tools</h3>
+                <p id="selectionInsightsHint" class="text-xs text-slate-500 mt-2"
+                    data-en="Highlight a passage to load linked commentaries. Highlight one word to see its meaning."
+                    data-he="סמן קטע כדי לטעון מפרשים מקושרים. סמן מילה אחת כדי לראות את פירושה.">Highlight a
+                    passage to load linked commentaries. Highlight one word to see its meaning.</p>
+                <div id="selectionInsightsBody" class="mt-3 space-y-3"></div>
+            </section>
 
             <!-- Zmanim -->
             <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-5 mb-6">
@@ -3325,6 +3325,14 @@
             selectionInsightsBody.innerHTML = '';
         }
 
+        function hideSelectionInsights() {
+            selectionInsights?.classList.add('hidden');
+        }
+
+        function showSelectionInsights() {
+            selectionInsights?.classList.remove('hidden');
+        }
+
         function extractCommentaryRefs(linkData) {
             if (!linkData || typeof linkData !== 'object') return [];
 
@@ -3345,27 +3353,80 @@
                 });
             });
 
-            return refs.slice(0, 14);
+            return refs.slice(0, 24);
         }
 
-        function renderCommentaryButtons(refs) {
-            if (!Array.isArray(refs) || !refs.length) {
+        function getCommentaryAuthorLabel(ref) {
+            const raw = String(ref || '').trim();
+            if (!raw) return t('Unknown commentator', 'פרשן לא ידוע');
+
+            const onMatch = raw.match(/^([^,]+?)\s+on\s+/i);
+            if (onMatch?.[1]) {
+                return onMatch[1].trim();
+            }
+
+            const commaBase = raw.split(',')[0]?.trim();
+            if (commaBase) {
+                return commaBase;
+            }
+
+            return raw;
+        }
+
+        function groupCommentaryRefsByAuthor(refs) {
+            if (!Array.isArray(refs) || !refs.length) return [];
+
+            const byAuthor = new Map();
+            refs.forEach((ref) => {
+                const author = getCommentaryAuthorLabel(ref);
+                const authorKey = normalizeLibraryLookupKey(author || ref) || String(author || ref).toLowerCase();
+                if (!byAuthor.has(authorKey)) {
+                    byAuthor.set(authorKey, { author, refs: [] });
+                }
+                byAuthor.get(authorKey).refs.push(ref);
+            });
+
+            return Array.from(byAuthor.values())
+                .map((entry) => ({
+                    author: entry.author,
+                    refs: entry.refs
+                        .filter(Boolean)
+                        .sort((a, b) => String(a).localeCompare(String(b), undefined, { numeric: true })),
+                }))
+                .sort((a, b) => String(a.author).localeCompare(String(b.author), undefined, { numeric: true }));
+        }
+
+        function renderCommentaryChooser(groupedCommentaries) {
+            if (!Array.isArray(groupedCommentaries) || !groupedCommentaries.length) {
                 return `<p class="text-xs text-slate-500 italic">${t('No linked commentaries found for this passage.', 'לא נמצאו מפרשים מקושרים לקטע זה.')}</p>`;
             }
 
-            return refs.map((ref) => {
-                const encoded = encodeURIComponent(ref);
+            return groupedCommentaries.map((group) => {
+                const refsMarkup = group.refs.map((ref) => {
+                    const encoded = encodeURIComponent(ref);
+                    return `
+                        <button onclick="readText(decodeURIComponent('${encoded}'))"
+                            class="block w-full text-left px-3 py-2 rounded border border-slate-200 bg-white hover:bg-slate-100 text-sm text-slate-700 transition">
+                            ${escapeHtml(ref)}
+                        </button>
+                    `;
+                }).join('');
+
                 return `
-                    <button onclick="readText(decodeURIComponent('${encoded}'))"
-                        class="block w-full text-left px-3 py-2 rounded border border-slate-200 bg-white hover:bg-slate-100 text-sm text-slate-700 transition">
-                        ${escapeHtml(ref)}
-                    </button>
+                    <details class="rounded border border-slate-200 bg-slate-50 p-2">
+                        <summary class="cursor-pointer text-sm font-semibold text-slate-700 flex items-center justify-between">
+                            <span>${escapeHtml(group.author)}</span>
+                            <span class="text-[11px] text-slate-500">${group.refs.length}</span>
+                        </summary>
+                        <div class="mt-2 space-y-1">${refsMarkup}</div>
+                    </details>
                 `;
             }).join('');
         }
 
         async function updateSelectionInsights() {
             if (!selectionInsightsBody || appState.currentView?.type !== 'text') {
+                hideSelectionInsights();
                 return;
             }
 
@@ -3373,6 +3434,7 @@
             const selectedText = String(sel?.toString() || '').replace(/\s+/g, ' ').trim();
             if (!selectedText) {
                 resetSelectionInsights();
+                hideSelectionInsights();
                 return;
             }
 
@@ -3380,6 +3442,7 @@
                 resetSelectionInsights(
                     t('Selection is too long. Highlight a shorter passage.', 'הבחירה ארוכה מדי. סמן קטע קצר יותר.')
                 );
+                showSelectionInsights();
                 return;
             }
 
@@ -3417,7 +3480,7 @@
                 : Promise.resolve(null);
 
             const [links, wordInfo] = await Promise.all([commentaryPromise, wordPromise]);
-            const commentaries = extractCommentaryRefs(links);
+            const groupedCommentaries = groupCommentaryRefsByAuthor(extractCommentaryRefs(links));
 
             let html = '';
 
@@ -3433,12 +3496,18 @@
             html += `
                 <div class="rounded-lg border border-slate-200 bg-white px-3 py-3">
                     <p class="text-[11px] uppercase tracking-widest text-slate-500 font-bold mb-2">${t('Linked Commentaries', 'מפרשים מקושרים')}</p>
-                    <div class="space-y-1">${renderCommentaryButtons(commentaries)}</div>
+                    <p class="text-xs text-slate-500 mb-2">${t('Choose a commentator to view available linked comments.', 'בחר פרשן כדי לראות את פירושיו הזמינים.')}</p>
+                    <div class="space-y-2">${renderCommentaryChooser(groupedCommentaries)}</div>
                 </div>
             `;
 
             selectionInsightsBody.innerHTML = html;
             selectionInsightsHint.textContent = t('Selected text:', 'הטקסט שנבחר:') + ` ${selectedText}`;
+            showSelectionInsights();
+
+            if (isMobileViewport()) {
+                openMobilePanel('right');
+            }
         }
 
         let selectionInsightsTimer = null;
@@ -3452,13 +3521,18 @@
         }
 
         function bindSelectionInsightsEvents() {
-            const readerSources = document.getElementById('readerSources');
-            if (!readerSources || readerSources.dataset.selectionBound === '1') return;
+            const targets = [
+                document.getElementById('readerSources'),
+                document.getElementById('readerContent'),
+            ];
 
-            readerSources.dataset.selectionBound = '1';
-            readerSources.addEventListener('mouseup', scheduleSelectionInsightsUpdate);
-            readerSources.addEventListener('touchend', scheduleSelectionInsightsUpdate);
-            readerSources.addEventListener('keyup', scheduleSelectionInsightsUpdate);
+            targets.forEach((target) => {
+                if (!target || target.dataset.selectionBound === '1') return;
+                target.dataset.selectionBound = '1';
+                target.addEventListener('mouseup', scheduleSelectionInsightsUpdate);
+                target.addEventListener('touchend', scheduleSelectionInsightsUpdate);
+                target.addEventListener('keyup', scheduleSelectionInsightsUpdate);
+            });
         }
 
         function renderCurrentTextByLayout(options = {}) {
@@ -4515,16 +4589,8 @@
         async function loadPrayersMenu() {
             const modalList = document.getElementById('prayersList');
 
-            if (textsCache.prayersList !== null) {
-                populatePrayersListHTML(textsCache.prayersList);
-                populatePrayerBooksNavigator(textsCache.prayersList);
-                return;
-            }
-
             try {
-                const response = await fetch('/api/prayers/list');
-                const prayers = await response.json();
-                textsCache.prayersList = prayers;
+                const prayers = await ensurePrayerListLoaded();
                 populatePrayersListHTML(prayers);
                 populatePrayerBooksNavigator(prayers);
             } catch (err) {
@@ -4538,6 +4604,25 @@
             }
         }
 
+        async function ensurePrayerListLoaded() {
+            if (Array.isArray(textsCache.prayersList) && textsCache.prayersList.length) {
+                return textsCache.prayersList;
+            }
+
+            try {
+                const response = await fetch('/api/prayers/list');
+                if (!response.ok) {
+                    throw new Error('prayer list unavailable');
+                }
+                const prayers = await response.json();
+                textsCache.prayersList = Array.isArray(prayers) ? prayers : [];
+            } catch (_) {
+                textsCache.prayersList = [];
+            }
+
+            return textsCache.prayersList;
+        }
+
         function normalizePrayerList(prayers) {
             if (!Array.isArray(prayers)) return [];
             const seen = new Set();
@@ -4547,7 +4632,7 @@
                 const name = String(prayer?.name || prayer?.title || '').trim();
                 if (!name) return;
 
-                const key = name.toLowerCase();
+                const key = normalizeLibraryLookupKey(name) || name.toLowerCase();
                 if (seen.has(key)) return;
                 seen.add(key);
 
@@ -4556,9 +4641,51 @@
                     source: String(prayer?.source || '').trim().toLowerCase(),
                 });
             });
-
-            normalized.sort((a, b) => a.name.localeCompare(b.name));
             return normalized;
+        }
+
+        function getPrayerNavigationContext(prayerName) {
+            const entries = normalizePrayerList(textsCache.prayersList || []);
+            if (!entries.length) return null;
+
+            const currentKey = normalizeLibraryLookupKey(prayerName);
+            const index = entries.findIndex((entry) => normalizeLibraryLookupKey(entry.name) === currentKey);
+            if (index < 0) return null;
+
+            return {
+                total: entries.length,
+                index,
+                current: entries[index],
+                prev: entries[index - 1] || null,
+                next: entries[index + 1] || null,
+            };
+        }
+
+        function renderPrayerNavigation(prayerName) {
+            const context = getPrayerNavigationContext(prayerName);
+            if (!context) return '';
+
+            const currentLabel = getPrayerDisplayName(context.current?.name || prayerName);
+            const progressLabel = `${context.index + 1}/${context.total}`;
+
+            const prevButton = context.prev
+                ? `<button onclick="displayPrayer(decodeURIComponent('${encodeURIComponent(context.prev.name)}'))" class="px-3 py-2 bg-slate-100 rounded hover:bg-slate-200 text-slate-700 text-sm font-medium">&#8592; ${escapeHtml(getPrayerDisplayName(context.prev.name))}</button>`
+                : '<span></span>';
+
+            const nextButton = context.next
+                ? `<button onclick="displayPrayer(decodeURIComponent('${encodeURIComponent(context.next.name)}'))" class="px-3 py-2 bg-slate-100 rounded hover:bg-slate-200 text-slate-700 text-sm font-medium">${escapeHtml(getPrayerDisplayName(context.next.name))} &#8594;</button>`
+                : '<span></span>';
+
+            return `
+                <div class="mb-6 space-y-2">
+                    <div class="flex items-center justify-between text-xs uppercase tracking-widest text-slate-500 font-semibold">
+                        <span>${t('Prayer Navigation', 'ניווט תפילות')}</span>
+                        <span>${escapeHtml(progressLabel)}</span>
+                    </div>
+                    <div class="rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-700 font-medium">${escapeHtml(currentLabel)}</div>
+                    <div class="flex items-center justify-between gap-2">${prevButton}${nextButton}</div>
+                </div>
+            `;
         }
 
         function buildPrayerNavigatorButton(name) {
@@ -4722,6 +4849,7 @@
             setReaderSubtitle('');
 
             try {
+                await ensurePrayerListLoaded();
                 let prayerData = textsCache.prayers[prayerName];
 
                 if (!prayerData) {
@@ -4804,13 +4932,14 @@
                 window.currentPrayerContent = prayerData.content;
                 window.currentPrayerParagraphPairs = prayerData.paragraphPairs || [];
                 window.currentPrayerIsHtml = prayerData.hasSefaria || false;
+                window.currentPrayerName = prayerName;
                 window.currentCommunityData = null;
                 window.currentTextPayload = null;
                 selectionInsights?.classList.add('hidden');
                 resetSelectionInsights();
                 clearCompareReference(false);
 
-                document.getElementById('readerContent').innerHTML = renderPrayerContent(prayerData.content);
+                document.getElementById('readerContent').innerHTML = renderPrayerContent(prayerData.content, prayerName);
                 document.getElementById('readerSources').innerHTML = '';
                 document.getElementById('readerMedia').innerHTML = '';
                 applyReaderPreferences();
@@ -4830,8 +4959,9 @@
             }
         }
 
-        function renderPrayerContent(content) {
-            let html = '<div class="prose prose-slate max-w-none font-serif leading-relaxed text-slate-800">';
+        function renderPrayerContent(content, prayerName = '') {
+            let html = renderPrayerNavigation(prayerName);
+            html += '<div class="prose prose-slate max-w-none font-serif leading-relaxed text-slate-800">';
             html += `<div id="prayer-display" class="prayer-clean-lines"></div>`;
             html += `</div>`;
 
@@ -4869,6 +4999,7 @@
                 window.currentCommunityData = communityData;
                 window.currentPrayerContent = null;
                 window.currentPrayerParagraphPairs = [];
+                window.currentPrayerName = null;
                 window.currentTextPayload = null;
                 selectionInsights?.classList.add('hidden');
                 resetSelectionInsights();
@@ -4969,6 +5100,7 @@
             hideSearchSuggestions();
             appState.currentView = null;
             window.currentTextPayload = null;
+            window.currentPrayerName = null;
             selectionInsights?.classList.add('hidden');
             resetSelectionInsights();
             clearCompareReference(false);
@@ -5000,19 +5132,8 @@
         }
 
         async function getPrayerTitlesForSearch() {
-            if (Array.isArray(textsCache.prayersList) && textsCache.prayersList.length > 0) {
-                return textsCache.prayersList.map(p => p.title || p.name).filter(Boolean);
-            }
-
-            try {
-                const resp = await fetch('/api/prayers/list');
-                if (!resp.ok) return [];
-                const list = await resp.json();
-                textsCache.prayersList = list;
-                return list.map(p => p.title || p.name).filter(Boolean);
-            } catch (_) {
-                return [];
-            }
+            const list = await ensurePrayerListLoaded();
+            return list.map(p => p.title || p.name).filter(Boolean);
         }
 
         async function resolveSearchTarget(query) {
@@ -5258,7 +5379,7 @@
             document.getElementById('readerContent').innerHTML = '';
             document.getElementById('readerSources').innerHTML = '';
             document.getElementById('readerMedia').innerHTML = '';
-            selectionInsights?.classList.remove('hidden');
+            selectionInsights?.classList.add('hidden');
             resetSelectionInsights();
 
             try {
@@ -5280,6 +5401,7 @@
                 titleEl.innerText = data.heTitle ? `${data.title} · ${data.heTitle}` : data.title || ref;
                 setCurrentView('text', data.ref || resolvedRef || ref, data.title || data.ref || resolvedRef || ref);
                 window.currentTextPayload = data;
+                window.currentPrayerName = null;
 
                 // Badge
                 const categories = data.categories || [];
@@ -5601,6 +5723,10 @@
             // Update reader content if showing prayer or community
             if (reader && !reader.classList.contains('hidden')) {
                 if (window.currentPrayerContent) {
+                    const currentPrayerName = appState.currentView?.type === 'prayer'
+                        ? appState.currentView.value
+                        : (window.currentPrayerName || '');
+                    document.getElementById('readerContent').innerHTML = renderPrayerContent(window.currentPrayerContent, currentPrayerName);
                     renderPrayerDisplayByLayout(lang);
                 } else if (window.currentCommunityData) {
                     document.getElementById('readerContent').innerHTML = renderCommunityContent(window.currentCommunityData);
