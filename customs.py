@@ -18,6 +18,47 @@ import difflib
 CUSTOMS_DIR = os.path.join(os.path.dirname(__file__), "customs")
 
 
+def _build_trusted_sources(data):
+    """Collect trustworthy sources from each community JSON."""
+    if not isinstance(data, dict):
+        return []
+
+    candidates = []
+
+    source_registry = data.get("source_registry", {}) if isinstance(
+        data.get("source_registry"), dict) else {}
+    candidates.extend(source_registry.get("primary", []) if isinstance(
+        source_registry.get("primary"), list) else [])
+
+    authorities = data.get("core_halachic_authorities", {}) if isinstance(
+        data.get("core_halachic_authorities"), dict) else {}
+    for key in (
+        "primary_codes",
+        "major_rishonim_base",
+        "later_ashkenazi_poskim",
+        "later_sephardi_poskim",
+        "later_moroccan_poskim",
+        "later_turkish_poskim",
+    ):
+        values = authorities.get(key)
+        if isinstance(values, list):
+            candidates.extend(values)
+
+    deduped = []
+    seen = set()
+    for source in candidates:
+        value = str(source or "").strip()
+        if not value:
+            continue
+        key = value.lower()
+        if key in seen:
+            continue
+        seen.add(key)
+        deduped.append(value)
+
+    return deduped[:6]
+
+
 def load_all_customs():
     """Load all JSON files from customs folder"""
     customs = {}
@@ -41,6 +82,7 @@ def load_all_customs():
                 # Case 2: structured JSON (your large files)
                 if "name" in data:
                     name = data.get("name", "Unknown")
+                    trusted_sources = _build_trusted_sources(data)
 
                     customs[name] = {}
 
@@ -55,7 +97,7 @@ def load_all_customs():
                                 category
                             ],
                             "ruling": item.get("summary", ""),
-                            "source": ", ".join(data.get("source_registry", {}).get("primary", [])),
+                            "source": item.get("source", "") or ", ".join(trusted_sources[:4]),
                             "notes": " | ".join(item.get("common_practices", [])[:2]),
                             "media_url": item.get("media_url", "")
                         }
