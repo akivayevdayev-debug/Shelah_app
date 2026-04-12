@@ -24,6 +24,22 @@ _cache = {}
 CACHE_TTL = 3600  # 1 hour
 
 
+def _normalize_title_key(text):
+    return "".join(ch.lower() for ch in str(text or "") if ch.isalnum())
+
+
+NON_LOADING_LITURGY_TITLES = {
+    _normalize_title_key("Kinnot for Tisha B'Av (Ashkenaz)"),
+    _normalize_title_key("Ma'aneh Lashon Chabad"),
+    _normalize_title_key("Ma'avar Yabbok"),
+    _normalize_title_key("Machzor Rosh Hashanah Linear"),
+    _normalize_title_key("Machzor Yom Ha'atzmaut & Yom Yerushalayim"),
+    _normalize_title_key("Seder Ma'amadot"),
+    _normalize_title_key("Seder Tisha B'Av (Edot HaMizrach)"),
+    _normalize_title_key("Weekday Siddur Chabad"),
+}
+
+
 def _cached_get(url, ttl=CACHE_TTL):
     """Cached HTTP GET wrapper."""
     now = time.time()
@@ -416,22 +432,22 @@ def get_popular_texts():
     """
     return {
         "Tanakh": [
-            {"title": "Bereishit", "ref": "Genesis 1", "he": "בְּרֵאשִׁית",
+            {"title": "Genesis (Bereishit)", "ref": "Genesis 1", "he": "בְּרֵאשִׁית",
                 "description": "The beginning of creation"},
-            {"title": "Shemot", "ref": "Exodus 1", "he": "שְׁמוֹת",
-                "description": "The Exodus from Egypt"},
-            {"title": "Tehillim", "ref": "Psalms 1",
+            {"title": "Exodus (Shemot)", "ref": "Exodus 1", "he": "שְׁמוֹת",
+                "description": "The journey out of Egypt"},
+            {"title": "Psalms (Tehillim)", "ref": "Psalms 1",
                 "he": "תְּהִלִּים", "description": "Psalms of David"},
-            {"title": "Mishlei", "ref": "Proverbs 1", "he": "מִשְׁלֵי",
+            {"title": "Proverbs (Mishlei)", "ref": "Proverbs 1", "he": "מִשְׁלֵי",
                 "description": "Proverbs of Solomon"},
         ],
         "Mishnah": [
             {"title": "Berakhot", "ref": "Mishnah Berakhot 1",
-                "he": "בְּרָכוֹת", "description": "Laws of blessings and prayer"},
+                "he": "בְּרָכוֹת", "description": "Laws of berakhot and prayer"},
             {"title": "Shabbat", "ref": "Mishnah Shabbat 1",
-                "he": "שַׁבָּת", "description": "Laws of the Sabbath"},
+                "he": "שַׁבָּת", "description": "Laws of Shabbat"},
             {"title": "Pesachim", "ref": "Mishnah Pesachim 1",
-                "he": "פְּסָחִים", "description": "Laws of Passover"},
+                "he": "פְּסָחִים", "description": "Laws of Pesach"},
             {"title": "Avot", "ref": "Pirkei Avot 1", "he": "אָבוֹת",
                 "description": "Ethics of the Fathers"},
         ],
@@ -447,7 +463,7 @@ def get_popular_texts():
             {"title": "Shulchan Arukh OC 1", "ref": "Shulchan Arukh, Orach Chayim 1",
                 "he": "שֻׁלְחָן עָרוּךְ", "description": "Morning conduct"},
             {"title": "Mishneh Torah", "ref": "Mishneh Torah, Torah Study 1",
-                "he": "מִשְׁנֵה תּוֹרָה", "description": "The laws of Torah study"},
+                "he": "מִשְׁנֵה תּוֹרָה", "description": "Laws of Torah study"},
             {"title": "Kitzur Shulchan Arukh 1", "ref": "Kitzur Shulchan Arukh 1",
                 "he": "קִצּוּר שֻׁלְחָן עָרוּךְ", "description": "Abridged code of Jewish law"},
         ]
@@ -511,6 +527,8 @@ def get_liturgy_books(include_commentary=False, max_items=200):
         dependence = node.get("dependence")
 
         if categories and categories[0] == "Liturgy" and title:
+            if _normalize_title_key(title) in NON_LOADING_LITURGY_TITLES:
+                return
             if include_commentary or dependence != "Commentary":
                 if title not in seen:
                     books.append({
