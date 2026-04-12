@@ -119,6 +119,217 @@ QUICK_TEXT_ALIASES = {
     "mishlei": "Proverbs 1",
 }
 
+HEBREW_DIACRITICS_RE = re.compile(r"[\u0591-\u05C7]")
+HEBREW_LETTER_RE = re.compile(r"[\u05D0-\u05EA]")
+
+TRANSLATION_CACHE = {}
+
+HEBREW_WORD_GLOSSARY = {
+    "שבת": "Shabbat, the seventh day of rest.",
+    "תורה": "Torah, the Five Books of Moses and Torah teaching.",
+    "תפילה": "Prayer.",
+    "מצוה": "Mitzvah, a divine commandment.",
+    "מצווה": "Mitzvah, a divine commandment.",
+    "הלכה": "Halakhah, practical Jewish law.",
+    "מנהג": "Minhag, accepted communal custom.",
+    "תשובה": "Teshuvah, repentance and return.",
+    "ברכה": "Berakhah, blessing.",
+    "פסח": "Pesach, the festival of the Exodus.",
+    "סוכות": "Sukkot, the festival of booths.",
+    "שבועות": "Shavuot, festival marking Matan Torah.",
+    "ראש": "Head or beginning.",
+    "שלום": "Peace, well-being, or greeting.",
+    "חסד": "Kindness or loving-kindness.",
+    "אמת": "Truth.",
+    "יראה": "Awe or reverence.",
+    "אהבה": "Love.",
+}
+
+
+def _strip_hebrew_diacritics(text):
+    return HEBREW_DIACRITICS_RE.sub("", str(text or ""))
+
+
+def _contains_hebrew_letters(text):
+    return bool(HEBREW_LETTER_RE.search(str(text or "")))
+
+
+def _normalize_lookup_word(text):
+    cleaned = _strip_hebrew_diacritics(text).strip()
+    cleaned = re.sub(r"\s+", " ", cleaned)
+    return cleaned
+
+
+def _translate_hebrew_text_online(text):
+    """Best-effort public translation fallback for short Hebrew snippets."""
+    value = str(text or "").strip()
+    if not value:
+        return ""
+    if not _contains_hebrew_letters(value):
+        return ""
+
+    url = "https://api.mymemory.translated.net/get"
+    try:
+        resp = requests.get(
+            url,
+            params={"q": value, "langpair": "he|en"},
+            timeout=5,
+        )
+        if not resp.ok:
+            return ""
+        payload = resp.json() if resp.content else {}
+        translated = str((payload.get("responseData") or {}).get(
+            "translatedText") or "").strip()
+        if not translated:
+            return ""
+
+        # Skip unchanged echoes.
+        if translated.lower() == value.lower():
+            return ""
+        return translated
+    except Exception:
+        return ""
+
+
+def _fill_missing_english_lines(text_payload, max_lines=18):
+    """Fill missing English lines when Hebrew is available and translation can be generated."""
+    if not isinstance(text_payload, dict):
+        return text_payload
+
+    lines = text_payload.get("lines", [])
+    if not isinstance(lines, list) or not lines:
+        return text_payload
+
+    translated_count = 0
+    for line in lines:
+        if translated_count >= max_lines:
+            break
+        if not isinstance(line, dict):
+            continue
+
+        en_value = str(line.get("en") or "").strip()
+        he_value = _normalize_lookup_word(line.get("he") or "")
+        if en_value or not he_value:
+            continue
+        if not _contains_hebrew_letters(he_value):
+            continue
+
+        cache_key = he_value[:240]
+        if cache_key in TRANSLATION_CACHE:
+            generated = TRANSLATION_CACHE[cache_key]
+        else:
+            generated = _translate_hebrew_text_online(cache_key)
+            TRANSLATION_CACHE[cache_key] = generated
+
+        if generated:
+            line["en"] = generated
+            translated_count += 1
+
+    if translated_count:
+        text_payload["translation_generated"] = True
+        text_payload["translation_generated_count"] = translated_count
+        text_payload["translation_note"] = "Automatic English translation added for missing lines."
+        text_payload["en"] = [
+            str(line.get("en", "")).strip()
+            for line in lines
+            if isinstance(line, dict) and str(line.get("en", "")).strip()
+        ]
+
+    return text_payload
+
+
+def _build_trusted_custom_sources(data):
+    """Build a stable source list from trusted halachic authorities in community files."""
+    if not isinstance(data, dict):
+        return []
+
+    candidates = []
+
+    source_registry = data.get("source_registry", {}) if isinstance(
+        data.get("source_registry"), dict) else {}
+    candidates.extend(source_registry.get("primary", []) if isinstance(
+        source_registry.get("primary"), list) else [])
+
+    authorities = data.get("core_halachic_authorities", {}) if isinstance(
+        data.get("core_halachic_authorities"), dict) else {}
+    for key in (
+        "primary_codes",
+        "major_rishonim_base",
+        "later_ashkenazi_poskim",
+        "later_sephardi_poskim",
+        "later_moroccan_poskim",
+        "later_turkish_poskim",
+    ):
+        value = authorities.get(key)
+        if isinstance(value, list):
+            candidates.extend(value)
+
+    deduped = []
+    seen = set()
+    for item in candidates:
+        label = str(item or "").strip()
+        if not label:
+            continue
+        key = label.lower()
+        if key in seen:
+            continue
+        seen.add(key)
+        deduped.append(label)
+
+    return deduped[:6]
+
+
+def _lookup_english_word_meaning(word):
+    clean_word = str(word or "").strip().lower()
+    if not clean_word:
+        return "", ""
+
+    try:
+        resp = requests.get(
+            f"https://api.dictionaryapi.dev/api/v2/entries/en/{clean_word}",
+            timeout=5,
+        )
+        if not resp.ok:
+            return "", ""
+        payload = resp.json()
+        if not isinstance(payload, list) or not payload:
+            return "", ""
+
+        entry = payload[0] if isinstance(payload[0], dict) else {}
+        meanings = entry.get("meanings", []) if isinstance(
+            entry.get("meanings"), list) else []
+        for meaning in meanings:
+            definitions = meaning.get(
+                "definitions", []) if isinstance(meaning, dict) else []
+            for definition in definitions:
+                text = str((definition or {}).get("definition") or "").strip()
+                if text:
+                    return text, "dictionaryapi.dev"
+    except Exception:
+        return "", ""
+
+    return "", ""
+
+
+def _lookup_hebrew_word_meaning(word):
+    clean_word = _normalize_lookup_word(word)
+    if not clean_word:
+        return "", ""
+
+    exact = HEBREW_WORD_GLOSSARY.get(clean_word)
+    if exact:
+        return exact, "local-hebrew-glossary"
+
+    base = re.sub(r"[^\u05D0-\u05EA\s]", "", clean_word).strip()
+    if base in HEBREW_WORD_GLOSSARY:
+        return HEBREW_WORD_GLOSSARY[base], "local-hebrew-glossary"
+
+    generated = _translate_hebrew_text_online(clean_word)
+    if generated:
+        return generated, "automatic-translation"
+
+    return "", ""
+
 
 def _sanitize_answer_mode(mode_value):
     mode = (mode_value or "balanced").strip().lower()
@@ -1150,7 +1361,42 @@ def get_text_inline(ref):
     """Fetches a Sefaria text inline — Hebrew + English + metadata."""
     from sefaria_library import get_text
     data = get_text(ref)
+
+    should_translate = str(request.args.get("autotranslate", "1")).strip().lower() not in {
+        "0", "false", "no", "off"
+    }
+    if should_translate and isinstance(data, dict) and not data.get("error"):
+        data = _fill_missing_english_lines(data)
+
     return jsonify(data)
+
+
+@app.route("/api/word/meaning")
+def get_word_meaning():
+    """Look up a highlighted word meaning (best-effort for Hebrew and English)."""
+    raw_word = str(request.args.get("word", "") or "").strip()
+    if not raw_word:
+        return jsonify({"error": "Missing word parameter"}), 400
+
+    if _contains_hebrew_letters(raw_word):
+        meaning, source = _lookup_hebrew_word_meaning(raw_word)
+    else:
+        meaning, source = _lookup_english_word_meaning(raw_word)
+
+    if not meaning:
+        return jsonify({
+            "word": raw_word,
+            "meaning": "",
+            "source": "",
+            "status": "not_found",
+        }), 404
+
+    return jsonify({
+        "word": raw_word,
+        "meaning": meaning,
+        "source": source,
+        "status": "ok",
+    })
 
 
 @app.route("/api/library/search")
@@ -1475,6 +1721,7 @@ def get_community(name):
 
         # Extract key information for display
         identity = data.get("identity", {})
+        trusted_sources = _build_trusted_custom_sources(data)
 
         # Extract customs from halacha_index
         customs_content = {}
@@ -1489,7 +1736,7 @@ def get_community(name):
                 "topic": topic,
                 "ruling": item.get("summary", ""),
                 "common_practices": item.get("common_practices", []),
-                "source": item.get("source", "")
+                "source": item.get("source", "") or ", ".join(trusted_sources[:4])
             }
 
         fallback_customs = data if isinstance(data, dict) else {}
@@ -1587,7 +1834,7 @@ def get_texts_index():
             "items": list(COMMUNITIES.keys())
         },
         "sefaria": {
-            "title": "Sefaria Library",
+            "title": "Jewish Text Library",
             "items": ["Tanakh", "Mishnah", "Talmud", "Halakhah", "Kabbalah"]
         }
     })

@@ -1,0 +1,28 @@
+{
+  "machine_generated": true,
+  "generated_at_utc": "2026-04-12T04:21:36.904228+00:00",
+  "source": {
+    "api": "https://www.sefaria.org/api",
+    "index_endpoint": "https://www.sefaria.org/api/index",
+    "text_endpoint_template": "https://www.sefaria.org/api/texts/<ref>"
+  },
+  "parameters": {
+    "max_leaves": 40,
+    "timeout_seconds": 8.0,
+    "sleep_seconds": 0.0,
+    "progress_every": 10
+  },
+  "stats": {
+    "leaf_count_raw": 6591,
+    "leaf_count_unique": 40,
+    "duplicate_titles_removed": 0,
+    "keep_count": 40,
+    "fix_count": 0,
+    "remove_count": 0,
+    "elapsed_seconds": 17.817,
+    "name_cache_size": 40,
+    "probed_ref_count": 40
+  },
+  "fixes": [],
+  "removals": []
+}
