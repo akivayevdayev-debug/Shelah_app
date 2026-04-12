@@ -3507,6 +3507,8 @@
 
             if (isMobileViewport()) {
                 openMobilePanel('right');
+            } else if (appState.prefs.showRightSidebar === false) {
+                setSidebarVisibility('right', true);
             }
         }
 
