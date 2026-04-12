@@ -76,13 +76,6 @@
 
         <!-- Top Navigation Menu Toggle + Search Bar -->
         <div class="order-3 w-full lg:order-none lg:w-auto flex-1 max-w-4xl flex items-center justify-center gap-2">
-            <!-- Browse Texts Button (Top Menu) -->
-            <button onclick="openTextsMenu()"
-                class="px-3 py-1.5 text-xs sm:text-sm font-semibold text-navy bg-slate-100 rounded-full hover:bg-slate-200 transition whitespace-nowrap"
-                data-en="Browse Texts" data-he="עיון בטקסטים">
-                Browse Texts
-            </button>
-
             <div class="w-full">
                 <!-- Search Form -->
                 <form id="searchForm" class="w-full relative">
@@ -159,8 +152,8 @@
                             <option value="Yemenite" data-en="Yemenite" data-he="תימני">Yemenite</option>
                             <option value="Moroccan" data-en="Moroccan" data-he="מרוקאי">Moroccan</option>
                             <option value="Kavkazi" data-en="Kavkazi" data-he="קווקזי">Kavkazi</option>
-                            <option value="turkish-ottoman-sefardic" data-en="turkish-ottoman-sefardic"
-                                data-he="ספרדי טורקי-עות׳מאני">turkish-ottoman-sefardic</option>
+                            <option value="Turkish-Ottoman" data-en="Turkish-Ottoman"
+                                data-he="טורקי-עות׳מאני">Turkish-Ottoman</option>
                             <option value="Israeli" data-en="Israeli" data-he="ישראלי">Israeli</option>
                         </select>
                     </label>
@@ -509,31 +502,9 @@
                 <details class="group cursor-pointer">
                     <summary class="font-semibold hover:text-[#00827f] list-none border-b pb-2 mb-2"
                         data-en="Prayer Books" data-he="סידורי תפילה">Prayer Books</summary>
-                    <ul class="ml-2 space-y-1 border-l-2 pl-3 border-[#00827f]/30">
-                        <li><button onclick="displayPrayer('Weekday Shacharit')"
-                                class="text-left text-slate-600 hover:text-[#00827f] text-sm w-full py-0.5"
-                                data-en="Shacharit (Morning)" data-he="שחרית">Shacharit (Morning)</button></li>
-                        <li><button onclick="displayPrayer('Weekday Mincha')"
-                                class="text-left text-slate-600 hover:text-[#00827f] text-sm w-full py-0.5"
-                                data-en="Mincha (Afternoon)" data-he="מנחה">Mincha
-                                (Afternoon)</button></li>
-                        <li><button onclick="displayPrayer('Weekday Maariv')"
-                                class="text-left text-slate-600 hover:text-[#00827f] text-sm w-full py-0.5"
-                                data-en="Maariv (Evening)" data-he="מעריב">Maariv
-                                (Evening)</button></li>
-                        <li><button onclick="displayPrayer('Shabbat Shacharit')"
-                                class="text-left text-slate-600 hover:text-[#00827f] text-sm w-full py-0.5"
-                                data-en="Shabbat Prayers" data-he="תפילות שבת">Shabbat Prayers</button></li>
-                        <li><button onclick="displayPrayer('Holiday Prayers')"
-                                class="text-left text-slate-600 hover:text-[#00827f] text-sm w-full py-0.5"
-                                data-en="Holiday Prayers" data-he="תפילות חגים">Holiday Prayers</button></li>
-                        <li><button onclick="displayPrayer('Kiddush')"
-                                class="text-left text-slate-600 hover:text-[#00827f] text-sm w-full py-0.5"
-                                data-en="Kiddush &amp; Havdalah" data-he="קידוש והבדלה">Kiddush &amp; Havdalah</button>
-                        </li>
-                        <li><button onclick="displayPrayer('Upon Arising')"
-                                class="text-left text-slate-600 hover:text-[#00827f] text-sm w-full py-0.5"
-                                data-en="Morning Blessings" data-he="ברכות ההשכמה">Morning Blessings</button></li>
+                    <ul id="prayerBooksNavList" class="ml-2 space-y-1 border-l-2 pl-3 border-[#00827f]/30">
+                        <li class="text-xs italic text-slate-400" data-en="Loading prayer books..."
+                            data-he="טוען סידורי תפילה...">Loading prayer books...</li>
                     </ul>
                 </details>
                 <details class="group cursor-pointer">
@@ -578,10 +549,10 @@
                         <li><button onclick="displayCommunity('Kavkazi')"
                                 class="text-left text-slate-600 hover:text-[#594176] text-sm w-full py-0.5"
                                 data-en="Kavkazi" data-he="קווקזי">Kavkazi</button></li>
-                        <li><button onclick="displayCommunity('turkish-ottoman-sefardic')"
+                        <li><button onclick="displayCommunity('Turkish-Ottoman')"
                                 class="text-left text-slate-600 hover:text-[#594176] text-sm w-full py-0.5"
-                                data-en="turkish-ottoman-sefardic"
-                                data-he="ספרדי טורקי-עות׳מאני">turkish-ottoman-sefardic</button></li>
+                            data-en="Turkish-Ottoman"
+                            data-he="טורקי-עות׳מאני">Turkish-Ottoman</button></li>
                         <li><button onclick="displayCommunity('Israeli')"
                                 class="text-left text-slate-600 hover:text-[#594176] text-sm w-full py-0.5"
                                 data-en="Israeli" data-he="ישראלי">Israeli</button></li>
@@ -1365,6 +1336,7 @@
         const sourceGraphBtn = document.getElementById('sourceGraphBtn');
         const communityTimelineBtn = document.getElementById('communityTimelineBtn');
         const trackCurrentBtn = document.getElementById('trackCurrentBtn');
+        const prayerBooksNavList = document.getElementById('prayerBooksNavList');
         const libraryIndexSidebar = document.getElementById('libraryIndexSidebar');
         const libraryIndexModal = document.getElementById('libraryIndexModal');
         const libraryIndexFilterInput = document.getElementById('libraryIndexFilterInput');
@@ -1723,6 +1695,7 @@
         const COMMUNITY_HE_MAP = {
             'Ashkenaz': 'אשכנז',
             'Sefardic': 'ספרדי',
+            'Sephardi': 'ספרדי',
             'Iraqi': 'עיראקי',
             'Syrian': 'סורי',
             'Yemenite': 'תימני',
@@ -1734,9 +1707,9 @@
             'Ethiopian': 'אתיופי',
             'Georgian': 'גרוזיני',
             'Greek-Romaniote': 'רומניוטי',
-            'turkish-ottoman-sefardic': 'ספרדי טורקי-עות׳מאני',
-            'Turkish-Ottoman Sefardic': 'ספרדי טורקי-עות׳מאני',
-            'Legacy Customs DB': 'מסד מנהגים ישן',
+            'turkish-ottoman-sefardic': 'טורקי-עות׳מאני',
+            'Turkish-Ottoman Sefardic': 'טורקי-עות׳מאני',
+            'Turkish-Ottoman': 'טורקי-עות׳מאני',
         };
 
         function getHebrewStaticLabel(text) {
@@ -3593,8 +3566,11 @@
             const legacyCommunityMap = {
                 Ashkenazi: 'Ashkenaz',
                 Sefardi: 'Sefardic',
+                Sephardi: 'Sefardic',
                 Mizrahi: 'Iraqi',
-                'Turkish-Ottoman Sefardic': 'turkish-ottoman-sefardic',
+                'Turkish-Ottoman Sefardic': 'Turkish-Ottoman',
+                'turkish-ottoman-sefardic': 'Turkish-Ottoman',
+                'Legacy Customs DB': 'Ashkenaz',
             };
             if (legacyCommunityMap[appState.prefs.community]) {
                 appState.prefs.community = legacyCommunityMap[appState.prefs.community];
@@ -3929,6 +3905,39 @@
             };
         }
 
+        const LIBRARY_NODE_BLOCK_PATTERNS = [
+            /tasfir\s+rasag/i,
+            /targum\s+jerusale\b/i,
+            /\barbanel\b/i,
+            /barentura/i,
+        ];
+
+        const LIBRARY_REF_FIXES = {
+            tafsirrasag: 'Tafsir Rasag, Genesis 1',
+            tasfirrasag: 'Tafsir Rasag, Genesis 1',
+            targumjerusalem: 'Targum Jerusalem, Genesis 1',
+            targumjerusale: 'Targum Jerusalem, Genesis 1',
+            abarbanelontorah: 'Abarbanel on Torah, Genesis 1',
+            arbanelontorah: 'Abarbanel on Torah, Genesis 1',
+            arbanel: 'Abarbanel on Torah, Genesis 1',
+            bartenuraontorah: 'Bartenura on Torah, Genesis 1',
+            barenturaontorah: 'Bartenura on Torah, Genesis 1',
+        };
+
+        function normalizeLibraryLookupKey(value) {
+            return String(value || '').toLowerCase().replace(/[^a-z0-9]/g, '');
+        }
+
+        function shouldHideLibraryNode(node) {
+            const labels = getLibraryNodeLabels(node);
+            const haystack = `${labels.en} ${labels.he}`;
+            return LIBRARY_NODE_BLOCK_PATTERNS.some((pattern) => pattern.test(haystack));
+        }
+
+        function resolveKnownLibraryRef(title) {
+            return LIBRARY_REF_FIXES[normalizeLibraryLookupKey(title)] || '';
+        }
+
         function resolveLibraryNodeRef(node) {
             if (!node || typeof node !== 'object') return '';
             const directRef = String(node.firstSectionRef || node.ref || '').trim();
@@ -3936,7 +3945,9 @@
 
             const title = String(node.title || '').trim();
             if (!title) return '';
-            return `${title} 1`;
+            const fixedRef = resolveKnownLibraryRef(title);
+            if (fixedRef) return fixedRef;
+            return title;
         }
 
         function normalizeLibraryFilterValue(value) {
@@ -3959,6 +3970,10 @@
             if (!Array.isArray(nodes) || depth > maxDepth) return '';
 
             return nodes.map((node) => {
+                if (shouldHideLibraryNode(node)) {
+                    return '';
+                }
+
                 if (!libraryNodeMatchesFilter(node, filterValue)) {
                     return '';
                 }
@@ -4105,10 +4120,11 @@
         }
 
         async function loadPrayersMenu() {
-            const list = document.getElementById('prayersList');
+            const modalList = document.getElementById('prayersList');
 
             if (textsCache.prayersList !== null) {
                 populatePrayersListHTML(textsCache.prayersList);
+                populatePrayerBooksNavigator(textsCache.prayersList);
                 return;
             }
 
@@ -4117,18 +4133,93 @@
                 const prayers = await response.json();
                 textsCache.prayersList = prayers;
                 populatePrayersListHTML(prayers);
+                populatePrayerBooksNavigator(prayers);
             } catch (err) {
-                list.innerHTML = `<p class="text-red-500 text-sm">${t('Error loading prayers', 'שגיאה בטעינת התפילות')}</p>`;
+                const errorText = `<p class="text-red-500 text-sm">${t('Error loading prayers', 'שגיאה בטעינת התפילות')}</p>`;
+                if (modalList) {
+                    modalList.innerHTML = errorText;
+                }
+                if (prayerBooksNavList) {
+                    prayerBooksNavList.innerHTML = `<li class="text-xs text-red-500">${t('Unable to load prayer books.', 'לא ניתן לטעון סידורי תפילה.')}</li>`;
+                }
             }
+        }
+
+        function normalizePrayerList(prayers) {
+            if (!Array.isArray(prayers)) return [];
+            const seen = new Set();
+            const normalized = [];
+
+            prayers.forEach((prayer) => {
+                const name = String(prayer?.name || prayer?.title || '').trim();
+                if (!name) return;
+
+                const key = name.toLowerCase();
+                if (seen.has(key)) return;
+                seen.add(key);
+
+                normalized.push({
+                    name,
+                    source: String(prayer?.source || '').trim().toLowerCase(),
+                });
+            });
+
+            normalized.sort((a, b) => a.name.localeCompare(b.name));
+            return normalized;
+        }
+
+        function buildPrayerNavigatorButton(name) {
+            const label = getPrayerDisplayName(name);
+            const encodedName = encodeURIComponent(name);
+            return `<button onclick="displayPrayer(decodeURIComponent('${encodedName}'))" class="text-left text-slate-600 hover:text-[#00827f] text-sm w-full py-0.5">${escapeHtml(label)}</button>`;
+        }
+
+        function populatePrayerBooksNavigator(prayers) {
+            if (!prayerBooksNavList) return;
+
+            const entries = normalizePrayerList(prayers);
+            if (!entries.length) {
+                prayerBooksNavList.innerHTML = `<li class="text-xs italic text-slate-400">${t('No prayer books available right now.', 'אין כעת סידורי תפילה זמינים.')}</li>`;
+                return;
+            }
+
+            const coreServices = entries.filter((entry) => entry.source === 'legacy-service');
+            const prayerLibrary = entries.filter((entry) => entry.source !== 'legacy-service');
+
+            let html = '';
+
+            if (coreServices.length) {
+                html += `<li class="text-[11px] uppercase tracking-widest text-slate-400 font-bold py-1">${t('Core Services', 'שירותי ליבה')}</li>`;
+                coreServices.forEach((entry) => {
+                    html += `<li>${buildPrayerNavigatorButton(entry.name)}</li>`;
+                });
+            }
+
+            if (prayerLibrary.length) {
+                html += `<li class="text-[11px] uppercase tracking-widest text-slate-400 font-bold py-1 mt-2">${t('Full Prayer Library', 'ספריית תפילה מלאה')}</li>`;
+                prayerLibrary.forEach((entry) => {
+                    html += `<li>${buildPrayerNavigatorButton(entry.name)}</li>`;
+                });
+            }
+
+            prayerBooksNavList.innerHTML = html;
+            applyStaticHebrewFallbackTranslations();
         }
 
         function populatePrayersListHTML(prayers) {
             const list = document.getElementById('prayersList');
+            if (!list) return;
+
+            const entries = normalizePrayerList(prayers);
+            if (!entries.length) {
+                list.innerHTML = `<p class="text-slate-400 italic text-sm">${t('No prayer books available right now.', 'אין כעת סידורי תפילה זמינים.')}</p>`;
+                return;
+            }
+
             let html = '';
-            prayers.forEach(prayer => {
-                const name = prayer.name || prayer.title || '';
-                const label = getPrayerDisplayName(name);
-                const encodedName = encodeURIComponent(name);
+            entries.forEach((entry) => {
+                const label = getPrayerDisplayName(entry.name);
+                const encodedName = encodeURIComponent(entry.name);
                 html += `<button onclick="displayPrayer(decodeURIComponent('${encodedName}'))" class="block w-full text-left px-3 py-2 rounded hover:bg-[#00827f]/10 transition text-slate-700 hover:text-[#00827f]">${escapeHtml(label)}</button>`;
             });
             list.innerHTML = html;
@@ -4353,47 +4444,66 @@
         }
 
         function renderCommunityContent(communityData) {
-            const currentLang = localStorage.getItem('preferredLanguage') || 'en';
-            let html = '<div class="prose prose-slate max-w-none font-serif leading-relaxed text-slate-800">';
+            const communityName = String(communityData?.name || '').trim();
+            const communityLabel = getCommunityDisplayName(communityName);
+            const customs = communityData?.customs || {};
 
-            const communityLabel = getCommunityDisplayName(communityData.name || '');
-            html += `<div class="bg-slate-50 rounded-lg p-6 border-l-4 border-[#594176]">`;
-            html += `<h2 class="text-2xl font-bold mb-3 text-[#594176]">${isHebrewMode() ? `הקהילה היהודית ${communityLabel}` : `${communityData.name} Jewish Community`}</h2>`;
-
-            if (communityData.primary_origin) {
-                html += `<p class="text-slate-700 mb-4"><strong>${t('Primary Origin:', 'מוצא עיקרי:')}</strong> ${communityData.primary_origin}</p>`;
-            }
-
-            const customs = communityData.customs || {};
-            if (Object.keys(customs).length > 0) {
-                html += `<div class="mt-6 space-y-4">`;
-                html += `<h3 class="text-lg font-bold text-slate-800 mb-3">${t('Halachic Practices & Customs', 'הלכות ומנהגים')}</h3>`;
-
-                Object.entries(customs).forEach(([key, practices]) => {
-                    const title = (practices && practices.topic) ? practices.topic : key.replace(/_/g, ' ');
-                    html += `<div class="bg-white p-4 rounded border border-slate-200">`;
-                    html += `<h4 class="font-bold text-slate-800 mb-2 capitalize">${title}</h4>`;
-                    if (practices && practices.ruling) {
-                        html += `<p class="text-slate-700 mb-2">${practices.ruling}</p>`;
-                    }
-                    if (practices && Array.isArray(practices.common_practices) && practices.common_practices.length > 0) {
-                        html += `<ul class="list-disc ml-5 text-slate-600 text-sm space-y-1">`;
-                        practices.common_practices.forEach(item => {
-                            html += `<li>${item}</li>`;
-                        });
-                        html += `</ul>`;
-                    }
-                    html += `</div>`;
+            const entries = Object.values(customs)
+                .filter((item) => item && typeof item === 'object')
+                .sort((a, b) => {
+                    const aCategory = String(a.category || '').toLowerCase();
+                    const bCategory = String(b.category || '').toLowerCase();
+                    if (aCategory !== bCategory) return aCategory.localeCompare(bCategory);
+                    return String(a.topic || '').toLowerCase().localeCompare(String(b.topic || '').toLowerCase());
                 });
-                html += `</div>`;
+
+            let rows = '';
+            rows += `
+                <div class="prayer-clean-row border-b border-slate-200 last:border-b-0 py-2">
+                    <div class="prayer-clean-en" dir="ltr">
+                        <div class="font-bold text-slate-800">${escapeHtml(isHebrewMode() ? `מנהגי קהילת ${communityLabel}` : `${communityName} Community Customs`)}</div>
+                        ${communityData?.primary_origin
+                    ? `<div class="text-slate-600 mt-1"><span class="font-semibold">${t('Primary Origin:', 'מוצא עיקרי:')}</span> ${escapeHtml(String(communityData.primary_origin))}</div>`
+                    : ''}
+                    </div>
+                </div>
+            `;
+
+            if (!entries.length) {
+                rows += `
+                    <div class="prayer-clean-row border-b border-slate-200 last:border-b-0 py-2">
+                        <div class="prayer-clean-en text-slate-500 italic" dir="ltr">
+                            ${t('No structured customs are available for this community right now.', 'אין כרגע נתוני מנהגים מובנים לקהילה זו.')}
+                        </div>
+                    </div>
+                `;
             } else {
-                html += `<p class="text-slate-500 italic">${t('Detailed customs data is available. Check the raw community database for comprehensive information.', 'נתוני המנהגים המפורטים זמינים. ניתן לעיין במאגר הקהילה למידע מלא.')}</p>`;
+                entries.forEach((item) => {
+                    const category = String(item.category || '').trim();
+                    const topic = String(item.topic || '').trim();
+                    const title = [category, topic].filter(Boolean).join(': ') || t('Custom Entry', 'פריט מנהג');
+                    const ruling = String(item.ruling || '').trim();
+                    const source = String(item.source || '').trim();
+                    const practices = Array.isArray(item.common_practices)
+                        ? item.common_practices.map((entry) => String(entry || '').trim()).filter(Boolean)
+                        : [];
+
+                    rows += `
+                        <div class="prayer-clean-row border-b border-slate-200 last:border-b-0 py-2">
+                            <div class="prayer-clean-en" dir="ltr">
+                                <div class="font-semibold text-slate-800 capitalize">${escapeHtml(title)}</div>
+                                ${ruling ? `<p class="text-slate-700 mt-1">${escapeHtml(ruling)}</p>` : ''}
+                                ${source ? `<p class="text-slate-500 text-xs mt-1"><span class="font-semibold">${t('Source:', 'מקור:')}</span> ${escapeHtml(source)}</p>` : ''}
+                                ${practices.length
+                            ? `<ul class="list-disc ml-5 text-slate-600 text-sm space-y-1 mt-2">${practices.map((entry) => `<li>${escapeHtml(entry)}</li>`).join('')}</ul>`
+                            : ''}
+                            </div>
+                        </div>
+                    `;
+                });
             }
 
-            html += `</div>`;
-            html += `</div>`;
-
-            return html;
+            return `<div class="prayer-clean-lines">${rows}</div>`;
         }
 
         function goHome() {
@@ -4485,7 +4595,16 @@
                 'mishlei': 'Proverbs 1',
                 'siddur ashkenaz': 'Siddur Ashkenaz',
                 'siddur sefard': 'Siddur Sefard',
-                'birkat hamazon': 'Birkat Hamazon'
+                'birkat hamazon': 'Birkat Hamazon',
+                'tafsir rasag': 'Tafsir Rasag, Genesis 1',
+                'tasfir rasag': 'Tafsir Rasag, Genesis 1',
+                'targum jerusalem': 'Targum Jerusalem, Genesis 1',
+                'targum jerusale': 'Targum Jerusalem, Genesis 1',
+                'abarbanel': 'Abarbanel on Torah, Genesis 1',
+                'arbanel': 'Abarbanel on Torah, Genesis 1',
+                'abarbanel on torah': 'Abarbanel on Torah, Genesis 1',
+                'barentura on torah': 'Bartenura on Torah, Genesis 1',
+                'bartenura on torah': 'Bartenura on Torah, Genesis 1'
             };
 
             if (quickMap[key]) return { type: 'text', value: quickMap[key] };
@@ -4753,6 +4872,7 @@
             hydratePreferences();
             bindDailyStudyLinks();
             loadParashaQuickLink();
+            void loadPrayersMenu();
             populatePopularTexts();
             void loadLibraryIndexViews();
             registerServiceWorker();
@@ -4946,6 +5066,7 @@
 
             if (Array.isArray(textsCache.prayersList)) {
                 populatePrayersListHTML(textsCache.prayersList);
+                populatePrayerBooksNavigator(textsCache.prayersList);
             }
             if (Array.isArray(textsCache.communitiesList)) {
                 populateCommunitiesListHTML(textsCache.communitiesList);
