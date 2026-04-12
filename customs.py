@@ -25,6 +25,9 @@ def load_all_customs():
     files = glob.glob(os.path.join(CUSTOMS_DIR, "*.json"))
 
     for filepath in files:
+        if os.path.basename(filepath).lower() == "customs_db.json":
+            # Legacy dataset is retired from active community/customs browsing.
+            continue
         try:
             with open(filepath, "r", encoding="utf-8") as f:
                 data = json.load(f)
