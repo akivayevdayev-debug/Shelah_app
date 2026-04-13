@@ -169,6 +169,17 @@ def _normalize_lookup_word(text):
     return cleaned
 
 
+def _decode_route_ref(value, max_rounds=3):
+    """Decode refs that may arrive pre-encoded or double-encoded from clients/proxies."""
+    decoded = str(value or "").strip()
+    for _ in range(max_rounds):
+        next_value = unquote(decoded).strip()
+        if next_value == decoded:
+            break
+        decoded = next_value
+    return decoded
+
+
 def _translate_hebrew_text_online(text):
     """Best-effort public translation fallback for short Hebrew snippets."""
     value = str(text or "").strip()
@@ -1377,7 +1388,8 @@ def library_popular():
 def get_text_inline(ref):
     """Fetches a Sefaria text inline — Hebrew + English + metadata."""
     from sefaria_library import get_text
-    data = get_text(ref)
+    decoded_ref = _decode_route_ref(ref)
+    data = get_text(decoded_ref)
 
     should_translate = str(request.args.get("autotranslate", "1")).strip().lower() not in {
         "0", "false", "no", "off"
@@ -1504,7 +1516,8 @@ def search_suggest():
 def get_text_links(ref):
     """Returns all linked commentaries & parallel texts for a given ref."""
     from sefaria_library import get_linked_texts
-    return jsonify(get_linked_texts(ref))
+    decoded_ref = _decode_route_ref(ref)
+    return jsonify(get_linked_texts(decoded_ref))
 
 
 @app.route("/api/text/<path:ref>/graph")
@@ -1512,10 +1525,11 @@ def get_text_graph(ref):
     """Build a lightweight source graph around a text reference."""
     from sefaria_library import get_linked_texts
 
-    links = get_linked_texts(ref)
-    nodes = [{"id": ref, "label": ref, "kind": "root"}]
+    decoded_ref = _decode_route_ref(ref)
+    links = get_linked_texts(decoded_ref)
+    nodes = [{"id": decoded_ref, "label": decoded_ref, "kind": "root"}]
     edges = []
-    seen = {ref}
+    seen = {decoded_ref}
 
     for category, items in (links or {}).items():
         for item in (items or [])[:14]:
@@ -1531,7 +1545,7 @@ def get_text_graph(ref):
                     "category": category,
                 })
             edges.append({
-                "source": ref,
+                "source": decoded_ref,
                 "target": target,
                 "label": category,
             })
