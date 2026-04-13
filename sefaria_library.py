@@ -34,8 +34,10 @@ NON_LOADING_LITURGY_TITLES = {
     _normalize_title_key("Ma'avar Yabbok"),
     _normalize_title_key("Machzor Rosh Hashanah Linear"),
     _normalize_title_key("Machzor Yom Ha'atzmaut & Yom Yerushalayim"),
+    _normalize_title_key("Machzor Yom Ha'atzmaut & Yom Yetushalayim"),
     _normalize_title_key("Seder Ma'amadot"),
     _normalize_title_key("Seder Tisha B'Av (Edot HaMizrach)"),
+    _normalize_title_key("Seder Tisha B'Av (Edot HaMizrac)"),
     _normalize_title_key("Weekday Siddur Chabad"),
 }
 
