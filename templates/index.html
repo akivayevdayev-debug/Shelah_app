@@ -6,6 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <meta name="theme-color" content="#002147">
     <title>Sh'elah - Torah Encyclopedia</title>
+    <link rel="icon" href="/static/favicon.svg" type="image/svg+xml">
     <link rel="manifest" href="/manifest.webmanifest">
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
@@ -4283,13 +4284,6 @@
             /targum\s+jerusale\b/i,
             /\barbanel\b/i,
             /barentura/i,
-            /all\s+chida/i,
-            /all\s+of\s+jonathan\s+sacks/i,
-            /all\s+of\s+redeeming\s+relevance/i,
-            /steinsaltz/i,
-            /everett\s+fox/i,
-            /torah\s*[-–]\s*a\s+women'?s\s+commentary/i,
-            /tribal\s+lands/i,
         ];
 
         const LIBRARY_NON_LOADING_TITLES = [
@@ -4303,69 +4297,6 @@
             "Seder Tisha B'Av (Edot HaMizrach)",
             "Seder Tisha B'Av (Edot HaMizrac)",
             "Weekday Siddur Chabad",
-            "Bekhor Shor",
-            "Chizkuni",
-            "Hadar Zekenim on Torah",
-            "Mashmia Yeshuah",
-            "Minchat Shai",
-            "Paaneach Raza",
-            "Rabbeinu Bahya",
-            "Riva on Torah",
-            "Rosh on Torah",
-            "Toledot Yitzchak on Torah",
-            "Tur HaArokh",
-            "Tzor HaMor on Torah",
-            "Aderet Eliyahu",
-            "Aderet Eliyahu (Rabbi Yosef Chaim)",
-            "Ahavat Yehonatan",
-            "Ba'alei Brit Avram",
-            "Beit HaLevi on Torah",
-            "Chatam Sofer on Torah",
-            "All Chida",
-            "From David to Destruction",
-            "Divrei David",
-            "Em LaMikra",
-            "Eretz Chemdah",
-            "HaKtav VeHaKabalah",
-            "Keli Chemdah on Torah",
-            "Levush HaOrah",
-            "Maskil LeDavid",
-            "Mechokekei Yehudah",
-            "Megalleh Amukkot on Torah",
-            "Meshech Hochma",
-            "Minchat Ani on Torah",
-            "Minei Targuma on Torah",
-            "Nachala Yaakov",
-            "Netinah LaGer",
-            "Od Yosef Chai Derashot",
-            "Ohel Yaakov on Torah",
-            "Ohev Ger",
-            "Pardes Yosef",
-            "Rav Hirsch on Torah",
-            "Reggio on Torah",
-            "Siftei Chachamim",
-            "Siftei Kohen on Torah",
-            "Tevat Gome",
-            "Tiferet Yehonatan on Torah",
-            "Tzafnat Paneach on Torah",
-            "Tzeenah Ureenah",
-            "Yeriot Shlomo on Torah",
-            "Birkat Asher on Torah",
-            "Cassuto on Genesis",
-            "Chibbah Yeteirah on Torah",
-            "All of Jonathan Sacks",
-            "Karati Bekhol Lev",
-            "Megillat Ruth - From Chaos to Friendship",
-            "Moses - A Human Life",
-            "Nechamah Leibowitz",
-            "All of Redeeming Relevance",
-            "Sefer Daniel - Opportunity in Exile",
-            "Steinsaltz",
-            "The Early Prophets, by Everett Fox",
-            "The Five Books of Moses, by Everett Fox",
-            "The Kehot Chumash - A Chasidic Commentary",
-            "The Torah - A Women's Commentary",
-            "Tribal Lands",
         ];
 
         const LIBRARY_REF_FIXES = {
@@ -5204,20 +5135,34 @@
                 'arbanel': 'Abarbanel on Torah, Genesis 1',
                 'abarbanel on torah': 'Abarbanel on Torah, Genesis 1',
                 'barentura on torah': 'Bartenura on Torah, Genesis 1',
-                'bartenura on torah': 'Bartenura on Torah, Genesis 1'
+                'bartenura on torah': 'Bartenura on Torah, Genesis 1',
+                'jonathan sacks': 'Covenant and Conversation; Genesis; The Book of the Beginnings, Living with the Times; The Parasha',
+                'jonathan sacks essays': 'The Jonathan Sacks Haggadah; Essays, The Story of Stories',
+                'jonathan sacks haggadah essays': 'The Jonathan Sacks Haggadah; Essays, The Story of Stories',
+                'covenant and conversation': 'Covenant and Conversation; Genesis; The Book of the Beginnings, Living with the Times; The Parasha',
+                'everett fox': 'The Early Prophets, by Everett Fox, Joshua, Part I; Preparations for Conquest',
+                'the early prophets by everett fox': 'The Early Prophets, by Everett Fox, Joshua, Part I; Preparations for Conquest',
+                'the early prophets, by everett fox': 'The Early Prophets, by Everett Fox, Joshua, Part I; Preparations for Conquest',
+                'the five books of moses by everett fox': 'The Five Books of Moses, by Everett Fox, Translator\'s Preface',
+                'the five books of moses, by everett fox': 'The Five Books of Moses, by Everett Fox, Translator\'s Preface'
             };
 
             if (quickMap[key]) return { type: 'text', value: quickMap[key] };
 
             // Try direct lookup first (book name / direct ref).
-            const directCandidates = [query, `${query} 1`];
+            const hasSpecificSection = /:\d+/.test(query) || /\b\d+[ab]?\b/i.test(query) || /,/.test(query);
+            const directCandidates = hasSpecificSection ? [query] : [query, `${query} 1`];
             for (const candidate of directCandidates) {
                 try {
-                    const r = await fetch(`/api/text/${encodeURIComponent(candidate)}`);
+                    const r = await fetch(`/api/text/${encodeURIComponent(candidate)}?autotranslate=0`);
                     if (!r.ok) continue;
                     const data = await r.json();
                     if (!data.error && (data.ref || data.title)) {
-                        return { type: 'text', value: data.ref || candidate };
+                        const resolvedRef = data.ref || candidate;
+                        if (isKnownNonLoadingTitle(resolvedRef) || isKnownNonLoadingTitle(data.title || '')) {
+                            continue;
+                        }
+                        return { type: 'text', value: resolvedRef };
                     }
                 } catch (_) {
                     // Keep searching using fallback strategy below.
@@ -5239,8 +5184,7 @@
             });
             if (filteredResults.length === 0) return null;
 
-            const nonCommentary = filteredResults.find(r => !(r.categories || []).includes('Commentary'));
-            const best = nonCommentary || filteredResults[0];
+            const best = filteredResults[0];
             return best.ref ? { type: 'text', value: best.ref } : null;
         }
 
@@ -5368,15 +5312,43 @@
             });
         }
 
+        const textPayloadCache = new Map();
+
+        function cacheTextPayload(ref, payload) {
+            const key = String(ref || '').trim();
+            if (!key || !payload || payload.error) return;
+            textPayloadCache.set(key, payload);
+            if (textPayloadCache.size <= 140) return;
+            const firstKey = textPayloadCache.keys().next().value;
+            if (firstKey) textPayloadCache.delete(firstKey);
+        }
+
         async function fetchTextPayloadWithFallback(ref) {
-            const attempts = [String(ref || '').trim(), ...buildFallbackTextRefs(ref)].filter(Boolean);
+            const requestedRef = String(ref || '').trim();
+            if (!requestedRef) {
+                return { payload: { error: 'Text not found' }, resolvedRef: '' };
+            }
+
+            if (textPayloadCache.has(requestedRef)) {
+                return { payload: textPayloadCache.get(requestedRef), resolvedRef: requestedRef };
+            }
+
+            const attempts = [requestedRef, ...buildFallbackTextRefs(requestedRef)].filter(Boolean).slice(0, 5);
             let lastErrorPayload = { error: 'Text not found' };
 
             for (const candidate of attempts) {
+                if (textPayloadCache.has(candidate)) {
+                    const cachedPayload = textPayloadCache.get(candidate);
+                    cacheTextPayload(requestedRef, cachedPayload);
+                    return { payload: cachedPayload, resolvedRef: candidate };
+                }
+
                 try {
                     const resp = await fetch(`/api/text/${encodeURIComponent(candidate)}?autotranslate=1`);
                     const payload = await resp.json();
                     if (!payload?.error) {
+                        cacheTextPayload(candidate, payload);
+                        cacheTextPayload(requestedRef, payload);
                         return { payload, resolvedRef: candidate };
                     }
                     lastErrorPayload = payload || lastErrorPayload;
@@ -5385,7 +5357,7 @@
                 }
             }
 
-            return { payload: lastErrorPayload, resolvedRef: ref };
+            return { payload: lastErrorPayload, resolvedRef: requestedRef };
         }
 
         // ─── INLINE SEFARIA TEXT READER ───────────────────────────────────────

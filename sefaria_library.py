@@ -16,12 +16,19 @@ Features:
 import requests
 import time
 import difflib
+import re
+from urllib.parse import quote, urlencode
 
 SEFARIA_API = "https://www.sefaria.org/api"
 
 # Simple in-memory cache with TTL
 _cache = {}
 CACHE_TTL = 3600  # 1 hour
+_http_session = requests.Session()
+_resolved_title_ref_cache = {}
+_resolved_query_ref_cache = {}
+_title_catalog_cache = {"ts": 0, "data": []}
+_search_query_cache = {}
 
 
 def _normalize_title_key(text):
@@ -48,11 +55,16 @@ def _cached_get(url, ttl=CACHE_TTL):
     if url in _cache and now - _cache[url]['ts'] < ttl:
         return _cache[url]['data']
     try:
-        r = requests.get(url, timeout=10)
+        r = _http_session.get(url, timeout=10)
         r.raise_for_status()
         data = r.json()
         _cache[url] = {'data': data, 'ts': now}
         return data
+    except requests.HTTPError as e:
+        status_code = e.response.status_code if e.response is not None else None
+        if status_code not in (400, 404):
+            print(f"[Sefaria Library] Error fetching {url}: {e}")
+        return None
     except Exception as e:
         print(f"[Sefaria Library] Error fetching {url}: {e}")
         return None
@@ -122,6 +134,279 @@ def _matches_metadata_filters(result, metadata_filters=None):
             return False
 
     return True
+
+
+def _encode_ref_path(value):
+    """Encode a Sefaria ref/title safely for path-style API endpoints."""
+    source = str(value or "").strip().replace(" ", "_")
+    return quote(source, safe="._,;:'()-")
+
+
+def _build_text_url(ref, lang="both", context=0):
+    encoded_ref = _encode_ref_path(ref)
+    params = urlencode({"lang": lang, "context": context, "pad": 0})
+    return f"{SEFARIA_API}/texts/{encoded_ref}?{params}"
+
+
+def _is_specific_ref_query(value):
+    raw = str(value or "")
+    if re.search(r"\d+[ab]?\b", raw, flags=re.IGNORECASE):
+        return True
+    if re.search(r":\d", raw):
+        return True
+    if "," in raw:
+        suffix = raw.split(",", 1)[1]
+        if any(ch.isdigit() for ch in suffix):
+            return True
+    return False
+
+
+def _split_title_suffix(value):
+    raw = str(value or "").strip()
+    if "," not in raw:
+        return raw, ""
+    title, suffix = raw.split(",", 1)
+    return title.strip(), suffix.strip()
+
+
+def _resolve_opening_ref_for_title(title):
+    """Resolve a title to an opening ref that /texts can load."""
+    cache_key = _normalize_title_key(title)
+    if cache_key and cache_key in _resolved_title_ref_cache:
+        return _resolved_title_ref_cache[cache_key]
+
+    entry = get_index_entry(title)
+    if not isinstance(entry, dict) or entry.get("error"):
+        resolved = str(title or "").strip()
+        if cache_key:
+            _resolved_title_ref_cache[cache_key] = resolved
+        return resolved
+
+    canonical_title = str(entry.get("title") or title or "").strip()
+    first_section = entry.get("firstSectionRef") or entry.get("firstSection")
+    if isinstance(first_section, str) and first_section.strip():
+        resolved = first_section.strip()
+    elif _is_specific_ref_query(canonical_title):
+        resolved = canonical_title
+    else:
+        leaf_refs = get_index_leaf_refs(canonical_title, max_refs=1)
+        if leaf_refs:
+            resolved = leaf_refs[0]
+        elif entry.get("sectionNames"):
+            resolved = f"{canonical_title} 1"
+        else:
+            resolved = canonical_title
+
+    if cache_key:
+        _resolved_title_ref_cache[cache_key] = resolved
+    return resolved
+
+
+def _resolve_ref_candidates(raw_ref, max_candidates=12):
+    """Build candidate refs for texts that require canonical title or leaf-node resolution."""
+    raw = str(raw_ref or "").strip()
+    if not raw:
+        return []
+
+    candidates = []
+    seen = set()
+
+    def add(value):
+        candidate = str(value or "").strip()
+        if not candidate:
+            return
+        key = candidate.lower()
+        if key in seen:
+            return
+        seen.add(key)
+        candidates.append(candidate)
+
+    add(raw)
+    if ":" in raw:
+        add(raw.replace(":", "."))
+
+    title_part, suffix = _split_title_suffix(raw)
+    is_specific_ref = _is_specific_ref_query(raw)
+
+    safe_name = _encode_ref_path(raw)
+    name_data = _cached_get(f"{SEFARIA_API}/name/{safe_name}", ttl=43200)
+    if isinstance(name_data, dict):
+        if name_data.get("is_ref") and name_data.get("ref"):
+            add(name_data.get("ref"))
+
+        for obj in name_data.get("completion_objects", []) or []:
+            if obj.get("type") != "ref":
+                continue
+            add(obj.get("key") or obj.get("title"))
+            if len(candidates) >= max_candidates:
+                return candidates[:max_candidates]
+
+    candidate_titles = []
+    for possible in (
+        title_part,
+        (name_data or {}).get("index") if isinstance(name_data, dict) else "",
+        (name_data or {}).get("book") if isinstance(name_data, dict) else "",
+    ):
+        title = str(possible or "").strip()
+        if not title:
+            continue
+        if title.lower() in {t.lower() for t in candidate_titles}:
+            continue
+        candidate_titles.append(title)
+
+    for title in candidate_titles:
+        entry = get_index_entry(title)
+        if not isinstance(entry, dict) or entry.get("error"):
+            continue
+
+        canonical = str(entry.get("title") or title).strip()
+        if canonical:
+            add(canonical)
+        if suffix and canonical and not canonical.lower().endswith(f", {suffix.lower()}"):
+            add(f"{canonical}, {suffix}")
+
+        first_section = entry.get(
+            "firstSectionRef") or entry.get("firstSection")
+        if isinstance(first_section, str) and first_section.strip():
+            add(first_section.strip())
+
+        if not is_specific_ref and canonical:
+            if entry.get("sectionNames"):
+                add(f"{canonical} 1")
+            for leaf_ref in get_index_leaf_refs(canonical, max_refs=4):
+                add(leaf_ref)
+                if len(candidates) >= max_candidates:
+                    return candidates[:max_candidates]
+
+        if len(candidates) >= max_candidates:
+            return candidates[:max_candidates]
+
+    return candidates[:max_candidates]
+
+
+def _flatten_index_titles(node, rows, seen_titles):
+    if isinstance(node, list):
+        for child in node:
+            _flatten_index_titles(child, rows, seen_titles)
+        return
+
+    if not isinstance(node, dict):
+        return
+
+    title = str(node.get("title") or "").strip()
+    categories = node.get("categories", []) or []
+    if title and isinstance(categories, list):
+        key = title.lower()
+        if key not in seen_titles:
+            seen_titles.add(key)
+            rows.append({
+                "title": title,
+                "heTitle": str(node.get("heTitle") or "").strip(),
+                "categories": [str(item) for item in categories if item],
+                "dependence": str(node.get("dependence") or "").strip(),
+            })
+
+    for child_key in ("contents", "children"):
+        if child_key in node:
+            _flatten_index_titles(node.get(child_key), rows, seen_titles)
+
+
+def _get_title_catalog(ttl=86400):
+    now = time.time()
+    cached_data = _title_catalog_cache.get("data", [])
+    cached_ts = _title_catalog_cache.get("ts", 0)
+    if cached_data and now - cached_ts < ttl:
+        return cached_data
+
+    rows = []
+    seen_titles = set()
+    _flatten_index_titles(get_library_index(), rows, seen_titles)
+
+    for row in rows:
+        haystack_parts = [
+            row.get("title", ""),
+            row.get("heTitle", ""),
+            " ".join(row.get("categories", [])),
+            row.get("title", "").replace(";", " "),
+        ]
+        row["search"] = " ".join(haystack_parts).lower()
+
+    _title_catalog_cache["ts"] = now
+    _title_catalog_cache["data"] = rows
+    return rows
+
+
+def _search_index_catalog(query, size=10, metadata_filters=None):
+    normalized_query = re.sub(
+        r"[^0-9a-z\u0590-\u05ff]+", " ", str(query or "").lower()).strip()
+    tokens = [token for token in normalized_query.split() if token]
+    if not tokens:
+        return []
+
+    cache_key = f"{normalized_query}|{size}|{str(metadata_filters or {})}"
+    now = time.time()
+    if cache_key in _search_query_cache:
+        cached = _search_query_cache[cache_key]
+        if now - cached["ts"] < 300:
+            return cached["data"]
+
+    joined_query = " ".join(tokens)
+    ranked_rows = []
+    for row in _get_title_catalog():
+        haystack = row.get("search", "")
+        if not all(token in haystack for token in tokens):
+            continue
+
+        title_lower = row.get("title", "").lower()
+        score = 60
+        if title_lower == joined_query:
+            score = 120
+        elif title_lower.startswith(joined_query):
+            score = 100
+        elif joined_query in title_lower:
+            score = 85
+
+        if "jonathan" in tokens and "sacks" in tokens:
+            if any("jonathan sacks" in cat.lower() for cat in row.get("categories", [])):
+                score += 25
+        if "essay" in tokens and "essay" in title_lower:
+            score += 15
+
+        ranked_rows.append((score, row))
+
+    ranked_rows.sort(key=lambda item: (-item[0], item[1].get("title", "")))
+
+    results = []
+    seen_refs = set()
+    for _, row in ranked_rows[:max(size * 5, 30)]:
+        opening_ref = _resolve_opening_ref_for_title(row.get("title", ""))
+        if not opening_ref:
+            continue
+        if opening_ref in seen_refs:
+            continue
+
+        result = {
+            "ref": opening_ref,
+            "heRef": row.get("heTitle", ""),
+            "text": row.get("title", ""),
+            "categories": row.get("categories", []),
+            "path": row.get("title", ""),
+            "authors": [],
+            "era": "",
+            "geography": "",
+            "nusach": _infer_nusach(opening_ref, row.get("categories", [])),
+        }
+
+        if not _matches_metadata_filters(result, metadata_filters):
+            continue
+
+        seen_refs.add(opening_ref)
+        results.append(result)
+        if len(results) >= size:
+            break
+
+    _search_query_cache[cache_key] = {"ts": now, "data": results}
+    return results
 
 
 def get_library_index():
@@ -199,14 +484,54 @@ def get_text(ref, lang="both", context=0):
         "commentary": list (optional)
       }
     """
-    # Clean the ref for URL encoding
-    safe_ref = ref.replace(" ", "_").replace(
-        ":", ".").replace("/", "_").replace("&", "%26")
-    url = f"{SEFARIA_API}/texts/{safe_ref}?lang={lang}&context={context}&pad=0"
-    data = _cached_get(url, ttl=86400)  # cache texts for 24h
+    requested_ref = str(ref or "").strip()
+    if not requested_ref:
+        return {"error": "Text not found", "ref": "", "he": [], "en": []}
+
+    cache_key = requested_ref.lower()
+    resolved_ref = ""
+    attempts_tried = set()
+
+    data = None
+    cached_ref = _resolved_query_ref_cache.get(cache_key, "")
+    initial_attempts = [cached_ref,
+                        requested_ref] if cached_ref else [requested_ref]
+    for attempt in initial_attempts:
+        attempt_ref = str(attempt or "").strip()
+        if not attempt_ref:
+            continue
+        lowered = attempt_ref.lower()
+        if lowered in attempts_tried:
+            continue
+        attempts_tried.add(lowered)
+
+        attempt_data = _cached_get(_build_text_url(
+            attempt_ref, lang, context), ttl=86400)
+        if attempt_data and "error" not in attempt_data:
+            data = attempt_data
+            resolved_ref = attempt_data.get("ref") or attempt_ref
+            break
+
+    if not data:
+        for candidate in _resolve_ref_candidates(requested_ref):
+            lowered = candidate.lower()
+            if lowered in attempts_tried:
+                continue
+            attempts_tried.add(lowered)
+
+            candidate_data = _cached_get(_build_text_url(
+                candidate, lang, context), ttl=86400)
+            if candidate_data and "error" not in candidate_data:
+                data = candidate_data
+                resolved_ref = candidate_data.get("ref") or candidate
+                break
 
     if not data or "error" in data:
-        return {"error": f"Text not found: {ref}", "ref": ref, "he": [], "en": []}
+        _resolved_query_ref_cache.pop(cache_key, None)
+        return {"error": f"Text not found: {requested_ref}", "ref": requested_ref, "he": [], "en": []}
+
+    _resolved_query_ref_cache[cache_key] = str(
+        resolved_ref or data.get("ref") or requested_ref)
 
     # Flatten nested arrays for display
     he_raw = data.get("he", [])
@@ -243,9 +568,15 @@ def get_text(ref, lang="both", context=0):
     he_flat = [line["he"] for line in lines if line.get("he")]
     en_flat = [line["en"] for line in lines if line.get("en")]
 
+    resolved_output_ref = data.get("ref", resolved_ref or requested_ref)
+    fallback_title = str(resolved_output_ref or requested_ref).split(",", 1)[
+        0].strip()
+    title = data.get("title") or data.get(
+        "indexTitle") or data.get("book") or fallback_title
+
     return {
-        "ref": data.get("ref", ref),
-        "title": data.get("title", ""),
+        "ref": resolved_output_ref,
+        "title": title,
         "heTitle": data.get("heTitle", ""),
         "he": he_flat,
         "en": en_flat,
@@ -271,92 +602,48 @@ def search_library(query, size=10, filters=None, metadata_filters=None):
 
     size = max(1, int(size or 10))
 
-    # Legacy full-text search endpoint (may be unavailable for some deployments).
-    params = {
-        "q": query,
-        "size": size,
-        "type": "text"
-    }
-    if filters:
-        params["filters"] = ",".join(filters)
-
-    param_str = "&".join(f"{k}={v}" for k, v in params.items())
-    url = f"{SEFARIA_API}/search-wrapper?{param_str}"
-
-    data = _cached_get(url, ttl=300)  # short cache for search
-    hits = []
-    if isinstance(data, dict):
-        hits = data.get("hits", {}).get("hits", []) or []
+    normalized_category_filters = [
+        str(value).strip().lower()
+        for value in (filters or [])
+        if str(value).strip()
+    ]
 
     results = []
-    for hit in hits:
-        src = hit.get("_source", {})
-        ref = src.get("ref", "")
-        if not ref:
-            continue
-
-        authors = src.get("authors", [])
-        if isinstance(authors, str):
-            authors = [authors]
-        if not isinstance(authors, list):
-            authors = []
-
-        categories = src.get("categories", [])
-        if not isinstance(categories, list):
-            categories = []
-
-        era = src.get("era") or src.get(
-            "compDateString") or src.get("period") or ""
-        geography = src.get("compPlaceString") or src.get("place") or ""
-        nusach = src.get("nusach") or _infer_nusach(ref, categories)
-
-        results.append({
-            "ref": ref,
-            "heRef": src.get("heRef", ""),
-            "text": src.get("exact", "")[:300],  # snippet
-            "categories": categories,
-            "path": src.get("path", ""),
-            "authors": authors,
-            "era": era,
-            "geography": geography,
-            "nusach": nusach,
-        })
-
-    results = [result for result in results if _matches_metadata_filters(
-        result, metadata_filters)]
-
-    if results:
-        return results[:size]
-
-    # Fallback search via Sefaria name completion endpoint.
-    safe_query = query.replace(" ", "_").replace("&", "%26")
-    name_data = _cached_get(f"{SEFARIA_API}/name/{safe_query}", ttl=300)
-    if not isinstance(name_data, dict):
-        return []
-
-    index_cache = {}
     seen_refs = set()
+    index_cache = {}
 
-    def get_categories_for_ref(ref_value):
-        book = (ref_value or "").split(",", 1)[0].strip()
-        if not book:
-            return []
-        if book not in index_cache:
-            idx = get_index_entry(book)
-            index_cache[book] = idx.get(
-                "categories", []) if isinstance(idx, dict) else []
-        return index_cache.get(book, [])
+    def get_index_metadata(book):
+        title = str(book or "").strip()
+        if not title:
+            return {}
+        if title not in index_cache:
+            data = get_index_entry(title)
+            index_cache[title] = data if isinstance(data, dict) else {}
+        return index_cache[title]
 
-    def add_ref_result(ref_value, title_value=""):
-        ref_value = (ref_value or "").strip()
+    def add_result(ref_value, label="", explicit_categories=None, explicit_he_ref=""):
+        ref_value = str(ref_value or "").strip()
         if not ref_value or ref_value in seen_refs:
             return
 
-        categories = get_categories_for_ref(ref_value)
         book = ref_value.split(",", 1)[0].strip()
-        index_entry = get_index_entry(book) if book else {}
-        authors = index_entry.get("authors", []) if isinstance(
-            index_entry, dict) else []
+        index_entry = get_index_metadata(book)
+
+        categories = []
+        if isinstance(explicit_categories, list) and explicit_categories:
+            categories = [str(item) for item in explicit_categories if item]
+        if not categories and isinstance(index_entry, dict):
+            categories = [str(item)
+                          for item in index_entry.get("categories", []) if item]
+
+        if normalized_category_filters:
+            category_blob = " ".join(categories).lower()
+            if not any(token in category_blob for token in normalized_category_filters):
+                return
+
+        authors = []
+        if isinstance(index_entry, dict):
+            authors = index_entry.get("authors", [])
         if isinstance(authors, str):
             authors = [authors]
         if not isinstance(authors, list):
@@ -371,10 +658,10 @@ def search_library(query, size=10, filters=None, metadata_filters=None):
 
         result = {
             "ref": ref_value,
-            "heRef": "",
-            "text": title_value or ref_value,
+            "heRef": str(explicit_he_ref or "").strip(),
+            "text": str(label or ref_value).strip(),
             "categories": categories,
-            "path": ref_value,
+            "path": str(label or ref_value).strip(),
             "authors": authors,
             "era": era,
             "geography": geography,
@@ -387,14 +674,34 @@ def search_library(query, size=10, filters=None, metadata_filters=None):
         seen_refs.add(ref_value)
         results.append(result)
 
-    if name_data.get("is_ref") and name_data.get("ref"):
-        add_ref_result(name_data.get("ref"), name_data.get("book", ""))
+    # Fast direct completion from /name for exact refs/books.
+    name_data = _cached_get(
+        f"{SEFARIA_API}/name/{_encode_ref_path(query)}", ttl=300)
+    if isinstance(name_data, dict):
+        if name_data.get("is_ref") and name_data.get("ref"):
+            ref_value = name_data.get("ref")
+            if name_data.get("is_book"):
+                ref_value = _resolve_opening_ref_for_title(ref_value)
+            add_result(ref_value, name_data.get("book", ""))
 
-    for obj in name_data.get("completion_objects", []) or []:
-        if obj.get("type") != "ref":
-            continue
-        ref_value = obj.get("key") or obj.get("title")
-        add_ref_result(ref_value, obj.get("title", ""))
+        for obj in name_data.get("completion_objects", []) or []:
+            if obj.get("type") != "ref":
+                continue
+            ref_value = obj.get("key") or obj.get("title")
+            if obj.get("is_book"):
+                ref_value = _resolve_opening_ref_for_title(ref_value)
+            add_result(ref_value, obj.get("title", ""))
+            if len(results) >= size:
+                return results[:size]
+
+    # Catalog fallback for modern works that do not resolve well from /name search.
+    for row in _search_index_catalog(query, size=max(size * 2, 16), metadata_filters=metadata_filters):
+        add_result(
+            row.get("ref", ""),
+            row.get("text", ""),
+            explicit_categories=row.get("categories", []),
+            explicit_he_ref=row.get("heRef", ""),
+        )
         if len(results) >= size:
             break
 
@@ -406,7 +713,7 @@ def get_linked_texts(ref):
     Fetches all texts linked to a given ref (commentaries, parallel texts, etc.)
     Returns grouped links by type.
     """
-    safe_ref = ref.replace(" ", "_")
+    safe_ref = _encode_ref_path(ref)
     data = _cached_get(f"{SEFARIA_API}/related/{safe_ref}", ttl=3600)
     if not data:
         return {}
@@ -502,7 +809,7 @@ def _is_same_work_title(a, b):
 
 def get_index_entry(title):
     """Fetch a text's index record by title."""
-    safe_title = title.replace(" ", "_").replace("&", "%26")
+    safe_title = _encode_ref_path(title)
     return _cached_get(f"{SEFARIA_API}/index/{safe_title}", ttl=86400) or {}
 
 
