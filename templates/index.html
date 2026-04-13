@@ -1921,7 +1921,14 @@
         }
 
         function normalizeDisplayText(text = '') {
-            const withoutTags = String(text)
+            const rewrittenFootnotes = String(text)
+                // Replace lettered/numbered footnote markers with inline parenthesized notes.
+                .replace(
+                    /<sup[^>]*>\s*[a-z0-9]+\s*<\/sup>\s*<(?:i|span|small)[^>]*class=["'][^"']*footnote[^"']*["'][^>]*>([\s\S]*?)<\/(?:i|span|small)>/gi,
+                    ' ($1) '
+                );
+
+            const withoutTags = rewrittenFootnotes
                 .replace(/<br\s*\/?>/gi, '\n')
                 .replace(/<[^>]*>/g, ' ');
 
@@ -3098,7 +3105,19 @@
                     return;
                 }
                 const results = await resp.json();
-                appState.suggestionItems = Array.isArray(results) ? results : [];
+                const rawItems = Array.isArray(results) ? results : [];
+                appState.suggestionItems = rawItems.filter((item) => {
+                    const type = String(item?.type || '').toLowerCase();
+                    if (type !== 'text' && type !== 'prayer') return true;
+
+                    const value = String(item?.value || '');
+                    const label = String(item?.label || '');
+                    const labelHe = String(item?.label_he || '');
+
+                    return !isKnownNonLoadingTitle(value)
+                        && !isKnownNonLoadingTitle(label)
+                        && !isKnownNonLoadingTitle(labelHe);
+                });
                 appState.activeSuggestionIndex = -1;
                 renderSearchSuggestions();
             } catch (_) {
@@ -4282,6 +4301,7 @@
             "Machzor Yom Ha'atzmaut & Yom Yetushalayim",
             "Seder Ma'amadot",
             "Seder Tisha B'Av (Edot HaMizrach)",
+            "Seder Tisha B'Av (Edot HaMizrac)",
             "Weekday Siddur Chabad",
             "Bekhor Shor",
             "Chizkuni",
@@ -4358,13 +4378,6 @@
             arbanel: 'Abarbanel on Torah, Genesis 1',
             bartenuraontorah: 'Bartenura on Torah, Genesis 1',
             barenturaontorah: 'Bartenura on Torah, Genesis 1',
-            bekhorshor: 'Bekhor Shor, Genesis 1:1',
-            chizkuni: 'Chizkuni, Genesis 1:1',
-            hadarzekenimontorah: 'Hadar Zekenim on Torah, Genesis 1:1',
-            rabbeinubahya: 'Rabbeinu Bahya, Genesis 1:1',
-            beithaleviontorah: 'Beit HaLevi on Torah, Genesis 1:1',
-            pardesyosef: 'Pardes Yosef, Genesis 1:1',
-            ravhirschontorah: 'Rav Hirsch on Torah, Genesis 1:1',
             tzeenahureenah: "Tze'enah URe'enah, Genesis 1:1",
         };
 
@@ -5219,8 +5232,15 @@
             const results = await searchResp.json();
             if (!Array.isArray(results) || results.length === 0) return null;
 
-            const nonCommentary = results.find(r => !(r.categories || []).includes('Commentary'));
-            const best = nonCommentary || results[0];
+            const filteredResults = results.filter((r) => {
+                const ref = String(r?.ref || '').trim();
+                const heRef = String(r?.heRef || '').trim();
+                return !isKnownNonLoadingTitle(ref) && !isKnownNonLoadingTitle(heRef);
+            });
+            if (filteredResults.length === 0) return null;
+
+            const nonCommentary = filteredResults.find(r => !(r.categories || []).includes('Commentary'));
+            const best = nonCommentary || filteredResults[0];
             return best.ref ? { type: 'text', value: best.ref } : null;
         }
 
