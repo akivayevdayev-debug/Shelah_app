@@ -17,7 +17,7 @@ import requests
 import time
 import difflib
 import re
-from urllib.parse import quote, urlencode
+from urllib.parse import quote, urlencode, unquote
 
 SEFARIA_API = "https://www.sefaria.org/api"
 
@@ -142,6 +142,16 @@ def _encode_ref_path(value):
     return quote(source, safe="._,;:'()-")
 
 
+def _normalize_requested_ref(value, max_rounds=3):
+    decoded = str(value or "").strip()
+    for _ in range(max_rounds):
+        next_value = unquote(decoded).strip()
+        if next_value == decoded:
+            break
+        decoded = next_value
+    return decoded
+
+
 def _build_text_url(ref, lang="both", context=0):
     encoded_ref = _encode_ref_path(ref)
     params = urlencode({"lang": lang, "context": context, "pad": 0})
@@ -204,7 +214,7 @@ def _resolve_opening_ref_for_title(title):
 
 def _resolve_ref_candidates(raw_ref, max_candidates=12):
     """Build candidate refs for texts that require canonical title or leaf-node resolution."""
-    raw = str(raw_ref or "").strip()
+    raw = _normalize_requested_ref(raw_ref)
     if not raw:
         return []
 
@@ -484,7 +494,7 @@ def get_text(ref, lang="both", context=0):
         "commentary": list (optional)
       }
     """
-    requested_ref = str(ref or "").strip()
+    requested_ref = _normalize_requested_ref(ref)
     if not requested_ref:
         return {"error": "Text not found", "ref": "", "he": [], "en": []}
 
