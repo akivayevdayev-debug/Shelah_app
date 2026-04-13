@@ -117,6 +117,15 @@ QUICK_TEXT_ALIASES = {
     "tehillim": "Psalms 1",
     "proverbs": "Proverbs 1",
     "mishlei": "Proverbs 1",
+    "jonathan sacks": "Covenant and Conversation; Genesis; The Book of the Beginnings, Living with the Times; The Parasha",
+    "jonathan sacks essays": "The Jonathan Sacks Haggadah; Essays, The Story of Stories",
+    "jonathan sacks haggadah essays": "The Jonathan Sacks Haggadah; Essays, The Story of Stories",
+    "covenant and conversation": "Covenant and Conversation; Genesis; The Book of the Beginnings, Living with the Times; The Parasha",
+    "everett fox": "The Early Prophets, by Everett Fox, Joshua, Part I; Preparations for Conquest",
+    "the early prophets by everett fox": "The Early Prophets, by Everett Fox, Joshua, Part I; Preparations for Conquest",
+    "the early prophets, by everett fox": "The Early Prophets, by Everett Fox, Joshua, Part I; Preparations for Conquest",
+    "the five books of moses by everett fox": "The Five Books of Moses, by Everett Fox, Translator's Preface",
+    "the five books of moses, by everett fox": "The Five Books of Moses, by Everett Fox, Translator's Preface",
 }
 
 HEBREW_DIACRITICS_RE = re.compile(r"[\u0591-\u05C7]")
@@ -173,7 +182,7 @@ def _translate_hebrew_text_online(text):
         resp = requests.get(
             url,
             params={"q": value, "langpair": "he|en"},
-            timeout=5,
+            timeout=2.5,
         )
         if not resp.ok:
             return ""
@@ -191,7 +200,7 @@ def _translate_hebrew_text_online(text):
         return ""
 
 
-def _fill_missing_english_lines(text_payload, max_lines=18):
+def _fill_missing_english_lines(text_payload, max_lines=6, max_runtime_seconds=2.5):
     """Fill missing English lines when Hebrew is available and translation can be generated."""
     if not isinstance(text_payload, dict):
         return text_payload
@@ -201,8 +210,11 @@ def _fill_missing_english_lines(text_payload, max_lines=18):
         return text_payload
 
     translated_count = 0
+    started_at = time.time()
     for line in lines:
         if translated_count >= max_lines:
+            break
+        if time.time() - started_at > max_runtime_seconds:
             break
         if not isinstance(line, dict):
             continue
@@ -935,6 +947,11 @@ def get_zmanim_month():
 @app.route("/manifest.webmanifest")
 def web_manifest():
     return send_from_directory("static", "manifest.webmanifest", mimetype="application/manifest+json")
+
+
+@app.route("/favicon.ico")
+def favicon():
+    return send_from_directory("static", "favicon.svg", mimetype="image/svg+xml")
 
 
 @app.route("/service-worker.js")
@@ -1892,8 +1909,6 @@ def get_holidays():
             return jsonify(engine.get_monthly_zmanim())
         except Exception:
             return jsonify([])
-
-    return jsonify([])
 
 
 @app.route("/api/parasha")
