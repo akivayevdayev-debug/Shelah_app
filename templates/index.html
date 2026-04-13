@@ -2084,7 +2084,7 @@
         async function registerServiceWorker() {
             if (!('serviceWorker' in navigator)) return;
             try {
-                const migrationKey = 'shelah-sw-v2-migrated';
+                const migrationKey = 'shelah-sw-v3-migrated';
                 if (localStorage.getItem(migrationKey) !== 'true') {
                     try {
                         const registrations = await navigator.serviceWorker.getRegistrations();
@@ -2107,7 +2107,7 @@
                     localStorage.setItem(migrationKey, 'true');
                 }
 
-                await navigator.serviceWorker.register('/service-worker.js?swv=2', { updateViaCache: 'none' });
+                await navigator.serviceWorker.register('/service-worker.js?swv=3', { updateViaCache: 'none' });
                 logReliability('service-worker-registered');
             } catch (error) {
                 logReliability('service-worker-register-failed', { message: error.message });
@@ -5313,6 +5313,7 @@
         }
 
         const textPayloadCache = new Map();
+        let textLoadServiceWorkerRecoveryAttempted = false;
 
         function cacheTextPayload(ref, payload) {
             const key = String(ref || '').trim();
@@ -5323,7 +5324,35 @@
             if (firstKey) textPayloadCache.delete(firstKey);
         }
 
-        async function fetchTextPayloadWithFallback(ref) {
+        async function recoverFromStaleServiceWorker() {
+            if (textLoadServiceWorkerRecoveryAttempted) return false;
+            textLoadServiceWorkerRecoveryAttempted = true;
+            if (!('serviceWorker' in navigator)) return false;
+
+            try {
+                const registrations = await navigator.serviceWorker.getRegistrations();
+                await Promise.all(registrations.map((registration) => registration.unregister()));
+
+                if ('caches' in window) {
+                    const cacheKeys = await caches.keys();
+                    await Promise.all(
+                        cacheKeys
+                            .filter((key) => key.startsWith('shelah-cache-'))
+                            .map((key) => caches.delete(key))
+                    );
+                }
+
+                textPayloadCache.clear();
+                localStorage.removeItem('shelah-sw-v3-migrated');
+                logReliability('service-worker-recovered-for-text-load');
+                return true;
+            } catch (error) {
+                logReliability('service-worker-recovery-failed', { message: error.message });
+                return false;
+            }
+        }
+
+        async function fetchTextPayloadWithFallback(ref, recoveryRetry = false) {
             const requestedRef = String(ref || '').trim();
             if (!requestedRef) {
                 return { payload: { error: 'Text not found' }, resolvedRef: '' };
@@ -5344,7 +5373,11 @@
                 }
 
                 try {
-                    const resp = await fetch(`/api/text/${encodeURIComponent(candidate)}?autotranslate=1`);
+                    const cacheBuster = Date.now();
+                    const resp = await fetch(`/api/text/${encodeURIComponent(candidate)}?autotranslate=1&_r=${cacheBuster}`, {
+                        cache: 'no-store',
+                        headers: { 'Cache-Control': 'no-cache' },
+                    });
                     const payload = await resp.json();
                     if (!payload?.error) {
                         cacheTextPayload(candidate, payload);
@@ -5354,6 +5387,20 @@
                     lastErrorPayload = payload || lastErrorPayload;
                 } catch (_) {
                     // Keep trying remaining candidates.
+                }
+            }
+
+            const errorMessage = String(lastErrorPayload?.error || '').toLowerCase();
+            const shouldRecoverAndRetry = !recoveryRetry && (
+                errorMessage.includes('offline')
+                || errorMessage.includes('network')
+                || errorMessage.includes('failed')
+            );
+
+            if (shouldRecoverAndRetry) {
+                const recovered = await recoverFromStaleServiceWorker();
+                if (recovered) {
+                    return fetchTextPayloadWithFallback(requestedRef, true);
                 }
             }
 
