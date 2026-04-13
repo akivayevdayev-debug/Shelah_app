@@ -8,9 +8,10 @@
     - Return /static/offline.html when navigation requests fail offline.
 */
 
-const CACHE_NAME = "shelah-cache-v3";
+const CACHE_NAME = "shelah-cache-v4";
 const CORE_ASSETS = [
     "/static/style.css",
+    "/static/favicon.svg",
     "/static/offline.html",
     "/manifest.webmanifest"
 ];
