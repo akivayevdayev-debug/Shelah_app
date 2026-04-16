@@ -66,7 +66,11 @@
     <!-- TOP NAVIGATION BAR (Sefaria Style) -->
     <header
         class="topbar sticky top-0 bg-white text-slate-800 p-2 lg:p-2.5 shadow-sm border-b flex flex-wrap lg:flex-nowrap justify-between items-center z-50 flex-shrink-0 gap-2 lg:gap-3">
-        <div id="brandHomeBtn" class="flex items-center gap-2 cursor-pointer shrink-0" onclick="goHome()">
+        <button id="mobileNavBtn" type="button"
+            class="lg:hidden px-2.5 py-1.5 text-xs border border-slate-300 rounded bg-white hover:bg-slate-100 transition"
+            data-en="Menu" data-he="תפריט">Menu</button>
+
+        <div id="brandHomeBtn" class="topbar-brand flex items-center gap-2 cursor-pointer shrink-0" onclick="goHome()">
             <div class="text-navy font-hebrew text-4xl font-semibold leading-tight -mt-1">
                 ש
             </div>
@@ -76,7 +80,8 @@
         </div>
 
         <!-- Top Navigation Menu Toggle + Search Bar -->
-        <div class="topbar-search-wrap order-3 w-full lg:order-none lg:w-auto flex-1 max-w-4xl flex items-center justify-center gap-2 min-w-0">
+        <div
+            class="topbar-search-wrap order-3 w-full lg:order-none lg:w-auto flex-1 max-w-4xl flex items-center justify-center gap-2 min-w-0">
             <div class="w-full min-w-0">
                 <!-- Search Form -->
                 <form id="searchForm" class="w-full relative min-w-0">
@@ -99,14 +104,7 @@
         </div>
 
         <div id="topbarControls" class="topbar-controls flex gap-2 items-center flex-wrap justify-end w-full lg:w-auto">
-            <button id="mobileNavBtn" type="button"
-                class="lg:hidden px-2.5 py-1.5 text-xs border border-slate-300 rounded bg-white hover:bg-slate-100 transition"
-                data-en="Menu" data-he="תפריט">Menu</button>
-            <button id="mobilePulseBtn" type="button"
-                class="lg:hidden px-2.5 py-1.5 text-xs border border-slate-300 rounded bg-white hover:bg-slate-100 transition"
-                data-en="Today" data-he="היום">Today</button>
-
-            <div id="settingsMenuContainer" class="relative">
+            <div id="settingsMenuContainer" class="relative hidden lg:block">
                 <button id="settingsMenuBtn" type="button" aria-expanded="false" aria-haspopup="true"
                     class="px-2 py-1.5 border border-slate-300 rounded bg-slate-100 hover:bg-slate-200 transition text-slate-700"
                     title="Open settings menu">
@@ -153,8 +151,8 @@
                             <option value="Yemenite" data-en="Yemenite" data-he="תימני">Yemenite</option>
                             <option value="Moroccan" data-en="Moroccan" data-he="מרוקאי">Moroccan</option>
                             <option value="Kavkazi" data-en="Kavkazi" data-he="קווקזי">Kavkazi</option>
-                            <option value="Turkish-Ottoman" data-en="Turkish-Ottoman"
-                                data-he="טורקי-עות׳מאני">Turkish-Ottoman</option>
+                            <option value="Turkish-Ottoman" data-en="Turkish-Ottoman" data-he="טורקי-עות׳מאני">
+                                Turkish-Ottoman</option>
                             <option value="Israeli" data-en="Israeli" data-he="ישראלי">Israeli</option>
                         </select>
                     </label>
@@ -206,7 +204,7 @@
                 </div>
             </div>
 
-            <div id="authControls" class="hidden items-center gap-2 mr-1">
+            <div id="authControls" class="hidden lg:flex items-center gap-2 mr-1">
                 <span id="authUserPill"
                     class="hidden max-w-[180px] truncate text-xs px-2 py-1 rounded-full bg-emerald-50 text-emerald-800 border border-emerald-200"></span>
                 <button id="signInBtn" type="button"
@@ -217,15 +215,18 @@
                     Out</button>
             </div>
 
-            <div class="hidden md:block text-xs font-serif italic text-slate-500 mr-2">{{ daily.hebrew_date if daily
+            <div class="hidden lg:block text-xs font-serif italic text-slate-500 mr-2">{{ daily.hebrew_date if daily
                 else "Today" }}</div>
             <!-- Translator Toggles -->
             <button onclick="toggleLanguage('en')"
-                class="px-2 py-1 text-xs border border-slate-300 rounded bg-slate-100 font-serif transition hover:bg-blue-100 lang-btn"
+                class="hidden lg:inline-flex px-2 py-1 text-xs border border-slate-300 rounded bg-slate-100 font-serif transition hover:bg-blue-100 lang-btn"
                 data-lang="en">English</button>
             <button onclick="toggleLanguage('he')"
-                class="px-2 py-1 text-xs border border-slate-300 rounded font-hebrew hover:bg-slate-100 transition lang-btn"
+                class="hidden lg:inline-flex px-2 py-1 text-xs border border-slate-300 rounded font-hebrew hover:bg-slate-100 transition lang-btn"
                 data-lang="he">עברית</button>
+            <button id="mobileLangToggle" type="button"
+                class="lg:hidden px-2.5 py-1.5 text-xs border border-slate-300 rounded bg-white hover:bg-slate-100 transition"
+                data-en="עברית" data-he="English">עברית</button>
         </div>
     </header>
 
@@ -240,7 +241,7 @@
 
         <button id="showRightSidebarTopBtn" type="button"
             class="sidebar-show-tab hidden items-center gap-1 absolute right-3 top-3 z-30 px-2 py-1 rounded-md border border-slate-200 bg-white/85 text-slate-500 text-[10px] font-medium tracking-wide hover:bg-white hover:text-slate-700 transition"
-            data-en="Today" data-he="היום" aria-label="Show Today Panel">Today</button>
+            data-en="Commentary" data-he="מפרשים" aria-label="Show Commentary Panel">Commentary</button>
 
         <!-- Column 1: Navigator (Left) -->
         <nav id="leftSidebar"
@@ -297,82 +298,85 @@
                         </details>
                         <details class="group">
                             <summary class="text-slate-600 hover:text-[#004e5f] cursor-pointer font-medium text-sm">
-                            Prophets (Nevi'im)</summary>
+                                Prophets (Nevi'im)</summary>
                             <ul class="ml-3 space-y-1 mt-1">
                                 <li><button onclick="readText('Joshua 1')"
-                                class="text-left text-slate-600 hover:text-[#004e5f] text-sm w-full py-0.5">Joshua
-                                (Yehoshua)</button>
+                                        class="text-left text-slate-600 hover:text-[#004e5f] text-sm w-full py-0.5">Joshua
+                                        (Yehoshua)</button>
                                 </li>
                                 <li><button onclick="readText('Judges 1')"
-                                class="text-left text-slate-600 hover:text-[#004e5f] text-sm w-full py-0.5">Judges
-                                (Shoftim)</button>
+                                        class="text-left text-slate-600 hover:text-[#004e5f] text-sm w-full py-0.5">Judges
+                                        (Shoftim)</button>
                                 </li>
                                 <li><button onclick="readText('I Samuel 1')"
                                         class="text-left text-slate-600 hover:text-[#004e5f] text-sm w-full py-0.5">I
-                                Samuel (Shmuel I)</button></li>
+                                        Samuel (Shmuel I)</button></li>
                                 <li><button onclick="readText('II Samuel 1')"
                                         class="text-left text-slate-600 hover:text-[#004e5f] text-sm w-full py-0.5">II
-                                Samuel (Shmuel II)</button></li>
-                            <li><button onclick="readText('I Kings 1')"
-                                class="text-left text-slate-600 hover:text-[#004e5f] text-sm w-full py-0.5">I
-                                Kings (Melakhim I)</button></li>
-                            <li><button onclick="readText('II Kings 1')"
-                                class="text-left text-slate-600 hover:text-[#004e5f] text-sm w-full py-0.5">II
-                                Kings (Melakhim II)</button></li>
+                                        Samuel (Shmuel II)</button></li>
+                                <li><button onclick="readText('I Kings 1')"
+                                        class="text-left text-slate-600 hover:text-[#004e5f] text-sm w-full py-0.5">I
+                                        Kings (Melakhim I)</button></li>
+                                <li><button onclick="readText('II Kings 1')"
+                                        class="text-left text-slate-600 hover:text-[#004e5f] text-sm w-full py-0.5">II
+                                        Kings (Melakhim II)</button></li>
                                 <li><button onclick="readText('Isaiah 1')"
-                                class="text-left text-slate-600 hover:text-[#004e5f] text-sm w-full py-0.5">Isaiah
-                                (Yeshayahu)</button>
+                                        class="text-left text-slate-600 hover:text-[#004e5f] text-sm w-full py-0.5">Isaiah
+                                        (Yeshayahu)</button>
                                 </li>
                                 <li><button onclick="readText('Jeremiah 1')"
-                                class="text-left text-slate-600 hover:text-[#004e5f] text-sm w-full py-0.5">Jeremiah
-                                (Yirmiyahu)</button>
+                                        class="text-left text-slate-600 hover:text-[#004e5f] text-sm w-full py-0.5">Jeremiah
+                                        (Yirmiyahu)</button>
                                 </li>
                                 <li><button onclick="readText('Ezekiel 1')"
-                                class="text-left text-slate-600 hover:text-[#004e5f] text-sm w-full py-0.5">Ezekiel
-                                (Yechezkel)</button>
+                                        class="text-left text-slate-600 hover:text-[#004e5f] text-sm w-full py-0.5">Ezekiel
+                                        (Yechezkel)</button>
                                 </li>
-                            <li>
-                                <details class="group mt-1">
-                                <summary
-                                    class="text-slate-500 hover:text-[#004e5f] cursor-pointer font-medium text-[13px]">
-                                    Trei Asar (The Twelve)</summary>
-                                <ul class="ml-3 mt-1 space-y-1">
-                                    <li><button onclick="readText('Hosea 1')"
-                                        class="text-left text-slate-600 hover:text-[#004e5f] text-sm w-full py-0.5">Hoshea
-                                        (Hosha)</button></li>
-                                    <li><button onclick="readText('Joel 1')"
-                                        class="text-left text-slate-600 hover:text-[#004e5f] text-sm w-full py-0.5">Yoel</button></li>
-                                    <li><button onclick="readText('Amos 1')"
-                                        class="text-left text-slate-600 hover:text-[#004e5f] text-sm w-full py-0.5">Amos</button></li>
-                                    <li><button onclick="readText('Obadiah 1')"
-                                        class="text-left text-slate-600 hover:text-[#004e5f] text-sm w-full py-0.5">Ovadiah
-                                        (Obadiah)</button></li>
-                                    <li><button onclick="readText('Jonah 1')"
-                                        class="text-left text-slate-600 hover:text-[#004e5f] text-sm w-full py-0.5">Yonah
-                                        (Jonah)</button></li>
-                                    <li><button onclick="readText('Micah 1')"
-                                        class="text-left text-slate-600 hover:text-[#004e5f] text-sm w-full py-0.5">Micah</button></li>
-                                    <li><button onclick="readText('Nahum 1')"
-                                        class="text-left text-slate-600 hover:text-[#004e5f] text-sm w-full py-0.5">Nachum
-                                        (Nahum)</button></li>
-                                    <li><button onclick="readText('Habakkuk 1')"
-                                        class="text-left text-slate-600 hover:text-[#004e5f] text-sm w-full py-0.5">Habakkuk
-                                        (Chavakuk)</button></li>
-                                    <li><button onclick="readText('Zephaniah 1')"
-                                        class="text-left text-slate-600 hover:text-[#004e5f] text-sm w-full py-0.5">Tzefaniah
-                                        (Zephaniah)</button></li>
-                                    <li><button onclick="readText('Haggai 1')"
-                                        class="text-left text-slate-600 hover:text-[#004e5f] text-sm w-full py-0.5">Chaggai
-                                        (Haggai)</button></li>
-                                    <li><button onclick="readText('Zechariah 1')"
-                                        class="text-left text-slate-600 hover:text-[#004e5f] text-sm w-full py-0.5">Zechariah
-                                        (Zechariah)</button></li>
-                                    <li><button onclick="readText('Malachi 1')"
-                                        class="text-left text-slate-600 hover:text-[#004e5f] text-sm w-full py-0.5">Malachi
-                                        (Malakhi)</button></li>
-                                </ul>
-                                </details>
-                            </li>
+                                <li>
+                                    <details class="group mt-1">
+                                        <summary
+                                            class="text-slate-500 hover:text-[#004e5f] cursor-pointer font-medium text-[13px]">
+                                            Trei Asar (The Twelve)</summary>
+                                        <ul class="ml-3 mt-1 space-y-1">
+                                            <li><button onclick="readText('Hosea 1')"
+                                                    class="text-left text-slate-600 hover:text-[#004e5f] text-sm w-full py-0.5">Hoshea
+                                                    (Hosha)</button></li>
+                                            <li><button onclick="readText('Joel 1')"
+                                                    class="text-left text-slate-600 hover:text-[#004e5f] text-sm w-full py-0.5">Yoel</button>
+                                            </li>
+                                            <li><button onclick="readText('Amos 1')"
+                                                    class="text-left text-slate-600 hover:text-[#004e5f] text-sm w-full py-0.5">Amos</button>
+                                            </li>
+                                            <li><button onclick="readText('Obadiah 1')"
+                                                    class="text-left text-slate-600 hover:text-[#004e5f] text-sm w-full py-0.5">Ovadiah
+                                                    (Obadiah)</button></li>
+                                            <li><button onclick="readText('Jonah 1')"
+                                                    class="text-left text-slate-600 hover:text-[#004e5f] text-sm w-full py-0.5">Yonah
+                                                    (Jonah)</button></li>
+                                            <li><button onclick="readText('Micah 1')"
+                                                    class="text-left text-slate-600 hover:text-[#004e5f] text-sm w-full py-0.5">Micah</button>
+                                            </li>
+                                            <li><button onclick="readText('Nahum 1')"
+                                                    class="text-left text-slate-600 hover:text-[#004e5f] text-sm w-full py-0.5">Nachum
+                                                    (Nahum)</button></li>
+                                            <li><button onclick="readText('Habakkuk 1')"
+                                                    class="text-left text-slate-600 hover:text-[#004e5f] text-sm w-full py-0.5">Habakkuk
+                                                    (Chavakuk)</button></li>
+                                            <li><button onclick="readText('Zephaniah 1')"
+                                                    class="text-left text-slate-600 hover:text-[#004e5f] text-sm w-full py-0.5">Tzefaniah
+                                                    (Zephaniah)</button></li>
+                                            <li><button onclick="readText('Haggai 1')"
+                                                    class="text-left text-slate-600 hover:text-[#004e5f] text-sm w-full py-0.5">Chaggai
+                                                    (Haggai)</button></li>
+                                            <li><button onclick="readText('Zechariah 1')"
+                                                    class="text-left text-slate-600 hover:text-[#004e5f] text-sm w-full py-0.5">Zechariah
+                                                    (Zechariah)</button></li>
+                                            <li><button onclick="readText('Malachi 1')"
+                                                    class="text-left text-slate-600 hover:text-[#004e5f] text-sm w-full py-0.5">Malachi
+                                                    (Malakhi)</button></li>
+                                        </ul>
+                                    </details>
+                                </li>
                             </ul>
                         </details>
                         <details class="group">
@@ -389,8 +393,8 @@
                                         class="text-left text-slate-600 hover:text-[#004e5f] text-sm w-full py-0.5">Job
                                         (Iyov)</button></li>
                                 <li><button onclick="readText('Song of Songs 1')"
-                                    class="text-left text-slate-600 hover:text-[#004e5f] text-sm w-full py-0.5">Song
-                                    of Songs (Shir HaShirim)</button></li>
+                                        class="text-left text-slate-600 hover:text-[#004e5f] text-sm w-full py-0.5">Song
+                                        of Songs (Shir HaShirim)</button></li>
                                 <li><button onclick="readText('Ruth 1')"
                                         class="text-left text-slate-600 hover:text-[#004e5f] text-sm w-full py-0.5">Ruth</button>
                                 </li>
@@ -401,12 +405,12 @@
                                         class="text-left text-slate-600 hover:text-[#004e5f] text-sm w-full py-0.5">Ecclesiastes
                                         (Kohelet)</button></li>
                                 <li><button onclick="readText('Esther 1')"
-                                    class="text-left text-slate-600 hover:text-[#004e5f] text-sm w-full py-0.5">Esther
-                                    (Megillat Esther)</button>
+                                        class="text-left text-slate-600 hover:text-[#004e5f] text-sm w-full py-0.5">Esther
+                                        (Megillat Esther)</button>
                                 </li>
                                 <li><button onclick="readText('Daniel 1')"
-                                    class="text-left text-slate-600 hover:text-[#004e5f] text-sm w-full py-0.5">Daniel
-                                    (Daniyel)</button>
+                                        class="text-left text-slate-600 hover:text-[#004e5f] text-sm w-full py-0.5">Daniel
+                                        (Daniyel)</button>
                                 </li>
                                 <li><button onclick="readText('Ezra 1')"
                                         class="text-left text-slate-600 hover:text-[#004e5f] text-sm w-full py-0.5">Ezra</button>
@@ -427,23 +431,23 @@
 
                 <details class="group cursor-pointer">
                     <summary class="font-semibold hover:text-[#8b5e34] list-none border-b pb-2 mb-2"
-                    data-en="Torah Commentaries" data-he="מפרשי התורה">Torah Commentaries</summary>
+                        data-en="Torah Commentaries" data-he="מפרשי התורה">Torah Commentaries</summary>
                     <ul class="ml-2 space-y-1 border-l-2 pl-3 border-[#8b5e34]/30">
-                    <li><button onclick="readText('Rashi on Torah, Genesis 1')"
-                        class="text-left text-slate-600 hover:text-[#8b5e34] text-sm w-full py-0.5">Rashi on
-                        Torah</button></li>
-                    <li><button onclick="readText('Ibn Ezra on Torah, Genesis 1')"
-                        class="text-left text-slate-600 hover:text-[#8b5e34] text-sm w-full py-0.5">Ibn Ezra on
-                        Torah</button></li>
-                    <li><button onclick="readText('Ramban on Torah, Genesis 1')"
-                        class="text-left text-slate-600 hover:text-[#8b5e34] text-sm w-full py-0.5">Ramban on
-                        Torah</button></li>
-                    <li><button onclick="readText('Sforno on Torah, Genesis 1')"
-                        class="text-left text-slate-600 hover:text-[#8b5e34] text-sm w-full py-0.5">Sforno on
-                        Torah</button></li>
-                    <li><button onclick="readText('Kli Yakar on Torah, Genesis 1')"
-                        class="text-left text-slate-600 hover:text-[#8b5e34] text-sm w-full py-0.5">Kli Yakar on
-                        Torah</button></li>
+                        <li><button onclick="readText('Rashi on Torah, Genesis 1')"
+                                class="text-left text-slate-600 hover:text-[#8b5e34] text-sm w-full py-0.5">Rashi on
+                                Torah</button></li>
+                        <li><button onclick="readText('Ibn Ezra on Torah, Genesis 1')"
+                                class="text-left text-slate-600 hover:text-[#8b5e34] text-sm w-full py-0.5">Ibn Ezra on
+                                Torah</button></li>
+                        <li><button onclick="readText('Ramban on Torah, Genesis 1')"
+                                class="text-left text-slate-600 hover:text-[#8b5e34] text-sm w-full py-0.5">Ramban on
+                                Torah</button></li>
+                        <li><button onclick="readText('Sforno on Torah, Genesis 1')"
+                                class="text-left text-slate-600 hover:text-[#8b5e34] text-sm w-full py-0.5">Sforno on
+                                Torah</button></li>
+                        <li><button onclick="readText('Kli Yakar on Torah, Genesis 1')"
+                                class="text-left text-slate-600 hover:text-[#8b5e34] text-sm w-full py-0.5">Kli Yakar on
+                                Torah</button></li>
                     </ul>
                 </details>
                 <details class="group cursor-pointer">
@@ -593,8 +597,7 @@
                                 data-en="Kavkazi" data-he="קווקזי">Kavkazi</button></li>
                         <li><button onclick="displayCommunity('Turkish-Ottoman')"
                                 class="text-left text-slate-600 hover:text-[#594176] text-sm w-full py-0.5"
-                            data-en="Turkish-Ottoman"
-                            data-he="טורקי-עות׳מאני">Turkish-Ottoman</button></li>
+                                data-en="Turkish-Ottoman" data-he="טורקי-עות׳מאני">Turkish-Ottoman</button></li>
                         <li><button onclick="displayCommunity('Israeli')"
                                 class="text-left text-slate-600 hover:text-[#594176] text-sm w-full py-0.5"
                                 data-en="Israeli" data-he="ישראלי">Israeli</button></li>
@@ -644,97 +647,272 @@
             </div>
 
             <!-- HOME: BROWSE THE LIBRARY GRID -->
-            <div id="homeGrid" class="w-full max-w-5xl p-4 sm:p-6 lg:p-12 transition-opacity duration-300">
-                <h2 class="text-3xl font-serif text-slate-800 mb-8 border-b pb-4" data-en="Browse the Library"
-                    data-he="עיין בספרייה">Browse the Library</h2>
+            <div id="homeGrid"
+                class="home-typography w-full max-w-6xl p-4 sm:p-6 lg:p-12 transition-opacity duration-300">
+                <section class="home-topic-hero mb-10">
+                    <p class="home-section-label" data-en="Topic of the Day" data-he="נושא היום">Topic of the Day</p>
+                    <button id="homeParashaQuickLink" type="button"
+                        class="home-topic-title text-left font-serif text-3xl sm:text-4xl text-navy leading-tight hover:text-[#0f4d67] transition"
+                        onclick="readText('Genesis 1')">Parashat HaShavua</button>
+                    <p class="mt-3 text-sm text-slate-600 max-w-2xl"
+                        data-en="Start from today's anchor text, then branch into side commentaries and related sources."
+                        data-he="התחל מטקסט העוגן של היום ואז הסתעף למפרשים צדדיים ולמקורות קשורים.">
+                        Start from today's anchor text, then branch into side commentaries and related sources.
+                    </p>
+                </section>
 
-                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <div class="home-main-layout grid grid-cols-1 xl:grid-cols-[minmax(0,1.25fr)_minmax(0,0.9fr)] gap-10">
+                    <section>
+                        <p class="home-section-label mb-5" data-en="Library" data-he="ספרייה">Library</p>
+                        <div class="space-y-6">
+                            <button type="button" onclick="readText('Genesis 1')"
+                                class="home-library-link home-link-tanakh text-left w-full">
+                                <span class="home-library-title" data-en="Tanakh" data-he="תנ״ך">Tanakh</span>
+                                <span class="home-library-description"
+                                    data-en="Torah, Nevi'im, and Ketuvim: the foundational text of Jewish learning and life."
+                                    data-he="תורה, נביאים וכתובים: טקסט היסוד של הלימוד והחיים היהודיים.">Torah,
+                                    Nevi'im, and Ketuvim: the foundational text of Jewish learning and life.</span>
+                            </button>
 
-                    <div class="bg-white border-t-[3px] border-[#004e5f] p-6 rounded shadow-sm hover:shadow-md transition cursor-pointer group"
-                        onclick="readText('Genesis 1')">
-                        <h3 class="text-lg font-medium text-[#1a1a1a] mb-2 font-serif" data-en="Tanakh" data-he="תנ״ך">
-                            Tanakh</h3>
-                        <p class="text-sm text-slate-500 leading-relaxed mb-4"
-                            data-en="Torah, Nevi'im, and Ketuvim together form Tanakh, the foundational text of Jewish learning and life."
-                            data-he="התורה, הנביאים והכתובים יוצרים יחד את התנ״ך, יסוד הלימוד והחיים היהודיים.">
-                            Torah, Prophets, and Writings, which
-                            together form Tanakh, the foundational text of Jewish learning and life.</p>
-                        <span data-en="Read Inline" data-he="קרא בקו"
-                            class="text-[#004e5f] text-xs font-bold uppercase tracking-wide group-hover:underline">Read
-                            Inline &rarr;</span>
-                    </div>
+                            <button type="button" onclick="readText('Mishnah Berakhot 1')"
+                                class="home-library-link home-link-mishnah text-left w-full">
+                                <span class="home-library-title" data-en="Mishnah" data-he="משנה">Mishnah</span>
+                                <span class="home-library-description"
+                                    data-en="The first major rabbinic legal corpus, organized for practical study."
+                                    data-he="הקורפוס ההלכתי הרבני המרכזי הראשון, מסודר ללימוד מעשי.">The first major
+                                    rabbinic legal corpus, organized for practical study.</span>
+                            </button>
 
-                    <div class="bg-white border-t-[3px] border-[#5a99b7] p-6 rounded shadow-sm hover:shadow-md transition cursor-pointer group"
-                        onclick="readText('Mishnah Berakhot 1')">
-                        <h3 class="text-lg font-medium text-[#1a1a1a] mb-2 font-serif" data-en="Mishnah" data-he="משנה">
-                            Mishnah</h3>
-                        <p class="text-sm text-slate-500 leading-relaxed mb-4"
-                            data-en="First major work of rabbinic literature, compiled around 200 CE, documenting the oral tradition."
-                            data-he="היצירה הראשונה והעיקרית של הספרות הרבנית, שנערכה בסביבות 200 לספירה, תיעדה את ההגדה.">
-                            First major work of rabbinic literature,
-                            compiled around 200 CE, documenting the oral tradition.</p>
-                        <span data-en="Read Inline" data-he="קרא בקו"
-                            class="text-[#5a99b7] text-xs font-bold uppercase tracking-wide group-hover:underline">Read
-                            Inline &rarr;</span>
-                    </div>
+                            <button type="button" onclick="readText('Berakhot 2a')"
+                                class="home-library-link home-link-talmud text-left w-full">
+                                <span class="home-library-title" data-en="Talmud" data-he="תלמוד">Talmud</span>
+                                <span class="home-library-description"
+                                    data-en="Generations of analysis on law, ethics, and scripture around the Mishnah."
+                                    data-he="דורות של עיון בהלכה, אתיקה וכתבי הקודש סביב המשנה.">Generations of analysis
+                                    on law, ethics, and scripture around the Mishnah.</span>
+                            </button>
 
-                    <div class="bg-white border-t-[3px] border-[#ccb479] p-6 rounded shadow-sm hover:shadow-md transition cursor-pointer group"
-                        onclick="readText('Berakhot 2a')">
-                        <h3 class="text-lg font-medium text-[#1a1a1a] mb-2 font-serif" data-en="Talmud" data-he="תלמוד">
-                            Talmud</h3>
-                        <p class="text-sm text-slate-500 leading-relaxed mb-4"
-                            data-en="Generations of rabbinic discussion on halakhah, ethics, and Tanakh, organized around the Mishnah."
-                            data-he="דורות של דיון רבני בהלכה, באתיקה ובתנ״ך, מסודרים סביב המשנה.">
-                            Generations of rabbinic debate on law,
-                            ethics, and Tanakh, structured as commentary on the Mishnah.</p>
-                        <span data-en="Read Inline" data-he="קרא בקו"
-                            class="text-[#a08a4a] text-xs font-bold uppercase tracking-wide group-hover:underline">Read
-                            Inline &rarr;</span>
-                    </div>
+                            <button type="button" onclick="readText('Shulchan Arukh, Orach Chayim 1')"
+                                class="home-library-link home-link-halakhah text-left w-full">
+                                <span class="home-library-title" data-en="Halakhah" data-he="הלכה">Halakhah</span>
+                                <span class="home-library-description"
+                                    data-en="Legal works guiding daily Jewish practice through classical rulings."
+                                    data-he="יצירות הלכתיות המדריכות את חיי המעשה היהודיים לפי פסיקה קלאסית.">Legal
+                                    works guiding daily Jewish practice through classical rulings.</span>
+                            </button>
 
-                    <div class="bg-white border-t-[3px] border-[#802f3e] p-6 rounded shadow-sm hover:shadow-md transition cursor-pointer group"
-                        onclick="readText('Shulchan Arukh, Orach Chayim 1')">
-                        <h3 class="text-lg font-medium text-[#1a1a1a] mb-2 font-serif" data-en="Halakhah"
-                            data-he="הלכה">Halakhah</h3>
-                        <p class="text-sm text-slate-500 leading-relaxed mb-4"
-                            data-en="Legal works providing guidance on all aspects of Jewish life, rooted in past sources."
-                            data-he="יצירות חוקיות המספקות הנחיות על כל היבטי החיים היהודיים, מושרשות במקורות קודמים.">
-                            Legal works providing guidance on all
-                            aspects of Jewish life, rooted in past sources.</p>
-                        <span data-en="Read Inline" data-he="קרא בקו"
-                            class="text-[#802f3e] text-xs font-bold uppercase tracking-wide group-hover:underline">Read
-                            Inline &rarr;</span>
-                    </div>
+                            <button type="button" onclick="setQuery('Bukharian customs on Pesach')"
+                                class="home-library-link home-link-customs text-left w-full">
+                                <span class="home-library-title" data-en="Community Customs"
+                                    data-he="מנהגים קהילתיים">Community Customs</span>
+                                <span class="home-library-description"
+                                    data-en="Trace minhagim across Iraqi, Syrian, Yemenite, Moroccan, Ashkenaz, Israeli, and more."
+                                    data-he="עקוב אחר מנהגים עיראקיים, סוריים, תימניים, מרוקאיים, אשכנזיים, ישראליים ועוד.">Trace
+                                    minhagim across Iraqi, Syrian, Yemenite, Moroccan, Ashkenaz, Israeli, and
+                                    more.</span>
+                            </button>
 
-                    <div class="bg-white border-t-[3px] border-[#594176] p-6 rounded shadow-sm hover:shadow-md transition cursor-pointer group"
-                        onclick="setQuery('Bukharian customs on Pesach')">
-                        <h3 class="text-lg font-medium text-[#1a1a1a] mb-2 font-serif" data-en="Community Customs"
-                            data-he="מנהגים קהילתיים">Community
-                            Customs</h3>
-                        <p class="text-sm text-slate-500 leading-relaxed mb-4"
-                            data-en="Traditions spanning Iraqi, Syrian, Yemenite, Moroccan, Ashkenaz, Israeli, Sefardic, and Kavkazi communities."
-                            data-he="מסורות של קהילות עיראקיות, סוריות, תימניות, מרוקאיות, אשכנז, ישראליות, ספרדיות וקווקזיות.">
-                            Traditions spanning Iraqi, Syrian,
-                            Yemenite, Moroccan, Ashkenaz, Israeli, Sefardic, and Kavkazi communities.</p>
-                        <span class="text-[#594176] text-xs font-bold uppercase tracking-wide group-hover:underline"
-                            data-en="Ask Sh'elah" data-he="שאל שאילה">Ask
-                            Sh'elah &rarr;</span>
-                    </div>
+                            <button type="button" onclick="readText('Pirkei Avot 1')"
+                                class="home-library-link home-link-thought text-left w-full">
+                                <span class="home-library-title" data-en="Kabbalah &amp; Thought"
+                                    data-he="קבלה ומחשבה">Kabbalah &amp; Thought</span>
+                                <span class="home-library-description"
+                                    data-en="Mysticism and philosophy on divine attributes, soul, and existence."
+                                    data-he="מיסטיקה ופילוסופיה על התכונות האלוהיות, הנפש ומהות הקיום.">Mysticism and
+                                    philosophy on divine attributes, soul, and existence.</span>
+                            </button>
+                        </div>
+                    </section>
 
-                    <div class="bg-white border-t-[3px] border-[#00827f] p-6 rounded shadow-sm hover:shadow-md transition cursor-pointer group"
-                        onclick="readText('Pirkei Avot 1')">
-                        <h3 class="text-lg font-medium text-[#1a1a1a] mb-2 font-serif" data-en="Kabbalah &amp; Thought"
-                            data-he="קבלה ומחשבה">Kabbalah &amp;
-                            Thought</h3>
-                        <p class="text-sm text-slate-500 leading-relaxed mb-4"
-                            data-en="Mystical works and Jewish philosophy addressing God's attributes and the nature of existence."
-                            data-he="יצירות מיסטיות ופילוסופיה יהודית העוסקות בתכונות האלוהות ובמהות הקיום.">
-                            Mystical works and Jewish philosophy
-                            addressing God's attributes and the nature of existence.</p>
-                        <span data-en="Read Inline" data-he="קרא בקו"
-                            class="text-[#00827f] text-xs font-bold uppercase tracking-wide group-hover:underline">Read
-                            Inline &rarr;</span>
-                    </div>
+                    <aside id="dailyPulseColumn" class="space-y-8">
+                        <section class="home-today-section">
+                            <h4 class="home-section-label flex justify-between items-center mb-3">
+                                <span data-en="Zmanim" data-he="זמנים">Zmanim</span>
+                                <span id="zmanLoc" class="text-xs normal-case tracking-normal text-slate-500"
+                                    data-en="Loading..." data-he="טוען...">Loading...</span>
+                            </h4>
+
+                            <div id="zmanimWarning"
+                                class="hidden text-orange-600 text-xs font-bold bg-orange-50 border-l-2 border-orange-600 p-2 mb-3">
+                            </div>
+
+                            <div class="space-y-1 text-sm today-zmanim-list">
+                                <div id="zRowDawn" data-zman-row="Dawn (16.1° / 72m)"
+                                    class="flex justify-between items-center py-1.5 border-b border-slate-100">
+                                    <span class="text-slate-500" data-en="Dawn (16.1° / 72m)"
+                                        data-he="עלות השחר (16.1° / 72 דק׳)">Dawn (16.1° / 72m)</span>
+                                    <b class="text-slate-700 tabular-nums" id="zDawn">--:--</b>
+                                </div>
+                                <div id="zRowTalit" data-zman-row="Earliest Tallit/Tefillin (10.2°)"
+                                    class="flex justify-between items-center py-1.5 border-b border-slate-100">
+                                    <span class="text-slate-500" data-en="Earliest Tallit/Tefillin (10.2°)"
+                                        data-he="זמן טלית ותפילין (10.2°)">Earliest Tallit/Tefillin (10.2°)</span>
+                                    <b class="text-slate-700 tabular-nums" id="zTalit">--:--</b>
+                                </div>
+                                <div id="zRowSunrise" data-zman-row="Sunrise"
+                                    class="flex justify-between items-center py-1.5 border-b border-slate-100">
+                                    <span class="text-slate-500" data-en="Sunrise" data-he="זריחה">Sunrise</span>
+                                    <b class="text-slate-700 tabular-nums" id="zSunrise">--:--</b>
+                                </div>
+                                <div id="shemaGraRow" data-zman-row="Latest Shema (GRA)"
+                                    class="flex justify-between items-center py-1.5 border-b border-slate-100">
+                                    <span id="shemaGraLabel" class="text-slate-500" data-en="Latest Shema (GRA)"
+                                        data-he="סוף זמן שמע (גר״א)">Latest Shema (GRA)</span>
+                                    <b class="text-slate-700 tabular-nums" id="zShemaGra">--:--</b>
+                                </div>
+                                <div id="shemaBhtRow" data-zman-row="Latest Shema (Baal HaTanya)"
+                                    class="flex justify-between items-center py-1.5 border-b border-slate-100">
+                                    <span class="text-slate-500" data-en="Latest Shema (Baal HaTanya)"
+                                        data-he="סוף זמן שמע (בעל התניא)">Latest Shema (Baal HaTanya)</span>
+                                    <b class="text-slate-700 tabular-nums" id="zShemaBht">--:--</b>
+                                </div>
+                                <div id="shacharitGraRow" data-zman-row="Latest Shacharit (GRA)"
+                                    class="flex justify-between items-center py-1.5 border-b border-slate-100">
+                                    <span id="shacharitGraLabel" class="text-slate-500" data-en="Latest Shacharit (GRA)"
+                                        data-he="סוף זמן תפילת שחרית (גר״א)">Latest Shacharit (GRA)</span>
+                                    <b class="text-slate-700 tabular-nums" id="zShacharitGra">--:--</b>
+                                </div>
+                                <div id="shacharitBhtRow" data-zman-row="Latest Shacharit (Baal HaTanya)"
+                                    class="flex justify-between items-center py-1.5 border-b border-slate-100">
+                                    <span class="text-slate-500" data-en="Latest Shacharit (Baal HaTanya)"
+                                        data-he="סוף זמן תפילת שחרית (בעל התניא)">Latest Shacharit (Baal HaTanya)</span>
+                                    <b class="text-slate-700 tabular-nums" id="zShacharitBht">--:--</b>
+                                </div>
+                                <div id="zRowChatzot" data-zman-row="Chatzot (Midday)"
+                                    class="flex justify-between items-center py-1.5 border-b border-slate-100">
+                                    <span class="text-slate-500" data-en="Midday (Chatzot)" data-he="חצות היום">Midday
+                                        (Chatzot)</span>
+                                    <b class="text-slate-700 tabular-nums" id="zChatzot">--:--</b>
+                                </div>
+                                <div id="zRowMincha" data-zman-row="Earliest Mincha (Mincha Gedola)"
+                                    class="flex justify-between items-center py-1.5 border-b border-slate-100">
+                                    <span class="text-slate-500" data-en="Earliest Mincha" data-he="מנחה גדולה">Earliest
+                                        Mincha</span>
+                                    <b class="text-slate-700 tabular-nums" id="zMincha">--:--</b>
+                                </div>
+                                <div id="zRowMusaf" data-zman-row="Latest Musaf"
+                                    class="flex justify-between items-center py-1.5 border-b border-slate-100">
+                                    <span class="text-slate-500" data-en="Latest Musaf" data-he="סוף זמן מוסף">Latest
+                                        Musaf</span>
+                                    <b class="text-slate-700 tabular-nums" id="zMusaf">--:--</b>
+                                </div>
+                                <div id="zRowPlag" data-zman-row="Plag HaMincha"
+                                    class="flex justify-between items-center py-1.5 border-b border-slate-100">
+                                    <span class="text-slate-500" data-en="Plag HaMincha" data-he="פלג המנחה">Plag
+                                        HaMincha</span>
+                                    <b class="text-slate-700 tabular-nums" id="zPlag">--:--</b>
+                                </div>
+                                <div id="zRowCandles" data-zman-row="Candle Lighting"
+                                    class="flex justify-between items-center py-1.5 border-b border-slate-100">
+                                    <span class="text-slate-500" data-en="Candle Lighting" data-he="הדלקת נרות">Candle
+                                        Lighting</span>
+                                    <b class="text-slate-700 tabular-nums" id="zCandles">--:--</b>
+                                </div>
+                                <div id="zRowSunset" data-zman-row="Sunset"
+                                    class="flex justify-between items-center py-1.5 border-b border-slate-100">
+                                    <span class="text-slate-500" data-en="Sunset" data-he="שקיעת החמה">Shkiya
+                                        (Sunset)</span>
+                                    <b class="text-slate-700 tabular-nums" id="zSunset">--:--</b>
+                                </div>
+                                <div id="zRowMaariv" data-zman-row="Arvit (Maariv)"
+                                    class="flex justify-between items-center py-1.5 border-b border-slate-100">
+                                    <span class="text-slate-500" data-en="Arvit (Maariv)" data-he="ערבית (מעריב)">Arvit
+                                        (Maariv)</span>
+                                    <b class="text-slate-700 tabular-nums" id="zMaariv">--:--</b>
+                                </div>
+                                <div id="zRowNight" data-zman-row="Nightfall (3 Stars)"
+                                    class="flex justify-between items-center py-1.5 border-b border-slate-100">
+                                    <span class="text-slate-500" data-en="Nightfall (3 Stars)"
+                                        data-he="צאת הכוכבים (3 כוכבים)">Nightfall (3 Stars)</span>
+                                    <b class="text-slate-700 tabular-nums" id="zNight">--:--</b>
+                                </div>
+                                <div id="zRowHavdalah" data-zman-row="Havdalah"
+                                    class="flex justify-between items-center py-1.5 border-b border-slate-100">
+                                    <span class="text-slate-500" data-en="Havdalah" data-he="הבדלה">Havdalah</span>
+                                    <b class="text-slate-700 tabular-nums" id="zHavdalah">--:--</b>
+                                </div>
+                                <div id="zRowMidnight" data-zman-row="Chatzot HaLailah (Midnight)"
+                                    class="flex justify-between items-center py-1.5">
+                                    <span class="text-slate-500" data-en="Midnight (Chatzot HaLailah)"
+                                        data-he="חצות הלילה">Midnight (Chatzot HaLailah)</span>
+                                    <b class="text-slate-700 tabular-nums" id="zMidnight">--:--</b>
+                                </div>
+                            </div>
+
+                            <button onclick="openCalendarModal()" class="home-calendar-btn"
+                                data-en="Monthly Holiday Calendar" data-he="לוח חגים חודשי">Monthly Holiday
+                                Calendar</button>
+                        </section>
+
+                        <section class="home-today-section">
+                            <h4 class="home-section-label mb-3" data-en="Holiday Season" data-he="עונת חגים">Holiday
+                                Season</h4>
+                            <div class="space-y-2 text-sm">
+                                <div class="flex justify-between items-center py-1.5 border-b border-slate-100">
+                                    <span class="text-slate-500" data-en="Today" data-he="היום">Today</span>
+                                    <b id="holidayName" class="text-slate-700 text-right max-w-[60%]">Regular Day</b>
+                                </div>
+                                <div class="flex justify-between items-center py-1.5 border-b border-slate-100">
+                                    <span class="text-slate-500" data-en="This Week's Shabbat" data-he="שבת השבוע">This
+                                        Week's Shabbat</span>
+                                    <b id="shabbatWeekName" class="text-slate-700 text-right max-w-[60%]">--</b>
+                                </div>
+                                <div id="omerRow"
+                                    class="hidden flex justify-between items-center py-1.5 border-b border-slate-100">
+                                    <span class="text-slate-500" data-en="Omer Count" data-he="ספירת העומר">Omer
+                                        Count</span>
+                                    <b id="omerCount" class="text-slate-700">--</b>
+                                </div>
+                                <p id="omerHint" class="text-slate-500 italic py-1"
+                                    data-en="Outside Omer counting period." data-he="מחוץ לתקופת ספירת העומר.">Outside
+                                    Omer counting period.</p>
+                            </div>
+                        </section>
+
+                        <section class="home-today-section">
+                            <h4 class="home-section-label mb-3" data-en="Daily Study" data-he="לימוד יומי">Daily Study
+                            </h4>
+                            <div class="space-y-4">
+                                {% if daily %}
+                                {% if daily.daf_yomi %}
+                                <div class="home-daily-entry">
+                                    <span class="home-daily-label" data-en="Daf Yomi" data-he="דף יומי">Daf Yomi</span>
+                                    <button type="button"
+                                        data-daily-ref="{{ daily.daf_yomi.ref if daily and daily.daf_yomi else '' }}"
+                                        data-en="{{ daily.daf_yomi.title if daily and daily.daf_yomi else '' }}"
+                                        data-he="{{ daily.daf_yomi.title_he if daily and daily.daf_yomi and daily.daf_yomi.title_he else (daily.daf_yomi.title if daily and daily.daf_yomi else '') }}"
+                                        class="daily-study-link home-daily-link">{{ daily.daf_yomi.title }}</button>
+                                </div>
+                                {% endif %}
+                                {% if daily.mishnah_yomi %}
+                                <div class="home-daily-entry">
+                                    <span class="home-daily-label" data-en="Mishnah Yomi" data-he="משנה יומית">Mishnah
+                                        Yomi</span>
+                                    <button type="button"
+                                        data-daily-ref="{{ daily.mishnah_yomi.ref if daily and daily.mishnah_yomi else '' }}"
+                                        data-en="{{ daily.mishnah_yomi.title if daily and daily.mishnah_yomi else '' }}"
+                                        data-he="{{ daily.mishnah_yomi.title_he if daily and daily.mishnah_yomi and daily.mishnah_yomi.title_he else (daily.mishnah_yomi.title if daily and daily.mishnah_yomi else '') }}"
+                                        class="daily-study-link home-daily-link">{{ daily.mishnah_yomi.title }}</button>
+                                </div>
+                                {% endif %}
+                                {% if daily.rambam %}
+                                <div class="home-daily-entry">
+                                    <span class="home-daily-label" data-en="Daily Rambam" data-he="רמב״ם יומי">Daily
+                                        Rambam</span>
+                                    <button type="button"
+                                        data-daily-ref="{{ daily.rambam.ref if daily and daily.rambam else '' }}"
+                                        data-en="{{ daily.rambam.title if daily and daily.rambam else '' }}"
+                                        data-he="{{ daily.rambam.title_he if daily and daily.rambam and daily.rambam.title_he else (daily.rambam.title if daily and daily.rambam else '') }}"
+                                        class="daily-study-link home-daily-link">{{ daily.rambam.title }}</button>
+                                </div>
+                                {% endif %}
+                                {% else %}
+                                <p class="text-sm text-slate-500 italic" data-en="No active schedule fetched."
+                                    data-he="לא נמצאה תוכנית לימוד יומית פעילה.">No active schedule fetched.</p>
+                                {% endif %}
+                            </div>
+                        </section>
+                    </aside>
                 </div>
 
                 <!-- POPULAR TEXTS QUICK ACCESS -->
@@ -878,20 +1056,20 @@
 
         </main>
 
-        <!-- Column 3: The Pulse Sidebar (Right) -->
+        <!-- Column 3: Commentary Sidebar (Right) -->
         <aside id="rightSidebar"
             class="pulse-pane mobile-drawer mobile-drawer-right w-80 border-l bg-slate-50 p-6 lg:block hidden flex-shrink-0">
 
             <div class="flex lg:hidden items-center justify-between mb-4 pb-3 border-b border-slate-200">
-                <h3 class="text-xs font-bold text-slate-500 uppercase tracking-widest" data-en="Today Panel"
-                    data-he="פאנל יומי">Today Panel</h3>
+                <h3 class="text-xs font-bold text-slate-500 uppercase tracking-widest" data-en="Commentary"
+                    data-he="מפרשים">Commentary</h3>
                 <button id="closeRightSidebarBtn" type="button"
                     class="px-2 py-1 text-xs border border-slate-300 rounded bg-white hover:bg-slate-100 transition"
                     data-en="Close" data-he="סגור">Close</button>
             </div>
             <div class="hidden lg:flex items-center justify-between mb-4 pb-3 border-b border-slate-200">
-                <h3 class="text-xs font-bold text-slate-500 uppercase tracking-widest" data-en="Today Panel"
-                    data-he="פאנל יומי">Today Panel</h3>
+                <h3 class="text-xs font-bold text-slate-500 uppercase tracking-widest" data-en="Commentary"
+                    data-he="מפרשים">Commentary</h3>
                 <button id="hideRightSidebarBtn" type="button"
                     class="text-xs text-slate-500 hover:text-slate-800 font-semibold uppercase tracking-wide"
                     data-en="Hide" data-he="הסתר">Hide</button>
@@ -907,216 +1085,23 @@
                 <div id="selectionInsightsBody" class="mt-3 space-y-3"></div>
             </section>
 
-            <!-- Zmanim -->
-            <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-5 mb-6">
-                <h4
-                    class="text-center font-bold text-slate-400 text-xs uppercase tracking-widest mb-4 flex justify-between">
-                    <span data-en="Zmanim" data-he="זמנים">Zmanim</span>
-                    <span id="zmanLoc" class="font-normal normal-case opacity-70" data-en="Loading..."
-                        data-he="טוען...">Loading...</span>
-                </h4>
-
-                <div id="zmanimWarning"
-                    class="hidden text-orange-600 text-xs font-bold bg-orange-50 border-l-2 border-orange-600 p-2 mb-4">
-                </div>
-
-                <!-- Full Zmanim Table -->
-                <div class="space-y-1 text-xs">
-                    <div id="zRowDawn" data-zman-row="Dawn (16.1° / 72m)"
-                        class="flex justify-between items-center py-1.5 border-b border-slate-100">
-                        <span class="text-slate-500" data-en="Dawn (16.1° / 72m)"
-                            data-he="עלות השחר (16.1° / 72 דק׳)">Dawn (16.1° / 72m)</span>
-                        <b class="text-slate-700 tabular-nums" id="zDawn">--:--</b>
-                    </div>
-                    <div id="zRowTalit" data-zman-row="Earliest Tallit/Tefillin (10.2°)"
-                        class="flex justify-between items-center py-1.5 border-b border-slate-100">
-                        <span class="text-slate-500" data-en="Earliest Tallit/Tefillin (10.2°)"
-                            data-he="זמן טלית ותפילין (10.2°)">Earliest Tallit/Tefillin (10.2°)</span>
-                        <b class="text-slate-700 tabular-nums" id="zTalit">--:--</b>
-                    </div>
-                    <div id="zRowSunrise" data-zman-row="Sunrise"
-                        class="flex justify-between items-center py-1.5 border-b border-slate-100">
-                        <span class="text-slate-500" data-en="Sunrise" data-he="זריחה">Sunrise</span>
-                        <b class="text-slate-700 tabular-nums" id="zSunrise">--:--</b>
-                    </div>
-                    <div id="shemaGraRow" data-zman-row="Latest Shema (GRA)"
-                        class="flex justify-between items-center py-1.5 border-b border-slate-100">
-                        <span id="shemaGraLabel" class="text-slate-500" data-en="Latest Shema (GRA)"
-                            data-he="סוף זמן שמע (גר״א)">Latest
-                            Shema (GRA)</span>
-                        <b class="text-slate-700 tabular-nums" id="zShemaGra">--:--</b>
-                    </div>
-                    <div id="shemaBhtRow" data-zman-row="Latest Shema (Baal HaTanya)"
-                        class="flex justify-between items-center py-1.5 border-b border-slate-100">
-                        <span class="text-slate-500" data-en="Latest Shema (Baal HaTanya)"
-                            data-he="סוף זמן שמע (בעל התניא)">Latest Shema (Baal HaTanya)</span>
-                        <b class="text-slate-700 tabular-nums" id="zShemaBht">--:--</b>
-                    </div>
-                    <div id="shacharitGraRow" data-zman-row="Latest Shacharit (GRA)"
-                        class="flex justify-between items-center py-1.5 border-b border-slate-100">
-                        <span id="shacharitGraLabel" class="text-slate-500" data-en="Latest Shacharit (GRA)"
-                            data-he="סוף זמן תפילת שחרית (גר״א)">Latest Shacharit (GRA)</span>
-                        <b class="text-slate-700 tabular-nums" id="zShacharitGra">--:--</b>
-                    </div>
-                    <div id="shacharitBhtRow" data-zman-row="Latest Shacharit (Baal HaTanya)"
-                        class="flex justify-between items-center py-1.5 border-b border-slate-100">
-                        <span class="text-slate-500" data-en="Latest Shacharit (Baal HaTanya)"
-                            data-he="סוף זמן תפילת שחרית (בעל התניא)">Latest Shacharit (Baal HaTanya)</span>
-                        <b class="text-slate-700 tabular-nums" id="zShacharitBht">--:--</b>
-                    </div>
-                    <div id="zRowChatzot" data-zman-row="Chatzot (Midday)"
-                        class="flex justify-between items-center py-1.5 border-b border-slate-100">
-                        <span class="text-slate-500" data-en="Midday (Chatzot)" data-he="חצות היום">Midday
-                            (Chatzot)</span>
-                        <b class="text-slate-700 tabular-nums" id="zChatzot">--:--</b>
-                    </div>
-                    <div id="zRowMincha" data-zman-row="Earliest Mincha (Mincha Gedola)"
-                        class="flex justify-between items-center py-1.5 border-b border-slate-100">
-                        <span class="text-slate-500" data-en="Earliest Mincha" data-he="מנחה גדולה">Earliest
-                            Mincha</span>
-                        <b class="text-slate-700 tabular-nums" id="zMincha">--:--</b>
-                    </div>
-                    <div id="zRowMusaf" data-zman-row="Latest Musaf"
-                        class="flex justify-between items-center py-1.5 border-b border-slate-100">
-                        <span class="text-slate-500" data-en="Latest Musaf"
-                            data-he="סוף זמן מוסף">Latest Musaf</span>
-                        <b class="text-slate-700 tabular-nums" id="zMusaf">--:--</b>
-                    </div>
-                    <div id="zRowPlag" data-zman-row="Plag HaMincha"
-                        class="flex justify-between items-center py-1.5 border-b border-slate-100">
-                        <span class="text-slate-500" data-en="Plag HaMincha" data-he="פלג המנחה">Plag HaMincha</span>
-                        <b class="text-slate-700 tabular-nums" id="zPlag">--:--</b>
-                    </div>
-                    <div id="zRowCandles" data-zman-row="Candle Lighting"
-                        class="flex justify-between items-center py-1.5 border-b border-slate-100">
-                        <span class="text-slate-500" data-en="Candle Lighting"
-                            data-he="הדלקת נרות">Candle Lighting</span>
-                        <b class="text-slate-700 tabular-nums" id="zCandles">--:--</b>
-                    </div>
-                    <div id="zRowSunset" data-zman-row="Sunset"
-                        class="flex justify-between items-center py-1.5 border-b border-slate-100">
-                        <span class="text-slate-500" data-en="Sunset" data-he="שקיעת החמה">Shkiya (Sunset)</span>
-                        <b class="text-slate-700 tabular-nums" id="zSunset">--:--</b>
-                    </div>
-                    <div id="zRowMaariv" data-zman-row="Arvit (Maariv)"
-                        class="flex justify-between items-center py-1.5 border-b border-slate-100">
-                        <span class="text-slate-500" data-en="Arvit (Maariv)" data-he="ערבית (מעריב)">Arvit (Maariv)</span>
-                        <b class="text-slate-700 tabular-nums" id="zMaariv">--:--</b>
-                    </div>
-                    <div id="zRowNight" data-zman-row="Nightfall (3 Stars)"
-                        class="flex justify-between items-center py-1.5 border-b border-slate-100">
-                        <span class="text-slate-500" data-en="Nightfall (3 Stars)"
-                            data-he="צאת הכוכבים (3 כוכבים)">Nightfall (3 Stars)</span>
-                        <b class="text-slate-700 tabular-nums" id="zNight">--:--</b>
-                    </div>
-                    <div id="zRowHavdalah" data-zman-row="Havdalah"
-                        class="flex justify-between items-center py-1.5 border-b border-slate-100">
-                        <span class="text-slate-500" data-en="Havdalah" data-he="הבדלה">Havdalah</span>
-                        <b class="text-slate-700 tabular-nums" id="zHavdalah">--:--</b>
-                    </div>
-                    <div id="zRowMidnight" data-zman-row="Chatzot HaLailah (Midnight)"
-                        class="flex justify-between items-center py-1.5">
-                        <span class="text-slate-500" data-en="Midnight (Chatzot HaLailah)" data-he="חצות הלילה">Midnight
-                            (Chatzot HaLailah)</span>
-                        <b class="text-slate-700 tabular-nums" id="zMidnight">--:--</b>
-                    </div>
-                </div>
-
-                <button onclick="openCalendarModal()"
-                    class="w-full mt-4 text-xs font-bold text-[#002147] bg-slate-100 py-2 rounded border border-slate-200 hover:bg-slate-200 transition"
-                    data-en="Monthly Holiday Calendar" data-he="לוח חגים חודשי">
-                    Monthly Holiday Calendar</button>
-            </div>
-
-            <!-- Holiday Season Info -->
-            <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-5 mb-6">
-                <h4 class="text-center font-bold text-slate-400 text-xs uppercase tracking-widest mb-4"
-                    data-en="Holiday Season" data-he="עונת חגים">
-                    Holiday Season
-                </h4>
-
-                <div class="space-y-2 text-xs">
-                    <div class="flex justify-between items-center py-1.5 border-b border-slate-100">
-                        <span class="text-slate-500" data-en="Today" data-he="היום">Today</span>
-                        <b id="holidayName" class="text-slate-700 text-right max-w-[60%]">Regular Day</b>
-                    </div>
-
-                    <div class="flex justify-between items-center py-1.5 border-b border-slate-100">
-                        <span class="text-slate-500" data-en="This Week's Shabbat" data-he="שבת השבוע">This Week's Shabbat</span>
-                        <b id="shabbatWeekName" class="text-slate-700 text-right max-w-[60%]">--</b>
-                    </div>
-
-                    <div id="omerRow" class="hidden flex justify-between items-center py-1.5 border-b border-slate-100">
-                        <span class="text-slate-500" data-en="Omer Count" data-he="ספירת העומר">Omer Count</span>
-                        <b id="omerCount" class="text-slate-700">--</b>
-                    </div>
-
-                    <p id="omerHint" class="text-slate-500 italic py-1" data-en="Outside Omer counting period."
-                        data-he="מחוץ לתקופת ספירת העומר.">
-                        Outside Omer counting period.
-                    </p>
-                </div>
-            </div>
-
-            <!-- Daily Study -->
-            <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-5">
-                <h4 class="text-center font-bold text-slate-400 text-xs uppercase tracking-widest mb-4"
-                    data-en="Daily Study" data-he="לימוד יומי">
-                    Daily Study</h4>
-                <div class="space-y-4">
-                    {% if daily %}
-                    {% if daily.daf_yomi %}
-                    <div class="border-l-4 border-blue-500 pl-3 py-1">
-                        <span class="block text-xs uppercase text-slate-500 tracking-wide font-semibold mb-1"
-                            data-en="Daf Yomi" data-he="דף יומי">Daf
-                            Yomi</span>
-                        <button type="button"
-                            data-daily-ref="{{ daily.daf_yomi.ref if daily and daily.daf_yomi else '' }}"
-                            data-en="{{ daily.daf_yomi.title if daily and daily.daf_yomi else '' }}"
-                            data-he="{{ daily.daf_yomi.title_he if daily and daily.daf_yomi and daily.daf_yomi.title_he else (daily.daf_yomi.title if daily and daily.daf_yomi else '') }}"
-                            class="daily-study-link text-sm font-serif text-slate-800 hover:text-blue-600 transition text-left">
-                            {{ daily.daf_yomi.title }}
-                        </button>
-                    </div>
-                    {% endif %}
-                    {% if daily.mishnah_yomi %}
-                    <div class="border-l-4 border-gold pl-3 py-1">
-                        <span class="block text-xs uppercase text-slate-500 tracking-wide font-semibold mb-1"
-                            data-en="Mishnah Yomi" data-he="משנה יומית">Mishnah
-                            Yomi</span>
-                        <button type="button"
-                            data-daily-ref="{{ daily.mishnah_yomi.ref if daily and daily.mishnah_yomi else '' }}"
-                            data-en="{{ daily.mishnah_yomi.title if daily and daily.mishnah_yomi else '' }}"
-                            data-he="{{ daily.mishnah_yomi.title_he if daily and daily.mishnah_yomi and daily.mishnah_yomi.title_he else (daily.mishnah_yomi.title if daily and daily.mishnah_yomi else '') }}"
-                            class="daily-study-link text-sm font-serif text-slate-800 hover:text-blue-600 transition text-left">
-                            {{ daily.mishnah_yomi.title }}
-                        </button>
-                    </div>
-                    {% endif %}
-                    {% if daily.rambam %}
-                    <div class="border-l-4 border-red-500 pl-3 py-1">
-                        <span class="block text-xs uppercase text-slate-500 tracking-wide font-semibold mb-1"
-                            data-en="Daily Rambam" data-he="רמב״ם יומי">Daily
-                            Rambam</span>
-                        <button type="button" data-daily-ref="{{ daily.rambam.ref if daily and daily.rambam else '' }}"
-                            data-en="{{ daily.rambam.title if daily and daily.rambam else '' }}"
-                            data-he="{{ daily.rambam.title_he if daily and daily.rambam and daily.rambam.title_he else (daily.rambam.title if daily and daily.rambam else '') }}"
-                            class="daily-study-link text-sm font-serif text-slate-800 hover:text-blue-600 transition text-left">
-                            {{ daily.rambam.title }}
-                        </button>
-                    </div>
-                    {% endif %}
-                    {% else %}
-                    <p class="text-xs text-slate-500 text-center py-4 bg-slate-50 rounded"
-                        data-en="No active schedule fetched." data-he="לא נמצאה תוכנית לימוד יומית פעילה.">No active
-                        schedule
-                        fetched.
-                    </p>
-                    {% endif %}
-                </div>
+            <div id="rightSidebarIdle" class="border border-slate-200 rounded-xl bg-white p-4 text-sm text-slate-600">
+                <p data-en="Select a passage in the reader to load linked commentary tools and lexical hints."
+                    data-he="בחר קטע בקורא כדי לטעון כלי מפרשים ורמזים לקסיקליים.">Select a passage in the reader to
+                    load linked commentary tools and lexical hints.</p>
             </div>
         </aside>
     </div>
+
+    <nav id="mobileBottomTabs" class="mobile-bottom-tabs lg:hidden" aria-label="Mobile quick navigation">
+        <button type="button" class="mobile-tab-btn" data-mobile-tab="home" data-en="Home" data-he="בית">Home</button>
+        <button type="button" class="mobile-tab-btn" data-mobile-tab="search" data-en="Search"
+            data-he="חיפוש">Search</button>
+        <button type="button" class="mobile-tab-btn" data-mobile-tab="library" data-en="Library"
+            data-he="ספרייה">Library</button>
+        <button type="button" class="mobile-tab-btn" data-mobile-tab="daily" data-en="Daily"
+            data-he="יומי">Daily</button>
+    </nav>
 
     <!-- Calendar Modal -->
     <div id="calendarModal"
@@ -1141,7 +1126,8 @@
                 class="absolute top-4 right-4 text-2xl text-slate-400 hover:text-slate-800 z-10">&times;</button>
 
             <div class="bg-gradient-to-r from-navy to-blue-900 text-white px-6 py-4 border-b">
-                <h2 class="font-serif text-xl font-bold" data-en="Browse Jewish Library" data-he="עיון בספרייה היהודית">Browse
+                <h2 class="font-serif text-xl font-bold" data-en="Browse Jewish Library" data-he="עיון בספרייה היהודית">
+                    Browse
                     Jewish Library</h2>
                 <p class="text-blue-100 text-sm mt-1" data-en="Siddur, Communities, and Text Library"
                     data-he="סידור, קהילות וספריית טקסטים">Siddur, Communities, and Text Library</p>
@@ -1400,7 +1386,8 @@
         const signInBtn = document.getElementById('signInBtn');
         const signOutBtn = document.getElementById('signOutBtn');
         const mobileNavBtn = document.getElementById('mobileNavBtn');
-        const mobilePulseBtn = document.getElementById('mobilePulseBtn');
+        const mobileBottomTabs = document.getElementById('mobileBottomTabs');
+        const mobileLangToggle = document.getElementById('mobileLangToggle');
         const closeLeftSidebarBtn = document.getElementById('closeLeftSidebarBtn');
         const closeRightSidebarBtn = document.getElementById('closeRightSidebarBtn');
         const hideLeftSidebarBtn = document.getElementById('hideLeftSidebarBtn');
@@ -1408,6 +1395,7 @@
         const mobileDrawerBackdrop = document.getElementById('mobileDrawerBackdrop');
         const leftSidebar = document.getElementById('leftSidebar');
         const rightSidebar = document.getElementById('rightSidebar');
+        const rightSidebarIdle = document.getElementById('rightSidebarIdle');
 
         const readerSettingsBtn = document.getElementById('readerSettingsBtn');
         const readerSettingsPanel = document.getElementById('readerSettingsPanel');
@@ -1526,7 +1514,7 @@
                 fontSize: 18,
                 lineHeight: 1.8,
                 showLeftSidebar: true,
-                showRightSidebar: true,
+                showRightSidebar: false,
                 metadataFilters: {
                     era: '',
                     author: '',
@@ -2480,6 +2468,30 @@
             target.scrollTo({ top: 0, behavior });
         }
 
+        function focusHomeDailySection() {
+            const dailySection = document.getElementById('dailyPulseColumn');
+            if (!dailySection) return;
+
+            const homeVisible = homeGrid && homeGrid.style.display !== 'none';
+            if (!homeVisible) {
+                goHome();
+                window.setTimeout(() => {
+                    dailySection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                }, 120);
+                return;
+            }
+
+            dailySection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+
+        function setMobileSearchExpanded(expanded) {
+            const shouldExpand = Boolean(expanded) && isMobileViewport();
+            document.body.classList.toggle('mobile-search-open', shouldExpand);
+            if (!shouldExpand) {
+                searchInput?.blur();
+            }
+        }
+
         function applySidebarVisibility() {
             const showLeftSidebar = appState.prefs.showLeftSidebar !== false;
             const showRightSidebar = appState.prefs.showRightSidebar !== false;
@@ -2487,6 +2499,10 @@
             const shulMode = Boolean(appState.prefs.shulMode);
             const leftHiddenDesktop = !mobile && (!showLeftSidebar || shulMode);
             const rightHiddenDesktop = !mobile && (!showRightSidebar || shulMode);
+
+            if (!mobile) {
+                document.body.classList.remove('mobile-search-open');
+            }
 
             document.body.classList.toggle('left-sidebar-hidden', leftHiddenDesktop);
             document.body.classList.toggle('right-sidebar-hidden', rightHiddenDesktop);
@@ -3347,10 +3363,25 @@
 
         function hideSelectionInsights() {
             selectionInsights?.classList.add('hidden');
+            rightSidebarIdle?.classList.remove('hidden');
         }
 
         function showSelectionInsights() {
             selectionInsights?.classList.remove('hidden');
+            rightSidebarIdle?.classList.add('hidden');
+        }
+
+        function collapseCommentaryPanel() {
+            hideSelectionInsights();
+            if (isMobileViewport()) {
+                if (rightSidebar?.classList.contains('mobile-open')) {
+                    closeMobilePanels();
+                }
+                return;
+            }
+            if (appState.prefs.showRightSidebar !== false) {
+                setSidebarVisibility('right', false);
+            }
         }
 
         function extractCommentaryRefs(linkData) {
@@ -3446,7 +3477,7 @@
 
         async function updateSelectionInsights() {
             if (!selectionInsightsBody || appState.currentView?.type !== 'text') {
-                hideSelectionInsights();
+                collapseCommentaryPanel();
                 return;
             }
 
@@ -3454,7 +3485,7 @@
             const selectedText = String(sel?.toString() || '').replace(/\s+/g, ' ').trim();
             if (!selectedText) {
                 resetSelectionInsights();
-                hideSelectionInsights();
+                collapseCommentaryPanel();
                 return;
             }
 
@@ -3463,6 +3494,11 @@
                     t('Selection is too long. Highlight a shorter passage.', 'הבחירה ארוכה מדי. סמן קטע קצר יותר.')
                 );
                 showSelectionInsights();
+                if (isMobileViewport()) {
+                    openMobilePanel('right');
+                } else if (appState.prefs.showRightSidebar === false) {
+                    setSidebarVisibility('right', true);
+                }
                 return;
             }
 
@@ -3916,7 +3952,7 @@
                 appState.prefs.showLeftSidebar = legacyShowSidebars;
             }
             if (typeof appState.prefs.showRightSidebar !== 'boolean') {
-                appState.prefs.showRightSidebar = legacyShowSidebars;
+                appState.prefs.showRightSidebar = false;
             }
             delete appState.prefs.showSidebars;
 
@@ -4074,10 +4110,15 @@
 
         bookmarkCurrentBtn.addEventListener('click', toggleBookmarkCurrent);
         if (mobileNavBtn) {
-            mobileNavBtn.addEventListener('click', () => toggleMobilePanel('left'));
+            mobileNavBtn.addEventListener('click', () => {
+                setMobileSearchExpanded(false);
+                toggleMobilePanel('left');
+            });
         }
-        if (mobilePulseBtn) {
-            mobilePulseBtn.addEventListener('click', () => toggleMobilePanel('right'));
+        if (mobileLangToggle) {
+            mobileLangToggle.addEventListener('click', () => {
+                toggleLanguage(getCurrentLanguage() === 'he' ? 'en' : 'he');
+            });
         }
         if (closeLeftSidebarBtn) {
             closeLeftSidebarBtn.addEventListener('click', closeMobilePanels);
@@ -4099,6 +4140,41 @@
         }
         if (showRightSidebarTopBtn) {
             showRightSidebarTopBtn.addEventListener('click', () => setSidebarVisibility('right', true));
+        }
+        if (mobileBottomTabs) {
+            mobileBottomTabs.querySelectorAll('[data-mobile-tab]').forEach((btn) => {
+                btn.addEventListener('click', () => {
+                    const tab = btn.dataset.mobileTab;
+                    if (tab === 'home') {
+                        setMobileSearchExpanded(false);
+                        goHome();
+                        return;
+                    }
+                    if (tab === 'search') {
+                        setMobileSearchExpanded(true);
+                        closeMobilePanels();
+                        if (searchInput) {
+                            searchInput.focus();
+                            searchInput.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                        }
+                        return;
+                    }
+                    if (tab === 'library') {
+                        setMobileSearchExpanded(false);
+                        if (isMobileViewport()) {
+                            openMobilePanel('left');
+                        } else {
+                            setSidebarVisibility('left', true);
+                        }
+                        return;
+                    }
+                    if (tab === 'daily') {
+                        setMobileSearchExpanded(false);
+                        closeMobilePanels();
+                        focusHomeDailySection();
+                    }
+                });
+            });
         }
         window.addEventListener('resize', () => {
             applySidebarVisibility();
@@ -4881,7 +4957,7 @@
                 window.currentPrayerName = prayerName;
                 window.currentCommunityData = null;
                 window.currentTextPayload = null;
-                selectionInsights?.classList.add('hidden');
+                collapseCommentaryPanel();
                 resetSelectionInsights();
                 clearCompareReference(false);
 
@@ -4947,7 +5023,7 @@
                 window.currentPrayerParagraphPairs = [];
                 window.currentPrayerName = null;
                 window.currentTextPayload = null;
-                selectionInsights?.classList.add('hidden');
+                collapseCommentaryPanel();
                 resetSelectionInsights();
                 clearCompareReference(false);
                 document.getElementById('readerSources').innerHTML = '';
@@ -5047,7 +5123,7 @@
             appState.currentView = null;
             window.currentTextPayload = null;
             window.currentPrayerName = null;
-            selectionInsights?.classList.add('hidden');
+            collapseCommentaryPanel();
             resetSelectionInsights();
             clearCompareReference(false);
             updateBookmarkButton();
@@ -5420,7 +5496,7 @@
             document.getElementById('readerContent').innerHTML = '';
             document.getElementById('readerSources').innerHTML = '';
             document.getElementById('readerMedia').innerHTML = '';
-            selectionInsights?.classList.add('hidden');
+            collapseCommentaryPanel();
             resetSelectionInsights();
 
             try {
@@ -5486,7 +5562,8 @@
         // ─── POPULAR TEXTS PANEL ─────────────────────────────────────────────
         async function loadParashaQuickLink() {
             const quickLink = document.getElementById('parashaQuickLink');
-            if (!quickLink) return;
+            const homeQuickLink = document.getElementById('homeParashaQuickLink');
+            if (!quickLink && !homeQuickLink) return;
 
             try {
                 const resp = await fetch('/api/parasha');
@@ -5496,14 +5573,22 @@
                 const ref = data.ref || 'Genesis 1';
                 const enTitle = (data.title || 'Parashat HaShavua').trim();
                 const heTitle = (data.heTitle || '').trim();
+                const titleEn = heTitle ? `${enTitle} · ${heTitle}` : enTitle;
+                const titleHe = heTitle || enTitle;
 
-                quickLink.textContent = isHebrewMode()
-                    ? (heTitle || enTitle)
-                    : (heTitle ? `${enTitle} · ${heTitle}` : enTitle);
-                quickLink.title = isHebrewMode()
-                    ? (heTitle ? `פתח ${heTitle}` : `פתח ${enTitle}`)
-                    : (heTitle ? `Open ${enTitle} (${heTitle})` : `Open ${enTitle}`);
-                quickLink.onclick = () => readText(ref);
+                const applyParashaLink = (linkEl) => {
+                    if (!linkEl) return;
+                    linkEl.dataset.en = titleEn;
+                    linkEl.dataset.he = titleHe;
+                    linkEl.textContent = isHebrewMode() ? titleHe : titleEn;
+                    linkEl.title = isHebrewMode()
+                        ? (heTitle ? `פתח ${heTitle}` : `פתח ${enTitle}`)
+                        : (heTitle ? `Open ${enTitle} (${heTitle})` : `Open ${enTitle}`);
+                    linkEl.onclick = () => readText(ref);
+                };
+
+                applyParashaLink(quickLink);
+                applyParashaLink(homeQuickLink);
             } catch (_) {
                 // Keep default quick-link state when parasha endpoint is unavailable.
             }
@@ -6186,7 +6271,7 @@
 
         function renderArticle(data, queryTitle) {
             // Title already set
-            selectionInsights?.classList.add('hidden');
+            collapseCommentaryPanel();
             resetSelectionInsights();
 
             // 1. Content Synthesis
@@ -6365,7 +6450,7 @@
             const question = document.getElementById('aiModalTitle').textContent;
             setCurrentView('ask', question, question);
             setReaderSubtitle('');
-            selectionInsights?.classList.add('hidden');
+            collapseCommentaryPanel();
             resetSelectionInsights();
 
             // Transition UI to Reader View
