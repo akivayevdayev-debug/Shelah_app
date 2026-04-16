@@ -650,7 +650,8 @@
             <div id="homeGrid"
                 class="home-typography w-full max-w-6xl p-4 sm:p-6 lg:p-12 transition-opacity duration-300">
                 <section class="home-topic-hero mb-10">
-                    <p class="home-section-label" data-en="Topic of the Day" data-he="נושא היום">Topic of the Day</p>
+                    <p class="home-section-label" data-en="Parasha of the Week" data-he="פרשת השבוע">Parasha of the Week
+                    </p>
                     <button id="homeParashaQuickLink" type="button"
                         class="home-topic-title text-left font-serif text-3xl sm:text-4xl text-navy leading-tight hover:text-[#0f4d67] transition"
                         onclick="readText('Genesis 1')">Parashat HaShavua</button>
@@ -1538,6 +1539,12 @@
                 stats: null,
             },
         };
+        const selectionCommentaryState = {
+            groupedCommentaries: [],
+            wordInfo: null,
+            selectedText: '',
+        };
+        let commentaryAvailableForCurrentSelection = false;
         let syncedPrefsUserId = null;
         let shulScrollFrame = null;
         let inspectorPollInterval = null;
@@ -2539,7 +2546,7 @@
             }
 
             if (showRightSidebarTopBtn) {
-                const showRightRestore = !mobile && !shulMode && !showRightSidebar;
+                const showRightRestore = !mobile && !shulMode && !showRightSidebar && commentaryAvailableForCurrentSelection;
                 showRightSidebarTopBtn.style.display = showRightRestore ? 'flex' : 'none';
             }
         }
@@ -3361,6 +3368,38 @@
             selectionInsightsBody.innerHTML = '';
         }
 
+        function setCommentaryAvailability(hasAvailable) {
+            commentaryAvailableForCurrentSelection = Boolean(hasAvailable);
+            if (!showRightSidebarTopBtn) return;
+
+            const canRestore = !isMobileViewport()
+                && !Boolean(appState.prefs.shulMode)
+                && appState.prefs.showRightSidebar === false
+                && commentaryAvailableForCurrentSelection;
+
+            showRightSidebarTopBtn.style.display = canRestore ? 'flex' : 'none';
+        }
+
+        function clearSelectionCommentaryState() {
+            selectionCommentaryState.groupedCommentaries = [];
+            selectionCommentaryState.wordInfo = null;
+            selectionCommentaryState.selectedText = '';
+            setCommentaryAvailability(false);
+        }
+
+        function isCommentaryEligiblePrimaryText() {
+            const categories = Array.isArray(window.currentTextPayload?.categories)
+                ? window.currentTextPayload.categories
+                : [];
+            if (!categories.length) return false;
+
+            const categoryBlob = categories
+                .map((item) => String(item || '').toLowerCase())
+                .join(' ');
+
+            return /(tanakh|torah|prophets|writings|mishnah|talmud)/.test(categoryBlob);
+        }
+
         function hideSelectionInsights() {
             selectionInsights?.classList.add('hidden');
             rightSidebarIdle?.classList.remove('hidden');
@@ -3372,6 +3411,7 @@
         }
 
         function collapseCommentaryPanel() {
+            clearSelectionCommentaryState();
             hideSelectionInsights();
             if (isMobileViewport()) {
                 if (rightSidebar?.classList.contains('mobile-open')) {
@@ -3456,7 +3496,7 @@
                 const refsMarkup = group.refs.map((ref) => {
                     const encoded = encodeURIComponent(ref);
                     return `
-                        <button onclick="readText(decodeURIComponent('${encoded}'))"
+                        <button type="button" onclick="openCommentaryInline(decodeURIComponent('${encoded}'))"
                             class="block w-full text-left px-3 py-2 rounded border border-slate-200 bg-white hover:bg-slate-100 text-sm text-slate-700 transition">
                             ${escapeHtml(ref)}
                         </button>
@@ -3475,6 +3515,151 @@
             }).join('');
         }
 
+        function renderSelectionInsightsChooser() {
+            if (!selectionInsightsBody) return;
+
+            const groupedCommentaries = selectionCommentaryState.groupedCommentaries;
+            if (!Array.isArray(groupedCommentaries) || !groupedCommentaries.length) {
+                selectionInsightsBody.innerHTML = '';
+                return;
+            }
+
+            let html = '';
+            if (selectionCommentaryState.wordInfo?.meaning) {
+                html += `
+                    <div class="rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-2">
+                        <p class="text-[11px] uppercase tracking-widest text-emerald-700 font-bold">${t('Word Meaning', 'משמעות מילה')}</p>
+                        <p class="text-sm text-emerald-900 mt-1"><span class="font-semibold">${escapeHtml(selectionCommentaryState.wordInfo.word || '')}</span>: ${escapeHtml(selectionCommentaryState.wordInfo.meaning || '')}</p>
+                    </div>
+                `;
+            }
+
+            html += `
+                <div class="rounded-lg border border-slate-200 bg-white px-3 py-3">
+                    <p class="text-[11px] uppercase tracking-widest text-slate-500 font-bold mb-2">${t('Linked Commentaries', 'מפרשים מקושרים')}</p>
+                    <p class="text-xs text-slate-500 mb-2">${t('Choose a commentator to load the commentary text here in the sidebar.', 'בחר פרשן כדי לטעון כאן את הטקסט של הפירוש בסרגל הצד.')}</p>
+                    <div class="space-y-2">${renderCommentaryChooser(groupedCommentaries)}</div>
+                </div>
+            `;
+
+            selectionInsightsBody.innerHTML = html;
+            selectionInsightsHint.textContent = t('Selected text:', 'הטקסט שנבחר:') + ` ${selectionCommentaryState.selectedText}`;
+        }
+
+        function renderInlineCommentaryLines(data) {
+            const sourceLines = Array.isArray(data?.lines) ? data.lines : [];
+            const renderedLines = sourceLines.map((line, idx) => {
+                const heRaw = normalizeDisplayText(line?.he || '');
+                const he = heRaw ? applyHebrewDisplaySettings(heRaw) : '';
+                const en = normalizeDisplayText(line?.en || '');
+
+                const preferredText = isHebrewMode()
+                    ? (he || en)
+                    : (en || he);
+
+                if (!preferredText) return '';
+
+                const isHebrew = Boolean(isHebrewMode() ? he : (!en && he));
+                const lineClass = isHebrew
+                    ? 'font-hebrew text-right text-[1.05rem] leading-[1.9]'
+                    : 'font-serif text-left text-sm leading-relaxed';
+                const lineDir = isHebrew ? 'rtl' : 'ltr';
+                const segmentLabel = formatSegmentLabel(line?.segment, idx);
+
+                return `
+                    <article class="pb-2 mb-2 border-b border-slate-100 last:border-b-0 last:mb-0 last:pb-0">
+                        <p class="text-[10px] uppercase tracking-wider text-slate-400 mb-1">${escapeHtml(segmentLabel)}</p>
+                        <p dir="${lineDir}" class="${lineClass}">${escapeHtml(preferredText).replace(/\n/g, '<br>')}</p>
+                    </article>
+                `;
+            }).filter(Boolean);
+
+            if (renderedLines.length) {
+                return renderedLines.join('');
+            }
+
+            const fallbackLines = isHebrewMode()
+                ? (Array.isArray(data?.he) ? data.he : [])
+                : (Array.isArray(data?.en) ? data.en : []);
+            const altFallbackLines = isHebrewMode()
+                ? (Array.isArray(data?.en) ? data.en : [])
+                : (Array.isArray(data?.he) ? data.he : []);
+            const merged = fallbackLines.length ? fallbackLines : altFallbackLines;
+
+            if (!merged.length) {
+                return `<p class="text-xs text-slate-500 italic">${t('No commentary text found for this reference.', 'לא נמצא טקסט פירוש עבור הפניה זו.')}</p>`;
+            }
+
+            const dir = isHebrewMode() ? 'rtl' : 'ltr';
+            const className = isHebrewMode()
+                ? 'font-hebrew text-right text-[1.05rem] leading-[1.9]'
+                : 'font-serif text-left text-sm leading-relaxed';
+
+            return merged
+                .map((line, idx) => `
+                    <article class="pb-2 mb-2 border-b border-slate-100 last:border-b-0 last:mb-0 last:pb-0">
+                        <p class="text-[10px] uppercase tracking-wider text-slate-400 mb-1">${idx + 1}</p>
+                        <p dir="${dir}" class="${className}">${escapeHtml(normalizeDisplayText(line || '')).replace(/\n/g, '<br>')}</p>
+                    </article>
+                `)
+                .join('');
+        }
+
+        async function openCommentaryInline(ref) {
+            const commentaryRef = String(ref || '').trim();
+            if (!commentaryRef || !selectionInsightsBody) return;
+
+            selectionInsightsHint.textContent = t('Loading commentary...', 'טוען פירוש...');
+            selectionInsightsBody.innerHTML = `
+                <div class="rounded-lg border border-slate-200 bg-white px-3 py-3">
+                    <p class="text-xs text-slate-500">${t('Loading commentary text...', 'טוען את טקסט הפירוש...')}</p>
+                </div>
+            `;
+
+            try {
+                const resp = await fetch(`/api/text/${encodeURIComponent(commentaryRef)}?autotranslate=1`);
+                const data = await resp.json();
+
+                if (!resp.ok || data?.error) {
+                    throw new Error(data?.error || `HTTP ${resp.status}`);
+                }
+
+                const enTitle = String(data?.title || commentaryRef).trim();
+                const heTitle = String(data?.heTitle || '').trim();
+                const displayTitle = isHebrewMode()
+                    ? (heTitle || enTitle)
+                    : (heTitle ? `${enTitle} · ${heTitle}` : enTitle);
+
+                selectionInsightsBody.innerHTML = `
+                    <div class="rounded-lg border border-slate-200 bg-white px-3 py-3">
+                        <div class="flex items-center justify-between gap-2 mb-2">
+                            <p class="text-[11px] uppercase tracking-widest text-slate-500 font-bold">${t('Commentary', 'פירוש')}</p>
+                            <button type="button" onclick="renderSelectionInsightsChooser()"
+                                class="text-[11px] font-semibold text-[#004e5f] hover:underline">
+                                ${t('Back to list', 'חזרה לרשימה')}
+                            </button>
+                        </div>
+                        <h5 class="text-sm font-semibold text-slate-800 mb-3">${escapeHtml(displayTitle)}</h5>
+                        <div class="max-h-[50dvh] overflow-y-auto pr-1 space-y-2">
+                            ${renderInlineCommentaryLines(data)}
+                        </div>
+                    </div>
+                `;
+                selectionInsightsHint.textContent = t('Viewing commentary:', 'מציג פירוש:') + ` ${commentaryRef}`;
+            } catch (_) {
+                selectionInsightsBody.innerHTML = `
+                    <div class="rounded-lg border border-red-200 bg-red-50 px-3 py-3">
+                        <p class="text-sm text-red-700 mb-2">${t('Unable to load commentary text right now.', 'לא ניתן לטעון כרגע את טקסט הפירוש.')}</p>
+                        <button type="button" onclick="renderSelectionInsightsChooser()"
+                            class="text-[11px] font-semibold text-[#004e5f] hover:underline">
+                            ${t('Back to linked commentaries', 'חזרה למפרשים מקושרים')}
+                        </button>
+                    </div>
+                `;
+                selectionInsightsHint.textContent = t('Could not load commentary.', 'לא ניתן לטעון את הפירוש.');
+            }
+        }
+
         async function updateSelectionInsights() {
             if (!selectionInsightsBody || appState.currentView?.type !== 'text') {
                 collapseCommentaryPanel();
@@ -3490,15 +3675,12 @@
             }
 
             if (selectedText.length > 220) {
-                resetSelectionInsights(
-                    t('Selection is too long. Highlight a shorter passage.', 'הבחירה ארוכה מדי. סמן קטע קצר יותר.')
-                );
-                showSelectionInsights();
-                if (isMobileViewport()) {
-                    openMobilePanel('right');
-                } else if (appState.prefs.showRightSidebar === false) {
-                    setSidebarVisibility('right', true);
-                }
+                collapseCommentaryPanel();
+                return;
+            }
+
+            if (!isCommentaryEligiblePrimaryText()) {
+                collapseCommentaryPanel();
                 return;
             }
 
@@ -3538,27 +3720,19 @@
             const [links, wordInfo] = await Promise.all([commentaryPromise, wordPromise]);
             const groupedCommentaries = groupCommentaryRefsByAuthor(extractCommentaryRefs(links));
 
-            let html = '';
-
-            if (cleanWord && wordInfo?.meaning) {
-                html += `
-                    <div class="rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-2">
-                        <p class="text-[11px] uppercase tracking-widest text-emerald-700 font-bold">${t('Word Meaning', 'משמעות מילה')}</p>
-                        <p class="text-sm text-emerald-900 mt-1"><span class="font-semibold">${escapeHtml(wordInfo.word || cleanWord)}</span>: ${escapeHtml(wordInfo.meaning || '')}</p>
-                    </div>
-                `;
+            if (!groupedCommentaries.length) {
+                collapseCommentaryPanel();
+                return;
             }
 
-            html += `
-                <div class="rounded-lg border border-slate-200 bg-white px-3 py-3">
-                    <p class="text-[11px] uppercase tracking-widest text-slate-500 font-bold mb-2">${t('Linked Commentaries', 'מפרשים מקושרים')}</p>
-                    <p class="text-xs text-slate-500 mb-2">${t('Choose a commentator to view available linked comments.', 'בחר פרשן כדי לראות את פירושיו הזמינים.')}</p>
-                    <div class="space-y-2">${renderCommentaryChooser(groupedCommentaries)}</div>
-                </div>
-            `;
+            selectionCommentaryState.groupedCommentaries = groupedCommentaries;
+            selectionCommentaryState.wordInfo = (cleanWord && wordInfo?.meaning)
+                ? { word: wordInfo.word || cleanWord, meaning: wordInfo.meaning || '' }
+                : null;
+            selectionCommentaryState.selectedText = selectedText;
+            setCommentaryAvailability(true);
 
-            selectionInsightsBody.innerHTML = html;
-            selectionInsightsHint.textContent = t('Selected text:', 'הטקסט שנבחר:') + ` ${selectedText}`;
+            renderSelectionInsightsChooser();
             showSelectionInsights();
 
             if (isMobileViewport()) {
