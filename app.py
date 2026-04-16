@@ -441,6 +441,8 @@ def _holiday_emoji_for_event(title, category=""):
     lowered = str(title or "").strip().lower()
     cat = str(category or "").strip().lower()
 
+    if "yom ha'atzmaut" in lowered or "yom haatzmaut" in lowered:
+        return "🇮🇱"
     if "hanukkah" in lowered or "chanukah" in lowered:
         return "🕎"
     if "erev rosh hashana" in lowered or "rosh hashana" in lowered:
@@ -464,10 +466,10 @@ def _holiday_emoji_for_event(title, category=""):
     if "shabbat" in lowered or cat in {"shabbat", "parashat"}:
         return "🕍"
     if cat in {"modern"}:
-        return "🇮🇱"
+        return "✡️"
     if cat in {"major", "minor", "holiday", "special"}:
-        return "📜"
-    return "📅"
+        return "✡️"
+    return "✡️"
 
 
 def _holiday_color_for_category(category):
