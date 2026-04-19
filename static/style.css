@@ -13,10 +13,10 @@ html {
 }
 
 :root {
-    --surface-base: #faf7f0;
-    --surface-subtle: #f4efe5;
-    --surface-elevated: #fffdf9;
-    --surface-topbar: #f1eee8;
+    --surface-base: #faf7ef;
+    --surface-subtle: #f6f1e7;
+    --surface-elevated: #fffaf2;
+    --surface-topbar: #f7f2e8;
     --accent-deep-blue: #1f3f63;
 }
 
@@ -236,45 +236,47 @@ h6 {
 
 .library-shell {
     background:
-        radial-gradient(circle at 12% 10%, rgba(141, 116, 83, 0.06) 0%, transparent 40%),
-        radial-gradient(circle at 90% 92%, rgba(116, 132, 124, 0.05) 0%, transparent 44%),
-        linear-gradient(180deg, #faf7f0 0%, #f6f1e8 100%);
+        radial-gradient(circle at 12% 10%, rgba(141, 116, 83, 0.04) 0%, transparent 42%),
+        radial-gradient(circle at 90% 92%, rgba(116, 132, 124, 0.03) 0%, transparent 46%),
+        linear-gradient(180deg, #faf7ef 0%, #f7f1e7 100%);
 }
 
 .topbar {
-    background: linear-gradient(180deg, rgba(245, 242, 234, 0.97) 0%, rgba(241, 238, 232, 0.97) 100%);
+    background: linear-gradient(180deg, rgba(248, 244, 236, 0.98) 0%, rgba(245, 240, 232, 0.98) 100%);
     -webkit-backdrop-filter: blur(8px);
     backdrop-filter: blur(8px);
     overflow-x: clip;
 }
 
 #searchInput {
-    border-color: rgba(31, 63, 99, 0.45) !important;
+    background: #fbf8f1 !important;
+    border-color: #d8d0c2 !important;
 }
 
 #searchInput:focus {
-    border-color: var(--accent-deep-blue) !important;
-    box-shadow: 0 0 0 2px rgba(31, 63, 99, 0.2) !important;
+    border-color: #b8aa90 !important;
+    box-shadow: 0 0 0 2px rgba(217, 205, 184, 0.78) !important;
 }
 
 #searchSuggestions {
-    border-color: rgba(31, 63, 99, 0.28) !important;
+    border-color: #ddd4c3 !important;
+    background: #fffaf1 !important;
 }
 
 .navigator-pane {
     background:
-        linear-gradient(180deg, rgba(255, 253, 248, 0.98) 0%, rgba(248, 244, 236, 0.98) 100%),
+        linear-gradient(180deg, rgba(250, 247, 239, 0.98) 0%, rgba(246, 241, 232, 0.98) 100%),
         repeating-linear-gradient(45deg,
-            rgba(115, 94, 67, 0.02) 0,
-            rgba(115, 94, 67, 0.02) 4px,
+            rgba(115, 94, 67, 0.015) 0,
+            rgba(115, 94, 67, 0.015) 4px,
             transparent 4px,
             transparent 10px);
 }
 
 .pulse-pane {
     background:
-        linear-gradient(180deg, #fbf8f1 0%, #f5f1e8 100%),
-        radial-gradient(circle at 85% 10%, rgba(125, 108, 85, 0.05) 0%, transparent 42%);
+        linear-gradient(180deg, #fbf7ef 0%, #f6f0e5 100%),
+        radial-gradient(circle at 85% 10%, rgba(125, 108, 85, 0.035) 0%, transparent 44%);
 }
 
 #parashaQuickLink {
@@ -640,7 +642,7 @@ h6 {
 
 @supports not ((-webkit-backdrop-filter: blur(1px)) or (backdrop-filter: blur(1px))) {
     .topbar {
-        background: rgba(241, 238, 232, 0.98);
+        background: rgba(246, 241, 232, 0.98);
     }
 
     .sidebar-show-tab {
@@ -833,8 +835,8 @@ body.mobile-panel-open {
 
 .home-typography {
     background:
-        radial-gradient(circle at 84% 12%, rgba(0, 33, 71, 0.06) 0%, transparent 36%),
-        radial-gradient(circle at 8% 80%, rgba(0, 78, 95, 0.05) 0%, transparent 34%);
+        radial-gradient(circle at 84% 12%, rgba(129, 106, 76, 0.03) 0%, transparent 42%),
+        radial-gradient(circle at 8% 80%, rgba(96, 109, 94, 0.025) 0%, transparent 40%);
 }
 
 .home-section-label {
