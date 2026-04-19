@@ -211,7 +211,7 @@ def _translate_hebrew_text_online(text):
         return ""
 
 
-def _fill_missing_english_lines(text_payload, max_lines=6, max_runtime_seconds=2.5):
+def _fill_missing_english_lines(text_payload, max_lines=24, max_runtime_seconds=5.0):
     """Fill missing English lines when Hebrew is available and translation can be generated."""
     if not isinstance(text_payload, dict):
         return text_payload
@@ -237,7 +237,7 @@ def _fill_missing_english_lines(text_payload, max_lines=6, max_runtime_seconds=2
         if not _contains_hebrew_letters(he_value):
             continue
 
-        cache_key = he_value[:240]
+        cache_key = he_value[:320]
         if cache_key in TRANSLATION_CACHE:
             generated = TRANSLATION_CACHE[cache_key]
         else:
