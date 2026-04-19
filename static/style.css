@@ -13,10 +13,10 @@ html {
 }
 
 :root {
-    --surface-base: #f7f6f2;
-    --surface-subtle: #f1eee8;
-    --surface-elevated: #fcfbf8;
-    --surface-topbar: #eeece5;
+    --surface-base: #faf7f0;
+    --surface-subtle: #f4efe5;
+    --surface-elevated: #fffdf9;
+    --surface-topbar: #f1eee8;
     --accent-deep-blue: #1f3f63;
 }
 
@@ -236,13 +236,13 @@ h6 {
 
 .library-shell {
     background:
-        radial-gradient(circle at 12% 10%, rgba(31, 63, 99, 0.06) 0%, transparent 40%),
-        radial-gradient(circle at 90% 92%, rgba(38, 94, 118, 0.07) 0%, transparent 44%),
-        linear-gradient(180deg, #faf8f4 0%, #f5f2ec 100%);
+        radial-gradient(circle at 12% 10%, rgba(141, 116, 83, 0.06) 0%, transparent 40%),
+        radial-gradient(circle at 90% 92%, rgba(116, 132, 124, 0.05) 0%, transparent 44%),
+        linear-gradient(180deg, #faf7f0 0%, #f6f1e8 100%);
 }
 
 .topbar {
-    background: linear-gradient(180deg, rgba(242, 239, 232, 0.97) 0%, rgba(233, 230, 223, 0.97) 100%);
+    background: linear-gradient(180deg, rgba(245, 242, 234, 0.97) 0%, rgba(241, 238, 232, 0.97) 100%);
     -webkit-backdrop-filter: blur(8px);
     backdrop-filter: blur(8px);
     overflow-x: clip;
@@ -263,18 +263,18 @@ h6 {
 
 .navigator-pane {
     background:
-        linear-gradient(180deg, rgba(255, 255, 255, 0.98) 0%, rgba(246, 250, 254, 0.98) 100%),
+        linear-gradient(180deg, rgba(255, 253, 248, 0.98) 0%, rgba(248, 244, 236, 0.98) 100%),
         repeating-linear-gradient(45deg,
-            rgba(0, 33, 71, 0.02) 0,
-            rgba(0, 33, 71, 0.02) 4px,
+            rgba(115, 94, 67, 0.02) 0,
+            rgba(115, 94, 67, 0.02) 4px,
             transparent 4px,
             transparent 10px);
 }
 
 .pulse-pane {
     background:
-        linear-gradient(180deg, #f8fbfd 0%, #f3f8fc 100%),
-        radial-gradient(circle at 85% 10%, rgba(0, 78, 95, 0.05) 0%, transparent 42%);
+        linear-gradient(180deg, #fbf8f1 0%, #f5f1e8 100%),
+        radial-gradient(circle at 85% 10%, rgba(125, 108, 85, 0.05) 0%, transparent 42%);
 }
 
 #parashaQuickLink {
@@ -640,7 +640,7 @@ h6 {
 
 @supports not ((-webkit-backdrop-filter: blur(1px)) or (backdrop-filter: blur(1px))) {
     .topbar {
-        background: rgba(238, 235, 228, 0.98);
+        background: rgba(241, 238, 232, 0.98);
     }
 
     .sidebar-show-tab {
