@@ -739,7 +739,7 @@
                             </div>
 
                             <div id="nextZmanBadge"
-                                class="hidden mb-3 rounded-md border border-[#c8d9ea] bg-[#eef5fb] px-2.5 py-2 text-xs text-[#183a5a]">
+                                class="hidden mb-3 rounded-md border border-[#b8d1ea] bg-[#eaf2fb] px-3 py-2.5 text-sm text-[#183a5a] shadow-[0_1px_0_rgba(11,43,79,0.08)]">
                             </div>
 
                             <div class="space-y-1 text-sm today-zmanim-list">
@@ -5780,9 +5780,37 @@
 
             const key = normalizeLibraryLookupKey(raw);
             const candidates = [];
+            const normalizedRaw = raw
+                .replace(/[’‘]/g, "'")
+                .replace(/[“”]/g, '"')
+                .replace(/\s+/g, ' ')
+                .replace(/\s+,/g, ',')
+                .trim();
             const hasGenesisChapter = /Genesis\s+\d+\b/i.test(raw);
             const hasGenesisVerse = /Genesis\s+\d+:\d+/i.test(raw);
             const specialTorahCommentator = /(rashi|ramban|ibn\s+ezra|sforno|kli\s+yakar)\s+on\s+torah/i.test(raw);
+
+            if (normalizedRaw && normalizedRaw !== raw) {
+                candidates.push(normalizedRaw);
+            }
+
+            if (/^text\s+/i.test(normalizedRaw)) {
+                candidates.push(normalizedRaw.replace(/^text\s+/i, ''));
+            }
+
+            if (/\w[.;:,]\s*$/.test(normalizedRaw)) {
+                candidates.push(normalizedRaw.replace(/[.;:,]\s*$/, ''));
+            }
+
+            if (normalizedRaw.includes(';')) {
+                const firstPart = normalizedRaw.split(';')[0].trim();
+                if (firstPart) candidates.push(firstPart);
+            }
+
+            if (/^Mishnah\s+Yom\s+Tov\b/i.test(normalizedRaw)) {
+                const suffix = (normalizedRaw.match(/\b\d+\b/) || [])[0] || '1';
+                candidates.push(`Mishnah Beitzah ${suffix}`);
+            }
 
             if (LIBRARY_REF_FIXES[key]) {
                 candidates.push(LIBRARY_REF_FIXES[key]);
@@ -5883,10 +5911,21 @@
                 return { payload: textPayloadCache.get(requestedRef), resolvedRef: requestedRef };
             }
 
-            const attempts = [requestedRef, ...buildFallbackTextRefs(requestedRef)].filter(Boolean).slice(0, 5);
+            const attempts = [];
+            const seenAttempts = new Set();
+            [requestedRef, ...buildFallbackTextRefs(requestedRef)].forEach((candidate) => {
+                const cleanCandidate = String(candidate || '').replace(/\s+/g, ' ').trim();
+                if (!cleanCandidate) return;
+                const key = cleanCandidate.toLowerCase();
+                if (seenAttempts.has(key)) return;
+                seenAttempts.add(key);
+                attempts.push(cleanCandidate);
+            });
+
+            const boundedAttempts = attempts.slice(0, 10);
             let lastErrorPayload = { error: 'Text not found' };
 
-            for (const candidate of attempts) {
+            for (const candidate of boundedAttempts) {
                 if (textPayloadCache.has(candidate)) {
                     const cachedPayload = textPayloadCache.get(candidate);
                     cacheTextPayload(requestedRef, cachedPayload);
@@ -5930,6 +5969,7 @@
 
         // ─── INLINE SEFARIA TEXT READER ───────────────────────────────────────
         async function readText(ref) {
+            const normalizedRequestRef = String(ref || '').replace(/\s+/g, ' ').trim();
             homeGrid.style.display = 'none';
             reader.classList.add('hidden');
             loadingOverlay.classList.remove('hidden');
@@ -5937,7 +5977,7 @@
             closeReaderSettingsPanel();
             setReaderSubtitle('');
 
-            document.getElementById('readerTitle').innerText = ref;
+            document.getElementById('readerTitle').innerText = normalizedRequestRef || String(ref || '');
             document.getElementById('readerContent').innerHTML = '';
             document.getElementById('readerSources').innerHTML = '';
             document.getElementById('readerMedia').innerHTML = '';
@@ -5945,26 +5985,26 @@
             resetSelectionInsights();
 
             try {
-                const { payload: data, resolvedRef } = await fetchTextPayloadWithFallback(ref);
+                const { payload: data, resolvedRef } = await fetchTextPayloadWithFallback(normalizedRequestRef || ref);
 
                 loadingOverlay.classList.add('hidden');
                 reader.classList.remove('hidden');
 
                 if (data.error) {
-                    document.getElementById('readerTitle').innerText = ref;
+                    document.getElementById('readerTitle').innerText = normalizedRequestRef || String(ref || '');
                     document.getElementById('readerContent').innerHTML =
                         `<p class="text-red-500">${t('Could not load text:', 'לא ניתן לטעון את הטקסט:')} ${data.error}</p>`;
                     window.currentTextPayload = null;
                     window.currentTextPayloadChain = [];
                     resetInfiniteReaderState(null);
-                    logReliability('text-load-error', { ref, error: data.error });
+                    logReliability('text-load-error', { ref: normalizedRequestRef || String(ref || ''), error: data.error });
                     return;
                 }
 
                 // Title
                 const titleEl = document.getElementById('readerTitle');
-                titleEl.innerText = data.heTitle ? `${data.title} · ${data.heTitle}` : data.title || ref;
-                setCurrentView('text', data.ref || resolvedRef || ref, data.title || data.ref || resolvedRef || ref);
+                titleEl.innerText = data.heTitle ? `${data.title} · ${data.heTitle}` : data.title || normalizedRequestRef || String(ref || '');
+                setCurrentView('text', data.ref || resolvedRef || normalizedRequestRef || ref, data.title || data.ref || resolvedRef || normalizedRequestRef || ref);
                 window.currentTextPayload = data;
                 window.currentTextPayloadChain = [data];
                 resetInfiniteReaderState(data);
@@ -5975,7 +6015,7 @@
                 document.querySelector('#reader header .bg-slate-100').textContent =
                     (isHebrewMode() ? categories.map(translateCategoryToken).join(' › ') : categories.join(' › ')) || t("Sh'elah Library", "ספריית ש'אלה");
 
-                const parashaMatch = getTorahParashaForRef(data.ref || ref, categories);
+                const parashaMatch = getTorahParashaForRef(data.ref || normalizedRequestRef || ref, categories);
                 if (parashaMatch) {
                     const parashaName = isHebrewMode()
                         ? (PARASHA_HE_MAP[parashaMatch.name] || parashaMatch.name)
@@ -6008,7 +6048,7 @@
                 window.currentTextPayload = null;
                 window.currentTextPayloadChain = [];
                 resetInfiniteReaderState(null);
-                logReliability('text-network-error', { ref, message: err.message });
+                logReliability('text-network-error', { ref: normalizedRequestRef || String(ref || ''), message: err.message });
             }
         }
 
@@ -6628,7 +6668,7 @@
                 const label = rowLabel || nextZman.name;
                 const remaining = Math.max(0, nextZman.t.getTime() - now.getTime());
                 const countdownLabel = formatCountdownDuration(remaining);
-                nextZmanBadge.innerHTML = `<span class="font-semibold">${t('Next zman', 'הזמן הבא')}</span>: ${escapeHtml(label)} <span class="text-slate-600">${t('in', 'בעוד')} ${escapeHtml(countdownLabel)}</span>`;
+                nextZmanBadge.innerHTML = `<span class="font-semibold text-[#22496f]">${t('Next zman', 'הזמן הבא')}:</span> <span class="text-[1.02rem] leading-snug font-semibold text-[#163a5c]">${escapeHtml(label)} <span class="font-medium text-[#2f597f]">${t('in', 'בעוד')} ${escapeHtml(countdownLabel)}</span></span>`;
                 nextZmanBadge.classList.remove('hidden');
             }
 
