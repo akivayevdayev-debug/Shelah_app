@@ -74,9 +74,9 @@
             <div class="text-navy font-hebrew text-4xl font-semibold leading-tight -mt-1">
                 ש
             </div>
-            <h1 class="text-xl font-serif tracking-tight text-navy font-semibold hidden md:block">Sh'elah <span
-                    class="text-xs font-normal text-slate-500 italic block -mt-0.5" data-en="Torah Encyclopedia"
-                    data-he="אנציקלופדיית תורה">Torah Encyclopedia</span></h1>
+            <h1 class="text-lg sm:text-xl font-serif tracking-tight text-navy font-semibold block">Sh'elah <span
+                    class="text-[11px] sm:text-xs font-normal text-slate-500 italic hidden sm:block -mt-0.5"
+                    data-en="Torah Encyclopedia" data-he="אנציקלופדיית תורה">Torah Encyclopedia</span></h1>
         </div>
 
         <!-- Top Navigation Menu Toggle + Search Bar -->
@@ -86,7 +86,7 @@
                 <!-- Search Form -->
                 <form id="searchForm" class="w-full relative min-w-0">
                     <input type="text" id="searchInput" placeholder="Search for a topic, halacha, or custom..."
-                        class="w-full bg-slate-100 hover:bg-slate-200 transition text-sm sm:text-base p-2 pl-4 pr-10 rounded-full border-none focus:ring-2 focus:ring-blue-400 focus:bg-white focus:outline-none"
+                        class="w-full bg-slate-100 hover:bg-slate-200 transition text-sm sm:text-base p-2 pl-4 pr-10 rounded-full border border-[#2b4868]/45 focus:border-[#1f3f63] focus:ring-2 focus:ring-[#1f3f63]/35 focus:bg-white focus:outline-none"
                         autocomplete="off" required>
                     <div id="searchIcon" class="absolute right-3 top-2 text-slate-400">
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
@@ -104,7 +104,7 @@
         </div>
 
         <div id="topbarControls" class="topbar-controls flex gap-2 items-center flex-wrap justify-end w-full lg:w-auto">
-            <div id="settingsMenuContainer" class="relative hidden lg:block">
+            <div id="settingsMenuContainer" class="relative">
                 <button id="settingsMenuBtn" type="button" aria-expanded="false" aria-haspopup="true"
                     class="px-2 py-1.5 border border-slate-300 rounded bg-slate-100 hover:bg-slate-200 transition text-slate-700"
                     title="Open settings menu">
@@ -204,7 +204,7 @@
                 </div>
             </div>
 
-            <div id="authControls" class="hidden lg:flex items-center gap-2 mr-1">
+            <div id="authControls" class="hidden items-center gap-2 mr-1">
                 <span id="authUserPill"
                     class="hidden max-w-[180px] truncate text-xs px-2 py-1 rounded-full bg-emerald-50 text-emerald-800 border border-emerald-200"></span>
                 <button id="signInBtn" type="button"
@@ -215,7 +215,8 @@
                     Out</button>
             </div>
 
-            <div class="hidden lg:block text-xs font-serif italic text-slate-500 mr-2">{{ daily.hebrew_date if daily
+            <div id="hebrewDateDisplay" class="text-xs font-serif italic text-slate-500 mr-1">{{ daily.hebrew_date if
+                daily
                 else "Today" }}</div>
             <!-- Translator Toggles -->
             <button onclick="toggleLanguage('en')"
@@ -237,27 +238,27 @@
 
         <button id="showLeftSidebarTopBtn" type="button"
             class="sidebar-show-tab hidden items-center gap-1 absolute left-3 top-3 z-30 px-2 py-1 rounded-md border border-slate-200 bg-white/85 text-slate-500 text-[10px] font-medium tracking-wide hover:bg-white hover:text-slate-700 transition"
-            data-en="Navigator" data-he="ניווט" aria-label="Show Navigator">Navigator</button>
+            data-en="Library" data-he="ספריה" aria-label="Show Library">Library</button>
 
         <button id="showRightSidebarTopBtn" type="button"
             class="sidebar-show-tab hidden items-center gap-1 absolute right-3 top-3 z-30 px-2 py-1 rounded-md border border-slate-200 bg-white/85 text-slate-500 text-[10px] font-medium tracking-wide hover:bg-white hover:text-slate-700 transition"
             data-en="Commentary" data-he="מפרשים" aria-label="Show Commentary Panel">Commentary</button>
 
-        <!-- Column 1: Navigator (Left) -->
+        <!-- Column 1: Library (Left) -->
         <nav id="leftSidebar"
             class="navigator-pane mobile-drawer mobile-drawer-left w-64 xl:w-72 border-r bg-white p-6 overflow-y-auto hidden lg:block flex-shrink-0 custom-scrollbar">
             <div class="flex lg:hidden items-center justify-between mb-4 pb-3 border-b border-slate-200">
-                <h3 class="text-xs font-bold text-slate-500 uppercase tracking-widest" data-en="Navigator"
-                    data-he="ניווט">
-                    Navigator</h3>
+                <h3 class="text-xs font-bold text-slate-500 uppercase tracking-widest" data-en="Library"
+                    data-he="ספריה">
+                    Library</h3>
                 <button id="closeLeftSidebarBtn" type="button"
                     class="px-2 py-1 text-xs border border-slate-300 rounded bg-white hover:bg-slate-100 transition"
                     data-en="Close" data-he="סגור">Close</button>
             </div>
             <div class="hidden lg:flex items-center justify-between mb-4 pb-3 border-b border-slate-200">
-                <h3 class="text-xs font-bold text-slate-500 uppercase tracking-widest" data-en="Navigator"
-                    data-he="ניווט">
-                    Navigator</h3>
+                <h3 class="text-xs font-bold text-slate-500 uppercase tracking-widest" data-en="Library"
+                    data-he="ספריה">
+                    Library</h3>
                 <button id="hideLeftSidebarBtn" type="button"
                     class="text-xs text-slate-500 hover:text-slate-800 font-semibold uppercase tracking-wide"
                     data-en="Hide" data-he="הסתר">Hide</button>
@@ -433,19 +434,19 @@
                     <summary class="font-semibold hover:text-[#8b5e34] list-none border-b pb-2 mb-2"
                         data-en="Torah Commentaries" data-he="מפרשי התורה">Torah Commentaries</summary>
                     <ul class="ml-2 space-y-1 border-l-2 pl-3 border-[#8b5e34]/30">
-                        <li><button onclick="readText('Rashi on Torah, Genesis 1')"
+                        <li><button onclick="readText('Rashi on Genesis 1:1')"
                                 class="text-left text-slate-600 hover:text-[#8b5e34] text-sm w-full py-0.5">Rashi on
                                 Torah</button></li>
-                        <li><button onclick="readText('Ibn Ezra on Torah, Genesis 1')"
+                        <li><button onclick="readText('Ibn Ezra on Genesis 1:1')"
                                 class="text-left text-slate-600 hover:text-[#8b5e34] text-sm w-full py-0.5">Ibn Ezra on
                                 Torah</button></li>
-                        <li><button onclick="readText('Ramban on Torah, Genesis 1')"
+                        <li><button onclick="readText('Ramban on Genesis 1:1')"
                                 class="text-left text-slate-600 hover:text-[#8b5e34] text-sm w-full py-0.5">Ramban on
                                 Torah</button></li>
-                        <li><button onclick="readText('Sforno on Torah, Genesis 1')"
+                        <li><button onclick="readText('Sforno on Genesis 1:1')"
                                 class="text-left text-slate-600 hover:text-[#8b5e34] text-sm w-full py-0.5">Sforno on
                                 Torah</button></li>
-                        <li><button onclick="readText('Kli Yakar on Torah, Genesis 1')"
+                        <li><button onclick="readText('Kli Yakar on Genesis 1:1')"
                                 class="text-left text-slate-600 hover:text-[#8b5e34] text-sm w-full py-0.5">Kli Yakar on
                                 Torah</button></li>
                     </ul>
@@ -466,7 +467,7 @@
                         <li><button onclick="readText('Mishnah Sukkah 1')"
                                 class="text-left text-slate-600 hover:text-[#5a99b7] text-sm w-full py-0.5">Sukkah</button>
                         </li>
-                        <li><button onclick="readText('Mishnah Yom Tov 1')"
+                        <li><button onclick="readText('Mishnah Beitzah 1')"
                                 class="text-left text-slate-600 hover:text-[#5a99b7] text-sm w-full py-0.5">Yom
                                 Tov</button></li>
                         <li><button onclick="readText('Mishnah Rosh Hashanah 1')"
@@ -735,6 +736,10 @@
 
                             <div id="zmanimWarning"
                                 class="hidden text-orange-600 text-xs font-bold bg-orange-50 border-l-2 border-orange-600 p-2 mb-3">
+                            </div>
+
+                            <div id="nextZmanBadge"
+                                class="hidden mb-3 rounded-md border border-[#c8d9ea] bg-[#eef5fb] px-2.5 py-2 text-xs text-[#183a5a]">
                             </div>
 
                             <div class="space-y-1 text-sm today-zmanim-list">
@@ -1435,10 +1440,18 @@
 
         let zmanimData = null;
         let countdownInterval = null;
+        let infiniteReaderState = {
+            loading: false,
+            nextRef: '',
+            seenRefs: new Set(),
+        };
+        window.currentTextPayloadChain = [];
 
         const APP_PREFS_KEY = "Sh'elahPrefs";
         const APP_SHELF_KEY = "Sh'elahShelf";
         const ZMANIM_LOCATION_CACHE_KEY = "Sh'elahLastLocation";
+        const LANGUAGE_MANUAL_KEY = "Sh'elahLanguageManuallySet";
+        const READER_LAYOUT_MANUAL_KEY = "Sh'elahReaderLayoutManuallySet";
         const TORAH_PARASHA_BY_BOOK = {
             'Genesis': [
                 { chapter: 1, name: 'Bereshit' },
@@ -1505,13 +1518,24 @@
                 { chapter: 33, name: 'Vezot Haberakhah' },
             ],
         };
+
+        function detectRegionalDefaults() {
+            const timezone = String(Intl.DateTimeFormat().resolvedOptions().timeZone || '');
+            if (/asia\/jerusalem/i.test(timezone)) {
+                return { language: 'he', readerLayout: 'hebrew' };
+            }
+            return { language: 'en', readerLayout: 'bilingual' };
+        }
+
+        const regionalDefaults = detectRegionalDefaults();
+
         const appState = {
             suggestionItems: [],
             activeSuggestionIndex: -1,
             prefs: {
                 mode: 'balanced',
                 community: 'All',
-                readerLayout: 'bilingual',
+                readerLayout: regionalDefaults.readerLayout,
                 fontSize: 18,
                 lineHeight: 1.8,
                 showLeftSidebar: true,
@@ -2475,6 +2499,12 @@
             target.scrollTo({ top: 0, behavior });
         }
 
+        function handleInfiniteReaderScroll() {
+            if (shouldLoadNextTextChunk()) {
+                void loadNextTextChunk();
+            }
+        }
+
         function focusHomeDailySection() {
             const dailySection = document.getElementById('dailyPulseColumn');
             if (!dailySection) return;
@@ -2494,6 +2524,9 @@
         function setMobileSearchExpanded(expanded) {
             const shouldExpand = Boolean(expanded) && isMobileViewport();
             document.body.classList.toggle('mobile-search-open', shouldExpand);
+            if (shouldExpand) {
+                closeSettingsMenu();
+            }
             if (!shouldExpand) {
                 searchInput?.blur();
             }
@@ -3071,7 +3104,9 @@
             searchSuggestions.innerHTML = appState.suggestionItems.map((item, index) => {
                 const isActive = index === appState.activeSuggestionIndex;
                 const baseLabel = String((isHebrewMode() ? item.label_he : item.label) || item.label || '').trim();
-                const typePrefix = typeLabels[item.type] || item.type || '';
+                const typePrefix = item.type === 'text'
+                    ? ''
+                    : (typeLabels[item.type] || item.type || '');
                 const hasPrefix = typePrefix
                     && baseLabel.toLowerCase().startsWith(`${typePrefix.toLowerCase()} `);
                 let displayLabel = hasPrefix
@@ -3089,16 +3124,20 @@
                     ? (item.subtitle_he || translateSuggestionSubtitle(item.subtitle, item.type))
                     : (item.subtitle || '');
 
-                const typeBadge = typeLabels[item.type] || item.type || '';
+                const typeBadge = item.type === 'text'
+                    ? ''
+                    : (typeLabels[item.type] || item.type || '');
                 return `
-                    <button type="button" class="suggestion-item w-full text-left px-4 py-3 border-b border-slate-100 last:border-b-0 ${isActive ? 'bg-blue-50' : 'hover:bg-slate-50'}"
+                    <button type="button" class="suggestion-item w-full text-left px-4 py-3 border-b border-slate-100 last:border-b-0 ${isActive ? 'bg-[#e7f0fa]' : 'hover:bg-slate-50'}"
                         data-index="${index}">
                         <div class="flex items-center justify-between gap-3">
                             <div class="min-w-0">
                                 <div class="text-sm text-slate-800 font-medium truncate">${escapeHtml(displayLabel)}</div>
                                 <div class="text-xs text-slate-500 truncate">${escapeHtml(subtitle)}</div>
                             </div>
-                            <span class="text-[10px] uppercase tracking-widest text-slate-400">${escapeHtml(typeBadge)}</span>
+                            ${typeBadge
+                        ? `<span class="text-[10px] uppercase tracking-widest text-slate-400">${escapeHtml(typeBadge)}</span>`
+                        : ''}
                         </div>
                     </button>
                 `;
@@ -3277,7 +3316,14 @@
             }
 
             const supportedLayouts = ['bilingual', 'bilingual-reverse', 'interleaved', 'english', 'hebrew'];
-            return supportedLayouts.includes(layout) ? layout : 'bilingual';
+            const normalized = supportedLayouts.includes(layout) ? layout : 'bilingual';
+
+            // Side-by-side dual columns are not readable on narrow mobile viewports.
+            if (isMobileViewport() && (normalized === 'bilingual' || normalized === 'bilingual-reverse')) {
+                return 'interleaved';
+            }
+
+            return normalized;
         }
 
         function isDualColumnReaderLayout(layout = appState.prefs.readerLayout) {
@@ -3527,9 +3573,9 @@
             let html = '';
             if (selectionCommentaryState.wordInfo?.meaning) {
                 html += `
-                    <div class="rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-2">
-                        <p class="text-[11px] uppercase tracking-widest text-emerald-700 font-bold">${t('Word Meaning', 'משמעות מילה')}</p>
-                        <p class="text-sm text-emerald-900 mt-1"><span class="font-semibold">${escapeHtml(selectionCommentaryState.wordInfo.word || '')}</span>: ${escapeHtml(selectionCommentaryState.wordInfo.meaning || '')}</p>
+                    <div class="rounded-lg border border-[#c8d9ea] bg-[#eef5fb] px-3 py-2">
+                        <p class="text-[11px] uppercase tracking-widest text-[#1f4a72] font-bold">${t('Word Meaning', 'משמעות מילה')}</p>
+                        <p class="text-sm text-[#163754] mt-1"><span class="font-semibold">${escapeHtml(selectionCommentaryState.wordInfo.word || '')}</span>: ${escapeHtml(selectionCommentaryState.wordInfo.meaning || '')}</p>
                     </div>
                 `;
             }
@@ -3553,23 +3599,21 @@
                 const he = heRaw ? applyHebrewDisplaySettings(heRaw) : '';
                 const en = normalizeDisplayText(line?.en || '');
 
-                const preferredText = isHebrewMode()
-                    ? (he || en)
-                    : (en || he);
+                if (!he && !en) return '';
 
-                if (!preferredText) return '';
-
-                const isHebrew = Boolean(isHebrewMode() ? he : (!en && he));
-                const lineClass = isHebrew
-                    ? 'font-hebrew text-right text-[1.05rem] leading-[1.9]'
-                    : 'font-serif text-left text-sm leading-relaxed';
-                const lineDir = isHebrew ? 'rtl' : 'ltr';
                 const segmentLabel = formatSegmentLabel(line?.segment, idx);
+                const hebrewMarkup = he
+                    ? `<p dir="rtl" class="font-hebrew text-right text-[1.05rem] leading-[1.9] text-slate-800">${escapeHtml(he).replace(/\n/g, '<br>')}</p>`
+                    : '';
+                const englishMarkup = en
+                    ? `<p dir="ltr" class="font-serif text-left text-sm leading-relaxed text-slate-700 mt-2">${escapeHtml(en).replace(/\n/g, '<br>')}</p>`
+                    : '';
 
                 return `
                     <article class="pb-2 mb-2 border-b border-slate-100 last:border-b-0 last:mb-0 last:pb-0">
                         <p class="text-[10px] uppercase tracking-wider text-slate-400 mb-1">${escapeHtml(segmentLabel)}</p>
-                        <p dir="${lineDir}" class="${lineClass}">${escapeHtml(preferredText).replace(/\n/g, '<br>')}</p>
+                        ${hebrewMarkup}
+                        ${englishMarkup}
                     </article>
                 `;
             }).filter(Boolean);
@@ -3578,30 +3622,36 @@
                 return renderedLines.join('');
             }
 
-            const fallbackLines = isHebrewMode()
-                ? (Array.isArray(data?.he) ? data.he : [])
-                : (Array.isArray(data?.en) ? data.en : []);
-            const altFallbackLines = isHebrewMode()
-                ? (Array.isArray(data?.en) ? data.en : [])
-                : (Array.isArray(data?.he) ? data.he : []);
-            const merged = fallbackLines.length ? fallbackLines : altFallbackLines;
+            const heFallbackLines = Array.isArray(data?.he) ? data.he : [];
+            const enFallbackLines = Array.isArray(data?.en) ? data.en : [];
+            const fallbackLen = Math.max(heFallbackLines.length, enFallbackLines.length);
 
-            if (!merged.length) {
+            if (!fallbackLen) {
                 return `<p class="text-xs text-slate-500 italic">${t('No commentary text found for this reference.', 'לא נמצא טקסט פירוש עבור הפניה זו.')}</p>`;
             }
 
-            const dir = isHebrewMode() ? 'rtl' : 'ltr';
-            const className = isHebrewMode()
-                ? 'font-hebrew text-right text-[1.05rem] leading-[1.9]'
-                : 'font-serif text-left text-sm leading-relaxed';
+            return Array.from({ length: fallbackLen }, (_, idx) => {
+                const heRaw = normalizeDisplayText(heFallbackLines[idx] || '');
+                const he = heRaw ? applyHebrewDisplaySettings(heRaw) : '';
+                const en = normalizeDisplayText(enFallbackLines[idx] || '');
+                if (!he && !en) return '';
 
-            return merged
-                .map((line, idx) => `
+                const hebrewMarkup = he
+                    ? `<p dir="rtl" class="font-hebrew text-right text-[1.05rem] leading-[1.9] text-slate-800">${escapeHtml(he).replace(/\n/g, '<br>')}</p>`
+                    : '';
+                const englishMarkup = en
+                    ? `<p dir="ltr" class="font-serif text-left text-sm leading-relaxed text-slate-700 mt-2">${escapeHtml(en).replace(/\n/g, '<br>')}</p>`
+                    : '';
+
+                return `
                     <article class="pb-2 mb-2 border-b border-slate-100 last:border-b-0 last:mb-0 last:pb-0">
                         <p class="text-[10px] uppercase tracking-wider text-slate-400 mb-1">${idx + 1}</p>
-                        <p dir="${dir}" class="${className}">${escapeHtml(normalizeDisplayText(line || '')).replace(/\n/g, '<br>')}</p>
+                        ${hebrewMarkup}
+                        ${englishMarkup}
                     </article>
-                `)
+                `;
+            })
+                .filter(Boolean)
                 .join('');
         }
 
@@ -3767,44 +3817,129 @@
             });
         }
 
-        function renderCurrentTextByLayout(options = {}) {
-            const { preserveScroll = false } = options;
-            const data = window.currentTextPayload;
-            const readerContent = document.getElementById('readerContent');
-            const sourcesDiv = document.getElementById('readerSources');
+        function getRefTrackingKey(refValue) {
+            const normalized = normalizeLibraryLookupKey(refValue);
+            if (normalized) return normalized;
+            return String(refValue || '').toLowerCase().trim();
+        }
 
-            if (!data || !readerContent || !sourcesDiv) return;
+        function getCurrentTextPayloadChain() {
+            if (Array.isArray(window.currentTextPayloadChain) && window.currentTextPayloadChain.length) {
+                return window.currentTextPayloadChain.filter(Boolean);
+            }
+            return window.currentTextPayload ? [window.currentTextPayload] : [];
+        }
 
-            const scrollState = preserveScroll ? captureReaderScrollState() : null;
-            const layout = getNormalizedReaderLayout();
+        function resetInfiniteReaderState(seedPayload = null) {
+            infiniteReaderState.loading = false;
+            infiniteReaderState.nextRef = String(seedPayload?.next || '').trim();
+            infiniteReaderState.seenRefs = new Set();
+
+            const seedChain = Array.isArray(window.currentTextPayloadChain)
+                ? window.currentTextPayloadChain
+                : (seedPayload ? [seedPayload] : []);
+
+            seedChain.forEach((chunk) => {
+                const refKey = getRefTrackingKey(chunk?.ref || chunk?.title || '');
+                if (refKey) infiniteReaderState.seenRefs.add(refKey);
+            });
+        }
+
+        function shouldLoadNextTextChunk(thresholdPx = 420) {
+            if (appState.currentView?.type !== 'text') return false;
+            if (infiniteReaderState.loading) return false;
+
+            const nextRef = String(infiniteReaderState.nextRef || '').trim();
+            if (!nextRef) return false;
+
+            const nextRefKey = getRefTrackingKey(nextRef);
+            if (nextRefKey && infiniteReaderState.seenRefs.has(nextRefKey)) {
+                return false;
+            }
+
+            const target = getPrimaryScrollElement();
+            const isPageTarget = target === document.documentElement || target === document.body;
+            const distanceFromBottom = isPageTarget
+                ? Math.max(0, (document.documentElement.scrollHeight || 0) - ((window.pageYOffset || 0) + window.innerHeight))
+                : Math.max(0, target.scrollHeight - (target.scrollTop + target.clientHeight));
+
+            return distanceFromBottom <= thresholdPx;
+        }
+
+        function infiniteReaderStatusMarkup() {
+            if (appState.currentView?.type !== 'text') return '';
+            if (infiniteReaderState.loading) {
+                return `<div id="infiniteReaderStatus" class="mt-3 text-xs text-slate-500 italic">${t('Loading next section...', 'טוען את הקטע הבא...')}</div>`;
+            }
+            if (infiniteReaderState.nextRef) {
+                return `<div id="infiniteReaderStatus" class="mt-3 text-xs text-slate-500">${t('Scroll to continue to:', 'גלול להמשך אל:')} <span class="font-semibold text-slate-700">${escapeHtml(infiniteReaderState.nextRef)}</span></div>`;
+            }
+            return `<div id="infiniteReaderStatus" class="mt-3 text-xs text-slate-400 italic">${t('End of available sections.', 'סוף הקטעים הזמינים.')}</div>`;
+        }
+
+        async function loadNextTextChunk() {
+            if (!shouldLoadNextTextChunk()) return;
+
+            const requestedNextRef = String(infiniteReaderState.nextRef || '').trim();
+            if (!requestedNextRef) return;
+
+            infiniteReaderState.loading = true;
+            renderCurrentTextByLayout({ preserveScroll: true });
+
+            try {
+                const { payload: nextData, resolvedRef } = await fetchTextPayloadWithFallback(requestedNextRef);
+                if (!nextData || nextData.error) {
+                    logReliability('text-next-load-error', {
+                        requested: requestedNextRef,
+                        error: nextData?.error || 'unknown',
+                    });
+                    infiniteReaderState.nextRef = '';
+                    return;
+                }
+
+                const resolved = String(nextData.ref || resolvedRef || requestedNextRef).trim();
+                const resolvedKey = getRefTrackingKey(resolved);
+
+                if (!Array.isArray(window.currentTextPayloadChain)) {
+                    window.currentTextPayloadChain = window.currentTextPayload ? [window.currentTextPayload] : [];
+                }
+
+                if (!resolvedKey || !infiniteReaderState.seenRefs.has(resolvedKey)) {
+                    window.currentTextPayloadChain.push(nextData);
+                    if (resolvedKey) infiniteReaderState.seenRefs.add(resolvedKey);
+                }
+
+                infiniteReaderState.nextRef = String(nextData.next || '').trim();
+                const nextRefKey = getRefTrackingKey(infiniteReaderState.nextRef);
+                if (nextRefKey && infiniteReaderState.seenRefs.has(nextRefKey)) {
+                    infiniteReaderState.nextRef = '';
+                }
+            } catch (error) {
+                logReliability('text-next-load-network-error', {
+                    requested: requestedNextRef,
+                    message: error.message,
+                });
+                infiniteReaderState.nextRef = '';
+            } finally {
+                infiniteReaderState.loading = false;
+                renderCurrentTextByLayout({ preserveScroll: true });
+            }
+        }
+
+        function renderTextRowsForPayload(data, layout) {
             const cleanLine = (text = '') => escapeHtml(normalizeDisplayText(text)).replace(/\n/g, '<br>');
 
-            let navHTML = '<div class="flex justify-between mb-8 text-sm">';
-            if (data.prev) {
-                navHTML += `<button onclick="readText('${data.prev}')" class="px-4 py-2 bg-slate-100 rounded hover:bg-slate-200 font-serif">&#8592; ${data.prev}</button>`;
-            } else {
-                navHTML += '<span></span>';
-            }
-            if (data.next) {
-                navHTML += `<button onclick="readText('${data.next}')" class="px-4 py-2 bg-slate-100 rounded hover:bg-slate-200 font-serif">${data.next} &#8594;</button>`;
-            }
-            navHTML += '</div>';
-            readerContent.innerHTML = navHTML;
-
-            if (!Array.isArray(data.lines) || data.lines.length === 0) {
-                sourcesDiv.innerHTML = `<p class="text-slate-500 italic">${t('No text content found for this reference.', 'לא נמצא תוכן טקסט עבור הפניה זו.')}</p>`;
-                if (scrollState) {
-                    requestAnimationFrame(() => restoreReaderScrollState(scrollState));
-                }
-                return;
+            if (!Array.isArray(data?.lines) || !data.lines.length) {
+                return `<p class="text-slate-500 italic">${t('No text content found for this reference.', 'לא נמצא תוכן טקסט עבור הפניה זו.')}</p>`;
             }
 
-            const rows = data.lines.map((line, idx) => {
+            return data.lines.map((line, idx) => {
                 const label = formatSegmentLabel(line.segment, idx);
-                const heSourceRaw = normalizeDisplayText(line.he || line.en || '');
-                const he = cleanLine(applyHebrewDisplaySettings(line.he || line.en || ''));
-                const en = cleanLine(line.en || '');
-                const translit = appState.prefs.transliteration ? transliterationMarkup(heSourceRaw) : '';
+                const heRaw = normalizeDisplayText(line.he || '');
+                const he = heRaw ? cleanLine(applyHebrewDisplaySettings(heRaw)) : '';
+                const enRaw = normalizeDisplayText(line.en || '');
+                const en = enRaw ? cleanLine(enRaw) : '';
+                const translit = appState.prefs.transliteration ? transliterationMarkup(heRaw) : '';
 
                 const hebrewLine = he
                     ? `<p>${he}</p>${translit}`
@@ -3860,23 +3995,62 @@
                     </div>
                 `;
             }).join('');
+        }
 
-            sourcesDiv.innerHTML = `
-                <div class="reader-source-clean mb-6">
-                    <div class="reader-source-title text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-2">
-                        <span>${escapeHtml(data.ref || appState.currentView?.value || '')}</span>
+        function renderCurrentTextByLayout(options = {}) {
+            const { preserveScroll = false } = options;
+            const chain = getCurrentTextPayloadChain();
+            const data = chain[0];
+            const readerContent = document.getElementById('readerContent');
+            const sourcesDiv = document.getElementById('readerSources');
+
+            if (!data || !readerContent || !sourcesDiv) return;
+
+            const scrollState = preserveScroll ? captureReaderScrollState() : null;
+            const layout = getNormalizedReaderLayout();
+
+            let navHTML = '<div class="flex justify-between mb-8 text-sm">';
+            if (data.prev) {
+                navHTML += `<button onclick="readText('${data.prev}')" class="px-4 py-2 bg-slate-100 rounded hover:bg-slate-200 font-serif">${t('Previous section', 'קטע קודם')}: ${data.prev}</button>`;
+            } else {
+                navHTML += '<span></span>';
+            }
+            if (data.next) {
+                navHTML += `<button onclick="readText('${data.next}')" class="px-4 py-2 bg-slate-100 rounded hover:bg-slate-200 font-serif">${t('Jump to next section', 'מעבר לקטע הבא')}: ${data.next}</button>`;
+            }
+            navHTML += '</div>';
+            readerContent.innerHTML = navHTML;
+
+            const sectionsMarkup = chain.map((chunk, index) => {
+                const sectionRows = renderTextRowsForPayload(chunk, layout);
+                const sectionRef = String(chunk?.ref || appState.currentView?.value || '').trim();
+                const sectionLabel = index === 0
+                    ? sectionRef
+                    : `${t('Continued:', 'המשך:')} ${sectionRef}`;
+
+                return `
+                    <div class="reader-source-clean mb-6" data-text-chunk-index="${index}">
+                        <div class="reader-source-title text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-2">
+                            <span>${escapeHtml(sectionLabel)}</span>
+                        </div>
+                        <div class="reader-source-lines">
+                            ${sectionRows}
+                        </div>
                     </div>
-                    <div class="reader-source-lines">
-                        ${rows}
-                    </div>
-                </div>
-            `;
+                `;
+            }).join('');
+
+            sourcesDiv.innerHTML = `${sectionsMarkup}${infiniteReaderStatusMarkup()}`;
 
             if (scrollState) {
                 requestAnimationFrame(() => restoreReaderScrollState(scrollState));
             }
 
             bindSelectionInsightsEvents();
+
+            if (shouldLoadNextTextChunk(260)) {
+                void loadNextTextChunk();
+            }
         }
 
         function applyReaderPreferences() {
@@ -4138,6 +4312,12 @@
             if (!['bilingual', 'bilingual-reverse', 'interleaved', 'english', 'hebrew'].includes(appState.prefs.readerLayout)) {
                 appState.prefs.readerLayout = 'bilingual';
             }
+
+            const layoutManuallySet = localStorage.getItem(READER_LAYOUT_MANUAL_KEY) === '1';
+            if (regionalDefaults.language === 'he' && !layoutManuallySet) {
+                appState.prefs.readerLayout = 'hebrew';
+            }
+
             appState.prefs.transliteration = Boolean(appState.prefs.transliteration);
             appState.prefs.showVowels = appState.prefs.showVowels !== false;
             appState.prefs.showCantillation = appState.prefs.showCantillation !== false;
@@ -4187,6 +4367,7 @@
 
         readerLayoutSelect.addEventListener('change', () => {
             appState.prefs.readerLayout = readerLayoutSelect.value;
+            localStorage.setItem(READER_LAYOUT_MANUAL_KEY, '1');
             savePrefs();
             applyReaderPreferences();
         });
@@ -4350,6 +4531,12 @@
                 });
             });
         }
+
+        if (mainContainer) {
+            mainContainer.addEventListener('scroll', handleInfiniteReaderScroll, { passive: true });
+        }
+        window.addEventListener('scroll', handleInfiniteReaderScroll, { passive: true });
+
         window.addEventListener('resize', () => {
             applySidebarVisibility();
             if (appState.prefs.shulMode) {
@@ -4559,6 +4746,16 @@
             arbanel: 'Abarbanel on Torah, Genesis 1',
             bartenuraontorah: 'Bartenura on Torah, Genesis 1',
             barenturaontorah: 'Bartenura on Torah, Genesis 1',
+            rashiontorah: 'Rashi on Genesis 1:1',
+            ibnezraontorah: 'Ibn Ezra on Genesis 1:1',
+            rambanontorah: 'Ramban on Genesis 1:1',
+            sfornoontorah: 'Sforno on Genesis 1:1',
+            kliyakarontorah: 'Kli Yakar on Genesis 1:1',
+            rashiontorahgenesis1: 'Rashi on Genesis 1:1',
+            ibnezraontorahgenesis1: 'Ibn Ezra on Genesis 1:1',
+            rambanontorahgenesis1: 'Ramban on Genesis 1:1',
+            sfornoontorahgenesis1: 'Sforno on Genesis 1:1',
+            kliyakarontorahgenesis1: 'Kli Yakar on Genesis 1:1',
             tzeenahureenah: "Tze'enah URe'enah, Genesis 1:1",
         };
 
@@ -4604,6 +4801,11 @@
             if (fixedRef) return fixedRef;
 
             const titleKey = normalizeLibraryLookupKey(title);
+            if (/rashiontorah|ibnezraontorah|rambanontorah|sfornoontorah|kliyakarontorah/.test(titleKey)) {
+                const fixedSpecialRef = resolveKnownLibraryRef(title);
+                if (fixedSpecialRef) return fixedSpecialRef;
+                return title.replace(/on\s+torah/i, 'on Genesis 1:1');
+            }
             if (/ontorah$/.test(titleKey) || /commentary/.test(titleKey)) {
                 return `${title}, Genesis 1:1`;
             }
@@ -4865,11 +5067,11 @@
             const progressLabel = `${context.index + 1}/${context.total}`;
 
             const prevButton = context.prev
-                ? `<button onclick="displayPrayer(decodeURIComponent('${encodeURIComponent(context.prev.name)}'))" class="px-3 py-2 bg-slate-100 rounded hover:bg-slate-200 text-slate-700 text-sm font-medium">&#8592; ${escapeHtml(getPrayerDisplayName(context.prev.name))}</button>`
+                ? `<button onclick="displayPrayer(decodeURIComponent('${encodeURIComponent(context.prev.name)}'))" class="px-3 py-2 bg-slate-100 rounded hover:bg-slate-200 text-slate-700 text-sm font-medium">${t('Previous', 'הקודם')}: ${escapeHtml(getPrayerDisplayName(context.prev.name))}</button>`
                 : '<span></span>';
 
             const nextButton = context.next
-                ? `<button onclick="displayPrayer(decodeURIComponent('${encodeURIComponent(context.next.name)}'))" class="px-3 py-2 bg-slate-100 rounded hover:bg-slate-200 text-slate-700 text-sm font-medium">${escapeHtml(getPrayerDisplayName(context.next.name))} &#8594;</button>`
+                ? `<button onclick="displayPrayer(decodeURIComponent('${encodeURIComponent(context.next.name)}'))" class="px-3 py-2 bg-slate-100 rounded hover:bg-slate-200 text-slate-700 text-sm font-medium">${t('Next', 'הבא')}: ${escapeHtml(getPrayerDisplayName(context.next.name))}</button>`
                 : '<span></span>';
 
             return `
@@ -5131,6 +5333,8 @@
                 window.currentPrayerName = prayerName;
                 window.currentCommunityData = null;
                 window.currentTextPayload = null;
+                window.currentTextPayloadChain = [];
+                resetInfiniteReaderState(null);
                 collapseCommentaryPanel();
                 resetSelectionInsights();
                 clearCompareReference(false);
@@ -5197,6 +5401,8 @@
                 window.currentPrayerParagraphPairs = [];
                 window.currentPrayerName = null;
                 window.currentTextPayload = null;
+                window.currentTextPayloadChain = [];
+                resetInfiniteReaderState(null);
                 collapseCommentaryPanel();
                 resetSelectionInsights();
                 clearCompareReference(false);
@@ -5296,6 +5502,8 @@
             hideSearchSuggestions();
             appState.currentView = null;
             window.currentTextPayload = null;
+            window.currentTextPayloadChain = [];
+            resetInfiniteReaderState(null);
             window.currentPrayerName = null;
             collapseCommentaryPanel();
             resetSelectionInsights();
@@ -5330,6 +5538,33 @@
         async function getPrayerTitlesForSearch() {
             const list = await ensurePrayerListLoaded();
             return list.map(p => p.title || p.name).filter(Boolean);
+        }
+
+        function buildTalmudRefCandidates(query) {
+            const raw = String(query || '').trim();
+            if (!raw) return [];
+
+            const match = raw.match(/^([A-Za-z'"\- ]+?)\s+(\d+)([ab])$/i);
+            if (!match) return [];
+
+            const tractateRaw = String(match[1] || '').trim();
+            const daf = `${match[2]}${String(match[3] || '').toLowerCase()}`;
+            const tractateKey = normalizeLibraryLookupKey(tractateRaw);
+            const tractateAliases = {
+                berakhot: 'Berakhot',
+                berachot: 'Berakhot',
+                brachot: 'Berakhot',
+                niddah: 'Niddah',
+            };
+
+            const canonicalTractate = tractateAliases[tractateKey]
+                || tractateRaw.split(/\s+/).map((part) => part.charAt(0).toUpperCase() + part.slice(1).toLowerCase()).join(' ');
+
+            return [
+                `${canonicalTractate} ${daf}`,
+                `${canonicalTractate} ${daf}:1`,
+                `Talmud ${canonicalTractate} ${daf}`,
+            ];
         }
 
         async function resolveSearchTarget(query) {
@@ -5386,6 +5621,11 @@
                 'abarbanel on torah': 'Abarbanel on Torah, Genesis 1',
                 'barentura on torah': 'Bartenura on Torah, Genesis 1',
                 'bartenura on torah': 'Bartenura on Torah, Genesis 1',
+                'rashi on torah': 'Rashi on Genesis 1:1',
+                'ibn ezra on torah': 'Ibn Ezra on Genesis 1:1',
+                'ramban on torah': 'Ramban on Genesis 1:1',
+                'sforno on torah': 'Sforno on Genesis 1:1',
+                'kli yakar on torah': 'Kli Yakar on Genesis 1:1',
                 'jonathan sacks': 'Covenant and Conversation; Genesis; The Book of the Beginnings, Living with the Times; The Parasha',
                 'jonathan sacks essays': 'The Jonathan Sacks Haggadah; Essays, The Story of Stories',
                 'jonathan sacks haggadah essays': 'The Jonathan Sacks Haggadah; Essays, The Story of Stories',
@@ -5401,14 +5641,25 @@
 
             // Try direct lookup first (book name / direct ref).
             const hasSpecificSection = /:\d+/.test(query) || /\b\d+[ab]?\b/i.test(query) || /,/.test(query);
-            const directCandidates = hasSpecificSection ? [query] : [query, `${query} 1`];
+            const talmudCandidates = buildTalmudRefCandidates(query);
+            const directCandidates = hasSpecificSection
+                ? [query, ...talmudCandidates]
+                : [query, ...talmudCandidates, `${query} 1`];
+
+            const seenCandidates = new Set();
             for (const candidate of directCandidates) {
+                const normalizedCandidate = String(candidate || '').trim();
+                if (!normalizedCandidate) continue;
+                const normalizedKey = normalizedCandidate.toLowerCase();
+                if (seenCandidates.has(normalizedKey)) continue;
+                seenCandidates.add(normalizedKey);
+
                 try {
-                    const r = await fetch(`/api/text/${encodeURIComponent(candidate)}?autotranslate=0`);
+                    const r = await fetch(`/api/text/${encodeURIComponent(normalizedCandidate)}?autotranslate=0`);
                     if (!r.ok) continue;
                     const data = await r.json();
                     if (!data.error && (data.ref || data.title)) {
-                        const resolvedRef = data.ref || candidate;
+                        const resolvedRef = data.ref || normalizedCandidate;
                         if (isKnownNonLoadingTitle(resolvedRef) || isKnownNonLoadingTitle(data.title || '')) {
                             continue;
                         }
@@ -5529,6 +5780,9 @@
 
             const key = normalizeLibraryLookupKey(raw);
             const candidates = [];
+            const hasGenesisChapter = /Genesis\s+\d+\b/i.test(raw);
+            const hasGenesisVerse = /Genesis\s+\d+:\d+/i.test(raw);
+            const specialTorahCommentator = /(rashi|ramban|ibn\s+ezra|sforno|kli\s+yakar)\s+on\s+torah/i.test(raw);
 
             if (LIBRARY_REF_FIXES[key]) {
                 candidates.push(LIBRARY_REF_FIXES[key]);
@@ -5547,8 +5801,25 @@
                 candidates.push(`${raw} on Torah, Genesis 1:1`);
             }
 
+            if (specialTorahCommentator) {
+                let normalized = raw;
+                normalized = normalized.replace(/on\s+torah,\s*Genesis\s+/i, 'on Genesis ');
+                normalized = normalized.replace(/on\s+torah/i, 'on Genesis');
+                candidates.push(normalized);
+                if (hasGenesisChapter && !hasGenesisVerse) {
+                    candidates.push(normalized.replace(/Genesis\s+(\d+)\b(?!:)/i, 'Genesis $1:1'));
+                }
+                if (!/Genesis\s+\d+/i.test(normalized)) {
+                    candidates.push(`${normalized} 1:1`);
+                }
+            }
+
             if (/on\s+torah/i.test(raw) && !/Genesis\s+1/i.test(raw)) {
                 candidates.push(`${raw}, Genesis 1:1`);
+            }
+
+            if (/on\s+torah/i.test(raw) && hasGenesisChapter && !hasGenesisVerse) {
+                candidates.push(raw.replace(/Genesis\s+(\d+)\b(?!:)/i, 'Genesis $1:1'));
             }
 
             const seen = new Set();
@@ -5683,6 +5954,9 @@
                     document.getElementById('readerTitle').innerText = ref;
                     document.getElementById('readerContent').innerHTML =
                         `<p class="text-red-500">${t('Could not load text:', 'לא ניתן לטעון את הטקסט:')} ${data.error}</p>`;
+                    window.currentTextPayload = null;
+                    window.currentTextPayloadChain = [];
+                    resetInfiniteReaderState(null);
                     logReliability('text-load-error', { ref, error: data.error });
                     return;
                 }
@@ -5692,6 +5966,8 @@
                 titleEl.innerText = data.heTitle ? `${data.title} · ${data.heTitle}` : data.title || ref;
                 setCurrentView('text', data.ref || resolvedRef || ref, data.title || data.ref || resolvedRef || ref);
                 window.currentTextPayload = data;
+                window.currentTextPayloadChain = [data];
+                resetInfiniteReaderState(data);
                 window.currentPrayerName = null;
 
                 // Badge
@@ -5729,6 +6005,9 @@
                 reader.classList.remove('hidden');
                 document.getElementById('readerContent').innerHTML =
                     `<p class="text-red-500">${t('Network error loading text.', 'שגיאת רשת בטעינת הטקסט.')}</p>`;
+                window.currentTextPayload = null;
+                window.currentTextPayloadChain = [];
+                resetInfiniteReaderState(null);
                 logReliability('text-network-error', { ref, message: err.message });
             }
         }
@@ -5826,13 +6105,18 @@
         });
 
         // Multi-language Toggle with data attributes
-        function toggleLanguage(lang) {
+        function toggleLanguage(lang, options = {}) {
             if (lang !== 'en' && lang !== 'he') {
                 lang = 'en';
             }
 
+            const autoChange = Boolean(options?.auto);
+
             // Persist early so dynamic render helpers read the new language immediately.
             localStorage.setItem('preferredLanguage', lang);
+            if (!autoChange) {
+                localStorage.setItem(LANGUAGE_MANUAL_KEY, '1');
+            }
 
             // Update all elements with data-* attributes
             document.querySelectorAll('[data-en], [data-he]').forEach(el => {
@@ -6003,6 +6287,8 @@
                         ? t('Latest Shacharit (GRA / Baal HaTanya)', 'סוף זמן תפילת שחרית (גר״א / בעל התניא)')
                         : t('Latest Shacharit (GRA)', 'סוף זמן תפילת שחרית (גר״א)');
                 }
+
+                startCountdown();
             }
 
             // Keep pane visibility/layout controlled by reader preferences.
@@ -6036,9 +6322,16 @@
         }
 
         // Load saved language preference on page load
-        const rawSavedLang = localStorage.getItem('preferredLanguage') || 'en';
+        const storedLang = localStorage.getItem('preferredLanguage');
+        const languageManuallySet = localStorage.getItem(LANGUAGE_MANUAL_KEY) === '1';
+        const shouldForceRegionalHebrew = regionalDefaults.language === 'he' && !languageManuallySet;
+        const rawSavedLang = shouldForceRegionalHebrew
+            ? 'he'
+            : (storedLang || regionalDefaults.language || 'en');
+
+        localStorage.setItem('preferredLanguage', rawSavedLang);
         const savedLang = (rawSavedLang === 'he' || rawSavedLang === 'en') ? rawSavedLang : 'en';
-        toggleLanguage(savedLang);
+        toggleLanguage(savedLang, { auto: true });
 
         // ZMANIM LOGIC
         function hasRealZman(value) {
@@ -6226,11 +6519,29 @@
 
         initClerkAuth();
 
+        function formatCountdownDuration(msRemaining) {
+            const totalSeconds = Math.max(0, Math.floor(msRemaining / 1000));
+            const hours = Math.floor(totalSeconds / 3600);
+            const minutes = Math.floor((totalSeconds % 3600) / 60);
+            const seconds = totalSeconds % 60;
+
+            if (isHebrewMode()) {
+                if (hours > 0) return `${hours} ש׳ ${minutes} ד׳`;
+                if (minutes > 0) return `${minutes} ד׳ ${seconds} ש׳`;
+                return `${seconds} ש׳`;
+            }
+
+            if (hours > 0) return `${hours}h ${minutes}m`;
+            if (minutes > 0) return `${minutes}m ${seconds}s`;
+            return `${seconds}s`;
+        }
+
         function startCountdown() {
-            if (countdownInterval) clearInterval(countdownInterval);
+            if (countdownInterval) clearTimeout(countdownInterval);
             const times = [];
             const now = new Date();
             if (!zmanimData) return;
+            const nextZmanBadge = document.getElementById('nextZmanBadge');
 
             const isoMap = (zmanimData.metadata && zmanimData.metadata.zmanim_iso) || {};
 
@@ -6284,14 +6595,18 @@
             };
 
             document.querySelectorAll('[data-zman-row]').forEach((row) => {
-                row.classList.remove('bg-blue-50', 'rounded-md');
+                row.classList.remove('zman-next-highlight');
             });
 
             times.sort((a, b) => a.t - b.t);
             const nextZman = times.length > 0 ? times[0] : null;
 
             if (!nextZman) {
-                countdownInterval = setInterval(() => startCountdown(), 30000);
+                if (nextZmanBadge) {
+                    nextZmanBadge.classList.add('hidden');
+                    nextZmanBadge.textContent = '';
+                }
+                countdownInterval = setTimeout(() => startCountdown(), 1000);
                 return;
             }
 
@@ -6305,10 +6620,19 @@
 
             const row = highlightRowId ? document.getElementById(highlightRowId) : null;
             if (row) {
-                row.classList.add('bg-blue-50', 'rounded-md');
+                row.classList.add('zman-next-highlight');
             }
 
-            countdownInterval = setInterval(() => startCountdown(), 30000);
+            if (nextZmanBadge) {
+                const rowLabel = row?.querySelector('span')?.textContent?.trim();
+                const label = rowLabel || nextZman.name;
+                const remaining = Math.max(0, nextZman.t.getTime() - now.getTime());
+                const countdownLabel = formatCountdownDuration(remaining);
+                nextZmanBadge.innerHTML = `<span class="font-semibold">${t('Next zman', 'הזמן הבא')}</span>: ${escapeHtml(label)} <span class="text-slate-600">${t('in', 'בעוד')} ${escapeHtml(countdownLabel)}</span>`;
+                nextZmanBadge.classList.remove('hidden');
+            }
+
+            countdownInterval = setTimeout(() => startCountdown(), 1000);
         }
 
         let holidaysCalendar = null;
@@ -6356,6 +6680,9 @@
         });
 
         searchInput.addEventListener('focus', () => {
+            if (isMobileViewport()) {
+                setMobileSearchExpanded(true);
+            }
             if ((searchInput.value || '').trim().length >= 2) {
                 fetchOmniboxSuggestions(searchInput.value);
             }
