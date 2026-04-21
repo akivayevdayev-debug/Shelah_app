@@ -1,5 +1,7 @@
 # Sh'elah App
 
+> Sync status (2026-04-21): Verified against current implementation (report-driven library filtering, topbar menu icon layering fix, global warm icon tones, and backup template sync).
+
 Sh'elah is a Flask-based Jewish learning and halachic assistant that combines:
 - text browsing from Sefaria
 - community customs data

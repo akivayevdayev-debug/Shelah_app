@@ -1,5 +1,7 @@
 # Service Integration Verification Guide
 
+> Sync status (2026-04-21): Verified against current implementation (report-driven library filtering, topbar menu icon layering fix, global warm icon tones, and backup template sync).
+
 ## Overview
 This guide helps you verify that **Flask**, **Supabase**, **Clerk**, and **Vercel** are all properly connected.
 

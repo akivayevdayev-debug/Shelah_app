@@ -1,5 +1,7 @@
 # Sh'elah App - Complete Sources Registry
 
+> Sync status (2026-04-21): Verified against current implementation (report-driven library filtering, topbar menu icon layering fix, global warm icon tones, and backup template sync).
+
 **Project:** Sh'elah - An Interactive Torah Encyclopedia with Halachic Rulings  
 **Last Updated:** April 6, 2026
 

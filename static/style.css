@@ -244,7 +244,50 @@ h6 {
     background: linear-gradient(180deg, rgba(248, 244, 236, 0.98) 0%, rgba(245, 240, 232, 0.98) 100%);
     -webkit-backdrop-filter: blur(8px);
     backdrop-filter: blur(8px);
-    overflow-x: clip;
+    position: relative;
+    z-index: 60;
+    overflow: visible;
+}
+
+.topbar-search-wrap {
+    position: relative;
+    z-index: 40;
+}
+
+#topbarControls {
+    position: relative;
+    z-index: 110;
+    flex-shrink: 0;
+}
+
+#settingsMenuContainer {
+    position: relative;
+    z-index: 120;
+    flex-shrink: 0;
+}
+
+#settingsMenuBtn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+#searchIcon {
+    color: #a5947d !important;
+}
+
+.library-shell button svg,
+.library-shell [role="button"] svg {
+    color: #8a785e;
+    opacity: 0.92;
+}
+
+.library-shell button:hover svg,
+.library-shell [role="button"]:hover svg,
+.library-shell button:focus-visible svg,
+.library-shell [role="button"]:focus-visible svg {
+    color: #726249;
+    opacity: 1;
 }
 
 #searchInput {
