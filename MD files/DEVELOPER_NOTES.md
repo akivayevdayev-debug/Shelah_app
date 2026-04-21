@@ -1,5 +1,7 @@
 # Sh'elah Developer Notes
 
+> Sync status (2026-04-21): Verified against current implementation (report-driven library filtering, topbar menu icon layering fix, global warm icon tones, and backup template sync).
+
 This guide is for coders who need a fast, practical map of what each part of the codebase does.
 It is organized by runtime flow first, then file-by-file notes.
 

@@ -1,5 +1,7 @@
 # Static Assets Notes
 
+> Sync status (2026-04-21): Verified against current implementation (report-driven library filtering, topbar menu icon layering fix, global warm icon tones, and backup template sync).
+
 ## `style.css`
 
 Main custom stylesheet layered on top of Tailwind utility classes from `templates/index.html`.
