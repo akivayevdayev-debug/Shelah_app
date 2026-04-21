@@ -2,66 +2,64 @@
 COMPREHENSIVE CODE AUDIT REPORT - Sh'elah App
 =================================================================
 
-ISSUES FOUND:
+SYNC STATUS:
+- Audit refresh date: 2026-04-21
+- Scope covered: templates/index.html, templates/index_backup.html, static/style.css,
+  sefaria_library.py, app.py, project markdown/text docs.
 
-1. TYPO in claude.py (Line 45)
-   Location: claude.py, line 45
-   Issue: Variable name is "halachi_text" but should be "halachic_text"
-   Current: halachi_text = format_wiki(halachipedia) if halachipedia else ""
-   Fix: halachic_text = format_wiki(halachipedia) if halachipedia else ""
-   Severity: LOW (variable name doesn't affect functionality, but English spelling)
+MAJOR FIXES APPLIED:
 
-2. HEBREW CHARACTER MIXED IN ENGLISH TEXT in zmanim_engine.py (Line 137)
-   Location: zmanim_engine.py, line 137
-   Issue: Mixed Hebrew character in string: "Shקia" should be "Shkia"
-   Current: "title": f"🌇 Shקia {sunset.strftime('%I:%M %p')}",
-   Fix: "title": f"🌇 Shkia {sunset.strftime('%I:%M %p')}",
-   Severity: MEDIUM (display text is corrupted)
+1. REPORT-DRIVEN LIBRARY FILTERING (BACKEND)
+   Location: sefaria_library.py
+   Change:
+   - /api/library/index now prunes report removals and applies suggested refs for fixes
+     using reports/library_leaf_remove_fix_report.full.json.
+   - /api/library/search now excludes removed titles and remaps fixable titles.
+   Result:
+   - 448 non-loading titles removed from runtime index/search.
+   - 52 fixable titles mapped to valid refs.
+   Severity: HIGH (user-facing broken entries removed)
 
-3. POTENTIAL ERROR HANDLING ISSUE in app.py
-   Location: app.py, line 118 (ask_question route)
-   Issue: wiki_info is passed directly to claude.get_halachic_answer as wiki parameter, but
-          it should be wiki_list to be consistent with halachipedia handling
-   Current: wiki=wiki_info,
-   Should be: wiki=wiki_list if it's a list, or wiki=[wiki_info] if wiki_info is dict
-   Example: halachipedia parameter uses halachipedia_list (line 117)
-   Severity: MEDIUM (inconsistent parameter types may cause formatting errors)
+2. FRONTEND DUPLICATION REMOVED
+   Location: templates/index.html
+   Change:
+   - Removed hardcoded frontend non-loading title blocklists and fallback ref maps.
+   - Library tree now relies on backend-provided refs and filtering as source of truth.
+   Severity: HIGH (prevents future drift between frontend and backend)
 
-4. MISSING ERROR HANDLING for Halachipedia Summary
-   Location: app.py, line 89
-   Issue: get_halachipedia_summary(question) can return None, and then halachipedia_list
-          will be [None], which format_wiki() may not handle gracefully
-   Current: halachipedia_list = [halachipedia_info] if halachipedia_info else []
-   Status: Actually correct - has proper null check
-   Severity: None (already handled)
+3. MENUBAR ICON STACKING/LAYERING FIX
+   Location: templates/index.html, static/style.css
+   Change:
+   - Increased topbar control z-index and stabilized stacking order for settings icon.
+   - Ensured settings container remains visible above adjacent search layout.
+   Severity: HIGH (menu icon visibility regression fixed)
 
-5. POTENTIAL UNDEFINED VARIABLE in templates/index.html
-   Issue: Need to verify that all JavaScript variables are defined before use
-   Severity: Requires JavaScript code review
+4. GLOBAL ICON TONE ADJUSTMENT
+   Location: static/style.css
+   Change:
+   - Applied lighter warm icon color palette for control icons.
+   - Adjusted search icon tint to match theme.
+   Severity: MEDIUM (visual consistency and readability)
 
-6. API TIMEOUT HANDLING
-   Location: Multiple files (sefaria.py, zmanim_engine.py, calendar_service.py)
-   Issue: API calls use timeout=5 or timeout=10, but if timeout occurs, responses may be incomplete
-   Note: Error handling is present but could be more detailed
-   Severity: LOW (errors are caught and logged)
+5. BACKUP TEMPLATE SYNC
+   Location: templates/index_backup.html
+   Change:
+   - Synced backup template to current templates/index.html version.
+   Severity: MEDIUM (prevents stale fallback template)
 
-7. POTENTIAL ISSUE: Empty wiki vs halachipedia parameter handling
-   Location: claude.py, format_wiki function (lines 32-38)
-   Issue: format_wiki(None) is called, and it handles empty/None gracefully
-   Status: Code appears robust
-   Severity: None
+RUNTIME VERIFICATION SUMMARY:
 
-=================================================================
-SUMMARY OF FIXES NEEDED:
-=================================================================
+- Python compile checks: PASS
+- /api/library/index: PASS (200)
+- /api/library/search (removed title sample): PASS (0 results for removed work)
+- /api/library/search (fixed title sample): PASS (returns mapped ref)
+- Removed titles still present in runtime index: 0
 
-CRITICAL FIXES:
-  - Fix corrupted Hebrew text in zmanim_engine.py (Shקia → Shkia)
-  - Ensure wiki parameter in app.py is formatted consistently
+KNOWN NON-BLOCKING ITEMS:
 
-LOW-PRIORITY FIXES:
-  - Fix variable name halachi_text → halachic_text (cosmetic)
+- IDE parser warning in templates/index.html around Jinja tojson expression
+  remains expected false-positive in static analysis mode.
 
 =================================================================
-
-Last Sync Check: 2026-04-07
+LAST SYNC CHECK: 2026-04-21
+=================================================================

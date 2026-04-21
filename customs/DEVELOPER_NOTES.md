@@ -1,5 +1,7 @@
 # Customs Data Notes
 
+> Sync status (2026-04-21): Verified against current implementation (report-driven library filtering, topbar menu icon layering fix, global warm icon tones, and backup template sync).
+
 This folder contains community minhag data files used by `/api/community/*` and customs lookups.
 
 ## File patterns

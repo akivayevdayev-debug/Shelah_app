@@ -1,5 +1,7 @@
 # Scripts Notes
 
+> Sync status (2026-04-21): Verified against current implementation (report-driven library filtering, topbar menu icon layering fix, global warm icon tones, and backup template sync).
+
 ## `verify_integrations.py`
 
 Operational health checker for the full stack:

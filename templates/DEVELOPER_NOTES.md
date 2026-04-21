@@ -1,5 +1,7 @@
 # Templates Notes
 
+> Sync status (2026-04-21): Verified against current implementation (report-driven library filtering, topbar menu icon layering fix, global warm icon tones, and backup template sync).
+
 ## `index.html` responsibilities
 
 - Main single-page shell for the entire UI.

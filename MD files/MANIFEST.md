@@ -1,5 +1,7 @@
 # 📋 Integration Manifest: Complete File Changes
 
+> Sync status (2026-04-21): Verified against current implementation (report-driven library filtering, topbar menu icon layering fix, global warm icon tones, and backup template sync).
+
 **Date:** April 6, 2026  
 **Integration:** Merkava, Siddur Kol Yaakov & Expanded Sefaria  
 **Status:** ✅ Complete
