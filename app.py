@@ -1373,7 +1373,7 @@ def list_todos():
 
 @app.route("/api/library/index")
 def library_index():
-    """Returns the full Sefaria library category tree."""
+    """Returns report-adjusted Sefaria library tree (non-loading removals pruned, fix refs applied)."""
     from sefaria_library import get_library_index
     data = get_library_index()
     return jsonify(data)
@@ -1432,7 +1432,7 @@ def get_word_meaning():
 
 @app.route("/api/library/search")
 def library_search():
-    """Full-text search across all Sefaria texts."""
+    """Full-text search across Sefaria texts with report-based removal/fix filtering."""
     from sefaria_library import search_library
     query = request.args.get("q", "")
     size = _coerce_int(request.args.get("size"), 10, min_value=1, max_value=50)

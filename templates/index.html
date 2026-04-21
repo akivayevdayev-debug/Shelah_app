@@ -81,7 +81,7 @@
 
         <!-- Top Navigation Menu Toggle + Search Bar -->
         <div
-            class="topbar-search-wrap order-3 w-full lg:order-none lg:w-auto flex-1 max-w-4xl flex items-center justify-center gap-2 min-w-0">
+            class="topbar-search-wrap relative z-40 order-3 w-full lg:order-none lg:w-auto flex-1 max-w-4xl flex items-center justify-center gap-2 min-w-0">
             <div class="w-full min-w-0">
                 <!-- Search Form -->
                 <form id="searchForm" class="w-full relative min-w-0">
@@ -103,10 +103,11 @@
             </div>
         </div>
 
-        <div id="topbarControls" class="topbar-controls flex gap-2 items-center flex-wrap justify-end w-full lg:w-auto">
-            <div id="settingsMenuContainer" class="relative">
+        <div id="topbarControls"
+            class="topbar-controls relative z-[110] flex gap-2 items-center flex-wrap justify-end w-full lg:w-auto">
+            <div id="settingsMenuContainer" class="relative z-[120] shrink-0">
                 <button id="settingsMenuBtn" type="button" aria-expanded="false" aria-haspopup="true"
-                    class="px-2 py-1.5 border border-slate-300 rounded bg-slate-100 hover:bg-slate-200 transition text-slate-700"
+                    class="px-2 py-1.5 border border-slate-300 rounded bg-slate-100 hover:bg-slate-200 transition text-[#7a6a52]"
                     title="Open settings menu">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
                         <path
@@ -3177,18 +3178,7 @@
                 }
                 const results = await resp.json();
                 const rawItems = Array.isArray(results) ? results : [];
-                appState.suggestionItems = rawItems.filter((item) => {
-                    const type = String(item?.type || '').toLowerCase();
-                    if (type !== 'text' && type !== 'prayer') return true;
-
-                    const value = String(item?.value || '');
-                    const label = String(item?.label || '');
-                    const labelHe = String(item?.label_he || '');
-
-                    return !isKnownNonLoadingTitle(value)
-                        && !isKnownNonLoadingTitle(label)
-                        && !isKnownNonLoadingTitle(labelHe);
-                });
+                appState.suggestionItems = rawItems;
                 appState.activeSuggestionIndex = -1;
                 renderSearchSuggestions();
             } catch (_) {
@@ -4721,99 +4711,22 @@
             return `${base} (${suffix})`;
         }
 
-        const LIBRARY_NODE_BLOCK_PATTERNS = [
-            /tasfir\s+rasag/i,
-            /targum\s+jerusale\b/i,
-            /\barbanel\b/i,
-            /barentura/i,
-        ];
-
-        const LIBRARY_NON_LOADING_TITLES = [
-            "Kinnot for Tisha B'Av (Ashkenaz)",
-            "Ma'aneh Lashon Chabad",
-            "Ma'avar Yabbok",
-            "Machzor Rosh Hashanah Linear",
-            "Machzor Yom Ha'atzmaut & Yom Yerushalayim",
-            "Machzor Yom Ha'atzmaut & Yom Yetushalayim",
-            "Seder Ma'amadot",
-            "Seder Tisha B'Av (Edot HaMizrach)",
-            "Seder Tisha B'Av (Edot HaMizrac)",
-            "Weekday Siddur Chabad",
-        ];
-
-        const LIBRARY_REF_FIXES = {
-            tafsirrasag: 'Tafsir Rasag, Genesis 1',
-            tasfirrasag: 'Tafsir Rasag, Genesis 1',
-            targumjerusalem: 'Targum Jerusalem, Genesis 1',
-            targumjerusale: 'Targum Jerusalem, Genesis 1',
-            abarbanelontorah: 'Abarbanel on Torah, Genesis 1',
-            arbanelontorah: 'Abarbanel on Torah, Genesis 1',
-            arbanel: 'Abarbanel on Torah, Genesis 1',
-            bartenuraontorah: 'Bartenura on Torah, Genesis 1',
-            barenturaontorah: 'Bartenura on Torah, Genesis 1',
-            rashiontorah: 'Rashi on Genesis 1:1',
-            ibnezraontorah: 'Ibn Ezra on Genesis 1:1',
-            rambanontorah: 'Ramban on Genesis 1:1',
-            sfornoontorah: 'Sforno on Genesis 1:1',
-            kliyakarontorah: 'Kli Yakar on Genesis 1:1',
-            rashiontorahgenesis1: 'Rashi on Genesis 1:1',
-            ibnezraontorahgenesis1: 'Ibn Ezra on Genesis 1:1',
-            rambanontorahgenesis1: 'Ramban on Genesis 1:1',
-            sfornoontorahgenesis1: 'Sforno on Genesis 1:1',
-            kliyakarontorahgenesis1: 'Kli Yakar on Genesis 1:1',
-            tzeenahureenah: "Tze'enah URe'enah, Genesis 1:1",
-        };
-
         function normalizeLibraryLookupKey(value) {
             return String(value || '').toLowerCase().replace(/[^a-z0-9]/g, '');
         }
 
-        const LIBRARY_NON_LOADING_KEYS = new Set(
-            LIBRARY_NON_LOADING_TITLES.map((title) => normalizeLibraryLookupKey(title))
-        );
-
-        function isKnownNonLoadingTitle(title) {
-            const key = normalizeLibraryLookupKey(title);
-            if (!key) return false;
-            if (LIBRARY_REF_FIXES[key]) return false;
-            return LIBRARY_NON_LOADING_KEYS.has(key);
-        }
-
         function shouldHideLibraryNode(node) {
-            const labels = getLibraryNodeLabels(node);
-            const haystack = `${labels.en} ${labels.he}`;
-            if (isKnownNonLoadingTitle(labels.en) || isKnownNonLoadingTitle(labels.he)) {
-                return true;
-            }
-            return LIBRARY_NODE_BLOCK_PATTERNS.some((pattern) => pattern.test(haystack));
-        }
-
-        function resolveKnownLibraryRef(title) {
-            return LIBRARY_REF_FIXES[normalizeLibraryLookupKey(title)] || '';
+            if (!node || typeof node !== 'object') return true;
+            return Boolean(node.hidden);
         }
 
         function resolveLibraryNodeRef(node) {
             if (!node || typeof node !== 'object') return '';
             const directRef = String(node.firstSectionRef || node.ref || '').trim();
-            if (directRef) {
-                const fixedDirectRef = resolveKnownLibraryRef(directRef);
-                return fixedDirectRef || directRef;
-            }
+            if (directRef) return directRef;
 
             const title = String(node.title || '').trim();
             if (!title) return '';
-            const fixedRef = resolveKnownLibraryRef(title);
-            if (fixedRef) return fixedRef;
-
-            const titleKey = normalizeLibraryLookupKey(title);
-            if (/rashiontorah|ibnezraontorah|rambanontorah|sfornoontorah|kliyakarontorah/.test(titleKey)) {
-                const fixedSpecialRef = resolveKnownLibraryRef(title);
-                if (fixedSpecialRef) return fixedSpecialRef;
-                return title.replace(/on\s+torah/i, 'on Genesis 1:1');
-            }
-            if (/ontorah$/.test(titleKey) || /commentary/.test(titleKey)) {
-                return `${title}, Genesis 1:1`;
-            }
             return title;
         }
 
@@ -5575,14 +5488,6 @@
         async function resolveSearchTarget(query) {
             const key = normalizeSearchKey(query);
 
-            const libraryKey = normalizeLibraryLookupKey(query);
-            if (libraryKey && LIBRARY_REF_FIXES[libraryKey]) {
-                return { type: 'text', value: LIBRARY_REF_FIXES[libraryKey] };
-            }
-            if (libraryKey && LIBRARY_NON_LOADING_KEYS.has(libraryKey)) {
-                return null;
-            }
-
             // Resolve prayer books/services first so liturgy searches open in the prayer reader flow.
             const prayerTitles = await getPrayerTitlesForSearch();
             const exactPrayer = prayerTitles.find(t => normalizeSearchKey(t) === key);
@@ -5665,9 +5570,6 @@
                     const data = await r.json();
                     if (!data.error && (data.ref || data.title)) {
                         const resolvedRef = data.ref || normalizedCandidate;
-                        if (isKnownNonLoadingTitle(resolvedRef) || isKnownNonLoadingTitle(data.title || '')) {
-                            continue;
-                        }
                         return { type: 'text', value: resolvedRef };
                     }
                 } catch (_) {
@@ -5683,14 +5585,7 @@
             const results = await searchResp.json();
             if (!Array.isArray(results) || results.length === 0) return null;
 
-            const filteredResults = results.filter((r) => {
-                const ref = String(r?.ref || '').trim();
-                const heRef = String(r?.heRef || '').trim();
-                return !isKnownNonLoadingTitle(ref) && !isKnownNonLoadingTitle(heRef);
-            });
-            if (filteredResults.length === 0) return null;
-
-            const best = filteredResults[0];
+            const best = results[0];
             return best.ref ? { type: 'text', value: best.ref } : null;
         }
 
@@ -5783,7 +5678,6 @@
             const raw = String(ref || '').trim();
             if (!raw) return [];
 
-            const key = normalizeLibraryLookupKey(raw);
             const candidates = [];
             const normalizedRaw = raw
                 .replace(/[’‘]/g, "'")
@@ -5815,10 +5709,6 @@
             if (/^Mishnah\s+Yom\s+Tov\b/i.test(normalizedRaw)) {
                 const suffix = (normalizedRaw.match(/\b\d+\b/) || [])[0] || '1';
                 candidates.push(`Mishnah Beitzah ${suffix}`);
-            }
-
-            if (LIBRARY_REF_FIXES[key]) {
-                candidates.push(LIBRARY_REF_FIXES[key]);
             }
 
             const looksLikeCommentary = /on\s+torah|rashi|ramban|ibn\s+ezra|sforno|kli\s+yakar|bahya|chizkuni|midrash|targum|tosafot/i.test(raw);

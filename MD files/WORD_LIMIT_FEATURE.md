@@ -1,5 +1,7 @@
 # AI Word Limit Feature
 
+> Sync status (2026-04-21): Verified against current implementation (report-driven library filtering, topbar menu icon layering fix, global warm icon tones, and backup template sync).
+
 ## Overview
 The AI assistant now includes a word limit to reduce token usage and API costs.
 
