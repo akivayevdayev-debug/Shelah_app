@@ -2521,11 +2521,19 @@
             dailySection.scrollIntoView({ behavior: 'smooth', block: 'start' });
         }
 
+        function setActiveMobileTab(tab) {
+            if (!mobileBottomTabs) return;
+            mobileBottomTabs.querySelectorAll('[data-mobile-tab]').forEach((btn) => {
+                btn.classList.toggle('mobile-tab-active', btn.dataset.mobileTab === tab);
+            });
+        }
+
         function setMobileSearchExpanded(expanded) {
             const shouldExpand = Boolean(expanded) && isMobileViewport();
             document.body.classList.toggle('mobile-search-open', shouldExpand);
             if (shouldExpand) {
                 closeSettingsMenu();
+                setActiveMobileTab('search');
             }
             if (!shouldExpand) {
                 searchInput?.blur();
@@ -3128,7 +3136,7 @@
                     ? ''
                     : (typeLabels[item.type] || item.type || '');
                 return `
-                    <button type="button" class="suggestion-item w-full text-left px-4 py-3 border-b border-slate-100 last:border-b-0 ${isActive ? 'bg-[#e7f0fa]' : 'hover:bg-slate-50'}"
+                    <button type="button" class="suggestion-item w-full text-left px-4 py-3 border-b border-slate-100 last:border-b-0 ${isActive ? 'bg-[#efe5d4]' : 'hover:bg-slate-50'}"
                         data-index="${index}">
                         <div class="flex items-center justify-between gap-3">
                             <div class="min-w-0">
@@ -3567,9 +3575,9 @@
             let html = '';
             if (selectionCommentaryState.wordInfo?.meaning) {
                 html += `
-                    <div class="rounded-lg border border-[#c8d9ea] bg-[#eef5fb] px-3 py-2">
-                        <p class="text-[11px] uppercase tracking-widest text-[#1f4a72] font-bold">${t('Word Meaning', 'משמעות מילה')}</p>
-                        <p class="text-sm text-[#163754] mt-1"><span class="font-semibold">${escapeHtml(selectionCommentaryState.wordInfo.word || '')}</span>: ${escapeHtml(selectionCommentaryState.wordInfo.meaning || '')}</p>
+                    <div class="rounded-lg border border-[#d7c8ad] bg-[#f2eadc] px-3 py-2">
+                        <p class="text-[11px] uppercase tracking-widest text-[#5d4c36] font-bold">${t('Word Meaning', 'משמעות מילה')}</p>
+                        <p class="text-sm text-[#4f4130] mt-1"><span class="font-semibold">${escapeHtml(selectionCommentaryState.wordInfo.word || '')}</span>: ${escapeHtml(selectionCommentaryState.wordInfo.meaning || '')}</p>
                     </div>
                 `;
             }
@@ -4493,11 +4501,13 @@
                 btn.addEventListener('click', () => {
                     const tab = btn.dataset.mobileTab;
                     if (tab === 'home') {
+                        setActiveMobileTab('home');
                         setMobileSearchExpanded(false);
                         goHome();
                         return;
                     }
                     if (tab === 'search') {
+                        setActiveMobileTab('search');
                         setMobileSearchExpanded(true);
                         closeMobilePanels();
                         if (searchInput) {
@@ -4507,6 +4517,7 @@
                         return;
                     }
                     if (tab === 'library') {
+                        setActiveMobileTab('library');
                         setMobileSearchExpanded(false);
                         if (isMobileViewport()) {
                             openMobilePanel('left');
@@ -4516,12 +4527,14 @@
                         return;
                     }
                     if (tab === 'daily') {
+                        setActiveMobileTab('daily');
                         setMobileSearchExpanded(false);
                         closeMobilePanels();
                         focusHomeDailySection();
                     }
                 });
             });
+            setActiveMobileTab('home');
         }
 
         if (mainContainer) {
@@ -6180,11 +6193,9 @@
 
             // Update language button styles
             document.querySelectorAll('.lang-btn').forEach(btn => {
-                btn.classList.remove('bg-blue-100', 'bg-slate-100');
+                btn.classList.remove('lang-btn-active');
                 if (btn.dataset.lang === lang) {
-                    btn.classList.add('bg-blue-100');
-                } else {
-                    btn.classList.add('bg-slate-100');
+                    btn.classList.add('lang-btn-active');
                 }
             });
 
@@ -6922,10 +6933,10 @@
                 sourcesDiv.innerHTML = '';
                 data.sources.forEach((src, idx) => {
                     const sourceHtml = `
-                        <div class="bg-slate-50 p-4 rounded border border-slate-200 hover:border-navy transition">
+                        <div class="bg-slate-50 p-4 rounded border border-slate-200 hover:border-[#b9a787] transition">
                             <div class="flex justify-between items-start mb-2">
                                 <h4 class="font-hebrew text-sm font-bold text-navy">${src.ref}</h4>
-                                <a href="https://www.sefaria.org/${src.ref}" target="_blank" class="text-xs text-blue-600 hover:underline">${t('Sefaria ↗', 'ספריא ↗')}</a>
+                                <a href="https://www.sefaria.org/${src.ref}" target="_blank" class="text-xs text-[#6a5840] hover:underline">${t('Sefaria ↗', 'ספריא ↗')}</a>
                             </div>
                             <div class="text-xs text-slate-600 bg-white p-2 rounded max-h-32 overflow-y-auto">
                                 ${src.lines.slice(0, 3).map(l => `<p>${l.en ? l.en.replace(/<[^>]*>/gm, '') : l.he}</p>`).join('')}
@@ -6943,9 +6954,9 @@
                 customsDiv.innerHTML = '';
                 data.customs.forEach(c => {
                     const customHtml = `
-                        <div class="bg-indigo-50 border border-indigo-200 p-3 rounded">
-                            <div class="font-bold text-indigo-900 text-sm mb-1">${getCommunityDisplayName(c.community)}</div>
-                            <div class="text-xs text-indigo-800">${c.ruling || c.notes}</div>
+                        <div class="bg-[#f2eadc] border border-[#d7c8ad] p-3 rounded">
+                            <div class="font-bold text-[#5e4d37] text-sm mb-1">${getCommunityDisplayName(c.community)}</div>
+                            <div class="text-xs text-[#544433]">${c.ruling || c.notes}</div>
                         </div>
                     `;
                     customsDiv.innerHTML += customHtml;
@@ -6960,9 +6971,9 @@
                 data.wiki.forEach(w => {
                     if (w) {
                         const wikiHtml = `
-                            <div class="bg-blue-50 border border-blue-200 p-3 rounded">
-                                <div class="font-bold text-blue-900 text-sm mb-1">${w.title}</div>
-                                <div class="text-xs text-blue-800">${w.summary.substring(0, 150)}...</div>
+                            <div class="bg-[#f2eadc] border border-[#d7c8ad] p-3 rounded">
+                                <div class="font-bold text-[#5e4d37] text-sm mb-1">${w.title}</div>
+                                <div class="text-xs text-[#544433]">${w.summary.substring(0, 150)}...</div>
                             </div>
                         `;
                         wikiDiv.innerHTML += wikiHtml;
