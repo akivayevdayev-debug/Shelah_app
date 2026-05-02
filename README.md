@@ -47,7 +47,34 @@ Default local URL: http://127.0.0.1:5001
 
 - `FLASK_SECRET_KEY`: required for stable sessions
 - `ANTHROPIC_API_KEY`: optional, enables Claude-backed responses
+- `ANTHROPIC_MODEL`: optional Claude model override (default: `claude-haiku-4-5`)
+- `AI_MAX_INPUT_CHARS`: max sanitized user query size passed to AI wrapper
+- `AI_MAX_PROMPT_CHARS`: max prompt payload length sent to Claude
+- `AI_MAX_RESPONSE_WORDS`: max response words returned to UI
+- `RATE_LIMIT_DEFAULT`: optional global API limit string list (comma-separated)
+- `RATE_LIMIT_ASK`: `/ask`-specific rate limit
+- `RATELIMIT_STORAGE_URI`: limiter backend (`memory://` by default)
 - `PORT`: optional override for server port
+
+## Security Scanning (Pre-Commit)
+
+This repository includes `.pre-commit-config.yaml` with:
+- Bandit (Python security linting)
+- Gitleaks (secret detection)
+
+Setup:
+
+```bash
+pip install pre-commit
+pre-commit install
+pre-commit install --hook-type pre-push
+```
+
+Run manually anytime:
+
+```bash
+pre-commit run --all-files
+```
 
 ## Notes for GitHub
 
