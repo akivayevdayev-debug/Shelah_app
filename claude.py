@@ -23,6 +23,30 @@ client = anthropic.Anthropic(
     api_key=API_KEY) if anthropic and API_KEY else None
 
 
+SYSTEM_PROMPT = """
+You are a halakhic source synthesizer.
+
+Output style:
+- Direct and fact-focused.
+- No greetings, no conversational filler, no motivational language.
+- Keep claims tied to explicit provided evidence.
+
+Source hierarchy (strict):
+1) Primary: Sefaria API and whitelisted external sources only: HebrewBooks, Halachipedia, Yeshivat Har Bracha (YHB).
+2) Secondary: Local customs JSON data from the customs directory.
+
+Conflict handling:
+- If a local custom contradicts a primary Sefaria source, explicitly add a "Conflict Flag" section naming both positions.
+
+No-hallucination rule:
+- If the prompt data does not contain a verified source in the allowed domains or local customs, return exactly: "No verified source found".
+- Do not invent citations or books.
+
+Math and measurements:
+- Use LaTeX for shiurim, quantities, and mathematical logic (example format: $k = 27$).
+""".strip()
+
+
 def format_sefaria_sources(sources):
     """Format Sefaria sources into readable text"""
     output = ""
@@ -60,38 +84,24 @@ def build_prompt(question, sefaria_sources, customs, wiki, halachipedia=None, mo
 
     sefaria_text = format_sefaria_sources(sefaria_sources)
     customs_text = format_customs(customs)
-    wiki_text = format_wiki(wiki)
     halachic_text = format_wiki(halachipedia) if halachipedia else ""
 
     prompt = f"""
-You are the "Sh'elah Guide," a professional, warm, and highly knowledgeable Rabbinic AI equivalent to a digital encyclopedia of Jewish law (like Sefaria or Chabad.org).
-Your objective is to provide authoritative, beautifully structured halachic analysis.
-
 QUESTION:
 {question}
 
-SEFARIA SOURCES:
+PRIMARY SOURCES (SEFARIA + WHITELISTED EXTERNAL CONTEXT):
 {sefaria_text}
+{halachic_text}
 
-COMMUNITY CUSTOMS:
+SECONDARY SOURCES (LOCAL CUSTOMS JSON):
 {customs_text}
 
-HALACHIPEDIA / WIKI BACKGROUND:
-{halachic_text}
-{wiki_text}
-
 INSTRUCTIONS:
-1. Formulate your response in standard, professional Markdown. 
-2. Give the direct, clear answer first before diving into complex details.
-3. Provide the sources (Mekorot) naturally within the text.
-4. Auto-detect if the user is asking in English or Hebrew and respond accordingly.
-5. Use bolding for final rulings, and blockquotes tags for quoting sources.
-6. Clearly delineate between Ashkenazic, Sephardic, and specific Bukharian/Kafkazi customs whenever relevant.
-7. End with a polite, Rabbinic sign-off, always recommending consulting a local Orthodox Rabbi for a final ruling.
-8. DO NOT output any code, JSON logic, or "If/Then" terminal-style arrays. Output pure narrative markdown ONLY.
-9. Response mode requested: {mode}
-10. Community lens requested: {community_lens}
-11. If mode is strict: do not answer claims that are not explicitly grounded in the provided primary sources.
+1. Response mode requested: {mode}
+2. Community lens requested: {community_lens}
+3. If mode is strict, do not include unsupported claims.
+4. Keep source ordering aligned with the hierarchy above.
 """
 
     return prompt
@@ -115,6 +125,7 @@ def ask_claude(prompt):
     try:
         message = client.messages.create(
             model="claude-haiku-4-5",
+            system=SYSTEM_PROMPT,
             max_tokens=800,  # Reduced from 2000 to ~500-600 words
             messages=[
                 {"role": "user", "content": prompt}
