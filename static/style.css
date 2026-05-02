@@ -18,13 +18,13 @@ html {
     --surface-elevated: #fffaf2;
     --surface-topbar: #f7f2e8;
     --surface-border: #d8cfbf;
-    --surface-pill: #ece2d0;
+    --surface-pill: #f3f1ea;
     --accent-deep-blue: #1f3f63;
-    --control-bg: #efe6d7;
-    --control-bg-hover: #e8decb;
-    --control-border: #d4c6ad;
-    --control-text: #3f5a78;
-    --control-text-strong: #2b4561;
+    --control-bg: #f5f3ec;
+    --control-bg-hover: #edf1f6;
+    --control-border: #d8d6cf;
+    --control-text: #2f4a67;
+    --control-text-strong: #223e5a;
     --control-strong-bg: #46688d;
     --control-strong-bg-hover: #3d5b7b;
 }
@@ -1224,12 +1224,12 @@ body.mobile-panel-open {
 .library-shell .bg-blue-50,
 .library-shell .bg-blue-100,
 .library-shell .bg-indigo-50 {
-    background-color: #f0e6d7 !important;
+    background-color: #f3f1ea !important;
 }
 
 .library-shell .border-blue-200,
 .library-shell .border-indigo-200 {
-    border-color: #d7c8ad !important;
+    border-color: #d5ddeb !important;
 }
 
 .library-shell .text-indigo-700,
@@ -1242,7 +1242,7 @@ body.mobile-panel-open {
 .library-shell .hover\:bg-slate-100:hover,
 .library-shell .hover\:bg-slate-200:hover,
 .library-shell .hover\:bg-blue-50:hover {
-    background-color: #e9dfcd !important;
+    background-color: #edf1f6 !important;
 }
 
 .library-shell .focus\:ring-blue-300:focus,
@@ -1264,9 +1264,9 @@ body.mobile-panel-open {
 }
 
 .library-shell .lang-btn.lang-btn-active {
-    background-color: #dde5ef !important;
-    border-color: #b6c5d8 !important;
-    color: #2b4561 !important;
+    background-color: #f4f2ec !important;
+    border-color: #bccbdd !important;
+    color: #2c4968 !important;
 }
 
 .library-shell #settingsMenuBtn,
@@ -1308,7 +1308,7 @@ body.mobile-panel-open {
 .library-shell #trackCurrentBtn:hover,
 .library-shell #themeToggleBtn:hover {
     background-color: var(--control-bg-hover) !important;
-    border-color: #c9ba9f !important;
+    border-color: #c5d2e2 !important;
     color: var(--control-text-strong) !important;
 }
 
@@ -1330,7 +1330,20 @@ body.mobile-panel-open {
 }
 
 .library-shell #searchSuggestions .suggestion-item[aria-selected="true"] {
-    background: #efe5d4 !important;
+    background: #edf1f6 !important;
+}
+
+@media (max-width: 768px) {
+
+    .library-shell #settingsMenuBtn,
+    .library-shell #mobileLangToggle,
+    .library-shell #readerSettingsBtn,
+    .library-shell #themeToggleBtn,
+    .library-shell .lang-btn {
+        min-height: 2.3rem;
+        padding-top: 0.45rem !important;
+        padding-bottom: 0.45rem !important;
+    }
 }
 
 .library-shell :where(button, [role="button"], input, select, textarea, .mobile-tab-btn, .sidebar-show-tab, .suggestion-item) {
