@@ -15,10 +15,10 @@ A thorough scan of the entire Sh'elah codebase and webpage revealed **3 critical
 
 ## Errors Found and Fixed
 
-### 1. ❌ Variable Name Typo in `claude.py`
+### 1. ❌ Variable Name Typo in `backend/claude.py`
 
 **Severity:** LOW (cosmetic/semantic)  
-**Location:** [claude.py](claude.py#L45)  
+**Location:** [backend/claude.py](backend/claude.py#L45)  
 **Line:** 45
 
 **Issue:**
@@ -42,10 +42,10 @@ halachic_text = format_wiki(halachipedia) if halachipedia else ""
 
 ---
 
-### 2. ❌ Mixed Hebrew Character in `zmanim_engine.py`
+### 2. ❌ Mixed Hebrew Character in `backend/zmanim_engine.py`
 
 **Severity:** CRITICAL (display corruption)  
-**Location:** [zmanim_engine.py](zmanim_engine.py#L132)  
+**Location:** [backend/zmanim_engine.py](backend/zmanim_engine.py#L132)  
 **Line:** 132  
 **Component:** Monthly calendar events generation
 
@@ -93,7 +93,7 @@ result = claude.get_halachic_answer(
 **Problem:**
 - `wiki` parameter passed as single dict (`wiki_info`)
 - `halachipedia` parameter passed as list (`halachipedia_list`)
-- This creates inconsistent typing that could cause issues in `claude.py`'s `format_wiki()` function
+- This creates inconsistent typing that could cause issues in `backend/claude.py`'s `format_wiki()` function
 - Later, line 124 combines them: `"wiki": wiki_list + halachipedia_list` (where `wiki_list` is created but not used for Claude)
 
 **Fix Applied:**
@@ -108,7 +108,7 @@ result = claude.get_halachic_answer(
 )
 ```
 
-**Impact:** Ensures both `wiki` and `halachipedia` parameters are consistently formatted as lists, matching how they're handled in `claude.py`.
+**Impact:** Ensures both `wiki` and `halachipedia` parameters are consistently formatted as lists, matching how they're handled in `backend/claude.py`.
 
 ---
 
@@ -164,11 +164,11 @@ result = claude.get_halachic_answer(
 
 ### Files Modified: 3
 
-1. **claude.py**
+1. **backend/claude.py**
    - Line 45: `halachi_text` → `halachic_text`
    - Line 51: Updated prompt variable reference
 
-2. **zmanim_engine.py**
+2. **backend/zmanim_engine.py**
    - Line 132: `Shקia` → `Shkia` (fixed mixed character)
 
 3. **app.py**

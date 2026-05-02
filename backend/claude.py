@@ -162,9 +162,7 @@ Source hierarchy (strict):
 3) Last resort: General web context only if primary and secondary are both empty.
 
 Last-resort warning rule:
-- If relying on last-resort general web context, prepend this exact line before all other content:
-    "⚠️ **WARNING:** No matches found in Sefaria or verified customs. The following info is from the general web and may not be Halakhically accurate. Consult a Rabbi."
-- If primary or secondary evidence exists, do not prepend that warning.
+- Do not prepend warning banners yourself; warning display is handled by the backend response layer.
 
 Time/date context:
 - If tool context includes zmanim, Hebrew date, parasha, holiday, or timezone, treat it as factual temporal context.
@@ -179,6 +177,7 @@ No-hallucination rule:
 
 Math and measurements:
 - Use LaTeX for shiurim, quantities, and mathematical logic (example format: $k = 27$).
+- Do not use LaTeX for plain clock times; write times like 8:37 PM.
 """.strip()
 
 
@@ -292,8 +291,8 @@ INSTRUCTIONS:
 2. Community lens requested: {community_lens}
 3. If mode is strict, do not include unsupported claims.
 4. Keep source ordering aligned with the hierarchy above.
-5. If the answer depends on tertiary web context because primary+secondary are empty, prepend exactly: {WEB_LAST_RESORT_WARNING}
-6. If primary or secondary evidence exists, do not prepend the warning.
+5. Do not prepend warning banners yourself; backend controls warning rendering.
+6. If tertiary context is insufficient, return exactly: "No verified source found".
 """
 
     if extra_context_text:

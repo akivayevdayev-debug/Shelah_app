@@ -23,13 +23,13 @@
 ## Issues Found and Fixed
 
 ### 1. Variable Name Typo: `halachi_text` → `halachic_text`
-- **File:** claude.py
+- **File:** backend/claude.py
 - **Lines:** 45, 51  
 - **Severity:** LOW (Cosmetic/English spelling)
 - **Status:** ✅ FIXED
 
 ### 2. Mixed Hebrew Character in Calendar Display
-- **File:** zmanim_engine.py
+- **File:** backend/zmanim_engine.py
 - **Line:** 132
 - **Issue:** `"Shקia"` with Hebrew character ק
 - **Fix:** Changed to `"Shkia"` (proper transliteration)
@@ -77,8 +77,8 @@
 ## Testing Result
 
 All module imports tested successfully:
-- ✅ `claude.py` - Imports, correct variable naming
-- ✅ `zmanim_engine.py` - Imports, Hebrew character fixed
+- ✅ `backend/claude.py` - Imports, correct variable naming
+- ✅ `backend/zmanim_engine.py` - Imports, Hebrew character fixed
 - ✅ `app.py` - Imports, parameter types consistent
 - ✅ `limit_words()` - Function working correctly (500-word cap)
 
@@ -88,18 +88,18 @@ All module imports tested successfully:
 
 ### Fix #1: Variable Naming
 ```diff
-# claude.py line 45
+# backend/claude.py line 45
 - halachi_text = format_wiki(halachipedia) if halachipedia else ""
 + halachic_text = format_wiki(halachipedia) if halachipedia else ""
 
-# claude.py line 51 (in prompt)
+# backend/claude.py line 51 (in prompt)
 - {halachi_text}
 + {halachic_text}
 ```
 
 ### Fix #2: Hebrew Character
 ```diff
-# zmanim_engine.py line 132
+# backend/zmanim_engine.py line 132
 - "title": f"🌇 Shקia {sunset.strftime('%I:%M %p')}",
 + "title": f"🌇 Shkia {sunset.strftime('%I:%M %p')}",
 ```
@@ -138,8 +138,8 @@ All module imports tested successfully:
 
 - **Complete Audit:** [ERROR_AUDIT_REPORT.md](ERROR_AUDIT_REPORT.md)
 - **Modified Files:**
-  - [claude.py](claude.py#L45)
-  - [zmanim_engine.py](zmanim_engine.py#L132)
+  - [backend/claude.py](backend/claude.py#L45)
+  - [backend/zmanim_engine.py](backend/zmanim_engine.py#L132)
   - [app.py](app.py#L116)
 
 ---

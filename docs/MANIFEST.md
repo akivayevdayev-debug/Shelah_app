@@ -10,7 +10,7 @@
 
 ## Modified Files
 
-### 1. **sefaria.py** (Major Enhancement)
+### 1. **backend/sefaria.py** (Major Enhancement)
 **Lines of code:** ~500+ (from ~200)  
 **Changes:**
 - ✅ Expanded TOPIC_REFS from 50 to 100+ topics
@@ -134,20 +134,20 @@
 - Still calls same endpoints, receives more comprehensive responses
 - Frontend gets community customs automatically
 
-#### `claude.py`  
+#### `backend/claude.py`  
 **No changes required** - But now benefits from:
 - `build_prompt()` receives additional data (Merkava, Siddur)
 - Can provide community-specific guidance
 - Can reference prayer services when relevant
 - Word limit ensures response stays within bounds
 
-#### `data_service.py`
+#### `backend/data_service.py`
 **No changes required** - But now benefits from:
 - All library text lookups return richer context
 - Halachipedia searches enhanced with Merkava data
 - Customs lookups include all 5 communities
 
-#### `calendar_service.py`
+#### `backend/calendar_service.py`
 **No changes required** - Works great with:
 - Siddur auto-detection via zmanim times
 - Holiday-specific customs from Merkava
@@ -160,7 +160,7 @@
 - New .prayer-section layout for services
 - All backward compatible
 
-#### `search.py`
+#### `backend/search.py`
 **No changes required** - But can now use:
 - Merkava halacha lookups as secondary source
 - Community customs from Merkava
@@ -170,7 +170,7 @@
 
 ## Code Statistics
 
-### sefaria.py
+### backend/sefaria.py
 | Metric | Before | After | Change |
 |--------|--------|-------|--------|
 | Lines | ~200 | ~500+ | +250 lines |
@@ -192,7 +192,7 @@
 ## Integration Checklist
 
 ### ✅ Code Changes
-- [x] Expand TOPIC_REFS in sefaria.py (100+ topics)
+- [x] Expand TOPIC_REFS in backend/sefaria.py (100+ topics)
 - [x] Add Merkava integration functions
 - [x] Add Siddur Kol Yaakov integration
 - [x] Create unified source fetcher
@@ -211,7 +211,7 @@
 - [x] Provide developer tips
 
 ### ✅ Testing
-- [x] Verify sefaria.py syntax
+- [x] Verify backend/sefaria.py syntax
 - [x] Test module imports (22 functions/features)
 - [x] Verify all new functions exist
 - [x] Check CSS syntax
@@ -241,8 +241,8 @@
 
 ### Existing Calls Still Work:
 - All `app.py` routes unchanged
-- All `claude.py` functions unchanged
-- All `data_service.py` calls unchanged
+- All `backend/claude.py` functions unchanged
+- All `backend/data_service.py` calls unchanged
 - All HTML/JavaScript unchanged
 - All CSS classes backward compatible
 
@@ -275,7 +275,7 @@
 - Works with Python 3.8+
 
 ### Testing After Deployment
-1. Verify sefaria.py imports
+1. Verify backend/sefaria.py imports
 2. Test one query per category
 3. Check CSS renders correctly
 4. Verify community color coding
@@ -288,15 +288,15 @@
 
 | File | Purpose | Status |
 |------|---------|--------|
-| sefaria.py | Core integration | ✅ Enhanced |
+| backend/sefaria.py | Core integration | ✅ Enhanced |
 | static/style.css | Visual styling | ✅ Enhanced |
 | INTEGRATION_GUIDE.md | Technical docs | ✅ Created |
 | INTEGRATION_SUMMARY.md | Executive summary | ✅ Created |
 | QUICK_START.md | Quick reference | ✅ Created |
 | app.py | Flask server | ✅ Compatible |
-| claude.py | AI prompting | ✅ Compatible |
-| data_service.py | Data layer | ✅ Compatible |
-| calendar_service.py | Calendar engine | ✅ Compatible |
+| backend/claude.py | AI prompting | ✅ Compatible |
+| backend/data_service.py | Data layer | ✅ Compatible |
+| backend/calendar_service.py | Calendar engine | ✅ Compatible |
 | templates/index.html | UI template | ✅ Compatible |
 
 ---
@@ -338,7 +338,7 @@
 ## Support & Maintenance
 
 ### If Something Breaks:
-1. Check sefaria.py imports
+1. Check backend/sefaria.py imports
 2. Verify Merkava endpoints (graceful fallback)
 3. Check CSS syntax (separate file, won't break JS)
 4. Review error logs in console
@@ -347,7 +347,7 @@
 1. Add topics to TOPIC_REFS
 2. Add communities to customs
 3. Add CSS classes to style.css
-4. Add functions to sefaria.py
+4. Add functions to backend/sefaria.py
 
 ### To Debug:
 1. Check Claude response for source attribution

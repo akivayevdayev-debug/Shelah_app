@@ -44,7 +44,7 @@ _library_index_view_cache = {
     "data": None,
 }
 
-_PROJECT_ROOT = Path(__file__).resolve().parent
+_PROJECT_ROOT = Path(__file__).resolve().parent.parent
 _LIBRARY_REPORT_PATH = _PROJECT_ROOT / "reports" / \
     "library_leaf_remove_fix_report.full.json"
 

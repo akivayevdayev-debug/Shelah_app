@@ -10,7 +10,7 @@ It is organized by runtime flow first, then file-by-file notes.
 1. Browser loads `/` -> Flask renders `templates/index.html` from `app.py`.
 2. Frontend JS in `templates/index.html` manages UI state, layouts, and user actions.
 3. Frontend calls Flask APIs (`/api/*`) for texts, communities, prayers, zmanim, holidays, etc.
-4. Flask route handlers in `app.py` delegate to service modules (`data_service.py`, `sefaria_library.py`, `zmanim_engine.py`, etc.).
+4. Flask route handlers in `app.py` delegate to service modules in `backend/` (`backend/data_service.py`, `backend/sefaria_library.py`, `backend/zmanim_engine.py`, etc.).
 5. External sources used by backend:
    - Sefaria API: texts, links, calendars.
    - Hebcal API: Hebrew date conversion, holiday/candle-lighting context.
@@ -19,12 +19,12 @@ It is organized by runtime flow first, then file-by-file notes.
 
 ## 2) Calendar, Zmanim, Hebcal (Where Each Part Lives)
 
-- `calendar_service.py`
+- `backend/calendar_service.py`
   - Pyluach-first date conversion and calendar helper engine.
   - Hebcal cross-checking for consistency.
   - Parasha/holiday support helpers.
 
-- `zmanim_engine.py`
+- `backend/zmanim_engine.py`
   - Main daily zmanim computation logic.
   - Timezone resolution from lat/lon.
   - Omer/day logic and monthly event generation for FullCalendar.
@@ -54,14 +54,14 @@ It is organized by runtime flow first, then file-by-file notes.
     - Calendar/time: `/api/zmanim*`, `/api/holidays`, `/api/parasha`
   - Includes graceful fallback for missing optional Supabase `todos` table.
 
-- `data_service.py`
+- `backend/data_service.py`
   - `ShelahEngine` service facade that keeps route handlers thin.
   - Aggregates calls to Sefaria, customs, wiki/halachipedia search, and zmanim engine.
 
-- `sefaria.py`
+- `backend/sefaria.py`
   - Curated `TOPIC_REFS` map + lookup helpers for matching user questions to canonical references.
 
-- `sefaria_library.py`
+- `backend/sefaria_library.py`
   - Structured Sefaria client wrapper:
     - library index
     - popular texts
@@ -69,23 +69,23 @@ It is organized by runtime flow first, then file-by-file notes.
     - linked refs and graph-friendly data
   - Includes in-memory caching.
 
-- `customs.py`
+- `backend/customs.py`
   - Loads and normalizes community customs JSON files from `customs/`.
   - Performs exact/fuzzy matching for minhag responses.
 
-- `search.py`
+- `backend/search.py`
   - External enrichment connectors:
     - Wikipedia summary fetch
     - Halachipedia search/extract
     - Hebcal daily learning helper
 
-- `calendar_service.py`
+- `backend/calendar_service.py`
   - Pyluach calendar conversion and validation support.
 
-- `zmanim_engine.py`
+- `backend/zmanim_engine.py`
   - Zmanim computation and month-event generation.
 
-- `claude.py`
+- `backend/claude.py`
   - Prompt assembly and Anthropic call wrapper.
   - Formatting helpers for source/custom/wiki blocks.
 
@@ -119,13 +119,13 @@ It is organized by runtime flow first, then file-by-file notes.
 ## 5) Data and Content Files
 
 - `customs/*.json`
-  - Community-specific minhag datasets used by `customs.py` and `/api/community/*`.
+  - Community-specific minhag datasets used by `backend/customs.py` and `/api/community/*`.
 
 - `sefardic_prayers.json`
   - Prayer text source data used in prayer endpoints.
 
-- `skills/`, `.agents/`, `.claude/`, `.continue/`, `.adal/`
-  - Agent/skill metadata and support docs; not core runtime logic for Flask APIs.
+- `.agents/`
+  - Agent/skill metadata for Copilot tooling; not core runtime logic for Flask APIs.
 
 ## 6) Utility Scripts
 
@@ -155,7 +155,7 @@ It is organized by runtime flow first, then file-by-file notes.
   - `python3 scripts/verify_integrations.py`
 
 - Compile sanity check:
-  - `python3 -m py_compile app.py calendar_service.py claude.py customs.py data_service.py search.py sefaria.py sefaria_library.py zmanim_engine.py`
+  - `python3 -m py_compile app.py backend/calendar_service.py backend/claude.py backend/customs.py backend/data_service.py backend/search.py backend/sefaria.py backend/sefaria_library.py backend/zmanim_engine.py`
 
 - High-signal production checks:
   - `/api/stack/health`

@@ -13,9 +13,11 @@ import json
 import os
 import glob
 import difflib
+from pathlib import Path
 
 # Path to customs folder
-CUSTOMS_DIR = os.path.join(os.path.dirname(__file__), "customs")
+PROJECT_ROOT = Path(__file__).resolve().parent.parent
+CUSTOMS_DIR = str(PROJECT_ROOT / "customs")
 _CUSTOMS_CACHE = {
     "signature": None,
     "data": None,
