@@ -1465,10 +1465,22 @@ body.theme-dark .bg-slate-100 {
     background-color: var(--surface-pill) !important;
 }
 
+body.theme-dark .bg-slate-200 {
+    background-color: #2f312e !important;
+}
+
+body.theme-dark .bg-white\/85 {
+    background-color: rgba(28, 30, 27, 0.88) !important;
+}
+
 body.theme-dark .border-slate-100,
 body.theme-dark .border-slate-200,
 body.theme-dark .border-slate-300 {
     border-color: var(--surface-border) !important;
+}
+
+body.theme-dark .border-slate-400 {
+    border-color: #4f534b !important;
 }
 
 body.theme-dark .text-slate-900 {
@@ -1493,6 +1505,62 @@ body.theme-dark .text-slate-500 {
 
 body.theme-dark .text-slate-400 {
     color: #878075 !important;
+}
+
+body.theme-dark .text-slate-300 {
+    color: #a8a093 !important;
+}
+
+body.theme-dark .hover\:bg-white:hover,
+body.theme-dark .hover\:bg-slate-50:hover,
+body.theme-dark .hover\:bg-slate-100:hover,
+body.theme-dark .hover\:bg-slate-200:hover {
+    background-color: #30322f !important;
+}
+
+body.theme-dark .bg-emerald-50,
+body.theme-dark .bg-emerald-100 {
+    background-color: #1f2e2a !important;
+}
+
+body.theme-dark .border-emerald-200 {
+    border-color: #35524b !important;
+}
+
+body.theme-dark .text-emerald-500,
+body.theme-dark .text-emerald-700,
+body.theme-dark .text-emerald-800 {
+    color: #9ec5b8 !important;
+}
+
+body.theme-dark .bg-amber-50,
+body.theme-dark .bg-amber-100 {
+    background-color: #302a1f !important;
+}
+
+body.theme-dark .border-amber-200 {
+    border-color: #615238 !important;
+}
+
+body.theme-dark .text-amber-700,
+body.theme-dark .text-amber-800 {
+    color: #d5bc85 !important;
+}
+
+body.theme-dark .bg-red-50,
+body.theme-dark .bg-rose-50 {
+    background-color: #311f22 !important;
+}
+
+body.theme-dark .border-red-200,
+body.theme-dark .border-rose-200 {
+    border-color: #63434a !important;
+}
+
+body.theme-dark .text-red-500,
+body.theme-dark .text-red-700,
+body.theme-dark .text-rose-700 {
+    color: #d7a0aa !important;
 }
 
 body.theme-dark .text-navy,
@@ -1534,6 +1602,77 @@ body.theme-dark .focus\:border-blue-300:focus,
 body.theme-dark .focus\:border-blue-400:focus,
 body.theme-dark .focus\:border-blue-500:focus {
     border-color: #3d5f92 !important;
+}
+
+body.theme-dark .fc,
+body.theme-dark #calendar {
+    color: #e4dccf;
+}
+
+body.theme-dark .fc {
+    --fc-page-bg-color: #171a18 !important;
+    --fc-neutral-bg-color: #1c1f1d !important;
+    --fc-border-color: #40433d !important;
+    --fc-neutral-text-color: #a9a295 !important;
+    --fc-list-event-hover-bg-color: #242722 !important;
+}
+
+body.theme-dark .fc-theme-standard td,
+body.theme-dark .fc-theme-standard th,
+body.theme-dark .fc-scrollgrid,
+body.theme-dark .fc-scrollgrid-section>* {
+    border-color: #40433d !important;
+}
+
+body.theme-dark .fc .fc-col-header-cell,
+body.theme-dark .fc .fc-daygrid-day {
+    background: #1c1f1d;
+}
+
+body.theme-dark .fc .fc-scrollgrid-section-header>th {
+    background: #1c1f1d !important;
+}
+
+body.theme-dark #calendarModal th {
+    background: #1c1f1d !important;
+}
+
+body.theme-dark th {
+    background: #1c1f1d !important;
+}
+
+body.theme-dark .fc .fc-daygrid-day-frame {
+    background: #181a18;
+}
+
+body.theme-dark .fc .fc-col-header-cell-cushion,
+body.theme-dark .fc .fc-daygrid-day-number {
+    color: #ddd4c6 !important;
+}
+
+body.theme-dark .fc-day-today {
+    background: #2a2d2a !important;
+}
+
+body.theme-dark .fc .fc-toolbar-title {
+    color: #f3eadd;
+}
+
+body.theme-dark .fc .fc-button {
+    background-color: #2f5f9d !important;
+    border-color: #2f5f9d !important;
+    color: #f4ebdd !important;
+}
+
+body.theme-dark .fc .fc-button:hover {
+    background-color: #285286 !important;
+    border-color: #285286 !important;
+}
+
+body.theme-dark .fc .fc-button:disabled {
+    background-color: #2a2f36 !important;
+    border-color: #2a2f36 !important;
+    color: #96a0ae !important;
 }
 
 body.theme-dark .lang-btn.lang-btn-active {
@@ -1846,4 +1985,16 @@ body.theme-dark ::-webkit-scrollbar-thumb {
 
 body.theme-dark ::-webkit-scrollbar-thumb:hover {
     background: #5c5d56;
+}
+
+body.theme-dark .custom-scrollbar::-webkit-scrollbar-track {
+    background: #1f201d !important;
+}
+
+body.theme-dark .custom-scrollbar::-webkit-scrollbar-thumb {
+    background: #4a4b45 !important;
+}
+
+body.theme-dark .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+    background: #5c5d56 !important;
 }
