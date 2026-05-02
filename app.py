@@ -23,6 +23,7 @@ import os
 from datetime import date as greg_date, timedelta, datetime
 from functools import wraps
 from urllib.parse import unquote
+from pathlib import Path
 
 import jwt
 try:
@@ -153,6 +154,294 @@ HEBREW_WORD_GLOSSARY = {
     "יראה": "Awe or reverence.",
     "אהבה": "Love.",
 }
+
+APP_ROOT = Path(__file__).resolve().parent
+SEFARIA_SEARCH_WRAPPER_URL = "https://www.sefaria.org/api/search-wrapper"
+
+HALAKHIC_CORPUS_ALIASES = {
+    "Shulchan Arukh": [
+        "shulchan arukh",
+        "shulchan aruch",
+        "orach chayim",
+        "yoreh de'ah",
+        "yoreh deah",
+        "even haezer",
+        "choshen mishpat",
+    ],
+    "Rambam": [
+        "rambam",
+        "mishneh torah",
+        "moses maimonides",
+    ],
+    "Mishnah Berurah": [
+        "mishnah berurah",
+        "mishna berura",
+    ],
+    "Talmud": [
+        "talmud",
+        "bavli",
+        "yerushalmi",
+    ],
+    "Gemara": [
+        "gemara",
+        "talmud",
+        "tractate",
+    ],
+}
+
+QUERY_STOPWORDS = {
+    "the", "and", "for", "with", "from", "that", "this", "are", "was", "were", "have", "has",
+    "during", "about", "into", "when", "what", "where", "which", "does", "is", "can", "may", "if",
+    "allowed", "halacha", "halakhah", "question", "please", "tell", "me", "us", "you",
+    "איך", "מה", "האם", "עם", "של", "על", "גם", "לא", "כן",
+}
+
+
+def _extract_query_keywords(query, max_keywords=8):
+    tokens = re.findall(r"[A-Za-z\u0590-\u05FF]{3,}", str(query or "").lower())
+    keywords = []
+    for token in tokens:
+        if token in QUERY_STOPWORDS:
+            continue
+        if token not in keywords:
+            keywords.append(token)
+        if len(keywords) >= max_keywords:
+            break
+    return keywords
+
+
+def _query_search_wrapper(query_text, size=12):
+    payload = {
+        "type": "text",
+        "query": query_text,
+        "field": "naive_lemmatizer",
+        "source_proj": True,
+        "slop": 10,
+        "start": 0,
+        "size": size,
+        "filters": [],
+        "filter_fields": [],
+        "aggs": [],
+        "sort_method": "score",
+        "sort_fields": ["pagesheetrank"],
+        "sort_reverse": False,
+        "sort_score_missing": 0.04,
+    }
+
+    try:
+        resp = requests.post(
+            SEFARIA_SEARCH_WRAPPER_URL,
+            json=payload,
+            timeout=8,
+        )
+        if not resp.ok:
+            return []
+        data = resp.json() if resp.content else {}
+        return ((data.get("hits") or {}).get("hits") or [])
+    except Exception:
+        return []
+
+
+def _match_corpus(hit_source, aliases):
+    if not isinstance(hit_source, dict):
+        return False
+
+    categories = hit_source.get("categories", [])
+    title_variants = hit_source.get("titleVariants", [])
+    haystack = " ".join([
+        str(hit_source.get("ref") or ""),
+        str(hit_source.get("path") or ""),
+        " ".join(categories if isinstance(categories, list) else []),
+        " ".join(title_variants if isinstance(title_variants, list) else []),
+    ]).lower().replace("_", " ")
+
+    return any(alias in haystack for alias in aliases)
+
+
+def _extract_hit_snippet(hit_source):
+    for key in ("naive_lemmatizer", "exact", "content"):
+        raw = hit_source.get(key, "")
+        if isinstance(raw, str) and raw.strip():
+            return re.sub(r"\s+", " ", raw).strip()[:340]
+    return ""
+
+
+def _iter_local_json_matches(payload, keywords, file_name, pointer="root"):
+    matches = []
+
+    if isinstance(payload, dict):
+        for field in ("Minhag", "minhag", "Title", "title"):
+            value = payload.get(field)
+            if not isinstance(value, str):
+                continue
+            lowered = value.lower()
+            hit_keywords = [kw for kw in keywords if kw in lowered]
+            if not hit_keywords:
+                continue
+            matches.append({
+                "file": file_name,
+                "field": field,
+                "value": value,
+                "match_keywords": hit_keywords,
+                "pointer": pointer,
+            })
+
+        for key, value in payload.items():
+            child_pointer = f"{pointer}.{key}"
+            matches.extend(_iter_local_json_matches(
+                value, keywords, file_name, child_pointer))
+
+    elif isinstance(payload, list):
+        for idx, item in enumerate(payload):
+            child_pointer = f"{pointer}[{idx}]"
+            matches.extend(_iter_local_json_matches(
+                item, keywords, file_name, child_pointer))
+
+    return matches
+
+
+def _find_local_custom_matches(keywords, max_results=12):
+    roots = [
+        APP_ROOT / ".github" / "customs",
+        APP_ROOT / "customs",
+    ]
+
+    collected = []
+    seen = set()
+
+    for root in roots:
+        if not root.exists() or not root.is_dir():
+            continue
+
+        for file_path in sorted(root.glob("*.json")):
+            try:
+                payload = json.loads(file_path.read_text(encoding="utf-8"))
+            except Exception:
+                continue
+
+            for match in _iter_local_json_matches(payload, keywords, file_path.name):
+                key = (
+                    match.get("file", ""),
+                    match.get("field", ""),
+                    str(match.get("value", "")).lower(),
+                    match.get("pointer", ""),
+                )
+                if key in seen:
+                    continue
+                seen.add(key)
+                collected.append(match)
+                if len(collected) >= max_results:
+                    return collected
+
+    return collected
+
+
+def get_halakhic_sources(query):
+    """Deterministic fallback source retrieval without any LLM calls."""
+    question = str(query or "").strip()
+    keywords = _extract_query_keywords(question)
+    if not keywords and question:
+        keywords = [question.lower()]
+
+    sources = []
+    seen_refs = set()
+    search_query = " ".join(keywords[:5]).strip() or question
+    hit_pool = _query_search_wrapper(search_query, size=120)
+
+    for corpus, aliases in HALAKHIC_CORPUS_ALIASES.items():
+        added_for_corpus = 0
+        corpus_hits = [
+            hit for hit in hit_pool
+            if _match_corpus((hit or {}).get("_source", {}), aliases)
+        ]
+
+        if not corpus_hits:
+            focused_hits = _query_search_wrapper(
+                f"{corpus} {search_query}".strip(), size=40)
+            corpus_hits = [
+                hit for hit in focused_hits
+                if _match_corpus((hit or {}).get("_source", {}), aliases)
+            ]
+
+        if not corpus_hits:
+            focused_hits = _query_search_wrapper(corpus, size=40)
+            corpus_hits = [
+                hit for hit in focused_hits
+                if _match_corpus((hit or {}).get("_source", {}), aliases)
+            ]
+
+        for hit in corpus_hits:
+            hit_source = hit.get("_source", {}) if isinstance(
+                hit, dict) else {}
+            if not isinstance(hit_source, dict):
+                continue
+            if not _match_corpus(hit_source, aliases):
+                continue
+
+            ref = str(hit_source.get("ref") or "").strip()
+            if not ref or ref in seen_refs:
+                continue
+
+            seen_refs.add(ref)
+            he_ref = str(hit_source.get("heRef") or "").strip()
+            path = str(hit_source.get("path") or "").strip()
+            snippet = _extract_hit_snippet(hit_source)
+
+            sources.append({
+                "ref": ref,
+                "title": ref,
+                "lines": [{"en": snippet or f"Matched via {corpus}", "he": he_ref}],
+                "domain": "Sefaria",
+                "corpus": corpus,
+                "path": path,
+                "priority": 1,
+                "status": "fallback",
+                "score": hit.get("_score") if isinstance(hit, dict) else None,
+            })
+
+            added_for_corpus += 1
+            if added_for_corpus >= 3:
+                break
+
+    local_matches = _find_local_custom_matches(keywords, max_results=10)
+    for match in local_matches:
+        field = match.get("field", "Title")
+        value = str(match.get("value") or "").strip()
+        file_name = match.get("file", "")
+        pointer = match.get("pointer", "")
+        sources.append({
+            "ref": f"Local Custom: {value[:80]}",
+            "title": value[:120] if value else "Local Custom Match",
+            "lines": [{
+                "en": f"{field}: {value}",
+                "he": "",
+            }],
+            "domain": "local-customs",
+            "corpus": "customs-json",
+            "file": file_name,
+            "pointer": pointer,
+            "priority": 2,
+            "status": "fallback",
+            "match_keywords": match.get("match_keywords", []),
+        })
+
+    if not sources:
+        sources.append({
+            "ref": "No verified source found",
+            "title": "No verified source found",
+            "lines": [{"en": "No verified source found", "he": ""}],
+            "domain": "none",
+            "priority": 1,
+            "status": "fallback",
+        })
+
+    return {
+        "status": "fallback",
+        "query": question,
+        "keywords": keywords,
+        "source_count": len(sources),
+        "sources": sources,
+    }
 
 
 def _strip_hebrew_diacritics(text):
@@ -1100,7 +1389,7 @@ def ask_question():
                 }
             })
 
-        result = claude.get_halachic_answer(
+        prompt = claude.build_prompt(
             question=question,
             sefaria_sources=flat_sources_for_claude,
             customs=customs_info,
@@ -1110,11 +1399,36 @@ def ask_question():
             community_lens=canonical_lens,
         )
 
-        fallback_used = bool(result.get("is_fallback")
-                             ) or result.get("confidence", 1) < 0.5
-        DEVTOOLS_STATS["answers_total"] += 1
-        if fallback_used:
+        try:
+            result = claude.ask_claude(prompt)
+            if result.get("error"):
+                raise RuntimeError(result.get("error") or "AI request failed")
+        except Exception as ai_error:
+            fallback_payload = get_halakhic_sources(question)
+            DEVTOOLS_STATS["answers_total"] += 1
             DEVTOOLS_STATS["fallback_answers"] += 1
+            return jsonify({
+                "answer": "AI synthesis unavailable. Returning verified halakhic sources.",
+                "confidence": 0.4,
+                "wiki": wiki_list + halachipedia_list,
+                "customs": customs_info,
+                "sources": fallback_payload.get("sources", []),
+                "meta": {
+                    "mode": mode,
+                    "community_lens": canonical_lens,
+                    "source_count": fallback_payload.get("source_count", 0),
+                    "custom_count": len(customs_info),
+                    "generated_at": int(time.time()),
+                    "fallback": True,
+                    "status": "fallback",
+                    "fallback_detail": {
+                        "keywords": fallback_payload.get("keywords", []),
+                        "reason": str(ai_error),
+                    },
+                }
+            })
+
+        DEVTOOLS_STATS["answers_total"] += 1
 
         # Send all context back to the frontend
         return jsonify({
@@ -1129,7 +1443,7 @@ def ask_question():
                 "source_count": len(primary_sources),
                 "custom_count": len(customs_info),
                 "generated_at": int(time.time()),
-                "fallback": fallback_used,
+                "fallback": False,
             }
         })
 
