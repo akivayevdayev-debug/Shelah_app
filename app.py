@@ -138,6 +138,10 @@ HEBREW_DIACRITICS_RE = re.compile(r"[\u0591-\u05C7]")
 HEBREW_LETTER_RE = re.compile(r"[\u05D0-\u05EA]")
 
 TRANSLATION_CACHE = {}
+TRANSLATION_SOURCE_CACHE = {}
+
+GOOGLE_TRANSLATE_API_URL = "https://translate.googleapis.com/translate_a/single"
+MYMEMORY_TRANSLATE_API_URL = "https://api.mymemory.translated.net/get"
 
 HEBREW_WORD_GLOSSARY = {
     "שבת": "Shabbat, the seventh day of rest.",
@@ -474,18 +478,72 @@ def _decode_route_ref(value, max_rounds=3):
     return decoded
 
 
-def _translate_hebrew_text_online(text):
-    """Best-effort public translation fallback for short Hebrew snippets."""
+def _is_translation_echo(source_text, translated_text):
+    src = re.sub(r"\s+", " ", str(source_text or "").strip()).lower()
+    dst = re.sub(r"\s+", " ", str(translated_text or "").strip()).lower()
+    return bool(src and dst and src == dst)
+
+
+def _extract_google_translated_text(payload):
+    if not isinstance(payload, list) or not payload:
+        return ""
+    segments = payload[0]
+    if not isinstance(segments, list):
+        return ""
+
+    chunks = []
+    for segment in segments:
+        if isinstance(segment, list) and segment:
+            chunk = str(segment[0] or "").strip()
+            if chunk:
+                chunks.append(chunk)
+
+    return re.sub(r"\s+", " ", "".join(chunks)).strip()
+
+
+def _translate_hebrew_text_google(text):
     value = str(text or "").strip()
     if not value:
         return ""
     if not _contains_hebrew_letters(value):
         return ""
 
-    url = "https://api.mymemory.translated.net/get"
     try:
         resp = requests.get(
-            url,
+            GOOGLE_TRANSLATE_API_URL,
+            params={
+                "client": "gtx",
+                "sl": "he",
+                "tl": "en",
+                "dt": "t",
+                "q": value,
+            },
+            headers={"User-Agent": "Mozilla/5.0"},
+            timeout=2.5,
+        )
+        if not resp.ok:
+            return ""
+        payload = resp.json() if resp.content else []
+        translated = _extract_google_translated_text(payload)
+        if not translated:
+            return ""
+        if _is_translation_echo(value, translated):
+            return ""
+        return translated
+    except Exception:
+        return ""
+
+
+def _translate_hebrew_text_mymemory(text):
+    value = str(text or "").strip()
+    if not value:
+        return ""
+    if not _contains_hebrew_letters(value):
+        return ""
+
+    try:
+        resp = requests.get(
+            MYMEMORY_TRANSLATE_API_URL,
             params={"q": value, "langpair": "he|en"},
             timeout=2.5,
         )
@@ -496,13 +554,39 @@ def _translate_hebrew_text_online(text):
             "translatedText") or "").strip()
         if not translated:
             return ""
-
-        # Skip unchanged echoes.
-        if translated.lower() == value.lower():
+        if _is_translation_echo(value, translated):
             return ""
         return translated
     except Exception:
         return ""
+
+
+def _translate_hebrew_text_online(text):
+    """Best-effort Hebrew->English translation, preferring Google with fallback providers."""
+    value = _normalize_lookup_word(text)
+    if not value:
+        return "", ""
+    if not _contains_hebrew_letters(value):
+        return "", ""
+
+    cache_key = value[:320]
+    if cache_key in TRANSLATION_CACHE:
+        return TRANSLATION_CACHE.get(cache_key, ""), TRANSLATION_SOURCE_CACHE.get(cache_key, "")
+
+    translated = _translate_hebrew_text_google(cache_key)
+    source = "google-translate"
+
+    if not translated:
+        translated = _translate_hebrew_text_mymemory(cache_key)
+        source = "mymemory-translate"
+
+    TRANSLATION_CACHE[cache_key] = translated
+    TRANSLATION_SOURCE_CACHE[cache_key] = source if translated else ""
+
+    if not translated:
+        return "", ""
+
+    return translated, source
 
 
 def _fill_missing_english_lines(text_payload, max_lines=12, max_runtime_seconds=2.5):
@@ -515,6 +599,7 @@ def _fill_missing_english_lines(text_payload, max_lines=12, max_runtime_seconds=
         return text_payload
 
     translated_count = 0
+    translation_sources = set()
     started_at = time.time()
     for line in lines:
         if translated_count >= max_lines:
@@ -531,21 +616,22 @@ def _fill_missing_english_lines(text_payload, max_lines=12, max_runtime_seconds=
         if not _contains_hebrew_letters(he_value):
             continue
 
-        cache_key = he_value[:320]
-        if cache_key in TRANSLATION_CACHE:
-            generated = TRANSLATION_CACHE[cache_key]
-        else:
-            generated = _translate_hebrew_text_online(cache_key)
-            TRANSLATION_CACHE[cache_key] = generated
+        generated, source = _translate_hebrew_text_online(he_value[:320])
 
         if generated:
             line["en"] = generated
             translated_count += 1
+            if source:
+                translation_sources.add(source)
 
     if translated_count:
+        provider_label = ", ".join(
+            sorted(translation_sources)) if translation_sources else "online-translation"
         text_payload["translation_generated"] = True
         text_payload["translation_generated_count"] = translated_count
-        text_payload["translation_note"] = "Automatic English translation added for missing lines."
+        text_payload["translation_source"] = provider_label
+        text_payload[
+            "translation_note"] = f"Automatic English translation added for missing lines ({provider_label})."
         text_payload["en"] = [
             str(line.get("en", "")).strip()
             for line in lines
@@ -629,21 +715,55 @@ def _lookup_english_word_meaning(word):
 
 
 def _lookup_hebrew_word_meaning(word):
+    def _strip_common_hebrew_prefix(token):
+        value = str(token or "").strip()
+        if len(value) < 4:
+            return value
+        if value and value[0] in {"ו", "ה", "ב", "כ", "ל", "מ", "ש"}:
+            return value[1:]
+        return value
+
+    def _hebrew_word_variants(raw_word):
+        normalized = _normalize_lookup_word(raw_word)
+        variants = []
+
+        def add_variant(candidate):
+            value = str(candidate or "").strip()
+            if value and value not in variants:
+                variants.append(value)
+
+        add_variant(normalized)
+        letters_only = re.sub(r"[^\u05D0-\u05EA\s]", "", normalized).strip()
+        add_variant(letters_only)
+
+        if " " in letters_only:
+            for part in letters_only.split():
+                add_variant(part)
+                add_variant(_strip_common_hebrew_prefix(part))
+        else:
+            add_variant(_strip_common_hebrew_prefix(letters_only))
+
+        return variants[:8]
+
     clean_word = _normalize_lookup_word(word)
     if not clean_word:
         return "", ""
 
-    exact = HEBREW_WORD_GLOSSARY.get(clean_word)
-    if exact:
-        return exact, "local-hebrew-glossary"
+    variants = _hebrew_word_variants(clean_word)
 
-    base = re.sub(r"[^\u05D0-\u05EA\s]", "", clean_word).strip()
-    if base in HEBREW_WORD_GLOSSARY:
-        return HEBREW_WORD_GLOSSARY[base], "local-hebrew-glossary"
+    for variant in variants:
+        exact = HEBREW_WORD_GLOSSARY.get(variant)
+        if exact:
+            return exact, "local-hebrew-glossary"
 
-    generated = _translate_hebrew_text_online(clean_word)
+    for variant in variants:
+        generated, source = _translate_hebrew_text_online(variant)
+        if generated:
+            return generated, source or "automatic-translation"
+
+    generated, source = _translate_hebrew_text_online(clean_word)
     if generated:
-        return generated, "automatic-translation"
+        return generated, source or "automatic-translation"
 
     return "", ""
 
