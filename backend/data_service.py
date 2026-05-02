@@ -9,11 +9,11 @@ This module provides a single class that aggregates external data providers:
 app.py route handlers call this facade to keep endpoint code thin and consistent.
 """
 
-import sefaria
-import customs
-import search
-from sefaria_library import get_text
-from zmanim_engine import get_community_zmanim, get_monthly_events
+from backend import sefaria
+from backend import customs
+from backend import search
+from backend.sefaria_library import get_text
+from backend.zmanim_engine import get_community_zmanim, get_monthly_events
 
 
 class ShelahEngine:

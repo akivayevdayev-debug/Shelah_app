@@ -223,7 +223,7 @@ done
 | **Clerk** | Frontend → Clerk | Remote | Check Clerk dashboard for active users/tokens |
 | **Vercel** | GitHub → Vercel | Live | Check vercel.com dashboard for successful deployments |
 | **Sefaria** | Flask → Sefaria API | Remote | `curl https://www.sefaria.org/api/texts/...` |
-| **Hebcal** | Flask → Hebcal API | Remote | Check calendar_service.py calls |
+| **Hebcal** | Flask → Hebcal API | Remote | Check backend/calendar_service.py calls |
 
 ---
 
