@@ -1453,6 +1453,8 @@
         const ZMANIM_LOCATION_CACHE_KEY = "Sh'elahLastLocation";
         const LANGUAGE_MANUAL_KEY = "Sh'elahLanguageManuallySet";
         const READER_LAYOUT_MANUAL_KEY = "Sh'elahReaderLayoutManuallySet";
+        const PARASHA_CACHE_TTL_MS = 1000 * 60 * 60;
+        const POPULAR_TEXTS_CACHE_TTL_MS = 1000 * 60 * 60 * 12;
         const TORAH_PARASHA_BY_BOOK = {
             'Genesis': [
                 { chapter: 1, name: 'Bereshit' },
@@ -1971,6 +1973,28 @@
             };
         }
 
+        function queueBackgroundTask(task, timeout = 1200) {
+            if (typeof task !== 'function') return;
+            if ('requestIdleCallback' in window) {
+                window.requestIdleCallback(() => {
+                    try {
+                        task();
+                    } catch (_) {
+                        // Keep background scheduling resilient.
+                    }
+                }, { timeout });
+                return;
+            }
+
+            setTimeout(() => {
+                try {
+                    task();
+                } catch (_) {
+                    // Keep background scheduling resilient.
+                }
+            }, 0);
+        }
+
         const debouncedPushPrefsToServer = debounce(() => {
             void pushPrefsToServer();
         }, 700);
@@ -2226,7 +2250,11 @@
             prayers: {},
             communities: {},
             prayersList: null,
-            communitiesList: null
+            communitiesList: null,
+            parashaQuickLink: null,
+            parashaQuickLinkTs: 0,
+            popularTexts: null,
+            popularTextsTs: 0,
         };
 
         function normalizeShelfShape(value) {
@@ -5817,7 +5845,7 @@
                 attempts.push(cleanCandidate);
             });
 
-            const boundedAttempts = attempts.slice(0, 10);
+            const boundedAttempts = attempts.slice(0, 6);
             let lastErrorPayload = { error: 'Text not found' };
 
             for (const candidate of boundedAttempts) {
@@ -5828,11 +5856,7 @@
                 }
 
                 try {
-                    const cacheBuster = Date.now();
-                    const resp = await fetch(`/api/text/${encodeURIComponent(candidate)}?autotranslate=1&_r=${cacheBuster}`, {
-                        cache: 'no-store',
-                        headers: { 'Cache-Control': 'no-cache' },
-                    });
+                    const resp = await fetch(`/api/text/${encodeURIComponent(candidate)}?autotranslate=1`);
                     const payload = await resp.json();
                     if (!payload?.error) {
                         cacheTextPayload(candidate, payload);
@@ -5953,18 +5977,16 @@
             const homeQuickLink = document.getElementById('homeParashaQuickLink');
             if (!quickLink && !homeQuickLink) return;
 
-            try {
-                const resp = await fetch('/api/parasha');
-                if (!resp.ok) return;
+            const applyParashaLink = (payload) => {
+                if (!payload) return;
 
-                const data = await resp.json();
-                const ref = data.ref || 'Genesis 1';
-                const enTitle = (data.title || 'Parashat HaShavua').trim();
-                const heTitle = (data.heTitle || '').trim();
-                const titleEn = heTitle ? `${enTitle} · ${heTitle}` : enTitle;
-                const titleHe = heTitle || enTitle;
+                const ref = payload.ref || 'Genesis 1';
+                const enTitle = (payload.enTitle || 'Parashat HaShavua').trim();
+                const heTitle = (payload.heTitle || '').trim();
+                const titleEn = payload.titleEn || (heTitle ? `${enTitle} · ${heTitle}` : enTitle);
+                const titleHe = payload.titleHe || heTitle || enTitle;
 
-                const applyParashaLink = (linkEl) => {
+                const applyToElement = (linkEl) => {
                     if (!linkEl) return;
                     linkEl.dataset.en = titleEn;
                     linkEl.dataset.he = titleHe;
@@ -5975,8 +5997,35 @@
                     linkEl.onclick = () => readText(ref);
                 };
 
-                applyParashaLink(quickLink);
-                applyParashaLink(homeQuickLink);
+                applyToElement(quickLink);
+                applyToElement(homeQuickLink);
+            };
+
+            const hasFreshCachedParasha = textsCache.parashaQuickLink
+                && (Date.now() - textsCache.parashaQuickLinkTs) < PARASHA_CACHE_TTL_MS;
+            if (hasFreshCachedParasha) {
+                applyParashaLink(textsCache.parashaQuickLink);
+                return;
+            }
+
+            try {
+                const resp = await fetch('/api/parasha');
+                if (!resp.ok) return;
+
+                const data = await resp.json();
+                const payload = {
+                    ref: data.ref || 'Genesis 1',
+                    enTitle: (data.title || 'Parashat HaShavua').trim(),
+                    heTitle: (data.heTitle || '').trim(),
+                };
+                payload.titleEn = payload.heTitle
+                    ? `${payload.enTitle} · ${payload.heTitle}`
+                    : payload.enTitle;
+                payload.titleHe = payload.heTitle || payload.enTitle;
+
+                textsCache.parashaQuickLink = payload;
+                textsCache.parashaQuickLinkTs = Date.now();
+                applyParashaLink(payload);
             } catch (_) {
                 // Keep default quick-link state when parasha endpoint is unavailable.
             }
@@ -5994,9 +6043,23 @@
 
         async function populatePopularTexts() {
             const grid = document.getElementById('popularTextsGrid');
+            if (!grid) return;
+
             try {
-                const r = await fetch('/api/library/popular');
-                const data = await r.json();
+                const hasFreshCache = textsCache.popularTexts
+                    && (Date.now() - textsCache.popularTextsTs) < POPULAR_TEXTS_CACHE_TTL_MS;
+
+                let data = textsCache.popularTexts;
+                if (!hasFreshCache) {
+                    const r = await fetch('/api/library/popular');
+                    if (!r.ok) {
+                        throw new Error('popular texts unavailable');
+                    }
+                    data = await r.json();
+                    textsCache.popularTexts = data;
+                    textsCache.popularTextsTs = Date.now();
+                }
+
                 let html = '';
                 const colors = {
                     'Tanakh': '#004e5f', 'Mishnah': '#5a99b7',
@@ -6028,15 +6091,24 @@
         }
 
         // Load popular texts on page load
-        window.addEventListener('load', () => {
+        document.addEventListener('DOMContentLoaded', () => {
             hydratePreferences();
             bindDailyStudyLinks();
-            loadParashaQuickLink();
-            void loadPrayersMenu();
-            populatePopularTexts();
-            void loadLibraryIndexViews();
-            registerServiceWorker();
-            fetchDevtoolsHeartbeat();
+            void loadParashaQuickLink();
+            void registerServiceWorker();
+
+            queueBackgroundTask(() => {
+                void loadPrayersMenu();
+            }, 1200);
+            queueBackgroundTask(() => {
+                void loadLibraryIndexViews();
+            }, 1600);
+            queueBackgroundTask(() => {
+                void populatePopularTexts();
+            }, 1800);
+            queueBackgroundTask(() => {
+                void fetchDevtoolsHeartbeat();
+            }, 2200);
         });
 
         // Multi-language Toggle with data attributes
@@ -6284,6 +6356,12 @@
             setZmanRowVisibility('zRowHavdalah', hasRealZman(zmanim['Havdalah']));
         }
 
+        function hasMeaningfulLocationDelta(previousLocation, nextLocation, threshold = 0.02) {
+            if (!previousLocation || !nextLocation) return true;
+            return Math.abs(previousLocation.lat - nextLocation.lat) > threshold
+                || Math.abs(previousLocation.lon - nextLocation.lon) > threshold;
+        }
+
         function initZmanim() {
             const cachedRaw = localStorage.getItem(ZMANIM_LOCATION_CACHE_KEY);
             let cachedLocation = null;
@@ -6311,18 +6389,27 @@
                         };
                         localStorage.setItem(ZMANIM_LOCATION_CACHE_KEY, JSON.stringify(location));
 
+                        const locationChanged = hasMeaningfulLocationDelta(cachedLocation, location);
+                        if (!locationChanged && cachedLocation) {
+                            return;
+                        }
+
                         fetch('/set_location', {
                             method: 'POST',
                             headers: { 'Content-Type': 'application/json' },
                             body: JSON.stringify(location)
-                        }).then(() => fetchZmanimAPI(location));
+                        })
+                            .catch(() => {
+                                // Continue with direct API load even if session update fails.
+                            })
+                            .finally(() => fetchZmanimAPI(location));
                     },
                     () => {
                         if (!cachedLocation) {
                             fetchZmanimAPI();
                         }
                     },
-                    { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
+                    { enableHighAccuracy: false, timeout: 7000, maximumAge: 300000 }
                 );
                 return;
             }

@@ -12,6 +12,7 @@ __pycache__/
 dist/
 build/
 *.egg-info/
+node_modules/
 
 # Virtual environments
 .venv/
@@ -32,3 +33,12 @@ env/
 
 # Logs
 *.log
+
+# Generated QA/debug artifacts
+test-results/
+reports/browser_qa/
+reports/library_leaf_remove_fix_report.sample.json
+reports/library_leaf_remove_fix_report.slice180.json
+templates/index_backup.html
+error_audit.txt
+sefardic_prayers.json

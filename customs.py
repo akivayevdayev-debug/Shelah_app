@@ -16,6 +16,22 @@ import difflib
 
 # Path to customs folder
 CUSTOMS_DIR = os.path.join(os.path.dirname(__file__), "customs")
+_CUSTOMS_CACHE = {
+    "signature": None,
+    "data": None,
+}
+
+
+def _build_customs_signature(files):
+    """Create a cheap change signature from file names and mtimes."""
+    signature = []
+    for filepath in files:
+        try:
+            signature.append((os.path.basename(filepath),
+                             os.path.getmtime(filepath)))
+        except Exception:
+            signature.append((os.path.basename(filepath), -1.0))
+    return tuple(sorted(signature))
 
 
 def _build_trusted_sources(data):
@@ -61,9 +77,12 @@ def _build_trusted_sources(data):
 
 def load_all_customs():
     """Load all JSON files from customs folder"""
-    customs = {}
+    files = sorted(glob.glob(os.path.join(CUSTOMS_DIR, "*.json")))
+    signature = _build_customs_signature(files)
+    if _CUSTOMS_CACHE.get("signature") == signature and isinstance(_CUSTOMS_CACHE.get("data"), dict):
+        return _CUSTOMS_CACHE["data"]
 
-    files = glob.glob(os.path.join(CUSTOMS_DIR, "*.json"))
+    customs = {}
 
     for filepath in files:
         if os.path.basename(filepath).lower() == "customs_db.json":
@@ -114,6 +133,8 @@ def load_all_customs():
         except Exception as e:
             print(f"[Customs Load Error] {filepath}: {e}")
 
+    _CUSTOMS_CACHE["signature"] = signature
+    _CUSTOMS_CACHE["data"] = customs
     return customs
 
 
