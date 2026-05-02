@@ -1333,6 +1333,17 @@ body.mobile-panel-open {
     background: #edf1f6 !important;
 }
 
+.library-shell .library-node-open.library-node-active {
+    background: #f2eadc !important;
+    border: 1px solid #d7c8ad !important;
+    color: #4f4130 !important;
+}
+
+.library-shell .library-node-open.library-node-active:hover {
+    background: #ede2d0 !important;
+    color: #433728 !important;
+}
+
 @media (max-width: 768px) {
 
     .library-shell #settingsMenuBtn,
@@ -1739,6 +1750,26 @@ body.theme-dark #sourceGraphCanvas {
     border-color: var(--surface-border) !important;
 }
 
+body.theme-dark #aiTrustSection {
+    background: #1e201e !important;
+    border-color: #40423d !important;
+}
+
+body.theme-dark #aiConfidenceBadge,
+body.theme-dark #aiModeBadge,
+body.theme-dark #aiCommunityBadge,
+body.theme-dark #aiSourcesBadge {
+    background: #32363a !important;
+    border: 1px solid #4a525b !important;
+    color: #f3e8d8 !important;
+}
+
+body.theme-dark #aiWarningBadge {
+    background: #3b3124 !important;
+    border-color: #6f5b35 !important;
+    color: #f2d59f !important;
+}
+
 body.theme-dark #searchIcon,
 body.theme-dark .segment-label,
 body.theme-dark .segment-translit {
@@ -1821,6 +1852,47 @@ body.theme-dark #leftSidebar button,
 body.theme-dark #libraryIndexSidebar button,
 body.theme-dark #prayerBooksNavList button {
     color: #d6cebf !important;
+}
+
+body.theme-dark .library-node-open.library-node-active {
+    background: #353129 !important;
+    border: 1px solid #5f5443 !important;
+    color: #f1e5cf !important;
+    box-shadow: inset 0 0 0 1px rgba(165, 142, 101, 0.25);
+}
+
+body.theme-dark .library-node-open.library-node-active:hover {
+    background: #3d382f !important;
+    color: #fff0d8 !important;
+}
+
+body.theme-dark .shelf-open.shelf-open-active {
+    background: #353129 !important;
+    border-color: #5f5443 !important;
+    box-shadow: inset 0 0 0 1px rgba(165, 142, 101, 0.24);
+}
+
+body.theme-dark .shelf-open.shelf-open-active span:first-child {
+    color: #f1e5cf !important;
+}
+
+body.theme-dark .shelf-open.shelf-open-active span:last-child {
+    color: #d3b98f !important;
+}
+
+body.theme-dark #searchSuggestions .suggestion-item[class*="bg-[#efe5d4]"] {
+    background: #353129 !important;
+}
+
+body.theme-dark #searchSuggestions .suggestion-item[class*="bg-[#efe5d4]"] .text-slate-800 {
+    color: #f2e8d8 !important;
+}
+
+body.theme-dark .shelf-open:focus-visible,
+body.theme-dark .track-toggle:focus-visible,
+body.theme-dark .library-node-open:focus-visible {
+    outline: 2px solid rgba(176, 154, 116, 0.58);
+    outline-offset: 2px;
 }
 
 body.theme-dark #leftSidebar summary:hover,
