@@ -27,6 +27,11 @@ from pathlib import Path
 
 import jwt
 try:
+    from flask_limiter import Limiter
+except Exception:
+    Limiter = None
+
+try:
     from supabase import create_client
     try:
         from supabase.lib.client_options import SyncClientOptions
@@ -338,7 +343,7 @@ def _find_local_custom_matches(keywords, max_results=12):
 
 def get_halakhic_sources(query):
     """Deterministic fallback source retrieval without any LLM calls."""
-    question = str(query or "").strip()
+    question = claude.sanitize_user_query(query)
     keywords = _extract_query_keywords(question)
     if not keywords and question:
         keywords = [question.lower()]
@@ -779,6 +784,45 @@ def _holiday_color_for_category(category):
 load_dotenv()
 app = Flask(__name__)
 app.secret_key = os.environ.get("FLASK_SECRET_KEY") or os.urandom(32)
+
+RATE_LIMIT_DEFAULT = [
+    item.strip()
+    for item in (os.environ.get("RATE_LIMIT_DEFAULT") or "").split(",")
+    if item.strip()
+]
+RATE_LIMIT_ASK = (os.environ.get("RATE_LIMIT_ASK") or "20 per minute").strip()
+RATE_LIMIT_STORAGE_URI = (os.environ.get(
+    "RATELIMIT_STORAGE_URI") or "memory://").strip()
+
+
+def _rate_limit_key():
+    forwarded = (request.headers.get("CF-Connecting-IP")
+                 or request.headers.get("X-Forwarded-For") or "").split(",")[0].strip()
+    real_ip = (request.headers.get("X-Real-IP") or "").strip()
+    return forwarded or real_ip or request.remote_addr or "127.0.0.1"
+
+
+limiter = None
+if Limiter is not None:
+    limiter_kwargs = {
+        "app": app,
+        "key_func": _rate_limit_key,
+        "storage_uri": RATE_LIMIT_STORAGE_URI,
+    }
+    if RATE_LIMIT_DEFAULT:
+        limiter_kwargs["default_limits"] = RATE_LIMIT_DEFAULT
+    limiter = Limiter(**limiter_kwargs)
+
+
+def maybe_limit(limit_value):
+    """Apply rate limiting when Flask-Limiter is available."""
+    def decorator(route_fn):
+        if limiter is None or not limit_value:
+            return route_fn
+        return limiter.limit(limit_value)(route_fn)
+
+    return decorator
+
 
 CLERK_PUBLISHABLE_KEY = (
     os.environ.get("CLERK_PUBLISHABLE_KEY")
@@ -1264,14 +1308,25 @@ def service_worker():
     return response
 
 
+@app.errorhandler(429)
+def handle_rate_limit(_error):
+    return jsonify({
+        "error": "Rate limit exceeded. Please wait and retry.",
+        "status": "rate_limited",
+    }), 429
+
+
 @app.route("/ask", methods=["POST"])
 @maybe_require_clerk_auth
+@maybe_limit(RATE_LIMIT_ASK)
 def ask_question():
-    data = request.json or {}
-    question = data.get("question", "")
+    data = request.get_json(silent=True) or {}
+    raw_question = data.get("question", "")
+    question = claude.sanitize_user_query(raw_question)
+    question_was_sanitized = question != str(raw_question or "").strip()
 
     if not question:
-        return jsonify({"error": "No question provided"}), 400
+        return jsonify({"error": "No valid question provided"}), 400
     mode = _sanitize_answer_mode(data.get("mode"))
     community_lens = (data.get("community") or "All").strip()
     canonical_lens = "All" if community_lens.lower() == "all" else (
@@ -1354,9 +1409,7 @@ def ask_question():
         wiki_info = engine.get_wiki(question)
         wiki_list = [wiki_info] if wiki_info else []
 
-        # 5. Build Claude Prompt
-        # Passing primary_sources directly. We'll let claude.py format them.
-        # We need to flat map the sources so Claude can easily read them in plain text, but the UI keeps the separated ones.
+        # 5. Prepare flattened primary source text for the protected AI wrapper.
         flat_sources_for_claude = []
         for src in primary_sources:
             en_lines = [l['en'] for l in src['lines'] if l['en']]
@@ -1389,20 +1442,24 @@ def ask_question():
                 }
             })
 
-        prompt = claude.build_prompt(
-            question=question,
-            sefaria_sources=flat_sources_for_claude,
-            customs=customs_info,
-            wiki=wiki_list,
-            halachipedia=halachipedia_list,
-            mode=mode,
-            community_lens=canonical_lens,
-        )
-
         try:
-            result = claude.ask_claude(prompt)
-            if result.get("error"):
-                raise RuntimeError(result.get("error") or "AI request failed")
+            result = claude.ask_claude(
+                question=question,
+                sefaria_sources=flat_sources_for_claude,
+                customs=customs_info,
+                wiki=wiki_list,
+                halachipedia=halachipedia_list,
+                mode=mode,
+                community_lens=canonical_lens,
+                tool_context={
+                    "route": "/ask",
+                    "auth_enforced": CLERK_ENFORCE_AUTH,
+                },
+            )
+
+            result_error = str(result.get("error") or "")
+            if result_error and not result_error.startswith("security_blocked"):
+                raise RuntimeError(result_error or "AI request failed")
         except Exception as ai_error:
             fallback_payload = get_halakhic_sources(question)
             DEVTOOLS_STATS["answers_total"] += 1
@@ -1443,7 +1500,9 @@ def ask_question():
                 "source_count": len(primary_sources),
                 "custom_count": len(customs_info),
                 "generated_at": int(time.time()),
-                "fallback": False,
+                "fallback": bool(result.get("is_fallback", False)),
+                "input_sanitized": question_was_sanitized,
+                "security": result.get("security") or {},
             }
         })
 
@@ -1460,6 +1519,11 @@ def stack_health():
     return jsonify({
         "flask": True,
         "vercel": True,
+        "security": {
+            "limiter_enabled": bool(limiter),
+            "ask_limit": RATE_LIMIT_ASK,
+            "global_limits": RATE_LIMIT_DEFAULT,
+        },
         "clerk": {
             "configured": bool(CLERK_PUBLISHABLE_KEY and CLERK_JWT_ISSUER),
             "enforced": CLERK_ENFORCE_AUTH,

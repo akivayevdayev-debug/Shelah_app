@@ -1,0 +1,17 @@
+repos:
+  - repo: https://github.com/PyCQA/bandit
+    rev: 1.8.6
+    hooks:
+      - id: bandit
+        name: bandit-security-scan
+        args: ["-r", ".", "-x", ".venv,venv,node_modules,test-results"]
+        pass_filenames: false
+        stages: [pre-commit, pre-push]
+
+  - repo: https://github.com/gitleaks/gitleaks
+    rev: v8.24.2
+    hooks:
+      - id: gitleaks
+        name: gitleaks-secret-scan
+        args: ["--redact", "--verbose"]
+        stages: [pre-commit, pre-push]
