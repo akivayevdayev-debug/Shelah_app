@@ -211,7 +211,7 @@ def _translate_hebrew_text_online(text):
         return ""
 
 
-def _fill_missing_english_lines(text_payload, max_lines=24, max_runtime_seconds=5.0):
+def _fill_missing_english_lines(text_payload, max_lines=12, max_runtime_seconds=2.5):
     """Fill missing English lines when Hebrew is available and translation can be generated."""
     if not isinstance(text_payload, dict):
         return text_payload

@@ -10,6 +10,10 @@ This file is mostly curated domain mapping data plus matching utilities.
 """
 
 import requests
+import time
+
+_HTTP = requests.Session()
+_DAILY_STUDY_CACHE = {"ts": 0, "data": None}
 
 # ═══════════════════════════════════════════════════════════════════════
 # PRIMARY SEFARIA TEXT MAPPINGS — Over 100+ halachic references
@@ -173,11 +177,15 @@ TOPIC_REFS = {
 
 def get_daily_study():
     """Fetch daily study schedule from Sefaria"""
+    cached = _DAILY_STUDY_CACHE.get("data")
+    if cached and time.time() - _DAILY_STUDY_CACHE.get("ts", 0) < 60 * 5:
+        return cached
+
     try:
         from calendar_service import calendar_engine
 
         url = "https://www.sefaria.org/api/calendars"
-        r = requests.get(url, timeout=5)
+        r = _HTTP.get(url, timeout=5)
         data = r.json()
 
         # Use Pyluach as primary source for Hebrew date
@@ -211,6 +219,8 @@ def get_daily_study():
                     "ref": item.get("ref", "")
                 }
 
+        _DAILY_STUDY_CACHE["ts"] = time.time()
+        _DAILY_STUDY_CACHE["data"] = info
         return info
     except Exception as e:
         print("[Sefaria Daily Error]", e)
@@ -222,7 +232,7 @@ def get_daily_study():
         except:
             hebrew_date = ''
             holiday = None
-        return {
+        payload = {
             "hebrew_date": hebrew_date,
             "holiday": holiday,
             "rambam": None,
@@ -230,6 +240,9 @@ def get_daily_study():
             "mishnah_yomi": None,
             "offline": True
         }
+        _DAILY_STUDY_CACHE["ts"] = time.time()
+        _DAILY_STUDY_CACHE["data"] = payload
+        return payload
 
 
 def find_refs_for_question(question):

@@ -18,9 +18,35 @@ from zmanim.zmanim_calendar import ZmanimCalendar
 from zmanim.util.geo_location import GeoLocation
 from timezonefinder import TimezoneFinder
 import requests
+import time
 from calendar_service import calendar_engine
 
 tf = TimezoneFinder()
+_HTTP = requests.Session()
+_HEBCAL_DAY_CACHE = {}
+_HEBCAL_MONTH_CACHE = {}
+_HEBCAL_DAY_CACHE_TTL_SECONDS = 60 * 30
+_HEBCAL_MONTH_CACHE_TTL_SECONDS = 60 * 30
+
+
+def _cache_get(cache, key, ttl_seconds):
+    row = cache.get(key)
+    if not row:
+        return None
+    if time.time() - row.get("ts", 0) > ttl_seconds:
+        return None
+    return row.get("value")
+
+
+def _cache_set(cache, key, value):
+    cache[key] = {"ts": time.time(), "value": value}
+
+
+def _cache_coord(value):
+    try:
+        return round(float(value), 4)
+    except Exception:
+        return value
 
 
 def _resolve_timezone(lat, lon, given_tz=None):
@@ -38,6 +64,17 @@ def _resolve_timezone(lat, lon, given_tz=None):
 
 def _get_hebcal_day_times(lat, lon, timezone_str, current_date):
     """Fetch today's candle-lighting and havdalah timestamps from Hebcal when available."""
+    cache_key = (
+        _cache_coord(lat),
+        _cache_coord(lon),
+        str(timezone_str or ""),
+        current_date.isoformat(),
+    )
+    cached = _cache_get(_HEBCAL_DAY_CACHE, cache_key,
+                        _HEBCAL_DAY_CACHE_TTL_SECONDS)
+    if isinstance(cached, dict):
+        return dict(cached)
+
     result = {"candles": None, "havdalah": None}
     try:
         year = current_date.year
@@ -47,7 +84,7 @@ def _get_hebcal_day_times(lat, lon, timezone_str, current_date):
             f"&c=on&geo=pos&latitude={lat}&longitude={lon}"
             f"&tzid={timezone_str}&year={year}&month={month}&numMonths=1"
         )
-        r = requests.get(hebcal_url, timeout=6)
+        r = _HTTP.get(hebcal_url, timeout=6)
         data = r.json()
         iso_day = current_date.isoformat()
 
@@ -61,8 +98,10 @@ def _get_hebcal_day_times(lat, lon, timezone_str, current_date):
             elif category == "havdalah":
                 result["havdalah"] = datetime.fromisoformat(stamp)
     except Exception:
+        _cache_set(_HEBCAL_DAY_CACHE, cache_key, result)
         return result
 
+    _cache_set(_HEBCAL_DAY_CACHE, cache_key, result)
     return result
 
 
@@ -292,13 +331,25 @@ def get_monthly_events(lat, lon, timezone_str=None):
     - Daily sunrise, sunset & nightfall from KosherJava
     - Jewish holidays (with candle lighting times) from Hebcal API
     """
-    import requests
-
     tz, tz_name = _resolve_timezone(lat, lon, timezone_str)
     location = GeoLocation("User Location", float(lat), float(lon), tz_name, 0)
 
     events = []
     today = date.today()
+    month_cache_key = (
+        _cache_coord(lat),
+        _cache_coord(lon),
+        str(tz_name or ""),
+        today.year,
+        today.month,
+    )
+    cached_events = _cache_get(
+        _HEBCAL_MONTH_CACHE,
+        month_cache_key,
+        _HEBCAL_MONTH_CACHE_TTL_SECONDS,
+    )
+    if isinstance(cached_events, list):
+        return list(cached_events)
 
     # --- 1. Solar events for the next 30 days via KosherJava ---
     SOLAR_COLORS = {
@@ -366,7 +417,7 @@ def get_monthly_events(lat, lon, timezone_str=None):
             f"&year={year}&month={month}&numMonths=2"
         )
 
-        r = requests.get(hebcal_url, timeout=6)
+        r = _HTTP.get(hebcal_url, timeout=6)
         hdata = r.json()
 
         for item in hdata.get("items", []):
@@ -401,4 +452,5 @@ def get_monthly_events(lat, lon, timezone_str=None):
     except Exception as e:
         print(f"[Hebcal Error] {e}")
 
+    _cache_set(_HEBCAL_MONTH_CACHE, month_cache_key, list(events))
     return events

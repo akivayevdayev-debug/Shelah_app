@@ -8,9 +8,13 @@ import logging
 from pyluach import dates
 import requests
 from datetime import date as date_lib
+import time
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
+_HTTP = requests.Session()
+_PARASHA_CACHE = {}
+_PARASHA_CACHE_TTL_SECONDS = 60 * 60 * 6
 
 
 class PyluachEngine:
@@ -59,18 +63,36 @@ class PyluachEngine:
                 y, m, d = map(int, gregorian_date.split('-'))
                 gregorian_date = date_lib(y, m, d)
 
+            cache_key = gregorian_date.isoformat()
+            now = time.time()
+            cached = _PARASHA_CACHE.get(cache_key)
+            if cached and now - cached.get("ts", 0) < _PARASHA_CACHE_TTL_SECONDS:
+                return cached.get("value")
+
             # Use Hebcal converter API for parasha information in events array
-            hebcal_url = f"https://www.hebcal.com/converter?g2h=on&gy={gregorian_date.year}&gm={gregorian_date.month}&gd={gregorian_date.day}&cfg=json"
-            response = requests.get(hebcal_url, timeout=5)
+            response = _HTTP.get(
+                "https://www.hebcal.com/converter",
+                params={
+                    "g2h": "on",
+                    "gy": gregorian_date.year,
+                    "gm": gregorian_date.month,
+                    "gd": gregorian_date.day,
+                    "cfg": "json",
+                },
+                timeout=5,
+            )
             response.raise_for_status()
             data = response.json()
 
             # Look for parasha in events
             for event in data.get('events', []):
                 if 'parashat' in event.lower():
+                    _PARASHA_CACHE[cache_key] = {"ts": now, "value": event}
                     return event
 
-            return "No parasha for this date"
+            no_parasha = "No parasha for this date"
+            _PARASHA_CACHE[cache_key] = {"ts": now, "value": no_parasha}
+            return no_parasha
         except Exception as e:
             logger.error(f"Error getting parasha for {gregorian_date}: {e}")
             return "Parasha lookup unavailable"
