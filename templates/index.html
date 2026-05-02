@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-    <meta name="theme-color" content="#002147">
+    <meta name="theme-color" content="#f3ede0">
     <title>Sh'elah - Torah Encyclopedia</title>
     <link rel="icon" href="/static/favicon.svg" type="image/svg+xml">
     <link rel="manifest" href="/manifest.webmanifest">
@@ -15,7 +15,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Cardo:wght@400;700&family=Inter:wght@400;500;600&display=swap"
         rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
-    <link rel="stylesheet" href="/static/style.css?v=20260502-dark-mode-near-black-v8">
+    <link rel="stylesheet" href="/static/style.css?v=20260502-dark-mode-near-black-v16">
 
     <!-- FullCalendar -->
     <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.15/index.global.min.js"></script>
@@ -1631,11 +1631,13 @@
             const darkMode = resolvedTheme === 'dark';
 
             document.body.classList.toggle('theme-dark', darkMode);
+            document.documentElement.classList.toggle('theme-dark', darkMode);
             document.documentElement.style.colorScheme = darkMode ? 'dark' : 'light';
+            document.body.style.colorScheme = darkMode ? 'dark' : 'light';
 
             const themeMeta = document.querySelector('meta[name="theme-color"]');
             if (themeMeta) {
-                themeMeta.setAttribute('content', darkMode ? '#1a2432' : '#002147');
+                themeMeta.setAttribute('content', darkMode ? '#101110' : '#f3ede0');
             }
         }
 
