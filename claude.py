@@ -36,6 +36,8 @@ MAX_PROMPT_CHARS = _int_env("AI_MAX_PROMPT_CHARS", 16000)
 MAX_RESPONSE_WORDS = _int_env("AI_MAX_RESPONSE_WORDS", 500)
 MAX_RESPONSE_CHARS = _int_env("AI_MAX_RESPONSE_CHARS", 20000)
 
+WEB_LAST_RESORT_WARNING = "⚠️ **WARNING:** No matches found in Sefaria or verified customs. The following info is from the general web and may not be Halakhically accurate. Consult a Rabbi."
+
 HIDDEN_UNICODE_RE = re.compile(
     r"[\x00-\x1F\x7F-\x9F\u200B-\u200F\u202A-\u202E\u2060-\u206F\uFEFF]"
 )
@@ -157,6 +159,16 @@ Output style:
 Source hierarchy (strict):
 1) Primary: Sefaria API and whitelisted external sources only: HebrewBooks, Halachipedia, Yeshivat Har Bracha (YHB).
 2) Secondary: Local customs JSON data from the customs directory.
+3) Last resort: General web context only if primary and secondary are both empty.
+
+Last-resort warning rule:
+- If relying on last-resort general web context, prepend this exact line before all other content:
+    "⚠️ **WARNING:** No matches found in Sefaria or verified customs. The following info is from the general web and may not be Halakhically accurate. Consult a Rabbi."
+- If primary or secondary evidence exists, do not prepend that warning.
+
+Time/date context:
+- If tool context includes zmanim, Hebrew date, parasha, holiday, or timezone, treat it as factual temporal context.
+- Do not treat zmanim/date context as an independent psak source.
 
 Conflict handling:
 - If a local custom contradicts a primary Sefaria source, explicitly add a "Conflict Flag" section naming both positions.
@@ -190,16 +202,44 @@ def format_customs(customs):
     return output
 
 
-def format_wiki(wiki):
-    """Format Wikipedia results"""
-    if not wiki:
+def _format_context_items(items, provider_label="Web"):
+    """Format context snippets with lightweight dedupe for prompt stability."""
+    if not items:
         return ""
-    output = ""
-    for w in wiki:
-        title = w.get("title", "")
-        summary = w.get("summary", "")
-        output += f"\n[{title}] {summary}\n"
-    return output
+
+    lines = []
+    seen = set()
+
+    for item in items:
+        if not isinstance(item, dict):
+            continue
+
+        title = str(item.get("title") or "").strip()
+        summary = str(item.get("summary") or "").strip()
+        if not title and not summary:
+            continue
+
+        if len(summary) > 1000:
+            summary = summary[:1000].rstrip()
+
+        dedupe_key = (title.lower(), summary[:180].lower())
+        if dedupe_key in seen:
+            continue
+        seen.add(dedupe_key)
+
+        label = str(item.get("source_provider")
+                    or provider_label).strip() or provider_label
+        if title and summary:
+            lines.append(f"[{label}] {title}: {summary}")
+        elif title:
+            lines.append(f"[{label}] {title}")
+        else:
+            lines.append(f"[{label}] {summary}")
+
+    if not lines:
+        return ""
+
+    return "\n" + "\n".join(lines) + "\n"
 
 
 def _format_extra_context(extra_context: Optional[Dict[str, Any]]) -> str:
@@ -221,16 +261,28 @@ def build_prompt(question, sefaria_sources, customs, wiki, halachipedia=None, mo
 
     sefaria_text = format_sefaria_sources(sefaria_sources)
     customs_text = format_customs(customs)
-    halachic_text = format_wiki(halachipedia) if halachipedia else ""
+    halachipedia_text = _format_context_items(
+        halachipedia or [],
+        provider_label="Halachipedia",
+    )
+    web_text = _format_context_items(
+        wiki or [],
+        provider_label="General Web",
+    )
     extra_context_text = _format_extra_context(extra_context)
 
     prompt = f"""
 QUESTION:
 {question}
 
-PRIMARY SOURCES (SEFARIA + WHITELISTED EXTERNAL CONTEXT):
+PRIMARY SOURCES (SEFARIA):
 {sefaria_text}
-{halachic_text}
+
+WHITELISTED EXTERNAL CONTEXT (HEBREWBOOKS / HALACHIPEDIA / YHB):
+{halachipedia_text}
+
+TERTIARY LAST-RESORT WEB CONTEXT (USE ONLY IF PRIMARY + SECONDARY ARE EMPTY):
+{web_text}
 
 SECONDARY SOURCES (LOCAL CUSTOMS JSON):
 {customs_text}
@@ -240,6 +292,8 @@ INSTRUCTIONS:
 2. Community lens requested: {community_lens}
 3. If mode is strict, do not include unsupported claims.
 4. Keep source ordering aligned with the hierarchy above.
+5. If the answer depends on tertiary web context because primary+secondary are empty, prepend exactly: {WEB_LAST_RESORT_WARNING}
+6. If primary or secondary evidence exists, do not prepend the warning.
 """
 
     if extra_context_text:
@@ -349,105 +403,3 @@ def ask_claude(question, sefaria_sources, customs, wiki=None, halachipedia=None,
         prompt_builder=_build,
         model_executor=_call_claude_model,
     )
-
-
-def build_fallback_answer(question: str, sefaria_sources: List[Dict], customs: List[Dict], wiki: List[Dict], halachipedia: List[Dict], mode: str = "balanced", community_lens: str = "All"):
-    """Build a useful deterministic answer when Claude is unavailable."""
-    source_refs = [s.get("ref", "")
-                   for s in sefaria_sources if s.get("ref")][:3]
-    customs_snippets = [c.get("ruling", "")
-                        for c in customs if c.get("ruling")][:2]
-    context_snippets = [w.get("summary", "") for w in (
-        halachipedia or []) + (wiki or []) if w and w.get("summary")][:2]
-
-    answer_lines = [
-        "**AI synthesis is temporarily unavailable**, so here is a source-based fallback summary.",
-        "",
-        f"Question: {question}",
-        f"Mode: {mode}",
-        f"Community lens: {community_lens}",
-        "",
-    ]
-
-    if mode in ("sources", "strict"):
-        answer_lines.append("### Primary Sources")
-    elif mode == "practical":
-        answer_lines.append("### Practical Notes")
-    else:
-        answer_lines.append("### Key Points")
-
-    if mode in ("sources", "balanced", "strict"):
-        if source_refs:
-            for ref in source_refs:
-                answer_lines.append(f"- {ref}")
-        else:
-            answer_lines.append("- No primary source references were matched.")
-
-    if mode == "strict" and not source_refs:
-        answer_lines.append(
-            "- Strict sources mode prevented an inferred ruling without explicit mekorot.")
-
-    if mode == "practical":
-        answer_lines.append(
-            "- Start with the practical details below and verify with your local rabbi.")
-
-    answer_lines.append("")
-    answer_lines.append("### Practical Notes")
-    if customs_snippets:
-        for note in customs_snippets:
-            answer_lines.append(f"- {note}")
-    else:
-        answer_lines.append(
-            "- No community-specific custom was found for this query.")
-
-    if context_snippets:
-        answer_lines.append("")
-        answer_lines.append("### Background")
-        for snippet in context_snippets:
-            answer_lines.append(f"- {snippet[:220]}...")
-
-    answer_lines.extend([
-        "",
-        "Please consult a qualified Orthodox Rabbi for a practical psak."
-    ])
-
-    return "\n".join(answer_lines)
-
-
-def get_halachic_answer(question, sefaria_sources, customs, wiki=None, halachipedia=None, mode="balanced", community_lens="All"):
-    """Main function to get answer"""
-    if mode == "strict" and not sefaria_sources:
-        return {
-            "answer": (
-                "Strict Sources Mode could not generate a ruling because no direct primary sources were found. "
-                "Please provide a specific textual reference."
-            ),
-            "confidence": 0.2,
-            "is_fallback": True,
-        }
-
-    result = ask_claude(
-        question=question,
-        sefaria_sources=sefaria_sources,
-        customs=customs,
-        wiki=wiki or [],
-        halachipedia=halachipedia or [],
-        mode=mode,
-        community_lens=community_lens,
-    )
-
-    if str(result.get("error") or "").startswith("security_blocked"):
-        return result
-
-    if result.get("error"):
-        fallback = build_fallback_answer(
-            question,
-            sefaria_sources,
-            customs,
-            wiki or [],
-            halachipedia or [],
-            mode=mode,
-            community_lens=community_lens,
-        )
-        return {"answer": fallback, "confidence": 0.35, "is_fallback": True}
-    return result
