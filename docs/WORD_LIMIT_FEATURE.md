@@ -6,7 +6,7 @@
 The AI assistant now includes a word limit to reduce token usage and API costs.
 
 ## Changes Made
-- **File Modified:** `claude.py`
+- **File Modified:** `backend/claude.py`
 - **Feature Added:** Word limit function that caps responses at 500 words maximum
 - **Token Reduction:** max_tokens reduced from 2000 to 800 (approximately 60% reduction)
 
@@ -58,7 +58,7 @@ Feature has been tested and verified working:
 
 ## Rollback Instructions
 If needed to revert this feature:
-1. In `claude.py`, change `max_tokens=800` back to `max_tokens=2000`
+1. In `backend/claude.py`, change `max_tokens=800` back to `max_tokens=2000`
 2. Remove the line: `response_text = limit_words(response_text, max_words=500)`
 3. Remove the `limit_words()` function definition (lines 76-83)
 

@@ -19,7 +19,7 @@ from zmanim.util.geo_location import GeoLocation
 from timezonefinder import TimezoneFinder
 import requests
 import time
-from calendar_service import calendar_engine
+from backend.calendar_service import calendar_engine
 
 tf = TimezoneFinder()
 _HTTP = requests.Session()

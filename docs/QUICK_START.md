@@ -239,7 +239,7 @@ def ask_question():
     # Claude receives way more context!
 ```
 
-### In `claude.py`:
+### In `backend/claude.py`:
 ```python
 # build_prompt now receives:
 # - sefaria_sources (from Sefaria API)
@@ -268,7 +268,7 @@ def ask_question():
 
 ### To Add a New Sefaria Topic:
 ```python
-# In sefaria.py, add to TOPIC_REFS:
+# In backend/sefaria.py, add to TOPIC_REFS:
 TOPIC_REFS["your_topic"] = [
     "Shulchan_Arukh,_Section.Number",
     "Commentary_Reference",
@@ -277,14 +277,14 @@ TOPIC_REFS["your_topic"] = [
 
 ### To Add a New Merkava Topic:
 ```python
-# In sefaria.py, update MERKAVA_TEXTS:
+# In backend/sefaria.py, update MERKAVA_TEXTS:
 MERKAVA_TEXTS["merkava_sources"]["your_topic"] = \
     "https://www.merkava.com/api/halacha/your_topic"
 ```
 
 ### To Add Siddur Component:
 ```python
-# In sefaria.py, update SIDDUR_KOL_YAAKOV:
+# In backend/sefaria.py, update SIDDUR_KOL_YAAKOV:
 SIDDUR_KOL_YAAKOV["categories"]["service_name"] = {
     "component": "description",
     "rubric": "instruction",
@@ -293,7 +293,7 @@ SIDDUR_KOL_YAAKOV["categories"]["service_name"] = {
 
 ### To Extend Community Support:
 ```python
-# In customs.py, add new community:
+# In backend/customs.py, add new community:
 COMMUNITIES["georgian"] = {
     "name": "Georgian Jewish",
     "customs": {...},

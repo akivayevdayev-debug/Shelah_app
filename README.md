@@ -37,11 +37,13 @@ Default local URL: http://127.0.0.1:5001
 
 ## Project Structure
 
-- `app.py`: Flask app and API routes
+- `app.py`: Flask entrypoint and API routes
+- `backend/`: backend service modules and integrations
 - `templates/`: HTML templates
 - `static/`: CSS and static assets
 - `customs/`: community customs JSON datasets
-- `All md files/`: implementation/audit docs
+- `docs/`: implementation and audit docs
+- `scripts/`: utility scripts (verification, data fetch, audits)
 
 ## Environment Variables
 

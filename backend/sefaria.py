@@ -27,6 +27,8 @@ TOPIC_REFS = {
         "Shulchan_Arukh,_Orach_Chayim.244",
         "Mishnah_Berurah.242",
         "Rambam,_Mishneh_Torah,_Laws_of_Shabbat.1",
+        "Rambam,_Mishneh_Torah,_Laws_of_Shabbat.2",
+        "Rama,_Orach_Chayim.242",
     ],
     "shabbos": ["Shulchan_Arukh,_Orach_Chayim.242"],
     "work on shabbat": ["Shulchan_Arukh,_Orach_Chayim.306"],
@@ -38,10 +40,6 @@ TOPIC_REFS = {
     "lighting": ["Shulchan_Arukh,_Orach_Chayim.264"],
     "travel": ["Shulchan_Arukh,_Orach_Chayim.248"],
     "muktzeh": ["Shulchan_Arukh,_Orach_Chayim.308"],
-    "shabbat": [
-        "Rambam,_Mishneh_Torah,_Laws_of_Shabbat.2",
-        "Rama,_Orach_Chayim.242",
-    ],
 
     # KASHRUT & DIETARY LAWS
     "kashrut": [
@@ -102,7 +100,10 @@ TOPIC_REFS = {
     "standing": ["Shulchan_Arukh,_Orach_Chayim.94"],
     "concentration": ["Shulchan_Arukh,_Orach_Chayim.98"],
     "minyan": ["Shulchan_Arukh,_Orach_Chayim.55"],
-    "kaddish": ["Shulchan_Arukh,_Orach_Chayim.56"],
+    "kaddish": [
+        "Shulchan_Arukh,_Orach_Chayim.56",
+        "Shulchan_Arukh,_Yoreh_De'ah.376",
+    ],
     "tallit": ["Shulchan_Arukh,_Orach_Chayim.8"],
     "tallith": ["Shulchan_Arukh,_Orach_Chayim.8"],
 
@@ -138,7 +139,10 @@ TOPIC_REFS = {
     "niddah": ["Shulchan_Arukh,_Yoreh_De'ah.183"],
     "mikveh": ["Shulchan_Arukh,_Yoreh_De'ah.197"],
     "purity": ["Shulchan_Arukh,_Yoreh_De'ah.195"],
-    "taharah": ["Shulchan_Arukh,_Yoreh_De'ah.195"],
+    "taharah": [
+        "Shulchan_Arukh,_Yoreh_De'ah.195",
+        "Shulchan_Arukh,_Yoreh_De'ah.366",
+    ],
     "marriage": ["Shulchan_Arukh,_Even_HaEzer.26"],
     "divorce": ["Shulchan_Arukh,_Even_HaEzer.119"],
     "get": ["Shulchan_Arukh,_Even_HaEzer.119"],
@@ -147,8 +151,6 @@ TOPIC_REFS = {
     "shiva": ["Shulchan_Arukh,_Yoreh_De'ah.344"],
     "death": ["Shulchan_Arukh,_Yoreh_De'ah.335"],
     "burial": ["Shulchan_Arukh,_Yoreh_De'ah.357"],
-    "taharah": ["Shulchan_Arukh,_Yoreh_De'ah.366"],
-    "kaddish": ["Shulchan_Arukh,_Yoreh_De'ah.376"],
 
     # BUSINESS & ETHICS
     "business": ["Shulchan_Arukh,_Choshen_Mishpat.183"],
@@ -182,7 +184,7 @@ def get_daily_study():
         return cached
 
     try:
-        from calendar_service import calendar_engine
+        from backend.calendar_service import calendar_engine
 
         url = "https://www.sefaria.org/api/calendars"
         r = _HTTP.get(url, timeout=5)
@@ -226,7 +228,7 @@ def get_daily_study():
         print("[Sefaria Daily Error]", e)
         # Graceful fallback using local calendar only
         try:
-            from calendar_service import calendar_engine
+            from backend.calendar_service import calendar_engine
             hebrew_date = calendar_engine.gregorian_to_hebrew().get('hebrew_date', '')
             holiday = calendar_engine.is_holiday()
         except:
