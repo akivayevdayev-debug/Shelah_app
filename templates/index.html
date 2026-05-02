@@ -2069,6 +2069,18 @@
                 .trim();
         }
 
+        const INPUT_HIDDEN_UNICODE_RE = /[\u0000-\u001F\u007F-\u009F\u200B-\u200F\u202A-\u202E\u2060-\u206F\uFEFF]/g;
+        const INPUT_SYSTEM_META_RE = /[`$<>\\|{}]/g;
+
+        function sanitizeQuestionInput(rawValue) {
+            return String(rawValue || '')
+                .replace(INPUT_HIDDEN_UNICODE_RE, '')
+                .replace(INPUT_SYSTEM_META_RE, ' ')
+                .replace(/\s+/g, ' ')
+                .trim()
+                .slice(0, 1200);
+        }
+
         function debounce(fn, delay = 180) {
             let timer = null;
             return (...args) => {
@@ -5762,6 +5774,14 @@
         }
 
         async function handleAiSearch(question) {
+            const sanitizedQuestion = sanitizeQuestionInput(question);
+            if (!sanitizedQuestion) return;
+            question = sanitizedQuestion;
+
+            if (searchInput && searchInput.value.trim() !== question) {
+                searchInput.value = question;
+            }
+
             setCurrentView('ask', question, question);
             // Show loading modal
             const aiModal = document.getElementById('aiAssistantModal');
@@ -6890,8 +6910,12 @@
         // SUBMIT SEARCH LOGIC - Inline text navigation first, AI fallback second
         searchForm.addEventListener('submit', async (e) => {
             e.preventDefault();
-            const question = searchInput.value.trim();
+            const question = sanitizeQuestionInput(searchInput.value);
             if (!question) return;
+
+            if (question !== searchInput.value.trim()) {
+                searchInput.value = question;
+            }
 
             if (appState.activeSuggestionIndex >= 0 && appState.suggestionItems[appState.activeSuggestionIndex]) {
                 await openSearchTarget(appState.suggestionItems[appState.activeSuggestionIndex], question);
