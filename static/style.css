@@ -1747,6 +1747,52 @@ body.theme-dark #readerSettingsPanel select {
     color: var(--accent-cream) !important;
 }
 
+/* Dark overlay backgrounds - neutralize to prevent color bleed */
+body.theme-dark .bg-slate-900\/60 {
+    background-color: rgba(8, 9, 8, 0.72) !important;
+    backdrop-filter: none !important;
+}
+
+body.theme-dark .bg-slate-900\/45 {
+    background-color: rgba(6, 6, 6, 0.78) !important;
+    backdrop-filter: none !important;
+}
+
+/* Dark mode focus rings - replace blue with neutral brown/gray */
+body.theme-dark .ring-blue-400,
+body.theme-dark .focus\:ring-blue-400:focus,
+body.theme-dark .focus-ring {
+    --tw-ring-color: rgba(124, 119, 108, 0.42) !important;
+}
+
+body.theme-dark .border-blue-400 {
+    border-color: #6d695f !important;
+}
+
+/* Dark calendar button active states */
+body.theme-dark .fc .fc-button-primary:not(:disabled).fc-button-active {
+    background-color: #575850 !important;
+    border-color: #575850 !important;
+}
+
+body.theme-dark .fc .fc-button-primary:not(:disabled).fc-button-active:focus {
+    background-color: #4f4b42 !important;
+}
+
+/* Dark calendar event backgrounds */
+body.theme-dark .fc .fc-event {
+    background-color: #3b3d37 !important;
+    border-color: #2a2c26 !important;
+}
+
+body.theme-dark .fc .fc-event.holiday {
+    background-color: #4a3d42 !important;
+}
+
+body.theme-dark .fc .fc-event.shabbat {
+    background-color: #3d4a3d !important;
+}
+
 body.theme-dark #settingsPanel select option,
 body.theme-dark #readerSettingsPanel select option {
     background: #1c1d1b !important;
