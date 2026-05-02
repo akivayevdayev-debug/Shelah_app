@@ -22,7 +22,7 @@ import time
 import os
 from datetime import date as greg_date, timedelta, datetime
 from functools import wraps
-from urllib.parse import unquote
+from urllib.parse import quote, unquote
 from pathlib import Path
 
 import jwt
@@ -46,6 +46,7 @@ from pyluach import dates as pyluach_dates
 from data_service import ShelahEngine
 import sefaria
 import claude
+import search
 
 # Maps each prayer name to its constituent Sefaria "Siddur Sefard" refs for full text
 SIDDUR_SECTION_MAP = {
@@ -205,6 +206,17 @@ QUERY_STOPWORDS = {
     "איך", "מה", "האם", "עם", "של", "על", "גם", "לא", "כן",
 }
 
+WEB_LAST_RESORT_WARNING = "⚠️ **WARNING:** No matches found in Sefaria or verified customs. The following info is from the general web and may not be Halakhically accurate. Consult a Rabbi."
+WEB_FALLBACK_TRUST_TERMS = {
+    "halach", "halakh", "jewish", "judaism", "torah", "talmud", "shabbat",
+    "yom tov", "kashrut", "tefillin", "mezuzah", "sefaria", "hebrewbooks",
+    "peninei", "yeshivat har bracha", "yhb", "zmanim", "hebrew date", "calendar",
+}
+WEB_FALLBACK_BLOCKLIST_TERMS = {
+    "biblegateway", "biblehub", "biblestudytools", "king james", "new testament",
+    "gospel", "church", "jesus", "christian bible",
+}
+
 
 def _extract_query_keywords(query, max_keywords=8):
     tokens = re.findall(r"[A-Za-z\u0590-\u05FF]{3,}", str(query or "").lower())
@@ -345,14 +357,131 @@ def _find_local_custom_matches(keywords, max_results=12):
     return collected
 
 
+def _looks_like_trusted_web_match(provider, title, summary, keywords):
+    provider_name = str(provider or "").strip().lower()
+    title_text = str(title or "").strip()
+    summary_text = str(summary or "").strip()
+    if not title_text or not summary_text:
+        return False
+
+    haystack = f"{title_text} {summary_text}".lower()
+    if any(flag in haystack for flag in WEB_FALLBACK_BLOCKLIST_TERMS):
+        return False
+
+    if provider_name == "halachipedia":
+        return True
+
+    if any(term in haystack for term in WEB_FALLBACK_TRUST_TERMS):
+        return True
+
+    # Require relevance to the query if no explicit trust-term signal is present.
+    return any(kw in haystack for kw in keywords)
+
+
+def _build_last_resort_web_sources(question, keywords, max_results=6):
+    query = str(question or "").strip()
+    keyword_query = " ".join(keywords[:5]).strip()
+
+    halachipedia_queries = []
+    if keyword_query:
+        halachipedia_queries.append(keyword_query)
+        halachipedia_queries.append(f"halakha {keyword_query}".strip())
+    if query:
+        halachipedia_queries.append(query)
+
+    wiki_titles = [
+        "Peninei Halakha",
+        "Yeshivat Har Bracha",
+        "HebrewBooks",
+    ]
+    if keyword_query:
+        wiki_titles.append(f"Halakha {keyword_query}".strip())
+    if query:
+        wiki_titles.append(f"Halakha {query}".strip())
+
+    candidates = []
+
+    for q in halachipedia_queries:
+        if not q:
+            continue
+        payload = search.search_halachipedia(q)
+        if not isinstance(payload, dict):
+            continue
+        title = str(payload.get("title") or "").strip()
+        summary = str(payload.get("summary") or "").strip()
+        clean_title = re.sub(r"^\[Halachipedia\]\s*", "", title).strip()
+        if not _looks_like_trusted_web_match("halachipedia", clean_title, summary, keywords):
+            continue
+        url_slug = quote(clean_title.replace(" ", "_"),
+                         safe="") if clean_title else ""
+        candidates.append({
+            "provider": "Halachipedia",
+            "domain": "halachipedia.com",
+            "title": clean_title or title,
+            "summary": summary,
+            "url": f"https://halachipedia.com/wiki/{url_slug}" if url_slug else "https://halachipedia.com",
+        })
+
+    for title_query in wiki_titles:
+        if not title_query:
+            continue
+        payload = search.search_wikipedia(title_query)
+        if not isinstance(payload, dict):
+            continue
+        title = str(payload.get("title") or "").strip()
+        summary = str(payload.get("summary") or "").strip()
+        if not _looks_like_trusted_web_match("wikipedia", title, summary, keywords):
+            continue
+        url_slug = quote(title.replace(" ", "_"), safe="") if title else ""
+        candidates.append({
+            "provider": "Wikipedia",
+            "domain": "en.wikipedia.org",
+            "title": title,
+            "summary": summary,
+            "url": f"https://en.wikipedia.org/wiki/{url_slug}" if url_slug else "https://en.wikipedia.org",
+        })
+
+    deduped = []
+    seen = set()
+    for item in candidates:
+        key = (
+            str(item.get("provider") or "").lower(),
+            str(item.get("title") or "").strip().lower(),
+        )
+        if key in seen:
+            continue
+        seen.add(key)
+        deduped.append(item)
+        if len(deduped) >= max_results:
+            break
+
+    web_sources = []
+    for item in deduped:
+        title = str(item.get("title") or "Web Source").strip()
+        summary = str(item.get("summary") or "").strip()
+        web_sources.append({
+            "ref": title[:140],
+            "title": title[:160],
+            "lines": [{"en": summary[:1000], "he": ""}],
+            "domain": item.get("domain"),
+            "corpus": "general-web",
+            "source_provider": item.get("provider"),
+            "url": item.get("url"),
+            "priority": 3,
+            "status": "fallback-web",
+        })
+
+    return web_sources
+
+
 def get_halakhic_sources(query):
-    """Deterministic fallback source retrieval without any LLM calls."""
+    """Deterministic fallback retrieval: Sefaria -> local JSON -> web last resort."""
     question = claude.sanitize_user_query(query)
     keywords = _extract_query_keywords(question)
     if not keywords and question:
         keywords = [question.lower()]
 
-    sources = []
+    sefaria_sources = []
     seen_refs = set()
     search_query = " ".join(keywords[:5]).strip() or question
     hit_pool = _query_search_wrapper(search_query, size=120)
@@ -396,7 +525,7 @@ def get_halakhic_sources(query):
             path = str(hit_source.get("path") or "").strip()
             snippet = _extract_hit_snippet(hit_source)
 
-            sources.append({
+            sefaria_sources.append({
                 "ref": ref,
                 "title": ref,
                 "lines": [{"en": snippet or f"Matched via {corpus}", "he": he_ref}],
@@ -412,13 +541,14 @@ def get_halakhic_sources(query):
             if added_for_corpus >= 3:
                 break
 
+    local_sources = []
     local_matches = _find_local_custom_matches(keywords, max_results=10)
     for match in local_matches:
         field = match.get("field", "Title")
         value = str(match.get("value") or "").strip()
         file_name = match.get("file", "")
         pointer = match.get("pointer", "")
-        sources.append({
+        local_sources.append({
             "ref": f"Local Custom: {value[:80]}",
             "title": value[:120] if value else "Local Custom Match",
             "lines": [{
@@ -434,23 +564,119 @@ def get_halakhic_sources(query):
             "match_keywords": match.get("match_keywords", []),
         })
 
-    if not sources:
-        sources.append({
+    if sefaria_sources or local_sources:
+        if sefaria_sources and local_sources:
+            fallback_level = "sefaria+local-json"
+        elif sefaria_sources:
+            fallback_level = "sefaria"
+        else:
+            fallback_level = "local-json"
+
+        merged_sources = sefaria_sources + local_sources
+        return {
+            "status": "fallback",
+            "fallback_level": fallback_level,
+            "query": question,
+            "keywords": keywords,
+            "sequence": ["sefaria", "local-json", "web-last-resort"],
+            "counts": {
+                "sefaria": len(sefaria_sources),
+                "local_json": len(local_sources),
+                "web": 0,
+            },
+            "warning": "",
+            "source_count": len(merged_sources),
+            "sources": merged_sources,
+        }
+
+    web_sources = _build_last_resort_web_sources(
+        question,
+        keywords,
+        max_results=6,
+    )
+    if web_sources:
+        return {
+            "status": "fallback-web",
+            "fallback_level": "web-last-resort",
+            "query": question,
+            "keywords": keywords,
+            "sequence": ["sefaria", "local-json", "web-last-resort"],
+            "counts": {
+                "sefaria": 0,
+                "local_json": 0,
+                "web": len(web_sources),
+            },
+            "warning": WEB_LAST_RESORT_WARNING,
+            "source_count": len(web_sources),
+            "sources": web_sources,
+        }
+
+    return {
+        "status": "fallback",
+        "fallback_level": "none",
+        "query": question,
+        "keywords": keywords,
+        "sequence": ["sefaria", "local-json", "web-last-resort"],
+        "counts": {
+            "sefaria": 0,
+            "local_json": 0,
+            "web": 0,
+        },
+        "warning": "",
+        "source_count": 1,
+        "sources": [{
             "ref": "No verified source found",
             "title": "No verified source found",
             "lines": [{"en": "No verified source found", "he": ""}],
             "domain": "none",
             "priority": 1,
             "status": "fallback",
-        })
-
-    return {
-        "status": "fallback",
-        "query": question,
-        "keywords": keywords,
-        "source_count": len(sources),
-        "sources": sources,
+        }],
     }
+
+
+def _build_ask_tool_context(engine):
+    context = {
+        "route": "/ask",
+        "auth_enforced": CLERK_ENFORCE_AUTH,
+        "trusted_source_priority": "Sefaria, HebrewBooks, Halachipedia, Peninei Halakha (YHB)",
+        "factuality_guardrail": "Reject random/non-halakhic domains and avoid generic English Bible websites when validating web context.",
+    }
+
+    try:
+        zmanim_payload = engine.get_zmanim("standard")
+        if isinstance(zmanim_payload, dict):
+            metadata = zmanim_payload.get("metadata", {})
+            zmanim = zmanim_payload.get("zmanim", {})
+
+            if isinstance(metadata, dict):
+                context["civil_date"] = metadata.get("date")
+                context["hebrew_date"] = metadata.get("hebrew_date")
+                context["parasha"] = metadata.get("parasha")
+                context["holiday"] = metadata.get("holiday")
+                context["timezone"] = metadata.get("timezone")
+
+            if isinstance(zmanim, dict):
+                snapshot = {}
+                for key in (
+                    "Dawn (16.1° / 72m)",
+                    "Sunrise",
+                    "Latest Shema (GRA)",
+                    "Plag HaMincha",
+                    "Sunset",
+                    "Nightfall (3 Stars)",
+                ):
+                    value = str(zmanim.get(key) or "").strip()
+                    if value and value != "N/A":
+                        snapshot[key] = value
+
+                if snapshot:
+                    context["zmanim_snapshot"] = snapshot
+    except Exception:
+        # Keep ask flow resilient even if zmanim context is unavailable.
+        pass
+
+    return context
 
 
 def _strip_hebrew_diacritics(text):
@@ -1571,10 +1797,7 @@ def ask_question():
                 halachipedia=halachipedia_list,
                 mode=mode,
                 community_lens=canonical_lens,
-                tool_context={
-                    "route": "/ask",
-                    "auth_enforced": CLERK_ENFORCE_AUTH,
-                },
+                tool_context=_build_ask_tool_context(engine),
             )
 
             result_error = str(result.get("error") or "")
@@ -1582,10 +1805,19 @@ def ask_question():
                 raise RuntimeError(result_error or "AI request failed")
         except Exception as ai_error:
             fallback_payload = get_halakhic_sources(question)
+            fallback_warning = str(
+                fallback_payload.get("warning") or "").strip()
+            fallback_answer = "AI synthesis unavailable. Returning verified halakhic sources."
+            if fallback_warning:
+                fallback_answer = (
+                    f"{fallback_warning}\n\n"
+                    "AI synthesis unavailable. Returning last-resort web references."
+                )
+
             DEVTOOLS_STATS["answers_total"] += 1
             DEVTOOLS_STATS["fallback_answers"] += 1
             return jsonify({
-                "answer": "AI synthesis unavailable. Returning verified halakhic sources.",
+                "answer": fallback_answer,
                 "confidence": 0.4,
                 "wiki": wiki_list + halachipedia_list,
                 "customs": customs_info,
@@ -1597,9 +1829,13 @@ def ask_question():
                     "custom_count": len(customs_info),
                     "generated_at": int(time.time()),
                     "fallback": True,
-                    "status": "fallback",
+                    "status": fallback_payload.get("status", "fallback"),
                     "fallback_detail": {
                         "keywords": fallback_payload.get("keywords", []),
+                        "sequence": fallback_payload.get("sequence", []),
+                        "counts": fallback_payload.get("counts", {}),
+                        "level": fallback_payload.get("fallback_level", "unknown"),
+                        "warning": fallback_warning,
                         "reason": str(ai_error),
                     },
                 }
