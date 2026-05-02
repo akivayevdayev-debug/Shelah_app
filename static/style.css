@@ -497,21 +497,37 @@ h6 {
 }
 
 /* Dark mode scrollbar - override global rules */
+html.theme-dark,
+body.theme-dark {
+    scrollbar-color: #4a4b45 #121310;
+    scrollbar-width: thin;
+}
+
+html.theme-dark::-webkit-scrollbar,
+body.theme-dark::-webkit-scrollbar,
 body.theme-dark ::-webkit-scrollbar {
     width: 10px;
     height: 10px;
+    background: #121310;
 }
 
+html.theme-dark::-webkit-scrollbar-track,
+body.theme-dark::-webkit-scrollbar-track,
 body.theme-dark ::-webkit-scrollbar-track {
     background: #1f201d !important;
     border-radius: 10px;
 }
 
+html.theme-dark::-webkit-scrollbar-thumb,
+body.theme-dark::-webkit-scrollbar-thumb,
 body.theme-dark ::-webkit-scrollbar-thumb {
     background: #4a4b45 !important;
     border-radius: 10px;
+    border: 2px solid #1f201d;
 }
 
+html.theme-dark::-webkit-scrollbar-thumb:hover,
+body.theme-dark::-webkit-scrollbar-thumb:hover,
 body.theme-dark ::-webkit-scrollbar-thumb:hover {
     background: #5c5d56 !important;
 }
@@ -1749,12 +1765,28 @@ body.theme-dark #readerSettingsPanel select {
 
 /* Dark overlay backgrounds - neutralize to prevent color bleed */
 body.theme-dark .bg-slate-900\/60 {
-    background-color: rgba(8, 9, 8, 0.72) !important;
+    background-color: rgba(6, 7, 7, 0.82) !important;
+    -webkit-backdrop-filter: none !important;
     backdrop-filter: none !important;
 }
 
 body.theme-dark .bg-slate-900\/45 {
-    background-color: rgba(6, 6, 6, 0.78) !important;
+    background-color: rgba(4, 4, 4, 0.88) !important;
+    -webkit-backdrop-filter: none !important;
+    backdrop-filter: none !important;
+}
+
+body.theme-dark #calendarModal,
+body.theme-dark #textsMenuModal,
+body.theme-dark #aiAssistantModal {
+    background-color: rgba(6, 7, 7, 0.82) !important;
+    -webkit-backdrop-filter: none !important;
+    backdrop-filter: none !important;
+}
+
+body.theme-dark #mobileDrawerBackdrop {
+    background-color: rgba(4, 4, 4, 0.88) !important;
+    -webkit-backdrop-filter: none !important;
     backdrop-filter: none !important;
 }
 
