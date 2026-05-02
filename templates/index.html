@@ -15,7 +15,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Cardo:wght@400;700&family=Inter:wght@400;500;600&display=swap"
         rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
-    <link rel="stylesheet" href="/static/style.css?v=20260502-dark-mode-near-black-v6">
+    <link rel="stylesheet" href="/static/style.css?v=20260502-dark-mode-near-black-v7">
 
     <!-- FullCalendar -->
     <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.15/index.global.min.js"></script>
@@ -3398,14 +3398,23 @@
                 return `<p class="text-xs italic text-slate-400">${t('No items yet.', 'אין פריטים עדיין.')}</p>`;
             }
 
+            const current = appState.currentView;
+            const currentKey = current ? `${current.type}:${current.value}` : '';
+
             return items.map((item) => {
+                const itemKey = `${item.type}:${item.value}`;
+                const isActive = Boolean(currentKey) && itemKey === currentKey;
+                const buttonClass = isActive
+                    ? 'shelf-open shelf-open-active w-full text-left px-2 py-1 rounded border border-[#d7c8ad] bg-[#f2eadc] transition'
+                    : 'shelf-open w-full text-left px-2 py-1 rounded hover:bg-slate-100 transition';
+
                 return `
-                    <button class="shelf-open w-full text-left px-2 py-1 rounded hover:bg-slate-100 transition"
+                    <button class="${buttonClass}"
                         data-type="${escapeHtml(item.type)}"
                         data-value="${escapeHtml(item.value)}"
                         data-label="${escapeHtml(item.label || item.value)}">
-                        <span class="text-xs text-slate-700 block truncate">${escapeHtml(item.label || item.value)}</span>
-                        <span class="text-[10px] uppercase tracking-widest text-slate-400">${escapeHtml((UI_TYPE_LABELS[getCurrentLanguage()] || UI_TYPE_LABELS.en)[item.type] || item.type)}</span>
+                        <span class="text-xs ${isActive ? 'text-[#4f4130] font-semibold' : 'text-slate-700'} block truncate">${escapeHtml(item.label || item.value)}</span>
+                        <span class="text-[10px] uppercase tracking-widest ${isActive ? 'text-[#7a684f]' : 'text-slate-400'}">${escapeHtml((UI_TYPE_LABELS[getCurrentLanguage()] || UI_TYPE_LABELS.en)[item.type] || item.type)}</span>
                     </button>
                 `;
             }).join('');
@@ -5008,11 +5017,33 @@
             });
         }
 
+        function setActiveLibraryNode(activeButton) {
+            const activeRef = String(activeButton?.dataset?.ref || '').trim();
+            const activeTitle = String(activeButton?.dataset?.title || '').trim();
+
+            document.querySelectorAll('.library-node-open.library-node-active').forEach((node) => {
+                node.classList.remove('library-node-active');
+            });
+
+            if (!activeRef && !activeTitle) return;
+
+            document.querySelectorAll('.library-node-open').forEach((node) => {
+                const nodeRef = String(node.dataset.ref || '').trim();
+                const nodeTitle = String(node.dataset.title || '').trim();
+                const matches = (activeRef && nodeRef === activeRef) || (activeTitle && nodeTitle === activeTitle);
+                if (matches) {
+                    node.classList.add('library-node-active');
+                }
+            });
+        }
+
         function bindLibraryIndexClicks(container) {
             if (!container) return;
             container.addEventListener('click', async (e) => {
                 const button = e.target.closest('.library-node-open');
                 if (!button) return;
+
+                setActiveLibraryNode(button);
 
                 const ref = decodeURIComponent(button.dataset.ref || '');
                 const title = decodeURIComponent(button.dataset.title || '');
