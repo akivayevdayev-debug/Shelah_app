@@ -22,7 +22,7 @@ The Sh'elah application now integrates three major Jewish text sources:
 
 ### Topics Covered (100+)
 
-The TOPIC_REFS dictionary in `sefaria.py` now covers comprehensive Jewish law:
+The TOPIC_REFS dictionary in `backend/sefaria.py` now covers comprehensive Jewish law:
 
 #### Core Categories:
 - **Shabbat & Sabbath Laws** (35 melachot, writing, electricity, cooking, travel, muktzeh)
@@ -270,14 +270,14 @@ The CSS has been enhanced with professional styling inspired by Merkava's clean 
 
 ### Data Service Integration
 ```python
-# In data_service.py
+# In backend/data_service.py
 engine = ShelahEngine(lat, lon)
 sources = engine.get_library_text(reference)  # Now enhanced with Merkava
 ```
 
 ### Claude Prompt Building
 ```python
-# In claude.py - build_prompt() function
+# In backend/claude.py - build_prompt() function
 response = claude.get_halachic_answer(
     question=question,
     sefaria_sources=sources,      # From Sefaria
@@ -383,14 +383,14 @@ Returns:
 ## 9️⃣ CONFIGURATION & CUSTOMIZATION
 
 ### Adjusting Max References
-In `sefaria.py`:
+In `backend/sefaria.py`:
 ```python
 # Increase from 7 to get more sources (uses more tokens)
 return matched_refs[:10]  # More comprehensive
 ```
 
 ### Adding New Communities
-In `customs.py`:
+In `backend/customs.py`:
 ```python
 NEW_COMMUNITY = {
     "name": "Georgian",

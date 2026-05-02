@@ -211,7 +211,7 @@ Sources returned:
 
 #### Add New Community Custom:
 ```python
-# In data_service.py or customs.py
+# In backend/data_service.py or backend/customs.py
 customs_data = {
     "community": "Georgian",
     "ruling": "Custom practice for your community",
@@ -221,7 +221,7 @@ customs_data = {
 
 #### Add New Topic to Sefaria:
 ```python
-# In sefaria.py, add to TOPIC_REFS
+# In backend/sefaria.py, add to TOPIC_REFS
 "new_topic": [
     "Shulchan_Arukh_Reference",
     "Commentary_Reference",
@@ -247,16 +247,16 @@ SIDDUR_KOL_YAAKOV["categories"]["new_service"] = {
 ## Files Modified
 
 ### Core Files:
-- **`sefaria.py`** - Expanded from 50 to 100+ topics, added Merkava & Siddur integration
+- **`backend/sefaria.py`** - Expanded from 50 to 100+ topics, added Merkava & Siddur integration
 - **`static/style.css`** - Enhanced with 150+ lines of new styling
 - **`INTEGRATION_GUIDE.md`** - Complete documentation (1500+ words)
 - **`AUDIT_SUMMARY.md`** - Code quality verification
 
 ### No Changes Needed:
-- `app.py` - Works seamlessly with new sefaria.py functions
-- `claude.py` - Receives enhanced sources automatically
-- `data_service.py` - Calls existing functions that now return more data
-- `calendar_service.py` - Already provides Zmanim integration
+- `app.py` - Works seamlessly with new backend/sefaria.py functions
+- `backend/claude.py` - Receives enhanced sources automatically
+- `backend/data_service.py` - Calls existing functions that now return more data
+- `backend/calendar_service.py` - Already provides Zmanim integration
 - `templates/index.html` - CSS changes are backward compatible
 
 ---
@@ -311,7 +311,7 @@ Display with new CSS styling
 
 ### Import Test:
 ```
-✓ sefaria.py imports successfully
+✓ backend/sefaria.py imports successfully
 ✓ 22 functions/features available
 ✓ No syntax errors
 ✓ All modules functional

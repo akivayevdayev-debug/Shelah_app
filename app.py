@@ -43,10 +43,10 @@ except Exception:
 
 from pyluach import dates as pyluach_dates
 
-from data_service import ShelahEngine
-import sefaria
-import claude
-import search
+from backend.data_service import ShelahEngine
+from backend import sefaria
+from backend import claude
+from backend import search
 
 # Maps each prayer name to its constituent Sefaria "Siddur Sefard" refs for full text
 SIDDUR_SECTION_MAP = {
@@ -207,6 +207,7 @@ QUERY_STOPWORDS = {
 }
 
 WEB_LAST_RESORT_WARNING = "⚠️ **WARNING:** No matches found in Sefaria or verified customs. The following info is from the general web and may not be Halakhically accurate. Consult a Rabbi."
+WEB_LAST_RESORT_WARNING_PLAIN = WEB_LAST_RESORT_WARNING.replace("**", "")
 WEB_FALLBACK_TRUST_TERMS = {
     "halach", "halakh", "jewish", "judaism", "torah", "talmud", "shabbat",
     "yom tov", "kashrut", "tefillin", "mezuzah", "sefaria", "hebrewbooks",
@@ -216,6 +217,41 @@ WEB_FALLBACK_BLOCKLIST_TERMS = {
     "biblegateway", "biblehub", "biblestudytools", "king james", "new testament",
     "gospel", "church", "jesus", "christian bible",
 }
+
+CLOCK_TIME_LATEX_RE = re.compile(
+    r"\$(\d{1,2}:\d{2})\s*\\{1,2}text\{\s*(AM|PM)\s*\}\$",
+    re.IGNORECASE,
+)
+
+
+def _strip_model_web_warning_prefix(answer_text):
+    text = str(answer_text or "").strip()
+    if not text:
+        return ""
+
+    for marker in (WEB_LAST_RESORT_WARNING, WEB_LAST_RESORT_WARNING_PLAIN):
+        if text.startswith(marker):
+            text = text[len(marker):].lstrip()
+
+    # Guard against model-inserted markdown separators glued to the warning line.
+    text = re.sub(r"^-{3,}\s*", "", text)
+    return text.strip()
+
+
+def _normalize_ai_answer(answer_text, include_web_warning=False):
+    body = _strip_model_web_warning_prefix(answer_text)
+    body = CLOCK_TIME_LATEX_RE.sub(
+        lambda m: f"{m.group(1)} {m.group(2).upper()}",
+        body,
+    )
+
+    if not body:
+        body = "No verified source found"
+
+    if include_web_warning:
+        return f"{WEB_LAST_RESORT_WARNING}\n\n{body}"
+
+    return body
 
 
 def _extract_query_keywords(query, max_keywords=8):
@@ -677,6 +713,45 @@ def _build_ask_tool_context(engine):
         pass
 
     return context
+
+
+def _compact_ai_sources(sources, max_sources=8, max_lines=3, max_chars=280):
+    """Trim bulky source payloads to the excerpt shape used by the UI."""
+    if not isinstance(sources, list):
+        return []
+
+    compacted = []
+    for src in sources[:max_sources]:
+        if not isinstance(src, dict):
+            continue
+
+        ref = str(src.get("ref") or "").strip()
+        title = str(src.get("title") or ref).strip()
+        raw_lines = src.get("lines") if isinstance(
+            src.get("lines"), list) else []
+
+        lines = []
+        for row in raw_lines[:max_lines]:
+            if not isinstance(row, dict):
+                continue
+
+            en = re.sub(r"\s+", " ", str(row.get("en") or "").strip())
+            he = re.sub(r"\s+", " ", str(row.get("he") or "").strip())
+
+            if len(en) > max_chars:
+                en = f"{en[:max_chars].rstrip()}..."
+            if len(he) > max_chars:
+                he = f"{he[:max_chars].rstrip()}..."
+
+            lines.append({"en": en, "he": he})
+
+        compacted.append({
+            "ref": ref[:220],
+            "title": title[:220],
+            "lines": lines,
+        })
+
+    return compacted
 
 
 def _strip_hebrew_diacritics(text):
@@ -1397,7 +1472,7 @@ def _get_prayer_refs(prayer_name):
     if resolved_name in SIDDUR_SECTION_MAP:
         return SIDDUR_SECTION_MAP[resolved_name]
 
-    from sefaria_library import get_index_leaf_refs
+    from backend.sefaria_library import get_index_leaf_refs
     return get_index_leaf_refs(resolved_name, max_refs=80)
 
 
@@ -1764,10 +1839,21 @@ def ask_question():
                 'text': ' '.join(en_lines)
             })
 
+        has_primary_sources = bool(flat_sources_for_claude)
+        has_customs = bool(customs_info)
+        has_whitelisted_external = bool(halachipedia_list)
+        use_tertiary_web_context = (
+            not has_primary_sources
+            and not has_customs
+            and not has_whitelisted_external
+        )
+        wiki_context_for_claude = wiki_list if use_tertiary_web_context else []
+
         if mode == "strict" and not flat_sources_for_claude:
             DEVTOOLS_STATS["answers_total"] += 1
             DEVTOOLS_STATS["strict_blocks"] += 1
             DEVTOOLS_STATS["fallback_answers"] += 1
+            display_sources = _compact_ai_sources(primary_sources)
             return jsonify({
                 "answer": (
                     "Strict Sources Mode could not complete this request because no primary Sefaria sources "
@@ -1776,7 +1862,7 @@ def ask_question():
                 "confidence": 0.2,
                 "wiki": wiki_list + halachipedia_list,
                 "customs": customs_info,
-                "sources": primary_sources,
+                "sources": display_sources,
                 "meta": {
                     "mode": mode,
                     "community_lens": canonical_lens,
@@ -1793,7 +1879,7 @@ def ask_question():
                 question=question,
                 sefaria_sources=flat_sources_for_claude,
                 customs=customs_info,
-                wiki=wiki_list,
+                wiki=wiki_context_for_claude,
                 halachipedia=halachipedia_list,
                 mode=mode,
                 community_lens=canonical_lens,
@@ -1803,6 +1889,14 @@ def ask_question():
             result_error = str(result.get("error") or "")
             if result_error and not result_error.startswith("security_blocked"):
                 raise RuntimeError(result_error or "AI request failed")
+
+            needs_web_warning = use_tertiary_web_context and bool(
+                wiki_context_for_claude)
+            normalized_answer = _normalize_ai_answer(
+                result.get("answer"),
+                include_web_warning=needs_web_warning,
+            )
+            result["answer"] = normalized_answer
         except Exception as ai_error:
             fallback_payload = get_halakhic_sources(question)
             fallback_warning = str(
@@ -1816,12 +1910,14 @@ def ask_question():
 
             DEVTOOLS_STATS["answers_total"] += 1
             DEVTOOLS_STATS["fallback_answers"] += 1
+            fallback_sources = _compact_ai_sources(
+                fallback_payload.get("sources", []))
             return jsonify({
                 "answer": fallback_answer,
                 "confidence": 0.4,
                 "wiki": wiki_list + halachipedia_list,
                 "customs": customs_info,
-                "sources": fallback_payload.get("sources", []),
+                "sources": fallback_sources,
                 "meta": {
                     "mode": mode,
                     "community_lens": canonical_lens,
@@ -1842,6 +1938,7 @@ def ask_question():
             })
 
         DEVTOOLS_STATS["answers_total"] += 1
+        display_sources = _compact_ai_sources(primary_sources)
 
         # Send all context back to the frontend
         return jsonify({
@@ -1849,7 +1946,7 @@ def ask_question():
             "confidence": result.get("confidence"),
             "wiki": wiki_list + halachipedia_list,
             "customs": customs_info,
-            "sources": primary_sources,
+            "sources": display_sources,
             "meta": {
                 "mode": mode,
                 "community_lens": canonical_lens,
@@ -1909,7 +2006,7 @@ def devtools_heartbeat():
         "supabase_publishable_ready": bool(SUPABASE_URL and SUPABASE_PUBLISHABLE_KEY),
     }
 
-    from sefaria_library import get_popular_texts
+    from backend.sefaria_library import get_popular_texts
     popular_started = time.time()
     popular = get_popular_texts()
     checks["library_popular_ready"] = bool(popular)
@@ -2108,7 +2205,7 @@ def list_todos():
 @app.route("/api/library/index")
 def library_index():
     """Returns report-adjusted Sefaria library tree (non-loading removals pruned, fix refs applied)."""
-    from sefaria_library import get_library_index
+    from backend.sefaria_library import get_library_index
     data = get_library_index()
     return jsonify(data)
 
@@ -2116,14 +2213,14 @@ def library_index():
 @app.route("/api/library/popular")
 def library_popular():
     """Returns curated popular texts per category."""
-    from sefaria_library import get_popular_texts
+    from backend.sefaria_library import get_popular_texts
     return jsonify(get_popular_texts())
 
 
 @app.route("/api/text/<path:ref>")
 def get_text_inline(ref):
     """Fetches a Sefaria text inline — Hebrew + English + metadata."""
-    from sefaria_library import get_text
+    from backend.sefaria_library import get_text
     decoded_ref = _decode_route_ref(ref)
     data = get_text(decoded_ref)
 
@@ -2167,7 +2264,7 @@ def get_word_meaning():
 @app.route("/api/library/search")
 def library_search():
     """Full-text search across Sefaria texts with report-based removal/fix filtering."""
-    from sefaria_library import search_library
+    from backend.sefaria_library import search_library
     query = request.args.get("q", "")
     size = _coerce_int(request.args.get("size"), 10, min_value=1, max_value=50)
     metadata_filters = _extract_search_metadata_filters()
@@ -2181,7 +2278,7 @@ def library_search():
 @app.route("/api/search/suggest")
 def search_suggest():
     """Omnibox suggestions: texts, prayers, communities, and AI query option."""
-    from sefaria_library import search_library, get_liturgy_books
+    from backend.sefaria_library import search_library, get_liturgy_books
 
     query = (request.args.get("q", "") or "").strip()
     size = _coerce_int(request.args.get("size"), 8, min_value=1, max_value=20)
@@ -2251,7 +2348,7 @@ def search_suggest():
 @app.route("/api/text/<path:ref>/links")
 def get_text_links(ref):
     """Returns all linked commentaries & parallel texts for a given ref."""
-    from sefaria_library import get_linked_texts
+    from backend.sefaria_library import get_linked_texts
     decoded_ref = _decode_route_ref(ref)
     return jsonify(get_linked_texts(decoded_ref))
 
@@ -2259,7 +2356,7 @@ def get_text_links(ref):
 @app.route("/api/text/<path:ref>/graph")
 def get_text_graph(ref):
     """Build a lightweight source graph around a text reference."""
-    from sefaria_library import get_linked_texts
+    from backend.sefaria_library import get_linked_texts
 
     decoded_ref = _decode_route_ref(ref)
     links = get_linked_texts(decoded_ref)
@@ -2296,7 +2393,7 @@ def get_text_graph(ref):
 @app.route("/api/library/category/<path:category>")
 def library_category(category):
     """Returns all books in a given Sefaria category."""
-    from sefaria_library import get_category_contents
+    from backend.sefaria_library import get_category_contents
     return jsonify(get_category_contents(category))
 
 
@@ -2307,7 +2404,7 @@ def library_category(category):
 @app.route("/api/prayers/list")
 def get_prayers_list():
     """Returns all prayer books from Sefaria Liturgy plus legacy quick services."""
-    from sefaria_library import get_liturgy_books
+    from backend.sefaria_library import get_liturgy_books
 
     items = []
     seen = set()
@@ -2329,7 +2426,7 @@ def get_prayers_list():
 @app.route("/api/prayer/<name>")
 def get_prayer(name):
     """Returns prayer-book preview content in English and Hebrew."""
-    from sefaria_library import get_text
+    from backend.sefaria_library import get_text
 
     resolved_name = (unquote(name or "") or "").strip()
     refs = _get_prayer_refs(resolved_name)
@@ -2371,7 +2468,7 @@ def get_prayer(name):
 @app.route("/api/siddur/full/<path:prayer_name>")
 def get_siddur_full(prayer_name):
     """Fetch full prayer text from Sefaria for any supported prayer service/book."""
-    from sefaria_library import get_text
+    from backend.sefaria_library import get_text
 
     resolved_name = (unquote(prayer_name or "") or "").strip()
     refs = _get_prayer_refs(resolved_name)
@@ -2589,7 +2686,7 @@ def get_community_timeline(name):
 @app.route("/api/texts-index")
 def get_texts_index():
     """Returns complete index of browsable texts: prayers, communities, Sefaria."""
-    from sefaria_library import get_liturgy_books
+    from backend.sefaria_library import get_liturgy_books
 
     return jsonify({
         "siddur": {
@@ -2684,7 +2781,7 @@ def get_parasha():
         pass
 
     try:
-        from calendar_service import calendar_engine
+        from backend.calendar_service import calendar_engine
         parasha_name = calendar_engine.get_parasha()
         return jsonify({
             "title": parasha_name or "Parashat HaShavua",
