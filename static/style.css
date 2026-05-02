@@ -481,6 +481,7 @@ h6 {
     height: 8px;
 }
 
+/* Light mode scrollbar */
 ::-webkit-scrollbar-track {
     background: #f1f5f9;
     border-radius: 10px;
@@ -493,6 +494,26 @@ h6 {
 
 ::-webkit-scrollbar-thumb:hover {
     background: #94a3b8;
+}
+
+/* Dark mode scrollbar - override global rules */
+body.theme-dark ::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+}
+
+body.theme-dark ::-webkit-scrollbar-track {
+    background: #1f201d !important;
+    border-radius: 10px;
+}
+
+body.theme-dark ::-webkit-scrollbar-thumb {
+    background: #4a4b45 !important;
+    border-radius: 10px;
+}
+
+body.theme-dark ::-webkit-scrollbar-thumb:hover {
+    background: #5c5d56 !important;
 }
 
 /* ═══════════════════════════════════════════════════════════════════ */
@@ -1397,6 +1418,7 @@ body.theme-dark {
     --accent-thought: #c4cbc5;
     background: radial-gradient(circle at 50% -40%, rgba(255, 255, 255, 0.06), transparent 48%), var(--surface-base);
     color: var(--accent-cream);
+    color-scheme: dark;
 }
 
 body.theme-dark,
@@ -1404,6 +1426,8 @@ body.theme-dark #mainContainer,
 body.theme-dark .content-canvas,
 body.theme-dark .library-shell {
     background-color: var(--surface-base) !important;
+    background: var(--surface-base) !important;
+    color: var(--accent-cream) !important;
 }
 
 body.theme-dark .topbar {
@@ -1688,14 +1712,14 @@ body.theme-dark .fc .fc-toolbar-title {
 }
 
 body.theme-dark .fc .fc-button {
-    background-color: #2f5f9d !important;
-    border-color: #2f5f9d !important;
+    background-color: #3a3a35 !important;
+    border-color: #3a3a35 !important;
     color: #f4ebdd !important;
 }
 
 body.theme-dark .fc .fc-button:hover {
-    background-color: #285286 !important;
-    border-color: #285286 !important;
+    background-color: #4a4a45 !important;
+    border-color: #4a4a45 !important;
 }
 
 body.theme-dark .fc .fc-button:disabled {
@@ -2106,12 +2130,19 @@ body.theme-dark .custom-scrollbar::-webkit-scrollbar-thumb:hover {
     background: #5c5d56;
 }
 
+body.theme-dark .custom-scrollbar::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+}
+
 body.theme-dark .custom-scrollbar::-webkit-scrollbar-track {
     background: #1f201d !important;
+    border-radius: 10px;
 }
 
 body.theme-dark .custom-scrollbar::-webkit-scrollbar-thumb {
     background: #4a4b45 !important;
+    border-radius: 10px;
 }
 
 body.theme-dark .custom-scrollbar::-webkit-scrollbar-thumb:hover {
