@@ -24,6 +24,13 @@ env/
 .env.*
 !.env.example
 
+# Potentially sensitive JSON exports/credentials
+*.secret.json
+*.secrets.json
+*credentials*.json
+*service-account*.json
+*private*.json
+
 # Editor folders
 .vscode/
 .idea/
