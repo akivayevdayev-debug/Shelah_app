@@ -74,9 +74,11 @@
             <div class="text-navy font-hebrew text-4xl font-semibold leading-tight -mt-1">
                 ש
             </div>
-            <h1 class="text-lg sm:text-xl font-serif tracking-tight text-navy font-semibold block">Sh'elah <span
-                    class="text-[11px] sm:text-xs font-normal text-slate-500 italic hidden lg:block -mt-0.5"
-                    data-en="Torah Encyclopedia" data-he="אנציקלופדיית תורה">Torah Encyclopedia</span></h1>
+            <h1 class="text-lg sm:text-xl font-serif tracking-tight text-navy font-semibold leading-tight">
+                <span class="block">Sh'elah</span>
+                <span class="block text-[11px] sm:text-xs font-normal text-slate-500 italic -mt-0.5"
+                    data-en="Torah Encyclopedia" data-he="אנציקלופדיית תורה">Torah Encyclopedia</span>
+            </h1>
         </div>
 
         <!-- Top Navigation Menu Toggle + Search Bar -->
@@ -1463,6 +1465,30 @@
         const APP_SHELF_KEY = "Sh'elahShelf";
         const ZMANIM_LOCATION_CACHE_KEY = "Sh'elahLastLocation";
         const LANGUAGE_MANUAL_KEY = "Sh'elahLanguageManuallySet";
+
+        if (window.marked && typeof window.marked.setOptions === 'function') {
+            marked.setOptions({
+                gfm: true,
+                breaks: true,
+                mangle: false,
+                headerIds: false,
+            });
+        }
+
+        function renderAnswerMarkdown(answerText) {
+            const raw = String(answerText || 'No synthesis available.');
+            if (window.marked && typeof window.marked.parse === 'function') {
+                return marked.parse(raw);
+            }
+
+            return raw
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#39;')
+                .replace(/\n/g, '<br>');
+        }
         const READER_LAYOUT_MANUAL_KEY = "Sh'elahReaderLayoutManuallySet";
         const PARASHA_CACHE_TTL_MS = 1000 * 60 * 60;
         const POPULAR_TEXTS_CACHE_TTL_MS = 1000 * 60 * 60 * 12;
@@ -4659,6 +4685,12 @@
                         setActiveMobileTab('home');
                         setMobileSearchExpanded(false);
                         goHome();
+                        const homeTopAnchor = document.getElementById('homeGrid');
+                        if (homeTopAnchor) {
+                            window.setTimeout(() => {
+                                homeTopAnchor.scrollIntoView({ behavior: 'auto', block: 'start' });
+                            }, 80);
+                        }
                         return;
                     }
                     if (tab === 'search') {
@@ -5614,6 +5646,14 @@
             resetSelectionInsights();
             clearCompareReference(false);
             updateBookmarkButton();
+            scrollPrimaryToTop('auto');
+            window.scrollTo({ top: 0, behavior: 'auto' });
+            if (mainContainer) {
+                mainContainer.scrollTop = 0;
+            }
+            window.requestAnimationFrame(() => {
+                window.scrollTo({ top: 0, behavior: 'auto' });
+            });
             setTimeout(() => { homeGrid.classList.remove('opacity-0'); }, 10);
             sidebarContent.innerHTML = `<p class="italic text-slate-400">${t('Search a halacha to view cross-referenced Encyclopedia and Customs data...', 'חפש הלכה כדי לצפות בנתונים מקושרים מהאנציקלופדיה ומהמנהגים...')}</p>`;
         }
@@ -6977,7 +7017,7 @@
             resetSelectionInsights();
 
             // 1. Content Synthesis
-            document.getElementById('readerContent').innerHTML = marked.parse(data.answer || "No synthesis available.");
+            document.getElementById('readerContent').innerHTML = renderAnswerMarkdown(data.answer);
 
             // 2. Bilingual Sefaria Side-by-Side Sources
             const sourcesDiv = document.getElementById('readerSources');
@@ -7059,7 +7099,7 @@
 
         function populateAiModal(data, queryTitle) {
             // 1. Populate synthesis
-            document.getElementById('aiSynthesis').innerHTML = marked.parse(data.answer || "No synthesis available.");
+            document.getElementById('aiSynthesis').innerHTML = renderAnswerMarkdown(data.answer);
 
             const meta = data.meta || {};
             const confidence = typeof data.confidence === 'number'
