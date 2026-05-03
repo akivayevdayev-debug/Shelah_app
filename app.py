@@ -209,6 +209,7 @@ QUERY_STOPWORDS = {
 
 WEB_LAST_RESORT_WARNING = "⚠️ **WARNING:** No matches found in Sefaria or verified customs. The following info is from the general web and may not be Halakhically accurate. Consult a Rabbi."
 WEB_LAST_RESORT_WARNING_PLAIN = WEB_LAST_RESORT_WARNING.replace("**", "")
+INTERNAL_AI_KNOWLEDGE_DISCLAIMER = "Note: This information is derived from general Halakhic knowledge as the specific database source was unavailable."
 WEB_FALLBACK_TRUST_TERMS = {
     "halach", "halakh", "jewish", "judaism", "torah", "talmud", "shabbat",
     "yom tov", "kashrut", "tefillin", "mezuzah", "sefaria", "hebrewbooks",
@@ -268,6 +269,54 @@ HALAKHIC_VERDICT_LABELS = {
     "mutar": "Mutar",
 }
 
+# Topic-first direct source anchors for high-signal chapter targeting.
+DIRECT_TOPIC_SOURCE_MAP = {
+    "omer": {
+        "triggers": ["omer", "sefira", "sefirah", "sefirat haomer", "lag baomer", "lag ba'omer", "haircut", "haircuts"],
+        "citations": [
+            "Shulchan Arukh, Orach Chayim 489",
+            "Shulchan Arukh, Orach Chayim 493",
+        ],
+        "broad_terms": ["omer", "sefirat haomer", "sefira", "haircuts", "mourning customs"],
+    },
+    "shabbat": {
+        "triggers": ["shabbat", "shabbos", "melacha", "havdalah", "kiddush"],
+        "citations": [
+            "Shulchan Arukh, Orach Chayim 242",
+            "Shulchan Arukh, Orach Chayim 318",
+        ],
+        "broad_terms": ["shabbat", "melacha", "havdalah", "kiddush", "nightfall"],
+    },
+    "kashrut": {
+        "triggers": ["kashrut", "kosher", "basar", "chalav", "meat", "dairy", "treif", "treife"],
+        "citations": [
+            "Shulchan Arukh, Yoreh De'ah 87",
+            "Shulchan Arukh, Yoreh De'ah 89",
+        ],
+        "broad_terms": ["kashrut", "kosher", "meat and milk", "basar bechalav", "yoreh deah"],
+    },
+    "niddah": {
+        "triggers": ["niddah", "nidda", "mikveh", "taharah", "family purity"],
+        "citations": [
+            "Shulchan Arukh, Yoreh De'ah 183",
+            "Shulchan Arukh, Yoreh De'ah 197",
+        ],
+        "broad_terms": ["niddah", "family purity", "mikveh", "taharah", "yoreh deah"],
+    },
+}
+
+QUERY_BROADENER_MAP = {
+    "omer": ["sefirat haomer", "sefira", "haircuts"],
+    "sefirah": ["omer", "sefirat haomer"],
+    "sefira": ["omer", "sefirat haomer"],
+    "haircuts": ["haircut", "mourning customs", "omer"],
+    "shabbos": ["shabbat", "melacha", "havdalah"],
+    "shabbat": ["melacha", "kiddush", "havdalah"],
+    "kashrut": ["kosher", "yoreh deah", "meat and milk"],
+    "kosher": ["kashrut", "yoreh deah", "meat and milk"],
+    "niddah": ["family purity", "mikveh", "taharah"],
+}
+
 
 def _strip_model_web_warning_prefix(answer_text):
     text = str(answer_text or "").strip()
@@ -283,12 +332,17 @@ def _strip_model_web_warning_prefix(answer_text):
     return text.strip()
 
 
-def _normalize_ai_answer(answer_text, include_web_warning=False):
+def _normalize_ai_answer(answer_text, include_web_warning=False, include_internal_disclaimer=False):
     body = _strip_model_web_warning_prefix(answer_text)
     body = CLOCK_TIME_LATEX_RE.sub(
         lambda m: f"{m.group(1)} {m.group(2).upper()}",
         body,
     )
+
+    internal_disclaimer_present = body.startswith(
+        INTERNAL_AI_KNOWLEDGE_DISCLAIMER)
+    if internal_disclaimer_present:
+        body = body[len(INTERNAL_AI_KNOWLEDGE_DISCLAIMER):].lstrip()
 
     # Preserve the domain guardrail refusal message exactly as emitted.
     if DOMAIN_REFUSAL_MESSAGE_RE.match(body):
@@ -301,6 +355,12 @@ def _normalize_ai_answer(answer_text, include_web_warning=False):
 
     if include_web_warning:
         return f"{WEB_LAST_RESORT_WARNING}\n\n{body}"
+
+    should_include_internal_disclaimer = (
+        include_internal_disclaimer or internal_disclaimer_present
+    )
+    if should_include_internal_disclaimer and body.lower() != "no verified source found":
+        return f"{INTERNAL_AI_KNOWLEDGE_DISCLAIMER}\n\n{body}"
 
     return body
 
@@ -473,6 +533,230 @@ def _extract_hit_snippet(hit_source):
     return ""
 
 
+def _dedupe_ordered_text(values, max_items=None):
+    collected = []
+    seen = set()
+
+    for value in values or []:
+        normalized = re.sub(r"\s+", " ", str(value or "")).strip()
+        if not normalized:
+            continue
+
+        key = normalized.lower()
+        if key in seen:
+            continue
+
+        seen.add(key)
+        collected.append(normalized)
+
+        if max_items and len(collected) >= max_items:
+            break
+
+    return collected
+
+
+def _match_direct_topics(question, keywords):
+    haystack = f"{question} {' '.join(keywords)}".lower()
+    matched = []
+
+    for topic, config in DIRECT_TOPIC_SOURCE_MAP.items():
+        triggers = config.get("triggers", [])
+        if any(trigger in haystack for trigger in triggers):
+            matched.append(topic)
+
+    return matched
+
+
+def _build_discovery_queries(question, keywords):
+    matched_topics = _match_direct_topics(question, keywords)
+
+    specific_queries = []
+    broad_terms = list(keywords)
+
+    for topic in matched_topics:
+        config = DIRECT_TOPIC_SOURCE_MAP.get(topic, {})
+        specific_queries.extend(config.get("citations", []))
+        specific_queries.append(f"{topic} shulchan arukh")
+        broad_terms.extend(config.get("broad_terms", []))
+
+    for keyword in keywords:
+        broad_terms.extend(QUERY_BROADENER_MAP.get(keyword.lower(), []))
+
+    if question:
+        specific_queries.append(question)
+        broad_terms.extend(_extract_query_keywords(question, max_keywords=12))
+
+    specific_queries = _dedupe_ordered_text(specific_queries, max_items=14)
+    broad_terms = _dedupe_ordered_text(broad_terms, max_items=18)
+
+    broad_queries = []
+    if broad_terms:
+        broad_queries.append(" ".join(broad_terms[:5]))
+        if len(broad_terms) >= 8:
+            broad_queries.append(" ".join(broad_terms[3:8]))
+        broad_queries.extend(broad_terms[:10])
+    if question:
+        broad_queries.append(question)
+    broad_queries = _dedupe_ordered_text(broad_queries, max_items=16)
+
+    if not specific_queries and question:
+        specific_queries = [question]
+
+    return {
+        "topics": matched_topics,
+        "specific_queries": specific_queries,
+        "broad_queries": broad_queries,
+    }
+
+
+def _is_sefaria_hit_relevant(hit_source, query_terms):
+    if not query_terms:
+        return True
+
+    categories = hit_source.get("categories", [])
+    title_variants = hit_source.get("titleVariants", [])
+    snippet = _extract_hit_snippet(hit_source)
+    haystack = " ".join([
+        str(hit_source.get("ref") or ""),
+        str(hit_source.get("path") or ""),
+        " ".join(categories if isinstance(categories, list) else []),
+        " ".join(title_variants if isinstance(title_variants, list) else []),
+        snippet,
+    ]).lower().replace("_", " ")
+
+    terms = []
+    for term in query_terms:
+        normalized = str(term or "").strip().lower()
+        if len(normalized) < 3 or normalized in QUERY_STOPWORDS:
+            continue
+        terms.append(normalized)
+
+    if not terms:
+        return True
+
+    return any(term in haystack for term in terms)
+
+
+def _collect_global_sefaria_sources(queries, fallback_terms, discovery_stage, priority, max_results=10):
+    sources = []
+    seen_refs = set()
+
+    per_query_limit = 3 if discovery_stage == "specific-api" else 2
+
+    for query_text in queries:
+        normalized_query = str(query_text or "").strip()
+        if not normalized_query:
+            continue
+
+        hits = _query_search_wrapper(normalized_query, size=80)
+        query_terms = _extract_query_keywords(
+            normalized_query) or fallback_terms
+
+        added_for_query = 0
+        for hit in hits:
+            hit_source = hit.get("_source", {}) if isinstance(
+                hit, dict) else {}
+            if not isinstance(hit_source, dict):
+                continue
+
+            if not _is_sefaria_hit_relevant(hit_source, query_terms):
+                continue
+
+            ref = str(hit_source.get("ref") or "").strip()
+            if not ref or ref in seen_refs:
+                continue
+
+            seen_refs.add(ref)
+            he_ref = str(hit_source.get("heRef") or "").strip()
+            path = str(hit_source.get("path") or "").strip()
+            snippet = _extract_hit_snippet(hit_source)
+
+            sources.append({
+                "ref": ref,
+                "title": ref,
+                "lines": [{"en": snippet or f"Matched via global search: {normalized_query}", "he": he_ref}],
+                "domain": "Sefaria",
+                "corpus": "sefaria-global-search",
+                "path": path,
+                "priority": priority,
+                "status": "fallback",
+                "discovery_stage": discovery_stage,
+                "search_query": normalized_query,
+                "score": hit.get("_score") if isinstance(hit, dict) else None,
+            })
+
+            added_for_query += 1
+            if added_for_query >= per_query_limit or len(sources) >= max_results:
+                break
+
+        if len(sources) >= max_results:
+            break
+
+    return sources
+
+
+def _collect_external_global_sources(queries, keywords, discovery_stage, priority, max_results=6):
+    providers = [
+        ("Halachipedia", "halachipedia.com", search.search_halachipedia),
+        ("HebrewBooks", "hebrewbooks.org", search.search_hebrewbooks),
+    ]
+
+    sources = []
+    seen = set()
+
+    for query_text in queries:
+        normalized_query = str(query_text or "").strip()
+        if not normalized_query:
+            continue
+
+        for provider_name, domain, provider_search in providers:
+            payload = provider_search(normalized_query)
+            if not isinstance(payload, dict):
+                continue
+
+            title = str(payload.get("title") or "").strip()
+            summary = str(payload.get("summary") or "").strip()
+            if provider_name == "Halachipedia":
+                title = re.sub(r"^\[Halachipedia\]\s*", "", title).strip()
+
+            if not title and not summary:
+                continue
+
+            if not _looks_like_trusted_web_match(provider_name.lower(), title, summary, keywords):
+                continue
+
+            dedupe_key = (provider_name.lower(), title.lower())
+            if dedupe_key in seen:
+                continue
+            seen.add(dedupe_key)
+
+            url = str(payload.get("url") or "").strip()
+            if not url and provider_name == "Halachipedia" and title:
+                slug = quote(title.replace(" ", "_"), safe="")
+                url = f"https://halachipedia.com/wiki/{slug}" if slug else "https://halachipedia.com"
+            if not url and provider_name == "HebrewBooks":
+                url = f"https://www.hebrewbooks.org/search.aspx?st=FT&q={quote(normalized_query, safe='')}"
+
+            sources.append({
+                "ref": title[:140] or provider_name,
+                "title": title[:160] or provider_name,
+                "lines": [{"en": summary[:1000], "he": ""}],
+                "domain": domain,
+                "corpus": "external-global-search",
+                "source_provider": provider_name,
+                "url": url,
+                "priority": priority,
+                "status": "fallback",
+                "discovery_stage": discovery_stage,
+                "search_query": normalized_query,
+            })
+
+            if len(sources) >= max_results:
+                return sources
+
+    return sources
+
+
 def _iter_local_json_matches(payload, keywords, file_name, pointer="root"):
     matches = []
 
@@ -554,7 +838,7 @@ def _looks_like_trusted_web_match(provider, title, summary, keywords):
     if any(flag in haystack for flag in WEB_FALLBACK_BLOCKLIST_TERMS):
         return False
 
-    if provider_name == "halachipedia":
+    if provider_name in {"halachipedia", "hebrewbooks"}:
         return True
 
     if any(term in haystack for term in WEB_FALLBACK_TRUST_TERMS):
@@ -661,165 +945,125 @@ def _build_last_resort_web_sources(question, keywords, max_results=6):
 
 
 def get_halakhic_sources(query):
-    """Deterministic fallback retrieval: Sefaria -> local JSON -> web last resort."""
+    """Global discovery fallback: specific API -> broad API -> internal AI knowledge."""
     question = claude.sanitize_user_query(query)
     keywords = _extract_query_keywords(question)
     if not keywords and question:
         keywords = [question.lower()]
 
-    sefaria_sources = []
-    seen_refs = set()
-    search_query = " ".join(keywords[:5]).strip() or question
-    hit_pool = _query_search_wrapper(search_query, size=120)
+    discovery = _build_discovery_queries(question, keywords)
+    topic_matches = discovery.get("topics", [])
+    specific_queries = discovery.get("specific_queries", [])
+    broad_queries = discovery.get("broad_queries", [])
 
-    for corpus, aliases in HALAKHIC_CORPUS_ALIASES.items():
-        added_for_corpus = 0
-        corpus_hits = [
-            hit for hit in hit_pool
-            if _match_corpus((hit or {}).get("_source", {}), aliases)
-        ]
-
-        if not corpus_hits:
-            focused_hits = _query_search_wrapper(
-                f"{corpus} {search_query}".strip(), size=40)
-            corpus_hits = [
-                hit for hit in focused_hits
-                if _match_corpus((hit or {}).get("_source", {}), aliases)
-            ]
-
-        if not corpus_hits:
-            focused_hits = _query_search_wrapper(corpus, size=40)
-            corpus_hits = [
-                hit for hit in focused_hits
-                if _match_corpus((hit or {}).get("_source", {}), aliases)
-            ]
-
-        for hit in corpus_hits:
-            hit_source = hit.get("_source", {}) if isinstance(
-                hit, dict) else {}
-            if not isinstance(hit_source, dict):
-                continue
-            if not _match_corpus(hit_source, aliases):
-                continue
-
-            ref = str(hit_source.get("ref") or "").strip()
-            if not ref or ref in seen_refs:
-                continue
-
-            seen_refs.add(ref)
-            he_ref = str(hit_source.get("heRef") or "").strip()
-            path = str(hit_source.get("path") or "").strip()
-            snippet = _extract_hit_snippet(hit_source)
-
-            sefaria_sources.append({
-                "ref": ref,
-                "title": ref,
-                "lines": [{"en": snippet or f"Matched via {corpus}", "he": he_ref}],
-                "domain": "Sefaria",
-                "corpus": corpus,
-                "path": path,
-                "priority": 1,
-                "status": "fallback",
-                "score": hit.get("_score") if isinstance(hit, dict) else None,
-            })
-
-            added_for_corpus += 1
-            if added_for_corpus >= 3:
-                break
-
-    local_sources = []
-    knowledge_rows = _retrieve_community_knowledge(
-        question,
-        canonical_lens="All",
-        max_rows=10,
+    specific_sefaria = _collect_global_sefaria_sources(
+        specific_queries,
+        fallback_terms=keywords,
+        discovery_stage="specific-api",
+        priority=1,
+        max_results=8,
     )
-    for row in knowledge_rows:
-        topic = str(row.get("topic") or "").strip()
-        source = str(row.get("halakhic_source") or "").strip()
-        content = str(row.get("content") or "").strip()
-        local_sources.append({
-            "ref": f"Community Knowledge: {topic[:80]}",
-            "title": topic[:120] if topic else "Community Knowledge Match",
-            "lines": [{
-                "en": content,
-                "he": "",
-            }],
-            "domain": "supabase",
-            "corpus": "community-knowledge",
-            "community": row.get("community_name", ""),
-            "source_provider": source,
-            "priority": 2,
-            "status": "fallback",
-            "score": row.get("score"),
-        })
+    specific_external = _collect_external_global_sources(
+        specific_queries,
+        keywords=keywords,
+        discovery_stage="specific-api",
+        priority=1,
+        max_results=4,
+    )
+    specific_sources = specific_sefaria + specific_external
 
-    if sefaria_sources or local_sources:
-        if sefaria_sources and local_sources:
-            fallback_level = "sefaria+local-json"
-        elif sefaria_sources:
-            fallback_level = "sefaria"
-        else:
-            fallback_level = "local-json"
-
-        merged_sources = sefaria_sources + local_sources
+    if specific_sources:
         return {
             "status": "fallback",
-            "fallback_level": fallback_level,
+            "fallback_level": "specific-api",
             "query": question,
             "keywords": keywords,
-            "sequence": ["sefaria", "local-json", "web-last-resort"],
+            "topics": topic_matches,
+            "specific_queries": specific_queries,
+            "broad_queries": broad_queries,
+            "sequence": ["specific-api", "broad-api", "internal-ai-knowledge"],
             "counts": {
-                "sefaria": len(sefaria_sources),
-                "local_json": len(local_sources),
-                "web": 0,
+                "specific_api": len(specific_sources),
+                "broad_api": 0,
+                "internal_ai": 0,
+                "sefaria": len(specific_sefaria),
+                "external": len(specific_external),
             },
             "warning": "",
-            "source_count": len(merged_sources),
-            "sources": merged_sources,
+            "internal_disclaimer": "",
+            "source_count": len(specific_sources),
+            "sources": specific_sources,
         }
 
-    web_sources = _build_last_resort_web_sources(
-        question,
-        keywords,
+    broad_sefaria = _collect_global_sefaria_sources(
+        broad_queries,
+        fallback_terms=keywords,
+        discovery_stage="broad-api",
+        priority=2,
+        max_results=10,
+    )
+    broad_external = _collect_external_global_sources(
+        broad_queries,
+        keywords=keywords,
+        discovery_stage="broad-api",
+        priority=2,
         max_results=6,
     )
-    if web_sources:
+    broad_sources = broad_sefaria + broad_external
+
+    if broad_sources:
         return {
-            "status": "fallback-web",
-            "fallback_level": "web-last-resort",
+            "status": "fallback",
+            "fallback_level": "broad-api",
             "query": question,
             "keywords": keywords,
-            "sequence": ["sefaria", "local-json", "web-last-resort"],
+            "topics": topic_matches,
+            "specific_queries": specific_queries,
+            "broad_queries": broad_queries,
+            "sequence": ["specific-api", "broad-api", "internal-ai-knowledge"],
             "counts": {
-                "sefaria": 0,
-                "local_json": 0,
-                "web": len(web_sources),
+                "specific_api": 0,
+                "broad_api": len(broad_sources),
+                "internal_ai": 0,
+                "sefaria": len(broad_sefaria),
+                "external": len(broad_external),
             },
-            "warning": WEB_LAST_RESORT_WARNING,
-            "source_count": len(web_sources),
-            "sources": web_sources,
+            "warning": "",
+            "internal_disclaimer": "",
+            "source_count": len(broad_sources),
+            "sources": broad_sources,
         }
 
     return {
-        "status": "fallback",
-        "fallback_level": "none",
+        "status": "internal-ai-needed",
+        "fallback_level": "internal-ai-knowledge",
         "query": question,
         "keywords": keywords,
-        "sequence": ["sefaria", "local-json", "web-last-resort"],
+        "topics": topic_matches,
+        "specific_queries": specific_queries,
+        "broad_queries": broad_queries,
+        "sequence": ["specific-api", "broad-api", "internal-ai-knowledge"],
         "counts": {
+            "specific_api": 0,
+            "broad_api": 0,
+            "internal_ai": 1,
             "sefaria": 0,
-            "local_json": 0,
-            "web": 0,
+            "external": 0,
         },
         "warning": "",
+        "internal_disclaimer": INTERNAL_AI_KNOWLEDGE_DISCLAIMER,
         "source_count": 1,
         "sources": [{
-            "ref": "No verified source found",
-            "title": "No verified source found",
-            "lines": [{"en": "No verified source found", "he": ""}],
-            "domain": "none",
-            "priority": 1,
-            "status": "fallback",
+            "ref": "Internal Halakhic Knowledge",
+            "title": "Internal Halakhic Knowledge",
+            "lines": [{
+                "en": "No relevant API snippet was found. The answer may rely on internal Halakhic knowledge with the required disclaimer.",
+                "he": "",
+            }],
+            "domain": "internal-ai",
+            "corpus": "internal-knowledge",
+            "priority": 3,
+            "status": "internal-ai-needed",
         }],
     }
 
@@ -2279,9 +2523,16 @@ def ask_question():
 
             needs_web_warning = use_tertiary_web_context and bool(
                 wiki_context_for_claude)
+            needs_internal_disclaimer = (
+                not has_primary_sources
+                and not has_customs
+                and not has_whitelisted_external
+                and not wiki_context_for_claude
+            )
             normalized_answer = _normalize_ai_answer(
                 result.get("answer"),
                 include_web_warning=needs_web_warning,
+                include_internal_disclaimer=needs_internal_disclaimer,
             )
             result["answer"] = normalized_answer
             _store_user_memory_summary(user_id, question, normalized_answer)
