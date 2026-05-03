@@ -209,7 +209,11 @@ QUERY_STOPWORDS = {
 
 WEB_LAST_RESORT_WARNING = "⚠️ **WARNING:** No matches found in Sefaria or verified customs. The following info is from the general web and may not be Halakhically accurate. Consult a Rabbi."
 WEB_LAST_RESORT_WARNING_PLAIN = WEB_LAST_RESORT_WARNING.replace("**", "")
-INTERNAL_AI_KNOWLEDGE_DISCLAIMER = "Note: This information is derived from general Halakhic knowledge as the specific database source was unavailable."
+RABBI_FINAL_RULING_FOOTER = "Please consult with your local Rabbi for a final ruling."
+INTERNAL_AI_KNOWLEDGE_DISCLAIMER = (
+    "Note: This information was derived from General Halakhic Knowledge "
+    f"as the specific database source was unavailable. {RABBI_FINAL_RULING_FOOTER}"
+)
 WEB_FALLBACK_TRUST_TERMS = {
     "halach", "halakh", "jewish", "judaism", "torah", "talmud", "shabbat",
     "yom tov", "kashrut", "tefillin", "mezuzah", "sefaria", "hebrewbooks",
@@ -244,7 +248,12 @@ HALAKHIC_VERDICT_RE = re.compile(
 )
 DOMAIN_REFUSAL_MESSAGE_RE = re.compile(
     r"^Sh'elah is a specialized tool for Halakhic and communal knowledge\. "
-    r"I cannot assist with .+?, as it falls outside my specialized domain\.$"
+    r"I cannot assist with .+?, as it falls outside my specialized domain\."
+    r"(?:\s+Please consult with your local Rabbi for a final ruling\.)?$"
+)
+SOURCE_ATTRIBUTION_PREFIX_RE = re.compile(
+    r"^Note:\s*This information was [^\n]+",
+    re.IGNORECASE,
 )
 UI_SECTION_KEYS = {
     "ruling",
@@ -332,20 +341,62 @@ def _strip_model_web_warning_prefix(answer_text):
     return text.strip()
 
 
-def _normalize_ai_answer(answer_text, include_web_warning=False, include_internal_disclaimer=False):
+def _join_with_and(parts):
+    values = [str(p or "").strip() for p in parts if str(p or "").strip()]
+    if not values:
+        return ""
+    if len(values) == 1:
+        return values[0]
+    if len(values) == 2:
+        return f"{values[0]} and {values[1]}"
+    return f"{', '.join(values[:-1])}, and {values[-1]}"
+
+
+def _build_source_attribution_note(*, has_sefaria=False, has_customs=False, has_whitelisted_external=False, has_general_web=False, has_internal_knowledge=False):
+    if has_internal_knowledge or not any((has_sefaria, has_customs, has_whitelisted_external, has_general_web)):
+        return INTERNAL_AI_KNOWLEDGE_DISCLAIMER
+
+    sources = []
+    if has_sefaria:
+        sources.append("Sefaria")
+    if has_customs:
+        sources.append("Community Customs")
+    if has_whitelisted_external:
+        sources.append("Halachipedia / HebrewBooks / YHB")
+    if has_general_web:
+        sources.append("General Web Context")
+
+    joined_sources = _join_with_and(sources)
+    return (
+        f"Note: This information was pulled from {joined_sources}. "
+        f"{RABBI_FINAL_RULING_FOOTER}"
+    )
+
+
+def _strip_source_attribution_prefix(answer_text):
+    text = str(answer_text or "").strip()
+    if not text:
+        return ""
+
+    stripped = SOURCE_ATTRIBUTION_PREFIX_RE.sub("", text, count=1).lstrip()
+    if stripped.startswith(RABBI_FINAL_RULING_FOOTER):
+        stripped = stripped[len(RABBI_FINAL_RULING_FOOTER):].lstrip()
+
+    return stripped
+
+
+def _normalize_ai_answer(answer_text, include_web_warning=False, source_attribution_note=""):
     body = _strip_model_web_warning_prefix(answer_text)
+    body = _strip_source_attribution_prefix(body)
     body = CLOCK_TIME_LATEX_RE.sub(
         lambda m: f"{m.group(1)} {m.group(2).upper()}",
         body,
     )
 
-    internal_disclaimer_present = body.startswith(
-        INTERNAL_AI_KNOWLEDGE_DISCLAIMER)
-    if internal_disclaimer_present:
-        body = body[len(INTERNAL_AI_KNOWLEDGE_DISCLAIMER):].lstrip()
-
     # Preserve the domain guardrail refusal message exactly as emitted.
     if DOMAIN_REFUSAL_MESSAGE_RE.match(body):
+        if RABBI_FINAL_RULING_FOOTER not in body:
+            return f"{body}\n\n{RABBI_FINAL_RULING_FOOTER}"
         return body
 
     body = _format_ui_answer(body)
@@ -353,14 +404,18 @@ def _normalize_ai_answer(answer_text, include_web_warning=False, include_interna
     if not body:
         body = "No verified source found"
 
+    prefix_blocks = []
     if include_web_warning:
-        return f"{WEB_LAST_RESORT_WARNING}\n\n{body}"
+        prefix_blocks.append(WEB_LAST_RESORT_WARNING)
 
-    should_include_internal_disclaimer = (
-        include_internal_disclaimer or internal_disclaimer_present
-    )
-    if should_include_internal_disclaimer and body.lower() != "no verified source found":
-        return f"{INTERNAL_AI_KNOWLEDGE_DISCLAIMER}\n\n{body}"
+    attribution = str(source_attribution_note or "").strip()
+    if attribution:
+        prefix_blocks.append(attribution)
+    elif body.lower() != "no verified source found" and RABBI_FINAL_RULING_FOOTER not in body:
+        prefix_blocks.append(RABBI_FINAL_RULING_FOOTER)
+
+    if prefix_blocks:
+        return "\n\n".join(prefix_blocks + [body])
 
     return body
 
@@ -2523,16 +2578,23 @@ def ask_question():
 
             needs_web_warning = use_tertiary_web_context and bool(
                 wiki_context_for_claude)
-            needs_internal_disclaimer = (
+            needs_internal_knowledge = (
                 not has_primary_sources
                 and not has_customs
                 and not has_whitelisted_external
                 and not wiki_context_for_claude
             )
+            source_attribution_note = _build_source_attribution_note(
+                has_sefaria=has_primary_sources,
+                has_customs=has_customs,
+                has_whitelisted_external=has_whitelisted_external,
+                has_general_web=bool(wiki_context_for_claude),
+                has_internal_knowledge=needs_internal_knowledge,
+            )
             normalized_answer = _normalize_ai_answer(
                 result.get("answer"),
                 include_web_warning=needs_web_warning,
-                include_internal_disclaimer=needs_internal_disclaimer,
+                source_attribution_note=source_attribution_note,
             )
             result["answer"] = normalized_answer
             _store_user_memory_summary(user_id, question, normalized_answer)
@@ -2540,12 +2602,25 @@ def ask_question():
             fallback_payload = get_halakhic_sources(question)
             fallback_warning = str(
                 fallback_payload.get("warning") or "").strip()
-            fallback_answer = "AI synthesis unavailable. Returning verified halakhic sources."
-            if fallback_warning:
-                fallback_answer = (
-                    f"{fallback_warning}\n\n"
-                    "AI synthesis unavailable. Returning last-resort web references."
-                )
+
+            fallback_counts = fallback_payload.get("counts", {})
+            fallback_level = str(
+                fallback_payload.get("fallback_level") or "").strip().lower()
+            fallback_source_note = _build_source_attribution_note(
+                has_sefaria=bool(
+                    fallback_counts.get("sefaria")
+                    or fallback_counts.get("specific_api")
+                ),
+                has_customs=bool(customs_info),
+                has_whitelisted_external=bool(fallback_counts.get("external")),
+                has_general_web=fallback_level == "web-last-resort",
+                has_internal_knowledge=fallback_level == "internal-ai-knowledge",
+            )
+            fallback_answer = _normalize_ai_answer(
+                "AI synthesis unavailable. Returning discovered halakhic references.",
+                include_web_warning=bool(fallback_warning),
+                source_attribution_note=fallback_source_note,
+            )
 
             _store_user_memory_summary(user_id, question, fallback_answer)
 

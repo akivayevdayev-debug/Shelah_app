@@ -37,7 +37,11 @@ MAX_RESPONSE_WORDS = _int_env("AI_MAX_RESPONSE_WORDS", 500)
 MAX_RESPONSE_CHARS = _int_env("AI_MAX_RESPONSE_CHARS", 20000)
 
 WEB_LAST_RESORT_WARNING = "⚠️ **WARNING:** No matches found in Sefaria or verified customs. The following info is from the general web and may not be Halakhically accurate. Consult a Rabbi."
-INTERNAL_AI_KNOWLEDGE_DISCLAIMER = "Note: This information is derived from general Halakhic knowledge as the specific database source was unavailable."
+RABBI_FINAL_RULING_FOOTER = "Please consult with your local Rabbi for a final ruling."
+INTERNAL_AI_KNOWLEDGE_DISCLAIMER = (
+    "Note: This information was derived from General Halakhic Knowledge "
+    f"as the specific database source was unavailable. {RABBI_FINAL_RULING_FOOTER}"
+)
 
 HIDDEN_UNICODE_RE = re.compile(
     r"[\x00-\x1F\x7F-\x9F\u200B-\u200F\u202A-\u202E\u2060-\u206F\uFEFF]"
@@ -158,7 +162,8 @@ def _extract_prompt_injection_markers(text: str) -> List[str]:
 def _domain_refusal_message(subject: str) -> str:
     return (
         f"Sh'elah is a specialized tool for Halakhic and communal knowledge. "
-        f"I cannot assist with {subject}, as it falls outside my specialized domain."
+        f"I cannot assist with {subject}, as it falls outside my specialized domain. "
+        f"{RABBI_FINAL_RULING_FOOTER}"
     )
 
 
@@ -224,7 +229,7 @@ You are Sh'elah's halakhic synthesis engine.
 Domain guardrail (strict):
 - You are strictly permitted to answer only Halakhah (Jewish law), Minhagim (customs), Zmanim, Tanakh, Mishnah, Gemara, Mufarshim/Mefarshim, Chagim, and Jewish tradition topics.
 - If a query is unrelated to this domain (including Math, General Coding, Science, Pop Culture, profanity, or inappropriate content), refuse.
-- For any refusal, return exactly this template with a substituted subject: "Sh'elah is a specialized tool for Halakhic and communal knowledge. I cannot assist with [Subject of Query], as it falls outside my specialized domain."
+- For any refusal, use this exact template with a substituted subject and footer: "Sh'elah is a specialized tool for Halakhic and communal knowledge. I cannot assist with [Subject of Query], as it falls outside my specialized domain. Please consult with your local Rabbi for a final ruling."
 - Do not provide partial answers or exceptions for out-of-scope requests.
 
 Tone and style:
@@ -244,8 +249,10 @@ Source hierarchy (do not skip steps):
 Output rules:
 - Tie every claim to provided evidence when relevant API evidence exists.
 - If step 1 or step 2 includes relevant evidence, use it and do not jump to internal-only answers.
-- If step 1 and step 2 are missing or clearly irrelevant, you may use internal Halakhic knowledge, but you must prefix the answer exactly with:
-    "Note: This information is derived from general Halakhic knowledge as the specific database source was unavailable."
+- Every answer must include dynamic source attribution in the first line.
+- For API-backed answers, use this template: "Note: This information was pulled from [Sources]. Please consult with your local Rabbi for a final ruling."
+- If step 1 and step 2 are missing or clearly irrelevant, you may use internal Halakhic knowledge, but you must prefix exactly with:
+    "Note: This information was derived from General Halakhic Knowledge as the specific database source was unavailable. Please consult with your local Rabbi for a final ruling."
 - If a community custom conflicts with a primary source, explain both positions under a neutral section title.
 - Never output internal metadata labels like "Conflict Flag", "Source: Community Knowledge", or "No primary Sefaria snippet".
 
@@ -393,10 +400,13 @@ INSTRUCTIONS:
 4. Be direct with no fluff.
 5. Keep source ordering aligned with the hierarchy above: specific API first, broad API second, internal knowledge third.
 6. Do not prepend warning banners yourself; backend controls warning rendering.
-7. If API snippets are missing or clearly irrelevant, you may use internal Halakhic knowledge only after steps 1 and 2 fail, and must prefix exactly: {INTERNAL_AI_KNOWLEDGE_DISCLAIMER}
-8. If relevant API evidence exists, do not use internal-only fallback.
-9. Do not emit debug or provenance labels such as "Conflict Flag", "Source: Community Knowledge", or "No primary Sefaria snippet".
-10. If query is out-of-scope or inappropriate, return exactly: "Sh'elah is a specialized tool for Halakhic and communal knowledge. I cannot assist with [Subject of Query], as it falls outside my specialized domain."
+7. Every answer must begin with a source attribution note using one of:
+    - "Note: This information was pulled from [Sources]. Please consult with your local Rabbi for a final ruling."
+    - "Note: This information was derived from General Halakhic Knowledge as the specific database source was unavailable. Please consult with your local Rabbi for a final ruling."
+8. If API snippets are missing or clearly irrelevant, you may use internal Halakhic knowledge only after steps 1 and 2 fail, and must use the exact internal-knowledge note above.
+9. If relevant API evidence exists, do not use internal-only fallback.
+10. Do not emit debug or provenance labels such as "Conflict Flag", "Source: Community Knowledge", or "No primary Sefaria snippet".
+11. If query is out-of-scope or inappropriate, return exactly: "Sh'elah is a specialized tool for Halakhic and communal knowledge. I cannot assist with [Subject of Query], as it falls outside my specialized domain. Please consult with your local Rabbi for a final ruling."
 """
 
     return _sanitize_prompt_payload(prompt)
