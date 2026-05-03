@@ -165,11 +165,16 @@ Source hierarchy:
 Output rules:
 - Tie every claim to provided evidence.
 - If evidence is insufficient, return exactly: "No verified source found".
-- If a community custom conflicts with primary halakhic source, label "Conflict Flag" and name both.
+- If a community custom conflicts with a primary source, explain both positions under a neutral section title.
+- Never output internal metadata labels like "Conflict Flag", "Source: Community Knowledge", or "No primary Sefaria snippet".
 
 Formatting rules:
 - Use LaTeX for shiurim/quantities/formulas when helpful.
 - Do not use LaTeX for plain clock time; write times like 8:37 PM.
+- Use markdown structure with `##` or `###` headers for sections.
+- Keep exactly one blank line between sections.
+- Use clean `- ` bullet points.
+- Make the main halakhic verdict explicit and bold (for example: **Prohibited**).
 """.strip()
 
 
@@ -308,6 +313,7 @@ INSTRUCTIONS:
 5. Keep source ordering aligned with the hierarchy above.
 6. Do not prepend warning banners yourself; backend controls warning rendering.
 7. If tertiary context is insufficient, return exactly: "No verified source found".
+8. Do not emit debug or provenance labels such as "Conflict Flag", "Source: Community Knowledge", or "No primary Sefaria snippet".
 """
 
     return _sanitize_prompt_payload(prompt)
