@@ -251,10 +251,6 @@ DOMAIN_REFUSAL_MESSAGE_RE = re.compile(
     r"I cannot assist with .+?, as it falls outside my specialized domain\."
     r"(?:\s+Please consult with your local Rabbi for a final ruling\.)?$"
 )
-SOURCE_ATTRIBUTION_PREFIX_RE = re.compile(
-    r"^Note:\s*This information was [^\n]+",
-    re.IGNORECASE,
-)
 UI_SECTION_KEYS = {
     "ruling",
     "reason",
@@ -378,14 +374,29 @@ def _strip_source_attribution_prefix(answer_text):
     if not text:
         return ""
 
-    stripped = SOURCE_ATTRIBUTION_PREFIX_RE.sub("", text, count=1).lstrip()
-    if stripped.startswith(RABBI_FINAL_RULING_FOOTER):
-        stripped = stripped[len(RABBI_FINAL_RULING_FOOTER):].lstrip()
+    lower_text = text.lower()
+    if not lower_text.startswith("note: this information was"):
+        return text
 
-    return stripped
+    # Preferred shape is: note line, blank line, then body.
+    if "\n\n" in text:
+        return text.split("\n\n", 1)[1].lstrip()
+
+    # If model emitted note + footer in one line, remove up to the footer and keep remainder.
+    footer_idx = text.find(RABBI_FINAL_RULING_FOOTER)
+    if footer_idx != -1:
+        remainder = text[footer_idx + len(RABBI_FINAL_RULING_FOOTER):]
+        return remainder.lstrip(" \n\t:-")
+
+    # Otherwise only strip the first line and keep any remaining lines.
+    first_newline_idx = text.find("\n")
+    if first_newline_idx != -1:
+        return text[first_newline_idx + 1:].lstrip()
+
+    return text
 
 
-def _normalize_ai_answer(answer_text, include_web_warning=False, source_attribution_note=""):
+def _normalize_ai_answer(answer_text, include_web_warning=False, source_attribution_note="", allow_empty_fallback=True):
     body = _strip_model_web_warning_prefix(answer_text)
     body = _strip_source_attribution_prefix(body)
     body = CLOCK_TIME_LATEX_RE.sub(
@@ -402,7 +413,10 @@ def _normalize_ai_answer(answer_text, include_web_warning=False, source_attribut
     body = _format_ui_answer(body)
 
     if not body:
-        body = "No verified source found"
+        if allow_empty_fallback:
+            body = "No verified source found"
+        else:
+            return ""
 
     prefix_blocks = []
     if include_web_warning:
@@ -2576,6 +2590,10 @@ def ask_question():
             if result_error and not result_error.startswith("security_blocked"):
                 raise RuntimeError(result_error or "AI request failed")
 
+            raw_ai_answer = str(result.get("answer") or "").strip()
+            if not raw_ai_answer:
+                raise RuntimeError("AI response was empty")
+
             needs_web_warning = use_tertiary_web_context and bool(
                 wiki_context_for_claude)
             needs_internal_knowledge = (
@@ -2592,12 +2610,41 @@ def ask_question():
                 has_internal_knowledge=needs_internal_knowledge,
             )
             normalized_answer = _normalize_ai_answer(
-                result.get("answer"),
+                raw_ai_answer,
                 include_web_warning=needs_web_warning,
                 source_attribution_note=source_attribution_note,
+                allow_empty_fallback=False,
             )
+            if not str(normalized_answer or "").strip():
+                raise RuntimeError("AI response normalized to empty content")
+
             result["answer"] = normalized_answer
             _store_user_memory_summary(user_id, question, normalized_answer)
+
+            DEVTOOLS_STATS["answers_total"] += 1
+            display_sources = _compact_ai_sources(primary_sources)
+
+            # Successful AI answer path returns immediately; fallback is only for empty/error responses.
+            return jsonify({
+                "answer": normalized_answer,
+                "confidence": result.get("confidence"),
+                "wiki": wiki_list + halachipedia_list,
+                "customs": customs_info,
+                "sources": display_sources,
+                "meta": {
+                    "mode": mode,
+                    "community_lens": canonical_lens,
+                    "source_count": len(primary_sources),
+                    "custom_count": len(customs_info),
+                    "knowledge_count": len(knowledge_rows),
+                    "memory_count": len(user_memory_summaries),
+                    "identity_aware": bool(user_id),
+                    "generated_at": int(time.time()),
+                    "fallback": bool(result.get("is_fallback", False)),
+                    "input_sanitized": question_was_sanitized,
+                    "security": result.get("security") or {},
+                }
+            })
         except Exception as ai_error:
             fallback_payload = get_halakhic_sources(question)
             fallback_warning = str(
@@ -2655,31 +2702,6 @@ def ask_question():
                     },
                 }
             })
-
-        DEVTOOLS_STATS["answers_total"] += 1
-        display_sources = _compact_ai_sources(primary_sources)
-
-        # Send all context back to the frontend
-        return jsonify({
-            "answer": result.get("answer"),
-            "confidence": result.get("confidence"),
-            "wiki": wiki_list + halachipedia_list,
-            "customs": customs_info,
-            "sources": display_sources,
-            "meta": {
-                "mode": mode,
-                "community_lens": canonical_lens,
-                "source_count": len(primary_sources),
-                "custom_count": len(customs_info),
-                "knowledge_count": len(knowledge_rows),
-                "memory_count": len(user_memory_summaries),
-                "identity_aware": bool(user_id),
-                "generated_at": int(time.time()),
-                "fallback": bool(result.get("is_fallback", False)),
-                "input_sanitized": question_was_sanitized,
-                "security": result.get("security") or {},
-            }
-        })
 
     except Exception as e:
         import traceback
