@@ -12,11 +12,15 @@ enrichment sources, not the primary authoritative text source.
 
 import requests
 import time
+import re
+from html import unescape
+from urllib.parse import quote_plus, urljoin
 
 _HTTP = requests.Session()
 _CACHE_TTL_SECONDS = 60 * 10
 _WIKI_CACHE = {}
 _HALACHIPEDIA_CACHE = {}
+_HEBREWBOOKS_CACHE = {}
 _DAILY_CACHE = {"ts": 0, "data": None}
 
 
@@ -137,4 +141,71 @@ def search_halachipedia(query):
         return None
     except Exception as e:
         print(f"[Halachipedia Error] {e}")
+        return None
+
+
+def _clean_html_text(value):
+    text = re.sub(r"<[^>]+>", " ", str(value or ""))
+    text = unescape(text)
+    return re.sub(r"\s+", " ", text).strip()
+
+
+def search_hebrewbooks(query):
+    """Best-effort keyword search in HebrewBooks public search endpoint."""
+    cache_key = str(query or "").strip().lower()
+    if cache_key:
+        cached = _cached_lookup(_HEBREWBOOKS_CACHE, cache_key)
+        if cached is not None:
+            return cached
+
+    normalized_query = str(query or "").strip()
+    if not normalized_query:
+        return None
+
+    try:
+        encoded_q = quote_plus(normalized_query)
+        search_url = f"https://www.hebrewbooks.org/search.aspx?st=FT&q={encoded_q}"
+        response = _HTTP.get(
+            search_url,
+            timeout=10,
+            headers={
+                "User-Agent": "Mozilla/5.0 (compatible; ShelahBot/1.0; +https://www.sefaria.org)",
+                "Accept-Language": "en-US,en;q=0.9",
+            },
+        )
+        if response.status_code != 200:
+            return None
+
+        html = response.text or ""
+        lowered = html.lower()
+        if "just a moment" in lowered and "cloudflare" in lowered:
+            # Cloudflare challenge page; no parseable search content.
+            return None
+
+        match = re.search(
+            r'href="(?P<href>[^"#]*pdfpager\.aspx\?req=[^"]+)"[^>]*>(?P<title>.*?)</a>',
+            html,
+            flags=re.IGNORECASE | re.DOTALL,
+        )
+        if not match:
+            return None
+
+        href = str(match.group("href") or "").strip()
+        title_html = str(match.group("title") or "").strip()
+        title = _clean_html_text(title_html)
+        if not title:
+            title = f"HebrewBooks search result for {normalized_query}"
+
+        result_url = urljoin("https://www.hebrewbooks.org/", href)
+        payload = {
+            "title": f"[HebrewBooks] {title}",
+            "summary": f"HebrewBooks keyword search match for '{normalized_query}'.",
+            "url": result_url,
+        }
+
+        if cache_key:
+            _cached_store(_HEBREWBOOKS_CACHE, cache_key, payload)
+        return payload
+    except Exception as e:
+        print(f"[HebrewBooks Error] {e}")
         return None
