@@ -1342,6 +1342,7 @@ def _get_supabase_client():
     if not SUPABASE_URL or not SUPABASE_SERVICE_ROLE_KEY:
         return None
     if _supabase_client is None:
+        # Backend retrieval uses service role to avoid RLS limits on anon/auth keys.
         _supabase_client = create_client(
             SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY)
     return _supabase_client
@@ -1482,8 +1483,10 @@ def _score_community_knowledge_row(row, keywords, canonical_lens):
     community_name = str(row.get("community_name") or "").lower()
 
     score = 0
-    if canonical_lens and canonical_lens != "All" and community_name == canonical_lens.lower():
-        score += 5
+    if canonical_lens and canonical_lens != "All":
+        lens_text = canonical_lens.lower().strip()
+        if lens_text and lens_text in community_name:
+            score += 8
 
     for keyword in keywords:
         if keyword in topic:
@@ -1496,6 +1499,31 @@ def _score_community_knowledge_row(row, keywords, canonical_lens):
     return score
 
 
+def _community_filter_from_request(query, canonical_lens):
+    if canonical_lens and canonical_lens != "All":
+        return canonical_lens
+
+    detected = _detect_community_in_text(query)
+    return detected or None
+
+
+def _build_knowledge_text_or_filter(keywords, max_keywords=6):
+    conditions = []
+    for keyword in (keywords or [])[:max_keywords]:
+        clean = re.sub(r"[^A-Za-z0-9\u0590-\u05FF\-]",
+                       "", str(keyword or "").strip())
+        if not clean:
+            continue
+
+        pattern = f"%{clean}%"
+        conditions.extend([
+            f"topic.ilike.{pattern}",
+            f"content.ilike.{pattern}",
+        ])
+
+    return ",".join(conditions)
+
+
 def _retrieve_community_knowledge(query, canonical_lens="All", max_rows=None):
     supabase = _get_supabase_client()
     if not supabase:
@@ -1503,16 +1531,32 @@ def _retrieve_community_knowledge(query, canonical_lens="All", max_rows=None):
 
     target_rows = max_rows or RAG_TOP_KNOWLEDGE_ROWS
     keywords = _extract_query_keywords(query, max_keywords=10)
+    community_filter = _community_filter_from_request(query, canonical_lens)
+    text_or_filter = _build_knowledge_text_or_filter(keywords)
+
+    query_row_cap = max(50, min(600, target_rows * 25))
 
     try:
-        table = supabase.table(SUPABASE_COMMUNITY_KNOWLEDGE_TABLE).select(
-            "id,community_name,topic,halakhic_source,content"
-        )
-        if canonical_lens != "All":
-            table = table.eq("community_name", canonical_lens)
+        def run_query(apply_text_filter=True):
+            table = supabase.table(SUPABASE_COMMUNITY_KNOWLEDGE_TABLE).select(
+                "id,community_name,topic,halakhic_source,content"
+            )
 
-        result = table.limit(500).execute()
-        rows = result.data if isinstance(result.data, list) else []
+            if community_filter:
+                # Case-insensitive match so Ashkenaz/Ashkenazi variants still return rows.
+                table = table.ilike("community_name", f"%{community_filter}%")
+
+            if apply_text_filter and text_or_filter:
+                table = table.or_(text_or_filter)
+
+            result = table.limit(query_row_cap).execute()
+            return result.data if isinstance(result.data, list) else []
+
+        rows = run_query(apply_text_filter=True)
+
+        # Fallback to community-only retrieval when text filter is too restrictive.
+        if not rows and community_filter and text_or_filter:
+            rows = run_query(apply_text_filter=False)
     except Exception:
         return []
 
@@ -1521,8 +1565,12 @@ def _retrieve_community_knowledge(query, canonical_lens="All", max_rows=None):
         if not isinstance(row, dict):
             continue
 
-        score = _score_community_knowledge_row(row, keywords, canonical_lens)
-        if score <= 0 and keywords:
+        score = _score_community_knowledge_row(
+            row,
+            keywords,
+            community_filter or canonical_lens,
+        )
+        if score <= 0 and keywords and text_or_filter:
             continue
 
         ranked.append((score, row))
