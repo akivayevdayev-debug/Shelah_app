@@ -241,6 +241,10 @@ HALAKHIC_VERDICT_RE = re.compile(
     r"\b(prohibited|forbidden|permitted|required|obligatory|invalid|valid|asur|assur|mutar)\b",
     re.IGNORECASE,
 )
+DOMAIN_REFUSAL_MESSAGE_RE = re.compile(
+    r"^Sh'elah is a specialized tool for Halakhic and communal knowledge\. "
+    r"I cannot assist with .+?, as it falls outside my specialized domain\.$"
+)
 UI_SECTION_KEYS = {
     "ruling",
     "reason",
@@ -285,6 +289,11 @@ def _normalize_ai_answer(answer_text, include_web_warning=False):
         lambda m: f"{m.group(1)} {m.group(2).upper()}",
         body,
     )
+
+    # Preserve the domain guardrail refusal message exactly as emitted.
+    if DOMAIN_REFUSAL_MESSAGE_RE.match(body):
+        return body
+
     body = _format_ui_answer(body)
 
     if not body:

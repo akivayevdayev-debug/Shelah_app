@@ -61,6 +61,47 @@ OUTPUT_POLICY_BLOCKLIST_RE = re.compile(
     re.IGNORECASE,
 )
 
+HEBREW_LETTER_RE = re.compile(r"[\u0590-\u05FF]")
+DOMAIN_MARKER_RE = re.compile(
+    r"(\bhalakh(?:a|ic)?\b|\bhalacha\b|\bminhag(?:im)?\b|\bzman(?:im)?\b|"
+    r"\btanakh\b|\btanach\b|\btorah\b|\bmishnah?\b|\bgemara\b|\btalmud\b|"
+    r"\bmufarshim\b|\bmefarshim\b|\bchag(?:im)?\b|\bjewish\b|\bjudaism\b|"
+    r"\bshabbat\b|\bshabbos\b|\byom\s+tov\b|\bpesach\b|\bpassover\b|"
+    r"\brosh\s+hashan(?:ah)?\b|\byom\s+kippur\b|\bsukkot\b|\bsukkos\b|"
+    r"\bpurim\b|\bchanukah\b|\bhanukkah\b|\bkashrut\b|\bkosher\b|"
+    r"\bberach(?:a|ot)\b|\bbrach(?:a|ot)\b|\bbirkat\b|\bkiddush\b|"
+    r"\bhavdalah\b|\btefill(?:in|ah)\b|\bmezuzah\b|\bmitzv(?:ah|ot)\b|"
+    r"\bparash(?:a|ah)\b|\bparsha\b|\bomer\b|\bsiddur\b|\brabbi\b|"
+    r"\bsefaria\b|\bhalachipedia\b|\bnetz\b|\bshekia\b|\bchatzot\b|"
+    r"\bdawn\b|\bsunrise\b|\bsunset\b|\bnightfall\b|\bhebrew\s+date\b)",
+    re.IGNORECASE,
+)
+INAPPROPRIATE_CONTENT_RE = re.compile(
+    r"(\bfuck\b|\bshit\b|\bbitch\b|\bbastard\b|\basshole\b|\bmotherfucker\b|"
+    r"\bporn\b|\bporno\b|\bxxx\b|\bsex\b|\bsexual\b|\bnude\b|\bnsfw\b)",
+    re.IGNORECASE,
+)
+OUT_OF_SCOPE_PATTERNS = {
+    "Math": [
+        re.compile(
+            r"\b(math|algebra|geometry|calculus|trigonometry|equation|statistics)\b", re.IGNORECASE),
+    ],
+    "General Coding": [
+        re.compile(
+            r"\b(code|coding|programming|software|developer|debug|stack\s*trace|bug\s*fix|refactor)\b", re.IGNORECASE),
+        re.compile(
+            r"\b(python|javascript|typescript|java|c\+\+|react|node|flask|sql|api)\b", re.IGNORECASE),
+    ],
+    "Science": [
+        re.compile(
+            r"\b(science|physics|chemistry|biology|astronomy|quantum|evolution|scientific)\b", re.IGNORECASE),
+    ],
+    "Pop Culture": [
+        re.compile(
+            r"\b(pop\s*culture|celebrity|movie|film|tv\s*show|netflix|music\s*industry|anime|meme|gaming)\b", re.IGNORECASE),
+    ],
+}
+
 _cached_client = None
 _cached_api_key = None
 
@@ -113,22 +154,53 @@ def _extract_prompt_injection_markers(text: str) -> List[str]:
     return sorted({m.group(0).lower() for m in PROMPT_INJECTION_RE.finditer(text or "")})
 
 
+def _domain_refusal_message(subject: str) -> str:
+    return (
+        f"Sh'elah is a specialized tool for Halakhic and communal knowledge. "
+        f"I cannot assist with {subject}, as it falls outside my specialized domain."
+    )
+
+
+def _detect_out_of_scope_subject(query_text: str) -> Optional[str]:
+    text = str(query_text or "").strip()
+    if not text:
+        return None
+
+    if INAPPROPRIATE_CONTENT_RE.search(text):
+        return "inappropriate subject matter"
+
+    for subject, patterns in OUT_OF_SCOPE_PATTERNS.items():
+        if any(pattern.search(text) for pattern in patterns):
+            return subject
+
+    if HEBREW_LETTER_RE.search(text) or DOMAIN_MARKER_RE.search(text):
+        return None
+
+    return "non-halakhic topics"
+
+
 def validate_user_query(query: str) -> Dict[str, Any]:
     """Validate sanitized query and detect prompt-injection attempts."""
     sanitized = sanitize_user_query(query)
     markers = _extract_prompt_injection_markers(sanitized)
+    refusal_subject = _detect_out_of_scope_subject(sanitized)
 
     reasons = []
     if not sanitized:
         reasons.append("empty_query")
     if markers:
         reasons.append("prompt_injection_pattern")
+    if refusal_subject == "inappropriate subject matter":
+        reasons.append("inappropriate_content")
+    elif refusal_subject:
+        reasons.append("out_of_scope_domain")
 
     return {
         "sanitized_query": sanitized,
         "blocked": bool(reasons),
         "reasons": reasons,
         "markers": markers,
+        "refusal_subject": refusal_subject,
     }
 
 
@@ -147,6 +219,12 @@ def validate_model_output(output_text: str) -> Dict[str, Any]:
 
 CORE_SYSTEM_PROMPT = """
 You are Sh'elah's halakhic synthesis engine.
+
+Domain guardrail (strict):
+- You are strictly permitted to answer only Halakhah (Jewish law), Minhagim (customs), Zmanim, Tanakh, Mishnah, Gemara, Mufarshim/Mefarshim, Chagim, and Jewish tradition topics.
+- If a query is unrelated to this domain (including Math, General Coding, Science, Pop Culture, profanity, or inappropriate content), refuse.
+- For any refusal, return exactly this template with a substituted subject: "Sh'elah is a specialized tool for Halakhic and communal knowledge. I cannot assist with [Subject of Query], as it falls outside my specialized domain."
+- Do not provide partial answers or exceptions for out-of-scope requests.
 
 Tone and style:
 - Be brutally direct, concise, and practical.
@@ -314,6 +392,7 @@ INSTRUCTIONS:
 6. Do not prepend warning banners yourself; backend controls warning rendering.
 7. If tertiary context is insufficient, return exactly: "No verified source found".
 8. Do not emit debug or provenance labels such as "Conflict Flag", "Source: Community Knowledge", or "No primary Sefaria snippet".
+9. If query is out-of-scope or inappropriate, return exactly: "Sh'elah is a specialized tool for Halakhic and communal knowledge. I cannot assist with [Subject of Query], as it falls outside my specialized domain."
 """
 
     return _sanitize_prompt_payload(prompt)
@@ -397,10 +476,17 @@ def run_protected_ai_wrapper(
     """Generic security wrapper for present and future LLM/tool calls."""
     input_validation = validate_user_query(query)
     if input_validation["blocked"]:
+        refusal_subject = input_validation.get("refusal_subject")
+        blocked_answer = "Request blocked by security policy. Please submit a direct halakhic question."
+        blocked_error = "security_blocked_input"
+        if refusal_subject:
+            blocked_answer = _domain_refusal_message(refusal_subject)
+            blocked_error = "security_blocked_domain"
+
         return {
-            "answer": "Request blocked by security policy. Please submit a direct halakhic question.",
+            "answer": blocked_answer,
             "confidence": 0,
-            "error": "security_blocked_input",
+            "error": blocked_error,
             "is_fallback": True,
             "security": {
                 "input": input_validation,
