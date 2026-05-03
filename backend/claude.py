@@ -256,11 +256,13 @@ Output rules:
 - If a community custom conflicts with a primary source, explain both positions under a neutral section title.
 - Never output internal metadata labels like "Conflict Flag", "Source: Community Knowledge", or "No primary Sefaria snippet".
 
-Formatting rules:
+Formatting rules (strict):
 - Use LaTeX for shiurim/quantities/formulas when helpful.
 - Do not use LaTeX for plain clock time; write times like 8:37 PM.
-- Use markdown structure with `##` or `###` headers for sections.
-- Keep exactly one blank line between sections.
+- Use markdown structure with ## or ### headers for sections.
+- Header Spacing: Every markdown header (such as ## or ###) must be preceded by exactly two empty newlines and followed by exactly one empty newline.
+- H-Rule Spacing: The --- rule must be on its own line and must be preceded and followed by exactly one empty newline.
+- No Bunching: Under no circumstances should markdown symbols (like # or -) touch other text on the same line (unless it is a bold marker like **Text**).
 - Use clean `- ` bullet points.
 - Make the main halakhic verdict explicit and bold (for example: **Prohibited**).
 """.strip()
