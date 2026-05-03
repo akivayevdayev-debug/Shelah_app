@@ -22,7 +22,7 @@
     <script>
         window.APP_CLERK = {
             publishableKey: "{{ clerk_publishable_key or '' }}",
-            enforceAuth: {{ clerk_enforce_auth | tojson }}
+            enforceAuth: JSON.parse('{{ clerk_enforce_auth | tojson }}')
         };
     </script>
     {% if clerk_publishable_key %}
