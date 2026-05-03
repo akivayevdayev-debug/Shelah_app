@@ -27,6 +27,8 @@ html {
     --control-text-strong: #223e5a;
     --control-strong-bg: #46688d;
     --control-strong-bg-hover: #3d5b7b;
+    --text-main: #334155;
+    --text-muted: #64748b;
 }
 
 body {
@@ -1439,6 +1441,8 @@ body.theme-dark {
     --accent-halakhah: #cebfc1;
     --accent-customs: #c8bfd1;
     --accent-thought: #c4cbc5;
+    --text-main: #e5dbc9;
+    --text-muted: #a09688;
     background: radial-gradient(circle at 50% -40%, rgba(255, 255, 255, 0.06), transparent 48%), var(--surface-base);
     color: var(--accent-cream);
     color-scheme: dark;
@@ -2199,6 +2203,11 @@ body.theme-dark .source-ref {
 body.theme-dark .source-ref:hover {
     background: #3a3a35;
 }
+
+/* Use semantic variables for text and borders to reduce !important usage */
+.text-dynamic-main { color: var(--text-main); }
+.text-dynamic-muted { color: var(--text-muted); }
+.border-dynamic { border-color: var(--surface-border); }
 
 body.theme-dark ::-webkit-scrollbar-track,
 body.theme-dark .custom-scrollbar::-webkit-scrollbar-track {

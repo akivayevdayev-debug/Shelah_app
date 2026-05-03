@@ -12,9 +12,12 @@ then this file focuses on LLM formatting and call execution.
 
 import os
 import re
+import logging
+from dataclasses import dataclass, field
 from typing import Any, Callable, Dict, List, Optional
 
 from dotenv import load_dotenv
+from tenacity import retry, wait_random_exponential, stop_after_attempt, retry_if_exception_type
 
 try:
     import anthropic
@@ -22,11 +25,30 @@ except Exception:  # pragma: no cover - graceful fallback when SDK is unavailabl
     anthropic = None
 
 try:
-    import google.generativeai as genai
+    import google.generativeai as genai  # type: ignore[import-not-found]
 except Exception:  # pragma: no cover - graceful fallback when SDK is unavailable
     genai = None
 
+ResourceExhausted: Any = Exception
+try:
+    _google_api_core_exceptions = __import__(
+        "google.api_core.exceptions",
+        fromlist=["ResourceExhausted"],
+    )
+    ResourceExhausted = getattr(
+        _google_api_core_exceptions,
+        "ResourceExhausted",
+        Exception,
+    )
+except Exception:
+    # Keep a broad Exception fallback so retry wiring remains active even without google.api_core.
+    ResourceExhausted = Exception
+
 load_dotenv()
+
+# Set up basic logging for AI interactions
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 
 def _int_env(name: str, default: int) -> int:
@@ -34,6 +56,20 @@ def _int_env(name: str, default: int) -> int:
         return int(os.environ.get(name, default))
     except Exception:
         return default
+
+
+@dataclass
+class HalakhicContext:
+    """Structured container for AI context to simplify function signatures."""
+    question: str
+    sefaria_sources: List[Dict] = field(default_factory=list)
+    customs: List[Dict] = field(default_factory=list)
+    user_memories: List[Dict] = field(default_factory=list)
+    wiki: List[Dict] = field(default_factory=list)
+    halachipedia: List[Dict] = field(default_factory=list)
+    mode: str = "balanced"
+    community_lens: str = "All"
+    tool_context: Optional[Dict] = None
 
 
 MAX_INPUT_CHARS = _int_env("AI_MAX_INPUT_CHARS", 1200)
@@ -178,6 +214,21 @@ def _extract_gemini_response_text(response: Any) -> str:
     return "\n".join(chunks).strip()
 
 
+@retry(
+    retry=retry_if_exception_type(ResourceExhausted),
+    wait=wait_random_exponential(multiplier=1, min=1, max=4),
+    stop=stop_after_attempt(5),
+    reraise=True,
+)
+def _generate_gemini_content_with_retry(model: Any, prompt: str) -> Any:
+    """Retry Gemini content generation only for ResourceExhausted (429)."""
+    # First attempt is immediate; tenacity applies waits only between retries.
+    return model.generate_content(
+        prompt,
+        generation_config={"max_output_tokens": 800},
+    )
+
+
 def _call_gemini_model(
     prompt: str,
     dynamic_system_context: str = "",
@@ -189,6 +240,18 @@ def _call_gemini_model(
         combined_error = config_error
         if claude_error:
             combined_error = f"anthropic_error: {claude_error}; {config_error}"
+        return {
+            "answer": "AI provider is currently unavailable.",
+            "confidence": 0,
+            "error": combined_error,
+            "is_fallback": True,
+            "provider": "gemini-3-flash",
+        }
+
+    if genai is None:
+        combined_error = "gemini_sdk_missing"
+        if claude_error:
+            combined_error = f"anthropic_error: {claude_error}; {combined_error}"
         return {
             "answer": "AI provider is currently unavailable.",
             "confidence": 0,
@@ -211,10 +274,28 @@ def _call_gemini_model(
             model_name=model_name,
             system_instruction=system_instruction,
         )
-        response = model.generate_content(
-            prompt,
-            generation_config={"max_output_tokens": 800},
-        )
+
+        logger.info(f"Calling Gemini ({model_name}) as fallback.")
+        try:
+            response = _generate_gemini_content_with_retry(model, prompt)
+        except ResourceExhausted as exc:
+            # Retries exhausted on Gemini rate limits; return a clean user-facing error.
+            rate_limit_note = (
+                "Gemini fallback is temporarily rate limited. "
+                "Please try again in a moment."
+            )
+            details = f"gemini_rate_limited: {exc}"
+            if claude_error:
+                details = f"anthropic_error: {claude_error}; {details}"
+            return {
+                "answer": rate_limit_note,
+                "confidence": 0,
+                "error": "",
+                "debug_error": details,
+                "is_fallback": True,
+                "provider": model_name,
+            }
+
         response_text = _extract_gemini_response_text(response)
         if not response_text:
             raise RuntimeError("empty_response")
@@ -571,28 +652,26 @@ def _call_claude_model(prompt: str, dynamic_system_context: str = "") -> Dict[st
         )
 
     try:
-        system_blocks = [{
-            "type": "text",
-            "text": CORE_SYSTEM_PROMPT,
-            "cache_control": {"type": "ephemeral"},
-        }]
+        system_text = CORE_SYSTEM_PROMPT
         if dynamic_system_context:
-            system_blocks.append({
-                "type": "text",
-                "text": dynamic_system_context,
-            })
+            system_text = f"{CORE_SYSTEM_PROMPT}\n\n{dynamic_system_context}"
 
         message = client.messages.create(
             model=model_name,
-            system=system_blocks,
+            system=system_text,
             max_tokens=800,
             messages=[
                 {"role": "user", "content": prompt}
             ]
         )
-        response_text = "\n".join(
-            block.text for block in (message.content or []) if hasattr(block, "text")
-        ).strip()
+        logger.info(f"Claude request successful. Provider: {model_name}")
+        response_chunks: List[str] = []
+        for block in (message.content or []):
+            maybe_text = getattr(block, "text", None)
+            if isinstance(maybe_text, str) and maybe_text.strip():
+                response_chunks.append(maybe_text)
+
+        response_text = "\n".join(response_chunks).strip()
         if not response_text:
             raise RuntimeError("empty_response")
 
