@@ -24,6 +24,7 @@ from datetime import date as greg_date, timedelta, datetime
 from functools import wraps
 from urllib.parse import quote, unquote
 from pathlib import Path
+from uuid import uuid4
 
 import jwt
 try:
@@ -578,26 +579,29 @@ def get_halakhic_sources(query):
                 break
 
     local_sources = []
-    local_matches = _find_local_custom_matches(keywords, max_results=10)
-    for match in local_matches:
-        field = match.get("field", "Title")
-        value = str(match.get("value") or "").strip()
-        file_name = match.get("file", "")
-        pointer = match.get("pointer", "")
+    knowledge_rows = _retrieve_community_knowledge(
+        question,
+        canonical_lens="All",
+        max_rows=10,
+    )
+    for row in knowledge_rows:
+        topic = str(row.get("topic") or "").strip()
+        source = str(row.get("halakhic_source") or "").strip()
+        content = str(row.get("content") or "").strip()
         local_sources.append({
-            "ref": f"Local Custom: {value[:80]}",
-            "title": value[:120] if value else "Local Custom Match",
+            "ref": f"Community Knowledge: {topic[:80]}",
+            "title": topic[:120] if topic else "Community Knowledge Match",
             "lines": [{
-                "en": f"{field}: {value}",
+                "en": content,
                 "he": "",
             }],
-            "domain": "local-customs",
-            "corpus": "customs-json",
-            "file": file_name,
-            "pointer": pointer,
+            "domain": "supabase",
+            "corpus": "community-knowledge",
+            "community": row.get("community_name", ""),
+            "source_provider": source,
             "priority": 2,
             "status": "fallback",
-            "match_keywords": match.get("match_keywords", []),
+            "score": row.get("score"),
         })
 
     if sefaria_sources or local_sources:
@@ -1272,7 +1276,22 @@ SUPABASE_SERVICE_ROLE_KEY = (os.environ.get(
     "SUPABASE_SERVICE_ROLE_KEY") or "").strip()
 SUPABASE_PREFS_TABLE = (os.environ.get(
     "SUPABASE_PREFS_TABLE") or "user_preferences").strip()
+SUPABASE_COMMUNITY_KNOWLEDGE_TABLE = (os.environ.get(
+    "SUPABASE_COMMUNITY_KNOWLEDGE_TABLE") or "community_knowledge").strip()
+SUPABASE_USER_MEMORIES_TABLE = (os.environ.get(
+    "SUPABASE_USER_MEMORIES_TABLE") or "user_memories").strip()
 _supabase_client = None
+
+
+def _env_int(name, default):
+    try:
+        return int(os.environ.get(name, default))
+    except Exception:
+        return default
+
+
+RAG_TOP_KNOWLEDGE_ROWS = _env_int("RAG_TOP_KNOWLEDGE_ROWS", 5)
+RAG_MEMORY_ROWS = _env_int("RAG_MEMORY_ROWS", 2)
 
 
 def _extract_bearer_token():
@@ -1428,6 +1447,198 @@ def _get_request_supabase_client():
     except TypeError:
         # Compatibility fallback for older supabase-py signatures.
         return create_client(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY)
+
+
+def _get_request_user_id():
+    claims = getattr(g, "clerk_claims", {}) or {}
+    user_id = str(claims.get("sub") or "").strip()
+    if user_id:
+        return user_id
+
+    token = _extract_bearer_token()
+    if not token:
+        return None
+
+    try:
+        decoded = _verify_clerk_token(token)
+    except Exception:
+        return None
+
+    user_id = str(decoded.get("sub") or "").strip()
+    return user_id or None
+
+
+def _normalize_rag_text(value, max_chars=360):
+    text = re.sub(r"\s+", " ", str(value or "").strip())
+    if max_chars > 0 and len(text) > max_chars:
+        text = f"{text[:max_chars].rstrip()}..."
+    return text
+
+
+def _score_community_knowledge_row(row, keywords, canonical_lens):
+    topic = str(row.get("topic") or "").lower()
+    source = str(row.get("halakhic_source") or "").lower()
+    content = str(row.get("content") or "").lower()
+    community_name = str(row.get("community_name") or "").lower()
+
+    score = 0
+    if canonical_lens and canonical_lens != "All" and community_name == canonical_lens.lower():
+        score += 5
+
+    for keyword in keywords:
+        if keyword in topic:
+            score += 8
+        if keyword in source:
+            score += 4
+        if keyword in content:
+            score += 2
+
+    return score
+
+
+def _retrieve_community_knowledge(query, canonical_lens="All", max_rows=None):
+    supabase = _get_supabase_client()
+    if not supabase:
+        return []
+
+    target_rows = max_rows or RAG_TOP_KNOWLEDGE_ROWS
+    keywords = _extract_query_keywords(query, max_keywords=10)
+
+    try:
+        table = supabase.table(SUPABASE_COMMUNITY_KNOWLEDGE_TABLE).select(
+            "id,community_name,topic,halakhic_source,content"
+        )
+        if canonical_lens != "All":
+            table = table.eq("community_name", canonical_lens)
+
+        result = table.limit(500).execute()
+        rows = result.data if isinstance(result.data, list) else []
+    except Exception:
+        return []
+
+    ranked = []
+    for row in rows:
+        if not isinstance(row, dict):
+            continue
+
+        score = _score_community_knowledge_row(row, keywords, canonical_lens)
+        if score <= 0 and keywords:
+            continue
+
+        ranked.append((score, row))
+
+    ranked.sort(
+        key=lambda item: (
+            item[0],
+            len(str(item[1].get("topic") or "")),
+        ),
+        reverse=True,
+    )
+
+    top_rows = []
+    for score, row in ranked[:target_rows]:
+        top_rows.append({
+            "id": str(row.get("id") or "").strip(),
+            "community_name": str(row.get("community_name") or "").strip(),
+            "topic": str(row.get("topic") or "").strip(),
+            "halakhic_source": str(row.get("halakhic_source") or "").strip(),
+            "content": _normalize_rag_text(row.get("content")),
+            "score": score,
+        })
+
+    return top_rows
+
+
+def _knowledge_rows_to_customs(rows):
+    customs = []
+    for row in rows:
+        if not isinstance(row, dict):
+            continue
+
+        topic = str(row.get("topic") or "").strip()
+        source = str(row.get("halakhic_source") or "").strip()
+        content = str(row.get("content") or "").strip()
+        customs.append({
+            "community": str(row.get("community_name") or "").strip(),
+            "topic": topic,
+            "ruling": content,
+            "source": source,
+            "notes": f"Topic: {topic}" if topic else "",
+        })
+
+    return customs
+
+
+def _fetch_user_memory_summaries(user_id, limit=None):
+    if not user_id:
+        return []
+
+    supabase = _get_supabase_client()
+    if not supabase:
+        return []
+
+    target_limit = limit or RAG_MEMORY_ROWS
+    try:
+        result = (
+            supabase
+            .table(SUPABASE_USER_MEMORIES_TABLE)
+            .select("summary,created_at")
+            .eq("user_id", user_id)
+            .order("created_at", desc=True)
+            .limit(target_limit)
+            .execute()
+        )
+    except Exception:
+        return []
+
+    rows = result.data if isinstance(result.data, list) else []
+    summaries = []
+    for row in rows:
+        if not isinstance(row, dict):
+            continue
+
+        summary = _normalize_rag_text(row.get("summary"), max_chars=260)
+        if not summary:
+            continue
+
+        summaries.append({
+            "summary": summary,
+            "created_at": row.get("created_at"),
+        })
+
+    return summaries
+
+
+def _build_interaction_summary(question, answer):
+    clean_q = _normalize_rag_text(question, max_chars=160)
+    clean_a = re.sub(r"[#*_`~>\-]+", " ", str(answer or ""))
+    clean_a = _normalize_rag_text(clean_a, max_chars=240)
+    return f"Q: {clean_q} | A: {clean_a}".strip()
+
+
+def _store_user_memory_summary(user_id, question, answer):
+    if not user_id:
+        return
+
+    supabase = _get_supabase_client()
+    if not supabase:
+        return
+
+    summary = _build_interaction_summary(question, answer)
+    if not summary:
+        return
+
+    payload = {
+        "id": str(uuid4()),
+        "user_id": user_id,
+        "summary": summary,
+    }
+
+    try:
+        supabase.table(SUPABASE_USER_MEMORIES_TABLE).insert(payload).execute()
+    except Exception:
+        # Memory write failures should never block the user response path.
+        return
 
 
 def maybe_require_clerk_auth(route_fn):
@@ -1752,6 +1963,7 @@ def ask_question():
     community_lens = (data.get("community") or "All").strip()
     canonical_lens = "All" if community_lens.lower() == "all" else (
         _canonicalize_community_name(community_lens) or community_lens)
+    user_id = _get_request_user_id()
 
     try:
         engine = get_engine()
@@ -1779,35 +1991,6 @@ def ask_question():
                 }
             })
 
-        # Check for Merkava/Community Customs requests
-        detected_community = _detect_community_in_text(question)
-        if detected_community or "customs" in question.lower() or "minhag" in question.lower():
-            community = detected_community or (
-                _canonicalize_community_name(community_lens) or "Ashkenaz")
-            customs_query = question
-            if canonical_lens != "All":
-                customs_query = f"{question} {canonical_lens}"
-            customs_info = engine.get_customs(customs_query)
-            DEVTOOLS_STATS["answers_total"] += 1
-            return jsonify({
-                "answer": f"Community Customs ({community})\n\n{question}\n\nJewish communities from different diaspora regions developed distinct customs and practices while maintaining core halakhic principles. These traditions reflect the unique historical, cultural, and environmental contexts of each community.",
-                "confidence": 0.8,
-                "sources": [{
-                    "ref": f"Merkava - {community} Customs",
-                    "title": f"{community} Community Customs",
-                    "lines": [{"en": f"Community: {community}", "he": ""}]
-                }],
-                "customs": customs_info,
-                "meta": {
-                    "mode": mode,
-                    "community_lens": canonical_lens,
-                    "source_count": 1,
-                    "custom_count": len(customs_info),
-                    "generated_at": int(time.time()),
-                    "fallback": False,
-                }
-            })
-
         # 1. Fetch Sefaria Refs - Standard halakhic questions
         primary_refs = sefaria.find_refs_for_question(question)
         primary_sources = []
@@ -1820,11 +2003,17 @@ def ask_question():
         halachipedia_info = engine.get_halachipedia_summary(question)
         halachipedia_list = [halachipedia_info] if halachipedia_info else []
 
-        # 3. Fetch Customs
-        customs_query = question
-        if canonical_lens != "All":
-            customs_query = f"{question} {canonical_lens}"
-        customs_info = engine.get_customs(customs_query)
+        # 3. Fetch dynamic community context and identity-aware memory from Supabase.
+        knowledge_rows = _retrieve_community_knowledge(
+            question,
+            canonical_lens=canonical_lens,
+            max_rows=RAG_TOP_KNOWLEDGE_ROWS,
+        )
+        customs_info = _knowledge_rows_to_customs(knowledge_rows)
+        user_memory_summaries = _fetch_user_memory_summaries(
+            user_id,
+            limit=RAG_MEMORY_ROWS,
+        )
 
         # 4. Fetch Wikipedia
         wiki_info = engine.get_wiki(question)
@@ -1840,7 +2029,7 @@ def ask_question():
             })
 
         has_primary_sources = bool(flat_sources_for_claude)
-        has_customs = bool(customs_info)
+        has_customs = bool(knowledge_rows)
         has_whitelisted_external = bool(halachipedia_list)
         use_tertiary_web_context = (
             not has_primary_sources
@@ -1879,6 +2068,7 @@ def ask_question():
                 question=question,
                 sefaria_sources=flat_sources_for_claude,
                 customs=customs_info,
+                user_memories=user_memory_summaries,
                 wiki=wiki_context_for_claude,
                 halachipedia=halachipedia_list,
                 mode=mode,
@@ -1897,6 +2087,7 @@ def ask_question():
                 include_web_warning=needs_web_warning,
             )
             result["answer"] = normalized_answer
+            _store_user_memory_summary(user_id, question, normalized_answer)
         except Exception as ai_error:
             fallback_payload = get_halakhic_sources(question)
             fallback_warning = str(
@@ -1907,6 +2098,8 @@ def ask_question():
                     f"{fallback_warning}\n\n"
                     "AI synthesis unavailable. Returning last-resort web references."
                 )
+
+            _store_user_memory_summary(user_id, question, fallback_answer)
 
             DEVTOOLS_STATS["answers_total"] += 1
             DEVTOOLS_STATS["fallback_answers"] += 1
@@ -1923,6 +2116,9 @@ def ask_question():
                     "community_lens": canonical_lens,
                     "source_count": fallback_payload.get("source_count", 0),
                     "custom_count": len(customs_info),
+                    "knowledge_count": len(knowledge_rows),
+                    "memory_count": len(user_memory_summaries),
+                    "identity_aware": bool(user_id),
                     "generated_at": int(time.time()),
                     "fallback": True,
                     "status": fallback_payload.get("status", "fallback"),
@@ -1952,6 +2148,9 @@ def ask_question():
                 "community_lens": canonical_lens,
                 "source_count": len(primary_sources),
                 "custom_count": len(customs_info),
+                "knowledge_count": len(knowledge_rows),
+                "memory_count": len(user_memory_summaries),
+                "identity_aware": bool(user_id),
                 "generated_at": int(time.time()),
                 "fallback": bool(result.get("is_fallback", False)),
                 "input_sanitized": question_was_sanitized,
