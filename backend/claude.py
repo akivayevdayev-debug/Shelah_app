@@ -4,7 +4,7 @@ Anthropic/Claude prompt and response helper for Sh'elah.
 Responsibilities:
 - Format source/custom/wiki payloads into prompt-ready text blocks.
 - Build the structured prompt used for halachic responses.
-- Call Anthropic when configured, with safe fallback behavior when SDK/key is absent.
+- Call Anthropic as primary and Gemini as fallback when needed.
 
 This module is intentionally stateless: app.py and data_service.py prepare context,
 then this file focuses on LLM formatting and call execution.
@@ -20,6 +20,11 @@ try:
     import anthropic
 except Exception:  # pragma: no cover - graceful fallback when SDK is unavailable
     anthropic = None
+
+try:
+    import google.generativeai as genai
+except Exception:  # pragma: no cover - graceful fallback when SDK is unavailable
+    genai = None
 
 load_dotenv()
 
@@ -109,6 +114,7 @@ OUT_OF_SCOPE_PATTERNS = {
 
 _cached_client = None
 _cached_api_key = None
+_cached_gemini_api_key = None
 
 
 def _get_client():
@@ -126,6 +132,110 @@ def _get_client():
         _cached_api_key = api_key
 
     return _cached_client
+
+
+def _configure_gemini_client() -> Optional[str]:
+    """Configure Gemini client and return an error string on failure."""
+    global _cached_gemini_api_key
+
+    if not genai:
+        _cached_gemini_api_key = None
+        return "gemini_sdk_missing"
+
+    api_key = (
+        os.environ.get("GEMINI_API_KEY")
+        or os.environ.get("GOOGLE_API_KEY")
+        or ""
+    ).strip()
+    if not api_key:
+        _cached_gemini_api_key = None
+        return "gemini_api_key_missing"
+
+    if _cached_gemini_api_key != api_key:
+        try:
+            genai.configure(api_key=api_key)
+            _cached_gemini_api_key = api_key
+        except Exception as exc:
+            _cached_gemini_api_key = None
+            return f"gemini_config_error: {exc}"
+
+    return None
+
+
+def _extract_gemini_response_text(response: Any) -> str:
+    direct_text = getattr(response, "text", None)
+    if isinstance(direct_text, str) and direct_text.strip():
+        return direct_text.strip()
+
+    chunks: List[str] = []
+    for candidate in (getattr(response, "candidates", None) or []):
+        content = getattr(candidate, "content", None)
+        for part in (getattr(content, "parts", None) or []):
+            text = getattr(part, "text", "")
+            if text:
+                chunks.append(str(text))
+
+    return "\n".join(chunks).strip()
+
+
+def _call_gemini_model(
+    prompt: str,
+    dynamic_system_context: str = "",
+    claude_error: str = "",
+) -> Dict[str, Any]:
+    """Low-level Gemini fallback call (internal)."""
+    config_error = _configure_gemini_client()
+    if config_error:
+        combined_error = config_error
+        if claude_error:
+            combined_error = f"anthropic_error: {claude_error}; {config_error}"
+        return {
+            "answer": "AI provider is currently unavailable.",
+            "confidence": 0,
+            "error": combined_error,
+            "is_fallback": True,
+            "provider": "gemini-3-flash",
+        }
+
+    try:
+        model_name = (os.environ.get("GEMINI_MODEL")
+                      or "gemini-3-flash").strip()
+        if not model_name:
+            model_name = "gemini-3-flash"
+
+        system_instruction = CORE_SYSTEM_PROMPT
+        if dynamic_system_context:
+            system_instruction = f"{CORE_SYSTEM_PROMPT}\n\n{dynamic_system_context}"
+
+        model = genai.GenerativeModel(
+            model_name=model_name,
+            system_instruction=system_instruction,
+        )
+        response = model.generate_content(
+            prompt,
+            generation_config={"max_output_tokens": 800},
+        )
+        response_text = _extract_gemini_response_text(response)
+        if not response_text:
+            raise RuntimeError("empty_response")
+
+        return {
+            "answer": response_text,
+            "confidence": 0.72,
+            "is_fallback": True,
+            "provider": model_name,
+        }
+    except Exception as exc:
+        combined_error = f"gemini_error: {exc}"
+        if claude_error:
+            combined_error = f"anthropic_error: {claude_error}; {combined_error}"
+        return {
+            "answer": "AI provider is currently unavailable.",
+            "confidence": 0,
+            "error": combined_error,
+            "is_fallback": True,
+            "provider": "gemini-3-flash",
+        }
 
 
 def sanitize_user_query(query: str, max_chars: int = MAX_INPUT_CHARS) -> str:
@@ -450,12 +560,17 @@ def limit_words(text, max_words=500):
 def _call_claude_model(prompt: str, dynamic_system_context: str = "") -> Dict[str, Any]:
     """Low-level Anthropic call (internal)."""
     client = _get_client()
+    model_name = (os.environ.get("ANTHROPIC_MODEL")
+                  or "claude-haiku-4-5").strip()
+
     if client is None:
-        return {"answer": "AI provider is currently unavailable.", "confidence": 0, "error": "unavailable", "is_fallback": True}
+        return _call_gemini_model(
+            prompt,
+            dynamic_system_context=dynamic_system_context,
+            claude_error="anthropic_unavailable",
+        )
 
     try:
-        model_name = (os.environ.get("ANTHROPIC_MODEL")
-                      or "claude-haiku-4-5").strip()
         system_blocks = [{
             "type": "text",
             "text": CORE_SYSTEM_PROMPT,
@@ -478,9 +593,21 @@ def _call_claude_model(prompt: str, dynamic_system_context: str = "") -> Dict[st
         response_text = "\n".join(
             block.text for block in (message.content or []) if hasattr(block, "text")
         ).strip()
-        return {"answer": response_text, "confidence": 0.78, "is_fallback": False}
-    except Exception as e:
-        return {"answer": "AI provider is currently unavailable.", "confidence": 0, "error": str(e), "is_fallback": True}
+        if not response_text:
+            raise RuntimeError("empty_response")
+
+        return {
+            "answer": response_text,
+            "confidence": 0.78,
+            "is_fallback": False,
+            "provider": model_name,
+        }
+    except Exception as exc:
+        return _call_gemini_model(
+            prompt,
+            dynamic_system_context=dynamic_system_context,
+            claude_error=str(exc),
+        )
 
 
 def run_protected_ai_wrapper(
