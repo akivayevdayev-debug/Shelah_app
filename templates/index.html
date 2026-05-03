@@ -1475,8 +1475,84 @@
             });
         }
 
+        const MODAL_MARKDOWN_COMPONENT_STYLES = Object.freeze({
+            h2: {
+                display: 'block',
+                marginTop: '1rem',
+                marginBottom: '0.5rem',
+            },
+            h3: {
+                display: 'block',
+                marginTop: '1rem',
+                marginBottom: '0.5rem',
+            },
+        });
+
+        function normalizeMarkdownSpacing(markdownText) {
+            let normalized = String(markdownText || '').replace(/\r\n?/g, '\n');
+
+            // Split inline headers/rules onto their own line before structural spacing enforcement.
+            normalized = normalized
+                .replace(/([^\n])\s*(#{2,6}\s*)/g, '$1\n$2')
+                .replace(/(^|\n)(#{2,6})([^\s#\n])/g, '$1$2 $3')
+                .replace(/([^\n])\s*---\s*([^\n])/g, '$1\n---\n$2')
+                .replace(/([^\n])\s*---(\n|$)/g, '$1\n---$2')
+                .replace(/(^|\n)---\s*([^\n])/g, '$1---\n$2');
+
+            const lines = normalized.split('\n');
+            const out = [];
+
+            const trimTrailingBlankLines = () => {
+                while (out.length > 0 && out[out.length - 1] === '') {
+                    out.pop();
+                }
+            };
+
+            lines.forEach((line) => {
+                const trimmed = line.trim();
+                const isHeader = /^#{2,6}\s+\S/.test(trimmed);
+                const isRule = /^---$/.test(trimmed);
+
+                if (isHeader) {
+                    trimTrailingBlankLines();
+                    if (out.length > 0) {
+                        out.push('', '');
+                    }
+                    out.push(trimmed, '');
+                    return;
+                }
+
+                if (isRule) {
+                    trimTrailingBlankLines();
+                    if (out.length > 0) {
+                        out.push('');
+                    }
+                    out.push('---', '');
+                    return;
+                }
+
+                out.push(line);
+            });
+
+            return out.join('\n').replace(/\n{5,}/g, '\n\n\n\n').trim();
+        }
+
+        function applyMarkdownComponentStyles(containerEl, componentStyles) {
+            if (!containerEl || !componentStyles) {
+                return;
+            }
+
+            Object.entries(componentStyles).forEach(([tagName, styleMap]) => {
+                containerEl.querySelectorAll(tagName).forEach((node) => {
+                    Object.entries(styleMap).forEach(([styleKey, styleValue]) => {
+                        node.style[styleKey] = styleValue;
+                    });
+                });
+            });
+        }
+
         function renderAnswerMarkdown(answerText) {
-            const raw = String(answerText || 'No synthesis available.');
+            const raw = normalizeMarkdownSpacing(String(answerText || 'No synthesis available.'));
             if (window.marked && typeof window.marked.parse === 'function') {
                 return marked.parse(raw);
             }
@@ -7099,7 +7175,9 @@
 
         function populateAiModal(data, queryTitle) {
             // 1. Populate synthesis
-            document.getElementById('aiSynthesis').innerHTML = renderAnswerMarkdown(data.answer);
+            const aiSynthesisEl = document.getElementById('aiSynthesis');
+            aiSynthesisEl.innerHTML = renderAnswerMarkdown(data.answer);
+            applyMarkdownComponentStyles(aiSynthesisEl, MODAL_MARKDOWN_COMPONENT_STYLES);
 
             const meta = data.meta || {};
             const confidence = typeof data.confidence === 'number'

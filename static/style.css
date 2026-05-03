@@ -656,6 +656,13 @@ body.theme-dark ::-webkit-scrollbar-thumb:hover {
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
 }
 
+#aiSynthesis h2,
+#aiSynthesis h3 {
+    display: block;
+    margin-top: 1rem;
+    margin-bottom: 0.5rem;
+}
+
 .ai-sources {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
