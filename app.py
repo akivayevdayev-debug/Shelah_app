@@ -208,6 +208,8 @@ QUERY_STOPWORDS = {
     "איך", "מה", "האם", "עם", "של", "על", "גם", "לא", "כן",
 }
 
+HEBREW_PREFIXES = ("ו", "ה", "ל", "ב", "ש", "מ")
+
 WEB_LAST_RESORT_WARNING = "⚠️ **WARNING:** No matches found in Sefaria or verified customs. The following info is from the general web and may not be Halakhically accurate. Consult a Rabbi."
 WEB_LAST_RESORT_WARNING_PLAIN = WEB_LAST_RESORT_WARNING.replace("**", "")
 RABBI_FINAL_RULING_FOOTER = "Please consult with your local Rabbi for a final ruling."
@@ -370,6 +372,26 @@ def _build_source_attribution_note(*, has_sefaria=False, has_customs=False, has_
     )
 
 
+def _compose_answer_with_prefixes(body_text, *, include_web_warning=False, source_attribution_note=""):
+    body = str(body_text or "").strip()
+    if not body:
+        return ""
+
+    blocks = []
+    if include_web_warning:
+        blocks.append(WEB_LAST_RESORT_WARNING)
+
+    attribution = str(source_attribution_note or "").strip()
+    if attribution:
+        blocks.append(attribution)
+
+    if blocks:
+        blocks.append(body)
+        return "\n\n".join(blocks)
+
+    return body
+
+
 def _strip_source_attribution_prefix(answer_text):
     text = str(answer_text or "").strip()
     if not text:
@@ -401,17 +423,13 @@ def _normalize_ai_answer(answer_text, include_web_warning=False, source_attribut
     body = _strip_model_web_warning_prefix(answer_text)
     body = _strip_source_attribution_prefix(body)
     body = CLOCK_TIME_LATEX_RE.sub(
-        lambda m: f"{m.group(1)} {m.group(2).upper()}",
-        body,
-    )
+        lambda m: f"{m.group(1)} {m.group(2).upper()}", body)
 
     # Preserve the domain guardrail refusal message exactly as emitted.
     if DOMAIN_REFUSAL_MESSAGE_RE.match(body):
         if RABBI_FINAL_RULING_FOOTER not in body:
             return f"{body}\n\n{RABBI_FINAL_RULING_FOOTER}"
         return body
-
-    body = _format_ui_answer(body)
 
     if not body:
         if allow_empty_fallback:
@@ -534,14 +552,45 @@ def _format_ui_answer(answer_text):
     return "\n".join(lines).strip()
 
 
+def _strip_common_hebrew_prefixes(token):
+    value = str(token or "").strip()
+    if not value:
+        return value
+    if not HEBREW_LETTER_RE.search(value):
+        return value
+
+    normalized = value
+    # Allow stacked prefixes but keep a meaningful stem length.
+    while len(normalized) > 2 and normalized[0] in HEBREW_PREFIXES:
+        normalized = normalized[1:]
+
+    return normalized or value
+
+
+def _expand_hebrew_keyword_forms(token):
+    base = str(token or "").strip().lower()
+    if not base:
+        return []
+
+    expanded = [base]
+    stripped = _strip_common_hebrew_prefixes(base)
+    if stripped and stripped not in expanded:
+        expanded.append(stripped)
+
+    return expanded
+
+
 def _extract_query_keywords(query, max_keywords=8):
     tokens = re.findall(r"[A-Za-z\u0590-\u05FF]{3,}", str(query or "").lower())
     keywords = []
     for token in tokens:
-        if token in QUERY_STOPWORDS:
-            continue
-        if token not in keywords:
-            keywords.append(token)
+        for normalized_token in _expand_hebrew_keyword_forms(token):
+            if normalized_token in QUERY_STOPWORDS:
+                continue
+            if normalized_token not in keywords:
+                keywords.append(normalized_token)
+            if len(keywords) >= max_keywords:
+                break
         if len(keywords) >= max_keywords:
             break
     return keywords
@@ -1743,6 +1792,11 @@ SUPABASE_COMMUNITY_KNOWLEDGE_TABLE = (os.environ.get(
     "SUPABASE_COMMUNITY_KNOWLEDGE_TABLE") or "community_knowledge").strip()
 SUPABASE_USER_MEMORIES_TABLE = (os.environ.get(
     "SUPABASE_USER_MEMORIES_TABLE") or "user_memories").strip()
+SUPABASE_STUDY_BOOKMARKS_TABLE = (os.environ.get(
+    "SUPABASE_STUDY_BOOKMARKS_TABLE") or "study_bookmarks").strip()
+STRICT_SUPABASE_RLS = (os.environ.get("STRICT_SUPABASE_RLS")
+                       or "true").strip().lower() == "true"
+ERROR_LOG_WEBHOOK_URL = (os.environ.get("ERROR_LOG_WEBHOOK_URL") or "").strip()
 _supabase_client = None
 
 
@@ -1916,6 +1970,43 @@ def _get_request_supabase_client():
         return create_client(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY)
 
 
+def _get_user_scoped_supabase_client():
+    """Return request-scoped Supabase client for RLS-protected user tables."""
+    client = _get_request_supabase_client()
+    if not client:
+        return None
+
+    if STRICT_SUPABASE_RLS and not _extract_supabase_access_token():
+        return None
+
+    return client
+
+
+def _capture_backend_error(event_name, error, context=None):
+    """Sentry-style structured logger for backend failures and AI prompt issues."""
+    context = context if isinstance(context, dict) else {}
+    message = str(error) if error is not None else ""
+    payload = {
+        "event": str(event_name or "unknown"),
+        "message": message,
+        "context": context,
+        "ts": int(time.time()),
+    }
+
+    app.logger.error("OBS_EVENT %s", json.dumps(payload, ensure_ascii=True),
+                     exc_info=error if isinstance(error, Exception) else False)
+
+    if ERROR_LOG_WEBHOOK_URL:
+        try:
+            requests.post(
+                ERROR_LOG_WEBHOOK_URL,
+                json=payload,
+                timeout=2,
+            )
+        except Exception:
+            pass
+
+
 def _get_request_user_id():
     claims = getattr(g, "clerk_claims", {}) or {}
     user_id = str(claims.get("sub") or "").strip()
@@ -2087,7 +2178,9 @@ def _fetch_user_memory_summaries(user_id, limit=None):
     if not user_id:
         return []
 
-    supabase = _get_supabase_client()
+    supabase = _get_user_scoped_supabase_client()
+    if not supabase and not STRICT_SUPABASE_RLS:
+        supabase = _get_supabase_client()
     if not supabase:
         return []
 
@@ -2134,7 +2227,9 @@ def _store_user_memory_summary(user_id, question, answer):
     if not user_id:
         return
 
-    supabase = _get_supabase_client()
+    supabase = _get_user_scoped_supabase_client()
+    if not supabase and not STRICT_SUPABASE_RLS:
+        supabase = _get_supabase_client()
     if not supabase:
         return
 
@@ -2596,7 +2691,17 @@ def ask_question():
             if result_error and not result_error.startswith("security_blocked"):
                 raise RuntimeError(result_error or "AI request failed")
 
-            raw_ai_answer = str(result.get("answer") or "").strip()
+            structured_payload = result.get("structured")
+            if not isinstance(structured_payload, dict):
+                structured_payload = None
+
+            raw_ai_answer = ""
+            if structured_payload:
+                raw_ai_answer = claude.render_structured_markdown(
+                    structured_payload)
+            else:
+                raw_ai_answer = str(result.get("answer") or "").strip()
+
             if not raw_ai_answer:
                 raise RuntimeError("AI response was empty")
 
@@ -2615,11 +2720,10 @@ def ask_question():
                 has_general_web=bool(wiki_context_for_claude),
                 has_internal_knowledge=needs_internal_knowledge,
             )
-            normalized_answer = _normalize_ai_answer(
+            normalized_answer = _compose_answer_with_prefixes(
                 raw_ai_answer,
                 include_web_warning=needs_web_warning,
                 source_attribution_note=source_attribution_note,
-                allow_empty_fallback=False,
             )
             if not str(normalized_answer or "").strip():
                 raise RuntimeError("AI response normalized to empty content")
@@ -2647,14 +2751,24 @@ def ask_question():
                     "identity_aware": bool(user_id),
                     "generated_at": int(time.time()),
                     "fallback": bool(result.get("is_fallback", False)),
+                    "structured": bool(structured_payload),
+                    "is_prohibited": bool((structured_payload or {}).get("is_prohibited", False)),
                     "input_sanitized": question_was_sanitized,
                     "security": result.get("security") or {},
                 }
             })
 
         except Exception as ai_error:
-            app.logger.error(
-                f"AI Synthesis failed for query '{question}': {str(ai_error)}")
+            _capture_backend_error(
+                "ask_ai_synthesis_failed",
+                ai_error,
+                {
+                    "question": question,
+                    "mode": mode,
+                    "community_lens": canonical_lens,
+                    "user_id": user_id or "",
+                },
+            )
             fallback_payload = get_halakhic_sources(question)
             fallback_warning = str(
                 fallback_payload.get("warning") or "").strip()
@@ -2672,8 +2786,8 @@ def ask_question():
                 has_general_web=fallback_level == "web-last-resort",
                 has_internal_knowledge=fallback_level == "internal-ai-knowledge",
             )
-            fallback_answer = _normalize_ai_answer(
-                "AI synthesis unavailable. Returning discovered halakhic references.",
+            fallback_answer = _compose_answer_with_prefixes(
+                "## Ruling\n\nAI synthesis unavailable. Returning discovered halakhic references.",
                 include_web_warning=bool(fallback_warning),
                 source_attribution_note=fallback_source_note,
             )
@@ -2713,7 +2827,15 @@ def ask_question():
             })
 
     except Exception as e:
-        app.logger.error(f"Critical error in /ask: {str(e)}", exc_info=True)
+        _capture_backend_error(
+            "ask_route_critical_error",
+            e,
+            {
+                "question": question if "question" in locals() else "",
+                "mode": mode if "mode" in locals() else "",
+                "community_lens": canonical_lens if "canonical_lens" in locals() else "",
+            },
+        )
         return jsonify({"error": "An internal error occurred while processing your request.", "detail": str(e)}), 500
 
 
@@ -2781,6 +2903,49 @@ def devtools_reliability():
     })
 
 
+@app.route("/api/devtools/rls-audit")
+def devtools_rls_audit():
+    """Surface security posture for user-scoped Supabase table access."""
+    has_supabase_token = bool(_extract_supabase_access_token())
+    return jsonify({
+        "strict_rls": STRICT_SUPABASE_RLS,
+        "tables": {
+            "user_preferences": SUPABASE_PREFS_TABLE,
+            "user_memories": SUPABASE_USER_MEMORIES_TABLE,
+            "study_bookmarks": SUPABASE_STUDY_BOOKMARKS_TABLE,
+        },
+        "auth": {
+            "supabase_access_token_present": has_supabase_token,
+            "request_scoped_client_ready": bool(_get_request_supabase_client()),
+        },
+        "requirement": "RLS policies should use auth.uid() = user_id for user tables.",
+        "ts": int(time.time()),
+    })
+
+
+@app.route("/api/client-errors", methods=["POST"])
+def client_errors():
+    payload = request.get_json(silent=True) or {}
+    context = {
+        "url": str(payload.get("url") or "")[:400],
+        "stack": str(payload.get("stack") or "")[:8000],
+        "component": str(payload.get("component") or "")[:120],
+        "user_agent": (request.headers.get("User-Agent") or "")[:320],
+        "ip": _extract_client_ip() or "",
+    }
+    _capture_backend_error("client_error_boundary", payload.get(
+        "message") or "client_error", context)
+    return jsonify({"ok": True})
+
+
+@app.route("/api/daily-study")
+def daily_study_api():
+    """Return daily refs for Daf Yomi, Rambam, and related daily study prewarming."""
+    engine = get_engine()
+    payload = engine.get_daily_learning() or {}
+    return jsonify(payload)
+
+
 @app.route("/api/devtools/segment-report", methods=["POST"])
 @maybe_require_clerk_auth
 def report_segment_issue():
@@ -2835,8 +3000,12 @@ def user_preferences():
     if not user_id:
         return jsonify({"error": "Missing user identity"}), 401
 
-    supabase = _get_supabase_client()
+    supabase = _get_user_scoped_supabase_client()
+    if not supabase and not STRICT_SUPABASE_RLS:
+        supabase = _get_supabase_client()
     if not supabase:
+        if STRICT_SUPABASE_RLS:
+            return jsonify({"error": "Supabase authenticated session required for RLS-protected preferences."}), 403
         return jsonify({"error": "Supabase not configured"}), 503
 
     table = supabase.table(SUPABASE_PREFS_TABLE)
@@ -2930,8 +3099,85 @@ def user_preferences():
         table.upsert(upsert_payload).execute()
         return jsonify({"ok": True, "updated_at": now_iso})
     except Exception as e:
-        app.logger.error(f"User preferences sync failed: {str(e)}")
+        _capture_backend_error("user_preferences_sync_failed", e, {
+                               "user_id": str(user_id)})
         return jsonify({"error": "Failed to sync user preferences to the cloud."}), 500
+
+
+@app.route("/api/bookmarks/semantic", methods=["GET", "POST"])
+@require_clerk_auth
+def semantic_bookmarks():
+    """Persist and retrieve semantic bookmarks with notes and AI summaries."""
+    claims = getattr(g, "clerk_claims", {}) or {}
+    user_id = str(claims.get("sub") or "").strip()
+    if not user_id:
+        return jsonify({"error": "Missing user identity"}), 401
+
+    supabase = _get_user_scoped_supabase_client()
+    if not supabase and not STRICT_SUPABASE_RLS:
+        supabase = _get_supabase_client()
+    if not supabase:
+        if STRICT_SUPABASE_RLS:
+            return jsonify({"error": "Supabase authenticated session required for RLS-protected bookmarks."}), 403
+        return jsonify({"error": "Supabase not configured"}), 503
+
+    table = supabase.table(SUPABASE_STUDY_BOOKMARKS_TABLE)
+
+    try:
+        if request.method == "GET":
+            query_limit = _env_int("SEMANTIC_BOOKMARK_LIMIT", 50)
+            result = (
+                table
+                .select("id,ref,label,segment_text,ai_summary,notes,created_at")
+                .eq("user_id", user_id)
+                .order("created_at", desc=True)
+                .limit(max(1, min(query_limit, 200)))
+                .execute()
+            )
+            return jsonify({"items": result.data or []})
+
+        payload = request.get_json(silent=True) or {}
+        ref = str(payload.get("ref") or "").strip()[:260]
+        label = str(payload.get("label") or ref).strip()[:260]
+        segment_text = str(payload.get("segment_text") or "").strip()[:6000]
+        notes = str(payload.get("notes") or "").strip()[:3000]
+        ai_summary = str(payload.get("ai_summary") or "").strip()[:3000]
+
+        if not ref and not segment_text:
+            return jsonify({"error": "A reference or text segment is required."}), 400
+
+        summary_error = ""
+        if not ai_summary and segment_text:
+            summary_result = claude.summarize_with_gemini(
+                segment_text, notes=notes)
+            ai_summary = str(summary_result.get(
+                "summary") or "").strip()[:3000]
+            summary_error = str(summary_result.get("error") or "").strip()
+
+        record = {
+            "id": str(uuid4()),
+            "user_id": user_id,
+            "ref": ref,
+            "label": label,
+            "segment_text": segment_text,
+            "ai_summary": ai_summary,
+            "notes": notes,
+            "created_at": datetime.utcnow().isoformat() + "Z",
+        }
+
+        table.insert(record).execute()
+        return jsonify({
+            "ok": True,
+            "item": record,
+            "summary_generated": bool(ai_summary),
+            "summary_error": summary_error,
+        })
+    except Exception as e:
+        _capture_backend_error("semantic_bookmark_failed", e, {
+            "user_id": user_id,
+            "ref": ref if "ref" in locals() else "",
+        })
+        return jsonify({"error": "Failed to save semantic bookmark."}), 500
 
 
 @app.route("/api/todos")

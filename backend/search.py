@@ -11,6 +11,7 @@ enrichment sources, not the primary authoritative text source.
 """
 
 import requests
+import httpx
 import time
 import re
 from html import unescape
@@ -208,4 +209,162 @@ def search_hebrewbooks(query):
         return payload
     except Exception as e:
         print(f"[HebrewBooks Error] {e}")
+        return None
+
+
+async def async_search_wikipedia(title):
+    """Async Wikipedia summary lookup using httpx with shared cache semantics."""
+    cache_key = str(title or "").strip().lower()
+    if cache_key:
+        cached = _cached_lookup(_WIKI_CACHE, cache_key)
+        if cached is not None:
+            return cached
+
+    safe_title = str(title or "").strip()
+    if not safe_title:
+        return None
+
+    try:
+        url = f"https://en.wikipedia.org/api/rest_v1/page/summary/{safe_title.replace(' ', '_')}"
+        async with httpx.AsyncClient(timeout=10.0) as client:
+            response = await client.get(url)
+
+        if response.status_code != 200:
+            return None
+
+        data = response.json() or {}
+        payload = {
+            "title": data.get("title", ""),
+            "summary": str(data.get("extract", ""))[:300],
+        }
+        if cache_key:
+            _cached_store(_WIKI_CACHE, cache_key, payload)
+        return payload
+    except Exception as e:
+        print("[Wiki Async Error]", e)
+        return None
+
+
+async def async_search_halachipedia(query):
+    """Async Halachipedia search using MediaWiki API and httpx."""
+    cache_key = str(query or "").strip().lower()
+    if cache_key:
+        cached = _cached_lookup(_HALACHIPEDIA_CACHE, cache_key)
+        if cached is not None:
+            return cached
+
+    normalized_query = str(query or "").strip()
+    if not normalized_query:
+        return None
+
+    try:
+        search_url = "https://halachipedia.com/api.php"
+        async with httpx.AsyncClient(timeout=10.0) as client:
+            r_search = await client.get(
+                search_url,
+                params={
+                    "action": "query",
+                    "list": "search",
+                    "srsearch": normalized_query,
+                    "utf8": "",
+                    "format": "json",
+                },
+            )
+            data = r_search.json() if r_search.status_code == 200 else {}
+
+            search_results = data.get("query", {}).get("search", [])
+            if not search_results:
+                return None
+
+            top_title = search_results[0].get("title", "")
+            if not top_title:
+                return None
+
+            r_extract = await client.get(
+                search_url,
+                params={
+                    "action": "query",
+                    "prop": "extracts",
+                    "exsentences": 10,
+                    "exintro": 1,
+                    "explaintext": 1,
+                    "titles": top_title,
+                    "format": "json",
+                },
+            )
+        if r_extract.status_code != 200:
+            return None
+
+        ext_data = r_extract.json() or {}
+        pages = ext_data.get("query", {}).get("pages", {})
+        for page_info in pages.values():
+            payload = {
+                "title": f"[Halachipedia] {page_info.get('title', '')}",
+                "summary": str(page_info.get("extract", ""))[:1000],
+            }
+            if cache_key:
+                _cached_store(_HALACHIPEDIA_CACHE, cache_key, payload)
+            return payload
+        return None
+    except Exception as e:
+        print(f"[Halachipedia Async Error] {e}")
+        return None
+
+
+async def async_search_hebrewbooks(query):
+    """Async best-effort HebrewBooks search using httpx and regex extraction."""
+    cache_key = str(query or "").strip().lower()
+    if cache_key:
+        cached = _cached_lookup(_HEBREWBOOKS_CACHE, cache_key)
+        if cached is not None:
+            return cached
+
+    normalized_query = str(query or "").strip()
+    if not normalized_query:
+        return None
+
+    try:
+        search_url = "https://www.hebrewbooks.org/search.aspx"
+        async with httpx.AsyncClient(timeout=10.0) as client:
+            response = await client.get(
+                search_url,
+                params={"st": "FT", "q": normalized_query},
+                headers={
+                    "User-Agent": "Mozilla/5.0 (compatible; ShelahBot/1.0; +https://www.sefaria.org)",
+                    "Accept-Language": "en-US,en;q=0.9",
+                },
+            )
+
+        if response.status_code != 200:
+            return None
+
+        html = response.text or ""
+        lowered = html.lower()
+        if "just a moment" in lowered and "cloudflare" in lowered:
+            return None
+
+        match = re.search(
+            r'href="(?P<href>[^"#]*pdfpager\.aspx\?req=[^"]+)"[^>]*>(?P<title>.*?)</a>',
+            html,
+            flags=re.IGNORECASE | re.DOTALL,
+        )
+        if not match:
+            return None
+
+        href = str(match.group("href") or "").strip()
+        title_html = str(match.group("title") or "").strip()
+        title = _clean_html_text(title_html)
+        if not title:
+            title = f"HebrewBooks search result for {normalized_query}"
+
+        payload = {
+            "title": f"[HebrewBooks] {title}",
+            "summary": f"HebrewBooks keyword search match for '{normalized_query}'.",
+            "url": urljoin("https://www.hebrewbooks.org/", href),
+        }
+        if cache_key:
+            _cached_store(_HEBREWBOOKS_CACHE, cache_key, payload)
+        return payload
+    except Exception as e:
+        print(f"[HebrewBooks Async Error] {e}")
         return None
