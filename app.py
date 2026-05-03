@@ -20,6 +20,7 @@ from flask import Flask, render_template, request, jsonify, session, g, send_fro
 from dotenv import load_dotenv
 import time
 import os
+from typing import Any
 from datetime import date as greg_date, timedelta, datetime
 from functools import wraps
 from urllib.parse import quote, unquote
@@ -1193,8 +1194,8 @@ def _compact_ai_sources(sources, max_sources=8, max_lines=3, max_chars=280):
 
         ref = str(src.get("ref") or "").strip()
         title = str(src.get("title") or ref).strip()
-        raw_lines = src.get("lines") if isinstance(
-            src.get("lines"), list) else []
+        raw_lines_obj = src.get("lines")
+        raw_lines = raw_lines_obj if isinstance(raw_lines_obj, list) else []
 
         lines = []
         for row in raw_lines[:max_lines]:
@@ -1747,7 +1748,10 @@ _supabase_client = None
 
 def _env_int(name, default):
     try:
-        return int(os.environ.get(name, default))
+        raw_value = os.environ.get(name)
+        if raw_value is None:
+            return int(default)
+        return int(raw_value)
     except Exception:
         return default
 
@@ -2363,10 +2367,12 @@ def get_engine():
                     session['lat'] = lat
                     session['lon'] = lon
                     break
-        except Exception:
-            pass
+        except Exception as e:
+            app.logger.warning(f"Location IP lookup failed: {str(e)}")
 
     if lat is None or lon is None:
+        # Defaulting to NYC if all lookup methods fail
+        app.logger.info("Using default location: New York City")
         lat, lon = (40.7128, -74.0060)
 
     return ShelahEngine(lat=lat, lon=lon)
@@ -2392,7 +2398,7 @@ def set_location():
     lat = _coerce_coordinate(data.get('lat'), -90, 90)
     lon = _coerce_coordinate(data.get('lon'), -180, 180)
     if lat is None or lon is None:
-        return jsonify({"error": "Invalid coordinates"}), 400
+        return jsonify({"error": "Invalid coordinates provided. Values must be numeric and within valid lat/lon ranges."}), 400
 
     session['lat'] = lat
     session['lon'] = lon
@@ -2645,7 +2651,10 @@ def ask_question():
                     "security": result.get("security") or {},
                 }
             })
+
         except Exception as ai_error:
+            app.logger.error(
+                f"AI Synthesis failed for query '{question}': {str(ai_error)}")
             fallback_payload = get_halakhic_sources(question)
             fallback_warning = str(
                 fallback_payload.get("warning") or "").strip()
@@ -2704,9 +2713,8 @@ def ask_question():
             })
 
     except Exception as e:
-        import traceback
-        print(traceback.format_exc())
-        return jsonify({"error": str(e)}), 500
+        app.logger.error(f"Critical error in /ask: {str(e)}", exc_info=True)
+        return jsonify({"error": "An internal error occurred while processing your request.", "detail": str(e)}), 500
 
 
 @app.route("/api/stack/health")
@@ -2744,7 +2752,7 @@ def devtools_heartbeat():
     """Low-noise diagnostics endpoint for inspector/devtools mode."""
     started = time.time()
 
-    checks = {
+    checks: dict[str, Any] = {
         "clerk_configured": bool(CLERK_PUBLISHABLE_KEY and CLERK_JWT_ISSUER),
         "supabase_service_ready": bool(_get_supabase_client()),
         "supabase_publishable_ready": bool(SUPABASE_URL and SUPABASE_PUBLISHABLE_KEY),
@@ -2919,10 +2927,11 @@ def user_preferences():
             "prefs": stored_payload,
             "updated_at": now_iso,
         }
-        table.upsert(upsert_payload, on_conflict="user_id").execute()
+        table.upsert(upsert_payload).execute()
         return jsonify({"ok": True, "updated_at": now_iso})
     except Exception as e:
-        return jsonify({"error": f"Supabase operation failed: {str(e)}"}), 500
+        app.logger.error(f"User preferences sync failed: {str(e)}")
+        return jsonify({"error": "Failed to sync user preferences to the cloud."}), 500
 
 
 @app.route("/api/todos")
@@ -3489,8 +3498,9 @@ def get_holidays():
             })
 
         return jsonify(events)
-    except Exception:
-        fallback = _build_pyluach_holiday_events(year)
+    except Exception as e:
+        app.logger.warning(f"Hebcal API failed for year {year}: {str(e)}")
+        fallback = _build_pyluach_holiday_events(year) or []
         if fallback:
             return jsonify(fallback)
 
@@ -3499,7 +3509,7 @@ def get_holidays():
             engine = get_engine()
             return jsonify(engine.get_monthly_zmanim())
         except Exception:
-            return jsonify([])
+            return jsonify({"error": "Calendar data currently unavailable", "events": []}), 503
 
 
 @app.route("/api/parasha")
