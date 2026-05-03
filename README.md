@@ -35,15 +35,23 @@ python3 app.py
 ```
 Default local URL: http://127.0.0.1:5001
 
+Optional async ASGI entrypoint (FastAPI + mounted Flask):
+
+```bash
+uvicorn asgi:app --host 127.0.0.1 --port 5001 --reload
+```
+
 ## Project Structure
 
 - `app.py`: Flask entrypoint and API routes
+- `asgi.py`: FastAPI async `/ask` route with mounted legacy Flask app
 - `backend/`: backend service modules and integrations
 - `templates/`: HTML templates
 - `static/`: CSS and static assets
 - `customs/`: community customs JSON datasets
 - `docs/`: implementation and audit docs
 - `scripts/`: utility scripts (verification, data fetch, audits)
+- `MD files/SUPABASE_RLS_POLICIES.sql`: baseline Supabase `auth.uid()` RLS policies for user-scoped tables
 
 ## Environment Variables
 

@@ -13,10 +13,12 @@ then this file focuses on LLM formatting and call execution.
 import os
 import re
 import logging
+import json
 from dataclasses import dataclass, field
 from typing import Any, Callable, Dict, List, Optional
 
 from dotenv import load_dotenv
+import httpx
 from tenacity import retry, wait_random_exponential, stop_after_attempt, retry_if_exception_type
 
 try:
@@ -76,6 +78,16 @@ MAX_INPUT_CHARS = _int_env("AI_MAX_INPUT_CHARS", 1200)
 MAX_PROMPT_CHARS = _int_env("AI_MAX_PROMPT_CHARS", 16000)
 MAX_RESPONSE_WORDS = _int_env("AI_MAX_RESPONSE_WORDS", 500)
 MAX_RESPONSE_CHARS = _int_env("AI_MAX_RESPONSE_CHARS", 20000)
+MODEL_REQUEST_TIMEOUT_SECONDS = _int_env("AI_MODEL_TIMEOUT_SECONDS", 50)
+
+STRUCTURED_RESPONSE_FIELDS = {
+    "ruling",
+    "sources",
+    "is_prohibited",
+    "summary",
+    "practical_steps",
+    "rabbinic_disclaimer",
+}
 
 WEB_LAST_RESORT_WARNING = "⚠️ **WARNING:** No matches found in Sefaria or verified customs. The following info is from the general web and may not be Halakhically accurate. Consult a Rabbi."
 RABBI_FINAL_RULING_FOOTER = "Please consult with your local Rabbi for a final ruling."
@@ -300,8 +312,11 @@ def _call_gemini_model(
         if not response_text:
             raise RuntimeError("empty_response")
 
+        structured = parse_structured_model_output(response_text)
+
         return {
-            "answer": response_text,
+            "answer": render_structured_markdown(structured),
+            "structured": structured,
             "confidence": 0.72,
             "is_fallback": True,
             "provider": model_name,
@@ -344,6 +359,149 @@ def _sanitize_model_output(text: str, max_chars: int = MAX_RESPONSE_CHARS) -> st
     if max_chars > 0 and len(cleaned) > max_chars:
         cleaned = cleaned[:max_chars].rstrip()
     return cleaned
+
+
+def _extract_first_json_object(raw_text: str) -> Optional[Dict[str, Any]]:
+    text = str(raw_text or "").strip()
+    if not text:
+        return None
+
+    try:
+        parsed = json.loads(text)
+        if isinstance(parsed, dict):
+            return parsed
+    except Exception:
+        pass
+
+    start = text.find("{")
+    while start != -1:
+        depth = 0
+        in_string = False
+        escaped = False
+
+        for idx in range(start, len(text)):
+            char = text[idx]
+
+            if in_string:
+                if escaped:
+                    escaped = False
+                elif char == "\\":
+                    escaped = True
+                elif char == '"':
+                    in_string = False
+                continue
+
+            if char == '"':
+                in_string = True
+                continue
+
+            if char == "{":
+                depth += 1
+            elif char == "}":
+                depth -= 1
+                if depth == 0:
+                    candidate = text[start:idx + 1]
+                    try:
+                        parsed = json.loads(candidate)
+                        if isinstance(parsed, dict):
+                            return parsed
+                    except Exception:
+                        break
+
+        start = text.find("{", start + 1)
+
+    return None
+
+
+def _normalize_structured_response(payload: Dict[str, Any], raw_text: str = "") -> Dict[str, Any]:
+    ruling = _sanitize_model_output(
+        str(payload.get("ruling") or ""), max_chars=2200)
+    if not ruling:
+        ruling = _sanitize_model_output(raw_text, max_chars=2200)
+
+    raw_sources = payload.get("sources")
+    sources: List[str] = []
+    if isinstance(raw_sources, list):
+        for item in raw_sources:
+            value = _sanitize_model_output(str(item or ""), max_chars=220)
+            if value:
+                sources.append(value)
+
+    summary = _sanitize_model_output(
+        str(payload.get("summary") or ""), max_chars=1800)
+
+    raw_steps = payload.get("practical_steps")
+    practical_steps: List[str] = []
+    if isinstance(raw_steps, list):
+        for step in raw_steps:
+            value = _sanitize_model_output(str(step or ""), max_chars=260)
+            if value:
+                practical_steps.append(value)
+
+    is_prohibited = bool(payload.get("is_prohibited"))
+    if not isinstance(payload.get("is_prohibited"), bool):
+        lowered = f"{ruling} {summary}".lower()
+        is_prohibited = any(token in lowered for token in [
+            "prohibited", "forbidden", "assur", "asur", "not permitted",
+        ])
+
+    disclaimer = _sanitize_model_output(
+        str(payload.get("rabbinic_disclaimer") or RABBI_FINAL_RULING_FOOTER),
+        max_chars=220,
+    )
+
+    return {
+        "ruling": ruling,
+        "sources": sources,
+        "is_prohibited": is_prohibited,
+        "summary": summary,
+        "practical_steps": practical_steps,
+        "rabbinic_disclaimer": disclaimer,
+    }
+
+
+def parse_structured_model_output(raw_text: str) -> Dict[str, Any]:
+    payload = _extract_first_json_object(raw_text)
+    if payload:
+        return _normalize_structured_response(payload, raw_text=raw_text)
+
+    return _normalize_structured_response({}, raw_text=raw_text)
+
+
+def render_structured_markdown(structured: Dict[str, Any]) -> str:
+    ruling = _sanitize_model_output(
+        str(structured.get("ruling") or "")).strip()
+    summary = _sanitize_model_output(
+        str(structured.get("summary") or "")).strip()
+    steps = [
+        _sanitize_model_output(str(step or "")).strip()
+        for step in (structured.get("practical_steps") or [])
+        if _sanitize_model_output(str(step or "")).strip()
+    ]
+    sources = [
+        _sanitize_model_output(str(src or "")).strip()
+        for src in (structured.get("sources") or [])
+        if _sanitize_model_output(str(src or "")).strip()
+    ]
+
+    verdict = "Prohibited" if structured.get("is_prohibited") else "Permitted"
+    lines = ["## Ruling", "", f"**{verdict}**"]
+
+    if ruling:
+        lines.extend(["", ruling])
+
+    if summary:
+        lines.extend(["", "## Summary", "", summary])
+
+    if steps:
+        lines.extend(["", "## Practical Steps", ""])
+        lines.extend([f"- {step}" for step in steps])
+
+    if sources:
+        lines.extend(["", "## Sources", ""])
+        lines.extend([f"- {source}" for source in sources])
+
+    return "\n".join(lines).strip()
 
 
 def _extract_prompt_injection_markers(text: str) -> List[str]:
@@ -440,22 +598,16 @@ Source hierarchy (do not skip steps):
 Output rules:
 - Tie every claim to provided evidence when relevant API evidence exists.
 - If step 1 or step 2 includes relevant evidence, use it and do not jump to internal-only answers.
-- Every answer must include dynamic source attribution in the first line.
-- For API-backed answers, use this template: "Note: This information was pulled from [Sources]. Please consult with your local Rabbi for a final ruling."
-- If step 1 and step 2 are missing or clearly irrelevant, you may use internal Halakhic knowledge, but you must prefix exactly with:
-    "Note: This information was derived from General Halakhic Knowledge as the specific database source was unavailable. Please consult with your local Rabbi for a final ruling."
 - If a community custom conflicts with a primary source, explain both positions under a neutral section title.
 - Never output internal metadata labels like "Conflict Flag", "Source: Community Knowledge", or "No primary Sefaria snippet".
+- Return output as a strict JSON object only (no markdown, no prose outside JSON).
+- The JSON schema must contain exactly these keys: ruling (string), sources (array of strings), is_prohibited (boolean), summary (string), practical_steps (array of strings), rabbinic_disclaimer (string).
+- Keep rabbinic_disclaimer equal to: "Please consult with your local Rabbi for a final ruling."
 
 Formatting rules (strict):
-- Use LaTeX for shiurim/quantities/formulas when helpful.
-- Do not use LaTeX for plain clock time; write times like 8:37 PM.
-- Use markdown structure with ## or ### headers for sections.
-- Header Spacing: Every markdown header (such as ## or ###) must be preceded by exactly two empty newlines and followed by exactly one empty newline.
-- H-Rule Spacing: The --- rule must be on its own line and must be preceded and followed by exactly one empty newline.
-- No Bunching: Under no circumstances should markdown symbols (like # or -) touch other text on the same line (unless it is a bold marker like **Text**).
-- Use clean `- ` bullet points.
-- Make the main halakhic verdict explicit and bold (for example: **Prohibited**).
+- JSON output must be valid UTF-8 and parseable with json.loads.
+- Do not include trailing commas or comments.
+- Never wrap the JSON in markdown code fences.
 """.strip()
 
 
@@ -593,13 +745,12 @@ INSTRUCTIONS:
 4. Be direct with no fluff.
 5. Keep source ordering aligned with the hierarchy above: specific API first, broad API second, internal knowledge third.
 6. Do not prepend warning banners yourself; backend controls warning rendering.
-7. Every answer must begin with a source attribution note using one of:
-    - "Note: This information was pulled from [Sources]. Please consult with your local Rabbi for a final ruling."
-    - "Note: This information was derived from General Halakhic Knowledge as the specific database source was unavailable. Please consult with your local Rabbi for a final ruling."
-8. If API snippets are missing or clearly irrelevant, you may use internal Halakhic knowledge only after steps 1 and 2 fail, and must use the exact internal-knowledge note above.
-9. If relevant API evidence exists, do not use internal-only fallback.
-10. Do not emit debug or provenance labels such as "Conflict Flag", "Source: Community Knowledge", or "No primary Sefaria snippet".
-11. If query is out-of-scope or inappropriate, return exactly: "Sh'elah is a specialized tool for Halakhic and communal knowledge. I cannot assist with [Subject of Query], as it falls outside my specialized domain. Please consult with your local Rabbi for a final ruling."
+7. Return strict JSON only, with keys: ruling, sources, is_prohibited, summary, practical_steps, rabbinic_disclaimer.
+8. Set rabbinic_disclaimer exactly to: "Please consult with your local Rabbi for a final ruling."
+9. If API snippets are missing or clearly irrelevant, you may use internal Halakhic knowledge only after steps 1 and 2 fail.
+10. If relevant API evidence exists, do not use internal-only fallback.
+11. Do not emit debug or provenance labels such as "Conflict Flag", "Source: Community Knowledge", or "No primary Sefaria snippet".
+12. If query is out-of-scope or inappropriate, set ruling to exactly: "Sh'elah is a specialized tool for Halakhic and communal knowledge. I cannot assist with [Subject of Query], as it falls outside my specialized domain. Please consult with your local Rabbi for a final ruling.", and set practical_steps and sources to empty arrays.
 """
 
     return _sanitize_prompt_payload(prompt)
@@ -675,8 +826,11 @@ def _call_claude_model(prompt: str, dynamic_system_context: str = "") -> Dict[st
         if not response_text:
             raise RuntimeError("empty_response")
 
+        structured = parse_structured_model_output(response_text)
+
         return {
-            "answer": response_text,
+            "answer": render_structured_markdown(structured),
+            "structured": structured,
             "confidence": 0.78,
             "is_fallback": False,
             "provider": model_name,
@@ -770,3 +924,275 @@ def ask_claude(question, sefaria_sources, customs, user_memories=None, wiki=None
             dynamic_system_context=dynamic_system_context,
         ),
     )
+
+
+async def _call_anthropic_httpx_model(prompt: str, dynamic_system_context: str = "") -> Dict[str, Any]:
+    api_key = (os.environ.get("ANTHROPIC_API_KEY") or "").strip()
+    if not api_key:
+        return {
+            "answer": "AI provider is currently unavailable.",
+            "confidence": 0,
+            "error": "anthropic_api_key_missing",
+            "is_fallback": True,
+            "provider": "claude-haiku-4-5",
+        }
+
+    model_name = (os.environ.get("ANTHROPIC_MODEL")
+                  or "claude-haiku-4-5").strip()
+    system_text = CORE_SYSTEM_PROMPT
+    if dynamic_system_context:
+        system_text = f"{CORE_SYSTEM_PROMPT}\n\n{dynamic_system_context}"
+
+    headers = {
+        "x-api-key": api_key,
+        "anthropic-version": "2023-06-01",
+        "content-type": "application/json",
+    }
+    payload = {
+        "model": model_name,
+        "max_tokens": 800,
+        "system": system_text,
+        "messages": [{"role": "user", "content": prompt}],
+    }
+
+    try:
+        async with httpx.AsyncClient(timeout=MODEL_REQUEST_TIMEOUT_SECONDS) as client:
+            response = await client.post(
+                "https://api.anthropic.com/v1/messages",
+                headers=headers,
+                json=payload,
+            )
+            response.raise_for_status()
+            data = response.json()
+
+        chunks: List[str] = []
+        for block in (data.get("content") or []):
+            text = block.get("text") if isinstance(block, dict) else ""
+            if isinstance(text, str) and text.strip():
+                chunks.append(text)
+
+        response_text = "\n".join(chunks).strip()
+        if not response_text:
+            raise RuntimeError("empty_response")
+
+        structured = parse_structured_model_output(response_text)
+        return {
+            "answer": render_structured_markdown(structured),
+            "structured": structured,
+            "confidence": 0.78,
+            "is_fallback": False,
+            "provider": model_name,
+        }
+    except Exception as exc:
+        return {
+            "answer": "AI provider is currently unavailable.",
+            "confidence": 0,
+            "error": f"anthropic_httpx_error: {exc}",
+            "is_fallback": True,
+            "provider": model_name,
+        }
+
+
+async def _call_gemini_httpx_model(
+    prompt: str,
+    dynamic_system_context: str = "",
+    claude_error: str = "",
+) -> Dict[str, Any]:
+    api_key = (
+        os.environ.get("GEMINI_API_KEY")
+        or os.environ.get("GOOGLE_API_KEY")
+        or ""
+    ).strip()
+    model_name = (os.environ.get("GEMINI_MODEL") or "gemini-3-flash").strip()
+    if not model_name:
+        model_name = "gemini-3-flash"
+
+    if not api_key:
+        error = "gemini_api_key_missing"
+        if claude_error:
+            error = f"anthropic_error: {claude_error}; {error}"
+        return {
+            "answer": "AI provider is currently unavailable.",
+            "confidence": 0,
+            "error": error,
+            "is_fallback": True,
+            "provider": model_name,
+        }
+
+    endpoint = f"https://generativelanguage.googleapis.com/v1beta/models/{model_name}:generateContent"
+    payload = {
+        "system_instruction": {
+            "parts": [{"text": f"{CORE_SYSTEM_PROMPT}\n\n{dynamic_system_context}".strip()}],
+        },
+        "contents": [{"role": "user", "parts": [{"text": prompt}]}],
+        "generationConfig": {"maxOutputTokens": 800},
+    }
+
+    try:
+        async with httpx.AsyncClient(timeout=MODEL_REQUEST_TIMEOUT_SECONDS) as client:
+            response = await client.post(
+                endpoint,
+                params={"key": api_key},
+                json=payload,
+            )
+            response.raise_for_status()
+            data = response.json()
+
+        chunks: List[str] = []
+        for candidate in (data.get("candidates") or []):
+            content = candidate.get("content") if isinstance(
+                candidate, dict) else {}
+            for part in (content.get("parts") or []) if isinstance(content, dict) else []:
+                text = part.get("text") if isinstance(part, dict) else ""
+                if isinstance(text, str) and text.strip():
+                    chunks.append(text)
+
+        response_text = "\n".join(chunks).strip()
+        if not response_text:
+            raise RuntimeError("empty_response")
+
+        structured = parse_structured_model_output(response_text)
+        return {
+            "answer": render_structured_markdown(structured),
+            "structured": structured,
+            "confidence": 0.72,
+            "is_fallback": True,
+            "provider": model_name,
+        }
+    except Exception as exc:
+        error = f"gemini_httpx_error: {exc}"
+        if claude_error:
+            error = f"anthropic_error: {claude_error}; {error}"
+        return {
+            "answer": "AI provider is currently unavailable.",
+            "confidence": 0,
+            "error": error,
+            "is_fallback": True,
+            "provider": model_name,
+        }
+
+
+async def ask_ai_async(
+    question,
+    sefaria_sources,
+    customs,
+    user_memories=None,
+    wiki=None,
+    halachipedia=None,
+    mode="balanced",
+    community_lens="All",
+    tool_context=None,
+):
+    """Async AI entrypoint (httpx) for ASGI deployments."""
+    wiki = wiki or []
+    halachipedia = halachipedia or []
+    user_memories = user_memories or []
+    dynamic_system_context = _build_dynamic_system_context(
+        customs=customs,
+        user_memories=user_memories,
+        extra_context=tool_context,
+    )
+
+    input_validation = validate_user_query(question)
+    if input_validation["blocked"]:
+        refusal_subject = input_validation.get("refusal_subject")
+        blocked_answer = "Request blocked by security policy. Please submit a direct halakhic question."
+        blocked_error = "security_blocked_input"
+        if refusal_subject:
+            blocked_answer = _domain_refusal_message(refusal_subject)
+            blocked_error = "security_blocked_domain"
+
+        return {
+            "answer": blocked_answer,
+            "structured": parse_structured_model_output(json.dumps({
+                "ruling": blocked_answer,
+                "sources": [],
+                "is_prohibited": False,
+                "summary": "",
+                "practical_steps": [],
+                "rabbinic_disclaimer": RABBI_FINAL_RULING_FOOTER,
+            })),
+            "confidence": 0,
+            "error": blocked_error,
+            "is_fallback": True,
+            "security": {
+                "input": input_validation,
+                "output": {"blocked": False, "reason": ""},
+            },
+        }
+
+    sanitized_query = input_validation["sanitized_query"]
+    prompt = build_prompt(
+        question=sanitized_query,
+        sefaria_sources=sefaria_sources,
+        customs=customs,
+        user_memories=user_memories,
+        wiki=wiki,
+        halachipedia=halachipedia,
+        mode=mode,
+        community_lens=community_lens,
+        extra_context=tool_context,
+    )
+    prompt = _sanitize_prompt_payload(prompt)
+
+    result = await _call_anthropic_httpx_model(
+        prompt,
+        dynamic_system_context=dynamic_system_context,
+    )
+
+    result_error = str(result.get("error") or "")
+    if result_error and not result_error.startswith("security_blocked"):
+        result = await _call_gemini_httpx_model(
+            prompt,
+            dynamic_system_context=dynamic_system_context,
+            claude_error=result_error,
+        )
+
+    output_validation = validate_model_output(result.get("answer", ""))
+    result["answer"] = limit_words(
+        output_validation["safe_answer"],
+        max_words=MAX_RESPONSE_WORDS,
+    )
+    result["security"] = {
+        "input": input_validation,
+        "output": {
+            "blocked": output_validation["blocked"],
+            "reason": output_validation["reason"],
+        },
+    }
+
+    if output_validation["blocked"]:
+        result["error"] = result.get("error") or "security_blocked_output"
+        result["is_fallback"] = True
+
+    return result
+
+
+def summarize_with_gemini(segment_text: str, notes: str = "") -> Dict[str, Any]:
+    """Generate a concise chevruta study summary for semantic bookmarks."""
+    model_name = (os.environ.get("GEMINI_MODEL") or "gemini-3-flash").strip()
+    if not model_name:
+        model_name = "gemini-3-flash"
+
+    prompt = (
+        "You are preparing a concise chevruta study note. Return plain text only. "
+        "Summarize the key halakhic idea in 2-3 sentences, include one practical takeaway, "
+        "and avoid speculative claims.\n\n"
+        f"Segment:\n{segment_text}\n\n"
+        f"User Notes:\n{notes}"
+    )
+
+    try:
+        config_error = _configure_gemini_client()
+        if config_error or not genai:
+            return {"summary": "", "error": config_error or "gemini_sdk_missing"}
+
+        model = genai.GenerativeModel(model_name=model_name)
+        response = model.generate_content(
+            prompt,
+            generation_config={"max_output_tokens": 240},
+        )
+        summary = _extract_gemini_response_text(response)
+        return {"summary": summary.strip(), "error": ""}
+    except Exception as exc:
+        return {"summary": "", "error": str(exc)}
