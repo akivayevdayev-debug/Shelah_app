@@ -2907,12 +2907,17 @@ def devtools_reliability():
 def devtools_rls_audit():
     """Surface security posture for user-scoped Supabase table access."""
     has_supabase_token = bool(_extract_supabase_access_token())
+    user_id = _get_request_user_id()
     return jsonify({
         "strict_rls": STRICT_SUPABASE_RLS,
         "tables": {
             "user_preferences": SUPABASE_PREFS_TABLE,
             "user_memories": SUPABASE_USER_MEMORIES_TABLE,
             "study_bookmarks": SUPABASE_STUDY_BOOKMARKS_TABLE,
+        },
+        "user": {
+            "authenticated": bool(user_id),
+            "user_id": user_id or None,
         },
         "auth": {
             "supabase_access_token_present": has_supabase_token,
@@ -3122,6 +3127,7 @@ def semantic_bookmarks():
         return jsonify({"error": "Supabase not configured"}), 503
 
     table = supabase.table(SUPABASE_STUDY_BOOKMARKS_TABLE)
+    ref = ""
 
     try:
         if request.method == "GET":
@@ -3175,7 +3181,7 @@ def semantic_bookmarks():
     except Exception as e:
         _capture_backend_error("semantic_bookmark_failed", e, {
             "user_id": user_id,
-            "ref": ref if "ref" in locals() else "",
+            "ref": ref,
         })
         return jsonify({"error": "Failed to save semantic bookmark."}), 500
 
