@@ -14,6 +14,14 @@ async function buildAuthHeaders(baseHeaders) {
     return baseHeaders;
 }
 
+function hasAuthorizationHeader(headers) {
+    if (!headers || typeof headers !== "object") {
+        return false;
+    }
+
+    return Boolean(headers.Authorization || headers.authorization);
+}
+
 async function postClientError(payload) {
     try {
         await fetch(CLIENT_ERROR_ENDPOINT, {
@@ -93,6 +101,10 @@ export async function loadSemanticBookmarks() {
         const headers = await buildAuthHeaders({
             "Content-Type": "application/json",
         });
+        if (!hasAuthorizationHeader(headers)) {
+            return [];
+        }
+
         const response = await fetch(SEMANTIC_BOOKMARKS_ENDPOINT, {
             method: "GET",
             headers,
@@ -131,6 +143,9 @@ export async function saveSemanticBookmark(noteText = "") {
     const headers = await buildAuthHeaders({
         "Content-Type": "application/json",
     });
+    if (!hasAuthorizationHeader(headers)) {
+        throw new Error("Authentication required. Please sign in first.");
+    }
 
     const response = await fetch(SEMANTIC_BOOKMARKS_ENDPOINT, {
         method: "POST",
@@ -139,6 +154,10 @@ export async function saveSemanticBookmark(noteText = "") {
     });
 
     const data = await response.json().catch(() => ({}));
+    if (response.status === 401) {
+        throw new Error("Authentication required. Please sign in first.");
+    }
+
     if (!response.ok || !data?.ok) {
         throw new Error(String(data?.error || "Failed to save semantic bookmark"));
     }
