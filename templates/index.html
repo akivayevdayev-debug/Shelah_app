@@ -26,7 +26,10 @@
         };
     </script>
     {% if clerk_publishable_key %}
-    <script crossorigin="anonymous" src="https://cdn.jsdelivr.net/npm/@clerk/clerk-js@5/dist/clerk.browser.js"></script>
+    <script
+        crossorigin="anonymous"
+        data-clerk-publishable-key="{{ clerk_publishable_key }}"
+        src="https://cdn.jsdelivr.net/npm/@clerk/clerk-js@5/dist/clerk.browser.js"></script>
     {% endif %}
     <script>
         tailwind.config = {
@@ -2430,7 +2433,13 @@
             }
 
             try {
-                await window.Clerk.load({ publishableKey: window.APP_CLERK.publishableKey });
+                const publishableKey = String(window.APP_CLERK?.publishableKey || '').trim();
+                if (!publishableKey) {
+                    console.warn('Clerk publishable key is missing.');
+                    return;
+                }
+
+                await window.Clerk.load({ publishableKey });
                 window.Clerk.addListener(() => {
                     refreshAuthUi();
                 });
