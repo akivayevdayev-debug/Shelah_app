@@ -1318,11 +1318,9 @@ def _extract_google_translated_text(payload):
     return re.sub(r"\s+", " ", "".join(chunks)).strip()
 
 
-def _translate_hebrew_text_google(text):
+def _translate_text_google(text, source_lang, target_lang):
     value = str(text or "").strip()
     if not value:
-        return ""
-    if not _contains_hebrew_letters(value):
         return ""
 
     try:
@@ -1330,8 +1328,8 @@ def _translate_hebrew_text_google(text):
             GOOGLE_TRANSLATE_API_URL,
             params={
                 "client": "gtx",
-                "sl": "he",
-                "tl": "en",
+                "sl": str(source_lang or "auto").strip() or "auto",
+                "tl": str(target_lang or "en").strip() or "en",
                 "dt": "t",
                 "q": value,
             },
@@ -1351,17 +1349,18 @@ def _translate_hebrew_text_google(text):
         return ""
 
 
-def _translate_hebrew_text_mymemory(text):
+def _translate_text_mymemory(text, source_lang, target_lang):
     value = str(text or "").strip()
     if not value:
         return ""
-    if not _contains_hebrew_letters(value):
-        return ""
+
+    langpair_source = str(source_lang or "auto").strip() or "auto"
+    langpair_target = str(target_lang or "en").strip() or "en"
 
     try:
         resp = requests.get(
             MYMEMORY_TRANSLATE_API_URL,
-            params={"q": value, "langpair": "he|en"},
+            params={"q": value, "langpair": f"{langpair_source}|{langpair_target}"},
             timeout=2.5,
         )
         if not resp.ok:
@@ -1376,6 +1375,26 @@ def _translate_hebrew_text_mymemory(text):
         return translated
     except Exception:
         return ""
+
+
+def _translate_hebrew_text_google(text):
+    value = str(text or "").strip()
+    if not value or not _contains_hebrew_letters(value):
+        return ""
+    translated = _translate_text_google(value, "he", "en")
+    if not translated or _is_translation_echo(value, translated):
+        return ""
+    return translated
+
+
+def _translate_hebrew_text_mymemory(text):
+    value = str(text or "").strip()
+    if not value or not _contains_hebrew_letters(value):
+        return ""
+    translated = _translate_text_mymemory(value, "he", "en")
+    if not translated or _is_translation_echo(value, translated):
+        return ""
+    return translated
 
 
 def _translate_hebrew_text_online(text):
@@ -1396,6 +1415,35 @@ def _translate_hebrew_text_online(text):
     if not translated:
         translated = _translate_hebrew_text_mymemory(cache_key)
         source = "mymemory-translate"
+
+    TRANSLATION_CACHE[cache_key] = translated
+    TRANSLATION_SOURCE_CACHE[cache_key] = source if translated else ""
+
+    if not translated:
+        return "", ""
+
+    return translated, source
+
+
+def _translate_english_text_online(text):
+    """Best-effort English->Hebrew translation for Hebrew UI word-meaning output."""
+    value = _normalize_lookup_word(text)
+    if not value:
+        return "", ""
+
+    cache_key = f"en-he::{value[:320]}"
+    if cache_key in TRANSLATION_CACHE:
+        return TRANSLATION_CACHE.get(cache_key, ""), TRANSLATION_SOURCE_CACHE.get(cache_key, "")
+
+    translated = _translate_text_google(value, "en", "he")
+    source = "google-translate"
+
+    if not translated or _is_translation_echo(value, translated):
+        translated = _translate_text_mymemory(value, "en", "he")
+        source = "mymemory-translate"
+
+    if _is_translation_echo(value, translated):
+        translated = ""
 
     TRANSLATION_CACHE[cache_key] = translated
     TRANSLATION_SOURCE_CACHE[cache_key] = source if translated else ""
@@ -2474,6 +2522,8 @@ def get_engine():
 
 
 @app.route("/")
+@app.route("/settings")
+@app.route("/profile")
 def index():
     engine = get_engine()
     daily_study = engine.get_daily_learning()
@@ -3215,6 +3265,83 @@ def library_index():
     return jsonify(data)
 
 
+@app.route("/api/library/leaf-refs")
+def library_leaf_refs():
+    """Return leaf refs for a given index title to power section-grid selectors."""
+    from backend.sefaria_library import get_index_entry, get_index_leaf_refs
+
+    def _synthesize_section_refs(index_title, max_items=140):
+        entry = get_index_entry(index_title)
+        schema = entry.get("schema", {}) if isinstance(entry, dict) else {}
+        if not isinstance(schema, dict):
+            return []
+
+        lengths = schema.get("lengths") if isinstance(
+            schema.get("lengths"), list) else []
+        if not lengths:
+            return []
+
+        try:
+            first_level_count = int(lengths[0])
+        except (TypeError, ValueError):
+            return []
+
+        if first_level_count <= 1:
+            return []
+
+        section_names = schema.get("sectionNames") if isinstance(
+            schema.get("sectionNames"), list) else []
+        address_types = schema.get("addressTypes") if isinstance(
+            schema.get("addressTypes"), list) else []
+
+        first_section_name = str(section_names[0] or "").strip(
+        ).lower() if section_names else ""
+        first_address_type = str(address_types[0] or "").strip(
+        ).lower() if address_types else ""
+
+        refs = []
+        if first_section_name == "daf" or first_address_type == "talmud":
+            # Sefaria Talmud indexing starts at 2a.
+            for idx in range(first_level_count):
+                daf_num = (idx // 2) + 2
+                side = "a" if idx % 2 == 0 else "b"
+                refs.append(f"{index_title} {daf_num}{side}")
+                if len(refs) >= max_items:
+                    break
+            return refs
+
+        for idx in range(1, first_level_count + 1):
+            refs.append(f"{index_title} {idx}")
+            if len(refs) >= max_items:
+                break
+
+        return refs
+
+    requested_title = _decode_route_ref(request.args.get("title", ""))
+    title = str(requested_title or "").strip()
+    max_refs = _coerce_int(request.args.get("max"), 140,
+                           min_value=1, max_value=260)
+
+    if not title:
+        return jsonify({"title": "", "refs": []})
+
+    try:
+        refs = get_index_leaf_refs(title, max_refs=max_refs)
+    except Exception:
+        refs = []
+
+    if not isinstance(refs, list):
+        refs = []
+
+    if len(refs) <= 1:
+        refs = _synthesize_section_refs(title, max_items=max_refs)
+
+    return jsonify({
+        "title": title,
+        "refs": refs,
+    })
+
+
 @app.route("/api/library/popular")
 def library_popular():
     """Returns curated popular texts per category."""
@@ -3245,10 +3372,24 @@ def get_word_meaning():
     if not raw_word:
         return jsonify({"error": "Missing word parameter"}), 400
 
+    requested_lang = str(request.args.get(
+        "lang", "en") or "en").strip().lower()
+    if requested_lang not in {"en", "he"}:
+        requested_lang = "en"
+
     if _contains_hebrew_letters(raw_word):
         meaning, source = _lookup_hebrew_word_meaning(raw_word)
     else:
         meaning, source = _lookup_english_word_meaning(raw_word)
+
+    if meaning and requested_lang == "he" and not _contains_hebrew_letters(meaning):
+        translated_meaning, translated_source = _translate_english_text_online(
+            meaning)
+        if translated_meaning:
+            meaning = translated_meaning
+            source_parts = [part for part in [
+                source, translated_source] if part]
+            source = "+".join(source_parts)
 
     if not meaning:
         return jsonify({
@@ -3256,6 +3397,7 @@ def get_word_meaning():
             "meaning": "",
             "source": "",
             "status": "not_found",
+            "lang": requested_lang,
         }), 404
 
     return jsonify({
@@ -3263,6 +3405,7 @@ def get_word_meaning():
         "meaning": meaning,
         "source": source,
         "status": "ok",
+        "lang": requested_lang,
     })
 
 

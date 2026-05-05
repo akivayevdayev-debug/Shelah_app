@@ -15,7 +15,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Cardo:wght@400;700&family=Inter:wght@400;500;600&display=swap"
         rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
-    <link rel="stylesheet" href="/static/style.css?v=20260502-dark-mode-near-black-v17">
+    <link rel="stylesheet" href="/static/style.css?v=20260505-topbar-grid-hebrew-v18">
 
     <!-- FullCalendar -->
     <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.15/index.global.min.js"></script>
@@ -976,19 +976,16 @@
 
             <!-- READER: SCHOLARLY ARTICLE VIEW -->
             <article id="reader" class="hidden w-full max-w-4xl p-4 sm:p-6 lg:p-12 pb-24 sm:pb-32">
-                <header class="mb-10 text-center">
-                    <h1 id="readerTitle" class="text-2xl lg:text-3xl font-serif text-navy mb-4 font-bold"></h1>
-                    <p id="readerSubtitle" class="hidden text-sm text-slate-500 font-serif -mt-2 mb-4"></p>
-                    <div
-                        class="flex justify-center items-center gap-2 text-sm text-slate-500 uppercase tracking-widest font-bold">
-                        <span class="bg-slate-100 px-3 py-1 rounded" data-en="Sh'elah Synthesis"
-                            data-he="סינתזת שאילה">Sh'elah Synthesis</span>
-                    </div>
+                <div id="readerTopBar"
+                    class="hidden sticky z-40 mb-4 bg-[#fffaf1]/95 border border-[#ddd4c3] border-t-0 rounded-b-xl px-3 py-2 shadow-sm backdrop-blur-sm">
+                    <div class="flex flex-wrap items-center justify-between gap-2">
+                        <button id="readerPrevTopBarBtn" type="button"
+                            class="px-3 py-2 rounded-md border border-slate-300 bg-white text-slate-700 text-xs font-semibold hover:bg-slate-100 transition"
+                            data-en="Previous Section" data-he="קטע קודם">Previous Section</button>
 
-                    <div class="mt-4 flex justify-center">
                         <div class="relative text-left">
                             <button id="readerSettingsBtn" type="button"
-                                class="px-3 py-1.5 rounded-full bg-slate-100 border border-slate-200 text-slate-700 text-xs font-semibold hover:bg-slate-200 transition"
+                                class="px-3 py-2 rounded-md border border-slate-300 bg-white text-slate-700 text-xs font-semibold hover:bg-slate-100 transition"
                                 data-en="Reader Settings" data-he="הגדרות קריאה">Reader Settings</button>
 
                             <div id="readerSettingsPanel"
@@ -1078,6 +1075,20 @@
                                 </div>
                             </div>
                         </div>
+
+                        <button id="readerNextTopBarBtn" type="button"
+                            class="px-3 py-2 rounded-md border border-slate-300 bg-white text-slate-700 text-xs font-semibold hover:bg-slate-100 transition"
+                            data-en="Next Section" data-he="קטע הבא">Next Section</button>
+                    </div>
+                </div>
+
+                <header class="mb-10 text-center">
+                    <h1 id="readerTitle" class="text-2xl lg:text-3xl font-serif text-navy mb-4 font-bold"></h1>
+                    <p id="readerSubtitle" class="hidden text-sm text-slate-500 font-serif -mt-2 mb-4"></p>
+                    <div
+                        class="flex justify-center items-center gap-2 text-sm text-slate-500 uppercase tracking-widest font-bold">
+                        <span class="bg-slate-100 px-3 py-1 rounded" data-en="Sh'elah Synthesis"
+                            data-he="סינתזת שאילה">Sh'elah Synthesis</span>
                     </div>
 
                     <p id="shulAutoScrollStatus" class="hidden mt-2 text-xs text-emerald-700 font-semibold"
@@ -1098,12 +1109,6 @@
                 <!-- Media Elements (Videos/Audio) -->
                 <div id="readerMedia" class="mt-8 space-y-4"></div>
 
-                <div id="readerNavFloating" class="hidden reader-nav-floating" aria-label="Section navigation">
-                    <button id="readerPrevFloatingBtn" type="button"
-                        class="reader-nav-floating-btn reader-nav-prev">Previous Section</button>
-                    <button id="readerNextFloatingBtn" type="button"
-                        class="reader-nav-floating-btn reader-nav-next">Next Section</button>
-                </div>
             </article>
 
         </main>
@@ -1420,6 +1425,7 @@
         const answerModeSelect = document.getElementById('answerModeSelect');
         const communityLensSelect = document.getElementById('communityLensSelect');
         const bookmarkCurrentBtn = document.getElementById('bookmarkCurrentBtn');
+        const semanticBookmarkBtn = document.getElementById('semanticBookmarkBtn');
         const showLeftSidebarTopBtn = document.getElementById('showLeftSidebarTopBtn');
         const showRightSidebarTopBtn = document.getElementById('showRightSidebarTopBtn');
         const settingsMenuBtn = document.getElementById('settingsMenuBtn');
@@ -1460,6 +1466,8 @@
         const userProfileMenu = document.getElementById('userProfileMenu');
         const userProfileMenuLabel = document.getElementById('userProfileMenuLabel');
         const userProfileSignOutAction = document.getElementById('userProfileSignOutAction');
+        const userProfileSettingsLink = document.getElementById('userProfileSettingsLink');
+        const userProfileLink = document.getElementById('userProfileLink');
         const signInBtn = document.getElementById('signInBtn');
         const mobileNavBtn = document.getElementById('mobileNavBtn');
         const mobileBottomTabs = document.getElementById('mobileBottomTabs');
@@ -1497,9 +1505,9 @@
         const chapterGridTitle = document.getElementById('chapterGridTitle');
         const chapterGridSubtitle = document.getElementById('chapterGridSubtitle');
         const closeChapterGridModalBtn = document.getElementById('closeChapterGridModalBtn');
-        const readerNavFloating = document.getElementById('readerNavFloating');
-        const readerPrevFloatingBtn = document.getElementById('readerPrevFloatingBtn');
-        const readerNextFloatingBtn = document.getElementById('readerNextFloatingBtn');
+        const readerTopBar = document.getElementById('readerTopBar');
+        const readerPrevTopBarBtn = document.getElementById('readerPrevTopBarBtn');
+        const readerNextTopBarBtn = document.getElementById('readerNextTopBarBtn');
         const communityTimelineModal = document.getElementById('communityTimelineModal');
         const closeCommunityTimelineBtn = document.getElementById('closeCommunityTimelineBtn');
         const communityTimelineTitle = document.getElementById('communityTimelineTitle');
@@ -1524,6 +1532,8 @@
             seenRefs: new Set(),
         };
         window.currentTextPayloadChain = [];
+        let suggestionFetchSerial = 0;
+        let suppressSuggestionMenu = false;
 
         const APP_PREFS_KEY = "Sh'elahPrefs";
         const APP_SHELF_KEY = "Sh'elahShelf";
@@ -1741,13 +1751,37 @@
             'II Chronicles': 36,
         });
 
+        function normalizeChapterGridBookName(bookName) {
+            const raw = String(bookName || '').replace(/\s+/g, ' ').trim();
+            if (!raw) return '';
+
+            const aliasMap = {
+                '1 Samuel': 'I Samuel',
+                '2 Samuel': 'II Samuel',
+                '1 Kings': 'I Kings',
+                '2 Kings': 'II Kings',
+                '1 Chronicles': 'I Chronicles',
+                '2 Chronicles': 'II Chronicles',
+            };
+
+            return aliasMap[raw] || raw;
+        }
+
         function parseBookAndChapter(ref) {
             const raw = String(ref || '').replace(/\s+/g, ' ').trim();
-            const match = raw.match(/^(.+?)\s+(\d+)$/);
-            if (!match) return null;
+            if (!raw) return null;
+
+            const normalizedBookOnly = normalizeChapterGridBookName(raw);
+            if (CHAPTER_GRID_BOOKS[normalizedBookOnly]) {
+                return { book: normalizedBookOnly, chapter: 1 };
+            }
+
+            const withChapterMatch = raw.match(/^(.+?)\s+(\d+)(?::\d+)?$/);
+            if (!withChapterMatch) return null;
+
             return {
-                book: String(match[1] || '').trim(),
-                chapter: Number(match[2] || 0),
+                book: normalizeChapterGridBookName(String(withChapterMatch[1] || '').trim()),
+                chapter: Number(withChapterMatch[2] || 0),
             };
         }
 
@@ -1757,6 +1791,41 @@
             const count = CHAPTER_GRID_BOOKS[parsed.book];
             if (!count || count <= 1) return null;
             return { book: parsed.book, chapters: count };
+        }
+
+        function parseIndexAndSection(ref) {
+            const raw = String(ref || '').replace(/\s+/g, ' ').trim();
+            if (!raw) return null;
+
+            const chapterCandidate = raw.split(':')[0].trim();
+            const match = chapterCandidate.match(/^(.+?)\s+(\d+[ab]?)$/i);
+            if (!match) return null;
+
+            const indexTitle = String(match[1] || '').replace(/\s+,/g, ',').trim();
+            const sectionToken = String(match[2] || '').trim().toLowerCase();
+            if (!indexTitle || !sectionToken) return null;
+
+            return {
+                indexTitle,
+                sectionToken,
+            };
+        }
+
+        function shouldOpenReferenceGrid(ref) {
+            const parsed = parseIndexAndSection(ref);
+            if (!parsed) return null;
+
+            // Open broad section selector when users start from a first-section ref.
+            if (!/^(1|1a|2a)$/i.test(parsed.sectionToken)) {
+                return null;
+            }
+
+            const tanakhBookName = normalizeChapterGridBookName(parsed.indexTitle);
+            if (CHAPTER_GRID_BOOKS[tanakhBookName]) {
+                return null;
+            }
+
+            return parsed.indexTitle;
         }
 
         function detectRegionalDefaults() {
@@ -1809,6 +1878,7 @@
             groupedCommentaries: [],
             wordInfo: null,
             selectedText: '',
+            activeCommentaryRef: '',
         };
         let commentaryAvailableForCurrentSelection = false;
         let syncedPrefsUserId = null;
@@ -2507,6 +2577,13 @@
             return Boolean(window.APP_CLERK && window.APP_CLERK.publishableKey);
         }
 
+        function getAuthRouteIntent() {
+            const normalizedPath = String(window.location.pathname || '/').replace(/\/+$/, '') || '/';
+            if (normalizedPath === '/settings') return 'settings';
+            if (normalizedPath === '/profile') return 'profile';
+            return '';
+        }
+
         async function refreshAuthUi() {
             if (!authControls) return;
             if (!isClerkConfigured()) {
@@ -2556,10 +2633,12 @@
                 }
 
                 await window.Clerk.load({ publishableKey });
-                window.Clerk.addListener(() => {
-                    refreshAuthUi();
+                window.Clerk.addListener(async () => {
+                    await refreshAuthUi();
+                    await handleAuthRouteIntent();
                 });
                 await refreshAuthUi();
+                await handleAuthRouteIntent();
             } catch (err) {
                 console.error('Failed to initialize Clerk:', err);
             }
@@ -2584,8 +2663,7 @@
         async function handleSignIn() {
             if (!window.Clerk) return;
             await window.Clerk.openSignIn({
-                afterSignInUrl: window.location.href,
-                afterSignUpUrl: window.location.href,
+                fallbackRedirectUrl: window.location.href,
             });
         }
 
@@ -2593,6 +2671,51 @@
             if (!window.Clerk) return;
             await window.Clerk.signOut();
             await refreshAuthUi();
+        }
+
+        async function openClerkUserProfile(intent = 'profile') {
+            if (!window.Clerk) return false;
+
+            if (!window.Clerk.user) {
+                await handleSignIn();
+                return false;
+            }
+
+            try {
+                if (typeof window.Clerk.openUserProfile === 'function') {
+                    // Clerk handles internal settings/profile sections inside this modal.
+                    window.Clerk.openUserProfile();
+                    closeUserProfileMenu();
+                    return true;
+                }
+            } catch (error) {
+                console.warn(`Unable to open Clerk ${intent} modal:`, error);
+            }
+
+            return false;
+        }
+
+        async function handleAuthRouteIntent() {
+            const intent = getAuthRouteIntent();
+            if (!intent) return;
+
+            if (!isClerkConfigured()) {
+                try {
+                    window.history.replaceState({}, '', '/');
+                } catch (_) {
+                    // Non-critical history update failure.
+                }
+                return;
+            }
+
+            const opened = await openClerkUserProfile(intent);
+            if (!opened) return;
+
+            try {
+                window.history.replaceState({}, '', '/');
+            } catch (_) {
+                // Non-critical history update failure.
+            }
         }
 
         // ─── CLIENT-SIDE CACHE FOR PRAYERS & COMMUNITIES ─────────────────────
@@ -2920,11 +3043,21 @@
             }
         }
 
+        function syncReaderTopBarOffset() {
+            const topbar = document.querySelector('.topbar');
+            const fallback = 69;
+            const topbarHeight = topbar
+                ? Math.max(fallback, Math.round(topbar.getBoundingClientRect().height || fallback))
+                : fallback;
+            document.documentElement.style.setProperty('--reader-topbar-offset', `${topbarHeight + 6}px`);
+        }
+
         function applySidebarVisibility() {
             const showLeftSidebar = appState.prefs.showLeftSidebar !== false;
-            const showRightSidebar = appState.prefs.showRightSidebar !== false;
             const mobile = isMobileViewport();
             const shulMode = Boolean(appState.prefs.shulMode);
+            const homeVisible = Boolean(homeGrid && homeGrid.style.display !== 'none' && reader?.classList.contains('hidden'));
+            const showRightSidebar = (appState.prefs.showRightSidebar !== false) && !homeVisible;
             const leftHiddenDesktop = !mobile && (!showLeftSidebar || shulMode);
             const rightHiddenDesktop = !mobile && (!showRightSidebar || shulMode);
 
@@ -2967,7 +3100,11 @@
             }
 
             if (showRightSidebarTopBtn) {
-                const showRightRestore = !mobile && !shulMode && !showRightSidebar && commentaryAvailableForCurrentSelection;
+                const showRightRestore = !mobile
+                    && !shulMode
+                    && !homeVisible
+                    && !showRightSidebar
+                    && commentaryAvailableForCurrentSelection;
                 showRightSidebarTopBtn.style.display = showRightRestore ? 'flex' : 'none';
             }
         }
@@ -3561,6 +3698,13 @@
 
         async function fetchOmniboxSuggestions(query) {
             const q = (query || '').trim();
+            const fetchSerial = ++suggestionFetchSerial;
+
+            if (suppressSuggestionMenu) {
+                hideSearchSuggestions();
+                return;
+            }
+
             if (q.length < 2) {
                 hideSearchSuggestions();
                 return;
@@ -3574,6 +3718,9 @@
                     return;
                 }
                 const results = await resp.json();
+                if (suppressSuggestionMenu || fetchSerial !== suggestionFetchSerial) {
+                    return;
+                }
                 const rawItems = Array.isArray(results) ? results : [];
                 appState.suggestionItems = rawItems;
                 appState.activeSuggestionIndex = -1;
@@ -3643,6 +3790,102 @@
             saveShelfData(shelf);
             renderPersonalShelf();
             updateBookmarkButton();
+        }
+
+        function getSemanticBookmarkPayload() {
+            const current = appState.currentView;
+            if (!current || !String(current.value || '').trim()) {
+                return null;
+            }
+
+            const activeSelection = String(window.getSelection?.()?.toString() || '').replace(/\s+/g, ' ').trim();
+            let segmentText = activeSelection;
+
+            if (!segmentText && Array.isArray(window.currentTextPayload?.lines)) {
+                segmentText = window.currentTextPayload.lines
+                    .slice(0, 12)
+                    .map((line) => {
+                        if (!line || typeof line !== 'object') return '';
+                        const preferred = isHebrewMode()
+                            ? (line.he || line.en)
+                            : (line.en || line.he);
+                        return normalizeDisplayText(preferred || '');
+                    })
+                    .filter(Boolean)
+                    .join(' ')
+                    .trim();
+            }
+
+            if (!segmentText) {
+                segmentText = String(document.getElementById('readerContent')?.innerText || '')
+                    .replace(/\s+/g, ' ')
+                    .trim();
+            }
+
+            if (!segmentText) {
+                return null;
+            }
+
+            return {
+                ref: String(current.value || '').trim(),
+                label: String(current.label || current.value || '').trim(),
+                segment_text: segmentText.slice(0, 6000),
+                notes: '',
+            };
+        }
+
+        function setSemanticBookmarkBusy(isBusy) {
+            if (!semanticBookmarkBtn) return;
+            semanticBookmarkBtn.disabled = Boolean(isBusy);
+            semanticBookmarkBtn.textContent = isBusy
+                ? t('Saving Note...', 'שומר הערה...')
+                : t('Save Study Note', 'שמור הערת לימוד');
+        }
+
+        async function saveSemanticBookmark() {
+            const payload = getSemanticBookmarkPayload();
+            if (!payload) {
+                window.alert(t('Open a text and optionally highlight a passage first.', 'פתח טקסט ובחר קטע לפני שמירת הערת לימוד.'));
+                return;
+            }
+
+            if (isClerkConfigured() && !window.Clerk?.user) {
+                await handleSignIn();
+                return;
+            }
+
+            setSemanticBookmarkBusy(true);
+            try {
+                const headers = await authHeaders({ 'Content-Type': 'application/json' });
+                const response = await fetch('/api/bookmarks/semantic', {
+                    method: 'POST',
+                    headers,
+                    body: JSON.stringify(payload),
+                });
+
+                const data = await response.json().catch(() => ({}));
+                if (response.status === 401) {
+                    window.alert(t('Please sign in to save study notes.', 'יש להתחבר כדי לשמור הערות לימוד.'));
+                    return;
+                }
+                if (!response.ok) {
+                    throw new Error(data?.error || `HTTP ${response.status}`);
+                }
+
+                const summary = String(data?.item?.ai_summary || '').trim();
+                const summaryError = String(data?.summary_error || '').trim();
+                if (summary) {
+                    window.alert(`${t('Study note saved. Summary:', 'הערת לימוד נשמרה. סיכום:')} ${summary.slice(0, 260)}`);
+                } else if (summaryError) {
+                    window.alert(t('Study note saved, but AI summary is currently unavailable.', 'הערת הלימוד נשמרה, אך סיכום ה-AI אינו זמין כרגע.'));
+                } else {
+                    window.alert(t('Study note saved.', 'הערת לימוד נשמרה.'));
+                }
+            } catch (error) {
+                window.alert(`${t('Could not save study note:', 'לא ניתן לשמור הערת לימוד:')} ${error.message || error}`);
+            } finally {
+                setSemanticBookmarkBusy(false);
+            }
         }
 
         function renderShelfList(items) {
@@ -3828,6 +4071,7 @@
             selectionCommentaryState.groupedCommentaries = [];
             selectionCommentaryState.wordInfo = null;
             selectionCommentaryState.selectedText = '';
+            selectionCommentaryState.activeCommentaryRef = '';
             setCommentaryAvailability(false);
         }
 
@@ -3889,6 +4133,34 @@
             });
 
             return refs.slice(0, 24);
+        }
+
+        async function fetchCommentaryLinksWithFallback(refCandidates) {
+            const candidates = Array.isArray(refCandidates) ? refCandidates : [];
+            const seen = new Set();
+
+            for (const candidate of candidates) {
+                const normalized = String(candidate || '').replace(/\s+/g, ' ').trim();
+                if (!normalized) continue;
+
+                const normalizedKey = normalized.toLowerCase();
+                if (seen.has(normalizedKey)) continue;
+                seen.add(normalizedKey);
+
+                try {
+                    const resp = await fetch(`/api/text/${encodeURIComponent(normalized)}/links`);
+                    if (!resp.ok) continue;
+                    const payload = await resp.json();
+                    const refs = extractCommentaryRefs(payload);
+                    if (refs.length) {
+                        return { links: payload, resolvedRef: normalized };
+                    }
+                } catch (_) {
+                    // Try the next fallback reference.
+                }
+            }
+
+            return { links: {}, resolvedRef: '' };
         }
 
         function getCommentaryAuthorLabel(ref) {
@@ -3962,6 +4234,8 @@
         function renderSelectionInsightsChooser() {
             if (!selectionInsightsBody) return;
 
+            selectionCommentaryState.activeCommentaryRef = '';
+
             const groupedCommentaries = selectionCommentaryState.groupedCommentaries;
             if (!Array.isArray(groupedCommentaries) || !groupedCommentaries.length) {
                 selectionInsightsBody.innerHTML = '';
@@ -3988,6 +4262,34 @@
 
             selectionInsightsBody.innerHTML = html;
             selectionInsightsHint.textContent = t('Selected text:', 'הטקסט שנבחר:') + ` ${selectionCommentaryState.selectedText}`;
+        }
+
+        async function refreshSelectionWordMeaning() {
+            const word = String(selectionCommentaryState.wordInfo?.word || '').trim();
+            if (!word) return;
+
+            const lang = isHebrewMode() ? 'he' : 'en';
+            try {
+                const resp = await fetch(`/api/word/meaning?word=${encodeURIComponent(word)}&lang=${encodeURIComponent(lang)}`);
+                if (!resp.ok) return;
+
+                const payload = await resp.json();
+                if (!payload?.meaning) return;
+
+                selectionCommentaryState.wordInfo = {
+                    word: payload.word || word,
+                    meaning: payload.meaning || '',
+                };
+
+                if (selectionCommentaryState.activeCommentaryRef) {
+                    await openCommentaryInline(selectionCommentaryState.activeCommentaryRef);
+                    return;
+                }
+
+                renderSelectionInsightsChooser();
+            } catch (_) {
+                // Keep existing meaning when lookup refresh fails.
+            }
         }
 
         function renderInlineCommentaryLines(data) {
@@ -4057,6 +4359,8 @@
             const commentaryRef = String(ref || '').trim();
             if (!commentaryRef || !selectionInsightsBody) return;
 
+            selectionCommentaryState.activeCommentaryRef = commentaryRef;
+
             selectionInsightsHint.textContent = t('Loading commentary...', 'טוען פירוש...');
             selectionInsightsBody.innerHTML = `
                 <div class="rounded-lg border border-slate-200 bg-white px-3 py-3">
@@ -4095,6 +4399,7 @@
                 `;
                 selectionInsightsHint.textContent = t('Viewing commentary:', 'מציג פירוש:') + ` ${commentaryRef}`;
             } catch (_) {
+                selectionCommentaryState.activeCommentaryRef = '';
                 selectionInsightsBody.innerHTML = `
                     <div class="rounded-lg border border-red-200 bg-red-50 px-3 py-3">
                         <p class="text-sm text-red-700 mb-2">${t('Unable to load commentary text right now.', 'לא ניתן לטעון כרגע את טקסט הפירוש.')}</p>
@@ -4166,6 +4471,22 @@
 
             const currentRef = String(window.currentTextPayload?.ref || appState.currentView?.value || '').trim();
             const segmentRef = buildSegmentReference(currentRef, segmentRow?.dataset?.segment || '');
+            const commentaryRefCandidates = [];
+
+            if (segmentRef) {
+                commentaryRefCandidates.push(segmentRef);
+            }
+            if (currentRef) {
+                commentaryRefCandidates.push(currentRef);
+            }
+            if (currentRef.includes(':')) {
+                commentaryRefCandidates.push(currentRef.split(':')[0]);
+            }
+
+            const talmudDafBaseMatch = currentRef.match(/^(.+?\s+\d+[ab])(?::\d+)?$/i);
+            if (talmudDafBaseMatch?.[1]) {
+                commentaryRefCandidates.push(String(talmudDafBaseMatch[1]).trim());
+            }
 
             const singleWord = selectedText.split(/\s+/).length === 1;
             const cleanWord = singleWord
@@ -4174,14 +4495,11 @@
 
             selectionInsightsHint.textContent = t('Loading selected passage tools...', 'טוען כלים לקטע שנבחר...');
 
-            const commentaryPromise = segmentRef
-                ? fetch(`/api/text/${encodeURIComponent(segmentRef)}/links`)
-                    .then((resp) => (resp.ok ? resp.json() : {}))
-                    .catch(() => ({}))
-                : Promise.resolve({});
+            const commentaryPromise = fetchCommentaryLinksWithFallback(commentaryRefCandidates);
+            const wordMeaningLang = isHebrewMode() ? 'he' : 'en';
 
             const wordPromise = cleanWord
-                ? fetch(`/api/word/meaning?word=${encodeURIComponent(cleanWord)}`)
+                ? fetch(`/api/word/meaning?word=${encodeURIComponent(cleanWord)}&lang=${encodeURIComponent(wordMeaningLang)}`)
                     .then(async (resp) => {
                         if (!resp.ok) return null;
                         return await resp.json();
@@ -4189,8 +4507,21 @@
                     .catch(() => null)
                 : Promise.resolve(null);
 
-            const [links, wordInfo] = await Promise.all([commentaryPromise, wordPromise]);
-            const groupedCommentaries = groupCommentaryRefsByAuthor(extractCommentaryRefs(links));
+            const [{ links }, wordInfo] = await Promise.all([commentaryPromise, wordPromise]);
+
+            let commentaryRefs = extractCommentaryRefs(links);
+            if (!commentaryRefs.length) {
+                const tanakhMatch = currentRef.match(/^(.+?)\s+(\d+)(?::\d+)?$/);
+                const tanakhBook = normalizeChapterGridBookName(tanakhMatch?.[1] || '');
+                if (tanakhBook && CHAPTER_GRID_BOOKS[tanakhBook]) {
+                    const fallbackVerseRef = currentRef.includes(':')
+                        ? currentRef
+                        : `${tanakhBook} ${tanakhMatch?.[2] || 1}:1`;
+                    commentaryRefs = [`Rashi on ${fallbackVerseRef}`];
+                }
+            }
+
+            const groupedCommentaries = groupCommentaryRefsByAuthor(commentaryRefs);
 
             if (!groupedCommentaries.length) {
                 collapseCommentaryPanel();
@@ -4431,36 +4762,29 @@
             const scrollState = preserveScroll ? captureReaderScrollState() : null;
             const layout = getNormalizedReaderLayout();
 
-            let navHTML = '<div class="flex justify-between mb-8 text-sm">';
-            if (data.prev) {
-                navHTML += `<button onclick="readText('${data.prev}', { skipNavigationGrid: true })" class="px-4 py-2 bg-slate-100 rounded hover:bg-slate-200 font-serif">${t('Previous section', 'קטע קודם')}: ${data.prev}</button>`;
-            } else {
-                navHTML += '<span></span>';
-            }
-            if (data.next) {
-                navHTML += `<button onclick="readText('${data.next}', { skipNavigationGrid: true })" class="px-4 py-2 bg-slate-100 rounded hover:bg-slate-200 font-serif">${t('Next section', 'קטע הבא')}: ${data.next}</button>`;
-            }
-            navHTML += '</div>';
-            readerContent.innerHTML = navHTML;
+            readerContent.innerHTML = '';
 
-            if (readerNavFloating && readerPrevFloatingBtn && readerNextFloatingBtn) {
+            if (readerTopBar) {
                 const hasPrev = Boolean(data.prev);
                 const hasNext = Boolean(data.next);
+                readerTopBar.classList.remove('hidden');
 
-                readerNavFloating.classList.toggle('hidden', !(hasPrev || hasNext));
-
-                readerPrevFloatingBtn.disabled = !hasPrev;
-                readerPrevFloatingBtn.classList.toggle('hidden', !hasPrev);
-                if (hasPrev) {
-                    readerPrevFloatingBtn.textContent = t('Previous Section', 'קטע קודם');
-                    readerPrevFloatingBtn.onclick = () => readText(data.prev, { skipNavigationGrid: true });
+                if (readerPrevTopBarBtn) {
+                    readerPrevTopBarBtn.disabled = !hasPrev;
+                    readerPrevTopBarBtn.classList.toggle('hidden', !hasPrev);
+                    readerPrevTopBarBtn.textContent = t('Previous Section', 'קטע קודם');
+                    readerPrevTopBarBtn.onclick = hasPrev
+                        ? () => readText(data.prev, { skipNavigationGrid: true })
+                        : null;
                 }
 
-                readerNextFloatingBtn.disabled = !hasNext;
-                readerNextFloatingBtn.classList.toggle('hidden', !hasNext);
-                if (hasNext) {
-                    readerNextFloatingBtn.textContent = t('Next Section', 'קטע הבא');
-                    readerNextFloatingBtn.onclick = () => readText(data.next, { skipNavigationGrid: true });
+                if (readerNextTopBarBtn) {
+                    readerNextTopBarBtn.disabled = !hasNext;
+                    readerNextTopBarBtn.classList.toggle('hidden', !hasNext);
+                    readerNextTopBarBtn.textContent = t('Next Section', 'קטע הבא');
+                    readerNextTopBarBtn.onclick = hasNext
+                        ? () => readText(data.next, { skipNavigationGrid: true })
+                        : null;
                 }
             }
 
@@ -4914,6 +5238,11 @@
         }
 
         bookmarkCurrentBtn.addEventListener('click', toggleBookmarkCurrent);
+        if (semanticBookmarkBtn) {
+            semanticBookmarkBtn.addEventListener('click', () => {
+                void saveSemanticBookmark();
+            });
+        }
         if (mobileNavBtn) {
             mobileNavBtn.addEventListener('click', () => {
                 setMobileSearchExpanded(false);
@@ -4999,6 +5328,7 @@
         window.addEventListener('scroll', handleInfiniteReaderScroll, { passive: true });
 
         window.addEventListener('resize', () => {
+            syncReaderTopBarOffset();
             applySidebarVisibility();
             if (appState.prefs.shulMode) {
                 applyShulMode();
@@ -5046,6 +5376,14 @@
                 if (!targetRef) return;
                 closeChapterGrid();
                 readText(targetRef, { skipNavigationGrid: true });
+            });
+        }
+
+        if (chapterGridModal) {
+            chapterGridModal.addEventListener('click', (e) => {
+                if (e.target === chapterGridModal) {
+                    closeChapterGrid();
+                }
             });
         }
 
@@ -5457,6 +5795,112 @@
             chapterGridModal.classList.add('flex');
         }
 
+        function getReferenceGridItemLabel(indexTitle, ref, index) {
+            const safeRef = String(ref || '').replace(/\s+/g, ' ').trim();
+            if (!safeRef) {
+                return `${isHebrewMode() ? 'קטע' : 'Section'} ${index + 1}`;
+            }
+
+            const safeTitle = String(indexTitle || '').replace(/\s+/g, ' ').trim();
+            if (!safeTitle) return safeRef;
+
+            const lowerRef = safeRef.toLowerCase();
+            const lowerTitle = safeTitle.toLowerCase();
+
+            if (!lowerRef.startsWith(lowerTitle)) {
+                return safeRef;
+            }
+
+            const trimmed = safeRef.slice(safeTitle.length).replace(/^,\s*/, '').trim();
+            return trimmed || safeRef;
+        }
+
+        function openReferenceGrid(indexTitle, refs) {
+            if (!chapterGridModal || !chapterGridItems) return;
+
+            const safeTitle = String(indexTitle || '').replace(/\s+/g, ' ').trim();
+            const normalizedRefs = Array.isArray(refs)
+                ? refs.map((ref) => String(ref || '').replace(/\s+/g, ' ').trim()).filter(Boolean)
+                : [];
+
+            if (!safeTitle || normalizedRefs.length < 2) {
+                return;
+            }
+
+            if (chapterGridTitle) {
+                chapterGridTitle.textContent = isHebrewMode()
+                    ? `בחר קטע: ${safeTitle}`
+                    : `${safeTitle} Sections`;
+            }
+            if (chapterGridSubtitle) {
+                chapterGridSubtitle.textContent = isHebrewMode()
+                    ? 'בחר קטע לפתיחה מהירה'
+                    : 'Select a section to open';
+            }
+
+            const items = normalizedRefs
+                .slice(0, 180)
+                .map((targetRef, idx) => {
+                    const label = getReferenceGridItemLabel(safeTitle, targetRef, idx);
+                    return `
+                        <button type="button"
+                            class="chapter-grid-item"
+                            data-ref="${escapeHtml(targetRef)}"
+                            title="${escapeHtml(targetRef)}">
+                            <span class="chapter-grid-item-number">${escapeHtml(label)}</span>
+                            <span class="chapter-grid-item-label">${escapeHtml(isHebrewMode() ? 'קטע' : 'Section')}</span>
+                        </button>
+                    `;
+                })
+                .join('');
+
+            chapterGridItems.innerHTML = items;
+            chapterGridModal.classList.remove('hidden');
+            chapterGridModal.classList.add('flex');
+        }
+
+        async function fetchIndexLeafRefs(indexTitle) {
+            const normalizedTitle = String(indexTitle || '').replace(/\s+/g, ' ').trim();
+            if (!normalizedTitle) return [];
+
+            const cacheKey = normalizeLibraryLookupKey(normalizedTitle) || normalizedTitle.toLowerCase();
+            if (indexLeafRefCache.has(cacheKey)) {
+                return indexLeafRefCache.get(cacheKey);
+            }
+
+            try {
+                const params = new URLSearchParams({ title: normalizedTitle, max: '180' });
+                const resp = await fetch(`/api/library/leaf-refs?${params.toString()}`);
+                if (!resp.ok) {
+                    indexLeafRefCache.set(cacheKey, []);
+                    return [];
+                }
+
+                const payload = await resp.json();
+                const refs = Array.isArray(payload?.refs)
+                    ? payload.refs.map((ref) => String(ref || '').replace(/\s+/g, ' ').trim()).filter(Boolean)
+                    : [];
+                indexLeafRefCache.set(cacheKey, refs);
+                return refs;
+            } catch (_) {
+                indexLeafRefCache.set(cacheKey, []);
+                return [];
+            }
+        }
+
+        async function maybeOpenReferenceGrid(ref) {
+            const indexTitle = shouldOpenReferenceGrid(ref);
+            if (!indexTitle) return false;
+
+            const leafRefs = await fetchIndexLeafRefs(indexTitle);
+            if (!Array.isArray(leafRefs) || leafRefs.length < 2) {
+                return false;
+            }
+
+            openReferenceGrid(indexTitle, leafRefs);
+            return true;
+        }
+
         async function loadPrayersMenu() {
             const modalList = document.getElementById('prayersList');
 
@@ -5559,10 +6003,24 @@
             `;
         }
 
+        async function openPrayerEntry(prayerName) {
+            const safeName = String(prayerName || '').trim();
+            if (!safeName) return;
+
+            const leafRefs = await fetchIndexLeafRefs(safeName);
+            if (Array.isArray(leafRefs) && leafRefs.length > 1) {
+                closeTextsMenu();
+                openReferenceGrid(safeName, leafRefs);
+                return;
+            }
+
+            await displayPrayer(safeName);
+        }
+
         function buildPrayerNavigatorButton(name) {
             const label = getPrayerDisplayName(name);
             const encodedName = encodeURIComponent(name);
-            return `<button onclick="displayPrayer(decodeURIComponent('${encodedName}'))" class="text-left text-slate-600 hover:text-[#00827f] text-sm w-full py-0.5">${escapeHtml(label)}</button>`;
+            return `<button onclick="openPrayerEntry(decodeURIComponent('${encodedName}'))" class="text-left text-slate-600 hover:text-[#00827f] text-sm w-full py-0.5">${escapeHtml(label)}</button>`;
         }
 
         function classifyPrayerGroup(entry) {
@@ -5660,7 +6118,7 @@
                 items.forEach((entry) => {
                     const label = getPrayerDisplayName(entry.name);
                     const encodedName = encodeURIComponent(entry.name);
-                    html += `<button onclick="displayPrayer(decodeURIComponent('${encodedName}'))" class="block w-full text-left px-3 py-2 rounded hover:bg-[#00827f]/10 transition text-slate-700 hover:text-[#00827f]">${escapeHtml(label)}</button>`;
+                    html += `<button onclick="openPrayerEntry(decodeURIComponent('${encodedName}'))" class="block w-full text-left px-3 py-2 rounded hover:bg-[#00827f]/10 transition text-slate-700 hover:text-[#00827f]">${escapeHtml(label)}</button>`;
                 });
                 html += `</div>`;
             });
@@ -5718,7 +6176,7 @@
             closeTextsMenu();
             closeReaderSettingsPanel();
             setReaderSubtitle('');
-            readerNavFloating?.classList.add('hidden');
+            readerTopBar?.classList.add('hidden');
 
             try {
                 await ensurePrayerListLoaded();
@@ -5850,7 +6308,7 @@
             closeTextsMenu();
             closeReaderSettingsPanel();
             setReaderSubtitle('');
-            readerNavFloating?.classList.add('hidden');
+            readerTopBar?.classList.add('hidden');
 
             try {
                 let communityData = textsCache.communities[communityName];
@@ -5970,6 +6428,7 @@
 
         function goHome() {
             closeMobilePanels();
+            setMobileSearchExpanded(false);
             closeReaderSettingsPanel();
             reader.classList.add('hidden');
             homeGrid.style.display = 'block';
@@ -5982,6 +6441,7 @@
             window.currentPrayerName = null;
             collapseCommentaryPanel();
             resetSelectionInsights();
+            applySidebarVisibility();
             clearCompareReference(false);
             updateBookmarkButton();
             scrollPrimaryToTop('auto');
@@ -6157,25 +6617,38 @@
         async function openSearchTarget(target, fallbackQuestion = '') {
             if (!target) return false;
 
+            const clearSearchAfterNavigation = () => {
+                suppressSuggestionMenu = true;
+                hideSearchSuggestions();
+                appState.suggestionItems = [];
+                appState.activeSuggestionIndex = -1;
+                if (searchInput) {
+                    searchInput.value = '';
+                    searchInput.blur();
+                }
+                setMobileSearchExpanded(false);
+            };
+
             if (target.type === 'prayer') {
                 await displayPrayer(target.value);
-                hideSearchSuggestions();
+                clearSearchAfterNavigation();
                 return true;
             }
 
             if (target.type === 'community') {
                 await displayCommunity(target.value);
-                hideSearchSuggestions();
+                clearSearchAfterNavigation();
                 return true;
             }
 
             if (target.type === 'text') {
                 await readText(target.value);
-                hideSearchSuggestions();
+                clearSearchAfterNavigation();
                 return true;
             }
 
             if (target.type === 'ask') {
+                suppressSuggestionMenu = false;
                 await handleAiSearch(target.value || fallbackQuestion);
                 hideSearchSuggestions();
                 return true;
@@ -6330,6 +6803,7 @@
         }
 
         const textPayloadCache = new Map();
+        const indexLeafRefCache = new Map();
         let textLoadServiceWorkerRecoveryAttempted = false;
 
         function cacheTextPayload(ref, payload) {
@@ -6442,6 +6916,10 @@
                 return;
             }
 
+            if (!skipNavigationGrid && await maybeOpenReferenceGrid(normalizedRequestRef)) {
+                return;
+            }
+
             homeGrid.style.display = 'none';
             reader.classList.add('hidden');
             loadingOverlay.classList.remove('hidden');
@@ -6449,7 +6927,7 @@
             closeChapterGrid();
             closeReaderSettingsPanel();
             setReaderSubtitle('');
-            readerNavFloating?.classList.add('hidden');
+            readerTopBar?.classList.add('hidden');
 
             document.getElementById('readerTitle').innerText = normalizedRequestRef || String(ref || '');
             document.getElementById('readerContent').innerHTML = '';
@@ -6468,7 +6946,7 @@
                     document.getElementById('readerTitle').innerText = normalizedRequestRef || String(ref || '');
                     document.getElementById('readerContent').innerHTML =
                         `<p class="text-red-500">${t('Could not load text:', 'לא ניתן לטעון את הטקסט:')} ${data.error}</p>`;
-                    readerNavFloating?.classList.add('hidden');
+                    readerTopBar?.classList.add('hidden');
                     window.currentTextPayload = null;
                     window.currentTextPayloadChain = [];
                     resetInfiniteReaderState(null);
@@ -6520,7 +6998,7 @@
                 reader.classList.remove('hidden');
                 document.getElementById('readerContent').innerHTML =
                     `<p class="text-red-500">${t('Network error loading text.', 'שגיאת רשת בטעינת הטקסט.')}</p>`;
-                readerNavFloating?.classList.add('hidden');
+                readerTopBar?.classList.add('hidden');
                 window.currentTextPayload = null;
                 window.currentTextPayloadChain = [];
                 resetInfiniteReaderState(null);
@@ -6625,6 +7103,7 @@
                 Object.entries(data).forEach(([cat, texts]) => {
                     const color = colors[cat] || '#374151';
                     texts.forEach(t => {
+                        const encodedRef = encodeURIComponent(String(t.ref || ''));
                         const title = isHebrewMode()
                             ? (getHebrewStaticLabel(t.title) || t.he || t.title)
                             : t.title;
@@ -6632,7 +7111,7 @@
                             ? (getHebrewStaticLabel(t.description) || t.description)
                             : t.description;
                         html += `
-                        <button onclick="readText('${t.ref}')"
+                        <button onclick="readText(decodeURIComponent('${encodedRef}'))"
                             class="text-left p-3 rounded border border-[#ddd4c3] hover:border-[${color}] hover:shadow-sm transition group bg-[#fffaf1]">
                             <div class="font-hebrew text-lg text-slate-700 group-hover:text-[${color}]">${t.he}</div>
                             <div class="text-xs font-serif text-slate-800 mt-1">${escapeHtml(title)}</div>
@@ -6649,6 +7128,7 @@
 
         // Load popular texts on page load
         document.addEventListener('DOMContentLoaded', () => {
+            syncReaderTopBarOffset();
             hydratePreferences();
             bindDailyStudyLinks();
             void loadParashaQuickLink();
@@ -6869,6 +7349,16 @@
             }
             renderLibraryIndexViews();
             populatePopularTexts();
+
+            if (selectionCommentaryState.groupedCommentaries.length) {
+                if (selectionCommentaryState.wordInfo?.word) {
+                    void refreshSelectionWordMeaning();
+                } else if (selectionCommentaryState.activeCommentaryRef) {
+                    void openCommentaryInline(selectionCommentaryState.activeCommentaryRef);
+                } else {
+                    renderSelectionInsightsChooser();
+                }
+            }
 
             // Update reader content if showing prayer or community
             if (reader && !reader.classList.contains('hidden')) {
@@ -7105,6 +7595,20 @@
             });
         }
 
+        if (userProfileSettingsLink) {
+            userProfileSettingsLink.addEventListener('click', async (e) => {
+                e.preventDefault();
+                await openClerkUserProfile('settings');
+            });
+        }
+
+        if (userProfileLink) {
+            userProfileLink.addEventListener('click', async (e) => {
+                e.preventDefault();
+                await openClerkUserProfile('profile');
+            });
+        }
+
         initClerkAuth();
 
         function formatCountdownDuration(msRemaining) {
@@ -7264,10 +7768,12 @@
         const debouncedSuggestionFetch = debounce(fetchOmniboxSuggestions, 180);
 
         searchInput.addEventListener('input', () => {
+            suppressSuggestionMenu = false;
             debouncedSuggestionFetch(searchInput.value);
         });
 
         searchInput.addEventListener('focus', () => {
+            if (suppressSuggestionMenu) return;
             if (isMobileViewport()) {
                 setMobileSearchExpanded(true);
             }
@@ -7325,12 +7831,6 @@
             }
             if (userProfileMenuContainer && !userProfileMenuContainer.contains(e.target)) {
                 closeUserProfileMenu();
-            }
-            if (chapterGridModal && !chapterGridModal.classList.contains('hidden')) {
-                const gridPanel = chapterGridModal.firstElementChild;
-                if (gridPanel && !gridPanel.contains(e.target)) {
-                    closeChapterGrid();
-                }
             }
             if (readerSettingsPanel
                 && !readerSettingsPanel.contains(e.target)
