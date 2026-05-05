@@ -1638,6 +1638,301 @@ def _sanitize_answer_mode(mode_value):
     return mode if mode in ANSWER_MODES else "balanced"
 
 
+DETAIL_REQUEST_RE = re.compile(
+    r"(\bexplain\b|\bfull\s+explanation\b|\bin\s+depth\b|\bdetailed\b|\bdetail\b|"
+    r"\belaborate\b|\bexpand\b|\bbreak\s+down\b|\bwalk\s+me\s+through\b|\bwhy\b|\bhow\b|"
+    r"הסבר|למה|כיצד|בפירוט|הרחב|נמק|פרט)",
+    re.IGNORECASE,
+)
+
+
+def _is_detail_requested(question, mode):
+    mode_value = str(mode or "").strip().lower()
+    if mode_value in {"sources", "strict"}:
+        return True
+    return bool(DETAIL_REQUEST_RE.search(str(question or "")))
+
+
+def _summarize_ruling_text(ruling_text, max_sentences=3, max_chars=380):
+    clean = re.sub(r"\s+", " ", str(ruling_text or "").strip())
+    if not clean:
+        return ""
+
+    sentence_candidates = [
+        segment.strip()
+        for segment in re.split(r"(?<=[.!?])\s+", clean)
+        if segment.strip()
+    ]
+    summary = " ".join(sentence_candidates[:max_sentences]).strip(
+    ) if sentence_candidates else clean
+    if len(summary) > max_chars:
+        summary = f"{summary[:max_chars].rstrip()}..."
+    return summary
+
+
+def _extract_action_steps_from_ruling(ruling_text, max_steps=5):
+    clean = re.sub(r"\s+", " ", str(ruling_text or "").strip())
+    if not clean:
+        return []
+
+    numbered_clauses = [
+        match.strip(" ;.")
+        for match in re.findall(r"\(\d+\)\s*([^;]+)", clean)
+        if match and match.strip()
+    ]
+    if numbered_clauses:
+        normalized_steps = []
+        for clause in numbered_clauses[:max_steps]:
+            clause_clean = clause[0].upper() + clause[1:] if clause else clause
+            if clause_clean and clause_clean not in normalized_steps:
+                normalized_steps.append(clause_clean)
+        if normalized_steps:
+            return normalized_steps
+
+    fragments = [
+        fragment.strip(" ;")
+        for fragment in re.split(r"(?<=[.!?;:])\s+", clean)
+        if fragment and fragment.strip()
+    ]
+
+    steps = []
+    for fragment in fragments:
+        lowered = fragment.lower()
+        if any(token in lowered for token in (
+            "consult",
+            "verify",
+            "follow",
+            "avoid",
+            "wait",
+            "check",
+            "ask",
+            "review",
+            "custom",
+            "practice",
+            "מנהג",
+            "בדוק",
+            "התייעץ",
+        )):
+            step = fragment[:180].strip()
+            if step and step not in steps:
+                steps.append(step)
+        if len(steps) >= max_steps:
+            break
+
+    if steps:
+        return steps
+
+    fallback = []
+    for fragment in fragments[:max_steps]:
+        snippet = fragment[:180].strip()
+        if snippet:
+            fallback.append(snippet)
+    return fallback
+
+
+def _decode_jsonish_text(value):
+    text = str(value or "")
+    if not text:
+        return ""
+
+    decoded = text.replace("\\n", "\n").replace(
+        "\\t", " ").replace("\\\"", '"')
+    decoded = re.sub(r"\s+", " ", decoded).strip()
+    return decoded
+
+
+def _extract_jsonish_string_field(text, field_name):
+    raw = str(text or "")
+    if not raw:
+        return ""
+
+    escaped_field = re.escape(str(field_name or "").strip())
+    if not escaped_field:
+        return ""
+
+    candidates = [raw, raw.replace('\\\"', '"')]
+    for candidate in candidates:
+        match = re.search(
+            rf'"{escaped_field}"\s*:\s*"((?:\\\\.|[^"\\\\])*)"',
+            candidate,
+            flags=re.IGNORECASE | re.DOTALL,
+        )
+        if not match:
+            continue
+        value = _decode_jsonish_text(match.group(1))
+        if value:
+            return value
+
+    return ""
+
+
+def _extract_jsonish_string_array_field(text, field_name, max_items=6):
+    raw = str(text or "")
+    if not raw:
+        return []
+
+    escaped_field = re.escape(str(field_name or "").strip())
+    if not escaped_field:
+        return []
+
+    candidates = [raw, raw.replace('\\\"', '"')]
+    for candidate in candidates:
+        match = re.search(
+            rf'"{escaped_field}"\s*:\s*\[(.*?)\]',
+            candidate,
+            flags=re.IGNORECASE | re.DOTALL,
+        )
+        if not match:
+            continue
+
+        body = match.group(1)
+        extracted = []
+        for item in re.findall(r'"((?:\\.|[^"\\])*)"', body, flags=re.DOTALL):
+            cleaned = _decode_jsonish_text(item)
+            if cleaned and cleaned not in extracted:
+                extracted.append(cleaned)
+            if len(extracted) >= max_items:
+                break
+
+        if extracted:
+            return extracted
+
+    return []
+
+
+def _looks_like_leaked_structured_payload(text):
+    normalized = str(text or "").lower()
+    if not normalized:
+        return False
+
+    leak_markers = (
+        "```json",
+        '"ruling"',
+        '"summary"',
+        "## summary",
+        "## practical steps",
+    )
+    return any(marker in normalized for marker in leak_markers)
+
+
+def _strip_structured_noise(text):
+    cleaned = str(text or "").strip()
+    if not cleaned:
+        return ""
+
+    cleaned = re.sub(r"```(?:json)?", "", cleaned, flags=re.IGNORECASE)
+    cleaned = cleaned.replace("```", "")
+    cleaned = re.sub(r"^#+\s*(ruling|summary|practical steps?)\s*$", "", cleaned,
+                     flags=re.IGNORECASE | re.MULTILINE)
+    cleaned = re.sub(r"\*\*(Prohibited|Permitted)\*\*",
+                     "", cleaned, flags=re.IGNORECASE)
+    cleaned = re.sub(r"\n{3,}", "\n\n", cleaned).strip()
+    return cleaned
+
+
+def _coerce_ai_answer_shape(result, question, mode):
+    """Stabilize model output shape so UI always gets readable sections."""
+    if not isinstance(result, dict):
+        return result
+
+    result_error = str(result.get("error") or "")
+    if result_error.startswith("security_blocked_input") or result_error.startswith("security_blocked_domain"):
+        return result
+
+    structured = result.get("structured")
+    if isinstance(structured, dict):
+        clean_structured = dict(structured)
+    else:
+        clean_structured = None
+
+    raw_answer = str(result.get("answer") or "").strip()
+
+    if clean_structured:
+        existing_ruling = str(clean_structured.get("ruling") or "").strip()
+        if _looks_like_leaked_structured_payload(existing_ruling) or _looks_like_leaked_structured_payload(raw_answer):
+            extracted_ruling = (
+                _extract_jsonish_string_field(raw_answer, "ruling")
+                or _extract_jsonish_string_field(existing_ruling, "ruling")
+            )
+            extracted_summary = (
+                _extract_jsonish_string_field(raw_answer, "summary")
+                or _extract_jsonish_string_field(existing_ruling, "summary")
+            )
+            extracted_steps = (
+                _extract_jsonish_string_array_field(
+                    raw_answer, "practical_steps")
+                or _extract_jsonish_string_array_field(existing_ruling, "practical_steps")
+            )
+
+            if extracted_ruling:
+                clean_structured["ruling"] = extracted_ruling
+            if extracted_summary:
+                clean_structured["summary"] = extracted_summary
+            if extracted_steps:
+                clean_structured["practical_steps"] = extracted_steps
+
+    if (not clean_structured) or not str(clean_structured.get("ruling") or "").strip():
+        parsed = claude.parse_structured_model_output(raw_answer)
+        if isinstance(parsed, dict) and str(parsed.get("ruling") or "").strip():
+            clean_structured = parsed
+
+    if not clean_structured:
+        return result
+
+    detail_needed = _is_detail_requested(question, mode)
+    ruling_text = _strip_structured_noise(clean_structured.get("ruling") or "")
+    clean_structured["ruling"] = ruling_text
+
+    summary_text = _strip_structured_noise(
+        clean_structured.get("summary") or "")
+    if summary_text:
+        clean_structured["summary"] = summary_text
+
+    practical_steps = clean_structured.get("practical_steps") if isinstance(
+        clean_structured.get("practical_steps"), list) else []
+
+    if clean_structured.get("is_prohibited") and ruling_text:
+        lowered_ruling = ruling_text.lower()
+        direct_prohibition = bool(re.search(
+            r"(\b(?:not\s+permitted|may\s+not|must\s+not|assur|asur)\b|"
+            r"\b(?:is|are|remains|considered|deemed)\s+(?:strictly\s+)?(?:forbidden|prohibited)\b|"
+            r"אסור)",
+            lowered_ruling,
+            flags=re.IGNORECASE,
+        ))
+        contextual_forbidden_mentions = bool(re.search(
+            r"(\bforbidden\s+work\b|\bmelacha\b|\bavoid\s+melacha\b)",
+            lowered_ruling,
+            flags=re.IGNORECASE,
+        ))
+        permission_signals = bool(re.search(
+            r"(\bpermitted\b|\ballowed\b|\bmitzvah\b|\bobligation\b|\brecommended\b|מותר)",
+            lowered_ruling,
+            flags=re.IGNORECASE,
+        ))
+
+        if not direct_prohibition or (contextual_forbidden_mentions and permission_signals):
+            clean_structured["is_prohibited"] = False
+
+    if detail_needed and not summary_text:
+        clean_structured["summary"] = _summarize_ruling_text(
+            ruling_text,
+            max_sentences=4,
+            max_chars=520,
+        )
+
+    if detail_needed and len(practical_steps) < 2:
+        clean_structured["practical_steps"] = _extract_action_steps_from_ruling(
+            ruling_text)
+
+    rendered_answer = claude.render_structured_markdown(clean_structured)
+    if rendered_answer:
+        result["structured"] = clean_structured
+        result["answer"] = rendered_answer
+
+    return result
+
+
 def _canonicalize_community_name(name):
     if not name:
         return None
@@ -2737,9 +3032,42 @@ def ask_question():
                 tool_context=_build_ask_tool_context(engine),
             )
 
+            result = _coerce_ai_answer_shape(result, question, mode)
+
             result_error = str(result.get("error") or "")
             if result_error and not result_error.startswith("security_blocked"):
                 raise RuntimeError(result_error or "AI request failed")
+
+            if result_error.startswith("security_blocked"):
+                blocked_answer = str(result.get("answer") or "").strip()
+                if not blocked_answer:
+                    blocked_answer = "Request blocked by security policy. Please submit a direct halakhic question."
+
+                DEVTOOLS_STATS["answers_total"] += 1
+                DEVTOOLS_STATS["fallback_answers"] += 1
+
+                return jsonify({
+                    "answer": blocked_answer,
+                    "confidence": result.get("confidence", 0),
+                    "wiki": [],
+                    "customs": [],
+                    "sources": [],
+                    "meta": {
+                        "mode": mode,
+                        "community_lens": canonical_lens,
+                        "source_count": 0,
+                        "custom_count": 0,
+                        "knowledge_count": len(knowledge_rows),
+                        "memory_count": len(user_memory_summaries),
+                        "identity_aware": bool(user_id),
+                        "generated_at": int(time.time()),
+                        "fallback": True,
+                        "structured": False,
+                        "is_prohibited": False,
+                        "input_sanitized": question_was_sanitized,
+                        "security": result.get("security") or {},
+                    }
+                })
 
             structured_payload = result.get("structured")
             if not isinstance(structured_payload, dict):
