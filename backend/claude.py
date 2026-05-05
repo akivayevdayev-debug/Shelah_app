@@ -76,7 +76,7 @@ class HalakhicContext:
 
 MAX_INPUT_CHARS = _int_env("AI_MAX_INPUT_CHARS", 1200)
 MAX_PROMPT_CHARS = _int_env("AI_MAX_PROMPT_CHARS", 16000)
-MAX_RESPONSE_WORDS = _int_env("AI_MAX_RESPONSE_WORDS", 500)
+MAX_RESPONSE_WORDS = _int_env("AI_MAX_RESPONSE_WORDS", 700)
 MAX_RESPONSE_CHARS = _int_env("AI_MAX_RESPONSE_CHARS", 20000)
 MODEL_REQUEST_TIMEOUT_SECONDS = _int_env("AI_MODEL_TIMEOUT_SECONDS", 50)
 
@@ -116,6 +116,18 @@ PROMPT_INJECTION_RE = re.compile(
 
 OUTPUT_POLICY_BLOCKLIST_RE = re.compile(
     r"(system\s+prompt|developer\s+message|internal\s+instructions|hidden\s+chain\s*[- ]\s*of\s*[- ]\s*thought)",
+    re.IGNORECASE,
+)
+
+PROHIBITION_ASSERTION_RE = re.compile(
+    r"(\b(?:not\s+permitted|may\s+not|must\s+not|assur|asur)\b|"
+    r"\b(?:is|are|remains|considered|deemed)\s+(?:strictly\s+)?(?:forbidden|prohibited)\b|"
+    r"אסור)",
+    re.IGNORECASE,
+)
+
+PERMISSION_SIGNAL_RE = re.compile(
+    r"(\b(?:permitted|allowed|mutar|mitzvah|obligation|required|recommended)\b|מותר)",
     re.IGNORECASE,
 )
 
@@ -204,6 +216,30 @@ def _configure_gemini_client() -> Optional[str]:
         except Exception as exc:
             _cached_gemini_api_key = None
             return f"gemini_config_error: {exc}"
+
+    return None
+
+
+def _extract_fenced_json_object(text: str) -> Optional[Dict[str, Any]]:
+    raw = str(text or "")
+    if not raw:
+        return None
+
+    fenced_match = re.search(
+        r"```(?:json)?\s*([\s\S]*?)```", raw, re.IGNORECASE)
+    if not fenced_match:
+        return None
+
+    candidate = str(fenced_match.group(1) or "").strip()
+    if not candidate:
+        return None
+
+    try:
+        parsed = json.loads(candidate)
+        if isinstance(parsed, dict):
+            return parsed
+    except Exception:
+        return None
 
     return None
 
@@ -438,10 +474,13 @@ def _normalize_structured_response(payload: Dict[str, Any], raw_text: str = "") 
 
     is_prohibited = bool(payload.get("is_prohibited"))
     if not isinstance(payload.get("is_prohibited"), bool):
-        lowered = f"{ruling} {summary}".lower()
-        is_prohibited = any(token in lowered for token in [
-            "prohibited", "forbidden", "assur", "asur", "not permitted",
-        ])
+        inference_text = f"{ruling} {summary}"
+        prohibition_hits = len(
+            PROHIBITION_ASSERTION_RE.findall(inference_text))
+        permission_hits = len(PERMISSION_SIGNAL_RE.findall(inference_text))
+        # Only infer prohibition when we see a direct prohibition assertion.
+        # This avoids false positives for benign phrases like "forbidden work" in context.
+        is_prohibited = prohibition_hits > 0 and prohibition_hits > permission_hits
 
     disclaimer = _sanitize_model_output(
         str(payload.get("rabbinic_disclaimer") or RABBI_FINAL_RULING_FOOTER),
@@ -460,6 +499,8 @@ def _normalize_structured_response(payload: Dict[str, Any], raw_text: str = "") 
 
 def parse_structured_model_output(raw_text: str) -> Dict[str, Any]:
     payload = _extract_first_json_object(raw_text)
+    if not payload:
+        payload = _extract_fenced_json_object(raw_text)
     if payload:
         return _normalize_structured_response(payload, raw_text=raw_text)
 
@@ -734,6 +775,43 @@ def _format_extra_context(extra_context: Optional[Dict[str, Any]]) -> str:
     return "\n".join(lines)
 
 
+DETAILED_QUERY_RE = re.compile(
+    r"(\bexplain\b|\bfull\s+explanation\b|\bin\s+depth\b|\bdetailed\b|\bdetail\b|"
+    r"\belaborate\b|\bexpand\b|\bbreak\s+down\b|\bwalk\s+me\s+through\b|\bwhy\b|\bhow\b|"
+    r"הסבר|למה|כיצד|בפירוט|הרחב|נמק|פרט)",
+    re.IGNORECASE,
+)
+
+
+def _detail_expectation_for_question(question: str, mode: str) -> str:
+    mode_value = str(mode or "balanced").strip().lower()
+    wants_detail = bool(DETAILED_QUERY_RE.search(str(question or "")))
+
+    if mode_value == "strict":
+        return (
+            "Strict mode must still explain reasoning in full evidence-backed paragraphs; "
+            "avoid one-line rulings."
+        )
+
+    if mode_value == "sources" or wants_detail:
+        return (
+            "Provide a full explanation: include background, major positions, and synthesis. "
+            "Use at least two substantive ruling paragraphs, a non-empty summary, and 3-6 "
+            "practical_steps when actionable."
+        )
+
+    if mode_value == "practical":
+        return (
+            "Provide concise but complete guidance: at least one substantive explanatory "
+            "paragraph plus practical ordered steps."
+        )
+
+    return (
+        "Balanced mode should include more than a one-sentence response: provide "
+        "background, reasoning, and a practical takeaway."
+    )
+
+
 def build_prompt(question, sefaria_sources, customs, user_memories, wiki, halachipedia=None, mode="balanced", community_lens="All", extra_context=None):
     """Build compact user prompt for token-light Claude calls."""
 
@@ -746,6 +824,7 @@ def build_prompt(question, sefaria_sources, customs, user_memories, wiki, halach
         wiki or [],
         provider_label="General Web",
     )
+    detail_expectation = _detail_expectation_for_question(question, mode)
 
     prompt = f"""
 QUESTION:
@@ -764,7 +843,7 @@ INSTRUCTIONS:
 1. Response mode requested: {mode}
 2. Community lens requested: {community_lens}
 3. If mode is strict, do not include unsupported claims.
-4. Be direct with no fluff.
+4. Be direct, precise, and complete; avoid fluff but do not collapse into one-line answers.
 5. Keep source ordering aligned with the hierarchy above: specific API first, broad API second, internal knowledge third.
 6. Do not prepend warning banners yourself; backend controls warning rendering.
 7. Return strict JSON only, with keys: ruling, sources, is_prohibited, summary, practical_steps, rabbinic_disclaimer.
@@ -776,6 +855,7 @@ INSTRUCTIONS:
 13. For modern halachic applications (technology, medicine, contemporary scenarios), prioritize Responsa and recent decisors over older authorities alone.
 14. If query is strictly hateful, calls for violence, or illegal, set ruling to exactly: "Sh'elah is a specialized tool for Halakhic and communal knowledge. I cannot assist with [Subject of Query]. Please consult with your local Rabbi for a final ruling.", and set practical_steps and sources to empty arrays. For complex/sensitive halachic questions, provide sources instead.
 15. If unsure whether a question is halachic, assume it IS and provide background information and relevant sources rather than returning a null or refusal response.
+16. Explanation depth requirement: {detail_expectation}
 """
 
     return _sanitize_prompt_payload(prompt)

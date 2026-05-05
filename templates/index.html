@@ -15,7 +15,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Cardo:wght@400;700&family=Inter:wght@400;500;600&display=swap"
         rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
-    <link rel="stylesheet" href="/static/style.css?v=20260505-topbar-grid-hebrew-v18">
+    <link rel="stylesheet" href="/static/style.css?v=20260505-reader-polish-v19">
 
     <!-- FullCalendar -->
     <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.15/index.global.min.js"></script>
@@ -68,7 +68,7 @@
     <header
         class="topbar sticky top-0 bg-white text-slate-800 p-2 lg:p-2.5 shadow-sm border-b flex flex-wrap lg:flex-nowrap justify-between items-center z-50 flex-shrink-0 gap-2 lg:gap-3">
         <button id="mobileNavBtn" type="button"
-            class="lg:hidden px-2.5 py-1.5 text-xs border border-slate-300 rounded bg-white hover:bg-slate-100 transition"
+            class="lg:hidden px-2 py-1 text-xs border border-slate-300 rounded bg-white hover:bg-slate-100 transition"
             data-en="Menu" data-he="תפריט">Menu</button>
 
         <div id="brandHomeBtn" class="topbar-brand flex items-center gap-2 cursor-pointer shrink-0" onclick="goHome()">
@@ -110,7 +110,7 @@
             class="topbar-controls relative z-[110] flex gap-2 items-center flex-wrap justify-end w-full lg:w-auto">
             <div id="settingsMenuContainer" class="relative z-[120] shrink-0">
                 <button id="settingsMenuBtn" type="button" aria-expanded="false" aria-haspopup="true"
-                    class="px-2 py-1.5 border border-slate-300 rounded bg-slate-100 hover:bg-slate-200 transition text-[#7a6a52]"
+                    class="px-2 py-1 border border-slate-300 rounded bg-slate-100 hover:bg-slate-200 transition text-[#7a6a52]"
                     title="Open settings menu">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
                         <path
@@ -224,7 +224,7 @@
             <div id="authControls" class="hidden items-center gap-2 mr-1">
                 <div id="userProfileMenuContainer" class="hidden relative shrink-0">
                     <button id="userProfileMenuBtn" type="button" aria-expanded="false" aria-haspopup="true"
-                        class="topbar-user-menu-btn px-2.5 py-1 text-xs border border-slate-300 rounded bg-white hover:bg-slate-100 transition text-[#334155] inline-flex items-center gap-1.5"
+                        class="topbar-user-menu-btn px-2 py-1 text-xs border border-slate-300 rounded bg-white hover:bg-slate-100 transition text-[#334155] inline-flex items-center gap-1.5"
                         title="Open profile menu">
                         <span id="userProfileMenuLabel" class="max-w-[130px] truncate">Signed in</span>
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" viewBox="0 0 20 20"
@@ -265,7 +265,7 @@
                 class="hidden lg:inline-flex px-2 py-1 text-xs border border-slate-300 rounded font-hebrew hover:bg-slate-100 transition lang-btn"
                 data-lang="he">עברית</button>
             <button id="mobileLangToggle" type="button"
-                class="lg:hidden px-2.5 py-1.5 text-xs border border-slate-300 rounded bg-white hover:bg-slate-100 transition"
+                class="lg:hidden px-2 py-1 text-xs border border-slate-300 rounded bg-white hover:bg-slate-100 transition"
                 data-en="עברית" data-he="English">עברית</button>
         </div>
     </header>
@@ -647,7 +647,7 @@
                 <details class="group cursor-pointer">
                     <summary class="font-semibold hover:text-[#002147] list-none border-b pb-2 mb-2"
                         data-en="All Topics & Texts" data-he="כל הנושאים והטקסטים">All Topics & Texts</summary>
-                    <div id="libraryIndexSidebar" class="ml-2 space-y-1 border-l-2 pl-3 border-[#002147]/30">
+                    <div id="libraryIndexSidebar" class="library-index-sidebar-tree space-y-1">
                         <p class="text-xs italic text-slate-400" data-en="Loading full library index..."
                             data-he="טוען אינדקס ספריה מלא...">Loading full library index...</p>
                     </div>
@@ -976,16 +976,15 @@
 
             <!-- READER: SCHOLARLY ARTICLE VIEW -->
             <article id="reader" class="hidden w-full max-w-4xl p-4 sm:p-6 lg:p-12 pb-24 sm:pb-32">
-                <div id="readerTopBar"
-                    class="hidden sticky z-40 mb-4 bg-[#fffaf1]/95 border border-[#ddd4c3] border-t-0 rounded-b-xl px-3 py-2 shadow-sm backdrop-blur-sm">
-                    <div class="flex flex-wrap items-center justify-between gap-2">
+                <div id="readerTopBar" class="hidden sticky z-40 mb-4 border-y border-[#ddd4c3] bg-[#f9f4ea] px-1 py-1">
+                    <div class="flex items-center justify-between gap-2">
                         <button id="readerPrevTopBarBtn" type="button"
-                            class="px-3 py-2 rounded-md border border-slate-300 bg-white text-slate-700 text-xs font-semibold hover:bg-slate-100 transition"
+                            class="px-2.5 py-1 rounded border border-slate-300 bg-white text-slate-700 text-[11px] font-semibold hover:bg-slate-100 transition"
                             data-en="Previous Section" data-he="קטע קודם">Previous Section</button>
 
                         <div class="relative text-left">
                             <button id="readerSettingsBtn" type="button"
-                                class="px-3 py-2 rounded-md border border-slate-300 bg-white text-slate-700 text-xs font-semibold hover:bg-slate-100 transition"
+                                class="px-2.5 py-1 rounded border border-slate-300 bg-white text-slate-700 text-[11px] font-semibold hover:bg-slate-100 transition"
                                 data-en="Reader Settings" data-he="הגדרות קריאה">Reader Settings</button>
 
                             <div id="readerSettingsPanel"
@@ -1077,7 +1076,7 @@
                         </div>
 
                         <button id="readerNextTopBarBtn" type="button"
-                            class="px-3 py-2 rounded-md border border-slate-300 bg-white text-slate-700 text-xs font-semibold hover:bg-slate-100 transition"
+                            class="px-2.5 py-1 rounded border border-slate-300 bg-white text-slate-700 text-[11px] font-semibold hover:bg-slate-100 transition"
                             data-en="Next Section" data-he="קטע הבא">Next Section</button>
                     </div>
                 </div>
@@ -1245,15 +1244,16 @@
         <div
             class="bg-white rounded-2xl shadow-2xl w-full max-w-4xl max-h-[88vh] overflow-hidden flex flex-col relative">
             <button id="closeChapterGridModalBtn" type="button"
-                class="absolute top-3 right-3 text-2xl text-slate-400 hover:text-slate-800 z-10"
+                class="absolute top-3 right-3 text-2xl text-slate-500 hover:text-slate-800 z-10"
                 aria-label="Close chapter menu">&times;</button>
 
-            <div class="bg-gradient-to-r from-navy to-blue-900 text-white px-6 py-4 border-b">
+            <div class="chapter-grid-header px-6 py-4 border-b">
                 <h2 id="chapterGridTitle" class="font-serif text-xl font-bold">Select Section</h2>
-                <p id="chapterGridSubtitle" class="text-xs text-blue-100 mt-1">Choose a chapter to open</p>
+                <p id="chapterGridSubtitle" class="chapter-grid-subtitle text-xs mt-1">Choose a chapter to open</p>
             </div>
 
             <div class="px-5 py-4 overflow-y-auto">
+                <div id="chapterGridParashaStrip" class="chapter-grid-parasha-strip hidden"></div>
                 <div id="chapterGridItems" class="chapter-grid-items"></div>
             </div>
         </div>
@@ -1501,6 +1501,7 @@
         const sourceGraphCanvas = document.getElementById('sourceGraphCanvas');
         const sourceGraphList = document.getElementById('sourceGraphList');
         const chapterGridModal = document.getElementById('chapterGridModal');
+        const chapterGridParashaStrip = document.getElementById('chapterGridParashaStrip');
         const chapterGridItems = document.getElementById('chapterGridItems');
         const chapterGridTitle = document.getElementById('chapterGridTitle');
         const chapterGridSubtitle = document.getElementById('chapterGridSubtitle');
@@ -2347,14 +2348,13 @@
         }
 
         function normalizeDisplayText(text = '') {
-            const rewrittenFootnotes = String(text)
-                // Replace lettered/numbered footnote markers with inline parenthesized notes.
-                .replace(
-                    /<sup[^>]*>\s*[a-z0-9]+\s*<\/sup>\s*<(?:i|span|small)[^>]*class=["'][^"']*footnote[^"']*["'][^>]*>([\s\S]*?)<\/(?:i|span|small)>/gi,
-                    ' ($1) '
-                );
+            const withoutFootnotes = String(text)
+                // Remove superscript markers and adjacent footnote blocks to avoid noisy inline translation artifacts.
+                .replace(/<sup[^>]*>[\s\S]*?<\/sup>\s*<(?:i|span|small)[^>]*>[\s\S]*?<\/(?:i|span|small)>/gi, ' ')
+                .replace(/<(?:i|span|small)[^>]*class=["'][^"']*footnote[^"']*["'][^>]*>[\s\S]*?<\/(?:i|span|small)>/gi, ' ')
+                .replace(/<sup[^>]*>[\s\S]*?<\/sup>/gi, ' ');
 
-            const withoutTags = rewrittenFootnotes
+            const withoutTags = withoutFootnotes
                 .replace(/<br\s*\/?>/gi, '\n')
                 .replace(/<[^>]*>/g, ' ');
 
@@ -5379,6 +5379,17 @@
             });
         }
 
+        if (chapterGridParashaStrip) {
+            chapterGridParashaStrip.addEventListener('click', (e) => {
+                const button = e.target.closest('.chapter-grid-parasha-chip');
+                if (!button) return;
+                const targetRef = String(button.dataset.ref || '').trim();
+                if (!targetRef) return;
+                closeChapterGrid();
+                readText(targetRef, { skipNavigationGrid: true });
+            });
+        }
+
         if (chapterGridModal) {
             chapterGridModal.addEventListener('click', (e) => {
                 if (e.target === chapterGridModal) {
@@ -5600,10 +5611,10 @@
 
                     return `
                         <details class="library-tree-node group ${depth === 0 ? 'mb-1' : ''}">
-                            <summary class="cursor-pointer list-none ${summaryClass}">
+                            <summary class="library-tree-summary cursor-pointer list-none ${summaryClass}">
                                 ${escapeHtml(labels.display || labels.en || labels.he || t('Category', 'קטגוריה'))}
                             </summary>
-                            <div class="ml-3 mt-1 border-l border-slate-200 pl-2 space-y-1">${childrenMarkup}</div>
+                            <div class="library-tree-children mt-1 space-y-1">${childrenMarkup}</div>
                         </details>
                     `;
                 }
@@ -5614,13 +5625,14 @@
                 const encodedRef = encodeURIComponent(ref);
                 const encodedTitle = encodeURIComponent(labels.en || labels.display || ref);
                 const textClass = depth <= 1 ? 'text-slate-700' : 'text-slate-600';
+                const alignClass = isHebrewMode() ? 'text-right' : 'text-left';
                 const leafDisplay = isHebrewMode()
                     ? (labels.display || labels.en || labels.he || ref)
                     : withHebrewBookName(labels.display || labels.en || labels.he || ref);
 
                 return `
                     <button type="button"
-                        class="library-node-open block w-full text-left px-2 py-1 rounded hover:bg-slate-100 transition text-sm ${textClass}"
+                        class="library-node-open block w-full ${alignClass} px-2 py-1 rounded hover:bg-slate-100 transition text-sm ${textClass}"
                         data-ref="${encodedRef}"
                         data-title="${encodedTitle}">
                         ${escapeHtml(leafDisplay)}
@@ -5758,6 +5770,53 @@
             chapterGridModal.classList.remove('flex');
         }
 
+        function renderChapterGridParashaStrip(bookName) {
+            if (!chapterGridParashaStrip) return;
+
+            const normalizedBook = normalizeChapterGridBookName(bookName);
+            const parashaEntries = Array.isArray(TORAH_PARASHA_BY_BOOK[normalizedBook])
+                ? TORAH_PARASHA_BY_BOOK[normalizedBook]
+                : [];
+
+            if (!parashaEntries.length) {
+                chapterGridParashaStrip.classList.add('hidden');
+                chapterGridParashaStrip.innerHTML = '';
+                return;
+            }
+
+            const chips = parashaEntries
+                .map((entry) => {
+                    const chapterNum = Number(entry?.chapter || 0);
+                    if (!Number.isFinite(chapterNum) || chapterNum < 1) return '';
+
+                    const ref = `${normalizedBook} ${chapterNum}`;
+                    const nameEn = String(entry?.name || '').trim() || `${t('Chapter', 'פרק')} ${chapterNum}`;
+                    const nameHe = PARASHA_HE_MAP[nameEn] || nameEn;
+                    const label = isHebrewMode() ? nameHe : nameEn;
+                    const chapterLabel = isHebrewMode() ? `פרק ${chapterNum}` : `Chapter ${chapterNum}`;
+
+                    return `
+                        <button type="button"
+                            class="chapter-grid-parasha-chip"
+                            data-ref="${escapeHtml(ref)}"
+                            title="${escapeHtml(chapterLabel)}">
+                            ${escapeHtml(label)}
+                        </button>
+                    `;
+                })
+                .filter(Boolean)
+                .join('');
+
+            if (!chips) {
+                chapterGridParashaStrip.classList.add('hidden');
+                chapterGridParashaStrip.innerHTML = '';
+                return;
+            }
+
+            chapterGridParashaStrip.innerHTML = chips;
+            chapterGridParashaStrip.classList.remove('hidden');
+        }
+
         function openChapterGrid(book, chapterCount) {
             if (!chapterGridModal || !chapterGridItems) return;
 
@@ -5775,6 +5834,8 @@
                     ? 'בחר פרק לפתיחה מהירה'
                     : 'Select a chapter to open';
             }
+
+            renderChapterGridParashaStrip(safeBook);
 
             const items = Array.from({ length: safeCount }, (_, idx) => idx + 1)
                 .map((chapterNum) => {
@@ -5836,6 +5897,11 @@
                 chapterGridSubtitle.textContent = isHebrewMode()
                     ? 'בחר קטע לפתיחה מהירה'
                     : 'Select a section to open';
+            }
+
+            if (chapterGridParashaStrip) {
+                chapterGridParashaStrip.classList.add('hidden');
+                chapterGridParashaStrip.innerHTML = '';
             }
 
             const items = normalizedRefs
