@@ -1195,6 +1195,33 @@ async def ask_ai_async(
 
 def summarize_with_gemini(segment_text: str, notes: str = "") -> Dict[str, Any]:
     """Generate a concise chevruta study summary for semantic bookmarks."""
+    def _fallback_summary() -> str:
+        segment_clean = re.sub(r"\s+", " ", str(segment_text or "").strip())
+        notes_clean = re.sub(r"\s+", " ", str(notes or "").strip())
+
+        if len(segment_clean) > 520:
+            segment_clean = f"{segment_clean[:520].rstrip()}..."
+
+        if notes_clean and len(notes_clean) > 220:
+            notes_clean = f"{notes_clean[:220].rstrip()}..."
+
+        if segment_clean and notes_clean:
+            return (
+                f"{segment_clean} "
+                f"Practical takeaway: {notes_clean}."
+            ).strip()
+        if segment_clean:
+            return (
+                f"{segment_clean} "
+                "Practical takeaway: review this section alongside a trusted posek or teacher."
+            ).strip()
+        if notes_clean:
+            return (
+                f"{notes_clean} "
+                "Practical takeaway: verify this note against primary sources before relying on it."
+            ).strip()
+        return ""
+
     model_name = (os.environ.get("GEMINI_MODEL") or "gemini-3-flash").strip()
     if not model_name:
         model_name = "gemini-3-flash"
@@ -1210,7 +1237,10 @@ def summarize_with_gemini(segment_text: str, notes: str = "") -> Dict[str, Any]:
     try:
         config_error = _configure_gemini_client()
         if config_error or not genai:
-            return {"summary": "", "error": config_error or "gemini_sdk_missing"}
+            return {
+                "summary": _fallback_summary(),
+                "error": config_error or "gemini_sdk_missing",
+            }
 
         model = genai.GenerativeModel(model_name=model_name)
         response = model.generate_content(
@@ -1218,6 +1248,15 @@ def summarize_with_gemini(segment_text: str, notes: str = "") -> Dict[str, Any]:
             generation_config={"max_output_tokens": 240},
         )
         summary = _extract_gemini_response_text(response)
-        return {"summary": summary.strip(), "error": ""}
+        clean_summary = summary.strip()
+        if not clean_summary:
+            return {
+                "summary": _fallback_summary(),
+                "error": "gemini_empty_summary",
+            }
+        return {"summary": clean_summary, "error": ""}
     except Exception as exc:
-        return {"summary": "", "error": str(exc)}
+        return {
+            "summary": _fallback_summary(),
+            "error": str(exc),
+        }
