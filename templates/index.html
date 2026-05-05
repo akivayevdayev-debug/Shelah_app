@@ -222,14 +222,36 @@
             </div>
 
             <div id="authControls" class="hidden items-center gap-2 mr-1">
-                <span id="authUserPill"
-                    class="hidden max-w-[180px] truncate text-xs px-2 py-1 rounded-full bg-emerald-50 text-emerald-800 border border-emerald-200"></span>
+                <div id="userProfileMenuContainer" class="hidden relative shrink-0">
+                    <button id="userProfileMenuBtn" type="button" aria-expanded="false" aria-haspopup="true"
+                        class="topbar-user-menu-btn px-2.5 py-1 text-xs border border-slate-300 rounded bg-white hover:bg-slate-100 transition text-[#334155] inline-flex items-center gap-1.5"
+                        title="Open profile menu">
+                        <span id="userProfileMenuLabel" class="max-w-[130px] truncate">Signed in</span>
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" viewBox="0 0 20 20"
+                            fill="currentColor" aria-hidden="true">
+                            <path fill-rule="evenodd"
+                                d="M5.23 7.21a.75.75 0 011.06.02L10 11.168l3.71-3.938a.75.75 0 111.08 1.04l-4.25 4.51a.75.75 0 01-1.08 0l-4.25-4.51a.75.75 0 01.02-1.06z"
+                                clip-rule="evenodd" />
+                        </svg>
+                    </button>
+
+                    <div id="userProfileMenu"
+                        class="hidden absolute right-0 mt-2 w-44 max-w-[calc(100vw-1rem)] bg-white border border-slate-200 rounded-xl shadow-lg py-1.5 z-[95]">
+                        <a id="userProfileSettingsLink" href="/settings"
+                            class="topbar-user-menu-item block px-3 py-1.5 text-xs text-slate-700 hover:bg-slate-100 transition"
+                            data-en="Settings" data-he="הגדרות">Settings</a>
+                        <a id="userProfileLink" href="/profile"
+                            class="topbar-user-menu-item block px-3 py-1.5 text-xs text-slate-700 hover:bg-slate-100 transition"
+                            data-en="Profile" data-he="פרופיל">Profile</a>
+                        <button id="userProfileSignOutAction" type="button"
+                            class="topbar-user-menu-item topbar-user-menu-signout w-full text-left px-3 py-1.5 text-xs text-slate-700 hover:bg-slate-100 transition"
+                            data-en="Sign Out" data-he="התנתקות">Sign Out</button>
+                    </div>
+                </div>
+
                 <button id="signInBtn" type="button"
-                    class="px-2 py-1 text-xs border border-slate-300 rounded bg-white hover:bg-slate-100 transition">Sign
-                    In</button>
-                <button id="signOutBtn" type="button"
-                    class="hidden px-2 py-1 text-xs border border-slate-300 rounded bg-white hover:bg-slate-100 transition">Sign
-                    Out</button>
+                    class="px-2 py-1 text-xs border border-slate-300 rounded bg-white hover:bg-slate-100 transition"
+                    data-en="Sign In" data-he="התחברות">Sign In</button>
             </div>
 
             <div id="hebrewDateDisplay" class="text-xs font-serif italic text-slate-500 mr-1">{{ daily.hebrew_date if
@@ -451,7 +473,7 @@
                     <summary class="font-semibold hover:text-[#8b5e34] list-none border-b pb-2 mb-2"
                         data-en="Torah Commentaries" data-he="מפרשי התורה">Torah Commentaries</summary>
                     <ul class="ml-2 space-y-1 border-l-2 pl-3 border-[#8b5e34]/30">
-                        <li><button onclick="readText('Rashi on Genesis 1:1')"
+                        <li><button onclick="openRashiCommentaryFromLibrary()"
                                 class="text-left text-slate-600 hover:text-[#8b5e34] text-sm w-full py-0.5">Rashi on
                                 Torah</button></li>
                         <li><button onclick="readText('Ibn Ezra on Genesis 1:1')"
@@ -1075,6 +1097,13 @@
 
                 <!-- Media Elements (Videos/Audio) -->
                 <div id="readerMedia" class="mt-8 space-y-4"></div>
+
+                <div id="readerNavFloating" class="hidden reader-nav-floating" aria-label="Section navigation">
+                    <button id="readerPrevFloatingBtn" type="button"
+                        class="reader-nav-floating-btn reader-nav-prev">Previous Section</button>
+                    <button id="readerNextFloatingBtn" type="button"
+                        class="reader-nav-floating-btn reader-nav-next">Next Section</button>
+                </div>
             </article>
 
         </main>
@@ -1202,6 +1231,25 @@
                 <button onclick="closeTextsMenu()"
                     class="px-4 py-2 text-slate-700 hover:bg-slate-100 rounded transition" data-en="Close"
                     data-he="סגור">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="chapterGridModal"
+        class="hidden fixed inset-0 z-[110] bg-slate-900/60 backdrop-blur-sm items-center justify-center p-4">
+        <div
+            class="bg-white rounded-2xl shadow-2xl w-full max-w-4xl max-h-[88vh] overflow-hidden flex flex-col relative">
+            <button id="closeChapterGridModalBtn" type="button"
+                class="absolute top-3 right-3 text-2xl text-slate-400 hover:text-slate-800 z-10"
+                aria-label="Close chapter menu">&times;</button>
+
+            <div class="bg-gradient-to-r from-navy to-blue-900 text-white px-6 py-4 border-b">
+                <h2 id="chapterGridTitle" class="font-serif text-xl font-bold">Select Section</h2>
+                <p id="chapterGridSubtitle" class="text-xs text-blue-100 mt-1">Choose a chapter to open</p>
+            </div>
+
+            <div class="px-5 py-4 overflow-y-auto">
+                <div id="chapterGridItems" class="chapter-grid-items"></div>
             </div>
         </div>
     </div>
@@ -1407,9 +1455,12 @@
         const readerSubtitle = document.getElementById('readerSubtitle');
         const personalShelf = document.getElementById('personalShelf');
         const authControls = document.getElementById('authControls');
-        const authUserPill = document.getElementById('authUserPill');
+        const userProfileMenuContainer = document.getElementById('userProfileMenuContainer');
+        const userProfileMenuBtn = document.getElementById('userProfileMenuBtn');
+        const userProfileMenu = document.getElementById('userProfileMenu');
+        const userProfileMenuLabel = document.getElementById('userProfileMenuLabel');
+        const userProfileSignOutAction = document.getElementById('userProfileSignOutAction');
         const signInBtn = document.getElementById('signInBtn');
-        const signOutBtn = document.getElementById('signOutBtn');
         const mobileNavBtn = document.getElementById('mobileNavBtn');
         const mobileBottomTabs = document.getElementById('mobileBottomTabs');
         const mobileLangToggle = document.getElementById('mobileLangToggle');
@@ -1441,6 +1492,14 @@
         const closeSourceGraphBtn = document.getElementById('closeSourceGraphBtn');
         const sourceGraphCanvas = document.getElementById('sourceGraphCanvas');
         const sourceGraphList = document.getElementById('sourceGraphList');
+        const chapterGridModal = document.getElementById('chapterGridModal');
+        const chapterGridItems = document.getElementById('chapterGridItems');
+        const chapterGridTitle = document.getElementById('chapterGridTitle');
+        const chapterGridSubtitle = document.getElementById('chapterGridSubtitle');
+        const closeChapterGridModalBtn = document.getElementById('closeChapterGridModalBtn');
+        const readerNavFloating = document.getElementById('readerNavFloating');
+        const readerPrevFloatingBtn = document.getElementById('readerPrevFloatingBtn');
+        const readerNextFloatingBtn = document.getElementById('readerNextFloatingBtn');
         const communityTimelineModal = document.getElementById('communityTimelineModal');
         const closeCommunityTimelineBtn = document.getElementById('closeCommunityTimelineBtn');
         const communityTimelineTitle = document.getElementById('communityTimelineTitle');
@@ -1639,6 +1698,66 @@
                 { chapter: 33, name: 'Vezot Haberakhah' },
             ],
         };
+
+        const CHAPTER_GRID_BOOKS = Object.freeze({
+            Genesis: 50,
+            Exodus: 40,
+            Leviticus: 27,
+            Numbers: 36,
+            Deuteronomy: 34,
+            Joshua: 24,
+            Judges: 21,
+            'I Samuel': 31,
+            'II Samuel': 24,
+            'I Kings': 22,
+            'II Kings': 25,
+            Isaiah: 66,
+            Jeremiah: 52,
+            Ezekiel: 48,
+            Hosea: 14,
+            Joel: 4,
+            Amos: 9,
+            Obadiah: 1,
+            Jonah: 4,
+            Micah: 7,
+            Nahum: 3,
+            Habakkuk: 3,
+            Zephaniah: 3,
+            Haggai: 2,
+            Zechariah: 14,
+            Malachi: 3,
+            Psalms: 150,
+            Proverbs: 31,
+            Job: 42,
+            'Song of Songs': 8,
+            Ruth: 4,
+            Lamentations: 5,
+            Ecclesiastes: 12,
+            Esther: 10,
+            Daniel: 12,
+            Ezra: 10,
+            Nehemiah: 13,
+            'I Chronicles': 29,
+            'II Chronicles': 36,
+        });
+
+        function parseBookAndChapter(ref) {
+            const raw = String(ref || '').replace(/\s+/g, ' ').trim();
+            const match = raw.match(/^(.+?)\s+(\d+)$/);
+            if (!match) return null;
+            return {
+                book: String(match[1] || '').trim(),
+                chapter: Number(match[2] || 0),
+            };
+        }
+
+        function shouldOpenChapterGrid(ref) {
+            const parsed = parseBookAndChapter(ref);
+            if (!parsed || parsed.chapter !== 1) return null;
+            const count = CHAPTER_GRID_BOOKS[parsed.book];
+            if (!count || count <= 1) return null;
+            return { book: parsed.book, chapters: count };
+        }
 
         function detectRegionalDefaults() {
             const timezone = String(Intl.DateTimeFormat().resolvedOptions().timeZone || '');
@@ -2405,10 +2524,9 @@
 
             if (user) {
                 signInBtn?.classList.add('hidden');
-                signOutBtn?.classList.remove('hidden');
-                if (authUserPill) {
-                    authUserPill.textContent = displayName || 'Signed in';
-                    authUserPill.classList.remove('hidden');
+                userProfileMenuContainer?.classList.remove('hidden');
+                if (userProfileMenuLabel) {
+                    userProfileMenuLabel.textContent = displayName || 'Signed in';
                 }
 
                 if (syncedPrefsUserId !== userId) {
@@ -2417,8 +2535,8 @@
                 }
             } else {
                 signInBtn?.classList.remove('hidden');
-                signOutBtn?.classList.add('hidden');
-                authUserPill?.classList.add('hidden');
+                userProfileMenuContainer?.classList.add('hidden');
+                closeUserProfileMenu();
                 syncedPrefsUserId = null;
             }
         }
@@ -2870,6 +2988,23 @@
             if (settingsMenuBtn) settingsMenuBtn.setAttribute('aria-expanded', 'false');
         }
 
+        function closeUserProfileMenu() {
+            if (!userProfileMenu) return;
+            userProfileMenu.classList.add('hidden');
+            if (userProfileMenuBtn) userProfileMenuBtn.setAttribute('aria-expanded', 'false');
+        }
+
+        function toggleUserProfileMenu() {
+            if (!userProfileMenu) return;
+            const willOpen = userProfileMenu.classList.contains('hidden');
+            userProfileMenu.classList.toggle('hidden');
+            if (userProfileMenuBtn) userProfileMenuBtn.setAttribute('aria-expanded', willOpen ? 'true' : 'false');
+            if (willOpen) {
+                closeSettingsMenu();
+                closeReaderSettingsPanel();
+            }
+        }
+
         function toggleSettingsMenu() {
             if (!settingsPanel) return;
             const willOpen = settingsPanel.classList.contains('hidden');
@@ -2877,6 +3012,7 @@
             if (settingsMenuBtn) settingsMenuBtn.setAttribute('aria-expanded', willOpen ? 'true' : 'false');
             if (willOpen) {
                 closeReaderSettingsPanel();
+                closeUserProfileMenu();
             }
         }
 
@@ -3972,6 +4108,30 @@
             }
         }
 
+        async function openRashiCommentaryFromLibrary() {
+            let baseRef = String(window.currentTextPayload?.ref || appState.currentView?.value || '').trim();
+            if (!baseRef) {
+                await readText('Genesis 1', { skipNavigationGrid: true });
+                baseRef = 'Genesis 1';
+            }
+
+            if (!baseRef.includes(':') && /^(Genesis|Exodus|Leviticus|Numbers|Deuteronomy)\s+\d+$/i.test(baseRef)) {
+                baseRef = `${baseRef}:1`;
+            }
+
+            const rashiRef = `Rashi on ${baseRef}`;
+            setCommentaryAvailability(true);
+            showSelectionInsights();
+
+            if (isMobileViewport()) {
+                openMobilePanel('right');
+            } else if (appState.prefs.showRightSidebar === false) {
+                setSidebarVisibility('right', true);
+            }
+
+            await openCommentaryInline(rashiRef);
+        }
+
         async function updateSelectionInsights() {
             if (!selectionInsightsBody || appState.currentView?.type !== 'text') {
                 collapseCommentaryPanel();
@@ -4273,15 +4433,36 @@
 
             let navHTML = '<div class="flex justify-between mb-8 text-sm">';
             if (data.prev) {
-                navHTML += `<button onclick="readText('${data.prev}')" class="px-4 py-2 bg-slate-100 rounded hover:bg-slate-200 font-serif">${t('Previous section', 'קטע קודם')}: ${data.prev}</button>`;
+                navHTML += `<button onclick="readText('${data.prev}', { skipNavigationGrid: true })" class="px-4 py-2 bg-slate-100 rounded hover:bg-slate-200 font-serif">${t('Previous section', 'קטע קודם')}: ${data.prev}</button>`;
             } else {
                 navHTML += '<span></span>';
             }
             if (data.next) {
-                navHTML += `<button onclick="readText('${data.next}')" class="px-4 py-2 bg-slate-100 rounded hover:bg-slate-200 font-serif">${data.next}</button>`;
+                navHTML += `<button onclick="readText('${data.next}', { skipNavigationGrid: true })" class="px-4 py-2 bg-slate-100 rounded hover:bg-slate-200 font-serif">${t('Next section', 'קטע הבא')}: ${data.next}</button>`;
             }
             navHTML += '</div>';
             readerContent.innerHTML = navHTML;
+
+            if (readerNavFloating && readerPrevFloatingBtn && readerNextFloatingBtn) {
+                const hasPrev = Boolean(data.prev);
+                const hasNext = Boolean(data.next);
+
+                readerNavFloating.classList.toggle('hidden', !(hasPrev || hasNext));
+
+                readerPrevFloatingBtn.disabled = !hasPrev;
+                readerPrevFloatingBtn.classList.toggle('hidden', !hasPrev);
+                if (hasPrev) {
+                    readerPrevFloatingBtn.textContent = t('Previous Section', 'קטע קודם');
+                    readerPrevFloatingBtn.onclick = () => readText(data.prev, { skipNavigationGrid: true });
+                }
+
+                readerNextFloatingBtn.disabled = !hasNext;
+                readerNextFloatingBtn.classList.toggle('hidden', !hasNext);
+                if (hasNext) {
+                    readerNextFloatingBtn.textContent = t('Next Section', 'קטע הבא');
+                    readerNextFloatingBtn.onclick = () => readText(data.next, { skipNavigationGrid: true });
+                }
+            }
 
             const sectionsMarkup = chain.map((chunk, index) => {
                 const sectionRows = renderTextRowsForPayload(chunk, layout);
@@ -4830,6 +5011,13 @@
             });
         }
 
+        if (userProfileMenuBtn) {
+            userProfileMenuBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                toggleUserProfileMenu();
+            });
+        }
+
         if (readerSettingsBtn) {
             readerSettingsBtn.addEventListener('click', (e) => {
                 e.stopPropagation();
@@ -4841,6 +5029,23 @@
             openReaderSettingsFromMenu.addEventListener('click', () => {
                 closeSettingsMenu();
                 toggleReaderSettingsPanel(true);
+            });
+        }
+
+        if (closeChapterGridModalBtn) {
+            closeChapterGridModalBtn.addEventListener('click', () => {
+                closeChapterGrid();
+            });
+        }
+
+        if (chapterGridItems) {
+            chapterGridItems.addEventListener('click', (e) => {
+                const button = e.target.closest('.chapter-grid-item');
+                if (!button) return;
+                const targetRef = String(button.dataset.ref || '').trim();
+                if (!targetRef) return;
+                closeChapterGrid();
+                readText(targetRef, { skipNavigationGrid: true });
             });
         }
 
@@ -5209,6 +5414,49 @@
             modal.classList.remove('flex');
         }
 
+        function closeChapterGrid() {
+            if (!chapterGridModal) return;
+            chapterGridModal.classList.add('hidden');
+            chapterGridModal.classList.remove('flex');
+        }
+
+        function openChapterGrid(book, chapterCount) {
+            if (!chapterGridModal || !chapterGridItems) return;
+
+            const safeBook = String(book || '').trim();
+            const safeCount = Number(chapterCount || 0);
+            if (!safeBook || !Number.isFinite(safeCount) || safeCount < 1) return;
+
+            if (chapterGridTitle) {
+                chapterGridTitle.textContent = isHebrewMode()
+                    ? `בחר פרק: ${safeBook}`
+                    : `${safeBook} Sections`;
+            }
+            if (chapterGridSubtitle) {
+                chapterGridSubtitle.textContent = isHebrewMode()
+                    ? 'בחר פרק לפתיחה מהירה'
+                    : 'Select a chapter to open';
+            }
+
+            const items = Array.from({ length: safeCount }, (_, idx) => idx + 1)
+                .map((chapterNum) => {
+                    const ref = `${safeBook} ${chapterNum}`;
+                    return `
+                        <button type="button"
+                            class="chapter-grid-item"
+                            data-ref="${escapeHtml(ref)}">
+                            <span class="chapter-grid-item-number">${chapterNum}</span>
+                            <span class="chapter-grid-item-label">${escapeHtml(isHebrewMode() ? 'פרק' : 'Chapter')}</span>
+                        </button>
+                    `;
+                })
+                .join('');
+
+            chapterGridItems.innerHTML = items;
+            chapterGridModal.classList.remove('hidden');
+            chapterGridModal.classList.add('flex');
+        }
+
         async function loadPrayersMenu() {
             const modalList = document.getElementById('prayersList');
 
@@ -5470,6 +5718,7 @@
             closeTextsMenu();
             closeReaderSettingsPanel();
             setReaderSubtitle('');
+            readerNavFloating?.classList.add('hidden');
 
             try {
                 await ensurePrayerListLoaded();
@@ -5601,6 +5850,7 @@
             closeTextsMenu();
             closeReaderSettingsPanel();
             setReaderSubtitle('');
+            readerNavFloating?.classList.add('hidden');
 
             try {
                 let communityData = textsCache.communities[communityName];
@@ -6182,14 +6432,24 @@
         }
 
         // ─── INLINE SEFARIA TEXT READER ───────────────────────────────────────
-        async function readText(ref) {
+        async function readText(ref, options = {}) {
             const normalizedRequestRef = String(ref || '').replace(/\s+/g, ' ').trim();
+            const skipNavigationGrid = Boolean(options?.skipNavigationGrid);
+            const chapterGridTarget = skipNavigationGrid ? null : shouldOpenChapterGrid(normalizedRequestRef);
+
+            if (chapterGridTarget) {
+                openChapterGrid(chapterGridTarget.book, chapterGridTarget.chapters);
+                return;
+            }
+
             homeGrid.style.display = 'none';
             reader.classList.add('hidden');
             loadingOverlay.classList.remove('hidden');
             closeMobilePanels();
+            closeChapterGrid();
             closeReaderSettingsPanel();
             setReaderSubtitle('');
+            readerNavFloating?.classList.add('hidden');
 
             document.getElementById('readerTitle').innerText = normalizedRequestRef || String(ref || '');
             document.getElementById('readerContent').innerHTML = '';
@@ -6208,6 +6468,7 @@
                     document.getElementById('readerTitle').innerText = normalizedRequestRef || String(ref || '');
                     document.getElementById('readerContent').innerHTML =
                         `<p class="text-red-500">${t('Could not load text:', 'לא ניתן לטעון את הטקסט:')} ${data.error}</p>`;
+                    readerNavFloating?.classList.add('hidden');
                     window.currentTextPayload = null;
                     window.currentTextPayloadChain = [];
                     resetInfiniteReaderState(null);
@@ -6259,6 +6520,7 @@
                 reader.classList.remove('hidden');
                 document.getElementById('readerContent').innerHTML =
                     `<p class="text-red-500">${t('Network error loading text.', 'שגיאת רשת בטעינת הטקסט.')}</p>`;
+                readerNavFloating?.classList.add('hidden');
                 window.currentTextPayload = null;
                 window.currentTextPayloadChain = [];
                 resetInfiniteReaderState(null);
@@ -6537,9 +6799,9 @@
             });
 
             if (signInBtn) signInBtn.textContent = lang === 'he' ? 'התחברות' : 'Sign In';
-            if (signOutBtn) signOutBtn.textContent = lang === 'he' ? 'התנתקות' : 'Sign Out';
-            if (authUserPill && authUserPill.textContent === 'Signed in') {
-                authUserPill.textContent = lang === 'he' ? 'מחובר' : 'Signed in';
+            if (userProfileSignOutAction) userProfileSignOutAction.textContent = lang === 'he' ? 'התנתקות' : 'Sign Out';
+            if (userProfileMenuLabel && userProfileMenuLabel.textContent === 'Signed in') {
+                userProfileMenuLabel.textContent = lang === 'he' ? 'מחובר' : 'Signed in';
             }
 
             // Re-render dynamic widgets so their generated labels follow the selected language.
@@ -6836,8 +7098,9 @@
             });
         }
 
-        if (signOutBtn) {
-            signOutBtn.addEventListener('click', () => {
+        if (userProfileSignOutAction) {
+            userProfileSignOutAction.addEventListener('click', () => {
+                closeUserProfileMenu();
                 handleSignOut();
             });
         }
@@ -7059,6 +7322,15 @@
             }
             if (settingsMenuContainer && !settingsMenuContainer.contains(e.target)) {
                 closeSettingsMenu();
+            }
+            if (userProfileMenuContainer && !userProfileMenuContainer.contains(e.target)) {
+                closeUserProfileMenu();
+            }
+            if (chapterGridModal && !chapterGridModal.classList.contains('hidden')) {
+                const gridPanel = chapterGridModal.firstElementChild;
+                if (gridPanel && !gridPanel.contains(e.target)) {
+                    closeChapterGrid();
+                }
             }
             if (readerSettingsPanel
                 && !readerSettingsPanel.contains(e.target)
