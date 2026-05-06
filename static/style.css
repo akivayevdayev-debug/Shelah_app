@@ -22,7 +22,7 @@ html {
     --surface-pill: #f3f1ea;
     --accent-deep-blue: #1f3f63;
     --control-bg: #f5f3ec;
-    --control-bg-hover: #edf1f6;
+    --control-bg-hover: #f1ebdd;
     --control-border: #d8d6cf;
     --control-text: #2f4a67;
     --control-text-strong: #223e5a;
@@ -538,28 +538,53 @@ h6 {
 .chapter-grid-parasha-strip {
     display: flex;
     flex-wrap: wrap;
-    gap: 0.45rem;
+    gap: 0.25rem 0.65rem;
     margin-bottom: 0.85rem;
     padding-bottom: 0.65rem;
     border-bottom: 1px solid #e1d7c7;
 }
 
-.chapter-grid-parasha-chip {
-    border: 1px solid #d3c6b1;
-    background: #f7f0e3;
-    color: #365170;
-    border-radius: 999px;
-    font-size: 0.74rem;
-    line-height: 1.1;
+.chapter-grid-parasha-link {
+    border: 0;
+    background: transparent;
+    color: #2c4868;
+    display: inline-flex;
+    align-items: baseline;
+    gap: 0.35rem;
+    font-family: 'Cardo', serif;
+    font-size: 0.95rem;
     font-weight: 700;
-    padding: 0.32rem 0.62rem;
+    line-height: 1.25;
+    padding: 0.05rem 0;
+    text-decoration: none;
+    border-bottom: 1px solid transparent;
 }
 
-.chapter-grid-parasha-chip:hover,
-.chapter-grid-parasha-chip:focus-visible {
-    border-color: #a9997e;
-    background: #efe4d2;
-    color: #223f5d;
+.chapter-grid-parasha-link:hover,
+.chapter-grid-parasha-link:focus-visible {
+    color: #17324f;
+    border-bottom-color: #b59f81;
+}
+
+.chapter-grid-parasha-name {
+    white-space: nowrap;
+}
+
+.chapter-grid-parasha-meta {
+    font-size: 0.62rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: #8a7e6b;
+}
+
+.chapter-grid-group-label {
+    grid-column: 1 / -1;
+    font-size: 0.68rem;
+    letter-spacing: 0.13em;
+    text-transform: uppercase;
+    color: #7d705c;
+    font-weight: 700;
+    padding-top: 0.25rem;
 }
 
 .chapter-grid-item {
@@ -598,6 +623,78 @@ h6 {
     text-transform: uppercase;
     letter-spacing: 0.08em;
     color: #64748b;
+}
+
+.prayer-family-tabs {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+    gap: 0.45rem;
+}
+
+.prayer-family-tab {
+    border: 1px solid #ded3c2;
+    border-radius: 999px;
+    background: #f8f3e9;
+    color: #4d647f;
+    font-size: 0.74rem;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    padding: 0.42rem 0.55rem;
+}
+
+.prayer-family-tab:hover,
+.prayer-family-tab:focus-visible {
+    background: #f1e8d9;
+    border-color: #c8b69d;
+    color: #2a4767;
+}
+
+.prayer-family-tab-active {
+    background: #ede1cf;
+    border-color: #b9a487;
+    color: #1f3f63;
+}
+
+.prayer-grid-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    gap: 0.45rem;
+}
+
+.prayer-grid-item {
+    border: 1px solid #ddd2c0;
+    border-radius: 0.7rem;
+    background: #fffaf1;
+    color: #345271;
+    font-family: 'Cardo', serif;
+    font-size: 0.93rem;
+    line-height: 1.25;
+    padding: 0.5rem 0.6rem;
+}
+
+.prayer-grid-item:hover,
+.prayer-grid-item:focus-visible {
+    background: #f2eadb;
+    border-color: #bea98c;
+    color: #1f3e5d;
+}
+
+.prayer-nav-link {
+    border-radius: 0.45rem;
+    padding-inline: 0.35rem;
+}
+
+.prayer-nav-link:hover,
+.prayer-nav-link:focus-visible {
+    background: rgba(0, 0, 0, 0.03);
+}
+
+.study-track-complete-label {
+    color: #2f4a67;
+    font-family: 'Cardo', serif;
+    font-style: italic;
+    letter-spacing: 0.02em;
 }
 
 .library-index-sidebar-tree {
@@ -886,7 +983,7 @@ body.theme-dark ::-webkit-scrollbar-thumb:hover {
 
 #searchSuggestions .suggestion-item:focus {
     outline: none;
-    background: #eff6ff;
+    background: #f4efe3;
 }
 
 /* Reader personalization */
@@ -982,6 +1079,42 @@ html.rtl #rightSidebar {
     border-right: 1px solid #e2e8f0;
 }
 
+html.rtl #leftSidebar {
+    direction: rtl;
+}
+
+html.rtl #leftSidebar summary,
+html.rtl #leftSidebar button,
+html.rtl #leftSidebar h3,
+html.rtl #leftSidebar p {
+    text-align: right !important;
+}
+
+html.rtl #leftSidebar .border-l-2 {
+    border-left-width: 0 !important;
+    border-right-width: 2px !important;
+    padding-left: 0 !important;
+    padding-right: 0.75rem !important;
+}
+
+html.rtl #leftSidebar .pl-3 {
+    padding-left: 0 !important;
+    padding-right: 0.75rem !important;
+}
+
+html.rtl #leftSidebar .ml-2,
+html.rtl #leftSidebar .ml-3 {
+    margin-left: 0 !important;
+}
+
+html.rtl #leftSidebar .ml-2 {
+    margin-right: 0.5rem !important;
+}
+
+html.rtl #leftSidebar .ml-3 {
+    margin-right: 0.75rem !important;
+}
+
 #reader #readerContent,
 #reader .source-en {
     font-size: var(--reader-font-size);
@@ -1011,6 +1144,73 @@ html.rtl #rightSidebar {
     box-shadow: none;
     -webkit-backdrop-filter: blur(4px);
     backdrop-filter: blur(4px);
+}
+
+.reader-topbar-shell {
+    width: 100vw;
+    margin-inline: calc(50% - 50vw);
+    padding-inline: clamp(0.4rem, 1.4vw, 1.25rem);
+}
+
+.reader-topbar-track {
+    max-width: min(1120px, 100%);
+    margin-inline: auto;
+}
+
+.reader-topbar-icon-btn {
+    min-height: 2rem;
+    min-width: 2rem;
+    border: 1px solid #cfc2ab;
+    background: #fff9ef;
+    color: #234160;
+    border-radius: 999px;
+    font-size: 0.88rem;
+    font-weight: 700;
+    line-height: 1;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0.25rem 0.55rem;
+}
+
+.reader-topbar-icon-btn:hover,
+.reader-topbar-icon-btn:focus-visible {
+    background: #f2e8d8;
+    border-color: #bda98b;
+    color: #1b3653;
+}
+
+.reader-topbar-icon-btn:focus-visible {
+    outline: 2px solid rgba(150, 126, 92, 0.46);
+    outline-offset: 1px;
+}
+
+.reader-topbar-icon-btn:disabled {
+    opacity: 0.45;
+    pointer-events: none;
+}
+
+.reader-topbar-settings-wrap {
+    display: inline-flex;
+    justify-content: center;
+    flex: 1;
+}
+
+.reader-topbar-settings-btn {
+    min-width: 2.35rem;
+}
+
+.library-shell .reader-topbar-shell #readerSettingsBtn {
+    background: #fff9ef !important;
+    border-color: #cfc2ab !important;
+    color: #234160 !important;
+}
+
+.library-shell .reader-topbar-shell #readerSettingsBtn:hover,
+.library-shell .reader-topbar-shell #readerSettingsBtn:focus-visible {
+    background: #f2e8d8 !important;
+    border-color: #bda98b !important;
+    color: #1b3653 !important;
 }
 
 #readerTopBar button {
@@ -1171,7 +1371,7 @@ body.mobile-panel-open {
 
     #readerTopBar button {
         min-height: 2rem;
-        min-width: 0;
+        min-width: 2rem;
     }
 
     #reader header .flex.flex-wrap.justify-center.items-center {
@@ -1193,6 +1393,15 @@ body.mobile-panel-open {
 
 .home-typography {
     background: transparent;
+}
+
+.home-parasha-hero {
+    background: linear-gradient(120deg, #f8f2e7 0%, #f3ecdd 100%);
+    border: 1px solid #d7c9b3;
+    border-left: 4px solid #1f3f63;
+    border-radius: 1rem;
+    padding: clamp(0.95rem, 1.7vw, 1.45rem);
+    box-shadow: 0 10px 28px rgba(53, 45, 33, 0.08);
 }
 
 .home-section-label {
@@ -1533,12 +1742,12 @@ body.mobile-panel-open {
 .library-shell .bg-blue-50,
 .library-shell .bg-blue-100,
 .library-shell .bg-indigo-50 {
-    background-color: #f3f1ea !important;
+    background-color: #f4efe3 !important;
 }
 
 .library-shell .border-blue-200,
 .library-shell .border-indigo-200 {
-    border-color: #d5ddeb !important;
+    border-color: #d9cfbe !important;
 }
 
 .library-shell .text-indigo-700,
@@ -1551,7 +1760,7 @@ body.mobile-panel-open {
 .library-shell .hover\:bg-slate-100:hover,
 .library-shell .hover\:bg-slate-200:hover,
 .library-shell .hover\:bg-blue-50:hover {
-    background-color: #edf1f6 !important;
+    background-color: #f4efe3 !important;
 }
 
 .library-shell .focus\:ring-blue-300:focus,
@@ -1573,9 +1782,9 @@ body.mobile-panel-open {
 }
 
 .library-shell .lang-btn.lang-btn-active {
-    background-color: #f4f2ec !important;
-    border-color: #bccbdd !important;
-    color: #2c4968 !important;
+    background-color: #efe6d6 !important;
+    border-color: #c4b499 !important;
+    color: #4d3d2a !important;
 }
 
 .library-shell #settingsMenuBtn,
@@ -1617,7 +1826,7 @@ body.mobile-panel-open {
 .library-shell #trackCurrentBtn:hover,
 .library-shell #themeToggleBtn:hover {
     background-color: var(--control-bg-hover) !important;
-    border-color: #c5d2e2 !important;
+    border-color: #ccbca2 !important;
     color: var(--control-text-strong) !important;
 }
 
@@ -1639,7 +1848,7 @@ body.mobile-panel-open {
 }
 
 .library-shell #searchSuggestions .suggestion-item[aria-selected="true"] {
-    background: #edf1f6 !important;
+    background: #f4efe3 !important;
 }
 
 .library-shell .library-node-open.library-node-active {
@@ -1958,13 +2167,13 @@ body.theme-dark .border-indigo-200 {
 body.theme-dark .focus\:ring-blue-300:focus,
 body.theme-dark .focus\:ring-blue-400:focus,
 body.theme-dark .focus\:ring-blue-500:focus {
-    --tw-ring-color: rgba(56, 88, 135, 0.48) !important;
+    --tw-ring-color: rgba(176, 154, 116, 0.45) !important;
 }
 
 body.theme-dark .focus\:border-blue-300:focus,
 body.theme-dark .focus\:border-blue-400:focus,
 body.theme-dark .focus\:border-blue-500:focus {
-    border-color: #3d5f92 !important;
+    border-color: #7a6d57 !important;
 }
 
 body.theme-dark .fc,
@@ -2088,11 +2297,11 @@ body.theme-dark #mobileDrawerBackdrop {
 body.theme-dark .ring-blue-400,
 body.theme-dark .focus\:ring-blue-400:focus,
 body.theme-dark .focus-ring {
-    --tw-ring-color: rgba(124, 119, 108, 0.42) !important;
+    --tw-ring-color: rgba(176, 154, 116, 0.42) !important;
 }
 
 body.theme-dark .border-blue-400 {
-    border-color: #6d695f !important;
+    border-color: #7a6d57 !important;
 }
 
 /* Dark calendar button active states */
@@ -2224,6 +2433,19 @@ body.theme-dark #readerTopBar button {
     color: var(--accent-cream) !important;
 }
 
+body.theme-dark .library-shell .reader-topbar-shell #readerSettingsBtn {
+    background: #242420 !important;
+    border-color: #4e4942 !important;
+    color: var(--accent-cream) !important;
+}
+
+body.theme-dark .library-shell .reader-topbar-shell #readerSettingsBtn:hover,
+body.theme-dark .library-shell .reader-topbar-shell #readerSettingsBtn:focus-visible {
+    background: #2e2f2a !important;
+    border-color: #70695d !important;
+    color: #f5ebdb !important;
+}
+
 body.theme-dark .chapter-grid-header {
     background: linear-gradient(180deg, #1b1c1a 0%, #1f211d 100%);
     color: #ebe2d4;
@@ -2238,16 +2460,23 @@ body.theme-dark .chapter-grid-parasha-strip {
     border-bottom-color: #3f3c35;
 }
 
-body.theme-dark .chapter-grid-parasha-chip {
-    background: #242622;
-    border-color: #4f4b43;
+body.theme-dark .chapter-grid-parasha-link {
+    border-bottom-color: transparent;
     color: #e8ddce;
 }
 
-body.theme-dark .chapter-grid-parasha-chip:hover,
-body.theme-dark .chapter-grid-parasha-chip:focus-visible {
-    background: #2d302a;
-    border-color: #786f63;
+body.theme-dark .chapter-grid-parasha-link:hover,
+body.theme-dark .chapter-grid-parasha-link:focus-visible {
+    border-bottom-color: #786f63;
+    color: #f4ebdc;
+}
+
+body.theme-dark .chapter-grid-parasha-meta {
+    color: #b6a98f;
+}
+
+body.theme-dark .chapter-grid-group-label {
+    color: #b8ab92;
 }
 
 body.theme-dark .home-section-label,
@@ -2262,6 +2491,13 @@ body.theme-dark .home-daily-link,
 body.theme-dark .home-calendar-btn,
 body.theme-dark #readerTitle {
     color: var(--accent-cream) !important;
+}
+
+body.theme-dark .home-parasha-hero {
+    background: linear-gradient(120deg, #1b1d1b 0%, #212420 100%);
+    border-color: #49453d;
+    border-left-color: #7f8f9d;
+    box-shadow: 0 12px 28px rgba(0, 0, 0, 0.28);
 }
 
 body.theme-dark .home-link-tanakh .home-library-title {
@@ -2290,6 +2526,42 @@ body.theme-dark .home-link-thought .home-library-title {
 
 body.theme-dark .home-library-description {
     color: #b7aea1 !important;
+}
+
+body.theme-dark .prayer-family-tab {
+    background: #222420;
+    border-color: #4c4a43;
+    color: #d6cdbf;
+}
+
+body.theme-dark .prayer-family-tab:hover,
+body.theme-dark .prayer-family-tab:focus-visible {
+    background: #2b2d28;
+    border-color: #6a6255;
+    color: #efe6d8;
+}
+
+body.theme-dark .prayer-family-tab-active {
+    background: #302f29;
+    border-color: #756a57;
+    color: #f3e9d8;
+}
+
+body.theme-dark .prayer-grid-item {
+    background: #1f211d;
+    border-color: #47453f;
+    color: #e4dbcd;
+}
+
+body.theme-dark .prayer-grid-item:hover,
+body.theme-dark .prayer-grid-item:focus-visible {
+    background: #282b25;
+    border-color: #706655;
+    color: #f6ecdc;
+}
+
+body.theme-dark .study-track-complete-label {
+    color: #aebfd3;
 }
 
 body.theme-dark #popularTextsGrid button {
