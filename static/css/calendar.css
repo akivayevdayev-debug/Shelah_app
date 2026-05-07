@@ -1,0 +1,129 @@
+/*
+  calendar.css
+  FullCalendar overrides using CSS variables, zmanim improvements, and responsive calendar layout.
+  Supplements style.css — does not replace existing calendar rules.
+*/
+
+/* ═══════════════════════════════════════════════════════ */
+/* CALENDAR CSS VARIABLES */
+/* ═══════════════════════════════════════════════════════ */
+
+:root {
+    --cal-border: #e2e8f0;
+    --cal-today-bg: #F0F9FF;
+    --cal-header-color: #002147;
+    --cal-cell-bg: #ffffff;
+    --cal-number-color: #475569;
+    --cal-toolbar-bg: transparent;
+    --cal-event-holiday: #802f3e;
+    --cal-event-shabbat: #064e3b;
+}
+
+body.theme-dark {
+    --cal-border: #40433d;
+    --cal-today-bg: #2a2d2a;
+    --cal-header-color: #f3eadd;
+    --cal-cell-bg: #1c1f1d;
+    --cal-number-color: #ddd4c6;
+    --cal-event-holiday: #4a3d42;
+    --cal-event-shabbat: #3d4a3d;
+}
+
+/* ═══════════════════════════════════════════════════════ */
+/* FULLCALENDAR — CSS VARIABLE INTEGRATION */
+/* ═══════════════════════════════════════════════════════ */
+
+.fc {
+    --fc-border-color: var(--cal-border);
+    --fc-today-bg-color: var(--cal-today-bg);
+    --fc-page-bg-color: var(--cal-cell-bg);
+    --fc-neutral-bg-color: var(--cal-cell-bg);
+    --fc-neutral-text-color: var(--cal-number-color);
+}
+
+.fc .fc-toolbar-title {
+    color: var(--cal-header-color);
+}
+
+.fc-event.holiday {
+    background-color: var(--cal-event-holiday) !important;
+    border-color: transparent !important;
+}
+
+.fc-event.shabbat {
+    background-color: var(--cal-event-shabbat) !important;
+    border-color: transparent !important;
+}
+
+/* ═══════════════════════════════════════════════════════ */
+/* CALENDAR MOBILE IMPROVEMENTS */
+/* ═══════════════════════════════════════════════════════ */
+
+@media (max-width: 767px) {
+    .fc .fc-toolbar {
+        flex-direction: column;
+        gap: 0.5rem;
+        align-items: flex-start;
+    }
+
+    .fc .fc-toolbar-title {
+        font-size: 1rem !important;
+    }
+
+    .fc-event {
+        font-size: 0.72rem;
+    }
+
+    .fc .fc-daygrid-day-number {
+        font-size: 0.8rem;
+    }
+}
+
+/* ═══════════════════════════════════════════════════════ */
+/* HEBREW DATE UTILITY */
+/* ═══════════════════════════════════════════════════════ */
+
+.cal-hebrew-date {
+    font-family: var(--font-hebrew, 'Ezra SIL', 'Cardo', serif);
+    font-size: 0.7rem;
+    color: var(--text-muted);
+    direction: rtl;
+    display: block;
+    line-height: 1.4;
+}
+
+body.theme-dark .cal-hebrew-date {
+    color: var(--text-muted);
+}
+
+/* ═══════════════════════════════════════════════════════ */
+/* ZMANIM LIST IMPROVEMENTS */
+/* ═══════════════════════════════════════════════════════ */
+
+/* Zmanim row focus state */
+.today-zmanim-list [data-zman-row]:focus-visible {
+    outline: 2px solid rgba(176, 154, 116, 0.6);
+    outline-offset: 1px;
+    border-radius: 0.44rem;
+}
+
+/* ═══════════════════════════════════════════════════════ */
+/* PRINT CALENDAR */
+/* ═══════════════════════════════════════════════════════ */
+
+@media print {
+
+    .fc .fc-button,
+    .fc .fc-button-group {
+        display: none !important;
+    }
+
+    .fc .fc-toolbar {
+        justify-content: center;
+    }
+
+    .fc-event {
+        print-color-adjust: exact;
+        -webkit-print-color-adjust: exact;
+    }
+}

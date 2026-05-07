@@ -1,0 +1,148 @@
+/*
+  reader.css
+  Reader layout semantic utilities, loading states, and responsive reader improvements.
+  Supplements style.css — does not replace existing reader rules.
+*/
+
+/* ═══════════════════════════════════════════════════════ */
+/* READER LOADING SHIMMER */
+/* ═══════════════════════════════════════════════════════ */
+
+@keyframes shimmer {
+    0% {
+        background-position: -200% 0;
+    }
+
+    100% {
+        background-position: 200% 0;
+    }
+}
+
+.reader-loading-shimmer {
+    background: linear-gradient(90deg,
+            var(--surface-subtle) 25%,
+            var(--surface-elevated) 50%,
+            var(--surface-subtle) 75%);
+    background-size: 200% 100%;
+    animation: shimmer 1.6s infinite;
+    border-radius: var(--radius-sm, 0.35rem);
+    height: 1em;
+    display: block;
+}
+
+/* ═══════════════════════════════════════════════════════ */
+/* READER COLUMN WIDTH HELPERS */
+/* ═══════════════════════════════════════════════════════ */
+
+.reader-col-narrow {
+    max-width: 42ch;
+}
+
+.reader-col-standard {
+    max-width: 65ch;
+}
+
+.reader-col-wide {
+    max-width: 90ch;
+}
+
+.reader-col-full {
+    max-width: none;
+}
+
+/* ═══════════════════════════════════════════════════════ */
+/* READER ACCESSIBILITY */
+/* ═══════════════════════════════════════════════════════ */
+
+#reader a:focus-visible,
+#reader button:focus-visible {
+    outline: 2px solid rgba(176, 154, 116, 0.65);
+    outline-offset: 2px;
+    border-radius: 3px;
+}
+
+/* ═══════════════════════════════════════════════════════ */
+/* SEGMENT NUMBER BADGES (small verse/mishnah numbers) */
+/* ═══════════════════════════════════════════════════════ */
+
+.segment-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 1.4rem;
+    height: 1.4rem;
+    background: var(--surface-pill);
+    border: 1px solid var(--surface-border);
+    border-radius: var(--radius-sm, 0.35rem);
+    font-size: 0.68rem;
+    font-weight: 600;
+    font-family: var(--font-sans, sans-serif);
+    color: var(--text-muted);
+    line-height: 1;
+}
+
+body.theme-dark .segment-badge {
+    background: var(--surface-pill);
+    border-color: var(--surface-border);
+    color: var(--text-muted);
+}
+
+/* ═══════════════════════════════════════════════════════ */
+/* READER TEXT SELECTION HIGHLIGHT */
+/* ═══════════════════════════════════════════════════════ */
+
+#reader ::selection {
+    background: rgba(212, 175, 55, 0.25);
+    color: inherit;
+}
+
+body.theme-dark #reader ::selection {
+    background: rgba(232, 200, 74, 0.22);
+    color: inherit;
+}
+
+/* ═══════════════════════════════════════════════════════ */
+/* READER TOPBAR DARK MODE IMPROVEMENTS */
+/* ═══════════════════════════════════════════════════════ */
+
+body.theme-dark .reader-topbar-icon-btn {
+    background: #242420;
+    border-color: #4e4942;
+    color: var(--accent-cream, #f3eadd);
+}
+
+body.theme-dark .reader-topbar-icon-btn:hover,
+body.theme-dark .reader-topbar-icon-btn:focus-visible {
+    background: #2e2f2a;
+    border-color: #70695d;
+    color: #f5ebdb;
+}
+
+/* ═══════════════════════════════════════════════════════ */
+/* RESPONSIVE READER LAYOUT */
+/* ═══════════════════════════════════════════════════════ */
+
+@media (max-width: 640px) {
+    #reader .source-grid {
+        grid-template-columns: 1fr !important;
+    }
+
+    #reader .source-he,
+    #reader .source-en {
+        padding-inline: 0.75rem;
+    }
+}
+
+/* ═══════════════════════════════════════════════════════ */
+/* COMPARE VIEW IMPROVEMENTS */
+/* ═══════════════════════════════════════════════════════ */
+
+#compareContainer {
+    border-radius: var(--radius-md, 0.7rem);
+    overflow: hidden;
+}
+
+body.theme-dark #compareContainer {
+    background: var(--surface-elevated);
+    border-color: var(--surface-border);
+}
