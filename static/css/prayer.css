@@ -1,0 +1,105 @@
+/*
+  prayer.css
+  Siddur prayer layout improvements, responsive prayer grid, and print styles.
+  Supplements style.css — does not replace existing prayer rules.
+*/
+
+/* ═══════════════════════════════════════════════════════ */
+/* PRAYER SECTION DARK MODE */
+/* ═══════════════════════════════════════════════════════ */
+
+body.theme-dark .prayer-section {
+    background: var(--surface-elevated);
+    border-color: var(--surface-border);
+}
+
+body.theme-dark .prayer-hebrew {
+    color: var(--accent-cream, #f3eadd);
+}
+
+body.theme-dark .prayer-english {
+    color: var(--text-muted);
+}
+
+body.theme-dark .prayer-rubric {
+    background: var(--surface-subtle);
+    border-left-color: #9a8040;
+    color: var(--text-muted);
+}
+
+/* ═══════════════════════════════════════════════════════ */
+/* RESPONSIVE PRAYER SECTION */
+/* ═══════════════════════════════════════════════════════ */
+
+@media (max-width: 767px) {
+    .prayer-section {
+        grid-template-columns: 1fr !important;
+        gap: 1rem;
+        padding: 1rem;
+    }
+
+    /* Hebrew always on top for mobile */
+    .prayer-section .prayer-hebrew {
+        order: 1;
+    }
+
+    .prayer-section .prayer-english {
+        order: 2;
+    }
+}
+
+/* ═══════════════════════════════════════════════════════ */
+/* PRAYER GRID DARK MODE */
+/* ═══════════════════════════════════════════════════════ */
+
+body.theme-dark .prayer-grid-list {
+    --prayer-grid-border: var(--surface-border);
+}
+
+/* ═══════════════════════════════════════════════════════ */
+/* PRAYER FAMILY TABS RESPONSIVE */
+/* ═══════════════════════════════════════════════════════ */
+
+@media (max-width: 640px) {
+    .prayer-family-tabs {
+        grid-template-columns: repeat(auto-fill, minmax(90px, 1fr));
+        gap: 0.35rem;
+    }
+
+    .prayer-grid-list {
+        grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+    }
+}
+
+/* ═══════════════════════════════════════════════════════ */
+/* PRINT-FRIENDLY PRAYER LAYOUT */
+/* ═══════════════════════════════════════════════════════ */
+
+@media print {
+    .prayer-section {
+        grid-template-columns: 1fr 1fr;
+        break-inside: avoid;
+        page-break-inside: avoid;
+        border: 1px solid #ccc;
+        background: #fff !important;
+    }
+
+    .prayer-rubric {
+        border-left-color: #ccc;
+        background: #f5f5f5 !important;
+    }
+
+    .prayer-family-tabs,
+    .prayer-nav-link {
+        display: none;
+    }
+}
+
+/* ═══════════════════════════════════════════════════════ */
+/* PRAYER CLEAN LINES DARK MODE */
+/* ═══════════════════════════════════════════════════════ */
+
+body.theme-dark #reader .prayer-clean-he,
+body.theme-dark #reader .prayer-clean-en {
+    color: var(--accent-cream, #f3eadd);
+}

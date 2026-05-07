@@ -1,0 +1,136 @@
+/*
+  halacha.css
+  Halacha, source card, and custom ruling component improvements.
+  Consolidates component colors into CSS variables and adds dark mode coverage.
+  Supplements style.css — does not replace existing halacha rules.
+*/
+
+/* ═══════════════════════════════════════════════════════ */
+/* HALACHA COMPONENT CSS VARIABLES */
+/* ═══════════════════════════════════════════════════════ */
+
+:root {
+    --halacha-ruling-color: #002147;
+    --halacha-ruling-bg: #f0f4f8;
+    --halacha-custom-color: #7c3aed;
+    --halacha-custom-bg: #f5f3ff;
+    --halacha-source-color: #d4af37;
+    --halacha-source-bg: #fffbf0;
+    --halacha-title-color: #002147;
+    --halacha-text-color: #334155;
+}
+
+body.theme-dark {
+    --halacha-ruling-color: #a0b8d0;
+    --halacha-ruling-bg: #1d2331;
+    --halacha-custom-color: #c4a9f4;
+    --halacha-custom-bg: #211e30;
+    --halacha-source-color: #e8c84a;
+    --halacha-source-bg: #27231a;
+    --halacha-title-color: var(--text-main);
+    --halacha-text-color: var(--text-muted);
+}
+
+/* ═══════════════════════════════════════════════════════ */
+/* HALACHA DARK MODE COVERAGE */
+/* ═══════════════════════════════════════════════════════ */
+
+body.theme-dark .halacha-section.ruling {
+    background: var(--halacha-ruling-bg);
+    border-left-color: var(--halacha-ruling-color);
+}
+
+body.theme-dark .halacha-section.custom {
+    background: var(--halacha-custom-bg);
+    border-left-color: var(--halacha-custom-color);
+}
+
+body.theme-dark .halacha-section.source {
+    background: var(--halacha-source-bg);
+    border-left-color: var(--halacha-source-color);
+}
+
+body.theme-dark .halacha-title {
+    color: var(--halacha-title-color);
+}
+
+body.theme-dark .halacha-text {
+    color: var(--halacha-text-color);
+}
+
+/* ═══════════════════════════════════════════════════════ */
+/* CUSTOM RULING DARK MODE */
+/* ═══════════════════════════════════════════════════════ */
+
+body.theme-dark .custom-ruling {
+    background: #221d2e;
+    border-left-color: var(--halacha-custom-color);
+}
+
+body.theme-dark .custom-ruling.ashkenazi {
+    background: #1d2230;
+    border-left-color: var(--accent-blue, #7fafd6);
+}
+
+body.theme-dark .custom-ruling.sefardi {
+    background: #2a1f18;
+    border-left-color: var(--accent-orange, #fb923c);
+}
+
+body.theme-dark .custom-ruling.yemenite {
+    background: #1a2820;
+    border-left-color: var(--accent-green, #34d399);
+}
+
+body.theme-dark .custom-ruling.bukharian {
+    background: #28182e;
+    border-left-color: #d946ef;
+}
+
+body.theme-dark .custom-label {
+    background: rgba(196, 169, 244, 0.12);
+    color: var(--halacha-custom-color);
+}
+
+/* ═══════════════════════════════════════════════════════ */
+/* SOURCE CARD DARK MODE */
+/* ═══════════════════════════════════════════════════════ */
+
+body.theme-dark .source-card {
+    background: var(--surface-elevated);
+    border-color: var(--surface-border);
+}
+
+body.theme-dark .source-card:hover {
+    border-color: var(--gold, #e8c84a);
+    box-shadow: 0 4px 12px rgba(232, 200, 74, 0.08);
+}
+
+body.theme-dark .source-card.featured {
+    background: linear-gradient(135deg, var(--surface-elevated) 0%, var(--surface-subtle) 100%);
+    border-left-color: var(--accent-cream, #f3eadd);
+}
+
+/* ═══════════════════════════════════════════════════════ */
+/* SOURCE CARDS GRID UTILITY */
+/* ═══════════════════════════════════════════════════════ */
+
+.source-cards-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: var(--space-md, 1rem);
+}
+
+/* ═══════════════════════════════════════════════════════ */
+/* RESPONSIVE HALACHA SECTION */
+/* ═══════════════════════════════════════════════════════ */
+
+@media (max-width: 767px) {
+    .halacha-section {
+        padding: 1rem;
+    }
+
+    .source-cards-grid {
+        grid-template-columns: 1fr;
+    }
+}

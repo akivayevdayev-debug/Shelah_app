@@ -1,0 +1,133 @@
+/*
+  ai.css
+  AI assistant modal, synthesis cards, and trust badge improvements.
+  Supplements style.css — does not replace existing AI rules.
+*/
+
+/* ═══════════════════════════════════════════════════════ */
+/* AI COMPONENT CSS VARIABLES */
+/* ═══════════════════════════════════════════════════════ */
+
+:root {
+    --ai-surface: #f0f4f8;
+    --ai-border: #cbd5e1;
+    --ai-accent: #0284c7;
+    --ai-trust-bg: #f8fafc;
+    --ai-trust-border: #e2e8f0;
+    --ai-wiki-accent: #0284c7;
+    --ai-custom-accent: #7c3aed;
+}
+
+body.theme-dark {
+    --ai-surface: #1e2020;
+    --ai-border: #404540;
+    --ai-accent: #60a5fa;
+    --ai-trust-bg: #1e201e;
+    --ai-trust-border: #40423d;
+    --ai-wiki-accent: #60a5fa;
+    --ai-custom-accent: #c4a9f4;
+}
+
+/* ═══════════════════════════════════════════════════════ */
+/* AI SYNTHESIS CARD — VARIABLE-BASED COLORS */
+/* ═══════════════════════════════════════════════════════ */
+
+.ai-synthesis {
+    background: var(--ai-surface);
+    border-color: var(--ai-border);
+    transition: border-color 0.2s ease;
+}
+
+.ai-source-card {
+    border-color: var(--ai-border);
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.ai-wiki-card {
+    border-left-color: var(--ai-wiki-accent);
+}
+
+.ai-custom-card {
+    border-left-color: var(--ai-custom-accent);
+}
+
+/* ═══════════════════════════════════════════════════════ */
+/* AI TRUST SECTION */
+/* ═══════════════════════════════════════════════════════ */
+
+#aiTrustSection {
+    background: var(--ai-trust-bg);
+    border-color: var(--ai-trust-border);
+    border-radius: var(--radius-md, 0.7rem);
+}
+
+/* ═══════════════════════════════════════════════════════ */
+/* AI MODAL DARK MODE */
+/* ═══════════════════════════════════════════════════════ */
+
+body.theme-dark .ai-synthesis {
+    background: var(--ai-surface) !important;
+    border-color: var(--ai-border) !important;
+    color: var(--accent-cream, #f3eadd) !important;
+}
+
+body.theme-dark .ai-source-card {
+    background: var(--surface-elevated) !important;
+    border-color: var(--ai-border) !important;
+    color: var(--accent-cream, #f3eadd) !important;
+}
+
+body.theme-dark .ai-custom-card {
+    background: #221d2e !important;
+    border-left-color: var(--ai-custom-accent) !important;
+}
+
+body.theme-dark .ai-wiki-card {
+    background: #1d2330 !important;
+    border-left-color: var(--ai-wiki-accent) !important;
+}
+
+/* ═══════════════════════════════════════════════════════ */
+/* AI MODAL ACCESSIBILITY */
+/* ═══════════════════════════════════════════════════════ */
+
+/* Focus ring for modal close button */
+#aiAssistantModal button:focus-visible,
+#textsMenuModal button:focus-visible {
+    outline: 2px solid rgba(176, 154, 116, 0.65);
+    outline-offset: 2px;
+    border-radius: 3px;
+}
+
+/* AI modal backdrop isolation */
+#aiAssistantModal,
+#textsMenuModal,
+#sourceGraphModal,
+#communityTimelineModal {
+    isolation: isolate;
+}
+
+/* ═══════════════════════════════════════════════════════ */
+/* SELECTION INSIGHTS PANEL */
+/* ═══════════════════════════════════════════════════════ */
+
+body.theme-dark #selectionInsights {
+    background: var(--surface-elevated) !important;
+    border-color: var(--surface-border) !important;
+}
+
+body.theme-dark #selectionInsights p,
+body.theme-dark #selectionInsights span {
+    color: var(--text-main) !important;
+}
+
+/* ═══════════════════════════════════════════════════════ */
+/* AI BADGE HOVER STATES */
+/* ═══════════════════════════════════════════════════════ */
+
+body.theme-dark #aiConfidenceBadge:hover,
+body.theme-dark #aiModeBadge:hover,
+body.theme-dark #aiCommunityBadge:hover,
+body.theme-dark #aiSourcesBadge:hover {
+    border-color: #6a7585 !important;
+}

@@ -3596,26 +3596,89 @@ def library_index():
 @app.route("/api/library/leaf-refs")
 def library_leaf_refs():
     """Return leaf refs for a given index title to power section-grid selectors."""
+    import re as _re
     from backend.sefaria_library import get_index_entry, get_index_leaf_refs
+
+    def _parse_talmud_daf_key(daf_str):
+        """Convert a daf string like '2a', '13b' to a sortable integer key."""
+        m = _re.search(r'(\d+)([ab])', str(daf_str or '').strip().lower())
+        if not m:
+            return None
+        num = int(m.group(1))
+        side = 0 if m.group(2) == 'a' else 1
+        return num * 2 + side
+
+    def _extract_talmud_sections(index_title, entry):
+        """
+        Extract named chapter sections from a Talmud index entry's alts.Chapters.
+        Returns list of {label, fromDaf, toDaf} dicts, or [] if unavailable.
+        """
+        alts = entry.get("alts") if isinstance(entry, dict) else None
+        if not isinstance(alts, dict):
+            return []
+        chapters_alt = alts.get("Chapters") or alts.get("chapters")
+        if not isinstance(chapters_alt, dict):
+            return []
+        nodes = chapters_alt.get("nodes")
+        if not isinstance(nodes, list):
+            return []
+
+        sections = []
+        for node in nodes:
+            if not isinstance(node, dict):
+                continue
+            raw_title = str(node.get("title") or "").strip()
+            canonical_title = entry.get("title", index_title)
+            whole_ref = str(node.get("wholeRef") or "").strip()
+
+            # Parse the daf range from wholeRef: "Berakhot 2a:1-13a:15"
+            # Strip the title prefix then read the daf range
+            ref_body = whole_ref
+            if canonical_title and ref_body.lower().startswith(canonical_title.lower()):
+                ref_body = ref_body[len(canonical_title):].lstrip(" ,")
+            elif index_title and ref_body.lower().startswith(index_title.lower()):
+                ref_body = ref_body[len(index_title):].lstrip(" ,")
+
+            range_m = _re.search(
+                r'(\d+[ab])(?:[\d:]*)\s*-\s*(\d+[ab])', ref_body, _re.IGNORECASE)
+            if not range_m:
+                continue
+            from_daf = range_m.group(1).lower()
+            to_daf = range_m.group(2).lower()
+
+            # Clean the chapter label: "Chapter 1; MeEimatai" → "MeEimatai (2a–13a)"
+            # Keep the human name after the semicolon, if present
+            if ';' in raw_title:
+                label = raw_title.split(';', 1)[1].strip()
+            else:
+                label = raw_title
+
+            sections.append({
+                "label": label,
+                "fromDaf": from_daf,
+                "toDaf": to_daf,
+            })
+
+        return sections
 
     def _synthesize_section_refs(index_title, max_items=140):
         entry = get_index_entry(index_title)
         schema = entry.get("schema", {}) if isinstance(entry, dict) else {}
         if not isinstance(schema, dict):
-            return []
+            return [], []
 
         lengths = schema.get("lengths") if isinstance(
             schema.get("lengths"), list) else []
         if not lengths:
-            return []
+            return [], []
 
         try:
             first_level_count = int(lengths[0])
         except (TypeError, ValueError):
-            return []
+            return [], []
 
         if first_level_count <= 1:
-            return []
+            return [], []
 
         section_names = schema.get("sectionNames") if isinstance(
             schema.get("sectionNames"), list) else []
@@ -3636,14 +3699,15 @@ def library_leaf_refs():
                 refs.append(f"{index_title} {daf_num}{side}")
                 if len(refs) >= max_items:
                     break
-            return refs
+            sections = _extract_talmud_sections(index_title, entry)
+            return refs, sections
 
         for idx in range(1, first_level_count + 1):
             refs.append(f"{index_title} {idx}")
             if len(refs) >= max_items:
                 break
 
-        return refs
+        return refs, []
 
     requested_title = _decode_route_ref(request.args.get("title", ""))
     title = str(requested_title or "").strip()
@@ -3651,8 +3715,9 @@ def library_leaf_refs():
                            min_value=1, max_value=260)
 
     if not title:
-        return jsonify({"title": "", "refs": []})
+        return jsonify({"title": "", "refs": [], "sections": []})
 
+    sections = []
     try:
         refs = get_index_leaf_refs(title, max_refs=max_refs)
     except Exception:
@@ -3662,11 +3727,19 @@ def library_leaf_refs():
         refs = []
 
     if len(refs) <= 1:
-        refs = _synthesize_section_refs(title, max_items=max_refs)
+        refs, sections = _synthesize_section_refs(title, max_items=max_refs)
+    else:
+        # Try to extract sections even when refs came from get_index_leaf_refs
+        try:
+            entry = get_index_entry(title)
+            sections = _extract_talmud_sections(title, entry)
+        except Exception:
+            sections = []
 
     return jsonify({
         "title": title,
         "refs": refs,
+        "sections": sections,
     })
 
 

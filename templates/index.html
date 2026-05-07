@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="light">
 
 <head>
     <meta charset="UTF-8">
@@ -10,12 +10,120 @@
     <link rel="manifest" href="/manifest.webmanifest">
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
+    <!-- DaisyUI component library (non-destructive — adds .btn, .card etc. utility classes) -->
+    <link href="https://cdn.jsdelivr.net/npm/daisyui@4/dist/full.min.css" rel="stylesheet">
 
     <!-- Scholarly Typography -->
     <link href="https://fonts.googleapis.com/css2?family=Cardo:wght@400;700&family=Inter:wght@400;500;600&display=swap"
         rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
-    <link rel="stylesheet" href="/static/style.css?v=20260505-reader-polish-v19">
+    <link rel="stylesheet" href="/static/style.css?v=20260506-buttonless-topbar-6">
+    <!-- CSS modules (supplement style.css; do not replace) -->
+    <link rel="stylesheet" href="/static/css/typography.css?v=20260507-v1">
+    <link rel="stylesheet" href="/static/css/reader.css?v=20260507-v1">
+    <link rel="stylesheet" href="/static/css/sidebar.css?v=20260507-v2-fix">
+    <link rel="stylesheet" href="/static/css/halacha.css?v=20260507-v1">
+    <link rel="stylesheet" href="/static/css/prayer.css?v=20260507-v1">
+    <link rel="stylesheet" href="/static/css/ai.css?v=20260507-v1">
+    <link rel="stylesheet" href="/static/css/calendar.css?v=20260507-v1">
+
+    <style id="quick-settings-dark-fixes">
+        /* Quick Settings dark-mode fixes: ensure inputs, selects, buttons, labels readable */
+        body.theme-dark #settingsPanel,
+        body.theme-dark #readerSettingsPanel {
+            background: var(--surface-elevated) !important;
+            border-color: var(--surface-border) !important;
+            color: var(--accent-cream) !important;
+        }
+
+        body.theme-dark #settingsPanel .text-slate-400,
+        body.theme-dark #settingsPanel p.text-[11px],
+        body.theme-dark #settingsPanel .uppercase {
+            color: #bfb6a6 !important;
+        }
+
+        body.theme-dark #settingsPanel .bg-slate-50,
+        body.theme-dark #settingsPanel .bg-slate-100,
+        body.theme-dark #settingsPanel .bg-white {
+            background: var(--surface-pill) !important;
+            border-color: var(--surface-border) !important;
+            color: var(--accent-cream) !important;
+        }
+
+        body.theme-dark #settingsPanel .text-slate-700,
+        body.theme-dark #settingsPanel .text-slate-600,
+        body.theme-dark #settingsPanel .text-slate-500 {
+            color: var(--accent-cream) !important;
+        }
+
+        body.theme-dark #settingsPanel .border-slate-100,
+        body.theme-dark #settingsPanel .border-slate-200 {
+            border-color: var(--surface-border) !important;
+        }
+
+        body.theme-dark #settingsPanel select,
+        body.theme-dark #settingsPanel input,
+        body.theme-dark #settingsPanel textarea,
+        body.theme-dark #settingsPanel button {
+            background: var(--surface-pill) !important;
+            border-color: var(--surface-border) !important;
+            color: var(--accent-cream) !important;
+        }
+
+        body.theme-dark #settingsPanel input::placeholder,
+        body.theme-dark #settingsPanel textarea::placeholder {
+            color: #8a8278 !important;
+        }
+
+        /* Theme toggle button – use dark pill style */
+        body.theme-dark #themeToggleBtn {
+            background: var(--surface-pill) !important;
+            color: var(--accent-cream) !important;
+            border-color: var(--surface-border) !important;
+        }
+
+        body.theme-dark #themeToggleBtn:hover {
+            background: #2e302c !important;
+            border-color: #5a5c55 !important;
+            color: #f5ecde !important;
+        }
+
+        /* Ensure ALL buttons in settings panel use dark pill style */
+        body.theme-dark #settingsPanel button:not(#bookmarkCurrentBtn) {
+            background: var(--surface-pill) !important;
+            border-color: var(--surface-border) !important;
+            color: var(--accent-cream) !important;
+        }
+
+        body.theme-dark #settingsPanel button:not(#bookmarkCurrentBtn):hover {
+            background: #2e302c !important;
+            border-color: #5a5c55 !important;
+            color: #f5ecde !important;
+        }
+
+        /* Ensure small meta text uses muted cream */
+        body.theme-dark #settingsPanel .text-xs,
+        body.theme-dark #settingsPanel .text-sm {
+            color: #b9b0a3 !important;
+        }
+
+        /* Bookmark Current button (navy style for dark) */
+        body.theme-dark #bookmarkCurrentBtn {
+            background: #2a3a55 !important;
+            border-color: #4a5e78 !important;
+            color: #dce8f8 !important;
+        }
+
+        body.theme-dark #bookmarkCurrentBtn:hover {
+            background: #354a68 !important;
+            color: #e8f0f8 !important;
+        }
+
+        /* Override any remaining Tailwind color classes */
+        body.theme-dark #settingsPanel .hover\:bg-slate-200:hover {
+            background-color: #2e302c !important;
+        }
+    </style>
 
     <!-- FullCalendar -->
     <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.15/index.global.min.js"></script>
@@ -63,22 +171,24 @@
 </head>
 
 <body class="library-shell bg-slate-50 font-sans text-slate-900 min-h-screen overflow-x-hidden flex flex-col">
+    <!-- Skip-to-content link (keyboard accessibility) -->
+    <a href="#mainContainer" class="skip-to-content">Skip to main content</a>
 
     <!-- TOP NAVIGATION BAR (Sefaria Style) -->
-    <header
-        class="topbar sticky top-0 bg-white text-slate-800 p-2 lg:p-2.5 shadow-sm border-b flex flex-wrap lg:flex-nowrap justify-between items-center z-50 flex-shrink-0 gap-2 lg:gap-3">
-        <button id="mobileNavBtn" type="button"
-            class="lg:hidden px-2 py-1 text-xs border border-slate-300 rounded bg-white hover:bg-slate-100 transition"
-            data-en="Menu" data-he="תפריט">Menu</button>
+    <header role="banner"
+        class="topbar sticky top-0 bg-white text-slate-800 py-1.5 px-2 lg:py-1.5 lg:px-3 shadow-sm border-b flex flex-wrap lg:flex-nowrap justify-between items-center z-50 flex-shrink-0 gap-1.5 lg:gap-2">
+        <button id="mobileNavBtn" type="button" class="lg:hidden topbar-flat-btn" data-en="Menu"
+            data-he="תפריט">Menu</button>
 
-        <div id="brandHomeBtn" class="topbar-brand flex items-center gap-2 cursor-pointer shrink-0" onclick="goHome()">
-            <div class="text-navy font-hebrew text-4xl font-semibold leading-tight -mt-1">
+        <div id="brandHomeBtn" class="topbar-brand flex items-center gap-1.5 cursor-pointer shrink-0"
+            onclick="goHome()">
+            <div class="text-navy font-hebrew text-[1.7rem] font-semibold leading-tight">
                 ש
             </div>
-            <h1 class="text-lg sm:text-xl font-serif tracking-tight text-navy font-semibold leading-tight">
-                <span class="block">Sh'elah</span>
-                <span class="block text-[11px] sm:text-xs font-normal text-slate-500 italic -mt-0.5"
-                    data-en="Torah Encyclopedia" data-he="אנציקלופדיית תורה">Torah Encyclopedia</span>
+            <h1 class="text-sm sm:text-base font-serif tracking-tight text-navy font-semibold leading-none">
+                <span class="block" data-en="Sh'elah" data-he="שאלה">Sh'elah</span>
+                <span class="block text-[10px] font-normal text-slate-500 italic topbar-brand-subtitle" data-en="Torah Encyclopedia"
+                    data-he="אנציקלופדיית תורה">Torah Encyclopedia</span>
             </h1>
         </div>
 
@@ -87,7 +197,7 @@
             class="topbar-search-wrap relative z-40 order-3 w-full lg:order-none lg:w-auto flex-1 max-w-4xl flex items-center justify-center gap-2 min-w-0">
             <div class="w-full min-w-0">
                 <!-- Search Form -->
-                <form id="searchForm" class="w-full relative min-w-0">
+                <form id="searchForm" role="search" aria-label="Search texts" class="w-full relative min-w-0">
                     <input type="text" id="searchInput" placeholder="Search for a topic, halacha, or custom..."
                         class="w-full bg-[#fbf8f1] hover:bg-[#f8f2e8] transition text-sm sm:text-base p-2 pl-4 pr-10 rounded-full border border-[#d8d0c2] focus:border-[#b8aa90] focus:ring-2 focus:ring-[#d9cdb8]/80 focus:bg-[#fffdf8] focus:outline-none"
                         autocomplete="off" required>
@@ -107,11 +217,10 @@
         </div>
 
         <div id="topbarControls"
-            class="topbar-controls relative z-[110] flex gap-2 items-center flex-wrap justify-end w-full lg:w-auto">
+            class="topbar-controls relative z-[110] flex gap-1.5 items-center flex-wrap justify-end w-full lg:w-auto">
             <div id="settingsMenuContainer" class="relative z-[120] shrink-0">
                 <button id="settingsMenuBtn" type="button" aria-expanded="false" aria-haspopup="true"
-                    class="px-2 py-1 border border-slate-300 rounded bg-slate-100 hover:bg-slate-200 transition text-[#7a6a52]"
-                    title="Open settings menu">
+                    class="topbar-flat-btn text-[#7a6a52]" title="Open settings menu">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
                         <path
                             d="M3 5.5A1.5 1.5 0 014.5 4h11A1.5 1.5 0 0117 5.5v.25A1.75 1.75 0 0115.25 7.5h-3.5A1.75 1.75 0 0110 5.75V5h-5a.5.5 0 000 1h2a1 1 0 010 2H4.5A1.5 1.5 0 013 6.5v-1zM3 13.5A1.5 1.5 0 014.5 12H8a1.75 1.75 0 011.75 1.75V14A1.5 1.5 0 018.25 15.5h-3.75A1.5 1.5 0 013 14v-.5zM12 12a1 1 0 000 2h3.5a.5.5 0 010 1H13a1 1 0 100 2h2.5A1.5 1.5 0 0017 15.5v-2A1.5 1.5 0 0015.5 12H12z" />
@@ -221,10 +330,10 @@
                 </div>
             </div>
 
-            <div id="authControls" class="hidden items-center gap-2 mr-1">
+            <div id="authControls" class="hidden items-center gap-1.5 mr-1">
                 <div id="userProfileMenuContainer" class="hidden relative shrink-0">
                     <button id="userProfileMenuBtn" type="button" aria-expanded="false" aria-haspopup="true"
-                        class="topbar-user-menu-btn px-2 py-1 text-xs border border-slate-300 rounded bg-white hover:bg-slate-100 transition text-[#334155] inline-flex items-center gap-1.5"
+                        class="topbar-user-menu-btn topbar-flat-btn text-xs text-[#334155] inline-flex items-center gap-1.5"
                         title="Open profile menu">
                         <span id="userProfileMenuLabel" class="max-w-[130px] truncate">Signed in</span>
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" viewBox="0 0 20 20"
@@ -246,28 +355,25 @@
                     </div>
                 </div>
 
-                <button id="signInBtn" type="button"
-                    class="px-2 py-1 text-xs border border-slate-300 rounded bg-white hover:bg-slate-100 transition"
-                    data-en="Sign In" data-he="התחברות">Sign In</button>
+                <button id="signInBtn" type="button" class="topbar-flat-btn" data-en="Sign In" data-he="התחברות">Sign
+                    In</button>
             </div>
 
             <div id="hebrewDateDisplay" class="text-xs font-serif italic text-slate-500 mr-1">{{ daily.hebrew_date if
                 daily
                 else "Today" }}</div>
             <!-- Translator Toggles -->
-            <button onclick="toggleLanguage('en')"
-                class="hidden lg:inline-flex px-2 py-1 text-xs border border-slate-300 rounded bg-slate-100 font-serif transition hover:bg-slate-100 lang-btn"
+            <button onclick="toggleLanguage('en')" class="hidden lg:inline-flex topbar-flat-btn font-serif lang-btn"
                 data-lang="en">English</button>
-            <button onclick="toggleLanguage('he')"
-                class="hidden lg:inline-flex px-2 py-1 text-xs border border-slate-300 rounded font-hebrew hover:bg-slate-100 transition lang-btn"
+            <button onclick="toggleLanguage('he')" class="hidden lg:inline-flex topbar-flat-btn font-hebrew lang-btn"
                 data-lang="he">עברית</button>
-            <button id="mobileLangToggle" type="button"
-                class="lg:hidden px-2 py-1 text-xs border border-slate-300 rounded bg-white hover:bg-slate-100 transition"
-                data-en="עברית" data-he="English">עברית</button>
+            <button id="mobileLangToggle" type="button" class="lg:hidden topbar-flat-btn" data-en="עברית"
+                data-he="English">עברית</button>
         </div>
     </header>
 
-    <div id="mobileDrawerBackdrop" class="hidden fixed inset-0 bg-slate-900/45 backdrop-blur-[1px] z-[85] lg:hidden">
+    <div id="mobileDrawerBackdrop" aria-hidden="true"
+        class="hidden fixed inset-0 bg-slate-900/45 backdrop-blur-[1px] z-[85] lg:hidden">
     </div>
 
     <div class="flex flex-1 relative">
@@ -281,7 +387,7 @@
             data-en="Commentary" data-he="מפרשים" aria-label="Show Commentary Panel">Commentary</button>
 
         <!-- Column 1: Library (Left) -->
-        <nav id="leftSidebar"
+        <nav id="leftSidebar" aria-label="Library navigation"
             class="navigator-pane mobile-drawer mobile-drawer-left w-64 xl:w-72 border-r bg-white p-6 overflow-y-auto hidden lg:block flex-shrink-0 custom-scrollbar">
             <div class="flex lg:hidden items-center justify-between mb-4 pb-3 border-b border-slate-200">
                 <h3 class="text-xs font-bold text-slate-500 uppercase tracking-widest" data-en="Library"
@@ -314,7 +420,7 @@
                                 Torah (5 Books)</summary>
                             <ul class="ml-3 space-y-1 mt-1">
                                 <li><button id="parashaQuickLink" onclick="readText('Genesis 1')"
-                                        class="text-left text-[#1f3f63] hover:text-[#102b45] text-sm w-full py-0.5 font-serif">Parashat
+                                        class="menu-parasha-quick-link text-left text-[#1f3f63] hover:text-[#102b45] text-sm w-full py-0.5 font-serif">Parashat
                                         HaShavua</button></li>
                                 <li><button onclick="readText('Genesis 1')"
                                         class="text-left text-slate-600 hover:text-[#004e5f] text-sm w-full py-0.5">Genesis
@@ -706,7 +812,8 @@
         </nav>
 
         <!-- Column 2: Main Area (Center) -->
-        <main class="content-canvas flex-1 bg-[#faf7f0] relative flex justify-center" id="mainContainer">
+        <main id="mainContainer" aria-label="Main content"
+            class="content-canvas flex-1 bg-[#faf7f0] relative flex flex-col">
 
             <div id="loadingOverlay"
                 class="hidden absolute inset-0 bg-[#f9f5ec]/85 backdrop-blur-sm z-20 flex flex-col items-center justify-center">
@@ -721,8 +828,8 @@
 
             <!-- HOME: BROWSE THE LIBRARY GRID -->
             <div id="homeGrid"
-                class="home-typography w-full max-w-6xl p-4 sm:p-6 lg:p-12 transition-opacity duration-300">
-                <section class="home-topic-hero home-parasha-hero mb-10">
+                class="home-typography w-full max-w-6xl mx-auto p-4 sm:p-6 lg:p-12 transition-opacity duration-300">
+                <section class="home-topic-hero mb-10">
                     <p class="home-section-label" data-en="Parasha of the Week" data-he="פרשת השבוע">Parasha of the Week
                     </p>
                     <button id="homeParashaQuickLink" type="button"
@@ -1007,118 +1114,121 @@
                 </div>
             </div>
 
-            <!-- READER: SCHOLARLY ARTICLE VIEW -->
-            <article id="reader" class="hidden w-full max-w-4xl p-4 sm:p-6 lg:p-12 pb-24 sm:pb-32">
-                <div id="readerTopBar"
-                    class="hidden sticky z-40 mb-4 reader-topbar-shell border-y border-[#ddd4c3] bg-[#f9f4ea] px-1 py-1">
-                    <div class="reader-topbar-track flex items-center justify-between gap-2">
-                        <button id="readerPrevTopBarBtn" type="button" class="reader-topbar-icon-btn"
-                            aria-label="Previous Section" title="Previous Section">
-                            <span aria-hidden="true">&#9664;</span>
+            <!-- READER TOPBAR: sits inside #mainContainer, outside #reader article, so it spans full column width -->
+            <div id="readerTopBar"
+                class="hidden sticky z-40 reader-topbar-shell border-y border-[#ddd4c3] bg-[#f9f4ea] px-1 py-1">
+                <div class="reader-topbar-track">
+                    <button id="readerPrevTopBarBtn" type="button" class="reader-topbar-icon-btn"
+                        aria-label="Previous Section" title="Previous Section">
+                        <span aria-hidden="true">&#9664;</span>
+                    </button>
+
+                    <div class="relative text-left reader-topbar-settings-wrap">
+                        <button id="readerSettingsBtn" type="button"
+                            class="reader-topbar-icon-btn reader-topbar-settings-btn" aria-label="Reader Settings"
+                            title="Reader Settings">
+                            <span class="reader-topbar-settings-icon" aria-hidden="true">&#9776;</span>
+                            <span id="readerSettingsBtnLabel" class="reader-topbar-settings-label"
+                                data-en="Reader Settings" data-he="הגדרות קריאה">Reader Settings</span>
                         </button>
 
-                        <div class="relative text-left reader-topbar-settings-wrap">
-                            <button id="readerSettingsBtn" type="button"
-                                class="reader-topbar-icon-btn reader-topbar-settings-btn" aria-label="Reader Settings"
-                                title="Reader Settings">
-                                <span aria-hidden="true">&#9776;</span>
-                            </button>
+                        <div id="readerSettingsPanel"
+                            class="hidden absolute left-1/2 -translate-x-1/2 mt-2 w-[min(92vw,24rem)] bg-white border border-slate-200 rounded-xl shadow-lg p-3 z-[80] space-y-3 text-left">
+                            <p class="text-[11px] uppercase tracking-widest text-slate-400 font-bold"
+                                data-en="Reader Settings" data-he="הגדרות קריאה">Reader Settings</p>
 
-                            <div id="readerSettingsPanel"
-                                class="hidden absolute left-1/2 -translate-x-1/2 mt-2 w-[min(92vw,24rem)] bg-white border border-slate-200 rounded-xl shadow-lg p-3 z-[80] space-y-3 text-left">
-                                <p class="text-[11px] uppercase tracking-widest text-slate-400 font-bold"
-                                    data-en="Reader Settings" data-he="הגדרות קריאה">Reader Settings</p>
+                            <label class="block text-xs text-slate-600">
+                                <span data-en="Layout" data-he="פריסה">Layout</span>
+                                <select id="readerLayoutSelect"
+                                    class="mt-1 w-full px-2 py-1.5 rounded border border-slate-200 bg-slate-50 text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-300">
+                                    <option value="bilingual" data-en="Side by Side (Hebrew Left)"
+                                        data-he="דו-עמודי (עברית משמאל)">Side by Side (Hebrew Left)
+                                    </option>
+                                    <option value="bilingual-reverse" data-en="Side by Side (English Left)"
+                                        data-he="דו-עמודי (אנגלית משמאל)">Side by Side (English Left)</option>
+                                    <option value="interleaved" data-en="Interleaved" data-he="משולב שורה-שורה">
+                                        Interleaved</option>
+                                    <option value="english" data-en="English" data-he="אנגלית">English</option>
+                                    <option value="hebrew" data-en="Hebrew" data-he="עברית">Hebrew</option>
+                                </select>
+                            </label>
 
-                                <label class="block text-xs text-slate-600">
-                                    <span data-en="Layout" data-he="פריסה">Layout</span>
-                                    <select id="readerLayoutSelect"
-                                        class="mt-1 w-full px-2 py-1.5 rounded border border-slate-200 bg-slate-50 text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-300">
-                                        <option value="bilingual" data-en="Side by Side (Hebrew Left)"
-                                            data-he="דו-עמודי (עברית משמאל)">Side by Side (Hebrew Left)
-                                        </option>
-                                        <option value="bilingual-reverse" data-en="Side by Side (English Left)"
-                                            data-he="דו-עמודי (אנגלית משמאל)">Side by Side (English Left)</option>
-                                        <option value="interleaved" data-en="Interleaved" data-he="משולב שורה-שורה">
-                                            Interleaved</option>
-                                        <option value="english" data-en="English" data-he="אנגלית">English</option>
-                                        <option value="hebrew" data-en="Hebrew" data-he="עברית">Hebrew</option>
-                                    </select>
+                            <label class="block text-xs text-slate-600">
+                                <span data-en="Text Size" data-he="גודל טקסט">Text Size</span>
+                                <input id="readerFontSize" type="range" min="14" max="30" value="18"
+                                    class="mt-1 w-full" />
+                            </label>
+
+                            <label class="block text-xs text-slate-600">
+                                <span data-en="Density" data-he="ריווח">Density</span>
+                                <input id="readerLineHeight" type="range" min="1.4" max="2.4" step="0.1" value="1.8"
+                                    class="mt-1 w-full" />
+                            </label>
+
+                            <div class="space-y-2 border-t border-slate-100 pt-2">
+                                <label class="flex items-center justify-between text-xs text-slate-600">
+                                    <span data-en="Source Transliteration" data-he="תעתיק מהמקור">Source
+                                        Transliteration</span>
+                                    <input id="transliterationToggle" type="checkbox" class="h-4 w-4" />
                                 </label>
-
-                                <label class="block text-xs text-slate-600">
-                                    <span data-en="Text Size" data-he="גודל טקסט">Text Size</span>
-                                    <input id="readerFontSize" type="range" min="14" max="30" value="18"
-                                        class="mt-1 w-full" />
+                                <label class="flex items-center justify-between text-xs text-slate-600">
+                                    <span data-en="Show Vowels" data-he="הצג ניקוד">Show Vowels</span>
+                                    <input id="showVowelsToggle" type="checkbox" class="h-4 w-4" checked />
                                 </label>
-
-                                <label class="block text-xs text-slate-600">
-                                    <span data-en="Density" data-he="ריווח">Density</span>
-                                    <input id="readerLineHeight" type="range" min="1.4" max="2.4" step="0.1" value="1.8"
-                                        class="mt-1 w-full" />
+                                <label id="cantillationToggleRow"
+                                    class="flex items-center justify-between text-xs text-slate-600">
+                                    <span data-en="Show Cantillation" data-he="הצג טעמי מקרא">Show
+                                        Cantillation</span>
+                                    <input id="showCantillationToggle" type="checkbox" class="h-4 w-4" checked />
                                 </label>
+                            </div>
 
-                                <div class="space-y-2 border-t border-slate-100 pt-2">
-                                    <label class="flex items-center justify-between text-xs text-slate-600">
-                                        <span data-en="Source Transliteration" data-he="תעתיק מהמקור">Source
-                                            Transliteration</span>
-                                        <input id="transliterationToggle" type="checkbox" class="h-4 w-4" />
-                                    </label>
-                                    <label class="flex items-center justify-between text-xs text-slate-600">
-                                        <span data-en="Show Vowels" data-he="הצג ניקוד">Show Vowels</span>
-                                        <input id="showVowelsToggle" type="checkbox" class="h-4 w-4" checked />
-                                    </label>
-                                    <label id="cantillationToggleRow"
-                                        class="flex items-center justify-between text-xs text-slate-600">
-                                        <span data-en="Show Cantillation" data-he="הצג טעמי מקרא">Show
-                                            Cantillation</span>
-                                        <input id="showCantillationToggle" type="checkbox" class="h-4 w-4" checked />
-                                    </label>
-                                </div>
-
-                                <div class="space-y-2 border-t border-slate-100 pt-2">
-                                    <label class="flex items-center justify-between text-xs text-slate-600">
-                                        <span data-en="Compare Mode" data-he="מצב השוואה">Compare Mode</span>
-                                        <input id="compareModeToggle" type="checkbox" class="h-4 w-4" />
-                                    </label>
-                                    <div id="readerCompareControls" class="space-y-2">
-                                        <input id="compareRefInput" type="text" placeholder="Compare with reference..."
-                                            class="w-full px-3 py-2 border border-slate-200 rounded bg-slate-50 text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-300" />
-                                        <div class="grid grid-cols-2 gap-2">
-                                            <button id="compareOpenBtn" type="button"
-                                                class="px-3 py-2 rounded bg-slate-100 border border-slate-200 text-slate-700 hover:bg-slate-200 transition"
-                                                data-en="Compare" data-he="השווה">Compare</button>
-                                            <button id="compareClearBtn" type="button"
-                                                class="px-3 py-2 rounded bg-slate-100 border border-slate-200 text-slate-700 hover:bg-slate-200 transition"
-                                                data-en="Clear" data-he="נקה">Clear</button>
-                                        </div>
+                            <div class="space-y-2 border-t border-slate-100 pt-2">
+                                <label class="flex items-center justify-between text-xs text-slate-600">
+                                    <span data-en="Compare Mode" data-he="מצב השוואה">Compare Mode</span>
+                                    <input id="compareModeToggle" type="checkbox" class="h-4 w-4" />
+                                </label>
+                                <div id="readerCompareControls" class="space-y-2">
+                                    <input id="compareRefInput" type="text" placeholder="Compare with reference..."
+                                        class="w-full px-3 py-2 border border-slate-200 rounded bg-slate-50 text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-300" />
+                                    <div class="grid grid-cols-2 gap-2">
+                                        <button id="compareOpenBtn" type="button"
+                                            class="px-3 py-2 rounded bg-slate-100 border border-slate-200 text-slate-700 hover:bg-slate-200 transition"
+                                            data-en="Compare" data-he="השווה">Compare</button>
+                                        <button id="compareClearBtn" type="button"
+                                            class="px-3 py-2 rounded bg-slate-100 border border-slate-200 text-slate-700 hover:bg-slate-200 transition"
+                                            data-en="Clear" data-he="נקה">Clear</button>
                                     </div>
                                 </div>
+                            </div>
 
-                                <div class="space-y-2 border-t border-slate-100 pt-2">
-                                    <label class="flex items-center justify-between text-xs text-slate-600">
-                                        <span data-en="Shul Mode" data-he="מצב בית כנסת">Shul Mode</span>
-                                        <input id="shulModeToggle" type="checkbox" class="h-4 w-4" />
-                                    </label>
-                                    <label class="flex items-center justify-between text-xs text-slate-600">
-                                        <span data-en="Auto Scroll" data-he="גלילה אוטומטית">Auto Scroll</span>
-                                        <input id="shulAutoScrollToggle" type="checkbox" class="h-4 w-4" />
-                                    </label>
-                                    <label class="block text-xs text-slate-600">
-                                        <span data-en="Scroll Speed" data-he="מהירות גלילה">Scroll Speed</span>
-                                        <input id="shulScrollSpeed" type="range" min="8" max="80" value="28"
-                                            class="mt-1 w-full" />
-                                    </label>
-                                </div>
+                            <div class="space-y-2 border-t border-slate-100 pt-2">
+                                <label class="flex items-center justify-between text-xs text-slate-600">
+                                    <span data-en="Shul Mode" data-he="מצב בית כנסת">Shul Mode</span>
+                                    <input id="shulModeToggle" type="checkbox" class="h-4 w-4" />
+                                </label>
+                                <label class="flex items-center justify-between text-xs text-slate-600">
+                                    <span data-en="Auto Scroll" data-he="גלילה אוטומטית">Auto Scroll</span>
+                                    <input id="shulAutoScrollToggle" type="checkbox" class="h-4 w-4" />
+                                </label>
+                                <label class="block text-xs text-slate-600">
+                                    <span data-en="Scroll Speed" data-he="מהירות גלילה">Scroll Speed</span>
+                                    <input id="shulScrollSpeed" type="range" min="8" max="80" value="28"
+                                        class="mt-1 w-full" />
+                                </label>
                             </div>
                         </div>
-
-                        <button id="readerNextTopBarBtn" type="button" class="reader-topbar-icon-btn"
-                            aria-label="Next Section" title="Next Section">
-                            <span aria-hidden="true">&#9654;</span>
-                        </button>
                     </div>
-                </div>
 
+                    <button id="readerNextTopBarBtn" type="button" class="reader-topbar-icon-btn"
+                        aria-label="Next Section" title="Next Section">
+                        <span aria-hidden="true">&#9654;</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- READER: SCHOLARLY ARTICLE VIEW -->
+            <article id="reader" class="hidden w-full max-w-4xl mx-auto p-4 sm:p-6 lg:p-12 pb-24 sm:pb-32">
                 <header class="mb-10 text-center">
                     <h1 id="readerTitle" class="text-2xl lg:text-3xl font-serif text-navy mb-4 font-bold"></h1>
                     <p id="readerSubtitle" class="hidden text-sm text-slate-500 font-serif -mt-2 mb-4"></p>
@@ -1151,7 +1261,7 @@
         </main>
 
         <!-- Column 3: Commentary Sidebar (Right) -->
-        <aside id="rightSidebar"
+        <aside id="rightSidebar" aria-label="Commentary panel"
             class="pulse-pane mobile-drawer mobile-drawer-right w-80 border-l bg-slate-50 p-6 lg:block hidden flex-shrink-0 custom-scrollbar overflow-y-auto">
 
             <div class="flex lg:hidden items-center justify-between mb-4 pb-3 border-b border-slate-200">
@@ -1277,7 +1387,7 @@
         </div>
     </div>
 
-    <div id="chapterGridModal"
+    <div id="chapterGridModal" role="dialog" aria-modal="true" aria-labelledby="chapterGridTitle"
         class="hidden fixed inset-0 z-[110] bg-slate-900/60 backdrop-blur-sm items-center justify-center p-4">
         <div
             class="bg-white rounded-2xl shadow-2xl w-full max-w-4xl max-h-[88vh] overflow-hidden flex flex-col relative">
@@ -1519,6 +1629,7 @@
         const rightSidebarIdle = document.getElementById('rightSidebarIdle');
 
         const readerSettingsBtn = document.getElementById('readerSettingsBtn');
+        const readerSettingsBtnLabel = document.getElementById('readerSettingsBtnLabel');
         const readerSettingsPanel = document.getElementById('readerSettingsPanel');
         const readerLayoutSelect = document.getElementById('readerLayoutSelect');
         const readerFontSize = document.getElementById('readerFontSize');
@@ -2262,11 +2373,135 @@
             return getHebrewStaticLabel(key) || key;
         }
 
+        const PRAYER_TITLE_HE_KEYWORDS = [
+            [/edot\s*ha\s*mizrach/gi, 'עדות המזרח'],
+            [/ashkenaz(?:ic|i)?/gi, 'אשכנז'],
+            [/sephard(?:ic|i)?/gi, 'ספרד'],
+            [/sefard(?:ic|i)?/gi, 'ספרד'],
+            [/weekday/gi, 'ימי חול'],
+            [/shabbat/gi, 'שבת'],
+            [/holidays?/gi, 'חגים'],
+            [/holiday/gi, 'חג'],
+            [/siddur/gi, 'סידור'],
+            [/machzor/gi, 'מחזור'],
+            [/haggadah/gi, 'הגדה'],
+            [/linear/gi, 'ליניארי'],
+            [/shacharit/gi, 'שחרית'],
+            [/mincha/gi, 'מנחה'],
+            [/maariv|arvit/gi, 'מעריב'],
+            [/kiddush/gi, 'קידוש'],
+            [/havdalah/gi, 'הבדלה'],
+            [/selichot/gi, 'סליחות'],
+            [/hallel/gi, 'הלל'],
+            [/yizkor/gi, 'יזכור'],
+            [/akdamut\s*milin/gi, 'אקדמות מילין'],
+            [/hadran/gi, 'הדרן'],
+            [/for\s*tanakh/gi, 'לתנ״ך'],
+            [/kabbalat/gi, 'קבלת'],
+            [/keter\s*malkhut/gi, 'כתר מלכות'],
+            [/ketubah/gi, 'כתובה'],
+            [/text/gi, 'טקסט'],
+            [/lekha\s*dodi/gi, 'לכה דודי'],
+            [/perek\s*shirah/gi, 'פרק שירה'],
+            [/shalom\s*aleichem/gi, 'שלום עליכם'],
+            [/shir\s*ha\s*kavod/gi, 'שיר הכבוד'],
+            [/tikkun\s*ha\s*klali/gi, 'תיקון הכללי'],
+            [/unetaneh\s*tokef/gi, 'ונתנה תוקף'],
+            [/yedid\s*nefesh/gi, 'ידיד נפש'],
+            [/pesach|passover/gi, 'פסח'],
+            [/rosh\s*hashanah/gi, 'ראש השנה'],
+            [/yom\s*kippur/gi, 'יום כיפור'],
+            [/sukkot/gi, 'סוכות'],
+            [/shavuot/gi, 'שבועות'],
+        ];
+
+        function getHebrewBookDisplayName(bookName) {
+            const raw = String(bookName || '').trim();
+            if (!raw) return raw;
+
+            const normalized = normalizeChapterGridBookName(raw);
+            return getHebrewStaticLabel(withHebrewBookName(normalized))
+                || getHebrewStaticLabel(normalized)
+                || getHebrewStaticLabel(raw)
+                || normalized;
+        }
+
+        function localizeReferenceLabel(value) {
+            const raw = String(value || '').replace(/\s+/g, ' ').trim();
+            if (!raw || !isHebrewMode()) return raw;
+
+            const direct = getHebrewStaticLabel(raw);
+            if (direct) return direct;
+
+            const talmudMatch = raw.match(/^(.+?)\s+(\d+)([ab])(?::(\d+))?$/i);
+            if (talmudMatch) {
+                const book = getHebrewBookDisplayName(talmudMatch[1]);
+                const daf = talmudMatch[2];
+                const side = talmudMatch[3].toLowerCase() === 'a' ? 'א' : 'ב';
+                const line = talmudMatch[4] ? `:${talmudMatch[4]}` : '';
+                return `${book} ${daf}${side}${line}`;
+            }
+
+            const chapterRangeMatch = raw.match(/^(.+?)\s+(\d+):(\d+)-(\d+):(\d+)$/);
+            if (chapterRangeMatch) {
+                const book = getHebrewBookDisplayName(chapterRangeMatch[1]);
+                const startChapter = chapterRangeMatch[2];
+                const startVerse = chapterRangeMatch[3];
+                const endChapter = chapterRangeMatch[4];
+                const endVerse = chapterRangeMatch[5];
+                return `${book} ${startChapter}:${startVerse}-${endChapter}:${endVerse}`;
+            }
+
+            const chapterMatch = raw.match(/^(.+?)\s+(\d+)(?::(\d+))?$/);
+            if (chapterMatch) {
+                const book = getHebrewBookDisplayName(chapterMatch[1]);
+                const chapter = chapterMatch[2];
+                const verse = chapterMatch[3] ? `:${chapterMatch[3]}` : '';
+                return `${book} ${chapter}${verse}`;
+            }
+
+            const plainBook = getHebrewBookDisplayName(raw);
+            if (plainBook && plainBook !== raw) {
+                return plainBook;
+            }
+
+            return raw;
+        }
+
         function getPrayerDisplayName(name) {
             const raw = String(name || '').trim();
             if (!raw) return raw;
             if (!isHebrewMode()) return raw;
-            return PRAYER_HE_MAP[raw] || raw;
+
+            const direct = PRAYER_HE_MAP[raw] || getHebrewStaticLabel(raw);
+            if (direct) return direct;
+
+            let localized = raw;
+            PRAYER_TITLE_HE_KEYWORDS.forEach(([pattern, replacement]) => {
+                localized = localized.replace(pattern, replacement);
+            });
+            return localized.replace(/\s{2,}/g, ' ').trim();
+        }
+
+        function localizeLooseHebrewPhrase(text) {
+            const raw = String(text || '').replace(/\s+/g, ' ').trim();
+            if (!raw || !isHebrewMode()) return raw;
+
+            const direct = getHebrewStaticLabel(raw);
+            if (direct) return direct;
+
+            let localized = raw;
+            PRAYER_TITLE_HE_KEYWORDS.forEach(([pattern, replacement]) => {
+                localized = localized.replace(pattern, replacement);
+            });
+
+            localized = localized
+                .replace(/\bLaws of\b/gi, 'הלכות')
+                .replace(/\bin depth\b/gi, 'בעיון')
+                .replace(/Whoever\s+saves\s+one\s+life(?:\.\.\.)?/gi, 'כל המקיים נפש אחת...')
+                .replace(/First\s+page\s+of\s+Talmud\s+Bavli/gi, 'הדף הראשון בתלמוד הבבלי');
+
+            return localized.replace(/\s{2,}/g, ' ').trim();
         }
 
         function getCommunityDisplayName(name) {
@@ -2274,6 +2509,25 @@
             if (!raw) return raw;
             if (!isHebrewMode()) return raw;
             return COMMUNITY_HE_MAP[raw] || raw;
+        }
+
+        function getShelfDisplayLabel(item) {
+            const fallback = String(item?.label || item?.value || '').trim();
+            if (!fallback) return fallback;
+            if (!isHebrewMode()) return fallback;
+
+            const type = String(item?.type || '').trim();
+            if (type === 'prayer') {
+                return getPrayerDisplayName(fallback);
+            }
+            if (type === 'community') {
+                return getCommunityDisplayName(fallback);
+            }
+            if (type === 'text') {
+                return localizeReferenceLabel(fallback);
+            }
+
+            return getHebrewStaticLabel(fallback) || localizeLooseHebrewPhrase(fallback) || fallback;
         }
 
         function applyStaticHebrewFallbackTranslations(lang = getCurrentLanguage()) {
@@ -2343,7 +2597,21 @@
         function translateHolidayName(name) {
             const raw = String(name || '').trim();
             if (!raw || !isHebrewMode()) return raw;
-            return HOLIDAY_HE_MAP[raw] || raw;
+            const direct = HOLIDAY_HE_MAP[raw];
+            if (direct) return direct;
+
+            return raw
+                .replace(/Rosh\s+Chodesh/gi, 'ראש חודש')
+                .replace(/Chol\s+HaMoed/gi, 'חול המועד')
+                .replace(/Shabbat/gi, 'שבת')
+                .replace(/Pesach|Passover/gi, 'פסח')
+                .replace(/Sukkot/gi, 'סוכות')
+                .replace(/Shavuot/gi, 'שבועות')
+                .replace(/Purim/gi, 'פורים')
+                .replace(/Hanukkah|Chanukah/gi, 'חנוכה')
+                .replace(/Yom\s+Kippur/gi, 'יום כיפור')
+                .replace(/Rosh\s+Hashanah/gi, 'ראש השנה')
+                .replace(/Tisha\s+B'Av|Tisha\s+BAv/gi, 'תשעה באב');
         }
 
         function formatOmerLabel(meta) {
@@ -2356,7 +2624,10 @@
             const raw = String(meta?.weekly_shabbat_parasha || '').trim();
             if (!raw) return '--';
             if (!isHebrewMode()) return `Shabbat ${raw}`;
-            const he = PARASHA_HE_MAP[raw] || raw;
+            const parts = raw.split(/\s*[-–]\s*/).map((part) => part.trim()).filter(Boolean);
+            const he = parts.length
+                ? parts.map((part) => PARASHA_HE_MAP[part] || part).join('-')
+                : (PARASHA_HE_MAP[raw] || raw);
             return `שבת ${he}`;
         }
 
@@ -2637,8 +2908,13 @@
             const userId = user?.id || null;
 
             if (user) {
+                authControls.style.display = 'flex';
                 signInBtn?.classList.add('hidden');
                 userProfileMenuContainer?.classList.remove('hidden');
+                userProfileMenuContainer?.classList.add('flex'); // Ensure it's displayed as flex
+                if (userProfileMenuContainer) {
+                    userProfileMenuContainer.style.display = 'flex';
+                }
                 if (userProfileMenuLabel) {
                     userProfileMenuLabel.textContent = displayName || 'Signed in';
                 }
@@ -2649,7 +2925,12 @@
                 }
             } else {
                 signInBtn?.classList.remove('hidden');
+                authControls.style.display = '';
                 userProfileMenuContainer?.classList.add('hidden');
+                userProfileMenuContainer?.classList.remove('flex'); // Ensure it's not displayed as flex when hidden
+                if (userProfileMenuContainer) {
+                    userProfileMenuContainer.style.display = 'none';
+                }
                 closeUserProfileMenu();
                 syncedPrefsUserId = null;
             }
@@ -3082,11 +3363,44 @@
 
         function syncReaderTopBarOffset() {
             const topbar = document.querySelector('.topbar');
-            const fallback = 69;
-            const topbarHeight = topbar
-                ? Math.max(fallback, Math.round(topbar.getBoundingClientRect().height || fallback))
-                : fallback;
-            document.documentElement.style.setProperty('--reader-topbar-offset', `${topbarHeight + 6}px`);
+            const fallback = 63;
+            let topbarOffset = fallback;
+            if (topbar) {
+                const topbarRect = topbar.getBoundingClientRect();
+                if (Number.isFinite(topbarRect.bottom) && topbarRect.bottom > 0) {
+                    topbarOffset = Math.round(topbarRect.bottom);
+                } else if (Number.isFinite(topbarRect.height) && topbarRect.height > 0) {
+                    topbarOffset = Math.round(topbarRect.height);
+                }
+            }
+            document.documentElement.style.setProperty('--reader-topbar-offset', `${topbarOffset}px`);
+
+            const viewportWidth = Math.max(Math.round(window.innerWidth || 0), 320);
+            let leftGap = 0;
+            let rightGap = 0;
+
+            if (!isMobileViewport()) {
+                [leftSidebar, rightSidebar].forEach((panel) => {
+                    if (!panel) return;
+                    const styles = window.getComputedStyle(panel);
+                    if (styles.display === 'none' || panel.classList.contains('hidden')) return;
+
+                    const rect = panel.getBoundingClientRect();
+                    if (!Number.isFinite(rect.width) || rect.width < 20) return;
+
+                    const anchoredLeft = rect.left <= 2;
+                    const anchoredRight = rect.right >= (viewportWidth - 2);
+                    if (anchoredLeft) {
+                        leftGap = Math.max(leftGap, Math.round(rect.width));
+                    }
+                    if (anchoredRight) {
+                        rightGap = Math.max(rightGap, Math.round(rect.width));
+                    }
+                });
+            }
+
+            document.documentElement.style.setProperty('--reader-topbar-left-gap', `${leftGap}px`);
+            document.documentElement.style.setProperty('--reader-topbar-right-gap', `${rightGap}px`);
         }
 
         function applySidebarVisibility() {
@@ -3140,10 +3454,11 @@
                 const showRightRestore = !mobile
                     && !shulMode
                     && !homeVisible
-                    && !showRightSidebar
-                    && commentaryAvailableForCurrentSelection;
+                    && !showRightSidebar; // The restore button should appear if the sidebar is hidden, regardless of content availability.
                 showRightSidebarTopBtn.style.display = showRightRestore ? 'flex' : 'none';
             }
+
+            syncReaderTopBarOffset();
         }
 
         function setSidebarVisibility(side, visible) {
@@ -3709,6 +4024,8 @@
 
             const lang = getCurrentLanguage();
             const typeLabels = UI_TYPE_LABELS[lang] || UI_TYPE_LABELS.en;
+            const itemAlignClass = isHebrewMode() ? 'text-right' : 'text-left';
+            const itemDir = isHebrewMode() ? 'rtl' : 'ltr';
 
             searchSuggestions.innerHTML = appState.suggestionItems.map((item, index) => {
                 const isActive = index === appState.activeSuggestionIndex;
@@ -3737,7 +4054,7 @@
                     ? ''
                     : (typeLabels[item.type] || item.type || '');
                 return `
-                    <button type="button" class="suggestion-item w-full text-left px-4 py-3 border-b border-slate-100 last:border-b-0 ${isActive ? 'bg-[#efe5d4]' : 'hover:bg-slate-50'}"
+                    <button type="button" dir="${itemDir}" class="suggestion-item w-full ${itemAlignClass} px-4 py-3 border-b border-slate-100 last:border-b-0 ${isActive ? 'bg-[#efe5d4]' : 'hover:bg-slate-50'}"
                         data-index="${index}">
                         <div class="flex items-center justify-between gap-3">
                             <div class="min-w-0">
@@ -3961,13 +4278,15 @@
 
             const current = appState.currentView;
             const currentKey = current ? `${current.type}:${current.value}` : '';
+            const alignClass = isHebrewMode() ? 'text-right' : 'text-left';
 
             return items.map((item) => {
                 const itemKey = `${item.type}:${item.value}`;
                 const isActive = Boolean(currentKey) && itemKey === currentKey;
+                const displayLabel = getShelfDisplayLabel(item) || String(item.label || item.value || '').trim();
                 const buttonClass = isActive
-                    ? 'shelf-open shelf-open-active w-full text-left px-2 py-1 rounded border border-[#d7c8ad] bg-[#f2eadc] transition'
-                    : 'shelf-open w-full text-left px-2 py-1 rounded hover:bg-slate-100 transition';
+                    ? `shelf-open shelf-open-active w-full ${alignClass} px-2 py-1 rounded border border-[#d7c8ad] bg-[#f2eadc] transition`
+                    : `shelf-open w-full ${alignClass} px-2 py-1 rounded hover:bg-slate-100 transition`;
 
                 return `
                     <button class="${buttonClass}"
@@ -3975,7 +4294,7 @@
                         data-value="${escapeHtml(item.value)}"
                         data-shelf-bucket="${escapeHtml(bucket)}"
                         data-label="${escapeHtml(item.label || item.value)}">
-                        <span class="text-xs ${isActive ? 'text-[#4f4130] font-semibold' : 'text-slate-700'} block truncate">${escapeHtml(item.label || item.value)}</span>
+                        <span class="text-xs ${isActive ? 'text-[#4f4130] font-semibold' : 'text-slate-700'} block truncate">${escapeHtml(displayLabel)}</span>
                         <span class="text-[10px] uppercase tracking-widest ${isActive ? 'text-[#7a684f]' : 'text-slate-400'}">${escapeHtml((UI_TYPE_LABELS[getCurrentLanguage()] || UI_TYPE_LABELS.en)[item.type] || item.type)}</span>
                     </button>
                 `;
@@ -3986,6 +4305,7 @@
             const shelf = getShelfData();
             const track = Array.isArray(shelf.tracks['Daily Study']) ? shelf.tracks['Daily Study'] : [];
             const completed = track.filter((item) => item.completed).length;
+            const shelfAlignClass = isHebrewMode() ? 'text-right' : 'text-left';
             personalShelf.innerHTML = `
                 <div class="space-y-4">
                     <div>
@@ -4011,10 +4331,11 @@
                         <div class="space-y-1">
                             ${track.length
                     ? track.slice(0, 6).map((item, index) => {
+                        const trackLabel = getShelfDisplayLabel(item) || String(item.label || item.value || '').trim();
                         return `
-                                        <button class="track-toggle w-full text-left px-2 py-1 rounded border border-slate-200 bg-white hover:bg-slate-100 transition"
+                                        <button class="track-toggle w-full ${shelfAlignClass} px-2 py-1 rounded border border-slate-200 bg-white hover:bg-slate-100 transition"
                                             data-index="${index}">
-                                            <span class="text-xs ${item.completed ? 'line-through text-slate-400' : 'text-slate-700'} block truncate">${escapeHtml(item.label || item.value)}</span>
+                                            <span class="text-xs ${item.completed ? 'line-through text-slate-400' : 'text-slate-700'} block truncate">${escapeHtml(trackLabel)}</span>
                                             <span class="text-[10px] ${item.completed ? 'study-track-complete-label' : 'uppercase tracking-widest text-slate-300'}">${item.completed ? t('Complete', 'הושלם') : t('Pending', 'ממתין')}</span>
                                         </button>
                                     `;
@@ -4836,12 +5157,14 @@
             if (readerTopBar) {
                 const hasPrev = Boolean(data.prev);
                 const hasNext = Boolean(data.next);
+                syncReaderTopBarOffset();
                 readerTopBar.classList.remove('hidden');
 
                 if (readerPrevTopBarBtn) {
                     const prevLabel = t('Previous Section', 'קטע קודם');
                     readerPrevTopBarBtn.disabled = !hasPrev;
-                    readerPrevTopBarBtn.classList.toggle('hidden', !hasPrev);
+                    readerPrevTopBarBtn.style.visibility = hasPrev ? 'visible' : 'hidden';
+                    readerPrevTopBarBtn.classList.remove('hidden');
                     readerPrevTopBarBtn.setAttribute('aria-label', prevLabel);
                     readerPrevTopBarBtn.title = prevLabel;
                     readerPrevTopBarBtn.onclick = hasPrev
@@ -4852,7 +5175,8 @@
                 if (readerNextTopBarBtn) {
                     const nextLabel = t('Next Section', 'קטע הבא');
                     readerNextTopBarBtn.disabled = !hasNext;
-                    readerNextTopBarBtn.classList.toggle('hidden', !hasNext);
+                    readerNextTopBarBtn.style.visibility = hasNext ? 'visible' : 'hidden';
+                    readerNextTopBarBtn.classList.remove('hidden');
                     readerNextTopBarBtn.setAttribute('aria-label', nextLabel);
                     readerNextTopBarBtn.title = nextLabel;
                     readerNextTopBarBtn.onclick = hasNext
@@ -4864,6 +5188,9 @@
                     const settingsLabel = t('Reader Settings', 'הגדרות קריאה');
                     readerSettingsBtn.setAttribute('aria-label', settingsLabel);
                     readerSettingsBtn.title = settingsLabel;
+                    if (readerSettingsBtnLabel) {
+                        readerSettingsBtnLabel.textContent = settingsLabel;
+                    }
                 }
             }
 
@@ -5990,23 +6317,38 @@
             return /\b\d+[ab](?::\d+)?\b/i.test(String(ref || ''));
         }
 
-        function getTalmudDafGroupLabel(indexTitle, ref) {
-            const safeRef = String(ref || '').replace(/\s+/g, ' ').trim();
-            const safeTitle = String(indexTitle || '').replace(/\s+/g, ' ').trim();
-            if (!safeRef) return '';
-
-            let remainder = safeRef;
-            if (safeTitle && safeRef.toLowerCase().startsWith(safeTitle.toLowerCase())) {
-                remainder = safeRef.slice(safeTitle.length).replace(/^,\s*/, '').trim();
-            }
-
-            const match = remainder.match(/^(\d+[ab])/i);
-            if (!match) return '';
-            const daf = match[1].toLowerCase();
-            return isHebrewMode() ? `דף ${daf}` : `Daf ${daf}`;
+        /** Convert daf string "2a"/"13b" to a numeric key for range comparisons. */
+        function _dafToKey(daf) {
+            const m = /^(\d+)([ab])$/i.exec(String(daf || '').trim());
+            if (!m) return -1;
+            return parseInt(m[1], 10) * 2 + (m[2].toLowerCase() === 'a' ? 0 : 1);
         }
 
-        function openReferenceGrid(indexTitle, refs) {
+        /** Build a chapter-section lookup from API sections data. */
+        function _buildSectionLookup(sections) {
+            // sections: [{label, fromDaf, toDaf}, ...]
+            return sections
+                .filter((s) => s && s.fromDaf && s.toDaf)
+                .map((s) => ({
+                    label: String(s.label || '').trim(),
+                    fromKey: _dafToKey(s.fromDaf),
+                    toKey: _dafToKey(s.toDaf),
+                    fromDaf: String(s.fromDaf).toLowerCase(),
+                    toDaf: String(s.toDaf).toLowerCase(),
+                }))
+                .filter((s) => s.fromKey >= 0 && s.toKey >= 0);
+        }
+
+        /** Return the section label for a given daf key, or '' if not found. */
+        function _getSectionForDaf(dafKey, lookup, isHebrew) {
+            if (!lookup || !lookup.length) return '';
+            const hit = lookup.find((s) => dafKey >= s.fromKey && dafKey <= s.toKey);
+            if (!hit) return '';
+            const range = `${hit.fromDaf}–${hit.toDaf}`;
+            return `${hit.label} (${range})`;
+        }
+
+        function openReferenceGrid(indexTitle, refs, sections) {
             if (!chapterGridModal || !chapterGridItems) return;
 
             const safeTitle = String(indexTitle || '').replace(/\s+/g, ' ').trim();
@@ -6015,6 +6357,9 @@
                 : [];
             const visibleRefs = normalizedRefs.slice(0, 180);
             const talmudMode = visibleRefs.some((ref) => isTalmudReferenceLabel(ref));
+            const sectionLookup = talmudMode && Array.isArray(sections) && sections.length
+                ? _buildSectionLookup(sections)
+                : [];
 
             if (!safeTitle || normalizedRefs.length < 2) {
                 return;
@@ -6037,14 +6382,30 @@
             }
 
             const items = [];
-            let lastTalmudGroup = '';
+            let lastGroupLabel = '';
 
             visibleRefs.forEach((targetRef, idx) => {
                 if (talmudMode) {
-                    const groupLabel = getTalmudDafGroupLabel(safeTitle, targetRef);
-                    if (groupLabel && groupLabel !== lastTalmudGroup) {
+                    // Extract daf from ref: strip index title prefix then read daf
+                    let remainder = targetRef;
+                    if (safeTitle && targetRef.toLowerCase().startsWith(safeTitle.toLowerCase())) {
+                        remainder = targetRef.slice(safeTitle.length).replace(/^[,\s]+/, '').trim();
+                    }
+                    const dafMatch = remainder.match(/^(\d+[ab])/i);
+                    const dafStr = dafMatch ? dafMatch[1].toLowerCase() : '';
+                    const dafKey = _dafToKey(dafStr);
+
+                    let groupLabel = '';
+                    if (sectionLookup.length && dafKey >= 0) {
+                        groupLabel = _getSectionForDaf(dafKey, sectionLookup, isHebrewMode());
+                    } else if (dafStr) {
+                        // Fallback: group by individual daf
+                        groupLabel = isHebrewMode() ? `דף ${dafStr}` : `Daf ${dafStr}`;
+                    }
+
+                    if (groupLabel && groupLabel !== lastGroupLabel) {
                         items.push(`<div class="chapter-grid-group-label">${escapeHtml(groupLabel)}</div>`);
-                        lastTalmudGroup = groupLabel;
+                        lastGroupLabel = groupLabel;
                     }
                 }
 
@@ -6055,7 +6416,7 @@
                             data-ref="${escapeHtml(targetRef)}"
                             title="${escapeHtml(targetRef)}">
                             <span class="chapter-grid-item-number">${escapeHtml(label)}</span>
-                            <span class="chapter-grid-item-label">${escapeHtml(isHebrewMode() ? 'קטע' : 'Section')}</span>
+                            <span class="chapter-grid-item-label">${escapeHtml(isHebrewMode() ? 'דף' : 'Daf')}</span>
                         </button>
                     `);
             });
@@ -6079,6 +6440,7 @@
                 const resp = await fetch(`/api/library/leaf-refs?${params.toString()}`);
                 if (!resp.ok) {
                     indexLeafRefCache.set(cacheKey, []);
+                    indexSectionsCache.set(cacheKey, []);
                     return [];
                 }
 
@@ -6086,10 +6448,13 @@
                 const refs = Array.isArray(payload?.refs)
                     ? payload.refs.map((ref) => String(ref || '').replace(/\s+/g, ' ').trim()).filter(Boolean)
                     : [];
+                const sections = Array.isArray(payload?.sections) ? payload.sections : [];
                 indexLeafRefCache.set(cacheKey, refs);
+                indexSectionsCache.set(cacheKey, sections);
                 return refs;
             } catch (_) {
                 indexLeafRefCache.set(cacheKey, []);
+                indexSectionsCache.set(cacheKey, []);
                 return [];
             }
         }
@@ -6103,7 +6468,9 @@
                 return false;
             }
 
-            openReferenceGrid(indexTitle, leafRefs);
+            const cacheKey = normalizeLibraryLookupKey(indexTitle) || indexTitle.toLowerCase();
+            const sections = indexSectionsCache.get(cacheKey) || [];
+            openReferenceGrid(indexTitle, leafRefs, sections);
             return true;
         }
 
@@ -6209,11 +6576,31 @@
             `;
         }
 
+        async function fetchPrayerSectionRefs(prayerName) {
+            const safeName = String(prayerName || '').trim();
+            if (!safeName) return [];
+
+            try {
+                const response = await fetch(`/api/siddur/full/${encodeURIComponent(safeName)}`);
+                if (!response.ok) return [];
+                const payload = await response.json();
+                return Array.isArray(payload?.sources)
+                    ? payload.sources.map((ref) => String(ref || '').replace(/\s+/g, ' ').trim()).filter(Boolean).slice(0, 180)
+                    : [];
+            } catch (_) {
+                return [];
+            }
+        }
+
         async function openPrayerEntry(prayerName) {
             const safeName = String(prayerName || '').trim();
             if (!safeName) return;
 
-            const leafRefs = await fetchIndexLeafRefs(safeName);
+            let leafRefs = await fetchIndexLeafRefs(safeName);
+            if (!Array.isArray(leafRefs) || leafRefs.length < 2) {
+                leafRefs = await fetchPrayerSectionRefs(safeName);
+            }
+
             if (Array.isArray(leafRefs) && leafRefs.length > 1) {
                 closeTextsMenu();
                 openReferenceGrid(safeName, leafRefs);
@@ -6226,7 +6613,8 @@
         function buildPrayerNavigatorButton(name) {
             const label = getPrayerDisplayName(name);
             const encodedName = encodeURIComponent(name);
-            return `<button onclick="openPrayerEntry(decodeURIComponent('${encodedName}'))" class="prayer-nav-link text-left text-slate-600 hover:text-[#00827f] text-sm w-full py-0.5 font-serif">${escapeHtml(label)}</button>`;
+            const alignClass = isHebrewMode() ? 'text-right' : 'text-left';
+            return `<button onclick="openPrayerEntry(decodeURIComponent('${encodedName}'))" class="prayer-nav-link ${alignClass} text-slate-600 hover:text-[#00827f] text-sm w-full py-0.5 font-serif">${escapeHtml(label)}</button>`;
         }
 
         function classifyPrayerFamily(entry) {
@@ -6247,10 +6635,20 @@
 
         function prayerFamilyLabel(familyKey) {
             const labels = {
-                sefardic: t('Sefardic', 'ספרדי'),
-                ashkenaz: t('Ashkenaz', 'אשכנז'),
-                edotHamizrach: t('Edot HaMizrach', 'עדות המזרח'),
-                other: t('Other Nusachim', 'נוסחים נוספים'),
+                sefardic: t('Sefardic Prayers', 'תפילות ספרד'),
+                ashkenaz: t('Ashkenaz Prayers', 'תפילות אשכנז'),
+                edotHamizrach: t('Edot HaMizrach Prayers', 'תפילות עדות המזרח'),
+                other: t('Additional Prayer Collections', 'אוספי תפילה נוספים'),
+            };
+            return labels[familyKey] || labels.other;
+        }
+
+        function prayerFamilyNusach(familyKey) {
+            const labels = {
+                sefardic: { en: 'Sefard', he: 'ספרד' },
+                ashkenaz: { en: 'Ashkenaz', he: 'אשכנז' },
+                edotHamizrach: { en: 'Edot HaMizrach', he: 'עדות המזרח' },
+                other: { en: 'General', he: 'כללי' },
             };
             return labels[familyKey] || labels.other;
         }
@@ -6266,54 +6664,198 @@
                 if (!buckets[family]) buckets[family] = [];
                 buckets[family].push(entry);
             });
+
+            Object.keys(buckets).forEach((family) => {
+                buckets[family] = buckets[family]
+                    .slice()
+                    .sort((a, b) => a.name.localeCompare(b.name, 'en', { sensitivity: 'base' }));
+            });
+
             return buckets;
         }
 
-        function classifyPrayerGroup(entry) {
+        function classifyPrayerCollection(entry, familyKey) {
             const name = String(entry?.name || '').toLowerCase();
             const source = String(entry?.source || '').toLowerCase();
             const compact = normalizeLibraryLookupKey(name);
+            const hasSiddur = source === 'legacy-service' || /siddur/.test(name) || /siddur/.test(compact);
+            const hasLinear = /linear/.test(name) || /linear/.test(compact);
+            const hasWeekday = /weekday|daily|upon\s*arising|bedtime|shacharit|mincha|maariv|arvit|selichot/.test(name)
+                || /weekday|daily|uponarising|bedtime|shacharit|mincha|maariv|arvit|selichot/.test(compact);
+            const hasShabbat = /shabbat|kabbalat|havdalah|kiddush/.test(name)
+                || /shabbat|kabbalat|havdalah|kiddush/.test(compact);
 
-            if (source === 'legacy-service') return 'core';
-            if (/yom\s*kippur|neilah|kol\s*nidrei|vidui/.test(name) || /yomkippur|kolnidrei|neilah/.test(compact)) return 'fasts';
-            if (/tisha|kinnot|tzom|taanit|fast|gedalia|esther|asarah\s*btevet|shivah\s*asar\s*btammuz/.test(name) || /tishabav|kinnot|tzom|taanit|fast|gedalia|esther|asarahbtevet|shivahasarbtammuz/.test(compact)) return 'fasts';
-            if (/pesach|passover|haggadah|afikoman|seder/.test(name) || /pesach|passover|haggadah|afikoman|seder/.test(compact)) return 'pesach';
-            if (/rosh\s*hashanah|yamim\s*noraim|machzor/.test(name) || /roshhashanah|yamimnoraim|machzor/.test(compact)) return 'yamimNoraim';
-            if (/sukkot|hoshana|simchat\s*torah|shemini\s*atzeret/.test(name) || /sukkot|hoshana|simchattorah|sheminiatzeret/.test(compact)) return 'sukkot';
-            if (/shavuot|omer/.test(name) || /shavuot|omer/.test(compact)) return 'shavuot';
-            if (/purim|chanuk|hanukk|yerushalayim|haatzmaut/.test(name) || /purim|chanuk|hanukk|yerushalayim|haatzmaut/.test(compact)) return 'otherHolidays';
-            if (/shabbat|kabbalat\s*shabbat|havdalah|kiddush/.test(name) || /shabbat|kabbalatshabbat|havdalah|kiddush/.test(compact)) return 'shabbat';
-            if (/weekday|arising|shacharit|mincha|maariv|bedtime|selichot|upon\s*arising/.test(name) || /weekday|arising|shacharit|mincha|maariv|bedtime|selichot|uponarising/.test(compact)) return 'weekday';
+            if (/haggadah|pesach|passover|seder|afikoman/.test(name) || /haggadah|pesach|passover|seder|afikoman/.test(compact)) {
+                return 'haggadahPesach';
+            }
+            if (/machzor|rosh\s*hashanah|yom\s*kippur|yamim\s*noraim|kol\s*nidrei|neilah/.test(name)
+                || /machzor|roshhashanah|yomkippur|yamimnoraim|kolnidrei|neilah/.test(compact)) {
+                return 'machzor';
+            }
+            if (/sukkot|hoshana|simchat\s*torah|shemini\s*atzeret/.test(name)
+                || /sukkot|hoshana|simchattorah|sheminiatzeret/.test(compact)) {
+                return 'sukkot';
+            }
+            if (/shavuot|omer/.test(name) || /shavuot|omer/.test(compact)) {
+                return 'shavuot';
+            }
+            if (/purim|chanuk|hanukk|fast|tisha|taanit|kinnot|selichot/.test(name)
+                || /purim|chanuk|hanukk|fast|tisha|taanit|kinnot|selichot/.test(compact)) {
+                return 'specialDays';
+            }
+            if (hasSiddur && hasWeekday && hasLinear) return 'weekdayLinear';
+            if (hasSiddur && hasShabbat && hasLinear) return 'shabbatLinear';
+            if (hasSiddur && hasWeekday) return 'weekdaySiddur';
+            if (hasSiddur && hasShabbat) return 'shabbatSiddur';
+            if (hasSiddur) return familyKey === 'other' ? 'generalSiddur' : 'familySiddur';
+
             return 'other';
         }
 
-        function prayerGroupLabel(groupKey) {
-            const labels = {
-                core: t('Core Services', 'שירותי ליבה'),
-                weekday: t('Weekday Prayers', 'תפילות ימי חול'),
-                shabbat: t('Shabbat Prayers', 'תפילות שבת'),
-                pesach: t('Pesach Prayers', 'תפילות פסח'),
-                yamimNoraim: t('Yamim Noraim', 'ימים נוראים'),
-                fasts: t('Fasts & Yom Kippur', 'תעניות ויום כיפור'),
-                sukkot: t('Sukkot / Shemini Atzeret', 'סוכות / שמיני עצרת'),
-                shavuot: t('Shavuot', 'שבועות'),
-                otherHolidays: t('Other Holidays', 'חגים נוספים'),
-                other: t('Other Prayer Books', 'סידורים נוספים'),
-            };
-            return labels[groupKey] || labels.other;
+        function prayerCollectionOrder() {
+            return [
+                'weekdayLinear',
+                'shabbatLinear',
+                'weekdaySiddur',
+                'shabbatSiddur',
+                'familySiddur',
+                'machzor',
+                'haggadahPesach',
+                'sukkot',
+                'shavuot',
+                'specialDays',
+                'generalSiddur',
+                'other',
+            ];
         }
 
-        function groupedPrayerEntries(entries) {
-            const order = ['core', 'weekday', 'shabbat', 'pesach', 'yamimNoraim', 'fasts', 'sukkot', 'shavuot', 'otherHolidays', 'other'];
-            const grouped = Object.fromEntries(order.map((group) => [group, []]));
+        function prayerCollectionLabel(collectionKey, familyKey) {
+            const nusach = prayerFamilyNusach(familyKey);
+            const labelMap = {
+                weekdayLinear: {
+                    en: `Weekday Siddur ${nusach.en} Linear`,
+                    he: `סידור ${nusach.he} ימי חול (ליניארי)`,
+                },
+                shabbatLinear: {
+                    en: `Shabbat Siddur ${nusach.en} Linear`,
+                    he: `סידור ${nusach.he} שבת (ליניארי)`,
+                },
+                weekdaySiddur: {
+                    en: `Weekday Siddur ${nusach.en}`,
+                    he: `סידור ${nusach.he} ימי חול`,
+                },
+                shabbatSiddur: {
+                    en: `Shabbat Siddur ${nusach.en}`,
+                    he: `סידור ${nusach.he} שבת`,
+                },
+                familySiddur: {
+                    en: `${nusach.en} Siddur`,
+                    he: `סידור ${nusach.he}`,
+                },
+                machzor: {
+                    en: `${nusach.en} Machzorim`,
+                    he: `מחזורים ${nusach.he}`,
+                },
+                haggadahPesach: {
+                    en: `${nusach.en} Haggadah & Pesach`,
+                    he: `הגדה ופסח ${nusach.he}`,
+                },
+                sukkot: {
+                    en: `${nusach.en} Sukkot Cycle`,
+                    he: `מעגל סוכות ${nusach.he}`,
+                },
+                shavuot: {
+                    en: `${nusach.en} Shavuot Cycle`,
+                    he: `מעגל שבועות ${nusach.he}`,
+                },
+                specialDays: {
+                    en: `${nusach.en} Special Days`,
+                    he: `ימים מיוחדים ${nusach.he}`,
+                },
+                generalSiddur: {
+                    en: 'General Prayer Books',
+                    he: 'סידורים כלליים',
+                },
+                other: {
+                    en: 'Additional Prayer Books',
+                    he: 'סידורי תפילה נוספים',
+                },
+            };
+
+            const label = labelMap[collectionKey] || labelMap.other;
+            return isHebrewMode() ? label.he : label.en;
+        }
+
+        function classifyPrayerChapter(entry) {
+            const name = String(entry?.name || '').toLowerCase();
+            const compact = normalizeLibraryLookupKey(name);
+
+            if (/upon\s*arising|modeh\s*ani|morning\s*blessings|bedtime/.test(name)
+                || /uponarising|modehani|morningblessings|bedtime/.test(compact)) {
+                return 'intro';
+            }
+            if (/shacharit/.test(name) || /shacharit/.test(compact)) return 'shacharit';
+            if (/mincha/.test(name) || /mincha/.test(compact)) return 'mincha';
+            if (/maariv|arvit/.test(name) || /maariv|arvit/.test(compact)) return 'maariv';
+            if (/kiddush|havdalah/.test(name) || /kiddush|havdalah/.test(compact)) return 'meal';
+            if (/amidah/.test(name) || /amidah/.test(compact)) return 'amidah';
+            if (/shema/.test(name) || /shema/.test(compact)) return 'shema';
+            if (/torah\s*reading|musaf|hallel|yizkor/.test(name)
+                || /torahreading|musaf|hallel|yizkor/.test(compact)) {
+                return 'festival';
+            }
+
+            return 'general';
+        }
+
+        function prayerChapterOrder() {
+            return ['intro', 'shacharit', 'mincha', 'maariv', 'shema', 'amidah', 'meal', 'festival', 'general'];
+        }
+
+        function prayerChapterLabel(chapterKey) {
+            const labels = {
+                intro: t('Intro & Preparation', 'פתיחה והכנה'),
+                shacharit: t('Shacharit', 'שחרית'),
+                mincha: t('Mincha', 'מנחה'),
+                maariv: t('Maariv', 'מעריב'),
+                shema: t('Shema', 'שמע'),
+                amidah: t('Amidah', 'עמידה'),
+                meal: t('Meals & Transition', 'סעודות ומעברים'),
+                festival: t('Festival Sections', 'קטעי חג'),
+                general: t('General Sections', 'קטעים כלליים'),
+            };
+            return labels[chapterKey] || labels.general;
+        }
+
+        function getPrayerCollectionBuckets(entries, familyKey) {
+            const collectionOrder = prayerCollectionOrder();
+            const chapterOrder = prayerChapterOrder();
+            const buckets = Object.fromEntries(collectionOrder.map((collectionKey) => [
+                collectionKey,
+                Object.fromEntries(chapterOrder.map((chapterKey) => [chapterKey, []])),
+            ]));
 
             entries.forEach((entry) => {
-                const group = classifyPrayerGroup(entry);
-                if (!grouped[group]) grouped[group] = [];
-                grouped[group].push(entry);
+                const collectionKey = classifyPrayerCollection(entry, familyKey);
+                const chapterKey = classifyPrayerChapter(entry);
+                if (!buckets[collectionKey]) {
+                    buckets[collectionKey] = Object.fromEntries(chapterOrder.map((key) => [key, []]));
+                }
+                if (!buckets[collectionKey][chapterKey]) {
+                    buckets[collectionKey][chapterKey] = [];
+                }
+                buckets[collectionKey][chapterKey].push(entry);
             });
 
-            return { grouped, order };
+            collectionOrder.forEach((collectionKey) => {
+                chapterOrder.forEach((chapterKey) => {
+                    buckets[collectionKey][chapterKey] = (buckets[collectionKey][chapterKey] || [])
+                        .slice()
+                        .sort((a, b) => a.name.localeCompare(b.name, 'en', { sensitivity: 'base' }));
+                });
+            });
+
+            return { buckets, collectionOrder, chapterOrder };
         }
 
         let activePrayerFamily = 'sefardic';
@@ -6355,13 +6897,26 @@
 
             familyOrder.forEach((family) => {
                 html += `<li class="prayer-family-nav-label text-[11px] uppercase tracking-widest text-slate-400 font-bold py-1 mt-2">${prayerFamilyLabel(family)}</li>`;
-                const { grouped, order } = groupedPrayerEntries(buckets[family] || []);
-                order.forEach((group) => {
-                    const items = grouped[group] || [];
-                    if (!items.length) return;
-                    html += `<li class="text-[10px] uppercase tracking-[0.11em] text-slate-400 font-semibold py-0.5">${prayerGroupLabel(group)}</li>`;
-                    items.forEach((entry) => {
-                        html += `<li>${buildPrayerNavigatorButton(entry.name)}</li>`;
+                const { buckets: collectionBuckets, collectionOrder, chapterOrder } = getPrayerCollectionBuckets(buckets[family] || [], family);
+                collectionOrder.forEach((collectionKey) => {
+                    const chapterBuckets = collectionBuckets[collectionKey] || {};
+                    const nonEmptyChapterKeys = chapterOrder.filter((chapterKey) => (chapterBuckets[chapterKey] || []).length > 0);
+                    if (!nonEmptyChapterKeys.length) return;
+
+                    html += `<li class="text-[10px] uppercase tracking-[0.11em] text-slate-400 font-semibold py-0.5">${escapeHtml(prayerCollectionLabel(collectionKey, family))}</li>`;
+                    const showChapterLabels = nonEmptyChapterKeys.length > 1;
+
+                    nonEmptyChapterKeys.forEach((chapterKey) => {
+                        const items = chapterBuckets[chapterKey] || [];
+                        if (!items.length) return;
+
+                        if (showChapterLabels) {
+                            html += `<li class="text-[10px] text-slate-400 font-medium py-0.5 pl-1">${escapeHtml(prayerChapterLabel(chapterKey))}</li>`;
+                        }
+
+                        items.forEach((entry) => {
+                            html += `<li>${buildPrayerNavigatorButton(entry.name)}</li>`;
+                        });
                     });
                 });
             });
@@ -6394,25 +6949,42 @@
             const panelsMarkup = familyOrder
                 .map((family) => {
                     const isActive = family === resolvedFamily;
-                    const { grouped, order } = groupedPrayerEntries(buckets[family] || []);
+                    const { buckets: collectionBuckets, collectionOrder, chapterOrder } = getPrayerCollectionBuckets(buckets[family] || [], family);
                     let groupsMarkup = '';
 
-                    order.forEach((group) => {
-                        const items = grouped[group] || [];
-                        if (!items.length) return;
+                    collectionOrder.forEach((collectionKey) => {
+                        const chapterBuckets = collectionBuckets[collectionKey] || {};
+                        const nonEmptyChapterKeys = chapterOrder.filter((chapterKey) => (chapterBuckets[chapterKey] || []).length > 0);
+                        if (!nonEmptyChapterKeys.length) return;
 
-                        const itemMarkup = items
-                            .map((entry) => {
-                                const label = getPrayerDisplayName(entry.name);
-                                const encodedName = encodeURIComponent(entry.name);
-                                return `<button onclick="openPrayerEntry(decodeURIComponent('${encodedName}'))" class="prayer-grid-item text-left">${escapeHtml(label)}</button>`;
-                            })
-                            .join('');
+                        const showChapterLabels = nonEmptyChapterKeys.length > 1;
+                        let chapterMarkup = '';
+
+                        nonEmptyChapterKeys.forEach((chapterKey) => {
+                            const items = chapterBuckets[chapterKey] || [];
+                            if (!items.length) return;
+
+                            const itemMarkup = items
+                                .map((entry) => {
+                                    const label = getPrayerDisplayName(entry.name);
+                                    const encodedName = encodeURIComponent(entry.name);
+                                    const alignClass = isHebrewMode() ? 'text-right' : 'text-left';
+                                    return `<button onclick="openPrayerEntry(decodeURIComponent('${encodedName}'))" class="prayer-grid-item ${alignClass}">${escapeHtml(label)}</button>`;
+                                })
+                                .join('');
+
+                            chapterMarkup += `
+                                <div class="space-y-2">
+                                    ${showChapterLabels ? `<p class="text-[10px] uppercase tracking-[0.11em] text-slate-400 font-semibold">${escapeHtml(prayerChapterLabel(chapterKey))}</p>` : ''}
+                                    <div class="prayer-grid-list">${itemMarkup}</div>
+                                </div>
+                            `;
+                        });
 
                         groupsMarkup += `
-                            <section class="prayer-group-block">
-                                <p class="text-[11px] uppercase tracking-widest text-slate-400 font-bold mb-2">${prayerGroupLabel(group)}</p>
-                                <div class="prayer-grid-list">${itemMarkup}</div>
+                            <section class="prayer-group-block space-y-2">
+                                <p class="text-[11px] uppercase tracking-widest text-slate-400 font-bold">${escapeHtml(prayerCollectionLabel(collectionKey, family))}</p>
+                                ${chapterMarkup}
                             </section>
                         `;
                     });
@@ -6568,6 +7140,7 @@
 
                 loadingOverlay.classList.add('hidden');
                 reader.classList.remove('hidden');
+                applySidebarVisibility();
 
                 document.getElementById('readerTitle').innerText = prayerData.title;
                 setCurrentView('prayer', prayerName, prayerData.title || prayerName);
@@ -6601,6 +7174,7 @@
             } catch (err) {
                 loadingOverlay.classList.add('hidden');
                 reader.classList.remove('hidden');
+                applySidebarVisibility();
                 document.getElementById('readerContent').innerHTML = `<p class="text-red-500">${t('Error loading prayer:', 'שגיאה בטעינת התפילה:')} ${err.message}</p>`;
             }
         }
@@ -6635,6 +7209,7 @@
 
                 loadingOverlay.classList.add('hidden');
                 reader.classList.remove('hidden');
+                applySidebarVisibility();
 
                 const communityLabel = getCommunityDisplayName(communityName);
                 const communityTitle = isHebrewMode()
@@ -6673,6 +7248,7 @@
             } catch (err) {
                 loadingOverlay.classList.add('hidden');
                 reader.classList.remove('hidden');
+                applySidebarVisibility();
                 document.getElementById('readerContent').innerHTML = `<p class="text-red-500">${t('Error loading community:', 'שגיאה בטעינת קהילה:')} ${err.message}</p>`;
             }
         }
@@ -6747,6 +7323,7 @@
             reader.classList.add('hidden');
             homeGrid.style.display = 'block';
             searchInput.value = '';
+            readerTopBar?.classList.add('hidden'); // Explicitly hide readerTopBar
             hideSearchSuggestions();
             appState.currentView = null;
             window.currentTextPayload = null;
@@ -7118,6 +7695,7 @@
 
         const textPayloadCache = new Map();
         const indexLeafRefCache = new Map();
+        const indexSectionsCache = new Map();
         let textLoadServiceWorkerRecoveryAttempted = false;
 
         function cacheTextPayload(ref, payload) {
@@ -7255,6 +7833,7 @@
 
                 loadingOverlay.classList.add('hidden');
                 reader.classList.remove('hidden');
+                applySidebarVisibility();
 
                 if (data.error) {
                     document.getElementById('readerTitle').innerText = normalizedRequestRef || String(ref || '');
@@ -7270,7 +7849,12 @@
 
                 // Title
                 const titleEl = document.getElementById('readerTitle');
-                titleEl.innerText = data.heTitle ? `${data.title} · ${data.heTitle}` : data.title || normalizedRequestRef || String(ref || '');
+                const fallbackTitle = data.title || normalizedRequestRef || String(ref || '');
+                if (isHebrewMode()) {
+                    titleEl.innerText = String(data.heTitle || localizeReferenceLabel(fallbackTitle) || fallbackTitle);
+                } else {
+                    titleEl.innerText = data.heTitle ? `${data.title} · ${data.heTitle}` : fallbackTitle;
+                }
                 setCurrentView('text', data.ref || resolvedRef || normalizedRequestRef || ref, data.title || data.ref || resolvedRef || normalizedRequestRef || ref);
                 window.currentTextPayload = data;
                 window.currentTextPayloadChain = [data];
@@ -7296,10 +7880,14 @@
 
                 applyReaderPreferences();
 
+                const sidebarReference = isHebrewMode()
+                    ? localizeReferenceLabel(data.ref || normalizedRequestRef || ref)
+                    : String(data.ref || normalizedRequestRef || ref || '');
+
                 // Update left sidebar with metadata
                 sidebarContent.innerHTML = `
                     <div class="text-xs space-y-2">
-                        <div><span class="font-bold text-slate-700">${t('Reference:', 'הפניה:')}</span> <span class="text-slate-500">${data.ref}</span></div>
+                        <div><span class="font-bold text-slate-700">${t('Reference:', 'הפניה:')}</span> <span class="text-slate-500">${escapeHtml(sidebarReference)}</span></div>
                         ${data.heTitle ? `<div><span class="font-bold text-slate-700">${t('Hebrew:', 'עברית:')}</span> <span class="font-hebrew text-slate-600">${data.heTitle}</span></div>` : ''}
                         ${categories.length ? `<div><span class="font-bold text-slate-700">${t('Category:', 'קטגוריה:')}</span> <span class="text-slate-500">${isHebrewMode() ? categories.map(translateCategoryToken).join(' › ') : categories.join(' › ')}</span></div>` : ''}
                         ${data.era ? `<div><span class="font-bold text-slate-700">${t('Era:', 'תקופה:')}</span> <span class="text-slate-500">${data.era}</span></div>` : ''}
@@ -7310,6 +7898,7 @@
             } catch (err) {
                 loadingOverlay.classList.add('hidden');
                 reader.classList.remove('hidden');
+                applySidebarVisibility();
                 document.getElementById('readerContent').innerHTML =
                     `<p class="text-red-500">${t('Network error loading text.', 'שגיאת רשת בטעינת הטקסט.')}</p>`;
                 readerTopBar?.classList.add('hidden');
@@ -7410,6 +7999,7 @@
                 }
 
                 let html = '';
+                const alignClass = isHebrewMode() ? 'text-right' : 'text-left';
                 const colors = {
                     'Tanakh': '#004e5f', 'Mishnah': '#5a99b7',
                     'Talmud': '#a08a4a', 'Halakhah': '#802f3e'
@@ -7418,16 +8008,18 @@
                     const color = colors[cat] || '#374151';
                     texts.forEach(t => {
                         const encodedRef = encodeURIComponent(String(t.ref || ''));
+                        const hebrewHeading = String(t.he || getHebrewStaticLabel(t.title) || t.title || '').trim();
                         const title = isHebrewMode()
-                            ? (getHebrewStaticLabel(t.title) || t.he || t.title)
+                            ? localizeLooseHebrewPhrase(getHebrewStaticLabel(t.title) || t.he || t.title)
                             : t.title;
                         const description = isHebrewMode()
-                            ? (getHebrewStaticLabel(t.description) || t.description)
+                            ? localizeLooseHebrewPhrase(getHebrewStaticLabel(t.description) || t.description)
                             : t.description;
                         html += `
                         <button onclick="readText(decodeURIComponent('${encodedRef}'))"
-                            class="text-left p-3 rounded border border-[#ddd4c3] hover:border-[${color}] hover:shadow-sm transition group bg-[#fffaf1]">
-                            <div class="font-hebrew text-lg text-slate-700 group-hover:text-[${color}]">${t.he}</div>
+                            dir="${isHebrewMode() ? 'rtl' : 'ltr'}"
+                            class="${alignClass} p-3 rounded border border-[#ddd4c3] hover:border-[${color}] hover:shadow-sm transition group bg-[#fffaf1]">
+                            <div class="font-hebrew text-lg text-slate-700 group-hover:text-[${color}]">${escapeHtml(hebrewHeading)}</div>
                             <div class="text-xs font-serif text-slate-800 mt-1">${escapeHtml(title)}</div>
                             <div class="text-xs text-slate-500 mt-0.5">${escapeHtml(description)}</div>
                         </button>`;
@@ -7601,6 +8193,9 @@
                 const settingsLabel = lang === 'he' ? 'הגדרות קריאה' : 'Reader Settings';
                 readerSettingsBtn.setAttribute('aria-label', settingsLabel);
                 readerSettingsBtn.title = settingsLabel;
+                if (readerSettingsBtnLabel) {
+                    readerSettingsBtnLabel.textContent = settingsLabel;
+                }
             }
             if (readerPrevTopBarBtn) {
                 const prevLabel = lang === 'he' ? 'קטע קודם' : 'Previous Section';
@@ -7623,6 +8218,34 @@
 
             if (zmanimData && zmanimData.metadata) {
                 const meta = zmanimData.metadata;
+                const z = zmanimData.zmanim || {};
+
+                const zmanFieldMap = {
+                    zDawn: 'Dawn (16.1° / 72m)',
+                    zTalit: 'Earliest Tallit/Tefillin (10.2°)',
+                    zSunrise: 'Sunrise',
+                    zShemaGra: 'Latest Shema (GRA)',
+                    zShemaBht: 'Latest Shema (Baal HaTanya)',
+                    zShacharitGra: 'Latest Shacharit (GRA)',
+                    zShacharitBht: 'Latest Shacharit (Baal HaTanya)',
+                    zChatzot: 'Chatzot (Midday)',
+                    zMincha: 'Earliest Mincha (Mincha Gedola)',
+                    zMusaf: 'Latest Musaf',
+                    zPlag: 'Plag HaMincha',
+                    zCandles: 'Candle Lighting',
+                    zSunset: 'Sunset',
+                    zMaariv: 'Arvit (Maariv)',
+                    zNight: 'Nightfall (3 Stars)',
+                    zHavdalah: 'Havdalah',
+                    zMidnight: 'Chatzot HaLailah (Midnight)',
+                };
+
+                Object.entries(zmanFieldMap).forEach(([elementId, zmanKey]) => {
+                    const targetEl = document.getElementById(elementId);
+                    if (!targetEl) return;
+                    targetEl.innerText = formatZmanClockDisplay(z[zmanKey] || 'N/A');
+                });
+
                 const holidayName = document.getElementById('holidayName');
                 if (holidayName) {
                     holidayName.innerText = translateHolidayName(meta.holiday || 'Regular Day');
@@ -7664,6 +8287,9 @@
 
             // Keep pane visibility/layout controlled by reader preferences.
             applyReaderPreferences();
+
+            // Update page title to match language
+            document.title = lang === 'he' ? "שאלה - אנציקלופדיית תורה" : "Sh'elah - Torah Encyclopedia";
 
             updateThemeToggleUi(lang);
 
@@ -7823,18 +8449,18 @@
                         const z = data.zmanim;
                         const meta = data.metadata || {};
                         document.getElementById('zmanLoc').innerText = data.metadata.timezone;
-                        document.getElementById('zDawn').innerText = z['Dawn (16.1° / 72m)'] || 'N/A';
-                        document.getElementById('zTalit').innerText = z['Earliest Tallit/Tefillin (10.2°)'] || 'N/A';
-                        document.getElementById('zSunrise').innerText = z['Sunrise'] || 'N/A';
+                        document.getElementById('zDawn').innerText = formatZmanClockDisplay(z['Dawn (16.1° / 72m)'] || 'N/A');
+                        document.getElementById('zTalit').innerText = formatZmanClockDisplay(z['Earliest Tallit/Tefillin (10.2°)'] || 'N/A');
+                        document.getElementById('zSunrise').innerText = formatZmanClockDisplay(z['Sunrise'] || 'N/A');
                         const shemaGra = z['Latest Shema (GRA)'] || 'N/A';
                         const shemaBht = z['Latest Shema (Baal HaTanya)'] || 'N/A';
                         const shacharitGra = z['Latest Shacharit (GRA)'] || 'N/A';
                         const shacharitBht = z['Latest Shacharit (Baal HaTanya)'] || 'N/A';
 
-                        document.getElementById('zShemaGra').innerText = shemaGra;
-                        document.getElementById('zShemaBht').innerText = shemaBht;
-                        document.getElementById('zShacharitGra').innerText = shacharitGra;
-                        document.getElementById('zShacharitBht').innerText = shacharitBht;
+                        document.getElementById('zShemaGra').innerText = formatZmanClockDisplay(shemaGra);
+                        document.getElementById('zShemaBht').innerText = formatZmanClockDisplay(shemaBht);
+                        document.getElementById('zShacharitGra').innerText = formatZmanClockDisplay(shacharitGra);
+                        document.getElementById('zShacharitBht').innerText = formatZmanClockDisplay(shacharitBht);
 
                         const shemaGraRow = document.getElementById('shemaGraRow');
                         const shemaBhtRow = document.getElementById('shemaBhtRow');
@@ -7861,16 +8487,16 @@
                                 shacharitBhtRow.classList.remove('hidden');
                             }
                         }
-                        document.getElementById('zChatzot').innerText = z['Chatzot (Midday)'] || 'N/A';
-                        document.getElementById('zMincha').innerText = z['Earliest Mincha (Mincha Gedola)'] || 'N/A';
-                        document.getElementById('zMusaf').innerText = z['Latest Musaf'] || 'N/A';
-                        document.getElementById('zPlag').innerText = z['Plag HaMincha'] || 'N/A';
-                        document.getElementById('zCandles').innerText = z['Candle Lighting'] || 'N/A';
-                        document.getElementById('zSunset').innerText = z['Sunset'] || 'N/A';
-                        document.getElementById('zMaariv').innerText = z['Arvit (Maariv)'] || 'N/A';
-                        document.getElementById('zNight').innerText = z['Nightfall (3 Stars)'] || 'N/A';
-                        document.getElementById('zHavdalah').innerText = z['Havdalah'] || 'N/A';
-                        document.getElementById('zMidnight').innerText = z['Chatzot HaLailah (Midnight)'] || 'N/A';
+                        document.getElementById('zChatzot').innerText = formatZmanClockDisplay(z['Chatzot (Midday)'] || 'N/A');
+                        document.getElementById('zMincha').innerText = formatZmanClockDisplay(z['Earliest Mincha (Mincha Gedola)'] || 'N/A');
+                        document.getElementById('zMusaf').innerText = formatZmanClockDisplay(z['Latest Musaf'] || 'N/A');
+                        document.getElementById('zPlag').innerText = formatZmanClockDisplay(z['Plag HaMincha'] || 'N/A');
+                        document.getElementById('zCandles').innerText = formatZmanClockDisplay(z['Candle Lighting'] || 'N/A');
+                        document.getElementById('zSunset').innerText = formatZmanClockDisplay(z['Sunset'] || 'N/A');
+                        document.getElementById('zMaariv').innerText = formatZmanClockDisplay(z['Arvit (Maariv)'] || 'N/A');
+                        document.getElementById('zNight').innerText = formatZmanClockDisplay(z['Nightfall (3 Stars)'] || 'N/A');
+                        document.getElementById('zHavdalah').innerText = formatZmanClockDisplay(z['Havdalah'] || 'N/A');
+                        document.getElementById('zMidnight').innerText = formatZmanClockDisplay(z['Chatzot HaLailah (Midnight)'] || 'N/A');
 
                         applyOptionalZmanRows(z);
 
@@ -7948,6 +8574,22 @@
             if (hours > 0) return `${hours}h ${minutes}m`;
             if (minutes > 0) return `${minutes}m ${seconds}s`;
             return `${seconds}s`;
+        }
+
+        function formatZmanClockDisplay(value) {
+            const raw = String(value || '').trim();
+            if (!raw) return 'N/A';
+            if (!isHebrewMode()) return raw;
+            if (raw === 'N/A' || raw === '--:--') return raw;
+
+            const match = raw.match(/^(\d{1,2}:\d{2})(?:\s*([AP]M))?$/i);
+            if (!match) return raw;
+            const timePart = match[1];
+            const suffix = String(match[2] || '').toUpperCase();
+            if (!suffix) return timePart;
+
+            const localizedMeridiem = suffix === 'AM' ? 'לפנה"צ' : 'אחה"צ';
+            return `${timePart} ${localizedMeridiem}`;
         }
 
         function startCountdown() {
@@ -8415,6 +9057,104 @@
         });
     </script>
     <script type="module" src="/static/js/main.js"></script>
+    <script>
+        (function() {
+            function alignReaderTopbarButtons(retries = 0){
+                const prev = document.getElementById('readerPrevTopBarBtn');
+                const next = document.getElementById('readerNextTopBarBtn');
+                const settingsWrap = document.querySelector('.reader-topbar-settings-wrap');
+                const track = document.querySelector('.reader-topbar-track');
+                if(!prev || !next || !settingsWrap || !track) {
+                    if (retries < 8) setTimeout(() => alignReaderTopbarButtons(retries + 1), 150);
+                    return;
+                }
+
+                // Prefer aligning to the first visible line of reader content.
+                function findContentContainer() {
+                    const selectors = ['#readerContent', '#reader', '.reader-content', '.readerMain', '.reader'];
+                    for (const sel of selectors) {
+                        const el = document.querySelector(sel);
+                        if (el) return el;
+                    }
+                    return null;
+                }
+
+                function getFirstLineRect(container) {
+                    if (!container) return null;
+                    // Look for likely textual elements in reading order
+                    const candidates = container.querySelectorAll('p, .verse, .reader-verse, .reader-text-row, .line, span, div');
+                    for (const el of candidates) {
+                        try {
+                            const style = window.getComputedStyle(el);
+                            if (style && (style.visibility === 'hidden' || style.display === 'none' || parseFloat(style.opacity) === 0)) continue;
+                        } catch (e) {}
+                        const text = (el.textContent || '').trim();
+                        if (!text) continue;
+                        const rects = el.getClientRects();
+                        if (rects && rects.length) {
+                            for (const r of rects) {
+                                if (r.width > 6 && r.height > 0) return r;
+                            }
+                        }
+                    }
+                    // fallback to container rect
+                    const cr = container.getBoundingClientRect();
+                    if (cr && cr.width > 6) return cr;
+                    return null;
+                }
+
+                const content = findContentContainer();
+                let leftAnchor = null, rightAnchor = null;
+                const firstLineRect = getFirstLineRect(content || settingsWrap);
+                if (firstLineRect) {
+                    leftAnchor = firstLineRect.left;
+                    rightAnchor = firstLineRect.right;
+                } else {
+                    const sRect = settingsWrap.getBoundingClientRect();
+                    leftAnchor = sRect.left;
+                    rightAnchor = sRect.right;
+                }
+
+                // Clear any previous transform so measurements use the original layout coordinates
+                prev.style.transform = 'none';
+                next.style.transform = 'none';
+                const prevRect = prev.getBoundingClientRect();
+                const nextRect = next.getBoundingClientRect();
+
+                // Compute deltas and clamp so buttons remain inside the track
+                const deltaPrev = Math.round(leftAnchor - prevRect.left);
+                const deltaNext = Math.round(rightAnchor - nextRect.right);
+                const tr = track.getBoundingClientRect();
+                const minLeft = tr.left + 8;
+                const maxRight = tr.right - 8;
+
+                let finalPrevLeft = prevRect.left + deltaPrev;
+                let finalNextRight = nextRect.right + deltaNext;
+                if (finalPrevLeft < minLeft) finalPrevLeft = minLeft;
+                if (finalNextRight > maxRight) finalNextRight = maxRight;
+                const appliedDeltaPrev = Math.round(finalPrevLeft - prevRect.left);
+                const appliedDeltaNext = Math.round(finalNextRight - nextRect.right);
+
+                // Apply transform immediately with no animation so buttons snap to alignment
+                prev.style.transform = `translateX(${appliedDeltaPrev}px)`;
+                next.style.transform = `translateX(${appliedDeltaNext}px)`;
+                prev.style.transition = 'none';
+                next.style.transition = 'none';
+            }
+            window.addEventListener('DOMContentLoaded', alignReaderTopbarButtons);
+            window.addEventListener('load', alignReaderTopbarButtons);
+            window.addEventListener('resize', () => { requestAnimationFrame(alignReaderTopbarButtons); });
+            const observer = new MutationObserver((mutations) => {
+                for(const m of mutations) {
+                    if (m.addedNodes && m.addedNodes.length) {
+                        alignReaderTopbarButtons();
+                        break;
+                    }
+                }
+            });
+            observer.observe(document.body, { childList: true, subtree: true });
+        })();
+    </script>
 </body>
 
 </html>
