@@ -508,22 +508,27 @@ def render_structured_markdown(structured: Dict[str, Any]) -> str:
         if _sanitize_model_output(str(src or "")).strip()
     ]
 
-    verdict = "Prohibited" if structured.get("is_prohibited") else "Permitted"
-    lines = ["## Ruling", "", f"**{verdict}**"]
+    direct_answer = ruling or summary or "No synthesized answer available."
+    lines = ["## Direct Answer", "", direct_answer]
 
-    if ruling:
-        lines.extend(["", ruling])
+    if structured.get("is_prohibited"):
+        lines.extend(["", "**Halachic Status:** Prohibited"])
 
-    if summary:
-        lines.extend(["", "## Summary", "", summary])
+    if steps or sources:
+        lines.extend(["", "## Deeper Reasoning", ""])
 
     if steps:
-        lines.extend(["", "## Practical Steps", ""])
+        lines.extend(["**Practical Steps**", ""])
         lines.extend([f"- {step}" for step in steps])
 
     if sources:
-        lines.extend(["", "## Sources", ""])
+        if steps:
+            lines.append("")
+        lines.extend(["**Sources**", ""])
         lines.extend([f"- {source}" for source in sources])
+
+    if summary:
+        lines.extend(["", "## Summary", "", summary])
 
     return "\n".join(lines).strip()
 
@@ -642,6 +647,8 @@ Output Rules:
 - Return output as strict JSON only (no markdown, no prose outside JSON).
 - The JSON schema must contain exactly these keys: ruling (string), sources (array of strings), is_prohibited (boolean), summary (string), practical_steps (array of strings), rabbinic_disclaimer (string).
 - Keep rabbinic_disclaimer equal to: "Please consult with your local Rabbi for a final ruling."
+- In ruling, answer the user's concrete question directly first. Do not start with one-word verdicts like "Permitted" or "Prohibited" unless the user explicitly asks a permissibility question.
+- Use practical_steps and sources for deeper reasoning and implementation detail, then use summary as a short recap.
 - Tie claims to provided evidence when relevant evidence exists.
 - If API evidence exists, use it; do not skip to internal-only answers.
 - If community custom conflicts with primary source, explain both positions neutrally.
@@ -841,6 +848,7 @@ INSTRUCTIONS:
 14. If query is strictly hateful, calls for violence, or illegal, set ruling to exactly: "Sh'elah is a specialized tool for Halakhic and communal knowledge. I cannot assist with [Subject of Query]. Please consult with your local Rabbi for a final ruling.", and set practical_steps and sources to empty arrays. For complex/sensitive halachic questions, provide sources instead.
 15. If unsure whether a question is halachic, assume it IS and provide background information and relevant sources rather than returning a null or refusal response.
 16. Explanation depth requirement: {detail_expectation}
+17. Structure content logically: ruling should be the direct answer first, practical_steps and sources should contain deeper reasoning, and summary should be a concise recap.
 """
 
     return _sanitize_prompt_payload(prompt)
