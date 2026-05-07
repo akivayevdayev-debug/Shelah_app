@@ -1,0 +1,253 @@
+/*
+  typography.css
+  Typography scale utility classes, Hebrew/RTL utilities, and print/motion styles.
+  Supplements style.css — does not replace existing typography rules.
+*/
+
+/* ═══════════════════════════════════════════════════════ */
+/* TYPE SCALE UTILITIES */
+/* ═══════════════════════════════════════════════════════ */
+
+/* Display headline (hero/section titles) */
+.type-display {
+    font-family: var(--font-serif, 'Cardo', serif);
+    font-size: clamp(1.8rem, 3vw, 2.8rem);
+    font-weight: 700;
+    line-height: 1.15;
+    letter-spacing: -0.01em;
+}
+
+/* Section heading */
+.type-heading {
+    font-family: var(--font-serif, 'Cardo', serif);
+    font-size: clamp(1.2rem, 2vw, 1.6rem);
+    font-weight: 700;
+    line-height: 1.3;
+}
+
+/* Sub-heading / card title */
+.type-subheading {
+    font-family: var(--font-serif, 'Cardo', serif);
+    font-size: clamp(1rem, 1.3vw, 1.2rem);
+    font-weight: 600;
+    line-height: 1.4;
+}
+
+/* Standard body text */
+.type-body {
+    font-family: var(--font-sans, 'Inter', sans-serif);
+    font-size: 0.9375rem;
+    /* 15px */
+    line-height: 1.7;
+}
+
+/* Secondary / caption text */
+.type-small {
+    font-size: 0.8125rem;
+    /* 13px */
+    line-height: 1.55;
+}
+
+/* Label / badge / tag text */
+.type-micro {
+    font-size: 0.6875rem;
+    /* 11px */
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    line-height: 1.2;
+}
+
+/* ═══════════════════════════════════════════════════════ */
+/* HEBREW TYPOGRAPHY UTILITIES */
+/* ═══════════════════════════════════════════════════════ */
+
+/* Large Hebrew display text */
+.heb-display {
+    font-family: var(--font-hebrew, 'Ezra SIL', 'Cardo', serif);
+    font-size: clamp(1.5rem, 2.5vw, 2.2rem);
+    line-height: 1.65;
+    direction: rtl;
+    text-align: right;
+    unicode-bidi: isolate;
+}
+
+/* Standard Hebrew body text */
+.heb-body {
+    font-family: var(--font-hebrew, 'Ezra SIL', 'Cardo', serif);
+    font-size: 1.05rem;
+    line-height: 1.9;
+    direction: rtl;
+    text-align: right;
+    unicode-bidi: isolate;
+}
+
+/* Small Hebrew text (annotations) */
+.heb-small {
+    font-family: var(--font-hebrew, 'Ezra SIL', 'Cardo', serif);
+    font-size: 0.9rem;
+    line-height: 1.8;
+    direction: rtl;
+    text-align: right;
+    unicode-bidi: isolate;
+}
+
+/* Inline bilingual text helper */
+.mixed-bidi {
+    unicode-bidi: embed;
+}
+
+/* ═══════════════════════════════════════════════════════ */
+/* DYNAMIC COLOR TOKENS (semantic aliases) */
+/* ═══════════════════════════════════════════════════════ */
+
+.text-dynamic-main {
+    color: var(--text-main);
+}
+
+.text-dynamic-muted {
+    color: var(--text-muted);
+}
+
+.text-dynamic-gold {
+    color: var(--gold);
+}
+
+.text-dynamic-ink {
+    color: var(--ink);
+}
+
+.border-dynamic {
+    border-color: var(--surface-border);
+}
+
+.bg-dynamic-base {
+    background-color: var(--surface-base);
+}
+
+.bg-dynamic-elevated {
+    background-color: var(--surface-elevated);
+}
+
+.bg-dynamic-pill {
+    background-color: var(--surface-pill);
+}
+
+/* ═══════════════════════════════════════════════════════ */
+/* FOCUS-VISIBLE IMPROVEMENTS (accessibility) */
+/* ═══════════════════════════════════════════════════════ */
+
+/* Warm focus ring — replaces default blue across the app */
+.focus-warm:focus-visible,
+:focus-visible {
+    outline: 2px solid rgba(176, 154, 116, 0.65);
+    outline-offset: 2px;
+}
+
+/* Remove outline for mouse users; keep for keyboard */
+:focus:not(:focus-visible) {
+    outline: none;
+}
+
+/* ═══════════════════════════════════════════════════════ */
+/* SKIP-TO-CONTENT (accessibility) */
+/* ═══════════════════════════════════════════════════════ */
+
+.skip-to-content {
+    position: absolute;
+    top: -4rem;
+    left: 1rem;
+    padding: 0.5rem 1.25rem;
+    background: var(--ink, #002147);
+    color: #fff;
+    border-radius: var(--radius-md, 0.7rem);
+    font-family: var(--font-sans, sans-serif);
+    font-weight: 700;
+    font-size: 0.875rem;
+    z-index: 300;
+    transition: top 0.2s ease;
+    text-decoration: none;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+.skip-to-content:focus {
+    top: 0.75rem;
+}
+
+body.theme-dark .skip-to-content {
+    background: var(--accent-deep-blue, #efe6d8);
+    color: var(--surface-base, #090a0c);
+}
+
+/* ═══════════════════════════════════════════════════════ */
+/* PRINT STYLES */
+/* ═══════════════════════════════════════════════════════ */
+
+@media print {
+    * {
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+    }
+
+    body {
+        font-size: 11pt;
+        color: #000 !important;
+        background: #fff !important;
+    }
+
+    .topbar,
+    .navigator-pane,
+    .pulse-pane,
+    .mobile-bottom-tabs,
+    #readerTopBar,
+    .reader-nav-floating,
+    #settingsPanel,
+    #readerSettingsPanel {
+        display: none !important;
+    }
+
+    #reader,
+    .content-canvas,
+    #mainContainer {
+        max-width: 100% !important;
+        padding: 0 !important;
+        margin: 0 !important;
+    }
+
+    .source-he {
+        font-size: 13pt !important;
+        line-height: 1.9 !important;
+    }
+
+    .source-en {
+        font-size: 11pt !important;
+        line-height: 1.7 !important;
+    }
+
+    .halacha-section {
+        break-inside: avoid;
+        page-break-inside: avoid;
+    }
+
+    a[href^="http"]::after {
+        content: " (" attr(href) ")";
+        font-size: 0.75em;
+        color: #666;
+    }
+}
+
+/* ═══════════════════════════════════════════════════════ */
+/* REDUCED MOTION */
+/* ═══════════════════════════════════════════════════════ */
+
+@media (prefers-reduced-motion: reduce) {
+
+    *,
+    *::before,
+    *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+        scroll-behavior: auto !important;
+    }
+}
