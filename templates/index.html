@@ -17,7 +17,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Cardo:wght@400;700&family=Inter:wght@400;500;600&display=swap"
         rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
-    <link rel="stylesheet" href="/static/style.css?v=20260506-buttonless-topbar-6">
+    <link rel="stylesheet" href="/static/style.css?v=20260507-ui-audit-fixes-v1">
     <!-- CSS modules (supplement style.css; do not replace) -->
     <link rel="stylesheet" href="/static/css/typography.css?v=20260507-v1">
     <link rel="stylesheet" href="/static/css/reader.css?v=20260507-v1">
@@ -37,7 +37,7 @@
         }
 
         body.theme-dark #settingsPanel .text-slate-400,
-        body.theme-dark #settingsPanel p.text-[11px],
+        body.theme-dark #settingsPanel p.text-\[11px\],
         body.theme-dark #settingsPanel .uppercase {
             color: #bfb6a6 !important;
         }
@@ -198,7 +198,8 @@
             <div class="w-full min-w-0">
                 <!-- Search Form -->
                 <form id="searchForm" role="search" aria-label="Search texts" class="w-full relative min-w-0">
-                    <input type="text" id="searchInput" placeholder="Search for a topic, halacha, or custom..."
+                    <input type="text" id="searchInput"
+                        placeholder="Ask Sh'elah about any topic, halachah, or custom..."
                         class="w-full bg-[#fbf8f1] hover:bg-[#f8f2e8] transition text-sm sm:text-base p-2 pl-4 pr-10 rounded-full border border-[#d8d0c2] focus:border-[#b8aa90] focus:ring-2 focus:ring-[#d9cdb8]/80 focus:bg-[#fffdf8] focus:outline-none"
                         autocomplete="off" required>
                     <div id="searchIcon" class="absolute right-3 top-2 text-slate-400">
@@ -345,7 +346,7 @@
                     </button>
 
                     <div id="userProfileMenu"
-                        class="hidden absolute right-0 mt-2 w-44 max-w-[calc(100vw-1rem)] bg-white border border-slate-200 rounded-xl shadow-lg py-1.5 z-[999]">
+                        class="hidden absolute top-full right-0 mt-1.5 w-44 max-w-[calc(100vw-1rem)] bg-white border border-slate-200 rounded-xl shadow-lg py-1.5 z-[999]">
                         <a id="userProfileLink" href="/profile"
                             class="topbar-user-menu-item block px-3 py-1.5 text-xs text-slate-700 hover:bg-slate-100 transition"
                             data-en="Profile" data-he="פרופיל">Profile</a>
@@ -1156,37 +1157,37 @@
                             <label class="block text-xs text-slate-600">
                                 <span data-en="Text Size" data-he="גודל טקסט">Text Size</span>
                                 <input id="readerFontSize" type="range" min="14" max="30" value="18"
-                                    class="mt-1 w-full" />
+                                    class="reader-range-slider mt-1 w-full" />
                             </label>
 
                             <label class="block text-xs text-slate-600">
                                 <span data-en="Density" data-he="ריווח">Density</span>
                                 <input id="readerLineHeight" type="range" min="1.4" max="2.4" step="0.1" value="1.8"
-                                    class="mt-1 w-full" />
+                                    class="reader-range-slider mt-1 w-full" />
                             </label>
 
                             <div class="space-y-2 border-t border-slate-100 pt-2">
                                 <label class="flex items-center justify-between text-xs text-slate-600">
                                     <span data-en="Source Transliteration" data-he="תעתיק מהמקור">Source
                                         Transliteration</span>
-                                    <input id="transliterationToggle" type="checkbox" class="h-4 w-4" />
+                                    <input id="transliterationToggle" type="checkbox" class="reader-switch" />
                                 </label>
                                 <label class="flex items-center justify-between text-xs text-slate-600">
                                     <span data-en="Show Vowels" data-he="הצג ניקוד">Show Vowels</span>
-                                    <input id="showVowelsToggle" type="checkbox" class="h-4 w-4" checked />
+                                    <input id="showVowelsToggle" type="checkbox" class="reader-switch" checked />
                                 </label>
                                 <label id="cantillationToggleRow"
                                     class="flex items-center justify-between text-xs text-slate-600">
                                     <span data-en="Show Cantillation" data-he="הצג טעמי מקרא">Show
                                         Cantillation</span>
-                                    <input id="showCantillationToggle" type="checkbox" class="h-4 w-4" checked />
+                                    <input id="showCantillationToggle" type="checkbox" class="reader-switch" checked />
                                 </label>
                             </div>
 
                             <div class="space-y-2 border-t border-slate-100 pt-2">
                                 <label class="flex items-center justify-between text-xs text-slate-600">
                                     <span data-en="Compare Mode" data-he="מצב השוואה">Compare Mode</span>
-                                    <input id="compareModeToggle" type="checkbox" class="h-4 w-4" />
+                                    <input id="compareModeToggle" type="checkbox" class="reader-switch" />
                                 </label>
                                 <div id="readerCompareControls" class="space-y-2">
                                     <input id="compareRefInput" type="text" placeholder="Compare with reference..."
@@ -1205,16 +1206,16 @@
                             <div class="space-y-2 border-t border-slate-100 pt-2">
                                 <label class="flex items-center justify-between text-xs text-slate-600">
                                     <span data-en="Shul Mode" data-he="מצב בית כנסת">Shul Mode</span>
-                                    <input id="shulModeToggle" type="checkbox" class="h-4 w-4" />
+                                    <input id="shulModeToggle" type="checkbox" class="reader-switch" />
                                 </label>
                                 <label class="flex items-center justify-between text-xs text-slate-600">
                                     <span data-en="Auto Scroll" data-he="גלילה אוטומטית">Auto Scroll</span>
-                                    <input id="shulAutoScrollToggle" type="checkbox" class="h-4 w-4" />
+                                    <input id="shulAutoScrollToggle" type="checkbox" class="reader-switch" />
                                 </label>
                                 <label class="block text-xs text-slate-600">
                                     <span data-en="Scroll Speed" data-he="מהירות גלילה">Scroll Speed</span>
                                     <input id="shulScrollSpeed" type="range" min="8" max="80" value="28"
-                                        class="mt-1 w-full" />
+                                        class="reader-range-slider mt-1 w-full" />
                                 </label>
                             </div>
                         </div>
@@ -2911,10 +2912,6 @@
                 authControls.style.display = 'flex';
                 signInBtn?.classList.add('hidden');
                 userProfileMenuContainer?.classList.remove('hidden');
-                userProfileMenuContainer?.classList.add('flex'); // Ensure it's displayed as flex
-                if (userProfileMenuContainer) {
-                    userProfileMenuContainer.style.display = 'flex';
-                }
                 if (userProfileMenuLabel) {
                     userProfileMenuLabel.textContent = displayName || 'Signed in';
                 }
@@ -2927,10 +2924,6 @@
                 signInBtn?.classList.remove('hidden');
                 authControls.style.display = '';
                 userProfileMenuContainer?.classList.add('hidden');
-                userProfileMenuContainer?.classList.remove('flex'); // Ensure it's not displayed as flex when hidden
-                if (userProfileMenuContainer) {
-                    userProfileMenuContainer.style.display = 'none';
-                }
                 closeUserProfileMenu();
                 syncedPrefsUserId = null;
             }
@@ -8125,12 +8118,12 @@
                     searchInput.classList.remove('pl-4', 'pr-10');
                     searchInput.classList.add('pl-10', 'pr-4');
                     // Update placeholder for RTL
-                    searchInput.placeholder = 'חפש נושא, הלכה, מנהג...';
+                    searchInput.placeholder = 'שאל את ש\'אלה על כל נושא, הלכה או מנהג...';
                 } else {
                     // LTR: padding on right for icon space
                     searchInput.classList.remove('pl-10', 'pr-4');
                     searchInput.classList.add('pl-4', 'pr-10');
-                    searchInput.placeholder = 'Search for a topic, halacha, or custom...';
+                    searchInput.placeholder = "Ask Sh'elah about any topic, halachah, or custom...";
                 }
             }
 
@@ -8789,6 +8782,18 @@
                 const selected = appState.suggestionItems[appState.activeSuggestionIndex];
                 await openSearchTarget(selected, searchInput.value.trim());
             }
+        });
+
+        document.addEventListener('keydown', (e) => {
+            if (e.key !== 'Escape') return;
+            if (!appState.prefs.shulMode) return;
+
+            appState.prefs.shulMode = false;
+            if (shulModeToggle) {
+                shulModeToggle.checked = false;
+            }
+            savePrefs();
+            applyShulMode();
         });
 
         searchSuggestions.addEventListener('click', async (e) => {

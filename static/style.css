@@ -393,6 +393,9 @@ body.theme-dark .topbar-flat-btn:focus-visible {
     border-color: #ddd4c3;
     z-index: 9999 !important;
     position: absolute !important;
+    top: calc(100% + 0.35rem);
+    right: 0;
+    margin-top: 0 !important;
 }
 
 .topbar-user-menu-item {
@@ -1178,6 +1181,78 @@ body.theme-dark ::-webkit-scrollbar-thumb:hover {
     overflow-y: auto;
 }
 
+.reader-range-slider {
+    -webkit-appearance: none;
+    appearance: none;
+    height: 0.5rem;
+    border-radius: 9999px;
+    background: linear-gradient(90deg, #21456b 0%, #7998b6 100%);
+    outline: none;
+}
+
+.reader-range-slider::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 1rem;
+    height: 1rem;
+    border-radius: 50%;
+    border: 2px solid #f3ede0;
+    background: #1f3f63;
+    box-shadow: 0 1px 5px rgba(31, 63, 99, 0.4);
+    cursor: pointer;
+}
+
+.reader-range-slider::-moz-range-track {
+    height: 0.5rem;
+    border-radius: 9999px;
+    background: linear-gradient(90deg, #21456b 0%, #7998b6 100%);
+}
+
+.reader-range-slider::-moz-range-thumb {
+    width: 1rem;
+    height: 1rem;
+    border-radius: 50%;
+    border: 2px solid #f3ede0;
+    background: #1f3f63;
+    box-shadow: 0 1px 5px rgba(31, 63, 99, 0.4);
+    cursor: pointer;
+}
+
+.reader-switch {
+    -webkit-appearance: none;
+    appearance: none;
+    position: relative;
+    width: 2.2rem;
+    height: 1.2rem;
+    border-radius: 9999px;
+    border: 1px solid #c4b9a4;
+    background: #e8dfd0;
+    transition: background 0.16s ease, border-color 0.16s ease;
+    cursor: pointer;
+}
+
+.reader-switch::after {
+    content: "";
+    position: absolute;
+    top: 0.1rem;
+    left: 0.12rem;
+    width: 0.9rem;
+    height: 0.9rem;
+    border-radius: 50%;
+    background: #fffaf2;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+    transition: transform 0.16s ease;
+}
+
+.reader-switch:checked {
+    background: #315c86;
+    border-color: #315c86;
+}
+
+.reader-switch:checked::after {
+    transform: translateX(1rem);
+}
+
 .sidebar-show-tab {
     backdrop-filter: blur(10px);
     letter-spacing: 0.02em;
@@ -1483,6 +1558,15 @@ body.shul-mode .topbar {
 }
 
 body.shul-mode .topbar:hover {
+    opacity: 1;
+}
+
+body.shul-mode #readerTopBar {
+    opacity: 0.15;
+    transition: opacity 0.2s ease;
+}
+
+body.shul-mode #readerTopBar:hover {
     opacity: 1;
 }
 
@@ -3000,12 +3084,12 @@ body.theme-dark #nextZmanBadge {
 }
 
 body.theme-dark .today-zmanim-list [data-zman-row] {
-    background: #1a1b19 !important;
+    background: transparent !important;
     border-color: #3b3d38 !important;
-    border-radius: 0.44rem !important;
-    padding-left: 0.45rem;
-    padding-right: 0.45rem;
-    margin-bottom: 0.18rem;
+    border-radius: 0 !important;
+    padding-left: 0 !important;
+    padding-right: 0 !important;
+    margin-bottom: 0 !important;
 }
 
 body.theme-dark .today-zmanim-list [data-zman-row] span {
@@ -3017,8 +3101,11 @@ body.theme-dark .today-zmanim-list [data-zman-row] b {
 }
 
 body.theme-dark .today-zmanim-list [data-zman-row].zman-next-highlight {
-    background: #262722 !important;
+    background: rgba(63, 57, 47, 0.46) !important;
     border-color: #736652 !important;
+    border-radius: 0.45rem !important;
+    padding-left: 0.45rem !important;
+    padding-right: 0.45rem !important;
     box-shadow: inset 0 0 0 1px rgba(195, 175, 138, 0.18);
 }
 
@@ -3034,14 +3121,15 @@ body.theme-dark #prayerBooksNavList button {
 }
 
 body.theme-dark .library-node-open.library-node-active {
-    background: #353129 !important;
-    border: 1px solid #5f5443 !important;
+    background: transparent !important;
+    border: 0 !important;
+    border-inline-start: 3px solid #7d6c50 !important;
     color: #f1e5cf !important;
-    box-shadow: inset 0 0 0 1px rgba(165, 142, 101, 0.25);
+    box-shadow: none !important;
 }
 
 body.theme-dark .library-node-open.library-node-active:hover {
-    background: #3d382f !important;
+    background: rgba(68, 60, 48, 0.35) !important;
     color: #fff0d8 !important;
 }
 
@@ -3098,10 +3186,10 @@ body.theme-dark .mobile-drawer-right {
 
 /* Dark mode: ensure buttons and links inside mobile drawer / hamburger and settings
    panels use the elevated surface styles so they are readable and consistent. */
-body.theme-dark .mobile-drawer button,
-body.theme-dark .mobile-drawer a,
-body.theme-dark .mobile-drawer .topbar-flat-btn,
-body.theme-dark .mobile-drawer .mobile-tab-btn,
+body.theme-dark .mobile-drawer.mobile-open button,
+body.theme-dark .mobile-drawer.mobile-open a,
+body.theme-dark .mobile-drawer.mobile-open .topbar-flat-btn,
+body.theme-dark .mobile-drawer.mobile-open .mobile-tab-btn,
 body.theme-dark #settingsPanel button,
 body.theme-dark #readerSettingsPanel button,
 body.theme-dark #settingsPanel a,
@@ -3111,13 +3199,37 @@ body.theme-dark #readerSettingsPanel a {
     color: var(--accent-cream) !important;
 }
 
-body.theme-dark .mobile-drawer button:hover,
-body.theme-dark .mobile-drawer a:hover,
+body.theme-dark .mobile-drawer.mobile-open button:hover,
+body.theme-dark .mobile-drawer.mobile-open a:hover,
 body.theme-dark #settingsPanel button:hover,
 body.theme-dark #readerSettingsPanel button:hover {
     background: #2e302c !important;
     border-color: #5a5c55 !important;
     color: #f5ecde !important;
+}
+
+body.theme-dark .reader-range-slider {
+    background: linear-gradient(90deg, #5c6a7a 0%, #8b9cae 100%);
+}
+
+body.theme-dark .reader-range-slider::-webkit-slider-thumb,
+body.theme-dark .reader-range-slider::-moz-range-thumb {
+    border-color: #141513;
+    background: #d7c9b2;
+}
+
+body.theme-dark .reader-switch {
+    background: #2b2d2a;
+    border-color: #4a4c46;
+}
+
+body.theme-dark .reader-switch::after {
+    background: #f4ebdc;
+}
+
+body.theme-dark .reader-switch:checked {
+    background: #8b7350;
+    border-color: #8b7350;
 }
 
 body.theme-dark .mobile-drawer-left {
