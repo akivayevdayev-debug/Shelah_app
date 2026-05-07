@@ -4,7 +4,7 @@ Anthropic/Claude prompt and response helper for Sh'elah.
 Responsibilities:
 - Format source/custom/wiki payloads into prompt-ready text blocks.
 - Build the structured prompt used for halachic responses.
-- Call Anthropic as primary and Gemini as fallback when needed.
+- Call Gemini as primary and Anthropic as fallback when needed.
 
 This module is intentionally stateless: app.py and data_service.py prepare context,
 then this file focuses on LLM formatting and call execution.
@@ -278,31 +278,24 @@ def _generate_gemini_content_with_retry(model: Any, prompt: str) -> Any:
 def _call_gemini_model(
     prompt: str,
     dynamic_system_context: str = "",
-    claude_error: str = "",
 ) -> Dict[str, Any]:
-    """Low-level Gemini fallback call (internal)."""
+    """Low-level Gemini primary call (internal)."""
     config_error = _configure_gemini_client()
     if config_error:
-        combined_error = config_error
-        if claude_error:
-            combined_error = f"anthropic_error: {claude_error}; {config_error}"
         return {
             "answer": "AI provider is currently unavailable.",
             "confidence": 0,
-            "error": combined_error,
-            "is_fallback": True,
+            "error": config_error,
+            "is_fallback": False,
             "provider": "gemini-3-flash",
         }
 
     if genai is None:
-        combined_error = "gemini_sdk_missing"
-        if claude_error:
-            combined_error = f"anthropic_error: {claude_error}; {combined_error}"
         return {
             "answer": "AI provider is currently unavailable.",
             "confidence": 0,
-            "error": combined_error,
-            "is_fallback": True,
+            "error": "gemini_sdk_missing",
+            "is_fallback": False,
             "provider": "gemini-3-flash",
         }
 
@@ -321,24 +314,19 @@ def _call_gemini_model(
             system_instruction=system_instruction,
         )
 
-        logger.info(f"Calling Gemini ({model_name}) as fallback.")
+        logger.info(f"Calling Gemini ({model_name}) as primary.")
         try:
             response = _generate_gemini_content_with_retry(model, prompt)
         except ResourceExhausted as exc:
-            # Retries exhausted on Gemini rate limits; return a clean user-facing error.
             rate_limit_note = (
-                "Gemini fallback is temporarily rate limited. "
+                "Gemini is temporarily rate limited. "
                 "Please try again in a moment."
             )
-            details = f"gemini_rate_limited: {exc}"
-            if claude_error:
-                details = f"anthropic_error: {claude_error}; {details}"
             return {
                 "answer": rate_limit_note,
                 "confidence": 0,
-                "error": "",
-                "debug_error": details,
-                "is_fallback": True,
+                "error": f"gemini_rate_limited: {exc}",
+                "is_fallback": False,
                 "provider": model_name,
             }
 
@@ -352,18 +340,15 @@ def _call_gemini_model(
             "answer": render_structured_markdown(structured),
             "structured": structured,
             "confidence": 0.72,
-            "is_fallback": True,
+            "is_fallback": False,
             "provider": model_name,
         }
     except Exception as exc:
-        combined_error = f"gemini_error: {exc}"
-        if claude_error:
-            combined_error = f"anthropic_error: {claude_error}; {combined_error}"
         return {
             "answer": "AI provider is currently unavailable.",
             "confidence": 0,
-            "error": combined_error,
-            "is_fallback": True,
+            "error": f"gemini_error: {exc}",
+            "is_fallback": False,
             "provider": "gemini-3-flash",
         }
 
@@ -894,18 +879,27 @@ def limit_words(text, max_words=500):
     return text
 
 
-def _call_claude_model(prompt: str, dynamic_system_context: str = "") -> Dict[str, Any]:
-    """Low-level Anthropic call (internal)."""
+def _call_claude_model(
+    prompt: str,
+    dynamic_system_context: str = "",
+    gemini_error: str = "",
+) -> Dict[str, Any]:
+    """Low-level Anthropic fallback call (internal)."""
     client = _get_client()
     model_name = (os.environ.get("ANTHROPIC_MODEL")
                   or "claude-haiku-4-5").strip()
 
     if client is None:
-        return _call_gemini_model(
-            prompt,
-            dynamic_system_context=dynamic_system_context,
-            claude_error="anthropic_unavailable",
-        )
+        error = "anthropic_unavailable"
+        if gemini_error:
+            error = f"gemini_error: {gemini_error}; {error}"
+        return {
+            "answer": "AI provider is currently unavailable.",
+            "confidence": 0,
+            "error": error,
+            "is_fallback": True,
+            "provider": model_name,
+        }
 
     try:
         system_text = CORE_SYSTEM_PROMPT
@@ -920,7 +914,8 @@ def _call_claude_model(prompt: str, dynamic_system_context: str = "") -> Dict[st
                 {"role": "user", "content": prompt}
             ]
         )
-        logger.info(f"Claude request successful. Provider: {model_name}")
+        logger.info(
+            f"Claude fallback request successful. Provider: {model_name}")
         response_chunks: List[str] = []
         for block in (message.content or []):
             maybe_text = getattr(block, "text", None)
@@ -937,15 +932,37 @@ def _call_claude_model(prompt: str, dynamic_system_context: str = "") -> Dict[st
             "answer": render_structured_markdown(structured),
             "structured": structured,
             "confidence": 0.78,
-            "is_fallback": False,
+            "is_fallback": True,
             "provider": model_name,
         }
     except Exception as exc:
-        return _call_gemini_model(
-            prompt,
-            dynamic_system_context=dynamic_system_context,
-            claude_error=str(exc),
-        )
+        error = f"anthropic_error: {exc}"
+        if gemini_error:
+            error = f"gemini_error: {gemini_error}; {error}"
+        return {
+            "answer": "AI provider is currently unavailable.",
+            "confidence": 0,
+            "error": error,
+            "is_fallback": True,
+            "provider": model_name,
+        }
+
+
+def _call_primary_model(prompt: str, dynamic_system_context: str = "") -> Dict[str, Any]:
+    primary_result = _call_gemini_model(
+        prompt,
+        dynamic_system_context=dynamic_system_context,
+    )
+
+    primary_error = str(primary_result.get("error") or "")
+    if not primary_error or primary_error.startswith("security_blocked"):
+        return primary_result
+
+    return _call_claude_model(
+        prompt,
+        dynamic_system_context=dynamic_system_context,
+        gemini_error=primary_error,
+    )
 
 
 def run_protected_ai_wrapper(
@@ -1024,20 +1041,27 @@ def ask_claude(question, sefaria_sources, customs, user_memories=None, wiki=None
     return run_protected_ai_wrapper(
         query=question,
         prompt_builder=_build,
-        model_executor=lambda prompt: _call_claude_model(
+        model_executor=lambda prompt: _call_primary_model(
             prompt,
             dynamic_system_context=dynamic_system_context,
         ),
     )
 
 
-async def _call_anthropic_httpx_model(prompt: str, dynamic_system_context: str = "") -> Dict[str, Any]:
+async def _call_anthropic_httpx_model(
+    prompt: str,
+    dynamic_system_context: str = "",
+    gemini_error: str = "",
+) -> Dict[str, Any]:
     api_key = (os.environ.get("ANTHROPIC_API_KEY") or "").strip()
     if not api_key:
+        error = "anthropic_api_key_missing"
+        if gemini_error:
+            error = f"gemini_error: {gemini_error}; {error}"
         return {
             "answer": "AI provider is currently unavailable.",
             "confidence": 0,
-            "error": "anthropic_api_key_missing",
+            "error": error,
             "is_fallback": True,
             "provider": "claude-haiku-4-5",
         }
@@ -1085,14 +1109,17 @@ async def _call_anthropic_httpx_model(prompt: str, dynamic_system_context: str =
             "answer": render_structured_markdown(structured),
             "structured": structured,
             "confidence": 0.78,
-            "is_fallback": False,
+            "is_fallback": True,
             "provider": model_name,
         }
     except Exception as exc:
+        error = f"anthropic_httpx_error: {exc}"
+        if gemini_error:
+            error = f"gemini_error: {gemini_error}; {error}"
         return {
             "answer": "AI provider is currently unavailable.",
             "confidence": 0,
-            "error": f"anthropic_httpx_error: {exc}",
+            "error": error,
             "is_fallback": True,
             "provider": model_name,
         }
@@ -1101,7 +1128,6 @@ async def _call_anthropic_httpx_model(prompt: str, dynamic_system_context: str =
 async def _call_gemini_httpx_model(
     prompt: str,
     dynamic_system_context: str = "",
-    claude_error: str = "",
 ) -> Dict[str, Any]:
     api_key = (
         os.environ.get("GEMINI_API_KEY")
@@ -1113,14 +1139,11 @@ async def _call_gemini_httpx_model(
         model_name = "gemini-3-flash"
 
     if not api_key:
-        error = "gemini_api_key_missing"
-        if claude_error:
-            error = f"anthropic_error: {claude_error}; {error}"
         return {
             "answer": "AI provider is currently unavailable.",
             "confidence": 0,
-            "error": error,
-            "is_fallback": True,
+            "error": "gemini_api_key_missing",
+            "is_fallback": False,
             "provider": model_name,
         }
 
@@ -1161,18 +1184,15 @@ async def _call_gemini_httpx_model(
             "answer": render_structured_markdown(structured),
             "structured": structured,
             "confidence": 0.72,
-            "is_fallback": True,
+            "is_fallback": False,
             "provider": model_name,
         }
     except Exception as exc:
-        error = f"gemini_httpx_error: {exc}"
-        if claude_error:
-            error = f"anthropic_error: {claude_error}; {error}"
         return {
             "answer": "AI provider is currently unavailable.",
             "confidence": 0,
-            "error": error,
-            "is_fallback": True,
+            "error": f"gemini_httpx_error: {exc}",
+            "is_fallback": False,
             "provider": model_name,
         }
 
@@ -1240,17 +1260,17 @@ async def ask_ai_async(
     )
     prompt = _sanitize_prompt_payload(prompt)
 
-    result = await _call_anthropic_httpx_model(
+    result = await _call_gemini_httpx_model(
         prompt,
         dynamic_system_context=dynamic_system_context,
     )
 
     result_error = str(result.get("error") or "")
     if result_error and not result_error.startswith("security_blocked"):
-        result = await _call_gemini_httpx_model(
+        result = await _call_anthropic_httpx_model(
             prompt,
             dynamic_system_context=dynamic_system_context,
-            claude_error=result_error,
+            gemini_error=result_error,
         )
 
     output_validation = validate_model_output(result.get("answer", ""))
