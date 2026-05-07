@@ -385,7 +385,6 @@ body.theme-dark .topbar-flat-btn:focus-visible {
 #userProfileMenu {
     background: #fffaf3;
     border-color: #ddd4c3;
-    display: block !important;
 }
 
 .topbar-user-menu-item {

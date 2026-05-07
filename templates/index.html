@@ -187,8 +187,8 @@
             </div>
             <h1 class="text-sm sm:text-base font-serif tracking-tight text-navy font-semibold leading-none">
                 <span class="block" data-en="Sh'elah" data-he="שאלה">Sh'elah</span>
-                <span class="block text-[10px] font-normal text-slate-500 italic topbar-brand-subtitle" data-en="Torah Encyclopedia"
-                    data-he="אנציקלופדיית תורה">Torah Encyclopedia</span>
+                <span class="block text-[10px] font-normal text-slate-500 italic topbar-brand-subtitle"
+                    data-en="Torah Encyclopedia" data-he="אנציקלופדיית תורה">Torah Encyclopedia</span>
             </h1>
         </div>
 
@@ -5740,6 +5740,19 @@
                 applyShulMode();
             }
         });
+
+        // Close menus when clicking outside them
+        document.addEventListener('click', (e) => {
+            // Close user profile menu if clicking outside of it
+            if (userProfileMenuContainer && !userProfileMenuContainer.contains(e.target)) {
+                closeUserProfileMenu();
+            }
+            // Close settings menu if clicking outside of it
+            if (settingsMenuContainer && !settingsMenuContainer.contains(e.target)) {
+                closeSettingsMenu();
+            }
+        });
+
         if (settingsMenuBtn) {
             settingsMenuBtn.addEventListener('click', (e) => {
                 e.stopPropagation();
@@ -9058,13 +9071,13 @@
     </script>
     <script type="module" src="/static/js/main.js"></script>
     <script>
-        (function() {
-            function alignReaderTopbarButtons(retries = 0){
+        (function () {
+            function alignReaderTopbarButtons(retries = 0) {
                 const prev = document.getElementById('readerPrevTopBarBtn');
                 const next = document.getElementById('readerNextTopBarBtn');
                 const settingsWrap = document.querySelector('.reader-topbar-settings-wrap');
                 const track = document.querySelector('.reader-topbar-track');
-                if(!prev || !next || !settingsWrap || !track) {
+                if (!prev || !next || !settingsWrap || !track) {
                     if (retries < 8) setTimeout(() => alignReaderTopbarButtons(retries + 1), 150);
                     return;
                 }
@@ -9087,7 +9100,7 @@
                         try {
                             const style = window.getComputedStyle(el);
                             if (style && (style.visibility === 'hidden' || style.display === 'none' || parseFloat(style.opacity) === 0)) continue;
-                        } catch (e) {}
+                        } catch (e) { }
                         const text = (el.textContent || '').trim();
                         if (!text) continue;
                         const rects = el.getClientRects();
@@ -9145,7 +9158,7 @@
             window.addEventListener('load', alignReaderTopbarButtons);
             window.addEventListener('resize', () => { requestAnimationFrame(alignReaderTopbarButtons); });
             const observer = new MutationObserver((mutations) => {
-                for(const m of mutations) {
+                for (const m of mutations) {
                     if (m.addedNodes && m.addedNodes.length) {
                         alignReaderTopbarButtons();
                         break;
