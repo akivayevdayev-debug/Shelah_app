@@ -170,10 +170,15 @@ export function installSemanticBookmarking() {
     const button = document.getElementById("semanticBookmarkBtn");
     if (!button) return;
 
+    // templates/index.html owns semantic bookmarking in the main app shell.
+    // Skip module binding there to avoid duplicate handlers.
+    if (typeof window.saveSemanticBookmark === "function") {
+        return;
+    }
+
     button.addEventListener("click", async () => {
-        const note = window.prompt("Optional note for this bookmark:", "") || "";
         try {
-            await saveSemanticBookmark(note);
+            await saveSemanticBookmark("");
             pulseButton(button, "Saved", "bg-emerald-700");
             button.classList.add("text-white");
             window.setTimeout(() => button.classList.remove("text-white"), 1200);

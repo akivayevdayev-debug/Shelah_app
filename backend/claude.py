@@ -76,8 +76,6 @@ class HalakhicContext:
 
 MAX_INPUT_CHARS = _int_env("AI_MAX_INPUT_CHARS", 1200)
 MAX_PROMPT_CHARS = _int_env("AI_MAX_PROMPT_CHARS", 16000)
-MAX_RESPONSE_WORDS = _int_env("AI_MAX_RESPONSE_WORDS", 700)
-MAX_RESPONSE_CHARS = _int_env("AI_MAX_RESPONSE_CHARS", 20000)
 MODEL_REQUEST_TIMEOUT_SECONDS = _int_env("AI_MODEL_TIMEOUT_SECONDS", 50)
 
 STRUCTURED_RESPONSE_FIELDS = {
@@ -319,7 +317,7 @@ def _call_gemini_model(
             response = _generate_gemini_content_with_retry(model, prompt)
         except ResourceExhausted as exc:
             rate_limit_note = (
-                "Gemini is temporarily rate limited. "
+                "Sh'elah is temporarily rate limited. "
                 "Please try again in a moment."
             )
             return {
@@ -373,7 +371,7 @@ def _sanitize_prompt_payload(prompt_text: str, max_chars: int = MAX_PROMPT_CHARS
     return cleaned
 
 
-def _sanitize_model_output(text: str, max_chars: int = MAX_RESPONSE_CHARS) -> str:
+def _sanitize_model_output(text: str, max_chars: int = 0) -> str:
     cleaned = HIDDEN_UNICODE_RE.sub("", str(text or "")).strip()
     if max_chars > 0 and len(cleaned) > max_chars:
         cleaned = cleaned[:max_chars].rstrip()
@@ -492,7 +490,16 @@ def parse_structured_model_output(raw_text: str) -> Dict[str, Any]:
     return _normalize_structured_response({}, raw_text=raw_text)
 
 
-def render_structured_markdown(structured: Dict[str, Any]) -> str:
+def render_structured_markdown(structured: Dict[str, Any], answer_language: str = "en") -> str:
+    lang = "he" if str(answer_language or "").strip().lower() == "he" else "en"
+    direct_header = "## תשובה ישירה" if lang == "he" else "## Direct Answer"
+    status_label = "**סטטוס הלכתי:** אסור" if lang == "he" else "**Halachic Status:** Prohibited"
+    deeper_header = "## נימוק מעמיק" if lang == "he" else "## Deeper Reasoning"
+    steps_label = "**צעדים מעשיים**" if lang == "he" else "**Practical Steps**"
+    sources_label = "**מקורות**" if lang == "he" else "**Sources**"
+    summary_header = "## סיכום" if lang == "he" else "## Summary"
+    no_answer_text = "לא נמצאה תשובה מסונתזת." if lang == "he" else "No synthesized answer available."
+
     ruling = _sanitize_model_output(
         str(structured.get("ruling") or "")).strip()
     summary = _sanitize_model_output(
@@ -508,27 +515,27 @@ def render_structured_markdown(structured: Dict[str, Any]) -> str:
         if _sanitize_model_output(str(src or "")).strip()
     ]
 
-    direct_answer = ruling or summary or "No synthesized answer available."
-    lines = ["## Direct Answer", "", direct_answer]
+    direct_answer = ruling or summary or no_answer_text
+    lines = [direct_header, "", direct_answer]
 
     if structured.get("is_prohibited"):
-        lines.extend(["", "**Halachic Status:** Prohibited"])
+        lines.extend(["", status_label])
 
     if steps or sources:
-        lines.extend(["", "## Deeper Reasoning", ""])
+        lines.extend(["", deeper_header, ""])
 
     if steps:
-        lines.extend(["**Practical Steps**", ""])
+        lines.extend([steps_label, ""])
         lines.extend([f"- {step}" for step in steps])
 
     if sources:
         if steps:
             lines.append("")
-        lines.extend(["**Sources**", ""])
+        lines.extend([sources_label, ""])
         lines.extend([f"- {source}" for source in sources])
 
     if summary:
-        lines.extend(["", "## Summary", "", summary])
+        lines.extend(["", summary_header, "", summary])
 
     return "\n".join(lines).strip()
 
@@ -804,7 +811,7 @@ def _detail_expectation_for_question(question: str, mode: str) -> str:
     )
 
 
-def build_prompt(question, sefaria_sources, customs, user_memories, wiki, halachipedia=None, mode="balanced", community_lens="All", extra_context=None):
+def build_prompt(question, sefaria_sources, customs, user_memories, wiki, halachipedia=None, mode="balanced", community_lens="All", extra_context=None, answer_language="en"):
     """Build compact user prompt for token-light Claude calls."""
 
     sefaria_text = format_sefaria_sources(sefaria_sources)
@@ -834,21 +841,24 @@ TERTIARY LAST-RESORT WEB CONTEXT (USE ONLY IF PRIMARY + SECONDARY ARE EMPTY):
 INSTRUCTIONS:
 1. Response mode requested: {mode}
 2. Community lens requested: {community_lens}
-3. If mode is strict, do not include unsupported claims.
-4. Be direct, precise, and complete; avoid fluff but do not collapse into one-line answers.
-5. Keep source ordering aligned with the hierarchy above: specific API first, broad API second, internal knowledge third.
-6. Do not prepend warning banners yourself; backend controls warning rendering.
-7. Return strict JSON only, with keys: ruling, sources, is_prohibited, summary, practical_steps, rabbinic_disclaimer.
-8. Set rabbinic_disclaimer exactly to: "Please consult with your local Rabbi for a final ruling."
-9. If API snippets are missing or clearly irrelevant, you may use internal Halakhic knowledge only after steps 1 and 2 fail.
-10. If relevant API evidence exists, do not use internal-only fallback.
-11. Do not emit debug or provenance labels such as "Conflict Flag", "Source: Community Knowledge", or "No primary Sefaria snippet".
-12. IMPORTANT - Scholarly Librarian Approach: If the query is borderline or you are unsure, DEFAULT TO INCLUSION. Provide relevant sources, divergent Poskim opinions, and background information rather than refusing. Include Acharonim (later authorities) and contemporary Poskim if available.
-13. For modern halachic applications (technology, medicine, contemporary scenarios), prioritize Responsa and recent decisors over older authorities alone.
-14. If query is strictly hateful, calls for violence, or illegal, set ruling to exactly: "Sh'elah is a specialized tool for Halakhic and communal knowledge. I cannot assist with [Subject of Query]. Please consult with your local Rabbi for a final ruling.", and set practical_steps and sources to empty arrays. For complex/sensitive halachic questions, provide sources instead.
-15. If unsure whether a question is halachic, assume it IS and provide background information and relevant sources rather than returning a null or refusal response.
-16. Explanation depth requirement: {detail_expectation}
-17. Structure content logically: ruling should be the direct answer first, practical_steps and sources should contain deeper reasoning, and summary should be a concise recap.
+3. Answer language requested: {"Hebrew" if str(answer_language).strip().lower() == "he" else "English"}.
+    - If Hebrew is requested, write ruling, practical_steps, summary, and sources in natural Hebrew.
+    - If Hebrew is requested and source snippets include Hebrew, prefer Hebrew phrasing/citations over English.
+4. If mode is strict, do not include unsupported claims.
+5. Be direct, precise, and complete; avoid fluff but do not collapse into one-line answers.
+6. Keep source ordering aligned with the hierarchy above: specific API first, broad API second, internal knowledge third.
+7. Do not prepend warning banners yourself; backend controls warning rendering.
+8. Return strict JSON only, with keys: ruling, sources, is_prohibited, summary, practical_steps, rabbinic_disclaimer.
+9. Set rabbinic_disclaimer exactly to: "Please consult with your local Rabbi for a final ruling."
+10. If API snippets are missing or clearly irrelevant, you may use internal Halakhic knowledge only after steps 1 and 2 fail.
+11. If relevant API evidence exists, do not use internal-only fallback.
+12. Do not emit debug or provenance labels such as "Conflict Flag", "Source: Community Knowledge", or "No primary Sefaria snippet".
+13. IMPORTANT - Scholarly Librarian Approach: If the query is borderline or you are unsure, DEFAULT TO INCLUSION. Provide relevant sources, divergent Poskim opinions, and background information rather than refusing. Include Acharonim (later authorities) and contemporary Poskim if available.
+14. For modern halachic applications (technology, medicine, contemporary scenarios), prioritize Responsa and recent decisors over older authorities alone.
+15. If query is strictly hateful, calls for violence, or illegal, set ruling to exactly: "Sh'elah is a specialized tool for Halakhic and communal knowledge. I cannot assist with [Subject of Query]. Please consult with your local Rabbi for a final ruling.", and set practical_steps and sources to empty arrays. For complex/sensitive halachic questions, provide sources instead.
+16. If unsure whether a question is halachic, assume it IS and provide background information and relevant sources rather than returning a null or refusal response.
+17. Explanation depth requirement: {detail_expectation}
+18. Structure content logically: ruling should be the direct answer first, practical_steps and sources should contain deeper reasoning, and summary should be a concise recap.
 """
 
     return _sanitize_prompt_payload(prompt)
@@ -875,16 +885,6 @@ def _build_dynamic_system_context(customs, user_memories, extra_context):
         sections.append("No additional dynamic context provided.")
 
     return _sanitize_prompt_payload("\n\n".join(sections), max_chars=2200)
-
-
-def limit_words(text, max_words=500):
-    """Limit response to a maximum number of words"""
-    words = text.split()
-    if len(words) > max_words:
-        truncated = ' '.join(words[:max_words])
-        # Add ellipsis and note about truncation
-        return truncated + '\n\n*[Response truncated to preserve API tokens. For the full analysis, consult a local Rabbi.]*'
-    return text
 
 
 def _call_claude_model(
@@ -1005,8 +1005,7 @@ def run_protected_ai_wrapper(
     result = model_executor(prompt)
 
     output_validation = validate_model_output(result.get("answer", ""))
-    result["answer"] = limit_words(
-        output_validation["safe_answer"], max_words=MAX_RESPONSE_WORDS)
+    result["answer"] = output_validation["safe_answer"]
     result["security"] = {
         "input": input_validation,
         "output": {
@@ -1022,7 +1021,7 @@ def run_protected_ai_wrapper(
     return result
 
 
-def ask_claude(question, sefaria_sources, customs, user_memories=None, wiki=None, halachipedia=None, mode="balanced", community_lens="All", tool_context=None):
+def ask_claude(question, sefaria_sources, customs, user_memories=None, wiki=None, halachipedia=None, mode="balanced", community_lens="All", answer_language="en", tool_context=None):
     """Protected Claude wrapper with input and output validation."""
     wiki = wiki or []
     halachipedia = halachipedia or []
@@ -1043,6 +1042,7 @@ def ask_claude(question, sefaria_sources, customs, user_memories=None, wiki=None
             halachipedia=halachipedia,
             mode=mode,
             community_lens=community_lens,
+            answer_language=answer_language,
             extra_context=tool_context,
         )
 
@@ -1214,6 +1214,7 @@ async def ask_ai_async(
     halachipedia=None,
     mode="balanced",
     community_lens="All",
+    answer_language="en",
     tool_context=None,
 ):
     """Async AI entrypoint (httpx) for ASGI deployments."""
@@ -1264,6 +1265,7 @@ async def ask_ai_async(
         halachipedia=halachipedia,
         mode=mode,
         community_lens=community_lens,
+        answer_language=answer_language,
         extra_context=tool_context,
     )
     prompt = _sanitize_prompt_payload(prompt)
@@ -1282,10 +1284,7 @@ async def ask_ai_async(
         )
 
     output_validation = validate_model_output(result.get("answer", ""))
-    result["answer"] = limit_words(
-        output_validation["safe_answer"],
-        max_words=MAX_RESPONSE_WORDS,
-    )
+    result["answer"] = output_validation["safe_answer"]
     result["security"] = {
         "input": input_validation,
         "output": {

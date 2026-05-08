@@ -15,8 +15,9 @@ How to navigate this file:
 
 import json
 import re
+import io
 import requests
-from flask import Flask, render_template, request, jsonify, session, g, send_from_directory
+from flask import Flask, render_template, request, jsonify, session, g, send_from_directory, send_file
 from dotenv import load_dotenv
 import time
 import os
@@ -49,6 +50,18 @@ from backend.data_service import ShelahEngine
 from backend import sefaria
 from backend import claude
 from backend import search
+
+try:
+    from docx import Document
+except Exception:
+    Document = None
+
+try:
+    from reportlab.lib.pagesizes import LETTER
+    from reportlab.pdfgen import canvas
+except Exception:
+    LETTER = None
+    canvas = None
 
 # Maps each prayer name to its constituent Sefaria "Siddur Sefard" refs for full text
 SIDDUR_SECTION_MAP = {
@@ -1579,6 +1592,29 @@ def _lookup_english_word_meaning(word):
     return "", ""
 
 
+def _normalize_glossary_meaning(value):
+    text = re.sub(r"\s+", " ", str(value or "").strip())
+    if not text:
+        return ""
+
+    if "," in text:
+        head, tail = text.split(",", 1)
+        if re.fullmatch(r"[A-Za-z'\-\s]{2,40}", head.strip()) and tail.strip():
+            return tail.strip()
+
+    return text
+
+
+def _looks_like_transliteration(text):
+    value = re.sub(r"\s+", " ", str(text or "").strip())
+    if not value:
+        return False
+    if not re.fullmatch(r"[A-Za-z'\-\s]{2,80}", value):
+        return False
+    token_count = len([part for part in value.split(" ") if part])
+    return token_count <= 3 and "," not in value and "." not in value
+
+
 def _lookup_hebrew_word_meaning(word):
     def _strip_common_hebrew_prefix(token):
         value = str(token or "").strip()
@@ -1619,15 +1655,17 @@ def _lookup_hebrew_word_meaning(word):
     for variant in variants:
         exact = HEBREW_WORD_GLOSSARY.get(variant)
         if exact:
-            return exact, "local-hebrew-glossary"
+            normalized = _normalize_glossary_meaning(exact)
+            if normalized:
+                return normalized, "local-hebrew-glossary"
 
     for variant in variants:
         generated, source = _translate_hebrew_text_online(variant)
-        if generated:
+        if generated and not _looks_like_transliteration(generated):
             return generated, source or "automatic-translation"
 
     generated, source = _translate_hebrew_text_online(clean_word)
-    if generated:
+    if generated and not _looks_like_transliteration(generated):
         return generated, source or "automatic-translation"
 
     return "", ""
@@ -1830,7 +1868,7 @@ def _strip_structured_noise(text):
     return cleaned
 
 
-def _coerce_ai_answer_shape(result, question, mode):
+def _coerce_ai_answer_shape(result, question, mode, answer_language="en"):
     """Stabilize model output shape so UI always gets readable sections."""
     if not isinstance(result, dict):
         return result
@@ -1925,7 +1963,10 @@ def _coerce_ai_answer_shape(result, question, mode):
         clean_structured["practical_steps"] = _extract_action_steps_from_ruling(
             ruling_text)
 
-    rendered_answer = claude.render_structured_markdown(clean_structured)
+    rendered_answer = claude.render_structured_markdown(
+        clean_structured,
+        answer_language=answer_language,
+    )
     if rendered_answer:
         result["structured"] = clean_structured
         result["answer"] = rendered_answer
@@ -2915,6 +2956,9 @@ def ask_question():
 
     if not question:
         return jsonify({"error": "No valid question provided"}), 400
+    answer_language = str(data.get("language") or "en").strip().lower()
+    if answer_language not in {"en", "he"}:
+        answer_language = "en"
     mode = _sanitize_answer_mode(data.get("mode"))
     community_lens = (data.get("community") or "All").strip()
     canonical_lens = "All" if community_lens.lower() == "all" else (
@@ -2928,17 +2972,29 @@ def ask_question():
         if any(prayer in question for prayer in ["Shacharit", "Mincha", "Maariv", "Kiddush", "Havdalah"]):
             # Return a prayer service focused response
             DEVTOOLS_STATS["answers_total"] += 1
+            prayer_answer = (
+                f"Prayer Service Guide\n\n{question}\n\n"
+                "You can browse full liturgy books and services from the prayer sections. "
+                "For practical application, compare local community custom with your rabbi's guidance."
+            )
+            if answer_language == "he":
+                prayer_answer = (
+                    f"מדריך תפילה\n\n{question}\n\n"
+                    "ניתן לעיין בספרי התפילה והשירותים הליטורגיים המלאים באזור התפילה. "
+                    "להכרעה מעשית יש להשוות למנהג הקהילה המקומית ולהתייעץ עם הרב שלך."
+                )
             return jsonify({
-                "answer": f"Prayer Service Guide\n\n{question}\n\nYou can browse full liturgy books and services from the prayer sections. For practical application, compare local community custom with your rabbi's guidance.",
+                "answer": prayer_answer,
                 "confidence": 0.85,
                 "sources": [{
                     "ref": "Sefaria Liturgy",
                     "title": "Sefaria Prayer Books",
-                    "lines": [{"en": f"Prayer Service: {question}", "he": ""}]
+                    "lines": [{"en": f"Prayer Service: {question}", "he": f"תפילה: {question}"}]
                 }],
                 "customs": [],
                 "meta": {
                     "mode": mode,
+                    "language": answer_language,
                     "community_lens": canonical_lens,
                     "source_count": 1,
                     "custom_count": 0,
@@ -2978,10 +3034,20 @@ def ask_question():
         # 5. Prepare flattened primary source text for the protected AI wrapper.
         flat_sources_for_claude = []
         for src in primary_sources:
-            en_lines = [l['en'] for l in src['lines'] if l['en']]
+            src_lines = src.get('lines', []) if isinstance(src, dict) else []
+            if not isinstance(src_lines, list):
+                src_lines = []
+            preferred_lines = []
+            for line in src_lines:
+                if not isinstance(line, dict):
+                    continue
+                preferred = (line.get('he') or line.get('en')) if answer_language == 'he' else (
+                    line.get('en') or line.get('he'))
+                if preferred:
+                    preferred_lines.append(str(preferred).strip())
             flat_sources_for_claude.append({
-                'ref': src['ref'],
-                'text': ' '.join(en_lines)
+                'ref': str(src.get('ref') or '') if isinstance(src, dict) else '',
+                'text': ' '.join(preferred_lines)
             })
 
         has_primary_sources = bool(flat_sources_for_claude)
@@ -3029,10 +3095,16 @@ def ask_question():
                 halachipedia=halachipedia_list,
                 mode=mode,
                 community_lens=canonical_lens,
+                answer_language=answer_language,
                 tool_context=_build_ask_tool_context(engine),
             )
 
-            result = _coerce_ai_answer_shape(result, question, mode)
+            result = _coerce_ai_answer_shape(
+                result,
+                question,
+                mode,
+                answer_language=answer_language,
+            )
 
             result_error = str(result.get("error") or "")
             if result_error and not result_error.startswith("security_blocked"):
@@ -3076,7 +3148,9 @@ def ask_question():
             raw_ai_answer = ""
             if structured_payload:
                 raw_ai_answer = claude.render_structured_markdown(
-                    structured_payload)
+                    structured_payload,
+                    answer_language=answer_language,
+                )
             else:
                 raw_ai_answer = str(result.get("answer") or "").strip()
 
@@ -3121,6 +3195,7 @@ def ask_question():
                 "sources": display_sources,
                 "meta": {
                     "mode": mode,
+                    "language": answer_language,
                     "community_lens": canonical_lens,
                     "source_count": len(primary_sources),
                     "custom_count": len(customs_info),
@@ -3184,6 +3259,7 @@ def ask_question():
                 "sources": fallback_sources,
                 "meta": {
                     "mode": mode,
+                    "language": answer_language,
                     "community_lens": canonical_lens,
                     "source_count": fallback_payload.get("source_count", 0),
                     "custom_count": len(customs_info),
@@ -3808,6 +3884,158 @@ def get_word_meaning():
         "status": "ok",
         "lang": requested_lang,
     })
+
+
+def _chapter_export_plain_text(title, ref, lines):
+    header = [str(title or "").strip(), str(ref or "").strip(), ""]
+    body = []
+    for idx, line in enumerate(lines, start=1):
+        segment = str(line.get("segment") or idx).strip()
+        he = str(line.get("he") or "").strip()
+        en = str(line.get("en") or "").strip()
+        body.append(f"Segment {segment}")
+        if he:
+            body.append(f"Hebrew: {he}")
+        if en:
+            body.append(f"English: {en}")
+        body.append("")
+
+    return "\n".join(header + body).strip() + "\n"
+
+
+def _wrap_text_for_export(text, max_chars=96):
+    value = re.sub(r"\s+", " ", str(text or "").strip())
+    if not value:
+        return [""]
+
+    words = value.split(" ")
+    chunks = []
+    current = ""
+    for word in words:
+        candidate = f"{current} {word}".strip()
+        if len(candidate) <= max_chars:
+            current = candidate
+            continue
+        if current:
+            chunks.append(current)
+        current = word
+    if current:
+        chunks.append(current)
+
+    return chunks or [value]
+
+
+@app.route("/api/export/chapter", methods=["POST"])
+@maybe_require_clerk_auth
+def export_chapter():
+    payload = request.get_json(silent=True) or {}
+    title = str(payload.get("title") or payload.get(
+        "label") or "shelah-chapter").strip()
+    ref = str(payload.get("ref") or "").strip()
+    export_format = str(payload.get("format") or "txt").strip().lower()
+    lines = payload.get("lines") if isinstance(
+        payload.get("lines"), list) else []
+
+    if export_format not in {"txt", "docx", "pdf"}:
+        return jsonify({"error": "Unsupported export format"}), 400
+
+    normalized_lines = []
+    for idx, line in enumerate(lines, start=1):
+        if not isinstance(line, dict):
+            continue
+        he = str(line.get("he") or "").strip()
+        en = str(line.get("en") or "").strip()
+        if not he and not en:
+            continue
+        normalized_lines.append({
+            "segment": str(line.get("segment") or idx).strip(),
+            "he": he,
+            "en": en,
+        })
+
+    if not normalized_lines:
+        return jsonify({"error": "No chapter lines available to export"}), 400
+
+    file_safe = re.sub(r"[^a-z0-9]+", "-", title.lower()
+                       ).strip("-") or "shelah-chapter"
+    plain_text = _chapter_export_plain_text(title, ref, normalized_lines)
+
+    if export_format == "txt":
+        txt_buffer = io.BytesIO(plain_text.encode("utf-8"))
+        txt_buffer.seek(0)
+        return send_file(
+            txt_buffer,
+            as_attachment=True,
+            download_name=f"{file_safe}.txt",
+            mimetype="text/plain; charset=utf-8",
+        )
+
+    if export_format == "docx":
+        if Document is None:
+            return jsonify({"error": "DOCX export is unavailable on this server"}), 503
+
+        document = Document()
+        document.add_heading(title or "Sh'elah Chapter", level=1)
+        if ref:
+            document.add_paragraph(ref)
+
+        for idx, line in enumerate(normalized_lines, start=1):
+            segment = line.get("segment") or idx
+            document.add_paragraph(f"Segment {segment}")
+            if line.get("he"):
+                document.add_paragraph(line["he"])
+            if line.get("en"):
+                document.add_paragraph(line["en"])
+
+        docx_buffer = io.BytesIO()
+        document.save(docx_buffer)
+        docx_buffer.seek(0)
+        return send_file(
+            docx_buffer,
+            as_attachment=True,
+            download_name=f"{file_safe}.docx",
+            mimetype="application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+        )
+
+    if canvas is None or LETTER is None:
+        return jsonify({"error": "PDF export is unavailable on this server"}), 503
+
+    pdf_buffer = io.BytesIO()
+    pdf = canvas.Canvas(pdf_buffer, pagesize=LETTER)
+    width, height = LETTER
+    y = height - 48
+    left = 42
+
+    def draw_line(text):
+        nonlocal y
+        for chunk in _wrap_text_for_export(text, max_chars=96):
+            if y < 48:
+                pdf.showPage()
+                y = height - 48
+            pdf.drawString(left, y, chunk)
+            y -= 14
+
+    draw_line(title or "Sh'elah Chapter")
+    if ref:
+        draw_line(ref)
+    draw_line("")
+
+    for idx, line in enumerate(normalized_lines, start=1):
+        draw_line(f"Segment {line.get('segment') or idx}")
+        if line.get("he"):
+            draw_line(f"Hebrew: {line['he']}")
+        if line.get("en"):
+            draw_line(f"English: {line['en']}")
+        draw_line("")
+
+    pdf.save()
+    pdf_buffer.seek(0)
+    return send_file(
+        pdf_buffer,
+        as_attachment=True,
+        download_name=f"{file_safe}.pdf",
+        mimetype="application/pdf",
+    )
 
 
 @app.route("/api/library/search")
