@@ -229,7 +229,7 @@
                 </button>
 
                 <div id="settingsPanel"
-                    class="hidden absolute right-0 mt-2 w-72 max-w-[calc(100vw-1rem)] bg-white border border-slate-200 rounded-xl shadow-lg p-3 z-[90] space-y-3">
+                    class="hidden absolute right-0 mt-2 w-72 max-w-[calc(100vw-1rem)] bg-white border border-slate-200 rounded-xl shadow-lg p-2.5 z-[90] space-y-2.5">
                     <p class="text-[11px] uppercase tracking-widest text-slate-400 font-bold" data-en="Quick Settings"
                         data-he="הגדרות מהירות">Quick Settings</p>
 
@@ -280,54 +280,24 @@
                         </button>
                     </div>
 
-                    <div class="space-y-2 border-t border-slate-100 pt-2">
-                        <p class="text-[11px] uppercase tracking-widest text-slate-400 font-bold" data-en="Filters"
-                            data-he="סינון">Filters</p>
-                        <input id="metadataEraInput" type="text" placeholder="Era (e.g. Rishonim)"
-                            class="w-full px-2 py-1.5 rounded border border-slate-200 bg-slate-50 text-xs text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-300" />
-                        <input id="metadataAuthorInput" type="text" placeholder="Author"
-                            class="w-full px-2 py-1.5 rounded border border-slate-200 bg-slate-50 text-xs text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-300" />
-                        <input id="metadataCategoryInput" type="text" placeholder="Category"
-                            class="w-full px-2 py-1.5 rounded border border-slate-200 bg-slate-50 text-xs text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-300" />
-                        <input id="metadataGeographyInput" type="text" placeholder="Geography"
-                            class="w-full px-2 py-1.5 rounded border border-slate-200 bg-slate-50 text-xs text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-300" />
-                        <input id="metadataNusachInput" type="text" placeholder="Nusach"
-                            class="w-full px-2 py-1.5 rounded border border-slate-200 bg-slate-50 text-xs text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-300" />
-                    </div>
-
-                    <div class="grid grid-cols-1 gap-2 border-t border-slate-100 pt-2 sm:grid-cols-3">
+                    <div class="grid grid-cols-2 gap-2 border-t border-slate-100 pt-2">
                         <button id="bookmarkCurrentBtn" type="button"
-                            class="px-3 py-1.5 rounded bg-navy text-white hover:bg-blue-900 transition font-semibold text-xs">
+                            class="px-2.5 py-1.5 rounded-lg bg-navy text-white hover:bg-blue-900 transition font-semibold text-xs">
                             Save Current
                         </button>
-
                         <button id="semanticBookmarkBtn" type="button"
-                            class="px-3 py-1.5 rounded bg-slate-100 text-slate-700 border border-slate-200 hover:bg-slate-200 transition font-semibold text-xs"
+                            class="px-2.5 py-1.5 rounded-lg bg-slate-100 text-slate-700 border border-slate-200 hover:bg-slate-200 transition font-semibold text-xs"
                             data-en="Save Study Note" data-he="שמור הערת לימוד">Save Study Note</button>
-
-                        <button id="importShelfBtn" type="button"
-                            class="px-3 py-1.5 rounded bg-slate-100 text-slate-700 border border-slate-200 hover:bg-slate-200 transition font-semibold text-xs"
-                            data-en="Import Shelf" data-he="ייבא מדף">Import Shelf</button>
                     </div>
 
                     <div class="grid grid-cols-2 gap-2 border-t border-slate-100 pt-2">
                         <button id="exportCitationBtn" type="button"
-                            class="px-3 py-1.5 rounded bg-slate-100 text-slate-700 border border-slate-200 hover:bg-slate-200 transition font-semibold text-xs"
+                            class="px-2.5 py-1.5 rounded-lg bg-slate-100 text-slate-700 border border-slate-200 hover:bg-slate-200 transition font-semibold text-xs"
                             data-en="Export" data-he="ייצוא">Export</button>
-                        <button id="sourceGraphBtn" type="button"
-                            class="px-3 py-1.5 rounded bg-slate-100 text-slate-700 border border-slate-200 hover:bg-slate-200 transition font-semibold text-xs"
-                            data-en="Source Graph" data-he="גרף מקורות">Source Graph</button>
-                        <button id="communityTimelineBtn" type="button"
-                            class="px-3 py-1.5 rounded bg-slate-100 text-slate-700 border border-slate-200 hover:bg-slate-200 transition font-semibold text-xs"
-                            data-en="Timeline" data-he="ציר זמן">Timeline</button>
                         <button id="trackCurrentBtn" type="button"
-                            class="px-3 py-1.5 rounded bg-slate-100 text-slate-700 border border-slate-200 hover:bg-slate-200 transition font-semibold text-xs"
+                            class="px-2.5 py-1.5 rounded-lg bg-slate-100 text-slate-700 border border-slate-200 hover:bg-slate-200 transition font-semibold text-xs"
                             data-en="Add Current to Study Track" data-he="הוסף למסלול לימוד">Add to Track</button>
                     </div>
-
-                    <button id="openReaderSettingsFromMenu" type="button"
-                        class="w-full px-3 py-1.5 rounded bg-slate-100 text-slate-700 border border-slate-200 hover:bg-slate-200 transition font-semibold text-xs"
-                        data-en="Reader Settings" data-he="הגדרות קריאה">Reader Settings</button>
                 </div>
             </div>
 
@@ -382,10 +352,6 @@
         <button id="showLeftSidebarTopBtn" type="button"
             class="sidebar-show-tab hidden items-center gap-1 absolute left-3 top-3 z-30 px-2 py-1 rounded-md border border-slate-200 bg-white/85 text-slate-500 text-[10px] font-medium tracking-wide hover:bg-white hover:text-slate-700 transition"
             data-en="Library" data-he="ספריה" aria-label="Show Library">Library</button>
-
-        <button id="showRightSidebarTopBtn" type="button"
-            class="sidebar-show-tab hidden items-center gap-1 absolute right-3 top-3 z-30 px-2 py-1 rounded-md border border-slate-200 bg-white/85 text-slate-500 text-[10px] font-medium tracking-wide hover:bg-white hover:text-slate-700 transition"
-            data-en="Commentary" data-he="מפרשים" aria-label="Show Commentary Panel">Commentary</button>
 
         <!-- Column 1: Library (Left) -->
         <nav id="leftSidebar" aria-label="Library navigation"
@@ -1117,8 +1083,13 @@
 
             <!-- READER TOPBAR: sits inside #mainContainer, outside #reader article, so it spans full column width -->
             <div id="readerTopBar"
-                class="hidden sticky z-40 reader-topbar-shell border-y border-[#ddd4c3] bg-[#f9f4ea] px-1 py-1">
+                class="hidden sticky z-10 reader-topbar-shell border-y border-[#ddd4c3] bg-[#f9f4ea] px-1 py-1">
                 <div class="reader-topbar-track">
+                    <button id="readerLibraryTopBarBtn" type="button" class="reader-topbar-icon-btn"
+                        aria-label="Library" title="Library" style="display: none;">
+                        <span aria-hidden="true">📚</span>
+                    </button>
+
                     <button id="readerPrevTopBarBtn" type="button" class="reader-topbar-icon-btn"
                         aria-label="Previous Section" title="Previous Section">
                         <span aria-hidden="true">&#9664;</span>
@@ -1134,7 +1105,7 @@
                         </button>
 
                         <div id="readerSettingsPanel"
-                            class="hidden absolute left-1/2 -translate-x-1/2 mt-2 w-[min(92vw,24rem)] bg-white border border-slate-200 rounded-xl shadow-lg p-3 z-[80] space-y-3 text-left">
+                            class="hidden absolute top-full left-1/2 -translate-x-1/2 mt-2 w-[min(92vw,24rem)] bg-white border border-slate-200 rounded-xl shadow-2xl p-3 z-[9999] space-y-3 text-left">
                             <p class="text-[11px] uppercase tracking-widest text-slate-400 font-bold"
                                 data-en="Reader Settings" data-he="הגדרות קריאה">Reader Settings</p>
 
@@ -1186,25 +1157,6 @@
 
                             <div class="space-y-2 border-t border-slate-100 pt-2">
                                 <label class="flex items-center justify-between text-xs text-slate-600">
-                                    <span data-en="Compare Mode" data-he="מצב השוואה">Compare Mode</span>
-                                    <input id="compareModeToggle" type="checkbox" class="reader-switch" />
-                                </label>
-                                <div id="readerCompareControls" class="space-y-2">
-                                    <input id="compareRefInput" type="text" placeholder="Compare with reference..."
-                                        class="w-full px-3 py-2 border border-slate-200 rounded bg-slate-50 text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-300" />
-                                    <div class="grid grid-cols-2 gap-2">
-                                        <button id="compareOpenBtn" type="button"
-                                            class="px-3 py-2 rounded bg-slate-100 border border-slate-200 text-slate-700 hover:bg-slate-200 transition"
-                                            data-en="Compare" data-he="השווה">Compare</button>
-                                        <button id="compareClearBtn" type="button"
-                                            class="px-3 py-2 rounded bg-slate-100 border border-slate-200 text-slate-700 hover:bg-slate-200 transition"
-                                            data-en="Clear" data-he="נקה">Clear</button>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div class="space-y-2 border-t border-slate-100 pt-2">
-                                <label class="flex items-center justify-between text-xs text-slate-600">
                                     <span data-en="Shul Mode" data-he="מצב בית כנסת">Shul Mode</span>
                                     <input id="shulModeToggle" type="checkbox" class="reader-switch" />
                                 </label>
@@ -1243,9 +1195,6 @@
                         data-en="Shul mode auto-scroll active" data-he="מצב בית כנסת: גלילה פעילה">Shul mode auto-scroll
                         active</p>
                 </header>
-
-                <section id="compareContainer" class="hidden mb-8 border border-slate-200 rounded-xl p-4 bg-slate-50">
-                </section>
 
                 <!-- Main Synthesis Text -->
                 <div id="readerContent" class="prose prose-slate max-w-none font-serif leading-relaxed text-slate-800">
@@ -1436,27 +1385,6 @@
                     </div>
                 </div>
 
-                <div id="aiTrustSection" class="bg-slate-50 border border-slate-200 rounded-lg p-4">
-                    <h4 class="text-xs font-bold uppercase tracking-widest text-slate-500 mb-2" data-en="Trust & Method"
-                        data-he="אמינות ושיטה">Trust & Method</h4>
-                    <div class="flex flex-wrap gap-2 text-xs">
-                        <span id="aiConfidenceBadge" class="px-2 py-1 rounded-full bg-slate-200 text-slate-700"
-                            data-en="Confidence: --" data-he="רמת ודאות: --">Confidence: --</span>
-                        <span id="aiModeBadge" class="px-2 py-1 rounded-full bg-slate-200 text-slate-700"
-                            data-en="Mode: --" data-he="מצב: --">Mode:
-                            --</span>
-                        <span id="aiCommunityBadge" class="px-2 py-1 rounded-full bg-slate-200 text-slate-700"
-                            data-en="Community: --" data-he="קהילה: --">Community: --</span>
-                        <span id="aiSourcesBadge" class="px-2 py-1 rounded-full bg-slate-200 text-slate-700"
-                            data-en="Sources: --" data-he="מקורות: --">Sources:
-                            --</span>
-                        <span id="aiFallbackBadge"
-                            class="hidden px-2 py-1 rounded-full bg-amber-100 text-amber-800 border border-amber-200"
-                            data-en="Fallback Summary" data-he="סיכום חלופי">Fallback
-                            Summary</span>
-                    </div>
-                </div>
-
                 <!-- Sources Section -->
                 <div id="aiSourcesSection" class="hidden">
                     <h3 class="font-serif text-lg font-bold text-navy mb-3 border-t pt-4" data-en="Primary Sources"
@@ -1516,39 +1444,6 @@
         </div>
     </div>
 
-    <div id="sourceGraphModal"
-        class="hidden fixed inset-0 z-[110] bg-slate-900/70 backdrop-blur-sm items-center justify-center p-4">
-        <div
-            class="bg-white rounded-2xl shadow-2xl w-full max-w-4xl max-h-[88vh] overflow-hidden flex flex-col relative">
-            <button id="closeSourceGraphBtn" type="button"
-                class="absolute top-4 right-4 text-2xl text-slate-400 hover:text-slate-800 z-10">&times;</button>
-            <div class="bg-gradient-to-r from-navy to-blue-900 text-white px-6 py-4 border-b">
-                <h2 class="font-serif text-xl font-bold" data-en="Source Graph" data-he="גרף מקורות">Source Graph</h2>
-            </div>
-            <div class="overflow-y-auto flex-1 px-6 py-5 space-y-4 bg-slate-50">
-                <svg id="sourceGraphCanvas" viewBox="0 0 820 420"
-                    class="w-full h-[320px] bg-white rounded border border-slate-200"></svg>
-                <div id="sourceGraphList" class="text-sm text-slate-700 space-y-1"></div>
-            </div>
-        </div>
-    </div>
-
-    <div id="communityTimelineModal"
-        class="hidden fixed inset-0 z-[110] bg-slate-900/70 backdrop-blur-sm items-center justify-center p-4">
-        <div
-            class="bg-white rounded-2xl shadow-2xl w-full max-w-3xl max-h-[88vh] overflow-hidden flex flex-col relative">
-            <button id="closeCommunityTimelineBtn" type="button"
-                class="absolute top-4 right-4 text-2xl text-slate-400 hover:text-slate-800 z-10">&times;</button>
-            <div class="bg-gradient-to-r from-navy to-blue-900 text-white px-6 py-4 border-b">
-                <h2 id="communityTimelineTitle" class="font-serif text-xl font-bold" data-en="Community Timeline"
-                    data-he="ציר זמן קהילתי">Community Timeline</h2>
-            </div>
-            <div id="communityTimelineBody" class="overflow-y-auto flex-1 px-6 py-5 space-y-3 bg-slate-50 text-sm">
-                <p class="text-slate-500 italic">Timeline unavailable.</p>
-            </div>
-        </div>
-    </div>
-
     <!-- Template for Dual Sources -->
     <template id="sourceDualTemplate">
         <div class="border border-slate-300 rounded-lg bg-white overflow-hidden shadow-sm mb-6">
@@ -1580,15 +1475,9 @@
         const settingsMenuBtn = document.getElementById('settingsMenuBtn');
         const settingsPanel = document.getElementById('settingsPanel');
         const settingsMenuContainer = document.getElementById('settingsMenuContainer');
-        const openReaderSettingsFromMenu = document.getElementById('openReaderSettingsFromMenu');
         const themeToggleBtn = document.getElementById('themeToggleBtn');
         const themeToggleLabel = document.getElementById('themeToggleLabel');
         const brandHomeBtn = document.getElementById('brandHomeBtn');
-        const metadataEraInput = document.getElementById('metadataEraInput');
-        const metadataAuthorInput = document.getElementById('metadataAuthorInput');
-        const metadataCategoryInput = document.getElementById('metadataCategoryInput');
-        const metadataGeographyInput = document.getElementById('metadataGeographyInput');
-        const metadataNusachInput = document.getElementById('metadataNusachInput');
         const transliterationToggle = document.getElementById('transliterationToggle');
         const compareModeToggle = document.getElementById('compareModeToggle');
         const shulModeToggle = document.getElementById('shulModeToggle');
@@ -1598,8 +1487,6 @@
         const showCantillationToggle = document.getElementById('showCantillationToggle');
         const cantillationToggleRow = document.getElementById('cantillationToggleRow');
         const exportCitationBtn = document.getElementById('exportCitationBtn');
-        const importShelfBtn = document.getElementById('importShelfBtn');
-        const sourceGraphBtn = document.getElementById('sourceGraphBtn');
         const communityTimelineBtn = document.getElementById('communityTimelineBtn');
         const trackCurrentBtn = document.getElementById('trackCurrentBtn');
         const prayerBooksNavList = document.getElementById('prayerBooksNavList');
@@ -1645,10 +1532,6 @@
         const devtoolsInspectorModal = document.getElementById('devtoolsInspectorModal');
         const closeDevtoolsInspectorBtn = document.getElementById('closeDevtoolsInspectorBtn');
         const devtoolsLog = document.getElementById('devtoolsLog');
-        const sourceGraphModal = document.getElementById('sourceGraphModal');
-        const closeSourceGraphBtn = document.getElementById('closeSourceGraphBtn');
-        const sourceGraphCanvas = document.getElementById('sourceGraphCanvas');
-        const sourceGraphList = document.getElementById('sourceGraphList');
         const chapterGridModal = document.getElementById('chapterGridModal');
         const chapterGridParashaStrip = document.getElementById('chapterGridParashaStrip');
         const chapterGridItems = document.getElementById('chapterGridItems');
@@ -2017,6 +1900,8 @@
                 theme: 'light',
             },
             currentView: null,
+            lastAiQuestion: '',
+            lastAiResponse: null,
             readingState: {},
             reliability: {
                 lastHeartbeat: null,
@@ -2537,11 +2422,9 @@
                 '.navigator-pane button',
                 '#textsMenuModal .space-y-2 > button',
                 '#readerLayoutSelect option',
-                '#aiTrustSection h4',
                 '#aiSourcesSection > h3',
                 '#aiCustomsSection > h3',
                 '#aiWikiSection > h3',
-                '#aiFallbackBadge',
                 '.source-title span',
                 '.source-link',
             ];
@@ -3094,12 +2977,6 @@
             readerFontSize.value = String(appState.prefs.fontSize);
             readerLineHeight.value = String(appState.prefs.lineHeight);
 
-            if (metadataEraInput) metadataEraInput.value = appState.prefs.metadataFilters?.era || '';
-            if (metadataAuthorInput) metadataAuthorInput.value = appState.prefs.metadataFilters?.author || '';
-            if (metadataCategoryInput) metadataCategoryInput.value = appState.prefs.metadataFilters?.category || '';
-            if (metadataGeographyInput) metadataGeographyInput.value = appState.prefs.metadataFilters?.geography || '';
-            if (metadataNusachInput) metadataNusachInput.value = appState.prefs.metadataFilters?.nusach || '';
-
             if (transliterationToggle) transliterationToggle.checked = Boolean(appState.prefs.transliteration);
             if (showVowelsToggle) showVowelsToggle.checked = appState.prefs.showVowels !== false;
             if (showCantillationToggle) showCantillationToggle.checked = appState.prefs.showCantillation !== false;
@@ -3108,7 +2985,24 @@
             if (shulAutoScrollToggle) shulAutoScrollToggle.checked = Boolean(appState.prefs.shulAutoScroll);
             if (shulScrollSpeed) shulScrollSpeed.value = String(appState.prefs.shulScrollSpeed || 28);
             if (compareRefInput) compareRefInput.value = appState.prefs.compareRef || '';
+            refreshReaderSliderFills();
             updateThemeToggleUi();
+        }
+
+        function updateReaderRangeFill(sliderEl) {
+            if (!sliderEl) return;
+            const min = Number(sliderEl.min || 0);
+            const max = Number(sliderEl.max || 100);
+            const value = Number(sliderEl.value || min);
+            const span = max - min;
+            const progress = span > 0 ? ((value - min) / span) * 100 : 0;
+            sliderEl.style.setProperty('--range-progress', `${Math.max(0, Math.min(100, progress))}%`);
+        }
+
+        function refreshReaderSliderFills() {
+            updateReaderRangeFill(readerFontSize);
+            updateReaderRangeFill(readerLineHeight);
+            updateReaderRangeFill(shulScrollSpeed);
         }
 
         async function loadPrefsFromServerIfSignedIn() {
@@ -3396,6 +3290,16 @@
             document.documentElement.style.setProperty('--reader-topbar-right-gap', `${rightGap}px`);
         }
 
+        function getSidebarRestoreTopOffset() {
+            const readerActive = Boolean(reader && !reader.classList.contains('hidden'));
+            if (!readerActive || !readerTopBar || readerTopBar.classList.contains('hidden')) {
+                return '0.75rem';
+            }
+
+            const readerBarHeight = Math.max(36, Math.round(readerTopBar.getBoundingClientRect().height || 0));
+            return `calc(var(--reader-topbar-offset, 63px) + ${readerBarHeight}px + 0.35rem)`;
+        }
+
         function applySidebarVisibility() {
             const showLeftSidebar = appState.prefs.showLeftSidebar !== false;
             const mobile = isMobileViewport();
@@ -3441,6 +3345,7 @@
             if (showLeftSidebarTopBtn) {
                 const showLeftRestore = !mobile && !shulMode && !showLeftSidebar;
                 showLeftSidebarTopBtn.style.display = showLeftRestore ? 'flex' : 'none';
+                showLeftSidebarTopBtn.style.top = getSidebarRestoreTopOffset();
             }
 
             if (showRightSidebarTopBtn) {
@@ -3449,6 +3354,7 @@
                     && !homeVisible
                     && !showRightSidebar; // The restore button should appear if the sidebar is hidden, regardless of content availability.
                 showRightSidebarTopBtn.style.display = showRightRestore ? 'flex' : 'none';
+                showRightSidebarTopBtn.style.top = getSidebarRestoreTopOffset();
             }
 
             syncReaderTopBarOffset();
@@ -3772,102 +3678,112 @@
             renderPersonalShelf();
         }
 
-        function buildCurrentCitationMarkdown() {
+        function buildCurrentCitationExportPayload() {
             const current = appState.currentView;
-            if (!current) return '';
+            if (!current || current.type !== 'text') return null;
 
-            let lines = [`# ${current.label || current.value}`, '', `Type: ${current.type}`, `Reference: ${current.value}`, ''];
-            if (current.type === 'text' && window.currentTextPayload?.lines) {
-                const sample = window.currentTextPayload.lines.slice(0, 4);
-                sample.forEach((line, idx) => {
+            const title = String(current.label || current.value || '').trim();
+            const ref = String(current.value || '').trim();
+            const rawLines = Array.isArray(window.currentTextPayload?.lines)
+                ? window.currentTextPayload.lines
+                : [];
+            const lines = rawLines
+                .map((line, idx) => {
+                    if (!line || typeof line !== 'object') return null;
                     const he = normalizeDisplayText(line.he || '');
                     const en = normalizeDisplayText(line.en || '');
-                    lines.push(`## Segment ${idx + 1}`);
-                    if (he) lines.push(`Hebrew: ${he}`);
-                    if (en) lines.push(`English: ${en}`);
-                    lines.push('');
-                });
+                    if (!he && !en) return null;
+                    return {
+                        segment: String(line.segment || idx + 1),
+                        he,
+                        en,
+                    };
+                })
+                .filter(Boolean);
+
+            if (!lines.length) {
+                return null;
             }
-            return lines.join('\n');
+
+            return {
+                title,
+                ref,
+                lines,
+            };
+        }
+
+        function requestExportFormat() {
+            let choice = 'txt';
+            try {
+                const promptResult = window.prompt(
+                    t(
+                        'Export format? Type: txt, docx, or pdf',
+                        'פורמט לייצוא? הקלד: txt, docx, או pdf'
+                    ),
+                    'txt'
+                );
+                if (promptResult !== null) {
+                    choice = promptResult;
+                }
+            } catch (_) {
+                // Fallback for environments that do not support prompt dialogs.
+                return 'txt';
+            }
+
+            const normalized = String(choice || '').trim().toLowerCase();
+            if (!normalized) return '';
+            if (['txt', 'docx', 'pdf'].includes(normalized)) {
+                return normalized;
+            }
+            window.alert(t('Invalid format. Use txt, docx, or pdf.', 'פורמט לא תקין. השתמש ב-txt, docx או pdf.'));
+            return '';
         }
 
         async function exportCurrentCitation() {
-            const content = buildCurrentCitationMarkdown();
-            if (!content) return;
-
-            const fileSafe = (appState.currentView?.label || 'shelah-citation').replace(/[^a-z0-9]+/gi, '-').toLowerCase();
-            const blob = new Blob([content], { type: 'text/markdown;charset=utf-8' });
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = `${fileSafe}.md`;
-            document.body.appendChild(a);
-            a.click();
-            a.remove();
-            URL.revokeObjectURL(url);
-
-            try {
-                await navigator.clipboard.writeText(content);
-            } catch (_) {
-                // Clipboard copy is best-effort only.
-            }
-            appendDevtoolsLog('citation-exported');
-        }
-
-        function closeSourceGraph() {
-            if (!sourceGraphModal) return;
-            sourceGraphModal.classList.add('hidden');
-            sourceGraphModal.classList.remove('flex');
-        }
-
-        function renderSourceGraph(data) {
-            if (!sourceGraphCanvas) return;
-            const root = data.nodes?.find((node) => node.kind === 'root') || data.nodes?.[0];
-            const linked = (data.nodes || []).filter((node) => node.id !== root?.id).slice(0, 12);
-
-            const cx = 410;
-            const cy = 200;
-            const radius = 140;
-
-            let svg = `<rect x="0" y="0" width="820" height="420" fill="#ffffff" />`;
-            linked.forEach((node, idx) => {
-                const angle = (Math.PI * 2 * idx) / Math.max(linked.length, 1);
-                const nx = cx + radius * Math.cos(angle);
-                const ny = cy + radius * Math.sin(angle);
-                svg += `<line x1="${cx}" y1="${cy}" x2="${nx}" y2="${ny}" stroke="#cbd5e1" stroke-width="1.5" />`;
-                svg += `<circle cx="${nx}" cy="${ny}" r="16" fill="#e2e8f0" />`;
-                svg += `<text x="${nx}" y="${ny + 31}" text-anchor="middle" font-size="10" fill="#475569">${escapeHtml((node.label || '').slice(0, 24))}</text>`;
-            });
-            svg += `<circle cx="${cx}" cy="${cy}" r="22" fill="#002147" />`;
-            svg += `<text x="${cx}" y="${cy + 36}" text-anchor="middle" font-size="11" font-weight="700" fill="#0f172a">${escapeHtml((root?.label || '').slice(0, 40))}</text>`;
-            sourceGraphCanvas.innerHTML = svg;
-
-            if (sourceGraphList) {
-                const list = (data.edges || []).slice(0, 20).map((edge) => {
-                    return `<div class="bg-white border border-slate-200 rounded px-3 py-2"><span class="font-semibold text-slate-700">${escapeHtml(edge.label || 'Link')}</span>: ${escapeHtml(edge.target || '')}</div>`;
-                }).join('');
-                sourceGraphList.innerHTML = list || `<p class="text-slate-500 italic">${t('No linked sources found.', 'לא נמצאו מקורות מקושרים.')}</p>`;
-            }
-        }
-
-        async function openSourceGraph() {
-            const current = appState.currentView;
-            if (!current || current.type !== 'text') {
-                appendDevtoolsLog('source-graph-open-blocked current view is not text');
+            const payload = buildCurrentCitationExportPayload();
+            if (!payload) {
+                window.alert(t('Open a text chapter first.', 'פתח פרק טקסט לפני ייצוא.'));
                 return;
             }
 
+            const format = requestExportFormat();
+            if (!format) return;
+
             try {
-                const response = await fetch(`/api/text/${encodeURIComponent(current.value)}/graph`);
-                if (!response.ok) return;
-                const data = await response.json();
-                renderSourceGraph(data);
-                sourceGraphModal.classList.remove('hidden');
-                sourceGraphModal.classList.add('flex');
+                const headers = await authHeaders({ 'Content-Type': 'application/json' });
+                const response = await fetch('/api/export/chapter', {
+                    method: 'POST',
+                    headers,
+                    body: JSON.stringify({ ...payload, format }),
+                });
+
+                if (!response.ok) {
+                    const data = await response.json().catch(() => ({}));
+                    throw new Error(data?.error || `HTTP ${response.status}`);
+                }
+
+                const blob = await response.blob();
+                const fileSafe = (payload.title || 'shelah-chapter').replace(/[^a-z0-9]+/gi, '-').toLowerCase();
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `${fileSafe}.${format}`;
+                document.body.appendChild(a);
+                a.click();
+                a.remove();
+                URL.revokeObjectURL(url);
+
+                appendDevtoolsLog(`citation-exported-${format}`);
             } catch (error) {
-                appendDevtoolsLog(`source-graph-error ${error.message}`);
+                window.alert(`${t('Could not export chapter:', 'לא ניתן לייצא את הפרק:')} ${error.message || error}`);
             }
         }
+
+        function closeSourceGraph() { }
+
+        function renderSourceGraph() { }
+
+        async function openSourceGraph() { }
 
         function closeCommunityTimeline() {
             if (!communityTimelineModal) return;
@@ -4170,16 +4086,12 @@
 
         function getSemanticBookmarkPayload() {
             const current = appState.currentView;
-            if (!current || !String(current.value || '').trim()) {
+            if (!current || current.type !== 'text' || !String(current.value || '').trim()) {
                 return null;
             }
 
-            const activeSelection = String(window.getSelection?.()?.toString() || '').replace(/\s+/g, ' ').trim();
-            let segmentText = activeSelection;
-
-            if (!segmentText && Array.isArray(window.currentTextPayload?.lines)) {
-                segmentText = window.currentTextPayload.lines
-                    .slice(0, 12)
+            const segmentText = (Array.isArray(window.currentTextPayload?.lines)
+                ? window.currentTextPayload.lines
                     .map((line) => {
                         if (!line || typeof line !== 'object') return '';
                         const preferred = isHebrewMode()
@@ -4189,14 +4101,8 @@
                     })
                     .filter(Boolean)
                     .join(' ')
-                    .trim();
-            }
-
-            if (!segmentText) {
-                segmentText = String(document.getElementById('readerContent')?.innerText || '')
-                    .replace(/\s+/g, ' ')
-                    .trim();
-            }
+                    .trim()
+                : '');
 
             if (!segmentText) {
                 return null;
@@ -4211,9 +4117,10 @@
         }
 
         function setSemanticBookmarkBusy(isBusy) {
-            if (!semanticBookmarkBtn) return;
-            semanticBookmarkBtn.disabled = Boolean(isBusy);
-            semanticBookmarkBtn.textContent = isBusy
+            const semanticBookmarkButton = document.getElementById('semanticBookmarkBtn');
+            if (!semanticBookmarkButton) return;
+            semanticBookmarkButton.disabled = Boolean(isBusy);
+            semanticBookmarkButton.textContent = isBusy
                 ? t('Saving Note...', 'שומר הערה...')
                 : t('Save Study Note', 'שמור הערת לימוד');
         }
@@ -4620,13 +4527,17 @@
             selectionCommentaryState.activeCommentaryRef = '';
 
             const groupedCommentaries = selectionCommentaryState.groupedCommentaries;
-            if (!Array.isArray(groupedCommentaries) || !groupedCommentaries.length) {
+            const hasWordMeaning = Boolean(selectionCommentaryState.wordInfo?.meaning);
+
+            // If no commentaries and no word meaning, hide the section
+            if ((!Array.isArray(groupedCommentaries) || !groupedCommentaries.length) && !hasWordMeaning) {
                 selectionInsightsBody.innerHTML = '';
+                hideSelectionInsights();
                 return;
             }
 
             let html = '';
-            if (selectionCommentaryState.wordInfo?.meaning) {
+            if (hasWordMeaning) {
                 html += `
                     <div class="rounded-lg border border-[#d7c8ad] bg-[#f2eadc] px-3 py-2">
                         <p class="text-[11px] uppercase tracking-widest text-[#5d4c36] font-bold">${t('Word Meaning', 'משמעות מילה')}</p>
@@ -4635,15 +4546,18 @@
                 `;
             }
 
-            html += `
-                <div class="rounded-lg border border-slate-200 bg-white px-3 py-3">
-                    <p class="text-[11px] uppercase tracking-widest text-slate-500 font-bold mb-2">${t('Linked Commentaries', 'מפרשים מקושרים')}</p>
-                    <p class="text-xs text-slate-500 mb-2">${t('Choose a commentator to load the commentary text here in the sidebar.', 'בחר פרשן כדי לטעון כאן את הטקסט של הפירוש בסרגל הצד.')}</p>
-                    <div class="space-y-2">${renderCommentaryChooser(groupedCommentaries)}</div>
-                </div>
-            `;
+            if (Array.isArray(groupedCommentaries) && groupedCommentaries.length) {
+                html += `
+                    <div class="rounded-lg border border-slate-200 bg-white px-3 py-3">
+                        <p class="text-[11px] uppercase tracking-widest text-slate-500 font-bold mb-2">${t('Linked Commentaries', 'מפרשים מקושרים')}</p>
+                        <p class="text-xs text-slate-500 mb-2">${t('Choose a commentator to load the commentary text here in the sidebar.', 'בחר פרשן כדי לטעון כאן את הטקסט של הפירוש בסרגל הצד.')}</p>
+                        <div class="space-y-2">${renderCommentaryChooser(groupedCommentaries)}</div>
+                    </div>
+                `;
+            }
 
             selectionInsightsBody.innerHTML = html;
+            showSelectionInsights();
             selectionInsightsHint.textContent = t('Selected text:', 'הטקסט שנבחר:') + ` ${selectionCommentaryState.selectedText}`;
         }
 
@@ -5153,6 +5067,13 @@
                 syncReaderTopBarOffset();
                 readerTopBar.classList.remove('hidden');
 
+                // Show Library button in topbar when reader is active
+                const readerLibraryTopBarBtn = document.getElementById('readerLibraryTopBarBtn');
+                if (readerLibraryTopBarBtn) {
+                    readerLibraryTopBarBtn.style.display = 'inline-flex';
+                    readerLibraryTopBarBtn.onclick = toggleLeftSidebar;
+                }
+
                 if (readerPrevTopBarBtn) {
                     const prevLabel = t('Previous Section', 'קטע קודם');
                     readerPrevTopBarBtn.disabled = !hasPrev;
@@ -5547,36 +5468,17 @@
 
         readerFontSize.addEventListener('input', () => {
             appState.prefs.fontSize = Number(readerFontSize.value);
+            updateReaderRangeFill(readerFontSize);
             savePrefs();
             applyReaderPreferences();
         });
 
         readerLineHeight.addEventListener('input', () => {
             appState.prefs.lineHeight = Number(readerLineHeight.value);
+            updateReaderRangeFill(readerLineHeight);
             savePrefs();
             applyReaderPreferences();
         });
-
-        function updateMetadataFilterFromInputs() {
-            appState.prefs.metadataFilters = normalizeMetadataFilters({
-                era: metadataEraInput?.value,
-                author: metadataAuthorInput?.value,
-                category: metadataCategoryInput?.value,
-                geography: metadataGeographyInput?.value,
-                nusach: metadataNusachInput?.value,
-            });
-            savePrefs();
-            if ((searchInput.value || '').trim().length >= 2) {
-                fetchOmniboxSuggestions(searchInput.value);
-            }
-        }
-
-        [metadataEraInput, metadataAuthorInput, metadataCategoryInput, metadataGeographyInput, metadataNusachInput]
-            .filter(Boolean)
-            .forEach((inputEl) => {
-                inputEl.addEventListener('change', updateMetadataFilterFromInputs);
-                inputEl.addEventListener('input', updateMetadataFilterFromInputs);
-            });
 
         if (transliterationToggle) {
             transliterationToggle.addEventListener('change', () => {
@@ -5613,6 +5515,7 @@
         if (shulScrollSpeed) {
             shulScrollSpeed.addEventListener('input', () => {
                 appState.prefs.shulScrollSpeed = Number(shulScrollSpeed.value || 28);
+                updateReaderRangeFill(shulScrollSpeed);
                 savePrefs();
                 if (appState.prefs.shulMode && appState.prefs.shulAutoScroll) {
                     startShulAutoScroll();
@@ -5638,9 +5541,7 @@
 
         bookmarkCurrentBtn.addEventListener('click', toggleBookmarkCurrent);
         if (semanticBookmarkBtn) {
-            semanticBookmarkBtn.addEventListener('click', () => {
-                void saveSemanticBookmark();
-            });
+            semanticBookmarkBtn.addEventListener('click', saveSemanticBookmark);
         }
         if (mobileNavBtn) {
             mobileNavBtn.addEventListener('click', () => {
@@ -5767,13 +5668,6 @@
             });
         }
 
-        if (openReaderSettingsFromMenu) {
-            openReaderSettingsFromMenu.addEventListener('click', () => {
-                closeSettingsMenu();
-                toggleReaderSettingsPanel(true);
-            });
-        }
-
         if (closeChapterGridModalBtn) {
             closeChapterGridModalBtn.addEventListener('click', () => {
                 closeChapterGrid();
@@ -5845,14 +5739,6 @@
         if (closeDevtoolsInspectorBtn) {
             closeDevtoolsInspectorBtn.addEventListener('click', closeDevtoolsInspector);
         }
-        if (sourceGraphBtn) {
-            sourceGraphBtn.addEventListener('click', () => {
-                void openSourceGraph();
-            });
-        }
-        if (closeSourceGraphBtn) {
-            closeSourceGraphBtn.addEventListener('click', closeSourceGraph);
-        }
         if (communityTimelineBtn) {
             communityTimelineBtn.addEventListener('click', () => {
                 void openCommunityTimeline();
@@ -5865,9 +5751,6 @@
             exportCitationBtn.addEventListener('click', () => {
                 void exportCurrentCitation();
             });
-        }
-        if (importShelfBtn) {
-            importShelfBtn.addEventListener('click', importShelfFromPrompt);
         }
         if (trackCurrentBtn) {
             trackCurrentBtn.addEventListener('click', addCurrentToStudyTrack);
@@ -7330,6 +7213,10 @@
             homeGrid.style.display = 'block';
             searchInput.value = '';
             readerTopBar?.classList.add('hidden'); // Explicitly hide readerTopBar
+            const readerLibraryTopBarBtn = document.getElementById('readerLibraryTopBarBtn');
+            if (readerLibraryTopBarBtn) {
+                readerLibraryTopBarBtn.style.display = 'none';
+            }
             hideSearchSuggestions();
             appState.currentView = null;
             window.currentTextPayload = null;
@@ -7574,15 +7461,6 @@
             document.getElementById('aiSourcesSection').classList.add('hidden');
             document.getElementById('aiCustomsSection').classList.add('hidden');
             document.getElementById('aiWikiSection').classList.add('hidden');
-            document.getElementById('aiConfidenceBadge').textContent = t('Confidence: --', 'רמת ודאות: --');
-            document.getElementById('aiModeBadge').textContent = isHebrewMode()
-                ? `מצב: ${appState.prefs.mode}`
-                : `Mode: ${appState.prefs.mode}`;
-            document.getElementById('aiCommunityBadge').textContent = isHebrewMode()
-                ? `קהילה: ${appState.prefs.community}`
-                : `Community: ${appState.prefs.community}`;
-            document.getElementById('aiSourcesBadge').textContent = t('Sources: --', 'מקורות: --');
-            document.getElementById('aiFallbackBadge').classList.add('hidden');
 
             try {
                 const headers = await authHeaders({ 'Content-Type': 'application/json' });
@@ -7593,12 +7471,15 @@
                         question,
                         mode: appState.prefs.mode,
                         community: appState.prefs.community,
+                        language: isHebrewMode() ? 'he' : 'en',
                     })
                 });
 
                 const data = await response.json();
 
                 if (response.ok) {
+                    appState.lastAiQuestion = question;
+                    appState.lastAiResponse = data;
                     populateAiModal(data, question);
                     if (data?.meta?.fallback) {
                         logReliability('ai-fallback-used', {
@@ -7607,11 +7488,15 @@
                         });
                     }
                 } else {
+                    appState.lastAiQuestion = '';
+                    appState.lastAiResponse = null;
                     document.getElementById('aiSynthesis').innerHTML = `<p class="text-red-600 font-bold">${t('Error:', 'שגיאה:')} ${data.error}</p>`;
                     logReliability('ai-response-error', { message: data.error || 'request failed' });
                 }
 
             } catch (error) {
+                appState.lastAiQuestion = '';
+                appState.lastAiResponse = null;
                 document.getElementById('aiSynthesis').innerHTML = `<p class="text-red-600">${t('Network error:', 'שגיאת רשת:')} ${error.message}</p>`;
                 logReliability('ai-network-error', { message: error.message });
             }
@@ -8127,21 +8012,6 @@
                 }
             }
 
-            if (metadataEraInput) {
-                metadataEraInput.placeholder = lang === 'he' ? 'תקופה (לדוגמה: ראשונים)' : 'Era (e.g. Rishonim)';
-            }
-            if (metadataAuthorInput) {
-                metadataAuthorInput.placeholder = lang === 'he' ? 'מחבר' : 'Author';
-            }
-            if (metadataCategoryInput) {
-                metadataCategoryInput.placeholder = lang === 'he' ? 'קטגוריה' : 'Category';
-            }
-            if (metadataGeographyInput) {
-                metadataGeographyInput.placeholder = lang === 'he' ? 'אזור גאוגרפי' : 'Geography';
-            }
-            if (metadataNusachInput) {
-                metadataNusachInput.placeholder = lang === 'he' ? 'נוסח' : 'Nusach';
-            }
             if (compareRefInput) {
                 compareRefInput.placeholder = lang === 'he' ? 'השווה מול הפניה אחרת...' : 'Compare with reference...';
             }
@@ -8816,8 +8686,7 @@
             }
             if (readerSettingsPanel
                 && !readerSettingsPanel.contains(e.target)
-                && !readerSettingsBtn?.contains(e.target)
-                && !openReaderSettingsFromMenu?.contains(e.target)) {
+                && !readerSettingsBtn?.contains(e.target)) {
                 closeReaderSettingsPanel();
             }
         });
@@ -8859,11 +8728,15 @@
             resetSelectionInsights();
 
             // 1. Content Synthesis
-            document.getElementById('readerContent').innerHTML = renderAnswerMarkdown(data.answer);
+            const readerContentEl = document.getElementById('readerContent');
+            readerContentEl.innerHTML = renderAnswerMarkdown(data.answer);
+            applyMarkdownComponentStyles(readerContentEl, MODAL_MARKDOWN_COMPONENT_STYLES);
 
             // 2. Bilingual Sefaria Side-by-Side Sources
             const sourcesDiv = document.getElementById('readerSources');
+            sourcesDiv.innerHTML = '';
             if (data.sources && data.sources.length > 0) {
+                const hebrewMode = isHebrewMode();
                 data.sources.forEach(src => {
                     const clone = sourceDualTemplate.content.cloneNode(true);
                     clone.querySelector('.source-title span').textContent = src.title || src.ref || t("Sefaria Source", "מקור מספריא");
@@ -8876,14 +8749,21 @@
                     let heMarkup = "";
                     let enMarkup = "";
 
-                    const lines = src.lines.slice(0, 5); // Limit slightly to avoid massive block scrolling on large sources
+                    const lines = Array.isArray(src.lines) ? src.lines : [];
                     lines.forEach(l => {
-                        if (l.he) heMarkup += `<p class="mb-4">${l.he}</p>`;
-                        if (l.en) enMarkup += `<p class="mb-4">${l.en.replace(/<[^>]*>?/gm, '')}</p>`; // clean HTML
+                        const heText = String(l?.he || '').trim();
+                        const enText = String(l?.en || '').trim();
+                        if (heText) {
+                            heMarkup += `<p class="mb-4">${heText}</p>`;
+                        }
+                        if (!hebrewMode && enText) {
+                            enMarkup += `<p class="mb-4">${enText.replace(/<[^>]*>?/gm, '')}</p>`;
+                        }
                     });
 
                     heDiv.innerHTML = heMarkup;
                     enDiv.innerHTML = enMarkup;
+                    enDiv.classList.toggle('hidden', hebrewMode);
 
                     sourcesDiv.appendChild(clone);
                 });
@@ -8891,6 +8771,7 @@
 
             // 3. Media Items (Customs videos)
             const mediaDiv = document.getElementById('readerMedia');
+            mediaDiv.innerHTML = '';
             if (data.customs && data.customs.length > 0) {
                 let mediaHTML = "";
                 data.customs.forEach(c => {
@@ -8939,41 +8820,49 @@
             }
         }
 
+        function getAiSourceText(source) {
+            const lines = Array.isArray(source?.lines) ? source.lines : [];
+            return [source?.ref || '', ...lines.map((line) => {
+                if (typeof line === 'string') return line;
+                return line?.en || line?.he || '';
+            })].join(' ');
+        }
+
+        function rankAiSourcesForQuery(sources, queryTitle, answerText) {
+            const sourceList = Array.isArray(sources) ? sources : [];
+            const queryTokens = String(`${queryTitle || ''} ${answerText || ''}`)
+                .toLowerCase()
+                .replace(/[^\w\u0590-\u05FF]+/g, ' ')
+                .split(/\s+/)
+                .filter((token) => token.length >= 4)
+                .slice(0, 20);
+
+            return sourceList
+                .map((source, index) => {
+                    const text = getAiSourceText(source).toLowerCase();
+                    let score = 0;
+                    queryTokens.forEach((token) => {
+                        if (text.includes(token)) score += 1;
+                    });
+                    return { source, index, score };
+                })
+                .sort((a, b) => b.score - a.score || a.index - b.index)
+                .map((entry) => entry.source);
+        }
+
         function populateAiModal(data, queryTitle) {
             // 1. Populate synthesis
             const aiSynthesisEl = document.getElementById('aiSynthesis');
             aiSynthesisEl.innerHTML = renderAnswerMarkdown(data.answer);
             applyMarkdownComponentStyles(aiSynthesisEl, MODAL_MARKDOWN_COMPONENT_STYLES);
 
-            const meta = data.meta || {};
-            const confidence = typeof data.confidence === 'number'
-                ? `${Math.round(data.confidence * 100)}%`
-                : '--';
-            document.getElementById('aiConfidenceBadge').textContent = isHebrewMode()
-                ? `רמת ודאות: ${confidence}`
-                : `Confidence: ${confidence}`;
-            document.getElementById('aiModeBadge').textContent = isHebrewMode()
-                ? `מצב: ${meta.mode || appState.prefs.mode}`
-                : `Mode: ${meta.mode || appState.prefs.mode}`;
-            document.getElementById('aiCommunityBadge').textContent = isHebrewMode()
-                ? `קהילה: ${meta.community_lens || appState.prefs.community}`
-                : `Community: ${meta.community_lens || appState.prefs.community}`;
-            document.getElementById('aiSourcesBadge').textContent = isHebrewMode()
-                ? `מקורות: ${meta.source_count ?? (data.sources || []).length}`
-                : `Sources: ${meta.source_count ?? (data.sources || []).length}`;
-
-            const fallbackBadge = document.getElementById('aiFallbackBadge');
-            if (meta.fallback) {
-                fallbackBadge.classList.remove('hidden');
-            } else {
-                fallbackBadge.classList.add('hidden');
-            }
-
             // 2. Populate sources
-            if (data.sources && data.sources.length > 0) {
+            const rankedSources = rankAiSourcesForQuery(data.sources, queryTitle, data.answer).slice(0, 4);
+            if (rankedSources.length > 0) {
                 const sourcesDiv = document.getElementById('aiSources');
                 sourcesDiv.innerHTML = '';
-                data.sources.forEach((src, idx) => {
+                rankedSources.forEach((src) => {
+                    const lines = Array.isArray(src?.lines) ? src.lines : [];
                     const sourceHtml = `
                         <div class="bg-slate-50 p-4 rounded border border-slate-200 hover:border-[#b9a787] transition">
                             <div class="flex justify-between items-start mb-2">
@@ -8981,7 +8870,12 @@
                                 <a href="https://www.sefaria.org/${src.ref}" target="_blank" class="text-xs text-[#6a5840] hover:underline">${t('Sefaria ↗', 'ספריא ↗')}</a>
                             </div>
                             <div class="text-xs text-slate-600 bg-white p-2 rounded max-h-32 overflow-y-auto">
-                                ${src.lines.slice(0, 3).map(l => `<p>${l.en ? l.en.replace(/<[^>]*>/gm, '') : l.he}</p>`).join('')}
+                                ${lines.slice(0, 3).map((line) => {
+                        if (typeof line === 'string') {
+                            return `<p>${line.replace(/<[^>]*>/gm, '')}</p>`;
+                        }
+                        return `<p>${String(line?.en || line?.he || '').replace(/<[^>]*>/gm, '')}</p>`;
+                    }).join('')}
                             </div>
                         </div>
                     `;
@@ -9033,7 +8927,7 @@
         function viewFullArticle() {
             // Hide modal and show full reader view instead
             closeAiModal();
-            const question = document.getElementById('aiModalTitle').textContent;
+            const question = appState.lastAiQuestion || document.getElementById('aiModalTitle').textContent;
             setCurrentView('ask', question, question);
             setReaderSubtitle('');
             collapseCommentaryPanel();
@@ -9045,7 +8939,13 @@
             loadingOverlay.classList.remove('hidden');
 
             document.getElementById('readerTitle').innerText = question;
-            document.getElementById('readerContent').innerHTML = document.getElementById('aiSynthesis').innerHTML;
+            if (appState.lastAiResponse) {
+                renderArticle(appState.lastAiResponse, question);
+            } else {
+                document.getElementById('readerContent').innerHTML = document.getElementById('aiSynthesis').innerHTML;
+                document.getElementById('readerSources').innerHTML = '';
+                document.getElementById('readerMedia').innerHTML = '';
+            }
 
             // Show full article with all sources
             setTimeout(() => {
