@@ -11,7 +11,6 @@ import asyncio
 import time
 from typing import Any
 
-import anyio
 from fastapi import FastAPI, Header, HTTPException
 from fastapi.middleware.wsgi import WSGIMiddleware
 from pydantic import BaseModel, Field
@@ -24,6 +23,7 @@ class AskRequest(BaseModel):
     question: str = Field(default="")
     mode: str | None = None
     community: str | None = None
+    language: str | None = None
 
 
 def _extract_user_id_from_bearer(authorization: str | None) -> str | None:
@@ -47,14 +47,20 @@ def _extract_user_id_from_bearer(authorization: str | None) -> str | None:
     return user_id or None
 
 
-def _flatten_sources_for_ai(primary_sources: list[dict[str, Any]]) -> list[dict[str, str]]:
+def _flatten_sources_for_ai(primary_sources: list[dict[str, Any]], answer_language: str = "en") -> list[dict[str, str]]:
     flattened = []
+    use_hebrew = str(answer_language or "").strip().lower() == "he"
     for src in primary_sources:
         if not isinstance(src, dict):
             continue
-        lines = src.get("lines") if isinstance(src.get("lines"), list) else []
-        en_lines = [str(line.get("en") or "").strip()
-                    for line in lines if isinstance(line, dict)]
+        lines_raw = src.get("lines")
+        lines = lines_raw if isinstance(lines_raw, list) else []
+        en_lines = [
+            str((line.get("he") or line.get("en")) if use_hebrew else (
+                line.get("en") or line.get("he")) or "").strip()
+            for line in lines
+            if isinstance(line, dict)
+        ]
         text = " ".join([line for line in en_lines if line])
         ref = str(src.get("ref") or "").strip()
         if not ref and not text:
@@ -68,7 +74,7 @@ def _safe_json_payload(value: Any, default: Any) -> Any:
 
 
 async def _collect_primary_sources(question: str) -> tuple[list[str], list[dict[str, Any]]]:
-    primary_refs = await anyio.to_thread.run_sync(
+    primary_refs = await asyncio.to_thread(
         flask_app_module.sefaria.find_refs_for_question,
         question,
     )
@@ -86,7 +92,7 @@ async def _collect_primary_sources(question: str) -> tuple[list[str], list[dict[
                 continue
         return sources
 
-    primary_sources = await anyio.to_thread.run_sync(_load_sources)
+    primary_sources = await asyncio.to_thread(_load_sources)
     return refs, primary_sources
 
 
@@ -96,7 +102,7 @@ async def _build_tool_context() -> dict[str, Any]:
         return flask_app_module._build_ask_tool_context(engine)
 
     try:
-        payload = await anyio.to_thread.run_sync(_build)
+        payload = await asyncio.to_thread(_build)
         return payload if isinstance(payload, dict) else {"route": "/ask", "async": True}
     except Exception:
         return {"route": "/ask", "async": True}
@@ -133,6 +139,9 @@ async def ask_async(payload: AskRequest, authorization: str | None = Header(defa
 
     mode = flask_app_module._sanitize_answer_mode(payload.mode)
     community_lens = str(payload.community or "All").strip() or "All"
+    answer_language = str(payload.language or "en").strip().lower()
+    if answer_language not in {"en", "he"}:
+        answer_language = "en"
     canonical_lens = (
         "All"
         if community_lens.lower() == "all"
@@ -175,7 +184,7 @@ async def ask_async(payload: AskRequest, authorization: str | None = Header(defa
         wiki_task = asyncio.create_task(
             search.async_search_wikipedia(question))
         knowledge_task = asyncio.create_task(
-            anyio.to_thread.run_sync(
+            asyncio.to_thread(
                 flask_app_module._retrieve_community_knowledge,
                 question,
                 canonical_lens,
@@ -183,7 +192,7 @@ async def ask_async(payload: AskRequest, authorization: str | None = Header(defa
             )
         )
         memory_task = asyncio.create_task(
-            anyio.to_thread.run_sync(
+            asyncio.to_thread(
                 flask_app_module._fetch_user_memory_summaries,
                 user_id,
                 flask_app_module.RAG_MEMORY_ROWS,
@@ -210,7 +219,8 @@ async def ask_async(payload: AskRequest, authorization: str | None = Header(defa
 
         customs_info = flask_app_module._knowledge_rows_to_customs(
             knowledge_rows)
-        flat_sources_for_ai = _flatten_sources_for_ai(primary_sources)
+        flat_sources_for_ai = _flatten_sources_for_ai(
+            primary_sources, answer_language=answer_language)
 
         has_primary_sources = bool(flat_sources_for_ai)
         has_customs = bool(knowledge_rows)
@@ -261,6 +271,7 @@ async def ask_async(payload: AskRequest, authorization: str | None = Header(defa
                 halachipedia=halachipedia_list,
                 mode=mode,
                 community_lens=canonical_lens,
+                answer_language=answer_language,
                 tool_context=tool_context,
             )
 
@@ -275,7 +286,9 @@ async def ask_async(payload: AskRequest, authorization: str | None = Header(defa
             raw_ai_answer = ""
             if structured_payload:
                 raw_ai_answer = claude.render_structured_markdown(
-                    structured_payload)
+                    structured_payload,
+                    answer_language=answer_language,
+                )
             else:
                 raw_ai_answer = str(result.get("answer") or "").strip()
 
@@ -307,7 +320,7 @@ async def ask_async(payload: AskRequest, authorization: str | None = Header(defa
                 raise RuntimeError("AI response normalized to empty content")
 
             result["answer"] = normalized_answer
-            await anyio.to_thread.run_sync(
+            await asyncio.to_thread(
                 flask_app_module._store_user_memory_summary,
                 user_id,
                 question,
@@ -326,6 +339,7 @@ async def ask_async(payload: AskRequest, authorization: str | None = Header(defa
                 "sources": display_sources,
                 "meta": {
                     "mode": mode,
+                    "language": answer_language,
                     "community_lens": canonical_lens,
                     "source_count": len(primary_sources),
                     "custom_count": len(customs_info),
@@ -343,7 +357,7 @@ async def ask_async(payload: AskRequest, authorization: str | None = Header(defa
             }
 
         except Exception as ai_error:
-            await anyio.to_thread.run_sync(
+            await asyncio.to_thread(
                 flask_app_module._capture_backend_error,
                 "ask_ai_synthesis_failed_async",
                 ai_error,
@@ -355,7 +369,7 @@ async def ask_async(payload: AskRequest, authorization: str | None = Header(defa
                 },
             )
 
-            fallback_payload = await anyio.to_thread.run_sync(
+            fallback_payload = await asyncio.to_thread(
                 flask_app_module.get_halakhic_sources,
                 question,
             )
@@ -379,7 +393,7 @@ async def ask_async(payload: AskRequest, authorization: str | None = Header(defa
                 source_attribution_note=fallback_source_note,
             )
 
-            await anyio.to_thread.run_sync(
+            await asyncio.to_thread(
                 flask_app_module._store_user_memory_summary,
                 user_id,
                 question,
@@ -399,6 +413,7 @@ async def ask_async(payload: AskRequest, authorization: str | None = Header(defa
                 "sources": fallback_sources,
                 "meta": {
                     "mode": mode,
+                    "language": answer_language,
                     "community_lens": canonical_lens,
                     "source_count": fallback_payload.get("source_count", 0),
                     "custom_count": len(customs_info),
@@ -423,7 +438,7 @@ async def ask_async(payload: AskRequest, authorization: str | None = Header(defa
     except HTTPException:
         raise
     except Exception as e:
-        await anyio.to_thread.run_sync(
+        await asyncio.to_thread(
             flask_app_module._capture_backend_error,
             "ask_route_critical_error_async",
             e,

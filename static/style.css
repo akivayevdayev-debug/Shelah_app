@@ -426,6 +426,10 @@ body.theme-dark .topbar-flat-btn:focus-visible {
     color: #334155 !important;
     display: inline-block !important;
     visibility: visible !important;
+    border-radius: 0.6rem !important;
+    padding: 0.42rem 0.62rem !important;
+    font-size: 0.72rem !important;
+    line-height: 1.15rem !important;
 }
 
 #settingsPanel button:not(#bookmarkCurrentBtn) {
@@ -444,6 +448,10 @@ body.theme-dark .topbar-flat-btn:focus-visible {
 
 #bookmarkCurrentBtn:hover {
     background: #1e3a5f !important;
+}
+
+#semanticBookmarkBtn {
+    border-color: #dacdb8 !important;
 }
 
 #searchIcon {
@@ -1186,7 +1194,14 @@ body.theme-dark ::-webkit-scrollbar-thumb:hover {
     appearance: none;
     height: 0.5rem;
     border-radius: 9999px;
-    background: linear-gradient(90deg, #21456b 0%, #7998b6 100%);
+    --range-progress: 50%;
+    --range-complete: #123866;
+    --range-incomplete: #f0e6d6;
+    background: linear-gradient(to right,
+            var(--range-complete) 0%,
+            var(--range-complete) var(--range-progress),
+            var(--range-incomplete) var(--range-progress),
+            var(--range-incomplete) 100%);
     outline: none;
 }
 
@@ -1196,26 +1211,37 @@ body.theme-dark ::-webkit-scrollbar-thumb:hover {
     width: 1rem;
     height: 1rem;
     border-radius: 50%;
-    border: 2px solid #f3ede0;
-    background: #1f3f63;
-    box-shadow: 0 1px 5px rgba(31, 63, 99, 0.4);
+    border: 1px solid #c8bca6;
+    background: #f8f2e8;
+    box-shadow: 0 1px 3px rgba(31, 63, 99, 0.18);
     cursor: pointer;
 }
 
 .reader-range-slider::-moz-range-track {
     height: 0.5rem;
     border-radius: 9999px;
-    background: linear-gradient(90deg, #21456b 0%, #7998b6 100%);
+    background: var(--range-incomplete);
+}
+
+.reader-range-slider::-moz-range-progress {
+    height: 0.5rem;
+    border-radius: 9999px;
+    background: var(--range-complete);
 }
 
 .reader-range-slider::-moz-range-thumb {
     width: 1rem;
     height: 1rem;
     border-radius: 50%;
-    border: 2px solid #f3ede0;
-    background: #1f3f63;
-    box-shadow: 0 1px 5px rgba(31, 63, 99, 0.4);
+    border: 1px solid #c8bca6;
+    background: #f8f2e8;
+    box-shadow: 0 1px 3px rgba(31, 63, 99, 0.18);
     cursor: pointer;
+}
+
+body.theme-dark .reader-range-slider {
+    --range-complete: #8b6f47;
+    --range-incomplete: #dfccb0;
 }
 
 .reader-switch {
@@ -2944,13 +2970,13 @@ body.theme-dark #readerSettingsPanel .border-t {
 }
 
 body.theme-dark #bookmarkCurrentBtn {
-    background: #2a3a55 !important;
-    border-color: #4a5e78 !important;
-    color: #dce8f8 !important;
+    background: #4c3f2e !important;
+    border-color: #7a6650 !important;
+    color: #f4ead8 !important;
 }
 
 body.theme-dark #bookmarkCurrentBtn:hover {
-    background: #354a68 !important;
+    background: #5b4a36 !important;
 }
 
 /* Fix right sidebar scrollbar in dark mode */
@@ -3045,7 +3071,7 @@ body.theme-dark .prayer-grid-item:focus-visible {
 }
 
 body.theme-dark .study-track-complete-label {
-    color: #aebfd3;
+    color: #c9bda8;
 }
 
 body.theme-dark #popularTextsGrid button {
@@ -3110,7 +3136,7 @@ body.theme-dark .today-zmanim-list [data-zman-row].zman-next-highlight {
 }
 
 body.theme-dark .today-zmanim-list [data-zman-row].zman-next-highlight b {
-    color: #dde9e4;
+    color: #f3e7d2;
 }
 
 body.theme-dark #leftSidebar summary,
@@ -3209,7 +3235,11 @@ body.theme-dark #readerSettingsPanel button:hover {
 }
 
 body.theme-dark .reader-range-slider {
-    background: linear-gradient(90deg, #5c6a7a 0%, #8b9cae 100%);
+    background: linear-gradient(90deg,
+            var(--range-complete) 0%,
+            var(--range-complete) var(--range-progress),
+            var(--range-incomplete) var(--range-progress),
+            var(--range-incomplete) 100%);
 }
 
 body.theme-dark .reader-range-slider::-webkit-slider-thumb,

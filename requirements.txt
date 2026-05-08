@@ -16,3 +16,5 @@ tenacity==9.1.2
 PyJWT==2.12.1
 cryptography==46.0.6
 supabase==2.28.3
+python-docx==1.1.2
+reportlab==4.2.2
