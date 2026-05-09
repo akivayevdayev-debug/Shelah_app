@@ -2312,20 +2312,20 @@ body.mobile-panel-open {
 /* ═══════════════════════════════════════════════════════════════════ */
 
 body.theme-dark {
-    --surface-base: #090a0c;
-    --surface-subtle: #0f100f;
-    --surface-elevated: #161715;
-    --surface-topbar: #141513;
-    --surface-border: #2f312e;
-    --surface-pill: #1f2120;
+    --surface-base: #090a0b;
+    --surface-subtle: #110f0c;
+    --surface-elevated: #171410;
+    --surface-topbar: #14110e;
+    --surface-border: #363026;
+    --surface-pill: #23201b;
     --accent-deep-blue: #efe6d8;
-    --control-bg: #1e1f1d;
-    --control-bg-hover: #272825;
-    --control-border: #3d3f3a;
+    --control-bg: #211e1a;
+    --control-bg-hover: #2a251f;
+    --control-border: #453b30;
     --control-text: #e5dbc9;
     --control-text-strong: #f7eee0;
-    --control-strong-bg: #2c3239;
-    --control-strong-bg-hover: #363d46;
+    --control-strong-bg: #2d2721;
+    --control-strong-bg-hover: #383028;
     /* Brand tokens — dark overrides */
     --gold: #e8c84a;
     --gold-light: #f2dd82;
@@ -2419,7 +2419,7 @@ body.theme-dark #searchSuggestions .suggestion-item[aria-selected="true"] {
 body.theme-dark .navigator-pane,
 body.theme-dark .pulse-pane {
     background:
-        linear-gradient(180deg, rgba(30, 30, 28, 0.98) 0%, rgba(23, 23, 21, 0.98) 100%),
+        linear-gradient(180deg, rgba(31, 28, 24, 0.98) 0%, rgba(24, 21, 18, 0.98) 100%),
         repeating-linear-gradient(45deg,
             rgba(255, 255, 255, 0.012) 0,
             rgba(255, 255, 255, 0.012) 3px,
@@ -2428,8 +2428,8 @@ body.theme-dark .pulse-pane {
 }
 
 body.theme-dark .mobile-bottom-tabs {
-    background: rgba(21, 21, 20, 0.97);
-    border-top-color: #3a3b37;
+    background: rgba(22, 19, 16, 0.97);
+    border-top-color: #3b342b;
 }
 
 body.theme-dark .mobile-tab-btn {
@@ -2451,11 +2451,11 @@ body.theme-dark .bg-slate-50 {
 }
 
 body.theme-dark .bg-slate-100 {
-    background-color: var(--surface-pill) !important;
+    background-color: #29241e !important;
 }
 
 body.theme-dark .bg-slate-200 {
-    background-color: #2f312e !important;
+    background-color: #343027 !important;
 }
 
 body.theme-dark .bg-white\/85 {
@@ -2522,7 +2522,7 @@ body.theme-dark .hover\:bg-white:hover,
 body.theme-dark .hover\:bg-slate-50:hover,
 body.theme-dark .hover\:bg-slate-100:hover,
 body.theme-dark .hover\:bg-slate-200:hover {
-    background-color: #30322f !important;
+    background-color: #312b24 !important;
 }
 
 body.theme-dark .bg-emerald-50,
@@ -3283,7 +3283,6 @@ body.theme-dark #settingsPanel button,
 body.theme-dark #readerSettingsPanel button,
 body.theme-dark #settingsPanel a,
 body.theme-dark #readerSettingsPanel a {
-    background: var(--surface-pill) !important;
     border-color: var(--surface-border) !important;
     color: var(--accent-cream) !important;
 }
@@ -3292,8 +3291,8 @@ body.theme-dark .mobile-drawer.mobile-open button:hover,
 body.theme-dark .mobile-drawer.mobile-open a:hover,
 body.theme-dark #settingsPanel button:hover,
 body.theme-dark #readerSettingsPanel button:hover {
-    background: #2e302c !important;
-    border-color: #5a5c55 !important;
+    background: #2f2922 !important;
+    border-color: #5b4f40 !important;
     color: #f5ecde !important;
 }
 
