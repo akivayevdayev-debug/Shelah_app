@@ -180,6 +180,14 @@ HEBREW_WORD_GLOSSARY = {
     "אהבה": "Love.",
 }
 
+HEBREW_INTERPRETIVE_GLOSSARY = {
+    "ברא": ["create", "fashion", "bring into being"],
+    "עשה": ["make", "do", "perform"],
+    "אמר": ["say", "speak", "declare"],
+    "הלך": ["go", "walk", "proceed"],
+    "שמר": ["guard", "keep", "observe"],
+}
+
 APP_ROOT = Path(__file__).resolve().parent
 SEFARIA_SEARCH_WRAPPER_URL = "https://www.sefaria.org/api/search-wrapper"
 
@@ -1611,8 +1619,100 @@ def _looks_like_transliteration(text):
         return False
     if not re.fullmatch(r"[A-Za-z'\-\s]{2,80}", value):
         return False
-    token_count = len([part for part in value.split(" ") if part])
-    return token_count <= 3 and "," not in value and "." not in value
+
+    lower = value.lower()
+    tokens = [part for part in lower.split(" ") if part]
+    if not tokens:
+        return False
+
+    # Clear transliteration signals (e.g. bereshit, elohim, shabbat, tzedakah).
+    translit_markers = ("sh", "kh", "tz", "ts", "aa", "ee", "oo", "iy", "ui")
+    translit_suffixes = ("im", "ot", "ah", "eh", "it", "ut", "iyyah")
+
+    if any("'" in token or "-" in token for token in tokens):
+        return True
+
+    if len(tokens) <= 3 and any(marker in lower for marker in translit_markers):
+        return True
+
+    if len(tokens) <= 2 and all(any(token.endswith(suffix) for suffix in translit_suffixes) for token in tokens):
+        return True
+
+    if len(tokens) == 1 and len(tokens[0]) <= 4 and tokens[0].endswith(("a", "e", "i", "o", "u")):
+        return True
+
+    return False
+
+
+def _hebrew_word_variant_candidates(raw_word):
+    clean_word = _normalize_lookup_word(raw_word)
+    letters_only = re.sub(r"[^\u05D0-\u05EA\s]", "", clean_word).strip()
+    if not letters_only:
+        return []
+
+    variants = []
+
+    def add_variant(value):
+        token = str(value or "").strip()
+        if token and token not in variants:
+            variants.append(token)
+
+    add_variant(letters_only)
+    parts = [part for part in letters_only.split() if part]
+    if parts:
+        add_variant(parts[0])
+
+    for part in parts[:2] if parts else [letters_only]:
+        if len(part) >= 4 and part[0] in {"ו", "ה", "ב", "כ", "ל", "מ", "ש"}:
+            add_variant(part[1:])
+
+    return variants[:4]
+
+
+def _parse_meaning_candidates(raw_meaning):
+    value = re.sub(r"\s+", " ", str(raw_meaning or "").strip())
+    if not value:
+        return []
+
+    if not any(sep in value for sep in [";", "/", "|"]):
+        return [value]
+
+    chunks = [chunk.strip(" .") for chunk in re.split(
+        r"[;/|]", value) if chunk.strip()]
+    return chunks[:4] if chunks else [value]
+
+
+def _collect_word_meaning_alternatives(raw_word, primary_meaning, word_is_hebrew):
+    options = []
+
+    def add_option(candidate):
+        normalized = re.sub(r"\s+", " ", str(candidate or "").strip(" ."))
+        if not normalized:
+            return
+        if word_is_hebrew and _looks_like_transliteration(normalized):
+            return
+        lowered = normalized.lower()
+        if lowered in {item.lower() for item in options}:
+            return
+        options.append(normalized)
+
+    if word_is_hebrew:
+        variants = _hebrew_word_variant_candidates(raw_word)
+        for variant in variants:
+            for interpreted in HEBREW_INTERPRETIVE_GLOSSARY.get(variant, []):
+                add_option(interpreted)
+
+        for candidate in _parse_meaning_candidates(primary_meaning):
+            add_option(candidate)
+
+        for variant in variants[:2]:
+            translated, _ = _translate_hebrew_text_online(variant)
+            add_option(translated)
+    else:
+        for candidate in _parse_meaning_candidates(primary_meaning):
+            add_option(candidate)
+
+    return options[:3]
 
 
 def _lookup_hebrew_word_meaning(word):
@@ -3854,12 +3954,17 @@ def get_word_meaning():
     if requested_lang not in {"en", "he"}:
         requested_lang = "en"
 
-    if _contains_hebrew_letters(raw_word):
+    word_is_hebrew = _contains_hebrew_letters(raw_word)
+    if word_is_hebrew and requested_lang == "he":
+        # For Hebrew source words we keep definitions in English to avoid transliteration-heavy round-trips.
+        requested_lang = "en"
+
+    if word_is_hebrew:
         meaning, source = _lookup_hebrew_word_meaning(raw_word)
     else:
         meaning, source = _lookup_english_word_meaning(raw_word)
 
-    if meaning and requested_lang == "he" and not _contains_hebrew_letters(meaning):
+    if meaning and requested_lang == "he" and not word_is_hebrew and not _contains_hebrew_letters(meaning):
         translated_meaning, translated_source = _translate_english_text_online(
             meaning)
         if translated_meaning:
@@ -3868,10 +3973,19 @@ def get_word_meaning():
                 source, translated_source] if part]
             source = "+".join(source_parts)
 
+    alternatives = _collect_word_meaning_alternatives(
+        raw_word=raw_word,
+        primary_meaning=meaning,
+        word_is_hebrew=word_is_hebrew,
+    )
+    if alternatives:
+        meaning = alternatives[0]
+
     if not meaning:
         return jsonify({
             "word": raw_word,
             "meaning": "",
+            "alternatives": [],
             "source": "",
             "status": "not_found",
             "lang": requested_lang,
@@ -3880,6 +3994,7 @@ def get_word_meaning():
     return jsonify({
         "word": raw_word,
         "meaning": meaning,
+        "alternatives": alternatives,
         "source": source,
         "status": "ok",
         "lang": requested_lang,
