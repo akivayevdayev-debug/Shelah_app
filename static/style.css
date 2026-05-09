@@ -1677,7 +1677,12 @@ body.mobile-panel-open {
 
     #settingsPanel {
         width: min(22rem, calc(100vw - 1rem));
-        right: 0;
+        right: auto !important;
+        left: 0.5rem !important;
+        /* On mobile, constrain and center properly */
+        max-width: calc(100vw - 1rem);
+        overflow-y: auto;
+        max-height: calc(100vh - 5.5rem);
     }
 
     .mobile-drawer {
