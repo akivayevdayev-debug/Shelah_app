@@ -14,12 +14,12 @@ html {
 
 :root {
     /* Surface hierarchy */
-    --surface-base: #faf7ef;
-    --surface-subtle: #f6f1e7;
-    --surface-elevated: #fffaf2;
-    --surface-topbar: #f7f2e8;
-    --surface-border: #d8cfbf;
-    --surface-pill: #f3f1ea;
+    --surface-base: #faf7f0;
+    --surface-subtle: #f5efe5;
+    --surface-elevated: #fff9f1;
+    --surface-topbar: #f6f1e7;
+    --surface-border: #d7cebc;
+    --surface-pill: #f1ede4;
 
     /* Reader layout */
     --reader-topbar-offset: 3.2rem;
@@ -28,9 +28,9 @@ html {
 
     /* Controls */
     --accent-deep-blue: #1f3f63;
-    --control-bg: #f5f3ec;
-    --control-bg-hover: #f1ebdd;
-    --control-border: #d8d6cf;
+    --control-bg: #f4f0e7;
+    --control-bg-hover: #ece5d8;
+    --control-border: #d6d2c7;
     --control-text: #2f4a67;
     --control-text-strong: #223e5a;
     --control-strong-bg: #46688d;
@@ -45,7 +45,7 @@ html {
     --gold-light: #f0d980;
     --ink: #002147;
     --paper: #fffaf2;
-    --border-light: #e1d7c7;
+    --border-light: #ded4c4;
 
     /* Accent palette */
     --accent-blue: #1f3f63;
@@ -392,9 +392,10 @@ body.theme-dark .topbar-flat-btn:focus-visible {
     background: #fffaf3;
     border-color: #ddd4c3;
     z-index: 9999 !important;
-    position: absolute !important;
-    top: calc(100% + 0.35rem);
-    right: 0;
+    position: fixed !important;
+    top: 0;
+    left: 0;
+    right: auto;
     margin-top: 0 !important;
 }
 
@@ -433,12 +434,12 @@ body.theme-dark .topbar-flat-btn:focus-visible {
 }
 
 #settingsPanel button:not(#bookmarkCurrentBtn) {
-    background: #f3f1e8 !important;
-    border-color: #e2d8c4 !important;
+    background: #f2eee5 !important;
+    border-color: #ddd3c0 !important;
 }
 
 #settingsPanel button:hover:not(#bookmarkCurrentBtn) {
-    background: #e9ded0 !important;
+    background: #ebe3d3 !important;
 }
 
 #bookmarkCurrentBtn {
@@ -688,9 +689,9 @@ body.theme-dark .topbar-flat-btn:focus-visible {
 }
 
 .chapter-grid-header {
-    background: linear-gradient(180deg, #f8f3e8 0%, #f2eadb 100%);
+    background: linear-gradient(180deg, #f7f1e6 0%, #f0e8d9 100%);
     color: #1f3f63;
-    border-bottom-color: #d8cfbf;
+    border-bottom-color: #d7cebc;
 }
 
 .chapter-grid-subtitle {
@@ -706,12 +707,12 @@ body.theme-dark .topbar-flat-btn:focus-visible {
     gap: 0.45rem;
     margin-bottom: 0.85rem;
     padding-bottom: 0.65rem;
-    border-bottom: 1px solid #e1d7c7;
+    border-bottom: 1px solid #ded4c4;
 }
 
 .chapter-grid-parasha-link {
-    border: 1px solid #d8cfbe;
-    background: #fffaf1;
+    border: 1px solid #d7ceb9;
+    background: #fbf7ee;
     color: #2c4868;
     display: flex;
     flex-direction: column;
@@ -732,8 +733,8 @@ body.theme-dark .topbar-flat-btn:focus-visible {
 
 .chapter-grid-parasha-link:hover,
 .chapter-grid-parasha-link:focus-visible {
-    background: #f3ecde;
-    border-color: #baa889;
+    background: #f0eadc;
+    border-color: #bba888;
     color: #17324f;
 }
 
@@ -762,9 +763,9 @@ body.theme-dark .topbar-flat-btn:focus-visible {
 
 .chapter-grid-item {
     min-height: 3.1rem;
-    border: 1px solid #d9d2c4;
+    border: 1px solid #d8d0c1;
     border-radius: 0.75rem;
-    background: #fffaf1;
+    background: #fbf7ee;
     color: #1f3f63;
     display: flex;
     flex-direction: column;
@@ -785,8 +786,8 @@ body.theme-dark .topbar-flat-btn:focus-visible {
 
 .chapter-grid-item:hover,
 .chapter-grid-item:focus-visible {
-    border-color: #baa88e;
-    background: #f3ecdf;
+    border-color: #bba88a;
+    background: #f0eadc;
 }
 
 .chapter-grid-item-number {
@@ -1715,8 +1716,6 @@ body.mobile-panel-open {
     #settingsPanel {
         width: min(22rem, calc(100vw - 1rem));
         right: auto !important;
-        left: 0.5rem !important;
-        /* On mobile, constrain and center properly */
         max-width: calc(100vw - 1rem);
         overflow-y: auto;
         max-height: calc(100vh - 5.5rem);
@@ -2891,9 +2890,9 @@ body.theme-dark .library-shell .reader-topbar-shell #readerSettingsBtn:focus-vis
 }
 
 body.theme-dark .chapter-grid-header {
-    background: linear-gradient(180deg, #1b1c1a 0%, #1f211d 100%);
-    color: #ebe2d4;
-    border-bottom-color: #3f3c35;
+    background: linear-gradient(180deg, #1a1b18 0%, #1e1f1b 100%);
+    color: #ece3d5;
+    border-bottom-color: #454138;
 }
 
 body.theme-dark .chapter-grid-subtitle {
@@ -2901,20 +2900,20 @@ body.theme-dark .chapter-grid-subtitle {
 }
 
 body.theme-dark .chapter-grid-parasha-strip {
-    border-bottom-color: #3f3c35;
+    border-bottom-color: #454138;
 }
 
 body.theme-dark .chapter-grid-parasha-link {
-    background: #1f211d;
-    border-color: #47453f;
-    color: #e8ddce;
+    background: #1e1f1b;
+    border-color: #47443b;
+    color: #e8dfd0;
 }
 
 body.theme-dark .chapter-grid-parasha-link:hover,
 body.theme-dark .chapter-grid-parasha-link:focus-visible {
-    background: #282b25;
-    border-color: #706655;
-    color: #f4ebdc;
+    background: #272822;
+    border-color: #6f6757;
+    color: #f4ecde;
 }
 
 body.theme-dark .chapter-grid-parasha-meta {
@@ -2940,16 +2939,16 @@ body.theme-dark .chapter-grid-group-label {
 }
 
 body.theme-dark .chapter-grid-item {
-    background: #1f211d !important;
-    border-color: #47453f !important;
-    color: #e8ddce !important;
+    background: #1e1f1b !important;
+    border-color: #47443b !important;
+    color: #e8dfd0 !important;
 }
 
 body.theme-dark .chapter-grid-item:hover,
 body.theme-dark .chapter-grid-item:focus-visible {
-    background: #282b25 !important;
-    border-color: #706655 !important;
-    color: #f4ebdc !important;
+    background: #272822 !important;
+    border-color: #6f6757 !important;
+    color: #f4ecde !important;
 }
 
 body.theme-dark .chapter-grid-item-number {
@@ -2962,13 +2961,13 @@ body.theme-dark .chapter-grid-item-label {
 
 /* Dark mode chapter grid modal scrollable area */
 body.theme-dark #chapterGridModal>div {
-    background: #17181a !important;
-    border-color: #3a3b37 !important;
+    background: #171813 !important;
+    border-color: #3b3931 !important;
 }
 
 body.theme-dark #chapterGridModal>div .px-5 {
-    background: #17181a;
-    scrollbar-color: #4a4b45 #1f201d;
+    background: #171813;
+    scrollbar-color: #4b483f #1f201b;
 }
 
 /* Dark mode reader settings + settings panel buttons */
