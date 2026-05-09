@@ -375,6 +375,17 @@ body.theme-dark .topbar-flat-btn:focus-visible {
     justify-content: center;
 }
 
+#settingsMenuBtn svg {
+    position: relative;
+    top: 1px;
+}
+
+html.rtl #hebrewDateDisplay {
+    direction: rtl;
+    unicode-bidi: plaintext !important;
+    text-align: right;
+}
+
 .topbar-user-menu-btn {
     font-family: Georgia, "Times New Roman", serif;
     color: var(--control-text-strong);
@@ -1400,6 +1411,18 @@ html.rtl #leftSidebar .ml-3 {
     margin-right: 0.75rem !important;
 }
 
+html.rtl #leftSidebar .library-sidebar-header {
+    direction: rtl;
+}
+
+html.rtl #leftSidebar .library-sidebar-header h3 {
+    order: 2;
+}
+
+html.rtl #leftSidebar .library-sidebar-header button {
+    order: 1;
+}
+
 html.rtl #personalShelf button,
 html.rtl #searchSuggestions .suggestion-item,
 html.rtl #popularTextsGrid button {
@@ -1413,6 +1436,31 @@ html.rtl #searchSuggestions .suggestion-item .flex {
 html.rtl .chapter-grid-parasha-link {
     text-align: right;
     align-items: flex-end;
+}
+
+html.rtl .chapter-grid-items,
+html.rtl .chapter-grid-section-items {
+    direction: rtl;
+}
+
+html.rtl .chapter-grid-group-label {
+    direction: rtl;
+    unicode-bidi: plaintext;
+    text-align: right;
+}
+
+html.rtl .chapter-grid-item-number {
+    direction: rtl;
+    unicode-bidi: plaintext;
+}
+
+html.rtl #readerTopBar .reader-topbar-track {
+    direction: ltr;
+}
+
+html.rtl #readerTopBar .reader-topbar-settings-label {
+    direction: rtl;
+    text-align: center;
 }
 
 #reader #readerContent,
@@ -1625,8 +1673,8 @@ html.rtl .chapter-grid-parasha-link {
 @media (min-width: 1024px) {
     #rightSidebar {
         position: sticky;
-        top: var(--right-sidebar-top-offset, calc(var(--reader-topbar-offset, 63px) + 0.5rem));
-        max-height: calc(100dvh - var(--right-sidebar-top-offset, calc(var(--reader-topbar-offset, 63px) + 0.5rem)) - 0.6rem);
+        top: 0;
+        max-height: calc(100dvh - 0.1rem);
         overflow-y: auto;
         -webkit-mask-image: linear-gradient(to bottom, #000 0%, #000 calc(100% - 2.1rem), rgba(0, 0, 0, 0) 100%);
         mask-image: linear-gradient(to bottom, #000 0%, #000 calc(100% - 2.1rem), rgba(0, 0, 0, 0) 100%);
@@ -2253,7 +2301,7 @@ body.mobile-panel-open {
 .library-shell #devtoolsInspectorModal .bg-gradient-to-r.from-navy.to-blue-900,
 .library-shell #sourceGraphModal .bg-gradient-to-r.from-navy.to-blue-900,
 .library-shell #communityTimelineModal .bg-gradient-to-r.from-navy.to-blue-900 {
-    background-image: linear-gradient(to right, #7a684c, #8f7a5b) !important;
+    background-image: linear-gradient(to right, #756d61, #867d70) !important;
 }
 
 .library-shell #searchSuggestions .suggestion-item[aria-selected="true"] {
@@ -2312,19 +2360,19 @@ body.mobile-panel-open {
 
 body.theme-dark {
     --surface-base: #090a0b;
-    --surface-subtle: #110f0c;
-    --surface-elevated: #171410;
-    --surface-topbar: #14110e;
-    --surface-border: #363026;
-    --surface-pill: #23201b;
+    --surface-subtle: #12110f;
+    --surface-elevated: #191714;
+    --surface-topbar: #161512;
+    --surface-border: #3d3932;
+    --surface-pill: #27241f;
     --accent-deep-blue: #efe6d8;
-    --control-bg: #211e1a;
-    --control-bg-hover: #2a251f;
-    --control-border: #453b30;
+    --control-bg: #25221d;
+    --control-bg-hover: #2f2b25;
+    --control-border: #4b463f;
     --control-text: #e5dbc9;
     --control-text-strong: #f7eee0;
-    --control-strong-bg: #2d2721;
-    --control-strong-bg-hover: #383028;
+    --control-strong-bg: #312c26;
+    --control-strong-bg-hover: #3a342d;
     /* Brand tokens — dark overrides */
     --gold: #e8c84a;
     --gold-light: #f2dd82;
@@ -2339,7 +2387,7 @@ body.theme-dark {
     --accent-red: #f87171;
     --accent-teal: #2dd4bf;
     --accent-cream: #f3eadd;
-    --accent-menu: #beb8ac;
+    --accent-menu: #c1bbb0;
     --accent-zmanim: #c0c5bc;
     --accent-tanakh: #c8d2d1;
     --accent-mishnah: #cdced7;
@@ -2418,7 +2466,7 @@ body.theme-dark #searchSuggestions .suggestion-item[aria-selected="true"] {
 body.theme-dark .navigator-pane,
 body.theme-dark .pulse-pane {
     background:
-        linear-gradient(180deg, rgba(31, 28, 24, 0.98) 0%, rgba(24, 21, 18, 0.98) 100%),
+        linear-gradient(180deg, rgba(30, 29, 26, 0.98) 0%, rgba(25, 24, 22, 0.98) 100%),
         repeating-linear-gradient(45deg,
             rgba(255, 255, 255, 0.012) 0,
             rgba(255, 255, 255, 0.012) 3px,
@@ -2695,8 +2743,8 @@ body.theme-dark #mobileLangToggle:active {
 
 body.theme-dark #settingsPanel select,
 body.theme-dark #readerSettingsPanel select {
-    background-color: #212220 !important;
-    border-color: #4a4a45 !important;
+    background-color: #252420 !important;
+    border-color: #53504a !important;
     color: var(--accent-cream) !important;
 }
 
@@ -2764,19 +2812,19 @@ body.theme-dark .fc .fc-event.shabbat {
 
 body.theme-dark #settingsPanel select option,
 body.theme-dark #readerSettingsPanel select option {
-    background: #1c1d1b !important;
+    background: #22211e !important;
     color: var(--accent-cream) !important;
 }
 
 body.theme-dark #settingsPanel select option:checked,
 body.theme-dark #readerSettingsPanel select option:checked {
-    background: #32322f !important;
+    background: #34322d !important;
     color: #f8efe1 !important;
 }
 
 body.theme-dark #settingsPanel select:focus option:checked,
 body.theme-dark #readerSettingsPanel select:focus option:checked {
-    box-shadow: inset 0 0 0 999px #32322f;
+    box-shadow: inset 0 0 0 999px #34322d;
 }
 
 body.theme-dark #settingsPanel input[type="range"],
