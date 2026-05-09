@@ -20,7 +20,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Cardo:wght@400;700&family=Inter:wght@400;500;600&display=swap"
         rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
-    <link rel="stylesheet" href="/static/style.css?v=20260509-sidebar-sticky-fade-v1">
+    <link rel="stylesheet" href="/static/style.css?v=20260509-hebrew-rtl-v3">
     <!-- CSS modules (supplement style.css; do not replace) -->
     <link rel="stylesheet" href="/static/css/typography.css?v=20260507-v1">
     <link rel="stylesheet" href="/static/css/reader.css?v=20260507-v1">
@@ -364,22 +364,24 @@
 
         <button id="showLeftSidebarTopBtn" type="button"
             class="sidebar-show-tab hidden items-center gap-1 absolute left-3 top-3 z-30 px-2 py-1 rounded-md border border-slate-200 bg-white/85 text-slate-500 text-[10px] font-medium tracking-wide hover:bg-white hover:text-slate-700 transition"
-            data-en="Library" data-he="ספריה" aria-label="Show Library">Library</button>
+            data-en="Library" data-he="ספרייה" aria-label="Show Library">Library</button>
 
         <!-- Column 1: Library (Left) -->
         <nav id="leftSidebar" aria-label="Library navigation"
             class="navigator-pane mobile-drawer mobile-drawer-left w-64 xl:w-72 border-r bg-white p-6 overflow-y-auto hidden lg:block flex-shrink-0 custom-scrollbar">
-            <div class="flex lg:hidden items-center justify-between mb-4 pb-3 border-b border-slate-200">
+            <div
+                class="library-sidebar-header flex lg:hidden items-center justify-between mb-4 pb-3 border-b border-slate-200">
                 <h3 class="text-xs font-bold text-slate-500 uppercase tracking-widest" data-en="Library"
-                    data-he="ספריה">
+                    data-he="ספרייה">
                     Library</h3>
                 <button id="closeLeftSidebarBtn" type="button"
                     class="px-2 py-1 text-xs border border-slate-300 rounded bg-white hover:bg-slate-100 transition"
                     data-en="Close" data-he="סגור">Close</button>
             </div>
-            <div class="hidden lg:flex items-center justify-between mb-4 pb-3 border-b border-slate-200">
+            <div
+                class="library-sidebar-header hidden lg:flex items-center justify-between mb-4 pb-3 border-b border-slate-200">
                 <h3 class="text-xs font-bold text-slate-500 uppercase tracking-widest" data-en="Library"
-                    data-he="ספריה">
+                    data-he="ספרייה">
                     Library</h3>
                 <button id="hideLeftSidebarBtn" type="button"
                     class="text-xs text-slate-500 hover:text-slate-800 font-semibold uppercase tracking-wide"
@@ -768,7 +770,7 @@
                         data-en="All Topics & Texts" data-he="כל הנושאים והטקסטים">All Topics & Texts</summary>
                     <div id="libraryIndexSidebar" class="library-index-sidebar-tree space-y-1">
                         <p class="text-xs italic text-slate-400" data-en="Loading full library index..."
-                            data-he="טוען אינדקס ספריה מלא...">Loading full library index...</p>
+                            data-he="טוען אינדקס ספרייה מלא...">Loading full library index...</p>
                     </div>
                 </details>
 
@@ -1345,7 +1347,7 @@
                     </div>
                     <div id="libraryIndexModal" class="space-y-1 text-sm">
                         <p class="text-slate-400 italic text-sm" data-en="Loading full library index..."
-                            data-he="טוען אינדקס ספריה מלא...">Loading full library index...</p>
+                            data-he="טוען אינדקס ספרייה מלא...">Loading full library index...</p>
                     </div>
                 </div>
             </div>
@@ -1472,7 +1474,7 @@
                 class="bg-slate-50 px-4 py-2 text-xs font-bold text-slate-500 uppercase tracking-wider border-b source-title flex justify-between">
                 <span data-en="Source Name" data-he="שם המקור">Source Name</span>
                 <a href="#" target="_blank" class="text-blue-500 hover:underline source-link"
-                    data-en="View in Library ↗" data-he="צפה בספריה ↗">View in Library &rarr;</a>
+                    data-en="View in Library ↗" data-he="צפה בספרייה ↗">View in Library &rarr;</a>
             </div>
             <!-- Grid Split -->
             <div class="source-grid grid grid-cols-1 lg:grid-cols-2 text-base">
@@ -2200,6 +2202,19 @@
             'Kitzur Shulchan Arukh': 'קיצור שולחן ערוך',
             'Mishnah Berurah': 'משנה ברורה',
             'Torah Commentaries': 'מפרשי התורה',
+            'Writings (Ketuvim)': 'כתובים',
+            'Trei Asar (The Twelve)': 'תרי עשר',
+            'Rashi on Torah': 'רש"י על התורה',
+            'Ibn Ezra on Torah': 'אבן עזרא על התורה',
+            'Ramban on Torah': 'רמב"ן על התורה',
+            'Sforno on Torah': 'ספורנו על התורה',
+            'Kli Yakar on Torah': 'כלי יקר על התורה',
+            'Seder Zeraim': 'סדר זרעים',
+            'Seder Moed': 'סדר מועד',
+            'Seder Nashim': 'סדר נשים',
+            'Seder Nezikin': 'סדר נזיקין',
+            'Seder Kodashim': 'סדר קדשים',
+            'Seder Tahorot': 'סדר טהרות',
             'Layout': 'פריסה',
             'Text Size': 'גודל טקסט',
             'Density': 'ריווח',
@@ -2215,7 +2230,7 @@
             'Community Traditions': 'מסורות קהילתיות',
             'Encyclopedia Context': 'הקשר אנציקלופדי',
             'Source Name': 'שם המקור',
-            'View in Library ↗': 'צפה בספריה ↗',
+            'View in Library ↗': 'צפה בספרייה ↗',
             'Laws of blessings and prayer': 'הלכות ברכות ותפילה',
             'Laws of berakhot and prayer': 'הלכות ברכות ותפילה',
             'Abridged code of Jewish law': 'קיצור ההלכה היהודית',
@@ -2231,6 +2246,10 @@
             'Psalms of David': 'תהילים לדוד',
             'Browse Jewish Library': 'עיון בספרייה היהודית',
             'Text Library (Browse Categories)': 'ספריית טקסטים',
+            'All Topics & Texts': 'כל הנושאים והטקסטים',
+            'Ashkenaz Community Customs': 'מנהגי קהילת אשכנז',
+            'Siddur Sefard': 'סידור ספרד',
+            'Mishneh Torah, Forbidden Foods': 'משנה תורה, הלכות מאכלות אסורות',
         };
 
         const PRAYER_HE_MAP = {
@@ -2273,6 +2292,44 @@
             'Turkish-Ottoman': 'טורקי-עות׳מאני',
         };
 
+        const COMMENTARY_AUTHOR_HE_MAP = {
+            'Rashi': 'רש"י',
+            'Ibn Ezra': 'אבן עזרא',
+            'Ramban': 'רמב"ן',
+            'Sforno': 'ספורנו',
+            'Kli Yakar': 'כלי יקר',
+            'Rashbam': 'רשב"ם',
+            'Shadal': 'שד"ל',
+            'Metsudat David': 'מצודת דוד',
+            'Metsudat Zion': 'מצודת ציון',
+            'Malbim': 'מלבי"ם',
+            'Abarbanel': 'אברבנאל',
+            'Haamek Davar': 'העמק דבר',
+            'HaKtav VeHaKabbalah': 'הכתב והקבלה',
+            'HaKtav VeHakabalah': 'הכתב והקבלה',
+            'Mizrachi': 'מזרחי',
+            'Or HaChaim': 'אור החיים',
+            'Or HaChayim': 'אור החיים',
+            'Rabbeinu Bahya': 'רבנו בחיי',
+            'Rabbeinu Bachya': 'רבנו בחיי',
+            'Daat Zekenim': 'דעת זקנים',
+            'Daat Zekenim MiBaalei HaTosafot': 'דעת זקנים מבעלי התוספות',
+            'Bekhor Shor': 'בכור שור',
+            'Chizkuni': 'חזקוני',
+            'Gur Aryeh': 'גור אריה',
+            'Siftei Chakhamim': 'שפתי חכמים',
+            'Ralbag': 'רלב"ג',
+            'Radak': 'רד"ק',
+            'Rashi on Torah': 'רש"י על התורה',
+        };
+
+        const TALMUD_SECTION_HE_MAP = {
+            'MEEIMATAI': 'מאימתי',
+            'HAYAH KOREI': 'היה קורא',
+            'MI SHEMETU': 'מי שמתו',
+            'TEFILLAT HASHACHAR': 'תפילת השחר',
+        };
+
         function getHebrewStaticLabel(text) {
             const key = String(text || '').replace(/\s+/g, ' ').trim();
             if (!key) return null;
@@ -2313,7 +2370,7 @@
             [/kabbalat/gi, 'קבלת'],
             [/keter\s*malkhut/gi, 'כתר מלכות'],
             [/ketubah/gi, 'כתובה'],
-            [/text/gi, 'טקסט'],
+            [/\btexts?\b/gi, 'טקסטים'],
             [/lekha\s*dodi/gi, 'לכה דודי'],
             [/perek\s*shirah/gi, 'פרק שירה'],
             [/shalom\s*aleichem/gi, 'שלום עליכם'],
@@ -2349,10 +2406,8 @@
             const talmudMatch = raw.match(/^(.+?)\s+(\d+)([ab])(?::(\d+))?$/i);
             if (talmudMatch) {
                 const book = getHebrewBookDisplayName(talmudMatch[1]);
-                const daf = talmudMatch[2];
-                const side = talmudMatch[3].toLowerCase() === 'a' ? 'א' : 'ב';
-                const line = talmudMatch[4] ? `:${talmudMatch[4]}` : '';
-                return `${book} ${daf}${side}${line}`;
+                const dafToken = localizeDafToken(`${talmudMatch[2]}${talmudMatch[3]}${talmudMatch[4] ? `:${talmudMatch[4]}` : ''}`);
+                return `${book} ${dafToken}`;
             }
 
             const chapterRangeMatch = raw.match(/^(.+?)\s+(\d+):(\d+)-(\d+):(\d+)$/);
@@ -2424,6 +2479,121 @@
             return COMMUNITY_HE_MAP[raw] || raw;
         }
 
+        function getCommentaryAuthorDisplayName(name) {
+            const raw = String(name || '').replace(/\s+/g, ' ').trim();
+            if (!raw || !isHebrewMode()) return raw;
+
+            const normalized = raw
+                .replace(/[’']/g, "'")
+                .replace(/\s+/g, ' ')
+                .trim();
+
+            return COMMENTARY_AUTHOR_HE_MAP[raw]
+                || COMMENTARY_AUTHOR_HE_MAP[normalized]
+                || getHebrewStaticLabel(raw)
+                || getHebrewStaticLabel(normalized)
+                || localizeLooseHebrewPhrase(raw)
+                || raw;
+        }
+
+        function localizeDafToken(token) {
+            const raw = String(token || '').trim();
+            const match = raw.match(/^(\d+)([ab])(?::(\d+))?$/i);
+            if (!match) return raw;
+            const side = match[2].toLowerCase() === 'a' ? 'א' : 'ב';
+            const line = match[3] ? `:${match[3]}` : '';
+            return `${match[1]}${side}${line}`;
+        }
+
+        function localizeTalmudSectionLabel(label) {
+            const raw = String(label || '').replace(/\s+/g, ' ').trim();
+            if (!raw || !isHebrewMode()) return raw;
+            const canonical = raw.toUpperCase();
+            return TALMUD_SECTION_HE_MAP[canonical]
+                || localizeLooseHebrewPhrase(raw)
+                || raw;
+        }
+
+        function localizeCommentaryReferenceLabel(ref) {
+            const raw = String(ref || '').replace(/\s+/g, ' ').trim();
+            if (!raw || !isHebrewMode()) return raw;
+
+            const onMatch = raw.match(/^(.+?)\s+on\s+(.+)$/i);
+            if (onMatch) {
+                const author = getCommentaryAuthorDisplayName(onMatch[1]);
+                const target = localizeReferenceLabel(onMatch[2]);
+                return `${author} על ${target}`;
+            }
+
+            return localizeReferenceLabel(raw)
+                || localizeLooseHebrewPhrase(raw)
+                || raw;
+        }
+
+        function normalizeHebrewDateDisplay(rawDate) {
+            const raw = String(rawDate || '').replace(/\s+/g, ' ').trim();
+            if (!raw) return raw;
+            if (!isHebrewMode()) return raw;
+
+            if (containsHebrewLetters(raw)) {
+                return raw;
+            }
+
+            const monthMap = {
+                'Nissan': 'ניסן',
+                'Nisan': 'ניסן',
+                'Iyar': 'אייר',
+                'Sivan': 'סיוון',
+                'Tamuz': 'תמוז',
+                'Tammuz': 'תמוז',
+                'Av': 'אב',
+                'Elul': 'אלול',
+                'Tishrei': 'תשרי',
+                'Cheshvan': 'חשוון',
+                'Heshvan': 'חשוון',
+                'Kislev': 'כסלו',
+                'Tevet': 'טבת',
+                'Shevat': 'שבט',
+                'Adar': 'אדר',
+                'Adar I': 'אדר א׳',
+                'Adar II': 'אדר ב׳',
+            };
+
+            let localized = raw;
+            Object.entries(monthMap).forEach(([monthEn, monthHe]) => {
+                localized = localized.replace(new RegExp(`\\b${monthEn}\\b`, 'gi'), monthHe);
+            });
+
+            const mdy = localized.match(/^([^\d]+?)\s+(\d{3,4})\s+(\d{1,2})$/);
+            if (mdy) {
+                const month = String(mdy[1] || '').trim();
+                const year = String(mdy[2] || '').trim();
+                const day = String(mdy[3] || '').trim();
+                return `${day} ${month} ${year}`.replace(/\s+/g, ' ').trim();
+            }
+
+            return localized;
+        }
+
+        function refreshHebrewDateDisplay(lang = getCurrentLanguage()) {
+            const dateEl = document.getElementById('hebrewDateDisplay');
+            if (!dateEl) return;
+
+            if (!dateEl.dataset.en) {
+                dateEl.dataset.en = String(dateEl.textContent || '').trim();
+            }
+
+            if (lang === 'he') {
+                dateEl.dataset.he = normalizeHebrewDateDisplay(dateEl.dataset.en);
+                dateEl.textContent = dateEl.dataset.he || dateEl.dataset.en;
+                dateEl.setAttribute('dir', 'rtl');
+                return;
+            }
+
+            dateEl.textContent = dateEl.dataset.en;
+            dateEl.setAttribute('dir', 'ltr');
+        }
+
         function getShelfDisplayLabel(item) {
             const fallback = String(item?.label || item?.value || '').trim();
             if (!fallback) return fallback;
@@ -2437,7 +2607,10 @@
                 return getCommunityDisplayName(fallback);
             }
             if (type === 'text') {
-                return localizeReferenceLabel(fallback);
+                return localizeCommentaryReferenceLabel(fallback)
+                    || localizeReferenceLabel(fallback)
+                    || localizeLooseHebrewPhrase(fallback)
+                    || fallback;
             }
 
             return getHebrewStaticLabel(fallback) || localizeLooseHebrewPhrase(fallback) || fallback;
@@ -2463,8 +2636,9 @@
                 const englishLabel = String(el.dataset.en || el.textContent || '').replace(/\s+/g, ' ').trim();
                 if (!englishLabel) return;
 
-                const hebrewLabel = getHebrewStaticLabel(englishLabel);
-                if (!hebrewLabel) return;
+                const hebrewLabel = getHebrewStaticLabel(englishLabel)
+                    || (lang === 'he' ? localizeLooseHebrewPhrase(englishLabel) : null);
+                if (!hebrewLabel || hebrewLabel === englishLabel) return;
 
                 if (!el.dataset.en) {
                     el.dataset.en = englishLabel;
@@ -4588,15 +4762,15 @@
 
             const onMatch = raw.match(/^([^,]+?)\s+on\s+/i);
             if (onMatch?.[1]) {
-                return onMatch[1].trim();
+                return getCommentaryAuthorDisplayName(onMatch[1]);
             }
 
             const commaBase = raw.split(',')[0]?.trim();
             if (commaBase) {
-                return commaBase;
+                return getCommentaryAuthorDisplayName(commaBase);
             }
 
-            return raw;
+            return getCommentaryAuthorDisplayName(raw);
         }
 
         function groupCommentaryRefsByAuthor(refs) {
@@ -4630,10 +4804,14 @@
             return groupedCommentaries.map((group) => {
                 const refsMarkup = group.refs.map((ref) => {
                     const encoded = encodeURIComponent(ref);
+                    const displayRef = localizeCommentaryReferenceLabel(ref);
+                    const textAlignClass = isHebrewMode() ? 'text-right' : 'text-left';
+                    const refDir = isHebrewMode() ? 'rtl' : 'ltr';
                     return `
                         <button type="button" onclick="openCommentaryInline(decodeURIComponent('${encoded}'))"
-                            class="block w-full text-left px-3 py-2 rounded border border-slate-200 bg-white hover:bg-slate-100 text-sm text-slate-700 transition">
-                            ${escapeHtml(ref)}
+                            dir="${refDir}"
+                            class="block w-full ${textAlignClass} px-3 py-2 rounded border border-slate-200 bg-white hover:bg-slate-100 text-sm text-slate-700 transition">
+                            ${escapeHtml(displayRef)}
                         </button>
                     `;
                 }).join('');
@@ -4835,7 +5013,8 @@
                         </div>
                     </div>
                 `;
-                selectionInsightsHint.textContent = t('Viewing commentary:', 'מציג פירוש:') + ` ${commentaryRef}`;
+                const commentaryHintLabel = localizeCommentaryReferenceLabel(commentaryRef);
+                selectionInsightsHint.textContent = t('Viewing commentary:', 'מציג פירוש:') + ` ${commentaryHintLabel}`;
             } catch (_) {
                 selectionCommentaryState.activeCommentaryRef = '';
                 selectionInsightsBody.innerHTML = `
@@ -6037,10 +6216,18 @@
             }
             const en = String(node.title || node.category || node.key || '').trim();
             const he = String(node.heTitle || node.heCategory || '').trim();
+            const fallbackHe = isHebrewMode()
+                ? (
+                    getHebrewStaticLabel(withHebrewBookName(en))
+                    || getHebrewStaticLabel(en)
+                    || localizeLooseHebrewPhrase(withHebrewBookName(en))
+                    || localizeLooseHebrewPhrase(en)
+                )
+                : '';
             return {
                 en,
                 he,
-                display: isHebrewMode() ? (he || en) : (en || he),
+                display: isHebrewMode() ? (he || fallbackHe || en) : (en || he),
             };
         }
 
@@ -6203,7 +6390,7 @@
                             ? data.contents
                             : [];
                 } catch (_) {
-                    const errorText = `<p class="text-xs italic text-red-500">${t('Unable to load library index right now.', 'לא ניתן לטעון את אינדקס הספריה כרגע.')}</p>`;
+                    const errorText = `<p class="text-xs italic text-red-500">${t('Unable to load library index right now.', 'לא ניתן לטעון את אינדקס הספרייה כרגע.')}</p>`;
                     if (libraryIndexSidebar) libraryIndexSidebar.innerHTML = errorText;
                     if (libraryIndexModal) libraryIndexModal.innerHTML = errorText;
                     return;
@@ -6404,12 +6591,19 @@
             const lowerRef = safeRef.toLowerCase();
             const lowerTitle = safeTitle.toLowerCase();
 
+            const localizeDafInLabel = (label) => {
+                if (!isHebrewMode()) return label;
+                return String(label || '').replace(/\b(\d+)([ab])(?::(\d+))?\b/gi, (_, page, side, line) => {
+                    return localizeDafToken(`${page}${side}${line ? `:${line}` : ''}`);
+                });
+            };
+
             if (!lowerRef.startsWith(lowerTitle)) {
-                return safeRef;
+                return localizeDafInLabel(safeRef);
             }
 
             const trimmed = safeRef.slice(safeTitle.length).replace(/^,\s*/, '').trim();
-            return trimmed || safeRef;
+            return localizeDafInLabel(trimmed || safeRef);
         }
 
         function isTalmudReferenceLabel(ref) {
@@ -6457,8 +6651,11 @@
             if (!lookup || !lookup.length) return '';
             const hit = lookup.find((s) => dafKey >= s.fromKey && dafKey <= s.toKey);
             if (!hit) return '';
-            const range = `${hit.fromDaf}–${hit.toDaf}`;
-            return `${hit.label} (${range})`;
+            const fromToken = isHebrew ? localizeDafToken(hit.fromDaf) : hit.fromDaf;
+            const toToken = isHebrew ? localizeDafToken(hit.toDaf) : hit.toDaf;
+            const range = `${fromToken}–${toToken}`;
+            const sectionLabel = isHebrew ? localizeTalmudSectionLabel(hit.label) : hit.label;
+            return `${sectionLabel} (${range})`;
         }
 
         function openReferenceGrid(indexTitle, refs, sections) {
@@ -6515,7 +6712,7 @@
 
                     const sectionLabel = (sectionLookup.length && dafKey >= 0)
                         ? _getSectionForDaf(dafKey, sectionLookup, isHebrewMode())
-                        : (dafStr ? (isHebrewMode() ? `דף ${dafStr}` : `Daf ${dafStr}`) : t('Unsorted', 'ללא מיון'));
+                        : (dafStr ? (isHebrewMode() ? `דף ${localizeDafToken(dafStr)}` : `Daf ${dafStr}`) : t('Unsorted', 'ללא מיון'));
 
                     if (!group || group.label !== sectionLabel) {
                         group = { label: sectionLabel, items: [] };
@@ -6565,7 +6762,7 @@
                         groupLabel = _getSectionForDaf(dafKey, sectionLookup, isHebrewMode());
                     } else if (dafStr) {
                         // Fallback: group by individual daf
-                        groupLabel = isHebrewMode() ? `דף ${dafStr}` : `Daf ${dafStr}`;
+                        groupLabel = isHebrewMode() ? `דף ${localizeDafToken(dafStr)}` : `Daf ${dafStr}`;
                     }
 
                     if (groupLabel && groupLabel !== lastGroupLabel) {
@@ -8390,6 +8587,8 @@
                 readerNextTopBarBtn.title = nextLabel;
             }
 
+            refreshHebrewDateDisplay(lang);
+
             // Re-render dynamic widgets so their generated labels follow the selected language.
             renderPersonalShelf();
             updateBookmarkButton();
@@ -9047,7 +9246,7 @@
                     const clone = sourceDualTemplate.content.cloneNode(true);
                     clone.querySelector('.source-title span').textContent = src.title || src.ref || t("Sefaria Source", "מקור מספריא");
                     clone.querySelector('.source-link').href = `https://www.sefaria.org/${src.ref}`;
-                    clone.querySelector('.source-link').textContent = t('View in Library ↗', 'צפה בספריה ↗');
+                    clone.querySelector('.source-link').textContent = t('View in Library ↗', 'צפה בספרייה ↗');
 
                     const heDiv = clone.querySelector('.source-he');
                     const enDiv = clone.querySelector('.source-en');
