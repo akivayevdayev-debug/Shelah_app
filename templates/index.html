@@ -3467,33 +3467,47 @@
             if (settingsMenuBtn) settingsMenuBtn.setAttribute('aria-expanded', 'false');
         }
 
+        function positionFloatingMenu(menuEl, triggerEl, options = {}) {
+            if (!menuEl || !triggerEl) return;
+
+            const viewportWidth = Math.max(Math.round(window.innerWidth || 0), 320);
+            const viewportHeight = Math.max(Math.round(window.innerHeight || 0), 320);
+            const padding = Number.isFinite(options.padding) ? options.padding : 8;
+            const offset = Number.isFinite(options.offset) ? options.offset : 6;
+            const minWidth = Number.isFinite(options.minWidth) ? options.minWidth : 160;
+            const maxWidth = Number.isFinite(options.maxWidth) ? options.maxWidth : 352;
+            const triggerRect = triggerEl.getBoundingClientRect();
+            const width = Math.min(maxWidth, Math.max(minWidth, viewportWidth - (padding * 2)));
+            const left = Math.max(padding, Math.min(Math.round(triggerRect.left), viewportWidth - width - padding));
+            const top = Math.min(
+                viewportHeight - padding,
+                Math.round(triggerRect.bottom + offset),
+            );
+
+            menuEl.style.setProperty('position', 'fixed', 'important');
+            menuEl.style.setProperty('left', `${left}px`, 'important');
+            menuEl.style.setProperty('top', `${top}px`, 'important');
+            menuEl.style.setProperty('right', 'auto', 'important');
+            menuEl.style.setProperty('width', `${width}px`, 'important');
+            menuEl.style.setProperty('max-width', `${Math.max(0, viewportWidth - (padding * 2))}px`, 'important');
+        }
+
         function positionSettingsPanel() {
             if (!settingsPanel || !settingsMenuBtn) return;
 
-            const viewportWidth = Math.max(Math.round(window.innerWidth || 0), 320);
-            const buttonRect = settingsMenuBtn.getBoundingClientRect();
-            const panelWidth = Math.min(352, Math.max(220, viewportWidth - 16));
-            const desiredLeft = Math.round(buttonRect.right - panelWidth);
-            const clampedLeft = Math.max(8, Math.min(desiredLeft, viewportWidth - panelWidth - 8));
-            settingsPanel.style.left = `${clampedLeft}px`;
-            settingsPanel.style.top = `${Math.round(buttonRect.bottom + 6)}px`;
-            settingsPanel.style.right = 'auto';
+            positionFloatingMenu(settingsPanel, settingsMenuBtn, {
+                minWidth: 220,
+                maxWidth: 352,
+            });
         }
 
         function positionUserProfileMenu() {
             if (!userProfileMenu || !userProfileMenuBtn) return;
 
-            const viewportWidth = Math.max(Math.round(window.innerWidth || 0), 320);
-            const buttonRect = userProfileMenuBtn.getBoundingClientRect();
-            const panelWidth = Math.min(176, Math.max(140, viewportWidth - 16));
-            const desiredLeft = Math.round(buttonRect.right - panelWidth);
-            const clampedLeft = Math.max(8, Math.min(desiredLeft, viewportWidth - panelWidth - 8));
-
-            userProfileMenu.style.position = 'fixed';
-            userProfileMenu.style.left = `${clampedLeft}px`;
-            userProfileMenu.style.top = `${Math.round(buttonRect.bottom + 6)}px`;
-            userProfileMenu.style.right = 'auto';
-            userProfileMenu.style.width = `${panelWidth}px`;
+            positionFloatingMenu(userProfileMenu, userProfileMenuBtn, {
+                minWidth: 148,
+                maxWidth: 180,
+            });
         }
 
         function closeUserProfileMenu() {
@@ -3509,6 +3523,11 @@
             if (userProfileMenuBtn) userProfileMenuBtn.setAttribute('aria-expanded', willOpen ? 'true' : 'false');
             if (willOpen) {
                 positionUserProfileMenu();
+                window.requestAnimationFrame(() => {
+                    if (!userProfileMenu.classList.contains('hidden')) {
+                        positionUserProfileMenu();
+                    }
+                });
                 closeSettingsMenu();
                 closeReaderSettingsPanel();
             }
@@ -3521,6 +3540,11 @@
             if (settingsMenuBtn) settingsMenuBtn.setAttribute('aria-expanded', willOpen ? 'true' : 'false');
             if (willOpen) {
                 positionSettingsPanel();
+                window.requestAnimationFrame(() => {
+                    if (!settingsPanel.classList.contains('hidden')) {
+                        positionSettingsPanel();
+                    }
+                });
                 closeReaderSettingsPanel();
                 closeUserProfileMenu();
             }
