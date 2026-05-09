@@ -671,6 +671,22 @@ body.theme-dark .topbar-flat-btn:focus-visible {
     gap: 0.65rem;
 }
 
+.chapter-grid-items-sectioned {
+    display: flex;
+    flex-direction: column;
+    gap: 0.85rem;
+}
+
+.chapter-grid-section-block {
+    margin-bottom: 0.95rem;
+}
+
+.chapter-grid-section-items {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(90px, 1fr));
+    gap: 0.65rem;
+}
+
 .chapter-grid-header {
     background: linear-gradient(180deg, #f8f3e8 0%, #f2eadb 100%);
     color: #1f3f63;
@@ -755,6 +771,16 @@ body.theme-dark .topbar-flat-btn:focus-visible {
     align-items: center;
     justify-content: center;
     gap: 0.1rem;
+}
+
+.chapter-grid-items-prayer {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+    gap: 0.55rem;
+}
+
+.chapter-grid-items-prayer .chapter-grid-item {
+    min-height: 2.6rem;
 }
 
 .chapter-grid-item:hover,
@@ -845,6 +871,17 @@ body.theme-dark .topbar-flat-btn:focus-visible {
 .prayer-nav-link:hover,
 .prayer-nav-link:focus-visible {
     background: rgba(0, 0, 0, 0.03);
+}
+
+.prayer-nav-family>summary,
+.prayer-nav-nested>summary {
+    cursor: pointer;
+    list-style: none;
+}
+
+.prayer-nav-family>summary::-webkit-details-marker,
+.prayer-nav-nested>summary::-webkit-details-marker {
+    display: none;
 }
 
 .study-track-complete-label {

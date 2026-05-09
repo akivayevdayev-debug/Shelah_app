@@ -292,6 +292,15 @@
                     </div>
 
                     <div class="grid grid-cols-2 gap-2 border-t border-slate-100 pt-2">
+                        <label class="col-span-2 text-xs text-slate-600">
+                            <span data-en="Export format" data-he="פורמט ייצוא">Export format</span>
+                            <select id="exportFormatSelect"
+                                class="mt-1 w-full px-2 py-1.5 rounded border border-slate-200 bg-slate-50 text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-400">
+                                <option value="txt" data-en="Text (.txt)" data-he="טקסט (.txt)">Text (.txt)</option>
+                                <option value="docx" data-en="Word (.docx)" data-he="וורד (.docx)">Word (.docx)</option>
+                                <option value="pdf" data-en="PDF (.pdf)" data-he="PDF (.pdf)">PDF (.pdf)</option>
+                            </select>
+                        </label>
                         <button id="exportCitationBtn" type="button"
                             class="px-2.5 py-1.5 rounded-lg bg-slate-100 text-slate-700 border border-slate-200 hover:bg-slate-200 transition font-semibold text-xs"
                             data-en="Export" data-he="ייצוא">Export</button>
@@ -492,7 +501,7 @@
                         </details>
                         <details class="group">
                             <summary class="text-slate-600 hover:text-[#004e5f] cursor-pointer font-medium text-sm">
-                                Writings</summary>
+                                Writings (Ketuvim)</summary>
                             <ul class="ml-3 space-y-1 mt-1">
                                 <li><button onclick="readText('Psalms 1')"
                                         class="text-left text-slate-600 hover:text-[#004e5f] text-sm w-full py-0.5">Psalms
@@ -1496,6 +1505,7 @@
         const showCantillationToggle = document.getElementById('showCantillationToggle');
         const cantillationToggleRow = document.getElementById('cantillationToggleRow');
         const exportCitationBtn = document.getElementById('exportCitationBtn');
+        const exportFormatSelect = document.getElementById('exportFormatSelect');
         const communityTimelineBtn = document.getElementById('communityTimelineBtn');
         const trackCurrentBtn = document.getElementById('trackCurrentBtn');
         const prayerBooksNavList = document.getElementById('prayerBooksNavList');
@@ -2857,7 +2867,10 @@
                 return baseHeaders;
             }
             try {
-                const token = await window.Clerk.session.getToken();
+                let token = await window.Clerk.session.getToken();
+                if (!token) {
+                    token = await window.Clerk.session.getToken({ skipCache: true });
+                }
                 if (!token) return baseHeaders;
                 return {
                     ...baseHeaders,
@@ -3446,6 +3459,44 @@
             if (settingsMenuBtn) settingsMenuBtn.setAttribute('aria-expanded', 'false');
         }
 
+        function positionSettingsPanel() {
+            if (!settingsPanel || !settingsMenuBtn) return;
+
+            const viewportWidth = Math.max(Math.round(window.innerWidth || 0), 320);
+            const topbarBottom = Math.round(document.querySelector('.topbar')?.getBoundingClientRect?.().bottom || 56);
+
+            if (isMobileViewport()) {
+                settingsPanel.style.left = '0.5rem';
+                settingsPanel.style.top = `${topbarBottom + 6}px`;
+                settingsPanel.style.right = 'auto';
+                return;
+            }
+
+            const buttonRect = settingsMenuBtn.getBoundingClientRect();
+            const panelWidth = Math.min(352, Math.max(220, viewportWidth - 16));
+            const desiredLeft = Math.round(buttonRect.left);
+            const clampedLeft = Math.max(8, Math.min(desiredLeft, viewportWidth - panelWidth - 8));
+            settingsPanel.style.left = `${clampedLeft}px`;
+            settingsPanel.style.top = `${Math.round(buttonRect.bottom + 6)}px`;
+            settingsPanel.style.right = 'auto';
+        }
+
+        function positionUserProfileMenu() {
+            if (!userProfileMenu || !userProfileMenuBtn) return;
+
+            const viewportWidth = Math.max(Math.round(window.innerWidth || 0), 320);
+            const buttonRect = userProfileMenuBtn.getBoundingClientRect();
+            const panelWidth = Math.min(176, Math.max(140, viewportWidth - 16));
+            const desiredLeft = Math.round(buttonRect.right - panelWidth);
+            const clampedLeft = Math.max(8, Math.min(desiredLeft, viewportWidth - panelWidth - 8));
+
+            userProfileMenu.style.position = 'fixed';
+            userProfileMenu.style.left = `${clampedLeft}px`;
+            userProfileMenu.style.top = `${Math.round(buttonRect.bottom + 6)}px`;
+            userProfileMenu.style.right = 'auto';
+            userProfileMenu.style.width = `${panelWidth}px`;
+        }
+
         function closeUserProfileMenu() {
             if (!userProfileMenu) return;
             userProfileMenu.classList.add('hidden');
@@ -3458,6 +3509,7 @@
             userProfileMenu.classList.toggle('hidden');
             if (userProfileMenuBtn) userProfileMenuBtn.setAttribute('aria-expanded', willOpen ? 'true' : 'false');
             if (willOpen) {
+                positionUserProfileMenu();
                 closeSettingsMenu();
                 closeReaderSettingsPanel();
             }
@@ -3469,6 +3521,7 @@
             settingsPanel.classList.toggle('hidden');
             if (settingsMenuBtn) settingsMenuBtn.setAttribute('aria-expanded', willOpen ? 'true' : 'false');
             if (willOpen) {
+                positionSettingsPanel();
                 closeReaderSettingsPanel();
                 closeUserProfileMenu();
             }
@@ -3782,31 +3835,9 @@
             };
         }
 
-        function requestExportFormat() {
-            let choice = 'txt';
-            try {
-                const promptResult = window.prompt(
-                    t(
-                        'Export format? Type: txt, docx, or pdf',
-                        'פורמט לייצוא? הקלד: txt, docx, או pdf'
-                    ),
-                    'txt'
-                );
-                if (promptResult !== null) {
-                    choice = promptResult;
-                }
-            } catch (_) {
-                // Fallback for environments that do not support prompt dialogs.
-                return 'txt';
-            }
-
-            const normalized = String(choice || '').trim().toLowerCase();
-            if (!normalized) return '';
-            if (['txt', 'docx', 'pdf'].includes(normalized)) {
-                return normalized;
-            }
-            window.alert(t('Invalid format. Use txt, docx, or pdf.', 'פורמט לא תקין. השתמש ב-txt, docx או pdf.'));
-            return '';
+        function getSelectedExportFormat() {
+            const normalized = String(exportFormatSelect?.value || 'txt').trim().toLowerCase();
+            return ['txt', 'docx', 'pdf'].includes(normalized) ? normalized : 'txt';
         }
 
         async function exportCurrentCitation() {
@@ -3816,14 +3847,13 @@
                 return;
             }
 
-            const format = requestExportFormat();
+            const format = getSelectedExportFormat();
             if (!format) return;
 
             try {
-                const headers = await authHeaders({ 'Content-Type': 'application/json' });
                 const response = await fetch('/api/export/chapter', {
                     method: 'POST',
-                    headers,
+                    headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ ...payload, format }),
                 });
 
@@ -4209,12 +4239,21 @@
 
             setSemanticBookmarkBusy(true);
             try {
-                const headers = await authHeaders({ 'Content-Type': 'application/json' });
-                const response = await fetch('/api/bookmarks/semantic', {
+                let headers = await authHeaders({ 'Content-Type': 'application/json' });
+                let response = await fetch('/api/bookmarks/semantic', {
                     method: 'POST',
                     headers,
                     body: JSON.stringify(payload),
                 });
+
+                if (response.status === 401) {
+                    headers = await authHeaders({ 'Content-Type': 'application/json' });
+                    response = await fetch('/api/bookmarks/semantic', {
+                        method: 'POST',
+                        headers,
+                        body: JSON.stringify(payload),
+                    });
+                }
 
                 const data = await response.json().catch(() => ({}));
                 if (response.status === 401) {
@@ -4964,6 +5003,51 @@
             return window.currentTextPayload ? [window.currentTextPayload] : [];
         }
 
+        function normalizeAdjacentRef(refValue) {
+            return String(refValue || '')
+                .replace(/\s+/g, ' ')
+                .trim()
+                .replace(/:\d+(?:-\d+)?$/i, '')
+                .toLowerCase();
+        }
+
+        async function ensurePayloadAdjacentRefs(payload) {
+            if (!payload || typeof payload !== 'object') return payload;
+            if (payload.prev && payload.next) return payload;
+
+            const currentRef = String(payload.ref || '').trim();
+            if (!currentRef) return payload;
+
+            const indexTitle = String(payload.title || '').trim() || currentRef.replace(/\s+\S+$/, '').trim();
+            if (!indexTitle) return payload;
+
+            const refs = await fetchIndexLeafRefs(indexTitle);
+            if (!Array.isArray(refs) || refs.length < 2) return payload;
+
+            const compactRefs = [];
+            const seen = new Set();
+            refs.forEach((ref) => {
+                const normalized = normalizeAdjacentRef(ref);
+                if (!normalized || seen.has(normalized)) return;
+                seen.add(normalized);
+                compactRefs.push(String(ref).replace(/\s+/g, ' ').trim().replace(/:\d+(?:-\d+)?$/i, ''));
+            });
+            if (compactRefs.length < 2) return payload;
+
+            const currentNormalized = normalizeAdjacentRef(currentRef);
+            const idx = compactRefs.findIndex((ref) => normalizeAdjacentRef(ref) === currentNormalized);
+            if (idx < 0) return payload;
+
+            if (!payload.prev && idx > 0) {
+                payload.prev = compactRefs[idx - 1];
+            }
+            if (!payload.next && idx < compactRefs.length - 1) {
+                payload.next = compactRefs[idx + 1];
+            }
+
+            return payload;
+        }
+
         function resetInfiniteReaderState(seedPayload = null) {
             infiniteReaderState.loading = false;
             infiniteReaderState.nextRef = String(seedPayload?.next || '').trim();
@@ -5030,6 +5114,8 @@
                     infiniteReaderState.nextRef = '';
                     return;
                 }
+
+                await ensurePayloadAdjacentRefs(nextData);
 
                 const resolved = String(nextData.ref || resolvedRef || requestedNextRef).trim();
                 const resolvedKey = getRefTrackingKey(resolved);
@@ -5712,6 +5798,12 @@
         window.addEventListener('resize', () => {
             syncReaderTopBarOffset();
             applySidebarVisibility();
+            if (settingsPanel && !settingsPanel.classList.contains('hidden')) {
+                positionSettingsPanel();
+            }
+            if (userProfileMenu && !userProfileMenu.classList.contains('hidden')) {
+                positionUserProfileMenu();
+            }
             if (appState.prefs.shulMode) {
                 applyShulMode();
             }
@@ -6181,6 +6273,7 @@
             if (!chapterGridModal) return;
             chapterGridModal.classList.add('hidden');
             chapterGridModal.classList.remove('flex');
+            chapterGridItems?.classList.remove('chapter-grid-items-prayer', 'chapter-grid-items-sectioned');
         }
 
         function renderChapterGridParashaStrip(bookName) {
@@ -6295,6 +6388,20 @@
             return /\b\d+[ab](?::\d+)?\b/i.test(String(ref || ''));
         }
 
+        function isPrayerReferenceGridTitle(indexTitle, refs = []) {
+            const title = String(indexTitle || '').toLowerCase();
+            const prayerTitleHit = /(siddur|machzor|haggadah|selichot|kinnot|tefill|prayer)/i.test(title);
+            if (prayerTitleHit) return true;
+            if (!Array.isArray(refs) || !refs.length) return false;
+            return refs.some((ref) => /(siddur|machzor|haggadah|selichot|kinnot|tefill|prayer)/i.test(String(ref || '')));
+        }
+
+        function applyPrayerGridSizeClass() {
+            if (!chapterGridItems) return;
+            if (!chapterGridItems.classList.contains('chapter-grid-items-prayer')) return;
+            // Prayer selection buttons stay medium-sized by design.
+        }
+
         /** Convert daf string "2a"/"13b" to a numeric key for range comparisons. */
         function _dafToKey(daf) {
             const m = /^(\d+)([ab])$/i.exec(String(daf || '').trim());
@@ -6335,6 +6442,7 @@
                 : [];
             const visibleRefs = normalizedRefs.slice(0, 180);
             const talmudMode = visibleRefs.some((ref) => isTalmudReferenceLabel(ref));
+            const prayerMode = isPrayerReferenceGridTitle(safeTitle, visibleRefs);
             const sectionLookup = talmudMode && Array.isArray(sections) && sections.length
                 ? _buildSectionLookup(sections)
                 : [];
@@ -6357,6 +6465,57 @@
             if (chapterGridParashaStrip) {
                 chapterGridParashaStrip.classList.add('hidden');
                 chapterGridParashaStrip.innerHTML = '';
+            }
+
+            chapterGridItems.classList.toggle('chapter-grid-items-prayer', prayerMode);
+            chapterGridItems.classList.toggle('chapter-grid-items-sectioned', talmudMode && sectionLookup.length > 0);
+            applyPrayerGridSizeClass();
+
+            if (talmudMode && sectionLookup.length) {
+                const groups = [];
+                let group = null;
+
+                visibleRefs.forEach((targetRef, idx) => {
+                    let remainder = targetRef;
+                    if (safeTitle && targetRef.toLowerCase().startsWith(safeTitle.toLowerCase())) {
+                        remainder = targetRef.slice(safeTitle.length).replace(/^[,\s]+/, '').trim();
+                    }
+                    const dafMatch = remainder.match(/^(\d+[ab])/i);
+                    const dafStr = dafMatch ? dafMatch[1].toLowerCase() : '';
+                    const dafKey = _dafToKey(dafStr);
+                    const label = getReferenceGridItemLabel(safeTitle, targetRef, idx);
+
+                    const sectionLabel = (sectionLookup.length && dafKey >= 0)
+                        ? _getSectionForDaf(dafKey, sectionLookup, isHebrewMode())
+                        : (dafStr ? (isHebrewMode() ? `דף ${dafStr}` : `Daf ${dafStr}`) : t('Unsorted', 'ללא מיון'));
+
+                    if (!group || group.label !== sectionLabel) {
+                        group = { label: sectionLabel, items: [] };
+                        groups.push(group);
+                    }
+
+                    group.items.push(`
+                        <button type="button"
+                            class="chapter-grid-item"
+                            data-ref="${escapeHtml(targetRef)}"
+                            title="${escapeHtml(label)}">
+                            <span class="chapter-grid-item-number">${escapeHtml(label)}</span>
+                        </button>
+                    `);
+                });
+
+                chapterGridItems.innerHTML = groups.map((entry) => `
+                    <section class="chapter-grid-section-block">
+                        <div class="chapter-grid-group-label">${escapeHtml(entry.label)}</div>
+                        <div class="chapter-grid-section-items">
+                            ${entry.items.join('')}
+                        </div>
+                    </section>
+                `).join('');
+
+                chapterGridModal.classList.remove('hidden');
+                chapterGridModal.classList.add('flex');
+                return;
             }
 
             const items = [];
@@ -6392,9 +6551,8 @@
                         <button type="button"
                             class="chapter-grid-item"
                             data-ref="${escapeHtml(targetRef)}"
-                            title="${escapeHtml(targetRef)}">
+                            title="${escapeHtml(label)}">
                             <span class="chapter-grid-item-number">${escapeHtml(label)}</span>
-                            <span class="chapter-grid-item-label">${escapeHtml(isHebrewMode() ? 'דף' : 'Daf')}</span>
                         </button>
                     `);
             });
@@ -6874,29 +7032,59 @@
             let html = '';
 
             familyOrder.forEach((family) => {
-                html += `<li class="prayer-family-nav-label text-[11px] uppercase tracking-widest text-slate-400 font-bold py-1 mt-2">${prayerFamilyLabel(family)}</li>`;
+                let familyItems = '';
                 const { buckets: collectionBuckets, collectionOrder, chapterOrder } = getPrayerCollectionBuckets(buckets[family] || [], family);
                 collectionOrder.forEach((collectionKey) => {
                     const chapterBuckets = collectionBuckets[collectionKey] || {};
                     const nonEmptyChapterKeys = chapterOrder.filter((chapterKey) => (chapterBuckets[chapterKey] || []).length > 0);
                     if (!nonEmptyChapterKeys.length) return;
 
-                    html += `<li class="text-[10px] uppercase tracking-[0.11em] text-slate-400 font-semibold py-0.5">${escapeHtml(prayerCollectionLabel(collectionKey, family))}</li>`;
+                    let collectionRows = '';
                     const showChapterLabels = nonEmptyChapterKeys.length > 1;
 
                     nonEmptyChapterKeys.forEach((chapterKey) => {
                         const items = chapterBuckets[chapterKey] || [];
                         if (!items.length) return;
 
-                        if (showChapterLabels) {
-                            html += `<li class="text-[10px] text-slate-400 font-medium py-0.5 pl-1">${escapeHtml(prayerChapterLabel(chapterKey))}</li>`;
-                        }
-
+                        let chapterRows = '';
                         items.forEach((entry) => {
-                            html += `<li>${buildPrayerNavigatorButton(entry.name)}</li>`;
+                            chapterRows += `<li>${buildPrayerNavigatorButton(entry.name)}</li>`;
                         });
+
+                        if (showChapterLabels) {
+                            collectionRows += `
+                                <li>
+                                    <details class="prayer-nav-nested pl-2">
+                                        <summary class="text-[10px] text-slate-400 font-medium py-0.5">${escapeHtml(prayerChapterLabel(chapterKey))}</summary>
+                                        <ul class="space-y-0.5 pl-2">${chapterRows}</ul>
+                                    </details>
+                                </li>
+                            `;
+                        } else {
+                            collectionRows += chapterRows;
+                        }
                     });
+
+                    if (!collectionRows) return;
+                    familyItems += `
+                        <li>
+                            <details class="prayer-nav-nested" open>
+                                <summary class="text-[10px] uppercase tracking-[0.11em] text-slate-400 font-semibold py-0.5">${escapeHtml(prayerCollectionLabel(collectionKey, family))}</summary>
+                                <ul class="space-y-0.5 pl-2">${collectionRows}</ul>
+                            </details>
+                        </li>
+                    `;
                 });
+
+                if (!familyItems) return;
+                html += `
+                    <li>
+                        <details class="prayer-nav-family" open>
+                            <summary class="prayer-family-nav-label text-[11px] uppercase tracking-widest text-slate-400 font-bold py-1 mt-2">${prayerFamilyLabel(family)}</summary>
+                            <ul class="space-y-1">${familyItems}</ul>
+                        </details>
+                    </li>
+                `;
             });
 
             prayerBooksNavList.innerHTML = html;
@@ -7743,7 +7931,7 @@
                 }
 
                 try {
-                    const resp = await fetch(`/api/text/${encodeURIComponent(candidate)}?autotranslate=1`);
+                    const resp = await fetch(`/api/text/${encodeURIComponent(candidate)}?autotranslate=0`);
                     const payload = await resp.json();
                     if (!payload?.error) {
                         cacheTextPayload(candidate, payload);
@@ -7822,6 +8010,8 @@
                     logReliability('text-load-error', { ref: normalizedRequestRef || String(ref || ''), error: data.error });
                     return;
                 }
+
+                await ensurePayloadAdjacentRefs(data);
 
                 // Title
                 const titleEl = document.getElementById('readerTitle');

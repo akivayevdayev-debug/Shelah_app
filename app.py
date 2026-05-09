@@ -16,6 +16,7 @@ How to navigate this file:
 import json
 import re
 import io
+from concurrent.futures import ThreadPoolExecutor
 import requests
 from flask import Flask, render_template, request, jsonify, session, g, send_from_directory, send_file
 from dotenv import load_dotenv
@@ -124,6 +125,9 @@ DEVTOOLS_STATS = {
     "segment_reports": 0,
 }
 
+ASK_RESPONSE_CACHE = {}
+ASK_RESPONSE_CACHE_TTL_SECONDS = 90
+
 QUICK_TEXT_ALIASES = {
     "genesis": "Genesis 1",
     "bereishit": "Genesis 1",
@@ -187,6 +191,37 @@ HEBREW_INTERPRETIVE_GLOSSARY = {
     "הלך": ["go", "walk", "proceed"],
     "שמר": ["guard", "keep", "observe"],
 }
+
+
+def _get_cached_ask_payload(cache_key):
+    entry = ASK_RESPONSE_CACHE.get(cache_key)
+    if not entry:
+        return None
+    ts = float(entry.get("ts") or 0.0)
+    if (time.time() - ts) > ASK_RESPONSE_CACHE_TTL_SECONDS:
+        ASK_RESPONSE_CACHE.pop(cache_key, None)
+        return None
+    payload = entry.get("payload")
+    if not isinstance(payload, dict):
+        return None
+    try:
+        # Return a detached copy so callers can mutate response payload safely.
+        return json.loads(json.dumps(payload))
+    except Exception:
+        return None
+
+
+def _set_cached_ask_payload(cache_key, payload):
+    if not isinstance(payload, dict):
+        return
+    try:
+        ASK_RESPONSE_CACHE[cache_key] = {
+            "ts": time.time(),
+            "payload": json.loads(json.dumps(payload)),
+        }
+    except Exception:
+        return
+
 
 APP_ROOT = Path(__file__).resolve().parent
 SEFARIA_SEARCH_WRAPPER_URL = "https://www.sefaria.org/api/search-wrapper"
@@ -3064,6 +3099,21 @@ def ask_question():
     canonical_lens = "All" if community_lens.lower() == "all" else (
         _canonicalize_community_name(community_lens) or community_lens)
     user_id = _get_request_user_id()
+    ask_cache_key = "|".join([
+        question.lower(),
+        answer_language,
+        mode,
+        canonical_lens.lower(),
+        user_id or "anon",
+    ])
+
+    cached_payload = _get_cached_ask_payload(ask_cache_key)
+    if cached_payload is not None:
+        cached_meta = cached_payload.get("meta")
+        if isinstance(cached_meta, dict):
+            cached_meta["cached"] = True
+            cached_meta["generated_at"] = int(time.time())
+        return jsonify(cached_payload)
 
     try:
         engine = get_engine()
@@ -3083,7 +3133,7 @@ def ask_question():
                     "ניתן לעיין בספרי התפילה והשירותים הליטורגיים המלאים באזור התפילה. "
                     "להכרעה מעשית יש להשוות למנהג הקהילה המקומית ולהתייעץ עם הרב שלך."
                 )
-            return jsonify({
+            prayer_payload = {
                 "answer": prayer_answer,
                 "confidence": 0.85,
                 "sources": [{
@@ -3100,35 +3150,81 @@ def ask_question():
                     "custom_count": 0,
                     "generated_at": int(time.time()),
                     "fallback": False,
+                    "cached": False,
                 }
-            })
+            }
+            _set_cached_ask_payload(ask_cache_key, prayer_payload)
+            return jsonify(prayer_payload)
 
         # 1. Fetch Sefaria Refs - Standard halakhic questions
         primary_refs = sefaria.find_refs_for_question(question)
-        primary_sources = []
+        max_primary_refs = _env_int("ASK_PRIMARY_SOURCE_LIMIT", 6)
+        max_primary_refs = max(1, min(max_primary_refs, 12))
+        primary_ref_candidates = []
         for ref in primary_refs:
-            # ref is a string, not a dict - get library text using the ref directly
-            source_data = engine.get_library_text(ref)
-            primary_sources.append(source_data)
+            normalized_ref = str(ref or "").strip()
+            if not normalized_ref:
+                continue
+            primary_ref_candidates.append(normalized_ref)
+            if len(primary_ref_candidates) >= max_primary_refs:
+                break
 
-        # 2. Fetch Halachipedia
-        halachipedia_info = engine.get_halachipedia_summary(question)
+        primary_sources = []
+        if primary_ref_candidates:
+            worker_count = min(6, len(primary_ref_candidates))
+            with ThreadPoolExecutor(max_workers=worker_count) as executor:
+                source_futures = [
+                    executor.submit(engine.get_library_text, ref)
+                    for ref in primary_ref_candidates
+                ]
+                for future in source_futures:
+                    try:
+                        source_data = future.result(timeout=8)
+                    except Exception:
+                        continue
+                    if isinstance(source_data, dict):
+                        primary_sources.append(source_data)
+
+        # 2-4. Fetch remaining context in parallel.
+        with ThreadPoolExecutor(max_workers=4) as executor:
+            halachipedia_future = executor.submit(
+                engine.get_halachipedia_summary, question)
+            knowledge_future = executor.submit(
+                _retrieve_community_knowledge,
+                question,
+                canonical_lens=canonical_lens,
+                max_rows=RAG_TOP_KNOWLEDGE_ROWS,
+            )
+            memory_future = executor.submit(
+                _fetch_user_memory_summaries,
+                user_id,
+                limit=RAG_MEMORY_ROWS,
+            )
+            wiki_future = executor.submit(engine.get_wiki, question)
+
+            try:
+                halachipedia_info = halachipedia_future.result(timeout=8)
+            except Exception:
+                halachipedia_info = None
+            try:
+                knowledge_rows = knowledge_future.result(timeout=8)
+            except Exception:
+                knowledge_rows = []
+            try:
+                user_memory_summaries = memory_future.result(timeout=6)
+            except Exception:
+                user_memory_summaries = []
+            try:
+                wiki_info = wiki_future.result(timeout=8)
+            except Exception:
+                wiki_info = None
+
         halachipedia_list = [halachipedia_info] if halachipedia_info else []
-
-        # 3. Fetch dynamic community context and identity-aware memory from Supabase.
-        knowledge_rows = _retrieve_community_knowledge(
-            question,
-            canonical_lens=canonical_lens,
-            max_rows=RAG_TOP_KNOWLEDGE_ROWS,
-        )
+        knowledge_rows = knowledge_rows if isinstance(
+            knowledge_rows, list) else []
+        user_memory_summaries = user_memory_summaries if isinstance(
+            user_memory_summaries, list) else []
         customs_info = _knowledge_rows_to_customs(knowledge_rows)
-        user_memory_summaries = _fetch_user_memory_summaries(
-            user_id,
-            limit=RAG_MEMORY_ROWS,
-        )
-
-        # 4. Fetch Wikipedia
-        wiki_info = engine.get_wiki(question)
         wiki_list = [wiki_info] if wiki_info else []
 
         # 5. Prepare flattened primary source text for the protected AI wrapper.
@@ -3165,7 +3261,7 @@ def ask_question():
             DEVTOOLS_STATS["strict_blocks"] += 1
             DEVTOOLS_STATS["fallback_answers"] += 1
             display_sources = _compact_ai_sources(primary_sources)
-            return jsonify({
+            strict_payload = {
                 "answer": (
                     "Strict Sources Mode could not complete this request because no primary Sefaria sources "
                     "were matched with sufficient confidence. Please refine the question with a text reference."
@@ -3182,8 +3278,11 @@ def ask_question():
                     "generated_at": int(time.time()),
                     "fallback": True,
                     "strict_blocked": True,
+                    "cached": False,
                 }
-            })
+            }
+            _set_cached_ask_payload(ask_cache_key, strict_payload)
+            return jsonify(strict_payload)
 
         try:
             result = claude.ask_claude(
@@ -3218,7 +3317,7 @@ def ask_question():
                 DEVTOOLS_STATS["answers_total"] += 1
                 DEVTOOLS_STATS["fallback_answers"] += 1
 
-                return jsonify({
+                blocked_payload = {
                     "answer": blocked_answer,
                     "confidence": result.get("confidence", 0),
                     "wiki": [],
@@ -3238,8 +3337,11 @@ def ask_question():
                         "is_prohibited": False,
                         "input_sanitized": question_was_sanitized,
                         "security": result.get("security") or {},
+                        "cached": False,
                     }
-                })
+                }
+                _set_cached_ask_payload(ask_cache_key, blocked_payload)
+                return jsonify(blocked_payload)
 
             structured_payload = result.get("structured")
             if not isinstance(structured_payload, dict):
@@ -3287,7 +3389,7 @@ def ask_question():
             display_sources = _compact_ai_sources(primary_sources)
 
             # Successful AI answer path returns immediately; fallback is only for empty/error responses.
-            return jsonify({
+            success_payload = {
                 "answer": normalized_answer,
                 "confidence": result.get("confidence"),
                 "wiki": wiki_list + halachipedia_list,
@@ -3308,8 +3410,11 @@ def ask_question():
                     "is_prohibited": bool((structured_payload or {}).get("is_prohibited", False)),
                     "input_sanitized": question_was_sanitized,
                     "security": result.get("security") or {},
+                    "cached": False,
                 }
-            })
+            }
+            _set_cached_ask_payload(ask_cache_key, success_payload)
+            return jsonify(success_payload)
 
         except Exception as ai_error:
             _capture_backend_error(
@@ -3351,7 +3456,7 @@ def ask_question():
             DEVTOOLS_STATS["fallback_answers"] += 1
             fallback_sources = _compact_ai_sources(
                 fallback_payload.get("sources", []))
-            return jsonify({
+            fallback_payload_response = {
                 "answer": fallback_answer,
                 "confidence": 0.4,
                 "wiki": wiki_list + halachipedia_list,
@@ -3377,8 +3482,11 @@ def ask_question():
                         "warning": fallback_warning,
                         "reason": str(ai_error),
                     },
+                    "cached": False,
                 }
-            })
+            }
+            _set_cached_ask_payload(ask_cache_key, fallback_payload_response)
+            return jsonify(fallback_payload_response)
 
     except Exception as e:
         _capture_backend_error(
@@ -3837,6 +3945,39 @@ def library_leaf_refs():
 
         return sections
 
+    def _collapse_talmud_leaf_refs(index_title, refs, max_items=260):
+        """Convert segment-level Talmud refs into unique daf refs for stable grid rendering."""
+        if not isinstance(refs, list) or not refs:
+            return []
+
+        normalized_title = str(index_title or "").strip()
+        compact_refs = []
+        seen = set()
+
+        for ref_value in refs:
+            ref_text = str(ref_value or "").strip()
+            if not ref_text:
+                continue
+
+            body = ref_text
+            if normalized_title and body.lower().startswith(normalized_title.lower()):
+                body = body[len(normalized_title):].lstrip(" ,")
+
+            daf_match = _re.search(r"(\d+[ab])", body, _re.IGNORECASE)
+            if not daf_match:
+                continue
+
+            daf = daf_match.group(1).lower()
+            if daf in seen:
+                continue
+            seen.add(daf)
+
+            compact_refs.append(f"{normalized_title} {daf}".strip())
+            if len(compact_refs) >= max_items:
+                break
+
+        return compact_refs
+
     def _synthesize_section_refs(index_title, max_items=140):
         entry = get_index_entry(index_title)
         schema = entry.get("schema", {}) if isinstance(entry, dict) else {}
@@ -3911,6 +4052,12 @@ def library_leaf_refs():
             sections = _extract_talmud_sections(title, entry)
         except Exception:
             sections = []
+
+    if sections:
+        collapsed_refs = _collapse_talmud_leaf_refs(
+            title, refs, max_items=max_refs)
+        if collapsed_refs:
+            refs = collapsed_refs
 
     return jsonify({
         "title": title,
