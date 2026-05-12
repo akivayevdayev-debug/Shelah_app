@@ -1,6 +1,6 @@
 # Templates Notes
 
-> Sync status (2026-04-21): Verified against current implementation (report-driven library filtering, topbar menu icon layering fix, global warm icon tones, and backup template sync).
+> Sync status (2026-05-12): Updated — source links now open in local reader (not sefaria.org), quick-settings panel right-aligns on desktop, centers on large mobile, left-aligns on phone. AI modal populates local-reader source links via data attribute + event delegation.
 
 ## `index.html` responsibilities
 

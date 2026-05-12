@@ -1,6 +1,6 @@
 # Sh'elah Developer Notes
 
-> Sync status (2026-04-21): Verified against current implementation (report-driven library filtering, topbar menu icon layering fix, global warm icon tones, and backup template sync).
+> Sync status (2026-05-12): Updated to reflect May 2026 improvements — AI reliability fix (no-cache for fallback responses), local source links, quick-settings panel repositioning, Gemini model update, and service worker v8.
 
 This guide is for coders who need a fast, practical map of what each part of the codebase does.
 It is organized by runtime flow first, then file-by-file notes.
