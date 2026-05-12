@@ -1,6 +1,6 @@
 # Static Assets Notes
 
-> Sync status (2026-04-21): Verified against current implementation (report-driven library filtering, topbar menu icon layering fix, global warm icon tones, and backup template sync).
+> Sync status (2026-05-12): Updated to reflect May 2026 changes — service worker bumped to v8, CSS cache-buster versions updated to v=20260512.
 
 ## `style.css`
 
