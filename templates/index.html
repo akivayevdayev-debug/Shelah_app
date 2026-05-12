@@ -20,15 +20,15 @@
     <link href="https://fonts.googleapis.com/css2?family=Cardo:wght@400;700&family=Inter:wght@400;500;600&display=swap"
         rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
-    <link rel="stylesheet" href="/static/style.css?v=20260509-hebrew-rtl-v3">
+    <link rel="stylesheet" href="/static/style.css?v=20260512-v1">
     <!-- CSS modules (supplement style.css; do not replace) -->
-    <link rel="stylesheet" href="/static/css/typography.css?v=20260507-v1">
-    <link rel="stylesheet" href="/static/css/reader.css?v=20260507-v1">
-    <link rel="stylesheet" href="/static/css/sidebar.css?v=20260507-v2-fix">
-    <link rel="stylesheet" href="/static/css/halacha.css?v=20260507-v1">
-    <link rel="stylesheet" href="/static/css/prayer.css?v=20260507-v1">
-    <link rel="stylesheet" href="/static/css/ai.css?v=20260507-v1">
-    <link rel="stylesheet" href="/static/css/calendar.css?v=20260507-v1">
+    <link rel="stylesheet" href="/static/css/typography.css?v=20260512-v1">
+    <link rel="stylesheet" href="/static/css/reader.css?v=20260512-v1">
+    <link rel="stylesheet" href="/static/css/sidebar.css?v=20260512-v1">
+    <link rel="stylesheet" href="/static/css/halacha.css?v=20260512-v1">
+    <link rel="stylesheet" href="/static/css/prayer.css?v=20260512-v1">
+    <link rel="stylesheet" href="/static/css/ai.css?v=20260512-v1">
+    <link rel="stylesheet" href="/static/css/calendar.css?v=20260512-v1">
 
     <style id="quick-settings-dark-fixes">
         /* Quick Settings dark-mode fixes: ensure inputs, selects, buttons, labels readable */
@@ -3651,8 +3651,22 @@
             const minWidth = Number.isFinite(options.minWidth) ? options.minWidth : 160;
             const maxWidth = Number.isFinite(options.maxWidth) ? options.maxWidth : 352;
             const triggerRect = triggerEl.getBoundingClientRect();
-            const width = Math.min(maxWidth, Math.max(minWidth, viewportWidth - (padding * 2)));
-            const left = Math.max(padding, Math.min(Math.round(triggerRect.left), viewportWidth - width - padding));
+            const panelWidth = Math.min(maxWidth, Math.max(minWidth, viewportWidth - (padding * 2)));
+
+            // Alignment strategy based on viewport width:
+            // Desktop (≥1024px): right-align panel to button's right edge (drops directly below button)
+            // Large mobile (640–1023px): center panel under button, clamp to avoid cutoff
+            // Phone (<640px): left-align panel to button's left edge
+            let preferredLeft;
+            if (viewportWidth >= 1024) {
+                preferredLeft = Math.round(triggerRect.right) - panelWidth;
+            } else if (viewportWidth >= 640) {
+                preferredLeft = Math.round(triggerRect.left + triggerRect.width / 2 - panelWidth / 2);
+            } else {
+                preferredLeft = Math.round(triggerRect.left);
+            }
+            const left = Math.max(padding, Math.min(preferredLeft, viewportWidth - panelWidth - padding));
+
             const top = Math.min(
                 viewportHeight - padding,
                 Math.round(triggerRect.bottom + offset),
@@ -3662,7 +3676,7 @@
             menuEl.style.setProperty('left', `${left}px`, 'important');
             menuEl.style.setProperty('top', `${top}px`, 'important');
             menuEl.style.setProperty('right', 'auto', 'important');
-            menuEl.style.setProperty('width', `${width}px`, 'important');
+            menuEl.style.setProperty('width', `${panelWidth}px`, 'important');
             menuEl.style.setProperty('max-width', `${Math.max(0, viewportWidth - (padding * 2))}px`, 'important');
         }
 
@@ -7954,7 +7968,7 @@
             aiModal.style.display = 'flex';
 
             // Reset modal content
-            document.getElementById('aiSynthesis').innerHTML = `<p class="text-slate-400 italic animate-pulse">${t('Synthesizing answer from Sefaria, customs, and halachic sources...', 'מסנתז תשובה מספריא, ממנהגים וממקורות הלכתיים...')}</p>`;
+            document.getElementById('aiSynthesis').innerHTML = `<p class="text-slate-400 italic animate-pulse">${t('Synthesizing answer from Library, customs, and halachic sources...', 'מסנתז תשובה מספריא, ממנהגים וממקורות הלכתיים...')}</p>`;
             document.getElementById('aiModalTitle').textContent = question;
             document.getElementById('aiSourcesSection').classList.add('hidden');
             document.getElementById('aiCustomsSection').classList.add('hidden');
@@ -9245,8 +9259,22 @@
                 data.sources.forEach(src => {
                     const clone = sourceDualTemplate.content.cloneNode(true);
                     clone.querySelector('.source-title span').textContent = src.title || src.ref || t("Sefaria Source", "מקור מספריא");
-                    clone.querySelector('.source-link').href = `https://www.sefaria.org/${src.ref}`;
-                    clone.querySelector('.source-link').textContent = t('View in Library ↗', 'צפה בספרייה ↗');
+
+                    const sourceLink = clone.querySelector('.source-link');
+                    const isExternal = src.domain && !String(src.domain).includes('sefaria') && src.url;
+                    if (isExternal) {
+                        sourceLink.href = src.url;
+                        sourceLink.target = '_blank';
+                        sourceLink.rel = 'noopener noreferrer';
+                        sourceLink.textContent = t(`${src.source_provider || src.domain} ↗`, `${src.source_provider || src.domain} ↗`);
+                    } else {
+                        sourceLink.href = '#';
+                        sourceLink.addEventListener('click', (e) => {
+                            e.preventDefault();
+                            if (src.ref) readText(src.ref);
+                        });
+                        sourceLink.textContent = t('Open in Reader ↗', 'פתח בקורא ↗');
+                    }
 
                     const heDiv = clone.querySelector('.source-he');
                     const enDiv = clone.querySelector('.source-en');
@@ -9368,11 +9396,15 @@
                 sourcesDiv.innerHTML = '';
                 rankedSources.forEach((src) => {
                     const lines = Array.isArray(src?.lines) ? src.lines : [];
+                    const isExternal = src.domain && !String(src.domain).includes('sefaria') && src.url;
+                    const linkHtml = isExternal
+                        ? `<a href="${src.url}" target="_blank" rel="noopener noreferrer" class="text-xs text-[#6a5840] hover:underline">${src.source_provider || src.domain} ↗</a>`
+                        : `<a href="#" data-local-ref="${(src.ref || '').replace(/"/g, '&quot;')}" class="source-local-link text-xs text-[#6a5840] hover:underline">${t('Open in Reader ↗', 'פתח בקורא ↗')}</a>`;
                     const sourceHtml = `
                         <div class="bg-slate-50 p-4 rounded border border-slate-200 hover:border-[#b9a787] transition">
                             <div class="flex justify-between items-start mb-2">
                                 <h4 class="font-hebrew text-sm font-bold text-navy">${src.ref}</h4>
-                                <a href="https://www.sefaria.org/${src.ref}" target="_blank" class="text-xs text-[#6a5840] hover:underline">${t('Sefaria ↗', 'ספריא ↗')}</a>
+                                ${linkHtml}
                             </div>
                             <div class="text-xs text-slate-600 bg-white p-2 rounded max-h-32 overflow-y-auto">
                                 ${lines.slice(0, 3).map((line) => {
@@ -9385,6 +9417,14 @@
                         </div>
                     `;
                     sourcesDiv.innerHTML += sourceHtml;
+                });
+                // Wire click handlers for local-reader links (data-local-ref)
+                sourcesDiv.querySelectorAll('a.source-local-link').forEach((a) => {
+                    a.addEventListener('click', (e) => {
+                        e.preventDefault();
+                        const ref = a.getAttribute('data-local-ref');
+                        if (ref) readText(ref);
+                    });
                 });
                 document.getElementById('aiSourcesSection').classList.remove('hidden');
             }

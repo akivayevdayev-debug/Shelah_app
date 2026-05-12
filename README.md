@@ -47,7 +47,7 @@ uvicorn asgi:app --host 127.0.0.1 --port 5001 --reload
 - `asgi.py`: FastAPI async `/ask` route with mounted legacy Flask app
 - `backend/`: backend service modules and integrations
 - `templates/`: HTML templates
-- `static/`: CSS and static assets
+- `static/`: Tailwind CSS, CSS, and static assets
 - `customs/`: community customs JSON datasets
 - `docs/`: implementation and audit docs
 - `scripts/`: utility scripts (verification, data fetch, audits)
@@ -56,7 +56,9 @@ uvicorn asgi:app --host 127.0.0.1 --port 5001 --reload
 ## Environment Variables
 
 - `FLASK_SECRET_KEY`: required for stable sessions
-- `ANTHROPIC_API_KEY`: optional, enables Claude-backed responses
+- `GOOGLE_API_KEY`: required for gemini api backed responses 
+- `GOOGLE_MODEL`: optional Gemini model override (default: `gemini-flash-3`)
+- `ANTHROPIC_API_KEY`: optional, enables Claude-backed backup responses
 - `ANTHROPIC_MODEL`: optional Claude model override (default: `claude-haiku-4-5`)
 - `AI_MAX_INPUT_CHARS`: max sanitized user query size passed to AI wrapper
 - `AI_MAX_PROMPT_CHARS`: max prompt payload length sent to Claude
