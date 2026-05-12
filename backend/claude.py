@@ -76,7 +76,7 @@ class HalakhicContext:
 
 MAX_INPUT_CHARS = _int_env("AI_MAX_INPUT_CHARS", 1200)
 MAX_PROMPT_CHARS = _int_env("AI_MAX_PROMPT_CHARS", 16000)
-MODEL_REQUEST_TIMEOUT_SECONDS = _int_env("AI_MODEL_TIMEOUT_SECONDS", 50)
+MODEL_REQUEST_TIMEOUT_SECONDS = _int_env("AI_MODEL_TIMEOUT_SECONDS", 35)
 
 STRUCTURED_RESPONSE_FIELDS = {
     "ruling",
@@ -209,7 +209,8 @@ def _configure_gemini_client() -> Optional[str]:
 
     if _cached_gemini_api_key != api_key:
         try:
-            genai.configure(api_key=api_key)
+            assert genai is not None  # Type guard for mypy/pylance
+            genai.configure(api_key=api_key)  # type: ignore[attr-defined]
             _cached_gemini_api_key = api_key
         except Exception as exc:
             _cached_gemini_api_key = None
@@ -269,7 +270,7 @@ def _generate_gemini_content_with_retry(model: Any, prompt: str) -> Any:
     # First attempt is immediate; tenacity applies waits only between retries.
     return model.generate_content(
         prompt,
-        generation_config={"max_output_tokens": 800},
+        generation_config={"max_output_tokens": 2048, "temperature": 0.4},
     )
 
 
@@ -277,7 +278,10 @@ def _call_gemini_model(
     prompt: str,
     dynamic_system_context: str = "",
 ) -> Dict[str, Any]:
-    """Low-level Gemini primary call (internal)."""
+    """Low-level Gemini primary call. Tries primary then lite on any API error (404, 503, 429)."""
+    _PRIMARY_MODEL = "gemini-3-flash-preview"
+    _LITE_MODEL = "gemini-3.1-flash-lite-preview"
+
     config_error = _configure_gemini_client()
     if config_error:
         return {
@@ -285,7 +289,7 @@ def _call_gemini_model(
             "confidence": 0,
             "error": config_error,
             "is_fallback": False,
-            "provider": "gemini-3-flash",
+            "provider": _PRIMARY_MODEL,
         }
 
     if genai is None:
@@ -294,61 +298,77 @@ def _call_gemini_model(
             "confidence": 0,
             "error": "gemini_sdk_missing",
             "is_fallback": False,
-            "provider": "gemini-3-flash",
+            "provider": _PRIMARY_MODEL,
         }
 
+    assert genai is not None  # Type guard for mypy/pylance
+    model_name = (os.environ.get("GEMINI_MODEL")
+                  or _PRIMARY_MODEL).strip() or _PRIMARY_MODEL
+    lite_model_name = _LITE_MODEL
+
+    system_instruction = CORE_SYSTEM_PROMPT
+    if dynamic_system_context:
+        system_instruction = f"{CORE_SYSTEM_PROMPT}\n\n{dynamic_system_context}"
+
+    def _attempt(m_name: str) -> str:
+        m = genai.GenerativeModel(  # type: ignore[attr-defined]
+            model_name=m_name, system_instruction=system_instruction)
+        resp = _generate_gemini_content_with_retry(m, prompt)
+        return _extract_gemini_response_text(resp)
+
+    primary_error: Optional[str] = None
+    response_text: Optional[str] = None
+    used_model = model_name
+
+    logger.info(f"Calling Gemini as primary ({model_name}).")
     try:
-        model_name = (os.environ.get("GEMINI_MODEL")
-                      or "gemini-3-flash").strip()
-        if not model_name:
-            model_name = "gemini-3-flash"
-
-        system_instruction = CORE_SYSTEM_PROMPT
-        if dynamic_system_context:
-            system_instruction = f"{CORE_SYSTEM_PROMPT}\n\n{dynamic_system_context}"
-
-        model = genai.GenerativeModel(
-            model_name=model_name,
-            system_instruction=system_instruction,
+        response_text = _attempt(model_name)
+    except Exception as exc:
+        primary_error = str(exc)
+        logger.info(
+            f"Gemini model {model_name} failed ({primary_error}). "
+            f"Retrying with fallback model ({lite_model_name})."
         )
 
-        logger.info(f"Calling Gemini ({model_name}) as primary.")
+    if primary_error is not None:
         try:
-            response = _generate_gemini_content_with_retry(model, prompt)
-        except ResourceExhausted as exc:
-            rate_limit_note = (
-                "Sh'elah is temporarily rate limited. "
-                "Please try again in a moment."
+            response_text = _attempt(lite_model_name)
+            used_model = lite_model_name
+        except Exception as lite_exc:
+            all_err = (
+                f"all_models_failed ({model_name}, {lite_model_name}); "
+                f"last_error: {lite_model_name}: {lite_exc}"
+            )
+            logger.warning(
+                f"Gemini primary failed (gemini_error: {all_err}). Falling back to Claude Haiku."
             )
             return {
-                "answer": rate_limit_note,
+                "answer": "AI provider is currently unavailable.",
                 "confidence": 0,
-                "error": f"gemini_rate_limited: {exc}",
+                "error": f"gemini_error: {all_err}",
                 "is_fallback": False,
                 "provider": model_name,
             }
 
-        response_text = _extract_gemini_response_text(response)
-        if not response_text:
-            raise RuntimeError("empty_response")
-
-        structured = parse_structured_model_output(response_text)
-
-        return {
-            "answer": render_structured_markdown(structured),
-            "structured": structured,
-            "confidence": 0.72,
-            "is_fallback": False,
-            "provider": model_name,
-        }
-    except Exception as exc:
+    if not response_text:
+        logger.warning(
+            f"Gemini {used_model} returned empty response. Falling back to Claude Haiku.")
         return {
             "answer": "AI provider is currently unavailable.",
             "confidence": 0,
-            "error": f"gemini_error: {exc}",
+            "error": "gemini_error: empty_response",
             "is_fallback": False,
-            "provider": "gemini-3-flash",
+            "provider": used_model,
         }
+
+    structured = parse_structured_model_output(response_text)
+    return {
+        "answer": render_structured_markdown(structured),
+        "structured": structured,
+        "confidence": 0.72 if used_model == model_name else 0.70,
+        "is_fallback": False,
+        "provider": used_model,
+    }
 
 
 def sanitize_user_query(query: str, max_chars: int = MAX_INPUT_CHARS) -> str:
@@ -916,11 +936,13 @@ def _call_claude_model(
 
         message = client.messages.create(
             model=model_name,
-            system=system_text,
-            max_tokens=800,
+            system=[{"type": "text", "text": system_text,
+                     "cache_control": {"type": "ephemeral"}}],
+            max_tokens=1024,
             messages=[
                 {"role": "user", "content": prompt}
-            ]
+            ],
+            extra_headers={"anthropic-beta": "prompt-caching-2024-07-31"},
         )
         logger.info(
             f"Claude fallback request successful. Provider: {model_name}")
@@ -1083,12 +1105,13 @@ async def _call_anthropic_httpx_model(
     headers = {
         "x-api-key": api_key,
         "anthropic-version": "2023-06-01",
+        "anthropic-beta": "prompt-caching-2024-07-31",
         "content-type": "application/json",
     }
     payload = {
         "model": model_name,
-        "max_tokens": 800,
-        "system": system_text,
+        "max_tokens": 1024,
+        "system": [{"type": "text", "text": system_text, "cache_control": {"type": "ephemeral"}}],
         "messages": [{"role": "user", "content": prompt}],
     }
 
@@ -1142,9 +1165,11 @@ async def _call_gemini_httpx_model(
         or os.environ.get("GOOGLE_API_KEY")
         or ""
     ).strip()
-    model_name = (os.environ.get("GEMINI_MODEL") or "gemini-3-flash").strip()
+    model_name = (os.environ.get("GEMINI_MODEL")
+                  or "gemini-3-flash-preview").strip()
     if not model_name:
-        model_name = "gemini-3-flash"
+        model_name = "gemini-3-flash-preview"
+    lite_model_name = "gemini-3.1-flash-lite-preview"
 
     if not api_key:
         return {
@@ -1155,25 +1180,19 @@ async def _call_gemini_httpx_model(
             "provider": model_name,
         }
 
-    endpoint = f"https://generativelanguage.googleapis.com/v1beta/models/{model_name}:generateContent"
-    payload = {
-        "system_instruction": {
-            "parts": [{"text": f"{CORE_SYSTEM_PROMPT}\n\n{dynamic_system_context}".strip()}],
-        },
-        "contents": [{"role": "user", "parts": [{"text": prompt}]}],
-        "generationConfig": {"maxOutputTokens": 800},
-    }
+    system_text = f"{CORE_SYSTEM_PROMPT}\n\n{dynamic_system_context}".strip()
 
-    try:
+    async def _gemini_httpx_call(use_model: str) -> Dict[str, Any]:
+        endpoint = f"https://generativelanguage.googleapis.com/v1beta/models/{use_model}:generateContent"
+        payload = {
+            "system_instruction": {"parts": [{"text": system_text}]},
+            "contents": [{"role": "user", "parts": [{"text": prompt}]}],
+            "generationConfig": {"maxOutputTokens": 2048, "temperature": 0.4},
+        }
         async with httpx.AsyncClient(timeout=MODEL_REQUEST_TIMEOUT_SECONDS) as client:
-            response = await client.post(
-                endpoint,
-                params={"key": api_key},
-                json=payload,
-            )
-            response.raise_for_status()
-            data = response.json()
-
+            resp = await client.post(endpoint, params={"key": api_key}, json=payload)
+            resp.raise_for_status()
+            data = resp.json()
         chunks: List[str] = []
         for candidate in (data.get("candidates") or []):
             content = candidate.get("content") if isinstance(
@@ -1182,8 +1201,23 @@ async def _call_gemini_httpx_model(
                 text = part.get("text") if isinstance(part, dict) else ""
                 if isinstance(text, str) and text.strip():
                     chunks.append(text)
+        return {"text": "\n".join(chunks).strip(), "model": use_model}
 
-        response_text = "\n".join(chunks).strip()
+    try:
+        try:
+            result = await _gemini_httpx_call(model_name)
+        except httpx.HTTPStatusError as http_exc:
+            status = http_exc.response.status_code
+            if status in (429, 404, 503):
+                # Rate-limited, model not found, or service unavailable — try lite before Claude.
+                logger.info(
+                    f"Gemini {model_name} httpx {status}, retrying with {lite_model_name}.")
+                result = await _gemini_httpx_call(lite_model_name)
+            else:
+                raise
+
+        response_text = result["text"]
+        used_model = result["model"]
         if not response_text:
             raise RuntimeError("empty_response")
 
@@ -1193,7 +1227,7 @@ async def _call_gemini_httpx_model(
             "structured": structured,
             "confidence": 0.72,
             "is_fallback": False,
-            "provider": model_name,
+            "provider": used_model,
         }
     except Exception as exc:
         return {
@@ -1329,9 +1363,10 @@ def summarize_with_gemini(segment_text: str, notes: str = "") -> Dict[str, Any]:
             ).strip()
         return ""
 
-    model_name = (os.environ.get("GEMINI_MODEL") or "gemini-3-flash").strip()
+    model_name = (os.environ.get("GEMINI_MODEL")
+                  or "gemini-3-flash-preview").strip()
     if not model_name:
-        model_name = "gemini-3-flash"
+        model_name = "gemini-3-flash-preview"
 
     prompt = (
         "You are preparing a concise chevruta study note. Return plain text only. "
@@ -1349,7 +1384,9 @@ def summarize_with_gemini(segment_text: str, notes: str = "") -> Dict[str, Any]:
                 "error": config_error or "gemini_sdk_missing",
             }
 
-        model = genai.GenerativeModel(model_name=model_name)
+        assert genai is not None  # Type guard for mypy/pylance
+        # type: ignore[attr-defined]
+        model = genai.GenerativeModel(model_name=model_name) # pyright: ignore[reportPrivateImportUsage]
         response = model.generate_content(
             prompt,
             generation_config={"max_output_tokens": 240},

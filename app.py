@@ -1317,11 +1317,23 @@ def _compact_ai_sources(sources, max_sources=8, max_lines=3, max_chars=280):
 
             lines.append({"en": en, "he": he})
 
-        compacted.append({
+        domain = str(src.get("domain") or "").strip()
+        source_provider = str(src.get("source_provider") or "").strip()
+        url = str(src.get("url") or "").strip()
+
+        entry: dict = {
             "ref": ref[:220],
             "title": title[:220],
             "lines": lines,
-        })
+        }
+        if domain:
+            entry["domain"] = domain
+        if source_provider:
+            entry["source_provider"] = source_provider
+        if url:
+            entry["url"] = url
+
+        compacted.append(entry)
 
     return compacted
 
@@ -3158,8 +3170,9 @@ def ask_question():
 
         # 1. Fetch Sefaria Refs - Standard halakhic questions
         primary_refs = sefaria.find_refs_for_question(question)
-        max_primary_refs = _env_int("ASK_PRIMARY_SOURCE_LIMIT", 6)
-        max_primary_refs = max(1, min(max_primary_refs, 12))
+        max_primary_refs = _env_int(
+            "ASK_PRIMARY_SOURCE_LIMIT", 4)  # Capped at 4 for speed
+        max_primary_refs = max(1, min(max_primary_refs, 8))
         primary_ref_candidates = []
         for ref in primary_refs:
             normalized_ref = str(ref or "").strip()
@@ -3171,7 +3184,7 @@ def ask_question():
 
         primary_sources = []
         if primary_ref_candidates:
-            worker_count = min(6, len(primary_ref_candidates))
+            worker_count = min(4, len(primary_ref_candidates))
             with ThreadPoolExecutor(max_workers=worker_count) as executor:
                 source_futures = [
                     executor.submit(engine.get_library_text, ref)
@@ -3179,7 +3192,7 @@ def ask_question():
                 ]
                 for future in source_futures:
                     try:
-                        source_data = future.result(timeout=8)
+                        source_data = future.result(timeout=5)
                     except Exception:
                         continue
                     if isinstance(source_data, dict):
@@ -3203,19 +3216,19 @@ def ask_question():
             wiki_future = executor.submit(engine.get_wiki, question)
 
             try:
-                halachipedia_info = halachipedia_future.result(timeout=8)
+                halachipedia_info = halachipedia_future.result(timeout=6)
             except Exception:
                 halachipedia_info = None
             try:
-                knowledge_rows = knowledge_future.result(timeout=8)
+                knowledge_rows = knowledge_future.result(timeout=6)
             except Exception:
                 knowledge_rows = []
             try:
-                user_memory_summaries = memory_future.result(timeout=6)
+                user_memory_summaries = memory_future.result(timeout=5)
             except Exception:
                 user_memory_summaries = []
             try:
-                wiki_info = wiki_future.result(timeout=8)
+                wiki_info = wiki_future.result(timeout=5)
             except Exception:
                 wiki_info = None
 
@@ -3485,7 +3498,7 @@ def ask_question():
                     "cached": False,
                 }
             }
-            _set_cached_ask_payload(ask_cache_key, fallback_payload_response)
+            # Do NOT cache AI failure/fallback responses — allow next request to retry.
             return jsonify(fallback_payload_response)
 
     except Exception as e:
