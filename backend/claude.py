@@ -541,21 +541,20 @@ def render_structured_markdown(structured: Dict[str, Any], answer_language: str 
     if structured.get("is_prohibited"):
         lines.extend(["", status_label])
 
-    if steps or sources:
-        lines.extend(["", deeper_header, ""])
-
+    # Deeper Reasoning — practical steps only (sources moved to their own section below)
     if steps:
+        lines.extend(["", deeper_header, ""])
         lines.extend([steps_label, ""])
         lines.extend([f"- {step}" for step in steps])
 
-    if sources:
-        if steps:
-            lines.append("")
-        lines.extend([sources_label, ""])
-        lines.extend([f"- {source}" for source in sources])
-
-    if summary:
+    # Summary
+    if summary and summary != direct_answer:
         lines.extend(["", summary_header, "", summary])
+
+    # Sources — always last so the reader sees the answer first
+    if sources:
+        lines.extend(["", sources_label, ""])
+        lines.extend([f"- {source}" for source in sources])
 
     return "\n".join(lines).strip()
 
@@ -1384,9 +1383,10 @@ def summarize_with_gemini(segment_text: str, notes: str = "") -> Dict[str, Any]:
                 "error": config_error or "gemini_sdk_missing",
             }
 
-        assert genai is not None  # Type guard for mypy/pylance
-        # type: ignore[attr-defined]
-        model = genai.GenerativeModel(model_name=model_name) # pyright: ignore[reportPrivateImportUsage]
+        assert genai is not None  # Type guard
+        model = genai.GenerativeModel(  # type: ignore[attr-defined]
+            model_name=model_name
+        )
         response = model.generate_content(
             prompt,
             generation_config={"max_output_tokens": 240},

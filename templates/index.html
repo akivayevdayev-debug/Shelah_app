@@ -1410,8 +1410,8 @@
 
                 <!-- Sources Section -->
                 <div id="aiSourcesSection" class="hidden">
-                    <h3 class="font-serif text-lg font-bold text-navy mb-3 border-t pt-4" data-en="Primary Sources"
-                        data-he="מקורות ראשוניים">Primary Sources</h3>
+                    <h3 class="font-serif text-lg font-bold text-navy mb-3 border-t pt-4" data-en="Sources"
+                        data-he="מקורות">Sources</h3>
                     <div id="aiSources" class="space-y-4">
                         <!-- Sources populated via JS -->
                     </div>
@@ -9445,16 +9445,24 @@
                 document.getElementById('aiCustomsSection').classList.remove('hidden');
             }
 
-            // 4. Populate encyclopedia/wiki
+            // 4. Populate encyclopedia/wiki (with external links where available)
             if (data.wiki && data.wiki.length > 0) {
                 const wikiDiv = document.getElementById('aiWiki');
                 wikiDiv.innerHTML = '';
                 data.wiki.forEach(w => {
                     if (w) {
+                        const safeTitle = String(w.title || '').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+                        const safeSummary = String(w.summary || '').substring(0, 200).replace(/</g, '&lt;').replace(/>/g, '&gt;');
+                        const externalLinkHtml = w.url
+                            ? `<a href="${w.url.replace(/"/g, '&quot;')}" target="_blank" rel="noopener noreferrer" class="text-xs text-[#6a5840] hover:underline ml-2">${w.source_provider || w.domain || 'Source'} ↗</a>`
+                            : '';
                         const wikiHtml = `
                             <div class="bg-[#f2eadc] border border-[#d7c8ad] p-3 rounded">
-                                <div class="font-bold text-[#5e4d37] text-sm mb-1">${w.title}</div>
-                                <div class="text-xs text-[#544433]">${w.summary.substring(0, 150)}...</div>
+                                <div class="flex justify-between items-start mb-1">
+                                    <div class="font-bold text-[#5e4d37] text-sm">${safeTitle}</div>
+                                    ${externalLinkHtml}
+                                </div>
+                                <div class="text-xs text-[#544433]">${safeSummary}${safeSummary.length >= 200 ? '…' : ''}</div>
                             </div>
                         `;
                         wikiDiv.innerHTML += wikiHtml;
