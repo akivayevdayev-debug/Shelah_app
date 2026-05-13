@@ -18,9 +18,9 @@ from pathlib import Path
 # Path to customs folder
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 CUSTOMS_DIR = str(PROJECT_ROOT / "customs")
-_CUSTOMS_CACHE = {
-    "signature": None,
-    "data": None,
+_CUSTOMS_CACHE: dict = {
+    "signature": (),
+    "data": {},
 }
 
 

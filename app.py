@@ -2073,8 +2073,9 @@ def _coerce_ai_answer_shape(result, question, mode, answer_language="en"):
     if summary_text:
         clean_structured["summary"] = summary_text
 
-    practical_steps = clean_structured.get("practical_steps") if isinstance(
-        clean_structured.get("practical_steps"), list) else []
+    practical_steps = clean_structured.get("practical_steps")
+    if not isinstance(practical_steps, list):
+        practical_steps = []
 
     if clean_structured.get("is_prohibited") and ruling_text:
         lowered_ruling = ruling_text.lower()
@@ -2300,8 +2301,15 @@ CLERK_PUBLISHABLE_KEY = (
 CLERK_JWT_ISSUER = (os.environ.get("CLERK_JWT_ISSUER")
                     or "").strip().rstrip("/")
 CLERK_AUDIENCE = (os.environ.get("CLERK_AUDIENCE") or "").strip()
-CLERK_ENFORCE_AUTH = (os.environ.get("CLERK_ENFORCE_AUTH")
-                      or "false").strip().lower() == "true"
+_in_prod_runtime = (
+    os.environ.get("VERCEL") == "1"
+    or os.environ.get("FLASK_ENV", "").strip().lower() == "production"
+)
+# Default: enforce auth on Vercel/production, allow unauthenticated on local dev.
+CLERK_ENFORCE_AUTH = (
+    os.environ.get("CLERK_ENFORCE_AUTH")
+    or ("true" if _in_prod_runtime else "false")
+).strip().lower() == "true"
 _clerk_jwks_client = None
 
 SUPABASE_URL = (os.environ.get("SUPABASE_URL") or "").strip()
@@ -2886,6 +2894,13 @@ def apply_session_cookie_policy():
 @app.after_request
 def apply_response_cache_policy(response):
     path = request.path or ""
+
+    # Security headers for every response
+    response.headers.setdefault("X-Frame-Options", "SAMEORIGIN")
+    response.headers.setdefault("X-Content-Type-Options", "nosniff")
+    response.headers.setdefault(
+        "Referrer-Policy", "strict-origin-when-cross-origin")
+    response.headers.setdefault("X-XSS-Protection", "1; mode=block")
 
     if path.startswith("/api/") or path in {"/ask", "/set_location"}:
         response.headers["Cache-Control"] = "no-store"
@@ -4853,4 +4868,6 @@ def get_parasha():
 
 if __name__ == "__main__":
     port = int(os.environ.get('PORT', 5001))
-    app.run(debug=True, host='0.0.0.0', port=port)
+    debug_mode = os.environ.get(
+        'FLASK_DEBUG', '').strip().lower() in ('1', 'true')
+    app.run(debug=debug_mode, host='0.0.0.0', port=port)
