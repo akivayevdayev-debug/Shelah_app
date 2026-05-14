@@ -828,7 +828,7 @@
                     <section>
                         <p class="home-section-label mb-5" data-en="Library" data-he="ספרייה">Library</p>
                         <div class="space-y-6">
-                            <button type="button" onclick="readText('Genesis 1')"
+                            <button type="button" onclick="openLibraryCategory('tanakh')"
                                 class="home-library-link home-link-tanakh text-left w-full">
                                 <span class="home-library-title" data-en="Tanakh" data-he="תנ״ך">Tanakh</span>
                                 <span class="home-library-description"
@@ -837,7 +837,7 @@
                                     Nevi'im, and Ketuvim: the foundational text of Jewish learning and life.</span>
                             </button>
 
-                            <button type="button" onclick="readText('Mishnah Berakhot 1')"
+                            <button type="button" onclick="openLibraryCategory('mishnah')"
                                 class="home-library-link home-link-mishnah text-left w-full">
                                 <span class="home-library-title" data-en="Mishnah" data-he="משנה">Mishnah</span>
                                 <span class="home-library-description"
@@ -846,7 +846,7 @@
                                     rabbinic legal corpus, organized for practical study.</span>
                             </button>
 
-                            <button type="button" onclick="readText('Berakhot 2a')"
+                            <button type="button" onclick="openLibraryCategory('talmud')"
                                 class="home-library-link home-link-talmud text-left w-full">
                                 <span class="home-library-title" data-en="Talmud" data-he="תלמוד">Talmud</span>
                                 <span class="home-library-description"
@@ -855,7 +855,7 @@
                                     on law, ethics, and scripture around the Mishnah.</span>
                             </button>
 
-                            <button type="button" onclick="readText('Shulchan Arukh, Orach Chayim 1')"
+                            <button type="button" onclick="openLibraryCategory('halakhah')"
                                 class="home-library-link home-link-halakhah text-left w-full">
                                 <span class="home-library-title" data-en="Halakhah" data-he="הלכה">Halakhah</span>
                                 <span class="home-library-description"
@@ -864,7 +864,7 @@
                                     works guiding daily Jewish practice through classical rulings.</span>
                             </button>
 
-                            <button type="button" onclick="setQuery('Bukharian customs on Pesach')"
+                            <button type="button" onclick="openLibraryCategory('customs')"
                                 class="home-library-link home-link-customs text-left w-full">
                                 <span class="home-library-title" data-en="Community Customs"
                                     data-he="מנהגים קהילתיים">Community Customs</span>
@@ -875,7 +875,7 @@
                                     more.</span>
                             </button>
 
-                            <button type="button" onclick="readText('Pirkei Avot 1')"
+                            <button type="button" onclick="openLibraryCategory('kabbalah')"
                                 class="home-library-link home-link-thought text-left w-full">
                                 <span class="home-library-title" data-en="Kabbalah &amp; Thought"
                                     data-he="קבלה ומחשבה">Kabbalah &amp; Thought</span>
@@ -1448,6 +1448,29 @@
         </div>
     </div>
 
+    <!-- Library Category Browser Modal -->
+    <div id="libraryCategoryModal"
+        class="hidden fixed inset-0 z-[108] bg-slate-900/60 backdrop-blur-sm items-center justify-center p-4">
+        <div
+            class="bg-white rounded-2xl shadow-2xl w-full max-w-3xl max-h-[88vh] overflow-hidden flex flex-col relative">
+            <button id="closeLibraryCategoryBtn" type="button"
+                class="absolute top-3 right-3 text-2xl text-slate-500 hover:text-slate-800 z-10"
+                aria-label="Close category browser">&times;</button>
+            <div id="libraryCategoryHeader" class="chapter-grid-header px-6 py-4 border-b">
+                <h2 id="libraryCategoryTitle" class="font-serif text-xl font-bold">Select a Text</h2>
+                <p id="libraryCategorySubtitle" class="chapter-grid-subtitle text-xs mt-1">Choose a section to browse
+                </p>
+            </div>
+            <div id="libraryCategoryBody" class="px-5 py-4 overflow-y-auto flex-1 space-y-6 custom-scrollbar">
+            </div>
+            <div class="bg-slate-50 border-t px-6 py-3 flex justify-end">
+                <button onclick="closeLibraryCategory()"
+                    class="px-4 py-2 text-slate-700 hover:bg-slate-100 rounded transition text-sm" data-en="Close"
+                    data-he="סגור">Close</button>
+            </div>
+        </div>
+    </div>
+
     <div id="devtoolsInspectorModal"
         class="hidden fixed inset-0 z-[110] bg-slate-900/70 backdrop-blur-sm items-center justify-center p-4">
         <div
@@ -1808,6 +1831,490 @@
             'I Chronicles': 29,
             'II Chronicles': 36,
         });
+
+        const HOME_LIBRARY_CATEGORIES = {
+            tanakh: {
+                title: 'Tanakh', titleHe: 'תנ״ך',
+                sections: [
+                    {
+                        title: 'Torah', titleHe: 'תורה',
+                        items: [
+                            { label: 'Genesis', labelHe: 'בראשית', ref: 'Genesis', chapters: 50 },
+                            { label: 'Exodus', labelHe: 'שמות', ref: 'Exodus', chapters: 40 },
+                            { label: 'Leviticus', labelHe: 'ויקרא', ref: 'Leviticus', chapters: 27 },
+                            { label: 'Numbers', labelHe: 'במדבר', ref: 'Numbers', chapters: 36 },
+                            { label: 'Deuteronomy', labelHe: 'דברים', ref: 'Deuteronomy', chapters: 34 },
+                        ]
+                    },
+                    {
+                        title: "Prophets (Nevi'im)", titleHe: 'נביאים',
+                        items: [
+                            { label: 'Joshua', labelHe: 'יהושע', ref: 'Joshua', chapters: 24 },
+                            { label: 'Judges', labelHe: 'שופטים', ref: 'Judges', chapters: 21 },
+                            { label: 'I Samuel', labelHe: 'שמואל א', ref: 'I Samuel', chapters: 31 },
+                            { label: 'II Samuel', labelHe: 'שמואל ב', ref: 'II Samuel', chapters: 24 },
+                            { label: 'I Kings', labelHe: 'מלכים א', ref: 'I Kings', chapters: 22 },
+                            { label: 'II Kings', labelHe: 'מלכים ב', ref: 'II Kings', chapters: 25 },
+                            { label: 'Isaiah', labelHe: 'ישעיהו', ref: 'Isaiah', chapters: 66 },
+                            { label: 'Jeremiah', labelHe: 'ירמיהו', ref: 'Jeremiah', chapters: 52 },
+                            { label: 'Ezekiel', labelHe: 'יחזקאל', ref: 'Ezekiel', chapters: 48 },
+                            { label: 'Hosea', labelHe: 'הושע', ref: 'Hosea', chapters: 14 },
+                            { label: 'Joel', labelHe: 'יואל', ref: 'Joel', chapters: 4 },
+                            { label: 'Amos', labelHe: 'עמוס', ref: 'Amos', chapters: 9 },
+                            { label: 'Obadiah', labelHe: 'עובדיה', ref: 'Obadiah', chapters: 1 },
+                            { label: 'Jonah', labelHe: 'יונה', ref: 'Jonah', chapters: 4 },
+                            { label: 'Micah', labelHe: 'מיכה', ref: 'Micah', chapters: 7 },
+                            { label: 'Nahum', labelHe: 'נחום', ref: 'Nahum', chapters: 3 },
+                            { label: 'Habakkuk', labelHe: 'חבקוק', ref: 'Habakkuk', chapters: 3 },
+                            { label: 'Zephaniah', labelHe: 'צפניה', ref: 'Zephaniah', chapters: 3 },
+                            { label: 'Haggai', labelHe: 'חגי', ref: 'Haggai', chapters: 2 },
+                            { label: 'Zechariah', labelHe: 'זכריה', ref: 'Zechariah', chapters: 14 },
+                            { label: 'Malachi', labelHe: 'מלאכי', ref: 'Malachi', chapters: 3 },
+                        ]
+                    },
+                    {
+                        title: 'Writings (Ketuvim)', titleHe: 'כתובים',
+                        items: [
+                            { label: 'Psalms', labelHe: 'תהילים', ref: 'Psalms', chapters: 150 },
+                            { label: 'Proverbs', labelHe: 'משלי', ref: 'Proverbs', chapters: 31 },
+                            { label: 'Job', labelHe: 'איוב', ref: 'Job', chapters: 42 },
+                            { label: 'Song of Songs', labelHe: 'שיר השירים', ref: 'Song of Songs', chapters: 8 },
+                            { label: 'Ruth', labelHe: 'רות', ref: 'Ruth', chapters: 4 },
+                            { label: 'Lamentations', labelHe: 'איכה', ref: 'Lamentations', chapters: 5 },
+                            { label: 'Ecclesiastes', labelHe: 'קהלת', ref: 'Ecclesiastes', chapters: 12 },
+                            { label: 'Esther', labelHe: 'אסתר', ref: 'Esther', chapters: 10 },
+                            { label: 'Daniel', labelHe: 'דניאל', ref: 'Daniel', chapters: 12 },
+                            { label: 'Ezra', labelHe: 'עזרא', ref: 'Ezra', chapters: 10 },
+                            { label: 'Nehemiah', labelHe: 'נחמיה', ref: 'Nehemiah', chapters: 13 },
+                            { label: 'I Chronicles', labelHe: 'דברי הימים א', ref: 'I Chronicles', chapters: 29 },
+                            { label: 'II Chronicles', labelHe: 'דברי הימים ב', ref: 'II Chronicles', chapters: 36 },
+                        ]
+                    }
+                ]
+            },
+            mishnah: {
+                title: 'Mishnah', titleHe: 'משנה',
+                sections: [
+                    {
+                        title: 'Zeraim (Seeds)', titleHe: 'זרעים',
+                        items: [
+                            { label: 'Berakhot', labelHe: 'ברכות', ref: 'Mishnah Berakhot', chapters: 9 },
+                            { label: 'Peah', labelHe: 'פאה', ref: 'Mishnah Peah', chapters: 8 },
+                            { label: 'Demai', labelHe: 'דמאי', ref: 'Mishnah Demai', chapters: 7 },
+                            { label: 'Kilaim', labelHe: 'כלאים', ref: 'Mishnah Kilaim', chapters: 9 },
+                            { label: 'Sheviit', labelHe: 'שביעית', ref: 'Mishnah Sheviit', chapters: 10 },
+                            { label: 'Terumot', labelHe: 'תרומות', ref: 'Mishnah Terumot', chapters: 11 },
+                            { label: 'Maasrot', labelHe: 'מעשרות', ref: 'Mishnah Maasrot', chapters: 5 },
+                            { label: 'Maaser Sheni', labelHe: 'מעשר שני', ref: 'Mishnah Maaser Sheni', chapters: 5 },
+                            { label: 'Challah', labelHe: 'חלה', ref: 'Mishnah Challah', chapters: 4 },
+                            { label: 'Orlah', labelHe: 'ערלה', ref: 'Mishnah Orlah', chapters: 3 },
+                            { label: 'Bikkurim', labelHe: 'ביכורים', ref: 'Mishnah Bikkurim', chapters: 4 },
+                        ]
+                    },
+                    {
+                        title: 'Moed (Festivals)', titleHe: 'מועד',
+                        items: [
+                            { label: 'Shabbat', labelHe: 'שבת', ref: 'Mishnah Shabbat', chapters: 24 },
+                            { label: 'Eruvin', labelHe: 'עירובין', ref: 'Mishnah Eruvin', chapters: 10 },
+                            { label: 'Pesachim', labelHe: 'פסחים', ref: 'Mishnah Pesachim', chapters: 10 },
+                            { label: 'Shekalim', labelHe: 'שקלים', ref: 'Mishnah Shekalim', chapters: 8 },
+                            { label: 'Yoma', labelHe: 'יומא', ref: 'Mishnah Yoma', chapters: 8 },
+                            { label: 'Sukkah', labelHe: 'סוכה', ref: 'Mishnah Sukkah', chapters: 5 },
+                            { label: 'Beitzah', labelHe: 'ביצה', ref: 'Mishnah Beitzah', chapters: 5 },
+                            { label: 'Rosh Hashanah', labelHe: 'ראש השנה', ref: 'Mishnah Rosh Hashanah', chapters: 4 },
+                            { label: 'Taanit', labelHe: 'תענית', ref: 'Mishnah Taanit', chapters: 4 },
+                            { label: 'Megillah', labelHe: 'מגילה', ref: 'Mishnah Megillah', chapters: 4 },
+                            { label: 'Moed Katan', labelHe: 'מועד קטן', ref: 'Mishnah Moed Katan', chapters: 3 },
+                            { label: 'Chagigah', labelHe: 'חגיגה', ref: 'Mishnah Chagigah', chapters: 3 },
+                        ]
+                    },
+                    {
+                        title: 'Nashim (Women)', titleHe: 'נשים',
+                        items: [
+                            { label: 'Yevamot', labelHe: 'יבמות', ref: 'Mishnah Yevamot', chapters: 16 },
+                            { label: 'Ketubot', labelHe: 'כתובות', ref: 'Mishnah Ketubot', chapters: 13 },
+                            { label: 'Nedarim', labelHe: 'נדרים', ref: 'Mishnah Nedarim', chapters: 11 },
+                            { label: 'Nazir', labelHe: 'נזיר', ref: 'Mishnah Nazir', chapters: 9 },
+                            { label: 'Sotah', labelHe: 'סוטה', ref: 'Mishnah Sotah', chapters: 9 },
+                            { label: 'Gittin', labelHe: 'גיטין', ref: 'Mishnah Gittin', chapters: 9 },
+                            { label: 'Kiddushin', labelHe: 'קידושין', ref: 'Mishnah Kiddushin', chapters: 4 },
+                        ]
+                    },
+                    {
+                        title: 'Nezikin (Damages)', titleHe: 'נזיקין',
+                        items: [
+                            { label: 'Bava Kamma', labelHe: 'בבא קמא', ref: 'Mishnah Bava Kamma', chapters: 10 },
+                            { label: 'Bava Metzia', labelHe: 'בבא מציעא', ref: 'Mishnah Bava Metzia', chapters: 10 },
+                            { label: 'Bava Batra', labelHe: 'בבא בתרא', ref: 'Mishnah Bava Batra', chapters: 10 },
+                            { label: 'Sanhedrin', labelHe: 'סנהדרין', ref: 'Mishnah Sanhedrin', chapters: 11 },
+                            { label: 'Makkot', labelHe: 'מכות', ref: 'Mishnah Makkot', chapters: 3 },
+                            { label: 'Shevuot', labelHe: 'שבועות', ref: 'Mishnah Shevuot', chapters: 8 },
+                            { label: 'Eduyot', labelHe: 'עדויות', ref: 'Mishnah Eduyot', chapters: 8 },
+                            { label: 'Avodah Zarah', labelHe: 'עבודה זרה', ref: 'Mishnah Avodah Zarah', chapters: 5 },
+                            { label: 'Avot', labelHe: 'אבות', ref: 'Mishnah Avot', chapters: 6 },
+                            { label: 'Horayot', labelHe: 'הוריות', ref: 'Mishnah Horayot', chapters: 3 },
+                        ]
+                    },
+                    {
+                        title: 'Kodashim (Holy Things)', titleHe: 'קדשים',
+                        items: [
+                            { label: 'Zevachim', labelHe: 'זבחים', ref: 'Mishnah Zevachim', chapters: 14 },
+                            { label: 'Menachot', labelHe: 'מנחות', ref: 'Mishnah Menachot', chapters: 13 },
+                            { label: 'Chullin', labelHe: 'חולין', ref: 'Mishnah Chullin', chapters: 12 },
+                            { label: 'Bekhorot', labelHe: 'בכורות', ref: 'Mishnah Bekhorot', chapters: 9 },
+                            { label: 'Arakhin', labelHe: 'ערכין', ref: 'Mishnah Arakhin', chapters: 9 },
+                            { label: 'Temurah', labelHe: 'תמורה', ref: 'Mishnah Temurah', chapters: 7 },
+                            { label: 'Keritot', labelHe: 'כריתות', ref: 'Mishnah Keritot', chapters: 6 },
+                            { label: 'Meilah', labelHe: 'מעילה', ref: 'Mishnah Meilah', chapters: 6 },
+                            { label: 'Tamid', labelHe: 'תמיד', ref: 'Mishnah Tamid', chapters: 7 },
+                            { label: 'Middot', labelHe: 'מידות', ref: 'Mishnah Middot', chapters: 5 },
+                            { label: 'Kinnim', labelHe: 'קינים', ref: 'Mishnah Kinnim', chapters: 3 },
+                        ]
+                    },
+                    {
+                        title: 'Taharot (Purity)', titleHe: 'טהרות',
+                        items: [
+                            { label: 'Keilim', labelHe: 'כלים', ref: 'Mishnah Keilim', chapters: 30 },
+                            { label: 'Oholot', labelHe: 'אהלות', ref: 'Mishnah Oholot', chapters: 18 },
+                            { label: 'Negaim', labelHe: 'נגעים', ref: 'Mishnah Negaim', chapters: 14 },
+                            { label: 'Parah', labelHe: 'פרה', ref: 'Mishnah Parah', chapters: 12 },
+                            { label: 'Taharot', labelHe: 'טהרות', ref: 'Mishnah Taharot', chapters: 10 },
+                            { label: 'Mikvaot', labelHe: 'מקוואות', ref: 'Mishnah Mikvaot', chapters: 10 },
+                            { label: 'Niddah', labelHe: 'נידה', ref: 'Mishnah Niddah', chapters: 10 },
+                            { label: 'Makhshirin', labelHe: 'מכשירים', ref: 'Mishnah Makhshirin', chapters: 6 },
+                            { label: 'Zavim', labelHe: 'זבים', ref: 'Mishnah Zavim', chapters: 5 },
+                            { label: 'Tevul Yom', labelHe: 'טבול יום', ref: 'Mishnah Tevul Yom', chapters: 4 },
+                            { label: 'Yadayim', labelHe: 'ידיים', ref: 'Mishnah Yadayim', chapters: 4 },
+                            { label: 'Oktzin', labelHe: 'עוקצין', ref: 'Mishnah Oktzin', chapters: 3 },
+                        ]
+                    }
+                ]
+            },
+            talmud: {
+                title: 'Talmud', titleHe: 'תלמוד',
+                sections: [
+                    {
+                        title: 'Seder Zeraim', titleHe: 'סדר זרעים',
+                        items: [
+                            { label: 'Berakhot', labelHe: 'ברכות', ref: 'Berakhot 2a', useRefGrid: true },
+                        ]
+                    },
+                    {
+                        title: 'Seder Moed', titleHe: 'סדר מועד',
+                        items: [
+                            { label: 'Shabbat', labelHe: 'שבת', ref: 'Shabbat 2a', useRefGrid: true },
+                            { label: 'Eruvin', labelHe: 'עירובין', ref: 'Eruvin 2a', useRefGrid: true },
+                            { label: 'Pesachim', labelHe: 'פסחים', ref: 'Pesachim 2a', useRefGrid: true },
+                            { label: 'Yoma', labelHe: 'יומא', ref: 'Yoma 2a', useRefGrid: true },
+                            { label: 'Sukkah', labelHe: 'סוכה', ref: 'Sukkah 2a', useRefGrid: true },
+                            { label: 'Beitzah', labelHe: 'ביצה', ref: 'Beitzah 2a', useRefGrid: true },
+                            { label: 'Rosh Hashanah', labelHe: 'ראש השנה', ref: 'Rosh Hashanah 2a', useRefGrid: true },
+                            { label: 'Taanit', labelHe: 'תענית', ref: 'Taanit 2a', useRefGrid: true },
+                            { label: 'Megillah', labelHe: 'מגילה', ref: 'Megillah 2a', useRefGrid: true },
+                            { label: 'Moed Katan', labelHe: 'מועד קטן', ref: 'Moed Katan 2a', useRefGrid: true },
+                            { label: 'Chagigah', labelHe: 'חגיגה', ref: 'Chagigah 2a', useRefGrid: true },
+                        ]
+                    },
+                    {
+                        title: 'Seder Nashim', titleHe: 'סדר נשים',
+                        items: [
+                            { label: 'Yevamot', labelHe: 'יבמות', ref: 'Yevamot 2a', useRefGrid: true },
+                            { label: 'Ketubot', labelHe: 'כתובות', ref: 'Ketubot 2a', useRefGrid: true },
+                            { label: 'Nedarim', labelHe: 'נדרים', ref: 'Nedarim 2a', useRefGrid: true },
+                            { label: 'Nazir', labelHe: 'נזיר', ref: 'Nazir 2a', useRefGrid: true },
+                            { label: 'Sotah', labelHe: 'סוטה', ref: 'Sotah 2a', useRefGrid: true },
+                            { label: 'Gittin', labelHe: 'גיטין', ref: 'Gittin 2a', useRefGrid: true },
+                            { label: 'Kiddushin', labelHe: 'קידושין', ref: 'Kiddushin 2a', useRefGrid: true },
+                        ]
+                    },
+                    {
+                        title: 'Seder Nezikin', titleHe: 'סדר נזיקין',
+                        items: [
+                            { label: 'Bava Kamma', labelHe: 'בבא קמא', ref: 'Bava Kamma 2a', useRefGrid: true },
+                            { label: 'Bava Metzia', labelHe: 'בבא מציעא', ref: 'Bava Metzia 2a', useRefGrid: true },
+                            { label: 'Bava Batra', labelHe: 'בבא בתרא', ref: 'Bava Batra 2a', useRefGrid: true },
+                            { label: 'Sanhedrin', labelHe: 'סנהדרין', ref: 'Sanhedrin 2a', useRefGrid: true },
+                            { label: 'Makkot', labelHe: 'מכות', ref: 'Makkot 2a', useRefGrid: true },
+                            { label: 'Shevuot', labelHe: 'שבועות', ref: 'Shevuot 2a', useRefGrid: true },
+                            { label: 'Avodah Zarah', labelHe: 'עבודה זרה', ref: 'Avodah Zarah 2a', useRefGrid: true },
+                            { label: 'Horayot', labelHe: 'הוריות', ref: 'Horayot 2a', useRefGrid: true },
+                        ]
+                    },
+                    {
+                        title: 'Seder Kodashim', titleHe: 'סדר קדשים',
+                        items: [
+                            { label: 'Zevachim', labelHe: 'זבחים', ref: 'Zevachim 2a', useRefGrid: true },
+                            { label: 'Menachot', labelHe: 'מנחות', ref: 'Menachot 2a', useRefGrid: true },
+                            { label: 'Chullin', labelHe: 'חולין', ref: 'Chullin 2a', useRefGrid: true },
+                            { label: 'Bekhorot', labelHe: 'בכורות', ref: 'Bekhorot 2a', useRefGrid: true },
+                            { label: 'Arakhin', labelHe: 'ערכין', ref: 'Arakhin 2a', useRefGrid: true },
+                            { label: 'Temurah', labelHe: 'תמורה', ref: 'Temurah 2a', useRefGrid: true },
+                            { label: 'Keritot', labelHe: 'כריתות', ref: 'Keritot 2a', useRefGrid: true },
+                            { label: 'Meilah', labelHe: 'מעילה', ref: 'Meilah 2a', useRefGrid: true },
+                            { label: 'Tamid', labelHe: 'תמיד', ref: 'Tamid 31a', useRefGrid: true },
+                            { label: 'Niddah', labelHe: 'נידה', ref: 'Niddah 2a', useRefGrid: true },
+                        ]
+                    }
+                ]
+            },
+            halakhah: {
+                title: 'Halakhah', titleHe: 'הלכה',
+                sections: [
+                    {
+                        title: 'Shulchan Arukh', titleHe: 'שולחן ערוך',
+                        items: [
+                            { label: 'Orach Chayim', labelHe: 'אורח חיים', ref: 'Shulchan Arukh, Orach Chayim 1', useRefGrid: true },
+                            { label: "Yoreh De'ah", labelHe: 'יורה דעה', ref: "Shulchan Arukh, Yoreh De'ah 1", useRefGrid: true },
+                            { label: 'Even HaEzer', labelHe: 'אבן העזר', ref: 'Shulchan Arukh, Even HaEzer 1', useRefGrid: true },
+                            { label: 'Choshen Mishpat', labelHe: 'חושן משפט', ref: 'Shulchan Arukh, Choshen Mishpat 1', useRefGrid: true },
+                        ]
+                    },
+                    {
+                        title: 'Mishneh Torah (Rambam)', titleHe: 'משנה תורה (רמב"ם)',
+                        items: [
+                            { label: "Hilkhot De'ot", labelHe: 'הלכות דעות', ref: 'Mishneh Torah, Human Dispositions 1', useRefGrid: true },
+                            { label: 'Hilkhot Shabbat', labelHe: 'הלכות שבת', ref: 'Mishneh Torah, Shabbat 1', useRefGrid: true },
+                            { label: 'Hilkhot Teshuvah', labelHe: 'הלכות תשובה', ref: 'Mishneh Torah, Repentance 1', useRefGrid: true },
+                            { label: 'Hilkhot Tefillah', labelHe: 'הלכות תפילה', ref: 'Mishneh Torah, Prayer and the Priestly Blessing 1', useRefGrid: true },
+                            { label: 'Hilkhot Kashrut', labelHe: 'הלכות מאכלות אסורות', ref: 'Mishneh Torah, Forbidden Foods 1', useRefGrid: true },
+                        ]
+                    },
+                    {
+                        title: 'Later Authorities (Achronim)', titleHe: 'אחרונים',
+                        items: [
+                            { label: 'Mishnah Berurah', labelHe: 'משנה ברורה', ref: 'Mishnah Berurah 1', useRefGrid: true },
+                            { label: 'Kitzur Shulchan Arukh', labelHe: 'קיצור שולחן ערוך', ref: 'Kitzur Shulchan Arukh 1', useRefGrid: true },
+                            { label: 'Aruch HaShulchan', labelHe: 'ערוך השולחן', ref: 'Aruch HaShulchan, Orach Chayim 1', useRefGrid: true },
+                            { label: 'Chayei Adam', labelHe: 'חיי אדם', ref: 'Chayei Adam 1', useRefGrid: true },
+                        ]
+                    }
+                ]
+            },
+            kabbalah: {
+                title: 'Kabbalah & Thought', titleHe: 'קבלה ומחשבה',
+                sections: [
+                    {
+                        title: 'Ethics & Mussar', titleHe: 'מוסר',
+                        items: [
+                            { label: 'Pirkei Avot', labelHe: 'פרקי אבות', ref: 'Pirkei Avot', chapters: 6 },
+                            { label: 'Mesillat Yesharim', labelHe: 'מסילת ישרים', ref: 'Mesillat Yesharim 1', useRefGrid: true },
+                            { label: 'Duties of the Heart', labelHe: 'חובות הלבבות', ref: 'Duties of the Heart, Introduction 1', useRefGrid: true },
+                            { label: 'Orchot Tzaddikim', labelHe: 'אורחות צדיקים', ref: 'Orchot Tzaddikim, Introduction 1', useRefGrid: true },
+                        ]
+                    },
+                    {
+                        title: 'Mysticism & Kabbalah', titleHe: 'קבלה ומיסטיקה',
+                        items: [
+                            { label: 'Tanya', labelHe: 'תניא', ref: 'Tanya, Likutei Amarim 1', useRefGrid: true },
+                            { label: 'Zohar on Torah', labelHe: 'זוהר על התורה', ref: 'Zohar, Genesis 1a', useRefGrid: true },
+                            { label: 'Sefer Yetzirah', labelHe: 'ספר יצירה', ref: 'Sefer Yetzirah 1', useRefGrid: true },
+                        ]
+                    },
+                    {
+                        title: 'Philosophy & Theology', titleHe: 'פילוסופיה ותאולוגיה',
+                        items: [
+                            { label: 'Guide for the Perplexed', labelHe: 'מורה נבוכים', ref: 'Guide for the Perplexed, Part 1 1', useRefGrid: true },
+                            { label: 'Kuzari', labelHe: 'הכוזרי', ref: 'Kuzari 1', useRefGrid: true },
+                            { label: 'Emunot ve-Deot', labelHe: 'אמונות ודעות', ref: 'Emunot ve-Deot, Introduction 1', useRefGrid: true },
+                        ]
+                    }
+                ]
+            },
+            customs: {
+                title: 'Community Customs', titleHe: 'מנהגים קהילתיים',
+                sections: [
+                    {
+                        title: 'Sephardic Communities', titleHe: 'קהילות ספרדיות',
+                        items: [
+                            { label: 'Sephardic', labelHe: 'ספרדי', customsFile: 'Sefardic' },
+                            { label: 'Moroccan', labelHe: 'מרוקאי', customsFile: 'Moroccan' },
+                            { label: 'Iraqi', labelHe: 'עיראקי', customsFile: 'Iraqi' },
+                            { label: 'Syrian', labelHe: 'סורי', customsFile: 'Syrian' },
+                            { label: 'Turkish-Ottoman', labelHe: 'טורקי-עות׳מאני', customsFile: 'Turkish-Ottoman' },
+                            { label: 'Persian', labelHe: 'פרסי', customsFile: 'Persian' },
+                            { label: 'Bukharian', labelHe: 'בוכרי', customsFile: 'Bukharian' },
+                            { label: 'Greek-Romaniote', labelHe: 'רומניוטי', customsFile: 'Greek-Romaniote' },
+                        ]
+                    },
+                    {
+                        title: 'Mizrachi & Eastern Communities', titleHe: 'קהילות מזרחיות',
+                        items: [
+                            { label: 'Yemenite', labelHe: 'תימני', customsFile: 'Yemenite' },
+                            { label: 'Georgian', labelHe: 'גרוזיני', customsFile: 'Georgian' },
+                            { label: 'Kavkazi / Mountain Jewish', labelHe: 'קווקזי', customsFile: 'Kavkazi' },
+                            { label: 'Ethiopian', labelHe: 'אתיופי', customsFile: 'Ethiopian' },
+                        ]
+                    },
+                    {
+                        title: 'Ashkenazic Communities', titleHe: 'קהילות אשכנזיות',
+                        items: [
+                            { label: 'Ashkenazic', labelHe: 'אשכנזי', customsFile: 'Ashkenaz' },
+                            { label: 'Chassidic', labelHe: 'חסידי', query: 'Chassidic customs and minhagim' },
+                            { label: 'Litvish / Yeshivish', labelHe: 'ליטאי', query: 'Litvish Lithuanian Jewish customs' },
+                        ]
+                    }
+                ]
+            }
+        };
+
+        function openLibraryCategory(key) {
+            const cat = HOME_LIBRARY_CATEGORIES[key];
+            if (!cat) return;
+            const modal = document.getElementById('libraryCategoryModal');
+            const titleEl = document.getElementById('libraryCategoryTitle');
+            const subtitleEl = document.getElementById('libraryCategorySubtitle');
+            const bodyEl = document.getElementById('libraryCategoryBody');
+            if (!modal || !titleEl || !bodyEl) return;
+
+            const isHe = isHebrewMode();
+            titleEl.textContent = isHe ? cat.titleHe : cat.title;
+            if (subtitleEl) subtitleEl.textContent = isHe ? 'בחר טקסט לקריאה' : 'Select a text to read';
+
+            bodyEl.innerHTML = '';
+            cat.sections.forEach(sec => {
+                const secDiv = document.createElement('div');
+                secDiv.className = 'chapter-grid-section-block';
+
+                const secTitle = document.createElement('p');
+                secTitle.className = 'chapter-grid-group-label mb-2';
+                secTitle.textContent = isHe ? (sec.titleHe || sec.title) : sec.title;
+                secDiv.appendChild(secTitle);
+
+                const grid = document.createElement('div');
+                grid.className = 'chapter-grid-section-items';
+
+                sec.items.forEach(item => {
+                    const btn = document.createElement('button');
+                    btn.type = 'button';
+                    btn.className = 'chapter-grid-item';
+
+                    const labelText = isHe ? (item.labelHe || item.label) : item.label;
+                    const numberSpan = document.createElement('span');
+                    numberSpan.className = 'chapter-grid-item-number';
+                    numberSpan.textContent = labelText;
+
+                    const typeSpan = document.createElement('span');
+                    typeSpan.className = 'chapter-grid-item-label';
+                    if (item.chapters && item.chapters > 0) {
+                        typeSpan.textContent = isHe ? `${item.chapters} פרקים` : `${item.chapters} ch.`;
+                    } else if (item.useRefGrid) {
+                        typeSpan.textContent = isHe ? 'לקריאה' : 'Read';
+                    } else {
+                        typeSpan.textContent = isHe ? 'מנהגים' : 'Customs';
+                    }
+
+                    btn.appendChild(numberSpan);
+                    btn.appendChild(typeSpan);
+
+                    if (item.chapters && item.chapters > 0) {
+                        btn.onclick = () => {
+                            closeLibraryCategory();
+                            openChapterGrid(item.ref, item.chapters);
+                        };
+                    } else if (item.useRefGrid) {
+                        btn.onclick = () => {
+                            closeLibraryCategory();
+                            readText(item.ref);
+                        };
+                    } else if (item.customsFile) {
+                        btn.onclick = () => {
+                            closeLibraryCategory();
+                            displayCommunity(item.customsFile);
+                        };
+                    } else if (item.query) {
+                        btn.onclick = () => {
+                            closeLibraryCategory();
+                            setQuery(item.query);
+                        };
+                    }
+                    grid.appendChild(btn);
+                });
+
+                secDiv.appendChild(grid);
+                bodyEl.appendChild(secDiv);
+            });
+
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+        }
+
+        function closeLibraryCategory() {
+            const modal = document.getElementById('libraryCategoryModal');
+            if (!modal) return;
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
+        }
+
+        // ─── COMMUNITY CUSTOMS MODAL ─────────────────────────────────────────
+        const _customsCache = {};
+        async function openCustomsModal(communityName, displayLabel) {
+            // Reuse the libraryCategoryModal to display customs data
+            const modal = document.getElementById('libraryCategoryModal');
+            const titleEl = document.getElementById('libraryCategoryTitle');
+            const subtitleEl = document.getElementById('libraryCategorySubtitle');
+            const bodyEl = document.getElementById('libraryCategoryBody');
+            if (!modal || !titleEl || !bodyEl) return;
+
+            titleEl.textContent = displayLabel || communityName;
+            if (subtitleEl) subtitleEl.textContent = isHebrewMode() ? 'מנהגים ופסיקות' : 'Community customs and rulings';
+            bodyEl.innerHTML = `<p class="text-slate-400 text-sm italic">${isHebrewMode() ? 'טוען מנהגים…' : 'Loading customs…'}</p>`;
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+
+            try {
+                let data = _customsCache[communityName];
+                if (!data) {
+                    const resp = await fetch(`/api/community/${encodeURIComponent(communityName)}`);
+                    if (!resp.ok) throw new Error('Not found');
+                    data = await resp.json();
+                    _customsCache[communityName] = data;
+                }
+
+                // Prefer raw_data.halacha_index (original list), fall back to Object.values(customs)
+                let halachaIndex = [];
+                if (data.raw_data && Array.isArray(data.raw_data.halacha_index)) {
+                    halachaIndex = data.raw_data.halacha_index;
+                } else if (data.customs && typeof data.customs === 'object' && !Array.isArray(data.customs)) {
+                    halachaIndex = Object.values(data.customs);
+                } else if (Array.isArray(data.halacha_index)) {
+                    halachaIndex = data.halacha_index;
+                }
+                if (!halachaIndex.length) {
+                    bodyEl.innerHTML = `<p class="text-slate-400 text-sm italic">${isHebrewMode() ? 'אין נתונים זמינים' : 'No customs data available'}</p>`;
+                    return;
+                }
+
+                // Group by category
+                const grouped = {};
+                halachaIndex.forEach(item => {
+                    const cat = item.category || 'General';
+                    if (!grouped[cat]) grouped[cat] = [];
+                    grouped[cat].push(item);
+                });
+
+                let html = '';
+                Object.entries(grouped).forEach(([cat, items]) => {
+                    html += `<div class="mb-5">
+                        <p class="chapter-grid-group-label mb-2">${escapeHtml(cat)}</p>
+                        <div class="space-y-3">`;
+                    items.forEach(item => {
+                        const practices = Array.isArray(item.common_practices)
+                            ? item.common_practices.map(p => `<li class="ml-4 list-disc text-slate-600">${escapeHtml(p)}</li>`).join('')
+                            : '';
+                        html += `<div class="border border-slate-200 rounded-lg p-3 bg-white hover:bg-slate-50 transition">
+                            <p class="font-semibold text-navy text-sm">${escapeHtml(item.topic || '')}</p>
+                            ${item.summary ? `<p class="text-slate-600 text-sm mt-1">${escapeHtml(item.summary)}</p>` : ''}
+                            ${practices ? `<ul class="text-sm mt-2 space-y-1">${practices}</ul>` : ''}
+                        </div>`;
+                    });
+                    html += `</div></div>`;
+                });
+
+                bodyEl.innerHTML = html;
+            } catch (err) {
+                bodyEl.innerHTML = `<p class="text-red-400 text-sm">${isHebrewMode() ? 'שגיאה בטעינת המנהגים' : 'Error loading customs data'}</p>`;
+            }
+        }
 
         function normalizeChapterGridBookName(bookName) {
             const raw = String(bookName || '').replace(/\s+/g, ' ').trim();
@@ -6141,6 +6648,17 @@
         if (closeDevtoolsInspectorBtn) {
             closeDevtoolsInspectorBtn.addEventListener('click', closeDevtoolsInspector);
         }
+
+        const closeLibraryCategoryBtn = document.getElementById('closeLibraryCategoryBtn');
+        if (closeLibraryCategoryBtn) {
+            closeLibraryCategoryBtn.addEventListener('click', closeLibraryCategory);
+        }
+        const libraryCategoryModalEl = document.getElementById('libraryCategoryModal');
+        if (libraryCategoryModalEl) {
+            libraryCategoryModalEl.addEventListener('click', e => {
+                if (e.target === libraryCategoryModalEl) closeLibraryCategory();
+            });
+        }
         if (communityTimelineBtn) {
             communityTimelineBtn.addEventListener('click', () => {
                 void openCommunityTimeline();
@@ -8138,6 +8656,82 @@
             }
         }
 
+        // ─── DIRECT SEFARIA FALLBACK ──────────────────────────────────────────
+        function _flattenSefariaText(arr, path) {
+            path = path || [];
+            if (typeof arr === 'string') {
+                const t = arr.trim();
+                return t ? [{ path: path.slice(), text: t }] : [];
+            }
+            if (Array.isArray(arr)) {
+                const result = [];
+                arr.forEach((item, idx) => {
+                    result.push(..._flattenSefariaText(item, path.concat(idx + 1)));
+                });
+                return result;
+            }
+            return [];
+        }
+
+        function _transformSefariaDirectResponse(raw, requestedRef) {
+            if (!raw || typeof raw !== 'object') return null;
+            if (raw.error) return null;
+            const heLeafs = _flattenSefariaText(raw.he || []);
+            const enLeafs = _flattenSefariaText(raw.text || []);
+            const byPath = (leafs) => {
+                const m = {};
+                leafs.forEach(l => { m[l.path.join('.')] = l.text; });
+                return m;
+            };
+            const heMap = byPath(heLeafs);
+            const enMap = byPath(enLeafs);
+            const allPaths = [...new Set([...Object.keys(heMap), ...Object.keys(enMap)])].sort();
+            const lines = allPaths.map((p, idx) => ({
+                he: heMap[p] || '',
+                en: enMap[p] || '',
+                segment: p || String(idx + 1),
+            }));
+            return {
+                ref: raw.ref || requestedRef,
+                title: raw.title || raw.indexTitle || String(requestedRef).split(',')[0].trim(),
+                heTitle: raw.heTitle || '',
+                he: heLeafs.map(l => l.text),
+                en: enLeafs.map(l => l.text),
+                lines,
+                sections: raw.sections || [],
+                sectionNames: raw.sectionNames || [],
+                next: raw.next || null,
+                prev: raw.prev || null,
+                categories: raw.categories || [],
+                authors: raw.authors || [],
+                era: raw.era || '',
+            };
+        }
+
+        async function _fetchFromSefariaDirectly(ref) {
+            const safeRef = encodeURIComponent(String(ref || '').replace(/\s+/g, '_'));
+            const url = `https://www.sefaria.org/api/texts/${safeRef}?lang=both&context=0&pad=0`;
+            try {
+                const resp = await fetch(url, {
+                    headers: { 'Accept': 'application/json' },
+                    mode: 'cors',
+                });
+                if (resp.status === 403) {
+                    return { error: 'Sefaria service blocked (HTTP 403)', error_type: 'sefaria_blocked', he: [], en: [] };
+                }
+                if (!resp.ok) return null;
+                const raw = await resp.json();
+                return _transformSefariaDirectResponse(raw, ref);
+            } catch (err) {
+                // TypeError from fetch usually means CORS or network failure.
+                const isCors = err instanceof TypeError;
+                if (isCors) {
+                    return { error: 'Cannot connect to Sefaria (CORS/network blocked)', error_type: 'cors_blocked', he: [], en: [] };
+                }
+                return null;
+            }
+        }
+
         async function fetchTextPayloadWithFallback(ref, recoveryRetry = false) {
             const requestedRef = String(ref || '').trim();
             if (!requestedRef) {
@@ -8197,6 +8791,17 @@
                 }
             }
 
+            // Last resort: try fetching directly from Sefaria API (browser CORS)
+            const directPayload = await _fetchFromSefariaDirectly(requestedRef);
+            if (directPayload && !directPayload.error) {
+                cacheTextPayload(requestedRef, directPayload);
+                return { payload: directPayload, resolvedRef: requestedRef };
+            }
+            // If the direct fetch returned a typed error (blocked/CORS), surface it.
+            if (directPayload && directPayload.error_type) {
+                return { payload: directPayload, resolvedRef: requestedRef };
+            }
+
             return { payload: lastErrorPayload, resolvedRef: requestedRef };
         }
 
@@ -8240,13 +8845,29 @@
 
                 if (data.error) {
                     document.getElementById('readerTitle').innerText = normalizedRequestRef || String(ref || '');
+                    const _errStr = String(data.error || '');
+                    const _errType = data.error_type || '';
+                    let _friendlyError;
+                    if (_errType === 'sefaria_blocked' || _errStr.includes('403') || _errStr.toLowerCase().includes('blocked')) {
+                        _friendlyError = t(
+                            '\u26a0\ufe0f Sefaria is temporarily unavailable (access blocked). Please try again later.',
+                            '\u26a0\ufe0f ספריא אינה זמינה כרגע (חסימת גישה). אנא נסה שנית מאוחר יותר.'
+                        );
+                    } else if (_errType === 'cors_blocked') {
+                        _friendlyError = t(
+                            '\u26a0\ufe0f Cannot connect to Sefaria from this browser (CORS policy). Try reloading the page.',
+                            '\u26a0\ufe0f לא ניתן להתחבר לספריא מדפדפן זה. נסה לרענן את הדף.'
+                        );
+                    } else {
+                        _friendlyError = `${t('Could not load text:', 'לא ניתן לטעון את הטקסט:')} ${_errStr}`;
+                    }
                     document.getElementById('readerContent').innerHTML =
-                        `<p class="text-red-500">${t('Could not load text:', 'לא ניתן לטעון את הטקסט:')} ${data.error}</p>`;
+                        `<p class="text-red-500">${_friendlyError}</p>`;
                     readerTopBar?.classList.add('hidden');
                     window.currentTextPayload = null;
                     window.currentTextPayloadChain = [];
                     resetInfiniteReaderState(null);
-                    logReliability('text-load-error', { ref: normalizedRequestRef || String(ref || ''), error: data.error });
+                    logReliability('text-load-error', { ref: normalizedRequestRef || String(ref || ''), error: _errStr, error_type: _errType });
                     return;
                 }
 
@@ -9389,34 +10010,59 @@
             aiSynthesisEl.innerHTML = renderAnswerMarkdown(data.answer);
             applyMarkdownComponentStyles(aiSynthesisEl, MODAL_MARKDOWN_COMPONENT_STYLES);
 
+            // Helper: generate external links for a ref string
+            function _externalLinksForRef(ref) {
+                if (!ref) return '';
+                const r = String(ref).trim();
+                const links = [];
+                // Talmud (Berakhot, Shabbat, etc.) → Dicta + AlHaTorah
+                const talmudMatch = r.match(/^([A-Za-z\s]+)\s+(\d+[ab])/);
+                const isTanakh = /^(Genesis|Exodus|Leviticus|Numbers|Deuteronomy|Joshua|Judges|Samuel|Kings|Isaiah|Jeremiah|Ezekiel|Psalms|Proverbs|Job|Song|Ruth|Lamentations|Ecclesiastes|Esther|Daniel|Ezra|Nehemiah|Chronicles)\b/.test(r);
+                const isHalachic = /^(Shulchan Aruch|Mishneh Torah|Tur|Kitzur|Ben Ish Hai|Arukh HaShulchan|Mishnah Berurah)\b/i.test(r);
+                if (talmudMatch) {
+                    const tractate = talmudMatch[1].trim();
+                    const daf = talmudMatch[2];
+                    links.push(`<a href="https://dicta.org.il/talmudsearch?search=${encodeURIComponent(tractate + ' ' + daf)}" target="_blank" rel="noopener noreferrer" class="text-xs text-amber-700 hover:underline mr-2">Dicta ↗</a>`);
+                    links.push(`<a href="https://alhatorah.org/Full/${encodeURIComponent(r)}" target="_blank" rel="noopener noreferrer" class="text-xs text-amber-700 hover:underline mr-2">AlHaTorah ↗</a>`);
+                } else if (isTanakh) {
+                    links.push(`<a href="https://alhatorah.org/Full/${encodeURIComponent(r)}" target="_blank" rel="noopener noreferrer" class="text-xs text-amber-700 hover:underline mr-2">AlHaTorah ↗</a>`);
+                } else {
+                    links.push(`<a href="https://hebrewbooks.org/search.aspx?q=${encodeURIComponent(r.split(',')[0])}" target="_blank" rel="noopener noreferrer" class="text-xs text-amber-700 hover:underline mr-2">HebrewBooks ↗</a>`);
+                }
+                return links.join('');
+            }
+
             // 2. Populate sources
+            const sourcesDiv = document.getElementById('aiSources');
+            sourcesDiv.innerHTML = '';
+            let hasRenderedSources = false;
+
+            // 2a. Sefaria text sources (with line content)
             const rankedSources = rankAiSourcesForQuery(data.sources, queryTitle, data.answer).slice(0, 4);
             if (rankedSources.length > 0) {
-                const sourcesDiv = document.getElementById('aiSources');
-                sourcesDiv.innerHTML = '';
                 rankedSources.forEach((src) => {
                     const lines = Array.isArray(src?.lines) ? src.lines : [];
                     const isExternal = src.domain && !String(src.domain).includes('sefaria') && src.url;
-                    const linkHtml = isExternal
+                    const localLinkHtml = isExternal
                         ? `<a href="${src.url}" target="_blank" rel="noopener noreferrer" class="text-xs text-[#6a5840] hover:underline">${src.source_provider || src.domain} ↗</a>`
-                        : `<a href="#" data-local-ref="${(src.ref || '').replace(/"/g, '&quot;')}" class="source-local-link text-xs text-[#6a5840] hover:underline">${t('Open in Reader ↗', 'פתח בקורא ↗')}</a>`;
+                        : `<a href="#" data-local-ref="${(src.ref || '').replace(/"/g, '&quot;')}" class="source-local-link text-xs text-[#6a5840] hover:underline font-medium">${t('Open in Reader ↗', 'פתח בקורא ↗')}</a>`;
+                    const extLinks = _externalLinksForRef(src.ref);
                     const sourceHtml = `
-                        <div class="bg-slate-50 p-4 rounded border border-slate-200 hover:border-[#b9a787] transition">
-                            <div class="flex justify-between items-start mb-2">
+                        <details class="bg-slate-50 border border-slate-200 rounded hover:border-[#b9a787] transition group">
+                            <summary class="flex justify-between items-center p-3 cursor-pointer list-none">
                                 <h4 class="font-hebrew text-sm font-bold text-navy">${src.ref}</h4>
-                                ${linkHtml}
-                            </div>
-                            <div class="text-xs text-slate-600 bg-white p-2 rounded max-h-32 overflow-y-auto">
+                                <span class="flex items-center gap-2">${extLinks}${localLinkHtml}<span class="text-slate-400 text-xs group-open:hidden">▸</span><span class="text-slate-400 text-xs hidden group-open:inline">▾</span></span>
+                            </summary>
+                            <div class="text-xs text-slate-600 bg-white px-3 pb-3 rounded-b max-h-40 overflow-y-auto border-t border-slate-100">
                                 ${lines.slice(0, 3).map((line) => {
-                        if (typeof line === 'string') {
-                            return `<p>${line.replace(/<[^>]*>/gm, '')}</p>`;
-                        }
-                        return `<p>${String(line?.en || line?.he || '').replace(/<[^>]*>/gm, '')}</p>`;
+                        if (typeof line === 'string') return `<p class="mt-1">${line.replace(/<[^>]*>/gm, '')}</p>`;
+                        return `<p class="mt-1">${String(line?.en || line?.he || '').replace(/<[^>]*>/gm, '')}</p>`;
                     }).join('')}
                             </div>
-                        </div>
+                        </details>
                     `;
                     sourcesDiv.innerHTML += sourceHtml;
+                    hasRenderedSources = true;
                 });
                 // Wire click handlers for local-reader links (data-local-ref)
                 sourcesDiv.querySelectorAll('a.source-local-link').forEach((a) => {
@@ -9426,6 +10072,43 @@
                         if (ref) readText(ref);
                     });
                 });
+            }
+
+            // 2b. AI-cited sources (text strings from structured AI response)
+            const aiCited = Array.isArray(data.ai_cited_sources) ? data.ai_cited_sources : [];
+            if (aiCited.length > 0) {
+                if (hasRenderedSources) {
+                    sourcesDiv.innerHTML += `<p class="text-xs text-slate-400 font-medium mt-2 mb-1 uppercase tracking-wide">${t('Additional References', 'מקורות נוספים')}</p>`;
+                }
+                aiCited.slice(0, 6).forEach((srcStr) => {
+                    const parts = String(srcStr || '').split(/[:–—]/);
+                    const refTitle = parts[0].trim();
+                    const note = parts.slice(1).join(':').trim();
+                    const extLinks = _externalLinksForRef(refTitle);
+                    const seferiaRef = refTitle.replace(/\s+/g, '_');
+                    const localLink = `<a href="#" data-local-ref="${seferiaRef.replace(/"/g, '&quot;')}" class="source-local-link text-xs text-[#6a5840] hover:underline font-medium">${t('Open in Reader ↗', 'פתח בקורא ↗')}</a>`;
+                    const html = `
+                        <details class="bg-slate-50 border border-slate-200 rounded hover:border-[#b9a787] transition group">
+                            <summary class="flex justify-between items-center p-3 cursor-pointer list-none">
+                                <h4 class="font-hebrew text-sm font-bold text-navy">${escapeHtml(refTitle)}</h4>
+                                <span class="flex items-center gap-2">${extLinks}${localLink}<span class="text-slate-400 text-xs group-open:hidden">▸</span><span class="text-slate-400 text-xs hidden group-open:inline">▾</span></span>
+                            </summary>
+                            ${note ? `<div class="text-xs text-slate-600 bg-white px-3 pb-3 pt-2 rounded-b border-t border-slate-100">${escapeHtml(note)}</div>` : ''}
+                        </details>
+                    `;
+                    sourcesDiv.innerHTML += html;
+                    hasRenderedSources = true;
+                });
+                sourcesDiv.querySelectorAll('a.source-local-link').forEach((a) => {
+                    a.addEventListener('click', (e) => {
+                        e.preventDefault();
+                        const ref = a.getAttribute('data-local-ref');
+                        if (ref) readText(ref);
+                    });
+                });
+            }
+
+            if (hasRenderedSources) {
                 document.getElementById('aiSourcesSection').classList.remove('hidden');
             }
 
