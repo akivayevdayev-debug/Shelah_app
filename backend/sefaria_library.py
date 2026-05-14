@@ -18,19 +18,44 @@ import time
 import difflib
 import re
 import json
+import hashlib
 from copy import deepcopy
 from pathlib import Path
 from urllib.parse import quote, urlencode, unquote
 
-SEFARIA_API = "https://www.sefaria.org/api"
+SEFARIA_API = "https://www.sefaria.org.il/api"
+SEFARIA_V3_API = "https://www.sefaria.org.il/api/v3"
 
 # Simple in-memory cache with TTL
 _cache = {}
 CACHE_TTL = 3600  # 1 hour
+DISK_CACHE_TTL = 7 * 24 * 3600  # 7 days for disk cache
+
 _http_session = requests.Session()
+_http_session.headers.update({
+    "User-Agent": (
+        "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) "
+        "AppleWebKit/537.36 (KHTML, like Gecko) "
+        "Chrome/124.0.0.0 Safari/537.36"
+    ),
+    "Accept": "application/json, text/plain, */*",
+    "Accept-Language": "en-US,en;q=0.9,he;q=0.8",
+    "Referer": "https://www.sefaria.org.il/",
+    "Origin": "https://www.sefaria.org.il",
+})
+
 _resolved_title_ref_cache = {}
 _resolved_query_ref_cache = {}
 _title_catalog_cache = {"ts": 0, "report_mtime": 0.0, "data": []}
+
+# Tracks the most recent Sefaria upstream block event so callers can surface it.
+_sefaria_block_status: dict = {
+    "is_blocked": False,
+    "http_status": None,
+    "block_reason": "",
+    "last_blocked_ts": 0.0,
+    "consecutive_blocks": 0,
+}
 _search_query_cache = {}
 _library_index_adjustments_cache = {
     "loaded": False,
@@ -47,6 +72,39 @@ _library_index_view_cache = {
 _PROJECT_ROOT = Path(__file__).resolve().parent.parent
 _LIBRARY_REPORT_PATH = _PROJECT_ROOT / "reports" / \
     "library_leaf_remove_fix_report.full.json"
+_DISK_CACHE_DIR = _PROJECT_ROOT / ".sefaria_cache"
+
+
+def _disk_cache_path(url: str) -> Path:
+    key = hashlib.md5(url.encode("utf-8")).hexdigest()
+    return _DISK_CACHE_DIR / f"{key}.json"
+
+
+def _disk_cache_get(url: str):
+    """Load a cached response from disk if it exists and is not stale."""
+    try:
+        path = _disk_cache_path(url)
+        if not path.exists():
+            return None
+        payload = json.loads(path.read_text(encoding="utf-8"))
+        if time.time() - float(payload.get("ts", 0)) > DISK_CACHE_TTL:
+            return None
+        return payload.get("data")
+    except Exception:
+        return None
+
+
+def _disk_cache_set(url: str, data) -> None:
+    """Persist a successful API response to disk."""
+    try:
+        _DISK_CACHE_DIR.mkdir(parents=True, exist_ok=True)
+        path = _disk_cache_path(url)
+        path.write_text(
+            json.dumps({"ts": time.time(), "data": data}, ensure_ascii=False),
+            encoding="utf-8",
+        )
+    except Exception:
+        pass
 
 
 def _normalize_title_key(text):
@@ -168,23 +226,53 @@ def _prune_and_fix_library_index(node, remove_keys, fix_map):
 
 
 def _cached_get(url, ttl=CACHE_TTL):
-    """Cached HTTP GET wrapper."""
+    """Cached HTTP GET wrapper — checks memory → disk → network."""
     now = time.time()
+    # 1. Memory cache (fastest)
     if url in _cache and now - _cache[url]['ts'] < ttl:
         return _cache[url]['data']
+    # 2. Disk cache (survives restarts)
+    disk_data = _disk_cache_get(url)
+    if disk_data is not None:
+        _cache[url] = {'data': disk_data, 'ts': now}
+        return disk_data
+    # 3. Network request
     try:
-        r = _http_session.get(url, timeout=10)
+        r = _http_session.get(url, timeout=12)
         r.raise_for_status()
         data = r.json()
+        # Clear block status on a successful fetch.
+        if _sefaria_block_status["is_blocked"]:
+            _sefaria_block_status.update({
+                "is_blocked": False,
+                "http_status": 200,
+                "block_reason": "",
+                "consecutive_blocks": 0,
+            })
         _cache[url] = {'data': data, 'ts': now}
+        _disk_cache_set(url, data)
         return data
     except requests.HTTPError as e:
         status_code = e.response.status_code if e.response is not None else None
-        if status_code not in (400, 404):
-            print(f"[Sefaria Library] Error fetching {url}: {e}")
+        if status_code == 403:
+            _sefaria_block_status.update({
+                "is_blocked": True,
+                "http_status": 403,
+                "block_reason": "Cloudflare 403 Forbidden",
+                "last_blocked_ts": now,
+                "consecutive_blocks": _sefaria_block_status.get("consecutive_blocks", 0) + 1,
+            })
+            print(f"[Sefaria Library Error] Failed to fetch data from {url}. Status Code: {status_code}. Reason: Cloudflare 403 Forbidden. Sefaria is blocking the request.")
+        elif status_code not in (400, 404):
+            print(f"[Sefaria Library Error] HTTP error during fetch. URL: {url}. Status Code: {status_code}. Details: {str(e)}")
+        return None
+    except requests.RequestException as e:
+        print(f"[Sefaria Library Error] Network or request error. URL: {url}. Details: {str(e)}")
         return None
     except Exception as e:
-        print(f"[Sefaria Library] Error fetching {url}: {e}")
+        import traceback
+        print(f"[Sefaria Library Error] Unexpected error occurred. URL: {url}. Type: {type(e).__name__}. Details: {str(e)}")
+        traceback.print_exc()
         return None
 
 
@@ -274,6 +362,90 @@ def _build_text_url(ref, lang="both", context=0):
     encoded_ref = _encode_ref_path(ref)
     params = urlencode({"lang": lang, "context": context, "pad": 0})
     return f"{SEFARIA_API}/texts/{encoded_ref}?{params}"
+
+
+def _build_v3_text_url(ref):
+    """Build a Sefaria v3 texts endpoint URL requesting source (he) + translation (en)."""
+    encoded_ref = _encode_ref_path(ref)
+    return f"{SEFARIA_V3_API}/texts/{encoded_ref}?version=source&version=translation"
+
+
+def _parse_v3_response(data, requested_ref):
+    """Convert a Sefaria v3 /api/v3/texts/{ref} response to our standard get_text() output format."""
+    if not isinstance(data, dict):
+        return None
+    if data.get("error"):
+        return None
+    versions = data.get("versions") or []
+    if not versions:
+        return None
+
+    he_raw = []
+    en_raw = []
+    for version in versions:
+        lang = version.get("language", "") or ""
+        direction = version.get("direction", "") or ""
+        is_source = bool(version.get("isSource", False))
+        text = version.get("text") or []
+        # Hebrew / source: isSource=True or direction="rtl" or language="he"
+        if (is_source or direction == "rtl" or lang == "he") and not he_raw:
+            he_raw = text
+        # English / translation: avoid Hebrew-direction texts
+        elif not he_raw and not is_source and direction != "rtl" and lang != "he" and not en_raw:
+            en_raw = text
+        elif he_raw and not en_raw and not is_source and direction != "rtl" and lang != "he":
+            en_raw = text
+
+    def flatten_with_path(arr, path=None):
+        path = path or ()
+        if isinstance(arr, str):
+            t = arr.strip()
+            return [(path, t)] if t else []
+        if isinstance(arr, list):
+            result = []
+            for idx, item in enumerate(arr, start=1):
+                result.extend(flatten_with_path(item, path + (idx,)))
+            return result
+        return []
+
+    he_leafs = flatten_with_path(he_raw)
+    en_leafs = flatten_with_path(en_raw)
+    he_by_path = {p: t for p, t in he_leafs}
+    en_by_path = {p: t for p, t in en_leafs}
+    all_paths = sorted(set(he_by_path.keys()) | set(en_by_path.keys()))
+
+    if not all_paths:
+        return None
+
+    lines = []
+    for path in all_paths:
+        lines.append({
+            "he": he_by_path.get(path, ""),
+            "en": en_by_path.get(path, ""),
+            "segment": ".".join(str(i) for i in path) if path else "1",
+        })
+
+    he_flat = [line["he"] for line in lines if line.get("he")]
+    en_flat = [line["en"] for line in lines if line.get("en")]
+
+    resolved_ref = data.get("ref", requested_ref)
+    fallback_title = str(resolved_ref or requested_ref).split(",", 1)[
+        0].strip()
+    return {
+        "ref": resolved_ref,
+        "title": data.get("title") or data.get("indexTitle") or data.get("book") or fallback_title,
+        "heTitle": data.get("heTitle") or data.get("heIndexTitle") or "",
+        "he": he_flat,
+        "en": en_flat,
+        "lines": lines,
+        "sections": data.get("sections", []),
+        "sectionNames": data.get("sectionNames", []),
+        "next": data.get("next"),
+        "prev": data.get("prev"),
+        "categories": data.get("categories", []),
+        "authors": [],
+        "era": "",
+    }
 
 
 def _is_specific_ref_query(value):
@@ -654,6 +826,17 @@ def get_text(ref, lang="both", context=0):
     resolved_ref = ""
     attempts_tried = set()
 
+    # --- Try v3 API first (newer endpoint, may avoid Cloudflare block) ---
+    v3_url = _build_v3_text_url(requested_ref)
+    v3_raw = _cached_get(v3_url, ttl=86400)
+    if v3_raw and not v3_raw.get("error"):
+        parsed_v3 = _parse_v3_response(v3_raw, requested_ref)
+        if parsed_v3:
+            _resolved_query_ref_cache[cache_key] = str(
+                parsed_v3.get("ref") or requested_ref)
+            return parsed_v3
+
+    # --- Fall back to v2 API with full candidate resolution ---
     data = None
     cached_ref = _resolved_query_ref_cache.get(cache_key, "")
     initial_attempts = [cached_ref,
@@ -690,7 +873,18 @@ def get_text(ref, lang="both", context=0):
 
     if not data or "error" in data:
         _resolved_query_ref_cache.pop(cache_key, None)
-        return {"error": f"Text not found: {requested_ref}", "ref": requested_ref, "he": [], "en": []}
+        # Surface a specific error when Sefaria is actively blocking requests.
+        if _sefaria_block_status.get("is_blocked"):
+            reason = _sefaria_block_status.get(
+                "block_reason", "Cloudflare 403")
+            return {
+                "error": f"Sefaria service blocked ({reason}): {requested_ref}",
+                "error_type": "sefaria_blocked",
+                "ref": requested_ref,
+                "he": [],
+                "en": [],
+            }
+        return {"error": f"Text not found: {requested_ref}", "error_type": "not_found", "ref": requested_ref, "he": [], "en": []}
 
     _resolved_query_ref_cache[cache_key] = str(
         resolved_ref or data.get("ref") or requested_ref)
@@ -750,6 +944,53 @@ def get_text(ref, lang="both", context=0):
         "categories": data.get("categories", []),
         "authors": data.get("authors", []),
         "era": data.get("era", "")
+    }
+
+
+def check_sefaria_availability():
+    """
+    Probe both the v3 and v2 Sefaria API endpoints live (no cache).
+    Returns a status dict suitable for the /api/diagnostics/sefaria route.
+    This call is not cached — it always makes live HTTP requests.
+    """
+    import time as _time
+    probe_ref = "Genesis_1"
+    v3_url = f"{SEFARIA_V3_API}/texts/{probe_ref}?version=source"
+    v2_url = _build_text_url("Genesis 1")
+
+    def _probe(url, timeout=10):
+        try:
+            r = _http_session.get(url, timeout=timeout)
+            status = r.status_code
+            if status == 200:
+                try:
+                    body = r.json()
+                    ok = bool(body) and not body.get("error")
+                except Exception:
+                    ok = False
+            else:
+                body = None
+                ok = False
+            return {"available": ok, "http_status": status, "error": "" if ok else f"HTTP {status}", "url": url}
+        except Exception as exc:
+            return {"available": False, "http_status": None, "error": str(exc), "url": url}
+
+    v3_result = _probe(v3_url)
+    v2_result = _probe(v2_url)
+
+    block_type = ""
+    if v3_result["http_status"] == 403 or v2_result["http_status"] == 403:
+        block_type = "cloudflare_403"
+    elif not v3_result["available"] and not v2_result["available"]:
+        block_type = "unavailable"
+
+    return {
+        "v3_api": v3_result,
+        "v2_api": v2_result,
+        "block_type": block_type,
+        "overall_available": v3_result["available"] or v2_result["available"],
+        "cached_block_status": dict(_sefaria_block_status),
+        "checked_at": _time.time(),
     }
 
 
