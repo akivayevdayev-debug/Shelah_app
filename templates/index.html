@@ -27,7 +27,7 @@
     <link rel="stylesheet" href="/static/css/sidebar.css?v=20260512-v1">
     <link rel="stylesheet" href="/static/css/halacha.css?v=20260512-v1">
     <link rel="stylesheet" href="/static/css/prayer.css?v=20260512-v1">
-    <link rel="stylesheet" href="/static/css/ai.css?v=20260512-v1">
+    <link rel="stylesheet" href="/static/css/ai.css?v=20260514-v2">
     <link rel="stylesheet" href="/static/css/calendar.css?v=20260512-v1">
 
     <style id="quick-settings-dark-fixes">
@@ -4050,6 +4050,12 @@
                 readerLibraryTopBarBtn.classList.toggle('hidden', !shouldShowLibraryBtn);
                 readerLibraryTopBarBtn.style.visibility = shouldShowLibraryBtn ? 'visible' : 'hidden';
                 readerLibraryTopBarBtn.disabled = !shouldShowLibraryBtn;
+
+                // When reader topbar library button is visible, hide the floating library restore button
+                // to avoid duplicate library buttons on the page
+                if (showLeftSidebarTopBtn) {
+                    showLeftSidebarTopBtn.style.display = shouldShowLibraryBtn ? 'none' : '';
+                }
             }
 
             if (readerSettingsBtn) {
@@ -8494,16 +8500,24 @@
 
             try {
                 const headers = await authHeaders({ 'Content-Type': 'application/json' });
-                const response = await fetch('/ask', {
-                    method: 'POST',
-                    headers,
-                    body: JSON.stringify({
-                        question,
-                        mode: appState.prefs.mode,
-                        community: appState.prefs.community,
-                        language: isHebrewMode() ? 'he' : 'en',
-                    })
-                });
+                const abortCtrl = new AbortController();
+                const abortTimer = setTimeout(() => abortCtrl.abort(), 10000);
+                let response;
+                try {
+                    response = await fetch('/ask', {
+                        method: 'POST',
+                        headers,
+                        signal: abortCtrl.signal,
+                        body: JSON.stringify({
+                            question,
+                            mode: appState.prefs.mode,
+                            community: appState.prefs.community,
+                            language: isHebrewMode() ? 'he' : 'en',
+                        })
+                    });
+                } finally {
+                    clearTimeout(abortTimer);
+                }
 
                 const data = await response.json();
 
@@ -8527,8 +8541,12 @@
             } catch (error) {
                 appState.lastAiQuestion = '';
                 appState.lastAiResponse = null;
-                document.getElementById('aiSynthesis').innerHTML = `<p class="text-red-600">${t('Network error:', 'שגיאת רשת:')} ${error.message}</p>`;
-                logReliability('ai-network-error', { message: error.message });
+                const isTimeout = error?.name === 'AbortError';
+                const errMsg = isTimeout
+                    ? t('Response timed out. Please try again.', 'הבקשה ארכה זמן רב. נסה שוב.')
+                    : `${t('Network error:', 'שגיאת רשת:')} ${error.message}`;
+                document.getElementById('aiSynthesis').innerHTML = `<p class="text-red-600">${errMsg}</p>`;
+                logReliability('ai-network-error', { message: error.message, timeout: isTimeout });
             }
         }
 
@@ -10011,60 +10029,81 @@
             applyMarkdownComponentStyles(aiSynthesisEl, MODAL_MARKDOWN_COMPONENT_STYLES);
 
             // Helper: generate external links for a ref string
+            // Only shows hebrewbooks for genuine responsa not on Sefaria;
+            // uses Dicta/AlHaTorah for Talmud/Tanakh; halachic works on Sefaria get no external link.
             function _externalLinksForRef(ref) {
                 if (!ref) return '';
                 const r = String(ref).trim();
                 const links = [];
-                // Talmud (Berakhot, Shabbat, etc.) → Dicta + AlHaTorah
-                const talmudMatch = r.match(/^([A-Za-z\s]+)\s+(\d+[ab])/);
-                const isTanakh = /^(Genesis|Exodus|Leviticus|Numbers|Deuteronomy|Joshua|Judges|Samuel|Kings|Isaiah|Jeremiah|Ezekiel|Psalms|Proverbs|Job|Song|Ruth|Lamentations|Ecclesiastes|Esther|Daniel|Ezra|Nehemiah|Chronicles)\b/.test(r);
-                const isHalachic = /^(Shulchan Aruch|Mishneh Torah|Tur|Kitzur|Ben Ish Hai|Arukh HaShulchan|Mishnah Berurah)\b/i.test(r);
+
+                // Talmud tractates → Dicta + AlHaTorah (not hebrewbooks)
+                const talmudMatch = r.match(/^([A-Za-z\s]+?)\s+(\d+[ab])/);
+                // Tanakh books → AlHaTorah only
+                const isTanakh = /^(Genesis|Exodus|Leviticus|Numbers|Deuteronomy|Joshua|Judges|I?\s*Samuel|I?\s*Kings|Isaiah|Jeremiah|Ezekiel|Hosea|Joel|Amos|Obadiah|Jonah|Micah|Nahum|Habakkuk|Zephaniah|Haggai|Zechariah|Malachi|Psalms|Proverbs|Job|Song of Songs|Ruth|Lamentations|Ecclesiastes|Esther|Daniel|Ezra|Nehemiah|I?\s*Chronicles)\b/i.test(r);
+                // Works available on Sefaria — no external link needed (use "Open in Reader")
+                const isOnSefaria = /^(Shulchan Aruch|Mishneh Torah|Tur\b|Kitzur Shulchan Aruch|Ben Ish Hai|Arukh HaShulchan|Mishnah Berurah|Mishnah\b|Talmud|Sefer HaMitzvot|Sefer HaChinuch|Rambam|Pirkei Avot|Avot|Siddur)\b/i.test(r);
+
                 if (talmudMatch) {
                     const tractate = talmudMatch[1].trim();
                     const daf = talmudMatch[2];
-                    links.push(`<a href="https://dicta.org.il/talmudsearch?search=${encodeURIComponent(tractate + ' ' + daf)}" target="_blank" rel="noopener noreferrer" class="text-xs text-amber-700 hover:underline mr-2">Dicta ↗</a>`);
-                    links.push(`<a href="https://alhatorah.org/Full/${encodeURIComponent(r)}" target="_blank" rel="noopener noreferrer" class="text-xs text-amber-700 hover:underline mr-2">AlHaTorah ↗</a>`);
+                    links.push(`<a href="https://dicta.org.il/talmudsearch?search=${encodeURIComponent(tractate + ' ' + daf)}" target="_blank" rel="noopener noreferrer" class="src-ext-link">Dicta ↗</a>`);
+                    links.push(`<a href="https://alhatorah.org/Full/${encodeURIComponent(r)}" target="_blank" rel="noopener noreferrer" class="src-ext-link">AlHaTorah ↗</a>`);
                 } else if (isTanakh) {
-                    links.push(`<a href="https://alhatorah.org/Full/${encodeURIComponent(r)}" target="_blank" rel="noopener noreferrer" class="text-xs text-amber-700 hover:underline mr-2">AlHaTorah ↗</a>`);
-                } else {
-                    links.push(`<a href="https://hebrewbooks.org/search.aspx?q=${encodeURIComponent(r.split(',')[0])}" target="_blank" rel="noopener noreferrer" class="text-xs text-amber-700 hover:underline mr-2">HebrewBooks ↗</a>`);
+                    links.push(`<a href="https://alhatorah.org/Full/${encodeURIComponent(r)}" target="_blank" rel="noopener noreferrer" class="src-ext-link">AlHaTorah ↗</a>`);
+                } else if (!isOnSefaria) {
+                    // Only show HebrewBooks for works not available on Sefaria (true responsa, etc.)
+                    links.push(`<a href="https://hebrewbooks.org/search.aspx?q=${encodeURIComponent(r.split(',')[0].trim())}" target="_blank" rel="noopener noreferrer" class="src-ext-link">HebrewBooks ↗</a>`);
                 }
+                // isOnSefaria → no external link (Sefaria "Open in Reader" is preferred)
                 return links.join('');
             }
 
-            // 2. Populate sources
+            // 2. Populate sources as open visual source boxes (not collapsible)
             const sourcesDiv = document.getElementById('aiSources');
             sourcesDiv.innerHTML = '';
             let hasRenderedSources = false;
 
-            // 2a. Sefaria text sources (with line content)
+            // 2a. Sefaria text sources (with actual line content)
             const rankedSources = rankAiSourcesForQuery(data.sources, queryTitle, data.answer).slice(0, 4);
             if (rankedSources.length > 0) {
                 rankedSources.forEach((src) => {
                     const lines = Array.isArray(src?.lines) ? src.lines : [];
                     const isExternal = src.domain && !String(src.domain).includes('sefaria') && src.url;
                     const localLinkHtml = isExternal
-                        ? `<a href="${src.url}" target="_blank" rel="noopener noreferrer" class="text-xs text-[#6a5840] hover:underline">${src.source_provider || src.domain} ↗</a>`
-                        : `<a href="#" data-local-ref="${(src.ref || '').replace(/"/g, '&quot;')}" class="source-local-link text-xs text-[#6a5840] hover:underline font-medium">${t('Open in Reader ↗', 'פתח בקורא ↗')}</a>`;
+                        ? `<a href="${src.url}" target="_blank" rel="noopener noreferrer" class="src-open-link">${src.source_provider || src.domain} ↗</a>`
+                        : `<a href="#" data-local-ref="${(src.ref || '').replace(/"/g, '&quot;')}" class="source-local-link src-open-link">${t('Open in Reader ↗', 'פתח בקורא ↗')}</a>`;
                     const extLinks = _externalLinksForRef(src.ref);
+
+                    // Build text content
+                    let contentHtml = '';
+                    if (lines.length > 0) {
+                        const heTexts = lines.slice(0, 3).map(l => String(l?.he || '').trim()).filter(Boolean);
+                        const enTexts = lines.slice(0, 3).map(l => String(l?.en || l || '').replace(/<[^>]*>/gm, '').trim()).filter(Boolean);
+                        if (heTexts.length > 0 || enTexts.length > 0) {
+                            contentHtml = `<div class="ai-src-box-body">`;
+                            if (heTexts.length > 0) {
+                                contentHtml += `<div class="ai-src-box-he" dir="rtl">${heTexts.map(t => `<p>${t}</p>`).join('')}</div>`;
+                            }
+                            if (enTexts.length > 0) {
+                                contentHtml += `<div class="ai-src-box-en">${enTexts.map(t => `<p>${t}</p>`).join('')}</div>`;
+                            }
+                            contentHtml += `</div>`;
+                        }
+                    }
+
                     const sourceHtml = `
-                        <details class="bg-slate-50 border border-slate-200 rounded hover:border-[#b9a787] transition group">
-                            <summary class="flex justify-between items-center p-3 cursor-pointer list-none">
-                                <h4 class="font-hebrew text-sm font-bold text-navy">${src.ref}</h4>
-                                <span class="flex items-center gap-2">${extLinks}${localLinkHtml}<span class="text-slate-400 text-xs group-open:hidden">▸</span><span class="text-slate-400 text-xs hidden group-open:inline">▾</span></span>
-                            </summary>
-                            <div class="text-xs text-slate-600 bg-white px-3 pb-3 rounded-b max-h-40 overflow-y-auto border-t border-slate-100">
-                                ${lines.slice(0, 3).map((line) => {
-                        if (typeof line === 'string') return `<p class="mt-1">${line.replace(/<[^>]*>/gm, '')}</p>`;
-                        return `<p class="mt-1">${String(line?.en || line?.he || '').replace(/<[^>]*>/gm, '')}</p>`;
-                    }).join('')}
+                        <div class="ai-source-box animate-fade-up">
+                            <div class="ai-src-box-header">
+                                <span class="ai-src-box-title">${(src.ref || '').toUpperCase()}</span>
+                                <span class="ai-src-box-links">${extLinks}${localLinkHtml}</span>
                             </div>
-                        </details>
+                            ${contentHtml}
+                        </div>
                     `;
                     sourcesDiv.innerHTML += sourceHtml;
                     hasRenderedSources = true;
                 });
-                // Wire click handlers for local-reader links (data-local-ref)
+                // Wire click handlers for local-reader links
                 sourcesDiv.querySelectorAll('a.source-local-link').forEach((a) => {
                     a.addEventListener('click', (e) => {
                         e.preventDefault();
@@ -10078,23 +10117,23 @@
             const aiCited = Array.isArray(data.ai_cited_sources) ? data.ai_cited_sources : [];
             if (aiCited.length > 0) {
                 if (hasRenderedSources) {
-                    sourcesDiv.innerHTML += `<p class="text-xs text-slate-400 font-medium mt-2 mb-1 uppercase tracking-wide">${t('Additional References', 'מקורות נוספים')}</p>`;
+                    sourcesDiv.innerHTML += `<p class="ai-src-section-label">${t('Additional References', 'מקורות נוספים')}</p>`;
                 }
                 aiCited.slice(0, 6).forEach((srcStr) => {
-                    const parts = String(srcStr || '').split(/[:–—]/);
-                    const refTitle = parts[0].trim();
-                    const note = parts.slice(1).join(':').trim();
+                    const colonIdx = String(srcStr || '').search(/[:–—]/);
+                    const refTitle = colonIdx > 0 ? srcStr.slice(0, colonIdx).trim() : String(srcStr || '').trim();
+                    const note = colonIdx > 0 ? srcStr.slice(colonIdx + 1).trim() : '';
                     const extLinks = _externalLinksForRef(refTitle);
-                    const seferiaRef = refTitle.replace(/\s+/g, '_');
-                    const localLink = `<a href="#" data-local-ref="${seferiaRef.replace(/"/g, '&quot;')}" class="source-local-link text-xs text-[#6a5840] hover:underline font-medium">${t('Open in Reader ↗', 'פתח בקורא ↗')}</a>`;
+                    // Attempt to open in reader using exact ref (preserves section info)
+                    const localLink = `<a href="#" data-local-ref="${refTitle.replace(/"/g, '&quot;')}" class="source-local-link src-open-link">${t('Open in Reader ↗', 'פתח בקורא ↗')}</a>`;
                     const html = `
-                        <details class="bg-slate-50 border border-slate-200 rounded hover:border-[#b9a787] transition group">
-                            <summary class="flex justify-between items-center p-3 cursor-pointer list-none">
-                                <h4 class="font-hebrew text-sm font-bold text-navy">${escapeHtml(refTitle)}</h4>
-                                <span class="flex items-center gap-2">${extLinks}${localLink}<span class="text-slate-400 text-xs group-open:hidden">▸</span><span class="text-slate-400 text-xs hidden group-open:inline">▾</span></span>
-                            </summary>
-                            ${note ? `<div class="text-xs text-slate-600 bg-white px-3 pb-3 pt-2 rounded-b border-t border-slate-100">${escapeHtml(note)}</div>` : ''}
-                        </details>
+                        <div class="ai-source-box animate-fade-up">
+                            <div class="ai-src-box-header">
+                                <span class="ai-src-box-title">${escapeHtml(refTitle).toUpperCase()}</span>
+                                <span class="ai-src-box-links">${extLinks}${localLink}</span>
+                            </div>
+                            ${note ? `<div class="ai-src-box-note">${escapeHtml(note)}</div>` : ''}
+                        </div>
                     `;
                     sourcesDiv.innerHTML += html;
                     hasRenderedSources = true;
