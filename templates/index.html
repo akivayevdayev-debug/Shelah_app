@@ -27,7 +27,7 @@
     <link rel="stylesheet" href="/static/css/sidebar.css?v=20260512-v1">
     <link rel="stylesheet" href="/static/css/halacha.css?v=20260512-v1">
     <link rel="stylesheet" href="/static/css/prayer.css?v=20260512-v1">
-    <link rel="stylesheet" href="/static/css/ai.css?v=20260514-v2">
+    <link rel="stylesheet" href="/static/css/ai.css?v=20260514-v3">
     <link rel="stylesheet" href="/static/css/calendar.css?v=20260512-v1">
 
     <style id="quick-settings-dark-fixes">
@@ -4044,6 +4044,9 @@
             const mobile = isMobileViewport();
             const shulMode = Boolean(appState.prefs.shulMode);
             const leftSidebarOpenDesktop = !mobile && !shulMode && (appState.prefs.showLeftSidebar !== false);
+            // Check if reader is actually active (topbar is visible)
+            const readerTopBar = document.getElementById('readerTopBar');
+            const isReaderActive = readerTopBar && !readerTopBar.classList.contains('hidden');
 
             if (readerLibraryTopBarBtn) {
                 const shouldShowLibraryBtn = !mobile && !leftSidebarOpenDesktop;
@@ -4051,10 +4054,10 @@
                 readerLibraryTopBarBtn.style.visibility = shouldShowLibraryBtn ? 'visible' : 'hidden';
                 readerLibraryTopBarBtn.disabled = !shouldShowLibraryBtn;
 
-                // When reader topbar library button is visible, hide the floating library restore button
-                // to avoid duplicate library buttons on the page
+                // Hide floating library restore button ONLY when reader is active (to avoid duplicate buttons)
+                // On homepage and pages without reader, show the floating button
                 if (showLeftSidebarTopBtn) {
-                    showLeftSidebarTopBtn.style.display = shouldShowLibraryBtn ? 'none' : '';
+                    showLeftSidebarTopBtn.style.display = isReaderActive ? 'none' : '';
                 }
             }
 
