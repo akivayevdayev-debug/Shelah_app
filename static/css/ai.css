@@ -131,3 +131,386 @@ body.theme-dark #aiCommunityBadge:hover,
 body.theme-dark #aiSourcesBadge:hover {
     border-color: #6a7585 !important;
 }
+
+/* ═══════════════════════════════════════════════════════ */
+/* AI SOURCE BOXES — VISUAL CARD STYLE (like reader sourceDualTemplate) */
+/* ═══════════════════════════════════════════════════════ */
+
+.ai-source-box {
+    border: 1px solid #d8d0c2;
+    border-radius: 0.55rem;
+    background: #fff;
+    overflow: hidden;
+    margin-bottom: 1rem;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+    transition: box-shadow 0.22s ease, border-color 0.22s ease, transform 0.18s ease;
+}
+
+.ai-source-box:hover {
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.10);
+    border-color: #b9a787;
+    transform: translateY(-1px);
+}
+
+.ai-src-box-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: #f7f3eb;
+    padding: 0.45rem 0.9rem;
+    border-bottom: 1px solid #ddd4c3;
+    gap: 0.5rem;
+}
+
+.ai-src-box-title {
+    font-size: 0.68rem;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    color: #6b5c3e;
+    text-transform: uppercase;
+    flex: 1;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.ai-src-box-links {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    flex-shrink: 0;
+}
+
+.src-ext-link,
+.src-open-link {
+    font-size: 0.68rem;
+    font-weight: 600;
+    color: #5a4b2f;
+    text-decoration: none;
+    white-space: nowrap;
+    transition: color 0.15s ease;
+}
+
+.src-ext-link:hover,
+.src-open-link:hover {
+    color: #002147;
+    text-decoration: underline;
+}
+
+.ai-src-box-body {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    font-size: 0.8rem;
+}
+
+@media (max-width: 600px) {
+    .ai-src-box-body {
+        grid-template-columns: 1fr;
+    }
+}
+
+.ai-src-box-he {
+    background: #fff;
+    font-family: var(--font-hebrew, 'Ezra SIL', serif);
+    font-size: 1rem;
+    line-height: 1.7;
+    padding: 0.75rem 0.9rem;
+    border-right: 1px solid #e8e0d0;
+    color: #1a1a1a;
+    direction: rtl;
+}
+
+.ai-src-box-he p {
+    margin: 0 0 0.4rem;
+}
+
+.ai-src-box-en {
+    background: #faf7f2;
+    font-family: var(--font-serif, 'Cardo', Georgia, serif);
+    font-size: 0.85rem;
+    line-height: 1.65;
+    padding: 0.75rem 0.9rem;
+    color: #3d3328;
+}
+
+.ai-src-box-en p {
+    margin: 0 0 0.4rem;
+}
+
+.ai-src-box-note {
+    padding: 0.5rem 0.9rem;
+    font-size: 0.78rem;
+    color: #5a4b2f;
+    background: #faf7f2;
+    font-style: italic;
+    border-top: 1px solid #e8e0d0;
+}
+
+.ai-src-section-label {
+    font-size: 0.65rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: #9ca3af;
+    margin: 0.75rem 0 0.4rem;
+}
+
+/* Dark mode source boxes */
+body.theme-dark .ai-source-box {
+    background: var(--surface-elevated, #1c1f1c) !important;
+    border-color: var(--surface-border, #404540) !important;
+}
+
+body.theme-dark .ai-src-box-header {
+    background: #252825 !important;
+    border-bottom-color: var(--surface-border, #404540) !important;
+}
+
+body.theme-dark .ai-src-box-title {
+    color: #c4b89a !important;
+}
+
+body.theme-dark .src-ext-link,
+body.theme-dark .src-open-link {
+    color: #c4b89a !important;
+}
+
+body.theme-dark .src-ext-link:hover,
+body.theme-dark .src-open-link:hover {
+    color: #f3eadd !important;
+}
+
+body.theme-dark .ai-src-box-he {
+    background: #1e201e !important;
+    color: #f0e8d8 !important;
+    border-right-color: var(--surface-border) !important;
+}
+
+body.theme-dark .ai-src-box-en {
+    background: #212320 !important;
+    color: #d4c9b8 !important;
+}
+
+body.theme-dark .ai-src-box-note {
+    background: #212320 !important;
+    color: #b0a492 !important;
+    border-top-color: var(--surface-border) !important;
+}
+
+/* ═══════════════════════════════════════════════════════ */
+/* GLOBAL FLUID ANIMATIONS */
+/* ═══════════════════════════════════════════════════════ */
+
+@keyframes shelah-fade-up {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes shelah-fade-in {
+    from {
+        opacity: 0;
+    }
+
+    to {
+        opacity: 1;
+    }
+}
+
+@keyframes shelah-slide-in-left {
+    from {
+        opacity: 0;
+        transform: translateX(-16px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+@keyframes shelah-slide-in-right {
+    from {
+        opacity: 0;
+        transform: translateX(16px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+@keyframes shelah-scale-in {
+    from {
+        opacity: 0;
+        transform: scale(0.96);
+    }
+
+    to {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+.animate-fade-up {
+    animation: shelah-fade-up 0.32s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.animate-fade-in {
+    animation: shelah-fade-in 0.28s ease both;
+}
+
+.animate-scale-in {
+    animation: shelah-scale-in 0.26s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+/* Staggered animation for source box sequences */
+.ai-source-box:nth-child(1) {
+    animation-delay: 0ms;
+}
+
+.ai-source-box:nth-child(2) {
+    animation-delay: 60ms;
+}
+
+.ai-source-box:nth-child(3) {
+    animation-delay: 120ms;
+}
+
+.ai-source-box:nth-child(4) {
+    animation-delay: 180ms;
+}
+
+.ai-source-box:nth-child(5) {
+    animation-delay: 240ms;
+}
+
+.ai-source-box:nth-child(6) {
+    animation-delay: 300ms;
+}
+
+/* Modal open animation */
+#aiAssistantModal>div,
+#textsMenuModal>div,
+#chapterGridModal>div,
+#calendarModal>div,
+#libraryCategoryModal>div {
+    animation: shelah-scale-in 0.24s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+/* Reader topbar slide-down */
+#readerTopBar {
+    transition: opacity 0.2s ease, transform 0.2s ease;
+}
+
+#readerTopBar:not(.hidden) {
+    animation: shelah-fade-up 0.2s ease both;
+}
+
+/* Search suggestions slide-in */
+#searchSuggestions:not(.hidden) {
+    animation: shelah-fade-up 0.18s ease both;
+}
+
+/* Source dual template in article */
+#readerSources>div {
+    animation: shelah-fade-up 0.28s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+#readerSources>div:nth-child(1) {
+    animation-delay: 0ms;
+}
+
+#readerSources>div:nth-child(2) {
+    animation-delay: 80ms;
+}
+
+#readerSources>div:nth-child(3) {
+    animation-delay: 160ms;
+}
+
+#readerSources>div:nth-child(4) {
+    animation-delay: 240ms;
+}
+
+/* Library sidebar items fade in */
+#leftSidebar details>ul>li {
+    animation: shelah-fade-in 0.2s ease both;
+}
+
+/* Popular texts grid */
+#popularTextsGrid>* {
+    animation: shelah-fade-up 0.25s ease both;
+}
+
+/* Home grid sections */
+.home-today-section {
+    animation: shelah-fade-up 0.3s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+/* Topbar buttons smooth hover */
+.topbar-flat-btn {
+    transition: background-color 0.15s ease, color 0.15s ease, box-shadow 0.15s ease !important;
+}
+
+/* Card hover lift effect for popular texts, customs cards */
+#popularTextsGrid button,
+.home-daily-entry,
+.home-today-section {
+    transition: transform 0.18s ease, box-shadow 0.18s ease;
+}
+
+#popularTextsGrid button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.09);
+}
+
+/* AI synthesis fade-in */
+#aiSynthesis {
+    animation: shelah-fade-in 0.3s ease both;
+}
+
+/* Loading pulse already from Tailwind animate-pulse; ensure smooth AI loading state */
+#aiSynthesis p.animate-pulse {
+    animation: pulse 1.5s cubic-bezier(0.4, 0, 0.6, 1) infinite, shelah-fade-in 0.25s ease both;
+}
+
+/* Source boxes in reader article */
+.border.border-slate-300.rounded-lg.bg-white {
+    transition: box-shadow 0.22s ease, border-color 0.22s ease;
+}
+
+.border.border-slate-300.rounded-lg.bg-white:hover {
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+    border-color: #b9a787;
+}
+
+/* Respect reduced-motion preference */
+@media (prefers-reduced-motion: reduce) {
+
+    .animate-fade-up,
+    .animate-fade-in,
+    .animate-scale-in,
+    #aiAssistantModal>div,
+    #textsMenuModal>div,
+    #chapterGridModal>div,
+    #calendarModal>div,
+    #libraryCategoryModal>div,
+    #readerTopBar,
+    #searchSuggestions,
+    #readerSources>div,
+    #popularTextsGrid>*,
+    .home-today-section,
+    #aiSynthesis {
+        animation: none !important;
+        transition: none !important;
+    }
+}
