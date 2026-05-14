@@ -76,7 +76,7 @@ class HalakhicContext:
 
 MAX_INPUT_CHARS = _int_env("AI_MAX_INPUT_CHARS", 1200)
 MAX_PROMPT_CHARS = _int_env("AI_MAX_PROMPT_CHARS", 16000)
-MODEL_REQUEST_TIMEOUT_SECONDS = _int_env("AI_MODEL_TIMEOUT_SECONDS", 35)
+MODEL_REQUEST_TIMEOUT_SECONDS = _int_env("AI_MODEL_TIMEOUT_SECONDS", 20)
 
 STRUCTURED_RESPONSE_FIELDS = {
     "ruling",
@@ -669,6 +669,15 @@ Source Hierarchy and Modern Commentary Priority:
    - If Sefaria/Halachipedia snippets are available, synthesize them with known contemporary positions.
 4) **Internal Halakhic Knowledge**: Only when steps 1-3 yield no relevant guidance or clearly conflict.
 
+Source Citation Guidelines:
+- You may cite sources available on Sefaria (Tanakh, Talmud Bavli/Yerushalmi, Mishnah, Shulchan Aruch, Mishneh Torah, Tur, Mishnah Berurah, Kitzur Shulchan Aruch, and major commentaries).
+- You may also cite sources from HebrewBooks (older responsa, piyutim, rare halachic works not in Sefaria), Dicta (Talmud search), and AlHaTorah (Tanakh and Talmud cross-reference).
+- For Talmud tractates, always cite as: "Tractate Daf side" (e.g., "Berakhot 2a", "Shabbat 31b").
+- For Tanakh, always cite chapter and verse (e.g., "Shemot 20:8").
+- For Shulchan Aruch, cite as: "Shulchan Aruch, Orach Chayim 328" or "Shulchan Aruch, Even HaEzer 62".
+- For Mishneh Torah, cite as: "Mishneh Torah, Hilchot Shabbat 2" or similar with specific chapter.
+- For responsa on HebrewBooks, cite the work name and responsum number if known (e.g., "Igrot Moshe, Orach Chayim 1:1").
+
 Output Rules:
 - Return output as strict JSON only (no markdown, no prose outside JSON).
 - The JSON schema must contain exactly these keys: ruling (string), sources (array of strings), is_prohibited (boolean), summary (string), practical_steps (array of strings), rabbinic_disclaimer (string).
@@ -677,7 +686,7 @@ Output Rules:
 - The ruling MUST be substantive: at minimum 3-5 sentences with background reasoning, competing opinions, and primary source citations. Never give one-line answers.
 - practical_steps MUST contain 3-6 numbered, actionable steps whenever the question has practical implications. Each step should be 1-2 sentences.
 - summary MUST be a 2-3 sentence concise recap of the key ruling and its rationale.
-- sources MUST list 3-8 specific primary sources (books, tractates, chapters, or Responsa) that are directly cited in the ruling, formatted as: "Title, Section/Chapter: relevance note".
+- sources MUST list 3-8 specific primary sources (books, tractates, chapters, or Responsa) that are directly cited in the ruling, formatted as: "Title, Section/Chapter: relevance note". Always include the specific section or chapter number.
 - Use practical_steps and sources for deeper reasoning and implementation detail, then use summary as a short recap.
 - Tie claims to provided evidence when relevant evidence exists.
 - If API evidence exists, use it; do not skip to internal-only answers.
