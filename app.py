@@ -224,7 +224,7 @@ def _set_cached_ask_payload(cache_key, payload):
 
 
 APP_ROOT = Path(__file__).resolve().parent
-SEFARIA_SEARCH_WRAPPER_URL = "https://www.sefaria.org/api/search-wrapper"
+SEFARIA_SEARCH_WRAPPER_URL = "https://www.sefaria.org.il/api/search-wrapper"
 
 HALAKHIC_CORPUS_ALIASES = {
     "Shulchan Arukh": [
@@ -1303,6 +1303,7 @@ def _compact_ai_sources(sources, max_sources=8, max_lines=3, max_chars=280):
         raw_lines = raw_lines_obj if isinstance(raw_lines_obj, list) else []
 
         lines = []
+        has_valid_content = False
         for row in raw_lines[:max_lines]:
             if not isinstance(row, dict):
                 continue
@@ -1310,12 +1311,22 @@ def _compact_ai_sources(sources, max_sources=8, max_lines=3, max_chars=280):
             en = re.sub(r"\s+", " ", str(row.get("en") or "").strip())
             he = re.sub(r"\s+", " ", str(row.get("he") or "").strip())
 
+            # Skip lines that indicate the source was not found
+            if en.startswith("Text not found") or en.startswith("Error"):
+                continue
+
             if len(en) > max_chars:
                 en = f"{en[:max_chars].rstrip()}..."
             if len(he) > max_chars:
                 he = f"{he[:max_chars].rstrip()}..."
 
+            if en or he:
+                has_valid_content = True
             lines.append({"en": en, "he": he})
+
+        # Skip sources with no valid content
+        if not has_valid_content and not lines:
+            continue
 
         domain = str(src.get("domain") or "").strip()
         source_provider = str(src.get("source_provider") or "").strip()
@@ -3207,7 +3218,7 @@ def ask_question():
                 ]
                 for future in source_futures:
                     try:
-                        source_data = future.result(timeout=5)
+                        source_data = future.result(timeout=3)
                     except Exception:
                         continue
                     if isinstance(source_data, dict):
@@ -3231,11 +3242,11 @@ def ask_question():
             wiki_future = executor.submit(engine.get_wiki, question)
 
             try:
-                halachipedia_info = halachipedia_future.result(timeout=6)
+                halachipedia_info = halachipedia_future.result(timeout=4)
             except Exception:
                 halachipedia_info = None
             try:
-                knowledge_rows = knowledge_future.result(timeout=6)
+                knowledge_rows = knowledge_future.result(timeout=4)
             except Exception:
                 knowledge_rows = []
             try:
@@ -3243,7 +3254,7 @@ def ask_question():
             except Exception:
                 user_memory_summaries = []
             try:
-                wiki_info = wiki_future.result(timeout=5)
+                wiki_info = wiki_future.result(timeout=3)
             except Exception:
                 wiki_info = None
 
@@ -3380,6 +3391,7 @@ def ask_question():
                 raw_ai_answer = claude.render_structured_markdown(
                     structured_payload,
                     answer_language=answer_language,
+                    is_simple=bool(result.get("is_simple", False)),
                 )
             else:
                 raw_ai_answer = str(result.get("answer") or "").strip()
@@ -3415,6 +3427,12 @@ def ask_question():
 
             DEVTOOLS_STATS["answers_total"] += 1
             display_sources = _compact_ai_sources(primary_sources)
+            ai_cited = []
+            if isinstance(structured_payload, dict):
+                for s in (structured_payload.get("sources") or []):
+                    s_str = str(s or "").strip()
+                    if s_str:
+                        ai_cited.append(s_str)
 
             # Successful AI answer path returns immediately; fallback is only for empty/error responses.
             success_payload = {
@@ -3423,6 +3441,7 @@ def ask_question():
                 "wiki": wiki_list + halachipedia_list,
                 "customs": customs_info,
                 "sources": display_sources,
+                "ai_cited_sources": ai_cited,
                 "meta": {
                     "mode": mode,
                     "language": answer_language,
@@ -4108,6 +4127,11 @@ def get_text_inline(ref):
     decoded_ref = _decode_route_ref(ref)
     data = get_text(decoded_ref)
 
+    if isinstance(data, dict) and data.get("error"):
+        error_type = data.get("error_type", "")
+        if error_type == "sefaria_blocked" or "blocked" in str(data.get("error", "")).lower():
+            return jsonify(data), 503
+
     should_translate = str(request.args.get("autotranslate", "1")).strip().lower() not in {
         "0", "false", "no", "off"
     }
@@ -4115,6 +4139,17 @@ def get_text_inline(ref):
         data = _fill_missing_english_lines(data)
 
     return jsonify(data)
+
+
+@app.route("/api/diagnostics/sefaria")
+def sefaria_diagnostics():
+    """Real-time availability probe for the upstream Sefaria API.
+    Returns status for both the v3 and v2 endpoints, plus cached block info.
+    """
+    from backend.sefaria_library import check_sefaria_availability
+    result = check_sefaria_availability()
+    http_status = 200 if result.get("overall_available") else 503
+    return jsonify(result), http_status
 
 
 @app.route("/api/word/meaning")
