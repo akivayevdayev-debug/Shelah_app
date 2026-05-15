@@ -1368,9 +1368,58 @@ body.theme-dark .reader-range-slider {
     box-shadow: 0 6px 18px rgba(15, 23, 42, 0.08);
 }
 
-html.rtl #showLeftSidebarTopBtn {
-    left: 0.75rem;
-    right: auto;
+/* Floating Library Button (Homepage) */
+#homeFloatingLibraryBtn {
+    animation: fadeInSlide 0.4s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+#homeFloatingLibraryBtn.hidden {
+    animation: fadeOutSlide 0.3s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
+
+@keyframes fadeInSlide {
+    from {
+        opacity: 0;
+        transform: translateX(-12px) translateY(-50%);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateX(0) translateY(-50%);
+    }
+}
+
+@keyframes fadeOutSlide {
+    from {
+        opacity: 1;
+        transform: translateX(0) translateY(-50%);
+    }
+
+    to {
+        opacity: 0;
+        transform: translateX(-12px) translateY(-50%);
+    }
+}
+
+body.theme-dark #homeFloatingLibraryBtn {
+    background: rgba(30, 41, 59, 0.85);
+    border-color: rgba(148, 163, 184, 0.2);
+    color: rgba(226, 232, 240, 0.7);
+}
+
+body.theme-dark #homeFloatingLibraryBtn:hover {
+    background: rgba(30, 41, 59, 0.95);
+    color: rgba(226, 232, 240, 0.9);
+    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.3);
+}
+
+html.rtl #homeFloatingLibraryBtn {
+    left: auto;
+    right: 1rem;
+}
+
+html.rtl.theme-dark #homeFloatingLibraryBtn:hover {
+    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.3);
 }
 
 html.rtl #showRightSidebarTopBtn {
