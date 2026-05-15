@@ -1,0 +1,393 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#f3ede0">
+    <title>Terms of Service – Sh'elah</title>
+    <link rel="icon" href="/static/favicon.svg" type="image/svg+xml">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Cardo:wght@400;700&family=Inter:wght@400;500;600&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="/static/style.css?v=20260518">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', system-ui, sans-serif;
+            background: var(--surface-base, #faf7f0);
+            color: var(--text-main, #1e293b);
+        }
+
+        html.rtl body {
+            direction: rtl;
+            text-align: right;
+        }
+
+        html.rtl body .prose {
+            text-align: right;
+        }
+
+        body.theme-dark {
+            --surface-base: #090a0b;
+            --text-main: #e5dbc9;
+        }
+
+        .prose h1 {
+            font-family: 'Cardo', Georgia, serif;
+            font-weight: 700;
+            color: var(--accent-deep-blue, #1f3f63);
+        }
+
+        body.theme-dark .prose h1 {
+            color: #b8d3e8;
+        }
+
+        .prose h2 {
+            font-family: 'Cardo', Georgia, serif;
+            font-size: 1.35rem;
+            font-weight: 700;
+            margin-top: 2rem;
+            margin-bottom: 0.5rem;
+            color: var(--accent-deep-blue, #1f3f63);
+            border-bottom: 1px solid var(--border-light, #dde4ed);
+            padding-bottom: 0.3rem;
+        }
+
+        body.theme-dark .prose h2 {
+            color: #b8d3e8;
+            border-bottom-color: #5a6b7a;
+        }
+
+        .prose h3 {
+            font-size: 1rem;
+            font-weight: 600;
+            margin-top: 1.2rem;
+            margin-bottom: 0.3rem;
+            color: var(--text-secondary, #334155);
+        }
+
+        body.theme-dark .prose h3 {
+            color: #d4c8b3;
+        }
+
+        .prose p {
+            margin-bottom: 0.9rem;
+            line-height: 1.75;
+            color: var(--text-secondary, #374151);
+        }
+
+        body.theme-dark .prose p {
+            color: #c9bfad;
+        }
+
+        .prose ul, .prose ol {
+            margin-bottom: 0.9rem;
+        }
+
+        .prose ul {
+            padding-left: 1.5rem;
+            list-style: disc;
+        }
+
+        .prose ol {
+            padding-left: 1.5rem;
+            list-style: decimal;
+        }
+
+        body.theme-dark .prose ul, body.theme-dark .prose ol {
+            color: #c9bfad;
+        }
+
+        .prose li {
+            margin-bottom: 0.3rem;
+            color: inherit;
+        }
+
+        .prose a {
+            color: var(--accent-deep-blue, #1f3f63);
+            text-decoration: underline;
+            transition: color 0.2s;
+        }
+
+        .prose a:hover {
+            color: var(--accent-deep-blue-hover, #002147);
+        }
+
+        body.theme-dark .prose a {
+            color: #7db8e6;
+        }
+
+        body.theme-dark .prose a:hover {
+            color: #a4d4f0;
+        }
+
+        .info-box {
+            background: var(--info-bg, #dbeafe);
+            border: 1px solid var(--info-border, #0ea5e9);
+            border-radius: 0.5rem;
+            padding: 1rem;
+            margin: 1.5rem 0;
+        }
+
+        body.theme-dark .info-box {
+            background: #1e3a4a;
+            border-color: #5a8fa0;
+        }
+
+        .main-container {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 2rem 1.5rem;
+        }
+
+        .topbar-flat-btn {
+            padding: 0.375rem 0.75rem;
+            border-radius: 0.375rem;
+            border: 1px solid transparent;
+            background: transparent;
+            color: var(--text-secondary, #334155);
+            font-size: 0.875rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            white-space: nowrap;
+        }
+
+        .topbar-flat-btn:hover {
+            background: var(--surface-subtle, #f4eee2);
+            border-color: var(--border-light, #d8d0c2);
+        }
+
+        body.theme-dark .topbar-flat-btn {
+            color: #d4c8b3;
+        }
+
+        body.theme-dark .topbar-flat-btn:hover {
+            background: #3a3a3a;
+            border-color: #5a5a5a;
+        }
+
+        .lang-btn-active {
+            background: var(--surface-subtle, #f4eee2) !important;
+            border-color: var(--border-light, #d8d0c2) !important;
+            font-weight: 600;
+        }
+
+        body.theme-dark .lang-btn-active {
+            background: #3a3a3a !important;
+            border-color: #5a5a5a !important;
+        }
+
+        .topbar-user-menu-item {
+            display: block;
+            padding: 0.375rem 0.75rem;
+            color: var(--text-secondary, #334155);
+            font-size: 0.875rem;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .topbar-user-menu-item:hover {
+            background: var(--surface-subtle, #f4eee2);
+        }
+
+        body.theme-dark .topbar-user-menu-item {
+            color: #d4c8b3;
+        }
+
+        body.theme-dark .topbar-user-menu-item:hover {
+            background: #3a3a3a;
+        }
+
+        #userProfileMenu {
+            background: var(--surface-base, #fffaf3);
+            border: 1px solid var(--border-light, #ddd4c3);
+            border-radius: 0.75rem;
+        }
+
+        body.theme-dark #userProfileMenu {
+            background: #1f1c19;
+            border-color: #5a5550;
+        }
+
+        .skip-to-content {
+            position: absolute;
+            top: -40px;
+            left: 0;
+            background: #000;
+            color: white;
+            padding: 8px;
+            text-decoration: none;
+            z-index: 100;
+        }
+
+        .skip-to-content:focus {
+            top: 0;
+        }
+    </style>
+
+    <!-- FullCalendar -->
+    <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.15/index.global.min.js"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                        serif: ['Cardo', 'serif'],
+                        hebrew: ['"Ezra SIL"', 'serif'],
+                    },
+                    colors: {
+                        navy: '#002147',
+                        gold: '#D4AF37',
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+
+<body class="bg-slate-50 font-sans text-slate-900 min-h-screen overflow-x-hidden flex flex-col">
+    <!-- Skip-to-content link (keyboard accessibility) -->
+    <a href="#mainContent" class="skip-to-content">Skip to main content</a>
+
+    <!-- TOP NAVIGATION BAR -->
+    {% include 'components/legal_topbar.html' %}
+
+    <!-- MAIN CONTENT -->
+    <main id="mainContent" class="flex-1">
+        <article class="main-container prose prose-sm max-w-2xl">
+            <h1 class="text-3xl font-serif font-bold mb-4" data-en="Terms of Service" data-he="תנאי השירות">Terms of Service</h1>
+            <p class="text-sm text-slate-500 mb-6" data-en="Last updated: May 2026" data-he="עדכון אחרון: מאי 2026">Last updated: May 2026</p>
+
+            <div class="info-box">
+                <p data-en="Please read these Terms of Service carefully. By accessing and using Sh'elah, you accept and agree to be bound by all the terms and conditions of this agreement."
+                   data-he="אנא קרא את תנאי השירות הללו בעיון. בגישה ושימוש ב-Sh'elah, אתה מקבל ומסכים להיות קשור לכל התנאים וההוראות של הסכם זה.">
+                    Please read these Terms of Service carefully. By accessing and using Sh'elah, you accept and agree to be bound by all the terms and conditions of this agreement.
+                </p>
+            </div>
+
+            <h2 data-en="1. Acceptance of Terms" data-he="1. קבלת התנאים">1. Acceptance of Terms</h2>
+            <p data-en="By using the Sh'elah website and services ('Service'), you agree to comply with these Terms of Service and all applicable laws and regulations."
+               data-he="בשימוש באתר Sh'elah ובשירותים ('השירות'), אתה מסכים לציית לתנאי השירות הללו ולכל החוקים והתקנות החלים.">
+                By using the Sh'elah website and services ('Service'), you agree to comply with these Terms of Service and all applicable laws and regulations.
+            </p>
+
+            <h2 data-en="2. Use License" data-he="2. רישיון השימוש">2. Use License</h2>
+            <p data-en="Permission is granted to temporarily download one copy of the materials (information or software) on Sh'elah for personal, non-commercial transitory viewing only. This is the grant of a license, not a transfer of title, and under this license you may not:"
+               data-he="הרשאה ניתנת להורדה זמנית של עותק אחד של החומרים (מידע או תוכנה) ב-Sh'elah למטרות צפייה אישית, לא-מסחרית בלבד. זהו מתן רישיון, לא העברת כותרת, ותחת רישיון זה אתה לא רשאי:">
+                Permission is granted to temporarily download one copy of the materials (information or software) on Sh'elah for personal, non-commercial transitory viewing only. This is the grant of a license, not a transfer of title, and under this license you may not:
+            </p>
+            <ul>
+                <li data-en="Modify or copy the materials" data-he="שנות או העתקת החומרים">Modify or copy the materials</li>
+                <li data-en="Use the materials for any commercial purpose or for any public display" data-he="שימוש בחומרים למטרות מסחריות או כדי להציג ציבור">Use the materials for any commercial purpose or for any public display</li>
+                <li data-en="Attempt to decompile or reverse engineer any software contained on Sh'elah" data-he="ניסיון לפרק או לשנות הנדסה כל תוכנה הכלולה ב-Sh'elah">Attempt to decompile or reverse engineer any software contained on Sh'elah</li>
+                <li data-en="Remove any copyright or other proprietary notations from the materials" data-he="הסרת כל זכויות יוצרים או סימונים בעלות אחרים מהחומרים">Remove any copyright or other proprietary notations from the materials</li>
+                <li data-en="Transfer the materials to another person or 'mirror' the materials on any other server" data-he="העברת החומרים לאדם אחר או 'שיקופי' החומרים בשרת אחר">Transfer the materials to another person or 'mirror' the materials on any other server</li>
+            </ul>
+
+            <h2 data-en="3. Disclaimer of Warranties" data-he="3. כפירה במצהירויות">3. Disclaimer of Warranties</h2>
+            <p data-en="The materials on Sh'elah are provided 'as is'. Sh'elah makes no warranties, expressed or implied, and hereby disclaims and negates all other warranties including, without limitation, implied warranties or conditions of merchantability, fitness for a particular purpose, or non-infringement of intellectual property or other violation of rights."
+               data-he="החומרים ב-Sh'elah מסופקים 'כפי שהם'. Sh'elah לא מעניקה כל מצהירויות, מפורשות או משתמעות, וכאן מכחישה וביטלה את כל המצהירויות האחרות כולל, ללא הגבלה, מצהירויות משתמעות או תנאים של מסחוריות, התאמה למטרה מסוימת, או אי-הפרה של רכוש פרטי או הפרה אחרת של זכויות.">
+                The materials on Sh'elah are provided 'as is'. Sh'elah makes no warranties, expressed or implied, and hereby disclaims and negates all other warranties including, without limitation, implied warranties or conditions of merchantability, fitness for a particular purpose, or non-infringement of intellectual property or other violation of rights.
+            </p>
+
+            <h2 data-en="4. Limitations of Liability" data-he="4. הגבלות על אחריות">4. Limitations of Liability</h2>
+            <p data-en="In no event shall Sh'elah or its suppliers be liable for any damages (including, without limitation, damages for loss of data or profit, or due to business interruption) arising out of the use or inability to use the materials on Sh'elah, even if Sh'elah or a representative has been notified orally or in writing of the possibility of such damage."
+               data-he="בשום מקרה Sh'elah או הספקים שלה לא יהיו אחראים לכל נזק (כולל, ללא הגבלה, נזק לאובדן נתונים או רווח, או עקב הפסקת עסקים) הנובע מהשימוש או חוסר היכולת להשתמש בחומרים ב-Sh'elah, גם אם Sh'elah או נציג הודיע בעל-פה או בכתב על אפשרות של נזק כזה.">
+                In no event shall Sh'elah or its suppliers be liable for any damages (including, without limitation, damages for loss of data or profit, or due to business interruption) arising out of the use or inability to use the materials on Sh'elah, even if Sh'elah or a representative has been notified orally or in writing of the possibility of such damage.
+            </p>
+
+            <h2 data-en="5. Accuracy of Materials" data-he="5. דיוק החומרים">5. Accuracy of Materials</h2>
+            <p data-en="The materials appearing on Sh'elah could include technical, typographical, or photographic errors. Sh'elah does not warrant that any of the materials on Sh'elah are accurate, complete, or current. Sh'elah may make changes to the materials contained on Sh'elah at any time without notice."
+               data-he="החומרים המופיעים ב-Sh'elah עלולים לכלול טעויות טכניות, טיפוגרפיות או צילום. Sh'elah לא מחייבת שכל החומרים ב-Sh'elah הם מדויקים, שלמים או עדכניים. Sh'elah עשויה לבצע שינויים בחומרים בחן ב-Sh'elah בכל עת ללא הודעה מוקדמת.">
+                The materials appearing on Sh'elah could include technical, typographical, or photographic errors. Sh'elah does not warrant that any of the materials on Sh'elah are accurate, complete, or current. Sh'elah may make changes to the materials contained on Sh'elah at any time without notice.
+            </p>
+
+            <h2 data-en="6. Materials & Content Ownership" data-he="6. בעלות על חומרים ותוכן">6. Materials & Content Ownership</h2>
+            <p data-en="Sh'elah and its content providers own the copyright and other proprietary rights in the materials and content on Sh'elah, including but not limited to texts sourced from Sefaria, Jewish legal texts, and custom halachic materials. As such, you may not reproduce, distribute, or transmit any content without express written permission from Sh'elah or the respective content provider."
+               data-he="Sh'elah וספקי התוכן שלה בעלי זכויות היוצרים וזכויות בעלות אחרות בחומרים ובתוכן ב-Sh'elah, כולל אך לא מוגבל לטקסטים המקורי מ-Sefaria, טקסטים משפטיים יהודיים וחומרים הלכתיים מותאמים. ככזה, ייתכן שלא תוכל לשחזר, להפיץ או להעביר כל תוכן ללא הסכמה בכתב מפורשת מ-Sh'elah או ממספק התוכן בהתאמה.">
+                Sh'elah and its content providers own the copyright and other proprietary rights in the materials and content on Sh'elah, including but not limited to texts sourced from Sefaria, Jewish legal texts, and custom halachic materials. As such, you may not reproduce, distribute, or transmit any content without express written permission from Sh'elah or the respective content provider.
+            </p>
+
+            <h2 data-en="7. Links" data-he="7. קישורים">7. Links</h2>
+            <p data-en="Sh'elah has not reviewed all of the sites linked to its website and is not responsible for the contents of any such linked site. The inclusion of any link does not imply endorsement by Sh'elah of the site. Use of any such linked website is at the user's own risk."
+               data-he="Sh'elah לא בדקה את כל האתרים המקושרים לאתר הקבוצה שלה ואינה אחראית לתוכן של כל אתר מקושר כזה. ההכללה של כל קישור לא מציעה אישור על ידי Sh'elah של האתר. השימוש בכל אתר מקושר כזה הוא בעל הסיכון של המשתמש.">
+                Sh'elah has not reviewed all of the sites linked to its website and is not responsible for the contents of any such linked site. The inclusion of any link does not imply endorsement by Sh'elah of the site. Use of any such linked website is at the user's own risk.
+            </p>
+
+            <h2 data-en="8. Modifications & Termination" data-he="8. שינויים וסיום">8. Modifications & Termination</h2>
+            <p data-en="Sh'elah may revise these Terms of Service at any time without notice. By using this site, you are agreeing to be bound by the then current version of these Terms of Service. Sh'elah reserves the right to terminate your account and access at any time, for any reason, including, but not limited to, abuse or violation of these Terms."
+               data-he="Sh'elah עלול לתקן את תנאי השירות הללו בכל עת ללא הודעה מוקדמת. בשימוש באתר זה, אתה מסכים להיות קשור בגרסה העדכנית של תנאי השירות הללו. Sh'elah שומר על הזכות לסיים את החשבון והגישה שלך בכל עת, מכל סיבה, כולל אך לא מוגבל, התעללות או הפרה של תנאים אלה.">
+                Sh'elah may revise these Terms of Service at any time without notice. By using this site, you are agreeing to be bound by the then current version of these Terms of Service. Sh'elah reserves the right to terminate your account and access at any time, for any reason, including, but not limited to, abuse or violation of these Terms.
+            </p>
+
+            <h2 data-en="9. Governing Law" data-he="9. חוק השלוט">9. Governing Law</h2>
+            <p data-en="These Terms of Service are governed by and construed in accordance with the laws of the State of Israel, and you irrevocably submit to the exclusive jurisdiction of the courts located in Israel."
+               data-he="תנאי השירות הללו מוסדרים על ידי וביוצור על פי חוקי מדינת ישראל, ואתה משנך לבחינה בלעדית של בתי המשפט הממוקמים בישראל.">
+                These Terms of Service are governed by and construed in accordance with the laws of the State of Israel, and you irrevocably submit to the exclusive jurisdiction of the courts located in Israel.
+            </p>
+
+            <h2 data-en="10. Your Account & Responsibilities" data-he="10. החשבון שלך ואחריויות">10. Your Account & Responsibilities</h2>
+            <p data-en="If you create an account on Sh'elah, you are responsible for:"
+               data-he="אם אתה יוצר חשבון ב-Sh'elah, אתה אחראי על:">
+                If you create an account on Sh'elah, you are responsible for:
+            </p>
+            <ul>
+                <li data-en="Maintaining the confidentiality of your login credentials" data-he="שמירה על הסודיות של פרטי ההכניסה שלך">Maintaining the confidentiality of your login credentials</li>
+                <li data-en="All activities that occur under your account" data-he="כל הפעילויות המתרחשות תחת החשבון שלך">All activities that occur under your account</li>
+                <li data-en="Notifying us immediately of any unauthorized use of your account" data-he="הודעה לנו מיד על כל שימוש לא מורשה בחשבון שלך">Notifying us immediately of any unauthorized use of your account</li>
+                <li data-en="Not using another person's account without permission" data-he="לא להשתמש בחשבון של אדם אחר ללא הרשאה">Not using another person's account without permission</li>
+            </ul>
+
+            <h2 data-en="11. Prohibited Conduct" data-he="11. התנהגות אסורה">11. Prohibited Conduct</h2>
+            <p data-en="You agree not to engage in any of the following conduct:"
+               data-he="אתה מסכם לא להתחייב בכל אחד מהתנהגויות הבאות:">
+                You agree not to engage in any of the following conduct:
+            </p>
+            <ul>
+                <li data-en="Harassing, abusing, or threatening other users" data-he="הטרדה, התעללות, או איום על משתמשים אחרים">Harassing, abusing, or threatening other users</li>
+                <li data-en="Uploading or transmitting viruses or malware" data-he="העלאה או העברת ויירוסים או תוכנות זדוניות">Uploading or transmitting viruses or malware</li>
+                <li data-en="Attempted unauthorized access to our systems" data-he="ניסיון גישה לא מורשה למערכות שלנו">Attempted unauthorized access to our systems</li>
+                <li data-en="Spamming or phishing" data-he="שליחת הודעות זבל או דיוג">Spamming or phishing</li>
+                <li data-en="Violating any laws or regulations" data-he="הפרת כל חוקים או תקנות">Violating any laws or regulations</li>
+            </ul>
+
+            <h2 data-en="12. Disclaimer Regarding AI Halachic Responses" data-he="12. כפירה בנוגע לתגובות הלכתיות של AI">12. Disclaimer Regarding AI Halachic Responses</h2>
+            <p data-en="Sh'elah uses artificial intelligence (Google Gemini and Anthropic Claude) to synthesize and present halachic (Jewish legal) information. While we strive for accuracy, AI-generated responses may contain errors or omissions."
+               data-he="Sh'elah משתמשת בבינה מלאכותית (Google Gemini ו-Anthropic Claude) כדי להסביר ולהציג מידע הלכתי (משפטי יהודי). אמנם אנו משתדלים לדיוק, תגובות שנוצרו על ידי AI עלולות לכלול טעויות או השמטות.">
+                Sh'elah uses artificial intelligence (Google Gemini and Anthropic Claude) to synthesize and present halachic (Jewish legal) information. While we strive for accuracy, AI-generated responses may contain errors or omissions.
+            </p>
+            <ul>
+                <li><strong data-en="Not a substitute for professional consultation:" data-he="לא תחליף לייעוץ מקצועי:">Not a substitute for professional consultation:</strong> <span data-en="Sh'elah responses are not a substitute for consulting with a qualified rabbi or Jewish legal expert." data-he="תגובות Sh'elah אינן תחליף להיוועצות עם רב מוסמך או מומחה משפטי יהודי.">Sh'elah responses are not a substitute for consulting with a qualified rabbi or Jewish legal expert.</span></li>
+                <li><strong data-en="User responsibility:" data-he="אחריות משתמש:">User responsibility:</strong> <span data-en="You are responsible for verifying any halachic advice with a qualified rabbi before implementation." data-he="אתה אחראי על אימות כל ייעוץ הלכתי עם רב מוסמך לפני יישום.">You are responsible for verifying any halachic advice with a qualified rabbi before implementation.</span></li>
+                <li><strong data-en="No liability:" data-he="אין אחריות:">No liability:</strong> <span data-en="Sh'elah is not liable for any consequences resulting from reliance on AI-generated responses." data-he="Sh'elah לא אחראית בשום פנים ואופן לתוצאות כלשהן הנובעות מהסתמכות על תגובות שנוצרו על ידי AI.">Sh'elah is not liable for any consequences resulting from reliance on AI-generated responses.</span></li>
+            </ul>
+
+            <h2 data-en="13. Contact & Support" data-he="13. צור קשר וסיוע">13. Contact & Support</h2>
+            <p data-en="If you have questions about these Terms of Service, please contact us:"
+               data-he="אם יש לך שאלות בנוגע לתנאי השירות הללו, אנא צור קשר איתנו:">
+                If you have questions about these Terms of Service, please contact us:
+            </p>
+            <p><strong data-en="Email:" data-he="דוא״ל:">Email:</strong> <a href="mailto:akiva.yevda@gmail.com">akiva.yevda@gmail.com</a></p>
+
+            <hr class="my-8 border-slate-200">
+
+            <div class="info-box">
+                <p class="text-sm" data-en="Review our Privacy Policy for information on how we collect and use your data."
+                    data-he="בדוק את מדיניות הפרטיות שלנו לקבל מידע על אופן אספנו וראיתנו את הנתונים שלך.">
+                    Review our <a href="/privacy" data-en="Privacy Policy" data-he="מדיניות הפרטיות">Privacy Policy</a> for information on how we collect and use your data.
+                </p>
+            </div>
+        </article>
+    </main>
+
+    {% include 'components/legal_scripts.html' %}
+</body>
+
+</html>
