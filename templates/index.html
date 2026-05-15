@@ -817,21 +817,7 @@
 
             <!-- HOME: BROWSE THE LIBRARY GRID -->
             <div id="homeGrid"
-                class="home-typography w-full max-w-6xl mx-auto p-4 sm:p-6 lg:p-12 transition-opacity duration-300 relative">
-                <!-- Floating Library Button (Left Side, Homepage Only) -->
-                <button id="homeFloatingLibraryBtn" type="button"
-                    class="sidebar-show-tab hidden lg:flex items-center gap-1.5 fixed left-4 top-1/3 -translate-y-1/2 z-20 px-3 py-2 rounded-md border border-slate-200 bg-white/85 text-slate-500 text-xs font-medium tracking-wide hover:bg-white hover:text-slate-700 transition-all duration-200"
-                    data-en="Library" data-he="ספרייה" aria-label="Open library sidebar"
-                    onclick="openMobilePanel('left')">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5" viewBox="0 0 20 20" fill="currentColor">
-                        <path d="M3 4a1 1 0 011-1h12a1 1 0 011 1v2a1 1 0 01-1 1H4a1 1 0 01-1-1V4z" />
-                        <path fill-rule="evenodd"
-                            d="M3 10a1 1 0 011-1h6a1 1 0 011 1v6a1 1 0 01-1 1H4a1 1 0 01-1-1v-6zm11 4a1 1 0 100-2 1 1 0 000 2z"
-                            clip-rule="evenodd" />
-                    </svg>
-                    <span data-en="Library" data-he="ספרייה">Library</span>
-                </button>
-
+                class="home-typography w-full max-w-6xl mx-auto p-4 sm:p-6 lg:p-12 transition-opacity duration-300">
                 <section class="home-topic-hero mb-10">
                     <p class="home-section-label" data-en="Parasha of the Week" data-he="פרשת השבוע">Parasha of the Week
                     </p>
@@ -1154,6 +1140,19 @@
                     </div>
                 </div>
             </div>
+
+            <!-- Floating Library Button - Left Side of Homepage -->
+            <button id="homeFloatingLibraryBtn" type="button"
+                class="home-floating-library-btn hidden lg:flex fixed left-4 top-1/3 z-40" title="Library"
+                aria-label="Open library" data-en="Library" data-he="ספרייה"
+                onclick="setSidebarVisibility('left', true)">
+                <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" viewBox="0 0 24 24" fill="currentColor"
+                    aria-hidden="true">
+                    <path
+                        d="M4 6h16V4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h4v-2H4V6zm14 7h3v2h-3v-3zm-4-5h6V7h-6v1zm0 4h6v-1h-6v1z" />
+                </svg>
+                <span class="sr-only" data-en="Library" data-he="ספרייה">Library</span>
+            </button>
 
             <!-- READER TOPBAR: sits inside #mainContainer, outside #reader article, so it spans full column width -->
             <div id="readerTopBar"
@@ -4172,21 +4171,6 @@
                 }
             }
 
-            // Manage floating library button (homepage only)
-            const homeFloatingLibraryBtn = document.getElementById('homeFloatingLibraryBtn');
-            const homeGrid = document.getElementById('homeGrid');
-            if (homeFloatingLibraryBtn && homeGrid) {
-                // Show button only on homepage when sidebar is hidden and reader is not active
-                const isHomepageVisible = homeGrid && !homeGrid.classList.contains('hidden');
-                const shouldShowFloatingBtn = isHomepageVisible && !leftSidebarOpenDesktop && !isReaderActive;
-
-                if (shouldShowFloatingBtn && homeFloatingLibraryBtn.classList.contains('hidden')) {
-                    homeFloatingLibraryBtn.classList.remove('hidden');
-                } else if (!shouldShowFloatingBtn && !homeFloatingLibraryBtn.classList.contains('hidden')) {
-                    homeFloatingLibraryBtn.classList.add('hidden');
-                }
-            }
-
             if (readerSettingsBtn) {
                 const shouldShowSettingsBtn = true;
                 readerSettingsBtn.classList.toggle('hidden', !shouldShowSettingsBtn);
@@ -4256,6 +4240,16 @@
                     && !showRightSidebar; // The restore button should appear if the sidebar is hidden, regardless of content availability.
                 showRightSidebarTopBtn.style.display = showRightRestore ? 'flex' : 'none';
                 showRightSidebarTopBtn.style.top = getSidebarRestoreTopOffset();
+            }
+
+            // Handle floating library button visibility
+            const homeFloatingBtn = document.getElementById('homeFloatingLibraryBtn');
+            if (homeFloatingBtn) {
+                // Show only on desktop, when home is visible, and when left sidebar is hidden
+                const shouldShowFloatingBtn = !mobile && homeVisible && !showLeftSidebar && !shulMode;
+                homeFloatingBtn.classList.toggle('hidden', !shouldShowFloatingBtn);
+                homeFloatingBtn.style.visibility = shouldShowFloatingBtn ? 'visible' : 'hidden';
+                homeFloatingBtn.disabled = !shouldShowFloatingBtn;
             }
 
             syncReaderTopBarControls();
