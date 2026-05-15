@@ -1,0 +1,59 @@
+<header role="banner"
+    class="topbar sticky top-0 bg-white text-slate-800 py-1.5 px-2 lg:py-1.5 lg:px-3 shadow-sm border-b flex flex-wrap lg:flex-nowrap justify-between items-center z-50 flex-shrink-0 gap-1.5 lg:gap-2">
+    <div id="brandHomeBtn" class="topbar-brand flex items-center gap-1.5 cursor-pointer shrink-0"
+        onclick="goHome()">
+        <div class="text-navy font-hebrew text-[1.7rem] font-semibold leading-tight">
+            ש
+        </div>
+        <h1 class="text-sm sm:text-base font-serif tracking-tight text-navy font-semibold leading-none">
+            <span class="block" data-en="Sh'elah" data-he="שאלה">Sh'elah</span>
+            <span class="block text-[10px] font-normal text-slate-500 italic topbar-brand-subtitle"
+                data-en="Torah Encyclopedia" data-he="אנציקלופדיית תורה">Torah Encyclopedia</span>
+        </h1>
+    </div>
+
+    <div id="topbarControls"
+        class="topbar-controls relative z-[110] flex gap-1.5 items-center flex-wrap justify-end w-full lg:w-auto ml-auto">
+        <div id="authControls" class="flex items-center gap-1.5">
+            <div id="userProfileMenuContainer" class="hidden relative shrink-0">
+                <button id="userProfileMenuBtn" type="button" aria-expanded="false" aria-haspopup="true"
+                    class="topbar-flat-btn text-xs" title="Open profile menu">
+                    <span id="userProfileMenuLabel" class="max-w-[130px] truncate">Signed in</span>
+                </button>
+
+                <div id="userProfileMenu"
+                    class="hidden absolute top-full right-0 mt-1.5 w-44 max-w-[calc(100vw-1rem)] border rounded-xl shadow-lg py-1.5 z-[999]">
+                    <a id="userProfileLink" href="/profile"
+                        class="topbar-user-menu-item block px-3 py-1.5 text-xs"
+                        data-en="Profile" data-he="פרופיל">Profile</a>
+                    <button id="userProfileSignOutAction" type="button"
+                        class="topbar-user-menu-item w-full text-left px-3 py-1.5 text-xs"
+                        data-en="Sign Out" data-he="התנתקות">Sign Out</button>
+                    <a id="userProfileTermsLink" href="/terms" target="_blank" rel="noopener"
+                        class="topbar-user-menu-item block px-3 py-1.5 text-xs"
+                        data-en="Terms of Service" data-he="תנאי השירות">Terms of Service</a>
+                    <a id="userProfilePrivacyLink" href="/privacy" target="_blank" rel="noopener"
+                        class="topbar-user-menu-item block px-3 py-1.5 text-xs"
+                        data-en="Privacy Policy" data-he="מדיניות הפרטיות">Privacy Policy</a>
+                </div>
+            </div>
+
+            <button id="signInBtn" type="button" class="topbar-flat-btn" data-en="Sign In" data-he="התחברות">Sign
+                In</button>
+        </div>
+
+        <!-- Translator Toggles -->
+        <button onclick="toggleLanguage('en')" class="hidden lg:inline-flex topbar-flat-btn font-serif lang-btn"
+            data-lang="en">English</button>
+        <button onclick="toggleLanguage('he')" class="hidden lg:inline-flex topbar-flat-btn font-hebrew lang-btn"
+            data-lang="he">עברית</button>
+        <button id="mobileLangToggle" type="button" class="lg:hidden topbar-flat-btn" data-en="עברית"
+            data-he="English">עברית</button>
+
+        <!-- Theme Toggle -->
+        <button id="themeToggleBtn" type="button"
+            class="topbar-flat-btn text-xs" aria-live="polite" title="Change appearance mode">
+            <span id="themeToggleLabel" data-en="Appearance: Light" data-he="מראה: בהיר">Appearance: Light</span>
+        </button>
+    </div>
+</header>
