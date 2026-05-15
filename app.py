@@ -51,6 +51,8 @@ from backend.data_service import ShelahEngine
 from backend import sefaria
 from backend import claude
 from backend import search
+from backend.logging_setup import setup_logging
+from backend.health_check import health as api_health
 
 try:
     from docx import Document
@@ -2265,6 +2267,10 @@ load_dotenv()
 app = Flask(__name__)
 app.secret_key = os.environ.get("FLASK_SECRET_KEY") or os.urandom(32)
 
+# Configure structured JSON logging as early as possible so all log records
+# (including import-time warnings from sub-modules) use the JSON formatter.
+setup_logging()
+
 RATE_LIMIT_DEFAULT = [
     item.strip()
     for item in (os.environ.get("RATE_LIMIT_DEFAULT") or "").split(",")
@@ -3046,6 +3052,51 @@ def index():
     )
 
 
+@app.route("/terms")
+def terms():
+    return render_template(
+        "terms.html",
+        clerk_publishable_key=CLERK_PUBLISHABLE_KEY,
+        clerk_enforce_auth=CLERK_ENFORCE_AUTH,
+    )
+
+
+@app.route("/privacy")
+def privacy():
+    return render_template(
+        "privacy.html",
+        clerk_publishable_key=CLERK_PUBLISHABLE_KEY,
+        clerk_enforce_auth=CLERK_ENFORCE_AUTH,
+    )
+
+
+@app.route("/api/accept-legal", methods=["POST"])
+@maybe_require_clerk_auth
+def accept_legal():
+    """Record that a user has accepted the Terms of Service and Privacy Policy."""
+    user_id = _get_request_user_id()
+    if not user_id:
+        # Not authenticated — store acceptance in localStorage only (handled client-side).
+        return jsonify({"success": True, "stored": "client"}), 200
+
+    try:
+        supabase_client = _get_supabase_client()
+        if supabase_client:
+            supabase_client.table("user_preferences").upsert(
+                {
+                    "clerk_id": user_id,
+                    "legal_accepted": True,
+                    "legal_accepted_at": datetime.utcnow().isoformat(),
+                },
+                on_conflict="clerk_id",
+            ).execute()
+    except Exception as e:
+        app.logger.warning(
+            "accept_legal: could not persist to Supabase: %s", e)
+
+    return jsonify({"success": True, "stored": "server"}), 200
+
+
 @app.route('/set_location', methods=['POST'])
 def set_location():
     data = request.get_json(silent=True) or {}
@@ -3574,6 +3625,7 @@ def stack_health():
             "pyluach": True,
             "zmanim": True,
         },
+        "external_apis": api_health.status_summary(),
         "reliability": DEVTOOLS_STATS,
     })
 

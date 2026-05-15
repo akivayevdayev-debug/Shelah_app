@@ -433,6 +433,25 @@ html.rtl #hebrewDateDisplay {
     padding-top: 0.5rem;
 }
 
+body.theme-dark #userProfileMenu {
+    background: #1f1c19;
+    border-color: #5a5550;
+}
+
+body.theme-dark .topbar-user-menu-item {
+    color: #e5dbc9 !important;
+}
+
+body.theme-dark .topbar-user-menu-item:hover,
+body.theme-dark .topbar-user-menu-item:focus-visible {
+    background: #2f2b25 !important;
+    color: #f5ecde !important;
+}
+
+body.theme-dark .topbar-user-menu-signout {
+    border-top-color: #5a5550;
+}
+
 /* Settings Panel & General Button Styling for Tailwind Compatibility */
 #settingsPanel button {
     color: #334155 !important;

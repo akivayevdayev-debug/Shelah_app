@@ -336,6 +336,12 @@
                         <button id="userProfileSignOutAction" type="button"
                             class="topbar-user-menu-item topbar-user-menu-signout w-full text-left px-3 py-1.5 text-xs text-slate-700 hover:bg-slate-100 transition"
                             data-en="Sign Out" data-he="התנתקות">Sign Out</button>
+                        <a id="userProfileTermsLink" href="/terms" target="_blank" rel="noopener"
+                            class="topbar-user-menu-item block px-3 py-1.5 text-xs text-slate-700 hover:bg-slate-100 transition"
+                            data-en="Terms of Service" data-he="תנאי השירות">Terms of Service</a>
+                        <a id="userProfilePrivacyLink" href="/privacy" target="_blank" rel="noopener"
+                            class="topbar-user-menu-item block px-3 py-1.5 text-xs text-slate-700 hover:bg-slate-100 transition"
+                            data-en="Privacy Policy" data-he="מדיניות הפרטיות">Privacy Policy</a>
                     </div>
                 </div>
 
@@ -2632,6 +2638,8 @@
             'Show Sidebars': 'הצג סרגלים',
             'Sign In': 'התחבר',
             'Sign Out': 'התנתק',
+            'Terms of Service': 'תנאי השירות',
+            'Privacy Policy': 'מדיניות הפרטיות',
             'Torah (5 Books)': 'תורה (חמשה חומשי תורה)',
             'Parashat HaShavua': 'פרשת השבוע',
             'Genesis (Bereishit)': 'בראשית',
@@ -9221,6 +9229,10 @@
 
             if (signInBtn) signInBtn.textContent = lang === 'he' ? 'התחברות' : 'Sign In';
             if (userProfileSignOutAction) userProfileSignOutAction.textContent = lang === 'he' ? 'התנתקות' : 'Sign Out';
+            const userProfileTermsLink = document.getElementById('userProfileTermsLink');
+            if (userProfileTermsLink) userProfileTermsLink.textContent = lang === 'he' ? 'תנאי השירות' : 'Terms of Service';
+            const userProfilePrivacyLink = document.getElementById('userProfilePrivacyLink');
+            if (userProfilePrivacyLink) userProfilePrivacyLink.textContent = lang === 'he' ? 'מדיניות הפרטיות' : 'Privacy Policy';
             if (userProfileMenuLabel && userProfileMenuLabel.textContent === 'Signed in') {
                 userProfileMenuLabel.textContent = lang === 'he' ? 'מחובר' : 'Signed in';
             }
@@ -10349,6 +10361,119 @@
                 }
             });
             observer.observe(document.body, { childList: true, subtree: true });
+        })();
+    </script>
+
+    <!-- ═══════════════════════════════════════════════════════ -->
+    <!-- LEGAL ACCEPTANCE MODAL (Terms of Service + Privacy)    -->
+    <!-- ═══════════════════════════════════════════════════════ -->
+    <div id="legalModal" role="dialog" aria-modal="true" aria-labelledby="legalModalTitle"
+        class="fixed inset-0 flex items-center justify-center z-[9999] hidden"
+        style="background:rgba(0,0,0,0.55); backdrop-filter:blur(2px);">
+        <div class="bg-white rounded-xl shadow-2xl max-w-lg w-full mx-4 p-7" style="max-height:90vh; overflow-y:auto;">
+            <h2 id="legalModalTitle" class="text-xl font-bold mb-2 text-slate-900"
+                style="font-family:'Cardo',Georgia,serif;">
+                Welcome to Sh'elah
+            </h2>
+            <p class="text-sm text-slate-600 mb-4 leading-relaxed">
+                Before you continue, please review and accept our Terms of Service and Privacy Policy. Sh'elah provides
+                educational halachic information — always consult a qualified rabbi for binding rulings.
+            </p>
+
+            <!-- Disclaimer highlight -->
+            <div
+                class="bg-amber-50 border border-amber-200 rounded-lg px-4 py-3 mb-5 text-xs text-amber-800 leading-relaxed">
+                <strong>⚠️ Disclaimer:</strong> AI-generated answers are for educational purposes only and do not
+                constitute a binding halachic ruling. Always consult a qualified rabbi.
+            </div>
+
+            <div class="space-y-3 mb-6">
+                <label class="flex items-start gap-3 cursor-pointer select-none">
+                    <input type="checkbox" id="legalTosCheck"
+                        class="mt-0.5 h-4 w-4 rounded border-slate-300 text-blue-600 focus:ring-blue-500 flex-shrink-0">
+                    <span class="text-sm text-slate-700">
+                        I have read and agree to the
+                        <a href="/terms" target="_blank" rel="noopener"
+                            class="text-[#1f3f63] underline hover:text-blue-900">Terms of Service</a>
+                    </span>
+                </label>
+                <label class="flex items-start gap-3 cursor-pointer select-none">
+                    <input type="checkbox" id="legalPrivacyCheck"
+                        class="mt-0.5 h-4 w-4 rounded border-slate-300 text-blue-600 focus:ring-blue-500 flex-shrink-0">
+                    <span class="text-sm text-slate-700">
+                        I have read and agree to the
+                        <a href="/privacy" target="_blank" rel="noopener"
+                            class="text-[#1f3f63] underline hover:text-blue-900">Privacy Policy</a>
+                    </span>
+                </label>
+                <label class="flex items-start gap-3 cursor-pointer select-none">
+                    <input type="checkbox" id="legalDisclaimerCheck"
+                        class="mt-0.5 h-4 w-4 rounded border-slate-300 text-blue-600 focus:ring-blue-500 flex-shrink-0">
+                    <span class="text-sm text-slate-700">
+                        I understand that Sh'elah does not provide binding halachic rulings and I will consult a rabbi
+                        for final decisions.
+                    </span>
+                </label>
+            </div>
+
+            <div class="flex gap-3">
+                <button id="legalAcceptBtn"
+                    class="flex-1 bg-[#1f3f63] text-white rounded-lg px-4 py-2.5 text-sm font-semibold disabled:opacity-40 disabled:cursor-not-allowed transition-opacity"
+                    disabled>
+                    Accept &amp; Continue
+                </button>
+                <button id="legalDeclineBtn"
+                    class="px-4 py-2.5 border border-slate-300 rounded-lg text-sm text-slate-600 hover:bg-slate-50 transition-colors">
+                    Decline
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        (function () {
+            'use strict';
+            const LEGAL_KEY = 'shelah_legal_v1';
+
+            function shouldShowLegalModal() {
+                try { return !localStorage.getItem(LEGAL_KEY); }
+                catch (_) { return false; }
+            }
+
+            function markLegalAccepted() {
+                try { localStorage.setItem(LEGAL_KEY, Date.now().toString()); } catch (_) { }
+                // Attempt to record server-side (best effort, non-blocking)
+                fetch('/api/accept-legal', { method: 'POST' }).catch(function () { });
+            }
+
+            function updateAcceptBtn() {
+                const allChecked = document.getElementById('legalTosCheck').checked
+                    && document.getElementById('legalPrivacyCheck').checked
+                    && document.getElementById('legalDisclaimerCheck').checked;
+                document.getElementById('legalAcceptBtn').disabled = !allChecked;
+            }
+
+            document.getElementById('legalTosCheck').addEventListener('change', updateAcceptBtn);
+            document.getElementById('legalPrivacyCheck').addEventListener('change', updateAcceptBtn);
+            document.getElementById('legalDisclaimerCheck').addEventListener('change', updateAcceptBtn);
+
+            document.getElementById('legalAcceptBtn').addEventListener('click', function () {
+                if (this.disabled) return;
+                markLegalAccepted();
+                document.getElementById('legalModal').classList.add('hidden');
+            });
+
+            document.getElementById('legalDeclineBtn').addEventListener('click', function () {
+                // Redirect to a neutral page or reload to keep them on legal screen
+                window.location.href = 'https://www.sefaria.org';
+            });
+
+            // Delay check slightly so the main app has a moment to initialise
+            setTimeout(function () {
+                if (shouldShowLegalModal()) {
+                    document.getElementById('legalModal').classList.remove('hidden');
+                }
+            }, 800);
         })();
     </script>
 </body>
