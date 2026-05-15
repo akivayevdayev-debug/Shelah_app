@@ -182,6 +182,18 @@
         class="topbar sticky top-0 bg-white text-slate-800 py-1.5 px-2 lg:py-1.5 lg:px-3 shadow-sm border-b flex flex-wrap lg:flex-nowrap justify-between items-center z-50 flex-shrink-0 gap-1.5 lg:gap-2">
         <!-- mobileNavBtn removed: Library tab in bottom nav covers this action -->
 
+        <!-- Library Button (Desktop Homepage Only) -->
+        <button id="topbarLibraryBtn" type="button"
+            class="topbar-flat-btn hidden lg:inline-flex shrink-0 topbar-library-btn"
+            onclick="toggleMobilePanel('left')" title="Browse Library" aria-label="Browse Library"
+            data-en="Browse Library" data-he="עיין בספרייה">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor"
+                aria-hidden="true">
+                <path
+                    d="M3 4a1 1 0 011-1h12a1 1 0 011 1v2a1 1 0 01-1 1H4a1 1 0 01-1-1V4zm0 6a1 1 0 011-1h6a1 1 0 011 1v6a1 1 0 01-1 1H4a1 1 0 01-1-1v-6zm8-1a1 1 0 00-1 1v6a1 1 0 001 1h6a1 1 0 001-1v-6a1 1 0 00-1-1h-6z" />
+            </svg>
+        </button>
+
         <div id="brandHomeBtn" class="topbar-brand flex items-center gap-1.5 cursor-pointer shrink-0"
             onclick="goHome()">
             <div class="text-navy font-hebrew text-[1.7rem] font-semibold leading-tight">
@@ -1140,19 +1152,6 @@
                     </div>
                 </div>
             </div>
-
-            <!-- Floating Library Button - Top Left Under Topbar -->
-            <button id="homeFloatingLibraryBtn" type="button"
-                class="home-floating-library-btn hidden lg:flex fixed left-3 top-12 z-30" title="Library"
-                aria-label="Open library" data-en="Library" data-he="ספרייה"
-                onclick="setSidebarVisibility('left', true)">
-                <svg xmlns="http://www.w3.org/2000/svg" class="w-3 h-3" viewBox="0 0 24 24" fill="currentColor"
-                    aria-hidden="true">
-                    <path
-                        d="M4 6h16V4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h4v-2H4V6zm14 7h3v2h-3v-3zm-4-5h6V7h-6v1zm0 4h6v-1h-6v1z" />
-                </svg>
-                <span class="sr-only" data-en="Library" data-he="ספרייה">Library</span>
-            </button>
 
             <!-- READER TOPBAR: sits inside #mainContainer, outside #reader article, so it spans full column width -->
             <div id="readerTopBar"
@@ -4242,14 +4241,11 @@
                 showRightSidebarTopBtn.style.top = getSidebarRestoreTopOffset();
             }
 
-            // Handle floating library button visibility
-            const homeFloatingBtn = document.getElementById('homeFloatingLibraryBtn');
-            if (homeFloatingBtn) {
-                // Show only on desktop, when home is visible, and when left sidebar is hidden
-                const shouldShowFloatingBtn = !mobile && homeVisible && !showLeftSidebar && !shulMode;
-                homeFloatingBtn.classList.toggle('hidden', !shouldShowFloatingBtn);
-                homeFloatingBtn.style.visibility = shouldShowFloatingBtn ? 'visible' : 'hidden';
-                homeFloatingBtn.disabled = !shouldShowFloatingBtn;
+            // Show topbar library button only on homepage when sidebar is hidden on desktop
+            const topbarLibraryBtn = document.getElementById('topbarLibraryBtn');
+            if (topbarLibraryBtn) {
+                const shouldShowLibraryBtn = homeVisible && !mobile && !shulMode;
+                topbarLibraryBtn.style.display = shouldShowLibraryBtn ? 'inline-flex' : 'none';
             }
 
             syncReaderTopBarControls();
