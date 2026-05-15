@@ -1368,58 +1368,9 @@ body.theme-dark .reader-range-slider {
     box-shadow: 0 6px 18px rgba(15, 23, 42, 0.08);
 }
 
-/* Floating Library Button (Homepage) */
-#homeFloatingLibraryBtn {
-    animation: fadeInSlide 0.4s cubic-bezier(0.16, 1, 0.3, 1) both;
-}
-
-#homeFloatingLibraryBtn.hidden {
-    animation: fadeOutSlide 0.3s cubic-bezier(0.4, 0, 0.2, 1) forwards;
-}
-
-@keyframes fadeInSlide {
-    from {
-        opacity: 0;
-        transform: translateX(-12px) translateY(-50%);
-    }
-
-    to {
-        opacity: 1;
-        transform: translateX(0) translateY(-50%);
-    }
-}
-
-@keyframes fadeOutSlide {
-    from {
-        opacity: 1;
-        transform: translateX(0) translateY(-50%);
-    }
-
-    to {
-        opacity: 0;
-        transform: translateX(-12px) translateY(-50%);
-    }
-}
-
-body.theme-dark #homeFloatingLibraryBtn {
-    background: rgba(30, 41, 59, 0.85);
-    border-color: rgba(148, 163, 184, 0.2);
-    color: rgba(226, 232, 240, 0.7);
-}
-
-body.theme-dark #homeFloatingLibraryBtn:hover {
-    background: rgba(30, 41, 59, 0.95);
-    color: rgba(226, 232, 240, 0.9);
-    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.3);
-}
-
-html.rtl #homeFloatingLibraryBtn {
-    left: auto;
-    right: 1rem;
-}
-
-html.rtl.theme-dark #homeFloatingLibraryBtn:hover {
-    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.3);
+html.rtl #showLeftSidebarTopBtn {
+    left: 0.75rem;
+    right: auto;
 }
 
 html.rtl #showRightSidebarTopBtn {
@@ -3657,4 +3608,92 @@ body.theme-dark .custom-scrollbar::-webkit-scrollbar-thumb {
 
 body.theme-dark .custom-scrollbar::-webkit-scrollbar-thumb:hover {
     background: #5c5d56 !important;
+}
+
+/* ═══════════════════════════════════════════════════════════════════ */
+/* FLOATING LIBRARY BUTTON */
+/* ═══════════════════════════════════════════════════════════════════ */
+
+@keyframes fadeInSlide {
+    from {
+        opacity: 0;
+        transform: translateX(-12px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+@keyframes fadeOutSlide {
+    from {
+        opacity: 1;
+        transform: translateX(0);
+    }
+
+    to {
+        opacity: 0;
+        transform: translateX(-12px);
+    }
+}
+
+.home-floating-library-btn {
+    animation: fadeInSlide 0.3s cubic-bezier(0.16, 1, 0.3, 1) both;
+    width: 2.5rem;
+    height: 2.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 0.75rem;
+    border: 1.5px solid var(--surface-border);
+    background: linear-gradient(135deg, var(--surface-elevated) 0%, var(--surface-base) 100%);
+    color: var(--accent-deep-blue);
+    box-shadow: 0 2px 8px rgba(78, 64, 45, 0.12);
+    transition: all 0.22s cubic-bezier(0.4, 0, 0.2, 1);
+    cursor: pointer;
+    flex-shrink: 0;
+    will-change: transform, box-shadow;
+}
+
+.home-floating-library-btn:hover {
+    background: linear-gradient(135deg, var(--surface-subtle) 0%, var(--surface-elevated) 100%);
+    box-shadow: 0 4px 12px rgba(78, 64, 45, 0.18);
+    transform: translateY(-2px);
+    border-color: var(--control-border);
+}
+
+.home-floating-library-btn:active {
+    transform: translateY(0);
+    box-shadow: 0 1px 4px rgba(78, 64, 45, 0.1);
+}
+
+.home-floating-library-btn.hidden {
+    animation: fadeOutSlide 0.28s cubic-bezier(0.4, 0, 0.2, 1) both;
+}
+
+/* Dark mode */
+body.theme-dark .home-floating-library-btn {
+    background: linear-gradient(135deg, #2a2e2a 0%, #1f201d 100%);
+    border-color: #5a5240;
+    color: #c8b890;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
+}
+
+body.theme-dark .home-floating-library-btn:hover {
+    background: linear-gradient(135deg, #3a3e3a 0%, #2a2e2a 100%);
+    border-color: #7a6a4a;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.6);
+}
+
+/* RTL support */
+html.rtl .home-floating-library-btn {
+    left: auto;
+    right: 1rem;
+}
+
+@media (max-width: 1023px) {
+    .home-floating-library-btn {
+        display: none;
+    }
 }
