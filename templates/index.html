@@ -184,9 +184,8 @@
 
         <!-- Library Button (Desktop Homepage Only) -->
         <button id="topbarLibraryBtn" type="button"
-            class="topbar-flat-btn hidden lg:inline-flex shrink-0 topbar-library-btn"
-            onclick="toggleMobilePanel('left')" title="Browse Library" aria-label="Browse Library"
-            data-en="Browse Library" data-he="עיין בספרייה">
+            class="topbar-flat-btn hidden lg:inline-flex shrink-0 topbar-library-btn" onclick="openLibrarySidebar()"
+            title="Browse Library" aria-label="Browse Library" data-en="Browse Library" data-he="עיין בספרייה">
             <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor"
                 aria-hidden="true">
                 <path
@@ -3998,6 +3997,14 @@
             openMobilePanel(panel);
         }
 
+        function openLibrarySidebar() {
+            if (isMobileViewport()) {
+                openMobilePanel('left');
+                return;
+            }
+            setSidebarVisibility('left', true);
+        }
+
         function getPrimaryScrollElement() {
             const pageScroller = document.scrollingElement || document.documentElement;
             if (!mainContainer) return pageScroller;
@@ -4241,10 +4248,10 @@
                 showRightSidebarTopBtn.style.top = getSidebarRestoreTopOffset();
             }
 
-            // Show topbar library button only on homepage when sidebar is hidden on desktop
+            // Show topbar library button only on homepage when left sidebar is hidden on desktop
             const topbarLibraryBtn = document.getElementById('topbarLibraryBtn');
             if (topbarLibraryBtn) {
-                const shouldShowLibraryBtn = homeVisible && !mobile && !shulMode;
+                const shouldShowLibraryBtn = homeVisible && !mobile && !shulMode && !showLeftSidebar;
                 topbarLibraryBtn.style.display = shouldShowLibraryBtn ? 'inline-flex' : 'none';
             }
 
