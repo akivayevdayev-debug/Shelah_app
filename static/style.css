@@ -1790,12 +1790,10 @@ body.mobile-panel-open {
 
     .mobile-drawer {
         position: fixed;
-        top: 0;
+        top: var(--topbar-height, 3.4rem);
         bottom: 0;
-        height: 100vh;
-        height: 100dvh;
-        max-height: 100vh;
-        max-height: 100dvh;
+        height: calc(100dvh - var(--topbar-height, 3.4rem));
+        max-height: calc(100dvh - var(--topbar-height, 3.4rem));
         width: min(90vw, 22rem);
         max-width: 22rem;
         overflow-y: auto;
@@ -1816,18 +1814,19 @@ body.mobile-panel-open {
         left: 0;
         border-right: 1px solid #e2e8f0;
         transform: translateX(-105%);
-        transition: transform 0.25s ease;
+        transition: transform 0.32s cubic-bezier(0.22, 1, 0.36, 1), box-shadow 0.32s ease;
     }
 
     .mobile-drawer-right {
         right: 0;
         border-left: 1px solid #e2e8f0;
         transform: translateX(105%);
-        transition: transform 0.25s ease;
+        transition: transform 0.32s cubic-bezier(0.22, 1, 0.36, 1), box-shadow 0.32s ease;
     }
 
     .mobile-drawer.mobile-open {
         transform: translateX(0);
+        box-shadow: 0 20px 60px rgba(15, 23, 42, 0.28);
     }
 
     #reader {
@@ -2154,12 +2153,13 @@ body.mobile-panel-open {
         border-top: 1px solid #cbd5e1;
         border-radius: 1rem 1rem 0 0;
         transform: translateY(106%);
-        transition: transform 0.24s ease;
+        transition: transform 0.36s cubic-bezier(0.22, 1, 0.36, 1), box-shadow 0.36s ease;
         padding-bottom: max(1rem, env(safe-area-inset-bottom));
     }
 
     #rightSidebar.mobile-drawer-right.mobile-open {
         transform: translateY(0);
+        box-shadow: 0 -12px 40px rgba(15, 23, 42, 0.18);
     }
 
     #dailyPulseColumn {

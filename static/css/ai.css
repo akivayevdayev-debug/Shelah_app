@@ -514,3 +514,174 @@ body.theme-dark .ai-src-box-note {
         transition: none !important;
     }
 }
+
+/* ═══════════════════════════════════════════════════════ */
+/* LOADING SPINNER & DOT-BOUNCE KEYFRAMES */
+/* ═══════════════════════════════════════════════════════ */
+
+@keyframes shelah-spin {
+    from { transform: rotate(0deg); }
+    to   { transform: rotate(360deg); }
+}
+
+@keyframes shelah-dot-bounce {
+    0%, 80%, 100% { transform: translateY(0);    opacity: 0.4; }
+    40%           { transform: translateY(-6px);  opacity: 1;   }
+}
+
+/* ═══════════════════════════════════════════════════════ */
+/* SITE-WIDE FLUID MOTION SYSTEM */
+/* ═══════════════════════════════════════════════════════ */
+
+/* ── Topbar & brand ──────────────────────────────────────── */
+.topbar {
+    transition: background-color 0.25s ease, box-shadow 0.25s ease;
+}
+
+.topbar-brand {
+    transition: opacity 0.2s ease, transform 0.2s ease;
+}
+.topbar-brand:hover { opacity: 0.85; }
+.topbar-brand:active { transform: scale(0.97); }
+
+.topbar-flat-btn {
+    transition: background-color 0.18s ease, color 0.18s ease, border-color 0.18s ease,
+                box-shadow 0.18s ease, transform 0.15s ease !important;
+}
+.topbar-flat-btn:active { transform: scale(0.94) !important; }
+
+/* ── Mobile bottom tabs ──────────────────────────────────── */
+.mobile-tab-btn {
+    transition: background-color 0.2s ease, color 0.18s ease,
+                transform 0.18s ease, box-shadow 0.18s ease !important;
+}
+.mobile-tab-btn:active { transform: scale(0.92) !important; }
+
+/* ── Mobile drawer backdrop ──────────────────────────────── */
+#mobileDrawerBackdrop {
+    transition: opacity 0.3s ease !important;
+}
+#mobileDrawerBackdrop.hidden {
+    opacity: 0 !important;
+    pointer-events: none !important;
+}
+
+/* ── Sidebar items ───────────────────────────────────────── */
+#leftSidebar button, #rightSidebar button,
+#leftSidebar a, #rightSidebar a {
+    transition: background-color 0.15s ease, color 0.15s ease, padding-left 0.18s ease !important;
+}
+#leftSidebar details > summary {
+    transition: color 0.18s ease;
+}
+#leftSidebar details > summary .text-slate-300 {
+    transition: transform 0.22s cubic-bezier(0.22, 1, 0.36, 1) !important;
+}
+
+/* ── Modals ──────────────────────────────────────────────── */
+#aiAssistantModal:not(.hidden),
+#textsMenuModal:not(.hidden) {
+    animation: shelah-fade-in 0.22s ease both;
+}
+#settingsPanel:not(.hidden) {
+    animation: shelah-fade-up 0.22s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+#userProfileMenu:not(.hidden) {
+    animation: shelah-fade-up 0.2s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+#userProfileMenu a, #userProfileMenu button {
+    transition: background-color 0.15s ease, color 0.15s ease !important;
+}
+
+/* ── Search bar & icon ───────────────────────────────────── */
+#searchForm input[type="text"] {
+    transition: border-color 0.2s ease, box-shadow 0.2s ease, background-color 0.2s ease !important;
+}
+#searchIcon {
+    transition: opacity 0.2s ease, transform 0.2s cubic-bezier(0.22, 1, 0.36, 1) !important;
+}
+body.search-loading #searchIcon {
+    animation: shelah-spin 0.8s linear infinite;
+    opacity: 0.6;
+}
+
+/* ── Library sidebar tab ─────────────────────────────────── */
+.sidebar-show-tab {
+    transition: opacity 0.22s ease, transform 0.22s cubic-bezier(0.22, 1, 0.36, 1),
+                box-shadow 0.18s ease, background 0.14s ease !important;
+}
+.sidebar-show-tab:hover { transform: translateX(2px); }
+
+#closeLeftSidebarBtn, #closeRightSidebarBtn,
+#hideLeftSidebarBtn, #hideRightSidebarBtn {
+    transition: background-color 0.15s ease, color 0.15s ease, opacity 0.15s ease !important;
+}
+
+/* ── Reader topbar ───────────────────────────────────────── */
+.reader-topbar-icon-btn {
+    transition: color 0.18s ease, opacity 0.18s ease, transform 0.18s ease !important;
+}
+.reader-topbar-icon-btn:active { transform: scale(0.92) !important; }
+
+/* ── AI results sections ─────────────────────────────────── */
+#aiSourcesSection:not(.hidden),
+#aiCustomsSection:not(.hidden),
+#aiWikiSection:not(.hidden) {
+    animation: shelah-fade-up 0.3s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+/* ── Home grid ───────────────────────────────────────────── */
+.home-library-link, .home-daily-link, .home-calendar-btn {
+    transition: transform 0.18s ease, opacity 0.18s ease !important;
+}
+.home-library-link:hover { transform: translateX(2px); }
+
+/* ── Legal modal ─────────────────────────────────────────── */
+#legalModal input[type="checkbox"] {
+    transition: background-color 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease !important;
+}
+#legalAcceptBtn {
+    transition: opacity 0.22s ease, transform 0.18s ease, background-color 0.18s ease !important;
+}
+#legalAcceptBtn:not(:disabled):hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(31, 63, 99, 0.3);
+}
+#legalAcceptBtn:not(:disabled):active { transform: scale(0.97); }
+
+/* ── Theme & language ────────────────────────────────────── */
+#themeToggleBtn {
+    transition: background-color 0.22s ease, color 0.22s ease, border-color 0.22s ease !important;
+}
+#aiModalTitle { transition: opacity 0.2s ease !important; }
+
+.lang-btn {
+    transition: background-color 0.18s ease, font-weight 0.18s ease, color 0.18s ease !important;
+}
+.lang-btn-active { position: relative; }
+.lang-btn-active::after {
+    content: '';
+    position: absolute;
+    bottom: -2px;
+    left: 10%;
+    width: 80%;
+    height: 2px;
+    background: currentColor;
+    border-radius: 1px;
+    animation: shelah-scale-in 0.2s ease both;
+}
+
+/* ── Respect reduced-motion additions ────────────────────── */
+@media (prefers-reduced-motion: reduce) {
+    .topbar, .topbar-brand, .topbar-flat-btn, .mobile-tab-btn,
+    #mobileDrawerBackdrop, #leftSidebar button, #rightSidebar button,
+    #leftSidebar a, #rightSidebar a, #settingsPanel, #userProfileMenu,
+    #searchForm input, #searchIcon, .sidebar-show-tab,
+    .reader-topbar-icon-btn, .home-library-link, .home-daily-link,
+    .home-calendar-btn, #legalAcceptBtn, #themeToggleBtn, .lang-btn,
+    #aiSourcesSection, #aiCustomsSection, #aiWikiSection,
+    #aiAssistantModal, #textsMenuModal, #aiModalTitle {
+        animation: none !important;
+        transition: none !important;
+    }
+}
