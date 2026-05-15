@@ -27,7 +27,7 @@
     <link rel="stylesheet" href="/static/css/sidebar.css?v=20260512-v1">
     <link rel="stylesheet" href="/static/css/halacha.css?v=20260512-v1">
     <link rel="stylesheet" href="/static/css/prayer.css?v=20260512-v1">
-    <link rel="stylesheet" href="/static/css/ai.css?v=20260514-v3">
+    <link rel="stylesheet" href="/static/css/ai.css?v=20260515-v1">
     <link rel="stylesheet" href="/static/css/calendar.css?v=20260512-v1">
 
     <style id="quick-settings-dark-fixes">
@@ -180,8 +180,7 @@
     <!-- TOP NAVIGATION BAR (Sefaria Style) -->
     <header role="banner"
         class="topbar sticky top-0 bg-white text-slate-800 py-1.5 px-2 lg:py-1.5 lg:px-3 shadow-sm border-b flex flex-wrap lg:flex-nowrap justify-between items-center z-50 flex-shrink-0 gap-1.5 lg:gap-2">
-        <button id="mobileNavBtn" type="button" class="lg:hidden topbar-flat-btn" data-en="Menu"
-            data-he="תפריט">Menu</button>
+        <!-- mobileNavBtn removed: Library tab in bottom nav covers this action -->
 
         <div id="brandHomeBtn" class="topbar-brand flex items-center gap-1.5 cursor-pointer shrink-0"
             onclick="goHome()">
@@ -362,8 +361,10 @@
         </div>
     </header>
 
+    <!-- Mobile drawer backdrop — starts below the topbar -->
     <div id="mobileDrawerBackdrop" aria-hidden="true"
-        class="hidden fixed inset-0 bg-slate-900/45 backdrop-blur-[1px] z-[85] lg:hidden">
+        class="hidden fixed left-0 right-0 bottom-0 bg-slate-900/45 backdrop-blur-[1px] z-[85] lg:hidden"
+        style="top: var(--topbar-height, 3.4rem); transition: opacity 0.25s ease;">
     </div>
 
     <div class="flex flex-1 relative">
@@ -8498,12 +8499,62 @@
             }
 
             setCurrentView('ask', question, question);
-            // Show loading modal
+            // Show loading modal and animate the search icon
             const aiModal = document.getElementById('aiAssistantModal');
             aiModal.style.display = 'flex';
+            document.body.classList.add('search-loading');
 
-            // Reset modal content
-            document.getElementById('aiSynthesis').innerHTML = `<p class="text-slate-400 italic animate-pulse">${t('Synthesizing answer from Library, customs, and halachic sources...', 'מסנתז תשובה מספריא, ממנהגים וממקורות הלכתיים...')}</p>`;
+            // Reset modal content with premium loading animation
+            document.getElementById('aiSynthesis').innerHTML = `
+                <div id="aiLoadingState" class="flex flex-col items-center py-8 gap-5">
+                    <!-- Animated menorah-inspired spinner -->
+                    <div class="relative flex items-center justify-center w-16 h-16" aria-hidden="true">
+                        <div class="absolute inset-0 rounded-full border-2 border-[#002147]/10"></div>
+                        <div class="absolute inset-0 rounded-full border-2 border-t-[#002147] border-r-transparent border-b-transparent border-l-transparent"
+                            style="animation: shelah-spin 1s cubic-bezier(0.4,0,0.6,1) infinite;"></div>
+                        <div class="absolute inset-2 rounded-full border border-t-transparent border-r-[#b8a07a] border-b-transparent border-l-transparent"
+                            style="animation: shelah-spin 1.5s cubic-bezier(0.4,0,0.6,1) infinite reverse;"></div>
+                        <span class="text-xl select-none" style="font-family:'Cardo',serif; color:#002147;">ש</span>
+                    </div>
+                    <!-- Animated cycling text -->
+                    <div class="text-center space-y-1.5">
+                        <p id="aiLoadingPhaseText" class="text-[#002147] font-serif text-base font-semibold"
+                            style="animation: shelah-fade-in 0.4s ease both;">${t('Consulting the Library...', 'מתייעץ עם הספרייה...')}</p>
+                        <p class="text-slate-400 text-sm italic">${t('Synthesizing answer from Library, customs, and halachic sources...', 'מסנתז תשובה מספריא, ממנהגים וממקורות הלכתיים...')}</p>
+                    </div>
+                    <!-- Animated progress dots -->
+                    <div class="flex gap-2" aria-hidden="true">
+                        <span class="w-2 h-2 rounded-full bg-[#002147]/40" style="animation: shelah-dot-bounce 1.2s ease infinite 0ms;"></span>
+                        <span class="w-2 h-2 rounded-full bg-[#002147]/40" style="animation: shelah-dot-bounce 1.2s ease infinite 200ms;"></span>
+                        <span class="w-2 h-2 rounded-full bg-[#002147]/40" style="animation: shelah-dot-bounce 1.2s ease infinite 400ms;"></span>
+                    </div>
+                    <!-- Source tags appearing -->
+                    <div class="flex flex-wrap gap-2 justify-center text-xs" style="animation: shelah-fade-up 0.5s ease 0.3s both;">
+                        <span class="px-2.5 py-1 rounded-full border border-[#004e5f]/30 text-[#004e5f] bg-[#e8f4f5]" style="animation: shelah-scale-in 0.3s ease 0.4s both;">${t('Library', 'ספרייה')}</span>
+                        <span class="px-2.5 py-1 rounded-full border border-[#7c3aed]/20 text-[#7c3aed] bg-[#f3f0ff]" style="animation: shelah-scale-in 0.3s ease 0.55s both;">${t('Customs', 'מנהגים')}</span>
+                        <span class="px-2.5 py-1 rounded-full border border-[#b8860b]/20 text-[#8c6e2b] bg-[#fef9e6]" style="animation: shelah-scale-in 0.3s ease 0.7s both;">${t('Halachah', 'הלכה')}</span>
+                    </div>
+                </div>`;
+
+            // Cycle the loading phase text
+            const aiLoadingPhases = [
+                [t('Consulting the Library...', 'מתייעץ עם הספרייה...'), 0],
+                [t('Cross-referencing customs...', 'מצלב עם מנהגי קהילות...'), 1400],
+                [t('Synthesizing halachic sources...', 'מסנתז מקורות הלכתיים...'), 2800],
+                [t('Composing your answer...', 'מרכיב את התשובה...'), 4200],
+            ];
+            aiLoadingPhases.forEach(([text, delay]) => {
+                setTimeout(() => {
+                    const el = document.getElementById('aiLoadingPhaseText');
+                    if (el) {
+                        el.style.animation = 'none';
+                        el.offsetHeight; // reflow
+                        el.textContent = text;
+                        el.style.animation = 'shelah-fade-in 0.35s ease both';
+                    }
+                }, delay);
+            });
+
             document.getElementById('aiModalTitle').textContent = question;
             document.getElementById('aiSourcesSection').classList.add('hidden');
             document.getElementById('aiCustomsSection').classList.add('hidden');
@@ -9097,6 +9148,17 @@
             bindDailyStudyLinks();
             void loadParashaQuickLink();
             void registerServiceWorker();
+
+            // Measure topbar height and expose as CSS variable for mobile drawer alignment
+            function syncTopbarHeight() {
+                const topbar = document.querySelector('.topbar');
+                if (topbar) {
+                    const h = topbar.getBoundingClientRect().height;
+                    document.documentElement.style.setProperty('--topbar-height', h + 'px');
+                }
+            }
+            syncTopbarHeight();
+            window.addEventListener('resize', syncTopbarHeight);
 
             queueBackgroundTask(() => {
                 void loadPrayersMenu();
@@ -10211,6 +10273,7 @@
 
         function closeAiModal() {
             document.getElementById('aiAssistantModal').style.display = 'none';
+            document.body.classList.remove('search-loading');
             searchInput.value = '';
         }
 
