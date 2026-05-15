@@ -1953,13 +1953,33 @@ body.mobile-panel-open {
 }
 
 .home-calendar-btn {
-    margin-top: 0.85rem;
-    border: 0;
-    background: transparent;
-    padding: 0;
-    color: #0f4d67;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+    margin-top: 1rem;
+    padding: 0.5rem 1rem;
+    border: 1.5px solid #c4ab6e;
+    background: linear-gradient(135deg, #fffaf0 0%, #f7f1e1 100%);
+    border-radius: 0.45rem;
+    color: #1f3f63;
     font-weight: 700;
-    font-size: 0.86rem;
+    font-size: 0.82rem;
+    letter-spacing: 0.04em;
+    cursor: pointer;
+    box-shadow: 0 1px 4px rgba(78, 64, 30, 0.12), inset 0 1px 0 rgba(255, 255, 255, 0.6);
+    transition: background 0.18s ease, border-color 0.18s ease, box-shadow 0.18s ease, transform 0.15s ease;
+}
+
+.home-calendar-btn::before {
+    content: "📅";
+    font-size: 0.85em;
+}
+
+.home-calendar-btn:hover {
+    background: linear-gradient(135deg, #fff5e0 0%, #f2e8c8 100%);
+    border-color: #b09050;
+    box-shadow: 0 3px 10px rgba(78, 64, 30, 0.18), inset 0 1px 0 rgba(255, 255, 255, 0.7);
+    transform: translateY(-1px);
 }
 
 .home-daily-entry {
@@ -3229,6 +3249,19 @@ body.theme-dark .home-topic-title:hover,
 body.theme-dark .home-daily-link:hover,
 body.theme-dark .home-calendar-btn:hover {
     color: #fff4e4 !important;
+}
+
+body.theme-dark .home-calendar-btn {
+    background: linear-gradient(135deg, #2a2f2a 0%, #222722 100%) !important;
+    border-color: #7a6a45 !important;
+    color: #d9c990 !important;
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.3) !important;
+}
+
+body.theme-dark .home-calendar-btn:hover {
+    background: linear-gradient(135deg, #303830 0%, #282d28 100%) !important;
+    border-color: #9a8545 !important;
+    color: #eedd99 !important;
 }
 
 body.theme-dark #nextZmanBadge {

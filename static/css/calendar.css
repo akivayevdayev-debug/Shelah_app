@@ -9,24 +9,37 @@
 /* ═══════════════════════════════════════════════════════ */
 
 :root {
-    --cal-border: #e2e8f0;
-    --cal-today-bg: #F0F9FF;
+    --cal-border: #d7cebc;
+    --cal-today-bg: #fdf8ee;
     --cal-header-color: #002147;
-    --cal-cell-bg: #ffffff;
-    --cal-number-color: #475569;
+    --cal-cell-bg: #faf7f0;
+    --cal-cell-hover: #f5efe5;
+    --cal-number-color: #4a6080;
     --cal-toolbar-bg: transparent;
     --cal-event-holiday: #802f3e;
-    --cal-event-shabbat: #064e3b;
+    --cal-event-shabbat: #1f4f3a;
+    --cal-event-rh: #4a2a10;
+    --cal-toolbar-btn-bg: #f1ede4;
+    --cal-toolbar-btn-border: #c8b88a;
+    --cal-toolbar-btn-color: #1f3f63;
+    --cal-toolbar-btn-hover: #e8e0cc;
+    --cal-today-border: #c8a840;
 }
 
 body.theme-dark {
     --cal-border: #40433d;
-    --cal-today-bg: #2a2d2a;
+    --cal-today-bg: #2a2e2a;
     --cal-header-color: #f3eadd;
     --cal-cell-bg: #1c1f1d;
-    --cal-number-color: #ddd4c6;
-    --cal-event-holiday: #4a3d42;
-    --cal-event-shabbat: #3d4a3d;
+    --cal-cell-hover: #242824;
+    --cal-number-color: #b8ae9e;
+    --cal-event-holiday: #6a3540;
+    --cal-event-shabbat: #2a4a34;
+    --cal-toolbar-btn-bg: #2a2e2a;
+    --cal-toolbar-btn-border: #5a5240;
+    --cal-toolbar-btn-color: #c8b890;
+    --cal-toolbar-btn-hover: #333730;
+    --cal-today-border: #907a30;
 }
 
 /* ═══════════════════════════════════════════════════════ */
@@ -39,19 +52,119 @@ body.theme-dark {
     --fc-page-bg-color: var(--cal-cell-bg);
     --fc-neutral-bg-color: var(--cal-cell-bg);
     --fc-neutral-text-color: var(--cal-number-color);
+    --fc-small-font-size: 0.82rem;
+    font-family: 'Inter', system-ui, sans-serif;
+}
+
+/* Toolbar */
+.fc .fc-toolbar {
+    align-items: center;
+    padding-bottom: 0.75rem;
+    border-bottom: 1px solid var(--cal-border);
+    margin-bottom: 0.75rem !important;
 }
 
 .fc .fc-toolbar-title {
     color: var(--cal-header-color);
+    font-family: 'Cardo', Georgia, serif;
+    font-size: 1.25rem !important;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+}
+
+/* Toolbar buttons */
+.fc .fc-button-primary {
+    background: var(--cal-toolbar-btn-bg) !important;
+    border: 1px solid var(--cal-toolbar-btn-border) !important;
+    color: var(--cal-toolbar-btn-color) !important;
+    font-size: 0.8rem !important;
+    font-weight: 600 !important;
+    padding: 0.3rem 0.7rem !important;
+    border-radius: 0.4rem !important;
+    box-shadow: 0 1px 2px rgba(78, 64, 30, 0.1) !important;
+    transition: background 0.15s ease, border-color 0.15s ease !important;
+}
+
+.fc .fc-button-primary:hover,
+.fc .fc-button-primary:focus {
+    background: var(--cal-toolbar-btn-hover) !important;
+    border-color: #a09060 !important;
+    outline: none !important;
+    box-shadow: 0 2px 5px rgba(78, 64, 30, 0.15) !important;
+}
+
+.fc .fc-button-primary:not(:disabled):active,
+.fc .fc-button-primary.fc-button-active {
+    background: #e8dcc8 !important;
+    border-color: #907860 !important;
+    box-shadow: inset 0 1px 3px rgba(78, 64, 30, 0.18) !important;
+}
+
+/* Day grid cells */
+.fc .fc-daygrid-day {
+    background: var(--cal-cell-bg);
+    transition: background 0.12s ease;
+}
+
+.fc .fc-daygrid-day:hover {
+    background: var(--cal-cell-hover);
+}
+
+.fc .fc-daygrid-day.fc-day-today {
+    background: var(--cal-today-bg) !important;
+    box-shadow: inset 0 0 0 2px var(--cal-today-border);
+}
+
+.fc .fc-daygrid-day-number {
+    color: var(--cal-number-color);
+    font-size: 0.8rem;
+    font-weight: 600;
+    padding: 0.35rem 0.5rem;
+}
+
+.fc-day-today .fc-daygrid-day-number {
+    color: var(--cal-header-color) !important;
+    font-weight: 700;
+}
+
+/* Column headers (day names) */
+.fc .fc-col-header-cell-cushion {
+    color: var(--cal-number-color);
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    padding: 0.4rem 0.2rem;
+}
+
+/* Events */
+.fc-event {
+    border-radius: 0.3rem !important;
+    padding: 0.1rem 0.35rem !important;
+    font-size: 0.73rem !important;
+    font-weight: 600 !important;
+    cursor: pointer;
+    transition: opacity 0.15s ease, transform 0.12s ease;
+}
+
+.fc-event:hover {
+    opacity: 0.88;
+    transform: translateY(-1px);
 }
 
 .fc-event.holiday {
-    background-color: var(--cal-event-holiday) !important;
+    background: var(--cal-event-holiday) !important;
     border-color: transparent !important;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.15);
 }
 
 .fc-event.shabbat {
-    background-color: var(--cal-event-shabbat) !important;
+    background: var(--cal-event-shabbat) !important;
+    border-color: transparent !important;
+}
+
+.fc-event.rosh-hashana {
+    background: var(--cal-event-rh, #7a3f20) !important;
     border-color: transparent !important;
 }
 
@@ -71,11 +184,11 @@ body.theme-dark {
     }
 
     .fc-event {
-        font-size: 0.72rem;
+        font-size: 0.68rem !important;
     }
 
     .fc .fc-daygrid-day-number {
-        font-size: 0.8rem;
+        font-size: 0.75rem;
     }
 }
 
