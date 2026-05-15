@@ -1,0 +1,233 @@
+<script>
+    window.APP_CLERK = {
+        publishableKey: "{{ clerk_publishable_key or '' }}",
+        enforceAuth: JSON.parse('{{ clerk_enforce_auth | tojson }}')
+    };
+</script>
+{% if clerk_publishable_key %}
+<script crossorigin="anonymous" data-clerk-publishable-key="{{ clerk_publishable_key }}"
+    src="https://cdn.jsdelivr.net/npm/@clerk/clerk-js@5/dist/clerk.browser.js"></script>
+{% endif %}
+<script>
+    // ===== APP STATE & CONSTANTS =====
+    const LANGUAGE_MANUAL_KEY = 'preferredLanguageManual';
+    const THEME_PREFERENCE_KEY = 'themePreference';
+    const THEME_PREFERENCE_MANUAL_KEY = 'themePreferenceManual';
+    const THEME_PREFERENCE_OPTIONS = ['light', 'dark', 'system'];
+
+    let appState = {
+        prefs: {
+            theme: 'system',
+        }
+    };
+
+    // ===== THEME FUNCTIONS =====
+    function normalizeThemePreference(pref) {
+        if (THEME_PREFERENCE_OPTIONS.includes(pref)) return pref;
+        return 'system';
+    }
+
+    function getResolvedThemePreference() {
+        const pref = normalizeThemePreference(appState?.prefs?.theme);
+        if (pref === 'system') {
+            return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+        }
+        return pref;
+    }
+
+    function applyThemePreferenceClass() {
+        const resolvedTheme = getResolvedThemePreference();
+        const darkMode = resolvedTheme === 'dark';
+
+        document.documentElement.classList.toggle('theme-dark', darkMode);
+        document.body.classList.toggle('theme-dark', darkMode);
+        document.documentElement.style.colorScheme = darkMode ? 'dark' : 'light';
+        document.body.style.colorScheme = darkMode ? 'dark' : 'light';
+
+        const themeMeta = document.querySelector('meta[name="theme-color"]');
+        if (themeMeta) {
+            themeMeta.setAttribute('content', darkMode ? '#101110' : '#f3ede0');
+        }
+    }
+
+    function updateThemeToggleUi(lang = getCurrentLanguage()) {
+        const themeToggleLabel = document.getElementById('themeToggleLabel');
+        if (!themeToggleLabel) return;
+
+        const pref = normalizeThemePreference(appState?.prefs?.theme);
+        const modeLabels = {
+            en: { light: 'Light', dark: 'Dark', system: 'System' },
+            he: { light: 'בהיר', dark: 'כהה', system: 'מערכת' },
+        };
+
+        const locale = lang === 'he' ? 'he' : 'en';
+        const prefix = locale === 'he' ? 'מראה' : 'Appearance';
+        const modeLabel = (modeLabels[locale] && modeLabels[locale][pref]) || modeLabels.en[pref] || 'Light';
+
+        themeToggleLabel.textContent = `${prefix}: ${modeLabel}`;
+    }
+
+    function setThemePreference(themePreference, options = {}) {
+        const persist = options.persist !== false;
+        appState.prefs.theme = normalizeThemePreference(themePreference);
+        applyThemePreferenceClass();
+        updateThemeToggleUi();
+        if (persist) {
+            localStorage.setItem(THEME_PREFERENCE_KEY, appState.prefs.theme);
+            localStorage.setItem(THEME_PREFERENCE_MANUAL_KEY, '1');
+        }
+    }
+
+    function cycleThemePreference() {
+        const current = normalizeThemePreference(appState?.prefs?.theme);
+        const currentIndex = THEME_PREFERENCE_OPTIONS.indexOf(current);
+        const nextIndex = (currentIndex + 1) % THEME_PREFERENCE_OPTIONS.length;
+        setThemePreference(THEME_PREFERENCE_OPTIONS[nextIndex]);
+    }
+
+    // ===== LANGUAGE FUNCTIONS =====
+    function getCurrentLanguage() {
+        return localStorage.getItem('preferredLanguage') || 'en';
+    }
+
+    function toggleLanguage(lang, options = {}) {
+        if (lang !== 'en' && lang !== 'he') {
+            lang = 'en';
+        }
+
+        const autoChange = Boolean(options?.auto);
+        localStorage.setItem('preferredLanguage', lang);
+        if (!autoChange) {
+            localStorage.setItem(LANGUAGE_MANUAL_KEY, '1');
+        }
+
+        // Update all elements with data-* attributes
+        document.querySelectorAll('[data-en], [data-he]').forEach(el => {
+            if (el.dataset[lang]) {
+                el.textContent = el.dataset[lang];
+            }
+        });
+
+        // Handle RTL for Hebrew
+        const html = document.documentElement;
+        if (lang === 'he') {
+            html.setAttribute('dir', 'rtl');
+            html.classList.add('rtl');
+        } else {
+            html.setAttribute('dir', 'ltr');
+            html.classList.remove('rtl');
+        }
+
+        // Update language button styles
+        document.querySelectorAll('.lang-btn').forEach(btn => {
+            btn.classList.remove('lang-btn-active');
+            if (btn.dataset.lang === lang) {
+                btn.classList.add('lang-btn-active');
+            }
+        });
+
+        updateThemeToggleUi(lang);
+    }
+
+    // ===== NAVIGATION FUNCTIONS =====
+    function goHome() {
+        window.location.href = '/';
+    }
+
+    // ===== AUTHENTICATION =====
+    function setupAuthControls() {
+        const authControls = document.getElementById('authControls');
+        const signInBtn = document.getElementById('signInBtn');
+        const userProfileMenuContainer = document.getElementById('userProfileMenuContainer');
+        const userProfileMenuBtn = document.getElementById('userProfileMenuBtn');
+        const userProfileMenu = document.getElementById('userProfileMenu');
+        const userProfileSignOutAction = document.getElementById('userProfileSignOutAction');
+
+        if (window.Clerk) {
+            window.Clerk.load().then(() => {
+                const user = window.Clerk?.user;
+                if (user) {
+                    if (signInBtn) signInBtn.style.display = 'none';
+                    if (userProfileMenuContainer) userProfileMenuContainer.classList.remove('hidden');
+                    if (userProfileMenuBtn) {
+                        const userName = user.firstName || user.emailAddresses?.[0]?.emailAddress || 'User';
+                        const label = document.getElementById('userProfileMenuLabel');
+                        if (label) label.textContent = userName;
+                    }
+                } else {
+                    if (signInBtn) signInBtn.style.display = 'inline-block';
+                    if (userProfileMenuContainer) userProfileMenuContainer.classList.add('hidden');
+                }
+            });
+        }
+
+        if (userProfileMenuBtn) {
+            userProfileMenuBtn.addEventListener('click', () => {
+                userProfileMenu?.classList.toggle('hidden');
+            });
+        }
+
+        if (userProfileSignOutAction) {
+            userProfileSignOutAction.addEventListener('click', () => {
+                if (window.Clerk) {
+                    window.Clerk.signOut(() => window.location.href = '/');
+                }
+            });
+        }
+
+        if (signInBtn) {
+            signInBtn.addEventListener('click', () => {
+                if (window.Clerk) {
+                    window.Clerk.openSignIn();
+                }
+            });
+        }
+
+        // Mobile language toggle
+        const mobileLangToggle = document.getElementById('mobileLangToggle');
+        if (mobileLangToggle) {
+            mobileLangToggle.addEventListener('click', () => {
+                toggleLanguage(getCurrentLanguage() === 'he' ? 'en' : 'he');
+            });
+        }
+    }
+
+    // ===== INITIALIZATION =====
+    document.addEventListener('DOMContentLoaded', () => {
+        // Load theme preference
+        const savedTheme = localStorage.getItem(THEME_PREFERENCE_KEY);
+        if (savedTheme) {
+            appState.prefs.theme = normalizeThemePreference(savedTheme);
+        }
+        applyThemePreferenceClass();
+        updateThemeToggleUi();
+
+        // Load language preference
+        const savedLang = localStorage.getItem('preferredLanguage') || 'en';
+        toggleLanguage(savedLang, { auto: true });
+
+        // Theme toggle button
+        const themeToggleBtn = document.getElementById('themeToggleBtn');
+        if (themeToggleBtn) {
+            themeToggleBtn.addEventListener('click', cycleThemePreference);
+        }
+
+        // Setup authentication
+        setupAuthControls();
+    });
+
+    // System theme change listener
+    if (window.matchMedia) {
+        const systemThemeMediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
+        const handleSystemThemeChange = () => {
+            if (normalizeThemePreference(appState?.prefs?.theme) === 'system') {
+                applyThemePreferenceClass();
+                updateThemeToggleUi();
+            }
+        };
+
+        if (typeof systemThemeMediaQuery.addEventListener === 'function') {
+            systemThemeMediaQuery.addEventListener('change', handleSystemThemeChange);
+        }
+    }
+</script>
