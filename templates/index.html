@@ -182,17 +182,6 @@
         class="topbar sticky top-0 bg-white text-slate-800 py-1.5 px-2 lg:py-1.5 lg:px-3 shadow-sm border-b flex flex-wrap lg:flex-nowrap justify-between items-center z-50 flex-shrink-0 gap-1.5 lg:gap-2">
         <!-- mobileNavBtn removed: Library tab in bottom nav covers this action -->
 
-        <!-- Library Button (Desktop Homepage Only) -->
-        <button id="topbarLibraryBtn" type="button"
-            class="topbar-flat-btn hidden lg:inline-flex shrink-0 topbar-library-btn" onclick="openLibrarySidebar()"
-            title="Library" aria-label="Library" data-en="Library" data-he="ספרייה">
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor"
-                aria-hidden="true">
-                <path
-                    d="M3 4a1 1 0 011-1h12a1 1 0 011 1v2a1 1 0 01-1 1H4a1 1 0 01-1-1V4zm0 6a1 1 0 011-1h6a1 1 0 011 1v6a1 1 0 01-1 1H4a1 1 0 01-1-1v-6zm8-1a1 1 0 00-1 1v6a1 1 0 001 1h6a1 1 0 001-1v-6a1 1 0 00-1-1h-6z" />
-            </svg>
-        </button>
-
         <div id="brandHomeBtn" class="topbar-brand flex items-center gap-1.5 cursor-pointer shrink-0"
             onclick="goHome()">
             <div class="text-navy font-hebrew text-[1.7rem] font-semibold leading-tight">
@@ -204,6 +193,20 @@
                     data-en="Torah Encyclopedia" data-he="אנציקלופדיית תורה">Torah Encyclopedia</span>
             </h1>
         </div>
+
+        <!-- Library Button (Desktop Homepage Only) — placed after brand for natural flow -->
+        <button id="topbarLibraryBtn" type="button"
+            class="topbar-flat-btn hidden lg:inline-flex shrink-0 items-center gap-1.5 topbar-library-btn"
+            onclick="openLibrarySidebar()" title="Library" aria-label="Library">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 shrink-0" viewBox="0 0 20 20" fill="currentColor"
+                aria-hidden="true">
+                <path
+                    d="M3 4.5A1.5 1.5 0 014.5 3h9A1.5 1.5 0 0115 4.5V14a1 1 0 001 1h1a1 1 0 010 2h-1a3 3 0 01-3-3V5H5v9a1 1 0 001 1h5a1 1 0 110 2H6a3 3 0 01-3-3V4.5z" />
+                <path
+                    d="M6 7a1 1 0 011-1h4a1 1 0 110 2H7a1 1 0 01-1-1zm0 3a1 1 0 011-1h4a1 1 0 110 2H7a1 1 0 01-1-1z" />
+            </svg>
+            <span class="text-xs font-medium" data-en="Library" data-he="ספרייה">Library</span>
+        </button>
 
         <!-- Top Navigation Menu Toggle + Search Bar -->
         <div
@@ -1155,19 +1158,19 @@
             <!-- READER TOPBAR: sits inside #mainContainer, outside #reader article, so it spans full column width -->
             <div id="readerTopBar"
                 class="hidden sticky z-40 reader-topbar-shell border-y border-[#ddd4c3] bg-[#f9f4ea] px-1 py-1">
-                <!-- Library button moved out of the track for symmetry -->
-                <button id="readerLibraryTopBarBtn" type="button"
-                    class="reader-topbar-icon-btn reader-topbar-library-abs" aria-label="Library" title="Library">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor"
-                        aria-hidden="true">
-                        <path
-                            d="M3 4.5A1.5 1.5 0 014.5 3h9A1.5 1.5 0 0115 4.5V14a1 1 0 001 1h1a1 1 0 010 2h-1a3 3 0 01-3-3V5H5v9a1 1 0 001 1h5a1 1 0 110 2H6a3 3 0 01-3-3V4.5z" />
-                        <path
-                            d="M6 7a1 1 0 011-1h4a1 1 0 110 2H7a1 1 0 01-1-1zm0 3a1 1 0 011-1h4a1 1 0 110 2H7a1 1 0 01-1-1z" />
-                    </svg>
-                </button>
-
                 <div class="reader-topbar-track">
+                    <!-- Library button — left anchor, in-track -->
+                    <button id="readerLibraryTopBarBtn" type="button"
+                        class="reader-topbar-icon-btn reader-topbar-library-track" aria-label="Library" title="Library">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor"
+                            aria-hidden="true">
+                            <path
+                                d="M3 4.5A1.5 1.5 0 014.5 3h9A1.5 1.5 0 0115 4.5V14a1 1 0 001 1h1a1 1 0 010 2h-1a3 3 0 01-3-3V5H5v9a1 1 0 001 1h5a1 1 0 110 2H6a3 3 0 01-3-3V4.5z" />
+                            <path
+                                d="M6 7a1 1 0 011-1h4a1 1 0 110 2H7a1 1 0 01-1-1zm0 3a1 1 0 011-1h4a1 1 0 110 2H7a1 1 0 01-1-1z" />
+                        </svg>
+                    </button>
+
                     <button id="readerPrevTopBarBtn" type="button" class="reader-topbar-icon-btn"
                         aria-label="Previous Section" title="Previous Section">
                         <span aria-hidden="true">&#9664;</span>
@@ -1553,11 +1556,6 @@
             </div>
             <div id="libraryCategoryBody" class="px-5 py-4 overflow-y-auto flex-1 space-y-6 custom-scrollbar">
             </div>
-            <div class="bg-slate-50 border-t px-6 py-3 flex justify-end">
-                <button onclick="closeLibraryCategory()"
-                    class="px-4 py-2 text-slate-700 hover:bg-slate-100 rounded transition text-sm" data-en="Close"
-                    data-he="סגור">Close</button>
-            </div>
         </div>
     </div>
 
@@ -1704,7 +1702,6 @@
             prevRef: '',
             seenRefs: new Set(),
             currentVisibleChunkIndex: 0,
-            headerStyleClass: 'reader-source-title',
             sectionObserver: null,
         };
         window.currentTextPayloadChain = [];
@@ -6014,8 +6011,13 @@
             infiniteReaderState.loadingPrev = false;
             infiniteReaderState.nextRef = String(seedPayload?.next || '').trim();
             infiniteReaderState.prevRef = String(seedPayload?.prev || '').trim();
-            infiniteReaderState.currentVisibleChunkIndex = 0;
             infiniteReaderState.seenRefs = new Set();
+            infiniteReaderState.currentVisibleChunkIndex = 0;
+
+            if (infiniteReaderState.sectionObserver) {
+                infiniteReaderState.sectionObserver.disconnect();
+                infiniteReaderState.sectionObserver = null;
+            }
 
             const seedChain = Array.isArray(window.currentTextPayloadChain)
                 ? window.currentTextPayloadChain
@@ -6026,10 +6028,13 @@
                 if (refKey) infiniteReaderState.seenRefs.add(refKey);
             });
 
-            // Set up scroll observer for dynamic button updates
-            setTimeout(() => {
-                setupSectionScrollObserver();
-            }, 100);
+            // Clear prevRef if it is already loaded in the chain
+            if (infiniteReaderState.prevRef) {
+                const prevKey = getRefTrackingKey(infiniteReaderState.prevRef);
+                if (prevKey && infiniteReaderState.seenRefs.has(prevKey)) {
+                    infiniteReaderState.prevRef = '';
+                }
+            }
         }
 
         function shouldLoadNextTextChunk(thresholdPx = 420) {
@@ -6115,223 +6120,107 @@
             }
         }
 
-        function renderTextRowsForPayload(data, layout) {
-            const cleanLine = (text = '') => escapeHtml(normalizeDisplayText(text)).replace(/\n/g, '<br>');
-
-            if (!Array.isArray(data?.lines) || !data.lines.length) {
-                return `<p class="text-slate-500 italic">${t('No text content found for this reference.', 'לא נמצא תוכן טקסט עבור הפניה זו.')}</p>`;
-            }
-
-            return data.lines.map((line, idx) => {
-                const label = formatSegmentLabel(line.segment, idx);
-                const heRaw = normalizeDisplayText(line.he || '');
-                const he = heRaw ? cleanLine(applyHebrewDisplaySettings(heRaw)) : '';
-                const enRaw = normalizeDisplayText(line.en || '');
-                const en = enRaw ? cleanLine(enRaw) : '';
-                const translit = appState.prefs.transliteration ? transliterationMarkup(heRaw) : '';
-
-                const hebrewLine = he
-                    ? `<p>${he}</p>${translit}`
-                    : `<p class="text-slate-300 italic">${t('No Hebrew text in this segment.', 'אין טקסט עברי בקטע זה.')}</p>`;
-                const englishLine = en
-                    ? `<p>${en}</p>`
-                    : `<p class="text-slate-300 italic">${t('No English translation in this segment.', 'אין תרגום אנגלי בקטע זה.')}</p>`;
-
-                if (layout === 'english') {
-                    return `
-                        <div class="source-grid segment-row reader-text-row reader-single-row grid grid-cols-1 border-b border-slate-200 last:border-b-0" data-segment="${escapeHtml(String(line.segment || ''))}">
-                            <span class="segment-label reader-row-right-label">${label}</span>
-                            <div class="source-en reader-text-en font-serif leading-relaxed py-2 text-slate-700 text-lg" dir="ltr">
-                                ${englishLine}
-                            </div>
-                        </div>
-                    `;
-                }
-
-                if (layout === 'hebrew') {
-                    return `
-                        <div class="source-grid segment-row reader-text-row reader-single-row grid grid-cols-1 border-b border-slate-200 last:border-b-0" data-segment="${escapeHtml(String(line.segment || ''))}">
-                            <span class="segment-label reader-row-right-label">${label}</span>
-                            <div class="source-he reader-text-he text-right font-hebrew text-2xl lg:text-3xl leading-[1.8] py-2" dir="rtl">
-                                ${hebrewLine}
-                            </div>
-                        </div>
-                    `;
-                }
-
-                if (layout === 'interleaved') {
-                    return `
-                        <div class="source-grid source-grid-interleaved segment-row reader-text-row reader-interleaved-row grid grid-cols-1 border-b border-slate-200 last:border-b-0" data-segment="${escapeHtml(String(line.segment || ''))}">
-                            <span class="segment-label reader-row-right-label">${label}</span>
-                            <div class="source-he reader-text-he text-right font-hebrew text-2xl lg:text-3xl leading-[1.8] py-2" dir="rtl">${hebrewLine}</div>
-                            <div class="source-en reader-text-en mt-2 text-left font-serif leading-relaxed py-2 text-slate-700 text-lg" dir="ltr">${englishLine}</div>
-                        </div>
-                    `;
-                }
-
-                const sideBySideLeft = layout === 'bilingual-reverse'
-                    ? `<div class="source-en reader-text-en font-serif leading-relaxed py-2 text-slate-700 text-lg" dir="ltr">${englishLine}</div>`
-                    : `<div class="source-he reader-text-he text-right font-hebrew text-2xl lg:text-3xl leading-[1.8] py-2" dir="rtl">${hebrewLine}</div>`;
-                const sideBySideRight = layout === 'bilingual-reverse'
-                    ? `<div class="source-he reader-text-he text-right font-hebrew text-2xl lg:text-3xl leading-[1.8] py-2" dir="rtl">${hebrewLine}</div>`
-                    : `<div class="source-en reader-text-en font-serif leading-relaxed py-2 text-slate-700 text-lg" dir="ltr">${englishLine}</div>`;
-
-                return `
-                    <div class="source-grid segment-row reader-text-row reader-side-row grid grid-cols-1 lg:grid-cols-2 lg:gap-x-6 border-b border-slate-200 last:border-b-0" data-segment="${escapeHtml(String(line.segment || ''))}">
-                        <span class="segment-label reader-row-mid-label">${label}</span>
-                        ${sideBySideLeft}
-                        ${sideBySideRight}
-                    </div>
-                `;
-            }).join('');
-        }
-
+        // ─── Scroll-Up Listener ──────────────────────────────────────────────────
         function setupScrollUpListener() {
-            const scrollElement = getPrimaryScrollElement();
-            if (!scrollElement) return;
-
-            // Remove previous listener if exists
+            const scrollEl = getPrimaryScrollElement();
+            if (!scrollEl) return;
             if (window.readerScrollUpHandler) {
-                scrollElement.removeEventListener('scroll', window.readerScrollUpHandler);
+                scrollEl.removeEventListener('scroll', window.readerScrollUpHandler);
             }
-
             window.readerScrollUpHandler = function () {
-                // Check if user has scrolled to near the top
-                const scrollPos = scrollElement === document.documentElement || scrollElement === document.body
+                if (appState.currentView?.type !== 'text') return;
+                const scrollPos = (scrollEl === document.documentElement || scrollEl === document.body)
                     ? (window.pageYOffset || 0)
-                    : scrollElement.scrollTop;
-
-                if (scrollPos <= 300 && infiniteReaderState.prevRef && !infiniteReaderState.loadingPrev) {
+                    : scrollEl.scrollTop;
+                if (scrollPos <= 350 && infiniteReaderState.prevRef && !infiniteReaderState.loadingPrev && !infiniteReaderState.loading) {
                     void loadPreviousTextChunk();
                 }
             };
-
-            scrollElement.addEventListener('scroll', window.readerScrollUpHandler);
+            scrollEl.addEventListener('scroll', window.readerScrollUpHandler, { passive: true });
         }
 
+        // ─── Section Visibility Observer ─────────────────────────────────────────
         function setupSectionScrollObserver() {
-            // Disconnect previous observer if it exists
             if (infiniteReaderState.sectionObserver) {
                 infiniteReaderState.sectionObserver.disconnect();
+                infiniteReaderState.sectionObserver = null;
             }
+            const chunks = document.querySelectorAll('.reader-source-clean[data-text-chunk-index]');
+            if (!chunks.length) return;
 
-            const sourcesDiv = document.getElementById('readerSources');
-            if (!sourcesDiv) return;
-
-            // Create observer to detect which section is currently visible
             infiniteReaderState.sectionObserver = new IntersectionObserver((entries) => {
-                // Find the most visible entry
-                let mostVisible = entries[0];
-                for (const entry of entries) {
-                    if (entry.intersectionRatio > mostVisible.intersectionRatio) {
-                        mostVisible = entry;
+                let bestIndex = -1;
+                let bestRatio = -1;
+                entries.forEach(entry => {
+                    if (entry.isIntersecting && entry.intersectionRatio > bestRatio) {
+                        bestRatio = entry.intersectionRatio;
+                        const idx = parseInt(entry.target.dataset.textChunkIndex, 10);
+                        if (!isNaN(idx)) bestIndex = idx;
                     }
+                });
+                if (bestIndex >= 0 && bestIndex !== infiniteReaderState.currentVisibleChunkIndex) {
+                    infiniteReaderState.currentVisibleChunkIndex = bestIndex;
+                    updateReaderButtonsForChunk(bestIndex);
                 }
+            }, { threshold: [0, 0.15, 0.35, 0.6, 1.0], rootMargin: '-8% 0px -35% 0px' });
 
-                if (mostVisible && mostVisible.isIntersecting) {
-                    const chunkIndex = parseInt(mostVisible.target.getAttribute('data-text-chunk-index'), 10);
-                    if (!isNaN(chunkIndex)) {
-                        infiniteReaderState.currentVisibleChunkIndex = chunkIndex;
-                        updateReaderButtonsForChunk(chunkIndex);
-                    }
-                }
-            }, {
-                root: null,
-                threshold: 0.3,
-            });
-
-            // Observe all section chunks
-            const chunks = sourcesDiv.querySelectorAll('.reader-source-clean');
-            chunks.forEach((chunk) => {
-                infiniteReaderState.sectionObserver.observe(chunk);
-            });
+            chunks.forEach(chunk => infiniteReaderState.sectionObserver.observe(chunk));
         }
 
+        // ─── Update Prev/Next Buttons for Visible Chunk ───────────────────────────
         function updateReaderButtonsForChunk(chunkIndex) {
             const chain = getCurrentTextPayloadChain();
-            if (!Array.isArray(chain) || chunkIndex < 0 || chunkIndex >= chain.length) return;
+            if (!chain.length) return;
+            const chunk = chain[chunkIndex] || chain[0];
 
-            const currentChunk = chain[chunkIndex];
-            if (!currentChunk) return;
+            const hasPrevChunk = chunkIndex > 0;
+            const hasPrevRef = !hasPrevChunk && Boolean(infiniteReaderState.prevRef);
+            const hasPrev = hasPrevChunk || hasPrevRef;
 
-            // Determine prev and next based on current chunk
-            let prevRef = '';
-            let nextRef = '';
-
-            if (chunkIndex > 0) {
-                // There's a previous chunk in the chain
-                prevRef = String(chain[chunkIndex - 1]?.ref || '').trim();
-            } else if (infiniteReaderState.prevRef) {
-                // Load from previous ref if available
-                prevRef = infiniteReaderState.prevRef;
-            }
-
-            if (chunkIndex < chain.length - 1) {
-                // There's a next chunk in the chain
-                nextRef = String(chain[chunkIndex + 1]?.ref || '').trim();
-            } else if (infiniteReaderState.nextRef) {
-                // Load from next ref if available
-                nextRef = infiniteReaderState.nextRef;
-            }
-
-            const readerPrevTopBarBtn = document.getElementById('readerPrevTopBarBtn');
-            const readerNextTopBarBtn = document.getElementById('readerNextTopBarBtn');
+            const hasNextChunk = chunkIndex < chain.length - 1;
+            const hasNextRef = !hasNextChunk && Boolean(infiniteReaderState.nextRef);
+            const hasNext = hasNextChunk || hasNextRef;
 
             if (readerPrevTopBarBtn) {
-                const hasPrev = Boolean(prevRef);
                 readerPrevTopBarBtn.disabled = !hasPrev;
                 readerPrevTopBarBtn.style.visibility = hasPrev ? 'visible' : 'hidden';
-                readerPrevTopBarBtn.setAttribute('aria-label', t('Previous Section', 'קטע קודם'));
-                readerPrevTopBarBtn.title = prevRef || t('Previous Section', 'קטע קודם');
-                readerPrevTopBarBtn.onclick = hasPrev
-                    ? () => {
-                        if (chunkIndex > 0) {
-                            // Scroll to previous chunk in chain
-                            const sourcesDiv = document.getElementById('readerSources');
-                            const prevChunk = sourcesDiv?.querySelector(`[data-text-chunk-index="${chunkIndex - 1}"]`);
-                            if (prevChunk) {
-                                prevChunk.scrollIntoView({ behavior: 'smooth', block: 'start' });
-                            }
-                        } else {
-                            // Load previous section
-                            readText(prevRef, { skipNavigationGrid: true });
-                        }
+                readerPrevTopBarBtn.onclick = hasPrev ? () => {
+                    if (hasPrevChunk) {
+                        const prevEl = document.querySelector(`.reader-source-clean[data-text-chunk-index="${chunkIndex - 1}"]`);
+                        if (prevEl) prevEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                    } else if (hasPrevRef) {
+                        void readText(infiniteReaderState.prevRef, { skipNavigationGrid: true });
                     }
-                    : null;
+                } : null;
             }
 
             if (readerNextTopBarBtn) {
-                const hasNext = Boolean(nextRef);
                 readerNextTopBarBtn.disabled = !hasNext;
                 readerNextTopBarBtn.style.visibility = hasNext ? 'visible' : 'hidden';
-                readerNextTopBarBtn.setAttribute('aria-label', t('Next Section', 'קטע הבא'));
-                readerNextTopBarBtn.title = nextRef || t('Next Section', 'קטע הבא');
-                readerNextTopBarBtn.onclick = hasNext
-                    ? () => {
-                        if (chunkIndex < chain.length - 1) {
-                            // Scroll to next chunk in chain
-                            const sourcesDiv = document.getElementById('readerSources');
-                            const nextChunk = sourcesDiv?.querySelector(`[data-text-chunk-index="${chunkIndex + 1}"]`);
-                            if (nextChunk) {
-                                nextChunk.scrollIntoView({ behavior: 'smooth', block: 'start' });
-                            }
-                        } else {
-                            // Load next section
-                            readText(nextRef, { skipNavigationGrid: true });
-                        }
+                readerNextTopBarBtn.onclick = hasNext ? () => {
+                    if (hasNextChunk) {
+                        const nextEl = document.querySelector(`.reader-source-clean[data-text-chunk-index="${chunkIndex + 1}"]`);
+                        if (nextEl) nextEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                    } else if (hasNextRef) {
+                        void readText(infiniteReaderState.nextRef, { skipNavigationGrid: true });
                     }
-                    : null;
+                } : null;
             }
         }
 
+        // ─── Load Previous Text Chunk ─────────────────────────────────────────────
         async function loadPreviousTextChunk() {
-            if (!infiniteReaderState.prevRef || infiniteReaderState.loadingPrev) return;
-
-            const requestedPrevRef = String(infiniteReaderState.prevRef).trim();
+            if (infiniteReaderState.loadingPrev) return;
+            const requestedPrevRef = String(infiniteReaderState.prevRef || '').trim();
             if (!requestedPrevRef) return;
 
+            const prevRefKey = getRefTrackingKey(requestedPrevRef);
+            if (prevRefKey && infiniteReaderState.seenRefs.has(prevRefKey)) {
+                infiniteReaderState.prevRef = '';
+                return;
+            }
+
             infiniteReaderState.loadingPrev = true;
-            renderCurrentTextByLayout({ preserveScroll: false });
 
             try {
                 const { payload: prevData, resolvedRef } = await fetchTextPayloadWithFallback(requestedPrevRef);
@@ -6353,17 +6242,16 @@
                     window.currentTextPayloadChain = window.currentTextPayload ? [window.currentTextPayload] : [];
                 }
 
-                // Prepend to the beginning of the chain
                 if (!resolvedKey || !infiniteReaderState.seenRefs.has(resolvedKey)) {
-                    window.currentTextPayloadChain.unshift(prevData);
+                    window.currentTextPayloadChain.unshift(prevData); // prepend
                     if (resolvedKey) infiniteReaderState.seenRefs.add(resolvedKey);
-                    // Update current visible index since we prepended
+                    // Shift visible index forward since we prepended
                     infiniteReaderState.currentVisibleChunkIndex += 1;
                 }
 
                 infiniteReaderState.prevRef = String(prevData.prev || '').trim();
-                const prevRefKey = getRefTrackingKey(infiniteReaderState.prevRef);
-                if (prevRefKey && infiniteReaderState.seenRefs.has(prevRefKey)) {
+                const newPrevKey = getRefTrackingKey(infiniteReaderState.prevRef);
+                if (newPrevKey && infiniteReaderState.seenRefs.has(newPrevKey)) {
                     infiniteReaderState.prevRef = '';
                 }
             } catch (error) {
@@ -6374,12 +6262,105 @@
                 infiniteReaderState.prevRef = '';
             } finally {
                 infiniteReaderState.loadingPrev = false;
-                renderCurrentTextByLayout({ preserveScroll: false });
-                // Re-setup observer after rendering
-                setTimeout(() => {
-                    setupSectionScrollObserver();
-                }, 50);
+                renderCurrentTextByLayout({ preserveScroll: true });
             }
+        }
+
+        function renderTextRowsForPayload(data, layout) {
+            const cleanLine = (text = '') => escapeHtml(normalizeDisplayText(text)).replace(/\n/g, '<br>');
+
+            if (!Array.isArray(data?.lines) || !data.lines.length) {
+                return `<p class="text-slate-500 italic">${t('No text content found for this reference.', 'לא נמצא תוכן טקסט עבור הפניה זו.')}</p>`;
+            }
+
+            return data.lines.map((line, idx) => {
+                const label = formatSegmentLabel(line.segment, idx);
+                const heRaw = normalizeDisplayText(line.he || '');
+                const he = heRaw ? cleanLine(applyHebrewDisplaySettings(heRaw)) : '';
+                const enRaw = normalizeDisplayText(line.en || '');
+                const en = enRaw ? cleanLine(enRaw) : '';
+                const translit = appState.prefs.transliteration ? transliterationMarkup(heRaw) : '';
+
+                const hebrewBlock = he
+                    ? `<div class="source-he reader-text-he text-right font-hebrew text-2xl lg:text-3xl leading-[1.8] py-2" dir="rtl"><p>${he}</p>${translit}</div>`
+                    : '';
+                const englishBlock = en
+                    ? `<div class="source-en reader-text-en font-serif leading-relaxed py-2 text-slate-700 text-lg" dir="ltr"><p>${en}</p></div>`
+                    : '';
+
+                if (layout === 'english') {
+                    const englishLine = en
+                        ? `<p>${en}</p>`
+                        : `<p class="text-slate-400 italic text-sm">${t('No translation available.', 'אין תרגום זמין.')}</p>`;
+                    return `
+                        <div class="source-grid segment-row reader-text-row reader-single-row grid grid-cols-1 border-b border-slate-200 last:border-b-0" data-segment="${escapeHtml(String(line.segment || ''))}">
+                            <span class="segment-label reader-row-right-label">${label}</span>
+                            <div class="source-en reader-text-en font-serif leading-relaxed py-2 text-slate-700 text-lg" dir="ltr">
+                                ${englishLine}
+                            </div>
+                        </div>
+                    `;
+                }
+
+                if (layout === 'hebrew') {
+                    const hebrewLine = he
+                        ? `<p>${he}</p>${translit}`
+                        : `<p class="text-slate-400 italic text-sm">${t('No Hebrew text in this segment.', 'אין טקסט עברי בקטע זה.')}</p>`;
+                    return `
+                        <div class="source-grid segment-row reader-text-row reader-single-row grid grid-cols-1 border-b border-slate-200 last:border-b-0" data-segment="${escapeHtml(String(line.segment || ''))}">
+                            <span class="segment-label reader-row-right-label">${label}</span>
+                            <div class="source-he reader-text-he text-right font-hebrew text-2xl lg:text-3xl leading-[1.8] py-2" dir="rtl">
+                                ${hebrewLine}
+                            </div>
+                        </div>
+                    `;
+                }
+
+                if (layout === 'interleaved') {
+                    // Only render blocks that have content
+                    const hePart = hebrewBlock || '';
+                    const enPart = englishBlock ? englishBlock.replace('source-en reader-text-en', 'source-en reader-text-en mt-2 text-left') : '';
+                    return `
+                        <div class="source-grid source-grid-interleaved segment-row reader-text-row reader-interleaved-row grid grid-cols-1 border-b border-slate-200 last:border-b-0" data-segment="${escapeHtml(String(line.segment || ''))}">
+                            <span class="segment-label reader-row-right-label">${label}</span>
+                            ${hePart}${enPart}
+                        </div>
+                    `;
+                }
+
+                // Bilingual side-by-side layouts — only show columns that have content
+                const bothPresent = he && en;
+
+                if (bothPresent) {
+                    const sideBySideLeft = layout === 'bilingual-reverse'
+                        ? `<div class="source-en reader-text-en font-serif leading-relaxed py-2 text-slate-700 text-lg" dir="ltr"><p>${en}</p></div>`
+                        : `<div class="source-he reader-text-he text-right font-hebrew text-2xl lg:text-3xl leading-[1.8] py-2" dir="rtl"><p>${he}</p>${translit}</div>`;
+                    const sideBySideRight = layout === 'bilingual-reverse'
+                        ? `<div class="source-he reader-text-he text-right font-hebrew text-2xl lg:text-3xl leading-[1.8] py-2" dir="rtl"><p>${he}</p>${translit}</div>`
+                        : `<div class="source-en reader-text-en font-serif leading-relaxed py-2 text-slate-700 text-lg" dir="ltr"><p>${en}</p></div>`;
+                    return `
+                        <div class="source-grid segment-row reader-text-row reader-side-row grid grid-cols-1 lg:grid-cols-2 lg:gap-x-6 border-b border-slate-200 last:border-b-0" data-segment="${escapeHtml(String(line.segment || ''))}">
+                            <span class="segment-label reader-row-mid-label">${label}</span>
+                            ${sideBySideLeft}
+                            ${sideBySideRight}
+                        </div>
+                    `;
+                }
+
+                // Only one side has content — render full-width single column
+                const singleContent = hebrewBlock || englishBlock;
+                const singleDir = he ? 'rtl' : 'ltr';
+                const singleClass = he
+                    ? 'source-he reader-text-he text-right font-hebrew text-2xl lg:text-3xl leading-[1.8] py-2'
+                    : 'source-en reader-text-en font-serif leading-relaxed py-2 text-slate-700 text-lg';
+                const singleInner = he ? `<p>${he}</p>${translit}` : `<p>${en}</p>`;
+                return `
+                    <div class="source-grid segment-row reader-text-row reader-single-row grid grid-cols-1 border-b border-slate-200 last:border-b-0" data-segment="${escapeHtml(String(line.segment || ''))}">
+                        <span class="segment-label reader-row-right-label">${label}</span>
+                        <div class="${singleClass}" dir="${singleDir}">${singleInner}</div>
+                    </div>
+                `;
+            }).join('');
         }
 
         function renderCurrentTextByLayout(options = {}) {
@@ -6409,27 +6390,15 @@
                 }
 
                 if (readerPrevTopBarBtn) {
-                    const prevLabel = t('Previous Section', 'קטע קודם');
-                    readerPrevTopBarBtn.disabled = !hasPrev;
-                    readerPrevTopBarBtn.style.visibility = hasPrev ? 'visible' : 'hidden';
                     readerPrevTopBarBtn.classList.remove('hidden');
-                    readerPrevTopBarBtn.setAttribute('aria-label', prevLabel);
-                    readerPrevTopBarBtn.title = prevLabel;
-                    readerPrevTopBarBtn.onclick = hasPrev
-                        ? () => readText(data.prev, { skipNavigationGrid: true })
-                        : null;
+                    readerPrevTopBarBtn.setAttribute('aria-label', t('Previous Section', 'קטע קודם'));
+                    readerPrevTopBarBtn.title = t('Previous Section', 'קטע קודם');
                 }
 
                 if (readerNextTopBarBtn) {
-                    const nextLabel = t('Next Section', 'קטע הבא');
-                    readerNextTopBarBtn.disabled = !hasNext;
-                    readerNextTopBarBtn.style.visibility = hasNext ? 'visible' : 'hidden';
                     readerNextTopBarBtn.classList.remove('hidden');
-                    readerNextTopBarBtn.setAttribute('aria-label', nextLabel);
-                    readerNextTopBarBtn.title = nextLabel;
-                    readerNextTopBarBtn.onclick = hasNext
-                        ? () => readText(data.next, { skipNavigationGrid: true })
-                        : null;
+                    readerNextTopBarBtn.setAttribute('aria-label', t('Next Section', 'קטע הבא'));
+                    readerNextTopBarBtn.title = t('Next Section', 'קטע הבא');
                 }
 
                 if (readerSettingsBtn) {
@@ -6447,8 +6416,30 @@
             const sectionsMarkup = chain.map((chunk, index) => {
                 const sectionRows = renderTextRowsForPayload(chunk, layout);
                 const sectionRef = String(chunk?.ref || appState.currentView?.value || '').trim();
-                // Apply consistent header style to all sections
-                const sectionTitleMarkup = `<div class="reader-source-title text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-2"><span>${escapeHtml(sectionRef)}</span></div>`;
+
+                // Detect parasha name for Torah books
+                let parashaLabel = '';
+                try {
+                    const refParts = sectionRef.split(' ');
+                    const chapterNum = parseInt(refParts[refParts.length - 1], 10);
+                    const bookName = refParts.slice(0, refParts.length - 1).join(' ');
+                    const normalizedBook = normalizeChapterGridBookName(bookName);
+                    const parashaEntries = Array.isArray(TORAH_PARASHA_BY_BOOK[normalizedBook])
+                        ? TORAH_PARASHA_BY_BOOK[normalizedBook]
+                        : [];
+                    const match = parashaEntries.find(e => Number(e?.chapter) === chapterNum);
+                    if (match?.name) {
+                        const nameEn = String(match.name).trim();
+                        const nameHe = PARASHA_HE_MAP[nameEn] || nameEn;
+                        parashaLabel = isHebrewMode() ? `פרשת ${nameHe}` : `Parashat ${nameEn}`;
+                    }
+                } catch (_) { /* not a Torah ref — skip */ }
+
+                const parashaChip = parashaLabel
+                    ? `<span class="reader-parasha-chip">${escapeHtml(parashaLabel)}</span>`
+                    : '';
+
+                const sectionTitleMarkup = `<div class="reader-source-title text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-2"><span>${escapeHtml(sectionRef)}</span>${parashaChip}</div>`;
 
                 return `
                     <div class="reader-source-clean mb-6" data-text-chunk-index="${index}">
@@ -6468,19 +6459,17 @@
 
             bindSelectionInsightsEvents();
 
-            // Setup intersection observer for dynamic button updates
+            // Set up section visibility observer and scroll-up loader after render
             setTimeout(() => {
                 setupSectionScrollObserver();
-                // Set initial button state for first visible chunk
+                setupScrollUpListener();
+                // Initialise buttons for the current visible chunk
                 updateReaderButtonsForChunk(infiniteReaderState.currentVisibleChunkIndex);
-            }, 50);
+            }, 60);
 
             if (shouldLoadNextTextChunk(260)) {
                 void loadNextTextChunk();
             }
-
-            // Setup scroll listener for loading previous sections when at top
-            setupScrollUpListener();
         }
 
         function applyReaderPreferences() {
