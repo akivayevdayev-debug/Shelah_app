@@ -383,34 +383,17 @@ body.theme-dark .delayed-tooltip {
 
 @media (min-width: 1024px) {
 
-    /* Fixed sidebars - stay in place while main content scrolls */
+    /* Sticky sidebars - stay in place while main content scrolls */
     #leftSidebar,
     #rightSidebar {
-        position: fixed;
+        position: sticky;
         top: var(--topbar-height, 3.4rem);
         min-height: 0;
         height: calc(100dvh - var(--topbar-height, 3.4rem));
         max-height: calc(100dvh - var(--topbar-height, 3.4rem));
         overflow-y: auto;
         z-index: 40;
-    }
-
-    #leftSidebar {
-        left: 0;
-        width: 16rem;
         padding-bottom: 1rem;
-    }
-
-    #rightSidebar {
-        right: 0;
-        width: 20rem;
-        padding-bottom: 1rem;
-    }
-
-    /* Reserve space in main content for fixed sidebars */
-    #mainContainer {
-        margin-left: 16rem;
-        margin-right: 20rem;
     }
 }
 
