@@ -184,13 +184,9 @@
 
         <!-- Library Button (Desktop Homepage Only) -->
         <button id="topbarLibraryBtn" type="button"
-            class="topbar-flat-btn hidden lg:inline-flex shrink-0 topbar-library-btn" onclick="openLibrarySidebar()"
-            title="Browse Library" aria-label="Browse Library" data-en="Browse Library" data-he="עיין בספרייה">
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor"
-                aria-hidden="true">
-                <path
-                    d="M3 4a1 1 0 011-1h12a1 1 0 011 1v2a1 1 0 01-1 1H4a1 1 0 01-1-1V4zm0 6a1 1 0 011-1h6a1 1 0 011 1v6a1 1 0 01-1 1H4a1 1 0 01-1-1v-6zm8-1a1 1 0 00-1 1v6a1 1 0 001 1h6a1 1 0 001-1v-6a1 1 0 00-1-1h-6z" />
-            </svg>
+            class="topbar-flat-btn hidden lg:inline-flex shrink-0 topbar-library-btn px-3 py-2 gap-2 text-sm"
+            onclick="openLibrarySidebar()" title="Library" aria-label="Library" data-en="Library" data-he="ספרייה">
+            <span class="topbar-library-label font-semibold tracking-tight">Library</span>
         </button>
 
         <div id="brandHomeBtn" class="topbar-brand flex items-center gap-1.5 cursor-pointer shrink-0"
@@ -1709,7 +1705,108 @@
         const APP_PREFS_KEY = "Sh'elahPrefs";
         const APP_SHELF_KEY = "Sh'elahShelf";
         const ZMANIM_LOCATION_CACHE_KEY = "Sh'elahLastLocation";
+        const ZMANIM_LOCATION_LABEL_KEY = "ShelahZmanimLocationLabel";
         const LANGUAGE_MANUAL_KEY = "Sh'elahLanguageManuallySet";
+        let currentZmanimLocationLabel = null;
+
+        function setZmanimLocationLabel(label, timezone) {
+            const labelEl = document.getElementById('zmanLoc');
+            if (!labelEl) return;
+            const normalizedLabel = String(label || '').trim();
+            const fallbackTimezone = String(timezone || '').trim();
+            labelEl.innerText = normalizedLabel || fallbackTimezone || 'Local';
+            if (fallbackTimezone && fallbackTimezone !== normalizedLabel) {
+                labelEl.setAttribute('title', fallbackTimezone);
+            } else {
+                labelEl.removeAttribute('title');
+            }
+        }
+
+        async function resolveSavedLocationLabel(location) {
+            if (!location || !Number.isFinite(location.lat) || !Number.isFinite(location.lon)) return;
+            try {
+                const url = `https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${encodeURIComponent(location.lat)}&lon=${encodeURIComponent(location.lon)}&zoom=10&accept-language=en`;
+                const res = await fetch(url, { cache: 'no-cache' });
+                if (!res.ok) return;
+                const data = await res.json();
+                const address = data.address || {};
+                const label = String(address.city || address.town || address.village || address.hamlet || address.county || address.state || data.display_name || '').trim();
+                if (!label) return;
+                currentZmanimLocationLabel = label;
+                localStorage.setItem(ZMANIM_LOCATION_LABEL_KEY, label);
+                const currentTimezone = document.getElementById('zmanLoc')?.getAttribute('title') || '';
+                setZmanimLocationLabel(label, currentTimezone);
+            } catch (_) {
+                // Ignore reverse-geocode failures.
+            }
+        }
+
+        const DELAYED_TOOLTIP_SELECTORS = '.chapter-grid-item, .chapter-grid-parasha-link, .chapter-grid-section-items button, .library-node-open, .home-library-link';
+        let delayedTooltipTimer = null;
+        let delayedTooltipEl = null;
+
+        function getTooltipText(el) {
+            if (!el) return '';
+            const lang = getCurrentLanguage();
+            if (lang && el.dataset[lang]) {
+                return String(el.dataset[lang] || '').trim();
+            }
+            if (el.dataset.tooltip) return String(el.dataset.tooltip || '').trim();
+            if (el.dataset.title) return decodeURIComponent(String(el.dataset.title || '').trim());
+            if (el.title) return String(el.title || '').trim();
+            return '';
+        }
+
+        function showDelayedTooltip(el) {
+            const text = getTooltipText(el);
+            if (!text) return;
+            if (!delayedTooltipEl) {
+                delayedTooltipEl = document.createElement('div');
+                delayedTooltipEl.id = 'delayedTooltip';
+                delayedTooltipEl.className = 'delayed-tooltip';
+                document.body.appendChild(delayedTooltipEl);
+            }
+            delayedTooltipEl.textContent = text;
+            const rect = el.getBoundingClientRect();
+            const left = Math.min(window.innerWidth - 16, Math.max(16, rect.left + rect.width / 2));
+            const top = Math.max(16, rect.top - 10);
+            delayedTooltipEl.style.left = `${left}px`;
+            delayedTooltipEl.style.top = `${top}px`;
+            delayedTooltipEl.classList.add('visible');
+        }
+
+        function hideDelayedTooltip() {
+            if (delayedTooltipTimer) {
+                clearTimeout(delayedTooltipTimer);
+                delayedTooltipTimer = null;
+            }
+            if (delayedTooltipEl) {
+                delayedTooltipEl.classList.remove('visible');
+            }
+        }
+
+        document.addEventListener('mouseover', function (e) {
+            const target = e.target.closest(DELAYED_TOOLTIP_SELECTORS);
+            if (!target || !e.isTrusted || (e.pointerType && e.pointerType !== 'mouse')) return;
+            const text = getTooltipText(target);
+            if (!text) return;
+            if (target.title && !target.dataset.tooltip) {
+                target.dataset.tooltip = target.title;
+                target.removeAttribute('title');
+            }
+            delayedTooltipTimer = setTimeout(() => showDelayedTooltip(target), 1100);
+        });
+
+        document.addEventListener('mouseout', function (e) {
+            const target = e.target.closest(DELAYED_TOOLTIP_SELECTORS);
+            if (!target) return;
+            const related = e.relatedTarget;
+            if (related && target.contains(related)) return;
+            hideDelayedTooltip();
+        });
+
+        document.addEventListener('scroll', hideDelayedTooltip, true);
+        document.addEventListener('mousedown', hideDelayedTooltip);
 
         if (window.marked && typeof window.marked.setOptions === 'function') {
             marked.setOptions({
@@ -9613,6 +9710,11 @@
                 }
             }
 
+            const savedLocationLabel = localStorage.getItem(ZMANIM_LOCATION_LABEL_KEY);
+            if (savedLocationLabel) {
+                currentZmanimLocationLabel = savedLocationLabel;
+            }
+
             if (cachedLocation) {
                 fetchZmanimAPI(cachedLocation);
             }
@@ -9639,7 +9741,10 @@
                             .catch(() => {
                                 // Continue with direct API load even if session update fails.
                             })
-                            .finally(() => fetchZmanimAPI(location));
+                            .finally(() => {
+                                fetchZmanimAPI(location);
+                                resolveSavedLocationLabel(location);
+                            });
                     },
                     () => {
                         if (!cachedLocation) {
@@ -9673,7 +9778,7 @@
                         zmanimData = data;
                         const z = data.zmanim;
                         const meta = data.metadata || {};
-                        document.getElementById('zmanLoc').innerText = data.metadata.timezone;
+                        setZmanimLocationLabel(meta.location_label || currentZmanimLocationLabel || meta.city || meta.timezone || '', meta.timezone);
                         document.getElementById('zDawn').innerText = formatZmanClockDisplay(z['Dawn (16.1° / 72m)'] || 'N/A');
                         document.getElementById('zTalit').innerText = formatZmanClockDisplay(z['Earliest Tallit/Tefillin (10.2°)'] || 'N/A');
                         document.getElementById('zSunrise').innerText = formatZmanClockDisplay(z['Sunrise'] || 'N/A');
@@ -10016,8 +10121,9 @@
 
                 // Show short city name in location label
                 const shortName = display_name.split(',').slice(0, 2).join(', ');
-                const zmanLocEl = document.getElementById('zmanLoc');
-                if (zmanLocEl) zmanLocEl.innerText = shortName;
+                currentZmanimLocationLabel = shortName;
+                localStorage.setItem(ZMANIM_LOCATION_LABEL_KEY, shortName);
+                setZmanimLocationLabel(shortName, '');
 
                 statusEl.textContent = `Using: ${shortName}`;
                 setTimeout(() => {
