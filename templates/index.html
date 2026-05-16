@@ -1155,23 +1155,23 @@
             <!-- READER TOPBAR: sits inside #mainContainer, outside #reader article, so it spans full column width -->
             <div id="readerTopBar"
                 class="hidden sticky z-40 reader-topbar-shell border-y border-[#ddd4c3] bg-[#f9f4ea] px-1 py-1">
+                <!-- Library button moved out of the track for symmetry -->
+                <button id="readerLibraryTopBarBtn" type="button" class="reader-topbar-icon-btn reader-topbar-library-abs"
+                    aria-label="Library" title="Library">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20"
+                        fill="currentColor" aria-hidden="true">
+                        <path
+                            d="M3 4.5A1.5 1.5 0 014.5 3h9A1.5 1.5 0 0115 4.5V14a1 1 0 001 1h1a1 1 0 010 2h-1a3 3 0 01-3-3V5H5v9a1 1 0 001 1h5a1 1 0 110 2H6a3 3 0 01-3-3V4.5z" />
+                        <path
+                            d="M6 7a1 1 0 011-1h4a1 1 0 110 2H7a1 1 0 01-1-1zm0 3a1 1 0 011-1h4a1 1 0 110 2H7a1 1 0 01-1-1z" />
+                    </svg>
+                </button>
+
                 <div class="reader-topbar-track">
-                    <div id="readerTopBarNavLeft" class="reader-topbar-nav-left flex items-center gap-1">
-                        <button id="readerLibraryTopBarBtn" type="button" class="reader-topbar-icon-btn"
-                            aria-label="Library" title="Library">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20"
-                                fill="currentColor" aria-hidden="true">
-                                <path
-                                    d="M3 4.5A1.5 1.5 0 014.5 3h9A1.5 1.5 0 0115 4.5V14a1 1 0 001 1h1a1 1 0 010 2h-1a3 3 0 01-3-3V5H5v9a1 1 0 001 1h5a1 1 0 110 2H6a3 3 0 01-3-3V4.5z" />
-                                <path
-                                    d="M6 7a1 1 0 011-1h4a1 1 0 110 2H7a1 1 0 01-1-1zm0 3a1 1 0 011-1h4a1 1 0 110 2H7a1 1 0 01-1-1z" />
-                            </svg>
-                        </button>
-                        <button id="readerPrevTopBarBtn" type="button" class="reader-topbar-icon-btn"
-                            aria-label="Previous Section" title="Previous Section">
-                            <span aria-hidden="true">&#9664;</span>
-                        </button>
-                    </div>
+                    <button id="readerPrevTopBarBtn" type="button" class="reader-topbar-icon-btn"
+                        aria-label="Previous Section" title="Previous Section">
+                        <span aria-hidden="true">&#9664;</span>
+                    </button>
 
                     <div class="relative text-left reader-topbar-settings-wrap">
                         <button id="readerSettingsBtn" type="button"
