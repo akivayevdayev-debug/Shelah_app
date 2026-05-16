@@ -20,6 +20,7 @@ export async function askAi(question, options = {}) {
     const state = getState();
     const mode = String(options.mode || state?.prefs?.mode || "balanced");
     const community = String(options.community || state?.prefs?.community || "All");
+    const language = String(options.language || state?.prefs?.language || "en");
 
     setState({
         ai: {
@@ -41,6 +42,7 @@ export async function askAi(question, options = {}) {
                 question: q,
                 mode,
                 community,
+                language,
             }),
         });
 

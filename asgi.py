@@ -8,15 +8,52 @@ All other routes are served by the mounted Flask WSGI app.
 from __future__ import annotations
 
 import asyncio
+import collections
 import time
 from typing import Any
 
-from fastapi import FastAPI, Header, HTTPException
+from fastapi import FastAPI, Header, HTTPException, Request
 from fastapi.middleware.wsgi import WSGIMiddleware
 from pydantic import BaseModel, Field
 
 import app as flask_app_module
 from backend import claude, search
+
+# ─── Simple in-process rate limiter for FastAPI /ask ──────────────────────────
+# Each IP is tracked with a deque of request timestamps. This avoids adding
+# slowapi/Redis just for a single endpoint and matches the Flask limit (20/min).
+_RATE_LIMIT_WINDOW_SECONDS = 60
+_RATE_LIMIT_MAX_REQUESTS = 20
+_rate_limit_store: dict[str, collections.deque] = {}
+_RATE_LIMIT_STORE_MAX_KEYS = 2048  # cap memory
+
+
+def _get_client_ip(request: Request) -> str:
+    """Extract client IP from Cloudflare or standard proxy headers."""
+    for header in ("CF-Connecting-IP", "X-Forwarded-For", "X-Real-IP"):
+        val = request.headers.get(header, "").split(",")[0].strip()
+        if val:
+            return val
+    return request.client.host if request.client else "unknown"
+
+
+def _check_rate_limit(ip: str) -> bool:
+    """Return True if the request is allowed, False if rate-limited."""
+    now = time.monotonic()
+    if ip not in _rate_limit_store:
+        # Evict oldest key if store is full before inserting a new IP.
+        if len(_rate_limit_store) >= _RATE_LIMIT_STORE_MAX_KEYS:
+            oldest = next(iter(_rate_limit_store))
+            del _rate_limit_store[oldest]
+        _rate_limit_store[ip] = collections.deque()
+    timestamps = _rate_limit_store[ip]
+    cutoff = now - _RATE_LIMIT_WINDOW_SECONDS
+    while timestamps and timestamps[0] < cutoff:
+        timestamps.popleft()
+    if len(timestamps) >= _RATE_LIMIT_MAX_REQUESTS:
+        return False
+    timestamps.append(now)
+    return True
 
 
 class AskRequest(BaseModel):
@@ -80,19 +117,16 @@ async def _collect_primary_sources(question: str) -> tuple[list[str], list[dict[
     )
     refs = primary_refs if isinstance(primary_refs, list) else []
 
-    def _load_sources() -> list[dict[str, Any]]:
+    async def _load_one(ref: str) -> dict[str, Any] | None:
         engine = flask_app_module.ShelahEngine()
-        sources: list[dict[str, Any]] = []
-        for ref in refs:
-            try:
-                source = engine.get_library_text(ref)
-                if isinstance(source, dict):
-                    sources.append(source)
-            except Exception:
-                continue
-        return sources
+        try:
+            source = await asyncio.to_thread(engine.get_library_text, ref)
+            return source if isinstance(source, dict) else None
+        except Exception:
+            return None
 
-    primary_sources = await asyncio.to_thread(_load_sources)
+    results = await asyncio.gather(*[_load_one(ref) for ref in refs])
+    primary_sources = [s for s in results if s is not None]
     return refs, primary_sources
 
 
@@ -122,7 +156,12 @@ async def async_health() -> dict[str, Any]:
 
 
 @fastapi_app.post("/ask")
-async def ask_async(payload: AskRequest, authorization: str | None = Header(default=None)) -> dict[str, Any]:
+async def ask_async(request: Request, payload: AskRequest, authorization: str | None = Header(default=None)) -> dict[str, Any]:
+    client_ip = _get_client_ip(request)
+    if not _check_rate_limit(client_ip):
+        raise HTTPException(
+            status_code=429, detail="Rate limit exceeded. Please wait before sending another request.")
+
     question = claude.sanitize_user_query(payload.question)
     question_was_sanitized = question != str(payload.question or "").strip()
     if not question:

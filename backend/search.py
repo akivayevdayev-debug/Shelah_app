@@ -10,6 +10,7 @@ These helpers are intentionally simple and resilient because they are best-effor
 enrichment sources, not the primary authoritative text source.
 """
 
+import logging
 import requests
 import httpx
 import time
@@ -17,12 +18,15 @@ import re
 from html import unescape
 from urllib.parse import quote_plus, urljoin
 
+logger = logging.getLogger(__name__)
+
 _HTTP = requests.Session()
 _CACHE_TTL_SECONDS = 60 * 10
-_WIKI_CACHE = {}
-_HALACHIPEDIA_CACHE = {}
-_HEBREWBOOKS_CACHE = {}
-_DAILY_CACHE = {"ts": 0, "data": None}
+_CACHE_MAX_SIZE = 256
+_WIKI_CACHE: dict = {}
+_HALACHIPEDIA_CACHE: dict = {}
+_HEBREWBOOKS_CACHE: dict = {}
+_DAILY_CACHE: dict = {"ts": 0, "data": None}
 
 
 def _cached_lookup(store, key):
@@ -35,6 +39,8 @@ def _cached_lookup(store, key):
 
 
 def _cached_store(store, key, value):
+    if key not in store and len(store) >= _CACHE_MAX_SIZE:
+        store.pop(next(iter(store)), None)
     store[key] = {"ts": time.time(), "value": value}
 
 
@@ -47,14 +53,14 @@ def search_wikipedia(title):
 
     try:
         url = f"https://en.wikipedia.org/api/rest_v1/page/summary/{title.replace(' ', '_')}"
-        print("[Wiki Request]", url)
+        logger.debug("[Wiki Request] %s", url)
 
         r = _HTTP.get(url, timeout=10)
-        print("[Wiki Status]", r.status_code)
+        logger.debug("[Wiki Status] %s", r.status_code)
 
         if r.status_code == 200:
             data = r.json()
-            print("[Wiki Found]", data.get("title"))
+            logger.debug("[Wiki Found] %s", data.get("title"))
 
             payload = {
                 "title": data.get("title", ""),
@@ -64,7 +70,7 @@ def search_wikipedia(title):
                 _cached_store(_WIKI_CACHE, cache_key, payload)
             return payload
     except Exception as e:
-        print("[Wiki Error]", e)
+        logger.warning("[Wiki Error] %s", e)
 
     return None
 
@@ -99,7 +105,7 @@ def get_daily_learning():
         _DAILY_CACHE["data"] = payload
         return payload
     except Exception as e:
-        print("[Hebcal Error]", e)
+        logger.warning("[Hebcal Error] %s", e)
         return {"parsha": None, "portions": []}
 
 
@@ -141,7 +147,7 @@ def search_halachipedia(query):
 
         return None
     except Exception as e:
-        print(f"[Halachipedia Error] {e}")
+        logger.warning("[Halachipedia Error] %s", e)
         return None
 
 
@@ -208,7 +214,7 @@ def search_hebrewbooks(query):
             _cached_store(_HEBREWBOOKS_CACHE, cache_key, payload)
         return payload
     except Exception as e:
-        print(f"[HebrewBooks Error] {e}")
+        logger.warning("[HebrewBooks Error] %s", e)
         return None
 
 
@@ -241,7 +247,7 @@ async def async_search_wikipedia(title):
             _cached_store(_WIKI_CACHE, cache_key, payload)
         return payload
     except Exception as e:
-        print("[Wiki Async Error]", e)
+        logger.warning("[Wiki Async Error] %s", e)
         return None
 
 
@@ -307,7 +313,7 @@ async def async_search_halachipedia(query):
             return payload
         return None
     except Exception as e:
-        print(f"[Halachipedia Async Error] {e}")
+        logger.warning("[Halachipedia Async Error] %s", e)
         return None
 
 
@@ -366,5 +372,5 @@ async def async_search_hebrewbooks(query):
             _cached_store(_HEBREWBOOKS_CACHE, cache_key, payload)
         return payload
     except Exception as e:
-        print(f"[HebrewBooks Async Error] {e}")
+        logger.warning("[HebrewBooks Async Error] %s", e)
         return None
