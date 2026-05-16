@@ -78,7 +78,7 @@ window.ShelahState = {
     getState,
     setState,
     subscribe,
-    state,
+    // NOTE: raw `state` is intentionally omitted — use getState() to read state.
 };
 
 export { state };

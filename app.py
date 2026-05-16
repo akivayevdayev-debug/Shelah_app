@@ -127,7 +127,18 @@ DEVTOOLS_STATS = {
     "segment_reports": 0,
 }
 
-ASK_RESPONSE_CACHE = {}
+# Bounded in-memory caches — evict oldest entry (insertion-order) when full.
+_CACHE_MAX_SIZE = 512
+
+
+def _bounded_cache_set(cache: dict, key, value, maxsize: int = _CACHE_MAX_SIZE) -> None:
+    """Insert into a plain dict while capping its size by evicting the oldest key."""
+    if key not in cache and len(cache) >= maxsize:
+        cache.pop(next(iter(cache)), None)
+    cache[key] = value
+
+
+ASK_RESPONSE_CACHE: dict = {}
 ASK_RESPONSE_CACHE_TTL_SECONDS = 90
 
 QUICK_TEXT_ALIASES = {
@@ -159,8 +170,8 @@ QUICK_TEXT_ALIASES = {
 HEBREW_DIACRITICS_RE = re.compile(r"[\u0591-\u05C7]")
 HEBREW_LETTER_RE = re.compile(r"[\u05D0-\u05EA]")
 
-TRANSLATION_CACHE = {}
-TRANSLATION_SOURCE_CACHE = {}
+TRANSLATION_CACHE: dict = {}
+TRANSLATION_SOURCE_CACHE: dict = {}
 
 GOOGLE_TRANSLATE_API_URL = "https://translate.googleapis.com/translate_a/single"
 MYMEMORY_TRANSLATE_API_URL = "https://api.mymemory.translated.net/get"
@@ -217,10 +228,10 @@ def _set_cached_ask_payload(cache_key, payload):
     if not isinstance(payload, dict):
         return
     try:
-        ASK_RESPONSE_CACHE[cache_key] = {
+        _bounded_cache_set(ASK_RESPONSE_CACHE, cache_key, {
             "ts": time.time(),
             "payload": json.loads(json.dumps(payload)),
-        }
+        })
     except Exception:
         return
 
@@ -310,7 +321,8 @@ HALAKHIC_VERDICT_RE = re.compile(
 DOMAIN_REFUSAL_MESSAGE_RE = re.compile(
     r"^Sh'elah is a specialized tool for Halakhic and communal knowledge\. "
     r"I cannot assist with .+?, as it falls outside my specialized domain\."
-    r"(?:\s+Please consult with your local Rabbi for a final ruling\.)?$"
+    r"(?:\s+Please consult with your local Rabbi for a final ruling\.)?$",
+    re.DOTALL,
 )
 UI_SECTION_KEYS = {
     "ruling",
@@ -484,7 +496,7 @@ def _normalize_ai_answer(answer_text, include_web_warning=False, source_attribut
         lambda m: f"{m.group(1)} {m.group(2).upper()}", body)
 
     # Preserve the domain guardrail refusal message exactly as emitted.
-    if DOMAIN_REFUSAL_MESSAGE_RE.match(body):
+    if DOMAIN_REFUSAL_MESSAGE_RE.fullmatch(body):
         if RABBI_FINAL_RULING_FOOTER not in body:
             return f"{body}\n\n{RABBI_FINAL_RULING_FOOTER}"
         return body
@@ -1497,8 +1509,9 @@ def _translate_hebrew_text_online(text):
         translated = _translate_hebrew_text_mymemory(cache_key)
         source = "mymemory-translate"
 
-    TRANSLATION_CACHE[cache_key] = translated
-    TRANSLATION_SOURCE_CACHE[cache_key] = source if translated else ""
+    _bounded_cache_set(TRANSLATION_CACHE, cache_key, translated)
+    _bounded_cache_set(TRANSLATION_SOURCE_CACHE, cache_key,
+                       source if translated else "")
 
     if not translated:
         return "", ""
@@ -1526,8 +1539,9 @@ def _translate_english_text_online(text):
     if _is_translation_echo(value, translated):
         translated = ""
 
-    TRANSLATION_CACHE[cache_key] = translated
-    TRANSLATION_SOURCE_CACHE[cache_key] = source if translated else ""
+    _bounded_cache_set(TRANSLATION_CACHE, cache_key, translated)
+    _bounded_cache_set(TRANSLATION_SOURCE_CACHE, cache_key,
+                       source if translated else "")
 
     if not translated:
         return "", ""
@@ -2265,11 +2279,21 @@ def _holiday_color_for_category(category):
 
 load_dotenv()
 app = Flask(__name__)
-app.secret_key = os.environ.get("FLASK_SECRET_KEY") or os.urandom(32)
 
 # Configure structured JSON logging as early as possible so all log records
 # (including import-time warnings from sub-modules) use the JSON formatter.
 setup_logging()
+
+_flask_secret = os.environ.get("FLASK_SECRET_KEY")
+if not _flask_secret:
+    import logging as _logging
+    _logging.getLogger(__name__).critical(
+        "FLASK_SECRET_KEY is not set — using a random ephemeral key. "
+        "All sessions will be invalidated on every process restart. "
+        "Set FLASK_SECRET_KEY in your environment for a stable key."
+    )
+    _flask_secret = os.urandom(32)
+app.secret_key = _flask_secret
 
 RATE_LIMIT_DEFAULT = [
     item.strip()
@@ -2918,6 +2942,22 @@ def apply_response_cache_policy(response):
     response.headers.setdefault(
         "Referrer-Policy", "strict-origin-when-cross-origin")
     response.headers.setdefault("X-XSS-Protection", "1; mode=block")
+    response.headers.setdefault(
+        "Content-Security-Policy",
+        "default-src 'self'; "
+        "script-src 'self' 'unsafe-inline' 'unsafe-eval' "
+        "https://cdn.tailwindcss.com https://cdn.jsdelivr.net "
+        "https://js.clerk.com https://clerk.com; "
+        "style-src 'self' 'unsafe-inline' "
+        "https://cdn.jsdelivr.net https://fonts.googleapis.com; "
+        "font-src 'self' https://fonts.gstatic.com; "
+        "img-src 'self' data: https:; "
+        "connect-src 'self' https://clerk.com https://*.clerk.accounts.dev "
+        "https://api.clerk.com; "
+        "frame-ancestors 'none'; "
+        "base-uri 'self'; "
+        "form-action 'self';"
+    )
 
     if path.startswith("/api/") or path in {"/ask", "/set_location"}:
         response.headers["Cache-Control"] = "no-store"
@@ -4951,6 +4991,28 @@ def get_parasha():
             "ref": "Genesis 1",
             "source": "default-fallback",
         })
+
+
+# ─── Backward-compat route aliases ────────────────────────────────────────────
+# Clients (and the audit) used shorter paths before the canonical routes above
+# were established. These thin shims remove the 404s without touching any logic.
+
+@app.route("/api/health")
+def api_health_alias():
+    """/api/health → /api/stack/health (backward compat)."""
+    return stack_health()
+
+
+@app.route("/api/preferences", methods=["GET", "PUT"])
+def api_preferences_alias():
+    """/api/preferences → /api/user/preferences (backward compat)."""
+    return user_preferences()
+
+
+@app.route("/api/communities")
+def api_communities_alias():
+    """/api/communities → /api/communities/list (backward compat)."""
+    return get_communities_list()
 
 
 if __name__ == "__main__":

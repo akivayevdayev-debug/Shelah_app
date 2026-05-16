@@ -20,6 +20,8 @@
     <link href="https://fonts.googleapis.com/css2?family=Cardo:wght@400;700&family=Inter:wght@400;500;600&display=swap"
         rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <!-- DOMPurify: sanitize HTML produced by marked.parse() to prevent XSS -->
+    <script src="https://cdn.jsdelivr.net/npm/dompurify@3/dist/purify.min.js"></script>
     <link rel="stylesheet" href="/static/style.css?v=20260512-v1">
     <!-- CSS modules (supplement style.css; do not replace) -->
     <link rel="stylesheet" href="/static/css/typography.css?v=20260512-v1">
@@ -132,8 +134,8 @@
     <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.15/index.global.min.js"></script>
     <script>
         window.APP_CLERK = {
-            publishableKey: "{{ clerk_publishable_key or '' }}",
-            enforceAuth: JSON.parse('{{ clerk_enforce_auth | tojson }}')
+            publishableKey: {{ clerk_publishable_key | tojson }},
+        enforceAuth: JSON.parse('{{ clerk_enforce_auth | tojson }}')
         };
     </script>
     {% if clerk_publishable_key %}
@@ -1902,7 +1904,10 @@
         function renderAnswerMarkdown(answerText) {
             const raw = normalizeMarkdownSpacing(String(answerText || 'No synthesis available.'));
             if (window.marked && typeof window.marked.parse === 'function') {
-                return marked.parse(raw);
+                const html = marked.parse(raw);
+                return (window.DOMPurify && typeof window.DOMPurify.sanitize === 'function')
+                    ? DOMPurify.sanitize(html, { USE_PROFILES: { html: true } })
+                    : html;
             }
 
             return raw
