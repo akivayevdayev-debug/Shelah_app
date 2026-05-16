@@ -309,7 +309,7 @@ h6 {
     background: transparent !important;
     border: none !important;
     box-shadow: none !important;
-    padding: 0.22rem 0.35rem;
+    padding: 0.2rem 0.32rem;
     border-radius: 0.35rem;
     color: #5a4f3e;
     cursor: pointer;
@@ -1047,61 +1047,51 @@ body.theme-dark .topbar-user-menu-signout {
 /* CUSTOM SCROLLBAR (Modern look) */
 /* ═══════════════════════════════════════════════════════════════════ */
 
-/* Sidebar scrollbars with inverted theme-aware styling */
-#leftSidebar::-webkit-scrollbar,
-#rightSidebar::-webkit-scrollbar {
+::-webkit-scrollbar {
     width: 8px;
     height: 8px;
 }
 
-/* Light mode - sidebars use slightly different shade of white than their background */
+/* Light mode scrollbar */
+::-webkit-scrollbar-track {
+    background: #f1f5f9;
+    border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb {
+    background: #cbd5e1;
+    border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: #94a3b8;
+}
+
+/* Inverted scrollbar theming for sidebars */
+#leftSidebar,
+#rightSidebar {
+    scrollbar-width: thin;
+}
+
+/* Light mode: light shade of white for sidebar scrollbars */
 #leftSidebar::-webkit-scrollbar-track,
 #rightSidebar::-webkit-scrollbar-track {
-    background: #f0ebe3;
+    background: #fafafa;
     border-radius: 10px;
 }
 
 #leftSidebar::-webkit-scrollbar-thumb,
 #rightSidebar::-webkit-scrollbar-thumb {
-    background: #d4c9b8;
+    background: #e8e8e8;
     border-radius: 10px;
 }
 
 #leftSidebar::-webkit-scrollbar-thumb:hover,
 #rightSidebar::-webkit-scrollbar-thumb:hover {
-    background: #bfb1a0;
+    background: #d0d0d0;
 }
 
-/* Dark mode - sidebars use slightly different shade of grey than their background */
-body.theme-dark #leftSidebar::-webkit-scrollbar-track {
-    background: #232220;
-    border-radius: 10px;
-}
-
-body.theme-dark #leftSidebar::-webkit-scrollbar-thumb {
-    background: #4a4a42;
-    border-radius: 10px;
-}
-
-body.theme-dark #leftSidebar::-webkit-scrollbar-thumb:hover {
-    background: #5c5c54;
-}
-
-body.theme-dark #rightSidebar::-webkit-scrollbar-track {
-    background: #1a1815;
-    border-radius: 10px;
-}
-
-body.theme-dark #rightSidebar::-webkit-scrollbar-thumb {
-    background: #3f3f39;
-    border-radius: 10px;
-}
-
-body.theme-dark #rightSidebar::-webkit-scrollbar-thumb:hover {
-    background: #4f4f48;
-}
-
-/* Dark mode scrollbar for other elements - override global rules */
+/* Dark mode scrollbar - override global rules */
 html.theme-dark,
 body.theme-dark {
     scrollbar-color: #4a4b45 #121310;
@@ -1109,28 +1099,56 @@ body.theme-dark {
 }
 
 html.theme-dark::-webkit-scrollbar,
-body.theme-dark::-webkit-scrollbar {
+body.theme-dark::-webkit-scrollbar,
+body.theme-dark ::-webkit-scrollbar {
     width: 10px;
     height: 10px;
     background: #121310;
 }
 
 html.theme-dark::-webkit-scrollbar-track,
-body.theme-dark::-webkit-scrollbar-track {
+body.theme-dark::-webkit-scrollbar-track,
+body.theme-dark ::-webkit-scrollbar-track {
     background: #1f201d !important;
     border-radius: 10px;
 }
 
 html.theme-dark::-webkit-scrollbar-thumb,
-body.theme-dark::-webkit-scrollbar-thumb {
+body.theme-dark::-webkit-scrollbar-thumb,
+body.theme-dark ::-webkit-scrollbar-thumb {
     background: #4a4b45 !important;
     border-radius: 10px;
     border: 2px solid #1f201d;
 }
 
 html.theme-dark::-webkit-scrollbar-thumb:hover,
-body.theme-dark::-webkit-scrollbar-thumb:hover {
+body.theme-dark::-webkit-scrollbar-thumb:hover,
+body.theme-dark ::-webkit-scrollbar-thumb:hover {
     background: #5c5d56 !important;
+}
+
+/* Dark mode: light shade of grey for sidebar scrollbars (inverted) */
+body.theme-dark #leftSidebar,
+body.theme-dark #rightSidebar {
+    scrollbar-color: #444444 #17161533;
+    scrollbar-width: thin;
+}
+
+body.theme-dark #leftSidebar::-webkit-scrollbar-track,
+body.theme-dark #rightSidebar::-webkit-scrollbar-track {
+    background: transparent !important;
+    border-radius: 10px;
+}
+
+body.theme-dark #leftSidebar::-webkit-scrollbar-thumb,
+body.theme-dark #rightSidebar::-webkit-scrollbar-thumb {
+    background: #6a6a6a !important;
+    border-radius: 10px;
+}
+
+body.theme-dark #leftSidebar::-webkit-scrollbar-thumb:hover,
+body.theme-dark #rightSidebar::-webkit-scrollbar-thumb:hover {
+    background: #7a7a7a !important;
 }
 
 /* ═══════════════════════════════════════════════════════════════════ */
