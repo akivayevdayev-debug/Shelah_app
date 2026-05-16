@@ -341,11 +341,65 @@ body.theme-dark .topbar-flat-btn:focus-visible {
 .topbar-library-btn {
     opacity: 0.75;
     transition: opacity 0.2s ease, color 0.12s ease;
+    padding: 0.4rem 0.95rem;
+    min-width: 90px;
+    font-size: 0.85rem;
 }
 
 .topbar-library-btn:hover,
 .topbar-library-btn:focus-visible {
     opacity: 1;
+}
+
+.delayed-tooltip {
+    position: fixed;
+    z-index: 9999;
+    max-width: 20rem;
+    padding: 0.42rem 0.6rem;
+    border-radius: 0.75rem;
+    background: rgba(15, 23, 42, 0.92);
+    border: 1px solid rgba(148, 163, 184, 0.18);
+    color: #f8fafc;
+    font-size: 0.82rem;
+    line-height: 1.35;
+    pointer-events: none;
+    opacity: 0;
+    transform: translate(-50%, -0.45rem) scale(0.98);
+    transition: opacity 0.14s ease, transform 0.14s ease;
+    box-shadow: 0 16px 32px rgba(15, 23, 42, 0.22);
+    white-space: normal;
+    word-break: break-word;
+    backdrop-filter: blur(8px);
+}
+
+body.theme-dark .delayed-tooltip {
+    background: rgba(15, 23, 42, 0.96);
+    border-color: rgba(148, 163, 184, 0.2);
+    color: #f8fafc;
+}
+
+.delayed-tooltip.visible {
+    opacity: 1;
+    transform: translate(-50%, -0.45rem) scale(1);
+}
+
+@media (min-width: 1024px) {
+
+    #leftSidebar,
+    #rightSidebar {
+        min-height: 0;
+        height: calc(100dvh - var(--topbar-height, 3.4rem));
+        max-height: calc(100dvh - var(--topbar-height, 3.4rem));
+        overflow-y: auto;
+    }
+
+    #leftSidebar {
+        padding-bottom: 1rem;
+    }
+
+    #rightSidebar {
+        padding-bottom: 1rem;
+    }
 }
 
 body.theme-dark .topbar-library-btn {
