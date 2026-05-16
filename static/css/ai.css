@@ -670,11 +670,11 @@ body.search-loading #searchIcon {
 
 /* ── Reader topbar ───────────────────────────────────────── */
 .reader-topbar-icon-btn {
-    transition: color 0.18s ease, opacity 0.18s ease, transform 0.18s ease !important;
+    transition: none !important;
 }
 
 .reader-topbar-icon-btn:active {
-    transform: scale(0.92) !important;
+    transform: none !important;
 }
 
 /* ── AI results sections ─────────────────────────────────── */
