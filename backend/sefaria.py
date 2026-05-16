@@ -9,8 +9,11 @@ Responsibilities:
 This file is mostly curated domain mapping data plus matching utilities.
 """
 
+import logging
 import requests
 import time
+
+logger = logging.getLogger(__name__)
 
 _HTTP = requests.Session()
 _DAILY_STUDY_CACHE = {"ts": 0, "data": None}
@@ -225,13 +228,13 @@ def get_daily_study():
         _DAILY_STUDY_CACHE["data"] = info
         return info
     except Exception as e:
-        print("[Sefaria Daily Error]", e)
+        logger.warning("[Sefaria Daily Error] %s", e)
         # Graceful fallback using local calendar only
         try:
             from backend.calendar_service import calendar_engine
             hebrew_date = calendar_engine.gregorian_to_hebrew().get('hebrew_date', '')
             holiday = calendar_engine.is_holiday()
-        except:
+        except Exception:
             hebrew_date = ''
             holiday = None
         payload = {
