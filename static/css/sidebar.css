@@ -257,6 +257,91 @@ body.theme-dark #rightSidebarIdle {
     will-change: transform;
     /* Helps with GPU compositing on mobile */
     overscroll-behavior: contain;
+    /* Ensure independent touch-scroll on mobile */
+    -webkit-overflow-scrolling: touch;
+    touch-action: pan-y;
+}
+
+/* ═══════════════════════════════════════════════════════ */
+/* RTL — SIDEBAR SWAP (Library → right, Commentary → left) */
+/* ═══════════════════════════════════════════════════════ */
+
+/* Desktop: swap visual order of the three-column layout */
+@media (min-width: 1024px) {
+    html.rtl #leftSidebar {
+        order: 3;
+        border-right: none;
+        border-left: 1px solid #e5e0d5;
+    }
+
+    html.rtl #mainContainer {
+        order: 2;
+    }
+
+    html.rtl #rightSidebar {
+        order: 1;
+        border-left: none;
+        border-right: 1px solid #e5e0d5;
+    }
+
+    /* Dark mode border colours after swap */
+    html.rtl body.theme-dark #leftSidebar {
+        border-left-color: var(--surface-border);
+    }
+
+    html.rtl body.theme-dark #rightSidebar {
+        border-right-color: var(--surface-border);
+    }
+}
+
+/* Show-tab button: in RTL the library tab should be on the right */
+html.rtl #showLeftSidebarTopBtn {
+    left: auto;
+    right: 0.75rem;
+}
+
+/* Mobile: flip drawer slide direction for RTL */
+@media (max-width: 1023px) {
+
+    /* Library drawer comes from the right in RTL */
+    html.rtl .mobile-drawer-left {
+        transform: translateX(100%);
+    }
+
+    html.rtl .mobile-drawer-left.mobile-open {
+        transform: translateX(0);
+    }
+
+    /* Commentary drawer comes from the left in RTL */
+    html.rtl .mobile-drawer-right {
+        transform: translateX(-100%);
+    }
+
+    html.rtl .mobile-drawer-right.mobile-open {
+        transform: translateX(0);
+    }
+}
+
+/* ═══════════════════════════════════════════════════════ */
+/* RTL — ZMANIM DROPDOWN POSITIONING FIX                  */
+/* ═══════════════════════════════════════════════════════ */
+
+/* In RTL mode the search button is at the physical LEFT end of
+   the section row; anchor the popover there instead of right-0 */
+html.rtl #citySearchPopover {
+    right: auto;
+    left: 0;
+}
+
+/* Commentary sidebar: force independent scroll from main content */
+#rightSidebar {
+    isolation: isolate;
+}
+
+/* When the right sidebar mobile drawer is open, prevent body scroll bleed */
+#rightSidebar.mobile-open {
+    overscroll-behavior-y: contain;
+    touch-action: pan-y pinch-zoom;
 }
 
 /* ═══════════════════════════════════════════════════════ */
