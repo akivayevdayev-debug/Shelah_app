@@ -1699,8 +1699,13 @@
         let countdownInterval = null;
         let infiniteReaderState = {
             loading: false,
+            loadingPrev: false,
             nextRef: '',
+            prevRef: '',
             seenRefs: new Set(),
+            currentVisibleChunkIndex: 0,
+            headerStyleClass: 'reader-source-title',
+            sectionObserver: null,
         };
         window.currentTextPayloadChain = [];
         let suggestionFetchSerial = 0;
@@ -6006,7 +6011,10 @@
 
         function resetInfiniteReaderState(seedPayload = null) {
             infiniteReaderState.loading = false;
+            infiniteReaderState.loadingPrev = false;
             infiniteReaderState.nextRef = String(seedPayload?.next || '').trim();
+            infiniteReaderState.prevRef = String(seedPayload?.prev || '').trim();
+            infiniteReaderState.currentVisibleChunkIndex = 0;
             infiniteReaderState.seenRefs = new Set();
 
             const seedChain = Array.isArray(window.currentTextPayloadChain)
@@ -6017,6 +6025,11 @@
                 const refKey = getRefTrackingKey(chunk?.ref || chunk?.title || '');
                 if (refKey) infiniteReaderState.seenRefs.add(refKey);
             });
+
+            // Set up scroll observer for dynamic button updates
+            setTimeout(() => {
+                setupSectionScrollObserver();
+            }, 100);
         }
 
         function shouldLoadNextTextChunk(thresholdPx = 420) {
@@ -6173,6 +6186,202 @@
             }).join('');
         }
 
+        function setupScrollUpListener() {
+            const scrollElement = getPrimaryScrollElement();
+            if (!scrollElement) return;
+
+            // Remove previous listener if exists
+            if (window.readerScrollUpHandler) {
+                scrollElement.removeEventListener('scroll', window.readerScrollUpHandler);
+            }
+
+            window.readerScrollUpHandler = function () {
+                // Check if user has scrolled to near the top
+                const scrollPos = scrollElement === document.documentElement || scrollElement === document.body
+                    ? (window.pageYOffset || 0)
+                    : scrollElement.scrollTop;
+
+                if (scrollPos <= 300 && infiniteReaderState.prevRef && !infiniteReaderState.loadingPrev) {
+                    void loadPreviousTextChunk();
+                }
+            };
+
+            scrollElement.addEventListener('scroll', window.readerScrollUpHandler);
+        }
+
+        function setupSectionScrollObserver() {
+            // Disconnect previous observer if it exists
+            if (infiniteReaderState.sectionObserver) {
+                infiniteReaderState.sectionObserver.disconnect();
+            }
+
+            const sourcesDiv = document.getElementById('readerSources');
+            if (!sourcesDiv) return;
+
+            // Create observer to detect which section is currently visible
+            infiniteReaderState.sectionObserver = new IntersectionObserver((entries) => {
+                // Find the most visible entry
+                let mostVisible = entries[0];
+                for (const entry of entries) {
+                    if (entry.intersectionRatio > mostVisible.intersectionRatio) {
+                        mostVisible = entry;
+                    }
+                }
+
+                if (mostVisible && mostVisible.isIntersecting) {
+                    const chunkIndex = parseInt(mostVisible.target.getAttribute('data-text-chunk-index'), 10);
+                    if (!isNaN(chunkIndex)) {
+                        infiniteReaderState.currentVisibleChunkIndex = chunkIndex;
+                        updateReaderButtonsForChunk(chunkIndex);
+                    }
+                }
+            }, {
+                root: null,
+                threshold: 0.3,
+            });
+
+            // Observe all section chunks
+            const chunks = sourcesDiv.querySelectorAll('.reader-source-clean');
+            chunks.forEach((chunk) => {
+                infiniteReaderState.sectionObserver.observe(chunk);
+            });
+        }
+
+        function updateReaderButtonsForChunk(chunkIndex) {
+            const chain = getCurrentTextPayloadChain();
+            if (!Array.isArray(chain) || chunkIndex < 0 || chunkIndex >= chain.length) return;
+
+            const currentChunk = chain[chunkIndex];
+            if (!currentChunk) return;
+
+            // Determine prev and next based on current chunk
+            let prevRef = '';
+            let nextRef = '';
+
+            if (chunkIndex > 0) {
+                // There's a previous chunk in the chain
+                prevRef = String(chain[chunkIndex - 1]?.ref || '').trim();
+            } else if (infiniteReaderState.prevRef) {
+                // Load from previous ref if available
+                prevRef = infiniteReaderState.prevRef;
+            }
+
+            if (chunkIndex < chain.length - 1) {
+                // There's a next chunk in the chain
+                nextRef = String(chain[chunkIndex + 1]?.ref || '').trim();
+            } else if (infiniteReaderState.nextRef) {
+                // Load from next ref if available
+                nextRef = infiniteReaderState.nextRef;
+            }
+
+            const readerPrevTopBarBtn = document.getElementById('readerPrevTopBarBtn');
+            const readerNextTopBarBtn = document.getElementById('readerNextTopBarBtn');
+
+            if (readerPrevTopBarBtn) {
+                const hasPrev = Boolean(prevRef);
+                readerPrevTopBarBtn.disabled = !hasPrev;
+                readerPrevTopBarBtn.style.visibility = hasPrev ? 'visible' : 'hidden';
+                readerPrevTopBarBtn.setAttribute('aria-label', t('Previous Section', 'קטע קודם'));
+                readerPrevTopBarBtn.title = prevRef || t('Previous Section', 'קטע קודם');
+                readerPrevTopBarBtn.onclick = hasPrev
+                    ? () => {
+                        if (chunkIndex > 0) {
+                            // Scroll to previous chunk in chain
+                            const sourcesDiv = document.getElementById('readerSources');
+                            const prevChunk = sourcesDiv?.querySelector(`[data-text-chunk-index="${chunkIndex - 1}"]`);
+                            if (prevChunk) {
+                                prevChunk.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                            }
+                        } else {
+                            // Load previous section
+                            readText(prevRef, { skipNavigationGrid: true });
+                        }
+                    }
+                    : null;
+            }
+
+            if (readerNextTopBarBtn) {
+                const hasNext = Boolean(nextRef);
+                readerNextTopBarBtn.disabled = !hasNext;
+                readerNextTopBarBtn.style.visibility = hasNext ? 'visible' : 'hidden';
+                readerNextTopBarBtn.setAttribute('aria-label', t('Next Section', 'קטע הבא'));
+                readerNextTopBarBtn.title = nextRef || t('Next Section', 'קטע הבא');
+                readerNextTopBarBtn.onclick = hasNext
+                    ? () => {
+                        if (chunkIndex < chain.length - 1) {
+                            // Scroll to next chunk in chain
+                            const sourcesDiv = document.getElementById('readerSources');
+                            const nextChunk = sourcesDiv?.querySelector(`[data-text-chunk-index="${chunkIndex + 1}"]`);
+                            if (nextChunk) {
+                                nextChunk.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                            }
+                        } else {
+                            // Load next section
+                            readText(nextRef, { skipNavigationGrid: true });
+                        }
+                    }
+                    : null;
+            }
+        }
+
+        async function loadPreviousTextChunk() {
+            if (!infiniteReaderState.prevRef || infiniteReaderState.loadingPrev) return;
+
+            const requestedPrevRef = String(infiniteReaderState.prevRef).trim();
+            if (!requestedPrevRef) return;
+
+            infiniteReaderState.loadingPrev = true;
+            renderCurrentTextByLayout({ preserveScroll: false });
+
+            try {
+                const { payload: prevData, resolvedRef } = await fetchTextPayloadWithFallback(requestedPrevRef);
+                if (!prevData || prevData.error) {
+                    logReliability('text-prev-load-error', {
+                        requested: requestedPrevRef,
+                        error: prevData?.error || 'unknown',
+                    });
+                    infiniteReaderState.prevRef = '';
+                    return;
+                }
+
+                await ensurePayloadAdjacentRefs(prevData);
+
+                const resolved = String(prevData.ref || resolvedRef || requestedPrevRef).trim();
+                const resolvedKey = getRefTrackingKey(resolved);
+
+                if (!Array.isArray(window.currentTextPayloadChain)) {
+                    window.currentTextPayloadChain = window.currentTextPayload ? [window.currentTextPayload] : [];
+                }
+
+                // Prepend to the beginning of the chain
+                if (!resolvedKey || !infiniteReaderState.seenRefs.has(resolvedKey)) {
+                    window.currentTextPayloadChain.unshift(prevData);
+                    if (resolvedKey) infiniteReaderState.seenRefs.add(resolvedKey);
+                    // Update current visible index since we prepended
+                    infiniteReaderState.currentVisibleChunkIndex += 1;
+                }
+
+                infiniteReaderState.prevRef = String(prevData.prev || '').trim();
+                const prevRefKey = getRefTrackingKey(infiniteReaderState.prevRef);
+                if (prevRefKey && infiniteReaderState.seenRefs.has(prevRefKey)) {
+                    infiniteReaderState.prevRef = '';
+                }
+            } catch (error) {
+                logReliability('text-prev-load-network-error', {
+                    requested: requestedPrevRef,
+                    message: error.message,
+                });
+                infiniteReaderState.prevRef = '';
+            } finally {
+                infiniteReaderState.loadingPrev = false;
+                renderCurrentTextByLayout({ preserveScroll: false });
+                // Re-setup observer after rendering
+                setTimeout(() => {
+                    setupSectionScrollObserver();
+                }, 50);
+            }
+        }
+
         function renderCurrentTextByLayout(options = {}) {
             const { preserveScroll = false } = options;
             const chain = getCurrentTextPayloadChain();
@@ -6238,9 +6447,8 @@
             const sectionsMarkup = chain.map((chunk, index) => {
                 const sectionRows = renderTextRowsForPayload(chunk, layout);
                 const sectionRef = String(chunk?.ref || appState.currentView?.value || '').trim();
-                const sectionTitleMarkup = index === 0
-                    ? `<div class="reader-source-title text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-2"><span>${escapeHtml(sectionRef)}</span></div>`
-                    : `<div class="reader-next-section-title text-center font-serif text-[1.45rem] text-navy underline underline-offset-4 mb-4">${escapeHtml(sectionRef)}</div>`;
+                // Apply consistent header style to all sections
+                const sectionTitleMarkup = `<div class="reader-source-title text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-2"><span>${escapeHtml(sectionRef)}</span></div>`;
 
                 return `
                     <div class="reader-source-clean mb-6" data-text-chunk-index="${index}">
@@ -6260,9 +6468,19 @@
 
             bindSelectionInsightsEvents();
 
+            // Setup intersection observer for dynamic button updates
+            setTimeout(() => {
+                setupSectionScrollObserver();
+                // Set initial button state for first visible chunk
+                updateReaderButtonsForChunk(infiniteReaderState.currentVisibleChunkIndex);
+            }, 50);
+
             if (shouldLoadNextTextChunk(260)) {
                 void loadNextTextChunk();
             }
+
+            // Setup scroll listener for loading previous sections when at top
+            setupScrollUpListener();
         }
 
         function applyReaderPreferences() {
