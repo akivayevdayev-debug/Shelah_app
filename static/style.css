@@ -1630,32 +1630,40 @@ html.rtl #readerTopBar .reader-topbar-settings-label {
     min-width: 0;
     padding-inline: clamp(0.35rem, 0.8vw, 0.9rem);
     box-sizing: border-box;
+    position: relative; /* For absolute positioning of library button */
+}
+
+.reader-topbar-library-abs {
+    position: absolute;
+    left: 0.85rem;
+    top: 50%;
+    transform: translateY(-50%);
+    z-index: 5;
+}
+
+html.rtl .reader-topbar-library-abs {
+    left: auto;
+    right: 0.85rem;
 }
 
 .reader-topbar-track {
     width: 100%;
-    padding-inline: 2.5rem;
+    max-width: 56rem; /* Align with max-w-4xl reader container */
+    margin: 0 auto;
+    padding-inline: 0.5rem; /* Small buffer */
     display: grid;
-    grid-template-columns: minmax(auto, auto) minmax(0, 1fr) minmax(auto, auto);
+    grid-template-columns: auto 1fr auto;
     align-items: center;
     gap: 0.5rem;
-    justify-content: center;
 }
 
-.reader-topbar-nav-left {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.45rem;
-}
 
 #readerPrevTopBarBtn {
-    justify-self: center;
-    margin-right: 0;
+    justify-self: start;
 }
 
 #readerNextTopBarBtn {
-    justify-self: center;
-    margin-left: auto;
+    justify-self: end;
 }
 
 /* In the CSS grid context, use visibility:hidden instead of display:none so grid tracks remain allocated */
