@@ -25,6 +25,8 @@ html {
     --reader-topbar-offset: 3.2rem;
     --reader-topbar-left-gap: 0px;
     --reader-topbar-right-gap: 0px;
+    --reader-outer-max-width: 56rem;
+    --reader-inline-padding: 1rem;
 
     /* Controls */
     --accent-deep-blue: #1f3f63;
@@ -1328,17 +1330,7 @@ body.theme-dark #rightSidebar::-webkit-scrollbar-thumb:hover {
     --reader-label-bg: #f6f1e6;
 }
 
-@media (min-width: 1024px) {
-
-    body:not(.shul-mode).left-sidebar-hidden #reader,
-    body:not(.shul-mode).right-sidebar-hidden #reader {
-        max-width: 63rem;
-    }
-
-    body:not(.shul-mode).left-sidebar-hidden.right-sidebar-hidden #reader {
-        max-width: 70rem;
-    }
-}
+/* Removed responsive reader max-width overrides to keep layout stable and prevent inward/outward jumping */
 
 @media (min-width: 1024px) and (max-width: 1420px) {
 
@@ -1630,7 +1622,8 @@ html.rtl #readerTopBar .reader-topbar-settings-label {
     min-width: 0;
     padding-inline: clamp(0.35rem, 0.8vw, 0.9rem);
     box-sizing: border-box;
-    position: relative; /* For absolute positioning of library button */
+    position: relative;
+    /* For absolute positioning of library button */
 }
 
 .reader-topbar-library-abs {
@@ -1648,13 +1641,25 @@ html.rtl .reader-topbar-library-abs {
 
 .reader-topbar-track {
     width: 100%;
-    max-width: 56rem; /* Align with max-w-4xl reader container */
+    max-width: var(--reader-outer-max-width, 62rem);
     margin: 0 auto;
-    padding-inline: 0.5rem; /* Small buffer */
+    padding-inline: var(--reader-inline-padding, 1rem);
     display: grid;
-    grid-template-columns: auto 1fr auto;
+    grid-template-columns: 1fr auto 1fr;
     align-items: center;
     gap: 0.5rem;
+}
+
+#readerPrevTopBarBtn {
+    justify-self: start;
+}
+
+.reader-topbar-settings-wrap {
+    justify-self: center;
+}
+
+#readerNextTopBarBtn {
+    justify-self: end;
 }
 
 
@@ -1689,7 +1694,7 @@ html.rtl .reader-topbar-library-abs {
     justify-content: center;
     padding: 0.25rem 0.4rem;
     cursor: pointer;
-    transition: color 0.2s ease, opacity 0.2s ease;
+    transition: none !important;
 }
 
 .reader-topbar-icon-btn:hover,
@@ -1697,6 +1702,10 @@ html.rtl .reader-topbar-library-abs {
     background: transparent;
     border-color: transparent;
     color: #5a4a3a;
+}
+
+.reader-topbar-icon-btn:active {
+    transform: none !important;
 }
 
 .reader-topbar-icon-btn:focus-visible {
@@ -1779,6 +1788,18 @@ html.rtl .reader-topbar-library-abs {
 #readerTopBar button:disabled {
     opacity: 0.45;
     pointer-events: none;
+}
+
+@media (min-width: 640px) {
+    :root {
+        --reader-inline-padding: 1.5rem;
+    }
+}
+
+@media (min-width: 1024px) {
+    :root {
+        --reader-inline-padding: 3rem;
+    }
 }
 
 #reader .source-grid.layout-reverse .source-en {
