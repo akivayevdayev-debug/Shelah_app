@@ -1156,10 +1156,10 @@
             <div id="readerTopBar"
                 class="hidden sticky z-40 reader-topbar-shell border-y border-[#ddd4c3] bg-[#f9f4ea] px-1 py-1">
                 <!-- Library button moved out of the track for symmetry -->
-                <button id="readerLibraryTopBarBtn" type="button" class="reader-topbar-icon-btn reader-topbar-library-abs"
-                    aria-label="Library" title="Library">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20"
-                        fill="currentColor" aria-hidden="true">
+                <button id="readerLibraryTopBarBtn" type="button"
+                    class="reader-topbar-icon-btn reader-topbar-library-abs" aria-label="Library" title="Library">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor"
+                        aria-hidden="true">
                         <path
                             d="M3 4.5A1.5 1.5 0 014.5 3h9A1.5 1.5 0 0115 4.5V14a1 1 0 001 1h1a1 1 0 010 2h-1a3 3 0 01-3-3V5H5v9a1 1 0 001 1h5a1 1 0 110 2H6a3 3 0 01-3-3V4.5z" />
                         <path
@@ -10657,104 +10657,6 @@
         });
     </script>
     <script type="module" src="/static/js/main.js"></script>
-    <script>
-        (function () {
-            function alignReaderTopbarButtons(retries = 0) {
-                const prev = document.getElementById('readerPrevTopBarBtn');
-                const next = document.getElementById('readerNextTopBarBtn');
-                const settingsWrap = document.querySelector('.reader-topbar-settings-wrap');
-                const track = document.querySelector('.reader-topbar-track');
-                if (!prev || !next || !settingsWrap || !track) {
-                    if (retries < 8) setTimeout(() => alignReaderTopbarButtons(retries + 1), 150);
-                    return;
-                }
-
-                // Prefer aligning to the first visible line of reader content.
-                function findContentContainer() {
-                    const selectors = ['#readerContent', '#reader', '.reader-content', '.readerMain', '.reader'];
-                    for (const sel of selectors) {
-                        const el = document.querySelector(sel);
-                        if (el) return el;
-                    }
-                    return null;
-                }
-
-                function getFirstLineRect(container) {
-                    if (!container) return null;
-                    // Look for likely textual elements in reading order
-                    const candidates = container.querySelectorAll('p, .verse, .reader-verse, .reader-text-row, .line, span, div');
-                    for (const el of candidates) {
-                        try {
-                            const style = window.getComputedStyle(el);
-                            if (style && (style.visibility === 'hidden' || style.display === 'none' || parseFloat(style.opacity) === 0)) continue;
-                        } catch (e) { }
-                        const text = (el.textContent || '').trim();
-                        if (!text) continue;
-                        const rects = el.getClientRects();
-                        if (rects && rects.length) {
-                            for (const r of rects) {
-                                if (r.width > 6 && r.height > 0) return r;
-                            }
-                        }
-                    }
-                    // fallback to container rect
-                    const cr = container.getBoundingClientRect();
-                    if (cr && cr.width > 6) return cr;
-                    return null;
-                }
-
-                const content = findContentContainer();
-                let leftAnchor = null, rightAnchor = null;
-                const firstLineRect = getFirstLineRect(content || settingsWrap);
-                if (firstLineRect) {
-                    leftAnchor = firstLineRect.left;
-                    rightAnchor = firstLineRect.right;
-                } else {
-                    const sRect = settingsWrap.getBoundingClientRect();
-                    leftAnchor = sRect.left;
-                    rightAnchor = sRect.right;
-                }
-
-                // Clear any previous transform so measurements use the original layout coordinates
-                prev.style.transform = 'none';
-                next.style.transform = 'none';
-                const prevRect = prev.getBoundingClientRect();
-                const nextRect = next.getBoundingClientRect();
-
-                // Compute deltas and clamp so buttons remain inside the track
-                const deltaPrev = Math.round(leftAnchor - prevRect.left);
-                const deltaNext = Math.round(rightAnchor - nextRect.right);
-                const tr = track.getBoundingClientRect();
-                const minLeft = tr.left + 8;
-                const maxRight = tr.right - 8;
-
-                let finalPrevLeft = prevRect.left + deltaPrev;
-                let finalNextRight = nextRect.right + deltaNext;
-                if (finalPrevLeft < minLeft) finalPrevLeft = minLeft;
-                if (finalNextRight > maxRight) finalNextRight = maxRight;
-                const appliedDeltaPrev = Math.round(finalPrevLeft - prevRect.left);
-                const appliedDeltaNext = Math.round(finalNextRight - nextRect.right);
-
-                // Apply transform immediately with no animation so buttons snap to alignment
-                prev.style.transform = `translateX(${appliedDeltaPrev}px)`;
-                next.style.transform = `translateX(${appliedDeltaNext}px)`;
-                prev.style.transition = 'none';
-                next.style.transition = 'none';
-            }
-            window.addEventListener('DOMContentLoaded', alignReaderTopbarButtons);
-            window.addEventListener('load', alignReaderTopbarButtons);
-            window.addEventListener('resize', () => { requestAnimationFrame(alignReaderTopbarButtons); });
-            const observer = new MutationObserver((mutations) => {
-                for (const m of mutations) {
-                    if (m.addedNodes && m.addedNodes.length) {
-                        alignReaderTopbarButtons();
-                        break;
-                    }
-                }
-            });
-            observer.observe(document.body, { childList: true, subtree: true });
-        })();
-    </script>
 
     <!-- ═══════════════════════════════════════════════════════ -->
     <!-- LEGAL ACCEPTANCE MODAL (Terms of Service + Privacy)    -->
