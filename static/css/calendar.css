@@ -221,6 +221,58 @@ body.theme-dark .cal-hebrew-date {
 }
 
 /* ═══════════════════════════════════════════════════════ */
+/* DARK MODE — CALENDAR MODAL CONTAINER                   */
+/* ═══════════════════════════════════════════════════════ */
+
+/* Modal wrapper box */
+body.theme-dark #calendarModal>div {
+    background: #1c1a16 !important;
+    border-color: #3a3530 !important;
+    box-shadow: 0 24px 64px rgba(0, 0, 0, 0.55), 0 4px 12px rgba(0, 0, 0, 0.35) !important;
+}
+
+/* Modal header gradient strip */
+body.theme-dark #calendarModal>div>div:first-child {
+    background: linear-gradient(135deg, #22201c 0%, #1a1814 100%) !important;
+    border-bottom-color: #3a3530 !important;
+}
+
+/* Calendar icon circle */
+body.theme-dark #calendarModal .rounded-full.bg-\[#1f3f63\] {
+    background: #2a4060 !important;
+}
+
+/* Modal title */
+body.theme-dark #calendarModalTitle {
+    color: #e8dcc8 !important;
+}
+
+/* Legend and subtitle text */
+body.theme-dark #calendarModal .text-xs.text-\[#64748b\],
+body.theme-dark #calendarModal p.text-xs {
+    color: #9a8e7d !important;
+}
+
+/* Legend colour swatches — keep as-is (coloured), no override needed */
+
+/* Close button */
+body.theme-dark #calendarModal button[aria-label="Close calendar"] {
+    background: rgba(34, 32, 28, 0.9) !important;
+    border-color: #4a433a !important;
+    color: #9a8e7d !important;
+}
+
+body.theme-dark #calendarModal button[aria-label="Close calendar"]:hover {
+    background: #2e2b26 !important;
+    color: #c8b890 !important;
+}
+
+/* Calendar content area */
+body.theme-dark #calendarModal .flex-1.overflow-y-auto {
+    background: #1c1a16 !important;
+}
+
+/* ═══════════════════════════════════════════════════════ */
 /* PRINT CALENDAR */
 /* ═══════════════════════════════════════════════════════ */
 
