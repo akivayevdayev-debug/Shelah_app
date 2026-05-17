@@ -44,7 +44,7 @@
         body.theme-dark #settingsPanel .text-slate-400,
         body.theme-dark #settingsPanel p.text-\[11px\],
         body.theme-dark #settingsPanel .uppercase {
-            color: #bfb6a6 !important;
+            color: var(--text-muted) !important;
         }
 
         body.theme-dark #settingsPanel .bg-slate-50,
@@ -77,7 +77,7 @@
 
         body.theme-dark #settingsPanel input::placeholder,
         body.theme-dark #settingsPanel textarea::placeholder {
-            color: #8a8278 !important;
+            color: var(--text-muted) !important;
         }
 
         /* Theme toggle button – use dark pill style */
@@ -88,9 +88,9 @@
         }
 
         body.theme-dark #themeToggleBtn:hover {
-            background: #2e302c !important;
-            border-color: #5a5c55 !important;
-            color: #f5ecde !important;
+            background: var(--control-bg-hover) !important;
+            border-color: var(--control-border) !important;
+            color: var(--control-text-strong) !important;
         }
 
         /* Ensure ALL buttons in settings panel use dark pill style */
@@ -101,32 +101,32 @@
         }
 
         body.theme-dark #settingsPanel button:not(#bookmarkCurrentBtn):hover {
-            background: #2e302c !important;
-            border-color: #5a5c55 !important;
-            color: #f5ecde !important;
+            background: var(--control-bg-hover) !important;
+            border-color: var(--control-border) !important;
+            color: var(--control-text-strong) !important;
         }
 
         /* Ensure small meta text uses muted cream */
         body.theme-dark #settingsPanel .text-xs,
         body.theme-dark #settingsPanel .text-sm {
-            color: #b9b0a3 !important;
+            color: var(--text-muted) !important;
         }
 
         /* Bookmark Current button (navy style for dark) */
         body.theme-dark #bookmarkCurrentBtn {
-            background: #2a3a55 !important;
-            border-color: #4a5e78 !important;
-            color: #dce8f8 !important;
+            background: var(--control-strong-bg) !important;
+            border-color: var(--control-border) !important;
+            color: var(--control-text-strong) !important;
         }
 
         body.theme-dark #bookmarkCurrentBtn:hover {
-            background: #354a68 !important;
-            color: #e8f0f8 !important;
+            background: var(--control-strong-bg-hover) !important;
+            color: var(--control-text-strong) !important;
         }
 
         /* Override any remaining Tailwind color classes */
         body.theme-dark #settingsPanel .hover\:bg-slate-200:hover {
-            background-color: #2e302c !important;
+            background-color: var(--control-bg-hover) !important;
         }
     </style>
 
@@ -184,31 +184,33 @@
         class="topbar sticky top-0 bg-white text-slate-800 py-1.5 px-2 lg:py-1.5 lg:px-3 shadow-sm border-b flex flex-wrap lg:flex-nowrap justify-between items-center z-50 flex-shrink-0 gap-1.5 lg:gap-2">
         <!-- mobileNavBtn removed: Library tab in bottom nav covers this action -->
 
-        <div id="brandHomeBtn" class="topbar-brand flex items-center gap-1.5 cursor-pointer shrink-0"
-            onclick="goHome()">
-            <div class="text-navy font-hebrew text-[1.7rem] font-semibold leading-tight">
-                ש
+        <div class="topbar-brand-lock flex items-center gap-2 shrink-0">
+            <div id="brandHomeBtn" class="topbar-brand flex items-center gap-1.5 cursor-pointer shrink-0"
+                onclick="goHome()">
+                <div class="text-navy font-hebrew text-[1.7rem] font-semibold leading-tight">
+                    ש
+                </div>
+                <h1 class="text-sm sm:text-base font-serif tracking-tight text-navy font-semibold leading-none">
+                    <span class="block" data-en="Sh'elah" data-he="שאלה">Sh'elah</span>
+                    <span class="block text-[10px] font-normal text-slate-500 italic topbar-brand-subtitle"
+                        data-en="Torah Encyclopedia" data-he="אנציקלופדיית תורה">Torah Encyclopedia</span>
+                </h1>
             </div>
-            <h1 class="text-sm sm:text-base font-serif tracking-tight text-navy font-semibold leading-none">
-                <span class="block" data-en="Sh'elah" data-he="שאלה">Sh'elah</span>
-                <span class="block text-[10px] font-normal text-slate-500 italic topbar-brand-subtitle"
-                    data-en="Torah Encyclopedia" data-he="אנציקלופדיית תורה">Torah Encyclopedia</span>
-            </h1>
-        </div>
 
-        <!-- Library Button (Desktop Homepage Only) — placed after brand for natural flow -->
-        <button id="topbarLibraryBtn" type="button"
-            class="topbar-flat-btn hidden lg:inline-flex shrink-0 items-center gap-1.5 topbar-library-btn"
-            onclick="openLibrarySidebar()" title="Library" aria-label="Library">
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 shrink-0" viewBox="0 0 20 20" fill="currentColor"
-                aria-hidden="true">
-                <path
-                    d="M3 4.5A1.5 1.5 0 014.5 3h9A1.5 1.5 0 0115 4.5V14a1 1 0 001 1h1a1 1 0 010 2h-1a3 3 0 01-3-3V5H5v9a1 1 0 001 1h5a1 1 0 110 2H6a3 3 0 01-3-3V4.5z" />
-                <path
-                    d="M6 7a1 1 0 011-1h4a1 1 0 110 2H7a1 1 0 01-1-1zm0 3a1 1 0 011-1h4a1 1 0 110 2H7a1 1 0 01-1-1z" />
-            </svg>
-            <span class="text-xs font-medium" data-en="Library" data-he="ספרייה">Library</span>
-        </button>
+            <!-- Library Button (Desktop Homepage Only) - locked next to brand -->
+            <button id="topbarLibraryBtn" type="button"
+                class="topbar-flat-btn hidden lg:inline-flex shrink-0 items-center gap-1.5 topbar-library-btn"
+                onclick="openLibrarySidebar()" title="Library" aria-label="Library">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 shrink-0" viewBox="0 0 20 20" fill="currentColor"
+                    aria-hidden="true">
+                    <path
+                        d="M3 4.5A1.5 1.5 0 014.5 3h9A1.5 1.5 0 0115 4.5V14a1 1 0 001 1h1a1 1 0 010 2h-1a3 3 0 01-3-3V5H5v9a1 1 0 001 1h5a1 1 0 110 2H6a3 3 0 01-3-3V4.5z" />
+                    <path
+                        d="M6 7a1 1 0 011-1h4a1 1 0 110 2H7a1 1 0 01-1-1zm0 3a1 1 0 011-1h4a1 1 0 110 2H7a1 1 0 01-1-1z" />
+                </svg>
+                <span class="text-xs font-medium" data-en="Library" data-he="ספרייה">Library</span>
+            </button>
+        </div>
 
         <!-- Top Navigation Menu Toggle + Search Bar -->
         <div
@@ -247,8 +249,7 @@
                 </button>
 
                 <div id="settingsPanel"
-                    class="hidden fixed mt-2 w-72 max-w-[calc(100vw-1rem)] bg-white border border-slate-200 rounded-xl shadow-lg p-2.5 z-[90] space-y-2.5 overflow-y-auto max-h-[calc(100vh-5.5rem)]"
-                    style="max-width: min(22rem, calc(100vw - 1rem)); top: 3.5rem; right: auto; left: 0.5rem;">
+                    class="hidden absolute top-full left-0 mt-1 w-72 max-w-[calc(100vw-1rem)] bg-white border border-slate-200 rounded-xl shadow-lg p-2.5 z-[90] space-y-2.5 overflow-y-auto max-h-[calc(100vh-5.5rem)]">
                     <p class="text-[11px] uppercase tracking-widest text-slate-400 font-bold" data-en="Quick Settings"
                         data-he="הגדרות מהירות">Quick Settings</p>
 
@@ -292,7 +293,7 @@
 
                     <div class="border-t border-slate-100 pt-2">
                         <button id="themeToggleBtn" type="button"
-                            class="w-full px-3 py-1.5 rounded bg-slate-100 text-slate-700 border border-slate-200 hover:bg-slate-200 transition font-semibold text-xs text-left"
+                            class="w-full px-3 py-1.5 rounded bg-slate-100 text-slate-700 border border-slate-200 hover:bg-slate-200 transition font-semibold text-xs text-start"
                             aria-live="polite">
                             <span id="themeToggleLabel" data-en="Appearance: Light" data-he="מראה: בהיר">Appearance:
                                 Light</span>
@@ -349,7 +350,7 @@
                             class="topbar-user-menu-item block px-3 py-1.5 text-xs text-slate-700 hover:bg-slate-100 transition"
                             data-en="Profile" data-he="פרופיל">Profile</a>
                         <button id="userProfileSignOutAction" type="button"
-                            class="topbar-user-menu-item topbar-user-menu-signout w-full text-left px-3 py-1.5 text-xs text-slate-700 hover:bg-slate-100 transition"
+                            class="topbar-user-menu-item topbar-user-menu-signout w-full text-start px-3 py-1.5 text-xs text-slate-700 hover:bg-slate-100 transition"
                             data-en="Sign Out" data-he="התנתקות">Sign Out</button>
                         <a id="userProfileTermsLink" href="/terms" target="_blank" rel="noopener"
                             class="topbar-user-menu-item block px-3 py-1.5 text-xs text-slate-700 hover:bg-slate-100 transition"
@@ -383,7 +384,7 @@
         style="top: var(--topbar-height, 3.4rem); transition: opacity 0.25s ease;">
     </div>
 
-    <div class="flex flex-1 relative">
+    <div id="appColumns" class="flex flex-1 relative">
 
         <button id="showLeftSidebarTopBtn" type="button"
             class="sidebar-show-tab hidden items-center gap-1 absolute left-3 top-3 z-30 px-2 py-1 rounded-md border border-slate-200 bg-white/85 text-slate-500 text-[10px] font-medium tracking-wide hover:bg-white hover:text-slate-700 transition"
@@ -425,22 +426,22 @@
                                 Torah (5 Books)</summary>
                             <ul class="ml-3 space-y-1 mt-1">
                                 <li><button id="parashaQuickLink" onclick="readText('Genesis 1')"
-                                        class="menu-parasha-quick-link text-left text-[#1f3f63] hover:text-[#102b45] text-sm w-full py-0.5 font-serif">Parashat
+                                        class="menu-parasha-quick-link text-start text-[#1f3f63] hover:text-[#102b45] text-sm w-full py-0.5 font-serif">Parashat
                                         HaShavua</button></li>
                                 <li><button onclick="readText('Genesis 1')"
-                                        class="text-left text-slate-600 hover:text-[#004e5f] text-sm w-full py-0.5">Genesis
+                                        class="text-start text-slate-600 hover:text-[#004e5f] text-sm w-full py-0.5">Genesis
                                         (Bereishit)</button></li>
                                 <li><button onclick="readText('Exodus 1')"
-                                        class="text-left text-slate-600 hover:text-[#004e5f] text-sm w-full py-0.5">Exodus
+                                        class="text-start text-slate-600 hover:text-[#004e5f] text-sm w-full py-0.5">Exodus
                                         (Shemot)</button></li>
                                 <li><button onclick="readText('Leviticus 1')"
-                                        class="text-left text-slate-600 hover:text-[#004e5f] text-sm w-full py-0.5">Leviticus
+                                        class="text-start text-slate-600 hover:text-[#004e5f] text-sm w-full py-0.5">Leviticus
                                         (Vayikra)</button></li>
                                 <li><button onclick="readText('Numbers 1')"
-                                        class="text-left text-slate-600 hover:text-[#004e5f] text-sm w-full py-0.5">Numbers
+                                        class="text-start text-slate-600 hover:text-[#004e5f] text-sm w-full py-0.5">Numbers
                                         (Bamidbar)</button></li>
                                 <li><button onclick="readText('Deuteronomy 1')"
-                                        class="text-left text-slate-600 hover:text-[#004e5f] text-sm w-full py-0.5">Deuteronomy
+                                        class="text-start text-slate-600 hover:text-[#004e5f] text-sm w-full py-0.5">Deuteronomy
                                         (Devarim)</button></li>
                             </ul>
                         </details>
@@ -449,35 +450,35 @@
                                 Prophets (Nevi'im)</summary>
                             <ul class="ml-3 space-y-1 mt-1">
                                 <li><button onclick="readText('Joshua 1')"
-                                        class="text-left text-slate-600 hover:text-[#004e5f] text-sm w-full py-0.5">Joshua
+                                        class="text-start text-slate-600 hover:text-[#004e5f] text-sm w-full py-0.5">Joshua
                                         (Yehoshua)</button>
                                 </li>
                                 <li><button onclick="readText('Judges 1')"
-                                        class="text-left text-slate-600 hover:text-[#004e5f] text-sm w-full py-0.5">Judges
+                                        class="text-start text-slate-600 hover:text-[#004e5f] text-sm w-full py-0.5">Judges
                                         (Shoftim)</button>
                                 </li>
                                 <li><button onclick="readText('I Samuel 1')"
-                                        class="text-left text-slate-600 hover:text-[#004e5f] text-sm w-full py-0.5">I
+                                        class="text-start text-slate-600 hover:text-[#004e5f] text-sm w-full py-0.5">I
                                         Samuel (Shmuel I)</button></li>
                                 <li><button onclick="readText('II Samuel 1')"
-                                        class="text-left text-slate-600 hover:text-[#004e5f] text-sm w-full py-0.5">II
+                                        class="text-start text-slate-600 hover:text-[#004e5f] text-sm w-full py-0.5">II
                                         Samuel (Shmuel II)</button></li>
                                 <li><button onclick="readText('I Kings 1')"
-                                        class="text-left text-slate-600 hover:text-[#004e5f] text-sm w-full py-0.5">I
+                                        class="text-start text-slate-600 hover:text-[#004e5f] text-sm w-full py-0.5">I
                                         Kings (Melakhim I)</button></li>
                                 <li><button onclick="readText('II Kings 1')"
-                                        class="text-left text-slate-600 hover:text-[#004e5f] text-sm w-full py-0.5">II
+                                        class="text-start text-slate-600 hover:text-[#004e5f] text-sm w-full py-0.5">II
                                         Kings (Melakhim II)</button></li>
                                 <li><button onclick="readText('Isaiah 1')"
-                                        class="text-left text-slate-600 hover:text-[#004e5f] text-sm w-full py-0.5">Isaiah
+                                        class="text-start text-slate-600 hover:text-[#004e5f] text-sm w-full py-0.5">Isaiah
                                         (Yeshayahu)</button>
                                 </li>
                                 <li><button onclick="readText('Jeremiah 1')"
-                                        class="text-left text-slate-600 hover:text-[#004e5f] text-sm w-full py-0.5">Jeremiah
+                                        class="text-start text-slate-600 hover:text-[#004e5f] text-sm w-full py-0.5">Jeremiah
                                         (Yirmiyahu)</button>
                                 </li>
                                 <li><button onclick="readText('Ezekiel 1')"
-                                        class="text-left text-slate-600 hover:text-[#004e5f] text-sm w-full py-0.5">Ezekiel
+                                        class="text-start text-slate-600 hover:text-[#004e5f] text-sm w-full py-0.5">Ezekiel
                                         (Yechezkel)</button>
                                 </li>
                                 <li>
@@ -487,40 +488,40 @@
                                             Trei Asar (The Twelve)</summary>
                                         <ul class="ml-3 mt-1 space-y-1">
                                             <li><button onclick="readText('Hosea 1')"
-                                                    class="text-left text-slate-600 hover:text-[#004e5f] text-sm w-full py-0.5">Hoshea
+                                                    class="text-start text-slate-600 hover:text-[#004e5f] text-sm w-full py-0.5">Hoshea
                                                     (Hosha)</button></li>
                                             <li><button onclick="readText('Joel 1')"
-                                                    class="text-left text-slate-600 hover:text-[#004e5f] text-sm w-full py-0.5">Yoel</button>
+                                                    class="text-start text-slate-600 hover:text-[#004e5f] text-sm w-full py-0.5">Yoel</button>
                                             </li>
                                             <li><button onclick="readText('Amos 1')"
-                                                    class="text-left text-slate-600 hover:text-[#004e5f] text-sm w-full py-0.5">Amos</button>
+                                                    class="text-start text-slate-600 hover:text-[#004e5f] text-sm w-full py-0.5">Amos</button>
                                             </li>
                                             <li><button onclick="readText('Obadiah 1')"
-                                                    class="text-left text-slate-600 hover:text-[#004e5f] text-sm w-full py-0.5">Ovadiah
+                                                    class="text-start text-slate-600 hover:text-[#004e5f] text-sm w-full py-0.5">Ovadiah
                                                     (Obadiah)</button></li>
                                             <li><button onclick="readText('Jonah 1')"
-                                                    class="text-left text-slate-600 hover:text-[#004e5f] text-sm w-full py-0.5">Yonah
+                                                    class="text-start text-slate-600 hover:text-[#004e5f] text-sm w-full py-0.5">Yonah
                                                     (Jonah)</button></li>
                                             <li><button onclick="readText('Micah 1')"
-                                                    class="text-left text-slate-600 hover:text-[#004e5f] text-sm w-full py-0.5">Micah</button>
+                                                    class="text-start text-slate-600 hover:text-[#004e5f] text-sm w-full py-0.5">Micah</button>
                                             </li>
                                             <li><button onclick="readText('Nahum 1')"
-                                                    class="text-left text-slate-600 hover:text-[#004e5f] text-sm w-full py-0.5">Nachum
+                                                    class="text-start text-slate-600 hover:text-[#004e5f] text-sm w-full py-0.5">Nachum
                                                     (Nahum)</button></li>
                                             <li><button onclick="readText('Habakkuk 1')"
-                                                    class="text-left text-slate-600 hover:text-[#004e5f] text-sm w-full py-0.5">Habakkuk
+                                                    class="text-start text-slate-600 hover:text-[#004e5f] text-sm w-full py-0.5">Habakkuk
                                                     (Chavakuk)</button></li>
                                             <li><button onclick="readText('Zephaniah 1')"
-                                                    class="text-left text-slate-600 hover:text-[#004e5f] text-sm w-full py-0.5">Tzefaniah
+                                                    class="text-start text-slate-600 hover:text-[#004e5f] text-sm w-full py-0.5">Tzefaniah
                                                     (Zephaniah)</button></li>
                                             <li><button onclick="readText('Haggai 1')"
-                                                    class="text-left text-slate-600 hover:text-[#004e5f] text-sm w-full py-0.5">Chaggai
+                                                    class="text-start text-slate-600 hover:text-[#004e5f] text-sm w-full py-0.5">Chaggai
                                                     (Haggai)</button></li>
                                             <li><button onclick="readText('Zechariah 1')"
-                                                    class="text-left text-slate-600 hover:text-[#004e5f] text-sm w-full py-0.5">Zechariah
+                                                    class="text-start text-slate-600 hover:text-[#004e5f] text-sm w-full py-0.5">Zechariah
                                                     (Zechariah)</button></li>
                                             <li><button onclick="readText('Malachi 1')"
-                                                    class="text-left text-slate-600 hover:text-[#004e5f] text-sm w-full py-0.5">Malachi
+                                                    class="text-start text-slate-600 hover:text-[#004e5f] text-sm w-full py-0.5">Malachi
                                                     (Malakhi)</button></li>
                                         </ul>
                                     </details>
@@ -532,45 +533,45 @@
                                 Writings (Ketuvim)</summary>
                             <ul class="ml-3 space-y-1 mt-1">
                                 <li><button onclick="readText('Psalms 1')"
-                                        class="text-left text-slate-600 hover:text-[#004e5f] text-sm w-full py-0.5">Psalms
+                                        class="text-start text-slate-600 hover:text-[#004e5f] text-sm w-full py-0.5">Psalms
                                         (Tehillim)</button></li>
                                 <li><button onclick="readText('Proverbs 1')"
-                                        class="text-left text-slate-600 hover:text-[#004e5f] text-sm w-full py-0.5">Proverbs
+                                        class="text-start text-slate-600 hover:text-[#004e5f] text-sm w-full py-0.5">Proverbs
                                         (Mishlei)</button></li>
                                 <li><button onclick="readText('Job 1')"
-                                        class="text-left text-slate-600 hover:text-[#004e5f] text-sm w-full py-0.5">Job
+                                        class="text-start text-slate-600 hover:text-[#004e5f] text-sm w-full py-0.5">Job
                                         (Iyov)</button></li>
                                 <li><button onclick="readText('Song of Songs 1')"
-                                        class="text-left text-slate-600 hover:text-[#004e5f] text-sm w-full py-0.5">Song
+                                        class="text-start text-slate-600 hover:text-[#004e5f] text-sm w-full py-0.5">Song
                                         of Songs (Shir HaShirim)</button></li>
                                 <li><button onclick="readText('Ruth 1')"
-                                        class="text-left text-slate-600 hover:text-[#004e5f] text-sm w-full py-0.5">Ruth</button>
+                                        class="text-start text-slate-600 hover:text-[#004e5f] text-sm w-full py-0.5">Ruth</button>
                                 </li>
                                 <li><button onclick="readText('Lamentations 1')"
-                                        class="text-left text-slate-600 hover:text-[#004e5f] text-sm w-full py-0.5">Lamentations
+                                        class="text-start text-slate-600 hover:text-[#004e5f] text-sm w-full py-0.5">Lamentations
                                         (Eicha)</button></li>
                                 <li><button onclick="readText('Ecclesiastes 1')"
-                                        class="text-left text-slate-600 hover:text-[#004e5f] text-sm w-full py-0.5">Ecclesiastes
+                                        class="text-start text-slate-600 hover:text-[#004e5f] text-sm w-full py-0.5">Ecclesiastes
                                         (Kohelet)</button></li>
                                 <li><button onclick="readText('Esther 1')"
-                                        class="text-left text-slate-600 hover:text-[#004e5f] text-sm w-full py-0.5">Esther
+                                        class="text-start text-slate-600 hover:text-[#004e5f] text-sm w-full py-0.5">Esther
                                         (Megillat Esther)</button>
                                 </li>
                                 <li><button onclick="readText('Daniel 1')"
-                                        class="text-left text-slate-600 hover:text-[#004e5f] text-sm w-full py-0.5">Daniel
+                                        class="text-start text-slate-600 hover:text-[#004e5f] text-sm w-full py-0.5">Daniel
                                         (Daniyel)</button>
                                 </li>
                                 <li><button onclick="readText('Ezra 1')"
-                                        class="text-left text-slate-600 hover:text-[#004e5f] text-sm w-full py-0.5">Ezra</button>
+                                        class="text-start text-slate-600 hover:text-[#004e5f] text-sm w-full py-0.5">Ezra</button>
                                 </li>
                                 <li><button onclick="readText('Nehemiah 1')"
-                                        class="text-left text-slate-600 hover:text-[#004e5f] text-sm w-full py-0.5">Nehemiah</button>
+                                        class="text-start text-slate-600 hover:text-[#004e5f] text-sm w-full py-0.5">Nehemiah</button>
                                 </li>
                                 <li><button onclick="readText('I Chronicles 1')"
-                                        class="text-left text-slate-600 hover:text-[#004e5f] text-sm w-full py-0.5">I
+                                        class="text-start text-slate-600 hover:text-[#004e5f] text-sm w-full py-0.5">I
                                         Chronicles</button></li>
                                 <li><button onclick="readText('II Chronicles 1')"
-                                        class="text-left text-slate-600 hover:text-[#004e5f] text-sm w-full py-0.5">II
+                                        class="text-start text-slate-600 hover:text-[#004e5f] text-sm w-full py-0.5">II
                                         Chronicles</button></li>
                             </ul>
                         </details>
@@ -582,19 +583,20 @@
                         data-en="Torah Commentaries" data-he="מפרשי התורה">Torah Commentaries</summary>
                     <ul class="ml-2 space-y-1 border-l-2 pl-3 border-[#8b5e34]/30">
                         <li><button onclick="openRashiCommentaryFromLibrary()"
-                                class="text-left text-slate-600 hover:text-[#8b5e34] text-sm w-full py-0.5">Rashi on
+                                class="text-start text-slate-600 hover:text-[#8b5e34] text-sm w-full py-0.5">Rashi on
                                 Torah</button></li>
                         <li><button onclick="readText('Ibn Ezra on Genesis 1:1')"
-                                class="text-left text-slate-600 hover:text-[#8b5e34] text-sm w-full py-0.5">Ibn Ezra on
+                                class="text-start text-slate-600 hover:text-[#8b5e34] text-sm w-full py-0.5">Ibn Ezra on
                                 Torah</button></li>
                         <li><button onclick="readText('Ramban on Genesis 1:1')"
-                                class="text-left text-slate-600 hover:text-[#8b5e34] text-sm w-full py-0.5">Ramban on
+                                class="text-start text-slate-600 hover:text-[#8b5e34] text-sm w-full py-0.5">Ramban on
                                 Torah</button></li>
                         <li><button onclick="readText('Sforno on Genesis 1:1')"
-                                class="text-left text-slate-600 hover:text-[#8b5e34] text-sm w-full py-0.5">Sforno on
+                                class="text-start text-slate-600 hover:text-[#8b5e34] text-sm w-full py-0.5">Sforno on
                                 Torah</button></li>
                         <li><button onclick="readText('Kli Yakar on Genesis 1:1')"
-                                class="text-left text-slate-600 hover:text-[#8b5e34] text-sm w-full py-0.5">Kli Yakar on
+                                class="text-start text-slate-600 hover:text-[#8b5e34] text-sm w-full py-0.5">Kli Yakar
+                                on
                                 Torah</button></li>
                     </ul>
                 </details>
@@ -603,31 +605,31 @@
                         data-he="משנה">Mishnah</summary>
                     <ul class="ml-2 space-y-1 border-l-2 pl-3 border-[#5a99b7]/30">
                         <li><button onclick="readText('Mishnah Berakhot 1')"
-                                class="text-left text-slate-600 hover:text-[#5a99b7] text-sm w-full py-0.5">Berakhot
+                                class="text-start text-slate-600 hover:text-[#5a99b7] text-sm w-full py-0.5">Berakhot
                                 (Blessings)</button></li>
                         <li><button onclick="readText('Mishnah Shabbat 1')"
-                                class="text-left text-slate-600 hover:text-[#5a99b7] text-sm w-full py-0.5">Shabbat</button>
+                                class="text-start text-slate-600 hover:text-[#5a99b7] text-sm w-full py-0.5">Shabbat</button>
                         </li>
                         <li><button onclick="readText('Mishnah Pesachim 1')"
-                                class="text-left text-slate-600 hover:text-[#5a99b7] text-sm w-full py-0.5">Pesachim
+                                class="text-start text-slate-600 hover:text-[#5a99b7] text-sm w-full py-0.5">Pesachim
                                 (Passover)</button></li>
                         <li><button onclick="readText('Mishnah Sukkah 1')"
-                                class="text-left text-slate-600 hover:text-[#5a99b7] text-sm w-full py-0.5">Sukkah</button>
+                                class="text-start text-slate-600 hover:text-[#5a99b7] text-sm w-full py-0.5">Sukkah</button>
                         </li>
                         <li><button onclick="readText('Mishnah Beitzah 1')"
-                                class="text-left text-slate-600 hover:text-[#5a99b7] text-sm w-full py-0.5">Yom
+                                class="text-start text-slate-600 hover:text-[#5a99b7] text-sm w-full py-0.5">Yom
                                 Tov</button></li>
                         <li><button onclick="readText('Mishnah Rosh Hashanah 1')"
-                                class="text-left text-slate-600 hover:text-[#5a99b7] text-sm w-full py-0.5">Rosh
+                                class="text-start text-slate-600 hover:text-[#5a99b7] text-sm w-full py-0.5">Rosh
                                 Hashanah</button></li>
                         <li><button onclick="readText('Mishnah Taanit 1')"
-                                class="text-left text-slate-600 hover:text-[#5a99b7] text-sm w-full py-0.5">Taanit
+                                class="text-start text-slate-600 hover:text-[#5a99b7] text-sm w-full py-0.5">Taanit
                                 (Fasting)</button></li>
                         <li><button onclick="readText('Pirkei Avot 1')"
-                                class="text-left text-slate-600 hover:text-[#5a99b7] text-sm w-full py-0.5">Pirkei Avot
+                                class="text-start text-slate-600 hover:text-[#5a99b7] text-sm w-full py-0.5">Pirkei Avot
                                 (Ethics)</button></li>
                         <li><button onclick="readText('Mishnah Niddah 1')"
-                                class="text-left text-slate-600 hover:text-[#5a99b7] text-sm w-full py-0.5">Niddah
+                                class="text-start text-slate-600 hover:text-[#5a99b7] text-sm w-full py-0.5">Niddah
                                 (Family Purity)</button></li>
                     </ul>
                 </details>
@@ -643,7 +645,7 @@
                                     data-en="Seder Zeraim" data-he="סדר זרעים">Seder Zeraim</summary>
                                 <ul class="ml-3 mt-1 space-y-1">
                                     <li><button onclick="readText('Berakhot 2a')"
-                                            class="text-left text-slate-600 hover:text-[#a08a4a] text-sm w-full py-0.5">Berakhot</button>
+                                            class="text-start text-slate-600 hover:text-[#a08a4a] text-sm w-full py-0.5">Berakhot</button>
                                     </li>
                                 </ul>
                             </details>
@@ -655,13 +657,13 @@
                                     data-en="Seder Moed" data-he="סדר מועד">Seder Moed</summary>
                                 <ul class="ml-3 mt-1 space-y-1">
                                     <li><button onclick="readText('Shabbat 2a')"
-                                            class="text-left text-slate-600 hover:text-[#a08a4a] text-sm w-full py-0.5">Shabbat</button>
+                                            class="text-start text-slate-600 hover:text-[#a08a4a] text-sm w-full py-0.5">Shabbat</button>
                                     </li>
                                     <li><button onclick="readText('Pesachim 2a')"
-                                            class="text-left text-slate-600 hover:text-[#a08a4a] text-sm w-full py-0.5">Pesachim</button>
+                                            class="text-start text-slate-600 hover:text-[#a08a4a] text-sm w-full py-0.5">Pesachim</button>
                                     </li>
                                     <li><button onclick="readText('Sukkah 2a')"
-                                            class="text-left text-slate-600 hover:text-[#a08a4a] text-sm w-full py-0.5">Sukkah</button>
+                                            class="text-start text-slate-600 hover:text-[#a08a4a] text-sm w-full py-0.5">Sukkah</button>
                                     </li>
                                 </ul>
                             </details>
@@ -673,13 +675,13 @@
                                     data-en="Seder Nashim" data-he="סדר נשים">Seder Nashim</summary>
                                 <ul class="ml-3 mt-1 space-y-1">
                                     <li><button onclick="readText('Kiddushin 2a')"
-                                            class="text-left text-slate-600 hover:text-[#a08a4a] text-sm w-full py-0.5">Kiddushin</button>
+                                            class="text-start text-slate-600 hover:text-[#a08a4a] text-sm w-full py-0.5">Kiddushin</button>
                                     </li>
                                     <li><button onclick="readText('Gittin 2a')"
-                                            class="text-left text-slate-600 hover:text-[#a08a4a] text-sm w-full py-0.5">Gittin</button>
+                                            class="text-start text-slate-600 hover:text-[#a08a4a] text-sm w-full py-0.5">Gittin</button>
                                     </li>
                                     <li><button onclick="readText('Niddah 2a')"
-                                            class="text-left text-slate-600 hover:text-[#a08a4a] text-sm w-full py-0.5">Niddah</button>
+                                            class="text-start text-slate-600 hover:text-[#a08a4a] text-sm w-full py-0.5">Niddah</button>
                                     </li>
                                 </ul>
                             </details>
@@ -691,7 +693,7 @@
                                     data-en="Seder Nezikin" data-he="סדר נזיקין">Seder Nezikin</summary>
                                 <ul class="ml-3 mt-1 space-y-1">
                                     <li><button onclick="readText('Sanhedrin 37a')"
-                                            class="text-left text-slate-600 hover:text-[#a08a4a] text-sm w-full py-0.5">Sanhedrin</button>
+                                            class="text-start text-slate-600 hover:text-[#a08a4a] text-sm w-full py-0.5">Sanhedrin</button>
                                     </li>
                                 </ul>
                             </details>
@@ -703,25 +705,25 @@
                         data-he="הלכה">Halakhah</summary>
                     <ul class="ml-2 space-y-1 border-l-2 pl-3 border-[#802f3e]/30">
                         <li><button onclick="readText('Shulchan Arukh, Orach Chayim 1')"
-                                class="text-left text-slate-600 hover:text-[#802f3e] text-sm w-full py-0.5">Shulchan
+                                class="text-start text-slate-600 hover:text-[#802f3e] text-sm w-full py-0.5">Shulchan
                                 Arukh OC</button></li>
                         <li><button onclick="readText('Shulchan Arukh, Yoreh Deah 1')"
-                                class="text-left text-slate-600 hover:text-[#802f3e] text-sm w-full py-0.5">Shulchan
+                                class="text-start text-slate-600 hover:text-[#802f3e] text-sm w-full py-0.5">Shulchan
                                 Arukh YD</button></li>
                         <li><button onclick="readText('Shulchan Arukh, Even HaEzer 1')"
-                                class="text-left text-slate-600 hover:text-[#802f3e] text-sm w-full py-0.5">Shulchan
+                                class="text-start text-slate-600 hover:text-[#802f3e] text-sm w-full py-0.5">Shulchan
                                 Arukh EH</button></li>
                         <li><button onclick="readText('Shulchan Arukh, Choshen Mishpat 1')"
-                                class="text-left text-slate-600 hover:text-[#802f3e] text-sm w-full py-0.5">Shulchan
+                                class="text-start text-slate-600 hover:text-[#802f3e] text-sm w-full py-0.5">Shulchan
                                 Arukh CM</button></li>
                         <li><button onclick="readText('Mishneh Torah, Torah Study 1')"
-                                class="text-left text-slate-600 hover:text-[#802f3e] text-sm w-full py-0.5">Mishneh
+                                class="text-start text-slate-600 hover:text-[#802f3e] text-sm w-full py-0.5">Mishneh
                                 Torah</button></li>
                         <li><button onclick="readText('Kitzur Shulchan Arukh 1')"
-                                class="text-left text-slate-600 hover:text-[#802f3e] text-sm w-full py-0.5">Kitzur
+                                class="text-start text-slate-600 hover:text-[#802f3e] text-sm w-full py-0.5">Kitzur
                                 Shulchan Arukh</button></li>
                         <li><button onclick="readText('Mishnah Berurah 1')"
-                                class="text-left text-slate-600 hover:text-[#802f3e] text-sm w-full py-0.5">Mishnah
+                                class="text-start text-slate-600 hover:text-[#802f3e] text-sm w-full py-0.5">Mishnah
                                 Berurah</button></li>
                     </ul>
                 </details>
@@ -743,47 +745,47 @@
                     </summary>
                     <ul class="ml-2 space-y-1 border-l-2 pl-3 border-[#594176]/30">
                         <li><button onclick="displayCommunity('Ashkenaz')"
-                                class="text-left text-slate-600 hover:text-[#594176] text-sm w-full py-0.5"
+                                class="text-start text-slate-600 hover:text-[#594176] text-sm w-full py-0.5"
                                 data-en="Ashkenaz" data-he="אשכנז">Ashkenaz</button>
                         </li>
                         <li><button onclick="displayCommunity('Sefardic')"
-                                class="text-left text-slate-600 hover:text-[#594176] text-sm w-full py-0.5"
+                                class="text-start text-slate-600 hover:text-[#594176] text-sm w-full py-0.5"
                                 data-en="Sefardic" data-he="ספרדי">Sefardic</button></li>
                         <li><button onclick="displayCommunity('Iraqi')"
-                                class="text-left text-slate-600 hover:text-[#594176] text-sm w-full py-0.5"
+                                class="text-start text-slate-600 hover:text-[#594176] text-sm w-full py-0.5"
                                 data-en="Iraqi" data-he="עיראקי">Iraqi</button></li>
                         <li><button onclick="displayCommunity('Syrian')"
-                                class="text-left text-slate-600 hover:text-[#594176] text-sm w-full py-0.5"
+                                class="text-start text-slate-600 hover:text-[#594176] text-sm w-full py-0.5"
                                 data-en="Syrian" data-he="סורי">Syrian</button></li>
                         <li><button onclick="displayCommunity('Yemenite')"
-                                class="text-left text-slate-600 hover:text-[#594176] text-sm w-full py-0.5"
+                                class="text-start text-slate-600 hover:text-[#594176] text-sm w-full py-0.5"
                                 data-en="Yemenite" data-he="תימני">Yemenite</button></li>
                         <li><button onclick="displayCommunity('Moroccan')"
-                                class="text-left text-slate-600 hover:text-[#594176] text-sm w-full py-0.5"
+                                class="text-start text-slate-600 hover:text-[#594176] text-sm w-full py-0.5"
                                 data-en="Moroccan" data-he="מרוקאי">Moroccan</button></li>
                         <li><button onclick="displayCommunity('Bukharian')"
-                                class="text-left text-slate-600 hover:text-[#594176] text-sm w-full py-0.5"
+                                class="text-start text-slate-600 hover:text-[#594176] text-sm w-full py-0.5"
                                 data-en="Bukharian" data-he="בוכרי">Bukharian</button></li>
                         <li><button onclick="displayCommunity('Persian')"
-                                class="text-left text-slate-600 hover:text-[#594176] text-sm w-full py-0.5"
+                                class="text-start text-slate-600 hover:text-[#594176] text-sm w-full py-0.5"
                                 data-en="Persian" data-he="פרסי">Persian</button></li>
                         <li><button onclick="displayCommunity('Ethiopian')"
-                                class="text-left text-slate-600 hover:text-[#594176] text-sm w-full py-0.5"
+                                class="text-start text-slate-600 hover:text-[#594176] text-sm w-full py-0.5"
                                 data-en="Ethiopian" data-he="אתיופי">Ethiopian</button></li>
                         <li><button onclick="displayCommunity('Georgian')"
-                                class="text-left text-slate-600 hover:text-[#594176] text-sm w-full py-0.5"
+                                class="text-start text-slate-600 hover:text-[#594176] text-sm w-full py-0.5"
                                 data-en="Georgian" data-he="גרוזיני">Georgian</button></li>
                         <li><button onclick="displayCommunity('Greek-Romaniote')"
-                                class="text-left text-slate-600 hover:text-[#594176] text-sm w-full py-0.5"
+                                class="text-start text-slate-600 hover:text-[#594176] text-sm w-full py-0.5"
                                 data-en="Greek-Romaniote" data-he="רומניוטי">Greek-Romaniote</button></li>
                         <li><button onclick="displayCommunity('Kavkazi')"
-                                class="text-left text-slate-600 hover:text-[#594176] text-sm w-full py-0.5"
+                                class="text-start text-slate-600 hover:text-[#594176] text-sm w-full py-0.5"
                                 data-en="Kavkazi" data-he="קווקזי">Kavkazi</button></li>
                         <li><button onclick="displayCommunity('Turkish-Ottoman')"
-                                class="text-left text-slate-600 hover:text-[#594176] text-sm w-full py-0.5"
+                                class="text-start text-slate-600 hover:text-[#594176] text-sm w-full py-0.5"
                                 data-en="Turkish-Ottoman" data-he="טורקי-עות׳מאני">Turkish-Ottoman</button></li>
                         <li><button onclick="displayCommunity('Israeli')"
-                                class="text-left text-slate-600 hover:text-[#594176] text-sm w-full py-0.5"
+                                class="text-start text-slate-600 hover:text-[#594176] text-sm w-full py-0.5"
                                 data-en="Israeli" data-he="ישראלי">Israeli</button></li>
                     </ul>
                 </details>
@@ -838,7 +840,7 @@
                     <p class="home-section-label" data-en="Parasha of the Week" data-he="פרשת השבוע">Parasha of the Week
                     </p>
                     <button id="homeParashaQuickLink" type="button"
-                        class="home-topic-title text-left font-serif text-3xl sm:text-4xl text-navy leading-tight hover:text-[#0f4d67] transition"
+                        class="home-topic-title text-start font-serif text-3xl sm:text-4xl text-navy leading-tight hover:text-[#0f4d67] transition"
                         onclick="readText('Genesis 1')">Parashat HaShavua</button>
                     <p class="mt-3 text-sm text-slate-600 max-w-2xl"
                         data-en="Start from today's anchor text, then branch into side commentaries and related sources."
@@ -852,7 +854,7 @@
                         <p class="home-section-label mb-5" data-en="Library" data-he="ספרייה">Library</p>
                         <div class="space-y-6">
                             <button type="button" onclick="openLibraryCategory('tanakh')"
-                                class="home-library-link home-link-tanakh text-left w-full">
+                                class="home-library-link home-link-tanakh text-start w-full">
                                 <span class="home-library-title" data-en="Tanakh" data-he="תנ״ך">Tanakh</span>
                                 <span class="home-library-description"
                                     data-en="Torah, Nevi'im, and Ketuvim: the foundational text of Jewish learning and life."
@@ -861,7 +863,7 @@
                             </button>
 
                             <button type="button" onclick="openLibraryCategory('mishnah')"
-                                class="home-library-link home-link-mishnah text-left w-full">
+                                class="home-library-link home-link-mishnah text-start w-full">
                                 <span class="home-library-title" data-en="Mishnah" data-he="משנה">Mishnah</span>
                                 <span class="home-library-description"
                                     data-en="The first major rabbinic legal corpus, organized for practical study."
@@ -870,7 +872,7 @@
                             </button>
 
                             <button type="button" onclick="openLibraryCategory('talmud')"
-                                class="home-library-link home-link-talmud text-left w-full">
+                                class="home-library-link home-link-talmud text-start w-full">
                                 <span class="home-library-title" data-en="Talmud" data-he="תלמוד">Talmud</span>
                                 <span class="home-library-description"
                                     data-en="Generations of analysis on law, ethics, and scripture around the Mishnah."
@@ -879,7 +881,7 @@
                             </button>
 
                             <button type="button" onclick="openLibraryCategory('halakhah')"
-                                class="home-library-link home-link-halakhah text-left w-full">
+                                class="home-library-link home-link-halakhah text-start w-full">
                                 <span class="home-library-title" data-en="Halakhah" data-he="הלכה">Halakhah</span>
                                 <span class="home-library-description"
                                     data-en="Legal works guiding daily Jewish practice through classical rulings."
@@ -888,7 +890,7 @@
                             </button>
 
                             <button type="button" onclick="openLibraryCategory('customs')"
-                                class="home-library-link home-link-customs text-left w-full">
+                                class="home-library-link home-link-customs text-start w-full">
                                 <span class="home-library-title" data-en="Community Customs"
                                     data-he="מנהגים קהילתיים">Community Customs</span>
                                 <span class="home-library-description"
@@ -899,7 +901,7 @@
                             </button>
 
                             <button type="button" onclick="openLibraryCategory('kabbalah')"
-                                class="home-library-link home-link-thought text-left w-full">
+                                class="home-library-link home-link-thought text-start w-full">
                                 <span class="home-library-title" data-en="Kabbalah &amp; Thought"
                                     data-he="קבלה ומחשבה">Kabbalah &amp; Thought</span>
                                 <span class="home-library-description"
@@ -941,7 +943,7 @@
                                     <input id="citySearchInput" type="text" placeholder="e.g. Jerusalem, New York..."
                                         class="flex-1 text-sm px-3 py-1.5 rounded-lg border border-[#d7cebc] bg-white focus:outline-none focus:border-[#a09060] focus:ring-2 focus:ring-[#d9cdb8]/50"
                                         data-en-placeholder="e.g. Jerusalem, New York..."
-                                        data-he-placeholder="לדוגמה: ירושלים, תל אביב..." />
+                                        data-he-placeholder="לדוגמה: ירושלים, ניו יורק" />
                                     <button id="citySearchSubmit" type="button" onclick="searchByCity()"
                                         class="px-3 py-1.5 rounded-lg bg-[#1f3f63] text-white text-sm font-semibold hover:bg-[#162d4a] transition">
                                         <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20"
@@ -1078,12 +1080,12 @@
                             <div class="space-y-2 text-sm">
                                 <div class="flex justify-between items-center py-1.5 border-b border-slate-100">
                                     <span class="text-slate-500" data-en="Today" data-he="היום">Today</span>
-                                    <b id="holidayName" class="text-slate-700 text-right max-w-[60%]">Regular Day</b>
+                                    <b id="holidayName" class="text-slate-700 text-end max-w-[60%]">Regular Day</b>
                                 </div>
                                 <div class="flex justify-between items-center py-1.5 border-b border-slate-100">
                                     <span class="text-slate-500" data-en="This Week's Shabbat" data-he="שבת השבוע">This
                                         Week's Shabbat</span>
-                                    <b id="shabbatWeekName" class="text-slate-700 text-right max-w-[60%]">--</b>
+                                    <b id="shabbatWeekName" class="text-slate-700 text-end max-w-[60%]">--</b>
                                 </div>
                                 <div id="omerRow"
                                     class="hidden flex justify-between items-center py-1.5 border-b border-slate-100">
@@ -1178,80 +1180,83 @@
                         <span aria-hidden="true">&#9664;</span>
                     </button>
 
-                    <div class="relative text-left reader-topbar-settings-wrap">
-                        <button id="readerSettingsBtn" type="button"
-                            class="reader-topbar-icon-btn reader-topbar-settings-btn" aria-label="Reader Settings"
-                            title="Reader Settings">
-                            <span class="reader-topbar-settings-icon" aria-hidden="true">&#9776;</span>
-                            <span id="readerSettingsBtnLabel" class="reader-topbar-settings-label"
-                                data-en="Reader Settings" data-he="הגדרות קריאה">Reader Settings</span>
-                        </button>
+                    <div class="text-start reader-topbar-settings-wrap">
+                        <div class="reader-topbar-settings-anchor relative">
+                            <button id="readerSettingsBtn" type="button"
+                                class="reader-topbar-icon-btn reader-topbar-settings-btn" aria-label="Reader Settings"
+                                title="Reader Settings">
+                                <span class="reader-topbar-settings-icon" aria-hidden="true">&#9776;</span>
+                                <span id="readerSettingsBtnLabel" class="reader-topbar-settings-label"
+                                    data-en="Reader Settings" data-he="הגדרות קריאה">Reader Settings</span>
+                            </button>
 
-                        <div id="readerSettingsPanel"
-                            class="hidden absolute left-1/2 -translate-x-1/2 top-full mt-1 w-[min(92vw,24rem)] bg-white border border-slate-200 rounded-xl shadow-lg p-3 z-[80] space-y-3 text-left">
-                            <p class="text-[11px] uppercase tracking-widest text-slate-400 font-bold"
-                                data-en="Reader Settings" data-he="הגדרות קריאה">Reader Settings</p>
+                            <div id="readerSettingsPanel"
+                                class="hidden absolute reader-settings-dropdown top-full mt-1 w-[min(92vw,24rem)] rounded-xl p-3 z-[80] space-y-3 text-start">
+                                <p class="text-[11px] uppercase tracking-widest text-slate-400 font-bold"
+                                    data-en="Reader Settings" data-he="הגדרות קריאה">Reader Settings</p>
 
-                            <label class="block text-xs text-slate-600">
-                                <span data-en="Layout" data-he="פריסה">Layout</span>
-                                <select id="readerLayoutSelect"
-                                    class="mt-1 w-full px-2 py-1.5 rounded border border-slate-200 bg-slate-50 text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-300">
-                                    <option value="bilingual" data-en="Side by Side (Hebrew Left)"
-                                        data-he="דו-עמודי (עברית משמאל)">Side by Side (Hebrew Left)
-                                    </option>
-                                    <option value="bilingual-reverse" data-en="Side by Side (English Left)"
-                                        data-he="דו-עמודי (אנגלית משמאל)">Side by Side (English Left)</option>
-                                    <option value="interleaved" data-en="Interleaved" data-he="משולב שורה-שורה">
-                                        Interleaved</option>
-                                    <option value="english" data-en="English" data-he="אנגלית">English</option>
-                                    <option value="hebrew" data-en="Hebrew" data-he="עברית">Hebrew</option>
-                                </select>
-                            </label>
-
-                            <label class="block text-xs text-slate-600">
-                                <span data-en="Text Size" data-he="גודל טקסט">Text Size</span>
-                                <input id="readerFontSize" type="range" min="14" max="30" value="18"
-                                    class="reader-range-slider mt-1 w-full" />
-                            </label>
-
-                            <label class="block text-xs text-slate-600">
-                                <span data-en="Density" data-he="ריווח">Density</span>
-                                <input id="readerLineHeight" type="range" min="1.4" max="2.4" step="0.1" value="1.8"
-                                    class="reader-range-slider mt-1 w-full" />
-                            </label>
-
-                            <div class="space-y-2 border-t border-slate-100 pt-2">
-                                <label class="flex items-center justify-between text-xs text-slate-600">
-                                    <span data-en="Source Transliteration" data-he="תעתיק מהמקור">Source
-                                        Transliteration</span>
-                                    <input id="transliterationToggle" type="checkbox" class="reader-switch" />
-                                </label>
-                                <label class="flex items-center justify-between text-xs text-slate-600">
-                                    <span data-en="Show Vowels" data-he="הצג ניקוד">Show Vowels</span>
-                                    <input id="showVowelsToggle" type="checkbox" class="reader-switch" checked />
-                                </label>
-                                <label id="cantillationToggleRow"
-                                    class="flex items-center justify-between text-xs text-slate-600">
-                                    <span data-en="Show Cantillation" data-he="הצג טעמי מקרא">Show
-                                        Cantillation</span>
-                                    <input id="showCantillationToggle" type="checkbox" class="reader-switch" checked />
-                                </label>
-                            </div>
-
-                            <div class="space-y-2 border-t border-slate-100 pt-2">
-                                <label class="flex items-center justify-between text-xs text-slate-600">
-                                    <span data-en="Shul Mode" data-he="מצב בית כנסת">Shul Mode</span>
-                                    <input id="shulModeToggle" type="checkbox" class="reader-switch" />
-                                </label>
-                                <label class="flex items-center justify-between text-xs text-slate-600">
-                                    <span data-en="Auto Scroll" data-he="גלילה אוטומטית">Auto Scroll</span>
-                                    <input id="shulAutoScrollToggle" type="checkbox" class="reader-switch" />
-                                </label>
                                 <label class="block text-xs text-slate-600">
-                                    <span data-en="Scroll Speed" data-he="מהירות גלילה">Scroll Speed</span>
-                                    <input id="shulScrollSpeed" type="range" min="8" max="80" value="28"
+                                    <span data-en="Layout" data-he="פריסה">Layout</span>
+                                    <select id="readerLayoutSelect"
+                                        class="mt-1 w-full px-2 py-1.5 rounded border border-slate-200 bg-slate-50 text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-300">
+                                        <option value="bilingual" data-en="Side by Side (Hebrew Left)"
+                                            data-he="דו-עמודי (עברית משמאל)">Side by Side (Hebrew Left)
+                                        </option>
+                                        <option value="bilingual-reverse" data-en="Side by Side (English Left)"
+                                            data-he="דו-עמודי (אנגלית משמאל)">Side by Side (English Left)</option>
+                                        <option value="interleaved" data-en="Interleaved" data-he="משולב שורה-שורה">
+                                            Interleaved</option>
+                                        <option value="english" data-en="English" data-he="אנגלית">English</option>
+                                        <option value="hebrew" data-en="Hebrew" data-he="עברית">Hebrew</option>
+                                    </select>
+                                </label>
+
+                                <label class="block text-xs text-slate-600">
+                                    <span data-en="Text Size" data-he="גודל טקסט">Text Size</span>
+                                    <input id="readerFontSize" type="range" min="14" max="30" value="18"
                                         class="reader-range-slider mt-1 w-full" />
                                 </label>
+
+                                <label class="block text-xs text-slate-600">
+                                    <span data-en="Density" data-he="ריווח">Density</span>
+                                    <input id="readerLineHeight" type="range" min="1.4" max="2.4" step="0.1" value="1.8"
+                                        class="reader-range-slider mt-1 w-full" />
+                                </label>
+
+                                <div class="space-y-2 border-t border-slate-100 pt-2">
+                                    <label class="flex items-center justify-between text-xs text-slate-600">
+                                        <span data-en="Source Transliteration" data-he="תעתיק מהמקור">Source
+                                            Transliteration</span>
+                                        <input id="transliterationToggle" type="checkbox" class="reader-switch" />
+                                    </label>
+                                    <label class="flex items-center justify-between text-xs text-slate-600">
+                                        <span data-en="Show Vowels" data-he="הצג ניקוד">Show Vowels</span>
+                                        <input id="showVowelsToggle" type="checkbox" class="reader-switch" checked />
+                                    </label>
+                                    <label id="cantillationToggleRow"
+                                        class="flex items-center justify-between text-xs text-slate-600">
+                                        <span data-en="Show Cantillation" data-he="הצג טעמי מקרא">Show
+                                            Cantillation</span>
+                                        <input id="showCantillationToggle" type="checkbox" class="reader-switch"
+                                            checked />
+                                    </label>
+                                </div>
+
+                                <div class="space-y-2 border-t border-slate-100 pt-2">
+                                    <label class="flex items-center justify-between text-xs text-slate-600">
+                                        <span data-en="Shul Mode" data-he="מצב בית כנסת">Shul Mode</span>
+                                        <input id="shulModeToggle" type="checkbox" class="reader-switch" />
+                                    </label>
+                                    <label class="flex items-center justify-between text-xs text-slate-600">
+                                        <span data-en="Auto Scroll" data-he="גלילה אוטומטית">Auto Scroll</span>
+                                        <input id="shulAutoScrollToggle" type="checkbox" class="reader-switch" />
+                                    </label>
+                                    <label class="block text-xs text-slate-600">
+                                        <span data-en="Scroll Speed" data-he="מהירות גלילה">Scroll Speed</span>
+                                        <input id="shulScrollSpeed" type="range" min="8" max="80" value="28"
+                                            class="reader-range-slider mt-1 w-full" />
+                                    </label>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -1447,11 +1452,6 @@
                 </div>
             </div>
 
-            <div class="bg-slate-50 border-t px-6 py-4 flex justify-end">
-                <button onclick="closeTextsMenu()"
-                    class="px-4 py-2 text-slate-700 hover:bg-slate-100 rounded transition" data-en="Close"
-                    data-he="סגור">Close</button>
-            </div>
         </div>
     </div>
 
@@ -1591,7 +1591,7 @@
             </div>
             <!-- Grid Split -->
             <div class="source-grid grid grid-cols-1 lg:grid-cols-2 text-base">
-                <div class="source-he bg-white text-right font-hebrew text-xl lg:text-2xl leading-[1.8] border-b lg:border-b-0 lg:border-r border-slate-200 p-6"
+                <div class="source-he bg-white text-end font-hebrew text-xl lg:text-2xl leading-[1.8] border-b lg:border-b-0 lg:border-r border-slate-200 p-6"
                     dir="rtl"></div>
                 <div class="source-en bg-slate-50 font-serif leading-relaxed p-6 text-slate-700 text-lg"></div>
             </div>
@@ -2391,18 +2391,17 @@
                     numberSpan.className = 'chapter-grid-item-number';
                     numberSpan.textContent = labelText;
 
-                    const typeSpan = document.createElement('span');
-                    typeSpan.className = 'chapter-grid-item-label';
-                    if (item.chapters && item.chapters > 0) {
-                        typeSpan.textContent = isHe ? `${item.chapters} פרקים` : `${item.chapters} ch.`;
-                    } else if (item.useRefGrid) {
-                        typeSpan.textContent = isHe ? 'לקריאה' : 'Read';
-                    } else {
-                        typeSpan.textContent = isHe ? 'מנהגים' : 'Customs';
-                    }
-
                     btn.appendChild(numberSpan);
-                    btn.appendChild(typeSpan);
+                    if (!item.useRefGrid) {
+                        const typeSpan = document.createElement('span');
+                        typeSpan.className = 'chapter-grid-item-label';
+                        if (item.chapters && item.chapters > 0) {
+                            typeSpan.textContent = isHe ? `${item.chapters} פרקים` : `${item.chapters} ch.`;
+                        } else {
+                            typeSpan.textContent = isHe ? 'מנהגים' : 'Customs';
+                        }
+                        btn.appendChild(typeSpan);
+                    }
 
                     if (item.chapters && item.chapters > 0) {
                         btn.onclick = () => {
@@ -3414,13 +3413,49 @@
 
         function formatWeeklyShabbatLabel(meta) {
             const raw = String(meta?.weekly_shabbat_parasha || '').trim();
-            if (!raw) return '--';
+            if (!raw || /no\s+parasha|lookup\s+unavailable/i.test(raw)) return '--';
             if (!isHebrewMode()) return `Shabbat ${raw}`;
             const parts = raw.split(/\s*[-–]\s*/).map((part) => part.trim()).filter(Boolean);
             const he = parts.length
                 ? parts.map((part) => PARASHA_HE_MAP[part] || part).join('-')
                 : (PARASHA_HE_MAP[raw] || raw);
             return `שבת ${he}`;
+        }
+
+        function formatWeeklyShabbatLabelFromParashaName(parashaName = '') {
+            const raw = String(parashaName || '').replace(/^Parashat\s+/i, '').trim();
+            if (!raw) return '--';
+            if (!isHebrewMode()) return `Shabbat ${raw}`;
+            const he = PARASHA_HE_MAP[raw] || raw;
+            return `שבת ${he}`;
+        }
+
+        async function hydrateWeeklyParashaCard(meta = {}) {
+            const shabbatWeekName = document.getElementById('shabbatWeekName');
+            if (!shabbatWeekName) return;
+
+            const fromMetadata = formatWeeklyShabbatLabel(meta);
+            if (fromMetadata !== '--') {
+                shabbatWeekName.innerText = fromMetadata;
+                return;
+            }
+
+            const cachedName = String(textsCache?.parashaQuickLink?.enTitle || '').trim();
+            if (cachedName) {
+                shabbatWeekName.innerText = formatWeeklyShabbatLabelFromParashaName(cachedName);
+                return;
+            }
+
+            try {
+                const resp = await fetch('/api/parasha');
+                if (!resp.ok) return;
+                const payload = await resp.json();
+                const parashaName = String(payload?.title || '').trim();
+                if (!parashaName) return;
+                shabbatWeekName.innerText = formatWeeklyShabbatLabelFromParashaName(parashaName);
+            } catch (_) {
+                // Keep placeholder when parasha endpoint is unavailable.
+            }
         }
 
         function translateShabbatWarning(message) {
@@ -4209,20 +4244,18 @@
             const fallback = 63;
             let topbarOffset = fallback;
             if (topbar) {
-                const topbarRect = topbar.getBoundingClientRect();
-                if (Number.isFinite(topbarRect.bottom) && topbarRect.bottom > 0) {
-                    topbarOffset = Math.round(topbarRect.bottom);
-                } else if (Number.isFinite(topbarRect.height) && topbarRect.height > 0) {
-                    topbarOffset = Math.round(topbarRect.height);
+                const measuredHeight = Math.round(topbar.offsetHeight || topbar.getBoundingClientRect().height || 0);
+                if (Number.isFinite(measuredHeight) && measuredHeight > 0) {
+                    topbarOffset = measuredHeight;
                 }
             }
             document.documentElement.style.setProperty('--reader-topbar-offset', `${topbarOffset}px`);
 
-            let rightSidebarOffset = topbarOffset + 8;
+            let rightSidebarOffset = topbarOffset;
             const readerActive = Boolean(reader && !reader.classList.contains('hidden'));
             if (readerActive && readerTopBar && !readerTopBar.classList.contains('hidden')) {
                 const readerBarHeight = Math.max(36, Math.round(readerTopBar.getBoundingClientRect().height || 0));
-                rightSidebarOffset = topbarOffset + readerBarHeight + 8;
+                rightSidebarOffset = topbarOffset + readerBarHeight;
             }
             document.documentElement.style.setProperty('--right-sidebar-top-offset', `${rightSidebarOffset}px`);
 
@@ -4391,6 +4424,23 @@
         function positionFloatingMenu(menuEl, triggerEl, options = {}) {
             if (!menuEl || !triggerEl) return;
 
+            if (!isMobileViewport()) {
+                const align = String(options.align || 'start');
+                menuEl.style.setProperty('position', 'absolute', 'important');
+                menuEl.style.setProperty('top', 'calc(100% + 1px)', 'important');
+                menuEl.style.removeProperty('width');
+                menuEl.style.removeProperty('max-width');
+
+                if (align === 'end') {
+                    menuEl.style.setProperty('right', '0', 'important');
+                    menuEl.style.setProperty('left', 'auto', 'important');
+                } else {
+                    menuEl.style.setProperty('left', '0', 'important');
+                    menuEl.style.setProperty('right', 'auto', 'important');
+                }
+                return;
+            }
+
             const viewportWidth = Math.max(Math.round(window.innerWidth || 0), 320);
             const viewportHeight = Math.max(Math.round(window.innerHeight || 0), 320);
             const padding = Number.isFinite(options.padding) ? options.padding : 8;
@@ -4433,6 +4483,7 @@
             positionFloatingMenu(settingsPanel, settingsMenuBtn, {
                 minWidth: 220,
                 maxWidth: 352,
+                align: 'start',
             });
         }
 
@@ -4442,7 +4493,17 @@
             positionFloatingMenu(userProfileMenu, userProfileMenuBtn, {
                 minWidth: 148,
                 maxWidth: 180,
+                align: 'end',
             });
+        }
+
+        function positionReaderSettingsPanel() {
+            if (!readerSettingsPanel) return;
+            readerSettingsPanel.style.setProperty('position', 'absolute', 'important');
+            readerSettingsPanel.style.setProperty('top', 'calc(100% + 1px)', 'important');
+            readerSettingsPanel.style.setProperty('left', '50%', 'important');
+            readerSettingsPanel.style.setProperty('right', 'auto', 'important');
+            readerSettingsPanel.style.setProperty('transform', 'translateX(-50%)', 'important');
         }
 
         function closeUserProfileMenu() {
@@ -4501,6 +4562,7 @@
                 readerSettingsBtn.setAttribute('aria-expanded', shouldOpen ? 'true' : 'false');
             }
             if (shouldOpen) {
+                positionReaderSettingsPanel();
                 closeSettingsMenu();
             }
         }
@@ -4991,7 +5053,7 @@
 
             const lang = getCurrentLanguage();
             const typeLabels = UI_TYPE_LABELS[lang] || UI_TYPE_LABELS.en;
-            const itemAlignClass = isHebrewMode() ? 'text-right' : 'text-left';
+            const itemAlignClass = isHebrewMode() ? 'text-end' : 'text-start';
             const itemDir = isHebrewMode() ? 'rtl' : 'ltr';
 
             searchSuggestions.innerHTML = appState.suggestionItems.map((item, index) => {
@@ -5245,7 +5307,7 @@
 
             const current = appState.currentView;
             const currentKey = current ? `${current.type}:${current.value}` : '';
-            const alignClass = isHebrewMode() ? 'text-right' : 'text-left';
+            const alignClass = isHebrewMode() ? 'text-end' : 'text-start';
 
             return items.map((item) => {
                 const itemKey = `${item.type}:${item.value}`;
@@ -5272,7 +5334,7 @@
             const shelf = getShelfData();
             const track = Array.isArray(shelf.tracks['Daily Study']) ? shelf.tracks['Daily Study'] : [];
             const completed = track.filter((item) => item.completed).length;
-            const shelfAlignClass = isHebrewMode() ? 'text-right' : 'text-left';
+            const shelfAlignClass = isHebrewMode() ? 'text-end' : 'text-start';
             personalShelf.innerHTML = `
                 <div class="space-y-4">
                     <div>
@@ -5471,14 +5533,16 @@
 
             const refs = [];
             const seen = new Set();
+            const classicCommentatorRef = /(rashi|ramban|ibn\s+ezra|sforno|kli\s+yakar|or\s+hachaim|chizkuni|rashbam)\s+on\s+/i;
 
             Object.entries(linkData).forEach(([category, items]) => {
                 const isCommentaryCategory = /commentary|targum|midrash|supercommentary|parshan/i.test(String(category || ''));
-                if (!Array.isArray(items) || !isCommentaryCategory) return;
+                if (!Array.isArray(items)) return;
 
                 items.forEach((item) => {
                     const ref = String(item?.ref || '').trim();
                     if (!ref) return;
+                    if (!isCommentaryCategory && !classicCommentatorRef.test(ref)) return;
                     const key = ref.toLowerCase();
                     if (seen.has(key)) return;
                     seen.add(key);
@@ -5566,7 +5630,7 @@
                 const refsMarkup = group.refs.map((ref) => {
                     const encoded = encodeURIComponent(ref);
                     const displayRef = localizeCommentaryReferenceLabel(ref);
-                    const textAlignClass = isHebrewMode() ? 'text-right' : 'text-left';
+                    const textAlignClass = isHebrewMode() ? 'text-end' : 'text-start';
                     const refDir = isHebrewMode() ? 'rtl' : 'ltr';
                     return `
                         <button type="button" onclick="openCommentaryInline(decodeURIComponent('${encoded}'))"
@@ -5680,10 +5744,10 @@
 
                 const segmentLabel = formatSegmentLabel(line?.segment, idx);
                 const hebrewMarkup = he
-                    ? `<p dir="rtl" class="font-hebrew text-right text-[1.05rem] leading-[1.9] text-slate-800">${escapeHtml(he).replace(/\n/g, '<br>')}</p>`
+                    ? `<p dir="rtl" class="font-hebrew text-end text-[1.05rem] leading-[1.9] text-slate-800">${escapeHtml(he).replace(/\n/g, '<br>')}</p>`
                     : '';
                 const englishMarkup = en
-                    ? `<p dir="ltr" class="font-serif text-left text-sm leading-relaxed text-slate-700 mt-2">${escapeHtml(en).replace(/\n/g, '<br>')}</p>`
+                    ? `<p dir="ltr" class="font-serif text-start text-sm leading-relaxed text-slate-700 mt-2">${escapeHtml(en).replace(/\n/g, '<br>')}</p>`
                     : '';
 
                 return `
@@ -5714,10 +5778,10 @@
                 if (!he && !en) return '';
 
                 const hebrewMarkup = he
-                    ? `<p dir="rtl" class="font-hebrew text-right text-[1.05rem] leading-[1.9] text-slate-800">${escapeHtml(he).replace(/\n/g, '<br>')}</p>`
+                    ? `<p dir="rtl" class="font-hebrew text-end text-[1.05rem] leading-[1.9] text-slate-800">${escapeHtml(he).replace(/\n/g, '<br>')}</p>`
                     : '';
                 const englishMarkup = en
-                    ? `<p dir="ltr" class="font-serif text-left text-sm leading-relaxed text-slate-700 mt-2">${escapeHtml(en).replace(/\n/g, '<br>')}</p>`
+                    ? `<p dir="ltr" class="font-serif text-start text-sm leading-relaxed text-slate-700 mt-2">${escapeHtml(en).replace(/\n/g, '<br>')}</p>`
                     : '';
 
                 return `
@@ -5815,6 +5879,20 @@
             await openCommentaryInline(rashiRef);
         }
 
+        function buildDefaultRashiRefForTanakh(currentRef = '') {
+            const raw = String(currentRef || '').trim();
+            if (!raw) return '';
+
+            const tanakhMatch = raw.match(/^(.+?)\s+(\d+)(?::\d+)?$/);
+            const tanakhBook = normalizeChapterGridBookName(tanakhMatch?.[1] || '');
+            if (!tanakhBook || !CHAPTER_GRID_BOOKS[tanakhBook]) return '';
+
+            const fallbackVerseRef = raw.includes(':')
+                ? raw
+                : `${tanakhBook} ${tanakhMatch?.[2] || 1}:1`;
+            return `Rashi on ${fallbackVerseRef}`;
+        }
+
         async function updateSelectionInsights() {
             if (!selectionInsightsBody || appState.currentView?.type !== 'text') {
                 collapseCommentaryPanel();
@@ -5888,14 +5966,11 @@
             const [{ links }, wordInfo] = await Promise.all([commentaryPromise, wordPromise]);
 
             let commentaryRefs = extractCommentaryRefs(links);
-            if (!commentaryRefs.length) {
-                const tanakhMatch = currentRef.match(/^(.+?)\s+(\d+)(?::\d+)?$/);
-                const tanakhBook = normalizeChapterGridBookName(tanakhMatch?.[1] || '');
-                if (tanakhBook && CHAPTER_GRID_BOOKS[tanakhBook]) {
-                    const fallbackVerseRef = currentRef.includes(':')
-                        ? currentRef
-                        : `${tanakhBook} ${tanakhMatch?.[2] || 1}:1`;
-                    commentaryRefs = [`Rashi on ${fallbackVerseRef}`];
+            const defaultRashiRef = buildDefaultRashiRefForTanakh(currentRef);
+            if (defaultRashiRef) {
+                const hasRashi = commentaryRefs.some((value) => /^rashi\s+on\s+/i.test(String(value || '').trim()));
+                if (!hasRashi) {
+                    commentaryRefs = [defaultRashiRef, ...commentaryRefs];
                 }
             }
 
@@ -6163,8 +6238,10 @@
                         if (!isNaN(idx)) bestIndex = idx;
                     }
                 });
-                if (bestIndex >= 0 && bestIndex !== infiniteReaderState.currentVisibleChunkIndex) {
-                    infiniteReaderState.currentVisibleChunkIndex = bestIndex;
+                if (bestIndex >= 0) {
+                    if (bestIndex !== infiniteReaderState.currentVisibleChunkIndex) {
+                        infiniteReaderState.currentVisibleChunkIndex = bestIndex;
+                    }
                     updateReaderButtonsForChunk(bestIndex);
                 }
             }, { threshold: [0, 0.15, 0.35, 0.6, 1.0], rootMargin: '-8% 0px -35% 0px' });
@@ -6176,7 +6253,7 @@
         function updateReaderButtonsForChunk(chunkIndex) {
             const chain = getCurrentTextPayloadChain();
             if (!chain.length) return;
-            const chunk = chain[chunkIndex] || chain[0];
+            updateReaderHeaderForVisibleChunk(chunkIndex);
 
             const hasPrevChunk = chunkIndex > 0;
             const hasPrevRef = !hasPrevChunk && Boolean(infiniteReaderState.prevRef);
@@ -6272,7 +6349,14 @@
         }
 
         function renderTextRowsForPayload(data, layout) {
-            const cleanLine = (text = '') => escapeHtml(normalizeDisplayText(text)).replace(/\n/g, '<br>');
+            const cleanLine = (text = '') => {
+                const normalized = escapeHtml(normalizeDisplayText(text));
+                return normalized
+                    .replace(/\n{2,}/g, '<br><br>')
+                    .replace(/\n/g, ' ')
+                    .replace(/\bG\s+OD\b/g, 'GOD')
+                    .replace(/\bL\s+ORD\b/g, 'LORD');
+            };
 
             if (!Array.isArray(data?.lines) || !data.lines.length) {
                 return `<p class="text-slate-500 italic">${t('No text content found for this reference.', 'לא נמצא תוכן טקסט עבור הפניה זו.')}</p>`;
@@ -6287,7 +6371,7 @@
                 const translit = appState.prefs.transliteration ? transliterationMarkup(heRaw) : '';
 
                 const hebrewBlock = he
-                    ? `<div class="source-he reader-text-he text-right font-hebrew text-2xl lg:text-3xl leading-[1.8] py-2" dir="rtl"><p>${he}</p>${translit}</div>`
+                    ? `<div class="source-he reader-text-he text-end font-hebrew text-2xl lg:text-3xl leading-[1.8] py-2" dir="rtl"><p>${he}</p>${translit}</div>`
                     : '';
                 const englishBlock = en
                     ? `<div class="source-en reader-text-en font-serif leading-relaxed py-2 text-slate-700 text-lg" dir="ltr"><p>${en}</p></div>`
@@ -6314,7 +6398,7 @@
                     return `
                         <div class="source-grid segment-row reader-text-row reader-single-row grid grid-cols-1 border-b border-slate-200 last:border-b-0" data-segment="${escapeHtml(String(line.segment || ''))}">
                             <span class="segment-label reader-row-right-label">${label}</span>
-                            <div class="source-he reader-text-he text-right font-hebrew text-2xl lg:text-3xl leading-[1.8] py-2" dir="rtl">
+                            <div class="source-he reader-text-he text-end font-hebrew text-2xl lg:text-3xl leading-[1.8] py-2" dir="rtl">
                                 ${hebrewLine}
                             </div>
                         </div>
@@ -6324,7 +6408,7 @@
                 if (layout === 'interleaved') {
                     // Only render blocks that have content
                     const hePart = hebrewBlock || '';
-                    const enPart = englishBlock ? englishBlock.replace('source-en reader-text-en', 'source-en reader-text-en mt-2 text-left') : '';
+                    const enPart = englishBlock ? englishBlock.replace('source-en reader-text-en', 'source-en reader-text-en mt-2 text-start') : '';
                     return `
                         <div class="source-grid source-grid-interleaved segment-row reader-text-row reader-interleaved-row grid grid-cols-1 border-b border-slate-200 last:border-b-0" data-segment="${escapeHtml(String(line.segment || ''))}">
                             <span class="segment-label reader-row-right-label">${label}</span>
@@ -6339,9 +6423,9 @@
                 if (bothPresent) {
                     const sideBySideLeft = layout === 'bilingual-reverse'
                         ? `<div class="source-en reader-text-en font-serif leading-relaxed py-2 text-slate-700 text-lg" dir="ltr"><p>${en}</p></div>`
-                        : `<div class="source-he reader-text-he text-right font-hebrew text-2xl lg:text-3xl leading-[1.8] py-2" dir="rtl"><p>${he}</p>${translit}</div>`;
+                        : `<div class="source-he reader-text-he text-end font-hebrew text-2xl lg:text-3xl leading-[1.8] py-2" dir="rtl"><p>${he}</p>${translit}</div>`;
                     const sideBySideRight = layout === 'bilingual-reverse'
-                        ? `<div class="source-he reader-text-he text-right font-hebrew text-2xl lg:text-3xl leading-[1.8] py-2" dir="rtl"><p>${he}</p>${translit}</div>`
+                        ? `<div class="source-he reader-text-he text-end font-hebrew text-2xl lg:text-3xl leading-[1.8] py-2" dir="rtl"><p>${he}</p>${translit}</div>`
                         : `<div class="source-en reader-text-en font-serif leading-relaxed py-2 text-slate-700 text-lg" dir="ltr"><p>${en}</p></div>`;
                     return `
                         <div class="source-grid segment-row reader-text-row reader-side-row grid grid-cols-1 lg:grid-cols-2 lg:gap-x-6 border-b border-slate-200 last:border-b-0" data-segment="${escapeHtml(String(line.segment || ''))}">
@@ -6356,7 +6440,7 @@
                 const singleContent = hebrewBlock || englishBlock;
                 const singleDir = he ? 'rtl' : 'ltr';
                 const singleClass = he
-                    ? 'source-he reader-text-he text-right font-hebrew text-2xl lg:text-3xl leading-[1.8] py-2'
+                    ? 'source-he reader-text-he text-end font-hebrew text-2xl lg:text-3xl leading-[1.8] py-2'
                     : 'source-en reader-text-en font-serif leading-relaxed py-2 text-slate-700 text-lg';
                 const singleInner = he ? `<p>${he}</p>${translit}` : `<p>${en}</p>`;
                 return `
@@ -6366,6 +6450,165 @@
                     </div>
                 `;
             }).join('');
+        }
+
+        function getChunkDisplayTitle(chunk = {}) {
+            const titleEn = String(chunk?.title || '').trim();
+            const titleHe = String(chunk?.heTitle || '').trim();
+
+            if (isHebrewMode()) {
+                if (titleHe) return titleHe;
+                if (titleEn) return localizeReferenceLabel(titleEn);
+            } else if (titleEn) {
+                return titleHe && titleHe !== titleEn ? `${titleEn} · ${titleHe}` : titleEn;
+            }
+
+            const ref = String(chunk?.ref || '').trim();
+            if (!ref) {
+                return t('Text Section', 'קטע טקסט');
+            }
+
+            return isHebrewMode() ? localizeReferenceLabel(ref) : ref;
+        }
+
+        function getChunkDisplayRef(chunk = {}) {
+            const ref = String(chunk?.ref || '').trim();
+            if (!ref) return '';
+            return isHebrewMode() ? localizeReferenceLabel(ref) : ref;
+        }
+
+        function isLikelyDuplicateLabel(primary = '', secondary = '') {
+            const normalize = (value) => String(value || '')
+                .toLowerCase()
+                .replace(/[^a-z0-9\u0590-\u05ff\s]/gi, ' ')
+                .replace(/\s+/g, ' ')
+                .trim();
+
+            const a = normalize(primary);
+            const b = normalize(secondary);
+            if (!a || !b) return false;
+            if (a === b) return true;
+            return a.includes(b) || b.includes(a);
+        }
+
+        function getChunkChapterLabel(chunk = {}) {
+            const ref = String(chunk?.ref || '').trim();
+            if (!ref) return '';
+            const match = ref.match(/\s(\d+)(?::\d+)?$/);
+            const chapterNum = Number(match?.[1] || 0);
+            if (!Number.isFinite(chapterNum) || chapterNum < 1) return '';
+            return isHebrewMode() ? `פרק ${chapterNum}` : `Chapter ${chapterNum}`;
+        }
+
+        function formatHebrewChapterNumber(number) {
+            const value = Number(number);
+            if (!Number.isFinite(value) || value < 1) return '';
+
+            const digits = [
+                { n: 400, l: 'ת' }, { n: 300, l: 'ש' }, { n: 200, l: 'ר' }, { n: 100, l: 'ק' },
+                { n: 90, l: 'צ' }, { n: 80, l: 'פ' }, { n: 70, l: 'ע' }, { n: 60, l: 'ס' }, { n: 50, l: 'נ' },
+                { n: 40, l: 'מ' }, { n: 30, l: 'ל' }, { n: 20, l: 'כ' }, { n: 10, l: 'י' },
+                { n: 9, l: 'ט' }, { n: 8, l: 'ח' }, { n: 7, l: 'ז' }, { n: 6, l: 'ו' },
+                { n: 5, l: 'ה' }, { n: 4, l: 'ד' }, { n: 3, l: 'ג' }, { n: 2, l: 'ב' }, { n: 1, l: 'א' },
+            ];
+
+            let remaining = Math.floor(value);
+            if (remaining === 15) return 'טו';
+            if (remaining === 16) return 'טז';
+
+            let output = '';
+            for (const item of digits) {
+                while (remaining >= item.n) {
+                    output += item.l;
+                    remaining -= item.n;
+                }
+            }
+            return output || String(value);
+        }
+
+        function parseBookAndChapterFromRef(ref = '') {
+            const raw = String(ref || '').replace(/\s+/g, ' ').trim();
+            if (!raw) return null;
+
+            const chapterMatch = raw.match(/^(.+?)\s+(\d+)(?::\d+)?$/);
+            if (!chapterMatch) return null;
+
+            return {
+                book: normalizeChapterGridBookName(chapterMatch[1]),
+                chapter: Number(chapterMatch[2] || 0),
+            };
+        }
+
+        function getChunkParashaLabel(chunk = {}) {
+            const sectionRef = String(chunk?.ref || appState.currentView?.value || '').trim();
+            if (!sectionRef) return '';
+
+            try {
+                const parsed = parseBookAndChapterFromRef(sectionRef);
+                if (!parsed?.book || !Number.isFinite(parsed.chapter) || parsed.chapter < 1) return '';
+
+                const normalizedBook = normalizeChapterGridBookName(parsed.book);
+                const parashaEntries = Array.isArray(TORAH_PARASHA_BY_BOOK[normalizedBook])
+                    ? TORAH_PARASHA_BY_BOOK[normalizedBook]
+                    : [];
+                if (!parashaEntries.length) return '';
+
+                let match = null;
+                for (const entry of parashaEntries) {
+                    const startChapter = Number(entry?.chapter || 0);
+                    if (startChapter > 0 && parsed.chapter >= startChapter) {
+                        match = entry;
+                    }
+                }
+                if (!match?.name) return '';
+
+                const nameEn = String(match.name).trim();
+                const nameHe = PARASHA_HE_MAP[nameEn] || nameEn;
+                return isHebrewMode() ? `פרשת ${nameHe}` : `Parashat ${nameEn}`;
+            } catch (_) {
+                return '';
+            }
+        }
+
+        function getChunkRunningHeader(chunk = {}) {
+            const sectionRef = String(chunk?.ref || appState.currentView?.value || '').trim();
+            const parsed = parseBookAndChapterFromRef(sectionRef);
+
+            if (!parsed?.book || !Number.isFinite(parsed.chapter) || parsed.chapter < 1) {
+                return getChunkDisplayTitle(chunk);
+            }
+
+            const parashaLabel = getChunkParashaLabel(chunk);
+            if (isHebrewMode()) {
+                const hebrewBook = getHebrewBookDisplayName(parsed.book) || parsed.book;
+                const chapterLabel = formatHebrewChapterNumber(parsed.chapter) || String(parsed.chapter);
+                return parashaLabel
+                    ? `${hebrewBook} ${chapterLabel} • ${parashaLabel}`
+                    : `${hebrewBook} ${chapterLabel}`;
+            }
+
+            return parashaLabel
+                ? `${parsed.book} ${parsed.chapter} • ${parashaLabel}`
+                : `${parsed.book} ${parsed.chapter}`;
+        }
+
+        function updateReaderHeaderForVisibleChunk(chunkIndex) {
+            if (appState.currentView?.type !== 'text') return;
+
+            const chain = getCurrentTextPayloadChain();
+            if (!chain.length) return;
+            const clampedIndex = Math.min(Math.max(Number(chunkIndex) || 0, 0), chain.length - 1);
+            const chunk = chain[clampedIndex] || chain[0];
+
+            const titleEl = document.getElementById('readerTitle');
+            const sectionTitle = getChunkRunningHeader(chunk);
+
+            if (titleEl && sectionTitle) {
+                titleEl.innerText = sectionTitle;
+            }
+
+            // Keep the title block clean for text views: no repeated metadata subtitle.
+            setReaderSubtitle('');
         }
 
         function renderCurrentTextByLayout(options = {}) {
@@ -6379,6 +6622,10 @@
 
             const scrollState = preserveScroll ? captureReaderScrollState() : null;
             const layout = getNormalizedReaderLayout();
+            infiniteReaderState.currentVisibleChunkIndex = Math.min(
+                Math.max(Number(infiniteReaderState.currentVisibleChunkIndex) || 0, 0),
+                Math.max(chain.length - 1, 0),
+            );
 
             readerContent.innerHTML = '';
 
@@ -6421,33 +6668,26 @@
             const sectionsMarkup = chain.map((chunk, index) => {
                 const sectionRows = renderTextRowsForPayload(chunk, layout);
                 const sectionRef = String(chunk?.ref || appState.currentView?.value || '').trim();
+                const sectionTitle = getChunkRunningHeader(chunk);
+                const currentMainTitle = String(document.getElementById('readerTitle')?.innerText || '').trim();
+                const hideRedundantHeader = Boolean(
+                    index === 0
+                    && currentMainTitle
+                    && isLikelyDuplicateLabel(sectionTitle, currentMainTitle),
+                );
+                const categories = Array.isArray(chunk?.categories) ? chunk.categories : [];
+                const categoryBlob = categories.map((item) => String(item || '').toLowerCase()).join(' ');
+                const isTalmudChunk = /talmud|bavli|gemara/.test(categoryBlob)
+                    || /\b\d+[ab](?::\d+)?$/i.test(sectionRef);
 
-                // Detect parasha name for Torah books
-                let parashaLabel = '';
-                try {
-                    const refParts = sectionRef.split(' ');
-                    const chapterNum = parseInt(refParts[refParts.length - 1], 10);
-                    const bookName = refParts.slice(0, refParts.length - 1).join(' ');
-                    const normalizedBook = normalizeChapterGridBookName(bookName);
-                    const parashaEntries = Array.isArray(TORAH_PARASHA_BY_BOOK[normalizedBook])
-                        ? TORAH_PARASHA_BY_BOOK[normalizedBook]
-                        : [];
-                    const match = parashaEntries.find(e => Number(e?.chapter) === chapterNum);
-                    if (match?.name) {
-                        const nameEn = String(match.name).trim();
-                        const nameHe = PARASHA_HE_MAP[nameEn] || nameEn;
-                        parashaLabel = isHebrewMode() ? `פרשת ${nameHe}` : `Parashat ${nameEn}`;
-                    }
-                } catch (_) { /* not a Torah ref — skip */ }
-
-                const parashaChip = parashaLabel
-                    ? `<span class="reader-parasha-chip">${escapeHtml(parashaLabel)}</span>`
-                    : '';
-
-                const sectionTitleMarkup = `<div class="reader-source-title text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-2"><span>${escapeHtml(sectionRef)}</span>${parashaChip}</div>`;
+                const sectionTitleMarkup = hideRedundantHeader ? '' : `
+                    <div class="reader-source-title mb-2">
+                        <span class="reader-source-title-main">${escapeHtml(sectionTitle)}</span>
+                    </div>
+                `;
 
                 return `
-                    <div class="reader-source-clean mb-6" data-text-chunk-index="${index}">
+                    <div class="reader-source-clean mb-6${isTalmudChunk ? ' is-talmud' : ''}" data-text-chunk-index="${index}">
                         ${sectionTitleMarkup}
                         <div class="reader-source-lines">
                             ${sectionRows}
@@ -6552,7 +6792,11 @@
                 ? window.currentPrayerParagraphPairs
                 : [];
             const splitPrayerParagraphs = (value = '') => {
-                const normalized = normalizeDisplayText(String(value || '')).replace(/\r/g, '').trim();
+                const deduped = stripDuplicateLeadingPrayerTitle(
+                    String(value || ''),
+                    String(window.currentPrayerName || ''),
+                );
+                const normalized = normalizeDisplayText(deduped).replace(/\r/g, '').trim();
                 if (!normalized) return [];
                 return normalized
                     .split(/\n{2,}/)
@@ -6591,17 +6835,17 @@
                 if (layout === 'interleaved') {
                     return `
                         <div class="prayer-clean-row border-b border-slate-200 last:border-b-0 ${rowPadding}">
-                            <div class="prayer-clean-he text-right" dir="rtl">${hebrewContent}</div>
-                            <div class="prayer-clean-en text-left mt-2" dir="ltr">${englishContent}</div>
+                            <div class="prayer-clean-he text-end" dir="rtl">${hebrewContent}</div>
+                            <div class="prayer-clean-en text-start mt-2" dir="ltr">${englishContent}</div>
                         </div>
                     `;
                 }
 
                 const leftColumn = reverseColumns
                     ? `<div class="prayer-clean-en" dir="ltr">${englishContent}</div>`
-                    : `<div class="prayer-clean-he text-right" dir="rtl">${hebrewContent}</div>`;
+                    : `<div class="prayer-clean-he text-end" dir="rtl">${hebrewContent}</div>`;
                 const rightColumn = reverseColumns
-                    ? `<div class="prayer-clean-he text-right" dir="rtl">${hebrewContent}</div>`
+                    ? `<div class="prayer-clean-he text-end" dir="rtl">${hebrewContent}</div>`
                     : `<div class="prayer-clean-en" dir="ltr">${englishContent}</div>`;
 
                 return `
@@ -6656,7 +6900,7 @@
                     contentDiv.innerHTML = `
                         <div class="prayer-clean-lines">
                             <div class="prayer-clean-row border-b border-slate-200 last:border-b-0 py-2">
-                                <div class="${lang === 'he' ? 'prayer-clean-he text-right' : 'prayer-clean-en'}" dir="${dir}">
+                                <div class="${lang === 'he' ? 'prayer-clean-he text-end' : 'prayer-clean-en'}" dir="${dir}">
                                     <div class="${fontClass}">${contentDisplay}</div>
                                     ${translit}
                                 </div>
@@ -6671,7 +6915,7 @@
                             : renderEnglishParagraph(paragraph);
                         return `
                             <div class="prayer-clean-row border-b border-slate-200 last:border-b-0 py-2">
-                                <div class="${lang === 'he' ? 'prayer-clean-he text-right' : 'prayer-clean-en'}" dir="${dir}">${rendered}</div>
+                                <div class="${lang === 'he' ? 'prayer-clean-he text-end' : 'prayer-clean-en'}" dir="${dir}">${rendered}</div>
                             </div>
                         `;
                     }).join('');
@@ -6693,6 +6937,38 @@
                 }
                 el.style.lineHeight = 'inherit';
             });
+        }
+
+        function normalizeComparablePrayerTitle(value = '') {
+            return normalizeDisplayText(String(value || ''))
+                .toLowerCase()
+                .replace(/[^a-z0-9\u0590-\u05ff\s]/gi, ' ')
+                .replace(/\s+/g, ' ')
+                .trim();
+        }
+
+        function stripDuplicateLeadingPrayerTitle(rawContent = '', prayerTitle = '') {
+            const normalizedTitle = normalizeComparablePrayerTitle(prayerTitle);
+            if (!normalizedTitle) return String(rawContent || '');
+
+            const normalized = normalizeDisplayText(String(rawContent || ''));
+            if (!normalized) return '';
+
+            const paragraphs = normalized
+                .split(/\n{2,}/)
+                .map((part) => part.trim())
+                .filter(Boolean);
+
+            if (!paragraphs.length) return normalized;
+
+            const firstComparable = normalizeComparablePrayerTitle(paragraphs[0]);
+            const isDuplicateTitle = firstComparable
+                && (firstComparable === normalizedTitle
+                    || firstComparable.startsWith(`${normalizedTitle} `)
+                    || normalizedTitle.startsWith(`${firstComparable} `));
+
+            if (!isDuplicateTitle) return normalized;
+            return paragraphs.slice(1).join('\n\n');
         }
 
         function hydratePreferences() {
@@ -6976,6 +7252,9 @@
             }
             if (userProfileMenu && !userProfileMenu.classList.contains('hidden')) {
                 positionUserProfileMenu();
+            }
+            if (readerSettingsPanel && !readerSettingsPanel.classList.contains('hidden')) {
+                positionReaderSettingsPanel();
             }
             if (appState.prefs.shulMode) {
                 applyShulMode();
@@ -7322,7 +7601,7 @@
                 const encodedRef = encodeURIComponent(ref);
                 const encodedTitle = encodeURIComponent(labels.en || labels.display || ref);
                 const textClass = depth <= 1 ? 'text-slate-700' : 'text-slate-600';
-                const alignClass = isHebrewMode() ? 'text-right' : 'text-left';
+                const alignClass = isHebrewMode() ? 'text-end' : 'text-start';
                 const leafDisplay = isHebrewMode()
                     ? (labels.display || labels.en || labels.he || ref)
                     : withHebrewBookName(labels.display || labels.en || labels.he || ref);
@@ -7951,7 +8230,7 @@
         function buildPrayerNavigatorButton(name) {
             const label = getPrayerDisplayName(name);
             const encodedName = encodeURIComponent(name);
-            const alignClass = isHebrewMode() ? 'text-right' : 'text-left';
+            const alignClass = isHebrewMode() ? 'text-end' : 'text-start';
             return `<button onclick="openPrayerEntry(decodeURIComponent('${encodedName}'))" class="prayer-nav-link ${alignClass} text-slate-600 hover:text-[#00827f] text-sm w-full py-0.5 font-serif">${escapeHtml(label)}</button>`;
         }
 
@@ -8336,7 +8615,7 @@
                                 .map((entry) => {
                                     const label = getPrayerDisplayName(entry.name);
                                     const encodedName = encodeURIComponent(entry.name);
-                                    const alignClass = isHebrewMode() ? 'text-right' : 'text-left';
+                                    const alignClass = isHebrewMode() ? 'text-end' : 'text-start';
                                     return `<button onclick="openPrayerEntry(decodeURIComponent('${encodedName}'))" class="prayer-grid-item ${alignClass}">${escapeHtml(label)}</button>`;
                                 })
                                 .join('');
@@ -8406,7 +8685,7 @@
                 const name = community.name || '';
                 const label = getCommunityDisplayName(name);
                 const encodedName = encodeURIComponent(name);
-                html += `<button onclick="displayCommunity(decodeURIComponent('${encodedName}'))" class="block w-full text-left px-3 py-2 rounded hover:bg-[#594176]/10 transition text-slate-700 hover:text-[#594176]">${escapeHtml(label)}</button>`;
+                html += `<button onclick="displayCommunity(decodeURIComponent('${encodedName}'))" class="block w-full text-start px-3 py-2 rounded hover:bg-[#594176]/10 transition text-slate-700 hover:text-[#594176]">${escapeHtml(label)}</button>`;
             });
             list.innerHTML = html;
             applyStaticHebrewFallbackTranslations();
@@ -8453,11 +8732,33 @@
                         if (sefariaData.lines && sefariaData.lines.length > 0) {
                             let heHtml = '', enHtml = '';
                             const paragraphPairs = [];
+                            const comparablePrayerTitle = normalizeComparablePrayerTitle(prayerData?.title || prayerName);
+                            let skippedLeadingDuplicateTitle = false;
+
+                            const isDuplicateLeadingLine = (heCandidate = '', enCandidate = '') => {
+                                if (skippedLeadingDuplicateTitle || paragraphPairs.length > 0 || !comparablePrayerTitle) {
+                                    return false;
+                                }
+                                const comparableLine = normalizeComparablePrayerTitle(`${heCandidate} ${enCandidate}`);
+                                if (!comparableLine) return false;
+                                const duplicate = comparableLine === comparablePrayerTitle
+                                    || comparableLine.startsWith(`${comparablePrayerTitle} `)
+                                    || comparablePrayerTitle.startsWith(`${comparableLine} `);
+                                if (duplicate) {
+                                    skippedLeadingDuplicateTitle = true;
+                                }
+                                return duplicate;
+                            };
 
                             sefariaData.lines.forEach(line => {
                                 if (line.type === 'header') {
-                                    const heHeader = escapeHtml(normalizeDisplayText(line.he || ''));
-                                    const enHeader = escapeHtml(normalizeDisplayText(line.en || ''));
+                                    const heHeaderRaw = normalizeDisplayText(line.he || '');
+                                    const enHeaderRaw = normalizeDisplayText(line.en || '');
+                                    if (isDuplicateLeadingLine(heHeaderRaw, enHeaderRaw)) {
+                                        return;
+                                    }
+                                    const heHeader = escapeHtml(heHeaderRaw);
+                                    const enHeader = escapeHtml(enHeaderRaw);
                                     heHtml += `<h3 class="text-xl font-bold font-hebrew mt-8 mb-3 pb-1 border-b border-slate-200">${heHeader}</h3>`;
                                     enHtml += `<h3 class="text-xl font-bold font-serif mt-8 mb-3 pb-1 border-b border-slate-200">${enHeader}</h3>`;
                                     paragraphPairs.push({
@@ -8468,6 +8769,9 @@
                                 } else {
                                     const heLine = normalizeDisplayText(line.he || '');
                                     const enLine = normalizeDisplayText(line.en || '');
+                                    if (isDuplicateLeadingLine(heLine, enLine)) {
+                                        return;
+                                    }
                                     let heParagraph = heLine ? escapeHtml(heLine) : '';
                                     let enParagraph = enLine ? escapeHtml(enLine) : '';
 
@@ -9399,17 +9703,8 @@
                 document.querySelector('#reader header .bg-slate-100').textContent =
                     (isHebrewMode() ? categories.map(translateCategoryToken).join(' › ') : categories.join(' › ')) || t("Sh'elah Library", "ספריית ש'אלה");
 
-                const parashaMatch = getTorahParashaForRef(data.ref || normalizedRequestRef || ref, categories);
-                if (parashaMatch) {
-                    const parashaName = isHebrewMode()
-                        ? (PARASHA_HE_MAP[parashaMatch.name] || parashaMatch.name)
-                        : parashaMatch.name;
-                    setReaderSubtitle(
-                        isHebrewMode()
-                            ? `פרשת השבוע לפרק ${parashaMatch.chapter}: ${parashaName}`
-                            : `Parashah for Chapter ${parashaMatch.chapter}: ${parashaName}`
-                    );
-                }
+                // Continuous reading uses per-chunk section headers; avoid duplicating old single-subtitle logic.
+                setReaderSubtitle('');
 
                 applyReaderPreferences();
 
@@ -9535,7 +9830,7 @@
                 }
 
                 let html = '';
-                const alignClass = isHebrewMode() ? 'text-right' : 'text-left';
+                const alignClass = isHebrewMode() ? 'text-end' : 'text-start';
                 const colors = {
                     'Tanakh': '#004e5f', 'Mishnah': '#5a99b7',
                     'Talmud': '#a08a4a', 'Halakhah': '#802f3e'
@@ -9676,6 +9971,13 @@
                     ? (libraryIndexFilterInput.dataset.hePlaceholder || 'סנן נושאים או טקסטים...')
                     : (libraryIndexFilterInput.dataset.enPlaceholder || 'Filter topics or texts...');
             }
+            const citySearchInput = document.getElementById('citySearchInput');
+            if (citySearchInput) {
+                citySearchInput.placeholder = lang === 'he'
+                    ? (citySearchInput.dataset.hePlaceholder || 'לדוגמה: ירושלים, ניו יורק')
+                    : (citySearchInput.dataset.enPlaceholder || 'e.g. Jerusalem, New York...');
+                citySearchInput.dir = lang === 'he' ? 'rtl' : 'ltr';
+            }
 
             // Update modal titles
             const aiModalTitle = document.getElementById('aiModalTitle');
@@ -9743,6 +10045,9 @@
                 readerNextTopBarBtn.setAttribute('aria-label', nextLabel);
                 readerNextTopBarBtn.title = nextLabel;
             }
+            if (appState.currentView?.type === 'text') {
+                updateReaderHeaderForVisibleChunk(infiniteReaderState.currentVisibleChunkIndex || 0);
+            }
 
             refreshHebrewDateDisplay(lang);
 
@@ -9792,6 +10097,7 @@
                 const shabbatWeekName = document.getElementById('shabbatWeekName');
                 if (shabbatWeekName) {
                     shabbatWeekName.innerText = formatWeeklyShabbatLabel(meta);
+                    void hydrateWeeklyParashaCard(meta);
                 }
 
                 const omerCount = document.getElementById('omerCount');
@@ -10056,6 +10362,7 @@
                         }
                         if (shabbatWeekName) {
                             shabbatWeekName.innerText = formatWeeklyShabbatLabel(meta);
+                            void hydrateWeeklyParashaCard(meta);
                         }
                         if (omerRow && omerCount && omerHint) {
                             if (meta.omer_day) {

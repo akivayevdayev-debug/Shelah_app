@@ -4,10 +4,6 @@
   Supplements style.css — does not replace existing sidebar rules.
 */
 
-/* ═══════════════════════════════════════════════════════ */
-/* SIDEBAR TRANSITION POLISH */
-/* ═══════════════════════════════════════════════════════ */
-
 /* Smooth sidebar tab transitions */
 .sidebar-show-tab {
     transition: opacity 0.18s ease, box-shadow 0.18s ease, background 0.14s ease;
@@ -15,9 +11,7 @@
 
 /* Mobile drawer: base state (hidden) */
 .mobile-drawer {
-    transition: transform 0.28s cubic-bezier(0.4, 0, 0.2, 1),
-        opacity 0.22s ease,
-        visibility 0.28s ease;
+    transition: transform 0.28s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.22s ease, visibility 0.28s ease;
 }
 
 /* Left drawer slides in from the left */
@@ -46,10 +40,6 @@
     }
 }
 
-/* ═══════════════════════════════════════════════════════ */
-/* DROPDOWN / PANEL ANIMATION */
-/* ═══════════════════════════════════════════════════════ */
-
 @keyframes slideDownFade {
     from {
         opacity: 0;
@@ -59,18 +49,6 @@
     to {
         opacity: 1;
         transform: translateY(0);
-    }
-}
-
-@keyframes slideUpFade {
-    from {
-        opacity: 1;
-        transform: translateY(0);
-    }
-
-    to {
-        opacity: 0;
-        transform: translateY(-6px);
     }
 }
 
@@ -89,10 +67,6 @@ details[open]>summary~* {
 details>summary .group-open\:rotate-90 {
     transition: transform 0.2s ease;
 }
-
-/* ═══════════════════════════════════════════════════════ */
-/* AI LOADING ANIMATION — WARM PARCHMENT THEME */
-/* ═══════════════════════════════════════════════════════ */
 
 @keyframes warmPulse {
 
@@ -114,50 +88,7 @@ details>summary .group-open\:rotate-90 {
     animation: warmPulse 1.6s ease-in-out infinite !important;
 }
 
-/* AI loading dots */
-@keyframes loadingDotBounce {
-
-    0%,
-    80%,
-    100% {
-        transform: translateY(0);
-        opacity: 0.5;
-    }
-
-    40% {
-        transform: translateY(-6px);
-        opacity: 1;
-    }
-}
-
-.ai-loading-dots {
-    display: inline-flex;
-    align-items: center;
-    gap: 4px;
-}
-
-.ai-loading-dots span {
-    display: inline-block;
-    width: 6px;
-    height: 6px;
-    border-radius: 50%;
-    background: var(--gold, #d4af37);
-    animation: loadingDotBounce 1.2s ease-in-out infinite;
-}
-
-.ai-loading-dots span:nth-child(2) {
-    animation-delay: 0.15s;
-}
-
-.ai-loading-dots span:nth-child(3) {
-    animation-delay: 0.3s;
-}
-
-/* ═══════════════════════════════════════════════════════ */
-/* RTL SIDEBAR DEPTH CORRECTIONS */
-/* ═══════════════════════════════════════════════════════ */
-
-/* Use logical properties for RTL-safe border placement */
+/* RTL-safe border placement for sidebar tree depth */
 html.rtl .library-index-sidebar-tree {
     border-inline-start: 2px solid rgba(0, 33, 71, 0.3);
     border-inline-end: 0;
@@ -172,17 +103,9 @@ html.rtl .library-tree-children {
     padding-inline-start: 0.5rem;
 }
 
-/* ═══════════════════════════════════════════════════════ */
-/* ACTIVE NODE INDICATOR */
-/* ═══════════════════════════════════════════════════════ */
-
 .library-node-open.library-node-active {
     border-inline-start: 3px solid var(--accent-deep-blue);
 }
-
-/* ═══════════════════════════════════════════════════════ */
-/* DARK MODE SIDEBAR DIVIDERS */
-/* ═══════════════════════════════════════════════════════ */
 
 body.theme-dark #leftSidebar .border-b,
 body.theme-dark #rightSidebar .border-b {
@@ -194,25 +117,16 @@ body.theme-dark #rightSidebar .border-l {
     border-color: var(--surface-border) !important;
 }
 
-/* ═══════════════════════════════════════════════════════ */
-/* NAVIGATOR PANE HEADING COLOR */
-/* ═══════════════════════════════════════════════════════ */
-
 body.theme-dark #leftSidebar h3.text-slate-400 {
     color: var(--text-muted) !important;
 }
 
-/* ═══════════════════════════════════════════════════════ */
-/* MOBILE DRAWER ACCESSIBILITY */
-/* ═══════════════════════════════════════════════════════ */
-
-/* When a drawer is open, announce it to screen readers */
+/* Mobile drawer accessibility */
 .mobile-drawer[aria-hidden="false"],
 .mobile-drawer.mobile-open {
     visibility: visible;
 }
 
-/* Mobile: only disable pointer-events when drawer is NOT open */
 .mobile-drawer:not(.mobile-open) {
     pointer-events: none;
 }
@@ -221,23 +135,15 @@ body.theme-dark #leftSidebar h3.text-slate-400 {
     pointer-events: auto;
 }
 
-/* Desktop: ALWAYS enable pointer-events on sidebars */
 @media (min-width: 1024px) {
 
     #leftSidebar,
-    #rightSidebar {
-        pointer-events: auto !important;
-    }
-
+    #rightSidebar,
     #leftSidebar *,
     #rightSidebar * {
         pointer-events: auto !important;
     }
 }
-
-/* ═══════════════════════════════════════════════════════ */
-/* RIGHT SIDEBAR IDLE STATE */
-/* ═══════════════════════════════════════════════════════ */
 
 #rightSidebarIdle {
     border-radius: var(--radius-md, 0.7rem);
@@ -248,25 +154,15 @@ body.theme-dark #rightSidebarIdle {
     border-color: var(--surface-border) !important;
 }
 
-/* ═══════════════════════════════════════════════════════ */
-/* SIDEBAR SCROLL PERFORMANCE */
-/* ═══════════════════════════════════════════════════════ */
-
 #leftSidebar,
 #rightSidebar {
     will-change: transform;
-    /* Helps with GPU compositing on mobile */
     overscroll-behavior: contain;
-    /* Ensure independent touch-scroll on mobile */
     -webkit-overflow-scrolling: touch;
     touch-action: pan-y;
 }
 
-/* ═══════════════════════════════════════════════════════ */
-/* RTL — SIDEBAR SWAP (Library → right, Commentary → left) */
-/* ═══════════════════════════════════════════════════════ */
-
-/* Desktop: swap visual order of the three-column layout */
+/* Desktop: swap visual order in RTL (Library right, Commentary left) */
 @media (min-width: 1024px) {
     html.rtl #leftSidebar {
         order: 3;
@@ -284,7 +180,6 @@ body.theme-dark #rightSidebarIdle {
         border-right: 1px solid #e5e0d5;
     }
 
-    /* Dark mode border colours after swap */
     html.rtl body.theme-dark #leftSidebar {
         border-left-color: var(--surface-border);
     }
@@ -294,7 +189,7 @@ body.theme-dark #rightSidebarIdle {
     }
 }
 
-/* Show-tab button: in RTL the library tab should be on the right */
+/* In RTL the library restore tab sits on the right */
 html.rtl #showLeftSidebarTopBtn {
     left: auto;
     right: 0.75rem;
@@ -302,8 +197,6 @@ html.rtl #showLeftSidebarTopBtn {
 
 /* Mobile: flip drawer slide direction for RTL */
 @media (max-width: 1023px) {
-
-    /* Library drawer comes from the right in RTL */
     html.rtl .mobile-drawer-left {
         transform: translateX(100%);
     }
@@ -312,7 +205,6 @@ html.rtl #showLeftSidebarTopBtn {
         transform: translateX(0);
     }
 
-    /* Commentary drawer comes from the left in RTL */
     html.rtl .mobile-drawer-right {
         transform: translateX(-100%);
     }
@@ -322,130 +214,36 @@ html.rtl #showLeftSidebarTopBtn {
     }
 }
 
-/* ═══════════════════════════════════════════════════════ */
-/* RTL — ZMANIM DROPDOWN POSITIONING FIX                  */
-/* ═══════════════════════════════════════════════════════ */
-
-/* In RTL mode the search button is at the physical LEFT end of
-   the section row; anchor the popover there instead of right-0 */
+/* Zmanim city popover anchors to physical left in RTL */
 html.rtl #citySearchPopover {
     right: auto;
     left: 0;
 }
 
-/* Commentary sidebar: force independent scroll from main content */
+#citySearchPopover,
+#citySearchPopover * {
+    box-sizing: border-box;
+}
+
+#citySearchPopover .flex {
+    align-items: stretch;
+}
+
+#citySearchInput {
+    width: 100%;
+    min-width: 0;
+}
+
+html.rtl #citySearchInput {
+    text-align: right;
+}
+
+/* Commentary sidebar should scroll independently */
 #rightSidebar {
     isolation: isolate;
 }
 
-/* When the right sidebar mobile drawer is open, prevent body scroll bleed */
 #rightSidebar.mobile-open {
     overscroll-behavior-y: contain;
     touch-action: pan-y pinch-zoom;
-}
-
-/* ═══════════════════════════════════════════════════════ */
-/* RTL SIDEBAR DEPTH CORRECTIONS */
-/* ═══════════════════════════════════════════════════════ */
-
-/* Use logical properties for RTL-safe border placement */
-html.rtl .library-index-sidebar-tree {
-    border-inline-start: 2px solid rgba(0, 33, 71, 0.3);
-    border-inline-end: 0;
-    margin-inline-start: 0.5rem;
-    padding-inline-start: 0.75rem;
-}
-
-html.rtl .library-tree-children {
-    border-inline-start: 1px solid #d7d2c6;
-    border-inline-end: 0;
-    margin-inline-start: 0.75rem;
-    padding-inline-start: 0.5rem;
-}
-
-/* ═══════════════════════════════════════════════════════ */
-/* ACTIVE NODE INDICATOR */
-/* ═══════════════════════════════════════════════════════ */
-
-.library-node-open.library-node-active {
-    border-inline-start: 3px solid var(--accent-deep-blue);
-}
-
-/* ═══════════════════════════════════════════════════════ */
-/* DARK MODE SIDEBAR DIVIDERS */
-/* ═══════════════════════════════════════════════════════ */
-
-body.theme-dark #leftSidebar .border-b,
-body.theme-dark #rightSidebar .border-b {
-    border-bottom-color: var(--surface-border) !important;
-}
-
-body.theme-dark #leftSidebar .border-r,
-body.theme-dark #rightSidebar .border-l {
-    border-color: var(--surface-border) !important;
-}
-
-/* ═══════════════════════════════════════════════════════ */
-/* NAVIGATOR PANE HEADING COLOR */
-/* ═══════════════════════════════════════════════════════ */
-
-body.theme-dark #leftSidebar h3.text-slate-400 {
-    color: var(--text-muted) !important;
-}
-
-/* ═══════════════════════════════════════════════════════ */
-/* MOBILE DRAWER ACCESSIBILITY */
-/* ═══════════════════════════════════════════════════════ */
-
-/* When a drawer is open, announce it to screen readers */
-.mobile-drawer[aria-hidden="false"],
-.mobile-drawer.mobile-open {
-    visibility: visible;
-}
-
-/* Mobile: only disable pointer-events when drawer is NOT open */
-.mobile-drawer:not(.mobile-open) {
-    pointer-events: none;
-}
-
-.mobile-drawer.mobile-open {
-    pointer-events: auto;
-}
-
-/* Desktop: ALWAYS enable pointer-events on sidebars */
-@media (min-width: 1024px) {
-
-    #leftSidebar,
-    #rightSidebar {
-        pointer-events: auto !important;
-    }
-
-    #leftSidebar *,
-    #rightSidebar * {
-        pointer-events: auto !important;
-    }
-}
-
-/* ═══════════════════════════════════════════════════════ */
-/* RIGHT SIDEBAR IDLE STATE */
-/* ═══════════════════════════════════════════════════════ */
-
-#rightSidebarIdle {
-    border-radius: var(--radius-md, 0.7rem);
-}
-
-body.theme-dark #rightSidebarIdle {
-    background: var(--surface-elevated) !important;
-    border-color: var(--surface-border) !important;
-}
-
-/* ═══════════════════════════════════════════════════════ */
-/* SIDEBAR SCROLL PERFORMANCE */
-/* ═══════════════════════════════════════════════════════ */
-
-#leftSidebar,
-#rightSidebar {
-    will-change: transform;
-    /* Helps with GPU compositing on mobile */
-    overscroll-behavior: contain;
 }

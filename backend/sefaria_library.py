@@ -262,16 +262,20 @@ def _cached_get(url, ttl=CACHE_TTL):
                 "last_blocked_ts": now,
                 "consecutive_blocks": _sefaria_block_status.get("consecutive_blocks", 0) + 1,
             })
-            print(f"[Sefaria Library Error] Failed to fetch data from {url}. Status Code: {status_code}. Reason: Cloudflare 403 Forbidden. Sefaria is blocking the request.")
+            print(
+                f"[Sefaria Library Error] Failed to fetch data from {url}. Status Code: {status_code}. Reason: Cloudflare 403 Forbidden. Sefaria is blocking the request.")
         elif status_code not in (400, 404):
-            print(f"[Sefaria Library Error] HTTP error during fetch. URL: {url}. Status Code: {status_code}. Details: {str(e)}")
+            print(
+                f"[Sefaria Library Error] HTTP error during fetch. URL: {url}. Status Code: {status_code}. Details: {str(e)}")
         return None
     except requests.RequestException as e:
-        print(f"[Sefaria Library Error] Network or request error. URL: {url}. Details: {str(e)}")
+        print(
+            f"[Sefaria Library Error] Network or request error. URL: {url}. Details: {str(e)}")
         return None
     except Exception as e:
         import traceback
-        print(f"[Sefaria Library Error] Unexpected error occurred. URL: {url}. Type: {type(e).__name__}. Details: {str(e)}")
+        print(
+            f"[Sefaria Library Error] Unexpected error occurred. URL: {url}. Type: {type(e).__name__}. Details: {str(e)}")
         traceback.print_exc()
         return None
 
@@ -1160,6 +1164,40 @@ def get_linked_texts(ref):
             "heRef": link.get("heRef", ""),
             "anchorRef": link.get("anchorRef", "")
         })
+
+    # Ensure classic Torah commentary availability: add a canonical Rashi layer when
+    # related-link metadata omits it for Tanakh chapter/verse references.
+    match = re.match(r"^(.+?)\s+(\d+)(?::(\d+))?$", str(ref or "").strip())
+    if match:
+        book = str(match.group(1) or "").strip()
+        chapter = str(match.group(2) or "").strip()
+        verse = str(match.group(3) or "1").strip() or "1"
+
+        torah_books = {"Genesis", "Exodus",
+                       "Leviticus", "Numbers", "Deuteronomy"}
+        tanakh_books = torah_books | {
+            "Joshua", "Judges", "I Samuel", "II Samuel", "I Kings", "II Kings",
+            "Isaiah", "Jeremiah", "Ezekiel", "Hosea", "Joel", "Amos", "Obadiah",
+            "Jonah", "Micah", "Nahum", "Habakkuk", "Zephaniah", "Haggai", "Zechariah",
+            "Malachi", "Psalms", "Proverbs", "Job", "Song of Songs", "Ruth",
+            "Lamentations", "Ecclesiastes", "Esther", "Daniel", "Ezra", "Nehemiah",
+            "I Chronicles", "II Chronicles",
+        }
+
+        if book in tanakh_books:
+            rashi_ref = f"Rashi on {book} {chapter}:{verse}"
+            has_rashi = any(
+                str(item.get("ref", "")).lower().startswith("rashi on ")
+                for items in grouped.values()
+                for item in (items or [])
+                if isinstance(item, dict)
+            )
+            if not has_rashi:
+                grouped.setdefault("Commentary", []).insert(0, {
+                    "ref": rashi_ref,
+                    "heRef": "",
+                    "anchorRef": str(ref or ""),
+                })
 
     return grouped
 
