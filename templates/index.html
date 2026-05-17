@@ -184,33 +184,31 @@
         class="topbar sticky top-0 bg-white text-slate-800 py-1.5 px-2 lg:py-1.5 lg:px-3 shadow-sm border-b flex flex-wrap lg:flex-nowrap justify-between items-center z-50 flex-shrink-0 gap-1.5 lg:gap-2">
         <!-- mobileNavBtn removed: Library tab in bottom nav covers this action -->
 
-        <div class="topbar-brand-lock flex items-center gap-2 shrink-0">
-            <div id="brandHomeBtn" class="topbar-brand flex items-center gap-1.5 cursor-pointer shrink-0"
-                onclick="goHome()">
-                <div class="text-navy font-hebrew text-[1.7rem] font-semibold leading-tight">
-                    ש
-                </div>
-                <h1 class="text-sm sm:text-base font-serif tracking-tight text-navy font-semibold leading-none">
-                    <span class="block" data-en="Sh'elah" data-he="שאלה">Sh'elah</span>
-                    <span class="block text-[10px] font-normal text-slate-500 italic topbar-brand-subtitle"
-                        data-en="Torah Encyclopedia" data-he="אנציקלופדיית תורה">Torah Encyclopedia</span>
-                </h1>
+        <div id="brandHomeBtn" class="topbar-brand flex items-center gap-1.5 cursor-pointer shrink-0"
+            onclick="goHome()">
+            <div class="text-navy font-hebrew text-[1.7rem] font-semibold leading-tight">
+                ש
             </div>
-
-            <!-- Library Button (Desktop Homepage Only) - locked next to brand -->
-            <button id="topbarLibraryBtn" type="button"
-                class="topbar-flat-btn hidden lg:inline-flex shrink-0 items-center gap-1.5 topbar-library-btn"
-                onclick="openLibrarySidebar()" title="Library" aria-label="Library">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 shrink-0" viewBox="0 0 20 20" fill="currentColor"
-                    aria-hidden="true">
-                    <path
-                        d="M3 4.5A1.5 1.5 0 014.5 3h9A1.5 1.5 0 0115 4.5V14a1 1 0 001 1h1a1 1 0 010 2h-1a3 3 0 01-3-3V5H5v9a1 1 0 001 1h5a1 1 0 110 2H6a3 3 0 01-3-3V4.5z" />
-                    <path
-                        d="M6 7a1 1 0 011-1h4a1 1 0 110 2H7a1 1 0 01-1-1zm0 3a1 1 0 011-1h4a1 1 0 110 2H7a1 1 0 01-1-1z" />
-                </svg>
-                <span class="text-xs font-medium" data-en="Library" data-he="ספרייה">Library</span>
-            </button>
+            <h1 class="text-sm sm:text-base font-serif tracking-tight text-navy font-semibold leading-none">
+                <span class="block" data-en="Sh'elah" data-he="שאלה">Sh'elah</span>
+                <span class="block text-[10px] font-normal text-slate-500 italic topbar-brand-subtitle"
+                    data-en="Torah Encyclopedia" data-he="אנציקלופדיית תורה">Torah Encyclopedia</span>
+            </h1>
         </div>
+
+        <!-- Library Button (Desktop Homepage Only) — placed after brand for natural flow -->
+        <button id="topbarLibraryBtn" type="button"
+            class="topbar-flat-btn hidden lg:inline-flex shrink-0 items-center gap-1.5 topbar-library-btn"
+            onclick="openLibrarySidebar()" title="Library" aria-label="Library">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 shrink-0" viewBox="0 0 20 20" fill="currentColor"
+                aria-hidden="true">
+                <path
+                    d="M3 4.5A1.5 1.5 0 014.5 3h9A1.5 1.5 0 0115 4.5V14a1 1 0 001 1h1a1 1 0 010 2h-1a3 3 0 01-3-3V5H5v9a1 1 0 001 1h5a1 1 0 110 2H6a3 3 0 01-3-3V4.5z" />
+                <path
+                    d="M6 7a1 1 0 011-1h4a1 1 0 110 2H7a1 1 0 01-1-1zm0 3a1 1 0 011-1h4a1 1 0 110 2H7a1 1 0 01-1-1z" />
+            </svg>
+            <span class="text-xs font-medium" data-en="Library" data-he="ספרייה">Library</span>
+        </button>
 
         <!-- Top Navigation Menu Toggle + Search Bar -->
         <div
@@ -249,7 +247,8 @@
                 </button>
 
                 <div id="settingsPanel"
-                    class="hidden absolute top-full left-0 mt-1 w-72 max-w-[calc(100vw-1rem)] bg-white border border-slate-200 rounded-xl shadow-lg p-2.5 z-[90] space-y-2.5 overflow-y-auto max-h-[calc(100vh-5.5rem)]">
+                    class="hidden fixed mt-2 w-72 max-w-[calc(100vw-1rem)] bg-white border border-slate-200 rounded-xl shadow-lg p-2.5 z-[90] space-y-2.5 overflow-y-auto max-h-[calc(100vh-5.5rem)]"
+                    style="max-width: min(22rem, calc(100vw - 1rem)); top: 3.5rem; right: auto; left: 0.5rem;">
                     <p class="text-[11px] uppercase tracking-widest text-slate-400 font-bold" data-en="Quick Settings"
                         data-he="הגדרות מהירות">Quick Settings</p>
 
@@ -384,7 +383,7 @@
         style="top: var(--topbar-height, 3.4rem); transition: opacity 0.25s ease;">
     </div>
 
-    <div id="appColumns" class="flex flex-1 relative">
+    <div class="flex flex-1 relative">
 
         <button id="showLeftSidebarTopBtn" type="button"
             class="sidebar-show-tab hidden items-center gap-1 absolute left-3 top-3 z-30 px-2 py-1 rounded-md border border-slate-200 bg-white/85 text-slate-500 text-[10px] font-medium tracking-wide hover:bg-white hover:text-slate-700 transition"
@@ -3413,49 +3412,13 @@
 
         function formatWeeklyShabbatLabel(meta) {
             const raw = String(meta?.weekly_shabbat_parasha || '').trim();
-            if (!raw || /no\s+parasha|lookup\s+unavailable/i.test(raw)) return '--';
+            if (!raw) return '--';
             if (!isHebrewMode()) return `Shabbat ${raw}`;
             const parts = raw.split(/\s*[-–]\s*/).map((part) => part.trim()).filter(Boolean);
             const he = parts.length
                 ? parts.map((part) => PARASHA_HE_MAP[part] || part).join('-')
                 : (PARASHA_HE_MAP[raw] || raw);
             return `שבת ${he}`;
-        }
-
-        function formatWeeklyShabbatLabelFromParashaName(parashaName = '') {
-            const raw = String(parashaName || '').replace(/^Parashat\s+/i, '').trim();
-            if (!raw) return '--';
-            if (!isHebrewMode()) return `Shabbat ${raw}`;
-            const he = PARASHA_HE_MAP[raw] || raw;
-            return `שבת ${he}`;
-        }
-
-        async function hydrateWeeklyParashaCard(meta = {}) {
-            const shabbatWeekName = document.getElementById('shabbatWeekName');
-            if (!shabbatWeekName) return;
-
-            const fromMetadata = formatWeeklyShabbatLabel(meta);
-            if (fromMetadata !== '--') {
-                shabbatWeekName.innerText = fromMetadata;
-                return;
-            }
-
-            const cachedName = String(textsCache?.parashaQuickLink?.enTitle || '').trim();
-            if (cachedName) {
-                shabbatWeekName.innerText = formatWeeklyShabbatLabelFromParashaName(cachedName);
-                return;
-            }
-
-            try {
-                const resp = await fetch('/api/parasha');
-                if (!resp.ok) return;
-                const payload = await resp.json();
-                const parashaName = String(payload?.title || '').trim();
-                if (!parashaName) return;
-                shabbatWeekName.innerText = formatWeeklyShabbatLabelFromParashaName(parashaName);
-            } catch (_) {
-                // Keep placeholder when parasha endpoint is unavailable.
-            }
         }
 
         function translateShabbatWarning(message) {
@@ -4424,23 +4387,6 @@
         function positionFloatingMenu(menuEl, triggerEl, options = {}) {
             if (!menuEl || !triggerEl) return;
 
-            if (!isMobileViewport()) {
-                const align = String(options.align || 'start');
-                menuEl.style.setProperty('position', 'absolute', 'important');
-                menuEl.style.setProperty('top', 'calc(100% + 1px)', 'important');
-                menuEl.style.removeProperty('width');
-                menuEl.style.removeProperty('max-width');
-
-                if (align === 'end') {
-                    menuEl.style.setProperty('right', '0', 'important');
-                    menuEl.style.setProperty('left', 'auto', 'important');
-                } else {
-                    menuEl.style.setProperty('left', '0', 'important');
-                    menuEl.style.setProperty('right', 'auto', 'important');
-                }
-                return;
-            }
-
             const viewportWidth = Math.max(Math.round(window.innerWidth || 0), 320);
             const viewportHeight = Math.max(Math.round(window.innerHeight || 0), 320);
             const padding = Number.isFinite(options.padding) ? options.padding : 8;
@@ -4483,7 +4429,6 @@
             positionFloatingMenu(settingsPanel, settingsMenuBtn, {
                 minWidth: 220,
                 maxWidth: 352,
-                align: 'start',
             });
         }
 
@@ -4493,17 +4438,7 @@
             positionFloatingMenu(userProfileMenu, userProfileMenuBtn, {
                 minWidth: 148,
                 maxWidth: 180,
-                align: 'end',
             });
-        }
-
-        function positionReaderSettingsPanel() {
-            if (!readerSettingsPanel) return;
-            readerSettingsPanel.style.setProperty('position', 'absolute', 'important');
-            readerSettingsPanel.style.setProperty('top', 'calc(100% + 1px)', 'important');
-            readerSettingsPanel.style.setProperty('left', '50%', 'important');
-            readerSettingsPanel.style.setProperty('right', 'auto', 'important');
-            readerSettingsPanel.style.setProperty('transform', 'translateX(-50%)', 'important');
         }
 
         function closeUserProfileMenu() {
@@ -4562,7 +4497,6 @@
                 readerSettingsBtn.setAttribute('aria-expanded', shouldOpen ? 'true' : 'false');
             }
             if (shouldOpen) {
-                positionReaderSettingsPanel();
                 closeSettingsMenu();
             }
         }
@@ -5533,16 +5467,14 @@
 
             const refs = [];
             const seen = new Set();
-            const classicCommentatorRef = /(rashi|ramban|ibn\s+ezra|sforno|kli\s+yakar|or\s+hachaim|chizkuni|rashbam)\s+on\s+/i;
 
             Object.entries(linkData).forEach(([category, items]) => {
                 const isCommentaryCategory = /commentary|targum|midrash|supercommentary|parshan/i.test(String(category || ''));
-                if (!Array.isArray(items)) return;
+                if (!Array.isArray(items) || !isCommentaryCategory) return;
 
                 items.forEach((item) => {
                     const ref = String(item?.ref || '').trim();
                     if (!ref) return;
-                    if (!isCommentaryCategory && !classicCommentatorRef.test(ref)) return;
                     const key = ref.toLowerCase();
                     if (seen.has(key)) return;
                     seen.add(key);
@@ -5879,20 +5811,6 @@
             await openCommentaryInline(rashiRef);
         }
 
-        function buildDefaultRashiRefForTanakh(currentRef = '') {
-            const raw = String(currentRef || '').trim();
-            if (!raw) return '';
-
-            const tanakhMatch = raw.match(/^(.+?)\s+(\d+)(?::\d+)?$/);
-            const tanakhBook = normalizeChapterGridBookName(tanakhMatch?.[1] || '');
-            if (!tanakhBook || !CHAPTER_GRID_BOOKS[tanakhBook]) return '';
-
-            const fallbackVerseRef = raw.includes(':')
-                ? raw
-                : `${tanakhBook} ${tanakhMatch?.[2] || 1}:1`;
-            return `Rashi on ${fallbackVerseRef}`;
-        }
-
         async function updateSelectionInsights() {
             if (!selectionInsightsBody || appState.currentView?.type !== 'text') {
                 collapseCommentaryPanel();
@@ -5966,11 +5884,14 @@
             const [{ links }, wordInfo] = await Promise.all([commentaryPromise, wordPromise]);
 
             let commentaryRefs = extractCommentaryRefs(links);
-            const defaultRashiRef = buildDefaultRashiRefForTanakh(currentRef);
-            if (defaultRashiRef) {
-                const hasRashi = commentaryRefs.some((value) => /^rashi\s+on\s+/i.test(String(value || '').trim()));
-                if (!hasRashi) {
-                    commentaryRefs = [defaultRashiRef, ...commentaryRefs];
+            if (!commentaryRefs.length) {
+                const tanakhMatch = currentRef.match(/^(.+?)\s+(\d+)(?::\d+)?$/);
+                const tanakhBook = normalizeChapterGridBookName(tanakhMatch?.[1] || '');
+                if (tanakhBook && CHAPTER_GRID_BOOKS[tanakhBook]) {
+                    const fallbackVerseRef = currentRef.includes(':')
+                        ? currentRef
+                        : `${tanakhBook} ${tanakhMatch?.[2] || 1}:1`;
+                    commentaryRefs = [`Rashi on ${fallbackVerseRef}`];
                 }
             }
 
@@ -6500,66 +6421,21 @@
             return isHebrewMode() ? `פרק ${chapterNum}` : `Chapter ${chapterNum}`;
         }
 
-        function formatHebrewChapterNumber(number) {
-            const value = Number(number);
-            if (!Number.isFinite(value) || value < 1) return '';
-
-            const digits = [
-                { n: 400, l: 'ת' }, { n: 300, l: 'ש' }, { n: 200, l: 'ר' }, { n: 100, l: 'ק' },
-                { n: 90, l: 'צ' }, { n: 80, l: 'פ' }, { n: 70, l: 'ע' }, { n: 60, l: 'ס' }, { n: 50, l: 'נ' },
-                { n: 40, l: 'מ' }, { n: 30, l: 'ל' }, { n: 20, l: 'כ' }, { n: 10, l: 'י' },
-                { n: 9, l: 'ט' }, { n: 8, l: 'ח' }, { n: 7, l: 'ז' }, { n: 6, l: 'ו' },
-                { n: 5, l: 'ה' }, { n: 4, l: 'ד' }, { n: 3, l: 'ג' }, { n: 2, l: 'ב' }, { n: 1, l: 'א' },
-            ];
-
-            let remaining = Math.floor(value);
-            if (remaining === 15) return 'טו';
-            if (remaining === 16) return 'טז';
-
-            let output = '';
-            for (const item of digits) {
-                while (remaining >= item.n) {
-                    output += item.l;
-                    remaining -= item.n;
-                }
-            }
-            return output || String(value);
-        }
-
-        function parseBookAndChapterFromRef(ref = '') {
-            const raw = String(ref || '').replace(/\s+/g, ' ').trim();
-            if (!raw) return null;
-
-            const chapterMatch = raw.match(/^(.+?)\s+(\d+)(?::\d+)?$/);
-            if (!chapterMatch) return null;
-
-            return {
-                book: normalizeChapterGridBookName(chapterMatch[1]),
-                chapter: Number(chapterMatch[2] || 0),
-            };
-        }
-
         function getChunkParashaLabel(chunk = {}) {
             const sectionRef = String(chunk?.ref || appState.currentView?.value || '').trim();
             if (!sectionRef) return '';
 
             try {
-                const parsed = parseBookAndChapterFromRef(sectionRef);
-                if (!parsed?.book || !Number.isFinite(parsed.chapter) || parsed.chapter < 1) return '';
+                const refParts = sectionRef.split(' ');
+                const chapterNum = parseInt(refParts[refParts.length - 1], 10);
+                const bookName = refParts.slice(0, refParts.length - 1).join(' ');
+                if (!Number.isFinite(chapterNum) || !bookName) return '';
 
-                const normalizedBook = normalizeChapterGridBookName(parsed.book);
+                const normalizedBook = normalizeChapterGridBookName(bookName);
                 const parashaEntries = Array.isArray(TORAH_PARASHA_BY_BOOK[normalizedBook])
                     ? TORAH_PARASHA_BY_BOOK[normalizedBook]
                     : [];
-                if (!parashaEntries.length) return '';
-
-                let match = null;
-                for (const entry of parashaEntries) {
-                    const startChapter = Number(entry?.chapter || 0);
-                    if (startChapter > 0 && parsed.chapter >= startChapter) {
-                        match = entry;
-                    }
-                }
+                const match = parashaEntries.find((entry) => Number(entry?.chapter) === chapterNum);
                 if (!match?.name) return '';
 
                 const nameEn = String(match.name).trim();
@@ -6568,28 +6444,6 @@
             } catch (_) {
                 return '';
             }
-        }
-
-        function getChunkRunningHeader(chunk = {}) {
-            const sectionRef = String(chunk?.ref || appState.currentView?.value || '').trim();
-            const parsed = parseBookAndChapterFromRef(sectionRef);
-
-            if (!parsed?.book || !Number.isFinite(parsed.chapter) || parsed.chapter < 1) {
-                return getChunkDisplayTitle(chunk);
-            }
-
-            const parashaLabel = getChunkParashaLabel(chunk);
-            if (isHebrewMode()) {
-                const hebrewBook = getHebrewBookDisplayName(parsed.book) || parsed.book;
-                const chapterLabel = formatHebrewChapterNumber(parsed.chapter) || String(parsed.chapter);
-                return parashaLabel
-                    ? `${hebrewBook} ${chapterLabel} • ${parashaLabel}`
-                    : `${hebrewBook} ${chapterLabel}`;
-            }
-
-            return parashaLabel
-                ? `${parsed.book} ${parsed.chapter} • ${parashaLabel}`
-                : `${parsed.book} ${parsed.chapter}`;
         }
 
         function updateReaderHeaderForVisibleChunk(chunkIndex) {
@@ -6601,7 +6455,10 @@
             const chunk = chain[clampedIndex] || chain[0];
 
             const titleEl = document.getElementById('readerTitle');
-            const sectionTitle = getChunkRunningHeader(chunk);
+            const sectionTitle = getChunkDisplayTitle(chunk);
+            const sectionRef = getChunkDisplayRef(chunk);
+            const chapterLabel = getChunkChapterLabel(chunk);
+            const parashaLabel = getChunkParashaLabel(chunk);
 
             if (titleEl && sectionTitle) {
                 titleEl.innerText = sectionTitle;
@@ -6668,26 +6525,32 @@
             const sectionsMarkup = chain.map((chunk, index) => {
                 const sectionRows = renderTextRowsForPayload(chunk, layout);
                 const sectionRef = String(chunk?.ref || appState.currentView?.value || '').trim();
-                const sectionTitle = getChunkRunningHeader(chunk);
+                const sectionTitle = getChunkDisplayTitle(chunk);
+                const sectionRefLabel = getChunkDisplayRef(chunk);
+                const showRefMeta = Boolean(sectionRefLabel && !isLikelyDuplicateLabel(sectionTitle, sectionRefLabel));
                 const currentMainTitle = String(document.getElementById('readerTitle')?.innerText || '').trim();
                 const hideRedundantHeader = Boolean(
                     index === 0
                     && currentMainTitle
-                    && isLikelyDuplicateLabel(sectionTitle, currentMainTitle),
+                    && (isLikelyDuplicateLabel(sectionTitle, currentMainTitle)
+                        || isLikelyDuplicateLabel(sectionRefLabel, currentMainTitle)),
                 );
-                const categories = Array.isArray(chunk?.categories) ? chunk.categories : [];
-                const categoryBlob = categories.map((item) => String(item || '').toLowerCase()).join(' ');
-                const isTalmudChunk = /talmud|bavli|gemara/.test(categoryBlob)
-                    || /\b\d+[ab](?::\d+)?$/i.test(sectionRef);
+                const parashaLabel = getChunkParashaLabel(chunk);
+
+                const parashaChip = parashaLabel
+                    ? `<span class="reader-parasha-chip">${escapeHtml(parashaLabel)}</span>`
+                    : '';
 
                 const sectionTitleMarkup = hideRedundantHeader ? '' : `
                     <div class="reader-source-title mb-2">
                         <span class="reader-source-title-main">${escapeHtml(sectionTitle)}</span>
+                        ${showRefMeta ? `<span class="reader-source-title-ref">${escapeHtml(sectionRefLabel)}</span>` : ''}
+                        ${parashaChip}
                     </div>
                 `;
 
                 return `
-                    <div class="reader-source-clean mb-6${isTalmudChunk ? ' is-talmud' : ''}" data-text-chunk-index="${index}">
+                    <div class="reader-source-clean mb-6" data-text-chunk-index="${index}">
                         ${sectionTitleMarkup}
                         <div class="reader-source-lines">
                             ${sectionRows}
@@ -7252,9 +7115,6 @@
             }
             if (userProfileMenu && !userProfileMenu.classList.contains('hidden')) {
                 positionUserProfileMenu();
-            }
-            if (readerSettingsPanel && !readerSettingsPanel.classList.contains('hidden')) {
-                positionReaderSettingsPanel();
             }
             if (appState.prefs.shulMode) {
                 applyShulMode();
@@ -10097,7 +9957,6 @@
                 const shabbatWeekName = document.getElementById('shabbatWeekName');
                 if (shabbatWeekName) {
                     shabbatWeekName.innerText = formatWeeklyShabbatLabel(meta);
-                    void hydrateWeeklyParashaCard(meta);
                 }
 
                 const omerCount = document.getElementById('omerCount');
@@ -10362,7 +10221,6 @@
                         }
                         if (shabbatWeekName) {
                             shabbatWeekName.innerText = formatWeeklyShabbatLabel(meta);
-                            void hydrateWeeklyParashaCard(meta);
                         }
                         if (omerRow && omerCount && omerHint) {
                             if (meta.omer_day) {
