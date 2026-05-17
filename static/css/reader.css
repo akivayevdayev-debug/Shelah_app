@@ -106,43 +106,126 @@ body.theme-dark #reader ::selection {
 /* ═══════════════════════════════════════════════════════ */
 
 body.theme-dark .reader-topbar-icon-btn {
-    background: #242420;
-    border-color: #4e4942;
-    color: var(--accent-cream, #f3eadd);
+    background: var(--control-bg);
+    border-color: var(--control-border);
+    color: var(--accent-cream);
 }
 
 body.theme-dark .reader-topbar-icon-btn:hover,
 body.theme-dark .reader-topbar-icon-btn:focus-visible {
-    background: #2e2f2a;
-    border-color: #70695d;
-    color: #f5ebdb;
+    background: var(--control-bg-hover);
+    border-color: var(--surface-border);
+    color: var(--control-text-strong);
 }
 
 body.theme-dark .reader-topbar-library-track {
-    color: var(--accent-cream, #f3eadd);
+    color: var(--accent-cream);
     opacity: 0.75;
 }
 
 body.theme-dark .reader-topbar-library-track:hover,
 body.theme-dark .reader-topbar-library-track:focus-visible {
     opacity: 1;
-    color: #f5ebdb;
+    color: var(--control-text-strong);
 }
 
 body.theme-dark #readerTopBar {
-    background: rgba(28, 26, 22, 0.97) !important;
-    border-color: #4a433a !important;
+    background: color-mix(in srgb, var(--surface-topbar) 94%, transparent) !important;
+    border-color: var(--surface-border) !important;
+}
+
+#reader>header {
+    margin-bottom: 1.75rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+#readerTitle {
+    font-family: var(--font-serif, 'Cardo', serif);
+    font-size: clamp(1.75rem, 3.55vw, 2.7rem);
+    line-height: 1.12;
+    font-weight: 700;
+    letter-spacing: 0.014em;
+    color: var(--accent-deep-blue);
+    text-wrap: balance;
+    text-align: center;
+}
+
+html.rtl #readerTitle {
+    font-family: var(--font-hebrew, 'Ezra SIL', serif);
+    letter-spacing: 0;
+}
+
+#readerSubtitle {
+    color: var(--text-muted);
+    font-size: 0.86rem;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+}
+
+html.rtl #readerSubtitle {
+    letter-spacing: 0.01em;
+    text-transform: none;
+}
+
+#reader>header .bg-slate-100 {
+    background: var(--surface-pill) !important;
+    border: 1px solid var(--surface-border);
+    border-radius: var(--radius-full, 9999px);
+    color: var(--text-muted) !important;
+}
+
+#readerSources {
+    margin-top: 1.85rem !important;
+    padding-top: 0.65rem !important;
 }
 
 /* ─── Section title — consistent style across all chunks ─── */
 .reader-source-title {
-    border-bottom: 1px solid rgba(0, 0, 0, 0.08);
-    padding-bottom: 0.4rem;
-    margin-bottom: 0.6rem;
+    position: relative;
+    top: auto;
+    z-index: 1;
+    border: 0;
+    background: transparent;
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+    border-radius: 0;
+    padding: 0.1rem 0;
+    margin-bottom: 0.85rem;
     display: flex;
     align-items: center;
-    gap: 0.5rem;
+    gap: 0.32rem;
     flex-wrap: wrap;
+    min-height: 0;
+    transform: translateZ(0);
+    justify-content: flex-start;
+    text-align: start;
+    margin-inline: auto;
+    max-width: min(100%, 82ch);
+}
+
+.reader-source-title-main {
+    font-size: clamp(1.04rem, 1.35vw, 1.22rem);
+    font-weight: 800;
+    color: var(--accent-deep-blue);
+    letter-spacing: 0.01em;
+    text-transform: none;
+}
+
+.reader-source-title-ref {
+    display: none;
+}
+
+html.rtl .reader-source-title {
+    direction: rtl;
+    text-align: right;
+    justify-content: flex-start;
+}
+
+html.rtl .reader-source-title-ref {
+    text-transform: none;
+    letter-spacing: 0.02em;
 }
 
 /* Parasha chip shown next to the chapter ref */
@@ -150,35 +233,87 @@ body.theme-dark #readerTopBar {
     display: inline-block;
     padding: 0.1rem 0.45rem;
     border-radius: 0.3rem;
-    background: rgba(0, 33, 71, 0.07);
-    color: #1f3f63;
+    background: color-mix(in srgb, var(--accent-deep-blue) 12%, transparent);
+    color: var(--accent-deep-blue);
     font-size: 0.68rem;
     font-weight: 700;
     letter-spacing: 0.02em;
     text-transform: none;
-    border: 1px solid rgba(0, 33, 71, 0.12);
+    border: 1px solid color-mix(in srgb, var(--accent-deep-blue) 24%, transparent);
+}
+
+.reader-chapter-chip {
+    display: inline-block;
+    padding: 0.1rem 0.45rem;
+    border-radius: 0.3rem;
+    background: color-mix(in srgb, var(--gold) 26%, var(--surface-pill));
+    color: var(--text-main);
+    font-size: 0.66rem;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    border: 1px solid color-mix(in srgb, var(--gold) 38%, var(--surface-border));
 }
 
 body.theme-dark .reader-parasha-chip {
-    background: rgba(200, 180, 140, 0.1);
-    color: var(--accent-cream, #f3eadd);
-    border-color: rgba(200, 180, 140, 0.2);
+    background: color-mix(in srgb, var(--gold) 16%, transparent);
+    color: var(--accent-cream);
+    border-color: color-mix(in srgb, var(--gold) 32%, transparent);
+}
+
+body.theme-dark .reader-chapter-chip {
+    background: color-mix(in srgb, var(--control-bg) 82%, var(--gold));
+    color: var(--accent-cream);
+    border-color: color-mix(in srgb, var(--gold) 30%, var(--surface-border));
 }
 
 body.theme-dark .reader-source-title {
-    border-bottom-color: rgba(255, 255, 255, 0.08);
-    color: var(--text-muted, #9ca3af) !important;
+    border-color: transparent;
+    background: transparent;
+    color: var(--text-muted) !important;
+}
+
+body.theme-dark .reader-source-title-main {
+    color: var(--accent-cream);
+}
+
+body.theme-dark .reader-source-title-ref {
+    color: var(--text-muted);
 }
 
 /* Section divider between consecutive chunks */
 .reader-source-clean+.reader-source-clean {
     border-top: 1px solid rgba(0, 0, 0, 0.07);
-    padding-top: 1.25rem;
-    margin-top: 0.5rem;
+    padding-top: 1.08rem;
+    margin-top: 0.25rem;
 }
 
 body.theme-dark .reader-source-clean+.reader-source-clean {
     border-top-color: rgba(255, 255, 255, 0.07);
+}
+
+/* Talmudic layout tuning: slightly denser vertical rhythm with clear segment markers */
+.reader-source-clean.is-talmud .reader-source-lines {
+    margin-top: 0.2rem;
+}
+
+.reader-source-clean.is-talmud .reader-text-row {
+    padding-block: 0.08rem;
+}
+
+.reader-source-clean.is-talmud .reader-text-he {
+    line-height: 1.74 !important;
+    margin-bottom: 0.08rem;
+}
+
+.reader-source-clean.is-talmud .reader-text-en {
+    line-height: 1.62 !important;
+}
+
+.reader-source-clean.is-talmud .segment-label {
+    font-size: 0.68rem;
+    letter-spacing: 0.02em;
+    color: color-mix(in srgb, var(--text-muted) 88%, #6b7280);
 }
 
 /* ═══════════════════════════════════════════════════════ */
