@@ -29,13 +29,17 @@
 body.theme-dark {
     --cal-border: var(--surface-border);
     --cal-today-bg: var(--surface-pill);
-    --cal-header-color: var(--text-base);
+    --cal-header-color: var(--accent-cream);
     --cal-cell-bg: var(--surface-elevated);
-    --cal-cell-hover: var(--surface-base);
+    --cal-cell-hover: var(--surface-subtle);
     --cal-number-color: var(--text-muted);
-    --cal-event-holiday: #6a5a46;
-    --cal-event-shabbat: #4e5b4c;
-    --cal-event-rh: #695741;
+    /* Event colours — bright enough to stand out on dark cells */
+    --cal-event-holiday: #9e3f50;
+    /* cranberry red */
+    --cal-event-shabbat: #2d7848;
+    /* forest green */
+    --cal-event-rh: #9a6428;
+    /* amber-orange */
     --cal-toolbar-btn-bg: var(--control-bg);
     --cal-toolbar-btn-border: var(--control-border);
     --cal-toolbar-btn-color: var(--control-text);

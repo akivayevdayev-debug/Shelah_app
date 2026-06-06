@@ -323,3 +323,76 @@ body.theme-dark #compareContainer {
     background: var(--surface-elevated);
     border-color: var(--surface-border);
 }
+/* ═══════════════════════════════════════════════════════ */
+/* READER SETTINGS DROPDOWN DARK MODE */
+/* ═══════════════════════════════════════════════════════ */
+
+#readerSettingsPanel {
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+body.theme-dark #readerSettingsPanel {
+    background: var(--surface-elevated);
+    border-color: var(--surface-border);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+}
+
+#readerSettingsPanel label {
+    color: #475569;
+}
+
+body.theme-dark #readerSettingsPanel label {
+    color: var(--text-main);
+}
+
+#readerSettingsPanel select,
+#readerSettingsPanel input[type="range"] {
+    background: #f8f9fa;
+    color: #334155;
+    border-color: #e2e8f0;
+}
+
+body.theme-dark #readerSettingsPanel select,
+body.theme-dark #readerSettingsPanel input[type="range"] {
+    background: var(--control-bg);
+    color: var(--text-main);
+    border-color: var(--control-border);
+}
+
+#readerSettingsPanel input[type="checkbox"],
+#readerSettingsPanel .reader-switch {
+    background: #e2e8f0;
+    border-color: #cbd5e1;
+}
+
+body.theme-dark #readerSettingsPanel input[type="checkbox"],
+body.theme-dark #readerSettingsPanel .reader-switch {
+    background: var(--control-bg);
+    border-color: var(--control-border);
+}
+
+#readerSettingsPanel p {
+    color: #94a3b8;
+}
+
+body.theme-dark #readerSettingsPanel p {
+    color: var(--text-muted);
+}
+
+#readerSettingsPanel .border-t {
+    border-color: #e2e8f0;
+}
+
+body.theme-dark #readerSettingsPanel .border-t {
+    border-color: var(--surface-border);
+}
+
+.reader-settings-dropdown {
+    background: #ffffff;
+}
+
+body.theme-dark .reader-settings-dropdown {
+    background: var(--surface-elevated);
+}
