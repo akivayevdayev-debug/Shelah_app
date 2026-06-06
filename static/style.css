@@ -306,12 +306,6 @@ h6 {
     min-height: 0;
 }
 
-body.theme-dark .topbar {
-    background: linear-gradient(180deg, rgba(13, 11, 9, 0.96) 0%, rgba(15, 13, 11, 0.96) 100%);
-    border-bottom-color: var(--surface-border);
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
-}
-
 /* Topbar flat icon/text buttons (no button-look border/bg) */
 .topbar-flat-btn {
     background: transparent !important;
@@ -552,16 +546,6 @@ body.theme-dark .topbar-user-menu-signout {
 }
 
 /* Settings Panel & General Button Styling for Tailwind Compatibility */
-#settingsPanel {
-    background: #ffffff;
-    border: 1px solid #e2e8f0;
-}
-
-body.theme-dark #settingsPanel {
-    background: var(--surface-elevated);
-    border-color: var(--surface-border);
-}
-
 #settingsPanel button {
     color: #334155 !important;
     display: inline-block !important;
@@ -581,17 +565,6 @@ body.theme-dark #settingsPanel {
     background: #ebe3d3 !important;
 }
 
-body.theme-dark #settingsPanel button:not(#bookmarkCurrentBtn) {
-    background: var(--control-bg) !important;
-    border-color: var(--control-border) !important;
-    color: var(--text-main) !important;
-}
-
-body.theme-dark #settingsPanel button:hover:not(#bookmarkCurrentBtn) {
-    background: var(--control-bg-hover) !important;
-    color: var(--text-main) !important;
-}
-
 #bookmarkCurrentBtn {
     background: #002147 !important;
     color: #ffffff !important;
@@ -601,61 +574,12 @@ body.theme-dark #settingsPanel button:hover:not(#bookmarkCurrentBtn) {
     background: #1e3a5f !important;
 }
 
-body.theme-dark #bookmarkCurrentBtn {
-    background: var(--control-strong-bg) !important;
-    color: var(--control-text-strong) !important;
-}
-
-body.theme-dark #bookmarkCurrentBtn:hover {
-    background: var(--control-strong-bg-hover) !important;
-}
-
 #semanticBookmarkBtn {
     border-color: #dacdb8 !important;
 }
 
 #searchIcon {
     color: #a5947d !important;
-}
-
-body.theme-dark #searchIcon {
-    color: var(--text-muted) !important;
-}
-
-#settingsPanel label {
-    color: #475569;
-}
-
-body.theme-dark #settingsPanel label {
-    color: var(--text-main);
-}
-
-#settingsPanel select {
-    background: #f8f9fa;
-    color: #334155;
-    border-color: #e2e8f0;
-}
-
-body.theme-dark #settingsPanel select {
-    background: var(--control-bg);
-    color: var(--text-main);
-    border-color: var(--control-border);
-}
-
-#settingsPanel p {
-    color: #94a3b8;
-}
-
-body.theme-dark #settingsPanel p {
-    color: var(--text-muted);
-}
-
-#settingsPanel .border-t {
-    border-color: #e2e8f0;
-}
-
-body.theme-dark #settingsPanel .border-t {
-    border-color: var(--surface-border);
 }
 
 .library-shell button svg,
@@ -1200,78 +1124,36 @@ body.theme-dark #settingsPanel .border-t {
 /* Dark mode scrollbar - override global rules */
 html.theme-dark,
 body.theme-dark {
-    /* ── Surface hierarchy: warm dark palette (complementary to light beige theme) ─── */
-    --surface-base: #0f0d0b;
-    /* Page background – deep warm black (9:1 contrast with text) */
-    --surface-subtle: #16131010;
-    /* Slight lift over base – very subtle */
-    --surface-elevated: #1f1c18;
-    /* Cards, panels, modals – readable elevation */
-    --surface-topbar: #0d0b09;
-    /* Topbar – darkest layer, slight warmth */
-    --surface-border: #3e3a33;
-    /* Borders – clearly visible at 4.5:1 contrast */
-    --surface-pill: #2a2620;
-    /* Pill / tag backgrounds */
-
-    /* ── Controls – professional neutral grays ──────────────── */
-    --control-bg: #262219;
-    /* Form control background – readable */
-    --control-bg-hover: #31302c;
-    /* Control hover state – clear feedback */
-    --control-border: #4f4940;
-    /* Form control borders – strong visibility */
-    --control-text: #d9d0c0;
-    /* Text inside controls – strong contrast (11:1) */
-    --control-text-strong: #ede8dc;
-    /* Strong / label text – excellent contrast (14:1) */
-    --control-strong-bg: #2d4166;
-    /* Primary action button (navy) */
-    --control-strong-bg-hover: #3d5580;
-    /* Navy hover – warmer shift */
-
-    /* ── Semantic deep-blue (readable on dark bg) ─────────── */
-    --accent-deep-blue: #7fb3d8;
-    /* Blue accent – accessible and professional */
-
-    /* ── Text tokens (strict WCAG AAA compliance) ─────────── */
-    --text-base: #d5ccc0;
-    /* Body text – 12:1 contrast ratio */
-    --text-main: #d5ccc0;
-    /* Main text – same as base */
-    --text-muted: #9d927f;
-    /* Muted/secondary text – 6:1 contrast ratio */
-
-    /* ── Brand / accent colors (all adjusted for dark bg) ─── */
-    --gold: #d9b566;
-    /* Gold accent – warmer, more visible on dark */
-    --gold-light: #e8c85c;
-    /* Light gold – better contrast */
-    --ink: #ede8dc;
-    /* Ink color – off-white on dark */
-    --paper: #16131010;
-    /* Paper color – very dark */
-    --border-light: #3d3530;
-    /* Light border – subtle but visible */
-    --accent-cream: #ede8dc;
-    /* Cream/off-white – 15:1 contrast */
-    --accent-menu: #cec4b4;
-    /* Menu text – strong contrast */
-
-    /* ── Accent palette (all WCAG AAA compliant on dark) ────── */
-    --accent-blue: #7fb3d8;
-    /* Blue – 8:1 contrast */
-    --accent-purple: #a88ae0;
-    /* Purple – 7:1 contrast */
-    --accent-orange: #d4885c;
-    /* Orange – 7:1 contrast */
-    --accent-green: #5db880;
-    /* Green – 7:1 contrast */
-    --accent-red: #d06868;
-    /* Red – 7:1 contrast */
-    --accent-teal: #58b0a0;
-    /* Teal – 7:1 contrast */
-
+    --surface-base: #161512;
+    --surface-subtle: #1a1917;
+    --surface-elevated: #22201c;
+    --surface-topbar: #161512;
+    --surface-border: #2d2a24;
+    --surface-pill: #2a2722;
+    --accent-deep-blue: #e6e1da;
+    --control-bg: #25231f;
+    --control-bg-hover: #2d2a24;
+    --control-border: #3b372f;
+    --control-text: #e6e1da;
+    --control-text-strong: #f0ebe3;
+    --control-strong-bg: #312d26;
+    --control-strong-bg-hover: #3a352d;
+    --gold: #d8b978;
+    --gold-light: #ead3a1;
+    --ink: #e6e1da;
+    --paper: #1a1b19;
+    --border-light: #3a3b37;
+    --text-base: #e6e1da;
+    --text-main: #e6e1da;
+    --text-muted: #b6afa3;
+    --accent-cream: #e6e1da;
+    --accent-menu: #d2cabd;
+    --accent-blue: #bba98f;
+    --accent-purple: #baa996;
+    --accent-orange: #c9a876;
+    --accent-green: #b7b196;
+    --accent-red: #c09d8e;
+    --accent-teal: #a8a18a;
     color: var(--text-base);
     background-color: var(--surface-base);
 }
@@ -1332,19 +1214,18 @@ body.theme-dark #rightSidebar::-webkit-scrollbar-thumb:hover {
 /* ═══════════════════════════════════════════════════════════════════ */
 /* FullCalendar Overrides */
 /* ═══════════════════════════════════════════════════════════════════ */
-/* Note: detailed FC var overrides live in calendar.css which is loaded after */
 
 .fc {
     font-family: 'Inter', sans-serif;
-    --fc-border-color: var(--surface-border, #e2e8f0);
-    --fc-button-bg-color: var(--control-bg, #002147);
-    --fc-button-border-color: var(--control-border, #002147);
+    --fc-border-color: #e2e8f0;
+    --fc-button-bg-color: #002147;
+    --fc-button-border-color: #002147;
 }
 
 .fc .fc-toolbar-title {
     font-size: 1.25em;
     font-weight: 600;
-    color: var(--cal-header-color, #002147);
+    color: #002147;
 }
 
 .fc-event {
@@ -1355,23 +1236,23 @@ body.theme-dark #rightSidebar::-webkit-scrollbar-thumb:hover {
 }
 
 .fc-event.holiday {
-    background-color: var(--cal-event-holiday, #802f3e) !important;
-    border: none !important;
+    background-color: #802f3e !important;
+    border: 1px solid #5a1f2a !important;
 }
 
 .fc-event.shabbat {
-    background-color: var(--cal-event-shabbat, #064e3b) !important;
-    border: none !important;
+    background-color: #064e3b !important;
+    border: 1px solid #022c1f !important;
 }
 
 .fc-col-header-cell-cushion,
 .fc-daygrid-day-number {
-    color: var(--cal-number-color, #475569);
+    color: #475569;
     text-decoration: none !important;
 }
 
 .fc-day-today {
-    background: var(--cal-today-bg, #F0F9FF) !important;
+    background: #F0F9FF !important;
 }
 
 /* ═══════════════════════════════════════════════════════════════════ */
@@ -1538,7 +1419,9 @@ body.theme-dark #rightSidebar::-webkit-scrollbar-thumb:hover {
 }
 
 #readerSettingsPanel.reader-settings-dropdown {
-    /* position is set dynamically by positionFloatingMenu() in JS */
+    left: 50%;
+    right: auto;
+    transform: translateX(-50%);
     background: var(--surface-elevated);
     border: 1px solid var(--surface-border);
     box-shadow: 0 14px 32px color-mix(in srgb, var(--surface-base) 35%, transparent);
@@ -3277,39 +3160,39 @@ body.theme-dark button svg,
 body.theme-dark [role="button"] svg,
 body.theme-dark .navigator-pane svg,
 body.theme-dark .pulse-pane svg {
-    color: var(--text-muted) !important;
+    color: #a09688 !important;
 }
 
 body.theme-dark #reader .reader-source-lines,
 body.theme-dark #reader .reader-text-row,
 body.theme-dark #reader .source-grid.layout-reverse .source-he:not(.reader-text-he) {
-    border-color: var(--surface-border) !important;
+    border-color: #5f5a52 !important;
 }
 
 body.theme-dark #readerTopBar {
-    background: color-mix(in srgb, var(--surface-topbar) 96%, transparent) !important;
-    border-top-color: var(--surface-border) !important;
-    border-bottom-color: var(--surface-border) !important;
+    background: rgba(27, 27, 25, 0.95) !important;
+    border-top-color: #4e4942 !important;
+    border-bottom-color: #4e4942 !important;
 }
 
 body.theme-dark #readerTopBar button {
     background: transparent !important;
     border-color: transparent !important;
     border: none !important;
-    color: var(--text-muted) !important;
+    color: #b5a892 !important;
 }
 
 body.theme-dark #readerTopBar button:hover {
     background: transparent !important;
     border: none !important;
-    color: var(--accent-cream) !important;
+    color: #d4ccbe !important;
 }
 
 body.theme-dark .library-shell .reader-topbar-shell #readerSettingsBtn {
     background: transparent !important;
     border-color: transparent !important;
     border: none !important;
-    color: var(--text-muted) !important;
+    color: #b5a892 !important;
 }
 
 body.theme-dark .library-shell .reader-topbar-shell #readerSettingsBtn:hover,
@@ -3317,7 +3200,7 @@ body.theme-dark .library-shell .reader-topbar-shell #readerSettingsBtn:focus-vis
     background: transparent !important;
     border-color: transparent !important;
     border: none !important;
-    color: var(--accent-cream) !important;
+    color: #d4ccbe !important;
 }
 
 body.theme-dark .chapter-grid-header {
@@ -3497,69 +3380,6 @@ body.theme-dark #bookmarkCurrentBtn {
 
 body.theme-dark #bookmarkCurrentBtn:hover {
     background: var(--control-strong-bg-hover) !important;
-}
-
-/* ─── Settings panel: Tailwind class overrides ──────────────────── */
-/* These ensure Tailwind utility classes don't bleed through in dark mode */
-
-body.theme-dark #settingsPanel .text-slate-400,
-body.theme-dark #settingsPanel p.text-\[11px\],
-body.theme-dark #settingsPanel .uppercase,
-body.theme-dark #readerSettingsPanel .text-slate-400,
-body.theme-dark #readerSettingsPanel p.text-\[11px\],
-body.theme-dark #readerSettingsPanel .uppercase {
-    color: var(--text-muted) !important;
-}
-
-body.theme-dark #settingsPanel .bg-slate-50,
-body.theme-dark #settingsPanel .bg-slate-100,
-body.theme-dark #settingsPanel .bg-white,
-body.theme-dark #readerSettingsPanel .bg-slate-50,
-body.theme-dark #readerSettingsPanel .bg-slate-100,
-body.theme-dark #readerSettingsPanel .bg-white {
-    background: var(--surface-pill) !important;
-    color: var(--accent-cream) !important;
-}
-
-body.theme-dark #settingsPanel .text-slate-700,
-body.theme-dark #settingsPanel .text-slate-600,
-body.theme-dark #settingsPanel .text-slate-500,
-body.theme-dark #readerSettingsPanel .text-slate-700,
-body.theme-dark #readerSettingsPanel .text-slate-600,
-body.theme-dark #readerSettingsPanel .text-slate-500 {
-    color: var(--accent-cream) !important;
-}
-
-body.theme-dark #settingsPanel .border-slate-100,
-body.theme-dark #settingsPanel .border-slate-200,
-body.theme-dark #readerSettingsPanel .border-slate-100,
-body.theme-dark #readerSettingsPanel .border-slate-200 {
-    border-color: var(--surface-border) !important;
-}
-
-body.theme-dark #settingsPanel input::placeholder,
-body.theme-dark #settingsPanel textarea::placeholder,
-body.theme-dark #readerSettingsPanel input::placeholder,
-body.theme-dark #readerSettingsPanel textarea::placeholder {
-    color: var(--text-muted) !important;
-}
-
-body.theme-dark #settingsPanel .hover\:bg-slate-200:hover,
-body.theme-dark #readerSettingsPanel .hover\:bg-slate-200:hover {
-    background-color: var(--control-bg-hover) !important;
-}
-
-/* Theme toggle button */
-body.theme-dark #themeToggleBtn {
-    background: var(--surface-pill) !important;
-    color: var(--accent-cream) !important;
-    border-color: var(--surface-border) !important;
-}
-
-body.theme-dark #themeToggleBtn:hover {
-    background: var(--control-bg-hover) !important;
-    border-color: var(--control-border) !important;
-    color: var(--control-text-strong) !important;
 }
 
 /* Fix right sidebar scrollbar in dark mode */
@@ -3993,12 +3813,12 @@ body.theme-dark #communityTimelineModal .bg-gradient-to-r.from-navy.to-blue-900 
 }
 
 body.theme-dark .source-ref {
-    background: var(--surface-pill);
-    color: var(--accent-cream);
+    background: #2f2f2b;
+    color: #e1d9cc;
 }
 
 body.theme-dark .source-ref:hover {
-    background: var(--control-bg-hover);
+    background: #3a3a35;
 }
 
 /* Use semantic variables for text and borders to reduce !important usage */
@@ -4016,17 +3836,17 @@ body.theme-dark .source-ref:hover {
 
 body.theme-dark ::-webkit-scrollbar-track,
 body.theme-dark .custom-scrollbar::-webkit-scrollbar-track {
-    background: var(--surface-subtle);
+    background: #1f201d;
 }
 
 body.theme-dark ::-webkit-scrollbar-thumb,
 body.theme-dark .custom-scrollbar::-webkit-scrollbar-thumb {
-    background: var(--control-border);
+    background: #4a4b45;
 }
 
 body.theme-dark ::-webkit-scrollbar-thumb:hover,
 body.theme-dark .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-    background: color-mix(in srgb, var(--control-border) 130%, var(--surface-elevated));
+    background: #5c5d56;
 }
 
 body.theme-dark .custom-scrollbar::-webkit-scrollbar {
@@ -4035,17 +3855,17 @@ body.theme-dark .custom-scrollbar::-webkit-scrollbar {
 }
 
 body.theme-dark .custom-scrollbar::-webkit-scrollbar-track {
-    background: var(--surface-subtle) !important;
+    background: #1f201d !important;
     border-radius: 10px;
 }
 
 body.theme-dark .custom-scrollbar::-webkit-scrollbar-thumb {
-    background: var(--control-border) !important;
+    background: #4a4b45 !important;
     border-radius: 10px;
 }
 
 body.theme-dark .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-    background: color-mix(in srgb, var(--control-border) 130%, var(--surface-elevated)) !important;
+    background: #5c5d56 !important;
 }
 
 /* RTL Overrides for Mobile Drawers */
@@ -4065,135 +3885,4 @@ html[dir="rtl"] .mobile-drawer-right {
 
 html[dir="rtl"] .mobile-drawer-right.mobile-open {
     transform: translateX(0);
-}
-/* ═══════════════════════════════════════════════════════ */
-/* COMPREHENSIVE DARK MODE FORM ELEMENTS & REFINEMENTS */
-/* ═══════════════════════════════════════════════════════ */
-
-input[type="text"],
-input[type="search"],
-input[type="email"],
-textarea {
-    background: #ffffff;
-    color: #334155;
-    border-color: #e2e8f0;
-}
-
-body.theme-dark input[type="text"],
-body.theme-dark input[type="search"],
-body.theme-dark input[type="email"],
-body.theme-dark textarea {
-    background: var(--control-bg);
-    color: var(--text-main);
-    border-color: var(--control-border);
-}
-
-input[type="text"]:focus,
-input[type="search"]:focus,
-input[type="email"]:focus,
-textarea:focus {
-    outline: 2px solid #0284c7;
-}
-
-body.theme-dark input[type="text"]:focus,
-body.theme-dark input[type="search"]:focus,
-body.theme-dark input[type="email"]:focus,
-body.theme-dark textarea:focus {
-    outline: 2px solid var(--accent-blue);
-}
-
-select {
-    background: #ffffff;
-    color: #334155;
-    border-color: #e2e8f0;
-}
-
-body.theme-dark select {
-    background: var(--control-bg);
-    color: var(--text-main);
-    border-color: var(--control-border);
-}
-
-/* Checkbox and radio styling */
-input[type="checkbox"],
-input[type="radio"] {
-    accent-color: #002147;
-}
-
-body.theme-dark input[type="checkbox"],
-body.theme-dark input[type="radio"] {
-    accent-color: var(--accent-blue);
-}
-
-/* Modal/Dialog backgrounds */
-.modal,
-dialog {
-    background: #ffffff;
-    color: #334155;
-}
-
-body.theme-dark .modal,
-body.theme-dark dialog {
-    background: var(--surface-elevated);
-    color: var(--text-main);
-}
-
-/* Links styling */
-a {
-    color: #0284c7;
-}
-
-body.theme-dark a {
-    color: var(--accent-blue);
-}
-
-a:hover {
-    color: #0369a1;
-}
-
-body.theme-dark a:hover {
-    color: #8fc0db;
-}
-
-/* Code blocks */
-code,
-pre {
-    background: #f1f5f9;
-    color: #334155;
-    border-color: #e2e8f0;
-}
-
-body.theme-dark code,
-body.theme-dark pre {
-    background: var(--surface-elevated);
-    color: var(--text-main);
-    border-color: var(--control-border);
-}
-
-/* Alert/notification styling */
-.alert,
-[role="alert"] {
-    background: #fef2f2;
-    color: #7f1d1d;
-    border-color: #feca5d;
-}
-
-body.theme-dark .alert,
-body.theme-dark [role="alert"] {
-    background: color-mix(in srgb, var(--accent-red) 12%, var(--surface-elevated));
-    color: #d06868;
-    border-color: var(--surface-border);
-}
-
-/* Success styling */
-.success {
-    background: #f0fdf4;
-    color: #166534;
-    border-color: #dcfce7;
-}
-
-body.theme-dark .success {
-    background: color-mix(in srgb, var(--accent-green) 12%, var(--surface-elevated));
-    color: #5db880;
-    border-color: var(--surface-border);
 }
