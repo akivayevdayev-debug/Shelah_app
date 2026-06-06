@@ -22,15 +22,113 @@
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <!-- DOMPurify: sanitize HTML produced by marked.parse() to prevent XSS -->
     <script src="https://cdn.jsdelivr.net/npm/dompurify@3/dist/purify.min.js"></script>
-    <link rel="stylesheet" href="/static/style.css?v=20260606-v1">
+    <link rel="stylesheet" href="/static/style.css?v=20260512-v1">
     <!-- CSS modules (supplement style.css; do not replace) -->
-    <link rel="stylesheet" href="/static/css/typography.css?v=20260606-v1">
-    <link rel="stylesheet" href="/static/css/reader.css?v=20260606-v1">
-    <link rel="stylesheet" href="/static/css/sidebar.css?v=20260606-v1">
-    <link rel="stylesheet" href="/static/css/halacha.css?v=20260606-v1">
-    <link rel="stylesheet" href="/static/css/prayer.css?v=20260606-v1">
-    <link rel="stylesheet" href="/static/css/ai.css?v=20260606-v1">
-    <link rel="stylesheet" href="/static/css/calendar.css?v=20260606-v1">
+    <link rel="stylesheet" href="/static/css/typography.css?v=20260512-v1">
+    <link rel="stylesheet" href="/static/css/reader.css?v=20260512-v1">
+    <link rel="stylesheet" href="/static/css/sidebar.css?v=20260512-v1">
+    <link rel="stylesheet" href="/static/css/halacha.css?v=20260512-v1">
+    <link rel="stylesheet" href="/static/css/prayer.css?v=20260512-v1">
+    <link rel="stylesheet" href="/static/css/ai.css?v=20260515-v1">
+    <link rel="stylesheet" href="/static/css/calendar.css?v=20260512-v1">
+
+    <style id="quick-settings-dark-fixes">
+        /* Quick Settings dark-mode fixes: ensure inputs, selects, buttons, labels readable */
+        body.theme-dark #settingsPanel,
+        body.theme-dark #readerSettingsPanel {
+            background: var(--surface-elevated) !important;
+            border-color: var(--surface-border) !important;
+            color: var(--accent-cream) !important;
+        }
+
+        body.theme-dark #settingsPanel .text-slate-400,
+        body.theme-dark #settingsPanel p.text-\[11px\],
+        body.theme-dark #settingsPanel .uppercase {
+            color: var(--text-muted) !important;
+        }
+
+        body.theme-dark #settingsPanel .bg-slate-50,
+        body.theme-dark #settingsPanel .bg-slate-100,
+        body.theme-dark #settingsPanel .bg-white {
+            background: var(--surface-pill) !important;
+            border-color: var(--surface-border) !important;
+            color: var(--accent-cream) !important;
+        }
+
+        body.theme-dark #settingsPanel .text-slate-700,
+        body.theme-dark #settingsPanel .text-slate-600,
+        body.theme-dark #settingsPanel .text-slate-500 {
+            color: var(--accent-cream) !important;
+        }
+
+        body.theme-dark #settingsPanel .border-slate-100,
+        body.theme-dark #settingsPanel .border-slate-200 {
+            border-color: var(--surface-border) !important;
+        }
+
+        body.theme-dark #settingsPanel select,
+        body.theme-dark #settingsPanel input,
+        body.theme-dark #settingsPanel textarea,
+        body.theme-dark #settingsPanel button {
+            background: var(--surface-pill) !important;
+            border-color: var(--surface-border) !important;
+            color: var(--accent-cream) !important;
+        }
+
+        body.theme-dark #settingsPanel input::placeholder,
+        body.theme-dark #settingsPanel textarea::placeholder {
+            color: var(--text-muted) !important;
+        }
+
+        /* Theme toggle button – use dark pill style */
+        body.theme-dark #themeToggleBtn {
+            background: var(--surface-pill) !important;
+            color: var(--accent-cream) !important;
+            border-color: var(--surface-border) !important;
+        }
+
+        body.theme-dark #themeToggleBtn:hover {
+            background: var(--control-bg-hover) !important;
+            border-color: var(--control-border) !important;
+            color: var(--control-text-strong) !important;
+        }
+
+        /* Ensure ALL buttons in settings panel use dark pill style */
+        body.theme-dark #settingsPanel button:not(#bookmarkCurrentBtn) {
+            background: var(--surface-pill) !important;
+            border-color: var(--surface-border) !important;
+            color: var(--accent-cream) !important;
+        }
+
+        body.theme-dark #settingsPanel button:not(#bookmarkCurrentBtn):hover {
+            background: var(--control-bg-hover) !important;
+            border-color: var(--control-border) !important;
+            color: var(--control-text-strong) !important;
+        }
+
+        /* Ensure small meta text uses muted cream */
+        body.theme-dark #settingsPanel .text-xs,
+        body.theme-dark #settingsPanel .text-sm {
+            color: var(--text-muted) !important;
+        }
+
+        /* Bookmark Current button (navy style for dark) */
+        body.theme-dark #bookmarkCurrentBtn {
+            background: var(--control-strong-bg) !important;
+            border-color: var(--control-border) !important;
+            color: var(--control-text-strong) !important;
+        }
+
+        body.theme-dark #bookmarkCurrentBtn:hover {
+            background: var(--control-strong-bg-hover) !important;
+            color: var(--control-text-strong) !important;
+        }
+
+        /* Override any remaining Tailwind color classes */
+        body.theme-dark #settingsPanel .hover\:bg-slate-200:hover {
+            background-color: var(--control-bg-hover) !important;
+        }
+    </style>
 
     <!-- FullCalendar -->
     <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.15/index.global.min.js"></script>
@@ -4296,39 +4394,20 @@
             const maxWidth = Number.isFinite(options.maxWidth) ? options.maxWidth : 352;
             const triggerRect = triggerEl.getBoundingClientRect();
             const panelWidth = Math.min(maxWidth, Math.max(minWidth, viewportWidth - (padding * 2)));
-            const isRTL = document.documentElement.lang === 'he' || document.documentElement.dir === 'rtl' || document.body.classList.contains('rtl');
 
-            // Alignment strategy based on viewport width and RTL mode:
-            // Desktop (≥1024px): align panel to button edge (right edge in RTL, left edge in LTR)
+            // Alignment strategy based on viewport width:
+            // Desktop (≥1024px): right-align panel to button's right edge (drops directly below button)
             // Large mobile (640–1023px): center panel under button, clamp to avoid cutoff
-            // Phone (<640px): align to button edge based on direction
-            let inlineStart, inlineEnd;
-
-            if (isRTL) {
-                // RTL: position from right side of viewport
-                let preferredInlineEnd;
-                if (viewportWidth >= 1024) {
-                    preferredInlineEnd = Math.round(viewportWidth - triggerRect.left);
-                } else if (viewportWidth >= 640) {
-                    preferredInlineEnd = Math.round(viewportWidth - (triggerRect.left + triggerRect.width / 2 + panelWidth / 2));
-                } else {
-                    preferredInlineEnd = Math.round(viewportWidth - triggerRect.right);
-                }
-                inlineEnd = Math.max(padding, Math.min(preferredInlineEnd, viewportWidth - panelWidth - padding));
-                inlineStart = undefined;
+            // Phone (<640px): left-align panel to button's left edge
+            let preferredLeft;
+            if (viewportWidth >= 1024) {
+                preferredLeft = Math.round(triggerRect.right) - panelWidth;
+            } else if (viewportWidth >= 640) {
+                preferredLeft = Math.round(triggerRect.left + triggerRect.width / 2 - panelWidth / 2);
             } else {
-                // LTR: position from left side of viewport
-                let preferredInlineStart;
-                if (viewportWidth >= 1024) {
-                    preferredInlineStart = Math.round(triggerRect.right) - panelWidth;
-                } else if (viewportWidth >= 640) {
-                    preferredInlineStart = Math.round(triggerRect.left + triggerRect.width / 2 - panelWidth / 2);
-                } else {
-                    preferredInlineStart = Math.round(triggerRect.left);
-                }
-                inlineStart = Math.max(padding, Math.min(preferredInlineStart, viewportWidth - panelWidth - padding));
-                inlineEnd = undefined;
+                preferredLeft = Math.round(triggerRect.left);
             }
+            const left = Math.max(padding, Math.min(preferredLeft, viewportWidth - panelWidth - padding));
 
             const top = Math.min(
                 viewportHeight - padding,
@@ -4336,18 +4415,9 @@
             );
 
             menuEl.style.setProperty('position', 'fixed', 'important');
-            if (isRTL) {
-                menuEl.style.setProperty('inset-inline-end', `${inlineEnd}px`, 'important');
-                menuEl.style.setProperty('inset-inline-start', 'auto', 'important');
-                menuEl.style.setProperty('left', 'auto', 'important');
-                menuEl.style.setProperty('right', 'auto', 'important');
-            } else {
-                menuEl.style.setProperty('inset-inline-start', `${inlineStart}px`, 'important');
-                menuEl.style.setProperty('inset-inline-end', 'auto', 'important');
-                menuEl.style.setProperty('left', 'auto', 'important');
-                menuEl.style.setProperty('right', 'auto', 'important');
-            }
+            menuEl.style.setProperty('left', `${left}px`, 'important');
             menuEl.style.setProperty('top', `${top}px`, 'important');
+            menuEl.style.setProperty('right', 'auto', 'important');
             menuEl.style.setProperty('width', `${panelWidth}px`, 'important');
             menuEl.style.setProperty('max-width', `${Math.max(0, viewportWidth - (padding * 2))}px`, 'important');
         }
@@ -4416,14 +4486,6 @@
             if (readerSettingsBtn) readerSettingsBtn.setAttribute('aria-expanded', 'false');
         }
 
-        function positionReaderSettingsPanel() {
-            if (!readerSettingsPanel || !readerSettingsBtn) return;
-            positionFloatingMenu(readerSettingsPanel, readerSettingsBtn, {
-                minWidth: 260,
-                maxWidth: 384,
-            });
-        }
-
         function toggleReaderSettingsPanel(forceOpen = null) {
             if (!readerSettingsPanel) return;
             const shouldOpen = typeof forceOpen === 'boolean'
@@ -4434,12 +4496,6 @@
                 readerSettingsBtn.setAttribute('aria-expanded', shouldOpen ? 'true' : 'false');
             }
             if (shouldOpen) {
-                positionReaderSettingsPanel();
-                window.requestAnimationFrame(() => {
-                    if (!readerSettingsPanel.classList.contains('hidden')) {
-                        positionReaderSettingsPanel();
-                    }
-                });
                 closeSettingsMenu();
             }
         }
@@ -7058,9 +7114,6 @@
             }
             if (userProfileMenu && !userProfileMenu.classList.contains('hidden')) {
                 positionUserProfileMenu();
-            }
-            if (readerSettingsPanel && !readerSettingsPanel.classList.contains('hidden')) {
-                positionReaderSettingsPanel();
             }
             if (appState.prefs.shulMode) {
                 applyShulMode();
