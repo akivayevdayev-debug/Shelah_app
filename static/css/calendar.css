@@ -33,9 +33,9 @@ body.theme-dark {
     --cal-cell-bg: var(--surface-elevated);
     --cal-cell-hover: var(--surface-base);
     --cal-number-color: var(--text-muted);
-    --cal-event-holiday: #6a5a46;
-    --cal-event-shabbat: #4e5b4c;
-    --cal-event-rh: #695741;
+    --cal-event-holiday: #8b5a6b;
+    --cal-event-shabbat: #5a7a6b;
+    --cal-event-rh: #7a6b5a;
     --cal-toolbar-btn-bg: var(--control-bg);
     --cal-toolbar-btn-border: var(--control-border);
     --cal-toolbar-btn-color: var(--control-text);
@@ -257,7 +257,7 @@ body.theme-dark #calendarModal>div {
 
 /* Modal header strip */
 body.theme-dark #calendarModal>div>div:first-child {
-    background: linear-gradient(135deg, #25231f 0%, #201f1b 100%) !important;
+    background: linear-gradient(135deg, #1f2a35 0%, #1a2332 100%) !important;
     border-color: var(--surface-border) !important;
 }
 
@@ -274,26 +274,32 @@ body.theme-dark #calendarModalTitle {
 /* Legend and subtitle text */
 body.theme-dark #calendarModal .text-xs.text-\[#64748b\],
 body.theme-dark #calendarModal p.text-xs {
-    color: var(--text-muted, #a09688) !important;
+    color: var(--text-muted, #a8b3c1) !important;
 }
 
 /* Legend colour swatches — keep as-is (coloured), no override needed */
 
 /* Close button */
 body.theme-dark #calendarModal button[aria-label="Close calendar"] {
-    background: var(--control-bg) !important;
-    border-color: var(--control-border) !important;
-    color: var(--control-text) !important;
+    background: var(--surface-pill) !important;
+    border-color: var(--surface-border) !important;
+    color: var(--text-muted) !important;
 }
 
 body.theme-dark #calendarModal button[aria-label="Close calendar"]:hover {
     background: var(--control-bg-hover) !important;
-    color: var(--accent-cream, #f3eadd) !important;
+    color: var(--accent-cream) !important;
 }
 
 /* Calendar content area */
 body.theme-dark #calendarModal .flex-1.overflow-y-auto {
     background: var(--surface-base) !important;
+}
+
+/* Holiday and Shabbat text dark mode */
+body.theme-dark #holidayName,
+body.theme-dark #shabbatWeekName {
+    color: var(--accent-cream) !important;
 }
 
 /* ═══════════════════════════════════════════════════════ */
