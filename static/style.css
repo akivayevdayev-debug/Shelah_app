@@ -450,13 +450,12 @@ body.theme-dark .delayed-tooltip {
     flex-shrink: 0;
 }
 
-/* Settings panel: absolute relative to its container button, centered horizontally */
+/* Settings panel: absolute relative to its container button, RTL-aware via logical inset */
 #settingsPanel {
     position: absolute;
     top: calc(100% + 0.35rem);
-    left: 50%;
-    right: auto;
-    transform: translateX(-50%);
+    inset-inline-end: 0;
+    inset-inline-start: auto;
     width: min(22rem, calc(100vw - 1rem));
     max-width: min(22rem, calc(100vw - 1rem));
     max-height: min(calc(100vh - 5rem), 32rem);
@@ -1125,46 +1124,36 @@ body.theme-dark .topbar-user-menu-signout {
 /* Dark mode scrollbar - override global rules */
 html.theme-dark,
 body.theme-dark {
-    /* Professional dark mode: cool-neutral palette with excellent contrast */
-    --surface-base: #0f1419;
-    --surface-subtle: #131820;
-    --surface-elevated: #1a2332;
-    --surface-topbar: #0f1419;
-    --surface-border: #2a3141;
-    --surface-pill: #232d38;
-    
-    /* Enhanced text contrast */
-    --accent-deep-blue: #f0f4f9;
-    --control-bg: #1f2a35;
-    --control-bg-hover: #2a3541;
-    --control-border: #3d4a57;
-    --control-text: #e8ecf1;
-    --control-text-strong: #f5f8fc;
-    --control-strong-bg: #2d5a8c;
-    --control-strong-bg-hover: #3a6ba8;
-    
-    /* Updated brand tokens for dark mode */
-    --gold: #deb957;
-    --gold-light: #e8d089;
-    --ink: #e8ecf1;
-    --paper: #0a0e13;
-    --border-light: #3d4a57;
-    
-    /* Enhanced text contrast */
-    --text-base: #e8ecf1;
-    --text-main: #e8ecf1;
-    --text-muted: #a8b3c1;
-    --accent-cream: #f0f4f9;
-    --accent-menu: #dce4ed;
-    
-    /* Vibrant but professional accents */
-    --accent-blue: #6ba3d4;
-    --accent-purple: #a89fd6;
-    --accent-orange: #d4a574;
-    --accent-green: #7ab383;
-    --accent-red: #d97a7a;
-    --accent-teal: #6aa89c;
-    
+    --surface-base: #161512;
+    --surface-subtle: #1a1917;
+    --surface-elevated: #22201c;
+    --surface-topbar: #161512;
+    --surface-border: #2d2a24;
+    --surface-pill: #2a2722;
+    --accent-deep-blue: #e6e1da;
+    --control-bg: #25231f;
+    --control-bg-hover: #2d2a24;
+    --control-border: #3b372f;
+    --control-text: #e6e1da;
+    --control-text-strong: #f0ebe3;
+    --control-strong-bg: #312d26;
+    --control-strong-bg-hover: #3a352d;
+    --gold: #d8b978;
+    --gold-light: #ead3a1;
+    --ink: #e6e1da;
+    --paper: #1a1b19;
+    --border-light: #3a3b37;
+    --text-base: #e6e1da;
+    --text-main: #e6e1da;
+    --text-muted: #b6afa3;
+    --accent-cream: #e6e1da;
+    --accent-menu: #d2cabd;
+    --accent-blue: #bba98f;
+    --accent-purple: #baa996;
+    --accent-orange: #c9a876;
+    --accent-green: #b7b196;
+    --accent-red: #c09d8e;
+    --accent-teal: #a8a18a;
     color: var(--text-base);
     background-color: var(--surface-base);
 }
@@ -1430,18 +1419,13 @@ body.theme-dark #rightSidebar::-webkit-scrollbar-thumb:hover {
 }
 
 #readerSettingsPanel.reader-settings-dropdown {
-    position: absolute;
-    top: 100%;
     left: 50%;
     right: auto;
     transform: translateX(-50%);
-    margin-top: 0.35rem;
-    width: min(92vw, 24rem);
     background: var(--surface-elevated);
     border: 1px solid var(--surface-border);
     box-shadow: 0 14px 32px color-mix(in srgb, var(--surface-base) 35%, transparent);
     color: var(--text-main);
-    border-radius: 0.75rem;
 }
 
 .reader-range-slider {
@@ -1643,12 +1627,6 @@ html.rtl .chapter-grid-item-number {
 
 html.rtl #readerTopBar .reader-topbar-track {
     direction: ltr;
-}
-
-html.rtl #readerTopBar .reader-topbar-library-track {
-    order: 10;
-    margin-inline-start: 0.1rem;
-    margin-inline-end: 0 !important;
 }
 
 html.rtl #readerTopBar .reader-topbar-settings-label {
@@ -2750,42 +2728,10 @@ body.theme-dark #searchSuggestions .suggestion-item[aria-selected="true"] {
     color: var(--accent-cream) !important;
 }
 
-/* City search dark mode */
-body.theme-dark #citySearchBtn {
-    background: var(--surface-pill) !important;
-    border-color: var(--surface-border) !important;
-    color: var(--text-muted) !important;
-}
-
-body.theme-dark #citySearchBtn:hover {
-    background: var(--control-bg-hover) !important;
-    color: var(--accent-cream) !important;
-}
-
-body.theme-dark #citySearchInput {
-    background: var(--surface-pill) !important;
-    border-color: var(--surface-border) !important;
-    color: var(--accent-cream) !important;
-}
-
-body.theme-dark #citySearchInput::placeholder {
-    color: var(--text-muted) !important;
-}
-
-body.theme-dark #citySearchInput:focus {
-    border-color: var(--control-border) !important;
-    background: var(--surface-elevated) !important;
-}
-
-body.theme-dark #citySearchPopover {
-    background: var(--surface-elevated) !important;
-    border-color: var(--surface-border) !important;
-}
-
 body.theme-dark .navigator-pane,
 body.theme-dark .pulse-pane {
     background:
-        linear-gradient(180deg, rgba(15, 20, 25, 0.98) 0%, rgba(19, 24, 32, 0.98) 100%),
+        linear-gradient(180deg, rgba(30, 29, 26, 0.98) 0%, rgba(25, 24, 22, 0.98) 100%),
         repeating-linear-gradient(45deg,
             rgba(255, 255, 255, 0.012) 0,
             rgba(255, 255, 255, 0.012) 3px,
@@ -2806,29 +2752,6 @@ body.theme-dark .mobile-tab-btn.mobile-tab-active {
     background: var(--control-bg-hover);
     color: var(--control-text-strong);
     box-shadow: inset 0 0 0 1px var(--control-border);
-}
-
-/* Loading overlay dark mode */
-body.theme-dark #loadingOverlay {
-    background-color: color-mix(in srgb, var(--surface-base) 85%, transparent) !important;
-}
-
-body.theme-dark #loadingOverlay p {
-    color: var(--text-muted) !important;
-}
-
-/* Commentary sidebar buttons dark mode */
-body.theme-dark #closeRightSidebarBtn,
-body.theme-dark #hideRightSidebarBtn {
-    background: var(--surface-pill) !important;
-    border-color: var(--surface-border) !important;
-    color: var(--text-muted) !important;
-}
-
-body.theme-dark #closeRightSidebarBtn:hover,
-body.theme-dark #hideRightSidebarBtn:hover {
-    background: var(--control-bg-hover) !important;
-    color: var(--accent-cream) !important;
 }
 
 body.theme-dark .bg-white {
@@ -3221,7 +3144,7 @@ body.theme-dark #aiWarningBadge {
 body.theme-dark #searchIcon,
 body.theme-dark .segment-label,
 body.theme-dark .segment-translit {
-    color: var(--text-muted) !important;
+    color: #a09688 !important;
 }
 
 body.theme-dark #reader .reader-row-mid-label {
@@ -3247,22 +3170,22 @@ body.theme-dark #reader .source-grid.layout-reverse .source-he:not(.reader-text-
 }
 
 body.theme-dark #readerTopBar {
-    background: rgba(15, 20, 25, 0.95) !important;
-    border-top-color: var(--surface-border) !important;
-    border-bottom-color: var(--surface-border) !important;
+    background: rgba(27, 27, 25, 0.95) !important;
+    border-top-color: #4e4942 !important;
+    border-bottom-color: #4e4942 !important;
 }
 
 body.theme-dark #readerTopBar button {
     background: transparent !important;
     border-color: transparent !important;
     border: none !important;
-    color: var(--text-muted) !important;
+    color: #b5a892 !important;
 }
 
 body.theme-dark #readerTopBar button:hover {
     background: transparent !important;
     border: none !important;
-    color: var(--accent-cream) !important;
+    color: #d4ccbe !important;
 }
 
 body.theme-dark .library-shell .reader-topbar-shell #readerSettingsBtn {
