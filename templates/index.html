@@ -83,6 +83,7 @@
         body.theme-dark #omerCount {
             color: var(--accent-cream) !important;
         }
+
         body.theme-dark #settingsPanel .text-slate-400,
         body.theme-dark #settingsPanel p.text-\[11px\],
         body.theme-dark #settingsPanel .uppercase {
@@ -289,8 +290,8 @@
                 </button>
 
                 <div id="settingsPanel"
-                    class="hidden absolute bg-white border border-slate-200 rounded-xl shadow-lg p-2.5 z-[200] space-y-2.5 overflow-y-auto w-max max-w-[360px]">
-                    <p class="text-[11px] uppercase tracking-widest text-slate-400 font-bold" data-en="Quick Settings"
+                    class="hidden absolute bg-slate-50 border border-slate-300 rounded-xl shadow-lg p-2.5 z-[200] space-y-2.5 overflow-y-auto w-max max-w-[360px]">
+                    <p class="text-[11px] uppercase tracking-widest text-slate-500 font-bold" data-en="Quick Settings"
                         data-he="הגדרות מהירות">Quick Settings</p>
 
                     <label class="block text-xs text-slate-600">
@@ -4437,18 +4438,9 @@
             const triggerRect = triggerEl.getBoundingClientRect();
             const panelWidth = Math.min(maxWidth, Math.max(minWidth, viewportWidth - (padding * 2)));
 
-            // Alignment strategy based on viewport width:
-            // Desktop (≥1024px): right-align panel to button's right edge (drops directly below button)
-            // Large mobile (640–1023px): center panel under button, clamp to avoid cutoff
-            // Phone (<640px): left-align panel to button's left edge
-            let preferredLeft;
-            if (viewportWidth >= 1024) {
-                preferredLeft = Math.round(triggerRect.right) - panelWidth;
-            } else if (viewportWidth >= 640) {
-                preferredLeft = Math.round(triggerRect.left + triggerRect.width / 2 - panelWidth / 2);
-            } else {
-                preferredLeft = Math.round(triggerRect.left);
-            }
+            // Always center the dropdown under the trigger button for consistent placement.
+            // This works for both LTR and RTL layouts and helps avoid guessing side alignment.
+            const preferredLeft = Math.round(triggerRect.left + triggerRect.width / 2 - panelWidth / 2);
             const left = Math.max(padding, Math.min(preferredLeft, viewportWidth - panelWidth - padding));
 
             const top = Math.min(
@@ -4457,6 +4449,7 @@
             );
 
             menuEl.style.setProperty('position', 'fixed', 'important');
+            menuEl.style.setProperty('transform', 'none', 'important');
             menuEl.style.setProperty('left', `${left}px`, 'important');
             menuEl.style.setProperty('top', `${top}px`, 'important');
             menuEl.style.setProperty('right', 'auto', 'important');
@@ -4508,18 +4501,13 @@
         function toggleSettingsMenu() {
             if (!settingsPanel) return;
             const willOpen = settingsPanel.classList.contains('hidden');
-            settingsPanel.classList.toggle('hidden');
-            if (settingsMenuBtn) settingsMenuBtn.setAttribute('aria-expanded', willOpen ? 'true' : 'false');
             if (willOpen) {
-                positionSettingsPanel();
-                window.requestAnimationFrame(() => {
-                    if (!settingsPanel.classList.contains('hidden')) {
-                        positionSettingsPanel();
-                    }
-                });
                 closeReaderSettingsPanel();
                 closeUserProfileMenu();
+                positionSettingsPanel();
             }
+            settingsPanel.classList.toggle('hidden');
+            if (settingsMenuBtn) settingsMenuBtn.setAttribute('aria-expanded', willOpen ? 'true' : 'false');
         }
 
         function closeReaderSettingsPanel() {
@@ -7151,9 +7139,6 @@
         window.addEventListener('resize', () => {
             syncReaderTopBarOffset();
             applySidebarVisibility();
-            if (settingsPanel && !settingsPanel.classList.contains('hidden')) {
-                positionSettingsPanel();
-            }
             if (userProfileMenu && !userProfileMenu.classList.contains('hidden')) {
                 positionUserProfileMenu();
             }
@@ -7180,6 +7165,15 @@
                 toggleSettingsMenu();
             });
         }
+
+        window.addEventListener('resize', () => {
+            if (!settingsPanel || settingsPanel.classList.contains('hidden')) return;
+            positionSettingsPanel();
+        });
+        window.addEventListener('orientationchange', () => {
+            if (!settingsPanel || settingsPanel.classList.contains('hidden')) return;
+            positionSettingsPanel();
+        });
 
         if (userProfileMenuBtn) {
             userProfileMenuBtn.addEventListener('click', (e) => {
