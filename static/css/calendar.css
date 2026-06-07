@@ -29,13 +29,13 @@
 body.theme-dark {
     --cal-border: var(--surface-border);
     --cal-today-bg: var(--surface-pill);
-    --cal-header-color: var(--text-base);
+    --cal-header-color: var(--accent-cream);
     --cal-cell-bg: var(--surface-elevated);
-    --cal-cell-hover: var(--surface-base);
+    --cal-cell-hover: var(--surface-subtle);
     --cal-number-color: var(--text-muted);
-    --cal-event-holiday: #6a5a46;
-    --cal-event-shabbat: #4e5b4c;
-    --cal-event-rh: #695741;
+    --cal-event-holiday: #8b4a5a;
+    --cal-event-shabbat: #3d6055;
+    --cal-event-rh: #7a5530;
     --cal-toolbar-btn-bg: var(--control-bg);
     --cal-toolbar-btn-border: var(--control-border);
     --cal-toolbar-btn-color: var(--control-text);
@@ -199,20 +199,48 @@ body.theme-dark {
 @media (max-width: 767px) {
     .fc .fc-toolbar {
         flex-direction: column;
+        align-items: stretch;
         gap: 0.5rem;
-        align-items: flex-start;
     }
 
     .fc .fc-toolbar-title {
         font-size: 1rem !important;
+        text-align: center;
+    }
+
+    .fc-daygrid-day-number {
+        font-size: 0.75rem !important;
+        padding: 0.25rem !important;
+    }
+
+    .fc .fc-daygrid-day {
+        min-height: 4rem !important;
     }
 
     .fc-event {
-        font-size: 0.68rem !important;
+        font-size: 0.65rem !important;
+        padding: 0.08rem 0.25rem !important;
     }
 
-    .fc .fc-daygrid-day-number {
-        font-size: 0.75rem;
+    .fc .fc-col-header-cell-cushion {
+        font-size: 0.65rem !important;
+        padding: 0.3rem 0.1rem !important;
+    }
+}
+
+@media (min-width: 768px) {
+    .fc .fc-daygrid-day {
+        min-height: 5.5rem !important;
+    }
+
+    .fc-daygrid-day-number {
+        font-size: 0.85rem !important;
+        padding: 0.4rem 0.5rem !important;
+    }
+
+    .fc-event {
+        font-size: 0.75rem !important;
+        padding: 0.1rem 0.4rem !important;
     }
 }
 
@@ -315,4 +343,27 @@ body.theme-dark #calendarModal .flex-1.overflow-y-auto {
         print-color-adjust: exact;
         -webkit-print-color-adjust: exact;
     }
+}
+
+/* ═══════════════════════════════════════════════════════ */
+/* HEBREW CALENDAR RTL OVERRIDE */
+/* ═══════════════════════════════════════════════════════ */
+
+html.rtl .fc .fc-daygrid-day-number {
+    direction: ltr;
+    text-align: left;
+}
+
+html.rtl .fc .fc-toolbar-title {
+    direction: rtl;
+    text-align: right;
+}
+
+html.rtl .fc .fc-col-header-cell {
+    text-align: right;
+    direction: rtl;
+}
+
+html.rtl .fc .fc-daygrid-day {
+    direction: rtl;
 }
