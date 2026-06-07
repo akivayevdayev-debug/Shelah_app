@@ -454,8 +454,8 @@ body.theme-dark .delayed-tooltip {
 #settingsPanel {
     position: absolute;
     top: calc(100% + 0.35rem);
-    inset-inline-end: 0;
-    inset-inline-start: auto;
+    inset-inline-start: 50%;
+    transform: translateX(-50%);
     width: min(22rem, calc(100vw - 1rem));
     max-width: min(22rem, calc(100vw - 1rem));
     max-height: min(calc(100vh - 5rem), 32rem);
@@ -466,6 +466,29 @@ body.theme-dark .delayed-tooltip {
     display: inline-flex;
     align-items: center;
     justify-content: center;
+    background: rgba(148, 163, 184, 0.08) !important;
+    border: 1px solid transparent !important;
+    border-radius: 0.35rem !important;
+    color: #4e555f !important;
+    transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+}
+
+#settingsMenuBtn:hover,
+#settingsMenuBtn:focus-visible {
+    background: rgba(148, 163, 184, 0.16) !important;
+    border-color: rgba(148, 163, 184, 0.22) !important;
+    color: #2f343b !important;
+}
+
+body.theme-dark #settingsMenuBtn {
+    background: rgba(148, 163, 184, 0.12) !important;
+    color: var(--accent-cream) !important;
+}
+
+body.theme-dark #settingsMenuBtn:hover,
+body.theme-dark #settingsMenuBtn:focus-visible {
+    background: rgba(148, 163, 184, 0.2) !important;
+    color: var(--control-text-strong) !important;
 }
 
 #settingsMenuBtn svg {
@@ -557,12 +580,12 @@ body.theme-dark .topbar-user-menu-signout {
 }
 
 #settingsPanel button:not(#bookmarkCurrentBtn) {
-    background: #f2eee5 !important;
-    border-color: #ddd3c0 !important;
+    background: #e2e8f0 !important;
+    border-color: #cbd5e1 !important;
 }
 
 #settingsPanel button:hover:not(#bookmarkCurrentBtn) {
-    background: #ebe3d3 !important;
+    background: #cfd8e9 !important;
 }
 
 #bookmarkCurrentBtn {
