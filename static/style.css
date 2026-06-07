@@ -1419,9 +1419,9 @@ body.theme-dark #rightSidebar::-webkit-scrollbar-thumb:hover {
 }
 
 #readerSettingsPanel.reader-settings-dropdown {
-    left: 50%;
-    right: auto;
-    transform: translateX(-50%);
+    left: 50% !important;
+    right: auto !important;
+    transform: translateX(-50%) !important;
     background: var(--surface-elevated);
     border: 1px solid var(--surface-border);
     box-shadow: 0 14px 32px color-mix(in srgb, var(--surface-base) 35%, transparent);
@@ -3548,7 +3548,7 @@ body.theme-dark .today-zmanim-list [data-zman-row] b {
 
 body.theme-dark .today-zmanim-list [data-zman-row].zman-next-highlight {
     background: rgba(63, 57, 47, 0.46) !important;
-    border-color: #736652 !important;
+    border-color: var(--control-border) !important;
     border-radius: 0.45rem !important;
     padding-inline-start: 0.45rem !important;
     padding-inline-end: 0.45rem !important;
@@ -3556,49 +3556,49 @@ body.theme-dark .today-zmanim-list [data-zman-row].zman-next-highlight {
 }
 
 body.theme-dark .today-zmanim-list [data-zman-row].zman-next-highlight b {
-    color: #f3e7d2;
+    color: var(--accent-cream);
 }
 
 body.theme-dark #leftSidebar summary,
 body.theme-dark #leftSidebar button,
 body.theme-dark #libraryIndexSidebar button,
 body.theme-dark #prayerBooksNavList button {
-    color: #d6cebf !important;
+    color: var(--text-main) !important;
 }
 
 body.theme-dark .library-node-open.library-node-active {
     background: transparent !important;
     border: 0 !important;
-    border-inline-start: 3px solid #7d6c50 !important;
-    color: #f1e5cf !important;
+    border-inline-start: 3px solid var(--gold) !important;
+    color: var(--accent-cream) !important;
     box-shadow: none !important;
 }
 
 body.theme-dark .library-node-open.library-node-active:hover {
     background: rgba(68, 60, 48, 0.35) !important;
-    color: #fff0d8 !important;
+    color: var(--control-text-strong) !important;
 }
 
 body.theme-dark .shelf-open.shelf-open-active {
-    background: #353129 !important;
-    border-color: #5f5443 !important;
+    background: var(--surface-pill) !important;
+    border-color: var(--control-border) !important;
     box-shadow: inset 0 0 0 1px rgba(165, 142, 101, 0.24);
 }
 
 body.theme-dark .shelf-open.shelf-open-active span:first-child {
-    color: #f1e5cf !important;
+    color: var(--accent-cream) !important;
 }
 
 body.theme-dark .shelf-open.shelf-open-active span:last-child {
-    color: #d3b98f !important;
+    color: var(--gold) !important;
 }
 
 body.theme-dark #searchSuggestions .suggestion-item[class*="bg-[#efe5d4]"] {
-    background: #353129 !important;
+    background: var(--surface-pill) !important;
 }
 
 body.theme-dark #searchSuggestions .suggestion-item[class*="bg-[#efe5d4]"] .text-slate-800 {
-    color: #f2e8d8 !important;
+    color: var(--accent-cream) !important;
 }
 
 body.theme-dark .shelf-open:focus-visible,
@@ -3612,14 +3612,14 @@ body.theme-dark #leftSidebar summary:hover,
 body.theme-dark #leftSidebar button:hover,
 body.theme-dark #libraryIndexSidebar button:hover,
 body.theme-dark #prayerBooksNavList button:hover {
-    color: #f6ecdf !important;
+    color: var(--accent-cream) !important;
 }
 
 body.theme-dark #leftSidebar .border-b,
 body.theme-dark #leftSidebar .border-l-2,
 body.theme-dark #leftSidebar .border-slate-100,
 body.theme-dark #leftSidebar .border-slate-200 {
-    border-color: #43443f !important;
+    border-color: var(--surface-border) !important;
 }
 
 body.theme-dark .mobile-drawer-left {
@@ -3668,17 +3668,17 @@ body.theme-dark .reader-range-slider::-moz-range-thumb {
 }
 
 body.theme-dark .reader-switch {
-    background: #2b2d2a;
-    border-color: #4a4c46;
+    background: var(--surface-pill);
+    border-color: var(--control-border);
 }
 
 body.theme-dark .reader-switch::after {
-    background: #f4ebdc;
+    background: var(--accent-cream);
 }
 
 body.theme-dark .reader-switch:checked {
-    background: #8b7350;
-    border-color: #8b7350;
+    background: var(--gold);
+    border-color: var(--gold);
 }
 
 body.theme-dark .mobile-drawer-left {
@@ -3794,14 +3794,19 @@ body.theme-dark .prose h2 {
 }
 
 body.theme-dark .prose blockquote,
-body.theme-dark .prose code,
+body.theme-dark .prose code {
+    background: var(--surface-elevated) !important;
+    border-color: var(--surface-border) !important;
+    color: var(--text-main) !important;
+}
+
 body.theme-dark .ai-synthesis,
 body.theme-dark .ai-source-card,
 body.theme-dark .ai-custom-card,
 body.theme-dark .ai-wiki-card {
-    background: #272724 !important;
-    border-color: #474842 !important;
-    color: #dcd4c7 !important;
+    background: var(--surface-elevated) !important;
+    border-color: var(--surface-border) !important;
+    color: var(--text-main) !important;
 }
 
 body.theme-dark #textsMenuModal .bg-gradient-to-r.from-navy.to-blue-900,
@@ -3809,16 +3814,16 @@ body.theme-dark #aiAssistantModal .bg-gradient-to-r.from-navy.to-blue-900,
 body.theme-dark #devtoolsInspectorModal .bg-gradient-to-r.from-navy.to-blue-900,
 body.theme-dark #sourceGraphModal .bg-gradient-to-r.from-navy.to-blue-900,
 body.theme-dark #communityTimelineModal .bg-gradient-to-r.from-navy.to-blue-900 {
-    background-image: linear-gradient(to right, #3a3a36, #4a4a45) !important;
+    background-image: linear-gradient(to right, var(--surface-elevated), var(--surface-pill)) !important;
 }
 
 body.theme-dark .source-ref {
-    background: #2f2f2b;
-    color: #e1d9cc;
+    background: var(--surface-pill);
+    color: var(--text-main);
 }
 
 body.theme-dark .source-ref:hover {
-    background: #3a3a35;
+    background: var(--control-bg-hover);
 }
 
 /* Use semantic variables for text and borders to reduce !important usage */
@@ -3836,17 +3841,17 @@ body.theme-dark .source-ref:hover {
 
 body.theme-dark ::-webkit-scrollbar-track,
 body.theme-dark .custom-scrollbar::-webkit-scrollbar-track {
-    background: #1f201d;
+    background: var(--surface-subtle);
 }
 
 body.theme-dark ::-webkit-scrollbar-thumb,
 body.theme-dark .custom-scrollbar::-webkit-scrollbar-thumb {
-    background: #4a4b45;
+    background: var(--control-border);
 }
 
 body.theme-dark ::-webkit-scrollbar-thumb:hover,
 body.theme-dark .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-    background: #5c5d56;
+    background: var(--control-bg-hover);
 }
 
 body.theme-dark .custom-scrollbar::-webkit-scrollbar {
@@ -3855,17 +3860,17 @@ body.theme-dark .custom-scrollbar::-webkit-scrollbar {
 }
 
 body.theme-dark .custom-scrollbar::-webkit-scrollbar-track {
-    background: #1f201d !important;
+    background: var(--surface-subtle) !important;
     border-radius: 10px;
 }
 
 body.theme-dark .custom-scrollbar::-webkit-scrollbar-thumb {
-    background: #4a4b45 !important;
+    background: var(--control-border) !important;
     border-radius: 10px;
 }
 
 body.theme-dark .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-    background: #5c5d56 !important;
+    background: var(--control-bg-hover) !important;
 }
 
 /* RTL Overrides for Mobile Drawers */
@@ -3885,4 +3890,175 @@ html[dir="rtl"] .mobile-drawer-right {
 
 html[dir="rtl"] .mobile-drawer-right.mobile-open {
     transform: translateX(0);
+}
+
+/* ═══════════════════════════════════════════════════════════════════ */
+/* DARK MODE ADDITIONS — loading overlay, city search, commentary UI */
+/* ═══════════════════════════════════════════════════════════════════ */
+
+/* Loading overlay dark mode */
+body.theme-dark #loadingOverlay {
+    background: rgba(30, 30, 27, 0.92) !important;
+}
+
+body.theme-dark #loadingOverlay .text-navy {
+    color: var(--accent-cream) !important;
+}
+
+body.theme-dark #loadingOverlay p {
+    color: var(--text-muted) !important;
+}
+
+/* City search popover dark mode */
+body.theme-dark #citySearchPopover {
+    background: var(--surface-elevated) !important;
+    border-color: var(--surface-border) !important;
+    color: var(--text-main) !important;
+    box-shadow: 0 16px 40px rgba(0, 0, 0, 0.45) !important;
+}
+
+body.theme-dark #citySearchPopover p {
+    color: var(--text-muted) !important;
+}
+
+body.theme-dark #citySearchInput {
+    background: var(--surface-pill) !important;
+    border-color: var(--surface-border) !important;
+    color: var(--accent-cream) !important;
+}
+
+body.theme-dark #citySearchInput::placeholder {
+    color: var(--text-muted) !important;
+}
+
+body.theme-dark #citySearchInput:focus {
+    border-color: var(--control-border) !important;
+    box-shadow: 0 0 0 2px color-mix(in srgb, var(--gold) 25%, transparent) !important;
+}
+
+body.theme-dark #citySearchSubmit {
+    background: var(--control-strong-bg) !important;
+    color: var(--control-text-strong) !important;
+    border: 1px solid var(--control-border) !important;
+}
+
+body.theme-dark #citySearchSubmit:hover {
+    background: var(--control-strong-bg-hover) !important;
+}
+
+body.theme-dark #citySearchBtn {
+    background: var(--surface-pill) !important;
+    border-color: var(--surface-border) !important;
+    color: var(--text-muted) !important;
+}
+
+body.theme-dark #citySearchBtn:hover {
+    background: var(--control-bg-hover) !important;
+    color: var(--accent-cream) !important;
+}
+
+/* Commentary sidebar: back-to-list button dark mode */
+body.theme-dark #rightSidebar [class*="text-[#004e5f]"],
+body.theme-dark #selectionInsightsBody [class*="text-[#004e5f]"] {
+    color: var(--accent-teal) !important;
+}
+
+/* selectionInsights body dark mode — word meaning and commentary chooser */
+body.theme-dark #selectionInsights {
+    background: var(--surface-elevated) !important;
+    border-color: var(--surface-border) !important;
+    color: var(--text-main) !important;
+}
+
+body.theme-dark #selectionInsightsHint {
+    color: var(--text-muted) !important;
+}
+
+body.theme-dark #selectionInsightsBody .rounded-lg {
+    background: var(--surface-pill) !important;
+    border-color: var(--surface-border) !important;
+    color: var(--text-main) !important;
+}
+
+/* Word meaning box */
+body.theme-dark #selectionInsightsBody [class*="bg-[#f2eadc]"],
+body.theme-dark #selectionInsightsBody [class*="bg-[#"] {
+    background: var(--surface-pill) !important;
+}
+
+body.theme-dark #selectionInsightsBody [class*="border-[#d7c8ad]"],
+body.theme-dark #selectionInsightsBody [class*="border-[#"] {
+    border-color: var(--surface-border) !important;
+}
+
+body.theme-dark #selectionInsightsBody [class*="text-[#5d4c36]"],
+body.theme-dark #selectionInsightsBody [class*="text-[#4f4130]"],
+body.theme-dark #selectionInsightsBody [class*="text-[#6a5842]"] {
+    color: var(--text-muted) !important;
+}
+
+body.theme-dark #selectionInsightsBody .text-slate-700,
+body.theme-dark #selectionInsightsBody .text-slate-800 {
+    color: var(--text-main) !important;
+}
+
+body.theme-dark #selectionInsightsBody .text-slate-500 {
+    color: var(--text-muted) !important;
+}
+
+body.theme-dark #selectionInsightsBody .border-slate-100,
+body.theme-dark #selectionInsightsBody .border-slate-200 {
+    border-color: var(--surface-border) !important;
+}
+
+/* Commentary text in dark mode */
+body.theme-dark #selectionInsightsBody article {
+    border-bottom-color: var(--surface-border) !important;
+}
+
+body.theme-dark #selectionInsightsBody .font-hebrew {
+    color: var(--accent-cream) !important;
+}
+
+body.theme-dark #selectionInsightsBody .font-serif {
+    color: var(--text-main) !important;
+}
+
+/* rightSidebarIdle dark mode */
+body.theme-dark #rightSidebarIdle {
+    background: var(--surface-elevated) !important;
+    border-color: var(--surface-border) !important;
+    color: var(--text-muted) !important;
+}
+
+/* Reader topbar library button: right in RTL mode */
+html.rtl #readerTopBar #readerLibraryTopBarBtn {
+    order: 10;
+    margin-inline-start: auto;
+}
+
+/* dark mode - menu parasha quick link fix */
+body.theme-dark .menu-parasha-quick-link {
+    background: linear-gradient(180deg, var(--surface-elevated) 0%, var(--surface-pill) 100%) !important;
+    border-color: var(--control-border) !important;
+    color: var(--accent-cream) !important;
+    box-shadow: inset 0 0 0 1px rgba(201, 168, 78, 0.18) !important;
+}
+
+/* Selection insights - text area for commentary content */
+body.theme-dark #selectionInsightsBody button {
+    color: var(--accent-teal) !important;
+}
+
+body.theme-dark #selectionInsightsBody button:hover {
+    color: var(--control-text-strong) !important;
+}
+
+/* Loading shimmer dark mode */
+body.theme-dark .reader-loading-shimmer {
+    background: linear-gradient(90deg,
+            var(--surface-subtle) 25%,
+            var(--surface-pill) 50%,
+            var(--surface-subtle) 75%);
+    background-size: 200% 100%;
 }

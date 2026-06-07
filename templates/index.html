@@ -41,6 +41,48 @@
             color: var(--accent-cream) !important;
         }
 
+        body.theme-dark #searchInput {
+            background: var(--surface-pill) !important;
+            border-color: var(--surface-border) !important;
+            color: var(--accent-cream) !important;
+        }
+
+        body.theme-dark #searchInput:hover {
+            background: var(--surface-elevated) !important;
+            border-color: #6a7585 !important;
+        }
+
+        body.theme-dark #searchInput:focus {
+            background: var(--surface-elevated) !important;
+            border-color: var(--accent-blue) !important;
+            box-shadow: 0 0 0 3px rgba(31, 63, 99, 0.1) !important;
+        }
+
+        body.theme-dark #searchIcon {
+            color: var(--text-muted) !important;
+        }
+
+        body.theme-dark .fc .fc-col-header-cell-cushion {
+            color: var(--accent-cream) !important;
+        }
+
+        body.theme-dark .fc .fc-daygrid-day-number {
+            color: var(--accent-cream) !important;
+        }
+
+        body.theme-dark .today-zmanim-list span {
+            color: var(--accent-cream) !important;
+        }
+
+        body.theme-dark .today-zmanim-list b {
+            color: var(--text-main) !important;
+        }
+
+        body.theme-dark #holidayName,
+        body.theme-dark #shabbatWeekName,
+        body.theme-dark #omerCount {
+            color: var(--accent-cream) !important;
+        }
         body.theme-dark #settingsPanel .text-slate-400,
         body.theme-dark #settingsPanel p.text-\[11px\],
         body.theme-dark #settingsPanel .uppercase {
@@ -247,7 +289,7 @@
                 </button>
 
                 <div id="settingsPanel"
-                    class="hidden absolute bg-white border border-slate-200 rounded-xl shadow-lg p-2.5 z-[200] space-y-2.5 overflow-y-auto">
+                    class="hidden absolute bg-white border border-slate-200 rounded-xl shadow-lg p-2.5 z-[200] space-y-2.5 overflow-y-auto w-max max-w-[360px]">
                     <p class="text-[11px] uppercase tracking-widest text-slate-400 font-bold" data-en="Quick Settings"
                         data-he="הגדרות מהירות">Quick Settings</p>
 
@@ -9950,12 +9992,28 @@
 
                 const holidayName = document.getElementById('holidayName');
                 if (holidayName) {
-                    holidayName.innerText = translateHolidayName(meta.holiday || 'Regular Day');
+                    const text = translateHolidayName(meta.holiday || 'Regular Day');
+                    holidayName.innerText = text;
+                    if (isHebrewMode() && text !== 'Regular Day') {
+                        holidayName.classList.add('font-hebrew');
+                        holidayName.setAttribute('dir', 'rtl');
+                    } else {
+                        holidayName.classList.remove('font-hebrew');
+                        holidayName.removeAttribute('dir');
+                    }
                 }
 
                 const shabbatWeekName = document.getElementById('shabbatWeekName');
                 if (shabbatWeekName) {
-                    shabbatWeekName.innerText = formatWeeklyShabbatLabel(meta);
+                    const text = formatWeeklyShabbatLabel(meta);
+                    shabbatWeekName.innerText = text;
+                    if (isHebrewMode() && text.includes('שבת')) {
+                        shabbatWeekName.classList.add('font-hebrew');
+                        shabbatWeekName.setAttribute('dir', 'rtl');
+                    } else {
+                        shabbatWeekName.classList.remove('font-hebrew');
+                        shabbatWeekName.removeAttribute('dir');
+                    }
                 }
 
                 const omerCount = document.getElementById('omerCount');
