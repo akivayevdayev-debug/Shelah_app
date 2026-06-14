@@ -20,13 +20,8 @@
     --halacha-text-color: #334155;
 }
 
+/* Halacha dark tokens (--halacha-ruling-color, --halacha-ruling-bg, etc.) defined in tokens.css */
 body.theme-dark {
-    --halacha-ruling-color: #a0b8d0;
-    --halacha-ruling-bg: #1d2331;
-    --halacha-custom-color: #c4a9f4;
-    --halacha-custom-bg: #211e30;
-    --halacha-source-color: #e8c84a;
-    --halacha-source-bg: #27231a;
     --halacha-title-color: var(--text-main);
     --halacha-text-color: var(--text-muted);
 }
@@ -63,28 +58,28 @@ body.theme-dark .halacha-text {
 /* ═══════════════════════════════════════════════════════ */
 
 body.theme-dark .custom-ruling {
-    background: #221d2e;
+    background: var(--halacha-custom-ruling-bg);
     border-left-color: var(--halacha-custom-color);
 }
 
 body.theme-dark .custom-ruling.ashkenazi {
-    background: #1d2230;
+    background: var(--halacha-ruling-ashkenazi-bg);
     border-left-color: var(--accent-blue, #7fafd6);
 }
 
 body.theme-dark .custom-ruling.sefardi {
-    background: #2a1f18;
+    background: var(--halacha-ruling-sefardi-bg);
     border-left-color: var(--accent-orange, #fb923c);
 }
 
 body.theme-dark .custom-ruling.yemenite {
-    background: #1a2820;
+    background: var(--halacha-ruling-yemenite-bg);
     border-left-color: var(--accent-green, #34d399);
 }
 
 body.theme-dark .custom-ruling.bukharian {
-    background: #28182e;
-    border-left-color: #d946ef;
+    background: var(--halacha-ruling-bukharian-bg);
+    border-left-color: var(--halacha-ruling-bukharian-border);
 }
 
 body.theme-dark .custom-label {

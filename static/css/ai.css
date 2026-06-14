@@ -35,7 +35,7 @@
     --ai-src-body-bg: var(--surface-elevated);
     --ai-src-he-bg: var(--surface-elevated);
     --ai-src-en-bg: var(--surface-pill);
-    --ai-loading-color: #cbd5e1;
+    /* --ai-loading-color defined in tokens.css dark block */
 }
 
 /* ═══════════════════════════════════════════════════════ */
@@ -152,7 +152,7 @@
 :is([data-theme="dark"], body.theme-dark) #aiModeBadge:hover,
 :is([data-theme="dark"], body.theme-dark) #aiCommunityBadge:hover,
 :is([data-theme="dark"], body.theme-dark) #aiSourcesBadge:hover {
-    border-color: #6a7585 !important;
+    border-color: var(--ai-badge-hover-border) !important;
 }
 
 /* ═══════════════════════════════════════════════════════ */

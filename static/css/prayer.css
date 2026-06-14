@@ -23,7 +23,7 @@ body.theme-dark .prayer-english {
 
 body.theme-dark .prayer-rubric {
     background: var(--surface-subtle);
-    border-left-color: #9a8040;
+    border-left-color: var(--prayer-accent-border);
     color: var(--text-muted);
 }
 
