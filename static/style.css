@@ -2795,7 +2795,7 @@ html.theme-dark,
 :is([data-theme="dark"], body.theme-dark) .focus\:ring-blue-300:focus,
 :is([data-theme="dark"], body.theme-dark) .focus\:ring-blue-400:focus,
 :is([data-theme="dark"], body.theme-dark) .focus\:ring-blue-500:focus {
-    --tw-ring-color: rgba(176, 154, 116, 0.45) !important;
+    --tw-ring-color: rgba(120, 120, 120, 0.45) !important;
 }
 
 :is([data-theme="dark"], body.theme-dark) .focus\:border-blue-300:focus,
@@ -2876,9 +2876,9 @@ html.theme-dark,
 }
 
 :is([data-theme="dark"], body.theme-dark) .lang-btn.lang-btn-active {
-    background-color: var(--control-strong-bg) !important;
-    border-color: var(--control-border) !important;
-    color: var(--accent-cream) !important;
+    background-color: #383838 !important;
+    border-color: #484848 !important;
+    color: #d8d8d8 !important;
 }
 
 :is([data-theme="dark"], body.theme-dark) .lang-btn:active,
@@ -2925,11 +2925,11 @@ html.theme-dark,
 :is([data-theme="dark"], body.theme-dark) .ring-blue-400,
 :is([data-theme="dark"], body.theme-dark) .focus\:ring-blue-400:focus,
 :is([data-theme="dark"], body.theme-dark) .focus-ring {
-    --tw-ring-color: rgba(176, 154, 116, 0.42) !important;
+    --tw-ring-color: rgba(120, 120, 120, 0.45) !important;
 }
 
 :is([data-theme="dark"], body.theme-dark) .border-blue-400 {
-    border-color: #7a6d57 !important;
+    border-color: #484848 !important;
 }
 
 /* Dark calendar button active states */
@@ -2987,8 +2987,20 @@ html.theme-dark,
 :is([data-theme="dark"], body.theme-dark) #readerSettingsPanel input[type="checkbox"]:focus-visible,
 :is([data-theme="dark"], body.theme-dark) #settingsPanel input[type="range"]:focus-visible,
 :is([data-theme="dark"], body.theme-dark) #readerSettingsPanel input[type="range"]:focus-visible {
-    outline: 2px solid rgba(176, 154, 116, 0.5);
+    outline: 2px solid rgba(120, 120, 120, 0.5);
     outline-offset: 2px;
+}
+
+:is([data-theme="dark"], body.theme-dark) #readerSettingsPanel input[type="range"]::-webkit-slider-runnable-track {
+    background: #242424;
+    border-radius: 9999px;
+    height: 0.5rem;
+}
+
+:is([data-theme="dark"], body.theme-dark) #readerSettingsPanel input[type="range"]::-moz-range-track {
+    background: #242424;
+    border-radius: 9999px;
+    height: 0.5rem;
 }
 
 :is([data-theme="dark"], body.theme-dark) #settingsPanel,
@@ -3485,7 +3497,7 @@ html.theme-dark,
 :is([data-theme="dark"], body.theme-dark) .shelf-open:focus-visible,
 :is([data-theme="dark"], body.theme-dark) .track-toggle:focus-visible,
 :is([data-theme="dark"], body.theme-dark) .library-node-open:focus-visible {
-    outline: 2px solid rgba(176, 154, 116, 0.58);
+    outline: 2px solid rgba(120, 120, 120, 0.5);
     outline-offset: 2px;
 }
 

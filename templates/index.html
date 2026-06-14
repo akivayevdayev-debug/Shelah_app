@@ -820,6 +820,12 @@
                         data-he="הקריאות האחרונות והפריטים השמורים יופיעו כאן.">Your recent reads and saved items will
                         appear here.</p>
                 </div>
+
+                <div id="askHistorySection" class="hidden">
+                    <h3 class="text-xs font-bold text-slate-400 uppercase tracking-widest mt-2 mb-3"
+                        data-en="Ask History" data-he="היסטוריית שאלות">Ask History</h3>
+                    <div id="askHistoryList" class="text-sm pb-10 space-y-1"></div>
+                </div>
         </nav>
 
         <!-- Column 2: Main Area (Center) -->
@@ -1247,7 +1253,7 @@
 
     <!-- Calendar Modal -->
     <div id="calendarModal"
-        class="hidden fixed inset-0 z-[100] bg-slate-900/55 backdrop-blur-[3px] flex items-center justify-center p-4"
+        class="hidden fixed inset-0 z-[100] bg-slate-900/55 backdrop-blur-[3px] flex items-start justify-center px-4 pb-4 pt-14"
         role="dialog" aria-modal="true" aria-labelledby="calendarModalTitle">
         <div class="bg-[#faf7f0] rounded-2xl shadow-2xl w-full max-w-4xl max-h-[90vh] overflow-hidden flex flex-col relative border border-[#d7cebc]"
             style="box-shadow: 0 24px 64px rgba(0,0,0,0.22), 0 4px 12px rgba(78,64,30,0.12);">
@@ -3636,6 +3642,7 @@
                 if (syncedPrefsUserId !== userId) {
                     syncedPrefsUserId = userId;
                     await loadPrefsFromServerIfSignedIn();
+                    void loadAskHistory();
                 }
             } else {
                 signInBtn?.classList.remove('hidden');
@@ -3643,6 +3650,11 @@
                 userProfileMenuContainer?.classList.add('hidden');
                 closeUserProfileMenu();
                 syncedPrefsUserId = null;
+                // Hide and clear history when signed out
+                const histSec = document.getElementById('askHistorySection');
+                if (histSec) histSec.classList.add('hidden');
+                const histList = document.getElementById('askHistoryList');
+                if (histList) histList.innerHTML = '';
             }
         }
 
@@ -3919,6 +3931,96 @@
             } catch (_) {
                 // Ignore sync errors and continue using local preferences.
             }
+        }
+
+        // ── Ask History ────────────────────────────────────────────────────────
+
+        async function loadAskHistory() {
+            const section = document.getElementById('askHistorySection');
+            const list = document.getElementById('askHistoryList');
+            if (!section || !list) return;
+            if (!isClerkConfigured() || !window.Clerk?.session || !window.Clerk?.user) return;
+
+            list.innerHTML = `<div class="ai-src-skeleton-line ai-src-skeleton-line--wide mb-1" aria-hidden="true"></div>
+                              <div class="ai-src-skeleton-line ai-src-skeleton-line--medium mb-1" aria-hidden="true"></div>
+                              <div class="ai-src-skeleton-line" style="width:70%" aria-hidden="true"></div>`;
+            section.classList.remove('hidden');
+
+            try {
+                const headers = await authHeaders();
+                const resp = await fetch('/api/user/history?limit=20', { headers });
+                if (!resp.ok) { section.classList.add('hidden'); return; }
+                const data = await resp.json();
+                renderAskHistory(data.items || []);
+            } catch (_) {
+                section.classList.add('hidden');
+            }
+        }
+
+        function renderAskHistory(items) {
+            const section = document.getElementById('askHistorySection');
+            const list = document.getElementById('askHistoryList');
+            if (!section || !list) return;
+
+            if (!items.length) {
+                section.classList.add('hidden');
+                return;
+            }
+
+            section.classList.remove('hidden');
+            list.innerHTML = items.map((item) => {
+                const q = escapeHtml(String(item.question || '').trim().slice(0, 80));
+                const date = item.created_at
+                    ? new Date(item.created_at).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })
+                    : '';
+                const id = escapeHtml(String(item.id || ''));
+                return `
+                    <div class="ask-history-item group flex items-start gap-1.5" data-id="${id}">
+                        <button type="button"
+                            class="ask-history-q flex-1 text-start text-xs text-slate-700 hover:text-navy leading-snug py-1 truncate"
+                            data-id="${id}"
+                            title="${q}">
+                            <span class="ask-history-date text-[10px] text-slate-400 block">${date}</span>
+                            ${q}
+                        </button>
+                        <button type="button"
+                            class="ask-history-del opacity-0 group-hover:opacity-100 text-slate-300 hover:text-red-400 text-sm leading-none pt-1 transition-opacity flex-shrink-0"
+                            data-id="${id}"
+                            aria-label="Delete">×</button>
+                    </div>`;
+            }).join('');
+
+            list.querySelectorAll('.ask-history-q').forEach((btn) => {
+                btn.addEventListener('click', () => {
+                    const id = btn.getAttribute('data-id');
+                    const item = items.find(i => i.id === id);
+                    if (!item) return;
+                    appState.lastAiQuestion = item.question;
+                    appState.lastAiResponse = item;
+                    document.getElementById('aiModalTitle').textContent = item.question;
+                    const modal = document.getElementById('aiAssistantModal');
+                    modal.classList.remove('hidden');
+                    modal.style.display = 'flex';
+                    window.ShelahMotion?.animateIn(modal, { y: 12 });
+                    populateAiModal(item, item.question);
+                    if (searchInput) searchInput.value = item.question;
+                });
+            });
+
+            list.querySelectorAll('.ask-history-del').forEach((btn) => {
+                btn.addEventListener('click', async () => {
+                    const id = btn.getAttribute('data-id');
+                    await deleteAskHistoryEntry(id);
+                    await loadAskHistory();
+                });
+            });
+        }
+
+        async function deleteAskHistoryEntry(id) {
+            try {
+                const headers = await authHeaders();
+                await fetch(`/api/user/history/${encodeURIComponent(id)}`, { method: 'DELETE', headers });
+            } catch (_) {}
         }
 
         function setReaderSubtitle(text = '') {
@@ -4350,6 +4452,13 @@
                 minWidth: 220,
                 maxWidth: 352,
             });
+            const _topbar = document.querySelector('header[role="banner"]');
+            if (_topbar) {
+                const _tbBottom = _topbar.getBoundingClientRect().bottom + 4;
+                if (parseFloat(settingsPanel.style.top) < _tbBottom) {
+                    settingsPanel.style.setProperty('top', `${_tbBottom}px`, 'important');
+                }
+            }
         }
 
         function positionUserProfileMenu() {
@@ -9021,9 +9130,7 @@
             }
 
             if (target.type === 'ask') {
-                suppressSuggestionMenu = false;
                 await handleAiSearch(target.value || fallbackQuestion);
-                hideSearchSuggestions();
                 return true;
             }
 
@@ -9034,6 +9141,10 @@
             const sanitizedQuestion = sanitizeQuestionInput(question);
             if (!sanitizedQuestion) return;
             question = sanitizedQuestion;
+
+            // Kill the suggestion dropdown immediately — it must not persist while the modal is open
+            suppressSuggestionMenu = true;
+            hideSearchSuggestions();
 
             if (searchInput && searchInput.value.trim() !== question) {
                 searchInput.value = question;
@@ -9129,6 +9240,8 @@
                     appState.lastAiQuestion = question;
                     appState.lastAiResponse = data;
                     populateAiModal(data, question);
+                    // Refresh history sidebar so the new entry appears immediately
+                    void loadAskHistory();
                     if (data?.meta?.fallback) {
                         logReliability('ai-fallback-used', {
                             mode: data?.meta?.mode,
@@ -9153,6 +9266,8 @@
                 logReliability('ai-network-error', { message: error.message, timeout: isTimeout });
             } finally {
                 _phaseTimers.forEach(clearTimeout);
+                document.body.classList.remove('search-loading');
+                suppressSuggestionMenu = false;
             }
         }
 
@@ -10785,6 +10900,9 @@
         }
 
         function populateAiModal(data, queryTitle) {
+            // Stop search-icon spin immediately when answer is ready
+            document.body.classList.remove('search-loading');
+
             // 1. Populate synthesis
             const aiSynthesisEl = document.getElementById('aiSynthesis');
             aiSynthesisEl.innerHTML = renderAnswerMarkdown(data.answer);
@@ -10867,7 +10985,7 @@
                 // Build bilingual text content
                 let contentHtml = '';
                 if (lines.length > 0) {
-                    const heTexts = lines.slice(0, 3).map(l => String(l?.he || '').trim()).filter(Boolean);
+                    const heTexts = lines.slice(0, 3).map(l => String(l?.he || '').replace(/<[^>]*>/gm, '').trim()).filter(Boolean);
                     const enTexts = lines.slice(0, 3).map(l => String(l?.en || l || '').replace(/<[^>]*>/gm, '').trim()).filter(Boolean);
                     if (heTexts.length > 0 || enTexts.length > 0) {
                         contentHtml = '<div class="ai-src-box-body">';
@@ -10894,19 +11012,44 @@
                     </div>`);
             });
 
-            // 2b. AI-cited sources (text strings from structured AI response)
+            // 2b. AI-cited sources — for refs the AI explicitly named that aren't already shown,
+            //     render a skeleton and then fetch the actual text asynchronously.
             const aiCited = Array.isArray(data.ai_cited_sources) ? data.ai_cited_sources : [];
-            if (aiCited.length > 0 && _srcIdx > 0) {
-                _srcParts.push(`<p class="ai-src-section-label">${t('Additional References', 'מקורות נוספים')}</p>`);
+            const shownRefKeys = new Set(rankedSources.map(s => String(s.ref || '').toLowerCase().trim()));
+
+            async function _fetchAndFillCitedSource(ref, boxId) {
+                try {
+                    const resp = await fetch(`/api/text/${encodeURIComponent(ref)}?autotranslate=0`);
+                    if (!resp.ok) return;
+                    const payload = await resp.json();
+                    if (payload?.error) return;
+                    const lines = Array.isArray(payload?.lines) ? payload.lines : [];
+                    const heTexts = lines.slice(0, 3).map(l => String(l?.he || '').replace(/<[^>]*>/gm, '').trim()).filter(Boolean);
+                    const enTexts = lines.slice(0, 3).map(l => String(l?.en || '').replace(/<[^>]*>/gm, '').trim()).filter(Boolean);
+                    if (!heTexts.length && !enTexts.length) return;
+                    const box = document.getElementById(boxId);
+                    if (!box) return;
+                    const skeleton = box.querySelector('.ai-cited-fetch-skeleton');
+                    if (!skeleton) return;
+                    let html = '';
+                    if (heTexts.length) html += `<div class="ai-src-box-he" dir="rtl">${heTexts.map(h => `<p>${escapeHtml(h)}</p>`).join('')}</div>`;
+                    if (enTexts.length) html += `<div class="ai-src-box-en">${enTexts.map(e => `<p>${escapeHtml(e)}</p>`).join('')}</div>`;
+                    skeleton.outerHTML = `<div class="ai-src-box-body">${html}</div>`;
+                } catch (_) {}
             }
+
+            const pendingFetches = [];
             aiCited.slice(0, 6).forEach((srcStr) => {
                 const colonIdx = String(srcStr || '').search(/[:–—]/);
                 const refTitle = colonIdx > 0 ? srcStr.slice(0, colonIdx).trim() : String(srcStr || '').trim();
                 const note = colonIdx > 0 ? srcStr.slice(colonIdx + 1).trim() : '';
+                // Skip if the exact same ref was already shown via pre-fetched sources
+                if (shownRefKeys.has(refTitle.toLowerCase().trim())) return;
                 const extLinks = _externalLinksForRef(refTitle);
                 const localLink = `<a href="#" data-local-ref="${escapeHtml(refTitle)}" class="source-local-link src-open-link">${t('Open in Reader ↗', 'פתח בקורא ↗')}</a>`;
+                const boxId = `ai-cited-box-${_srcIdx}`;
                 _srcParts.push(`
-                    <div class="ai-source-box animate-fade-up" style="--i:${_srcIdx++}">
+                    <div class="ai-source-box animate-fade-up" id="${boxId}" style="--i:${_srcIdx++}">
                         <div class="ai-src-box-header">
                             <span class="ai-src-box-id">
                                 ${_sourceTypeBadge(refTitle)}
@@ -10915,7 +11058,12 @@
                             <span class="ai-src-box-links">${extLinks}${localLink}</span>
                         </div>
                         ${note ? `<div class="ai-src-box-note">${escapeHtml(note)}</div>` : ''}
+                        <div class="ai-src-box-body ai-cited-fetch-skeleton" aria-hidden="true">
+                            <div class="ai-src-skeleton-line ai-src-skeleton-line--wide"></div>
+                            <div class="ai-src-skeleton-line ai-src-skeleton-line--medium"></div>
+                        </div>
                     </div>`);
+                pendingFetches.push([refTitle, boxId]);
             });
 
             // Single atomic DOM write — all elements exist in the DOM before any handler is wired
@@ -10929,6 +11077,9 @@
                     if (ref) readText(ref);
                 });
             });
+
+            // Kick off async text fetches for AI-cited sources (fire-and-forget)
+            pendingFetches.forEach(([ref, boxId]) => _fetchAndFillCitedSource(ref, boxId));
 
             const hasRenderedSources = _srcIdx > 0;
             if (hasRenderedSources) {
