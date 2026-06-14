@@ -1,0 +1,57 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Sh'elah Community Custom File",
+  "description": "Schema for customs/*.json community halacha reference files.",
+  "type": "object",
+  "required": ["version", "heritage_id", "name", "halacha_index"],
+  "additionalProperties": true,
+  "properties": {
+    "version": {
+      "type": "string",
+      "description": "File format version, e.g. \"2.0\""
+    },
+    "type": {
+      "type": "string"
+    },
+    "heritage_id": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Unique machine-readable identifier for this community"
+    },
+    "name": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Human-readable community name"
+    },
+    "aliases": {
+      "type": "array",
+      "items": { "type": "string" }
+    },
+    "database_scope": {
+      "type": "object",
+      "properties": {
+        "purpose": { "type": "string" },
+        "coverage_note": { "type": "string" },
+        "classification_note": { "type": "string" }
+      }
+    },
+    "identity": {
+      "type": "object"
+    },
+    "languages": {
+      "type": "object"
+    },
+    "halacha_index": {
+      "type": "object",
+      "description": "Core halachic topic mappings for this community"
+    },
+    "unique_minhagim": {
+      "type": "array",
+      "items": { "type": "object" }
+    },
+    "source_registry": {
+      "type": "array",
+      "items": { "type": "object" }
+    }
+  }
+}

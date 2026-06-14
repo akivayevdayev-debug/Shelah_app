@@ -4,177 +4,58 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-    <meta name="theme-color" content="#f3ede0">
+    <meta name="theme-color" content="#f3ede0" media="(prefers-color-scheme: light)">
+    <meta name="theme-color" content="#1a1c1e" media="(prefers-color-scheme: dark)">
     <title>Sh'elah - Torah Encyclopedia</title>
+    <meta name="description" content="AI-powered Torah encyclopedia — search halacha, Talmud, Tanakh, and Jewish law with source citations and community-aware answers.">
+    <meta property="og:title" content="Sh'elah - Torah Encyclopedia">
+    <meta property="og:description" content="AI-powered Torah encyclopedia with source citations from Sefaria, halachic rulings, and community customs.">
+    <meta property="og:type" content="website">
+    <meta name="twitter:card" content="summary">
+    <meta name="twitter:title" content="Sh'elah - Torah Encyclopedia">
     <link rel="icon" href="/static/favicon.svg" type="image/svg+xml">
     <link rel="icon" href="/static/favicon-192.png" type="image/png" sizes="192x192">
     <link rel="icon" href="/static/favicon-512.png" type="image/png" sizes="512x512">
     <link rel="apple-touch-icon" href="/static/apple-touch-icon.png" sizes="180x180">
     <link rel="manifest" href="/manifest.webmanifest">
-    <!-- Tailwind CSS -->
-    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="preload" href="/static/fonts/SILEOT.woff" as="font" type="font/woff" crossorigin>
+    <!-- no-flash theme: read localStorage before first paint -->
+    <script>(function(){var t=localStorage.getItem('shelah-theme');if(t==='dark'){document.documentElement.setAttribute('data-theme','dark');document.documentElement.classList.add('theme-dark');}else if(t==='light'){document.documentElement.setAttribute('data-theme','light');}else if(window.matchMedia('(prefers-color-scheme: dark)').matches){document.documentElement.setAttribute('data-theme','dark');document.documentElement.classList.add('theme-dark');}})()</script>
     <!-- DaisyUI component library (non-destructive — adds .btn, .card etc. utility classes) -->
-    <link href="https://cdn.jsdelivr.net/npm/daisyui@4/dist/full.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/daisyui@4.12.24/dist/full.min.css" rel="stylesheet"
+          integrity="sha384-2V5uSMIWpBK7suX6yRDZH6ll7ktPJF2O58y0HSz+HiFCBCsmqZpxX1AZB4qAHuYI"
+          crossorigin="anonymous">
 
     <!-- Scholarly Typography -->
     <link href="https://fonts.googleapis.com/css2?family=Cardo:wght@400;700&family=Inter:wght@400;500;600&display=swap"
         rel="stylesheet">
-    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/marked@15.0.12/marked.min.js"
+            integrity="sha384-948ahk4ZmxYVYOc+rxN1H2gM1EJ2Duhp7uHtZ4WSLkV4Vtx5MUqnV+l7u9B+jFv+"
+            crossorigin="anonymous"></script>
     <!-- DOMPurify: sanitize HTML produced by marked.parse() to prevent XSS -->
-    <script src="https://cdn.jsdelivr.net/npm/dompurify@3/dist/purify.min.js"></script>
-    <link rel="stylesheet" href="/static/style.css?v=20260512-v1">
+    <script src="https://cdn.jsdelivr.net/npm/dompurify@3.4.9/dist/purify.min.js"
+            integrity="sha384-6ZdfL2Azuen6KYvcTkbxqJS1d7txbNWrVfmURkxNeCn7DtzhLRL6Fi6WGG6ZLdKn"
+            crossorigin="anonymous"></script>
+    <link rel="stylesheet" href="/static/css/tokens.css?v=20260613-v6">
+    <link rel="stylesheet" href="/static/style.css?v=20260613-v6">
     <!-- CSS modules (supplement style.css; do not replace) -->
-    <link rel="stylesheet" href="/static/css/typography.css?v=20260512-v1">
-    <link rel="stylesheet" href="/static/css/reader.css?v=20260512-v1">
-    <link rel="stylesheet" href="/static/css/sidebar.css?v=20260512-v1">
-    <link rel="stylesheet" href="/static/css/halacha.css?v=20260512-v1">
-    <link rel="stylesheet" href="/static/css/prayer.css?v=20260512-v1">
-    <link rel="stylesheet" href="/static/css/ai.css?v=20260515-v1">
-    <link rel="stylesheet" href="/static/css/calendar.css?v=20260512-v1">
-
-    <style id="quick-settings-dark-fixes">
-        /* Quick Settings dark-mode fixes: ensure inputs, selects, buttons, labels readable */
-        body.theme-dark #settingsPanel,
-        body.theme-dark #readerSettingsPanel {
-            background: var(--surface-elevated) !important;
-            border-color: var(--surface-border) !important;
-            color: var(--accent-cream) !important;
-        }
-
-        body.theme-dark #searchInput {
-            background: var(--surface-pill) !important;
-            border-color: var(--surface-border) !important;
-            color: var(--accent-cream) !important;
-        }
-
-        body.theme-dark #searchInput:hover {
-            background: var(--surface-elevated) !important;
-            border-color: #6a7585 !important;
-        }
-
-        body.theme-dark #searchInput:focus {
-            background: var(--surface-elevated) !important;
-            border-color: var(--accent-blue) !important;
-            box-shadow: 0 0 0 3px rgba(31, 63, 99, 0.1) !important;
-        }
-
-        body.theme-dark #searchIcon {
-            color: var(--text-muted) !important;
-        }
-
-        body.theme-dark .fc .fc-col-header-cell-cushion {
-            color: var(--accent-cream) !important;
-        }
-
-        body.theme-dark .fc .fc-daygrid-day-number {
-            color: var(--accent-cream) !important;
-        }
-
-        body.theme-dark .today-zmanim-list span {
-            color: var(--accent-cream) !important;
-        }
-
-        body.theme-dark .today-zmanim-list b {
-            color: var(--text-main) !important;
-        }
-
-        body.theme-dark #holidayName,
-        body.theme-dark #shabbatWeekName,
-        body.theme-dark #omerCount {
-            color: var(--accent-cream) !important;
-        }
-
-        body.theme-dark #settingsPanel .text-slate-400,
-        body.theme-dark #settingsPanel p.text-\[11px\],
-        body.theme-dark #settingsPanel .uppercase {
-            color: var(--text-muted) !important;
-        }
-
-        body.theme-dark #settingsPanel .bg-slate-50,
-        body.theme-dark #settingsPanel .bg-slate-100,
-        body.theme-dark #settingsPanel .bg-white {
-            background: var(--surface-pill) !important;
-            border-color: var(--surface-border) !important;
-            color: var(--accent-cream) !important;
-        }
-
-        body.theme-dark #settingsPanel .text-slate-700,
-        body.theme-dark #settingsPanel .text-slate-600,
-        body.theme-dark #settingsPanel .text-slate-500 {
-            color: var(--accent-cream) !important;
-        }
-
-        body.theme-dark #settingsPanel .border-slate-100,
-        body.theme-dark #settingsPanel .border-slate-200 {
-            border-color: var(--surface-border) !important;
-        }
-
-        body.theme-dark #settingsPanel select,
-        body.theme-dark #settingsPanel input,
-        body.theme-dark #settingsPanel textarea,
-        body.theme-dark #settingsPanel button {
-            background: var(--surface-pill) !important;
-            border-color: var(--surface-border) !important;
-            color: var(--accent-cream) !important;
-        }
-
-        body.theme-dark #settingsPanel input::placeholder,
-        body.theme-dark #settingsPanel textarea::placeholder {
-            color: var(--text-muted) !important;
-        }
-
-        /* Theme toggle button – use dark pill style */
-        body.theme-dark #themeToggleBtn {
-            background: var(--surface-pill) !important;
-            color: var(--accent-cream) !important;
-            border-color: var(--surface-border) !important;
-        }
-
-        body.theme-dark #themeToggleBtn:hover {
-            background: var(--control-bg-hover) !important;
-            border-color: var(--control-border) !important;
-            color: var(--control-text-strong) !important;
-        }
-
-        /* Ensure ALL buttons in settings panel use dark pill style */
-        body.theme-dark #settingsPanel button:not(#bookmarkCurrentBtn) {
-            background: var(--surface-pill) !important;
-            border-color: var(--surface-border) !important;
-            color: var(--accent-cream) !important;
-        }
-
-        body.theme-dark #settingsPanel button:not(#bookmarkCurrentBtn):hover {
-            background: var(--control-bg-hover) !important;
-            border-color: var(--control-border) !important;
-            color: var(--control-text-strong) !important;
-        }
-
-        /* Ensure small meta text uses muted cream */
-        body.theme-dark #settingsPanel .text-xs,
-        body.theme-dark #settingsPanel .text-sm {
-            color: var(--text-muted) !important;
-        }
-
-        /* Bookmark Current button (navy style for dark) */
-        body.theme-dark #bookmarkCurrentBtn {
-            background: var(--control-strong-bg) !important;
-            border-color: var(--control-border) !important;
-            color: var(--control-text-strong) !important;
-        }
-
-        body.theme-dark #bookmarkCurrentBtn:hover {
-            background: var(--control-strong-bg-hover) !important;
-            color: var(--control-text-strong) !important;
-        }
-
-        /* Override any remaining Tailwind color classes */
-        body.theme-dark #settingsPanel .hover\:bg-slate-200:hover {
-            background-color: var(--control-bg-hover) !important;
-        }
-    </style>
+    <link rel="stylesheet" href="/static/css/typography.css?v=20260613-v6">
+    <link rel="stylesheet" href="/static/css/reader.css?v=20260613-v6">
+    <link rel="stylesheet" href="/static/css/sidebar.css?v=20260613-v6">
+    <link rel="stylesheet" href="/static/css/halacha.css?v=20260613-v6">
+    <link rel="stylesheet" href="/static/css/prayer.css?v=20260613-v6">
+    <link rel="stylesheet" href="/static/css/ai.css?v=20260613-v6">
+    <link rel="stylesheet" href="/static/css/calendar.css?v=20260613-v6">
+    <link rel="stylesheet" href="/static/css/loading.css?v=20260613-v6">
+    <!-- Tailwind CSS (pre-built; loads last so utilities override custom CSS — mirrors CDN runtime cascade behavior) -->
+    <link rel="stylesheet" href="/static/css/tailwind.css?v=20260613-v6">
 
     <!-- FullCalendar -->
-    <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.15/index.global.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.15/index.global.min.js"
+            integrity="sha384-B1OFx8Gy9GjPu8UbUyXbGQpzll9ubAUQ9agInFJ8NnD7nYG1u/CLR+Sqr5yifl4q"
+            crossorigin="anonymous"></script>
     <script>
         window.APP_CLERK = {
             publishableKey: {{ clerk_publishable_key | tojson }},
@@ -185,239 +66,11 @@
     <script crossorigin="anonymous" data-clerk-publishable-key="{{ clerk_publishable_key }}"
         src="https://cdn.jsdelivr.net/npm/@clerk/clerk-js@5/dist/clerk.browser.js"></script>
     {% endif %}
-    <script>
-        tailwind.config = {
-            theme: {
-                extend: {
-                    fontFamily: {
-                        sans: ['Inter', 'sans-serif'],
-                        serif: ['Cardo', 'serif'],
-                        hebrew: ['"Ezra SIL"', 'serif'],
-                    },
-                    colors: {
-                        navy: '#002147',
-                        gold: '#D4AF37',
-                    }
-                }
-            }
-        }
-    </script>
-    <style>
-        .custom-scrollbar::-webkit-scrollbar {
-            width: 6px;
-        }
-
-        .custom-scrollbar::-webkit-scrollbar-track {
-            background: transparent;
-        }
-
-        .custom-scrollbar::-webkit-scrollbar-thumb {
-            background: #cbd5e1;
-            border-radius: 4px;
-        }
-    </style>
 </head>
 
-<body class="library-shell bg-slate-50 font-sans text-slate-900 min-h-screen overflow-x-hidden flex flex-col">
+<body class="library-shell bg-slate-50 font-sans text-slate-900 h-screen overflow-hidden flex flex-col">
     <!-- Skip-to-content link (keyboard accessibility) -->
     <a href="#mainContainer" class="skip-to-content">Skip to main content</a>
-
-    <!-- TOP NAVIGATION BAR (Sefaria Style) -->
-    <header role="banner"
-        class="topbar sticky top-0 bg-white text-slate-800 py-1.5 px-2 lg:py-1.5 lg:px-3 shadow-sm border-b flex flex-wrap lg:flex-nowrap justify-between items-center z-50 flex-shrink-0 gap-1.5 lg:gap-2">
-        <!-- mobileNavBtn removed: Library tab in bottom nav covers this action -->
-
-        <div id="brandHomeBtn" class="topbar-brand flex items-center gap-1.5 cursor-pointer shrink-0"
-            onclick="goHome()">
-            <div class="text-navy font-hebrew text-[1.7rem] font-semibold leading-tight">
-                ש
-            </div>
-            <h1 class="text-sm sm:text-base font-serif tracking-tight text-navy font-semibold leading-none">
-                <span class="block" data-en="Sh'elah" data-he="שאלה">Sh'elah</span>
-                <span class="block text-[10px] font-normal text-slate-500 italic topbar-brand-subtitle"
-                    data-en="Torah Encyclopedia" data-he="אנציקלופדיית תורה">Torah Encyclopedia</span>
-            </h1>
-        </div>
-
-        <!-- Library Button (Desktop Homepage Only) — placed after brand for natural flow -->
-        <button id="topbarLibraryBtn" type="button"
-            class="topbar-flat-btn hidden lg:inline-flex shrink-0 items-center gap-1.5 topbar-library-btn"
-            onclick="openLibrarySidebar()" title="Library" aria-label="Library">
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 shrink-0" viewBox="0 0 20 20" fill="currentColor"
-                aria-hidden="true">
-                <path
-                    d="M3 4.5A1.5 1.5 0 014.5 3h9A1.5 1.5 0 0115 4.5V14a1 1 0 001 1h1a1 1 0 010 2h-1a3 3 0 01-3-3V5H5v9a1 1 0 001 1h5a1 1 0 110 2H6a3 3 0 01-3-3V4.5z" />
-                <path
-                    d="M6 7a1 1 0 011-1h4a1 1 0 110 2H7a1 1 0 01-1-1zm0 3a1 1 0 011-1h4a1 1 0 110 2H7a1 1 0 01-1-1z" />
-            </svg>
-            <span class="text-xs font-medium" data-en="Library" data-he="ספרייה">Library</span>
-        </button>
-
-        <!-- Top Navigation Menu Toggle + Search Bar -->
-        <div
-            class="topbar-search-wrap relative z-40 order-3 w-full lg:order-none lg:w-auto flex-1 max-w-4xl flex items-center justify-center gap-2 min-w-0">
-            <div class="w-full min-w-0">
-                <!-- Search Form -->
-                <form id="searchForm" role="search" aria-label="Search texts" class="w-full relative min-w-0">
-                    <input type="text" id="searchInput"
-                        placeholder="Ask Sh'elah about any topic, halachah, or custom..."
-                        class="w-full bg-[#fbf8f1] hover:bg-[#f8f2e8] transition text-sm sm:text-base p-2 pl-4 pr-10 rounded-full border border-[#d8d0c2] focus:border-[#b8aa90] focus:ring-2 focus:ring-[#d9cdb8]/80 focus:bg-[#fffdf8] focus:outline-none"
-                        autocomplete="off" required>
-                    <div id="searchIcon" class="absolute right-3 top-2 text-slate-400">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                            <path fill-rule="evenodd"
-                                d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z"
-                                clip-rule="evenodd" />
-                        </svg>
-                    </div>
-
-                    <div id="searchSuggestions"
-                        class="hidden absolute left-0 right-0 mt-2 bg-white border border-slate-200 rounded-2xl shadow-lg z-[80] max-h-80 overflow-y-auto">
-                    </div>
-                </form>
-            </div>
-        </div>
-
-        <div id="topbarControls"
-            class="topbar-controls relative z-[110] flex gap-1.5 items-center flex-wrap justify-end w-full lg:w-auto">
-            <div id="settingsMenuContainer" class="relative z-[120] shrink-0">
-                <button id="settingsMenuBtn" type="button" aria-expanded="false" aria-haspopup="true"
-                    class="topbar-flat-btn text-[#7a6a52]" title="Open settings menu">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
-                        <path
-                            d="M3 5.5A1.5 1.5 0 014.5 4h11A1.5 1.5 0 0117 5.5v.25A1.75 1.75 0 0115.25 7.5h-3.5A1.75 1.75 0 0110 5.75V5h-5a.5.5 0 000 1h2a1 1 0 010 2H4.5A1.5 1.5 0 013 6.5v-1zM3 13.5A1.5 1.5 0 014.5 12H8a1.75 1.75 0 011.75 1.75V14A1.5 1.5 0 018.25 15.5h-3.75A1.5 1.5 0 013 14v-.5zM12 12a1 1 0 000 2h3.5a.5.5 0 010 1H13a1 1 0 100 2h2.5A1.5 1.5 0 0017 15.5v-2A1.5 1.5 0 0015.5 12H12z" />
-                    </svg>
-                </button>
-
-                <div id="settingsPanel"
-                    class="hidden absolute bg-slate-50 border border-slate-300 rounded-xl shadow-lg p-2.5 z-[200] space-y-2.5 overflow-y-auto w-max max-w-[360px]">
-                    <p class="text-[11px] uppercase tracking-widest text-slate-500 font-bold" data-en="Quick Settings"
-                        data-he="הגדרות מהירות">Quick Settings</p>
-
-                    <label class="block text-xs text-slate-600">
-                        <span data-en="Mode" data-he="מצב">Mode</span>
-                        <select id="answerModeSelect"
-                            class="mt-1 w-full px-2 py-1.5 rounded border border-slate-200 bg-slate-50 text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-400">
-                            <option value="balanced" data-en="Balanced" data-he="מאוזן">Balanced</option>
-                            <option value="practical" data-en="Practical First" data-he="מעשי תחילה">Practical First
-                            </option>
-                            <option value="sources" data-en="Deep Sources" data-he="מקורות מעמיקים">Deep Sources
-                            </option>
-                            <option value="strict" data-en="Strict Sources" data-he="מקורות בלבד">Strict Sources
-                            </option>
-                        </select>
-                    </label>
-
-                    <label class="block text-xs text-slate-600">
-                        <span data-en="Community" data-he="קהילה">Community</span>
-                        <select id="communityLensSelect"
-                            class="mt-1 w-full px-2 py-1.5 rounded border border-slate-200 bg-slate-50 text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-400">
-                            <option value="All" data-en="All" data-he="הכל">All</option>
-                            <option value="Ashkenaz" data-en="Ashkenaz" data-he="אשכנז">Ashkenaz</option>
-                            <option value="Sefardic" data-en="Sefardic" data-he="ספרדי">Sefardic</option>
-                            <option value="Bukharian" data-en="Bukharian" data-he="בוכרי">Bukharian</option>
-                            <option value="Persian" data-en="Persian" data-he="פרסי">Persian</option>
-                            <option value="Ethiopian" data-en="Ethiopian" data-he="אתיופי">Ethiopian</option>
-                            <option value="Georgian" data-en="Georgian" data-he="גרוזיני">Georgian</option>
-                            <option value="Greek-Romaniote" data-en="Greek-Romaniote" data-he="רומניוטי">Greek-Romaniote
-                            </option>
-                            <option value="Iraqi" data-en="Iraqi" data-he="עיראקי">Iraqi</option>
-                            <option value="Syrian" data-en="Syrian" data-he="סורי">Syrian</option>
-                            <option value="Yemenite" data-en="Yemenite" data-he="תימני">Yemenite</option>
-                            <option value="Moroccan" data-en="Moroccan" data-he="מרוקאי">Moroccan</option>
-                            <option value="Kavkazi" data-en="Kavkazi" data-he="קווקזי">Kavkazi</option>
-                            <option value="Turkish-Ottoman" data-en="Turkish-Ottoman" data-he="טורקי-עות׳מאני">
-                                Turkish-Ottoman</option>
-                            <option value="Israeli" data-en="Israeli" data-he="ישראלי">Israeli</option>
-                        </select>
-                    </label>
-
-                    <div class="border-t border-slate-100 pt-2">
-                        <button id="themeToggleBtn" type="button"
-                            class="w-full px-3 py-1.5 rounded bg-slate-100 text-slate-700 border border-slate-200 hover:bg-slate-200 transition font-semibold text-xs text-start"
-                            aria-live="polite">
-                            <span id="themeToggleLabel" data-en="Appearance: Light" data-he="מראה: בהיר">Appearance:
-                                Light</span>
-                        </button>
-                    </div>
-
-                    <div class="grid grid-cols-2 gap-2 border-t border-slate-100 pt-2">
-                        <button id="bookmarkCurrentBtn" type="button"
-                            class="px-2.5 py-1.5 rounded-lg bg-navy text-white hover:bg-blue-900 transition font-semibold text-xs">
-                            Save Current
-                        </button>
-                        <button id="semanticBookmarkBtn" type="button"
-                            class="px-2.5 py-1.5 rounded-lg bg-slate-100 text-slate-700 border border-slate-200 hover:bg-slate-200 transition font-semibold text-xs"
-                            data-en="Save Study Note" data-he="שמור הערת לימוד">Save Study Note</button>
-                    </div>
-
-                    <div class="grid grid-cols-2 gap-2 border-t border-slate-100 pt-2">
-                        <label class="col-span-2 text-xs text-slate-600">
-                            <span data-en="Export format" data-he="פורמט ייצוא">Export format</span>
-                            <select id="exportFormatSelect"
-                                class="mt-1 w-full px-2 py-1.5 rounded border border-slate-200 bg-slate-50 text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-400">
-                                <option value="txt" data-en="Text (.txt)" data-he="טקסט (.txt)">Text (.txt)</option>
-                                <option value="docx" data-en="Word (.docx)" data-he="וורד (.docx)">Word (.docx)</option>
-                                <option value="pdf" data-en="PDF (.pdf)" data-he="PDF (.pdf)">PDF (.pdf)</option>
-                            </select>
-                        </label>
-                        <button id="exportCitationBtn" type="button"
-                            class="px-2.5 py-1.5 rounded-lg bg-slate-100 text-slate-700 border border-slate-200 hover:bg-slate-200 transition font-semibold text-xs"
-                            data-en="Export" data-he="ייצוא">Export</button>
-                        <button id="trackCurrentBtn" type="button"
-                            class="px-2.5 py-1.5 rounded-lg bg-slate-100 text-slate-700 border border-slate-200 hover:bg-slate-200 transition font-semibold text-xs"
-                            data-en="Add Current to Study Track" data-he="הוסף למסלול לימוד">Add to Track</button>
-                    </div>
-                </div>
-            </div>
-
-            <div id="authControls" class="hidden items-center gap-1.5 mr-1">
-                <div id="userProfileMenuContainer" class="hidden relative shrink-0">
-                    <button id="userProfileMenuBtn" type="button" aria-expanded="false" aria-haspopup="true"
-                        class="topbar-user-menu-btn topbar-flat-btn text-xs text-[#334155] inline-flex items-center gap-1.5"
-                        title="Open profile menu">
-                        <span id="userProfileMenuLabel" class="max-w-[130px] truncate">Signed in</span>
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" viewBox="0 0 20 20"
-                            fill="currentColor" aria-hidden="true">
-                            <path fill-rule="evenodd"
-                                d="M5.23 7.21a.75.75 0 011.06.02L10 11.168l3.71-3.938a.75.75 0 111.08 1.04l-4.25 4.51a.75.75 0 01-1.08 0l-4.25-4.51a.75.75 0 01.02-1.06z"
-                                clip-rule="evenodd" />
-                        </svg>
-                    </button>
-
-                    <div id="userProfileMenu"
-                        class="hidden absolute top-full right-0 mt-1.5 w-44 max-w-[calc(100vw-1rem)] bg-white border border-slate-200 rounded-xl shadow-lg py-1.5 z-[999]">
-                        <a id="userProfileLink" href="/profile"
-                            class="topbar-user-menu-item block px-3 py-1.5 text-xs text-slate-700 hover:bg-slate-100 transition"
-                            data-en="Profile" data-he="פרופיל">Profile</a>
-                        <button id="userProfileSignOutAction" type="button"
-                            class="topbar-user-menu-item topbar-user-menu-signout w-full text-start px-3 py-1.5 text-xs text-slate-700 hover:bg-slate-100 transition"
-                            data-en="Sign Out" data-he="התנתקות">Sign Out</button>
-                        <a id="userProfileTermsLink" href="/terms" target="_blank" rel="noopener"
-                            class="topbar-user-menu-item block px-3 py-1.5 text-xs text-slate-700 hover:bg-slate-100 transition"
-                            data-en="Terms of Service" data-he="תנאי השירות">Terms of Service</a>
-                        <a id="userProfilePrivacyLink" href="/privacy" target="_blank" rel="noopener"
-                            class="topbar-user-menu-item block px-3 py-1.5 text-xs text-slate-700 hover:bg-slate-100 transition"
-                            data-en="Privacy Policy" data-he="מדיניות הפרטיות">Privacy Policy</a>
-                    </div>
-                </div>
-
-                <button id="signInBtn" type="button" class="topbar-flat-btn" data-en="Sign In" data-he="התחברות">Sign
-                    In</button>
-            </div>
-
-            <div id="hebrewDateDisplay" class="text-xs font-serif italic text-slate-500 mr-1">{{ daily.hebrew_date if
-                daily
-                else "Today" }}</div>
-            <!-- Translator Toggles -->
-            <button onclick="toggleLanguage('en')" class="hidden lg:inline-flex topbar-flat-btn font-serif lang-btn"
-                data-lang="en">English</button>
-            <button onclick="toggleLanguage('he')" class="hidden lg:inline-flex topbar-flat-btn font-hebrew lang-btn"
-                data-lang="he">עברית</button>
-            <button id="mobileLangToggle" type="button" class="lg:hidden topbar-flat-btn" data-en="עברית"
-                data-he="English">עברית</button>
-        </div>
-    </header>
 
     <!-- Mobile drawer backdrop — starts below the topbar -->
     <div id="mobileDrawerBackdrop" aria-hidden="true"
@@ -425,7 +78,205 @@
         style="top: var(--topbar-height, 3.4rem); transition: opacity 0.25s ease;">
     </div>
 
-    <div class="flex flex-1 relative">
+
+            <!-- TOP NAVIGATION BAR (Sefaria Style) -->
+            <header role="banner"
+                class="topbar sticky top-0 z-[200] bg-white text-slate-800 py-1.5 px-2 lg:py-1.5 lg:px-3 shadow-sm border-b flex flex-wrap lg:flex-nowrap justify-between items-center flex-shrink-0 gap-1.5 lg:gap-2">
+                <!-- mobileNavBtn removed: Library tab in bottom nav covers this action -->
+
+                <div id="brandHomeBtn" class="topbar-brand flex items-center gap-1.5 cursor-pointer shrink-0"
+                    onclick="goHome()">
+                    <div class="text-navy font-hebrew text-[1.7rem] font-semibold leading-tight">
+                        ש
+                    </div>
+                    <h1 class="text-sm sm:text-base font-serif tracking-tight text-navy font-semibold leading-none">
+                        <span class="block" data-en="Sh'elah" data-he="שאלה">Sh'elah</span>
+                        <span class="block text-[10px] font-normal text-slate-500 italic topbar-brand-subtitle"
+                            data-en="Torah Encyclopedia" data-he="אנציקלופדיית תורה">Torah Encyclopedia</span>
+                    </h1>
+                </div>
+
+                <!-- Library Button (Desktop Homepage Only) — placed after brand for natural flow -->
+                <button id="topbarLibraryBtn" type="button"
+                    class="topbar-flat-btn hidden lg:inline-flex shrink-0 items-center gap-1.5 topbar-library-btn"
+                    onclick="openLibrarySidebar()" title="Library" aria-label="Library">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 shrink-0" viewBox="0 0 20 20" fill="currentColor"
+                        aria-hidden="true">
+                        <path
+                            d="M3 4.5A1.5 1.5 0 014.5 3h9A1.5 1.5 0 0115 4.5V14a1 1 0 001 1h1a1 1 0 010 2h-1a3 3 0 01-3-3V5H5v9a1 1 0 001 1h5a1 1 0 110 2H6a3 3 0 01-3-3V4.5z" />
+                        <path
+                            d="M6 7a1 1 0 011-1h4a1 1 0 110 2H7a1 1 0 01-1-1zm0 3a1 1 0 011-1h4a1 1 0 110 2H7a1 1 0 01-1-1z" />
+                    </svg>
+                    <span class="text-xs font-medium" data-en="Library" data-he="ספרייה">Library</span>
+                </button>
+
+                <!-- Top Navigation Menu Toggle + Search Bar -->
+                <div
+                    class="topbar-search-wrap relative z-40 order-3 w-full lg:order-none lg:w-auto flex-1 max-w-4xl flex items-center justify-center gap-2 min-w-0">
+                    <div class="w-full min-w-0">
+                        <!-- Search Form -->
+                        <form id="searchForm" role="search" aria-label="Search texts" class="w-full relative min-w-0">
+                            <input type="text" id="searchInput"
+                                placeholder="Ask Sh'elah about any topic, halachah, or custom..."
+                                class="w-full bg-[#fbf8f1] hover:bg-[#f8f2e8] transition text-sm sm:text-base p-2 pl-4 pr-10 rounded-full border border-[#d8d0c2] focus:border-[#b8aa90] focus:ring-2 focus:ring-[#d9cdb8]/80 focus:bg-[#fffdf8] focus:outline-none"
+                                autocomplete="off" required>
+                            <div id="searchIcon" class="absolute right-3 top-2 text-slate-400">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                                    <path fill-rule="evenodd"
+                                        d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z"
+                                        clip-rule="evenodd" />
+                                </svg>
+                            </div>
+
+                            <div id="searchSuggestions"
+                                class="hidden absolute left-0 right-0 mt-2 bg-white border border-slate-200 rounded-2xl shadow-lg z-[80] max-h-80 overflow-y-auto">
+                            </div>
+                        </form>
+                    </div>
+                </div>
+
+                <div id="topbarControls"
+                    class="topbar-controls relative z-[110] flex gap-1.5 items-center flex-wrap justify-end w-full lg:w-auto">
+                    <div id="settingsMenuContainer" class="relative z-[120] shrink-0">
+                        <button id="settingsMenuBtn" type="button" aria-expanded="false" aria-haspopup="true"
+                            class="topbar-flat-btn text-[#7a6a52]" title="Open settings menu">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
+                                <path
+                                    d="M3 5.5A1.5 1.5 0 014.5 4h11A1.5 1.5 0 0117 5.5v.25A1.75 1.75 0 0115.25 7.5h-3.5A1.75 1.75 0 0110 5.75V5h-5a.5.5 0 000 1h2a1 1 0 010 2H4.5A1.5 1.5 0 013 6.5v-1zM3 13.5A1.5 1.5 0 014.5 12H8a1.75 1.75 0 011.75 1.75V14A1.5 1.5 0 018.25 15.5h-3.75A1.5 1.5 0 013 14v-.5zM12 12a1 1 0 000 2h3.5a.5.5 0 010 1H13a1 1 0 100 2h2.5A1.5 1.5 0 0017 15.5v-2A1.5 1.5 0 0015.5 12H12z" />
+                            </svg>
+                        </button>
+
+                        <div id="settingsPanel"
+                            class="hidden absolute bg-slate-50 border border-slate-300 rounded-xl shadow-lg p-2.5 z-[200] space-y-2.5 overflow-y-auto w-max max-w-[360px]">
+                            <p class="text-[11px] uppercase tracking-widest text-slate-500 font-bold" data-en="Quick Settings"
+                                data-he="הגדרות מהירות">Quick Settings</p>
+
+                            <label class="block text-xs text-slate-600">
+                                <span data-en="Mode" data-he="מצב">Mode</span>
+                                <select id="answerModeSelect"
+                                    class="mt-1 w-full px-2 py-1.5 rounded border border-slate-200 bg-slate-50 text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-400">
+                                    <option value="balanced" data-en="Balanced" data-he="מאוזן">Balanced</option>
+                                    <option value="practical" data-en="Practical First" data-he="מעשי תחילה">Practical First
+                                    </option>
+                                    <option value="sources" data-en="Deep Sources" data-he="מקורות מעמיקים">Deep Sources
+                                    </option>
+                                    <option value="strict" data-en="Strict Sources" data-he="מקורות בלבד">Strict Sources
+                                    </option>
+                                </select>
+                            </label>
+
+                            <label class="block text-xs text-slate-600">
+                                <span data-en="Community" data-he="קהילה">Community</span>
+                                <select id="communityLensSelect"
+                                    class="mt-1 w-full px-2 py-1.5 rounded border border-slate-200 bg-slate-50 text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-400">
+                                    <option value="All" data-en="All" data-he="הכל">All</option>
+                                    <option value="Ashkenaz" data-en="Ashkenaz" data-he="אשכנז">Ashkenaz</option>
+                                    <option value="Sefardic" data-en="Sefardic" data-he="ספרדי">Sefardic</option>
+                                    <option value="Bukharian" data-en="Bukharian" data-he="בוכרי">Bukharian</option>
+                                    <option value="Persian" data-en="Persian" data-he="פרסי">Persian</option>
+                                    <option value="Ethiopian" data-en="Ethiopian" data-he="אתיופי">Ethiopian</option>
+                                    <option value="Georgian" data-en="Georgian" data-he="גרוזיני">Georgian</option>
+                                    <option value="Greek-Romaniote" data-en="Greek-Romaniote" data-he="רומניוטי">Greek-Romaniote
+                                    </option>
+                                    <option value="Iraqi" data-en="Iraqi" data-he="עיראקי">Iraqi</option>
+                                    <option value="Syrian" data-en="Syrian" data-he="סורי">Syrian</option>
+                                    <option value="Yemenite" data-en="Yemenite" data-he="תימני">Yemenite</option>
+                                    <option value="Moroccan" data-en="Moroccan" data-he="מרוקאי">Moroccan</option>
+                                    <option value="Kavkazi" data-en="Kavkazi" data-he="קווקזי">Kavkazi</option>
+                                    <option value="Turkish-Ottoman" data-en="Turkish-Ottoman" data-he="טורקי-עות׳מאני">
+                                        Turkish-Ottoman</option>
+                                    <option value="Israeli" data-en="Israeli" data-he="ישראלי">Israeli</option>
+                                </select>
+                            </label>
+
+                            <div class="border-t border-slate-100 pt-2">
+                                <button id="themeToggleBtn" type="button"
+                                    class="w-full px-3 py-1.5 rounded bg-slate-100 text-slate-700 border border-slate-200 hover:bg-slate-200 transition font-semibold text-xs text-start"
+                                    aria-live="polite">
+                                    <span id="themeToggleLabel" data-en="Appearance: Light" data-he="מראה: בהיר">Appearance:
+                                        Light</span>
+                                </button>
+                            </div>
+
+                            <div class="grid grid-cols-2 gap-2 border-t border-slate-100 pt-2">
+                                <button id="bookmarkCurrentBtn" type="button"
+                                    class="px-2.5 py-1.5 rounded-lg bg-navy text-white hover:bg-blue-900 transition font-semibold text-xs">
+                                    Save Current
+                                </button>
+                                <button id="semanticBookmarkBtn" type="button"
+                                    class="px-2.5 py-1.5 rounded-lg bg-slate-100 text-slate-700 border border-slate-200 hover:bg-slate-200 transition font-semibold text-xs"
+                                    data-en="Save Study Note" data-he="שמור הערת לימוד">Save Study Note</button>
+                            </div>
+
+                            <div class="grid grid-cols-2 gap-2 border-t border-slate-100 pt-2">
+                                <label class="col-span-2 text-xs text-slate-600">
+                                    <span data-en="Export format" data-he="פורמט ייצוא">Export format</span>
+                                    <select id="exportFormatSelect"
+                                        class="mt-1 w-full px-2 py-1.5 rounded border border-slate-200 bg-slate-50 text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-400">
+                                        <option value="txt" data-en="Text (.txt)" data-he="טקסט (.txt)">Text (.txt)</option>
+                                        <option value="docx" data-en="Word (.docx)" data-he="וורד (.docx)">Word (.docx)</option>
+                                        <option value="pdf" data-en="PDF (.pdf)" data-he="PDF (.pdf)">PDF (.pdf)</option>
+                                    </select>
+                                </label>
+                                <button id="exportCitationBtn" type="button"
+                                    class="px-2.5 py-1.5 rounded-lg bg-slate-100 text-slate-700 border border-slate-200 hover:bg-slate-200 transition font-semibold text-xs"
+                                    data-en="Export" data-he="ייצוא">Export</button>
+                                <button id="trackCurrentBtn" type="button"
+                                    class="px-2.5 py-1.5 rounded-lg bg-slate-100 text-slate-700 border border-slate-200 hover:bg-slate-200 transition font-semibold text-xs"
+                                    data-en="Add Current to Study Track" data-he="הוסף למסלול לימוד">Add to Track</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div id="authControls" class="hidden items-center gap-1.5 mr-1">
+                        <div id="userProfileMenuContainer" class="hidden relative shrink-0">
+                            <button id="userProfileMenuBtn" type="button" aria-expanded="false" aria-haspopup="true"
+                                class="topbar-user-menu-btn topbar-flat-btn text-xs text-[#334155] inline-flex items-center gap-1.5"
+                                title="Open profile menu">
+                                <span id="userProfileMenuLabel" class="max-w-[130px] truncate">Signed in</span>
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" viewBox="0 0 20 20"
+                                    fill="currentColor" aria-hidden="true">
+                                    <path fill-rule="evenodd"
+                                        d="M5.23 7.21a.75.75 0 011.06.02L10 11.168l3.71-3.938a.75.75 0 111.08 1.04l-4.25 4.51a.75.75 0 01-1.08 0l-4.25-4.51a.75.75 0 01.02-1.06z"
+                                        clip-rule="evenodd" />
+                                </svg>
+                            </button>
+
+                            <div id="userProfileMenu"
+                                class="hidden absolute top-full right-0 mt-1.5 w-44 max-w-[calc(100vw-1rem)] bg-white border border-slate-200 rounded-xl shadow-lg py-1.5 z-[999]">
+                                <a id="userProfileLink" href="/profile"
+                                    class="topbar-user-menu-item block px-3 py-1.5 text-xs text-slate-700 hover:bg-slate-100 transition"
+                                    data-en="Profile" data-he="פרופיל">Profile</a>
+                                <button id="userProfileSignOutAction" type="button"
+                                    class="topbar-user-menu-item topbar-user-menu-signout w-full text-start px-3 py-1.5 text-xs text-slate-700 hover:bg-slate-100 transition"
+                                    data-en="Sign Out" data-he="התנתקות">Sign Out</button>
+                                <a id="userProfileTermsLink" href="/terms" target="_blank" rel="noopener"
+                                    class="topbar-user-menu-item block px-3 py-1.5 text-xs text-slate-700 hover:bg-slate-100 transition"
+                                    data-en="Terms of Service" data-he="תנאי השירות">Terms of Service</a>
+                                <a id="userProfilePrivacyLink" href="/privacy" target="_blank" rel="noopener"
+                                    class="topbar-user-menu-item block px-3 py-1.5 text-xs text-slate-700 hover:bg-slate-100 transition"
+                                    data-en="Privacy Policy" data-he="מדיניות הפרטיות">Privacy Policy</a>
+                            </div>
+                        </div>
+
+                        <button id="signInBtn" type="button" class="topbar-flat-btn" data-en="Sign In" data-he="התחברות">Sign
+                            In</button>
+                    </div>
+
+                    <div id="hebrewDateDisplay" class="text-xs font-serif italic text-slate-500 mr-1">{{ daily.hebrew_date if
+                        daily
+                        else "Today" }}</div>
+                    <!-- Translator Toggles -->
+                    <button onclick="toggleLanguage('en')" class="hidden lg:inline-flex topbar-flat-btn font-serif lang-btn"
+                        data-lang="en">English</button>
+                    <button onclick="toggleLanguage('he')" class="hidden lg:inline-flex topbar-flat-btn font-hebrew lang-btn"
+                        data-lang="he">עברית</button>
+                    <button id="mobileLangToggle" type="button" class="lg:hidden topbar-flat-btn" data-en="עברית"
+                        data-he="English">עברית</button>
+                </div>
+            </header>
+
+    <div class="flex flex-1 min-h-0 overflow-hidden relative">
 
         <button id="showLeftSidebarTopBtn" type="button"
             class="sidebar-show-tab hidden items-center gap-1 absolute left-3 top-3 z-30 px-2 py-1 rounded-md border border-slate-200 bg-white/85 text-slate-500 text-[10px] font-medium tracking-wide hover:bg-white hover:text-slate-700 transition"
@@ -834,9 +685,12 @@
                 <details class="group cursor-pointer">
                     <summary class="font-semibold hover:text-[#002147] list-none border-b pb-2 mb-2"
                         data-en="All Topics & Texts" data-he="כל הנושאים והטקסטים">All Topics & Texts</summary>
-                    <div id="libraryIndexSidebar" class="library-index-sidebar-tree space-y-1">
-                        <p class="text-xs italic text-slate-400" data-en="Loading full library index..."
-                            data-he="טוען אינדקס ספרייה מלא...">Loading full library index...</p>
+                    <div id="libraryIndexSidebar" class="library-index-sidebar-tree space-y-1"
+                        role="status" aria-busy="true">
+                        <div class="sk-tree-row" aria-hidden="true"></div>
+                        <div class="sk-tree-row" aria-hidden="true" style="width:80%"></div>
+                        <div class="sk-tree-row" aria-hidden="true" style="width:90%"></div>
+                        <div class="sk-tree-row" aria-hidden="true" style="width:70%"></div>
                     </div>
                 </details>
 
@@ -861,15 +715,19 @@
 
         <!-- Column 2: Main Area (Center) -->
         <main id="mainContainer" aria-label="Main content"
-            class="content-canvas flex-1 bg-[#faf7f0] relative flex flex-col">
+            class="content-canvas flex-1 bg-[#faf7f0] relative flex flex-col overflow-y-auto">
 
-            <div id="loadingOverlay"
-                class="hidden absolute inset-0 bg-[#f9f5ec]/85 backdrop-blur-sm z-20 flex flex-col items-center justify-center">
-                <div class="animate-pulse flex flex-col items-center">
-                    <div class="text-navy font-hebrew text-5xl font-semibold leading-tight mb-3">
-                        ש
+            <div id="loadingOverlay" role="status" aria-busy="false"
+                aria-label="Loading"
+                class="hidden fixed inset-0 backdrop-blur-sm z-[500] flex flex-col items-center justify-center">
+                <div class="flex flex-col items-center gap-4" aria-hidden="true">
+                    <div class="relative flex items-center justify-center" style="width:3.5rem;height:3.5rem">
+                        <div class="ai-loading-spinner-outer"></div>
+                        <div class="ai-loading-spinner-main"></div>
+                        <div class="ai-loading-spinner-inner"></div>
+                        <span class="ai-loading-spinner-letter">ש</span>
                     </div>
-                    <p class="text-slate-500 font-serif italic text-lg" data-en="Synthesizing Halachic Library..."
+                    <p class="ai-loading-phase-text" data-en="Synthesizing Halachic Library..."
                         data-he="סינתזה של ספרייה הלכתית...">Synthesizing Halachic Library...</p>
                 </div>
             </div>
@@ -958,8 +816,8 @@
                             <h4 class="home-section-label flex justify-between items-center mb-3">
                                 <span data-en="Zmanim" data-he="זמנים">Zmanim</span>
                                 <span class="flex items-center gap-1.5">
-                                    <span id="zmanLoc" class="text-xs normal-case tracking-normal text-slate-500"
-                                        data-en="Loading..." data-he="טוען...">Loading...</span>
+                                    <span id="zmanLoc" class="text-xs normal-case tracking-normal text-slate-500 sk-line"
+                                        style="display:inline-block;width:4.5rem;height:0.75rem;vertical-align:middle;"></span>
                                     <button id="citySearchBtn" type="button" title="Search by city"
                                         onclick="openCitySearch()"
                                         class="inline-flex items-center justify-center w-5 h-5 rounded-full border border-[#c8b88a] bg-[#faf5e8] hover:bg-[#f5edce] text-[#4a6a8a] transition hover:border-[#a09060] hover:text-[#1f3f63]"
@@ -1458,8 +1316,10 @@
                         data-he="סידורי תפילה">Prayer
                         Books
                     </h3>
-                    <div id="prayersList" class="prayer-menu-layout space-y-2">
-                        <p class="text-slate-400 italic text-sm" data-en="Loading..." data-he="טוען...">Loading...</p>
+                    <div id="prayersList" class="prayer-menu-layout space-y-2" role="status" aria-busy="true">
+                        <div class="sk-prayer-row" aria-hidden="true"></div>
+                        <div class="sk-prayer-row" aria-hidden="true" style="width:85%"></div>
+                        <div class="sk-prayer-row" aria-hidden="true" style="width:70%"></div>
                     </div>
                 </div>
 
@@ -1468,8 +1328,10 @@
                     <h3 class="font-serif text-lg font-bold text-[#594176] mb-4 pb-2 border-b"
                         data-en="Community Customs" data-he="מנהגים קהילתיים">Community Customs
                     </h3>
-                    <div id="communitiesList" class="space-y-2">
-                        <p class="text-slate-400 italic text-sm" data-en="Loading..." data-he="טוען...">Loading...</p>
+                    <div id="communitiesList" class="space-y-2" role="status" aria-busy="true">
+                        <div class="sk-prayer-row" aria-hidden="true"></div>
+                        <div class="sk-prayer-row" aria-hidden="true" style="width:80%"></div>
+                        <div class="sk-prayer-row" aria-hidden="true" style="width:90%"></div>
                     </div>
                 </div>
 
@@ -1486,9 +1348,11 @@
                             class="px-3 py-2 rounded border border-slate-200 bg-slate-100 text-xs font-semibold text-slate-600 hover:bg-slate-200 transition"
                             data-en="Clear" data-he="נקה">Clear</button>
                     </div>
-                    <div id="libraryIndexModal" class="space-y-1 text-sm">
-                        <p class="text-slate-400 italic text-sm" data-en="Loading full library index..."
-                            data-he="טוען אינדקס ספרייה מלא...">Loading full library index...</p>
+                    <div id="libraryIndexModal" class="space-y-1 text-sm" role="status" aria-busy="true">
+                        <div class="sk-tree-row" aria-hidden="true"></div>
+                        <div class="sk-tree-row" aria-hidden="true" style="width:80%"></div>
+                        <div class="sk-tree-row" aria-hidden="true" style="width:90%"></div>
+                        <div class="sk-tree-row" aria-hidden="true" style="width:70%"></div>
                     </div>
                 </div>
             </div>
@@ -1538,9 +1402,8 @@
                 <!-- AI Synthesis -->
                 <div>
                     <h3 class="font-serif text-lg font-bold text-navy mb-3" data-en="Answer" data-he="תשובה">Answer</h3>
-                    <div id="aiSynthesis"
+                    <div id="aiSynthesis" aria-live="polite" aria-atomic="false"
                         class="prose prose-sm prose-slate max-w-none font-serif text-slate-800 leading-relaxed">
-                        <p class="text-slate-400 italic" data-en="Loading..." data-he="טוען...">Loading...</p>
                     </div>
                 </div>
 
@@ -1730,6 +1593,21 @@
         const loadingOverlay = document.getElementById('loadingOverlay');
         const mainContainer = document.getElementById('mainContainer');
 
+        function showLoadingOverlay() {
+            loadingOverlay.setAttribute('aria-busy', 'true');
+            loadingOverlay.classList.remove('is-hiding');
+            loadingOverlay.classList.remove('hidden');
+        }
+
+        function hideLoadingOverlay() {
+            loadingOverlay.setAttribute('aria-busy', 'false');
+            loadingOverlay.classList.add('is-hiding');
+            setTimeout(() => {
+                loadingOverlay.classList.add('hidden');
+                loadingOverlay.classList.remove('is-hiding');
+            }, 220);
+        }
+
         const sidebarContent = document.getElementById('sourcesDynamicContent');
         const sourceDualTemplate = document.getElementById('sourceDualTemplate');
         const selectionInsights = document.getElementById('selectionInsights');
@@ -1763,6 +1641,9 @@
             if (!labelEl) return;
             const normalizedLabel = String(label || '').trim();
             const fallbackTimezone = String(timezone || '').trim();
+            labelEl.classList.remove('sk-line');
+            labelEl.style.removeProperty('width');
+            labelEl.style.removeProperty('height');
             labelEl.innerText = normalizedLabel || fallbackTimezone || 'Local';
             if (fallbackTimezone && fallbackTimezone !== normalizedLabel) {
                 labelEl.setAttribute('title', fallbackTimezone);
@@ -2495,7 +2376,11 @@
 
             titleEl.textContent = displayLabel || communityName;
             if (subtitleEl) subtitleEl.textContent = isHebrewMode() ? 'מנהגים ופסיקות' : 'Community customs and rulings';
-            bodyEl.innerHTML = `<p class="text-slate-400 text-sm italic">${isHebrewMode() ? 'טוען מנהגים…' : 'Loading customs…'}</p>`;
+            bodyEl.setAttribute('aria-busy', 'true');
+            bodyEl.innerHTML = `
+                <div class="sk-prayer-row" aria-hidden="true"></div>
+                <div class="sk-prayer-row" aria-hidden="true" style="width:85%"></div>
+                <div class="sk-prayer-row" aria-hidden="true" style="width:70%"></div>`;
             modal.classList.remove('hidden');
             modal.classList.add('flex');
 
@@ -2519,6 +2404,7 @@
                 }
                 if (!halachaIndex.length) {
                     bodyEl.innerHTML = `<p class="text-slate-400 text-sm italic">${isHebrewMode() ? 'אין נתונים זמינים' : 'No customs data available'}</p>`;
+                    bodyEl.setAttribute('aria-busy', 'false');
                     return;
                 }
 
@@ -2549,8 +2435,10 @@
                 });
 
                 bodyEl.innerHTML = html;
+                bodyEl.setAttribute('aria-busy', 'false');
             } catch (err) {
                 bodyEl.innerHTML = `<p class="text-red-400 text-sm">${isHebrewMode() ? 'שגיאה בטעינת המנהגים' : 'Error loading customs data'}</p>`;
+                bodyEl.setAttribute('aria-busy', 'false');
             }
         }
 
@@ -2736,15 +2624,13 @@
             const resolvedTheme = getResolvedThemePreference();
             const darkMode = resolvedTheme === 'dark';
 
+            // data-theme drives tokens.css [data-theme="dark"] token overrides (FOUC-safe)
+            document.documentElement.setAttribute('data-theme', darkMode ? 'dark' : 'light');
             document.documentElement.classList.toggle('theme-dark', darkMode);
             document.body.classList.toggle('theme-dark', darkMode);
             document.documentElement.style.colorScheme = darkMode ? 'dark' : 'light';
             document.body.style.colorScheme = darkMode ? 'dark' : 'light';
-
-            const themeMeta = document.querySelector('meta[name="theme-color"]');
-            if (themeMeta) {
-                themeMeta.setAttribute('content', darkMode ? '#101110' : '#f3ede0');
-            }
+            // Dual theme-color <meta media="..."> tags in <head> handle PWA chrome natively.
         }
 
         function updateThemeToggleUi(lang = getCurrentLanguage()) {
@@ -4295,7 +4181,7 @@
         function getSidebarRestoreTopOffset() {
             const readerActive = Boolean(reader && !reader.classList.contains('hidden'));
             if (!readerActive || !readerTopBar || readerTopBar.classList.contains('hidden')) {
-                return '0.75rem';
+                return 'calc(var(--topbar-height, 3.4rem) + 0.75rem)';
             }
 
             const readerBarHeight = Math.max(36, Math.round(readerTopBar.getBoundingClientRect().height || 0));
@@ -4484,18 +4370,26 @@
         function toggleUserProfileMenu() {
             if (!userProfileMenu) return;
             const willOpen = userProfileMenu.classList.contains('hidden');
-            userProfileMenu.classList.toggle('hidden');
-            if (userProfileMenuBtn) userProfileMenuBtn.setAttribute('aria-expanded', willOpen ? 'true' : 'false');
-            if (willOpen) {
-                positionUserProfileMenu();
-                window.requestAnimationFrame(() => {
-                    if (!userProfileMenu.classList.contains('hidden')) {
-                        positionUserProfileMenu();
-                    }
-                });
-                closeSettingsMenu();
-                closeReaderSettingsPanel();
+            if (!willOpen) {
+                // Animate out before hiding
+                userProfileMenu.classList.add('is-hiding');
+                if (userProfileMenuBtn) userProfileMenuBtn.setAttribute('aria-expanded', 'false');
+                setTimeout(() => {
+                    userProfileMenu.classList.add('hidden');
+                    userProfileMenu.classList.remove('is-hiding');
+                }, 150);
+                return;
             }
+            userProfileMenu.classList.remove('hidden');
+            if (userProfileMenuBtn) userProfileMenuBtn.setAttribute('aria-expanded', 'true');
+            positionUserProfileMenu();
+            window.requestAnimationFrame(() => {
+                if (!userProfileMenu.classList.contains('hidden')) {
+                    positionUserProfileMenu();
+                }
+            });
+            closeSettingsMenu();
+            closeReaderSettingsPanel();
         }
 
         function toggleSettingsMenu() {
@@ -4505,8 +4399,15 @@
                 closeReaderSettingsPanel();
                 closeUserProfileMenu();
                 positionSettingsPanel();
+                settingsPanel.classList.remove('hidden');
+            } else {
+                // Animate out before hiding (vanilla AnimatePresence equivalent)
+                settingsPanel.classList.add('is-hiding');
+                setTimeout(() => {
+                    settingsPanel.classList.add('hidden');
+                    settingsPanel.classList.remove('is-hiding');
+                }, 150);
             }
-            settingsPanel.classList.toggle('hidden');
             if (settingsMenuBtn) settingsMenuBtn.setAttribute('aria-expanded', willOpen ? 'true' : 'false');
         }
 
@@ -5763,12 +5664,15 @@
 
             selectionCommentaryState.activeCommentaryRef = commentaryRef;
 
-            selectionInsightsHint.textContent = t('Loading commentary...', 'טוען פירוש...');
+            selectionInsightsHint.textContent = '';
+            selectionInsightsBody.setAttribute('aria-busy', 'true');
             selectionInsightsBody.innerHTML = `
-                <div class="rounded-lg border border-slate-200 bg-white px-3 py-3">
-                    <p class="text-xs text-slate-500">${t('Loading commentary text...', 'טוען את טקסט הפירוש...')}</p>
-                </div>
-            `;
+                <div class="rounded-lg border border-slate-200 bg-white px-3 py-3 space-y-2" aria-hidden="true">
+                    <div class="sk-reader-para" style="width:60%"></div>
+                    <div class="sk-reader-para"></div>
+                    <div class="sk-reader-para" style="width:80%"></div>
+                    <div class="sk-reader-para"></div>
+                </div>`;
 
             try {
                 const resp = await fetch(`/api/text/${encodeURIComponent(commentaryRef)}?autotranslate=1`);
@@ -5799,6 +5703,7 @@
                         </div>
                     </div>
                 `;
+                selectionInsightsBody.setAttribute('aria-busy', 'false');
                 const commentaryHintLabel = localizeCommentaryReferenceLabel(commentaryRef);
                 selectionInsightsHint.textContent = t('Viewing commentary:', 'מציג פירוש:') + ` ${commentaryHintLabel}`;
             } catch (_) {
@@ -5812,6 +5717,7 @@
                         </button>
                     </div>
                 `;
+                selectionInsightsBody.setAttribute('aria-busy', 'false');
                 selectionInsightsHint.textContent = t('Could not load commentary.', 'לא ניתן לטעון את הפירוש.');
             }
         }
@@ -6091,7 +5997,10 @@
         function infiniteReaderStatusMarkup() {
             if (appState.currentView?.type !== 'text') return '';
             if (infiniteReaderState.loading) {
-                return `<div id="infiniteReaderStatus" class="mt-3 text-xs text-slate-500 italic">${t('Loading next section...', 'טוען את הקטע הבא...')}</div>`;
+                return `<div id="infiniteReaderStatus" role="status" aria-live="polite" class="mt-3 space-y-2">
+                    <div class="sk-reader-para" aria-hidden="true"></div>
+                    <div class="sk-reader-para" aria-hidden="true" style="width:80%"></div>
+                </div>`;
             }
             if (infiniteReaderState.nextRef) {
                 return `<div id="infiniteReaderStatus" class="mt-3 text-center font-serif text-sm text-slate-600"><span class="underline underline-offset-4 decoration-slate-300">${escapeHtml(infiniteReaderState.nextRef)}</span></div>`;
@@ -7521,11 +7430,13 @@
             if (libraryIndexSidebar) {
                 libraryIndexSidebar.innerHTML = sidebarMarkup
                     || `<p class="text-xs italic text-slate-400">${t('No matching topics found.', 'לא נמצאו נושאים תואמים.')}</p>`;
+                libraryIndexSidebar.setAttribute('aria-busy', 'false');
             }
 
             if (libraryIndexModal) {
                 libraryIndexModal.innerHTML = modalMarkup
                     || `<p class="text-xs italic text-slate-400">${t('No matching topics found.', 'לא נמצאו נושאים תואמים.')}</p>`;
+                libraryIndexModal.setAttribute('aria-busy', 'false');
             }
         }
 
@@ -7542,8 +7453,8 @@
                             : [];
                 } catch (_) {
                     const errorText = `<p class="text-xs italic text-red-500">${t('Unable to load library index right now.', 'לא ניתן לטעון את אינדקס הספרייה כרגע.')}</p>`;
-                    if (libraryIndexSidebar) libraryIndexSidebar.innerHTML = errorText;
-                    if (libraryIndexModal) libraryIndexModal.innerHTML = errorText;
+                    if (libraryIndexSidebar) { libraryIndexSidebar.innerHTML = errorText; libraryIndexSidebar.setAttribute('aria-busy', 'false'); }
+                    if (libraryIndexModal) { libraryIndexModal.innerHTML = errorText; libraryIndexModal.setAttribute('aria-busy', 'false'); }
                     return;
                 }
             }
@@ -8474,6 +8385,7 @@
             const entries = normalizePrayerList(prayers);
             if (!entries.length) {
                 list.innerHTML = `<p class="text-slate-400 italic text-sm">${t('No prayer books available right now.', 'אין כעת סידורי תפילה זמינים.')}</p>`;
+                list.setAttribute('aria-busy', 'false');
                 return;
             }
 
@@ -8539,6 +8451,7 @@
                 <div class="prayer-family-tabs">${tabsMarkup}</div>
                 <div class="prayer-family-panels mt-3 space-y-4">${panelsMarkup}</div>
             `;
+            list.setAttribute('aria-busy', 'false');
 
             if (!list.dataset.prayerTabsBound) {
                 list.addEventListener('click', (event) => {
@@ -8570,6 +8483,7 @@
                 populateCommunitiesListHTML(communities);
             } catch (err) {
                 list.innerHTML = `<p class="text-red-500 text-sm">${t('Error loading communities', 'שגיאה בטעינת הקהילות')}</p>`;
+                list.setAttribute('aria-busy', 'false');
             }
         }
 
@@ -8583,6 +8497,7 @@
                 html += `<button onclick="displayCommunity(decodeURIComponent('${encodedName}'))" class="block w-full text-start px-3 py-2 rounded hover:bg-[#594176]/10 transition text-slate-700 hover:text-[#594176]">${escapeHtml(label)}</button>`;
             });
             list.innerHTML = html;
+            list.setAttribute('aria-busy', 'false');
             applyStaticHebrewFallbackTranslations();
         }
 
@@ -8599,7 +8514,7 @@
         async function displayPrayer(prayerName) {
             homeGrid.style.display = 'none';
             reader.classList.add('hidden');
-            loadingOverlay.classList.remove('hidden');
+            showLoadingOverlay();
             closeMobilePanels();
             closeTextsMenu();
             closeReaderSettingsPanel();
@@ -8705,7 +8620,7 @@
                     textsCache.prayers[prayerName] = prayerData;
                 }
 
-                loadingOverlay.classList.add('hidden');
+                hideLoadingOverlay();
                 reader.classList.remove('hidden');
                 applySidebarVisibility();
 
@@ -8739,7 +8654,7 @@
                 scrollPrimaryToTop('smooth');
 
             } catch (err) {
-                loadingOverlay.classList.add('hidden');
+                hideLoadingOverlay();
                 reader.classList.remove('hidden');
                 applySidebarVisibility();
                 document.getElementById('readerContent').innerHTML = `<p class="text-red-500">${t('Error loading prayer:', 'שגיאה בטעינת התפילה:')} ${err.message}</p>`;
@@ -8758,7 +8673,7 @@
         async function displayCommunity(communityName) {
             homeGrid.style.display = 'none';
             reader.classList.add('hidden');
-            loadingOverlay.classList.remove('hidden');
+            showLoadingOverlay();
             closeMobilePanels();
             closeTextsMenu();
             closeReaderSettingsPanel();
@@ -8774,7 +8689,7 @@
                     textsCache.communities[communityName] = communityData;
                 }
 
-                loadingOverlay.classList.add('hidden');
+                hideLoadingOverlay();
                 reader.classList.remove('hidden');
                 applySidebarVisibility();
 
@@ -8813,7 +8728,7 @@
                 scrollPrimaryToTop('smooth');
 
             } catch (err) {
-                loadingOverlay.classList.add('hidden');
+                hideLoadingOverlay();
                 reader.classList.remove('hidden');
                 applySidebarVisibility();
                 document.getElementById('readerContent').innerHTML = `<p class="text-red-500">${t('Error loading community:', 'שגיאה בטעינת קהילה:')} ${err.message}</p>`;
@@ -9127,62 +9042,63 @@
             setCurrentView('ask', question, question);
             // Show loading modal and animate the search icon
             const aiModal = document.getElementById('aiAssistantModal');
+            aiModal.classList.remove('hidden');
             aiModal.style.display = 'flex';
+            window.ShelahMotion?.animateIn(aiModal, { y: 12 });
             document.body.classList.add('search-loading');
 
             // Reset modal content with premium loading animation
             document.getElementById('aiSynthesis').innerHTML = `
-                <div id="aiLoadingState" class="flex flex-col items-center py-8 gap-5">
-                    <!-- Animated menorah-inspired spinner -->
-                    <div class="relative flex items-center justify-center w-16 h-16" aria-hidden="true">
-                        <div class="absolute inset-0 rounded-full border-2 border-[#002147]/10"></div>
-                        <div class="absolute inset-0 rounded-full border-2 border-t-[#002147] border-r-transparent border-b-transparent border-l-transparent"
-                            style="animation: shelah-spin 1s cubic-bezier(0.4,0,0.6,1) infinite;"></div>
-                        <div class="absolute inset-2 rounded-full border border-t-transparent border-r-[#b8a07a] border-b-transparent border-l-transparent"
-                            style="animation: shelah-spin 1.5s cubic-bezier(0.4,0,0.6,1) infinite reverse;"></div>
-                        <span class="text-xl select-none" style="font-family:'Cardo',serif; color:#002147;">ש</span>
+                <div id="aiLoadingState" class="flex flex-col items-center py-8 gap-5" role="status" aria-busy="true" aria-label="${t('Loading answer...', 'טוען תשובה...')}">
+                    <div class="relative flex items-center justify-center w-16 h-16">
+                        <div class="ai-loading-spinner-outer"></div>
+                        <div class="ai-loading-spinner-main"></div>
+                        <div class="ai-loading-spinner-inner"></div>
+                        <span class="ai-loading-spinner-letter">ש</span>
                     </div>
-                    <!-- Animated cycling text -->
                     <div class="text-center space-y-1.5">
-                        <p id="aiLoadingPhaseText" class="text-[#002147] font-serif text-base font-semibold"
-                            style="animation: shelah-fade-in 0.4s ease both;">${t('Consulting the Library...', 'מתייעץ עם הספרייה...')}</p>
-                        <p class="text-slate-400 text-sm italic">${t('Synthesizing answer from Library, customs, and halachic sources...', 'מסנתז תשובה מספריא, ממנהגים וממקורות הלכתיים...')}</p>
+                        <p id="aiLoadingPhaseText" class="ai-loading-phase-text" aria-live="polite">${t('Consulting the Library...', 'מתייעץ עם הספרייה...')}</p>
+                        <p class="ai-loading-subtitle">${t('Synthesizing answer from Library, customs, and halachic sources...', 'מסנתז תשובה מספריא, ממנהגים וממקורות הלכתיים...')}</p>
                     </div>
-                    <!-- Animated progress dots -->
                     <div class="flex gap-2" aria-hidden="true">
-                        <span class="w-2 h-2 rounded-full bg-[#002147]/40" style="animation: shelah-dot-bounce 1.2s ease infinite 0ms;"></span>
-                        <span class="w-2 h-2 rounded-full bg-[#002147]/40" style="animation: shelah-dot-bounce 1.2s ease infinite 200ms;"></span>
-                        <span class="w-2 h-2 rounded-full bg-[#002147]/40" style="animation: shelah-dot-bounce 1.2s ease infinite 400ms;"></span>
+                        <span class="ai-loading-dot"></span>
+                        <span class="ai-loading-dot"></span>
+                        <span class="ai-loading-dot"></span>
                     </div>
-                    <!-- Source tags appearing -->
-                    <div class="flex flex-wrap gap-2 justify-center text-xs" style="animation: shelah-fade-up 0.5s ease 0.3s both;">
-                        <span class="px-2.5 py-1 rounded-full border border-[#004e5f]/30 text-[#004e5f] bg-[#e8f4f5]" style="animation: shelah-scale-in 0.3s ease 0.4s both;">${t('Library', 'ספרייה')}</span>
-                        <span class="px-2.5 py-1 rounded-full border border-[#7c3aed]/20 text-[#7c3aed] bg-[#f3f0ff]" style="animation: shelah-scale-in 0.3s ease 0.55s both;">${t('Customs', 'מנהגים')}</span>
-                        <span class="px-2.5 py-1 rounded-full border border-[#b8860b]/20 text-[#8c6e2b] bg-[#fef9e6]" style="animation: shelah-scale-in 0.3s ease 0.7s both;">${t('Halachah', 'הלכה')}</span>
+                    <div class="ai-loading-tags flex flex-wrap gap-2 justify-center">
+                        <span class="ai-loading-tag ai-loading-tag--library">${t('Library', 'ספרייה')}</span>
+                        <span class="ai-loading-tag ai-loading-tag--customs">${t('Customs', 'מנהגים')}</span>
+                        <span class="ai-loading-tag ai-loading-tag--halacha">${t('Halachah', 'הלכה')}</span>
                     </div>
                 </div>`;
 
-            // Cycle the loading phase text
-            const aiLoadingPhases = [
+            // Cycle the loading phase text; IDs collected for cancellation in finally
+            const _phaseTimers = [
                 [t('Consulting the Library...', 'מתייעץ עם הספרייה...'), 0],
                 [t('Cross-referencing customs...', 'מצלב עם מנהגי קהילות...'), 1400],
                 [t('Synthesizing halachic sources...', 'מסנתז מקורות הלכתיים...'), 2800],
                 [t('Composing your answer...', 'מרכיב את התשובה...'), 4200],
-            ];
-            aiLoadingPhases.forEach(([text, delay]) => {
-                setTimeout(() => {
-                    const el = document.getElementById('aiLoadingPhaseText');
-                    if (el) {
-                        el.style.animation = 'none';
-                        el.offsetHeight; // reflow
-                        el.textContent = text;
-                        el.style.animation = 'shelah-fade-in 0.35s ease both';
-                    }
-                }, delay);
-            });
+            ].map(([text, delay]) => setTimeout(() => {
+                const el = document.getElementById('aiLoadingPhaseText');
+                if (el) {
+                    el.style.animation = 'none';
+                    el.offsetHeight;
+                    el.textContent = text;
+                    el.style.animation = 'shelah-fade-in 0.35s ease both';
+                }
+            }, delay));
 
             document.getElementById('aiModalTitle').textContent = question;
-            document.getElementById('aiSourcesSection').classList.add('hidden');
+            // Show sources section immediately with layout-stable skeleton placeholders (CLS ≈ 0)
+            document.getElementById('aiSources').innerHTML = [0, 1, 2].map(() => `
+                <div class="ai-src-skeleton" aria-hidden="true">
+                    <div class="ai-src-skeleton-header"></div>
+                    <div class="ai-src-skeleton-body">
+                        <div class="ai-src-skeleton-line ai-src-skeleton-line--wide"></div>
+                        <div class="ai-src-skeleton-line ai-src-skeleton-line--medium"></div>
+                    </div>
+                </div>`).join('');
+            document.getElementById('aiSourcesSection').classList.remove('hidden');
             document.getElementById('aiCustomsSection').classList.add('hidden');
             document.getElementById('aiWikiSection').classList.add('hidden');
 
@@ -9235,6 +9151,8 @@
                     : `${t('Network error:', 'שגיאת רשת:')} ${error.message}`;
                 document.getElementById('aiSynthesis').innerHTML = `<p class="text-red-600">${errMsg}</p>`;
                 logReliability('ai-network-error', { message: error.message, timeout: isTimeout });
+            } finally {
+                _phaseTimers.forEach(clearTimeout);
             }
         }
 
@@ -9528,7 +9446,7 @@
 
             homeGrid.style.display = 'none';
             reader.classList.add('hidden');
-            loadingOverlay.classList.remove('hidden');
+            showLoadingOverlay();
             closeMobilePanels();
             closeChapterGrid();
             closeReaderSettingsPanel();
@@ -9545,7 +9463,7 @@
             try {
                 const { payload: data, resolvedRef } = await fetchTextPayloadWithFallback(normalizedRequestRef || ref);
 
-                loadingOverlay.classList.add('hidden');
+                hideLoadingOverlay();
                 reader.classList.remove('hidden');
                 applySidebarVisibility();
 
@@ -9619,7 +9537,7 @@
                 scrollPrimaryToTop('smooth');
 
             } catch (err) {
-                loadingOverlay.classList.add('hidden');
+                hideLoadingOverlay();
                 reader.classList.remove('hidden');
                 applySidebarVisibility();
                 const fallbackMessage = t('Error loading text.', 'שגיאה בטעינת הטקסט.');
@@ -9812,10 +9730,11 @@
                 }
             });
 
-            // Handle RTL for Hebrew.
+            // Handle lang + RTL for Hebrew.
             const html = document.documentElement;
             const searchIcon = document.getElementById('searchIcon');
             if (lang === 'he') {
+                html.setAttribute('lang', 'he');
                 html.setAttribute('dir', 'rtl');
                 html.classList.add('rtl');
                 // Swap search icon position for RTL
@@ -9824,6 +9743,7 @@
                     searchIcon.classList.add('left-3');
                 }
             } else {
+                html.setAttribute('lang', 'en');
                 html.setAttribute('dir', 'ltr');
                 html.classList.remove('rtl');
                 // Swap search icon position back to right for LTR
@@ -10454,6 +10374,7 @@
         }
 
         let holidaysCalendar = null;
+        let _calendarDidMount = false; // crossfade: skip animation on initial render
 
         function ensureCalendarReady() {
             if (holidaysCalendar) return;
@@ -10466,6 +10387,13 @@
                         .then(r => r.json())
                         .then(data => successCallback(Array.isArray(data) ? data : (data.items || [])))
                         .catch(e => failureCallback(e));
+                },
+                datesSet: function () {
+                    if (_calendarDidMount && window.ShelahMotion) {
+                        const harness = calendarEl.querySelector('.fc-view-harness');
+                        if (harness) window.ShelahMotion.animateIn(harness, { y: 6 });
+                    }
+                    _calendarDidMount = true;
                 },
                 eventColor: '#002147',
                 height: 'auto'
@@ -10862,20 +10790,36 @@
             aiSynthesisEl.innerHTML = renderAnswerMarkdown(data.answer);
             applyMarkdownComponentStyles(aiSynthesisEl, MODAL_MARKDOWN_COMPONENT_STYLES);
 
-            // Helper: generate external links for a ref string
-            // Only shows hebrewbooks for genuine responsa not on Sefaria;
-            // uses Dicta/AlHaTorah for Talmud/Tanakh; halachic works on Sefaria get no external link.
+            // Returns a coloured pill badge classifying a source reference by type.
+            function _sourceTypeBadge(ref) {
+                const r = String(ref || '').trim();
+                if (/^(Genesis|Exodus|Leviticus|Numbers|Deuteronomy|Joshua|Judges|I?\s*Samuel|I?\s*Kings|Isaiah|Jeremiah|Ezekiel|Hosea|Joel|Amos|Obadiah|Jonah|Micah|Nahum|Habakkuk|Zephaniah|Haggai|Zechariah|Malachi|Psalms|Proverbs|Job|Song of Songs|Ruth|Lamentations|Ecclesiastes|Esther|Daniel|Ezra|Nehemiah|I?\s*Chronicles)\b/i.test(r))
+                    return '<span class="ai-src-badge ai-src-badge--tanakh">Tanakh</span>';
+                if (/^(Berakhot|Shabbat|Eruvin|Pesachim|Shekalim|Yoma|Sukkah|Beitzah|Rosh Hashanah|Taanit|Megillah|Moed Katan|Chagigah|Yevamot|Ketubot|Nedarim|Nazir|Sotah|Gittin|Kiddushin|Bava Kamma|Bava Metzia|Bava Batra|Sanhedrin|Makkot|Shevuot|Avodah Zarah|Horayot|Zevachim|Menachot|Chullin|Bekhorot|Arakhin|Temurah|Keritot|Niddah|Talmud\b)\b/i.test(r))
+                    return '<span class="ai-src-badge ai-src-badge--talmud">Talmud</span>';
+                if (/^(Shulchan Aruch|Mishnah Berurah|Kitzur Shulchan Aruch|Arukh HaShulchan|Ben Ish Hai|Mishneh Torah|Rambam|Tur\b|Sefer HaMitzvot|Sefer HaChinuch)\b/i.test(r))
+                    return '<span class="ai-src-badge ai-src-badge--halacha">Halacha</span>';
+                if (/^(Igrot Moshe|Yabia Omer|Tzitz Eliezer|Chazon Ish|Minchat Yitzchak|Chelkat Yaakov|Piskei Teshuvot|Noda BiYehudah|Chatam Sofer|Responsa|Maharsha|Maharam|She'elot)\b/i.test(r))
+                    return '<span class="ai-src-badge ai-src-badge--responsa">Responsa</span>';
+                if (/^(Mishnah\b|Pirkei Avot|Avot)\b/i.test(r))
+                    return '<span class="ai-src-badge ai-src-badge--mishnah">Mishnah</span>';
+                return '<span class="ai-src-badge ai-src-badge--other">Source</span>';
+            }
+
+            // Generate all relevant external links for a given source ref string.
+            // Talmud    → Dicta + AlHaTorah + Sefaria
+            // Tanakh    → AlHaTorah + Sefaria
+            // On Sefaria halachic works → Sefaria direct + Halachipedia (for practical codes)
+            // Responsa / other → HebrewBooks
             function _externalLinksForRef(ref) {
                 if (!ref) return '';
                 const r = String(ref).trim();
                 const links = [];
 
-                // Talmud tractates → Dicta + AlHaTorah (not hebrewbooks)
                 const talmudMatch = r.match(/^([A-Za-z\s]+?)\s+(\d+[ab])/);
-                // Tanakh books → AlHaTorah only
                 const isTanakh = /^(Genesis|Exodus|Leviticus|Numbers|Deuteronomy|Joshua|Judges|I?\s*Samuel|I?\s*Kings|Isaiah|Jeremiah|Ezekiel|Hosea|Joel|Amos|Obadiah|Jonah|Micah|Nahum|Habakkuk|Zephaniah|Haggai|Zechariah|Malachi|Psalms|Proverbs|Job|Song of Songs|Ruth|Lamentations|Ecclesiastes|Esther|Daniel|Ezra|Nehemiah|I?\s*Chronicles)\b/i.test(r);
-                // Works available on Sefaria — no external link needed (use "Open in Reader")
                 const isOnSefaria = /^(Shulchan Aruch|Mishneh Torah|Tur\b|Kitzur Shulchan Aruch|Ben Ish Hai|Arukh HaShulchan|Mishnah Berurah|Mishnah\b|Talmud|Sefer HaMitzvot|Sefer HaChinuch|Rambam|Pirkei Avot|Avot|Siddur)\b/i.test(r);
+                const isPracticalHalacha = /^(Shulchan Aruch|Mishnah Berurah|Kitzur Shulchan Aruch|Arukh HaShulchan|Ben Ish Hai|Piskei Teshuvot|Igrot Moshe|Chazon Ish|Tzitz Eliezer|Yabia Omer)\b/i.test(r);
 
                 if (talmudMatch) {
                     const tractate = talmudMatch[1].trim();
@@ -10885,145 +10829,144 @@
                 } else if (isTanakh) {
                     links.push(`<a href="https://alhatorah.org/Full/${encodeURIComponent(r)}" target="_blank" rel="noopener noreferrer" class="src-ext-link">AlHaTorah ↗</a>`);
                 } else if (!isOnSefaria) {
-                    // Only show HebrewBooks for works not available on Sefaria (true responsa, etc.)
                     links.push(`<a href="https://hebrewbooks.org/search.aspx?q=${encodeURIComponent(r.split(',')[0].trim())}" target="_blank" rel="noopener noreferrer" class="src-ext-link">HebrewBooks ↗</a>`);
                 }
-                // isOnSefaria → no external link (Sefaria "Open in Reader" is preferred)
+
+                // Direct Sefaria link for any work in the Sefaria corpus
+                if (isOnSefaria || talmudMatch || isTanakh) {
+                    links.push(`<a href="https://www.sefaria.org/${encodeURIComponent(r)}" target="_blank" rel="noopener noreferrer" class="src-ext-link">Sefaria ↗</a>`);
+                }
+
+                // Halachipedia for practical halachic codes — strip trailing chapter/verse numbers for query
+                if (isPracticalHalacha) {
+                    const hpQuery = r.replace(/[\s,.:;]+\d[\d\s,.:;]*$/, '').trim() || r;
+                    links.push(`<a href="https://halachipedia.com/index.php?search=${encodeURIComponent(hpQuery)}" target="_blank" rel="noopener noreferrer" class="src-ext-link">Halachipedia ↗</a>`);
+                }
+
                 return links.join('');
             }
 
-            // 2. Populate sources as open visual source boxes (not collapsible)
+            // 2. Populate sources — accumulate all HTML first, write DOM once.
+            //    innerHTML += inside a loop re-parses the container on every iteration,
+            //    destroying the click listeners already attached to rendered cards.
+            //    Single write + single handler-wire pass eliminates both bugs.
             const sourcesDiv = document.getElementById('aiSources');
-            sourcesDiv.innerHTML = '';
-            let hasRenderedSources = false;
+            const _srcParts = [];
+            let _srcIdx = 0;
 
             // 2a. Sefaria text sources (with actual line content)
             const rankedSources = rankAiSourcesForQuery(data.sources, queryTitle, data.answer).slice(0, 4);
-            if (rankedSources.length > 0) {
-                rankedSources.forEach((src) => {
-                    const lines = Array.isArray(src?.lines) ? src.lines : [];
-                    const isExternal = src.domain && !String(src.domain).includes('sefaria') && src.url;
-                    const localLinkHtml = isExternal
-                        ? `<a href="${src.url}" target="_blank" rel="noopener noreferrer" class="src-open-link">${src.source_provider || src.domain} ↗</a>`
-                        : `<a href="#" data-local-ref="${(src.ref || '').replace(/"/g, '&quot;')}" class="source-local-link src-open-link">${t('Open in Reader ↗', 'פתח בקורא ↗')}</a>`;
-                    const extLinks = _externalLinksForRef(src.ref);
+            rankedSources.forEach((src) => {
+                const lines = Array.isArray(src?.lines) ? src.lines : [];
+                const isExternal = src.domain && !String(src.domain).includes('sefaria') && src.url;
+                const localLinkHtml = isExternal
+                    ? `<a href="${escapeHtml(src.url || '')}" target="_blank" rel="noopener noreferrer" class="src-open-link">${escapeHtml(String(src.source_provider || src.domain || ''))} ↗</a>`
+                    : `<a href="#" data-local-ref="${escapeHtml((src.ref || '').replace(/"/g, ''))}" class="source-local-link src-open-link">${t('Open in Reader ↗', 'פתח בקורא ↗')}</a>`;
+                const extLinks = _externalLinksForRef(src.ref);
 
-                    // Build text content
-                    let contentHtml = '';
-                    if (lines.length > 0) {
-                        const heTexts = lines.slice(0, 3).map(l => String(l?.he || '').trim()).filter(Boolean);
-                        const enTexts = lines.slice(0, 3).map(l => String(l?.en || l || '').replace(/<[^>]*>/gm, '').trim()).filter(Boolean);
-                        if (heTexts.length > 0 || enTexts.length > 0) {
-                            contentHtml = `<div class="ai-src-box-body">`;
-                            if (heTexts.length > 0) {
-                                contentHtml += `<div class="ai-src-box-he" dir="rtl">${heTexts.map(t => `<p>${t}</p>`).join('')}</div>`;
-                            }
-                            if (enTexts.length > 0) {
-                                contentHtml += `<div class="ai-src-box-en">${enTexts.map(t => `<p>${t}</p>`).join('')}</div>`;
-                            }
-                            contentHtml += `</div>`;
+                // Build bilingual text content
+                let contentHtml = '';
+                if (lines.length > 0) {
+                    const heTexts = lines.slice(0, 3).map(l => String(l?.he || '').trim()).filter(Boolean);
+                    const enTexts = lines.slice(0, 3).map(l => String(l?.en || l || '').replace(/<[^>]*>/gm, '').trim()).filter(Boolean);
+                    if (heTexts.length > 0 || enTexts.length > 0) {
+                        contentHtml = '<div class="ai-src-box-body">';
+                        if (heTexts.length > 0) {
+                            contentHtml += `<div class="ai-src-box-he" dir="rtl">${heTexts.map(h => `<p>${escapeHtml(h)}</p>`).join('')}</div>`;
                         }
+                        if (enTexts.length > 0) {
+                            contentHtml += `<div class="ai-src-box-en">${enTexts.map(e => `<p>${escapeHtml(e)}</p>`).join('')}</div>`;
+                        }
+                        contentHtml += '</div>';
                     }
+                }
 
-                    const sourceHtml = `
-                        <div class="ai-source-box animate-fade-up">
-                            <div class="ai-src-box-header">
-                                <span class="ai-src-box-title">${(src.ref || '').toUpperCase()}</span>
-                                <span class="ai-src-box-links">${extLinks}${localLinkHtml}</span>
-                            </div>
-                            ${contentHtml}
+                _srcParts.push(`
+                    <div class="ai-source-box animate-fade-up" style="--i:${_srcIdx++}">
+                        <div class="ai-src-box-header">
+                            <span class="ai-src-box-id">
+                                ${_sourceTypeBadge(src.ref)}
+                                <span class="ai-src-box-title">${escapeHtml(src.ref || '')}</span>
+                            </span>
+                            <span class="ai-src-box-links">${extLinks}${localLinkHtml}</span>
                         </div>
-                    `;
-                    sourcesDiv.innerHTML += sourceHtml;
-                    hasRenderedSources = true;
-                });
-                // Wire click handlers for local-reader links
-                sourcesDiv.querySelectorAll('a.source-local-link').forEach((a) => {
-                    a.addEventListener('click', (e) => {
-                        e.preventDefault();
-                        const ref = a.getAttribute('data-local-ref');
-                        if (ref) readText(ref);
-                    });
-                });
-            }
+                        ${contentHtml}
+                    </div>`);
+            });
 
             // 2b. AI-cited sources (text strings from structured AI response)
             const aiCited = Array.isArray(data.ai_cited_sources) ? data.ai_cited_sources : [];
-            if (aiCited.length > 0) {
-                if (hasRenderedSources) {
-                    sourcesDiv.innerHTML += `<p class="ai-src-section-label">${t('Additional References', 'מקורות נוספים')}</p>`;
-                }
-                aiCited.slice(0, 6).forEach((srcStr) => {
-                    const colonIdx = String(srcStr || '').search(/[:–—]/);
-                    const refTitle = colonIdx > 0 ? srcStr.slice(0, colonIdx).trim() : String(srcStr || '').trim();
-                    const note = colonIdx > 0 ? srcStr.slice(colonIdx + 1).trim() : '';
-                    const extLinks = _externalLinksForRef(refTitle);
-                    // Attempt to open in reader using exact ref (preserves section info)
-                    const localLink = `<a href="#" data-local-ref="${refTitle.replace(/"/g, '&quot;')}" class="source-local-link src-open-link">${t('Open in Reader ↗', 'פתח בקורא ↗')}</a>`;
-                    const html = `
-                        <div class="ai-source-box animate-fade-up">
-                            <div class="ai-src-box-header">
-                                <span class="ai-src-box-title">${escapeHtml(refTitle).toUpperCase()}</span>
-                                <span class="ai-src-box-links">${extLinks}${localLink}</span>
-                            </div>
-                            ${note ? `<div class="ai-src-box-note">${escapeHtml(note)}</div>` : ''}
-                        </div>
-                    `;
-                    sourcesDiv.innerHTML += html;
-                    hasRenderedSources = true;
-                });
-                sourcesDiv.querySelectorAll('a.source-local-link').forEach((a) => {
-                    a.addEventListener('click', (e) => {
-                        e.preventDefault();
-                        const ref = a.getAttribute('data-local-ref');
-                        if (ref) readText(ref);
-                    });
-                });
+            if (aiCited.length > 0 && _srcIdx > 0) {
+                _srcParts.push(`<p class="ai-src-section-label">${t('Additional References', 'מקורות נוספים')}</p>`);
             }
+            aiCited.slice(0, 6).forEach((srcStr) => {
+                const colonIdx = String(srcStr || '').search(/[:–—]/);
+                const refTitle = colonIdx > 0 ? srcStr.slice(0, colonIdx).trim() : String(srcStr || '').trim();
+                const note = colonIdx > 0 ? srcStr.slice(colonIdx + 1).trim() : '';
+                const extLinks = _externalLinksForRef(refTitle);
+                const localLink = `<a href="#" data-local-ref="${escapeHtml(refTitle)}" class="source-local-link src-open-link">${t('Open in Reader ↗', 'פתח בקורא ↗')}</a>`;
+                _srcParts.push(`
+                    <div class="ai-source-box animate-fade-up" style="--i:${_srcIdx++}">
+                        <div class="ai-src-box-header">
+                            <span class="ai-src-box-id">
+                                ${_sourceTypeBadge(refTitle)}
+                                <span class="ai-src-box-title">${escapeHtml(refTitle)}</span>
+                            </span>
+                            <span class="ai-src-box-links">${extLinks}${localLink}</span>
+                        </div>
+                        ${note ? `<div class="ai-src-box-note">${escapeHtml(note)}</div>` : ''}
+                    </div>`);
+            });
 
+            // Single atomic DOM write — all elements exist in the DOM before any handler is wired
+            sourcesDiv.innerHTML = _srcParts.join('');
+
+            // Single handler-wire pass — no orphaning possible since innerHTML is now final
+            sourcesDiv.querySelectorAll('a.source-local-link').forEach((a) => {
+                a.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    const ref = a.getAttribute('data-local-ref');
+                    if (ref) readText(ref);
+                });
+            });
+
+            const hasRenderedSources = _srcIdx > 0;
             if (hasRenderedSources) {
                 document.getElementById('aiSourcesSection').classList.remove('hidden');
+            } else {
+                document.getElementById('aiSourcesSection').classList.add('hidden');
             }
 
-            // 3. Populate customs
+            // 3. Populate customs — batch write, escapeHtml everywhere, token-based CSS classes
             if (data.customs && data.customs.length > 0) {
                 const customsDiv = document.getElementById('aiCustoms');
-                customsDiv.innerHTML = '';
-                data.customs.forEach(c => {
-                    const customHtml = `
-                        <div class="bg-[#f2eadc] border border-[#d7c8ad] p-3 rounded">
-                            <div class="font-bold text-[#5e4d37] text-sm mb-1">${getCommunityDisplayName(c.community)}</div>
-                            <div class="text-xs text-[#544433]">${c.ruling || c.notes}</div>
-                        </div>
-                    `;
-                    customsDiv.innerHTML += customHtml;
-                });
+                customsDiv.innerHTML = data.customs.map(c => `
+                    <div class="ai-customs-card">
+                        <div class="ai-customs-card-title">${escapeHtml(getCommunityDisplayName(c.community))}</div>
+                        <div class="ai-customs-card-body">${escapeHtml(String(c.ruling || c.notes || ''))}</div>
+                    </div>`).join('');
                 document.getElementById('aiCustomsSection').classList.remove('hidden');
             }
 
-            // 4. Populate encyclopedia/wiki (with external links where available)
+            // 4. Populate encyclopedia/wiki — batch write, full escapeHtml, token-based classes
             if (data.wiki && data.wiki.length > 0) {
                 const wikiDiv = document.getElementById('aiWiki');
-                wikiDiv.innerHTML = '';
-                data.wiki.forEach(w => {
-                    if (w) {
-                        const safeTitle = String(w.title || '').replace(/</g, '&lt;').replace(/>/g, '&gt;');
-                        const safeSummary = String(w.summary || '').substring(0, 200).replace(/</g, '&lt;').replace(/>/g, '&gt;');
-                        const externalLinkHtml = w.url
-                            ? `<a href="${w.url.replace(/"/g, '&quot;')}" target="_blank" rel="noopener noreferrer" class="text-xs text-[#6a5840] hover:underline ml-2">${w.source_provider || w.domain || 'Source'} ↗</a>`
-                            : '';
-                        const wikiHtml = `
-                            <div class="bg-[#f2eadc] border border-[#d7c8ad] p-3 rounded">
-                                <div class="flex justify-between items-start mb-1">
-                                    <div class="font-bold text-[#5e4d37] text-sm">${safeTitle}</div>
-                                    ${externalLinkHtml}
-                                </div>
-                                <div class="text-xs text-[#544433]">${safeSummary}${safeSummary.length >= 200 ? '…' : ''}</div>
-                            </div>
-                        `;
-                        wikiDiv.innerHTML += wikiHtml;
-                    }
-                });
+                wikiDiv.innerHTML = data.wiki.filter(Boolean).map(w => {
+                    const safeTitle   = escapeHtml(String(w.title   || ''));
+                    const safeSummary = escapeHtml(String(w.summary || '').substring(0, 200));
+                    const extLink = w.url
+                        ? `<a href="${escapeHtml(String(w.url))}" target="_blank" rel="noopener noreferrer"
+                              class="ai-wiki-result-link">${escapeHtml(String(w.source_provider || w.domain || 'Source'))} ↗</a>`
+                        : '';
+                    return `
+                    <div class="ai-wiki-result-card">
+                        <div class="ai-wiki-result-header">
+                            <span class="ai-wiki-result-title">${safeTitle}</span>
+                            ${extLink}
+                        </div>
+                        <div class="ai-wiki-result-body">${safeSummary}${safeSummary.length >= 200 ? '…' : ''}</div>
+                    </div>`;
+                }).join('');
                 document.getElementById('aiWikiSection').classList.remove('hidden');
             }
         }
@@ -11046,7 +10989,7 @@
             // Transition UI to Reader View
             homeGrid.style.display = 'none';
             reader.classList.add('hidden');
-            loadingOverlay.classList.remove('hidden');
+            showLoadingOverlay();
 
             document.getElementById('readerTitle').innerText = question;
             if (appState.lastAiResponse) {
@@ -11059,7 +11002,7 @@
 
             // Show full article with all sources
             setTimeout(() => {
-                loadingOverlay.classList.add('hidden');
+                hideLoadingOverlay();
                 reader.classList.remove('hidden');
             }, 300);
         }
@@ -11084,6 +11027,7 @@
             }
         });
     </script>
+    <script type="module" src="/static/js/motion.js"></script>
     <script type="module" src="/static/js/main.js"></script>
 
     <!-- ═══════════════════════════════════════════════════════ -->

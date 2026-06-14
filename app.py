@@ -18,7 +18,11 @@ import re
 import io
 from concurrent.futures import ThreadPoolExecutor
 import requests
-from flask import Flask, render_template, request, jsonify, session, g, send_from_directory, send_file
+
+# Module-level bounded executor — avoids creating/destroying a pool per request.
+# max_workers capped so Vercel serverless invocations don't spawn unbounded threads.
+_THREAD_POOL = ThreadPoolExecutor(max_workers=8)
+from flask import Flask, render_template, request, jsonify, session, g, send_from_directory, send_file, Response
 from dotenv import load_dotenv
 import time
 import os
@@ -52,19 +56,9 @@ from backend import sefaria
 from backend import claude
 from backend import search
 from backend.logging_setup import setup_logging
+from backend.customs import validate_all_customs_at_startup
 from backend.health_check import health as api_health
 
-try:
-    from docx import Document
-except Exception:
-    Document = None
-
-try:
-    from reportlab.lib.pagesizes import LETTER
-    from reportlab.pdfgen import canvas
-except Exception:
-    LETTER = None
-    canvas = None
 
 # Maps each prayer name to its constituent Sefaria "Siddur Sefard" refs for full text
 SIDDUR_SECTION_MAP = {
@@ -442,24 +436,8 @@ def _build_source_attribution_note(*, has_sefaria=False, has_customs=False, has_
     )
 
 
-def _compose_answer_with_prefixes(body_text, *, include_web_warning=False, source_attribution_note=""):
-    body = str(body_text or "").strip()
-    if not body:
-        return ""
-
-    blocks = []
-    if include_web_warning:
-        blocks.append(WEB_LAST_RESORT_WARNING)
-
-    attribution = str(source_attribution_note or "").strip()
-    if attribution:
-        blocks.append(attribution)
-
-    if blocks:
-        blocks.append(body)
-        return "\n\n".join(blocks)
-
-    return body
+# _compose_answer_with_prefixes moved to backend/rag.py; re-imported via the
+# RAG shim further below (search: "Re-import shims").
 
 
 def _strip_source_attribution_prefix(answer_text):
@@ -1257,48 +1235,8 @@ def get_halakhic_sources(query):
     }
 
 
-def _build_ask_tool_context(engine):
-    context = {
-        "route": "/ask",
-        "auth_enforced": CLERK_ENFORCE_AUTH,
-        "trusted_source_priority": "Sefaria, HebrewBooks, Halachipedia, Peninei Halakha (YHB)",
-        "factuality_guardrail": "Reject random/non-halakhic domains and avoid generic English Bible websites when validating web context.",
-    }
-
-    try:
-        zmanim_payload = engine.get_zmanim("standard")
-        if isinstance(zmanim_payload, dict):
-            metadata = zmanim_payload.get("metadata", {})
-            zmanim = zmanim_payload.get("zmanim", {})
-
-            if isinstance(metadata, dict):
-                context["civil_date"] = metadata.get("date")
-                context["hebrew_date"] = metadata.get("hebrew_date")
-                context["parasha"] = metadata.get("parasha")
-                context["holiday"] = metadata.get("holiday")
-                context["timezone"] = metadata.get("timezone")
-
-            if isinstance(zmanim, dict):
-                snapshot = {}
-                for key in (
-                    "Dawn (16.1° / 72m)",
-                    "Sunrise",
-                    "Latest Shema (GRA)",
-                    "Plag HaMincha",
-                    "Sunset",
-                    "Nightfall (3 Stars)",
-                ):
-                    value = str(zmanim.get(key) or "").strip()
-                    if value and value != "N/A":
-                        snapshot[key] = value
-
-                if snapshot:
-                    context["zmanim_snapshot"] = snapshot
-    except Exception:
-        # Keep ask flow resilient even if zmanim context is unavailable.
-        pass
-
-    return context
+# _build_ask_tool_context moved to backend/rag.py; re-imported via the
+# RAG shim further below (search: "Re-import shims").
 
 
 def _compact_ai_sources(sources, max_sources=8, max_lines=3, max_chars=280):
@@ -1488,6 +1426,72 @@ def _translate_hebrew_text_mymemory(text):
     if not translated or _is_translation_echo(value, translated):
         return ""
     return translated
+
+
+_SEFARIA_LEXICON_BASE = "https://www.sefaria.org/api/words/"
+_PREFERRED_LEXICONS = ("brown-driver-briggs", "bdb", "jastrow", "sefaria")
+
+
+def _lookup_sefaria_lexicon(word):
+    """Look up a Hebrew word in Sefaria's BDB/Jastrow lexicon.
+    Returns (definition, lexicon_name) or ("", "")."""
+    value = str(word or "").strip()
+    if not value or not _contains_hebrew_letters(value):
+        return "", ""
+
+    consonants = re.sub(r"[֑-ׇ]", "", value).strip() or value
+    cache_key = f"sefaria-lex::{consonants[:80]}"
+    if cache_key in TRANSLATION_CACHE:
+        return TRANSLATION_CACHE.get(cache_key, ""), TRANSLATION_SOURCE_CACHE.get(cache_key, "")
+
+    try:
+        resp = requests.get(
+            _SEFARIA_LEXICON_BASE + quote(consonants, safe=""),
+            params={"always_consonants": "1"},
+            headers={"User-Agent": "Shelah-App/1.0", "Accept": "application/json"},
+            timeout=3.0,
+        )
+        if not resp.ok:
+            _bounded_cache_set(TRANSLATION_CACHE, cache_key, "")
+            return "", ""
+        entries = resp.json() if resp.content else []
+        if not isinstance(entries, list):
+            _bounded_cache_set(TRANSLATION_CACHE, cache_key, "")
+            return "", ""
+
+        def _lex_rank(entry):
+            name = str((entry or {}).get("lexicon_name", "")).lower()
+            for i, pref in enumerate(_PREFERRED_LEXICONS):
+                if pref in name:
+                    return i
+            return len(_PREFERRED_LEXICONS)
+
+        definition = ""
+        lex_name = ""
+        for entry in sorted(entries, key=_lex_rank):
+            content = (entry or {}).get("content") or {}
+            defs = content.get("definitions") or []
+            candidates = []
+            for d in defs:
+                raw = str((d.get("definition") if isinstance(d, dict) else d) or "").strip()
+                raw = re.sub(r"<[^>]+>", "", raw).strip()
+                raw = re.sub(r"\s+", " ", raw)[:280]
+                if raw and not _is_translation_echo(value, raw):
+                    candidates.append(raw)
+            if not candidates and content.get("definition"):
+                raw = re.sub(r"<[^>]+>", "", str(content["definition"])).strip()[:280]
+                if raw:
+                    candidates.append(raw)
+            if candidates:
+                definition = candidates[0]
+                lex_name = str(entry.get("lexicon_name", "sefaria-lexicon"))
+                break
+
+        _bounded_cache_set(TRANSLATION_CACHE, cache_key, definition)
+        _bounded_cache_set(TRANSLATION_SOURCE_CACHE, cache_key, lex_name if definition else "")
+        return definition, lex_name
+    except Exception:
+        return "", ""
 
 
 def _translate_hebrew_text_online(text):
@@ -1832,6 +1836,11 @@ def _lookup_hebrew_word_meaning(word):
             normalized = _normalize_glossary_meaning(exact)
             if normalized:
                 return normalized, "local-hebrew-glossary"
+
+    for variant in variants:
+        lex_def, lex_src = _lookup_sefaria_lexicon(variant)
+        if lex_def:
+            return lex_def, lex_src or "sefaria-lexicon"
 
     for variant in variants:
         generated, source = _translate_hebrew_text_online(variant)
@@ -2283,6 +2292,7 @@ app = Flask(__name__)
 # Configure structured JSON logging as early as possible so all log records
 # (including import-time warnings from sub-modules) use the JSON formatter.
 setup_logging()
+validate_all_customs_at_startup()
 
 _flask_secret = os.environ.get("FLASK_SECRET_KEY")
 if not _flask_secret:
@@ -2351,8 +2361,6 @@ CLERK_ENFORCE_AUTH = (
     os.environ.get("CLERK_ENFORCE_AUTH")
     or ("true" if _in_prod_runtime else "false")
 ).strip().lower() == "true"
-_clerk_jwks_client = None
-
 SUPABASE_URL = (os.environ.get("SUPABASE_URL") or "").strip()
 if not SUPABASE_URL:
     SUPABASE_URL = (os.environ.get("NEXT_PUBLIC_SUPABASE_URL") or "").strip()
@@ -2402,37 +2410,9 @@ def _extract_bearer_token():
     return token or None
 
 
-def _get_clerk_jwks_client():
-    global _clerk_jwks_client
-    if not CLERK_JWT_ISSUER:
-        return None
-    if _clerk_jwks_client is None:
-        jwks_url = f"{CLERK_JWT_ISSUER}/.well-known/jwks.json"
-        _clerk_jwks_client = jwt.PyJWKClient(jwks_url)
-    return _clerk_jwks_client
-
-
-def _verify_clerk_token(token):
-    if not token:
-        raise ValueError("Missing bearer token")
-    if not CLERK_JWT_ISSUER:
-        raise ValueError("Server missing CLERK_JWT_ISSUER")
-
-    jwks_client = _get_clerk_jwks_client()
-    if jwks_client is None:
-        raise ValueError("Clerk JWKS client unavailable")
-
-    signing_key = jwks_client.get_signing_key_from_jwt(token).key
-    decode_kwargs = {
-        "algorithms": ["RS256"],
-        "issuer": CLERK_JWT_ISSUER,
-    }
-    if CLERK_AUDIENCE:
-        decode_kwargs["audience"] = CLERK_AUDIENCE
-    else:
-        decode_kwargs["options"] = {"verify_aud": False}
-
-    return jwt.decode(token, signing_key, **decode_kwargs)
+# Re-import shims for backward compatibility with asgi.py
+# (_verify_clerk_token and its private Clerk JWT helpers now live in backend/auth.py).
+from backend.auth import _verify_clerk_token
 
 
 def _get_supabase_client():
@@ -2613,125 +2593,10 @@ def _normalize_rag_text(value, max_chars=360):
     return text
 
 
-def _score_community_knowledge_row(row, keywords, canonical_lens):
-    topic = str(row.get("topic") or "").lower()
-    source = str(row.get("halakhic_source") or "").lower()
-    content = str(row.get("content") or "").lower()
-    community_name = str(row.get("community_name") or "").lower()
-
-    score = 0
-    if canonical_lens and canonical_lens != "All":
-        lens_text = canonical_lens.lower().strip()
-        if lens_text and lens_text in community_name:
-            score += 8
-
-    for keyword in keywords:
-        if keyword in topic:
-            score += 8
-        if keyword in source:
-            score += 4
-        if keyword in content:
-            score += 2
-
-    return score
-
-
-def _community_filter_from_request(query, canonical_lens):
-    if canonical_lens and canonical_lens != "All":
-        return canonical_lens
-
-    detected = _detect_community_in_text(query)
-    return detected or None
-
-
-def _build_knowledge_text_or_filter(keywords, max_keywords=6):
-    conditions = []
-    for keyword in (keywords or [])[:max_keywords]:
-        clean = re.sub(r"[^A-Za-z0-9\u0590-\u05FF\-]",
-                       "", str(keyword or "").strip())
-        if not clean:
-            continue
-
-        pattern = f"%{clean}%"
-        conditions.extend([
-            f"topic.ilike.{pattern}",
-            f"content.ilike.{pattern}",
-        ])
-
-    return ",".join(conditions)
-
-
-def _retrieve_community_knowledge(query, canonical_lens="All", max_rows=None):
-    supabase = _get_supabase_client()
-    if not supabase:
-        return []
-
-    target_rows = max_rows or RAG_TOP_KNOWLEDGE_ROWS
-    keywords = _extract_query_keywords(query, max_keywords=10)
-    community_filter = _community_filter_from_request(query, canonical_lens)
-    text_or_filter = _build_knowledge_text_or_filter(keywords)
-
-    query_row_cap = max(50, min(600, target_rows * 25))
-
-    try:
-        def run_query(apply_text_filter=True):
-            table = supabase.table(SUPABASE_COMMUNITY_KNOWLEDGE_TABLE).select(
-                "id,community_name,topic,halakhic_source,content"
-            )
-
-            if community_filter:
-                # Case-insensitive match so Ashkenaz/Ashkenazi variants still return rows.
-                table = table.ilike("community_name", f"%{community_filter}%")
-
-            if apply_text_filter and text_or_filter:
-                table = table.or_(text_or_filter)
-
-            result = table.limit(query_row_cap).execute()
-            return result.data if isinstance(result.data, list) else []
-
-        rows = run_query(apply_text_filter=True)
-
-        # Fallback to community-only retrieval when text filter is too restrictive.
-        if not rows and community_filter and text_or_filter:
-            rows = run_query(apply_text_filter=False)
-    except Exception:
-        return []
-
-    ranked = []
-    for row in rows:
-        if not isinstance(row, dict):
-            continue
-
-        score = _score_community_knowledge_row(
-            row,
-            keywords,
-            community_filter or canonical_lens,
-        )
-        if score <= 0 and keywords and text_or_filter:
-            continue
-
-        ranked.append((score, row))
-
-    ranked.sort(
-        key=lambda item: (
-            item[0],
-            len(str(item[1].get("topic") or "")),
-        ),
-        reverse=True,
-    )
-
-    top_rows = []
-    for score, row in ranked[:target_rows]:
-        top_rows.append({
-            "id": str(row.get("id") or "").strip(),
-            "community_name": str(row.get("community_name") or "").strip(),
-            "topic": str(row.get("topic") or "").strip(),
-            "halakhic_source": str(row.get("halakhic_source") or "").strip(),
-            "content": _normalize_rag_text(row.get("content")),
-            "score": score,
-        })
-
-    return top_rows
+# Re-import shims for backward compatibility with asgi.py and blueprints.
+# Functions moved to backend/ modules are re-imported here so any existing
+# call-sites inside app.py or legacy consumers keep working unchanged.
+from backend.rag import _build_ask_tool_context, _retrieve_community_knowledge, _compose_answer_with_prefixes
 
 
 def _knowledge_rows_to_customs(rows):
@@ -2945,8 +2810,8 @@ def apply_response_cache_policy(response):
     response.headers.setdefault(
         "Content-Security-Policy",
         "default-src 'self'; "
-        "script-src 'self' 'unsafe-inline' 'unsafe-eval' "
-        "https://cdn.tailwindcss.com https://cdn.jsdelivr.net "
+        "script-src 'self' 'unsafe-inline' "
+        "https://cdn.jsdelivr.net "
         "https://js.clerk.com https://clerk.com; "
         "worker-src 'self' blob:; "
         "style-src 'self' 'unsafe-inline' "
@@ -3111,79 +2976,6 @@ def privacy():
     )
 
 
-@app.route("/api/accept-legal", methods=["POST"])
-@maybe_require_clerk_auth
-def accept_legal():
-    """Record that a user has accepted the Terms of Service and Privacy Policy."""
-    user_id = _get_request_user_id()
-    if not user_id:
-        # Not authenticated — store acceptance in localStorage only (handled client-side).
-        return jsonify({"success": True, "stored": "client"}), 200
-
-    try:
-        supabase_client = _get_supabase_client()
-        if supabase_client:
-            supabase_client.table("user_preferences").upsert(
-                {
-                    "clerk_id": user_id,
-                    "legal_accepted": True,
-                    "legal_accepted_at": datetime.utcnow().isoformat(),
-                },
-                on_conflict="clerk_id",
-            ).execute()
-    except Exception as e:
-        app.logger.warning(
-            "accept_legal: could not persist to Supabase: %s", e)
-
-    return jsonify({"success": True, "stored": "server"}), 200
-
-
-@app.route('/set_location', methods=['POST'])
-def set_location():
-    data = request.get_json(silent=True) or {}
-    lat = _coerce_coordinate(data.get('lat'), -90, 90)
-    lon = _coerce_coordinate(data.get('lon'), -180, 180)
-    if lat is None or lon is None:
-        return jsonify({"error": "Invalid coordinates provided. Values must be numeric and within valid lat/lon ranges."}), 400
-
-    session['lat'] = lat
-    session['lon'] = lon
-    return jsonify({"status": "success", "lat": lat, "lon": lon})
-
-
-@app.route('/api/zmanim')
-def get_zmanim_api():
-    community = request.args.get('community', 'standard')
-    lat = _coerce_coordinate(request.args.get('lat'), -90, 90)
-    lon = _coerce_coordinate(request.args.get('lon'), -180, 180)
-
-    if lat is not None and lon is not None:
-        session['lat'] = lat
-        session['lon'] = lon
-        engine = ShelahEngine(lat=lat, lon=lon)
-    else:
-        engine = get_engine()
-
-    times = engine.get_zmanim(community)
-    return jsonify(times)
-
-
-@app.route('/api/zmanim/month')
-def get_zmanim_month():
-    lat = _coerce_coordinate(request.args.get('lat'), -90, 90)
-    lon = _coerce_coordinate(request.args.get('lon'), -180, 180)
-
-    if lat is not None and lon is not None:
-        session['lat'] = lat
-        session['lon'] = lon
-        engine = ShelahEngine(lat=lat, lon=lon)
-    else:
-        engine = get_engine()
-
-    events = engine.get_monthly_zmanim()
-    return jsonify(events)
-
-
 @app.route("/manifest.webmanifest")
 def web_manifest():
     return send_from_directory("static", "manifest.webmanifest", mimetype="application/manifest+json")
@@ -3196,10 +2988,20 @@ def favicon():
 
 @app.route("/service-worker.js")
 def service_worker():
-    response = send_from_directory(
-        "static", "service-worker.js", mimetype="application/javascript")
-    response.headers["Cache-Control"] = "no-cache"
-    return response
+    deploy_hash = os.environ.get("DEPLOY_HASH", "v8")
+    sw_path = Path(app.static_folder) / "service-worker.js"
+    content = sw_path.read_text(encoding="utf-8")
+    versioned = re.sub(
+        r'const CACHE_VERSION = "[^"]*"',
+        f'const CACHE_VERSION = "{deploy_hash}"',
+        content,
+        count=1,
+    )
+    return Response(
+        versioned,
+        mimetype="application/javascript",
+        headers={"Cache-Control": "no-cache", "Service-Worker-Allowed": "/"},
+    )
 
 
 @app.errorhandler(429)
@@ -3302,53 +3104,50 @@ def ask_question():
 
         primary_sources = []
         if primary_ref_candidates:
-            worker_count = min(4, len(primary_ref_candidates))
-            with ThreadPoolExecutor(max_workers=worker_count) as executor:
-                source_futures = [
-                    executor.submit(engine.get_library_text, ref)
-                    for ref in primary_ref_candidates
-                ]
-                for future in source_futures:
-                    try:
-                        source_data = future.result(timeout=3)
-                    except Exception:
-                        continue
-                    if isinstance(source_data, dict):
-                        primary_sources.append(source_data)
+            source_futures = [
+                _THREAD_POOL.submit(engine.get_library_text, ref)
+                for ref in primary_ref_candidates
+            ]
+            for future in source_futures:
+                try:
+                    source_data = future.result(timeout=3)
+                except Exception:
+                    continue
+                if isinstance(source_data, dict):
+                    primary_sources.append(source_data)
 
-        # 2-4. Fetch remaining context in parallel.
-        with ThreadPoolExecutor(max_workers=4) as executor:
-            halachipedia_future = executor.submit(
-                engine.get_halachipedia_summary, question)
-            knowledge_future = executor.submit(
-                _retrieve_community_knowledge,
-                question,
-                canonical_lens=canonical_lens,
-                max_rows=RAG_TOP_KNOWLEDGE_ROWS,
-            )
-            memory_future = executor.submit(
-                _fetch_user_memory_summaries,
-                user_id,
-                limit=RAG_MEMORY_ROWS,
-            )
-            wiki_future = executor.submit(engine.get_wiki, question)
+        # 2-4. Fetch remaining context in parallel using the module-level pool.
+        halachipedia_future = _THREAD_POOL.submit(
+            engine.get_halachipedia_summary, question)
+        knowledge_future = _THREAD_POOL.submit(
+            _retrieve_community_knowledge,
+            question,
+            canonical_lens=canonical_lens,
+            max_rows=RAG_TOP_KNOWLEDGE_ROWS,
+        )
+        memory_future = _THREAD_POOL.submit(
+            _fetch_user_memory_summaries,
+            user_id,
+            limit=RAG_MEMORY_ROWS,
+        )
+        wiki_future = _THREAD_POOL.submit(engine.get_wiki, question)
 
-            try:
-                halachipedia_info = halachipedia_future.result(timeout=4)
-            except Exception:
-                halachipedia_info = None
-            try:
-                knowledge_rows = knowledge_future.result(timeout=4)
-            except Exception:
-                knowledge_rows = []
-            try:
-                user_memory_summaries = memory_future.result(timeout=5)
-            except Exception:
-                user_memory_summaries = []
-            try:
-                wiki_info = wiki_future.result(timeout=3)
-            except Exception:
-                wiki_info = None
+        try:
+            halachipedia_info = halachipedia_future.result(timeout=4)
+        except Exception:
+            halachipedia_info = None
+        try:
+            knowledge_rows = knowledge_future.result(timeout=4)
+        except Exception:
+            knowledge_rows = []
+        try:
+            user_memory_summaries = memory_future.result(timeout=5)
+        except Exception:
+            user_memory_summaries = []
+        try:
+            wiki_info = wiki_future.result(timeout=3)
+        except Exception:
+            wiki_info = None
 
         halachipedia_list = [halachipedia_info] if halachipedia_info else []
         knowledge_rows = knowledge_rows if isinstance(
@@ -3640,1060 +3439,9 @@ def ask_question():
         return jsonify({"error": "An internal error occurred while processing your request.", "detail": str(e)}), 500
 
 
-@app.route("/api/stack/health")
-def stack_health():
-    """Return runtime readiness for Bento stack components."""
-    supabase_ready = bool(_get_supabase_client())
-    return jsonify({
-        "flask": True,
-        "vercel": True,
-        "security": {
-            "limiter_enabled": bool(limiter),
-            "ask_limit": RATE_LIMIT_ASK,
-            "global_limits": RATE_LIMIT_DEFAULT,
-        },
-        "clerk": {
-            "configured": bool(CLERK_PUBLISHABLE_KEY and CLERK_JWT_ISSUER),
-            "enforced": CLERK_ENFORCE_AUTH,
-        },
-        "supabase": {
-            "configured": bool(SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY),
-            "publishable_configured": bool(SUPABASE_URL and SUPABASE_PUBLISHABLE_KEY),
-            "ready": supabase_ready,
-            "prefs_table": SUPABASE_PREFS_TABLE,
-        },
-        "calendar": {
-            "pyluach": True,
-            "zmanim": True,
-        },
-        "external_apis": api_health.status_summary(),
-        "reliability": DEVTOOLS_STATS,
-    })
-
-
-@app.route("/api/devtools/heartbeat")
-def devtools_heartbeat():
-    """Low-noise diagnostics endpoint for inspector/devtools mode."""
-    started = time.time()
-
-    checks: dict[str, Any] = {
-        "clerk_configured": bool(CLERK_PUBLISHABLE_KEY and CLERK_JWT_ISSUER),
-        "supabase_service_ready": bool(_get_supabase_client()),
-        "supabase_publishable_ready": bool(SUPABASE_URL and SUPABASE_PUBLISHABLE_KEY),
-    }
-
-    from backend.sefaria_library import get_popular_texts
-    popular_started = time.time()
-    popular = get_popular_texts()
-    checks["library_popular_ready"] = bool(popular)
-    checks["library_popular_ms"] = int((time.time() - popular_started) * 1000)
-
-    return jsonify({
-        "ok": all(v for k, v in checks.items() if not k.endswith("_ms")),
-        "ts": int(time.time()),
-        "elapsed_ms": int((time.time() - started) * 1000),
-        "checks": checks,
-        "stats": DEVTOOLS_STATS,
-    })
-
-
-@app.route("/api/devtools/reliability")
-def devtools_reliability():
-    return jsonify({
-        "stats": DEVTOOLS_STATS,
-        "ts": int(time.time()),
-    })
-
-
-@app.route("/api/devtools/rls-audit")
-def devtools_rls_audit():
-    """Surface security posture for user-scoped Supabase table access."""
-    has_supabase_token = bool(_extract_supabase_access_token())
-    user_id = _get_request_user_id()
-    return jsonify({
-        "strict_rls": STRICT_SUPABASE_RLS,
-        "tables": {
-            "user_preferences": SUPABASE_PREFS_TABLE,
-            "user_memories": SUPABASE_USER_MEMORIES_TABLE,
-            "study_bookmarks": SUPABASE_STUDY_BOOKMARKS_TABLE,
-        },
-        "user": {
-            "authenticated": bool(user_id),
-            "user_id": user_id or None,
-        },
-        "auth": {
-            "supabase_access_token_present": has_supabase_token,
-            "request_scoped_client_ready": bool(_get_request_supabase_client()),
-        },
-        "requirement": "RLS policies should use auth.uid() = user_id for user tables.",
-        "ts": int(time.time()),
-    })
-
-
-@app.route("/api/client-errors", methods=["POST"])
-def client_errors():
-    payload = request.get_json(silent=True) or {}
-    context = {
-        "url": str(payload.get("url") or "")[:400],
-        "stack": str(payload.get("stack") or "")[:8000],
-        "component": str(payload.get("component") or "")[:120],
-        "user_agent": (request.headers.get("User-Agent") or "")[:320],
-        "ip": _extract_client_ip() or "",
-    }
-    _capture_backend_error("client_error_boundary", payload.get(
-        "message") or "client_error", context)
-    return jsonify({"ok": True})
-
-
-@app.route("/api/daily-study")
-def daily_study_api():
-    """Return daily refs for Daf Yomi, Rambam, and related daily study prewarming."""
-    engine = get_engine()
-    payload = engine.get_daily_learning() or {}
-    return jsonify(payload)
-
-
-@app.route("/api/devtools/segment-report", methods=["POST"])
-@maybe_require_clerk_auth
-def report_segment_issue():
-    payload = request.get_json(silent=True) or {}
-    report = {
-        "ts": int(time.time()),
-        "kind": (payload.get("kind") or "segment").strip()[:60],
-        "message": (payload.get("message") or "").strip()[:2000],
-        "segment": (payload.get("segment") or "").strip()[:160],
-        "ref": (payload.get("ref") or "").strip()[:200],
-        "view_type": (payload.get("view_type") or "").strip()[:40],
-        "view_value": (payload.get("view_value") or "").strip()[:200],
-        "client": {
-            "ua": (request.headers.get("User-Agent") or "")[:300],
-            "ip": _extract_client_ip() or "",
-        },
-    }
-    claims = getattr(g, "clerk_claims", {}) or {}
-    if claims.get("sub"):
-        report["user_id"] = claims.get("sub")
-
-    app.logger.warning("SEGMENT_REPORT %s",
-                       json.dumps(report, ensure_ascii=True))
-    DEVTOOLS_STATS["segment_reports"] += 1
-    return jsonify({"ok": True, "logged": True})
-
-
-@app.route("/api/auth/me")
-def clerk_auth_me():
-    """Returns Clerk auth status and a minimal user payload."""
-    token = _extract_bearer_token()
-    if not token:
-        return jsonify({"authenticated": False})
-
-    try:
-        claims = _verify_clerk_token(token)
-        return jsonify({
-            "authenticated": True,
-            "user_id": claims.get("sub"),
-            "session_id": claims.get("sid"),
-        })
-    except Exception:
-        return jsonify({"authenticated": False}), 401
-
-
-@app.route("/api/user/preferences", methods=["GET", "PUT"])
-@require_clerk_auth
-def user_preferences():
-    """Persist and fetch per-user UI preferences from Supabase."""
-    claims = getattr(g, "clerk_claims", {}) or {}
-    user_id = claims.get("sub")
-    if not user_id:
-        return jsonify({"error": "Missing user identity"}), 401
-
-    supabase = _get_user_scoped_supabase_client()
-    if not supabase and not STRICT_SUPABASE_RLS:
-        supabase = _get_supabase_client()
-    if not supabase:
-        if STRICT_SUPABASE_RLS:
-            return jsonify({"error": "Supabase authenticated session required for RLS-protected preferences."}), 403
-        return jsonify({"error": "Supabase not configured"}), 503
-
-    table = supabase.table(SUPABASE_PREFS_TABLE)
-
-    try:
-        if request.method == "GET":
-            result = table.select("prefs,updated_at").eq(
-                "user_id", user_id).limit(1).execute()
-            rows = result.data or []
-            if not rows:
-                return jsonify({
-                    "prefs": None,
-                    "shelf": None,
-                    "notes": None,
-                    "reading_state": None,
-                    "updated_at": None,
-                })
-
-            record = rows[0]
-            if not isinstance(record, dict):
-                return jsonify({
-                    "prefs": None,
-                    "shelf": None,
-                    "notes": None,
-                    "reading_state": None,
-                    "updated_at": None,
-                })
-
-            stored = record.get("prefs")
-            prefs = None
-            shelf = None
-            notes = None
-            reading_state = None
-            if isinstance(stored, dict):
-                if any(key in stored for key in ("prefs", "shelf", "notes", "reading_state")):
-                    prefs = stored.get("prefs") if isinstance(
-                        stored.get("prefs"), dict) else None
-                    shelf = stored.get("shelf") if isinstance(
-                        stored.get("shelf"), dict) else None
-                    notes = stored.get("notes") if isinstance(
-                        stored.get("notes"), dict) else None
-                    reading_state = stored.get("reading_state") if isinstance(
-                        stored.get("reading_state"), dict) else None
-                else:
-                    # Legacy shape where prefs JSON was stored directly.
-                    prefs = stored
-
-            return jsonify({
-                "prefs": prefs,
-                "shelf": shelf,
-                "notes": notes,
-                "reading_state": reading_state,
-                "updated_at": record.get("updated_at"),
-            })
-
-        payload = request.get_json(silent=True) or {}
-        prefs = payload.get("prefs")
-        if not isinstance(prefs, dict):
-            return jsonify({"error": "prefs must be an object"}), 400
-
-        shelf = payload.get("shelf")
-        notes = payload.get("notes")
-        reading_state = payload.get("reading_state")
-
-        if shelf is None:
-            shelf = {}
-        if notes is None:
-            notes = {}
-        if reading_state is None:
-            reading_state = {}
-
-        if not isinstance(shelf, dict):
-            return jsonify({"error": "shelf must be an object"}), 400
-        if not isinstance(notes, dict):
-            return jsonify({"error": "notes must be an object"}), 400
-        if not isinstance(reading_state, dict):
-            return jsonify({"error": "reading_state must be an object"}), 400
-
-        now_iso = datetime.utcnow().isoformat() + "Z"
-        stored_payload = {
-            "prefs": prefs,
-            "shelf": shelf,
-            "notes": notes,
-            "reading_state": reading_state,
-        }
-        upsert_payload = {
-            "user_id": user_id,
-            "prefs": stored_payload,
-            "updated_at": now_iso,
-        }
-        table.upsert(upsert_payload).execute()
-        return jsonify({"ok": True, "updated_at": now_iso})
-    except Exception as e:
-        _capture_backend_error("user_preferences_sync_failed", e, {
-                               "user_id": str(user_id)})
-        return jsonify({"error": "Failed to sync user preferences to the cloud."}), 500
-
-
-@app.route("/api/bookmarks/semantic", methods=["GET", "POST"])
-@require_clerk_auth
-def semantic_bookmarks():
-    """Persist and retrieve semantic bookmarks with notes and AI summaries."""
-    claims = getattr(g, "clerk_claims", {}) or {}
-    user_id = str(claims.get("sub") or "").strip()
-    if not user_id:
-        return jsonify({"error": "Missing user identity"}), 401
-
-    supabase = _get_user_scoped_supabase_client()
-    if not supabase and not STRICT_SUPABASE_RLS:
-        supabase = _get_supabase_client()
-    if not supabase:
-        if STRICT_SUPABASE_RLS:
-            return jsonify({"error": "Supabase authenticated session required for RLS-protected bookmarks."}), 403
-        return jsonify({"error": "Supabase not configured"}), 503
-
-    table = supabase.table(SUPABASE_STUDY_BOOKMARKS_TABLE)
-    ref = ""
-
-    try:
-        if request.method == "GET":
-            query_limit = _env_int("SEMANTIC_BOOKMARK_LIMIT", 50)
-            result = (
-                table
-                .select("id,ref,label,segment_text,ai_summary,notes,created_at")
-                .eq("user_id", user_id)
-                .order("created_at", desc=True)
-                .limit(max(1, min(query_limit, 200)))
-                .execute()
-            )
-            return jsonify({"items": result.data or []})
-
-        payload = request.get_json(silent=True) or {}
-        ref = str(payload.get("ref") or "").strip()[:260]
-        label = str(payload.get("label") or ref).strip()[:260]
-        segment_text = str(payload.get("segment_text") or "").strip()[:6000]
-        notes = str(payload.get("notes") or "").strip()[:3000]
-        ai_summary = str(payload.get("ai_summary") or "").strip()[:3000]
-
-        if not ref and not segment_text:
-            return jsonify({"error": "A reference or text segment is required."}), 400
-
-        summary_error = ""
-        if not ai_summary and segment_text:
-            summary_result = claude.summarize_with_gemini(
-                segment_text, notes=notes)
-            ai_summary = str(summary_result.get(
-                "summary") or "").strip()[:3000]
-            summary_error = str(summary_result.get("error") or "").strip()
-
-        record = {
-            "id": str(uuid4()),
-            "user_id": user_id,
-            "ref": ref,
-            "label": label,
-            "segment_text": segment_text,
-            "ai_summary": ai_summary,
-            "notes": notes,
-            "created_at": datetime.utcnow().isoformat() + "Z",
-        }
-
-        table.insert(record).execute()
-        return jsonify({
-            "ok": True,
-            "item": record,
-            "summary_generated": bool(ai_summary),
-            "summary_error": summary_error,
-        })
-    except Exception as e:
-        _capture_backend_error("semantic_bookmark_failed", e, {
-            "user_id": user_id,
-            "ref": ref,
-        })
-        return jsonify({"error": "Failed to save semantic bookmark."}), 500
-
-
-@app.route("/api/todos")
-def list_todos():
-    """Flask equivalent of the Next.js server query for todos."""
-    supabase = _get_request_supabase_client()
-    if not supabase:
-        return jsonify({
-            "error": "Supabase publishable client is not configured",
-            "hint": "Set NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_PUBLISHABLE_DEFAULT_KEY",
-        }), 503
-
-    try:
-        result = supabase.from_("todos").select("id,name").execute()
-        return jsonify({"todos": result.data or []})
-    except Exception as e:
-        message = str(e)
-        if "PGRST205" in message or "Could not find the table 'public.todos'" in message:
-            # Treat a missing optional table as an empty list so the UI keeps working.
-            return jsonify({"todos": [], "warning": "Supabase todos table is not configured"})
-        return jsonify({"error": f"Failed to load todos: {message}"}), 500
-
-
-@app.route("/api/library/index")
-def library_index():
-    """Returns report-adjusted Sefaria library tree (non-loading removals pruned, fix refs applied)."""
-    from backend.sefaria_library import get_library_index
-    data = get_library_index()
-    return jsonify(data)
-
-
-@app.route("/api/library/leaf-refs")
-def library_leaf_refs():
-    """Return leaf refs for a given index title to power section-grid selectors."""
-    import re as _re
-    from backend.sefaria_library import get_index_entry, get_index_leaf_refs
-
-    def _parse_talmud_daf_key(daf_str):
-        """Convert a daf string like '2a', '13b' to a sortable integer key."""
-        m = _re.search(r'(\d+)([ab])', str(daf_str or '').strip().lower())
-        if not m:
-            return None
-        num = int(m.group(1))
-        side = 0 if m.group(2) == 'a' else 1
-        return num * 2 + side
-
-    def _extract_talmud_sections(index_title, entry):
-        """
-        Extract named chapter sections from a Talmud index entry's alts.Chapters.
-        Returns list of {label, fromDaf, toDaf} dicts, or [] if unavailable.
-        """
-        alts = entry.get("alts") if isinstance(entry, dict) else None
-        if not isinstance(alts, dict):
-            return []
-        chapters_alt = alts.get("Chapters") or alts.get("chapters")
-        if not isinstance(chapters_alt, dict):
-            return []
-        nodes = chapters_alt.get("nodes")
-        if not isinstance(nodes, list):
-            return []
-
-        sections = []
-        for node in nodes:
-            if not isinstance(node, dict):
-                continue
-            raw_title = str(node.get("title") or "").strip()
-            canonical_title = entry.get("title", index_title)
-            whole_ref = str(node.get("wholeRef") or "").strip()
-
-            # Parse the daf range from wholeRef: "Berakhot 2a:1-13a:15"
-            # Strip the title prefix then read the daf range
-            ref_body = whole_ref
-            if canonical_title and ref_body.lower().startswith(canonical_title.lower()):
-                ref_body = ref_body[len(canonical_title):].lstrip(" ,")
-            elif index_title and ref_body.lower().startswith(index_title.lower()):
-                ref_body = ref_body[len(index_title):].lstrip(" ,")
-
-            range_m = _re.search(
-                r'(\d+[ab])(?:[\d:]*)\s*-\s*(\d+[ab])', ref_body, _re.IGNORECASE)
-            if not range_m:
-                continue
-            from_daf = range_m.group(1).lower()
-            to_daf = range_m.group(2).lower()
-
-            # Clean the chapter label: "Chapter 1; MeEimatai" → "MeEimatai (2a–13a)"
-            # Keep the human name after the semicolon, if present
-            if ';' in raw_title:
-                label = raw_title.split(';', 1)[1].strip()
-            else:
-                label = raw_title
-
-            sections.append({
-                "label": label,
-                "fromDaf": from_daf,
-                "toDaf": to_daf,
-            })
-
-        return sections
-
-    def _collapse_talmud_leaf_refs(index_title, refs, max_items=260):
-        """Convert segment-level Talmud refs into unique daf refs for stable grid rendering."""
-        if not isinstance(refs, list) or not refs:
-            return []
-
-        normalized_title = str(index_title or "").strip()
-        compact_refs = []
-        seen = set()
-
-        for ref_value in refs:
-            ref_text = str(ref_value or "").strip()
-            if not ref_text:
-                continue
-
-            body = ref_text
-            if normalized_title and body.lower().startswith(normalized_title.lower()):
-                body = body[len(normalized_title):].lstrip(" ,")
-
-            daf_match = _re.search(r"(\d+[ab])", body, _re.IGNORECASE)
-            if not daf_match:
-                continue
-
-            daf = daf_match.group(1).lower()
-            if daf in seen:
-                continue
-            seen.add(daf)
-
-            compact_refs.append(f"{normalized_title} {daf}".strip())
-            if len(compact_refs) >= max_items:
-                break
-
-        return compact_refs
-
-    def _synthesize_section_refs(index_title, max_items=140):
-        entry = get_index_entry(index_title)
-        schema = entry.get("schema", {}) if isinstance(entry, dict) else {}
-        if not isinstance(schema, dict):
-            return [], []
-
-        lengths = schema.get("lengths") if isinstance(
-            schema.get("lengths"), list) else []
-        if not lengths:
-            return [], []
-
-        try:
-            first_level_count = int(lengths[0])
-        except (TypeError, ValueError):
-            return [], []
-
-        if first_level_count <= 1:
-            return [], []
-
-        section_names = schema.get("sectionNames") if isinstance(
-            schema.get("sectionNames"), list) else []
-        address_types = schema.get("addressTypes") if isinstance(
-            schema.get("addressTypes"), list) else []
-
-        first_section_name = str(section_names[0] or "").strip(
-        ).lower() if section_names else ""
-        first_address_type = str(address_types[0] or "").strip(
-        ).lower() if address_types else ""
-
-        refs = []
-        if first_section_name == "daf" or first_address_type == "talmud":
-            # Sefaria Talmud indexing starts at 2a.
-            for idx in range(first_level_count):
-                daf_num = (idx // 2) + 2
-                side = "a" if idx % 2 == 0 else "b"
-                refs.append(f"{index_title} {daf_num}{side}")
-                if len(refs) >= max_items:
-                    break
-            sections = _extract_talmud_sections(index_title, entry)
-            return refs, sections
-
-        for idx in range(1, first_level_count + 1):
-            refs.append(f"{index_title} {idx}")
-            if len(refs) >= max_items:
-                break
-
-        return refs, []
-
-    requested_title = _decode_route_ref(request.args.get("title", ""))
-    title = str(requested_title or "").strip()
-    max_refs = _coerce_int(request.args.get("max"), 140,
-                           min_value=1, max_value=260)
-
-    if not title:
-        return jsonify({"title": "", "refs": [], "sections": []})
-
-    sections = []
-    try:
-        refs = get_index_leaf_refs(title, max_refs=max_refs)
-    except Exception:
-        refs = []
-
-    if not isinstance(refs, list):
-        refs = []
-
-    if len(refs) <= 1:
-        refs, sections = _synthesize_section_refs(title, max_items=max_refs)
-    else:
-        # Try to extract sections even when refs came from get_index_leaf_refs
-        try:
-            entry = get_index_entry(title)
-            sections = _extract_talmud_sections(title, entry)
-        except Exception:
-            sections = []
-
-    if sections:
-        collapsed_refs = _collapse_talmud_leaf_refs(
-            title, refs, max_items=max_refs)
-        if collapsed_refs:
-            refs = collapsed_refs
-
-    return jsonify({
-        "title": title,
-        "refs": refs,
-        "sections": sections,
-    })
-
-
-@app.route("/api/library/popular")
-def library_popular():
-    """Returns curated popular texts per category."""
-    from backend.sefaria_library import get_popular_texts
-    return jsonify(get_popular_texts())
-
-
-@app.route("/api/text/<path:ref>")
-def get_text_inline(ref):
-    """Fetches a Sefaria text inline — Hebrew + English + metadata."""
-    from backend.sefaria_library import get_text
-    decoded_ref = _decode_route_ref(ref)
-    data = get_text(decoded_ref)
-
-    if isinstance(data, dict) and data.get("error"):
-        error_type = data.get("error_type", "")
-        if error_type == "sefaria_blocked" or "blocked" in str(data.get("error", "")).lower():
-            return jsonify(data), 503
-
-    should_translate = str(request.args.get("autotranslate", "1")).strip().lower() not in {
-        "0", "false", "no", "off"
-    }
-    if should_translate and isinstance(data, dict) and not data.get("error"):
-        data = _fill_missing_english_lines(data)
-
-    return jsonify(data)
-
-
-@app.route("/api/diagnostics/sefaria")
-def sefaria_diagnostics():
-    """Real-time availability probe for the upstream Sefaria API.
-    Returns status for both the v3 and v2 endpoints, plus cached block info.
-    """
-    from backend.sefaria_library import check_sefaria_availability
-    result = check_sefaria_availability()
-    http_status = 200 if result.get("overall_available") else 503
-    return jsonify(result), http_status
-
-
-@app.route("/api/word/meaning")
-def get_word_meaning():
-    """Look up a highlighted word meaning (best-effort for Hebrew and English)."""
-    raw_word = str(request.args.get("word", "") or "").strip()
-    if not raw_word:
-        return jsonify({"error": "Missing word parameter"}), 400
-
-    requested_lang = str(request.args.get(
-        "lang", "en") or "en").strip().lower()
-    if requested_lang not in {"en", "he"}:
-        requested_lang = "en"
-
-    word_is_hebrew = _contains_hebrew_letters(raw_word)
-    if word_is_hebrew and requested_lang == "he":
-        # For Hebrew source words we keep definitions in English to avoid transliteration-heavy round-trips.
-        requested_lang = "en"
-
-    if word_is_hebrew:
-        meaning, source = _lookup_hebrew_word_meaning(raw_word)
-    else:
-        meaning, source = _lookup_english_word_meaning(raw_word)
-
-    if meaning and requested_lang == "he" and not word_is_hebrew and not _contains_hebrew_letters(meaning):
-        translated_meaning, translated_source = _translate_english_text_online(
-            meaning)
-        if translated_meaning:
-            meaning = translated_meaning
-            source_parts = [part for part in [
-                source, translated_source] if part]
-            source = "+".join(source_parts)
-
-    alternatives = _collect_word_meaning_alternatives(
-        raw_word=raw_word,
-        primary_meaning=meaning,
-        word_is_hebrew=word_is_hebrew,
-    )
-    if alternatives:
-        meaning = alternatives[0]
-
-    if not meaning:
-        return jsonify({
-            "word": raw_word,
-            "meaning": "",
-            "alternatives": [],
-            "source": "",
-            "status": "not_found",
-            "lang": requested_lang,
-        }), 404
-
-    return jsonify({
-        "word": raw_word,
-        "meaning": meaning,
-        "alternatives": alternatives,
-        "source": source,
-        "status": "ok",
-        "lang": requested_lang,
-    })
-
-
-def _chapter_export_plain_text(title, ref, lines):
-    header = [str(title or "").strip(), str(ref or "").strip(), ""]
-    body = []
-    for idx, line in enumerate(lines, start=1):
-        segment = str(line.get("segment") or idx).strip()
-        he = str(line.get("he") or "").strip()
-        en = str(line.get("en") or "").strip()
-        body.append(f"Segment {segment}")
-        if he:
-            body.append(f"Hebrew: {he}")
-        if en:
-            body.append(f"English: {en}")
-        body.append("")
-
-    return "\n".join(header + body).strip() + "\n"
-
-
-def _wrap_text_for_export(text, max_chars=96):
-    value = re.sub(r"\s+", " ", str(text or "").strip())
-    if not value:
-        return [""]
-
-    words = value.split(" ")
-    chunks = []
-    current = ""
-    for word in words:
-        candidate = f"{current} {word}".strip()
-        if len(candidate) <= max_chars:
-            current = candidate
-            continue
-        if current:
-            chunks.append(current)
-        current = word
-    if current:
-        chunks.append(current)
-
-    return chunks or [value]
-
-
-@app.route("/api/export/chapter", methods=["POST"])
-@maybe_require_clerk_auth
-def export_chapter():
-    payload = request.get_json(silent=True) or {}
-    title = str(payload.get("title") or payload.get(
-        "label") or "shelah-chapter").strip()
-    ref = str(payload.get("ref") or "").strip()
-    export_format = str(payload.get("format") or "txt").strip().lower()
-    lines = payload.get("lines") if isinstance(
-        payload.get("lines"), list) else []
-
-    if export_format not in {"txt", "docx", "pdf"}:
-        return jsonify({"error": "Unsupported export format"}), 400
-
-    normalized_lines = []
-    for idx, line in enumerate(lines, start=1):
-        if not isinstance(line, dict):
-            continue
-        he = str(line.get("he") or "").strip()
-        en = str(line.get("en") or "").strip()
-        if not he and not en:
-            continue
-        normalized_lines.append({
-            "segment": str(line.get("segment") or idx).strip(),
-            "he": he,
-            "en": en,
-        })
-
-    if not normalized_lines:
-        return jsonify({"error": "No chapter lines available to export"}), 400
-
-    file_safe = re.sub(r"[^a-z0-9]+", "-", title.lower()
-                       ).strip("-") or "shelah-chapter"
-    plain_text = _chapter_export_plain_text(title, ref, normalized_lines)
-
-    if export_format == "txt":
-        txt_buffer = io.BytesIO(plain_text.encode("utf-8"))
-        txt_buffer.seek(0)
-        return send_file(
-            txt_buffer,
-            as_attachment=True,
-            download_name=f"{file_safe}.txt",
-            mimetype="text/plain; charset=utf-8",
-        )
-
-    if export_format == "docx":
-        if Document is None:
-            return jsonify({"error": "DOCX export is unavailable on this server"}), 503
-
-        document = Document()
-        document.add_heading(title or "Sh'elah Chapter", level=1)
-        if ref:
-            document.add_paragraph(ref)
-
-        for idx, line in enumerate(normalized_lines, start=1):
-            segment = line.get("segment") or idx
-            document.add_paragraph(f"Segment {segment}")
-            if line.get("he"):
-                document.add_paragraph(line["he"])
-            if line.get("en"):
-                document.add_paragraph(line["en"])
-
-        docx_buffer = io.BytesIO()
-        document.save(docx_buffer)
-        docx_buffer.seek(0)
-        return send_file(
-            docx_buffer,
-            as_attachment=True,
-            download_name=f"{file_safe}.docx",
-            mimetype="application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-        )
-
-    if canvas is None or LETTER is None:
-        return jsonify({"error": "PDF export is unavailable on this server"}), 503
-
-    pdf_buffer = io.BytesIO()
-    pdf = canvas.Canvas(pdf_buffer, pagesize=LETTER)
-    width, height = LETTER
-    y = height - 48
-    left = 42
-
-    def draw_line(text):
-        nonlocal y
-        for chunk in _wrap_text_for_export(text, max_chars=96):
-            if y < 48:
-                pdf.showPage()
-                y = height - 48
-            pdf.drawString(left, y, chunk)
-            y -= 14
-
-    draw_line(title or "Sh'elah Chapter")
-    if ref:
-        draw_line(ref)
-    draw_line("")
-
-    for idx, line in enumerate(normalized_lines, start=1):
-        draw_line(f"Segment {line.get('segment') or idx}")
-        if line.get("he"):
-            draw_line(f"Hebrew: {line['he']}")
-        if line.get("en"):
-            draw_line(f"English: {line['en']}")
-        draw_line("")
-
-    pdf.save()
-    pdf_buffer.seek(0)
-    return send_file(
-        pdf_buffer,
-        as_attachment=True,
-        download_name=f"{file_safe}.pdf",
-        mimetype="application/pdf",
-    )
-
-
-@app.route("/api/library/search")
-def library_search():
-    """Full-text search across Sefaria texts with report-based removal/fix filtering."""
-    from backend.sefaria_library import search_library
-    query = request.args.get("q", "")
-    size = _coerce_int(request.args.get("size"), 10, min_value=1, max_value=50)
-    metadata_filters = _extract_search_metadata_filters()
-    if not query:
-        return jsonify([])
-    results = search_library(
-        query, size=size, metadata_filters=metadata_filters)
-    return jsonify(results)
-
-
-@app.route("/api/search/suggest")
-def search_suggest():
-    """Omnibox suggestions: texts, prayers, communities, and AI query option."""
-    from backend.sefaria_library import search_library, get_liturgy_books
-
-    query = (request.args.get("q", "") or "").strip()
-    size = _coerce_int(request.args.get("size"), 8, min_value=1, max_value=20)
-    metadata_filters = _extract_search_metadata_filters()
-    if not query:
-        return jsonify([])
-
-    q_lower = query.lower()
-    suggestions = []
-    seen = set()
-
-    def add_item(item_type, label, value, subtitle="", score=0, label_he="", subtitle_he=""):
-        key = (item_type, (value or "").lower())
-        if key in seen:
-            return
-        seen.add(key)
-        suggestions.append({
-            "type": item_type,
-            "label": label,
-            "label_he": label_he,
-            "value": value,
-            "subtitle": subtitle,
-            "subtitle_he": subtitle_he,
-            "score": score,
-        })
-
-    alias_ref = QUICK_TEXT_ALIASES.get(q_lower)
-    if alias_ref:
-        add_item("text", alias_ref, alias_ref, "Popular Torah alias", 100)
-
-    for community in COMMUNITIES.keys():
-        if q_lower in community.lower():
-            add_item("community", community, community,
-                     "Community customs", 90)
-
-    for alias, canonical in COMMUNITY_ALIASES.items():
-        if q_lower in alias and canonical in COMMUNITIES:
-            add_item("community", canonical, canonical,
-                     f"Community customs (matched '{alias}')", 88)
-
-    for book in get_liturgy_books(max_items=120):
-        title = book.get("title", "")
-        if title and q_lower in title.lower():
-            add_item("prayer", title, title, "Sefaria liturgy", 85)
-
-    for hit in search_library(query, size=size, metadata_filters=metadata_filters):
-        ref = hit.get("ref", "")
-        he_ref = (hit.get("heRef", "") or "").strip()
-        categories = " > ".join(hit.get("categories", [])[:3])
-        if ref:
-            add_item(
-                "text",
-                ref,
-                ref,
-                categories or "Sefaria text",
-                70,
-                label_he=he_ref or ref,
-            )
-
-    add_item("ask", f"Ask Sh'elah: {query}", query,
-             "AI synthesis", 40)
-
-    suggestions.sort(key=lambda x: x.get("score", 0), reverse=True)
-    return jsonify(suggestions[:size])
-
-
-@app.route("/api/text/<path:ref>/links")
-def get_text_links(ref):
-    """Returns all linked commentaries & parallel texts for a given ref."""
-    from backend.sefaria_library import get_linked_texts
-    decoded_ref = _decode_route_ref(ref)
-    return jsonify(get_linked_texts(decoded_ref))
-
-
-@app.route("/api/text/<path:ref>/graph")
-def get_text_graph(ref):
-    """Build a lightweight source graph around a text reference."""
-    from backend.sefaria_library import get_linked_texts
-
-    decoded_ref = _decode_route_ref(ref)
-    links = get_linked_texts(decoded_ref)
-    nodes = [{"id": decoded_ref, "label": decoded_ref, "kind": "root"}]
-    edges = []
-    seen = {decoded_ref}
-
-    for category, items in (links or {}).items():
-        for item in (items or [])[:14]:
-            target = (item or {}).get("ref", "")
-            if not target:
-                continue
-            if target not in seen:
-                seen.add(target)
-                nodes.append({
-                    "id": target,
-                    "label": target,
-                    "kind": "linked",
-                    "category": category,
-                })
-            edges.append({
-                "source": decoded_ref,
-                "target": target,
-                "label": category,
-            })
-
-    return jsonify({
-        "ref": ref,
-        "nodes": nodes,
-        "edges": edges,
-    })
-
-
-@app.route("/api/library/category/<path:category>")
-def library_category(category):
-    """Returns all books in a given Sefaria category."""
-    from backend.sefaria_library import get_category_contents
-    return jsonify(get_category_contents(category))
-
-
-# ─── PRAYER BOOK API (Siddur Sefard - Sefardic/Mediterranean Siddur) ──────────
-# Prayer content is fetched live from Sefaria refs listed in SIDDUR_SECTION_MAP.
-
-
-@app.route("/api/prayers/list")
-def get_prayers_list():
-    """Returns all prayer books from Sefaria Liturgy plus legacy quick services."""
-    from backend.sefaria_library import get_liturgy_books
-
-    items = []
-    seen = set()
-
-    for name in SIDDUR_SECTION_MAP.keys():
-        items.append({"name": name, "title": name, "source": "legacy-service"})
-        seen.add(name)
-
-    for book in get_liturgy_books(max_items=200):
-        title = book.get("title")
-        if title and title not in seen:
-            items.append({"name": title, "title": title,
-                         "source": "sefaria-liturgy"})
-            seen.add(title)
-
-    return jsonify(items)
-
-
-@app.route("/api/prayer/<name>")
-def get_prayer(name):
-    """Returns prayer-book preview content in English and Hebrew."""
-    from backend.sefaria_library import get_text
-
-    resolved_name = (unquote(name or "") or "").strip()
-    refs = _get_prayer_refs(resolved_name)
-    if not refs:
-        return jsonify({"error": f"Prayer '{resolved_name}' not found"}), 404
-
-    preview = None
-    for ref in refs[:12]:
-        data = get_text(ref)
-        if "error" not in data and (data.get("he") or data.get("en")):
-            preview = data
-            break
-
-    if not preview:
-        return jsonify({"error": f"Could not load prayer '{resolved_name}' from Sefaria"}), 404
-
-    en_preview = "\n".join([l.get("en", "") for l in preview.get(
-        "lines", []) if l.get("en")][:8]).strip()
-    he_preview = "\n".join([l.get("he", "") for l in preview.get(
-        "lines", []) if l.get("he")][:8]).strip()
-    if not en_preview:
-        en_preview = f"Preview available in Hebrew for {resolved_name}."
-    if not he_preview:
-        he_preview = f"תצוגה מקדימה זמינה באנגלית עבור {resolved_name}."
-
-    prayer_data = {
-        "en": en_preview,
-        "he": he_preview,
-    }
-
-    return jsonify({
-        "name": resolved_name,
-        "title": resolved_name,
-        "content": prayer_data,
-        "languages": ["en", "he"]
-    })
-
-
-@app.route("/api/siddur/full/<path:prayer_name>")
-def get_siddur_full(prayer_name):
-    """Fetch full prayer text from Sefaria for any supported prayer service/book."""
-    from backend.sefaria_library import get_text
-
-    resolved_name = (unquote(prayer_name or "") or "").strip()
-    refs = _get_prayer_refs(resolved_name)
-    if not refs:
-        return jsonify({"error": f"No Sefaria mapping for '{resolved_name}'"}), 404
-
-    combined_lines = []
-    for ref in refs:
-        data = get_text(ref)
-        if "error" not in data and (data.get("he") or data.get("en")):
-            section_title = ref.split(", ")[-1] if ", " in ref else ref
-            he_title = data.get("heTitle", section_title)
-            combined_lines.append({
-                "he": f"<strong class='text-navy'>{he_title}</strong>",
-                "en": f"<strong class='text-navy'>{section_title}</strong>",
-                "type": "header"
-            })
-            combined_lines.extend(data.get("lines", []))
-
-    if not combined_lines:
-        return jsonify({"error": "Could not fetch prayer text from Sefaria"}), 404
-
-    return jsonify({
-        "prayer": resolved_name,
-        "lines": combined_lines,
-        "sources": refs
-    })
-
-
-# ─── COMMUNITY CUSTOMS API (Merkava) ──────────────────────────────────────────
+# ─── COMMUNITY CUSTOMS DATA (Merkava) ─────────────────────────────────────────
+# Shared community registry consumed by backend/routes_community.py and by the
+# _canonicalize_community_name / _detect_community_in_text helpers above.
 
 COMMUNITIES = {
     "Ashkenaz": "ashkenaz",
@@ -4755,266 +3503,47 @@ COMMUNITY_ALIASES = {
 }
 
 
-@app.route("/api/communities/list")
-def get_communities_list():
-    """Returns list of available communities."""
-    communities = sorted(COMMUNITIES.keys())
-    return jsonify([{"name": c} for c in communities])
+# ─── Blueprint registration (Stage 2 route decomposition) ────────────────
+# Imported at the bottom so each blueprint's `from app import ...` resolves
+# against a fully-initialized app module (no circular-import trap).
+# When run as `python3 app.py` the module is registered as __main__, not 'app'.
+# Blueprint files that do `from app import X` would trigger a full re-import of
+# app.py and a circular-import deadlock.  Alias __main__ as 'app' here so those
+# imports resolve against the already-running module instead.
+import sys as _sys
+_sys.modules.setdefault('app', _sys.modules['__main__'])
+del _sys
 
+# Each import is wrapped individually: a syntax error or import-time exception
+# in one blueprint file must not silently swallow the others — it raises
+# immediately with the offending module name so the deploy fails loudly
+# rather than serving 404s for an unknown subset of routes.
+_BLUEPRINTS = [
+    ("backend.routes_library", "routes_library"),
+    ("backend.routes_prayers", "routes_prayers"),
+    ("backend.routes_community", "routes_community"),
+    ("backend.routes_calendar", "routes_calendar"),
+    ("backend.routes_user", "routes_user"),
+    ("backend.routes_devtools", "routes_devtools"),
+]
 
-@app.route("/api/community/<name>")
-def get_community(name):
-    """Returns community customs data."""
-    resolved_name = (unquote(name or "") or "").strip()
-    canonical_name = _canonicalize_community_name(resolved_name)
-    if canonical_name is None:
-        return jsonify({"error": f"Community '{resolved_name}' not found"}), 404
-
-    filename = COMMUNITIES[canonical_name]
-    filepath = os.path.join(os.path.dirname(__file__),
-                            "customs", f"{filename}.json")
-
+import importlib as _importlib
+for _mod_path, _bp_name in _BLUEPRINTS:
     try:
-        with open(filepath, 'r', encoding='utf-8') as f:
-            data = json.load(f)
-
-        # Extract key information for display
-        identity = data.get("identity", {})
-        trusted_sources = _build_trusted_custom_sources(data)
-
-        # Extract customs from halacha_index
-        customs_content = {}
-        for item in data.get("halacha_index", []) if isinstance(data, dict) else []:
-            if not isinstance(item, dict):
-                continue
-            topic = item.get("topic", "").lower()
-            category = item.get("category", "").lower()
-            key = f"{category}_{topic}".strip("_")
-            customs_content[key] = {
-                "category": category,
-                "topic": topic,
-                "ruling": item.get("summary", ""),
-                "common_practices": item.get("common_practices", []),
-                "source": item.get("source", "") or ", ".join(trusted_sources[:4])
-            }
-
-        fallback_customs = data if isinstance(data, dict) else {}
-
-        return jsonify({
-            "name": canonical_name,
-            "requested_name": resolved_name,
-            "heritage_id": data.get("heritage_id") if isinstance(data, dict) else None,
-            "primary_origin": identity.get("primary_origin", "") if isinstance(identity, dict) else "",
-            "customs": customs_content if customs_content else fallback_customs,
-            "raw_data": data  # Full data available if needed
-        })
-    except Exception as e:
-        return jsonify({"error": f"Could not load community data: {str(e)}"}), 500
-
-
-@app.route("/api/community/<name>/timeline")
-def get_community_timeline(name):
-    """Returns a normalized community timeline for timeline view components."""
-    resolved_name = (unquote(name or "") or "").strip()
-    canonical_name = _canonicalize_community_name(resolved_name)
-    if canonical_name is None:
-        return jsonify({"error": f"Community '{resolved_name}' not found"}), 404
-
-    filename = COMMUNITIES[canonical_name]
-    filepath = os.path.join(os.path.dirname(__file__),
-                            "customs", f"{filename}.json")
-    try:
-        with open(filepath, 'r', encoding='utf-8') as f:
-            data = json.load(f)
-    except Exception as e:
-        return jsonify({"error": f"Could not load community data: {str(e)}"}), 500
-
-    timeline = []
-
-    identity = data.get("identity", {}) if isinstance(data, dict) else {}
-    origin = identity.get("primary_origin") if isinstance(
-        identity, dict) else ""
-    if origin:
-        timeline.append({
-            "title": "Primary Origin",
-            "description": origin,
-            "approx_period": "Historic",
-        })
-
-    for key in ("timeline", "history", "historical_timeline", "migration_story"):
-        value = data.get(key) if isinstance(data, dict) else None
-        if isinstance(value, list):
-            for item in value:
-                if isinstance(item, dict):
-                    timeline.append({
-                        "title": str(item.get("title") or item.get("period") or key).strip()[:120],
-                        "description": str(item.get("description") or item.get("event") or "").strip()[:400],
-                        "approx_period": str(item.get("year") or item.get("period") or "").strip()[:80],
-                    })
-                elif isinstance(item, str):
-                    timeline.append({
-                        "title": key.replace("_", " ").title(),
-                        "description": item.strip()[:400],
-                        "approx_period": "",
-                    })
-        elif isinstance(value, str) and value.strip():
-            timeline.append({
-                "title": key.replace("_", " ").title(),
-                "description": value.strip()[:400],
-                "approx_period": "",
-            })
-
-    if not timeline:
-        timeline.append({
-            "title": "Tradition",
-            "description": f"{canonical_name} customs are preserved through local minhagim and halachic practice.",
-            "approx_period": "Ongoing",
-        })
-
-    return jsonify({
-        "name": canonical_name,
-        "events": timeline[:30],
-    })
-
-
-# ─── TEXTS INDEX (for top menu) ───────────────────────────────────────────────
-@app.route("/api/texts-index")
-def get_texts_index():
-    """Returns complete index of browsable texts: prayers, communities, Sefaria."""
-    from backend.sefaria_library import get_liturgy_books
-
-    return jsonify({
-        "siddur": {
-            "title": "Sefaria Prayer Books",
-            "items": [b.get("title") for b in get_liturgy_books(max_items=200)]
-        },
-        "merkava": {
-            "title": "Community Customs (Merkava)",
-            "items": list(COMMUNITIES.keys())
-        },
-        "sefaria": {
-            "title": "Jewish Text Library",
-            "items": ["Tanakh", "Mishnah", "Talmud", "Halakhah", "Kabbalah"]
-        }
-    })
-
-
-@app.route("/api/holidays")
-def get_holidays():
-    """Returns Jewish holiday events for FullCalendar via Hebcal API."""
-    year = request.args.get('year', str(greg_date.today().year))
-    url = (
-        f"https://www.hebcal.com/hebcal?v=1&cfg=json&maj=on&min=on&mod=on"
-        f"&nx=on&year={year}&month=x&ss=on&s=on&mf=on&c=off&geo=none"
-    )
-    try:
-        r = requests.get(url, timeout=5)
-        data = r.json()
-        if isinstance(data, dict) and data.get("error"):
-            raise ValueError(data.get("error"))
-        items = data.get("items", []) if isinstance(data, dict) else data
-        if not isinstance(items, list):
-            items = []
-
-        events = []
-        for item in items:
-            if not isinstance(item, dict):
-                continue
-
-            category = str(item.get("category") or "").strip().lower()
-            title_raw = item.get("title") or ""
-            title_clean = _strip_leading_symbol_prefix(title_raw)
-            start = item.get("date") or item.get("start")
-
-            if not title_clean or not start:
-                continue
-
-            emoji = _holiday_emoji_for_event(title_clean, category)
-            events.append({
-                "title": f"{emoji} {title_clean}",
-                "start": start,
-                "allDay": "T" not in str(start),
-                "display": "block",
-                "color": _holiday_color_for_category(category),
-                "textColor": "#ffffff",
-            })
-
-        return jsonify(events)
-    except Exception as e:
-        app.logger.warning(f"Hebcal API failed for year {year}: {str(e)}")
-        fallback = _build_pyluach_holiday_events(year) or []
-        if fallback:
-            return jsonify(fallback)
-
-        # Last-resort fallback to monthly zmanim events so calendar is never empty.
-        try:
-            engine = get_engine()
-            return jsonify(engine.get_monthly_zmanim())
-        except Exception:
-            return jsonify({"error": "Calendar data currently unavailable", "events": []}), 503
-
-
-@app.route("/api/parasha")
-def get_parasha():
-    """Return current weekly Parasha information for the Torah section."""
-    try:
-        r = requests.get("https://www.sefaria.org/api/calendars", timeout=6)
-        data = r.json()
-
-        for item in data.get("calendar_items", []):
-            title_en = (item.get("title", {}) or {}).get("en", "")
-            if "Parashat" in title_en or "Parasha" in title_en:
-                display_en = (item.get("displayValue", {}) or {}).get("en", "")
-                display_he = (item.get("displayValue", {}) or {}).get("he", "")
-                ref = item.get("ref") or ""
-                return jsonify({
-                    "title": display_en or title_en,
-                    "heTitle": display_he,
-                    "ref": ref,
-                    "source": "sefaria-calendars",
-                })
-    except Exception:
-        pass
-
-    try:
-        from backend.calendar_service import calendar_engine
-        parasha_name = calendar_engine.get_parasha()
-        return jsonify({
-            "title": parasha_name or "Parashat HaShavua",
-            "heTitle": "",
-            "ref": "Genesis 1",
-            "source": "calendar-fallback",
-        })
-    except Exception:
-        return jsonify({
-            "title": "Parashat HaShavua",
-            "heTitle": "",
-            "ref": "Genesis 1",
-            "source": "default-fallback",
-        })
-
-
-# ─── Backward-compat route aliases ────────────────────────────────────────────
-# Clients (and the audit) used shorter paths before the canonical routes above
-# were established. These thin shims remove the 404s without touching any logic.
-
-@app.route("/api/health")
-def api_health_alias():
-    """/api/health → /api/stack/health (backward compat)."""
-    return stack_health()
-
-
-@app.route("/api/preferences", methods=["GET", "PUT"])
-def api_preferences_alias():
-    """/api/preferences → /api/user/preferences (backward compat)."""
-    return user_preferences()
-
-
-@app.route("/api/communities")
-def api_communities_alias():
-    """/api/communities → /api/communities/list (backward compat)."""
-    return get_communities_list()
-
+        _mod = _importlib.import_module(_mod_path)
+        _bp = getattr(_mod, _bp_name)
+        app.register_blueprint(_bp)
+    except Exception as _bp_exc:
+        import sys as _sys
+        app.logger.critical(
+            "FATAL: blueprint registration failed for %s.%s — %s",
+            _mod_path, _bp_name, _bp_exc,
+            exc_info=True,
+        )
+        raise RuntimeError(
+            f"Blueprint '{_bp_name}' from '{_mod_path}' failed to load: {_bp_exc}"
+        ) from _bp_exc
+del _importlib, _BLUEPRINTS, _mod_path, _bp_name, _mod, _bp
 
 if __name__ == "__main__":
     port = int(os.environ.get('PORT', 5001))

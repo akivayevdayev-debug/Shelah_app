@@ -10,14 +10,59 @@ Used by data_service.ShelahEngine.get_customs and exposed in API responses.
 """
 
 import json
+import logging
 import os
 import glob
 import difflib
 from pathlib import Path
 
+logger = logging.getLogger(__name__)
+
 # Path to customs folder
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 CUSTOMS_DIR = str(PROJECT_ROOT / "customs")
+
+# Required top-level fields for structured community files (v2.x)
+_REQUIRED_FIELDS = ("heritage_id", "name", "halacha_index")
+
+
+def _validate_customs_file(data: dict, filepath: str) -> list[str]:
+    """Return a list of validation error strings for a structured customs file."""
+    errors = []
+    if not isinstance(data, dict):
+        errors.append("root value is not a JSON object")
+        return errors
+    for field in _REQUIRED_FIELDS:
+        if field not in data:
+            errors.append(f"missing required field '{field}'")
+        elif not data[field]:
+            errors.append(f"required field '{field}' is empty")
+    return errors
+
+
+def validate_all_customs_at_startup() -> None:
+    """Validate all community JSON files at startup.  Logs an error per offending
+    file without raising, so a single bad file does not crash the entire app."""
+    files = sorted(glob.glob(os.path.join(CUSTOMS_DIR, "*.json")))
+    skip = {"customs_db.json", "schema.json"}
+    for filepath in files:
+        if os.path.basename(filepath).lower() in skip:
+            continue
+        try:
+            with open(filepath, "r", encoding="utf-8") as fh:
+                data = json.load(fh)
+        except Exception as exc:
+            logger.error("customs validation: cannot parse %s — %s", filepath, exc)
+            continue
+        if "name" not in data:
+            continue  # Legacy flat-dict format — skip schema check
+        errors = _validate_customs_file(data, filepath)
+        if errors:
+            logger.error(
+                "customs validation: %s failed schema check — %s",
+                os.path.basename(filepath),
+                "; ".join(errors),
+            )
 _CUSTOMS_CACHE: dict = {
     "signature": (),
     "data": {},
