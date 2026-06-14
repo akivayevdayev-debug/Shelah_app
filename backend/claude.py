@@ -10,6 +10,7 @@ This module is intentionally stateless: app.py and data_service.py prepare conte
 then this file focuses on LLM formatting and call execution.
 """
 
+import asyncio
 import os
 import re
 import logging
@@ -18,18 +19,19 @@ from dataclasses import dataclass, field
 from typing import Any, Callable, Dict, List, Optional
 
 from dotenv import load_dotenv
-import httpx
 from tenacity import retry, wait_random_exponential, stop_after_attempt, retry_if_exception_type
 
 try:
     import anthropic
-except Exception:  # pragma: no cover - graceful fallback when SDK is unavailable
+except Exception:  # pragma: no cover
     anthropic = None
 
 try:
-    import google.generativeai as genai  # type: ignore[import-not-found]
-except Exception:  # pragma: no cover - graceful fallback when SDK is unavailable
+    from google import genai  # type: ignore[import-not-found]
+    from google.genai import types as genai_types  # type: ignore[import-not-found]
+except Exception:  # pragma: no cover
     genai = None
+    genai_types = None
 
 ResourceExhausted: Any = Exception
 try:
@@ -169,7 +171,9 @@ OUT_OF_SCOPE_PATTERNS = {
 }
 
 _cached_client = None
+_cached_async_client = None
 _cached_api_key = None
+_cached_gemini_client = None
 _cached_gemini_api_key = None
 
 
@@ -190,11 +194,28 @@ def _get_client():
     return _cached_client
 
 
+def _get_async_client():
+    """Create/cache AsyncAnthropic client from environment at call-time."""
+    global _cached_async_client, _cached_api_key
+
+    api_key = (os.environ.get("ANTHROPIC_API_KEY") or "").strip()
+    if not anthropic or not api_key:
+        _cached_async_client = None
+        return None
+
+    if _cached_async_client is None or _cached_api_key != api_key:
+        _cached_async_client = anthropic.AsyncAnthropic(api_key=api_key)
+        _cached_api_key = api_key
+
+    return _cached_async_client
+
+
 def _configure_gemini_client() -> Optional[str]:
-    """Configure Gemini client and return an error string on failure."""
-    global _cached_gemini_api_key
+    """Create/cache google-genai Client; return error string on failure."""
+    global _cached_gemini_client, _cached_gemini_api_key
 
     if not genai:
+        _cached_gemini_client = None
         _cached_gemini_api_key = None
         return "gemini_sdk_missing"
 
@@ -204,15 +225,16 @@ def _configure_gemini_client() -> Optional[str]:
         or ""
     ).strip()
     if not api_key:
+        _cached_gemini_client = None
         _cached_gemini_api_key = None
         return "gemini_api_key_missing"
 
     if _cached_gemini_api_key != api_key:
         try:
-            assert genai is not None  # Type guard for mypy/pylance
-            genai.configure(api_key=api_key)  # type: ignore[attr-defined]
+            _cached_gemini_client = genai.Client(api_key=api_key)  # type: ignore[attr-defined]
             _cached_gemini_api_key = api_key
         except Exception as exc:
+            _cached_gemini_client = None
             _cached_gemini_api_key = None
             return f"gemini_config_error: {exc}"
 
@@ -265,13 +287,25 @@ def _extract_gemini_response_text(response: Any) -> str:
     stop=stop_after_attempt(5),
     reraise=True,
 )
-def _generate_gemini_content_with_retry(model: Any, prompt: str, max_tokens: int = 3072) -> Any:
+def _generate_gemini_content_with_retry(
+    client: Any,
+    model_name: str,
+    prompt: str,
+    system_instruction: str = "",
+    max_tokens: int = 3072,
+) -> Any:
     """Retry Gemini content generation only for ResourceExhausted (429)."""
-    # First attempt is immediate; tenacity applies waits only between retries.
-    return model.generate_content(
-        prompt,
-        generation_config={
-            "max_output_tokens": max_tokens, "temperature": 0.3},
+    config = None
+    if genai_types is not None:
+        config = genai_types.GenerateContentConfig(  # type: ignore[attr-defined]
+            system_instruction=system_instruction or None,
+            max_output_tokens=max_tokens,
+            temperature=0.3,
+        )
+    return client.models.generate_content(  # type: ignore[attr-defined]
+        model=model_name,
+        contents=prompt,
+        config=config,
     )
 
 
@@ -293,16 +327,15 @@ def _call_gemini_model(
             "provider": _PRIMARY_MODEL,
         }
 
-    if genai is None:
+    if _cached_gemini_client is None:
         return {
             "answer": "AI provider is currently unavailable.",
             "confidence": 0,
-            "error": "gemini_sdk_missing",
+            "error": "gemini_client_missing",
             "is_fallback": False,
             "provider": _PRIMARY_MODEL,
         }
 
-    assert genai is not None  # Type guard for mypy/pylance
     model_name = (os.environ.get("GEMINI_MODEL")
                   or _PRIMARY_MODEL).strip() or _PRIMARY_MODEL
 
@@ -315,10 +348,11 @@ def _call_gemini_model(
 
     logger.info(f"Calling Gemini as primary ({model_name}).")
     try:
-        m = genai.GenerativeModel(  # type: ignore[attr-defined]
-            model_name=model_name, system_instruction=system_instruction)
         resp = _generate_gemini_content_with_retry(
-            m, prompt, max_tokens=max_tokens)
+            _cached_gemini_client, model_name, prompt,
+            system_instruction=system_instruction,
+            max_tokens=max_tokens,
+        )
         response_text = _extract_gemini_response_text(resp)
     except Exception as exc:
         logger.warning(
@@ -979,13 +1013,13 @@ def _build_dynamic_system_context(customs, user_memories, extra_context):
     return _sanitize_prompt_payload("\n\n".join(sections), max_chars=2200)
 
 
-def _call_claude_model(
+async def _call_claude_model(
     prompt: str,
     dynamic_system_context: str = "",
     gemini_error: str = "",
 ) -> Dict[str, Any]:
-    """Low-level Anthropic fallback call (internal)."""
-    client = _get_client()
+    """Low-level Anthropic fallback call (AsyncAnthropic SDK)."""
+    client = _get_async_client()
     model_name = (os.environ.get("ANTHROPIC_MODEL")
                   or "claude-haiku-4-5").strip()
 
@@ -1006,7 +1040,7 @@ def _call_claude_model(
         if dynamic_system_context:
             system_text = f"{CORE_SYSTEM_PROMPT}\n\n{dynamic_system_context}"
 
-        message = client.messages.create(
+        message = await client.messages.create(
             model=model_name,
             system=[{"type": "text", "text": system_text,
                      "cache_control": {"type": "ephemeral"}}],
@@ -1050,7 +1084,7 @@ def _call_claude_model(
         }
 
 
-def _call_primary_model(prompt: str, dynamic_system_context: str = "", max_tokens: int = 3072) -> Dict[str, Any]:
+async def _call_primary_model(prompt: str, dynamic_system_context: str = "", max_tokens: int = 3072) -> Dict[str, Any]:
     primary_result = _call_gemini_model(
         prompt,
         dynamic_system_context=dynamic_system_context,
@@ -1061,11 +1095,26 @@ def _call_primary_model(prompt: str, dynamic_system_context: str = "", max_token
     if not primary_error or primary_error.startswith("security_blocked"):
         return primary_result
 
-    return _call_claude_model(
+    return await _call_claude_model(
         prompt,
         dynamic_system_context=dynamic_system_context,
         gemini_error=primary_error,
     )
+
+
+def _call_primary_model_sync(prompt: str, dynamic_system_context: str = "", max_tokens: int = 3072) -> Dict[str, Any]:
+    """Sync wrapper for Flask WSGI callers.
+
+    asyncio.run() creates a fresh event loop, runs the coroutine to completion,
+    cancels any lingering tasks, and closes the loop — all in one call.  This is
+    safer than the new_event_loop()+run_until_complete()+loop.close() pattern,
+    which skips task cleanup and can leak resources on exceptions.
+
+    Flask routes run in WSGI worker threads (no running event loop), so
+    asyncio.run() is always safe here.  If mistakenly called from an async
+    context it raises RuntimeError immediately rather than deadlocking.
+    """
+    return asyncio.run(_call_primary_model(prompt, dynamic_system_context, max_tokens))
 
 
 def run_protected_ai_wrapper(
@@ -1146,7 +1195,7 @@ def ask_claude(question, sefaria_sources, customs, user_memories=None, wiki=None
     result = run_protected_ai_wrapper(
         query=question,
         prompt_builder=_build,
-        model_executor=lambda prompt: _call_primary_model(
+        model_executor=lambda prompt: _call_primary_model_sync(
             prompt,
             dynamic_system_context=dynamic_system_context,
             max_tokens=max_tokens,
@@ -1161,8 +1210,11 @@ async def _call_anthropic_httpx_model(
     dynamic_system_context: str = "",
     gemini_error: str = "",
 ) -> Dict[str, Any]:
-    api_key = (os.environ.get("ANTHROPIC_API_KEY") or "").strip()
-    if not api_key:
+    """Async Anthropic fallback using AsyncAnthropic SDK (replaces hand-rolled httpx)."""
+    client = _get_async_client()
+    model_name = (os.environ.get("ANTHROPIC_MODEL") or "claude-haiku-4-5").strip()
+
+    if not client:
         error = "anthropic_api_key_missing"
         if gemini_error:
             error = f"gemini_error: {gemini_error}; {error}"
@@ -1171,44 +1223,26 @@ async def _call_anthropic_httpx_model(
             "confidence": 0,
             "error": error,
             "is_fallback": True,
-            "provider": "claude-haiku-4-5",
+            "provider": model_name,
         }
 
-    model_name = (os.environ.get("ANTHROPIC_MODEL")
-                  or "claude-haiku-4-5").strip()
     system_text = CORE_SYSTEM_PROMPT
     if dynamic_system_context:
         system_text = f"{CORE_SYSTEM_PROMPT}\n\n{dynamic_system_context}"
 
-    headers = {
-        "x-api-key": api_key,
-        "anthropic-version": "2023-06-01",
-        "anthropic-beta": "prompt-caching-2024-07-31",
-        "content-type": "application/json",
-    }
-    payload = {
-        "model": model_name,
-        "max_tokens": 1024,
-        "system": [{"type": "text", "text": system_text, "cache_control": {"type": "ephemeral"}}],
-        "messages": [{"role": "user", "content": prompt}],
-    }
-
     try:
-        async with httpx.AsyncClient(timeout=MODEL_REQUEST_TIMEOUT_SECONDS) as client:
-            response = await client.post(
-                "https://api.anthropic.com/v1/messages",
-                headers=headers,
-                json=payload,
-            )
-            response.raise_for_status()
-            data = response.json()
-
-        chunks: List[str] = []
-        for block in (data.get("content") or []):
-            text = block.get("text") if isinstance(block, dict) else ""
-            if isinstance(text, str) and text.strip():
-                chunks.append(text)
-
+        message = await client.messages.create(
+            model=model_name,
+            system=[{"type": "text", "text": system_text, "cache_control": {"type": "ephemeral"}}],
+            max_tokens=1024,
+            messages=[{"role": "user", "content": prompt}],
+            extra_headers={"anthropic-beta": "prompt-caching-2024-07-31"},
+        )
+        chunks: List[str] = [
+            block.text
+            for block in (message.content or [])
+            if hasattr(block, "text") and isinstance(block.text, str) and block.text.strip()
+        ]
         response_text = "\n".join(chunks).strip()
         if not response_text:
             raise RuntimeError("empty_response")
@@ -1222,7 +1256,7 @@ async def _call_anthropic_httpx_model(
             "provider": model_name,
         }
     except Exception as exc:
-        error = f"anthropic_httpx_error: {exc}"
+        error = f"anthropic_sdk_error: {exc}"
         if gemini_error:
             error = f"gemini_error: {gemini_error}; {error}"
         return {
@@ -1239,55 +1273,51 @@ async def _call_gemini_httpx_model(
     dynamic_system_context: str = "",
     is_simple: bool = False,
 ) -> Dict[str, Any]:
-    api_key = (
-        os.environ.get("GEMINI_API_KEY")
-        or os.environ.get("GOOGLE_API_KEY")
-        or ""
-    ).strip()
-    model_name = (os.environ.get("GEMINI_MODEL")
-                  or "gemini-3.1-flash-lite-preview").strip()
+    """Async Gemini primary call using google-genai SDK (replaces hand-rolled httpx)."""
+    global _cached_gemini_client
+
+    model_name = (os.environ.get("GEMINI_MODEL") or "gemini-3.1-flash-lite-preview").strip()
     if not model_name:
         model_name = "gemini-3.1-flash-lite-preview"
 
-    if not api_key:
+    config_error = _configure_gemini_client()
+    if config_error or _cached_gemini_client is None:
         return {
             "answer": "AI provider is currently unavailable.",
             "confidence": 0,
-            "error": "gemini_api_key_missing",
+            "error": config_error or "gemini_client_missing",
+            "is_fallback": False,
+            "provider": model_name,
+        }
+
+    if not genai_types:
+        return {
+            "answer": "AI provider is currently unavailable.",
+            "confidence": 0,
+            "error": "gemini_sdk_missing",
             "is_fallback": False,
             "provider": model_name,
         }
 
     base_prompt = SIMPLE_SYSTEM_PROMPT if is_simple else CORE_SYSTEM_PROMPT
-    system_text = f"{base_prompt}\n\n{dynamic_system_context}".strip(
-    ) if dynamic_system_context else base_prompt
+    system_text = (
+        f"{base_prompt}\n\n{dynamic_system_context}".strip()
+        if dynamic_system_context
+        else base_prompt
+    )
     max_tokens = 512 if is_simple else 3072
 
-    async def _gemini_httpx_call(use_model: str) -> Dict[str, Any]:
-        endpoint = f"https://generativelanguage.googleapis.com/v1beta/models/{use_model}:generateContent"
-        payload = {
-            "system_instruction": {"parts": [{"text": system_text}]},
-            "contents": [{"role": "user", "parts": [{"text": prompt}]}],
-            "generationConfig": {"maxOutputTokens": max_tokens, "temperature": 0.3},
-        }
-        async with httpx.AsyncClient(timeout=MODEL_REQUEST_TIMEOUT_SECONDS) as client:
-            resp = await client.post(endpoint, params={"key": api_key}, json=payload)
-            resp.raise_for_status()
-            data = resp.json()
-        chunks: List[str] = []
-        for candidate in (data.get("candidates") or []):
-            content = candidate.get("content") if isinstance(
-                candidate, dict) else {}
-            for part in (content.get("parts") or []) if isinstance(content, dict) else []:
-                text = part.get("text") if isinstance(part, dict) else ""
-                if isinstance(text, str) and text.strip():
-                    chunks.append(text)
-        return {"text": "\n".join(chunks).strip(), "model": use_model}
-
     try:
-        result = await _gemini_httpx_call(model_name)
-        response_text = result["text"]
-        used_model = result["model"]
+        response = await _cached_gemini_client.aio.models.generate_content(
+            model=model_name,
+            contents=prompt,
+            config=genai_types.GenerateContentConfig(
+                system_instruction=system_text,
+                max_output_tokens=max_tokens,
+                temperature=0.3,
+            ),
+        )
+        response_text = (response.text or "").strip()
         if not response_text:
             raise RuntimeError("empty_response")
 
@@ -1297,13 +1327,13 @@ async def _call_gemini_httpx_model(
             "structured": structured,
             "confidence": 0.75,
             "is_fallback": False,
-            "provider": used_model,
+            "provider": model_name,
         }
     except Exception as exc:
         return {
             "answer": "AI provider is currently unavailable.",
             "confidence": 0,
-            "error": f"gemini_httpx_error: {exc}",
+            "error": f"gemini_sdk_error: {exc}",
             "is_fallback": False,
             "provider": model_name,
         }
@@ -1321,7 +1351,7 @@ async def ask_ai_async(
     answer_language="en",
     tool_context=None,
 ):
-    """Async AI entrypoint (httpx) for ASGI deployments."""
+    """Async AI entrypoint for ASGI deployments."""
     wiki = wiki or []
     halachipedia = halachipedia or []
     user_memories = user_memories or []
@@ -1451,19 +1481,21 @@ def summarize_with_gemini(segment_text: str, notes: str = "") -> Dict[str, Any]:
 
     try:
         config_error = _configure_gemini_client()
-        if config_error or not genai:
+        if config_error or _cached_gemini_client is None:
             return {
                 "summary": _fallback_summary(),
                 "error": config_error or "gemini_sdk_missing",
             }
 
-        assert genai is not None  # Type guard
-        model = genai.GenerativeModel(  # type: ignore[attr-defined]
-            model_name=model_name
-        )
-        response = model.generate_content(
-            prompt,
-            generation_config={"max_output_tokens": 240},
+        config = None
+        if genai_types is not None:
+            config = genai_types.GenerateContentConfig(  # type: ignore[attr-defined]
+                max_output_tokens=240,
+            )
+        response = _cached_gemini_client.models.generate_content(  # type: ignore[attr-defined]
+            model=model_name,
+            contents=prompt,
+            config=config,
         )
         summary = _extract_gemini_response_text(response)
         clean_summary = summary.strip()

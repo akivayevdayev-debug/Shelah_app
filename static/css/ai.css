@@ -23,7 +23,7 @@
     --ai-loading-color: #6b7280;
 }
 
-body.theme-dark {
+:is([data-theme="dark"], body.theme-dark) {
     --ai-surface: var(--surface-elevated);
     --ai-border: var(--surface-border);
     --ai-accent: var(--accent-blue);
@@ -48,16 +48,29 @@ body.theme-dark {
     transition: border-color 0.2s ease;
 }
 
+/* ── .ai-source-card: ai.css is the single owner; style.css copies removed ── */
 .ai-source-card {
-    border-color: var(--ai-border);
+    background: white;
+    border: 1px solid var(--ai-border);
+    border-radius: 8px;
+    padding: 1.5rem;
     transition: border-color 0.2s ease, box-shadow 0.2s ease;
 }
 
+.ai-source-card:hover {
+    border-color: #d4af37;
+    box-shadow: 0 8px 16px rgba(212, 175, 55, 0.12);
+}
+
 .ai-wiki-card {
+    background: linear-gradient(135deg, #eff6ff 0%, #f0f9ff 100%);
+    border-inline-start: 4px solid var(--ai-wiki-accent);
     border-left-color: var(--ai-wiki-accent);
 }
 
 .ai-custom-card {
+    background: linear-gradient(135deg, #faf5ff 0%, #f5f3ff 100%);
+    border-inline-start: 4px solid var(--ai-custom-accent);
     border-left-color: var(--ai-custom-accent);
 }
 
@@ -75,24 +88,24 @@ body.theme-dark {
 /* AI MODAL DARK MODE */
 /* ═══════════════════════════════════════════════════════ */
 
-body.theme-dark .ai-synthesis {
+:is([data-theme="dark"], body.theme-dark) .ai-synthesis {
     background: var(--ai-surface) !important;
     border-color: var(--ai-border) !important;
     color: var(--accent-cream) !important;
 }
 
-body.theme-dark .ai-source-card {
+:is([data-theme="dark"], body.theme-dark) .ai-source-card {
     background: var(--surface-elevated) !important;
     border-color: var(--ai-border) !important;
     color: var(--accent-cream) !important;
 }
 
-body.theme-dark .ai-custom-card {
+:is([data-theme="dark"], body.theme-dark) .ai-custom-card {
     background: var(--surface-elevated) !important;
     border-left-color: var(--ai-custom-accent) !important;
 }
 
-body.theme-dark .ai-wiki-card {
+:is([data-theme="dark"], body.theme-dark) .ai-wiki-card {
     background: var(--surface-elevated) !important;
     border-left-color: var(--ai-wiki-accent) !important;
 }
@@ -121,13 +134,13 @@ body.theme-dark .ai-wiki-card {
 /* SELECTION INSIGHTS PANEL */
 /* ═══════════════════════════════════════════════════════ */
 
-body.theme-dark #selectionInsights {
+:is([data-theme="dark"], body.theme-dark) #selectionInsights {
     background: var(--surface-elevated) !important;
     border-color: var(--surface-border) !important;
 }
 
-body.theme-dark #selectionInsights p,
-body.theme-dark #selectionInsights span {
+:is([data-theme="dark"], body.theme-dark) #selectionInsights p,
+:is([data-theme="dark"], body.theme-dark) #selectionInsights span {
     color: var(--text-main) !important;
 }
 
@@ -135,10 +148,10 @@ body.theme-dark #selectionInsights span {
 /* AI BADGE HOVER STATES */
 /* ═══════════════════════════════════════════════════════ */
 
-body.theme-dark #aiConfidenceBadge:hover,
-body.theme-dark #aiModeBadge:hover,
-body.theme-dark #aiCommunityBadge:hover,
-body.theme-dark #aiSourcesBadge:hover {
+:is([data-theme="dark"], body.theme-dark) #aiConfidenceBadge:hover,
+:is([data-theme="dark"], body.theme-dark) #aiModeBadge:hover,
+:is([data-theme="dark"], body.theme-dark) #aiCommunityBadge:hover,
+:is([data-theme="dark"], body.theme-dark) #aiSourcesBadge:hover {
     border-color: #6a7585 !important;
 }
 
@@ -159,7 +172,12 @@ body.theme-dark #aiSourcesBadge:hover {
 .ai-source-box:hover {
     box-shadow: 0 4px 14px rgba(78, 64, 45, 0.12);
     border-color: #b8aa90;
-    transform: translateY(-1px);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+    .ai-source-box:hover {
+        transform: translateY(-1px);
+    }
 }
 
 .ai-src-box-header {
@@ -185,11 +203,53 @@ body.theme-dark #aiSourcesBadge:hover {
     white-space: nowrap;
 }
 
+/* Groups the type badge + title together on the left side of the header */
+.ai-src-box-id {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    min-width: 0;
+    flex: 1;
+    overflow: hidden;
+}
+
+/* Source-type classification badge */
+.ai-src-badge {
+    display: inline-flex;
+    align-items: center;
+    font-size: 0.58rem;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    padding: 0.1rem 0.35rem;
+    border-radius: 0.25rem;
+    white-space: nowrap;
+    flex-shrink: 0;
+    line-height: 1.4;
+}
+
+.ai-src-badge--tanakh   { background: #fef3c7; color: #92400e; }
+.ai-src-badge--talmud   { background: #e0f2fe; color: #075985; }
+.ai-src-badge--halacha  { background: #dcfce7; color: #166534; }
+.ai-src-badge--responsa { background: #f3e8ff; color: #6b21a8; }
+.ai-src-badge--mishnah  { background: #fff7ed; color: #9a3412; }
+.ai-src-badge--other    { background: #f1f5f9; color: #475569; }
+
+:is([data-theme="dark"], body.theme-dark) .ai-src-badge--tanakh   { background: rgba(254,243,199,0.14); color: #fcd34d; }
+:is([data-theme="dark"], body.theme-dark) .ai-src-badge--talmud   { background: rgba(224,242,254,0.12); color: #7dd3fc; }
+:is([data-theme="dark"], body.theme-dark) .ai-src-badge--halacha  { background: rgba(220,252,231,0.12); color: #86efac; }
+:is([data-theme="dark"], body.theme-dark) .ai-src-badge--responsa { background: rgba(243,232,255,0.12); color: #d8b4fe; }
+:is([data-theme="dark"], body.theme-dark) .ai-src-badge--mishnah  { background: rgba(255,247,237,0.12); color: #fdba74; }
+:is([data-theme="dark"], body.theme-dark) .ai-src-badge--other    { background: rgba(241,245,249,0.10); color: #94a3b8; }
+
 .ai-src-box-links {
     display: flex;
     align-items: center;
     gap: 0.4rem;
     flex-shrink: 0;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+    max-width: 58%;
 }
 
 .src-ext-link,
@@ -267,42 +327,42 @@ body.theme-dark #aiSourcesBadge:hover {
 }
 
 /* Dark mode source boxes */
-body.theme-dark .ai-source-box {
+:is([data-theme="dark"], body.theme-dark) .ai-source-box {
     background: var(--surface-elevated) !important;
     border-color: var(--surface-border) !important;
 }
 
-body.theme-dark .ai-src-box-header {
+:is([data-theme="dark"], body.theme-dark) .ai-src-box-header {
     background: var(--surface-pill) !important;
     border-bottom-color: var(--surface-border) !important;
 }
 
-body.theme-dark .ai-src-box-title {
+:is([data-theme="dark"], body.theme-dark) .ai-src-box-title {
     color: var(--accent-cream) !important;
 }
 
-body.theme-dark .src-ext-link,
-body.theme-dark .src-open-link {
+:is([data-theme="dark"], body.theme-dark) .src-ext-link,
+:is([data-theme="dark"], body.theme-dark) .src-open-link {
     color: var(--accent-blue) !important;
 }
 
-body.theme-dark .src-ext-link:hover,
-body.theme-dark .src-open-link:hover {
+:is([data-theme="dark"], body.theme-dark) .src-ext-link:hover,
+:is([data-theme="dark"], body.theme-dark) .src-open-link:hover {
     color: var(--accent-cream) !important;
 }
 
-body.theme-dark .ai-src-box-he {
+:is([data-theme="dark"], body.theme-dark) .ai-src-box-he {
     background: var(--surface-elevated) !important;
     color: var(--accent-cream) !important;
     border-right-color: var(--surface-border) !important;
 }
 
-body.theme-dark .ai-src-box-en {
+:is([data-theme="dark"], body.theme-dark) .ai-src-box-en {
     background: var(--surface-pill) !important;
     color: var(--text-main) !important;
 }
 
-body.theme-dark .ai-src-box-note {
+:is([data-theme="dark"], body.theme-dark) .ai-src-box-note {
     background: var(--surface-pill) !important;
     color: var(--text-muted) !important;
     border-top-color: var(--surface-border) !important;
@@ -382,29 +442,10 @@ body.theme-dark .ai-src-box-note {
     animation: shelah-scale-in 0.26s cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 
-/* Staggered animation for source box sequences */
-.ai-source-box:nth-child(1) {
-    animation-delay: 0ms;
-}
-
-.ai-source-box:nth-child(2) {
-    animation-delay: 60ms;
-}
-
-.ai-source-box:nth-child(3) {
-    animation-delay: 120ms;
-}
-
-.ai-source-box:nth-child(4) {
-    animation-delay: 180ms;
-}
-
-.ai-source-box:nth-child(5) {
-    animation-delay: 240ms;
-}
-
-.ai-source-box:nth-child(6) {
-    animation-delay: 300ms;
+/* Staggered animation via --i custom property set inline by JS (style="--i:N").
+   Unlimited count, unaffected by sibling <p> label elements resetting nth-child. */
+.ai-source-box {
+    animation-delay: calc(var(--i, 0) * 60ms);
 }
 
 /* Modal open animation */
@@ -526,6 +567,100 @@ body.theme-dark .ai-src-box-note {
 }
 
 /* ═══════════════════════════════════════════════════════ */
+/* SOURCE SKELETON — layout-stable placeholder (CLS ≈ 0)  */
+/* Shown immediately when a query starts; replaced by real */
+/* source cards once the /ask response arrives.            */
+/* ═══════════════════════════════════════════════════════ */
+
+@keyframes shelah-shimmer {
+    0%   { background-position: -200% 0; }
+    100% { background-position:  200% 0; }
+}
+
+.ai-src-skeleton {
+    border: 1px solid var(--ai-border, #d7cebc);
+    border-radius: 0.55rem;
+    overflow: hidden;
+    margin-bottom: 1rem;
+    min-height: 5rem;
+}
+
+.ai-src-skeleton-header {
+    height: 2rem;
+    background: var(--ai-src-header-bg, #f1ede4);
+    background-image: linear-gradient(
+        90deg,
+        transparent 0%,
+        rgba(255, 255, 255, 0.45) 50%,
+        transparent 100%
+    );
+    background-size: 200% 100%;
+    animation: shelah-shimmer 1.4s ease-in-out infinite;
+}
+
+.ai-src-skeleton-body {
+    padding: 0.75rem 0.9rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    background: var(--ai-src-body-bg, #fffaf2);
+}
+
+.ai-src-skeleton-line {
+    height: 0.75rem;
+    border-radius: 0.25rem;
+    background: var(--ai-border, #d7cebc);
+    background-image: linear-gradient(
+        90deg,
+        transparent 0%,
+        rgba(255, 255, 255, 0.6) 50%,
+        transparent 100%
+    );
+    background-size: 200% 100%;
+    animation: shelah-shimmer 1.4s ease-in-out infinite;
+}
+
+.ai-src-skeleton-line--wide  { width: 85%; }
+.ai-src-skeleton-line--medium { width: 65%; animation-delay: 0.15s; }
+
+:is([data-theme="dark"], body.theme-dark) .ai-src-skeleton {
+    border-color: var(--surface-border) !important;
+}
+
+:is([data-theme="dark"], body.theme-dark) .ai-src-skeleton-header {
+    background: var(--surface-pill) !important;
+    background-image: linear-gradient(
+        90deg,
+        transparent 0%,
+        rgba(255, 255, 255, 0.08) 50%,
+        transparent 100%
+    ) !important;
+    background-size: 200% 100% !important;
+}
+
+:is([data-theme="dark"], body.theme-dark) .ai-src-skeleton-body {
+    background: var(--surface-elevated) !important;
+}
+
+:is([data-theme="dark"], body.theme-dark) .ai-src-skeleton-line {
+    background: var(--surface-border) !important;
+    background-image: linear-gradient(
+        90deg,
+        transparent 0%,
+        rgba(255, 255, 255, 0.06) 50%,
+        transparent 100%
+    ) !important;
+    background-size: 200% 100% !important;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .ai-src-skeleton-header,
+    .ai-src-skeleton-line {
+        animation: none !important;
+    }
+}
+
+/* ═══════════════════════════════════════════════════════ */
 /* LOADING SPINNER & DOT-BOUNCE KEYFRAMES */
 /* ═══════════════════════════════════════════════════════ */
 
@@ -626,12 +761,19 @@ body.theme-dark .ai-src-box-note {
     animation: shelah-fade-in 0.22s ease both;
 }
 
-#settingsPanel:not(.hidden) {
+#settingsPanel:not(.hidden):not(.is-hiding) {
     animation: shelah-fade-up 0.22s cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 
-#userProfileMenu:not(.hidden) {
+#userProfileMenu:not(.hidden):not(.is-hiding) {
     animation: shelah-fade-up 0.2s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+/* Exit animations — play before adding .hidden (vanilla AnimatePresence) */
+#settingsPanel.is-hiding,
+#userProfileMenu.is-hiding {
+    animation: shelah-fade-in var(--motion-dur-fast, 150ms) var(--motion-ease-out, ease) reverse forwards;
+    pointer-events: none;
 }
 
 #userProfileMenu a,
@@ -777,4 +919,97 @@ body.search-loading #searchIcon {
         animation: none !important;
         transition: none !important;
     }
+}
+
+/* ═══════════════════════════════════════════════════════ */
+/* AI CUSTOMS CARDS — fully token-based, no hardcoded hex */
+/* Light + dark handled entirely via token layer.         */
+/* ═══════════════════════════════════════════════════════ */
+
+.ai-customs-card {
+    background: var(--ai-src-header-bg);
+    border: 1px solid var(--ai-border);
+    border-radius: var(--radius-sm);
+    padding: var(--sp-3);
+    margin-bottom: var(--sp-2);
+}
+
+.ai-customs-card-title {
+    font-weight: 700;
+    color: var(--ink-heading);
+    font-size: var(--text-sm);
+    margin-bottom: var(--sp-1);
+}
+
+.ai-customs-card-body {
+    font-size: var(--text-xs);
+    color: var(--ink-primary);
+    line-height: 1.55;
+}
+
+/* ═══════════════════════════════════════════════════════ */
+/* AI WIKI / ENCYCLOPEDIA RESULT CARDS                    */
+/* ═══════════════════════════════════════════════════════ */
+
+.ai-wiki-result-card {
+    background: var(--ai-src-header-bg);
+    border: 1px solid var(--ai-border);
+    border-radius: var(--radius-sm);
+    padding: var(--sp-3);
+    margin-bottom: var(--sp-2);
+}
+
+.ai-wiki-result-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: var(--sp-2);
+    margin-bottom: var(--sp-1);
+}
+
+.ai-wiki-result-title {
+    font-weight: 700;
+    color: var(--ink-heading);
+    font-size: var(--text-sm);
+    flex: 1;
+    min-width: 0;
+}
+
+.ai-wiki-result-link {
+    font-size: var(--text-xs);
+    color: var(--ai-wiki-accent);
+    text-decoration: none;
+    white-space: nowrap;
+    flex-shrink: 0;
+    transition: color var(--motion-dur-fast) var(--motion-ease-out);
+}
+
+.ai-wiki-result-link:hover {
+    color: var(--ink-heading);
+    text-decoration: underline;
+}
+
+.ai-wiki-result-body {
+    font-size: var(--text-xs);
+    color: var(--ink-primary);
+    line-height: 1.55;
+}
+
+/* ── Custom scrollbar (token-based) — moved here from inline <style> ── */
+
+.custom-scrollbar::-webkit-scrollbar {
+    width: 6px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+    background: var(--surface-border);
+    border-radius: var(--radius-full);
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+    background: var(--ctrl-border);
 }

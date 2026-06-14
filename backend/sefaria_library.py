@@ -23,8 +23,9 @@ from copy import deepcopy
 from pathlib import Path
 from urllib.parse import quote, urlencode, unquote
 
-SEFARIA_API = "https://www.sefaria.org.il/api"
-SEFARIA_V3_API = "https://www.sefaria.org.il/api/v3"
+import os as _os
+SEFARIA_API = _os.environ.get("SEFARIA_API", "https://www.sefaria.org.il/api").rstrip("/")
+SEFARIA_V3_API = _os.environ.get("SEFARIA_V3_API", "https://www.sefaria.org.il/api/v3").rstrip("/")
 
 # Simple in-memory cache with TTL
 _cache = {}

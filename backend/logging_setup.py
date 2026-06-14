@@ -15,8 +15,13 @@ from __future__ import annotations
 import json
 import logging
 import os
+import time
 import traceback
+import uuid
+from contextvars import ContextVar
 from datetime import datetime, timezone
+
+_request_id_var: ContextVar[str] = ContextVar('request_id', default='')
 
 
 class _JSONFormatter(logging.Formatter):
@@ -36,6 +41,11 @@ class _JSONFormatter(logging.Formatter):
             "function": record.funcName,
             "line": record.lineno,
         }
+
+        # Attach request_id when present.
+        req_id = _request_id_var.get()
+        if req_id:
+            payload["request_id"] = req_id
 
         # Attach exception traceback when present.
         if record.exc_info:
@@ -87,9 +97,69 @@ def setup_logging(level: str | None = None) -> logging.Logger:
         root.addHandler(handler)
 
     root.setLevel(numeric_level)
+
+    # Suppress chatty third-party loggers when root is INFO or below.
+    if numeric_level <= logging.INFO:
+        for noisy in ("httpx", "hpack", "anthropic"):
+            logging.getLogger(noisy).setLevel(logging.WARNING)
+
     return root
+
+
+def bind_request_id(request_id: str | None = None) -> str:
+    """Set request_id in the current context and return it.
+
+    If *request_id* is None or empty, a 12-hex-char UUID fragment is generated.
+    """
+    rid = (request_id or "").strip() or uuid.uuid4().hex[:12]
+    _request_id_var.set(rid)
+    return rid
+
+
+def get_request_id() -> str:
+    """Return the current context's request_id (empty string if not set)."""
+    return _request_id_var.get()
 
 
 def get_logger(name: str) -> logging.Logger:
     """Return a named logger that inherits the JSON formatter from the root."""
     return logging.getLogger(name)
+
+
+# ── Structured backend error logger ──────────────────────────────────────────
+
+
+def _capture_backend_error(event_name, error, context=None):
+    """Sentry-style structured logger for backend failures and AI prompt issues.
+
+    Uses the Flask app logger when available (imports lazily to avoid circular
+    dependency); falls back to the standard Python logger when called outside
+    of a Flask context (e.g. from asgi.py async tasks).
+    """
+    import app as _flask_app  # lazy — avoids circular import at module load time
+
+    context = context if isinstance(context, dict) else {}
+    message = str(error) if error is not None else ""
+    payload = {
+        "event": str(event_name or "unknown"),
+        "message": message,
+        "context": context,
+        "ts": int(time.time()),
+    }
+
+    _flask_app.app.logger.error(
+        "OBS_EVENT %s", json.dumps(payload, ensure_ascii=True),
+        exc_info=error if isinstance(error, Exception) else False,
+    )
+
+    error_log_webhook_url = (os.environ.get("ERROR_LOG_WEBHOOK_URL") or "").strip()
+    if error_log_webhook_url:
+        try:
+            import requests as _requests
+            _requests.post(
+                error_log_webhook_url,
+                json=payload,
+                timeout=2,
+            )
+        except Exception:
+            pass

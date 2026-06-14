@@ -1,0 +1,374 @@
+/*
+  tokens.css — Sh'elah Design Token Layer
+  ─────────────────────────────────────────
+  Single source of truth for all semantic CSS custom properties.
+
+  Consumers (components, layout, feature sheets) reference ONLY token names —
+  never raw hex values. Switching themes is done by toggling [data-theme] on
+  <html>; the 574 scattered body.theme-dark overrides across 9 files become
+  one block here (§7.7 of the roadmap).
+
+  Load order: this file MUST precede all feature CSS sheets.
+
+  Theming strategy
+  ────────────────
+  1. :root declares light-mode values (defaults for all browsers).
+  2. [data-theme="dark"] declares dark-mode token overrides on the root element.
+  3. @media (prefers-color-scheme: dark) provides the same overrides for users
+     who haven't explicitly toggled the theme — no JavaScript required for
+     initial paint (FOUC prevention handled by the inline <head> script).
+  4. body.theme-dark is kept as an alias during the body-class → data-theme
+     migration so untouched selectors in older CSS sheets keep working.
+
+  Spacing / typography
+  ────────────────────
+  All spacing uses the 4 px / 8 px grid. Fluid type uses clamp() so the ramp
+  works from 320 px → 4 K without media-query breakpoints.
+*/
+
+/* ═══════════════════════════════════════════════════════════════════
+   LIGHT THEME (default / :root)
+═══════════════════════════════════════════════════════════════════ */
+
+:root {
+    color-scheme: light dark;
+
+    /* ── Surface hierarchy ──────────────────────────────────────────── */
+    --surface-0:          #faf7f0;   /* page background */
+    --surface-1:          #f5efe5;   /* subtle panels */
+    --surface-2:          #fff9f1;   /* elevated cards */
+    --surface-3:          #f6f1e7;   /* topbar */
+    --surface-pill:       #f1ede4;   /* chips, tags */
+    --surface-border:     #d7cebc;   /* dividers */
+    --surface-scrim:      rgba(0, 0, 0, 0.35);   /* modal backdrop */
+
+    /* ── Ink / text ─────────────────────────────────────────────────── */
+    --ink-primary:        #334155;   /* body text */
+    --ink-secondary:      #64748b;   /* secondary / muted text */
+    --ink-on-accent:      #ffffff;   /* text on filled accent backgrounds */
+    --ink-heading:        #002147;   /* navy headings */
+
+    /* ── Accent palette (semantic) ──────────────────────────────────── */
+    --accent-primary:     #1f3f63;   /* deep blue — primary CTA */
+    --accent-primary-hover: #18355a;
+    --accent-gold:        #d4af37;
+    --accent-gold-light:  #f0d980;
+    --accent-purple:      #7c3aed;
+    --accent-teal:        #0d9488;
+    --accent-green:       #059669;
+    --accent-red:         #be123c;
+    --accent-orange:      #ea580c;
+
+    /* ── Controls ───────────────────────────────────────────────────── */
+    --ctrl-bg:            #f4f0e7;
+    --ctrl-bg-hover:      #ece5d8;
+    --ctrl-border:        #d6d2c7;
+    --ctrl-text:          #2f4a67;
+    --ctrl-text-strong:   #223e5a;
+    --ctrl-filled-bg:     #46688d;
+    --ctrl-filled-hover:  #3d5b7b;
+
+    /* ── AI-specific tokens ─────────────────────────────────────────── */
+    --ai-surface:         #f5efe5;
+    --ai-border:          #d7cebc;
+    --ai-src-header-bg:   #f1ede4;
+    --ai-src-body-bg:     #fffaf2;
+    --ai-src-he-bg:       #fffdf8;
+    --ai-src-en-bg:       #faf7f0;
+    --ai-wiki-accent:     #1f3f63;
+    --ai-custom-accent:   #7c3aed;
+    --ai-trust-bg:        #faf7f0;
+    --ai-trust-border:    #d7cebc;
+
+    /* ── Loading / skeleton tokens ──────────────────────────────────── */
+    --load-skeleton-base:      #ede8df;
+    --load-skeleton-highlight: #f7f2ea;
+    --load-skeleton-shimmer:   rgba(255,255,255,0.55);
+    --load-spinner-ring:       #002147;
+    --load-spinner-accent:     #b8a07a;
+    --load-spinner-ring-faint: rgba(0, 33, 71, 0.10);
+    --load-phase-text:         #002147;
+    --load-dot-fill:           rgba(0, 33, 71, 0.40);
+    --load-tag-library-bg:     #e8f4f5;
+    --load-tag-library-border: rgba(0, 78, 95, 0.30);
+    --load-tag-library-text:   #004e5f;
+    --load-tag-customs-bg:     #f3f0ff;
+    --load-tag-customs-border: rgba(124, 58, 237, 0.20);
+    --load-tag-customs-text:   #7c3aed;
+    --load-tag-halacha-bg:     #fef9e6;
+    --load-tag-halacha-border: rgba(184, 134, 11, 0.20);
+    --load-tag-halacha-text:   #8c6e2b;
+    --load-overlay-bg:         rgba(240, 235, 225, 0.92);
+    --load-overlay-delay:      150ms;   /* no-flash on fast loads */
+
+    /* ── Border radii ───────────────────────────────────────────────── */
+    --radius-xs:  0.25rem;   /* 4px  */
+    --radius-sm:  0.375rem;  /* 6px  */
+    --radius-md:  0.625rem;  /* 10px */
+    --radius-lg:  1rem;      /* 16px */
+    --radius-xl:  1.5rem;    /* 24px */
+    --radius-full: 9999px;
+
+    /* ── Spacing (4px / 8px grid) ───────────────────────────────────── */
+    --sp-1:  0.25rem;   /* 4px  */
+    --sp-2:  0.5rem;    /* 8px  */
+    --sp-3:  0.75rem;   /* 12px */
+    --sp-4:  1rem;      /* 16px */
+    --sp-6:  1.5rem;    /* 24px */
+    --sp-8:  2rem;      /* 32px */
+    --sp-12: 3rem;      /* 48px */
+
+    /* ── Fluid typography (clamp: min, preferred, max) ──────────────── */
+    --text-xs:   clamp(0.7rem,  0.65rem + 0.25vw, 0.75rem);
+    --text-sm:   clamp(0.8rem,  0.78rem + 0.25vw, 0.875rem);
+    --text-base: clamp(0.9rem,  0.88rem + 0.3vw,  1rem);
+    --text-md:   clamp(1rem,    0.96rem + 0.35vw, 1.125rem);
+    --text-lg:   clamp(1.1rem,  1.05rem + 0.4vw,  1.25rem);
+    --text-xl:   clamp(1.25rem, 1.15rem + 0.5vw,  1.5rem);
+    --text-2xl:  clamp(1.5rem,  1.3rem  + 0.75vw, 2rem);
+    --text-3xl:  clamp(1.75rem, 1.5rem  + 1vw,    2.5rem);
+
+    /* ── Motion (honor prefers-reduced-motion via JS helper) ────────── */
+    --motion-dur-fast:   150ms;
+    --motion-dur-base:   220ms;
+    --motion-dur-slow:   400ms;
+    --motion-ease-out:   cubic-bezier(0.25, 0, 0.3, 1);
+    --motion-ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+
+    /* ── Elevation (shadow tokens) ──────────────────────────────────── */
+    --shadow-sm:  0 1px 3px rgba(0,0,0,0.08), 0 1px 2px rgba(0,0,0,0.05);
+    --shadow-md:  0 4px 12px rgba(0,0,0,0.1), 0 2px 4px rgba(0,0,0,0.06);
+    --shadow-lg:  0 16px 40px rgba(0,0,0,0.12), 0 4px 8px rgba(0,0,0,0.06);
+
+    /* ── Legacy aliases (keep backward compat with existing CSS) ─────── */
+    --surface-base:     var(--surface-0);
+    --surface-subtle:   var(--surface-1);
+    --surface-elevated: var(--surface-2);
+    --surface-topbar:   var(--surface-3);
+    --text-main:        var(--ink-primary);
+    --text-muted:       var(--ink-secondary);
+    --accent-blue:      var(--accent-primary);
+    --accent-deep-blue: var(--accent-primary);
+    --ink:              var(--ink-heading);
+    --paper:            #fffaf2;
+    --gold:             var(--accent-gold);
+    --gold-light:       var(--accent-gold-light);
+    --border-light:     #ded4c4;
+    --control-bg:           var(--ctrl-bg);
+    --control-bg-hover:     var(--ctrl-bg-hover);
+    --control-border:       var(--ctrl-border);
+    --control-text:         var(--ctrl-text);
+    --control-text-strong:  var(--ctrl-text-strong);
+    --control-strong-bg:    var(--ctrl-filled-bg);
+    --control-strong-bg-hover: var(--ctrl-filled-hover);
+
+    /* ── Typography ─────────────────────────────────────────────────── */
+    --font-serif:  'Cardo', Georgia, serif;
+    --font-sans:   'Inter', system-ui, sans-serif;
+    --font-hebrew: 'Ezra SIL', 'Cardo', serif;
+}
+
+
+/* ═══════════════════════════════════════════════════════════════════
+   DARK THEME — [data-theme="dark"]
+   Also applied when body carries .theme-dark (migration alias)
+   and when prefers-color-scheme: dark with no explicit override.
+═══════════════════════════════════════════════════════════════════ */
+
+[data-theme="dark"],
+html.theme-dark,
+body.theme-dark {
+    color-scheme: dark;
+
+    /* ── Surface hierarchy ──────────────────────────────────────────── */
+    --surface-0:          #1a1c1e;
+    --surface-1:          #212428;
+    --surface-2:          #282d32;
+    --surface-3:          #1f2228;
+    --surface-pill:       #2d3138;
+    --surface-border:     #3a4048;
+    --surface-scrim:      rgba(0, 0, 0, 0.65);
+
+    /* ── Ink / text ─────────────────────────────────────────────────── */
+    --ink-primary:        #c8c3ba;
+    --ink-secondary:      #8a8f9a;
+    --ink-on-accent:      #ffffff;
+    --ink-heading:        #dbd5cc;
+
+    /* ── Accent palette — desaturated to avoid vibration on dark bg ─── */
+    --accent-primary:     #4a7fb5;
+    --accent-primary-hover: #5590c8;
+    --accent-gold:        #c9a227;
+    --accent-gold-light:  #e0c060;
+    --accent-purple:      #9c6fe4;
+    --accent-teal:        #2dbba4;
+    --accent-green:       #2fba8a;
+    --accent-red:         #e05070;
+    --accent-orange:      #f07040;
+
+    /* ── Controls ───────────────────────────────────────────────────── */
+    --ctrl-bg:            #2d3138;
+    --ctrl-bg-hover:      #363d46;
+    --ctrl-border:        #49515c;
+    --ctrl-text:          #9ba5b5;
+    --ctrl-text-strong:   #c8d0de;
+    --ctrl-filled-bg:     #4a7fb5;
+    --ctrl-filled-hover:  #5590c8;
+
+    /* ── AI-specific ────────────────────────────────────────────────── */
+    --ai-surface:         var(--surface-2);
+    --ai-border:          var(--surface-border);
+    --ai-src-header-bg:   var(--surface-pill);
+    --ai-src-body-bg:     var(--surface-2);
+    --ai-src-he-bg:       var(--surface-2);
+    --ai-src-en-bg:       var(--surface-pill);
+    --ai-wiki-accent:     var(--accent-primary);
+    --ai-custom-accent:   var(--accent-purple);
+    --ai-trust-bg:        var(--surface-pill);
+    --ai-trust-border:    var(--surface-border);
+
+    /* ── Loading / skeleton — dark theme ────────────────────────────── */
+    --load-skeleton-base:      #2d3138;
+    --load-skeleton-highlight: #363d46;
+    --load-skeleton-shimmer:   rgba(255,255,255,0.06);
+    --load-spinner-ring:       #c8c3ba;
+    --load-spinner-accent:     #c9a227;
+    --load-spinner-ring-faint: rgba(200, 195, 186, 0.12);
+    --load-phase-text:         #dbd5cc;
+    --load-dot-fill:           rgba(200, 195, 186, 0.40);
+    --load-tag-library-bg:     rgba(45, 160, 170, 0.15);
+    --load-tag-library-border: rgba(45, 160, 170, 0.30);
+    --load-tag-library-text:   #2dbba4;
+    --load-tag-customs-bg:     rgba(156, 111, 228, 0.15);
+    --load-tag-customs-border: rgba(156, 111, 228, 0.30);
+    --load-tag-customs-text:   #9c6fe4;
+    --load-tag-halacha-bg:     rgba(201, 162, 39, 0.15);
+    --load-tag-halacha-border: rgba(201, 162, 39, 0.30);
+    --load-tag-halacha-text:   #c9a227;
+    --load-overlay-bg:         rgba(26, 28, 30, 0.92);
+
+    /* ── Elevation ──────────────────────────────────────────────────── */
+    --shadow-sm:  0 1px 3px rgba(0,0,0,0.3),  0 1px 2px rgba(0,0,0,0.2);
+    --shadow-md:  0 4px 12px rgba(0,0,0,0.4), 0 2px 4px rgba(0,0,0,0.25);
+    --shadow-lg:  0 16px 40px rgba(0,0,0,0.5),0 4px 8px rgba(0,0,0,0.3);
+
+    /* ── Legacy aliases (keep backward compat) ──────────────────────── */
+    --surface-base:     var(--surface-0);
+    --surface-subtle:   var(--surface-1);
+    --surface-elevated: var(--surface-2);
+    --surface-topbar:   var(--surface-3);
+    --text-main:        var(--ink-primary);
+    --text-muted:       var(--ink-secondary);
+    --accent-blue:      var(--accent-primary);
+    --accent-deep-blue: var(--accent-primary);
+    --ink:              var(--ink-heading);
+    --paper:            var(--surface-2);
+    --gold:             var(--accent-gold);
+    --gold-light:       var(--accent-gold-light);
+    --border-light:     var(--surface-border);
+    --control-bg:           var(--ctrl-bg);
+    --control-bg-hover:     var(--ctrl-bg-hover);
+    --control-border:       var(--ctrl-border);
+    --control-text:         var(--ctrl-text);
+    --control-text-strong:  var(--ctrl-text-strong);
+    --control-strong-bg:    var(--ctrl-filled-bg);
+    --control-strong-bg-hover: var(--ctrl-filled-hover);
+
+    /* Dark-mode-only token */
+    --accent-cream:     #e6e1da;
+}
+
+
+/* ═══════════════════════════════════════════════════════════════════
+   SYSTEM PREFERENCE FALLBACK
+   Applies dark tokens to users without an explicit theme toggle when
+   their OS is set to dark mode. The inline <head> script overrides
+   this with [data-theme] once localStorage is read.
+═══════════════════════════════════════════════════════════════════ */
+
+@media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+        color-scheme: dark;
+
+        --surface-0:          #1a1c1e;
+        --surface-1:          #212428;
+        --surface-2:          #282d32;
+        --surface-3:          #1f2228;
+        --surface-pill:       #2d3138;
+        --surface-border:     #3a4048;
+        --surface-scrim:      rgba(0, 0, 0, 0.65);
+
+        --ink-primary:        #c8c3ba;
+        --ink-secondary:      #8a8f9a;
+        --ink-heading:        #dbd5cc;
+
+        --accent-primary:     #4a7fb5;
+        --accent-primary-hover: #5590c8;
+        --accent-gold:        #c9a227;
+        --accent-gold-light:  #e0c060;
+        --accent-purple:      #9c6fe4;
+        --accent-teal:        #2dbba4;
+        --accent-green:       #2fba8a;
+        --accent-red:         #e05070;
+        --accent-orange:      #f07040;
+
+        --ctrl-bg:            #2d3138;
+        --ctrl-bg-hover:      #363d46;
+        --ctrl-border:        #49515c;
+        --ctrl-text:          #9ba5b5;
+        --ctrl-text-strong:   #c8d0de;
+        --ctrl-filled-bg:     #4a7fb5;
+        --ctrl-filled-hover:  #5590c8;
+
+        --ai-surface:         #282d32;
+        --ai-border:          #3a4048;
+        --ai-src-header-bg:   #2d3138;
+        --ai-src-body-bg:     #282d32;
+        --ai-src-he-bg:       #282d32;
+        --ai-src-en-bg:       #2d3138;
+        --ai-wiki-accent:     #4a7fb5;
+        --ai-custom-accent:   #9c6fe4;
+        --ai-trust-bg:        #2d3138;
+        --ai-trust-border:    #3a4048;
+
+        --load-skeleton-base:      #2d3138;
+        --load-skeleton-highlight: #363d46;
+        --load-skeleton-shimmer:   rgba(255,255,255,0.06);
+        --load-spinner-ring:       #c8c3ba;
+        --load-spinner-accent:     #c9a227;
+        --load-spinner-ring-faint: rgba(200,195,186,0.12);
+        --load-phase-text:         #dbd5cc;
+        --load-dot-fill:           rgba(200,195,186,0.40);
+        --load-tag-library-bg:     rgba(45,160,170,0.15);
+        --load-tag-library-border: rgba(45,160,170,0.30);
+        --load-tag-library-text:   #2dbba4;
+        --load-tag-customs-bg:     rgba(156,111,228,0.15);
+        --load-tag-customs-border: rgba(156,111,228,0.30);
+        --load-tag-customs-text:   #9c6fe4;
+        --load-tag-halacha-bg:     rgba(201,162,39,0.15);
+        --load-tag-halacha-border: rgba(201,162,39,0.30);
+        --load-tag-halacha-text:   #c9a227;
+        --load-overlay-bg:         rgba(26,28,30,0.92);
+
+        --shadow-sm:  0 1px 3px rgba(0,0,0,0.3),  0 1px 2px rgba(0,0,0,0.2);
+        --shadow-md:  0 4px 12px rgba(0,0,0,0.4), 0 2px 4px rgba(0,0,0,0.25);
+        --shadow-lg:  0 16px 40px rgba(0,0,0,0.5),0 4px 8px rgba(0,0,0,0.3);
+
+        --surface-base:     #1a1c1e;
+        --surface-subtle:   #212428;
+        --surface-elevated: #282d32;
+        --surface-topbar:   #1f2228;
+        --text-main:        #c8c3ba;
+        --text-muted:       #8a8f9a;
+        --accent-blue:      #4a7fb5;
+        --accent-deep-blue: #4a7fb5;
+        --accent-cream:     #e6e1da;
+        --control-bg:       #2d3138;
+        --control-bg-hover: #363d46;
+        --control-border:   #49515c;
+        --control-text:     #9ba5b5;
+        --control-text-strong: #c8d0de;
+        --control-strong-bg:   #4a7fb5;
+        --control-strong-bg-hover: #5590c8;
+    }
+}

@@ -49,3 +49,21 @@ reports/library_leaf_remove_fix_report.slice180.json
 templates/index_backup.html
 error_audit.txt
 sefardic_prayers.json
+
+# Ignore all hidden files and folders by default
+.*
+**/.*
+
+# explicit exceptions to force Claude to view these specific hidden folders
+!.agents/
+!.claude/
+
+# Explicitly ignore your python environment and runtime noise
+.venv/
+venv/
+__pycache__/
+.env
+.env.example
+.git/
+.vscode/
+.sefaria_cache/
