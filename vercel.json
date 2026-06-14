@@ -2,8 +2,21 @@
     "version": 2,
     "routes": [
         {
+            "src": "/static/(.*)",
+            "dest": "/static/$1",
+            "headers": {
+                "Cache-Control": "public, max-age=3600"
+            }
+        },
+        {
             "src": "/(.*)",
             "dest": "asgi.py"
         }
-    ]
+    ],
+    "functions": {
+        "asgi.py": {
+            "memory": 1024,
+            "maxDuration": 60
+        }
+    }
 }
