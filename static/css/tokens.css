@@ -181,25 +181,25 @@ body.theme-dark {
     color-scheme: dark;
 
     /* ── Surface hierarchy ──────────────────────────────────────────── */
-    --surface-0:          #0d0c0a;   /* near-black warm background */
-    --surface-1:          #181612;   /* dark warm charcoal panels */
-    --surface-2:          #201e1a;   /* elevated cards */
-    --surface-3:          #161410;   /* topbar */
-    --surface-pill:       #262319;   /* chips, tags */
-    --surface-border:     #302c24;   /* warm dark dividers */
+    --surface-0:          #0c0c0c;   /* near-black warm background */
+    --surface-1:          #161616;   /* dark warm charcoal panels */
+    --surface-2:          #1e1e1e;   /* elevated cards */
+    --surface-3:          #141414;   /* topbar */
+    --surface-pill:       #242424;   /* chips, tags */
+    --surface-border:     #2e2e2e;   /* warm dark dividers */
     --surface-scrim:      rgba(0, 0, 0, 0.72);
 
     /* ── Ink / text ─────────────────────────────────────────────────── */
-    --ink-primary:        #c0bab0;
-    --ink-secondary:      #807870;
-    --ink-on-accent:      #f0ebe3;
-    --ink-heading:        #d4cec4;
+    --ink-primary:        #c8c8c8;
+    --ink-secondary:      #787878;
+    --ink-on-accent:      #f0f0f0;
+    --ink-heading:        #d4d4d4;
 
     /* ── Accent palette — muted warm tones on near-black bg ─────────── */
     --accent-primary:     #6888a8;
     --accent-primary-hover: #789ab8;
-    --accent-gold:        #b89028;
-    --accent-gold-light:  #c8a840;
+    --accent-gold:        #a87c28;
+    --accent-gold-light:  #bc9030;
     --accent-purple:      #8868c0;
     --accent-teal:        #2a9c88;
     --accent-green:       #2aaa7a;
@@ -207,11 +207,11 @@ body.theme-dark {
     --accent-orange:      #c86840;
 
     /* ── Controls ───────────────────────────────────────────────────── */
-    --ctrl-bg:            #262319;
-    --ctrl-bg-hover:      #302c22;
-    --ctrl-border:        #3c3828;
-    --ctrl-text:          #888070;
-    --ctrl-text-strong:   #b8b0a0;
+    --ctrl-bg:            #242424;
+    --ctrl-bg-hover:      #2c2c2c;
+    --ctrl-border:        #363636;
+    --ctrl-text:          #888888;
+    --ctrl-text-strong:   #b8b8b8;
     --ctrl-filled-bg:     #6888a8;
     --ctrl-filled-hover:  #789ab8;
 
@@ -228,13 +228,13 @@ body.theme-dark {
     --ai-trust-border:    var(--surface-border);
 
     /* ── Loading / skeleton — dark theme ────────────────────────────── */
-    --load-skeleton-base:      #262319;
-    --load-skeleton-highlight: #302c22;
+    --load-skeleton-base:      #242424;
+    --load-skeleton-highlight: #2c2c2c;
     --load-skeleton-shimmer:   rgba(255,255,255,0.04);
-    --load-spinner-ring:       #c0bab0;
-    --load-spinner-accent:     #b89028;
+    --load-spinner-ring:       #c8c8c8;
+    --load-spinner-accent:     #a87c28;
     --load-spinner-ring-faint: rgba(192, 186, 176, 0.12);
-    --load-phase-text:         #d4cec4;
+    --load-phase-text:         #d4d4d4;
     --load-dot-fill:           rgba(192, 186, 176, 0.40);
     --load-tag-library-bg:     rgba(42, 156, 136, 0.12);
     --load-tag-library-border: rgba(42, 156, 136, 0.25);
@@ -244,7 +244,7 @@ body.theme-dark {
     --load-tag-customs-text:   #8868c0;
     --load-tag-halacha-bg:     rgba(184, 144, 40, 0.12);
     --load-tag-halacha-border: rgba(184, 144, 40, 0.25);
-    --load-tag-halacha-text:   #b89028;
+    --load-tag-halacha-text:   #a87c28;
     --load-overlay-bg:         rgba(13, 12, 10, 0.94);
 
     /* ── Elevation ──────────────────────────────────────────────────── */
@@ -275,22 +275,22 @@ body.theme-dark {
     --control-strong-bg-hover: var(--ctrl-filled-hover);
 
     /* ── Dark-mode-only tokens ──────────────────────────────────────── */
-    --accent-cream:     #ddd5c8;
+    --accent-cream:     #d8d8d8;
 
     /* ── Tailwind utility remaps ────────────────────────────────────── */
-    --tw-dark-bg-slate-100:     #1c1a14;
-    --tw-dark-bg-slate-200:     #242118;
-    --tw-dark-bg-white-85:      rgba(16, 14, 10, 0.90);
-    --tw-dark-border-slate-400: #3c3828;
-    --tw-dark-text-slate-900:   #e4dcd0;
-    --tw-dark-text-slate-800:   #d4ccbf;
-    --tw-dark-text-white:       #d0c8b8;
-    --tw-dark-text-slate-700:   #bcb4a5;
-    --tw-dark-text-slate-600:   #a09890;
-    --tw-dark-text-slate-500:   #888078;
-    --tw-dark-text-slate-400:   #706860;
-    --tw-dark-text-slate-300:   #908880;
-    --tw-dark-bg-hover:         #282420;
+    --tw-dark-bg-slate-100:     #1c1c1c;
+    --tw-dark-bg-slate-200:     #242424;
+    --tw-dark-bg-white-85:      rgba(12,12,12,0.90);
+    --tw-dark-border-slate-400: #363636;
+    --tw-dark-text-slate-900:   #e4e4e4;
+    --tw-dark-text-slate-800:   #d4d4d4;
+    --tw-dark-text-white:       #d0d0d0;
+    --tw-dark-text-slate-700:   #bcbcbc;
+    --tw-dark-text-slate-600:   #a0a0a0;
+    --tw-dark-text-slate-500:   #888888;
+    --tw-dark-text-slate-400:   #707070;
+    --tw-dark-text-slate-300:   #909090;
+    --tw-dark-bg-hover:         #282828;
     --tw-dark-bg-emerald:       #121a14;
     --tw-dark-border-emerald:   #1e3022;
     --tw-dark-text-emerald:     #60a870;
@@ -302,16 +302,16 @@ body.theme-dark {
     --tw-dark-text-red:         #a87080;
     --tw-dark-text-blue:        #909aab;
     --tw-dark-bg-blue:          #141210;
-    --tw-dark-border-blue:      #282420;
-    --tw-dark-focus-border:     #504840;
-    --tw-dark-checkbox-accent:  #807050;
+    --tw-dark-border-blue:      #282828;
+    --tw-dark-focus-border:     #484848;
+    --tw-dark-checkbox-accent:  #787878;
 
     /* ── Corpus accent tokens ───────────────────────────────────────── */
-    --accent-menu:              #b8b2a8;
-    --accent-zmanim:            #b0ada4;
+    --accent-menu:              #b8b8b8;
+    --accent-zmanim:            #b0b0b0;
     --accent-tanakh:            #a8b4b0;
     --accent-mishnah:           #acaab8;
-    --accent-talmud:            #b8b0a0;
+    --accent-talmud:            #b8b8b8;
     --accent-talmud-hover:      #a8906a;
     --accent-halakhah:          #b0a8a8;
     --accent-customs:           #aca6b8;
@@ -319,39 +319,39 @@ body.theme-dark {
 
     /* ── Reader ─────────────────────────────────────────────────────── */
     --range-complete:           #8b6f47;   /* keep — non-grey slider accent */
-    --range-incomplete:         #dfccb0;   /* keep — non-grey slider track */
-    --reader-row-border:        #2c2820;
-    --reader-topbar-border:     #242018;
-    --reader-btn-color:         #a89880;
-    --reader-btn-hover:         #c8c0b0;
+    --range-incomplete:         #2a2a2a;   /* keep — non-grey slider track */
+    --reader-row-border:        #262626;
+    --reader-topbar-border:     #202020;
+    --reader-btn-color:         #a0a0a0;
+    --reader-btn-hover:         #c0c0c0;
     --reader-thumb-border:      #141513;   /* keep — non-grey */
     --reader-thumb-bg:          #d7c9b2;   /* keep — non-grey */
 
     /* ── AI ─────────────────────────────────────────────────────────── */
-    --ai-loading-color:         #98908a;
-    --ai-warning-bg:            #1a1208;
-    --ai-warning-border:        #3a2c10;
-    --ai-warning-text:          #c09840;
-    --ai-badge-hover-border:    #484038;
+    --ai-loading-color:         #909090;
+    --ai-warning-bg:            #141410;
+    --ai-warning-border:        #2c2816;
+    --ai-warning-text:          #c09030;
+    --ai-badge-hover-border:    #484848;
 
     /* ── Zmanim ─────────────────────────────────────────────────────── */
-    --zmanim-warn-accent:       #9a5832;
-    --zmanim-warn-text:         #c89870;
+    --zmanim-warn-accent:       #985030;
+    --zmanim-warn-text:         #c09060;
 
     /* ── Calendar ───────────────────────────────────────────────────── */
-    --cal-event-holiday:        #5a2838;
-    --cal-event-shabbat:        #1a3228;
-    --cal-event-rh:             #3a2410;
-    --cal-modal-header-start:   #1a1812;
-    --cal-modal-header-end:     #14120e;
-    --cal-icon-bg:              #343028;
+    --cal-event-holiday:        #9c3040;
+    --cal-event-shabbat:        #286048;
+    --cal-event-rh:             #8a5020;
+    --cal-modal-header-start:   #181818;
+    --cal-modal-header-end:     #121212;
+    --cal-icon-bg:              #303030;
 
     /* ── Halacha ────────────────────────────────────────────────────── */
     --halacha-ruling-color:            #7898b0;
     --halacha-ruling-bg:               #0e1318;
     --halacha-custom-color:            #8870b0;
     --halacha-custom-bg:               #101018;
-    --halacha-source-color:            #a89030;
+    --halacha-source-color:            #a08828;
     --halacha-source-bg:               #141208;
     --halacha-custom-ruling-bg:        #100d18;
     --halacha-ruling-ashkenazi-bg:     #0e1218;
@@ -361,15 +361,15 @@ body.theme-dark {
     --halacha-ruling-bukharian-border: #8830a0;
 
     /* ── Prayer ─────────────────────────────────────────────────────── */
-    --prayer-accent-border:     #705a28;
+    --prayer-accent-border:     #685820;
 
     /* ── Misc ───────────────────────────────────────────────────────── */
-    --home-label-color:         #989080;
-    --fc-day-number-color:      #b8b0a8;
-    --prose-text-dark:          #c4bcb0;
-    --icon-muted:               #787068;
-    --tooltip-text:             #e0d8cc;
-    --search-hover-border:      #484038;
+    --home-label-color:         #989898;
+    --fc-day-number-color:      #b8b8b8;
+    --prose-text-dark:          #c4c4c4;
+    --icon-muted:               #787878;
+    --tooltip-text:             #e0e0e0;
+    --search-hover-border:      #484848;
 }
 
 
@@ -384,101 +384,101 @@ body.theme-dark {
     :root:not([data-theme="light"]) {
         color-scheme: dark;
 
-        --surface-0:          #0d0c0a;
-        --surface-1:          #181612;
-        --surface-2:          #201e1a;
-        --surface-3:          #161410;
-        --surface-pill:       #262319;
-        --surface-border:     #302c24;
+        --surface-0:          #0c0c0c;
+        --surface-1:          #161616;
+        --surface-2:          #1e1e1e;
+        --surface-3:          #141414;
+        --surface-pill:       #242424;
+        --surface-border:     #2e2e2e;
         --surface-scrim:      rgba(0, 0, 0, 0.72);
 
-        --ink-primary:        #c0bab0;
-        --ink-secondary:      #807870;
-        --ink-heading:        #d4cec4;
+        --ink-primary:        #c8c8c8;
+        --ink-secondary:      #787878;
+        --ink-heading:        #d4d4d4;
 
         --accent-primary:     #6888a8;
         --accent-primary-hover: #789ab8;
-        --accent-gold:        #b89028;
-        --accent-gold-light:  #c8a840;
+        --accent-gold:        #a87c28;
+        --accent-gold-light:  #bc9030;
         --accent-purple:      #8868c0;
         --accent-teal:        #2a9c88;
         --accent-green:       #2aaa7a;
         --accent-red:         #c04870;
         --accent-orange:      #c86840;
 
-        --ctrl-bg:            #262319;
-        --ctrl-bg-hover:      #302c22;
-        --ctrl-border:        #3c3828;
-        --ctrl-text:          #888070;
-        --ctrl-text-strong:   #b8b0a0;
+        --ctrl-bg:            #242424;
+        --ctrl-bg-hover:      #2c2c2c;
+        --ctrl-border:        #363636;
+        --ctrl-text:          #888888;
+        --ctrl-text-strong:   #b8b8b8;
         --ctrl-filled-bg:     #6888a8;
         --ctrl-filled-hover:  #789ab8;
 
-        --ai-surface:         #201e1a;
-        --ai-border:          #302c24;
-        --ai-src-header-bg:   #262319;
-        --ai-src-body-bg:     #201e1a;
-        --ai-src-he-bg:       #201e1a;
-        --ai-src-en-bg:       #262319;
+        --ai-surface:         #1e1e1e;
+        --ai-border:          #2e2e2e;
+        --ai-src-header-bg:   #242424;
+        --ai-src-body-bg:     #1e1e1e;
+        --ai-src-he-bg:       #1e1e1e;
+        --ai-src-en-bg:       #242424;
         --ai-wiki-accent:     #6888a8;
         --ai-custom-accent:   #8868c0;
-        --ai-trust-bg:        #262319;
-        --ai-trust-border:    #302c24;
+        --ai-trust-bg:        #242424;
+        --ai-trust-border:    #2e2e2e;
 
-        --load-skeleton-base:      #262319;
-        --load-skeleton-highlight: #302c22;
+        --load-skeleton-base:      #242424;
+        --load-skeleton-highlight: #2c2c2c;
         --load-skeleton-shimmer:   rgba(255,255,255,0.04);
-        --load-spinner-ring:       #c0bab0;
-        --load-spinner-accent:     #b89028;
-        --load-spinner-ring-faint: rgba(192,186,176,0.12);
-        --load-phase-text:         #d4cec4;
-        --load-dot-fill:           rgba(192,186,176,0.40);
+        --load-spinner-ring:       #c8c8c8;
+        --load-spinner-accent:     #a87c28;
+        --load-spinner-ring-faint: rgba(192,192,192,0.12);
+        --load-phase-text:         #d4d4d4;
+        --load-dot-fill:           rgba(192,192,192,0.40);
         --load-tag-library-bg:     rgba(42,156,136,0.12);
         --load-tag-library-border: rgba(42,156,136,0.25);
         --load-tag-library-text:   #2a9c88;
         --load-tag-customs-bg:     rgba(136,104,192,0.12);
         --load-tag-customs-border: rgba(136,104,192,0.25);
         --load-tag-customs-text:   #8868c0;
-        --load-tag-halacha-bg:     rgba(184,144,40,0.12);
-        --load-tag-halacha-border: rgba(184,144,40,0.25);
-        --load-tag-halacha-text:   #b89028;
-        --load-overlay-bg:         rgba(13,12,10,0.94);
+        --load-tag-halacha-bg:     rgba(168,124,40,0.12);
+        --load-tag-halacha-border: rgba(168,124,40,0.25);
+        --load-tag-halacha-text:   #a87c28;
+        --load-overlay-bg:         rgba(12,12,12,0.94);
 
         --shadow-sm:  0 1px 3px rgba(0,0,0,0.50), 0 1px 2px rgba(0,0,0,0.35);
         --shadow-md:  0 4px 12px rgba(0,0,0,0.60), 0 2px 4px rgba(0,0,0,0.40);
         --shadow-lg:  0 16px 40px rgba(0,0,0,0.70), 0 4px 8px rgba(0,0,0,0.50);
 
-        --surface-base:     #0d0c0a;
-        --surface-subtle:   #181612;
-        --surface-elevated: #201e1a;
-        --surface-topbar:   #161410;
-        --text-main:        #c0bab0;
-        --text-muted:       #807870;
+        --surface-base:     #0c0c0c;
+        --surface-subtle:   #161616;
+        --surface-elevated: #1e1e1e;
+        --surface-topbar:   #141414;
+        --text-main:        #c8c8c8;
+        --text-muted:       #787878;
         --accent-blue:      #6888a8;
         --accent-deep-blue: #6888a8;
-        --accent-cream:     #ddd5c8;
-        --control-bg:       #262319;
-        --control-bg-hover: #302c22;
-        --control-border:   #3c3828;
-        --control-text:     #888070;
-        --control-text-strong: #b8b0a0;
+        --accent-cream:     #d8d8d8;
+        --control-bg:       #242424;
+        --control-bg-hover: #2c2c2c;
+        --control-border:   #363636;
+        --control-text:     #888888;
+        --control-text-strong: #b8b8b8;
         --control-strong-bg:   #6888a8;
         --control-strong-bg-hover: #789ab8;
 
         /* ── Tailwind utility remaps ──────────────────────────────── */
-        --tw-dark-bg-slate-100:     #1c1a14;
-        --tw-dark-bg-slate-200:     #242118;
-        --tw-dark-bg-white-85:      rgba(16, 14, 10, 0.90);
-        --tw-dark-border-slate-400: #3c3828;
-        --tw-dark-text-slate-900:   #e4dcd0;
-        --tw-dark-text-slate-800:   #d4ccbf;
-        --tw-dark-text-white:       #d0c8b8;
-        --tw-dark-text-slate-700:   #bcb4a5;
-        --tw-dark-text-slate-600:   #a09890;
-        --tw-dark-text-slate-500:   #888078;
-        --tw-dark-text-slate-400:   #706860;
-        --tw-dark-text-slate-300:   #908880;
-        --tw-dark-bg-hover:         #282420;
+        --tw-dark-bg-slate-100:     #1c1c1c;
+        --tw-dark-bg-slate-200:     #242424;
+        --tw-dark-bg-white-85:      rgba(12,12,12,0.90);
+        --tw-dark-border-slate-400: #363636;
+        --tw-dark-text-slate-900:   #e4e4e4;
+        --tw-dark-text-slate-800:   #d4d4d4;
+        --tw-dark-text-white:       #d0d0d0;
+        --tw-dark-text-slate-700:   #bcbcbc;
+        --tw-dark-text-slate-600:   #a0a0a0;
+        --tw-dark-text-slate-500:   #888888;
+        --tw-dark-text-slate-400:   #707070;
+        --tw-dark-text-slate-300:   #909090;
+        --tw-dark-bg-hover:         #282828;
         --tw-dark-bg-emerald:       #121a14;
         --tw-dark-border-emerald:   #1e3022;
         --tw-dark-text-emerald:     #60a870;
@@ -490,16 +490,16 @@ body.theme-dark {
         --tw-dark-text-red:         #a87080;
         --tw-dark-text-blue:        #909aab;
         --tw-dark-bg-blue:          #141210;
-        --tw-dark-border-blue:      #282420;
-        --tw-dark-focus-border:     #504840;
-        --tw-dark-checkbox-accent:  #807050;
+        --tw-dark-border-blue:      #282828;
+        --tw-dark-focus-border:     #484848;
+        --tw-dark-checkbox-accent:  #787878;
 
         /* ── Corpus accent tokens ─────────────────────────────────── */
-        --accent-menu:              #b8b2a8;
-        --accent-zmanim:            #b0ada4;
+        --accent-menu:              #b8b8b8;
+        --accent-zmanim:            #b0b0b0;
         --accent-tanakh:            #a8b4b0;
         --accent-mishnah:           #acaab8;
-        --accent-talmud:            #b8b0a0;
+        --accent-talmud:            #b8b8b8;
         --accent-talmud-hover:      #a8906a;
         --accent-halakhah:          #b0a8a8;
         --accent-customs:           #aca6b8;
@@ -507,39 +507,39 @@ body.theme-dark {
 
         /* ── Reader ───────────────────────────────────────────────── */
         --range-complete:           #8b6f47;
-        --range-incomplete:         #dfccb0;
-        --reader-row-border:        #2c2820;
-        --reader-topbar-border:     #242018;
-        --reader-btn-color:         #a89880;
-        --reader-btn-hover:         #c8c0b0;
+        --range-incomplete:         #2a2a2a;
+        --reader-row-border:        #262626;
+        --reader-topbar-border:     #202020;
+        --reader-btn-color:         #a0a0a0;
+        --reader-btn-hover:         #c0c0c0;
         --reader-thumb-border:      #141513;
         --reader-thumb-bg:          #d7c9b2;
 
         /* ── AI ───────────────────────────────────────────────────── */
-        --ai-loading-color:         #98908a;
-        --ai-warning-bg:            #1a1208;
-        --ai-warning-border:        #3a2c10;
-        --ai-warning-text:          #c09840;
-        --ai-badge-hover-border:    #484038;
+        --ai-loading-color:         #909090;
+        --ai-warning-bg:            #141410;
+        --ai-warning-border:        #2c2816;
+        --ai-warning-text:          #c09030;
+        --ai-badge-hover-border:    #484848;
 
         /* ── Zmanim ───────────────────────────────────────────────── */
-        --zmanim-warn-accent:       #9a5832;
-        --zmanim-warn-text:         #c89870;
+        --zmanim-warn-accent:       #985030;
+        --zmanim-warn-text:         #c09060;
 
         /* ── Calendar ─────────────────────────────────────────────── */
-        --cal-event-holiday:        #5a2838;
-        --cal-event-shabbat:        #1a3228;
-        --cal-event-rh:             #3a2410;
-        --cal-modal-header-start:   #1a1812;
-        --cal-modal-header-end:     #14120e;
-        --cal-icon-bg:              #343028;
+        --cal-event-holiday:        #9c3040;
+        --cal-event-shabbat:        #286048;
+        --cal-event-rh:             #8a5020;
+        --cal-modal-header-start:   #181818;
+        --cal-modal-header-end:     #121212;
+        --cal-icon-bg:              #303030;
 
         /* ── Halacha ──────────────────────────────────────────────── */
         --halacha-ruling-color:            #7898b0;
         --halacha-ruling-bg:               #0e1318;
         --halacha-custom-color:            #8870b0;
         --halacha-custom-bg:               #101018;
-        --halacha-source-color:            #a89030;
+        --halacha-source-color:            #a08828;
         --halacha-source-bg:               #141208;
         --halacha-custom-ruling-bg:        #100d18;
         --halacha-ruling-ashkenazi-bg:     #0e1218;
@@ -549,14 +549,14 @@ body.theme-dark {
         --halacha-ruling-bukharian-border: #8830a0;
 
         /* ── Prayer ───────────────────────────────────────────────── */
-        --prayer-accent-border:     #705a28;
+        --prayer-accent-border:     #685820;
 
         /* ── Misc ─────────────────────────────────────────────────── */
-        --home-label-color:         #989080;
-        --fc-day-number-color:      #b8b0a8;
-        --prose-text-dark:          #c4bcb0;
-        --icon-muted:               #787068;
-        --tooltip-text:             #e0d8cc;
-        --search-hover-border:      #484038;
+        --home-label-color:         #989898;
+        --fc-day-number-color:      #b8b8b8;
+        --prose-text-dark:          #c4c4c4;
+        --icon-muted:               #787878;
+        --tooltip-text:             #e0e0e0;
+        --search-hover-border:      #484848;
     }
 }
