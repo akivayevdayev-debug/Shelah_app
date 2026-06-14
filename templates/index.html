@@ -1,11 +1,11 @@
 <!DOCTYPE html>
-<html lang="en" data-theme="light">
+<html lang="en" data-theme="dark">
 
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <meta name="theme-color" content="#f3ede0" media="(prefers-color-scheme: light)">
-    <meta name="theme-color" content="#1a1c1e" media="(prefers-color-scheme: dark)">
+    <meta name="theme-color" content="#0d0c0a" media="(prefers-color-scheme: dark)">
     <title>Sh'elah - Torah Encyclopedia</title>
     <meta name="description" content="AI-powered Torah encyclopedia — search halacha, Talmud, Tanakh, and Jewish law with source citations and community-aware answers.">
     <meta property="og:title" content="Sh'elah - Torah Encyclopedia">
@@ -22,7 +22,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link rel="preload" href="/static/fonts/SILEOT.woff" as="font" type="font/woff" crossorigin>
     <!-- no-flash theme: read localStorage before first paint -->
-    <script>(function(){var t=localStorage.getItem('shelah-theme');if(t==='dark'){document.documentElement.setAttribute('data-theme','dark');document.documentElement.classList.add('theme-dark');}else if(t==='light'){document.documentElement.setAttribute('data-theme','light');}else if(window.matchMedia('(prefers-color-scheme: dark)').matches){document.documentElement.setAttribute('data-theme','dark');document.documentElement.classList.add('theme-dark');}})()</script>
+    <script>(function(){var t=localStorage.getItem('shelah-theme');if(t==='light'){document.documentElement.setAttribute('data-theme','light');document.documentElement.classList.remove('theme-dark');}else{document.documentElement.setAttribute('data-theme','dark');document.documentElement.classList.add('theme-dark');}})()</script>
     <!-- DaisyUI component library (non-destructive — adds .btn, .card etc. utility classes) -->
     <link href="https://cdn.jsdelivr.net/npm/daisyui@4.12.24/dist/full.min.css" rel="stylesheet"
           integrity="sha384-2V5uSMIWpBK7suX6yRDZH6ll7ktPJF2O58y0HSz+HiFCBCsmqZpxX1AZB4qAHuYI"
@@ -38,19 +38,19 @@
     <script src="https://cdn.jsdelivr.net/npm/dompurify@3.4.9/dist/purify.min.js"
             integrity="sha384-6ZdfL2Azuen6KYvcTkbxqJS1d7txbNWrVfmURkxNeCn7DtzhLRL6Fi6WGG6ZLdKn"
             crossorigin="anonymous"></script>
-    <link rel="stylesheet" href="/static/css/tokens.css?v=20260613-v6">
-    <link rel="stylesheet" href="/static/style.css?v=20260613-v6">
+    <link rel="stylesheet" href="/static/css/tokens.css?v=20260614-v7">
+    <link rel="stylesheet" href="/static/style.css?v=20260614-v7">
     <!-- CSS modules (supplement style.css; do not replace) -->
-    <link rel="stylesheet" href="/static/css/typography.css?v=20260613-v6">
-    <link rel="stylesheet" href="/static/css/reader.css?v=20260613-v6">
-    <link rel="stylesheet" href="/static/css/sidebar.css?v=20260613-v6">
-    <link rel="stylesheet" href="/static/css/halacha.css?v=20260613-v6">
-    <link rel="stylesheet" href="/static/css/prayer.css?v=20260613-v6">
-    <link rel="stylesheet" href="/static/css/ai.css?v=20260613-v6">
-    <link rel="stylesheet" href="/static/css/calendar.css?v=20260613-v6">
-    <link rel="stylesheet" href="/static/css/loading.css?v=20260613-v6">
+    <link rel="stylesheet" href="/static/css/typography.css?v=20260614-v7">
+    <link rel="stylesheet" href="/static/css/reader.css?v=20260614-v7">
+    <link rel="stylesheet" href="/static/css/sidebar.css?v=20260614-v7">
+    <link rel="stylesheet" href="/static/css/halacha.css?v=20260614-v7">
+    <link rel="stylesheet" href="/static/css/prayer.css?v=20260614-v7">
+    <link rel="stylesheet" href="/static/css/ai.css?v=20260614-v7">
+    <link rel="stylesheet" href="/static/css/calendar.css?v=20260614-v7">
+    <link rel="stylesheet" href="/static/css/loading.css?v=20260614-v7">
     <!-- Tailwind CSS (pre-built; loads last so utilities override custom CSS — mirrors CDN runtime cascade behavior) -->
-    <link rel="stylesheet" href="/static/css/tailwind.css?v=20260613-v6">
+    <link rel="stylesheet" href="/static/css/tailwind.css?v=20260614-v7">
 
     <!-- FullCalendar -->
     <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.15/index.global.min.js"
@@ -275,6 +275,115 @@
                         data-he="English">עברית</button>
                 </div>
             </header>
+
+    <!-- READER TOPBAR: sits at body level, directly below main topbar, spanning all columns -->
+    <div id="readerTopBar"
+        class="hidden sticky z-40 reader-topbar-shell border-y border-[#ddd4c3] bg-[#f9f4ea] px-1 py-1">
+        <div class="reader-topbar-track">
+            <!-- Library button — left anchor, in-track -->
+            <button id="readerLibraryTopBarBtn" type="button"
+                class="reader-topbar-icon-btn reader-topbar-library-track" aria-label="Library" title="Library">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor"
+                    aria-hidden="true">
+                    <path
+                        d="M3 4.5A1.5 1.5 0 014.5 3h9A1.5 1.5 0 0115 4.5V14a1 1 0 001 1h1a1 1 0 010 2h-1a3 3 0 01-3-3V5H5v9a1 1 0 001 1h5a1 1 0 110 2H6a3 3 0 01-3-3V4.5z" />
+                    <path
+                        d="M6 7a1 1 0 011-1h4a1 1 0 110 2H7a1 1 0 01-1-1zm0 3a1 1 0 011-1h4a1 1 0 110 2H7a1 1 0 01-1-1z" />
+                </svg>
+            </button>
+
+            <button id="readerPrevTopBarBtn" type="button" class="reader-topbar-icon-btn"
+                aria-label="Previous Section" title="Previous Section">
+                <span aria-hidden="true">&#9664;</span>
+            </button>
+
+            <div class="text-start reader-topbar-settings-wrap">
+                <div class="reader-topbar-settings-anchor relative">
+                    <button id="readerSettingsBtn" type="button"
+                        class="reader-topbar-icon-btn reader-topbar-settings-btn" aria-label="Reader Settings"
+                        title="Reader Settings">
+                        <span class="reader-topbar-settings-icon" aria-hidden="true">&#9776;</span>
+                        <span id="readerSettingsBtnLabel" class="reader-topbar-settings-label"
+                            data-en="Reader Settings" data-he="הגדרות קריאה">Reader Settings</span>
+                    </button>
+
+                    <div id="readerSettingsPanel"
+                        class="hidden absolute reader-settings-dropdown top-full mt-1 w-[min(92vw,24rem)] rounded-xl p-3 z-[80] space-y-3 text-start">
+                        <p class="text-[11px] uppercase tracking-widest text-slate-400 font-bold"
+                            data-en="Reader Settings" data-he="הגדרות קריאה">Reader Settings</p>
+
+                        <label class="block text-xs text-slate-600">
+                            <span data-en="Layout" data-he="פריסה">Layout</span>
+                            <select id="readerLayoutSelect"
+                                class="mt-1 w-full px-2 py-1.5 rounded border border-slate-200 bg-slate-50 text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-300">
+                                <option value="bilingual" data-en="Side by Side (Hebrew Left)"
+                                    data-he="דו-עמודי (עברית משמאל)">Side by Side (Hebrew Left)
+                                </option>
+                                <option value="bilingual-reverse" data-en="Side by Side (English Left)"
+                                    data-he="דו-עמודי (אנגלית משמאל)">Side by Side (English Left)</option>
+                                <option value="interleaved" data-en="Interleaved" data-he="משולב שורה-שורה">
+                                    Interleaved</option>
+                                <option value="english" data-en="English" data-he="אנגלית">English</option>
+                                <option value="hebrew" data-en="Hebrew" data-he="עברית">Hebrew</option>
+                            </select>
+                        </label>
+
+                        <label class="block text-xs text-slate-600">
+                            <span data-en="Text Size" data-he="גודל טקסט">Text Size</span>
+                            <input id="readerFontSize" type="range" min="14" max="30" value="18"
+                                class="reader-range-slider mt-1 w-full" />
+                        </label>
+
+                        <label class="block text-xs text-slate-600">
+                            <span data-en="Density" data-he="ריווח">Density</span>
+                            <input id="readerLineHeight" type="range" min="1.4" max="2.4" step="0.1" value="1.8"
+                                class="reader-range-slider mt-1 w-full" />
+                        </label>
+
+                        <div class="space-y-2 border-t border-slate-100 pt-2">
+                            <label class="flex items-center justify-between text-xs text-slate-600">
+                                <span data-en="Source Transliteration" data-he="תעתיק מהמקור">Source
+                                    Transliteration</span>
+                                <input id="transliterationToggle" type="checkbox" class="reader-switch" />
+                            </label>
+                            <label class="flex items-center justify-between text-xs text-slate-600">
+                                <span data-en="Show Vowels" data-he="הצג ניקוד">Show Vowels</span>
+                                <input id="showVowelsToggle" type="checkbox" class="reader-switch" checked />
+                            </label>
+                            <label id="cantillationToggleRow"
+                                class="flex items-center justify-between text-xs text-slate-600">
+                                <span data-en="Show Cantillation" data-he="הצג טעמי מקרא">Show
+                                    Cantillation</span>
+                                <input id="showCantillationToggle" type="checkbox" class="reader-switch"
+                                    checked />
+                            </label>
+                        </div>
+
+                        <div class="space-y-2 border-t border-slate-100 pt-2">
+                            <label class="flex items-center justify-between text-xs text-slate-600">
+                                <span data-en="Shul Mode" data-he="מצב בית כנסת">Shul Mode</span>
+                                <input id="shulModeToggle" type="checkbox" class="reader-switch" />
+                            </label>
+                            <label class="flex items-center justify-between text-xs text-slate-600">
+                                <span data-en="Auto Scroll" data-he="גלילה אוטומטית">Auto Scroll</span>
+                                <input id="shulAutoScrollToggle" type="checkbox" class="reader-switch" />
+                            </label>
+                            <label class="block text-xs text-slate-600">
+                                <span data-en="Scroll Speed" data-he="מהירות גלילה">Scroll Speed</span>
+                                <input id="shulScrollSpeed" type="range" min="8" max="80" value="28"
+                                    class="reader-range-slider mt-1 w-full" />
+                            </label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <button id="readerNextTopBarBtn" type="button" class="reader-topbar-icon-btn"
+                aria-label="Next Section" title="Next Section">
+                <span aria-hidden="true">&#9654;</span>
+            </button>
+        </div>
+    </div>
 
     <div class="flex flex-1 min-h-0 overflow-hidden relative">
 
@@ -1055,115 +1164,6 @@
                             data-en="Loading library..." data-he="טוען ספרייה...">Loading
                             library...</div>
                     </div>
-                </div>
-            </div>
-
-            <!-- READER TOPBAR: sits inside #mainContainer, outside #reader article, so it spans full column width -->
-            <div id="readerTopBar"
-                class="hidden sticky z-40 reader-topbar-shell border-y border-[#ddd4c3] bg-[#f9f4ea] px-1 py-1">
-                <div class="reader-topbar-track">
-                    <!-- Library button — left anchor, in-track -->
-                    <button id="readerLibraryTopBarBtn" type="button"
-                        class="reader-topbar-icon-btn reader-topbar-library-track" aria-label="Library" title="Library">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor"
-                            aria-hidden="true">
-                            <path
-                                d="M3 4.5A1.5 1.5 0 014.5 3h9A1.5 1.5 0 0115 4.5V14a1 1 0 001 1h1a1 1 0 010 2h-1a3 3 0 01-3-3V5H5v9a1 1 0 001 1h5a1 1 0 110 2H6a3 3 0 01-3-3V4.5z" />
-                            <path
-                                d="M6 7a1 1 0 011-1h4a1 1 0 110 2H7a1 1 0 01-1-1zm0 3a1 1 0 011-1h4a1 1 0 110 2H7a1 1 0 01-1-1z" />
-                        </svg>
-                    </button>
-
-                    <button id="readerPrevTopBarBtn" type="button" class="reader-topbar-icon-btn"
-                        aria-label="Previous Section" title="Previous Section">
-                        <span aria-hidden="true">&#9664;</span>
-                    </button>
-
-                    <div class="text-start reader-topbar-settings-wrap">
-                        <div class="reader-topbar-settings-anchor relative">
-                            <button id="readerSettingsBtn" type="button"
-                                class="reader-topbar-icon-btn reader-topbar-settings-btn" aria-label="Reader Settings"
-                                title="Reader Settings">
-                                <span class="reader-topbar-settings-icon" aria-hidden="true">&#9776;</span>
-                                <span id="readerSettingsBtnLabel" class="reader-topbar-settings-label"
-                                    data-en="Reader Settings" data-he="הגדרות קריאה">Reader Settings</span>
-                            </button>
-
-                            <div id="readerSettingsPanel"
-                                class="hidden absolute reader-settings-dropdown top-full mt-1 w-[min(92vw,24rem)] rounded-xl p-3 z-[80] space-y-3 text-start">
-                                <p class="text-[11px] uppercase tracking-widest text-slate-400 font-bold"
-                                    data-en="Reader Settings" data-he="הגדרות קריאה">Reader Settings</p>
-
-                                <label class="block text-xs text-slate-600">
-                                    <span data-en="Layout" data-he="פריסה">Layout</span>
-                                    <select id="readerLayoutSelect"
-                                        class="mt-1 w-full px-2 py-1.5 rounded border border-slate-200 bg-slate-50 text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-300">
-                                        <option value="bilingual" data-en="Side by Side (Hebrew Left)"
-                                            data-he="דו-עמודי (עברית משמאל)">Side by Side (Hebrew Left)
-                                        </option>
-                                        <option value="bilingual-reverse" data-en="Side by Side (English Left)"
-                                            data-he="דו-עמודי (אנגלית משמאל)">Side by Side (English Left)</option>
-                                        <option value="interleaved" data-en="Interleaved" data-he="משולב שורה-שורה">
-                                            Interleaved</option>
-                                        <option value="english" data-en="English" data-he="אנגלית">English</option>
-                                        <option value="hebrew" data-en="Hebrew" data-he="עברית">Hebrew</option>
-                                    </select>
-                                </label>
-
-                                <label class="block text-xs text-slate-600">
-                                    <span data-en="Text Size" data-he="גודל טקסט">Text Size</span>
-                                    <input id="readerFontSize" type="range" min="14" max="30" value="18"
-                                        class="reader-range-slider mt-1 w-full" />
-                                </label>
-
-                                <label class="block text-xs text-slate-600">
-                                    <span data-en="Density" data-he="ריווח">Density</span>
-                                    <input id="readerLineHeight" type="range" min="1.4" max="2.4" step="0.1" value="1.8"
-                                        class="reader-range-slider mt-1 w-full" />
-                                </label>
-
-                                <div class="space-y-2 border-t border-slate-100 pt-2">
-                                    <label class="flex items-center justify-between text-xs text-slate-600">
-                                        <span data-en="Source Transliteration" data-he="תעתיק מהמקור">Source
-                                            Transliteration</span>
-                                        <input id="transliterationToggle" type="checkbox" class="reader-switch" />
-                                    </label>
-                                    <label class="flex items-center justify-between text-xs text-slate-600">
-                                        <span data-en="Show Vowels" data-he="הצג ניקוד">Show Vowels</span>
-                                        <input id="showVowelsToggle" type="checkbox" class="reader-switch" checked />
-                                    </label>
-                                    <label id="cantillationToggleRow"
-                                        class="flex items-center justify-between text-xs text-slate-600">
-                                        <span data-en="Show Cantillation" data-he="הצג טעמי מקרא">Show
-                                            Cantillation</span>
-                                        <input id="showCantillationToggle" type="checkbox" class="reader-switch"
-                                            checked />
-                                    </label>
-                                </div>
-
-                                <div class="space-y-2 border-t border-slate-100 pt-2">
-                                    <label class="flex items-center justify-between text-xs text-slate-600">
-                                        <span data-en="Shul Mode" data-he="מצב בית כנסת">Shul Mode</span>
-                                        <input id="shulModeToggle" type="checkbox" class="reader-switch" />
-                                    </label>
-                                    <label class="flex items-center justify-between text-xs text-slate-600">
-                                        <span data-en="Auto Scroll" data-he="גלילה אוטומטית">Auto Scroll</span>
-                                        <input id="shulAutoScrollToggle" type="checkbox" class="reader-switch" />
-                                    </label>
-                                    <label class="block text-xs text-slate-600">
-                                        <span data-en="Scroll Speed" data-he="מהירות גלילה">Scroll Speed</span>
-                                        <input id="shulScrollSpeed" type="range" min="8" max="80" value="28"
-                                            class="reader-range-slider mt-1 w-full" />
-                                    </label>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <button id="readerNextTopBarBtn" type="button" class="reader-topbar-icon-btn"
-                        aria-label="Next Section" title="Next Section">
-                        <span aria-hidden="true">&#9654;</span>
-                    </button>
                 </div>
             </div>
 
