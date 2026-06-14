@@ -9,22 +9,41 @@ from __future__ import annotations
 
 import asyncio
 import collections
+import logging
 import time
 from typing import Any
+
+# OrderedDict gives O(1) move_to_end for LRU eviction.
+_RateLimitStore = collections.OrderedDict
+
+logger = logging.getLogger(__name__)
 
 from fastapi import FastAPI, Header, HTTPException, Request
 from fastapi.middleware.wsgi import WSGIMiddleware
 from pydantic import BaseModel, Field
 
 import app as flask_app_module
+from app import get_halakhic_sources
 from backend import claude, search
+from backend.auth import _verify_clerk_token, CLERK_ENFORCE_AUTH
+from backend import sefaria as _backend_sefaria
+from backend.data_service import ShelahEngine
+from backend.rag import _build_ask_tool_context, _retrieve_community_knowledge, _compose_answer_with_prefixes
+from backend.rag import _knowledge_rows_to_customs, RAG_TOP_KNOWLEDGE_ROWS, RAG_MEMORY_ROWS
+from backend.rag import _fetch_user_memory_summaries, _store_user_memory_summary
+from backend.helpers import _sanitize_answer_mode, _compact_ai_sources
+from backend.helpers import _build_source_attribution_note, _canonicalize_community_name
+from backend.logging_setup import _capture_backend_error
 
 # ─── Simple in-process rate limiter for FastAPI /ask ──────────────────────────
 # Each IP is tracked with a deque of request timestamps. This avoids adding
 # slowapi/Redis just for a single endpoint and matches the Flask limit (20/min).
 _RATE_LIMIT_WINDOW_SECONDS = 60
 _RATE_LIMIT_MAX_REQUESTS = 20
-_rate_limit_store: dict[str, collections.deque] = {}
+# OrderedDict gives O(1) LRU eviction via move_to_end — evicts least-recently-used
+# IP instead of oldest-inserted, preventing an attacker cycling 2 048 IPs from
+# flushing active users' counters.
+_rate_limit_store: _RateLimitStore = _RateLimitStore()
 _RATE_LIMIT_STORE_MAX_KEYS = 2048  # cap memory
 
 
@@ -38,14 +57,21 @@ def _get_client_ip(request: Request) -> str:
 
 
 def _check_rate_limit(ip: str) -> bool:
-    """Return True if the request is allowed, False if rate-limited."""
+    """Return True if the request is allowed, False if rate-limited.
+
+    Uses an OrderedDict for LRU eviction: each access moves the key to the end
+    so the least-recently-used entry is always at the front for eviction.
+    """
     now = time.monotonic()
     if ip not in _rate_limit_store:
-        # Evict oldest key if store is full before inserting a new IP.
+        # Evict LRU key (front of OrderedDict) if store is at capacity.
         if len(_rate_limit_store) >= _RATE_LIMIT_STORE_MAX_KEYS:
-            oldest = next(iter(_rate_limit_store))
-            del _rate_limit_store[oldest]
+            _rate_limit_store.popitem(last=False)
         _rate_limit_store[ip] = collections.deque()
+    else:
+        # Move to end to mark as most-recently-used.
+        _rate_limit_store.move_to_end(ip)
+
     timestamps = _rate_limit_store[ip]
     cutoff = now - _RATE_LIMIT_WINDOW_SECONDS
     while timestamps and timestamps[0] < cutoff:
@@ -76,8 +102,9 @@ def _extract_user_id_from_bearer(authorization: str | None) -> str | None:
         return None
 
     try:
-        claims = flask_app_module._verify_clerk_token(token)
-    except Exception:
+        claims = _verify_clerk_token(token)
+    except Exception as exc:
+        logger.debug("Bearer token verification failed: %s", exc)
         return None
 
     user_id = str(claims.get("sub") or "").strip()
@@ -112,17 +139,18 @@ def _safe_json_payload(value: Any, default: Any) -> Any:
 
 async def _collect_primary_sources(question: str) -> tuple[list[str], list[dict[str, Any]]]:
     primary_refs = await asyncio.to_thread(
-        flask_app_module.sefaria.find_refs_for_question,
+        _backend_sefaria.find_refs_for_question,
         question,
     )
     refs = primary_refs if isinstance(primary_refs, list) else []
 
     async def _load_one(ref: str) -> dict[str, Any] | None:
-        engine = flask_app_module.ShelahEngine()
+        engine = ShelahEngine()
         try:
             source = await asyncio.to_thread(engine.get_library_text, ref)
             return source if isinstance(source, dict) else None
-        except Exception:
+        except Exception as exc:
+            logger.debug("Source load failed for ref=%r: %s", ref, exc)
             return None
 
     results = await asyncio.gather(*[_load_one(ref) for ref in refs])
@@ -132,13 +160,14 @@ async def _collect_primary_sources(question: str) -> tuple[list[str], list[dict[
 
 async def _build_tool_context() -> dict[str, Any]:
     def _build() -> dict[str, Any]:
-        engine = flask_app_module.ShelahEngine()
-        return flask_app_module._build_ask_tool_context(engine)
+        engine = ShelahEngine()
+        return _build_ask_tool_context(engine)
 
     try:
         payload = await asyncio.to_thread(_build)
         return payload if isinstance(payload, dict) else {"route": "/ask", "async": True}
-    except Exception:
+    except Exception as exc:
+        logger.debug("Tool context build failed: %s", exc)
         return {"route": "/ask", "async": True}
 
 
@@ -168,7 +197,7 @@ async def ask_async(request: Request, payload: AskRequest, authorization: str | 
         raise HTTPException(
             status_code=400, detail="No valid question provided")
 
-    if flask_app_module.CLERK_ENFORCE_AUTH:
+    if CLERK_ENFORCE_AUTH:
         user_id = _extract_user_id_from_bearer(authorization)
         if not user_id:
             raise HTTPException(
@@ -176,7 +205,7 @@ async def ask_async(request: Request, payload: AskRequest, authorization: str | 
     else:
         user_id = _extract_user_id_from_bearer(authorization)
 
-    mode = flask_app_module._sanitize_answer_mode(payload.mode)
+    mode = _sanitize_answer_mode(payload.mode)
     community_lens = str(payload.community or "All").strip() or "All"
     answer_language = str(payload.language or "en").strip().lower()
     if answer_language not in {"en", "he"}:
@@ -184,7 +213,7 @@ async def ask_async(request: Request, payload: AskRequest, authorization: str | 
     canonical_lens = (
         "All"
         if community_lens.lower() == "all"
-        else (flask_app_module._canonicalize_community_name(community_lens) or community_lens)
+        else (_canonicalize_community_name(community_lens) or community_lens)
     )
 
     try:
@@ -224,17 +253,17 @@ async def ask_async(request: Request, payload: AskRequest, authorization: str | 
             search.async_search_wikipedia(question))
         knowledge_task = asyncio.create_task(
             asyncio.to_thread(
-                flask_app_module._retrieve_community_knowledge,
+                _retrieve_community_knowledge,
                 question,
                 canonical_lens,
-                flask_app_module.RAG_TOP_KNOWLEDGE_ROWS,
+                RAG_TOP_KNOWLEDGE_ROWS,
             )
         )
         memory_task = asyncio.create_task(
             asyncio.to_thread(
-                flask_app_module._fetch_user_memory_summaries,
+                _fetch_user_memory_summaries,
                 user_id,
-                flask_app_module.RAG_MEMORY_ROWS,
+                RAG_MEMORY_ROWS,
             )
         )
         tool_context_task = asyncio.create_task(_build_tool_context())
@@ -256,7 +285,7 @@ async def ask_async(request: Request, payload: AskRequest, authorization: str | 
             halachipedia_info, dict) else []
         wiki_list = [wiki_info] if isinstance(wiki_info, dict) else []
 
-        customs_info = flask_app_module._knowledge_rows_to_customs(
+        customs_info = _knowledge_rows_to_customs(
             knowledge_rows)
         flat_sources_for_ai = _flatten_sources_for_ai(
             primary_sources, answer_language=answer_language)
@@ -273,7 +302,7 @@ async def ask_async(request: Request, payload: AskRequest, authorization: str | 
             flask_app_module.DEVTOOLS_STATS["answers_total"] += 1
             flask_app_module.DEVTOOLS_STATS["strict_blocks"] += 1
             flask_app_module.DEVTOOLS_STATS["fallback_answers"] += 1
-            display_sources = flask_app_module._compact_ai_sources(
+            display_sources = _compact_ai_sources(
                 primary_sources)
             return {
                 "answer": (
@@ -343,14 +372,14 @@ async def ask_async(request: Request, payload: AskRequest, authorization: str | 
                 and not wiki_context_for_ai
             )
 
-            source_attribution_note = flask_app_module._build_source_attribution_note(
+            source_attribution_note = _build_source_attribution_note(
                 has_sefaria=has_primary_sources,
                 has_customs=has_customs,
                 has_whitelisted_external=has_whitelisted_external,
                 has_general_web=bool(wiki_context_for_ai),
                 has_internal_knowledge=needs_internal_knowledge,
             )
-            normalized_answer = flask_app_module._compose_answer_with_prefixes(
+            normalized_answer = _compose_answer_with_prefixes(
                 raw_ai_answer,
                 include_web_warning=needs_web_warning,
                 source_attribution_note=source_attribution_note,
@@ -360,14 +389,14 @@ async def ask_async(request: Request, payload: AskRequest, authorization: str | 
 
             result["answer"] = normalized_answer
             await asyncio.to_thread(
-                flask_app_module._store_user_memory_summary,
+                _store_user_memory_summary,
                 user_id,
                 question,
                 normalized_answer,
             )
 
             flask_app_module.DEVTOOLS_STATS["answers_total"] += 1
-            display_sources = flask_app_module._compact_ai_sources(
+            display_sources = _compact_ai_sources(
                 primary_sources)
 
             return {
@@ -397,7 +426,7 @@ async def ask_async(request: Request, payload: AskRequest, authorization: str | 
 
         except Exception as ai_error:
             await asyncio.to_thread(
-                flask_app_module._capture_backend_error,
+                _capture_backend_error,
                 "ask_ai_synthesis_failed_async",
                 ai_error,
                 {
@@ -409,7 +438,7 @@ async def ask_async(request: Request, payload: AskRequest, authorization: str | 
             )
 
             fallback_payload = await asyncio.to_thread(
-                flask_app_module.get_halakhic_sources,
+                get_halakhic_sources,
                 question,
             )
             fallback_warning = str(
@@ -418,7 +447,7 @@ async def ask_async(request: Request, payload: AskRequest, authorization: str | 
             fallback_counts = fallback_payload.get("counts", {})
             fallback_level = str(fallback_payload.get(
                 "fallback_level") or "").strip().lower()
-            fallback_source_note = flask_app_module._build_source_attribution_note(
+            fallback_source_note = _build_source_attribution_note(
                 has_sefaria=bool(fallback_counts.get("sefaria")
                                  or fallback_counts.get("specific_api")),
                 has_customs=bool(customs_info),
@@ -426,14 +455,14 @@ async def ask_async(request: Request, payload: AskRequest, authorization: str | 
                 has_general_web=fallback_level == "web-last-resort",
                 has_internal_knowledge=fallback_level == "internal-ai-knowledge",
             )
-            fallback_answer = flask_app_module._compose_answer_with_prefixes(
+            fallback_answer = _compose_answer_with_prefixes(
                 "## Ruling\n\nAI synthesis unavailable. Returning discovered halakhic references.",
                 include_web_warning=bool(fallback_warning),
                 source_attribution_note=fallback_source_note,
             )
 
             await asyncio.to_thread(
-                flask_app_module._store_user_memory_summary,
+                _store_user_memory_summary,
                 user_id,
                 question,
                 fallback_answer,
@@ -441,7 +470,7 @@ async def ask_async(request: Request, payload: AskRequest, authorization: str | 
 
             flask_app_module.DEVTOOLS_STATS["answers_total"] += 1
             flask_app_module.DEVTOOLS_STATS["fallback_answers"] += 1
-            fallback_sources = flask_app_module._compact_ai_sources(
+            fallback_sources = _compact_ai_sources(
                 fallback_payload.get("sources", []))
 
             return {
@@ -478,7 +507,7 @@ async def ask_async(request: Request, payload: AskRequest, authorization: str | 
         raise
     except Exception as e:
         await asyncio.to_thread(
-            flask_app_module._capture_backend_error,
+            _capture_backend_error,
             "ask_route_critical_error_async",
             e,
             {
