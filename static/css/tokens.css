@@ -181,39 +181,39 @@ body.theme-dark {
     color-scheme: dark;
 
     /* ── Surface hierarchy ──────────────────────────────────────────── */
-    --surface-0:          #1a1c1e;
-    --surface-1:          #212428;
-    --surface-2:          #282d32;
-    --surface-3:          #1f2228;
-    --surface-pill:       #2d3138;
-    --surface-border:     #3a4048;
-    --surface-scrim:      rgba(0, 0, 0, 0.65);
+    --surface-0:          #0d0c0a;   /* near-black warm background */
+    --surface-1:          #181612;   /* dark warm charcoal panels */
+    --surface-2:          #201e1a;   /* elevated cards */
+    --surface-3:          #161410;   /* topbar */
+    --surface-pill:       #262319;   /* chips, tags */
+    --surface-border:     #302c24;   /* warm dark dividers */
+    --surface-scrim:      rgba(0, 0, 0, 0.72);
 
     /* ── Ink / text ─────────────────────────────────────────────────── */
-    --ink-primary:        #c8c3ba;
-    --ink-secondary:      #8a8f9a;
-    --ink-on-accent:      #ffffff;
-    --ink-heading:        #dbd5cc;
+    --ink-primary:        #c0bab0;
+    --ink-secondary:      #807870;
+    --ink-on-accent:      #f0ebe3;
+    --ink-heading:        #d4cec4;
 
-    /* ── Accent palette — desaturated to avoid vibration on dark bg ─── */
-    --accent-primary:     #4a7fb5;
-    --accent-primary-hover: #5590c8;
-    --accent-gold:        #c9a227;
-    --accent-gold-light:  #e0c060;
-    --accent-purple:      #9c6fe4;
-    --accent-teal:        #2dbba4;
-    --accent-green:       #2fba8a;
-    --accent-red:         #e05070;
-    --accent-orange:      #f07040;
+    /* ── Accent palette — muted warm tones on near-black bg ─────────── */
+    --accent-primary:     #6888a8;
+    --accent-primary-hover: #789ab8;
+    --accent-gold:        #b89028;
+    --accent-gold-light:  #c8a840;
+    --accent-purple:      #8868c0;
+    --accent-teal:        #2a9c88;
+    --accent-green:       #2aaa7a;
+    --accent-red:         #c04870;
+    --accent-orange:      #c86840;
 
     /* ── Controls ───────────────────────────────────────────────────── */
-    --ctrl-bg:            #2d3138;
-    --ctrl-bg-hover:      #363d46;
-    --ctrl-border:        #49515c;
-    --ctrl-text:          #9ba5b5;
-    --ctrl-text-strong:   #c8d0de;
-    --ctrl-filled-bg:     #4a7fb5;
-    --ctrl-filled-hover:  #5590c8;
+    --ctrl-bg:            #262319;
+    --ctrl-bg-hover:      #302c22;
+    --ctrl-border:        #3c3828;
+    --ctrl-text:          #888070;
+    --ctrl-text-strong:   #b8b0a0;
+    --ctrl-filled-bg:     #6888a8;
+    --ctrl-filled-hover:  #789ab8;
 
     /* ── AI-specific ────────────────────────────────────────────────── */
     --ai-surface:         var(--surface-2);
@@ -228,29 +228,29 @@ body.theme-dark {
     --ai-trust-border:    var(--surface-border);
 
     /* ── Loading / skeleton — dark theme ────────────────────────────── */
-    --load-skeleton-base:      #2d3138;
-    --load-skeleton-highlight: #363d46;
-    --load-skeleton-shimmer:   rgba(255,255,255,0.06);
-    --load-spinner-ring:       #c8c3ba;
-    --load-spinner-accent:     #c9a227;
-    --load-spinner-ring-faint: rgba(200, 195, 186, 0.12);
-    --load-phase-text:         #dbd5cc;
-    --load-dot-fill:           rgba(200, 195, 186, 0.40);
-    --load-tag-library-bg:     rgba(45, 160, 170, 0.15);
-    --load-tag-library-border: rgba(45, 160, 170, 0.30);
-    --load-tag-library-text:   #2dbba4;
-    --load-tag-customs-bg:     rgba(156, 111, 228, 0.15);
-    --load-tag-customs-border: rgba(156, 111, 228, 0.30);
-    --load-tag-customs-text:   #9c6fe4;
-    --load-tag-halacha-bg:     rgba(201, 162, 39, 0.15);
-    --load-tag-halacha-border: rgba(201, 162, 39, 0.30);
-    --load-tag-halacha-text:   #c9a227;
-    --load-overlay-bg:         rgba(26, 28, 30, 0.92);
+    --load-skeleton-base:      #262319;
+    --load-skeleton-highlight: #302c22;
+    --load-skeleton-shimmer:   rgba(255,255,255,0.04);
+    --load-spinner-ring:       #c0bab0;
+    --load-spinner-accent:     #b89028;
+    --load-spinner-ring-faint: rgba(192, 186, 176, 0.12);
+    --load-phase-text:         #d4cec4;
+    --load-dot-fill:           rgba(192, 186, 176, 0.40);
+    --load-tag-library-bg:     rgba(42, 156, 136, 0.12);
+    --load-tag-library-border: rgba(42, 156, 136, 0.25);
+    --load-tag-library-text:   #2a9c88;
+    --load-tag-customs-bg:     rgba(136, 104, 192, 0.12);
+    --load-tag-customs-border: rgba(136, 104, 192, 0.25);
+    --load-tag-customs-text:   #8868c0;
+    --load-tag-halacha-bg:     rgba(184, 144, 40, 0.12);
+    --load-tag-halacha-border: rgba(184, 144, 40, 0.25);
+    --load-tag-halacha-text:   #b89028;
+    --load-overlay-bg:         rgba(13, 12, 10, 0.94);
 
     /* ── Elevation ──────────────────────────────────────────────────── */
-    --shadow-sm:  0 1px 3px rgba(0,0,0,0.3),  0 1px 2px rgba(0,0,0,0.2);
-    --shadow-md:  0 4px 12px rgba(0,0,0,0.4), 0 2px 4px rgba(0,0,0,0.25);
-    --shadow-lg:  0 16px 40px rgba(0,0,0,0.5),0 4px 8px rgba(0,0,0,0.3);
+    --shadow-sm:  0 1px 3px rgba(0,0,0,0.50), 0 1px 2px rgba(0,0,0,0.35);
+    --shadow-md:  0 4px 12px rgba(0,0,0,0.60), 0 2px 4px rgba(0,0,0,0.40);
+    --shadow-lg:  0 16px 40px rgba(0,0,0,0.70), 0 4px 8px rgba(0,0,0,0.50);
 
     /* ── Legacy aliases (keep backward compat) ──────────────────────── */
     --surface-base:     var(--surface-0);
@@ -275,101 +275,101 @@ body.theme-dark {
     --control-strong-bg-hover: var(--ctrl-filled-hover);
 
     /* ── Dark-mode-only tokens ──────────────────────────────────────── */
-    --accent-cream:     #e6e1da;
+    --accent-cream:     #ddd5c8;
 
     /* ── Tailwind utility remaps ────────────────────────────────────── */
-    --tw-dark-bg-slate-100:     #29241e;
-    --tw-dark-bg-slate-200:     #343027;
-    --tw-dark-bg-white-85:      rgba(28, 30, 27, 0.88);
-    --tw-dark-border-slate-400: #4f534b;
-    --tw-dark-text-slate-900:   #f3eadd;
-    --tw-dark-text-slate-800:   #e5ddcf;
-    --tw-dark-text-white:       #e5dbc9;
-    --tw-dark-text-slate-700:   #d4ccbf;
-    --tw-dark-text-slate-600:   #b8afa2;
-    --tw-dark-text-slate-500:   #9e9589;
-    --tw-dark-text-slate-400:   #878075;
-    --tw-dark-text-slate-300:   #a8a093;
-    --tw-dark-bg-hover:         #312b24;
-    --tw-dark-bg-emerald:       #1f2e2a;
-    --tw-dark-border-emerald:   #35524b;
-    --tw-dark-text-emerald:     #9ec5b8;
-    --tw-dark-bg-amber:         #302a1f;
-    --tw-dark-border-amber:     #615238;
-    --tw-dark-text-amber:       #d5bc85;
-    --tw-dark-bg-red:           #311f22;
-    --tw-dark-border-red:       #63434a;
-    --tw-dark-text-red:         #d7a0aa;
-    --tw-dark-text-blue:        #c8c0b4;
-    --tw-dark-bg-blue:          #2a2a27;
-    --tw-dark-border-blue:      #4f4f49;
-    --tw-dark-focus-border:     #7a6d57;
-    --tw-dark-checkbox-accent:  #a98e62;
+    --tw-dark-bg-slate-100:     #1c1a14;
+    --tw-dark-bg-slate-200:     #242118;
+    --tw-dark-bg-white-85:      rgba(16, 14, 10, 0.90);
+    --tw-dark-border-slate-400: #3c3828;
+    --tw-dark-text-slate-900:   #e4dcd0;
+    --tw-dark-text-slate-800:   #d4ccbf;
+    --tw-dark-text-white:       #d0c8b8;
+    --tw-dark-text-slate-700:   #bcb4a5;
+    --tw-dark-text-slate-600:   #a09890;
+    --tw-dark-text-slate-500:   #888078;
+    --tw-dark-text-slate-400:   #706860;
+    --tw-dark-text-slate-300:   #908880;
+    --tw-dark-bg-hover:         #282420;
+    --tw-dark-bg-emerald:       #121a14;
+    --tw-dark-border-emerald:   #1e3022;
+    --tw-dark-text-emerald:     #60a870;
+    --tw-dark-bg-amber:         #181408;
+    --tw-dark-border-amber:     #302810;
+    --tw-dark-text-amber:       #b09050;
+    --tw-dark-bg-red:           #180d10;
+    --tw-dark-border-red:       #301820;
+    --tw-dark-text-red:         #a87080;
+    --tw-dark-text-blue:        #909aab;
+    --tw-dark-bg-blue:          #141210;
+    --tw-dark-border-blue:      #282420;
+    --tw-dark-focus-border:     #504840;
+    --tw-dark-checkbox-accent:  #807050;
 
     /* ── Corpus accent tokens ───────────────────────────────────────── */
-    --accent-menu:              #d2cabd;
-    --accent-zmanim:            #c0c5bc;
-    --accent-tanakh:            #c8d2d1;
-    --accent-mishnah:           #cdced7;
-    --accent-talmud:            #d2c6b2;
-    --accent-talmud-hover:      #ccb389;
-    --accent-halakhah:          #cebfc1;
-    --accent-customs:           #c8bfd1;
-    --accent-thought:           #c4cbc5;
+    --accent-menu:              #b8b2a8;
+    --accent-zmanim:            #b0ada4;
+    --accent-tanakh:            #a8b4b0;
+    --accent-mishnah:           #acaab8;
+    --accent-talmud:            #b8b0a0;
+    --accent-talmud-hover:      #a8906a;
+    --accent-halakhah:          #b0a8a8;
+    --accent-customs:           #aca6b8;
+    --accent-thought:           #a8ada8;
 
     /* ── Reader ─────────────────────────────────────────────────────── */
-    --range-complete:           #8b6f47;
-    --range-incomplete:         #dfccb0;
-    --reader-row-border:        #5f5a52;
-    --reader-topbar-border:     #4e4942;
-    --reader-btn-color:         #b5a892;
-    --reader-btn-hover:         #d4ccbe;
-    --reader-thumb-border:      #141513;
-    --reader-thumb-bg:          #d7c9b2;
+    --range-complete:           #8b6f47;   /* keep — non-grey slider accent */
+    --range-incomplete:         #dfccb0;   /* keep — non-grey slider track */
+    --reader-row-border:        #2c2820;
+    --reader-topbar-border:     #242018;
+    --reader-btn-color:         #a89880;
+    --reader-btn-hover:         #c8c0b0;
+    --reader-thumb-border:      #141513;   /* keep — non-grey */
+    --reader-thumb-bg:          #d7c9b2;   /* keep — non-grey */
 
     /* ── AI ─────────────────────────────────────────────────────────── */
-    --ai-loading-color:         #cbd5e1;
-    --ai-warning-bg:            #3b3124;
-    --ai-warning-border:        #6f5b35;
-    --ai-warning-text:          #f2d59f;
-    --ai-badge-hover-border:    #6a7585;
+    --ai-loading-color:         #98908a;
+    --ai-warning-bg:            #1a1208;
+    --ai-warning-border:        #3a2c10;
+    --ai-warning-text:          #c09840;
+    --ai-badge-hover-border:    #484038;
 
     /* ── Zmanim ─────────────────────────────────────────────────────── */
-    --zmanim-warn-accent:       #c97a54;
-    --zmanim-warn-text:         #f4b895;
+    --zmanim-warn-accent:       #9a5832;
+    --zmanim-warn-text:         #c89870;
 
     /* ── Calendar ───────────────────────────────────────────────────── */
-    --cal-event-holiday:        #8b4a5a;
-    --cal-event-shabbat:        #3d6055;
-    --cal-event-rh:             #7a5530;
-    --cal-modal-header-start:   #25231f;
-    --cal-modal-header-end:     #201f1b;
-    --cal-icon-bg:              #4f5a60;
+    --cal-event-holiday:        #5a2838;
+    --cal-event-shabbat:        #1a3228;
+    --cal-event-rh:             #3a2410;
+    --cal-modal-header-start:   #1a1812;
+    --cal-modal-header-end:     #14120e;
+    --cal-icon-bg:              #343028;
 
     /* ── Halacha ────────────────────────────────────────────────────── */
-    --halacha-ruling-color:            #a0b8d0;
-    --halacha-ruling-bg:               #1d2331;
-    --halacha-custom-color:            #c4a9f4;
-    --halacha-custom-bg:               #211e30;
-    --halacha-source-color:            #e8c84a;
-    --halacha-source-bg:               #27231a;
-    --halacha-custom-ruling-bg:        #221d2e;
-    --halacha-ruling-ashkenazi-bg:     #1d2230;
-    --halacha-ruling-sefardi-bg:       #2a1f18;
-    --halacha-ruling-yemenite-bg:      #1a2820;
-    --halacha-ruling-bukharian-bg:     #28182e;
-    --halacha-ruling-bukharian-border: #d946ef;
+    --halacha-ruling-color:            #7898b0;
+    --halacha-ruling-bg:               #0e1318;
+    --halacha-custom-color:            #8870b0;
+    --halacha-custom-bg:               #101018;
+    --halacha-source-color:            #a89030;
+    --halacha-source-bg:               #141208;
+    --halacha-custom-ruling-bg:        #100d18;
+    --halacha-ruling-ashkenazi-bg:     #0e1218;
+    --halacha-ruling-sefardi-bg:       #141008;
+    --halacha-ruling-yemenite-bg:      #0e1408;
+    --halacha-ruling-bukharian-bg:     #110818;
+    --halacha-ruling-bukharian-border: #8830a0;
 
     /* ── Prayer ─────────────────────────────────────────────────────── */
-    --prayer-accent-border:     #9a8040;
+    --prayer-accent-border:     #705a28;
 
     /* ── Misc ───────────────────────────────────────────────────────── */
-    --home-label-color:         #b9b0a3;
-    --fc-day-number-color:      #ddd4c6;
-    --prose-text-dark:          #ddd5c8;
-    --icon-muted:               #a09688;
-    --tooltip-text:             #f8fafc;
-    --search-hover-border:      #6a7585;
+    --home-label-color:         #989080;
+    --fc-day-number-color:      #b8b0a8;
+    --prose-text-dark:          #c4bcb0;
+    --icon-muted:               #787068;
+    --tooltip-text:             #e0d8cc;
+    --search-hover-border:      #484038;
 }
 
 
@@ -384,179 +384,179 @@ body.theme-dark {
     :root:not([data-theme="light"]) {
         color-scheme: dark;
 
-        --surface-0:          #1a1c1e;
-        --surface-1:          #212428;
-        --surface-2:          #282d32;
-        --surface-3:          #1f2228;
-        --surface-pill:       #2d3138;
-        --surface-border:     #3a4048;
-        --surface-scrim:      rgba(0, 0, 0, 0.65);
+        --surface-0:          #0d0c0a;
+        --surface-1:          #181612;
+        --surface-2:          #201e1a;
+        --surface-3:          #161410;
+        --surface-pill:       #262319;
+        --surface-border:     #302c24;
+        --surface-scrim:      rgba(0, 0, 0, 0.72);
 
-        --ink-primary:        #c8c3ba;
-        --ink-secondary:      #8a8f9a;
-        --ink-heading:        #dbd5cc;
+        --ink-primary:        #c0bab0;
+        --ink-secondary:      #807870;
+        --ink-heading:        #d4cec4;
 
-        --accent-primary:     #4a7fb5;
-        --accent-primary-hover: #5590c8;
-        --accent-gold:        #c9a227;
-        --accent-gold-light:  #e0c060;
-        --accent-purple:      #9c6fe4;
-        --accent-teal:        #2dbba4;
-        --accent-green:       #2fba8a;
-        --accent-red:         #e05070;
-        --accent-orange:      #f07040;
+        --accent-primary:     #6888a8;
+        --accent-primary-hover: #789ab8;
+        --accent-gold:        #b89028;
+        --accent-gold-light:  #c8a840;
+        --accent-purple:      #8868c0;
+        --accent-teal:        #2a9c88;
+        --accent-green:       #2aaa7a;
+        --accent-red:         #c04870;
+        --accent-orange:      #c86840;
 
-        --ctrl-bg:            #2d3138;
-        --ctrl-bg-hover:      #363d46;
-        --ctrl-border:        #49515c;
-        --ctrl-text:          #9ba5b5;
-        --ctrl-text-strong:   #c8d0de;
-        --ctrl-filled-bg:     #4a7fb5;
-        --ctrl-filled-hover:  #5590c8;
+        --ctrl-bg:            #262319;
+        --ctrl-bg-hover:      #302c22;
+        --ctrl-border:        #3c3828;
+        --ctrl-text:          #888070;
+        --ctrl-text-strong:   #b8b0a0;
+        --ctrl-filled-bg:     #6888a8;
+        --ctrl-filled-hover:  #789ab8;
 
-        --ai-surface:         #282d32;
-        --ai-border:          #3a4048;
-        --ai-src-header-bg:   #2d3138;
-        --ai-src-body-bg:     #282d32;
-        --ai-src-he-bg:       #282d32;
-        --ai-src-en-bg:       #2d3138;
-        --ai-wiki-accent:     #4a7fb5;
-        --ai-custom-accent:   #9c6fe4;
-        --ai-trust-bg:        #2d3138;
-        --ai-trust-border:    #3a4048;
+        --ai-surface:         #201e1a;
+        --ai-border:          #302c24;
+        --ai-src-header-bg:   #262319;
+        --ai-src-body-bg:     #201e1a;
+        --ai-src-he-bg:       #201e1a;
+        --ai-src-en-bg:       #262319;
+        --ai-wiki-accent:     #6888a8;
+        --ai-custom-accent:   #8868c0;
+        --ai-trust-bg:        #262319;
+        --ai-trust-border:    #302c24;
 
-        --load-skeleton-base:      #2d3138;
-        --load-skeleton-highlight: #363d46;
-        --load-skeleton-shimmer:   rgba(255,255,255,0.06);
-        --load-spinner-ring:       #c8c3ba;
-        --load-spinner-accent:     #c9a227;
-        --load-spinner-ring-faint: rgba(200,195,186,0.12);
-        --load-phase-text:         #dbd5cc;
-        --load-dot-fill:           rgba(200,195,186,0.40);
-        --load-tag-library-bg:     rgba(45,160,170,0.15);
-        --load-tag-library-border: rgba(45,160,170,0.30);
-        --load-tag-library-text:   #2dbba4;
-        --load-tag-customs-bg:     rgba(156,111,228,0.15);
-        --load-tag-customs-border: rgba(156,111,228,0.30);
-        --load-tag-customs-text:   #9c6fe4;
-        --load-tag-halacha-bg:     rgba(201,162,39,0.15);
-        --load-tag-halacha-border: rgba(201,162,39,0.30);
-        --load-tag-halacha-text:   #c9a227;
-        --load-overlay-bg:         rgba(26,28,30,0.92);
+        --load-skeleton-base:      #262319;
+        --load-skeleton-highlight: #302c22;
+        --load-skeleton-shimmer:   rgba(255,255,255,0.04);
+        --load-spinner-ring:       #c0bab0;
+        --load-spinner-accent:     #b89028;
+        --load-spinner-ring-faint: rgba(192,186,176,0.12);
+        --load-phase-text:         #d4cec4;
+        --load-dot-fill:           rgba(192,186,176,0.40);
+        --load-tag-library-bg:     rgba(42,156,136,0.12);
+        --load-tag-library-border: rgba(42,156,136,0.25);
+        --load-tag-library-text:   #2a9c88;
+        --load-tag-customs-bg:     rgba(136,104,192,0.12);
+        --load-tag-customs-border: rgba(136,104,192,0.25);
+        --load-tag-customs-text:   #8868c0;
+        --load-tag-halacha-bg:     rgba(184,144,40,0.12);
+        --load-tag-halacha-border: rgba(184,144,40,0.25);
+        --load-tag-halacha-text:   #b89028;
+        --load-overlay-bg:         rgba(13,12,10,0.94);
 
-        --shadow-sm:  0 1px 3px rgba(0,0,0,0.3),  0 1px 2px rgba(0,0,0,0.2);
-        --shadow-md:  0 4px 12px rgba(0,0,0,0.4), 0 2px 4px rgba(0,0,0,0.25);
-        --shadow-lg:  0 16px 40px rgba(0,0,0,0.5),0 4px 8px rgba(0,0,0,0.3);
+        --shadow-sm:  0 1px 3px rgba(0,0,0,0.50), 0 1px 2px rgba(0,0,0,0.35);
+        --shadow-md:  0 4px 12px rgba(0,0,0,0.60), 0 2px 4px rgba(0,0,0,0.40);
+        --shadow-lg:  0 16px 40px rgba(0,0,0,0.70), 0 4px 8px rgba(0,0,0,0.50);
 
-        --surface-base:     #1a1c1e;
-        --surface-subtle:   #212428;
-        --surface-elevated: #282d32;
-        --surface-topbar:   #1f2228;
-        --text-main:        #c8c3ba;
-        --text-muted:       #8a8f9a;
-        --accent-blue:      #4a7fb5;
-        --accent-deep-blue: #4a7fb5;
-        --accent-cream:     #e6e1da;
-        --control-bg:       #2d3138;
-        --control-bg-hover: #363d46;
-        --control-border:   #49515c;
-        --control-text:     #9ba5b5;
-        --control-text-strong: #c8d0de;
-        --control-strong-bg:   #4a7fb5;
-        --control-strong-bg-hover: #5590c8;
+        --surface-base:     #0d0c0a;
+        --surface-subtle:   #181612;
+        --surface-elevated: #201e1a;
+        --surface-topbar:   #161410;
+        --text-main:        #c0bab0;
+        --text-muted:       #807870;
+        --accent-blue:      #6888a8;
+        --accent-deep-blue: #6888a8;
+        --accent-cream:     #ddd5c8;
+        --control-bg:       #262319;
+        --control-bg-hover: #302c22;
+        --control-border:   #3c3828;
+        --control-text:     #888070;
+        --control-text-strong: #b8b0a0;
+        --control-strong-bg:   #6888a8;
+        --control-strong-bg-hover: #789ab8;
 
         /* ── Tailwind utility remaps ──────────────────────────────── */
-        --tw-dark-bg-slate-100:     #29241e;
-        --tw-dark-bg-slate-200:     #343027;
-        --tw-dark-bg-white-85:      rgba(28, 30, 27, 0.88);
-        --tw-dark-border-slate-400: #4f534b;
-        --tw-dark-text-slate-900:   #f3eadd;
-        --tw-dark-text-slate-800:   #e5ddcf;
-        --tw-dark-text-white:       #e5dbc9;
-        --tw-dark-text-slate-700:   #d4ccbf;
-        --tw-dark-text-slate-600:   #b8afa2;
-        --tw-dark-text-slate-500:   #9e9589;
-        --tw-dark-text-slate-400:   #878075;
-        --tw-dark-text-slate-300:   #a8a093;
-        --tw-dark-bg-hover:         #312b24;
-        --tw-dark-bg-emerald:       #1f2e2a;
-        --tw-dark-border-emerald:   #35524b;
-        --tw-dark-text-emerald:     #9ec5b8;
-        --tw-dark-bg-amber:         #302a1f;
-        --tw-dark-border-amber:     #615238;
-        --tw-dark-text-amber:       #d5bc85;
-        --tw-dark-bg-red:           #311f22;
-        --tw-dark-border-red:       #63434a;
-        --tw-dark-text-red:         #d7a0aa;
-        --tw-dark-text-blue:        #c8c0b4;
-        --tw-dark-bg-blue:          #2a2a27;
-        --tw-dark-border-blue:      #4f4f49;
-        --tw-dark-focus-border:     #7a6d57;
-        --tw-dark-checkbox-accent:  #a98e62;
+        --tw-dark-bg-slate-100:     #1c1a14;
+        --tw-dark-bg-slate-200:     #242118;
+        --tw-dark-bg-white-85:      rgba(16, 14, 10, 0.90);
+        --tw-dark-border-slate-400: #3c3828;
+        --tw-dark-text-slate-900:   #e4dcd0;
+        --tw-dark-text-slate-800:   #d4ccbf;
+        --tw-dark-text-white:       #d0c8b8;
+        --tw-dark-text-slate-700:   #bcb4a5;
+        --tw-dark-text-slate-600:   #a09890;
+        --tw-dark-text-slate-500:   #888078;
+        --tw-dark-text-slate-400:   #706860;
+        --tw-dark-text-slate-300:   #908880;
+        --tw-dark-bg-hover:         #282420;
+        --tw-dark-bg-emerald:       #121a14;
+        --tw-dark-border-emerald:   #1e3022;
+        --tw-dark-text-emerald:     #60a870;
+        --tw-dark-bg-amber:         #181408;
+        --tw-dark-border-amber:     #302810;
+        --tw-dark-text-amber:       #b09050;
+        --tw-dark-bg-red:           #180d10;
+        --tw-dark-border-red:       #301820;
+        --tw-dark-text-red:         #a87080;
+        --tw-dark-text-blue:        #909aab;
+        --tw-dark-bg-blue:          #141210;
+        --tw-dark-border-blue:      #282420;
+        --tw-dark-focus-border:     #504840;
+        --tw-dark-checkbox-accent:  #807050;
 
         /* ── Corpus accent tokens ─────────────────────────────────── */
-        --accent-menu:              #d2cabd;
-        --accent-zmanim:            #c0c5bc;
-        --accent-tanakh:            #c8d2d1;
-        --accent-mishnah:           #cdced7;
-        --accent-talmud:            #d2c6b2;
-        --accent-talmud-hover:      #ccb389;
-        --accent-halakhah:          #cebfc1;
-        --accent-customs:           #c8bfd1;
-        --accent-thought:           #c4cbc5;
+        --accent-menu:              #b8b2a8;
+        --accent-zmanim:            #b0ada4;
+        --accent-tanakh:            #a8b4b0;
+        --accent-mishnah:           #acaab8;
+        --accent-talmud:            #b8b0a0;
+        --accent-talmud-hover:      #a8906a;
+        --accent-halakhah:          #b0a8a8;
+        --accent-customs:           #aca6b8;
+        --accent-thought:           #a8ada8;
 
         /* ── Reader ───────────────────────────────────────────────── */
         --range-complete:           #8b6f47;
         --range-incomplete:         #dfccb0;
-        --reader-row-border:        #5f5a52;
-        --reader-topbar-border:     #4e4942;
-        --reader-btn-color:         #b5a892;
-        --reader-btn-hover:         #d4ccbe;
+        --reader-row-border:        #2c2820;
+        --reader-topbar-border:     #242018;
+        --reader-btn-color:         #a89880;
+        --reader-btn-hover:         #c8c0b0;
         --reader-thumb-border:      #141513;
         --reader-thumb-bg:          #d7c9b2;
 
         /* ── AI ───────────────────────────────────────────────────── */
-        --ai-loading-color:         #cbd5e1;
-        --ai-warning-bg:            #3b3124;
-        --ai-warning-border:        #6f5b35;
-        --ai-warning-text:          #f2d59f;
-        --ai-badge-hover-border:    #6a7585;
+        --ai-loading-color:         #98908a;
+        --ai-warning-bg:            #1a1208;
+        --ai-warning-border:        #3a2c10;
+        --ai-warning-text:          #c09840;
+        --ai-badge-hover-border:    #484038;
 
         /* ── Zmanim ───────────────────────────────────────────────── */
-        --zmanim-warn-accent:       #c97a54;
-        --zmanim-warn-text:         #f4b895;
+        --zmanim-warn-accent:       #9a5832;
+        --zmanim-warn-text:         #c89870;
 
         /* ── Calendar ─────────────────────────────────────────────── */
-        --cal-event-holiday:        #8b4a5a;
-        --cal-event-shabbat:        #3d6055;
-        --cal-event-rh:             #7a5530;
-        --cal-modal-header-start:   #25231f;
-        --cal-modal-header-end:     #201f1b;
-        --cal-icon-bg:              #4f5a60;
+        --cal-event-holiday:        #5a2838;
+        --cal-event-shabbat:        #1a3228;
+        --cal-event-rh:             #3a2410;
+        --cal-modal-header-start:   #1a1812;
+        --cal-modal-header-end:     #14120e;
+        --cal-icon-bg:              #343028;
 
         /* ── Halacha ──────────────────────────────────────────────── */
-        --halacha-ruling-color:            #a0b8d0;
-        --halacha-ruling-bg:               #1d2331;
-        --halacha-custom-color:            #c4a9f4;
-        --halacha-custom-bg:               #211e30;
-        --halacha-source-color:            #e8c84a;
-        --halacha-source-bg:               #27231a;
-        --halacha-custom-ruling-bg:        #221d2e;
-        --halacha-ruling-ashkenazi-bg:     #1d2230;
-        --halacha-ruling-sefardi-bg:       #2a1f18;
-        --halacha-ruling-yemenite-bg:      #1a2820;
-        --halacha-ruling-bukharian-bg:     #28182e;
-        --halacha-ruling-bukharian-border: #d946ef;
+        --halacha-ruling-color:            #7898b0;
+        --halacha-ruling-bg:               #0e1318;
+        --halacha-custom-color:            #8870b0;
+        --halacha-custom-bg:               #101018;
+        --halacha-source-color:            #a89030;
+        --halacha-source-bg:               #141208;
+        --halacha-custom-ruling-bg:        #100d18;
+        --halacha-ruling-ashkenazi-bg:     #0e1218;
+        --halacha-ruling-sefardi-bg:       #141008;
+        --halacha-ruling-yemenite-bg:      #0e1408;
+        --halacha-ruling-bukharian-bg:     #110818;
+        --halacha-ruling-bukharian-border: #8830a0;
 
         /* ── Prayer ───────────────────────────────────────────────── */
-        --prayer-accent-border:     #9a8040;
+        --prayer-accent-border:     #705a28;
 
         /* ── Misc ─────────────────────────────────────────────────── */
-        --home-label-color:         #b9b0a3;
-        --fc-day-number-color:      #ddd4c6;
-        --prose-text-dark:          #ddd5c8;
-        --icon-muted:               #a09688;
-        --tooltip-text:             #f8fafc;
-        --search-hover-border:      #6a7585;
+        --home-label-color:         #989080;
+        --fc-day-number-color:      #b8b0a8;
+        --prose-text-dark:          #c4bcb0;
+        --icon-muted:               #787068;
+        --tooltip-text:             #e0d8cc;
+        --search-hover-border:      #484038;
     }
 }
