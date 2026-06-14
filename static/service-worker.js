@@ -6,7 +6,7 @@
     - Daily-study prewarm channel for Daf Yomi / Rambam / Parasha refs.
 */
 
-const CACHE_VERSION = "v9-20260613";
+const CACHE_VERSION = "v10-20260614";
 const SHELL_CACHE = `shelah-shell-${CACHE_VERSION}`;
 const RUNTIME_CACHE = `shelah-runtime-${CACHE_VERSION}`;
 const API_CACHE = `shelah-api-${CACHE_VERSION}`;

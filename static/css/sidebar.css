@@ -107,6 +107,10 @@ html.rtl .library-tree-children {
     padding-inline-start: 0.5rem;
 }
 
+body.theme-dark html.rtl .library-tree-children {
+    border-inline-start-color: var(--surface-border);
+}
+
 .library-node-open.library-node-active {
     border-inline-start: 3px solid var(--accent-deep-blue);
 }
