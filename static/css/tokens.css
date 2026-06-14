@@ -274,8 +274,102 @@ body.theme-dark {
     --control-strong-bg:    var(--ctrl-filled-bg);
     --control-strong-bg-hover: var(--ctrl-filled-hover);
 
-    /* Dark-mode-only token */
+    /* ── Dark-mode-only tokens ──────────────────────────────────────── */
     --accent-cream:     #e6e1da;
+
+    /* ── Tailwind utility remaps ────────────────────────────────────── */
+    --tw-dark-bg-slate-100:     #29241e;
+    --tw-dark-bg-slate-200:     #343027;
+    --tw-dark-bg-white-85:      rgba(28, 30, 27, 0.88);
+    --tw-dark-border-slate-400: #4f534b;
+    --tw-dark-text-slate-900:   #f3eadd;
+    --tw-dark-text-slate-800:   #e5ddcf;
+    --tw-dark-text-white:       #e5dbc9;
+    --tw-dark-text-slate-700:   #d4ccbf;
+    --tw-dark-text-slate-600:   #b8afa2;
+    --tw-dark-text-slate-500:   #9e9589;
+    --tw-dark-text-slate-400:   #878075;
+    --tw-dark-text-slate-300:   #a8a093;
+    --tw-dark-bg-hover:         #312b24;
+    --tw-dark-bg-emerald:       #1f2e2a;
+    --tw-dark-border-emerald:   #35524b;
+    --tw-dark-text-emerald:     #9ec5b8;
+    --tw-dark-bg-amber:         #302a1f;
+    --tw-dark-border-amber:     #615238;
+    --tw-dark-text-amber:       #d5bc85;
+    --tw-dark-bg-red:           #311f22;
+    --tw-dark-border-red:       #63434a;
+    --tw-dark-text-red:         #d7a0aa;
+    --tw-dark-text-blue:        #c8c0b4;
+    --tw-dark-bg-blue:          #2a2a27;
+    --tw-dark-border-blue:      #4f4f49;
+    --tw-dark-focus-border:     #7a6d57;
+    --tw-dark-checkbox-accent:  #a98e62;
+
+    /* ── Corpus accent tokens ───────────────────────────────────────── */
+    --accent-menu:              #d2cabd;
+    --accent-zmanim:            #c0c5bc;
+    --accent-tanakh:            #c8d2d1;
+    --accent-mishnah:           #cdced7;
+    --accent-talmud:            #d2c6b2;
+    --accent-talmud-hover:      #ccb389;
+    --accent-halakhah:          #cebfc1;
+    --accent-customs:           #c8bfd1;
+    --accent-thought:           #c4cbc5;
+
+    /* ── Reader ─────────────────────────────────────────────────────── */
+    --range-complete:           #8b6f47;
+    --range-incomplete:         #dfccb0;
+    --reader-row-border:        #5f5a52;
+    --reader-topbar-border:     #4e4942;
+    --reader-btn-color:         #b5a892;
+    --reader-btn-hover:         #d4ccbe;
+    --reader-thumb-border:      #141513;
+    --reader-thumb-bg:          #d7c9b2;
+
+    /* ── AI ─────────────────────────────────────────────────────────── */
+    --ai-loading-color:         #cbd5e1;
+    --ai-warning-bg:            #3b3124;
+    --ai-warning-border:        #6f5b35;
+    --ai-warning-text:          #f2d59f;
+    --ai-badge-hover-border:    #6a7585;
+
+    /* ── Zmanim ─────────────────────────────────────────────────────── */
+    --zmanim-warn-accent:       #c97a54;
+    --zmanim-warn-text:         #f4b895;
+
+    /* ── Calendar ───────────────────────────────────────────────────── */
+    --cal-event-holiday:        #8b4a5a;
+    --cal-event-shabbat:        #3d6055;
+    --cal-event-rh:             #7a5530;
+    --cal-modal-header-start:   #25231f;
+    --cal-modal-header-end:     #201f1b;
+    --cal-icon-bg:              #4f5a60;
+
+    /* ── Halacha ────────────────────────────────────────────────────── */
+    --halacha-ruling-color:            #a0b8d0;
+    --halacha-ruling-bg:               #1d2331;
+    --halacha-custom-color:            #c4a9f4;
+    --halacha-custom-bg:               #211e30;
+    --halacha-source-color:            #e8c84a;
+    --halacha-source-bg:               #27231a;
+    --halacha-custom-ruling-bg:        #221d2e;
+    --halacha-ruling-ashkenazi-bg:     #1d2230;
+    --halacha-ruling-sefardi-bg:       #2a1f18;
+    --halacha-ruling-yemenite-bg:      #1a2820;
+    --halacha-ruling-bukharian-bg:     #28182e;
+    --halacha-ruling-bukharian-border: #d946ef;
+
+    /* ── Prayer ─────────────────────────────────────────────────────── */
+    --prayer-accent-border:     #9a8040;
+
+    /* ── Misc ───────────────────────────────────────────────────────── */
+    --home-label-color:         #b9b0a3;
+    --fc-day-number-color:      #ddd4c6;
+    --prose-text-dark:          #ddd5c8;
+    --icon-muted:               #a09688;
+    --tooltip-text:             #f8fafc;
+    --search-hover-border:      #6a7585;
 }
 
 
@@ -370,5 +464,99 @@ body.theme-dark {
         --control-text-strong: #c8d0de;
         --control-strong-bg:   #4a7fb5;
         --control-strong-bg-hover: #5590c8;
+
+        /* ── Tailwind utility remaps ──────────────────────────────── */
+        --tw-dark-bg-slate-100:     #29241e;
+        --tw-dark-bg-slate-200:     #343027;
+        --tw-dark-bg-white-85:      rgba(28, 30, 27, 0.88);
+        --tw-dark-border-slate-400: #4f534b;
+        --tw-dark-text-slate-900:   #f3eadd;
+        --tw-dark-text-slate-800:   #e5ddcf;
+        --tw-dark-text-white:       #e5dbc9;
+        --tw-dark-text-slate-700:   #d4ccbf;
+        --tw-dark-text-slate-600:   #b8afa2;
+        --tw-dark-text-slate-500:   #9e9589;
+        --tw-dark-text-slate-400:   #878075;
+        --tw-dark-text-slate-300:   #a8a093;
+        --tw-dark-bg-hover:         #312b24;
+        --tw-dark-bg-emerald:       #1f2e2a;
+        --tw-dark-border-emerald:   #35524b;
+        --tw-dark-text-emerald:     #9ec5b8;
+        --tw-dark-bg-amber:         #302a1f;
+        --tw-dark-border-amber:     #615238;
+        --tw-dark-text-amber:       #d5bc85;
+        --tw-dark-bg-red:           #311f22;
+        --tw-dark-border-red:       #63434a;
+        --tw-dark-text-red:         #d7a0aa;
+        --tw-dark-text-blue:        #c8c0b4;
+        --tw-dark-bg-blue:          #2a2a27;
+        --tw-dark-border-blue:      #4f4f49;
+        --tw-dark-focus-border:     #7a6d57;
+        --tw-dark-checkbox-accent:  #a98e62;
+
+        /* ── Corpus accent tokens ─────────────────────────────────── */
+        --accent-menu:              #d2cabd;
+        --accent-zmanim:            #c0c5bc;
+        --accent-tanakh:            #c8d2d1;
+        --accent-mishnah:           #cdced7;
+        --accent-talmud:            #d2c6b2;
+        --accent-talmud-hover:      #ccb389;
+        --accent-halakhah:          #cebfc1;
+        --accent-customs:           #c8bfd1;
+        --accent-thought:           #c4cbc5;
+
+        /* ── Reader ───────────────────────────────────────────────── */
+        --range-complete:           #8b6f47;
+        --range-incomplete:         #dfccb0;
+        --reader-row-border:        #5f5a52;
+        --reader-topbar-border:     #4e4942;
+        --reader-btn-color:         #b5a892;
+        --reader-btn-hover:         #d4ccbe;
+        --reader-thumb-border:      #141513;
+        --reader-thumb-bg:          #d7c9b2;
+
+        /* ── AI ───────────────────────────────────────────────────── */
+        --ai-loading-color:         #cbd5e1;
+        --ai-warning-bg:            #3b3124;
+        --ai-warning-border:        #6f5b35;
+        --ai-warning-text:          #f2d59f;
+        --ai-badge-hover-border:    #6a7585;
+
+        /* ── Zmanim ───────────────────────────────────────────────── */
+        --zmanim-warn-accent:       #c97a54;
+        --zmanim-warn-text:         #f4b895;
+
+        /* ── Calendar ─────────────────────────────────────────────── */
+        --cal-event-holiday:        #8b4a5a;
+        --cal-event-shabbat:        #3d6055;
+        --cal-event-rh:             #7a5530;
+        --cal-modal-header-start:   #25231f;
+        --cal-modal-header-end:     #201f1b;
+        --cal-icon-bg:              #4f5a60;
+
+        /* ── Halacha ──────────────────────────────────────────────── */
+        --halacha-ruling-color:            #a0b8d0;
+        --halacha-ruling-bg:               #1d2331;
+        --halacha-custom-color:            #c4a9f4;
+        --halacha-custom-bg:               #211e30;
+        --halacha-source-color:            #e8c84a;
+        --halacha-source-bg:               #27231a;
+        --halacha-custom-ruling-bg:        #221d2e;
+        --halacha-ruling-ashkenazi-bg:     #1d2230;
+        --halacha-ruling-sefardi-bg:       #2a1f18;
+        --halacha-ruling-yemenite-bg:      #1a2820;
+        --halacha-ruling-bukharian-bg:     #28182e;
+        --halacha-ruling-bukharian-border: #d946ef;
+
+        /* ── Prayer ───────────────────────────────────────────────── */
+        --prayer-accent-border:     #9a8040;
+
+        /* ── Misc ─────────────────────────────────────────────────── */
+        --home-label-color:         #b9b0a3;
+        --fc-day-number-color:      #ddd4c6;
+        --prose-text-dark:          #ddd5c8;
+        --icon-muted:               #a09688;
+        --tooltip-text:             #f8fafc;
+        --search-hover-border:      #6a7585;
     }
 }
