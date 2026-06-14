@@ -228,6 +228,10 @@ def _configure_gemini_client() -> Optional[str]:
         _cached_gemini_client = None
         _cached_gemini_api_key = None
         return "gemini_api_key_missing"
+    # Normalize both vars so the SDK's internal env scan uses the same key,
+    # eliminating the "Both GOOGLE_API_KEY and GEMINI_API_KEY are set" warning.
+    os.environ["GEMINI_API_KEY"] = api_key
+    os.environ["GOOGLE_API_KEY"] = api_key
 
     if _cached_gemini_api_key != api_key:
         try:
