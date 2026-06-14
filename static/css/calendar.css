@@ -33,9 +33,7 @@ body.theme-dark {
     --cal-cell-bg: var(--surface-elevated);
     --cal-cell-hover: var(--surface-subtle);
     --cal-number-color: var(--text-muted);
-    --cal-event-holiday: #8b4a5a;
-    --cal-event-shabbat: #3d6055;
-    --cal-event-rh: #7a5530;
+    /* --cal-event-holiday, --cal-event-shabbat, --cal-event-rh defined in tokens.css */
     --cal-toolbar-btn-bg: var(--control-bg);
     --cal-toolbar-btn-border: var(--control-border);
     --cal-toolbar-btn-color: var(--control-text);
@@ -285,13 +283,13 @@ body.theme-dark #calendarModal>div {
 
 /* Modal header strip */
 body.theme-dark #calendarModal>div>div:first-child {
-    background: linear-gradient(135deg, #25231f 0%, #201f1b 100%) !important;
+    background: linear-gradient(135deg, var(--cal-modal-header-start) 0%, var(--cal-modal-header-end) 100%) !important;
     border-color: var(--surface-border) !important;
 }
 
 /* Calendar icon circle */
 body.theme-dark #calendarModal .rounded-full.bg-\[#1f3f63\] {
-    background: #4f5a60 !important;
+    background: var(--cal-icon-bg) !important;
 }
 
 /* Modal title */
