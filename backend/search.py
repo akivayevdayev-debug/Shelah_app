@@ -18,36 +18,24 @@ import re
 from html import unescape
 from urllib.parse import quote_plus, urljoin
 
+from backend.cache import TTLCache
+
 logger = logging.getLogger(__name__)
 
 _HTTP = requests.Session()
 _CACHE_TTL_SECONDS = 60 * 10
 _CACHE_MAX_SIZE = 256
-_WIKI_CACHE: dict = {}
-_HALACHIPEDIA_CACHE: dict = {}
-_HEBREWBOOKS_CACHE: dict = {}
-_DAILY_CACHE: dict = {"ts": 0, "data": None}
-
-
-def _cached_lookup(store, key):
-    row = store.get(key)
-    if not row:
-        return None
-    if time.time() - row.get("ts", 0) > _CACHE_TTL_SECONDS:
-        return None
-    return row.get("value")
-
-
-def _cached_store(store, key, value):
-    if key not in store and len(store) >= _CACHE_MAX_SIZE:
-        store.pop(next(iter(store)), None)
-    store[key] = {"ts": time.time(), "value": value}
+_DAILY_CACHE_KEY = "daily_learning"
+_WIKI_CACHE = TTLCache(maxsize=_CACHE_MAX_SIZE, ttl=_CACHE_TTL_SECONDS)
+_HALACHIPEDIA_CACHE = TTLCache(maxsize=_CACHE_MAX_SIZE, ttl=_CACHE_TTL_SECONDS)
+_HEBREWBOOKS_CACHE = TTLCache(maxsize=_CACHE_MAX_SIZE, ttl=_CACHE_TTL_SECONDS)
+_DAILY_CACHE = TTLCache(ttl=60 * 5)
 
 
 def search_wikipedia(title):
     cache_key = str(title or "").strip().lower()
     if cache_key:
-        cached = _cached_lookup(_WIKI_CACHE, cache_key)
+        cached = _WIKI_CACHE.get(cache_key)
         if cached is not None:
             return cached
 
@@ -67,7 +55,7 @@ def search_wikipedia(title):
                 "summary": data.get("extract", "")[:300]
             }
             if cache_key:
-                _cached_store(_WIKI_CACHE, cache_key, payload)
+                _WIKI_CACHE.set(cache_key, payload)
             return payload
     except Exception as e:
         logger.warning("[Wiki Error] %s", e)
@@ -77,8 +65,9 @@ def search_wikipedia(title):
 
 def get_daily_learning():
     """Fetch daily portions using Hebcal API"""
-    if _DAILY_CACHE.get("data") and time.time() - _DAILY_CACHE.get("ts", 0) < 60 * 5:
-        return _DAILY_CACHE.get("data")
+    cached_daily = _DAILY_CACHE.get(_DAILY_CACHE_KEY)
+    if cached_daily:
+        return cached_daily
 
     try:
         url = "https://www.hebcal.com/hebcal?v=1&cfg=json&maj=on&min=on&mod=on&nx=on&year=now&month=now&ss=on&mf=on&c=on&geo=zip&zip=11213"
@@ -101,8 +90,7 @@ def get_daily_learning():
             "parsha": parsha,
             "portions": rambam_portions
         }
-        _DAILY_CACHE["ts"] = time.time()
-        _DAILY_CACHE["data"] = payload
+        _DAILY_CACHE.set(_DAILY_CACHE_KEY, payload)
         return payload
     except Exception as e:
         logger.warning("[Hebcal Error] %s", e)
@@ -113,7 +101,7 @@ def search_halachipedia(query):
     """Search Halachipedia MediaWiki API for relevant articles"""
     cache_key = str(query or "").strip().lower()
     if cache_key:
-        cached = _cached_lookup(_HALACHIPEDIA_CACHE, cache_key)
+        cached = _HALACHIPEDIA_CACHE.get(cache_key)
         if cached is not None:
             return cached
 
@@ -142,7 +130,7 @@ def search_halachipedia(query):
                 "summary": page_info.get("extract", "")[:1000]
             }
             if cache_key:
-                _cached_store(_HALACHIPEDIA_CACHE, cache_key, payload)
+                _HALACHIPEDIA_CACHE.set(cache_key, payload)
             return payload
 
         return None
@@ -161,7 +149,7 @@ def search_hebrewbooks(query):
     """Best-effort keyword search in HebrewBooks public search endpoint."""
     cache_key = str(query or "").strip().lower()
     if cache_key:
-        cached = _cached_lookup(_HEBREWBOOKS_CACHE, cache_key)
+        cached = _HEBREWBOOKS_CACHE.get(cache_key)
         if cached is not None:
             return cached
 
@@ -211,7 +199,7 @@ def search_hebrewbooks(query):
         }
 
         if cache_key:
-            _cached_store(_HEBREWBOOKS_CACHE, cache_key, payload)
+            _HEBREWBOOKS_CACHE.set(cache_key, payload)
         return payload
     except Exception as e:
         logger.warning("[HebrewBooks Error] %s", e)
@@ -222,7 +210,7 @@ async def async_search_wikipedia(title):
     """Async Wikipedia summary lookup using httpx with shared cache semantics."""
     cache_key = str(title or "").strip().lower()
     if cache_key:
-        cached = _cached_lookup(_WIKI_CACHE, cache_key)
+        cached = _WIKI_CACHE.get(cache_key)
         if cached is not None:
             return cached
 
@@ -244,7 +232,7 @@ async def async_search_wikipedia(title):
             "summary": str(data.get("extract", ""))[:300],
         }
         if cache_key:
-            _cached_store(_WIKI_CACHE, cache_key, payload)
+            _WIKI_CACHE.set(cache_key, payload)
         return payload
     except Exception as e:
         logger.warning("[Wiki Async Error] %s", e)
@@ -255,7 +243,7 @@ async def async_search_halachipedia(query):
     """Async Halachipedia search using MediaWiki API and httpx."""
     cache_key = str(query or "").strip().lower()
     if cache_key:
-        cached = _cached_lookup(_HALACHIPEDIA_CACHE, cache_key)
+        cached = _HALACHIPEDIA_CACHE.get(cache_key)
         if cached is not None:
             return cached
 
@@ -309,7 +297,7 @@ async def async_search_halachipedia(query):
                 "summary": str(page_info.get("extract", ""))[:1000],
             }
             if cache_key:
-                _cached_store(_HALACHIPEDIA_CACHE, cache_key, payload)
+                _HALACHIPEDIA_CACHE.set(cache_key, payload)
             return payload
         return None
     except Exception as e:
@@ -321,7 +309,7 @@ async def async_search_hebrewbooks(query):
     """Async best-effort HebrewBooks search using httpx and regex extraction."""
     cache_key = str(query or "").strip().lower()
     if cache_key:
-        cached = _cached_lookup(_HEBREWBOOKS_CACHE, cache_key)
+        cached = _HEBREWBOOKS_CACHE.get(cache_key)
         if cached is not None:
             return cached
 
@@ -369,7 +357,7 @@ async def async_search_hebrewbooks(query):
             "url": urljoin("https://www.hebrewbooks.org/", href),
         }
         if cache_key:
-            _cached_store(_HEBREWBOOKS_CACHE, cache_key, payload)
+            _HEBREWBOOKS_CACHE.set(cache_key, payload)
         return payload
     except Exception as e:
         logger.warning("[HebrewBooks Async Error] %s", e)

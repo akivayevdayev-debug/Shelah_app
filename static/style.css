@@ -45,7 +45,8 @@ h6 {
 
 @font-face {
     font-family: 'Ezra SIL';
-    src: url('/static/fonts/SILEOT.woff') format('woff');
+    src: url('/static/fonts/SILEOT.woff2') format('woff2'),
+         url('/static/fonts/SILEOT.woff') format('woff');
     font-weight: 400;
     font-style: normal;
     font-display: swap;
@@ -1833,6 +1834,18 @@ body.shul-mode #readerTopBar:hover {
     opacity: 1;
 }
 
+/* Same auto-hide treatment as #readerTopBar — if the settings dropdown is
+   left open while Shul mode is active, it shouldn't stay fully opaque and
+   distracting while everything else around it fades. */
+body.shul-mode #readerSettingsPanel {
+    opacity: 0.15;
+    transition: opacity 0.2s ease;
+}
+
+body.shul-mode #readerSettingsPanel:hover {
+    opacity: 1;
+}
+
 body.shul-mode #reader {
     max-width: 76rem;
     padding-top: 1.25rem;
@@ -2795,7 +2808,7 @@ html.theme-dark,
 :is([data-theme="dark"], body.theme-dark) .focus\:ring-blue-300:focus,
 :is([data-theme="dark"], body.theme-dark) .focus\:ring-blue-400:focus,
 :is([data-theme="dark"], body.theme-dark) .focus\:ring-blue-500:focus {
-    --tw-ring-color: rgba(120, 120, 120, 0.45) !important;
+    --tw-ring-color: rgba(176, 154, 116, 0.45) !important;
 }
 
 :is([data-theme="dark"], body.theme-dark) .focus\:border-blue-300:focus,
@@ -2876,9 +2889,9 @@ html.theme-dark,
 }
 
 :is([data-theme="dark"], body.theme-dark) .lang-btn.lang-btn-active {
-    background-color: #383838 !important;
-    border-color: #484848 !important;
-    color: #d8d8d8 !important;
+    background-color: var(--control-strong-bg) !important;
+    border-color: var(--control-border) !important;
+    color: var(--accent-cream) !important;
 }
 
 :is([data-theme="dark"], body.theme-dark) .lang-btn:active,
@@ -2921,15 +2934,15 @@ html.theme-dark,
     backdrop-filter: none !important;
 }
 
-/* Dark mode focus rings - replace blue with neutral brown/gray */
+/* Dark mode focus rings - warm gold/brown, matching the rest of the palette */
 :is([data-theme="dark"], body.theme-dark) .ring-blue-400,
 :is([data-theme="dark"], body.theme-dark) .focus\:ring-blue-400:focus,
 :is([data-theme="dark"], body.theme-dark) .focus-ring {
-    --tw-ring-color: rgba(120, 120, 120, 0.45) !important;
+    --tw-ring-color: rgba(176, 154, 116, 0.42) !important;
 }
 
 :is([data-theme="dark"], body.theme-dark) .border-blue-400 {
-    border-color: #484848 !important;
+    border-color: #7a6d57 !important;
 }
 
 /* Dark calendar button active states */
@@ -2987,24 +3000,33 @@ html.theme-dark,
 :is([data-theme="dark"], body.theme-dark) #readerSettingsPanel input[type="checkbox"]:focus-visible,
 :is([data-theme="dark"], body.theme-dark) #settingsPanel input[type="range"]:focus-visible,
 :is([data-theme="dark"], body.theme-dark) #readerSettingsPanel input[type="range"]:focus-visible {
-    outline: 2px solid rgba(120, 120, 120, 0.5);
+    outline: 2px solid rgba(176, 154, 116, 0.5);
     outline-offset: 2px;
 }
 
 :is([data-theme="dark"], body.theme-dark) #readerSettingsPanel input[type="range"]::-webkit-slider-runnable-track {
-    background: #242424;
+    background: var(--range-incomplete);
     border-radius: 9999px;
     height: 0.5rem;
 }
 
 :is([data-theme="dark"], body.theme-dark) #readerSettingsPanel input[type="range"]::-moz-range-track {
-    background: #242424;
+    background: var(--range-incomplete);
     border-radius: 9999px;
     height: 0.5rem;
 }
 
+/* Settings panels sit a layer deeper (--surface-subtle) than the buttons and
+   controls placed on top of them (--surface-2/--ctrl-bg, via --surface-elevated
+   elsewhere), so the panel itself reads as a distinct backdrop instead of
+   blending into its own contents. */
 :is([data-theme="dark"], body.theme-dark) #settingsPanel,
-:is([data-theme="dark"], body.theme-dark) #readerSettingsPanel,
+:is([data-theme="dark"], body.theme-dark) #readerSettingsPanel {
+    background: var(--surface-subtle) !important;
+    border-color: var(--surface-border) !important;
+    color: var(--accent-cream) !important;
+}
+
 :is([data-theme="dark"], body.theme-dark) #selectionInsights,
 :is([data-theme="dark"], body.theme-dark) #rightSidebarIdle,
 :is([data-theme="dark"], body.theme-dark) #compareContainer,
@@ -3497,7 +3519,7 @@ html.theme-dark,
 :is([data-theme="dark"], body.theme-dark) .shelf-open:focus-visible,
 :is([data-theme="dark"], body.theme-dark) .track-toggle:focus-visible,
 :is([data-theme="dark"], body.theme-dark) .library-node-open:focus-visible {
-    outline: 2px solid rgba(120, 120, 120, 0.5);
+    outline: 2px solid rgba(176, 154, 116, 0.58);
     outline-offset: 2px;
 }
 
@@ -3547,6 +3569,14 @@ html.theme-dark,
 }
 
 :is([data-theme="dark"], body.theme-dark) .reader-range-slider {
+    /* The base rule above sets --range-complete/--range-incomplete as LOCAL
+       custom properties (light-mode hardcoded values) directly on this same
+       element, which shadows the global dark-theme tokens via normal CSS
+       inheritance — referencing var(--range-complete) here without
+       redeclaring it just resolves back to the light-mode value. Redeclare
+       both explicitly so the slider is actually theme-aware. */
+    --range-complete: #8b6f47;
+    --range-incomplete: #dfccb0;
     background: linear-gradient(90deg,
             var(--range-complete) 0%,
             var(--range-complete) var(--range-progress),

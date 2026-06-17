@@ -283,3 +283,138 @@ class TestAskFastAPI:
             assert response.status_code == 429
         finally:
             asgi_mod._rate_limit_store.pop(test_ip, None)
+
+
+# ─── ai_cited_sources schema parity (plan.md §7.1.A / §7.14) ──────────────────
+#
+# Regression coverage for the confirmed bug: the ASGI handler silently omitted
+# ai_cited_sources on every path. The key must now be present (a list, possibly
+# empty) on success AND fallback for both transports.
+
+class TestAiCitedSourcesSchemaParity:
+    def test_flask_success_has_ai_cited_sources_key(self, test_client):
+        response = test_client.post(
+            "/ask",
+            json={"question": "What is Shabbat? [cited-sources-schema-test]"},
+            content_type="application/json",
+        )
+        body = response.get_json()
+        assert "ai_cited_sources" in body
+        assert isinstance(body["ai_cited_sources"], list)
+
+    def test_flask_fallback_has_ai_cited_sources_key(self, test_client, monkeypatch):
+        import backend.claude as claude_module
+        import app as flask_app_module
+
+        flask_app_module.ASK_RESPONSE_CACHE.clear()
+
+        def _raise(*args, **kwargs):
+            raise RuntimeError("Simulated Anthropic failure [cited-sources-fallback-test]")
+
+        monkeypatch.setattr(claude_module, "ask_claude", _raise)
+
+        response = test_client.post(
+            "/ask",
+            json={"question": "What is Shabbat? [cited-sources-fallback-test]"},
+            content_type="application/json",
+        )
+        body = response.get_json()
+        assert "ai_cited_sources" in body
+        assert body["ai_cited_sources"] == []
+
+    async def test_fastapi_success_has_ai_cited_sources_key(self, fastapi_client):
+        response = await fastapi_client.post(
+            "/ask",
+            json={"question": "What is Shabbat? [async-cited-sources-schema-test]"},
+        )
+        body = response.json()
+        assert "ai_cited_sources" in body
+        assert isinstance(body["ai_cited_sources"], list)
+
+    async def test_fastapi_fallback_has_ai_cited_sources_key(self, fastapi_client, monkeypatch):
+        import backend.claude as claude_module
+
+        async def _raise(*args, **kwargs):
+            raise RuntimeError("Simulated async AI failure [async-cited-fallback-test]")
+
+        monkeypatch.setattr(claude_module, "ask_ai_async", _raise)
+
+        response = await fastapi_client.post(
+            "/ask",
+            json={"question": "What is Shabbat? [async-cited-fallback-test]"},
+        )
+        body = response.json()
+        assert "ai_cited_sources" in body
+        assert body["ai_cited_sources"] == []
+
+
+# ─── AI timeout/retry resilience (plan.md §7.13) ───────────────────────────────
+#
+# Regression coverage for the confirmed bug: AI_MODEL_TIMEOUT_SECONDS was defined
+# but never passed to the SDK clients, and there was no total-budget guard, so a
+# slow model call could hang well past what the (then-unbounded single-shot)
+# client abort allowed for.
+
+class TestAiModelTimeoutWiring:
+    def test_sync_anthropic_client_has_configured_timeout(self):
+        import backend.claude as claude_module
+
+        claude_module._cached_client = None
+        claude_module._cached_api_key = None
+        client = claude_module._get_client()
+        assert client is not None
+        assert client.timeout == claude_module.MODEL_REQUEST_TIMEOUT_SECONDS
+        assert client.max_retries == 2
+
+    def test_async_anthropic_client_has_configured_timeout(self):
+        import backend.claude as claude_module
+
+        claude_module._cached_async_client = None
+        claude_module._cached_api_key = None
+        client = claude_module._get_async_client()
+        assert client is not None
+        assert client.timeout == claude_module.MODEL_REQUEST_TIMEOUT_SECONDS
+        assert client.max_retries == 2
+
+
+class TestAiCitationFormatPrompt:
+    """Regression guard for the colon-splitting bug in templates/index.html's
+    populateAiModal(): the model must be told to separate ref/note with an em
+    dash, never a colon, since refs like "Genesis 1:1" already contain one.
+    If this prompt instruction reverts to colon-based formatting, the frontend
+    parser (which now splits on " — "/" – " only) will silently stop
+    extracting notes — this test exists to catch that drift early.
+    """
+
+    def test_core_system_prompt_uses_em_dash_separator(self):
+        import backend.claude as claude_module
+
+        assert "—" in claude_module.CORE_SYSTEM_PROMPT
+        assert "em dash" in claude_module.CORE_SYSTEM_PROMPT
+        assert '"Title, Section/Chapter: relevance note"' not in claude_module.CORE_SYSTEM_PROMPT
+
+
+class TestAiTotalBudgetTimeout:
+    async def test_fastapi_total_budget_timeout_falls_back_gracefully(self, fastapi_client, monkeypatch):
+        """A model call that exceeds AI_TOTAL_BUDGET_SECONDS must fall through to
+        the graceful fallback ladder (200 + meta.fallback=true), never hang or 500.
+        """
+        import asyncio
+        import backend.claude as claude_module
+
+        monkeypatch.setattr(claude_module, "AI_TOTAL_BUDGET_SECONDS", 0.05)
+
+        async def _slow(*args, **kwargs):
+            await asyncio.sleep(2)
+            return {"answer": "should never get here", "structured": None}
+
+        monkeypatch.setattr(claude_module, "ask_ai_async", _slow)
+
+        response = await fastapi_client.post(
+            "/ask",
+            json={"question": "What is Shabbat? [total-budget-timeout-test]"},
+        )
+        assert response.status_code == 200
+        body = response.json()
+        assert body.get("meta", {}).get("fallback") is True
+        assert "ai_cited_sources" in body

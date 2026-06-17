@@ -127,10 +127,15 @@ def mock_outbound_http():
         )
 
         # ── Google Translate (fallback) ───────────────────────────────────────
+        # Real shape: payload[0] is a list of [translated_chunk, original_chunk,
+        # ...] segments — see backend/helpers.py:_extract_google_translated_text.
+        # A bare ["mock translation"] (previous mock) doesn't match that shape,
+        # so it silently parsed to "" and every google-translate test fell
+        # through to the mymemory fallback without anyone noticing.
         rsps.add(
             responses_lib.GET,
             re.compile(r"https://translate\.googleapis\.com/.*"),
-            json=["mock translation"],
+            json=[[["mock translation", "source text", None, None, 0]], None, "auto"],
             status=200,
         )
 
