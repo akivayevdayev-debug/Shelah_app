@@ -348,6 +348,70 @@ class TestAiCitedSourcesSchemaParity:
         assert body["ai_cited_sources"] == []
 
 
+class TestAskTransportKeySetParity:
+    """plan.md §7.14 invariant: the Flask and ASGI /ask handlers must return the
+    same top-level JSON key set on every path, so they can't silently drift the
+    way the missing-`ai_cited_sources` bug did. `meta` is deliberately excluded
+    from the comparison — each transport adds one legitimate, transport-specific
+    flag there (`cached` for Flask, `async` for ASGI) that isn't a drift bug.
+
+    Each transport is checked independently against one canonical key set
+    (rather than calling both fixtures from a single test) — combining the
+    sync Flask `test_client` fixture with the async `fastapi_client` fixture
+    in one `async def` test trips a Flask app-context teardown LookupError
+    that's a pytest-asyncio/Flask-contextvars interaction quirk, not a real
+    failure; comparing both independently against the same constant gives an
+    identical safety guarantee without that interaction.
+    """
+
+    TOP_LEVEL_KEYS = {"answer", "confidence", "wiki", "customs", "sources", "ai_cited_sources", "meta"}
+
+    def test_flask_success_path_key_set(self, test_client):
+        response = test_client.post(
+            "/ask",
+            json={"question": "What is Shabbat? [parity-success-test]"},
+            content_type="application/json",
+        )
+        assert set(response.get_json().keys()) == self.TOP_LEVEL_KEYS
+
+    def test_flask_fallback_path_key_set(self, test_client, monkeypatch):
+        import backend.claude as claude_module
+        import app as flask_app_module
+
+        flask_app_module.ASK_RESPONSE_CACHE.clear()
+
+        def _raise(*args, **kwargs):
+            raise RuntimeError("Simulated Anthropic failure [parity-fallback-test]")
+
+        monkeypatch.setattr(claude_module, "ask_claude", _raise)
+        response = test_client.post(
+            "/ask",
+            json={"question": "What is Shabbat? [parity-fallback-test]"},
+            content_type="application/json",
+        )
+        assert set(response.get_json().keys()) == self.TOP_LEVEL_KEYS
+
+    async def test_fastapi_success_path_key_set(self, fastapi_client):
+        response = await fastapi_client.post(
+            "/ask",
+            json={"question": "What is Shabbat? [parity-success-test-async]"},
+        )
+        assert set(response.json().keys()) == self.TOP_LEVEL_KEYS
+
+    async def test_fastapi_fallback_path_key_set(self, fastapi_client, monkeypatch):
+        import backend.claude as claude_module
+
+        async def _raise(*args, **kwargs):
+            raise RuntimeError("Simulated async AI failure [parity-fallback-test-async]")
+
+        monkeypatch.setattr(claude_module, "ask_ai_async", _raise)
+        response = await fastapi_client.post(
+            "/ask",
+            json={"question": "What is Shabbat? [parity-fallback-test-async]"},
+        )
+        assert set(response.json().keys()) == self.TOP_LEVEL_KEYS
+
+
 # ─── AI timeout/retry resilience (plan.md §7.13) ───────────────────────────────
 #
 # Regression coverage for the confirmed bug: AI_MODEL_TIMEOUT_SECONDS was defined

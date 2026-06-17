@@ -1001,70 +1001,19 @@ async def _call_claude_model(
     dynamic_system_context: str = "",
     gemini_error: str = "",
 ) -> Dict[str, Any]:
-    """Low-level Anthropic fallback call (AsyncAnthropic SDK)."""
-    client = _get_async_client()
-    model_name = (os.environ.get("ANTHROPIC_MODEL")
-                  or "claude-haiku-4-5").strip()
+    """Sync-pipeline entry point for the Anthropic fallback call.
 
-    if client is None:
-        error = "anthropic_unavailable"
-        if gemini_error:
-            error = f"gemini_error: {gemini_error}; {error}"
-        return {
-            "answer": "AI provider is currently unavailable.",
-            "confidence": 0,
-            "error": error,
-            "is_fallback": True,
-            "provider": model_name,
-        }
-
-    try:
-        system_text = CORE_SYSTEM_PROMPT
-        if dynamic_system_context:
-            system_text = f"{CORE_SYSTEM_PROMPT}\n\n{dynamic_system_context}"
-
-        message = await client.messages.create(
-            model=model_name,
-            system=[{"type": "text", "text": system_text,
-                     "cache_control": {"type": "ephemeral"}}],
-            max_tokens=1024,
-            messages=[
-                {"role": "user", "content": prompt}
-            ],
-            extra_headers={"anthropic-beta": "prompt-caching-2024-07-31"},
-        )
-        logger.info(
-            f"Claude fallback request successful. Provider: {model_name}")
-        response_chunks: List[str] = []
-        for block in (message.content or []):
-            maybe_text = getattr(block, "text", None)
-            if isinstance(maybe_text, str) and maybe_text.strip():
-                response_chunks.append(maybe_text)
-
-        response_text = "\n".join(response_chunks).strip()
-        if not response_text:
-            raise RuntimeError("empty_response")
-
-        structured = parse_structured_model_output(response_text)
-
-        return {
-            "answer": render_structured_markdown(structured),
-            "structured": structured,
-            "confidence": 0.78,
-            "is_fallback": True,
-            "provider": model_name,
-        }
-    except Exception as exc:
-        error = f"anthropic_error: {exc}"
-        if gemini_error:
-            error = f"gemini_error: {gemini_error}; {error}"
-        return {
-            "answer": "AI provider is currently unavailable.",
-            "confidence": 0,
-            "error": error,
-            "is_fallback": True,
-            "provider": model_name,
-        }
+    Delegates to `_call_anthropic_httpx_model` so the sync (Flask) and async
+    (ASGI) pipelines share one implementation instead of two near-identical
+    copies of the same SDK call — the duplicate previously lacked the
+    `record_llm_call` cost-tracking call that the async copy had, so token
+    usage from this path silently never reached the cost meter.
+    """
+    return await _call_anthropic_httpx_model(
+        prompt,
+        dynamic_system_context=dynamic_system_context,
+        gemini_error=gemini_error,
+    )
 
 
 async def _call_primary_model(prompt: str, dynamic_system_context: str = "", max_tokens: int = 3072) -> Dict[str, Any]:
