@@ -5,7 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <meta name="theme-color" content="#f3ede0" media="(prefers-color-scheme: light)">
-    <meta name="theme-color" content="#0d0c0a" media="(prefers-color-scheme: dark)">
+    <meta name="theme-color" content="#0c0c0b" media="(prefers-color-scheme: dark)">
     <title>Sh'elah - Torah Encyclopedia</title>
     <meta name="description" content="AI-powered Torah encyclopedia — search halacha, Talmud, Tanakh, and Jewish law with source citations and community-aware answers.">
     <meta property="og:title" content="Sh'elah - Torah Encyclopedia">
@@ -1660,6 +1660,9 @@
         const ZMANIM_LOCATION_LABEL_KEY = "ShelahZmanimLocationLabel";
         const LANGUAGE_MANUAL_KEY = "Sh'elahLanguageManuallySet";
         let currentZmanimLocationLabel = null;
+        // Set once the user picks a city manually so a slow/late
+        // navigator.geolocation callback can't silently overwrite their choice.
+        let zmanimLocationManuallySet = false;
 
         function setZmanimLocationLabel(label, timezone) {
             const labelEl = document.getElementById('zmanLoc');
@@ -10252,6 +10255,11 @@
             if (navigator.geolocation) {
                 navigator.geolocation.getCurrentPosition(
                     (pos) => {
+                        if (zmanimLocationManuallySet) {
+                            // User picked a city via search while this GPS lookup was
+                            // still pending — don't clobber their explicit choice.
+                            return;
+                        }
                         const location = {
                             lat: Number(pos.coords.latitude),
                             lon: Number(pos.coords.longitude),
@@ -10645,7 +10653,8 @@
 
                 const { lat, lon, display_name } = results[0];
                 const location = { lat: parseFloat(lat), lon: parseFloat(lon) };
-                localStorage.setItem('zmanim_location_v1', JSON.stringify(location));
+                zmanimLocationManuallySet = true;
+                localStorage.setItem(ZMANIM_LOCATION_CACHE_KEY, JSON.stringify(location));
 
                 // Update server session
                 fetch('/set_location', {

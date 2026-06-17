@@ -2760,6 +2760,18 @@ html.theme-dark,
     color: var(--tw-dark-text-amber) !important;
 }
 
+/* Legal-acceptance modal: the ToS/Privacy links use an arbitrary-value
+   Tailwind class (text-[#1f3f63]) that the generic .text-slate-* / .text-blue-*
+   remaps above can't match, so they'd stay literal navy on the dark modal
+   surface with poor contrast. */
+:is([data-theme="dark"], body.theme-dark) #legalModal a[class*="text-[#1f3f63]"] {
+    color: var(--accent-primary) !important;
+}
+
+:is([data-theme="dark"], body.theme-dark) #legalModal a[class*="text-[#1f3f63]"]:hover {
+    color: var(--accent-primary-hover) !important;
+}
+
 :is([data-theme="dark"], body.theme-dark) .bg-red-50,
 :is([data-theme="dark"], body.theme-dark) .bg-rose-50 {
     background-color: var(--tw-dark-bg-red) !important;
@@ -2889,9 +2901,14 @@ html.theme-dark,
 }
 
 :is([data-theme="dark"], body.theme-dark) .lang-btn.lang-btn-active {
-    background-color: var(--control-strong-bg) !important;
+    /* Opposite of the light-mode rule above (subtle dark tint + brown text):
+       a subtle light tint + warm gold text. Was --control-strong-bg, a
+       saturated steel-blue fill that read as a stray "blue icon" against
+       the rest of the warm dark palette. */
+    background-color: rgba(255, 255, 255, 0.08) !important;
     border-color: var(--control-border) !important;
-    color: var(--accent-cream) !important;
+    color: var(--accent-gold-light) !important;
+    font-weight: 700;
 }
 
 :is([data-theme="dark"], body.theme-dark) .lang-btn:active,
