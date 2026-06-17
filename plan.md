@@ -208,7 +208,8 @@ Honesty first: **no refactor can be guaranteed regression-free with literal 100%
 | 0 | Golden-master test suite; regenerate graphify graph | none | S |
 | 1 | gitignore/docs cleanup; customs JSON schema; lazy imports; tokens.css | low | S |
 | 2 | Extract backend helper modules from app.py (with shims); shared cache utility | low-med | M |
-| **2.5** | **AI source box fix (§7.1)** | **low** | **S** |
+| **2.4** | **AI request timeout & retry resilience — no premature abort (§7.13)** | **low** | **S** |
+| **2.5** | **AI source box fix — proper render + correct (AI-cited) sources (§7.1)** | **low** | **S** |
 | **2.6** | **Full Flask route test coverage (§7.2)** | **none** | **M** |
 | **2.7** | **Observability: logging, error tracking, cost monitoring (§7.3)** | **low** | **M** |
 | **2.8** | **Complete documentation pass (§7.4)** | **none** | **M** |
@@ -238,6 +239,38 @@ Findings from `templates/index.html` (~line 10920) and `static/css/ai.css`:
 6. **Skeleton state.** Source area renders nothing until the answer resolves; add a layout-stable skeleton card row (header bar + two text lines) per the CLS ≈ 0 rule.
 
 Verification: golden-master `/ask` fixture rendering both source groups; manual checklist — click every reader link before and after "Additional References" appear.
+
+#### 7.1.A Status update (2026-06-14): items 1–6 are implemented; two **confirmed production regressions remain**
+
+A re-audit of the live `populateAiModal()` (`templates/index.html:10791`) confirms items 1–6 above were already shipped — the source area now does a single atomic `sourcesDiv.innerHTML = _srcParts.join('')` write (line 10960), wires `a.source-local-link` handlers once afterward (10963), `escapeHtml`s every interpolation, staggers via `style="--i:n"` (10892/10942), and renders a skeleton row (10095). **However, the "right sources" half of the request is still broken, for two confirmed reasons:**
+
+**Bug A — the production handler never sends `ai_cited_sources` (THE "wrong sources" root cause).**
+The frontend reads the AI's *actually-cited* references from `data.ai_cited_sources` (`index.html:10906`) to render the "Additional References" group. The **Flask** `/ask` handler sets that key (`app.py:3335`, built from `structured_payload["sources"]` at `app.py:3321-3326`). The **ASGI** handler — which is what Vercel actually serves (`asgi.py` is the catch-all per `vercel.json`) — **omits `ai_cited_sources` from all three of its return payloads**: the success path (`asgi.py:402`), the strict-mode block (`asgi.py:307`), and the fallback path (`asgi.py:476`). Result in production: `data.ai_cited_sources` is always `undefined` → the "Additional References" group never renders, and the box shows **only** `data.sources` (the keyword-ranked *retrieved* primary sources from `_compact_ai_sources(primary_sources)`), which are not necessarily the sources the answer actually cites. This is the literal "not displaying the right sources" symptom.
+
+**Bug B — `data.sources` is decoupled from the answer text.**
+`rankAiSourcesForQuery()` (`index.html:10769`) re-ranks the *retrieved* primary sources by naive token overlap with the question+answer and shows the top 4. So even on the Flask path, the primary group can surface sources the AI didn't lean on while burying ones it did. The AI's own citation list (`structured.sources`) is the authoritative "right sources" set and must drive ordering/inclusion, with retrieved Sefaria text used to *enrich* those cited refs (fetch their `lines`), not to replace them.
+
+**Exact fix — Claude Code prompt (paste verbatim):**
+
+> Fix the AI source box so it shows the sources the answer actually cites, in production.
+>
+> 1. **`asgi.py` — restore `ai_cited_sources` parity with the Flask handler.** In the `/ask` ASGI handler, immediately after `display_sources = _compact_ai_sources(primary_sources)` in the **success** path (around line 399-401), build the cited list exactly as `app.py:3321-3326` does:
+>    ```python
+>    ai_cited = []
+>    if isinstance(structured_payload, dict):
+>        for s in (structured_payload.get("sources") or []):
+>            s_str = str(s or "").strip()
+>            if s_str:
+>                ai_cited.append(s_str)
+>    ```
+>    Add `"ai_cited_sources": ai_cited,` to the returned dict (next to `"sources": display_sources,` at line 407). In the **fallback** path (return at line 476) add `"ai_cited_sources": [],` and in the **strict-block** path (return at line 307) add `"ai_cited_sources": [],` so the key is always present and the frontend never sees `undefined`.
+> 2. **De-duplicate the logic.** `backend/ask_pipeline.py:326-331` already computes the identical `ai_cited` list. Extract a single helper `extract_ai_cited(structured_payload) -> list[str]` into `backend/helpers.py`, then call it from `app.py`, `asgi.py`, and `ask_pipeline.py` so the three paths can never drift again. Move-only refactor: behavior identical, verified by the golden-master `/ask` fixture.
+> 3. **Make cited sources authoritative in the box (`templates/index.html`).** In `populateAiModal()` keep the existing single-write/single-wire structure, but render the **AI-cited** group *first* (it is the "right sources"), then render retrieved primary sources only for refs not already cited, de-duplicating with the existing `shownRefKeys` set in the other direction. Where a cited ref matches a retrieved primary source, attach that source's `lines` to the cited box instead of firing a separate `/api/text` fetch (saves a round-trip and guarantees the cited ref shows real text).
+> 4. **Keep `rankAiSourcesForQuery` only as a tiebreaker** for the retrieved-but-not-cited remainder, not as the primary selector.
+>
+> Verification (must all pass before done): (a) add a golden-master `/ask` ASGI fixture whose `structured.sources` differs from the retrieved `primary_sources`, assert the JSON response contains `ai_cited_sources` equal to `structured.sources` on success and `[]` on strict/fallback; (b) snapshot-test that `app.py` and `asgi.py` `/ask` return byte-identical key sets; (c) manual: ask a question whose answer cites a source not in the retrieved set and confirm it appears in "Additional References" with text, in both light and dark themes, and that every "Open in Reader ↗" link works after the async text fetches resolve.
+
+Cross-reference: this is the §7.1 work referenced by the Phase 2.5 row; the engineering invariant that prevents recurrence ("`/ask` response schema parity across transports; AI-cited sources must always reach the client") is codified in `.agents/ENGINEERING_RULES.md` → *AI request resilience & source integrity*.
 
 ### 7.2 Full test coverage on all Flask routes (Phase 2.6)
 
@@ -382,6 +415,52 @@ Full audit of every loading surface, with confirmed current-state findings:
 - **Service-worker cache versioning** (§3.13) becomes urgent once CSS/JS restructuring ships — build-hash cache names in the same milestone as §7.6.
 - **`requirements-dev.txt`** (pytest, pytest-cov, respx, responses, ruff, pre-commit pins) separated from runtime deps to keep Vercel cold start lean.
 - **CI pipeline** (GitHub Actions or Vercel checks): ruff + pytest + coverage gate + axe-core a11y check + Playwright visual regression on the six themed views — the enforcement backbone for everything above.
+
+### 7.13 AI request timeout & retry resilience — "no premature abort after a couple of tries" (Phase 2.4)
+
+**Confirmed root cause (measured 2026-06-14).** Users see the AI "time out after only a couple of tries." Three independent facts combine to produce this:
+
+1. **The browser hard-aborts `/ask` at 10 s, single-shot, no retry.** `templates/index.html:9109-9110`:
+   ```js
+   const abortCtrl = new AbortController();
+   const abortTimer = setTimeout(() => abortCtrl.abort(), 10000);
+   ```
+   On abort the catch block (`9150-9152`) shows *"Response timed out. Please try again."* There is **no automatic retry** — the user must manually re-ask, and each manual attempt restarts the whole pipeline cold.
+2. **The server pipeline routinely needs more than 10 s.** The ASGI handler fans out six tasks with `asyncio.gather` (`asgi.py:271`: primary Sefaria sources, Halachipedia, wiki, community knowledge, user memory, tool context) **and then** makes the model call. Cold-start + upstream latency on Sefaria/Hebcal alone can approach the 10 s budget before the LLM is even invoked.
+3. **The model layer itself can burn the whole budget in retries.** `_generate_gemini_content_with_retry` (`backend/claude.py:284-289`) retries up to **5 times** with `wait_random_exponential(min=1, max=4)` on `ResourceExhausted` — that backoff ladder alone can exceed 10 s, so the browser aborts *mid-retry*: literally "timed out after a couple of tries." Meanwhile **`AI_MODEL_TIMEOUT_SECONDS` (default 8, `backend/claude.py:81`) is dead config** — it is never passed to `AsyncAnthropic` (created with no `timeout=`/`max_retries=` at `claude.py:207`) nor to the Gemini call, so the documented timeout knob does nothing.
+
+**Design — coordinate three budgets so the client never gives up before the server has had a fair, bounded chance:**
+
+| Layer | Today | Target |
+|---|---|---|
+| Per-model call timeout | unbounded (SDK default ~600 s); Gemini none | wire `AI_MODEL_TIMEOUT_SECONDS` into both providers; default raise to ~25 s |
+| Provider retry budget | Gemini 5× exp backoff (≤ ~20 s); Claude SDK default 2× | cap to fit under the total server budget; fail fast to fallback ladder |
+| Total server request budget | implicit | explicit `AI_TOTAL_BUDGET_SECONDS` (e.g. 40 s); wrap synthesis in `asyncio.wait_for`, on timeout return the `get_halakhic_sources` fallback payload, not a 500 |
+| Client abort | 10 s, 0 retries | ceiling ≥ server budget + headroom (e.g. 50 s) **and** 2 automatic retries with backoff on `AbortError`/network/`5xx`/`502`, with staged "still working" messaging |
+
+**Exact fix — Claude Code prompt (paste verbatim):**
+
+> Make the AI request resilient so it is not aborted after a couple of tries. Three coordinated changes; keep all existing fallback behavior.
+>
+> 1. **Frontend (`templates/index.html`, the `/ask` flow at ~9107-9160).** Replace the single 10 s abort with a bounded retry wrapper:
+>    - Read the ceiling from a constant `const AI_REQUEST_TIMEOUT_MS = 50000;` and `const AI_MAX_ATTEMPTS = 3;`.
+>    - Wrap the existing `fetch('/ask', …)` in an `async function askWithRetry(body, headers)` that loops up to `AI_MAX_ATTEMPTS`. Each attempt gets its own `AbortController` + `setTimeout(…, AI_REQUEST_TIMEOUT_MS)` cleared in a `finally`. Retry only on `AbortError`, `TypeError` (network), or HTTP `502/503/504`; do **not** retry on `4xx` or a normal `200`. Back off `1200ms * attempt` between tries.
+>    - Drive the loading UI: on attempt ≥ 2 append a phase string `t('Still working — retrying…', 'עדיין עובד — מנסה שוב…')` to the `_phaseTimers` cycle so the user sees progress instead of a dead spinner. Continue to clear all timers in the existing `finally` (line 9157) — no orphaned timers (ENGINEERING_RULES loading-state rule 5).
+>    - Only after all attempts fail show the timeout message; log `logReliability('ai-network-error', { timeout, attempts })`.
+> 2. **Model layer (`backend/claude.py`).** Actually apply the timeout knob:
+>    - At `_get_async_client()` (line 197-207) pass `timeout=MODEL_REQUEST_TIMEOUT_SECONDS` and `max_retries=2` to `anthropic.AsyncAnthropic(...)`.
+>    - Raise the default: `MODEL_REQUEST_TIMEOUT_SECONDS = _int_env("AI_MODEL_TIMEOUT_SECONDS", 25)`.
+>    - Pass a request timeout into the Gemini call config and reduce `stop_after_attempt(5)` to `stop_after_attempt(3)` so the Gemini backoff ladder cannot exceed the server budget.
+> 3. **Server total budget (`asgi.py`, `/ask`).** Add `AI_TOTAL_BUDGET_SECONDS = int(os.environ.get("AI_TOTAL_BUDGET_SECONDS", "40"))`. Wrap the `claude.ask_ai_async(...)` synthesis call (line 333) in `await asyncio.wait_for(..., AI_TOTAL_BUDGET_SECONDS)`; on `asyncio.TimeoutError` route into the **existing** `except` fallback block (the `get_halakhic_sources` path at 440-504) rather than raising — the user gets discovered references, never a hung request or a 500. Mirror the same wrapper in the Flask `/ask` (`app.py`) for parity.
+>
+> Verification (all must pass): (a) unit-test `askWithRetry` with a mocked `fetch` that aborts twice then succeeds — assert 3 attempts, success surfaced, zero pending timers afterward; (b) backend test: monkeypatch `ask_ai_async` to sleep past `AI_TOTAL_BUDGET_SECONDS`, assert the response is the graceful fallback payload (200 with `meta.fallback=true`), not a 500; (c) assert `AsyncAnthropic` is constructed with the configured `timeout`/`max_retries`; (d) manual throttled-network run confirms the spinner shows the retry phase text and resolves rather than dying at 10 s.
+
+**Honest caveat:** Vercel serverless functions have their own platform execution ceiling — set `AI_TOTAL_BUDGET_SECONDS` and the `functions.maxDuration` in `vercel.json` (§3.15) consistently below that ceiling, and keep the client ceiling above the server budget, or the platform will kill the function before either timeout fires. Tune the three numbers together; they are intentionally env-configurable so production can be adjusted without a code change.
+
+### 7.14 Invariants to prevent recurrence (from the §7.1.A / §7.13 audit)
+
+- **`/ask` transport parity is now a tested invariant** (see §7.1.A bug A and §7.13 step 3): the Flask and ASGI handlers must return the same JSON key set on every path (success, strict, fallback). Add a single shared response-builder so the two transports cannot drift in keys, timeouts, or fallback semantics — this directly prevents both the missing-`ai_cited_sources` and the uncoordinated-timeout classes of bug from recurring.
+- **Dead-config lint:** `AI_MODEL_TIMEOUT_SECONDS` was defined-but-unused for months. Add a tiny test asserting every `os.environ`/`_int_env` config constant is referenced at least once outside its definition, so silently-dead knobs are caught.
 
 ---
 

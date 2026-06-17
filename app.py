@@ -55,9 +55,10 @@ from backend.data_service import ShelahEngine
 from backend import sefaria
 from backend import claude
 from backend import search
-from backend.logging_setup import setup_logging
+from backend.logging_setup import setup_logging, _capture_backend_error
 from backend.customs import validate_all_customs_at_startup
 from backend.health_check import health as api_health
+from backend.helpers import extract_ai_cited
 
 
 # Maps each prayer name to its constituent Sefaria "Siddur Sefard" refs for full text
@@ -1260,8 +1261,8 @@ def _compact_ai_sources(sources, max_sources=8, max_lines=3, max_chars=280):
             if not isinstance(row, dict):
                 continue
 
-            en = re.sub(r"\s+", " ", str(row.get("en") or "").strip())
-            he = re.sub(r"\s+", " ", str(row.get("he") or "").strip())
+            en = re.sub(r"\s+", " ", re.sub(r"<[^>]+>", "", str(row.get("en") or "")).strip()).strip()
+            he = re.sub(r"\s+", " ", re.sub(r"<[^>]+>", "", str(row.get("he") or "")).strip()).strip()
 
             # Skip lines that indicate the source was not found
             if en.startswith("Text not found") or en.startswith("Error"):
@@ -2382,9 +2383,10 @@ SUPABASE_USER_MEMORIES_TABLE = (os.environ.get(
     "SUPABASE_USER_MEMORIES_TABLE") or "user_memories").strip()
 SUPABASE_STUDY_BOOKMARKS_TABLE = (os.environ.get(
     "SUPABASE_STUDY_BOOKMARKS_TABLE") or "study_bookmarks").strip()
+SUPABASE_ASK_HISTORY_TABLE = (os.environ.get(
+    "SUPABASE_ASK_HISTORY_TABLE") or "ask_history").strip()
 STRICT_SUPABASE_RLS = (os.environ.get("STRICT_SUPABASE_RLS")
                        or "true").strip().lower() == "true"
-ERROR_LOG_WEBHOOK_URL = (os.environ.get("ERROR_LOG_WEBHOOK_URL") or "").strip()
 _supabase_client = None
 
 
@@ -2542,31 +2544,6 @@ def _get_user_scoped_supabase_client():
     return client
 
 
-def _capture_backend_error(event_name, error, context=None):
-    """Sentry-style structured logger for backend failures and AI prompt issues."""
-    context = context if isinstance(context, dict) else {}
-    message = str(error) if error is not None else ""
-    payload = {
-        "event": str(event_name or "unknown"),
-        "message": message,
-        "context": context,
-        "ts": int(time.time()),
-    }
-
-    app.logger.error("OBS_EVENT %s", json.dumps(payload, ensure_ascii=True),
-                     exc_info=error if isinstance(error, Exception) else False)
-
-    if ERROR_LOG_WEBHOOK_URL:
-        try:
-            requests.post(
-                ERROR_LOG_WEBHOOK_URL,
-                json=payload,
-                timeout=2,
-            )
-        except Exception:
-            pass
-
-
 def _get_request_user_id():
     claims = getattr(g, "clerk_claims", {}) or {}
     user_id = str(claims.get("sub") or "").strip()
@@ -2596,7 +2573,7 @@ def _normalize_rag_text(value, max_chars=360):
 # Re-import shims for backward compatibility with asgi.py and blueprints.
 # Functions moved to backend/ modules are re-imported here so any existing
 # call-sites inside app.py or legacy consumers keep working unchanged.
-from backend.rag import _build_ask_tool_context, _retrieve_community_knowledge, _compose_answer_with_prefixes
+from backend.rag import _build_ask_tool_context, _retrieve_community_knowledge, _compose_answer_with_prefixes, _store_ask_history
 
 
 def _knowledge_rows_to_customs(rows):
@@ -2806,7 +2783,13 @@ def apply_response_cache_policy(response):
     response.headers.setdefault("X-Content-Type-Options", "nosniff")
     response.headers.setdefault(
         "Referrer-Policy", "strict-origin-when-cross-origin")
-    response.headers.setdefault("X-XSS-Protection", "1; mode=block")
+    # X-XSS-Protection intentionally omitted — deprecated, ignored by modern
+    # browsers, and can introduce vulnerabilities in old ones (plan.md §7.10.2).
+    response.headers.setdefault(
+        "Permissions-Policy",
+        "geolocation=(self), camera=(), microphone=(), payment=(), usb=(), "
+        "magnetometer=(), gyroscope=(), interest-cohort=()"
+    )
     response.headers.setdefault(
         "Content-Security-Policy",
         "default-src 'self'; "
@@ -2971,6 +2954,15 @@ def terms():
 def privacy():
     return render_template(
         "privacy.html",
+        clerk_publishable_key=CLERK_PUBLISHABLE_KEY,
+        clerk_enforce_auth=CLERK_ENFORCE_AUTH,
+    )
+
+
+@app.route("/accessibility")
+def accessibility():
+    return render_template(
+        "accessibility.html",
         clerk_publishable_key=CLERK_PUBLISHABLE_KEY,
         clerk_enforce_auth=CLERK_ENFORCE_AUTH,
     )
@@ -3200,6 +3192,7 @@ def ask_question():
                 "wiki": wiki_list + halachipedia_list,
                 "customs": customs_info,
                 "sources": display_sources,
+                "ai_cited_sources": [],
                 "meta": {
                     "mode": mode,
                     "community_lens": canonical_lens,
@@ -3215,7 +3208,14 @@ def ask_question():
             return jsonify(strict_payload)
 
         try:
-            result = claude.ask_claude(
+            # Bounded by AI_TOTAL_BUDGET_SECONDS via the module-level _THREAD_POOL
+            # so a slow/stuck model call can't hang this request indefinitely —
+            # mirrors the asyncio.wait_for budget on the asgi.py async path
+            # (plan.md §7.13 / 7.14). On timeout this raises concurrent.futures.
+            # TimeoutError, which is an Exception subclass and falls through to
+            # the existing fallback ladder below, unchanged.
+            _ask_future = _THREAD_POOL.submit(
+                claude.ask_claude,
                 question=question,
                 sefaria_sources=flat_sources_for_claude,
                 customs=customs_info,
@@ -3227,6 +3227,7 @@ def ask_question():
                 answer_language=answer_language,
                 tool_context=_build_ask_tool_context(engine),
             )
+            result = _ask_future.result(timeout=claude.AI_TOTAL_BUDGET_SECONDS)
 
             result = _coerce_ai_answer_shape(
                 result,
@@ -3318,12 +3319,18 @@ def ask_question():
 
             DEVTOOLS_STATS["answers_total"] += 1
             display_sources = _compact_ai_sources(primary_sources)
-            ai_cited = []
-            if isinstance(structured_payload, dict):
-                for s in (structured_payload.get("sources") or []):
-                    s_str = str(s or "").strip()
-                    if s_str:
-                        ai_cited.append(s_str)
+            ai_cited = extract_ai_cited(structured_payload)
+
+            _store_ask_history(
+                user_id,
+                question,
+                normalized_answer,
+                sources=display_sources,
+                ai_cited_sources=ai_cited,
+                community=canonical_lens,
+                mode=mode,
+                language=answer_language,
+            )
 
             # Successful AI answer path returns immediately; fallback is only for empty/error responses.
             success_payload = {
@@ -3400,6 +3407,7 @@ def ask_question():
                 "wiki": wiki_list + halachipedia_list,
                 "customs": customs_info,
                 "sources": fallback_sources,
+                "ai_cited_sources": [],
                 "meta": {
                     "mode": mode,
                     "language": answer_language,

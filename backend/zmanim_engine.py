@@ -20,26 +20,14 @@ from timezonefinder import TimezoneFinder
 import requests
 import time
 from backend.calendar_service import calendar_engine
+from backend.cache import TTLCache
 
 tf = TimezoneFinder()
 _HTTP = requests.Session()
-_HEBCAL_DAY_CACHE = {}
-_HEBCAL_MONTH_CACHE = {}
 _HEBCAL_DAY_CACHE_TTL_SECONDS = 60 * 30
 _HEBCAL_MONTH_CACHE_TTL_SECONDS = 60 * 30
-
-
-def _cache_get(cache, key, ttl_seconds):
-    row = cache.get(key)
-    if not row:
-        return None
-    if time.time() - row.get("ts", 0) > ttl_seconds:
-        return None
-    return row.get("value")
-
-
-def _cache_set(cache, key, value):
-    cache[key] = {"ts": time.time(), "value": value}
+_HEBCAL_DAY_CACHE = TTLCache(ttl=_HEBCAL_DAY_CACHE_TTL_SECONDS)
+_HEBCAL_MONTH_CACHE = TTLCache(ttl=_HEBCAL_MONTH_CACHE_TTL_SECONDS)
 
 
 def _cache_coord(value):
@@ -70,8 +58,7 @@ def _get_hebcal_day_times(lat, lon, timezone_str, current_date):
         str(timezone_str or ""),
         current_date.isoformat(),
     )
-    cached = _cache_get(_HEBCAL_DAY_CACHE, cache_key,
-                        _HEBCAL_DAY_CACHE_TTL_SECONDS)
+    cached = _HEBCAL_DAY_CACHE.get(cache_key)
     if isinstance(cached, dict):
         return dict(cached)
 
@@ -98,11 +85,11 @@ def _get_hebcal_day_times(lat, lon, timezone_str, current_date):
             elif category == "havdalah":
                 result["havdalah"] = datetime.fromisoformat(stamp)
     except Exception:
-        _cache_set(_HEBCAL_DAY_CACHE, cache_key, result)
-        return result
+        _HEBCAL_DAY_CACHE.set(cache_key, result)
+        return dict(result)
 
-    _cache_set(_HEBCAL_DAY_CACHE, cache_key, result)
-    return result
+    _HEBCAL_DAY_CACHE.set(cache_key, result)
+    return dict(result)
 
 
 def _get_weekly_shabbat_parasha(current_date):
@@ -343,11 +330,7 @@ def get_monthly_events(lat, lon, timezone_str=None):
         today.year,
         today.month,
     )
-    cached_events = _cache_get(
-        _HEBCAL_MONTH_CACHE,
-        month_cache_key,
-        _HEBCAL_MONTH_CACHE_TTL_SECONDS,
-    )
+    cached_events = _HEBCAL_MONTH_CACHE.get(month_cache_key)
     if isinstance(cached_events, list):
         return list(cached_events)
 
@@ -452,5 +435,5 @@ def get_monthly_events(lat, lon, timezone_str=None):
     except Exception as e:
         print(f"[Hebcal Error] {e}")
 
-    _cache_set(_HEBCAL_MONTH_CACHE, month_cache_key, list(events))
+    _HEBCAL_MONTH_CACHE.set(month_cache_key, list(events))
     return events

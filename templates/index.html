@@ -11,8 +11,24 @@
     <meta property="og:title" content="Sh'elah - Torah Encyclopedia">
     <meta property="og:description" content="AI-powered Torah encyclopedia with source citations from Sefaria, halachic rulings, and community customs.">
     <meta property="og:type" content="website">
+    <meta property="og:url" content="https://shelah-app.vercel.app/">
+    <meta property="og:image" content="https://shelah-app.vercel.app/static/favicon-512.png">
     <meta name="twitter:card" content="summary">
     <meta name="twitter:title" content="Sh'elah - Torah Encyclopedia">
+    <meta name="twitter:description" content="AI-powered Torah encyclopedia with source citations from Sefaria, halachic rulings, and community customs.">
+    <meta name="twitter:image" content="https://shelah-app.vercel.app/static/favicon-512.png">
+    <link rel="canonical" href="https://shelah-app.vercel.app/">
+    <script type="application/ld+json">
+    {
+        "@context": "https://schema.org",
+        "@type": "WebApplication",
+        "name": "Sh'elah",
+        "alternateName": "Sh'elah - Torah Encyclopedia",
+        "description": "AI-powered Torah encyclopedia — search halacha, Talmud, Tanakh, and Jewish law with source citations and community-aware answers.",
+        "url": "https://shelah-app.vercel.app/",
+        "applicationCategory": "EducationApplication"
+    }
+    </script>
     <link rel="icon" href="/static/favicon.svg" type="image/svg+xml">
     <link rel="icon" href="/static/favicon-192.png" type="image/png" sizes="192x192">
     <link rel="icon" href="/static/favicon-512.png" type="image/png" sizes="512x512">
@@ -20,7 +36,7 @@
     <link rel="manifest" href="/manifest.webmanifest">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link rel="preload" href="/static/fonts/SILEOT.woff" as="font" type="font/woff" crossorigin>
+    <link rel="preload" href="/static/fonts/SILEOT.woff2" as="font" type="font/woff2" crossorigin>
     <!-- no-flash theme: read localStorage before first paint -->
     <script>(function(){var t=localStorage.getItem('shelah-theme');if(t==='light'){document.documentElement.setAttribute('data-theme','light');document.documentElement.classList.remove('theme-dark');}else{document.documentElement.setAttribute('data-theme','dark');document.documentElement.classList.add('theme-dark');}})()</script>
     <!-- DaisyUI component library (non-destructive — adds .btn, .card etc. utility classes) -->
@@ -38,19 +54,19 @@
     <script src="https://cdn.jsdelivr.net/npm/dompurify@3.4.9/dist/purify.min.js"
             integrity="sha384-6ZdfL2Azuen6KYvcTkbxqJS1d7txbNWrVfmURkxNeCn7DtzhLRL6Fi6WGG6ZLdKn"
             crossorigin="anonymous"></script>
-    <link rel="stylesheet" href="/static/css/tokens.css?v=20260614-v7">
-    <link rel="stylesheet" href="/static/style.css?v=20260614-v7">
+    <link rel="stylesheet" href="/static/css/tokens.css?v=20260617-v1">
+    <link rel="stylesheet" href="/static/style.css?v=20260617-v1">
     <!-- CSS modules (supplement style.css; do not replace) -->
-    <link rel="stylesheet" href="/static/css/typography.css?v=20260614-v7">
-    <link rel="stylesheet" href="/static/css/reader.css?v=20260614-v7">
-    <link rel="stylesheet" href="/static/css/sidebar.css?v=20260614-v7">
-    <link rel="stylesheet" href="/static/css/halacha.css?v=20260614-v7">
-    <link rel="stylesheet" href="/static/css/prayer.css?v=20260614-v7">
-    <link rel="stylesheet" href="/static/css/ai.css?v=20260614-v7">
-    <link rel="stylesheet" href="/static/css/calendar.css?v=20260614-v7">
-    <link rel="stylesheet" href="/static/css/loading.css?v=20260614-v7">
+    <link rel="stylesheet" href="/static/css/typography.css?v=20260617-v1">
+    <link rel="stylesheet" href="/static/css/reader.css?v=20260617-v1">
+    <link rel="stylesheet" href="/static/css/sidebar.css?v=20260617-v1">
+    <link rel="stylesheet" href="/static/css/halacha.css?v=20260617-v1">
+    <link rel="stylesheet" href="/static/css/prayer.css?v=20260617-v1">
+    <link rel="stylesheet" href="/static/css/ai.css?v=20260617-v1">
+    <link rel="stylesheet" href="/static/css/calendar.css?v=20260617-v1">
+    <link rel="stylesheet" href="/static/css/loading.css?v=20260617-v1">
     <!-- Tailwind CSS (pre-built; loads last so utilities override custom CSS — mirrors CDN runtime cascade behavior) -->
-    <link rel="stylesheet" href="/static/css/tailwind.css?v=20260614-v7">
+    <link rel="stylesheet" href="/static/css/tailwind.css?v=20260617-v1">
 
     <!-- FullCalendar -->
     <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.15/index.global.min.js"
@@ -256,6 +272,9 @@
                                 <a id="userProfilePrivacyLink" href="/privacy" target="_blank" rel="noopener"
                                     class="topbar-user-menu-item block px-3 py-1.5 text-xs text-slate-700 hover:bg-slate-100 transition"
                                     data-en="Privacy Policy" data-he="מדיניות הפרטיות">Privacy Policy</a>
+                                <a id="userProfileAccessibilityLink" href="/accessibility" target="_blank" rel="noopener"
+                                    class="topbar-user-menu-item block px-3 py-1.5 text-xs text-slate-700 hover:bg-slate-100 transition"
+                                    data-en="Accessibility" data-he="נגישות">Accessibility</a>
                             </div>
                         </div>
 
@@ -9137,6 +9156,59 @@
             return false;
         }
 
+        const AI_REQUEST_TIMEOUT_MS = 60000;
+        const AI_MAX_ATTEMPTS = 3;
+
+        // POSTs /ask with a bounded per-attempt timeout and automatic retry on
+        // transient failures (abort/network/502/503/504) — never on 4xx or a
+        // clean response. Prevents the "times out after a couple of tries"
+        // failure mode where the client gave up before the server's own
+        // graceful-fallback budget had a fair chance to run (plan.md §7.13).
+        async function askWithRetry(body, headers) {
+            let lastError = null;
+            for (let attempt = 1; attempt <= AI_MAX_ATTEMPTS; attempt++) {
+                if (attempt > 1) {
+                    const phaseEl = document.getElementById('aiLoadingPhaseText');
+                    if (phaseEl) {
+                        phaseEl.style.animation = 'none';
+                        phaseEl.offsetHeight;
+                        phaseEl.textContent = t('Still working — retrying...', 'עדיין עובד — מנסה שוב...');
+                        phaseEl.style.animation = 'shelah-fade-in 0.35s ease both';
+                    }
+                    await new Promise((resolve) => setTimeout(resolve, 1200 * attempt));
+                }
+
+                const abortCtrl = new AbortController();
+                const abortTimer = setTimeout(() => abortCtrl.abort(), AI_REQUEST_TIMEOUT_MS);
+                try {
+                    const response = await fetch('/ask', {
+                        method: 'POST',
+                        headers,
+                        signal: abortCtrl.signal,
+                        body,
+                    });
+                    const isRetryableStatus = [502, 503, 504].includes(response.status);
+                    if (!response.ok && isRetryableStatus && attempt < AI_MAX_ATTEMPTS) {
+                        lastError = new Error(`Upstream error (${response.status})`);
+                        continue;
+                    }
+                    return response;
+                } catch (error) {
+                    lastError = error;
+                    const isRetryable = error?.name === 'AbortError' || error instanceof TypeError;
+                    if (isRetryable && attempt < AI_MAX_ATTEMPTS) {
+                        continue;
+                    }
+                    error.attempts = attempt;
+                    throw error;
+                } finally {
+                    clearTimeout(abortTimer);
+                }
+            }
+            if (lastError) lastError.attempts = AI_MAX_ATTEMPTS;
+            throw lastError || new Error('Request failed after retries');
+        }
+
         async function handleAiSearch(question) {
             const sanitizedQuestion = sanitizeQuestionInput(question);
             if (!sanitizedQuestion) return;
@@ -9215,24 +9287,15 @@
 
             try {
                 const headers = await authHeaders({ 'Content-Type': 'application/json' });
-                const abortCtrl = new AbortController();
-                const abortTimer = setTimeout(() => abortCtrl.abort(), 10000);
-                let response;
-                try {
-                    response = await fetch('/ask', {
-                        method: 'POST',
-                        headers,
-                        signal: abortCtrl.signal,
-                        body: JSON.stringify({
-                            question,
-                            mode: appState.prefs.mode,
-                            community: appState.prefs.community,
-                            language: isHebrewMode() ? 'he' : 'en',
-                        })
-                    });
-                } finally {
-                    clearTimeout(abortTimer);
-                }
+                const response = await askWithRetry(
+                    JSON.stringify({
+                        question,
+                        mode: appState.prefs.mode,
+                        community: appState.prefs.community,
+                        language: isHebrewMode() ? 'he' : 'en',
+                    }),
+                    headers,
+                );
 
                 const data = await response.json();
 
@@ -9263,7 +9326,7 @@
                     ? t('Response timed out. Please try again.', 'הבקשה ארכה זמן רב. נסה שוב.')
                     : `${t('Network error:', 'שגיאת רשת:')} ${error.message}`;
                 document.getElementById('aiSynthesis').innerHTML = `<p class="text-red-600">${errMsg}</p>`;
-                logReliability('ai-network-error', { message: error.message, timeout: isTimeout });
+                logReliability('ai-network-error', { message: error.message, timeout: isTimeout, attempts: error?.attempts || 1 });
             } finally {
                 _phaseTimers.forEach(clearTimeout);
                 document.body.classList.remove('search-loading');
@@ -10886,15 +10949,26 @@
                 .filter((token) => token.length >= 4)
                 .slice(0, 20);
 
-            return sourceList
-                .map((source, index) => {
-                    const text = getAiSourceText(source).toLowerCase();
-                    let score = 0;
-                    queryTokens.forEach((token) => {
-                        if (text.includes(token)) score += 1;
-                    });
-                    return { source, index, score };
-                })
+            const scored = sourceList.map((source, index) => {
+                const text = getAiSourceText(source).toLowerCase();
+                let score = 0;
+                queryTokens.forEach((token) => {
+                    if (text.includes(token)) score += 1;
+                });
+                return { source, index, score };
+            });
+
+            // Drop zero-overlap sources whenever we have any real signal to rank
+            // by \u2014 otherwise a retrieved-but-unrelated source (e.g. "Mishneh
+            // Torah, Human Dispositions" on an unrelated question) just pads the
+            // display up to the slot limit instead of being recognized as
+            // irrelevant. Only fall back to the unfiltered list when there's no
+            // signal at all (no usable query tokens, or every source scored 0),
+            // since showing nothing would be worse than showing unranked guesses.
+            const hasSignal = queryTokens.length > 0 && scored.some((entry) => entry.score > 0);
+            const candidates = hasSignal ? scored.filter((entry) => entry.score > 0) : scored;
+
+            return candidates
                 .sort((a, b) => b.score - a.score || a.index - b.index)
                 .map((entry) => entry.source);
         }
@@ -10908,14 +10982,24 @@
             aiSynthesisEl.innerHTML = renderAnswerMarkdown(data.answer);
             applyMarkdownComponentStyles(aiSynthesisEl, MODAL_MARKDOWN_COMPONENT_STYLES);
 
+            // Hebrew transliteration varies by style guide (kh/ch are the same
+            // letter — "Aruch" vs "Arukh", "Tanach" vs "Tanakh", etc). The AI and
+            // Sefaria don't always agree on which spelling to use for the same
+            // work, so classification/matching always runs against this
+            // normalized form — never against the original, which is preserved
+            // untouched for display and for building actual Sefaria/external URLs.
+            function _normalizeRefForMatch(ref) {
+                return String(ref || '').trim().replace(/kh/gi, 'ch');
+            }
+
             // Returns a coloured pill badge classifying a source reference by type.
             function _sourceTypeBadge(ref) {
-                const r = String(ref || '').trim();
+                const r = _normalizeRefForMatch(ref);
                 if (/^(Genesis|Exodus|Leviticus|Numbers|Deuteronomy|Joshua|Judges|I?\s*Samuel|I?\s*Kings|Isaiah|Jeremiah|Ezekiel|Hosea|Joel|Amos|Obadiah|Jonah|Micah|Nahum|Habakkuk|Zephaniah|Haggai|Zechariah|Malachi|Psalms|Proverbs|Job|Song of Songs|Ruth|Lamentations|Ecclesiastes|Esther|Daniel|Ezra|Nehemiah|I?\s*Chronicles)\b/i.test(r))
                     return '<span class="ai-src-badge ai-src-badge--tanakh">Tanakh</span>';
-                if (/^(Berakhot|Shabbat|Eruvin|Pesachim|Shekalim|Yoma|Sukkah|Beitzah|Rosh Hashanah|Taanit|Megillah|Moed Katan|Chagigah|Yevamot|Ketubot|Nedarim|Nazir|Sotah|Gittin|Kiddushin|Bava Kamma|Bava Metzia|Bava Batra|Sanhedrin|Makkot|Shevuot|Avodah Zarah|Horayot|Zevachim|Menachot|Chullin|Bekhorot|Arakhin|Temurah|Keritot|Niddah|Talmud\b)\b/i.test(r))
+                if (/^(Berachot|Shabbat|Eruvin|Pesachim|Shekalim|Yoma|Sukkah|Beitzah|Rosh Hashanah|Taanit|Megillah|Moed Katan|Chagigah|Yevamot|Ketubot|Nedarim|Nazir|Sotah|Gittin|Kiddushin|Bava Kamma|Bava Metzia|Bava Batra|Sanhedrin|Makkot|Shevuot|Avodah Zarah|Horayot|Zevachim|Menachot|Chullin|Bechorot|Arachin|Temurah|Keritot|Niddah|Talmud\b)\b/i.test(r))
                     return '<span class="ai-src-badge ai-src-badge--talmud">Talmud</span>';
-                if (/^(Shulchan Aruch|Mishnah Berurah|Kitzur Shulchan Aruch|Arukh HaShulchan|Ben Ish Hai|Mishneh Torah|Rambam|Tur\b|Sefer HaMitzvot|Sefer HaChinuch)\b/i.test(r))
+                if (/^(Shulchan Aruch|Mishnah Berurah|Kitzur Shulchan Aruch|Aruch HaShulchan|Ben Ish Hai|Mishneh Torah|Rambam|Tur\b|Sefer HaMitzvot|Sefer HaChinuch)\b/i.test(r))
                     return '<span class="ai-src-badge ai-src-badge--halacha">Halacha</span>';
                 if (/^(Igrot Moshe|Yabia Omer|Tzitz Eliezer|Chazon Ish|Minchat Yitzchak|Chelkat Yaakov|Piskei Teshuvot|Noda BiYehudah|Chatam Sofer|Responsa|Maharsha|Maharam|She'elot)\b/i.test(r))
                     return '<span class="ai-src-badge ai-src-badge--responsa">Responsa</span>';
@@ -10932,12 +11016,13 @@
             function _externalLinksForRef(ref) {
                 if (!ref) return '';
                 const r = String(ref).trim();
+                const m = _normalizeRefForMatch(ref);
                 const links = [];
 
-                const talmudMatch = r.match(/^([A-Za-z\s]+?)\s+(\d+[ab])/);
-                const isTanakh = /^(Genesis|Exodus|Leviticus|Numbers|Deuteronomy|Joshua|Judges|I?\s*Samuel|I?\s*Kings|Isaiah|Jeremiah|Ezekiel|Hosea|Joel|Amos|Obadiah|Jonah|Micah|Nahum|Habakkuk|Zephaniah|Haggai|Zechariah|Malachi|Psalms|Proverbs|Job|Song of Songs|Ruth|Lamentations|Ecclesiastes|Esther|Daniel|Ezra|Nehemiah|I?\s*Chronicles)\b/i.test(r);
-                const isOnSefaria = /^(Shulchan Aruch|Mishneh Torah|Tur\b|Kitzur Shulchan Aruch|Ben Ish Hai|Arukh HaShulchan|Mishnah Berurah|Mishnah\b|Talmud|Sefer HaMitzvot|Sefer HaChinuch|Rambam|Pirkei Avot|Avot|Siddur)\b/i.test(r);
-                const isPracticalHalacha = /^(Shulchan Aruch|Mishnah Berurah|Kitzur Shulchan Aruch|Arukh HaShulchan|Ben Ish Hai|Piskei Teshuvot|Igrot Moshe|Chazon Ish|Tzitz Eliezer|Yabia Omer)\b/i.test(r);
+                const talmudMatch = m.match(/^([A-Za-z\s]+?)\s+(\d+[ab])/);
+                const isTanakh = /^(Genesis|Exodus|Leviticus|Numbers|Deuteronomy|Joshua|Judges|I?\s*Samuel|I?\s*Kings|Isaiah|Jeremiah|Ezekiel|Hosea|Joel|Amos|Obadiah|Jonah|Micah|Nahum|Habakkuk|Zephaniah|Haggai|Zechariah|Malachi|Psalms|Proverbs|Job|Song of Songs|Ruth|Lamentations|Ecclesiastes|Esther|Daniel|Ezra|Nehemiah|I?\s*Chronicles)\b/i.test(m);
+                const isOnSefaria = /^(Shulchan Aruch|Mishneh Torah|Tur\b|Kitzur Shulchan Aruch|Ben Ish Hai|Aruch HaShulchan|Mishnah Berurah|Mishnah\b|Talmud|Sefer HaMitzvot|Sefer HaChinuch|Rambam|Pirkei Avot|Avot|Siddur)\b/i.test(m);
+                const isPracticalHalacha = /^(Shulchan Aruch|Mishnah Berurah|Kitzur Shulchan Aruch|Aruch HaShulchan|Ben Ish Hai|Piskei Teshuvot|Igrot Moshe|Chazon Ish|Tzitz Eliezer|Yabia Omer)\b/i.test(m);
 
                 if (talmudMatch) {
                     const tractate = talmudMatch[1].trim();
@@ -10947,7 +11032,11 @@
                 } else if (isTanakh) {
                     links.push(`<a href="https://alhatorah.org/Full/${encodeURIComponent(r)}" target="_blank" rel="noopener noreferrer" class="src-ext-link">AlHaTorah ↗</a>`);
                 } else if (!isOnSefaria) {
-                    links.push(`<a href="https://hebrewbooks.org/search.aspx?q=${encodeURIComponent(r.split(',')[0].trim())}" target="_blank" rel="noopener noreferrer" class="src-ext-link">HebrewBooks ↗</a>`);
+                    // hebrewbooks.org has no documented/stable public search URL (its
+                    // search form is JS-driven, not a plain query-string endpoint) — a
+                    // guessed direct link 404s. A site-restricted Google search always
+                    // resolves and still surfaces the right HebrewBooks page.
+                    links.push(`<a href="https://www.google.com/search?q=${encodeURIComponent('site:hebrewbooks.org ' + r.split(',')[0].trim())}" target="_blank" rel="noopener noreferrer" class="src-ext-link">HebrewBooks ↗</a>`);
                 }
 
                 // Direct Sefaria link for any work in the Sefaria corpus
@@ -10972,50 +11061,42 @@
             const _srcParts = [];
             let _srcIdx = 0;
 
-            // 2a. Sefaria text sources (with actual line content)
-            const rankedSources = rankAiSourcesForQuery(data.sources, queryTitle, data.answer).slice(0, 4);
-            rankedSources.forEach((src) => {
-                const lines = Array.isArray(src?.lines) ? src.lines : [];
-                const isExternal = src.domain && !String(src.domain).includes('sefaria') && src.url;
+            function _bilingualContentHtml(lines) {
+                if (!Array.isArray(lines) || !lines.length) return '';
+                const heTexts = lines.slice(0, 3).map(l => String(l?.he || '').replace(/<[^>]*>/gm, '').trim()).filter(Boolean);
+                const enTexts = lines.slice(0, 3).map(l => String(l?.en || l || '').replace(/<[^>]*>/gm, '').trim()).filter(Boolean);
+                if (!heTexts.length && !enTexts.length) return '';
+                let html = '<div class="ai-src-box-body">';
+                if (heTexts.length) html += `<div class="ai-src-box-he" dir="rtl">${heTexts.map(h => `<p>${escapeHtml(h)}</p>`).join('')}</div>`;
+                if (enTexts.length) html += `<div class="ai-src-box-en">${enTexts.map(e => `<p>${escapeHtml(e)}</p>`).join('')}</div>`;
+                html += '</div>';
+                return html;
+            }
+
+            // Shared link-building so cited and ranked sources render identically:
+            // external (non-Sefaria) sources link out, everything else opens in-reader.
+            function _sourceLinksHtml(ref, source) {
+                const isExternal = source && source.domain && !String(source.domain).includes('sefaria') && source.url;
                 const localLinkHtml = isExternal
-                    ? `<a href="${escapeHtml(src.url || '')}" target="_blank" rel="noopener noreferrer" class="src-open-link">${escapeHtml(String(src.source_provider || src.domain || ''))} ↗</a>`
-                    : `<a href="#" data-local-ref="${escapeHtml((src.ref || '').replace(/"/g, ''))}" class="source-local-link src-open-link">${t('Open in Reader ↗', 'פתח בקורא ↗')}</a>`;
-                const extLinks = _externalLinksForRef(src.ref);
+                    ? `<a href="${escapeHtml(source.url || '')}" target="_blank" rel="noopener noreferrer" class="src-open-link">${escapeHtml(String(source.source_provider || source.domain || ''))} ↗</a>`
+                    : `<a href="#" data-local-ref="${escapeHtml((ref || '').replace(/"/g, ''))}" class="source-local-link src-open-link">${t('Open in Reader ↗', 'פתח בקורא ↗')}</a>`;
+                return _externalLinksForRef(ref) + localLinkHtml;
+            }
 
-                // Build bilingual text content
-                let contentHtml = '';
-                if (lines.length > 0) {
-                    const heTexts = lines.slice(0, 3).map(l => String(l?.he || '').replace(/<[^>]*>/gm, '').trim()).filter(Boolean);
-                    const enTexts = lines.slice(0, 3).map(l => String(l?.en || l || '').replace(/<[^>]*>/gm, '').trim()).filter(Boolean);
-                    if (heTexts.length > 0 || enTexts.length > 0) {
-                        contentHtml = '<div class="ai-src-box-body">';
-                        if (heTexts.length > 0) {
-                            contentHtml += `<div class="ai-src-box-he" dir="rtl">${heTexts.map(h => `<p>${escapeHtml(h)}</p>`).join('')}</div>`;
-                        }
-                        if (enTexts.length > 0) {
-                            contentHtml += `<div class="ai-src-box-en">${enTexts.map(e => `<p>${escapeHtml(e)}</p>`).join('')}</div>`;
-                        }
-                        contentHtml += '</div>';
-                    }
-                }
-
-                _srcParts.push(`
-                    <div class="ai-source-box animate-fade-up" style="--i:${_srcIdx++}">
+            function _buildSourceBoxHtml({ ref, source = null, contentHtml = '', noteHtml = '', boxId = null }) {
+                return `
+                    <div class="ai-source-box animate-fade-up"${boxId ? ` id="${boxId}"` : ''} style="--i:${_srcIdx++}">
                         <div class="ai-src-box-header">
                             <span class="ai-src-box-id">
-                                ${_sourceTypeBadge(src.ref)}
-                                <span class="ai-src-box-title">${escapeHtml(src.ref || '')}</span>
+                                ${_sourceTypeBadge(ref)}
+                                <span class="ai-src-box-title">${escapeHtml(ref || '')}</span>
                             </span>
-                            <span class="ai-src-box-links">${extLinks}${localLinkHtml}</span>
+                            <span class="ai-src-box-links">${_sourceLinksHtml(ref, source)}</span>
                         </div>
+                        ${noteHtml}
                         ${contentHtml}
-                    </div>`);
-            });
-
-            // 2b. AI-cited sources — for refs the AI explicitly named that aren't already shown,
-            //     render a skeleton and then fetch the actual text asynchronously.
-            const aiCited = Array.isArray(data.ai_cited_sources) ? data.ai_cited_sources : [];
-            const shownRefKeys = new Set(rankedSources.map(s => String(s.ref || '').toLowerCase().trim()));
+                    </div>`;
+            }
 
             async function _fetchAndFillCitedSource(ref, boxId) {
                 try {
@@ -11023,62 +11104,103 @@
                     if (!resp.ok) return;
                     const payload = await resp.json();
                     if (payload?.error) return;
-                    const lines = Array.isArray(payload?.lines) ? payload.lines : [];
-                    const heTexts = lines.slice(0, 3).map(l => String(l?.he || '').replace(/<[^>]*>/gm, '').trim()).filter(Boolean);
-                    const enTexts = lines.slice(0, 3).map(l => String(l?.en || '').replace(/<[^>]*>/gm, '').trim()).filter(Boolean);
-                    if (!heTexts.length && !enTexts.length) return;
+                    const html = _bilingualContentHtml(payload?.lines);
+                    if (!html) return;
                     const box = document.getElementById(boxId);
-                    if (!box) return;
-                    const skeleton = box.querySelector('.ai-cited-fetch-skeleton');
+                    const skeleton = box?.querySelector('.ai-cited-fetch-skeleton');
                     if (!skeleton) return;
-                    let html = '';
-                    if (heTexts.length) html += `<div class="ai-src-box-he" dir="rtl">${heTexts.map(h => `<p>${escapeHtml(h)}</p>`).join('')}</div>`;
-                    if (enTexts.length) html += `<div class="ai-src-box-en">${enTexts.map(e => `<p>${escapeHtml(e)}</p>`).join('')}</div>`;
-                    skeleton.outerHTML = `<div class="ai-src-box-body">${html}</div>`;
+                    skeleton.outerHTML = html;
                 } catch (_) {}
             }
 
+            // Exact key (transliteration-normalized, full specificity) — for finding
+            // an enrichment match where the precise verse/seif must agree, so we
+            // never attach the wrong section's text to a citation.
+            function _refExactKey(ref) {
+                return _normalizeRefForMatch(ref).toLowerCase();
+            }
+            // Base key (exact key minus anything after a colon) — for de-duplication
+            // only. "Shulchan Aruch, Orach Chayim 1:1" and "Shulchan Arukh, Orach
+            // Chayim 1" should be recognized as the same source even though one is
+            // more specific and they're spelled differently; attaching the wrong
+            // verse's text never happens here since this key is never used to fetch
+            // or attach content, only to decide "have we already shown this?".
+            function _refBaseKey(ref) {
+                return _refExactKey(ref).split(':')[0].trim();
+            }
+
+            const allRetrievedSources = Array.isArray(data.sources) ? data.sources : [];
+            const retrievedByRefKey = new Map(
+                allRetrievedSources.map((s) => [_refExactKey(s?.ref), s])
+            );
+
+            // 2a. AI-cited sources FIRST — the answer's own citations are the
+            //     authoritative "right sources" (ENGINEERING_RULES.md: AI request
+            //     resilience & source integrity, invariant #8). Enrich from an
+            //     already-retrieved source's lines when the ref matches instead of
+            //     firing a redundant /api/text fetch; only fetch async otherwise.
+            const aiCited = Array.isArray(data.ai_cited_sources) ? data.ai_cited_sources : [];
+            const citedRefKeys = new Set();
             const pendingFetches = [];
+
             aiCited.slice(0, 6).forEach((srcStr) => {
-                const colonIdx = String(srcStr || '').search(/[:–—]/);
-                const refTitle = colonIdx > 0 ? srcStr.slice(0, colonIdx).trim() : String(srcStr || '').trim();
-                const note = colonIdx > 0 ? srcStr.slice(colonIdx + 1).trim() : '';
-                // Skip if the exact same ref was already shown via pre-fetched sources
-                if (shownRefKeys.has(refTitle.toLowerCase().trim())) return;
-                const extLinks = _externalLinksForRef(refTitle);
-                const localLink = `<a href="#" data-local-ref="${escapeHtml(refTitle)}" class="source-local-link src-open-link">${t('Open in Reader ↗', 'פתח בקורא ↗')}</a>`;
-                const boxId = `ai-cited-box-${_srcIdx}`;
-                _srcParts.push(`
-                    <div class="ai-source-box animate-fade-up" id="${boxId}" style="--i:${_srcIdx++}">
-                        <div class="ai-src-box-header">
-                            <span class="ai-src-box-id">
-                                ${_sourceTypeBadge(refTitle)}
-                                <span class="ai-src-box-title">${escapeHtml(refTitle)}</span>
-                            </span>
-                            <span class="ai-src-box-links">${extLinks}${localLink}</span>
-                        </div>
-                        ${note ? `<div class="ai-src-box-note">${escapeHtml(note)}</div>` : ''}
-                        <div class="ai-src-box-body ai-cited-fetch-skeleton" aria-hidden="true">
+                // Split on " — "/" – " (dash with surrounding spaces) only — never a
+                // bare colon, since many refs (e.g. "Genesis 1:1") contain one as
+                // part of the citation itself. The model is prompted to use an em
+                // dash as the ref/note separator for exactly this reason. Strings
+                // with no dash (or an older colon-only format) are treated as a
+                // plain ref with no note, which is a safe degradation either way.
+                const sepMatch = String(srcStr || '').match(/^(.*?)\s[–—]\s(.*)$/);
+                const refTitle = sepMatch ? sepMatch[1].trim() : String(srcStr || '').trim();
+                const note = sepMatch ? sepMatch[2].trim() : '';
+                const baseKey = _refBaseKey(refTitle);
+                if (!refTitle || citedRefKeys.has(baseKey)) return;
+                citedRefKeys.add(baseKey);
+
+                const noteHtml = note ? `<div class="ai-src-box-note">${escapeHtml(note)}</div>` : '';
+                const localMatch = retrievedByRefKey.get(_refExactKey(refTitle));
+                const localContentHtml = _bilingualContentHtml(localMatch?.lines);
+
+                if (localContentHtml) {
+                    _srcParts.push(_buildSourceBoxHtml({ ref: refTitle, source: localMatch, contentHtml: localContentHtml, noteHtml }));
+                } else {
+                    const boxId = `ai-cited-box-${_srcIdx}`;
+                    const skeletonHtml = `<div class="ai-src-box-body ai-cited-fetch-skeleton" aria-hidden="true">
                             <div class="ai-src-skeleton-line ai-src-skeleton-line--wide"></div>
                             <div class="ai-src-skeleton-line ai-src-skeleton-line--medium"></div>
-                        </div>
-                    </div>`);
-                pendingFetches.push([refTitle, boxId]);
+                        </div>`;
+                    _srcParts.push(_buildSourceBoxHtml({ ref: refTitle, source: localMatch, contentHtml: skeletonHtml, noteHtml, boxId }));
+                    pendingFetches.push([refTitle, boxId]);
+                }
+            });
+
+            // 2b. Retrieved/ranked sources — enrichment only, for refs the AI did NOT
+            //     explicitly cite. rankAiSourcesForQuery is a tiebreaker among these,
+            //     never the primary selector (ENGINEERING_RULES.md).
+            const rankedSources = rankAiSourcesForQuery(allRetrievedSources, queryTitle, data.answer)
+                .filter((src) => !citedRefKeys.has(_refBaseKey(src?.ref)))
+                .slice(0, 4);
+            rankedSources.forEach((src) => {
+                const contentHtml = _bilingualContentHtml(src?.lines);
+                _srcParts.push(_buildSourceBoxHtml({ ref: src.ref, source: src, contentHtml }));
             });
 
             // Single atomic DOM write — all elements exist in the DOM before any handler is wired
             sourcesDiv.innerHTML = _srcParts.join('');
 
-            // Single handler-wire pass — no orphaning possible since innerHTML is now final
+            // Single handler-wire pass — no orphaning possible since innerHTML is now final.
+            // skipNavigationGrid:true — these refs are specific citations the AI already
+            // resolved (e.g. "Shulchan Aruch, Orach Chayim 1"), not an ambiguous top-level
+            // search, so jump straight to the text instead of showing a chapter/section grid.
             sourcesDiv.querySelectorAll('a.source-local-link').forEach((a) => {
                 a.addEventListener('click', (e) => {
                     e.preventDefault();
                     const ref = a.getAttribute('data-local-ref');
-                    if (ref) readText(ref);
+                    if (ref) readText(ref, { skipNavigationGrid: true });
                 });
             });
 
-            // Kick off async text fetches for AI-cited sources (fire-and-forget)
+            // Kick off async text fetches for cited sources with no local match (fire-and-forget)
             pendingFetches.forEach(([ref, boxId]) => _fetchAndFillCitedSource(ref, boxId));
 
             const hasRenderedSources = _srcIdx > 0;
@@ -11178,8 +11300,8 @@
             }
         });
     </script>
-    <script type="module" src="/static/js/motion.js"></script>
-    <script type="module" src="/static/js/main.js"></script>
+    <script type="module" src="/static/js/motion.js?v=20260617-v1"></script>
+    <script type="module" src="/static/js/main.js?v=20260617-v1"></script>
 
     <!-- ═══════════════════════════════════════════════════════ -->
     <!-- LEGAL ACCEPTANCE MODAL (Terms of Service + Privacy)    -->

@@ -170,10 +170,6 @@ def _retrieve_community_knowledge(query, canonical_lens="All", max_rows=None):
             return result.data if isinstance(result.data, list) else []
 
         rows = run_query(apply_text_filter=True)
-
-        # Fallback to community-only retrieval when text filter is too restrictive.
-        if not rows and community_filter and text_or_filter:
-            rows = run_query(apply_text_filter=False)
     except Exception:
         return []
 
@@ -187,8 +183,17 @@ def _retrieve_community_knowledge(query, canonical_lens="All", max_rows=None):
             keywords,
             community_filter or canonical_lens,
         )
-        if score <= 0 and keywords and text_or_filter:
-            continue
+
+        # Always require keyword relevance — community-only matches (no topic/content hit)
+        # would score exactly 8 from the community bonus but have zero keyword_score.
+        community_name_lower = str(row.get("community_name") or "").lower()
+        has_community_bonus = bool(
+            community_filter
+            and community_filter.lower().strip() in community_name_lower
+        )
+        keyword_score = score - (8 if has_community_bonus else 0)
+        if keyword_score <= 0:
+            continue  # off-topic for this question; skip regardless of community match
 
         ranked.append((score, row))
 
@@ -299,6 +304,46 @@ def _fetch_user_memory_summaries(user_id, limit=None):
         })
 
     return summaries
+
+
+def _store_ask_history(
+    user_id,
+    question,
+    answer,
+    *,
+    sources=None,
+    ai_cited_sources=None,
+    community="All",
+    mode="balanced",
+    language="en",
+):
+    """Persist a completed ask interaction to the per-user ask_history table."""
+    import app as _app
+    from uuid import uuid4
+
+    if not user_id:
+        return
+
+    supabase = _app._get_supabase_client()
+    if not supabase:
+        return
+
+    payload = {
+        "id": str(uuid4()),
+        "user_id": user_id,
+        "question": str(question or "")[:2000],
+        "answer": str(answer or "")[:10000],
+        "sources": sources if isinstance(sources, list) else [],
+        "ai_cited_sources": ai_cited_sources if isinstance(ai_cited_sources, list) else [],
+        "community": str(community or "All")[:100],
+        "mode": str(mode or "balanced")[:50],
+        "language": str(language or "en")[:10],
+    }
+
+    try:
+        supabase.table(_app.SUPABASE_ASK_HISTORY_TABLE).insert(payload).execute()
+    except Exception:
+        return
 
 
 def _store_user_memory_summary(user_id, question, answer):

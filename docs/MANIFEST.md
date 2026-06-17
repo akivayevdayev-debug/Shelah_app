@@ -357,6 +357,18 @@
 
 ---
 
+## Related Documentation
+
+Per-directory developer notes (each covers conventions/gotchas specific to that area, intentionally kept separate rather than consolidated):
+
+- [`customs/DEVELOPER_NOTES.md`](../customs/DEVELOPER_NOTES.md) — community customs JSON conventions
+- [`docs/DEVELOPER_NOTES.md`](DEVELOPER_NOTES.md) — general backend/repo developer notes
+- [`scripts/DEVELOPER_NOTES.md`](../scripts/DEVELOPER_NOTES.md) — one-off/migration script usage
+- [`static/DEVELOPER_NOTES.md`](../static/DEVELOPER_NOTES.md) — frontend asset conventions
+- [`templates/DEVELOPER_NOTES.md`](../templates/DEVELOPER_NOTES.md) — template/HTML structure notes
+
+---
+
 **Integration Complete!** ✅  
 All files ready for production use.  
 Documentation complete and comprehensive.  

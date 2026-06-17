@@ -49,6 +49,24 @@ These rules apply to ALL future agent tasks in this repository. They are non-neg
 3. Vanilla surfaces (current codebase): the `motion` (motion.dev) API is the mandated call surface — `animate()`, `spring()`, `stagger()`, `inView()` — chosen because each call maps 1:1 to a Framer Motion equivalent for future React migration.
 4. PR gate: zero new `@keyframes` outside `tokens.css`; zero new `transition` rules on transform properties; all entrance/exit animation handles element removal gracefully (vanilla equivalent of `AnimatePresence`).
 
+## AI request resilience & source integrity (mandatory for any `/ask`, model-call, or source-box change)
+
+These rules exist because of two confirmed production bugs (see `plan.md` §7.1.A and §7.13): the ASGI `/ask` handler silently dropped `ai_cited_sources`, and the browser aborted `/ask` at 10 s with no retry while the server pipeline + model retries needed longer. Do not reintroduce either class of defect.
+
+### Timeout & retry (no premature abort)
+1. **Three coordinated budgets, all env-configurable.** Per-model-call timeout (`AI_MODEL_TIMEOUT_SECONDS`) < total server request budget (`AI_TOTAL_BUDGET_SECONDS`) < client abort ceiling < the platform (Vercel `functions.maxDuration`) ceiling. Never hardcode a timeout that violates this ordering.
+2. **The client must not give up before the server has had a bounded, fair chance.** The browser `/ask` request retries automatically (bounded, with backoff) on abort/network/`5xx`; it never aborts on the first try. A single fixed `setTimeout(abort, 10000)` with no retry is forbidden.
+3. **The server fails *gracefully*, never hangs and never 500s on timeout.** Wrap model synthesis in `asyncio.wait_for(…, AI_TOTAL_BUDGET_SECONDS)`; on timeout fall through to the existing source-discovery fallback ladder and return a `200` with `meta.fallback=true`.
+4. **Provider retry ladders must fit inside the server budget.** Any `tenacity`/SDK retry (`stop_after_attempt`, exponential backoff) must have a worst-case total duration provably below `AI_TOTAL_BUDGET_SECONDS`.
+5. **No dead timeout config.** Every timeout/retry constant must actually be passed to the client/SDK it names (e.g. `AsyncAnthropic(timeout=…, max_retries=…)`). A defined-but-unused knob is a bug.
+6. **No orphaned timers** on the client: every abort/phase/stagger timer is cleared on resolve, reject, and abort (see Loading-state rule 5).
+
+### Source-display integrity
+7. **`/ask` response-schema parity across transports.** The Flask (`app.py`) and ASGI (`asgi.py`) `/ask` handlers must return the **same JSON key set on every path** — success, strict-mode block, and fallback. Build the payload through one shared builder so the two transports cannot drift. Adding a key to one handler without the other is forbidden.
+8. **AI-cited sources must always reach the client.** `ai_cited_sources` (derived from `structured.sources`) is always present in the response (`[]` when none). The source box renders the AI's *actually-cited* references as the authoritative set; retrieved/keyword-ranked sources only enrich or supplement them, never replace them. "Show the right sources" means the answer's own citations, not a re-ranking of whatever was retrieved.
+9. **Single render write, single handler wire.** Source boxes are built as one accumulated HTML string and written once; click handlers are wired once after the final write (or via one delegated listener). `innerHTML +=` inside a render loop is forbidden — it orphans listeners on already-rendered cards.
+10. **Verify before done:** golden-master `/ask` fixtures assert the response key set and `ai_cited_sources` contents on every path; manual check confirms cited sources render with text and working "Open in Reader" links in both light and dark themes.
+
 ## General engineering
 
 - Zero-breakage rule: no change ships without a verification step (manual route check or test).
