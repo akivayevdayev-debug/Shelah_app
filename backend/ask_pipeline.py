@@ -1,17 +1,24 @@
 """
-Transport-agnostic async ask pipeline for Sh'elah.
+Transport-agnostic async ask pipeline for Sh'elah (NOT YET ADOPTED).
 
-Both the Flask /ask route and the FastAPI /ask endpoint share the same
-orchestration logic. Previously it was duplicated — any prompt or policy
-change had to be made in two places. This module is the single source of
-truth for the ask pipeline.
+Intent: both the Flask /ask route (app.py) and the FastAPI /ask endpoint
+(asgi.py) should eventually share this single orchestration implementation,
+replacing the logic that is currently duplicated independently in each of
+them. `run_ask_pipeline()` is meant to become that single source of truth.
 
-Consumers:
-  - asgi.py  (FastAPI /ask)     — already uses this; see ask_pipeline.run()
-  - app.py   (Flask /ask)       — thin sync wrapper via asyncio.run / to_thread
+Current status: this module is NOT imported or called by app.py or asgi.py.
+Neither file references `ask_pipeline` or `run_ask_pipeline` anywhere — each
+maintains its own separate, independently-evolving /ask implementation today.
+This is a staging/reference implementation only.
 
-The pipeline is fully async; Flask callers must run it via asyncio.run() or
-asyncio.to_thread() to avoid blocking the event loop.
+Unverified: `run_ask_pipeline()` takes a `flask_app_module` argument and
+expects attributes such as `_store_user_memory_summary`,
+`_build_ask_tool_context`, and `_compact_ai_sources` to be present on it.
+Whether that still matches the current shape of app.py / backend/rag.py /
+backend/helpers.py has not been confirmed end-to-end, and no test exercises
+this function (0% coverage). Do not treat this module as drop-in-safe or
+wire it into app.py/asgi.py without a dedicated correctness review and test
+pass first.
 """
 
 from __future__ import annotations

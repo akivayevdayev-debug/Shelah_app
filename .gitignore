@@ -50,6 +50,9 @@ templates/index_backup.html
 error_audit.txt
 sefardic_prayers.json
 
+# Sefaria local cache (runtime-generated)
+.sefaria_cache/
+
 # Ignore all hidden files and folders by default
 .*
 **/.*
@@ -57,13 +60,5 @@ sefardic_prayers.json
 # explicit exceptions to force Claude to view these specific hidden folders
 !.agents/
 !.claude/
-
-# Explicitly ignore your python environment and runtime noise
-.venv/
-venv/
-__pycache__/
-.env
-.env.example
-.git/
-.vscode/
-.sefaria_cache/
+!.github/
+!.pre-commit-config.yaml

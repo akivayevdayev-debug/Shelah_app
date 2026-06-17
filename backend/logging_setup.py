@@ -21,7 +21,28 @@ import uuid
 from contextvars import ContextVar
 from datetime import datetime, timezone
 
+try:
+    import sentry_sdk
+except Exception:  # pragma: no cover
+    sentry_sdk = None
+
 _request_id_var: ContextVar[str] = ContextVar('request_id', default='')
+
+# Sentry is a true no-op unless SENTRY_DSN is set: no import errors, no
+# network calls, no warnings. Initialization happens once at module import.
+_sentry_enabled = False
+_sentry_dsn = (os.environ.get("SENTRY_DSN") or "").strip()
+if sentry_sdk is not None and _sentry_dsn:
+    try:
+        sentry_sdk.init(
+            dsn=_sentry_dsn,
+            traces_sample_rate=0.1,
+            environment=os.environ.get("VERCEL_ENV", "development"),
+            release=os.environ.get("VERCEL_GIT_COMMIT_SHA") or None,
+        )
+        _sentry_enabled = True
+    except Exception:  # pragma: no cover
+        _sentry_enabled = False
 
 
 class _JSONFormatter(logging.Formatter):
@@ -160,6 +181,19 @@ def _capture_backend_error(event_name, error, context=None):
                 error_log_webhook_url,
                 json=payload,
                 timeout=2,
+            )
+        except Exception:
+            pass
+
+    # Forward to Sentry when configured. True no-op when SENTRY_DSN is unset:
+    # _sentry_enabled is only True after a successful sentry_sdk.init() above.
+    # Isolated in its own try/except so a Sentry SDK failure can never break
+    # the caller — this must remain purely additive to the logging above.
+    if _sentry_enabled:
+        try:
+            sentry_sdk.capture_exception(
+                error if isinstance(error, BaseException) else None,
+                contexts={"backend_error": context or {}},
             )
         except Exception:
             pass
