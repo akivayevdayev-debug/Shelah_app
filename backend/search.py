@@ -23,6 +23,7 @@ from backend.cache import TTLCache
 logger = logging.getLogger(__name__)
 
 _HTTP = requests.Session()
+_ASYNC_HTTP_CLIENT: httpx.AsyncClient | None = None
 _CACHE_TTL_SECONDS = 60 * 10
 _CACHE_MAX_SIZE = 256
 _DAILY_CACHE_KEY = "daily_learning"
@@ -30,6 +31,16 @@ _WIKI_CACHE = TTLCache(maxsize=_CACHE_MAX_SIZE, ttl=_CACHE_TTL_SECONDS)
 _HALACHIPEDIA_CACHE = TTLCache(maxsize=_CACHE_MAX_SIZE, ttl=_CACHE_TTL_SECONDS)
 _HEBREWBOOKS_CACHE = TTLCache(maxsize=_CACHE_MAX_SIZE, ttl=_CACHE_TTL_SECONDS)
 _DAILY_CACHE = TTLCache(ttl=60 * 5)
+
+
+def _get_async_client() -> httpx.AsyncClient:
+    """Lazily-created, process-wide httpx.AsyncClient shared by the three
+    async_search_* connectors below so each call reuses pooled connections
+    instead of paying a fresh handshake every time (plan.md §3.6)."""
+    global _ASYNC_HTTP_CLIENT
+    if _ASYNC_HTTP_CLIENT is None:
+        _ASYNC_HTTP_CLIENT = httpx.AsyncClient(timeout=10.0)
+    return _ASYNC_HTTP_CLIENT
 
 
 def search_wikipedia(title):
@@ -220,8 +231,8 @@ async def async_search_wikipedia(title):
 
     try:
         url = f"https://en.wikipedia.org/api/rest_v1/page/summary/{safe_title.replace(' ', '_')}"
-        async with httpx.AsyncClient(timeout=10.0) as client:
-            response = await client.get(url)
+        client = _get_async_client()
+        response = await client.get(url)
 
         if response.status_code != 200:
             return None
@@ -253,39 +264,39 @@ async def async_search_halachipedia(query):
 
     try:
         search_url = "https://halachipedia.com/api.php"
-        async with httpx.AsyncClient(timeout=10.0) as client:
-            r_search = await client.get(
-                search_url,
-                params={
-                    "action": "query",
-                    "list": "search",
-                    "srsearch": normalized_query,
-                    "utf8": "",
-                    "format": "json",
-                },
-            )
-            data = r_search.json() if r_search.status_code == 200 else {}
+        client = _get_async_client()
+        r_search = await client.get(
+            search_url,
+            params={
+                "action": "query",
+                "list": "search",
+                "srsearch": normalized_query,
+                "utf8": "",
+                "format": "json",
+            },
+        )
+        data = r_search.json() if r_search.status_code == 200 else {}
 
-            search_results = data.get("query", {}).get("search", [])
-            if not search_results:
-                return None
+        search_results = data.get("query", {}).get("search", [])
+        if not search_results:
+            return None
 
-            top_title = search_results[0].get("title", "")
-            if not top_title:
-                return None
+        top_title = search_results[0].get("title", "")
+        if not top_title:
+            return None
 
-            r_extract = await client.get(
-                search_url,
-                params={
-                    "action": "query",
-                    "prop": "extracts",
-                    "exsentences": 10,
-                    "exintro": 1,
-                    "explaintext": 1,
-                    "titles": top_title,
-                    "format": "json",
-                },
-            )
+        r_extract = await client.get(
+            search_url,
+            params={
+                "action": "query",
+                "prop": "extracts",
+                "exsentences": 10,
+                "exintro": 1,
+                "explaintext": 1,
+                "titles": top_title,
+                "format": "json",
+            },
+        )
         if r_extract.status_code != 200:
             return None
 
@@ -319,15 +330,15 @@ async def async_search_hebrewbooks(query):
 
     try:
         search_url = "https://www.hebrewbooks.org/search.aspx"
-        async with httpx.AsyncClient(timeout=10.0) as client:
-            response = await client.get(
-                search_url,
-                params={"st": "FT", "q": normalized_query},
-                headers={
-                    "User-Agent": "Mozilla/5.0 (compatible; ShelahBot/1.0; +https://www.sefaria.org)",
-                    "Accept-Language": "en-US,en;q=0.9",
-                },
-            )
+        client = _get_async_client()
+        response = await client.get(
+            search_url,
+            params={"st": "FT", "q": normalized_query},
+            headers={
+                "User-Agent": "Mozilla/5.0 (compatible; ShelahBot/1.0; +https://www.sefaria.org)",
+                "Accept-Language": "en-US,en;q=0.9",
+            },
+        )
 
         if response.status_code != 200:
             return None
