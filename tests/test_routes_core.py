@@ -5,6 +5,7 @@ Covers:
   - GET /              → HTML (index page)
   - GET /terms         → HTML (terms of service)
   - GET /privacy       → HTML (privacy policy)
+  - GET /accessibility → HTML (accessibility statement)
   - GET /manifest.webmanifest → JSON manifest
   - GET /service-worker.js    → JavaScript
   - GET /favicon.ico          → SVG image (or redirect)
@@ -42,6 +43,17 @@ class TestPrivacyRoute:
 
     def test_privacy_returns_html(self, test_client):
         response = test_client.get("/privacy")
+        ct = response.content_type.lower()
+        assert "text/html" in ct
+
+
+class TestAccessibilityRoute:
+    def test_accessibility_returns_200(self, test_client):
+        response = test_client.get("/accessibility")
+        assert response.status_code == 200
+
+    def test_accessibility_returns_html(self, test_client):
+        response = test_client.get("/accessibility")
         ct = response.content_type.lower()
         assert "text/html" in ct
 

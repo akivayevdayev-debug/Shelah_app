@@ -770,8 +770,14 @@ def _compact_ai_sources(sources, max_sources=8, max_lines=3, max_chars=280):
             if not isinstance(row, dict):
                 continue
 
-            en = re.sub(r"\s+", " ", str(row.get("en") or "").strip())
-            he = re.sub(r"\s+", " ", str(row.get("he") or "").strip())
+            # Strip Sefaria's embedded HTML (footnote/commentary-link markup) BEFORE
+            # truncating by character count — truncating first risked slicing a tag
+            # in half (e.g. cutting "<i data-commentary-link=...>" mid-attribute),
+            # leaving an unclosed fragment the frontend's tag-stripper can't match
+            # (it requires a literal closing ">"), which then rendered as visible
+            # garbage text in the source box.
+            en = re.sub(r"\s+", " ", re.sub(r"<[^>]*>", "", str(row.get("en") or "")).strip())
+            he = re.sub(r"\s+", " ", re.sub(r"<[^>]*>", "", str(row.get("he") or "")).strip())
 
             # Skip lines that indicate the source was not found
             if en.startswith("Text not found") or en.startswith("Error"):
@@ -809,6 +815,21 @@ def _compact_ai_sources(sources, max_sources=8, max_lines=3, max_chars=280):
         compacted.append(entry)
 
     return compacted
+
+
+def extract_ai_cited(structured_payload):
+    """Pull the AI's own citation list out of a structured /ask payload.
+
+    Single source of truth for both app.py and asgi.py so the two transports
+    cannot drift in what counts as an "AI-cited" source (plan.md §7.14).
+    """
+    ai_cited = []
+    if isinstance(structured_payload, dict):
+        for s in (structured_payload.get("sources") or []):
+            s_str = str(s or "").strip()
+            if s_str:
+                ai_cited.append(s_str)
+    return ai_cited
 
 
 # ── Community name canonicalizer ──────────────────────────────────────────────

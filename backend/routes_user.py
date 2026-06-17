@@ -23,6 +23,7 @@ from app import (
     STRICT_SUPABASE_RLS,
     SUPABASE_PREFS_TABLE,
     SUPABASE_STUDY_BOOKMARKS_TABLE,
+    SUPABASE_ASK_HISTORY_TABLE,
     _get_request_user_id,
     _get_supabase_client,
     _get_user_scoped_supabase_client,
@@ -296,3 +297,58 @@ def list_todos():
 def api_preferences_alias():
     """/api/preferences → /api/user/preferences (backward compat)."""
     return user_preferences()
+
+
+# ─── Ask history ───────────────────────────────────────────────────────────────
+
+@routes_user.route("/api/user/history", methods=["GET"])
+@require_clerk_auth
+def get_ask_history():
+    """Return the signed-in user's ask history, newest first."""
+    claims = getattr(g, "clerk_claims", {}) or {}
+    user_id = str(claims.get("sub") or "").strip()
+    if not user_id:
+        return jsonify({"error": "Missing user identity"}), 401
+
+    supabase = _get_supabase_client()
+    if not supabase:
+        return jsonify({"error": "Supabase not configured"}), 503
+
+    try:
+        limit = max(1, min(int(request.args.get("limit", 20)), 50))
+        result = (
+            supabase
+            .table(SUPABASE_ASK_HISTORY_TABLE)
+            .select("id,question,answer,sources,ai_cited_sources,community,mode,language,created_at")
+            .eq("user_id", user_id)
+            .order("created_at", desc=True)
+            .limit(limit)
+            .execute()
+        )
+        return jsonify({"items": result.data or []})
+    except Exception as e:
+        _capture_backend_error("ask_history_fetch_failed", e, {"user_id": user_id})
+        return jsonify({"error": "Failed to load history"}), 500
+
+
+@routes_user.route("/api/user/history/<entry_id>", methods=["DELETE"])
+@require_clerk_auth
+def delete_ask_history_entry(entry_id):
+    """Delete a single history entry owned by the signed-in user."""
+    claims = getattr(g, "clerk_claims", {}) or {}
+    user_id = str(claims.get("sub") or "").strip()
+    if not user_id:
+        return jsonify({"error": "Missing user identity"}), 401
+
+    supabase = _get_supabase_client()
+    if not supabase:
+        return jsonify({"error": "Supabase not configured"}), 503
+
+    try:
+        supabase.table(SUPABASE_ASK_HISTORY_TABLE).delete().eq(
+            "id", str(entry_id)
+        ).eq("user_id", user_id).execute()
+        return jsonify({"ok": True})
+    except Exception as e:
+        _capture_backend_error("ask_history_delete_failed", e, {"user_id": user_id, "entry_id": entry_id})
+        return jsonify({"error": "Failed to delete history entry"}), 500

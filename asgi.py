@@ -30,8 +30,8 @@ from backend import sefaria as _backend_sefaria
 from backend.data_service import ShelahEngine
 from backend.rag import _build_ask_tool_context, _retrieve_community_knowledge, _compose_answer_with_prefixes
 from backend.rag import _knowledge_rows_to_customs, RAG_TOP_KNOWLEDGE_ROWS, RAG_MEMORY_ROWS
-from backend.rag import _fetch_user_memory_summaries, _store_user_memory_summary
-from backend.helpers import _sanitize_answer_mode, _compact_ai_sources
+from backend.rag import _fetch_user_memory_summaries, _store_user_memory_summary, _store_ask_history
+from backend.helpers import _sanitize_answer_mode, _compact_ai_sources, extract_ai_cited
 from backend.helpers import _build_source_attribution_note, _canonicalize_community_name
 from backend.logging_setup import _capture_backend_error
 
@@ -313,6 +313,7 @@ async def ask_async(request: Request, payload: AskRequest, authorization: str | 
                 "wiki": wiki_list + halachipedia_list,
                 "customs": customs_info,
                 "sources": display_sources,
+                "ai_cited_sources": [],
                 "meta": {
                     "mode": mode,
                     "community_lens": canonical_lens,
@@ -330,17 +331,20 @@ async def ask_async(request: Request, payload: AskRequest, authorization: str | 
                 "route": "/ask", "async": True}
             tool_context["async"] = True
 
-            result = await claude.ask_ai_async(
-                question=question,
-                sefaria_sources=flat_sources_for_ai,
-                customs=customs_info,
-                user_memories=user_memory_summaries,
-                wiki=wiki_context_for_ai,
-                halachipedia=halachipedia_list,
-                mode=mode,
-                community_lens=canonical_lens,
-                answer_language=answer_language,
-                tool_context=tool_context,
+            result = await asyncio.wait_for(
+                claude.ask_ai_async(
+                    question=question,
+                    sefaria_sources=flat_sources_for_ai,
+                    customs=customs_info,
+                    user_memories=user_memory_summaries,
+                    wiki=wiki_context_for_ai,
+                    halachipedia=halachipedia_list,
+                    mode=mode,
+                    community_lens=canonical_lens,
+                    answer_language=answer_language,
+                    tool_context=tool_context,
+                ),
+                timeout=claude.AI_TOTAL_BUDGET_SECONDS,
             )
 
             result_error = str(result.get("error") or "")
@@ -399,12 +403,27 @@ async def ask_async(request: Request, payload: AskRequest, authorization: str | 
             display_sources = _compact_ai_sources(
                 primary_sources)
 
+            ai_cited = extract_ai_cited(structured_payload)
+
+            await asyncio.to_thread(
+                _store_ask_history,
+                user_id,
+                question,
+                normalized_answer,
+                sources=display_sources,
+                ai_cited_sources=ai_cited,
+                community=canonical_lens,
+                mode=mode,
+                language=answer_language,
+            )
+
             return {
                 "answer": normalized_answer,
                 "confidence": result.get("confidence"),
                 "wiki": wiki_list + halachipedia_list,
                 "customs": customs_info,
                 "sources": display_sources,
+                "ai_cited_sources": ai_cited,
                 "meta": {
                     "mode": mode,
                     "language": answer_language,
@@ -479,6 +498,7 @@ async def ask_async(request: Request, payload: AskRequest, authorization: str | 
                 "wiki": wiki_list + halachipedia_list,
                 "customs": customs_info,
                 "sources": fallback_sources,
+                "ai_cited_sources": [],
                 "meta": {
                     "mode": mode,
                     "language": answer_language,

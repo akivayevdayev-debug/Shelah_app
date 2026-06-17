@@ -1,0 +1,440 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Sh'elah Accessibility Statement — our commitment to an accessible experience, what's implemented, and how to report issues.">
+    <meta name="theme-color" content="#f3ede0" media="(prefers-color-scheme: light)">
+    <meta name="theme-color" content="#0d0c0a" media="(prefers-color-scheme: dark)">
+    <title>Accessibility Statement – Sh'elah</title>
+    <link rel="icon" href="/static/favicon.svg" type="image/svg+xml">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Cardo:wght@400;700&family=Inter:wght@400;500;600&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="/static/css/tokens.css?v=20260617-v1">
+    <link rel="stylesheet" href="/static/style.css?v=20260617-v1">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', system-ui, sans-serif;
+            background: var(--surface-0);
+            color: var(--ink-primary);
+        }
+
+        html.rtl body {
+            direction: rtl;
+            text-align: right;
+        }
+
+        html.rtl body .prose {
+            text-align: right;
+        }
+
+        .prose h1 {
+            font-family: 'Cardo', Georgia, serif;
+            font-weight: 700;
+            color: var(--ink-heading);
+        }
+
+        .prose h2 {
+            font-family: 'Cardo', Georgia, serif;
+            font-size: 1.35rem;
+            font-weight: 700;
+            margin-top: 2rem;
+            margin-bottom: 0.5rem;
+            color: var(--ink-heading);
+            border-bottom: 1px solid var(--surface-border);
+            padding-bottom: 0.3rem;
+        }
+
+        .prose h3 {
+            font-size: 1rem;
+            font-weight: 600;
+            margin-top: 1.2rem;
+            margin-bottom: 0.3rem;
+            color: var(--ink-primary);
+        }
+
+        .prose p {
+            margin-bottom: 0.9rem;
+            line-height: 1.75;
+            color: var(--ink-primary);
+        }
+
+        .prose ul,
+        .prose ol {
+            margin-bottom: 0.9rem;
+        }
+
+        .prose ul {
+            padding-left: 1.5rem;
+            list-style: disc;
+        }
+
+        .prose ol {
+            padding-left: 1.5rem;
+            list-style: decimal;
+        }
+
+        html.rtl .prose ul,
+        html.rtl .prose ol {
+            padding-left: 0;
+            padding-right: 1.5rem;
+        }
+
+        .prose li {
+            margin-bottom: 0.3rem;
+            color: inherit;
+        }
+
+        .prose a {
+            color: var(--accent-primary);
+            text-decoration: underline;
+            transition: color 0.2s;
+        }
+
+        .prose a:hover {
+            color: var(--accent-primary-hover);
+        }
+
+        .info-box {
+            background: var(--surface-pill);
+            border: 1px solid var(--accent-gold);
+            border-left: 3px solid var(--accent-gold);
+            border-radius: 0.5rem;
+            padding: 1rem 1.25rem;
+            margin: 1.5rem 0;
+            color: var(--ink-primary);
+        }
+
+        html.rtl .info-box {
+            border-left: 1px solid var(--accent-gold);
+            border-right: 3px solid var(--accent-gold);
+        }
+
+        .main-container {
+            max-width: 860px;
+            margin: 0 auto;
+            padding: 2.5rem 1.5rem 4rem;
+        }
+
+        /* Page hero area */
+        .legal-hero {
+            background: linear-gradient(135deg, var(--surface-1) 0%, var(--surface-pill) 100%);
+            border-bottom: 1px solid var(--surface-border);
+            padding: 2.5rem 1.5rem 2rem;
+            text-align: center;
+        }
+
+        .legal-hero h1 {
+            font-family: 'Cardo', Georgia, serif;
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--ink-heading);
+            margin-bottom: 0.5rem;
+        }
+
+        .legal-hero .subtitle {
+            font-size: 0.9rem;
+            color: var(--ink-secondary);
+        }
+
+        .legal-back-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.4rem;
+            font-size: 0.82rem;
+            font-weight: 600;
+            color: var(--ink-heading);
+            text-decoration: none;
+            margin-bottom: 1.25rem;
+            padding: 0.4rem 0.8rem;
+            border: 1px solid var(--surface-border);
+            border-radius: 0.4rem;
+            background: var(--surface-0);
+            transition: background 0.15s, border-color 0.15s;
+        }
+
+        .legal-back-link:hover {
+            background: var(--surface-1);
+            text-decoration: none;
+        }
+
+        .legal-actions {
+            display: flex;
+            justify-content: flex-end;
+            margin-bottom: 1.5rem;
+        }
+
+        .select-all-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.35rem;
+            font-size: 0.78rem;
+            font-weight: 600;
+            color: var(--ink-primary);
+            background: var(--surface-1);
+            border: 1px solid var(--surface-border);
+            border-radius: 0.4rem;
+            padding: 0.4rem 0.75rem;
+            cursor: pointer;
+            transition: background 0.15s, border-color 0.15s;
+        }
+
+        .select-all-btn:hover {
+            background: var(--surface-2);
+        }
+
+        .select-all-btn:focus-visible {
+            outline: 2px solid var(--accent-primary);
+            outline-offset: 2px;
+        }
+
+        .topbar-flat-btn {
+            padding: 0.375rem 0.75rem;
+            border-radius: 0.375rem;
+            border: 1px solid transparent;
+            background: transparent;
+            color: var(--ink-primary);
+            font-size: 0.875rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            white-space: nowrap;
+        }
+
+        .topbar-flat-btn:hover {
+            background: var(--surface-1);
+            border-color: var(--surface-border);
+        }
+
+        .lang-btn-active {
+            background: var(--surface-1) !important;
+            border-color: var(--surface-border) !important;
+            font-weight: 600;
+        }
+
+        .topbar-user-menu-item {
+            display: block;
+            padding: 0.375rem 0.75rem;
+            color: var(--ink-primary);
+            font-size: 0.875rem;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .topbar-user-menu-item:hover {
+            background: var(--surface-1);
+        }
+
+        #userProfileMenu {
+            background: var(--surface-2);
+            border: 1px solid var(--surface-border);
+            border-radius: 0.75rem;
+        }
+
+        .skip-to-content {
+            position: absolute;
+            top: -40px;
+            left: 0;
+            background: #000;
+            color: white;
+            padding: 8px;
+            text-decoration: none;
+            z-index: 100;
+        }
+
+        .skip-to-content:focus {
+            top: 0;
+        }
+    </style>
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                        serif: ['Cardo', 'serif'],
+                        hebrew: ['"Ezra SIL"', 'serif'],
+                    },
+                    colors: {
+                        navy: '#002147',
+                        gold: '#D4AF37',
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+
+<body class="font-sans min-h-screen overflow-x-hidden flex flex-col">
+    <!-- Skip-to-content link (keyboard accessibility) -->
+    <a href="#mainContent" class="skip-to-content">Skip to main content</a>
+
+    <!-- TOP NAVIGATION BAR -->
+    {% include 'components/legal_topbar.html' %}
+
+    <!-- Hero Banner -->
+    <div class="legal-hero">
+        <h1 data-en="Accessibility Statement" data-he="הצהרת נגישות">Accessibility Statement</h1>
+        <p class="subtitle" data-en="Last updated: June 2026" data-he="עדכון אחרון: יוני 2026">Last updated: June 2026</p>
+    </div>
+
+    <!-- MAIN CONTENT -->
+    <main id="mainContent" class="flex-1">
+        <article id="legalDocumentBody" class="main-container prose prose-sm max-w-2xl">
+            <a href="/" class="legal-back-link" data-en="← Back to Sh'elah" data-he="← חזרה לשאלה">← Back to Sh'elah</a>
+
+            <div class="legal-actions">
+                <button type="button" id="selectAllPolicyTextBtn" class="select-all-btn"
+                    data-en="Select all text" data-he="בחר את כל הטקסט"
+                    aria-label="Select all accessibility statement text for copying">
+                    <span aria-hidden="true">⧉</span>
+                    <span data-en="Select all text" data-he="בחר את כל הטקסט">Select all text</span>
+                </button>
+            </div>
+
+            <div class="info-box">
+                <p data-en="Sh'elah is committed to making Torah study accessible to everyone, including people who use assistive technology. This statement explains what we've implemented, what we're still improving, and how to reach us."
+                    data-he="Sh'elah מחויבת להפוך את לימוד התורה לנגיש לכולם, כולל אנשים המשתמשים בטכנולוגיה מסייעת. הצהרה זו מסבירה מה יישמנו, מה אנחנו עדיין משפרים, וכיצד ניתן לפנות אלינו.">
+                    Sh'elah is committed to making Torah study accessible to everyone, including people who use
+                    assistive technology. This statement explains what we've implemented, what we're still
+                    improving, and how to reach us.
+                </p>
+            </div>
+
+            <h2 data-en="1. Our Standard" data-he="1. הסטנדרט שלנו">1. Our Standard</h2>
+            <p data-en="We design and build Sh'elah against the Web Content Accessibility Guidelines (WCAG) 2.1, Level AA. This is a target we actively design for, not a certification — see 'Known Limitations' below for where we currently fall short."
+                data-he="אנו מתכננים ובונים את Sh'elah בהתאם להנחיות הנגישות לתוכן אינטרנט (WCAG) 2.1, רמה AA. זהו יעד שאנו מתכננים אליו באופן פעיל, לא הסמכה — ראה 'מגבלות ידועות' למטה לגבי המקומות בהם איננו עומדים בו עדיין.">
+                We design and build Sh'elah against the Web Content Accessibility Guidelines (WCAG) 2.1, Level AA.
+                This is a target we actively design for, not a certification — see <a href="#limitations">Known
+                    Limitations</a> below for where we currently fall short.
+            </p>
+
+            <h2 data-en="2. What We've Implemented" data-he="2. מה יישמנו">2. What We've Implemented</h2>
+            <ul>
+                <li data-en="A 'skip to main content' link on every page for keyboard and screen-reader users"
+                    data-he="קישור 'דלג לתוכן הראשי' בכל עמוד, למשתמשי מקלדת וקוראי מסך">A 'skip to main content' link
+                    on every page for keyboard and screen-reader users</li>
+                <li data-en="Full keyboard operability for menus, the reader settings panel, and modals, with visible focus indicators"
+                    data-he="תפעול מלא באמצעות מקלדת לתפריטים, לוח הגדרות הקריאה וחלונות קופצים, עם סימוני פוקוס נראים לעין">
+                    Full keyboard operability for menus, the reader settings panel, and modals, with visible focus
+                    indicators</li>
+                <li data-en="ARIA roles, labels, and live-region announcements on interactive controls (menus, toggles, the AI answer panel)"
+                    data-he="תפקידי ARIA, תוויות והכרזות אזור-חי על פקדים אינטראקטיביים (תפריטים, מתגים, פאנל תשובות ה-AI)">
+                    ARIA roles, labels, and live-region announcements on interactive controls (menus, toggles, the AI
+                    answer panel)</li>
+                <li data-en="Color contrast meeting WCAG AA (4.5:1 text, 3:1 UI elements) in both light and dark themes"
+                    data-he="ניגודיות צבעים העומדת בדרישת WCAG AA (4.5:1 לטקסט, 3:1 לאלמנטי ממשק) במראה הבהיר והכהה">
+                    Color contrast meeting WCAG AA (4.5:1 text, 3:1 UI elements) in both light and dark themes</li>
+                <li data-en="Full right-to-left (RTL) layout mirroring for Hebrew, not just text direction"
+                    data-he="שיקוף מלא של פריסת ימין-לשמאל (RTL) לעברית, ולא רק כיוון הטקסט">Full right-to-left (RTL)
+                    layout mirroring for Hebrew, not just text direction</li>
+                <li data-en="Adjustable text size, font, and line spacing in Reader Settings"
+                    data-he="גודל טקסט, גופן ומרווח שורות מתכווננים בהגדרות הקריאה">Adjustable text size, font, and
+                    line spacing in Reader Settings</li>
+                <li data-en="Respect for your operating system's 'reduce motion' setting — animations are minimized or removed"
+                    data-he="כיבוד הגדרת 'הפחתת תנועה' של מערכת ההפעלה שלך — אנימציות מוקטנות או מוסרות">Respect for
+                    your operating system's 'reduce motion' setting — animations are minimized or removed</li>
+                <li data-en="Minimum 44×44px touch targets for interactive elements on touch devices"
+                    data-he="שטח מגע מינימלי של 44×44 פיקסלים לאלמנטים אינטראקטיביים במכשירי מגע">Minimum 44×44px
+                    touch targets for interactive elements on touch devices</li>
+                <li data-en="No information is conveyed by color alone — status and state always include text, an icon, or both"
+                    data-he="לא נמסר מידע על ידי צבע בלבד — סטטוס ומצב כוללים תמיד טקסט, סמל, או שניהם">No information
+                    is conveyed by color alone — status and state always include text, an icon, or both</li>
+            </ul>
+
+            <h2 id="limitations" data-en="3. Known Limitations" data-he="3. מגבלות ידועות">3. Known Limitations</h2>
+            <p data-en="In the interest of honesty, not every part of Sh'elah meets this standard yet:"
+                data-he="לשם כנות, לא כל חלק ב-Sh'elah עומד בסטנדרט הזה עדיין:">
+                In the interest of honesty, not every part of Sh'elah meets this standard yet:
+            </p>
+            <ul>
+                <li data-en="Some embedded third-party components (the sign-in widget, calendar picker) follow their own vendor's accessibility implementation, which we don't fully control"
+                    data-he="חלק מהרכיבים המוטמעים של צדדים שלישיים (חלונית ההתחברות, בורר התאריכים) פועלים לפי יישום הנגישות של הספק שלהם, שאינו בשליטתנו המלאה">
+                    Some embedded third-party components (the sign-in widget, calendar picker) follow their own
+                    vendor's accessibility implementation, which we don't fully control</li>
+                <li data-en="AI-generated answers are long-form prose and may not always be optimally structured for screen-reader navigation (e.g., heading levels within an answer)"
+                    data-he="תשובות שנוצרו על ידי AI הן טקסט רציף וארוך, וייתכן שלא יהיו תמיד בנויות באופן אופטימלי לניווט בעזרת קורא מסך (למשל, רמות כותרות בתוך תשובה)">
+                    AI-generated answers are long-form prose and may not always be optimally structured for
+                    screen-reader navigation (e.g., heading levels within an answer)</li>
+                <li data-en="Some historical source texts (scanned or OCR'd Hebrew manuscripts) are provided as-is by our source libraries and may have inconsistent markup"
+                    data-he="חלק מטקסטי המקור ההיסטוריים (כתבי יד עבריים סרוקים או שעברו OCR) מסופקים כפי שהם על ידי ספריות המקור שלנו, וייתכן שיש בהם סימון לא אחיד">
+                    Some historical source texts (scanned or OCR'd Hebrew manuscripts) are provided as-is by our
+                    source libraries and may have inconsistent markup</li>
+            </ul>
+            <p data-en="We treat each of these as an open item, not a permanent exception, and we prioritize fixes as we find them."
+                data-he="אנו מתייחסים לכל אחד מהפריטים הללו כפריט פתוח, לא כחריג קבוע, ומתעדפים תיקונים ככל שאנו מוצאים אותם.">
+                We treat each of these as an open item, not a permanent exception, and we prioritize fixes as we find
+                them.
+            </p>
+
+            <h2 data-en="4. Compatibility" data-he="4. תאימות">4. Compatibility</h2>
+            <p data-en="Sh'elah is built and tested against current versions of Chrome, Safari, Firefox, and Edge, and is intended to work with modern screen readers such as VoiceOver, NVDA, and JAWS."
+                data-he="Sh'elah נבנית ונבדקת מול הגרסאות הנוכחיות של Chrome, Safari, Firefox ו-Edge, ומיועדת לעבוד עם קוראי מסך מודרניים כגון VoiceOver, NVDA ו-JAWS.">
+                Sh'elah is built and tested against current versions of Chrome, Safari, Firefox, and Edge, and is
+                intended to work with modern screen readers such as VoiceOver, NVDA, and JAWS.
+            </p>
+
+            <h2 data-en="5. Feedback &amp; Contact" data-he="5. משוב וצור קשר">5. Feedback &amp; Contact</h2>
+            <p data-en="If you encounter an accessibility barrier anywhere on Sh'elah, please tell us — include the page, what you were trying to do, and the assistive technology you were using if relevant. We will do our best to respond within a reasonable time and fix genuine barriers."
+                data-he="אם נתקלת במכשול נגישות כלשהו ב-Sh'elah, נשמח לדעת — כלול את העמוד, מה ניסית לעשות, ואת הטכנולוגיה המסייעת שבה השתמשת אם רלוונטי. נשתדל להגיב בזמן סביר ולתקן מכשולים אמיתיים.">
+                If you encounter an accessibility barrier anywhere on Sh'elah, please tell us — include the page,
+                what you were trying to do, and the assistive technology you were using if relevant. We will do our
+                best to respond within a reasonable time and fix genuine barriers.
+            </p>
+            <p><strong data-en="Email:" data-he="דוא״ל:">Email:</strong> <a
+                    href="mailto:akiva.yevda@gmail.com">akiva.yevda@gmail.com</a></p>
+
+            <hr class="my-8" style="border-color: var(--surface-border);">
+
+            <div class="info-box">
+                <p class="text-sm"
+                    data-en="See also our Terms of Service and Privacy Policy."
+                    data-he="ראה גם את תנאי השירות ומדיניות הפרטיות שלנו.">
+                    See also our <a href="/terms" data-en="Terms of Service" data-he="תנאי השירות">Terms of
+                        Service</a> and <a href="/privacy" data-en="Privacy Policy" data-he="מדיניות הפרטיות">Privacy
+                        Policy</a>.
+                </p>
+            </div>
+        </article>
+    </main>
+
+    <footer class="border-t py-6 text-center text-xs"
+        style="border-color: var(--surface-border); color: var(--ink-secondary); background: var(--surface-1);">
+        <p>
+            <a href="/" class="font-semibold hover:underline" style="color: var(--ink-heading);"
+                data-en="Sh'elah Torah Encyclopedia" data-he="שאלה אנציקלופדיית תורה">Sh'elah Torah Encyclopedia</a>
+            &nbsp;·&nbsp;
+            <a href="/terms" class="hover:underline" style="color: var(--ink-secondary);"
+                data-en="Terms of Service" data-he="תנאי שירות">Terms of Service</a>
+            &nbsp;·&nbsp;
+            <a href="/privacy" class="hover:underline" style="color: var(--ink-secondary);"
+                data-en="Privacy Policy" data-he="מדיניות פרטיות">Privacy Policy</a>
+            &nbsp;·&nbsp;
+            <a href="/accessibility" class="hover:underline font-medium" style="color: var(--ink-heading);"
+                data-en="Accessibility" data-he="נגישות">Accessibility</a>
+        </p>
+    </footer>
+
+    {% include 'components/legal_scripts.html' %}
+    <script>
+        document.getElementById('selectAllPolicyTextBtn')?.addEventListener('click', () => {
+            const target = document.getElementById('legalDocumentBody');
+            if (!target) return;
+            const selection = window.getSelection();
+            const range = document.createRange();
+            range.selectNodeContents(target);
+            selection.removeAllRanges();
+            selection.addRange(range);
+        });
+    </script>
+</body>
+
+</html>

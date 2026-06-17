@@ -37,6 +37,12 @@
     .mobile-drawer {
         transform: none !important;
         transition: none !important;
+        /* #readerSettingsPanel uses an unconditional z-[80] (Tailwind utility,
+           not viewport-scoped) for its dropdown. On mobile the sidebars win
+           via the z-index:95 rule above, but on desktop they had no explicit
+           z-index at all, so the dropdown could render on top of them.
+           Keep sidebars above any such floating panel here too. */
+        z-index: 85;
     }
 }
 
@@ -254,4 +260,60 @@ html.rtl #citySearchInput {
 #rightSidebar.mobile-open {
     overscroll-behavior-y: contain;
     touch-action: pan-y pinch-zoom;
+}
+/* ── Ask History sidebar section ─────────────────────────────────────────── */
+.ask-history-item {
+    border-radius: 0.35rem;
+    padding: 0.15rem 0.25rem;
+    transition: background 0.12s ease;
+}
+
+.ask-history-item:hover {
+    background: var(--surface-pill, rgba(0, 33, 71, 0.05));
+}
+
+.ask-history-q {
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 0;
+    font-family: inherit;
+    color: var(--ink, #002147);
+    text-overflow: ellipsis;
+    overflow: hidden;
+    white-space: nowrap;
+    max-width: 100%;
+}
+
+.ask-history-q:hover {
+    color: var(--navy, #002147);
+    text-decoration: underline;
+    text-decoration-color: var(--parchment-dark, #b8aa90);
+}
+
+.ask-history-date {
+    color: var(--text-muted, #94a3b8);
+    font-size: 0.625rem;
+    line-height: 1.2;
+    margin-bottom: 0.1rem;
+}
+
+.ask-history-del {
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 0 0.2rem;
+    font-size: 1rem;
+    line-height: 1;
+    color: var(--text-muted, #94a3b8);
+    transition: color 0.12s ease, opacity 0.12s ease;
+    flex-shrink: 0;
+}
+
+:is([data-theme="dark"], body.theme-dark) .ask-history-q {
+    color: var(--text-primary, #e2d9c8);
+}
+
+:is([data-theme="dark"], body.theme-dark) .ask-history-item:hover {
+    background: var(--surface-pill, rgba(255,255,255,0.06));
 }

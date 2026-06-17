@@ -13,10 +13,13 @@ import logging
 import requests
 import time
 
+from backend.cache import TTLCache
+
 logger = logging.getLogger(__name__)
 
 _HTTP = requests.Session()
-_DAILY_STUDY_CACHE = {"ts": 0, "data": None}
+_DAILY_STUDY_CACHE_KEY = "daily_study"
+_DAILY_STUDY_CACHE = TTLCache(ttl=60 * 5)
 
 # ═══════════════════════════════════════════════════════════════════════
 # PRIMARY SEFARIA TEXT MAPPINGS — Over 100+ halachic references
@@ -182,8 +185,8 @@ TOPIC_REFS = {
 
 def get_daily_study():
     """Fetch daily study schedule from Sefaria"""
-    cached = _DAILY_STUDY_CACHE.get("data")
-    if cached and time.time() - _DAILY_STUDY_CACHE.get("ts", 0) < 60 * 5:
+    cached = _DAILY_STUDY_CACHE.get(_DAILY_STUDY_CACHE_KEY)
+    if cached:
         return cached
 
     try:
@@ -224,8 +227,7 @@ def get_daily_study():
                     "ref": item.get("ref", "")
                 }
 
-        _DAILY_STUDY_CACHE["ts"] = time.time()
-        _DAILY_STUDY_CACHE["data"] = info
+        _DAILY_STUDY_CACHE.set(_DAILY_STUDY_CACHE_KEY, info)
         return info
     except Exception as e:
         logger.warning("[Sefaria Daily Error] %s", e)
@@ -245,8 +247,7 @@ def get_daily_study():
             "mishnah_yomi": None,
             "offline": True
         }
-        _DAILY_STUDY_CACHE["ts"] = time.time()
-        _DAILY_STUDY_CACHE["data"] = payload
+        _DAILY_STUDY_CACHE.set(_DAILY_STUDY_CACHE_KEY, payload)
         return payload
 
 

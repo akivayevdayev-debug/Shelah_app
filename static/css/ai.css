@@ -623,6 +623,16 @@
 .ai-src-skeleton-line--wide  { width: 85%; }
 .ai-src-skeleton-line--medium { width: 65%; animation-delay: 0.15s; }
 
+/* Inline skeleton inside an ai-source-box while text is being fetched */
+.ai-cited-fetch-skeleton {
+    padding: 0.75rem 0.9rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    background: var(--ai-src-body-bg, #fffaf2);
+    grid-column: 1 / -1;
+}
+
 :is([data-theme="dark"], body.theme-dark) .ai-src-skeleton {
     border-color: var(--surface-border) !important;
 }
