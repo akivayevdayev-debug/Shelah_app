@@ -1,22 +1,26 @@
 {
-    "version": 2,
-    "routes": [
-        {
-            "src": "/static/(.*)",
-            "dest": "/static/$1",
-            "headers": {
-                "Cache-Control": "public, max-age=3600"
-            }
-        },
-        {
-            "src": "/(.*)",
-            "dest": "asgi.py"
-        }
-    ],
+    "$schema": "https://openapi.vercel.sh/vercel.json",
     "functions": {
-        "asgi.py": {
+        "api/index.py": {
             "memory": 1024,
             "maxDuration": 90
         }
-    }
+    },
+    "rewrites": [
+        {
+            "source": "/((?!static/|favicon\\.ico|manifest\\.webmanifest|service-worker\\.js).*)",
+            "destination": "/api/index"
+        }
+    ],
+    "headers": [
+        {
+            "source": "/static/(.*)",
+            "headers": [
+                {
+                    "key": "Cache-Control",
+                    "value": "public, max-age=3600"
+                }
+            ]
+        }
+    ]
 }

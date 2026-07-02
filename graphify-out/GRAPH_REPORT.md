@@ -1,16 +1,16 @@
-# Graph Report - Sh'elah_app  (2026-06-17)
+# Graph Report - Sh'elah_app  (2026-07-02)
 
 ## Corpus Check
-- 171 files · ~260,326 words
+- 194 files · ~283,229 words
 - Verdict: corpus is large enough that graph structure adds value.
 
 ## Summary
-- 3718 nodes · 4636 edges · 275 communities (211 shown, 64 thin omitted)
-- Extraction: 98% EXTRACTED · 2% INFERRED · 0% AMBIGUOUS · INFERRED: 74 edges (avg confidence: 0.72)
+- 4606 nodes · 5675 edges · 358 communities (238 shown, 120 thin omitted)
+- Extraction: 98% EXTRACTED · 2% INFERRED · 0% AMBIGUOUS · INFERRED: 96 edges (avg confidence: 0.71)
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `bc4c32db`
+- Built from commit: `f6434ccb`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
@@ -286,30 +286,112 @@
 - [[_COMMUNITY_Community 272|Community 272]]
 - [[_COMMUNITY_Community 273|Community 273]]
 - [[_COMMUNITY_Community 274|Community 274]]
+- [[_COMMUNITY_Community 275|Community 275]]
+- [[_COMMUNITY_Community 276|Community 276]]
+- [[_COMMUNITY_Community 277|Community 277]]
+- [[_COMMUNITY_Community 278|Community 278]]
+- [[_COMMUNITY_Community 279|Community 279]]
+- [[_COMMUNITY_Community 280|Community 280]]
+- [[_COMMUNITY_Community 281|Community 281]]
+- [[_COMMUNITY_Community 283|Community 283]]
+- [[_COMMUNITY_Community 284|Community 284]]
+- [[_COMMUNITY_Community 285|Community 285]]
+- [[_COMMUNITY_Community 286|Community 286]]
+- [[_COMMUNITY_Community 287|Community 287]]
+- [[_COMMUNITY_Community 288|Community 288]]
+- [[_COMMUNITY_Community 289|Community 289]]
+- [[_COMMUNITY_Community 290|Community 290]]
+- [[_COMMUNITY_Community 291|Community 291]]
+- [[_COMMUNITY_Community 292|Community 292]]
+- [[_COMMUNITY_Community 293|Community 293]]
+- [[_COMMUNITY_Community 294|Community 294]]
+- [[_COMMUNITY_Community 295|Community 295]]
+- [[_COMMUNITY_Community 296|Community 296]]
+- [[_COMMUNITY_Community 297|Community 297]]
+- [[_COMMUNITY_Community 298|Community 298]]
+- [[_COMMUNITY_Community 299|Community 299]]
+- [[_COMMUNITY_Community 300|Community 300]]
+- [[_COMMUNITY_Community 301|Community 301]]
+- [[_COMMUNITY_Community 302|Community 302]]
+- [[_COMMUNITY_Community 303|Community 303]]
+- [[_COMMUNITY_Community 304|Community 304]]
+- [[_COMMUNITY_Community 305|Community 305]]
+- [[_COMMUNITY_Community 306|Community 306]]
+- [[_COMMUNITY_Community 307|Community 307]]
+- [[_COMMUNITY_Community 308|Community 308]]
+- [[_COMMUNITY_Community 309|Community 309]]
+- [[_COMMUNITY_Community 310|Community 310]]
+- [[_COMMUNITY_Community 311|Community 311]]
+- [[_COMMUNITY_Community 312|Community 312]]
+- [[_COMMUNITY_Community 313|Community 313]]
+- [[_COMMUNITY_Community 314|Community 314]]
+- [[_COMMUNITY_Community 315|Community 315]]
+- [[_COMMUNITY_Community 316|Community 316]]
+- [[_COMMUNITY_Community 317|Community 317]]
+- [[_COMMUNITY_Community 318|Community 318]]
+- [[_COMMUNITY_Community 319|Community 319]]
+- [[_COMMUNITY_Community 320|Community 320]]
+- [[_COMMUNITY_Community 321|Community 321]]
+- [[_COMMUNITY_Community 322|Community 322]]
+- [[_COMMUNITY_Community 323|Community 323]]
+- [[_COMMUNITY_Community 324|Community 324]]
+- [[_COMMUNITY_Community 325|Community 325]]
+- [[_COMMUNITY_Community 326|Community 326]]
+- [[_COMMUNITY_Community 327|Community 327]]
+- [[_COMMUNITY_Community 328|Community 328]]
+- [[_COMMUNITY_Community 329|Community 329]]
+- [[_COMMUNITY_Community 330|Community 330]]
+- [[_COMMUNITY_Community 331|Community 331]]
+- [[_COMMUNITY_Community 332|Community 332]]
+- [[_COMMUNITY_Community 333|Community 333]]
+- [[_COMMUNITY_Community 334|Community 334]]
+- [[_COMMUNITY_Community 335|Community 335]]
+- [[_COMMUNITY_Community 336|Community 336]]
+- [[_COMMUNITY_Community 337|Community 337]]
+- [[_COMMUNITY_Community 338|Community 338]]
+- [[_COMMUNITY_Community 339|Community 339]]
+- [[_COMMUNITY_Community 340|Community 340]]
+- [[_COMMUNITY_Community 341|Community 341]]
+- [[_COMMUNITY_Community 342|Community 342]]
+- [[_COMMUNITY_Community 343|Community 343]]
+- [[_COMMUNITY_Community 344|Community 344]]
+- [[_COMMUNITY_Community 345|Community 345]]
+- [[_COMMUNITY_Community 346|Community 346]]
+- [[_COMMUNITY_Community 347|Community 347]]
+- [[_COMMUNITY_Community 348|Community 348]]
+- [[_COMMUNITY_Community 349|Community 349]]
+- [[_COMMUNITY_Community 350|Community 350]]
+- [[_COMMUNITY_Community 351|Community 351]]
+- [[_COMMUNITY_Community 352|Community 352]]
+- [[_COMMUNITY_Community 353|Community 353]]
+- [[_COMMUNITY_Community 354|Community 354]]
+- [[_COMMUNITY_Community 355|Community 355]]
+- [[_COMMUNITY_Community 356|Community 356]]
+- [[_COMMUNITY_Community 357|Community 357]]
 
 ## God Nodes (most connected - your core abstractions)
-1. `TTLCache` - 41 edges
-2. `ShelahEngine` - 26 edges
-3. `_get_supabase_client()` - 21 edges
-4. `ask_question()` - 21 edges
-5. `get_text()` - 21 edges
-6. `_FakeSupabaseClient` - 21 edges
-7. `3. File-by-file critique and roadmap` - 21 edges
-8. `ask_ai_async()` - 19 edges
-9. `get_community_zmanim()` - 19 edges
-10. `Sh'elah — Jewish Learning & Halachic AI Assistant` - 19 edges
+1. `TTLCache` - 42 edges
+2. `_FakeSupabaseClient` - 31 edges
+3. `Claude Code Prompts — one per plan.md section` - 27 edges
+4. `ShelahEngine` - 26 edges
+5. `_get_supabase_client()` - 21 edges
+6. `ask_question()` - 21 edges
+7. `APIHealth` - 21 edges
+8. `get_text()` - 21 edges
+9. `3. File-by-file critique and roadmap` - 21 edges
+10. `ask_ai_async()` - 20 edges
 
 ## Surprising Connections (you probably didn't know these)
-- `set_location()` --calls--> `_coerce_coordinate()`  [EXTRACTED]
-  backend/routes_calendar.py → app.py
 - `Request` --uses--> `ShelahEngine`  [INFERRED]
   asgi.py → backend/data_service.py
 - `AskRequest` --uses--> `ShelahEngine`  [INFERRED]
   asgi.py → backend/data_service.py
 - `Any` --uses--> `ShelahEngine`  [INFERRED]
   asgi.py → backend/data_service.py
-- `TestCircuitOpening` --uses--> `APIHealth`  [INFERRED]
-  tests/test_health_check.py → backend/health_check.py
+- `_FakeClock` --uses--> `TTLCache`  [INFERRED]
+  tests/test_cache.py → backend/cache.py
+- `TestTTLExpiration` --uses--> `TTLCache`  [INFERRED]
+  tests/test_cache.py → backend/cache.py
 
 ## Import Cycles
 - None detected.
@@ -325,19 +407,19 @@
 - **** — docs_integration_guide, docs_sources_registry, shelah_text_sources [INFERRED 0.90]
 - **** — docs_system_prompt_refactoring, docs_system_prompt_examples, docs_system_prompt_implementation [INFERRED 1.00]
 
-## Communities (275 total, 64 thin omitted)
+## Communities (358 total, 120 thin omitted)
 
 ### Community 0 - "Community 0"
-Cohesion: 0.15
-Nodes (21): _call_anthropic_httpx_model(), _call_gemini_httpx_model(), _extract_fenced_json_object(), _extract_first_json_object(), _normalize_structured_response(), parse_structured_model_output(), Any, Anthropic/Claude prompt and response helper for Sh'elah.  Responsibilities: - Fo (+13 more)
+Cohesion: 0.13
+Nodes (24): _call_gemini_model(), _extract_fenced_json_object(), _extract_first_json_object(), _extract_gemini_response_text(), _normalize_structured_response(), parse_structured_model_output(), Any, Anthropic/Claude prompt and response helper for Sh'elah.  Responsibilities: - Fo (+16 more)
 
 ### Community 1 - "Community 1"
-Cohesion: 0.14
-Nodes (19): _build_pyluach_holiday_events(), get_holidays(), _holiday_color_for_category(), _holiday_emoji_for_event(), Fallback holiday event list for FullCalendar when Hebcal is unavailable., Fallback holiday event list for FullCalendar when Hebcal is unavailable., Fallback holiday event list for FullCalendar when Hebcal is unavailable., Fallback holiday event list for FullCalendar when Hebcal is unavailable. (+11 more)
+Cohesion: 0.07
+Nodes (36): _build_pyluach_holiday_events(), _coerce_coordinate(), daily_study_api(), get_engine(), get_holidays(), get_zmanim_api(), get_zmanim_month(), _holiday_color_for_category() (+28 more)
 
 ### Community 2 - "Community 2"
-Cohesion: 0.06
-Nodes (33): _bold_halakhic_verdicts(), _build_discovery_queries(), _build_last_resort_web_sources(), _chapter_export_plain_text(), _collapse_markdown_spacing(), _collect_external_global_sources(), _collect_global_sefaria_sources(), _dedupe_ordered_text() (+25 more)
+Cohesion: 0.04
+Nodes (54): api_communities_alias(), _bold_halakhic_verdicts(), _build_discovery_queries(), _build_last_resort_web_sources(), _build_source_attribution_note(), _chapter_export_plain_text(), _coerce_ai_answer_shape(), _collapse_markdown_spacing() (+46 more)
 
 ### Community 3 - "Community 3"
 Cohesion: 0.10
@@ -408,12 +490,12 @@ Cohesion: 0.19
 Nodes (28): check_community_endpoints(), check_env_variables(), check_flask_local(), check_hebcal(), check_json_files(), check_sefaria(), check_supabase(), check_vercel() (+20 more)
 
 ### Community 20 - "Community 20"
-Cohesion: 0.07
-Nodes (43): _bounded_cache_set(), _collect_word_meaning_alternatives(), _contains_hebrew_letters(), _extract_google_translated_text(), get_word_meaning(), _hebrew_word_variant_candidates(), _is_translation_echo(), _looks_like_transliteration() (+35 more)
+Cohesion: 0.05
+Nodes (56): _bounded_cache_set(), _collect_word_meaning_alternatives(), _contains_hebrew_letters(), _extract_google_translated_text(), _fill_missing_english_lines(), get_text_inline(), get_word_meaning(), _hebrew_word_variant_candidates() (+48 more)
 
 ### Community 21 - "Community 21"
-Cohesion: 0.20
-Nodes (9): _probe_claude(), _probe_gemini(), _probe_hebcal(), _probe_sefaria(), External API health-check and circuit-breaker for Sh'elah.  Maintains lightweigh, Anthropic availability — just check that the models list endpoint responds., Lightweight read of a small Sefaria text endpoint., Ping Hebcal's JSON API. (+1 more)
+Cohesion: 0.19
+Nodes (9): _probe_hebcal(), _probe_sefaria(), External API health-check and circuit-breaker for Sh'elah.  Maintains lightweigh, Lightweight read of a small Sefaria text endpoint., Ping Hebcal's JSON API., health(), Supplementary tests for backend/health_check.py's actual HTTP probe functions an, TestProbeHebcal (+1 more)
 
 ### Community 22 - "Community 22"
 Cohesion: 0.06
@@ -424,8 +506,8 @@ Cohesion: 0.08
 Nodes (23): fixes, generated_at_utc, machine_generated, parameters, max_leaves, progress_every, sleep_seconds, timeout_seconds (+15 more)
 
 ### Community 24 - "Community 24"
-Cohesion: 0.10
-Nodes (32): library_index(), Returns report-adjusted Sefaria library tree (non-loading removals pruned, fix r, _flatten_index_titles(), _get_en_title(), get_library_index(), _get_title_catalog(), _infer_nusach(), _is_specific_ref_query() (+24 more)
+Cohesion: 0.11
+Nodes (27): library_index(), Returns report-adjusted Sefaria library tree (non-loading removals pruned, fix r, _flatten_index_titles(), _get_en_title(), get_library_index(), _get_title_catalog(), _infer_nusach(), _is_specific_ref_query() (+19 more)
 
 ### Community 25 - "Community 25"
 Cohesion: 0.08
@@ -444,8 +526,8 @@ Cohesion: 0.23
 Nodes (17): animateIn(), animateOut(), crossFade(), fadeOpacity(), isMotionReduced(), _motionAnimate(), _motionStagger(), _mq (+9 more)
 
 ### Community 29 - "Community 29"
-Cohesion: 0.12
-Nodes (18): devtools_rls_audit(), _extract_supabase_access_token(), _extract_supabase_token_from_cookie_value(), _get_request_supabase_client(), list_todos(), _looks_like_jwt(), Flask equivalent of Next.js createServerClient for request-scoped reads., Flask equivalent of Next.js createServerClient for request-scoped reads. (+10 more)
+Cohesion: 0.11
+Nodes (35): Golden-master characterization tests for the text/formatting layer being extract, test_bold_halakhic_verdicts_bolds_and_canonicalizes_verdict_line(), test_bold_halakhic_verdicts_does_not_corrupt_string_cut_mid_bold(), test_bold_halakhic_verdicts_handles_asur_mutar_variants(), test_collapse_markdown_spacing_all_blank_lines_yields_empty(), test_collapse_markdown_spacing_collapses_multiple_blank_lines(), test_format_ui_answer_does_not_corrupt_string_cut_mid_bold(), test_format_ui_answer_does_not_corrupt_string_cut_mid_tag() (+27 more)
 
 ### Community 30 - "Community 30"
 Cohesion: 0.31
@@ -464,24 +546,24 @@ Cohesion: 0.05
 Nodes (43): 1. **Expanded Sefaria Integration (100+ Topics)**, 2. **Merkava Halachic Integration**, 3. **Siddur Kol Yaakov Integration**, 4. **Unified Source Fetching**, 5. **Enhanced Design (Merkava-Inspired)**, Add New Community Custom:, Add New Topic to Sefaria:, Add Siddur Service: (+35 more)
 
 ### Community 34 - "Community 34"
-Cohesion: 0.15
-Nodes (18): _coerce_int(), _extract_search_metadata_filters(), library_search(), _parse_multi_value_arg(), Full-text search across Sefaria texts with report-based removal/fix filtering., Omnibox suggestions: texts, prayers, communities, and AI query option., search_suggest(), library_search() (+10 more)
+Cohesion: 0.09
+Nodes (26): _build_trusted_custom_sources(), _canonicalize_community_name(), get_community(), get_community_timeline(), Build a stable source list from trusted halachic authorities in community files., Build a stable source list from trusted halachic authorities in community files., Build a stable source list from trusted halachic authorities in community files., Build a stable source list from trusted halachic authorities in community files. (+18 more)
 
 ### Community 35 - "Community 35"
 Cohesion: 0.05
 Nodes (37): 1. Core System Prompt Refactoring, 1. `docs/SYSTEM_PROMPT_REFACTORING.md`, 1. Verify Changes, 2. Deploy, 2. `docs/SYSTEM_PROMPT_IMPLEMENTATION_GUIDE.md`, 2. Domain Validation Refactoring, 3. Detection Logic Refactoring, 3. `docs/SYSTEM_PROMPT_EXAMPLES.md` (+29 more)
 
 ### Community 36 - "Community 36"
-Cohesion: 0.14
-Nodes (14): 1. **backend/sefaria.py** (Major Enhancement), 2. **static/style.css** (Design Enhancement), backend/sefaria.py, Backward Compatibility, Code Statistics, Existing Calls Still Work:, Existing Functions Still Work:, Files & Their Purposes (+6 more)
+Cohesion: 0.12
+Nodes (16): 1. **backend/sefaria.py** (Major Enhancement), 2. **static/style.css** (Design Enhancement), Backward Compatibility, ✅ Code Changes, ✅ Documentation, Existing Calls Still Work:, Existing Functions Still Work:, Files & Their Purposes (+8 more)
 
 ### Community 37 - "Community 37"
 Cohesion: 0.08
 Nodes (26): bind_request_id(), get_logger(), get_request_id(), _JSONFormatter, Structured JSON logging configuration for Sh'elah.  Usage:     from backend.logg, Set request_id in the current context and return it.      If *request_id* is Non, Set request_id in the current context and return it.      If *request_id* is Non, Return the current context's request_id (empty string if not set). (+18 more)
 
 ### Community 38 - "Community 38"
-Cohesion: 0.12
-Nodes (20): _decode_route_ref(), get_text_graph(), get_text_links(), Decode refs that may arrive pre-encoded or double-encoded from clients/proxies., Decode refs that may arrive pre-encoded or double-encoded from clients/proxies., Decode refs that may arrive pre-encoded or double-encoded from clients/proxies., Decode refs that may arrive pre-encoded or double-encoded from clients/proxies., Returns all linked commentaries & parallel texts for a given ref. (+12 more)
+Cohesion: 0.11
+Nodes (21): _decode_route_ref(), get_text_graph(), get_text_links(), Decode refs that may arrive pre-encoded or double-encoded from clients/proxies., Decode refs that may arrive pre-encoded or double-encoded from clients/proxies., Decode refs that may arrive pre-encoded or double-encoded from clients/proxies., Decode refs that may arrive pre-encoded or double-encoded from clients/proxies., Decode refs that may arrive pre-encoded or double-encoded from clients/proxies. (+13 more)
 
 ### Community 39 - "Community 39"
 Cohesion: 0.14
@@ -512,24 +594,24 @@ Cohesion: 0.32
 Nodes (8): PostgreSQL Advisory Locks, PostgreSQL Deadlock Prevention, PostgreSQL SKIP LOCKED, Use Advisory Locks for Application-Level Locking, Prevent Deadlocks with Consistent Lock Ordering, Keep Transactions Short to Reduce Lock Contention, Use SKIP LOCKED for Non-Blocking Queue Processing, Concurrency & Locking
 
 ### Community 46 - "Community 46"
-Cohesion: 0.13
-Nodes (33): _bounded_cache_set(), _build_source_attribution_note(), _collect_word_meaning_alternatives(), _compact_ai_sources(), _contains_hebrew_letters(), _extract_google_translated_text(), _extract_search_metadata_filters(), _fill_missing_english_lines() (+25 more)
+Cohesion: 0.09
+Nodes (43): _bounded_cache_set(), _build_source_attribution_note(), _coerce_int(), _collect_word_meaning_alternatives(), _contains_hebrew_letters(), _decode_route_ref(), _extract_google_translated_text(), _extract_search_metadata_filters() (+35 more)
 
 ### Community 47 - "Community 47"
-Cohesion: 0.18
-Nodes (11): ask_question(), _build_source_attribution_note(), _compact_ai_sources(), _get_cached_ask_payload(), _join_with_and(), _knowledge_rows_to_customs(), Trim bulky source payloads to the excerpt shape used by the UI., Trim bulky source payloads to the excerpt shape used by the UI. (+3 more)
+Cohesion: 0.17
+Nodes (12): ask_question(), _build_interaction_summary(), _compact_ai_sources(), _get_cached_ask_payload(), _knowledge_rows_to_customs(), Trim bulky source payloads to the excerpt shape used by the UI., Trim bulky source payloads to the excerpt shape used by the UI., Trim bulky source payloads to the excerpt shape used by the UI. (+4 more)
 
 ### Community 48 - "Community 48"
 Cohesion: 0.12
 Nodes (6): meta.fallback must be True when the AI path errored out.          AsyncAnthropic, Tests against the Flask /ask route directly., Empty question body should result in 400 or answer with error indication., Questions mentioning Shacharit trigger a fast shortcut path., When Anthropic fails, the route must still return answer with fallback=True., TestAskFlask
 
 ### Community 49 - "Community 49"
-Cohesion: 0.29
-Nodes (6): Kafkazi, kashrut_general, keywords, notes, ruling, source
+Cohesion: 0.40
+Nodes (5): kashrut_general, keywords, notes, ruling, source
 
 ### Community 50 - "Community 50"
-Cohesion: 0.05
-Nodes (37): 1. Merkava Integration, 2. Siddur Kol Yaakov, 3. Unified Source Fetching, 4. Expanded Topics, Case 1: General Halacha Question, Case 2: Prayer Service Question, Case 3: Community-Specific Question, Case 4: Holiday Preparation (+29 more)
+Cohesion: 0.14
+Nodes (14): Case 1: General Halacha Question, Case 2: Prayer Service Question, Case 3: Community-Specific Question, Case 4: Holiday Preparation, Common Use Cases, Error Handling, For Developers:, Now Available (100+ Topics) (+6 more)
 
 ### Community 51 - "Community 51"
 Cohesion: 0.29
@@ -540,16 +622,16 @@ Cohesion: 0.38
 Nodes (7): PostgreSQL EXPLAIN ANALYZE, PostgreSQL pg_stat_statements, PostgreSQL VACUUM and ANALYZE, Use EXPLAIN ANALYZE to Diagnose Slow Queries, Enable pg_stat_statements for Query Analysis, Maintain Table Statistics with VACUUM and ANALYZE, Monitoring & Diagnostics
 
 ### Community 53 - "Community 53"
-Cohesion: 0.10
-Nodes (23): accept_legal(), clerk_auth_me(), _extract_bearer_token(), _get_request_user_id(), maybe_require_clerk_auth(), Record that a user has accepted the Terms of Service and Privacy Policy., Returns Clerk auth status and a minimal user payload., require_clerk_auth() (+15 more)
+Cohesion: 0.07
+Nodes (35): accept_legal(), api_health_alias(), api_preferences_alias(), _capture_backend_error(), client_errors(), devtools_heartbeat(), _extract_client_ip(), _get_supabase_client() (+27 more)
 
 ### Community 54 - "Community 54"
 Cohesion: 0.05
 Nodes (40): 10. ASYNC VARIANT (ASGI Deployments), 11. SPECIAL FUNCTION: `summarize_with_gemini()`, 12. INTEGRATION POINT IN APP, 13. RETURN VALUE STRUCTURE (All Endpoints), 14. SECURITY SUMMARY, 15. KNOWN LIMITATIONS & DISCLAIMERS, 16. CUSTOM DATA SOURCES INTEGRATED INTO PROMPTS, 17. RECOMMENDATION FOR ADDITIONAL HARDENING (+32 more)
 
 ### Community 55 - "Community 55"
-Cohesion: 0.29
-Nodes (7): 1. Sefaria API - https://www.sefaria.org/api, **Halakhic Codifiers & Codes**, **Holiday & Liturgical Texts**, **Midrashic & Early Sources**, **Modern Authorities (Referenced)**, **Rishonim (Medieval Commentators)**, **Talmudic Sources**
+Cohesion: 0.07
+Nodes (28): Claude Code Prompts — one per plan.md section, Prompt 10 — §7f: loading-states overhaul, Prompt 11 — §7g: frontend platform fixes (Tailwind build, CSP, SRI, SEO, RTL), Prompt 12 — §8.A: legal documents & disclosures, Prompt 13 — §8.B: AI liability & religious-guidance safety, Prompt 14 — §8.B-AGE: 13+ age gate & age-appropriate output layer, Prompt 15 — §8.C: security hardening, Prompt 16 — §8.D: privacy operations (+20 more)
 
 ### Community 56 - "Community 56"
 Cohesion: 0.05
@@ -568,8 +650,8 @@ Cohesion: 0.18
 Nodes (11): AI Word Limit Feature, Changes Made, How It Works, Implementation Details, Integration, limit_words() Function, Overview, Performance Impact (+3 more)
 
 ### Community 60 - "Community 60"
-Cohesion: 0.40
-Nodes (5): keywords, notes, ruling, source, general_pesach
+Cohesion: 0.29
+Nodes (6): keywords, notes, ruling, source, Kafkazi, general_pesach
 
 ### Community 61 - "Community 61"
 Cohesion: 0.40
@@ -616,8 +698,8 @@ Cohesion: 0.67
 Nodes (3): PostgreSQL Composite Indexes, Create Composite Indexes for Multi-Column Queries, Query Performance
 
 ### Community 72 - "Community 72"
-Cohesion: 0.29
-Nodes (6): maxDuration, memory, functions, asgi.py, routes, version
+Cohesion: 0.15
+Nodes (12): maxDuration, memory, maxDuration, memory, functions, api/index.py, asgi.py, headers (+4 more)
 
 ### Community 74 - "Community 74"
 Cohesion: 0.05
@@ -636,8 +718,8 @@ Cohesion: 0.13
 Nodes (15): Acharonim (Later Authorities) Included:, After (Scholarly Librarian):, Before (Restrictive Guard):, Behavioral Changes: Before vs. After, Changelog, Example: Modern Query Handling, Executive Summary, Future Enhancements (+7 more)
 
 ### Community 91 - "Community 91"
-Cohesion: 0.04
-Nodes (45): 0. Executive summary, 1. Workspace organization (done), 2. System directives (done), 3.10 `templates/index.html` (11,202 lines; ~9,500 in `<script>`) — CRITICAL (frontend), 3.11 `static/js/*.js` (5 modules, ~520 lines) — GOOD baseline, 3.12 `static/style.css` (4,086 lines) + `static/css/*` (7 sheets, ~2,200 lines) — MEDIUM, 3.13 `static/service-worker.js`, `manifest.webmanifest`, `offline.html` — LOW, 3.14 `templates/terms.html`, `privacy.html`, `components/*` — LOW (+37 more)
+Cohesion: 0.10
+Nodes (21): 3.10 `templates/index.html` (11,202 lines; ~9,500 in `<script>`) — CRITICAL (frontend), 3.11 `static/js/*.js` (5 modules, ~520 lines) — GOOD baseline, 3.12 `static/style.css` (4,086 lines) + `static/css/*` (7 sheets, ~2,200 lines) — MEDIUM, 3.13 `static/service-worker.js`, `manifest.webmanifest`, `offline.html` — LOW, 3.14 `templates/terms.html`, `privacy.html`, `components/*` — LOW, 3.15 `vercel.json` — MEDIUM, 3.16 `requirements.txt` — MEDIUM, 3.17 `customs/*.json` (14 community files + `customs_db.json`) — LOW (+13 more)
 
 ### Community 92 - "Community 92"
 Cohesion: 0.06
@@ -652,16 +734,16 @@ Cohesion: 0.14
 Nodes (18): Flask App (app.py), SIDDUR_SECTION_MAP, FastAPI ASGI Adapter, Customs Data Loader, search_customs, ShelahEngine, APIHealth Circuit Breaker, _JSONFormatter (+10 more)
 
 ### Community 95 - "Community 95"
-Cohesion: 0.17
-Nodes (12): _domain_refusal_message(), Generic security wrapper for present and future LLM/tool calls., Generic security wrapper for present and future LLM/tool calls., Generic security wrapper for present and future LLM/tool calls., Generic security wrapper for present and future LLM/tool calls., Generic security wrapper for present and future LLM/tool calls., Block responses that appear to leak system/developer internals., Block responses that appear to leak system/developer internals. (+4 more)
+Cohesion: 0.15
+Nodes (13): _domain_refusal_message(), Generic security wrapper for present and future LLM/tool calls., Generic security wrapper for present and future LLM/tool calls., Generic security wrapper for present and future LLM/tool calls., Generic security wrapper for present and future LLM/tool calls., Generic security wrapper for present and future LLM/tool calls., Generic security wrapper for present and future LLM/tool calls., Block responses that appear to leak system/developer internals. (+5 more)
 
 ### Community 96 - "Community 96"
 Cohesion: 0.11
 Nodes (17): Deployment Checklist, Environment Setup, For Developers, For Product Managers, Integration Test: Full Pipeline, Key Metrics to Track, Logging, Manual Testing Scenarios (+9 more)
 
 ### Community 97 - "Community 97"
-Cohesion: 0.14
-Nodes (14): _call_claude_model(), _get_async_client(), _get_client(), Low-level Anthropic fallback call (AsyncAnthropic SDK)., Low-level Anthropic fallback call (AsyncAnthropic SDK)., Low-level Anthropic fallback call (AsyncAnthropic SDK)., Create/cache Anthropic client from environment at call-time., Create/cache Anthropic client from environment at call-time. (+6 more)
+Cohesion: 0.11
+Nodes (20): _call_anthropic_httpx_model(), _call_claude_model(), _get_async_client(), _get_client(), Sync-pipeline entry point for the Anthropic fallback call.      Delegates to `_c, Low-level Anthropic fallback call (AsyncAnthropic SDK)., Low-level Anthropic fallback call (AsyncAnthropic SDK)., Async Anthropic fallback using AsyncAnthropic SDK (replaces hand-rolled httpx). (+12 more)
 
 ### Community 98 - "Community 98"
 Cohesion: 0.12
@@ -676,8 +758,8 @@ Cohesion: 0.13
 Nodes (15): All-in-One Verification (1 command), Architecture (30-second version), Checklists for Each Service, ✅ Clerk Working?, Common Commands, ✅ Flask Working?, How They Talk (Simplified), 🚨 If Something Breaks (+7 more)
 
 ### Community 101 - "Community 101"
-Cohesion: 0.12
-Nodes (21): get_prayer(), _get_prayer_refs(), get_siddur_full(), Resolve prayer/service name to a list of Sefaria refs., Resolve prayer/service name to a list of Sefaria refs., Resolve prayer/service name to a list of Sefaria refs., Resolve prayer/service name to a list of Sefaria refs., Resolve prayer/service name to a list of Sefaria refs. (+13 more)
+Cohesion: 0.08
+Nodes (28): get_prayer(), _get_prayer_refs(), get_siddur_full(), Resolve prayer/service name to a list of Sefaria refs., Resolve prayer/service name to a list of Sefaria refs., Resolve prayer/service name to a list of Sefaria refs., Resolve prayer/service name to a list of Sefaria refs., Resolve prayer/service name to a list of Sefaria refs. (+20 more)
 
 ### Community 102 - "Community 102"
 Cohesion: 0.14
@@ -720,24 +802,24 @@ Cohesion: 0.29
 Nodes (6): API integration points, `index.html` responsibilities, Key UI zones, Mobile behavior, Reader system, Templates Notes
 
 ### Community 112 - "Community 112"
-Cohesion: 0.20
-Nodes (8): ShelahEngine service facade.  This module provides a single class that aggregate, find_refs_for_question(), get_daily_study(), Sefaria topic-to-reference lookup table and helpers.  Responsibilities: - Mainta, Fetch daily study schedule from Sefaria, Fetch daily study schedule from Sefaria, Match question keywords to known refs with enhanced matching, Match question keywords to known refs with enhanced matching
+Cohesion: 0.12
+Nodes (17): 7.10 Frontend platform fixes — site-wide findings from the deep scan (Phase 4.7), 7.11 Loading states overhaul — all loading animations, screens, and AI loading, light + dark (Phase 4.8), 7.12 Additional improvements found during this pass, 7.13 AI request timeout & retry resilience — "no premature abort after a couple of tries" (Phase 2.4), 7.14 Invariants to prevent recurrence (from the §7.1.A / §7.13 audit), 7.1.A Status update (2026-06-14): items 1–6 are implemented; two **confirmed production regressions remain**, 7.1 AI source box fix (Phase 2.5) — grounded in confirmed bugs, 7.2 Full test coverage on all Flask routes (Phase 2.6) (+9 more)
 
 ### Community 113 - "Community 113"
 Cohesion: 0.33
 Nodes (5): Engineering, Framer Motion (any future React surfaces), graphify, Mandatory styling & engineering directives, UI/UX Pro Max
 
 ### Community 114 - "Community 114"
-Cohesion: 0.15
-Nodes (13): 5. Halachipedia - https://halachipedia.com, 6. Hebcal API - https://www.hebcal.com/hebcal, 7. Wikipedia API - https://en.wikipedia.org, 🔗 API ENDPOINTS & DATA STRUCTURES, Halachipedia MediaWiki API, Hebcal API, Merkava API (Referenced), 📝 NOTES (+5 more)
+Cohesion: 0.05
+Nodes (40): 1. Sefaria API - https://www.sefaria.org/api, 2. Siddur Kol Yaakov - Traditional Ashkenazi Prayer Book, 3. Merkava Halachic Database, 4. Community Customs Database, 5. Halachipedia - https://halachipedia.com, 6. Hebcal API - https://www.hebcal.com/hebcal, 7. Wikipedia API - https://en.wikipedia.org, 🔗 API ENDPOINTS & DATA STRUCTURES (+32 more)
 
 ### Community 115 - "Community 115"
-Cohesion: 0.12
-Nodes (27): _detect_community_in_text(), ask_async(), AskRequest, async_health(), _build_tool_context(), _collect_primary_sources(), _extract_user_id_from_bearer(), _flatten_sources_for_ai() (+19 more)
+Cohesion: 0.06
+Nodes (47): Vercel serverless entrypoint.  Thin re-export of the canonical ASGI app in `asgi, _detect_community_in_text(), _fetch_user_memory_summaries(), _normalize_rag_text(), ask_async(), AskRequest, async_health(), _build_tool_context() (+39 more)
 
 ### Community 116 - "Community 116"
-Cohesion: 0.17
-Nodes (13): ask_claude(), _call_primary_model(), _call_primary_model_sync(), HalakhicContext, Sync wrapper for Flask WSGI callers.      asyncio.run() creates a fresh event lo, Sync wrapper for Flask WSGI callers.      asyncio.run() creates a fresh event lo, Sync wrapper for Flask callers — runs _call_primary_model in a fresh event loop., Protected Claude wrapper with input and output validation. (+5 more)
+Cohesion: 0.14
+Nodes (15): ask_claude(), _call_primary_model(), _call_primary_model_sync(), HalakhicContext, Sync wrapper for Flask WSGI callers.      asyncio.run() creates a fresh event lo, Sync wrapper for Flask WSGI callers.      asyncio.run() creates a fresh event lo, Protected Claude wrapper with input and output validation., Sync wrapper for Flask WSGI callers.      asyncio.run() creates a fresh event lo (+7 more)
 
 ### Community 117 - "Community 117"
 Cohesion: 0.07
@@ -759,13 +841,9 @@ Nodes (7): Tests for backend/routes_devtools.py routes.  Covers:   - GET /api/de
 Cohesion: 0.40
 Nodes (5): 1️⃣ EXPANDED SEFARIA INTEGRATION, Core Categories:, Enhanced Matching Algorithm, Example Query Flow:, Topics Covered (100+)
 
-### Community 122 - "Community 122"
-Cohesion: 0.22
-Nodes (9): devtools_heartbeat(), library_popular(), Low-noise diagnostics endpoint for inspector/devtools mode., Returns curated popular texts per category., devtools_heartbeat(), Low-noise diagnostics endpoint for inspector/devtools mode., get_popular_texts(), Returns a curated list of canonical starting texts     organized by category for (+1 more)
-
 ### Community 123 - "Community 123"
-Cohesion: 0.20
-Nodes (10): 1) Runtime Flow (High Level), 2) Calendar, Zmanim, Hebcal (Where Each Part Lives), 3) Backend File Notes, 4) Frontend File Notes, 5) Data and Content Files, 6) Utility Scripts, 7) Config + Deployment, 8) Quick Debug Entry Points (+2 more)
+Cohesion: 0.05
+Nodes (8): Coverage-expansion tests for backend/search.py, complementing tests/test_search_, TestCleanHtmlText, TestDailyLearningEdgeCases, TestGetAsyncClient, TestSearchHalachipediaAsyncFull, TestSearchHebrewbooksAsync, TestSearchHebrewbooksSync, TestSearchWikipediaEdgeCases
 
 ### Community 124 - "Community 124"
 Cohesion: 0.40
@@ -808,8 +886,8 @@ Cohesion: 0.09
 Nodes (21): 1. ❌ Variable Name Typo in `backend/claude.py`, 2. ❌ Mixed Hebrew Character in `backend/zmanim_engine.py`, 3. ❌ Inconsistent Parameter Type in `app.py`, ✅ API Error Handling, Code Quality Checks Performed, Conclusion, ✅ Data Flow Analysis, Errors Found and Fixed (+13 more)
 
 ### Community 135 - "Community 135"
-Cohesion: 0.09
-Nodes (24): _coerce_int(), _decode_route_ref(), _lookup_english_word_meaning(), Decode refs that may arrive pre-encoded or double-encoded from clients/proxies., _chapter_export_plain_text(), export_chapter(), get_text_inline(), _init_lazy_imports() (+16 more)
+Cohesion: 0.15
+Nodes (18): _coerce_int(), _extract_search_metadata_filters(), library_search(), _parse_multi_value_arg(), Full-text search across Sefaria texts with report-based removal/fix filtering., Omnibox suggestions: texts, prayers, communities, and AI query option., search_suggest(), library_search() (+10 more)
 
 ### Community 136 - "Community 136"
 Cohesion: 0.13
@@ -840,8 +918,8 @@ Cohesion: 0.12
 Nodes (17): `app.py`, `asgi.py`, `backend/auth.py`, `backend/calendar_service.py`, `backend/claude.py`, `backend/cost_meter.py`, `backend/customs.py`, `backend/data_service.py` (+9 more)
 
 ### Community 162 - "Community 162"
-Cohesion: 0.13
-Nodes (10): authed(), Tests for backend/routes_user.py routes.  Covers:   - GET  /api/user/preferences, Unauthenticated users get client-side-only storage — still 200., Backward-compat /api/preferences alias must also enforce auth., Make `require_clerk_auth`/`maybe_require_clerk_auth` accept any Bearer     token, Unauthenticated users get client-side-only storage — still 200., Backward-compat /api/preferences alias must also enforce auth., TestAcceptLegal (+2 more)
+Cohesion: 0.09
+Nodes (13): authed(), Tests for backend/routes_user.py routes.  Covers:   - GET  /api/user/preferences, Unauthenticated users get client-side-only storage — still 200., Backward-compat /api/preferences alias must also enforce auth., Make `require_clerk_auth`/`maybe_require_clerk_auth` accept any Bearer     token, Unauthenticated users get client-side-only storage — still 200., Backward-compat /api/preferences alias must also enforce auth., TestAcceptLegal (+5 more)
 
 ### Community 163 - "Community 163"
 Cohesion: 0.12
@@ -860,12 +938,12 @@ Cohesion: 0.18
 Nodes (11): 1. CORE_SYSTEM_PROMPT Refactoring, 2. Domain Validation Refactoring, 3. Detection Logic Refactoring, 4. Prompt Building Enhancement, 5. Response Validation Logic Update, A. Role and Philosophy (NEW), B. Expanded Scope Definition (UPDATED), C. New Tone Guidance (NEW) (+3 more)
 
 ### Community 167 - "Community 167"
-Cohesion: 0.24
-Nodes (4): _CircuitState, Return True if the service is considered available.          If the circuit is h, Per-service circuit-breaker state., True when circuit is open but recovery interval has elapsed.
+Cohesion: 0.20
+Nodes (5): _CircuitState, Return True if the service is considered available.          If the circuit is h, Explicitly probe a service and update circuit state. Returns bool., Per-service circuit-breaker state., True when circuit is open but recovery interval has elapsed.
 
 ### Community 168 - "Community 168"
-Cohesion: 0.10
-Nodes (21): _call_gemini_model(), _configure_gemini_client(), _extract_gemini_response_text(), _generate_gemini_content_with_retry(), Generate a concise chevruta study summary for semantic bookmarks., Generate a concise chevruta study summary for semantic bookmarks., Generate a concise chevruta study summary for semantic bookmarks., Generate a concise chevruta study summary for semantic bookmarks. (+13 more)
+Cohesion: 0.20
+Nodes (10): _call_gemini_httpx_model(), _configure_gemini_client(), Async Gemini primary call using google-genai SDK (replaces hand-rolled httpx)., Async Gemini primary call using google-genai SDK (replaces hand-rolled httpx)., Async Gemini primary call using google-genai SDK (replaces hand-rolled httpx)., Async Gemini primary call using google-genai SDK (replaces hand-rolled httpx)., Configure Gemini client and return an error string on failure., Create/cache google-genai Client; return error string on failure. (+2 more)
 
 ### Community 169 - "Community 169"
 Cohesion: 0.20
@@ -877,15 +955,15 @@ Nodes (8): estimate_cost_usd(), _insert_usage_row(), Any, LLM and translation AP
 
 ### Community 171 - "Community 171"
 Cohesion: 0.20
-Nodes (11): _cached_get(), _disk_cache_get(), _disk_cache_path(), _disk_cache_set(), Path, Cached HTTP GET wrapper — checks memory → disk → network., Cached HTTP GET wrapper — checks memory → disk → network., Load a cached response from disk if it exists and is not stale. (+3 more)
+Nodes (10): 1) Runtime Flow (High Level), 2) Calendar, Zmanim, Hebcal (Where Each Part Lives), 3) Backend File Notes, 4) Frontend File Notes, 5) Data and Content Files, 6) Utility Scripts, 7) Config + Deployment, 8) Quick Debug Entry Points (+2 more)
 
 ### Community 172 - "Community 172"
-Cohesion: 0.20
-Nodes (10): Business & Ethics (Hilchot Choref HaMishpat), 📖 HALAKHIC TOPIC INDEX, Holiday Laws (Hilchot Yom Tov), Kashrut (Dietary Laws - Hilchot Kashrut), Life Cycle (Hilchot Nishuin v'Gerushin), Medical & Health (Hilchot Pikuach Nefesh), Passover Laws (Hilchot Pesach), Prayer & Devotions (Tefillah & Avodah) (+2 more)
+Cohesion: 0.11
+Nodes (18): 0. Acknowledgement & understanding, 10.1 README.md — full update, 10.2 Licensing — recommendation: **yes, add an MIT LICENSE (for your code), plus a NOTICES file**, 10.3 GitHub profile update (via Claude-in-Chrome connector), 10. README, licensing, and GitHub profile, 11. Deploy blocker — Vercel "Unmatched function pattern" (`asgi.py`) — ✅ IMPLEMENTED (Option A, 2026-07-02), 1. Target architecture, 2. ⚠️ Critical pre-flight finding — live, divergent duplication (must resolve, "dangerous if ignored") (+10 more)
 
 ### Community 173 - "Community 173"
-Cohesion: 0.33
-Nodes (6): maybe_limit(), Apply rate limiting when Flask-Limiter is available., Apply rate limiting when Flask-Limiter is available., Apply rate limiting when Flask-Limiter is available., Apply rate limiting when Flask-Limiter is available., Apply rate limiting when Flask-Limiter is available.
+Cohesion: 0.29
+Nodes (7): maybe_limit(), Apply rate limiting when Flask-Limiter is available., Apply rate limiting when Flask-Limiter is available., Apply rate limiting when Flask-Limiter is available., Apply rate limiting when Flask-Limiter is available., Apply rate limiting when Flask-Limiter is available., Apply rate limiting when Flask-Limiter is available.
 
 ### Community 174 - "Community 174"
 Cohesion: 0.25
@@ -900,20 +978,20 @@ Cohesion: 0.40
 Nodes (5): HalakhicContext, Structured container for AI context to simplify function signatures., Structured container for AI context to simplify function signatures., Structured container for AI context to simplify function signatures., Structured container for AI context to simplify function signatures.
 
 ### Community 178 - "Community 178"
-Cohesion: 0.29
-Nodes (4): health(), Unit tests for backend/health_check.py circuit-breaker logic.  Covers:   - Fresh, Fresh isolated APIHealth instance per test., TestStatusSummary
+Cohesion: 0.16
+Nodes (8): APIHealth, Thread-safe, in-process circuit breaker for external APIs., Return a dict of {service: status} for the health dashboard., health(), Unit tests for backend/health_check.py circuit-breaker logic.  Covers:   - Fresh, Fresh isolated APIHealth instance per test., TestRecordSuccess, TestStatusSummary
 
 ### Community 179 - "Community 179"
-Cohesion: 0.33
-Nodes (4): APIHealth, Thread-safe, in-process circuit breaker for external APIs., Explicitly probe a service and update circuit state. Returns bool., Return a dict of {service: status} for the health dashboard.
+Cohesion: 0.05
+Nodes (9): Supplementary coverage tests for backend/helpers.py, targeting branches tests/te, TestCanonicalizeCommunityNameExactMatch, TestCollectWordMeaningAlternatives, TestCompactAiSourcesLongHebrewTruncation, TestDecodeRouteRef, TestFillMissingEnglishLines, TestLooksLikeTransliterationEdgeCases, TestLookupHebrewWordMeaningFullChain (+1 more)
 
 ### Community 180 - "Community 180"
-Cohesion: 0.09
-Nodes (25): _build_trusted_custom_sources(), _canonicalize_community_name(), get_community(), get_community_timeline(), Build a stable source list from trusted halachic authorities in community files., Build a stable source list from trusted halachic authorities in community files., Build a stable source list from trusted halachic authorities in community files., Build a stable source list from trusted halachic authorities in community files. (+17 more)
+Cohesion: 0.06
+Nodes (7): Supplementary coverage tests for backend/zmanim_engine.py, targeting branches te, TestCacheCoord, TestGetCommunityZmanimBranches, TestGetMonthlyEventsBranches, TestGetOmerInfo, TestGetWeeklyShabbatParasha, TestResolveTimezone
 
 ### Community 181 - "Community 181"
-Cohesion: 0.07
-Nodes (27): async_search_halachipedia(), async_search_hebrewbooks(), async_search_wikipedia(), _cached_lookup(), _cached_store(), _clean_html_text(), get_daily_learning(), External knowledge search connectors.  Contains lightweight wrappers for: - Wiki (+19 more)
+Cohesion: 0.06
+Nodes (36): AsyncClient, async_search_halachipedia(), async_search_hebrewbooks(), async_search_wikipedia(), _cached_lookup(), _cached_store(), _clean_html_text(), _get_async_client() (+28 more)
 
 ### Community 182 - "Community 182"
 Cohesion: 0.20
@@ -929,11 +1007,11 @@ Nodes (3): is_healthy() triggers an inline probe when should_probe() returns Tru
 
 ### Community 185 - "Community 185"
 Cohesion: 0.11
-Nodes (8): RuntimeError, _FakeSupabaseClient, Fake Supabase client whose `.table(name)` always returns the same     pre-config, Legacy rows stored the prefs JSON directly (no nested shelf/notes keys)., Current rows nest prefs/shelf/notes/reading_state under `prefs`., A malformed (non-dict) row in `.data` should fall back to nulls., shelf/notes/reading_state are optional and default to {}., TestUserPreferences
+Nodes (5): Legacy rows stored the prefs JSON directly (no nested shelf/notes keys)., Current rows nest prefs/shelf/notes/reading_state under `prefs`., A malformed (non-dict) row in `.data` should fall back to nulls., shelf/notes/reading_state are optional and default to {}., TestUserPreferences
 
 ### Community 186 - "Community 186"
-Cohesion: 0.06
-Nodes (17): Any, backend/cache.py  Shared bounded TTL + LRU cache.  Replaces the ≥6 hand-rolled c, Thread-safe LRU + TTL in-memory cache.      Evicts expired entries on access and, Return cached value or call fetch_fn, cache its result, and return it., TTLCache, fake_clock(), _FakeClock, Tests for backend/cache.py's TTLCache utility.  Written before TTLCache gets ado (+9 more)
+Cohesion: 0.13
+Nodes (6): Thread-safe LRU + TTL in-memory cache.      Evicts expired entries on access and, TTLCache, TestBasicGetSet, TestDeleteAndClear, TestGetOrFetch, TestLRUEviction
 
 ### Community 187 - "Community 187"
 Cohesion: 0.15
@@ -963,13 +1041,17 @@ Nodes (4): After Refactoring, Before Refactoring, Example 6: Borderline Query - 
 Cohesion: 0.50
 Nodes (4): API Surface, Backward Compatibility, Implementation Notes, Performance Impact
 
+### Community 194 - "Community 194"
+Cohesion: 0.14
+Nodes (3): Tests for backend/auth.py — Clerk JWT verification and route-auth decorators.  S, TestGetClerkJwksClient, TestVerifyClerkToken
+
 ### Community 195 - "Community 195"
-Cohesion: 0.06
-Nodes (46): api_preferences_alias(), _build_interaction_summary(), _capture_backend_error(), client_errors(), _env_int(), _extract_client_ip(), _fetch_user_memory_summaries(), _get_supabase_client() (+38 more)
+Cohesion: 0.05
+Nodes (59): clerk_auth_me(), devtools_rls_audit(), _env_int(), _extract_bearer_token(), _extract_supabase_access_token(), _extract_supabase_token_from_cookie_value(), _get_request_supabase_client(), _get_request_user_id() (+51 more)
 
 ### Community 197 - "Community 197"
-Cohesion: 0.25
-Nodes (5): PyluachEngine, Check if date is a holiday using Pyluach., Pyluach-first calendar engine with Hebcal validation., Convert Gregorian date to Hebrew date using Pyluach., Get Torah portion for the week (from Hebcal API).
+Cohesion: 0.12
+Nodes (8): PyluachEngine, Check if date is a holiday using Pyluach., Pyluach-first calendar engine with Hebcal validation., Convert Gregorian date to Hebrew date using Pyluach., Get Torah portion for the week (from Hebcal API)., Tests for backend/calendar_service.py (PyluachEngine) — Gregorian<->Hebrew date, TestCalendarEngineSingleton, TestGregorianToHebrew
 
 ### Community 198 - "Community 198"
 Cohesion: 0.22
@@ -984,40 +1066,40 @@ Cohesion: 0.32
 Nodes (3): Moved, Sefaria Integration System, Jewish Text Sources
 
 ### Community 201 - "Community 201"
-Cohesion: 0.50
-Nodes (4): api_communities_alias(), get_communities_list(), Returns list of available communities., /api/communities → /api/communities/list (backward compat).
+Cohesion: 0.18
+Nodes (11): 8. Production-readiness program — everything required to launch safely, A. Legal documents & disclosures (attorney-review gated), B-AGE. Minimum age = 13+ and age-appropriate AI output (decision + implementation), B. AI-specific liability & religious-guidance safety (the highest-risk area), C. Security hardening (pre-launch gate), D. Privacy operations (makes the policy real, not just words), E. Reliability, observability & operations, F. Quality, accessibility & content integrity (+3 more)
 
 ### Community 202 - "Community 202"
 Cohesion: 0.15
 Nodes (7): One malformed file should be logged, but a valid sibling file         must still, Files without a top-level 'name' key are treated as legacy         flat-dict for, customs_db.json and schema.json are explicitly skipped even if         they woul, A customs file whose root JSON value is a list (not an object)         should fa, Sanity check against the actual customs/*.json files shipped in         the repo, TestValidateAllCustomsAtStartup, _write_json()
 
 ### Community 203 - "Community 203"
-Cohesion: 0.17
-Nodes (12): _check_rate_limit(), _get_client_ip(), Extract client IP from Cloudflare or standard proxy headers., Extract client IP from Cloudflare or standard proxy headers., Extract client IP from Cloudflare or standard proxy headers., Return True if the request is allowed, False if rate-limited., Extract client IP from Cloudflare or standard proxy headers., Return True if the request is allowed, False if rate-limited.      Uses an Order (+4 more)
+Cohesion: 0.22
+Nodes (9): 9.1 Design principles, 9.2 Tool catalog (wrapping existing backend functions — no new logic, just exposure), 9.2b Additional tools (also wrapping existing backend functions), 9.3 Web-search last-resort gating (belt **and** suspenders), 9.4 Orchestration, 9.5 Safety, cost, and reliability integration, 9.6 Tests, 9.7 Docs & rules (+1 more)
 
 ### Community 205 - "Community 205"
-Cohesion: 0.50
-Nodes (4): api_health_alias(), Return runtime readiness for Bento stack components., /api/health → /api/stack/health (backward compat)., stack_health()
+Cohesion: 0.25
+Nodes (7): 0. Executive summary, 1. Workspace organization (done), 2. System directives (done), 4. Python performance / resource / async-safety summary, 5. Zero-breakage strategy, 6. Proposed sequencing, Sh'elah — Optimization Roadmap (`plan.md`)
 
 ### Community 206 - "Community 206"
 Cohesion: 0.17
 Nodes (5): _minimal_structured_custom(), customs_db.json is explicitly retired from active browsing and         must neve, A minimal v2.x structured customs file matching the real shape., Sanity check against real customs/*.json files — must load         without raisi, TestLoadAllCustoms
 
 ### Community 207 - "Community 207"
-Cohesion: 0.13
+Cohesion: 0.14
 Nodes (4): _FakeQuery, _FakeResult, Minimal stand-in for postgrest's APIResponse (only `.data` is read)., Chainable fake query builder: every chain method returns self, and     `.execute
 
 ### Community 208 - "Community 208"
-Cohesion: 0.20
-Nodes (10): 2. Siddur Kol Yaakov - Traditional Ashkenazi Prayer Book, 3. Merkava Halachic Database, 4. Community Customs Database, **Communities & Sources**, **Customs Database Core (customs_db.json)**, **Daily Prayer Services**, **Halachic Components**, 📚 PRIMARY SOURCES (+2 more)
+Cohesion: 0.43
+Nodes (5): _find_int_env_constants(), _load_sources(), Path, Dead-config lint (plan.md §7.14 invariant #2).  `AI_MODEL_TIMEOUT_SECONDS`/`MODE, TestIntEnvConstantsAreUsed
 
 ### Community 209 - "Community 209"
 Cohesion: 0.15
 Nodes (9): Mocked Sefaria: /api/text/<ref> should return 200 with expected keys., Response body must be a dict (either success payload or error)., When Sefaria returns 500, our route must not propagate 500., Mocked Sefaria: /api/text/<ref> should return 200 with expected keys., Response body must be a dict (either success payload or error)., Empty ref string should be rejected with 400., When Sefaria returns 500, our route must not propagate 500., Empty ref string should be rejected with 400. (+1 more)
 
 ### Community 210 - "Community 210"
-Cohesion: 0.17
-Nodes (12): Real-time availability probe for the upstream Sefaria API.     Returns status fo, sefaria_diagnostics(), _build_text_url(), _build_v3_text_url(), check_sefaria_availability(), _encode_ref_path(), Encode a Sefaria ref/title safely for path-style API endpoints., Encode a Sefaria ref/title safely for path-style API endpoints. (+4 more)
+Cohesion: 0.11
+Nodes (19): Real-time availability probe for the upstream Sefaria API.     Returns status fo, sefaria_diagnostics(), get_text_inline(), Fetches a Sefaria text inline — Hebrew + English + metadata., Fetches a Sefaria text inline — Hebrew + English + metadata., Real-time availability probe for the upstream Sefaria API.     Returns status fo, Fetches a Sefaria text inline — Hebrew + English + metadata., Real-time availability probe for the upstream Sefaria API.     Returns status fo (+11 more)
 
 ### Community 211 - "Community 211"
 Cohesion: 0.33
@@ -1032,24 +1114,20 @@ Cohesion: 0.40
 Nodes (5): 2. Local Development Verification, A. Flask Backend Connection Check, B. Check Supabase Connection, C. Check Clerk Integration, D. Check Sefaria Integration (Third-party API)
 
 ### Community 214 - "Community 214"
-Cohesion: 0.12
-Nodes (20): ask_ai_async(), _build_dynamic_system_context(), build_prompt(), _detail_expectation_for_question(), _format_extra_context(), _is_simple_question(), Async AI entrypoint (httpx) for ASGI deployments., Async AI entrypoint for ASGI deployments. (+12 more)
-
-### Community 215 - "Community 215"
-Cohesion: 0.15
-Nodes (14): _coerce_ai_answer_shape(), _decode_jsonish_text(), _extract_action_steps_from_ruling(), _extract_jsonish_string_array_field(), _extract_jsonish_string_field(), _is_detail_requested(), _looks_like_leaked_structured_payload(), Stabilize model output shape so UI always gets readable sections. (+6 more)
+Cohesion: 0.11
+Nodes (21): ask_ai_async(), _build_dynamic_system_context(), build_prompt(), _detail_expectation_for_question(), _format_extra_context(), _is_simple_question(), Async AI entrypoint for ASGI deployments., Async AI entrypoint (httpx) for ASGI deployments. (+13 more)
 
 ### Community 216 - "Community 216"
-Cohesion: 0.13
-Nodes (16): _coerce_coordinate(), daily_study_api(), get_engine(), get_zmanim_api(), get_zmanim_month(), index(), Return daily refs for Daf Yomi, Rambam, and related daily study prewarming., set_location() (+8 more)
+Cohesion: 0.22
+Nodes (9): 12.0 Claim triage (verified 2026-07-02), 12.1 About page (`/about`) — trust & transparency, 12.2 Learner-facing help content, 12.3 Library discoverability & reader polish, 12.4 Answer feedback loop (synthesis accuracy), 12.5 SEO & privacy-respecting analytics, 12.6 Deferred registry (explicitly not planned — revisit post-launch with data), 12.7 Tests & exit criteria (+1 more)
 
 ### Community 217 - "Community 217"
-Cohesion: 0.21
-Nodes (12): AskPipelineResult, _flatten_sources_for_ai(), Any, Transport-agnostic async ask pipeline for Sh'elah (NOT YET ADOPTED).  Intent: bo, Orchestrate a full /ask request asynchronously.      All blocking I/O is wrapped, Orchestrate a full /ask request asynchronously.      All blocking I/O is wrapped, Collapse structured source dicts into flat {ref, text} pairs for the AI., Collapse structured source dicts into flat {ref, text} pairs for the AI. (+4 more)
+Cohesion: 0.06
+Nodes (29): AskPipelineResult, _flatten_sources_for_ai(), Any, Transport-agnostic async ask pipeline for Sh'elah (NOT YET ADOPTED).  Intent: bo, Orchestrate a full /ask request asynchronously.      All blocking I/O is wrapped, Orchestrate a full /ask request asynchronously.      All blocking I/O is wrapped, Collapse structured source dicts into flat {ref, text} pairs for the AI., Collapse structured source dicts into flat {ref, text} pairs for the AI. (+21 more)
 
 ### Community 218 - "Community 218"
-Cohesion: 0.14
-Nodes (4): Tests for backend/helpers.py — Hebrew text utilities, normalization, translation, TestBoundedCacheSet, TestTranslateHebrewTextGoogle, TestTranslateHebrewTextMymemory
+Cohesion: 0.12
+Nodes (4): Tests for backend/helpers.py — Hebrew text utilities, normalization, translation, TestContainsHebrewLetters, TestTranslateHebrewTextGoogle, TestTranslateHebrewTextMymemory
 
 ### Community 219 - "Community 219"
 Cohesion: 0.18
@@ -1060,8 +1138,8 @@ Cohesion: 0.17
 Nodes (4): TRANSLATION_CACHE/TRANSLATION_SOURCE_CACHE are plain module-level dicts, Upstream dictionary API failure → no meaning found → 404, not 500., Hebrew input routes through _lookup_hebrew_word_meaning — mock the         Sefar, TestWordMeaning
 
 ### Community 224 - "Community 224"
-Cohesion: 0.18
-Nodes (6): Tests for the /ask pipeline (Flask sync + FastAPI ASGI async).  Covers:   - POST, Regression guard for the colon-splitting bug in templates/index.html's     popul, A model call that exceeds AI_TOTAL_BUDGET_SECONDS must fall through to         t, TestAiCitationFormatPrompt, TestAiModelTimeoutWiring, TestAiTotalBudgetTimeout
+Cohesion: 0.22
+Nodes (5): Tests for the /ask pipeline (Flask sync + FastAPI ASGI async).  Covers:   - POST, Regression guard for the colon-splitting bug in templates/index.html's     popul, Regression guard for the colon-splitting bug in templates/index.html's     popul, TestAiCitationFormatPrompt, TestAiModelTimeoutWiring
 
 ### Community 226 - "Community 226"
 Cohesion: 0.18
@@ -1087,6 +1165,10 @@ Nodes (9): _format_context_items(), format_customs(), Format community knowledge
 Cohesion: 0.22
 Nodes (9): format_sefaria_sources(), format_user_memories(), Format compact Sefaria snippets for token-light prompts., Format compact Sefaria snippets for token-light prompts., Format compact Sefaria snippets for token-light prompts., Format compact Sefaria snippets for token-light prompts., Format recent user memory summaries for identity-aware continuity., Format recent user memory summaries for identity-aware continuity. (+1 more)
 
+### Community 235 - "Community 235"
+Cohesion: 0.09
+Nodes (8): RuntimeError, _FakeSupabaseClient, Fake Supabase client whose `.table(name)` always returns the same     pre-config, No ai_summary supplied + segment_text present → calls summarize_with_gemini,, TestAcceptLegalAuthenticated, TestGetAskHistory, TestListTodos, TestSemanticBookmarks
+
 ### Community 236 - "Community 236"
 Cohesion: 0.22
 Nodes (4): _isolate_memory_cache_from_disk_tier(), Characterization tests for backend/sefaria_library.py's memory-tier cache (_cach, Force every _cached_get call to skip the disk tier, so these tests     exercise, TestCachedGetMemoryTier
@@ -1097,19 +1179,19 @@ Nodes (5): _clear_hebcal_caches(), Characterization tests for the hand-rolled He
 
 ### Community 238 - "Community 238"
 Cohesion: 0.25
-Nodes (8): _fill_missing_english_lines(), get_text_inline(), Fill missing English lines when Hebrew is available and translation can be gener, Fill missing English lines when Hebrew is available and translation can be gener, Fill missing English lines when Hebrew is available and translation can be gener, Fill missing English lines when Hebrew is available and translation can be gener, Fill missing English lines when Hebrew is available and translation can be gener, Fetches a Sefaria text inline — Hebrew + English + metadata.
+Nodes (4): _get_clerk_jwks_client(), maybe_require_clerk_auth(), Clerk authentication helpers for Sh'elah.  Extracted verbatim from ``app.py`` (P, Calendar Service - Pyluach-first date orchestrator for Sh'elah Primary source of
 
 ### Community 239 - "Community 239"
-Cohesion: 0.25
-Nodes (8): `app.py`, `backend/calendar_service.py`, `backend/claude.py`, `backend/data_service.py`, `backend/search.py`, Files NOT Modified (But Now Work Better), Integration Point Files, `templates/index.html`
+Cohesion: 0.17
+Nodes (4): _FakeSupabaseClient, TestRetrieveCommunityKnowledge, TestStoreAskHistory, TestStoreUserMemorySummary
 
 ### Community 240 - "Community 240"
 Cohesion: 0.25
 Nodes (7): AI Provider Order Verification, Build/Diagnostics, Final UI + Runtime Audit Results, Live Runtime Audit (Desktop + Mobile), Notes, Screenshots Captured, Verified UI Requirements
 
 ### Community 241 - "Community 241"
-Cohesion: 0.25
-Nodes (5): Minimal smoke test for backend/ask_pipeline.py.  ask_pipeline.py is explicitly N, import backend.ask_pipeline must succeed with no side effects/errors., AskPipelineResult is a __slots__-based class whose __init__ sets every     slot, test_ask_pipeline_result_constructs_with_no_args_and_defaults_to_none(), test_module_imports_cleanly()
+Cohesion: 0.40
+Nodes (5): _generate_gemini_content_with_retry(), Retry Gemini content generation only for ResourceExhausted (429)., Retry Gemini content generation only for ResourceExhausted (429)., Retry Gemini content generation only for ResourceExhausted (429)., Retry Gemini content generation only for ResourceExhausted (429).
 
 ### Community 244 - "Community 244"
 Cohesion: 0.25
@@ -1119,33 +1201,49 @@ Nodes (3): era/author/category/geography/nusach query params should not crash th
 Cohesion: 0.25
 Nodes (3): max is coerced via _coerce_int(min=1, max=260); an out-of-range value         mu, get_index_leaf_refs/get_index_entry raising must be swallowed (route         wra, TestLibraryLeafRefs
 
+### Community 247 - "Community 247"
+Cohesion: 0.10
+Nodes (7): Supplementary coverage tests for the three smallest-gap blueprints: backend/rout, TestCommunityApiAlias, TestCommunityDetailExceptionPath, TestCommunityTimelineDataShapes, TestPrayerPreviewFallbacks, TestSegmentReport, TestSiddurFullFallback
+
 ### Community 252 - "Community 252"
 Cohesion: 0.33
 Nodes (6): Test 1: Is Supabase connected?, Test 2: Is Clerk issuer reachable?, Test 3: Can Flask start?, Test 4: Can Flask reach Supabase?, Test 5: Is Vercel deploying?, Testing Each Connection
 
 ### Community 256 - "Community 256"
-Cohesion: 0.40
-Nodes (5): ✅ Code Changes, ✅ Documentation, Integration Checklist, ✅ Integration Quality, ✅ Testing
+Cohesion: 0.33
+Nodes (6): 4. THE PHASED PLAN, PHASE 1 — Extract Text & Formatting Operations → `backend/utils/text_engine.py`, PHASE 2 — Extract Retrieval & Corpus Matching → `backend/utils/search_provider.py`, PHASE 3 — Circuit-breaker hardening on `search_provider` network calls, PHASE 4 — Streamline `app.py` & finalize wiring, PHASE 5 — Advanced Concurrent Fault-Tolerance & Thread Isolation
 
 ### Community 257 - "Community 257"
-Cohesion: 0.40
-Nodes (5): Deployment Notes, No Configuration Changes, No Database Changes, No Dependency Changes, Testing After Deployment
+Cohesion: 0.10
+Nodes (7): Coverage-expansion tests for the remaining small-gap backend modules: cost_meter, TestFindRefsForQuestionFallback, TestGetDailyStudyDoubleFailure, TestInsertUsageRow, TestRecordLlmCall, TestSearchCustomsMalformedData, TestShelahEngineGetLibraryText
+
+### Community 264 - "Community 264"
+Cohesion: 0.10
+Nodes (5): Supplementary coverage tests for backend/routes_library.py, targeting the specif, TestExportChapterUnavailableFormats, TestLibraryLeafRefsTalmudSynthesis, TestSearchSuggestLoops, TestWordMeaningTranslationFallback
+
+### Community 265 - "Community 265"
+Cohesion: 0.11
+Nodes (5): Supplementary coverage tests for backend/routes_calendar.py, covering routes and, TestDailyStudy, TestHolidaysFallbackChain, TestParashaFallbackChain, TestSetLocation
 
 ### Community 266 - "Community 266"
-Cohesion: 0.50
-Nodes (4): 3. **INTEGRATION_GUIDE.md** (1500+ words), 4. **INTEGRATION_SUMMARY.md** (1000+ words), 5. **QUICK_START.md** (1000 words), New Documentation Files
+Cohesion: 0.10
+Nodes (7): Coverage-expansion tests for backend/claude.py's pure logic layer: query/output, TestBuildDynamicSystemContext, TestDomainRefusalMessage, TestExtractGeminiResponseText, TestGetClient, TestSanitizePromptPayload, TestValidateModelOutput
 
 ### Community 267 - "Community 267"
-Cohesion: 0.50
-Nodes (4): Code Coverage, Integration Depth, Performance Impact, Quick Statistics Summary
+Cohesion: 0.25
+Nodes (8): `app.py`, `backend/calendar_service.py`, `backend/claude.py`, `backend/data_service.py`, `backend/search.py`, Files NOT Modified (But Now Work Better), Integration Point Files, `templates/index.html`
 
 ### Community 268 - "Community 268"
-Cohesion: 0.50
-Nodes (4): If Something Breaks:, Support & Maintenance, To Debug:, To Extend:
+Cohesion: 0.12
+Nodes (6): Coverage-expansion tests for backend/sefaria_library.py's public API and pure lo, TestBuildTextUrl, TestFlattenIndexTitles, TestGetIndexEntry, TestGetPopularTexts, TestSplitTitleSuffix
 
 ### Community 269 - "Community 269"
 Cohesion: 0.50
 Nodes (3): When RATE_LIMIT_PER_MIN=1 the second request from same IP should get 429., When RATE_LIMIT_PER_MIN=1 the second request from same IP should get 429., TestAskRateLimit
+
+### Community 271 - "Community 271"
+Cohesion: 0.20
+Nodes (11): _cached_get(), _disk_cache_get(), _disk_cache_path(), _disk_cache_set(), Path, Cached HTTP GET wrapper — checks memory → disk → network., Cached HTTP GET wrapper — checks memory → disk → network., Load a cached response from disk if it exists and is not stale. (+3 more)
 
 ### Community 272 - "Community 272"
 Cohesion: 0.67
@@ -1155,25 +1253,113 @@ Nodes (3): _get_omer_info(), Return Omer day information (1-49) or None when out
 Cohesion: 0.67
 Nodes (3): _get_weekly_shabbat_parasha(), Resolve this week's Shabbat parasha name (normalized without `Parashat` prefix)., Resolve this week's Shabbat parasha name (normalized without `Parashat` prefix).
 
+### Community 275 - "Community 275"
+Cohesion: 0.20
+Nodes (8): backend/cache.py  Shared bounded TTL + LRU cache.  Replaces the ≥6 hand-rolled c, find_refs_for_question(), get_daily_study(), Sefaria topic-to-reference lookup table and helpers.  Responsibilities: - Mainta, Fetch daily study schedule from Sefaria, Fetch daily study schedule from Sefaria, Match question keywords to known refs with enhanced matching, Match question keywords to known refs with enhanced matching
+
+### Community 276 - "Community 276"
+Cohesion: 0.07
+Nodes (6): Tests for backend/logging_setup.py — structured JSON logging, request-id context, TestCaptureBackendError, TestGetLogger, TestJSONFormatter, TestRequestIdBinding, TestSetupLogging
+
+### Community 277 - "Community 277"
+Cohesion: 0.29
+Nodes (3): _mock_calendars_response(), Characterization tests for the _DAILY_STUDY_CACHE singleton entry in backend/sef, TestDailyStudyCache
+
+### Community 278 - "Community 278"
+Cohesion: 0.50
+Nodes (3): One-time (setup / migration), Repeatable (safe to re-run anytime), `scripts/` index
+
+### Community 279 - "Community 279"
+Cohesion: 0.50
+Nodes (3): A model call that exceeds AI_TOTAL_BUDGET_SECONDS must fall through to         t, A model call that exceeds AI_TOTAL_BUDGET_SECONDS must fall through to         t, TestAiTotalBudgetTimeout
+
+### Community 280 - "Community 280"
+Cohesion: 0.50
+Nodes (4): library_index(), Returns report-adjusted Sefaria library tree (non-loading removals pruned, fix r, Returns report-adjusted Sefaria library tree (non-loading removals pruned, fix r, Returns report-adjusted Sefaria library tree (non-loading removals pruned, fix r
+
+### Community 281 - "Community 281"
+Cohesion: 0.22
+Nodes (3): Supplementary coverage for app.py/asgi.py top-level routes not measured by --cov, TestAsyncHealthEndpoint, TestSettingsAndProfileRoutesResolve
+
+### Community 289 - "Community 289"
+Cohesion: 0.43
+Nodes (3): _probe_claude(), Anthropic availability — just check that the models list endpoint responds., TestProbeClaude
+
+### Community 291 - "Community 291"
+Cohesion: 0.33
+Nodes (4): fake_clock(), _FakeClock, Tests for backend/cache.py's TTLCache utility.  Written before TTLCache gets ado, Deterministic monotonic clock for TTL tests — avoids real sleeps.
+
+### Community 300 - "Community 300"
+Cohesion: 0.47
+Nodes (3): _probe_gemini(), Gemini availability — just check that the models list endpoint responds., TestProbeGemini
+
+### Community 312 - "Community 312"
+Cohesion: 0.40
+Nodes (5): 1. Merkava Integration, 2. Siddur Kol Yaakov, 3. Unified Source Fetching, 4. Expanded Topics, What Was Added
+
+### Community 313 - "Community 313"
+Cohesion: 0.40
+Nodes (5): CSS Classes (For Frontend), Display Community Customs, Display Halacha Rulings, Display Prayer Content, Display Sources
+
+### Community 314 - "Community 314"
+Cohesion: 0.40
+Nodes (5): Development Tips, To Add a New Merkava Topic:, To Add a New Sefaria Topic:, To Add Siddur Component:, To Extend Community Support:
+
+### Community 327 - "Community 327"
+Cohesion: 0.40
+Nodes (5): Deployment Notes, No Configuration Changes, No Database Changes, No Dependency Changes, Testing After Deployment
+
+### Community 329 - "Community 329"
+Cohesion: 0.50
+Nodes (4): In `app.py`:, In `backend/claude.py`:, In Frontend (`templates/index.html`):, Integration with Existing Code
+
+### Community 330 - "Community 330"
+Cohesion: 0.50
+Nodes (4): Main Functions, Main Integration Function, Merkava Functions, Siddur Functions
+
+### Community 337 - "Community 337"
+Cohesion: 0.22
+Nodes (3): _FakeResult, Coverage-expansion tests for backend/rag.py.  rag.py resolves its `app` collabor, TestBuildAskToolContext
+
+### Community 351 - "Community 351"
+Cohesion: 0.50
+Nodes (4): library_popular(), Returns curated popular texts per category., Returns curated popular texts per category., Returns curated popular texts per category.
+
+### Community 352 - "Community 352"
+Cohesion: 0.50
+Nodes (4): 3. **INTEGRATION_GUIDE.md** (1500+ words), 4. **INTEGRATION_SUMMARY.md** (1000+ words), 5. **QUICK_START.md** (1000 words), New Documentation Files
+
+### Community 353 - "Community 353"
+Cohesion: 0.50
+Nodes (4): Code Coverage, Integration Depth, Performance Impact, Quick Statistics Summary
+
+### Community 354 - "Community 354"
+Cohesion: 0.50
+Nodes (4): If Something Breaks:, Support & Maintenance, To Debug:, To Extend:
+
+### Community 357 - "Community 357"
+Cohesion: 0.67
+Nodes (3): backend/sefaria.py, Code Statistics, style.css
+
 ## Knowledge Gaps
-- **1304 isolated node(s):** `PreToolUse`, `LogRecord`, `Path`, `version`, `type` (+1299 more)
+- **1380 isolated node(s):** `PreToolUse`, `LogRecord`, `Path`, `version`, `type` (+1375 more)
   These have ≤1 connection - possible missing edges or undocumented components.
-- **64 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
+- **120 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
 
 ## Suggested Questions
 _Questions this graph is uniquely positioned to answer:_
 
-- **Why does `get_text()` connect `Community 101` to `Community 2`, `Community 135`, `Community 105`, `Community 171`, `Community 238`, `Community 112`, `Community 210`, `Community 216`, `Community 24`?**
-  _High betweenness centrality (0.024) - this node is a cross-community bridge._
-- **Why does `ask_question()` connect `Community 47` to `Community 2`, `Community 195`, `Community 115`, `Community 180`, `Community 53`, `Community 20`, `Community 215`, `Community 216`, `Community 185`?**
-  _High betweenness centrality (0.015) - this node is a cross-community bridge._
-- **Why does `TTLCache` connect `Community 186` to `Community 112`, `Community 68`, `Community 181`?**
+- **Why does `get_text()` connect `Community 101` to `Community 1`, `Community 2`, `Community 105`, `Community 46`, `Community 271`, `Community 210`, `Community 20`, `Community 24`?**
+  _High betweenness centrality (0.027) - this node is a cross-community bridge._
+- **Why does `TestWordMeaning` connect `Community 223` to `Community 105`?**
+  _High betweenness centrality (0.017) - this node is a cross-community bridge._
+- **Why does `APIHealth` connect `Community 178` to `Community 289`, `Community 167`, `Community 300`, `Community 175`, `Community 176`, `Community 21`, `Community 184`, `Community 318`?**
   _High betweenness centrality (0.014) - this node is a cross-community bridge._
-- **Are the 6 inferred relationships involving `TTLCache` (e.g. with `_FakeClock` and `TestBasicGetSet`) actually correct?**
-  _`TTLCache` has 6 INFERRED edges - model-reasoned connections that need verification._
+- **Are the 7 inferred relationships involving `TTLCache` (e.g. with `AsyncClient` and `_FakeClock`) actually correct?**
+  _`TTLCache` has 7 INFERRED edges - model-reasoned connections that need verification._
 - **Are the 5 inferred relationships involving `ShelahEngine` (e.g. with `AskRequest` and `Any`) actually correct?**
   _`ShelahEngine` has 5 INFERRED edges - model-reasoned connections that need verification._
-- **What connects `PreToolUse`, `Main Flask application for Sh'elah.  What this file owns: - App bootstrapping, e`, `Insert into a plain dict while capping its size by evicting the oldest key.` to the rest of the system?**
-  _1915 weakly-connected nodes found - possible documentation gaps or missing edges._
-- **Should `Community 0` be split into smaller, more focused modules?**
-  _Cohesion score 0.14624505928853754 - nodes in this community are weakly interconnected._
+- **Are the 22 inferred relationships involving `RuntimeError` (e.g. with `ask_question()` and `ask_async()`) actually correct?**
+  _`RuntimeError` has 22 INFERRED edges - model-reasoned connections that need verification._
+- **What connects `PreToolUse`, `Vercel serverless entrypoint.  Thin re-export of the canonical ASGI app in `asgi`, `Main Flask application for Sh'elah.  What this file owns: - App bootstrapping, e` to the rest of the system?**
+  _2049 weakly-connected nodes found - possible documentation gaps or missing edges._
