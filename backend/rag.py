@@ -226,8 +226,6 @@ def _env_int(name, default):
     if not raw_value:
         return default
     try:
-        if isinstance(default, int) and not isinstance(default, bool):
-            return int(default)
         return int(raw_value)
     except Exception:
         return default
