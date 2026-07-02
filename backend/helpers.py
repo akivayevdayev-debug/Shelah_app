@@ -18,6 +18,11 @@ from urllib.parse import unquote, quote
 import requests as _requests
 from flask import request as _flask_request
 
+# Canonical HEBREW_DIACRITICS_RE now lives in backend/utils/text_engine.py
+# (Phase 1 backend refactor, plan.md §1.3.5) — re-imported here to avoid the
+# divergent-duplicate constant that previously existed in both files.
+from backend.utils.text_engine import HEBREW_DIACRITICS_RE
+
 # ── Answer-mode & source-attribution constants ────────────────────────────────
 
 ANSWER_MODES = {"balanced", "practical", "sources", "strict"}
@@ -133,7 +138,6 @@ COMMUNITY_ALIASES = {
 
 # ── Hebrew constants ──────────────────────────────────────────────────────────
 
-HEBREW_DIACRITICS_RE = re.compile(r"[֑-ׇ]")
 HEBREW_LETTER_RE = re.compile(r"[א-ת]")
 
 HEBREW_WORD_GLOSSARY = {

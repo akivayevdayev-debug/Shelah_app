@@ -104,7 +104,7 @@ INTERNAL_AI_KNOWLEDGE_DISCLAIMER = (
 )
 
 HIDDEN_UNICODE_RE = re.compile(
-    r"[\x00-\x1F\x7F-\x9F\u200B-\u200F\u202A-\u202E\u2060-\u206F\uFEFF]"
+    r"[\x00-\x08\x0E-\x1F\x7F-\x9F\u200B-\u200F\u202A-\u202E\u2060-\u206F\uFEFF]"
 )
 SYSTEM_META_CHAR_RE = re.compile(r"[`$<>\\|{}]")
 MULTI_WHITESPACE_RE = re.compile(r"\s+")

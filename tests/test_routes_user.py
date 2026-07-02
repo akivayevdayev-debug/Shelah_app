@@ -483,3 +483,155 @@ class TestApiPreferencesAlias:
         """Backward-compat /api/preferences alias must also enforce auth."""
         response = test_client.get("/api/preferences")
         assert response.status_code == 401
+
+
+class TestAuthMeValidToken:
+    def test_auth_me_with_valid_token_returns_authenticated(self, test_client, monkeypatch):
+        monkeypatch.setattr(
+            routes_user_module, "_verify_clerk_token",
+            lambda token: {"sub": FAKE_USER_ID, "sid": "sess_fake"},
+        )
+        response = test_client.get("/api/auth/me", headers=AUTH_HEADERS)
+        assert response.status_code == 200
+        body = response.get_json()
+        assert body == {"authenticated": True, "user_id": FAKE_USER_ID, "session_id": "sess_fake"}
+
+
+class TestAcceptLegalAuthenticated:
+    def test_accept_legal_authed_persists_to_supabase(self, test_client, authed, monkeypatch):
+        client = _FakeSupabaseClient(data=[])
+        monkeypatch.setattr(routes_user_module, "_get_supabase_client", lambda: client)
+        response = test_client.post("/api/accept-legal", headers=AUTH_HEADERS)
+        assert response.status_code == 200
+        body = response.get_json()
+        assert body == {"success": True, "stored": "server"}
+
+    def test_accept_legal_authed_supabase_failure_still_returns_200(self, test_client, authed, monkeypatch):
+        client = _FakeSupabaseClient(error=RuntimeError("db down"))
+        monkeypatch.setattr(routes_user_module, "_get_supabase_client", lambda: client)
+        response = test_client.post("/api/accept-legal", headers=AUTH_HEADERS)
+        assert response.status_code == 200
+        assert response.get_json()["stored"] == "server"
+
+    def test_accept_legal_authed_no_supabase_client_returns_server_stored(self, test_client, authed, monkeypatch):
+        monkeypatch.setattr(routes_user_module, "_get_supabase_client", lambda: None)
+        response = test_client.post("/api/accept-legal", headers=AUTH_HEADERS)
+        assert response.status_code == 200
+        assert response.get_json()["stored"] == "server"
+
+
+class TestUserPreferencesMissingIdentity:
+    def test_get_preferences_authed_but_no_sub_claim_is_401(self, test_client, monkeypatch):
+        monkeypatch.setattr(flask_app_module, "_verify_clerk_token", lambda token: {"sid": "sess"})
+        response = test_client.get("/api/user/preferences", headers=AUTH_HEADERS)
+        assert response.status_code == 401
+        assert response.get_json()["error"] == "Missing user identity"
+
+
+class TestSemanticBookmarksMissingIdentityAndRls:
+    def test_get_bookmarks_authed_but_no_sub_claim_is_401(self, test_client, monkeypatch):
+        monkeypatch.setattr(flask_app_module, "_verify_clerk_token", lambda token: {"sid": "sess"})
+        response = test_client.get("/api/bookmarks/semantic", headers=AUTH_HEADERS)
+        assert response.status_code == 401
+
+    def test_get_bookmarks_authed_strict_rls_no_client_is_403(self, test_client, authed, monkeypatch):
+        monkeypatch.setattr(routes_user_module, "STRICT_SUPABASE_RLS", True)
+        monkeypatch.setattr(routes_user_module, "_get_user_scoped_supabase_client", lambda: None)
+        response = test_client.get("/api/bookmarks/semantic", headers=AUTH_HEADERS)
+        assert response.status_code == 403
+
+
+class TestListTodos:
+    def test_no_client_returns_503(self, test_client, monkeypatch):
+        monkeypatch.setattr(routes_user_module, "_get_request_supabase_client", lambda: None)
+        response = test_client.get("/api/todos")
+        assert response.status_code == 503
+        assert "hint" in response.get_json()
+
+    def test_happy_path_returns_todos(self, test_client, monkeypatch):
+        client = _FakeSupabaseClient(data=[{"id": 1, "name": "Learn Daf Yomi"}])
+        monkeypatch.setattr(routes_user_module, "_get_request_supabase_client", lambda: client)
+        response = test_client.get("/api/todos")
+        assert response.status_code == 200
+        assert response.get_json()["todos"] == [{"id": 1, "name": "Learn Daf Yomi"}]
+
+    def test_missing_table_treated_as_empty_with_warning(self, test_client, monkeypatch):
+        client = _FakeSupabaseClient(error=RuntimeError("Could not find the table 'public.todos'"))
+        monkeypatch.setattr(routes_user_module, "_get_request_supabase_client", lambda: client)
+        response = test_client.get("/api/todos")
+        assert response.status_code == 200
+        body = response.get_json()
+        assert body["todos"] == []
+        assert "warning" in body
+
+    def test_generic_exception_returns_500(self, test_client, monkeypatch):
+        client = _FakeSupabaseClient(error=RuntimeError("something else broke"))
+        monkeypatch.setattr(routes_user_module, "_get_request_supabase_client", lambda: client)
+        response = test_client.get("/api/todos")
+        assert response.status_code == 500
+        assert "Failed to load todos" in response.get_json()["error"]
+
+
+class TestGetAskHistory:
+    def test_without_auth_is_401(self, test_client):
+        response = test_client.get("/api/user/history")
+        assert response.status_code == 401
+
+    def test_authed_but_no_sub_claim_is_401(self, test_client, monkeypatch):
+        monkeypatch.setattr(flask_app_module, "_verify_clerk_token", lambda token: {"sid": "sess"})
+        response = test_client.get("/api/user/history", headers=AUTH_HEADERS)
+        assert response.status_code == 401
+
+    def test_no_supabase_client_is_503(self, test_client, authed, monkeypatch):
+        monkeypatch.setattr(routes_user_module, "_get_supabase_client", lambda: None)
+        response = test_client.get("/api/user/history", headers=AUTH_HEADERS)
+        assert response.status_code == 503
+
+    def test_happy_path_returns_items(self, test_client, authed, monkeypatch):
+        rows = [{"id": "1", "question": "Is this permitted?", "answer": "Yes."}]
+        client = _FakeSupabaseClient(data=rows)
+        monkeypatch.setattr(routes_user_module, "_get_supabase_client", lambda: client)
+        response = test_client.get("/api/user/history", headers=AUTH_HEADERS)
+        assert response.status_code == 200
+        assert response.get_json()["items"] == rows
+
+    def test_limit_is_clamped_between_1_and_50(self, test_client, authed, monkeypatch):
+        client = _FakeSupabaseClient(data=[])
+        monkeypatch.setattr(routes_user_module, "_get_supabase_client", lambda: client)
+        response = test_client.get("/api/user/history?limit=9999", headers=AUTH_HEADERS)
+        assert response.status_code == 200
+
+    def test_supabase_exception_returns_500(self, test_client, authed, monkeypatch):
+        client = _FakeSupabaseClient(error=RuntimeError("db down"))
+        monkeypatch.setattr(routes_user_module, "_get_supabase_client", lambda: client)
+        response = test_client.get("/api/user/history", headers=AUTH_HEADERS)
+        assert response.status_code == 500
+
+
+class TestDeleteAskHistoryEntry:
+    def test_without_auth_is_401(self, test_client):
+        response = test_client.delete("/api/user/history/entry-1")
+        assert response.status_code == 401
+
+    def test_authed_but_no_sub_claim_is_401(self, test_client, monkeypatch):
+        monkeypatch.setattr(flask_app_module, "_verify_clerk_token", lambda token: {"sid": "sess"})
+        response = test_client.delete("/api/user/history/entry-1", headers=AUTH_HEADERS)
+        assert response.status_code == 401
+
+    def test_no_supabase_client_is_503(self, test_client, authed, monkeypatch):
+        monkeypatch.setattr(routes_user_module, "_get_supabase_client", lambda: None)
+        response = test_client.delete("/api/user/history/entry-1", headers=AUTH_HEADERS)
+        assert response.status_code == 503
+
+    def test_happy_path_deletes_entry(self, test_client, authed, monkeypatch):
+        client = _FakeSupabaseClient(data=[])
+        monkeypatch.setattr(routes_user_module, "_get_supabase_client", lambda: client)
+        response = test_client.delete("/api/user/history/entry-1", headers=AUTH_HEADERS)
+        assert response.status_code == 200
+        assert response.get_json()["ok"] is True
+
+    def test_supabase_exception_returns_500(self, test_client, authed, monkeypatch):
+        client = _FakeSupabaseClient(error=RuntimeError("db down"))
+        monkeypatch.setattr(routes_user_module, "_get_supabase_client", lambda: client)
+        response = test_client.delete("/api/user/history/entry-1", headers=AUTH_HEADERS)
+        assert response.status_code == 500
