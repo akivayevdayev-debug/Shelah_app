@@ -279,3 +279,6 @@ gunicorn app:app --bind 0.0.0.0:5001 --workers 4
     ├── sql/                    Supabase schema and RLS policy SQL files
     └── *.py                    Utility scripts (migrations, verification)
 ```
+## License
+* **Source Code:** This project's code is licensed under the [MIT License](LICENSE).
+* **Website Content:** All text, branding, and media content on the sh'elah website are Copyright © 2026. All Rights Reserved.
