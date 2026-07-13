@@ -164,7 +164,7 @@ if __name__ == "__main__":
     print("✓ Saved to sefardic_prayers.json")
 
     # Print summary
-    print(f"\nPrayer Summary:")
+    print("\nPrayer Summary:")
     for prayer_name, translations in sorted(prayers.items()):
         print(
             f"  • {prayer_name}: {len(translations['en'])} chars (EN), {len(translations['he'])} chars (HE)")

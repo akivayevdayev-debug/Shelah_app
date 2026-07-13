@@ -50,7 +50,7 @@ class PyluachEngine:
                 'gregorian_date': str(gregorian_date)
             }
         except Exception as e:
-            logger.error(f"Error converting {gregorian_date} to Hebrew: {e}")
+            logger.exception("Error converting %s to Hebrew", gregorian_date)
             return {'hebrew_date': 'Error', 'error': str(e)}
 
     @staticmethod
@@ -93,8 +93,8 @@ class PyluachEngine:
             no_parasha = "No parasha for this date"
             _PARASHA_CACHE[cache_key] = {"ts": now, "value": no_parasha}
             return no_parasha
-        except Exception as e:
-            logger.error(f"Error getting parasha for {gregorian_date}: {e}")
+        except Exception:
+            logger.exception("Error getting parasha for %s", gregorian_date)
             return "Parasha lookup unavailable"
 
     @staticmethod
@@ -120,13 +120,20 @@ class PyluachEngine:
             yom_tov_list = ['Rosh Hashana', 'Yom Kippur', 'Succos',
                             'Shmini Atzeres', 'Simchas Torah', 'Pesach', 'Shavuos']
 
+            if holiday in yom_tov_list:
+                holiday_type = 'Yom Tov'
+            elif holiday:
+                holiday_type = 'Minor Holiday'
+            else:
+                holiday_type = 'Regular Day'
+
             return {
                 'is_holiday': bool(holiday),
                 'holiday_name': holiday,
-                'holiday_type': 'Yom Tov' if holiday in yom_tov_list else 'Minor Holiday' if holiday else 'Regular Day'
+                'holiday_type': holiday_type
             }
         except Exception as e:
-            logger.error(f"Error checking holiday for {gregorian_date}: {e}")
+            logger.exception("Error checking holiday for %s", gregorian_date)
             return {'is_holiday': False, 'holiday_name': None, 'error': str(e)}
 
 

@@ -144,7 +144,7 @@ class TestLibraryLeafRefs:
         assert response.status_code == 200
         body = response.get_json()
         assert isinstance(body, dict)
-        assert set(["title", "refs", "sections"]).issubset(body.keys())
+        assert {"title", "refs", "sections"}.issubset(body.keys())
         assert body["title"] == "Genesis"
         assert isinstance(body["refs"], list)
         assert isinstance(body["sections"], list)
@@ -571,7 +571,7 @@ class TestTextsIndex:
         assert response.status_code == 200
         body = response.get_json()
         assert isinstance(body, dict)
-        assert set(["siddur", "merkava", "sefaria"]).issubset(body.keys())
+        assert {"siddur", "merkava", "sefaria"}.issubset(body.keys())
 
     def test_siddur_section_has_title_and_items(self, test_client):
         response = test_client.get("/api/texts-index")

@@ -89,13 +89,13 @@ class TestLookupHebrewWordMeaningFullChain:
         monkeypatch.setattr(helpers, "_lookup_sefaria_lexicon", lambda variant: ("", ""))
         monkeypatch.setattr(helpers, "_translate_hebrew_text_online", lambda variant: ("A translated meaning", "google-translate"))
         monkeypatch.setattr(helpers, "_looks_like_transliteration", lambda text: False)
-        meaning, source = helpers._lookup_hebrew_word_meaning("לגמגם")
+        meaning, _ = helpers._lookup_hebrew_word_meaning("לגמגם")
         assert meaning == "A translated meaning"
 
     def test_all_sources_fail_returns_empty(self, monkeypatch):
         monkeypatch.setattr(helpers, "_lookup_sefaria_lexicon", lambda variant: ("", ""))
         monkeypatch.setattr(helpers, "_translate_hebrew_text_online", lambda variant: ("", ""))
-        meaning, source = helpers._lookup_hebrew_word_meaning("לגמגם")
+        meaning, _ = helpers._lookup_hebrew_word_meaning("לגמגם")
         assert meaning == ""
 
     def test_multi_word_hebrew_input_generates_prefix_variants(self, monkeypatch):

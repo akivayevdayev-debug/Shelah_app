@@ -41,6 +41,8 @@ import httpx
 import app as flask_app_module
 import asgi
 
+MOCK_SEFARIA_REF = "Genesis 1:1"
+
 
 # ─── Core client fixtures ─────────────────────────────────────────────────────
 
@@ -81,7 +83,7 @@ def mock_outbound_http():
             responses_lib.GET,
             re.compile(r"https://mock\.sefaria\.org/api/.*"),
             json={
-                "ref": "Genesis 1:1",
+                "ref": MOCK_SEFARIA_REF,
                 "he": ["בְּרֵאשִׁית בָּרָא אֱלֹהִים אֵת הַשָּׁמַיִם וְאֵת הָאָרֶץ׃"],
                 "text": ["In the beginning God created the heaven and the earth."],
                 "type": "text",
@@ -232,7 +234,7 @@ def mock_outbound_httpx():
 def mock_sefaria_text():
     """Typical Sefaria text response shape."""
     return {
-        "ref": "Genesis 1:1",
+        "ref": MOCK_SEFARIA_REF,
         "he": ["בְּרֵאשִׁית בָּרָא אֱלֹהִים"],
         "en": ["In the beginning God created"],
         "type": "text",
@@ -252,7 +254,7 @@ def mock_ai_response():
         "confidence": 0.88,
         "sources": [
             {
-                "ref": "Genesis 1:1",
+                "ref": MOCK_SEFARIA_REF,
                 "title": "Genesis",
                 "lines": [{"en": "In the beginning", "he": "בְּרֵאשִׁית"}],
             }

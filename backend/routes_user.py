@@ -8,7 +8,7 @@ unchanged; only the route decorator target moved from ``@app.route`` to
 and ``backend``.
 """
 
-from datetime import datetime
+from datetime import datetime, timezone
 from uuid import uuid4
 
 from flask import Blueprint, jsonify, request, g
@@ -35,6 +35,9 @@ from app import (
 
 routes_user = Blueprint("user", __name__)
 
+_ERR_MISSING_USER_IDENTITY = "Missing user identity"
+_ERR_SUPABASE_NOT_CONFIGURED = "Supabase not configured"
+
 
 @routes_user.route("/api/accept-legal", methods=["POST"])
 @maybe_require_clerk_auth
@@ -52,7 +55,7 @@ def accept_legal():
                 {
                     "clerk_id": user_id,
                     "legal_accepted": True,
-                    "legal_accepted_at": datetime.utcnow().isoformat(),
+                    "legal_accepted_at": datetime.now(timezone.utc).isoformat(),
                 },
                 on_conflict="clerk_id",
             ).execute()
@@ -88,7 +91,7 @@ def user_preferences():
     claims = getattr(g, "clerk_claims", {}) or {}
     user_id = claims.get("sub")
     if not user_id:
-        return jsonify({"error": "Missing user identity"}), 401
+        return jsonify({"error": _ERR_MISSING_USER_IDENTITY}), 401
 
     supabase = _get_user_scoped_supabase_client()
     if not supabase and not STRICT_SUPABASE_RLS:
@@ -96,7 +99,7 @@ def user_preferences():
     if not supabase:
         if STRICT_SUPABASE_RLS:
             return jsonify({"error": "Supabase authenticated session required for RLS-protected preferences."}), 403
-        return jsonify({"error": "Supabase not configured"}), 503
+        return jsonify({"error": _ERR_SUPABASE_NOT_CONFIGURED}), 503
 
     table = supabase.table(SUPABASE_PREFS_TABLE)
 
@@ -174,7 +177,7 @@ def user_preferences():
         if not isinstance(reading_state, dict):
             return jsonify({"error": "reading_state must be an object"}), 400
 
-        now_iso = datetime.utcnow().isoformat() + "Z"
+        now_iso = datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
         stored_payload = {
             "prefs": prefs,
             "shelf": shelf,
@@ -201,7 +204,7 @@ def semantic_bookmarks():
     claims = getattr(g, "clerk_claims", {}) or {}
     user_id = str(claims.get("sub") or "").strip()
     if not user_id:
-        return jsonify({"error": "Missing user identity"}), 401
+        return jsonify({"error": _ERR_MISSING_USER_IDENTITY}), 401
 
     supabase = _get_user_scoped_supabase_client()
     if not supabase and not STRICT_SUPABASE_RLS:
@@ -209,7 +212,7 @@ def semantic_bookmarks():
     if not supabase:
         if STRICT_SUPABASE_RLS:
             return jsonify({"error": "Supabase authenticated session required for RLS-protected bookmarks."}), 403
-        return jsonify({"error": "Supabase not configured"}), 503
+        return jsonify({"error": _ERR_SUPABASE_NOT_CONFIGURED}), 503
 
     table = supabase.table(SUPABASE_STUDY_BOOKMARKS_TABLE)
     ref = ""
@@ -253,7 +256,7 @@ def semantic_bookmarks():
             "segment_text": segment_text,
             "ai_summary": ai_summary,
             "notes": notes,
-            "created_at": datetime.utcnow().isoformat() + "Z",
+            "created_at": datetime.now(timezone.utc).isoformat().replace("+00:00", "Z"),
         }
 
         table.insert(record).execute()
@@ -308,11 +311,11 @@ def get_ask_history():
     claims = getattr(g, "clerk_claims", {}) or {}
     user_id = str(claims.get("sub") or "").strip()
     if not user_id:
-        return jsonify({"error": "Missing user identity"}), 401
+        return jsonify({"error": _ERR_MISSING_USER_IDENTITY}), 401
 
     supabase = _get_supabase_client()
     if not supabase:
-        return jsonify({"error": "Supabase not configured"}), 503
+        return jsonify({"error": _ERR_SUPABASE_NOT_CONFIGURED}), 503
 
     try:
         limit = max(1, min(int(request.args.get("limit", 20)), 50))
@@ -338,11 +341,11 @@ def delete_ask_history_entry(entry_id):
     claims = getattr(g, "clerk_claims", {}) or {}
     user_id = str(claims.get("sub") or "").strip()
     if not user_id:
-        return jsonify({"error": "Missing user identity"}), 401
+        return jsonify({"error": _ERR_MISSING_USER_IDENTITY}), 401
 
     supabase = _get_supabase_client()
     if not supabase:
-        return jsonify({"error": "Supabase not configured"}), 503
+        return jsonify({"error": _ERR_SUPABASE_NOT_CONFIGURED}), 503
 
     try:
         supabase.table(SUPABASE_ASK_HISTORY_TABLE).delete().eq(

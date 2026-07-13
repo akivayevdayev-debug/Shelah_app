@@ -40,7 +40,7 @@ h3,
 h4,
 h5,
 h6 {
-    word-break: break-word;
+    overflow-wrap: break-word;
 }
 
 @font-face {
@@ -340,7 +340,7 @@ h6 {
     transition: opacity 0.14s ease, transform 0.14s ease;
     box-shadow: 0 16px 32px rgba(15, 23, 42, 0.22);
     white-space: normal;
-    word-break: break-word;
+    overflow-wrap: break-word;
     backdrop-filter: blur(8px);
 }
 
@@ -530,7 +530,7 @@ html.rtl #hebrewDateDisplay {
     border-radius: 0.6rem !important;
     padding: 0.42rem 0.62rem !important;
     font-size: 0.72rem !important;
-    line-height: 1.15rem !important;
+    line-height: 1.6 !important;
 }
 
 #settingsPanel button:not(#bookmarkCurrentBtn) {
@@ -841,7 +841,6 @@ html.rtl #hebrewDateDisplay {
 .chapter-grid-parasha-name {
     white-space: normal;
     overflow-wrap: anywhere;
-    word-break: break-word;
 }
 
 .chapter-grid-parasha-meta {
@@ -1746,7 +1745,6 @@ html.rtl #readerSettingsPanel {
 
 .library-shell .reader-topbar-shell #readerSettingsBtn {
     background: transparent !important;
-    border-color: transparent !important;
     border: none !important;
     color: #8b7868 !important;
 }
@@ -1754,7 +1752,6 @@ html.rtl #readerSettingsPanel {
 .library-shell .reader-topbar-shell #readerSettingsBtn:hover,
 .library-shell .reader-topbar-shell #readerSettingsBtn:focus-visible {
     background: transparent !important;
-    border-color: transparent !important;
     border: none !important;
     color: #5a4a3a !important;
 }
@@ -2563,7 +2560,6 @@ html.rtl .home-main-layout #popularTextsGrid {
 :is([data-theme="dark"], body.theme-dark) #mainContainer,
 :is([data-theme="dark"], body.theme-dark) .content-canvas,
 :is([data-theme="dark"], body.theme-dark) .library-shell {
-    background-color: var(--surface-base) !important;
     background: var(--surface-base) !important;
     color: var(--accent-cream) !important;
 }
@@ -2604,11 +2600,6 @@ html.theme-dark,
 :is([data-theme="dark"], body.theme-dark) .pulse-pane,
 :is([data-theme="dark"], body.theme-dark) .mobile-bottom-tabs {
     transition: none !important;
-}
-
-:is([data-theme="dark"], body.theme-dark) #searchInput:focus {
-    border-color: var(--control-border) !important;
-    box-shadow: 0 0 0 2px color-mix(in srgb, var(--gold) 28%, transparent) !important;
 }
 
 :is([data-theme="dark"], body.theme-dark) #searchSuggestions {
@@ -2870,11 +2861,6 @@ html.theme-dark,
     background: var(--surface-base);
 }
 
-:is([data-theme="dark"], body.theme-dark) .fc .fc-col-header-cell-cushion,
-:is([data-theme="dark"], body.theme-dark) .fc .fc-daygrid-day-number {
-    color: var(--fc-day-number-color) !important;
-}
-
 :is([data-theme="dark"], body.theme-dark) .fc-day-today {
     background: var(--surface-pill) !important;
 }
@@ -3037,13 +3023,6 @@ html.theme-dark,
    controls placed on top of them (--surface-2/--ctrl-bg, via --surface-elevated
    elsewhere), so the panel itself reads as a distinct backdrop instead of
    blending into its own contents. */
-:is([data-theme="dark"], body.theme-dark) #settingsPanel,
-:is([data-theme="dark"], body.theme-dark) #readerSettingsPanel {
-    background: var(--surface-subtle) !important;
-    border-color: var(--surface-border) !important;
-    color: var(--accent-cream) !important;
-}
-
 :is([data-theme="dark"], body.theme-dark) #selectionInsights,
 :is([data-theme="dark"], body.theme-dark) #rightSidebarIdle,
 :is([data-theme="dark"], body.theme-dark) #compareContainer,
@@ -3109,7 +3088,6 @@ html.theme-dark,
 
 :is([data-theme="dark"], body.theme-dark) #readerTopBar button {
     background: transparent !important;
-    border-color: transparent !important;
     border: none !important;
     color: var(--reader-btn-color) !important;
 }
@@ -3122,7 +3100,6 @@ html.theme-dark,
 
 :is([data-theme="dark"], body.theme-dark) .library-shell .reader-topbar-shell #readerSettingsBtn {
     background: transparent !important;
-    border-color: transparent !important;
     border: none !important;
     color: var(--reader-btn-color) !important;
 }
@@ -3130,7 +3107,6 @@ html.theme-dark,
 :is([data-theme="dark"], body.theme-dark) .library-shell .reader-topbar-shell #readerSettingsBtn:hover,
 :is([data-theme="dark"], body.theme-dark) .library-shell .reader-topbar-shell #readerSettingsBtn:focus-visible {
     background: transparent !important;
-    border-color: transparent !important;
     border: none !important;
     color: var(--reader-btn-hover) !important;
 }
@@ -3164,13 +3140,6 @@ html.theme-dark,
 
 :is([data-theme="dark"], body.theme-dark) .chapter-grid-parasha-meta {
     color: var(--text-muted);
-}
-
-:is([data-theme="dark"], body.theme-dark) .menu-parasha-quick-link {
-    background: linear-gradient(180deg, var(--surface-elevated) 0%, var(--surface-pill) 100%);
-    border-color: var(--control-border);
-    color: var(--accent-cream) !important;
-    box-shadow: inset 0 0 0 1px rgba(189, 166, 131, 0.22);
 }
 
 :is([data-theme="dark"], body.theme-dark) .menu-parasha-quick-link:hover,

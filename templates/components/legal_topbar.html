@@ -1,7 +1,8 @@
 <header role="banner"
     class="topbar sticky top-0 bg-white text-slate-800 py-1.5 px-2 lg:py-1.5 lg:px-3 shadow-sm border-b flex flex-wrap lg:flex-nowrap justify-between items-center z-50 flex-shrink-0 gap-1.5 lg:gap-2">
     <div id="brandHomeBtn" class="topbar-brand flex items-center gap-1.5 cursor-pointer shrink-0"
-        onclick="goHome()">
+        role="button" tabindex="0" aria-label="Go to home"
+        onclick="goHome()" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();goHome();}">
         <div class="text-navy font-hebrew text-[1.7rem] font-semibold leading-tight">
             ש
         </div>

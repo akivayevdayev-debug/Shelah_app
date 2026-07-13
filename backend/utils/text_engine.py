@@ -207,7 +207,7 @@ def _collapse_markdown_spacing(lines):
             prev_blank = True
             continue
 
-        if text.startswith("##") or text.startswith("###"):
+        if text.startswith("##"):
             if normalized and normalized[-1] != "":
                 normalized.append("")
             normalized.append(text)
@@ -234,8 +234,7 @@ def _format_ui_answer(answer_text):
     if not lines:
         return ""
 
-    has_headers = any(line.startswith("##") or line.startswith("###")
-                      for line in lines)
+    has_headers = any(line.startswith("##") for line in lines)
     if not has_headers and str(answer_text or "").strip().lower() != "no verified source found":
         lines = ["## Ruling", "", lines[0]] + lines[1:]
         lines = _collapse_markdown_spacing(lines)

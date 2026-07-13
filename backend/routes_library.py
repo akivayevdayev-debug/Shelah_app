@@ -46,15 +46,6 @@ def library_leaf_refs():
     import re as _re
     from backend.sefaria_library import get_index_entry, get_index_leaf_refs
 
-    def _parse_talmud_daf_key(daf_str):
-        """Convert a daf string like '2a', '13b' to a sortable integer key."""
-        m = _re.search(r'(\d+)([ab])', str(daf_str or '').strip().lower())
-        if not m:
-            return None
-        num = int(m.group(1))
-        side = 0 if m.group(2) == 'a' else 1
-        return num * 2 + side
-
     def _extract_talmud_sections(index_title, entry):
         """
         Extract named chapter sections from a Talmud index entry's alts.Chapters.
@@ -87,7 +78,7 @@ def library_leaf_refs():
                 ref_body = ref_body[len(index_title):].lstrip(" ,")
 
             range_m = _re.search(
-                r'(\d+[ab])(?:[\d:]*)\s*-\s*(\d+[ab])', ref_body, _re.IGNORECASE)
+                r'(\d+[ab])[\d:]*\s*-\s*(\d+[ab])', ref_body, _re.IGNORECASE)
             if not range_m:
                 continue
             from_daf = range_m.group(1).lower()
@@ -413,13 +404,13 @@ def export_chapter():
 
     if export_format == "docx":
         try:
-            from docx import Document as _Document
+            from docx import Document as _docx_document_cls
         except Exception:
-            _Document = None
-        if _Document is None:
+            _docx_document_cls = None
+        if _docx_document_cls is None:
             return jsonify({"error": "DOCX export is unavailable on this server"}), 503
 
-        document = _Document()
+        document = _docx_document_cls()
         document.add_heading(title or "Sh'elah Chapter", level=1)
         if ref:
             document.add_paragraph(ref)
@@ -453,7 +444,7 @@ def export_chapter():
 
     pdf_buffer = io.BytesIO()
     pdf = _canvas.Canvas(pdf_buffer, pagesize=_LETTER)
-    width, height = _LETTER
+    _, height = _LETTER
     y = height - 48
     left = 42
 

@@ -125,8 +125,8 @@
     --text-md:   clamp(1rem,    0.96rem + 0.35vw, 1.125rem);
     --text-lg:   clamp(1.1rem,  1.05rem + 0.4vw,  1.25rem);
     --text-xl:   clamp(1.25rem, 1.15rem + 0.5vw,  1.5rem);
-    --text-2xl:  clamp(1.5rem,  1.3rem  + 0.75vw, 2rem);
-    --text-3xl:  clamp(1.75rem, 1.5rem  + 1vw,    2.5rem);
+    --text-2xl:  clamp(1.5rem,  1.3rem + 0.75vw, 2rem);
+    --text-3xl:  clamp(1.75rem, 1.5rem + 1vw,    2.5rem);
 
     /* ── Motion (honor prefers-reduced-motion via JS helper) ────────── */
     --motion-dur-fast:   150ms;

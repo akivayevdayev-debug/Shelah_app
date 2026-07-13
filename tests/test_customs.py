@@ -238,22 +238,22 @@ class TestValidateAllCustomsAtStartup:
 class TestValidateCustomsFileHelper:
     def test_valid_data_returns_no_errors(self):
         data = _minimal_structured_custom()
-        assert customs._validate_customs_file(data, "irrelevant.json") == []
+        assert customs._validate_customs_file(data) == []
 
     def test_non_dict_root_returns_single_error(self):
-        errors = customs._validate_customs_file([1, 2, 3], "irrelevant.json")
+        errors = customs._validate_customs_file([1, 2, 3])
         assert errors == ["root value is not a JSON object"]
 
     def test_missing_multiple_required_fields(self):
         data = {"heritage_id": "x"}  # missing name and halacha_index
-        errors = customs._validate_customs_file(data, "irrelevant.json")
+        errors = customs._validate_customs_file(data)
         assert "missing required field 'name'" in errors
         assert "missing required field 'halacha_index'" in errors
         assert len(errors) == 2
 
     def test_empty_required_field_value(self):
         data = {"heritage_id": "", "name": "X", "halacha_index": ["non-empty"]}
-        errors = customs._validate_customs_file(data, "irrelevant.json")
+        errors = customs._validate_customs_file(data)
         assert errors == ["required field 'heritage_id' is empty"]
 
 
@@ -490,7 +490,7 @@ class TestSearchCustoms:
         matches = customs.search_customs("nusach")
         assert matches
         entry = matches[0]
-        assert set(["community", "topic", "ruling", "source", "notes", "media_url"]).issubset(
+        assert {"community", "topic", "ruling", "source", "notes", "media_url"}.issubset(
             entry.keys()
         )
 

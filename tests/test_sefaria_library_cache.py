@@ -76,6 +76,6 @@ class TestCachedGetMemoryTier:
             sefaria_library_module._cache[url]["ts"]
             > 0
         )
-        cached_again = sefaria_library_module._cached_get(url)
+        sefaria_library_module._cached_get(url)
         matching_calls = [c for c in mock_outbound_http.calls if url in c.request.url]
         assert len(matching_calls) == 1

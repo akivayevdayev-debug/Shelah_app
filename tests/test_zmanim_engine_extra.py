@@ -40,11 +40,11 @@ class TestCacheCoord:
 
 class TestResolveTimezone:
     def test_given_tz_used_directly(self):
-        tz, tz_str = ze._resolve_timezone(NYC_LAT, NYC_LON, given_tz="Europe/London")
+        _, tz_str = ze._resolve_timezone(NYC_LAT, NYC_LON, given_tz="Europe/London")
         assert tz_str == "Europe/London"
 
     def test_resolves_from_coordinates(self):
-        tz, tz_str = ze._resolve_timezone(NYC_LAT, NYC_LON)
+        _, tz_str = ze._resolve_timezone(NYC_LAT, NYC_LON)
         assert tz_str == "America/New_York"
 
     def test_timezonefinder_exception_falls_back_to_default(self, monkeypatch):
@@ -52,7 +52,7 @@ class TestResolveTimezone:
             def timezone_at(self, lng, lat):
                 raise RuntimeError("boom")
         monkeypatch.setattr(ze, "tf", FakeFinder())
-        tz, tz_str = ze._resolve_timezone(999, 999)
+        _, tz_str = ze._resolve_timezone(999, 999)
         assert tz_str == "America/New_York"
 
     def test_unresolvable_coordinates_falls_back_to_default(self, monkeypatch):
@@ -60,7 +60,7 @@ class TestResolveTimezone:
             def timezone_at(self, lng, lat):
                 return None
         monkeypatch.setattr(ze, "tf", FakeFinder())
-        tz, tz_str = ze._resolve_timezone(0, 0)
+        _, tz_str = ze._resolve_timezone(0, 0)
         assert tz_str == "America/New_York"
 
 
@@ -124,8 +124,6 @@ class TestGetCommunityZmanimBranches:
         assert "error" in result
 
     def test_shabbat_date_shows_havdalah(self, mock_outbound_http):
-        # Saturday.
-        saturday = date(2026, 1, 17)
         result = ze.get_community_zmanim(NYC_LAT, NYC_LON, NYC_TZ, community="standard")
         assert "zmanim" in result
 
