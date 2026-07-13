@@ -35,6 +35,7 @@ logger = logging.getLogger(__name__)
 FAIL_THRESHOLD = 3           # Consecutive failures before circuit opens
 RECOVERY_INTERVAL = 120      # Seconds before half-opening the circuit
 REQUEST_TIMEOUT = 5          # Seconds for each health probe
+_HEALTH_CHECK_USER_AGENT = "Shelah-HealthCheck/1.0"
 
 
 @dataclass
@@ -70,7 +71,7 @@ def _probe_sefaria() -> bool:
     r = requests.get(
         "https://www.sefaria.org/api/texts/Berakhot.2a?pad=0&commentary=0",
         timeout=REQUEST_TIMEOUT,
-        headers={"User-Agent": "Shelah-HealthCheck/1.0"},
+        headers={"User-Agent": _HEALTH_CHECK_USER_AGENT},
     )
     return r.status_code == 200
 
@@ -80,7 +81,7 @@ def _probe_hebcal() -> bool:
     r = requests.get(
         "https://www.hebcal.com/api/holidays?v=1&year=2026&cfg=json",
         timeout=REQUEST_TIMEOUT,
-        headers={"User-Agent": "Shelah-HealthCheck/1.0"},
+        headers={"User-Agent": _HEALTH_CHECK_USER_AGENT},
     )
     return r.status_code == 200
 
@@ -95,7 +96,7 @@ def _probe_gemini() -> bool:
     r = requests.get(
         f"https://generativelanguage.googleapis.com/v1beta/models?key={api_key}",
         timeout=REQUEST_TIMEOUT,
-        headers={"User-Agent": "Shelah-HealthCheck/1.0"},
+        headers={"User-Agent": _HEALTH_CHECK_USER_AGENT},
     )
     return r.status_code == 200
 
@@ -112,7 +113,7 @@ def _probe_claude() -> bool:
         headers={
             "anthropic-version": "2023-06-01",
             "x-api-key": api_key,
-            "User-Agent": "Shelah-HealthCheck/1.0",
+            "User-Agent": _HEALTH_CHECK_USER_AGENT,
         },
     )
     return r.status_code in {200, 403}  # 403 = authed endpoint, API is up

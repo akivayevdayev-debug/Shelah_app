@@ -415,8 +415,8 @@ def _parse_v3_response(data, requested_ref):
 
     he_leafs = flatten_with_path(he_raw)
     en_leafs = flatten_with_path(en_raw)
-    he_by_path = {p: t for p, t in he_leafs}
-    en_by_path = {p: t for p, t in en_leafs}
+    he_by_path = dict(he_leafs)
+    en_by_path = dict(en_leafs)
     all_paths = sorted(set(he_by_path.keys()) | set(en_by_path.keys()))
 
     if not all_paths:
@@ -914,8 +914,8 @@ def get_text(ref, lang="both", context=0):
     he_leafs = flatten_with_path(he_raw)
     en_leafs = flatten_with_path(en_raw)
 
-    he_by_path = {p: t for p, t in he_leafs}
-    en_by_path = {p: t for p, t in en_leafs}
+    he_by_path = dict(he_leafs)
+    en_by_path = dict(en_leafs)
     all_paths = sorted(set(he_by_path.keys()) | set(en_by_path.keys()))
 
     lines = []

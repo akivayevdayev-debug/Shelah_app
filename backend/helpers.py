@@ -49,6 +49,8 @@ TRANSLATION_SOURCE_CACHE: dict = {}
 
 # ── Text aliases ──────────────────────────────────────────────────────────────
 
+_EARLY_PROPHETS_EVERETT_FOX_CITATION = "The Early Prophets, by Everett Fox, Joshua, Part I; Preparations for Conquest"
+
 QUICK_TEXT_ALIASES = {
     "genesis": "Genesis 1",
     "bereishit": "Genesis 1",
@@ -68,9 +70,9 @@ QUICK_TEXT_ALIASES = {
     "jonathan sacks essays": "The Jonathan Sacks Haggadah; Essays, The Story of Stories",
     "jonathan sacks haggadah essays": "The Jonathan Sacks Haggadah; Essays, The Story of Stories",
     "covenant and conversation": "Covenant and Conversation; Genesis; The Book of the Beginnings, Living with the Times; The Parasha",
-    "everett fox": "The Early Prophets, by Everett Fox, Joshua, Part I; Preparations for Conquest",
-    "the early prophets by everett fox": "The Early Prophets, by Everett Fox, Joshua, Part I; Preparations for Conquest",
-    "the early prophets, by everett fox": "The Early Prophets, by Everett Fox, Joshua, Part I; Preparations for Conquest",
+    "everett fox": _EARLY_PROPHETS_EVERETT_FOX_CITATION,
+    "the early prophets by everett fox": _EARLY_PROPHETS_EVERETT_FOX_CITATION,
+    "the early prophets, by everett fox": _EARLY_PROPHETS_EVERETT_FOX_CITATION,
     "the five books of moses by everett fox": "The Five Books of Moses, by Everett Fox, Translator's Preface",
     "the five books of moses, by everett fox": "The Five Books of Moses, by Everett Fox, Translator's Preface",
 }
@@ -473,7 +475,7 @@ def _lookup_english_word_meaning(word):
         return "", ""
     try:
         resp = _requests.get(
-            f"https://api.dictionaryapi.dev/api/v2/entries/en/{clean_word}",
+            f"https://api.dictionaryapi.dev/api/v2/entries/en/{quote(clean_word, safe='')}",
             timeout=5,
         )
         if not resp.ok:
@@ -784,7 +786,7 @@ def _compact_ai_sources(sources, max_sources=8, max_lines=3, max_chars=280):
             he = re.sub(r"\s+", " ", re.sub(r"<[^>]*>", "", str(row.get("he") or "")).strip())
 
             # Skip lines that indicate the source was not found
-            if en.startswith("Text not found") or en.startswith("Error"):
+            if en.startswith(("Text not found", "Error")):
                 continue
 
             if len(en) > max_chars:

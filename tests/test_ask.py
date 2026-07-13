@@ -114,7 +114,6 @@ class TestAskFlask:
         assert response.status_code == 200
         body = response.get_json()
         assert "answer" in body
-        meta = body.get("meta", {})
         # fallback may be True or the body may have is_fallback / error key
         assert isinstance(body.get("answer"), str)
 
