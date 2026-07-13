@@ -713,4 +713,29 @@ Community forums (moderation + liability program of its own); native mobile app 
 
 ---
 
+## 13. PHASE 7 — SonarCloud static-analysis debt (deferred structural findings)
+
+**Provenance.** SonarCloud CI scan of commit `de1f3a2` returned 297 issues. The mechanical bucket (unused vars, duplicate literals, comprehension idioms, missing FastAPI docs, dead code, a real URL-injection fix, easy a11y renames, CSS contrast/formatting fixes) was triaged and fixed directly in the same pass that added this section — not tracked here. The two buckets below were deliberately **deferred** because they are behavior-touching refactors, not mechanical fixes, and warrant their own review cycle rather than being bundled into a bulk lint-fix commit.
+
+### 13.1 Cognitive-complexity refactor (`python:S3776`, 67 instances)
+
+Concentrated in `app.py`, `backend/sefaria_library.py`, `backend/helpers.py`, `backend/routes_library.py`, `asgi.py` — the same procedural core already targeted by §4 Phases 1–4 (text/formatting extraction, retrieval/corpus-matching extraction, `app.py` streamlining). Rather than chasing the Sonar threshold function-by-function, this bucket should be **retired as a side effect of §4**, not attacked directly:
+
+1. Re-run the SonarCloud scan after §4 Phases 1–4 land and diff the S3776 list — expect the majority of `app.py`-resident complexity hits to disappear once `_normalize_ai_answer`/`_format_ui_answer`/keyword-extraction/corpus-matching move into `backend/utils/text_engine.py` and `backend/utils/search_provider.py` (smaller, single-purpose functions naturally drop below the complexity-15 threshold).
+2. For whatever remains after §4 (expected: `sefaria_library.py` catalog/index-building functions, a handful of `routes_library.py` handlers), triage individually: each refactor is its own reviewed change — extract guard clauses first, then nested-conditional flattening, then early-return conversion — never a blind mechanical split. Test-anchor every extraction (existing suite must stay green at each step; no behavior change).
+3. **Do not attempt in one bulk pass.** A 67-site simultaneous refactor across 5 files is exactly the kind of diff that hides a regression. Sequence it as its own phase, function-by-function, after §4 ships.
+
+### 13.2 Full native `<dialog>` migration (`Web:S6819`, 3 remaining instances)
+
+The 5 low-risk `role="status"` → `<output>` renames were fixed in the same pass as §13's mechanical bucket. The 3 real modals — `#calendarModal`, `#chapterGridModal`, `#legalModal` (`templates/index.html`) — still use `role="dialog"` + manual show/hide JS and are **deferred**:
+
+1. Convert each to a native `<dialog>` element; replace the manual `display`/class-toggle open logic with `.showModal()` and close logic with `.close()`.
+2. Native `<dialog>` provides browser-default focus-trap and `::backdrop` — audit existing custom backdrop-click-to-close and Escape-key handlers for double-handling once the native behavior is live (native `<dialog>` already closes on Escape; a duplicate handler would double-fire).
+3. Re-test each modal's full interaction surface in-browser before merging: open trigger, close button, backdrop click, Escape key, focus returns to the trigger element on close, and screen-reader announcement on open (matches the WCAG dialog pattern this rule exists to enforce).
+4. Ship as three independent small PRs/commits (one per modal), not one combined diff — each has a distinct trigger/close call-site surface and independent regression risk.
+
+**Exit criteria for this section:** re-run SonarCloud after §4 lands to confirm the S3776 count has dropped as predicted before doing manual refactors on what's left; all 3 modals interaction-tested in-browser (not just visually) before each commit.
+
+---
+
 **Awaiting your command to begin Phase 1.** No code will be written until then. The §8 legal documents will be drafted for **attorney review** — they are not a substitute for a lawyer. The §10.3 GitHub profile update needs the Chrome extension connected + your username before I can execute it. **§11 is a live deploy blocker — fixing `vercel.json` can be done independently and first if you want the site deploying again before the refactor begins.**

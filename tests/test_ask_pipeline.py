@@ -95,24 +95,24 @@ class TestAskPipelineResult:
 # ─────────────────────────── run_ask_pipeline orchestration ────────────────
 
 def _make_fake_flask_app_module(**overrides):
-    defaults = dict(
-        DEVTOOLS_STATS={"answers_total": 0, "strict_blocks": 0, "fallback_answers": 0},
-        RAG_TOP_KNOWLEDGE_ROWS=5,
-        RAG_MEMORY_ROWS=2,
-        _retrieve_community_knowledge=lambda q, lens, n: [],
-        _fetch_user_memory_summaries=lambda uid, n: [],
-        _knowledge_rows_to_customs=lambda rows: [],
-        _compact_ai_sources=lambda sources: [{"ref": s.get("ref", "")} for s in sources] if sources else [],
-        _build_ask_tool_context=lambda engine: {},
-        _build_source_attribution_note=lambda **kw: "Note: attribution.",
-        _compose_answer_with_prefixes=lambda body, **kw: body,
-        _store_user_memory_summary=lambda uid, q, a: None,
-        _capture_backend_error=lambda *a, **kw: None,
-        get_halakhic_sources=lambda q: {
+    defaults = {
+        "DEVTOOLS_STATS": {"answers_total": 0, "strict_blocks": 0, "fallback_answers": 0},
+        "RAG_TOP_KNOWLEDGE_ROWS": 5,
+        "RAG_MEMORY_ROWS": 2,
+        "_retrieve_community_knowledge": lambda q, lens, n: [],
+        "_fetch_user_memory_summaries": lambda uid, n: [],
+        "_knowledge_rows_to_customs": lambda rows: [],
+        "_compact_ai_sources": lambda sources: [{"ref": s.get("ref", "")} for s in sources] if sources else [],
+        "_build_ask_tool_context": lambda engine: {},
+        "_build_source_attribution_note": lambda **kw: "Note: attribution.",
+        "_compose_answer_with_prefixes": lambda body, **kw: body,
+        "_store_user_memory_summary": lambda uid, q, a: None,
+        "_capture_backend_error": lambda *a, **kw: None,
+        "get_halakhic_sources": lambda q: {
             "warning": "", "counts": {}, "fallback_level": "internal-ai-knowledge",
             "sources": [], "source_count": 0, "keywords": [], "sequence": [], "status": "fallback",
         },
-    )
+    }
     defaults.update(overrides)
     return SimpleNamespace(**defaults)
 

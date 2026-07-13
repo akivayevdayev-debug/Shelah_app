@@ -56,6 +56,9 @@ load_dotenv()
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
+_DEFAULT_GEMINI_MODEL = "gemini-3.1-flash-lite-preview"
+_ERR_AI_PROVIDER_UNAVAILABLE = "AI provider is currently unavailable."
+
 
 def _int_env(name: str, default: int) -> int:
     try:
@@ -339,12 +342,12 @@ def _call_gemini_model(
     max_tokens: int = 3072,
 ) -> Dict[str, Any]:
     """Low-level Gemini primary call using gemini-3.1-flash-lite-preview. Falls back to Claude Haiku on any failure."""
-    _PRIMARY_MODEL = "gemini-3.1-flash-lite-preview"
+    _PRIMARY_MODEL = _DEFAULT_GEMINI_MODEL
 
     config_error = _configure_gemini_client()
     if config_error:
         return {
-            "answer": "AI provider is currently unavailable.",
+            "answer": _ERR_AI_PROVIDER_UNAVAILABLE,
             "confidence": 0,
             "error": config_error,
             "is_fallback": False,
@@ -353,7 +356,7 @@ def _call_gemini_model(
 
     if _cached_gemini_client is None:
         return {
-            "answer": "AI provider is currently unavailable.",
+            "answer": _ERR_AI_PROVIDER_UNAVAILABLE,
             "confidence": 0,
             "error": "gemini_client_missing",
             "is_fallback": False,
@@ -383,7 +386,7 @@ def _call_gemini_model(
             f"Gemini {model_name} failed: {exc}. Falling back to Claude Haiku."
         )
         return {
-            "answer": "AI provider is currently unavailable.",
+            "answer": _ERR_AI_PROVIDER_UNAVAILABLE,
             "confidence": 0,
             "error": f"gemini_error: {exc}",
             "is_fallback": False,
@@ -394,7 +397,7 @@ def _call_gemini_model(
         logger.warning(
             f"Gemini {model_name} returned empty response. Falling back to Claude Haiku.")
         return {
-            "answer": "AI provider is currently unavailable.",
+            "answer": _ERR_AI_PROVIDER_UNAVAILABLE,
             "confidence": 0,
             "error": "gemini_error: empty_response",
             "is_fallback": False,
@@ -900,7 +903,7 @@ def _is_simple_question(question: str) -> bool:
     return len(words) <= 25
 
 
-def build_prompt(question, sefaria_sources, customs, user_memories, wiki, halachipedia=None, mode="balanced", community_lens="All", extra_context=None, answer_language="en"):
+def build_prompt(question, sefaria_sources, wiki, halachipedia=None, mode="balanced", community_lens="All", answer_language="en"):
     """Build compact user prompt for token-light Claude calls."""
 
     sefaria_text = format_sefaria_sources(sefaria_sources)
@@ -1114,14 +1117,11 @@ def ask_claude(question, sefaria_sources, customs, user_memories=None, wiki=None
         return build_prompt(
             question=sanitized_query,
             sefaria_sources=sefaria_sources,
-            customs=customs,
-            user_memories=user_memories,
             wiki=wiki,
             halachipedia=halachipedia,
             mode=mode,
             community_lens=community_lens,
             answer_language=answer_language,
-            extra_context=tool_context,
         )
 
     result = run_protected_ai_wrapper(
@@ -1151,7 +1151,7 @@ async def _call_anthropic_httpx_model(
         if gemini_error:
             error = f"gemini_error: {gemini_error}; {error}"
         return {
-            "answer": "AI provider is currently unavailable.",
+            "answer": _ERR_AI_PROVIDER_UNAVAILABLE,
             "confidence": 0,
             "error": error,
             "is_fallback": True,
@@ -1201,7 +1201,7 @@ async def _call_anthropic_httpx_model(
         if gemini_error:
             error = f"gemini_error: {gemini_error}; {error}"
         return {
-            "answer": "AI provider is currently unavailable.",
+            "answer": _ERR_AI_PROVIDER_UNAVAILABLE,
             "confidence": 0,
             "error": error,
             "is_fallback": True,
@@ -1217,14 +1217,14 @@ async def _call_gemini_httpx_model(
     """Async Gemini primary call using google-genai SDK (replaces hand-rolled httpx)."""
     global _cached_gemini_client
 
-    model_name = (os.environ.get("GEMINI_MODEL") or "gemini-3.1-flash-lite-preview").strip()
+    model_name = (os.environ.get("GEMINI_MODEL") or _DEFAULT_GEMINI_MODEL).strip()
     if not model_name:
-        model_name = "gemini-3.1-flash-lite-preview"
+        model_name = _DEFAULT_GEMINI_MODEL
 
     config_error = _configure_gemini_client()
     if config_error or _cached_gemini_client is None:
         return {
-            "answer": "AI provider is currently unavailable.",
+            "answer": _ERR_AI_PROVIDER_UNAVAILABLE,
             "confidence": 0,
             "error": config_error or "gemini_client_missing",
             "is_fallback": False,
@@ -1233,7 +1233,7 @@ async def _call_gemini_httpx_model(
 
     if not genai_types:
         return {
-            "answer": "AI provider is currently unavailable.",
+            "answer": _ERR_AI_PROVIDER_UNAVAILABLE,
             "confidence": 0,
             "error": "gemini_sdk_missing",
             "is_fallback": False,
@@ -1281,7 +1281,7 @@ async def _call_gemini_httpx_model(
         }
     except Exception as exc:
         return {
-            "answer": "AI provider is currently unavailable.",
+            "answer": _ERR_AI_PROVIDER_UNAVAILABLE,
             "confidence": 0,
             "error": f"gemini_sdk_error: {exc}",
             "is_fallback": False,
@@ -1343,14 +1343,11 @@ async def ask_ai_async(
     prompt = build_prompt(
         question=sanitized_query,
         sefaria_sources=sefaria_sources,
-        customs=customs,
-        user_memories=user_memories,
         wiki=wiki,
         halachipedia=halachipedia,
         mode=mode,
         community_lens=community_lens,
         answer_language=answer_language,
-        extra_context=tool_context,
     )
     prompt = _sanitize_prompt_payload(prompt)
     is_simple = _is_simple_question(sanitized_query)
@@ -1417,9 +1414,9 @@ def summarize_with_gemini(segment_text: str, notes: str = "") -> Dict[str, Any]:
         return ""
 
     model_name = (os.environ.get("GEMINI_MODEL")
-                  or "gemini-3.1-flash-lite-preview").strip()
+                  or _DEFAULT_GEMINI_MODEL).strip()
     if not model_name:
-        model_name = "gemini-3.1-flash-lite-preview"
+        model_name = _DEFAULT_GEMINI_MODEL
 
     prompt = (
         "You are preparing a concise chevruta study note. Return plain text only. "

@@ -318,7 +318,7 @@ def get_monthly_events(lat, lon, timezone_str=None):
     - Daily sunrise, sunset & nightfall from KosherJava
     - Jewish holidays (with candle lighting times) from Hebcal API
     """
-    tz, tz_name = _resolve_timezone(lat, lon, timezone_str)
+    _, tz_name = _resolve_timezone(lat, lon, timezone_str)
     location = GeoLocation("User Location", float(lat), float(lon), tz_name, 0)
 
     events = []

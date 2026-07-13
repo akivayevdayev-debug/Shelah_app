@@ -6,7 +6,8 @@
 </script>
 {% if clerk_publishable_key %}
 <script crossorigin="anonymous" data-clerk-publishable-key="{{ clerk_publishable_key }}"
-    src="https://cdn.jsdelivr.net/npm/@clerk/clerk-js@5/dist/clerk.browser.js"></script>
+    src="https://cdn.jsdelivr.net/npm/@clerk/clerk-js@5.127.0/dist/clerk.browser.js"
+    integrity="sha384-9BfgqxUZJLeppMqmDGDPFU1zC63bMyEwEXG8xMcQwhDz5qU3WUR4PwpVcZ4fKU8D"></script>
 {% endif %}
 <script>
     // ===== APP STATE & CONSTANTS =====
@@ -136,7 +137,6 @@
 
     // ===== AUTHENTICATION =====
     function setupAuthControls() {
-        const authControls = document.getElementById('authControls');
         const signInBtn = document.getElementById('signInBtn');
         const userProfileMenuContainer = document.getElementById('userProfileMenuContainer');
         const userProfileMenuBtn = document.getElementById('userProfileMenuBtn');
