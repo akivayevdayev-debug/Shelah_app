@@ -80,7 +80,8 @@
     </script>
     {% if clerk_publishable_key %}
     <script crossorigin="anonymous" data-clerk-publishable-key="{{ clerk_publishable_key }}"
-        src="https://cdn.jsdelivr.net/npm/@clerk/clerk-js@5/dist/clerk.browser.js"></script>
+        src="https://cdn.jsdelivr.net/npm/@clerk/clerk-js@5.127.0/dist/clerk.browser.js"
+        integrity="sha384-9BfgqxUZJLeppMqmDGDPFU1zC63bMyEwEXG8xMcQwhDz5qU3WUR4PwpVcZ4fKU8D"></script>
     {% endif %}
 </head>
 
@@ -101,7 +102,8 @@
                 <!-- mobileNavBtn removed: Library tab in bottom nav covers this action -->
 
                 <div id="brandHomeBtn" class="topbar-brand flex items-center gap-1.5 cursor-pointer shrink-0"
-                    onclick="goHome()">
+                    role="button" tabindex="0" aria-label="Go to home"
+                    onclick="goHome()" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();goHome();}">
                     <div class="text-navy font-hebrew text-[1.7rem] font-semibold leading-tight">
                         ש
                     </div>
@@ -133,6 +135,7 @@
                         <!-- Search Form -->
                         <form id="searchForm" role="search" aria-label="Search texts" class="w-full relative min-w-0">
                             <input type="text" id="searchInput"
+                                aria-label="Ask Sh'elah about any topic, halachah, or custom"
                                 placeholder="Ask Sh'elah about any topic, halachah, or custom..."
                                 class="w-full bg-[#fbf8f1] hover:bg-[#f8f2e8] transition text-sm sm:text-base p-2 pl-4 pr-10 rounded-full border border-[#d8d0c2] focus:border-[#b8aa90] focus:ring-2 focus:ring-[#d9cdb8]/80 focus:bg-[#fffdf8] focus:outline-none"
                                 autocomplete="off" required>
@@ -813,13 +816,13 @@
                 <details class="group cursor-pointer">
                     <summary class="font-semibold hover:text-[#002147] list-none border-b pb-2 mb-2"
                         data-en="All Topics & Texts" data-he="כל הנושאים והטקסטים">All Topics & Texts</summary>
-                    <div id="libraryIndexSidebar" class="library-index-sidebar-tree space-y-1"
-                        role="status" aria-busy="true">
+                    <output id="libraryIndexSidebar" class="block library-index-sidebar-tree space-y-1"
+                        aria-busy="true">
                         <div class="sk-tree-row" aria-hidden="true"></div>
                         <div class="sk-tree-row" aria-hidden="true" style="width:80%"></div>
                         <div class="sk-tree-row" aria-hidden="true" style="width:90%"></div>
                         <div class="sk-tree-row" aria-hidden="true" style="width:70%"></div>
-                    </div>
+                    </output>
                 </details>
 
                 <h3 class="text-xs font-bold text-slate-400 uppercase tracking-widest mt-10 mb-4"
@@ -851,7 +854,7 @@
         <main id="mainContainer" aria-label="Main content"
             class="content-canvas flex-1 bg-[#faf7f0] relative flex flex-col overflow-y-auto">
 
-            <div id="loadingOverlay" role="status" aria-busy="false"
+            <output id="loadingOverlay" aria-busy="false"
                 aria-label="Loading"
                 class="hidden fixed inset-0 backdrop-blur-sm z-[500] flex flex-col items-center justify-center">
                 <div class="flex flex-col items-center gap-4" aria-hidden="true">
@@ -864,7 +867,7 @@
                     <p class="ai-loading-phase-text" data-en="Synthesizing Halachic Library..."
                         data-he="סינתזה של ספרייה הלכתית...">Synthesizing Halachic Library...</p>
                 </div>
-            </div>
+            </output>
 
             <!-- HOME: BROWSE THE LIBRARY GRID -->
             <div id="homeGrid"
@@ -945,7 +948,7 @@
                         </div>
                     </section>
 
-                    <aside id="dailyPulseColumn" class="space-y-8">
+                    <aside id="dailyPulseColumn" class="space-y-8" aria-label="Daily pulse">
                         <section class="home-today-section relative">
                             <h4 class="home-section-label flex justify-between items-center mb-3">
                                 <span data-en="Zmanim" data-he="זמנים">Zmanim</span>
@@ -973,7 +976,7 @@
                                 <p class="text-[11px] font-bold uppercase tracking-widest text-[#64748b] mb-2"
                                     data-en="Search by City" data-he="חיפוש לפי עיר">Search by City</p>
                                 <div class="flex gap-2">
-                                    <input id="citySearchInput" type="text" placeholder="e.g. Jerusalem, New York..."
+                                    <input id="citySearchInput" type="text" aria-label="Search by city" placeholder="e.g. Jerusalem, New York..."
                                         class="flex-1 text-sm px-3 py-1.5 rounded-lg border border-[#d7cebc] bg-white focus:outline-none focus:border-[#a09060] focus:ring-2 focus:ring-[#d9cdb8]/50"
                                         data-en-placeholder="e.g. Jerusalem, New York..."
                                         data-he-placeholder="לדוגמה: ירושלים, ניו יורק" />
@@ -1341,11 +1344,11 @@
                         data-he="סידורי תפילה">Prayer
                         Books
                     </h3>
-                    <div id="prayersList" class="prayer-menu-layout space-y-2" role="status" aria-busy="true">
+                    <output id="prayersList" class="block prayer-menu-layout space-y-2" aria-busy="true">
                         <div class="sk-prayer-row" aria-hidden="true"></div>
                         <div class="sk-prayer-row" aria-hidden="true" style="width:85%"></div>
                         <div class="sk-prayer-row" aria-hidden="true" style="width:70%"></div>
-                    </div>
+                    </output>
                 </div>
 
                 <!-- Communities Section -->
@@ -1353,11 +1356,11 @@
                     <h3 class="font-serif text-lg font-bold text-[#594176] mb-4 pb-2 border-b"
                         data-en="Community Customs" data-he="מנהגים קהילתיים">Community Customs
                     </h3>
-                    <div id="communitiesList" class="space-y-2" role="status" aria-busy="true">
+                    <output id="communitiesList" class="block space-y-2" aria-busy="true">
                         <div class="sk-prayer-row" aria-hidden="true"></div>
                         <div class="sk-prayer-row" aria-hidden="true" style="width:80%"></div>
                         <div class="sk-prayer-row" aria-hidden="true" style="width:90%"></div>
-                    </div>
+                    </output>
                 </div>
 
                 <!-- Text Library Section -->
@@ -1366,6 +1369,7 @@
                         data-en="Text Library (Browse Categories)" data-he="ספריית טקסטים">Text Library</h3>
                     <div class="flex gap-2 mb-3">
                         <input id="libraryIndexFilterInput" type="text"
+                            aria-label="Filter topics or texts"
                             class="w-full px-3 py-2 rounded border border-slate-200 bg-slate-50 text-sm text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-300"
                             placeholder="Filter topics or texts..." data-en-placeholder="Filter topics or texts..."
                             data-he-placeholder="סנן נושאים או טקסטים..." />
@@ -1373,12 +1377,12 @@
                             class="px-3 py-2 rounded border border-slate-200 bg-slate-100 text-xs font-semibold text-slate-600 hover:bg-slate-200 transition"
                             data-en="Clear" data-he="נקה">Clear</button>
                     </div>
-                    <div id="libraryIndexModal" class="space-y-1 text-sm" role="status" aria-busy="true">
+                    <output id="libraryIndexModal" class="block space-y-1 text-sm" aria-busy="true">
                         <div class="sk-tree-row" aria-hidden="true"></div>
                         <div class="sk-tree-row" aria-hidden="true" style="width:80%"></div>
                         <div class="sk-tree-row" aria-hidden="true" style="width:90%"></div>
                         <div class="sk-tree-row" aria-hidden="true" style="width:70%"></div>
-                    </div>
+                    </output>
                 </div>
             </div>
 

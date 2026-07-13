@@ -11,7 +11,7 @@ import asyncio
 import collections
 import logging
 import time
-from typing import Any
+from typing import Annotated, Any
 
 # OrderedDict gives O(1) move_to_end for LRU eviction.
 _RateLimitStore = collections.OrderedDict
@@ -184,8 +184,20 @@ async def async_health() -> dict[str, Any]:
     }
 
 
-@fastapi_app.post("/ask")
-async def ask_async(request: Request, payload: AskRequest, authorization: str | None = Header(default=None)) -> dict[str, Any]:
+@fastapi_app.post(
+    "/ask",
+    responses={
+        429: {"description": "Rate limit exceeded. Please wait before sending another request."},
+        400: {"description": "No valid question provided"},
+        401: {"description": "Authentication required"},
+        500: {"description": "An internal error occurred while processing your request"},
+    },
+)
+async def ask_async(
+    request: Request,
+    payload: AskRequest,
+    authorization: Annotated[str | None, Header()] = None,
+) -> dict[str, Any]:
     client_ip = _get_client_ip(request)
     if not _check_rate_limit(client_ip):
         raise HTTPException(

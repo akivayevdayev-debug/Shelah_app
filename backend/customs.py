@@ -26,7 +26,7 @@ CUSTOMS_DIR = str(PROJECT_ROOT / "customs")
 _REQUIRED_FIELDS = ("heritage_id", "name", "halacha_index")
 
 
-def _validate_customs_file(data: dict, filepath: str) -> list[str]:
+def _validate_customs_file(data: dict) -> list[str]:
     """Return a list of validation error strings for a structured customs file."""
     errors = []
     if not isinstance(data, dict):
@@ -51,12 +51,12 @@ def validate_all_customs_at_startup() -> None:
         try:
             with open(filepath, "r", encoding="utf-8") as fh:
                 data = json.load(fh)
-        except Exception as exc:
-            logger.error("customs validation: cannot parse %s — %s", filepath, exc)
+        except Exception:
+            logger.exception("customs validation: cannot parse %s", filepath)
             continue
         if "name" not in data:
             continue  # Legacy flat-dict format — skip schema check
-        errors = _validate_customs_file(data, filepath)
+        errors = _validate_customs_file(data)
         if errors:
             logger.error(
                 "customs validation: %s failed schema check — %s",

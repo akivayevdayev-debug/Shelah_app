@@ -2,7 +2,7 @@ import { setState } from "./state.js";
 
 function normalizeDailyRef(value) {
     const ref = String(value || "").trim();
-    return ref ? ref : null;
+    return ref || null;
 }
 
 function collectRefsFromPayload(payload) {

@@ -507,11 +507,6 @@
     animation: shelah-fade-up 0.3s cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 
-/* Topbar buttons smooth hover */
-.topbar-flat-btn {
-    transition: background-color 0.15s ease, color 0.15s ease, box-shadow 0.15s ease !important;
-}
-
 /* Card hover lift effect for popular texts, customs cards */
 #popularTextsGrid button,
 .home-daily-entry,

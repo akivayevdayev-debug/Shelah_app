@@ -475,19 +475,19 @@ class TestBuildPrompt:
         prompt = claude.build_prompt(
             "Is this permitted?",
             [{"ref": "Genesis 1:1", "text": "text"}],
-            [], [], [],
+            [],
         )
         assert "Is this permitted?" in prompt
         assert "Genesis 1:1" in prompt
 
     def test_simple_question_uses_simple_format_instruction(self):
-        prompt = claude.build_prompt("short q", [], [], [], [])
+        prompt = claude.build_prompt("short q", [], [])
         assert "SIMPLE QUESTION FORMAT" in prompt
 
     def test_complex_question_uses_complex_format_instruction(self):
         prompt = claude.build_prompt(
             "please explain in detail why this halacha differs across communities and elaborate on the reasoning",
-            [], [], [], [],
+            [], [],
         )
         assert "COMPLEX QUESTION FORMAT" in prompt
 
@@ -500,13 +500,13 @@ class TestBuildPrompt:
         prompt = claude.build_prompt(
             "Is this permitted?",
             [{"ref": "Genesis 1:1", "text": "text"}],
-            [], [], [],
+            [],
         )
         assert prompt.count("\n") > 10
         assert "QUESTION:\nIs this permitted?" in prompt
 
     def test_hebrew_language_requested(self):
-        prompt = claude.build_prompt("q", [], [], [], [], answer_language="he")
+        prompt = claude.build_prompt("q", [], [], answer_language="he")
         assert "Hebrew" in prompt
 
 

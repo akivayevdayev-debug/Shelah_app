@@ -119,8 +119,7 @@ async function prewarmDailyRefs(refs) {
     const urls = [];
     for (const ref of uniqueRefs.slice(0, 12)) {
         const encoded = encodeURIComponent(ref);
-        urls.push(`/api/text/${encoded}?autotranslate=0`);
-        urls.push(`/api/text/${encoded}?autotranslate=1`);
+        urls.push(`/api/text/${encoded}?autotranslate=0`, `/api/text/${encoded}?autotranslate=1`);
     }
 
     const cache = await caches.open(PREWARM_CACHE);

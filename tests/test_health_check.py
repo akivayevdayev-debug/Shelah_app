@@ -93,9 +93,7 @@ class TestCircuitRecovery:
         for _ in range(FAIL_THRESHOLD):
             health._circuits["sefaria"].record_failure()
 
-        # Record failure timestamp then advance time past RECOVERY_INTERVAL
-        failure_time = health._circuits["sefaria"].last_failure_ts
-
+        # Advance time past RECOVERY_INTERVAL
         with freeze_time(
             # Convert the monotonic timestamp to wall time relative to now
             # freezegun freezes time.time(), so we advance by RECOVERY_INTERVAL + 1

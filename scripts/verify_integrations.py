@@ -269,7 +269,7 @@ def check_sefaria():
                 return True
             else:
                 print_warn(
-                    f"Sefaria returned data but missing Hebrew or English")
+                    "Sefaria returned data but missing Hebrew or English")
                 return True
         else:
             print_fail(f"Sefaria returned status {response.status_code}")
