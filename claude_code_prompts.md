@@ -376,11 +376,37 @@ Tests per §12.7: route tests (200s, content-type, bilingual), feedback endpoint
 
 ---
 
+## Prompt 26 — §14 Phase 8: Vercel Fluid Compute Active CPU cost fix (billed with no active user) — RUN ON YOUR LOCAL MACHINE FIRST
+
+```
+Read plan.md §14 in full before touching anything. This fixes Vercel charging Fluid Compute "Active CPU" hours with no one actively using the app. Root cause (already verified against the repo when §14 was written): no rogue cron/loop/background task exists anywhere — the bleed is that every pageview (including bots, crawlers, and idle reloads) fans out into ~19 backend calls for content that's identical for every visitor that day, and NONE of it is CDN-cacheable because of one blanket header. There is no infra change needed, only header/config/JS changes.
+
+IMPORTANT — check current state before changing anything: this workspace may already have some or all of these fixes applied as uncommitted local changes from earlier work. For EACH of the 6 items below, first check whether it's already implemented correctly; only change what's actually missing or wrong, and say explicitly for each item whether you found it "already done," "partially done," or "missing" before you touch it.
+
+1. app.py::apply_response_cache_policy (~L2566-2627): confirm the /api/* no-store branch (~L2599-2601) is now split so only genuinely private/personalized routes stay no-store — reuse the PRIVATE_API_PREFIXES list already defined in static/service-worker.js (/api/user/, /api/bookmarks/, /api/auth/, /api/client-errors) plus /ask and /set_location as the no-store set. Every other /api/* GET that returns identical content per cache key — specifically /api/daily-study (backend/routes_calendar.py) and /api/text/<ref> — must instead get a real Cache-Control: public, max-age=..., stale-while-revalidate=... header, following the exact pattern already used for /static/ (RESOURCE_RELOAD_SECONDS / STATIC_STALE_WHILE_REVALIDATE_SECONDS in the same file) rather than inventing new constants. Daily-study content changes once per calendar day (generous max-age is safe); library text per ref is effectively immutable (cache long).
+
+2. static/js/zmanim.js — installDailyPrewarm/prewarmDailyStudy (~L91-130): confirm it's gated to fire at most once per calendar day per client (e.g. a localStorage flag keyed by today's local date, or the existing state.js store) before doing its ~19-call fan-out (1x /api/daily-study + up to 9 refs x 2 variants via prefetchRefText). If it still fires unconditionally on every load event, add the gate.
+
+3. robots.txt: confirm one exists at the repo root, is served as a static file, and is excluded from vercel.json's catch-all rewrite (the negative-lookahead currently covers static/|favicon.ico|manifest.webmanifest|service-worker.js — robots.txt needs to be in that list too, otherwise it gets routed through /api/index instead of served directly). Disallow /api/ and any devtools/admin paths; allow the public pages. If §12.5 already shipped this, just verify it and move on.
+
+4. vercel.json: confirm functions["api/index.py"] (or a top-level regions key) pins a region. If unset, set it to whatever region the Supabase project is in (check the Supabase dashboard if you don't already know it) so the function runs close to its main dependency.
+
+5. Confirm (just check, this is not a code change) whether Fluid Compute + Active CPU pricing is actually toggled on for this project in the Vercel dashboard under Settings → Functions — tell me what you find, don't guess.
+
+6. Tell me to check the Vercel dashboard's Usage/Observability tab (broken down by route and region) for any external uptime monitor or stray traffic source hitting the site outside of normal usage — this can't be diagnosed from the repo, it's a dashboard check only.
+
+Tests: extend the nearest existing route-test module (e.g. tests/test_routes_calendar.py) asserting /api/daily-study and /api/text/<ref> now return the new public/cacheable Cache-Control, and that /ask, /api/user/*, /api/bookmarks/*, /api/auth/*, /api/client-errors, /set_location are unchanged (no-store). Manual check: reload the page twice in the same simulated day and confirm the prewarm fan-out fires only once. Full pytest -q green. graphify update . after.
+
+Do NOT deploy straight to production — this is local/uncommitted work per plan.md §14; when you're done, tell me what changed, what was already in place, and what still needs a manual Vercel-dashboard check (items 5 and 6), so I can review the diff before it goes anywhere.
+```
+
+---
+
 ### Suggested execution order
 
 | Order | Prompts | Track |
 |---|---|---|
-| 1 | 24 | Unblock deploys (verify the fix) |
+| 1 | 26 → 24 | Stop live cost bleed, then unblock deploys (verify the fix) |
 | 2 | 1 → 2 → 3 → 4 → 4b | Backend refactor (strictly sequential) |
 | 3 | 14 → 13 → 12 | Safety + legal (14 first: §9 depends on the classifier) |
 | 4 | 20 | Agentic tools (needs Phases 1–2 module paths + Prompt 14) |
