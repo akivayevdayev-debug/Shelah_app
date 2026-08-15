@@ -6,12 +6,6 @@
             "maxDuration": 90
         }
     },
-    "rewrites": [
-        {
-            "source": "/((?!static/|favicon\\.ico|manifest\\.webmanifest|service-worker\\.js).*)",
-            "destination": "/api/index"
-        }
-    ],
     "headers": [
         {
             "source": "/static/(.*)",
