@@ -1,4 +1,5 @@
 # Sh'elah — Jewish Learning & Halachic AI Assistant
+[![Quality gate status](https://sonarcloud.io/api/project_badges/measure?project=akivayevdayev-debug_Shelah_app&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=akivayevdayev-debug_Shelah_app)
 
 **Sh'elah** (שאלה — "question") is a full-stack web application for Jewish text study, halachic inquiry, and daily practice. It integrates the Sefaria text library, community customs datasets, prayer resources, zmanim, and a multi-model AI layer (Google Gemini primary, Anthropic Claude fallback) to answer halachic questions with source citations in the user's community tradition.
 
