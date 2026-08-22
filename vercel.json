@@ -2,10 +2,21 @@
     "$schema": "https://openapi.vercel.sh/vercel.json",
     "functions": {
         "api/index.py": {
-            "memory": 1024,
             "maxDuration": 90
         }
     },
+    "regions": ["iad1"],
+    "ignoreCommand": "git diff --quiet HEAD^ HEAD -- . ':(exclude)*.md' ':(exclude)docs/**'",
+    "crons": [
+        {
+            "path": "/api/devtools/budget-check",
+            "schedule": "0 13 * * *"
+        },
+        {
+            "path": "/api/devtools/retention-enforce",
+            "schedule": "0 14 * * *"
+        }
+    ],
     "headers": [
         {
             "source": "/static/(.*)",
