@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Help guide for Sh'elah — how to ask a good question, what the answer modes mean, reader features like Shul Mode and bookmarks, and a tour of the calendar and zmanim.">
+    <meta name="theme-color" content="#f3ede0" media="(prefers-color-scheme: light)">
+    <meta name="theme-color" content="#0c0c0b" media="(prefers-color-scheme: dark)">
+    <script>(function () {
+        try {
+            var raw = localStorage.getItem("Sh'elahPrefs");
+            var t = raw ? JSON.parse(raw).theme : null;
+            if (t !== 'light' && t !== 'dark') {
+                t = (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) ? 'dark' : 'light';
+            }
+            document.documentElement.setAttribute('data-theme', t);
+            document.documentElement.classList.toggle('theme-dark', t === 'dark');
+        } catch (e) { }
+    })()</script>
+    <title>Help – Sh'elah</title>
+    <link rel="canonical" href="https://shelah-app.vercel.app/help">
+    <meta property="og:type" content="website">
+    <meta property="og:title" content="Help – Sh'elah">
+    <meta property="og:description" content="How to ask a good question, what the answer modes mean, and a tour of Sh'elah's reader, calendar, and zmanim features.">
+    <meta property="og:url" content="https://shelah-app.vercel.app/help">
+    <meta property="og:image" content="https://shelah-app.vercel.app/static/favicon-512.png">
+    <meta name="twitter:card" content="summary">
+    <meta name="twitter:title" content="Help – Sh'elah">
+    <meta name="twitter:description" content="How to ask a good question, what the answer modes mean, and a tour of Sh'elah's reader, calendar, and zmanim features.">
+    <meta name="twitter:image" content="https://shelah-app.vercel.app/static/favicon-512.png">
+    <link rel="icon" href="/static/favicon.svg" type="image/svg+xml">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cardo:wght@400;700&family=Inter:wght@400;500;600&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="/static/css/tokens.css?v=20260617-v1">
+    <link rel="stylesheet" href="/static/style.css?v=20260617-v2">
+    <link rel="stylesheet" href="/static/css/tailwind.css?v=20260818-v5">
+    <link rel="stylesheet" href="/static/css/legal.css?v=20260818-v5">
+</head>
+
+<body class="font-sans min-h-screen overflow-x-hidden flex flex-col">
+    <a href="#mainContent" class="skip-to-content">Skip to main content</a>
+
+    {% include 'components/legal_topbar.html' %}
+
+    <div class="legal-hero">
+        <h1 data-en="Help &amp; Guide" data-he="עזרה ומדריך">Help &amp; Guide</h1>
+        <p class="subtitle" data-en="How to get the most out of Sh'elah." data-he="כיצד להפיק את המרב משאלה.">How to
+            get the most out of Sh'elah.</p>
+    </div>
+
+    <main id="mainContent" class="flex-1">
+        <article id="helpBody" class="main-container prose prose-sm max-w-2xl">
+            <div class="legal-toolbar">
+                <a href="/" class="legal-back-link" data-en="← Back to Sh'elah" data-he="← חזרה לשאלה">← Back to
+                    Sh'elah</a>
+            </div>
+
+            <h2 data-en="Asking a good sh'elah" data-he="כיצד לשאול שאלה טובה">Asking a good sh'elah</h2>
+            <p data-en="The more specific your question, the more useful the sourced answer. Include the practical situation, not just the topic — 'Can I turn on a light with a timer before Shabbat starts' retrieves better sources than 'Shabbat rules'. If your question depends on where you live or which community's custom you follow, say so; the community-lens selector (below) helps with this too."
+                data-he="ככל שהשאלה שלך ספציפית יותר, כך התשובה המבוססת-מקורות תהיה שימושית יותר. כלול את המצב המעשי, לא רק את הנושא — 'האם מותר להדליק אור בטיימר לפני כניסת שבת' מביא מקורות טובים יותר מ'הלכות שבת'. אם השאלה שלך תלויה במקום מגוריך או במנהג הקהילה שאתה עוקב אחריו, ציין זאת; בורר עדשת הקהילה (למטה) עוזר גם בכך.">
+                The more specific your question, the more useful the sourced answer. Include the practical situation,
+                not just the topic — "Can I turn on a light with a timer before Shabbat starts" retrieves better
+                sources than "Shabbat rules". If your question depends on where you live or which community's custom
+                you follow, say so; the community-lens selector (below) helps with this too.
+            </p>
+
+            <h2 data-en="Answer modes" data-he="מצבי תשובה">Answer modes</h2>
+            <p data-en="Every answer is generated in one of four modes, selectable before you ask:"
+                data-he="כל תשובה נוצרת באחד מארבעה מצבים, הניתנים לבחירה לפני השאלה:">
+                Every answer is generated in one of four modes, selectable before you ask:
+            </p>
+            <ul>
+                <li data-en="Balanced — the default: a clear, well-rounded answer with cited sources."
+                    data-he="מאוזן — ברירת המחדל: תשובה ברורה ומעוגלת היטב עם מקורות מצוטטים.">
+                    <strong data-en="Balanced" data-he="מאוזן">Balanced</strong> — the default: a clear, well-rounded
+                    answer with cited sources.
+                </li>
+                <li data-en="Practical — leads with the bottom-line halachic conclusion first, detail after."
+                    data-he="מעשי — מוביל עם המסקנה ההלכתית התכליתית תחילה, הפרטים אחר כך.">
+                    <strong data-en="Practical" data-he="מעשי">Practical</strong> — leads with the bottom-line
+                    halachic conclusion first, detail after.
+                </li>
+                <li data-en="Sources — emphasizes the primary texts themselves, with minimal synthesis commentary."
+                    data-he="מקורות — מדגיש את הטקסטים הראשוניים עצמם, עם מינימום פרשנות סינתטית.">
+                    <strong data-en="Sources" data-he="מקורות">Sources</strong> — emphasizes the primary texts
+                    themselves, with minimal synthesis commentary.
+                </li>
+                <li data-en="Strict — the most conservative framing, explicitly declining to rule on questions requiring a posek."
+                    data-he="מחמיר — הניסוח השמרני ביותר, ומסרב במפורש לפסוק בשאלות המחייבות פוסק.">
+                    <strong data-en="Strict" data-he="מחמיר">Strict</strong> — the most conservative framing,
+                    explicitly declining to rule on questions requiring a posek.
+                </li>
+            </ul>
+
+            <h2 data-en="Community lens" data-he="עדשת קהילה">Community lens</h2>
+            <p data-en="Many practical questions have different answers by community (Ashkenaz, Sephardic, Yemenite, and others). Selecting a community lens biases retrieval toward that community's customs and sources where relevant — it does not hide other views, and the AI will still say when a practice is genuinely disputed."
+                data-he="לשאלות מעשיות רבות יש תשובות שונות לפי קהילה (אשכנז, ספרדי, תימני, ואחרים). בחירת עדשת קהילה מטה את השליפה לכיוון מנהגי ומקורות אותה קהילה במקום הרלוונטי — היא אינה מסתירה דעות אחרות, והבינה המלאכותית עדיין תציין כאשר נוהג שנוי במחלוקת אמיתית.">
+                Many practical questions have different answers by community (Ashkenaz, Sephardic, Yemenite, and
+                others). Selecting a community lens biases retrieval toward that community's customs and sources
+                where relevant — it does not hide other views, and the AI will still say when a practice is
+                genuinely disputed.
+            </p>
+
+            <h2 data-en="Reader features" data-he="תכונות הקורא">Reader features</h2>
+            <ul>
+                <li data-en="Shul Mode — a larger, auto-scrolling display meant for reading along during services; toggle it from the reader's settings panel."
+                    data-he="מצב בית כנסת — תצוגה גדולה יותר עם גלילה אוטומטית המיועדת לקריאה במהלך התפילה; הפעל אותו מפאנל ההגדרות של הקורא.">
+                    <strong data-en="Shul Mode" data-he="מצב בית כנסת">Shul Mode</strong> — a larger,
+                    auto-scrolling display meant for reading along during services; toggle it from the reader's
+                    settings panel.
+                </li>
+                <li data-en="Bookmarks — save any passage or answer for later; signed-in users' bookmarks sync across devices."
+                    data-he="סימניות — שמור כל קטע או תשובה לשימוש מאוחר יותר; סימניות של משתמשים מחוברים מסתנכרנות בין מכשירים.">
+                    <strong data-en="Bookmarks" data-he="סימניות">Bookmarks</strong> — save any passage or answer for
+                    later; signed-in users' bookmarks sync across devices.
+                </li>
+                <li data-en="Export — download a chapter as a document (docx/pdf) for offline study or printing."
+                    data-he="ייצוא — הורד פרק כמסמך (docx/pdf) ללימוד לא מקוון או להדפסה.">
+                    <strong data-en="Export" data-he="ייצוא">Export</strong> — download a chapter as a document
+                    (docx/pdf) for offline study or printing.
+                </li>
+                <li data-en="Cited sources — every AI answer's source list links directly back into the reader at the exact cited passage."
+                    data-he="מקורות מצוטטים — רשימת המקורות של כל תשובת בינה מלאכותית מקשרת ישירות חזרה לקורא בקטע המצוטט המדויק.">
+                    <strong data-en="Cited sources" data-he="מקורות מצוטטים">Cited sources</strong> — every AI
+                    answer's source list links directly back into the reader at the exact cited passage.
+                </li>
+            </ul>
+            <p data-en="Looking for a term you don't recognize? Check the "
+                data-he="מחפש מונח שאינך מזהה? עיין ב">
+                Looking for a term you don't recognize? Check the
+                <a href="/glossary" data-en="Glossary" data-he="מילון המונחים">Glossary</a>.
+            </p>
+
+            <h2 data-en="Calendar &amp; zmanim tour" data-he="סיור בלוח השנה ובזמנים">Calendar &amp; zmanim tour</h2>
+            <p data-en="The calendar view shows the Hebrew date, the week's parasha, holidays, and the daily zmanim (halachic times) computed for your location — either detected automatically or set manually if you'd rather not share it. Candle-lighting and havdalah times update automatically as Shabbat and holidays approach."
+                data-he="תצוגת הלוח השנה מציגה את התאריך העברי, פרשת השבוע, חגים, והזמנים ההלכתיים היומיים המחושבים עבור מיקומך — הן שזוהה אוטומטית או שהוגדר ידנית אם אינך מעוניין לשתף אותו. זמני הדלקת נרות והבדלה מתעדכנים אוטומטית ככל שמתקרבים שבת וחגים.">
+                The calendar view shows the Hebrew date, the week's parasha, holidays, and the daily zmanim
+                (halachic times) computed for your location — either detected automatically or set manually if
+                you'd rather not share it. Candle-lighting and havdalah times update automatically as Shabbat and
+                holidays approach.
+            </p>
+
+            <hr class="my-8" style="border-color: var(--surface-border);">
+
+            <div class="info-box">
+                <p class="text-sm"
+                    data-en="Still stuck, or found something that looks wrong? See the About page for how to reach us."
+                    data-he="עדיין תקוע, או מצאת משהו שנראה שגוי? ראה את עמוד האודות לדרכי יצירת קשר.">
+                    Still stuck, or found something that looks wrong? See the <a href="/about" data-en="About page"
+                        data-he="עמוד האודות">About page</a> for how to reach us.
+                </p>
+            </div>
+        </article>
+    </main>
+
+    <footer class="border-t py-6 text-center text-xs"
+        style="border-color: var(--surface-border); color: var(--ink-secondary); background: var(--surface-1);">
+        <p>
+            <a href="/" class="font-semibold hover:underline" style="color: var(--ink-heading);"
+                data-en="Sh'elah Torah Encyclopedia" data-he="שאלה אנציקלופדיית תורה">Sh'elah Torah Encyclopedia</a>
+            &nbsp;·&nbsp;
+            <a href="/about" class="hover:underline" style="color: var(--ink-secondary);"
+                data-en="About" data-he="אודות">About</a>
+            &nbsp;·&nbsp;
+            <a href="/glossary" class="hover:underline" style="color: var(--ink-secondary);"
+                data-en="Glossary" data-he="מילון מונחים">Glossary</a>
+            &nbsp;·&nbsp;
+            <a href="/terms" class="hover:underline font-medium" style="color: var(--ink-heading);"
+                data-en="Terms of Service" data-he="תנאי שירות">Terms of Service</a>
+            &nbsp;·&nbsp;
+            <a href="/privacy" class="hover:underline" style="color: var(--ink-secondary);"
+                data-en="Privacy Policy" data-he="מדיניות פרטיות">Privacy Policy</a>
+            &nbsp;·&nbsp;
+            <a href="/ai-disclosure" class="hover:underline" style="color: var(--ink-secondary);"
+                data-en="AI Disclosure" data-he="גילוי נאות בינה מלאכותית">AI Disclosure</a>
+            &nbsp;·&nbsp;
+            <a href="/acceptable-use" class="hover:underline" style="color: var(--ink-secondary);"
+                data-en="Acceptable Use" data-he="שימוש מותר">Acceptable Use</a>
+            &nbsp;·&nbsp;
+            <a href="/dmca" class="hover:underline" style="color: var(--ink-secondary);"
+                data-en="DMCA" data-he="DMCA">DMCA</a>
+            &nbsp;·&nbsp;
+            <a href="/accessibility" class="hover:underline" style="color: var(--ink-secondary);"
+                data-en="Accessibility" data-he="נגישות">Accessibility</a>
+            &nbsp;·&nbsp;
+            <a href="/licenses" class="hover:underline" style="color: var(--ink-secondary);"
+                data-en="Licenses" data-he="רישיונות">Licenses</a>
+        </p>
+    </footer>
+
+    {% include 'components/legal_scripts.html' %}
+</body>
+
+</html>

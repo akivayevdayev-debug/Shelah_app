@@ -22,18 +22,36 @@ os.environ.setdefault("CLERK_ENFORCE_AUTH", "false")
 os.environ.setdefault("SEFARIA_API", "https://mock.sefaria.org/api")
 os.environ.setdefault("SEFARIA_V3_API", "https://mock.sefaria.org/api/v3")
 os.environ.setdefault("SUPABASE_URL", "https://mock.supabase.co")
-os.environ.setdefault("SUPABASE_ANON_KEY", "mock-key")
-os.environ.setdefault("SUPABASE_SERVICE_ROLE_KEY", "mock-service-key")
+os.environ.setdefault("SUPABASE_PUBLISHABLE_KEY", "sb_publishable_mock-key")
+os.environ.setdefault("SUPABASE_SECRET_KEY", "sb_secret_mock-key")
 os.environ.setdefault("ANTHROPIC_API_KEY", "mock-anthropic-key")
 os.environ.setdefault("GEMINI_API_KEY", "mock-gemini-key")
 os.environ.setdefault("LOG_LEVEL", "ERROR")
-# Suppress rate limiter in tests
-os.environ.setdefault("RATELIMIT_ENABLED", "false")
+# Blank out — a developer's local .env may set these to real DSNs, and
+# load_dotenv() (called on app import) won't override an already-set var.
+os.environ.setdefault("SENTRY_DSN", "")
+os.environ.setdefault("SENTRY_DSN_BROWSER", "")
 # plan.md §36.1: a developer's local .env may set this to a real Upstash
 # DSN, and load_dotenv() (called on app import) won't override an
-# already-set var -- blank it so tests never leak writes to a shared
-# production-adjacent Redis instance.
+# already-set var -- blank it so tests never leak reads/writes to a shared
+# production-adjacent Redis instance. RATELIMIT_ENABLED is left live (see
+# below), so this is what forces backend.rate_limit._build_store() to fall
+# back to the safe in-process store instead.
 os.environ.setdefault("RATE_LIMIT_REDIS_URL", "")
+# RATELIMIT_ENABLED is deliberately NOT set here. Rate limiting is now
+# enforced centrally by backend.rate_limit.RateLimitMiddleware (plan.md
+# §16.3-L2, replacing Flask-Limiter and asgi.py's old independent
+# in-process limiter -- see plan.md §16.8.1), registered on asgi.py's
+# fastapi_app and read once at import time. Leaving it unset keeps the
+# limiter fully live for this entire suite, which is what
+# tests/test_ask.py::TestAskRateLimit and
+# tests/test_routes_feedback.py::TestFeedbackRateLimit depend on to prove
+# 429s are actually returned -- disabling it here would break both. No
+# other test in this suite is sensitive to the limiter being live.
+# RATELIMIT_ENABLED=false remains meaningful for ci.yml's pa11y-ci step,
+# which boots a separate bare `python3 app.py` process outside pytest --
+# though that boot never goes through asgi.py either, so the env var is a
+# no-op there too now (see ci.yml's own comment on that line).
 
 import json
 import re
@@ -45,13 +63,24 @@ import httpx
 # ── Import apps (env vars are already set) ────────────────────────────────────
 import app as flask_app_module
 import asgi
+from backend.health_check import health as _api_health
 
 MOCK_SEFARIA_REF = "Genesis 1:1"
 
 
+@pytest.fixture(autouse=True)
+def _reset_api_health():
+    """Reset the shared health-check circuit-breaker singleton around every
+    test so failure-injection in one test (e.g. simulated Sefaria/translate
+    outages) can never trip a circuit that leaks into unrelated tests."""
+    _api_health.reset()
+    yield
+    _api_health.reset()
+
+
 # ─── Core client fixtures ─────────────────────────────────────────────────────
 
-@pytest.fixture()
+@pytest.fixture
 def test_client():
     """Flask test client with testing config enabled."""
     flask_app_module.app.config["TESTING"] = True
@@ -60,7 +89,7 @@ def test_client():
         yield client
 
 
-@pytest.fixture()
+@pytest.fixture
 async def fastapi_client():
     """Async httpx client wrapping the FastAPI app for ASGI-layer tests."""
     transport = httpx.ASGITransport(app=asgi.fastapi_app)
@@ -235,7 +264,7 @@ def mock_outbound_httpx():
 
 # ─── Domain-specific fixtures ─────────────────────────────────────────────────
 
-@pytest.fixture()
+@pytest.fixture
 def mock_sefaria_text():
     """Typical Sefaria text response shape."""
     return {
@@ -251,7 +280,7 @@ def mock_sefaria_text():
     }
 
 
-@pytest.fixture()
+@pytest.fixture
 def mock_ai_response():
     """Typical AI answer response dict shape."""
     return {
@@ -276,7 +305,7 @@ def mock_ai_response():
     }
 
 
-@pytest.fixture()
+@pytest.fixture
 def dst_dates():
     """
     DST boundary tuples: (date_str, lat, lon, tz_name).
