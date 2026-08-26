@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Glossary of halachic terms used across Sh'elah — kezayit, muktzeh, eruv, and more, defined the same way the AI assistant itself defines them.">
+    <meta name="theme-color" content="#f3ede0" media="(prefers-color-scheme: light)">
+    <meta name="theme-color" content="#0c0c0b" media="(prefers-color-scheme: dark)">
+    <script>(function () {
+        try {
+            var raw = localStorage.getItem("Sh'elahPrefs");
+            var t = raw ? JSON.parse(raw).theme : null;
+            if (t !== 'light' && t !== 'dark') {
+                t = (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) ? 'dark' : 'light';
+            }
+            document.documentElement.setAttribute('data-theme', t);
+            document.documentElement.classList.toggle('theme-dark', t === 'dark');
+        } catch (e) { }
+    })()</script>
+    <title>Glossary – Sh'elah</title>
+    <link rel="canonical" href="https://shelah-app.vercel.app/glossary">
+    <meta property="og:type" content="website">
+    <meta property="og:title" content="Glossary – Sh'elah">
+    <meta property="og:description" content="Glossary of recurring halachic terms used across Sh'elah.">
+    <meta property="og:url" content="https://shelah-app.vercel.app/glossary">
+    <meta property="og:image" content="https://shelah-app.vercel.app/static/favicon-512.png">
+    <meta name="twitter:card" content="summary">
+    <meta name="twitter:title" content="Glossary – Sh'elah">
+    <meta name="twitter:description" content="Glossary of recurring halachic terms used across Sh'elah.">
+    <meta name="twitter:image" content="https://shelah-app.vercel.app/static/favicon-512.png">
+    <link rel="icon" href="/static/favicon.svg" type="image/svg+xml">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cardo:wght@400;700&family=Inter:wght@400;500;600&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="/static/css/tokens.css?v=20260617-v1">
+    <link rel="stylesheet" href="/static/style.css?v=20260617-v2">
+    <link rel="stylesheet" href="/static/css/tailwind.css?v=20260818-v5">
+    <link rel="stylesheet" href="/static/css/legal.css?v=20260818-v5">
+</head>
+
+<body class="font-sans min-h-screen overflow-x-hidden flex flex-col">
+    <a href="#mainContent" class="skip-to-content">Skip to main content</a>
+
+    {% include 'components/legal_topbar.html' %}
+
+    <div class="legal-hero">
+        <h1 data-en="Glossary" data-he="מילון מונחים">Glossary</h1>
+        <p class="subtitle" data-en="Recurring halachic terms, defined the same way Sh'elah's AI defines them."
+            data-he="מונחים הלכתיים חוזרים, מוגדרים באותו אופן שבו הבינה המלאכותית של שאלה מגדירה אותם.">Recurring
+            halachic terms, defined the same way Sh'elah's AI defines them.</p>
+    </div>
+
+    <main id="mainContent" class="flex-1">
+        <article id="glossaryBody" class="main-container prose prose-sm max-w-2xl">
+            <div class="legal-toolbar">
+                <a href="/" class="legal-back-link" data-en="← Back to Sh'elah" data-he="← חזרה לשאלה">← Back to
+                    Sh'elah</a>
+            </div>
+
+            <p data-en="These definitions are seeded from the same lexicon lookup Sh'elah's AI assistant and reader word-lookup feature use, so a term here matches what you'll see inline elsewhere in the app."
+                data-he="הגדרות אלו נשאבות מאותו חיפוש במילון שבו משתמשים עוזר הבינה המלאכותית וחיפוש המילים של הקורא בשאלה, כך שמונח כאן תואם למה שתראה בפנים במקומות אחרים באפליקציה.">
+                These definitions are seeded from the same lexicon lookup Sh'elah's AI assistant and reader
+                word-lookup feature use, so a term here matches what you'll see inline elsewhere in the app.
+            </p>
+
+            <dl id="glossaryList" class="glossary-list">
+                {% for entry in glossary_entries %}
+                <div class="glossary-entry">
+                    <dt>
+                        <span data-en="{{ entry.term_en }}" data-he="{{ entry.term_he }}">{{ entry.term_en }}</span>
+                        <span class="font-hebrew text-slate-400 text-sm">&nbsp;· {{ entry.term_he }}</span>
+                    </dt>
+                    <dd>{{ entry.definition }}</dd>
+                </div>
+                {% endfor %}
+            </dl>
+
+            {% if not glossary_entries %}
+            <p class="text-sm" style="color: var(--ink-secondary);">
+                Glossary data is unavailable right now — see <a href="/help">Help</a> for other resources.
+            </p>
+            {% endif %}
+        </article>
+    </main>
+
+    <footer class="border-t py-6 text-center text-xs"
+        style="border-color: var(--surface-border); color: var(--ink-secondary); background: var(--surface-1);">
+        <p>
+            <a href="/" class="font-semibold hover:underline" style="color: var(--ink-heading);"
+                data-en="Sh'elah Torah Encyclopedia" data-he="שאלה אנציקלופדיית תורה">Sh'elah Torah Encyclopedia</a>
+            &nbsp;·&nbsp;
+            <a href="/about" class="hover:underline" style="color: var(--ink-secondary);"
+                data-en="About" data-he="אודות">About</a>
+            &nbsp;·&nbsp;
+            <a href="/help" class="hover:underline" style="color: var(--ink-secondary);"
+                data-en="Help" data-he="עזרה">Help</a>
+            &nbsp;·&nbsp;
+            <a href="/terms" class="hover:underline font-medium" style="color: var(--ink-heading);"
+                data-en="Terms of Service" data-he="תנאי שירות">Terms of Service</a>
+            &nbsp;·&nbsp;
+            <a href="/privacy" class="hover:underline" style="color: var(--ink-secondary);"
+                data-en="Privacy Policy" data-he="מדיניות פרטיות">Privacy Policy</a>
+            &nbsp;·&nbsp;
+            <a href="/ai-disclosure" class="hover:underline" style="color: var(--ink-secondary);"
+                data-en="AI Disclosure" data-he="גילוי נאות בינה מלאכותית">AI Disclosure</a>
+            &nbsp;·&nbsp;
+            <a href="/acceptable-use" class="hover:underline" style="color: var(--ink-secondary);"
+                data-en="Acceptable Use" data-he="שימוש מותר">Acceptable Use</a>
+            &nbsp;·&nbsp;
+            <a href="/dmca" class="hover:underline" style="color: var(--ink-secondary);"
+                data-en="DMCA" data-he="DMCA">DMCA</a>
+            &nbsp;·&nbsp;
+            <a href="/accessibility" class="hover:underline" style="color: var(--ink-secondary);"
+                data-en="Accessibility" data-he="נגישות">Accessibility</a>
+            &nbsp;·&nbsp;
+            <a href="/licenses" class="hover:underline" style="color: var(--ink-secondary);"
+                data-en="Licenses" data-he="רישיונות">Licenses</a>
+        </p>
+    </footer>
+
+    {% include 'components/legal_scripts.html' %}
+</body>
+
+</html>

@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="About Sh'elah — a solo-built Torah library, community-aware customs, and a halachic AI assistant that cites primary sources and always points you back to your rabbi.">
+    <meta name="theme-color" content="#f3ede0" media="(prefers-color-scheme: light)">
+    <meta name="theme-color" content="#0c0c0b" media="(prefers-color-scheme: dark)">
+    <script>(function () {
+        try {
+            var raw = localStorage.getItem("Sh'elahPrefs");
+            var t = raw ? JSON.parse(raw).theme : null;
+            if (t !== 'light' && t !== 'dark') {
+                t = (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) ? 'dark' : 'light';
+            }
+            document.documentElement.setAttribute('data-theme', t);
+            document.documentElement.classList.toggle('theme-dark', t === 'dark');
+        } catch (e) { }
+    })()</script>
+    <title>About – Sh'elah</title>
+    <link rel="canonical" href="https://shelah-app.vercel.app/about">
+    <meta property="og:type" content="website">
+    <meta property="og:title" content="About – Sh'elah">
+    <meta property="og:description" content="A solo-built Torah library, community-aware customs, and a halachic AI assistant that cites primary sources.">
+    <meta property="og:url" content="https://shelah-app.vercel.app/about">
+    <meta property="og:image" content="https://shelah-app.vercel.app/static/favicon-512.png">
+    <meta name="twitter:card" content="summary">
+    <meta name="twitter:title" content="About – Sh'elah">
+    <meta name="twitter:description" content="A solo-built Torah library, community-aware customs, and a halachic AI assistant that cites primary sources.">
+    <meta name="twitter:image" content="https://shelah-app.vercel.app/static/favicon-512.png">
+    <link rel="icon" href="/static/favicon.svg" type="image/svg+xml">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cardo:wght@400;700&family=Inter:wght@400;500;600&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="/static/css/tokens.css?v=20260617-v1">
+    <link rel="stylesheet" href="/static/style.css?v=20260617-v2">
+    <link rel="stylesheet" href="/static/css/tailwind.css?v=20260818-v5">
+    <link rel="stylesheet" href="/static/css/legal.css?v=20260818-v5">
+</head>
+
+<body class="font-sans min-h-screen overflow-x-hidden flex flex-col">
+    <a href="#mainContent" class="skip-to-content">Skip to main content</a>
+
+    {% include 'components/legal_topbar.html' %}
+
+    <div class="legal-hero">
+        <h1 data-en="About Sh'elah" data-he="אודות שאלה">About Sh'elah</h1>
+        <p class="subtitle" data-en="A Torah library and halachic AI assistant, built by one person."
+            data-he="ספריית תורה ועוזר בינה מלאכותית הלכתי, שנבנה על ידי אדם אחד.">A Torah library and halachic AI
+            assistant, built by one person.</p>
+    </div>
+
+    <main id="mainContent" class="flex-1">
+        <article id="aboutBody" class="main-container prose prose-sm max-w-2xl">
+            <div class="legal-toolbar">
+                <a href="/" class="legal-back-link" data-en="← Back to Sh'elah" data-he="← חזרה לשאלה">← Back to
+                    Sh'elah</a>
+            </div>
+
+            <h2 data-en="Mission" data-he="שליחות">Mission</h2>
+            <p data-en="Sh'elah exists to make it easier to look something up — a halacha, a custom, a source, a zman — and to see the primary text behind the answer, not just a summary of it. The library, the calendar, and the AI assistant are all built around the same idea: bring you closer to the sources, in a language and format you can actually use, and never stand between you and your own rabbi's final word."
+                data-he="שאלה נועדה להקל על בירור עניין הלכתי — הלכה, מנהג, מקור, או זמן — ולראות את הטקסט המקורי שמאחורי התשובה, לא רק תקציר שלו. הספרייה, הלוח השנה, ועוזר הבינה המלאכותית בנויים כולם סביב אותו רעיון: לקרב אותך למקורות, בשפה ובפורמט שבאמת ניתנים לשימוש, ומבלי לעמוד אי פעם בינך לבין פסיקתו הסופית של רבך.">
+                Sh'elah exists to make it easier to look something up — a halacha, a custom, a source, a zman — and to
+                see the primary text behind the answer, not just a summary of it. The library, the calendar, and the
+                AI assistant are all built around the same idea: bring you closer to the sources, in a language and
+                format you can actually use, and never stand between you and your own rabbi's final word.
+            </p>
+
+            <h2 data-en="Who builds it" data-he="מי בונה את זה">Who builds it</h2>
+            <p data-en="Sh'elah is built and maintained by a single independent developer — there is no company, no editorial board, and no team of poskim behind it. That's worth knowing plainly: content is assembled from established sources and reviewed as time allows, not vetted by a rabbinic committee before publication. Treat every answer here the way you'd treat a well-sourced reference book, not a rabbinic authority."
+                data-he="שאלה נבנית ומתוחזקת על ידי מפתח עצמאי יחיד — אין חברה, אין ועד עריכה, ואין צוות פוסקים מאחוריה. חשוב לדעת זאת בבירור: התוכן מורכב ממקורות מבוססים ונבדק ככל שהזמן מאפשר, אך אינו עובר בדיקה של ועדה רבנית לפני הפרסום. יש להתייחס לכל תשובה כאן כפי שהיית מתייחס לספר עיון מבוסס-מקורות, לא כאל סמכות רבנית.">
+                Sh'elah is built and maintained by a single independent developer — there is no company, no editorial
+                board, and no team of poskim behind it. That's worth knowing plainly: content is assembled from
+                established sources and reviewed as time allows, not vetted by a rabbinic committee before
+                publication. Treat every answer here the way you'd treat a well-sourced reference book, not a
+                rabbinic authority.
+            </p>
+
+            <h2 data-en="How answers are sourced" data-he="כיצד התשובות ממוקורות">How answers are sourced</h2>
+            <p data-en="The library pulls primary texts from Sefaria's open corpus (Tanakh, Talmud, halachic codes, commentaries), Hebcal for the calendar and zmanim, and a curated set of community-custom (minhag) datasets. When you ask a question, the AI assistant retrieves passages from this same library and from whitelisted external references first — a live web search is used only as a last resort, and every synthesized answer is expected to cite the sources it actually drew on."
+                data-he="הספרייה שואבת טקסטים ראשוניים מהמאגר הפתוח של ספריא (תנ״ך, תלמוד, ספרי הלכה, פרשנים), Hebcal ללוח השנה ולזמנים, ומאגר מובחר של נתוני מנהגי קהילות. כאשר אתה שואל שאלה, עוזר הבינה המלאכותית שולף קטעים מאותה ספרייה וממקורות חיצוניים מאושרים תחילה — חיפוש אינטרנט חי משמש רק כמוצא אחרון, וכל תשובה מסונתזת אמורה לצטט את המקורות שעליהם התבססה בפועל.">
+                The library pulls primary texts from Sefaria's open corpus (Tanakh, Talmud, halachic codes,
+                commentaries), Hebcal for the calendar and zmanim, and a curated set of community-custom (minhag)
+                datasets. When you ask a question, the AI assistant retrieves passages from this same library and
+                from whitelisted external references first — a live web search is used only as a last resort, and
+                every synthesized answer is expected to cite the sources it actually drew on.
+            </p>
+            <p data-en="For the full technical and safety detail on how the AI synthesizes an answer, see the "
+                data-he="לפרטים הטכניים המלאים ופרטי הבטיחות על אופן סינתזת התשובה על ידי הבינה המלאכותית, ראה את ">
+                For the full technical and safety detail on how the AI synthesizes an answer, see the
+                <a href="/ai-disclosure" data-en="AI Disclosure" data-he="גילוי הנאות בנושא בינה מלאכותית">AI
+                    Disclosure</a>.
+            </p>
+
+            <h2 data-en="Update cadence" data-he="קצב עדכונים">Update cadence</h2>
+            <p data-en="Sh'elah is under active, ongoing development by its one maintainer — features, sources, and fixes ship on an irregular schedule rather than a fixed release calendar. There is no guaranteed uptime or support SLA; see the Terms of Service for the full posture on service availability."
+                data-he="שאלה נמצאת בפיתוח פעיל ומתמשך על ידי המתחזק היחיד שלה — תכונות, מקורות ותיקונים משוחררים בלוח זמנים לא סדיר ולא לפי לוח שחרורים קבוע. אין הבטחת זמינות או הסכם תמיכה; ראה את תנאי השירות לעמדה המלאה לגבי זמינות השירות.">
+                Sh'elah is under active, ongoing development by its one maintainer — features, sources, and fixes
+                ship on an irregular schedule rather than a fixed release calendar. There is no guaranteed uptime or
+                support SLA; see the <a href="/terms" data-en="Terms of Service" data-he="תנאי השירות">Terms of
+                    Service</a> for the full posture on service availability.
+            </p>
+
+            <h2 data-en="Always ask your rabbi" data-he="תמיד שאל את הרב שלך">Always ask your rabbi</h2>
+            <p data-en="Nothing on Sh'elah — including anything the AI assistant generates — is a halachic ruling. It is educational information, formatted to help you find and understand primary sources faster. For any real-world question with practical consequences, ask a rabbi qualified to answer it for your specific situation and community."
+                data-he="שום דבר בשאלה — כולל כל מה שעוזר הבינה המלאכותית מייצר — אינו פסק הלכה. זהו מידע חינוכי, מפורמט כדי לעזור לך למצוא ולהבין מקורות ראשוניים מהר יותר. לכל שאלה מהעולם האמיתי בעלת השלכות מעשיות, שאל רב המוסמך לענות עבור המצב הספציפי שלך והקהילה שלך.">
+                Nothing on Sh'elah — including anything the AI assistant generates — is a halachic ruling. It is
+                educational information, formatted to help you find and understand primary sources faster. For any
+                real-world question with practical consequences, ask a rabbi qualified to answer it for your
+                specific situation and community.
+            </p>
+
+            <h2 data-en="Contact" data-he="צור קשר">Contact</h2>
+            <p data-en="Questions, corrections, or a source that looks wrong? Reach out directly:"
+                data-he="שאלות, תיקונים, או מקור שנראה שגוי? צור קשר ישירות:">
+                Questions, corrections, or a source that looks wrong? Reach out directly:
+            </p>
+            <p><strong data-en="Email:" data-he="דוא״ל:">Email:</strong> <a
+                    href="mailto:akiva.yevda@gmail.com">akiva.yevda@gmail.com</a></p>
+
+            <hr class="my-8" style="border-color: var(--surface-border);">
+
+            <div class="info-box">
+                <p class="text-sm"
+                    data-en="See the Terms of Service, Privacy Policy, and AI Disclosure for the governing documents referenced above."
+                    data-he="ראה את תנאי השירות, מדיניות הפרטיות, וגילוי הנאות בנושא בינה מלאכותית עבור המסמכים המחייבים המוזכרים לעיל.">
+                    See the <a href="/terms" data-en="Terms of Service" data-he="תנאי השירות">Terms of Service</a>,
+                    <a href="/privacy" data-en="Privacy Policy" data-he="מדיניות הפרטיות">Privacy Policy</a>, and
+                    <a href="/ai-disclosure" data-en="AI Disclosure" data-he="גילוי נאות בינה מלאכותית">AI
+                        Disclosure</a> for the governing documents referenced above.
+                </p>
+            </div>
+        </article>
+    </main>
+
+    <footer class="border-t py-6 text-center text-xs"
+        style="border-color: var(--surface-border); color: var(--ink-secondary); background: var(--surface-1);">
+        <p>
+            <a href="/" class="font-semibold hover:underline" style="color: var(--ink-heading);"
+                data-en="Sh'elah Torah Encyclopedia" data-he="שאלה אנציקלופדיית תורה">Sh'elah Torah Encyclopedia</a>
+            &nbsp;·&nbsp;
+            <a href="/help" class="hover:underline" style="color: var(--ink-secondary);"
+                data-en="Help" data-he="עזרה">Help</a>
+            &nbsp;·&nbsp;
+            <a href="/glossary" class="hover:underline" style="color: var(--ink-secondary);"
+                data-en="Glossary" data-he="מילון מונחים">Glossary</a>
+            &nbsp;·&nbsp;
+            <a href="/terms" class="hover:underline font-medium" style="color: var(--ink-heading);"
+                data-en="Terms of Service" data-he="תנאי שירות">Terms of Service</a>
+            &nbsp;·&nbsp;
+            <a href="/privacy" class="hover:underline" style="color: var(--ink-secondary);"
+                data-en="Privacy Policy" data-he="מדיניות פרטיות">Privacy Policy</a>
+            &nbsp;·&nbsp;
+            <a href="/ai-disclosure" class="hover:underline" style="color: var(--ink-secondary);"
+                data-en="AI Disclosure" data-he="גילוי נאות בינה מלאכותית">AI Disclosure</a>
+            &nbsp;·&nbsp;
+            <a href="/acceptable-use" class="hover:underline" style="color: var(--ink-secondary);"
+                data-en="Acceptable Use" data-he="שימוש מותר">Acceptable Use</a>
+            &nbsp;·&nbsp;
+            <a href="/dmca" class="hover:underline" style="color: var(--ink-secondary);"
+                data-en="DMCA" data-he="DMCA">DMCA</a>
+            &nbsp;·&nbsp;
+            <a href="/accessibility" class="hover:underline" style="color: var(--ink-secondary);"
+                data-en="Accessibility" data-he="נגישות">Accessibility</a>
+            &nbsp;·&nbsp;
+            <a href="/licenses" class="hover:underline" style="color: var(--ink-secondary);"
+                data-en="Licenses" data-he="רישיונות">Licenses</a>
+        </p>
+    </footer>
+
+    {% include 'components/legal_scripts.html' %}
+</body>
+
+</html>

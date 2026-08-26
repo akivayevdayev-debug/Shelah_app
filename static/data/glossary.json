@@ -1,0 +1,122 @@
+[
+  {
+    "term_en": "Kezayit",
+    "term_he": "כזית",
+    "definition": "The volume of an olive — a standard halachic measure for how much food must be eaten to trigger certain blessings or obligations.",
+    "source": "curated"
+  },
+  {
+    "term_en": "Muktzeh",
+    "term_he": "מוקצה",
+    "definition": "Objects set aside by their nature or designated use as unfit to be handled on Shabbat or Yom Tov.",
+    "source": "curated"
+  },
+  {
+    "term_en": "Eruv",
+    "term_he": "עירוב",
+    "definition": "A symbolic enclosure, typically of wire strung between poles, that permits carrying items in an otherwise public domain on Shabbat.",
+    "source": "curated"
+  },
+  {
+    "term_en": "Chametz",
+    "term_he": "חמץ",
+    "definition": "Leavened grain product, forbidden to own, eat, or benefit from during Pesach.",
+    "source": "curated"
+  },
+  {
+    "term_en": "Tzitzit",
+    "term_he": "ציצית",
+    "definition": "The fringes tied to the corners of a four-cornered garment, commanded in Numbers 15:38.",
+    "source": "curated"
+  },
+  {
+    "term_en": "Kashrut",
+    "term_he": "כשרות",
+    "definition": "The body of Jewish dietary law governing which foods may be eaten and how they must be prepared.",
+    "source": "curated"
+  },
+  {
+    "term_en": "Minhag",
+    "term_he": "מנהג",
+    "definition": "accepted communal custom.",
+    "source": "local-hebrew-glossary"
+  },
+  {
+    "term_en": "Halacha",
+    "term_he": "הלכה",
+    "definition": "practical Jewish law.",
+    "source": "local-hebrew-glossary"
+  },
+  {
+    "term_en": "Poskim",
+    "term_he": "פוסקים",
+    "definition": "Rabbinic decisors whose rulings determine practical halacha for a question or community.",
+    "source": "curated"
+  },
+  {
+    "term_en": "Mitzvah",
+    "term_he": "מצוה",
+    "definition": "a divine commandment.",
+    "source": "local-hebrew-glossary"
+  },
+  {
+    "term_en": "Berakhah",
+    "term_he": "ברכה",
+    "definition": "blessing.",
+    "source": "local-hebrew-glossary"
+  },
+  {
+    "term_en": "Havdalah",
+    "term_he": "הבדלה",
+    "definition": "The ceremony, with wine, spices, and a braided candle, marking the end of Shabbat or a festival.",
+    "source": "curated"
+  },
+  {
+    "term_en": "Zman / Zmanim",
+    "term_he": "זמן",
+    "definition": "A halachically defined point or window of time in the day (e.g., sunrise, sunset, the latest time for the morning Shema).",
+    "source": "curated"
+  },
+  {
+    "term_en": "Eruv Tavshilin",
+    "term_he": "עירוב תבשילין",
+    "definition": "A procedure performed before a Yom Tov that falls on a Friday, permitting food preparation on the holiday for Shabbat.",
+    "source": "curated"
+  },
+  {
+    "term_en": "Chumra",
+    "term_he": "חומרא",
+    "definition": "A stringency a person or community adopts beyond the strict letter of the law.",
+    "source": "curated"
+  },
+  {
+    "term_en": "Kula",
+    "term_he": "קולא",
+    "definition": "A halachically valid leniency, as opposed to a chumra (stringency).",
+    "source": "curated"
+  },
+  {
+    "term_en": "Nusach",
+    "term_he": "נוסח",
+    "definition": "The specific liturgical text and order of prayer a community follows (e.g., Nusach Ashkenaz, Nusach Sefard).",
+    "source": "curated"
+  },
+  {
+    "term_en": "Tevilah",
+    "term_he": "טבילה",
+    "definition": "Ritual immersion in a mikveh (or other qualifying body of water) for purposes of ritual purity.",
+    "source": "curated"
+  },
+  {
+    "term_en": "Get",
+    "term_he": "גט",
+    "definition": "A formal Jewish bill of divorce, required to dissolve a Jewish marriage.",
+    "source": "curated"
+  },
+  {
+    "term_en": "Sh'elah",
+    "term_he": "שאלה",
+    "definition": "A halachic question posed to a rabbi — the origin of this project's name.",
+    "source": "curated"
+  }
+]

@@ -1,0 +1,471 @@
+/*
+  legal.css — shared stylesheet for the 7 legal document pages
+  (terms, privacy, ai-disclosure, acceptable-use, dmca, accessibility,
+  licenses). Replaces a ~250-line <style> block that used to be
+  duplicated verbatim inside every one of those templates.
+
+  Design tokens only — no raw hex values (see tokens.css). Dark/light
+  mode is driven entirely by [data-theme] on <html>, set by the FOUC
+  script in each page's <head> and kept in sync with the rest of the
+  app via legal_scripts.html (shared Sh'elahPrefs localStorage key).
+*/
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+html {
+    scroll-behavior: smooth;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    html {
+        scroll-behavior: auto;
+    }
+}
+
+body {
+    font-family: 'Inter', system-ui, sans-serif;
+    background: var(--surface-0);
+    color: var(--ink-primary);
+}
+
+html.rtl body {
+    direction: rtl;
+    text-align: right;
+}
+
+html.rtl body .prose {
+    text-align: right;
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   PROSE — document body typography
+   16px+ base size per WCAG/readability guidance (the Tailwind
+   `prose-sm` utility on <article> would otherwise cap this at ~14px).
+═══════════════════════════════════════════════════════════════════ */
+
+.prose {
+    font-size: var(--text-md);
+    /* Tailwind Typography's own .prose rule hardcodes color:#374151 (its
+       --tw-prose-body value) directly on this element -- never dark-mode
+       aware. Elements that set their own color (e.g. .prose p below) are
+       fine either way, but anything relying on inherited color (li, etc.)
+       was silently stuck on light-mode gray text in dark mode. Overriding
+       it here, at the source of the inheritance, fixes every descendant
+       at once instead of patching each one. */
+    color: var(--ink-primary);
+}
+
+.prose h1 {
+    font-family: 'Cardo', Georgia, serif;
+    font-weight: 700;
+    color: var(--ink-heading);
+    font-size: var(--text-2xl);
+}
+
+.prose h2 {
+    font-family: 'Cardo', Georgia, serif;
+    font-size: var(--text-lg);
+    font-weight: 700;
+    margin-top: var(--sp-8);
+    margin-bottom: var(--sp-2);
+    color: var(--ink-heading);
+    border-bottom: 1px solid var(--surface-border);
+    padding-bottom: var(--sp-2);
+    scroll-margin-top: calc(64px + var(--sp-4));
+    text-wrap: balance;
+}
+
+.prose h3 {
+    font-size: var(--text-md);
+    font-weight: 600;
+    margin-top: var(--sp-6);
+    margin-bottom: var(--sp-1);
+    color: var(--ink-primary);
+    scroll-margin-top: calc(64px + var(--sp-4));
+}
+
+.prose p {
+    margin-bottom: var(--sp-4);
+    line-height: 1.75;
+    color: var(--ink-primary);
+}
+
+.prose ul,
+.prose ol {
+    margin-bottom: var(--sp-4);
+}
+
+.prose ul {
+    padding-left: var(--sp-6);
+    list-style: disc;
+}
+
+.prose ol {
+    padding-left: var(--sp-6);
+    list-style: decimal;
+}
+
+html.rtl .prose ul,
+html.rtl .prose ol {
+    padding-left: 0;
+    padding-right: var(--sp-6);
+}
+
+.prose li {
+    margin-bottom: var(--sp-1);
+    color: inherit;
+    line-height: 1.7;
+}
+
+.prose a {
+    color: var(--accent-primary);
+    text-decoration: underline;
+    text-underline-offset: 2px;
+    transition: color var(--motion-dur-fast) var(--motion-ease-out);
+}
+
+.prose a:hover {
+    color: var(--accent-primary-hover);
+}
+
+.prose a:focus-visible,
+.legal-toc-list a:focus-visible,
+.legal-back-link:focus-visible,
+.select-all-btn:focus-visible,
+.legal-toc-toggle:focus-visible {
+    outline: 2px solid var(--accent-primary);
+    outline-offset: 2px;
+    border-radius: var(--radius-xs);
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   CALLOUTS
+═══════════════════════════════════════════════════════════════════ */
+
+.info-box {
+    background: var(--surface-pill);
+    border: 1px solid var(--accent-gold);
+    border-left: 3px solid var(--accent-gold);
+    border-radius: var(--radius-md);
+    padding: var(--sp-4) var(--sp-6);
+    margin: var(--sp-6) 0;
+    color: var(--ink-primary);
+}
+
+html.rtl .info-box {
+    border-left: 1px solid var(--accent-gold);
+    border-right: 3px solid var(--accent-gold);
+}
+
+.draft-banner {
+    background: var(--surface-pill);
+    border: 1px solid #b45309;
+    border-left: 3px solid #b45309;
+    border-radius: var(--radius-md);
+    padding: var(--sp-4) var(--sp-6);
+    margin: var(--sp-6) 0;
+    color: var(--ink-primary);
+}
+
+html.rtl .draft-banner {
+    border-left: 1px solid #b45309;
+    border-right: 3px solid #b45309;
+}
+
+.prose pre {
+    background: var(--surface-1);
+    border: 1px solid var(--surface-border);
+    border-radius: var(--radius-md);
+    padding: var(--sp-4);
+    overflow-x: auto;
+    font-size: var(--text-xs);
+    line-height: 1.5;
+    margin-bottom: var(--sp-4);
+}
+
+.rights-table td,
+.rights-table th {
+    padding: var(--sp-2) var(--sp-3);
+    border: 1px solid var(--surface-border);
+    font-size: var(--text-sm);
+}
+
+.rights-table th {
+    background: var(--surface-1);
+    font-weight: 600;
+    color: var(--ink-heading);
+}
+
+.rights-table tr:nth-child(even) td {
+    background: var(--surface-0);
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   PAGE LAYOUT — hero, content grid, in-page table of contents
+═══════════════════════════════════════════════════════════════════ */
+
+.legal-hero {
+    background: linear-gradient(135deg, var(--surface-1) 0%, var(--surface-pill) 100%);
+    border-bottom: 1px solid var(--surface-border);
+    padding: var(--sp-8) var(--sp-4) var(--sp-6);
+    text-align: center;
+}
+
+.legal-hero h1 {
+    font-family: 'Cardo', Georgia, serif;
+    font-size: var(--text-3xl);
+    font-weight: 700;
+    color: var(--ink-heading);
+    margin-bottom: var(--sp-2);
+    text-wrap: balance;
+}
+
+.legal-hero .subtitle {
+    font-size: var(--text-sm);
+    color: var(--ink-secondary);
+}
+
+#mainContent {
+    display: block;
+}
+
+@media (min-width: 900px) {
+    #mainContent:has(> .legal-toc) {
+        display: grid;
+        grid-template-columns: 230px minmax(0, 1fr);
+        align-items: start;
+        gap: var(--sp-8);
+        max-width: 1180px;
+        margin: 0 auto;
+        padding: 0 var(--sp-4);
+    }
+
+    #mainContent:has(> .legal-toc) > .main-container {
+        margin: 0;
+        max-width: none;
+    }
+}
+
+.main-container {
+    max-width: 860px;
+    margin: 0 auto;
+    padding: var(--sp-8) var(--sp-4) var(--sp-12);
+}
+
+.legal-toolbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: var(--sp-3);
+    margin-bottom: var(--sp-6);
+}
+
+.legal-back-link {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--sp-1);
+    font-size: var(--text-xs);
+    font-weight: 600;
+    color: var(--ink-heading);
+    text-decoration: none;
+    padding: var(--sp-2) var(--sp-3);
+    border: 1px solid var(--surface-border);
+    border-radius: var(--radius-sm);
+    background: var(--surface-0);
+    min-height: 44px;
+    transition: background var(--motion-dur-fast) var(--motion-ease-out),
+                border-color var(--motion-dur-fast) var(--motion-ease-out);
+}
+
+.legal-back-link:hover {
+    background: var(--surface-1);
+    text-decoration: none;
+}
+
+.select-all-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--sp-1);
+    font-size: var(--text-xs);
+    font-weight: 600;
+    color: var(--ink-primary);
+    background: var(--surface-1);
+    border: 1px solid var(--surface-border);
+    border-radius: var(--radius-sm);
+    padding: var(--sp-2) var(--sp-3);
+    min-height: 44px;
+    cursor: pointer;
+    transition: background var(--motion-dur-fast) var(--motion-ease-out),
+                border-color var(--motion-dur-fast) var(--motion-ease-out);
+}
+
+.select-all-btn:hover {
+    background: var(--surface-2);
+}
+
+/* ── Table of contents (auto-built by legal_scripts.html) ──────────── */
+
+.legal-toc {
+    margin: 0 0 var(--sp-6);
+    padding: var(--sp-3);
+    background: var(--surface-1);
+    border: 1px solid var(--surface-border);
+    border-radius: var(--radius-md);
+}
+
+.legal-toc-toggle {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+    background: none;
+    border: none;
+    color: var(--ink-heading);
+    font-size: var(--text-sm);
+    font-weight: 700;
+    font-family: 'Cardo', Georgia, serif;
+    cursor: pointer;
+    padding: var(--sp-1) 0;
+    min-height: 44px;
+}
+
+.legal-toc-toggle::after {
+    content: '\2212'; /* minus */
+    font-size: var(--text-md);
+    color: var(--ink-secondary);
+}
+
+.legal-toc.is-collapsed .legal-toc-toggle::after {
+    content: '+';
+}
+
+.legal-toc-list {
+    list-style: none;
+    margin-top: var(--sp-2);
+    padding-top: var(--sp-2);
+    border-top: 1px solid var(--surface-border);
+    font-size: var(--text-sm);
+    line-height: 1.5;
+}
+
+.legal-toc-list li + li {
+    margin-top: var(--sp-1);
+}
+
+.legal-toc-list a {
+    display: block;
+    padding: var(--sp-1) var(--sp-2);
+    border-radius: var(--radius-xs);
+    color: var(--ink-secondary);
+    text-decoration: none;
+    transition: background var(--motion-dur-fast) var(--motion-ease-out),
+                color var(--motion-dur-fast) var(--motion-ease-out);
+}
+
+.legal-toc-list a:hover {
+    background: var(--surface-2);
+    color: var(--ink-primary);
+}
+
+.legal-toc-list a.is-active {
+    color: var(--accent-primary);
+    font-weight: 600;
+    background: var(--surface-pill);
+}
+
+@media (max-width: 899px) {
+    .legal-toc.is-collapsed .legal-toc-list {
+        display: none;
+    }
+}
+
+@media (min-width: 900px) {
+    .legal-toc {
+        position: sticky;
+        top: calc(64px + var(--sp-4));
+        max-height: calc(100vh - 96px);
+        overflow-y: auto;
+        margin-bottom: 0;
+    }
+
+    .legal-toc-toggle {
+        cursor: default;
+        pointer-events: none;
+    }
+
+    .legal-toc-toggle::after {
+        display: none;
+    }
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   TOPBAR (components/legal_topbar.html)
+═══════════════════════════════════════════════════════════════════ */
+
+/* .topbar-flat-btn and .topbar-user-menu-item sizing intentionally NOT
+   redeclared here — this used to give both a 44px touch-target min-height,
+   which quietly doubled the topbar button/dropdown-item size on every legal
+   page relative to the main app (they share these class names, and this
+   file loads after style.css, so its plain, non-!important padding/
+   font-size/min-height won). style.css's shared .topbar-flat-btn rule
+   (and each element's own Tailwind px-*/py-*/text-xs classes for
+   .topbar-user-menu-item, which style.css leaves alone) is the only
+   sizing source now, so legal pages render these at the same size as the
+   main app's topbar. */
+
+.topbar-flat-btn:focus-visible {
+    outline: 2px solid var(--accent-primary);
+    outline-offset: 2px;
+}
+
+/* style.css has an unscoped dark-mode rule — :is([data-theme="dark"],
+   body.theme-dark) #themeToggleBtn — written for the main app's settings
+   panel, where the button sits on a filled pill. It leaks onto this plain
+   topbar (loaded here too) and boxes the button in dark mode while its
+   "Sign In" / "עברית" siblings stay flat text, so it visually doesn't
+   belong. Reset it back to a flat control on every page outside the main
+   app shell (body.library-shell is index.html only). */
+body:not(.library-shell) #themeToggleBtn {
+    background: transparent !important;
+    border-color: transparent !important;
+    color: var(--ink-primary) !important;
+}
+
+body:not(.library-shell) #themeToggleBtn:hover {
+    background: var(--surface-1) !important;
+    border-color: var(--surface-border) !important;
+    color: var(--ink-primary) !important;
+}
+
+.lang-btn-active {
+    background: var(--surface-1) !important;
+    border-color: var(--surface-border) !important;
+    font-weight: 600;
+}
+
+#userProfileMenu {
+    background: var(--surface-2);
+    border: 1px solid var(--surface-border);
+    border-radius: var(--radius-lg);
+}
+
+.skip-to-content {
+    position: absolute;
+    top: -40px;
+    left: 0;
+    background: var(--ink-heading);
+    color: var(--surface-0);
+    padding: var(--sp-2);
+    text-decoration: none;
+    z-index: 100;
+    border-radius: 0 0 var(--radius-xs) 0;
+}
+
+.skip-to-content:focus {
+    top: 0;
+}

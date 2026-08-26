@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Sh'elah AI Disclosure — which AI models we use, how RAG works, hallucination risk, and what the AI does not do.">
+    <meta name="theme-color" content="#f3ede0" media="(prefers-color-scheme: light)">
+    <meta name="theme-color" content="#0c0c0b" media="(prefers-color-scheme: dark)">
+    <script>(function () {
+        try {
+            var raw = localStorage.getItem("Sh'elahPrefs");
+            var t = raw ? JSON.parse(raw).theme : null;
+            if (t !== 'light' && t !== 'dark') {
+                t = (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) ? 'dark' : 'light';
+            }
+            document.documentElement.setAttribute('data-theme', t);
+            document.documentElement.classList.toggle('theme-dark', t === 'dark');
+        } catch (e) { }
+    })()</script>
+    <title>AI Disclosure – Sh'elah</title>
+    <link rel="canonical" href="https://shelah-app.vercel.app/ai-disclosure">
+    <meta property="og:type" content="website">
+    <meta property="og:title" content="AI Disclosure – Sh'elah">
+    <meta property="og:description" content="Sh'elah AI Disclosure — which AI models we use, how RAG works, hallucination risk, and what the AI does not do.">
+    <meta property="og:url" content="https://shelah-app.vercel.app/ai-disclosure">
+    <meta property="og:image" content="https://shelah-app.vercel.app/static/favicon-512.png">
+    <meta name="twitter:card" content="summary">
+    <meta name="twitter:title" content="AI Disclosure – Sh'elah">
+    <meta name="twitter:description" content="Sh'elah AI Disclosure — which AI models we use, how RAG works, hallucination risk, and what the AI does not do.">
+    <meta name="twitter:image" content="https://shelah-app.vercel.app/static/favicon-512.png">
+    <link rel="icon" href="/static/favicon.svg" type="image/svg+xml">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cardo:wght@400;700&family=Inter:wght@400;500;600&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="/static/css/tokens.css?v=20260617-v1">
+    <link rel="stylesheet" href="/static/style.css?v=20260617-v2">
+    <link rel="stylesheet" href="/static/css/tailwind.css?v=20260818-v5">
+    <link rel="stylesheet" href="/static/css/legal.css?v=20260818-v5">
+</head>
+
+<body class="font-sans min-h-screen overflow-x-hidden flex flex-col">
+    <!-- Skip-to-content link (keyboard accessibility) -->
+    <a href="#mainContent" class="skip-to-content">Skip to main content</a>
+
+    <!-- TOP NAVIGATION BAR -->
+    {% include 'components/legal_topbar.html' %}
+
+    <!-- Hero Banner -->
+    <div class="legal-hero">
+        <h1 data-en="AI Disclosure" data-he="גילוי נאות בנושא בינה מלאכותית">AI Disclosure</h1>
+        <p class="subtitle" data-en="Last updated: August 15, 2026 · v1.0" data-he="עדכון אחרון: 15 באוגוסט 2026 · v1.0">Last
+            updated: August 15, 2026 · v1.0</p>
+    </div>
+
+    <!-- MAIN CONTENT -->
+    <main id="mainContent" class="flex-1">
+        <article id="legalDocumentBody" class="main-container prose prose-sm max-w-2xl">
+            <div class="legal-toolbar">
+                <a href="/" class="legal-back-link" data-en="← Back to Sh'elah" data-he="← חזרה לשאלה">← Back to Sh'elah</a>
+                                <button type="button" id="selectAllPolicyTextBtn" class="select-all-btn"
+                    data-en="Select all text" data-he="בחר את כל הטקסט"
+                    aria-label="Select all AI disclosure text for copying">
+                    <span aria-hidden="true">⧉</span>
+                    <span data-en="Select all text" data-he="בחר את כל הטקסט">Select all text</span>
+                </button>
+            
+            </div>
+
+            <div class="draft-banner">
+                <p data-en="⚠️ DRAFT — pending attorney review, including confirmation that this page satisfies the EU AI Act's Article 50 transparency obligation for your specific deployment."
+                    data-he="⚠️ טיוטה — ממתינה לבדיקת עורך דין, לרבות אישור כי עמוד זה עומד בחובת השקיפות לפי סעיף 50 לחוק הבינה המלאכותית של האיחוד האירופי עבור הפריסה הספציפית שלך.">
+                    <strong>⚠️ DRAFT — pending attorney review</strong>, including confirmation that this page
+                    satisfies the EU AI Act's Article 50 transparency obligation for your specific deployment.
+                </p>
+            </div>
+
+            <div class="info-box">
+                <p data-en="🤖 You are interacting with an AI system. Every answer on Sh'elah is generated (in whole or in part) by large language models, not written or reviewed by a human before it reaches you. This page explains how that works and what it means for you."
+                    data-he="🤖 אתה מתקשר עם מערכת בינה מלאכותית. כל תשובה ב-Sh'elah נוצרת (כולה או חלקה) על ידי מודלי שפה גדולים, ואינה נכתבת או נבדקת על ידי אדם לפני שהיא מגיעה אליך. עמוד זה מסביר כיצד זה עובד ומה המשמעות עבורך.">
+                    <strong>🤖 You are interacting with an AI system.</strong> Every answer on Sh'elah is generated
+                    (in whole or in part) by large language models, not written or reviewed by a human before it
+                    reaches you. This page explains how that works and what it means for you.
+                </p>
+            </div>
+
+            <h2 data-en="1. Which AI Models We Use" data-he="1. באילו מודלי בינה מלאכותית אנו משתמשים">1. Which AI
+                Models We Use</h2>
+            <p data-en="Sh'elah synthesizes answers using commercial large language models from two providers, chosen dynamically for availability and answer quality:"
+                data-he="Sh'elah מסנתזת תשובות באמצעות מודלי שפה גדולים מסחריים משני ספקים, הנבחרים באופן דינמי לפי זמינות ואיכות התשובה:">
+                Sh'elah synthesizes answers using commercial large language models from two providers, chosen
+                dynamically for availability and answer quality:
+            </p>
+            <table class="rights-table w-full border-collapse mb-4">
+                <thead>
+                    <tr>
+                        <th data-en="Provider" data-he="ספק">Provider</th>
+                        <th data-en="Role" data-he="תפקיד">Role</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td data-en="Anthropic Claude" data-he="Anthropic Claude">Anthropic Claude</td>
+                        <td data-en="Primary synthesis model" data-he="מודל סינתזה ראשי">Primary synthesis model</td>
+                    </tr>
+                    <tr>
+                        <td data-en="Google Gemini" data-he="Google Gemini">Google Gemini</td>
+                        <td data-en="Synthesis and translation support" data-he="תמיכה בסינתזה ובתרגום">Synthesis and translation support</td>
+                    </tr>
+                </tbody>
+            </table>
+            <p data-en="Neither provider trains its general models on your questions through this integration by default; see our Privacy Policy §4/§9 for exactly what is sent to each."
+                data-he="אף אחד מהספקים אינו מאמן את המודלים הכלליים שלו על שאלותיך באמצעות אינטגרציה זו כברירת מחדל; ראה את מדיניות הפרטיות שלנו סעיפים 4/9 למה בדיוק נשלח לכל אחד מהם.">
+                Neither provider trains its general models on your questions through this integration by default;
+                see our <a href="/privacy" data-en="Privacy Policy" data-he="מדיניות הפרטיות">Privacy Policy</a> §4/§9
+                for exactly what is sent to each.
+            </p>
+
+            <h2 data-en="2. How Answers Are Generated (RAG, in Plain Language)"
+                data-he="2. כיצד נוצרות תשובות (RAG, בשפה פשוטה)">2. How Answers Are Generated (RAG, in Plain
+                Language)</h2>
+            <p data-en="Sh'elah uses a technique called retrieval-augmented generation ('RAG'). In plain terms:"
+                data-he="Sh'elah משתמשת בטכניקה הנקראת יצירה מבוססת-אחזור ('RAG'). במילים פשוטות:">
+                Sh'elah uses a technique called retrieval-augmented generation ('RAG'). In plain terms:
+            </p>
+            <ol>
+                <li data-en="Your question is analyzed and used to search third-party text corpora — primarily Sefaria (Torah, Talmud, halachic codes and commentaries), plus Hebcal for calendar/zmanim facts and, as a last resort when Judaic sources cannot answer, general web sources including Wikipedia."
+                    data-he="שאלתך מנותחת ומשמשת לחיפוש במאגרי טקסט של צד שלישי — בעיקר ספריא (תורה, תלמוד, ספרי הלכה ופרשנויות), בתוספת Hebcal לעובדות לוח שנה/זמנים, וכמוצא אחרון כאשר מקורות יהודיים אינם יכולים לענות, מקורות אינטרנט כלליים לרבות Wikipedia.">
+                    Your question is analyzed and used to search third-party text corpora — primarily Sefaria (Torah,
+                    Talmud, halachic codes and commentaries), plus Hebcal for calendar/zmanim facts and, as a last
+                    resort when Judaic sources cannot answer, general web sources including Wikipedia.</li>
+                <li data-en="The most relevant passages found are retrieved and handed to the AI model alongside your question, as grounding context."
+                    data-he="הקטעים הרלוונטיים ביותר שנמצאו מאוחזרים ומועברים למודל הבינה המלאכותית יחד עם שאלתך, כהקשר מבסס.">
+                    The most relevant passages found are retrieved and handed to the AI model alongside your
+                    question, as grounding context.</li>
+                <li data-en="The AI model synthesizes those passages into a readable answer, with citations back to the retrieved Sources where possible."
+                    data-he="מודל הבינה המלאכותית מסנתז את הקטעים הללו לתשובה קריאה, עם ציטוטים חזרה למקורות שאוחזרו במידת האפשר.">
+                    The AI model synthesizes those passages into a readable answer, with citations back to the
+                    retrieved Sources where possible.</li>
+            </ol>
+            <p data-en="This grounds answers in real texts more than an ungrounded chatbot would, but it does not eliminate error: retrieval can pull the wrong passage, or a passage that is only tangentially related, and the model can still misinterpret or misstate what it retrieved."
+                data-he="הדבר מבסס תשובות בטקסטים אמיתיים יותר מצ'אטבוט לא-מבוסס, אך אינו מבטל טעויות: האחזור עלול למשוך את הקטע השגוי, או קטע הקשור רק באופן שולי, והמודל עדיין עלול לפרש שלא כהלכה או להציג לא נכון את מה שאוחזר.">
+                This grounds answers in real texts more than an ungrounded chatbot would, but it does not eliminate
+                error: retrieval can pull the wrong passage, or a passage that is only tangentially related, and the
+                model can still misinterpret or misstate what it retrieved.
+            </p>
+
+            <h2 data-en="3. Limitations &amp; Hallucination Risk" data-he="3. מגבלות וסיכון להזיות">3. Limitations
+                &amp; Hallucination Risk</h2>
+            <p data-en="Like all large language models, the AI models behind Sh'elah can 'hallucinate' — state something confidently that is inaccurate, fabricated, or not actually supported by the retrieved Sources. Specific risks include:"
+                data-he="כמו כל מודלי השפה הגדולים, מודלי הבינה המלאכותית מאחורי Sh'elah עלולים 'להזות' — לומר בביטחון דבר שאינו מדויק, בדוי, או שלמעשה אינו נתמך על ידי המקורות שאוחזרו. סיכונים ספציפיים כוללים:">
+                Like all large language models, the AI models behind Sh'elah can 'hallucinate' — state something
+                confidently that is inaccurate, fabricated, or not actually supported by the retrieved Sources.
+                Specific risks include:
+            </p>
+            <ul>
+                <li data-en="Misattributed or fabricated citations (a source reference that looks plausible but is wrong or does not exist)"
+                    data-he="ציטוטים מיוחסים באופן שגוי או בדויים (הפניית מקור שנראית סבירה אך שגויה או אינה קיימת)">Misattributed
+                    or fabricated citations (a source reference that looks plausible but is wrong or does not exist)
+                </li>
+                <li data-en="Presenting one halachic opinion as if it were the only one, when a genuine machloket (dispute) exists"
+                    data-he="הצגת דעה הלכתית אחת כאילו הייתה היחידה, כאשר קיימת מחלוקת אמיתית">Presenting one halachic
+                    opinion as if it were the only one, when a genuine machloket (dispute) exists</li>
+                <li data-en="Retrieval mismatches — pulling a passage that is topically related but not actually on point"
+                    data-he="אי-התאמות באחזור — משיכת קטע הקשור נושאית אך אינו רלוונטי בפועל">Retrieval mismatches —
+                    pulling a passage that is topically related but not actually on point</li>
+                <li data-en="Translation drift when a Hebrew/Aramaic source is rendered into English or vice versa"
+                    data-he="סטייה בתרגום כאשר מקור בעברית/ארמית מתורגם לאנגלית ולהפך">Translation drift when a
+                    Hebrew/Aramaic source is rendered into English or vice versa</li>
+            </ul>
+            <p data-en="We reduce these risks with source-grounding, prompt-level guardrails, and a post-generation output check, but we cannot eliminate them. Always verify a citation against the original text (linked from the answer) before relying on it — see our Terms of Service §6."
+                data-he="אנו מצמצמים סיכונים אלה באמצעות ביסוס על מקורות, גדרות הגנה ברמת ה-prompt, ובדיקת פלט לאחר-יצירה, אך איננו יכולים לבטלם לחלוטין. תמיד אמת ציטוט מול הטקסט המקורי (מקושר מהתשובה) לפני הסתמכות עליו — ראה תנאי השירות שלנו סעיף 6.">
+                We reduce these risks with source-grounding, prompt-level guardrails, and a post-generation output
+                check, but we cannot eliminate them. Always verify a citation against the original text (linked from
+                the answer) before relying on it — see our <a href="/terms" data-en="Terms of Service"
+                    data-he="תנאי השירות">Terms of Service</a> §6.
+            </p>
+
+            <h2 data-en="4. What Sh'elah's AI Does NOT Do" data-he="4. מה הבינה המלאכותית של Sh'elah אינה עושה">4.
+                What Sh'elah's AI Does NOT Do</h2>
+            <ul>
+                <li data-en="It does not issue binding halachic rulings (p'sak halacha)." data-he="היא אינה מנפיקה פסיקות הלכתיות מחייבות (פסק הלכה).">It does not issue binding halachic rulings (p'sak halacha).</li>
+                <li data-en="It does not replace a rabbi, posek, or other rabbinic authority." data-he="היא אינה מחליפה רב, פוסק, או סמכות רבנית אחרת.">It does not replace a rabbi, posek, or other rabbinic authority.</li>
+                <li data-en="It does not give legal, medical, mental-health, or financial advice." data-he="היא אינה נותנת ייעוץ משפטי, רפואי, נפשי או פיננסי.">It does not give legal, medical, mental-health, or financial advice.</li>
+                <li data-en="It never claims, and is instructed never to claim, to be a rabbi or a human authority."
+                    data-he="היא לעולם אינה טוענת, ומונחית לעולם שלא לטעון, שהיא רב או סמכות אנושית.">It never claims,
+                    and is instructed never to claim, to be a rabbi or a human authority.</li>
+                <li data-en="Medical, legal, mental-health, self-harm, and abuse-adjacent questions are routed to a referral response (a qualified professional + your rabbi), never to a substantive 'ruling'."
+                    data-he="שאלות רפואיות, משפטיות, נפשיות, הקשורות לפגיעה עצמית ולהתעללות מנותבות לתגובת הפניה (איש מקצוע מוסמך + הרב שלך), לעולם לא ל'פסיקה' מהותית.">Medical,
+                    legal, mental-health, self-harm, and abuse-adjacent questions are routed to a referral response
+                    (a qualified professional + your rabbi), never to a substantive "ruling".</li>
+            </ul>
+
+            <h2 data-en="5. Human-in-the-Loop: Always Consult Your Rabbi"
+                data-he="5. אדם בלולאה: תמיד התייעץ עם הרב שלך">5. Human-in-the-Loop: Always Consult Your Rabbi</h2>
+            <p data-en="Every AI answer is paired with a persistent, non-dismissible-on-first-use disclaimer: this is educational information, not a halachic ruling — consult your rabbi for a final decision. This is not boilerplate; it reflects how the Service is actually designed to be used — as a study aid that helps you find and understand sources faster, with your rabbi as the final decision-maker for anything you intend to act on."
+                data-he="כל תשובת בינה מלאכותית מלווה בכתב ויתור קבוע, שאינו ניתן לביטול בשימוש הראשון: זהו מידע חינוכי, לא פסיקה הלכתית — התייעץ עם הרב שלך להחלטה סופית. זהו לא נוסח סטנדרטי; הוא משקף כיצד השירות מתוכנן בפועל לשימוש — ככלי לימוד המסייע לך למצוא ולהבין מקורות מהר יותר, כאשר הרב שלך הוא מקבל ההחלטות הסופי לכל דבר שבכוונתך לפעול על פיו.">
+                Every AI answer is paired with a persistent, non-dismissible-on-first-use disclaimer: this is
+                educational information, not a halachic ruling — consult your rabbi for a final decision. This is
+                not boilerplate; it reflects how the Service is actually designed to be used — as a study aid that
+                helps you find and understand sources faster, with your rabbi as the final decision-maker for
+                anything you intend to act on.
+            </p>
+
+            <h2 data-en="6. Age-Appropriate Output" data-he="6. פלט מותאם-גיל">6. Age-Appropriate Output</h2>
+            <p data-en="Because Sh'elah's minimum age is 13 (see our Terms of Service §3), sensitive halachic topics (e.g., family purity, intimacy) are answered with clinical, educational language and source citations, without graphic or explicit detail — the AI is directed to explain the halachic framework and refer you to a rabbi, teacher, or parent for practical specifics. See docs/AGE_AND_SAFETY_POLICY.md for the full policy."
+                data-he="מכיוון שגיל המינימום ל-Sh'elah הוא 13 (ראה תנאי השירות שלנו סעיף 3), נושאים הלכתיים רגישים (למשל, טהרת המשפחה, אינטימיות) נענים בשפה קלינית וחינוכית וציטוטי מקורות, ללא פירוט גרפי או מפורש — הבינה המלאכותית מונחית להסביר את המסגרת ההלכתית ולהפנות אותך לרב, מורה, או הורה לפרטים מעשיים. ראה docs/AGE_AND_SAFETY_POLICY.md למדיניות המלאה.">
+                Because Sh'elah's minimum age is 13 (see our Terms of Service §3), sensitive halachic topics (e.g.,
+                family purity, intimacy) are answered with clinical, educational language and source citations,
+                without graphic or explicit detail — the AI is directed to explain the halachic framework and refer
+                you to a rabbi, teacher, or parent for practical specifics. See
+                <code>docs/AGE_AND_SAFETY_POLICY.md</code> for the full policy.
+            </p>
+
+            <h2 data-en="7. Contact" data-he="7. צור קשר">7. Contact</h2>
+            <p data-en="Questions about this disclosure, or to report an AI Output that seemed unsafe, inaccurate, or inappropriate:"
+                data-he="שאלות על גילוי נאות זה, או לדיווח על פלט בינה מלאכותית שנראה לא בטוח, לא מדויק, או לא הולם:">
+                Questions about this disclosure, or to report an AI Output that seemed unsafe, inaccurate, or
+                inappropriate:
+            </p>
+            <p><strong data-en="Email:" data-he="דוא״ל:">Email:</strong> <a
+                    href="mailto:akiva.yevda@gmail.com">akiva.yevda@gmail.com</a></p>
+
+            <hr class="my-8" style="border-color: var(--surface-border);">
+
+            <div class="info-box">
+                <p class="text-sm"
+                    data-en="See also our Terms of Service (§6–§8 on AI Output, professional-advice disclaimers, and assumption of risk) and Privacy Policy (§4/§9 on what's sent to AI providers)."
+                    data-he="ראה גם את תנאי השירות שלנו (סעיפים 6–8 בנושא פלט בינה מלאכותית, כתבי ויתור על ייעוץ מקצועי, ונטילת סיכון) ואת מדיניות הפרטיות (סעיפים 4/9 בנושא מה נשלח לספקי בינה מלאכותית).">
+                    See also our <a href="/terms" data-en="Terms of Service" data-he="תנאי השירות">Terms of
+                        Service</a> (§6–§8 on AI Output, professional-advice disclaimers, and assumption of risk) and
+                    <a href="/privacy" data-en="Privacy Policy" data-he="מדיניות הפרטיות">Privacy Policy</a> (§4/§9 on
+                    what's sent to AI providers).
+                </p>
+            </div>
+        </article>
+    </main>
+
+    <footer class="border-t py-6 text-center text-xs"
+        style="border-color: var(--surface-border); color: var(--ink-secondary); background: var(--surface-1);">
+        <p>
+            <a href="/" class="font-semibold hover:underline" style="color: var(--ink-heading);"
+                data-en="Sh'elah Torah Encyclopedia" data-he="שאלה אנציקלופדיית תורה">Sh'elah Torah Encyclopedia</a>
+            &nbsp;·&nbsp;
+            <a href="/terms" class="hover:underline" style="color: var(--ink-secondary);"
+                data-en="Terms of Service" data-he="תנאי שירות">Terms of Service</a>
+            &nbsp;·&nbsp;
+            <a href="/privacy" class="hover:underline" style="color: var(--ink-secondary);"
+                data-en="Privacy Policy" data-he="מדיניות פרטיות">Privacy Policy</a>
+            &nbsp;·&nbsp;
+            <a href="/ai-disclosure" class="hover:underline font-medium" style="color: var(--ink-heading);"
+                data-en="AI Disclosure" data-he="גילוי נאות בינה מלאכותית">AI Disclosure</a>
+            &nbsp;·&nbsp;
+            <a href="/acceptable-use" class="hover:underline" style="color: var(--ink-secondary);"
+                data-en="Acceptable Use" data-he="שימוש מותר">Acceptable Use</a>
+            &nbsp;·&nbsp;
+            <a href="/dmca" class="hover:underline" style="color: var(--ink-secondary);"
+                data-en="DMCA" data-he="DMCA">DMCA</a>
+            &nbsp;·&nbsp;
+            <a href="/accessibility" class="hover:underline" style="color: var(--ink-secondary);"
+                data-en="Accessibility" data-he="נגישות">Accessibility</a>
+            &nbsp;·&nbsp;
+            <a href="/licenses" class="hover:underline" style="color: var(--ink-secondary);"
+                data-en="Licenses" data-he="רישיונות">Licenses</a>
+        </p>
+    </footer>
+
+    {% include 'components/legal_scripts.html' %}
+</body>
+
+</html>
