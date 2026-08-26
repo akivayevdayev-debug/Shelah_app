@@ -209,3 +209,38 @@ def _capture_backend_error(event_name, error, context=None):
             )
         except Exception:
             pass
+
+
+_mitigation_logger = logging.getLogger("shelah.mitigation")
+
+
+def log_mitigation(tier: str, route_class: str, key_hash: str, route: str) -> None:
+    """One structured log line + Sentry breadcrumb per abuse-mitigation
+    action (plan.md §16.4 observability).
+
+    Deliberately NOT routed through _capture_backend_error(): rate-limit
+    429s and quota rejections are routine and expected under normal load
+    (unlike a store outage, which IS still a _capture_backend_error event
+    elsewhere in this file) -- turning every one into a Sentry *event* would
+    burn the free-tier 5,000-events/month quota on ordinary traffic shaping.
+    A breadcrumb instead keeps routine mitigations visible as context on
+    whatever real error/event follows, without costing quota.
+
+    tier is "waf" | "middleware" | "breaker" per plan.md §16.4's schema.
+    key_hash must already be hashed by the caller -- this function never
+    receives or logs a raw IP or Clerk sub (plan.md §8.D privacy).
+    """
+    _mitigation_logger.info(
+        "mitigation_triggered",
+        extra={"tier": tier, "class": route_class, "key_hash": key_hash, "route": route},
+    )
+    if _sentry_enabled:
+        try:
+            sentry_sdk.add_breadcrumb(
+                category="mitigation",
+                message=f"{tier}:{route_class}",
+                level="info",
+                data={"key_hash": key_hash, "route": route},
+            )
+        except Exception:
+            pass

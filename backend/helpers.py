@@ -13,7 +13,7 @@ Alternatives pipeline:
 
 import re
 import time
-from urllib.parse import unquote, quote
+from urllib.parse import unquote, quote, urlparse
 
 import requests as _requests
 from flask import request as _flask_request
@@ -22,6 +22,28 @@ from flask import request as _flask_request
 # (Phase 1 backend refactor, plan.md §1.3.5) — re-imported here to avoid the
 # divergent-duplicate constant that previously existed in both files.
 from backend.utils.text_engine import HEBREW_DIACRITICS_RE
+
+# ── Same-origin request check ───────────────────────────────────────────────────
+# Shared by any route that needs CSRF-style protection beyond SameSite=Lax's
+# cookie-attribute default — a POST route reachable without a Clerk bearer
+# token (routes_devtools.py's /api/client-errors).
+
+
+def _is_same_origin_request() -> bool:
+    """Origin (falling back to Referer) must match this request's own Host.
+
+    Compares against request.host rather than a hardcoded domain so this
+    works unchanged across production and Vercel preview deployments.
+    """
+    origin = (_flask_request.headers.get("Origin") or _flask_request.headers.get("Referer") or "").strip()
+    if not origin:
+        return False
+    try:
+        origin_host = urlparse(origin).netloc
+    except ValueError:
+        return False
+    return bool(origin_host) and origin_host == _flask_request.host
+
 
 # ── Response security headers ──────────────────────────────────────────────────
 # Single source of truth for both transports: app.py's Flask

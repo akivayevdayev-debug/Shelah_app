@@ -8,13 +8,9 @@ All other routes are served by the mounted Flask WSGI app.
 from __future__ import annotations
 
 import asyncio
-import collections
 import logging
 import time
 from typing import Annotated, Any
-
-# OrderedDict gives O(1) move_to_end for LRU eviction.
-_RateLimitStore = collections.OrderedDict
 
 logger = logging.getLogger(__name__)
 
@@ -34,52 +30,7 @@ from backend.rag import _fetch_user_memory_summaries, _store_user_memory_summary
 from backend.helpers import _sanitize_answer_mode, _compact_ai_sources, extract_ai_cited
 from backend.helpers import _build_source_attribution_note, _canonicalize_community_name
 from backend.logging_setup import _capture_backend_error
-
-# ─── Simple in-process rate limiter for FastAPI /ask ──────────────────────────
-# Each IP is tracked with a deque of request timestamps. This avoids adding
-# slowapi/Redis just for a single endpoint and matches the Flask limit (20/min).
-_RATE_LIMIT_WINDOW_SECONDS = 60
-_RATE_LIMIT_MAX_REQUESTS = 20
-# OrderedDict gives O(1) LRU eviction via move_to_end — evicts least-recently-used
-# IP instead of oldest-inserted, preventing an attacker cycling 2 048 IPs from
-# flushing active users' counters.
-_rate_limit_store: _RateLimitStore = _RateLimitStore()
-_RATE_LIMIT_STORE_MAX_KEYS = 2048  # cap memory
-
-
-def _get_client_ip(request: Request) -> str:
-    """Extract client IP from Cloudflare or standard proxy headers."""
-    for header in ("CF-Connecting-IP", "X-Forwarded-For", "X-Real-IP"):
-        val = request.headers.get(header, "").split(",")[0].strip()
-        if val:
-            return val
-    return request.client.host if request.client else "unknown"
-
-
-def _check_rate_limit(ip: str) -> bool:
-    """Return True if the request is allowed, False if rate-limited.
-
-    Uses an OrderedDict for LRU eviction: each access moves the key to the end
-    so the least-recently-used entry is always at the front for eviction.
-    """
-    now = time.monotonic()
-    if ip not in _rate_limit_store:
-        # Evict LRU key (front of OrderedDict) if store is at capacity.
-        if len(_rate_limit_store) >= _RATE_LIMIT_STORE_MAX_KEYS:
-            _rate_limit_store.popitem(last=False)
-        _rate_limit_store[ip] = collections.deque()
-    else:
-        # Move to end to mark as most-recently-used.
-        _rate_limit_store.move_to_end(ip)
-
-    timestamps = _rate_limit_store[ip]
-    cutoff = now - _RATE_LIMIT_WINDOW_SECONDS
-    while timestamps and timestamps[0] < cutoff:
-        timestamps.popleft()
-    if len(timestamps) >= _RATE_LIMIT_MAX_REQUESTS:
-        return False
-    timestamps.append(now)
-    return True
+from backend.rate_limit import RateLimitMiddleware
 
 
 class AskRequest(BaseModel):
@@ -173,6 +124,14 @@ async def _build_tool_context() -> dict[str, Any]:
 
 fastapi_app = FastAPI(title="Shelah ASGI", version="1.0.0")
 
+# plan.md §16.3-L2 / §16.8.2: the single rate-limit enforcement point for
+# both native FastAPI routes and every Flask route reached through the
+# WSGIMiddleware mount below (see backend/rate_limit.py's module docstring
+# for why one Starlette middleware registration covers both). Replaces the
+# ad hoc in-process limiter that used to live in this file (plan.md
+# §16.8.1's "two independently-maintained limiters" finding).
+fastapi_app.add_middleware(RateLimitMiddleware)
+
 
 @fastapi_app.get("/api/async/health")
 async def async_health() -> dict[str, Any]:
@@ -198,11 +157,6 @@ async def ask_async(
     payload: AskRequest,
     authorization: Annotated[str | None, Header()] = None,
 ) -> dict[str, Any]:
-    client_ip = _get_client_ip(request)
-    if not _check_rate_limit(client_ip):
-        raise HTTPException(
-            status_code=429, detail="Rate limit exceeded. Please wait before sending another request.")
-
     question = claude.sanitize_user_query(payload.question)
     question_was_sanitized = question != str(payload.question or "").strip()
     if not question:

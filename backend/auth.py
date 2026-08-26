@@ -103,6 +103,30 @@ def maybe_require_clerk_auth(route_fn):
     return wrapped
 
 
+def extract_user_id_from_bearer_value(authorization):
+    """Verify a raw `Authorization` header value and return the Clerk `sub`
+    claim, or None if missing/malformed/unverifiable.
+
+    Framework-agnostic (takes the header value directly rather than reading
+    Flask's `request` global like _extract_bearer_token above), so both the
+    WSGI stack and asgi.py/backend/rate_limit.py's ASGI-side code can share
+    one implementation instead of maintaining independent copies (plan.md
+    §2 duplication rule -- this used to be duplicated verbatim in asgi.py).
+    """
+    header = str(authorization or "").strip()
+    if not header.lower().startswith("bearer "):
+        return None
+    token = header.split(" ", 1)[1].strip()
+    if not token:
+        return None
+    try:
+        claims = _verify_clerk_token(token)
+    except Exception:
+        return None
+    user_id = str(claims.get("sub") or "").strip()
+    return user_id or None
+
+
 def require_clerk_auth(route_fn):
     @wraps(route_fn)
     def wrapped(*args, **kwargs):
