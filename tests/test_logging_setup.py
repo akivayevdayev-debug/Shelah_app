@@ -8,6 +8,7 @@ from __future__ import annotations
 
 import json
 import logging
+from concurrent.futures import ThreadPoolExecutor
 
 import pytest
 
@@ -238,3 +239,265 @@ class TestCaptureBackendError:
         monkeypatch.setattr(logging_setup, "sentry_sdk", fake_sentry)
         # Should not raise despite Sentry failure.
         logging_setup._capture_backend_error("test_event", ValueError("boom"))
+
+    def test_sentry_capture_includes_bound_request_id(self, monkeypatch):
+        """plan.md §8.E.1: _capture_backend_error must route request-id
+        context to Sentry, so an issue can be correlated back to its
+        request's log lines."""
+        import app as flask_app_module
+        monkeypatch.setattr(flask_app_module.app.logger, "error", lambda *a, **k: None)
+        monkeypatch.setattr(logging_setup, "_sentry_enabled", True)
+        logging_setup.bind_request_id("sentry-correlated-id")
+
+        captured = []
+        fake_sentry = type("FakeSentry", (), {
+            "capture_exception": staticmethod(
+                lambda exc, contexts=None: captured.append(contexts)),
+        })
+        monkeypatch.setattr(logging_setup, "sentry_sdk", fake_sentry)
+        logging_setup._capture_backend_error("test_event", ValueError("boom"), {"k": "v"})
+
+        assert len(captured) == 1
+        assert captured[0]["backend_error"]["request_id"] == "sentry-correlated-id"
+        # Original context keys must survive alongside the added request_id.
+        assert captured[0]["backend_error"]["k"] == "v"
+
+    def test_json_payload_includes_request_id_when_bound(self, monkeypatch):
+        import app as flask_app_module
+        logged = []
+        monkeypatch.setattr(
+            flask_app_module.app.logger, "error",
+            lambda msg, *a, **k: logged.append(a),
+        )
+        logging_setup.bind_request_id("payload-request-id")
+        logging_setup._capture_backend_error("test_event", ValueError("boom"))
+
+        assert len(logged) == 1
+        payload = json.loads(logged[0][0])
+        assert payload["request_id"] == "payload-request-id"
+
+    def test_json_payload_request_id_empty_when_unbound(self, monkeypatch):
+        import app as flask_app_module
+        logged = []
+        monkeypatch.setattr(
+            flask_app_module.app.logger, "error",
+            lambda msg, *a, **k: logged.append(a),
+        )
+        logging_setup._capture_backend_error("test_event", ValueError("boom"))
+
+        payload = json.loads(logged[0][0])
+        assert payload["request_id"] == ""
+
+
+class TestScrubErrorContext:
+    """P1 audit finding: halachic question/answer text must never reach
+    structured logs, the error webhook, or Sentry unredacted."""
+
+    @pytest.mark.parametrize("key", [
+        "question", "Question", "user_question", "answer", "ai_answer",
+        "ruling", "summary", "practical_step", "body", "text",
+    ])
+    def test_sensitive_keys_are_filtered(self, key):
+        scrubbed = logging_setup._scrub_error_context({key: "sensitive halachic content"})
+        assert scrubbed[key] == "[Filtered]"
+
+    def test_non_sensitive_keys_survive_untouched(self):
+        context = {"mode": "strict", "user_id": "user_123", "call_count": 3}
+        assert logging_setup._scrub_error_context(context) == context
+
+    def test_long_non_sensitive_string_is_truncated(self):
+        long_value = "x" * 500
+        scrubbed = logging_setup._scrub_error_context({"trace_id": long_value})
+        assert len(scrubbed["trace_id"]) < len(long_value)
+        assert scrubbed["trace_id"].endswith("[truncated]")
+
+    def test_short_non_sensitive_string_is_not_truncated(self):
+        scrubbed = logging_setup._scrub_error_context({"mode": "strict"})
+        assert scrubbed["mode"] == "strict"
+
+    def test_non_string_values_pass_through(self):
+        scrubbed = logging_setup._scrub_error_context({"call_count": 3, "exceeded": True})
+        assert scrubbed == {"call_count": 3, "exceeded": True}
+
+    def test_capture_backend_error_scrubs_question_from_json_log(self, monkeypatch):
+        import app as flask_app_module
+        logged = []
+        monkeypatch.setattr(
+            flask_app_module.app.logger, "error",
+            lambda msg, *a, **k: logged.append(a),
+        )
+        logging_setup._capture_backend_error(
+            "ask_ai_synthesis_failed", ValueError("boom"),
+            {"question": "Is it permitted to drive on Shabbat for a medical emergency?"},
+        )
+        payload = json.loads(logged[0][0])
+        assert payload["context"]["question"] == "[Filtered]"
+
+    def test_capture_backend_error_scrubs_question_from_webhook(self, monkeypatch):
+        import app as flask_app_module
+        monkeypatch.setattr(flask_app_module.app.logger, "error", lambda *a, **k: None)
+        monkeypatch.setenv("ERROR_LOG_WEBHOOK_URL", "https://example.com/webhook")
+
+        posted = []
+        import requests
+        monkeypatch.setattr(requests, "post", lambda url, json=None, timeout=None: posted.append(json))
+        logging_setup._capture_backend_error(
+            "ask_ai_synthesis_failed", ValueError("boom"),
+            {"question": "a very sensitive question"},
+        )
+        assert posted[0]["context"]["question"] == "[Filtered]"
+
+    def test_capture_backend_error_scrubs_question_from_sentry_context(self, monkeypatch):
+        import app as flask_app_module
+        monkeypatch.setattr(flask_app_module.app.logger, "error", lambda *a, **k: None)
+        monkeypatch.setattr(logging_setup, "_sentry_enabled", True)
+
+        captured = []
+        fake_sentry = type("FakeSentry", (), {
+            "capture_exception": staticmethod(lambda exc, contexts=None: captured.append(contexts)),
+        })
+        monkeypatch.setattr(logging_setup, "sentry_sdk", fake_sentry)
+        logging_setup._capture_backend_error(
+            "ask_ai_synthesis_failed", ValueError("boom"),
+            {"question": "a very sensitive question", "mode": "strict"},
+        )
+        assert captured[0]["backend_error"]["question"] == "[Filtered]"
+        assert captured[0]["backend_error"]["mode"] == "strict"
+
+    def test_error_message_itself_is_truncated(self, monkeypatch):
+        import app as flask_app_module
+        logged = []
+        monkeypatch.setattr(
+            flask_app_module.app.logger, "error",
+            lambda msg, *a, **k: logged.append(a),
+        )
+        logging_setup._capture_backend_error("test_event", ValueError("x" * 500))
+        payload = json.loads(logged[0][0])
+        assert len(payload["message"]) < 500
+        assert payload["message"].endswith("[truncated]")
+
+
+class TestTracesSampler:
+    """plan.md §17.3 deviation 7: traces_sampler replaces the flat
+    traces_sample_rate=0.1 — /ask and fan-out routes sample meaningfully,
+    health/statics sample at zero."""
+
+    def test_ask_route_sampled_meaningfully(self):
+        rate = logging_setup._traces_sampler({"asgi_scope": {"path": "/ask"}})
+        assert rate == logging_setup._TRACE_SAMPLE_RATE_ASK
+        assert rate > 0
+
+    def test_health_route_sampled_at_zero(self):
+        assert logging_setup._traces_sampler({"asgi_scope": {"path": "/api/health"}}) == 0.0
+
+    def test_stack_health_route_sampled_at_zero(self):
+        assert logging_setup._traces_sampler({"asgi_scope": {"path": "/api/stack/health"}}) == 0.0
+
+    def test_async_health_route_sampled_at_zero(self):
+        assert logging_setup._traces_sampler({"asgi_scope": {"path": "/api/async/health"}}) == 0.0
+
+    def test_static_asset_sampled_at_zero(self):
+        assert logging_setup._traces_sampler({"asgi_scope": {"path": "/static/js/main.js"}}) == 0.0
+
+    def test_fanout_route_sampled_moderately(self):
+        rate = logging_setup._traces_sampler({"asgi_scope": {"path": "/api/library/search"}})
+        assert rate == logging_setup._TRACE_SAMPLE_RATE_FANOUT
+
+    def test_siddur_fanout_route_sampled_moderately(self):
+        rate = logging_setup._traces_sampler({"asgi_scope": {"path": "/api/siddur/full/weekday"}})
+        assert rate == logging_setup._TRACE_SAMPLE_RATE_FANOUT
+
+    def test_export_chapter_fanout_route_sampled_moderately(self):
+        rate = logging_setup._traces_sampler({"asgi_scope": {"path": "/api/export/chapter"}})
+        assert rate == logging_setup._TRACE_SAMPLE_RATE_FANOUT
+
+    def test_unclassified_route_gets_light_default(self):
+        rate = logging_setup._traces_sampler({"asgi_scope": {"path": "/api/bookmarks/list"}})
+        assert rate == logging_setup._TRACE_SAMPLE_RATE_DEFAULT
+
+    def test_falls_back_to_wsgi_environ_when_no_asgi_scope(self):
+        """python3 app.py (bare Flask, no ASGI layer — plan.md §16.1 D1)
+        only populates wsgi_environ, never asgi_scope."""
+        rate = logging_setup._traces_sampler({"wsgi_environ": {"PATH_INFO": "/ask"}})
+        assert rate == logging_setup._TRACE_SAMPLE_RATE_ASK
+
+    def test_missing_path_returns_zero(self):
+        assert logging_setup._traces_sampler({}) == 0.0
+
+
+class TestSentryInitKwargs:
+    """plan.md §17.3 deviations 1 and 2: verify the exact arguments that
+    would be passed to sentry_sdk.init(), independent of whether SENTRY_DSN
+    happens to be set in this test run."""
+
+    def test_send_default_pii_is_explicitly_false(self):
+        kwargs = logging_setup._build_sentry_init_kwargs("https://key@o1.ingest.us.sentry.io/1")
+        assert kwargs["send_default_pii"] is False
+
+    def test_uses_traces_sampler_not_a_flat_rate(self):
+        kwargs = logging_setup._build_sentry_init_kwargs("https://key@o1.ingest.us.sentry.io/1")
+        assert kwargs["traces_sampler"] is logging_setup._traces_sampler
+        assert "traces_sample_rate" not in kwargs
+
+    def test_dsn_is_passed_through_verbatim_never_hardcoded(self):
+        dsn = "https://env-supplied-key@o1.ingest.us.sentry.io/1"
+        kwargs = logging_setup._build_sentry_init_kwargs(dsn)
+        assert kwargs["dsn"] == dsn
+
+    def test_environment_and_release_read_from_vercel_env_vars(self, monkeypatch):
+        monkeypatch.setenv("VERCEL_ENV", "preview")
+        monkeypatch.setenv("VERCEL_GIT_COMMIT_SHA", "abc123")
+        kwargs = logging_setup._build_sentry_init_kwargs("https://key@o1.ingest.us.sentry.io/1")
+        assert kwargs["environment"] == "preview"
+        assert kwargs["release"] == "abc123"
+
+    def test_environment_defaults_to_development(self, monkeypatch):
+        monkeypatch.delenv("VERCEL_ENV", raising=False)
+        kwargs = logging_setup._build_sentry_init_kwargs("https://key@o1.ingest.us.sentry.io/1")
+        assert kwargs["environment"] == "development"
+
+
+class TestSubmitWithContext:
+    """submit_with_context() propagates contextvars (request_id) into
+    ThreadPoolExecutor workers, which don't inherit them by default."""
+
+    def test_propagates_request_id_into_worker_thread(self):
+        logging_setup.bind_request_id("thread-context-id")
+        pool = ThreadPoolExecutor(max_workers=2)
+        try:
+            future = logging_setup.submit_with_context(
+                pool, logging_setup.get_request_id)
+            assert future.result(timeout=5) == "thread-context-id"
+        finally:
+            pool.shutdown(wait=True)
+
+    def test_plain_submit_does_not_propagate(self):
+        """Documents the gap submit_with_context exists to close."""
+        logging_setup.bind_request_id("thread-context-id")
+        pool = ThreadPoolExecutor(max_workers=2)
+        try:
+            future = pool.submit(logging_setup.get_request_id)
+            assert future.result(timeout=5) == ""
+        finally:
+            pool.shutdown(wait=True)
+
+    def test_passes_args_and_kwargs_through(self):
+        pool = ThreadPoolExecutor(max_workers=2)
+        try:
+            future = logging_setup.submit_with_context(
+                pool, lambda a, b, c=0: a + b + c, 1, 2, c=3)
+            assert future.result(timeout=5) == 6
+        finally:
+            pool.shutdown(wait=True)
+
+    def test_propagates_exceptions_from_the_submitted_function(self):
+        def _boom():
+            raise ValueError("worker failure")
+
+        pool = ThreadPoolExecutor(max_workers=2)
+        try:
+            future = logging_setup.submit_with_context(pool, _boom)
+            with pytest.raises(ValueError, match="worker failure"):
+                future.result(timeout=5)
+        finally:
+            pool.shutdown(wait=True)
