@@ -18,7 +18,7 @@ import os
 import time
 import traceback
 import uuid
-from contextvars import ContextVar
+from contextvars import ContextVar, copy_context
 from datetime import datetime, timezone
 
 try:
@@ -140,6 +140,18 @@ def bind_request_id(request_id: str | None = None) -> str:
 def get_request_id() -> str:
     """Return the current context's request_id (empty string if not set)."""
     return _request_id_var.get()
+
+
+def submit_with_context(executor, fn, *args, **kwargs):
+    """Submit *fn* to *executor*, propagating the calling contextvars.
+
+    ThreadPoolExecutor workers don't inherit the submitting thread's
+    contextvars by default, so request_id (and anything else on a
+    ContextVar) silently drops out of every background-thread log line
+    unless the submitting context is copied and replayed inside the worker.
+    """
+    ctx = copy_context()
+    return executor.submit(ctx.run, fn, *args, **kwargs)
 
 
 def get_logger(name: str) -> logging.Logger:
