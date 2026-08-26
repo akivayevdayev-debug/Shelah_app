@@ -314,6 +314,22 @@ def _coerce_int(value, default, min_value=1, max_value=100):
     return max(min_value, min(parsed, max_value))
 
 
+# Trust order verified against Vercel's own request-headers reference: Vercel
+# overwrites X-Forwarded-For (and sets X-Vercel-Forwarded-For) so client-
+# supplied values for those two headers cannot pass through unmodified.
+# CF-Connecting-IP is deliberately never read here — this deployment has no
+# Cloudflare in front of it, so that header arrives verbatim from whoever
+# sends it and is trivially spoofable (plan.md §16.1 D2; previously read
+# first, independently, in both app.py's _rate_limit_key and asgi.py's
+# _get_client_ip -- reconciled here into the one implementation both import).
+def _resolve_client_ip(headers, remote_addr=None, default="unknown"):
+    for header in ("X-Vercel-Forwarded-For", "X-Forwarded-For", "X-Real-IP"):
+        value = (headers.get(header) or "").split(",")[0].strip()
+        if value:
+            return value
+    return (remote_addr or "").strip() or default
+
+
 def _decode_route_ref(value, max_rounds=3):
     decoded = str(value or "").strip()
     for _ in range(max_rounds):
@@ -786,6 +802,32 @@ def _extract_search_metadata_filters():
         if values:
             metadata_filters[key] = values
     return metadata_filters
+
+
+# ── AI-error reason classifier ────────────────────────────────────────────────
+# Security audit P1: asgi.py/app.py's /ask fallback path used to put
+# str(ai_error) — the raw provider SDK exception text — into
+# meta.fallback_detail.reason on a normal 200 response. Unlike a generic
+# 500-handler leak, this fires on routine failure modes (timeouts, rate
+# limits, provider outages) on the app's most-used endpoint. The full
+# exception is still captured server-side via _capture_backend_error right
+# before this is called; only the client-facing value changes here.
+_AI_ERROR_TIMEOUT_MARKERS = ("timeout", "timed out")
+_AI_ERROR_RATE_LIMIT_MARKERS = ("rate limit", "rate_limit", "429")
+_AI_ERROR_BLOCKED_MARKERS = ("security_blocked",)
+
+
+def _coarse_ai_error_reason(error) -> str:
+    """Map an AI-call exception to a coarse, non-identifying category for
+    client responses. Never returns the raw exception text."""
+    text = str(error or "").lower()
+    if any(marker in text for marker in _AI_ERROR_BLOCKED_MARKERS):
+        return "blocked"
+    if any(marker in text for marker in _AI_ERROR_TIMEOUT_MARKERS):
+        return "timeout"
+    if any(marker in text for marker in _AI_ERROR_RATE_LIMIT_MARKERS):
+        return "rate_limited"
+    return "provider_error"
 
 
 # ── Answer-mode sanitizer ─────────────────────────────────────────────────────
