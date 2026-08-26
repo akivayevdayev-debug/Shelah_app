@@ -29,6 +29,11 @@ os.environ.setdefault("GEMINI_API_KEY", "mock-gemini-key")
 os.environ.setdefault("LOG_LEVEL", "ERROR")
 # Suppress rate limiter in tests
 os.environ.setdefault("RATELIMIT_ENABLED", "false")
+# plan.md §36.1: a developer's local .env may set this to a real Upstash
+# DSN, and load_dotenv() (called on app import) won't override an
+# already-set var -- blank it so tests never leak writes to a shared
+# production-adjacent Redis instance.
+os.environ.setdefault("RATE_LIMIT_REDIS_URL", "")
 
 import json
 import re
