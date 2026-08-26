@@ -76,7 +76,7 @@ def test_estimate_cost_usd_zero_output_tokens_only_charges_input():
 
 # ─── record_llm_call ────────────────────────────────────────────────────────
 
-@pytest.fixture()
+@pytest.fixture
 def captured_insert(monkeypatch):
     """
     Replace backend.cost_meter._insert_usage_row with a stub that records its
@@ -231,3 +231,616 @@ async def test_record_llm_call_swallows_exception_with_extra_payload(monkeypatch
         output_tokens=1,
         extra={"custom_field": "value"},
     )
+
+
+# ─── _daily_budget_usd ──────────────────────────────────────────────────────
+
+def test_daily_budget_usd_unset_returns_zero(monkeypatch):
+    monkeypatch.delenv(cost_meter._DAILY_BUDGET_ENV, raising=False)
+    assert cost_meter._daily_budget_usd() == 0.0
+
+
+def test_daily_budget_usd_parses_configured_value(monkeypatch):
+    monkeypatch.setenv(cost_meter._DAILY_BUDGET_ENV, "12.5")
+    assert cost_meter._daily_budget_usd() == 12.5
+
+
+def test_daily_budget_usd_invalid_value_returns_zero(monkeypatch):
+    monkeypatch.setenv(cost_meter._DAILY_BUDGET_ENV, "not-a-number")
+    assert cost_meter._daily_budget_usd() == 0.0
+
+
+def test_daily_budget_usd_negative_value_clamped_to_zero(monkeypatch):
+    monkeypatch.setenv(cost_meter._DAILY_BUDGET_ENV, "-5")
+    assert cost_meter._daily_budget_usd() == 0.0
+
+
+# ─── check_daily_budget_and_alert ───────────────────────────────────────────
+
+@pytest.fixture
+def captured_alerts(monkeypatch):
+    calls: list[tuple] = []
+    monkeypatch.setattr(
+        cost_meter, "_capture_backend_error",
+        lambda event, error, context=None: calls.append((event, error, context)),
+    )
+    return calls
+
+
+async def test_check_daily_budget_disabled_when_unset(monkeypatch, captured_alerts):
+    monkeypatch.delenv(cost_meter._DAILY_BUDGET_ENV, raising=False)
+    fetch_called = []
+    monkeypatch.setattr(
+        cost_meter, "_fetch_today_usage_rows",
+        lambda: fetch_called.append(1) or [],
+    )
+
+    result = await cost_meter.check_daily_budget_and_alert()
+
+    assert result == {
+        "configured": False,
+        "total_usd": 0.0,
+        "threshold_usd": 0.0,
+        "call_count": 0,
+        "exceeded": False,
+    }
+    # Disabled means no Supabase read is even attempted.
+    assert fetch_called == []
+    assert captured_alerts == []
+
+
+async def test_check_daily_budget_under_threshold_does_not_alert(monkeypatch, captured_alerts):
+    monkeypatch.setenv(cost_meter._DAILY_BUDGET_ENV, "10.0")
+    monkeypatch.setattr(
+        cost_meter, "_fetch_today_usage_rows",
+        lambda: [{"cost_usd": 1.0}, {"cost_usd": 2.5}],
+    )
+
+    result = await cost_meter.check_daily_budget_and_alert()
+
+    assert result["configured"] is True
+    assert result["total_usd"] == pytest.approx(3.5)
+    assert result["threshold_usd"] == 10.0
+    assert result["call_count"] == 2
+    assert result["exceeded"] is False
+    assert captured_alerts == []
+
+
+async def test_check_daily_budget_over_threshold_alerts_once(monkeypatch, captured_alerts):
+    monkeypatch.setenv(cost_meter._DAILY_BUDGET_ENV, "5.0")
+    monkeypatch.setattr(
+        cost_meter, "_fetch_today_usage_rows",
+        lambda: [{"cost_usd": 3.0}, {"cost_usd": 4.0}],
+    )
+
+    result = await cost_meter.check_daily_budget_and_alert()
+
+    assert result["total_usd"] == pytest.approx(7.0)
+    assert result["exceeded"] is True
+    assert len(captured_alerts) == 1
+    event, error, context = captured_alerts[0]
+    assert event == "daily_ai_budget_exceeded"
+    assert context["total_usd"] == pytest.approx(7.0)
+    assert context["threshold_usd"] == 5.0
+
+
+async def test_check_daily_budget_exactly_at_threshold_counts_as_exceeded(
+    monkeypatch, captured_alerts
+):
+    monkeypatch.setenv(cost_meter._DAILY_BUDGET_ENV, "5.0")
+    monkeypatch.setattr(
+        cost_meter, "_fetch_today_usage_rows", lambda: [{"cost_usd": 5.0}],
+    )
+
+    result = await cost_meter.check_daily_budget_and_alert()
+
+    assert result["exceeded"] is True
+    assert len(captured_alerts) == 1
+
+
+async def test_check_daily_budget_ignores_non_dict_rows(monkeypatch, captured_alerts):
+    monkeypatch.setenv(cost_meter._DAILY_BUDGET_ENV, "5.0")
+    monkeypatch.setattr(
+        cost_meter, "_fetch_today_usage_rows",
+        lambda: [{"cost_usd": 1.0}, "not-a-row", None],
+    )
+
+    result = await cost_meter.check_daily_budget_and_alert()
+
+    assert result["total_usd"] == pytest.approx(1.0)
+    assert result["exceeded"] is False
+    # call_count must track the same valid-row set as total_usd, not
+    # len(rows) — a non-dict entry must not inflate the reported call count
+    # past what was actually summed.
+    assert result["call_count"] == 1
+
+
+def test_fetch_today_usage_rows_returns_empty_list_when_supabase_unconfigured(monkeypatch):
+    import app as flask_app_module
+    monkeypatch.setattr(flask_app_module, "_get_supabase_client", lambda: None)
+    assert cost_meter._fetch_today_usage_rows() == []
+
+
+# ─── _fetch_today_usage_rows pagination ─────────────────────────────────────
+
+class _FakePagedResult:
+    def __init__(self, data):
+        self.data = data
+
+
+class _FakePagedQuery:
+    """Minimal stand-in for the postgrest query-builder chain
+    (.select().gte().range().execute()), returning one page of `pages` per
+    .execute() call so pagination can be tested without a real Supabase
+    client."""
+
+    def __init__(self, pages):
+        self._pages = pages
+        self._next_page_index = 0
+        self.requested_ranges: list[tuple[int, int]] = []
+
+    def select(self, *args, **kwargs):
+        return self
+
+    def gte(self, *args, **kwargs):
+        return self
+
+    def range(self, start, end):
+        self.requested_ranges.append((start, end))
+        return self
+
+    def execute(self):
+        page = (
+            self._pages[self._next_page_index]
+            if self._next_page_index < len(self._pages)
+            else []
+        )
+        self._next_page_index += 1
+        return _FakePagedResult(page)
+
+
+class _FakePagedClient:
+    def __init__(self, pages):
+        self.query = _FakePagedQuery(pages)
+
+    def table(self, name):
+        return self.query
+
+
+def test_fetch_today_usage_rows_stops_after_a_short_page(monkeypatch):
+    import app as flask_app_module
+    fake_client = _FakePagedClient([[{"cost_usd": 1.0}, {"cost_usd": 2.0}]])
+    monkeypatch.setattr(flask_app_module, "_get_supabase_client", lambda: fake_client)
+
+    rows = cost_meter._fetch_today_usage_rows()
+
+    assert len(rows) == 2
+    # A single short page means exactly one .range() call was issued.
+    assert fake_client.query.requested_ranges == [(0, cost_meter._USAGE_FETCH_PAGE_SIZE - 1)]
+
+
+def test_fetch_today_usage_rows_paginates_past_a_full_first_page(monkeypatch):
+    """Regression test for the undercounting bug: a day with more calls
+    than one PostgREST page must not silently truncate."""
+    import app as flask_app_module
+    page_size = cost_meter._USAGE_FETCH_PAGE_SIZE
+    full_page = [{"cost_usd": 0.01} for _ in range(page_size)]
+    partial_page = [{"cost_usd": 0.02} for _ in range(3)]
+    fake_client = _FakePagedClient([full_page, partial_page])
+    monkeypatch.setattr(flask_app_module, "_get_supabase_client", lambda: fake_client)
+
+    rows = cost_meter._fetch_today_usage_rows()
+
+    assert len(rows) == page_size + 3
+    assert fake_client.query.requested_ranges == [
+        (0, page_size - 1),
+        (page_size, 2 * page_size - 1),
+    ]
+
+
+def test_fetch_today_usage_rows_respects_the_max_pages_safety_cap(monkeypatch):
+    import app as flask_app_module
+    page_size = cost_meter._USAGE_FETCH_PAGE_SIZE
+    # Every page is full-size, so pagination would run forever without the cap.
+    endless_pages = [
+        [{"cost_usd": 0.0} for _ in range(page_size)]
+        for _ in range(cost_meter._USAGE_FETCH_MAX_PAGES + 5)
+    ]
+    fake_client = _FakePagedClient(endless_pages)
+    monkeypatch.setattr(flask_app_module, "_get_supabase_client", lambda: fake_client)
+
+    rows = cost_meter._fetch_today_usage_rows()
+
+    assert len(rows) == cost_meter._USAGE_FETCH_MAX_PAGES * page_size
+
+
+# ─── _per_user_daily_budget_usd ─────────────────────────────────────────────
+
+def test_per_user_daily_budget_usd_unset_uses_default(monkeypatch):
+    monkeypatch.delenv(cost_meter._PER_USER_DAILY_BUDGET_ENV, raising=False)
+    assert cost_meter._per_user_daily_budget_usd() == cost_meter._DEFAULT_PER_USER_DAILY_BUDGET_USD
+
+
+def test_per_user_daily_budget_usd_explicit_zero_disables(monkeypatch):
+    monkeypatch.setenv(cost_meter._PER_USER_DAILY_BUDGET_ENV, "0")
+    assert cost_meter._per_user_daily_budget_usd() == 0.0
+
+
+def test_per_user_daily_budget_usd_parses_configured_value(monkeypatch):
+    monkeypatch.setenv(cost_meter._PER_USER_DAILY_BUDGET_ENV, "5.25")
+    assert cost_meter._per_user_daily_budget_usd() == 5.25
+
+
+def test_per_user_daily_budget_usd_invalid_value_falls_back_to_default(monkeypatch):
+    monkeypatch.setenv(cost_meter._PER_USER_DAILY_BUDGET_ENV, "not-a-number")
+    assert cost_meter._per_user_daily_budget_usd() == cost_meter._DEFAULT_PER_USER_DAILY_BUDGET_USD
+
+
+# ─── check_user_budget_and_enforce ──────────────────────────────────────────
+#
+# plan.md §20.2 Phase 20b (Prompt 33b) replaced the read-then-decide race
+# (_fetch_today_usage_cost_for_key) with an atomic check-and-reserve RPC
+# (_reserve_budget_or_deny). These tests were updated to monkeypatch the new
+# call site — see tests/test_cost_meter_budget_atomicity.py for the
+# concurrency regression test that is the actual deliverable of that fix.
+
+@pytest.fixture(autouse=True)
+def _clear_budget_reservation_context():
+    """The reservation-id contextvar (backend/logging_setup.py) must not
+    leak between tests sharing the same OS thread/context."""
+    from backend import logging_setup
+    logging_setup.bind_budget_reservation("")
+    yield
+    logging_setup.bind_budget_reservation("")
+
+
+async def test_check_user_budget_disabled_when_threshold_zero(monkeypatch):
+    monkeypatch.setenv(cost_meter._PER_USER_DAILY_BUDGET_ENV, "0")
+    reserve_called = []
+    monkeypatch.setattr(
+        cost_meter, "_reserve_budget_or_deny",
+        lambda col, val, threshold, reservation: reserve_called.append((col, val)) or {
+            "allowed": True, "total_usd": 999.0, "reservation_id": "should-not-happen",
+        },
+    )
+
+    result = await cost_meter.check_user_budget_and_enforce("user_123", "1.2.3.4")
+
+    assert result == {"allowed": True, "total_usd": 0.0, "threshold_usd": 0.0}
+    assert reserve_called == []
+
+
+async def test_check_user_budget_keys_by_user_id_when_present(monkeypatch):
+    monkeypatch.setenv(cost_meter._PER_USER_DAILY_BUDGET_ENV, "5.0")
+    calls = []
+    monkeypatch.setattr(
+        cost_meter, "_reserve_budget_or_deny",
+        lambda col, val, threshold, reservation: calls.append((col, val)) or {
+            "allowed": True, "total_usd": 1.0, "reservation_id": "resv-1",
+        },
+    )
+
+    result = await cost_meter.check_user_budget_and_enforce("user_123", "1.2.3.4")
+
+    assert calls == [("user_id", "user_123")]
+    assert result == {"allowed": True, "total_usd": 1.0, "threshold_usd": 5.0}
+    # A successful reservation must be bound into context so record_llm_call()
+    # can settle it later.
+    assert cost_meter.get_budget_reservation() == "resv-1"
+
+
+async def test_check_user_budget_falls_back_to_ip_key_when_anonymous(monkeypatch):
+    monkeypatch.setenv(cost_meter._PER_USER_DAILY_BUDGET_ENV, "5.0")
+    calls = []
+    monkeypatch.setattr(
+        cost_meter, "_reserve_budget_or_deny",
+        lambda col, val, threshold, reservation: calls.append((col, val)) or {
+            "allowed": True, "total_usd": 0.0, "reservation_id": "resv-2",
+        },
+    )
+
+    result = await cost_meter.check_user_budget_and_enforce(None, "1.2.3.4")
+
+    assert calls == [("client_key", "ip:1.2.3.4")]
+    assert result["allowed"] is True
+
+
+async def test_check_user_budget_blocks_when_reservation_denied(monkeypatch):
+    monkeypatch.setenv(cost_meter._PER_USER_DAILY_BUDGET_ENV, "5.0")
+    monkeypatch.setattr(
+        cost_meter, "_reserve_budget_or_deny",
+        lambda col, val, threshold, reservation: {
+            "allowed": False, "total_usd": 5.0, "reservation_id": "",
+        },
+    )
+
+    result = await cost_meter.check_user_budget_and_enforce("user_123", "1.2.3.4")
+
+    assert result["allowed"] is False
+    assert result["total_usd"] == 5.0
+    # A denied call must not bind a reservation for record_llm_call() to settle.
+    assert cost_meter.get_budget_reservation() == ""
+
+
+async def test_check_user_budget_allows_when_no_identity_available(monkeypatch):
+    monkeypatch.setenv(cost_meter._PER_USER_DAILY_BUDGET_ENV, "5.0")
+    reserve_called = []
+    monkeypatch.setattr(
+        cost_meter, "_reserve_budget_or_deny",
+        lambda col, val, threshold, reservation: reserve_called.append(1) or {
+            "allowed": True, "total_usd": 999.0, "reservation_id": "should-not-happen",
+        },
+    )
+
+    result = await cost_meter.check_user_budget_and_enforce(None, "")
+
+    assert result["allowed"] is True
+    assert reserve_called == []
+
+
+def test_fetch_today_usage_cost_for_key_returns_zero_when_supabase_unconfigured(monkeypatch):
+    import app as flask_app_module
+    monkeypatch.setattr(flask_app_module, "_get_supabase_client", lambda: None)
+    assert cost_meter._fetch_today_usage_cost_for_key("user_id", "user_123") == 0.0
+
+
+def test_fetch_today_usage_cost_for_key_returns_zero_for_empty_key(monkeypatch):
+    import app as flask_app_module
+    # A client that would raise if queried -- proves the empty-key guard
+    # short-circuits before any Supabase call is made.
+    monkeypatch.setattr(
+        flask_app_module, "_get_supabase_client",
+        lambda: (_ for _ in ()).throw(AssertionError("should not be called")),
+    )
+    assert cost_meter._fetch_today_usage_cost_for_key("client_key", "") == 0.0
+
+
+class _FakeSumQuery:
+    def __init__(self, rows):
+        self._rows = rows
+
+    def select(self, *args, **kwargs):
+        return self
+
+    def eq(self, *args, **kwargs):
+        return self
+
+    def gte(self, *args, **kwargs):
+        return self
+
+    def execute(self):
+        return _FakePagedResult(self._rows)
+
+
+class _FakeSumClient:
+    def __init__(self, rows):
+        self._query = _FakeSumQuery(rows)
+
+    def table(self, name):
+        return self._query
+
+
+def test_fetch_today_usage_cost_for_key_sums_matching_rows(monkeypatch):
+    import app as flask_app_module
+    fake_client = _FakeSumClient([{"cost_usd": 1.5}, {"cost_usd": 2.25}])
+    monkeypatch.setattr(flask_app_module, "_get_supabase_client", lambda: fake_client)
+
+    total = cost_meter._fetch_today_usage_cost_for_key("user_id", "user_123")
+
+    assert total == pytest.approx(3.75)
+
+
+def test_fetch_today_usage_cost_for_key_swallows_query_errors(monkeypatch):
+    import app as flask_app_module
+
+    class _BoomClient:
+        def table(self, name):
+            raise RuntimeError("missing column user_id")
+
+    monkeypatch.setattr(flask_app_module, "_get_supabase_client", lambda: _BoomClient())
+
+    assert cost_meter._fetch_today_usage_cost_for_key("user_id", "user_123") == 0.0
+
+
+# ─── record_llm_call tags caller identity ───────────────────────────────────
+
+async def test_record_llm_call_tags_user_id_from_context(monkeypatch):
+    from backend import logging_setup
+
+    captured = {}
+    monkeypatch.setattr(cost_meter, "_insert_usage_row", lambda row: captured.update(row))
+    logging_setup.bind_user_id("user_abc")
+    logging_setup.bind_client_key("")
+    try:
+        await cost_meter.record_llm_call(
+            provider="anthropic", model="claude-haiku-4-5",
+            input_tokens=1, output_tokens=1,
+        )
+    finally:
+        logging_setup.bind_user_id("")
+
+    assert captured["user_id"] == "user_abc"
+    assert captured["client_key"] == ""
+
+
+async def test_record_llm_call_tags_client_key_when_anonymous(monkeypatch):
+    from backend import logging_setup
+
+    captured = {}
+    monkeypatch.setattr(cost_meter, "_insert_usage_row", lambda row: captured.update(row))
+    logging_setup.bind_user_id("")
+    logging_setup.bind_client_key("ip:9.9.9.9")
+    try:
+        await cost_meter.record_llm_call(
+            provider="anthropic", model="claude-haiku-4-5",
+            input_tokens=1, output_tokens=1,
+        )
+    finally:
+        logging_setup.bind_client_key("")
+
+    assert captured["user_id"] == ""
+    assert captured["client_key"] == "ip:9.9.9.9"
+
+
+# ─── is_global_cost_breaker_tripped (plan.md §16.3-L3 / Prompt 29b) ─────────
+
+class _FakeBreakerStore:
+    """Minimal get/setex stand-in for backend.rate_limit's shared store --
+    avoids depending on _InMemoryStore/_RedisStore internals for these
+    tests, which only care about the breaker's own read/compute/write logic."""
+
+    def __init__(self, initial=None, raise_on_get=False, raise_on_setex=False):
+        self._values = dict(initial or {})
+        self._raise_on_get = raise_on_get
+        self._raise_on_setex = raise_on_setex
+        self.setex_calls: list[tuple[str, int, str]] = []
+
+    async def get(self, key):
+        if self._raise_on_get:
+            raise RuntimeError("store unreachable")
+        return self._values.get(key)
+
+    async def setex(self, key, ttl_seconds, value):
+        if self._raise_on_setex:
+            raise RuntimeError("store unreachable")
+        self.setex_calls.append((key, ttl_seconds, value))
+        self._values[key] = value
+
+
+@pytest.fixture
+def fake_breaker_store(monkeypatch):
+    from backend import rate_limit
+    store = _FakeBreakerStore()
+    monkeypatch.setattr(rate_limit, "get_shared_store", lambda: store)
+    return store
+
+
+async def test_breaker_disabled_when_unset(monkeypatch):
+    monkeypatch.delenv(cost_meter._DAILY_BUDGET_ENV, raising=False)
+    fetch_called = []
+    monkeypatch.setattr(
+        cost_meter, "_fetch_today_usage_rows",
+        lambda: fetch_called.append(1) or [],
+    )
+
+    result = await cost_meter.is_global_cost_breaker_tripped()
+
+    assert result == {
+        "tripped": False, "total_usd": 0.0, "threshold_usd": 0.0, "configured": False,
+    }
+    # Disabled means no Supabase read and no store access is even attempted.
+    assert fetch_called == []
+
+
+async def test_breaker_under_threshold_not_tripped(monkeypatch, fake_breaker_store, captured_alerts):
+    monkeypatch.setenv(cost_meter._DAILY_BUDGET_ENV, "10.0")
+    monkeypatch.setattr(
+        cost_meter, "_fetch_today_usage_rows",
+        lambda: [{"cost_usd": 1.0}, {"cost_usd": 2.0}],
+    )
+
+    result = await cost_meter.is_global_cost_breaker_tripped()
+
+    assert result["configured"] is True
+    assert result["tripped"] is False
+    assert result["total_usd"] == pytest.approx(3.0)
+    assert captured_alerts == []
+    # The freshly computed total is cached for the next call to reuse.
+    assert fake_breaker_store.setex_calls == [
+        (cost_meter._GLOBAL_BREAKER_CACHE_KEY, cost_meter._GLOBAL_BREAKER_CACHE_TTL_SECONDS, "3.0"),
+    ]
+
+
+async def test_breaker_over_threshold_trips_and_alerts(monkeypatch, fake_breaker_store, captured_alerts):
+    monkeypatch.setenv(cost_meter._DAILY_BUDGET_ENV, "5.0")
+    monkeypatch.setattr(
+        cost_meter, "_fetch_today_usage_rows",
+        lambda: [{"cost_usd": 3.0}, {"cost_usd": 4.0}],
+    )
+
+    result = await cost_meter.is_global_cost_breaker_tripped()
+
+    assert result["tripped"] is True
+    assert result["total_usd"] == pytest.approx(7.0)
+    assert len(captured_alerts) == 1
+    event, error, context = captured_alerts[0]
+    assert event == "global_cost_breaker_tripped"
+    assert context["total_usd"] == pytest.approx(7.0)
+
+
+async def test_breaker_at_exact_threshold_counts_as_tripped(monkeypatch, fake_breaker_store, captured_alerts):
+    monkeypatch.setenv(cost_meter._DAILY_BUDGET_ENV, "5.0")
+    monkeypatch.setattr(
+        cost_meter, "_fetch_today_usage_rows", lambda: [{"cost_usd": 5.0}],
+    )
+
+    result = await cost_meter.is_global_cost_breaker_tripped()
+
+    assert result["tripped"] is True
+    assert len(captured_alerts) == 1
+
+
+async def test_breaker_uses_cached_total_without_refetching(monkeypatch, fake_breaker_store):
+    monkeypatch.setenv(cost_meter._DAILY_BUDGET_ENV, "5.0")
+    fake_breaker_store._values[cost_meter._GLOBAL_BREAKER_CACHE_KEY] = "6.0"
+    fetch_called = []
+    monkeypatch.setattr(
+        cost_meter, "_fetch_today_usage_rows",
+        lambda: fetch_called.append(1) or [{"cost_usd": 999.0}],
+    )
+
+    result = await cost_meter.is_global_cost_breaker_tripped()
+
+    assert result["tripped"] is True
+    assert result["total_usd"] == pytest.approx(6.0)
+    # Cache hit -- no Supabase read needed, keeping the hot /ask path cheap.
+    assert fetch_called == []
+
+
+async def test_breaker_ignores_corrupt_cache_value_and_recomputes(monkeypatch, fake_breaker_store):
+    monkeypatch.setenv(cost_meter._DAILY_BUDGET_ENV, "5.0")
+    fake_breaker_store._values[cost_meter._GLOBAL_BREAKER_CACHE_KEY] = "not-a-number"
+    monkeypatch.setattr(
+        cost_meter, "_fetch_today_usage_rows",
+        lambda: [{"cost_usd": 1.0}],
+    )
+
+    result = await cost_meter.is_global_cost_breaker_tripped()
+
+    assert result["total_usd"] == pytest.approx(1.0)
+
+
+async def test_breaker_fails_open_when_cache_read_errors(monkeypatch):
+    from backend import rate_limit
+    store = _FakeBreakerStore(raise_on_get=True)
+    monkeypatch.setattr(rate_limit, "get_shared_store", lambda: store)
+    monkeypatch.setenv(cost_meter._DAILY_BUDGET_ENV, "5.0")
+    monkeypatch.setattr(
+        cost_meter, "_fetch_today_usage_rows",
+        lambda: [{"cost_usd": 1.0}],
+    )
+
+    result = await cost_meter.is_global_cost_breaker_tripped()
+
+    # A cache-read failure falls through to a fresh Supabase computation
+    # rather than raising -- same fail-open posture as every other
+    # Supabase-touching function in this module (_fetch_today_usage_rows,
+    # _reserve_budget_or_deny, expire_stale_budget_reservations).
+    assert result["configured"] is True
+    assert result["total_usd"] == pytest.approx(1.0)
+
+
+async def test_breaker_fails_open_when_cache_write_errors(monkeypatch):
+    from backend import rate_limit
+    store = _FakeBreakerStore(raise_on_setex=True)
+    monkeypatch.setattr(rate_limit, "get_shared_store", lambda: store)
+    monkeypatch.setenv(cost_meter._DAILY_BUDGET_ENV, "5.0")
+    monkeypatch.setattr(
+        cost_meter, "_fetch_today_usage_rows",
+        lambda: [{"cost_usd": 1.0}],
+    )
+
+    result = await cost_meter.is_global_cost_breaker_tripped()
+
+    assert result["configured"] is True
+    assert result["total_usd"] == pytest.approx(1.0)
