@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Sh'elah Acceptable Use Policy — the rules for using the Service responsibly.">
+    <meta name="theme-color" content="#f3ede0" media="(prefers-color-scheme: light)">
+    <meta name="theme-color" content="#0c0c0b" media="(prefers-color-scheme: dark)">
+    <script>(function () {
+        try {
+            var raw = localStorage.getItem("Sh'elahPrefs");
+            var t = raw ? JSON.parse(raw).theme : null;
+            if (t !== 'light' && t !== 'dark') {
+                t = (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) ? 'dark' : 'light';
+            }
+            document.documentElement.setAttribute('data-theme', t);
+            document.documentElement.classList.toggle('theme-dark', t === 'dark');
+        } catch (e) { }
+    })()</script>
+    <title>Acceptable Use Policy – Sh'elah</title>
+    <link rel="canonical" href="https://shelah-app.vercel.app/acceptable-use">
+    <meta property="og:type" content="website">
+    <meta property="og:title" content="Acceptable Use Policy – Sh'elah">
+    <meta property="og:description" content="Sh'elah Acceptable Use Policy — the rules for using the Service responsibly.">
+    <meta property="og:url" content="https://shelah-app.vercel.app/acceptable-use">
+    <meta property="og:image" content="https://shelah-app.vercel.app/static/favicon-512.png">
+    <meta name="twitter:card" content="summary">
+    <meta name="twitter:title" content="Acceptable Use Policy – Sh'elah">
+    <meta name="twitter:description" content="Sh'elah Acceptable Use Policy — the rules for using the Service responsibly.">
+    <meta name="twitter:image" content="https://shelah-app.vercel.app/static/favicon-512.png">
+    <link rel="icon" href="/static/favicon.svg" type="image/svg+xml">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cardo:wght@400;700&family=Inter:wght@400;500;600&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="/static/css/tokens.css?v=20260617-v1">
+    <link rel="stylesheet" href="/static/style.css?v=20260617-v2">
+    <link rel="stylesheet" href="/static/css/tailwind.css?v=20260818-v5">
+    <link rel="stylesheet" href="/static/css/legal.css?v=20260818-v5">
+</head>
+
+<body class="font-sans min-h-screen overflow-x-hidden flex flex-col">
+    <!-- Skip-to-content link (keyboard accessibility) -->
+    <a href="#mainContent" class="skip-to-content">Skip to main content</a>
+
+    <!-- TOP NAVIGATION BAR -->
+    {% include 'components/legal_topbar.html' %}
+
+    <!-- Hero Banner -->
+    <div class="legal-hero">
+        <h1 data-en="Acceptable Use Policy" data-he="מדיניות שימוש מותר">Acceptable Use Policy</h1>
+        <p class="subtitle" data-en="Last updated: August 15, 2026 · v1.0" data-he="עדכון אחרון: 15 באוגוסט 2026 · v1.0">Last
+            updated: August 15, 2026 · v1.0</p>
+    </div>
+
+    <!-- MAIN CONTENT -->
+    <main id="mainContent" class="flex-1">
+        <article id="legalDocumentBody" class="main-container prose prose-sm max-w-2xl">
+            <div class="legal-toolbar">
+                <a href="/" class="legal-back-link" data-en="← Back to Sh'elah" data-he="← חזרה לשאלה">← Back to Sh'elah</a>
+                                <button type="button" id="selectAllPolicyTextBtn" class="select-all-btn"
+                    data-en="Select all text" data-he="בחר את כל הטקסט"
+                    aria-label="Select all acceptable use policy text for copying">
+                    <span aria-hidden="true">⧉</span>
+                    <span data-en="Select all text" data-he="בחר את כל הטקסט">Select all text</span>
+                </button>
+            
+            </div>
+
+            <div class="draft-banner">
+                <p data-en="⚠️ DRAFT — pending attorney review."
+                    data-he="⚠️ טיוטה — ממתינה לבדיקת עורך דין.">
+                    <strong>⚠️ DRAFT — pending attorney review.</strong>
+                </p>
+            </div>
+
+            <div class="info-box">
+                <p data-en="This Acceptable Use Policy is incorporated by reference into our Terms of Service §5. Violating it is a breach of the Terms and may result in suspension or termination of your access."
+                    data-he="מדיניות שימוש מותר זו משולבת בהפניה בתנאי השירות שלנו סעיף 5. הפרתה מהווה הפרה של התנאים ועלולה לגרור השעיה או סיום הגישה שלך.">
+                    This Acceptable Use Policy is incorporated by reference into our <a href="/terms"
+                        data-en="Terms of Service" data-he="תנאי השירות">Terms of Service</a> §5. Violating it is a
+                    breach of the Terms and may result in suspension or termination of your access.
+                </p>
+            </div>
+
+            <h2 data-en="1. Purpose" data-he="1. מטרה">1. Purpose</h2>
+            <p data-en="Sh'elah exists to make Torah study more accessible. This policy exists so that one user's misuse cannot degrade the Service, misrepresent its Content, or put other users at risk."
+                data-he="Sh'elah קיימת כדי להנגיש את לימוד התורה. מדיניות זו קיימת כדי ששימוש לרעה של משתמש אחד לא יפגע בשירות, יציג באופן מטעה את תוכנו, או יסכן משתמשים אחרים.">
+                Sh'elah exists to make Torah study more accessible. This policy exists so that one user's misuse
+                cannot degrade the Service, misrepresent its Content, or put other users at risk.
+            </p>
+
+            <h2 data-en="2. Prohibited Conduct" data-he="2. התנהגות אסורה">2. Prohibited Conduct</h2>
+            <p data-en="You may not, and may not attempt to:" data-he="אינך רשאי, ואינך רשאי לנסות:">
+                You may not, and may not attempt to:
+            </p>
+            <ul>
+                <li><strong data-en="Scrape or bulk-extract:" data-he="לגרוף או לחלץ בהמוניות:">Scrape or
+                        bulk-extract:</strong> <span
+                        data-en="use bots, crawlers, or automated tools to scrape, bulk-download, or systematically extract Content, AI Output, or other users' data from the Service."
+                        data-he="להשתמש בבוטים, זחלנים, או כלים אוטומטיים כדי לגרוף, להוריד בהמוניות, או לחלץ באופן שיטתי תוכן, פלט בינה מלאכותית, או נתוני משתמשים אחרים מהשירות.">use
+                        bots, crawlers, or automated tools to scrape, bulk-download, or systematically extract
+                        Content, AI Output, or other users' data from the Service.</span></li>
+                <li><strong data-en="Misrepresent AI Output:" data-he="להציג פלט בינה מלאכותית באופן מטעה:">Misrepresent
+                        AI Output:</strong> <span
+                        data-en="present AI Output as a binding halachic ruling, as coming from a human rabbi, or otherwise as more authoritative than an educational, AI-generated synthesis."
+                        data-he="להציג פלט בינה מלאכותית כפסיקה הלכתית מחייבת, כמגיע מרב אנושי, או כבעל סמכות רבה יותר מסינתזה חינוכית שנוצרה על ידי בינה מלאכותית.">present
+                        AI Output as a binding halachic ruling, as coming from a human rabbi, or otherwise as more
+                        authoritative than an educational, AI-generated synthesis.</span></li>
+                <li><strong data-en="Circumvent limits:" data-he="לעקוף מגבלות:">Circumvent limits:</strong> <span
+                        data-en="bypass or attempt to bypass rate limits, quotas, authentication, or other access controls."
+                        data-he="לעקוף או לנסות לעקוף מגבלות קצב, מכסות, אימות, או בקרות גישה אחרות.">bypass or
+                        attempt to bypass rate limits, quotas, authentication, or other access controls.</span></li>
+                <li><strong data-en="Attack the Service:" data-he="לתקוף את השירות:">Attack the Service:</strong>
+                    <span data-en="probe, scan, or test the vulnerability of the Service, or attempt unauthorized access to any system, account, or data (except through our security-review/disclosure process — contact us first)."
+                        data-he="לבחון, לסרוק, או לבדוק את פגיעות השירות, או לנסות גישה לא מורשית לכל מערכת, חשבון, או נתונים (למעט דרך תהליך בדיקת/גילוי אבטחה שלנו — צור קשר תחילה).">probe,
+                        scan, or test the vulnerability of the Service, or attempt unauthorized access to any system,
+                        account, or data (except through our security-review/disclosure process — contact us
+                        first).</span></li>
+                <li><strong data-en="Distribute malware:" data-he="להפיץ תוכנה זדונית:">Distribute malware:</strong>
+                    <span data-en="upload, transmit, or link to viruses, malware, or any code designed to disrupt, damage, or gain unauthorized access to a system."
+                        data-he="להעלות, להעביר, או לקשר לוירוסים, תוכנות זדוניות, או כל קוד שנועד לשבש, לפגוע, או להשיג גישה לא מורשית למערכת.">upload,
+                        transmit, or link to viruses, malware, or any code designed to disrupt, damage, or gain
+                        unauthorized access to a system.</span></li>
+                <li><strong data-en="Harass:" data-he="להטריד:">Harass:</strong> <span
+                        data-en="harass, threaten, or abuse other users, or use the Service to target, dox, or harm any individual or group."
+                        data-he="להטריד, לאיים, או להתעלל במשתמשים אחרים, או להשתמש בשירות כדי לפגוע, לחשוף פרטים אישיים, או להזיק לאדם או קבוצה כלשהם.">harass,
+                        threaten, or abuse other users, or use the Service to target, dox, or harm any individual or
+                        group.</span></li>
+                <li><strong data-en="Spam or phish:" data-he="לשלוח דואר זבל או לדוג:">Spam or phish:</strong> <span
+                        data-en="send unsolicited bulk messages, or use the Service to facilitate phishing or fraud."
+                        data-he="לשלוח הודעות המוניות לא מבוקשות, או להשתמש בשירות כדי להקל על דיוג או הונאה.">send
+                        unsolicited bulk messages, or use the Service to facilitate phishing or fraud.</span></li>
+                <li><strong data-en="Reverse-engineer:" data-he="לבצע הנדסה לאחור:">Reverse-engineer:</strong> <span
+                        data-en="decompile, disassemble, or reverse-engineer any part of the Service, or use its outputs to train a competing AI model at scale."
+                        data-he="לבצע דה-קומפילציה, פירוק, או הנדסה לאחור לכל חלק בשירות, או להשתמש בפלטיו לאימון מודל בינה מלאכותית מתחרה בקנה מידה נרחב.">decompile,
+                        disassemble, or reverse-engineer any part of the Service, or use its outputs to train a
+                        competing AI model at scale.</span></li>
+                <li><strong data-en="Break the law:" data-he="להפר את החוק:">Break the law:</strong> <span
+                        data-en="use the Service for any purpose that violates applicable law or infringes any third party's rights."
+                        data-he="להשתמש בשירות לכל מטרה המפרה דין חל או פוגעת בזכויותיו של צד שלישי.">use the
+                        Service for any purpose that violates applicable law or infringes any third party's
+                        rights.</span></li>
+            </ul>
+
+            <h2 data-en="3. Enforcement" data-he="3. אכיפה">3. Enforcement</h2>
+            <p data-en="Depending on severity, we may respond to a violation with a warning, rate-limit reduction, temporary suspension, permanent termination, and/or a report to law enforcement where warranted. We aim to be proportionate, but reserve the right to act immediately without warning where we believe there is a risk to the Service, other users, or the public."
+                data-he="בהתאם לחומרה, אנו עשויים להגיב להפרה באזהרה, הפחתת מגבלת קצב, השעיה זמנית, סיום קבוע, ו/או דיווח לרשויות אכיפת החוק כאשר מוצדק. אנו שואפים להיות מידתיים, אך שומרים לעצמנו את הזכות לפעול מיידית וללא אזהרה כאשר אנו מאמינים כי קיים סיכון לשירות, למשתמשים אחרים, או לציבור.">
+                Depending on severity, we may respond to a violation with a warning, rate-limit reduction, temporary
+                suspension, permanent termination, and/or a report to law enforcement where warranted. We aim to be
+                proportionate, but reserve the right to act immediately without warning where we believe there is a
+                risk to the Service, other users, or the public.
+            </p>
+
+            <h2 data-en="4. Reporting Abuse" data-he="4. דיווח על שימוש לרעה">4. Reporting Abuse</h2>
+            <p data-en="If you encounter conduct that violates this policy, or an AI Output that seems unsafe or inappropriate, please report it:"
+                data-he="אם נתקלת בהתנהגות המפרה מדיניות זו, או בפלט בינה מלאכותית שנראה לא בטוח או לא הולם, אנא דווח על כך:">
+                If you encounter conduct that violates this policy, or an AI Output that seems unsafe or
+                inappropriate, please report it:
+            </p>
+            <p><strong data-en="Email:" data-he="דוא״ל:">Email:</strong> <a
+                    href="mailto:akiva.yevda@gmail.com">akiva.yevda@gmail.com</a></p>
+
+            <hr class="my-8" style="border-color: var(--surface-border);">
+
+            <div class="info-box">
+                <p class="text-sm" data-en="See also our Terms of Service and Privacy Policy."
+                    data-he="ראה גם את תנאי השירות ומדיניות הפרטיות שלנו.">
+                    See also our <a href="/terms" data-en="Terms of Service" data-he="תנאי השירות">Terms of
+                        Service</a> and <a href="/privacy" data-en="Privacy Policy" data-he="מדיניות הפרטיות">Privacy
+                        Policy</a>.
+                </p>
+            </div>
+        </article>
+    </main>
+
+    <footer class="border-t py-6 text-center text-xs"
+        style="border-color: var(--surface-border); color: var(--ink-secondary); background: var(--surface-1);">
+        <p>
+            <a href="/" class="font-semibold hover:underline" style="color: var(--ink-heading);"
+                data-en="Sh'elah Torah Encyclopedia" data-he="שאלה אנציקלופדיית תורה">Sh'elah Torah Encyclopedia</a>
+            &nbsp;·&nbsp;
+            <a href="/terms" class="hover:underline" style="color: var(--ink-secondary);"
+                data-en="Terms of Service" data-he="תנאי שירות">Terms of Service</a>
+            &nbsp;·&nbsp;
+            <a href="/privacy" class="hover:underline" style="color: var(--ink-secondary);"
+                data-en="Privacy Policy" data-he="מדיניות פרטיות">Privacy Policy</a>
+            &nbsp;·&nbsp;
+            <a href="/ai-disclosure" class="hover:underline" style="color: var(--ink-secondary);"
+                data-en="AI Disclosure" data-he="גילוי נאות בינה מלאכותית">AI Disclosure</a>
+            &nbsp;·&nbsp;
+            <a href="/acceptable-use" class="hover:underline font-medium" style="color: var(--ink-heading);"
+                data-en="Acceptable Use" data-he="שימוש מותר">Acceptable Use</a>
+            &nbsp;·&nbsp;
+            <a href="/dmca" class="hover:underline" style="color: var(--ink-secondary);"
+                data-en="DMCA" data-he="DMCA">DMCA</a>
+            &nbsp;·&nbsp;
+            <a href="/accessibility" class="hover:underline" style="color: var(--ink-secondary);"
+                data-en="Accessibility" data-he="נגישות">Accessibility</a>
+            &nbsp;·&nbsp;
+            <a href="/licenses" class="hover:underline" style="color: var(--ink-secondary);"
+                data-en="Licenses" data-he="רישיונות">Licenses</a>
+        </p>
+    </footer>
+
+    {% include 'components/legal_scripts.html' %}
+</body>
+
+</html>
