@@ -18,7 +18,7 @@ import json
 import re
 from concurrent.futures import ThreadPoolExecutor
 import requests
-from flask import Flask, render_template, request, jsonify, session, g, send_from_directory, Response
+from flask import Flask, has_request_context, render_template, request, jsonify, session, g, send_from_directory, Response
 from dotenv import load_dotenv
 import time
 import os
@@ -69,6 +69,7 @@ from backend.helpers import (
 # do not remove even though static unused-import checks flag them.
 from backend.utils.text_engine import WEB_LAST_RESORT_WARNING  # noqa: F401
 from backend.utils.search_provider import _extract_query_keywords, get_halakhic_sources  # noqa: F401
+from backend.cache_policy import classify_cache_tier, CACHE_TIER_PRIVATE
 
 # Module-level bounded executor — avoids creating/destroying a pool per request.
 # max_workers capped so Vercel serverless invocations don't spawn unbounded threads.
@@ -980,11 +981,20 @@ def _categorize_supabase_auth_cookies():
     return session_cookie_values, chunked_cookies
 
 
-def _extract_supabase_access_token():
+def _extract_supabase_access_token(bearer_token=None):
     # Prefer Authorization header so API clients can override cookie auth.
-    bearer = _extract_bearer_token()
+    bearer = _extract_bearer_token(bearer_token)
     if bearer:
         return bearer
+
+    if not has_request_context():
+        # No Flask request context (e.g. asgi.py's native FastAPI /ask route,
+        # which calls this chain with an explicit bearer_token and no Flask
+        # request ever pushed) -- the cookie fallback below reads Flask's
+        # global `request` proxy and would raise RuntimeError here. The
+        # explicit bearer_token was already checked above; nothing left to
+        # try. plan.md §35.1.
+        return None
 
     direct_cookie_names = [
         "sb-access-token",
@@ -1013,14 +1023,14 @@ def _extract_supabase_access_token():
     return None
 
 
-def _get_request_supabase_client():
+def _get_request_supabase_client(bearer_token=None):
     """Flask equivalent of Next.js createServerClient for request-scoped reads."""
     if create_client is None:
         return None
     if not SUPABASE_URL or not SUPABASE_PUBLISHABLE_KEY:
         return None
 
-    access_token = _extract_supabase_access_token()
+    access_token = _extract_supabase_access_token(bearer_token)
     if not access_token or SyncClientOptions is None:
         return create_client(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY)
 
@@ -1033,13 +1043,13 @@ def _get_request_supabase_client():
         return create_client(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY)
 
 
-def _get_user_scoped_supabase_client():
+def _get_user_scoped_supabase_client(bearer_token=None):
     """Return request-scoped Supabase client for RLS-protected user tables."""
-    client = _get_request_supabase_client()
+    client = _get_request_supabase_client(bearer_token)
     if not client:
         return None
 
-    if STRICT_SUPABASE_RLS and not _extract_supabase_access_token():
+    if STRICT_SUPABASE_RLS and not _extract_supabase_access_token(bearer_token):
         return None
 
     return client
@@ -1229,8 +1239,32 @@ def apply_response_cache_policy(response):
     for header_name, header_value in SECURITY_RESPONSE_HEADERS.items():
         response.headers.setdefault(header_name, header_value)
 
-    if path.startswith("/api/") or path in {"/ask", "/set_location"}:
-        response.headers["Cache-Control"] = "no-store"
+    # plan.md §14.3.1: explicit per-route cache tier (Immutable /
+    # Deterministic-by-date / Corpus-derived / Private), replacing the old
+    # blanket /api/* -> no-store branch. classify_cache_tier() is the single
+    # source of truth shared with asgi.py's native /ask + /api/async/health
+    # routes (backend/cache_policy.py's module docstring has the full
+    # rationale). A handler that took a session/user-dependent branch inside
+    # an otherwise-public route (e.g. /api/zmanim falling back to the
+    # caller's remembered location, /api/holidays' last-resort fallback —
+    # see backend/routes_calendar.py) sets g.cache_tier_force_private=True
+    # itself; that per-request fact always wins over the static table, since
+    # only the handler that ran knows which branch it actually took.
+    if getattr(g, "cache_tier_force_private", False):
+        cache_control = CACHE_TIER_PRIVATE
+    else:
+        cache_control = classify_cache_tier(request.method, path)
+    if cache_control is not None:
+        response.headers["Cache-Control"] = cache_control
+        # Informational only (cache-debugging: confirms which deploy served
+        # a given cached response) -- NOT the CDN invalidation mechanism.
+        # This project has not independently verified whether Vercel's Edge
+        # Cache auto-purges on deploy; docs/VERCEL_COST_OPTIMIZATION.md
+        # flags that as an operator-confirmation item rather than assuming
+        # it. SENTRY_RELEASE is empty in local dev (no VERCEL_GIT_COMMIT_SHA),
+        # so the header is simply omitted there.
+        if cache_control != CACHE_TIER_PRIVATE and SENTRY_RELEASE:
+            response.headers["X-Deploy-Hash"] = SENTRY_RELEASE
         return response
 
     if path == "/service-worker.js":
@@ -1674,11 +1708,11 @@ def _security_blocked_ask_payload(
     # self-harm / abuse) live, and skipping the log for them (as this
     # function previously did) would mean the interactions with the most
     # liability exposure were the ones never retained for dispute
-    # reconstruction. Mirrors the asgi.py async path, which already logs
-    # blocked/referral interactions via its unconditional _store_ask_history
-    # call in _run_ask_async_ai_synthesis. Deliberately does NOT also call
-    # _store_user_memory_summary here -- that's a separate mechanism (fed
-    # back into future prompts as context) outside plan.md §8.B.6's scope.
+    # reconstruction. Mirrored by asgi.py's own dedicated
+    # _security_blocked_ask_async_payload (plan.md §22.3.2 parity suite).
+    # Deliberately does NOT also call _store_user_memory_summary here --
+    # that's a separate mechanism (fed back into future prompts as context)
+    # outside plan.md §8.B.6's scope.
     _store_ask_history(
         user_id,
         question,
@@ -1698,6 +1732,7 @@ def _security_blocked_ask_payload(
         "wiki": [],
         "customs": [],
         "sources": [],
+        "ai_cited_sources": [],
         "meta": {
             "mode": mode,
             "community_lens": canonical_lens,
