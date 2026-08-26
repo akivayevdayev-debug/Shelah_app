@@ -14,12 +14,10 @@ from uuid import uuid4
 from flask import Blueprint, jsonify, request, g
 
 from backend import claude
-from backend.auth import _verify_clerk_token
+from backend.auth import _verify_clerk_token, require_clerk_auth, maybe_require_clerk_auth
 
 from app import (
     app,
-    require_clerk_auth,
-    maybe_require_clerk_auth,
     STRICT_SUPABASE_RLS,
     SUPABASE_PREFS_TABLE,
     SUPABASE_STUDY_BOOKMARKS_TABLE,
