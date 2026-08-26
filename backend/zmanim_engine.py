@@ -11,23 +11,36 @@ This module is the core time/calendar backend used by /api/zmanim and
 /api/zmanim/month routes.
 """
 
-import pytz
+import logging
+from zoneinfo import ZoneInfo
 from datetime import date, datetime, timedelta
 from pyluach import dates as heb_dates
 from zmanim.zmanim_calendar import ZmanimCalendar
 from zmanim.util.geo_location import GeoLocation
 from timezonefinder import TimezoneFinder
 import requests
-import time
 from backend.calendar_service import calendar_engine
 from backend.cache import TTLCache
+from backend.health_check import health
 
-tf = TimezoneFinder()
+logger = logging.getLogger(__name__)
+
+_tf = None
 _HTTP = requests.Session()
 _HEBCAL_DAY_CACHE_TTL_SECONDS = 60 * 30
 _HEBCAL_MONTH_CACHE_TTL_SECONDS = 60 * 30
 _HEBCAL_DAY_CACHE = TTLCache(ttl=_HEBCAL_DAY_CACHE_TTL_SECONDS)
 _HEBCAL_MONTH_CACHE = TTLCache(ttl=_HEBCAL_MONTH_CACHE_TTL_SECONDS)
+
+
+def _get_timezone_finder():
+    """Lazy singleton: TimezoneFinder() loads a spatial boundary index on
+    construction, so building it eagerly at import time bills every cold
+    start even for requests that never resolve a timezone."""
+    global _tf
+    if _tf is None:
+        _tf = TimezoneFinder()
+    return _tf
 
 
 def _cache_coord(value):
@@ -38,16 +51,21 @@ def _cache_coord(value):
 
 
 def _resolve_timezone(lat, lon, given_tz=None):
-    """Resolve a reliable pytz timezone object from coordinates."""
+    """Resolve a reliable stdlib zoneinfo timezone object from coordinates.
+
+    Only ever used as datetime.now(tz) below (never .replace(tzinfo=...) or
+    a bare tzinfo= constructor arg), so this is safe under both pytz and
+    zoneinfo semantics -- no pytz.localize()-style normalization needed.
+    """
     tz_str = given_tz
     if not tz_str:
         try:
-            tz_str = tf.timezone_at(lng=float(lon), lat=float(lat))
+            tz_str = _get_timezone_finder().timezone_at(lng=float(lon), lat=float(lat))
         except Exception:
             pass
     if not tz_str:
         tz_str = "America/New_York"
-    return pytz.timezone(tz_str), tz_str
+    return ZoneInfo(tz_str), tz_str
 
 
 def _get_hebcal_day_times(lat, lon, timezone_str, current_date):
@@ -63,6 +81,9 @@ def _get_hebcal_day_times(lat, lon, timezone_str, current_date):
         return dict(cached)
 
     result = {"candles": None, "havdalah": None}
+    if not health.is_healthy('hebcal'):
+        _HEBCAL_DAY_CACHE.set(cache_key, result)
+        return dict(result)
     try:
         year = current_date.year
         month = current_date.month
@@ -73,6 +94,7 @@ def _get_hebcal_day_times(lat, lon, timezone_str, current_date):
         )
         r = _HTTP.get(hebcal_url, timeout=6)
         data = r.json()
+        health.record_success('hebcal')
         iso_day = current_date.isoformat()
 
         for item in data.get("items", []):
@@ -85,6 +107,7 @@ def _get_hebcal_day_times(lat, lon, timezone_str, current_date):
             elif category == "havdalah":
                 result["havdalah"] = datetime.fromisoformat(stamp)
     except Exception:
+        health.record_failure('hebcal')
         _HEBCAL_DAY_CACHE.set(cache_key, result)
         return dict(result)
 
@@ -131,6 +154,51 @@ def _get_omer_info(gregorian_day):
     except Exception:
         return None
     return None
+
+
+def _compute_latest_musaf(is_holiday_today, is_shabbat, sunrise, sunset):
+    if (is_holiday_today or is_shabbat) and sunrise and sunset:
+        shaah_zmanit = (sunset - sunrise) / 12
+        return sunrise + (shaah_zmanit * 7)
+    return None
+
+
+def _compute_candle_lighting(hebcal_candle_lighting, is_friday, is_holiday_start_day, calendar):
+    show_candle_lighting = is_friday or is_holiday_start_day
+    if not show_candle_lighting:
+        return None
+    if hebcal_candle_lighting is not None:
+        return hebcal_candle_lighting
+    return calendar.candle_lighting()
+
+
+def _compute_havdalah(hebcal_havdalah, is_shabbat, is_holiday_last_day, nightfall_3stars):
+    show_havdalah = is_shabbat or is_holiday_last_day
+    if not show_havdalah:
+        return None
+    if hebcal_havdalah is not None:
+        return hebcal_havdalah
+    return nightfall_3stars
+
+
+def _compute_midnight(sunset, next_alos_16_1, chatzos):
+    if sunset and next_alos_16_1 and next_alos_16_1 > sunset:
+        return sunset + ((next_alos_16_1 - sunset) / 2)
+    return chatzos + timedelta(hours=12) if chatzos else None
+
+
+def _compute_shabbat_warning(is_friday, sunset, now):
+    if is_friday and sunset:
+        time_until_sunset = (sunset - now).total_seconds() / 60.0
+        if 0 < time_until_sunset <= 18:
+            return "Shabbat is approaching! Less than 18 minutes to sunset."
+    return ""
+
+
+def _compute_sunset_display(sunset, community):
+    if community.lower() == "bukharian" and sunset:
+        return sunset - timedelta(minutes=20)
+    return sunset
 
 
 def get_community_zmanim(lat, lon, timezone_str=None, community="standard"):
@@ -201,48 +269,26 @@ def get_community_zmanim(lat, lon, timezone_str=None, community="standard"):
         is_friday = today.weekday() == 4
         is_shabbat = today.weekday() == 5
 
-        latest_musaf = None
-        if (is_holiday_today or is_shabbat) and sunrise and sunset:
-            shaah_zmanit = (sunset - sunrise) / 12
-            latest_musaf = sunrise + (shaah_zmanit * 7)
+        latest_musaf = _compute_latest_musaf(is_holiday_today, is_shabbat, sunrise, sunset)
 
         plag = calendar.plag_hamincha()
 
         hebcal_day_times = _get_hebcal_day_times(lat, lon, tz_name, today)
-        candle_lighting = hebcal_day_times.get("candles")
-        show_candle_lighting = is_friday or is_holiday_start_day
-        if show_candle_lighting and candle_lighting is None:
-            candle_lighting = calendar.candle_lighting()
-        if not show_candle_lighting:
-            candle_lighting = None
+        candle_lighting = _compute_candle_lighting(
+            hebcal_day_times.get("candles"), is_friday, is_holiday_start_day, calendar)
 
         nightfall_3stars = calendar.tzais({'degrees': 8.5})
         maariv_time = nightfall_3stars
 
-        havdalah_time = hebcal_day_times.get("havdalah")
-        show_havdalah = is_shabbat or is_holiday_last_day
-        if show_havdalah and havdalah_time is None:
-            havdalah_time = nightfall_3stars
-        if not show_havdalah:
-            havdalah_time = None
+        havdalah_time = _compute_havdalah(
+            hebcal_day_times.get("havdalah"), is_shabbat, is_holiday_last_day, nightfall_3stars)
 
         next_alos_16_1 = next_day_calendar.alos({'degrees': 16.1})
-        if sunset and next_alos_16_1 and next_alos_16_1 > sunset:
-            midnight = sunset + ((next_alos_16_1 - sunset) / 2)
-        else:
-            midnight = chatzos + timedelta(hours=12) if chatzos else None
+        midnight = _compute_midnight(sunset, next_alos_16_1, chatzos)
 
         # Custom Community Offsets
-        shabbat_warning = ""
-
-        if is_friday and sunset:
-            time_until_sunset = (sunset - now).total_seconds() / 60.0
-            if 0 < time_until_sunset <= 18:
-                shabbat_warning = "Shabbat is approaching! Less than 18 minutes to sunset."
-
-        sunset_display = sunset
-        if community.lower() == "bukharian" and sunset:
-            sunset_display = sunset - timedelta(minutes=20)
+        shabbat_warning = _compute_shabbat_warning(is_friday, sunset, now)
+        sunset_display = _compute_sunset_display(sunset, community)
 
         def fmt(t):
             return t.strftime('%I:%M %p') if t else "N/A"
@@ -308,8 +354,92 @@ def get_community_zmanim(lat, lon, timezone_str=None, community="standard"):
             }
         }
     except Exception as e:
-        import traceback
-        return {"error": str(e), "trace": traceback.format_exc()}
+        logger.exception("get_community_zmanim failed: %s", e)
+        return {"error": "Failed to compute zmanim for this location."}
+
+
+_SOLAR_EVENT_COLORS = {
+    "Sunrise": "#B45309",        # amber-700
+    "Sunset": "#1E3A5F",         # deep navy
+    "Nightfall": "#4338CA",      # indigo
+}
+
+_HEBCAL_HOLIDAY_COLORS = {
+    "major": "#802f3e",          # Sefaria brick red
+    "minor": "#594176",          # Sefaria purple
+    "fast": "#374151",           # dark gray
+    "shabbat": "#004e5f",        # Sefaria teal
+    "roshchodesh": "#5a99b7",    # muted azure
+    "candles": "#92400e",        # amber-brown
+    "havdalah": "#374151",
+}
+
+_HEBCAL_CATEGORY_EMOJI = {
+    "candles": "🕯️ ",
+    "havdalah": "🌙 ",
+    "major": "✡️ ",
+    "minor": "✡️ ",
+    "fast": "⏳ ",
+    "roshchodesh": "🌙 ",
+}
+
+
+def _build_solar_day_events(cal):
+    """One day's sunrise/sunset/nightfall FullCalendar events.
+
+    Split out of get_monthly_events()'s per-day loop to keep the three
+    presence checks out of that function's own complexity count
+    (SonarCloud python:S3776).
+    """
+    events = []
+    sunrise = cal.sunrise()
+    sunset = cal.sunset()
+    nightfall = cal.tzais({'degrees': 8.5})
+
+    if sunrise:
+        events.append({
+            "title": f"🌅 Sunrise {sunrise.strftime('%I:%M %p')}",
+            "start": sunrise.isoformat(),
+            "color": _SOLAR_EVENT_COLORS["Sunrise"],
+            "textColor": "#fff",
+            "display": "block"
+        })
+    if sunset:
+        events.append({
+            "title": f"🌇 Shkia {sunset.strftime('%I:%M %p')}",
+            "start": sunset.isoformat(),
+            "color": _SOLAR_EVENT_COLORS["Sunset"],
+            "textColor": "#fff",
+            "display": "block"
+        })
+    if nightfall:
+        events.append({
+            "title": f"🌃 Nightfall {nightfall.strftime('%I:%M %p')}",
+            "start": nightfall.isoformat(),
+            "color": _SOLAR_EVENT_COLORS["Nightfall"],
+            "textColor": "#fff",
+            "display": "block"
+        })
+    return events
+
+
+def _hebcal_event_from_item(item):
+    """One Hebcal API item -> a FullCalendar event dict.
+
+    Split out of get_monthly_events()'s Hebcal-items loop to keep the
+    category/emoji dispatch out of that function's own complexity count
+    (SonarCloud python:S3776).
+    """
+    category = item.get("category", "")
+    title = item.get("title", "")
+    date_str = item.get("date", "")  # ISO format
+    return {
+        "title": f"{_HEBCAL_CATEGORY_EMOJI.get(category, '')}{title}",
+        "start": date_str,
+        "color": _HEBCAL_HOLIDAY_COLORS.get(category, "#6B7280"),
+        "textColor": "#fff",
+        "allDay": "T" not in date_str  # all-day if no time component
+    }
 
 
 def get_monthly_events(lat, lon, timezone_str=None):
@@ -335,105 +465,36 @@ def get_monthly_events(lat, lon, timezone_str=None):
         return list(cached_events)
 
     # --- 1. Solar events for the next 30 days via KosherJava ---
-    SOLAR_COLORS = {
-        "Sunrise": "#B45309",        # amber-700
-        "Sunset": "#1E3A5F",         # deep navy
-        "Nightfall": "#4338CA",      # indigo
-    }
-
     for i in range(30):
         current_date = today + timedelta(days=i)
         cal = ZmanimCalendar(geo_location=location, date=current_date)
-
-        sunrise = cal.sunrise()
-        sunset = cal.sunset()
-        nightfall = cal.tzais({'degrees': 8.5})
-
-        if sunrise:
-            events.append({
-                "title": f"🌅 Sunrise {sunrise.strftime('%I:%M %p')}",
-                "start": sunrise.isoformat(),
-                "color": SOLAR_COLORS["Sunrise"],
-                "textColor": "#fff",
-                "display": "block"
-            })
-        if sunset:
-            events.append({
-                "title": f"🌇 Shkia {sunset.strftime('%I:%M %p')}",
-                "start": sunset.isoformat(),
-                "color": SOLAR_COLORS["Sunset"],
-                "textColor": "#fff",
-                "display": "block"
-            })
-        if nightfall:
-            events.append({
-                "title": f"🌃 Nightfall {nightfall.strftime('%I:%M %p')}",
-                "start": nightfall.isoformat(),
-                "color": SOLAR_COLORS["Nightfall"],
-                "textColor": "#fff",
-                "display": "block"
-            })
+        events.extend(_build_solar_day_events(cal))
 
     # --- 2. Jewish Holidays from Hebcal ---
-    HOLIDAY_COLORS = {
-        "major": "#802f3e",          # Sefaria brick red
-        "minor": "#594176",          # Sefaria purple
-        "fast": "#374151",           # dark gray
-        "shabbat": "#004e5f",        # Sefaria teal
-        "roshchodesh": "#5a99b7",    # muted azure
-        "candles": "#92400e",        # amber-brown
-        "havdalah": "#374151",
-    }
+    if health.is_healthy('hebcal'):
+        try:
+            # Fetch 2 months forward to ensure we cover the rest of the current month
+            year = today.year
+            month = today.month
 
-    try:
-        # Fetch 2 months forward to ensure we cover the rest of the current month
-        year = today.year
-        month = today.month
+            hebcal_url = (
+                f"https://www.hebcal.com/hebcal?v=1&cfg=json"
+                # major, minor, rosh chodesh, fast, shabbat, special shabbat
+                f"&maj=on&min=on&nx=on&mf=on&ss=on&s=on"
+                # candle lighting + user location
+                f"&c=on&geo=pos&latitude={lat}&longitude={lon}"
+                f"&tzid={timezone_str}"
+                f"&year={year}&month={month}&numMonths=2"
+            )
 
-        hebcal_url = (
-            f"https://www.hebcal.com/hebcal?v=1&cfg=json"
-            # major, minor, rosh chodesh, fast, shabbat, special shabbat
-            f"&maj=on&min=on&nx=on&mf=on&ss=on&s=on"
-            # candle lighting + user location
-            f"&c=on&geo=pos&latitude={lat}&longitude={lon}"
-            f"&tzid={timezone_str}"
-            f"&year={year}&month={month}&numMonths=2"
-        )
+            r = _HTTP.get(hebcal_url, timeout=6)
+            hdata = r.json()
+            health.record_success('hebcal')
+            events.extend(_hebcal_event_from_item(item) for item in hdata.get("items", []))
 
-        r = _HTTP.get(hebcal_url, timeout=6)
-        hdata = r.json()
-
-        for item in hdata.get("items", []):
-            category = item.get("category", "")
-            title = item.get("title", "")
-            date_str = item.get("date", "")  # ISO format
-
-            # Pick color based on category
-            color = HOLIDAY_COLORS.get(category, "#6B7280")
-
-            # Build a richer title for candle lighting / havdalah
-            emoji = ""
-            if category == "candles":
-                emoji = "🕯️ "
-            elif category == "havdalah":
-                emoji = "🌙 "
-            elif category in ("major", "minor"):
-                emoji = "✡️ "
-            elif category == "fast":
-                emoji = "⏳ "
-            elif category == "roshchodesh":
-                emoji = "🌙 "
-
-            events.append({
-                "title": f"{emoji}{title}",
-                "start": date_str,
-                "color": color,
-                "textColor": "#fff",
-                "allDay": "T" not in date_str  # all-day if no time component
-            })
-
-    except Exception as e:
-        print(f"[Hebcal Error] {e}")
+        except Exception as e:
+            health.record_failure('hebcal')
+            print(f"[Hebcal Error] {e}")
 
     _HEBCAL_MONTH_CACHE.set(month_cache_key, list(events))
     return events

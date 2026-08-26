@@ -11,12 +11,13 @@ its exception handler.
 from __future__ import annotations
 
 import re
-from datetime import date, timedelta
+from datetime import date
 
 import pytest
 import responses as responses_lib
 
 import backend.zmanim_engine as ze
+from backend.health_check import FAIL_THRESHOLD
 
 NYC_LAT, NYC_LON, NYC_TZ = 40.7128, -74.006, "America/New_York"
 
@@ -51,7 +52,7 @@ class TestResolveTimezone:
         class FakeFinder:
             def timezone_at(self, lng, lat):
                 raise RuntimeError("boom")
-        monkeypatch.setattr(ze, "tf", FakeFinder())
+        monkeypatch.setattr(ze, "_tf", FakeFinder())
         _, tz_str = ze._resolve_timezone(999, 999)
         assert tz_str == "America/New_York"
 
@@ -59,7 +60,7 @@ class TestResolveTimezone:
         class FakeFinder:
             def timezone_at(self, lng, lat):
                 return None
-        monkeypatch.setattr(ze, "tf", FakeFinder())
+        monkeypatch.setattr(ze, "_tf", FakeFinder())
         _, tz_str = ze._resolve_timezone(0, 0)
         assert tz_str == "America/New_York"
 
@@ -175,3 +176,93 @@ class TestGetMonthlyEventsBranches:
         events = ze.get_monthly_events(NYC_LAT, NYC_LON, NYC_TZ)
         assert isinstance(events, list)
         assert not any("🌙" in e["title"] or "✡️" in e["title"] for e in events)
+
+
+# ─────────────── Circuit-breaker hardening on Hebcal network calls ────────────
+#
+# backend/health_check.py has always registered 'hebcal' as an actively-probed
+# circuit-breaker service, but until now no call site in this module actually
+# consulted is_healthy()/recorded success or failure against it (a gap flagged
+# in claude_code_prompts.md's Prompt 3 status row, closed under Prompt 17 item
+# 1). The `_reset_api_health` autouse fixture in conftest.py resets the shared
+# `backend.health_check.health` singleton around every test.
+
+
+class TestHebcalDayTimesCircuitBreaker:
+    """_get_hebcal_day_times() -- used by get_community_zmanim() for
+    candle-lighting/havdalah enrichment."""
+
+    def test_skips_call_when_circuit_open(self, mock_outbound_http):
+        for _ in range(FAIL_THRESHOLD):
+            ze.health.record_failure("hebcal")
+
+        with responses_lib.RequestsMock(assert_all_requests_are_fired=False) as rsps:
+            rsps.add(
+                responses_lib.GET, re.compile(r"https://www\.hebcal\.com/.*"),
+                json={"items": [{"date": "2026-01-02T17:00:00-05:00", "category": "candles"}]},
+                status=200,
+            )
+            result = ze._get_hebcal_day_times(NYC_LAT, NYC_LON, NYC_TZ, date(2026, 1, 2))
+            assert result == {"candles": None, "havdalah": None}
+            assert len(rsps.calls) == 0
+
+    def test_upstream_failure_opens_circuit_after_threshold(self, mock_outbound_http):
+        with responses_lib.RequestsMock(assert_all_requests_are_fired=False) as rsps:
+            rsps.add(responses_lib.GET, re.compile(r"https://www\.hebcal\.com/.*"), status=500)
+            for i in range(FAIL_THRESHOLD):
+                # Distinct dates so each call gets its own cache key and
+                # actually re-hits the network instead of short-circuiting
+                # on the first failed lookup's cached result.
+                ze._get_hebcal_day_times(NYC_LAT, NYC_LON, NYC_TZ, date(2026, 1, 2 + i))
+
+        assert ze.health.is_healthy("hebcal") is False
+
+    def test_success_records_health_success(self, mock_outbound_http):
+        ze.health.record_failure("hebcal")
+        ze.health.record_failure("hebcal")
+
+        ze._get_hebcal_day_times(NYC_LAT, NYC_LON, NYC_TZ, date(2026, 1, 5))
+
+        assert ze.health._circuits["hebcal"].failures == 0
+
+
+class TestGetMonthlyEventsCircuitBreaker:
+    """get_monthly_events()'s Hebcal-holidays block (solar events are
+    computed independently and are unaffected by circuit state)."""
+
+    def test_skips_call_when_circuit_open(self, mock_outbound_http):
+        for _ in range(FAIL_THRESHOLD):
+            ze.health.record_failure("hebcal")
+
+        with responses_lib.RequestsMock(assert_all_requests_are_fired=False) as rsps:
+            rsps.add(
+                responses_lib.GET, re.compile(r"https://www\.hebcal\.com/.*"),
+                json={"items": [{"category": "major", "title": "Should Not Be Reached", "date": "2026-09-12"}]},
+                status=200,
+            )
+            events = ze.get_monthly_events(NYC_LAT, NYC_LON, NYC_TZ)
+            assert not any("Should Not Be Reached" in e["title"] for e in events)
+            assert len(rsps.calls) == 0
+
+    def test_upstream_failure_opens_circuit_after_threshold(self, monkeypatch):
+        def _raise(*a, **k):
+            raise ConnectionError("hebcal down")
+        monkeypatch.setattr(ze._HTTP, "get", _raise)
+
+        for _ in range(FAIL_THRESHOLD):
+            # get_monthly_events() unconditionally caches its return value
+            # (solar events survive a Hebcal failure), so without clearing
+            # between calls the second+ call would short-circuit on that
+            # cache and never re-attempt the Hebcal fetch at all.
+            ze._HEBCAL_MONTH_CACHE.clear()
+            ze.get_monthly_events(NYC_LAT, NYC_LON, NYC_TZ)
+
+        assert ze.health.is_healthy("hebcal") is False
+
+    def test_success_records_health_success(self, mock_outbound_http):
+        ze.health.record_failure("hebcal")
+        ze.health.record_failure("hebcal")
+
+        ze.get_monthly_events(NYC_LAT, NYC_LON, NYC_TZ)
+
+        assert ze.health._circuits["hebcal"].failures == 0
