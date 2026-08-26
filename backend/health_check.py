@@ -24,7 +24,7 @@ import logging
 import threading
 import time
 from dataclasses import dataclass, field
-from typing import Dict, Optional
+from typing import Dict
 
 import requests
 
@@ -131,10 +131,18 @@ class APIHealth:
         "claude": _probe_claude,
     }
 
+    # Services that have no active health-probe function: their circuit state
+    # is driven passively by callers reporting record_success()/record_failure()
+    # around each real network call (used by backend/utils/search_provider.py
+    # for translation providers and general web/global-source search).
+    # community_knowledge covers backend/rag.py::_retrieve_community_knowledge
+    # (plan.md §12.3.4).
+    _PASSIVE_SERVICES = ("translate_google", "translate_mymemory", "web", "nominatim", "community_knowledge")
+
     def __init__(self) -> None:
         self._lock = threading.Lock()
         self._circuits: Dict[str, _CircuitState] = {
-            name: _CircuitState() for name in self._PROBES
+            name: _CircuitState() for name in (*self._PROBES, *self._PASSIVE_SERVICES)
         }
 
     # ── Public API ────────────────────────────────────────────────────────────
@@ -142,8 +150,10 @@ class APIHealth:
     def is_healthy(self, service: str) -> bool:
         """Return True if the service is considered available.
 
-        If the circuit is half-open (recovery interval elapsed), a probe is
-        attempted inline to update state before returning.
+        If the circuit is half-open (recovery interval elapsed), a probed
+        service is re-checked inline; a passive service (no probe function) is
+        optimistically let through so the next real caller can re-establish
+        state via record_success()/record_failure().
         """
         with self._lock:
             circuit = self._circuits.get(service)
@@ -153,17 +163,45 @@ class APIHealth:
         if circuit.status == "up":
             return True
         if circuit.status == "down" and circuit.should_probe():
-            self._probe(service)
+            if service in self._PROBES:
+                return self._probe(service)
+            return True
         return circuit.status != "down"
 
     def check(self, service: str) -> bool:
         """Explicitly probe a service and update circuit state. Returns bool."""
         return self._probe(service)
 
+    def record_success(self, service: str) -> None:
+        """Record a successful passive network call for `service`."""
+        with self._lock:
+            circuit = self._circuits.setdefault(service, _CircuitState())
+            circuit.record_success()
+
+    def record_failure(self, service: str) -> None:
+        """Record a failed passive network call for `service`."""
+        with self._lock:
+            circuit = self._circuits.setdefault(service, _CircuitState())
+            circuit.record_failure()
+            status, failures = circuit.status, circuit.failures
+        logger.warning(
+            "health_check[%s] failure recorded (consecutive=%d, status=%s)",
+            service, failures, status,
+        )
+
     def status_summary(self) -> Dict[str, str]:
         """Return a dict of {service: status} for the health dashboard."""
         with self._lock:
             return {name: c.status for name, c in self._circuits.items()}
+
+    def reset(self) -> None:
+        """Reset all circuits to a fresh 'up' state (used by tests)."""
+        with self._lock:
+            for circuit in self._circuits.values():
+                circuit.status = "up"
+                circuit.failures = 0
+                circuit.last_failure_ts = 0.0
+                circuit.last_success_ts = time.time()
 
     # ── Internal ──────────────────────────────────────────────────────────────
 
