@@ -238,7 +238,19 @@ RATELIMIT_ENABLED = (os.environ.get("RATELIMIT_ENABLED") or "true").strip().lowe
 
 def _build_store() -> _RateLimitStore:
     if RATE_LIMIT_REDIS_URL:
-        return _RedisStore(RATE_LIMIT_REDIS_URL)
+        try:
+            return _RedisStore(RATE_LIMIT_REDIS_URL)
+        except Exception as exc:
+            logger.critical(
+                "RATE_LIMIT_REDIS_URL is set but invalid (%s: %s) -- rate limiting "
+                "is falling back to an in-process store. This does NOT enforce a "
+                "real limit across Vercel Fluid's multiple concurrent instances. A "
+                "malformed store must never crash app boot -- check the value in "
+                "the Vercel dashboard (expected: rediss://default:<password>@<host>:<port>).",
+                type(exc).__name__, exc,
+                exc_info=True,
+            )
+            return _InMemoryStore()
     logger.warning(
         "RATE_LIMIT_REDIS_URL is not set -- rate limiting is falling back to "
         "an in-process store. Fine for local dev, but per plan.md §16.1 "
