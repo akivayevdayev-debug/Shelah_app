@@ -140,8 +140,14 @@ def get_holidays():
 def get_parasha():
     """Return current weekly Parasha information for the Torah section."""
     try:
-        r = requests.get("https://www.sefaria.org/api/calendars", timeout=6)
-        data = r.json()
+        from backend.sefaria_library import _cached_get
+
+        # The parasha only changes weekly; this endpoint previously called
+        # Sefaria's calendars API on every single request with no caching
+        # at all (~1.8s per hit, the single slowest hot-path endpoint on
+        # the homepage). Route through the same memory+disk TTLCache every
+        # other Sefaria fetch in this codebase already uses.
+        data = _cached_get("https://www.sefaria.org/api/calendars", ttl=3600) or {}
 
         for item in data.get("calendar_items", []):
             title_en = (item.get("title", {}) or {}).get("en", "")
