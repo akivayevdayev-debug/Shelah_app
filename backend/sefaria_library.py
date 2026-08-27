@@ -26,7 +26,7 @@ from urllib.parse import quote, urlencode, unquote
 
 import os as _os
 
-from backend.cache import TTLCache
+from backend.cache import TTLCache, redis_cache_get, redis_cache_set
 
 SEFARIA_API = _os.environ.get("SEFARIA_API", "https://www.sefaria.org.il/api").rstrip("/")
 SEFARIA_V3_API = _os.environ.get("SEFARIA_V3_API", "https://www.sefaria.org.il/api/v3").rstrip("/")
@@ -37,7 +37,15 @@ DISK_CACHE_TTL = 7 * 24 * 3600  # 7 days for disk cache
 # Thread-safe LRU+TTL cache (backend.cache.TTLCache — internally lock-guarded,
 # see cache.py). Cached values are treated as immutable after insertion
 # (plan.md §5.2): no caller mutates a returned HTTP payload in place.
-_cache = TTLCache(maxsize=2048, ttl=CACHE_TTL)
+#
+# redis_prefix makes this also read/write the shared cross-instance Redis
+# tier (backend/cache.py) -- every value stored here is a raw Sefaria API
+# response (public Torah-library corpus, never per-user), so sharing it
+# across every concurrent Vercel instance is safe by construction. This is
+# THE fix for cold-instance latency on /api/text/, /api/library/index (raw
+# fetch), /api/prayers/list (via get_liturgy_books -> get_library_index),
+# get_index_entry, and every other _cached_get() caller in this module.
+_cache = TTLCache(maxsize=2048, ttl=CACHE_TTL, redis_prefix="sefaria_http:")
 
 _http_session = requests.Session()
 _http_session.headers.update({
@@ -105,6 +113,14 @@ _library_index_view_lock = threading.Lock()
 _PROJECT_ROOT = Path(__file__).resolve().parent.parent
 _LIBRARY_REPORT_PATH = _PROJECT_ROOT / "reports" / \
     "library_leaf_remove_fix_report.full.json"
+# Writes under the deployment bundle root, which is read-only at runtime on
+# Vercel (only /tmp is writable) -- _disk_cache_set()'s mkdir/write_text
+# silently no-ops via its own try/except there, so this tier has never
+# actually persisted anything in production. It survives here as a
+# harmless local-dev convenience (a real writable checkout) now that the
+# _cache TTLCache above carries a real cross-instance Redis tier for prod;
+# not worth ripping out for a local-only nicety with no prod behavior to
+# regress.
 _DISK_CACHE_DIR = _PROJECT_ROOT / ".sefaria_cache"
 
 
@@ -898,6 +914,22 @@ def _search_index_catalog(query, size=10, metadata_filters=None):
     return results
 
 
+_LIBRARY_INDEX_VIEW_REDIS_KEY = "sefaria_library_index_view:v1"
+
+
+def _library_index_snapshot_is_fresh(snapshot, now, report_mtime) -> bool:
+    """Shared freshness check for the pruned/adjusted library-index view,
+    against both the in-process snapshot and its Redis mirror below --
+    same three conditions the pre-Redis in-process-only version checked
+    twice inline (memory-read, then re-check under lock)."""
+    return bool(
+        snapshot
+        and snapshot.get("data") is not None
+        and now - float(snapshot.get("ts", 0.0)) < CACHE_TTL
+        and float(snapshot.get("report_mtime", 0.0)) >= float(report_mtime)
+    )
+
+
 def get_library_index():
     """
     Fetches the full Sefaria library category tree.
@@ -917,12 +949,20 @@ def get_library_index():
     # Lock-free read: snapshot the module-level reference once so a
     # concurrent writer swap can never surface a torn mix of old/new keys.
     snapshot = _library_index_view_cache
-    if (
-        snapshot.get("data") is not None
-        and now - float(snapshot.get("ts", 0.0)) < CACHE_TTL
-        and float(snapshot.get("report_mtime", 0.0)) >= float(report_mtime)
-    ):
+    if _library_index_snapshot_is_fresh(snapshot, now, report_mtime):
         return snapshot["data"]
+
+    # Cross-instance tier: the prune/fix pass below is a full deepcopy plus
+    # recursive walk of Sefaria's entire category tree -- expensive enough
+    # on its own that warming _cached_get()'s raw-JSON tier (via _cache's
+    # redis_prefix) isn't sufficient by itself; a cold instance would still
+    # re-pay this CPU cost every time. Check for an already-adjusted result
+    # another instance published before recomputing it here too.
+    redis_snapshot = redis_cache_get(_LIBRARY_INDEX_VIEW_REDIS_KEY)
+    if _library_index_snapshot_is_fresh(redis_snapshot, now, report_mtime):
+        with _library_index_view_lock:
+            _library_index_view_cache = redis_snapshot
+        return redis_snapshot["data"]
 
     # Never mutate cached HTTP payload directly. Built off-lock.
     adjusted = _prune_and_fix_library_index(
@@ -934,14 +974,11 @@ def get_library_index():
         # Re-check: >= (not ==), so a slower thread never clobbers a
         # fresher concurrent write with its own stale result.
         current = _library_index_view_cache
-        if (
-            current.get("data") is not None
-            and now - float(current.get("ts", 0.0)) < CACHE_TTL
-            and float(current.get("report_mtime", 0.0)) >= float(report_mtime)
-        ):
+        if _library_index_snapshot_is_fresh(current, now, report_mtime):
             return current["data"]
         _library_index_view_cache = {
             "ts": now, "report_mtime": float(report_mtime), "data": adjusted}
+    redis_cache_set(_LIBRARY_INDEX_VIEW_REDIS_KEY, _library_index_view_cache, CACHE_TTL)
     return adjusted
 
 

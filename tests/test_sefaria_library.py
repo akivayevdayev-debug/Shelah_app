@@ -18,6 +18,7 @@ import re
 import pytest
 import responses as responses_lib
 
+import backend.cache as cache_module
 import backend.sefaria_library as sl
 
 
@@ -404,6 +405,112 @@ class TestGetLibraryIndex:
             assert len(matching) == 1
 
 
+class _SharedFakeRedis:
+    """A dict-backed fake standing in for the real Upstash/Redis deployment
+    that persists across process boundaries -- shared by every simulated
+    "instance" in the tests below, exactly like a real shared cache would
+    be, while each instance still gets its own independent in-process
+    TTLCache/module-global state."""
+
+    def __init__(self):
+        self._store: dict[str, str] = {}
+
+    def get(self, key):
+        return self._store.get(key)
+
+    def setex(self, key, ttl_seconds, value):
+        self._store[key] = value
+
+
+def _simulate_cold_instance():
+    """Reset every in-process (memory-only) cache get_library_index() and
+    _cached_get() touch, without touching the shared fake Redis -- models a
+    brand new Vercel Fluid Compute instance that has never served a request,
+    landing behind the same shared Redis as every other instance."""
+    sl._cache.clear()
+    sl._library_index_view_cache.update({"ts": 0.0, "report_mtime": 0.0, "data": None})
+
+
+class TestGetLibraryIndexRedisTier:
+    """Simulated cold-instance coverage for the Redis tier added to
+    sl._cache (via TTLCache's redis_prefix) and to the pruned/adjusted
+    _library_index_view_cache layer -- the two caches get_library_index()
+    stacks, both of which previously started empty on every fresh Vercel
+    instance. No live Redis is available in this environment, so a shared
+    fake stands in for it, same technique tests/test_rate_limit.py already
+    uses for _RedisStore -- the two instances below only share the fake
+    Redis, never each other's in-process state, which is exactly the
+    property that matters."""
+
+    def test_cold_instance_gets_view_from_redis_without_a_network_call(self, monkeypatch):
+        monkeypatch.setattr(cache_module, "_shared_redis_client", _SharedFakeRedis())
+
+        with responses_lib.RequestsMock(assert_all_requests_are_fired=False) as rsps:
+            rsps.add(responses_lib.GET, f"{sl.SEFARIA_API}/index",
+                     json=[{"title": "X"}], status=200)
+
+            warm = sl.get_library_index()  # "instance A": real network fetch + prune
+
+            _simulate_cold_instance()  # "instance B" boots with nothing local
+            cold = sl.get_library_index()
+
+            assert cold == warm
+            matching = [c for c in rsps.calls if "/index" in c.request.url]
+            assert len(matching) == 1  # instance B never re-fetched from Sefaria
+
+    def test_cold_instance_skips_the_prune_pass_too(self, monkeypatch):
+        """Warming _cache alone isn't enough -- get_library_index()'s own
+        deepcopy+prune pass would still re-run on every cold instance
+        without the dedicated view-cache Redis entry. Assert the prune
+        helper does no additional work on the simulated cold call.
+
+        _prune_and_fix_library_index() recurses into itself for nested
+        contents/children, so the wrapped call count after ONE top-level
+        get_library_index() call is already >1 for non-trivial input --
+        the assertion below only cares that a second, "cold" call adds
+        zero further calls, not the exact recursive fan-out of the first."""
+        monkeypatch.setattr(cache_module, "_shared_redis_client", _SharedFakeRedis())
+        prune_calls = []
+        real_prune = sl._prune_and_fix_library_index
+
+        def _counting_prune(*args, **kwargs):
+            prune_calls.append(1)
+            return real_prune(*args, **kwargs)
+
+        monkeypatch.setattr(sl, "_prune_and_fix_library_index", _counting_prune)
+
+        with responses_lib.RequestsMock(assert_all_requests_are_fired=False) as rsps:
+            rsps.add(responses_lib.GET, f"{sl.SEFARIA_API}/index",
+                     json=[{"title": "X"}], status=200)
+
+            sl.get_library_index()
+            calls_after_warm = len(prune_calls)
+            assert calls_after_warm > 0
+
+            _simulate_cold_instance()
+            sl.get_library_index()
+            assert len(prune_calls) == calls_after_warm  # no additional prune work
+
+    def test_no_shared_redis_means_cold_instance_recomputes(self, monkeypatch):
+        """Control case: confirms the above tests are actually exercising
+        the Redis tier and not some other cache layer -- with
+        _shared_redis_client left unconfigured (this suite's default), a
+        cold instance genuinely has nothing to fall back on and must
+        refetch, same as before this change."""
+        monkeypatch.setattr(cache_module, "_shared_redis_client", None)
+
+        with responses_lib.RequestsMock(assert_all_requests_are_fired=False) as rsps:
+            rsps.add(responses_lib.GET, f"{sl.SEFARIA_API}/index",
+                     json=[{"title": "X"}], status=200)
+
+            sl.get_library_index()
+            _simulate_cold_instance()
+            sl.get_library_index()
+
+            matching = [c for c in rsps.calls if "/index" in c.request.url]
+            assert len(matching) == 2
+
+
 class TestGetCategoryContents:
     def test_direct_index_path_success(self):
         with responses_lib.RequestsMock(assert_all_requests_are_fired=False) as rsps:
@@ -430,6 +537,23 @@ class TestGetCategoryContents:
         with responses_lib.RequestsMock(assert_all_requests_are_fired=False) as rsps:
             rsps.add(responses_lib.GET, f"{sl.SEFARIA_API}/index/", json={"error": "x"}, status=200)
             assert sl.get_category_contents("") == []
+
+    def test_special_chars_in_category_path_are_encoded_not_injected(self):
+        # plan.md §8.C.5 security-audit pass: category_path used to be
+        # dropped straight into the outbound URL via a raw .replace("/", ",")
+        # with no quoting, so "Tanakh#injected" would truncate the request
+        # at a literal '#' fragment and "Tanakh?foo=bar" would inject an
+        # extra query string onto the real Sefaria request.
+        with responses_lib.RequestsMock(assert_all_requests_are_fired=False) as rsps:
+            rsps.add(
+                responses_lib.GET, re.compile(rf"{re.escape(sl.SEFARIA_API)}/index/.*"),
+                json={"error": "not found"}, status=200,
+            )
+            rsps.add(responses_lib.GET, f"{sl.SEFARIA_API}/index", json=[], status=200)
+            sl.get_category_contents("Tanakh?foo=bar")
+            sent_url = rsps.calls[0].request.url
+            assert "?foo=bar" not in sent_url
+            assert "%3F" in sent_url or "%3ffoo" in sent_url.lower()
 
 
 class TestGetText:
@@ -628,7 +752,8 @@ class TestGetPopularTexts:
         result = sl.get_popular_texts()
         assert set(result.keys()) == {"Tanakh", "Mishnah", "Talmud", "Halakhah"}
         for category, items in result.items():
-            assert isinstance(items, list) and items
+            assert isinstance(items, list)
+            assert items
             for item in items:
                 assert {"title", "ref", "he", "description"} <= set(item.keys())
 

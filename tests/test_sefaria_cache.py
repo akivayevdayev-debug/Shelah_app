@@ -99,3 +99,60 @@ class TestDailyStudyCache:
         # Fallback is cached too, so a transient outage doesn't cause every
         # subsequent call to retry within the TTL window.
         assert sefaria_module._DAILY_STUDY_CACHE.get(sefaria_module._DAILY_STUDY_CACHE_KEY) == result
+
+
+class _SharedFakeRedis:
+    """Dict-backed fake standing in for a real shared Redis deployment --
+    see tests/test_sefaria_library.py::_SharedFakeRedis for the fuller
+    rationale (no live Redis available in this environment)."""
+
+    def __init__(self):
+        self._store: dict[str, str] = {}
+
+    def get(self, key):
+        return self._store.get(key)
+
+    def setex(self, key, ttl_seconds, value):
+        self._store[key] = value
+
+
+class TestDailyStudyCacheRedisTier:
+    """Simulated cold-instance coverage for _DAILY_STUDY_CACHE's
+    redis_prefix tier -- this cache previously had NO cross-instance layer
+    at all (see backend/sefaria.py's comment on _DAILY_STUDY_CACHE), which
+    is why /api/daily-study logs showed a consistent ~800ms with no fast
+    sample ever observed."""
+
+    def test_cold_instance_gets_value_from_redis_without_a_network_call(self, monkeypatch, mock_outbound_http):
+        monkeypatch.setattr(cache_module, "_shared_redis_client", _SharedFakeRedis())
+        _mock_calendars_response(mock_outbound_http)
+
+        warm = sefaria_module.get_daily_study()
+
+        # Simulate a brand new instance: only the in-process TTLCache is
+        # wiped, exactly like a fresh Fluid Compute instance's empty
+        # process -- the fake shared Redis is untouched.
+        sefaria_module._DAILY_STUDY_CACHE.clear()
+        cold = sefaria_module.get_daily_study()
+
+        assert cold == warm
+        calendar_calls = [
+            c for c in mock_outbound_http.calls if "api/calendars" in c.request.url
+        ]
+        assert len(calendar_calls) == 1
+
+    def test_without_redis_configured_a_cold_instance_still_refetches(self, monkeypatch, mock_outbound_http):
+        """Control case: confirms the test above is exercising the Redis
+        tier specifically, not some other cache layer."""
+        monkeypatch.setattr(cache_module, "_shared_redis_client", None)
+        _mock_calendars_response(mock_outbound_http)
+
+        sefaria_module.get_daily_study()
+        sefaria_module._DAILY_STUDY_CACHE.clear()
+        _mock_calendars_response(mock_outbound_http)
+        sefaria_module.get_daily_study()
+
+        calendar_calls = [
+            c for c in mock_outbound_http.calls if "api/calendars" in c.request.url
+        ]
+        assert len(calendar_calls) == 2
