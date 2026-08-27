@@ -11,7 +11,6 @@ This file is mostly curated domain mapping data plus matching utilities.
 
 import logging
 import requests
-import time
 
 from backend.cache import TTLCache
 
@@ -19,7 +18,16 @@ logger = logging.getLogger(__name__)
 
 _HTTP = requests.Session()
 _DAILY_STUDY_CACHE_KEY = "daily_study"
-_DAILY_STUDY_CACHE = TTLCache(ttl=60 * 5)
+# redis_prefix: this cache had NO cross-instance tier at all (unlike
+# sefaria_library.py's _cache, which at least had a same-process-only disk
+# tier attempt) -- every cold Vercel Fluid Compute instance recomputed the
+# full Sefaria /api/calendars + pyluach Hebrew-date lookup from scratch,
+# which is why /api/daily-study logs showed consistently ~800ms with no
+# fast sample ever observed, unlike the wide cold/warm variance seen on
+# routes backed by a real shared cache. The stored value (Sefaria calendar
+# titles/refs + a Hebrew date string) is location-independent and safe to
+# share across every instance/user, same as sefaria_library.py's caches.
+_DAILY_STUDY_CACHE = TTLCache(ttl=60 * 5, redis_prefix="daily_study:")
 
 # ═══════════════════════════════════════════════════════════════════════
 # PRIMARY SEFARIA TEXT MAPPINGS — Over 100+ halachic references
