@@ -290,13 +290,13 @@ class TestFetchUserMemorySummaries:
         assert rag._fetch_user_memory_summaries("") == []
 
     def test_no_client_returns_empty(self, monkeypatch):
-        monkeypatch.setattr(app, "_get_user_scoped_supabase_client", lambda: None)
+        monkeypatch.setattr(app, "_get_user_scoped_supabase_client", lambda bearer_token=None: None)
         monkeypatch.setattr(app, "STRICT_SUPABASE_RLS", True)
         assert rag._fetch_user_memory_summaries("user-1") == []
 
     def test_falls_back_to_service_client_when_not_strict_rls(self, monkeypatch):
         rows = [{"summary": "Asked about kashrut.", "created_at": "2026-01-01"}]
-        monkeypatch.setattr(app, "_get_user_scoped_supabase_client", lambda: None)
+        monkeypatch.setattr(app, "_get_user_scoped_supabase_client", lambda bearer_token=None: None)
         monkeypatch.setattr(app, "STRICT_SUPABASE_RLS", False)
         monkeypatch.setattr(app, "_get_supabase_client", lambda: _FakeSupabaseClient(data=rows))
         monkeypatch.setattr(app, "SUPABASE_USER_MEMORIES_TABLE", "user_memories")
@@ -305,20 +305,37 @@ class TestFetchUserMemorySummaries:
         assert result[0]["summary"] == "Asked about kashrut."
 
     def test_query_exception_returns_empty(self, monkeypatch):
-        monkeypatch.setattr(app, "_get_user_scoped_supabase_client", lambda: _FakeSupabaseClient(error=RuntimeError("boom")))
+        monkeypatch.setattr(app, "_get_user_scoped_supabase_client", lambda bearer_token=None: _FakeSupabaseClient(error=RuntimeError("boom")))
         monkeypatch.setattr(app, "STRICT_SUPABASE_RLS", True)
         monkeypatch.setattr(app, "SUPABASE_USER_MEMORIES_TABLE", "user_memories")
         assert rag._fetch_user_memory_summaries("user-1") == []
 
     def test_skips_rows_with_empty_summary(self, monkeypatch):
         rows = [{"summary": "", "created_at": "x"}, {"summary": "real", "created_at": "y"}]
-        monkeypatch.setattr(app, "_get_user_scoped_supabase_client", lambda: _FakeSupabaseClient(data=rows))
+        monkeypatch.setattr(app, "_get_user_scoped_supabase_client", lambda bearer_token=None: _FakeSupabaseClient(data=rows))
         monkeypatch.setattr(app, "STRICT_SUPABASE_RLS", True)
         monkeypatch.setattr(app, "SUPABASE_USER_MEMORIES_TABLE", "user_memories")
         monkeypatch.setattr(app, "_normalize_rag_text", lambda text, max_chars=260: str(text or ""))
         result = rag._fetch_user_memory_summaries("user-1")
         assert len(result) == 1
         assert result[0]["summary"] == "real"
+
+    def test_bearer_token_threaded_to_client_factory(self, monkeypatch):
+        """Regression test for plan.md §35.1 / Prompt 47: the explicit
+        bearer_token param must reach _get_user_scoped_supabase_client()
+        rather than being silently dropped, since that's what lets this
+        chain skip Flask's global `request` proxy entirely when called
+        from asgi.py's native FastAPI /ask route (no Flask request context
+        active there)."""
+        received = []
+        monkeypatch.setattr(
+            app, "_get_user_scoped_supabase_client",
+            lambda bearer_token=None: received.append(bearer_token) or None,
+        )
+        monkeypatch.setattr(app, "STRICT_SUPABASE_RLS", False)
+        monkeypatch.setattr(app, "_get_supabase_client", lambda: None)
+        rag._fetch_user_memory_summaries("user-1", bearer_token="Bearer abc123")
+        assert received == ["Bearer abc123"]
 
 
 # ─────────────────────────── _store_ask_history ─────────────────────────────
@@ -350,6 +367,33 @@ class TestStoreAskHistory:
         monkeypatch.setattr(app, "_get_supabase_client", lambda: client)
         monkeypatch.setattr(app, "SUPABASE_ASK_HISTORY_TABLE", "ask_history")
         rag._store_ask_history("user-1", "q", "a")  # should not raise
+
+    def test_safety_class_and_prompt_version_persisted(self, monkeypatch):
+        """plan.md §8.B.6 defensibility logging: a stored answer's safety
+        routing outcome and governing prompt version must be reconstructable
+        without retaining the full prompt text."""
+        client = _FakeSupabaseClient()
+        monkeypatch.setattr(app, "_get_supabase_client", lambda: client)
+        monkeypatch.setattr(app, "SUPABASE_ASK_HISTORY_TABLE", "ask_history")
+        rag._store_ask_history(
+            "user-1", "q", "a",
+            safety_class="medical",
+            prompt_version="2026-07-30-age-appropriate-v1",
+        )
+        insert_calls = [c for c in client.query.calls if c[0] == "insert"]
+        payload = insert_calls[0][1][0]
+        assert payload["safety_class"] == "medical"
+        assert payload["prompt_version"] == "2026-07-30-age-appropriate-v1"
+
+    def test_safety_class_defaults_to_ok(self, monkeypatch):
+        client = _FakeSupabaseClient()
+        monkeypatch.setattr(app, "_get_supabase_client", lambda: client)
+        monkeypatch.setattr(app, "SUPABASE_ASK_HISTORY_TABLE", "ask_history")
+        rag._store_ask_history("user-1", "q", "a")
+        insert_calls = [c for c in client.query.calls if c[0] == "insert"]
+        payload = insert_calls[0][1][0]
+        assert payload["safety_class"] == "ok"
+        assert payload["prompt_version"] is None
 
 
 # ─────────────────────────── _store_user_memory_summary ────────────────────
