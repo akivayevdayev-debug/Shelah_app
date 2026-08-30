@@ -19,7 +19,7 @@ import os
 from functools import wraps
 
 import jwt
-from flask import g, jsonify, request
+from flask import g, has_request_context, jsonify, request
 
 # Read Clerk config directly from env — mirrors the identically-named
 # constants in app.py (same env-var names, same fallback logic).
@@ -79,8 +79,24 @@ CLERK_ENFORCE_AUTH: bool = (
 ).strip().lower() == "true"
 
 
-def _extract_bearer_token():
-    auth_header = request.headers.get("Authorization", "")
+def _extract_bearer_token(authorization=None):
+    """Extract the raw bearer token from an ``Authorization`` header value.
+
+    Accepts the header value explicitly via ``authorization`` for callers
+    with no Flask request context (e.g. asgi.py's native FastAPI ``/ask``
+    route, which already parses this header once for
+    ``extract_user_id_from_bearer_value``). Falls back to Flask's global
+    `request` proxy only when no explicit value is given, so existing
+    Flask-side callers keep working unchanged. plan.md §35.1 -- fixes a
+    crash where this previously read `request` unconditionally, even from
+    contexts with no Flask request pushed.
+    """
+    if authorization is not None:
+        auth_header = authorization
+    elif has_request_context():
+        auth_header = request.headers.get("Authorization", "")
+    else:
+        return None
     if not auth_header.lower().startswith("bearer "):
         return None
     token = auth_header.split(" ", 1)[1].strip()
