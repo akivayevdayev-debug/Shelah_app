@@ -314,6 +314,8 @@ def _store_ask_history(
     community="All",
     mode="balanced",
     language="en",
+    safety_class="ok",
+    prompt_version=None,
 ):
     """Persist a completed ask interaction to the per-user ask_history table."""
     import app as _app
@@ -336,6 +338,8 @@ def _store_ask_history(
         "community": str(community or "All")[:100],
         "mode": str(mode or "balanced")[:50],
         "language": str(language or "en")[:10],
+        "safety_class": str(safety_class or "ok")[:50],
+        "prompt_version": str(prompt_version or "")[:50] or None,
     }
 
     try:
