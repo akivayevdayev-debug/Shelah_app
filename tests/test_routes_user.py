@@ -40,6 +40,7 @@ from __future__ import annotations
 import pytest
 
 import app as flask_app_module
+import backend.auth as auth_module
 import backend.routes_user as routes_user_module
 
 FAKE_USER_ID = "user_test_fake_123"
@@ -51,7 +52,7 @@ def authed(monkeypatch):
     """Make `require_clerk_auth`/`maybe_require_clerk_auth` accept any Bearer
     token and populate g.clerk_claims with a fake user id."""
     monkeypatch.setattr(
-        flask_app_module,
+        auth_module,
         "_verify_clerk_token",
         lambda token: {"sub": FAKE_USER_ID, "sid": "sess_fake"},
     )
@@ -522,7 +523,7 @@ class TestAcceptLegalAuthenticated:
 
 class TestUserPreferencesMissingIdentity:
     def test_get_preferences_authed_but_no_sub_claim_is_401(self, test_client, monkeypatch):
-        monkeypatch.setattr(flask_app_module, "_verify_clerk_token", lambda token: {"sid": "sess"})
+        monkeypatch.setattr(auth_module, "_verify_clerk_token", lambda token: {"sid": "sess"})
         response = test_client.get("/api/user/preferences", headers=AUTH_HEADERS)
         assert response.status_code == 401
         assert response.get_json()["error"] == "Missing user identity"
@@ -530,7 +531,7 @@ class TestUserPreferencesMissingIdentity:
 
 class TestSemanticBookmarksMissingIdentityAndRls:
     def test_get_bookmarks_authed_but_no_sub_claim_is_401(self, test_client, monkeypatch):
-        monkeypatch.setattr(flask_app_module, "_verify_clerk_token", lambda token: {"sid": "sess"})
+        monkeypatch.setattr(auth_module, "_verify_clerk_token", lambda token: {"sid": "sess"})
         response = test_client.get("/api/bookmarks/semantic", headers=AUTH_HEADERS)
         assert response.status_code == 401
 
@@ -578,7 +579,7 @@ class TestGetAskHistory:
         assert response.status_code == 401
 
     def test_authed_but_no_sub_claim_is_401(self, test_client, monkeypatch):
-        monkeypatch.setattr(flask_app_module, "_verify_clerk_token", lambda token: {"sid": "sess"})
+        monkeypatch.setattr(auth_module, "_verify_clerk_token", lambda token: {"sid": "sess"})
         response = test_client.get("/api/user/history", headers=AUTH_HEADERS)
         assert response.status_code == 401
 
@@ -614,7 +615,7 @@ class TestDeleteAskHistoryEntry:
         assert response.status_code == 401
 
     def test_authed_but_no_sub_claim_is_401(self, test_client, monkeypatch):
-        monkeypatch.setattr(flask_app_module, "_verify_clerk_token", lambda token: {"sid": "sess"})
+        monkeypatch.setattr(auth_module, "_verify_clerk_token", lambda token: {"sid": "sess"})
         response = test_client.delete("/api/user/history/entry-1", headers=AUTH_HEADERS)
         assert response.status_code == 401
 
