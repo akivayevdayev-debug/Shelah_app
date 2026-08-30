@@ -261,12 +261,12 @@ def _knowledge_rows_to_customs(rows):
 # ── User memory helpers ───────────────────────────────────────────────────────
 
 
-def _fetch_user_memory_summaries(user_id, limit=None):
+def _fetch_user_memory_summaries(user_id, limit=None, bearer_token=None):
     import app as _app  # lazy — avoids circular import at module load time
     if not user_id:
         return []
 
-    supabase = _app._get_user_scoped_supabase_client()
+    supabase = _app._get_user_scoped_supabase_client(bearer_token)
     if not supabase and not _app.STRICT_SUPABASE_RLS:
         supabase = _app._get_supabase_client()
     if not supabase:
