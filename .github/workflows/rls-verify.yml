@@ -34,14 +34,18 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
         with:
-          python-version: "3.14"
+          python-version: "3.12"
           cache: "pip"
 
       - name: Install dependencies
+        # Matches the actually-committed ci.yml (requirements.txt /
+        # requirements-dev.txt, no --require-hashes) -- NOT the uncommitted
+        # working-tree draft of ci.yml, which references
+        # requirements.lock.txt/requirements-dev.lock.txt that were never
+        # committed to this repo and don't exist on a fresh checkout.
         run: |
           python -m pip install --upgrade pip
-          pip install --require-hashes --only-binary=:all: --no-binary=julian,memoization \
-            -r requirements.lock.txt -r requirements-dev.lock.txt
+          pip install -r requirements.txt -r requirements-dev.txt
 
       - name: Run scripts/verify_rls.py
         env:
