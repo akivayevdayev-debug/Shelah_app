@@ -248,15 +248,30 @@ def mock_outbound_httpx():
         )
 
         # ── Supabase REST endpoints ───────────────────────────────────────────
+        # PostgREST never wraps a response in a {"data":..., "error":...}
+        # envelope -- a table op returns a bare JSON array of rows, and an
+        # RPC call returns the function's return value directly (a bare
+        # array of row objects for any TABLE(...)-returning function, per
+        # postgrest-py's own response parsing). The RPC route is registered
+        # before the general table-op route so it wins on `/rest/v1/rpc/...`
+        # (respx matches routes in registration order) -- see plan.md §25.
         mock.get(
             url__regex=r"https://mock\.supabase\.co/.*"
         ).mock(
             return_value=httpx.Response(200, json=[])
         )
         mock.post(
+            url__regex=r"https://mock\.supabase\.co/rest/v1/rpc/check_and_reserve_user_budget.*"
+        ).mock(
+            return_value=httpx.Response(
+                200,
+                json=[{"allowed": True, "total_usd": 0.0, "reservation_id": "mock-reservation-id"}],
+            )
+        )
+        mock.post(
             url__regex=r"https://mock\.supabase\.co/.*"
         ).mock(
-            return_value=httpx.Response(200, json={"data": [], "error": None})
+            return_value=httpx.Response(200, json=[])
         )
 
         yield mock

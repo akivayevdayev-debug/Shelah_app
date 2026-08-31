@@ -2100,7 +2100,7 @@ Listed so the omissions are a decision rather than an oversight.
 
 ---
 
-## 25. Test-fixture Supabase mock does not match a real PostgREST response shape (found 2026-08-20, during Prompt 33b)
+## 25. Test-fixture Supabase mock does not match a real PostgREST response shape (found 2026-08-20, during Prompt 33b) — ✅ **Done 2026-08-31**
 
 **Severity:** Medium — not a production defect, but it silently miscategorized a real one. This is exactly the class of gap §6.2's "golden master" discipline exists to catch, and it slipped past because the fixture itself was the thing lying, not the code under test.
 
@@ -2115,6 +2115,8 @@ Listed so the omissions are a decision rather than an oversight.
 **Deliverable:** replace the single blanket POST mock with response-shape-accurate, endpoint-specific mocks — a bare `[]` (or a realistic single-row array) for `.../rest/v1/<table>` table operations, and a bare array of row objects for `.../rest/v1/rpc/<function>` calls, matching each RPC function's actual `RETURNS TABLE(...)` shape (`check_and_reserve_user_budget` returning `[{"allowed": true, "total_usd": ..., "reservation_id": ...}]` is the first real case). Add a regression test asserting the mock's response, when round-tripped through the real `postgrest-py`/`supabase-py` client the way `_get_supabase_client()` constructs it, produces `isinstance(result.data, list) == True` — so a future fixture edit that reintroduces a wrapper-envelope shape fails loudly in the fixture's own test rather than silently miscategorizing whatever code happens to call it next.
 
 **Exit criteria:** `tests/conftest.py`'s Supabase POST mock returns shape-accurate bodies per endpoint (table vs. RPC); a fixture-level test pins the shape so this cannot silently regress; `pytest -q` green; no change to any application code's fail-open/fail-closed posture (this is a test-infrastructure fix, not a behavior change).
+
+**Resolved 2026-08-31.** `tests/conftest.py`'s `mock_outbound_httpx` POST mock is now split into two routes, registered in order (respx matches in registration order, confirmed empirically before relying on it): a route scoped to `.../rest/v1/rpc/check_and_reserve_user_budget.*` returning a bare array of one row dict (`[{"allowed": true, "total_usd": 0.0, "reservation_id": "mock-reservation-id"}]` — the real shape a `TABLE(...)`-returning RPC gives back), registered *before* the general `.../rest/v1/.*` table-op route, which now returns a bare `[]` instead of the old `{"data": [], "error": None}` envelope (matching the GET route's existing, already-correct shape). No other `.rpc()` call site exists in the codebase (`grep -rn "\.rpc("` returns only `backend/cost_meter.py:549`), so one specific route was sufficient — no generic `rpc/.*` catch-all was needed. New `tests/test_supabase_mock_fixture.py` round-trips through the real `app._get_supabase_client()` (supabase-py 2.28.3 / postgrest-py 2.28.3) rather than a hand-rolled fake: `test_table_insert_response_is_a_bare_list` and `test_rpc_response_is_a_bare_list_of_row_dicts` (the latter also asserts `"allowed" in result.data[0]`), so a future fixture edit reintroducing a wrapper-envelope shape fails here loudly. Deliberately did not touch `_reserve_budget_or_deny()`'s parsing logic (already correct since the 2026-08-20 fix) or any other application code — this is a test-infrastructure-only change, confirmed by a full `pytest -q` run: 91.12% coverage (gate 85%), zero behavior change to any fail-open/fail-closed assertion. `graphify update .` run.
 
 ---
 
