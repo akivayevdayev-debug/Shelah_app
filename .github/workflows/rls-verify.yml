@@ -1,0 +1,54 @@
+name: RLS Live Verification
+
+# plan.md §21.2.2 STEP 4 / §21.3 exit criteria: this answers "is Postgres
+# RLS actually enforcing right now on the live deployment", which needs
+# live Supabase + Clerk credentials and a real deployed target. That's a
+# different question from ci.yml's per-push suite (which only proves the
+# app's own orchestration logic against mocked clients -- plan.md §21.2.2
+# rejected a mocked-client test for this exact reason: a mock cannot tell
+# you whether auth.uid() resolves in a real project). Manual/scheduled
+# only, never a per-PR gate -- blocking every push on a network round trip
+# to a live database is the wrong trade, and this needs secrets a PR from
+# a fork must never see.
+on:
+  workflow_dispatch: {}
+  schedule:
+    # Weekly, not daily: this exercises real Supabase writes against
+    # dedicated test-user rows (plan.md §21.2.2) -- frequent enough to
+    # catch a Third-Party-Auth misconfiguration or an RLS regression
+    # before it's stale news, without hammering the project for a signal
+    # that changes only when someone touches auth/RLS config or code.
+    - cron: "17 6 * * 1"
+
+jobs:
+  verify-rls:
+    runs-on: ubuntu-latest
+    # Fail closed: if the required secrets were never configured, the job
+    # should show up red in the Actions tab, not silently skip -- an
+    # unconfigured live-verification job reporting green is exactly the
+    # false confidence plan.md §21 exists to prevent.
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Set up Python
+        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: "3.14"
+          cache: "pip"
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install --require-hashes --only-binary=:all: --no-binary=julian,memoization \
+            -r requirements.lock.txt -r requirements-dev.lock.txt
+
+      - name: Run scripts/verify_rls.py
+        env:
+          RLS_VERIFY_BASE_URL: ${{ secrets.RLS_VERIFY_BASE_URL }}
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_PUBLISHABLE_KEY: ${{ secrets.SUPABASE_PUBLISHABLE_KEY }}
+          CLERK_SECRET_KEY: ${{ secrets.CLERK_SECRET_KEY }}
+          RLS_TEST_USER_A_SESSION_ID: ${{ secrets.RLS_TEST_USER_A_SESSION_ID }}
+          RLS_TEST_USER_B_SESSION_ID: ${{ secrets.RLS_TEST_USER_B_SESSION_ID }}
+        run: python3 scripts/verify_rls.py
