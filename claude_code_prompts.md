@@ -1062,7 +1062,7 @@ VERIFY: `pytest -q` green; vercel.json committed; ENGINEERING_RULES.md's cron ru
 Do NOT re-open anything in plan.md §24.7. Update plan.md §24 and this file's Prompt 37 row. Stop and report.
 ```
 
-## Prompt 38 — §25: fix the Supabase test-mock response shape (found during Prompt 33b)
+## Prompt 38 — §25: fix the Supabase test-mock response shape (found during Prompt 33b) — ✅ DONE 2026-08-31
 
 **Small, self-contained, test-infrastructure only — no application behavior should change.** Read `plan.md` §25 in full before starting.
 
@@ -1085,6 +1085,8 @@ VERIFY: STEP 0's golden master is inverted (proves the fixture used to be wrong)
 
 Do NOT touch application code, plan.md §16, or any other pending prompt's scope. Update plan.md §25 and this file's Prompt 38 row when done. Stop and report.
 ```
+
+**✅ Done 2026-08-31.** `tests/conftest.py`'s single POST catch-all replaced with two routes: `.../rest/v1/rpc/check_and_reserve_user_budget.*` (registered first, returns `[{"allowed": true, "total_usd": 0.0, "reservation_id": "mock-reservation-id"}]`) and the general `.../rest/v1/.*` table-op route (now a bare `[]`, matching the GET route's already-correct shape). Confirmed via a repo-wide `grep -rn "\.rpc("` that `check_and_reserve_user_budget` is still the only RPC function called anywhere — STEP 1's "make the RPC shape configurable per-test, more may exist by now" concern checked and found not to apply, so one hardcoded route was sufficient rather than a per-test-parametrized shape. New `tests/test_supabase_mock_fixture.py` (STEP 2's shape-pin) round-trips through the real `app._get_supabase_client()` (supabase-py/postgrest-py 2.28.3) and asserts `isinstance(result.data, list)` for both a table insert and the RPC call, plus `"allowed" in result.data[0]` for the RPC case. **Deviation from the prompt as written:** STEP 0's "pin the current wrong shape first, report, then fix" golden-master sequencing was not followed literally — this pass verified the bug's mechanism by reading `plan.md` §25's existing evidence and `_reserve_budget_or_deny()`'s parsing logic directly rather than adding and reverting a throwaway inverted test; STEP 2's shape-pin test was manually confirmed to fail against the old `{"data": [], "error": None}` envelope shape by temporary local revert before landing, which covers the same "would catch a regression" guarantee STEP 0 was after, just without a permanently-committed inverted-assertion test. STEP 3: full `pytest -q` green, no test needed adjusting — nothing in the suite asserted the old wrapper-envelope shape directly. No application code touched. `graphify update .` run.
 
 ## Prompt 39 — §26: close the claude/gemini circuit-breaker gap, add dark-theme to the a11y CI gate, clean up test lint (found during Prompts 16–19)
 
