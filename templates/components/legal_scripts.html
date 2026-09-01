@@ -1,6 +1,6 @@
 <script>
     window.APP_CLERK = {
-        publishableKey: "{{ clerk_publishable_key or '' }}",
+        publishableKey: {{ (clerk_publishable_key or '') | tojson }},
         enforceAuth: JSON.parse('{{ clerk_enforce_auth | tojson }}')
     };
 </script>
@@ -12,8 +12,12 @@
 <script>
     // ===== APP STATE & CONSTANTS =====
     const LANGUAGE_MANUAL_KEY = 'preferredLanguageManual';
-    const THEME_PREFERENCE_KEY = 'themePreference';
-    const THEME_PREFERENCE_MANUAL_KEY = 'themePreferenceManual';
+    // Shared with templates/index.html's APP_PREFS_KEY — a single JSON blob
+    // so a theme choice made on the main app or on a legal page is honored
+    // everywhere. Do not use a page-local key here; that was the bug that
+    // made dark/light mode "not work" when navigating between index.html
+    // and the legal pages (each page silently kept its own preference).
+    const APP_PREFS_KEY = "Sh'elahPrefs";
     const THEME_PREFERENCE_OPTIONS = ['light', 'dark', 'system'];
 
     let appState = {
@@ -40,6 +44,11 @@
         const resolvedTheme = getResolvedThemePreference();
         const darkMode = resolvedTheme === 'dark';
 
+        // data-theme is what tokens.css actually keys its overrides off of
+        // (the .theme-dark class is kept only as a migration alias for a
+        // few older selectors) — setting the class alone left an explicit
+        // "light" choice unable to override an OS-level dark preference.
+        document.documentElement.setAttribute('data-theme', darkMode ? 'dark' : 'light');
         document.documentElement.classList.toggle('theme-dark', darkMode);
         document.body.classList.toggle('theme-dark', darkMode);
         document.documentElement.style.colorScheme = darkMode ? 'dark' : 'light';
@@ -52,20 +61,32 @@
     }
 
     function updateThemeToggleUi(lang = getCurrentLanguage()) {
-        const themeToggleLabel = document.getElementById('themeToggleLabel');
-        if (!themeToggleLabel) return;
+        const themeToggleBtn = document.getElementById('themeToggleBtn');
+        if (!themeToggleBtn) return;
 
-        const pref = normalizeThemePreference(appState?.prefs?.theme);
-        const modeLabels = {
-            en: { light: 'Light', dark: 'Dark', system: 'System' },
-            he: { light: 'בהיר', dark: 'כהה', system: 'מערכת' },
-        };
+        // Icon-only control (no "Appearance" text label, unlike the main
+        // app's Quick Settings entry) — reflects the resolved light/dark
+        // state and swaps a sun/moon glyph rather than a text string.
+        const isDark = getResolvedThemePreference() === 'dark';
+        const moonIcon = document.getElementById('themeToggleMoonIcon');
+        const sunIcon = document.getElementById('themeToggleSunIcon');
+        if (moonIcon) moonIcon.classList.toggle('hidden', isDark);
+        if (sunIcon) sunIcon.classList.toggle('hidden', !isDark);
 
         const locale = lang === 'he' ? 'he' : 'en';
-        const prefix = locale === 'he' ? 'מראה' : 'Appearance';
-        const modeLabel = (modeLabels[locale] && modeLabels[locale][pref]) || modeLabels.en[pref] || 'Light';
+        const label = isDark
+            ? (locale === 'he' ? 'עבור למצב בהיר' : 'Switch to light mode')
+            : (locale === 'he' ? 'עבור למצב כהה' : 'Switch to dark mode');
+        themeToggleBtn.setAttribute('aria-label', label);
+        themeToggleBtn.title = label;
+    }
 
-        themeToggleLabel.textContent = `${prefix}: ${modeLabel}`;
+    // The icon-only topbar button is a direct binary toggle (no "System"
+    // step) — there's no text label to surface a three-way state on, so
+    // cycling through System would leave the icon ambiguous about why
+    // clicking it didn't visibly change anything half the time.
+    function toggleThemeBinary() {
+        setThemePreference(getResolvedThemePreference() === 'dark' ? 'light' : 'dark');
     }
 
     function setThemePreference(themePreference, options = {}) {
@@ -74,16 +95,15 @@
         applyThemePreferenceClass();
         updateThemeToggleUi();
         if (persist) {
-            localStorage.setItem(THEME_PREFERENCE_KEY, appState.prefs.theme);
-            localStorage.setItem(THEME_PREFERENCE_MANUAL_KEY, '1');
+            // Merge into the shared prefs blob rather than overwrite it —
+            // other fields (font size, bookmarks UI state, etc.) written by
+            // the main app must survive a theme change made from here.
+            try {
+                const existing = JSON.parse(localStorage.getItem(APP_PREFS_KEY) || '{}');
+                existing.theme = appState.prefs.theme;
+                localStorage.setItem(APP_PREFS_KEY, JSON.stringify(existing));
+            } catch (_) { }
         }
-    }
-
-    function cycleThemePreference() {
-        const current = normalizeThemePreference(appState?.prefs?.theme);
-        const currentIndex = THEME_PREFERENCE_OPTIONS.indexOf(current);
-        const nextIndex = (currentIndex + 1) % THEME_PREFERENCE_OPTIONS.length;
-        setThemePreference(THEME_PREFERENCE_OPTIONS[nextIndex]);
     }
 
     // ===== LANGUAGE FUNCTIONS =====
@@ -109,8 +129,9 @@
             }
         });
 
-        // Handle RTL for Hebrew
+        // Handle RTL + lang for Hebrew
         const html = document.documentElement;
+        html.setAttribute('lang', lang);
         if (lang === 'he') {
             html.setAttribute('dir', 'rtl');
             html.classList.add('rtl');
@@ -136,36 +157,141 @@
     }
 
     // ===== AUTHENTICATION =====
+    function isClerkConfigured() {
+        return Boolean(window.APP_CLERK && window.APP_CLERK.publishableKey);
+    }
+
+    // ===== FLOATING MENU POSITIONING =====
+    // Mirrors templates/index.html's positionFloatingMenu: anchors to the
+    // shared topbar's own bottom edge (not the trigger's bottom) so this
+    // menu opens at the same height as the main app's topbar menus, flush
+    // directly below the bar. static/style.css has a `#userProfileMenu {
+    // position: fixed !important; top: 0; inset-inline-start: 0; }` fallback
+    // rule that's meant to always be overridden by this inline positioning —
+    // without it (as was the case here before) the menu renders pinned to
+    // the page's top-left corner instead of under the button.
+    function positionFloatingMenu(menuEl, triggerEl, options = {}) {
+        if (!menuEl || !triggerEl) return;
+
+        const viewportWidth = Math.max(Math.round(window.innerWidth || 0), 320);
+        const viewportHeight = Math.max(Math.round(window.innerHeight || 0), 320);
+        const padding = Number.isFinite(options.padding) ? options.padding : 8;
+        const offset = Number.isFinite(options.offset) ? options.offset : 0;
+        const minWidth = Number.isFinite(options.minWidth) ? options.minWidth : 160;
+        const maxWidth = Number.isFinite(options.maxWidth) ? options.maxWidth : 352;
+        const triggerRect = triggerEl.getBoundingClientRect();
+        const panelWidth = Math.min(maxWidth, Math.max(minWidth, viewportWidth - (padding * 2)));
+
+        const preferredLeft = Math.round(triggerRect.left + triggerRect.width / 2 - panelWidth / 2);
+        const left = Math.max(padding, Math.min(preferredLeft, viewportWidth - panelWidth - padding));
+
+        const topbarEl = document.querySelector('header[role="banner"]');
+        const anchorBottom = topbarEl ? topbarEl.getBoundingClientRect().bottom : triggerRect.bottom;
+        const top = Math.min(viewportHeight - padding, Math.round(anchorBottom + offset));
+
+        menuEl.style.setProperty('position', 'fixed', 'important');
+        menuEl.style.setProperty('transform', 'none', 'important');
+        menuEl.style.setProperty('left', `${left}px`, 'important');
+        menuEl.style.setProperty('top', `${top}px`, 'important');
+        menuEl.style.setProperty('right', 'auto', 'important');
+        // static/style.css's #userProfileMenu fallback rule gives it a resting
+        // margin-top for when this JS hasn't run yet — zero it out so it can't
+        // add a hidden extra gap under the `top` we just computed.
+        menuEl.style.setProperty('margin-top', '0', 'important');
+        menuEl.style.setProperty('width', `${panelWidth}px`, 'important');
+        menuEl.style.setProperty('max-width', `${Math.max(0, viewportWidth - (padding * 2))}px`, 'important');
+    }
+
+    function positionUserProfileMenu() {
+        positionFloatingMenu(
+            document.getElementById('userProfileMenu'),
+            document.getElementById('userProfileMenuBtn'),
+            { minWidth: 148, maxWidth: 180 },
+        );
+    }
+
+    function closeUserProfileMenu() {
+        const menu = document.getElementById('userProfileMenu');
+        const btn = document.getElementById('userProfileMenuBtn');
+        if (!menu || menu.classList.contains('hidden')) return;
+        menu.classList.add('hidden');
+        if (btn) btn.setAttribute('aria-expanded', 'false');
+    }
+
+    function toggleUserProfileMenu() {
+        const menu = document.getElementById('userProfileMenu');
+        const btn = document.getElementById('userProfileMenuBtn');
+        if (!menu) return;
+        if (!menu.classList.contains('hidden')) {
+            closeUserProfileMenu();
+            return;
+        }
+        menu.classList.remove('hidden');
+        if (btn) btn.setAttribute('aria-expanded', 'true');
+        positionUserProfileMenu();
+        window.requestAnimationFrame(() => {
+            if (!menu.classList.contains('hidden')) positionUserProfileMenu();
+        });
+    }
+
     function setupAuthControls() {
         const signInBtn = document.getElementById('signInBtn');
+        const authControls = document.getElementById('authControls');
         const userProfileMenuContainer = document.getElementById('userProfileMenuContainer');
         const userProfileMenuBtn = document.getElementById('userProfileMenuBtn');
         const userProfileMenu = document.getElementById('userProfileMenu');
+        const userProfileMenuLabel = document.getElementById('userProfileMenuLabel');
         const userProfileSignOutAction = document.getElementById('userProfileSignOutAction');
+
+        function refreshAuthUi() {
+            if (!authControls) return;
+            if (!isClerkConfigured()) {
+                authControls.classList.add('hidden');
+                return;
+            }
+            authControls.classList.remove('hidden');
+            authControls.classList.add('flex');
+
+            const user = window.Clerk?.user || null;
+            if (user) {
+                signInBtn?.classList.add('hidden');
+                userProfileMenuContainer?.classList.remove('hidden');
+                if (userProfileMenuLabel) {
+                    userProfileMenuLabel.textContent = user.firstName || user.emailAddresses?.[0]?.emailAddress || 'User';
+                }
+            } else {
+                signInBtn?.classList.remove('hidden');
+                userProfileMenuContainer?.classList.add('hidden');
+                closeUserProfileMenu();
+            }
+        }
 
         if (window.Clerk) {
             window.Clerk.load().then(() => {
-                const user = window.Clerk?.user;
-                if (user) {
-                    if (signInBtn) signInBtn.style.display = 'none';
-                    if (userProfileMenuContainer) userProfileMenuContainer.classList.remove('hidden');
-                    if (userProfileMenuBtn) {
-                        const userName = user.firstName || user.emailAddresses?.[0]?.emailAddress || 'User';
-                        const label = document.getElementById('userProfileMenuLabel');
-                        if (label) label.textContent = userName;
-                    }
-                } else {
-                    if (signInBtn) signInBtn.style.display = 'inline-block';
-                    if (userProfileMenuContainer) userProfileMenuContainer.classList.add('hidden');
-                }
+                refreshAuthUi();
+                window.Clerk.addListener(refreshAuthUi);
             });
         }
 
         if (userProfileMenuBtn) {
-            userProfileMenuBtn.addEventListener('click', () => {
-                userProfileMenu?.classList.toggle('hidden');
+            userProfileMenuBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                toggleUserProfileMenu();
             });
         }
+
+        // Close the menu when clicking outside it — matches templates/index.html.
+        document.addEventListener('click', (e) => {
+            if (userProfileMenuContainer && !userProfileMenuContainer.contains(e.target)) {
+                closeUserProfileMenu();
+            }
+        });
+
+        window.addEventListener('resize', () => {
+            if (userProfileMenu && !userProfileMenu.classList.contains('hidden')) {
+                positionUserProfileMenu();
+            }
+        });
 
         if (userProfileSignOutAction) {
             userProfileSignOutAction.addEventListener('click', () => {
@@ -194,11 +320,13 @@
 
     // ===== INITIALIZATION =====
     document.addEventListener('DOMContentLoaded', () => {
-        // Load theme preference
-        const savedTheme = localStorage.getItem(THEME_PREFERENCE_KEY);
-        if (savedTheme) {
-            appState.prefs.theme = normalizeThemePreference(savedTheme);
-        }
+        // Load theme preference from the shared prefs blob (see APP_PREFS_KEY above)
+        try {
+            const saved = JSON.parse(localStorage.getItem(APP_PREFS_KEY) || '{}');
+            if (saved.theme) {
+                appState.prefs.theme = normalizeThemePreference(saved.theme);
+            }
+        } catch (_) { }
         applyThemePreferenceClass();
         updateThemeToggleUi();
 
@@ -209,12 +337,121 @@
         // Theme toggle button
         const themeToggleBtn = document.getElementById('themeToggleBtn');
         if (themeToggleBtn) {
-            themeToggleBtn.addEventListener('click', cycleThemePreference);
+            themeToggleBtn.addEventListener('click', toggleThemeBinary);
         }
 
         // Setup authentication
         setupAuthControls();
+
+        // "Select all text" (present on every legal page's article header)
+        const selectAllBtn = document.getElementById('selectAllPolicyTextBtn');
+        if (selectAllBtn) {
+            selectAllBtn.addEventListener('click', () => {
+                const target = document.getElementById('legalDocumentBody');
+                if (!target) return;
+                const selection = window.getSelection();
+                const range = document.createRange();
+                range.selectNodeContents(target);
+                selection.removeAllRanges();
+                selection.addRange(range);
+            });
+        }
+
+        buildLegalToc();
     });
+
+    // ===== IN-PAGE TABLE OF CONTENTS =====
+    // Long legal documents read better with a persistent "where am I"
+    // sidebar (the layered-notice pattern) instead of forcing readers to
+    // scroll blind through 15-20 sections. Auto-built from the existing
+    // <h2> headings so no template needs hand-authored anchors.
+    function buildLegalToc() {
+        const article = document.getElementById('legalDocumentBody');
+        if (!article) return;
+        const headings = Array.from(article.querySelectorAll(':scope > h2'));
+        if (headings.length < 3) return;
+
+        const slugCounts = Object.create(null);
+        const entries = headings.map((h) => {
+            // Slug from the stable English label (data-en), never the
+            // currently-displayed text — otherwise switching to Hebrew
+            // would change every #anchor in the URL.
+            if (!h.id) {
+                let slug = (h.dataset.en || h.textContent || '')
+                    .toLowerCase()
+                    .replace(/[^a-z0-9\s-]/g, '')
+                    .trim()
+                    .replace(/\s+/g, '-')
+                    .slice(0, 60) || 'section';
+                if (slugCounts[slug] != null) {
+                    slugCounts[slug] += 1;
+                    slug = `${slug}-${slugCounts[slug]}`;
+                } else {
+                    slugCounts[slug] = 0;
+                }
+                h.id = slug;
+            }
+            return { id: h.id, en: h.dataset.en || h.textContent || '', he: h.dataset.he || h.textContent || '' };
+        });
+
+        const nav = document.createElement('nav');
+        nav.className = 'legal-toc';
+        nav.setAttribute('aria-label', 'Table of contents');
+
+        const toggle = document.createElement('button');
+        toggle.type = 'button';
+        toggle.className = 'legal-toc-toggle';
+        toggle.setAttribute('aria-expanded', 'true');
+        toggle.setAttribute('data-en', 'Contents');
+        toggle.setAttribute('data-he', 'תוכן עניינים');
+        toggle.textContent = 'Contents';
+
+        const list = document.createElement('ol');
+        list.className = 'legal-toc-list';
+        const currentLang = getCurrentLanguage();
+        entries.forEach((entry) => {
+            const li = document.createElement('li');
+            const a = document.createElement('a');
+            a.href = `#${entry.id}`;
+            a.dataset.en = entry.en;
+            a.dataset.he = entry.he;
+            a.textContent = currentLang === 'he' ? entry.he : entry.en;
+            li.appendChild(a);
+            list.appendChild(li);
+        });
+
+        toggle.addEventListener('click', () => {
+            const expanded = toggle.getAttribute('aria-expanded') === 'true';
+            toggle.setAttribute('aria-expanded', String(!expanded));
+            nav.classList.toggle('is-collapsed', expanded);
+        });
+
+        // On phones the list would otherwise push the whole document down
+        // by a full screen's worth of section titles before any real
+        // content is visible — default it closed there. The desktop sticky
+        // sidebar (>=900px) always shows expanded regardless of this state.
+        if (window.innerWidth < 900) {
+            toggle.setAttribute('aria-expanded', 'false');
+            nav.classList.add('is-collapsed');
+        }
+
+        nav.appendChild(toggle);
+        nav.appendChild(list);
+        article.parentElement.insertBefore(nav, article);
+
+        // Highlight the section currently in view.
+        if ('IntersectionObserver' in window) {
+            const links = new Map(entries.map((entry) => [entry.id, list.querySelector(`a[href="#${entry.id}"]`)]));
+            const observer = new IntersectionObserver((observedEntries) => {
+                observedEntries.forEach((observedEntry) => {
+                    const link = links.get(observedEntry.target.id);
+                    if (!link) return;
+                    link.classList.toggle('is-active', observedEntry.isIntersecting);
+                });
+            }, { rootMargin: '-10% 0px -70% 0px' });
+            headings.forEach((h) => observer.observe(h));
+        }
+    }
 
     // System theme change listener
     if (window.matchMedia) {

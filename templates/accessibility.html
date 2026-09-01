@@ -7,252 +7,46 @@
     <meta name="description" content="Sh'elah Accessibility Statement — our commitment to an accessible experience, what's implemented, and how to report issues.">
     <meta name="theme-color" content="#f3ede0" media="(prefers-color-scheme: light)">
     <meta name="theme-color" content="#0c0c0b" media="(prefers-color-scheme: dark)">
+    <script>(function () {
+        try {
+            var raw = localStorage.getItem("Sh'elahPrefs");
+            var t = raw ? JSON.parse(raw).theme : null;
+            if (t !== 'light' && t !== 'dark') {
+                t = (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) ? 'dark' : 'light';
+            }
+            document.documentElement.setAttribute('data-theme', t);
+            document.documentElement.classList.toggle('theme-dark', t === 'dark');
+        } catch (e) { }
+    })()</script>
     <title>Accessibility Statement – Sh'elah</title>
+    <link rel="canonical" href="https://shelah-app.vercel.app/accessibility">
+    <script type="application/ld+json">
+    {
+        "@context": "https://schema.org",
+        "@type": "WebPage",
+        "name": "Accessibility Statement – Sh'elah",
+        "description": "Sh'elah Accessibility Statement — our commitment to an accessible experience, what's implemented, and how to report issues.",
+        "url": "https://shelah-app.vercel.app/accessibility"
+    }
+    </script>
+    <meta property="og:type" content="website">
+    <meta property="og:title" content="Accessibility Statement – Sh'elah">
+    <meta property="og:description" content="Sh'elah Accessibility Statement — our commitment to an accessible experience, what's implemented, and how to report issues.">
+    <meta property="og:url" content="https://shelah-app.vercel.app/accessibility">
+    <meta property="og:image" content="https://shelah-app.vercel.app/static/og-image.png">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="Accessibility Statement – Sh'elah">
+    <meta name="twitter:description" content="Sh'elah Accessibility Statement — our commitment to an accessible experience, what's implemented, and how to report issues.">
+    <meta name="twitter:image" content="https://shelah-app.vercel.app/static/og-image.png">
     <link rel="icon" href="/static/favicon.svg" type="image/svg+xml">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Cardo:wght@400;700&family=Inter:wght@400;500;600&display=swap"
         rel="stylesheet">
     <link rel="stylesheet" href="/static/css/tokens.css?v=20260617-v1">
-    <link rel="stylesheet" href="/static/style.css?v=20260617-v1">
-    <link rel="stylesheet" href="/static/css/tailwind.css?v=20260617-v1">
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
-        body {
-            font-family: 'Inter', system-ui, sans-serif;
-            background: var(--surface-0);
-            color: var(--ink-primary);
-        }
-
-        html.rtl body {
-            direction: rtl;
-            text-align: right;
-        }
-
-        html.rtl body .prose {
-            text-align: right;
-        }
-
-        .prose h1 {
-            font-family: 'Cardo', Georgia, serif;
-            font-weight: 700;
-            color: var(--ink-heading);
-        }
-
-        .prose h2 {
-            font-family: 'Cardo', Georgia, serif;
-            font-size: 1.35rem;
-            font-weight: 700;
-            margin-top: 2rem;
-            margin-bottom: 0.5rem;
-            color: var(--ink-heading);
-            border-bottom: 1px solid var(--surface-border);
-            padding-bottom: 0.3rem;
-        }
-
-        .prose h3 {
-            font-size: 1rem;
-            font-weight: 600;
-            margin-top: 1.2rem;
-            margin-bottom: 0.3rem;
-            color: var(--ink-primary);
-        }
-
-        .prose p {
-            margin-bottom: 0.9rem;
-            line-height: 1.75;
-            color: var(--ink-primary);
-        }
-
-        .prose ul,
-        .prose ol {
-            margin-bottom: 0.9rem;
-        }
-
-        .prose ul {
-            padding-left: 1.5rem;
-            list-style: disc;
-        }
-
-        .prose ol {
-            padding-left: 1.5rem;
-            list-style: decimal;
-        }
-
-        html.rtl .prose ul,
-        html.rtl .prose ol {
-            padding-left: 0;
-            padding-right: 1.5rem;
-        }
-
-        .prose li {
-            margin-bottom: 0.3rem;
-            color: inherit;
-        }
-
-        .prose a {
-            color: var(--accent-primary);
-            text-decoration: underline;
-            transition: color 0.2s;
-        }
-
-        .prose a:hover {
-            color: var(--accent-primary-hover);
-        }
-
-        .info-box {
-            background: var(--surface-pill);
-            border: 1px solid var(--accent-gold);
-            border-left: 3px solid var(--accent-gold);
-            border-radius: 0.5rem;
-            padding: 1rem 1.25rem;
-            margin: 1.5rem 0;
-            color: var(--ink-primary);
-        }
-
-        html.rtl .info-box {
-            border-left: 1px solid var(--accent-gold);
-            border-right: 3px solid var(--accent-gold);
-        }
-
-        .main-container {
-            max-width: 860px;
-            margin: 0 auto;
-            padding: 2.5rem 1.5rem 4rem;
-        }
-
-        /* Page hero area */
-        .legal-hero {
-            background: linear-gradient(135deg, var(--surface-1) 0%, var(--surface-pill) 100%);
-            border-bottom: 1px solid var(--surface-border);
-            padding: 2.5rem 1.5rem 2rem;
-            text-align: center;
-        }
-
-        .legal-hero h1 {
-            font-family: 'Cardo', Georgia, serif;
-            font-size: 2rem;
-            font-weight: 700;
-            color: var(--ink-heading);
-            margin-bottom: 0.5rem;
-        }
-
-        .legal-hero .subtitle {
-            font-size: 0.9rem;
-            color: var(--ink-secondary);
-        }
-
-        .legal-back-link {
-            display: inline-flex;
-            align-items: center;
-            gap: 0.4rem;
-            font-size: 0.82rem;
-            font-weight: 600;
-            color: var(--ink-heading);
-            text-decoration: none;
-            margin-bottom: 1.25rem;
-            padding: 0.4rem 0.8rem;
-            border: 1px solid var(--surface-border);
-            border-radius: 0.4rem;
-            background: var(--surface-0);
-            transition: background 0.15s, border-color 0.15s;
-        }
-
-        .legal-back-link:hover {
-            background: var(--surface-1);
-            text-decoration: none;
-        }
-
-        .legal-actions {
-            display: flex;
-            justify-content: flex-end;
-            margin-bottom: 1.5rem;
-        }
-
-        .select-all-btn {
-            display: inline-flex;
-            align-items: center;
-            gap: 0.35rem;
-            font-size: 0.78rem;
-            font-weight: 600;
-            color: var(--ink-primary);
-            background: var(--surface-1);
-            border: 1px solid var(--surface-border);
-            border-radius: 0.4rem;
-            padding: 0.4rem 0.75rem;
-            cursor: pointer;
-            transition: background 0.15s, border-color 0.15s;
-        }
-
-        .select-all-btn:hover {
-            background: var(--surface-2);
-        }
-
-        .select-all-btn:focus-visible {
-            outline: 2px solid var(--accent-primary);
-            outline-offset: 2px;
-        }
-
-        .topbar-flat-btn {
-            padding: 0.375rem 0.75rem;
-            border-radius: 0.375rem;
-            border: 1px solid transparent;
-            background: transparent;
-            color: var(--ink-primary);
-            font-size: 0.875rem;
-            cursor: pointer;
-            transition: all 0.2s;
-            white-space: nowrap;
-        }
-
-        .topbar-flat-btn:hover {
-            background: var(--surface-1);
-            border-color: var(--surface-border);
-        }
-
-        .lang-btn-active {
-            background: var(--surface-1) !important;
-            border-color: var(--surface-border) !important;
-            font-weight: 600;
-        }
-
-        .topbar-user-menu-item {
-            display: block;
-            padding: 0.375rem 0.75rem;
-            color: var(--ink-primary);
-            font-size: 0.875rem;
-            cursor: pointer;
-            transition: background 0.2s;
-        }
-
-        .topbar-user-menu-item:hover {
-            background: var(--surface-1);
-        }
-
-        #userProfileMenu {
-            background: var(--surface-2);
-            border: 1px solid var(--surface-border);
-            border-radius: 0.75rem;
-        }
-
-        .skip-to-content {
-            position: absolute;
-            top: -40px;
-            left: 0;
-            background: #000;
-            color: white;
-            padding: 8px;
-            text-decoration: none;
-            z-index: 100;
-        }
-
-        .skip-to-content:focus {
-            top: 0;
-        }
-    </style>
+    <link rel="stylesheet" href="/static/style.css?v=20260617-v2">
+    <link rel="stylesheet" href="/static/css/tailwind.css?v=20260818-v5">
+    <link rel="stylesheet" href="/static/css/legal.css?v=20260818-v5">
 </head>
 
 <body class="font-sans min-h-screen overflow-x-hidden flex flex-col">
@@ -265,21 +59,21 @@
     <!-- Hero Banner -->
     <div class="legal-hero">
         <h1 data-en="Accessibility Statement" data-he="הצהרת נגישות">Accessibility Statement</h1>
-        <p class="subtitle" data-en="Last updated: June 2026" data-he="עדכון אחרון: יוני 2026">Last updated: June 2026</p>
+        <p class="subtitle" data-en="Last updated: August 2026" data-he="עדכון אחרון: אוגוסט 2026">Last updated: August 2026</p>
     </div>
 
     <!-- MAIN CONTENT -->
     <main id="mainContent" class="flex-1">
         <article id="legalDocumentBody" class="main-container prose prose-sm max-w-2xl">
-            <a href="/" class="legal-back-link" data-en="← Back to Sh'elah" data-he="← חזרה לשאלה">← Back to Sh'elah</a>
-
-            <div class="legal-actions">
-                <button type="button" id="selectAllPolicyTextBtn" class="select-all-btn"
+            <div class="legal-toolbar">
+                <a href="/" class="legal-back-link" data-en="← Back to Sh'elah" data-he="← חזרה לשאלה">← Back to Sh'elah</a>
+                                <button type="button" id="selectAllPolicyTextBtn" class="select-all-btn"
                     data-en="Select all text" data-he="בחר את כל הטקסט"
                     aria-label="Select all accessibility statement text for copying">
                     <span aria-hidden="true">⧉</span>
                     <span data-en="Select all text" data-he="בחר את כל הטקסט">Select all text</span>
                 </button>
+            
             </div>
 
             <div class="info-box">
@@ -330,6 +124,12 @@
                 <li data-en="No information is conveyed by color alone — status and state always include text, an icon, or both"
                     data-he="לא נמסר מידע על ידי צבע בלבד — סטטוס ומצב כוללים תמיד טקסט, סמל, או שניהם">No information
                     is conveyed by color alone — status and state always include text, an icon, or both</li>
+                <li data-en="Automated WCAG 2.1 AA checks (pa11y-ci) run in continuous integration on every push against our key pages (home, this page, and the other legal pages), in both light and dark themes, failing the build on a real violation — see docs/ACCESSIBILITY_AUDIT.md for the manual color-contrast audit these automated checks build on"
+                    data-he="בדיקות WCAG 2.1 AA אוטומטיות (pa11y-ci) פועלות באינטגרציה רציפה בכל דחיפה מול עמודי המפתח שלנו (עמוד הבית, עמוד זה, ושאר העמודים המשפטיים), במראה הבהיר ובמראה הכהה כאחד, וגורמות לכשל בבנייה במקרה של הפרה אמיתית — ראה docs/ACCESSIBILITY_AUDIT.md לביקורת ניגודיות הצבעים הידנית שעליה בדיקות אוטומטיות אלה נשענות">
+                    Automated WCAG 2.1 AA checks (<code>pa11y-ci</code>) run in continuous integration on every push
+                    against our key pages (home, this page, and the other legal pages), in both light and dark
+                    themes, failing the build on a real violation — see <code>docs/ACCESSIBILITY_AUDIT.md</code>
+                    for the manual color-contrast audit these automated checks build on</li>
             </ul>
 
             <h2 id="limitations" data-en="3. Known Limitations" data-he="3. מגבלות ידועות">3. Known Limitations</h2>
@@ -400,23 +200,24 @@
             <a href="/privacy" class="hover:underline" style="color: var(--ink-secondary);"
                 data-en="Privacy Policy" data-he="מדיניות פרטיות">Privacy Policy</a>
             &nbsp;·&nbsp;
+            <a href="/ai-disclosure" class="hover:underline" style="color: var(--ink-secondary);"
+                data-en="AI Disclosure" data-he="גילוי נאות בינה מלאכותית">AI Disclosure</a>
+            &nbsp;·&nbsp;
+            <a href="/acceptable-use" class="hover:underline" style="color: var(--ink-secondary);"
+                data-en="Acceptable Use" data-he="שימוש מותר">Acceptable Use</a>
+            &nbsp;·&nbsp;
+            <a href="/dmca" class="hover:underline" style="color: var(--ink-secondary);"
+                data-en="DMCA" data-he="DMCA">DMCA</a>
+            &nbsp;·&nbsp;
             <a href="/accessibility" class="hover:underline font-medium" style="color: var(--ink-heading);"
                 data-en="Accessibility" data-he="נגישות">Accessibility</a>
+            &nbsp;·&nbsp;
+            <a href="/licenses" class="hover:underline" style="color: var(--ink-secondary);"
+                data-en="Licenses" data-he="רישיונות">Licenses</a>
         </p>
     </footer>
 
     {% include 'components/legal_scripts.html' %}
-    <script>
-        document.getElementById('selectAllPolicyTextBtn')?.addEventListener('click', () => {
-            const target = document.getElementById('legalDocumentBody');
-            if (!target) return;
-            const selection = window.getSelection();
-            const range = document.createRange();
-            range.selectNodeContents(target);
-            selection.removeAllRanges();
-            selection.addRange(range);
-        });
-    </script>
 </body>
 
 </html>

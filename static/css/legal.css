@@ -436,6 +436,25 @@ body:not(.library-shell) #themeToggleBtn {
     color: var(--ink-primary) !important;
 }
 
+/* .topbar-flat-btn's shared padding renders this icon-only button at
+   ~26x22px -- under the project's 44x44px touch-target minimum. Expanding
+   the visible button would break its flat-icon match with the "Sign In" /
+   language-pill siblings it sits beside, so extend the *hit area* only,
+   via an invisible ::before centered on the button, rather than resizing
+   the button itself. */
+body:not(.library-shell) #themeToggleBtn {
+    position: relative;
+}
+
+body:not(.library-shell) #themeToggleBtn::before {
+    content: "";
+    position: absolute;
+    inset: 50% auto auto 50%;
+    transform: translate(-50%, -50%);
+    width: max(44px, 100%);
+    height: max(44px, 100%);
+}
+
 body:not(.library-shell) #themeToggleBtn:hover {
     background: var(--surface-1) !important;
     border-color: var(--surface-border) !important;
