@@ -21,6 +21,8 @@ from functools import wraps
 import jwt
 from flask import g, has_request_context, jsonify, request
 
+from backend.logging_setup import _capture_backend_error
+
 # Read Clerk config directly from env — mirrors the identically-named
 # constants in app.py (same env-var names, same fallback logic).
 CLERK_JWT_ISSUER: str = (os.environ.get("CLERK_JWT_ISSUER") or "").strip().rstrip("/")
@@ -113,7 +115,13 @@ def maybe_require_clerk_auth(route_fn):
             return route_fn(*args, **kwargs)
         try:
             g.clerk_claims = _verify_clerk_token(token)
-        except Exception:
+        except Exception as exc:
+            _capture_backend_error("clerk_auth_verify_failed", exc, {
+                "path": request.path if has_request_context() else None,
+                "issuer_configured": bool(CLERK_JWT_ISSUER),
+                "audience_configured": bool(CLERK_AUDIENCE),
+                "enforced": False,
+            })
             return jsonify({"error": "Invalid or expired Clerk token"}), 401
         return route_fn(*args, **kwargs)
     return wrapped
@@ -151,7 +159,13 @@ def require_clerk_auth(route_fn):
             return jsonify({"error": "Authentication required"}), 401
         try:
             g.clerk_claims = _verify_clerk_token(token)
-        except Exception:
+        except Exception as exc:
+            _capture_backend_error("clerk_auth_verify_failed", exc, {
+                "path": request.path if has_request_context() else None,
+                "issuer_configured": bool(CLERK_JWT_ISSUER),
+                "audience_configured": bool(CLERK_AUDIENCE),
+                "enforced": True,
+            })
             return jsonify({"error": "Invalid or expired Clerk token"}), 401
         return route_fn(*args, **kwargs)
     return wrapped
