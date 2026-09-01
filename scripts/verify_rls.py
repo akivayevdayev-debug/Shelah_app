@@ -81,6 +81,17 @@ Test user A and B, EACH needs one of:
   RLS_TEST_USER_A_SESSION_ID    + CLERK_SECRET_KEY, to mint a fresh one (CI)
   (same pattern for RLS_TEST_USER_B_*)
 
+Optional:
+  VERCEL_AUTOMATION_BYPASS_SECRET   Bypasses Vercel Deployment Protection
+    (Project Settings -> Deployment Protection -> Protection Bypass for
+    Automation) if the deployed URL has that enabled. Does NOT bypass
+    Vercel's Firewall-level checks (Attack Mode, managed bot/DDoS rulesets,
+    custom WAF rules) -- Vercel's own docs say those "cannot be bypassed
+    even with a valid bypass token." If Layer 2 still 429s with a Vercel
+    "Security Checkpoint" page after this is set, check Project -> Firewall
+    -> Firewall Observability for which rule actually matched. Confirmed
+    live 2026-08-31 -- see plan.md §21's Prompt 34 update.
+
 A session_id is not a permanent credential -- Clerk sessions expire (or end
 via sign-out / Clerk's own session policy). Once a session has ended, minting
 a token from its id fails with a 404 `resource_not_found` from
@@ -203,7 +214,7 @@ def _load_test_user(label):
     user_id = str(claims.get("sub") or "").strip()
     if not user_id:
         return None
-    return {"token": token, "user_id": user_id}
+    return {"token": token, "user_id": user_id, "issuer": str(claims.get("iss") or "")}
 
 
 def _postgrest_headers(publishable_key, token):
@@ -238,19 +249,61 @@ def check_table_rls(supabase_url, publishable_key, table_name, id_column, sentin
     if id_column:
         insert_payload[id_column] = row_id
 
+    insert_url = f"{supabase_url.rstrip('/')}/rest/v1/{table_name}"
     insert_resp = requests.post(
-        f"{supabase_url.rstrip('/')}/rest/v1/{table_name}",
+        insert_url,
         headers={**_postgrest_headers(publishable_key, user_a["token"]),
                  "Prefer": "return=minimal"},
         json=insert_payload,
         timeout=20,
     )
     if insert_resp.status_code not in (200, 201, 204):
+        hint = (
+            "either RLS's INSERT policy is rejecting a legitimate owner, or "
+            "auth.uid() isn't resolving at all (plan.md §21.1)."
+        )
+        if insert_resp.status_code == 404 and "PGRST125" in insert_resp.text:
+            # Reached PostgREST fine, but it doesn't recognize this path --
+            # SUPABASE_URL almost certainly has an unexpected extra segment
+            # (e.g. a pasted /rest/v1 suffix doubling into
+            # .../rest/v1/rest/v1/<table>; main() already strips that one
+            # known case, so seeing this means something else is off).
+            hint = (
+                f"PostgREST does not recognize this path ({insert_url!r}) -- "
+                "not an RLS decision, the request never got that far. "
+                "SUPABASE_URL should be the bare project URL "
+                "(https://<project-ref>.supabase.co), matching exactly what "
+                "app.py's own create_client(SUPABASE_URL, ...) expects -- "
+                "the supabase-py client appends /rest/v1 itself, same as "
+                "this script does. Double check the SUPABASE_URL secret's "
+                "exact value against that."
+            )
+        elif insert_resp.status_code == 401 and "PGRST301" in insert_resp.text:
+            # PostgREST could not verify the JWT's SIGNATURE at all here --
+            # RLS was never reached, so this is not the §21.1 "auth.uid()
+            # resolves NULL" scenario (that fails the RLS check itself, with
+            # a 403/42501, after the JWT verifies fine). PGRST301 means the
+            # Third-Party Auth / JWKS trust relationship itself is broken:
+            # most commonly, the CLERK_SECRET_KEY used to mint this token
+            # belongs to a different Clerk environment (dev vs. prod
+            # instance) than the domain Supabase's Third-Party Auth is
+            # configured to trust. Compare the printed token issuer above
+            # against Supabase Dashboard -> Authentication -> Third-Party
+            # Auth's configured Clerk domain -- they must match exactly.
+            hint = (
+                "PostgREST could not verify this JWT's SIGNATURE at all -- "
+                "RLS never got evaluated. This is a Third-Party Auth / JWKS "
+                "trust mismatch, not an RLS policy decision. Compare this "
+                f"token's issuer ({user_a.get('issuer') or 'unknown, decode failed'}) "
+                "against the Clerk domain configured in Supabase Dashboard -> "
+                "Authentication -> Third-Party Auth -- they must match "
+                "exactly. A common cause: CLERK_SECRET_KEY (used to mint "
+                "this token) belongs to a different Clerk environment "
+                "(dev vs. prod instance) than the one Supabase trusts."
+            )
         return False, [
             f"{table_name}: INSERT as owner (user A) failed with "
-            f"{insert_resp.status_code}: {insert_resp.text[:300]} -- either "
-            "RLS's INSERT policy is rejecting a legitimate owner, or "
-            "auth.uid() isn't resolving at all (plan.md §21.1)."
+            f"{insert_resp.status_code}: {insert_resp.text[:300]} -- {hint}"
         ]
 
     try:
@@ -315,10 +368,36 @@ def check_table_rls(supabase_url, publishable_key, table_name, id_column, sentin
             pass
 
 
+def _vercel_bypass_headers():
+    """Bypasses Vercel Deployment Protection (password/SSO-gated preview
+    URLs) via Project Settings -> Deployment Protection -> Protection Bypass
+    for Automation. This does NOT bypass Vercel's Firewall-level checks
+    (Attack Mode, managed bot/DDoS rulesets, custom WAF rules) -- confirmed
+    live 2026-08-31 (plan.md §21's Prompt 34 update): Vercel's own docs say
+    those "cannot be bypassed even with a valid bypass token." If Layer 2
+    still 429s with a Vercel "Security Checkpoint" page after this header is
+    set, the cause is a Firewall-level rule, not Deployment Protection --
+    check Project -> Firewall -> Firewall Observability for which rule
+    matched. Optional: if VERCEL_AUTOMATION_BYPASS_SECRET is unset, Layer 2
+    requests are sent without this header."""
+    secret = os.environ.get("VERCEL_AUTOMATION_BYPASS_SECRET", "").strip()
+    return {"x-vercel-protection-bypass": secret} if secret else {}
+
+
+_LAYER2_USER_AGENT = (
+    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 "
+    "(KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
+)
+
+
 def check_preferences_app_round_trip(base_url, user_a):
     """Layer 2: the real HTTP round trip through the deployed app."""
     sentinel = f"rls-verify-{uuid.uuid4().hex[:12]}"
-    headers = {"Authorization": f"Bearer {user_a['token']}"}
+    headers = {
+        "Authorization": f"Bearer {user_a['token']}",
+        "User-Agent": _LAYER2_USER_AGENT,
+        **_vercel_bypass_headers(),
+    }
 
     put_resp = requests.put(
         f"{base_url.rstrip('/')}/api/user/preferences",
@@ -353,7 +432,11 @@ def check_preferences_app_round_trip(base_url, user_a):
 
 def check_bookmarks_app_round_trip(base_url, user_a):
     sentinel_ref = f"rls-verify-{uuid.uuid4().hex[:12]}"
-    headers = {"Authorization": f"Bearer {user_a['token']}"}
+    headers = {
+        "Authorization": f"Bearer {user_a['token']}",
+        "User-Agent": _LAYER2_USER_AGENT,
+        **_vercel_bypass_headers(),
+    }
 
     post_resp = requests.post(
         f"{base_url.rstrip('/')}/api/bookmarks/semantic",
@@ -405,6 +488,16 @@ def main():
         or ""
     ).strip()
     supabase_url = (os.environ.get("SUPABASE_URL") or "").strip()
+    # app.py's own SUPABASE_URL usage (create_client(SUPABASE_URL, ...))
+    # expects the bare project URL -- the supabase-py client appends
+    # /rest/v1 itself. If SUPABASE_URL was instead copy-pasted as the full
+    # REST endpoint, this script's own f"{supabase_url}/rest/v1/{table}"
+    # construction below would double that path, which PostgREST reports as
+    # PGRST125 "Invalid path specified in request URL" (confirmed live
+    # 2026-08-31, see plan.md §21's Prompt 34 update). Strip it defensively
+    # so a pasted REST URL doesn't silently 404 every table identically.
+    if supabase_url.rstrip("/").endswith("/rest/v1"):
+        supabase_url = supabase_url.rstrip("/")[: -len("/rest/v1")]
     publishable_key = (os.environ.get("SUPABASE_PUBLISHABLE_KEY") or "").strip()
 
     missing = []
@@ -445,8 +538,8 @@ def main():
 
     print_info(f"Base URL: {base_url}")
     print_info(f"Supabase project: {supabase_url}")
-    print_info(f"Test user A: {user_a['user_id']}")
-    print_info(f"Test user B: {user_b['user_id']}")
+    print_info(f"Test user A: {user_a['user_id']} (token issuer: {user_a['issuer'] or 'unknown -- decode failed'})")
+    print_info(f"Test user B: {user_b['user_id']} (token issuer: {user_b['issuer'] or 'unknown -- decode failed'})")
 
     all_ok = True
 
