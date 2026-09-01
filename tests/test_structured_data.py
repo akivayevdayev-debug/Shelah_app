@@ -2,13 +2,16 @@
 Tests for the SEO/structured-data audit (plan.md §44.2.3, §44.2.4): the
 og:image/twitter:image assets and JSON-LD blocks across the public templates.
 
-Scope note: 4 of the 11 public templates (/, /accessibility, /privacy, /terms)
-already carry an unrelated, much larger uncommitted CSS-redesign diff
-(plan.md §40/§52) that this pass could not safely disentangle its own change
-from -- see claude_code_prompts.md's Prompt 56 report. Their og-image/
-structured-data updates exist in the working tree but are deliberately left
-out of this commit and this test file's assertions until §52 resolves that
-larger diff; extend STABLE_PAGES to the full 11 once it does.
+Scope note: §40/§52's legal-page/topbar CSS redesign landed 2026-09-01
+(see claude_code_prompts.md Prompt 52's resolution note), which unblocked
+/accessibility, /privacy, /terms here -- their og-image/structured-data
+edits are now included below. `/` (index.html) stays excluded: its own
+uncommitted diff turned out to be far larger than the CSS redesign alone
+(~2000 lines bundling several unrelated, untested features -- see that
+same resolution note), so it was deliberately left uncommitted and its
+og-image/JSON-LD portion couldn't be safely separated from the rest in
+this pass either. Extend STABLE_PAGES with "/" once index.html's diff is
+triaged and lands.
 """
 
 import json
@@ -19,6 +22,7 @@ from PIL import Image
 STABLE_PAGES = [
     "/about", "/help", "/glossary",
     "/ai-disclosure", "/acceptable-use", "/dmca", "/licenses",
+    "/accessibility", "/privacy", "/terms",
 ]
 
 LD_JSON_RE = re.compile(r'<script type="application/ld\+json">\n(.*?)\n\s*</script>', re.S)
