@@ -81,6 +81,17 @@ Test user A and B, EACH needs one of:
   RLS_TEST_USER_A_SESSION_ID    + CLERK_SECRET_KEY, to mint a fresh one (CI)
   (same pattern for RLS_TEST_USER_B_*)
 
+A session_id is not a permanent credential -- Clerk sessions expire (or end
+via sign-out / Clerk's own session policy). Once a session has ended, minting
+a token from its id fails with a 404 `resource_not_found` from
+https://api.clerk.com/v1/sessions/{id}/tokens (confirmed live 2026-08-31,
+see plan.md §21's Prompt 34 update) -- NOT an auth-header or Content-Type
+problem, and not something this script can recover from on its own. If you
+hit that, sign in again as the dedicated test user, copy the NEW session_id
+from Clerk Dashboard -> Users -> (test user) -> Sessions, and update the
+RLS_TEST_USER_<X>_SESSION_ID secret. Expect to do this periodically for a
+scheduled/unattended run.
+
 Exit code 0 only if every check ran and passed. Exit code 1 if any check
 failed, or if required configuration is missing (fail closed: an
 unconfigured run must never report success).
