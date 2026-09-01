@@ -1455,6 +1455,15 @@ def service_worker():
     )
 
 
+@app.errorhandler(404)
+def not_found(_error):
+    return render_template(
+        "404.html",
+        clerk_publishable_key=CLERK_PUBLISHABLE_KEY,
+        clerk_enforce_auth=CLERK_ENFORCE_AUTH,
+    ), 404
+
+
 def _ask_question_prayer_payload(question, mode, answer_language, canonical_lens):
     """Stage 0 of ask_question(): prayer-keyword early return, or None if
     `question` isn't a prayer question. Split out to keep this pipeline
