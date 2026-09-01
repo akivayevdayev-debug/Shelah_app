@@ -161,7 +161,8 @@ def _mint_session_token(session_id):
         "CLERK_API_BASE", "https://api.clerk.com/v1").rstrip("/")
     resp = requests.post(
         f"{api_base}/sessions/{session_id}/tokens",
-        headers={"Authorization": f"Bearer {secret}"},
+        headers={"Authorization": f"Bearer {secret}", "Content-Type": "application/json"},
+        json={},
         timeout=15,
     )
     resp.raise_for_status()
