@@ -112,3 +112,23 @@ def sitemap_xml():
         + "\n</urlset>\n"
     )
     return Response(body, mimetype="application/xml")
+
+
+@routes_pages.route("/llms.txt")
+def llms_txt():
+    lines = [
+        "# Sh'elah",
+        "",
+        "> Sh'elah is an AI-powered Torah encyclopedia: ask a halachic or",
+        "> Torah-study question in plain language and get an answer grounded",
+        "> in primary sources (Talmud, Tanakh, halachic codes) via Sefaria,",
+        "> with citations and awareness of differing community customs.",
+        "",
+        "## Pages",
+        "",
+    ]
+    # Iterate _SITEMAP_PATHS rather than hand-duplicating its list, so this
+    # route and /sitemap.xml can't silently drift apart from each other.
+    lines.extend(f"- {_SITE_BASE_URL}{path}" for path, _changefreq, _priority in _SITEMAP_PATHS)
+    lines.append("")
+    return Response("\n".join(lines), mimetype="text/plain")

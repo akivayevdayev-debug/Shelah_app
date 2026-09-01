@@ -89,6 +89,30 @@ class TestSitemapXmlRoute:
         assert "/api/" not in body
 
 
+class TestLlmsTxtRoute:
+    def test_llms_txt_returns_200(self, test_client):
+        response = test_client.get("/llms.txt")
+        assert response.status_code == 200
+
+    def test_llms_txt_is_plain_text(self, test_client):
+        response = test_client.get("/llms.txt")
+        assert "text/plain" in response.content_type.lower()
+
+    def test_llms_txt_urls_match_sitemap(self, test_client):
+        """The two routes both derive from _SITEMAP_PATHS -- assert they
+        can't silently drift apart from each other."""
+        import re
+
+        llms_body = test_client.get("/llms.txt").get_data(as_text=True)
+        sitemap_body = test_client.get("/sitemap.xml").get_data(as_text=True)
+
+        llms_urls = {line[2:] for line in llms_body.splitlines() if line.startswith("- ")}
+        sitemap_urls = set(re.findall(r"<loc>(.*?)</loc>", sitemap_body))
+
+        assert llms_urls == sitemap_urls
+        assert llms_urls  # non-empty, guards against both sides silently going blank
+
+
 class TestNewPagesLinkToLegalFooter:
     """about/help/glossary should each link out to the legal pages, matching
     the cross-linking convention tests/test_routes_legal.py enforces for the
