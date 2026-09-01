@@ -203,6 +203,7 @@ def _load_test_user(label):
     traceback.
     """
     token = os.environ.get(f"RLS_TEST_USER_{label}_TOKEN", "").strip()
+    session_id = None
     if not token:
         session_id = os.environ.get(
             f"RLS_TEST_USER_{label}_SESSION_ID", "").strip()
@@ -214,7 +215,31 @@ def _load_test_user(label):
     user_id = str(claims.get("sub") or "").strip()
     if not user_id:
         return None
-    return {"token": token, "user_id": user_id, "issuer": str(claims.get("iss") or "")}
+    return {
+        "token": token,
+        "user_id": user_id,
+        "issuer": str(claims.get("iss") or ""),
+        "session_id": session_id,
+    }
+
+
+def _refresh_test_user_token(user):
+    """Mint a fresh token for Layer 2, rather than reusing Layer 1's.
+
+    Clerk session tokens are short-lived by default (~60s). Layer 1 makes
+    a dozen-plus sequential Supabase round trips across three tables before
+    Layer 2 ever runs, on the SAME token object minted once at the top of
+    main() -- confirmed live 2026-08-31 (plan.md §21's Prompt 34 update)
+    that this can expire the token well before Layer 2 uses it, surfacing
+    as a generic app-layer "Invalid or expired Clerk token" 401 that has
+    nothing to do with RLS. Only possible when the user was resolved from a
+    session_id (CI path); a statically-supplied RLS_TEST_USER_*_TOKEN has no
+    session_id to re-mint from and is reused as-is.
+    """
+    if not user.get("session_id"):
+        return user
+    fresh_token = _mint_session_token(user["session_id"])
+    return {**user, "token": fresh_token}
 
 
 def _postgrest_headers(publishable_key, token):
@@ -562,12 +587,17 @@ def main():
         all_ok = all_ok and ok
 
     print_header("Layer 2 -- app-routed smoke check (full plumbing, user A only)")
+    try:
+        user_a_layer2 = _refresh_test_user_token(user_a)
+    except Exception as e:
+        print_warn(f"Could not refresh user A's token for Layer 2, reusing Layer 1's: {e}")
+        user_a_layer2 = user_a
     for label, check_fn in (
         ("preferences", check_preferences_app_round_trip),
         ("bookmarks", check_bookmarks_app_round_trip),
     ):
         try:
-            ok, message = check_fn(base_url, user_a)
+            ok, message = check_fn(base_url, user_a_layer2)
         except Exception as e:
             ok, message = False, f"{label}: unexpected error: {e}"
         (print_pass if ok else print_fail)(message)
