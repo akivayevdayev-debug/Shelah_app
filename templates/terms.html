@@ -4,255 +4,49 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="Sh'elah Terms of Service — the rules and disclaimers governing use of the Service.">
+    <meta name="description" content="Sh'elah Terms of Service — the rules, disclaimers, and legal terms governing use of the Service.">
     <meta name="theme-color" content="#f3ede0" media="(prefers-color-scheme: light)">
     <meta name="theme-color" content="#0c0c0b" media="(prefers-color-scheme: dark)">
+    <script>(function () {
+        try {
+            var raw = localStorage.getItem("Sh'elahPrefs");
+            var t = raw ? JSON.parse(raw).theme : null;
+            if (t !== 'light' && t !== 'dark') {
+                t = (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) ? 'dark' : 'light';
+            }
+            document.documentElement.setAttribute('data-theme', t);
+            document.documentElement.classList.toggle('theme-dark', t === 'dark');
+        } catch (e) { }
+    })()</script>
     <title>Terms of Service – Sh'elah</title>
+    <link rel="canonical" href="https://shelah-app.vercel.app/terms">
+    <script type="application/ld+json">
+    {
+        "@context": "https://schema.org",
+        "@type": "WebPage",
+        "name": "Terms of Service – Sh'elah",
+        "description": "Sh'elah Terms of Service — the rules, disclaimers, and legal terms governing use of the Service.",
+        "url": "https://shelah-app.vercel.app/terms"
+    }
+    </script>
+    <meta property="og:type" content="website">
+    <meta property="og:title" content="Terms of Service – Sh'elah">
+    <meta property="og:description" content="Sh'elah Terms of Service — the rules, disclaimers, and legal terms governing use of the Service.">
+    <meta property="og:url" content="https://shelah-app.vercel.app/terms">
+    <meta property="og:image" content="https://shelah-app.vercel.app/static/og-image.png">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="Terms of Service – Sh'elah">
+    <meta name="twitter:description" content="Sh'elah Terms of Service — the rules, disclaimers, and legal terms governing use of the Service.">
+    <meta name="twitter:image" content="https://shelah-app.vercel.app/static/og-image.png">
     <link rel="icon" href="/static/favicon.svg" type="image/svg+xml">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Cardo:wght@400;700&family=Inter:wght@400;500;600&display=swap"
         rel="stylesheet">
     <link rel="stylesheet" href="/static/css/tokens.css?v=20260617-v1">
-    <link rel="stylesheet" href="/static/style.css?v=20260617-v1">
-    <link rel="stylesheet" href="/static/css/tailwind.css?v=20260617-v1">
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
-        body {
-            font-family: 'Inter', system-ui, sans-serif;
-            background: var(--surface-0);
-            color: var(--ink-primary);
-        }
-
-        html.rtl body {
-            direction: rtl;
-            text-align: right;
-        }
-
-        html.rtl body .prose {
-            text-align: right;
-        }
-
-        .prose h1 {
-            font-family: 'Cardo', Georgia, serif;
-            font-weight: 700;
-            color: var(--ink-heading);
-        }
-
-        .prose h2 {
-            font-family: 'Cardo', Georgia, serif;
-            font-size: 1.35rem;
-            font-weight: 700;
-            margin-top: 2rem;
-            margin-bottom: 0.5rem;
-            color: var(--ink-heading);
-            border-bottom: 1px solid var(--surface-border);
-            padding-bottom: 0.3rem;
-        }
-
-        .prose h3 {
-            font-size: 1rem;
-            font-weight: 600;
-            margin-top: 1.2rem;
-            margin-bottom: 0.3rem;
-            color: var(--ink-primary);
-        }
-
-        .prose p {
-            margin-bottom: 0.9rem;
-            line-height: 1.75;
-            color: var(--ink-primary);
-        }
-
-        .prose ul,
-        .prose ol {
-            margin-bottom: 0.9rem;
-        }
-
-        .prose ul {
-            padding-left: 1.5rem;
-            list-style: disc;
-        }
-
-        .prose ol {
-            padding-left: 1.5rem;
-            list-style: decimal;
-        }
-
-        html.rtl .prose ul,
-        html.rtl .prose ol {
-            padding-left: 0;
-            padding-right: 1.5rem;
-        }
-
-        .prose li {
-            margin-bottom: 0.3rem;
-            color: inherit;
-        }
-
-        .prose a {
-            color: var(--accent-primary);
-            text-decoration: underline;
-            transition: color 0.2s;
-        }
-
-        .prose a:hover {
-            color: var(--accent-primary-hover);
-        }
-
-        .info-box {
-            background: var(--surface-pill);
-            border: 1px solid var(--accent-gold);
-            border-left: 3px solid var(--accent-gold);
-            border-radius: 0.5rem;
-            padding: 1rem 1.25rem;
-            margin: 1.5rem 0;
-            color: var(--ink-primary);
-        }
-
-        html.rtl .info-box {
-            border-left: 1px solid var(--accent-gold);
-            border-right: 3px solid var(--accent-gold);
-        }
-
-        .main-container {
-            max-width: 860px;
-            margin: 0 auto;
-            padding: 2.5rem 1.5rem 4rem;
-        }
-
-        /* Page hero area */
-        .legal-hero {
-            background: linear-gradient(135deg, var(--surface-1) 0%, var(--surface-pill) 100%);
-            border-bottom: 1px solid var(--surface-border);
-            padding: 2.5rem 1.5rem 2rem;
-            text-align: center;
-        }
-
-        .legal-hero h1 {
-            font-family: 'Cardo', Georgia, serif;
-            font-size: 2rem;
-            font-weight: 700;
-            color: var(--ink-heading);
-            margin-bottom: 0.5rem;
-        }
-
-        .legal-hero .subtitle {
-            font-size: 0.9rem;
-            color: var(--ink-secondary);
-        }
-
-        .legal-back-link {
-            display: inline-flex;
-            align-items: center;
-            gap: 0.4rem;
-            font-size: 0.82rem;
-            font-weight: 600;
-            color: var(--ink-heading);
-            text-decoration: none;
-            margin-bottom: 1.25rem;
-            padding: 0.4rem 0.8rem;
-            border: 1px solid var(--surface-border);
-            border-radius: 0.4rem;
-            background: var(--surface-0);
-            transition: background 0.15s, border-color 0.15s;
-        }
-
-        .legal-back-link:hover {
-            background: var(--surface-1);
-            text-decoration: none;
-        }
-
-        .legal-actions {
-            display: flex;
-            justify-content: flex-end;
-            margin-bottom: 1.5rem;
-        }
-
-        .select-all-btn {
-            display: inline-flex;
-            align-items: center;
-            gap: 0.35rem;
-            font-size: 0.78rem;
-            font-weight: 600;
-            color: var(--ink-primary);
-            background: var(--surface-1);
-            border: 1px solid var(--surface-border);
-            border-radius: 0.4rem;
-            padding: 0.4rem 0.75rem;
-            cursor: pointer;
-            transition: background 0.15s, border-color 0.15s;
-        }
-
-        .select-all-btn:hover {
-            background: var(--surface-2);
-        }
-
-        .select-all-btn:focus-visible {
-            outline: 2px solid var(--accent-primary);
-            outline-offset: 2px;
-        }
-
-        .topbar-flat-btn {
-            padding: 0.375rem 0.75rem;
-            border-radius: 0.375rem;
-            border: 1px solid transparent;
-            background: transparent;
-            color: var(--ink-primary);
-            font-size: 0.875rem;
-            cursor: pointer;
-            transition: all 0.2s;
-            white-space: nowrap;
-        }
-
-        .topbar-flat-btn:hover {
-            background: var(--surface-1);
-            border-color: var(--surface-border);
-        }
-
-        .lang-btn-active {
-            background: var(--surface-1) !important;
-            border-color: var(--surface-border) !important;
-            font-weight: 600;
-        }
-
-        .topbar-user-menu-item {
-            display: block;
-            padding: 0.375rem 0.75rem;
-            color: var(--ink-primary);
-            font-size: 0.875rem;
-            cursor: pointer;
-            transition: background 0.2s;
-        }
-
-        .topbar-user-menu-item:hover {
-            background: var(--surface-1);
-        }
-
-        #userProfileMenu {
-            background: var(--surface-2);
-            border: 1px solid var(--surface-border);
-            border-radius: 0.75rem;
-        }
-
-        .skip-to-content {
-            position: absolute;
-            top: -40px;
-            left: 0;
-            background: #000;
-            color: white;
-            padding: 8px;
-            text-decoration: none;
-            z-index: 100;
-        }
-
-        .skip-to-content:focus {
-            top: 0;
-        }
-    </style>
+    <link rel="stylesheet" href="/static/style.css?v=20260617-v2">
+    <link rel="stylesheet" href="/static/css/tailwind.css?v=20260818-v5">
+    <link rel="stylesheet" href="/static/css/legal.css?v=20260818-v5">
 </head>
 
 <body class="font-sans min-h-screen overflow-x-hidden flex flex-col">
@@ -265,21 +59,32 @@
     <!-- Hero Banner -->
     <div class="legal-hero">
         <h1 data-en="Terms of Service" data-he="תנאי השירות">Terms of Service</h1>
-        <p class="subtitle" data-en="Last updated: June 2026" data-he="עדכון אחרון: יוני 2026">Last updated: June 2026</p>
+        <p class="subtitle" data-en="Last updated: August 15, 2026 · v2.0" data-he="עדכון אחרון: 15 באוגוסט 2026 · v2.0">Last
+            updated: August 15, 2026 · v2.0</p>
     </div>
 
     <!-- MAIN CONTENT -->
     <main id="mainContent" class="flex-1">
         <article id="legalDocumentBody" class="main-container prose prose-sm max-w-2xl">
-            <a href="/" class="legal-back-link" data-en="← Back to Sh'elah" data-he="← חזרה לשאלה">← Back to Sh'elah</a>
-
-            <div class="legal-actions">
-                <button type="button" id="selectAllPolicyTextBtn" class="select-all-btn"
+            <div class="legal-toolbar">
+                <a href="/" class="legal-back-link" data-en="← Back to Sh'elah" data-he="← חזרה לשאלה">← Back to Sh'elah</a>
+                                <button type="button" id="selectAllPolicyTextBtn" class="select-all-btn"
                     data-en="Select all text" data-he="בחר את כל הטקסט"
                     aria-label="Select all terms text for copying">
                     <span aria-hidden="true">⧉</span>
                     <span data-en="Select all text" data-he="בחר את כל הטקסט">Select all text</span>
                 </button>
+            
+            </div>
+
+            <div class="draft-banner">
+                <p data-en="⚠️ DRAFT — pending attorney review. This document was engineered as complete scaffolding covering the clauses a Terms of Service for an AI-assisted religious-guidance product needs, but it has not yet been reviewed or approved by a licensed attorney. Do not treat it as a finished legal instrument until that review is complete."
+                    data-he="⚠️ טיוטה — ממתינה לבדיקת עורך דין. מסמך זה נוסח ככלי שלם המכסה את הסעיפים הנדרשים לתנאי שירות של מוצר הכוונה דתית מבוסס בינה מלאכותית, אך טרם נבדק או אושר על ידי עורך דין מוסמך. אין להתייחס אליו כמסמך משפטי סופי עד להשלמת הבדיקה.">
+                    <strong>⚠️ DRAFT — pending attorney review.</strong> This document was engineered as complete
+                    scaffolding covering the clauses a Terms of Service for an AI-assisted religious-guidance product
+                    needs, but it has not yet been reviewed or approved by a licensed attorney. Do not treat it as a
+                    finished legal instrument until that review is complete.
+                </p>
             </div>
 
             <div class="info-box">
@@ -291,101 +96,82 @@
             </div>
 
             <h2 data-en="1. Acceptance of Terms" data-he="1. קבלת התנאים">1. Acceptance of Terms</h2>
-            <p data-en="By using the Sh'elah website and services ('Service'), you agree to comply with these Terms of Service and all applicable laws and regulations."
-                data-he="בשימוש באתר Sh'elah ובשירותים ('השירות'), אתה מסכים לציית לתנאי השירות הללו ולכל החוקים והתקנות החלים.">
-                By using the Sh'elah website and services ('Service'), you agree to comply with these Terms of Service
-                and all applicable laws and regulations.
+            <p data-en="By accessing or using the Sh'elah website and services ('Service'), you agree to comply with and be bound by these Terms of Service ('Terms') and all applicable laws and regulations. If you do not agree, do not use the Service. A summary of this acceptance, the version and date of these Terms, and links to every legal document are shown in the footer of every page (see §18 for how we handle material changes)."
+                data-he="בגישה או שימוש באתר Sh'elah ובשירותים ('השירות'), אתה מסכים לציית ולהיות קשור לתנאי השירות הללו ('התנאים') ולכל החוקים והתקנות החלים. אם אינך מסכים, אל תשתמש בשירות. תקציר של הסכמה זו, הגרסה והתאריך של תנאים אלה, וקישורים לכל מסמך משפטי מוצגים בתחתית כל עמוד (ראה סעיף 18 לאופן הטיפול בשינויים מהותיים).">
+                By accessing or using the Sh'elah website and services ('Service'), you agree to comply with and be
+                bound by these Terms of Service ('Terms') and all applicable laws and regulations. If you do not
+                agree, do not use the Service. A summary of this acceptance, the version and date of these Terms, and
+                links to every legal document are shown in the footer of every page (see §18 for how we handle
+                material changes).
             </p>
 
-            <h2 data-en="2. Use License" data-he="2. רישיון השימוש">2. Use License</h2>
-            <p data-en="Permission is granted to temporarily download one copy of the materials (information or software) on Sh'elah for personal, non-commercial transitory viewing only. This is the grant of a license, not a transfer of title, and under this license you may not:"
-                data-he="הרשאה ניתנת להורדה זמנית של עותק אחד של החומרים (מידע או תוכנה) ב-Sh'elah למטרות צפייה אישית, לא-מסחרית בלבד. זהו מתן רישיון, לא העברת כותרת, ותחת רישיון זה אתה לא רשאי:">
-                Permission is granted to temporarily download one copy of the materials (information or software) on
-                Sh'elah for personal, non-commercial transitory viewing only. This is the grant of a license, not a
-                transfer of title, and under this license you may not:
-            </p>
+            <h2 data-en="2. Definitions" data-he="2. הגדרות">2. Definitions</h2>
             <ul>
-                <li data-en="Modify or copy the materials" data-he="לשנות או להעתיק את החומרים">Modify or copy the materials
+                <li><strong data-en="'Service'" data-he="'השירות'">'Service'</strong> <span
+                        data-en="means the Sh'elah website, applications, and all features it offers."
+                        data-he="פירושו אתר האינטרנט, האפליקציות וכל התכונות המוצעים על ידי Sh'elah.">means the
+                        Sh'elah website, applications, and all features it offers.</span></li>
+                <li><strong data-en="'Sh'elah', 'we', 'us', 'our'" data-he="'Sh'elah', 'אנחנו', 'שלנו'">'Sh'elah',
+                        'we', 'us', 'our'</strong> <span
+                        data-en="refers to the operator of the Service — currently an individual developer, not a company (see §20)."
+                        data-he="מתייחס למפעיל השירות — כיום מפתח יחיד, לא חברה (ראה סעיף 20).">refers to the
+                        operator of the Service — currently an individual developer, not a company (see §20).</span>
                 </li>
-                <li data-en="Use the materials for any commercial purpose or for any public display"
-                    data-he="להשתמש בחומרים למטרה מסחרית כלשהי או לתצוגה פומבית">Use the materials for any commercial
-                    purpose or for any public display</li>
-                <li data-en="Attempt to decompile or reverse engineer any software contained on Sh'elah"
-                    data-he="לבצע דה-קומפילציה או הנדסה לאחור לכל תוכנה הכלולה ב-Sh'elah">Attempt to decompile or reverse
-                    engineer any software contained on Sh'elah</li>
-                <li data-en="Remove any copyright or other proprietary notations from the materials"
-                    data-he="להסיר כל סימני זכויות יוצרים או סימני בעלות אחרים מהחומרים">Remove any copyright or other
-                    proprietary notations from the materials</li>
-                <li data-en="Transfer the materials to another person or 'mirror' the materials on any other server"
-                    data-he="להעביר את החומרים לאדם אחר או לשכפל ('mirror') את החומרים בשרת אחר">Transfer the materials to another
-                    person or 'mirror' the materials on any other server</li>
+                <li><strong data-en="'You', 'User'" data-he="'אתה', 'משתמש'">'You', 'User'</strong> <span
+                        data-en="means any person who accesses or uses the Service, whether or not they create an account."
+                        data-he="פירושו כל אדם שניגש או משתמש בשירות, בין אם יצר חשבון ובין אם לאו.">means any
+                        person who accesses or uses the Service, whether or not they create an account.</span></li>
+                <li><strong data-en="'Content'" data-he="'תוכן'">'Content'</strong> <span
+                        data-en="means all text, source excerpts, translations, and other material made available through the Service, including both third-party Sources (below) and AI Output (below)."
+                        data-he="פירושו כל טקסט, קטעי מקור, תרגומים וחומר אחר המוצג באמצעות השירות, לרבות גם מקורות צד שלישי (להלן) וגם פלט בינה מלאכותית (להלן).">means
+                        all text, source excerpts, translations, and other material made available through the
+                        Service, including both third-party Sources (below) and AI Output (below).</span></li>
+                <li><strong data-en="'Sources'" data-he="'מקורות'">'Sources'</strong> <span
+                        data-en="means primary and secondary texts retrieved from third-party providers (Sefaria, Hebcal, Wikipedia, and other whitelisted corpora) and displayed under their own respective licenses — see THIRD_PARTY_LICENSES.md and the Licenses page."
+                        data-he="פירושו טקסטים ראשוניים ומשניים המתקבלים מספקי צד שלישי (Sefaria, Hebcal, Wikipedia ומאגרים מאושרים נוספים) ומוצגים תחת הרישיונות שלהם — ראה THIRD_PARTY_LICENSES.md ועמוד הרישיונות.">means
+                        primary and secondary texts retrieved from third-party providers (Sefaria, Hebcal, Wikipedia,
+                        and other whitelisted corpora) and displayed under their own respective licenses — see
+                        THIRD_PARTY_LICENSES.md and the Licenses page.</span></li>
+                <li><strong data-en="'AI Output'" data-he="'פלט בינה מלאכותית'">'AI Output'</strong> <span
+                        data-en="means any synthesized answer, summary, or explanation generated by the Service's AI models (currently Anthropic Claude and Google Gemini) in response to a question. AI Output is machine-generated and is not a Source."
+                        data-he="פירושו כל תשובה, סיכום או הסבר שנוצרו על ידי מודלי הבינה המלאכותית של השירות (כיום Anthropic Claude ו-Google Gemini) בתגובה לשאלה. פלט בינה מלאכותית נוצר על ידי מכונה ואינו מקור.">means
+                        any synthesized answer, summary, or explanation generated by the Service's AI models
+                        (currently Anthropic Claude and Google Gemini) in response to a question. AI Output is
+                        machine-generated and is not a Source.</span></li>
+                <li><strong data-en="'User Content'" data-he="'תוכן משתמש'">'User Content'</strong> <span
+                        data-en="means questions, bookmarks, notes, preferences, and any other material you submit to or generate within the Service."
+                        data-he="פירושו שאלות, סימניות, הערות, העדפות וכל חומר אחר שאתה מגיש או יוצר בתוך השירות.">means
+                        questions, bookmarks, notes, preferences, and any other material you submit to or generate
+                        within the Service.</span></li>
+                <li><strong data-en="'Halachic Guidance' / 'p'sak'" data-he="'הכוונה הלכתית' / 'פסק'">'Halachic
+                        Guidance' / 'p'sak'</strong> <span
+                        data-en="means a binding religious-legal ruling issued by a qualified rabbinic authority applying halacha to a specific person's specific circumstances. The Service does not provide Halachic Guidance or p'sak — see §7."
+                        data-he="פירושו פסיקה הלכתית-דתית מחייבת הניתנת על ידי סמכות רבנית מוסמכת המיישמת הלכה על נסיבותיו הספציפיות של אדם מסוים. השירות אינו מספק הכוונה הלכתית או פסק — ראה סעיף 7.">means
+                        a binding religious-legal ruling issued by a qualified rabbinic authority applying halacha to
+                        a specific person's specific circumstances. The Service does not provide Halachic Guidance or
+                        p'sak — see §7.</span></li>
             </ul>
 
-            <h2 data-en="3. Disclaimer of Warranties" data-he="3. כתב פטור מאחריות">3. Disclaimer of Warranties</h2>
-            <p data-en="The materials on Sh'elah are provided 'as is'. Sh'elah makes no warranties, expressed or implied, and hereby disclaims and negates all other warranties including, without limitation, implied warranties or conditions of merchantability, fitness for a particular purpose, or non-infringement of intellectual property or other violation of rights."
-                data-he="החומרים ב-Sh'elah מסופקים 'כפי שהם' (AS IS). Sh'elah אינה מעניקה כל אחריות, מפורשת או משתמעת, ובזאת מתנערת מכל אחריות אחרת, לרבות, ללא הגבלה, אחריות משתמעת לסחירות, להתאמה למטרה מסוימת, או לאי-הפרה של זכויות קניין רוחני או זכויות אחרות.">
-                The materials on Sh'elah are provided 'as is'. Sh'elah makes no warranties, expressed or implied, and
-                hereby disclaims and negates all other warranties including, without limitation, implied warranties or
-                conditions of merchantability, fitness for a particular purpose, or non-infringement of intellectual
-                property or other violation of rights.
+            <h2 data-en="3. Eligibility &amp; Age Requirements" data-he="3. כשירות ודרישות גיל">3. Eligibility &amp;
+                Age Requirements</h2>
+            <p data-en="You must be at least 13 years old to use the Service. If you are located in the European Union or United Kingdom, you must be at least 16 years old, unless you have obtained verifiable consent from a parent or legal guardian in a manner acceptable under applicable law. The Service does not knowingly permit use by anyone under these thresholds, and any account found to belong to an underage user will be suspended and its data deleted per §D of our Privacy Policy. By using the Service, you represent that you meet this age requirement; misrepresenting your age is a material breach of these Terms and grounds for immediate termination. See docs/AGE_AND_SAFETY_POLICY.md for the full policy and rationale."
+                data-he="עליך להיות בן 13 לפחות כדי להשתמש בשירות. אם אתה נמצא באיחוד האירופי או בבריטניה, עליך להיות בן 16 לפחות, אלא אם קיבלת הסכמה הניתנת לאימות מהורה או אפוטרופוס חוקי באופן המקובל על פי הדין החל. השירות אינו מתיר במודע שימוש על ידי מי שמתחת לסף גיל זה, וכל חשבון שיימצא שייך למשתמש קטין יושעה ונתוניו יימחקו בהתאם לסעיף D במדיניות הפרטיות שלנו. בשימוש בשירות, אתה מצהיר כי אתה עומד בדרישת גיל זו; הצגת מצג שווא לגבי גילך מהווה הפרה מהותית של תנאים אלה ועילה לסיום מיידי. ראה docs/AGE_AND_SAFETY_POLICY.md למדיניות המלאה ולרציונל.">
+                You must be at least 13 years old to use the Service. If you are located in the European Union or
+                United Kingdom, you must be at least 16 years old, unless you have obtained verifiable consent from a
+                parent or legal guardian in a manner acceptable under applicable law. The Service does not knowingly
+                permit use by anyone under these thresholds, and any account found to belong to an underage user
+                will be suspended and its data deleted per §D of our Privacy Policy. By using the Service, you
+                represent that you meet this age requirement; misrepresenting your age is a material breach of these
+                Terms and grounds for immediate termination. See <code>docs/AGE_AND_SAFETY_POLICY.md</code> for the
+                full policy and rationale.
             </p>
 
-            <h2 data-en="4. Limitations of Liability" data-he="4. הגבלות על אחריות">4. Limitations of Liability</h2>
-            <p data-en="In no event shall Sh'elah or its suppliers be liable for any damages (including, without limitation, damages for loss of data or profit, or due to business interruption) arising out of the use or inability to use the materials on Sh'elah, even if Sh'elah or a representative has been notified orally or in writing of the possibility of such damage."
-                data-he="בשום מקרה Sh'elah או הספקים שלה לא יהיו אחראים לכל נזק (כולל, ללא הגבלה, נזק לאובדן נתונים או רווח, או עקב הפסקת עסקים) הנובע מהשימוש או חוסר היכולת להשתמש בחומרים ב-Sh'elah, גם אם Sh'elah או נציג הודיע בעל-פה או בכתב על אפשרות של נזק כזה.">
-                In no event shall Sh'elah or its suppliers be liable for any damages (including, without limitation,
-                damages for loss of data or profit, or due to business interruption) arising out of the use or inability
-                to use the materials on Sh'elah, even if Sh'elah or a representative has been notified orally or in
-                writing of the possibility of such damage.
-            </p>
-
-            <h2 data-en="5. Accuracy of Materials" data-he="5. דיוק החומרים">5. Accuracy of Materials</h2>
-            <p data-en="The materials appearing on Sh'elah could include technical, typographical, or photographic errors. Sh'elah does not warrant that any of the materials on Sh'elah are accurate, complete, or current. Sh'elah may make changes to the materials contained on Sh'elah at any time without notice."
-                data-he="החומרים המופיעים ב-Sh'elah עלולים לכלול טעויות טכניות, טיפוגרפיות או טעויות בתצלומים. Sh'elah אינה מתחייבת שהחומרים המופיעים ב-Sh'elah מדויקים, שלמים או עדכניים. Sh'elah עשויה לבצע שינויים בחומרים המופיעים ב-Sh'elah בכל עת וללא הודעה מוקדמת.">
-                The materials appearing on Sh'elah could include technical, typographical, or photographic errors.
-                Sh'elah does not warrant that any of the materials on Sh'elah are accurate, complete, or current.
-                Sh'elah may make changes to the materials contained on Sh'elah at any time without notice.
-            </p>
-
-            <h2 data-en="6. Materials &amp; Content Ownership" data-he="6. בעלות על חומרים ותוכן">6. Materials &amp; Content
-                Ownership</h2>
-            <p data-en="Sh'elah and its content providers own the copyright and other proprietary rights in the materials and content on Sh'elah, including but not limited to texts sourced from Sefaria, Jewish legal texts, and custom halachic materials. As such, you may not reproduce, distribute, or transmit any content without express written permission from Sh'elah or the respective content provider."
-                data-he="ל-Sh'elah ולספקי התוכן שלה שייכות זכויות היוצרים וזכויות הבעלות האחרות בחומרים ובתוכן הקיימים ב-Sh'elah, לרבות, אך לא רק, טקסטים שמקורם בספריא (Sefaria), טקסטים הלכתיים-משפטיים יהודיים וחומרים הלכתיים מותאמים. בהתאם לכך, אין לשכפל, להפיץ או להעביר כל תוכן ללא הסכמה בכתב מפורשת מ-Sh'elah או מספק התוכן הרלוונטי.">
-                Sh'elah and its content providers own the copyright and other proprietary rights in the materials and
-                content on Sh'elah, including but not limited to texts sourced from Sefaria, Jewish legal texts, and
-                custom halachic materials. As such, you may not reproduce, distribute, or transmit any content without
-                express written permission from Sh'elah or the respective content provider.
-            </p>
-
-            <h2 data-en="7. Links" data-he="7. קישורים">7. Links</h2>
-            <p data-en="Sh'elah has not reviewed all of the sites linked to its website and is not responsible for the contents of any such linked site. The inclusion of any link does not imply endorsement by Sh'elah of the site. Use of any such linked website is at the user's own risk."
-                data-he="Sh'elah לא בדקה את כל האתרים המקושרים מאתר זה ואינה אחראית לתוכן של אתרים מקושרים כאלה. הכללת קישור כלשהו אינה מהווה אישור של האתר המקושר על ידי Sh'elah. השימוש באתרים מקושרים כאלה הוא על אחריות המשתמש בלבד.">
-                Sh'elah has not reviewed all of the sites linked to its website and is not responsible for the contents
-                of any such linked site. The inclusion of any link does not imply endorsement by Sh'elah of the site.
-                Use of any such linked website is at the user's own risk.
-            </p>
-
-            <h2 data-en="8. Modifications &amp; Termination" data-he="8. שינויים וסיום">8. Modifications &amp; Termination</h2>
-            <p data-en="Sh'elah may revise these Terms of Service at any time without notice. By using this site, you are agreeing to be bound by the then current version of these Terms of Service. Sh'elah reserves the right to terminate your account and access at any time, for any reason, including, but not limited to, abuse or violation of these Terms."
-                data-he="Sh'elah רשאית לתקן את תנאי השירות הללו בכל עת וללא הודעה מוקדמת. בשימוש באתר זה, אתה מסכים להיות מחויב לגרסה העדכנית של תנאי השירות הללו. Sh'elah שומרת לעצמה את הזכות לסיים את החשבון והגישה שלך בכל עת, מכל סיבה, לרבות, אך לא רק, התעללות או הפרה של תנאים אלה.">
-                Sh'elah may revise these Terms of Service at any time without notice. By using this site, you are
-                agreeing to be bound by the then current version of these Terms of Service. Sh'elah reserves the right
-                to terminate your account and access at any time, for any reason, including, but not limited to, abuse
-                or violation of these Terms.
-            </p>
-
-            <h2 data-en="9. Governing Law" data-he="9. החוק החל">9. Governing Law</h2>
-            <p data-en="These Terms of Service are governed by and construed in accordance with the laws of the State of Israel, and you irrevocably submit to the exclusive jurisdiction of the courts located in Israel."
-                data-he="תנאי שירות אלה כפופים לחוקי מדינת ישראל ומתפרשים על פיהם, ואתה כפוף באופן בלתי חזור לסמכות השיפוט הבלעדית של בתי המשפט הממוקמים בישראל.">
-                These Terms of Service are governed by and construed in accordance with the laws of the State of Israel,
-                and you irrevocably submit to the exclusive jurisdiction of the courts located in Israel.
-            </p>
-
-            <h2 data-en="10. Your Account &amp; Responsibilities" data-he="10. החשבון שלך ואחריותך">10. Your Account &amp;
-                Responsibilities</h2>
-            <p data-en="If you create an account on Sh'elah, you are responsible for:"
-                data-he="אם אתה יוצר חשבון ב-Sh'elah, אתה אחראי על:">
-                If you create an account on Sh'elah, you are responsible for:
+            <h2 data-en="4. Accounts &amp; Your Responsibilities" data-he="4. חשבונות ואחריותך">4. Accounts &amp;
+                Your Responsibilities</h2>
+            <p data-en="Account creation and sign-in are handled by our authentication provider, Clerk. If you create an account, you are responsible for:"
+                data-he="יצירת חשבון והתחברות מטופלות על ידי ספק האימות שלנו, Clerk. אם אתה יוצר חשבון, אתה אחראי על:">
+                Account creation and sign-in are handled by our authentication provider, Clerk. If you create an
+                account, you are responsible for:
             </p>
             <ul>
                 <li data-en="Maintaining the confidentiality of your login credentials"
@@ -399,71 +185,240 @@
                 <li data-en="Not using another person's account without permission"
                     data-he="לא להשתמש בחשבון של אדם אחר ללא הרשאה">Not using another person's account without
                     permission</li>
+                <li data-en="Providing accurate registration information"
+                    data-he="מתן פרטי הרשמה מדויקים">Providing accurate registration information</li>
             </ul>
 
-            <h2 data-en="11. Prohibited Conduct" data-he="11. התנהגות אסורה">11. Prohibited Conduct</h2>
-            <p data-en="You agree not to engage in any of the following conduct:"
-                data-he="אתה מסכים לא לנהוג בכל אחת מהדרכים הבאות:">
-                You agree not to engage in any of the following conduct:
+            <h2 data-en="5. Acceptable Use" data-he="5. שימוש מותר">5. Acceptable Use</h2>
+            <p data-en="You agree not to engage in any of the following conduct. This list is a summary — the full Acceptable Use Policy governs and is incorporated into these Terms by reference."
+                data-he="אתה מסכים שלא לנהוג בכל אחת מהדרכים הבאות. רשימה זו היא תמצית — מדיניות השימוש המותר המלאה חלה ומשולבת בתנאים אלה בהפניה.">
+                You agree not to engage in any of the following conduct. This list is a summary — the full <a
+                    href="/acceptable-use" data-en="Acceptable Use Policy" data-he="מדיניות השימוש המותר">Acceptable
+                    Use Policy</a> governs and is incorporated into these Terms by reference.
             </p>
             <ul>
                 <li data-en="Harassing, abusing, or threatening other users"
                     data-he="הטרדה, התעללות, או איום על משתמשים אחרים">Harassing, abusing, or threatening other users
                 </li>
+                <li data-en="Scraping, bulk-downloading, or automated extraction of Content or other users' data"
+                    data-he="גריפה (scraping), הורדה המונית, או חילוץ אוטומטי של תוכן או נתוני משתמשים אחרים">Scraping,
+                    bulk-downloading, or automated extraction of Content or other users' data</li>
+                <li data-en="Presenting AI Output as an authoritative halachic ruling, or otherwise misrepresenting its source or authority"
+                    data-he="הצגת פלט בינה מלאכותית כפסיקה הלכתית מוסמכת, או הצגה מטעה אחרת של מקורו או סמכותו">Presenting
+                    AI Output as an authoritative halachic ruling, or otherwise misrepresenting its source or
+                    authority</li>
                 <li data-en="Uploading or transmitting viruses or malware"
                     data-he="העלאה או העברה של וירוסים או תוכנות זדוניות">Uploading or transmitting viruses or malware
                 </li>
-                <li data-en="Attempted unauthorized access to our systems" data-he="ניסיון גישה לא מורשה למערכות שלנו">
-                    Attempted unauthorized access to our systems</li>
-                <li data-en="Spamming or phishing" data-he="שליחת הודעות זבל או דיוג">Spamming or phishing</li>
-                <li data-en="Violating any laws or regulations" data-he="הפרת כל חוקים או תקנות">Violating any laws or
-                    regulations</li>
+                <li data-en="Attempting unauthorized access to our systems, or reverse-engineering the Service"
+                    data-he="ניסיון גישה לא מורשה למערכות שלנו, או הנדסה לאחור של השירות">Attempting unauthorized
+                    access to our systems, or reverse-engineering the Service</li>
+                <li data-en="Spamming, phishing, or exceeding published rate limits" data-he="שליחת הודעות זבל, דיוג, או חריגה ממגבלות הקצב שפורסמו">Spamming,
+                    phishing, or exceeding published rate limits</li>
+                <li data-en="Violating any applicable laws or regulations" data-he="הפרת כל חוקים או תקנות החלים">
+                    Violating any applicable laws or regulations</li>
             </ul>
 
-            <h2 data-en="12. Disclaimer Regarding AI Halachic Responses"
-                data-he="12. כפירה בנוגע לתגובות הלכתיות של AI">12. Disclaimer Regarding AI Halachic Responses</h2>
-            <p data-en="Sh'elah uses artificial intelligence (Google Gemini and Anthropic Claude) to synthesize and present halachic (Jewish legal) information. While we strive for accuracy, AI-generated responses may contain errors or omissions."
-                data-he="Sh'elah משתמשת בבינה מלאכותית (Google Gemini ו-Anthropic Claude) כדי לסכם ולהציג מידע הלכתי (משפטי יהודי). אף שאנו משתדלים לדייק, תגובות שנוצרו על ידי AI עלולות לכלול טעויות או השמטות.">
-                Sh'elah uses artificial intelligence (Google Gemini and Anthropic Claude) to synthesize and present
-                halachic (Jewish legal) information. While we strive for accuracy, AI-generated responses may contain
-                errors or omissions.
+            <h2 data-en="6. The Service, AI-Generated Content &amp; Educational Purpose"
+                data-he="6. השירות, תוכן שנוצר על ידי בינה מלאכותית ומטרה חינוכית">6. The Service, AI-Generated
+                Content &amp; Educational Purpose</h2>
+            <p data-en="Sh'elah is an educational Torah-study tool. It uses AI models (Google Gemini and Anthropic Claude) together with retrieval-augmented generation ('RAG') to search Sources and synthesize AI Output in response to your questions. AI Output may be incomplete, may misattribute or mis-cite a Source, may reflect only one of several halachic opinions, and may occasionally be factually wrong ('hallucinate'). See our AI Disclosure page for a full explanation of how this works and its limitations."
+                data-he="Sh'elah הוא כלי חינוכי ללימוד תורה. הוא משתמש במודלי בינה מלאכותית (Google Gemini ו-Anthropic Claude) יחד עם יצירה מבוססת-אחזור ('RAG') כדי לחפש במקורות וליצור פלט בינה מלאכותית בתגובה לשאלותיך. פלט הבינה המלאכותית עלול להיות חלקי, עלול לייחס באופן שגוי מקור או לצטט אותו בטעות, עלול לשקף רק אחת מכמה דעות הלכתיות, ולעיתים עלול להיות שגוי עובדתית ('הזיה'). ראה את עמוד גילוי הנאות בנושא בינה מלאכותית להסבר מלא על אופן פעולתו ומגבלותיו.">
+                Sh'elah is an educational Torah-study tool. It uses AI models (Google Gemini and Anthropic Claude)
+                together with retrieval-augmented generation ('RAG') to search Sources and synthesize AI Output in
+                response to your questions. AI Output may be incomplete, may misattribute or mis-cite a Source, may
+                reflect only one of several halachic opinions, and may occasionally be factually wrong
+                ('hallucinate'). See our <a href="/ai-disclosure" data-en="AI Disclosure" data-he="גילוי נאות בנושא בינה מלאכותית">AI
+                    Disclosure</a> page for a full explanation of how this works and its limitations.
             </p>
             <ul>
                 <li><strong data-en="Not a substitute for professional consultation:"
                         data-he="לא תחליף לייעוץ מקצועי:">Not a substitute for professional consultation:</strong> <span
-                        data-en="Sh'elah responses are not a substitute for consulting with a qualified rabbi or Jewish legal expert."
-                        data-he="תגובות Sh'elah אינן תחליף להיוועצות עם רב מוסמך או מומחה משפטי יהודי.">Sh'elah
-                        responses are not a substitute for consulting with a qualified rabbi or Jewish legal
+                        data-en="Sh'elah's AI Output is not a substitute for consulting with a qualified rabbi or Jewish legal expert."
+                        data-he="פלט הבינה המלאכותית של Sh'elah אינו תחליף להיוועצות עם רב מוסמך או מומחה משפטי יהודי.">Sh'elah's
+                        AI Output is not a substitute for consulting with a qualified rabbi or Jewish legal
                         expert.</span></li>
-                <li><strong data-en="User responsibility:" data-he="אחריות משתמש:">User responsibility:</strong> <span
-                        data-en="You are responsible for verifying any halachic advice with a qualified rabbi before implementation."
-                        data-he="אתה אחראי על אימות כל ייעוץ הלכתי עם רב מוסמך לפני יישום.">You are responsible for
-                        verifying any halachic advice with a qualified rabbi before implementation.</span></li>
-                <li><strong data-en="No liability:" data-he="אין אחריות:">No liability:</strong> <span
-                        data-en="Sh'elah is not liable for any consequences resulting from reliance on AI-generated responses."
-                        data-he="Sh'elah לא אחראית בשום פנים ואופן לתוצאות כלשהן הנובעות מהסתמכות על תגובות שנוצרו על ידי AI.">Sh'elah
-                        is not liable for any consequences resulting from reliance on AI-generated responses.</span>
-                </li>
+                <li><strong data-en="No impersonation of rabbinic authority:" data-he="אין התחזות לסמכות רבנית:">No
+                        impersonation of rabbinic authority:</strong> <span
+                        data-en="Sh'elah never claims to be a rabbi and never issues p'sak. Every answer directs you to consult your own rabbi for a final ruling."
+                        data-he="Sh'elah לעולם אינה מתחזה לרב ולעולם אינה מנפיקה פסק. כל תשובה מפנה אותך להתייעץ עם הרב שלך לקבלת פסיקה סופית.">Sh'elah
+                        never claims to be a rabbi and never issues p'sak. Every answer directs you to consult your
+                        own rabbi for a final ruling.</span></li>
                 <li><strong data-en="Source verification:" data-he="אימות מקורות:">Source verification:</strong> <span
-                        data-en="We make reasonable efforts to ensure cited sources are accurately attributed, but you should verify primary source citations directly against Sefaria or the original text before relying on them."
+                        data-en="We make reasonable efforts to ensure cited Sources are accurately attributed, but you should verify primary source citations directly against Sefaria or the original text before relying on them."
                         data-he="אנו עושים מאמצים סבירים להבטיח שמקורות מצוטטים מיוחסים בדייקנות, אך עליך לאמת ציטוטי מקור ראשיים ישירות מול ספריא או הטקסט המקורי לפני הסתמכות עליהם.">We
-                        make reasonable efforts to ensure cited sources are accurately attributed, but you should
+                        make reasonable efforts to ensure cited Sources are accurately attributed, but you should
                         verify primary source citations directly against Sefaria or the original text before relying
                         on them.</span></li>
             </ul>
 
-            <h2 data-en="13. Severability" data-he="13. הפרדה">13. Severability</h2>
-            <p data-en="If any provision of these Terms is found to be unenforceable or invalid, that provision will be limited or eliminated to the minimum extent necessary, and the remaining provisions will remain in full force and effect."
-                data-he="אם ייקבע כי הוראה כלשהי מתנאים אלה אינה ניתנת לאכיפה או בטלה, הוראה זו תוגבל או תבוטל במידה המינימלית הנדרשת, וההוראות הנותרות יישארו בתוקף מלא.">
-                If any provision of these Terms is found to be unenforceable or invalid, that provision will be
-                limited or eliminated to the minimum extent necessary, and the remaining provisions will remain in
-                full force and effect.
+            <h2 data-en="7. Not Religious, Legal, Medical, or Financial Advice"
+                data-he="7. לא ייעוץ דתי, משפטי, רפואי או פיננסי">7. Not Religious, Legal, Medical, or Financial
+                Advice</h2>
+            <p data-en="The Service and its AI Output are provided for general educational and informational purposes only. Nothing on the Service constitutes religious/halachic, legal, medical, mental-health, or financial advice, and no professional relationship (rabbinic, legal, medical, or otherwise) is created by your use of the Service. Questions that touch medical, legal, mental-health, or safety-critical topics are routed to a referral response directing you to a qualified professional, rather than to a substantive answer — see plan.md §8.B / docs/AGE_AND_SAFETY_POLICY.md for how this routing works. Always seek the advice of a qualified rabbi, physician, attorney, or other licensed professional with any questions you may have regarding a specific situation."
+                data-he="השירות ופלט הבינה המלאכותית שלו ניתנים למטרות חינוכיות ואינפורמטיביות כלליות בלבד. שום דבר בשירות אינו מהווה ייעוץ דתי/הלכתי, משפטי, רפואי, נפשי, או פיננסי, ואין נוצרים יחסי מקצוע (רבניים, משפטיים, רפואיים או אחרים) כתוצאה משימושך בשירות. שאלות הנוגעות לנושאים רפואיים, משפטיים, נפשיים או קריטיים לבטיחות מנותבות לתגובת הפניה המכוונת אותך לאיש מקצוע מוסמך, במקום למענה מהותי — ראה plan.md §8.B / docs/AGE_AND_SAFETY_POLICY.md להסבר על אופן הניתוב. פנה תמיד לייעוץ של רב מוסמך, רופא, עורך דין, או איש מקצוע מורשה אחר בכל שאלה הנוגעת למצב ספציפי.">
+                The Service and its AI Output are provided for general educational and informational purposes only.
+                Nothing on the Service constitutes religious/halachic, legal, medical, mental-health, or financial
+                advice, and no professional relationship (rabbinic, legal, medical, or otherwise) is created by your
+                use of the Service. Questions that touch medical, legal, mental-health, or safety-critical topics are
+                routed to a referral response directing you to a qualified professional, rather than to a substantive
+                answer. Always seek the advice of a qualified rabbi, physician, attorney, or other licensed
+                professional with any questions you may have regarding a specific situation.
             </p>
 
-            <h2 data-en="14. Contact &amp; Support" data-he="14. צור קשר וסיוע">14. Contact &amp; Support</h2>
-            <p data-en="If you have questions about these Terms of Service, please contact us:"
-                data-he="אם יש לך שאלות בנוגע לתנאי השירות הללו, אנא צור קשר איתנו:">
-                If you have questions about these Terms of Service, please contact us:
+            <h2 data-en="8. Assumption of Risk" data-he="8. נטילת סיכון">8. Assumption of Risk</h2>
+            <p data-en="You understand and agree that relying on AI Output — including to make religious, halachic-practice, medical, legal, or financial decisions — is entirely at your own risk. You assume full responsibility for verifying any AI Output with a qualified rabbi or other relevant professional before acting on it, and Sh'elah disclaims responsibility for any outcome resulting from such reliance to the fullest extent permitted by law (see §14)."
+                data-he="אתה מבין ומסכים כי הסתמכות על פלט בינה מלאכותית — לרבות לקבלת החלטות דתיות, הלכתיות-מעשיות, רפואיות, משפטיות או פיננסיות — היא באחריותך הבלעדית. אתה נוטל על עצמך אחריות מלאה לאימות כל פלט בינה מלאכותית עם רב מוסמך או איש מקצוע רלוונטי אחר לפני פעולה על פיו, ו-Sh'elah מתנערת מאחריות לכל תוצאה הנובעת מהסתמכות כאמור, במידה המרבית המותרת על פי דין (ראה סעיף 14).">
+                You understand and agree that relying on AI Output — including to make religious,
+                halachic-practice, medical, legal, or financial decisions — is entirely at your own risk. You assume
+                full responsibility for verifying any AI Output with a qualified rabbi or other relevant professional
+                before acting on it, and Sh'elah disclaims responsibility for any outcome resulting from such
+                reliance to the fullest extent permitted by law (see §14).
+            </p>
+
+            <h2 data-en="9. Intellectual Property; Third-Party Content &amp; Attribution"
+                data-he="9. קניין רוחני; תוכן צד שלישי וייחוס">9. Intellectual Property; Third-Party Content &amp;
+                Attribution</h2>
+            <p data-en="Sh'elah's own code, design, and original text own their copyright and other proprietary rights, and are licensed under the terms in LICENSE (MIT for source code). Content retrieved from third parties — including Sefaria, Hebcal, Wikipedia, and Halachipedia — remains under each provider's own license; Sh'elah does not claim ownership of that Content and displays it under those providers' respective terms. See THIRD_PARTY_LICENSES.md and the Licenses page for the full per-source breakdown, including the Wikipedia CC-BY-SA share-alike obligation that travels with any reuse of Wikipedia-sourced material. Permission is granted to temporarily view Content on Sh'elah for personal, non-commercial use only. Under this license you may not: modify, copy, or redistribute the Content beyond personal use; use it for any commercial purpose or public display without permission; decompile or reverse-engineer any software on the Service; remove copyright or attribution notices; or mirror the Service on another server."
+                data-he="הקוד, העיצוב והטקסט המקורי של Sh'elah מוגנים בזכויות יוצרים ובזכויות קניין נוספות, ומורשים בתנאי LICENSE (MIT לקוד המקור). תוכן המתקבל מצדדים שלישיים — לרבות Sefaria, Hebcal, Wikipedia ו-Halachipedia — נותר תחת הרישיון של כל ספק, ו-Sh'elah אינה טוענת לבעלות על תוכן זה ומציגה אותו בהתאם לתנאי אותם ספקים. ראה THIRD_PARTY_LICENSES.md ועמוד הרישיונות לפירוט המלא לפי מקור, לרבות חובת ה-share-alike של רישיון CC-BY-SA של Wikipedia החלה על כל שימוש חוזר בחומר ממקור זה. ניתנת הרשאה לצפייה זמנית בתוכן ב-Sh'elah לשימוש אישי ולא-מסחרי בלבד. תחת רישיון זה אינך רשאי: לשנות, להעתיק או להפיץ מחדש את התוכן מעבר לשימוש אישי; להשתמש בו למטרה מסחרית או לתצוגה פומבית ללא הרשאה; לבצע דה-קומפילציה או הנדסה לאחור לתוכנה כלשהי בשירות; להסיר סימני זכויות יוצרים או ייחוס; או לשכפל את השירות בשרת אחר.">
+                Sh'elah's own code, design, and original text own their copyright and other proprietary rights, and
+                are licensed under the terms in <a href="/licenses" data-en="LICENSE" data-he="LICENSE">LICENSE</a>
+                (MIT for source code). Content retrieved from third parties — including Sefaria, Hebcal, Wikipedia,
+                and Halachipedia — remains under each provider's own license; Sh'elah does not claim ownership of
+                that Content and displays it under those providers' respective terms. See <a href="/licenses"
+                    data-en="the Licenses page" data-he="עמוד הרישיונות">the Licenses page</a> for the full per-source
+                breakdown, including the Wikipedia CC-BY-SA share-alike obligation that travels with any reuse of
+                Wikipedia-sourced material. Permission is granted to temporarily view Content on Sh'elah for
+                personal, non-commercial use only. Under this license you may not: modify, copy, or redistribute the
+                Content beyond personal use; use it for any commercial purpose or public display without permission;
+                decompile or reverse-engineer any software on the Service; remove copyright or attribution notices;
+                or mirror the Service on another server.
+            </p>
+
+            <h2 data-en="10. User Content License" data-he="10. רישיון תוכן משתמש">10. User Content License</h2>
+            <p data-en="You retain ownership of your User Content. By submitting User Content, you grant Sh'elah a worldwide, non-exclusive, royalty-free, sublicensable license to host, store, process, and use it solely to: (a) provide and improve the Service to you (e.g., displaying your bookmarks, remembering your preferences); (b) generate AI Output in response to your questions; and (c) produce anonymized, aggregated analytics. We do not use your questions or AI Output to train AI models without your explicit, separate consent, and we do not sell User Content. This license ends when you delete the relevant User Content or your account, except for residual copies retained only as required by §D of our Privacy Policy (e.g., backups, legal retention) or already anonymized/aggregated data that no longer identifies you."
+                data-he="אתה שומר על בעלותך בתוכן המשתמש שלך. בהגשת תוכן משתמש, אתה מעניק ל-Sh'elah רישיון עולמי, לא-בלעדי, ללא תמלוגים, הניתן להעברת רישיון-משנה, לאחסן, לשמור, לעבד ולהשתמש בו אך ורק כדי: (א) לספק ולשפר את השירות עבורך (למשל, הצגת הסימניות שלך, זכירת ההעדפות שלך); (ב) ליצור פלט בינה מלאכותית בתגובה לשאלותיך; ו-(ג) להפיק ניתוחים אנונימיים ומרוכזים. אנו לא משתמשים בשאלותיך או בפלט הבינה המלאכותית לאימון מודלים ללא הסכמתך המפורשת והנפרדת, ואנו לא מוכרים תוכן משתמש. רישיון זה מסתיים כאשר אתה מוחק את תוכן המשתמש הרלוונטי או את חשבונך, למעט עותקים שיוריים הנשמרים רק כנדרש בסעיף D במדיניות הפרטיות שלנו (למשל, גיבויים, שמירה משפטית) או נתונים שכבר עברו אנונימיזציה/ריכוז ואינם מזהים עוד אותך.">
+                You retain ownership of your User Content. By submitting User Content, you grant Sh'elah a
+                worldwide, non-exclusive, royalty-free, sublicensable license to host, store, process, and use it
+                solely to: (a) provide and improve the Service to you (e.g., displaying your bookmarks, remembering
+                your preferences); (b) generate AI Output in response to your questions; and (c) produce anonymized,
+                aggregated analytics. We do not use your questions or AI Output to train AI models without your
+                explicit, separate consent, and we do not sell User Content. This license ends when you delete the
+                relevant User Content or your account, except for residual copies retained only as required by §D of
+                our Privacy Policy (e.g., backups, legal retention) or already anonymized/aggregated data that no
+                longer identifies you.
+            </p>
+
+            <h2 data-en="11. Links to Third-Party Sites" data-he="11. קישורים לאתרי צד שלישי">11. Links to
+                Third-Party Sites</h2>
+            <p data-en="Sh'elah has not reviewed all of the sites linked to its website and is not responsible for the contents of any such linked site. The inclusion of any link does not imply endorsement by Sh'elah of the site. Use of any such linked website is at the user's own risk."
+                data-he="Sh'elah לא בדקה את כל האתרים המקושרים מאתר זה ואינה אחראית לתוכן של אתרים מקושרים כאלה. הכללת קישור כלשהו אינה מהווה אישור של האתר המקושר על ידי Sh'elah. השימוש באתרים מקושרים כאלה הוא על אחריות המשתמש בלבד.">
+                Sh'elah has not reviewed all of the sites linked to its website and is not responsible for the
+                contents of any such linked site. The inclusion of any link does not imply endorsement by Sh'elah of
+                the site. Use of any such linked website is at the user's own risk.
+            </p>
+
+            <h2 data-en="12. DMCA / Copyright Complaints" data-he="12. תלונות זכויות יוצרים / DMCA">12. DMCA /
+                Copyright Complaints</h2>
+            <p data-en="If you believe Content on the Service infringes your copyright, see our full DMCA / Copyright Policy for the notice-and-takedown procedure and our designated agent's contact information."
+                data-he="אם אתה סבור שתוכן בשירות מפר את זכויות היוצרים שלך, עיין במדיניות זכויות היוצרים / DMCA המלאה שלנו להליך ההודעה וההסרה ולפרטי הקשר של הנציג המיועד שלנו.">
+                If you believe Content on the Service infringes your copyright, see our full <a href="/dmca"
+                    data-en="DMCA / Copyright Policy" data-he="מדיניות זכויות יוצרים / DMCA">DMCA / Copyright
+                    Policy</a> for the notice-and-takedown procedure and our designated agent's contact information.
+            </p>
+
+            <h2 data-en="13. Disclaimer of Warranties" data-he="13. כתב פטור מאחריות">13. Disclaimer of Warranties</h2>
+            <p data-en="THE SERVICE AND ALL CONTENT (INCLUDING AI OUTPUT) ARE PROVIDED 'AS IS' AND 'AS AVAILABLE', WITHOUT WARRANTIES OF ANY KIND, EXPRESS OR IMPLIED. Sh'elah disclaims all warranties, including, without limitation, implied warranties of merchantability, fitness for a particular purpose, accuracy, non-infringement, and uninterrupted or error-free operation. Content may include technical, typographical, translation, or factual errors, and may not be accurate, complete, or current; Sh'elah may change Content at any time without notice."
+                data-he="השירות וכל התוכן (לרבות פלט בינה מלאכותית) ניתנים 'כפי שהם' (AS IS) ו'כפי שזמינים' (AS AVAILABLE), ללא כל אחריות, מפורשת או משתמעת. Sh'elah מתנערת מכל אחריות, לרבות, ללא הגבלה, אחריות משתמעת לסחירות, להתאמה למטרה מסוימת, לדיוק, לאי-הפרה, ולפעולה רציפה או נטולת שגיאות. התוכן עלול לכלול טעויות טכניות, טיפוגרפיות, תרגומיות או עובדתיות, ועלול שלא להיות מדויק, שלם או עדכני; Sh'elah רשאית לשנות תוכן בכל עת וללא הודעה מוקדמת.">
+                THE SERVICE AND ALL CONTENT (INCLUDING AI OUTPUT) ARE PROVIDED 'AS IS' AND 'AS AVAILABLE', WITHOUT
+                WARRANTIES OF ANY KIND, EXPRESS OR IMPLIED. Sh'elah disclaims all warranties, including, without
+                limitation, implied warranties of merchantability, fitness for a particular purpose, accuracy,
+                non-infringement, and uninterrupted or error-free operation. Content may include technical,
+                typographical, translation, or factual errors, and may not be accurate, complete, or current;
+                Sh'elah may change Content at any time without notice.
+            </p>
+
+            <h2 data-en="14. Limitation of Liability; Damages Cap" data-he="14. הגבלת אחריות; תקרת פיצויים">14.
+                Limitation of Liability; Damages Cap</h2>
+            <p data-en="TO THE MAXIMUM EXTENT PERMITTED BY LAW, SH'ELAH AND ITS SUPPLIERS WILL NOT BE LIABLE FOR ANY INDIRECT, INCIDENTAL, SPECIAL, CONSEQUENTIAL, OR PUNITIVE DAMAGES, OR ANY LOSS OF DATA, PROFITS, OR GOODWILL, ARISING FROM YOUR USE OF (OR INABILITY TO USE) THE SERVICE OR RELIANCE ON ANY CONTENT, EVEN IF SH'ELAH HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH DAMAGES. SH'ELAH'S TOTAL AGGREGATE LIABILITY FOR ANY CLAIM ARISING FROM THESE TERMS OR THE SERVICE WILL NOT EXCEED THE GREATER OF (A) THE AMOUNT YOU PAID SH'ELAH IN THE 12 MONTHS BEFORE THE CLAIM AROSE (CURRENTLY $0, AS THE SERVICE IS FREE), OR (B) ONE HUNDRED US DOLLARS (US $100). Some jurisdictions do not allow the exclusion or limitation of certain damages, so some of the above limitations may not apply to you; in that case, liability is limited to the smallest extent permitted by that jurisdiction's law. [Placeholder — the final damages-cap figure and any jurisdiction-specific carve-outs must be confirmed with counsel.]"
+                data-he="במידה המרבית המותרת על פי דין, SH'ELAH והספקים שלה לא יהיו אחראים לכל נזק עקיף, אגבי, מיוחד, תוצאתי או עונשי, או לכל אובדן נתונים, רווחים או מוניטין, הנובע משימושך (או מחוסר יכולתך להשתמש) בשירות או מהסתמכות על תוכן כלשהו, גם אם Sh'elah הודיעה על אפשרות נזקים כאמור. סך כל האחריות המצטברת של Sh'elah לכל תביעה הנובעת מתנאים אלה או מהשירות לא תעלה על הגבוה מבין (א) הסכום ששילמת ל-Sh'elah ב-12 החודשים שקדמו להיווצרות התביעה (כיום 0 דולר, שכן השירות ניתן ללא תשלום), או (ב) מאה דולר ארה'ב (100$). תחומי שיפוט מסוימים אינם מתירים החרגה או הגבלה של נזקים מסוימים, כך שחלק מההגבלות לעיל עשויות שלא לחול עליך; במקרה זה, האחריות תוגבל במידה הקטנה ביותר המותרת על פי דין אותו תחום שיפוט. [מציין מקום — הסכום הסופי של תקרת הפיצויים וכל חריגה ספציפית לתחום שיפוט טעונים אישור עם עורך דין.]">
+                TO THE MAXIMUM EXTENT PERMITTED BY LAW, SH'ELAH AND ITS SUPPLIERS WILL NOT BE LIABLE FOR ANY
+                INDIRECT, INCIDENTAL, SPECIAL, CONSEQUENTIAL, OR PUNITIVE DAMAGES, OR ANY LOSS OF DATA, PROFITS, OR
+                GOODWILL, ARISING FROM YOUR USE OF (OR INABILITY TO USE) THE SERVICE OR RELIANCE ON ANY CONTENT, EVEN
+                IF SH'ELAH HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH DAMAGES. SH'ELAH'S TOTAL AGGREGATE LIABILITY
+                FOR ANY CLAIM ARISING FROM THESE TERMS OR THE SERVICE WILL NOT EXCEED THE GREATER OF (A) THE AMOUNT
+                YOU PAID SH'ELAH IN THE 12 MONTHS BEFORE THE CLAIM AROSE (CURRENTLY $0, AS THE SERVICE IS FREE), OR
+                (B) ONE HUNDRED US DOLLARS (US $100). Some jurisdictions do not allow the exclusion or limitation of
+                certain damages, so some of the above limitations may not apply to you; in that case, liability is
+                limited to the smallest extent permitted by that jurisdiction's law.
+                <em data-en="[Placeholder — the final damages-cap figure and any jurisdiction-specific carve-outs must be confirmed with counsel.]"
+                    data-he="[מציין מקום — הסכום הסופי של תקרת הפיצויים וכל חריגה ספציפית לתחום שיפוט טעונים אישור עם עורך דין.]">[Placeholder
+                    — the final damages-cap figure and any jurisdiction-specific carve-outs must be confirmed with
+                    counsel.]</em>
+            </p>
+
+            <h2 data-en="15. Indemnification" data-he="15. שיפוי">15. Indemnification</h2>
+            <p data-en="You agree to indemnify, defend, and hold harmless Sh'elah and its operator from and against any claims, liabilities, damages, losses, and expenses (including reasonable attorneys' fees) arising out of or in any way connected with: (a) your use or misuse of the Service; (b) your User Content; (c) your violation of these Terms or any applicable law; or (d) your violation of any third party's rights, including intellectual-property or privacy rights."
+                data-he="אתה מסכים לשפות, להגן ולפטור מאחריות את Sh'elah ואת מפעילה מפני כל תביעה, אחריות, נזק, הפסד והוצאה (לרבות שכר טרחת עורך דין סביר) הנובעים או קשורים בכל דרך ל: (א) שימושך או שימוש לרעה שלך בשירות; (ב) תוכן המשתמש שלך; (ג) הפרתך את התנאים הללו או כל דין חל; או (ד) הפרתך את זכויותיו של צד שלישי, לרבות זכויות קניין רוחני או פרטיות.">
+                You agree to indemnify, defend, and hold harmless Sh'elah and its operator from and against any
+                claims, liabilities, damages, losses, and expenses (including reasonable attorneys' fees) arising out
+                of or in any way connected with: (a) your use or misuse of the Service; (b) your User Content; (c)
+                your violation of these Terms or any applicable law; or (d) your violation of any third party's
+                rights, including intellectual-property or privacy rights.
+            </p>
+
+            <h2 data-en="16. Dispute Resolution; Governing Law" data-he="16. יישוב סכסוכים; דין חל">16. Dispute
+                Resolution; Governing Law</h2>
+            <p data-en="These Terms are governed by and construed in accordance with the laws of the State of Israel, without regard to conflict-of-law principles, and you irrevocably submit to the exclusive jurisdiction of the courts located in Israel. [Placeholder — whether disputes should instead be resolved through binding arbitration with a class-action waiver, and whether Israel remains the right governing-law/venue choice given the Service's international user base, are open questions for counsel; do not treat this section as final.]"
+                data-he="תנאים אלה כפופים לחוקי מדינת ישראל ומתפרשים על פיהם, ללא התייחסות לכללי ברירת דין, ואתה כפוף באופן בלתי חזור לסמכות השיפוט הבלעדית של בתי המשפט הממוקמים בישראל. [מציין מקום — האם יש ליישב סכסוכים במקום זאת באמצעות בוררות מחייבת עם ויתור על תביעה ייצוגית, והאם ישראל נותרת הבחירה הנכונה של דין חל/מקום שיפוט בהתחשב בבסיס המשתמשים הבינלאומי של השירות, הן שאלות פתוחות לעורך דין; אין להתייחס לסעיף זה כסופי.]">
+                These Terms are governed by and construed in accordance with the laws of the State of Israel,
+                without regard to conflict-of-law principles, and you irrevocably submit to the exclusive
+                jurisdiction of the courts located in Israel.
+                <em data-en="[Placeholder — whether disputes should instead be resolved through binding arbitration with a class-action waiver, and whether Israel remains the right governing-law/venue choice given the Service's international user base, are open questions for counsel; do not treat this section as final.]"
+                    data-he="[מציין מקום — האם יש ליישב סכסוכים במקום זאת באמצעות בוררות מחייבת עם ויתור על תביעה ייצוגית, והאם ישראל נותרת הבחירה הנכונה של דין חל/מקום שיפוט בהתחשב בבסיס המשתמשים הבינלאומי של השירות, הן שאלות פתוחות לעורך דין; אין להתייחס לסעיף זה כסופי.]">[Placeholder
+                    — whether disputes should instead be resolved through binding arbitration with a class-action
+                    waiver, and whether Israel remains the right governing-law/venue choice given the Service's
+                    international user base, are open questions for counsel; do not treat this section as
+                    final.]</em>
+            </p>
+
+            <h2 data-en="17. Termination" data-he="17. סיום">17. Termination</h2>
+            <p data-en="Sh'elah reserves the right to suspend or terminate your account and access at any time, for any reason, including, but not limited to, abuse or violation of these Terms, at our sole discretion and, where practical, with notice. You may stop using the Service, or request deletion of your account and data, at any time — see our Privacy Policy for the self-serve deletion flow. Sections that by their nature should survive termination (including §7–§9, §13–§16, and §19) survive."
+                data-he="Sh'elah שומרת לעצמה את הזכות להשעות או לסיים את חשבונך והגישה שלך בכל עת, מכל סיבה, לרבות, אך לא רק, התעללות או הפרה של תנאים אלה, לפי שיקול דעתה הבלעדי וככל שניתן, בהודעה מראש. באפשרותך להפסיק להשתמש בשירות, או לבקש מחיקת חשבונך ונתוניך, בכל עת — ראה את מדיניות הפרטיות שלנו לתהליך המחיקה העצמאי. סעיפים אשר מטבעם אמורים לשרוד סיום (לרבות סעיפים 7–9, 13–16, ו-19) שורדים.">
+                Sh'elah reserves the right to suspend or terminate your account and access at any time, for any
+                reason, including, but not limited to, abuse or violation of these Terms, at our sole discretion and,
+                where practical, with notice. You may stop using the Service, or request deletion of your account
+                and data, at any time — see our Privacy Policy for the self-serve deletion flow. Sections that by
+                their nature should survive termination (including §7–§9, §13–§16, and §19) survive.
+            </p>
+
+            <h2 data-en="18. Changes to These Terms" data-he="18. שינויים בתנאים אלה">18. Changes to These Terms</h2>
+            <p data-en="We may revise these Terms from time to time. Each revision carries an updated 'Last updated' date and version number at the top of this page, and the footer notice on every page always links to the current version. For material changes (e.g., new obligations, a reduced level of protection, or a changed liability/dispute-resolution term), we will call out the change in the footer notice and, where practical, notify signed-in users directly. Continued use of the Service after a change, material or not, constitutes acceptance of the revised Terms."
+                data-he="אנו רשאים לתקן תנאים אלה מעת לעת. כל תיקון נושא תאריך 'עדכון אחרון' ומספר גרסה מעודכנים בראש עמוד זה, והודעת תחתית העמוד בכל עמוד תמיד מקשרת לגרסה הנוכחית. עבור שינויים מהותיים (למשל, חובות חדשות, רמת הגנה מופחתת, או שינוי בסעיף האחריות/יישוב הסכסוכים), נציין את השינוי בהודעת תחתית העמוד ונודיע ישירות למשתמשים מחוברים ככל שניתן. המשך שימוש בשירות לאחר שינוי, מהותי או לא, מהווה הסכמה לתנאים המתוקנים.">
+                We may revise these Terms from time to time. Each revision carries an updated 'Last updated' date
+                and version number at the top of this page, and the footer notice on every page always links to the
+                current version. For material changes (e.g., new obligations, a reduced level of protection, or a
+                changed liability/dispute-resolution term), we will call out the change in the footer notice and,
+                where practical, notify signed-in users directly. Continued use of the Service after a change,
+                material or not, constitutes acceptance of the revised Terms.
+            </p>
+
+            <h2 data-en="19. Severability &amp; Entire Agreement" data-he="19. הפרדה והסכם מלא">19. Severability
+                &amp; Entire Agreement</h2>
+            <p data-en="If any provision of these Terms is found to be unenforceable or invalid, that provision will be limited or eliminated to the minimum extent necessary, and the remaining provisions will remain in full force and effect. These Terms, together with the Privacy Policy, AI Disclosure, and Acceptable Use Policy incorporated by reference, constitute the entire agreement between you and Sh'elah regarding the Service, and supersede any prior agreements between you and Sh'elah on that subject."
+                data-he="אם ייקבע כי הוראה כלשהי מתנאים אלה אינה ניתנת לאכיפה או בטלה, הוראה זו תוגבל או תבוטל במידה המינימלית הנדרשת, וההוראות הנותרות יישארו בתוקף מלא. תנאים אלה, יחד עם מדיניות הפרטיות, גילוי הנאות בנושא בינה מלאכותית, ומדיניות השימוש המותר המשולבים בהפניה, מהווים את ההסכם המלא בינך לבין Sh'elah בנוגע לשירות, וגוברים על כל הסכם קודם בינך לבין Sh'elah בנושא זה.">
+                If any provision of these Terms is found to be unenforceable or invalid, that provision will be
+                limited or eliminated to the minimum extent necessary, and the remaining provisions will remain in
+                full force and effect. These Terms, together with the Privacy Policy, AI Disclosure, and Acceptable
+                Use Policy incorporated by reference, constitute the entire agreement between you and Sh'elah
+                regarding the Service, and supersede any prior agreements between you and Sh'elah on that subject.
+            </p>
+
+            <h2 data-en="20. Contact" data-he="20. צור קשר">20. Contact</h2>
+            <p data-en="Sh'elah is currently operated by an individual developer, not a registered company. If you have questions about these Terms of Service, please contact:"
+                data-he="Sh'elah מופעלת כיום על ידי מפתח יחיד, לא חברה רשומה. אם יש לך שאלות בנוגע לתנאי השירות הללו, אנא צור קשר:">
+                Sh'elah is currently operated by an individual developer, not a registered company. If you have
+                questions about these Terms of Service, please contact:
             </p>
             <p><strong data-en="Email:" data-he="דוא״ל:">Email:</strong> <a
                     href="mailto:akiva.yevda@gmail.com">akiva.yevda@gmail.com</a></p>
@@ -472,10 +427,13 @@
 
             <div class="info-box">
                 <p class="text-sm"
-                    data-en="Review our Privacy Policy for information on how we collect and use your data."
-                    data-he="עיין במדיניות הפרטיות שלנו למידע על האופן בו אנו אוספים ומשתמשים בנתונים שלך.">
-                    Review our <a href="/privacy" data-en="Privacy Policy" data-he="מדיניות הפרטיות">Privacy Policy</a>
-                    for information on how we collect and use your data.
+                    data-en="Review our Privacy Policy for information on how we collect and use your data, and our AI Disclosure and Acceptable Use Policy for the documents incorporated into these Terms by reference."
+                    data-he="עיין במדיניות הפרטיות שלנו למידע על האופן בו אנו אוספים ומשתמשים בנתונים שלך, ובגילוי הנאות בנושא בינה מלאכותית ובמדיניות השימוש המותר עבור המסמכים המשולבים בתנאים אלה בהפניה.">
+                    Review our <a href="/privacy" data-en="Privacy Policy" data-he="מדיניות הפרטיות">Privacy
+                        Policy</a> for information on how we collect and use your data, and our <a href="/ai-disclosure"
+                        data-en="AI Disclosure" data-he="גילוי נאות בנושא בינה מלאכותית">AI Disclosure</a> and
+                    <a href="/acceptable-use" data-en="Acceptable Use Policy" data-he="מדיניות השימוש המותר">Acceptable
+                        Use Policy</a> for the documents incorporated into these Terms by reference.
                 </p>
             </div>
         </article>
@@ -493,23 +451,24 @@
             <a href="/privacy" class="hover:underline" style="color: var(--ink-secondary);"
                 data-en="Privacy Policy" data-he="מדיניות פרטיות">Privacy Policy</a>
             &nbsp;·&nbsp;
+            <a href="/ai-disclosure" class="hover:underline" style="color: var(--ink-secondary);"
+                data-en="AI Disclosure" data-he="גילוי נאות בינה מלאכותית">AI Disclosure</a>
+            &nbsp;·&nbsp;
+            <a href="/acceptable-use" class="hover:underline" style="color: var(--ink-secondary);"
+                data-en="Acceptable Use" data-he="שימוש מותר">Acceptable Use</a>
+            &nbsp;·&nbsp;
+            <a href="/dmca" class="hover:underline" style="color: var(--ink-secondary);"
+                data-en="DMCA" data-he="DMCA">DMCA</a>
+            &nbsp;·&nbsp;
             <a href="/accessibility" class="hover:underline" style="color: var(--ink-secondary);"
                 data-en="Accessibility" data-he="נגישות">Accessibility</a>
+            &nbsp;·&nbsp;
+            <a href="/licenses" class="hover:underline" style="color: var(--ink-secondary);"
+                data-en="Licenses" data-he="רישיונות">Licenses</a>
         </p>
     </footer>
 
     {% include 'components/legal_scripts.html' %}
-    <script>
-        document.getElementById('selectAllPolicyTextBtn')?.addEventListener('click', () => {
-            const target = document.getElementById('legalDocumentBody');
-            if (!target) return;
-            const selection = window.getSelection();
-            const range = document.createRange();
-            range.selectNodeContents(target);
-            selection.removeAllRanges();
-            selection.addRange(range);
-        });
-    </script>
 </body>
 
 </html>

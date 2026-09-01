@@ -32,6 +32,8 @@ body {
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
     background: var(--surface-base);
+    /* Positioned containing block for #readerTopBar (position: absolute) below. */
+    position: relative;
 }
 
 h1,
@@ -74,7 +76,7 @@ h6 {
     border-radius: 8px;
     background: #ffffff;
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
-    transition: all 0.3s ease;
+    transition: border-color var(--motion-dur-base) var(--motion-ease-out), box-shadow var(--motion-dur-base) var(--motion-ease-out);
 }
 
 .source-card:hover {
@@ -269,7 +271,7 @@ h6 {
     border-radius: 0.35rem;
     color: #5a4f3e;
     cursor: pointer;
-    transition: background 0.12s ease, color 0.12s ease;
+    transition: background var(--motion-dur-fast) var(--motion-ease-out), color var(--motion-dur-fast) var(--motion-ease-out);
     display: inline-flex;
     align-items: center;
     justify-content: center;
@@ -301,7 +303,7 @@ h6 {
     border-radius: 0.4rem !important;
     padding: 0.22rem 0.6rem !important;
     gap: 0.35rem;
-    transition: opacity 0.15s ease, background 0.12s ease, border-color 0.12s ease;
+    transition: opacity var(--motion-dur-fast) var(--motion-ease-out), background var(--motion-dur-fast) var(--motion-ease-out), border-color var(--motion-dur-fast) var(--motion-ease-out);
 }
 
 .topbar-library-btn:hover,
@@ -337,7 +339,7 @@ h6 {
     pointer-events: none;
     opacity: 0;
     transform: translate(-50%, -0.45rem) scale(0.98);
-    transition: opacity 0.14s ease, transform 0.14s ease;
+    transition: opacity var(--motion-dur-fast) var(--motion-ease-out), transform var(--motion-dur-fast) var(--motion-ease-out);
     box-shadow: 0 16px 32px rgba(15, 23, 42, 0.22);
     white-space: normal;
     overflow-wrap: break-word;
@@ -383,12 +385,33 @@ h6 {
     flex-shrink: 0;
 }
 
-.topbar-brand h1 {
-    line-height: 1;
+/* .topbar-brand-title's line-height is set on the element itself via
+   Tailwind's text-sm/none + sm:text-base/none (index.html) -- those
+   bundled font-size/line-height utilities load after this stylesheet
+   and always win the cascade tie, so a rule here would be dead weight
+   regardless of its value. */
+
+/* Scales in step with .topbar-brand-title's own text-sm -> sm:text-base
+   jump (index.html) so the icon:text proportion stays constant across
+   that breakpoint. Below sm, the topbar's search bar is hidden (see the
+   max-width:1023px block below), so nothing else in the row is taller
+   than the brand lockup -- the topbar shrinks to fit it exactly, leaving
+   far less vertical slack than on wider screens where the search input
+   sets a taller row. A flat enlarged size looked fine on desktop but
+   cramped on mobile for that reason; keeping mobile at the smaller size
+   restores the breathing room without shrinking the desktop version. */
+.topbar-brand-icon {
+    font-size: 1.7rem;
+}
+
+@media (min-width: 640px) {
+    .topbar-brand-icon {
+        font-size: 1.9rem;
+    }
 }
 
 .topbar-brand-subtitle {
-    margin-top: 0.25rem;
+    margin-top: 0.0625rem;
     line-height: 1;
 }
 
@@ -424,7 +447,7 @@ h6 {
     border: 1px solid transparent !important;
     border-radius: 0.35rem !important;
     color: #4e555f !important;
-    transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+    transition: background var(--motion-dur-fast) var(--motion-ease-out), border-color var(--motion-dur-fast) var(--motion-ease-out), color var(--motion-dur-fast) var(--motion-ease-out);
 }
 
 #settingsMenuBtn:hover,
@@ -434,15 +457,43 @@ h6 {
     color: #2f343b !important;
 }
 
+/* Fill stays a light 0.16 tint (any darker and it starts eating into
+   --accent-cream's 4.5:1 text contrast — this hue/panel combo can't hit
+   3:1 fill-vs-panel and 4.5:1 text-vs-fill at once, measured live). The
+   0.6-alpha border carries the WCAG 1.4.11 3:1 boundary-contrast
+   requirement instead — a legible, valid way to satisfy it without
+   touching the fill. */
 :is([data-theme="dark"], body.theme-dark) #settingsMenuBtn {
-    background: rgba(148, 163, 184, 0.12) !important;
+    background: rgba(148, 163, 184, 0.16) !important;
+    border-color: rgba(148, 163, 184, 0.6) !important;
     color: var(--accent-cream) !important;
 }
 
 :is([data-theme="dark"], body.theme-dark) #settingsMenuBtn:hover,
 :is([data-theme="dark"], body.theme-dark) #settingsMenuBtn:focus-visible {
-    background: rgba(148, 163, 184, 0.2) !important;
-    color: var(--control-text-strong) !important;
+    background: rgba(148, 163, 184, 0.26) !important;
+    border-color: rgba(148, 163, 184, 0.75) !important;
+    color: var(--accent-cream) !important;
+}
+
+/* Mobile language toggle: same translucent cool-gray chip as the settings
+   gear above, for visual consistency. Without this, dark mode fell through
+   to .library-shell #mobileLangToggle's theme-agnostic --control-bg/
+   --control-text (measured: ~1.05:1 background contrast against the topbar
+   — the chip was nearly invisible against its own backdrop, unlike the
+   light-mode values of the same tokens which read fine against a cream
+   backdrop). See docs/ACCESSIBILITY_AUDIT.md. */
+:is([data-theme="dark"], body.theme-dark) #mobileLangToggle {
+    background: rgba(148, 163, 184, 0.16) !important;
+    border-color: rgba(148, 163, 184, 0.6) !important;
+    color: var(--accent-cream) !important;
+}
+
+:is([data-theme="dark"], body.theme-dark) #mobileLangToggle:hover,
+:is([data-theme="dark"], body.theme-dark) #mobileLangToggle:focus-visible {
+    background: rgba(148, 163, 184, 0.26) !important;
+    border-color: rgba(148, 163, 184, 0.75) !important;
+    color: var(--accent-cream) !important;
 }
 
 #settingsMenuBtn svg {
@@ -469,15 +520,23 @@ html.rtl #hebrewDateDisplay {
     color: var(--control-text-strong);
 }
 
+/* These are a CSS-only fallback for the dropdown's resting position — the
+   inline styles set by positionFloatingMenu()/positionUserProfileMenu() (in
+   templates/index.html and templates/components/legal_scripts.html) use
+   `!important` too and always win once JS runs, anchoring the menu directly
+   under the topbar. This fallback used to be `position: fixed; top: 0;
+   inset-inline-start: 0`, which pinned the menu to the page's top-left
+   corner on any page where that JS hadn't run yet — keep this one resolving
+   to something sane (just under the trigger button) on its own. */
 #userProfileMenu {
     background: #fffaf3;
     border-color: #ddd4c3;
     z-index: 9999 !important;
-    position: fixed !important;
-    top: 0;
-    inset-inline-start: 0;
-    right: auto;
-    margin-top: 0 !important;
+    position: absolute;
+    top: 100%;
+    inset-inline-end: 0;
+    inset-inline-start: auto;
+    margin-top: 0.375rem;
 }
 
 .topbar-user-menu-item {
@@ -542,6 +601,18 @@ html.rtl #hebrewDateDisplay {
     background: #cfd8e9 !important;
 }
 
+:is([data-theme="dark"], body.theme-dark) #settingsPanel button:not(#bookmarkCurrentBtn) {
+    background: rgba(148, 163, 184, 0.16) !important;
+    border-color: rgba(148, 163, 184, 0.6) !important;
+    color: var(--accent-cream) !important;
+}
+
+:is([data-theme="dark"], body.theme-dark) #settingsPanel button:hover:not(#bookmarkCurrentBtn) {
+    background: rgba(148, 163, 184, 0.26) !important;
+    border-color: rgba(148, 163, 184, 0.75) !important;
+    color: var(--accent-cream) !important;
+}
+
 #bookmarkCurrentBtn {
     background: #002147 !important;
     color: #ffffff !important;
@@ -549,6 +620,15 @@ html.rtl #hebrewDateDisplay {
 
 #bookmarkCurrentBtn:hover {
     background: #1e3a5f !important;
+}
+
+:is([data-theme="dark"], body.theme-dark) #bookmarkCurrentBtn {
+    background: var(--control-strong-bg) !important;
+    color: var(--accent-cream, #ffffff) !important;
+}
+
+:is([data-theme="dark"], body.theme-dark) #bookmarkCurrentBtn:hover {
+    background: var(--control-strong-bg-hover) !important;
 }
 
 #semanticBookmarkBtn {
@@ -984,6 +1064,35 @@ html.rtl #hebrewDateDisplay {
     display: none;
 }
 
+/* Table-of-Contents accordion (#leftSidebar) — one consistent chevron for every
+   <summary>, replacing each browser's own native disclosure-triangle glyph
+   (previously shown, unstyled, on any summary missing list-none) and filling
+   in the ones that suppressed it with no replacement icon at all. */
+#leftSidebar .space-y-4 summary {
+    list-style: none;
+    cursor: pointer;
+}
+
+#leftSidebar .space-y-4 summary::-webkit-details-marker {
+    display: none;
+}
+
+#leftSidebar .space-y-4 summary::after {
+    content: '›';
+    display: inline-block;
+    margin-inline-start: 0.35rem;
+    color: #cbd5e1;
+    transition: transform var(--motion-dur-fast) var(--motion-ease-out);
+}
+
+#leftSidebar .space-y-4 details[open]>summary::after {
+    transform: rotate(90deg);
+}
+
+:is([data-theme="dark"], body.theme-dark) #leftSidebar .space-y-4 summary::after {
+    color: var(--text-muted);
+}
+
 .study-track-complete-label {
     color: #2f4a67;
     font-family: 'Cardo', serif;
@@ -1079,6 +1188,10 @@ html.rtl #hebrewDateDisplay {
     scrollbar-width: thin;
 }
 
+/* #readerTopBar is position: absolute (see #readerTopBar below), so it no
+   longer sits in flow above this row — the sidebars start flush under the
+   main site topbar with no extra offset needed here. */
+
 /* Light mode: light shade of white for sidebar scrollbars */
 #leftSidebar::-webkit-scrollbar-track,
 #rightSidebar::-webkit-scrollbar-track {
@@ -1173,16 +1286,9 @@ html.theme-dark::-webkit-scrollbar-thumb:hover,
     border: none !important;
     border-radius: 4px;
     font-size: 0.85rem;
-}
-
-.fc-event.holiday {
-    background-color: #802f3e !important;
-    border: 1px solid #5a1f2a !important;
-}
-
-.fc-event.shabbat {
-    background-color: #064e3b !important;
-    border: 1px solid #022c1f !important;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 100%;
 }
 
 .fc-col-header-cell-cushion,
@@ -1293,7 +1399,7 @@ html.theme-dark::-webkit-scrollbar-thumb:hover,
 
 /* Omnibox suggestion list */
 #searchSuggestions .suggestion-item {
-    transition: background-color 0.2s ease;
+    transition: background-color var(--motion-dur-base) var(--motion-ease-out);
 }
 
 #searchSuggestions .suggestion-item:focus {
@@ -1308,6 +1414,13 @@ html.theme-dark::-webkit-scrollbar-thumb:hover,
     --reader-hebrew-size-offset: 2px;
     --reader-divider-color: #ddd5c8;
     --reader-label-bg: #f6f1e6;
+    /* The p-4/sm:p-6/lg:p-12 utility classes give #reader the same generous
+       top padding on every side, sized for when nothing sat above the
+       article. With the reader topbar now always present above the text
+       view, that top padding stacked with #reader>header's own margin to
+       leave a large dead gap between the topbar and the title. Only the
+       top inset needs trimming — left/right/bottom padding is untouched. */
+    padding-top: clamp(0.6rem, 1.6vw, 1.1rem) !important;
 }
 
 /* Removed responsive reader max-width overrides to keep layout stable and prevent inward/outward jumping */
@@ -1408,7 +1521,7 @@ html.theme-dark::-webkit-scrollbar-thumb:hover,
     border-radius: 9999px;
     border: 1px solid #c4b9a4;
     background: #e8dfd0;
-    transition: background 0.16s ease, border-color 0.16s ease;
+    transition: background var(--motion-dur-fast) var(--motion-ease-out), border-color var(--motion-dur-fast) var(--motion-ease-out);
     cursor: pointer;
 }
 
@@ -1422,7 +1535,7 @@ html.theme-dark::-webkit-scrollbar-thumb:hover,
     border-radius: 50%;
     background: #fffaf2;
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
-    transition: transform 0.16s ease;
+    transition: transform var(--motion-dur-fast) var(--motion-ease-out);
 }
 
 .reader-switch:checked {
@@ -1574,6 +1687,20 @@ html.rtl #readerSettingsPanel {
 }
 
 #readerTopBar {
+    /* Taken out of document flow (overrides the Tailwind "sticky" utility
+       class on this element) so it no longer pushes #leftSidebar/#rightSidebar
+       and the reader row down by its own height. It used to be an in-flow
+       sticky sibling before that row, which forced the sidebars to fake their
+       way back up to the main topbar via a negative margin-top — but Chrome
+       would compute that shifted position correctly (getBoundingClientRect,
+       hit-testing math) while still painting the sidebar at its old,
+       un-shifted position, leaving a dead-looking gap at the top of the
+       sidebar. Positioning this bar absolutely (relative to body, see
+       `position: relative` on body above) sidesteps that repaint bug
+       entirely: the row below now naturally starts flush under the main
+       topbar with no margin hack needed. #mainContainer's padding-top makes
+       up the space this bar now occupies over the reader column only. */
+    position: absolute !important;
     top: var(--reader-topbar-offset, 4.35rem) !important;
     border-top: 1px solid #d8cfbe !important;
     border-bottom: 1px solid #d8cfbe !important;
@@ -1586,7 +1713,15 @@ html.rtl #readerSettingsPanel {
     box-shadow: none;
     z-index: 55 !important;
     box-sizing: border-box;
-    width: 100%;
+    /* --reader-topbar-left-gap/--reader-topbar-right-gap are the live widths
+       of any anchored left/right sidebar (measured in syncReaderTopBarOffset()
+       in templates/index.html). When a sidebar is open this shrinks and
+       shifts the bar so it starts at the sidebar's edge instead of running
+       underneath it; when no sidebar is anchored both gaps are 0px and the
+       bar spans the full width exactly as before. */
+    width: calc(100% - var(--reader-topbar-left-gap, 0px) - var(--reader-topbar-right-gap, 0px));
+    margin-left: var(--reader-topbar-left-gap, 0px);
+    margin-right: var(--reader-topbar-right-gap, 0px);
     -webkit-backdrop-filter: blur(4px);
     backdrop-filter: blur(4px);
 }
@@ -1609,6 +1744,14 @@ html.rtl #readerSettingsPanel {
     display: flex;
     align-items: center;
     gap: 0.35rem;
+}
+
+/* #readerTopBar is position: absolute and no longer reserves flow height
+   above the sidebar+content row (see #readerTopBar above), so the reader
+   column needs its own top padding to clear the bar instead. This is exactly
+   the bar's height when showing, and 0px when it's hidden. */
+#mainContainer {
+    padding-top: calc(var(--right-sidebar-top-offset, 0px) - var(--reader-topbar-offset, 0px));
 }
 
 /* Library button: leftmost, flex-shrink-0 */
@@ -1815,7 +1958,7 @@ html.rtl #readerSettingsPanel {
 
 body.shul-mode .topbar {
     opacity: 0.15;
-    transition: opacity 0.2s ease;
+    transition: opacity var(--motion-dur-base) var(--motion-ease-out);
 }
 
 body.shul-mode .topbar:hover {
@@ -1824,7 +1967,7 @@ body.shul-mode .topbar:hover {
 
 body.shul-mode #readerTopBar {
     opacity: 0.15;
-    transition: opacity 0.2s ease;
+    transition: opacity var(--motion-dur-base) var(--motion-ease-out);
 }
 
 body.shul-mode #readerTopBar:hover {
@@ -1836,7 +1979,7 @@ body.shul-mode #readerTopBar:hover {
    distracting while everything else around it fades. */
 body.shul-mode #readerSettingsPanel {
     opacity: 0.15;
-    transition: opacity 0.2s ease;
+    transition: opacity var(--motion-dur-base) var(--motion-ease-out);
 }
 
 body.shul-mode #readerSettingsPanel:hover {
@@ -1933,14 +2076,14 @@ body.mobile-panel-open {
         inset-inline-start: 0;
         border-inline-end: 1px solid #e2e8f0;
         transform: translateX(-105%);
-        transition: transform 0.32s cubic-bezier(0.22, 1, 0.36, 1), box-shadow 0.32s ease;
+        transition: transform var(--motion-dur-slow) var(--motion-ease-decel), box-shadow var(--motion-dur-slow) var(--motion-ease-out);
     }
 
     .mobile-drawer-right {
         inset-inline-end: 0;
         border-inline-start: 1px solid #e2e8f0;
         transform: translateX(105%);
-        transition: transform 0.32s cubic-bezier(0.22, 1, 0.36, 1), box-shadow 0.32s ease;
+        transition: transform var(--motion-dur-slow) var(--motion-ease-decel), box-shadow var(--motion-dur-slow) var(--motion-ease-out);
     }
 
     .mobile-drawer.mobile-open {
@@ -2006,7 +2149,13 @@ body.mobile-panel-open {
     letter-spacing: 2px;
     text-transform: uppercase;
     font-variant: small-caps;
-    color: #64748b;
+    /* Was a hardcoded #64748b (the pre-2026-08-15 --ink-secondary value,
+       see docs/ACCESSIBILITY_AUDIT.md finding 3) that never picked up the
+       token fix, leaving this at 4.45:1 on --surface-0 -- WCAG 2.1 AA
+       needs 4.5:1. Caught by the automated pa11y-ci check (plan.md
+       §8.F.2 / Prompt 18 item 2); switched to the token so it now tracks
+       the fixed value (and the dark-theme override below). */
+    color: var(--ink-secondary);
     font-weight: 700;
     margin-bottom: 0.85rem;
 }
@@ -2048,7 +2197,8 @@ html.rtl .home-main-layout #popularTextsGrid {
     display: block;
     margin-top: 0.5rem;
     max-width: 46ch;
-    color: #64748b;
+    /* Same stale-hardcoded-hex issue as .home-section-label above. */
+    color: var(--ink-secondary);
     font-size: 0.95rem;
     line-height: 1.5;
 }
@@ -2113,7 +2263,7 @@ html.rtl .home-main-layout #popularTextsGrid {
     letter-spacing: 0.04em;
     cursor: pointer;
     box-shadow: 0 1px 4px rgba(78, 64, 30, 0.12), inset 0 1px 0 rgba(255, 255, 255, 0.6);
-    transition: background 0.18s ease, border-color 0.18s ease, box-shadow 0.18s ease, transform 0.15s ease;
+    transition: background var(--motion-dur-fast) var(--motion-ease-out), border-color var(--motion-dur-fast) var(--motion-ease-out), box-shadow var(--motion-dur-fast) var(--motion-ease-out), transform var(--motion-dur-fast) var(--motion-ease-out);
 }
 
 .home-calendar-btn::before {
@@ -2132,13 +2282,47 @@ html.rtl .home-main-layout #popularTextsGrid {
     padding: 0;
 }
 
+.sk-daily-label {
+    display: block;
+    width: 6rem;
+    height: 0.72rem;
+}
+
+.sk-daily-link {
+    display: block;
+    width: 9rem;
+    height: 1.05rem;
+    margin-top: 0.4rem;
+}
+
 .home-daily-label {
     display: block;
     font-size: 0.72rem;
     letter-spacing: 2px;
     text-transform: uppercase;
-    color: #64748b;
+    /* Same stale-hardcoded-hex issue as .home-section-label above. */
+    color: var(--ink-secondary);
     font-weight: 700;
+}
+
+/* Real WCAG 2.1 AA fixes (pa11y-ci, plan.md §8.F.2 / Prompt 18 item 2):
+   the zmanim/daily-pulse widget uses Tailwind's default .text-slate-500
+   utility (#64748b) and a one-off custom hex for row labels and the "next
+   zman" countdown -- both fail 4.5:1 against this widget's cream card
+   background (computed 4.43-4.45:1, confirmed with pa11y-ci against a live
+   page, not just the token layer -- see docs/ACCESSIBILITY_AUDIT.md's own
+   "not covered here" note re: individual component pairs). Scoped to
+   #dailyPulseColumn / #nextZmanBadge rather than redefining .text-slate-500
+   globally, since that utility is reused elsewhere in this file against
+   different, already-compliant backgrounds. !important is required because
+   static/css/tailwind.css loads after this file (see load order in
+   templates/index.html), so the utility class would otherwise win. */
+#dailyPulseColumn .text-slate-500 {
+    color: var(--ink-secondary) !important;
+}
+
+#nextZmanBadge span span {
+    color: var(--accent-primary) !important;
 }
 
 .home-daily-link {
@@ -2183,7 +2367,7 @@ html.rtl .home-main-layout #popularTextsGrid {
 @media (max-width: 1023px) {
     .topbar {
         display: grid;
-        grid-template-columns: auto minmax(0, 1fr) auto;
+        grid-template-columns: minmax(0, 1fr) auto;
         align-items: center;
         gap: 0.5rem;
         padding-inline-start: max(0.5rem, env(safe-area-inset-left));
@@ -2201,25 +2385,17 @@ html.rtl .home-main-layout #popularTextsGrid {
         margin-top: 0.35rem;
     }
 
-    #mobileNavBtn {
+    .topbar-brand {
         grid-column: 1;
         justify-self: start;
-        z-index: 2;
     }
 
-    .topbar-brand {
-        grid-column: 2;
-        justify-self: center;
-    }
-
-    .topbar-brand h1 {
+    .topbar-brand-title {
         display: block;
-        font-size: 1rem;
-        line-height: 1.1;
     }
 
     #topbarControls {
-        grid-column: 3;
+        grid-column: 2;
         justify-self: end;
         width: auto;
         order: 0;
@@ -2250,7 +2426,6 @@ html.rtl .home-main-layout #popularTextsGrid {
         padding: 0.24rem 0.5rem;
     }
 
-    body.mobile-search-open #mobileNavBtn,
     body.mobile-search-open .topbar-brand,
     body.mobile-search-open #topbarControls {
         display: none !important;
@@ -2323,7 +2498,7 @@ html.rtl .home-main-layout #popularTextsGrid {
         border-top: 1px solid #cbd5e1;
         border-radius: 1rem 1rem 0 0;
         transform: translateY(106%);
-        transition: transform 0.36s cubic-bezier(0.22, 1, 0.36, 1), box-shadow 0.36s ease;
+        transition: transform var(--motion-dur-slow) var(--motion-ease-decel), box-shadow var(--motion-dur-slow) var(--motion-ease-out);
         padding-bottom: max(1rem, env(safe-area-inset-bottom));
     }
 
@@ -2523,12 +2698,12 @@ html.rtl .home-main-layout #popularTextsGrid {
 
 .library-shell :where(button, [role="button"], input, select, textarea, .mobile-tab-btn, .sidebar-show-tab, .suggestion-item) {
     transition:
-        background-color 200ms ease,
-        color 200ms ease,
-        border-color 200ms ease,
-        box-shadow 200ms ease,
-        transform 160ms ease,
-        opacity 180ms ease;
+        background-color var(--motion-dur-base) var(--motion-ease-out),
+        color var(--motion-dur-base) var(--motion-ease-out),
+        border-color var(--motion-dur-base) var(--motion-ease-out),
+        box-shadow var(--motion-dur-base) var(--motion-ease-out),
+        transform var(--motion-dur-fast) var(--motion-ease-out),
+        opacity var(--motion-dur-fast) var(--motion-ease-out);
     -webkit-tap-highlight-color: rgba(221, 201, 168, 0.36);
 }
 
@@ -2890,10 +3065,12 @@ html.theme-dark,
     /* Opposite of the light-mode rule above (subtle dark tint + brown text):
        a subtle light tint + warm gold text. Was --control-strong-bg, a
        saturated steel-blue fill that read as a stray "blue icon" against
-       the rest of the warm dark palette. */
+       the rest of the warm dark palette. --accent-gold (not -light) keeps
+       it in the same muted-bronze family as the rest of the dark palette
+       instead of the brighter, more saturated gold reading as "yellow". */
     background-color: rgba(255, 255, 255, 0.08) !important;
     border-color: var(--control-border) !important;
-    color: var(--accent-gold-light) !important;
+    color: var(--accent-gold) !important;
     font-weight: 700;
 }
 
@@ -2958,19 +3135,9 @@ html.theme-dark,
     background-color: var(--control-bg) !important;
 }
 
-/* Dark calendar event backgrounds — use calendar.css semantic vars */
-:is([data-theme="dark"], body.theme-dark) .fc .fc-event {
-    background-color: var(--surface-pill) !important;
-    border-color: var(--surface-border) !important;
-}
-
-:is([data-theme="dark"], body.theme-dark) .fc .fc-event.holiday {
-    background-color: var(--cal-event-holiday) !important;
-}
-
-:is([data-theme="dark"], body.theme-dark) .fc .fc-event.shabbat {
-    background-color: var(--cal-event-shabbat) !important;
-}
+/* Per-category event backgrounds now come from calendar.css's .fc-event.cal-cat-*
+   rules (same var()s, both themes) — no blanket dark override needed here anymore;
+   one used to flatten every event to --surface-pill regardless of category. */
 
 :is([data-theme="dark"], body.theme-dark) #settingsPanel select option,
 :is([data-theme="dark"], body.theme-dark) #readerSettingsPanel select option {
@@ -3005,18 +3172,6 @@ html.theme-dark,
 :is([data-theme="dark"], body.theme-dark) #readerSettingsPanel input[type="range"]:focus-visible {
     outline: 2px solid rgba(176, 154, 116, 0.5);
     outline-offset: 2px;
-}
-
-:is([data-theme="dark"], body.theme-dark) #readerSettingsPanel input[type="range"]::-webkit-slider-runnable-track {
-    background: var(--range-incomplete);
-    border-radius: 9999px;
-    height: 0.5rem;
-}
-
-:is([data-theme="dark"], body.theme-dark) #readerSettingsPanel input[type="range"]::-moz-range-track {
-    background: var(--range-incomplete);
-    border-radius: 9999px;
-    height: 0.5rem;
 }
 
 /* Settings panels sit a layer deeper (--surface-subtle) than the buttons and
@@ -3843,14 +3998,22 @@ html[dir="rtl"] .mobile-drawer-right.mobile-open {
     box-shadow: 0 0 0 2px color-mix(in srgb, var(--gold) 25%, transparent) !important;
 }
 
+/* Gold accent (not the light-mode navy) to match this popover's warm dark
+   palette — its border, focus ring, and label already use --gold. Styled as
+   a subtle dark-surface + gold-outline button (same language as
+   .home-calendar-btn's dark-mode treatment) rather than a solid gold fill,
+   which read as an out-of-place bright block against the rest of dark
+   mode's muted button palette. */
 :is([data-theme="dark"], body.theme-dark) #citySearchSubmit {
-    background: var(--control-strong-bg) !important;
-    color: var(--control-text-strong) !important;
-    border: 1px solid var(--control-border) !important;
+    background: var(--surface-elevated) !important;
+    color: var(--gold) !important;
+    border: 1px solid var(--gold) !important;
 }
 
 :is([data-theme="dark"], body.theme-dark) #citySearchSubmit:hover {
-    background: var(--control-strong-bg-hover) !important;
+    background: var(--surface-pill) !important;
+    color: var(--gold-light) !important;
+    border-color: var(--gold-light) !important;
 }
 
 :is([data-theme="dark"], body.theme-dark) #citySearchBtn {
@@ -4039,43 +4202,134 @@ html.rtl #readerTopBar #readerLibraryTopBarBtn {
 :is([data-theme="dark"], body.theme-dark) #settingsPanel textarea::placeholder { color: var(--text-muted) !important; }
 
 :is([data-theme="dark"], body.theme-dark) #themeToggleBtn {
-    background: var(--surface-pill) !important;
+    background: rgba(148, 163, 184, 0.16) !important;
     color: var(--accent-cream) !important;
-    border-color: var(--surface-border) !important;
+    border-color: rgba(148, 163, 184, 0.6) !important;
 }
 
 :is([data-theme="dark"], body.theme-dark) #themeToggleBtn:hover {
-    background: var(--control-bg-hover) !important;
-    border-color: var(--control-border) !important;
-    color: var(--control-text-strong) !important;
+    background: rgba(148, 163, 184, 0.26) !important;
+    border-color: rgba(148, 163, 184, 0.75) !important;
+    color: var(--accent-cream) !important;
 }
 
+/* This selector repeats the rule at ~L598 with identical specificity but
+   later source order, so it's the one that actually wins the cascade —
+   keep both in sync. Slate-chip treatment matches #settingsMenuBtn /
+   #mobileLangToggle so all Quick Settings controls read consistently in
+   dark mode instead of the near-invisible flat --surface-pill fill. */
 :is([data-theme="dark"], body.theme-dark) #settingsPanel button:not(#bookmarkCurrentBtn) {
-    background: var(--surface-pill) !important;
-    border-color: var(--surface-border) !important;
+    background: rgba(148, 163, 184, 0.16) !important;
+    border-color: rgba(148, 163, 184, 0.6) !important;
     color: var(--accent-cream) !important;
 }
 
 :is([data-theme="dark"], body.theme-dark) #settingsPanel button:not(#bookmarkCurrentBtn):hover {
-    background: var(--control-bg-hover) !important;
-    border-color: var(--control-border) !important;
-    color: var(--control-text-strong) !important;
+    background: rgba(148, 163, 184, 0.26) !important;
+    border-color: rgba(148, 163, 184, 0.75) !important;
+    color: var(--accent-cream) !important;
 }
 
 :is([data-theme="dark"], body.theme-dark) #settingsPanel .text-xs,
 :is([data-theme="dark"], body.theme-dark) #settingsPanel .text-sm { color: var(--text-muted) !important; }
 
-:is([data-theme="dark"], body.theme-dark) #bookmarkCurrentBtn {
-    background: var(--control-strong-bg) !important;
-    border-color: var(--control-border) !important;
-    color: var(--control-text-strong) !important;
+/* #settingsPanel prefix boosts specificity past the button/select/input
+   catch-all just above, which was flattening this to plain --control-bg
+   and hiding the "Save Current" primary-action emphasis that light mode
+   keeps (navy bg). --control-strong-bg (#6888a8) measured only 2.5:1
+   against white/cream text at this button's small 0.72rem size, below
+   the 4.5:1 AA floor. #4f7599 is the widest point in this hue family
+   that clears BOTH floors at once: 4.84:1 text contrast and 3.48:1
+   against the near-black panel (WCAG 1.4.11 non-text) — measured live,
+   not eyeballed. Hover keeps the same fill (any lighter and text
+   contrast drops back under 4.5:1) and signals state via a brighter
+   border instead. */
+:is([data-theme="dark"], body.theme-dark) #settingsPanel button#bookmarkCurrentBtn {
+    background: #4f7599 !important;
+    border-color: #3d5f85 !important;
+    color: #ffffff !important;
 }
 
-:is([data-theme="dark"], body.theme-dark) #bookmarkCurrentBtn:hover {
-    background: var(--control-strong-bg-hover) !important;
-    color: var(--control-text-strong) !important;
+:is([data-theme="dark"], body.theme-dark) #settingsPanel button#bookmarkCurrentBtn:hover {
+    background: #4f7599 !important;
+    border-color: #8fb0d0 !important;
+    color: #ffffff !important;
+    box-shadow: 0 0 0 2px rgba(143, 176, 208, 0.25) !important;
 }
 
 :is([data-theme="dark"], body.theme-dark) #settingsPanel .hover\:bg-slate-200:hover {
     background-color: var(--control-bg-hover) !important;
+}
+
+/* ── Analytics consent banner (plan.md §12.5.3) ───────────────────────── */
+
+#analyticsConsentBanner {
+    position: fixed;
+    left: var(--sp-4);
+    right: var(--sp-4);
+    bottom: var(--sp-4);
+    z-index: 200;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--sp-3);
+    max-width: 40rem;
+    margin: 0 auto;
+    padding: var(--sp-4);
+    border: 1px solid var(--surface-border);
+    border-radius: var(--radius-lg);
+    background: var(--surface-2);
+    color: var(--ink-primary);
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+}
+
+#analyticsConsentBanner.hidden {
+    display: none;
+}
+
+#analyticsConsentBanner p {
+    margin: 0;
+    font-size: var(--text-sm);
+    flex: 1 1 16rem;
+}
+
+.analytics-consent-actions {
+    display: flex;
+    gap: var(--sp-2);
+    flex-shrink: 0;
+}
+
+.analytics-consent-actions button {
+    min-height: 44px;
+    padding: var(--sp-2) var(--sp-4);
+    border: 1px solid var(--surface-border);
+    border-radius: var(--radius-md);
+    background: var(--surface-1);
+    color: var(--ink-primary);
+    font-size: var(--text-sm);
+    font-weight: 600;
+    cursor: pointer;
+    transition: background-color 200ms ease-out;
+}
+
+#analyticsConsentAccept {
+    background: var(--accent-primary) !important;
+    border-color: var(--accent-primary) !important;
+    color: var(--ink-on-accent) !important;
+}
+
+.analytics-consent-actions button:hover {
+    background: var(--ctrl-bg-hover);
+}
+
+.analytics-consent-actions button:focus-visible {
+    outline: 2px solid var(--accent-primary);
+    outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .analytics-consent-actions button {
+        transition: none;
+    }
 }
