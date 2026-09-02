@@ -201,6 +201,32 @@ class TestCaptureBackendError:
         # Should not raise despite webhook failure.
         logging_setup._capture_backend_error("test_event", ValueError("boom"))
 
+    def test_discord_webhook_gets_reshaped_to_embeds(self, monkeypatch):
+        """Discord's webhook API rejects arbitrary JSON (requires content/embeds)
+        and the caller never checks the response status — posting the flat
+        payload as-is silently fails every time. Detect Discord URLs and shape
+        an embed instead."""
+        import app as flask_app_module
+        monkeypatch.setattr(flask_app_module.app.logger, "error", lambda *a, **k: None)
+        monkeypatch.setenv(
+            "ERROR_LOG_WEBHOOK_URL", "https://discord.com/api/webhooks/123/abc")
+
+        posted = []
+        import requests
+        monkeypatch.setattr(requests, "post", lambda url, json=None, timeout=None: posted.append(json))
+        logging_setup._capture_backend_error(
+            "clerk_auth_verify_failed", ValueError("Invalid audience"),
+            {"path": "/api/user/preferences"})
+
+        assert len(posted) == 1
+        body = posted[0]
+        assert "content" not in body
+        assert len(body["embeds"]) == 1
+        embed = body["embeds"][0]
+        assert embed["title"] == "clerk_auth_verify_failed"
+        assert embed["description"] == "Invalid audience"
+        assert any(f["name"] == "context" for f in embed["fields"])
+
     def test_no_webhook_configured_skips_post(self, monkeypatch):
         import app as flask_app_module
         monkeypatch.setattr(flask_app_module.app.logger, "error", lambda *a, **k: None)
