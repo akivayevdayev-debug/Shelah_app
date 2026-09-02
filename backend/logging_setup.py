@@ -12,6 +12,7 @@ object — easy to ingest by Vercel log drains, Datadog, Papertrail, etc.
 
 from __future__ import annotations
 
+import hashlib
 import json
 import logging
 import os
@@ -354,6 +355,51 @@ def _scrub_error_context(context: dict) -> dict:
     return scrubbed
 
 
+def hash_user_id(user_id) -> str:
+    """One-way digest of a Clerk `sub` for _capture_backend_error context
+    (plan.md §39.3): a real DELETE already removes this identity from
+    every live table on account deletion, but the raw value would still
+    persist in Sentry/webhook history for however long that store retains
+    events. Mirrors backend/rate_limit.py's _hash_key -- same construction
+    (sha256, truncated to 16 hex chars), so the same user_id always hashes
+    to the same short, non-reversible value, preserving the ability to
+    correlate a user's own error reports without exposing their raw
+    identity in third-party telemetry."""
+    return hashlib.sha256(str(user_id or "").encode()).hexdigest()[:16]
+
+
+def _is_discord_webhook_url(url: str) -> bool:
+    """Discord webhook URLs are always ``https://[sub.]discord(app).com/api/webhooks/...`` —
+    matches subdomains (``ptb.``, ``canary.``) via substring containment."""
+    return "discord.com/api/webhooks" in url or "discordapp.com/api/webhooks" in url
+
+
+def _discord_webhook_body(payload: dict) -> dict:
+    """Reshape ``_capture_backend_error``'s flat payload into Discord's webhook
+    contract (``embeds``), which rejects arbitrary JSON — it requires a non-empty
+    ``content`` or ``embeds`` and enforces its own per-field length limits. Posting
+    the flat payload as-is (the pre-fix behavior) gets a silent 400 from Discord:
+    the caller never checks the response status, so nothing has ever actually
+    reached Discord for any event using this webhook, with no error anywhere to
+    show for it."""
+    context_str = json.dumps(payload.get("context") or {}, ensure_ascii=True)
+    if len(context_str) > 950:
+        context_str = context_str[:950] + "…"
+    fields = [{"name": "request_id", "value": str(payload.get("request_id") or "—"), "inline": True}]
+    if context_str != "{}":
+        fields.append({"name": "context", "value": f"```{context_str}```", "inline": False})
+    ts = payload.get("ts")
+    embed = {
+        "title": str(payload.get("event") or "unknown")[:256],
+        "description": (str(payload.get("message") or "(no message)"))[:4096],
+        "color": 0xE74C3C,
+        "fields": fields,
+    }
+    if isinstance(ts, (int, float)):
+        embed["timestamp"] = datetime.fromtimestamp(ts, tz=timezone.utc).isoformat()
+    return {"embeds": [embed]}
+
+
 def _capture_backend_error(event_name, error, context=None):
     """Sentry-style structured logger for backend failures and AI prompt issues.
 
@@ -383,9 +429,14 @@ def _capture_backend_error(event_name, error, context=None):
     if error_log_webhook_url:
         try:
             import requests as _requests
+            webhook_body = (
+                _discord_webhook_body(payload)
+                if _is_discord_webhook_url(error_log_webhook_url)
+                else payload
+            )
             _requests.post(
                 error_log_webhook_url,
-                json=payload,
+                json=webhook_body,
                 timeout=2,
             )
         except Exception:
