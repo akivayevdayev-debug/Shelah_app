@@ -1,0 +1,36 @@
+-- Migration: convert user_preferences.prefs from text to jsonb.
+-- Run this once in the Supabase SQL Editor for your project.
+--
+-- Provenance (plan.md §30): this file was an untracked, unnamed saved
+-- snippet in the Supabase SQL Editor until this pass -- surfaced while
+-- reconciling the operator's saved-query list against this repo
+-- (2026-08-21). Its own inline comment cited "app.py:3089" as the reason;
+-- that line number is stale -- app.py is 2205 lines today and has no
+-- `prefs` handling left in it at all, since this project's backend
+-- decoupling pass moved it to backend/routes_user.py. The underlying
+-- claim is still correct at its real, current location:
+-- backend/routes_user.py's _user_preferences_get_response (line ~152)
+-- only recognizes stored `prefs` as JSON when `isinstance(stored, dict)`
+-- is true, and _user_preferences_put_response (line ~217) always upserts
+-- a Python dict into this column. scripts/sql/bookmarks_and_preferences_
+-- setup.sql -- the only tracked file that creates this table -- defines
+-- `prefs` as plain `text`, which is the type/code mismatch this migration
+-- closes: without it, every GET /api/user/preferences likely returns
+-- empty prefs/shelf/notes/reading_state for every user regardless of what
+-- was actually saved, because a raw string never satisfies
+-- isinstance(stored, dict).
+--
+-- Caveat: `prefs::jsonb` will fail if any existing row's prefs value is
+-- non-NULL but not valid JSON text (e.g. an empty string). NULL rows are
+-- unaffected (NULL::jsonb is NULL). If this errors, first check for
+-- offending rows with:
+--   SELECT user_id, prefs FROM public.user_preferences
+--   WHERE prefs IS NOT NULL AND prefs !~ '^\s*[{\[]';
+-- Idempotent if prefs is already jsonb: this ALTER becomes a no-op type
+-- change, and (unlike user_id's ALTER -- see
+-- scripts/migrate_user_preferences_user_id_to_text.sql) no RLS policy in
+-- this schema references `prefs`, only `user_id`, so it never hits the
+-- "column used in a policy definition" error re-running it here.
+
+ALTER TABLE public.user_preferences
+    ALTER COLUMN prefs SET DATA TYPE jsonb USING prefs::jsonb;

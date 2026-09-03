@@ -112,6 +112,7 @@ import base64
 import json
 import os
 import sys
+import time
 import uuid
 from pathlib import Path
 
@@ -592,6 +593,21 @@ def main():
     except Exception as e:
         print_warn(f"Could not refresh user A's token for Layer 2, reusing Layer 1's: {e}")
         user_a_layer2 = user_a
+    # Diagnostic (2026-09-01): a fresh Layer-2 token still hit "Invalid or
+    # expired Clerk token" once already, even with _refresh_test_user_token
+    # in place -- decode+log the token's own iat/exp against wall-clock time
+    # right before it's used, so a genuine expiry can be told apart from an
+    # issuer/audience mismatch on the app side (both produce this same
+    # generic 401 -- see backend/auth.py's broad `except Exception`).
+    claims_l2 = _decode_jwt_claims(user_a_layer2.get("token", ""))
+    now = int(time.time())
+    exp = claims_l2.get("exp")
+    iat = claims_l2.get("iat")
+    print_info(
+        f"Layer 2 token: iss={claims_l2.get('iss')!r} aud={claims_l2.get('aud')!r} "
+        f"azp={claims_l2.get('azp')!r} iat={iat} exp={exp} now={now} "
+        f"seconds_until_expiry={None if exp is None else exp - now}"
+    )
     for label, check_fn in (
         ("preferences", check_preferences_app_round_trip),
         ("bookmarks", check_bookmarks_app_round_trip),
