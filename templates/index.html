@@ -1247,6 +1247,9 @@
                 <!-- Media Elements (Videos/Audio) -->
                 <div id="readerMedia" class="mt-8 space-y-4"></div>
 
+                <!-- Answer feedback widget (plan.md §12.4) -->
+                <div id="readerFeedback" class="mt-8 pt-6 border-t" style="border-color: var(--surface-border);"></div>
+
             </article>
 
         </main>
@@ -1455,6 +1458,8 @@
                     <div id="aiSynthesis" aria-live="polite" aria-atomic="false"
                         class="prose prose-sm prose-slate max-w-none font-serif text-slate-800 leading-relaxed">
                     </div>
+                    <!-- Answer feedback widget (plan.md §12.4) -->
+                    <div id="aiFeedback" class="mt-4 pt-4 border-t" style="border-color: var(--surface-border);"></div>
                 </div>
 
                 <!-- Sources Section -->
@@ -11069,6 +11074,86 @@
             hideSearchSuggestions();
         });
 
+        // Answer feedback widget (plan.md §12.4). `container` is the target
+        // div, `data` is the /ask response (data.meta carries mode/language/
+        // fallback/safety_class — the same fields on every response branch,
+        // see app.py::ask_question), `queryTitle` is the raw question text
+        // (hashed server-side in backend/routes_feedback.py, never stored
+        // verbatim).
+        function renderFeedbackWidget(container, data, queryTitle) {
+            if (!container) return;
+            container.innerHTML = `
+                <div class="answer-feedback" data-feedback-state="idle">
+                    <span class="answer-feedback-prompt">${t('Was this answer helpful?', 'האם התשובה הייתה מועילה?')}</span>
+                    <button type="button" class="answer-feedback-btn" data-verdict="helpful" aria-pressed="false"
+                        aria-label="${t('Helpful', 'מועיל')}">👍</button>
+                    <button type="button" class="answer-feedback-btn" data-verdict="not_helpful" aria-pressed="false"
+                        aria-label="${t('Not helpful', 'לא מועיל')}">👎</button>
+                </div>
+            `;
+            const root = container.querySelector('.answer-feedback');
+            const buttons = Array.from(root.querySelectorAll('.answer-feedback-btn'));
+
+            async function submitFeedback(verdict, comment) {
+                try {
+                    const headers = await authHeaders({ 'Content-Type': 'application/json' });
+                    await fetch('/api/feedback', {
+                        method: 'POST',
+                        headers,
+                        body: JSON.stringify({
+                            question: queryTitle || '',
+                            verdict,
+                            comment: comment || '',
+                            mode: data?.meta?.mode || 'balanced',
+                            language: data?.meta?.language || 'en',
+                            fallback: !!data?.meta?.fallback,
+                            safety_class: data?.meta?.safety_class || 'ok',
+                        }),
+                    });
+                } catch (_) {
+                    // Best-effort — feedback loss isn't worth surfacing an error to the reader.
+                }
+            }
+
+            function showThanks() {
+                root.dataset.feedbackState = 'done';
+                root.innerHTML = `<span class="answer-feedback-thanks">${t('Thanks for the feedback!', 'תודה על המשוב!')}</span>`;
+            }
+
+            buttons.forEach((btn) => {
+                btn.addEventListener('click', () => {
+                    if (root.dataset.feedbackState !== 'idle') return;
+                    const verdict = btn.getAttribute('data-verdict');
+                    buttons.forEach((b) => b.setAttribute('aria-pressed', String(b === btn)));
+                    buttons.forEach((b) => { b.disabled = true; });
+
+                    // Submit the bare verdict immediately so a reader who never
+                    // fills in the optional comment (the common case) is still
+                    // counted — waiting on the comment box risked losing the
+                    // verdict entirely to abandonment.
+                    submitFeedback(verdict, '');
+
+                    if (verdict === 'not_helpful') {
+                        root.dataset.feedbackState = 'commenting';
+                        const commentRow = document.createElement('div');
+                        commentRow.className = 'answer-feedback-comment-row';
+                        commentRow.innerHTML = `
+                            <textarea maxlength="500" placeholder="${t('What went wrong? (optional)', 'מה השתבש? (אופציונלי)')}"></textarea>
+                            <button type="button" class="answer-feedback-submit">${t('Send feedback', 'שלח משוב')}</button>
+                        `;
+                        root.appendChild(commentRow);
+                        commentRow.querySelector('.answer-feedback-submit').addEventListener('click', async () => {
+                            const comment = commentRow.querySelector('textarea').value;
+                            if (comment.trim()) await submitFeedback(verdict, comment);
+                            showThanks();
+                        });
+                    } else {
+                        showThanks();
+                    }
+                });
+            });
+        }
+
         function renderArticle(data, queryTitle) {
             // Title already set
             collapseCommentaryPanel();
@@ -11150,6 +11235,9 @@
             // 4. Update Left Sidebar
             updateSidebar(data);
 
+            // 5. Feedback widget
+            renderFeedbackWidget(document.getElementById('readerFeedback'), data, queryTitle);
+
             // Scroll to top of article
             scrollPrimaryToTop('smooth');
         }
@@ -11230,6 +11318,7 @@
             const aiSynthesisEl = document.getElementById('aiSynthesis');
             aiSynthesisEl.innerHTML = renderAnswerMarkdown(data.answer);
             applyMarkdownComponentStyles(aiSynthesisEl, MODAL_MARKDOWN_COMPONENT_STYLES);
+            renderFeedbackWidget(document.getElementById('aiFeedback'), data, queryTitle);
 
             // Hebrew transliteration varies by style guide (kh/ch are the same
             // letter — "Aruch" vs "Arukh", "Tanach" vs "Tanakh", etc). The AI and
