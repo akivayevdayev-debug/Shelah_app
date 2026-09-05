@@ -274,6 +274,9 @@
                                 <a id="userProfileLink" href="/profile"
                                     class="topbar-user-menu-item block px-3 py-1.5 text-xs text-slate-700 hover:bg-slate-100 transition"
                                     data-en="Profile" data-he="פרופיל">Profile</a>
+                                <button id="userProfilePrivacyDataAction" type="button"
+                                    class="topbar-user-menu-item w-full text-start px-3 py-1.5 text-xs text-slate-700 hover:bg-slate-100 transition"
+                                    data-en="Privacy &amp; Data" data-he="פרטיות ונתונים">Privacy &amp; Data</button>
                                 <button id="userProfileSignOutAction" type="button"
                                     class="topbar-user-menu-item topbar-user-menu-signout w-full text-start px-3 py-1.5 text-xs text-slate-700 hover:bg-slate-100 transition"
                                     data-en="Sign Out" data-he="התנתקות">Sign Out</button>
@@ -1479,7 +1482,193 @@
         </div>
     </div>
 
-    <!-- Library Category Browser Modal -->
+    <!-- Privacy & Data Modal (plan.md §8.D self-serve DSR: download / delete) -->
+    <style>
+        /* Entrance motion only -- this app never animates modal exits (see
+           closeAiModal() etc.), so match that convention rather than add a
+           one-off exit transition. Reuses the shared keyframe token layer
+           (tokens.css) instead of a new @keyframes rule. */
+        .privacy-modal-panel {
+            animation: shelah-scale-in var(--motion-dur-slow) var(--motion-ease-decel) both;
+        }
+
+        .privacy-card-icon svg {
+            width: 20px;
+            height: 20px;
+        }
+
+        /* Danger-zone palette -- Tailwind's red-* utilities have no warm-token
+           remap (unlike slate/blue/emerald elsewhere in this app, see
+           static/style.css's ".library-shell" overrides), so they render as
+           bright, cool-toned generic-SaaS red against this app's cream/navy/
+           gold manuscript aesthetic. Built from --accent-red instead so it
+           reads as "this site's danger state," not a bootstrap alert, and
+           stays theme-aware for free since the token itself changes value
+           per [data-theme]. */
+        .privacy-danger-card {
+            background: color-mix(in srgb, var(--accent-red) 6%, var(--surface-2));
+            border: 1px solid color-mix(in srgb, var(--accent-red) 24%, var(--surface-border));
+        }
+
+        .privacy-danger-icon {
+            background: var(--surface-elevated);
+            border-color: color-mix(in srgb, var(--accent-red) 38%, var(--surface-border));
+            color: var(--accent-red);
+        }
+
+        .privacy-danger-heading {
+            color: var(--accent-red);
+        }
+
+        .privacy-danger-chip {
+            background: var(--surface-elevated);
+            border: 1px solid color-mix(in srgb, var(--accent-red) 26%, var(--surface-border));
+            color: color-mix(in srgb, var(--accent-red) 65%, var(--ink-primary));
+        }
+
+        .privacy-danger-chip--strong {
+            background: color-mix(in srgb, var(--accent-red) 14%, var(--surface-elevated));
+            border-color: color-mix(in srgb, var(--accent-red) 48%, var(--surface-border));
+            color: var(--accent-red);
+        }
+
+        .privacy-delete-input {
+            background: var(--surface-elevated);
+            border: 1px solid var(--surface-border);
+            color: var(--ink-primary);
+        }
+
+        .privacy-delete-input:focus {
+            outline: none;
+            border-color: var(--accent-red);
+            box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent-red) 20%, transparent);
+        }
+
+        .privacy-delete-btn {
+            background: var(--accent-red);
+            color: var(--ink-on-accent);
+        }
+
+        .privacy-delete-btn:hover:not(:disabled) {
+            background: color-mix(in srgb, var(--accent-red) 87%, black);
+        }
+
+        .privacy-delete-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .privacy-status-error {
+            background: color-mix(in srgb, var(--accent-red) 8%, var(--surface-2));
+            border: 1px solid color-mix(in srgb, var(--accent-red) 28%, var(--surface-border));
+            color: color-mix(in srgb, var(--accent-red) 78%, var(--ink-primary));
+        }
+
+        .privacy-status-error svg {
+            color: var(--accent-red);
+        }
+    </style>
+    <div id="privacyDataModal" role="dialog" aria-modal="true" aria-labelledby="privacyDataModalTitle"
+        class="hidden fixed inset-0 z-[109] bg-slate-900/60 backdrop-blur-sm items-center justify-center p-4">
+        <div class="privacy-modal-panel bg-white rounded-2xl shadow-2xl w-full max-w-lg max-h-[85vh] overflow-hidden flex flex-col relative">
+            <button id="privacyDataModalCloseBtn" type="button" onclick="closePrivacyDataModal()"
+                class="absolute top-2 right-2 min-h-[44px] min-w-[44px] flex items-center justify-center rounded-full text-white/80 hover:text-white hover:bg-white/10 transition z-10"
+                aria-label="Close">
+                {{ phosphor('x', size=20) }}
+            </button>
+
+            <div class="bg-gradient-to-r from-navy to-blue-900 text-white px-6 py-5 border-b">
+                <div class="flex items-center gap-2.5">
+                    {{ phosphor('shield-check', size=22, class='shrink-0 text-blue-200') }}
+                    <h2 id="privacyDataModalTitle" class="font-serif text-xl font-bold" data-en="Privacy &amp; Data" data-he="פרטיות ונתונים">Privacy
+                        &amp; Data</h2>
+                </div>
+                <p class="text-blue-100 text-sm mt-1.5"
+                    data-en="Download or delete the personal data associated with your account."
+                    data-he="הורד או מחק את הנתונים האישיים המשויכים לחשבונך.">Download or delete the personal data
+                    associated with your account.</p>
+            </div>
+
+            <div class="overflow-y-auto flex-1 px-6 py-6 space-y-5">
+                <!-- Export card -->
+                <div class="flex gap-3.5 rounded-xl border border-slate-200 bg-slate-50 p-4">
+                    <div class="privacy-card-icon shrink-0 w-10 h-10 rounded-full bg-white border border-slate-200 flex items-center justify-center text-navy">
+                        {{ phosphor('download-simple', size=20) }}
+                    </div>
+                    <div class="min-w-0 flex-1">
+                        <h3 class="font-serif text-lg font-bold text-navy" data-en="Download my data"
+                            data-he="הורד את הנתונים שלי">Download my data</h3>
+                        <p class="text-sm text-slate-600 mt-1 mb-2.5"
+                            data-en="Get a JSON copy of everything we store for your account."
+                            data-he="קבל עותק JSON של כל מה שאנו שומרים עבור חשבונך.">
+                            Get a JSON copy of everything we store for your account.
+                        </p>
+                        <ul class="flex flex-wrap gap-1.5 mb-3.5" aria-label="Data categories included in the export">
+                            <li class="inline-flex items-center rounded-full border border-slate-200 bg-white px-2.5 py-1 text-xs text-slate-600" data-en="Preferences" data-he="העדפות">Preferences</li>
+                            <li class="inline-flex items-center rounded-full border border-slate-200 bg-white px-2.5 py-1 text-xs text-slate-600" data-en="Bookmarks" data-he="סימניות">Bookmarks</li>
+                            <li class="inline-flex items-center rounded-full border border-slate-200 bg-white px-2.5 py-1 text-xs text-slate-600" data-en="Ask history" data-he="היסטוריית שאלות">Ask history</li>
+                            <li class="inline-flex items-center rounded-full border border-slate-200 bg-white px-2.5 py-1 text-xs text-slate-600" data-en="Study memories" data-he="זיכרונות לימוד">Study memories</li>
+                            <li class="inline-flex items-center rounded-full border border-slate-200 bg-white px-2.5 py-1 text-xs text-slate-600" data-en="AI usage logs" data-he="יומני שימוש בבינה מלאכותית">AI usage logs</li>
+                        </ul>
+                        <button id="privacyDataExportBtn" type="button" onclick="handlePrivacyDataExport()"
+                            class="inline-flex items-center gap-1.5 px-4 py-2.5 min-h-[44px] rounded-lg bg-navy text-white hover:bg-blue-900 active:scale-[0.98] transition font-semibold text-sm">
+                            {{ phosphor('download-simple', size=16) }}
+                            <span data-en="Download my data (JSON)" data-he="הורד את הנתונים שלי (JSON)">Download my data (JSON)</span>
+                        </button>
+                        <div id="privacyDataExportStatus" class="hidden" role="status" aria-live="polite"></div>
+                    </div>
+                </div>
+
+                <!-- Danger zone card -->
+                <div class="privacy-danger-card flex gap-3.5 rounded-xl p-4">
+                    <div class="privacy-card-icon privacy-danger-icon shrink-0 w-10 h-10 rounded-full border flex items-center justify-center">
+                        {{ phosphor('warning', size=20) }}
+                    </div>
+                    <div class="min-w-0 flex-1">
+                        <h3 class="privacy-danger-heading font-serif text-lg font-bold" data-en="Delete my account"
+                            data-he="מחק את החשבון שלי">Delete my account</h3>
+                        <p class="text-sm text-slate-700 mt-1 mb-2.5"
+                            data-en="This permanently deletes your account, sign-in, and everything below. This cannot be undone."
+                            data-he="פעולה זו מוחקת לצמיתות את חשבונך, ההתחברות שלך, וכל הנתונים המפורטים למטה. לא ניתן לבטל פעולה זו.">
+                            This permanently deletes your account, sign-in, and everything below. This cannot be undone.
+                        </p>
+                        <ul class="flex flex-wrap gap-1.5 mb-3.5" aria-label="Data categories that will be deleted">
+                            <li class="privacy-danger-chip inline-flex items-center rounded-full px-2.5 py-1 text-xs" data-en="Preferences" data-he="העדפות">Preferences</li>
+                            <li class="privacy-danger-chip inline-flex items-center rounded-full px-2.5 py-1 text-xs" data-en="Bookmarks" data-he="סימניות">Bookmarks</li>
+                            <li class="privacy-danger-chip inline-flex items-center rounded-full px-2.5 py-1 text-xs" data-en="Ask history" data-he="היסטוריית שאלות">Ask history</li>
+                            <li class="privacy-danger-chip inline-flex items-center rounded-full px-2.5 py-1 text-xs" data-en="Study memories" data-he="זיכרונות לימוד">Study memories</li>
+                            <li class="privacy-danger-chip inline-flex items-center rounded-full px-2.5 py-1 text-xs" data-en="AI usage logs" data-he="יומני שימוש בבינה מלאכותית">AI usage logs</li>
+                            <li class="privacy-danger-chip privacy-danger-chip--strong inline-flex items-center rounded-full px-2.5 py-1 text-xs font-medium" data-en="Sign-in (Clerk)" data-he="ההתחברות (Clerk)">Sign-in (Clerk)</li>
+                        </ul>
+                        <label class="block text-xs font-medium text-slate-700 mb-1.5" for="privacyDeleteConfirmInput">
+                            <span data-en="Type DELETE to confirm" data-he="הקלד DELETE לאישור">Type DELETE to
+                                confirm</span>
+                        </label>
+                        <input id="privacyDeleteConfirmInput" type="text" autocomplete="off" spellcheck="false"
+                            oninput="handlePrivacyDeleteConfirmInput()"
+                            class="privacy-delete-input w-full px-3 py-2 min-h-[44px] rounded-lg tracking-wide transition"
+                            placeholder="DELETE" />
+                        <button id="privacyDeleteAccountBtn" type="button" disabled onclick="handlePrivacyDeleteAccount()"
+                            class="privacy-delete-btn mt-3 inline-flex items-center gap-1.5 px-4 py-2.5 min-h-[44px] rounded-lg active:scale-[0.98] disabled:active:scale-100 transition font-semibold text-sm">
+                            {{ phosphor('trash', size=16) }}
+                            <span data-en="Permanently delete my account" data-he="מחק את חשבוני לצמיתות">Permanently delete my account</span>
+                        </button>
+                        <div id="privacyDeleteStatus" class="hidden" role="status" aria-live="polite"></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-slate-50 border-t px-6 py-4 flex justify-between items-center">
+                <a href="/privacy" target="_blank" rel="noopener" class="text-xs text-slate-500 hover:text-slate-800 underline"
+                    data-en="Privacy Policy" data-he="מדיניות הפרטיות">Privacy Policy</a>
+                <button type="button" onclick="closePrivacyDataModal()"
+                    class="px-4 py-2.5 min-h-[44px] text-slate-700 hover:bg-slate-100 rounded-lg transition font-medium text-sm" data-en="Close"
+                    data-he="סגור">Close</button>
+            </div>
+        </div>
+    </div>
+
+        <!-- Library Category Browser Modal -->
     <div id="libraryCategoryModal"
         class="hidden fixed inset-0 z-[108] bg-slate-900/60 backdrop-blur-sm items-center justify-center p-4">
         <div
@@ -7325,7 +7514,13 @@
                 if (e.target === libraryCategoryModalEl) closeLibraryCategory();
             });
         }
-        if (communityTimelineBtn) {
+        const privacyDataModalEl = document.getElementById('privacyDataModal');
+        if (privacyDataModalEl) {
+            privacyDataModalEl.addEventListener('click', e => {
+                if (e.target === privacyDataModalEl) closePrivacyDataModal();
+            });
+        }
+                if (communityTimelineBtn) {
             communityTimelineBtn.addEventListener('click', () => {
                 void openCommunityTimeline();
             });
@@ -10432,7 +10627,14 @@
             });
         }
 
-        initClerkAuth();
+        const userProfilePrivacyDataAction = document.getElementById('userProfilePrivacyDataAction');
+        if (userProfilePrivacyDataAction) {
+            userProfilePrivacyDataAction.addEventListener('click', () => {
+                openPrivacyDataModal();
+            });
+        }
+
+                initClerkAuth();
 
         function formatCountdownDuration(msRemaining) {
             const totalSeconds = Math.max(0, Math.floor(msRemaining / 1000));
@@ -11312,7 +11514,204 @@
             }, 300);
         }
 
-        // Allow closing modal with Escape key
+        // ─── Privacy & Data modal (plan.md §8.D self-serve DSR) ────────────────
+        // Guards the delete-account request: closing the modal (backdrop
+        // click / Escape / Close button) or resubmitting must not abandon
+        // an in-flight irreversible delete request -- see
+        // handlePrivacyDeleteAccount() below.
+        let privacyDeleteInFlight = false;
+        let privacyDataModalTrigger = null;
+
+        // Trusted, static icon markup only -- never combined with dynamic
+        // data via innerHTML (the message text is always set separately via
+        // textContent below) so this stays injection-safe even though the
+        // source strings here are already backend-controlled, not raw user
+        // input.
+        const _PRIVACY_STATUS_ICONS = {
+            success: '<path d="{{ phosphor_path("check-circle") }}"/>',
+            problem: '<path d="{{ phosphor_path("warning-circle") }}"/>',
+        };
+        const _PRIVACY_STATUS_STYLES = {
+            pending: 'bg-slate-100 border-slate-200 text-slate-600',
+            success: 'bg-emerald-50 border-emerald-200 text-emerald-700',
+            warning: 'bg-amber-50 border-amber-200 text-amber-700',
+            error: 'privacy-status-error',
+        };
+
+        // Renders the export/delete status regions as a proper alert box
+        // (icon + message) instead of plain gray text, and is the single
+        // place that maps outcome -> visual treatment so export and delete
+        // stay consistent. kind is '' to clear, or one of
+        // pending/success/warning/error.
+        function _setPrivacyStatus(el, kind, message) {
+            if (!el) return;
+            if (!kind || !message) {
+                el.className = 'hidden';
+                el.innerHTML = '';
+                return;
+            }
+            const palette = _PRIVACY_STATUS_STYLES[kind] || _PRIVACY_STATUS_STYLES.pending;
+            el.className = `flex items-start gap-2 rounded-lg border px-3 py-2.5 text-xs mt-3.5 ${palette}`;
+            const iconPath = kind === 'success' ? _PRIVACY_STATUS_ICONS.success
+                : kind === 'pending' ? ''
+                : _PRIVACY_STATUS_ICONS.problem;
+            el.innerHTML = (iconPath
+                ? `<svg class="w-4 h-4 shrink-0 mt-0.5" viewBox="0 0 256 256" fill="currentColor" aria-hidden="true">${iconPath}</svg>`
+                : '') + '<span></span>';
+            el.querySelector('span').textContent = message;
+        }
+
+        function openPrivacyDataModal() {
+            closeUserProfileMenu();
+            const modal = document.getElementById('privacyDataModal');
+            if (!modal) return;
+            const exportStatus = document.getElementById('privacyDataExportStatus');
+            const deleteStatus = document.getElementById('privacyDeleteStatus');
+            const confirmInput = document.getElementById('privacyDeleteConfirmInput');
+            const deleteBtn = document.getElementById('privacyDeleteAccountBtn');
+            _setPrivacyStatus(exportStatus, '', '');
+            _setPrivacyStatus(deleteStatus, '', '');
+            if (confirmInput) { confirmInput.value = ''; confirmInput.disabled = false; }
+            if (deleteBtn) deleteBtn.disabled = true;
+            privacyDataModalTrigger = document.activeElement;
+            modal.classList.remove('hidden');
+            modal.style.display = 'flex';
+            const closeBtn = document.getElementById('privacyDataModalCloseBtn');
+            if (closeBtn) closeBtn.focus();
+        }
+
+        function closePrivacyDataModal() {
+            // A delete request is in flight (already committed server-side,
+            // irreversible) -- ignore backdrop/Escape/Close attempts so the
+            // status message stays visible until it resolves. See the
+            // frontend-ux-safety review that flagged this modal closing out
+            // from under a pending destructive request.
+            if (privacyDeleteInFlight) return;
+            const modal = document.getElementById('privacyDataModal');
+            if (!modal) return;
+            modal.style.display = 'none';
+            modal.classList.add('hidden');
+            if (privacyDataModalTrigger && typeof privacyDataModalTrigger.focus === 'function') {
+                privacyDataModalTrigger.focus();
+            }
+            privacyDataModalTrigger = null;
+        }
+
+        function handlePrivacyDeleteConfirmInput() {
+            const confirmInput = document.getElementById('privacyDeleteConfirmInput');
+            const deleteBtn = document.getElementById('privacyDeleteAccountBtn');
+            if (!confirmInput || !deleteBtn) return;
+            deleteBtn.disabled = confirmInput.value.trim() !== 'DELETE';
+        }
+
+        async function handlePrivacyDataExport() {
+            const statusEl = document.getElementById('privacyDataExportStatus');
+            const btn = document.getElementById('privacyDataExportBtn');
+            if (btn) btn.disabled = true;
+            _setPrivacyStatus(statusEl, 'pending', isHebrewMode() ? 'מכין הורדה...' : 'Preparing your download...');
+            try {
+                const headers = await authHeaders({ Accept: 'application/json' });
+                const response = await fetch('/api/user/data-export', { headers });
+                if (!response.ok) {
+                    throw new Error(`Export failed (${response.status})`);
+                }
+                const payload = await response.json();
+                const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
+                const blobUrl = URL.createObjectURL(blob);
+                const link = document.createElement('a');
+                link.href = blobUrl;
+                link.download = `shelah-data-export-${new Date().toISOString().slice(0, 10)}.json`;
+                document.body.appendChild(link);
+                link.click();
+                link.remove();
+                URL.revokeObjectURL(blobUrl);
+                const failedCategories = payload && payload.partial_errors
+                    ? Object.keys(payload.partial_errors)
+                    : [];
+                if (failedCategories.length) {
+                    _setPrivacyStatus(statusEl, 'warning', isHebrewMode()
+                        ? `ההורדה החלה, אך קטגוריות אלו לא נכללו: ${failedCategories.join(', ')}. נסה שוב מאוחר יותר.`
+                        : `Download started, but these categories could not be included: ${failedCategories.join(', ')}. Please try again later.`);
+                } else {
+                    _setPrivacyStatus(statusEl, 'success', isHebrewMode() ? 'ההורדה החלה.' : 'Download started.');
+                }
+            } catch (err) {
+                console.error('Data export failed:', err);
+                _setPrivacyStatus(statusEl, 'error', isHebrewMode()
+                    ? 'ההורדה נכשלה. נסה שוב מאוחר יותר.'
+                    : 'Download failed. Please try again later.');
+            } finally {
+                if (btn) btn.disabled = false;
+            }
+        }
+
+        async function handlePrivacyDeleteAccount() {
+            const confirmInput = document.getElementById('privacyDeleteConfirmInput');
+            const statusEl = document.getElementById('privacyDeleteStatus');
+            const deleteBtn = document.getElementById('privacyDeleteAccountBtn');
+            if (!confirmInput || confirmInput.value.trim() !== 'DELETE') return;
+            if (privacyDeleteInFlight) return;
+
+            privacyDeleteInFlight = true;
+            if (deleteBtn) deleteBtn.disabled = true;
+            if (confirmInput) confirmInput.disabled = true;
+            _setPrivacyStatus(statusEl, 'pending', isHebrewMode() ? 'מוחק את החשבון...' : 'Deleting your account...');
+
+            try {
+                const headers = await authHeaders({ 'Content-Type': 'application/json' });
+                const response = await fetch('/api/user/delete-account', {
+                    method: 'POST',
+                    headers,
+                    body: JSON.stringify({ confirmation: 'DELETE' }),
+                });
+                const body = await response.json().catch(() => ({}));
+
+                // The backend only reports full success (ok: true) once every
+                // Supabase table AND the Clerk identity are confirmed deleted
+                // -- a 200 with ok:false, or any 207, means something is left
+                // over (see backend/routes_privacy.py::delete_account). Do
+                // NOT sign the user out or redirect on anything less than
+                // that, and never close the modal before showing why.
+                if (!response.ok || !body || body.ok !== true) {
+                    const failedTables = body && body.table_errors ? Object.keys(body.table_errors) : [];
+                    let detail = '';
+                    if (failedTables.length) {
+                        detail = isHebrewMode()
+                            ? ` (קטגוריות שנכשלו: ${failedTables.join(', ')})`
+                            : ` (failed categories: ${failedTables.join(', ')})`;
+                    } else if (body && body.clerk_error) {
+                        detail = isHebrewMode() ? ' (מחיקת ההתחברות נכשלה)' : ' (sign-in deletion failed)';
+                    }
+                    throw new Error((body && body.error) || `Delete incomplete (${response.status})${detail}`);
+                }
+
+                // Deletion is fully confirmed at this point -- close the
+                // modal now. handleSignOut() is wrapped separately: if it
+                // throws (e.g. the Clerk client session is already invalid
+                // since the identity was just deleted server-side), that is
+                // not a deletion failure and must not land an error message
+                // in a modal the user can no longer see (see the
+                // frontend-ux-safety finding this replaced).
+                closePrivacyDataModal();
+                try {
+                    await handleSignOut();
+                } catch (signOutErr) {
+                    console.error('Post-deletion sign-out failed (account already deleted):', signOutErr);
+                }
+                window.location.assign('/');
+            } catch (err) {
+                console.error('Account deletion failed:', err);
+                _setPrivacyStatus(statusEl, 'error', isHebrewMode()
+                    ? `המחיקה לא הושלמה במלואה: ${err.message}. חלק מהנתונים עשויים עדיין להתקיים -- נסה שוב או צור קשר בדוא"ל.`
+                    : `Deletion did not fully complete: ${err.message}. Some data may still remain -- please try again or contact us by email.`);
+            } finally {
+                privacyDeleteInFlight = false;
+                if (deleteBtn) deleteBtn.disabled = !confirmInput || confirmInput.value.trim() !== 'DELETE';
+                if (confirmInput) confirmInput.disabled = false;
+            }
+        }
+
+                // Allow closing modal with Escape key
         document.addEventListener('keydown', (e) => {
             if (e.altKey && e.shiftKey && e.key.toLowerCase() === 'i') {
                 e.preventDefault();
@@ -11329,6 +11728,7 @@
                 closeDevtoolsInspector();
                 closeSourceGraph();
                 closeCommunityTimeline();
+                closePrivacyDataModal();
             }
         });
     </script>
