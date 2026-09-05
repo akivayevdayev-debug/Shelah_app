@@ -97,7 +97,22 @@
     <!-- Skip-to-content link (keyboard accessibility) -->
     <a href="#mainContainer" class="skip-to-content">Skip to main content</a>
 
-    <!-- Mobile drawer backdrop — starts below the topbar -->
+    <!-- Privacy-respecting analytics consent banner (plan.md §12.5.3, §8.A.4).
+         Hidden until JS decides no prior choice is recorded. -->
+    <div id="analyticsConsentBanner" class="hidden" role="region" aria-label="Analytics consent">
+        <p>
+            <span data-en="We use cookieless, privacy-first analytics (no ad tracking, no cross-site profiling) to see which pages are useful. Is that OK?"
+                data-he="אנו משתמשים באנליטיקס ללא עוגיות ולא פוגעני פרטיות (ללא מעקב פרסומי, ללא פרופיל חוצה אתרים) כדי לראות אילו עמודים שימושיים. זה בסדר?">We
+                use cookieless, privacy-first analytics (no ad tracking, no cross-site profiling) to see which pages
+                are useful. Is that OK?</span>
+        </p>
+        <div class="analytics-consent-actions">
+            <button type="button" id="analyticsConsentDecline" data-en="Decline" data-he="דחה">Decline</button>
+            <button type="button" id="analyticsConsentAccept" data-en="Accept" data-he="קבל">Accept</button>
+        </div>
+    </div>
+
+        <!-- Mobile drawer backdrop — starts below the topbar -->
     <div id="mobileDrawerBackdrop" aria-hidden="true"
         class="hidden fixed left-0 right-0 bottom-0 bg-slate-900/45 backdrop-blur-[1px] z-[85] lg:hidden"
         style="top: var(--topbar-height, 3.4rem); transition: opacity 0.25s ease;">
@@ -11711,7 +11726,45 @@
             }
         }
 
-                // Allow closing modal with Escape key
+                // Analytics consent gate (plan.md §12.5.3, §8.A.4). Vercel Web
+        // Analytics is cookieless and stores no cross-site identifier, but
+        // it's still gated behind explicit opt-in rather than loaded by
+        // default, matching the consent-first stance the rest of §8.A takes
+        // on non-essential scripts.
+        const ANALYTICS_CONSENT_KEY = "Sh'elahAnalyticsConsent";
+
+        function loadVercelAnalytics() {
+            if (document.getElementById('vercelAnalyticsScript')) return;
+            const script = document.createElement('script');
+            script.id = 'vercelAnalyticsScript';
+            script.src = '/_vercel/insights/script.js';
+            script.defer = true;
+            document.body.appendChild(script);
+        }
+
+        function initAnalyticsConsent() {
+            const banner = document.getElementById('analyticsConsentBanner');
+            if (!banner) return;
+            const stored = localStorage.getItem(ANALYTICS_CONSENT_KEY);
+            if (stored === 'granted') {
+                loadVercelAnalytics();
+                return;
+            }
+            if (stored === 'denied') return;
+
+            banner.classList.remove('hidden');
+            document.getElementById('analyticsConsentAccept')?.addEventListener('click', () => {
+                localStorage.setItem(ANALYTICS_CONSENT_KEY, 'granted');
+                banner.classList.add('hidden');
+                loadVercelAnalytics();
+            });
+            document.getElementById('analyticsConsentDecline')?.addEventListener('click', () => {
+                localStorage.setItem(ANALYTICS_CONSENT_KEY, 'denied');
+                banner.classList.add('hidden');
+            });
+        }
+        initAnalyticsConsent();
+        // Allow closing modal with Escape key
         document.addEventListener('keydown', (e) => {
             if (e.altKey && e.shiftKey && e.key.toLowerCase() === 'i') {
                 e.preventDefault();
