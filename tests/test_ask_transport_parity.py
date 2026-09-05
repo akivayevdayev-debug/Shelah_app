@@ -319,10 +319,15 @@ class TestTimeoutBudgetParity:
         assert "ai_cited_sources" in body
 
     def test_both_synthesis_functions_bound_on_the_shared_budget_constant(self):
+        """The Flask-side dispatch was split out of
+        _run_ask_question_ai_synthesis() into _dispatch_ask_ai_synthesis_call()
+        (plan.md §32.1's D(21) -> B(8) complexity refactor) -- that's the
+        function that now actually calls .result(timeout=...), so check it
+        directly rather than its caller."""
         import app as flask_app_module
         import asgi as asgi_module
 
-        flask_source = inspect.getsource(flask_app_module._run_ask_question_ai_synthesis)
+        flask_source = inspect.getsource(flask_app_module._dispatch_ask_ai_synthesis_call)
         async_source = inspect.getsource(asgi_module._run_ask_async_ai_synthesis)
 
         assert "claude.AI_TOTAL_BUDGET_SECONDS" in flask_source
