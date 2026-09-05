@@ -26,16 +26,6 @@ from datetime import date as greg_date, timedelta
 from urllib.parse import unquote
 from pathlib import Path
 
-try:
-    from supabase import create_client
-    try:
-        from supabase.lib.client_options import SyncClientOptions
-    except Exception:
-        SyncClientOptions = None
-except Exception:
-    create_client = None
-    SyncClientOptions = None
-
 from pyluach import dates as pyluach_dates
 
 from backend.data_service import ShelahEngine
@@ -876,6 +866,16 @@ SUPABASE_ANSWER_FEEDBACK_TABLE = (os.environ.get(
 STRICT_SUPABASE_RLS = True
 _supabase_client = None
 
+# Deferred per plan.md §32.6: importing the supabase SDK is real module-load
+# work billed as Active CPU on every cold start (Vercel), even for requests
+# that never touch Supabase (calendar, library browsing, static pages, etc).
+# Loaded on first use by _ensure_supabase_loaded() below instead of at import
+# time, mirroring backend/claude.py's _ensure_anthropic_loaded()/
+# _ensure_genai_loaded() pattern.
+create_client = None
+SyncClientOptions = None
+_supabase_loaded = False
+
 
 # _env_int: reconciled to backend/rag.py as part of the Phase 4 Finding A
 # cleanup above -- re-imported as a back-compat shim (search: "Re-import
@@ -898,8 +898,28 @@ from backend.auth import (  # noqa: E402 -- deliberate: grouped with the Supabas
 )
 
 
+def _ensure_supabase_loaded():
+    """Import the supabase SDK on first use; no-op on later calls."""
+    global create_client, SyncClientOptions, _supabase_loaded
+    if _supabase_loaded:
+        return
+    try:
+        from supabase import create_client as _create_client
+        try:
+            from supabase.lib.client_options import SyncClientOptions as _SyncClientOptions
+        except Exception:
+            _SyncClientOptions = None
+    except Exception:
+        _create_client = None
+        _SyncClientOptions = None
+    create_client = _create_client
+    SyncClientOptions = _SyncClientOptions
+    _supabase_loaded = True
+
+
 def _get_supabase_client():
     global _supabase_client
+    _ensure_supabase_loaded()
     if create_client is None:
         return None
     if not SUPABASE_URL or not SUPABASE_SECRET_KEY:
@@ -1025,6 +1045,7 @@ def _extract_supabase_access_token(bearer_token=None):
 
 def _get_request_supabase_client(bearer_token=None):
     """Flask equivalent of Next.js createServerClient for request-scoped reads."""
+    _ensure_supabase_loaded()
     if create_client is None:
         return None
     if not SUPABASE_URL or not SUPABASE_PUBLISHABLE_KEY:
