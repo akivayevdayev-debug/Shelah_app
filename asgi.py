@@ -738,6 +738,121 @@ async def _run_ask_async_fallback(
     }
 
 
+def _resolve_ask_async_question(payload):
+    """Sanitize the incoming question, raising 400 if nothing usable is
+    left. Split out of ask_async() (SonarCloud python:S3776)."""
+    question = claude.sanitize_user_query(payload.question)
+    question_was_sanitized = question != str(payload.question or "").strip()
+    if not question:
+        raise HTTPException(
+            status_code=400, detail="No valid question provided")
+    return question, question_was_sanitized
+
+
+def _enforce_ask_async_auth_required(user_id):
+    """Raise 401 if Clerk auth enforcement is on and the caller has no
+    identity. Split out of ask_async() (SonarCloud python:S3776)."""
+    if CLERK_ENFORCE_AUTH and not user_id:
+        raise HTTPException(
+            status_code=401, detail="Authentication required")
+
+
+async def _enforce_ask_async_turnstile_gate(user_id, client_ip, turnstile_token):
+    """Turnstile gate (plan.md §16.4 / §16.6 Phase 9c, backend/turnstile.py):
+    anonymous only -- a signed-in caller already has a per-account daily
+    quota (backend/rate_limit.py's llm-class authenticated tier) and Clerk
+    signup itself is a much stronger identity signal than a captcha would
+    add on top. True no-op when TURNSTILE_ENABLED is unset (checked inside
+    enforce_anonymous_ask_gate). Split out of ask_async() (SonarCloud
+    python:S3776)."""
+    if not user_id:
+        turnstile_ok = await _turnstile.enforce_anonymous_ask_gate(
+            client_ip, turnstile_token,
+        )
+        if not turnstile_ok:
+            log_mitigation(
+                "middleware", "llm", _turnstile.hash_ip(client_ip), "/ask",
+            )
+            raise HTTPException(
+                status_code=403,
+                detail={
+                    "error": "Verification required before continuing.",
+                    "code": "turnstile_required",
+                },
+            )
+
+
+async def _enforce_ask_async_budget(user_id, client_ip):
+    """Raise 402 once the caller's daily AI usage budget is exhausted.
+    Split out of ask_async() (SonarCloud python:S3776)."""
+    budget = await check_user_budget_and_enforce(user_id, client_ip)
+    if not budget["allowed"]:
+        raise HTTPException(
+            status_code=402,
+            detail=(
+                "Daily AI usage limit reached for this account "
+                f"(${budget['total_usd']:.2f} of ${budget['threshold_usd']:.2f}). "
+                "Please try again after midnight UTC."
+            ),
+        )
+
+
+def _resolve_ask_async_request_params(payload):
+    """Resolve (mode, canonical_lens, answer_language) from the request
+    payload. Split out of ask_async() (SonarCloud python:S3776)."""
+    mode = _sanitize_answer_mode(payload.mode)
+    community_lens = str(payload.community or "All").strip() or "All"
+    answer_language = str(payload.language or "en").strip().lower()
+    if answer_language not in {"en", "he"}:
+        answer_language = "en"
+    canonical_lens = (
+        "All"
+        if community_lens.lower() == "all"
+        else (_canonicalize_community_name(community_lens) or community_lens)
+    )
+    return mode, canonical_lens, answer_language
+
+
+async def _resolve_ask_async_breaker_response(ask_cache_key, mode, canonical_lens, answer_language, ctx):
+    """If the global cost breaker is tripped, return a (marked-stale)
+    cached payload or the breaker-paused payload; otherwise None so the
+    caller proceeds to real AI synthesis. Split out of ask_async()
+    (SonarCloud python:S3776)."""
+    breaker = await is_global_cost_breaker_tripped()
+    if not breaker["tripped"]:
+        return None
+
+    cached_payload = flask_app_module._get_cached_ask_payload(ask_cache_key)
+    if cached_payload is not None:
+        cached_meta = cached_payload.get("meta")
+        if isinstance(cached_meta, dict):
+            cached_meta["cached"] = True
+            cached_meta["generated_at"] = int(time.time())
+        return cached_payload
+
+    return _ask_async_breaker_paused_payload(mode, canonical_lens, answer_language, ctx)
+
+
+async def _run_ask_async_synthesis_or_fallback(
+    question, mode, canonical_lens, answer_language, user_id, question_was_sanitized, ctx, ask_cache_key,
+):
+    """Run AI synthesis, falling back to the halakhic-source-discovery
+    fallback on any failure, and cache successful results. Split out of
+    ask_async() (SonarCloud python:S3776)."""
+    try:
+        result = await _run_ask_async_ai_synthesis(
+            question, mode, canonical_lens, answer_language, user_id,
+            question_was_sanitized, ctx,
+        )
+        flask_app_module._set_cached_ask_payload(ask_cache_key, result)
+        return result
+    except Exception as ai_error:
+        return await _run_ask_async_fallback(
+            question, mode, canonical_lens, answer_language, user_id,
+            ai_error, ctx,
+        )
+
+
 @fastapi_app.post(
     "/ask",
     responses={
@@ -753,6 +868,12 @@ async def ask_async(
     payload: AskRequest,
     authorization: Annotated[str | None, Header()] = None,
 ) -> dict[str, Any]:
+    # Bound in the outer except's error report even if an exception hits
+    # before these are ever assigned a real value (plan.md §32.1 -- avoids
+    # the "if 'x' in locals()" idiom, which would break once the assignment
+    # sites below move into helper functions with their own local scopes).
+    question = mode = canonical_lens = ""
+
     # Rate limiting (plan.md §16.3-L2) now runs centrally in
     # backend.rate_limit.RateLimitMiddleware, registered on fastapi_app
     # above -- it rejects with 429 before this handler is ever invoked, so
@@ -761,62 +882,16 @@ async def ask_async(
     client_ip = _get_client_ip(request)
     user_id = extract_user_id_from_bearer_value(authorization)
 
-    question = claude.sanitize_user_query(payload.question)
-    question_was_sanitized = question != str(payload.question or "").strip()
-    if not question:
-        raise HTTPException(
-            status_code=400, detail="No valid question provided")
-
-    if CLERK_ENFORCE_AUTH and not user_id:
-        raise HTTPException(
-            status_code=401, detail="Authentication required")
+    question, question_was_sanitized = _resolve_ask_async_question(payload)
+    _enforce_ask_async_auth_required(user_id)
 
     bind_user_id(user_id or "")
     bind_client_key("" if user_id else f"ip:{client_ip}")
 
-    # Turnstile gate (plan.md §16.4 / §16.6 Phase 9c, backend/turnstile.py):
-    # anonymous only -- a signed-in caller already has a per-account daily
-    # quota (backend/rate_limit.py's llm-class authenticated tier) and Clerk
-    # signup itself is a much stronger identity signal than a captcha would
-    # add on top. True no-op when TURNSTILE_ENABLED is unset (checked inside
-    # enforce_anonymous_ask_gate).
-    if not user_id:
-        turnstile_ok = await _turnstile.enforce_anonymous_ask_gate(
-            client_ip, payload.turnstile_token,
-        )
-        if not turnstile_ok:
-            log_mitigation(
-                "middleware", "llm", _turnstile.hash_ip(client_ip), "/ask",
-            )
-            raise HTTPException(
-                status_code=403,
-                detail={
-                    "error": "Verification required before continuing.",
-                    "code": "turnstile_required",
-                },
-            )
+    await _enforce_ask_async_turnstile_gate(user_id, client_ip, payload.turnstile_token)
+    await _enforce_ask_async_budget(user_id, client_ip)
 
-    budget = await check_user_budget_and_enforce(user_id, client_ip)
-    if not budget["allowed"]:
-        raise HTTPException(
-            status_code=402,
-            detail=(
-                "Daily AI usage limit reached for this account "
-                f"(${budget['total_usd']:.2f} of ${budget['threshold_usd']:.2f}). "
-                "Please try again after midnight UTC."
-            ),
-        )
-
-    mode = _sanitize_answer_mode(payload.mode)
-    community_lens = str(payload.community or "All").strip() or "All"
-    answer_language = str(payload.language or "en").strip().lower()
-    if answer_language not in {"en", "he"}:
-        answer_language = "en"
-    canonical_lens = (
-        "All"
-        if community_lens.lower() == "all"
-        else (_canonicalize_community_name(community_lens) or community_lens)
-    )
+    mode, canonical_lens, answer_language = _resolve_ask_async_request_params(payload)
     # plan.md §14.3.4 / Prompt 29b: identical key formula to app.py's (dead,
     # unreachable-in-production) ask_question() route -- not read/written by
     # that route today, but keeping one formula rather than two avoids a
@@ -838,29 +913,15 @@ async def ask_async(
         if strict_result is not None:
             return strict_result
 
-        breaker = await is_global_cost_breaker_tripped()
-        if breaker["tripped"]:
-            cached_payload = flask_app_module._get_cached_ask_payload(ask_cache_key)
-            if cached_payload is not None:
-                cached_meta = cached_payload.get("meta")
-                if isinstance(cached_meta, dict):
-                    cached_meta["cached"] = True
-                    cached_meta["generated_at"] = int(time.time())
-                return cached_payload
-            return _ask_async_breaker_paused_payload(mode, canonical_lens, answer_language, ctx)
+        breaker_response = await _resolve_ask_async_breaker_response(
+            ask_cache_key, mode, canonical_lens, answer_language, ctx)
+        if breaker_response is not None:
+            return breaker_response
 
-        try:
-            result = await _run_ask_async_ai_synthesis(
-                question, mode, canonical_lens, answer_language, user_id,
-                question_was_sanitized, ctx,
-            )
-            flask_app_module._set_cached_ask_payload(ask_cache_key, result)
-            return result
-        except Exception as ai_error:
-            return await _run_ask_async_fallback(
-                question, mode, canonical_lens, answer_language, user_id,
-                ai_error, ctx,
-            )
+        return await _run_ask_async_synthesis_or_fallback(
+            question, mode, canonical_lens, answer_language, user_id,
+            question_was_sanitized, ctx, ask_cache_key,
+        )
 
     except HTTPException:
         raise
@@ -870,9 +931,9 @@ async def ask_async(
             "ask_route_critical_error_async",
             e,
             {
-                "question": question if "question" in locals() else "",
-                "mode": mode if "mode" in locals() else "",
-                "community_lens": canonical_lens if "canonical_lens" in locals() else "",
+                "question": question,
+                "mode": mode,
+                "community_lens": canonical_lens,
             },
         )
         raise HTTPException(
