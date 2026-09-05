@@ -37,8 +37,10 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link rel="preload" href="/static/fonts/SILEOT.woff2" as="font" type="font/woff2" crossorigin>
-    <!-- no-flash theme: read localStorage before first paint -->
-    <script>(function(){var t=localStorage.getItem('shelah-theme');if(t==='light'){document.documentElement.setAttribute('data-theme','light');document.documentElement.classList.remove('theme-dark');}else{document.documentElement.setAttribute('data-theme','dark');document.documentElement.classList.add('theme-dark');}})()</script>
+    <!-- no-flash theme: read the real persisted prefs blob (Sh'elahPrefs.theme —
+         see APP_PREFS_KEY/setThemePreference below) before first paint. Falls back
+         to the OS preference for 'system'/unset, matching applyThemePreferenceClass(). -->
+    <script>(function(){var t='system';try{var raw=localStorage.getItem("Sh'elahPrefs");if(raw){var p=JSON.parse(raw).theme;if(p==='light'||p==='dark')t=p;}}catch(e){}if(t==='system'){t=(window.matchMedia&&window.matchMedia('(prefers-color-scheme: dark)').matches)?'dark':'light';}document.documentElement.setAttribute('data-theme',t);document.documentElement.classList.toggle('theme-dark',t==='dark');})()</script>
     <!-- DaisyUI component library (non-destructive — adds .btn, .card etc. utility classes) -->
     <link href="https://cdn.jsdelivr.net/npm/daisyui@4.12.24/dist/full.min.css" rel="stylesheet"
           integrity="sha384-2V5uSMIWpBK7suX6yRDZH6ll7ktPJF2O58y0HSz+HiFCBCsmqZpxX1AZB4qAHuYI"
