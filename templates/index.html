@@ -11785,6 +11785,12 @@
             }
         });
     </script>
+    <!-- Motion One / motion.dev vanilla animation engine — static/js/motion.js wraps
+         this as window.Motion; degrades gracefully to instant state-changes if this
+         CDN script fails to load (see motion.js's _motionAnimate() fallback). -->
+    <script src="https://cdn.jsdelivr.net/npm/motion@12.43.0/dist/motion.js"
+            integrity="sha384-hgVFh5YKDMdpcWEjpRqk2kPXOKBH7I9NBCKe3uR6dHKgy/BWPe8kyL01kiYuRn1u"
+            crossorigin="anonymous"></script>
     <script type="module" src="/static/js/motion.js?v=20260617-v1"></script>
     <script type="module" src="/static/js/main.js?v=20260617-v1"></script>
 
