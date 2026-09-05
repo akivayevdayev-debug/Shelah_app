@@ -259,29 +259,44 @@ class TestAskFastAPI:
             assert meta.get("async") is True
 
     async def test_rate_limit_returns_429_on_excess(self, fastapi_client):
-        """FastAPI has its own in-process rate limiter; hammering it yields 429."""
-        import asgi as asgi_mod
+        """backend.rate_limit.RateLimitMiddleware enforces this centrally now
+        (plan.md §16.3-L2); seed its in-memory store directly to simulate an
+        exhausted window without needing N real round trips. No Authorization
+        header is sent, so the request is keyed anonymously by IP, not
+        user_id — see backend.rate_limit._build_key.
 
-        # Patch the rate-limit store to fill up for a fake IP
-        test_ip = "192.0.2.99"
-        import collections, time
-        now = time.monotonic()
-        asgi_mod._rate_limit_store[test_ip] = collections.deque(
-            [now] * asgi_mod._RATE_LIMIT_MAX_REQUESTS
+        (Rewritten to match the Phase 9a rate-limiter unification, commit
+        a519a21: asgi.py's own in-process limiter -- _rate_limit_store /
+        _RATE_LIMIT_MAX_REQUESTS -- was removed in favor of the shared
+        backend.rate_limit.RateLimitMiddleware. This test still referenced
+        the removed attributes, failing CI on every push since 2026-09-01.)
+        """
+        import collections
+        import time
+        import backend.rate_limit as rate_limit_mod
+
+        store = rate_limit_mod._store
+        assert isinstance(store, rate_limit_mod._InMemoryStore), (
+            "This test assumes the in-memory fallback store (no "
+            "RATE_LIMIT_REDIS_URL set in the test environment) -- see "
+            "backend/rate_limit.py's _build_store()."
         )
+
+        test_ip = "192.0.2.99"
+        policy = rate_limit_mod._POLICIES["llm"]
+        key = rate_limit_mod._build_key("llm", test_ip, None)
+        now = time.monotonic()
+        store._buckets[key] = collections.deque([now] * policy.max_requests)
 
         try:
             response = await fastapi_client.post(
                 "/ask",
                 json={"question": "What is Shabbat?"},
-                headers={
-                    "X-Forwarded-For": test_ip,
-                    "CF-Connecting-IP": test_ip,
-                },
+                headers={"X-Forwarded-For": test_ip},
             )
             assert response.status_code == 429
         finally:
-            asgi_mod._rate_limit_store.pop(test_ip, None)
+            store._buckets.pop(key, None)
 
 
 # ─── ai_cited_sources schema parity (plan.md §7.1.A / §7.14) ──────────────────
