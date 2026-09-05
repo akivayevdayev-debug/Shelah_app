@@ -85,6 +85,69 @@
 }
 
 /* ═══════════════════════════════════════════════════════ */
+/* DISCLAIMER BANNER — plan.md §8.B.1                       */
+/* Persistent, non-dismissible "not a halachic ruling"      */
+/* notice rendered above every AI answer (AI modal + reader */
+/* view). Shared class, two instances (#aiDisclaimerBanner, */
+/* #readerDisclaimerBanner) — populated by                  */
+/* renderDisclaimerBanner() in templates/index.html.        */
+/* ═══════════════════════════════════════════════════════ */
+
+.ai-disclaimer-banner {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.5rem;
+    padding: 0.75rem 1rem;
+    margin-bottom: 1rem;
+    border: 1px solid var(--ai-trust-border);
+    border-radius: var(--radius-md, 0.7rem);
+    background: var(--ai-trust-bg);
+    /* --ink-primary, not --ink-secondary: the dark-theme pairing of
+       --ink-secondary (#807870) on --ai-trust-bg (#23211f) only clears
+       ~3.7:1 -- below the WCAG AA 4.5:1 floor. --ink-primary clears >8:1
+       in both themes against this background. */
+    color: var(--ink-primary, #334155);
+    font-size: 0.8125rem;
+    line-height: 1.5;
+}
+
+.ai-disclaimer-banner:empty {
+    display: none;
+}
+
+.ai-disclaimer-banner-icon {
+    flex-shrink: 0;
+    font-size: 1rem;
+    line-height: 1.5;
+}
+
+.ai-disclaimer-banner-text {
+    flex: 1;
+}
+
+/* Safety-referral variant (medical / self-harm / abuse / dangerous_or_illegal
+   safety_class) — the highest-risk category, so it needs to read as
+   distinctly more prominent than the standard "consult your rabbi" note,
+   never rely on color alone (icon + copy already differ; see
+   renderDisclaimerBanner()). */
+.ai-disclaimer-banner--referral {
+    border-color: var(--ai-warning-border);
+    background: var(--ai-warning-bg);
+    color: var(--ai-warning-text);
+    font-weight: 600;
+}
+
+/* Global cost-breaker-paused variant (plan.md §16.3-L3 / Prompt 29b) -- same
+   warning color system as the referral banner (WCAG AA already verified for
+   both themes there) but deliberately not font-weight: 600, so a routine
+   budget-pause doesn't visually compete with an actual safety referral. */
+.ai-disclaimer-banner--breaker-paused {
+    border-color: var(--ai-warning-border);
+    background: var(--ai-warning-bg);
+    color: var(--ai-warning-text);
+}
+
+/* ═══════════════════════════════════════════════════════ */
 /* AI MODAL DARK MODE */
 /* ═══════════════════════════════════════════════════════ */
 
