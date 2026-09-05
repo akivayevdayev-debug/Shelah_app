@@ -1280,9 +1280,9 @@
     </nav>
 
     <!-- Calendar Modal -->
-    <div id="calendarModal"
-        class="hidden fixed inset-0 z-[100] bg-slate-900/55 backdrop-blur-[3px] flex items-start justify-center px-4 pb-4 pt-14"
-        role="dialog" aria-modal="true" aria-labelledby="calendarModalTitle">
+    <dialog id="calendarModal"
+        class="hidden fixed inset-0 z-[100] m-0 w-full h-full max-w-none max-h-none bg-slate-900/55 backdrop-blur-[3px] flex items-start justify-center px-4 pb-4 pt-14"
+        aria-labelledby="calendarModalTitle">
         <div class="bg-[#faf7f0] rounded-2xl shadow-2xl w-full max-w-4xl max-h-[90vh] overflow-hidden flex flex-col relative border border-[#d7cebc]"
             style="box-shadow: 0 24px 64px rgba(0,0,0,0.22), 0 4px 12px rgba(78,64,30,0.12);">
             <!-- Modal Header -->
@@ -1290,12 +1290,7 @@
                 style="background: linear-gradient(135deg, #f5efe5 0%, #ede7d5 100%);">
                 <div class="flex items-center gap-3">
                     <div class="w-8 h-8 rounded-full bg-[#1f3f63] flex items-center justify-center flex-shrink-0">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-white" viewBox="0 0 20 20"
-                            fill="currentColor" aria-hidden="true">
-                            <path fill-rule="evenodd"
-                                d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z"
-                                clip-rule="evenodd" />
-                        </svg>
+                        {{ phosphor('calendar-blank', size=16, class='w-4 h-4 text-white') }}
                     </div>
                     <div>
                         <h2 id="calendarModalTitle" class="font-serif text-lg font-bold text-[#002147] leading-tight"
@@ -1309,9 +1304,9 @@
                 <div class="flex items-center gap-3">
                     <div class="hidden sm:flex items-center gap-3 text-xs text-[#64748b]">
                         <span class="flex items-center gap-1"><span class="inline-block w-3 h-3 rounded-sm"
-                                style="background:#802f3e"></span> Holiday</span>
+                                style="background:var(--cal-event-holiday)"></span> Holiday</span>
                         <span class="flex items-center gap-1"><span class="inline-block w-3 h-3 rounded-sm"
-                                style="background:#1f4f3a"></span> Shabbat</span>
+                                style="background:var(--cal-event-shabbat)"></span> Shabbat</span>
                     </div>
                     <button onclick="closeCalendarModal()"
                         class="w-8 h-8 flex items-center justify-center rounded-full border border-[#c8b88a] bg-white/70 hover:bg-white text-[#64748b] hover:text-[#1f3f63] transition text-lg leading-none"
@@ -1325,7 +1320,7 @@
                 <div id="calendar" class="min-h-[400px]"></div>
             </div>
         </div>
-    </div>
+    </dialog>
 
     <!-- Texts Menu Modal (Browse Prayers, Communities, and Text Library) -->
     <div id="textsMenuModal"
@@ -10600,7 +10595,7 @@
         window.openCalendarModal = function () {
             const modal = document.getElementById('calendarModal');
             modal.classList.remove('hidden');
-            modal.style.display = 'flex';
+            modal.showModal();
             ensureCalendarReady();
             setTimeout(() => {
                 if (holidaysCalendar) holidaysCalendar.updateSize();
@@ -10609,9 +10604,25 @@
 
         window.closeCalendarModal = function () {
             const modal = document.getElementById('calendarModal');
-            modal.style.display = 'none';
             modal.classList.add('hidden');
+            if (modal.open) modal.close();
         };
+
+        // <dialog> closes on Escape natively; keep that path routed through
+        // closeCalendarModal() (not the raw native close) so the 'hidden'
+        // class toggle always runs -- this modal previously had no
+        // Escape-to-close at all, so this keeps that same single code path
+        // as the only way it closes, just adding Escape as a trigger for it.
+        document.getElementById('calendarModal')?.addEventListener('cancel', function (e) {
+            e.preventDefault();
+            closeCalendarModal();
+        });
+
+        document.getElementById('calendarModal')?.addEventListener('click', function (e) {
+            if (e.target === this) {
+                closeCalendarModal();
+            }
+        });
 
         // ─── City Location Search ─────────────────────────────────
         let citySearchOpen = false;
