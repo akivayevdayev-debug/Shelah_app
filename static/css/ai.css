@@ -1018,3 +1018,119 @@ body.search-loading #searchIcon {
 .custom-scrollbar::-webkit-scrollbar-thumb:hover {
     background: var(--ctrl-border);
 }
+
+/* ── Answer feedback widget (plan.md §12.4) ───────────────────────────── */
+
+.answer-feedback {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--sp-3);
+}
+
+.answer-feedback-prompt {
+    font-size: var(--text-xs);
+    color: var(--ink-secondary);
+    font-weight: 600;
+}
+
+.answer-feedback-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 44px;
+    min-height: 44px;
+    padding: var(--sp-2) var(--sp-3);
+    border: 1px solid var(--surface-border);
+    border-radius: var(--radius-md);
+    background: var(--surface-2);
+    color: var(--ink-primary);
+    font-size: var(--text-base);
+    cursor: pointer;
+    transition: background-color 200ms ease-out, border-color 200ms ease-out, transform 200ms ease-out;
+}
+
+.answer-feedback-btn:hover {
+    background: var(--ctrl-bg-hover);
+}
+
+.answer-feedback-btn:active {
+    transform: scale(0.96);
+}
+
+.answer-feedback-btn:focus-visible {
+    outline: 2px solid var(--accent-primary);
+    outline-offset: 2px;
+}
+
+.answer-feedback-btn[aria-pressed="true"] {
+    background: var(--accent-primary);
+    border-color: var(--accent-primary);
+    color: var(--ink-on-accent);
+}
+
+.answer-feedback-btn:disabled {
+    opacity: 0.6;
+    cursor: default;
+}
+
+.answer-feedback-comment-row {
+    display: flex;
+    flex-direction: column;
+    gap: var(--sp-2);
+    width: 100%;
+    margin-top: var(--sp-2);
+}
+
+.answer-feedback-comment-row textarea {
+    width: 100%;
+    min-height: 3.5rem;
+    padding: var(--sp-2) var(--sp-3);
+    border: 1px solid var(--surface-border);
+    border-radius: var(--radius-md);
+    background: var(--surface-2);
+    color: var(--ink-primary);
+    font-size: var(--text-sm);
+    resize: vertical;
+}
+
+.answer-feedback-comment-row textarea:focus-visible {
+    outline: 2px solid var(--accent-primary);
+    outline-offset: 1px;
+}
+
+.answer-feedback-submit {
+    align-self: flex-start;
+    min-height: 44px;
+    padding: var(--sp-2) var(--sp-4);
+    border: none;
+    border-radius: var(--radius-md);
+    background: var(--accent-primary);
+    color: var(--ink-on-accent);
+    font-size: var(--text-sm);
+    font-weight: 600;
+    cursor: pointer;
+    transition: background-color 200ms ease-out;
+}
+
+.answer-feedback-submit:hover {
+    background: var(--accent-primary-hover);
+}
+
+.answer-feedback-submit:focus-visible {
+    outline: 2px solid var(--accent-primary);
+    outline-offset: 2px;
+}
+
+.answer-feedback-thanks {
+    font-size: var(--text-xs);
+    color: var(--accent-green);
+    font-weight: 600;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .answer-feedback-btn,
+    .answer-feedback-submit {
+        transition: none;
+    }
+}
