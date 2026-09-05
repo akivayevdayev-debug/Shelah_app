@@ -441,6 +441,84 @@ def _collect_global_sefaria_sources(queries, fallback_terms, discovery_stage, pr
     return sources
 
 
+def _fetch_provider_search_payload(provider_name, provider_search, normalized_query):
+    """Call provider_search behind the shared "web" health breaker. Returns
+    the payload dict, or None if the breaker is open, the call raised, or the
+    result isn't a dict. Split out of _collect_external_global_sources()
+    (SonarCloud python:S3776)."""
+    if not health.is_healthy("web"):
+        return None
+
+    try:
+        payload = provider_search(normalized_query)
+    except (requests.RequestException, TimeoutError) as exc:
+        health.record_failure("web")
+        logger.warning(
+            "search_provider[web] %s call failed: %s", provider_name, exc)
+        return None
+    else:
+        health.record_success("web")
+
+    return payload if isinstance(payload, dict) else None
+
+
+def _extract_trusted_web_title_summary(provider_name, payload, keywords):
+    """Return (title, summary) from a provider payload once it clears the
+    presence and trust checks, else None. Split out of
+    _collect_external_global_sources() (SonarCloud python:S3776)."""
+    title = str(payload.get("title") or "").strip()
+    summary = str(payload.get("summary") or "").strip()
+    if provider_name == "Halachipedia":
+        title = re.sub(r"^\[Halachipedia\]\s*", "", title).strip()
+
+    if not title and not summary:
+        return None
+
+    if not _looks_like_trusted_web_match(provider_name.lower(), title, summary, keywords):
+        return None
+
+    return title, summary
+
+
+def _build_external_source_url(provider_name, title, normalized_query, payload):
+    """Resolve the display URL for an external-global-source candidate,
+    falling back to a constructed wiki/search URL per provider when the
+    payload didn't carry one. Split out of _collect_external_global_sources()
+    (SonarCloud python:S3776)."""
+    url = str(payload.get("url") or "").strip()
+    if url:
+        return url
+
+    if provider_name == "Halachipedia" and title:
+        slug = quote(title.replace(" ", "_"), safe="")
+        return f"https://halachipedia.com/wiki/{slug}" if slug else "https://halachipedia.com"
+
+    if provider_name == "HebrewBooks":
+        return f"https://www.hebrewbooks.org/search.aspx?st=FT&q={quote(normalized_query, safe='')}"
+
+    return ""
+
+
+def _build_external_source_entry(
+    provider_name, domain, title, summary, url, discovery_stage, priority, normalized_query,
+):
+    """Assemble one external-global-search source dict. Split out of
+    _collect_external_global_sources() (SonarCloud python:S3776)."""
+    return {
+        "ref": title[:140] or provider_name,
+        "title": title[:160] or provider_name,
+        "lines": [{"en": summary[:1000], "he": ""}],
+        "domain": domain,
+        "corpus": "external-global-search",
+        "source_provider": provider_name,
+        "url": url,
+        "priority": priority,
+        "status": "fallback",
+        "discovery_stage": discovery_stage,
+        "search_query": normalized_query,
+    }
+
+
 def _collect_external_global_sources(queries, keywords, discovery_stage, priority, max_results=6):
     providers = [
         ("Halachipedia", "halachipedia.com", search.search_halachipedia),
@@ -456,58 +534,28 @@ def _collect_external_global_sources(queries, keywords, discovery_stage, priorit
             continue
 
         for provider_name, domain, provider_search in providers:
-            if not health.is_healthy("web"):
+            payload = _fetch_provider_search_payload(
+                provider_name, provider_search, normalized_query)
+            if payload is None:
                 continue
 
-            try:
-                payload = provider_search(normalized_query)
-            except (requests.RequestException, TimeoutError) as exc:
-                health.record_failure("web")
-                logger.warning(
-                    "search_provider[web] %s call failed: %s", provider_name, exc)
+            trusted = _extract_trusted_web_title_summary(
+                provider_name, payload, keywords)
+            if trusted is None:
                 continue
-            else:
-                health.record_success("web")
-
-            if not isinstance(payload, dict):
-                continue
-
-            title = str(payload.get("title") or "").strip()
-            summary = str(payload.get("summary") or "").strip()
-            if provider_name == "Halachipedia":
-                title = re.sub(r"^\[Halachipedia\]\s*", "", title).strip()
-
-            if not title and not summary:
-                continue
-
-            if not _looks_like_trusted_web_match(provider_name.lower(), title, summary, keywords):
-                continue
+            title, summary = trusted
 
             dedupe_key = (provider_name.lower(), title.lower())
             if dedupe_key in seen:
                 continue
             seen.add(dedupe_key)
 
-            url = str(payload.get("url") or "").strip()
-            if not url and provider_name == "Halachipedia" and title:
-                slug = quote(title.replace(" ", "_"), safe="")
-                url = f"https://halachipedia.com/wiki/{slug}" if slug else "https://halachipedia.com"
-            if not url and provider_name == "HebrewBooks":
-                url = f"https://www.hebrewbooks.org/search.aspx?st=FT&q={quote(normalized_query, safe='')}"
-
-            sources.append({
-                "ref": title[:140] or provider_name,
-                "title": title[:160] or provider_name,
-                "lines": [{"en": summary[:1000], "he": ""}],
-                "domain": domain,
-                "corpus": "external-global-search",
-                "source_provider": provider_name,
-                "url": url,
-                "priority": priority,
-                "status": "fallback",
-                "discovery_stage": discovery_stage,
-                "search_query": normalized_query,
-            })
+            url = _build_external_source_url(
+                provider_name, title, normalized_query, payload)
+            sources.append(_build_external_source_entry(
+                provider_name, domain, title, summary, url,
+                discovery_stage, priority, normalized_query,
+            ))
 
             if len(sources) >= max_results:
                 return sources
