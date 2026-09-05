@@ -1237,6 +1237,10 @@
                         active</p>
                 </header>
 
+                <!-- Persistent, non-dismissible safety disclaimer -- plan.md §8.B.1.
+                     Populated by renderDisclaimerBanner() on every answer. -->
+                <div id="readerDisclaimerBanner" class="ai-disclaimer-banner" role="note"></div>
+
                 <!-- Main Synthesis Text -->
                 <div id="readerContent" class="prose prose-slate max-w-none font-serif leading-relaxed text-slate-800">
                 </div>
@@ -1455,6 +1459,9 @@
                 <!-- AI Synthesis -->
                 <div>
                     <h3 class="font-serif text-lg font-bold text-navy mb-3" data-en="Answer" data-he="תשובה">Answer</h3>
+                    <!-- Persistent, non-dismissible safety disclaimer -- plan.md §8.B.1.
+                         Populated by renderDisclaimerBanner() on every answer. -->
+                    <div id="aiDisclaimerBanner" class="ai-disclaimer-banner" role="note"></div>
                     <div id="aiSynthesis" aria-live="polite" aria-atomic="false"
                         class="prose prose-sm prose-slate max-w-none font-serif text-slate-800 leading-relaxed">
                     </div>
@@ -2083,6 +2090,50 @@
                 .replace(/"/g, '&quot;')
                 .replace(/'/g, '&#39;')
                 .replace(/\n/g, '<br>');
+        }
+
+        // safety_class values that short-circuit synthesis into a referral
+        // (backend/claude.py SAFETY_REFERRAL_CLASSES) plus the domain-refusal
+        // class -- all of these render the prominent referral variant.
+        // "sensitive_intimate" and "ok" stay on the standard variant since
+        // they're still answered under AGE_APPROPRIATE_DIRECTIVE, not blocked.
+        const SAFETY_REFERRAL_UI_CLASSES = new Set([
+            'medical', 'mental_health_or_self_harm', 'abuse_or_minor_safety', 'dangerous_or_illegal',
+        ]);
+
+        // Persistent, non-dismissible disclaimer banner (plan.md §8.B.1) --
+        // rendered fresh on every answer so it can never be scrolled-past-once
+        // and forgotten, and so referral-class answers (§8.B-AGE.2/.7) get a
+        // visually distinct, prominent variant instead of blending into the
+        // ordinary answer chrome.
+        function renderDisclaimerBanner(bannerEl, safetyClass, breakerTripped) {
+            if (!bannerEl) return;
+            const isReferral = SAFETY_REFERRAL_UI_CLASSES.has(String(safetyClass || 'ok'));
+            // breakerTripped (plan.md §16.3-L3 / Prompt 29b) takes precedence over
+            // the ordinary referral/note split -- the global cost breaker always
+            // reports safety_class "ok" (asgi.py::_ask_async_breaker_paused_payload),
+            // so these two states never actually collide in practice, but checking
+            // breakerTripped first keeps that true even if that changes later.
+            bannerEl.classList.toggle('ai-disclaimer-banner--breaker-paused', !!breakerTripped);
+            bannerEl.classList.toggle('ai-disclaimer-banner--referral', isReferral && !breakerTripped);
+            bannerEl.setAttribute('role', breakerTripped ? 'status' : (isReferral ? 'alert' : 'note'));
+            const icon = breakerTripped ? '⏸️' : (isReferral ? '⚠️' : '📖');
+            const text = breakerTripped
+                ? t(
+                    'AI answers are paused for today to stay within our usage budget — you can still browse and search the full Torah library below. Please try again after midnight UTC.',
+                    'תשובות בינה מלאכותית מושהות להיום כדי להישאר בתקציב השימוש שלנו — ניתן עדיין לעיין ולחפש בספריית התורה המלאה למטה. אנא נסה/י שוב לאחר חצות בשעון UTC.'
+                )
+                : isReferral
+                ? t(
+                    'This touches on safety or wellbeing. Please see the guidance above and reach out to a qualified professional, your rabbi, or a trusted adult for next steps — this is educational information, not a halachic ruling.',
+                    'נושא זה נוגע לבטיחות או לרווחה. אנא עיין/י בהנחיה שלמעלה ופנה/י לאיש/אשת מקצוע מוסמך/ת, לרב שלך, או למבוגר/ת אמון לצעדים הבאים — זהו מידע חינוכי בלבד ולא פסיקה הלכתית.'
+                )
+                : t(
+                    'Educational information, not a binding halachic ruling — always consult your rabbi for practical guidance.',
+                    'מידע חינוכי בלבד, לא פסיקה הלכתית מחייבת — יש להתייעץ תמיד עם הרב שלך לקבלת הנחיה מעשית.'
+                );
+            bannerEl.innerHTML = `<span class="ai-disclaimer-banner-icon" aria-hidden="true">${icon}</span>`
+                + `<span class="ai-disclaimer-banner-text">${escapeHtml(text)}</span>`;
         }
         const READER_LAYOUT_MANUAL_KEY = "Sh'elahReaderLayoutManuallySet";
         const PARASHA_CACHE_TTL_MS = 1000 * 60 * 60;
@@ -11160,6 +11211,7 @@
             resetSelectionInsights();
 
             // 1. Content Synthesis
+            renderDisclaimerBanner(document.getElementById('readerDisclaimerBanner'), data.meta?.safety_class, data.meta?.breaker_tripped);
             const readerContentEl = document.getElementById('readerContent');
             readerContentEl.innerHTML = renderAnswerMarkdown(data.answer);
             applyMarkdownComponentStyles(readerContentEl, MODAL_MARKDOWN_COMPONENT_STYLES);
@@ -11315,6 +11367,7 @@
             document.body.classList.remove('search-loading');
 
             // 1. Populate synthesis
+            renderDisclaimerBanner(document.getElementById('aiDisclaimerBanner'), data.meta?.safety_class, data.meta?.breaker_tripped);
             const aiSynthesisEl = document.getElementById('aiSynthesis');
             aiSynthesisEl.innerHTML = renderAnswerMarkdown(data.answer);
             applyMarkdownComponentStyles(aiSynthesisEl, MODAL_MARKDOWN_COMPONENT_STYLES);
