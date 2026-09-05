@@ -1251,7 +1251,7 @@ Do not touch plan.md §16.3-L1 (Vercel WAF) or §16.3-L3 (cost circuit breaker) 
 
 ---
 
-## Prompt 44 — §32: findings from implementing Prompts 26/27 (§13 Phase 7 Sonar debt, §14 Phase 8a Vercel quick wins) — for Opus 5
+## Prompt 44 — §32: findings from implementing Prompts 26/27 (§13 Phase 7 Sonar debt, §14 Phase 8a Vercel quick wins) — for Opus 5 — 🟡 **PARTIALLY DONE 2026-09-05 (STEP 2's 3 D-grade functions + STEP 3 closed; STEP 1/STEP 4 owned by other in-flight sessions; STEP 2's 45 C-grade functions still open)**
 
 **Six independent findings, read `plan.md` §32 in full before starting — it has the complete radon hotspot list, evidence, and rationale for each (§32.1–§32.6). Prompts 26 and 27 are done (3 of 51 complexity hotspots refactored and individually committed — `search_provider.py`, `sefaria_library.py`, `app.py`; the `vercel.json` routing regression fixed and committed; the anthropic/google-genai SDK imports deferred in `backend/claude.py`; full `pytest -q` green — see `plan.md`'s §13 status note and §14.8) — this prompt is the follow-up envelope for what that pass found but was out of scope to fix inline. §32.2 is the most time-sensitive; §32.4 is an operator decision, not a task to execute unilaterally.**
 
@@ -1278,6 +1278,19 @@ VERIFY: pytest -q green after STEP 2 and STEP 3 (each verified independently, no
 
 Update plan.md §32 (mark each of §32.1-§32.6 done with evidence) and this file's Prompt 44 row when done. Stop and report — do not start Prompt 28 (cache-tier work) or any other closed prompt's scope.
 ```
+
+**2026-09-05 session outcome (STEP 2 + STEP 3 only — STEP 1 and STEP 4 explicitly out of scope, superseded by/already resolved in other in-flight sessions per plan.md §32.7's update; STEP 5/6 needed no action):**
+
+- **STEP 2** (plan.md §32.1) — all 3 D-grade functions refactored, one-function-per-commit, each test-anchored:
+  - `backend/utils/search_provider.py::_collect_external_global_sources` D26 → B9. Commit `e9d2138`.
+  - `app.py::_run_ask_question_ai_synthesis` D21 → B8. Commit `b95de6c` (bundled with the one committed test file this required updating, `tests/test_ask_transport_parity.py`).
+  - `asgi.py::ask_async` D28 → B9. Commit `bff4125` (caught and fixed a self-introduced FastAPI decorator-misplacement regression before commit — see commit message).
+  - Near-duplicate check requested in the original prompt: `_run_ask_question_ai_synthesis` and `ask_async` are **not** duplicates of each other (see plan.md §32.1's "Done" note for the actual near-duplicate pair and why a merge wasn't attempted).
+  - 45 C-grade functions remain untouched — still open for the next session to continue.
+- **STEP 3** (plan.md §32.6) — `app.py`'s eager `supabase` import deferred via the same `_ensure_X_loaded()` pattern as `backend/claude.py`. Traced all reachable usages (module-level singleton + 2 functions, both function-body-only references, nothing import-time-evaluated) before changing anything. Commit `98944c6`.
+- **VERIFY** — full `pytest -q` suite confirmed green independently after both STEP 2 (each of the 3 commits) and STEP 3. `graphify update .` run after the final code change.
+- Every STEP 2/3 commit was isolated out of its file's much larger pre-existing uncommitted working-tree content via hand-built patches (verified with `git apply --cached --check`) rather than a blanket `git add`, per plan.md §34.1's norm against bundling unrelated uncommitted content into a misleading commit.
+- `templates/index.html` and `static/js/*` were not touched at any point this session.
 
 ---
 
