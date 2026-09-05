@@ -1764,87 +1764,75 @@ def _security_blocked_ask_payload(
     }
 
 
-def _run_ask_question_ai_synthesis(
-    question, mode, canonical_lens, answer_language, user_id, question_was_sanitized, ctx, engine,
-):
-    """Stage 3 of ask_question(): AI synthesis. Returns the response
-    payload for the security-blocked or success cases; raises on any
-    other failure so the caller's except-block can run the fallback.
-    Split out of ask_question() (SonarCloud python:S3776) -- see
-    _ask_question_prayer_payload.
+def _dispatch_ask_ai_synthesis_call(question, mode, canonical_lens, answer_language, ctx, engine):
+    """Submit the AI-synthesis call (agentic tool-use loop or the plain
+    claude.ask_claude() call, per AI_AGENTIC_TOOLS) to the bounded thread
+    pool and block for its result, within AI_TOTAL_BUDGET_SECONDS. Split
+    out of _run_ask_question_ai_synthesis() (SonarCloud python:S3776).
+
+    Bounded by AI_TOTAL_BUDGET_SECONDS via the module-level _THREAD_POOL so
+    a slow/stuck model call can't hang this request indefinitely — mirrors
+    the asyncio.wait_for budget on the asgi.py async path (plan.md §23.4).
+    On timeout this raises concurrent.futures.TimeoutError, which is an
+    Exception subclass and falls through to the existing fallback ladder,
+    unchanged.
+
+    AI_AGENTIC_TOOLS (plan.md §9.4, Prompt 20, env-default off) swaps in
+    the agentic tool-use loop; ask_pipeline.run_agentic_ask() is a
+    coroutine function, so the thread-pool worker runs it via
+    asyncio.run() -- that worker thread has no event loop of its own (only
+    the ASGI app's event loop, on a different thread, does), so
+    asyncio.run() here is the correct, non-conflicting way to drive it.
+    Off (the default), this branch is never taken and behavior is
+    byte-for-byte the pre-existing claude.ask_claude() call.
     """
-    # Bounded by AI_TOTAL_BUDGET_SECONDS via the module-level _THREAD_POOL
-    # so a slow/stuck model call can't hang this request indefinitely —
-    # mirrors the asyncio.wait_for budget on the asgi.py async path
-    # (plan.md §23.4). On timeout this raises concurrent.futures.
-    # TimeoutError, which is an Exception subclass and falls through to
-    # the existing fallback ladder below, unchanged.
-    #
-    # AI_AGENTIC_TOOLS (plan.md §9.4, Prompt 20, env-default off) swaps in
-    # the agentic tool-use loop; ask_pipeline.run_agentic_ask() is a
-    # coroutine function, so the thread-pool worker runs it via
-    # asyncio.run() -- that worker thread has no event loop of its own
-    # (only the ASGI app's event loop, on a different thread, does), so
-    # asyncio.run() here is the correct, non-conflicting way to drive it.
-    # Off (the default), this branch is never taken and behavior is
-    # byte-for-byte the pre-existing claude.ask_claude() call.
+    call_kwargs = dict(
+        question=question,
+        sefaria_sources=ctx["flat_sources_for_claude"],
+        customs=ctx["customs_info"],
+        user_memories=ctx["user_memory_summaries"],
+        wiki=ctx["wiki_context_for_claude"],
+        halachipedia=ctx["halachipedia_list"],
+        mode=mode,
+        community_lens=canonical_lens,
+        answer_language=answer_language,
+        tool_context=_build_ask_tool_context(engine),
+    )
+
     if claude.AI_AGENTIC_TOOLS:
         def _run_agentic(**kwargs):
             return asyncio.run(ask_pipeline.run_agentic_ask(**kwargs))
-        _ask_future = submit_with_context(
-            _THREAD_POOL,
-            _run_agentic,
-            question=question,
-            sefaria_sources=ctx["flat_sources_for_claude"],
-            customs=ctx["customs_info"],
-            user_memories=ctx["user_memory_summaries"],
-            wiki=ctx["wiki_context_for_claude"],
-            halachipedia=ctx["halachipedia_list"],
-            mode=mode,
-            community_lens=canonical_lens,
-            answer_language=answer_language,
-            tool_context=_build_ask_tool_context(engine),
-        )
+        ask_future = submit_with_context(_THREAD_POOL, _run_agentic, **call_kwargs)
     else:
-        _ask_future = submit_with_context(
-            _THREAD_POOL,
-            claude.ask_claude,
-            question=question,
-            sefaria_sources=ctx["flat_sources_for_claude"],
-            customs=ctx["customs_info"],
-            user_memories=ctx["user_memory_summaries"],
-            wiki=ctx["wiki_context_for_claude"],
-            halachipedia=ctx["halachipedia_list"],
-            mode=mode,
-            community_lens=canonical_lens,
-            answer_language=answer_language,
-            tool_context=_build_ask_tool_context(engine),
-        )
-    result = _ask_future.result(timeout=claude.AI_TOTAL_BUDGET_SECONDS)
+        ask_future = submit_with_context(_THREAD_POOL, claude.ask_claude, **call_kwargs)
 
+    return ask_future.result(timeout=claude.AI_TOTAL_BUDGET_SECONDS)
+
+
+def _coerce_and_validate_ai_result(result, question, mode, answer_language):
+    """Run _coerce_ai_answer_shape() and raise on any non-security-blocked
+    error. Returns (coerced_result, result_error) so the caller can still
+    branch on a security-blocked error without recomputing it. Split out
+    of _run_ask_question_ai_synthesis() (SonarCloud python:S3776)."""
     result = _coerce_ai_answer_shape(
-        result,
-        question,
-        mode,
-        answer_language=answer_language,
-    )
+        result, question, mode, answer_language=answer_language)
 
     result_error = str(result.get("error") or "")
     if result_error and not result_error.startswith("security_blocked"):
         raise RuntimeError(result_error or "AI request failed")
 
-    if result_error.startswith("security_blocked"):
-        return _security_blocked_ask_payload(
-            result, mode, canonical_lens, ctx["knowledge_rows"],
-            ctx["user_memory_summaries"], user_id, question_was_sanitized,
-            question=question, answer_language=answer_language,
-        )
+    return result, result_error
 
+
+def _extract_raw_ai_answer(result, answer_language):
+    """Resolve the (structured_payload, raw_ai_answer) pair for a
+    non-error AI result, raising if there's no usable text either way.
+    Split out of _run_ask_question_ai_synthesis() (SonarCloud
+    python:S3776)."""
     structured_payload = result.get("structured")
     if not isinstance(structured_payload, dict):
         structured_payload = None
 
-    raw_ai_answer = ""
     if structured_payload:
         raw_ai_answer = claude.render_structured_markdown(
             structured_payload,
@@ -1857,29 +1845,67 @@ def _run_ask_question_ai_synthesis(
     if not raw_ai_answer:
         raise RuntimeError("AI response was empty")
 
-    # plan.md §9.3 point 3: an agentic answer that actually invoked
-    # web_search must carry the same general-web warning as the pre-fetch
-    # path's tertiary-web-context fallback, even when the pre-fetch wiki
-    # context itself was empty (the two are unrelated when the flag is on
-    # -- the model may have reached for the live web_search tool on a turn
-    # where the pre-fetch RAG step never touched wiki content at all).
-    # "used_web_search" is only ever present on a run_agentic_ask() result.
-    if "used_web_search" in result:
-        needs_web_warning = bool(result.get("used_web_search"))
-    else:
-        needs_web_warning = ctx["use_tertiary_web_context"] and bool(
-            ctx["wiki_context_for_claude"])
+    return structured_payload, raw_ai_answer
 
-    # The "educational information, not a halachic ruling" disclaimer is
-    # shown persistently in the UI banner (renderDisclaimerBanner in
-    # templates/index.html) -- it must not also be baked into the answer
-    # text itself, or it renders twice.
+
+def _resolve_ask_web_warning_flag(result, ctx):
+    """plan.md §9.3 point 3: an agentic answer that actually invoked
+    web_search must carry the same general-web warning as the pre-fetch
+    path's tertiary-web-context fallback, even when the pre-fetch wiki
+    context itself was empty (the two are unrelated when the flag is on
+    -- the model may have reached for the live web_search tool on a turn
+    where the pre-fetch RAG step never touched wiki content at all).
+    "used_web_search" is only ever present on a run_agentic_ask() result.
+    Split out of _run_ask_question_ai_synthesis() (SonarCloud
+    python:S3776)."""
+    if "used_web_search" in result:
+        return bool(result.get("used_web_search"))
+    return ctx["use_tertiary_web_context"] and bool(ctx["wiki_context_for_claude"])
+
+
+def _compose_validated_ask_answer(raw_ai_answer, needs_web_warning):
+    """Apply the disclaimer/web-warning prefixes and raise if that leaves
+    nothing to show. The "educational information, not a halachic ruling"
+    disclaimer is shown persistently in the UI banner
+    (renderDisclaimerBanner in templates/index.html) -- it must not also
+    be baked into the answer text itself, or it renders twice. Split out
+    of _run_ask_question_ai_synthesis() (SonarCloud python:S3776)."""
     normalized_answer = _compose_answer_with_prefixes(
-        raw_ai_answer,
-        include_web_warning=needs_web_warning,
-    )
+        raw_ai_answer, include_web_warning=needs_web_warning)
     if not str(normalized_answer or "").strip():
         raise RuntimeError("AI response normalized to empty content")
+    return normalized_answer
+
+
+def _run_ask_question_ai_synthesis(
+    question, mode, canonical_lens, answer_language, user_id, question_was_sanitized, ctx, engine,
+):
+    """Stage 3 of ask_question(): AI synthesis. Returns the response
+    payload for the security-blocked or success cases; raises on any
+    other failure so the caller's except-block can run the fallback.
+    Split out of ask_question() (SonarCloud python:S3776) -- see
+    _ask_question_prayer_payload.
+    """
+    result = _dispatch_ask_ai_synthesis_call(
+        question, mode, canonical_lens, answer_language, ctx, engine)
+
+    result, result_error = _coerce_and_validate_ai_result(
+        result, question, mode, answer_language)
+
+    if result_error.startswith("security_blocked"):
+        return _security_blocked_ask_payload(
+            result, mode, canonical_lens, ctx["knowledge_rows"],
+            ctx["user_memory_summaries"], user_id, question_was_sanitized,
+            question=question, answer_language=answer_language,
+        )
+
+    structured_payload, raw_ai_answer = _extract_raw_ai_answer(
+        result, answer_language)
+
+    needs_web_warning = _resolve_ask_web_warning_flag(result, ctx)
+
+    normalized_answer = _compose_validated_ask_answer(
+        raw_ai_answer, needs_web_warning)
 
     result["answer"] = normalized_answer
     _store_user_memory_summary(user_id, question, normalized_answer)
