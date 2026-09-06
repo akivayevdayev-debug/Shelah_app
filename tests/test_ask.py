@@ -20,6 +20,8 @@ import pytest
 import responses as responses_lib
 import httpx
 
+from backend.health_check import FAIL_THRESHOLD
+
 
 # ─── Flask (sync) tests ───────────────────────────────────────────────────────
 
@@ -496,3 +498,249 @@ class TestAiTotalBudgetTimeout:
         body = response.json()
         assert body.get("meta", {}).get("fallback") is True
         assert "ai_cited_sources" in body
+
+
+# ─── Primary AI call site is circuit-broken (plan.md §26.1 / Prompt 39) ───────
+#
+# 'gemini' and 'claude' have always been registered in
+# backend/health_check.py's _PROBES dict, but until Prompt 39 nothing
+# consulted is_healthy() for them before the primary /ask AI call -- only the
+# *fallback* stage was gated (see TestAskDegradationPath above). Every /ask
+# therefore dialed a known-dead provider and paid the full timeout before
+# degrading.
+#
+# These tests drive REAL circuit state (FAIL_THRESHOLD consecutive
+# record_failure calls, exactly like tests/test_calendar_service.py::
+# TestGetParashaCircuitBreaker does for hebcal) rather than monkeypatching
+# is_healthy, and spy on the provider entry points one layer below the gates
+# so "the call was skipped" is proven directly instead of being inferred from
+# the response body -- an exception raised from a spy would be swallowed by
+# /ask's own except-block and land on the same fallback payload, so asserting
+# on the response alone could not tell the two apart.
+
+class TestAskPrimaryAiCircuitBreaker:
+
+    @staticmethod
+    def _open_ai_circuits(health):
+        for _ in range(FAIL_THRESHOLD):
+            health.record_failure("gemini")
+            health.record_failure("claude")
+        # No live re-probe: RECOVERY_INTERVAL has not elapsed, so is_healthy()
+        # answers from state alone and never touches the network.
+        assert health.is_healthy("gemini") is False
+        assert health.is_healthy("claude") is False
+
+    @staticmethod
+    def _spy_on_provider_entrypoints(monkeypatch, claude_module):
+        """Record (never raise) if any provider entry point is reached.
+
+        Each spy returns the value that entry point returns on a benign
+        misconfiguration, so a spy that *does* fire still yields the ordinary
+        fallback payload -- the assertion on `attempts` is what catches it.
+        """
+        attempts: list[str] = []
+
+        def _spy_configure_gemini():
+            attempts.append("gemini_client_configured")
+            return "spy_gemini_should_not_be_reached"
+
+        def _spy_generate(*args, **kwargs):
+            attempts.append("gemini_generate_content")
+            raise RuntimeError("spy: gemini generate_content must not be reached")
+
+        def _spy_async_anthropic_client():
+            attempts.append("anthropic_client_constructed")
+            return None
+
+        monkeypatch.setattr(
+            claude_module, "_configure_gemini_client", _spy_configure_gemini)
+        monkeypatch.setattr(
+            claude_module, "_generate_gemini_content_with_retry", _spy_generate)
+        monkeypatch.setattr(
+            claude_module, "_get_async_client", _spy_async_anthropic_client)
+        return attempts
+
+    @staticmethod
+    def _spy_on_local_fallback(monkeypatch, module):
+        """Wrap (not replace) get_halakhic_sources so the real local-corpus
+        fallback still runs and the payload stays realistic."""
+        real = module.get_halakhic_sources
+        calls: list[str] = []
+
+        def _spy(question, *args, **kwargs):
+            calls.append(question)
+            return real(question, *args, **kwargs)
+
+        monkeypatch.setattr(module, "get_halakhic_sources", _spy)
+        return calls
+
+    def test_flask_both_ai_circuits_open_skips_calls_and_uses_local_fallback(
+        self, test_client, monkeypatch
+    ):
+        import backend.claude as claude_module
+        import backend.health_check as health_check_module
+        import app as flask_app_module
+
+        flask_app_module.ASK_RESPONSE_CACHE.clear()
+        self._open_ai_circuits(health_check_module.health)
+        attempts = self._spy_on_provider_entrypoints(monkeypatch, claude_module)
+        fallback_calls = self._spy_on_local_fallback(monkeypatch, flask_app_module)
+
+        response = test_client.post(
+            "/ask",
+            json={"question": "What is Shabbat? [ai-circuit-open-test]"},
+            content_type="application/json",
+            # Its own limiter bucket: /ask's per-IP rate limit is real in the
+            # test suite (see TestAskRateLimit), and the default 127.0.0.1
+            # budget is already spent by the Flask /ask tests above.
+            environ_base={"REMOTE_ADDR": "10.39.26.1"},
+        )
+
+        assert response.status_code == 200
+        # The actual point of the test: neither provider was dialed.
+        assert attempts == []
+        # ...and /ask still reached the local-corpus fallback.
+        assert len(fallback_calls) == 1
+
+        body = response.get_json()
+        assert isinstance(body.get("answer"), str)
+        assert body["answer"]
+        assert isinstance(body.get("sources"), list)
+        assert "ai_cited_sources" in body
+        assert body.get("meta", {}).get("fallback") is True
+
+    async def test_fastapi_both_ai_circuits_open_skips_calls_and_uses_local_fallback(
+        self, fastapi_client, monkeypatch
+    ):
+        import backend.claude as claude_module
+        import backend.health_check as health_check_module
+        import asgi as asgi_module
+
+        self._open_ai_circuits(health_check_module.health)
+        attempts = self._spy_on_provider_entrypoints(monkeypatch, claude_module)
+        fallback_calls = self._spy_on_local_fallback(monkeypatch, asgi_module)
+
+        response = await fastapi_client.post(
+            "/ask",
+            json={"question": "What is Shabbat? [ai-circuit-open-test-async]"},
+        )
+
+        assert response.status_code == 200
+        assert attempts == []
+        assert len(fallback_calls) == 1
+
+        body = response.json()
+        assert isinstance(body.get("answer"), str)
+        assert body["answer"]
+        assert isinstance(body.get("sources"), list)
+        assert "ai_cited_sources" in body
+        assert body.get("meta", {}).get("fallback") is True
+
+    # ── Unit-level: the gates and the symmetric record_* wiring ──────────────
+
+    def test_sync_gemini_gate_returns_circuit_open_error_shape(self, monkeypatch):
+        """The skip must return the same dict shape a real Gemini failure
+        returns, so _call_primary_model's existing fallback ordering is
+        unchanged."""
+        import backend.claude as claude_module
+        import backend.health_check as health_check_module
+
+        for _ in range(FAIL_THRESHOLD):
+            health_check_module.health.record_failure("gemini")
+
+        result = claude_module._call_gemini_model("prompt text")
+
+        assert result["error"] == "gemini_circuit_open"
+        assert result["is_fallback"] is False
+        assert set(result) == {
+            "answer", "confidence", "error", "is_fallback", "model"}
+
+    async def test_async_gemini_gate_returns_circuit_open_error_shape(self, monkeypatch):
+        import backend.claude as claude_module
+        import backend.health_check as health_check_module
+
+        for _ in range(FAIL_THRESHOLD):
+            health_check_module.health.record_failure("gemini")
+
+        result = await claude_module._call_gemini_httpx_model("prompt text")
+
+        assert result["error"] == "gemini_circuit_open"
+        assert result["is_fallback"] is False
+
+    async def test_anthropic_gate_preserves_gemini_error_prefix(self):
+        """The Claude leg is only ever reached with a gemini_error in hand;
+        an open-circuit skip must keep that prefix so the error string /ask
+        logs still names both providers."""
+        import backend.claude as claude_module
+        import backend.health_check as health_check_module
+
+        for _ in range(FAIL_THRESHOLD):
+            health_check_module.health.record_failure("claude")
+
+        result = await claude_module._call_anthropic_httpx_model(
+            "prompt text", gemini_error="gemini_circuit_open")
+
+        assert result["error"] == "gemini_error: gemini_circuit_open; anthropic_circuit_open"
+        assert result["is_fallback"] is True
+
+    def test_sync_gemini_failure_records_exactly_one_circuit_failure(self, monkeypatch):
+        import backend.claude as claude_module
+        import backend.health_check as health_check_module
+
+        def _raise(*args, **kwargs):
+            raise RuntimeError("simulated gemini outage [circuit-wiring-test]")
+
+        monkeypatch.setattr(claude_module, "_configure_gemini_client", lambda: None)
+        monkeypatch.setattr(claude_module, "_cached_gemini_client", object())
+        monkeypatch.setattr(
+            claude_module, "_generate_gemini_content_with_retry", _raise)
+
+        result = claude_module._call_gemini_model("prompt text")
+
+        assert result["error"].startswith("gemini_error:")
+        assert health_check_module.health._circuits["gemini"].failures == 1
+
+    def test_sync_gemini_empty_response_records_failure_not_success(self, monkeypatch):
+        """An endless run of empty responses must still be able to open the
+        circuit -- recording success on 'the HTTP call returned' would reset
+        the consecutive counter every time and it never would."""
+        import backend.claude as claude_module
+        import backend.health_check as health_check_module
+
+        class _EmptyResponse:
+            text = ""
+            candidates = []
+            usage_metadata = None
+
+        monkeypatch.setattr(claude_module, "_configure_gemini_client", lambda: None)
+        monkeypatch.setattr(claude_module, "_cached_gemini_client", object())
+        monkeypatch.setattr(
+            claude_module, "_generate_gemini_content_with_retry",
+            lambda *a, **k: _EmptyResponse())
+
+        for _ in range(FAIL_THRESHOLD):
+            claude_module._call_gemini_model("prompt text")
+
+        assert health_check_module.health.is_healthy("gemini") is False
+
+    def test_sync_gemini_success_records_circuit_success(self, monkeypatch):
+        import backend.claude as claude_module
+        import backend.health_check as health_check_module
+
+        class _OkResponse:
+            text = json.dumps({"ruling": "ok"})
+            candidates = []
+            usage_metadata = None
+
+        health_check_module.health.record_failure("gemini")
+        health_check_module.health.record_failure("gemini")
+
+        monkeypatch.setattr(claude_module, "_configure_gemini_client", lambda: None)
+        monkeypatch.setattr(claude_module, "_cached_gemini_client", object())
+        monkeypatch.setattr(
+            claude_module, "_generate_gemini_content_with_retry",
+            lambda *a, **k: _OkResponse())
+
+        claude_module._call_gemini_model("prompt text")
+
+        assert health_check_module.health._circuits["gemini"].failures == 0
