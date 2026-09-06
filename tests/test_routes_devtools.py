@@ -173,6 +173,19 @@ class TestStackHealth:
         body = response.get_json()
         assert body.get("flask") is True
 
+    def test_stack_health_cost_breaker_unconfigured_when_unset(self, test_client, authed, monkeypatch):
+        monkeypatch.delenv(cost_meter._DAILY_BUDGET_ENV, raising=False)
+        response = test_client.get("/api/stack/health", headers=AUTH_HEADERS)
+        body = response.get_json()
+        assert body["security"]["cost_breaker"]["configured"] is False
+        assert "note" in body["security"]["cost_breaker"]
+
+    def test_stack_health_cost_breaker_configured_when_set(self, test_client, authed, monkeypatch):
+        monkeypatch.setenv(cost_meter._DAILY_BUDGET_ENV, "10.0")
+        response = test_client.get("/api/stack/health", headers=AUTH_HEADERS)
+        body = response.get_json()
+        assert body["security"]["cost_breaker"] == {"configured": True}
+
 
 class TestApiHealthAlias:
     def test_api_health_alias_requires_auth(self, test_client):

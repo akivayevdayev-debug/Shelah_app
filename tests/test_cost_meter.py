@@ -267,7 +267,7 @@ def captured_alerts(monkeypatch):
     return calls
 
 
-async def test_check_daily_budget_disabled_when_unset(monkeypatch, captured_alerts):
+async def test_check_daily_budget_disabled_when_unset(monkeypatch, captured_alerts, caplog):
     monkeypatch.delenv(cost_meter._DAILY_BUDGET_ENV, raising=False)
     fetch_called = []
     monkeypatch.setattr(
@@ -275,7 +275,8 @@ async def test_check_daily_budget_disabled_when_unset(monkeypatch, captured_aler
         lambda: fetch_called.append(1) or [],
     )
 
-    result = await cost_meter.check_daily_budget_and_alert()
+    with caplog.at_level("WARNING", logger=cost_meter.logger.name):
+        result = await cost_meter.check_daily_budget_and_alert()
 
     assert result == {
         "configured": False,
@@ -287,6 +288,20 @@ async def test_check_daily_budget_disabled_when_unset(monkeypatch, captured_aler
     # Disabled means no Supabase read is even attempted.
     assert fetch_called == []
     assert captured_alerts == []
+    # A no-op budget check must be loud, not silent (plan.md §16 Phase 9b) --
+    # the historical incident this guards against is DAILY_BUDGET_USD being
+    # empty in production for weeks with no signal anywhere.
+    assert any("DAILY_BUDGET_USD is not set" in rec.message for rec in caplog.records)
+
+
+async def test_check_daily_budget_does_not_warn_when_configured(monkeypatch, captured_alerts, caplog):
+    monkeypatch.setenv(cost_meter._DAILY_BUDGET_ENV, "10.0")
+    monkeypatch.setattr(cost_meter, "_fetch_today_usage_rows", lambda: [])
+
+    with caplog.at_level("WARNING", logger=cost_meter.logger.name):
+        await cost_meter.check_daily_budget_and_alert()
+
+    assert not any("DAILY_BUDGET_USD is not set" in rec.message for rec in caplog.records)
 
 
 async def test_check_daily_budget_under_threshold_does_not_alert(monkeypatch, captured_alerts):
@@ -715,7 +730,7 @@ def fake_breaker_store(monkeypatch):
     return store
 
 
-async def test_breaker_disabled_when_unset(monkeypatch):
+async def test_breaker_disabled_when_unset(monkeypatch, caplog):
     monkeypatch.delenv(cost_meter._DAILY_BUDGET_ENV, raising=False)
     fetch_called = []
     monkeypatch.setattr(
@@ -723,13 +738,25 @@ async def test_breaker_disabled_when_unset(monkeypatch):
         lambda: fetch_called.append(1) or [],
     )
 
-    result = await cost_meter.is_global_cost_breaker_tripped()
+    with caplog.at_level("WARNING", logger=cost_meter.logger.name):
+        result = await cost_meter.is_global_cost_breaker_tripped()
 
     assert result == {
         "tripped": False, "total_usd": 0.0, "threshold_usd": 0.0, "configured": False,
     }
     # Disabled means no Supabase read and no store access is even attempted.
     assert fetch_called == []
+    assert any("DAILY_BUDGET_USD is not set" in rec.message for rec in caplog.records)
+
+
+async def test_breaker_does_not_warn_when_configured(monkeypatch, fake_breaker_store, caplog):
+    monkeypatch.setenv(cost_meter._DAILY_BUDGET_ENV, "10.0")
+    monkeypatch.setattr(cost_meter, "_fetch_today_usage_rows", lambda: [])
+
+    with caplog.at_level("WARNING", logger=cost_meter.logger.name):
+        await cost_meter.is_global_cost_breaker_tripped()
+
+    assert not any("DAILY_BUDGET_USD is not set" in rec.message for rec in caplog.records)
 
 
 async def test_breaker_under_threshold_not_tripped(monkeypatch, fake_breaker_store, captured_alerts):

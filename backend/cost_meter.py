@@ -313,6 +313,10 @@ async def check_daily_budget_and_alert() -> dict[str, Any]:
     """
     threshold = _daily_budget_usd()
     if threshold <= 0:
+        logger.warning(
+            "DAILY_BUDGET_USD is not set -- the daily budget alert cron is a "
+            "no-op; /ask has no spend ceiling from this check."
+        )
         return {
             "configured": False,
             "total_usd": 0.0,
@@ -379,6 +383,10 @@ async def is_global_cost_breaker_tripped() -> dict[str, Any]:
     """
     threshold = _daily_budget_usd()
     if threshold <= 0:
+        logger.warning(
+            "DAILY_BUDGET_USD is not set -- the global cost breaker is a "
+            "no-op; /ask has no spend ceiling from this check."
+        )
         return {"tripped": False, "total_usd": 0.0, "threshold_usd": 0.0, "configured": False}
 
     # Lazy import to avoid a circular import at module load: backend.rate_limit
