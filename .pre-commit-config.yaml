@@ -15,3 +15,19 @@ repos:
         name: gitleaks-secret-scan
         args: ["--redact", "--verbose"]
         stages: [pre-commit, pre-push]
+
+  - repo: local
+    hooks:
+      - id: check-prompt-doc-sync
+        name: check-prompt-doc-sync (advisory)
+        description: >-
+          Flags claude_code_prompts.md rows whose status claim disagrees with
+          the plan.md section they track. Advisory only (see plan.md §51) --
+          never blocks the commit; verbose so the report still prints when
+          these files are touched.
+        entry: python3 scripts/check_prompt_doc_sync.py
+        language: system
+        files: ^(plan\.md|claude_code_prompts\.md)$
+        pass_filenames: false
+        verbose: true
+        stages: [pre-commit]
