@@ -73,6 +73,15 @@ def stack_health():
                 cls: {"window_seconds": p.window_seconds, "max_requests": p.max_requests, "fail_open": p.fail_open}
                 for cls, p in rate_limit._POLICIES.items()
             },
+            "cost_breaker": (
+                {"configured": True}
+                if cost_meter._daily_budget_usd() > 0
+                else {
+                    "configured": False,
+                    "note": "DAILY_BUDGET_USD unset -- global cost breaker and "
+                    "budget-check cron are no-ops (plan.md §16 Phase 9b)",
+                }
+            ),
         },
         "clerk": {
             "configured": bool(CLERK_PUBLISHABLE_KEY and CLERK_JWT_ISSUER),
