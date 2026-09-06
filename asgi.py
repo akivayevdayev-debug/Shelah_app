@@ -12,6 +12,21 @@ import logging
 import time
 from typing import Annotated, Any
 
+# plan.md §52: anyio.from_thread is never imported by anyio/__init__.py itself
+# (anyio uses a lazy __getattr__, so `anyio.from_thread` only exists as an
+# attribute once *something* has explicitly imported that submodule).
+# starlette.middleware.wsgi (mounted below via WSGIMiddleware) does `import
+# anyio` then reaches for `anyio.from_thread.run(...)` without importing the
+# submodule itself, so it silently depends on some *other* import path having
+# already registered it first -- in this test suite, only
+# tests/test_routes_devtools.py's fastapi.testclient import does that
+# (starlette/testclient.py explicitly imports anyio.from_thread). Whether
+# that happens before this WSGI code path runs in the same process is a
+# collection-order race, which is why CI hit
+# "AttributeError: module 'anyio' has no attribute 'from_thread'"
+# intermittently. Importing it explicitly here removes the race.
+import anyio.from_thread  # noqa: F401
+
 from fastapi import FastAPI, Header, HTTPException, Request
 from fastapi.middleware.wsgi import WSGIMiddleware
 from fastapi.responses import JSONResponse
