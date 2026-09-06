@@ -1,0 +1,23 @@
+{
+  "_comment": "plan.md §8.F.2 / Prompt 18 item 2: automated WCAG 2.1 AA check for key pages, run in CI (.github/workflows/ci.yml) and locally via `npm run test:a11y` against a running dev server (see README.md for the start command). This file drives the LIGHT-theme half (`npm run test:a11y:light`); scripts/a11y_dark_scan.js re-runs the same `urls` and `defaults` from this file in dark theme (`npm run test:a11y:dark`, plan.md §26.2), so a page added here is automatically covered in both themes -- do not maintain a second URL list. Routes below are the actual registered routes -- confirmed by reading app.py (home/terms/privacy/accessibility) and backend/routes_legal.py (ai-disclosure/acceptable-use/dmca/licenses), not guessed. This is additive to docs/ACCESSIBILITY_AUDIT.md (a prior manual color-contrast-only pass over static/css/tokens.css) -- that doc is untouched by this config.",
+  "defaults": {
+    "standard": "WCAG2AA",
+    "timeout": 30000,
+    "wait": 500,
+    "chromeLaunchConfig": {
+      "args": ["--no-sandbox", "--disable-dev-shm-usage"]
+    },
+    "hideElements": "#readerTitle, .sep",
+    "_hideElements_comment": "#readerTitle: templates/index.html's <h1> starts empty and is populated by JS only once a text is opened; its ancestor #reader carries Tailwind's .hidden (display:none) at rest, which correctly keeps it out of every browser's accessibility tree, but pa11y's default htmlcs runner flags 'Heading tag found with no content' (H42.2) without honoring the inherited display:none -- confirmed by testing with/without --hide-elements. hideElements applies visibility:hidden directly to the element, which the runner does respect. .sep: the middot (·) separators between home-page footer links -- already marked aria-hidden='true' by the author as purely decorative, with no meaning or relation to anything (WCAG 1.4.3's own 'incidental' text exception; same reasoning docs/ACCESSIBILITY_AUDIT.md already applies to --surface-border as a decorative, non-functional divider). Not an ignore-by-code because that would also silence a genuine low-contrast-text finding anywhere else."
+  },
+  "urls": [
+    "http://127.0.0.1:5001/",
+    "http://127.0.0.1:5001/terms",
+    "http://127.0.0.1:5001/privacy",
+    "http://127.0.0.1:5001/accessibility",
+    "http://127.0.0.1:5001/ai-disclosure",
+    "http://127.0.0.1:5001/acceptable-use",
+    "http://127.0.0.1:5001/dmca",
+    "http://127.0.0.1:5001/licenses"
+  ]
+}
