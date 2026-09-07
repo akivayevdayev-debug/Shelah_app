@@ -835,6 +835,7 @@ def _sanitize_answer_mode(mode_value):
 
 
 def _join_with_and(values):
+    values = [str(v or "").strip() for v in values if str(v or "").strip()]
     if not values:
         return ""
     if len(values) == 1:
@@ -842,6 +843,23 @@ def _join_with_and(values):
     if len(values) == 2:
         return f"{values[0]} and {values[1]}"
     return f"{', '.join(values[:-1])}, and {values[-1]}"
+
+
+def _is_machine_translated_source(source):
+    """True if `source` credits an online machine-translation provider
+    (Google Translate / MyMemory / the "automatic-translation" fallback
+    label) rather than a curated glossary, Sefaria lexicon, or dictionary
+    entry. Also true for a "+"-joined combined source (e.g.
+    "dictionaryapi.dev+google-translate" -- an English definition that was
+    then machine-translated to Hebrew) since the machine-translation step
+    still touched the text the user sees.
+
+    plan.md §8.F.4 / Prompt 18 item 4: machine-translated content must be
+    labeled as such, never presented as authoritative -- this is the single
+    place that decision is made so every caller (currently
+    routes_library.py's /api/word/meaning) labels consistently.
+    """
+    return "translat" in str(source or "").lower()
 
 
 def _build_source_attribution_note(*, has_sefaria=False, has_customs=False, has_whitelisted_external=False, has_general_web=False, has_internal_knowledge=False):
@@ -860,8 +878,8 @@ def _build_source_attribution_note(*, has_sefaria=False, has_customs=False, has_
 
     joined_sources = _join_with_and(sources)
     return (
-        f"Note: This information was pulled from {joined_sources}. "
-        f"{RABBI_FINAL_RULING_FOOTER}"
+        f"Note: ⚠️ This is educational information pulled from {joined_sources}, "
+        f"not a halachic ruling. {RABBI_FINAL_RULING_FOOTER}"
     )
 
 
