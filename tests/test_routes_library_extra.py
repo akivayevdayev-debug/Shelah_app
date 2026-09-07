@@ -166,6 +166,36 @@ class TestWordMeaningTranslationFallback:
         assert body["meaning"] == "A day of rest."
 
 
+class TestWordMeaningMachineTranslatedFlag:
+    def test_online_translation_source_is_flagged(self, test_client, monkeypatch):
+        import backend.routes_library as routes_library_module
+        monkeypatch.setattr(
+            routes_library_module, "_lookup_hebrew_word_meaning",
+            lambda word: ("A day of rest.", "google-translate"),
+        )
+        monkeypatch.setattr(
+            routes_library_module, "_collect_word_meaning_alternatives",
+            lambda **kw: [],
+        )
+        response = test_client.get("/api/word/meaning?word=%D7%A9%D7%91%D7%AA&lang=en")
+        assert response.status_code == 200
+        assert response.get_json()["machine_translated"] is True
+
+    def test_curated_glossary_source_is_not_flagged(self, test_client, monkeypatch):
+        import backend.routes_library as routes_library_module
+        monkeypatch.setattr(
+            routes_library_module, "_lookup_hebrew_word_meaning",
+            lambda word: ("A day of rest.", "local-hebrew-glossary"),
+        )
+        monkeypatch.setattr(
+            routes_library_module, "_collect_word_meaning_alternatives",
+            lambda **kw: [],
+        )
+        response = test_client.get("/api/word/meaning?word=%D7%A9%D7%91%D7%AA&lang=en")
+        assert response.status_code == 200
+        assert response.get_json()["machine_translated"] is False
+
+
 class TestExportChapterUnavailableFormats:
     def test_docx_unavailable_returns_503(self, test_client, monkeypatch):
         import builtins
