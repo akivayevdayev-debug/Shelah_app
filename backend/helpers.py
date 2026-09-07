@@ -432,6 +432,40 @@ _SEFARIA_LEXICON_BASE = "https://www.sefaria.org/api/words/"
 _PREFERRED_LEXICONS = ("brown-driver-briggs", "bdb", "jastrow", "sefaria")
 
 
+def _rank_key_for_lexicon_entry(entry):
+    name = str((entry or {}).get("lexicon_name", "")).lower()
+    for i, pref in enumerate(_PREFERRED_LEXICONS):
+        if pref in name:
+            return i
+    return len(_PREFERRED_LEXICONS)
+
+
+def _best_definition_from_lexicon_entries(entries, original_value):
+    """Find the first usable, non-echo definition across lexicon entries,
+    preferring entries in _PREFERRED_LEXICONS order. Returns
+    (definition, lexicon_name) or ("", "").  Split out of
+    _lookup_sefaria_lexicon() to keep this loop out of that function's own
+    complexity count (SonarCloud python:S3776).
+    """
+    for entry in sorted(entries, key=_rank_key_for_lexicon_entry):
+        content = (entry or {}).get("content") or {}
+        defs = content.get("definitions") or []
+        candidates = []
+        for d in defs:
+            raw = str((d.get("definition") if isinstance(d, dict) else d) or "").strip()
+            raw = re.sub(r"<[^>]+>", "", raw).strip()
+            raw = re.sub(r"\s+", " ", raw)[:280]
+            if raw and not _is_translation_echo(original_value, raw):
+                candidates.append(raw)
+        if not candidates and content.get("definition"):
+            raw = re.sub(r"<[^>]+>", "", str(content["definition"])).strip()[:280]
+            if raw:
+                candidates.append(raw)
+        if candidates:
+            return candidates[0], str(entry.get("lexicon_name", "sefaria-lexicon"))
+    return "", ""
+
+
 def _lookup_sefaria_lexicon(word):
     """Look up a Hebrew word in Sefaria's BDB/Jastrow lexicon.
     Returns (definition, lexicon_name) or ("", "")."""
@@ -459,33 +493,7 @@ def _lookup_sefaria_lexicon(word):
             _bounded_cache_set(TRANSLATION_CACHE, cache_key, "")
             return "", ""
 
-        def _lex_rank(entry):
-            name = str((entry or {}).get("lexicon_name", "")).lower()
-            for i, pref in enumerate(_PREFERRED_LEXICONS):
-                if pref in name:
-                    return i
-            return len(_PREFERRED_LEXICONS)
-
-        definition = ""
-        lex_name = ""
-        for entry in sorted(entries, key=_lex_rank):
-            content = (entry or {}).get("content") or {}
-            defs = content.get("definitions") or []
-            candidates = []
-            for d in defs:
-                raw = str((d.get("definition") if isinstance(d, dict) else d) or "").strip()
-                raw = re.sub(r"<[^>]+>", "", raw).strip()
-                raw = re.sub(r"\s+", " ", raw)[:280]
-                if raw and not _is_translation_echo(value, raw):
-                    candidates.append(raw)
-            if not candidates and content.get("definition"):
-                raw = re.sub(r"<[^>]+>", "", str(content["definition"])).strip()[:280]
-                if raw:
-                    candidates.append(raw)
-            if candidates:
-                definition = candidates[0]
-                lex_name = str(entry.get("lexicon_name", "sefaria-lexicon"))
-                break
+        definition, lex_name = _best_definition_from_lexicon_entries(entries, value)
 
         _bounded_cache_set(TRANSLATION_CACHE, cache_key, definition)
         _bounded_cache_set(TRANSLATION_SOURCE_CACHE, cache_key, lex_name if definition else "")
