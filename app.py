@@ -231,11 +231,11 @@ def _set_cached_ask_payload(cache_key, payload):
 # Re-imported here as back-compat shims (search: "Re-import shims").
 
 
-def _build_trusted_custom_sources(data):
-    """Build a stable source list from trusted halachic authorities in community files."""
-    if not isinstance(data, dict):
-        return []
-
+def _collect_trusted_authority_candidates(data):
+    """Gather raw (possibly duplicate/blank) source-name candidates from a
+    community file's source_registry and core_halachic_authorities blocks.
+    Split out of _build_trusted_custom_sources() (SonarCloud python:S3776).
+    """
     candidates = []
 
     source_registry = data.get("source_registry", {}) if isinstance(
@@ -257,6 +257,14 @@ def _build_trusted_custom_sources(data):
         if isinstance(value, list):
             candidates.extend(value)
 
+    return candidates
+
+
+def _dedupe_source_labels(candidates):
+    """Strip, drop blanks, and case-insensitively dedupe a list of raw
+    source-name candidates, preserving first-seen order. Split out of
+    _build_trusted_custom_sources() (SonarCloud python:S3776).
+    """
     deduped = []
     seen = set()
     for item in candidates:
@@ -268,8 +276,16 @@ def _build_trusted_custom_sources(data):
             continue
         seen.add(key)
         deduped.append(label)
+    return deduped
 
-    return deduped[:6]
+
+def _build_trusted_custom_sources(data):
+    """Build a stable source list from trusted halachic authorities in community files."""
+    if not isinstance(data, dict):
+        return []
+
+    candidates = _collect_trusted_authority_candidates(data)
+    return _dedupe_source_labels(candidates)[:6]
 
 
 # _lookup_english_word_meaning, _normalize_glossary_meaning,
@@ -1250,6 +1266,25 @@ def _extract_client_ip():
         request.headers, remote_addr=request.remote_addr, default="") or None
 
 
+def _parse_ip_geolocation_response(data):
+    """Extract (lat, lon) from one IP-geolocation provider's response
+    shape, or (None, None) if it doesn't indicate success. ip-api.com uses
+    status/lat/lon; ipwho.is uses success/latitude/longitude. Split out of
+    _lookup_lat_lon_from_ip() (SonarCloud python:S3776).
+    """
+    if data.get("status") == "success":
+        return (
+            _coerce_coordinate(data.get('lat'), -90, 90),
+            _coerce_coordinate(data.get('lon'), -180, 180),
+        )
+    if data.get("success") is True:
+        return (
+            _coerce_coordinate(data.get('latitude'), -90, 90),
+            _coerce_coordinate(data.get('longitude'), -180, 180),
+        )
+    return None, None
+
+
 def _lookup_lat_lon_from_ip():
     """Best-effort IP-geolocation lookup for get_engine()'s location
     fallback. Returns (lat, lon), or (None, None) on failure. Split out to
@@ -1273,17 +1308,7 @@ def _lookup_lat_lon_from_ip():
         for lookup_url in lookup_urls:
             r = requests.get(lookup_url, timeout=3)
             data = r.json() if r.ok else {}
-
-            ip_lat = None
-            ip_lon = None
-            if data.get("status") == "success":
-                ip_lat = _coerce_coordinate(data.get('lat'), -90, 90)
-                ip_lon = _coerce_coordinate(data.get('lon'), -180, 180)
-            elif data.get("success") is True:
-                ip_lat = _coerce_coordinate(data.get('latitude'), -90, 90)
-                ip_lon = _coerce_coordinate(
-                    data.get('longitude'), -180, 180)
-
+            ip_lat, ip_lon = _parse_ip_geolocation_response(data)
             if ip_lat is not None and ip_lon is not None:
                 return ip_lat, ip_lon
     except Exception as e:
