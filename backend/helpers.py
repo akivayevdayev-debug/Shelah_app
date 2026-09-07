@@ -1147,6 +1147,36 @@ def extract_ai_cited(structured_payload):
 # ── Community name canonicalizer ──────────────────────────────────────────────
 
 
+def _normalize_for_community_match(value):
+    """Lowercase and strip non-alphanumeric characters, for fuzzy
+    community-name matching. Split out of _canonicalize_community_name()
+    (SonarCloud python:S3776).
+    """
+    return "".join(ch for ch in value.lower() if ch.isalnum())
+
+
+def _match_normalized_community_alias(normalized):
+    """Find a COMMUNITY_ALIASES entry whose normalized alias matches, or
+    None. Split out of _canonicalize_community_name() (SonarCloud
+    python:S3776).
+    """
+    for alias, canonical in COMMUNITY_ALIASES.items():
+        if _normalize_for_community_match(alias) == normalized:
+            return canonical
+    return None
+
+
+def _match_normalized_community_name(normalized):
+    """Find a COMMUNITIES entry whose normalized name matches, or None.
+    Split out of _canonicalize_community_name() (SonarCloud
+    python:S3776).
+    """
+    for canonical in COMMUNITIES.keys():
+        if _normalize_for_community_match(canonical) == normalized:
+            return canonical
+    return None
+
+
 def _canonicalize_community_name(name):
     if not name:
         return None
@@ -1158,16 +1188,8 @@ def _canonicalize_community_name(name):
     if lowered in COMMUNITY_ALIASES:
         return COMMUNITY_ALIASES[lowered]
 
-    normalized = "".join(ch for ch in lowered if ch.isalnum())
-    for alias, canonical in COMMUNITY_ALIASES.items():
-        alias_norm = "".join(ch for ch in alias.lower() if ch.isalnum())
-        if alias_norm == normalized:
-            return canonical
-
-    for canonical in COMMUNITIES.keys():
-        canonical_norm = "".join(
-            ch for ch in canonical.lower() if ch.isalnum())
-        if canonical_norm == normalized:
-            return canonical
-
-    return None
+    normalized = _normalize_for_community_match(lowered)
+    return (
+        _match_normalized_community_alias(normalized)
+        or _match_normalized_community_name(normalized)
+    )
