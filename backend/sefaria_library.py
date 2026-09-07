@@ -984,10 +984,44 @@ def _build_catalog_search_result(row, seen_refs, metadata_filters):
     return result
 
 
-def _search_index_catalog(query, size=10, metadata_filters=None):
+def _tokenize_catalog_query(query):
+    """Normalize and tokenize a catalog search query. Split out of
+    _search_index_catalog (SonarCloud python:S3776)."""
     normalized_query = re.sub(
         r"[^0-9a-z\u0590-\u05ff]+", " ", str(query or "").lower()).strip()
     tokens = [token for token in normalized_query.split() if token]
+    return tokens, normalized_query
+
+
+def _rank_catalog_rows(tokens, joined_query):
+    """Score and sort every title-catalog row against the query tokens,
+    best match first. Split out of _search_index_catalog (SonarCloud
+    python:S3776)."""
+    ranked_rows = []
+    for row in _get_title_catalog():
+        score = _score_catalog_row(row, tokens, joined_query)
+        if score is not None:
+            ranked_rows.append((score, row))
+    ranked_rows.sort(key=lambda item: (-item[0], item[1].get("title", "")))
+    return ranked_rows
+
+
+def _collect_catalog_search_results(ranked_rows, size, metadata_filters):
+    """Resolve ranked rows into result dicts up to `size`, deduping refs.
+    Split out of _search_index_catalog (SonarCloud python:S3776)."""
+    results = []
+    seen_refs = set()
+    for _, row in ranked_rows[:max(size * 5, 30)]:
+        result = _build_catalog_search_result(row, seen_refs, metadata_filters)
+        if result is not None:
+            results.append(result)
+            if len(results) >= size:
+                break
+    return results
+
+
+def _search_index_catalog(query, size=10, metadata_filters=None):
+    tokens, normalized_query = _tokenize_catalog_query(query)
     if not tokens:
         return []
 
@@ -997,22 +1031,8 @@ def _search_index_catalog(query, size=10, metadata_filters=None):
         return cached
 
     joined_query = " ".join(tokens)
-    ranked_rows = []
-    for row in _get_title_catalog():
-        score = _score_catalog_row(row, tokens, joined_query)
-        if score is not None:
-            ranked_rows.append((score, row))
-
-    ranked_rows.sort(key=lambda item: (-item[0], item[1].get("title", "")))
-
-    results = []
-    seen_refs = set()
-    for _, row in ranked_rows[:max(size * 5, 30)]:
-        result = _build_catalog_search_result(row, seen_refs, metadata_filters)
-        if result is not None:
-            results.append(result)
-            if len(results) >= size:
-                break
+    ranked_rows = _rank_catalog_rows(tokens, joined_query)
+    results = _collect_catalog_search_results(ranked_rows, size, metadata_filters)
 
     _search_query_cache.set(cache_key, results)
     return results
@@ -1107,10 +1127,9 @@ def _find_category_child_node(candidates, part_norm):
     return None
 
 
-def get_category_contents(category_path):
-    """
-    Returns all books/texts under a given category path.
-    category_path: e.g. "Tanakh" or "Tanakh/Torah"
+def _fetch_category_contents_via_index_api(category_path):
+    """Try Sefaria's /index/{path} endpoint for a category's contents.
+    Split out of get_category_contents (SonarCloud python:S3776).
     """
     # plan.md §8.C.5 security-audit pass: category_path is attacker-
     # controlled (Flask <path:category> converter, already percent-decoded)
@@ -1124,12 +1143,13 @@ def get_category_contents(category_path):
     data = _cached_get(f"{SEFARIA_API}/index/{encoded}")
     if data and not (isinstance(data, dict) and data.get("error")):
         return data
+    return None
 
-    # Fallback for category paths that Sefaria's /index/{path} does not resolve.
-    parts = [p.strip() for p in (category_path or "").split("/") if p.strip()]
-    if not parts:
-        return []
 
+def _walk_library_index_for_category_path(parts):
+    """Walk the cached library index part-by-part to resolve a category
+    path's node. Split out of get_category_contents (SonarCloud
+    python:S3776)."""
     node = get_library_index()
     for part in parts:
         if isinstance(node, list):
@@ -1146,6 +1166,23 @@ def get_category_contents(category_path):
         node = next_node
 
     return node if isinstance(node, (dict, list)) else []
+
+
+def get_category_contents(category_path):
+    """
+    Returns all books/texts under a given category path.
+    category_path: e.g. "Tanakh" or "Tanakh/Torah"
+    """
+    data = _fetch_category_contents_via_index_api(category_path)
+    if data is not None:
+        return data
+
+    # Fallback for category paths that Sefaria's /index/{path} does not resolve.
+    parts = [p.strip() for p in (category_path or "").split("/") if p.strip()]
+    if not parts:
+        return []
+
+    return _walk_library_index_for_category_path(parts)
 
 
 def _flatten_text_with_path(arr, path=None):
@@ -1419,19 +1456,37 @@ def _is_search_result_removed(ref_value, candidate_titles, remove_keys):
     return False
 
 
+def _clean_string_list(items):
+    """Coerce `items` to a list of non-empty stringified entries. Split out
+    of _resolve_search_result_categories (SonarCloud python:S3776)."""
+    if not isinstance(items, list):
+        return []
+    return [str(item) for item in items if item]
+
+
+def _resolve_result_categories_list(index_entry, explicit_categories):
+    """Resolve categories from explicit_categories, falling back to
+    index_entry's own categories when explicit_categories yields nothing
+    (including when it is a non-empty list of all-falsy items). Split out
+    of _resolve_search_result_categories (SonarCloud python:S3776)."""
+    categories = _clean_string_list(explicit_categories)
+    if not categories and isinstance(index_entry, dict):
+        categories = _clean_string_list(index_entry.get("categories", []))
+    return categories
+
+
+def _categories_match_filter(categories, normalized_category_filters):
+    if not normalized_category_filters:
+        return True
+    category_blob = " ".join(categories).lower()
+    return any(token in category_blob for token in normalized_category_filters)
+
+
 def _resolve_search_result_categories(index_entry, explicit_categories, normalized_category_filters):
     """Return the result's categories, or None if it fails the category filter."""
-    categories = []
-    if isinstance(explicit_categories, list) and explicit_categories:
-        categories = [str(item) for item in explicit_categories if item]
-    if not categories and isinstance(index_entry, dict):
-        categories = [str(item)
-                      for item in index_entry.get("categories", []) if item]
-
-    if normalized_category_filters:
-        category_blob = " ".join(categories).lower()
-        if not any(token in category_blob for token in normalized_category_filters):
-            return None
+    categories = _resolve_result_categories_list(index_entry, explicit_categories)
+    if not _categories_match_filter(categories, normalized_category_filters):
+        return None
     return categories
 
 
