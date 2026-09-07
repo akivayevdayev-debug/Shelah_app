@@ -1894,6 +1894,28 @@ def _normalize_liturgy_title_text(title):
     return re.sub(r"\s+", " ", text).strip()
 
 
+def _iter_name_data_candidates(name_data):
+    """Yield raw candidate title values from a Sefaria /api/name/ response,
+    in priority order. Split out of _lookup_canonical_index_title
+    (SonarCloud python:S3776)."""
+    for key in ("book", "index", "key", "title"):
+        yield name_data.get(key)
+    for obj in name_data.get("completion_objects", []) or []:
+        if isinstance(obj, dict):
+            yield obj.get("title") or obj.get("key")
+
+
+def _first_differing_candidate(candidates, query):
+    """Return the first non-empty candidate that differs from `query`
+    case-insensitively, else "". Split out of _lookup_canonical_index_title
+    (SonarCloud python:S3776)."""
+    for candidate in candidates:
+        candidate = str(candidate or "").strip()
+        if candidate and candidate.lower() != query.lower():
+            return candidate
+    return ""
+
+
 def _lookup_canonical_index_title(title):
     """Ask Sefaria's /api/name/<title> completion endpoint for the canonical
     index title when an exact /api/index/<title> lookup fails to resolve.
@@ -1907,20 +1929,27 @@ def _lookup_canonical_index_title(title):
     name_data = _cached_get(f"{SEFARIA_API}/name/{safe_title}", ttl=43200)
     if not isinstance(name_data, dict):
         return ""
+    return _first_differing_candidate(_iter_name_data_candidates(name_data), query)
 
-    for key in ("book", "index", "key", "title"):
-        candidate = str(name_data.get(key) or "").strip()
-        if candidate and candidate.lower() != query.lower():
-            return candidate
 
-    for obj in name_data.get("completion_objects", []) or []:
-        if not isinstance(obj, dict):
-            continue
-        candidate = str(obj.get("title") or obj.get("key") or "").strip()
-        if candidate and candidate.lower() != query.lower():
-            return candidate
-
-    return ""
+def _collect_liturgy_book_if_eligible(node, categories, title, books, seen, include_commentary):
+    """Add `node` to `books` if it's an eligible, not-yet-seen Liturgy
+    title. Returns True if `title` is a NON_LOADING_LITURGY_TITLES entry --
+    the caller must not descend into its contents/children in that case.
+    Split out of _walk_liturgy_books (SonarCloud python:S3776)."""
+    if not (categories and categories[0] == "Liturgy" and title):
+        return False
+    if _normalize_title_key(title) in NON_LOADING_LITURGY_TITLES:
+        return True
+    dependence = node.get("dependence")
+    if (include_commentary or dependence != "Commentary") and title not in seen:
+        books.append({
+            "name": title,
+            "title": title,
+            "categories": categories,
+        })
+        seen.add(title)
+    return False
 
 
 def _walk_liturgy_books(node, books, seen, include_commentary):
@@ -1940,19 +1969,8 @@ def _walk_liturgy_books(node, books, seen, include_commentary):
 
     categories = node.get("categories", []) or []
     title = node.get("title", "")
-    dependence = node.get("dependence")
-
-    if categories and categories[0] == "Liturgy" and title:
-        if _normalize_title_key(title) in NON_LOADING_LITURGY_TITLES:
-            return
-        if include_commentary or dependence != "Commentary":
-            if title not in seen:
-                books.append({
-                    "name": title,
-                    "title": title,
-                    "categories": categories,
-                })
-                seen.add(title)
+    if _collect_liturgy_book_if_eligible(node, categories, title, books, seen, include_commentary):
+        return
 
     if "contents" in node:
         _walk_liturgy_books(node.get("contents"), books, seen, include_commentary)
@@ -1973,6 +1991,24 @@ def get_liturgy_books(include_commentary=False, max_items=200):
     return books[:max_items]
 
 
+def _get_schema_for_entry(entry):
+    return entry.get("schema", {}) if isinstance(entry, dict) else {}
+
+
+def _try_schema_fallback_title(title, candidate_title):
+    """Try `candidate_title` as an alternate index title when it differs
+    from the current title. Returns (schema, title), with title updated
+    only if the candidate resolved to a non-empty schema. Split out of
+    _resolve_index_schema_with_fallbacks (SonarCloud python:S3776)."""
+    if not candidate_title or candidate_title == str(title or ""):
+        return {}, title
+    entry = get_index_entry(candidate_title)
+    schema = _get_schema_for_entry(entry)
+    if schema:
+        return schema, candidate_title
+    return {}, title
+
+
 def _resolve_index_schema_with_fallbacks(title):
     """Resolve a Sefaria index title to its schema, retrying with title
     normalization and canonical-name lookup if the direct lookup 404s.
@@ -1981,35 +2017,28 @@ def _resolve_index_schema_with_fallbacks(title):
     count (SonarCloud python:S3776).
     """
     entry = get_index_entry(title)
-    schema = entry.get("schema", {}) if isinstance(entry, dict) else {}
+    schema = _get_schema_for_entry(entry)
+    if schema:
+        return schema, title
 
-    if not schema:
-        # Fallback A: Sefaria's /api/index/<title> endpoint is an exact-match
-        # lookup, so a title copied with curly quotes or stray whitespace
-        # (common when titles come from user input or a partially-matching
-        # catalog entry) silently 404s and this returns []. Retry once with
-        # a normalized title before giving up.
-        normalized_title = _normalize_liturgy_title_text(title)
-        if normalized_title and normalized_title != str(title or ""):
-            entry = get_index_entry(normalized_title)
-            schema = entry.get("schema", {}) if isinstance(entry, dict) else {}
-            if schema:
-                title = normalized_title
+    # Fallback A: Sefaria's /api/index/<title> endpoint is an exact-match
+    # lookup, so a title copied with curly quotes or stray whitespace
+    # (common when titles come from user input or a partially-matching
+    # catalog entry) silently 404s and this returns []. Retry once with
+    # a normalized title before giving up.
+    normalized_title = _normalize_liturgy_title_text(title)
+    schema, title = _try_schema_fallback_title(title, normalized_title)
+    if schema:
+        return schema, title
 
-        # Fallback B: still nothing -- ask Sefaria's /api/name/ completion
-        # endpoint for the canonical title (handles anything beyond simple
-        # punctuation drift, e.g. abbreviations or alternate spellings) and
-        # retry the exact index lookup once with that. Bounded to a single
-        # extra round-trip; a genuine "doesn't exist" title still falls
-        # through to an empty list below rather than raising.
-        if not schema:
-            canonical_title = _lookup_canonical_index_title(title)
-            if canonical_title and canonical_title != str(title or ""):
-                entry = get_index_entry(canonical_title)
-                schema = entry.get("schema", {}) if isinstance(entry, dict) else {}
-                if schema:
-                    title = canonical_title
-
+    # Fallback B: still nothing -- ask Sefaria's /api/name/ completion
+    # endpoint for the canonical title (handles anything beyond simple
+    # punctuation drift, e.g. abbreviations or alternate spellings) and
+    # retry the exact index lookup once with that. Bounded to a single
+    # extra round-trip; a genuine "doesn't exist" title still falls
+    # through to an empty list below rather than raising.
+    canonical_title = _lookup_canonical_index_title(title)
+    schema, title = _try_schema_fallback_title(title, canonical_title)
     return schema, title
 
 
