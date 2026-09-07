@@ -96,6 +96,37 @@ class TestDecodeRouteRef:
         assert helpers._decode_route_ref("Genesis%2520Chapter") == "Genesis Chapter"
 
 
+class TestCompactAiSourceLines:
+    def test_valid_content_returns_lines(self):
+        result = helpers._compact_ai_source_lines([{"en": "Hello", "he": "שלום"}], 3, 280)
+        assert result == [{"en": "Hello", "he": "שלום"}]
+
+    def test_no_valid_content_and_no_lines_returns_none(self):
+        result = helpers._compact_ai_source_lines([{"en": "Text not found"}], 3, 280)
+        assert result is None
+
+    def test_respects_max_lines(self):
+        rows = [{"en": f"Line {i}"} for i in range(5)]
+        result = helpers._compact_ai_source_lines(rows, 2, 280)
+        assert len(result) == 2
+
+
+class TestAttachOptionalSourceFields:
+    def test_all_fields_present_are_attached(self):
+        entry = {}
+        helpers._attach_optional_source_fields(entry, {
+            "domain": "sefaria.org", "source_provider": "sefaria", "url": "https://sefaria.org/x",
+        })
+        assert entry == {
+            "domain": "sefaria.org", "source_provider": "sefaria", "url": "https://sefaria.org/x",
+        }
+
+    def test_missing_fields_are_not_attached(self):
+        entry = {}
+        helpers._attach_optional_source_fields(entry, {})
+        assert entry == {}
+
+
 class TestTranslateEnglishTextOnlineCache:
     def test_cache_hit_skips_network(self, monkeypatch):
         helpers.TRANSLATION_CACHE.clear()
