@@ -42,8 +42,11 @@ from backend.utils.search_provider import (
 
 # ── Same-origin request check ───────────────────────────────────────────────────
 # Shared by any route that needs CSRF-style protection beyond SameSite=Lax's
-# cookie-attribute default — a POST route reachable without a Clerk bearer
-# token (routes_devtools.py's /api/client-errors).
+# cookie-attribute default — e.g. a GET handler that has a side effect (see
+# routes_calendar.py's zmanim endpoints, security audit P2: SameSite=Lax
+# still allows cookies on cross-site top-level GET navigation, so a plain
+# GET-with-side-effect needs its own origin check) or a POST route reachable
+# without a Clerk bearer token (routes_devtools.py's /api/client-errors).
 
 
 def _is_same_origin_request() -> bool:
@@ -350,6 +353,8 @@ def _decode_route_ref(value, max_rounds=3):
     return decoded
 
 
+# ── Translation infrastructure ────────────────────────────────────────────────
+
 # Phase 2 backend refactor (plan.md): GOOGLE_TRANSLATE_API_URL,
 # MYMEMORY_TRANSLATE_API_URL, _is_translation_echo, _extract_google_translated_text,
 # _translate_text_google, and _translate_text_mymemory moved to
@@ -458,7 +463,7 @@ def _rank_key_for_lexicon_entry(entry):
 def _best_definition_from_lexicon_entries(entries, original_value):
     """Find the first usable, non-echo definition across lexicon entries,
     preferring entries in _PREFERRED_LEXICONS order. Returns
-    (definition, lexicon_name) or ("", "").  Split out of
+    (definition, lexicon_name) or ("", ""). Split out of
     _lookup_sefaria_lexicon() to keep this loop out of that function's own
     complexity count (SonarCloud python:S3776).
     """
@@ -883,6 +888,83 @@ def _build_source_attribution_note(*, has_sefaria=False, has_customs=False, has_
     )
 
 
+def _compact_source_line(row, max_chars):
+    """Clean + truncate one raw source line. Returns a {en, he} dict, or
+    None if the line should be skipped entirely. Split out of
+    _compact_ai_sources() to keep this per-line branching out of that
+    function's own complexity count (SonarCloud python:S3776).
+    """
+    if not isinstance(row, dict):
+        return None
+
+    # Strip Sefaria's embedded HTML (footnote/commentary-link markup) BEFORE
+    # truncating by character count — truncating first risked slicing a tag
+    # in half (e.g. cutting "<i data-commentary-link=...>" mid-attribute),
+    # leaving an unclosed fragment the frontend's tag-stripper can't match
+    # (it requires a literal closing ">"), which then rendered as visible
+    # garbage text in the source box.
+    en = re.sub(r"\s+", " ", re.sub(r"<[^>]*>", "", str(row.get("en") or "")).strip())
+    he = re.sub(r"\s+", " ", re.sub(r"<[^>]*>", "", str(row.get("he") or "")).strip())
+
+    # Skip lines that indicate the source was not found
+    if en.startswith(("Text not found", "Error")):
+        return None
+
+    if len(en) > max_chars:
+        en = f"{en[:max_chars].rstrip()}..."
+    if len(he) > max_chars:
+        he = f"{he[:max_chars].rstrip()}..."
+
+    return {"en": en, "he": he}
+
+
+def _compact_ai_source_entry(src, max_lines, max_chars):
+    """Trim one raw source dict to the excerpt shape used by the UI, or
+    return None if it has no usable content. Split out of
+    _compact_ai_sources() (SonarCloud python:S3776) -- see
+    _compact_source_line.
+    """
+    if not isinstance(src, dict):
+        return None
+
+    ref = str(src.get("ref") or "").strip()
+    title = str(src.get("title") or ref).strip()
+    raw_lines_obj = src.get("lines")
+    raw_lines = raw_lines_obj if isinstance(raw_lines_obj, list) else []
+
+    lines = []
+    has_valid_content = False
+    for row in raw_lines[:max_lines]:
+        compacted_line = _compact_source_line(row, max_chars)
+        if compacted_line is None:
+            continue
+        if compacted_line["en"] or compacted_line["he"]:
+            has_valid_content = True
+        lines.append(compacted_line)
+
+    # Skip sources with no valid content
+    if not has_valid_content and not lines:
+        return None
+
+    domain = str(src.get("domain") or "").strip()
+    source_provider = str(src.get("source_provider") or "").strip()
+    url = str(src.get("url") or "").strip()
+
+    entry: dict = {
+        "ref": ref[:220],
+        "title": title[:220],
+        "lines": lines,
+    }
+    if domain:
+        entry["domain"] = domain
+    if source_provider:
+        entry["source_provider"] = source_provider
+    if url:
+        entry["url"] = url
+
+    return entry
+
+
 def _compact_ai_sources(sources, max_sources=8, max_lines=3, max_chars=280):
     """Trim bulky source payloads to the excerpt shape used by the UI."""
     if not isinstance(sources, list):
@@ -890,63 +972,9 @@ def _compact_ai_sources(sources, max_sources=8, max_lines=3, max_chars=280):
 
     compacted = []
     for src in sources[:max_sources]:
-        if not isinstance(src, dict):
-            continue
-
-        ref = str(src.get("ref") or "").strip()
-        title = str(src.get("title") or ref).strip()
-        raw_lines_obj = src.get("lines")
-        raw_lines = raw_lines_obj if isinstance(raw_lines_obj, list) else []
-
-        lines = []
-        has_valid_content = False
-        for row in raw_lines[:max_lines]:
-            if not isinstance(row, dict):
-                continue
-
-            # Strip Sefaria's embedded HTML (footnote/commentary-link markup) BEFORE
-            # truncating by character count — truncating first risked slicing a tag
-            # in half (e.g. cutting "<i data-commentary-link=...>" mid-attribute),
-            # leaving an unclosed fragment the frontend's tag-stripper can't match
-            # (it requires a literal closing ">"), which then rendered as visible
-            # garbage text in the source box.
-            en = re.sub(r"\s+", " ", re.sub(r"<[^>]*>", "", str(row.get("en") or "")).strip())
-            he = re.sub(r"\s+", " ", re.sub(r"<[^>]*>", "", str(row.get("he") or "")).strip())
-
-            # Skip lines that indicate the source was not found
-            if en.startswith(("Text not found", "Error")):
-                continue
-
-            if len(en) > max_chars:
-                en = f"{en[:max_chars].rstrip()}..."
-            if len(he) > max_chars:
-                he = f"{he[:max_chars].rstrip()}..."
-
-            if en or he:
-                has_valid_content = True
-            lines.append({"en": en, "he": he})
-
-        # Skip sources with no valid content
-        if not has_valid_content and not lines:
-            continue
-
-        domain = str(src.get("domain") or "").strip()
-        source_provider = str(src.get("source_provider") or "").strip()
-        url = str(src.get("url") or "").strip()
-
-        entry: dict = {
-            "ref": ref[:220],
-            "title": title[:220],
-            "lines": lines,
-        }
-        if domain:
-            entry["domain"] = domain
-        if source_provider:
-            entry["source_provider"] = source_provider
-        if url:
-            entry["url"] = url
-
-        compacted.append(entry)
+        entry = _compact_ai_source_entry(src, max_lines, max_chars)
+        if entry is not None:
+            compacted.append(entry)
 
     return compacted
 
