@@ -1862,8 +1862,6 @@
         const selectionInsightsBody = document.getElementById('selectionInsightsBody');
         const selectionInsightsHint = document.getElementById('selectionInsightsHint');
 
-        let zmanimData = null;
-        let countdownInterval = null;
         let infiniteReaderState = {
             loading: false,
             loadingPrev: false,
@@ -1879,48 +1877,7 @@
 
         const APP_PREFS_KEY = "Sh'elahPrefs";
         const APP_SHELF_KEY = "Sh'elahShelf";
-        const ZMANIM_LOCATION_CACHE_KEY = "Sh'elahLastLocation";
-        const ZMANIM_LOCATION_LABEL_KEY = "ShelahZmanimLocationLabel";
         const LANGUAGE_MANUAL_KEY = "Sh'elahLanguageManuallySet";
-        let currentZmanimLocationLabel = null;
-        // Set once the user picks a city manually so a slow/late
-        // navigator.geolocation callback can't silently overwrite their choice.
-        let zmanimLocationManuallySet = false;
-
-        function setZmanimLocationLabel(label, timezone) {
-            const labelEl = document.getElementById('zmanLoc');
-            if (!labelEl) return;
-            const normalizedLabel = String(label || '').trim();
-            const fallbackTimezone = String(timezone || '').trim();
-            labelEl.classList.remove('sk-line');
-            labelEl.style.removeProperty('width');
-            labelEl.style.removeProperty('height');
-            labelEl.innerText = normalizedLabel || fallbackTimezone || 'Local';
-            if (fallbackTimezone && fallbackTimezone !== normalizedLabel) {
-                labelEl.setAttribute('title', fallbackTimezone);
-            } else {
-                labelEl.removeAttribute('title');
-            }
-        }
-
-        async function resolveSavedLocationLabel(location) {
-            if (!location || !Number.isFinite(location.lat) || !Number.isFinite(location.lon)) return;
-            try {
-                const url = `https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${encodeURIComponent(location.lat)}&lon=${encodeURIComponent(location.lon)}&zoom=10&accept-language=en`;
-                const res = await fetch(url, { cache: 'no-cache' });
-                if (!res.ok) return;
-                const data = await res.json();
-                const address = data.address || {};
-                const label = String(address.city || address.town || address.village || address.hamlet || address.county || address.state || data.display_name || '').trim();
-                if (!label) return;
-                currentZmanimLocationLabel = label;
-                localStorage.setItem(ZMANIM_LOCATION_LABEL_KEY, label);
-                const currentTimezone = document.getElementById('zmanLoc')?.getAttribute('title') || '';
-                setZmanimLocationLabel(label, currentTimezone);
-            } catch (_) {
-                // Ignore reverse-geocode failures.
-            }
-        }
 
         const DELAYED_TOOLTIP_SELECTORS = '.chapter-grid-item, .chapter-grid-parasha-link, .chapter-grid-section-items button, .library-node-open, .home-library-link';
         let delayedTooltipTimer = null;
@@ -3660,6 +3617,24 @@
                 .replace(/>/g, '&gt;')
                 .replace(/"/g, '&quot;')
                 .replace(/'/g, '&#039;');
+        }
+
+        // static/js/zmanim.js's installZmanim()/refreshZmanimDisplay()/
+        // fetchZmanimAPI() (plan.md §19 Phase 2) take these seven functions
+        // as an explicit deps object instead of reaching for window.* inside
+        // the module -- this is the one place that builds it for the two
+        // call sites that still live in this inline script (toggleLanguage's
+        // re-render on language switch, searchByCity's new-location fetch).
+        function buildZmanimDeps() {
+            return {
+                t,
+                isHebrewMode,
+                translateHolidayName,
+                formatOmerLabel,
+                formatWeeklyShabbatLabel,
+                translateShabbatWarning,
+                escapeHtml,
+            };
         }
 
         function decodeHtmlEntities(text) {
@@ -10328,89 +10303,16 @@
                 renderSearchSuggestions();
             }
 
-            if (zmanimData && zmanimData.metadata) {
-                const meta = zmanimData.metadata;
-                const z = zmanimData.zmanim || {};
-
-                const zmanFieldMap = {
-                    zDawn: 'Dawn (16.1° / 72m)',
-                    zTalit: 'Earliest Tallit/Tefillin (10.2°)',
-                    zSunrise: 'Sunrise',
-                    zShemaGra: 'Latest Shema (GRA)',
-                    zShemaBht: 'Latest Shema (Baal HaTanya)',
-                    zShacharitGra: 'Latest Shacharit (GRA)',
-                    zShacharitBht: 'Latest Shacharit (Baal HaTanya)',
-                    zChatzot: 'Chatzot (Midday)',
-                    zMincha: 'Earliest Mincha (Mincha Gedola)',
-                    zMusaf: 'Latest Musaf',
-                    zPlag: 'Plag HaMincha',
-                    zCandles: 'Candle Lighting',
-                    zSunset: 'Sunset',
-                    zMaariv: 'Arvit (Maariv)',
-                    zNight: 'Nightfall (3 Stars)',
-                    zHavdalah: 'Havdalah',
-                    zMidnight: 'Chatzot HaLailah (Midnight)',
-                };
-
-                Object.entries(zmanFieldMap).forEach(([elementId, zmanKey]) => {
-                    const targetEl = document.getElementById(elementId);
-                    if (!targetEl) return;
-                    targetEl.innerText = formatZmanClockDisplay(z[zmanKey] || 'N/A');
-                });
-
-                const holidayName = document.getElementById('holidayName');
-                if (holidayName) {
-                    const text = translateHolidayName(meta.holiday || 'Regular Day');
-                    holidayName.innerText = text;
-                    if (isHebrewMode() && text !== 'Regular Day') {
-                        holidayName.classList.add('font-hebrew');
-                        holidayName.setAttribute('dir', 'rtl');
-                    } else {
-                        holidayName.classList.remove('font-hebrew');
-                        holidayName.removeAttribute('dir');
-                    }
-                }
-
-                const shabbatWeekName = document.getElementById('shabbatWeekName');
-                if (shabbatWeekName) {
-                    const text = formatWeeklyShabbatLabel(meta);
-                    shabbatWeekName.innerText = text;
-                    if (isHebrewMode() && text.includes('שבת')) {
-                        shabbatWeekName.classList.add('font-hebrew');
-                        shabbatWeekName.setAttribute('dir', 'rtl');
-                    } else {
-                        shabbatWeekName.classList.remove('font-hebrew');
-                        shabbatWeekName.removeAttribute('dir');
-                    }
-                }
-
-                const omerCount = document.getElementById('omerCount');
-                if (omerCount && meta.omer_day) {
-                    omerCount.innerText = formatOmerLabel(meta);
-                }
-
-                const warningEl = document.getElementById('zmanimWarning');
-                if (warningEl && meta.shabbat_warning) {
-                    warningEl.innerText = translateShabbatWarning(meta.shabbat_warning);
-                }
-
-                const shemaGraLabel = document.getElementById('shemaGraLabel');
-                const shemaBhtRow = document.getElementById('shemaBhtRow');
-                if (shemaGraLabel && shemaBhtRow) {
-                    shemaGraLabel.innerText = shemaBhtRow.classList.contains('hidden')
-                        ? t('Latest Shema (GRA / Baal HaTanya)', 'סוף זמן שמע (גר״א / בעל התניא)')
-                        : t('Latest Shema (GRA)', 'סוף זמן שמע (גר״א)');
-                }
-
-                const shacharitGraLabel = document.getElementById('shacharitGraLabel');
-                const shacharitBhtRow = document.getElementById('shacharitBhtRow');
-                if (shacharitGraLabel && shacharitBhtRow) {
-                    shacharitGraLabel.innerText = shacharitBhtRow.classList.contains('hidden')
-                        ? t('Latest Shacharit (GRA / Baal HaTanya)', 'סוף זמן תפילת שחרית (גר״א / בעל התניא)')
-                        : t('Latest Shacharit (GRA)', 'סוף זמן תפילת שחרית (גר״א)');
-                }
-
-                startCountdown();
+            // static/js/zmanim.js owns zmanimData and the full render (plan.md
+            // §19 Phase 2); this used to duplicate ~80 lines of
+            // fetchZmanimAPI's own render logic here. refreshZmanimDisplay()
+            // itself no-ops when the module hasn't fetched anything yet, so
+            // no local zmanimData guard is needed -- just skip the call
+            // entirely if the module bridge isn't up yet (e.g. this runs
+            // once automatically before main.js's deferred module has had a
+            // chance to bootstrap).
+            if (window.ShelahModules?.refreshZmanimDisplay) {
+                window.ShelahModules.refreshZmanimDisplay(buildZmanimDeps());
             }
 
             // Keep pane visibility/layout controlled by reader preferences.
@@ -10478,206 +10380,6 @@
         const savedLang = (rawSavedLang === 'he' || rawSavedLang === 'en') ? rawSavedLang : 'en';
         toggleLanguage(savedLang, { auto: true });
 
-        // ZMANIM LOGIC
-        function hasRealZman(value) {
-            const raw = String(value || '').trim();
-            return Boolean(raw && raw !== 'N/A' && raw !== '--:--');
-        }
-
-        function setZmanRowVisibility(rowId, visible) {
-            const row = document.getElementById(rowId);
-            if (!row) return;
-            row.classList.toggle('hidden', !visible);
-        }
-
-        function applyOptionalZmanRows(zmanim) {
-            setZmanRowVisibility('zRowMusaf', hasRealZman(zmanim['Latest Musaf']));
-            setZmanRowVisibility('zRowCandles', hasRealZman(zmanim['Candle Lighting']));
-            setZmanRowVisibility('zRowHavdalah', hasRealZman(zmanim['Havdalah']));
-        }
-
-        function hasMeaningfulLocationDelta(previousLocation, nextLocation, threshold = 0.02) {
-            if (!previousLocation || !nextLocation) return true;
-            return Math.abs(previousLocation.lat - nextLocation.lat) > threshold
-                || Math.abs(previousLocation.lon - nextLocation.lon) > threshold;
-        }
-
-        function initZmanim() {
-            const cachedRaw = localStorage.getItem(ZMANIM_LOCATION_CACHE_KEY);
-            let cachedLocation = null;
-            if (cachedRaw) {
-                try {
-                    const parsed = JSON.parse(cachedRaw);
-                    if (Number.isFinite(parsed?.lat) && Number.isFinite(parsed?.lon)) {
-                        cachedLocation = { lat: parsed.lat, lon: parsed.lon };
-                    }
-                } catch (_) {
-                    cachedLocation = null;
-                }
-            }
-
-            const savedLocationLabel = localStorage.getItem(ZMANIM_LOCATION_LABEL_KEY);
-            if (savedLocationLabel) {
-                currentZmanimLocationLabel = savedLocationLabel;
-            }
-
-            if (cachedLocation) {
-                fetchZmanimAPI(cachedLocation);
-            }
-
-            if (navigator.geolocation) {
-                navigator.geolocation.getCurrentPosition(
-                    (pos) => {
-                        if (zmanimLocationManuallySet) {
-                            // User picked a city via search while this GPS lookup was
-                            // still pending — don't clobber their explicit choice.
-                            return;
-                        }
-                        const location = {
-                            lat: Number(pos.coords.latitude),
-                            lon: Number(pos.coords.longitude),
-                        };
-                        localStorage.setItem(ZMANIM_LOCATION_CACHE_KEY, JSON.stringify(location));
-
-                        const locationChanged = hasMeaningfulLocationDelta(cachedLocation, location);
-                        if (!locationChanged && cachedLocation) {
-                            return;
-                        }
-
-                        fetch('/set_location', {
-                            method: 'POST',
-                            headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify(location)
-                        })
-                            .catch(() => {
-                                // Continue with direct API load even if session update fails.
-                            })
-                            .finally(() => {
-                                fetchZmanimAPI(location);
-                                resolveSavedLocationLabel(location);
-                            });
-                    },
-                    () => {
-                        if (!cachedLocation) {
-                            fetchZmanimAPI();
-                        }
-                    },
-                    { enableHighAccuracy: false, timeout: 7000, maximumAge: 300000 }
-                );
-                return;
-            }
-
-            if (!cachedLocation) {
-                fetchZmanimAPI();
-            }
-        }
-
-        function fetchZmanimAPI(location = null) {
-            let url = '/api/zmanim';
-            if (location && Number.isFinite(location.lat) && Number.isFinite(location.lon)) {
-                const query = new URLSearchParams({
-                    lat: String(location.lat),
-                    lon: String(location.lon),
-                });
-                url = `/api/zmanim?${query.toString()}`;
-            }
-
-            fetch(url)
-                .then(r => r.json())
-                .then(data => {
-                    if (!data.error) {
-                        zmanimData = data;
-                        const z = data.zmanim;
-                        const meta = data.metadata || {};
-                        setZmanimLocationLabel(meta.location_label || currentZmanimLocationLabel || meta.city || meta.timezone || '', meta.timezone);
-                        document.getElementById('zDawn').innerText = formatZmanClockDisplay(z['Dawn (16.1° / 72m)'] || 'N/A');
-                        document.getElementById('zTalit').innerText = formatZmanClockDisplay(z['Earliest Tallit/Tefillin (10.2°)'] || 'N/A');
-                        document.getElementById('zSunrise').innerText = formatZmanClockDisplay(z['Sunrise'] || 'N/A');
-                        const shemaGra = z['Latest Shema (GRA)'] || 'N/A';
-                        const shemaBht = z['Latest Shema (Baal HaTanya)'] || 'N/A';
-                        const shacharitGra = z['Latest Shacharit (GRA)'] || 'N/A';
-                        const shacharitBht = z['Latest Shacharit (Baal HaTanya)'] || 'N/A';
-
-                        document.getElementById('zShemaGra').innerText = formatZmanClockDisplay(shemaGra);
-                        document.getElementById('zShemaBht').innerText = formatZmanClockDisplay(shemaBht);
-                        document.getElementById('zShacharitGra').innerText = formatZmanClockDisplay(shacharitGra);
-                        document.getElementById('zShacharitBht').innerText = formatZmanClockDisplay(shacharitBht);
-
-                        const shemaGraRow = document.getElementById('shemaGraRow');
-                        const shemaBhtRow = document.getElementById('shemaBhtRow');
-                        const shemaGraLabel = document.getElementById('shemaGraLabel');
-                        if (shemaGraRow && shemaBhtRow && shemaGraLabel) {
-                            if (shemaGra !== 'N/A' && shemaGra === shemaBht) {
-                                shemaGraLabel.innerText = t('Latest Shema (GRA / Baal HaTanya)', 'סוף זמן שמע (גר״א / בעל התניא)');
-                                shemaBhtRow.classList.add('hidden');
-                            } else {
-                                shemaGraLabel.innerText = t('Latest Shema (GRA)', 'סוף זמן שמע (גר״א)');
-                                shemaBhtRow.classList.remove('hidden');
-                            }
-                        }
-
-                        const shacharitGraRow = document.getElementById('shacharitGraRow');
-                        const shacharitBhtRow = document.getElementById('shacharitBhtRow');
-                        const shacharitGraLabel = document.getElementById('shacharitGraLabel');
-                        if (shacharitGraRow && shacharitBhtRow && shacharitGraLabel) {
-                            if (shacharitGra !== 'N/A' && shacharitGra === shacharitBht) {
-                                shacharitGraLabel.innerText = t('Latest Shacharit (GRA / Baal HaTanya)', 'סוף זמן תפילת שחרית (גר״א / בעל התניא)');
-                                shacharitBhtRow.classList.add('hidden');
-                            } else {
-                                shacharitGraLabel.innerText = t('Latest Shacharit (GRA)', 'סוף זמן תפילת שחרית (גר״א)');
-                                shacharitBhtRow.classList.remove('hidden');
-                            }
-                        }
-                        document.getElementById('zChatzot').innerText = formatZmanClockDisplay(z['Chatzot (Midday)'] || 'N/A');
-                        document.getElementById('zMincha').innerText = formatZmanClockDisplay(z['Earliest Mincha (Mincha Gedola)'] || 'N/A');
-                        document.getElementById('zMusaf').innerText = formatZmanClockDisplay(z['Latest Musaf'] || 'N/A');
-                        document.getElementById('zPlag').innerText = formatZmanClockDisplay(z['Plag HaMincha'] || 'N/A');
-                        document.getElementById('zCandles').innerText = formatZmanClockDisplay(z['Candle Lighting'] || 'N/A');
-                        document.getElementById('zSunset').innerText = formatZmanClockDisplay(z['Sunset'] || 'N/A');
-                        document.getElementById('zMaariv').innerText = formatZmanClockDisplay(z['Arvit (Maariv)'] || 'N/A');
-                        document.getElementById('zNight').innerText = formatZmanClockDisplay(z['Nightfall (3 Stars)'] || 'N/A');
-                        document.getElementById('zHavdalah').innerText = formatZmanClockDisplay(z['Havdalah'] || 'N/A');
-                        document.getElementById('zMidnight').innerText = formatZmanClockDisplay(z['Chatzot HaLailah (Midnight)'] || 'N/A');
-
-                        applyOptionalZmanRows(z);
-
-                        const holidayName = document.getElementById('holidayName');
-                        const shabbatWeekName = document.getElementById('shabbatWeekName');
-                        const omerRow = document.getElementById('omerRow');
-                        const omerCount = document.getElementById('omerCount');
-                        const omerHint = document.getElementById('omerHint');
-                        if (holidayName) {
-                            holidayName.innerText = translateHolidayName(meta.holiday || 'Regular Day');
-                        }
-                        if (shabbatWeekName) {
-                            shabbatWeekName.innerText = formatWeeklyShabbatLabel(meta);
-                        }
-                        if (omerRow && omerCount && omerHint) {
-                            if (meta.omer_day) {
-                                omerCount.innerText = formatOmerLabel(meta);
-                                omerRow.classList.remove('hidden');
-                                omerHint.classList.add('hidden');
-                            } else {
-                                omerRow.classList.add('hidden');
-                                omerHint.classList.remove('hidden');
-                            }
-                        }
-
-                        const warningEl = document.getElementById('zmanimWarning');
-                        if (warningEl) {
-                            if (data.metadata.shabbat_warning) {
-                                warningEl.innerText = translateShabbatWarning(data.metadata.shabbat_warning);
-                                warningEl.classList.remove('hidden');
-                            } else {
-                                warningEl.classList.add('hidden');
-                            }
-                        }
-
-                        startCountdown();
-                    }
-                });
-        }
-
         if (signInBtn) {
             signInBtn.addEventListener('click', () => {
                 handleSignIn();
@@ -10706,138 +10408,6 @@
         }
 
                 initClerkAuth();
-
-        function formatCountdownDuration(msRemaining) {
-            const totalSeconds = Math.max(0, Math.floor(msRemaining / 1000));
-            const hours = Math.floor(totalSeconds / 3600);
-            const minutes = Math.floor((totalSeconds % 3600) / 60);
-            const seconds = totalSeconds % 60;
-
-            if (isHebrewMode()) {
-                if (hours > 0) return `${hours} ש׳ ${minutes} ד׳`;
-                if (minutes > 0) return `${minutes} ד׳ ${seconds} ש׳`;
-                return `${seconds} ש׳`;
-            }
-
-            if (hours > 0) return `${hours}h ${minutes}m`;
-            if (minutes > 0) return `${minutes}m ${seconds}s`;
-            return `${seconds}s`;
-        }
-
-        function formatZmanClockDisplay(value) {
-            const raw = String(value || '').trim();
-            if (!raw) return 'N/A';
-            if (!isHebrewMode()) return raw;
-            if (raw === 'N/A' || raw === '--:--') return raw;
-
-            const match = raw.match(/^(\d{1,2}:\d{2})(?:\s*([AP]M))?$/i);
-            if (!match) return raw;
-            const timePart = match[1];
-            const suffix = String(match[2] || '').toUpperCase();
-            if (!suffix) return timePart;
-
-            const localizedMeridiem = suffix === 'AM' ? 'לפנה"צ' : 'אחה"צ';
-            return `${timePart} ${localizedMeridiem}`;
-        }
-
-        function startCountdown() {
-            if (countdownInterval) clearTimeout(countdownInterval);
-            const times = [];
-            const now = new Date();
-            if (!zmanimData) return;
-            const nextZmanBadge = document.getElementById('nextZmanBadge');
-
-            const isoMap = (zmanimData.metadata && zmanimData.metadata.zmanim_iso) || {};
-
-            Object.entries(zmanimData.zmanim).forEach(([key, val]) => {
-                if (!val || val === 'N/A') return;
-
-                let t = null;
-                const iso = isoMap[key];
-                if (iso) {
-                    const parsed = new Date(iso);
-                    if (!Number.isNaN(parsed.getTime())) {
-                        t = parsed;
-                    }
-                }
-
-                // Fallback for older payloads without ISO timestamps.
-                if (!t) {
-                    const match = val.match(/(\d+):(\d+)\s+(AM|PM)/);
-                    if (!match) return;
-                    let h = parseInt(match[1]);
-                    let m = parseInt(match[2]);
-                    if (match[3] === 'PM' && h !== 12) h += 12;
-                    if (match[3] === 'AM' && h === 12) h = 0;
-                    t = new Date();
-                    t.setHours(h, m, 0, 0);
-                }
-
-                if (t > now) {
-                    times.push({ name: key, t });
-                }
-            });
-
-            const rowByKey = {
-                'Dawn (16.1° / 72m)': 'zRowDawn',
-                'Earliest Tallit/Tefillin (10.2°)': 'zRowTalit',
-                'Sunrise': 'zRowSunrise',
-                'Latest Shema (GRA)': 'shemaGraRow',
-                'Latest Shema (Baal HaTanya)': 'shemaBhtRow',
-                'Latest Shacharit (GRA)': 'shacharitGraRow',
-                'Latest Shacharit (Baal HaTanya)': 'shacharitBhtRow',
-                'Chatzot (Midday)': 'zRowChatzot',
-                'Earliest Mincha (Mincha Gedola)': 'zRowMincha',
-                'Latest Musaf': 'zRowMusaf',
-                'Plag HaMincha': 'zRowPlag',
-                'Candle Lighting': 'zRowCandles',
-                'Sunset': 'zRowSunset',
-                'Arvit (Maariv)': 'zRowMaariv',
-                'Nightfall (3 Stars)': 'zRowNight',
-                'Havdalah': 'zRowHavdalah',
-                'Chatzot HaLailah (Midnight)': 'zRowMidnight',
-            };
-
-            document.querySelectorAll('[data-zman-row]').forEach((row) => {
-                row.classList.remove('zman-next-highlight');
-            });
-
-            times.sort((a, b) => a.t - b.t);
-            const nextZman = times.length > 0 ? times[0] : null;
-
-            if (!nextZman) {
-                if (nextZmanBadge) {
-                    nextZmanBadge.classList.add('hidden');
-                    nextZmanBadge.textContent = '';
-                }
-                countdownInterval = setTimeout(() => startCountdown(), 1000);
-                return;
-            }
-
-            let highlightRowId = rowByKey[nextZman.name];
-            if (nextZman.name === 'Latest Shema (Baal HaTanya)' && document.getElementById('shemaBhtRow')?.classList.contains('hidden')) {
-                highlightRowId = 'shemaGraRow';
-            }
-            if (nextZman.name === 'Latest Shacharit (Baal HaTanya)' && document.getElementById('shacharitBhtRow')?.classList.contains('hidden')) {
-                highlightRowId = 'shacharitGraRow';
-            }
-
-            const row = highlightRowId ? document.getElementById(highlightRowId) : null;
-            if (row) {
-                row.classList.add('zman-next-highlight');
-            }
-
-            if (nextZmanBadge) {
-                const rowLabel = row?.querySelector('span')?.textContent?.trim();
-                const label = rowLabel || nextZman.name;
-                const remaining = Math.max(0, nextZman.t.getTime() - now.getTime());
-                const countdownLabel = formatCountdownDuration(remaining);
-                nextZmanBadge.innerHTML = `<span class="text-[1.03rem] leading-snug font-semibold text-[#31597d]">${escapeHtml(label)} <span class="font-medium text-[#4f7596]">${t('in', 'בעוד')} ${escapeHtml(countdownLabel)}</span></span>`;
-                nextZmanBadge.classList.remove('hidden');
-            }
-
-            countdownInterval = setTimeout(() => startCountdown(), 1000);
-        }
 
         let holidaysCalendar = null;
         let _calendarDidMount = false; // crossfade: skip animation on initial render
@@ -10949,8 +10519,10 @@
 
                 const { lat, lon, display_name } = results[0];
                 const location = { lat: parseFloat(lat), lon: parseFloat(lon) };
-                zmanimLocationManuallySet = true;
-                localStorage.setItem(ZMANIM_LOCATION_CACHE_KEY, JSON.stringify(location));
+                if (!window.ShelahModules?.fetchZmanimAPI) {
+                    throw new Error('Zmanim module unavailable');
+                }
+                window.ShelahModules.cacheZmanimLocation(location);
 
                 // Update server session
                 fetch('/set_location', {
@@ -10960,13 +10532,11 @@
                 }).catch(() => { });
 
                 // Fetch new zmanim
-                fetchZmanimAPI(location);
+                window.ShelahModules.fetchZmanimAPI(location, buildZmanimDeps());
 
                 // Show short city name in location label
                 const shortName = display_name.split(',').slice(0, 2).join(', ');
-                currentZmanimLocationLabel = shortName;
-                localStorage.setItem(ZMANIM_LOCATION_LABEL_KEY, shortName);
-                setZmanimLocationLabel(shortName, '');
+                window.ShelahModules.setCurrentZmanimLocationLabel(shortName);
 
                 statusEl.textContent = `Using: ${shortName}`;
                 setTimeout(() => {
@@ -11005,8 +10575,6 @@
             }
         });
         // ─────────────────────────────────────────────────────────
-
-        initZmanim();
 
         const debouncedSuggestionFetch = debounce(fetchOmniboxSuggestions, 180);
 

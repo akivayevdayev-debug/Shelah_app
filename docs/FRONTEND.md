@@ -75,16 +75,34 @@ Key behaviours:
 
 ---
 
-### `zmanim.js` — calendar and zmanim UI
+### `zmanim.js` — zman-clock UI
 
-Controls the calendar panel. Exports `installZmanim()`.
+Owns the zman-clock panel. Exports `installZmanim(deps)`, called once from `main.js`. (This file also holds the unrelated daily-study prefetch feature, `installDailyPrewarm()`/`prewarmDailyStudy()` — the two share a filename only because `zmanim.js` already existed for the prefetch feature before the zman-clock code was extracted here.)
+
+`installZmanim(deps)` takes an explicit `deps` object instead of reading globals directly (no module may read an undeclared inline global):
+
+```js
+installZmanim({
+  t,                          // i18n string lookup
+  isHebrewMode,                // () => boolean
+  translateHolidayName,
+  formatOmerLabel,
+  formatWeeklyShabbatLabel,
+  translateShabbatWarning,
+  escapeHtml,
+});
+```
+
+`main.js` builds this object from `window.*` once, at that single wiring boundary. Every other export below also takes the same `deps` object explicitly, so each can be called or tested without going through `installZmanim`.
 
 Key behaviours:
 
-- Requests the user's geolocation via `navigator.geolocation.getCurrentPosition`; falls back to IP-based location
-- Fetches `/api/calendar/today?lat=…&lon=…` and renders the daily calendar card
-- Renders the zmanim times list with colour-coded proximity indicators (next zman highlighted)
-- Polls for zmanim updates every 60 seconds while the calendar panel is active
+- Resolves location from a previously-picked city (localStorage key `Sh'elahLastLocation`) or the session cookie set by `/set_location`, falling back server-side to IP-based geolocation
+- Fetches `/api/zmanim` (or `/api/zmanim?lat=…&lon=…` for an explicit location) and renders the zmanim times list
+- Highlights the row of the next upcoming zman and keeps a live countdown badge, self-rescheduling via `setTimeout` once a second (not a polling interval)
+- Re-renders the full display via `refreshZmanimDisplay(deps)` on a language switch, without a re-fetch
+
+Other exports: `fetchZmanimAPI(location, deps)`, `refreshZmanimDisplay(deps)`, `setZmanimLocationLabel(label, timezone)`, `setCurrentZmanimLocationLabel(label)`, `cacheZmanimLocation(location)` — the last two back `templates/index.html`'s `searchByCity()`, the one remaining inline call site into this module (via `window.ShelahModules`).
 
 ---
 
