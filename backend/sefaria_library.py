@@ -463,27 +463,100 @@ def _build_v3_text_url(ref):
     return f"{SEFARIA_V3_API}/texts/{encoded_ref}?version=source&version=translation"
 
 
+def _is_v3_hebrew_source_version(version):
+    """True if this v3 version entry is Hebrew/source text (isSource=True,
+    or direction="rtl", or language="he"). Split out of
+    _classify_v3_version_texts (SonarCloud python:S3776)."""
+    lang = version.get("language", "") or ""
+    direction = version.get("direction", "") or ""
+    is_source = bool(version.get("isSource", False))
+    return is_source or direction == "rtl" or lang == "he"
+
+
+def _is_v3_english_translation_version(version):
+    """True if this v3 version entry is non-Hebrew/translation text --
+    the exact complement of _is_v3_hebrew_source_version. Split out of
+    _classify_v3_version_texts (SonarCloud python:S3776)."""
+    return not _is_v3_hebrew_source_version(version)
+
+
 def _classify_v3_version_texts(versions):
     """Pick Hebrew/English text arrays out of a v3 API versions list.
     Split out of _parse_v3_response() to keep this loop out of that
     function's own complexity count (SonarCloud python:S3776).
+
+    The two elif branches this used to have (english-when-no-hebrew-seen-
+    yet vs. english-when-hebrew-already-set) collapse into one: since
+    _is_v3_english_translation_version is the exact complement of the
+    Hebrew check, "not en_raw and is_english" covers both regardless of
+    he_raw's state -- see TestClassifyV3VersionTexts::
+    test_english_detected_after_hebrew_already_set for the regression
+    anchor pinning that merge.
     """
     he_raw = []
     en_raw = []
     for version in versions:
-        lang = version.get("language", "") or ""
-        direction = version.get("direction", "") or ""
-        is_source = bool(version.get("isSource", False))
         text = version.get("text") or []
-        # Hebrew / source: isSource=True or direction="rtl" or language="he"
-        if (is_source or direction == "rtl" or lang == "he") and not he_raw:
+        if not he_raw and _is_v3_hebrew_source_version(version):
             he_raw = text
-        # English / translation: avoid Hebrew-direction texts
-        elif not he_raw and not is_source and direction != "rtl" and lang != "he" and not en_raw:
-            en_raw = text
-        elif he_raw and not en_raw and not is_source and direction != "rtl" and lang != "he":
+        elif not en_raw and _is_v3_english_translation_version(version):
             en_raw = text
     return he_raw, en_raw
+
+
+def _build_v3_lines(he_raw, en_raw):
+    """Align Hebrew/English v3 text arrays (both nested-array text fields)
+    into per-segment line dicts, reusing the same flattening logic as
+    get_text(). Split out of _parse_v3_response (SonarCloud
+    python:S3776)."""
+    he_by_path = dict(_flatten_text_with_path(he_raw))
+    en_by_path = dict(_flatten_text_with_path(en_raw))
+    all_paths = sorted(set(he_by_path.keys()) | set(en_by_path.keys()))
+
+    lines = []
+    for path in all_paths:
+        lines.append({
+            "he": he_by_path.get(path, ""),
+            "en": en_by_path.get(path, ""),
+            "segment": ".".join(str(i) for i in path) if path else "1",
+        })
+    return lines
+
+
+def _extract_v3_flat_text_lists(lines):
+    """Split out of _build_v3_result_dict (SonarCloud python:S3776)."""
+    he_flat = [line["he"] for line in lines if line.get("he")]
+    en_flat = [line["en"] for line in lines if line.get("en")]
+    return he_flat, en_flat
+
+
+def _resolve_v3_title(data, fallback_title):
+    """Split out of _build_v3_result_dict (SonarCloud python:S3776)."""
+    return data.get("title") or data.get("indexTitle") or data.get("book") or fallback_title
+
+
+def _build_v3_result_dict(data, requested_ref, lines):
+    """Assemble the get_text()-shaped result dict from parsed v3 lines.
+    Split out of _parse_v3_response (SonarCloud python:S3776)."""
+    he_flat, en_flat = _extract_v3_flat_text_lists(lines)
+    resolved_ref = data.get("ref", requested_ref)
+    fallback_title = str(resolved_ref or requested_ref).split(",", 1)[
+        0].strip()
+    return {
+        "ref": resolved_ref,
+        "title": _resolve_v3_title(data, fallback_title),
+        "heTitle": data.get("heTitle") or data.get("heIndexTitle") or "",
+        "he": he_flat,
+        "en": en_flat,
+        "lines": lines,
+        "sections": data.get("sections", []),
+        "sectionNames": data.get("sectionNames", []),
+        "next": data.get("next"),
+        "prev": data.get("prev"),
+        "categories": data.get("categories", []),
+        "authors": [],
+        "era": "",
+    }
 
 
 def _parse_v3_response(data, requested_ref):
@@ -497,47 +570,11 @@ def _parse_v3_response(data, requested_ref):
         return None
 
     he_raw, en_raw = _classify_v3_version_texts(versions)
-
-    # Reuses the same flattening logic as get_text() (both align Hebrew and
-    # English nested-array text fields into (path, string) pairs).
-    he_leafs = _flatten_text_with_path(he_raw)
-    en_leafs = _flatten_text_with_path(en_raw)
-    he_by_path = dict(he_leafs)
-    en_by_path = dict(en_leafs)
-    all_paths = sorted(set(he_by_path.keys()) | set(en_by_path.keys()))
-
-    if not all_paths:
+    lines = _build_v3_lines(he_raw, en_raw)
+    if not lines:
         return None
 
-    lines = []
-    for path in all_paths:
-        lines.append({
-            "he": he_by_path.get(path, ""),
-            "en": en_by_path.get(path, ""),
-            "segment": ".".join(str(i) for i in path) if path else "1",
-        })
-
-    he_flat = [line["he"] for line in lines if line.get("he")]
-    en_flat = [line["en"] for line in lines if line.get("en")]
-
-    resolved_ref = data.get("ref", requested_ref)
-    fallback_title = str(resolved_ref or requested_ref).split(",", 1)[
-        0].strip()
-    return {
-        "ref": resolved_ref,
-        "title": data.get("title") or data.get("indexTitle") or data.get("book") or fallback_title,
-        "heTitle": data.get("heTitle") or data.get("heIndexTitle") or "",
-        "he": he_flat,
-        "en": en_flat,
-        "lines": lines,
-        "sections": data.get("sections", []),
-        "sectionNames": data.get("sectionNames", []),
-        "next": data.get("next"),
-        "prev": data.get("prev"),
-        "categories": data.get("categories", []),
-        "authors": [],
-        "era": "",
-    }
+    return _build_v3_result_dict(data, requested_ref, lines)
 
 
 def _is_specific_ref_query(value):
