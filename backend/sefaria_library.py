@@ -279,15 +279,33 @@ def _apply_library_index_fix(clone, title_key, fix_map):
         clone["firstSectionRef"] = suggested_ref
 
 
+def _prune_library_index_list(nodes, remove_keys, fix_map):
+    """Recursively prune each item of a library-index list. Split out of
+    _prune_and_fix_library_index (SonarCloud python:S3776)."""
+    pruned = []
+    for child in nodes:
+        cleaned = _prune_and_fix_library_index(child, remove_keys, fix_map)
+        if cleaned is not None:
+            pruned.append(cleaned)
+    return pruned
+
+
+def _prune_library_index_children(clone, remove_keys, fix_map):
+    """Recursively prune one node's "contents"/"children" list fields in
+    place. Split out of _prune_and_fix_library_index (SonarCloud
+    python:S3776)."""
+    for child_key in ("contents", "children"):
+        if isinstance(clone.get(child_key), list):
+            cleaned_children = _prune_and_fix_library_index(
+                clone.get(child_key), remove_keys, fix_map)
+            clone[child_key] = cleaned_children if isinstance(
+                cleaned_children, list) else []
+
+
 def _prune_and_fix_library_index(node, remove_keys, fix_map):
     """Remove known non-loading works and attach fixed opening refs where needed."""
     if isinstance(node, list):
-        pruned = []
-        for child in node:
-            cleaned = _prune_and_fix_library_index(child, remove_keys, fix_map)
-            if cleaned is not None:
-                pruned.append(cleaned)
-        return pruned
+        return _prune_library_index_list(node, remove_keys, fix_map)
 
     if not isinstance(node, dict):
         return node
@@ -300,13 +318,7 @@ def _prune_and_fix_library_index(node, remove_keys, fix_map):
         return None
 
     _apply_library_index_fix(clone, title_key, fix_map)
-
-    for child_key in ("contents", "children"):
-        if isinstance(clone.get(child_key), list):
-            cleaned_children = _prune_and_fix_library_index(
-                clone.get(child_key), remove_keys, fix_map)
-            clone[child_key] = cleaned_children if isinstance(
-                cleaned_children, list) else []
+    _prune_library_index_children(clone, remove_keys, fix_map)
 
     return clone
 
@@ -704,6 +716,39 @@ def _build_ref_candidate_titles(title_part, name_data):
     return candidate_titles
 
 
+def _resolve_ref_candidate_canonical(entry, title):
+    """Split out of _process_ref_candidate_title (SonarCloud python:S3776)."""
+    return str(entry.get("title") or title).strip()
+
+
+def _add_canonical_and_suffix_refs(canonical, suffix, add):
+    """Split out of _process_ref_candidate_title (SonarCloud python:S3776)."""
+    if canonical:
+        add(canonical)
+    if suffix and canonical and not canonical.lower().endswith(f", {suffix.lower()}"):
+        add(f"{canonical}, {suffix}")
+
+
+def _add_first_section_ref(entry, add):
+    """Split out of _process_ref_candidate_title (SonarCloud python:S3776)."""
+    first_section = entry.get("firstSectionRef") or entry.get("firstSection")
+    if isinstance(first_section, str) and first_section.strip():
+        add(first_section.strip())
+
+
+def _add_leaf_section_refs(entry, canonical, add, candidates, max_candidates):
+    """Add the opening-section and leaf-node refs for a non-specific-ref
+    query. Returns True if the caller should stop (max_candidates reached).
+    Split out of _process_ref_candidate_title (SonarCloud python:S3776)."""
+    if entry.get("sectionNames"):
+        add(f"{canonical} 1")
+    for leaf_ref in get_index_leaf_refs(canonical, max_refs=4):
+        add(leaf_ref)
+        if len(candidates) >= max_candidates:
+            return True
+    return False
+
+
 def _process_ref_candidate_title(title, suffix, is_specific_ref, add, candidates, max_candidates):
     """Resolve one candidate title's index entry and add its ref variants
     via `add()`. Returns True if the caller should stop (max_candidates
@@ -714,26 +759,31 @@ def _process_ref_candidate_title(title, suffix, is_specific_ref, add, candidates
     if not isinstance(entry, dict) or entry.get("error"):
         return False
 
-    canonical = str(entry.get("title") or title).strip()
-    if canonical:
-        add(canonical)
-    if suffix and canonical and not canonical.lower().endswith(f", {suffix.lower()}"):
-        add(f"{canonical}, {suffix}")
-
-    first_section = entry.get(
-        "firstSectionRef") or entry.get("firstSection")
-    if isinstance(first_section, str) and first_section.strip():
-        add(first_section.strip())
+    canonical = _resolve_ref_candidate_canonical(entry, title)
+    _add_canonical_and_suffix_refs(canonical, suffix, add)
+    _add_first_section_ref(entry, add)
 
     if not is_specific_ref and canonical:
-        if entry.get("sectionNames"):
-            add(f"{canonical} 1")
-        for leaf_ref in get_index_leaf_refs(canonical, max_refs=4):
-            add(leaf_ref)
-            if len(candidates) >= max_candidates:
-                return True
+        if _add_leaf_section_refs(entry, canonical, add, candidates, max_candidates):
+            return True
 
     return len(candidates) >= max_candidates
+
+
+def _add_corpus_stripped_ref_variants(raw, add):
+    """Split out of _resolve_ref_candidates (SonarCloud python:S3776)."""
+    corpus_stripped = _strip_known_corpus_prefix(raw)
+    if not corpus_stripped:
+        return
+    add(corpus_stripped)
+    if ":" in corpus_stripped:
+        add(corpus_stripped.replace(":", "."))
+
+
+def _add_direct_name_ref(name_data, add):
+    """Split out of _resolve_ref_candidates (SonarCloud python:S3776)."""
+    if name_data.get("is_ref") and name_data.get("ref"):
+        add(name_data.get("ref"))
 
 
 def _resolve_ref_candidates(raw_ref, max_candidates=12):
@@ -759,11 +809,7 @@ def _resolve_ref_candidates(raw_ref, max_candidates=12):
     if ":" in raw:
         add(raw.replace(":", "."))
 
-    corpus_stripped = _strip_known_corpus_prefix(raw)
-    if corpus_stripped:
-        add(corpus_stripped)
-        if ":" in corpus_stripped:
-            add(corpus_stripped.replace(":", "."))
+    _add_corpus_stripped_ref_variants(raw, add)
 
     title_part, suffix = _split_title_suffix(raw)
     is_specific_ref = _is_specific_ref_query(raw)
@@ -771,8 +817,7 @@ def _resolve_ref_candidates(raw_ref, max_candidates=12):
     safe_name = _encode_ref_path(raw)
     name_data = _cached_get(f"{SEFARIA_API}/name/{safe_name}", ttl=43200)
     if isinstance(name_data, dict):
-        if name_data.get("is_ref") and name_data.get("ref"):
-            add(name_data.get("ref"))
+        _add_direct_name_ref(name_data, add)
 
         if _add_name_completion_refs(name_data, add, candidates, max_candidates):
             return candidates[:max_candidates]
@@ -786,6 +831,31 @@ def _resolve_ref_candidates(raw_ref, max_candidates=12):
     return candidates[:max_candidates]
 
 
+def _append_index_title_row(node, rows, seen_titles):
+    """Split out of _flatten_index_titles (SonarCloud python:S3776)."""
+    title = str(node.get("title") or "").strip()
+    categories = node.get("categories", []) or []
+    if not title or not isinstance(categories, list):
+        return
+    key = title.lower()
+    if key in seen_titles:
+        return
+    seen_titles.add(key)
+    rows.append({
+        "title": title,
+        "heTitle": str(node.get("heTitle") or "").strip(),
+        "categories": [str(item) for item in categories if item],
+        "dependence": str(node.get("dependence") or "").strip(),
+    })
+
+
+def _flatten_index_title_children(node, rows, seen_titles):
+    """Split out of _flatten_index_titles (SonarCloud python:S3776)."""
+    for child_key in ("contents", "children"):
+        if child_key in node:
+            _flatten_index_titles(node.get(child_key), rows, seen_titles)
+
+
 def _flatten_index_titles(node, rows, seen_titles):
     if isinstance(node, list):
         for child in node:
@@ -795,22 +865,8 @@ def _flatten_index_titles(node, rows, seen_titles):
     if not isinstance(node, dict):
         return
 
-    title = str(node.get("title") or "").strip()
-    categories = node.get("categories", []) or []
-    if title and isinstance(categories, list):
-        key = title.lower()
-        if key not in seen_titles:
-            seen_titles.add(key)
-            rows.append({
-                "title": title,
-                "heTitle": str(node.get("heTitle") or "").strip(),
-                "categories": [str(item) for item in categories if item],
-                "dependence": str(node.get("dependence") or "").strip(),
-            })
-
-    for child_key in ("contents", "children"):
-        if child_key in node:
-            _flatten_index_titles(node.get(child_key), rows, seen_titles)
+    _append_index_title_row(node, rows, seen_titles)
+    _flatten_index_title_children(node, rows, seen_titles)
 
 
 def _get_title_catalog(ttl=86400):
@@ -860,6 +916,30 @@ def _get_title_catalog(ttl=86400):
     return rows
 
 
+def _score_catalog_title_match(title_lower, joined_query):
+    """Base score from how the title matches the joined query. Split out of
+    _score_catalog_row (SonarCloud python:S3776)."""
+    if title_lower == joined_query:
+        return 120
+    if title_lower.startswith(joined_query):
+        return 100
+    if joined_query in title_lower:
+        return 85
+    return 60
+
+
+def _apply_catalog_row_score_boosts(row, tokens, title_lower, score):
+    """Apply the special-case relevance boosts on top of the base title-
+    match score. Split out of _score_catalog_row (SonarCloud
+    python:S3776)."""
+    if "jonathan" in tokens and "sacks" in tokens:
+        if any("jonathan sacks" in cat.lower() for cat in row.get("categories", [])):
+            score += 25
+    if "essay" in tokens and "essay" in title_lower:
+        score += 15
+    return score
+
+
 def _score_catalog_row(row, tokens, joined_query):
     """Relevance score for one title-catalog row against the query tokens.
     Returns None if the row doesn't match at all. Split out of
@@ -871,21 +951,8 @@ def _score_catalog_row(row, tokens, joined_query):
         return None
 
     title_lower = row.get("title", "").lower()
-    score = 60
-    if title_lower == joined_query:
-        score = 120
-    elif title_lower.startswith(joined_query):
-        score = 100
-    elif joined_query in title_lower:
-        score = 85
-
-    if "jonathan" in tokens and "sacks" in tokens:
-        if any("jonathan sacks" in cat.lower() for cat in row.get("categories", [])):
-            score += 25
-    if "essay" in tokens and "essay" in title_lower:
-        score += 15
-
-    return score
+    score = _score_catalog_title_match(title_lower, joined_query)
+    return _apply_catalog_row_score_boosts(row, tokens, title_lower, score)
 
 
 def _build_catalog_search_result(row, seen_refs, metadata_filters):
