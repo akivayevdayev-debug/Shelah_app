@@ -685,6 +685,20 @@ class TestGetText:
             assert result["error_type"] == "sefaria_blocked"
             assert "Cloudflare" in result["error"]
 
+    def test_title_falls_back_to_ref_when_no_title_fields(self):
+        with responses_lib.RequestsMock(assert_all_requests_are_fired=False) as rsps:
+            rsps.add(
+                responses_lib.GET, re.compile(re.escape(sl.SEFARIA_V3_API) + r"/.*"),
+                json={"error": "not found"}, status=200,
+            )
+            rsps.add(
+                responses_lib.GET, re.compile(re.escape(sl.SEFARIA_API) + r"/.*"),
+                json={"ref": "Genesis 1:1, Verse 1", "he": [], "text": []},
+                status=200,
+            )
+            result = sl.get_text("Genesis 1:1")
+            assert result["title"] == "Genesis 1:1"
+
 
 class TestCheckSefariaAvailability:
     def test_both_apis_available(self):
