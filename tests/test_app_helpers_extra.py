@@ -217,3 +217,63 @@ class TestDeriveAskQuestionContextFlags:
         assert has_whitelisted is False
         assert use_tertiary is True
         assert wiki_ctx == ["wiki info"]
+
+
+class TestParseAndValidateAskQuestionRequest:
+    def test_blank_question_returns_none(self, test_client):
+        import app as flask_app_module
+        assert flask_app_module._parse_and_validate_ask_question_request({"question": "   "}) is None
+
+    def test_valid_question_returns_normalized_fields(self, test_client):
+        import app as flask_app_module
+        with flask_app_module.app.test_request_context("/ask", method="POST"):
+            result = flask_app_module._parse_and_validate_ask_question_request({
+                "question": "Can I eat this?",
+                "language": "HE",
+                "mode": "strict",
+                "community": "all",
+            })
+        assert result["question"] == "Can I eat this?"
+        assert result["answer_language"] == "he"
+        assert result["canonical_lens"] == "All"
+        assert "Can I eat this?".lower() in result["ask_cache_key"]
+
+    def test_invalid_language_falls_back_to_english(self, test_client):
+        import app as flask_app_module
+        with flask_app_module.app.test_request_context("/ask", method="POST"):
+            result = flask_app_module._parse_and_validate_ask_question_request({
+                "question": "Can I eat this?",
+                "language": "fr",
+            })
+        assert result["answer_language"] == "en"
+
+
+class TestFreshenCachedAskPayload:
+    def test_marks_cached_and_refreshes_timestamp_when_meta_present(self, test_client):
+        import app as flask_app_module
+        payload = {"answer": "x", "meta": {"cached": False, "generated_at": 0}}
+        result = flask_app_module._freshen_cached_ask_payload(payload)
+        assert result["meta"]["cached"] is True
+        assert result["meta"]["generated_at"] > 0
+
+    def test_missing_meta_is_left_unchanged(self, test_client):
+        import app as flask_app_module
+        payload = {"answer": "x"}
+        result = flask_app_module._freshen_cached_ask_payload(payload)
+        assert result == {"answer": "x"}
+
+
+class TestBuildAskCriticalErrorContext:
+    def test_all_locals_present(self, test_client):
+        import app as flask_app_module
+        result = flask_app_module._build_ask_critical_error_context({
+            "question": "Can I eat this?", "mode": "normal", "canonical_lens": "Ashkenaz",
+        })
+        assert result == {
+            "question": "Can I eat this?", "mode": "normal", "community_lens": "Ashkenaz",
+        }
+
+    def test_missing_locals_default_to_blank(self, test_client):
+        import app as flask_app_module
+        result = flask_app_module._build_ask_critical_error_context({})
+        assert result == {"question": "", "mode": "", "community_lens": ""}

@@ -2020,16 +2020,18 @@ def _run_ask_question_fallback(question, mode, canonical_lens, answer_language, 
     }
 
 
-@app.route("/ask", methods=["POST"])
-@maybe_require_clerk_auth
-def ask_question():
-    data = request.get_json(silent=True) or {}
+def _parse_and_validate_ask_question_request(data):
+    """Parse and normalize the /ask request body into the values
+    ask_question() needs downstream, or None if the question is empty
+    after sanitization. Split out of ask_question() (SonarCloud
+    python:S3776).
+    """
     raw_question = data.get("question", "")
     question = claude.sanitize_user_query(raw_question)
     question_was_sanitized = question != str(raw_question or "").strip()
-
     if not question:
-        return jsonify({"error": "No valid question provided"}), 400
+        return None
+
     answer_language = str(data.get("language") or "en").strip().lower()
     if answer_language not in {"en", "he"}:
         answer_language = "en"
@@ -2046,13 +2048,60 @@ def ask_question():
         user_id or "anon",
     ])
 
+    return {
+        "question": question,
+        "question_was_sanitized": question_was_sanitized,
+        "answer_language": answer_language,
+        "mode": mode,
+        "canonical_lens": canonical_lens,
+        "user_id": user_id,
+        "ask_cache_key": ask_cache_key,
+    }
+
+
+def _freshen_cached_ask_payload(cached_payload):
+    """Mark a cached /ask payload as cached and refresh its generated_at
+    timestamp in place, if it carries a meta dict. Split out of
+    ask_question() (SonarCloud python:S3776).
+    """
+    cached_meta = cached_payload.get("meta")
+    if isinstance(cached_meta, dict):
+        cached_meta["cached"] = True
+        cached_meta["generated_at"] = int(time.time())
+    return cached_payload
+
+
+def _build_ask_critical_error_context(local_vars):
+    """Best-effort context dict for the ask_route_critical_error report,
+    tolerating the case where the exception happened before a given
+    local was bound. Split out of ask_question() (SonarCloud
+    python:S3776).
+    """
+    return {
+        "question": local_vars.get("question", ""),
+        "mode": local_vars.get("mode", ""),
+        "community_lens": local_vars.get("canonical_lens", ""),
+    }
+
+
+@app.route("/ask", methods=["POST"])
+@maybe_require_clerk_auth
+def ask_question():
+    data = request.get_json(silent=True) or {}
+    parsed_request = _parse_and_validate_ask_question_request(data)
+    if parsed_request is None:
+        return jsonify({"error": "No valid question provided"}), 400
+    question = parsed_request["question"]
+    question_was_sanitized = parsed_request["question_was_sanitized"]
+    answer_language = parsed_request["answer_language"]
+    mode = parsed_request["mode"]
+    canonical_lens = parsed_request["canonical_lens"]
+    user_id = parsed_request["user_id"]
+    ask_cache_key = parsed_request["ask_cache_key"]
+
     cached_payload = _get_cached_ask_payload(ask_cache_key)
     if cached_payload is not None:
-        cached_meta = cached_payload.get("meta")
-        if isinstance(cached_meta, dict):
-            cached_meta["cached"] = True
-            cached_meta["generated_at"] = int(time.time())
-        return jsonify(cached_payload)
+        return jsonify(_freshen_cached_ask_payload(cached_payload))
 
     try:
         engine = get_engine()
@@ -2091,11 +2140,7 @@ def ask_question():
         _capture_backend_error(
             "ask_route_critical_error",
             e,
-            {
-                "question": question if "question" in locals() else "",
-                "mode": mode if "mode" in locals() else "",
-                "community_lens": canonical_lens if "canonical_lens" in locals() else "",
-            },
+            _build_ask_critical_error_context(locals()),
         )
         return jsonify({"error": "An internal error occurred while processing your request."}), 500
 
