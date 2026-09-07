@@ -18,10 +18,27 @@ from urllib.parse import unquote, quote, urlparse
 import requests as _requests
 from flask import request as _flask_request
 
-# Canonical HEBREW_DIACRITICS_RE now lives in backend/utils/text_engine.py
-# (Phase 1 backend refactor, plan.md §1.3.5) — re-imported here to avoid the
-# divergent-duplicate constant that previously existed in both files.
-from backend.utils.text_engine import HEBREW_DIACRITICS_RE
+# Canonical HEBREW_DIACRITICS_RE/RABBI_FINAL_RULING_FOOTER now live in
+# backend/utils/text_engine.py (Phase 1 backend refactor, plan.md §1.3.5) —
+# re-imported here to avoid the divergent-duplicate constants that previously
+# existed in both files.
+from backend.utils.text_engine import HEBREW_DIACRITICS_RE, RABBI_FINAL_RULING_FOOTER
+# Phase 2 backend refactor (plan.md): HEBREW_WORD_GLOSSARY, _translate_text_google,
+# _translate_text_mymemory, _is_translation_echo, and _extract_google_translated_text
+# now live in backend/utils/search_provider.py as the single canonical
+# implementation (they were previously diverged, duplicated copies -- plan.md
+# section 2). Re-imported here to avoid reintroducing the duplicate.
+# HEBREW_LETTER_RE and INTERNAL_AI_KNOWLEDGE_DISCLAIMER were also independently
+# duplicated (undocumented in plan.md's table) and are reconciled the same way.
+from backend.utils.search_provider import (
+    HEBREW_WORD_GLOSSARY,
+    HEBREW_LETTER_RE,
+    INTERNAL_AI_KNOWLEDGE_DISCLAIMER,
+    _is_translation_echo,
+    _extract_google_translated_text,  # noqa: F401 -- consumed as helpers._extract_google_translated_text by tests/test_helpers.py
+    _translate_text_google,
+    _translate_text_mymemory,
+)
 
 # ── Same-origin request check ───────────────────────────────────────────────────
 # Shared by any route that needs CSRF-style protection beyond SameSite=Lax's
@@ -123,12 +140,6 @@ SECURITY_RESPONSE_HEADERS = {
 # ── Answer-mode & source-attribution constants ────────────────────────────────
 
 ANSWER_MODES = {"balanced", "practical", "sources", "strict"}
-
-RABBI_FINAL_RULING_FOOTER = "Please consult with your local Rabbi for a final ruling."
-INTERNAL_AI_KNOWLEDGE_DISCLAIMER = (
-    "Note: This information was derived from General Halakhic Knowledge "
-    f"as the specific database source was unavailable. {RABBI_FINAL_RULING_FOOTER}"
-)
 
 # ── Bounded cache ─────────────────────────────────────────────────────────────
 
@@ -237,29 +248,6 @@ COMMUNITY_ALIASES = {
 
 # ── Hebrew constants ──────────────────────────────────────────────────────────
 
-HEBREW_LETTER_RE = re.compile(r"[א-ת]")
-
-HEBREW_WORD_GLOSSARY = {
-    "שבת": "Shabbat, the seventh day of rest.",
-    "תורה": "Torah, the Five Books of Moses and Torah teaching.",
-    "תפילה": "Prayer.",
-    "מצוה": "Mitzvah, a divine commandment.",
-    "מצווה": "Mitzvah, a divine commandment.",
-    "הלכה": "Halakhah, practical Jewish law.",
-    "מנהג": "Minhag, accepted communal custom.",
-    "תשובה": "Teshuvah, repentance and return.",
-    "ברכה": "Berakhah, blessing.",
-    "פסח": "Pesach, the festival of the Exodus.",
-    "סוכות": "Sukkot, the festival of booths.",
-    "שבועות": "Shavuot, festival marking Matan Torah.",
-    "ראש": "Head or beginning.",
-    "שלום": "Peace, well-being, or greeting.",
-    "חסד": "Kindness or loving-kindness.",
-    "אמת": "Truth.",
-    "יראה": "Awe or reverence.",
-    "אהבה": "Love.",
-}
-
 HEBREW_INTERPRETIVE_GLOSSARY = {
     "ברא": ["create", "fashion", "bring into being"],
     "עשה": ["make", "do", "perform"],
@@ -362,84 +350,11 @@ def _decode_route_ref(value, max_rounds=3):
     return decoded
 
 
-# ── Translation infrastructure ────────────────────────────────────────────────
-
-GOOGLE_TRANSLATE_API_URL = "https://translate.googleapis.com/translate_a/single"
-MYMEMORY_TRANSLATE_API_URL = "https://api.mymemory.translated.net/get"
-
-
-def _is_translation_echo(source_text, translated_text):
-    src = re.sub(r"\s+", " ", str(source_text or "").strip()).lower()
-    dst = re.sub(r"\s+", " ", str(translated_text or "").strip()).lower()
-    return bool(src and dst and src == dst)
-
-
-def _extract_google_translated_text(payload):
-    if not isinstance(payload, list) or not payload:
-        return ""
-    segments = payload[0]
-    if not isinstance(segments, list):
-        return ""
-    chunks = []
-    for segment in segments:
-        if isinstance(segment, list) and segment:
-            chunk = str(segment[0] or "").strip()
-            if chunk:
-                chunks.append(chunk)
-    return re.sub(r"\s+", " ", "".join(chunks)).strip()
-
-
-def _translate_text_google(text, source_lang, target_lang):
-    value = str(text or "").strip()
-    if not value:
-        return ""
-    try:
-        resp = _requests.get(
-            GOOGLE_TRANSLATE_API_URL,
-            params={
-                "client": "gtx",
-                "sl": str(source_lang or "auto").strip() or "auto",
-                "tl": str(target_lang or "en").strip() or "en",
-                "dt": "t",
-                "q": value,
-            },
-            headers={"User-Agent": "Mozilla/5.0"},
-            timeout=2.5,
-        )
-        if not resp.ok:
-            return ""
-        payload = resp.json() if resp.content else []
-        translated = _extract_google_translated_text(payload)
-        if not translated or _is_translation_echo(value, translated):
-            return ""
-        return translated
-    except Exception:
-        return ""
-
-
-def _translate_text_mymemory(text, source_lang, target_lang):
-    value = str(text or "").strip()
-    if not value:
-        return ""
-    langpair_source = str(source_lang or "auto").strip() or "auto"
-    langpair_target = str(target_lang or "en").strip() or "en"
-    try:
-        resp = _requests.get(
-            MYMEMORY_TRANSLATE_API_URL,
-            params={"q": value, "langpair": f"{langpair_source}|{langpair_target}"},
-            timeout=2.5,
-        )
-        if not resp.ok:
-            return ""
-        payload = resp.json() if resp.content else {}
-        translated = str(
-            (payload.get("responseData") or {}).get("translatedText") or ""
-        ).strip()
-        if not translated or _is_translation_echo(value, translated):
-            return ""
-        return translated
-    except Exception:
-        return ""
+# Phase 2 backend refactor (plan.md): GOOGLE_TRANSLATE_API_URL,
+# MYMEMORY_TRANSLATE_API_URL, _is_translation_echo, _extract_google_translated_text,
+# _translate_text_google, and _translate_text_mymemory moved to
+# backend/utils/search_provider.py as the single canonical implementation
+# (re-imported above; search: "Phase 2 backend refactor").
 
 
 def _translate_hebrew_text_google(text):
@@ -966,7 +881,7 @@ def extract_ai_cited(structured_payload):
     """Pull the AI's own citation list out of a structured /ask payload.
 
     Single source of truth for both app.py and asgi.py so the two transports
-    cannot drift in what counts as an "AI-cited" source (plan.md §7.14).
+    cannot drift in what counts as an "AI-cited" source (plan.md §23.4).
     """
     ai_cited = []
     if isinstance(structured_payload, dict):
