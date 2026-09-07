@@ -24,11 +24,98 @@ from __future__ import annotations
 
 import re
 
-import pytest
 import responses as responses_lib
 import requests
 
 from backend import helpers
+
+
+# ── Client IP resolution (plan.md §16.1 D2 regression coverage) ────────────────
+#
+# app.py's _rate_limit_key/_extract_client_ip and asgi.py's _get_client_ip all
+# delegate here. The one behavior that must never regress: CF-Connecting-IP is
+# never trusted — this deployment has no Cloudflare in front of it, so that
+# header is attacker-controlled and must not influence the resolved IP at all.
+
+
+class TestResolveClientIp:
+    def test_prefers_x_vercel_forwarded_for(self):
+        headers = {
+            "X-Vercel-Forwarded-For": "203.0.113.1",
+            "X-Forwarded-For": "203.0.113.2",
+            "X-Real-IP": "203.0.113.3",
+        }
+        assert helpers._resolve_client_ip(headers) == "203.0.113.1"
+
+    def test_falls_back_to_x_forwarded_for(self):
+        headers = {"X-Forwarded-For": "203.0.113.2", "X-Real-IP": "203.0.113.3"}
+        assert helpers._resolve_client_ip(headers) == "203.0.113.2"
+
+    def test_takes_first_entry_of_forwarded_for_list(self):
+        headers = {"X-Forwarded-For": "203.0.113.2, 10.0.0.1, 10.0.0.2"}
+        assert helpers._resolve_client_ip(headers) == "203.0.113.2"
+
+    def test_falls_back_to_x_real_ip(self):
+        headers = {"X-Real-IP": "203.0.113.3"}
+        assert helpers._resolve_client_ip(headers) == "203.0.113.3"
+
+    def test_falls_back_to_remote_addr(self):
+        assert helpers._resolve_client_ip({}, remote_addr="203.0.113.4") == "203.0.113.4"
+
+    def test_falls_back_to_default_when_nothing_resolves(self):
+        assert helpers._resolve_client_ip({}) == "unknown"
+        assert helpers._resolve_client_ip({}, default="127.0.0.1") == "127.0.0.1"
+
+    def test_cf_connecting_ip_alone_is_never_trusted(self):
+        # The core regression: spoofing only CF-Connecting-IP must not be
+        # picked up at all — it should fall straight through to the default.
+        headers = {"CF-Connecting-IP": "198.51.100.9"}
+        assert helpers._resolve_client_ip(headers, default="127.0.0.1") == "127.0.0.1"
+
+    def test_cf_connecting_ip_does_not_win_over_x_forwarded_for(self):
+        # Even when both are present, CF-Connecting-IP must not take
+        # priority over (or otherwise influence) the trusted header.
+        headers = {
+            "CF-Connecting-IP": "198.51.100.9",
+            "X-Forwarded-For": "203.0.113.2",
+        }
+        assert helpers._resolve_client_ip(headers) == "203.0.113.2"
+
+
+# ── AI-error reason classifier (security audit P1 regression coverage) ─────────
+#
+# asgi.py/app.py used to put str(ai_error) -- the raw provider SDK exception
+# text -- into a normal 200 response's meta.fallback_detail.reason. The fix
+# maps exceptions to a coarse, non-identifying category instead; these tests
+# pin that no raw exception text (API key fragments, internal URLs, stack
+# detail) can leak back out through the classifier.
+
+class TestCoarseAiErrorReason:
+    def test_timeout_error_classified_as_timeout(self):
+        assert helpers._coarse_ai_error_reason(TimeoutError("Request timed out after 30s")) == "timeout"
+
+    def test_message_mentioning_timeout_classified_as_timeout(self):
+        assert helpers._coarse_ai_error_reason(RuntimeError("upstream call timeout")) == "timeout"
+
+    def test_rate_limit_message_classified_as_rate_limited(self):
+        assert helpers._coarse_ai_error_reason(RuntimeError("anthropic_sdk_error: 429 rate limit exceeded")) == "rate_limited"
+
+    def test_security_blocked_message_classified_as_blocked(self):
+        assert helpers._coarse_ai_error_reason(RuntimeError("security_blocked: disallowed content")) == "blocked"
+
+    def test_generic_sdk_error_classified_as_provider_error(self):
+        assert helpers._coarse_ai_error_reason(
+            RuntimeError("gemini_sdk_error: invalid api key sk-ABC123 for project internal-prod-7")
+        ) == "provider_error"
+
+    def test_result_never_contains_raw_exception_text(self):
+        secret_bearing_error = RuntimeError("anthropic_sdk_error: Bearer sk-ant-secret-xyz leaked in header")
+        result = helpers._coarse_ai_error_reason(secret_bearing_error)
+        assert "sk-ant-secret-xyz" not in result
+        assert result in {"timeout", "rate_limited", "blocked", "provider_error"}
+
+    def test_none_error_classified_as_provider_error(self):
+        assert helpers._coarse_ai_error_reason(None) == "provider_error"
 
 
 # ── Bounded cache ──────────────────────────────────────────────────────────────
