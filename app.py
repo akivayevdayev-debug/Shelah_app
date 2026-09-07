@@ -2131,6 +2131,7 @@ _BLUEPRINTS = [
     ("backend.routes_privacy", "routes_privacy"),
     ("backend.routes_pages", "routes_pages"),
     ("backend.routes_feedback", "routes_feedback"),
+    ("backend.routes_webhooks", "routes_webhooks"),
 ]
 
 import importlib as _importlib  # noqa: E402 -- deliberate: blueprint registration must follow app construction
