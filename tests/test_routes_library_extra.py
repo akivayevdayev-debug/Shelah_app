@@ -9,7 +9,6 @@ liturgy/text-hit loops.
 
 from __future__ import annotations
 
-import pytest
 
 
 class TestLibraryLeafRefsTalmudSynthesis:
@@ -76,6 +75,35 @@ class TestLibraryLeafRefsTalmudSynthesis:
         # Collapsed refs should dedupe to unique daf values.
         assert body["refs"] == ["Berakhot 2a", "Berakhot 2b"]
 
+    def test_halakhic_topic_sections_extracted(self, test_client, monkeypatch):
+        import backend.sefaria_library as sl
+        monkeypatch.setattr(sl, "get_index_leaf_refs", lambda title, max_refs=120: [])
+        monkeypatch.setattr(sl, "get_index_entry", lambda title: {
+            "schema": {
+                "lengths": [7],
+                "sectionNames": ["Siman"],
+                "addressTypes": ["Integer"],
+            },
+            "alts": {
+                "Topic": {
+                    "nodes": [
+                        {
+                            "title": "Laws of Waking Up",
+                            "heTitle": "הלכות השכמת הבוקר",
+                            "wholeRef": "Shulchan Arukh, Orach Chayim 1-7",
+                        },
+                    ],
+                },
+            },
+        })
+        response = test_client.get("/api/library/leaf-refs?title=Shulchan Arukh, Orach Chayim")
+        assert response.status_code == 200
+        body = response.get_json()
+        assert body["sections"][0]["label"] == "Laws of Waking Up"
+        assert body["sections"][0]["heLabel"] == "הלכות השכמת הבוקר"
+        assert body["sections"][0]["fromSection"] == 1
+        assert body["sections"][0]["toSection"] == 7
+
     def test_missing_title_returns_empty_shape(self, test_client):
         response = test_client.get("/api/library/leaf-refs")
         assert response.status_code == 200
@@ -140,7 +168,6 @@ class TestWordMeaningTranslationFallback:
 
 class TestExportChapterUnavailableFormats:
     def test_docx_unavailable_returns_503(self, test_client, monkeypatch):
-        import backend.routes_library as routes_library_module
         import builtins
         real_import = builtins.__import__
 

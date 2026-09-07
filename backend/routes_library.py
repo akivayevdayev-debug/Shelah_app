@@ -31,6 +31,19 @@ from backend.auth import maybe_require_clerk_auth
 
 routes_library = Blueprint("library", __name__)
 
+# Sefaria wholeRef/ref strings are short, well-formed citation strings (e.g.
+# "Berakhot 2a:1-13a:15"), but re.search(r'(\d+[ab])', ...) is O(n^2) on
+# adversarial all-digit input with no trailing a/b: it retries the same
+# greedy \d+ scan from every start position. Atomic groups only cut that to
+# a constant factor (still O(n^2)), so this bounds the input length too --
+# the real fix for a pattern with no backtracking-safe rewrite available
+# (SonarCloud python:S8786, verified via adversarial timing tests).
+_MAX_REF_SEGMENT_LEN = 500
+_DAF_RANGE_RE = re.compile(
+    r'((?>\d+)[ab])(?>[\d:]*)(?>\s*)-(?>\s*)((?>\d+)[ab])', re.IGNORECASE)
+_SECTION_RANGE_RE = re.compile(r'((?>\d+))-((?>\d+))')
+_DAF_TOKEN_RE = re.compile(r'(?>\d+)[ab]', re.IGNORECASE)
+
 
 @routes_library.route("/api/library/index")
 def library_index():
@@ -40,150 +53,247 @@ def library_index():
     return jsonify(data)
 
 
+def _extract_chapters_alt_sections(index_title, entry, chapters_alt):
+    """Talmud daf-range groupings from entry['alts']['Chapters'|'chapters'].
+    Returns [{label, fromDaf, toDaf}, ...]. Split out of
+    _extract_index_sections() (SonarCloud python:S3776) -- see
+    _extract_topic_alt_sections.
+    """
+    nodes = chapters_alt.get("nodes")
+    if not isinstance(nodes, list):
+        return []
+
+    sections = []
+    for node in nodes:
+        if not isinstance(node, dict):
+            continue
+        raw_title = str(node.get("title") or "").strip()
+        canonical_title = entry.get("title", index_title)
+        whole_ref = str(node.get("wholeRef") or "").strip()
+
+        # Parse the daf range from wholeRef: "Berakhot 2a:1-13a:15"
+        # Strip the title prefix then read the daf range
+        ref_body = whole_ref
+        if canonical_title and ref_body.lower().startswith(canonical_title.lower()):
+            ref_body = ref_body[len(canonical_title):].lstrip(" ,")
+        elif index_title and ref_body.lower().startswith(index_title.lower()):
+            ref_body = ref_body[len(index_title):].lstrip(" ,")
+
+        if len(ref_body) > _MAX_REF_SEGMENT_LEN:
+            continue
+        range_m = _DAF_RANGE_RE.search(ref_body)
+        if not range_m:
+            continue
+        from_daf = range_m.group(1).lower()
+        to_daf = range_m.group(2).lower()
+
+        # Clean the chapter label: "Chapter 1; MeEimatai" → "MeEimatai (2a–13a)"
+        # Keep the human name after the semicolon, if present
+        if ';' in raw_title:
+            label = raw_title.split(';', 1)[1].strip()
+        else:
+            label = raw_title
+
+        sections.append({
+            "label": label,
+            "fromDaf": from_daf,
+            "toDaf": to_daf,
+        })
+
+    return sections
+
+
+def _extract_topic_alt_sections(topic_alt):
+    """Halakhic siman-range groupings from entry['alts']['Topic'|'topic'].
+    Returns [{label, heLabel, fromSection, toSection}, ...]. Split out of
+    _extract_index_sections() (SonarCloud python:S3776) -- see
+    _extract_chapters_alt_sections.
+    """
+    nodes = topic_alt.get("nodes")
+    if not isinstance(nodes, list):
+        return []
+
+    sections = []
+    for node in nodes:
+        if not isinstance(node, dict):
+            continue
+        label = str(node.get("title") or "").strip()
+        he_label = str(node.get("heTitle") or "").strip()
+        ref_body = str(node.get("wholeRef") or "").strip()
+        if not label or not ref_body:
+            continue
+
+        if len(ref_body) > _MAX_REF_SEGMENT_LEN:
+            continue
+        range_m = _SECTION_RANGE_RE.search(ref_body)
+        if not range_m:
+            continue
+
+        sections.append({
+            "label": label,
+            "heLabel": he_label,
+            "fromSection": int(range_m.group(1)),
+            "toSection": int(range_m.group(2)),
+        })
+
+    return sections
+
+
+def _extract_index_sections(index_title, entry):
+    """
+    Extract named section groupings from a Sefaria index entry's alt
+    structures, to power grouped section-grid rendering.
+
+    Two supported shapes:
+      - Talmud: entry['alts']['Chapters'|'chapters'] -- daf ranges
+        parsed from each node's wholeRef (e.g. "Berakhot 2a:1-13a:15").
+        Returns [{label, fromDaf, toDaf}, ...] (unchanged from before).
+      - Halakhic works with siman-range groupings (Shulchan Arukh,
+        Mishneh Torah, Aruch HaShulchan, Mishnah Berurah, Kitzur
+        Shulchan Arukh, etc.): entry['alts']['Topic'] -- ready-made
+        English/Hebrew section titles with numeric siman ranges parsed
+        from each node's wholeRef (e.g.
+        "Shulchan Arukh, Orach Chayim 1-7"). Returns
+        [{label, heLabel, fromSection, toSection}, ...]. Field names are
+        deliberately generic (not fromDaf/toDaf) since these are siman
+        numbers, not daf pages.
+
+    Returns [] when neither alt-structure is present/usable.
+    """
+    alts = entry.get("alts") if isinstance(entry, dict) else None
+    if not isinstance(alts, dict):
+        return []
+
+    chapters_alt = alts.get("Chapters") or alts.get("chapters")
+    if isinstance(chapters_alt, dict):
+        return _extract_chapters_alt_sections(index_title, entry, chapters_alt)
+
+    topic_alt = alts.get("Topic") or alts.get("topic")
+    if isinstance(topic_alt, dict):
+        return _extract_topic_alt_sections(topic_alt)
+
+    return []
+
+
+def _collapse_talmud_leaf_refs(index_title, refs, max_items=260):
+    """Convert segment-level Talmud refs into unique daf refs for stable
+    grid rendering. Moved to module level (out of library_leaf_refs())
+    since a nested closure's own branches count against the enclosing
+    function's complexity, but a top-level function's don't
+    (SonarCloud python:S3776).
+    """
+    if not isinstance(refs, list) or not refs:
+        return []
+
+    normalized_title = str(index_title or "").strip()
+    compact_refs = []
+    seen = set()
+
+    for ref_value in refs:
+        ref_text = str(ref_value or "").strip()
+        if not ref_text:
+            continue
+
+        body = ref_text
+        if normalized_title and body.lower().startswith(normalized_title.lower()):
+            body = body[len(normalized_title):].lstrip(" ,")
+
+        if len(body) > _MAX_REF_SEGMENT_LEN:
+            continue
+        daf_match = _DAF_TOKEN_RE.search(body)
+        if not daf_match:
+            continue
+
+        daf = daf_match.group(0).lower()
+        if daf in seen:
+            continue
+        seen.add(daf)
+
+        compact_refs.append(f"{normalized_title} {daf}".strip())
+        if len(compact_refs) >= max_items:
+            break
+
+    return compact_refs
+
+
+def _synthesize_section_refs(index_title, max_items=140):
+    """Moved to module level (out of library_leaf_refs()) since a nested
+    closure's own branches count against the enclosing function's
+    complexity, but a top-level function's don't (SonarCloud
+    python:S3776).
+    """
+    from backend.sefaria_library import get_index_entry
+
+    entry = get_index_entry(index_title)
+    schema = entry.get("schema", {}) if isinstance(entry, dict) else {}
+    if not isinstance(schema, dict):
+        return [], []
+
+    lengths = schema.get("lengths") if isinstance(
+        schema.get("lengths"), list) else []
+    if not lengths:
+        return [], []
+
+    try:
+        first_level_count = int(lengths[0])
+    except (TypeError, ValueError):
+        return [], []
+
+    if first_level_count <= 1:
+        return [], []
+
+    section_names = schema.get("sectionNames") if isinstance(
+        schema.get("sectionNames"), list) else []
+    address_types = schema.get("addressTypes") if isinstance(
+        schema.get("addressTypes"), list) else []
+
+    first_section_name = str(section_names[0] or "").strip(
+    ).lower() if section_names else ""
+    first_address_type = str(address_types[0] or "").strip(
+    ).lower() if address_types else ""
+
+    refs = []
+    if first_section_name == "daf" or first_address_type == "talmud":
+        # Sefaria Talmud indexing starts at 2a.
+        for idx in range(first_level_count):
+            daf_num = (idx // 2) + 2
+            side = "a" if idx % 2 == 0 else "b"
+            refs.append(f"{index_title} {daf_num}{side}")
+            if len(refs) >= max_items:
+                break
+        sections = _extract_index_sections(index_title, entry)
+        return refs, sections
+
+    for idx in range(1, first_level_count + 1):
+        refs.append(f"{index_title} {idx}")
+        if len(refs) >= max_items:
+            break
+
+    # Populate sections for halakhic works (Shulchan Arukh, Mishneh
+    # Torah, etc.) whose siman-range groupings live under
+    # alts.Topic -- previously this branch always returned [] here.
+    sections = _extract_index_sections(index_title, entry)
+    return refs, sections
+
+
 @routes_library.route("/api/library/leaf-refs")
 def library_leaf_refs():
     """Return leaf refs for a given index title to power section-grid selectors."""
-    import re as _re
     from backend.sefaria_library import get_index_entry, get_index_leaf_refs
-
-    def _extract_talmud_sections(index_title, entry):
-        """
-        Extract named chapter sections from a Talmud index entry's alts.Chapters.
-        Returns list of {label, fromDaf, toDaf} dicts, or [] if unavailable.
-        """
-        alts = entry.get("alts") if isinstance(entry, dict) else None
-        if not isinstance(alts, dict):
-            return []
-        chapters_alt = alts.get("Chapters") or alts.get("chapters")
-        if not isinstance(chapters_alt, dict):
-            return []
-        nodes = chapters_alt.get("nodes")
-        if not isinstance(nodes, list):
-            return []
-
-        sections = []
-        for node in nodes:
-            if not isinstance(node, dict):
-                continue
-            raw_title = str(node.get("title") or "").strip()
-            canonical_title = entry.get("title", index_title)
-            whole_ref = str(node.get("wholeRef") or "").strip()
-
-            # Parse the daf range from wholeRef: "Berakhot 2a:1-13a:15"
-            # Strip the title prefix then read the daf range
-            ref_body = whole_ref
-            if canonical_title and ref_body.lower().startswith(canonical_title.lower()):
-                ref_body = ref_body[len(canonical_title):].lstrip(" ,")
-            elif index_title and ref_body.lower().startswith(index_title.lower()):
-                ref_body = ref_body[len(index_title):].lstrip(" ,")
-
-            range_m = _re.search(
-                r'(\d+[ab])[\d:]*\s*-\s*(\d+[ab])', ref_body, _re.IGNORECASE)
-            if not range_m:
-                continue
-            from_daf = range_m.group(1).lower()
-            to_daf = range_m.group(2).lower()
-
-            # Clean the chapter label: "Chapter 1; MeEimatai" → "MeEimatai (2a–13a)"
-            # Keep the human name after the semicolon, if present
-            if ';' in raw_title:
-                label = raw_title.split(';', 1)[1].strip()
-            else:
-                label = raw_title
-
-            sections.append({
-                "label": label,
-                "fromDaf": from_daf,
-                "toDaf": to_daf,
-            })
-
-        return sections
-
-    def _collapse_talmud_leaf_refs(index_title, refs, max_items=260):
-        """Convert segment-level Talmud refs into unique daf refs for stable grid rendering."""
-        if not isinstance(refs, list) or not refs:
-            return []
-
-        normalized_title = str(index_title or "").strip()
-        compact_refs = []
-        seen = set()
-
-        for ref_value in refs:
-            ref_text = str(ref_value or "").strip()
-            if not ref_text:
-                continue
-
-            body = ref_text
-            if normalized_title and body.lower().startswith(normalized_title.lower()):
-                body = body[len(normalized_title):].lstrip(" ,")
-
-            daf_match = _re.search(r"(\d+[ab])", body, _re.IGNORECASE)
-            if not daf_match:
-                continue
-
-            daf = daf_match.group(1).lower()
-            if daf in seen:
-                continue
-            seen.add(daf)
-
-            compact_refs.append(f"{normalized_title} {daf}".strip())
-            if len(compact_refs) >= max_items:
-                break
-
-        return compact_refs
-
-    def _synthesize_section_refs(index_title, max_items=140):
-        entry = get_index_entry(index_title)
-        schema = entry.get("schema", {}) if isinstance(entry, dict) else {}
-        if not isinstance(schema, dict):
-            return [], []
-
-        lengths = schema.get("lengths") if isinstance(
-            schema.get("lengths"), list) else []
-        if not lengths:
-            return [], []
-
-        try:
-            first_level_count = int(lengths[0])
-        except (TypeError, ValueError):
-            return [], []
-
-        if first_level_count <= 1:
-            return [], []
-
-        section_names = schema.get("sectionNames") if isinstance(
-            schema.get("sectionNames"), list) else []
-        address_types = schema.get("addressTypes") if isinstance(
-            schema.get("addressTypes"), list) else []
-
-        first_section_name = str(section_names[0] or "").strip(
-        ).lower() if section_names else ""
-        first_address_type = str(address_types[0] or "").strip(
-        ).lower() if address_types else ""
-
-        refs = []
-        if first_section_name == "daf" or first_address_type == "talmud":
-            # Sefaria Talmud indexing starts at 2a.
-            for idx in range(first_level_count):
-                daf_num = (idx // 2) + 2
-                side = "a" if idx % 2 == 0 else "b"
-                refs.append(f"{index_title} {daf_num}{side}")
-                if len(refs) >= max_items:
-                    break
-            sections = _extract_talmud_sections(index_title, entry)
-            return refs, sections
-
-        for idx in range(1, first_level_count + 1):
-            refs.append(f"{index_title} {idx}")
-            if len(refs) >= max_items:
-                break
-
-        return refs, []
 
     requested_title = _decode_route_ref(request.args.get("title", ""))
     title = str(requested_title or "").strip()
+    # Raised from 260: large halakhic works truncated real data (Orach
+    # Chayim has 697 simanim, Yoreh De'ah 403, Choshen Mishpat 427). Now that
+    # _extract_index_sections() groups these into labeled ranges via
+    # alts.Topic, a large ref count is no longer a bare unstructured wall of
+    # buttons for works where grouping data is available. Note: if grouping
+    # data is unavailable for some work, the frontend still receives a large
+    # flat list here and must render it gracefully (pagination/virtualized
+    # grid, etc.) -- this is a frontend rendering concern, not something the
+    # backend should silently truncate around.
     max_refs = _coerce_int(request.args.get("max"), 140,
-                           min_value=1, max_value=260)
+                           min_value=1, max_value=800)
 
     if not title:
         return jsonify({"title": "", "refs": [], "sections": []})
@@ -203,7 +313,7 @@ def library_leaf_refs():
         # Try to extract sections even when refs came from get_index_leaf_refs
         try:
             entry = get_index_entry(title)
-            sections = _extract_talmud_sections(title, entry)
+            sections = _extract_index_sections(title, entry)
         except Exception:
             sections = []
 
