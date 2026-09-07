@@ -217,6 +217,77 @@ def _collapse_talmud_leaf_refs(index_title, refs, max_items=260):
     return compact_refs
 
 
+def _schema_list_field(schema, field_name):
+    """Return schema[field_name] if it's a list, else []. Split out of
+    _parse_section_schema_for_synthesis() (SonarCloud python:S3776).
+    """
+    value = schema.get(field_name)
+    return value if isinstance(value, list) else []
+
+
+def _first_lowered_token(values):
+    """Return the first item of `values`, stripped and lowercased, or ""
+    if `values` is empty. Split out of
+    _parse_section_schema_for_synthesis() (SonarCloud python:S3776).
+    """
+    return str(values[0] or "").strip().lower() if values else ""
+
+
+def _parse_section_schema_for_synthesis(entry):
+    """Validate and extract the schema fields _synthesize_section_refs()
+    needs (first_level_count, first_section_name, first_address_type), or
+    None if the index entry's schema doesn't support ref synthesis. Split
+    out of _synthesize_section_refs() (SonarCloud python:S3776).
+    """
+    schema = entry.get("schema", {}) if isinstance(entry, dict) else {}
+    if not isinstance(schema, dict):
+        return None
+
+    lengths = _schema_list_field(schema, "lengths")
+    if not lengths:
+        return None
+
+    try:
+        first_level_count = int(lengths[0])
+    except (TypeError, ValueError):
+        return None
+
+    if first_level_count <= 1:
+        return None
+
+    first_section_name = _first_lowered_token(_schema_list_field(schema, "sectionNames"))
+    first_address_type = _first_lowered_token(_schema_list_field(schema, "addressTypes"))
+
+    return first_level_count, first_section_name, first_address_type
+
+
+def _synthesize_talmud_daf_refs(index_title, first_level_count, max_items):
+    """Build Sefaria-style Talmud daf refs (indexing starts at 2a), up to
+    max_items. Split out of _synthesize_section_refs() (SonarCloud
+    python:S3776).
+    """
+    refs = []
+    for idx in range(first_level_count):
+        daf_num = (idx // 2) + 2
+        side = "a" if idx % 2 == 0 else "b"
+        refs.append(f"{index_title} {daf_num}{side}")
+        if len(refs) >= max_items:
+            break
+    return refs
+
+
+def _synthesize_numbered_section_refs(index_title, first_level_count, max_items):
+    """Build simple "<title> <n>" refs, up to max_items. Split out of
+    _synthesize_section_refs() (SonarCloud python:S3776).
+    """
+    refs = []
+    for idx in range(1, first_level_count + 1):
+        refs.append(f"{index_title} {idx}")
+        if len(refs) >= max_items:
+            break
+    return refs
+
+
 def _synthesize_section_refs(index_title, max_items=140):
     """Moved to module level (out of library_leaf_refs()) since a nested
     closure's own branches count against the enclosing function's
@@ -226,53 +297,19 @@ def _synthesize_section_refs(index_title, max_items=140):
     from backend.sefaria_library import get_index_entry
 
     entry = get_index_entry(index_title)
-    schema = entry.get("schema", {}) if isinstance(entry, dict) else {}
-    if not isinstance(schema, dict):
+    parsed_schema = _parse_section_schema_for_synthesis(entry)
+    if parsed_schema is None:
         return [], []
+    first_level_count, first_section_name, first_address_type = parsed_schema
 
-    lengths = schema.get("lengths") if isinstance(
-        schema.get("lengths"), list) else []
-    if not lengths:
-        return [], []
-
-    try:
-        first_level_count = int(lengths[0])
-    except (TypeError, ValueError):
-        return [], []
-
-    if first_level_count <= 1:
-        return [], []
-
-    section_names = schema.get("sectionNames") if isinstance(
-        schema.get("sectionNames"), list) else []
-    address_types = schema.get("addressTypes") if isinstance(
-        schema.get("addressTypes"), list) else []
-
-    first_section_name = str(section_names[0] or "").strip(
-    ).lower() if section_names else ""
-    first_address_type = str(address_types[0] or "").strip(
-    ).lower() if address_types else ""
-
-    refs = []
     if first_section_name == "daf" or first_address_type == "talmud":
-        # Sefaria Talmud indexing starts at 2a.
-        for idx in range(first_level_count):
-            daf_num = (idx // 2) + 2
-            side = "a" if idx % 2 == 0 else "b"
-            refs.append(f"{index_title} {daf_num}{side}")
-            if len(refs) >= max_items:
-                break
-        sections = _extract_index_sections(index_title, entry)
-        return refs, sections
-
-    for idx in range(1, first_level_count + 1):
-        refs.append(f"{index_title} {idx}")
-        if len(refs) >= max_items:
-            break
+        refs = _synthesize_talmud_daf_refs(index_title, first_level_count, max_items)
+    else:
+        refs = _synthesize_numbered_section_refs(index_title, first_level_count, max_items)
 
     # Populate sections for halakhic works (Shulchan Arukh, Mishneh
-    # Torah, etc.) whose siman-range groupings live under
-    # alts.Topic -- previously this branch always returned [] here.
+    # Torah, etc.) whose siman-range groupings live under alts.Topic, as
+    # well as the Talmud Chapters-alt groupings.
     sections = _extract_index_sections(index_title, entry)
     return refs, sections
 
