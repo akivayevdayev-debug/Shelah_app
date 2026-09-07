@@ -37,6 +37,7 @@ from backend.logging_setup import (
     _capture_backend_error,
     bind_request_id,
     get_logger,
+    hash_user_id,
     submit_with_context,
 )
 from backend.customs import validate_all_customs_at_startup
@@ -1909,7 +1910,7 @@ def _run_ask_question_fallback(question, mode, canonical_lens, answer_language, 
             "question": question,
             "mode": mode,
             "community_lens": canonical_lens,
-            "user_id": user_id or "",
+            "user_id_hash": hash_user_id(user_id),
         },
     )
     fallback_payload = get_halakhic_sources(question)
