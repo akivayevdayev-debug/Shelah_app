@@ -561,6 +561,33 @@ def _lookup_sefaria_lexicon(word):
 # ── English dictionary lookup ─────────────────────────────────────────────────
 
 
+def _first_definition_text_in_meanings(meanings):
+    """Return the first non-blank definition text found across all
+    dictionaryapi.dev meaning entries, or "". Split out of
+    _extract_definition_from_dictionaryapi_payload() (SonarCloud
+    python:S3776).
+    """
+    for meaning in meanings:
+        definitions = meaning.get("definitions", []) if isinstance(meaning, dict) else []
+        for definition in definitions:
+            text = str((definition or {}).get("definition") or "").strip()
+            if text:
+                return text
+    return ""
+
+
+def _extract_definition_from_dictionaryapi_payload(payload):
+    """Pull the first non-blank definition text out of a dictionaryapi.dev
+    response payload, or "" if none exists. Split out of
+    _lookup_english_word_meaning() (SonarCloud python:S3776).
+    """
+    if not isinstance(payload, list) or not payload:
+        return ""
+    entry = payload[0] if isinstance(payload[0], dict) else {}
+    meanings = entry.get("meanings", []) if isinstance(entry.get("meanings"), list) else []
+    return _first_definition_text_in_meanings(meanings)
+
+
 def _lookup_english_word_meaning(word):
     clean_word = str(word or "").strip().lower()
     if not clean_word:
@@ -572,17 +599,9 @@ def _lookup_english_word_meaning(word):
         )
         if not resp.ok:
             return "", ""
-        payload = resp.json()
-        if not isinstance(payload, list) or not payload:
-            return "", ""
-        entry = payload[0] if isinstance(payload[0], dict) else {}
-        meanings = entry.get("meanings", []) if isinstance(entry.get("meanings"), list) else []
-        for meaning in meanings:
-            definitions = meaning.get("definitions", []) if isinstance(meaning, dict) else []
-            for definition in definitions:
-                text = str((definition or {}).get("definition") or "").strip()
-                if text:
-                    return text, "dictionaryapi.dev"
+        text = _extract_definition_from_dictionaryapi_payload(resp.json())
+        if text:
+            return text, "dictionaryapi.dev"
     except Exception:
         return "", ""
     return "", ""
