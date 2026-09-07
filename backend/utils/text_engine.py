@@ -95,7 +95,7 @@ def _strip_source_attribution_prefix(answer_text):
         return ""
 
     lower_text = text.lower()
-    if not lower_text.startswith("note: this information was"):
+    if not lower_text.startswith("note: ⚠️ this is educational information"):
         return text
 
     # Preferred shape is: note line, blank line, then body.
