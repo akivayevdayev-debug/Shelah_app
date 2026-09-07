@@ -760,6 +760,12 @@ def _holiday_color_for_category(category):
 load_dotenv()
 app = Flask(__name__)
 
+
+@app.context_processor
+def _inject_current_year():
+    return {"current_year": greg_date.today().year}
+
+
 # Configure structured JSON logging as early as possible so all log records
 # (including import-time warnings from sub-modules) use the JSON formatter.
 setup_logging()
