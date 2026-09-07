@@ -890,6 +890,36 @@ class TestJoinWithAnd:
         result = helpers._join_with_and(["Sefaria", "Customs", "Web"])
         assert result == "Sefaria, Customs, and Web"
 
+    def test_falsy_and_blank_items_are_filtered_out(self):
+        result = helpers._join_with_and(["Sefaria", "", None, "  ", "Web"])
+        assert result == "Sefaria and Web"
+
+
+class TestIsMachineTranslatedSource:
+    def test_google_translate_source(self):
+        assert helpers._is_machine_translated_source("google-translate") is True
+
+    def test_mymemory_translate_source(self):
+        assert helpers._is_machine_translated_source("mymemory-translate") is True
+
+    def test_combined_source_with_translation_component(self):
+        assert (
+            helpers._is_machine_translated_source("dictionaryapi.dev+google-translate")
+            is True
+        )
+
+    def test_non_translated_source(self):
+        assert helpers._is_machine_translated_source("local-hebrew-glossary") is False
+
+    def test_sefaria_lexicon_source(self):
+        assert helpers._is_machine_translated_source("sefaria-lexicon") is False
+
+    def test_none_source(self):
+        assert helpers._is_machine_translated_source(None) is False
+
+    def test_empty_string_source(self):
+        assert helpers._is_machine_translated_source("") is False
+
 
 class TestBuildSourceAttributionNote:
     def test_no_sources_returns_internal_knowledge_disclaimer(self):
@@ -906,6 +936,10 @@ class TestBuildSourceAttributionNote:
         result = helpers._build_source_attribution_note(has_sefaria=True)
         assert "Sefaria" in result
         assert helpers.RABBI_FINAL_RULING_FOOTER in result
+
+    def test_disclaimer_notes_not_a_halachic_ruling(self):
+        result = helpers._build_source_attribution_note(has_sefaria=True)
+        assert "not a halachic ruling" in result
 
     def test_multiple_sources_joined_with_and(self):
         result = helpers._build_source_attribution_note(

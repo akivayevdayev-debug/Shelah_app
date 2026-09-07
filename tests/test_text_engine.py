@@ -107,15 +107,18 @@ def test_format_ui_answer_no_verified_source_found_passthrough():
 
 def test_strip_source_attribution_prefix_two_paragraph_shape():
     note = (
-        "Note: This information was pulled from Sefaria and Community Customs. "
-        f"{RABBI_FOOTER}\n\n"
+        "Note: ⚠️ This is educational information pulled from Sefaria and Community Customs, "
+        f"not a halachic ruling. {RABBI_FOOTER}\n\n"
         "Actual body text here."
     )
     assert _strip_source_attribution_prefix(note) == "Actual body text here."
 
 
 def test_strip_source_attribution_prefix_single_line_shape():
-    note = f"Note: This information was pulled from Sefaria. {RABBI_FOOTER} Actual body."
+    note = (
+        "Note: ⚠️ This is educational information pulled from Sefaria, "
+        f"not a halachic ruling. {RABBI_FOOTER} Actual body."
+    )
     assert _strip_source_attribution_prefix(note) == "Actual body."
 
 
