@@ -829,6 +829,50 @@ class TestSearchLibrary:
             result = sl.search_library("book", size=2)
             assert len(result) <= 2
 
+    def test_falls_back_to_catalog_when_name_search_yields_nothing(self, monkeypatch):
+        monkeypatch.setattr(
+            sl, "_search_index_catalog",
+            lambda query, size=10, metadata_filters=None: [
+                {"ref": "Shabbat 21a", "text": "Kindle lights",
+                 "categories": ["Halakhah"], "heRef": ""},
+            ],
+        )
+        with responses_lib.RequestsMock(assert_all_requests_are_fired=False) as rsps:
+            rsps.add(
+                responses_lib.GET, re.compile(re.escape(sl.SEFARIA_API) + r"/name/.*"),
+                json={"is_ref": False, "completion_objects": []},
+                status=200,
+            )
+            result = sl.search_library("shabbat candle lighting", size=5)
+            assert len(result) == 1
+            assert result[0]["ref"] == "Shabbat 21a"
+
+    def test_completion_objects_below_size_still_falls_through_to_catalog(self, monkeypatch):
+        """Regression anchor: when the /name completion loop finishes without
+        hitting `size`, search_library must still run the catalog fallback
+        (it does not return early just because the loop is over)."""
+        monkeypatch.setattr(
+            sl, "_search_index_catalog",
+            lambda query, size=10, metadata_filters=None: [
+                {"ref": "Catalog Result 1", "text": "", "categories": [], "heRef": ""},
+            ],
+        )
+        with responses_lib.RequestsMock(assert_all_requests_are_fired=False) as rsps:
+            rsps.add(
+                responses_lib.GET, re.compile(re.escape(sl.SEFARIA_API) + r"/name/.*"),
+                json={
+                    "is_ref": False,
+                    "completion_objects": [
+                        {"type": "ref", "key": "Book 1", "title": "Book 1"},
+                    ],
+                },
+                status=200,
+            )
+            result = sl.search_library("book", size=5)
+            refs = [r["ref"] for r in result]
+            assert "Book 1" in refs
+            assert "Catalog Result 1" in refs
+
 
 class TestGetLinkedTexts:
     def test_groups_links_by_category(self):
@@ -869,6 +913,31 @@ class TestGetLinkedTexts:
                 json={"links": []}, status=200,
             )
             result = sl.get_linked_texts("Mishnah Berakhot 1:1")
+            assert result == {}
+
+    def test_does_not_duplicate_rashi_when_already_present(self):
+        with responses_lib.RequestsMock(assert_all_requests_are_fired=False) as rsps:
+            rsps.add(
+                responses_lib.GET, re.compile(re.escape(sl.SEFARIA_API) + r"/related/.*"),
+                json={"links": [
+                    {"type": "commentary", "category": "Commentary", "ref": "Rashi on Genesis 1:1", "heRef": "", "anchorRef": "Genesis 1:1"},
+                ]},
+                status=200,
+            )
+            result = sl.get_linked_texts("Genesis 1:1")
+            rashi_entries = [
+                item for item in result["Commentary"]
+                if str(item.get("ref", "")).lower().startswith("rashi on")
+            ]
+            assert len(rashi_entries) == 1
+
+    def test_ref_with_no_whitespace_does_not_inject_rashi(self):
+        with responses_lib.RequestsMock(assert_all_requests_are_fired=False) as rsps:
+            rsps.add(
+                responses_lib.GET, re.compile(re.escape(sl.SEFARIA_API) + r"/related/.*"),
+                json={"links": []}, status=200,
+            )
+            result = sl.get_linked_texts("Genesis")
             assert result == {}
 
 
