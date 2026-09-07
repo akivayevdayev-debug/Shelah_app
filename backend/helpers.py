@@ -954,6 +954,43 @@ def _compact_source_line(row, max_chars):
     return {"en": en, "he": he}
 
 
+def _compact_ai_source_lines(raw_lines, max_lines, max_chars):
+    """Compact up to max_lines raw line dicts, or return None if none of
+    them end up with usable content. Split out of
+    _compact_ai_source_entry() (SonarCloud python:S3776).
+    """
+    lines = []
+    has_valid_content = False
+    for row in raw_lines[:max_lines]:
+        compacted_line = _compact_source_line(row, max_chars)
+        if compacted_line is None:
+            continue
+        if compacted_line["en"] or compacted_line["he"]:
+            has_valid_content = True
+        lines.append(compacted_line)
+
+    # Skip sources with no valid content
+    if not has_valid_content and not lines:
+        return None
+    return lines
+
+
+def _attach_optional_source_fields(entry, src):
+    """Copy domain/source_provider/url from `src` onto `entry` in place,
+    only when present. Split out of _compact_ai_source_entry() (SonarCloud
+    python:S3776).
+    """
+    domain = str(src.get("domain") or "").strip()
+    source_provider = str(src.get("source_provider") or "").strip()
+    url = str(src.get("url") or "").strip()
+    if domain:
+        entry["domain"] = domain
+    if source_provider:
+        entry["source_provider"] = source_provider
+    if url:
+        entry["url"] = url
+
+
 def _compact_ai_source_entry(src, max_lines, max_chars):
     """Trim one raw source dict to the excerpt shape used by the UI, or
     return None if it has no usable content. Split out of
@@ -968,35 +1005,16 @@ def _compact_ai_source_entry(src, max_lines, max_chars):
     raw_lines_obj = src.get("lines")
     raw_lines = raw_lines_obj if isinstance(raw_lines_obj, list) else []
 
-    lines = []
-    has_valid_content = False
-    for row in raw_lines[:max_lines]:
-        compacted_line = _compact_source_line(row, max_chars)
-        if compacted_line is None:
-            continue
-        if compacted_line["en"] or compacted_line["he"]:
-            has_valid_content = True
-        lines.append(compacted_line)
-
-    # Skip sources with no valid content
-    if not has_valid_content and not lines:
+    lines = _compact_ai_source_lines(raw_lines, max_lines, max_chars)
+    if lines is None:
         return None
-
-    domain = str(src.get("domain") or "").strip()
-    source_provider = str(src.get("source_provider") or "").strip()
-    url = str(src.get("url") or "").strip()
 
     entry: dict = {
         "ref": ref[:220],
         "title": title[:220],
         "lines": lines,
     }
-    if domain:
-        entry["domain"] = domain
-    if source_provider:
-        entry["source_provider"] = source_provider
-    if url:
-        entry["url"] = url
+    _attach_optional_source_fields(entry, src)
 
     return entry
 
