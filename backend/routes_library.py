@@ -26,6 +26,7 @@ from backend.helpers import (
     _lookup_english_word_meaning,
     _translate_english_text_online,
     _collect_word_meaning_alternatives,
+    _is_machine_translated_source,
 )
 from backend.auth import maybe_require_clerk_auth
 
@@ -431,6 +432,10 @@ def get_word_meaning():
         "meaning": meaning,
         "alternatives": alternatives,
         "source": source,
+        # plan.md §8.F.4 / Prompt 18 item 4: label machine-translated
+        # definitions so the frontend never presents an online-translation
+        # fallback as an authoritative, curated definition.
+        "machine_translated": _is_machine_translated_source(source),
         "status": "ok",
         "lang": requested_lang,
     })
