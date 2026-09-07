@@ -895,6 +895,12 @@ from backend.rag import _env_int  # noqa: E402 -- deliberate: kept beside the co
 RAG_TOP_KNOWLEDGE_ROWS = 5
 RAG_MEMORY_ROWS = 2
 
+# Cloudflare Turnstile (plan.md §16.4/§16.6 Phase 9c, backend/turnstile.py):
+# reuse that module's env parsing as the single source of truth for the site
+# key/enabled flag instead of re-reading os.environ here, mirroring the
+# CLERK_PUBLISHABLE_KEY convention above but without duplicating the parsing.
+from backend.turnstile import TURNSTILE_ENABLED, TURNSTILE_SITE_KEY  # noqa: E402
+
 
 from backend.auth import (  # noqa: E402 -- deliberate: grouped with the Supabase/auth helpers below, not hoisted
     _verify_clerk_token,
@@ -1325,6 +1331,8 @@ def index():
         sentry_release=SENTRY_RELEASE,
         legal_terms_version=LEGAL_TERMS_VERSION,
         legal_privacy_version=LEGAL_PRIVACY_VERSION,
+        turnstile_enabled=TURNSTILE_ENABLED,
+        turnstile_site_key=TURNSTILE_SITE_KEY,
     )
 
 
