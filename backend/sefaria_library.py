@@ -1291,6 +1291,57 @@ def _build_text_lines(data):
     return lines, he_flat, en_flat
 
 
+def _try_v3_text(requested_ref, cache_key):
+    """Attempt the v3 Sefaria API (may avoid Cloudflare block); on success,
+    cache the resolved ref and return the parsed result, else None. Split
+    out of get_text (SonarCloud python:S3776)."""
+    v3_url = _build_v3_text_url(requested_ref)
+    v3_raw = _cached_get(v3_url, ttl=86400)
+    if not v3_raw or v3_raw.get("error"):
+        return None
+    parsed_v3 = _parse_v3_response(v3_raw, requested_ref)
+    if not parsed_v3:
+        return None
+    _resolved_query_ref_cache.set(
+        cache_key, str(parsed_v3.get("ref") or requested_ref))
+    return parsed_v3
+
+
+def _resolve_v2_text_data(requested_ref, cache_key, lang, context):
+    """Resolve text data via the v2 API: try the cached/requested ref
+    first, then fall back to other ref candidates. Split out of get_text
+    (SonarCloud python:S3776)."""
+    attempts_tried = set()
+    cached_ref = _resolved_query_ref_cache.get(cache_key) or ""
+    initial_attempts = [cached_ref,
+                        requested_ref] if cached_ref else [requested_ref]
+    data, resolved_ref = _try_initial_text_attempts(
+        initial_attempts, attempts_tried, lang, context)
+    if not data:
+        data, resolved_ref = _try_candidate_text_refs(
+            requested_ref, attempts_tried, lang, context)
+    return data, resolved_ref
+
+
+def _cache_resolved_text_ref(cache_key, resolved_ref, data, requested_ref):
+    _resolved_query_ref_cache.set(cache_key, str(
+        resolved_ref or data.get("ref") or requested_ref))
+
+
+def _resolve_output_ref(data, resolved_ref, requested_ref):
+    return data.get("ref", resolved_ref or requested_ref)
+
+
+def _resolve_text_title(data, resolved_output_ref, requested_ref):
+    """Resolve the display title for a fetched text, falling back to the
+    leading segment of its ref. Split out of get_text (SonarCloud
+    python:S3776)."""
+    fallback_title = str(resolved_output_ref or requested_ref).split(",", 1)[
+        0].strip()
+    return data.get("title") or data.get(
+        "indexTitle") or data.get("book") or fallback_title
+
+
 def get_text(ref, lang="both", context=0):
     """
     Fetches a specific text passage from Sefaria.
@@ -1312,43 +1363,24 @@ def get_text(ref, lang="both", context=0):
         return {"error": "Text not found", "ref": "", "he": [], "en": []}
 
     cache_key = requested_ref.lower()
-    attempts_tried = set()
 
-    # --- Try v3 API first (newer endpoint, may avoid Cloudflare block) ---
-    v3_url = _build_v3_text_url(requested_ref)
-    v3_raw = _cached_get(v3_url, ttl=86400)
-    if v3_raw and not v3_raw.get("error"):
-        parsed_v3 = _parse_v3_response(v3_raw, requested_ref)
-        if parsed_v3:
-            _resolved_query_ref_cache.set(cache_key, str(
-                parsed_v3.get("ref") or requested_ref))
-            return parsed_v3
+    parsed_v3 = _try_v3_text(requested_ref, cache_key)
+    if parsed_v3:
+        return parsed_v3
 
-    # --- Fall back to v2 API with full candidate resolution ---
-    cached_ref = _resolved_query_ref_cache.get(cache_key) or ""
-    initial_attempts = [cached_ref,
-                        requested_ref] if cached_ref else [requested_ref]
-    data, resolved_ref = _try_initial_text_attempts(
-        initial_attempts, attempts_tried, lang, context)
-
-    if not data:
-        data, resolved_ref = _try_candidate_text_refs(
-            requested_ref, attempts_tried, lang, context)
+    data, resolved_ref = _resolve_v2_text_data(
+        requested_ref, cache_key, lang, context)
 
     if not data or "error" in data:
         _resolved_query_ref_cache.delete(cache_key)
         return _build_text_not_found_response(requested_ref)
 
-    _resolved_query_ref_cache.set(cache_key, str(
-        resolved_ref or data.get("ref") or requested_ref))
+    _cache_resolved_text_ref(cache_key, resolved_ref, data, requested_ref)
 
     lines, he_flat, en_flat = _build_text_lines(data)
 
-    resolved_output_ref = data.get("ref", resolved_ref or requested_ref)
-    fallback_title = str(resolved_output_ref or requested_ref).split(",", 1)[
-        0].strip()
-    title = data.get("title") or data.get(
-        "indexTitle") or data.get("book") or fallback_title
+    resolved_output_ref = _resolve_output_ref(data, resolved_ref, requested_ref)
+    title = _resolve_text_title(data, resolved_output_ref, requested_ref)
 
     return {
         "ref": resolved_output_ref,
