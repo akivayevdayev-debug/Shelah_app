@@ -85,25 +85,44 @@ class AskRequest(BaseModel):
     turnstile_token: str | None = None
 
 
+def _select_source_line_text(line: dict[str, Any], use_hebrew: bool) -> str:
+    """Pick one source line's He or En text per answer_language, falling
+    back to the other language. Split out of _flatten_sources_for_ai
+    (SonarCloud python:S3776)."""
+    if use_hebrew:
+        raw = line.get("he") or line.get("en")
+    else:
+        raw = line.get("en") or line.get("he") or ""
+    return str(raw).strip()
+
+
+def _flatten_one_source_for_ai(src: dict[str, Any], use_hebrew: bool) -> dict[str, str] | None:
+    """Build one {"ref", "text"} entry for a primary source, or None to skip
+    an entry with neither ref nor text. Split out of _flatten_sources_for_ai
+    (SonarCloud python:S3776)."""
+    lines_raw = src.get("lines")
+    lines = lines_raw if isinstance(lines_raw, list) else []
+    line_texts = [
+        _select_source_line_text(line, use_hebrew)
+        for line in lines
+        if isinstance(line, dict)
+    ]
+    text = " ".join(line for line in line_texts if line)
+    ref = str(src.get("ref") or "").strip()
+    if not ref and not text:
+        return None
+    return {"ref": ref, "text": text}
+
+
 def _flatten_sources_for_ai(primary_sources: list[dict[str, Any]], answer_language: str = "en") -> list[dict[str, str]]:
-    flattened = []
     use_hebrew = str(answer_language or "").strip().lower() == "he"
+    flattened = []
     for src in primary_sources:
         if not isinstance(src, dict):
             continue
-        lines_raw = src.get("lines")
-        lines = lines_raw if isinstance(lines_raw, list) else []
-        en_lines = [
-            str((line.get("he") or line.get("en")) if use_hebrew else (
-                line.get("en") or line.get("he")) or "").strip()
-            for line in lines
-            if isinstance(line, dict)
-        ]
-        text = " ".join([line for line in en_lines if line])
-        ref = str(src.get("ref") or "").strip()
-        if not ref and not text:
-            continue
-        flattened.append({"ref": ref, "text": text})
+        entry = _flatten_one_source_for_ai(src, use_hebrew)
+        if entry is not None:
+            flattened.append(entry)
     return flattened
 
 
