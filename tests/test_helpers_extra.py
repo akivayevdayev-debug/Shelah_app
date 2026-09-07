@@ -457,6 +457,42 @@ class TestCanonicalizeCommunityNameExactMatch:
         assert result == "Ashkenaz"
 
 
+class TestParseSefariaLexiconResponse:
+    def test_ok_response_with_list_payload_returns_entries(self):
+        class FakeResp:
+            ok = True
+            content = b'[{"lexicon_name": "bdb"}]'
+
+            def json(self):
+                return [{"lexicon_name": "bdb"}]
+
+        assert helpers._parse_sefaria_lexicon_response(FakeResp()) == [{"lexicon_name": "bdb"}]
+
+    def test_non_ok_response_returns_none(self):
+        class FakeResp:
+            ok = False
+            content = b""
+
+        assert helpers._parse_sefaria_lexicon_response(FakeResp()) is None
+
+    def test_non_list_payload_returns_none(self):
+        class FakeResp:
+            ok = True
+            content = b'{"unexpected": "dict"}'
+
+            def json(self):
+                return {"unexpected": "dict"}
+
+        assert helpers._parse_sefaria_lexicon_response(FakeResp()) is None
+
+    def test_empty_content_returns_empty_list(self):
+        class FakeResp:
+            ok = True
+            content = b""
+
+        assert helpers._parse_sefaria_lexicon_response(FakeResp()) == []
+
+
 class TestNormalizeForCommunityMatch:
     def test_lowercases_and_strips_non_alphanumeric(self):
         assert helpers._normalize_for_community_match("Turkish-Ottoman!") == "turkishottoman"
