@@ -686,25 +686,36 @@ def _hebrew_word_variants(raw_word):
     return variants[:8]
 
 
-def _lookup_hebrew_word_meaning(word):
-    clean_word = _normalize_lookup_word(word)
-    if not clean_word:
-        return "", ""
-
-    variants = _hebrew_word_variants(clean_word)
-
+def _lookup_hebrew_word_in_local_glossary(variants):
+    """Stage 1 of _lookup_hebrew_word_meaning(): exact match against the
+    curated local glossary. Split out (SonarCloud python:S3776).
+    """
     for variant in variants:
         exact = HEBREW_WORD_GLOSSARY.get(variant)
         if exact:
             normalized = _normalize_glossary_meaning(exact)
             if normalized:
                 return normalized, "local-hebrew-glossary"
+    return "", ""
 
+
+def _lookup_hebrew_word_in_sefaria_lexicon(variants):
+    """Stage 2 of _lookup_hebrew_word_meaning(): Sefaria lexicon lookup.
+    Split out (SonarCloud python:S3776).
+    """
     for variant in variants:
         lex_def, lex_src = _lookup_sefaria_lexicon(variant)
         if lex_def:
             return lex_def, lex_src or "sefaria-lexicon"
+    return "", ""
 
+
+def _lookup_hebrew_word_via_online_translation(variants, clean_word):
+    """Stages 3-4 of _lookup_hebrew_word_meaning(): online machine
+    translation, tried per-variant and then against the full clean word,
+    rejecting results that look like transliteration rather than an
+    actual English meaning. Split out (SonarCloud python:S3776).
+    """
     for variant in variants:
         generated, source = _translate_hebrew_text_online(variant)
         if generated and not _looks_like_transliteration(generated):
@@ -715,6 +726,24 @@ def _lookup_hebrew_word_meaning(word):
         return generated, source or "automatic-translation"
 
     return "", ""
+
+
+def _lookup_hebrew_word_meaning(word):
+    clean_word = _normalize_lookup_word(word)
+    if not clean_word:
+        return "", ""
+
+    variants = _hebrew_word_variants(clean_word)
+
+    definition, source = _lookup_hebrew_word_in_local_glossary(variants)
+    if definition:
+        return definition, source
+
+    definition, source = _lookup_hebrew_word_in_sefaria_lexicon(variants)
+    if definition:
+        return definition, source
+
+    return _lookup_hebrew_word_via_online_translation(variants, clean_word)
 
 
 # ── Word meaning alternatives (Sefaria-first for Hebrew variants) ─────────────

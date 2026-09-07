@@ -111,6 +111,53 @@ class TestCompactAiSourceLines:
         assert len(result) == 2
 
 
+class TestLookupHebrewWordInLocalGlossary:
+    def test_glossary_hit_returns_local_source(self, monkeypatch):
+        monkeypatch.setitem(helpers.HEBREW_WORD_GLOSSARY, "שבת", "Sabbath")
+        definition, source = helpers._lookup_hebrew_word_in_local_glossary(["שבת"])
+        assert definition
+        assert source == "local-hebrew-glossary"
+
+    def test_no_match_returns_blank(self):
+        definition, source = helpers._lookup_hebrew_word_in_local_glossary(["זזזזזזז"])
+        assert (definition, source) == ("", "")
+
+
+class TestLookupHebrewWordInSefariaLexicon:
+    def test_lexicon_hit_returns_definition_and_source(self, monkeypatch):
+        monkeypatch.setattr(helpers, "_lookup_sefaria_lexicon", lambda v: ("Sabbath", "jastrow"))
+        definition, source = helpers._lookup_hebrew_word_in_sefaria_lexicon(["שבת"])
+        assert (definition, source) == ("Sabbath", "jastrow")
+
+    def test_missing_source_defaults_to_sefaria_lexicon(self, monkeypatch):
+        monkeypatch.setattr(helpers, "_lookup_sefaria_lexicon", lambda v: ("Sabbath", ""))
+        definition, source = helpers._lookup_hebrew_word_in_sefaria_lexicon(["שבת"])
+        assert (definition, source) == ("Sabbath", "sefaria-lexicon")
+
+    def test_no_hit_returns_blank(self, monkeypatch):
+        monkeypatch.setattr(helpers, "_lookup_sefaria_lexicon", lambda v: ("", ""))
+        assert helpers._lookup_hebrew_word_in_sefaria_lexicon(["שבת"]) == ("", "")
+
+
+class TestLookupHebrewWordViaOnlineTranslation:
+    def test_transliteration_result_is_rejected_and_falls_through(self, monkeypatch):
+        monkeypatch.setattr(helpers, "_translate_hebrew_text_online", lambda w: ("shabbat", "google"))
+        definition, source = helpers._lookup_hebrew_word_via_online_translation(["שבת"], "שבת")
+        assert (definition, source) == ("", "")
+
+    def test_real_translation_is_returned_with_source(self, monkeypatch):
+        monkeypatch.setattr(helpers, "_translate_hebrew_text_online", lambda w: ("Sabbath", "google"))
+        definition, source = helpers._lookup_hebrew_word_via_online_translation(["שבת"], "שבת")
+        assert definition == "Sabbath"
+        assert source == "google"
+
+    def test_missing_source_defaults_to_automatic_translation(self, monkeypatch):
+        monkeypatch.setattr(helpers, "_translate_hebrew_text_online", lambda w: ("Sabbath", ""))
+        definition, source = helpers._lookup_hebrew_word_via_online_translation([], "שבת")
+        assert definition == "Sabbath"
+        assert source == "automatic-translation"
+
+
 class TestFirstDefinitionTextInMeanings:
     def test_returns_first_non_blank_definition(self):
         meanings = [{"definitions": [{"definition": ""}, {"definition": "A day of rest."}]}]
