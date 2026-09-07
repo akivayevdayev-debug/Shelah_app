@@ -28,12 +28,10 @@ test_sefaria_cache.py.
 
 from __future__ import annotations
 
-import json
 import re
 import pytest
 import responses as responses_lib
 
-from backend.sefaria_library import get_text
 
 DICTIONARYAPI_URL_RE = re.compile(r"https://api\.dictionaryapi\.dev/.*")
 SEFARIA_LEXICON_URL_RE = re.compile(r"https://www\.sefaria\.org/api/words/.*")
@@ -83,7 +81,6 @@ class TestGetTextRoute:
         body = response.get_json()
         assert isinstance(body, dict)
 
-    @pytest.mark.xfail(reason="empty-ref validation may not be enforced server-side yet")
     def test_get_text_empty_ref_returns_400(self, test_client):
         """Empty ref string should be rejected with 400."""
         response = test_client.get("/api/text/")

@@ -337,6 +337,14 @@ def library_popular():
     return jsonify(get_popular_texts())
 
 
+@routes_library.route("/api/text/", strict_slashes=False)
+def get_text_missing_ref():
+    """`<path:ref>` below requires a non-empty first segment, so an empty
+    ref (`/api/text/` or `/api/text`) never reaches it and would otherwise
+    404 as an unmatched route rather than reporting the real problem."""
+    return jsonify({"error": "Missing or empty text reference."}), 400
+
+
 @routes_library.route("/api/text/<path:ref>")
 def get_text_inline(ref):
     """Fetches a Sefaria text inline — Hebrew + English + metadata."""
