@@ -644,6 +644,73 @@ def library_search():
     return jsonify(results)
 
 
+def _add_search_suggestion(suggestions, seen, item_type, label, value, subtitle="", score=0, label_he="", subtitle_he=""):
+    """Append one suggestion if not already seen (dedup by type+value).
+    Moved to module level (out of search_suggest()) since a nested
+    closure's own branches count against the enclosing function's
+    complexity, but a top-level function's don't (SonarCloud
+    python:S3776).
+    """
+    key = (item_type, (value or "").lower())
+    if key in seen:
+        return
+    seen.add(key)
+    suggestions.append({
+        "type": item_type,
+        "label": label,
+        "label_he": label_he,
+        "value": value,
+        "subtitle": subtitle,
+        "subtitle_he": subtitle_he,
+        "score": score,
+    })
+
+
+def _collect_community_name_suggestions(q_lower, suggestions, seen):
+    """Split out of search_suggest() (SonarCloud python:S3776) -- see
+    _add_search_suggestion.
+    """
+    for community in COMMUNITIES.keys():
+        if q_lower in community.lower():
+            _add_search_suggestion(suggestions, seen, "community", community, community,
+                                    "Community customs", 90)
+
+
+def _collect_community_alias_suggestions(q_lower, suggestions, seen):
+    """Split out of search_suggest() (SonarCloud python:S3776) -- see
+    _add_search_suggestion.
+    """
+    for alias, canonical in COMMUNITY_ALIASES.items():
+        if q_lower in alias and canonical in COMMUNITIES:
+            _add_search_suggestion(suggestions, seen, "community", canonical, canonical,
+                                    f"Community customs (matched '{alias}')", 88)
+
+
+def _collect_prayer_suggestions(q_lower, suggestions, seen, get_liturgy_books):
+    """Split out of search_suggest() (SonarCloud python:S3776) -- see
+    _add_search_suggestion.
+    """
+    for book in get_liturgy_books(max_items=120):
+        title = book.get("title", "")
+        if title and q_lower in title.lower():
+            _add_search_suggestion(suggestions, seen, "prayer", title, title, "Sefaria liturgy", 85)
+
+
+def _collect_text_hit_suggestions(query, size, metadata_filters, suggestions, seen, search_library):
+    """Split out of search_suggest() (SonarCloud python:S3776) -- see
+    _add_search_suggestion.
+    """
+    for hit in search_library(query, size=size, metadata_filters=metadata_filters):
+        ref = hit.get("ref", "")
+        he_ref = (hit.get("heRef", "") or "").strip()
+        categories = " > ".join(hit.get("categories", [])[:3])
+        if ref:
+            _add_search_suggestion(
+                suggestions, seen, "text", ref, ref,
+                categories or "Sefaria text", 70, label_he=he_ref or ref,
+            )
+
+
 @routes_library.route("/api/search/suggest")
 def search_suggest():
     """Omnibox suggestions: texts, prayers, communities, and AI query option."""
@@ -659,56 +726,17 @@ def search_suggest():
     suggestions = []
     seen = set()
 
-    def add_item(item_type, label, value, subtitle="", score=0, label_he="", subtitle_he=""):
-        key = (item_type, (value or "").lower())
-        if key in seen:
-            return
-        seen.add(key)
-        suggestions.append({
-            "type": item_type,
-            "label": label,
-            "label_he": label_he,
-            "value": value,
-            "subtitle": subtitle,
-            "subtitle_he": subtitle_he,
-            "score": score,
-        })
-
     alias_ref = QUICK_TEXT_ALIASES.get(q_lower)
     if alias_ref:
-        add_item("text", alias_ref, alias_ref, "Popular Torah alias", 100)
+        _add_search_suggestion(suggestions, seen, "text", alias_ref, alias_ref, "Popular Torah alias", 100)
 
-    for community in COMMUNITIES.keys():
-        if q_lower in community.lower():
-            add_item("community", community, community,
-                     "Community customs", 90)
+    _collect_community_name_suggestions(q_lower, suggestions, seen)
+    _collect_community_alias_suggestions(q_lower, suggestions, seen)
+    _collect_prayer_suggestions(q_lower, suggestions, seen, get_liturgy_books)
+    _collect_text_hit_suggestions(query, size, metadata_filters, suggestions, seen, search_library)
 
-    for alias, canonical in COMMUNITY_ALIASES.items():
-        if q_lower in alias and canonical in COMMUNITIES:
-            add_item("community", canonical, canonical,
-                     f"Community customs (matched '{alias}')", 88)
-
-    for book in get_liturgy_books(max_items=120):
-        title = book.get("title", "")
-        if title and q_lower in title.lower():
-            add_item("prayer", title, title, "Sefaria liturgy", 85)
-
-    for hit in search_library(query, size=size, metadata_filters=metadata_filters):
-        ref = hit.get("ref", "")
-        he_ref = (hit.get("heRef", "") or "").strip()
-        categories = " > ".join(hit.get("categories", [])[:3])
-        if ref:
-            add_item(
-                "text",
-                ref,
-                ref,
-                categories or "Sefaria text",
-                70,
-                label_he=he_ref or ref,
-            )
-
-    add_item("ask", f"Ask Sh'elah: {query}", query,
-             "AI synthesis", 40)
+    _add_search_suggestion(suggestions, seen, "ask", f"Ask Sh'elah: {query}", query,
+                            "AI synthesis", 40)
 
     suggestions.sort(key=lambda x: x.get("score", 0), reverse=True)
     return jsonify(suggestions[:size])
