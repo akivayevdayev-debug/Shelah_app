@@ -177,3 +177,43 @@ class TestFlattenPrimarySourcesForClaude:
     def test_empty_input_returns_empty_list(self, test_client):
         import app as flask_app_module
         assert flask_app_module._flatten_primary_sources_for_claude([], "en") == []
+
+
+class TestDeriveAskQuestionContextFlags:
+    def test_primary_sources_present_skips_tertiary_web(self, test_client):
+        import app as flask_app_module
+        result = flask_app_module._derive_ask_question_context_flags(
+            [{"ref": "Genesis 1:1", "text": "..."}], [], [], ["wiki info"])
+        has_primary, has_customs, has_whitelisted, use_tertiary, wiki_ctx = result
+        assert has_primary is True
+        assert has_customs is False
+        assert has_whitelisted is False
+        assert use_tertiary is False
+        assert wiki_ctx == []
+
+    def test_customs_present_skips_tertiary_web(self, test_client):
+        import app as flask_app_module
+        result = flask_app_module._derive_ask_question_context_flags(
+            [], [{"custom": "row"}], [], ["wiki info"])
+        assert result[1] is True
+        assert result[3] is False
+        assert result[4] == []
+
+    def test_whitelisted_external_present_skips_tertiary_web(self, test_client):
+        import app as flask_app_module
+        result = flask_app_module._derive_ask_question_context_flags(
+            [], [], ["halachipedia summary"], ["wiki info"])
+        assert result[2] is True
+        assert result[3] is False
+        assert result[4] == []
+
+    def test_nothing_else_falls_back_to_tertiary_web(self, test_client):
+        import app as flask_app_module
+        result = flask_app_module._derive_ask_question_context_flags(
+            [], [], [], ["wiki info"])
+        has_primary, has_customs, has_whitelisted, use_tertiary, wiki_ctx = result
+        assert has_primary is False
+        assert has_customs is False
+        assert has_whitelisted is False
+        assert use_tertiary is True
+        assert wiki_ctx == ["wiki info"]
