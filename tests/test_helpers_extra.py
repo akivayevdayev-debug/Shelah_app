@@ -402,6 +402,44 @@ class TestFillMissingEnglishLines:
         assert "translation_generated" not in result
 
 
+class TestTranslateMissingEnglishLines:
+    def test_counts_translated_lines_and_collects_sources(self, monkeypatch):
+        monkeypatch.setattr(helpers, "_translate_hebrew_text_online", lambda text, **kwargs: ("Translated", "google-translate"))
+        lines = [{"he": "טקסט", "en": ""}]
+        count, sources = helpers._translate_missing_english_lines(lines, max_lines=12, max_runtime_seconds=1.2)
+        assert count == 1
+        assert sources == {"google-translate"}
+
+    def test_stops_at_max_lines(self, monkeypatch):
+        monkeypatch.setattr(helpers, "_translate_hebrew_text_online", lambda text, **kwargs: ("Translated", "google"))
+        lines = [{"he": "טקסט", "en": ""} for _ in range(5)]
+        count, _ = helpers._translate_missing_english_lines(lines, max_lines=2, max_runtime_seconds=1.2)
+        assert count == 2
+
+    def test_no_lines_need_translation_returns_zero(self):
+        lines = [{"he": "טקסט", "en": "already there"}]
+        count, sources = helpers._translate_missing_english_lines(lines, max_lines=12, max_runtime_seconds=1.2)
+        assert count == 0
+        assert sources == set()
+
+
+class TestApplyTranslationMetadata:
+    def test_stamps_metadata_and_refreshes_en_list(self):
+        text_payload = {"lines": [{"en": "Hello", "he": "שלום"}, {"en": "", "he": "עולם"}]}
+        helpers._apply_translation_metadata(
+            text_payload, text_payload["lines"], translated_count=1, translation_sources={"google-translate"})
+        assert text_payload["translation_generated"] is True
+        assert text_payload["translation_generated_count"] == 1
+        assert text_payload["translation_source"] == "google-translate"
+        assert "google-translate" in text_payload["translation_note"]
+        assert text_payload["en"] == ["Hello"]
+
+    def test_no_sources_defaults_to_online_translation_label(self):
+        text_payload = {"lines": []}
+        helpers._apply_translation_metadata(text_payload, [], translated_count=1, translation_sources=set())
+        assert text_payload["translation_source"] == "online-translation"
+
+
 class TestCompactAiSourcesLongHebrewTruncation:
     def test_long_hebrew_line_truncated(self):
         sources = [{
