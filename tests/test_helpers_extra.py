@@ -455,3 +455,26 @@ class TestCanonicalizeCommunityNameExactMatch:
     def test_exact_canonical_name_normalized_case(self):
         result = helpers._canonicalize_community_name("ASHKENAZ")
         assert result == "Ashkenaz"
+
+
+class TestNormalizeForCommunityMatch:
+    def test_lowercases_and_strips_non_alphanumeric(self):
+        assert helpers._normalize_for_community_match("Turkish-Ottoman!") == "turkishottoman"
+
+
+class TestMatchNormalizedCommunityAlias:
+    def test_matches_normalized_alias(self):
+        normalized = helpers._normalize_for_community_match("sephardic")
+        assert helpers._match_normalized_community_alias(normalized) == "Sefardic"
+
+    def test_no_match_returns_none(self):
+        assert helpers._match_normalized_community_alias("atlantean") is None
+
+
+class TestMatchNormalizedCommunityName:
+    def test_matches_normalized_canonical_name(self):
+        normalized = helpers._normalize_for_community_match("greekromaniote")
+        assert helpers._match_normalized_community_name(normalized) == "Greek-Romaniote"
+
+    def test_no_match_returns_none(self):
+        assert helpers._match_normalized_community_name("atlantean") is None
