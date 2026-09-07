@@ -1539,16 +1539,13 @@ def _flatten_primary_sources_for_claude(primary_sources, answer_language):
     return flat_sources_for_claude
 
 
-def _collect_ask_question_context(question, canonical_lens, user_id, answer_language, engine):
-    """Stage 1 of ask_question(): parallel source/knowledge collection
-    (thread-pool based, since this is the sync Flask route). Returns a
-    context dict consumed by the strict-guard and AI-synthesis stages
-    below. Split out of ask_question() (SonarCloud python:S3776) -- see
-    _ask_question_prayer_payload.
+def _gather_ask_question_context_futures(question, canonical_lens, user_id, engine):
+    """Submit the 3 secondary-context lookups (halachipedia, community
+    knowledge, user memory, wiki) to the module-level thread pool and
+    collect each with its own timeout, tolerating individual failures.
+    Split out of _collect_ask_question_context() (SonarCloud
+    python:S3776).
     """
-    primary_sources = _collect_primary_sources_sync(question, engine)
-
-    # 2-4. Fetch remaining context in parallel using the module-level pool.
     halachipedia_future = submit_with_context(
         _THREAD_POOL, engine.get_halachipedia_summary, question)
     knowledge_future = submit_with_context(
@@ -1583,6 +1580,40 @@ def _collect_ask_question_context(question, canonical_lens, user_id, answer_lang
     except Exception:
         wiki_info = None
 
+    return halachipedia_info, knowledge_rows, user_memory_summaries, wiki_info
+
+
+def _derive_ask_question_context_flags(flat_sources_for_claude, knowledge_rows, halachipedia_list, wiki_list):
+    """Derive the has-primary/has-customs/has-whitelisted flags and decide
+    whether the tertiary web-search context should be included. Split out
+    of _collect_ask_question_context() (SonarCloud python:S3776).
+    """
+    has_primary_sources = bool(flat_sources_for_claude)
+    has_customs = bool(knowledge_rows)
+    has_whitelisted_external = bool(halachipedia_list)
+    use_tertiary_web_context = (
+        not has_primary_sources
+        and not has_customs
+        and not has_whitelisted_external
+    )
+    wiki_context_for_claude = wiki_list if use_tertiary_web_context else []
+    return has_primary_sources, has_customs, has_whitelisted_external, use_tertiary_web_context, wiki_context_for_claude
+
+
+def _collect_ask_question_context(question, canonical_lens, user_id, answer_language, engine):
+    """Stage 1 of ask_question(): parallel source/knowledge collection
+    (thread-pool based, since this is the sync Flask route). Returns a
+    context dict consumed by the strict-guard and AI-synthesis stages
+    below. Split out of ask_question() (SonarCloud python:S3776) -- see
+    _ask_question_prayer_payload.
+    """
+    primary_sources = _collect_primary_sources_sync(question, engine)
+
+    # 2-4. Fetch remaining context in parallel using the module-level pool.
+    halachipedia_info, knowledge_rows, user_memory_summaries, wiki_info = (
+        _gather_ask_question_context_futures(question, canonical_lens, user_id, engine)
+    )
+
     halachipedia_list = [halachipedia_info] if halachipedia_info else []
     knowledge_rows = knowledge_rows if isinstance(
         knowledge_rows, list) else []
@@ -1595,15 +1626,9 @@ def _collect_ask_question_context(question, canonical_lens, user_id, answer_lang
     flat_sources_for_claude = _flatten_primary_sources_for_claude(
         primary_sources, answer_language)
 
-    has_primary_sources = bool(flat_sources_for_claude)
-    has_customs = bool(knowledge_rows)
-    has_whitelisted_external = bool(halachipedia_list)
-    use_tertiary_web_context = (
-        not has_primary_sources
-        and not has_customs
-        and not has_whitelisted_external
+    has_primary_sources, has_customs, has_whitelisted_external, use_tertiary_web_context, wiki_context_for_claude = (
+        _derive_ask_question_context_flags(flat_sources_for_claude, knowledge_rows, halachipedia_list, wiki_list)
     )
-    wiki_context_for_claude = wiki_list if use_tertiary_web_context else []
 
     return {
         "primary_sources": primary_sources,
