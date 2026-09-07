@@ -573,37 +573,45 @@ def _parse_meaning_candidates(raw_meaning):
 # ── Hebrew word lookup (full chain) ──────────────────────────────────────────
 
 
-def _lookup_hebrew_word_meaning(word):
-    def _strip_common_hebrew_prefix(token):
-        value = str(token or "").strip()
-        if len(value) < 4:
-            return value
-        if value and value[0] in {"ו", "ה", "ב", "כ", "ל", "מ", "ש"}:
-            return value[1:]
+def _strip_common_hebrew_prefix(token):
+    value = str(token or "").strip()
+    if len(value) < 4:
         return value
+    if value and value[0] in {"ו", "ה", "ב", "כ", "ל", "מ", "ש"}:
+        return value[1:]
+    return value
 
-    def _hebrew_word_variants(raw_word):
-        normalized = _normalize_lookup_word(raw_word)
-        variants = []
 
-        def add_variant(candidate):
-            value = str(candidate or "").strip()
-            if value and value not in variants:
-                variants.append(value)
+def _hebrew_word_variants(raw_word):
+    """Candidate Hebrew word forms (letters-only, prefix-stripped,
+    split-on-space) for glossary/lexicon/translation lookup. Moved to
+    module level (out of _lookup_hebrew_word_meaning()) since nested
+    closures' own branches count against the enclosing function's
+    complexity, but top-level functions' don't (SonarCloud python:S3776).
+    """
+    normalized = _normalize_lookup_word(raw_word)
+    variants = []
 
-        add_variant(normalized)
-        letters_only = re.sub(r"[^א-ת\s]", "", normalized).strip()
-        add_variant(letters_only)
+    def add_variant(candidate):
+        value = str(candidate or "").strip()
+        if value and value not in variants:
+            variants.append(value)
 
-        if " " in letters_only:
-            for part in letters_only.split():
-                add_variant(part)
-                add_variant(_strip_common_hebrew_prefix(part))
-        else:
-            add_variant(_strip_common_hebrew_prefix(letters_only))
+    add_variant(normalized)
+    letters_only = re.sub(r"[^א-ת\s]", "", normalized).strip()
+    add_variant(letters_only)
 
-        return variants[:8]
+    if " " in letters_only:
+        for part in letters_only.split():
+            add_variant(part)
+            add_variant(_strip_common_hebrew_prefix(part))
+    else:
+        add_variant(_strip_common_hebrew_prefix(letters_only))
 
+    return variants[:8]
+
+
+def _lookup_hebrew_word_meaning(word):
     clean_word = _normalize_lookup_word(word)
     if not clean_word:
         return "", ""
