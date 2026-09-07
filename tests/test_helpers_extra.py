@@ -15,7 +15,6 @@ lower-level functions themselves (already covered elsewhere).
 
 from __future__ import annotations
 
-import pytest
 
 import backend.helpers as helpers
 
@@ -167,7 +166,7 @@ class TestFillMissingEnglishLines:
         assert helpers._fill_missing_english_lines(payload) == payload
 
     def test_translates_missing_english_lines(self, monkeypatch):
-        monkeypatch.setattr(helpers, "_translate_hebrew_text_online", lambda text: ("Translated text", "google-translate"))
+        monkeypatch.setattr(helpers, "_translate_hebrew_text_online", lambda text, **kwargs: ("Translated text", "google-translate"))
         payload = {
             "lines": [{"he": "טקסט בעברית", "en": ""}],
         }
@@ -192,7 +191,7 @@ class TestFillMissingEnglishLines:
     def test_respects_max_lines_limit(self, monkeypatch):
         call_count = {"n": 0}
 
-        def fake_translate(text):
+        def fake_translate(text, **kwargs):
             call_count["n"] += 1
             return "translated", "google"
 

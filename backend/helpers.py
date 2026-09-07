@@ -377,8 +377,18 @@ def _translate_hebrew_text_mymemory(text):
     return translated
 
 
-def _translate_hebrew_text_online(text):
-    """Hebrew → English: Google first, MyMemory fallback. Results cached."""
+def _translate_hebrew_text_online(text, try_fallback=True):
+    """Hebrew → English: Google first, MyMemory fallback. Results cached.
+
+    try_fallback=False skips the MyMemory round-trip on a Google miss --
+    each provider has its own 2.5s network timeout (search_provider.py), so
+    the full chain can cost ~5s per call. _fill_missing_english_lines()
+    below calls this per-line on the request path that renders a commentary
+    passage, and that latency compounding across several lines is what made
+    the reader/commentary sidebar feel "extremely slow and unresponsive"
+    (worth it for a single user-initiated lookup elsewhere; not worth it for
+    a best-effort bulk auto-translate blocking a page render).
+    """
     value = _normalize_lookup_word(text)
     if not value or not _contains_hebrew_letters(value):
         return "", ""
@@ -390,12 +400,17 @@ def _translate_hebrew_text_online(text):
     translated = _translate_hebrew_text_google(cache_key)
     source = "google-translate"
 
-    if not translated:
+    if not translated and try_fallback:
         translated = _translate_hebrew_text_mymemory(cache_key)
         source = "mymemory-translate"
 
-    _bounded_cache_set(TRANSLATION_CACHE, cache_key, translated)
-    _bounded_cache_set(TRANSLATION_SOURCE_CACHE, cache_key, source if translated else "")
+    # A miss with try_fallback=False hasn't exhausted every provider, so it
+    # isn't a definitive "no translation available" -- don't cache it, or a
+    # later try_fallback=True call for the same text would see the cached
+    # empty result and skip MyMemory entirely, losing that fallback for good.
+    if translated or try_fallback:
+        _bounded_cache_set(TRANSLATION_CACHE, cache_key, translated)
+        _bounded_cache_set(TRANSLATION_SOURCE_CACHE, cache_key, source if translated else "")
 
     return (translated, source) if translated else ("", "")
 
@@ -695,7 +710,31 @@ def _collect_word_meaning_alternatives(raw_word, primary_meaning, word_is_hebrew
 # ── Fill missing English lines ────────────────────────────────────────────────
 
 
-def _fill_missing_english_lines(text_payload, max_lines=12, max_runtime_seconds=2.5):
+def _translate_line_if_missing_english(line):
+    """Attempt to fill in a missing English translation for one text line,
+    mutating `line["en"]` in place on success. Returns the translation
+    source ("" if unknown) if translated, else None. Split out of
+    _fill_missing_english_lines() to keep this per-line branching out of
+    that function's own complexity count (SonarCloud python:S3776).
+    """
+    if not isinstance(line, dict):
+        return None
+
+    en_value = str(line.get("en") or "").strip()
+    he_value = _normalize_lookup_word(line.get("he") or "")
+    if en_value or not he_value:
+        return None
+    if not _contains_hebrew_letters(he_value):
+        return None
+
+    generated, source = _translate_hebrew_text_online(he_value[:320], try_fallback=False)
+    if not generated:
+        return None
+    line["en"] = generated
+    return source or ""
+
+
+def _fill_missing_english_lines(text_payload, max_lines=12, max_runtime_seconds=1.2):
     if not isinstance(text_payload, dict):
         return text_payload
 
@@ -712,22 +751,13 @@ def _fill_missing_english_lines(text_payload, max_lines=12, max_runtime_seconds=
             break
         if time.time() - started_at > max_runtime_seconds:
             break
-        if not isinstance(line, dict):
-            continue
 
-        en_value = str(line.get("en") or "").strip()
-        he_value = _normalize_lookup_word(line.get("he") or "")
-        if en_value or not he_value:
+        source = _translate_line_if_missing_english(line)
+        if source is None:
             continue
-        if not _contains_hebrew_letters(he_value):
-            continue
-
-        generated, source = _translate_hebrew_text_online(he_value[:320])
-        if generated:
-            line["en"] = generated
-            translated_count += 1
-            if source:
-                translation_sources.add(source)
+        translated_count += 1
+        if source:
+            translation_sources.add(source)
 
     if translated_count:
         provider_label = (
