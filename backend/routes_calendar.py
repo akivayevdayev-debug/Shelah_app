@@ -12,6 +12,7 @@ from datetime import date as greg_date
 import requests
 from flask import Blueprint, jsonify, request, session
 
+from backend import sefaria
 from backend.data_service import ShelahEngine
 
 from app import (
@@ -35,6 +36,7 @@ def set_location():
     if lat is None or lon is None:
         return jsonify({"error": "Invalid coordinates provided. Values must be numeric and within valid lat/lon ranges."}), 400
 
+    session.permanent = True
     session['lat'] = lat
     session['lon'] = lon
     return jsonify({"status": "success", "lat": lat, "lon": lon})
@@ -75,9 +77,18 @@ def get_zmanim_month():
 
 @routes_calendar.route("/api/daily-study")
 def daily_study_api():
-    """Return daily refs for Daf Yomi, Rambam, and related daily study prewarming."""
-    engine = get_engine()
-    payload = engine.get_daily_learning() or {}
+    """Return daily refs for Daf Yomi, Rambam, and related daily study prewarming.
+
+    plan.md §47: this used to go through get_engine(), but
+    ShelahEngine.get_daily_learning() forwards straight to
+    sefaria.get_daily_study(), which never reads lat/lon (Hebcal is called
+    with a hardcoded zip). get_engine() itself unconditionally touches
+    Flask's session (session.get('lat')/session.get('lon')), which marks
+    the session "accessed" and stamps Vary: Cookie on the response --
+    defeating this route's CACHE_TIER_DATED CDN caching for no benefit.
+    Calling sefaria directly keeps the response session-free.
+    """
+    payload = sefaria.get_daily_study() or {}
     return jsonify(payload)
 
 
