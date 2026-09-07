@@ -172,6 +172,58 @@ class TestBuildTextUrl:
         assert "version=translation" in url
 
 
+class TestClassifyV3VersionTexts:
+    def test_hebrew_detected_via_is_source(self):
+        he, en = sl._classify_v3_version_texts(
+            [{"language": "he", "direction": "rtl", "isSource": True, "text": ["a"]}])
+        assert he == ["a"]
+        assert en == []
+
+    def test_hebrew_detected_via_rtl_direction_alone(self):
+        he, en = sl._classify_v3_version_texts(
+            [{"language": "", "direction": "rtl", "isSource": False, "text": ["a"]}])
+        assert he == ["a"]
+
+    def test_hebrew_detected_via_language_he_alone(self):
+        he, en = sl._classify_v3_version_texts(
+            [{"language": "he", "direction": "ltr", "isSource": False, "text": ["a"]}])
+        assert he == ["a"]
+
+    def test_english_detected_when_no_hebrew_seen_yet(self):
+        he, en = sl._classify_v3_version_texts(
+            [{"language": "en", "direction": "ltr", "isSource": False, "text": ["b"]}])
+        assert he == []
+        assert en == ["b"]
+
+    def test_english_detected_after_hebrew_already_set(self):
+        # Regression anchor: the original had two separate elif branches for
+        # "english, he_raw not yet set" vs "english, he_raw already set" --
+        # both must still populate en_raw once merged into one branch.
+        he, en = sl._classify_v3_version_texts([
+            {"language": "he", "direction": "rtl", "isSource": True, "text": ["a"]},
+            {"language": "en", "direction": "ltr", "isSource": False, "text": ["b"]},
+        ])
+        assert he == ["a"]
+        assert en == ["b"]
+
+    def test_first_hebrew_match_wins_second_is_ignored(self):
+        he, en = sl._classify_v3_version_texts([
+            {"language": "he", "direction": "rtl", "isSource": True, "text": ["first"]},
+            {"language": "he", "direction": "rtl", "isSource": True, "text": ["second"]},
+        ])
+        assert he == ["first"]
+
+    def test_first_english_match_wins_second_is_ignored(self):
+        he, en = sl._classify_v3_version_texts([
+            {"language": "en", "direction": "ltr", "isSource": False, "text": ["first"]},
+            {"language": "en", "direction": "ltr", "isSource": False, "text": ["second"]},
+        ])
+        assert en == ["first"]
+
+    def test_empty_versions_returns_empty_lists(self):
+        assert sl._classify_v3_version_texts([]) == ([], [])
+
+
 class TestParseV3Response:
     def test_not_a_dict_returns_none(self):
         assert sl._parse_v3_response(["not", "a", "dict"], "Genesis 1") is None
