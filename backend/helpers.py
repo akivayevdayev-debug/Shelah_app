@@ -551,6 +551,20 @@ def _best_definition_from_lexicon_entries(entries, original_value):
     return "", ""
 
 
+def _parse_sefaria_lexicon_response(resp):
+    """Validate and parse one Sefaria lexicon HTTP response into an
+    entries list, or None if the response wasn't usable (non-OK status or
+    an unexpected payload shape). Split out of _lookup_sefaria_lexicon()
+    (SonarCloud python:S3776).
+    """
+    if not resp.ok:
+        return None
+    entries = resp.json() if resp.content else []
+    if not isinstance(entries, list):
+        return None
+    return entries
+
+
 def _lookup_sefaria_lexicon(word):
     """Look up a Hebrew word in Sefaria's BDB/Jastrow lexicon.
     Returns (definition, lexicon_name) or ("", "")."""
@@ -570,11 +584,8 @@ def _lookup_sefaria_lexicon(word):
             headers={"User-Agent": "Shelah-App/1.0", "Accept": "application/json"},
             timeout=3.0,
         )
-        if not resp.ok:
-            _bounded_cache_set(TRANSLATION_CACHE, cache_key, "")
-            return "", ""
-        entries = resp.json() if resp.content else []
-        if not isinstance(entries, list):
+        entries = _parse_sefaria_lexicon_response(resp)
+        if entries is None:
             _bounded_cache_set(TRANSLATION_CACHE, cache_key, "")
             return "", ""
 
