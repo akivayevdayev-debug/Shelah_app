@@ -1600,6 +1600,62 @@ def _add_search_library_result(
     results.append(result)
 
 
+def _normalize_category_filter_terms(filters):
+    return [
+        str(value).strip().lower()
+        for value in (filters or [])
+        if str(value).strip()
+    ]
+
+
+def _add_direct_name_match(name_data, add_result):
+    """Add the /name endpoint's direct is_ref/is_book match, if present.
+    Split out of search_library (SonarCloud python:S3776)."""
+    if not (name_data.get("is_ref") and name_data.get("ref")):
+        return
+    ref_value = name_data.get("ref")
+    if name_data.get("is_book"):
+        ref_value = _resolve_opening_ref_for_title(ref_value)
+    add_result(ref_value, name_data.get("book", ""))
+
+
+def _add_name_search_matches(name_data, add_result, results, size):
+    """Add matches from Sefaria's /name endpoint: the direct ref/book match
+    plus ref-type completion objects, up to size. Returns True once size is
+    reached (caller should stop there and skip the catalog fallback), else
+    False after exhausting the completion objects. Split out of
+    search_library (SonarCloud python:S3776)."""
+    if not isinstance(name_data, dict):
+        return False
+
+    _add_direct_name_match(name_data, add_result)
+
+    for obj in name_data.get("completion_objects", []) or []:
+        if obj.get("type") != "ref":
+            continue
+        ref_value = obj.get("key") or obj.get("title")
+        if obj.get("is_book"):
+            ref_value = _resolve_opening_ref_for_title(ref_value)
+        add_result(ref_value, obj.get("title", ""))
+        if len(results) >= size:
+            return True
+    return False
+
+
+def _add_catalog_search_matches(query, add_result, results, size, metadata_filters):
+    """Catalog fallback for modern works that do not resolve well from
+    /name search. Split out of search_library (SonarCloud python:S3776)."""
+    for row in _search_index_catalog(query, size=max(size * 2, 16), metadata_filters=metadata_filters):
+        add_result(
+            row.get("ref", ""),
+            row.get("text", ""),
+            explicit_categories=row.get("categories", []),
+            explicit_he_ref=row.get("heRef", ""),
+        )
+        if len(results) >= size:
+            break
+
+
 def search_library(query, size=10, filters=None, metadata_filters=None):
     """
     Full text search across all of Sefaria.
@@ -1610,12 +1666,7 @@ def search_library(query, size=10, filters=None, metadata_filters=None):
         return []
 
     size = max(1, int(size or 10))
-
-    normalized_category_filters = [
-        str(value).strip().lower()
-        for value in (filters or [])
-        if str(value).strip()
-    ]
+    normalized_category_filters = _normalize_category_filter_terms(filters)
 
     results = []
     seen_refs = set()
@@ -1635,35 +1686,94 @@ def search_library(query, size=10, filters=None, metadata_filters=None):
     # Fast direct completion from /name for exact refs/books.
     name_data = _cached_get(
         f"{SEFARIA_API}/name/{_encode_ref_path(query)}", ttl=300)
-    if isinstance(name_data, dict):
-        if name_data.get("is_ref") and name_data.get("ref"):
-            ref_value = name_data.get("ref")
-            if name_data.get("is_book"):
-                ref_value = _resolve_opening_ref_for_title(ref_value)
-            add_result(ref_value, name_data.get("book", ""))
+    if _add_name_search_matches(name_data, add_result, results, size):
+        return results[:size]
 
-        for obj in name_data.get("completion_objects", []) or []:
-            if obj.get("type") != "ref":
-                continue
-            ref_value = obj.get("key") or obj.get("title")
-            if obj.get("is_book"):
-                ref_value = _resolve_opening_ref_for_title(ref_value)
-            add_result(ref_value, obj.get("title", ""))
-            if len(results) >= size:
-                return results[:size]
-
-    # Catalog fallback for modern works that do not resolve well from /name search.
-    for row in _search_index_catalog(query, size=max(size * 2, 16), metadata_filters=metadata_filters):
-        add_result(
-            row.get("ref", ""),
-            row.get("text", ""),
-            explicit_categories=row.get("categories", []),
-            explicit_he_ref=row.get("heRef", ""),
-        )
-        if len(results) >= size:
-            break
+    _add_catalog_search_matches(
+        query, add_result, results, size, metadata_filters)
 
     return results[:size]
+
+
+def _group_links_by_category(links):
+    """Group Sefaria /related links by category (falling back to type).
+    Split out of get_linked_texts (SonarCloud python:S3776)."""
+    grouped = {}
+    for link in links:
+        link_type = link.get("type", "Other")
+        category = link.get("category", link_type)
+        grouped.setdefault(category, []).append({
+            "ref": link.get("ref", ""),
+            "heRef": link.get("heRef", ""),
+            "anchorRef": link.get("anchorRef", "")
+        })
+    return grouped
+
+
+def _resolve_tanakh_chapter_verse(ref):
+    """Parse a trailing "Book ... Chapter:Verse"-shaped ref into
+    (book, chapter, verse), or None if it doesn't look like one. Split out
+    of get_linked_texts (SonarCloud python:S3776).
+
+    Split off the trailing whitespace-separated token via str.rsplit (a
+    linear-time C-level scan, no backtracking) rather than a single regex
+    spanning the whole string. Newlines are rejected up front: the original
+    regex's "." never matches "\n", so any embedded newline before the
+    chapter/verse token always failed that match, and rsplit(None, 1)
+    would otherwise treat "\n" as an ordinary whitespace separator.
+    """
+    ref_stripped = str(ref or "").strip()
+    if "\n" in ref_stripped:
+        return None
+    ref_match = ref_stripped.rsplit(None, 1)
+    if len(ref_match) != 2:
+        return None
+    book, tail = ref_match
+    match = _TRAILING_CHAPTER_VERSE_RE.match(tail)
+    if not match:
+        return None
+    chapter = str(match.group(1) or "").strip()
+    verse = str(match.group(2) or "1").strip() or "1"
+    return book, chapter, verse
+
+
+def _is_tanakh_book(book):
+    torah_books = {"Genesis", "Exodus",
+                   "Leviticus", "Numbers", "Deuteronomy"}
+    tanakh_books = torah_books | {
+        "Joshua", "Judges", "I Samuel", "II Samuel", "I Kings", "II Kings",
+        "Isaiah", "Jeremiah", "Ezekiel", "Hosea", "Joel", "Amos", "Obadiah",
+        "Jonah", "Micah", "Nahum", "Habakkuk", "Zephaniah", "Haggai", "Zechariah",
+        "Malachi", "Psalms", "Proverbs", "Job", "Song of Songs", "Ruth",
+        "Lamentations", "Ecclesiastes", "Esther", "Daniel", "Ezra", "Nehemiah",
+        "I Chronicles", "II Chronicles",
+    }
+    return book in tanakh_books
+
+
+def _grouped_links_have_rashi(grouped):
+    return any(
+        str(item.get("ref", "")).lower().startswith("rashi on ")
+        for items in grouped.values()
+        for item in (items or [])
+        if isinstance(item, dict)
+    )
+
+
+def _ensure_rashi_commentary_link(grouped, ref, book, chapter, verse):
+    """Add a canonical Rashi commentary link when related-link metadata
+    omits it for a Tanakh chapter/verse reference. Split out of
+    get_linked_texts (SonarCloud python:S3776)."""
+    if not _is_tanakh_book(book):
+        return
+    if _grouped_links_have_rashi(grouped):
+        return
+    rashi_ref = f"Rashi on {book} {chapter}:{verse}"
+    grouped.setdefault("Commentary", []).insert(0, {
+        "ref": rashi_ref,
+        "heRef": "",
+        "anchorRef": str(ref or ""),
+    })
 
 
 def get_linked_texts(ref):
@@ -1676,60 +1786,14 @@ def get_linked_texts(ref):
     if not data:
         return {}
 
-    links = data.get("links", [])
-    grouped = {}
-    for link in links:
-        link_type = link.get("type", "Other")
-        category = link.get("category", link_type)
-        if category not in grouped:
-            grouped[category] = []
-        grouped[category].append({
-            "ref": link.get("ref", ""),
-            "heRef": link.get("heRef", ""),
-            "anchorRef": link.get("anchorRef", "")
-        })
+    grouped = _group_links_by_category(data.get("links", []))
 
     # Ensure classic Torah commentary availability: add a canonical Rashi layer when
     # related-link metadata omits it for Tanakh chapter/verse references.
-    ref_stripped = str(ref or "").strip()
-    # Split off the trailing whitespace-separated token via str.rsplit (a
-    # linear-time C-level scan, no backtracking) rather than a single regex
-    # spanning the whole string. Newlines are rejected up front: the original
-    # regex's "." never matches "\n", so any embedded newline before the
-    # chapter/verse token always failed that match, and rsplit(None, 1)
-    # would otherwise treat "\n" as an ordinary whitespace separator.
-    ref_match = None if "\n" in ref_stripped else ref_stripped.rsplit(None, 1)
-    book = ref_match[0] if ref_match and len(ref_match) == 2 else ""
-    match = _TRAILING_CHAPTER_VERSE_RE.match(ref_match[1]) if book else None
-    if match:
-        chapter = str(match.group(1) or "").strip()
-        verse = str(match.group(2) or "1").strip() or "1"
-
-        torah_books = {"Genesis", "Exodus",
-                       "Leviticus", "Numbers", "Deuteronomy"}
-        tanakh_books = torah_books | {
-            "Joshua", "Judges", "I Samuel", "II Samuel", "I Kings", "II Kings",
-            "Isaiah", "Jeremiah", "Ezekiel", "Hosea", "Joel", "Amos", "Obadiah",
-            "Jonah", "Micah", "Nahum", "Habakkuk", "Zephaniah", "Haggai", "Zechariah",
-            "Malachi", "Psalms", "Proverbs", "Job", "Song of Songs", "Ruth",
-            "Lamentations", "Ecclesiastes", "Esther", "Daniel", "Ezra", "Nehemiah",
-            "I Chronicles", "II Chronicles",
-        }
-
-        if book in tanakh_books:
-            rashi_ref = f"Rashi on {book} {chapter}:{verse}"
-            has_rashi = any(
-                str(item.get("ref", "")).lower().startswith("rashi on ")
-                for items in grouped.values()
-                for item in (items or [])
-                if isinstance(item, dict)
-            )
-            if not has_rashi:
-                grouped.setdefault("Commentary", []).insert(0, {
-                    "ref": rashi_ref,
-                    "heRef": "",
-                    "anchorRef": str(ref or ""),
-                })
+    parsed = _resolve_tanakh_chapter_verse(ref)
+    if parsed:
+        book, chapter, verse = parsed
+        _ensure_rashi_commentary_link(grouped, ref, book, chapter, verse)
 
     return grouped
 
