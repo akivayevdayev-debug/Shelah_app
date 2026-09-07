@@ -18,8 +18,14 @@ CLOCK_TIME_LATEX_RE = re.compile(
     re.IGNORECASE,
 )
 DEBUG_OUTPUT_LINE_PATTERNS = [
-    re.compile(r"^\s*#{0,6}\s*conflict\s*flag[s]?\b.*$", re.IGNORECASE),
-    re.compile(r"^\s*[-*]\s*conflict\s*flag[s]?\b.*$", re.IGNORECASE),
+    # The leading "\s*#{0,6}\s*" is wrapped in one atomic group: since
+    # "#{0,6}" can match zero '#' chars, the two "\s*" runs are otherwise
+    # interchangeable across the same whitespace, and the engine explores
+    # every equivalent split before giving up on a non-matching line --
+    # O(n^2) (SonarCloud python:S8786, confirmed via adversarial timing:
+    # 20k leading spaces with no match took over 1s before this fix).
+    re.compile(r"^(?>\s*#{0,6}\s*)conflict\s*flags?\b.*$", re.IGNORECASE),
+    re.compile(r"^\s*[-*]\s*conflict\s*flags?\b.*$", re.IGNORECASE),
     re.compile(
         r"^\s*(?:[-*]\s*)?source\s*:\s*community\s*knowledge\b.*$", re.IGNORECASE),
     re.compile(
@@ -157,6 +163,34 @@ def _bold_halakhic_verdicts(text):
     return HALAKHIC_VERDICT_RE.sub(_replace, text)
 
 
+def _format_bold_header_line(line):
+    """Formats a "**Title**: rest" line, or returns None if `line` isn't in that shape."""
+    bold_header = BOLD_HEADER_RE.match(line)
+    if not bold_header:
+        return None
+    title = bold_header.group("title").strip().rstrip(":")
+    rest = (bold_header.group("rest") or "").strip()
+    output = [f"### {title}"]
+    if rest:
+        output.append(_bold_halakhic_verdicts(rest))
+    return output
+
+
+def _format_key_value_line(line):
+    """Formats a "Key: value" UI-section line, or returns None if not applicable."""
+    key_value = SECTION_KEY_VALUE_RE.match(line)
+    if not key_value:
+        return None
+    key = key_value.group("key").strip()
+    if key.lower() not in UI_SECTION_KEYS:
+        return None
+    value = (key_value.group("value") or "").strip()
+    output = [f"### {key}"]
+    if value:
+        output.append(_bold_halakhic_verdicts(value))
+    return output
+
+
 def _normalize_answer_line(raw_line):
     line = str(raw_line or "").strip()
     if not line:
@@ -171,24 +205,16 @@ def _normalize_answer_line(raw_line):
     if line.startswith("# "):
         line = f"## {line[2:].strip()}"
 
-    bold_header = BOLD_HEADER_RE.match(line)
-    if bold_header:
-        title = bold_header.group("title").strip().rstrip(":")
-        rest = (bold_header.group("rest") or "").strip()
-        output = [f"### {title}"]
-        if rest:
-            output.append(_bold_halakhic_verdicts(rest))
-        return output
+    # Extracted into _format_bold_header_line/_format_key_value_line (each
+    # returns None when the line doesn't match its shape) to keep this
+    # function's own branch nesting flat (SonarCloud python:S3776).
+    bold_result = _format_bold_header_line(line)
+    if bold_result is not None:
+        return bold_result
 
-    key_value = SECTION_KEY_VALUE_RE.match(line)
-    if key_value:
-        key = key_value.group("key").strip()
-        value = (key_value.group("value") or "").strip()
-        if key.lower() in UI_SECTION_KEYS:
-            output = [f"### {key}"]
-            if value:
-                output.append(_bold_halakhic_verdicts(value))
-            return output
+    key_value_result = _format_key_value_line(line)
+    if key_value_result is not None:
+        return key_value_result
 
     return [_bold_halakhic_verdicts(line)]
 
