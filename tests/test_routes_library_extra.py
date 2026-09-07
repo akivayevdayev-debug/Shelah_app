@@ -11,6 +11,73 @@ from __future__ import annotations
 
 
 
+class TestSchemaListField:
+    def test_returns_list_when_present(self):
+        import backend.routes_library as routes_library_module
+        result = routes_library_module._schema_list_field({"lengths": [1, 2]}, "lengths")
+        assert result == [1, 2]
+
+    def test_returns_empty_when_missing_or_wrong_type(self):
+        import backend.routes_library as routes_library_module
+        assert routes_library_module._schema_list_field({}, "lengths") == []
+        assert routes_library_module._schema_list_field({"lengths": "not a list"}, "lengths") == []
+
+
+class TestFirstLoweredToken:
+    def test_strips_and_lowercases_first_item(self):
+        import backend.routes_library as routes_library_module
+        assert routes_library_module._first_lowered_token(["  DAF  "]) == "daf"
+
+    def test_empty_list_returns_blank(self):
+        import backend.routes_library as routes_library_module
+        assert routes_library_module._first_lowered_token([]) == ""
+
+
+class TestParseSectionSchemaForSynthesis:
+    def test_talmud_schema_returns_expected_tuple(self):
+        import backend.routes_library as routes_library_module
+        entry = {"schema": {"lengths": [6], "sectionNames": ["Daf"], "addressTypes": ["Talmud"]}}
+        result = routes_library_module._parse_section_schema_for_synthesis(entry)
+        assert result == (6, "daf", "talmud")
+
+    def test_single_length_returns_none(self):
+        import backend.routes_library as routes_library_module
+        entry = {"schema": {"lengths": [1], "sectionNames": ["Chapter"]}}
+        assert routes_library_module._parse_section_schema_for_synthesis(entry) is None
+
+    def test_non_dict_schema_returns_none(self):
+        import backend.routes_library as routes_library_module
+        assert routes_library_module._parse_section_schema_for_synthesis({"schema": "bad"}) is None
+
+    def test_no_lengths_returns_none(self):
+        import backend.routes_library as routes_library_module
+        assert routes_library_module._parse_section_schema_for_synthesis({"schema": {}}) is None
+
+
+class TestSynthesizeTalmudDafRefs:
+    def test_alternates_a_b_starting_at_2a(self):
+        import backend.routes_library as routes_library_module
+        refs = routes_library_module._synthesize_talmud_daf_refs("Berakhot", 4, 140)
+        assert refs == ["Berakhot 2a", "Berakhot 2b", "Berakhot 3a", "Berakhot 3b"]
+
+    def test_respects_max_items(self):
+        import backend.routes_library as routes_library_module
+        refs = routes_library_module._synthesize_talmud_daf_refs("Berakhot", 10, 2)
+        assert refs == ["Berakhot 2a", "Berakhot 2b"]
+
+
+class TestSynthesizeNumberedSectionRefs:
+    def test_builds_sequential_refs(self):
+        import backend.routes_library as routes_library_module
+        refs = routes_library_module._synthesize_numbered_section_refs("Pirkei Avot", 3, 140)
+        assert refs == ["Pirkei Avot 1", "Pirkei Avot 2", "Pirkei Avot 3"]
+
+    def test_respects_max_items(self):
+        import backend.routes_library as routes_library_module
+        refs = routes_library_module._synthesize_numbered_section_refs("Pirkei Avot", 10, 2)
+        assert refs == ["Pirkei Avot 1", "Pirkei Avot 2"]
+
+
 class TestLibraryLeafRefsTalmudSynthesis:
     def test_talmud_daf_synthesis_from_schema(self, test_client, monkeypatch):
         import backend.sefaria_library as sl
