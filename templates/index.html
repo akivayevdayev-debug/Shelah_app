@@ -41,6 +41,25 @@
          see APP_PREFS_KEY/setThemePreference below) before first paint. Falls back
          to the OS preference for 'system'/unset, matching applyThemePreferenceClass(). -->
     <script>(function(){var t='system';try{var raw=localStorage.getItem("Sh'elahPrefs");if(raw){var p=JSON.parse(raw).theme;if(p==='light'||p==='dark')t=p;}}catch(e){}if(t==='system'){t=(window.matchMedia&&window.matchMedia('(prefers-color-scheme: dark)').matches)?'dark':'light';}document.documentElement.setAttribute('data-theme',t);document.documentElement.classList.toggle('theme-dark',t==='dark');})()</script>
+    {% if sentry_dsn_browser %}
+    <!-- Sentry error monitoring (plan.md §17). Loaded from Sentry's own CDN
+         (not npm/jsdelivr — no frontend build step exists yet, see §7g /
+         Prompt 11) with an SRI hash, placed before the other CDN scripts
+         below so it can capture their load errors too. This is the plain
+         errors-only bundle: no Replay, no tracing code shipped at all
+         (static/js/sentry-init.js also sets tracesSampleRate: 0 — belt and
+         suspenders). A true no-op when SENTRY_DSN_BROWSER is unset: this
+         whole block is absent from the rendered page, not just disabled. -->
+    <script>
+        window.__SHELAH_SENTRY_DSN__ = {{ sentry_dsn_browser | tojson }};
+        window.__SHELAH_SENTRY_ENV__ = {{ sentry_environment | tojson }};
+        window.__SHELAH_SENTRY_RELEASE__ = {{ sentry_release | tojson }};
+    </script>
+    <script src="https://browser.sentry-cdn.com/10.69.0/bundle.min.js"
+            integrity="sha384-3CEt/dsT99DjKC3MgiUAiordZm0hoZjYMn6ioBvRKm+9A98CLWAUsQsk5XaPpjfU"
+            crossorigin="anonymous"></script>
+    <script src="/static/js/sentry-init.js?v=20260731"></script>
+    {% endif %}
     <!-- DaisyUI component library (non-destructive — adds .btn, .card etc. utility classes) -->
     <link href="https://cdn.jsdelivr.net/npm/daisyui@4.12.24/dist/full.min.css" rel="stylesheet"
           integrity="sha384-2V5uSMIWpBK7suX6yRDZH6ll7ktPJF2O58y0HSz+HiFCBCsmqZpxX1AZB4qAHuYI"
