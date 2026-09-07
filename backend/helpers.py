@@ -287,33 +287,69 @@ def _normalize_glossary_meaning(value):
     return text
 
 
-def _looks_like_transliteration(text):
+def _tokenize_for_transliteration_check(text):
+    """Normalize and validate `text` for the transliteration heuristics
+    below, returning (tokens, lower) -- or ([], "") if it doesn't look
+    like a plausible transliterated word at all. Split out of
+    _looks_like_transliteration() (SonarCloud python:S3776).
+    """
     value = re.sub(r"\s+", " ", str(text or "").strip())
     if not value:
-        return False
+        return [], ""
     if not re.fullmatch(r"[A-Za-z'\-\s]{2,80}", value):
-        return False
+        return [], ""
 
     lower = value.lower()
     tokens = [part for part in lower.split(" ") if part]
+    return tokens, lower
+
+
+def _has_apostrophe_or_hyphen_token(tokens):
+    """A token containing ' or - is a strong transliteration signal (e.g.
+    "b'rosh", "kavod-melech"). Split out of _looks_like_transliteration()
+    (SonarCloud python:S3776).
+    """
+    return any("'" in token or "-" in token for token in tokens)
+
+
+def _has_short_transliteration_marker(tokens, lower):
+    """A short phrase containing a Hebrew-transliteration digraph (sh, kh,
+    tz, ...). Split out of _looks_like_transliteration() (SonarCloud
+    python:S3776).
+    """
+    translit_markers = ("sh", "kh", "tz", "ts", "aa", "ee", "oo", "iy", "ui")
+    return len(tokens) <= 3 and any(marker in lower for marker in translit_markers)
+
+
+def _all_tokens_end_with_transliteration_suffix(tokens):
+    """Every token (of at most 2) ends with a common Hebrew-transliteration
+    suffix (im, ot, ah, ...). Split out of _looks_like_transliteration()
+    (SonarCloud python:S3776).
+    """
+    translit_suffixes = ("im", "ot", "ah", "eh", "it", "ut", "iyyah")
+    return len(tokens) <= 2 and all(
+        any(token.endswith(suffix) for suffix in translit_suffixes) for token in tokens
+    )
+
+
+def _is_short_vowel_ending_token(tokens):
+    """A single short token ending in a vowel (e.g. "ima"). Split out of
+    _looks_like_transliteration() (SonarCloud python:S3776).
+    """
+    return len(tokens) == 1 and len(tokens[0]) <= 4 and tokens[0].endswith(("a", "e", "i", "o", "u"))
+
+
+def _looks_like_transliteration(text):
+    tokens, lower = _tokenize_for_transliteration_check(text)
     if not tokens:
         return False
 
-    translit_markers = ("sh", "kh", "tz", "ts", "aa", "ee", "oo", "iy", "ui")
-    translit_suffixes = ("im", "ot", "ah", "eh", "it", "ut", "iyyah")
-
-    if any("'" in token or "-" in token for token in tokens):
-        return True
-    if len(tokens) <= 3 and any(marker in lower for marker in translit_markers):
-        return True
-    if len(tokens) <= 2 and all(
-        any(token.endswith(suffix) for suffix in translit_suffixes) for token in tokens
-    ):
-        return True
-    if len(tokens) == 1 and len(tokens[0]) <= 4 and tokens[0].endswith(("a", "e", "i", "o", "u")):
-        return True
-
-    return False
+    return (
+        _has_apostrophe_or_hyphen_token(tokens)
+        or _has_short_transliteration_marker(tokens, lower)
+        or _all_tokens_end_with_transliteration_suffix(tokens)
+        or _is_short_vowel_ending_token(tokens)
+    )
 
 
 # ── Pure utilities ────────────────────────────────────────────────────────────

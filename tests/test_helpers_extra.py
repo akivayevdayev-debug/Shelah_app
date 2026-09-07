@@ -30,6 +30,64 @@ class TestLooksLikeTransliterationEdgeCases:
         assert helpers._looks_like_transliteration("word123!") is False
 
 
+class TestTokenizeForTransliterationCheck:
+    def test_blank_text_returns_empty(self):
+        assert helpers._tokenize_for_transliteration_check("   ") == ([], "")
+
+    def test_non_matching_chars_returns_empty(self):
+        assert helpers._tokenize_for_transliteration_check("word123!") == ([], "")
+
+    def test_collapses_whitespace_and_lowercases(self):
+        tokens, lower = helpers._tokenize_for_transliteration_check("Shabbat   Shalom")
+        assert tokens == ["shabbat", "shalom"]
+        assert lower == "shabbat shalom"
+
+
+class TestHasApostropheOrHyphenToken:
+    def test_apostrophe_token_is_true(self):
+        assert helpers._has_apostrophe_or_hyphen_token(["b'rosh"]) is True
+
+    def test_hyphen_token_is_true(self):
+        assert helpers._has_apostrophe_or_hyphen_token(["kavod-melech"]) is True
+
+    def test_plain_tokens_are_false(self):
+        assert helpers._has_apostrophe_or_hyphen_token(["shabbat", "shalom"]) is False
+
+
+class TestHasShortTransliterationMarker:
+    def test_marker_within_three_tokens_is_true(self):
+        assert helpers._has_short_transliteration_marker(["shabbat"], "shabbat") is True
+
+    def test_marker_beyond_three_tokens_is_false(self):
+        tokens = ["a", "b", "c", "shabbat"]
+        assert helpers._has_short_transliteration_marker(tokens, " ".join(tokens)) is False
+
+    def test_no_marker_is_false(self):
+        assert helpers._has_short_transliteration_marker(["create"], "create") is False
+
+
+class TestAllTokensEndWithTransliterationSuffix:
+    def test_single_token_with_suffix_is_true(self):
+        assert helpers._all_tokens_end_with_transliteration_suffix(["shabbatot"]) is True
+
+    def test_more_than_two_tokens_is_false(self):
+        assert helpers._all_tokens_end_with_transliteration_suffix(["a", "b", "c"]) is False
+
+    def test_one_token_missing_suffix_is_false(self):
+        assert helpers._all_tokens_end_with_transliteration_suffix(["shabbatot", "create"]) is False
+
+
+class TestIsShortVowelEndingToken:
+    def test_short_vowel_ending_is_true(self):
+        assert helpers._is_short_vowel_ending_token(["ima"]) is True
+
+    def test_too_long_is_false(self):
+        assert helpers._is_short_vowel_ending_token(["abcdefa"]) is False
+
+    def test_multiple_tokens_is_false(self):
+        assert helpers._is_short_vowel_ending_token(["ima", "aba"]) is False
+
+
 class TestDecodeRouteRef:
     def test_plain_value_returned_unchanged(self):
         assert helpers._decode_route_ref("Genesis 1:1") == "Genesis 1:1"
