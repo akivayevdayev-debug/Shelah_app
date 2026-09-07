@@ -1275,6 +1275,113 @@
 
             </article>
 
+            <!-- ═══════════════════════════════════════════════════════ -->
+            <!-- SITE FOOTER — legal notice                               -->
+            <!-- Last child of #mainContainer (the same overflow-y-auto   -->
+            <!-- pane the home grid / reader / library views scroll in),  -->
+            <!-- not a sibling of the topbar -- so it's reached by         -->
+            <!-- scrolling to the very bottom of the main screen behind   -->
+            <!-- whichever view is active, instead of being squeezed into -->
+            <!-- the app shell as an always-visible hovering strip, and   -->
+            <!-- without disturbing the topbar's position:sticky, which   -->
+            <!-- only works relative to this same scrolling ancestor.     -->
+            <!-- Purely informational — browsewrap notice, no             -->
+            <!-- accept/decline gate. Theme-aware via tokens.css.         -->
+            <!-- ═══════════════════════════════════════════════════════ -->
+            <style>
+                .site-footer {
+                    background: var(--surface-2);
+                    border-top: 1px solid var(--surface-border);
+                    padding: var(--sp-2) var(--sp-4);
+                    padding-bottom: calc(var(--sp-2) + env(safe-area-inset-bottom, 0px));
+                }
+
+                /* Below 1024px, .mobile-bottom-tabs (static/style.css) is
+                   position:fixed to the viewport and layers on top of
+                   whatever this scroll pane reveals at the bottom -- so
+                   .site-footer would otherwise end up with its links
+                   covered rather than just being "below" it. Reserve the
+                   tab bar's own rendered height as extra bottom padding so
+                   the footer's content always clears it once scrolled into
+                   view. Kept in sync with .mobile-bottom-tabs's
+                   padding/min-height. */
+                @media (max-width: 1023px) {
+                    .site-footer {
+                        padding-bottom: calc(0.35rem + 2.55rem + max(0.45rem, env(safe-area-inset-bottom)) + var(--sp-2));
+                    }
+                }
+
+                .site-footer-inner {
+                    max-width: 1200px;
+                    margin: 0 auto;
+                    font-size: var(--text-xs);
+                    line-height: 1.6;
+                    color: var(--ink-secondary);
+                    text-align: center;
+                }
+
+                .site-footer-inner a {
+                    color: var(--accent-primary);
+                    text-decoration: underline;
+                    text-underline-offset: 2px;
+                    transition: color var(--motion-dur-fast) var(--motion-ease-out);
+                }
+
+                .site-footer-inner a:hover {
+                    color: var(--accent-primary-hover);
+                }
+
+                .site-footer-inner a:focus-visible {
+                    outline: 2px solid var(--accent-primary);
+                    outline-offset: 2px;
+                    border-radius: var(--radius-xs);
+                }
+
+                .site-footer-links {
+                    margin-top: var(--sp-1);
+                }
+
+                .site-footer-links .sep {
+                    color: var(--surface-border);
+                    padding: 0 var(--sp-1);
+                }
+            </style>
+            <footer class="site-footer" role="contentinfo">
+                <p class="site-footer-inner">
+                    <span class="site-footer-copyright" style="display: block; margin-bottom: 0.35rem;"
+                        data-en="© Sh'elah {{ current_year }}. All rights reserved."
+                        data-he="© Sh'elah {{ current_year }}. כל הזכויות שמורות.">© Sh'elah {{ current_year }}. All rights reserved.</span>
+                    <span
+                        data-en="Sh'elah provides educational halachic information — not a binding halachic ruling (p'sak); always consult a qualified rabbi. By using this site you confirm you are at least 13 years old (16+ in the EU/UK) and agree to the following:"
+                        data-he="Sh'elah מספקת מידע הלכתי לצורכי לימוד — לא פסק הלכה מחייב; יש להתייעץ תמיד עם רב מוסמך. בשימוש באתר זה הנך מאשר/ת שאתה/את בן/בת 13 לפחות (16+ באיחוד האירופי/בריטניה) ומסכים/ה למסמכים הבאים:">Sh'elah
+                        provides educational halachic information — not a binding halachic ruling (p'sak); always consult a
+                        qualified rabbi. By using this site you confirm you are at least 13 years old (16+ in the EU/UK) and
+                        agree to the following:</span>
+                    <span class="site-footer-links">
+                        <a href="/about" target="_blank" rel="noopener" data-en="About"
+                            data-he="אודות">About</a><span class="sep" aria-hidden="true">·</span>
+                        <a href="/help" target="_blank" rel="noopener" data-en="Help"
+                            data-he="עזרה">Help</a><span class="sep" aria-hidden="true">·</span>
+                        <a href="/glossary" target="_blank" rel="noopener" data-en="Glossary"
+                            data-he="מילון מונחים">Glossary</a><span class="sep" aria-hidden="true">·</span>
+                        <a href="/terms" target="_blank" rel="noopener" data-en="Terms of Service"
+                            data-he="תנאי השירות">Terms of Service</a><span class="sep" aria-hidden="true">·</span>
+                        <a href="/privacy" target="_blank" rel="noopener" data-en="Privacy Policy"
+                            data-he="מדיניות הפרטיות">Privacy Policy</a><span class="sep" aria-hidden="true">·</span>
+                        <a href="/ai-disclosure" target="_blank" rel="noopener" data-en="AI Disclosure"
+                            data-he="גילוי נאות בינה מלאכותית">AI Disclosure</a><span class="sep" aria-hidden="true">·</span>
+                        <a href="/acceptable-use" target="_blank" rel="noopener" data-en="Acceptable Use"
+                            data-he="שימוש מותר">Acceptable Use</a><span class="sep" aria-hidden="true">·</span>
+                        <a href="/dmca" target="_blank" rel="noopener" data-en="DMCA" data-he="DMCA">DMCA</a><span
+                            class="sep" aria-hidden="true">·</span>
+                        <a href="/accessibility" target="_blank" rel="noopener" data-en="Accessibility"
+                            data-he="נגישות">Accessibility</a><span class="sep" aria-hidden="true">·</span>
+                        <a href="/licenses" target="_blank" rel="noopener" data-en="Licenses"
+                            data-he="רישיונות">Licenses</a>
+                    </span>
+                </p>
+            </footer>
+
         </main>
 
         <!-- Column 3: Commentary Sidebar (Right) -->
@@ -11536,119 +11643,6 @@
             crossorigin="anonymous"></script>
     <script type="module" src="/static/js/motion.js?v=20260617-v1"></script>
     <script type="module" src="/static/js/main.js?v=20260617-v1"></script>
-
-    <!-- ═══════════════════════════════════════════════════════ -->
-    <!-- LEGAL ACCEPTANCE MODAL (Terms of Service + Privacy)    -->
-    <!-- ═══════════════════════════════════════════════════════ -->
-    <div id="legalModal" role="dialog" aria-modal="true" aria-labelledby="legalModalTitle"
-        class="fixed inset-0 flex items-center justify-center z-[9999] hidden"
-        style="background:rgba(0,0,0,0.55); backdrop-filter:blur(2px);">
-        <div class="bg-white rounded-xl shadow-2xl max-w-lg w-full mx-4 p-7" style="max-height:90vh; overflow-y:auto;">
-            <h2 id="legalModalTitle" class="text-xl font-bold mb-2 text-slate-900"
-                style="font-family:'Cardo',Georgia,serif;">
-                Welcome to Sh'elah
-            </h2>
-            <p class="text-sm text-slate-600 mb-4 leading-relaxed">
-                Before you continue, please review and accept our Terms of Service and Privacy Policy. Sh'elah provides
-                educational halachic information — always consult a qualified rabbi for binding rulings.
-            </p>
-
-            <!-- Disclaimer highlight -->
-            <div
-                class="bg-amber-50 border border-amber-200 rounded-lg px-4 py-3 mb-5 text-xs text-amber-800 leading-relaxed">
-                <strong>⚠️ Disclaimer:</strong> AI-generated answers are for educational purposes only and do not
-                constitute a binding halachic ruling. Always consult a qualified rabbi.
-            </div>
-
-            <div class="space-y-3 mb-6">
-                <label class="flex items-start gap-3 cursor-pointer select-none">
-                    <input type="checkbox" id="legalTosCheck"
-                        class="mt-0.5 h-4 w-4 rounded border-slate-300 text-blue-600 focus:ring-blue-500 flex-shrink-0">
-                    <span class="text-sm text-slate-700">
-                        I have read and agree to the
-                        <a href="/terms" target="_blank" rel="noopener"
-                            class="text-[#1f3f63] underline hover:text-blue-900">Terms of Service</a>
-                    </span>
-                </label>
-                <label class="flex items-start gap-3 cursor-pointer select-none">
-                    <input type="checkbox" id="legalPrivacyCheck"
-                        class="mt-0.5 h-4 w-4 rounded border-slate-300 text-blue-600 focus:ring-blue-500 flex-shrink-0">
-                    <span class="text-sm text-slate-700">
-                        I have read and agree to the
-                        <a href="/privacy" target="_blank" rel="noopener"
-                            class="text-[#1f3f63] underline hover:text-blue-900">Privacy Policy</a>
-                    </span>
-                </label>
-                <label class="flex items-start gap-3 cursor-pointer select-none">
-                    <input type="checkbox" id="legalDisclaimerCheck"
-                        class="mt-0.5 h-4 w-4 rounded border-slate-300 text-blue-600 focus:ring-blue-500 flex-shrink-0">
-                    <span class="text-sm text-slate-700">
-                        I understand that Sh'elah does not provide binding halachic rulings and I will consult a rabbi
-                        for final decisions.
-                    </span>
-                </label>
-            </div>
-
-            <div class="flex gap-3">
-                <button id="legalAcceptBtn"
-                    class="flex-1 bg-[#1f3f63] text-white rounded-lg px-4 py-2.5 text-sm font-semibold disabled:opacity-40 disabled:cursor-not-allowed transition-opacity"
-                    disabled>
-                    Accept &amp; Continue
-                </button>
-                <button id="legalDeclineBtn"
-                    class="px-4 py-2.5 border border-slate-300 rounded-lg text-sm text-slate-600 hover:bg-slate-50 transition-colors">
-                    Decline
-                </button>
-            </div>
-        </div>
-    </div>
-
-    <script>
-        (function () {
-            'use strict';
-            const LEGAL_KEY = 'shelah_legal_v1';
-
-            function shouldShowLegalModal() {
-                try { return !localStorage.getItem(LEGAL_KEY); }
-                catch (_) { return false; }
-            }
-
-            function markLegalAccepted() {
-                try { localStorage.setItem(LEGAL_KEY, Date.now().toString()); } catch (_) { }
-                // Attempt to record server-side (best effort, non-blocking)
-                fetch('/api/accept-legal', { method: 'POST' }).catch(function () { });
-            }
-
-            function updateAcceptBtn() {
-                const allChecked = document.getElementById('legalTosCheck').checked
-                    && document.getElementById('legalPrivacyCheck').checked
-                    && document.getElementById('legalDisclaimerCheck').checked;
-                document.getElementById('legalAcceptBtn').disabled = !allChecked;
-            }
-
-            document.getElementById('legalTosCheck').addEventListener('change', updateAcceptBtn);
-            document.getElementById('legalPrivacyCheck').addEventListener('change', updateAcceptBtn);
-            document.getElementById('legalDisclaimerCheck').addEventListener('change', updateAcceptBtn);
-
-            document.getElementById('legalAcceptBtn').addEventListener('click', function () {
-                if (this.disabled) return;
-                markLegalAccepted();
-                document.getElementById('legalModal').classList.add('hidden');
-            });
-
-            document.getElementById('legalDeclineBtn').addEventListener('click', function () {
-                // Redirect to a neutral page or reload to keep them on legal screen
-                window.location.href = 'https://www.sefaria.org';
-            });
-
-            // Delay check slightly so the main app has a moment to initialise
-            setTimeout(function () {
-                if (shouldShowLegalModal()) {
-                    document.getElementById('legalModal').classList.remove('hidden');
-                }
-            }, 800);
-        })();
-    </script>
 </body>
 
 </html>
