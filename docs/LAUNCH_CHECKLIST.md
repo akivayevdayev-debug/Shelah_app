@@ -194,10 +194,8 @@ item below it was open as of 2026-08-20 but has since closed:**
     2026-09-04) and `claude_code_prompts.md` Prompt 34 (✅ RESOLVED
     2026-09-04 — supersedes the "Not started" status this line previously
     carried; see also Prompt 63's write-up of §49.4/§49.5).
-  - **Not yet caught up:** `docs/SECURITY.md` §2 itself still carries
-    2026-08-31's interim language ("configured and testable, not yet
-    empirically confirmed") rather than this final result — needs its own
-    refresh, ideally in the same pass as this line.
+  - `docs/SECURITY.md` §2 carries the same empirically-confirmed result
+    (refreshed in the same pass as this line).
 - **"Pen-test/security-review complete" — not done as an external
   review.** `docs/SECURITY.md` says outright in its own header that it "is
   an engineering document, not a substitute for the penetration test /
