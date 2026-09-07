@@ -725,6 +725,65 @@ class TestCheckSefariaAvailability:
             assert result["block_type"] == "unavailable"
 
 
+class TestSearchIndexCatalog:
+    def test_empty_query_returns_empty_list(self):
+        assert sl._search_index_catalog("") == []
+        assert sl._search_index_catalog("   ") == []
+
+    def test_uses_cached_result_without_rebuilding_catalog(self, monkeypatch):
+        sl._search_query_cache.set("cached query|10|{}", [{"ref": "Cached Result"}])
+
+        def _boom():
+            raise AssertionError("should not rebuild catalog on cache hit")
+        monkeypatch.setattr(sl, "_get_title_catalog", _boom)
+
+        assert sl._search_index_catalog("cached query") == [{"ref": "Cached Result"}]
+
+    def test_ranks_scores_and_filters_non_matching_rows(self, monkeypatch):
+        catalog = [
+            {"title": "Shabbat Laws", "heTitle": "", "categories": [
+                "Halakhah"], "search": "shabbat laws"},
+            {"title": "Kashrut Basics", "heTitle": "", "categories": [
+                "Halakhah"], "search": "kashrut basics"},
+        ]
+        monkeypatch.setattr(sl, "_get_title_catalog", lambda: catalog)
+        monkeypatch.setattr(
+            sl, "_resolve_opening_ref_for_title", lambda title: f"{title} 1")
+
+        result = sl._search_index_catalog("shabbat", size=10)
+        assert len(result) == 1
+        assert result[0]["ref"] == "Shabbat Laws 1"
+
+
+class TestResolveSearchResultCategories:
+    def test_uses_explicit_categories_when_present(self):
+        result = sl._resolve_search_result_categories(
+            {"categories": ["Ignored"]}, ["Halakhah", "Shabbat"], [])
+        assert result == ["Halakhah", "Shabbat"]
+
+    def test_falls_back_to_index_entry_categories(self):
+        result = sl._resolve_search_result_categories(
+            {"categories": ["Tanakh"]}, None, [])
+        assert result == ["Tanakh"]
+
+    def test_falls_back_when_explicit_categories_all_falsy(self):
+        # Regression anchor: explicit_categories present but every item is
+        # falsy must still fall through to index_entry's categories.
+        result = sl._resolve_search_result_categories(
+            {"categories": ["Tanakh"]}, ["", None], [])
+        assert result == ["Tanakh"]
+
+    def test_category_filter_pass(self):
+        result = sl._resolve_search_result_categories(
+            {"categories": ["Halakhah", "Shabbat"]}, None, ["shabbat"])
+        assert result == ["Halakhah", "Shabbat"]
+
+    def test_category_filter_reject_returns_none(self):
+        result = sl._resolve_search_result_categories(
+            {"categories": ["Tanakh"]}, None, ["shabbat"])
+        assert result is None
+
+
 class TestSearchLibrary:
     def test_empty_query_returns_empty_list(self):
         assert sl.search_library("") == []
