@@ -852,14 +852,11 @@ def _translate_line_if_missing_english(line):
     return source or ""
 
 
-def _fill_missing_english_lines(text_payload, max_lines=12, max_runtime_seconds=1.2):
-    if not isinstance(text_payload, dict):
-        return text_payload
-
-    lines = text_payload.get("lines", [])
-    if not isinstance(lines, list) or not lines:
-        return text_payload
-
+def _translate_missing_english_lines(lines, max_lines, max_runtime_seconds):
+    """Translate up to max_lines lines missing English text, bounded by a
+    wall-clock budget. Returns (translated_count, translation_sources).
+    Split out of _fill_missing_english_lines() (SonarCloud python:S3776).
+    """
     translated_count = 0
     translation_sources = set()
     started_at = time.time()
@@ -877,21 +874,43 @@ def _fill_missing_english_lines(text_payload, max_lines=12, max_runtime_seconds=
         if source:
             translation_sources.add(source)
 
+    return translated_count, translation_sources
+
+
+def _apply_translation_metadata(text_payload, lines, translated_count, translation_sources):
+    """Stamp text_payload with translation_generated/_count/_source/_note
+    and refresh its `en` list from the (possibly newly-translated) lines.
+    Split out of _fill_missing_english_lines() (SonarCloud python:S3776).
+    """
+    provider_label = (
+        ", ".join(sorted(translation_sources)) if translation_sources else "online-translation"
+    )
+    text_payload["translation_generated"] = True
+    text_payload["translation_generated_count"] = translated_count
+    text_payload["translation_source"] = provider_label
+    text_payload["translation_note"] = (
+        f"Automatic English translation added for missing lines ({provider_label})."
+    )
+    text_payload["en"] = [
+        str(line.get("en", "")).strip()
+        for line in lines
+        if isinstance(line, dict) and str(line.get("en", "")).strip()
+    ]
+
+
+def _fill_missing_english_lines(text_payload, max_lines=12, max_runtime_seconds=1.2):
+    if not isinstance(text_payload, dict):
+        return text_payload
+
+    lines = text_payload.get("lines", [])
+    if not isinstance(lines, list) or not lines:
+        return text_payload
+
+    translated_count, translation_sources = _translate_missing_english_lines(
+        lines, max_lines, max_runtime_seconds)
+
     if translated_count:
-        provider_label = (
-            ", ".join(sorted(translation_sources)) if translation_sources else "online-translation"
-        )
-        text_payload["translation_generated"] = True
-        text_payload["translation_generated_count"] = translated_count
-        text_payload["translation_source"] = provider_label
-        text_payload["translation_note"] = (
-            f"Automatic English translation added for missing lines ({provider_label})."
-        )
-        text_payload["en"] = [
-            str(line.get("en", "")).strip()
-            for line in lines
-            if isinstance(line, dict) and str(line.get("en", "")).strip()
-        ]
+        _apply_translation_metadata(text_payload, lines, translated_count, translation_sources)
 
     return text_payload
 
