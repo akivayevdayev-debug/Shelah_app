@@ -1173,10 +1173,20 @@ RESOURCE_RELOAD_SECONDS = 60 * 5
 # Flask session cookie lifetime. NOT an auth control -- Clerk auth is
 # stateless JWT-per-request (backend/auth.py) and never touches Flask's
 # session. The only thing stored here is a last-known lat/lon for zmanim/
-# calendar (session['lat']/['lon'], set in routes_calendar.py), so this is a
-# low-sensitivity convenience cookie, not a security boundary. 30 days,
-# independent of RESOURCE_RELOAD_SECONDS -- a user checking zmanim again
-# next week shouldn't have to re-share their location.
+# calendar (session['lat']/['lon'], written by get_engine() below and by
+# routes_calendar.py), so this is a low-sensitivity convenience cookie, not
+# a security boundary. 30 days, independent of RESOURCE_RELOAD_SECONDS --
+# a user checking zmanim again next week shouldn't have to re-share their
+# location. `session.permanent = True` is set at each of those write sites
+# (not as a blanket before_request hook) -- plan.md §46 found that a
+# global hook marks Flask's session "accessed" on every single request,
+# including static-asset/anonymous requests that never touch the session,
+# which makes Flask stamp `Vary: Cookie` on every response and permanently
+# defeats CDN caching. Setting it only where the session is actually
+# written keeps that Vary header scoped to the requests that legitimately
+# need it -- SESSION_REFRESH_EACH_REQUEST below still refreshes the cookie
+# on later session *reads* too, since `permanent` is itself persisted
+# inside the signed session cookie once first set.
 SESSION_RELOAD_SECONDS = 60 * 60 * 24 * 30
 STATIC_STALE_WHILE_REVALIDATE_SECONDS = max(
     60 * 60,
@@ -1199,12 +1209,6 @@ app.config["SEND_FILE_MAX_AGE_DEFAULT"] = RESOURCE_RELOAD_SECONDS
 # FastAPI /ask route, which has its own independent byte cap for the same
 # reason the rate limiter needed one (see asgi.py's request_id_middleware).
 app.config["MAX_CONTENT_LENGTH"] = 256 * 1024
-
-
-@app.before_request
-def apply_session_cookie_policy():
-    # Ensure Flask issues an expiring cookie instead of a browser-session cookie.
-    session.permanent = True
 
 
 @app.before_request
@@ -1387,6 +1391,7 @@ def get_engine():
         if ip_lat is not None and ip_lon is not None:
             lat = ip_lat
             lon = ip_lon
+            session.permanent = True
             session['lat'] = lat
             session['lon'] = lon
 
