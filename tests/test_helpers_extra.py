@@ -111,6 +111,42 @@ class TestCompactAiSourceLines:
         assert len(result) == 2
 
 
+class TestCleanLexiconDefinitionText:
+    def test_strips_html_tags(self):
+        assert helpers._clean_lexicon_definition_text("<i>rest</i>") == "rest"
+
+    def test_extracts_from_dict_shape(self):
+        assert helpers._clean_lexicon_definition_text({"definition": "rest"}) == "rest"
+
+    def test_collapses_whitespace_and_caps_length(self):
+        result = helpers._clean_lexicon_definition_text("a  b" + "c" * 300)
+        assert result == ("a b" + "c" * 300)[:280]
+
+
+class TestCollectNonEchoDefinitions:
+    def test_filters_out_echo_of_original(self):
+        result = helpers._collect_non_echo_definitions(["שבת", "rest"], "שבת")
+        assert result == ["rest"]
+
+    def test_filters_out_blank_entries(self):
+        result = helpers._collect_non_echo_definitions(["", "rest"], "שבת")
+        assert result == ["rest"]
+
+
+class TestCandidateDefinitionsFromLexiconEntry:
+    def test_uses_definitions_list_when_present(self):
+        entry = {"content": {"definitions": [{"definition": "rest"}]}}
+        assert helpers._candidate_definitions_from_lexicon_entry(entry, "שבת") == ["rest"]
+
+    def test_falls_back_to_top_level_definition(self):
+        entry = {"content": {"definition": "rest"}}
+        assert helpers._candidate_definitions_from_lexicon_entry(entry, "שבת") == ["rest"]
+
+    def test_no_usable_content_returns_empty(self):
+        entry = {"content": {}}
+        assert helpers._candidate_definitions_from_lexicon_entry(entry, "שבת") == []
+
+
 class TestLookupHebrewWordInLocalGlossary:
     def test_glossary_hit_returns_local_source(self, monkeypatch):
         monkeypatch.setitem(helpers.HEBREW_WORD_GLOSSARY, "שבת", "Sabbath")

@@ -496,6 +496,47 @@ def _rank_key_for_lexicon_entry(entry):
     return len(_PREFERRED_LEXICONS)
 
 
+def _clean_lexicon_definition_text(raw_definition):
+    """Strip HTML tags/whitespace and cap the length of one raw definition
+    value (a str, or a {"definition": ...} dict). Split out of
+    _candidate_definitions_from_lexicon_entry() (SonarCloud python:S3776).
+    """
+    raw = str(
+        (raw_definition.get("definition") if isinstance(raw_definition, dict) else raw_definition) or ""
+    ).strip()
+    raw = re.sub(r"<[^>]+>", "", raw).strip()
+    return re.sub(r"\s+", " ", raw)[:280]
+
+
+def _collect_non_echo_definitions(defs, original_value):
+    """Clean and filter a list of raw definition entries down to
+    non-blank, non-echo candidate strings. Split out of
+    _candidate_definitions_from_lexicon_entry() (SonarCloud python:S3776).
+    """
+    candidates = []
+    for raw_definition in defs:
+        raw = _clean_lexicon_definition_text(raw_definition)
+        if raw and not _is_translation_echo(original_value, raw):
+            candidates.append(raw)
+    return candidates
+
+
+def _candidate_definitions_from_lexicon_entry(entry, original_value):
+    """Collect non-blank, non-echo definition candidates from one lexicon
+    entry's content, falling back to its single top-level `definition`
+    field if the `definitions` list yields none. Split out of
+    _best_definition_from_lexicon_entries() (SonarCloud python:S3776).
+    """
+    content = (entry or {}).get("content") or {}
+    defs = content.get("definitions") or []
+    candidates = _collect_non_echo_definitions(defs, original_value)
+    if not candidates and content.get("definition"):
+        raw = re.sub(r"<[^>]+>", "", str(content["definition"])).strip()[:280]
+        if raw:
+            candidates.append(raw)
+    return candidates
+
+
 def _best_definition_from_lexicon_entries(entries, original_value):
     """Find the first usable, non-echo definition across lexicon entries,
     preferring entries in _PREFERRED_LEXICONS order. Returns
@@ -504,19 +545,7 @@ def _best_definition_from_lexicon_entries(entries, original_value):
     complexity count (SonarCloud python:S3776).
     """
     for entry in sorted(entries, key=_rank_key_for_lexicon_entry):
-        content = (entry or {}).get("content") or {}
-        defs = content.get("definitions") or []
-        candidates = []
-        for d in defs:
-            raw = str((d.get("definition") if isinstance(d, dict) else d) or "").strip()
-            raw = re.sub(r"<[^>]+>", "", raw).strip()
-            raw = re.sub(r"\s+", " ", raw)[:280]
-            if raw and not _is_translation_echo(original_value, raw):
-                candidates.append(raw)
-        if not candidates and content.get("definition"):
-            raw = re.sub(r"<[^>]+>", "", str(content["definition"])).strip()[:280]
-            if raw:
-                candidates.append(raw)
+        candidates = _candidate_definitions_from_lexicon_entry(entry, original_value)
         if candidates:
             return candidates[0], str(entry.get("lexicon_name", "sefaria-lexicon"))
     return "", ""
