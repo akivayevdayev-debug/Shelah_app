@@ -18,7 +18,7 @@ import json
 import re
 from concurrent.futures import ThreadPoolExecutor
 import requests
-from flask import Flask, has_request_context, render_template, request, jsonify, session, g, send_from_directory, Response
+from flask import Flask, render_template, request, jsonify, session, g, send_from_directory, Response
 from dotenv import load_dotenv
 import time
 import os
@@ -931,116 +931,14 @@ def _get_supabase_client():
     return _supabase_client
 
 
-def _looks_like_jwt(value):
-    if not isinstance(value, str):
-        return False
-    parts = value.split(".")
-    return len(parts) == 3 and all(parts)
-
-
-def _extract_supabase_token_from_list(parsed_list):
-    """Extract a Supabase access token from a parsed JSON list-shaped
-    cookie value. Split out of _extract_supabase_token_from_cookie_value()
-    to keep this loop out of that function's own complexity count
-    (SonarCloud python:S3776).
-    """
-    for item in parsed_list:
-        if isinstance(item, str) and _looks_like_jwt(item):
-            return item
-        if isinstance(item, dict):
-            token = item.get("access_token") or item.get("accessToken")
-            if isinstance(token, str) and token:
-                return token
-    return None
-
-
-def _extract_supabase_token_from_cookie_value(raw_value):
-    if not raw_value:
-        return None
-
-    decoded = unquote(raw_value)
-    if _looks_like_jwt(decoded):
-        return decoded
-
-    try:
-        parsed = json.loads(decoded)
-    except Exception:
-        return None
-
-    if isinstance(parsed, dict):
-        token = parsed.get("access_token") or parsed.get("accessToken")
-        return token if isinstance(token, str) and token else None
-
-    if isinstance(parsed, list):
-        return _extract_supabase_token_from_list(parsed)
-
-    return None
-
-
-def _categorize_supabase_auth_cookies():
-    """Split request cookies into (session_cookie_values, chunked_cookies)
-    for _extract_supabase_access_token(). chunked_cookies maps base cookie
-    name -> [(chunk_index, value), ...] for cookies split across multiple
-    "name.0", "name.1", ... parts. Split out to keep this loop out of that
-    function's own complexity count (SonarCloud python:S3776).
-    """
-    session_cookie_values = []
-    chunked_cookies = {}
-    for cookie_name, cookie_value in request.cookies.items():
-        if not (cookie_name.startswith("sb-") and "-auth-token" in cookie_name):
-            continue
-
-        if "." in cookie_name:
-            base, suffix = cookie_name.rsplit(".", 1)
-            if suffix.isdigit():
-                chunked_cookies.setdefault(base, []).append(
-                    (int(suffix), cookie_value))
-                continue
-
-        session_cookie_values.append(cookie_value)
-    return session_cookie_values, chunked_cookies
-
-
 def _extract_supabase_access_token(bearer_token=None):
     # Prefer Authorization header so API clients can override cookie auth.
-    bearer = _extract_bearer_token(bearer_token)
-    if bearer:
-        return bearer
-
-    if not has_request_context():
-        # No Flask request context (e.g. asgi.py's native FastAPI /ask route,
-        # which calls this chain with an explicit bearer_token and no Flask
-        # request ever pushed) -- the cookie fallback below reads Flask's
-        # global `request` proxy and would raise RuntimeError here. The
-        # explicit bearer_token was already checked above; nothing left to
-        # try. plan.md §35.1.
-        return None
-
-    direct_cookie_names = [
-        "sb-access-token",
-        "supabase-access-token",
-    ]
-    for cookie_name in direct_cookie_names:
-        direct_value = request.cookies.get(cookie_name)
-        token = _extract_supabase_token_from_cookie_value(direct_value)
-        if token:
-            return token
-
-    session_cookie_values, chunked_cookies = _categorize_supabase_auth_cookies()
-
-    for cookie_value in session_cookie_values:
-        token = _extract_supabase_token_from_cookie_value(cookie_value)
-        if token:
-            return token
-
-    for chunk_parts in chunked_cookies.values():
-        sorted_parts = sorted(chunk_parts, key=lambda part: part[0])
-        joined_value = "".join(part[1] for part in sorted_parts)
-        token = _extract_supabase_token_from_cookie_value(joined_value)
-        if token:
-            return token
-
-    return None
+    # No cookie fallback: nothing in this app ever sets sb-access-token /
+    # supabase-access-token / sb-*-auth-token cookies -- templates/index.html's
+    # authHeaders() always sends Authorization: Bearer. That branch was
+    # pre-Clerk native-Supabase-Auth leftover; removed 2026-08-31 (plan.md
+    # §21, STEP 8).
+    return _extract_bearer_token(bearer_token)
 
 
 def _get_request_supabase_client(bearer_token=None):
