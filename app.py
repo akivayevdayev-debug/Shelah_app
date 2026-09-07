@@ -1505,6 +1505,22 @@ def _collect_primary_sources_sync(question, engine):
     return primary_sources
 
 
+def _collect_preferred_language_lines(src_lines, answer_language):
+    """Pick the preferred-language text (falling back to the other
+    language when it's blank) from each line dict in src_lines. Split out
+    of _flatten_primary_sources_for_claude() (SonarCloud python:S3776).
+    """
+    preferred_lines = []
+    for line in src_lines:
+        if not isinstance(line, dict):
+            continue
+        preferred = (line.get('he') or line.get('en')) if answer_language == 'he' else (
+            line.get('en') or line.get('he'))
+        if preferred:
+            preferred_lines.append(str(preferred).strip())
+    return preferred_lines
+
+
 def _flatten_primary_sources_for_claude(primary_sources, answer_language):
     """Flatten primary source line dicts into {ref, text} pairs for the AI
     prompt. Split out of ask_question() (SonarCloud python:S3776) -- see
@@ -1515,14 +1531,7 @@ def _flatten_primary_sources_for_claude(primary_sources, answer_language):
         src_lines = src.get('lines', []) if isinstance(src, dict) else []
         if not isinstance(src_lines, list):
             src_lines = []
-        preferred_lines = []
-        for line in src_lines:
-            if not isinstance(line, dict):
-                continue
-            preferred = (line.get('he') or line.get('en')) if answer_language == 'he' else (
-                line.get('en') or line.get('he'))
-            if preferred:
-                preferred_lines.append(str(preferred).strip())
+        preferred_lines = _collect_preferred_language_lines(src_lines, answer_language)
         flat_sources_for_claude.append({
             'ref': str(src.get('ref') or '') if isinstance(src, dict) else '',
             'text': ' '.join(preferred_lines)
