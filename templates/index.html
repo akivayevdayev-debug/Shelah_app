@@ -1858,24 +1858,6 @@
         </div>
     </div>
 
-    <!-- Template for Dual Sources -->
-    <template id="sourceDualTemplate">
-        <div class="border border-slate-300 rounded-lg bg-white overflow-hidden shadow-sm mb-6">
-            <div
-                class="bg-slate-50 px-4 py-2 text-xs font-bold text-slate-500 uppercase tracking-wider border-b source-title flex justify-between">
-                <span data-en="Source Name" data-he="שם המקור">Source Name</span>
-                <a href="#" target="_blank" class="text-blue-500 hover:underline source-link"
-                    data-en="View in Library ↗" data-he="צפה בספרייה ↗">View in Library &rarr;</a>
-            </div>
-            <!-- Grid Split -->
-            <div class="source-grid grid grid-cols-1 lg:grid-cols-2 text-base">
-                <div class="source-he bg-white text-end font-hebrew text-xl lg:text-2xl leading-[1.8] border-b lg:border-b-0 lg:border-r border-slate-200 p-6"
-                    dir="rtl"></div>
-                <div class="source-en bg-slate-50 font-serif leading-relaxed p-6 text-slate-700 text-lg"></div>
-            </div>
-        </div>
-    </template>
-
     <script>
         const searchForm = document.getElementById('searchForm');
         const searchInput = document.getElementById('searchInput');
@@ -1983,7 +1965,6 @@
         }
 
         const sidebarContent = document.getElementById('sourcesDynamicContent');
-        const sourceDualTemplate = document.getElementById('sourceDualTemplate');
         const selectionInsights = document.getElementById('selectionInsights');
         const selectionInsightsBody = document.getElementById('selectionInsightsBody');
         const selectionInsightsHint = document.getElementById('selectionInsightsHint');
@@ -10833,6 +10814,27 @@
             hideSearchSuggestions();
         });
 
+        // Mirrors the AI answer box's already-computed source list (AI-cited-first,
+        // then relevance-ranked, deduped — see populateAiModal) into another
+        // container instead of rebuilding it with separate logic, so the reader
+        // view can never show a source the answer box excluded as irrelevant.
+        function mirrorAiSourcesInto(targetDiv) {
+            targetDiv.innerHTML = document.getElementById('aiSources').innerHTML;
+            // Delegated listener bound once on the container (dataset flag guards
+            // against re-binding on every mirror call, since innerHTML is replaced
+            // on each call but the container element itself persists).
+            if (!targetDiv.dataset.sourceLinksDelegated) {
+                targetDiv.dataset.sourceLinksDelegated = '1';
+                targetDiv.addEventListener('click', (e) => {
+                    const a = e.target.closest('a.source-local-link');
+                    if (!a) return;
+                    e.preventDefault();
+                    const ref = a.getAttribute('data-local-ref');
+                    if (ref) readText(ref, { skipNavigationGrid: true });
+                });
+            }
+        }
+
         // Answer feedback widget (plan.md §12.4). `container` is the target
         // div, `data` is the /ask response (data.meta carries mode/language/
         // fallback/safety_class — the same fields on every response branch,
@@ -10924,56 +10926,8 @@
             readerContentEl.innerHTML = renderAnswerMarkdown(data.answer);
             applyMarkdownComponentStyles(readerContentEl, MODAL_MARKDOWN_COMPONENT_STYLES);
 
-            // 2. Bilingual Sefaria Side-by-Side Sources
-            const sourcesDiv = document.getElementById('readerSources');
-            sourcesDiv.innerHTML = '';
-            if (data.sources && data.sources.length > 0) {
-                const hebrewMode = isHebrewMode();
-                data.sources.forEach(src => {
-                    const clone = sourceDualTemplate.content.cloneNode(true);
-                    clone.querySelector('.source-title span').textContent = src.title || src.ref || t("Sefaria Source", "מקור מספריא");
-
-                    const sourceLink = clone.querySelector('.source-link');
-                    const isExternal = src.domain && !String(src.domain).includes('sefaria') && src.url;
-                    if (isExternal) {
-                        sourceLink.href = src.url;
-                        sourceLink.target = '_blank';
-                        sourceLink.rel = 'noopener noreferrer';
-                        sourceLink.textContent = t(`${src.source_provider || src.domain} ↗`, `${src.source_provider || src.domain} ↗`);
-                    } else {
-                        sourceLink.href = '#';
-                        sourceLink.addEventListener('click', (e) => {
-                            e.preventDefault();
-                            if (src.ref) readText(src.ref);
-                        });
-                        sourceLink.textContent = t('Open in Reader ↗', 'פתח בקורא ↗');
-                    }
-
-                    const heDiv = clone.querySelector('.source-he');
-                    const enDiv = clone.querySelector('.source-en');
-
-                    let heMarkup = "";
-                    let enMarkup = "";
-
-                    const lines = Array.isArray(src.lines) ? src.lines : [];
-                    lines.forEach(l => {
-                        const heText = String(l?.he || '').trim();
-                        const enText = String(l?.en || '').trim();
-                        if (heText) {
-                            heMarkup += `<p class="mb-4">${heText}</p>`;
-                        }
-                        if (!hebrewMode && enText) {
-                            enMarkup += `<p class="mb-4">${enText.replace(/<[^>]*>?/gm, '')}</p>`;
-                        }
-                    });
-
-                    heDiv.innerHTML = heMarkup;
-                    enDiv.innerHTML = enMarkup;
-                    enDiv.classList.toggle('hidden', hebrewMode);
-
-                    sourcesDiv.appendChild(clone);
-                });
-            }
+            // 2. Sources — same ranked/deduped list and box style as the AI answer box
+            mirrorAiSourcesInto(document.getElementById('readerSources'));
 
             // 3. Media Items (Customs videos)
             const mediaDiv = document.getElementById('readerMedia');
@@ -11367,8 +11321,9 @@
             if (appState.lastAiResponse) {
                 renderArticle(appState.lastAiResponse, question);
             } else {
-                document.getElementById('readerContent').innerHTML = document.getElementById('aiSynthesis').innerHTML;
-                document.getElementById('readerSources').innerHTML = '';
+                document.getElementById('readerContent').innerHTML =
+                    document.getElementById('aiSynthesis').innerHTML;
+                mirrorAiSourcesInto(document.getElementById('readerSources'));
                 document.getElementById('readerMedia').innerHTML = '';
             }
 
