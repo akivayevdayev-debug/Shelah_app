@@ -330,9 +330,7 @@
                             In</button>
                     </div>
 
-                    <div id="hebrewDateDisplay" class="text-xs font-serif italic text-slate-500 mr-1">{{ daily.hebrew_date if
-                        daily
-                        else "Today" }}</div>
+                    <div id="hebrewDateDisplay" class="text-xs font-serif italic text-slate-500 mr-1">Today</div>
                     <!-- Translator Toggles -->
                     <button onclick="toggleLanguage('en')" class="hidden lg:inline-flex topbar-flat-btn font-serif lang-btn"
                         data-lang="en">English</button>
@@ -802,9 +800,14 @@
                 <details class="group cursor-pointer">
                     <summary class="font-semibold hover:text-[#00827f] list-none border-b pb-2 mb-2"
                         data-en="Prayer Books" data-he="סידורי תפילה">Prayer Books</summary>
-                    <ul id="prayerBooksNavList" class="ml-2 space-y-1 border-l-2 pl-3 border-[#00827f]/30">
-                        <li class="text-xs italic text-slate-400" data-en="Loading prayer books..."
-                            data-he="טוען סידורי תפילה...">Loading prayer books...</li>
+                    <ul id="prayerBooksNavList" class="ml-2 space-y-1 border-l-2 pl-3 border-[#00827f]/30"
+                        role="status" aria-live="polite" aria-busy="true">
+                        <li class="sr-only" data-en="Loading prayer books..." data-he="טוען סידורי תפילה...">Loading
+                            prayer books...</li>
+                        <li class="sk-tree-row" aria-hidden="true"></li>
+                        <li class="sk-tree-row" aria-hidden="true" style="width:80%"></li>
+                        <li class="sk-tree-row" aria-hidden="true" style="width:90%"></li>
+                        <li class="sk-tree-row" aria-hidden="true" style="width:70%"></li>
                     </ul>
                 </details>
                 <details class="group cursor-pointer">
@@ -1183,44 +1186,20 @@
                         <section class="home-today-section">
                             <h4 class="home-section-label mb-3" data-en="Daily Study" data-he="לימוד יומי">Daily Study
                             </h4>
-                            <div class="space-y-4">
-                                {% if daily %}
-                                {% if daily.daf_yomi %}
-                                <div class="home-daily-entry">
-                                    <span class="home-daily-label" data-en="Daf Yomi" data-he="דף יומי">Daf Yomi</span>
-                                    <button type="button"
-                                        data-daily-ref="{{ daily.daf_yomi.ref if daily and daily.daf_yomi else '' }}"
-                                        data-en="{{ daily.daf_yomi.title if daily and daily.daf_yomi else '' }}"
-                                        data-he="{{ daily.daf_yomi.title_he if daily and daily.daf_yomi and daily.daf_yomi.title_he else (daily.daf_yomi.title if daily and daily.daf_yomi else '') }}"
-                                        class="daily-study-link home-daily-link">{{ daily.daf_yomi.title }}</button>
+                            <div id="dailyStudyList" class="space-y-4" role="status" aria-busy="true"
+                                aria-label="Loading daily study schedule">
+                                <div class="home-daily-entry" aria-hidden="true">
+                                    <span class="sk-line sk-daily-label"></span>
+                                    <span class="sk-line sk-daily-link"></span>
                                 </div>
-                                {% endif %}
-                                {% if daily.mishnah_yomi %}
-                                <div class="home-daily-entry">
-                                    <span class="home-daily-label" data-en="Mishnah Yomi" data-he="משנה יומית">Mishnah
-                                        Yomi</span>
-                                    <button type="button"
-                                        data-daily-ref="{{ daily.mishnah_yomi.ref if daily and daily.mishnah_yomi else '' }}"
-                                        data-en="{{ daily.mishnah_yomi.title if daily and daily.mishnah_yomi else '' }}"
-                                        data-he="{{ daily.mishnah_yomi.title_he if daily and daily.mishnah_yomi and daily.mishnah_yomi.title_he else (daily.mishnah_yomi.title if daily and daily.mishnah_yomi else '') }}"
-                                        class="daily-study-link home-daily-link">{{ daily.mishnah_yomi.title }}</button>
+                                <div class="home-daily-entry" aria-hidden="true">
+                                    <span class="sk-line sk-daily-label"></span>
+                                    <span class="sk-line sk-daily-link"></span>
                                 </div>
-                                {% endif %}
-                                {% if daily.rambam %}
-                                <div class="home-daily-entry">
-                                    <span class="home-daily-label" data-en="Daily Rambam" data-he="רמב״ם יומי">Daily
-                                        Rambam</span>
-                                    <button type="button"
-                                        data-daily-ref="{{ daily.rambam.ref if daily and daily.rambam else '' }}"
-                                        data-en="{{ daily.rambam.title if daily and daily.rambam else '' }}"
-                                        data-he="{{ daily.rambam.title_he if daily and daily.rambam and daily.rambam.title_he else (daily.rambam.title if daily and daily.rambam else '') }}"
-                                        class="daily-study-link home-daily-link">{{ daily.rambam.title }}</button>
+                                <div class="home-daily-entry" aria-hidden="true">
+                                    <span class="sk-line sk-daily-label"></span>
+                                    <span class="sk-line sk-daily-link"></span>
                                 </div>
-                                {% endif %}
-                                {% else %}
-                                <p class="text-sm text-slate-500 italic" data-en="No active schedule fetched."
-                                    data-he="לא נמצאה תוכנית לימוד יומית פעילה.">No active schedule fetched.</p>
-                                {% endif %}
                             </div>
                         </section>
                     </aside>
@@ -1231,11 +1210,33 @@
                     <h3 class="text-lg font-serif text-slate-700 mb-6" data-en="Popular Texts"
                         data-he="טקסטים פופולריים">Popular Texts
                     </h3>
-                    <div class="grid grid-cols-2 md:grid-cols-4 gap-3" id="popularTextsGrid">
+                    <div class="grid grid-cols-2 md:grid-cols-4 gap-3" id="popularTextsGrid" role="status"
+                        aria-live="polite" aria-busy="true">
                         <!-- Populated via JS from /api/library/popular -->
-                        <div class="text-center text-slate-400 col-span-4 py-4 text-sm italic animate-pulse"
-                            data-en="Loading library..." data-he="טוען ספרייה...">Loading
-                            library...</div>
+                        <span class="sr-only" data-en="Loading library..." data-he="טוען ספרייה...">Loading
+                            library...</span>
+                        <div class="p-3 rounded border border-[#ddd4c3] bg-[#fffaf1] space-y-2" aria-hidden="true">
+                            <div class="sk-line" style="height:1.5rem;width:70%"></div>
+                            <div class="sk-line" style="height:0.65rem;width:90%"></div>
+                            <div class="sk-line" style="height:0.65rem;width:55%"></div>
+                        </div>
+                        <div class="p-3 rounded border border-[#ddd4c3] bg-[#fffaf1] space-y-2" aria-hidden="true">
+                            <div class="sk-line" style="height:1.5rem;width:60%"></div>
+                            <div class="sk-line" style="height:0.65rem;width:85%"></div>
+                            <div class="sk-line" style="height:0.65rem;width:65%"></div>
+                        </div>
+                        <div class="p-3 rounded border border-[#ddd4c3] bg-[#fffaf1] space-y-2 hidden md:block"
+                            aria-hidden="true">
+                            <div class="sk-line" style="height:1.5rem;width:75%"></div>
+                            <div class="sk-line" style="height:0.65rem;width:80%"></div>
+                            <div class="sk-line" style="height:0.65rem;width:50%"></div>
+                        </div>
+                        <div class="p-3 rounded border border-[#ddd4c3] bg-[#fffaf1] space-y-2 hidden md:block"
+                            aria-hidden="true">
+                            <div class="sk-line" style="height:1.5rem;width:65%"></div>
+                            <div class="sk-line" style="height:0.65rem;width:90%"></div>
+                            <div class="sk-line" style="height:0.65rem;width:60%"></div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -1408,11 +1409,12 @@
             <section id="selectionInsights" class="hidden mb-6 border border-slate-200 rounded-xl bg-white p-4">
                 <h3 class="text-sm font-bold text-slate-700 uppercase tracking-widest" data-en="Selected Passage Tools"
                     data-he="כלים לקטע שנבחר">Selected Passage Tools</h3>
-                <p id="selectionInsightsHint" class="text-xs text-slate-500 mt-2"
+                <p id="selectionInsightsHint" class="text-xs text-slate-500 mt-2" role="status" aria-live="polite"
                     data-en="Highlight a passage to load linked commentaries. Highlight one word to see its meaning."
                     data-he="סמן קטע כדי לטעון מפרשים מקושרים. סמן מילה אחת כדי לראות את פירושה.">Highlight a
                     passage to load linked commentaries. Highlight one word to see its meaning.</p>
-                <div id="selectionInsightsBody" class="mt-3 space-y-3"></div>
+                <div id="selectionInsightsBody" class="mt-3 space-y-3" role="status" aria-live="polite"
+                    aria-busy="false"></div>
             </section>
 
             <div id="rightSidebarIdle"
@@ -4651,6 +4653,46 @@
 
             document.documentElement.style.setProperty('--reader-topbar-left-gap', `${leftGap}px`);
             document.documentElement.style.setProperty('--reader-topbar-right-gap', `${rightGap}px`);
+        }
+
+        // On the mobile topbar grid, #hebrewDateDisplay is positioned fixed
+        // (see static/style.css) so it can float in the gap between the
+        // brand and #topbarControls instead of being squeezed into the
+        // controls' own right-aligned, nowrap flex row. That gap's width
+        // isn't fixed (auth state, language, and viewport all change it),
+        // so it's measured here rather than assumed -- show the date
+        // centered in whatever room actually exists, or hide it if there
+        // isn't enough.
+        function syncHebrewDateMobilePosition() {
+            const dateEl = document.getElementById('hebrewDateDisplay');
+            const brand = document.getElementById('brandHomeBtn');
+            const controls = document.getElementById('topbarControls');
+            if (!dateEl || !brand || !controls) return;
+
+            if (!isMobileViewport()) {
+                dateEl.style.removeProperty('display');
+                dateEl.style.removeProperty('left');
+                return;
+            }
+
+            dateEl.style.display = 'block';
+            // Brand sits left of controls in LTR but right of controls in
+            // RTL (Hebrew mirrors the whole grid) -- compare positions
+            // instead of assuming which one is which.
+            const brandRect = brand.getBoundingClientRect();
+            const controlsRect = controls.getBoundingClientRect();
+            const [leftBox, rightBox] = brandRect.left <= controlsRect.left
+                ? [brandRect, controlsRect]
+                : [controlsRect, brandRect];
+            const gap = rightBox.left - leftBox.right;
+            const MIN_PADDING = 12;
+
+            if (gap < dateEl.offsetWidth + MIN_PADDING * 2) {
+                dateEl.style.display = 'none';
+                return;
+            }
+
+            dateEl.style.left = `${leftBox.right + gap / 2}px`;
         }
 
         function getSidebarRestoreTopOffset() {
@@ -8413,6 +8455,7 @@
                 }
                 if (prayerBooksNavList) {
                     prayerBooksNavList.innerHTML = `<li class="text-xs text-red-500">${t('Unable to load prayer books.', 'לא ניתן לטעון סידורי תפילה.')}</li>`;
+                    prayerBooksNavList.setAttribute('aria-busy', 'false');
                 }
             }
         }
@@ -8812,6 +8855,7 @@
             const entries = normalizePrayerList(prayers);
             if (!entries.length) {
                 prayerBooksNavList.innerHTML = `<li class="text-xs italic text-slate-400">${t('No prayer books available right now.', 'אין כעת סידורי תפילה זמינים.')}</li>`;
+                prayerBooksNavList.setAttribute('aria-busy', 'false');
                 return;
             }
 
@@ -8877,6 +8921,7 @@
             });
 
             prayerBooksNavList.innerHTML = html;
+            prayerBooksNavList.setAttribute('aria-busy', 'false');
             applyStaticHebrewFallbackTranslations();
         }
 
@@ -10175,6 +10220,74 @@
             });
         }
 
+        function renderDailyStudyFallback(list) {
+            list.innerHTML = `<p class="text-sm text-slate-500 italic" data-en="No active schedule fetched." data-he="לא נמצאה תוכנית לימוד יומית פעילה.">${escapeHtml(t('No active schedule fetched.', 'לא נמצאה תוכנית לימוד יומית פעילה.'))}</p>`;
+        }
+
+        // Fetches /api/daily-study client-side and fills in the skeleton left by
+        // index.html's dailyStudyList (moved off the homepage's server render path —
+        // see app.py's index() for why: it was a synchronous, unbounded-latency
+        // Sefaria call blocking the whole page's TTFB).
+        async function populateDailyStudy() {
+            const list = document.getElementById('dailyStudyList');
+            if (!list) return;
+
+            const dateEl = document.getElementById('hebrewDateDisplay');
+            const ENTRIES = [
+                { key: 'daf_yomi', labelEn: 'Daf Yomi', labelHe: 'דף יומי' },
+                { key: 'mishnah_yomi', labelEn: 'Mishnah Yomi', labelHe: 'משנה יומית' },
+                { key: 'rambam', labelEn: 'Daily Rambam', labelHe: 'רמב״ם יומי' },
+            ];
+
+            try {
+                const r = await fetch('/api/daily-study', { credentials: 'same-origin' });
+                if (!r.ok) throw new Error('daily-study unavailable');
+                const daily = await r.json().catch(() => ({}));
+
+                if (dateEl && daily?.hebrew_date) {
+                    // Go through refreshHebrewDateDisplay() (not a direct
+                    // textContent write) so the EN->HE cache it keeps on
+                    // dataset.en gets the real date instead of staying
+                    // pinned to the static "Today" placeholder it captured
+                    // on first run -- otherwise the next language toggle
+                    // reverts the display back to "Today".
+                    dateEl.dataset.en = daily.hebrew_date;
+                    delete dateEl.dataset.he;
+                    refreshHebrewDateDisplay();
+                    syncHebrewDateMobilePosition();
+                }
+
+                const rowsHtml = ENTRIES.map(({ key, labelEn, labelHe }) => {
+                    const item = daily?.[key];
+                    if (!item || !item.title) return '';
+                    const ref = escapeHtml(item.ref || '');
+                    const titleEn = escapeHtml(item.title || '');
+                    const titleHe = escapeHtml(item.title_he || item.title || '');
+                    const label = isHebrewMode() ? labelHe : labelEn;
+                    const title = isHebrewMode() ? (item.title_he || item.title) : item.title;
+                    return `
+                        <div class="home-daily-entry">
+                            <span class="home-daily-label" data-en="${escapeHtml(labelEn)}" data-he="${escapeHtml(labelHe)}">${escapeHtml(label)}</span>
+                            <button type="button" data-daily-ref="${ref}" data-en="${titleEn}" data-he="${titleHe}"
+                                class="daily-study-link home-daily-link">${escapeHtml(title)}</button>
+                        </div>`;
+                }).filter(Boolean).join('');
+
+                if (!rowsHtml) {
+                    renderDailyStudyFallback(list);
+                } else {
+                    list.innerHTML = rowsHtml;
+                    bindDailyStudyLinks();
+                }
+            } catch (e) {
+                renderDailyStudyFallback(list);
+            } finally {
+                list.removeAttribute('aria-busy');
+                list.removeAttribute('role');
+                list.removeAttribute('aria-label');
+            }
+        }
+
         async function populatePopularTexts() {
             const grid = document.getElementById('popularTextsGrid');
             if (!grid) return;
@@ -10222,9 +10335,11 @@
                     });
                 });
                 grid.innerHTML = html;
+                grid.setAttribute('aria-busy', 'false');
                 applyStaticHebrewFallbackTranslations();
             } catch (e) {
                 grid.innerHTML = `<p class="text-slate-400 text-sm col-span-4 italic">${t('Could not load popular texts.', 'לא ניתן לטעון טקסטים פופולריים.')}</p>`;
+                grid.setAttribute('aria-busy', 'false');
             }
         }
 
@@ -10232,7 +10347,7 @@
         document.addEventListener('DOMContentLoaded', () => {
             syncReaderTopBarOffset();
             hydratePreferences();
-            bindDailyStudyLinks();
+            void populateDailyStudy();
             void loadParashaQuickLink();
             void registerServiceWorker();
 
@@ -10246,6 +10361,20 @@
             }
             syncTopbarHeight();
             window.addEventListener('resize', syncTopbarHeight);
+            syncHebrewDateMobilePosition();
+            window.addEventListener('resize', syncHebrewDateMobilePosition);
+            // #topbarControls' width isn't stable after this handler returns --
+            // e.g. Clerk swaps the "Sign In" button for a user-profile widget
+            // once auth state resolves, well after this initial load. A plain
+            // resize listener misses that (window width hasn't changed), so
+            // watch the two elements the gap is measured between directly.
+            const hebrewDateBrandEl = document.getElementById('brandHomeBtn');
+            const hebrewDateControlsEl = document.getElementById('topbarControls');
+            if (window.ResizeObserver && hebrewDateBrandEl && hebrewDateControlsEl) {
+                const hebrewDateResizeObserver = new ResizeObserver(() => syncHebrewDateMobilePosition());
+                hebrewDateResizeObserver.observe(hebrewDateBrandEl);
+                hebrewDateResizeObserver.observe(hebrewDateControlsEl);
+            }
 
             queueBackgroundTask(() => {
                 void loadPrayersMenu();
@@ -10417,6 +10546,7 @@
             }
 
             refreshHebrewDateDisplay(lang);
+            syncHebrewDateMobilePosition();
 
             // Re-render dynamic widgets so their generated labels follow the selected language.
             renderPersonalShelf();
