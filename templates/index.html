@@ -1436,8 +1436,8 @@
         </div>
     </div>
 
-    <div id="chapterGridModal" role="dialog" aria-modal="true" aria-labelledby="chapterGridTitle"
-        class="hidden fixed inset-0 z-[110] bg-slate-900/60 backdrop-blur-sm items-center justify-center p-4">
+    <dialog id="chapterGridModal" aria-labelledby="chapterGridTitle"
+        class="hidden fixed inset-0 z-[110] m-0 w-full h-full max-w-none max-h-none bg-slate-900/60 backdrop-blur-sm items-center justify-center p-4">
         <div
             class="bg-white rounded-2xl shadow-2xl w-full max-w-4xl max-h-[88vh] overflow-hidden flex flex-col relative">
             <button id="closeChapterGridModalBtn" type="button"
@@ -1454,7 +1454,7 @@
                 <div id="chapterGridItems" class="chapter-grid-items"></div>
             </div>
         </div>
-    </div>
+    </dialog>
 
     <!-- AI Assistant Modal -->
     <div id="aiAssistantModal"
@@ -7949,6 +7949,23 @@
             chapterGridModal.classList.add('hidden');
             chapterGridModal.classList.remove('flex');
             chapterGridItems?.classList.remove('chapter-grid-items-prayer', 'chapter-grid-items-sectioned');
+            if (chapterGridModal.open) chapterGridModal.close();
+        }
+
+        // <dialog> closes on Escape natively; keep that path routed through
+        // closeChapterGrid() (not the raw native close) so the class cleanup
+        // above always runs -- this modal previously had no Escape-to-close
+        // at all, so this keeps that same single code path as the only way
+        // it closes, just adding Escape as a trigger for it.
+        chapterGridModal?.addEventListener('cancel', (e) => {
+            e.preventDefault();
+            closeChapterGrid();
+        });
+
+        function _openChapterGridDialog() {
+            chapterGridModal.classList.remove('hidden');
+            chapterGridModal.classList.add('flex');
+            if (!chapterGridModal.open) chapterGridModal.showModal();
         }
 
         function renderChapterGridParashaStrip(bookName) {
@@ -8035,8 +8052,7 @@
                 .join('');
 
             chapterGridItems.innerHTML = items;
-            chapterGridModal.classList.remove('hidden');
-            chapterGridModal.classList.add('flex');
+            _openChapterGridDialog();
         }
 
         function getReferenceGridItemLabel(indexTitle, ref, index) {
@@ -8198,8 +8214,7 @@
                     </section>
                 `).join('');
 
-                chapterGridModal.classList.remove('hidden');
-                chapterGridModal.classList.add('flex');
+                _openChapterGridDialog();
                 return;
             }
 
@@ -8243,8 +8258,7 @@
             });
 
             chapterGridItems.innerHTML = items.join('');
-            chapterGridModal.classList.remove('hidden');
-            chapterGridModal.classList.add('flex');
+            _openChapterGridDialog();
         }
 
         async function fetchIndexLeafRefs(indexTitle) {
