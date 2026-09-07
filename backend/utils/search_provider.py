@@ -355,10 +355,10 @@ def _build_discovery_queries(question, keywords):
     }
 
 
-def _is_sefaria_hit_relevant(hit_source, query_terms):
-    if not query_terms:
-        return True
-
+def _build_sefaria_hit_haystack(hit_source):
+    """Flatten a Sefaria hit's ref/path/categories/titleVariants/snippet into
+    one lowercased search haystack. Split out of _is_sefaria_hit_relevant
+    (SonarCloud python:S3776)."""
     categories = hit_source.get("categories", [])
     title_variants = hit_source.get("titleVariants", [])
     snippet = _extract_hit_snippet(hit_source)
@@ -368,19 +368,94 @@ def _is_sefaria_hit_relevant(hit_source, query_terms):
         " ".join(categories if isinstance(categories, list) else []),
         " ".join(title_variants if isinstance(title_variants, list) else []),
         snippet,
-    ]).lower().replace("_", " ")
+    ])
+    return haystack.lower().replace("_", " ")
 
+
+def _normalize_relevance_query_terms(query_terms):
+    """Lowercase query terms, dropping stopwords and sub-3-char noise. Split
+    out of _is_sefaria_hit_relevant (SonarCloud python:S3776)."""
     terms = []
     for term in query_terms:
         normalized = str(term or "").strip().lower()
         if len(normalized) < 3 or normalized in QUERY_STOPWORDS:
             continue
         terms.append(normalized)
+    return terms
 
+
+def _is_sefaria_hit_relevant(hit_source, query_terms):
+    if not query_terms:
+        return True
+
+    terms = _normalize_relevance_query_terms(query_terms)
     if not terms:
         return True
 
+    haystack = _build_sefaria_hit_haystack(hit_source)
     return any(term in haystack for term in terms)
+
+
+def _resolve_new_sefaria_hit_ref(hit_source, query_terms, seen_refs):
+    """Return the hit's ref if it's relevant and not already collected,
+    marking it seen as a side effect; else None. Split out of
+    _collect_global_sefaria_sources (SonarCloud python:S3776)."""
+    if not _is_sefaria_hit_relevant(hit_source, query_terms):
+        return None
+
+    ref = str(hit_source.get("ref") or "").strip()
+    if not ref or ref in seen_refs:
+        return None
+
+    seen_refs.add(ref)
+    return ref
+
+
+def _build_global_sefaria_source_entry(hit, hit_source, ref, normalized_query, discovery_stage, priority):
+    """Assemble one global-search source dict for a matched, deduped hit.
+    Split out of _collect_global_sefaria_sources (SonarCloud python:S3776)."""
+    he_ref = str(hit_source.get("heRef") or "").strip()
+    path = str(hit_source.get("path") or "").strip()
+    snippet = _extract_hit_snippet(hit_source)
+
+    return {
+        "ref": ref,
+        "title": ref,
+        "lines": [{"en": snippet or f"Matched via global search: {normalized_query}", "he": he_ref}],
+        "domain": "Sefaria",
+        "corpus": "sefaria-global-search",
+        "path": path,
+        "priority": priority,
+        "status": "fallback",
+        "discovery_stage": discovery_stage,
+        "search_query": normalized_query,
+        "score": hit.get("_score") if isinstance(hit, dict) else None,
+    }
+
+
+def _collect_sefaria_sources_for_query(normalized_query, fallback_terms, discovery_stage, priority, per_query_limit, remaining_slots, seen_refs):
+    """Run one global-search query and return its new (deduped, relevant)
+    source entries, capped at per_query_limit and remaining_slots. Split out
+    of _collect_global_sefaria_sources (SonarCloud python:S3776)."""
+    hits = _query_search_wrapper(normalized_query, size=80)
+    query_terms = _extract_query_keywords(normalized_query) or fallback_terms
+
+    new_sources = []
+    for hit in hits:
+        hit_source = hit.get("_source", {}) if isinstance(hit, dict) else {}
+        if not isinstance(hit_source, dict):
+            continue
+
+        ref = _resolve_new_sefaria_hit_ref(hit_source, query_terms, seen_refs)
+        if not ref:
+            continue
+
+        new_sources.append(_build_global_sefaria_source_entry(
+            hit, hit_source, ref, normalized_query, discovery_stage, priority))
+        if len(new_sources) >= per_query_limit or len(new_sources) >= remaining_slots:
+            break
+
+    return new_sources
 
 
 def _collect_global_sefaria_sources(queries, fallback_terms, discovery_stage, priority, max_results=10):
@@ -394,46 +469,10 @@ def _collect_global_sefaria_sources(queries, fallback_terms, discovery_stage, pr
         if not normalized_query:
             continue
 
-        hits = _query_search_wrapper(normalized_query, size=80)
-        query_terms = _extract_query_keywords(
-            normalized_query) or fallback_terms
-
-        added_for_query = 0
-        for hit in hits:
-            hit_source = hit.get("_source", {}) if isinstance(
-                hit, dict) else {}
-            if not isinstance(hit_source, dict):
-                continue
-
-            if not _is_sefaria_hit_relevant(hit_source, query_terms):
-                continue
-
-            ref = str(hit_source.get("ref") or "").strip()
-            if not ref or ref in seen_refs:
-                continue
-
-            seen_refs.add(ref)
-            he_ref = str(hit_source.get("heRef") or "").strip()
-            path = str(hit_source.get("path") or "").strip()
-            snippet = _extract_hit_snippet(hit_source)
-
-            sources.append({
-                "ref": ref,
-                "title": ref,
-                "lines": [{"en": snippet or f"Matched via global search: {normalized_query}", "he": he_ref}],
-                "domain": "Sefaria",
-                "corpus": "sefaria-global-search",
-                "path": path,
-                "priority": priority,
-                "status": "fallback",
-                "discovery_stage": discovery_stage,
-                "search_query": normalized_query,
-                "score": hit.get("_score") if isinstance(hit, dict) else None,
-            })
-
-            added_for_query += 1
-            if added_for_query >= per_query_limit or len(sources) >= max_results:
-                break
+        sources.extend(_collect_sefaria_sources_for_query(
+            normalized_query, fallback_terms, discovery_stage, priority,
+            per_query_limit, max_results - len(sources), seen_refs,
+        ))
 
         if len(sources) >= max_results:
             break
@@ -633,6 +672,16 @@ def _find_local_custom_matches(keywords, max_results=12):
     return collected
 
 
+def _web_match_has_blocklist_term(haystack):
+    """Split out of _looks_like_trusted_web_match (SonarCloud python:S3776)."""
+    return any(flag in haystack for flag in WEB_FALLBACK_BLOCKLIST_TERMS)
+
+
+def _web_match_has_trust_term(haystack):
+    """Split out of _looks_like_trusted_web_match (SonarCloud python:S3776)."""
+    return any(term in haystack for term in WEB_FALLBACK_TRUST_TERMS)
+
+
 def _looks_like_trusted_web_match(provider, title, summary, keywords):
     provider_name = str(provider or "").strip().lower()
     title_text = str(title or "").strip()
@@ -641,13 +690,13 @@ def _looks_like_trusted_web_match(provider, title, summary, keywords):
         return False
 
     haystack = f"{title_text} {summary_text}".lower()
-    if any(flag in haystack for flag in WEB_FALLBACK_BLOCKLIST_TERMS):
+    if _web_match_has_blocklist_term(haystack):
         return False
 
     if provider_name in {"halachipedia", "hebrewbooks"}:
         return True
 
-    if any(term in haystack for term in WEB_FALLBACK_TRUST_TERMS):
+    if _web_match_has_trust_term(haystack):
         return True
 
     # Require relevance to the query if no explicit trust-term signal is present.
@@ -923,15 +972,45 @@ def _extract_google_translated_text(payload):
     return re.sub(r"\s+", " ", "".join(chunks)).strip()
 
 
+def _call_translation_provider(health_key, request_fn):
+    """Issue one translation HTTP GET behind the shared per-provider health
+    breaker, returning the response on success or None if unhealthy, the
+    call raised, or the response wasn't ok. Split out of
+    _translate_text_google / _translate_text_mymemory (SonarCloud
+    python:S3776)."""
+    if not health.is_healthy(health_key):
+        return None
+    try:
+        resp = request_fn()
+        if not resp.ok:
+            health.record_failure(health_key)
+            return None
+        health.record_success(health_key)
+        return resp
+    except (requests.RequestException, TimeoutError) as exc:
+        health.record_failure(health_key)
+        logger.warning("search_provider[%s] call failed: %s", health_key, exc)
+        return None
+
+
+def _finalize_translated_text(source_value, translated):
+    """Apply the shared not-empty / not-an-echo gate both translation
+    providers use before returning a translated string. Split out of
+    _translate_text_google / _translate_text_mymemory (SonarCloud
+    python:S3776)."""
+    if not translated or _is_translation_echo(source_value, translated):
+        return ""
+    return translated
+
+
 def _translate_text_google(text, source_lang, target_lang):
     value = str(text or "").strip()
     if not value:
         return ""
-    if not health.is_healthy("translate_google"):
-        return ""
 
-    try:
-        resp = requests.get(
+    resp = _call_translation_provider(
+        "translate_google",
+        lambda: requests.get(
             GOOGLE_TRANSLATE_API_URL,
             params={
                 "client": "gtx",
@@ -942,53 +1021,41 @@ def _translate_text_google(text, source_lang, target_lang):
             },
             headers={"User-Agent": "Mozilla/5.0"},
             timeout=2.5,
-        )
-        if not resp.ok:
-            health.record_failure("translate_google")
-            return ""
-        payload = resp.json() if resp.content else []
-        health.record_success("translate_google")
-        translated = _extract_google_translated_text(payload)
-        if not translated:
-            return ""
-        if _is_translation_echo(value, translated):
-            return ""
-        return translated
-    except (requests.RequestException, TimeoutError) as exc:
-        health.record_failure("translate_google")
-        logger.warning("search_provider[translate_google] call failed: %s", exc)
+        ),
+    )
+    if resp is None:
         return ""
+
+    payload = resp.json() if resp.content else []
+    translated = _extract_google_translated_text(payload)
+    return _finalize_translated_text(value, translated)
+
+
+def _extract_mymemory_translated_text(payload):
+    """Split out of _translate_text_mymemory (SonarCloud python:S3776), to
+    mirror _extract_google_translated_text's separation."""
+    return str((payload.get("responseData") or {}).get("translatedText") or "").strip()
 
 
 def _translate_text_mymemory(text, source_lang, target_lang):
     value = str(text or "").strip()
     if not value:
         return ""
-    if not health.is_healthy("translate_mymemory"):
-        return ""
 
     langpair_source = str(source_lang or "auto").strip() or "auto"
     langpair_target = str(target_lang or "en").strip() or "en"
 
-    try:
-        resp = requests.get(
+    resp = _call_translation_provider(
+        "translate_mymemory",
+        lambda: requests.get(
             MYMEMORY_TRANSLATE_API_URL,
             params={"q": value, "langpair": f"{langpair_source}|{langpair_target}"},
             timeout=2.5,
-        )
-        if not resp.ok:
-            health.record_failure("translate_mymemory")
-            return ""
-        payload = resp.json() if resp.content else {}
-        health.record_success("translate_mymemory")
-        translated = str((payload.get("responseData") or {}).get(
-            "translatedText") or "").strip()
-        if not translated:
-            return ""
-        if _is_translation_echo(value, translated):
-            return ""
-        return translated
-    except (requests.RequestException, TimeoutError) as exc:
-        health.record_failure("translate_mymemory")
-        logger.warning("search_provider[translate_mymemory] call failed: %s", exc)
+        ),
+    )
+    if resp is None:
         return ""
+
+    payload = resp.json() if resp.content else {}
+    translated = _extract_mymemory_translated_text(payload)
+    return _finalize_translated_text(value, translated)
