@@ -645,6 +645,31 @@ def _lookup_hebrew_word_meaning(word):
 # ── Word meaning alternatives (Sefaria-first for Hebrew variants) ─────────────
 
 
+def _collect_hebrew_word_meaning_options(raw_word, primary_meaning, options, add_option):
+    """Hebrew-specific candidate-gathering branch of
+    _collect_word_meaning_alternatives(). `options`/`add_option` are the
+    caller's accumulator list and dedup-adder closure. Split out to keep
+    these three loops out of that function's own complexity count
+    (SonarCloud python:S3776).
+    """
+    variants = _hebrew_word_variant_candidates(raw_word)
+
+    for variant in variants:
+        for interpreted in HEBREW_INTERPRETIVE_GLOSSARY.get(variant, []):
+            add_option(interpreted)
+
+    for candidate in _parse_meaning_candidates(primary_meaning):
+        add_option(candidate)
+
+    for variant in variants[:2]:
+        lex_def, _ = _lookup_sefaria_lexicon(variant)
+        if lex_def:
+            add_option(lex_def)
+        elif len(options) < 2:
+            translated, _ = _translate_hebrew_text_online(variant)
+            add_option(translated)
+
+
 def _collect_word_meaning_alternatives(raw_word, primary_meaning, word_is_hebrew):
     options = []
 
@@ -659,22 +684,7 @@ def _collect_word_meaning_alternatives(raw_word, primary_meaning, word_is_hebrew
         options.append(normalized)
 
     if word_is_hebrew:
-        variants = _hebrew_word_variant_candidates(raw_word)
-
-        for variant in variants:
-            for interpreted in HEBREW_INTERPRETIVE_GLOSSARY.get(variant, []):
-                add_option(interpreted)
-
-        for candidate in _parse_meaning_candidates(primary_meaning):
-            add_option(candidate)
-
-        for variant in variants[:2]:
-            lex_def, _ = _lookup_sefaria_lexicon(variant)
-            if lex_def:
-                add_option(lex_def)
-            elif len(options) < 2:
-                translated, _ = _translate_hebrew_text_online(variant)
-                add_option(translated)
+        _collect_hebrew_word_meaning_options(raw_word, primary_meaning, options, add_option)
     else:
         for candidate in _parse_meaning_candidates(primary_meaning):
             add_option(candidate)
