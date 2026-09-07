@@ -480,20 +480,11 @@ def _wrap_text_for_export(text, max_chars=96):
     return chunks or [value]
 
 
-@routes_library.route("/api/export/chapter", methods=["POST"])
-@maybe_require_clerk_auth
-def export_chapter():
-    payload = request.get_json(silent=True) or {}
-    title = str(payload.get("title") or payload.get(
-        "label") or "shelah-chapter").strip()
-    ref = str(payload.get("ref") or "").strip()
-    export_format = str(payload.get("format") or "txt").strip().lower()
-    lines = payload.get("lines") if isinstance(
-        payload.get("lines"), list) else []
-
-    if export_format not in {"txt", "docx", "pdf"}:
-        return jsonify({"error": "Unsupported export format"}), 400
-
+def _normalize_export_lines(lines):
+    """Validate + normalize raw payload lines for chapter export. Split out
+    of export_chapter() to keep this loop out of that route's own
+    complexity count (SonarCloud python:S3776).
+    """
     normalized_lines = []
     for idx, line in enumerate(lines, start=1):
         if not isinstance(line, dict):
@@ -507,55 +498,63 @@ def export_chapter():
             "he": he,
             "en": en,
         })
+    return normalized_lines
 
-    if not normalized_lines:
-        return jsonify({"error": "No chapter lines available to export"}), 400
 
-    file_safe = re.sub(r"[^a-z0-9]+", "-", title.lower()
-                       ).strip("-") or "shelah-chapter"
+def _export_chapter_as_txt(title, ref, normalized_lines, file_safe):
+    """The "txt" branch of export_chapter(). Split out (SonarCloud
+    python:S3776) -- see _export_chapter_as_docx / _export_chapter_as_pdf.
+    """
     plain_text = _chapter_export_plain_text(title, ref, normalized_lines)
+    txt_buffer = io.BytesIO(plain_text.encode("utf-8"))
+    txt_buffer.seek(0)
+    return send_file(
+        txt_buffer,
+        as_attachment=True,
+        download_name=f"{file_safe}.txt",
+        mimetype="text/plain; charset=utf-8",
+    )
 
-    if export_format == "txt":
-        txt_buffer = io.BytesIO(plain_text.encode("utf-8"))
-        txt_buffer.seek(0)
-        return send_file(
-            txt_buffer,
-            as_attachment=True,
-            download_name=f"{file_safe}.txt",
-            mimetype="text/plain; charset=utf-8",
-        )
 
-    if export_format == "docx":
-        try:
-            from docx import Document as _docx_document_cls
-        except Exception:
-            _docx_document_cls = None
-        if _docx_document_cls is None:
-            return jsonify({"error": "DOCX export is unavailable on this server"}), 503
+def _export_chapter_as_docx(title, ref, normalized_lines, file_safe):
+    """The "docx" branch of export_chapter(). Split out (SonarCloud
+    python:S3776) -- see _export_chapter_as_txt / _export_chapter_as_pdf.
+    """
+    try:
+        from docx import Document as _docx_document_cls
+    except Exception:
+        _docx_document_cls = None
+    if _docx_document_cls is None:
+        return jsonify({"error": "DOCX export is unavailable on this server"}), 503
 
-        document = _docx_document_cls()
-        document.add_heading(title or "Sh'elah Chapter", level=1)
-        if ref:
-            document.add_paragraph(ref)
+    document = _docx_document_cls()
+    document.add_heading(title or "Sh'elah Chapter", level=1)
+    if ref:
+        document.add_paragraph(ref)
 
-        for idx, line in enumerate(normalized_lines, start=1):
-            segment = line.get("segment") or idx
-            document.add_paragraph(f"Segment {segment}")
-            if line.get("he"):
-                document.add_paragraph(line["he"])
-            if line.get("en"):
-                document.add_paragraph(line["en"])
+    for idx, line in enumerate(normalized_lines, start=1):
+        segment = line.get("segment") or idx
+        document.add_paragraph(f"Segment {segment}")
+        if line.get("he"):
+            document.add_paragraph(line["he"])
+        if line.get("en"):
+            document.add_paragraph(line["en"])
 
-        docx_buffer = io.BytesIO()
-        document.save(docx_buffer)
-        docx_buffer.seek(0)
-        return send_file(
-            docx_buffer,
-            as_attachment=True,
-            download_name=f"{file_safe}.docx",
-            mimetype="application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-        )
+    docx_buffer = io.BytesIO()
+    document.save(docx_buffer)
+    docx_buffer.seek(0)
+    return send_file(
+        docx_buffer,
+        as_attachment=True,
+        download_name=f"{file_safe}.docx",
+        mimetype="application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+    )
 
+
+def _export_chapter_as_pdf(title, ref, normalized_lines, file_safe):
+    """The "pdf" branch of export_chapter(). Split out (SonarCloud
+    python:S3776) -- see _export_chapter_as_txt / _export_chapter_as_docx.
+    """
     try:
         from reportlab.lib.pagesizes import LETTER as _LETTER
         from reportlab.pdfgen import canvas as _canvas
@@ -601,6 +600,34 @@ def export_chapter():
         download_name=f"{file_safe}.pdf",
         mimetype="application/pdf",
     )
+
+
+@routes_library.route("/api/export/chapter", methods=["POST"])
+@maybe_require_clerk_auth
+def export_chapter():
+    payload = request.get_json(silent=True) or {}
+    title = str(payload.get("title") or payload.get(
+        "label") or "shelah-chapter").strip()
+    ref = str(payload.get("ref") or "").strip()
+    export_format = str(payload.get("format") or "txt").strip().lower()
+    lines = payload.get("lines") if isinstance(
+        payload.get("lines"), list) else []
+
+    if export_format not in {"txt", "docx", "pdf"}:
+        return jsonify({"error": "Unsupported export format"}), 400
+
+    normalized_lines = _normalize_export_lines(lines)
+    if not normalized_lines:
+        return jsonify({"error": "No chapter lines available to export"}), 400
+
+    file_safe = re.sub(r"[^a-z0-9]+", "-", title.lower()
+                       ).strip("-") or "shelah-chapter"
+
+    if export_format == "txt":
+        return _export_chapter_as_txt(title, ref, normalized_lines, file_safe)
+    if export_format == "docx":
+        return _export_chapter_as_docx(title, ref, normalized_lines, file_safe)
+    return _export_chapter_as_pdf(title, ref, normalized_lines, file_safe)
 
 
 @routes_library.route("/api/library/search")
