@@ -111,6 +111,30 @@ class TestCompactAiSourceLines:
         assert len(result) == 2
 
 
+class TestFirstDefinitionTextInMeanings:
+    def test_returns_first_non_blank_definition(self):
+        meanings = [{"definitions": [{"definition": ""}, {"definition": "A day of rest."}]}]
+        assert helpers._first_definition_text_in_meanings(meanings) == "A day of rest."
+
+    def test_non_dict_meaning_is_skipped(self):
+        assert helpers._first_definition_text_in_meanings(["not a dict"]) == ""
+
+    def test_no_definitions_returns_blank(self):
+        assert helpers._first_definition_text_in_meanings([{"definitions": []}]) == ""
+
+
+class TestExtractDefinitionFromDictionaryapiPayload:
+    def test_valid_payload_returns_definition(self):
+        payload = [{"meanings": [{"definitions": [{"definition": "A day of rest."}]}]}]
+        assert helpers._extract_definition_from_dictionaryapi_payload(payload) == "A day of rest."
+
+    def test_non_list_payload_returns_blank(self):
+        assert helpers._extract_definition_from_dictionaryapi_payload({}) == ""
+
+    def test_empty_list_payload_returns_blank(self):
+        assert helpers._extract_definition_from_dictionaryapi_payload([]) == ""
+
+
 class TestAttachOptionalSourceFields:
     def test_all_fields_present_are_attached(self):
         entry = {}
