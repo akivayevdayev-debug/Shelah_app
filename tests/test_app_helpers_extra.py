@@ -125,3 +125,55 @@ class TestBuildTrustedCustomSources:
         }
         result = flask_app_module._build_trusted_custom_sources(data)
         assert result == ["Rambam", "Rif"]
+
+
+class TestCollectPreferredLanguageLines:
+    def test_hebrew_answer_prefers_hebrew_falls_back_to_english(self, test_client):
+        import app as flask_app_module
+        lines = [{"he": "שלום", "en": "hello"}, {"he": "", "en": "world"}]
+        result = flask_app_module._collect_preferred_language_lines(lines, "he")
+        assert result == ["שלום", "world"]
+
+    def test_english_answer_prefers_english_falls_back_to_hebrew(self, test_client):
+        import app as flask_app_module
+        lines = [{"he": "שלום", "en": "hello"}, {"he": "עולם", "en": ""}]
+        result = flask_app_module._collect_preferred_language_lines(lines, "en")
+        assert result == ["hello", "עולם"]
+
+    def test_non_dict_lines_are_skipped(self, test_client):
+        import app as flask_app_module
+        result = flask_app_module._collect_preferred_language_lines(
+            ["not a dict", None, {"en": "hello"}], "en")
+        assert result == ["hello"]
+
+    def test_lines_with_no_text_in_either_language_are_omitted(self, test_client):
+        import app as flask_app_module
+        result = flask_app_module._collect_preferred_language_lines(
+            [{"he": "", "en": ""}], "en")
+        assert result == []
+
+
+class TestFlattenPrimarySourcesForClaude:
+    def test_flattens_ref_and_joins_preferred_text(self, test_client):
+        import app as flask_app_module
+        primary_sources = [{
+            "ref": "Genesis 1:1",
+            "lines": [{"en": "In the beginning"}, {"en": "God created"}],
+        }]
+        result = flask_app_module._flatten_primary_sources_for_claude(primary_sources, "en")
+        assert result == [{"ref": "Genesis 1:1", "text": "In the beginning God created"}]
+
+    def test_non_dict_source_yields_empty_ref_and_text(self, test_client):
+        import app as flask_app_module
+        result = flask_app_module._flatten_primary_sources_for_claude(["not a dict"], "en")
+        assert result == [{"ref": "", "text": ""}]
+
+    def test_non_list_lines_yields_empty_text(self, test_client):
+        import app as flask_app_module
+        result = flask_app_module._flatten_primary_sources_for_claude(
+            [{"ref": "Genesis 1:1", "lines": "not a list"}], "en")
+        assert result == [{"ref": "Genesis 1:1", "text": ""}]
+
+    def test_empty_input_returns_empty_list(self, test_client):
+        import app as flask_app_module
+        assert flask_app_module._flatten_primary_sources_for_claude([], "en") == []
