@@ -998,6 +998,39 @@ class TestGetLiturgyBooks:
         monkeypatch.setattr(sl, "get_library_index", lambda: {"not": "a list"})
         assert sl.get_liturgy_books() == []
 
+    def test_walks_nested_contents_and_children(self, monkeypatch):
+        index = [{
+            "title": "Parent",
+            "categories": ["Not Liturgy"],
+            "contents": [
+                {"title": "Nested Siddur", "categories": ["Liturgy"], "dependence": None},
+            ],
+            "children": [
+                {"title": "Nested Machzor", "categories": ["Liturgy"], "dependence": None},
+            ],
+        }]
+        monkeypatch.setattr(sl, "get_library_index", lambda: index)
+        result = sl.get_liturgy_books()
+        titles = {b["title"] for b in result}
+        assert "Nested Siddur" in titles
+        assert "Nested Machzor" in titles
+
+    def test_non_loading_title_does_not_descend_into_its_children(self, monkeypatch):
+        non_loading_title = "Kinnot for Tisha B'Av (Ashkenaz)"
+        index = [{
+            "title": non_loading_title,
+            "categories": ["Liturgy"],
+            "dependence": None,
+            "contents": [
+                {"title": "Should Not Appear", "categories": ["Liturgy"], "dependence": None},
+            ],
+        }]
+        monkeypatch.setattr(sl, "get_library_index", lambda: index)
+        result = sl.get_liturgy_books()
+        titles = {b["title"] for b in result}
+        assert non_loading_title not in titles
+        assert "Should Not Appear" not in titles
+
 
 class TestGetIndexLeafRefs:
     def test_no_schema_returns_empty(self, monkeypatch):
@@ -1024,3 +1057,80 @@ class TestGetIndexLeafRefs:
         result = sl.get_index_leaf_refs("Siddur")
         assert "Siddur, Morning" in result
         assert "Siddur, Evening" in result
+
+
+class TestLookupCanonicalIndexTitle:
+    def test_empty_title_returns_empty_string(self):
+        assert sl._lookup_canonical_index_title("") == ""
+        assert sl._lookup_canonical_index_title("   ") == ""
+
+    def test_non_dict_response_returns_empty_string(self, monkeypatch):
+        monkeypatch.setattr(sl, "_cached_get", lambda url, ttl=None: None)
+        assert sl._lookup_canonical_index_title("Foo") == ""
+
+    def test_returns_first_differing_top_level_candidate(self, monkeypatch):
+        monkeypatch.setattr(sl, "_cached_get", lambda url, ttl=None: {
+            "book": "Canonical Book Title", "completion_objects": [],
+        })
+        assert sl._lookup_canonical_index_title("foo") == "Canonical Book Title"
+
+    def test_skips_candidate_matching_query_case_insensitively(self, monkeypatch):
+        monkeypatch.setattr(sl, "_cached_get", lambda url, ttl=None: {
+            "book": "foo", "index": "", "key": "", "title": "Real Title",
+            "completion_objects": [],
+        })
+        assert sl._lookup_canonical_index_title("foo") == "Real Title"
+
+    def test_falls_back_to_completion_objects(self, monkeypatch):
+        monkeypatch.setattr(sl, "_cached_get", lambda url, ttl=None: {
+            "completion_objects": [
+                {"type": "ref", "title": "foo"},
+                {"type": "ref", "key": "From Completion"},
+            ],
+        })
+        assert sl._lookup_canonical_index_title("foo") == "From Completion"
+
+    def test_no_match_returns_empty_string(self, monkeypatch):
+        monkeypatch.setattr(sl, "_cached_get", lambda url, ttl=None: {
+            "completion_objects": [{"title": "foo"}],
+        })
+        assert sl._lookup_canonical_index_title("foo") == ""
+
+
+class TestResolveIndexSchemaWithFallbacks:
+    def test_returns_schema_directly_when_found(self, monkeypatch):
+        monkeypatch.setattr(
+            sl, "get_index_entry", lambda title: {"schema": {"key": "default"}})
+        schema, title = sl._resolve_index_schema_with_fallbacks("Genesis")
+        assert schema == {"key": "default"}
+        assert title == "Genesis"
+
+    def test_falls_back_to_normalized_title(self, monkeypatch):
+        def fake_get_index_entry(title):
+            if title == "Sefer Ha-Chinukh":
+                return {"schema": {"key": "default"}}
+            return {}
+        monkeypatch.setattr(sl, "get_index_entry", fake_get_index_entry)
+        schema, title = sl._resolve_index_schema_with_fallbacks(
+            "Sefer Ha–Chinukh")
+        assert schema == {"key": "default"}
+        assert title == "Sefer Ha-Chinukh"
+
+    def test_falls_back_to_canonical_title_lookup(self, monkeypatch):
+        def fake_get_index_entry(title):
+            if title == "Canonical Title":
+                return {"schema": {"key": "default"}}
+            return {}
+        monkeypatch.setattr(sl, "get_index_entry", fake_get_index_entry)
+        monkeypatch.setattr(
+            sl, "_lookup_canonical_index_title", lambda title: "Canonical Title")
+        schema, title = sl._resolve_index_schema_with_fallbacks("Some Alt Title")
+        assert schema == {"key": "default"}
+        assert title == "Canonical Title"
+
+    def test_no_schema_found_anywhere_returns_empty(self, monkeypatch):
+        monkeypatch.setattr(sl, "get_index_entry", lambda title: {})
+        monkeypatch.setattr(sl, "_lookup_canonical_index_title", lambda title: "")
+        schema, title = sl._resolve_index_schema_with_fallbacks("Nonexistent")
+        assert schema == {}
+        assert title == "Nonexistent"
