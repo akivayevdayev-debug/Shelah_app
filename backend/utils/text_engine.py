@@ -116,24 +116,24 @@ def _strip_source_attribution_prefix(answer_text):
     return text
 
 
-def _normalize_ai_answer(answer_text, include_web_warning=False, source_attribution_note="", allow_empty_fallback=True):
-    body = _strip_model_web_warning_prefix(answer_text)
-    body = _strip_source_attribution_prefix(body)
-    body = CLOCK_TIME_LATEX_RE.sub(
-        lambda m: f"{m.group(1)} {m.group(2).upper()}", body)
+def _domain_refusal_response(body):
+    """If body is exactly the domain-guardrail refusal message, return it
+    with the ruling footer appended (unless already present); otherwise
+    None, meaning normalization should continue. Split out of
+    _normalize_ai_answer() (SonarCloud python:S3776).
+    """
+    if not DOMAIN_REFUSAL_MESSAGE_RE.fullmatch(body):
+        return None
+    if RABBI_FINAL_RULING_FOOTER not in body:
+        return f"{body}\n\n{RABBI_FINAL_RULING_FOOTER}"
+    return body
 
-    # Preserve the domain guardrail refusal message exactly as emitted.
-    if DOMAIN_REFUSAL_MESSAGE_RE.fullmatch(body):
-        if RABBI_FINAL_RULING_FOOTER not in body:
-            return f"{body}\n\n{RABBI_FINAL_RULING_FOOTER}"
-        return body
 
-    if not body:
-        if allow_empty_fallback:
-            body = "No verified source found"
-        else:
-            return ""
-
+def _build_ai_answer_prefix_blocks(include_web_warning, source_attribution_note, body):
+    """Build the list of blocks (web-last-resort warning, attribution
+    note, or ruling footer) to prepend to a normalized AI answer body.
+    Split out of _normalize_ai_answer() (SonarCloud python:S3776).
+    """
     prefix_blocks = []
     if include_web_warning:
         prefix_blocks.append(WEB_LAST_RESORT_WARNING)
@@ -144,6 +144,28 @@ def _normalize_ai_answer(answer_text, include_web_warning=False, source_attribut
     elif body.lower() != "no verified source found" and RABBI_FINAL_RULING_FOOTER not in body:
         prefix_blocks.append(RABBI_FINAL_RULING_FOOTER)
 
+    return prefix_blocks
+
+
+def _normalize_ai_answer(answer_text, include_web_warning=False, source_attribution_note="", allow_empty_fallback=True):
+    body = _strip_model_web_warning_prefix(answer_text)
+    body = _strip_source_attribution_prefix(body)
+    body = CLOCK_TIME_LATEX_RE.sub(
+        lambda m: f"{m.group(1)} {m.group(2).upper()}", body)
+
+    # Preserve the domain guardrail refusal message exactly as emitted.
+    refusal_response = _domain_refusal_response(body)
+    if refusal_response is not None:
+        return refusal_response
+
+    if not body:
+        if allow_empty_fallback:
+            body = "No verified source found"
+        else:
+            return ""
+
+    prefix_blocks = _build_ai_answer_prefix_blocks(
+        include_web_warning, source_attribution_note, body)
     if prefix_blocks:
         return "\n\n".join(prefix_blocks + [body])
 
@@ -219,29 +241,30 @@ def _normalize_answer_line(raw_line):
     return [_bold_halakhic_verdicts(line)]
 
 
+def _collapse_markdown_spacing_step(text, normalized, prev_blank):
+    """Process one line of _collapse_markdown_spacing()'s blank-line
+    collapsing / header-spacing state machine: appends to `normalized`
+    in place as needed, and returns the new prev_blank state. Split out
+    of _collapse_markdown_spacing() (SonarCloud python:S3776).
+    """
+    if not text.strip():
+        if not prev_blank:
+            normalized.append("")
+        return True
+
+    if text.startswith("##") and normalized and normalized[-1] != "":
+        normalized.append("")
+    normalized.append(text)
+    return False
+
+
 def _collapse_markdown_spacing(lines):
     normalized = []
     prev_blank = True
 
     for line in lines:
-        text = str(line or "")
-        is_blank = not text.strip()
-
-        if is_blank:
-            if not prev_blank:
-                normalized.append("")
-            prev_blank = True
-            continue
-
-        if text.startswith("##"):
-            if normalized and normalized[-1] != "":
-                normalized.append("")
-            normalized.append(text)
-            prev_blank = False
-            continue
-
-        normalized.append(text)
-        prev_blank = False
+        prev_blank = _collapse_markdown_spacing_step(
+            str(line or ""), normalized, prev_blank)
 
     while normalized and not normalized[0].strip():
         normalized.pop(0)

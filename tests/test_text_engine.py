@@ -20,6 +20,9 @@ from backend.utils.text_engine import (
     _normalize_ai_answer,
     _bold_halakhic_verdicts,
     _collapse_markdown_spacing,
+    _collapse_markdown_spacing_step,
+    _domain_refusal_response,
+    _build_ai_answer_prefix_blocks,
     _format_ui_answer,
     _strip_source_attribution_prefix,
     _normalize_answer_line,
@@ -85,6 +88,43 @@ def test_collapse_markdown_spacing_collapses_multiple_blank_lines():
 def test_collapse_markdown_spacing_all_blank_lines_yields_empty():
     assert _collapse_markdown_spacing(["", "", ""]) == []
     assert _collapse_markdown_spacing([]) == []
+
+
+# ── _collapse_markdown_spacing_step ───────────────────────────────────────────
+
+def test_collapse_markdown_spacing_step_blank_line_after_non_blank_appends_blank():
+    normalized = ["Text here."]
+    prev_blank = _collapse_markdown_spacing_step("", normalized, prev_blank=False)
+    assert prev_blank is True
+    assert normalized == ["Text here.", ""]
+
+
+def test_collapse_markdown_spacing_step_blank_line_after_blank_is_collapsed():
+    normalized = ["Text here.", ""]
+    prev_blank = _collapse_markdown_spacing_step("", normalized, prev_blank=True)
+    assert prev_blank is True
+    assert normalized == ["Text here.", ""]
+
+
+def test_collapse_markdown_spacing_step_header_gets_blank_separator():
+    normalized = ["Text here."]
+    prev_blank = _collapse_markdown_spacing_step("## Ruling", normalized, prev_blank=False)
+    assert prev_blank is False
+    assert normalized == ["Text here.", "", "## Ruling"]
+
+
+def test_collapse_markdown_spacing_step_header_at_start_gets_no_leading_blank():
+    normalized = []
+    prev_blank = _collapse_markdown_spacing_step("## Ruling", normalized, prev_blank=True)
+    assert prev_blank is False
+    assert normalized == ["## Ruling"]
+
+
+def test_collapse_markdown_spacing_step_plain_line_just_appends():
+    normalized = ["## Ruling"]
+    prev_blank = _collapse_markdown_spacing_step("Text here.", normalized, prev_blank=False)
+    assert prev_blank is False
+    assert normalized == ["## Ruling", "Text here."]
 
 
 # ── _format_ui_answer (full pipeline) ─────────────────────────────────────────
@@ -158,6 +198,54 @@ def test_normalize_ai_answer_domain_refusal_with_footer_already_present_unchange
         f"{RABBI_FOOTER}"
     )
     assert _normalize_ai_answer(refusal_with_footer) == refusal_with_footer
+
+
+# ── _domain_refusal_response ──────────────────────────────────────────────────
+
+def test_domain_refusal_response_non_refusal_returns_none():
+    assert _domain_refusal_response("Body text.") is None
+
+
+def test_domain_refusal_response_adds_footer_when_missing():
+    refusal = (
+        "Sh'elah is a specialized tool for Halakhic and communal knowledge. "
+        "I cannot assist with medical diagnoses, as it falls outside my specialized domain."
+    )
+    assert _domain_refusal_response(refusal) == f"{refusal}\n\n{RABBI_FOOTER}"
+
+
+def test_domain_refusal_response_leaves_existing_footer_unchanged():
+    refusal_with_footer = (
+        "Sh'elah is a specialized tool for Halakhic and communal knowledge. "
+        "I cannot assist with medical diagnoses, as it falls outside my specialized domain. "
+        f"{RABBI_FOOTER}"
+    )
+    assert _domain_refusal_response(refusal_with_footer) == refusal_with_footer
+
+
+# ── _build_ai_answer_prefix_blocks ────────────────────────────────────────────
+
+def test_build_ai_answer_prefix_blocks_no_warning_no_attribution_adds_footer():
+    blocks = _build_ai_answer_prefix_blocks(False, "", "Some body.")
+    assert blocks == [RABBI_FOOTER]
+
+
+def test_build_ai_answer_prefix_blocks_web_warning_and_attribution():
+    blocks = _build_ai_answer_prefix_blocks(
+        True, "Note: from web.", "Some body.")
+    assert blocks == [WEB_LAST_RESORT_WARNING, "Note: from web."]
+
+
+def test_build_ai_answer_prefix_blocks_no_footer_for_no_verified_source_found():
+    blocks = _build_ai_answer_prefix_blocks(
+        False, "", "No verified source found")
+    assert blocks == []
+
+
+def test_build_ai_answer_prefix_blocks_no_duplicate_footer_when_already_present():
+    body = f"Some body. {RABBI_FOOTER}"
+    blocks = _build_ai_answer_prefix_blocks(False, "", body)
+    assert blocks == []
 
 
 # ── _normalize_ai_answer: empty / fallback handling ───────────────────────────
