@@ -710,16 +710,25 @@ def _export_chapter_as_pdf(title, ref, normalized_lines, file_safe):
     )
 
 
-@routes_library.route("/api/export/chapter", methods=["POST"])
-@maybe_require_clerk_auth
-def export_chapter():
-    payload = request.get_json(silent=True) or {}
+def _parse_export_chapter_request(payload):
+    """Parse and normalize the /api/export/chapter request payload into
+    (title, ref, export_format, lines). Split out of export_chapter()
+    (SonarCloud python:S3776).
+    """
     title = str(payload.get("title") or payload.get(
         "label") or "shelah-chapter").strip()
     ref = str(payload.get("ref") or "").strip()
     export_format = str(payload.get("format") or "txt").strip().lower()
     lines = payload.get("lines") if isinstance(
         payload.get("lines"), list) else []
+    return title, ref, export_format, lines
+
+
+@routes_library.route("/api/export/chapter", methods=["POST"])
+@maybe_require_clerk_auth
+def export_chapter():
+    payload = request.get_json(silent=True) or {}
+    title, ref, export_format, lines = _parse_export_chapter_request(payload)
 
     if export_format not in {"txt", "docx", "pdf"}:
         return jsonify({"error": "Unsupported export format"}), 400

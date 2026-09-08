@@ -198,6 +198,34 @@ class TestCollapseTalmudLeafRefs:
         assert result == ["Berakhot 2a", "Berakhot 3a", "Berakhot 4a"]
 
 
+class TestParseExportChapterRequest:
+    def test_parses_all_fields(self):
+        import backend.routes_library as routes_library_module
+        result = routes_library_module._parse_export_chapter_request({
+            "title": "Genesis 1", "ref": "Genesis 1:1", "format": "PDF",
+            "lines": [{"he": "x", "en": "y"}],
+        })
+        assert result == ("Genesis 1", "Genesis 1:1",
+                           "pdf", [{"he": "x", "en": "y"}])
+
+    def test_falls_back_to_label_then_default_title(self):
+        import backend.routes_library as routes_library_module
+        assert routes_library_module._parse_export_chapter_request(
+            {"label": "Fallback Label"})[0] == "Fallback Label"
+        assert routes_library_module._parse_export_chapter_request(
+            {})[0] == "shelah-chapter"
+
+    def test_defaults_format_to_txt(self):
+        import backend.routes_library as routes_library_module
+        assert routes_library_module._parse_export_chapter_request({})[
+            2] == "txt"
+
+    def test_non_list_lines_becomes_empty_list(self):
+        import backend.routes_library as routes_library_module
+        assert routes_library_module._parse_export_chapter_request(
+            {"lines": "not a list"})[3] == []
+
+
 class TestSchemaListField:
     def test_returns_list_when_present(self):
         import backend.routes_library as routes_library_module
