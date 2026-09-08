@@ -192,6 +192,152 @@ class TestLibraryLeafRefsTalmudSynthesis:
         assert body["refs"] == ["Some Work 1", "Some Work 2"]
 
 
+class TestNormalizeRequestedLang:
+    def test_valid_lang_passes_through(self):
+        import backend.routes_library as routes_library_module
+        assert routes_library_module._normalize_requested_lang("he", word_is_hebrew=False) == "he"
+
+    def test_invalid_lang_falls_back_to_en(self):
+        import backend.routes_library as routes_library_module
+        assert routes_library_module._normalize_requested_lang("fr", word_is_hebrew=False) == "en"
+
+    def test_missing_lang_falls_back_to_en(self):
+        import backend.routes_library as routes_library_module
+        assert routes_library_module._normalize_requested_lang(None, word_is_hebrew=False) == "en"
+
+    def test_hebrew_source_word_forces_en_even_when_he_requested(self):
+        import backend.routes_library as routes_library_module
+        assert routes_library_module._normalize_requested_lang("he", word_is_hebrew=True) == "en"
+
+    def test_uppercase_and_whitespace_are_normalized(self):
+        import backend.routes_library as routes_library_module
+        assert routes_library_module._normalize_requested_lang("  HE  ", word_is_hebrew=False) == "he"
+
+
+class TestLookupWordMeaningWithFallbackTranslation:
+    def test_hebrew_source_word_uses_hebrew_lookup(self, monkeypatch):
+        import backend.routes_library as routes_library_module
+        monkeypatch.setattr(
+            routes_library_module, "_lookup_hebrew_word_meaning",
+            lambda word: ("Sabbath, day of rest", "lexicon"),
+        )
+        result = routes_library_module._lookup_word_meaning_with_fallback_translation(
+            "שבת", word_is_hebrew=True, requested_lang="en")
+        assert result == ("Sabbath, day of rest", "lexicon")
+
+    def test_english_source_word_uses_english_lookup(self, monkeypatch):
+        import backend.routes_library as routes_library_module
+        monkeypatch.setattr(
+            routes_library_module, "_lookup_english_word_meaning",
+            lambda word: ("A day of rest.", "dictionary"),
+        )
+        result = routes_library_module._lookup_word_meaning_with_fallback_translation(
+            "rest", word_is_hebrew=False, requested_lang="en")
+        assert result == ("A day of rest.", "dictionary")
+
+    def test_english_meaning_translated_when_hebrew_requested(self, monkeypatch):
+        import backend.routes_library as routes_library_module
+        monkeypatch.setattr(
+            routes_library_module, "_lookup_english_word_meaning",
+            lambda word: ("A day of rest.", "dictionary"),
+        )
+        monkeypatch.setattr(
+            routes_library_module, "_translate_english_text_online",
+            lambda text: ("יום מנוחה", "google"),
+        )
+        meaning, source = routes_library_module._lookup_word_meaning_with_fallback_translation(
+            "rest", word_is_hebrew=False, requested_lang="he")
+        assert meaning == "יום מנוחה"
+        assert source == "dictionary+google"
+
+    def test_translation_failure_keeps_original_meaning_and_source(self, monkeypatch):
+        import backend.routes_library as routes_library_module
+        monkeypatch.setattr(
+            routes_library_module, "_lookup_english_word_meaning",
+            lambda word: ("A day of rest.", "dictionary"),
+        )
+        monkeypatch.setattr(
+            routes_library_module, "_translate_english_text_online",
+            lambda text: ("", ""),
+        )
+        meaning, source = routes_library_module._lookup_word_meaning_with_fallback_translation(
+            "rest", word_is_hebrew=False, requested_lang="he")
+        assert meaning == "A day of rest."
+        assert source == "dictionary"
+
+    def test_no_translation_attempted_when_english_requested(self, monkeypatch):
+        import backend.routes_library as routes_library_module
+        monkeypatch.setattr(
+            routes_library_module, "_lookup_english_word_meaning",
+            lambda word: ("A day of rest.", "dictionary"),
+        )
+
+        def _boom(text):
+            raise AssertionError("should not be called")
+        monkeypatch.setattr(
+            routes_library_module, "_translate_english_text_online", _boom)
+        meaning, source = routes_library_module._lookup_word_meaning_with_fallback_translation(
+            "rest", word_is_hebrew=False, requested_lang="en")
+        assert meaning == "A day of rest."
+        assert source == "dictionary"
+
+    def test_no_translation_attempted_when_meaning_already_hebrew(self, monkeypatch):
+        import backend.routes_library as routes_library_module
+        monkeypatch.setattr(
+            routes_library_module, "_lookup_english_word_meaning",
+            lambda word: ("יום מנוחה", "dictionary"),
+        )
+
+        def _boom(text):
+            raise AssertionError("should not be called")
+        monkeypatch.setattr(
+            routes_library_module, "_translate_english_text_online", _boom)
+        meaning, source = routes_library_module._lookup_word_meaning_with_fallback_translation(
+            "rest", word_is_hebrew=False, requested_lang="he")
+        assert meaning == "יום מנוחה"
+        assert source == "dictionary"
+
+
+class TestBuildWordMeaningResponse:
+    def test_empty_meaning_returns_404_not_found_shape(self):
+        import backend.routes_library as routes_library_module
+        import app as flask_app_module
+        with flask_app_module.app.test_request_context("/api/word/meaning"):
+            response, status = routes_library_module._build_word_meaning_response(
+                "zzz", "", [], "", "en")
+            assert status == 404
+            body = response.get_json()
+        assert body == {
+            "word": "zzz",
+            "meaning": "",
+            "alternatives": [],
+            "source": "",
+            "status": "not_found",
+            "lang": "en",
+        }
+
+    def test_found_meaning_returns_200_ok_shape(self):
+        import backend.routes_library as routes_library_module
+        import app as flask_app_module
+        with flask_app_module.app.test_request_context("/api/word/meaning"):
+            response = routes_library_module._build_word_meaning_response(
+                "shabbat", "The Jewish day of rest.", ["The Jewish day of rest."],
+                "dictionary", "en")
+            body = response.get_json()
+        assert body["status"] == "ok"
+        assert body["meaning"] == "The Jewish day of rest."
+        assert body["machine_translated"] is False
+
+    def test_machine_translated_source_is_flagged(self):
+        import backend.routes_library as routes_library_module
+        import app as flask_app_module
+        with flask_app_module.app.test_request_context("/api/word/meaning"):
+            response = routes_library_module._build_word_meaning_response(
+                "shabbat", "A day of rest.", [], "google-translate", "en")
+            body = response.get_json()
+        assert body["machine_translated"] is True
+
+
 class TestWordMeaningTranslationFallback:
     def test_english_word_requested_in_hebrew_triggers_translation(self, test_client, monkeypatch):
         import backend.routes_library as routes_library_module

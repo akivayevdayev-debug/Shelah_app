@@ -415,23 +415,25 @@ def sefaria_diagnostics():
     return jsonify(result), http_status
 
 
-@routes_library.route("/api/word/meaning")
-def get_word_meaning():
-    """Look up a highlighted word meaning (best-effort for Hebrew and English)."""
-    raw_word = str(request.args.get("word", "") or "").strip()
-    if not raw_word:
-        return jsonify({"error": "Missing word parameter"}), 400
-
-    requested_lang = str(request.args.get(
-        "lang", "en") or "en").strip().lower()
+def _normalize_requested_lang(lang_param, word_is_hebrew):
+    """Normalize the ?lang= query param to "en"/"he", forcing "en" for
+    Hebrew source words (to avoid transliteration-heavy round-trips).
+    Split out of get_word_meaning() (SonarCloud python:S3776).
+    """
+    requested_lang = str(lang_param or "en").strip().lower()
     if requested_lang not in {"en", "he"}:
         requested_lang = "en"
-
-    word_is_hebrew = _contains_hebrew_letters(raw_word)
     if word_is_hebrew and requested_lang == "he":
-        # For Hebrew source words we keep definitions in English to avoid transliteration-heavy round-trips.
         requested_lang = "en"
+    return requested_lang
 
+
+def _lookup_word_meaning_with_fallback_translation(raw_word, word_is_hebrew, requested_lang):
+    """Look up raw_word's meaning (Hebrew or English source lookup), then
+    translate an English meaning into Hebrew if the caller requested Hebrew
+    output and the meaning isn't already Hebrew. Split out of
+    get_word_meaning() (SonarCloud python:S3776).
+    """
     if word_is_hebrew:
         meaning, source = _lookup_hebrew_word_meaning(raw_word)
     else:
@@ -446,14 +448,13 @@ def get_word_meaning():
                 source, translated_source] if part]
             source = "+".join(source_parts)
 
-    alternatives = _collect_word_meaning_alternatives(
-        raw_word=raw_word,
-        primary_meaning=meaning,
-        word_is_hebrew=word_is_hebrew,
-    )
-    if alternatives:
-        meaning = alternatives[0]
+    return meaning, source
 
+
+def _build_word_meaning_response(raw_word, meaning, alternatives, source, requested_lang):
+    """Build the /api/word/meaning JSON response, found or not-found.
+    Split out of get_word_meaning() (SonarCloud python:S3776).
+    """
     if not meaning:
         return jsonify({
             "word": raw_word,
@@ -476,6 +477,32 @@ def get_word_meaning():
         "status": "ok",
         "lang": requested_lang,
     })
+
+
+@routes_library.route("/api/word/meaning")
+def get_word_meaning():
+    """Look up a highlighted word meaning (best-effort for Hebrew and English)."""
+    raw_word = str(request.args.get("word", "") or "").strip()
+    if not raw_word:
+        return jsonify({"error": "Missing word parameter"}), 400
+
+    word_is_hebrew = _contains_hebrew_letters(raw_word)
+    requested_lang = _normalize_requested_lang(
+        request.args.get("lang", "en"), word_is_hebrew)
+
+    meaning, source = _lookup_word_meaning_with_fallback_translation(
+        raw_word, word_is_hebrew, requested_lang)
+
+    alternatives = _collect_word_meaning_alternatives(
+        raw_word=raw_word,
+        primary_meaning=meaning,
+        word_is_hebrew=word_is_hebrew,
+    )
+    if alternatives:
+        meaning = alternatives[0]
+
+    return _build_word_meaning_response(
+        raw_word, meaning, alternatives, source, requested_lang)
 
 
 def _chapter_export_plain_text(title, ref, lines):
