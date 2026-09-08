@@ -54,6 +54,56 @@ def library_index():
     return jsonify(data)
 
 
+def _strip_title_prefix_from_ref(ref_body, canonical_title, index_title):
+    """Strip a leading canonical- or index-title prefix (and its
+    separator) from a wholeRef string, e.g. "Berakhot 2a:1-13a:15" with
+    canonical_title "Berakhot" -> "2a:1-13a:15". Returns ref_body
+    unchanged if neither title prefixes it. Split out of
+    _parse_chapters_alt_node() (SonarCloud python:S3776).
+    """
+    if canonical_title and ref_body.lower().startswith(canonical_title.lower()):
+        return ref_body[len(canonical_title):].lstrip(" ,")
+    if index_title and ref_body.lower().startswith(index_title.lower()):
+        return ref_body[len(index_title):].lstrip(" ,")
+    return ref_body
+
+
+def _parse_chapters_alt_node(node, entry, index_title):
+    """Parse a single Chapters-alt node into a {label, fromDaf, toDaf}
+    dict, or None if it doesn't carry a recognizable daf range. Split out
+    of _extract_chapters_alt_sections() (SonarCloud python:S3776).
+    """
+    if not isinstance(node, dict):
+        return None
+    raw_title = str(node.get("title") or "").strip()
+    canonical_title = entry.get("title", index_title)
+    whole_ref = str(node.get("wholeRef") or "").strip()
+
+    ref_body = _strip_title_prefix_from_ref(
+        whole_ref, canonical_title, index_title)
+
+    if len(ref_body) > _MAX_REF_SEGMENT_LEN:
+        return None
+    range_m = _DAF_RANGE_RE.search(ref_body)
+    if not range_m:
+        return None
+    from_daf = range_m.group(1).lower()
+    to_daf = range_m.group(2).lower()
+
+    # Clean the chapter label: "Chapter 1; MeEimatai" → "MeEimatai (2a–13a)"
+    # Keep the human name after the semicolon, if present
+    if ';' in raw_title:
+        label = raw_title.split(';', 1)[1].strip()
+    else:
+        label = raw_title
+
+    return {
+        "label": label,
+        "fromDaf": from_daf,
+        "toDaf": to_daf,
+    }
+
+
 def _extract_chapters_alt_sections(index_title, entry, chapters_alt):
     """Talmud daf-range groupings from entry['alts']['Chapters'|'chapters'].
     Returns [{label, fromDaf, toDaf}, ...]. Split out of
@@ -66,42 +116,39 @@ def _extract_chapters_alt_sections(index_title, entry, chapters_alt):
 
     sections = []
     for node in nodes:
-        if not isinstance(node, dict):
-            continue
-        raw_title = str(node.get("title") or "").strip()
-        canonical_title = entry.get("title", index_title)
-        whole_ref = str(node.get("wholeRef") or "").strip()
-
-        # Parse the daf range from wholeRef: "Berakhot 2a:1-13a:15"
-        # Strip the title prefix then read the daf range
-        ref_body = whole_ref
-        if canonical_title and ref_body.lower().startswith(canonical_title.lower()):
-            ref_body = ref_body[len(canonical_title):].lstrip(" ,")
-        elif index_title and ref_body.lower().startswith(index_title.lower()):
-            ref_body = ref_body[len(index_title):].lstrip(" ,")
-
-        if len(ref_body) > _MAX_REF_SEGMENT_LEN:
-            continue
-        range_m = _DAF_RANGE_RE.search(ref_body)
-        if not range_m:
-            continue
-        from_daf = range_m.group(1).lower()
-        to_daf = range_m.group(2).lower()
-
-        # Clean the chapter label: "Chapter 1; MeEimatai" → "MeEimatai (2a–13a)"
-        # Keep the human name after the semicolon, if present
-        if ';' in raw_title:
-            label = raw_title.split(';', 1)[1].strip()
-        else:
-            label = raw_title
-
-        sections.append({
-            "label": label,
-            "fromDaf": from_daf,
-            "toDaf": to_daf,
-        })
+        section = _parse_chapters_alt_node(node, entry, index_title)
+        if section is not None:
+            sections.append(section)
 
     return sections
+
+
+def _parse_topic_alt_node(node):
+    """Parse a single Topic-alt node into a {label, heLabel, fromSection,
+    toSection} dict, or None if it doesn't carry a recognizable section
+    range. Split out of _extract_topic_alt_sections() (SonarCloud
+    python:S3776).
+    """
+    if not isinstance(node, dict):
+        return None
+    label = str(node.get("title") or "").strip()
+    he_label = str(node.get("heTitle") or "").strip()
+    ref_body = str(node.get("wholeRef") or "").strip()
+    if not label or not ref_body:
+        return None
+
+    if len(ref_body) > _MAX_REF_SEGMENT_LEN:
+        return None
+    range_m = _SECTION_RANGE_RE.search(ref_body)
+    if not range_m:
+        return None
+
+    return {
+        "label": label,
+        "heLabel": he_label,
+        "fromSection": int(range_m.group(1)),
+        "toSection": int(range_m.group(2)),
+    }
 
 
 def _extract_topic_alt_sections(topic_alt):
@@ -116,26 +163,9 @@ def _extract_topic_alt_sections(topic_alt):
 
     sections = []
     for node in nodes:
-        if not isinstance(node, dict):
-            continue
-        label = str(node.get("title") or "").strip()
-        he_label = str(node.get("heTitle") or "").strip()
-        ref_body = str(node.get("wholeRef") or "").strip()
-        if not label or not ref_body:
-            continue
-
-        if len(ref_body) > _MAX_REF_SEGMENT_LEN:
-            continue
-        range_m = _SECTION_RANGE_RE.search(ref_body)
-        if not range_m:
-            continue
-
-        sections.append({
-            "label": label,
-            "heLabel": he_label,
-            "fromSection": int(range_m.group(1)),
-            "toSection": int(range_m.group(2)),
-        })
+        section = _parse_topic_alt_node(node)
+        if section is not None:
+            sections.append(section)
 
     return sections
 
