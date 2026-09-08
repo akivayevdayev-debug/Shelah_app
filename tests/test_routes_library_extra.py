@@ -142,6 +142,62 @@ class TestExtractTopicAltSections:
             {"nodes": None}) == []
 
 
+class TestCompactTalmudLeafRef:
+    def test_returns_compacted_ref_and_adds_daf_to_seen(self):
+        import backend.routes_library as routes_library_module
+        seen = set()
+        result = routes_library_module._compact_talmud_leaf_ref(
+            "Berakhot 2a:1", "Berakhot", seen)
+        assert result == "Berakhot 2a"
+        assert seen == {"2a"}
+
+    def test_duplicate_daf_returns_none(self):
+        import backend.routes_library as routes_library_module
+        seen = {"2a"}
+        result = routes_library_module._compact_talmud_leaf_ref(
+            "Berakhot 2a:5", "Berakhot", seen)
+        assert result is None
+
+    def test_blank_ref_returns_none(self):
+        import backend.routes_library as routes_library_module
+        assert routes_library_module._compact_talmud_leaf_ref(
+            "  ", "Berakhot", set()) is None
+
+    def test_no_daf_token_returns_none(self):
+        import backend.routes_library as routes_library_module
+        assert routes_library_module._compact_talmud_leaf_ref(
+            "Berakhot Introduction", "Berakhot", set()) is None
+
+    def test_oversized_ref_returns_none(self):
+        import backend.routes_library as routes_library_module
+        assert routes_library_module._compact_talmud_leaf_ref(
+            "Berakhot " + "x" * 600, "Berakhot", set()) is None
+
+
+class TestCollapseTalmudLeafRefs:
+    def test_dedupes_and_compacts_refs(self):
+        import backend.routes_library as routes_library_module
+        refs = ["Berakhot 2a:1", "Berakhot 2a:5",
+                "Berakhot 2b:1", "Berakhot Introduction"]
+        result = routes_library_module._collapse_talmud_leaf_refs(
+            "Berakhot", refs)
+        assert result == ["Berakhot 2a", "Berakhot 2b"]
+
+    def test_non_list_input_returns_empty(self):
+        import backend.routes_library as routes_library_module
+        assert routes_library_module._collapse_talmud_leaf_refs(
+            "Berakhot", None) == []
+        assert routes_library_module._collapse_talmud_leaf_refs(
+            "Berakhot", []) == []
+
+    def test_respects_max_items(self):
+        import backend.routes_library as routes_library_module
+        refs = [f"Berakhot {n}a:1" for n in range(2, 10)]
+        result = routes_library_module._collapse_talmud_leaf_refs(
+            "Berakhot", refs, max_items=3)
+        assert result == ["Berakhot 2a", "Berakhot 3a", "Berakhot 4a"]
+
+
 class TestSchemaListField:
     def test_returns_list_when_present(self):
         import backend.routes_library as routes_library_module

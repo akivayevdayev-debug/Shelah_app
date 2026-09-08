@@ -206,6 +206,35 @@ def _extract_index_sections(index_title, entry):
     return []
 
 
+def _compact_talmud_leaf_ref(ref_value, normalized_title, seen):
+    """Parse a single Talmud leaf ref into its compacted daf form
+    ("<title> <daf>"), or None if it's blank, oversized, has no daf
+    token, or its daf was already seen. Adds the daf to `seen` in place
+    when a new one is found. Split out of _collapse_talmud_leaf_refs()
+    (SonarCloud python:S3776).
+    """
+    ref_text = str(ref_value or "").strip()
+    if not ref_text:
+        return None
+
+    body = ref_text
+    if normalized_title and body.lower().startswith(normalized_title.lower()):
+        body = body[len(normalized_title):].lstrip(" ,")
+
+    if len(body) > _MAX_REF_SEGMENT_LEN:
+        return None
+    daf_match = _DAF_TOKEN_RE.search(body)
+    if not daf_match:
+        return None
+
+    daf = daf_match.group(0).lower()
+    if daf in seen:
+        return None
+    seen.add(daf)
+
+    return f"{normalized_title} {daf}".strip()
+
+
 def _collapse_talmud_leaf_refs(index_title, refs, max_items=260):
     """Convert segment-level Talmud refs into unique daf refs for stable
     grid rendering. Moved to module level (out of library_leaf_refs())
@@ -221,26 +250,11 @@ def _collapse_talmud_leaf_refs(index_title, refs, max_items=260):
     seen = set()
 
     for ref_value in refs:
-        ref_text = str(ref_value or "").strip()
-        if not ref_text:
+        compact_ref = _compact_talmud_leaf_ref(
+            ref_value, normalized_title, seen)
+        if compact_ref is None:
             continue
-
-        body = ref_text
-        if normalized_title and body.lower().startswith(normalized_title.lower()):
-            body = body[len(normalized_title):].lstrip(" ,")
-
-        if len(body) > _MAX_REF_SEGMENT_LEN:
-            continue
-        daf_match = _DAF_TOKEN_RE.search(body)
-        if not daf_match:
-            continue
-
-        daf = daf_match.group(0).lower()
-        if daf in seen:
-            continue
-        seen.add(daf)
-
-        compact_refs.append(f"{normalized_title} {daf}".strip())
+        compact_refs.append(compact_ref)
         if len(compact_refs) >= max_items:
             break
 
