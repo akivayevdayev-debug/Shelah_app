@@ -11,6 +11,137 @@ from __future__ import annotations
 
 
 
+class TestStripTitlePrefixFromRef:
+    def test_strips_canonical_title_prefix(self):
+        import backend.routes_library as routes_library_module
+        result = routes_library_module._strip_title_prefix_from_ref(
+            "Berakhot 2a:1-13a:15", "Berakhot", "Berakhot")
+        assert result == "2a:1-13a:15"
+
+    def test_strips_index_title_prefix_when_canonical_does_not_match(self):
+        import backend.routes_library as routes_library_module
+        result = routes_library_module._strip_title_prefix_from_ref(
+            "Berakhot 2a:1-13a:15", "Some Other Title", "Berakhot")
+        assert result == "2a:1-13a:15"
+
+    def test_returns_unchanged_when_neither_title_matches(self):
+        import backend.routes_library as routes_library_module
+        result = routes_library_module._strip_title_prefix_from_ref(
+            "2a:1-13a:15", "Berakhot", "Shabbat")
+        assert result == "2a:1-13a:15"
+
+    def test_case_insensitive_match(self):
+        import backend.routes_library as routes_library_module
+        result = routes_library_module._strip_title_prefix_from_ref(
+            "berakhot 2a:1-13a:15", "Berakhot", "Berakhot")
+        assert result == "2a:1-13a:15"
+
+
+class TestParseChaptersAltNode:
+    def test_parses_daf_range_with_semicolon_label(self):
+        import backend.routes_library as routes_library_module
+        node = {"title": "Chapter 1; MeEimatai",
+                "wholeRef": "Berakhot 2a:1-13a:15"}
+        result = routes_library_module._parse_chapters_alt_node(
+            node, {"title": "Berakhot"}, "Berakhot")
+        assert result == {"label": "MeEimatai", "fromDaf": "2a", "toDaf": "13a"}
+
+    def test_parses_daf_range_without_semicolon_label(self):
+        import backend.routes_library as routes_library_module
+        node = {"title": "Chapter 1", "wholeRef": "Berakhot 2a:1-13a:15"}
+        result = routes_library_module._parse_chapters_alt_node(
+            node, {"title": "Berakhot"}, "Berakhot")
+        assert result["label"] == "Chapter 1"
+
+    def test_non_dict_node_returns_none(self):
+        import backend.routes_library as routes_library_module
+        assert routes_library_module._parse_chapters_alt_node(
+            "not a dict", {"title": "Berakhot"}, "Berakhot") is None
+
+    def test_no_daf_range_in_ref_returns_none(self):
+        import backend.routes_library as routes_library_module
+        node = {"title": "Chapter 1", "wholeRef": "Berakhot Introduction"}
+        assert routes_library_module._parse_chapters_alt_node(
+            node, {"title": "Berakhot"}, "Berakhot") is None
+
+    def test_oversized_ref_body_returns_none(self):
+        import backend.routes_library as routes_library_module
+        node = {"title": "Chapter 1", "wholeRef": "Berakhot " + "x" * 600}
+        assert routes_library_module._parse_chapters_alt_node(
+            node, {"title": "Berakhot"}, "Berakhot") is None
+
+
+class TestExtractChaptersAltSections:
+    def test_builds_sections_from_nodes(self):
+        import backend.routes_library as routes_library_module
+        chapters_alt = {"nodes": [
+            {"title": "Chapter 1; MeEimatai",
+                "wholeRef": "Berakhot 2a:1-13a:15"},
+            {"title": "not a valid range", "wholeRef": "Berakhot Introduction"},
+        ]}
+        result = routes_library_module._extract_chapters_alt_sections(
+            "Berakhot", {"title": "Berakhot"}, chapters_alt)
+        assert result == [
+            {"label": "MeEimatai", "fromDaf": "2a", "toDaf": "13a"}]
+
+    def test_non_list_nodes_returns_empty(self):
+        import backend.routes_library as routes_library_module
+        assert routes_library_module._extract_chapters_alt_sections(
+            "Berakhot", {}, {"nodes": "not a list"}) == []
+
+
+class TestParseTopicAltNode:
+    def test_parses_section_range(self):
+        import backend.routes_library as routes_library_module
+        node = {"title": "Hilchot Shabbat", "heTitle": "הלכות שבת",
+                "wholeRef": "Shulchan Arukh, Orach Chayim 242-344"}
+        result = routes_library_module._parse_topic_alt_node(node)
+        assert result == {
+            "label": "Hilchot Shabbat",
+            "heLabel": "הלכות שבת",
+            "fromSection": 242,
+            "toSection": 344,
+        }
+
+    def test_non_dict_node_returns_none(self):
+        import backend.routes_library as routes_library_module
+        assert routes_library_module._parse_topic_alt_node("nope") is None
+
+    def test_missing_label_or_ref_returns_none(self):
+        import backend.routes_library as routes_library_module
+        assert routes_library_module._parse_topic_alt_node(
+            {"title": "", "wholeRef": "1-2"}) is None
+        assert routes_library_module._parse_topic_alt_node(
+            {"title": "X", "wholeRef": ""}) is None
+
+    def test_no_section_range_returns_none(self):
+        import backend.routes_library as routes_library_module
+        node = {"title": "X", "wholeRef": "no range here"}
+        assert routes_library_module._parse_topic_alt_node(node) is None
+
+
+class TestExtractTopicAltSections:
+    def test_builds_sections_from_nodes(self):
+        import backend.routes_library as routes_library_module
+        topic_alt = {"nodes": [
+            {"title": "Hilchot Shabbat", "heTitle": "הלכות שבת",
+                "wholeRef": "Orach Chayim 242-344"},
+            {"title": "", "wholeRef": "1-2"},
+        ]}
+        result = routes_library_module._extract_topic_alt_sections(topic_alt)
+        assert result == [{
+            "label": "Hilchot Shabbat",
+            "heLabel": "הלכות שבת",
+            "fromSection": 242,
+            "toSection": 344,
+        }]
+
+    def test_non_list_nodes_returns_empty(self):
+        import backend.routes_library as routes_library_module
+        assert routes_library_module._extract_topic_alt_sections(
+            {"nodes": None}) == []
+
+
 class TestSchemaListField:
     def test_returns_list_when_present(self):
         import backend.routes_library as routes_library_module
