@@ -2010,6 +2010,11 @@
         // hidden mid-load — the direct cause of "unexpected loading overlays".
         let _loadingOverlayHideTimer = null;
 
+        // Monotonic request-generation counter for readText(): without this, a
+        // slow first selection's response can resolve AFTER a faster second
+        // selection's and overwrite its already-rendered content with stale data.
+        let _readTextRequestGen = 0;
+
         function showLoadingOverlay() {
             clearTimeout(_loadingOverlayHideTimer);
             loadingOverlay.setAttribute('aria-busy', 'true');
@@ -8793,12 +8798,17 @@
             const safeName = String(prayerName || '').trim();
             if (!safeName) return;
 
+            // Both fetches below are network round-trips with no visual feedback
+            // otherwise — show loading immediately so the click doesn't look inert.
+            showLoadingOverlay();
+
             let leafRefs = await fetchIndexLeafRefs(safeName);
             if (!Array.isArray(leafRefs) || leafRefs.length < 2) {
                 leafRefs = await fetchPrayerSectionRefs(safeName);
             }
 
             if (Array.isArray(leafRefs) && leafRefs.length > 1) {
+                hideLoadingOverlay();
                 closeTextsMenu();
                 openReferenceGrid(safeName, leafRefs);
                 return;
@@ -10283,6 +10293,7 @@
 
         // ─── INLINE SEFARIA TEXT READER ───────────────────────────────────────
         async function readText(ref, options = {}) {
+            const myRequestId = ++_readTextRequestGen;
             const normalizedRequestRef = String(ref || '').replace(/\s+/g, ' ').trim();
             const skipNavigationGrid = Boolean(options?.skipNavigationGrid);
             const chapterGridTarget = skipNavigationGrid ? null : shouldOpenChapterGrid(normalizedRequestRef);
@@ -10292,8 +10303,17 @@
                 return;
             }
 
-            if (!skipNavigationGrid && await maybeOpenReferenceGrid(normalizedRequestRef)) {
-                return;
+            if (!skipNavigationGrid) {
+                // maybeOpenReferenceGrid does its own network fetch (leaf refs) before
+                // deciding whether to show a grid — show loading feedback immediately
+                // instead of leaving the click looking like it did nothing until that
+                // resolves (the "random pauses" the grid pre-flight fetch causes).
+                showLoadingOverlay();
+                const openedGrid = await maybeOpenReferenceGrid(normalizedRequestRef);
+                if (openedGrid) {
+                    hideLoadingOverlay();
+                    return;
+                }
             }
 
             homeGrid.style.display = 'none';
@@ -10314,6 +10334,12 @@
 
             try {
                 const { payload: data, resolvedRef } = await fetchTextPayloadWithFallback(normalizedRequestRef || ref);
+
+                // A newer readText() call started while this one was in flight — its
+                // response already owns the reader pane; applying this stale one now
+                // would silently overwrite it (or flash content the user never asked
+                // for last) with no error.
+                if (myRequestId !== _readTextRequestGen) return;
 
                 hideLoadingOverlay();
                 reader.classList.remove('hidden');
@@ -10346,8 +10372,6 @@
                     logReliability('text-load-error', { ref: normalizedRequestRef || String(ref || ''), error: _errStr, error_type: _errType });
                     return;
                 }
-
-                await ensurePayloadAdjacentRefs(data);
 
                 // Title
                 const titleEl = document.getElementById('readerTitle');
@@ -10398,6 +10422,18 @@
                     </div>`;
 
                 scrollPrimaryToTop('smooth');
+
+                // Adjacent (prev/next) refs are only needed for infinite-scroll
+                // continuation, not for painting the current chunk — fetch them
+                // after first paint instead of blocking on them, so the user
+                // isn't staring at a blank reader pane during this extra round
+                // trip. Guarded against the user having navigated to a different
+                // text before this resolves.
+                ensurePayloadAdjacentRefs(data).then(() => {
+                    if (window.currentTextPayload !== data) return;
+                    infiniteReaderState.nextRef = String(data.next || '').trim();
+                    infiniteReaderState.prevRef = String(data.prev || '').trim();
+                }).catch(() => {});
 
             } catch (err) {
                 hideLoadingOverlay();
