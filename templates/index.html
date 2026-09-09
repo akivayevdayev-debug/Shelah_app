@@ -7152,7 +7152,14 @@
                 const sectionTitle = getChunkDisplayTitle(chunk);
                 const sectionRefLabel = getChunkDisplayRef(chunk);
                 const showRefMeta = Boolean(sectionRefLabel && !isLikelyDuplicateLabel(sectionTitle, sectionRefLabel));
-                const currentMainTitle = String(document.getElementById('readerTitle')?.innerText || '').trim();
+                // Use the stable title snapshot from when this text was first
+                // loaded, not the live #readerTitle DOM text — that drifts as
+                // the user scrolls (updateReaderHeaderForVisibleChunk), which
+                // previously made this redundant-header decision flip on every
+                // re-render depending on scroll position.
+                const currentMainTitle = String(
+                    window.currentTextAnchorTitle || document.getElementById('readerTitle')?.innerText || ''
+                ).trim();
                 const hideRedundantHeader = Boolean(
                     index === 0
                     && currentMainTitle
@@ -10298,6 +10305,17 @@
                 } else {
                     titleEl.innerText = data.heTitle ? `${data.title} · ${data.heTitle}` : fallbackTitle;
                 }
+                // Stable snapshot of the title as first loaded — used to decide
+                // whether the first chunk's own section-title bar would be a
+                // redundant repeat of the page title (see renderCurrentTextByLayout).
+                // readerTitle.innerText itself later drifts as the user scrolls
+                // (updateReaderHeaderForVisibleChunk keeps it in sync with whatever
+                // chunk is on screen), so re-reading the live DOM there instead of
+                // this snapshot made that redundant-header decision flip on every
+                // re-render depending on scroll position — the "inconsistent
+                // titling" bug where a chunk's title box would appear/disappear
+                // across renders for no reason tied to that chunk itself.
+                window.currentTextAnchorTitle = titleEl.innerText;
                 setCurrentView('text', data.ref || resolvedRef || normalizedRequestRef || ref, data.title || data.ref || resolvedRef || normalizedRequestRef || ref);
                 window.currentTextPayload = data;
                 window.currentTextPayloadChain = [data];
