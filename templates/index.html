@@ -6765,10 +6765,20 @@
 
             infiniteReaderState.sectionObserver = new IntersectionObserver((entries) => {
                 let bestIndex = -1;
-                let bestRatio = -1;
+                let bestVisiblePx = -1;
                 entries.forEach(entry => {
-                    if (entry.isIntersecting && entry.intersectionRatio > bestRatio) {
-                        bestRatio = entry.intersectionRatio;
+                    // intersectionRatio is relative to each chunk's own total
+                    // height, so a short chunk that's fully on screen (ratio
+                    // ~1.0) beat a long chunk the user is actually reading
+                    // that's only, say, 30% visible (ratio ~0.3) — the title
+                    // would flip to "what's selected" being whichever
+                    // adjacent chunk happened to be short, not whichever one
+                    // actually fills the reader's view. Comparing absolute
+                    // visible pixel height instead removes that length bias.
+                    if (!entry.isIntersecting) return;
+                    const visiblePx = entry.intersectionRect.height;
+                    if (visiblePx > bestVisiblePx) {
+                        bestVisiblePx = visiblePx;
                         const idx = parseInt(entry.target.dataset.textChunkIndex, 10);
                         if (!isNaN(idx)) bestIndex = idx;
                     }
