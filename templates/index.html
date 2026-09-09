@@ -1,3 +1,4 @@
+{% from "components/icons.html" import phosphor, phosphor_path %}
 <!DOCTYPE html>
 <html lang="en" data-theme="dark">
 
@@ -223,13 +224,7 @@
                 <button id="topbarLibraryBtn" type="button"
                     class="topbar-flat-btn hidden lg:inline-flex shrink-0 items-center gap-1.5 topbar-library-btn"
                     onclick="openLibrarySidebar()" title="Library" aria-label="Library">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 shrink-0" viewBox="0 0 20 20" fill="currentColor"
-                        aria-hidden="true">
-                        <path
-                            d="M3 4.5A1.5 1.5 0 014.5 3h9A1.5 1.5 0 0115 4.5V14a1 1 0 001 1h1a1 1 0 010 2h-1a3 3 0 01-3-3V5H5v9a1 1 0 001 1h5a1 1 0 110 2H6a3 3 0 01-3-3V4.5z" />
-                        <path
-                            d="M6 7a1 1 0 011-1h4a1 1 0 110 2H7a1 1 0 01-1-1zm0 3a1 1 0 011-1h4a1 1 0 110 2H7a1 1 0 01-1-1z" />
-                    </svg>
+                    {{ phosphor('book-open', size=20, class='h-5 w-5 shrink-0') }}
                     <span class="text-xs font-medium" data-en="Library" data-he="ספרייה">Library</span>
                 </button>
 
@@ -244,12 +239,8 @@
                                 placeholder="Ask Sh'elah about any topic, halachah, or custom..."
                                 class="w-full bg-[#fbf8f1] hover:bg-[#f8f2e8] transition text-sm sm:text-base p-2 pl-4 pr-10 rounded-full border border-[#d8d0c2] focus:border-[#b8aa90] focus:ring-2 focus:ring-[#d9cdb8]/80 focus:bg-[#fffdf8] focus:outline-none"
                                 autocomplete="off" required>
-                            <div id="searchIcon" class="absolute right-3 top-2 text-slate-400">
-                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                                    <path fill-rule="evenodd"
-                                        d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z"
-                                        clip-rule="evenodd" />
-                                </svg>
+                            <div id="searchIcon" class="absolute right-3 top-2 text-slate-400" aria-hidden="true">
+                                {{ phosphor('magnifying-glass', size=20, class='h-5 w-5') }}
                             </div>
 
                             <div id="searchSuggestions"
@@ -280,10 +271,7 @@
                     <div id="settingsMenuContainer" class="relative z-[120] shrink-0">
                         <button id="settingsMenuBtn" type="button" aria-expanded="false" aria-haspopup="true"
                             class="topbar-flat-btn text-[#7a6a52]" title="Open settings menu">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
-                                <path
-                                    d="M3 5.5A1.5 1.5 0 014.5 4h11A1.5 1.5 0 0117 5.5v.25A1.75 1.75 0 0115.25 7.5h-3.5A1.75 1.75 0 0110 5.75V5h-5a.5.5 0 000 1h2a1 1 0 010 2H4.5A1.5 1.5 0 013 6.5v-1zM3 13.5A1.5 1.5 0 014.5 12H8a1.75 1.75 0 011.75 1.75V14A1.5 1.5 0 018.25 15.5h-3.75A1.5 1.5 0 013 14v-.5zM12 12a1 1 0 000 2h3.5a.5.5 0 010 1H13a1 1 0 100 2h2.5A1.5 1.5 0 0017 15.5v-2A1.5 1.5 0 0015.5 12H12z" />
-                            </svg>
+                            {{ phosphor('sliders-horizontal', size=16, class='h-4 w-4') }}
                         </button>
 
                         <div id="settingsPanel"
@@ -374,12 +362,7 @@
                                 class="topbar-user-menu-btn topbar-flat-btn text-xs text-[#334155] inline-flex items-center gap-1.5"
                                 title="Open profile menu">
                                 <span id="userProfileMenuLabel" class="max-w-[130px] truncate">Signed in</span>
-                                <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" viewBox="0 0 20 20"
-                                    fill="currentColor" aria-hidden="true">
-                                    <path fill-rule="evenodd"
-                                        d="M5.23 7.21a.75.75 0 011.06.02L10 11.168l3.71-3.938a.75.75 0 111.08 1.04l-4.25 4.51a.75.75 0 01-1.08 0l-4.25-4.51a.75.75 0 01.02-1.06z"
-                                        clip-rule="evenodd" />
-                                </svg>
+                                {{ phosphor('caret-down', size=14, class='h-3.5 w-3.5') }}
                             </button>
 
                             <div id="userProfileMenu"
@@ -427,13 +410,7 @@
             <!-- Library button — left anchor, in-track -->
             <button id="readerLibraryTopBarBtn" type="button"
                 class="reader-topbar-icon-btn reader-topbar-library-track" aria-label="Library" title="Library">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor"
-                    aria-hidden="true">
-                    <path
-                        d="M3 4.5A1.5 1.5 0 014.5 3h9A1.5 1.5 0 0115 4.5V14a1 1 0 001 1h1a1 1 0 010 2h-1a3 3 0 01-3-3V5H5v9a1 1 0 001 1h5a1 1 0 110 2H6a3 3 0 01-3-3V4.5z" />
-                    <path
-                        d="M6 7a1 1 0 011-1h4a1 1 0 110 2H7a1 1 0 01-1-1zm0 3a1 1 0 011-1h4a1 1 0 110 2H7a1 1 0 01-1-1z" />
-                </svg>
+                {{ phosphor('book-open', size=16, class='h-4 w-4') }}
             </button>
 
             <button id="readerPrevTopBarBtn" type="button" class="reader-topbar-icon-btn"
@@ -1086,12 +1063,7 @@
                                         onclick="openCitySearch()"
                                         class="inline-flex items-center justify-center w-5 h-5 rounded-full border border-[#c8b88a] bg-[#faf5e8] hover:bg-[#f5edce] text-[#4a6a8a] transition hover:border-[#a09060] hover:text-[#1f3f63]"
                                         aria-label="Find location by city">
-                                        <svg xmlns="http://www.w3.org/2000/svg" class="w-3 h-3" viewBox="0 0 20 20"
-                                            fill="currentColor" aria-hidden="true">
-                                            <path fill-rule="evenodd"
-                                                d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z"
-                                                clip-rule="evenodd" />
-                                        </svg>
+                                        {{ phosphor('map-pin', size=12, class='w-3 h-3') }}
                                     </button>
                                 </span>
                             </h4>
@@ -1108,13 +1080,9 @@
                                         data-en-placeholder="e.g. Jerusalem, New York..."
                                         data-he-placeholder="לדוגמה: ירושלים, ניו יורק" />
                                     <button id="citySearchSubmit" type="button" onclick="searchByCity()"
+                                        aria-label="Search city"
                                         class="px-3 py-1.5 rounded-lg bg-[#1f3f63] text-white text-sm font-semibold hover:bg-[#162d4a] transition">
-                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20"
-                                            fill="currentColor">
-                                            <path fill-rule="evenodd"
-                                                d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z"
-                                                clip-rule="evenodd" />
-                                        </svg>
+                                        {{ phosphor('magnifying-glass', size=16, class='h-4 w-4') }}
                                     </button>
                                 </div>
                                 <p id="citySearchError" class="hidden mt-1.5 text-xs text-red-600"></p>
