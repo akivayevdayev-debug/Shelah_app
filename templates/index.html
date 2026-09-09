@@ -9163,8 +9163,18 @@
                         fetch(`/api/prayer/${encodeURIComponent(prayerName)}`),
                         fetch(`/api/siddur/full/${encodeURIComponent(prayerName)}`)
                     ]);
-                    if (!staticResp.ok) throw new Error('Prayer not found');
-                    prayerData = await staticResp.json();
+                    if (!staticResp.ok) {
+                        // No static preview entry for this title — only truly fatal if
+                        // Sefaria's full liturgical text is unavailable too. Otherwise
+                        // build a minimal prayerData from Sefaria's response alone
+                        // instead of discarding a successful fetch just because the
+                        // separate preview endpoint 404d (a "prayer books not loading
+                        // at all" case for titles with no hand-curated preview).
+                        if (!sefariaResp.ok) throw new Error('Prayer not found');
+                        prayerData = { title: prayerName, content: { he: '', en: '' } };
+                    } else {
+                        prayerData = await staticResp.json();
+                    }
                     const fallbackHeParagraphs = getPrayerFallbackParagraphs(prayerData?.content?.he || '');
                     const fallbackEnParagraphs = getPrayerFallbackParagraphs(prayerData?.content?.en || '');
 
