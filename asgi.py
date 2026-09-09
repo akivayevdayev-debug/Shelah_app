@@ -541,71 +541,68 @@ async def _security_blocked_ask_async_payload(
     }
 
 
-async def _run_ask_async_ai_synthesis(
-    question, mode, canonical_lens, answer_language, user_id, question_was_sanitized, ctx,
-):
-    """Stage 3 of ask_async(): AI synthesis. Raises on any failure -- the
-    caller catches and runs _run_ask_async_fallback(). Split out of
-    ask_async() (SonarCloud python:S3776) -- see _ask_async_prayer_result.
+async def _dispatch_ask_async_ai_synthesis_call(question, mode, canonical_lens, answer_language, ctx):
+    """Build the tool_context and await the AI-synthesis call (agentic
+    tool-use loop or the plain claude.ask_ai_async() call, per
+    AI_AGENTIC_TOOLS) within AI_TOTAL_BUDGET_SECONDS. Split out of
+    _run_ask_async_ai_synthesis() (SonarCloud python:S3776) -- mirrors
+    app.py's _dispatch_ask_ai_synthesis_call, but this path is already async
+    so no thread-pool/asyncio.run() indirection is needed (contrast app.py's
+    sync call site, which submits to _THREAD_POOL).
+
+    AI_AGENTIC_TOOLS (plan.md §9.4, Prompt 20, env-default off) swaps in the
+    agentic tool-use loop. Off (the default), this branch is never taken and
+    behavior is byte-for-byte the pre-existing claude.ask_ai_async() call.
     """
     tool_context = ctx["tool_context"]
     tool_context = tool_context if isinstance(tool_context, dict) else {
         "route": "/ask", "async": True}
     tool_context["async"] = True
 
-    # AI_AGENTIC_TOOLS (plan.md §9.4, Prompt 20, env-default off) swaps in
-    # the agentic tool-use loop; already-async here, so this is a direct
-    # coroutine swap with no thread-pool/asyncio.run() indirection needed
-    # (contrast app.py's sync call site, which submits to _THREAD_POOL).
-    # Off (the default), this branch is never taken and behavior is
-    # byte-for-byte the pre-existing claude.ask_ai_async() call.
-    _ai_synthesis_coro = (
-        ask_pipeline.run_agentic_ask(
-            question=question,
-            sefaria_sources=ctx["flat_sources_for_ai"],
-            customs=ctx["customs_info"],
-            user_memories=ctx["user_memory_summaries"],
-            wiki=ctx["wiki_context_for_ai"],
-            halachipedia=ctx["halachipedia_list"],
-            mode=mode,
-            community_lens=canonical_lens,
-            answer_language=answer_language,
-            tool_context=tool_context,
-        )
-        if claude.AI_AGENTIC_TOOLS
-        else claude.ask_ai_async(
-            question=question,
-            sefaria_sources=ctx["flat_sources_for_ai"],
-            customs=ctx["customs_info"],
-            user_memories=ctx["user_memory_summaries"],
-            wiki=ctx["wiki_context_for_ai"],
-            halachipedia=ctx["halachipedia_list"],
-            mode=mode,
-            community_lens=canonical_lens,
-            answer_language=answer_language,
-            tool_context=tool_context,
-        )
+    call_kwargs = dict(
+        question=question,
+        sefaria_sources=ctx["flat_sources_for_ai"],
+        customs=ctx["customs_info"],
+        user_memories=ctx["user_memory_summaries"],
+        wiki=ctx["wiki_context_for_ai"],
+        halachipedia=ctx["halachipedia_list"],
+        mode=mode,
+        community_lens=canonical_lens,
+        answer_language=answer_language,
+        tool_context=tool_context,
     )
-    result = await asyncio.wait_for(
-        _ai_synthesis_coro,
+
+    ai_synthesis_coro = (
+        ask_pipeline.run_agentic_ask(**call_kwargs)
+        if claude.AI_AGENTIC_TOOLS
+        else claude.ask_ai_async(**call_kwargs)
+    )
+    return await asyncio.wait_for(
+        ai_synthesis_coro,
         timeout=claude.AI_TOTAL_BUDGET_SECONDS,
     )
 
+
+def _validate_ask_async_ai_result(result):
+    """Raise on any non-security-blocked AI error; return the (possibly
+    empty) error string so the caller can still branch on the security-
+    blocked case without recomputing it. Split out of
+    _run_ask_async_ai_synthesis() (SonarCloud python:S3776)."""
     result_error = str(result.get("error") or "")
     if result_error and not result_error.startswith("security_blocked"):
         raise RuntimeError(result_error or "AI request failed")
+    return result_error
 
-    if result_error.startswith("security_blocked"):
-        return await _security_blocked_ask_async_payload(
-            result, mode, canonical_lens, answer_language, user_id,
-            question_was_sanitized, question, ctx,
-        )
 
+def _extract_ask_async_raw_ai_answer(result, answer_language):
+    """Resolve the (structured_payload, raw_ai_answer) pair for a
+    non-error AI result, raising if there's no usable text either way.
+    Split out of _run_ask_async_ai_synthesis() (SonarCloud python:S3776)
+    -- mirrors app.py's _extract_raw_ai_answer."""
     structured_payload = result.get("structured")
     if not isinstance(structured_payload, dict):
         structured_payload = None
 
-    raw_ai_answer = ""
     if structured_payload:
         raw_ai_answer = claude.render_structured_markdown(
             structured_payload,
@@ -618,24 +615,60 @@ async def _run_ask_async_ai_synthesis(
     if not raw_ai_answer:
         raise RuntimeError("AI response was empty")
 
-    # plan.md §9.3 point 3 -- see the matching comment in app.py's
-    # _run_ask_question_ai_synthesis for the full rationale.
-    if "used_web_search" in result:
-        needs_web_warning = bool(result.get("used_web_search"))
-    else:
-        needs_web_warning = ctx["use_tertiary_web_context"] and bool(
-            ctx["wiki_context_for_ai"])
+    return structured_payload, raw_ai_answer
 
-    # The "educational information, not a halachic ruling" disclaimer is
-    # shown persistently in the UI banner (renderDisclaimerBanner in
-    # templates/index.html) -- it must not also be baked into the answer
-    # text itself, or it renders twice.
+
+def _resolve_ask_async_web_warning_flag(result, ctx):
+    """plan.md §9.3 point 3 -- see the matching comment in app.py's
+    _resolve_ask_web_warning_flag for the full rationale. Split out of
+    _run_ask_async_ai_synthesis() (SonarCloud python:S3776)."""
+    if "used_web_search" in result:
+        return bool(result.get("used_web_search"))
+    return ctx["use_tertiary_web_context"] and bool(ctx["wiki_context_for_ai"])
+
+
+def _compose_validated_ask_async_answer(raw_ai_answer, needs_web_warning):
+    """Apply the disclaimer/web-warning prefixes and raise if that leaves
+    nothing to show. Split out of _run_ask_async_ai_synthesis() (SonarCloud
+    python:S3776) -- mirrors app.py's _compose_validated_ask_answer.
+
+    The "educational information, not a halachic ruling" disclaimer is
+    shown persistently in the UI banner (renderDisclaimerBanner in
+    templates/index.html) -- it must not also be baked into the answer
+    text itself, or it renders twice.
+    """
     normalized_answer = _compose_answer_with_prefixes(
-        raw_ai_answer,
-        include_web_warning=needs_web_warning,
-    )
+        raw_ai_answer, include_web_warning=needs_web_warning)
     if not str(normalized_answer or "").strip():
         raise RuntimeError("AI response normalized to empty content")
+    return normalized_answer
+
+
+async def _run_ask_async_ai_synthesis(
+    question, mode, canonical_lens, answer_language, user_id, question_was_sanitized, ctx,
+):
+    """Stage 3 of ask_async(): AI synthesis. Raises on any failure -- the
+    caller catches and runs _run_ask_async_fallback(). Split out of
+    ask_async() (SonarCloud python:S3776) -- see _ask_async_prayer_result.
+    """
+    result = await _dispatch_ask_async_ai_synthesis_call(
+        question, mode, canonical_lens, answer_language, ctx)
+
+    result_error = _validate_ask_async_ai_result(result)
+
+    if result_error.startswith("security_blocked"):
+        return await _security_blocked_ask_async_payload(
+            result, mode, canonical_lens, answer_language, user_id,
+            question_was_sanitized, question, ctx,
+        )
+
+    structured_payload, raw_ai_answer = _extract_ask_async_raw_ai_answer(
+        result, answer_language)
+
+    needs_web_warning = _resolve_ask_async_web_warning_flag(result, ctx)
+
+    normalized_answer = _compose_validated_ask_async_answer(
+        raw_ai_answer, needs_web_warning)
 
     result["answer"] = normalized_answer
     await asyncio.to_thread(
