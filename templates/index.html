@@ -10985,7 +10985,18 @@
                     const year = fetchInfo.start.getFullYear();
                     fetch(`/api/holidays?year=${year}`)
                         .then(r => r.json())
-                        .then(data => successCallback(Array.isArray(data) ? data : (data.items || [])))
+                        .then(data => {
+                            const items = Array.isArray(data) ? data : (data.items || []);
+                            // FullCalendar only exposes non-standard fields via
+                            // extendedProps when they're nested there in the source
+                            // data — a bare top-level `category` is silently dropped,
+                            // not auto-promoted, so eventClassNames below never saw it.
+                            const withExtendedProps = items.map((item) => ({
+                                ...item,
+                                extendedProps: { ...(item.extendedProps || {}), category: item.category },
+                            }));
+                            successCallback(withExtendedProps);
+                        })
                         .catch(e => failureCallback(e));
                 },
                 datesSet: function () {
@@ -10995,7 +11006,12 @@
                     }
                     _calendarDidMount = true;
                 },
+                // Backend sends a fixed inline `color` per event (theme-agnostic) plus
+                // a `category`; deriving a class from category lets dark-mode CSS
+                // recolor events per-category instead of flattening them all to one gray.
+                eventClassNames: (arg) => [`cal-cat-${arg.event.extendedProps.category || 'default'}`],
                 eventColor: '#002147',
+                dayMaxEvents: true,
                 height: 'auto'
             });
             holidaysCalendar.render();
