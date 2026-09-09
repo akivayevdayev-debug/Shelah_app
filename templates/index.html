@@ -6718,18 +6718,39 @@
         function setupScrollUpListener() {
             const scrollEl = getPrimaryScrollElement();
             if (!scrollEl) return;
-            if (window.readerScrollUpHandler) {
-                scrollEl.removeEventListener('scroll', window.readerScrollUpHandler);
+
+            // getPrimaryScrollElement() can return a different node across
+            // renders (window vs. #mainContainer, depending on whether the
+            // container is currently the overflow owner). Removing from the
+            // *new* element when the old listener lived on a different one
+            // was a no-op, so stale listeners piled up on abandoned
+            // elements and kept firing on residual scroll events —
+            // triggering unwanted loadPreviousTextChunk() calls that made
+            // the reader appear to jump back into earlier text on its own.
+            if (window.readerScrollUpHandler && window.readerScrollUpListenerEl) {
+                window.readerScrollUpListenerEl.removeEventListener('scroll', window.readerScrollUpHandler);
             }
+
+            let lastScrollPos = (scrollEl === document.documentElement || scrollEl === document.body)
+                ? (window.pageYOffset || 0)
+                : scrollEl.scrollTop;
+
             window.readerScrollUpHandler = function () {
                 if (appState.currentView?.type !== 'text') return;
                 const scrollPos = (scrollEl === document.documentElement || scrollEl === document.body)
                     ? (window.pageYOffset || 0)
                     : scrollEl.scrollTop;
-                if (scrollPos <= 350 && infiniteReaderState.prevRef && !infiniteReaderState.loadingPrev && !infiniteReaderState.loading) {
+                // Require an actual upward gesture near the top (not merely
+                // "currently near the top"), so landing on a fresh chunk at
+                // scrollPos 0 — or any programmatic/smooth scroll-to-top —
+                // can't itself trigger an unrequested previous-chunk load.
+                const scrolledUp = scrollPos < lastScrollPos;
+                lastScrollPos = scrollPos;
+                if (scrolledUp && scrollPos <= 350 && infiniteReaderState.prevRef && !infiniteReaderState.loadingPrev && !infiniteReaderState.loading) {
                     void loadPreviousTextChunk();
                 }
             };
+            window.readerScrollUpListenerEl = scrollEl;
             scrollEl.addEventListener('scroll', window.readerScrollUpHandler, { passive: true });
         }
 
