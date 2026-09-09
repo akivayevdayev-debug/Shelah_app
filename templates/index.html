@@ -241,6 +241,13 @@
                             <div id="searchIcon" class="absolute right-3 top-2 text-slate-400" aria-hidden="true">
                                 {{ phosphor('magnifying-glass', size=20, class='h-5 w-5') }}
                             </div>
+                            <!-- Real submit control for keyboard/AT users -- WCAG 2.1 AA
+                                 (SC 3.2.2 / H32.2, caught by pa11y-ci, plan.md §8.F.2). The
+                                 search icon above is decorative; submission already works via
+                                 Enter in #searchInput (see the form's 'submit' listener), but
+                                 the form previously had no focusable/activatable submit
+                                 element at all, which some assistive tech relies on. -->
+                            <button type="submit" class="sr-only">Search</button>
 
                             <div id="searchSuggestions"
                                 class="hidden absolute left-0 right-0 mt-2 bg-white border border-slate-200 rounded-2xl shadow-lg z-[80] max-h-80 overflow-y-auto">
