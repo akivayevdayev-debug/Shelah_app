@@ -7759,13 +7759,14 @@
                 if (e.target === libraryCategoryModalEl) closeLibraryCategory();
             });
         }
+
         const privacyDataModalEl = document.getElementById('privacyDataModal');
         if (privacyDataModalEl) {
             privacyDataModalEl.addEventListener('click', e => {
                 if (e.target === privacyDataModalEl) closePrivacyDataModal();
             });
         }
-                if (communityTimelineBtn) {
+        if (communityTimelineBtn) {
             communityTimelineBtn.addEventListener('click', () => {
                 void openCommunityTimeline();
             });
@@ -9635,6 +9636,9 @@
             // Kill the suggestion dropdown immediately — it must not persist while the modal is open
             suppressSuggestionMenu = true;
             hideSearchSuggestions();
+            // A leftover chapter-grid modal (z-[110]) sits above the AI modal (z-[100])
+            // and would silently block it from view if left open — close it first.
+            closeChapterGrid();
 
             if (searchInput && searchInput.value.trim() !== question) {
                 searchInput.value = question;
@@ -11714,7 +11718,32 @@
             }
         }
 
-                // Analytics consent gate (plan.md §12.5.3, §8.A.4). Vercel Web
+        // Allow closing modal with Escape key
+        document.addEventListener('keydown', (e) => {
+            if (e.altKey && e.shiftKey && e.key.toLowerCase() === 'i') {
+                e.preventDefault();
+                openDevtoolsInspector();
+                return;
+            }
+
+            if (e.key === 'Escape') {
+                closeSettingsMenu();
+                closeReaderSettingsPanel();
+                closeAiModal();
+                closeTextsMenu();
+                // chapterGridModal is a native <dialog> — its own 'cancel'
+                // listener (see closeChapterGrid's registration) already
+                // handles Escape; calling closeChapterGrid() here too would
+                // double-fire on every Escape press.
+                closeMobilePanels();
+                closeDevtoolsInspector();
+                closeSourceGraph();
+                closeCommunityTimeline();
+                closePrivacyDataModal();
+            }
+        });
+
+        // Analytics consent gate (plan.md §12.5.3, §8.A.4). Vercel Web
         // Analytics is cookieless and stores no cross-site identifier, but
         // it's still gated behind explicit opt-in rather than loaded by
         // default, matching the consent-first stance the rest of §8.A takes
@@ -11752,26 +11781,6 @@
             });
         }
         initAnalyticsConsent();
-        // Allow closing modal with Escape key
-        document.addEventListener('keydown', (e) => {
-            if (e.altKey && e.shiftKey && e.key.toLowerCase() === 'i') {
-                e.preventDefault();
-                openDevtoolsInspector();
-                return;
-            }
-
-            if (e.key === 'Escape') {
-                closeSettingsMenu();
-                closeReaderSettingsPanel();
-                closeAiModal();
-                closeTextsMenu();
-                closeMobilePanels();
-                closeDevtoolsInspector();
-                closeSourceGraph();
-                closeCommunityTimeline();
-                closePrivacyDataModal();
-            }
-        });
     </script>
     <!-- Motion One / motion.dev vanilla animation engine — static/js/motion.js wraps
          this as window.Motion; degrades gracefully to instant state-changes if this
