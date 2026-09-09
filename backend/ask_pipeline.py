@@ -107,6 +107,11 @@ async def run_agentic_ask(
 
     sanitized_query = input_validation["sanitized_query"]
 
+    # Matches ask_ai_async's convention (sanitized query, not raw) so the
+    # flag returned here agrees with whatever SIMPLE QUESTION FORMAT
+    # instruction build_prompt() actually embedded below.
+    is_simple = claude_module._is_simple_question(sanitized_query)
+
     # Classify the sanitized query, not the raw one -- same reasoning as the
     # matching comment in claude.run_protected_ai_wrapper/ask_ai_async.
     safety_class = claude_module.classify_safety(sanitized_query)
@@ -222,12 +227,13 @@ async def run_agentic_ask(
             "is_fallback": True,
             "model": claude_module._CLAUDE_FALLBACK_MODEL,
             "used_web_search": web_search_used,
+            "is_simple": is_simple,
         }
     else:
         structured = claude_module.parse_structured_model_output(final_text)
         result = {
             "answer": claude_module.render_structured_markdown(
-                structured, answer_language=answer_language),
+                structured, answer_language=answer_language, is_simple=is_simple),
             "structured": structured,
             "confidence": 0.78,
             "is_fallback": False,
@@ -242,6 +248,11 @@ async def run_agentic_ask(
             # can branch on "is this key present" without needing its own
             # AI_AGENTIC_TOOLS check.
             "used_web_search": web_search_used,
+            # is_simple: matches ask_claude/ask_ai_async's contract so the
+            # /ask call sites' render_structured_markdown(is_simple=...)
+            # re-render (app.py/asgi.py) doesn't silently default to False
+            # for every agentic answer regardless of actual complexity.
+            "is_simple": is_simple,
         }
 
     output_validation = claude_module.validate_model_output(
