@@ -207,18 +207,17 @@
                 class="topbar sticky top-0 z-[200] bg-white text-slate-800 py-1.5 px-2 lg:py-1.5 lg:px-3 shadow-sm border-b flex flex-wrap lg:flex-nowrap justify-between items-center flex-shrink-0 gap-1.5 lg:gap-2">
                 <!-- mobileNavBtn removed: Library tab in bottom nav covers this action -->
 
-                <div id="brandHomeBtn" class="topbar-brand flex items-center gap-1.5 cursor-pointer shrink-0"
-                    role="button" tabindex="0" aria-label="Go to home"
-                    onclick="goHome()" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();goHome();}">
-                    <div class="text-navy font-hebrew text-[1.7rem] font-semibold leading-tight">
+                <button type="button" id="brandHomeBtn" class="topbar-brand flex items-center gap-1.5 shrink-0"
+                    aria-label="Go to home" onclick="goHome()">
+                    <span class="text-navy font-hebrew topbar-brand-icon font-semibold leading-tight">
                         ש
-                    </div>
-                    <h1 class="text-sm sm:text-base font-serif tracking-tight text-navy font-semibold leading-none">
+                    </span>
+                    <span class="topbar-brand-title text-sm sm:text-base font-serif tracking-tight text-navy font-semibold leading-none text-start">
                         <span class="block" data-en="Sh'elah" data-he="שאלה">Sh'elah</span>
                         <span class="block text-[10px] font-normal text-slate-500 italic topbar-brand-subtitle"
                             data-en="Torah Encyclopedia" data-he="אנציקלופדיית תורה">Torah Encyclopedia</span>
-                    </h1>
-                </div>
+                    </span>
+                </button>
 
                 <!-- Library Button (Desktop Homepage Only) — placed after brand for natural flow -->
                 <button id="topbarLibraryBtn" type="button"
