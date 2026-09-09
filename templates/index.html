@@ -6195,7 +6195,7 @@
 
                 const segmentLabel = formatSegmentLabel(line?.segment, idx);
                 const hebrewMarkup = he
-                    ? `<p dir="rtl" class="font-hebrew text-end text-[1.05rem] leading-[1.9] text-slate-800">${escapeHtml(he).replace(/\n/g, '<br>')}</p>`
+                    ? `<p dir="rtl" class="font-hebrew text-start text-[1.05rem] leading-[1.9] text-slate-800">${escapeHtml(he).replace(/\n/g, '<br>')}</p>`
                     : '';
                 const englishMarkup = en
                     ? `<p dir="ltr" class="font-serif text-start text-sm leading-relaxed text-slate-700 mt-2">${escapeHtml(en).replace(/\n/g, '<br>')}</p>`
@@ -6229,7 +6229,7 @@
                 if (!he && !en) return '';
 
                 const hebrewMarkup = he
-                    ? `<p dir="rtl" class="font-hebrew text-end text-[1.05rem] leading-[1.9] text-slate-800">${escapeHtml(he).replace(/\n/g, '<br>')}</p>`
+                    ? `<p dir="rtl" class="font-hebrew text-start text-[1.05rem] leading-[1.9] text-slate-800">${escapeHtml(he).replace(/\n/g, '<br>')}</p>`
                     : '';
                 const englishMarkup = en
                     ? `<p dir="ltr" class="font-serif text-start text-sm leading-relaxed text-slate-700 mt-2">${escapeHtml(en).replace(/\n/g, '<br>')}</p>`
@@ -6819,7 +6819,7 @@
                 const translit = appState.prefs.transliteration ? transliterationMarkup(heRaw) : '';
 
                 const hebrewBlock = he
-                    ? `<div class="source-he reader-text-he text-end font-hebrew text-2xl lg:text-3xl leading-[1.8] py-2" dir="rtl"><p>${he}</p>${translit}</div>`
+                    ? `<div class="source-he reader-text-he text-start font-hebrew text-2xl lg:text-3xl leading-[1.8] py-2" dir="rtl"><p>${he}</p>${translit}</div>`
                     : '';
                 const englishBlock = en
                     ? `<div class="source-en reader-text-en font-serif leading-relaxed py-2 text-slate-700 text-lg" dir="ltr"><p>${en}</p></div>`
@@ -6846,7 +6846,7 @@
                     return `
                         <div class="source-grid segment-row reader-text-row reader-single-row grid grid-cols-1 border-b border-slate-200 last:border-b-0" data-segment="${escapeHtml(String(line.segment || ''))}">
                             <span class="segment-label reader-row-right-label">${label}</span>
-                            <div class="source-he reader-text-he text-end font-hebrew text-2xl lg:text-3xl leading-[1.8] py-2" dir="rtl">
+                            <div class="source-he reader-text-he text-start font-hebrew text-2xl lg:text-3xl leading-[1.8] py-2" dir="rtl">
                                 ${hebrewLine}
                             </div>
                         </div>
@@ -6871,9 +6871,9 @@
                 if (bothPresent) {
                     const sideBySideLeft = layout === 'bilingual-reverse'
                         ? `<div class="source-en reader-text-en font-serif leading-relaxed py-2 text-slate-700 text-lg" dir="ltr"><p>${en}</p></div>`
-                        : `<div class="source-he reader-text-he text-end font-hebrew text-2xl lg:text-3xl leading-[1.8] py-2" dir="rtl"><p>${he}</p>${translit}</div>`;
+                        : `<div class="source-he reader-text-he text-start font-hebrew text-2xl lg:text-3xl leading-[1.8] py-2" dir="rtl"><p>${he}</p>${translit}</div>`;
                     const sideBySideRight = layout === 'bilingual-reverse'
-                        ? `<div class="source-he reader-text-he text-end font-hebrew text-2xl lg:text-3xl leading-[1.8] py-2" dir="rtl"><p>${he}</p>${translit}</div>`
+                        ? `<div class="source-he reader-text-he text-start font-hebrew text-2xl lg:text-3xl leading-[1.8] py-2" dir="rtl"><p>${he}</p>${translit}</div>`
                         : `<div class="source-en reader-text-en font-serif leading-relaxed py-2 text-slate-700 text-lg" dir="ltr"><p>${en}</p></div>`;
                     return `
                         <div class="source-grid segment-row reader-text-row reader-side-row grid grid-cols-1 lg:grid-cols-2 lg:gap-x-6 border-b border-slate-200 last:border-b-0" data-segment="${escapeHtml(String(line.segment || ''))}">
@@ -6888,7 +6888,7 @@
                 const singleContent = hebrewBlock || englishBlock;
                 const singleDir = he ? 'rtl' : 'ltr';
                 const singleClass = he
-                    ? 'source-he reader-text-he text-end font-hebrew text-2xl lg:text-3xl leading-[1.8] py-2'
+                    ? 'source-he reader-text-he text-start font-hebrew text-2xl lg:text-3xl leading-[1.8] py-2'
                     : 'source-en reader-text-en font-serif leading-relaxed py-2 text-slate-700 text-lg';
                 const singleInner = he ? `<p>${he}</p>${translit}` : `<p>${en}</p>`;
                 return `
@@ -7225,7 +7225,7 @@
                 if (layout === 'interleaved') {
                     return `
                         <div class="prayer-clean-row border-b border-slate-200 last:border-b-0 ${rowPadding}">
-                            <div class="prayer-clean-he text-end" dir="rtl">${hebrewContent}</div>
+                            <div class="prayer-clean-he text-start" dir="rtl">${hebrewContent}</div>
                             <div class="prayer-clean-en text-start mt-2" dir="ltr">${englishContent}</div>
                         </div>
                     `;
@@ -7233,9 +7233,9 @@
 
                 const leftColumn = reverseColumns
                     ? `<div class="prayer-clean-en" dir="ltr">${englishContent}</div>`
-                    : `<div class="prayer-clean-he text-end" dir="rtl">${hebrewContent}</div>`;
+                    : `<div class="prayer-clean-he text-start" dir="rtl">${hebrewContent}</div>`;
                 const rightColumn = reverseColumns
-                    ? `<div class="prayer-clean-he text-end" dir="rtl">${hebrewContent}</div>`
+                    ? `<div class="prayer-clean-he text-start" dir="rtl">${hebrewContent}</div>`
                     : `<div class="prayer-clean-en" dir="ltr">${englishContent}</div>`;
 
                 return `
@@ -7290,7 +7290,7 @@
                     contentDiv.innerHTML = `
                         <div class="prayer-clean-lines">
                             <div class="prayer-clean-row border-b border-slate-200 last:border-b-0 py-2">
-                                <div class="${lang === 'he' ? 'prayer-clean-he text-end' : 'prayer-clean-en'}" dir="${dir}">
+                                <div class="${lang === 'he' ? 'prayer-clean-he text-start' : 'prayer-clean-en'}" dir="${dir}">
                                     <div class="${fontClass}">${contentDisplay}</div>
                                     ${translit}
                                 </div>
@@ -7305,7 +7305,7 @@
                             : renderEnglishParagraph(paragraph);
                         return `
                             <div class="prayer-clean-row border-b border-slate-200 last:border-b-0 py-2">
-                                <div class="${lang === 'he' ? 'prayer-clean-he text-end' : 'prayer-clean-en'}" dir="${dir}">${rendered}</div>
+                                <div class="${lang === 'he' ? 'prayer-clean-he text-start' : 'prayer-clean-en'}" dir="${dir}">${rendered}</div>
                             </div>
                         `;
                     }).join('');
