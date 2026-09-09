@@ -7658,6 +7658,10 @@
         bookmarkCurrentBtn.addEventListener('click', toggleBookmarkCurrent);
         if (semanticBookmarkBtn) {
             semanticBookmarkBtn.addEventListener('click', saveSemanticBookmark);
+            // Explicit, scope-independent signal for static/js/reader-ui.js's
+            // installSemanticBookmarking() guard (plan.md §19 Phase 0) — do not
+            // remove until the inline copy above is deleted (§19 Phase 3).
+            window.__shelahLegacyBookmarkBound = true;
         }
         if (mobileNavBtn) {
             mobileNavBtn.addEventListener('click', () => {
