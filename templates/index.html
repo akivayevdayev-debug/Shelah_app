@@ -7204,12 +7204,19 @@
                     .filter(Boolean);
             };
 
+            // Security note (audit P1): rawText here may be either raw
+            // Sefaria/prayer-API text (never escaped upstream) or, on the
+            // Sefaria-augmented path, already-normalized-but-unescaped text
+            // (see paragraphPairs construction in displayPrayer) -- these two
+            // functions are the single point where paragraph text becomes
+            // HTML, so they escape unconditionally rather than trusting an
+            // upstream isHtml flag that doesn't cover every caller.
             const renderHebrewParagraph = (rawText = '', includeTransliteration = true) => {
                 const displayText = applyHebrewDisplaySettings(rawText || '');
                 if (!displayText) {
                     return `<p class="text-slate-300 italic">${t('No Hebrew text in source', 'אין טקסט עברי במקור')}</p>`;
                 }
-                return `<p class="font-hebrew">${displayText}</p>${includeTransliteration ? transliterationMarkup(displayText) : ''}`;
+                return `<p class="font-hebrew">${escapeHtml(displayText)}</p>${includeTransliteration ? transliterationMarkup(displayText) : ''}`;
             };
 
             const renderEnglishParagraph = (rawText = '') => {
@@ -7217,7 +7224,7 @@
                 if (!displayText) {
                     return `<p class="text-slate-300 italic">${t('No English translation in source', 'אין תרגום אנגלי במקור')}</p>`;
                 }
-                return `<p class="font-serif">${displayText}</p>`;
+                return `<p class="font-serif">${escapeHtml(displayText)}</p>`;
             };
 
             const renderPrayerBilingualRow = ({ heText = '', enText = '', isHeader = false }) => {
@@ -7226,10 +7233,10 @@
                 const rowPadding = isHeader ? 'pt-3 pb-2' : 'py-2';
 
                 const hebrewContent = isHeader
-                    ? `<h3 class="font-hebrew text-xl font-bold">${heDisplay || '&nbsp;'}</h3>`
+                    ? `<h3 class="font-hebrew text-xl font-bold">${heDisplay ? escapeHtml(heDisplay) : '&nbsp;'}</h3>`
                     : renderHebrewParagraph(heText, true);
                 const englishContent = isHeader
-                    ? `<h3 class="font-serif text-xl font-bold">${enDisplay || '&nbsp;'}</h3>`
+                    ? `<h3 class="font-serif text-xl font-bold">${enDisplay ? escapeHtml(enDisplay) : '&nbsp;'}</h3>`
                     : renderEnglishParagraph(enText);
 
                 if (layout === 'interleaved') {
