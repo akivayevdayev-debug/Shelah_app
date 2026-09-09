@@ -10962,7 +10962,16 @@
             });
         }
 
-                initClerkAuth();
+        // initClerkAuth() needs window.Clerk, set by the deferred SDK script
+        // tag above -- deferred scripts run right before DOMContentLoaded,
+        // after all parsing that precedes them. This inline script executes
+        // immediately as the parser reaches it, which on a page this size is
+        // well before that point, so a bare call here loses the race almost
+        // every time (window.Clerk still undefined) and initClerkAuth() has
+        // no retry -- it just logs a warning and leaves the account button
+        // permanently hidden. Deferring the call to DOMContentLoaded
+        // guarantees the SDK script has already run by the time it fires.
+        document.addEventListener('DOMContentLoaded', initClerkAuth);
 
         let holidaysCalendar = null;
         let _calendarDidMount = false; // crossfade: skip animation on initial render
