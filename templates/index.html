@@ -8447,6 +8447,35 @@
             return `${sectionLabel} (${range})`;
         }
 
+        /** Extract the leading siman/section number from a ref remainder, or -1. */
+        function _sectionKeyFromRef(remainder) {
+            const m = /^(\d+)/.exec(String(remainder || '').trim());
+            return m ? parseInt(m[1], 10) : -1;
+        }
+
+        /** Build a section lookup for numeric-siman works (Shulchan Arukh, Mishneh
+         *  Torah, etc. — via alts.Topic) from {label, heLabel, fromSection, toSection}. */
+        function _buildNumericSectionLookup(sections) {
+            return sections
+                .filter((s) => s && Number.isFinite(s.fromSection) && Number.isFinite(s.toSection))
+                .map((s) => ({
+                    label: String(s.label || '').trim(),
+                    heLabel: String(s.heLabel || s.label || '').trim(),
+                    fromKey: s.fromSection,
+                    toKey: s.toSection,
+                }))
+                .filter((s) => s.fromKey >= 0 && s.toKey >= 0);
+        }
+
+        /** Return the section label for a given siman number, or '' if not found. */
+        function _getSectionForNumber(numKey, lookup, isHebrew) {
+            if (!lookup || !lookup.length || numKey < 0) return '';
+            const hit = lookup.find((s) => numKey >= s.fromKey && numKey <= s.toKey);
+            if (!hit) return '';
+            const label = isHebrew ? (hit.heLabel || hit.label) : hit.label;
+            return `${label} (${hit.fromKey}–${hit.toKey})`;
+        }
+
         function openReferenceGrid(indexTitle, refs, sections) {
             if (!chapterGridModal || !chapterGridItems) return;
 
@@ -8454,12 +8483,22 @@
             const normalizedRefs = Array.isArray(refs)
                 ? refs.map((ref) => String(ref || '').replace(/\s+/g, ' ').trim()).filter(Boolean)
                 : [];
-            const visibleRefs = normalizedRefs.slice(0, 180);
+            // A large flat (ungrouped) list is a real UX regression — only allow the
+            // full count through when section-grouping data lets it render in groups.
+            const hasSections = Array.isArray(sections) && sections.length > 0;
+            const visibleRefs = normalizedRefs.slice(0, hasSections ? 800 : 200);
             const talmudMode = visibleRefs.some((ref) => isTalmudReferenceLabel(ref));
             const prayerMode = isPrayerReferenceGridTitle(safeTitle, visibleRefs);
-            const sectionLookup = talmudMode && Array.isArray(sections) && sections.length
-                ? _buildSectionLookup(sections)
-                : [];
+            // Sections come in two shapes depending on the work: Talmud daf ranges
+            // ({fromDaf,toDaf}, from alts.Chapters) or numeric siman ranges
+            // ({fromSection,toSection}, from alts.Topic — Shulchan Arukh, Mishneh
+            // Torah, etc). Grouping is enabled whenever either is present, not just
+            // for Talmud — daf/numeric parsing stays separate below via talmudMode.
+            const sectionLookup = !hasSections
+                ? []
+                : talmudMode
+                    ? _buildSectionLookup(sections)
+                    : _buildNumericSectionLookup(sections);
 
             if (!safeTitle || normalizedRefs.length < 2) {
                 return;
@@ -8482,10 +8521,10 @@
             }
 
             chapterGridItems.classList.toggle('chapter-grid-items-prayer', prayerMode);
-            chapterGridItems.classList.toggle('chapter-grid-items-sectioned', talmudMode && sectionLookup.length > 0);
+            chapterGridItems.classList.toggle('chapter-grid-items-sectioned', sectionLookup.length > 0);
             applyPrayerGridSizeClass();
 
-            if (talmudMode && sectionLookup.length) {
+            if (sectionLookup.length) {
                 const groups = [];
                 let group = null;
 
@@ -8494,14 +8533,20 @@
                     if (safeTitle && targetRef.toLowerCase().startsWith(safeTitle.toLowerCase())) {
                         remainder = targetRef.slice(safeTitle.length).replace(/^[,\s]+/, '').trim();
                     }
-                    const dafMatch = remainder.match(/^(\d+[ab])/i);
-                    const dafStr = dafMatch ? dafMatch[1].toLowerCase() : '';
-                    const dafKey = _dafToKey(dafStr);
                     const label = getReferenceGridItemLabel(safeTitle, targetRef, idx);
 
-                    const sectionLabel = (sectionLookup.length && dafKey >= 0)
-                        ? _getSectionForDaf(dafKey, sectionLookup, isHebrewMode())
-                        : (dafStr ? (isHebrewMode() ? `דף ${localizeDafToken(dafStr)}` : `Daf ${dafStr}`) : t('Unsorted', 'ללא מיון'));
+                    let sectionLabel;
+                    if (talmudMode) {
+                        const dafMatch = remainder.match(/^(\d+[ab])/i);
+                        const dafStr = dafMatch ? dafMatch[1].toLowerCase() : '';
+                        const dafKey = _dafToKey(dafStr);
+                        sectionLabel = dafKey >= 0
+                            ? _getSectionForDaf(dafKey, sectionLookup, isHebrewMode())
+                            : (dafStr ? (isHebrewMode() ? `דף ${localizeDafToken(dafStr)}` : `Daf ${dafStr}`) : t('Unsorted', 'ללא מיון'));
+                    } else {
+                        const numKey = _sectionKeyFromRef(remainder);
+                        sectionLabel = _getSectionForNumber(numKey, sectionLookup, isHebrewMode()) || t('Unsorted', 'ללא מיון');
+                    }
 
                     if (!group || group.label !== sectionLabel) {
                         group = { label: sectionLabel, items: [] };
@@ -8584,7 +8629,10 @@
             }
 
             try {
-                const params = new URLSearchParams({ title: normalizedTitle, max: '180' });
+                // 800 matches the backend's own raised cap (routes_library.py) — large
+                // works like Shulchan Arukh, Orach Chayim (697 simanim) were silently
+                // truncated at the old 180/260 limits before section-grouping existed.
+                const params = new URLSearchParams({ title: normalizedTitle, max: '800' });
                 const resp = await fetch(`/api/library/leaf-refs?${params.toString()}`);
                 if (!resp.ok) {
                     indexLeafRefCache.set(cacheKey, []);
