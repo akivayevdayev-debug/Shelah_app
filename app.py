@@ -35,9 +35,9 @@ from backend import ask_pipeline
 from backend.logging_setup import (
     setup_logging,
     _capture_backend_error,
+    hash_user_id,
     bind_request_id,
     get_logger,
-    hash_user_id,
     submit_with_context,
 )
 from backend.customs import validate_all_customs_at_startup
@@ -912,12 +912,6 @@ from backend.rag import _env_int  # noqa: E402 -- deliberate: kept beside the co
 RAG_TOP_KNOWLEDGE_ROWS = 5
 RAG_MEMORY_ROWS = 2
 
-# Cloudflare Turnstile (plan.md §16.4/§16.6 Phase 9c, backend/turnstile.py):
-# reuse that module's env parsing as the single source of truth for the site
-# key/enabled flag instead of re-reading os.environ here, mirroring the
-# CLERK_PUBLISHABLE_KEY convention above but without duplicating the parsing.
-from backend.turnstile import TURNSTILE_ENABLED, TURNSTILE_SITE_KEY  # noqa: E402
-
 
 from backend.auth import (  # noqa: E402 -- deliberate: grouped with the Supabase/auth helpers below, not hoisted
     _verify_clerk_token,
@@ -925,6 +919,11 @@ from backend.auth import (  # noqa: E402 -- deliberate: grouped with the Supabas
     CLERK_ENFORCE_AUTH,
     maybe_require_clerk_auth,
 )
+# Cloudflare Turnstile (plan.md §16.4/§16.6 Phase 9c, backend/turnstile.py):
+# reuse that module's env parsing as the single source of truth for the site
+# key/enabled flag instead of re-reading os.environ here, mirroring the
+# CLERK_PUBLISHABLE_KEY convention above but without duplicating the parsing.
+from backend.turnstile import TURNSTILE_ENABLED, TURNSTILE_SITE_KEY  # noqa: E402
 
 
 def _ensure_supabase_loaded():
