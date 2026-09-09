@@ -3807,6 +3807,16 @@
             };
         }
 
+        // Security audit P3: escapeHtml() blocks attribute breakout (quotes/
+        // angle brackets) but not a javascript:/data: URI scheme -- neither
+        // contains an HTML-special character, so they pass through
+        // untouched and would render as a live, clickable, script-executing
+        // href. Allowlists http(s) before a value is ever used as an href.
+        function safeHref(url) {
+            const value = String(url || '').trim();
+            return /^https?:\/\//i.test(value) ? escapeHtml(value) : '#';
+        }
+
         function decodeHtmlEntities(text) {
             const parser = document.createElement('textarea');
             parser.innerHTML = String(text || '');
@@ -9335,7 +9345,7 @@
                         <div><span class="font-bold text-slate-700">${t('Community:', 'קהילה:')}</span> <span class="text-slate-500">${communityLabel}</span></div>
                         <div><span class="font-bold text-slate-700">${t('Source Base:', 'בסיס מקורות:')}</span> <span class="text-slate-500">${t('Community source registry + major poskim', 'רישום מקורות קהילתי + פוסקים מרכזיים')}</span></div>
                         ${majorSources ? `<div><span class="font-bold text-slate-700">${t('Major Authorities:', 'סמכויות מרכזיות:')}</span> <span class="text-slate-500">${escapeHtml(majorSources)}</span></div>` : ''}
-                        <div><span class="font-bold text-slate-700">${t('Primary Origin:', 'מוצא עיקרי:')}</span> <span class="text-slate-500">${communityData.primary_origin || '--'}</span></div>
+                        <div><span class="font-bold text-slate-700">${t('Primary Origin:', 'מוצא עיקרי:')}</span> <span class="text-slate-500">${communityData.primary_origin ? escapeHtml(String(communityData.primary_origin)) : '--'}</span></div>
                     </div>`;
 
                 scrollPrimaryToTop('smooth');
@@ -11335,7 +11345,7 @@
             function _sourceLinksHtml(ref, source) {
                 const isExternal = source && source.domain && !String(source.domain).includes('sefaria') && source.url;
                 const localLinkHtml = isExternal
-                    ? `<a href="${escapeHtml(source.url || '')}" target="_blank" rel="noopener noreferrer" class="src-open-link">${escapeHtml(String(source.source_provider || source.domain || ''))} ↗</a>`
+                    ? `<a href="${safeHref(source.url)}" target="_blank" rel="noopener noreferrer" class="src-open-link">${escapeHtml(String(source.source_provider || source.domain || ''))} ↗</a>`
                     : `<a href="#" data-local-ref="${escapeHtml((ref || '').replace(/"/g, ''))}" class="source-local-link src-open-link">${t('Open in Reader ↗', 'פתח בקורא ↗')}</a>`;
                 return _externalLinksForRef(ref) + localLinkHtml;
             }
@@ -11485,7 +11495,7 @@
                     const safeTitle   = escapeHtml(String(w.title   || ''));
                     const safeSummary = escapeHtml(String(w.summary || '').substring(0, 200));
                     const extLink = w.url
-                        ? `<a href="${escapeHtml(String(w.url))}" target="_blank" rel="noopener noreferrer"
+                        ? `<a href="${safeHref(w.url)}" target="_blank" rel="noopener noreferrer"
                               class="ai-wiki-result-link">${escapeHtml(String(w.source_provider || w.domain || 'Source'))} ↗</a>`
                         : '';
                     return `
