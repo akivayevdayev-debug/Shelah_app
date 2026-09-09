@@ -57,6 +57,60 @@ jobs:
         # step is the first run against the CI runner's pinned Node 24 specifically.
         run: npm test
 
+      - name: Accessibility scan (pa11y-ci, WCAG2AA — light + dark theme)
+        # plan.md §8.F.2 / Prompt 18 item 2: automated axe/pa11y-style check
+        # for key pages, gating the job on any real WCAG 2.1 AA violation.
+        # `npm run test:a11y` runs BOTH themes in this one step (light via
+        # pa11y-ci, then dark via scripts/a11y_dark_scan.js) so a red run is
+        # one signal, not two -- plan.md §26.2 closed the dark-theme
+        # coverage hole this step shipped with. Chained with && : if light
+        # fails, dark is skipped, because the first failure is the one to
+        # fix.
+        # README.md's documented "Plain Flask mode" start command
+        # (`python3 app.py`) is used here -- .pa11yci.json's URLs target its
+        # documented default port (5001). Env vars mirror
+        # tests/conftest.py's offline test matrix (mock keys, auth
+        # enforcement off) so this boots without any real external
+        # credentials and never calls a live third-party API.
+        # RATELIMIT_ENABLED=false is now a no-op here: plan.md §16.8.1
+        # removed Flask-Limiter, and the replacement
+        # (backend.rate_limit.RateLimitMiddleware) only runs on asgi.py's
+        # fastapi_app, which this bare `python3 app.py` boot never goes
+        # through. Left set rather than removed -- harmless, and documents
+        # the intent if Flask ever grows its own limiter again.
+        run: |
+          FLASK_ENV=testing \
+          CLERK_ENFORCE_AUTH=false \
+          RATELIMIT_ENABLED=false \
+          SEFARIA_API=https://mock.sefaria.org/api \
+          SEFARIA_V3_API=https://mock.sefaria.org/api/v3 \
+          SUPABASE_URL=https://mock.supabase.co \
+          SUPABASE_PUBLISHABLE_KEY=sb_publishable_mock-key \
+          SUPABASE_SECRET_KEY=sb_secret_mock-key \
+          ANTHROPIC_API_KEY=mock-anthropic-key \
+          GEMINI_API_KEY=mock-gemini-key \
+          LOG_LEVEL=ERROR \
+          python3 app.py &
+          echo $! > /tmp/shelah_flask.pid
+
+          for i in $(seq 1 30); do
+            if curl --silent --fail --output /dev/null http://127.0.0.1:5001/; then
+              echo "Flask app is up."
+              break
+            fi
+            if [ "$i" -eq 30 ]; then
+              echo "Flask app did not become ready in time." >&2
+              kill "$(cat /tmp/shelah_flask.pid)" 2>/dev/null || true
+              exit 1
+            fi
+            sleep 1
+          done
+
+          npm run test:a11y
+          status=$?
+          kill "$(cat /tmp/shelah_flask.pid)" 2>/dev/null || true
+          exit $status
+
       - name: SonarCloud Scan
         uses: SonarSource/sonarqube-scan-action@22918119ff8e1ca75a623e15c8296b6ea4fbe28f # v8.2.1
         env:
