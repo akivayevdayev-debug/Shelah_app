@@ -105,6 +105,38 @@
         integrity="sha384-9BfgqxUZJLeppMqmDGDPFU1zC63bMyEwEXG8xMcQwhDz5qU3WUR4PwpVcZ4fKU8D"></script>
     {% endif %}
 
+    <!-- Cloudflare Turnstile (Managed) -- anti-abuse gate for anonymous /ask
+         traffic (backend/turnstile.py, docs/SECURITY.md §8). Token callbacks
+         are defined here, ahead of the api.js script tag, so there is no
+         race between Turnstile's own async/defer script finishing its
+         (near-instant, invisible-mode) check and our callback existing --
+         window.__turnstileToken is read later by handleAiSearch() /
+         ai-service.js when they build the /ask request body. True no-op
+         (no script tag at all, no live network call to Cloudflare) unless
+         BOTH the feature flag is on and a site key is configured -- a site
+         key can be present in an environment's secrets well before the
+         flag is flipped on (a deploy-time decision, not this markup's),
+         and the widget must not start silently phoning home before then. -->
+    <script>
+        window.APP_TURNSTILE = {
+            enabled: JSON.parse('{{ turnstile_enabled | tojson }}'),
+            siteKey: {{ turnstile_site_key | tojson }},
+        };
+        window.__turnstileToken = '';
+        window.onTurnstileToken = function (token) {
+            window.__turnstileToken = token || '';
+        };
+        window.onTurnstileExpired = function () {
+            window.__turnstileToken = '';
+        };
+        window.onTurnstileError = function () {
+            window.__turnstileToken = '';
+        };
+    </script>
+    {% if turnstile_enabled and turnstile_site_key %}
+    <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
+    {% endif %}
+
     <!-- Vercel Speed Insights -->
     <script>
         window.si = window.si || function () { (window.siq = window.siq || []).push(arguments); };
@@ -194,6 +226,22 @@
                             </div>
                         </form>
                     </div>
+                    {% if turnstile_enabled and turnstile_site_key %}
+                    <!-- Cloudflare Turnstile widget (Managed mode, configured via the
+                         Cloudflare dashboard for this site key -- not something this
+                         markup controls). data-appearance="interaction-only" reserves
+                         zero layout space for the vast majority of visitors who pass
+                         invisibly; it only expands to show an interactive challenge
+                         when Cloudflare's risk engine actually requires one, which is
+                         an intentional, expected shift, not a CLS regression.
+                         data-size="flexible" keeps that (rare) challenge responsive
+                         at any viewport width instead of a fixed-width box. -->
+                    <div id="turnstileWidget" class="cf-turnstile shrink-0 max-w-[300px]"
+                        data-sitekey="{{ turnstile_site_key }}" data-appearance="interaction-only"
+                        data-size="flexible" data-callback="onTurnstileToken"
+                        data-expired-callback="onTurnstileExpired" data-error-callback="onTurnstileError"
+                        aria-live="polite"></div>
+                    {% endif %}
                 </div>
 
                 <div id="topbarControls"
@@ -9575,59 +9623,10 @@
             return false;
         }
 
-        const AI_REQUEST_TIMEOUT_MS = 60000;
-        const AI_MAX_ATTEMPTS = 3;
-
-        // POSTs /ask with a bounded per-attempt timeout and automatic retry on
-        // transient failures (abort/network/502/503/504) — never on 4xx or a
-        // clean response. Prevents the "times out after a couple of tries"
-        // failure mode where the client gave up before the server's own
-        // graceful-fallback budget had a fair chance to run (plan.md §7.13).
-        async function askWithRetry(body, headers) {
-            let lastError = null;
-            for (let attempt = 1; attempt <= AI_MAX_ATTEMPTS; attempt++) {
-                if (attempt > 1) {
-                    const phaseEl = document.getElementById('aiLoadingPhaseText');
-                    if (phaseEl) {
-                        phaseEl.style.animation = 'none';
-                        phaseEl.offsetHeight;
-                        phaseEl.textContent = t('Still working — retrying...', 'עדיין עובד — מנסה שוב...');
-                        phaseEl.style.animation = 'shelah-fade-in 0.35s ease both';
-                    }
-                    await new Promise((resolve) => setTimeout(resolve, 1200 * attempt));
-                }
-
-                const abortCtrl = new AbortController();
-                const abortTimer = setTimeout(() => abortCtrl.abort(), AI_REQUEST_TIMEOUT_MS);
-                try {
-                    const response = await fetch('/ask', {
-                        method: 'POST',
-                        headers,
-                        signal: abortCtrl.signal,
-                        body,
-                    });
-                    const isRetryableStatus = [502, 503, 504].includes(response.status);
-                    if (!response.ok && isRetryableStatus && attempt < AI_MAX_ATTEMPTS) {
-                        lastError = new Error(`Upstream error (${response.status})`);
-                        continue;
-                    }
-                    return response;
-                } catch (error) {
-                    lastError = error;
-                    const isRetryable = error?.name === 'AbortError' || error instanceof TypeError;
-                    if (isRetryable && attempt < AI_MAX_ATTEMPTS) {
-                        continue;
-                    }
-                    error.attempts = attempt;
-                    throw error;
-                } finally {
-                    clearTimeout(abortTimer);
-                }
-            }
-            if (lastError) lastError.attempts = AI_MAX_ATTEMPTS;
-            throw lastError || new Error('Request failed after retries');
-        }
-
+        // /ask retry/timeout resilience now lives in static/js/ai-service.js::askAi()
+        // (plan.md §19 Phase 1 / Prompt 32) -- this used to be an inline
+        // askWithRetry() duplicating that module. See ai-service.js's module
+        // docstring for the ported behavior and the return contract.
         async function handleAiSearch(question) {
             const sanitizedQuestion = sanitizeQuestionInput(question);
             if (!sanitizedQuestion) return;
@@ -9692,7 +9691,9 @@
 
             document.getElementById('aiModalTitle').textContent = question;
             // Show sources section immediately with layout-stable skeleton placeholders (CLS ≈ 0)
-            document.getElementById('aiSources').innerHTML = [0, 1, 2].map(() => `
+            const aiSourcesSkeletonHost = document.getElementById('aiSources');
+            aiSourcesSkeletonHost.setAttribute('aria-busy', 'true');
+            aiSourcesSkeletonHost.innerHTML = [0, 1, 2].map(() => `
                 <div class="ai-src-skeleton" aria-hidden="true">
                     <div class="ai-src-skeleton-header"></div>
                     <div class="ai-src-skeleton-body">
@@ -9705,51 +9706,101 @@
             document.getElementById('aiWikiSection').classList.add('hidden');
 
             try {
-                const headers = await authHeaders({ 'Content-Type': 'application/json' });
-                const response = await askWithRetry(
-                    JSON.stringify({
-                        question,
-                        mode: appState.prefs.mode,
-                        community: appState.prefs.community,
-                        language: isHebrewMode() ? 'he' : 'en',
-                    }),
-                    headers,
-                );
-
-                const data = await response.json();
-
-                if (response.ok) {
-                    appState.lastAiQuestion = question;
-                    appState.lastAiResponse = data;
-                    populateAiModal(data, question);
-                    // Refresh history sidebar so the new entry appears immediately
-                    void loadAskHistory();
-                    if (data?.meta?.fallback) {
-                        logReliability('ai-fallback-used', {
-                            mode: data?.meta?.mode,
-                            source_count: data?.meta?.source_count,
-                        });
-                    }
-                } else {
-                    appState.lastAiQuestion = '';
-                    appState.lastAiResponse = null;
-                    document.getElementById('aiSynthesis').innerHTML = `<p class="text-red-600 font-bold">${t('Error:', 'שגיאה:')} ${data.error}</p>`;
-                    logReliability('ai-response-error', { message: data.error || 'request failed' });
+                // First real use of the bridge (plan.md §19 Phase 1 / Prompt 32).
+                // Modules load as `type="module"`, i.e. deferred until after this
+                // classic block finishes -- but handleAiSearch only ever runs from
+                // a user interaction, well after that point, so ShelahModules is
+                // guaranteed to exist by the time we get here. Assert it rather
+                // than assume it so a future load-order change fails loudly
+                // instead of silently as a TypeError deep in the module.
+                if (!window.ShelahModules?.askAi) {
+                    throw new Error('AI module unavailable');
                 }
 
+                const data = await window.ShelahModules.askAi(question, {
+                    mode: appState.prefs.mode,
+                    community: appState.prefs.community,
+                    language: isHebrewMode() ? 'he' : 'en',
+                    // askAi() owns no DOM; retry-in-progress UI is the call site's
+                    // job (this used to be inline inside askWithRetry() itself).
+                    onRetry: () => {
+                        const phaseEl = document.getElementById('aiLoadingPhaseText');
+                        if (phaseEl) {
+                            phaseEl.style.animation = 'none';
+                            phaseEl.offsetHeight;
+                            phaseEl.textContent = t('Still working — retrying...', 'עדיין עובד — מנסה שוב...');
+                            phaseEl.style.animation = 'shelah-fade-in 0.35s ease both';
+                        }
+                    },
+                });
+
+                // TODO(§19): appState.lastAiQuestion/.lastAiResponse duplicate
+                // state.ai.* (written by askAi() itself via setState()). Kept
+                // alongside the module convention this phase only -- collapsing
+                // the two schemes is a separate change once every reader of the
+                // legacy keys is migrated (plan.md §19 Phase 1 step 4).
+                appState.lastAiQuestion = question;
+                appState.lastAiResponse = data;
+                populateAiModal(data, question);
+                // Refresh history sidebar so the new entry appears immediately
+                void loadAskHistory();
+                if (data?.meta?.fallback) {
+                    logReliability('ai-fallback-used', {
+                        mode: data?.meta?.mode,
+                        source_count: data?.meta?.source_count,
+                    });
+                }
             } catch (error) {
+                // TODO(§19): see the success-path note above -- same duplication.
                 appState.lastAiQuestion = '';
                 appState.lastAiResponse = null;
-                const isTimeout = error?.name === 'AbortError';
-                const errMsg = isTimeout
-                    ? t('Response timed out. Please try again.', 'הבקשה ארכה זמן רב. נסה שוב.')
-                    : `${t('Network error:', 'שגיאת רשת:')} ${error.message}`;
-                document.getElementById('aiSynthesis').innerHTML = `<p class="text-red-600">${errMsg}</p>`;
-                logReliability('ai-network-error', { message: error.message, timeout: isTimeout, attempts: error?.attempts || 1 });
+
+                if (error?.code === 'turnstile_required') {
+                    // A stale/invalid token, not a real answer failure -- clear it and
+                    // ask the widget for a fresh one so the *next* submit has a shot
+                    // at passing without the visitor doing anything (interaction-only
+                    // appearance means this is often invisible; Cloudflare's risk
+                    // engine decides, not this code).
+                    window.__turnstileToken = '';
+                    const turnstileWidget = document.getElementById('turnstileWidget');
+                    if (window.turnstile && turnstileWidget) {
+                        try { window.turnstile.reset(turnstileWidget); } catch (_err) { /* widget not ready yet */ }
+                        turnstileWidget.scrollIntoView({ behavior: window.ShelahMotion?.isMotionReduced() ? 'auto' : 'smooth', block: 'nearest' });
+                    }
+                    document.getElementById('aiSynthesis').innerHTML = `
+                        <div class="ai-turnstile-notice" role="alert">
+                            <p>${t(
+                                'Please complete the quick verification check near the search bar, then ask your question again.',
+                                'אנא השלם את בדיקת האימות הקצרה ליד שורת החיפוש, ולאחר מכן שאל שוב את שאלתך.'
+                            )}</p>
+                        </div>`;
+                    logReliability('ai-turnstile-required');
+                } else if (error?.status === 401) {
+                    const message = t('Your session has expired. Please sign in again to continue.', 'ההתחברות שלך פגה. אנא התחבר שוב כדי להמשיך.');
+                    document.getElementById('aiSynthesis').innerHTML = `<p class="text-red-600 font-bold">${message}</p>`;
+                    logReliability('ai-response-error', { message: 'session expired' });
+                } else if (typeof error?.status === 'number') {
+                    // askAi() got a completed, non-ok HTTP response -- a server-side
+                    // failure, not a network/timeout one.
+                    const message = `${t('Error:', 'שגיאה:')} ${error.message}`;
+                    document.getElementById('aiSynthesis').innerHTML = `<p class="text-red-600 font-bold">${message}</p>`;
+                    logReliability('ai-response-error', { message: error.message || 'request failed' });
+                } else {
+                    const isTimeout = error?.name === 'AbortError';
+                    const errMsg = isTimeout
+                        ? t('Response timed out. Please try again.', 'הבקשה ארכה זמן רב. נסה שוב.')
+                        : `${t('Network error:', 'שגיאת רשת:')} ${error.message}`;
+                    document.getElementById('aiSynthesis').innerHTML = `<p class="text-red-600">${errMsg}</p>`;
+                    logReliability('ai-network-error', { message: error.message, timeout: isTimeout, attempts: error?.attempts || 1 });
+                }
             } finally {
                 _phaseTimers.forEach(clearTimeout);
                 document.body.classList.remove('search-loading');
                 suppressSuggestionMenu = false;
+                // Clear busy state on every exit path (success, error, and network
+                // failure alike) so the region is never left announcing "loading"
+                // to assistive tech after the request has actually settled.
+                document.getElementById('aiSources').setAttribute('aria-busy', 'false');
             }
         }
 
