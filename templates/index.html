@@ -11611,18 +11611,28 @@
             }
 
             async function _fetchAndFillCitedSource(ref, boxId) {
+                const box = document.getElementById(boxId);
+                const skeleton = box?.querySelector('.ai-cited-fetch-skeleton');
+                if (!skeleton) return;
+
+                // The skeleton must always resolve to *something* -- leaving it
+                // spinning forever when a ref can't be matched (AI-cited refs
+                // aren't always in Sefaria's exact canonical form) reads as a
+                // broken source box. The header's external links (Sefaria/Dicta/
+                // AlHaTorah/etc, built by _buildSourceBoxHtml above) still work
+                // even when the inline preview can't be fetched.
+                const notAvailableHtml = `<div class="ai-src-box-note">${t('Preview unavailable for this source — use the links above to view it directly.', 'תצוגה מקדימה אינה זמינה למקור זה — יש להשתמש בקישורים למעלה כדי לצפות בו ישירות.')}</div>`;
+
                 try {
                     const resp = await fetch(`/api/text/${encodeURIComponent(ref)}?autotranslate=0`);
-                    if (!resp.ok) return;
+                    if (!resp.ok) { skeleton.outerHTML = notAvailableHtml; return; }
                     const payload = await resp.json();
-                    if (payload?.error) return;
+                    if (payload?.error) { skeleton.outerHTML = notAvailableHtml; return; }
                     const html = _bilingualContentHtml(payload?.lines);
-                    if (!html) return;
-                    const box = document.getElementById(boxId);
-                    const skeleton = box?.querySelector('.ai-cited-fetch-skeleton');
-                    if (!skeleton) return;
-                    skeleton.outerHTML = html;
-                } catch (_) {}
+                    skeleton.outerHTML = html || notAvailableHtml;
+                } catch (_) {
+                    skeleton.outerHTML = notAvailableHtml;
+                }
             }
 
             // Exact key (transliteration-normalized, full specificity) — for finding
@@ -11692,6 +11702,13 @@
             const rankedSources = rankAiSourcesForQuery(allRetrievedSources, queryTitle, data.answer)
                 .filter((src) => !citedRefKeys.has(_refBaseKey(src?.ref)))
                 .slice(0, 4);
+            // Labeled separately from the AI-cited sources above -- these were
+            // retrieved as relevant context but the AI did not actually cite
+            // them in its answer, so showing them unlabeled reads as if the AI
+            // named more sources than it did.
+            if (rankedSources.length && citedRefKeys.size) {
+                _srcParts.push(`<div class="ai-src-section-label">${t('Related sources (not cited in the answer)', 'מקורות קשורים (לא צוטטו בתשובה)')}</div>`);
+            }
             rankedSources.forEach((src) => {
                 const contentHtml = _bilingualContentHtml(src?.lines);
                 _srcParts.push(_buildSourceBoxHtml({ ref: src.ref, source: src, contentHtml }));
@@ -11699,18 +11716,26 @@
 
             // Single atomic DOM write — all elements exist in the DOM before any handler is wired
             sourcesDiv.innerHTML = _srcParts.join('');
+            sourcesDiv.setAttribute('aria-busy', 'false');
 
-            // Single handler-wire pass — no orphaning possible since innerHTML is now final.
+            // Single delegated listener, bound once on the container — no orphaning
+            // possible since innerHTML replacement never touches the container's own
+            // listeners. Guarded with a dataset flag: populateAiModal re-renders this
+            // container's innerHTML on every new answer, so binding unconditionally
+            // here would stack a duplicate listener per answer.
             // skipNavigationGrid:true — these refs are specific citations the AI already
             // resolved (e.g. "Shulchan Aruch, Orach Chayim 1"), not an ambiguous top-level
             // search, so jump straight to the text instead of showing a chapter/section grid.
-            sourcesDiv.querySelectorAll('a.source-local-link').forEach((a) => {
-                a.addEventListener('click', (e) => {
+            if (!sourcesDiv.dataset.sourceLinksDelegated) {
+                sourcesDiv.dataset.sourceLinksDelegated = '1';
+                sourcesDiv.addEventListener('click', (e) => {
+                    const a = e.target.closest('a.source-local-link');
+                    if (!a) return;
                     e.preventDefault();
                     const ref = a.getAttribute('data-local-ref');
                     if (ref) readText(ref, { skipNavigationGrid: true });
                 });
-            });
+            }
 
             // Kick off async text fetches for cited sources with no local match (fire-and-forget)
             pendingFetches.forEach(([ref, boxId]) => _fetchAndFillCitedSource(ref, boxId));
