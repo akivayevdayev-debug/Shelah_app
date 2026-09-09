@@ -6014,32 +6014,67 @@
             return refs.slice(0, 24);
         }
 
+        // Bounded caches for the commentary sidebar -- reselecting the same
+        // passage/commentary previously re-ran the full network chain every
+        // time (Sefaria fetch + on-demand translation on the backend, see
+        // backend/helpers.py::_fill_missing_english_lines), which was the
+        // main contributor to the sidebar feeling "extremely slow and
+        // unresponsive." Same bounded-eviction shape as textPayloadCache
+        // above (cacheTextPayload) for consistency.
+        const commentaryLinksCache = new Map();
+        const commentaryTextCache = new Map();
+
+        function _cacheBounded(map, key, value, max = 140) {
+            if (!key) return;
+            map.set(key, value);
+            if (map.size <= max) return;
+            const firstKey = map.keys().next().value;
+            if (firstKey !== undefined) map.delete(firstKey);
+        }
+
         async function fetchCommentaryLinksWithFallback(refCandidates) {
             const candidates = Array.isArray(refCandidates) ? refCandidates : [];
             const seen = new Set();
+            const normalizedCandidates = [];
 
             for (const candidate of candidates) {
                 const normalized = String(candidate || '').replace(/\s+/g, ' ').trim();
                 if (!normalized) continue;
-
                 const normalizedKey = normalized.toLowerCase();
                 if (seen.has(normalizedKey)) continue;
                 seen.add(normalizedKey);
-
-                try {
-                    const resp = await fetch(`/api/text/${encodeURIComponent(normalized)}/links`);
-                    if (!resp.ok) continue;
-                    const payload = await resp.json();
-                    const refs = extractCommentaryRefs(payload);
-                    if (refs.length) {
-                        return { links: payload, resolvedRef: normalized };
-                    }
-                } catch (_) {
-                    // Try the next fallback reference.
-                }
+                normalizedCandidates.push(normalized);
             }
 
-            return { links: {}, resolvedRef: '' };
+            if (!normalizedCandidates.length) {
+                return { links: {}, resolvedRef: '' };
+            }
+
+            // Fire every candidate concurrently instead of awaiting them one
+            // at a time -- each round trip can be slow, and a sequential
+            // loop multiplied that latency by up to ~4 candidates. Still
+            // honors candidate priority (segment ref before whole-verse
+            // before chapter-level fallback) by taking the first non-empty
+            // result in normalizedCandidates order, not whichever settles
+            // first.
+            const results = await Promise.all(normalizedCandidates.map(async (normalized) => {
+                if (commentaryLinksCache.has(normalized)) {
+                    return commentaryLinksCache.get(normalized);
+                }
+                try {
+                    const resp = await fetch(`/api/text/${encodeURIComponent(normalized)}/links`);
+                    if (!resp.ok) return null;
+                    const payload = await resp.json();
+                    const refs = extractCommentaryRefs(payload);
+                    const result = refs.length ? { links: payload, resolvedRef: normalized } : null;
+                    _cacheBounded(commentaryLinksCache, normalized, result);
+                    return result;
+                } catch (_) {
+                    return null;
+                }
+            }));
+
+            return results.find(Boolean) || { links: {}, resolvedRef: '' };
         }
 
         function getCommentaryAuthorLabel(ref) {
@@ -6291,11 +6326,14 @@
                 </div>`;
 
             try {
-                const resp = await fetch(`/api/text/${encodeURIComponent(commentaryRef)}?autotranslate=1`);
-                const data = await resp.json();
-
-                if (!resp.ok || data?.error) {
-                    throw new Error(data?.error || `HTTP ${resp.status}`);
+                let data = commentaryTextCache.get(commentaryRef);
+                if (!data) {
+                    const resp = await fetch(`/api/text/${encodeURIComponent(commentaryRef)}?autotranslate=1`);
+                    data = await resp.json();
+                    if (!resp.ok || data?.error) {
+                        throw new Error(data?.error || `HTTP ${resp.status}`);
+                    }
+                    _cacheBounded(commentaryTextCache, commentaryRef, data);
                 }
 
                 const enTitle = String(data?.title || commentaryRef).trim();
