@@ -9132,13 +9132,15 @@
         }
 
         function getPrayerFallbackParagraphs(rawText) {
+            // Returns raw (unescaped) paragraphs -- callers escape at the point
+            // text becomes HTML (see displayPrayer's heHtml/enHtml construction
+            // and renderHebrewParagraph/renderEnglishParagraph).
             const normalized = normalizeDisplayText(String(rawText || '')).replace(/\r/g, '').trim();
             if (!normalized) return [];
             return normalized
                 .split(/\n{2,}/)
                 .map(p => p.trim())
-                .filter(Boolean)
-                .map(p => escapeHtml(p));
+                .filter(Boolean);
         }
 
         async function displayPrayer(prayerName) {
@@ -9190,6 +9192,16 @@
                                 return duplicate;
                             };
 
+                            // heHtml/enHtml are trusted pre-built HTML strings (rendered
+                            // directly via the isHtml path), so their content is escaped
+                            // here at the point each tag is built. paragraphPairs instead
+                            // stores raw (unescaped) text -- its consumer,
+                            // renderPrayerBilingualRow/renderHebrewParagraph/
+                            // renderEnglishParagraph, is the single point where that text
+                            // becomes HTML and escapes it there. Keeping both variants
+                            // raw-vs-escaped straight here (rather than escaping once and
+                            // reusing the same string for both) is what avoids
+                            // double-escaping paragraphPairs downstream.
                             sefariaData.lines.forEach(line => {
                                 if (line.type === 'header') {
                                     const heHeaderRaw = normalizeDisplayText(line.he || '');
@@ -9197,14 +9209,12 @@
                                     if (isDuplicateLeadingLine(heHeaderRaw, enHeaderRaw)) {
                                         return;
                                     }
-                                    const heHeader = escapeHtml(heHeaderRaw);
-                                    const enHeader = escapeHtml(enHeaderRaw);
-                                    heHtml += `<h3 class="text-xl font-bold font-hebrew mt-8 mb-3 pb-1 border-b border-slate-200">${heHeader}</h3>`;
-                                    enHtml += `<h3 class="text-xl font-bold font-serif mt-8 mb-3 pb-1 border-b border-slate-200">${enHeader}</h3>`;
+                                    heHtml += `<h3 class="text-xl font-bold font-hebrew mt-8 mb-3 pb-1 border-b border-slate-200">${escapeHtml(heHeaderRaw)}</h3>`;
+                                    enHtml += `<h3 class="text-xl font-bold font-serif mt-8 mb-3 pb-1 border-b border-slate-200">${escapeHtml(enHeaderRaw)}</h3>`;
                                     paragraphPairs.push({
                                         type: 'header',
-                                        he: heHeader,
-                                        en: enHeader,
+                                        he: heHeaderRaw,
+                                        en: enHeaderRaw,
                                     });
                                 } else {
                                     const heLine = normalizeDisplayText(line.he || '');
@@ -9212,8 +9222,8 @@
                                     if (isDuplicateLeadingLine(heLine, enLine)) {
                                         return;
                                     }
-                                    let heParagraph = heLine ? escapeHtml(heLine) : '';
-                                    let enParagraph = enLine ? escapeHtml(enLine) : '';
+                                    let heParagraph = heLine;
+                                    let enParagraph = enLine;
 
                                     if (!heParagraph && fallbackHeParagraphs.length > 0) {
                                         heParagraph = fallbackHeParagraphs.shift();
@@ -9227,10 +9237,10 @@
                                     }
 
                                     if (heParagraph) {
-                                        heHtml += `<p class="mb-3">${heParagraph}</p>`;
+                                        heHtml += `<p class="mb-3">${escapeHtml(heParagraph)}</p>`;
                                     }
                                     if (enParagraph) {
-                                        enHtml += `<p class="mb-3">${enParagraph}</p>`;
+                                        enHtml += `<p class="mb-3">${escapeHtml(enParagraph)}</p>`;
                                     }
 
                                     paragraphPairs.push({
