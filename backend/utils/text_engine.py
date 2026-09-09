@@ -289,3 +289,65 @@ def _format_ui_answer(answer_text):
         lines = _collapse_markdown_spacing(lines)
 
     return "\n".join(lines).strip()
+
+
+CITATION_REF_UNDERSCORE_RE = re.compile(r"_+")
+CITATION_REF_COMMA_SPACING_RE = re.compile(r"\s*,\s*")
+# Splits "<title><sep><locator>" where sep is the single space/dot directly
+# before a trailing run of digits (dot- or colon-separated, e.g. "242.1" or
+# "1:1"). Anchored at both ends (fullmatch via ^...$) so the split point is
+# structurally unique -- everything from the separator to end-of-string
+# must be locator-shaped, which only one position in a real ref can satisfy
+# even when the title itself contains other digits or spaces (e.g. "Rambam,
+# Mishneh Torah, Hilchot Shabbat 1:1"). Non-greedy .*? has no effect on
+# *which* split is found (uniqueness is structural), only that re.match
+# doesn't needlessly backtrack past it.
+CITATION_TITLE_LOCATOR_RE = re.compile(r"^(?P<title>.*?)[.\s](?P<locator>\d+(?:[.:]\d+)*)$")
+
+
+def format_source_citation(ref, title=None):
+    """Normalize a Sefaria-style ref into the house citation format.
+
+    Sefaria refs travel through the codebase in a few different raw
+    shapes -- underscore-joined single-word titles ("Orach_Chayim.242.1"),
+    underscore-joined multi-word/comma titles
+    ("Shulchan_Arukh,_Orach_Chayim.242.1"), already-spaced
+    ("Genesis 1:1"), or a bare section number with no book at all. This
+    produces one consistent display string: underscores become spaces, the
+    trailing numeric locator becomes colon-joined, and comma spacing is
+    normalized. Added for plan.md §9.2b's format_source_citation tool -- no
+    equivalent existed elsewhere in the codebase (citation display was
+    previously done ad hoc at each call site).
+
+    A first version of this function split on the *last space* in the ref,
+    which is wrong whenever the book title itself contains a space (nearly
+    every multi-word Sefaria title, e.g. "Orach Chayim 242.1" splits on the
+    space *inside* the title, not the one before the locator). Splitting on
+    "the separator directly before a fully-numeric trailing run" instead of
+    "the last space" fixes every title shape above; see
+    tests/test_ai_tools.py::test_format_source_citation_normalizes_underscores.
+    """
+    raw_ref = str(ref or "").strip()
+    if not raw_ref:
+        return str(title or "").strip()
+
+    spaced = CITATION_REF_UNDERSCORE_RE.sub(" ", raw_ref)
+    spaced = CITATION_REF_COMMA_SPACING_RE.sub(", ", spaced).strip()
+
+    match = CITATION_TITLE_LOCATOR_RE.match(spaced)
+    book_part = match.group("title").strip() if match else ""
+    # A book title should contain at least one non-digit character -- guards
+    # a locator-only input (e.g. "242.1" with no book at all) from being
+    # misparsed as title="242"/locator="1"; falls through to the
+    # unformatted `spaced` string instead, same as no book being present.
+    if match and book_part and not book_part.isdigit():
+        locator = match.group("locator").replace(".", ":")
+        citation = f"{book_part} {locator}"
+    else:
+        citation = spaced
+
+    citation = re.sub(r"\s+", " ", citation).strip(" ,")
+    display_title = str(title or "").strip()
+    if display_title and display_title.lower() not in citation.lower():
+        return f"{display_title} ({citation})"
+    return citation
