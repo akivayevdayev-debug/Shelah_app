@@ -2004,16 +2004,24 @@
         const loadingOverlay = document.getElementById('loadingOverlay');
         const mainContainer = document.getElementById('mainContainer');
 
+        // Tracked so a show/hide within the 220ms hide-transition window can't
+        // race: without this, a stale hide timer from a PRIOR call could fire
+        // after a new showLoadingOverlay() and force the overlay back to
+        // hidden mid-load — the direct cause of "unexpected loading overlays".
+        let _loadingOverlayHideTimer = null;
+
         function showLoadingOverlay() {
+            clearTimeout(_loadingOverlayHideTimer);
             loadingOverlay.setAttribute('aria-busy', 'true');
             loadingOverlay.classList.remove('is-hiding');
             loadingOverlay.classList.remove('hidden');
         }
 
         function hideLoadingOverlay() {
+            clearTimeout(_loadingOverlayHideTimer);
             loadingOverlay.setAttribute('aria-busy', 'false');
             loadingOverlay.classList.add('is-hiding');
-            setTimeout(() => {
+            _loadingOverlayHideTimer = setTimeout(() => {
                 loadingOverlay.classList.add('hidden');
                 loadingOverlay.classList.remove('is-hiding');
             }, 220);
