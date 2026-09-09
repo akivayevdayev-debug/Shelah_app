@@ -372,7 +372,7 @@
                             </button>
 
                             <div id="userProfileMenu"
-                                class="hidden absolute top-full right-0 mt-1.5 w-44 max-w-[calc(100vw-1rem)] bg-white border border-slate-200 rounded-xl shadow-lg py-1.5 z-[999]">
+                                class="hidden absolute top-full right-0 w-44 max-w-[calc(100vw-1rem)] bg-white border border-slate-200 rounded-xl shadow-lg py-1.5 z-[999]">
                                 <a id="userProfileLink" href="/profile"
                                     class="topbar-user-menu-item block px-3 py-1.5 text-xs text-slate-700 hover:bg-slate-100 transition"
                                     data-en="Profile" data-he="פרופיל">Profile</a>
@@ -4888,7 +4888,7 @@
             const viewportWidth = Math.max(Math.round(window.innerWidth || 0), 320);
             const viewportHeight = Math.max(Math.round(window.innerHeight || 0), 320);
             const padding = Number.isFinite(options.padding) ? options.padding : 8;
-            const offset = Number.isFinite(options.offset) ? options.offset : 6;
+            const offset = Number.isFinite(options.offset) ? options.offset : 0;
             const minWidth = Number.isFinite(options.minWidth) ? options.minWidth : 160;
             const maxWidth = Number.isFinite(options.maxWidth) ? options.maxWidth : 352;
             const triggerRect = triggerEl.getBoundingClientRect();
@@ -4899,9 +4899,17 @@
             const preferredLeft = Math.round(triggerRect.left + triggerRect.width / 2 - panelWidth / 2);
             const left = Math.max(padding, Math.min(preferredLeft, viewportWidth - panelWidth - padding));
 
+            // Anchor to the topbar's own bottom edge rather than each trigger's
+            // individual bottom — triggers vary slightly in height/padding, so
+            // anchoring per-trigger made settings and profile menus open at
+            // different depths. Anchoring to the shared topbar edge means every
+            // floating topbar menu opens flush at the same height, directly
+            // below the bar.
+            const topbarEl = document.querySelector('header[role="banner"]');
+            const anchorBottom = topbarEl ? topbarEl.getBoundingClientRect().bottom : triggerRect.bottom;
             const top = Math.min(
                 viewportHeight - padding,
-                Math.round(triggerRect.bottom + offset),
+                Math.round(anchorBottom + offset),
             );
 
             menuEl.style.setProperty('position', 'fixed', 'important');
@@ -4909,6 +4917,11 @@
             menuEl.style.setProperty('left', `${left}px`, 'important');
             menuEl.style.setProperty('top', `${top}px`, 'important');
             menuEl.style.setProperty('right', 'auto', 'important');
+            // CSS-only fallback rules (style.css) give these a resting
+            // margin-top for the case where this JS hasn't run yet — zero it
+            // out here so it can't add a hidden extra gap under the `top` we
+            // just computed.
+            menuEl.style.setProperty('margin-top', '0', 'important');
             menuEl.style.setProperty('width', `${panelWidth}px`, 'important');
             menuEl.style.setProperty('max-width', `${Math.max(0, viewportWidth - (padding * 2))}px`, 'important');
         }
@@ -4920,13 +4933,6 @@
                 minWidth: 220,
                 maxWidth: 352,
             });
-            const _topbar = document.querySelector('header[role="banner"]');
-            if (_topbar) {
-                const _tbBottom = _topbar.getBoundingClientRect().bottom + 4;
-                if (parseFloat(settingsPanel.style.top) < _tbBottom) {
-                    settingsPanel.style.setProperty('top', `${_tbBottom}px`, 'important');
-                }
-            }
         }
 
         function positionUserProfileMenu() {
