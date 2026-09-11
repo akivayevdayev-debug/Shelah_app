@@ -33,8 +33,17 @@ function _motionStagger() {
     return window.Motion?.stagger ?? null;
 }
 
-function _spring(config) {
-    return window.Motion?.spring?.(config) ?? config.duration ?? 0.22;
+// motion@12.43.0's spring() is a low-level generator that requires its own
+// `keyframes` and is meant for advanced use (e.g. a spring visualiser) --
+// animate()'s documented way to drive a spring transition is `type: spring`
+// alongside the physics params, not `easing: spring(config)` (which throws,
+// since that config lacks the keyframes spring() itself expects).
+function _springTransition(config, extra = {}) {
+    const spring = window.Motion?.spring ?? null;
+    if (!spring) {
+        return { duration: config.duration ?? 0.22, ...extra };
+    }
+    return { type: spring, ...config, ...extra };
 }
 
 
@@ -61,7 +70,7 @@ export async function animateIn(el, { delay = 0, y = 8 } = {}) {
     return animate(
         el,
         { opacity: [0, 1], transform: [`translateY(${y}px)`, 'translateY(0)'] },
-        { delay, easing: _spring(SPRING_ENTER) },
+        _springTransition(SPRING_ENTER, { delay }),
     );
 }
 
@@ -79,7 +88,7 @@ export async function animateOut(el, { delay = 0, y = -6 } = {}) {
     return animate(
         el,
         { opacity: [1, 0], transform: ['translateY(0)', `translateY(${y}px)`] },
-        { delay, easing: _spring(SPRING_EXIT) },
+        _springTransition(SPRING_EXIT, { delay }),
     );
 }
 
@@ -100,10 +109,7 @@ export async function staggerIn(elements, { staggerDelay = 0.06, y = 8 } = {}) {
     return animate(
         els,
         { opacity: [0, 1], transform: [`translateY(${y}px)`, 'translateY(0)'] },
-        {
-            delay: stagger(staggerDelay),
-            easing: _spring(SPRING_ENTER),
-        },
+        _springTransition(SPRING_ENTER, { delay: stagger(staggerDelay) }),
     );
 }
 
@@ -120,7 +126,7 @@ export async function springMove(el, transform, { delay = 0 } = {}) {
     return animate(
         el,
         { transform },
-        { delay, easing: _spring(SPRING_MOVE) },
+        _springTransition(SPRING_MOVE, { delay }),
     );
 }
 
@@ -191,7 +197,7 @@ export async function slideIn(el, { from = 'left', distance = '100%' } = {}) {
     return animate(
         el,
         { transform: [`translate${axis}(${sign}${distance})`, 'translate(0,0)'] },
-        { easing: _spring(SPRING_ENTER) },
+        _springTransition(SPRING_ENTER),
     );
 }
 
@@ -207,7 +213,7 @@ export async function slideOut(el, { to = 'left', distance = '100%' } = {}) {
     return animate(
         el,
         { transform: ['translate(0,0)', `translate${axis}(${sign}${distance})`] },
-        { easing: _spring(SPRING_EXIT) },
+        _springTransition(SPRING_EXIT),
     );
 }
 
