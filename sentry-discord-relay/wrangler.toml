@@ -1,0 +1,8 @@
+name = "sentry-discord-relay"
+main = "src/index.js"
+compatibility_date = "2026-09-11"
+
+# Discord webhook URL is stored as a secret — set it with:
+#   npx wrangler secret put DISCORD_WEBHOOK_URL
+# Optional: set a shared secret for Sentry to sign requests (HMAC SHA-256)
+#   npx wrangler secret put SENTRY_WEBHOOK_SECRET
