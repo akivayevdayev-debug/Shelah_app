@@ -774,7 +774,9 @@ def _holiday_color_for_category(category):
     return palette.get(str(category or "").strip().lower(), "#6b7280")
 
 
-load_dotenv()
+# override=True: project .env must win over any stale var already exported
+# in the shell (e.g. an old key left in a dotfile) — see backend/claude.py.
+load_dotenv(override=True)
 app = Flask(__name__)
 
 

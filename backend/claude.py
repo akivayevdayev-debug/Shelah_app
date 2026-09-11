@@ -53,7 +53,11 @@ except Exception:
     # Keep a broad Exception fallback so retry wiring remains active even without google.api_core.
     ResourceExhausted = Exception
 
-load_dotenv()
+# override=True: project .env must win over any stale var already exported
+# in the shell (a leftover `export GEMINI_API_KEY=...` in ~/.zshrc silently
+# shadowed every .env fix here otherwise, since load_dotenv() defaults to
+# override=False).
+load_dotenv(override=True)
 
 # Set up basic logging for AI interactions
 logging.basicConfig(level=logging.INFO)
