@@ -93,3 +93,11 @@ graphify-out/
 !.python-version
 .vercel
 .env*
+
+# Personal notes / local-machine session config -- not project-wide
+# instructions like .claude/CLAUDE.md or .claude/skills/ (those stay
+# tracked via the !.claude/ exception above; this re-ignores just the
+# personal/local files within it).
+akiva_tasks.md
+.claude/settings.local.json
+.claude/launch.json
