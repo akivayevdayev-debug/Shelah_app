@@ -276,10 +276,23 @@ def check_table_rls(supabase_url, publishable_key, table_name, id_column, sentin
         insert_payload[id_column] = row_id
 
     insert_url = f"{supabase_url.rstrip('/')}/rest/v1/{table_name}"
+    insert_headers = {**_postgrest_headers(publishable_key, user_a["token"]),
+                       "Prefer": "return=minimal"}
+    insert_params = None
+    if not id_column:
+        # Single-row-per-user tables (user_preferences: PK is user_id
+        # itself) must upsert, not insert -- a plain INSERT 409s forever
+        # once any one run leaves a row behind, because the cleanup DELETE
+        # below lives in a try/finally that only starts AFTER this insert
+        # succeeds, so a failed insert here never triggers cleanup either.
+        # Confirmed live 2026-09-07: a stale sentinel from an earlier run
+        # made every subsequent scheduled run fail with the same 409.
+        insert_headers["Prefer"] = "return=minimal,resolution=merge-duplicates"
+        insert_params = {"on_conflict": "user_id"}
     insert_resp = requests.post(
         insert_url,
-        headers={**_postgrest_headers(publishable_key, user_a["token"]),
-                 "Prefer": "return=minimal"},
+        headers=insert_headers,
+        params=insert_params,
         json=insert_payload,
         timeout=20,
     )
