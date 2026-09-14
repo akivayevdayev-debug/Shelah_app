@@ -31,6 +31,12 @@ os.environ.setdefault("LOG_LEVEL", "ERROR")
 # load_dotenv() (called on app import) won't override an already-set var.
 os.environ.setdefault("SENTRY_DSN", "")
 os.environ.setdefault("SENTRY_DSN_BROWSER", "")
+# Same leak this project already hit once with RATE_LIMIT_REDIS_URL
+# (plan.md §36.1 / Prompt 48/§36): a developer's local .env may set a real
+# Clerk webhook secret, and load_dotenv() won't override an already-set
+# var -- blank it so backend/routes_webhooks.py's tests never validate
+# against a real production secret.
+os.environ.setdefault("CLERK_WEBHOOK_SIGNING_SECRET", "")
 # plan.md §36.1: a developer's local .env may set this to a real Upstash
 # DSN, and load_dotenv() (called on app import) won't override an
 # already-set var -- blank it so tests never leak reads/writes to a shared
@@ -64,6 +70,76 @@ import httpx
 import app as flask_app_module
 import asgi
 from backend.health_check import health as _api_health
+
+# app.py:783 and backend/claude.py:60 both call load_dotenv(override=True)
+# at their own import time (by design -- see their comments: a developer's
+# real .env must beat a stale exported var). override=True means those
+# calls -- fired above, during `import app` / `import asgi` -- silently
+# clobber every os.environ.setdefault(...) blank-out above with the
+# developer's real .env values, including RATE_LIMIT_REDIS_URL: this
+# process now has a live production Upstash Redis URL in os.environ even
+# though line 46 above set it to "". backend.rate_limit's module-level
+# `_store` singleton (backend/rate_limit.py's own module-import-time
+# _build_store() call, triggered transitively by `import asgi` above) was
+# therefore already built as a real _RedisStore pointed at production
+# Redis before we regain control here -- every test in this suite would
+# silently rate-limit against (and pollute counters in) production
+# infrastructure instead of the intended in-process fallback store (see
+# tests/test_ask.py::TestAskRateLimit::test_rate_limit_returns_429_on_excess,
+# which asserts the store is backend.rate_limit._InMemoryStore).
+#
+# Force the leaked vars back to blank now that every load_dotenv() call
+# above has already fired, and rebuild backend.rate_limit's store so it
+# re-reads the now-correctly-blank RATE_LIMIT_REDIS_URL instead of keeping
+# the one it was mistakenly built with.
+os.environ["RATE_LIMIT_REDIS_URL"] = ""
+os.environ["SENTRY_DSN"] = ""
+os.environ["SENTRY_DSN_BROWSER"] = ""
+os.environ["CLERK_WEBHOOK_SIGNING_SECRET"] = ""
+
+import backend.rate_limit as _rate_limit_module
+
+_rate_limit_module.RATE_LIMIT_REDIS_URL = ""
+_rate_limit_module._store = _rate_limit_module._build_store()
+
+# Same leak as RATE_LIMIT_REDIS_URL above, but for app.py's own
+# module-level SENTRY_DSN_BROWSER constant (app.py:862): it's a plain
+# `X = os.environ.get(...)` assignment evaluated once during `import app`
+# above, using whatever load_dotenv(override=True) (app.py:783) had
+# already clobbered os.environ with -- blanking os.environ post-import
+# (line 97 above) never reaches this already-frozen value. Without this,
+# every "/" response rendered in this suite carries the developer's real
+# Sentry browser DSN and a live browser.sentry-cdn.com <script> tag,
+# defeating tests/test_routes_core.py's
+# TestSentryBrowserIntegration::test_unset_dsn_emits_no_sentry_script_tag
+# (which verifies the documented "true no-op when unset" behavior) and
+# leaking a real production DSN into every other test's rendered index.html.
+flask_app_module.SENTRY_DSN_BROWSER = ""
+
+# Same leak, for the SUPABASE_URL / SUPABASE_PUBLISHABLE_KEY /
+# SUPABASE_SECRET_KEY trio: a developer's real .env clobbers the
+# os.environ.setdefault(...) mock values set at the top of this file
+# (SUPABASE_URL -> https://mock.supabase.co etc.), and app.py froze the
+# leaked real values into its own module-level SUPABASE_URL /
+# SUPABASE_PUBLISHABLE_KEY / SUPABASE_SECRET_KEY constants (app.py:877-880)
+# during the `import app` above -- before we regain control here. Left
+# alone, every Supabase-backed test in this suite silently calls the
+# developer's real Supabase project (over the real network, with the real
+# secret key) instead of the intended https://mock.supabase.co mock host
+# that mock_outbound_httpx's routes are registered against, since none of
+# those routes match a real project hostname (see
+# tests/test_supabase_mock_fixture.py, which round-trips the real client
+# construction and catches exactly this).
+os.environ["SUPABASE_URL"] = "https://mock.supabase.co"
+os.environ["SUPABASE_PUBLISHABLE_KEY"] = "sb_publishable_mock-key"
+os.environ["SUPABASE_SECRET_KEY"] = "sb_secret_mock-key"
+flask_app_module.SUPABASE_URL = "https://mock.supabase.co"
+flask_app_module.SUPABASE_PUBLISHABLE_KEY = "sb_publishable_mock-key"
+flask_app_module.SUPABASE_SECRET_KEY = "sb_secret_mock-key"
+# Drop any client already cached (app.py:896/963) off the leaked real
+# URL/key so the next _get_supabase_client() call rebuilds it from the
+# corrected constants above.
+flask_app_module._supabase_client = None
 
 MOCK_SEFARIA_REF = "Genesis 1:1"
 
