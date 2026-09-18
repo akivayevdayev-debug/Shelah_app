@@ -27,7 +27,7 @@ import re
 import time
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Sequence, Tuple
+from typing import Any, Dict, List, Sequence, Tuple
 from urllib.parse import quote
 
 import requests
@@ -71,49 +71,55 @@ def get_children(node: Dict[str, Any]) -> List[Dict[str, Any]]:
     return []
 
 
+def _walk_leaf_nodes(node: Any, path: Sequence[str], leaves: List[Dict[str, Any]]) -> None:
+    """Recursive descent of the Sefaria index tree, appending leaf entries
+    to `leaves` in place. Moved to module level (out of collect_leaf_nodes())
+    since a nested closure's own branches count against the enclosing
+    function's complexity, but a top-level function's don't
+    (SonarCloud python:S3776).
+    """
+    if isinstance(node, list):
+        for child in node:
+            _walk_leaf_nodes(child, path, leaves)
+        return
+
+    if not isinstance(node, dict):
+        return
+
+    label = str(node.get("title") or node.get(
+        "category") or node.get("key") or "").strip()
+    next_path = list(path)
+    if label:
+        next_path.append(label)
+
+    children = get_children(node)
+    if children:
+        for child in children:
+            _walk_leaf_nodes(child, next_path, leaves)
+        return
+
+    title = str(node.get("title") or "").strip()
+    if not title:
+        return
+
+    categories = node.get("categories")
+    if not isinstance(categories, list):
+        categories = []
+
+    leaf = {
+        "title": title,
+        "he_title": str(node.get("heTitle") or node.get("heCategory") or "").strip(),
+        "categories": [str(item).strip() for item in categories if str(item).strip()],
+        "first_section_ref": str(node.get("firstSectionRef") or "").strip(),
+        "ref": str(node.get("ref") or "").strip(),
+        "path": next_path,
+    }
+    leaves.append(leaf)
+
+
 def collect_leaf_nodes(index_payload: Any) -> List[Dict[str, Any]]:
     leaves: List[Dict[str, Any]] = []
-
-    def walk(node: Any, path: Sequence[str]) -> None:
-        if isinstance(node, list):
-            for child in node:
-                walk(child, path)
-            return
-
-        if not isinstance(node, dict):
-            return
-
-        label = str(node.get("title") or node.get(
-            "category") or node.get("key") or "").strip()
-        next_path = list(path)
-        if label:
-            next_path.append(label)
-
-        children = get_children(node)
-        if children:
-            for child in children:
-                walk(child, next_path)
-            return
-
-        title = str(node.get("title") or "").strip()
-        if not title:
-            return
-
-        categories = node.get("categories")
-        if not isinstance(categories, list):
-            categories = []
-
-        leaf = {
-            "title": title,
-            "he_title": str(node.get("heTitle") or node.get("heCategory") or "").strip(),
-            "categories": [str(item).strip() for item in categories if str(item).strip()],
-            "first_section_ref": str(node.get("firstSectionRef") or "").strip(),
-            "ref": str(node.get("ref") or "").strip(),
-            "path": next_path,
-        }
-        leaves.append(leaf)
-
-    walk(index_payload, [])
+    _walk_leaf_nodes(index_payload, [], leaves)
     return leaves
 
 
@@ -285,6 +291,20 @@ def first_nonempty(values: Sequence[str]) -> str:
     return ""
 
 
+def _probe_candidates(session, candidates, phase, timeout_seconds, probe_cache, attempts):
+    """Probe each candidate ref in order, appending an attempt record for
+    each and returning the first successful ref ("" if none succeeded).
+    Split out of analyze_leaf() to keep this loop out of that function's
+    own complexity count (SonarCloud python:S3776).
+    """
+    for candidate in candidates:
+        ok, reason = probe_ref(session, candidate, timeout_seconds, probe_cache)
+        attempts.append({"phase": phase, "ref": candidate, "ok": ok, "reason": reason})
+        if ok:
+            return candidate
+    return ""
+
+
 def analyze_leaf(
     session: requests.Session,
     leaf: Dict[str, Any],
@@ -296,32 +316,18 @@ def analyze_leaf(
     name_ref = resolve_name_ref(session, title, timeout_seconds, name_cache)
 
     attempts: List[Dict[str, Any]] = []
-    success_ref = ""
-    success_phase = ""
 
     primary_candidates = build_primary_candidates(leaf, name_ref)
-    for candidate in primary_candidates:
-        ok, reason = probe_ref(
-            session, candidate, timeout_seconds, probe_cache)
-        attempts.append({"phase": "primary", "ref": candidate,
-                        "ok": ok, "reason": reason})
-        if ok:
-            success_ref = candidate
-            success_phase = "primary"
-            break
+    success_ref = _probe_candidates(
+        session, primary_candidates, "primary", timeout_seconds, probe_cache, attempts)
+    success_phase = "primary" if success_ref else ""
 
     if not success_ref:
         heuristic_candidates = build_heuristic_candidates(
             leaf, primary_candidates)
-        for candidate in heuristic_candidates:
-            ok, reason = probe_ref(
-                session, candidate, timeout_seconds, probe_cache)
-            attempts.append(
-                {"phase": "heuristic", "ref": candidate, "ok": ok, "reason": reason})
-            if ok:
-                success_ref = candidate
-                success_phase = "heuristic"
-                break
+        success_ref = _probe_candidates(
+            session, heuristic_candidates, "heuristic", timeout_seconds, probe_cache, attempts)
+        success_phase = "heuristic" if success_ref else ""
 
     initial_ref = first_nonempty([
         str(leaf.get("first_section_ref") or ""),
