@@ -119,7 +119,9 @@ def _check_structure(service) -> int:
         return 1
 
     if snapshot is None:
-        return 0
+        fail("get_schema_snapshot() returned null -- the structural check could not run")
+        info("Has scripts/sql/introspect_schema.sql been run (separate, pre-existing migration)?")
+        return 1
 
     table_meta = _find_table_meta(snapshot)
     if table_meta is None:
