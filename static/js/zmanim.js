@@ -374,6 +374,103 @@ export function startCountdown(deps) {
     countdownInterval = setTimeout(() => startCountdown(deps), 1000);
 }
 
+function renderZmanClockFields(z, deps) {
+    Object.entries(ZMAN_FIELD_MAP).forEach(([elementId, zmanKey]) => {
+        const targetEl = document.getElementById(elementId);
+        if (!targetEl) return;
+        targetEl.innerText = formatZmanClockDisplay(z[zmanKey] || 'N/A', deps);
+    });
+}
+
+// The GRA and Baal HaTanya "latest" zmanim are one combined row when both
+// resolve to the same clock time, two rows otherwise.
+const SHEMA_GRA_BHT_ROW = {
+    graKey: 'Latest Shema (GRA)',
+    bhtKey: 'Latest Shema (Baal HaTanya)',
+    graRowId: 'shemaGraRow',
+    bhtRowId: 'shemaBhtRow',
+    labelId: 'shemaGraLabel',
+    combinedLabel: ['Latest Shema (GRA / Baal HaTanya)', 'סוף זמן שמע (גר״א / בעל התניא)'],
+    splitLabel: ['Latest Shema (GRA)', 'סוף זמן שמע (גר״א)'],
+};
+
+const SHACHARIT_GRA_BHT_ROW = {
+    graKey: 'Latest Shacharit (GRA)',
+    bhtKey: 'Latest Shacharit (Baal HaTanya)',
+    graRowId: 'shacharitGraRow',
+    bhtRowId: 'shacharitBhtRow',
+    labelId: 'shacharitGraLabel',
+    combinedLabel: ['Latest Shacharit (GRA / Baal HaTanya)', 'סוף זמן תפילת שחרית (גר״א / בעל התניא)'],
+    splitLabel: ['Latest Shacharit (GRA)', 'סוף זמן תפילת שחרית (גר״א)'],
+};
+
+function renderGraBhtRow(z, deps, row) {
+    const gra = z[row.graKey] || 'N/A';
+    const bht = z[row.bhtKey] || 'N/A';
+    const graRow = document.getElementById(row.graRowId);
+    const bhtRow = document.getElementById(row.bhtRowId);
+    const graLabel = document.getElementById(row.labelId);
+    if (!graRow || !bhtRow || !graLabel) return;
+
+    const combined = gra !== 'N/A' && gra === bht;
+    bhtRow.classList.toggle('hidden', combined);
+    graLabel.innerText = combined ? deps.t(...row.combinedLabel) : deps.t(...row.splitLabel);
+}
+
+function setHebrewRtlStyle(el, enabled) {
+    if (enabled) {
+        el.classList.add('font-hebrew');
+        el.setAttribute('dir', 'rtl');
+    } else {
+        el.classList.remove('font-hebrew');
+        el.removeAttribute('dir');
+    }
+}
+
+function renderHolidayName(meta, deps) {
+    const holidayName = document.getElementById('holidayName');
+    if (!holidayName) return;
+    const text = deps.translateHolidayName(meta.holiday || 'Regular Day');
+    holidayName.innerText = text;
+    setHebrewRtlStyle(holidayName, deps.isHebrewMode() && text !== 'Regular Day');
+}
+
+function renderShabbatWeekName(meta, deps) {
+    const shabbatWeekName = document.getElementById('shabbatWeekName');
+    if (!shabbatWeekName) return;
+    const text = deps.formatWeeklyShabbatLabel(meta);
+    shabbatWeekName.innerText = text;
+    setHebrewRtlStyle(shabbatWeekName, deps.isHebrewMode() && text.includes('שבת'));
+}
+
+function renderOmerRow(meta, deps) {
+    const omerRow = document.getElementById('omerRow');
+    const omerCount = document.getElementById('omerCount');
+    const omerHint = document.getElementById('omerHint');
+    if (!omerRow || !omerCount || !omerHint) return;
+
+    if (meta.omer_day) {
+        omerCount.innerText = deps.formatOmerLabel(meta);
+        omerRow.classList.remove('hidden');
+        omerHint.classList.add('hidden');
+    } else {
+        omerRow.classList.add('hidden');
+        omerHint.classList.remove('hidden');
+    }
+}
+
+function renderShabbatWarning(meta, deps) {
+    const warningEl = document.getElementById('zmanimWarning');
+    if (!warningEl) return;
+
+    if (meta.shabbat_warning) {
+        warningEl.innerText = deps.translateShabbatWarning(meta.shabbat_warning);
+        warningEl.classList.remove('hidden');
+    } else {
+        warningEl.classList.add('hidden');
+    }
+}
+
 // The single "render current zmanimData to the DOM" function -- the
 // reconciliation §19.9 constraint 1 requires between fetchZmanimAPI's own
 // first-render logic and templates/index.html's toggleLanguage(), which
@@ -399,89 +496,14 @@ export function refreshZmanimDisplay(deps) {
     const meta = zmanimData.metadata;
     const z = zmanimData.zmanim || {};
 
-    Object.entries(ZMAN_FIELD_MAP).forEach(([elementId, zmanKey]) => {
-        const targetEl = document.getElementById(elementId);
-        if (!targetEl) return;
-        targetEl.innerText = formatZmanClockDisplay(z[zmanKey] || 'N/A', deps);
-    });
-
+    renderZmanClockFields(z, deps);
     applyOptionalZmanRows(z);
-
-    const shemaGra = z['Latest Shema (GRA)'] || 'N/A';
-    const shemaBht = z['Latest Shema (Baal HaTanya)'] || 'N/A';
-    const shemaGraRow = document.getElementById('shemaGraRow');
-    const shemaBhtRow = document.getElementById('shemaBhtRow');
-    const shemaGraLabel = document.getElementById('shemaGraLabel');
-    if (shemaGraRow && shemaBhtRow && shemaGraLabel) {
-        const combined = shemaGra !== 'N/A' && shemaGra === shemaBht;
-        shemaBhtRow.classList.toggle('hidden', combined);
-        shemaGraLabel.innerText = combined
-            ? deps.t('Latest Shema (GRA / Baal HaTanya)', 'סוף זמן שמע (גר״א / בעל התניא)')
-            : deps.t('Latest Shema (GRA)', 'סוף זמן שמע (גר״א)');
-    }
-
-    const shacharitGra = z['Latest Shacharit (GRA)'] || 'N/A';
-    const shacharitBht = z['Latest Shacharit (Baal HaTanya)'] || 'N/A';
-    const shacharitGraRow = document.getElementById('shacharitGraRow');
-    const shacharitBhtRow = document.getElementById('shacharitBhtRow');
-    const shacharitGraLabel = document.getElementById('shacharitGraLabel');
-    if (shacharitGraRow && shacharitBhtRow && shacharitGraLabel) {
-        const combined = shacharitGra !== 'N/A' && shacharitGra === shacharitBht;
-        shacharitBhtRow.classList.toggle('hidden', combined);
-        shacharitGraLabel.innerText = combined
-            ? deps.t('Latest Shacharit (GRA / Baal HaTanya)', 'סוף זמן תפילת שחרית (גר״א / בעל התניא)')
-            : deps.t('Latest Shacharit (GRA)', 'סוף זמן תפילת שחרית (גר״א)');
-    }
-
-    const holidayName = document.getElementById('holidayName');
-    if (holidayName) {
-        const text = deps.translateHolidayName(meta.holiday || 'Regular Day');
-        holidayName.innerText = text;
-        if (deps.isHebrewMode() && text !== 'Regular Day') {
-            holidayName.classList.add('font-hebrew');
-            holidayName.setAttribute('dir', 'rtl');
-        } else {
-            holidayName.classList.remove('font-hebrew');
-            holidayName.removeAttribute('dir');
-        }
-    }
-
-    const shabbatWeekName = document.getElementById('shabbatWeekName');
-    if (shabbatWeekName) {
-        const text = deps.formatWeeklyShabbatLabel(meta);
-        shabbatWeekName.innerText = text;
-        if (deps.isHebrewMode() && text.includes('שבת')) {
-            shabbatWeekName.classList.add('font-hebrew');
-            shabbatWeekName.setAttribute('dir', 'rtl');
-        } else {
-            shabbatWeekName.classList.remove('font-hebrew');
-            shabbatWeekName.removeAttribute('dir');
-        }
-    }
-
-    const omerRow = document.getElementById('omerRow');
-    const omerCount = document.getElementById('omerCount');
-    const omerHint = document.getElementById('omerHint');
-    if (omerRow && omerCount && omerHint) {
-        if (meta.omer_day) {
-            omerCount.innerText = deps.formatOmerLabel(meta);
-            omerRow.classList.remove('hidden');
-            omerHint.classList.add('hidden');
-        } else {
-            omerRow.classList.add('hidden');
-            omerHint.classList.remove('hidden');
-        }
-    }
-
-    const warningEl = document.getElementById('zmanimWarning');
-    if (warningEl) {
-        if (meta.shabbat_warning) {
-            warningEl.innerText = deps.translateShabbatWarning(meta.shabbat_warning);
-            warningEl.classList.remove('hidden');
-        } else {
-            warningEl.classList.add('hidden');
-        }
-    }
+    renderGraBhtRow(z, deps, SHEMA_GRA_BHT_ROW);
+    renderGraBhtRow(z, deps, SHACHARIT_GRA_BHT_ROW);
+    renderHolidayName(meta, deps);
+    renderShabbatWeekName(meta, deps);
+    renderOmerRow(meta, deps);
+    renderShabbatWarning(meta, deps);
 
     startCountdown(deps);
 }

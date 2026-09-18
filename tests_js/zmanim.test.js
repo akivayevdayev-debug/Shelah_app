@@ -285,3 +285,144 @@ test('refreshZmanimDisplay combines the GRA/BHT Shema rows when times match, spl
     assert.equal(docDiff.getElementById('shemaBhtRow').classList.contains('hidden'), false);
     assert.equal(docDiff.getElementById('shemaGraLabel').innerText, 'Latest Shema (GRA)');
 });
+
+// ---------------------------------------------------------------------------
+// refreshZmanimDisplay's per-section renderers (holiday/Shabbat names, omer,
+// warning, GRA/BHT rows). Each test drives the public entry point
+// (fetchZmanimAPI -> refreshZmanimDisplay) and inspects the fake DOM.
+// ---------------------------------------------------------------------------
+
+async function renderSequence(payloads, depsOverrides = {}) {
+    const fetchFn = makeSequenceFetch(payloads.map(makeJsonResponse));
+    const { mod, document } = await loadZmanim({ fetch: fetchFn });
+    const deps = makeDeps(depsOverrides);
+    const renderNext = () => mod.namespace.fetchZmanimAPI(null, deps);
+    return { document, renderNext };
+}
+
+test('refreshZmanimDisplay combines the GRA/BHT Shacharit rows only when both times match', async () => {
+    const { document, renderNext } = await renderSequence([
+        { zmanim: { 'Latest Shacharit (GRA)': '10:00 AM', 'Latest Shacharit (Baal HaTanya)': '10:00 AM' }, metadata: {} },
+        { zmanim: { 'Latest Shacharit (GRA)': '10:00 AM', 'Latest Shacharit (Baal HaTanya)': '10:30 AM' }, metadata: {} },
+        { zmanim: { 'Latest Shacharit (GRA)': 'N/A', 'Latest Shacharit (Baal HaTanya)': 'N/A' }, metadata: {} },
+    ]);
+
+    await renderNext();
+    assert.equal(document.getElementById('shacharitBhtRow').classList.contains('hidden'), true);
+    assert.equal(document.getElementById('shacharitGraLabel').innerText, 'Latest Shacharit (GRA / Baal HaTanya)');
+
+    await renderNext();
+    assert.equal(document.getElementById('shacharitBhtRow').classList.contains('hidden'), false);
+    assert.equal(document.getElementById('shacharitGraLabel').innerText, 'Latest Shacharit (GRA)');
+
+    // Two "N/A" values are equal but not a real time: never combine them.
+    await renderNext();
+    assert.equal(document.getElementById('shacharitBhtRow').classList.contains('hidden'), false);
+    assert.equal(document.getElementById('shacharitGraLabel').innerText, 'Latest Shacharit (GRA)');
+});
+
+test('refreshZmanimDisplay uses the Hebrew GRA/BHT labels in Hebrew mode', async () => {
+    const { document, renderNext } = await renderSequence([
+        {
+            zmanim: {
+                'Latest Shema (GRA)': '9:00 AM', 'Latest Shema (Baal HaTanya)': '9:00 AM',
+                'Latest Shacharit (GRA)': '10:00 AM', 'Latest Shacharit (Baal HaTanya)': '10:20 AM',
+            },
+            metadata: {},
+        },
+    ], { isHebrewMode: () => true });
+
+    await renderNext();
+
+    assert.equal(document.getElementById('shemaGraLabel').innerText, 'סוף זמן שמע (גר״א / בעל התניא)');
+    assert.equal(document.getElementById('shacharitGraLabel').innerText, 'סוף זמן תפילת שחרית (גר״א)');
+});
+
+test('refreshZmanimDisplay styles the holiday name as RTL Hebrew only in Hebrew mode for a real holiday', async () => {
+    const holiday = { zmanim: {}, metadata: { holiday: 'Rosh Hashana' } };
+    const regular = { zmanim: {}, metadata: {} };
+
+    const english = await renderSequence([holiday]);
+    await english.renderNext();
+    const englishEl = english.document.getElementById('holidayName');
+    assert.equal(englishEl.innerText, 'Rosh Hashana');
+    assert.equal(englishEl.classList.contains('font-hebrew'), false);
+    assert.equal(englishEl.hasAttribute('dir'), false);
+
+    const hebrew = await renderSequence([holiday, regular], { isHebrewMode: () => true });
+    await hebrew.renderNext();
+    const hebrewEl = hebrew.document.getElementById('holidayName');
+    assert.equal(hebrewEl.classList.contains('font-hebrew'), true);
+    assert.equal(hebrewEl.getAttribute('dir'), 'rtl');
+
+    // A later render for an ordinary day must clear the styling again.
+    await hebrew.renderNext();
+    assert.equal(hebrewEl.innerText, 'Regular Day');
+    assert.equal(hebrewEl.classList.contains('font-hebrew'), false);
+    assert.equal(hebrewEl.hasAttribute('dir'), false);
+});
+
+test('refreshZmanimDisplay styles the Shabbat week label as RTL only when it contains שבת in Hebrew mode', async () => {
+    const payload = { zmanim: {}, metadata: {} };
+
+    const withShabbat = await renderSequence([payload], {
+        isHebrewMode: () => true,
+        formatWeeklyShabbatLabel: () => 'פרשת שבת נחמו',
+    });
+    await withShabbat.renderNext();
+    const shabbatEl = withShabbat.document.getElementById('shabbatWeekName');
+    assert.equal(shabbatEl.innerText, 'פרשת שבת נחמו');
+    assert.equal(shabbatEl.classList.contains('font-hebrew'), true);
+    assert.equal(shabbatEl.getAttribute('dir'), 'rtl');
+
+    const withoutShabbat = await renderSequence([payload], {
+        isHebrewMode: () => true,
+        formatWeeklyShabbatLabel: () => 'פרשת נחמו',
+    });
+    await withoutShabbat.renderNext();
+    assert.equal(withoutShabbat.document.getElementById('shabbatWeekName').classList.contains('font-hebrew'), false);
+
+    const english = await renderSequence([payload], { formatWeeklyShabbatLabel: () => 'Shabbat Nachamu' });
+    await english.renderNext();
+    assert.equal(english.document.getElementById('shabbatWeekName').hasAttribute('dir'), false);
+});
+
+test('refreshZmanimDisplay shows the omer row on an omer day and the hint otherwise', async () => {
+    const { document, renderNext } = await renderSequence([
+        { zmanim: {}, metadata: { omer_day: 12 } },
+        { zmanim: {}, metadata: {} },
+        { zmanim: {}, metadata: { omer_day: 13 } },
+    ], { formatOmerLabel: (meta) => `Omer ${meta.omer_day}` });
+
+    await renderNext();
+    assert.equal(document.getElementById('omerCount').innerText, 'Omer 12');
+    assert.equal(document.getElementById('omerRow').classList.contains('hidden'), false);
+    assert.equal(document.getElementById('omerHint').classList.contains('hidden'), true);
+
+    await renderNext();
+    assert.equal(document.getElementById('omerRow').classList.contains('hidden'), true);
+    assert.equal(document.getElementById('omerHint').classList.contains('hidden'), false);
+
+    await renderNext();
+    assert.equal(document.getElementById('omerRow').classList.contains('hidden'), false);
+    assert.equal(document.getElementById('omerHint').classList.contains('hidden'), true);
+});
+
+test('refreshZmanimDisplay shows the translated Shabbat warning only while the API reports one', async () => {
+    const { document, renderNext } = await renderSequence([
+        { zmanim: {}, metadata: {} },
+        { zmanim: {}, metadata: { shabbat_warning: 'Shabbat begins soon' } },
+        { zmanim: {}, metadata: {} },
+    ], { translateShabbatWarning: (text) => `T:${text}` });
+    const warning = () => document.getElementById('zmanimWarning');
+
+    await renderNext();
+    assert.equal(warning().classList.contains('hidden'), true);
+
+    await renderNext();
+    assert.equal(warning().innerText, 'T:Shabbat begins soon');
+    assert.equal(warning().classList.contains('hidden'), false);
+
+    await renderNext();
+    assert.equal(warning().classList.contains('hidden'), true);
+});
