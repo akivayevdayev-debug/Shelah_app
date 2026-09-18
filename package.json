@@ -20,7 +20,7 @@
   },
   "keywords": [],
   "author": "",
-  "license": "ISC",
+  "license": "MIT",
   "type": "commonjs",
   "bugs": {
     "url": "https://github.com/akivayevdayev-debug/Shelah_app/issues"
@@ -29,6 +29,10 @@
   "devDependencies": {
     "@tailwindcss/typography": "^0.5.20",
     "pa11y-ci": "^4.1.1",
+    "supabase": "^2.116.0",
     "tailwindcss": "^3.4.19"
+  },
+  "dependencies": {
+    "@sentry/browser": "^10.69.0"
   }
 }
