@@ -44,14 +44,14 @@
 
     /* ── Ink / text ─────────────────────────────────────────────────── */
     --ink-primary:        #334155;   /* body text */
-    --ink-secondary:      #64748b;   /* secondary / muted text */
+    --ink-secondary:      #5a6b85;   /* secondary / muted text — darkened from #64748b 2026-08 to clear WCAG AA 4.5:1 on --surface-pill (was 4.07:1); see docs/ACCESSIBILITY_AUDIT.md */
     --ink-on-accent:      #ffffff;   /* text on filled accent backgrounds */
     --ink-heading:        #002147;   /* navy headings */
 
     /* ── Accent palette (semantic) ──────────────────────────────────── */
     --accent-primary:     #1f3f63;   /* deep blue — primary CTA */
     --accent-primary-hover: #18355a;
-    --accent-gold:        #d4af37;
+    --accent-gold:        #d4af37;   /* 1.97:1 on --surface-0 in light mode — icons/borders/accents only, NEVER body/label text here without a darker variant; see docs/ACCESSIBILITY_AUDIT.md */
     --accent-gold-light:  #f0d980;
     --accent-purple:      #7c3aed;
     --accent-teal:        #0d9488;
@@ -63,8 +63,20 @@
     --ctrl-bg:            #f4f0e7;
     --ctrl-bg-hover:      #ece5d8;
     --ctrl-border:        #d6d2c7;
-    --ctrl-text:          #2f4a67;
-    --ctrl-text-strong:   #223e5a;
+    /* Was #2f4a67 / #223e5a -- a cool navy that read as a stray "blue"
+       tint on icon-only controls like #settingsMenuBtn/#mobileLangToggle
+       (plan.md design pass, 2026-09-13). The dark-theme block's own
+       --ctrl-text (#999181/#b8b0a0, see below) is already a warm neutral,
+       not navy -- this brings light mode's generic control-text color into
+       the same warm family instead of a one-off dark-mode fix. Luminance-
+       matched to the old navy pair (0.065/0.045 relative luminance) so
+       every existing contrast ratio against any background using this
+       token is preserved; only the hue moved from cool to warm.
+       --ctrl-filled-bg/-hover (below) are untouched -- that's the
+       deliberate "primary action" blue identity (Save Current, etc.),
+       not a stray tint. */
+    --ctrl-text:          #5a442b;
+    --ctrl-text-strong:   #4c3924;
     --ctrl-filled-bg:     #46688d;
     --ctrl-filled-hover:  #3d5b7b;
 
@@ -79,6 +91,14 @@
     --ai-custom-accent:   #7c3aed;
     --ai-trust-bg:        #faf7f0;
     --ai-trust-border:    #d7cebc;
+    /* --ai-warning-*: previously dark-theme-only (defined below at the
+       [data-theme="dark"] block, never given a light value, so unused
+       anywhere — see plan.md §8.B.1). Completing the light half here so
+       the safety-referral disclaimer banner has a real value in both
+       themes; all three colors verified ≥4.5:1 against each other. */
+    --ai-warning-bg:      #fef6e7;
+    --ai-warning-border:  #c8902a;
+    --ai-warning-text:    #7a4a06;
 
     /* ── Loading / skeleton tokens ──────────────────────────────────── */
     --load-skeleton-base:      #ede8df;
@@ -134,6 +154,10 @@
     --motion-dur-slow:   400ms;
     --motion-ease-out:   cubic-bezier(0.25, 0, 0.3, 1);
     --motion-ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+    /* Deceleration curve for card/scale-in transform reveals — no overshoot,
+       distinct from --motion-ease-spring; was repeated as a raw literal at
+       5+ sites across style.css/ai.css before being named here. */
+    --motion-ease-decel: cubic-bezier(0.22, 1, 0.36, 1);
 
     /* ── Elevation (shadow tokens) ──────────────────────────────────── */
     --shadow-sm:  0 1px 3px rgba(0,0,0,0.08), 0 1px 2px rgba(0,0,0,0.05);
@@ -166,6 +190,131 @@
     --font-serif:  'Cardo', Georgia, serif;
     --font-sans:   'Inter', system-ui, sans-serif;
     --font-hebrew: 'Ezra SIL', 'Cardo', serif;
+
+    /* ── Calendar event colors (by Hebcal category — must match
+       backend/app.py's _holiday_color_for_category palette) ────────── */
+    --cal-event-holiday:   #802f3e;
+    --cal-event-shabbat:   #004e5f;
+    /* Was #5a99b7: only 3.15:1 against the white event-chip text
+       (textColor: "#ffffff" from the calendar API) — fails 4.5:1 AA.
+       Darkened within the same blue family; now 5.46:1. Kept in sync
+       with backend/app.py's palette per the note above. */
+    --cal-event-rh:        #35708c;
+    --cal-event-minor:     #594176;
+    --cal-event-modern:    #2563eb;
+    --cal-event-fast:      #374151;
+    --cal-event-special:   #6b7280;
+}
+
+
+/* ═══════════════════════════════════════════════════════════════════
+   MOTION KEYFRAMES — shared token layer
+   Single source of truth for every @keyframes rule in the app
+   (ENGINEERING_RULES.md: "zero new @keyframes outside the token layer").
+   Feature sheets (ai.css, loading.css, sidebar.css, …) reference these
+   by name via `animation:` — they never define their own. Theme-
+   independent: values reference no colors that need per-theme swaps.
+   Reduced motion: typography.css's global `@media (prefers-reduced-
+   motion: reduce)` fallback collapses all durations to ~0; components
+   additionally set `animation: none` for a fully static end-state.
+═══════════════════════════════════════════════════════════════════ */
+
+@keyframes shelah-fade-in {
+    from { opacity: 0; transform: translateY(4px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes shelah-fade-up {
+    from { opacity: 0; transform: translateY(8px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes shelah-scale-in {
+    from { opacity: 0; transform: scale(0.95); }
+    to   { opacity: 1; transform: scale(1); }
+}
+
+@keyframes shelah-slide-in-left {
+    from { opacity: 0; transform: translateX(-16px); }
+    to   { opacity: 1; transform: translateX(0); }
+}
+
+@keyframes shelah-slide-in-right {
+    from { opacity: 0; transform: translateX(16px); }
+    to   { opacity: 1; transform: translateX(0); }
+}
+
+@keyframes shelah-slide-down-fade {
+    from { opacity: 0; transform: translateY(-6px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes shelah-overlay-in {
+    from { opacity: 0; }
+    to   { opacity: 1; }
+}
+
+/* Transform-only (not background-position) per ENGINEERING_RULES.md's
+   animate-only-transform/opacity performance guard — consumers apply this
+   to a ::after overlay that sweeps across the skeleton via translateX,
+   rather than animating the element's own background directly. */
+@keyframes shelah-shimmer {
+    from { transform: translateX(-100%); }
+    to   { transform: translateX(100%); }
+}
+
+@keyframes shelah-spin {
+    to { transform: rotate(360deg); }
+}
+
+@keyframes shelah-dot-bounce {
+    0%, 80%, 100% { transform: translateY(0);     opacity: 0.4; }
+    40%            { transform: translateY(-6px);  opacity: 1;   }
+}
+
+@keyframes shelah-warm-pulse {
+    0%, 100% { opacity: 0.7; transform: scale(0.97); filter: drop-shadow(0 0 6px rgba(201, 168, 78, 0.25)); }
+    50%      { opacity: 1;   transform: scale(1.04); filter: drop-shadow(0 0 14px rgba(201, 168, 78, 0.55)); }
+}
+
+/* One-shot pair for the search bar's "liftoff" moment (the instant an AI
+   question is submitted, synced with the AI modal's fade-in) --
+   static/css/ai.css's .search-liftoff-underlay. Unlike the ambient loops
+   above, these run a single ~420ms pass (see #searchForm.search-liftoff in
+   ai.css) and fade back to nothing rather than looping. Split in two so the
+   rotation never distorts the visible pill silhouette: -fade scales/fades
+   the outer mask (a fixed stadium shape, overflow:hidden + border-radius:
+   full), while -spin only rotates its ::before gradient layer, which the
+   mask clips back to that same stadium shape every frame -- rotating the
+   mask's own box directly would swing a wide-but-short rectangle into a
+   tall diagonal streak at steep angles, covering neighboring topbar
+   content. Transform + opacity only, per ENGINEERING_RULES.md's animation
+   performance guard. */
+@keyframes shelah-liftoff-fade {
+    0%   { opacity: 0;    transform: scale(0.88); }
+    30%  { opacity: 0.9;  transform: scale(1); }
+    100% { opacity: 0;    transform: scale(1.04); }
+}
+
+@keyframes shelah-liftoff-spin {
+    0%   { transform: translate(-50%, -50%) rotate(0deg); }
+    100% { transform: translate(-50%, -50%) rotate(150deg); }
+}
+
+/* Continuous follow-on to shelah-liftoff-spin, used once the 420ms burst
+   hands off to body.search-loading for the rest of the request (see
+   static/css/ai.css's body.search-loading .search-liftoff-underlay::before).
+   Picks up at 150deg so the handoff has no visible jump, and -- critically --
+   keeps translate(-50%, -50%) in BOTH keyframes so the browser interpolates
+   pure rotation. The generic shelah-spin keyframe (`to { transform:
+   rotate(360deg) }`) only has a rotate() term; animating this element (whose
+   base style is translate(-50%,-50%)) to that would matrix-interpolate
+   between mismatched transform lists, visibly dragging the square off-center
+   over each cycle and snapping it back at the loop boundary instead of
+   rotating in place. */
+@keyframes shelah-liftoff-spin-loop {
+    from { transform: translate(-50%, -50%) rotate(150deg); }
+    to   { transform: translate(-50%, -50%) rotate(510deg); }
 }
 
 
@@ -200,15 +349,39 @@ body.theme-dark {
 
     /* ── Ink / text ─────────────────────────────────────────────────── */
     --ink-primary:        #c0bab0;
-    --ink-secondary:      #807870;
+    /* Lightened #807870 -> #888077 (2026-08, Prompt 18: 4.31:1 against
+       --surface-1) -> #999188 (2026-08-20, plan.md §26.2 / Prompt 39: the
+       dark-theme half of the pa11y-ci gate, run for the first time, caught
+       this at 4.34:1 against --surface-2 -- the home page's card and footer
+       surface -- on 15 elements). Each earlier pass fixed only the one
+       surface it had measured, so this value is now checked against EVERY
+       dark surface in this block, --ctrl-bg-hover included:
+         --surface-0 #0c0c0b 6.30  --surface-1 #131211 6.02
+         --surface-2 #1e1d1a 5.43  --surface-3 #161410 5.92
+         --surface-pill #23211f 5.17  --ctrl-bg-hover #2d2b28 4.54
+       Separation from --ink-primary narrows to 1.61:1 (was 2.02:1) -- still
+       plainly muted, and the alternative (a value clearing 4.5:1 by ~0.03)
+       is what made this recur twice. See also --text-muted's duplicate
+       literal below and in the prefers-color-scheme fallback block. */
+    --ink-secondary:      #999188;
     --ink-on-accent:      #f0ebe3;
     --ink-heading:        #d4cec4;
 
     /* ── Accent palette — muted warm tones on near-black bg ─────────── */
     --accent-primary:     #6888a8;
     --accent-primary-hover: #789ab8;
-    --accent-gold:        #b89028;
-    --accent-gold-light:  #c8a840;
+    /* Was #b89028 -- a saturated mustard/brass that read as a harsh, out-
+       of-place "yellow" against the rest of the muted dark palette
+       (plan.md design pass, 2026-09-13), most visible on the large solid
+       fill of a checked .reader-switch toggle. Softened to a paler,
+       lower-saturation champagne gold at the same hue (~43°) -- still
+       reads as "gold," just creamier. Contrast only improved: as text
+       this measures 7.3-8.5:1 against every dark surface it's used on
+       (was 4.5-5:1 in places, some call-outs elsewhere in this file
+       measured right at the 4.5:1 floor against those exact literals --
+       those comments are now conservative, not wrong). */
+    --accent-gold:        #c9ac5e;
+    --accent-gold-light:  #d1c39f;
     --accent-purple:      #8868c0;
     --accent-teal:        #2a9c88;
     --accent-green:       #2aaa7a;
@@ -219,7 +392,14 @@ body.theme-dark {
     --ctrl-bg:            #23211f;
     --ctrl-bg-hover:      #2d2b28;
     --ctrl-border:        #373532;
-    --ctrl-text:          #888070;
+    /* Lightened from #888070 2026-08-20 for the same reason as
+       --ink-secondary above (plan.md §26.2 / Prompt 39): the dark-theme
+       pa11y-ci run caught the topbar language button at 4.10:1 against
+       --ctrl-bg/--surface-pill #23211f. Now 5.14:1 there and 4.52:1 against
+       --ctrl-bg-hover, so the hovered state passes too. Keep in sync with
+       --control-text in the legacy-alias section and with both duplicates in
+       the prefers-color-scheme fallback block below. */
+    --ctrl-text:          #999181;
     --ctrl-text-strong:   #b8b0a0;
     --ctrl-filled-bg:     #6888a8;
     --ctrl-filled-hover:  #789ab8;
@@ -272,6 +452,10 @@ body.theme-dark {
     --accent-deep-blue: var(--accent-primary);
     --ink:              var(--ink-heading);
     --paper:            var(--surface-2);
+    /* This alias correctly references --ink-secondary above, so it tracks
+       the pa11y-ci contrast fix automatically. The duplicate hardcoded
+       --text-muted literal in the prefers-color-scheme fallback block
+       below did NOT and needed its own fix -- see that block's comment. */
     --gold:             var(--accent-gold);
     --gold-light:       var(--accent-gold-light);
     --border-light:     var(--surface-border);
@@ -296,8 +480,8 @@ body.theme-dark {
     --tw-dark-text-white:       #d0c8b8;
     --tw-dark-text-slate-700:   #bcb4a5;
     --tw-dark-text-slate-600:   #a09890;
-    --tw-dark-text-slate-500:   #888078;
-    --tw-dark-text-slate-400:   #706860;
+    --tw-dark-text-slate-500:   #97918a;
+    --tw-dark-text-slate-400:   #908983;
     --tw-dark-text-slate-300:   #908880;
     --tw-dark-bg-hover:         #282420;
     --tw-dark-bg-emerald:       #121a14;
@@ -337,7 +521,6 @@ body.theme-dark {
     --reader-thumb-bg:          #d7c9b2;   /* keep — non-grey */
 
     /* ── AI ─────────────────────────────────────────────────────────── */
-    --ai-loading-color:         #98908a;
     --ai-warning-bg:            #1a1208;
     --ai-warning-border:        #3a2c10;
     --ai-warning-text:          #c09840;
@@ -349,8 +532,19 @@ body.theme-dark {
 
     /* ── Calendar ───────────────────────────────────────────────────── */
     --cal-event-holiday:        #9c3040;
-    --cal-event-shabbat:        #286048;
-    --cal-event-rh:             #8a5020;
+    /* Dark-theme event chips render white text (see routes_calendar.py's
+       textColor: "#ffffff") over a solid fill. shabbat/rh/modern/special
+       below were tuned to "pop" against the dark page background but
+       weren't re-checked against their OWN white text: 3.76/2.61/3.26/3.24:1,
+       all failing 4.5:1 AA. Darkened within each hue family; now
+       6.52/6.61/5.89/6.01:1 respectively. holiday (7.22:1), minor (5.53:1)
+       and fast (5.87:1) already passed and are unchanged. */
+    --cal-event-shabbat:        #206676;
+    --cal-event-rh:             #27637f;
+    --cal-event-minor:          #7a5aa0;
+    --cal-event-modern:         #3a63ad;
+    --cal-event-fast:           #5b6578;
+    --cal-event-special:        #5f636d;
     --cal-modal-header-start:   #181818;
     --cal-modal-header-end:     #121212;
     --cal-icon-bg:              #303030;
@@ -402,13 +596,17 @@ body.theme-dark {
         --surface-scrim:      rgba(0, 0, 0, 0.72);
 
         --ink-primary:        #c0bab0;
-        --ink-secondary:      #807870;
+        /* Keep in sync with --ink-secondary in the [data-theme="dark"]
+           block above -- see that block's comment (pa11y-ci contrast fix). */
+        --ink-secondary:      #999188;
         --ink-heading:        #d4cec4;
 
         --accent-primary:     #6888a8;
         --accent-primary-hover: #789ab8;
-        --accent-gold:        #b89028;
-        --accent-gold-light:  #c8a840;
+        /* Keep in sync with the explicit dark-theme block above (~L331) --
+           same creamier, lower-saturation gold swap. */
+        --accent-gold:        #c9ac5e;
+        --accent-gold-light:  #d1c39f;
         --accent-purple:      #8868c0;
         --accent-teal:        #2a9c88;
         --accent-green:       #2aaa7a;
@@ -418,7 +616,9 @@ body.theme-dark {
         --ctrl-bg:            #23211f;
         --ctrl-bg-hover:      #2d2b28;
         --ctrl-border:        #373532;
-        --ctrl-text:          #888070;
+        /* Keep in sync with --ctrl-text in the [data-theme="dark"] block
+           above -- see that block's comment (pa11y-ci contrast fix). */
+        --ctrl-text:          #999181;
         --ctrl-text-strong:   #b8b0a0;
         --ctrl-filled-bg:     #6888a8;
         --ctrl-filled-hover:  #789ab8;
@@ -462,14 +662,18 @@ body.theme-dark {
         --surface-elevated: #1e1d1a;
         --surface-topbar:   #161410;
         --text-main:        #c0bab0;
-        --text-muted:       #807870;
+        /* Keep in sync with --ink-secondary above (pa11y-ci contrast fix) --
+           this legacy-alias section duplicates literals instead of var()
+           references, which is exactly how .home-library-description's
+           dark-mode override (static/style.css) went stale before. */
+        --text-muted:       #999188;
         --accent-blue:      #6888a8;
         --accent-deep-blue: #6888a8;
         --accent-cream:     #ddd5c8;
         --control-bg:       #23211f;
         --control-bg-hover: #2d2b28;
         --control-border:   #373532;
-        --control-text:     #888070;
+        --control-text:     #999181;
         --control-text-strong: #b8b0a0;
         --control-strong-bg:   #6888a8;
         --control-strong-bg-hover: #789ab8;
@@ -484,8 +688,8 @@ body.theme-dark {
         --tw-dark-text-white:       #d0c8b8;
         --tw-dark-text-slate-700:   #bcb4a5;
         --tw-dark-text-slate-600:   #a09890;
-        --tw-dark-text-slate-500:   #888078;
-        --tw-dark-text-slate-400:   #706860;
+        --tw-dark-text-slate-500:   #97918a;
+        --tw-dark-text-slate-400:   #908983;
         --tw-dark-text-slate-300:   #908880;
         --tw-dark-bg-hover:         #282420;
         --tw-dark-bg-emerald:       #121a14;
@@ -525,7 +729,6 @@ body.theme-dark {
         --reader-thumb-bg:          #d7c9b2;
 
         /* ── AI ───────────────────────────────────────────────────── */
-        --ai-loading-color:         #98908a;
         --ai-warning-bg:            #1a1208;
         --ai-warning-border:        #3a2c10;
         --ai-warning-text:          #c09840;
@@ -537,8 +740,12 @@ body.theme-dark {
 
         /* ── Calendar ─────────────────────────────────────────────── */
         --cal-event-holiday:        #9c3040;
-        --cal-event-shabbat:        #286048;
-        --cal-event-rh:             #8a5020;
+        --cal-event-shabbat:        #206676;
+        --cal-event-rh:             #27637f;
+        --cal-event-minor:          #7a5aa0;
+        --cal-event-modern:         #3a63ad;
+        --cal-event-fast:           #5b6578;
+        --cal-event-special:        #5f636d;
         --cal-modal-header-start:   #181818;
         --cal-modal-header-end:     #121212;
         --cal-icon-bg:              #303030;

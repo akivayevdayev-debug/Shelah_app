@@ -6,12 +6,12 @@
 
 /* Smooth sidebar tab transitions */
 .sidebar-show-tab {
-    transition: opacity 0.18s ease, box-shadow 0.18s ease, background 0.14s ease;
+    transition: opacity var(--motion-dur-fast) var(--motion-ease-out), box-shadow var(--motion-dur-fast) var(--motion-ease-out), background var(--motion-dur-fast) var(--motion-ease-out);
 }
 
 /* Mobile drawer: base state (hidden) */
 .mobile-drawer {
-    transition: transform 0.28s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.22s ease, visibility 0.28s ease;
+    transition: transform var(--motion-dur-base) var(--motion-ease-out), opacity var(--motion-dur-base) var(--motion-ease-out), visibility var(--motion-dur-base) var(--motion-ease-out);
 }
 
 /* Left drawer slides in from the left */
@@ -46,52 +46,38 @@
     }
 }
 
-@keyframes slideDownFade {
-    from {
-        opacity: 0;
-        transform: translateY(-6px);
-    }
-
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
-}
+/* shelah-slide-down-fade / shelah-warm-pulse keyframes live in
+   tokens.css's MOTION KEYFRAMES token layer. */
 
 /* Settings panel & profile menu slide-down */
 #settingsPanel:not(.hidden),
 #userProfileMenu:not(.hidden),
 #readerSettingsPanel:not(.hidden) {
-    animation: slideDownFade 0.2s cubic-bezier(0.16, 1, 0.3, 1) both;
+    animation: shelah-slide-down-fade 0.2s cubic-bezier(0.16, 1, 0.3, 1) both;
 }
 
 /* Details/summary expand animation for library sidebar items */
 details[open]>summary~* {
-    animation: slideDownFade 0.18s ease both;
+    animation: shelah-slide-down-fade 0.18s ease both;
 }
 
 details>summary .group-open\:rotate-90 {
-    transition: transform 0.2s ease;
-}
-
-@keyframes warmPulse {
-
-    0%,
-    100% {
-        opacity: 0.7;
-        transform: scale(0.97);
-        filter: drop-shadow(0 0 6px rgba(201, 168, 78, 0.25));
-    }
-
-    50% {
-        opacity: 1;
-        transform: scale(1.04);
-        filter: drop-shadow(0 0 14px rgba(201, 168, 78, 0.55));
-    }
+    transition: transform var(--motion-dur-base) var(--motion-ease-out);
 }
 
 #loadingOverlay .font-hebrew {
-    animation: warmPulse 1.6s ease-in-out infinite !important;
+    animation: shelah-warm-pulse 1.6s ease-in-out infinite !important;
+}
+
+/* The rule above uses !important on an ID+class selector, which outranks
+   typography.css's global `*, *::before, *::after { animation-duration:
+   0.01ms !important }` reduced-motion fallback on specificity (both are
+   !important, so specificity is the tiebreaker) — without this override the
+   infinite pulse would keep running for prefers-reduced-motion users. */
+@media (prefers-reduced-motion: reduce) {
+    #loadingOverlay .font-hebrew {
+        animation: none !important;
+    }
 }
 
 body.theme-dark #loadingOverlay .font-hebrew {
@@ -119,6 +105,21 @@ body.theme-dark html.rtl .library-tree-children {
 
 .library-node-open.library-node-active {
     border-inline-start: 3px solid var(--accent-deep-blue);
+}
+
+/* .library-tree-summary (the expand/collapse control for library
+   category nodes, templates/index.html's buildLibraryIndexMarkup) has a
+   hover:text-navy Tailwind color change (and an equivalent dark-mode
+   color swap on #leftSidebar summary:hover in style.css) but, unlike its
+   sibling .library-node-open leaf buttons, isn't a <button> -- so it falls
+   outside the ".library-shell :where(button, [role="button"], input,
+   select, textarea, ...)" catch-all transition rule in style.css and the
+   color snapped instantly on hover. Adding the same --motion-dur-fast /
+   --motion-ease-out pairing used by .topbar-flat-btn theme-agnostically
+   smooths whichever color each theme already swaps to -- no new color
+   values needed here. */
+.library-tree-summary {
+    transition: color var(--motion-dur-fast) var(--motion-ease-out);
 }
 
 body.theme-dark #leftSidebar .border-b,
@@ -265,7 +266,7 @@ html.rtl #citySearchInput {
 .ask-history-item {
     border-radius: 0.35rem;
     padding: 0.15rem 0.25rem;
-    transition: background 0.12s ease;
+    transition: background var(--motion-dur-fast) var(--motion-ease-out);
 }
 
 .ask-history-item:hover {
@@ -303,17 +304,41 @@ html.rtl #citySearchInput {
     border: none;
     cursor: pointer;
     padding: 0 0.2rem;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
     font-size: 1rem;
     line-height: 1;
     color: var(--text-muted, #94a3b8);
-    transition: color 0.12s ease, opacity 0.12s ease;
+    transition: color var(--motion-dur-fast) var(--motion-ease-out), opacity var(--motion-dur-fast) var(--motion-ease-out);
     flex-shrink: 0;
 }
 
-:is([data-theme="dark"], body.theme-dark) .ask-history-q {
-    color: var(--text-primary, #e2d9c8);
+/* Was a Tailwind .hover\:text-red-400 utility class on the button itself,
+   which -- loaded after this file -- silently won the cascade over this
+   rule's own color (both plain, equal-specificity declarations; last
+   loaded wins), leaving .ask-history-del's intended --text-muted rest
+   color overridden by Tailwind's much lighter .text-slate-300 in
+   practice. Declaring both states here keeps them tied to one rule and
+   off the light .text-slate-300 anti-pattern (see static/style.css's
+   .text-slate-400/.text-slate-500 WCAG remap for the same issue
+   elsewhere). --accent-red is the app's semantic destructive-action
+   token (see tokens.css), theme-aware in both modes. */
+.ask-history-del:hover {
+    color: var(--accent-red);
 }
 
-:is([data-theme="dark"], body.theme-dark) .ask-history-item:hover {
-    background: var(--surface-pill, rgba(255,255,255,0.06));
+.ask-history-del:focus-visible {
+    outline: 2px solid rgba(176, 154, 116, 0.65);
+    outline-offset: 2px;
+    border-radius: 3px;
 }
+
+/* --text-primary was never defined anywhere in the token system (always
+   silently fell back to the hardcoded hex) — the correct token is
+   --accent-cream, used for this exact purpose everywhere else in the app. */
+:is([data-theme="dark"], body.theme-dark) .ask-history-q {
+    color: var(--accent-cream);
+}
+
+/* .ask-history-item:hover fully auto-flips via --surface-pill — no override needed. */

@@ -161,19 +161,17 @@ html.rtl .info-box {
     border-right: 3px solid var(--accent-gold);
 }
 
-.draft-banner {
-    background: var(--surface-pill);
-    border: 1px solid #b45309;
-    border-left: 3px solid #b45309;
-    border-radius: var(--radius-md);
-    padding: var(--sp-4) var(--sp-6);
-    margin: var(--sp-6) 0;
-    color: var(--ink-primary);
-}
-
-html.rtl .draft-banner {
-    border-left: 1px solid #b45309;
-    border-right: 3px solid #b45309;
+/* Inline icon standing in for an emoji that used to lead a line of body
+   text (e.g. the AI-disclosure / privacy info boxes, the licenses
+   warning). Sits in a static wrapper next to -- never inside -- the
+   data-en/data-he text node so the language-toggle textContent swap in
+   index.html doesn't wipe it out. */
+.legal-inline-icon {
+    display: inline-flex;
+    flex-shrink: 0;
+    vertical-align: -3px;
+    margin-inline-end: var(--sp-2);
+    color: var(--accent-gold);
 }
 
 .prose pre {

@@ -20,7 +20,23 @@
     --ai-src-body-bg: #fffaf2;
     --ai-src-he-bg: #fffdf8;
     --ai-src-en-bg: #faf7f0;
-    --ai-loading-color: #6b7280;
+    /* Source-type badge palette (categorical, not part of the semantic
+       surface/ink system) — auto-flips here so .ai-src-badge--* rules and
+       their skeleton-shimmer gradients need no separate dark-mode override. */
+    --ai-badge-tanakh-bg: #fef3c7;
+    --ai-badge-tanakh-text: #92400e;
+    --ai-badge-talmud-bg: #e0f2fe;
+    --ai-badge-talmud-text: #075985;
+    --ai-badge-halacha-bg: #dcfce7;
+    --ai-badge-halacha-text: #166534;
+    --ai-badge-responsa-bg: #f3e8ff;
+    --ai-badge-responsa-text: #6b21a8;
+    --ai-badge-mishnah-bg: #fff7ed;
+    --ai-badge-mishnah-text: #9a3412;
+    --ai-badge-other-bg: #f1f5f9;
+    --ai-badge-other-text: #475569;
+    --ai-wiki-card-bg: linear-gradient(135deg, #eff6ff 0%, #f0f9ff 100%);
+    --ai-custom-card-bg: linear-gradient(135deg, #faf5ff 0%, #f5f3ff 100%);
 }
 
 :is([data-theme="dark"], body.theme-dark) {
@@ -35,7 +51,20 @@
     --ai-src-body-bg: var(--surface-elevated);
     --ai-src-he-bg: var(--surface-elevated);
     --ai-src-en-bg: var(--surface-pill);
-    /* --ai-loading-color defined in tokens.css dark block */
+    --ai-badge-tanakh-bg: rgba(254, 243, 199, 0.14);
+    --ai-badge-tanakh-text: #fcd34d;
+    --ai-badge-talmud-bg: rgba(224, 242, 254, 0.12);
+    --ai-badge-talmud-text: #7dd3fc;
+    --ai-badge-halacha-bg: rgba(220, 252, 231, 0.12);
+    --ai-badge-halacha-text: #86efac;
+    --ai-badge-responsa-bg: rgba(243, 232, 255, 0.12);
+    --ai-badge-responsa-text: #d8b4fe;
+    --ai-badge-mishnah-bg: rgba(255, 247, 237, 0.12);
+    --ai-badge-mishnah-text: #fdba74;
+    --ai-badge-other-bg: rgba(241, 245, 249, 0.10);
+    --ai-badge-other-text: #94a3b8;
+    --ai-wiki-card-bg: var(--surface-elevated);
+    --ai-custom-card-bg: var(--surface-elevated);
 }
 
 /* ═══════════════════════════════════════════════════════ */
@@ -45,31 +74,17 @@
 .ai-synthesis {
     background: var(--ai-surface);
     border-color: var(--ai-border);
-    transition: border-color 0.2s ease;
-}
-
-/* ── .ai-source-card: ai.css is the single owner; style.css copies removed ── */
-.ai-source-card {
-    background: white;
-    border: 1px solid var(--ai-border);
-    border-radius: 8px;
-    padding: 1.5rem;
-    transition: border-color 0.2s ease, box-shadow 0.2s ease;
-}
-
-.ai-source-card:hover {
-    border-color: #d4af37;
-    box-shadow: 0 8px 16px rgba(212, 175, 55, 0.12);
+    transition: border-color var(--motion-dur-base) var(--motion-ease-out);
 }
 
 .ai-wiki-card {
-    background: linear-gradient(135deg, #eff6ff 0%, #f0f9ff 100%);
+    background: var(--ai-wiki-card-bg);
     border-inline-start: 4px solid var(--ai-wiki-accent);
     border-left-color: var(--ai-wiki-accent);
 }
 
 .ai-custom-card {
-    background: linear-gradient(135deg, #faf5ff 0%, #f5f3ff 100%);
+    background: var(--ai-custom-card-bg);
     border-inline-start: 4px solid var(--ai-custom-accent);
     border-left-color: var(--ai-custom-accent);
 }
@@ -117,8 +132,16 @@
 
 .ai-disclaimer-banner-icon {
     flex-shrink: 0;
-    font-size: 1rem;
     line-height: 1.5;
+}
+
+.ai-disclaimer-banner-icon svg {
+    display: block;
+    width: 1rem;
+    height: 1rem;
+    /* Optically centers the icon against the text's first line without
+       relying on the parent's align-items: flex-start alone. */
+    margin-top: 0.2em;
 }
 
 .ai-disclaimer-banner-text {
@@ -147,31 +170,35 @@
     color: var(--ai-warning-text);
 }
 
+/* Turnstile "verification required" notice (backend/turnstile.py) -- same
+   warning color system as the banners above (WCAG AA already verified for
+   both themes) so this reads as a routine, recoverable notice rather than a
+   hard failure; shown in place of the answer in #aiSynthesis when /ask
+   returns the turnstile_required error code. */
+.ai-turnstile-notice {
+    display: flex;
+    align-items: flex-start;
+    padding: 0.75rem 1rem;
+    border: 1px solid var(--ai-warning-border);
+    border-radius: var(--radius-md, 0.7rem);
+    background: var(--ai-warning-bg);
+    color: var(--ai-warning-text);
+    font-weight: 600;
+    animation: shelah-fade-in 0.35s ease both;
+}
+
 /* ═══════════════════════════════════════════════════════ */
 /* AI MODAL DARK MODE */
 /* ═══════════════════════════════════════════════════════ */
 
+/* .ai-synthesis's background/border-color already auto-flip via --ai-surface/
+   --ai-border; only the text color needs a dark-specific value. */
 :is([data-theme="dark"], body.theme-dark) .ai-synthesis {
-    background: var(--ai-surface) !important;
-    border-color: var(--ai-border) !important;
     color: var(--accent-cream) !important;
 }
 
-:is([data-theme="dark"], body.theme-dark) .ai-source-card {
-    background: var(--surface-elevated) !important;
-    border-color: var(--ai-border) !important;
-    color: var(--accent-cream) !important;
-}
-
-:is([data-theme="dark"], body.theme-dark) .ai-custom-card {
-    background: var(--surface-elevated) !important;
-    border-left-color: var(--ai-custom-accent) !important;
-}
-
-:is([data-theme="dark"], body.theme-dark) .ai-wiki-card {
-    background: var(--surface-elevated) !important;
-    border-left-color: var(--ai-wiki-accent) !important;
-}
+/* .ai-custom-card / .ai-wiki-card fully auto-flip via --ai-custom-card-bg,
+   --ai-wiki-card-bg, --ai-custom-accent, --ai-wiki-accent — no override needed. */
 
 /* ═══════════════════════════════════════════════════════ */
 /* AI MODAL ACCESSIBILITY */
@@ -229,7 +256,7 @@
     overflow: hidden;
     margin-bottom: 1rem;
     box-shadow: 0 1px 4px rgba(78, 64, 45, 0.07);
-    transition: box-shadow 0.22s ease, border-color 0.22s ease, transform 0.18s ease;
+    transition: box-shadow var(--motion-dur-base) var(--motion-ease-out), border-color var(--motion-dur-base) var(--motion-ease-out), transform var(--motion-dur-fast) var(--motion-ease-out);
 }
 
 .ai-source-box:hover {
@@ -291,19 +318,12 @@
     line-height: 1.4;
 }
 
-.ai-src-badge--tanakh   { background: #fef3c7; color: #92400e; }
-.ai-src-badge--talmud   { background: #e0f2fe; color: #075985; }
-.ai-src-badge--halacha  { background: #dcfce7; color: #166534; }
-.ai-src-badge--responsa { background: #f3e8ff; color: #6b21a8; }
-.ai-src-badge--mishnah  { background: #fff7ed; color: #9a3412; }
-.ai-src-badge--other    { background: #f1f5f9; color: #475569; }
-
-:is([data-theme="dark"], body.theme-dark) .ai-src-badge--tanakh   { background: rgba(254,243,199,0.14); color: #fcd34d; }
-:is([data-theme="dark"], body.theme-dark) .ai-src-badge--talmud   { background: rgba(224,242,254,0.12); color: #7dd3fc; }
-:is([data-theme="dark"], body.theme-dark) .ai-src-badge--halacha  { background: rgba(220,252,231,0.12); color: #86efac; }
-:is([data-theme="dark"], body.theme-dark) .ai-src-badge--responsa { background: rgba(243,232,255,0.12); color: #d8b4fe; }
-:is([data-theme="dark"], body.theme-dark) .ai-src-badge--mishnah  { background: rgba(255,247,237,0.12); color: #fdba74; }
-:is([data-theme="dark"], body.theme-dark) .ai-src-badge--other    { background: rgba(241,245,249,0.10); color: #94a3b8; }
+.ai-src-badge--tanakh   { background: var(--ai-badge-tanakh-bg); color: var(--ai-badge-tanakh-text); }
+.ai-src-badge--talmud   { background: var(--ai-badge-talmud-bg); color: var(--ai-badge-talmud-text); }
+.ai-src-badge--halacha  { background: var(--ai-badge-halacha-bg); color: var(--ai-badge-halacha-text); }
+.ai-src-badge--responsa { background: var(--ai-badge-responsa-bg); color: var(--ai-badge-responsa-text); }
+.ai-src-badge--mishnah  { background: var(--ai-badge-mishnah-bg); color: var(--ai-badge-mishnah-text); }
+.ai-src-badge--other    { background: var(--ai-badge-other-bg); color: var(--ai-badge-other-text); }
 
 .ai-src-box-links {
     display: flex;
@@ -322,7 +342,7 @@
     color: var(--accent-deep-blue, #1f3f63);
     text-decoration: none;
     white-space: nowrap;
-    transition: color 0.15s ease;
+    transition: color var(--motion-dur-fast) var(--motion-ease-out);
 }
 
 .src-ext-link:hover,
@@ -389,24 +409,26 @@
     margin: 0.75rem 0 0.4rem;
 }
 
-/* Dark mode source boxes */
-:is([data-theme="dark"], body.theme-dark) .ai-source-box {
-    background: var(--surface-elevated) !important;
-    border-color: var(--surface-border) !important;
-}
-
-:is([data-theme="dark"], body.theme-dark) .ai-src-box-header {
-    background: var(--surface-pill) !important;
-    border-bottom-color: var(--surface-border) !important;
-}
-
+/* .ai-source-box, .ai-src-box-header, .src-ext-link/.src-open-link (base),
+   .ai-src-box-en, .ai-src-box-note all fully auto-flip via --ai-border,
+   --ai-src-header-bg, --ai-src-body-bg, --ai-src-en-bg, --accent-deep-blue,
+   --text-main, --text-muted — no override rule needed. Only the two
+   properties below have a genuinely dark-specific value with no light-mode
+   equivalent token. */
 :is([data-theme="dark"], body.theme-dark) .ai-src-box-title {
     color: var(--accent-cream) !important;
 }
 
+/* Dark theme's --accent-deep-blue (aliases --accent-primary, #6888a8) against
+   the source-box's dark surface (~#232121) is only 4.34:1 -- just under
+   WCAG AA's 4.5:1. Lightened for these two links only rather than the shared
+   token, since --accent-deep-blue/--accent-primary is used broadly elsewhere
+   (buttons, reader UI, sidebar) and a global retune needs its own reviewed
+   pass -- same rationale as the #analyticsConsentAccept fix in style.css.
+   #7093b5 clears 4.5:1 with margin (~4.99:1). */
 :is([data-theme="dark"], body.theme-dark) .src-ext-link,
 :is([data-theme="dark"], body.theme-dark) .src-open-link {
-    color: var(--accent-blue) !important;
+    color: #7093b5 !important;
 }
 
 :is([data-theme="dark"], body.theme-dark) .src-ext-link:hover,
@@ -415,83 +437,14 @@
 }
 
 :is([data-theme="dark"], body.theme-dark) .ai-src-box-he {
-    background: var(--surface-elevated) !important;
     color: var(--accent-cream) !important;
-    border-right-color: var(--surface-border) !important;
-}
-
-:is([data-theme="dark"], body.theme-dark) .ai-src-box-en {
-    background: var(--surface-pill) !important;
-    color: var(--text-main) !important;
-}
-
-:is([data-theme="dark"], body.theme-dark) .ai-src-box-note {
-    background: var(--surface-pill) !important;
-    color: var(--text-muted) !important;
-    border-top-color: var(--surface-border) !important;
 }
 
 /* ═══════════════════════════════════════════════════════ */
 /* GLOBAL FLUID ANIMATIONS */
+/* Keyframes (shelah-fade-up/-in, shelah-slide-in-left/-right,          */
+/* shelah-scale-in) live in tokens.css's MOTION KEYFRAMES token layer.  */
 /* ═══════════════════════════════════════════════════════ */
-
-@keyframes shelah-fade-up {
-    from {
-        opacity: 0;
-        transform: translateY(10px);
-    }
-
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
-}
-
-@keyframes shelah-fade-in {
-    from {
-        opacity: 0;
-    }
-
-    to {
-        opacity: 1;
-    }
-}
-
-@keyframes shelah-slide-in-left {
-    from {
-        opacity: 0;
-        transform: translateX(-16px);
-    }
-
-    to {
-        opacity: 1;
-        transform: translateX(0);
-    }
-}
-
-@keyframes shelah-slide-in-right {
-    from {
-        opacity: 0;
-        transform: translateX(16px);
-    }
-
-    to {
-        opacity: 1;
-        transform: translateX(0);
-    }
-}
-
-@keyframes shelah-scale-in {
-    from {
-        opacity: 0;
-        transform: scale(0.96);
-    }
-
-    to {
-        opacity: 1;
-        transform: scale(1);
-    }
-}
 
 .animate-fade-up {
     animation: shelah-fade-up 0.32s cubic-bezier(0.22, 1, 0.36, 1) both;
@@ -505,11 +458,11 @@
     animation: shelah-scale-in 0.26s cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 
-/* Staggered animation via --i custom property set inline by JS (style="--i:N").
-   Unlimited count, unaffected by sibling <p> label elements resetting nth-child. */
-.ai-source-box {
-    animation-delay: calc(var(--i, 0) * 60ms);
-}
+/* .ai-source-box stagger-delay (--i custom property, unlimited count, unaffected
+   by sibling <p> label elements resetting nth-child) is defined once, canonically,
+   in loading.css's ".ai-source-box.animate-fade-up" rule — that's the compound
+   class the JS actually renders onto each box, and it's paired there with the
+   matching prefers-reduced-motion override. */
 
 /* Modal open animation */
 #aiAssistantModal>div,
@@ -522,7 +475,7 @@
 
 /* Reader topbar slide-down */
 #readerTopBar {
-    transition: opacity 0.2s ease, transform 0.2s ease;
+    transition: opacity var(--motion-dur-base) var(--motion-ease-out), transform var(--motion-dur-base) var(--motion-ease-out);
 }
 
 #readerTopBar:not(.hidden) {
@@ -574,7 +527,7 @@
 #popularTextsGrid button,
 .home-daily-entry,
 .home-today-section {
-    transition: transform 0.18s ease, box-shadow 0.18s ease;
+    transition: transform var(--motion-dur-fast) var(--motion-ease-out), box-shadow var(--motion-dur-fast) var(--motion-ease-out);
 }
 
 #popularTextsGrid button:hover {
@@ -587,14 +540,9 @@
     animation: shelah-fade-in 0.3s ease both;
 }
 
-/* Loading pulse already from Tailwind animate-pulse; ensure smooth AI loading state */
-#aiSynthesis p.animate-pulse {
-    animation: pulse 1.5s cubic-bezier(0.4, 0, 0.6, 1) infinite, shelah-fade-in 0.25s ease both;
-}
-
 /* Source boxes in reader article */
 .border.border-slate-300.rounded-lg.bg-white {
-    transition: box-shadow 0.22s ease, border-color 0.22s ease;
+    transition: box-shadow var(--motion-dur-base) var(--motion-ease-out), border-color var(--motion-dur-base) var(--motion-ease-out);
 }
 
 .border.border-slate-300.rounded-lg.bg-white:hover {
@@ -618,7 +566,8 @@
     #readerSources>div,
     #popularTextsGrid>*,
     .home-today-section,
-    #aiSynthesis {
+    #aiSynthesis,
+    .ai-turnstile-notice {
         animation: none !important;
         transition: none !important;
     }
@@ -630,10 +579,7 @@
 /* source cards once the /ask response arrives.            */
 /* ═══════════════════════════════════════════════════════ */
 
-@keyframes shelah-shimmer {
-    0%   { background-position: -200% 0; }
-    100% { background-position:  200% 0; }
-}
+/* shelah-shimmer keyframe lives in tokens.css's MOTION KEYFRAMES layer. */
 
 .ai-src-skeleton {
     border: 1px solid var(--ai-border, #d7cebc);
@@ -643,18 +589,10 @@
     min-height: 5rem;
 }
 
-.ai-src-skeleton-header {
-    height: 2rem;
-    background: var(--ai-src-header-bg, #f1ede4);
-    background-image: linear-gradient(
-        90deg,
-        transparent 0%,
-        rgba(255, 255, 255, 0.45) 50%,
-        transparent 100%
-    );
-    background-size: 200% 100%;
-    animation: shelah-shimmer 1.4s ease-in-out infinite;
-}
+/* .ai-src-skeleton-header's height/background/animation are fully owned by
+   loading.css's shared skeleton rule (same specificity, loads after this
+   file, so it wins for every property it sets) — no declarations needed
+   here beyond what loading.css doesn't cover. */
 
 .ai-src-skeleton-body {
     padding: 0.75rem 0.9rem;
@@ -666,16 +604,6 @@
 
 .ai-src-skeleton-line {
     height: 0.75rem;
-    border-radius: 0.25rem;
-    background: var(--ai-border, #d7cebc);
-    background-image: linear-gradient(
-        90deg,
-        transparent 0%,
-        rgba(255, 255, 255, 0.6) 50%,
-        transparent 100%
-    );
-    background-size: 200% 100%;
-    animation: shelah-shimmer 1.4s ease-in-out infinite;
 }
 
 .ai-src-skeleton-line--wide  { width: 85%; }
@@ -691,71 +619,17 @@
     grid-column: 1 / -1;
 }
 
-:is([data-theme="dark"], body.theme-dark) .ai-src-skeleton {
-    border-color: var(--surface-border) !important;
-}
-
-:is([data-theme="dark"], body.theme-dark) .ai-src-skeleton-header {
-    background: var(--surface-pill) !important;
-    background-image: linear-gradient(
-        90deg,
-        transparent 0%,
-        rgba(255, 255, 255, 0.08) 50%,
-        transparent 100%
-    ) !important;
-    background-size: 200% 100% !important;
-}
-
-:is([data-theme="dark"], body.theme-dark) .ai-src-skeleton-body {
-    background: var(--surface-elevated) !important;
-}
-
-:is([data-theme="dark"], body.theme-dark) .ai-src-skeleton-line {
-    background: var(--surface-border) !important;
-    background-image: linear-gradient(
-        90deg,
-        transparent 0%,
-        rgba(255, 255, 255, 0.06) 50%,
-        transparent 100%
-    ) !important;
-    background-size: 200% 100% !important;
-}
-
-@media (prefers-reduced-motion: reduce) {
-    .ai-src-skeleton-header,
-    .ai-src-skeleton-line {
-        animation: none !important;
-    }
-}
+/* Dark-mode skeleton styling now handled entirely by --ai-border,
+   --ai-src-header-bg, and --ai-src-body-bg auto-flipping (defined at the
+   top of this file) — no separate override rule needed. Shimmer animation
+   and its reduced-motion override both live in loading.css (the shared
+   ::after-based skeleton rule wins the cascade for these classes). */
 
 /* ═══════════════════════════════════════════════════════ */
-/* LOADING SPINNER & DOT-BOUNCE KEYFRAMES */
+/* LOADING SPINNER & DOT-BOUNCE */
+/* Keyframes (shelah-spin, shelah-dot-bounce) live in tokens.css's      */
+/* MOTION KEYFRAMES token layer.                                       */
 /* ═══════════════════════════════════════════════════════ */
-
-@keyframes shelah-spin {
-    from {
-        transform: rotate(0deg);
-    }
-
-    to {
-        transform: rotate(360deg);
-    }
-}
-
-@keyframes shelah-dot-bounce {
-
-    0%,
-    80%,
-    100% {
-        transform: translateY(0);
-        opacity: 0.4;
-    }
-
-    40% {
-        transform: translateY(-6px);
-        opacity: 1;
-    }
-}
 
 /* ═══════════════════════════════════════════════════════ */
 /* SITE-WIDE FLUID MOTION SYSTEM */
@@ -763,11 +637,11 @@
 
 /* ── Topbar & brand ──────────────────────────────────────── */
 .topbar {
-    transition: background-color 0.25s ease, box-shadow 0.25s ease;
+    transition: background-color var(--motion-dur-base) var(--motion-ease-out), box-shadow var(--motion-dur-base) var(--motion-ease-out);
 }
 
 .topbar-brand {
-    transition: opacity 0.2s ease, transform 0.2s ease;
+    transition: opacity var(--motion-dur-base) var(--motion-ease-out), transform var(--motion-dur-base) var(--motion-ease-out);
 }
 
 .topbar-brand:hover {
@@ -779,8 +653,8 @@
 }
 
 .topbar-flat-btn {
-    transition: background-color 0.18s ease, color 0.18s ease, border-color 0.18s ease,
-        box-shadow 0.18s ease, transform 0.15s ease !important;
+    transition: background-color var(--motion-dur-fast) var(--motion-ease-out), color var(--motion-dur-fast) var(--motion-ease-out), border-color var(--motion-dur-fast) var(--motion-ease-out),
+        box-shadow var(--motion-dur-fast) var(--motion-ease-out), transform var(--motion-dur-fast) var(--motion-ease-out) !important;
 }
 
 .topbar-flat-btn:active {
@@ -789,8 +663,8 @@
 
 /* ── Mobile bottom tabs ──────────────────────────────────── */
 .mobile-tab-btn {
-    transition: background-color 0.2s ease, color 0.18s ease,
-        transform 0.18s ease, box-shadow 0.18s ease !important;
+    transition: background-color var(--motion-dur-base) var(--motion-ease-out), color var(--motion-dur-fast) var(--motion-ease-out),
+        transform var(--motion-dur-fast) var(--motion-ease-out), box-shadow var(--motion-dur-fast) var(--motion-ease-out) !important;
 }
 
 .mobile-tab-btn:active {
@@ -799,7 +673,7 @@
 
 /* ── Mobile drawer backdrop ──────────────────────────────── */
 #mobileDrawerBackdrop {
-    transition: opacity 0.3s ease !important;
+    transition: opacity var(--motion-dur-base) var(--motion-ease-out) !important;
 }
 
 #mobileDrawerBackdrop.hidden {
@@ -812,15 +686,15 @@
 #rightSidebar button,
 #leftSidebar a,
 #rightSidebar a {
-    transition: background-color 0.15s ease, color 0.15s ease, padding-left 0.18s ease !important;
+    transition: background-color var(--motion-dur-fast) var(--motion-ease-out), color var(--motion-dur-fast) var(--motion-ease-out), padding-left var(--motion-dur-fast) var(--motion-ease-out) !important;
 }
 
 #leftSidebar details>summary {
-    transition: color 0.18s ease;
+    transition: color var(--motion-dur-fast) var(--motion-ease-out);
 }
 
 #leftSidebar details>summary .text-slate-300 {
-    transition: transform 0.22s cubic-bezier(0.22, 1, 0.36, 1) !important;
+    transition: transform var(--motion-dur-base) var(--motion-ease-decel) !important;
 }
 
 /* ── Modals ──────────────────────────────────────────────── */
@@ -846,27 +720,134 @@
 
 #userProfileMenu a,
 #userProfileMenu button {
-    transition: background-color 0.15s ease, color 0.15s ease !important;
+    transition: background-color var(--motion-dur-fast) var(--motion-ease-out), color var(--motion-dur-fast) var(--motion-ease-out) !important;
 }
 
 /* ── Search bar & icon ───────────────────────────────────── */
 #searchForm input[type="text"] {
-    transition: border-color 0.2s ease, box-shadow 0.2s ease, background-color 0.2s ease !important;
+    transition: border-color var(--motion-dur-base) var(--motion-ease-out), box-shadow var(--motion-dur-base) var(--motion-ease-out), background-color var(--motion-dur-base) var(--motion-ease-out) !important;
 }
 
 #searchIcon {
-    transition: opacity 0.2s ease, transform 0.2s cubic-bezier(0.22, 1, 0.36, 1) !important;
+    transition: opacity var(--motion-dur-base) var(--motion-ease-out), transform var(--motion-dur-base) var(--motion-ease-decel) !important;
 }
 
-body.search-loading #searchIcon {
-    animation: shelah-spin 0.8s linear infinite;
-    opacity: 0.6;
+/* While asking AI: fade the magnifying glass down and let the AI star
+   badge pulse faster as the loading cue, instead of animating #searchIcon
+   as a whole (see static/style.css's #searchIcon comment for why that
+   used to fight the icon's own vertical-centering transform). Reuses the
+   same shelah-warm-pulse keyframe as the star's own ambient idle pulse
+   (static/style.css's .search-ai-sparkle) rather than a spin -- rotating a
+   4-point star reads as it losing its points/deforming at this size, where
+   a faster scale+glow pulse of the same motion the star already does at
+   rest just reads as "thinking harder". */
+body.search-loading .search-icon-glass {
+    opacity: 0.25;
+}
+
+body.search-loading .search-ai-sparkle {
+    animation: shelah-warm-pulse 1.6s ease-in-out infinite;
+}
+
+/* Continuous glow for the full request duration -- the liftoff burst below
+   only covers the first 420ms; without this, the underlay fades back to
+   opacity:0 and sits inert (invisible) for the remainder of a long AI wait.
+   Uses shelah-liftoff-spin-loop (tokens.css), not the generic shelah-spin --
+   see that keyframe's comment for why reusing shelah-spin here used to make
+   the gradient visibly drift off-center and snap back every 2.6s instead of
+   rotating in place. #searchForm.search-liftoff's higher (ID+class)
+   specificity still wins for the first 420ms, so this only takes over once
+   that class is removed. */
+body.search-loading .search-liftoff-underlay {
+    opacity: 0.55;
+    transition: opacity var(--motion-dur-slow) var(--motion-ease-out);
+}
+
+body.search-loading .search-liftoff-underlay::before {
+    animation: shelah-liftoff-spin-loop 2.6s linear infinite;
+}
+
+/* ── Search "liftoff" moment ──────────────────────────────
+   handleAiSearch() toggles #searchForm.search-liftoff for ~420ms at the
+   instant a question is submitted, synced with window.ShelahMotion
+   .animateIn(aiModal, ...) firing in the same tick -- a brief handoff pulse
+   as the full-screen AI modal takes over, not a persistent loader (the
+   modal's own ש-letter spinner in loading.css owns that job once it's on
+   screen). #searchForm gets `isolation: isolate` so the underlay's negative
+   z-index only sinks below its OWN siblings (the input, #searchIcon,
+   #searchSuggestions) -- never below the topbar's opaque background. */
+#searchForm {
+    isolation: isolate;
+}
+
+/* Fixed stadium-shaped mask: border-radius + overflow:hidden keep the
+   VISIBLE silhouette a stable pill at every frame, no matter how its
+   ::before gradient layer rotates underneath (see the ::before rule below
+   and tokens.css's shelah-liftoff-fade/-spin comment for why the rotation
+   can't live on this element directly). */
+.search-liftoff-underlay {
+    position: absolute;
+    inset: -10px;
+    z-index: -1;
+    border-radius: var(--radius-full);
+    overflow: hidden;
+    opacity: 0;
+    pointer-events: none;
+    filter: blur(9px);
+}
+
+/* The actual rotating gradient -- a square more than 2x the mask's own
+   size (so its corners still cover the mask after a 150deg turn), rotated
+   around its own center and clipped back to the stadium shape above by the
+   mask's overflow:hidden every frame. */
+.search-liftoff-underlay::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 220%;
+    aspect-ratio: 1;
+    transform: translate(-50%, -50%);
+    background: conic-gradient(from 0deg,
+        var(--accent-gold-light) 0%,
+        var(--accent-gold) 30%,
+        #b8aa90 55%,
+        var(--ink-heading) 80%,
+        var(--accent-gold-light) 100%);
+}
+
+/* Dark theme: swap for tokens that read correctly on --surface-pill/#23211f
+   rather than the light-mode navy/tan stops, which would go muddy there. */
+:is([data-theme="dark"], body.theme-dark) .search-liftoff-underlay::before {
+    background: conic-gradient(from 0deg,
+        var(--accent-cream) 0%,
+        var(--accent-gold) 30%,
+        var(--accent-primary) 55%,
+        var(--surface-pill) 80%,
+        var(--accent-cream) 100%);
+}
+
+#searchForm.search-liftoff .search-liftoff-underlay {
+    animation: shelah-liftoff-fade 420ms var(--motion-ease-out) 1;
+}
+
+#searchForm.search-liftoff .search-liftoff-underlay::before {
+    animation: shelah-liftoff-spin 420ms var(--motion-ease-out) 1;
+}
+
+/* .search-ai-sparkle's always-on ambient pulse lives in static/style.css
+   (shelah-warm-pulse 3.4s infinite) -- this compound selector's higher
+   specificity takes over for the liftoff window only, without editing that
+   element's markup, then hands back to the ambient rule once the class is
+   removed. */
+#searchForm.search-liftoff .search-ai-sparkle {
+    animation: shelah-warm-pulse 420ms ease-in-out 1;
 }
 
 /* ── Library sidebar tab ─────────────────────────────────── */
 .sidebar-show-tab {
-    transition: opacity 0.22s ease, transform 0.22s cubic-bezier(0.22, 1, 0.36, 1),
-        box-shadow 0.18s ease, background 0.14s ease !important;
+    transition: opacity var(--motion-dur-base) var(--motion-ease-out), transform var(--motion-dur-base) var(--motion-ease-decel),
+        box-shadow var(--motion-dur-fast) var(--motion-ease-out), background var(--motion-dur-fast) var(--motion-ease-out) !important;
 }
 
 .sidebar-show-tab:hover {
@@ -877,7 +858,7 @@ body.search-loading #searchIcon {
 #closeRightSidebarBtn,
 #hideLeftSidebarBtn,
 #hideRightSidebarBtn {
-    transition: background-color 0.15s ease, color 0.15s ease, opacity 0.15s ease !important;
+    transition: background-color var(--motion-dur-fast) var(--motion-ease-out), color var(--motion-dur-fast) var(--motion-ease-out), opacity var(--motion-dur-fast) var(--motion-ease-out) !important;
 }
 
 /* ── Reader topbar ───────────────────────────────────────── */
@@ -900,7 +881,7 @@ body.search-loading #searchIcon {
 .home-library-link,
 .home-daily-link,
 .home-calendar-btn {
-    transition: transform 0.18s ease, opacity 0.18s ease !important;
+    transition: transform var(--motion-dur-fast) var(--motion-ease-out), opacity var(--motion-dur-fast) var(--motion-ease-out) !important;
 }
 
 .home-library-link:hover {
@@ -909,11 +890,11 @@ body.search-loading #searchIcon {
 
 /* ── Legal modal ─────────────────────────────────────────── */
 #legalModal input[type="checkbox"] {
-    transition: background-color 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease !important;
+    transition: background-color var(--motion-dur-fast) var(--motion-ease-out), border-color var(--motion-dur-fast) var(--motion-ease-out), box-shadow var(--motion-dur-fast) var(--motion-ease-out) !important;
 }
 
 #legalAcceptBtn {
-    transition: opacity 0.22s ease, transform 0.18s ease, background-color 0.18s ease !important;
+    transition: opacity var(--motion-dur-base) var(--motion-ease-out), transform var(--motion-dur-fast) var(--motion-ease-out), background-color var(--motion-dur-fast) var(--motion-ease-out) !important;
 }
 
 #legalAcceptBtn:not(:disabled):hover {
@@ -927,15 +908,15 @@ body.search-loading #searchIcon {
 
 /* ── Theme & language ────────────────────────────────────── */
 #themeToggleBtn {
-    transition: background-color 0.22s ease, color 0.22s ease, border-color 0.22s ease !important;
+    transition: background-color var(--motion-dur-base) var(--motion-ease-out), color var(--motion-dur-base) var(--motion-ease-out), border-color var(--motion-dur-base) var(--motion-ease-out) !important;
 }
 
 #aiModalTitle {
-    transition: opacity 0.2s ease !important;
+    transition: opacity var(--motion-dur-base) var(--motion-ease-out) !important;
 }
 
 .lang-btn {
-    transition: background-color 0.18s ease, font-weight 0.18s ease, color 0.18s ease !important;
+    transition: background-color var(--motion-dur-fast) var(--motion-ease-out), font-weight var(--motion-dur-fast) var(--motion-ease-out), color var(--motion-dur-fast) var(--motion-ease-out) !important;
 }
 
 .lang-btn-active {
@@ -983,7 +964,12 @@ body.search-loading #searchIcon {
     #aiWikiSection,
     #aiAssistantModal,
     #textsMenuModal,
-    #aiModalTitle {
+    #aiModalTitle,
+    .search-liftoff-underlay,
+    .search-liftoff-underlay::before,
+    #searchForm.search-liftoff .search-liftoff-underlay,
+    #searchForm.search-liftoff .search-liftoff-underlay::before,
+    #searchForm.search-liftoff .search-ai-sparkle {
         animation: none !important;
         transition: none !important;
     }
@@ -1063,6 +1049,138 @@ body.search-loading #searchIcon {
     line-height: 1.55;
 }
 
+/* ═══════════════════════════════════════════════════════ */
+/* AI ANSWER TYPOGRAPHY -- spacing pinned to the --sp-* grid */
+/* Tailwind Typography's own .prose/.prose-sm ship an em-    */
+/* based scale (ENGINEERING_RULES.md forbids magic-number    */
+/* margins) that drifts between #readerContent's 16px base   */
+/* and #aiSynthesis's prose-sm 14px base -- every markdown-   */
+/* generated element here is repinned to explicit --sp-*      */
+/* tokens instead, so both surfaces read identically. Normal  */
+/* specificity beats Tailwind's :where()-wrapped selectors    */
+/* (zero specificity by design) regardless of load order.     */
+/* Mirrors static/css/legal.css's .prose override, which only */
+/* loads on the standalone legal pages, not here.              */
+/* ═══════════════════════════════════════════════════════ */
+
+#readerContent.prose > :first-child,
+#aiSynthesis.prose > :first-child {
+    margin-top: 0;
+}
+
+#readerContent.prose > :last-child,
+#aiSynthesis.prose > :last-child {
+    margin-bottom: 0;
+}
+
+#readerContent.prose h1,
+#aiSynthesis.prose h1 {
+    font-weight: 700;
+    color: var(--ink-heading);
+    line-height: 1.25;
+    margin-top: var(--sp-8);
+    margin-bottom: var(--sp-4);
+}
+
+#readerContent.prose h2,
+#aiSynthesis.prose h2 {
+    font-weight: 700;
+    color: var(--ink-heading);
+    line-height: 1.3;
+    margin-top: var(--sp-6);
+    margin-bottom: var(--sp-2);
+}
+
+#readerContent.prose h3,
+#aiSynthesis.prose h3 {
+    font-weight: 600;
+    color: var(--ink-heading);
+    line-height: 1.35;
+    margin-top: var(--sp-4);
+    margin-bottom: var(--sp-2);
+}
+
+#readerContent.prose h4,
+#aiSynthesis.prose h4 {
+    font-weight: 600;
+    color: var(--ink-primary);
+    margin-top: var(--sp-4);
+    margin-bottom: var(--sp-1);
+}
+
+#readerContent.prose p,
+#aiSynthesis.prose p {
+    margin-top: 0;
+    margin-bottom: var(--sp-4);
+    line-height: 1.75;
+}
+
+#readerContent.prose ul,
+#readerContent.prose ol,
+#aiSynthesis.prose ul,
+#aiSynthesis.prose ol {
+    margin-top: 0;
+    margin-bottom: var(--sp-4);
+    padding-inline-start: var(--sp-6);
+}
+
+#readerContent.prose li,
+#aiSynthesis.prose li {
+    margin-top: var(--sp-1);
+    margin-bottom: var(--sp-1);
+}
+
+#readerContent.prose li > p,
+#aiSynthesis.prose li > p {
+    margin-top: var(--sp-1);
+    margin-bottom: var(--sp-1);
+}
+
+#readerContent.prose blockquote,
+#aiSynthesis.prose blockquote {
+    margin: var(--sp-4) 0;
+    padding-inline-start: var(--sp-4);
+    border-inline-start: 3px solid var(--ai-border);
+    color: var(--ink-secondary);
+    font-style: italic;
+}
+
+#readerContent.prose hr,
+#aiSynthesis.prose hr {
+    margin: var(--sp-6) 0;
+    border: none;
+    border-top: 1px solid var(--surface-border);
+}
+
+#readerContent.prose strong,
+#aiSynthesis.prose strong {
+    color: var(--ink-heading);
+    font-weight: 700;
+}
+
+#readerContent.prose a,
+#aiSynthesis.prose a {
+    color: var(--accent-primary);
+    text-decoration: underline;
+    text-underline-offset: 2px;
+}
+
+#readerContent.prose table,
+#aiSynthesis.prose table {
+    margin: var(--sp-4) 0;
+    border-collapse: collapse;
+    width: 100%;
+}
+
+#readerContent.prose th,
+#readerContent.prose td,
+#aiSynthesis.prose th,
+#aiSynthesis.prose td {
+    padding: var(--sp-2) var(--sp-3);
+    border: 1px solid var(--surface-border);
+    text-align: start;
+}
+
 /* ── Custom scrollbar (token-based) — moved here from inline <style> ── */
 
 .custom-scrollbar::-webkit-scrollbar {
@@ -1088,53 +1206,71 @@ body.search-loading #searchIcon {
     display: flex;
     flex-wrap: wrap;
     align-items: center;
-    gap: var(--sp-3);
+    gap: var(--sp-1);
 }
 
 .answer-feedback-prompt {
     font-size: var(--text-xs);
     color: var(--ink-secondary);
-    font-weight: 600;
+    font-weight: 400;
 }
 
+/* Ghost-button treatment: this should read as a quiet inline aside under
+   the answer, not its own boxed toolbar (same restraint as
+   .modal-close-icon-btn in static/style.css -- see the comment there).
+   No border/fill at rest; the 44x44 min box below is invisible hit-padding
+   around an 18px icon, not a visible button footprint. Touch target stays
+   44x44 via that padding (min-width/min-height), never shrunk -- only the
+   decorative border/background are removed, so Tailwind preflight's
+   `box-sizing: border-box` keeps the hit area exactly as large as before. */
 .answer-feedback-btn {
     display: inline-flex;
     align-items: center;
     justify-content: center;
     min-width: 44px;
     min-height: 44px;
-    padding: var(--sp-2) var(--sp-3);
-    border: 1px solid var(--surface-border);
+    padding: var(--sp-1) var(--sp-2);
+    border: none;
     border-radius: var(--radius-md);
-    background: var(--surface-2);
-    color: var(--ink-primary);
+    background: transparent;
+    color: var(--ink-secondary);
     font-size: var(--text-base);
     cursor: pointer;
-    transition: background-color 200ms ease-out, border-color 200ms ease-out, transform 200ms ease-out;
+    transition: background-color var(--motion-dur-fast) var(--motion-ease-out),
+        color var(--motion-dur-fast) var(--motion-ease-out),
+        transform var(--motion-dur-fast) var(--motion-ease-out);
 }
 
 .answer-feedback-btn:hover {
     background: var(--ctrl-bg-hover);
+    color: var(--ink-primary);
 }
 
 .answer-feedback-btn:active {
+    background: var(--ctrl-bg-hover);
     transform: scale(0.96);
 }
 
 .answer-feedback-btn:focus-visible {
+    background: var(--ctrl-bg-hover);
     outline: 2px solid var(--accent-primary);
     outline-offset: 2px;
 }
 
 .answer-feedback-btn[aria-pressed="true"] {
-    background: var(--accent-primary);
-    border-color: var(--accent-primary);
-    color: var(--ink-on-accent);
+    background: var(--surface-2);
+    color: var(--accent-primary);
 }
 
 .answer-feedback-btn:disabled {
     opacity: 0.6;
     cursor: default;
+}
+
+.answer-feedback-btn svg {
+    width: 0.9375rem;
+    height: 0.9375rem;
+    flex-shrink: 0;
 }
 
 .answer-feedback-comment-row {
@@ -1173,7 +1309,7 @@ body.search-loading #searchIcon {
     font-size: var(--text-sm);
     font-weight: 600;
     cursor: pointer;
-    transition: background-color 200ms ease-out;
+    transition: background-color var(--motion-dur-fast) var(--motion-ease-out);
 }
 
 .answer-feedback-submit:hover {

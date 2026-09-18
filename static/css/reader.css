@@ -4,31 +4,9 @@
   Supplements style.css — does not replace existing reader rules.
 */
 
-/* ═══════════════════════════════════════════════════════ */
-/* READER LOADING SHIMMER */
-/* ═══════════════════════════════════════════════════════ */
-
-@keyframes shimmer {
-    0% {
-        background-position: -200% 0;
-    }
-
-    100% {
-        background-position: 200% 0;
-    }
-}
-
-.reader-loading-shimmer {
-    background: linear-gradient(90deg,
-            var(--surface-subtle) 25%,
-            var(--surface-elevated) 50%,
-            var(--surface-subtle) 75%);
-    background-size: 200% 100%;
-    animation: shimmer 1.6s infinite;
-    border-radius: var(--radius-sm, 0.35rem);
-    height: 1em;
-    display: block;
-}
+/* Note: .reader-loading-shimmer's canonical definition (token-driven,
+   shelah-shimmer keyframe) lives in loading.css and loads after this
+   sheet, so it — not a local copy — is what actually renders here. */
 
 /* ═══════════════════════════════════════════════════════ */
 /* READER COLUMN WIDTH HELPERS */
@@ -81,24 +59,20 @@
     line-height: 1;
 }
 
-body.theme-dark .segment-badge {
-    background: var(--surface-pill);
-    border-color: var(--surface-border);
-    color: var(--text-muted);
-}
+/* .segment-badge fully auto-flips via --surface-pill/--surface-border/
+   --text-muted — no dark override needed. */
 
 /* ═══════════════════════════════════════════════════════ */
 /* READER TEXT SELECTION HIGHLIGHT */
 /* ═══════════════════════════════════════════════════════ */
 
-#reader ::selection {
+::selection {
     background: rgba(212, 175, 55, 0.25);
     color: inherit;
 }
 
-body.theme-dark #reader ::selection {
+:is([data-theme="dark"], body.theme-dark) ::selection {
     background: rgba(232, 200, 74, 0.22);
-    color: inherit;
 }
 
 /* ═══════════════════════════════════════════════════════ */
@@ -135,7 +109,7 @@ body.theme-dark #readerTopBar {
 }
 
 #reader>header {
-    margin-bottom: 1.75rem;
+    margin-bottom: 0.85rem;
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -182,9 +156,16 @@ html.rtl #readerSubtitle {
 }
 
 /* ─── Section title — consistent style across all chunks ─── */
+/* Sticks directly under the reader topbar (not just the main site topbar).
+   This `top` is local to #mainContainer's own scrollport; #mainContainer's
+   padding-top (style.css) already reserves exactly the reader topbar's
+   height, and that padding is itself counted into the sticky threshold, so
+   only a small breathing-room buffer belongs here — reusing the topbar's
+   own height on top of that (as this rule used to) double-counts it and
+   pushes this bar far below the reader topbar instead of flush against it. */
 .reader-source-title {
     position: sticky;
-    top: calc(var(--reader-topbar-offset, 3.2rem) + 0.45rem);
+    top: 0.2rem;
     z-index: 6;
     border: 1px solid color-mix(in srgb, var(--surface-border) 68%, transparent);
     background: color-mix(in srgb, var(--surface-elevated) 94%, transparent);
@@ -280,9 +261,7 @@ body.theme-dark .reader-source-title-main {
     color: var(--accent-cream);
 }
 
-body.theme-dark .reader-source-title-ref {
-    color: var(--text-muted);
-}
+/* .reader-source-title-ref fully auto-flips via --text-muted — no override needed. */
 
 /* Section divider between consecutive chunks */
 .reader-source-clean+.reader-source-clean {

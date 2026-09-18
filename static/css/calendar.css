@@ -16,9 +16,7 @@
     --cal-cell-hover: var(--surface-base);
     --cal-number-color: #4a6080;
     --cal-toolbar-bg: transparent;
-    --cal-event-holiday: #802f3e;
-    --cal-event-shabbat: #1f4f3a;
-    --cal-event-rh: #4a2a10;
+    /* --cal-event-* (per Hebcal category) defined once in tokens.css, light + dark */
     --cal-toolbar-btn-bg: #f1ede4;
     --cal-toolbar-btn-border: #c8b88a;
     --cal-toolbar-btn-color: #1f3f63;
@@ -33,7 +31,6 @@ body.theme-dark {
     --cal-cell-bg: var(--surface-elevated);
     --cal-cell-hover: var(--surface-subtle);
     --cal-number-color: var(--text-muted);
-    /* --cal-event-holiday, --cal-event-shabbat, --cal-event-rh defined in tokens.css */
     --cal-toolbar-btn-bg: var(--control-bg);
     --cal-toolbar-btn-border: var(--control-border);
     --cal-toolbar-btn-color: var(--control-text);
@@ -81,14 +78,22 @@ body.theme-dark {
     padding: 0.3rem 0.7rem !important;
     border-radius: 0.4rem !important;
     box-shadow: 0 1px 2px rgba(78, 64, 30, 0.1) !important;
-    transition: background 0.15s ease, border-color 0.15s ease !important;
+    transition: background var(--motion-dur-fast) var(--motion-ease-out), border-color var(--motion-dur-fast) var(--motion-ease-out) !important;
 }
 
 .fc .fc-button-primary:hover,
-.fc .fc-button-primary:focus {
+.fc .fc-button-primary:focus:not(:focus-visible) {
     background: var(--cal-toolbar-btn-hover) !important;
     border-color: #a09060 !important;
     outline: none !important;
+    box-shadow: 0 2px 5px rgba(78, 64, 30, 0.15) !important;
+}
+
+.fc .fc-button-primary:focus-visible {
+    background: var(--cal-toolbar-btn-hover) !important;
+    border-color: #a09060 !important;
+    outline: 2px solid rgba(176, 154, 116, 0.65) !important;
+    outline-offset: 2px !important;
     box-shadow: 0 2px 5px rgba(78, 64, 30, 0.15) !important;
 }
 
@@ -125,7 +130,7 @@ body.theme-dark {
 /* Day grid cells */
 .fc .fc-daygrid-day {
     background: var(--cal-cell-bg);
-    transition: background 0.12s ease;
+    transition: background var(--motion-dur-fast) var(--motion-ease-out);
 }
 
 .fc .fc-daygrid-day:hover {
@@ -166,7 +171,10 @@ body.theme-dark {
     font-size: 0.73rem !important;
     font-weight: 600 !important;
     cursor: pointer;
-    transition: opacity 0.15s ease, transform 0.12s ease;
+    transition: opacity var(--motion-dur-fast) var(--motion-ease-out), transform var(--motion-dur-fast) var(--motion-ease-out);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 100%;
 }
 
 .fc-event:hover {
@@ -174,19 +182,44 @@ body.theme-dark {
     transform: translateY(-1px);
 }
 
-.fc-event.holiday {
+/* Classes are assigned per-event from the backend's `category` field via
+   FullCalendar's eventClassNames (templates/index.html, ensureCalendarReady). */
+.fc-event.cal-cat-major,
+.fc-event.cal-cat-holiday {
     background: var(--cal-event-holiday) !important;
     border-color: transparent !important;
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.15);
 }
 
-.fc-event.shabbat {
+.fc-event.cal-cat-shabbat,
+.fc-event.cal-cat-parashat {
     background: var(--cal-event-shabbat) !important;
     border-color: transparent !important;
 }
 
-.fc-event.rosh-hashana {
-    background: var(--cal-event-rh, #7a3f20) !important;
+.fc-event.cal-cat-roshchodesh {
+    background: var(--cal-event-rh) !important;
+    border-color: transparent !important;
+}
+
+.fc-event.cal-cat-minor {
+    background: var(--cal-event-minor) !important;
+    border-color: transparent !important;
+}
+
+.fc-event.cal-cat-modern {
+    background: var(--cal-event-modern) !important;
+    border-color: transparent !important;
+}
+
+.fc-event.cal-cat-fast {
+    background: var(--cal-event-fast) !important;
+    border-color: transparent !important;
+}
+
+.fc-event.cal-cat-special,
+.fc-event.cal-cat-default {
+    background: var(--cal-event-special) !important;
     border-color: transparent !important;
 }
 
@@ -207,8 +240,8 @@ body.theme-dark {
     }
 
     .fc-daygrid-day-number {
-        font-size: 0.75rem !important;
-        padding: 0.25rem !important;
+        font-size: 0.7rem !important;
+        padding: 0.2rem !important;
     }
 
     .fc .fc-daygrid-day {
@@ -216,13 +249,28 @@ body.theme-dark {
     }
 
     .fc-event {
-        font-size: 0.65rem !important;
-        padding: 0.08rem 0.25rem !important;
+        font-size: 0.6rem !important;
+        padding: 0.05rem 0.2rem !important;
+        line-height: 1.3;
     }
 
     .fc .fc-col-header-cell-cushion {
         font-size: 0.65rem !important;
         padding: 0.3rem 0.1rem !important;
+    }
+}
+
+/* Reclaim horizontal budget from the calendar modal's own padding (see
+   #calendarModal / its content wrapper in templates/index.html) so the
+   7-column day-grid gets closer to the full viewport width on phones. */
+@media (max-width: 640px) {
+    #calendarModal {
+        padding-left: 0.5rem !important;
+        padding-right: 0.5rem !important;
+    }
+
+    #calendarModal .flex-1.overflow-y-auto {
+        padding: 0.5rem !important;
     }
 }
 
@@ -255,9 +303,7 @@ body.theme-dark {
     line-height: 1.4;
 }
 
-body.theme-dark .cal-hebrew-date {
-    color: var(--text-muted);
-}
+/* .cal-hebrew-date fully auto-flips via --text-muted — no override needed. */
 
 /* ═══════════════════════════════════════════════════════ */
 /* ZMANIM LIST IMPROVEMENTS */
@@ -298,12 +344,20 @@ body.theme-dark #calendarModalTitle {
 }
 
 /* Legend and subtitle text */
-body.theme-dark #calendarModal .text-xs.text-\[#64748b\],
+body.theme-dark #calendarModal .text-xs.text-\[#566175\],
 body.theme-dark #calendarModal p.text-xs {
     color: var(--text-muted, #a09688) !important;
 }
 
 /* Legend colour swatches — keep as-is (coloured), no override needed */
+
+/* Close button — focus-visible ring (icon swap didn't have one before;
+   same rgba(176, 154, 116, ...) ring used across ai.css/reader.css/
+   typography.css, so no separate dark-mode value is needed here). */
+#calendarModal button[aria-label="Close calendar"]:focus-visible {
+    outline: 2px solid rgba(176, 154, 116, 0.65);
+    outline-offset: 2px;
+}
 
 /* Close button */
 body.theme-dark #calendarModal button[aria-label="Close calendar"] {
