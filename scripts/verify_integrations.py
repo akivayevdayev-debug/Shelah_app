@@ -77,20 +77,16 @@ def check_env_variables():
 
     required = {
         "SUPABASE_URL": {
-            "candidates": ["SUPABASE_URL", "NEXT_PUBLIC_SUPABASE_URL"],
+            "candidates": ["SUPABASE_URL"],
             "desc": "Supabase project URL",
         },
         "SUPABASE_PUBLISHABLE_KEY": {
-            "candidates": [
-                "SUPABASE_ANON_KEY",
-                "NEXT_PUBLIC_SUPABASE_PUBLISHABLE_DEFAULT_KEY",
-                "NEXT_PUBLIC_SUPABASE_ANON_KEY",
-            ],
-            "desc": "Supabase publishable/anon key",
+            "candidates": ["SUPABASE_PUBLISHABLE_KEY"],
+            "desc": "Supabase publishable key",
         },
-        "SUPABASE_SERVICE_ROLE_KEY": {
-            "candidates": ["SUPABASE_SERVICE_ROLE_KEY"],
-            "desc": "Supabase service role key",
+        "SUPABASE_SECRET_KEY": {
+            "candidates": ["SUPABASE_SECRET_KEY"],
+            "desc": "Supabase secret key",
         },
         "CLERK_PUBLISHABLE_KEY": {
             "candidates": [
@@ -183,12 +179,8 @@ def check_supabase():
     """Test Supabase connectivity"""
     print_header("3. Supabase Connection")
 
-    supabase_url, _ = get_env_value("SUPABASE_URL", "NEXT_PUBLIC_SUPABASE_URL")
-    supabase_key, key_source = get_env_value(
-        "SUPABASE_ANON_KEY",
-        "NEXT_PUBLIC_SUPABASE_PUBLISHABLE_DEFAULT_KEY",
-        "NEXT_PUBLIC_SUPABASE_ANON_KEY",
-    )
+    supabase_url, _ = get_env_value("SUPABASE_URL")
+    supabase_key, key_source = get_env_value("SUPABASE_PUBLISHABLE_KEY")
     prefs_table = (os.getenv("SUPABASE_PREFS_TABLE")
                    or "user_preferences").strip()
 
@@ -311,6 +303,56 @@ def check_hebcal():
         return False
 
 
+def _check_flask_health_at_port(base_url):
+    """Probe one candidate localhost port for the Flask app.
+
+    Returns True if this port is a verified match (caller should adopt it
+    and stop), False otherwise. Split out of check_flask_local() to keep
+    this per-port branching out of that function's own complexity count
+    (SonarCloud python:S3776).
+    """
+    try:
+        response = requests.get(f"{base_url}/api/stack/health", timeout=2)
+        server_header = (response.headers.get("Server") or "").lower()
+
+        if response.status_code == 200:
+            try:
+                payload = response.json()
+            except ValueError:
+                payload = {}
+
+            if isinstance(payload, dict) and payload.get("flask") is True:
+                print_pass(
+                    f"Flask app detected at {base_url} (via /api/stack/health)")
+                return True
+
+            print_warn(
+                f"{base_url}/api/stack/health returned 200 but unexpected payload")
+            return False
+
+        if response.status_code in (401, 403):
+            # /api/stack/health is auth-gated (security audit P2) --
+            # a 401/403 means the Flask app is up and correctly
+            # requiring auth, not that detection failed.
+            print_pass(
+                f"Flask app detected at {base_url} (via /api/stack/health, auth-protected)")
+            return True
+
+        if "airtunes" in server_header:
+            print_warn(
+                f"{base_url} is occupied by Apple AirTunes (not your Flask app)")
+            return False
+
+        print_warn(
+            f"{base_url}/api/stack/health returned status {response.status_code}")
+        return False
+    except requests.ConnectionError:
+        return False
+    except Exception as e:
+        print_warn(f"Could not query {base_url}: {str(e)[:100]}")
+        return False
+
+
 def check_flask_local():
     """Test local Flask development server"""
     print_header("6. Flask Local Server")
@@ -328,41 +370,72 @@ def check_flask_local():
 
     for port in candidate_ports:
         base_url = f"http://localhost:{port}"
-        try:
-            response = requests.get(f"{base_url}/api/stack/health", timeout=2)
-            server_header = (response.headers.get("Server") or "").lower()
-
-            if response.status_code == 200:
-                try:
-                    payload = response.json()
-                except ValueError:
-                    payload = {}
-
-                if isinstance(payload, dict) and payload.get("flask") is True:
-                    LOCAL_BASE_URL = base_url
-                    print_pass(
-                        f"Flask app detected at {base_url} (via /api/stack/health)")
-                    return True
-
-                print_warn(
-                    f"{base_url}/api/stack/health returned 200 but unexpected payload")
-                continue
-
-            if "airtunes" in server_header:
-                print_warn(
-                    f"{base_url} is occupied by Apple AirTunes (not your Flask app)")
-                continue
-
-            print_warn(
-                f"{base_url}/api/stack/health returned status {response.status_code}")
-        except requests.ConnectionError:
-            continue
-        except Exception as e:
-            print_warn(f"Could not query {base_url}: {str(e)[:100]}")
+        if _check_flask_health_at_port(base_url):
+            LOCAL_BASE_URL = base_url
+            return True
 
     print_warn("Flask app not detected locally on expected ports")
     print_info("Start Flask with: source .venv/bin/activate && python3 app.py")
     return None
+
+
+def _dedupe_vercel_candidate_urls(possible_urls):
+    """Normalize + dedupe candidate Vercel URLs. Split out of check_vercel()
+    to keep this loop out of that function's own complexity count
+    (SonarCloud python:S3776).
+    """
+    deduped_urls = []
+    seen = set()
+    for url in possible_urls:
+        normalized = url.strip().rstrip("/")
+        if not normalized:
+            continue
+        if not normalized.startswith("http"):
+            normalized = f"https://{normalized}"
+        if normalized in seen:
+            continue
+        seen.add(normalized)
+        deduped_urls.append(normalized)
+    return deduped_urls
+
+
+def _check_vercel_health_at_url(url):
+    """Probe one candidate Vercel URL. Returns True if reachable/verified,
+    None if this URL should be skipped. Split out of check_vercel() to keep
+    this per-URL branching out of that function's own complexity count
+    (SonarCloud python:S3776).
+    """
+    try:
+        response = requests.get(f"{url}/api/stack/health", timeout=5)
+        if response.status_code == 200:
+            try:
+                payload = response.json()
+            except ValueError:
+                payload = {}
+
+            if isinstance(payload, dict) and payload.get("flask") is True:
+                print_pass(f"Vercel deployment reachable at {url}")
+                return True
+
+            print_warn(
+                f"{url} reachable but /api/stack/health payload was unexpected")
+            return True
+
+        if response.status_code in (401, 403):
+            print_warn(
+                f"{url} reachable but /api/stack/health is access restricted ({response.status_code})")
+            return True
+
+        root_response = requests.get(url, timeout=5)
+        if root_response.status_code < 500:
+            print_warn(
+                f"{url} reachable but /api/stack/health returned {response.status_code}")
+            return True
+        return None
+    except requests.Timeout:
+        return None
+    except Exception:
+        return None
 
 
 def check_vercel():
@@ -382,18 +455,7 @@ def check_vercel():
         "https://shelah-app-git-main.vercel.app",
     ])
 
-    deduped_urls = []
-    seen = set()
-    for url in possible_urls:
-        normalized = url.strip().rstrip("/")
-        if not normalized:
-            continue
-        if not normalized.startswith("http"):
-            normalized = f"https://{normalized}"
-        if normalized in seen:
-            continue
-        seen.add(normalized)
-        deduped_urls.append(normalized)
+    deduped_urls = _dedupe_vercel_candidate_urls(possible_urls)
 
     if not deduped_urls:
         print_warn("No Vercel URL available to test")
@@ -402,40 +464,29 @@ def check_vercel():
     print_info("Checking Vercel health endpoint candidates...")
 
     for url in deduped_urls:
-        try:
-            response = requests.get(f"{url}/api/stack/health", timeout=5)
-            if response.status_code == 200:
-                try:
-                    payload = response.json()
-                except ValueError:
-                    payload = {}
-
-                if isinstance(payload, dict) and payload.get("flask") is True:
-                    print_pass(f"Vercel deployment reachable at {url}")
-                    return True
-
-                print_warn(
-                    f"{url} reachable but /api/stack/health payload was unexpected")
-                return True
-
-            if response.status_code in (401, 403):
-                print_warn(
-                    f"{url} reachable but /api/stack/health is access restricted ({response.status_code})")
-                return True
-
-            root_response = requests.get(url, timeout=5)
-            if root_response.status_code < 500:
-                print_warn(
-                    f"{url} reachable but /api/stack/health returned {response.status_code}")
-                return True
-        except requests.Timeout:
-            continue
-        except Exception:
-            continue
+        if _check_vercel_health_at_url(url):
+            return True
 
     print_warn("Could not verify Vercel deployment with known URLs")
     print_info("Set VERCEL_URL to your deployment base URL if needed")
     return None
+
+
+def _interpret_community_response(data):
+    """Format the print+return decision for a 200 /api/community response.
+    Split out of check_community_endpoints() to keep this branching out of
+    that function's own complexity count (SonarCloud python:S3776).
+    """
+    if isinstance(data, dict) and ('identity' in data or 'customs' in data):
+        identity_raw = data.get('identity') if isinstance(data, dict) else None
+        identity = identity_raw if isinstance(identity_raw, dict) else {}
+        community_name = identity.get(
+            'display_name') or data.get('name', 'Unknown')
+        print_pass(f"Community API working: {community_name}")
+        return True
+
+    print_warn("Community endpoint returned data but missing expected structure")
+    return True
 
 
 def check_community_endpoints():
@@ -450,20 +501,7 @@ def check_community_endpoints():
         response = requests.get(
             f"{LOCAL_BASE_URL}/api/community/ashkenaz", timeout=2)
         if response.status_code == 200:
-            data = response.json()
-            if isinstance(data, dict) and ('identity' in data or 'customs' in data):
-                identity_raw = data.get('identity') if isinstance(
-                    data, dict) else None
-                identity = identity_raw if isinstance(
-                    identity_raw, dict) else {}
-                community_name = identity.get(
-                    'display_name') or data.get('name', 'Unknown')
-                print_pass(f"Community API working: {community_name}")
-                return True
-            else:
-                print_warn(
-                    "Community endpoint returned data but missing expected structure")
-                return True
+            return _interpret_community_response(response.json())
         elif response.status_code in (401, 403):
             print_warn(
                 f"Community endpoint is reachable but access is restricted ({response.status_code})")

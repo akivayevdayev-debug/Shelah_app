@@ -201,21 +201,18 @@ def chunked(items: List[Dict[str, str]], size: int) -> List[List[Dict[str, str]]
 def resolve_supabase_config() -> Dict[str, str]:
     load_dotenv()
 
-    url = (os.environ.get("SUPABASE_URL") or os.environ.get(
-        "NEXT_PUBLIC_SUPABASE_URL") or "").strip()
-    service_role_key = (os.environ.get(
-        "SUPABASE_SERVICE_ROLE_KEY") or "").strip()
+    url = (os.environ.get("SUPABASE_URL") or "").strip()
+    secret_key = (os.environ.get("SUPABASE_SECRET_KEY") or "").strip()
 
     if not url:
+        raise RuntimeError("Missing SUPABASE_URL.")
+    if not secret_key:
         raise RuntimeError(
-            "Missing SUPABASE_URL (or NEXT_PUBLIC_SUPABASE_URL).")
-    if not service_role_key:
-        raise RuntimeError(
-            "Missing SUPABASE_SERVICE_ROLE_KEY. Service role key is required for migration upserts.")
+            "Missing SUPABASE_SECRET_KEY. The secret key is required for migration upserts.")
 
     return {
         "url": url,
-        "service_role_key": service_role_key,
+        "secret_key": secret_key,
     }
 
 
@@ -232,7 +229,7 @@ def run_migration(table_name: str, rows: List[Dict[str, str]], dry_run: bool, ch
         return
 
     cfg = resolve_supabase_config()
-    client = create_client(cfg["url"], cfg["service_role_key"])
+    client = create_client(cfg["url"], cfg["secret_key"])
 
     # Fast sanity probe to fail early when table is missing.
     client.table(table_name).select("id").limit(1).execute()
