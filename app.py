@@ -42,7 +42,8 @@ from backend.logging_setup import (
     submit_with_context,
 )
 from backend.customs import validate_all_customs_at_startup
-from backend.health_check import health as api_health  # noqa: F401 -- re-export shim, consumed by routes_devtools.py's `from app import api_health`
+# Re-export shim, consumed by routes_devtools.py's `from app import api_health`.
+from backend.health_check import health as api_health  # noqa: F401
 from backend.helpers import extract_ai_cited
 from backend.helpers import (
     _sanitize_answer_mode,
@@ -910,7 +911,8 @@ _supabase_loaded = False
 # _env_int: reconciled to backend/rag.py as part of the Phase 4 Finding A
 # cleanup above -- re-imported as a back-compat shim (search: "Re-import
 # shims"). Still used directly below and at this file's own call sites.
-from backend.rag import _env_int  # noqa: E402 -- deliberate: kept beside the config block it serves, not hoisted
+# Deliberate: kept beside the config block it serves, not hoisted.
+from backend.rag import _env_int  # noqa: E402
 
 
 # Retrieval-tuning constants, not per-deployment config -- changing how many
@@ -920,7 +922,8 @@ RAG_TOP_KNOWLEDGE_ROWS = 5
 RAG_MEMORY_ROWS = 2
 
 
-from backend.auth import (  # noqa: E402 -- deliberate: grouped with the Supabase/auth helpers below, not hoisted
+# Deliberate: grouped with the Supabase/auth helpers below, not hoisted.
+from backend.auth import (  # noqa: E402
     _verify_clerk_token,
     _extract_bearer_token,
     CLERK_ENFORCE_AUTH,
@@ -941,14 +944,14 @@ def _ensure_supabase_loaded():
     try:
         from supabase import create_client as _create_client
         try:
-            from supabase.lib.client_options import SyncClientOptions as _SyncClientOptions
+            from supabase.lib.client_options import SyncClientOptions as _sync_client_options
         except Exception:
-            _SyncClientOptions = None
+            _sync_client_options = None
     except Exception:
         _create_client = None
-        _SyncClientOptions = None
+        _sync_client_options = None
     create_client = _create_client
-    SyncClientOptions = _SyncClientOptions
+    SyncClientOptions = _sync_client_options
     _supabase_loaded = True
 
 
@@ -1038,7 +1041,8 @@ def _normalize_rag_text(value, max_chars=360):
 # Re-import shims for backward compatibility with asgi.py and blueprints.
 # Functions moved to backend/ modules are re-imported here so any existing
 # call-sites inside app.py or legacy consumers keep working unchanged.
-from backend.rag import (  # noqa: E402 -- deliberate: back-compat re-export shim, must stay at the bottom
+# Deliberate: back-compat re-export shim, must stay at the bottom.
+from backend.rag import (  # noqa: E402
     _build_ask_tool_context,
     _retrieve_community_knowledge,
     _compose_answer_with_prefixes,
@@ -1790,18 +1794,18 @@ def _dispatch_ask_ai_synthesis_call(question, mode, canonical_lens, answer_langu
     Off (the default), this branch is never taken and behavior is
     byte-for-byte the pre-existing claude.ask_claude() call.
     """
-    call_kwargs = dict(
-        question=question,
-        sefaria_sources=ctx["flat_sources_for_claude"],
-        customs=ctx["customs_info"],
-        user_memories=ctx["user_memory_summaries"],
-        wiki=ctx["wiki_context_for_claude"],
-        halachipedia=ctx["halachipedia_list"],
-        mode=mode,
-        community_lens=canonical_lens,
-        answer_language=answer_language,
-        tool_context=_build_ask_tool_context(engine),
-    )
+    call_kwargs = {
+        "question": question,
+        "sefaria_sources": ctx["flat_sources_for_claude"],
+        "customs": ctx["customs_info"],
+        "user_memories": ctx["user_memory_summaries"],
+        "wiki": ctx["wiki_context_for_claude"],
+        "halachipedia": ctx["halachipedia_list"],
+        "mode": mode,
+        "community_lens": canonical_lens,
+        "answer_language": answer_language,
+        "tool_context": _build_ask_tool_context(engine),
+    }
 
     if claude.AI_AGENTIC_TOOLS:
         def _run_agentic(**kwargs):
