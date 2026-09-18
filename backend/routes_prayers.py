@@ -8,13 +8,22 @@ route decorator target moved from ``@app.route`` to ``@routes_prayers.route``
 and shared helpers/constants are imported from ``app``.
 """
 
+from concurrent.futures import ThreadPoolExecutor
 from urllib.parse import unquote
 
 from flask import Blueprint, jsonify
 
 from app import SIDDUR_SECTION_MAP, _get_prayer_refs
+from backend.logging_setup import submit_with_context
 
 routes_prayers = Blueprint("prayers", __name__)
+
+# Bounded worker pool for fetching per-ref siddur text from Sefaria in
+# parallel. Kept deliberately small (not unbounded) because Sefaria applies
+# its own upstream rate limiting / Cloudflare blocking (see
+# backend/sefaria_library.py's ``_sefaria_block_status``) -- firing 80
+# requests at once would be more likely to trip that than to help.
+_SIDDUR_TEXT_FETCH_WORKERS = 6
 
 
 @routes_prayers.route("/api/prayers/list")
@@ -59,10 +68,10 @@ def get_prayer(name):
     if not preview:
         return jsonify({"error": f"Could not load prayer '{resolved_name}' from Sefaria"}), 404
 
-    en_preview = "\n".join([l.get("en", "") for l in preview.get(
-        "lines", []) if l.get("en")][:8]).strip()
-    he_preview = "\n".join([l.get("he", "") for l in preview.get(
-        "lines", []) if l.get("he")][:8]).strip()
+    en_preview = "\n".join([line.get("en", "") for line in preview.get(
+        "lines", []) if line.get("en")][:8]).strip()
+    he_preview = "\n".join([line.get("he", "") for line in preview.get(
+        "lines", []) if line.get("he")][:8]).strip()
     if not en_preview:
         en_preview = f"Preview available in Hebrew for {resolved_name}."
     if not he_preview:
@@ -91,9 +100,29 @@ def get_siddur_full(prayer_name):
     if not refs:
         return jsonify({"error": f"No Sefaria mapping for '{resolved_name}'"}), 404
 
+    # Fetch every ref's text in parallel (bounded pool) instead of one at a
+    # time -- on a cold cache, up to 80 sequential Sefaria round-trips could
+    # take up to a full minute. Results are mapped back by index so ordering
+    # matches the original ref order regardless of completion order.
+    results = [None] * len(refs)
+    worker_count = min(_SIDDUR_TEXT_FETCH_WORKERS, len(refs))
+    with ThreadPoolExecutor(max_workers=worker_count) as executor:
+        future_to_index = {
+            submit_with_context(executor, get_text, ref): idx
+            for idx, ref in enumerate(refs)
+        }
+        for future in future_to_index:
+            idx = future_to_index[future]
+            try:
+                results[idx] = future.result()
+            except Exception:
+                # Preserve the same per-ref tolerance as the original
+                # sequential loop: one ref failing must not fail the batch.
+                results[idx] = {"error": "fetch failed"}
+
     combined_lines = []
-    for ref in refs:
-        data = get_text(ref)
+    for ref, data in zip(refs, results):
+        data = data or {}
         if "error" not in data and (data.get("he") or data.get("en")):
             section_title = ref.split(", ")[-1] if ", " in ref else ref
             he_title = data.get("heTitle", section_title)
