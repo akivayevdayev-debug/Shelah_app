@@ -27,7 +27,7 @@ class _FakeClock:
         self.now += seconds
 
 
-@pytest.fixture()
+@pytest.fixture
 def fake_clock(monkeypatch):
     clock = _FakeClock()
     import backend.cache as cache_module

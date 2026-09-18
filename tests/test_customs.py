@@ -74,7 +74,7 @@ def _reset_customs_cache():
     customs._CUSTOMS_CACHE["data"] = {}
 
 
-@pytest.fixture()
+@pytest.fixture
 def empty_customs_dir(tmp_path, monkeypatch):
     """Point CUSTOMS_DIR at an empty tmp_path dir."""
     monkeypatch.setattr(customs, "CUSTOMS_DIR", str(tmp_path))
@@ -451,7 +451,7 @@ class TestLoadAllCustoms:
 
 
 class TestSearchCustoms:
-    @pytest.fixture()
+    @pytest.fixture
     def loaded(self, empty_customs_dir):
         _write_json(
             empty_customs_dir / "testanian.json", _minimal_structured_custom()
