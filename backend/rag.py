@@ -24,6 +24,9 @@ including the async path in ``asgi.py`` — keep working unchanged.
 import os
 import re
 
+from backend.logging_setup import _capture_backend_error, hash_user_id
+from backend.health_check import health
+
 
 def _compose_answer_with_prefixes(body_text, *, include_web_warning=False, source_attribution_note=""):
     body = str(body_text or "").strip()
@@ -44,6 +47,26 @@ def _compose_answer_with_prefixes(body_text, *, include_web_warning=False, sourc
         return "\n\n".join(blocks)
 
     return body
+
+
+def _zmanim_snapshot_for_tool_context(zmanim):
+    """The small subset of zmanim values worth surfacing in the AI tool
+    context. Split out of _build_ask_tool_context() to keep this loop out of
+    that function's own complexity count (SonarCloud python:S3776).
+    """
+    snapshot = {}
+    for key in (
+        "Dawn (16.1° / 72m)",
+        "Sunrise",
+        "Latest Shema (GRA)",
+        "Plag HaMincha",
+        "Sunset",
+        "Nightfall (3 Stars)",
+    ):
+        value = str(zmanim.get(key) or "").strip()
+        if value and value != "N/A":
+            snapshot[key] = value
+    return snapshot
 
 
 def _build_ask_tool_context(engine):
@@ -69,19 +92,7 @@ def _build_ask_tool_context(engine):
                 context["timezone"] = metadata.get("timezone")
 
             if isinstance(zmanim, dict):
-                snapshot = {}
-                for key in (
-                    "Dawn (16.1° / 72m)",
-                    "Sunrise",
-                    "Latest Shema (GRA)",
-                    "Plag HaMincha",
-                    "Sunset",
-                    "Nightfall (3 Stars)",
-                ):
-                    value = str(zmanim.get(key) or "").strip()
-                    if value and value != "N/A":
-                        snapshot[key] = value
-
+                snapshot = _zmanim_snapshot_for_tool_context(zmanim)
                 if snapshot:
                     context["zmanim_snapshot"] = snapshot
     except Exception:
@@ -89,6 +100,22 @@ def _build_ask_tool_context(engine):
         pass
 
     return context
+
+
+def _keyword_match_score(keywords, topic, source, content):
+    """Sum of per-keyword topic/source/content hits. Split out of
+    _score_community_knowledge_row() to keep this loop out of that
+    function's own complexity count (SonarCloud python:S3776).
+    """
+    score = 0
+    for keyword in keywords:
+        if keyword in topic:
+            score += 8
+        if keyword in source:
+            score += 4
+        if keyword in content:
+            score += 2
+    return score
 
 
 def _score_community_knowledge_row(row, keywords, canonical_lens):
@@ -103,15 +130,7 @@ def _score_community_knowledge_row(row, keywords, canonical_lens):
         if lens_text and lens_text in community_name:
             score += 8
 
-    for keyword in keywords:
-        if keyword in topic:
-            score += 8
-        if keyword in source:
-            score += 4
-        if keyword in content:
-            score += 2
-
-    return score
+    return score + _keyword_match_score(keywords, topic, source, content)
 
 
 def _community_filter_from_request(query, canonical_lens):
@@ -140,39 +159,35 @@ def _build_knowledge_text_or_filter(keywords, max_keywords=6):
     return ",".join(conditions)
 
 
-def _retrieve_community_knowledge(query, canonical_lens="All", max_rows=None):
-    import app as _app  # lazy — app is fully loaded by the time this is called
-    supabase = _app._get_supabase_client()
-    if not supabase:
-        return []
+def _run_community_knowledge_query(
+    supabase, table_name, community_filter, text_or_filter, query_row_cap, apply_text_filter=True,
+):
+    """Runs the Supabase community_knowledge select with optional
+    community-name/text-search filters. Moved to module level (out of
+    _retrieve_community_knowledge()) since a nested closure's own branches
+    count against the enclosing function's complexity, but a top-level
+    function's don't (SonarCloud python:S3776).
+    """
+    table = supabase.table(table_name).select(
+        "id,community_name,topic,halakhic_source,content"
+    )
 
-    target_rows = max_rows or _app.RAG_TOP_KNOWLEDGE_ROWS
-    keywords = _app._extract_query_keywords(query, max_keywords=10)
-    community_filter = _community_filter_from_request(query, canonical_lens)
-    text_or_filter = _build_knowledge_text_or_filter(keywords)
+    if community_filter:
+        # Case-insensitive match so Ashkenaz/Ashkenazi variants still return rows.
+        table = table.ilike("community_name", f"%{community_filter}%")
 
-    query_row_cap = max(50, min(600, target_rows * 25))
+    if apply_text_filter and text_or_filter:
+        table = table.or_(text_or_filter)
 
-    try:
-        def run_query(apply_text_filter=True):
-            table = supabase.table(_app.SUPABASE_COMMUNITY_KNOWLEDGE_TABLE).select(
-                "id,community_name,topic,halakhic_source,content"
-            )
+    result = table.limit(query_row_cap).execute()
+    return result.data if isinstance(result.data, list) else []
 
-            if community_filter:
-                # Case-insensitive match so Ashkenaz/Ashkenazi variants still return rows.
-                table = table.ilike("community_name", f"%{community_filter}%")
 
-            if apply_text_filter and text_or_filter:
-                table = table.or_(text_or_filter)
-
-            result = table.limit(query_row_cap).execute()
-            return result.data if isinstance(result.data, list) else []
-
-        rows = run_query(apply_text_filter=True)
-    except Exception:
-        return []
-
+def _rank_community_knowledge_rows(rows, keywords, community_filter, canonical_lens):
+    """Score raw community-knowledge rows and drop keyword-irrelevant ones.
+    Split out of _retrieve_community_knowledge() to keep this loop out of
+    that function's own complexity count (SonarCloud python:S3776).
+    """
     ranked = []
     for row in rows:
         if not isinstance(row, dict):
@@ -196,6 +211,37 @@ def _retrieve_community_knowledge(query, canonical_lens="All", max_rows=None):
             continue  # off-topic for this question; skip regardless of community match
 
         ranked.append((score, row))
+    return ranked
+
+
+def _retrieve_community_knowledge(query, canonical_lens="All", max_rows=None):
+    import app as _app  # lazy — app is fully loaded by the time this is called
+    supabase = _app._get_supabase_client()
+    if not supabase:
+        return []
+
+    if not health.is_healthy("community_knowledge"):
+        return []
+
+    target_rows = max_rows or _app.RAG_TOP_KNOWLEDGE_ROWS
+    keywords = _app._extract_query_keywords(query, max_keywords=10)
+    community_filter = _community_filter_from_request(query, canonical_lens)
+    text_or_filter = _build_knowledge_text_or_filter(keywords)
+
+    query_row_cap = max(50, min(600, target_rows * 25))
+
+    try:
+        rows = _run_community_knowledge_query(
+            supabase, _app.SUPABASE_COMMUNITY_KNOWLEDGE_TABLE,
+            community_filter, text_or_filter, query_row_cap, apply_text_filter=True,
+        )
+    except Exception as e:
+        health.record_failure("community_knowledge")
+        _capture_backend_error("community_knowledge_query_failed", e, {})
+        return []
+    health.record_success("community_knowledge")
+
+    ranked = _rank_community_knowledge_rows(rows, keywords, community_filter, canonical_lens)
 
     ranked.sort(
         key=lambda item: (
@@ -231,8 +277,10 @@ def _env_int(name, default):
         return default
 
 
-RAG_TOP_KNOWLEDGE_ROWS = _env_int("RAG_TOP_KNOWLEDGE_ROWS", 5)
-RAG_MEMORY_ROWS = _env_int("RAG_MEMORY_ROWS", 2)
+# Kept as a literal (not env-sourced) to match app.py's own copy of these
+# constants -- see app.py's RAG_TOP_KNOWLEDGE_ROWS/RAG_MEMORY_ROWS comment.
+RAG_TOP_KNOWLEDGE_ROWS = 5
+RAG_MEMORY_ROWS = 2
 
 
 # ── Knowledge-row helpers ─────────────────────────────────────────────────────
@@ -317,7 +365,15 @@ def _store_ask_history(
     safety_class="ok",
     prompt_version=None,
 ):
-    """Persist a completed ask interaction to the per-user ask_history table."""
+    """Persist a completed ask interaction to the per-user ask_history table.
+
+    safety_class/prompt_version are defensibility-logging metadata (plan.md
+    §8.B.6): they let a stored answer's §8.B-AGE safety-routing outcome and
+    governing system-prompt version be reconstructed during a dispute,
+    without retaining the full prompt text itself. Requires
+    scripts/migrate_ask_history_safety_metadata.sql to have been applied —
+    see that file.
+    """
     import app as _app
     from uuid import uuid4
 
@@ -344,7 +400,15 @@ def _store_ask_history(
 
     try:
         supabase.table(_app.SUPABASE_ASK_HISTORY_TABLE).insert(payload).execute()
-    except Exception:
+    except Exception as e:
+        # plan.md §23.2.4: a PostgREST schema error must never be
+        # indistinguishable from success — this is the exact defensibility-
+        # logging table the accept_legal() clerk_id/user_id bug (§23.1) was
+        # about, and safety_class/prompt_version are the columns
+        # migrate_ask_history_safety_metadata.sql added. Keep the write
+        # best-effort (never block the ask response), but make a failure
+        # observable.
+        _capture_backend_error("ask_history_store_failed", e, {"user_id_hash": hash_user_id(user_id)})
         return
 
 
@@ -373,6 +437,9 @@ def _store_user_memory_summary(user_id, question, answer):
 
     try:
         supabase.table(_app.SUPABASE_USER_MEMORIES_TABLE).insert(payload).execute()
-    except Exception:
-        # Memory write failures should never block the user response path.
+    except Exception as e:
+        # Memory write failures should never block the user response path
+        # (kept non-fatal), but plan.md §23.2.4 requires the failure itself
+        # stay observable rather than vanish into a bare `except: return`.
+        _capture_backend_error("user_memory_store_failed", e, {"user_id_hash": hash_user_id(user_id)})
         return
