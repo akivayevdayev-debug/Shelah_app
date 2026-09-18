@@ -15,6 +15,7 @@ from datetime import date
 
 import pytest
 import responses as responses_lib
+from freezegun import freeze_time
 
 import backend.zmanim_engine as ze
 from backend.health_check import FAIL_THRESHOLD
@@ -127,6 +128,128 @@ class TestGetCommunityZmanimBranches:
     def test_shabbat_date_shows_havdalah(self, mock_outbound_http):
         result = ze.get_community_zmanim(NYC_LAT, NYC_LON, NYC_TZ, community="standard")
         assert "zmanim" in result
+
+
+class TestFastDayGating:
+    """Musaf/Candle-Lighting/Havdalah must only fire on true Yom Tov/Shabbat,
+    never on a plain fast day; Fast Starts/Fast Ends must fire only on a fast
+    day, with the minor/major start-time distinction from _compute_fast_times.
+    """
+
+    def test_minor_fast_no_musaf_shows_fast_start_and_end(self, mock_outbound_http):
+        # 2026-12-20 is 10 of Teves (minor fast), a plain Sunday.
+        with freeze_time("2026-12-20 16:00:00"):
+            result = ze.get_community_zmanim(NYC_LAT, NYC_LON, NYC_TZ, community="standard")
+        z = result["zmanim"]
+        assert z["Latest Musaf"] in (None, "N/A")
+        assert z["Candle Lighting"] in (None, "N/A")
+        assert z["Havdalah"] in (None, "N/A")
+        assert z["Fast Starts"] not in (None, "N/A")
+        assert z["Fast Ends"] not in (None, "N/A")
+
+    def test_major_fast_day_yom_kippur_shows_musaf_and_fast_end_only(self, mock_outbound_http):
+        # 2026-09-21 is Yom Kippur -- a true Yom Tov, so Musaf (and its own
+        # Havdalah-equivalent ending) is correct; Fast Starts must NOT show
+        # since the fast began the prior evening, not today.
+        with freeze_time("2026-09-21 16:00:00"):
+            result = ze.get_community_zmanim(NYC_LAT, NYC_LON, NYC_TZ, community="standard")
+        z = result["zmanim"]
+        assert z["Latest Musaf"] not in (None, "N/A")
+        assert z["Fast Starts"] in (None, "N/A")
+        assert z["Fast Ends"] not in (None, "N/A")
+
+    def test_erev_yom_kippur_shows_fast_start_only(self, mock_outbound_http):
+        # 2026-09-20 is Erev Yom Kippur -- the major fast starts tonight, at
+        # sunset, not on the fast's own civil day.
+        with freeze_time("2026-09-20 16:00:00"):
+            result = ze.get_community_zmanim(NYC_LAT, NYC_LON, NYC_TZ, community="standard")
+        z = result["zmanim"]
+        assert z["Fast Starts"] not in (None, "N/A")
+        assert z["Fast Ends"] in (None, "N/A")
+        assert z["Latest Musaf"] in (None, "N/A")
+
+    def test_regular_day_no_fast_zmanim(self, mock_outbound_http):
+        with freeze_time("2026-09-16 16:00:00"):
+            result = ze.get_community_zmanim(NYC_LAT, NYC_LON, NYC_TZ, community="standard")
+        z = result["zmanim"]
+        assert z["Fast Starts"] in (None, "N/A")
+        assert z["Fast Ends"] in (None, "N/A")
+
+
+class TestYomTovCandleLightingBoundary:
+    """Candle Lighting/Havdalah must fire only on true Yom Tov days, anchored
+    on the evening BEFORE the sacred day (like Friday for Shabbat) -- and must
+    exclude Chol HaMoed, even though pyluach tags every day of Succos/Pesach
+    with the same bare holiday name. Latest Musaf stays Chol-HaMoed-inclusive
+    since Musaf is said every day of Sukkot/Pesach. Dates below are chosen
+    with no adjacent Shabbat, so each fires from exactly one cause.
+    """
+
+    def test_erev_shmini_atzeres_shows_candle_lighting_only(self, mock_outbound_http):
+        # 2025-10-13 is Monday, Erev Shmini Atzeres. Tomorrow is a true Yom
+        # Tov day, so Candle Lighting must fire tonight; nothing ends today.
+        with freeze_time("2025-10-13 16:00:00"):
+            result = ze.get_community_zmanim(NYC_LAT, NYC_LON, NYC_TZ, community="standard")
+        z = result["zmanim"]
+        assert z["Candle Lighting"] not in (None, "N/A")
+        assert z["Havdalah"] in (None, "N/A")
+
+    def test_shmini_atzeres_shows_second_night_candle_lighting_only(self, mock_outbound_http):
+        # 2025-10-14 is Shmini Atzeres itself. Tomorrow (Simchas Torah) is
+        # also a true Yom Tov day, so tonight's lighting is the 2-day Yom
+        # Tov's second-night lighting "from an existing flame" -- a real,
+        # additional occasion, not the true Erev lighting. Havdalah must not
+        # fire since the sacred period doesn't end tonight.
+        with freeze_time("2025-10-14 16:00:00"):
+            result = ze.get_community_zmanim(NYC_LAT, NYC_LON, NYC_TZ, community="standard")
+        z = result["zmanim"]
+        assert z["Candle Lighting"] not in (None, "N/A")
+        assert z["Havdalah"] in (None, "N/A")
+
+    def test_simchas_torah_shows_havdalah_only(self, mock_outbound_http):
+        # 2025-10-15 is Simchas Torah, the last Yom Tov day -- Havdalah fires
+        # on its own evening; nothing starts tomorrow so no Candle Lighting.
+        with freeze_time("2025-10-15 16:00:00"):
+            result = ze.get_community_zmanim(NYC_LAT, NYC_LON, NYC_TZ, community="standard")
+        z = result["zmanim"]
+        assert z["Candle Lighting"] in (None, "N/A")
+        assert z["Havdalah"] not in (None, "N/A")
+
+    def test_day_after_simchas_torah_shows_neither(self, mock_outbound_http):
+        with freeze_time("2025-10-16 16:00:00"):
+            result = ze.get_community_zmanim(NYC_LAT, NYC_LON, NYC_TZ, community="standard")
+        z = result["zmanim"]
+        assert z["Candle Lighting"] in (None, "N/A")
+        assert z["Havdalah"] in (None, "N/A")
+
+    def test_chol_hamoed_succos_shows_musaf_but_not_candle_lighting_or_havdalah(
+        self, mock_outbound_http
+    ):
+        # 2026-09-28 is Chol HaMoed Succos (Monday) -- pyluach tags it with
+        # the same bare 'Succos' name as the real Yom Tov days, so this is
+        # the direct proof that the Chol-HaMoed exclusion (Fix B) is working:
+        # Musaf stays on (it's said daily through Chol HaMoed) while Candle
+        # Lighting/Havdalah correctly stay off.
+        with freeze_time("2026-09-28 16:00:00"):
+            result = ze.get_community_zmanim(NYC_LAT, NYC_LON, NYC_TZ, community="standard")
+        z = result["zmanim"]
+        assert z["Latest Musaf"] not in (None, "N/A")
+        assert z["Candle Lighting"] in (None, "N/A")
+        assert z["Havdalah"] in (None, "N/A")
+
+    def test_erev_pesach_day_seven_fires_despite_chol_hamoed_conflation(
+        self, mock_outbound_http
+    ):
+        # 2026-04-07 (Tuesday) is deep in Pesach's Chol HaMoed by pyluach's
+        # bare 'Pesach' tag, but it's actually Erev of Pesach's 7th day (a
+        # true Yom Tov day) -- without the day-of-month narrowing, the prior
+        # day (also tagged 'Pesach') would look like "yesterday was Yom Tov
+        # too" and this Candle Lighting would never fire.
+        with freeze_time("2026-04-07 16:00:00"):
+            result = ze.get_community_zmanim(NYC_LAT, NYC_LON, NYC_TZ, community="standard")
+        z = result["zmanim"]
+        assert z["Candle Lighting"] not in (None, "N/A")
+        assert z["Havdalah"] in (None, "N/A")
 
 
 class TestGetMonthlyEventsBranches:
@@ -266,3 +389,23 @@ class TestGetMonthlyEventsCircuitBreaker:
         ze.get_monthly_events(NYC_LAT, NYC_LON, NYC_TZ)
 
         assert ze.health._circuits["hebcal"].failures == 0
+
+
+class TestGetMonthlyEventsTimezoneParam:
+    """plan.md §27.2 — the Hebcal URL must use the resolved tz_name, not the
+    raw (possibly-None) timezone_str parameter, or the request degrades to a
+    literal '&tzid=None'."""
+
+    def test_none_timezone_str_resolves_to_real_tzid(self, mock_outbound_http):
+        with responses_lib.RequestsMock(assert_all_requests_are_fired=False) as rsps:
+            rsps.add(
+                responses_lib.GET, re.compile(r"https://www\.hebcal\.com/.*"),
+                json={"items": []}, status=200,
+            )
+            ze.get_monthly_events(NYC_LAT, NYC_LON, timezone_str=None)
+
+            hebcal_calls = [c for c in rsps.calls if "hebcal.com" in c.request.url]
+            assert len(hebcal_calls) == 1
+            sent_url = hebcal_calls[0].request.url
+            assert "tzid=None" not in sent_url
+            assert "tzid=America%2FNew_York" in sent_url or "tzid=America/New_York" in sent_url
