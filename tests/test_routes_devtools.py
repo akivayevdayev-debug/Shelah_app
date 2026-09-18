@@ -225,12 +225,25 @@ class TestRlsAudit:
         assert body["strict_rls"] is True
 
     def test_rls_audit_reports_ask_history_table(self, test_client, authed):
-        # plan.md §8.C.2 security-audit pass: ask_history has its own RLS
-        # policy (scripts/migrate_ask_history.sql) but was missing from this
-        # endpoint's reported posture -- regression guard against dropping it.
+        # plan.md §8.C.2 security-audit pass: ask_history was missing from
+        # this endpoint's reported posture -- regression guard against
+        # dropping it. Its own RLS policy was later dropped (plan.md §21
+        # STEP 6a, 2026-08-31; it's service-role-only by design, never
+        # queried through a user-scoped client) -- still listed here for
+        # completeness, not as an RLS-coverage gap.
         response = test_client.get("/api/devtools/rls-audit", headers=AUTH_HEADERS)
         body = response.get_json()
         assert "ask_history" in body["tables"]
+
+    def test_rls_audit_has_observed_key_covering_rls_tables(self, test_client, authed):
+        # plan.md §21.2.2 STEP 5: the observed-query comparison (user-scoped
+        # vs. service-role row count) must cover exactly the three tables an
+        # RLS policy still governs -- ask_history is deliberately excluded
+        # (STEP 6a: no policy left to observe).
+        response = test_client.get("/api/devtools/rls-audit", headers=AUTH_HEADERS)
+        body = response.get_json()
+        assert set(body["observed"].keys()) == {
+            "user_preferences", "user_memories", "study_bookmarks"}
 
 
 class TestClientErrors:
