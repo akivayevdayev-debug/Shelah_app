@@ -88,6 +88,7 @@ _EXPORT_MAX_PAGES = 200
 # _capture_backend_error server-side instead.
 _GENERIC_TABLE_ERROR = "This data category could not be read. Please try again or contact us."
 _GENERIC_DELETE_ERROR = "This data category could not be deleted. Please try again or contact us."
+_SUPABASE_NOT_CONFIGURED = "Supabase not configured"
 
 
 def _export_table_rows(supabase, table_name, user_id):
@@ -132,7 +133,7 @@ def export_user_data():
 
     supabase = _get_supabase_client()
     if not supabase:
-        return jsonify({"error": "Supabase not configured"}), 503
+        return jsonify({"error": _SUPABASE_NOT_CONFIGURED}), 503
 
     data = {}
     errors = {}
@@ -240,7 +241,7 @@ def delete_account():
 
     supabase = _get_supabase_client()
     if not supabase:
-        return jsonify({"error": "Supabase not configured"}), 503
+        return jsonify({"error": _SUPABASE_NOT_CONFIGURED}), 503
 
     deleted = {}
     table_errors = {}
@@ -309,7 +310,7 @@ def retention_enforce():
 
     supabase = _get_supabase_client()
     if not supabase:
-        return jsonify({"error": "Supabase not configured"}), 503
+        return jsonify({"error": _SUPABASE_NOT_CONFIGURED}), 503
 
     result = {"ok": True, "ts": datetime.now(timezone.utc).isoformat()}
     try:

@@ -238,7 +238,7 @@ def search_hebrewbooks(query):
             search_url,
             timeout=10,
             headers={
-                "User-Agent": "Mozilla/5.0 (compatible; ShelahBot/1.0; +https://www.sefaria.org)",
+                "User-Agent": _DEFAULT_USER_AGENT,
                 "Accept-Language": "en-US,en;q=0.9",
             },
         )
@@ -373,7 +373,7 @@ async def async_search_hebrewbooks(query):
             search_url,
             params={"st": "FT", "q": normalized_query},
             headers={
-                "User-Agent": "Mozilla/5.0 (compatible; ShelahBot/1.0; +https://www.sefaria.org)",
+                "User-Agent": _DEFAULT_USER_AGENT,
                 "Accept-Language": "en-US,en;q=0.9",
             },
         )

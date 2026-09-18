@@ -67,6 +67,11 @@ DATE_PATTERN = r"^\d{4}-\d{2}-\d{2}$"
 MAX_QUERY_CHARS = 500
 MAX_TEXT_CHARS = 2000
 
+# Tool-result error messages shared by several handlers (SonarCloud python:S1192).
+_ERR_QUERY_REQUIRED = "query is required"
+_ERR_REF_REQUIRED = "ref is required"
+_ERR_LATLON_NUMERIC = "lat/lon must be numeric"
+
 
 def _parse_date(value: Any) -> Optional[date_lib]:
     """Best-effort ISO 'YYYY-MM-DD' -> date, or None (never raises)."""
@@ -98,7 +103,7 @@ def _truncate(text: Any, max_chars: int) -> str:
 async def _h_search_judaic_texts(arguments: dict, context: dict) -> dict:
     query = str(arguments.get("query") or "").strip()[:MAX_QUERY_CHARS]
     if not query:
-        return {"error": "query is required"}
+        return {"error": _ERR_QUERY_REQUIRED}
     max_results = _clamp_int(arguments.get("max_results"), 8, 1, 20)
 
     curated_refs, search_hits = await asyncio.gather(
@@ -134,7 +139,7 @@ async def _h_search_judaic_texts(arguments: dict, context: dict) -> dict:
 async def _h_get_text_by_ref(arguments: dict, context: dict) -> dict:
     ref = str(arguments.get("ref") or "").strip()
     if not ref:
-        return {"error": "ref is required"}
+        return {"error": _ERR_REF_REQUIRED}
     engine = ShelahEngine()
     result = await asyncio.to_thread(engine.get_library_text, ref)
     return result if isinstance(result, dict) else {"error": "lookup failed"}
@@ -145,7 +150,7 @@ async def _h_get_text_by_ref(arguments: dict, context: dict) -> dict:
 async def _h_search_responsa_external(arguments: dict, context: dict) -> dict:
     query = str(arguments.get("query") or "").strip()[:MAX_QUERY_CHARS]
     if not query:
-        return {"error": "query is required"}
+        return {"error": _ERR_QUERY_REQUIRED}
     max_results = _clamp_int(arguments.get("max_results"), 5, 1, 10)
 
     halachipedia, hebrewbooks = await asyncio.gather(
@@ -170,7 +175,7 @@ async def _h_get_zmanim(arguments: dict, context: dict) -> dict:
     try:
         lat_f, lon_f = float(lat), float(lon)
     except (TypeError, ValueError):
-        return {"error": "lat/lon must be numeric"}
+        return {"error": _ERR_LATLON_NUMERIC}
     if not (-90.0 <= lat_f <= 90.0) or not (-180.0 <= lon_f <= 180.0):
         return {"error": "lat must be in [-90, 90] and lon in [-180, 180]"}
 
@@ -253,7 +258,7 @@ async def _h_get_holidays(arguments: dict, context: dict) -> dict:
             zmanim_engine.get_monthly_events, float(lat), float(lon), arguments.get("timezone"),
         )
     except (TypeError, ValueError):
-        return {"error": "lat/lon must be numeric"}
+        return {"error": _ERR_LATLON_NUMERIC}
 
     holidays = []
     for event in events or []:
@@ -282,7 +287,7 @@ async def _h_get_daily_study(arguments: dict, context: dict) -> dict:
 async def _h_web_search(arguments: dict, context: dict) -> dict:
     query = str(arguments.get("query") or "").strip()[:MAX_QUERY_CHARS]
     if not query:
-        return {"error": "query is required"}
+        return {"error": _ERR_QUERY_REQUIRED}
     result = await async_search_wikipedia(query)
     if not result:
         return {"error": "no Wikipedia result found", "query": query}
@@ -322,7 +327,7 @@ async def _h_translate_text(arguments: dict, context: dict) -> dict:
 async def _h_get_commentaries(arguments: dict, context: dict) -> dict:
     ref = str(arguments.get("ref") or "").strip()
     if not ref:
-        return {"error": "ref is required"}
+        return {"error": _ERR_REF_REQUIRED}
     links = await asyncio.to_thread(sefaria_library.get_linked_texts, ref)
     if not links:
         return {"ref": ref, "commentaries": {}}
@@ -346,7 +351,7 @@ async def _h_search_community_customs(arguments: dict, context: dict) -> dict:
     """
     query = str(arguments.get("query") or "").strip()[:MAX_QUERY_CHARS]
     if not query:
-        return {"error": "query is required"}
+        return {"error": _ERR_QUERY_REQUIRED}
     results = await asyncio.to_thread(customs.search_customs, query)
     community_filter = arguments.get("community")
     if community_filter:
@@ -430,7 +435,7 @@ async def _h_browse_library(arguments: dict, context: dict) -> dict:
 async def _h_search_library(arguments: dict, context: dict) -> dict:
     query = str(arguments.get("query") or "").strip()[:MAX_QUERY_CHARS]
     if not query:
-        return {"error": "query is required"}
+        return {"error": _ERR_QUERY_REQUIRED}
     max_results = _clamp_int(arguments.get("max_results"), 10, 1, 20)
     categories = arguments.get("categories")
     filters = [str(c) for c in categories] if isinstance(categories, list) else None
@@ -480,7 +485,7 @@ async def _h_get_daily_zmanim_summary(arguments: dict, context: dict) -> dict:
     try:
         lat_f, lon_f = float(lat), float(lon)
     except (TypeError, ValueError):
-        return {"error": "lat/lon must be numeric"}
+        return {"error": _ERR_LATLON_NUMERIC}
 
     timezone_str = arguments.get("timezone") or context.get("timezone")
     community = str(arguments.get("community") or "standard")
@@ -609,7 +614,7 @@ async def _h_calculate_hebrew_date_math(arguments: dict, context: dict) -> dict:
 async def _h_format_source_citation(arguments: dict, context: dict) -> dict:
     ref = str(arguments.get("ref") or "").strip()
     if not ref:
-        return {"error": "ref is required"}
+        return {"error": _ERR_REF_REQUIRED}
     citation = format_source_citation(ref, arguments.get("title"))
     return {"ref": ref, "citation": citation}
 
