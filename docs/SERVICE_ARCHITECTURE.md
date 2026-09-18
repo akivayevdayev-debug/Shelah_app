@@ -57,11 +57,12 @@ This document describes the runtime architecture of the Sh'elah application: how
 The main Flask application. Responsibilities:
 
 - Registers all route blueprints from `backend/routes_*.py`
-- Configures Flask-Limiter (rate limiting), CORS, session handling
+- Configures CORS, session handling
 - Runs `setup_logging()` at startup so all loggers inherit the JSON formatter
 - Exposes the WSGI callable (`app`) consumed by `asgi.py` via `WSGIMiddleware`
 - Contains legacy inline route handlers being migrated to blueprints
-- Owns in-process module-level state: `DEVTOOLS_STATS` counters, rate-limiter storage, circuit-breaker instances
+- Owns in-process module-level state: `DEVTOOLS_STATS` counters, circuit-breaker instances
+- Carries no rate limiter of its own — see `backend/rate_limit.py` below
 
 ### `asgi.py`
 
@@ -75,6 +76,10 @@ The FastAPI ASGI entrypoint. Responsibilities:
 ### `backend/auth.py`
 
 Clerk JWT verification. Fetches the JWKS from the Clerk issuer URL and verifies token signatures, expiry, audience, and issuer claims. Caches the JWKS to avoid redundant fetches. Returns a `UserContext` dataclass with `user_id`, `email`, and permission scopes.
+
+### `backend/rate_limit.py`
+
+The single rate-limit enforcement point for the whole app (plan.md §16.3-L2), registered as a Starlette middleware on `fastapi_app` in `asgi.py`. Covers every native FastAPI route (`/ask`) and every Flask route reached through the `WSGIMiddleware` mount — one middleware registration sees both. Classifies each request path into a policy class (`llm`, `heavy`, `fanout`, `feedback`, `telemetry`, `cheap`), keys the counter by Clerk user id (when present, `llm` class only) or client IP otherwise, and increments a fixed-window counter in Redis (`RATE_LIMIT_REDIS_URL`, e.g. Upstash) or an in-process fallback store when unset. The `llm` class fails closed on a store outage (an unmetered `/ask` during an outage is a budget hole); every other class fails open (a Redis blip shouldn't block reader traffic).
 
 ### `backend/rag.py`
 
@@ -147,7 +152,8 @@ The async pipeline in `asgi.py` executes these steps in order for every `POST /a
        → UserContext (anonymous if no token, when CLERK_ENFORCE_AUTH=false)
 
 2. Rate limit
-   └── Flask-Limiter (RATE_LIMIT_PER_MIN per IP/user)
+   └── backend/rate_limit.py's RateLimitMiddleware (llm class: 20/min, keyed
+       by Clerk user id when present, else IP)
        → 429 Too Many Requests if exceeded
 
 3. Input validation
@@ -209,7 +215,7 @@ Vercel runs `asgi.py` as a serverless function. Key implications:
 The following are module-level (process-local) and **not shared across Vercel instances**:
 
 - `DEVTOOLS_STATS` counters in `app.py` — instance-local only; use `/api/devtools/stats` for a single-instance snapshot
-- Flask-Limiter in-memory storage — use `RATELIMIT_STORAGE_URI=redis://…` to share rate limit state across instances
+- `backend/rate_limit.py`'s in-memory fallback store — used only when `RATE_LIMIT_REDIS_URL` is unset; set it (e.g. to an Upstash Redis URL over `rediss://`) to share rate-limit state across instances
 - Circuit-breaker state in `backend/health_check.py` — instance-local; each instance maintains its own open/closed state
 
 ### Supabase as the persistence layer
@@ -222,4 +228,4 @@ A cold start initializes the Flask app, loads all blueprint modules, and sets up
 
 ### Timeouts
 
-Vercel serverless functions have a maximum execution time (typically 10–30 seconds depending on plan). The `AI_MODEL_TIMEOUT_SECONDS` environment variable (default: 8s) ensures AI calls complete within budget. Sefaria calls use a 10-second timeout; Hebcal uses 5 seconds.
+Vercel serverless functions have a maximum execution time (typically 10–30 seconds depending on plan). `MODEL_REQUEST_TIMEOUT_SECONDS` (backend/claude.py, a literal — not env-configurable) ensures AI calls complete within budget. Sefaria calls use a 10-second timeout; Hebcal uses 5 seconds.
