@@ -6,7 +6,7 @@
     - Daily-study prewarm channel for Daf Yomi / Rambam / Parasha refs.
 */
 
-const CACHE_VERSION = "v10-20260614";
+const CACHE_VERSION = "v11-20260818";
 const SHELL_CACHE = `shelah-shell-${CACHE_VERSION}`;
 const RUNTIME_CACHE = `shelah-runtime-${CACHE_VERSION}`;
 const API_CACHE = `shelah-api-${CACHE_VERSION}`;
@@ -43,6 +43,31 @@ function isCacheableResponse(response) {
     return Boolean(response) && response.ok && response.type !== "opaque";
 }
 
+// Sh'elah's JSON API endpoints (e.g. /api/text/<ref>) report "not found"
+// as HTTP 200 with an `error` field in the body, not a 4xx/5xx status --
+// isCacheableResponse() alone can't see that and would cache the failure
+// as if it were a real hit, making a since-fixed lookup stay broken until
+// the cache version bumps. Only used for the API cache; static/runtime
+// assets are never JSON-with-error shaped.
+async function isCacheableApiResponse(response) {
+    if (!isCacheableResponse(response)) {
+        return false;
+    }
+    const contentType = response.headers.get("content-type") || "";
+    if (!contentType.includes("application/json")) {
+        return true;
+    }
+    try {
+        const payload = await response.clone().json();
+        if (payload && typeof payload === "object" && payload.error) {
+            return false;
+        }
+    } catch (_err) {
+        // Unparsable body -- fall back to the ok/type check already passed above.
+    }
+    return true;
+}
+
 async function cachePut(cacheName, request, response) {
     if (!isCacheableResponse(response)) {
         return;
@@ -51,13 +76,13 @@ async function cachePut(cacheName, request, response) {
     await cache.put(request, response.clone());
 }
 
-async function staleWhileRevalidate(request, cacheName, event, fallbackFactory) {
+async function staleWhileRevalidate(request, cacheName, event, fallbackFactory, isCacheable = isCacheableResponse) {
     const cache = await caches.open(cacheName);
     const cached = await cache.match(request);
 
     const fetchAndRefresh = fetch(request)
         .then(async (response) => {
-            if (isCacheableResponse(response)) {
+            if (await isCacheable(response)) {
                 await cache.put(request, response.clone());
             }
             return response;
@@ -204,7 +229,7 @@ self.addEventListener("fetch", (event) => {
                     statusText: "Offline",
                     headers: { "Content-Type": "application/json" },
                 });
-            })
+            }, isCacheableApiResponse)
         );
         return;
     }
