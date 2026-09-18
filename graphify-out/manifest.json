@@ -155,8 +155,8 @@
     "semantic_hash": "fcb47dde60e06c0ef6b80172e588cb2f"
   },
   "scripts/crawl_library_leaves.py": {
-    "mtime": 1789739577.4751298,
-    "ast_hash": "d2b9aeaea96e04230066e550779551ac",
+    "mtime": 1789771009.208046,
+    "ast_hash": "3194466268fcb3a1a73bc7e147f9b663",
     "semantic_hash": ""
   },
   "scripts/fetch_sefardic_siddur.py": {
@@ -165,8 +165,8 @@
     "semantic_hash": ""
   },
   "scripts/migrate_customs_to_supabase.py": {
-    "mtime": 1789739577.4963894,
-    "ast_hash": "7ac32121f32fc97d5d6a9698e4ffba53",
+    "mtime": 1789771082.2638428,
+    "ast_hash": "73cb523919247c1abf32e6ac879de411",
     "semantic_hash": ""
   },
   "scripts/sql/SUPABASE_RLS_POLICIES.sql": {
@@ -185,8 +185,8 @@
     "semantic_hash": ""
   },
   "scripts/verify_integrations.py": {
-    "mtime": 1789763178.5217412,
-    "ast_hash": "a4d83886174462b7644ee63a3eb3b1a4",
+    "mtime": 1789771180.679139,
+    "ast_hash": "c3094256ef1225697ee24b337ea1e412",
     "semantic_hash": ""
   },
   "static/js/ai-service.js": {
@@ -820,8 +820,8 @@
     "semantic_hash": ""
   },
   "package.json": {
-    "mtime": 1789765351.8049872,
-    "ast_hash": "94290391be2e976f08aabcde6ca932a9",
+    "mtime": 1789769635.913649,
+    "ast_hash": "dbb8d41cbc2629edd3233c0aa01fc6ef",
     "semantic_hash": ""
   },
   "tailwind.config.js": {
@@ -1335,8 +1335,8 @@
     "semantic_hash": ""
   },
   "scripts/verify_answer_feedback_migration.py": {
-    "mtime": 1789766146.6297634,
-    "ast_hash": "5c9146eedd90377c4fe1423b0faaa6b3",
+    "mtime": 1789770969.5158901,
+    "ast_hash": "b20dc5f67c71c3beeca3be41519f6a4c",
     "semantic_hash": ""
   },
   "templates/components/icons.html": {
@@ -1510,8 +1510,8 @@
     "semantic_hash": ""
   },
   "tests/test_crawl_library_leaves.py": {
-    "mtime": 1789765102.6882389,
-    "ast_hash": "1703b894b2a820790cef2f530962d3fb",
+    "mtime": 1789771001.201521,
+    "ast_hash": "ab64920dfe616bfd42cb0bad4edaa6d1",
     "semantic_hash": ""
   },
   "tests/test_extracted_helpers.py": {
@@ -1540,8 +1540,8 @@
     "semantic_hash": ""
   },
   "tests/test_migrate_customs_to_supabase.py": {
-    "mtime": 1789765001.6046035,
-    "ast_hash": "f37bc209ff5584b5dd74d2dee436b5a1",
+    "mtime": 1789771069.7202284,
+    "ast_hash": "47a00309bf5f74c9da9db8c8f49456f9",
     "semantic_hash": ""
   },
   "tests/test_recompute_ai_usage_log_cost.py": {
@@ -1580,13 +1580,13 @@
     "semantic_hash": ""
   },
   "tests/test_verify_answer_feedback_migration.py": {
-    "mtime": 1789766171.0265653,
-    "ast_hash": "35cc10144e61e9b9e5613a8734f15d24",
+    "mtime": 1789770956.427234,
+    "ast_hash": "42d1ee0c199d988991db9c9f33837a72",
     "semantic_hash": ""
   },
   "tests/test_verify_integrations.py": {
-    "mtime": 1789763136.9241843,
-    "ast_hash": "ffbaf6ca7d4e711f07084d3042d54ea4",
+    "mtime": 1789771148.1623194,
+    "ast_hash": "98ba0c0646e2be0d7a875a03139b0657",
     "semantic_hash": ""
   },
   "tests/test_verify_rls.py": {
