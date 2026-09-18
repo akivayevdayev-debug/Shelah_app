@@ -27,6 +27,7 @@ import pytest
 
 import backend.auth as auth_module
 import backend.routes_privacy as routes_privacy_module
+from backend.logging_setup import hash_user_id
 
 FAKE_USER_ID = "user_test_fake_privacy"
 AUTH_HEADERS = {"Authorization": "Bearer faketoken.faketoken.faketoken"}
@@ -117,6 +118,18 @@ class _FakeSupabaseClient:
 ALL_TABLES = [t for _key, t in routes_privacy_module._USER_DATA_TABLES]
 
 
+class TestUserDataTablesCompleteness:
+    """plan.md §39.1: answer_feedback is written with a real user_id
+    (backend/routes_feedback.py) but was excluded from both export and
+    delete -- regression coverage proving it's now included."""
+
+    def test_answer_feedback_table_is_covered(self):
+        assert (
+            "feedback",
+            routes_privacy_module.SUPABASE_ANSWER_FEEDBACK_TABLE,
+        ) in routes_privacy_module._USER_DATA_TABLES
+
+
 class TestDataExport:
     def test_without_auth_is_401(self, test_client):
         response = test_client.get("/api/user/data-export")
@@ -141,6 +154,7 @@ class TestDataExport:
             routes_privacy_module.SUPABASE_ASK_HISTORY_TABLE: [{"id": "h1", "question": "Is X permitted?"}],
             routes_privacy_module.SUPABASE_USER_MEMORIES_TABLE: [{"id": "m1", "summary": "..."}],
             routes_privacy_module._AI_USAGE_LOG_TABLE: [{"id": "u1", "model": "claude-sonnet-4-6"}],
+            routes_privacy_module.SUPABASE_ANSWER_FEEDBACK_TABLE: [{"id": "f1", "verdict": "helpful"}],
         }
         client = _FakeSupabaseClient(table_data=seeded)
         monkeypatch.setattr(routes_privacy_module, "_get_supabase_client", lambda: client)
@@ -156,6 +170,7 @@ class TestDataExport:
         assert body["data"]["ask_history"] == seeded[routes_privacy_module.SUPABASE_ASK_HISTORY_TABLE]
         assert body["data"]["memories"] == seeded[routes_privacy_module.SUPABASE_USER_MEMORIES_TABLE]
         assert body["data"]["ai_usage_log"] == seeded[routes_privacy_module._AI_USAGE_LOG_TABLE]
+        assert body["data"]["feedback"] == seeded[routes_privacy_module.SUPABASE_ANSWER_FEEDBACK_TABLE]
 
         # RLS-equivalent guarantee at the query-construction level: every
         # table query must have been filtered to this caller's user_id.
@@ -379,6 +394,31 @@ class TestDeleteAccount:
         # the crux of the fix: the Clerk identity delete must never fire
         assert clerk_delete_calls == []
 
+    def test_deletes_feedback_row_for_this_user(self, test_client, authed, monkeypatch):
+        """plan.md §39.1 integration check: a feedback row seeded for this
+        user must actually be deleted by delete_account(), not merely
+        listed in _USER_DATA_TABLES."""
+        feedback_table = routes_privacy_module.SUPABASE_ANSWER_FEEDBACK_TABLE
+        client = _FakeSupabaseClient(
+            table_data={feedback_table: [{"id": "f1", "user_id": FAKE_USER_ID}]},
+        )
+        monkeypatch.setattr(routes_privacy_module, "_get_supabase_client", lambda: client)
+        monkeypatch.setattr(
+            routes_privacy_module, "_delete_clerk_user", lambda user_id: (True, None)
+        )
+
+        response = test_client.post(
+            "/api/user/delete-account",
+            headers=AUTH_HEADERS,
+            json={"confirmation": "DELETE"},
+        )
+        assert response.status_code == 200
+        body = response.get_json()
+        assert body["deleted_tables"][feedback_table] is True
+        query = client.queries[feedback_table][0]
+        assert ("delete", (), {}) in query.calls
+        assert ("eq", ("user_id", FAKE_USER_ID), {}) in query.calls
+
     def test_retry_after_fixed_table_failure_completes_clerk_deletion(
         self, test_client, authed, monkeypatch
     ):
@@ -435,7 +475,7 @@ class TestDeleteClerkUser:
         event, captured_error, context = captured[0]
         assert event == "clerk_account_delete_skipped_no_secret_key"
         assert isinstance(captured_error, RuntimeError)
-        assert context == {"user_id": "user_x"}
+        assert context == {"user_id_hash": hash_user_id("user_x")}
 
     def test_200_is_success(self, monkeypatch, mock_outbound_httpx):
         monkeypatch.setenv("CLERK_SECRET_KEY", "sk_test_fake")
