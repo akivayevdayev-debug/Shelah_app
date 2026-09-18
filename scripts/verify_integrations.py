@@ -476,17 +476,27 @@ def _interpret_community_response(data):
     """Format the print+return decision for a 200 /api/community response.
     Split out of check_community_endpoints() to keep this branching out of
     that function's own complexity count (SonarCloud python:S3776).
+
+    A 200 whose body lacks both 'identity' and 'customs' is a FAILURE, not a
+    pass: the real endpoint (backend/routes_community.py::get_community)
+    always includes 'customs', so a body without either key means something
+    else is answering on that route (an HTML fallback page, an error object
+    served with a 200, a different service on the port). This used to print a
+    warning and return True on that path too, so the branch returned True
+    unconditionally (SonarCloud python:S3516 / pythonbugs:S2583) and this
+    verification could never report a bad community response.
     """
     if isinstance(data, dict) and ('identity' in data or 'customs' in data):
-        identity_raw = data.get('identity') if isinstance(data, dict) else None
+        identity_raw = data.get('identity')
         identity = identity_raw if isinstance(identity_raw, dict) else {}
         community_name = identity.get(
             'display_name') or data.get('name', 'Unknown')
         print_pass(f"Community API working: {community_name}")
         return True
 
-    print_warn("Community endpoint returned data but missing expected structure")
-    return True
+    print_fail("Community endpoint returned 200 but the payload is missing "
+               "the expected structure ('identity' or 'customs')")
+    return False
 
 
 def check_community_endpoints():
