@@ -540,6 +540,7 @@ export function initZmanim(deps) {
                 cachedLocation = { lat: parsed.lat, lon: parsed.lon };
             }
         } catch (_) {
+            // A corrupt cache entry is not an error: treat it as "no cached location".
             cachedLocation = null;
         }
     }

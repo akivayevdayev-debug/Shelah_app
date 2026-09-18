@@ -86,7 +86,7 @@ async function checkUrl(browser, url, defaults) {
         });
 
         const resolvedTheme = await page.evaluate(
-            () => document.documentElement.getAttribute('data-theme'));
+            () => document.documentElement.dataset.theme);
         if (resolvedTheme !== 'dark') {
             throw new Error(
                 `${url} did not render in dark theme (data-theme="${resolvedTheme}"). ` +
