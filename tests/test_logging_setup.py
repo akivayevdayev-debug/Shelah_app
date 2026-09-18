@@ -8,6 +8,7 @@ from __future__ import annotations
 
 import json
 import logging
+from collections import OrderedDict
 from concurrent.futures import ThreadPoolExecutor
 
 import pytest
@@ -201,6 +202,64 @@ class TestCaptureBackendError:
         # Should not raise despite webhook failure.
         logging_setup._capture_backend_error("test_event", ValueError("boom"))
 
+    def test_webhook_post_exception_is_logged_not_silent(self, monkeypatch):
+        """A raising webhook POST (e.g. a malformed URL/credential in the env
+        var) must not vanish without a trace -- plan.md §48/§49.2 found that
+        exact failure mode went undetected for weeks. The caller still must
+        not raise."""
+        import app as flask_app_module
+        monkeypatch.setattr(flask_app_module.app.logger, "error", lambda *a, **k: None)
+        warnings = []
+        monkeypatch.setattr(
+            flask_app_module.app.logger, "warning",
+            lambda msg, *a, **k: warnings.append(msg % a if a else msg),
+        )
+        monkeypatch.setenv("ERROR_LOG_WEBHOOK_URL", "not-a-real-url")
+
+        def fake_post(url, json=None, timeout=None):
+            raise ConnectionError("webhook down")
+
+        import requests
+        monkeypatch.setattr(requests, "post", fake_post)
+        logging_setup._capture_backend_error("test_event", ValueError("boom"))
+
+        assert len(warnings) == 1
+        assert "OBS_EVENT_WEBHOOK_POST_FAILED" in warnings[0]
+
+    def test_webhook_non_2xx_response_is_logged_not_silent(self, monkeypatch):
+        """Discord (and most webhook targets) return a 4xx/5xx body rather than
+        raising -- requests.post() doesn't raise on its own for a bad status,
+        so this must be checked explicitly or it's just as silent as an
+        exception would be."""
+        import app as flask_app_module
+        monkeypatch.setattr(flask_app_module.app.logger, "error", lambda *a, **k: None)
+        warnings = []
+        monkeypatch.setattr(
+            flask_app_module.app.logger, "warning",
+            lambda msg, *a, **k: warnings.append(msg % a if a else msg),
+        )
+        monkeypatch.setenv("ERROR_LOG_WEBHOOK_URL", "https://example.com/webhook")
+
+        class _FakeResp:
+            status_code = 400
+            text = "Bad Request: your question was 'is this treif' and the answer is no"
+            headers = {"Content-Type": "text/plain", "Content-Length": "11"}
+
+        import requests
+        monkeypatch.setattr(requests, "post", lambda url, json=None, timeout=None: _FakeResp())
+        logging_setup._capture_backend_error("test_event", ValueError("boom"))
+
+        assert len(warnings) == 1
+        assert "OBS_EVENT_WEBHOOK_POST_FAILED" in warnings[0]
+        assert "400" in warnings[0]
+        # Metadata only -- the response body must never be logged verbatim,
+        # since a third-party webhook target could echo back sensitive
+        # request content in its response.
+        assert "treif" not in warnings[0]
+        assert "Bad Request" not in warnings[0]
+        assert "text/plain" in warnings[0]
+        assert "11" in warnings[0]
+
     def test_discord_webhook_gets_reshaped_to_embeds(self, monkeypatch):
         """Discord's webhook API rejects arbitrary JSON (requires content/embeds)
         and the caller never checks the response status — posting the flat
@@ -211,9 +270,18 @@ class TestCaptureBackendError:
         monkeypatch.setenv(
             "ERROR_LOG_WEBHOOK_URL", "https://discord.com/api/webhooks/123/abc")
 
+        class _FakeOkResp:
+            status_code = 204
+            text = ""
+
         posted = []
         import requests
-        monkeypatch.setattr(requests, "post", lambda url, json=None, timeout=None: posted.append(json))
+
+        def fake_post(url, json=None, timeout=None):
+            posted.append(json)
+            return _FakeOkResp()
+
+        monkeypatch.setattr(requests, "post", fake_post)
         logging_setup._capture_backend_error(
             "clerk_auth_verify_failed", ValueError("Invalid audience"),
             {"path": "/api/user/preferences"})
@@ -390,6 +458,24 @@ class TestScrubErrorContext:
         assert captured[0]["backend_error"]["question"] == "[Filtered]"
         assert captured[0]["backend_error"]["mode"] == "strict"
 
+
+class TestQuestionLengthBucket:
+    """Non-reversible debugging surrogate for question text (see
+    question_length_bucket's docstring for why this is a bucket, not a hash
+    like hash_user_id: free-text questions are low-entropy and repeat often
+    enough that a hash would be dictionary-attackable)."""
+
+    @pytest.mark.parametrize("question, expected", [
+        ("", "empty"),
+        (None, "empty"),
+        ("a" * 60, "short"),
+        ("a" * 61, "medium"),
+        ("a" * 200, "medium"),
+        ("a" * 201, "long"),
+    ])
+    def test_buckets(self, question, expected):
+        assert logging_setup.question_length_bucket(question) == expected
+
     def test_error_message_itself_is_truncated(self, monkeypatch):
         import app as flask_app_module
         logged = []
@@ -481,6 +567,63 @@ class TestSentryInitKwargs:
         monkeypatch.delenv("VERCEL_ENV", raising=False)
         kwargs = logging_setup._build_sentry_init_kwargs("https://key@o1.ingest.us.sentry.io/1")
         assert kwargs["environment"] == "development"
+
+    def test_wires_before_send_throttle(self):
+        kwargs = logging_setup._build_sentry_init_kwargs("https://key@o1.ingest.us.sentry.io/1")
+        assert kwargs["before_send"] is logging_setup._sentry_before_send
+
+
+class TestSentryBeforeSend:
+    """plan.md §17.6 T4: the backend's code-side substitute for Sentry's
+    dashboard-only "per-key rate limit" (unavailable on the free plan) —
+    mirrors static/js/sentry-init.js's makeBeforeSend() dedupe-window +
+    hard-cap throttle, one project mirroring the other."""
+
+    @pytest.fixture(autouse=True)
+    def _reset_module_state(self, monkeypatch):
+        monkeypatch.setattr(logging_setup, "_sentry_seen_at", OrderedDict())
+        monkeypatch.setattr(logging_setup, "_sentry_sent_count", 0)
+
+    def _exception_event(self, message="boom"):
+        return {"exception": {"values": [{"type": "ValueError", "value": message}]}}
+
+    def test_first_occurrence_passes_through(self):
+        event = self._exception_event()
+        assert logging_setup._sentry_before_send(event, {}) is event
+
+    def test_repeat_within_dedupe_window_is_dropped(self):
+        event = self._exception_event()
+        assert logging_setup._sentry_before_send(event, {}) is event
+        assert logging_setup._sentry_before_send(self._exception_event(), {}) is None
+
+    def test_repeat_after_dedupe_window_passes_through(self, monkeypatch):
+        clock = {"t": 0.0}
+        monkeypatch.setattr(logging_setup.time, "monotonic", lambda: clock["t"])
+        assert logging_setup._sentry_before_send(self._exception_event(), {}) is not None
+        clock["t"] += logging_setup._SENTRY_DEDUPE_WINDOW_SECONDS + 1
+        assert logging_setup._sentry_before_send(self._exception_event(), {}) is not None
+
+    def test_distinct_fingerprints_are_not_deduped_against_each_other(self):
+        assert logging_setup._sentry_before_send(self._exception_event("boom"), {}) is not None
+        assert logging_setup._sentry_before_send(self._exception_event("crash"), {}) is not None
+
+    def test_hard_cap_drops_events_past_the_process_limit(self, monkeypatch):
+        monkeypatch.setattr(logging_setup, "_MAX_SENTRY_EVENTS_PER_PROCESS", 2)
+        assert logging_setup._sentry_before_send(self._exception_event("a"), {}) is not None
+        assert logging_setup._sentry_before_send(self._exception_event("b"), {}) is not None
+        assert logging_setup._sentry_before_send(self._exception_event("c"), {}) is None
+
+    def test_message_only_event_uses_message_as_fingerprint(self):
+        event = {"message": "something broke"}
+        assert logging_setup._sentry_before_send(event, {}) is event
+        assert logging_setup._sentry_before_send({"message": "something broke"}, {}) is None
+
+    def test_seen_cache_is_lru_bounded(self, monkeypatch):
+        monkeypatch.setattr(logging_setup, "_SENTRY_SEEN_MAX_KEYS", 3)
+        for i in range(5):
+            logging_setup._sentry_before_send(self._exception_event(f"err-{i}"), {})
+        assert len(logging_setup._sentry_seen_at) == 3
+        assert "ValueError:err-0" not in logging_setup._sentry_seen_at
 
 
 class TestSubmitWithContext:
