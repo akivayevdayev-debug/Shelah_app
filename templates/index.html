@@ -107,19 +107,19 @@
     <script defer src="https://cdn.jsdelivr.net/npm/dompurify@3.4.9/dist/purify.min.js"
             integrity="sha384-6ZdfL2Azuen6KYvcTkbxqJS1d7txbNWrVfmURkxNeCn7DtzhLRL6Fi6WGG6ZLdKn"
             crossorigin="anonymous"></script>
-    <link rel="stylesheet" href="/static/css/tokens.css?v=20260817-v6">
-    <link rel="stylesheet" href="/static/style.css?v=20260817-v11">
+    <link rel="stylesheet" href="/static/css/tokens.css?v=20260915-v7">
+    <link rel="stylesheet" href="/static/style.css?v=20260915-v14">
     <!-- CSS modules (supplement style.css; do not replace) -->
     <link rel="stylesheet" href="/static/css/typography.css?v=20260817-v6">
     <link rel="stylesheet" href="/static/css/reader.css?v=20260817-v6">
     <link rel="stylesheet" href="/static/css/sidebar.css?v=20260817-v6">
     <link rel="stylesheet" href="/static/css/halacha.css?v=20260817-v6">
     <link rel="stylesheet" href="/static/css/prayer.css?v=20260817-v6">
-    <link rel="stylesheet" href="/static/css/ai.css?v=20260817-v6">
+    <link rel="stylesheet" href="/static/css/ai.css?v=20260915-v9">
     <link rel="stylesheet" href="/static/css/calendar.css?v=20260817-v6">
     <link rel="stylesheet" href="/static/css/loading.css?v=20260817-v6">
     <!-- Tailwind CSS (pre-built; loads last so utilities override custom CSS — mirrors CDN runtime cascade behavior) -->
-    <link rel="stylesheet" href="/static/css/tailwind.css?v=20260817-v6">
+    <link rel="stylesheet" href="/static/css/tailwind.css?v=20260915-v7">
 
     <!-- FullCalendar -->
     <script defer src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.15/index.global.min.js"
@@ -233,13 +233,23 @@
                     <div class="w-full min-w-0">
                         <!-- Search Form -->
                         <form id="searchForm" role="search" aria-label="Search texts" class="w-full relative min-w-0">
+                            <!-- Decorative "liftoff" glow underlay, toggled on submit by
+                                 handleAiSearch() via #searchForm.search-liftoff (static/css/ai.css).
+                                 Absolutely positioned + negative z-index: never affects layout or
+                                 covers the input text / suggestions dropdown. -->
+                            <div class="search-liftoff-underlay" aria-hidden="true"></div>
                             <input type="text" id="searchInput"
                                 aria-label="Ask Sh'elah about any topic, halachah, or custom"
                                 placeholder="Ask Sh'elah about any topic, halachah, or custom..."
-                                class="w-full bg-[#fbf8f1] hover:bg-[#f8f2e8] transition text-sm sm:text-base p-2 pl-4 pr-10 rounded-full border border-[#d8d0c2] focus:border-[#b8aa90] focus:ring-2 focus:ring-[#d9cdb8]/80 focus:bg-[#fffdf8] focus:outline-none"
+                                class="w-full bg-[#fbf8f1] hover:bg-[#f8f2e8] transition text-sm sm:text-base p-2 pl-4 pr-14 rounded-full border border-[#d8d0c2] focus:border-[#b8aa90] focus:ring-2 focus:ring-[#d9cdb8]/80 focus:bg-[#fffdf8] focus:outline-none"
                                 autocomplete="off" required>
                             <div id="searchIcon" class="absolute right-3 top-2 text-slate-400" aria-hidden="true">
-                                {{ phosphor('magnifying-glass', size=20, class='h-5 w-5') }}
+                                <!-- Wrapped separately from the AI badge below so
+                                     body.search-loading can fade/pulse each one on its
+                                     own transform without the two fighting over
+                                     #searchIcon's own translateY(-50%) centering. -->
+                                <span class="search-icon-glass">{{ phosphor('magnifying-glass', size=20, class='h-5 w-5') }}</span>
+                                <span class="ai-hint-icon search-ai-sparkle" title="Powered by AI">{{ phosphor('sparkle', size=15, class='h-[15px] w-[15px]') }}</span>
                             </div>
                             <!-- Real submit control for keyboard/AT users -- WCAG 2.1 AA
                                  (SC 3.2.2 / H32.2, caught by pa11y-ci, plan.md §8.F.2). The
@@ -286,7 +296,10 @@
                                 data-he="הגדרות מהירות">Quick Settings</p>
 
                             <label class="block text-xs text-slate-600">
-                                <span data-en="Mode" data-he="מצב">Mode</span>
+                                <span class="inline-flex items-center gap-1">
+                                    <span data-en="Mode" data-he="מצב">Mode</span>
+                                    <span class="ai-hint-icon" title="Shapes how the AI answers">{{ phosphor('sparkle', size=11, class='h-[11px] w-[11px]') }}</span>
+                                </span>
                                 <select id="answerModeSelect"
                                     class="mt-1 w-full px-2 py-1.5 rounded border border-slate-200 bg-slate-50 text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-400">
                                     <option value="balanced" data-en="Balanced" data-he="מאוזן">Balanced</option>
@@ -300,7 +313,10 @@
                             </label>
 
                             <label class="block text-xs text-slate-600">
-                                <span data-en="Community" data-he="קהילה">Community</span>
+                                <span class="inline-flex items-center gap-1">
+                                    <span data-en="Community" data-he="קהילה">Community</span>
+                                    <span class="ai-hint-icon" title="Shapes how the AI answers">{{ phosphor('sparkle', size=11, class='h-[11px] w-[11px]') }}</span>
+                                </span>
                                 <select id="communityLensSelect"
                                     class="mt-1 w-full px-2 py-1.5 rounded border border-slate-200 bg-slate-50 text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-400">
                                     <option value="All" data-en="All" data-he="הכל">All</option>
@@ -508,6 +524,13 @@
             <button id="readerNextTopBarBtn" type="button" class="reader-topbar-icon-btn"
                 aria-label="Next Section" title="Next Section">
                 <span aria-hidden="true">&#9654;</span>
+            </button>
+
+            <button id="readerCommentaryTopBarBtn" type="button"
+                class="reader-topbar-icon-btn reader-topbar-commentary-btn" aria-label="Commentary"
+                title="Commentary">
+                {{ phosphor('chat-text', size=16, class='h-4 w-4') }}
+                <span id="readerCommentaryHintDot" class="reader-topbar-commentary-hint-dot" aria-hidden="true"></span>
             </button>
         </div>
     </div>
@@ -1076,7 +1099,10 @@
                             <div id="citySearchPopover"
                                 class="hidden absolute right-0 mt-1 z-[200] w-72 bg-[#faf7f0] border border-[#d7cebc] rounded-xl shadow-xl p-3"
                                 style="top: auto;">
-                                <p class="text-[11px] font-bold uppercase tracking-widest text-[#64748b] mb-2"
+                                <!-- text-[#64748b] (Tailwind slate-500) was 4.45:1 against this popover's #faf7f0 bg,
+                                     under the 4.5:1 AA text threshold; #566175 clears 5.5:1+ here and against the
+                                     calendar-modal header gradient below that shares this same hardcoded hex. -->
+                                <p class="text-[11px] font-bold uppercase tracking-widest text-[#566175] mb-2"
                                     data-en="Search by City" data-he="חיפוש לפי עיר">Search by City</p>
                                 <div class="flex gap-2">
                                     <input id="citySearchInput" type="text" aria-label="Search by city" placeholder="e.g. Jerusalem, New York..."
@@ -1155,6 +1181,18 @@
                                         Mincha</span>
                                     <b class="text-slate-700 tabular-nums" id="zMincha">--:--</b>
                                 </div>
+                                <!-- Fast Starts/Ends: only shown on a fast day (Tzom Gedaliah, 10
+                                     Teves, Taanit Esther, 17 Tammuz, Tisha B'Av, Yom Kippur), driven
+                                     by backend/zmanim_engine.py's _compute_fast_times(). Musaf/Candle
+                                     Lighting/Havdalah never fire on a plain fast day (see that
+                                     function's docstring), so these are the fast's own start/end
+                                     indicators rather than duplicating those Yom-Tov-only rows. -->
+                                <div id="zRowFastStart" data-zman-row="Fast Starts"
+                                    class="flex justify-between items-center py-1.5 border-b border-slate-100 hidden">
+                                    <span class="text-slate-500" data-en="Fast Starts" data-he="תחילת הצום">Fast
+                                        Starts</span>
+                                    <b class="text-slate-700 tabular-nums" id="zFastStart">--:--</b>
+                                </div>
                                 <div id="zRowMusaf" data-zman-row="Latest Musaf"
                                     class="flex justify-between items-center py-1.5 border-b border-slate-100">
                                     <span class="text-slate-500" data-en="Latest Musaf" data-he="סוף זמן מוסף">Latest
@@ -1190,6 +1228,11 @@
                                     <span class="text-slate-500" data-en="Nightfall (3 Stars)"
                                         data-he="צאת הכוכבים (3 כוכבים)">Nightfall (3 Stars)</span>
                                     <b class="text-slate-700 tabular-nums" id="zNight">--:--</b>
+                                </div>
+                                <div id="zRowFastEnd" data-zman-row="Fast Ends"
+                                    class="flex justify-between items-center py-1.5 border-b border-slate-100 hidden">
+                                    <span class="text-slate-500" data-en="Fast Ends" data-he="סוף הצום">Fast Ends</span>
+                                    <b class="text-slate-700 tabular-nums" id="zFastEnd">--:--</b>
                                 </div>
                                 <div id="zRowHavdalah" data-zman-row="Havdalah"
                                     class="flex justify-between items-center py-1.5 border-b border-slate-100">
@@ -1325,7 +1368,7 @@
                 <div id="readerMedia" class="mt-8 space-y-4"></div>
 
                 <!-- Answer feedback widget (plan.md §12.4) -->
-                <div id="readerFeedback" class="mt-8 pt-6 border-t" style="border-color: var(--surface-border);"></div>
+                <div id="readerFeedback" class="mt-6"></div>
 
             </article>
 
@@ -1504,22 +1547,26 @@
                         <h2 id="calendarModalTitle" class="font-serif text-lg font-bold text-[#002147] leading-tight"
                             data-en="Monthly Jewish Holiday Calendar" data-he="לוח חגים יהודי חודשי">Monthly Jewish
                             Holiday Calendar</h2>
-                        <p class="text-xs text-[#64748b] mt-0.5" data-en="Jewish holidays and Shabbat"
+                        <!-- text-[#64748b] (Tailwind slate-500) measured 3.85-4.45:1 against this header's
+                             #f5efe5→#ede7d5 gradient (fails 4.5:1 AA at the gradient's darker end); #566175
+                             clears 5.05-5.46:1 across the gradient. Applied to all 3 uses in this header for
+                             visual consistency. -->
+                        <p class="text-xs text-[#566175] mt-0.5" data-en="Jewish holidays and Shabbat"
                             data-he="חגים יהודיים ושבת">Jewish holidays &amp; Shabbat</p>
                     </div>
                 </div>
                 <!-- Legend + close -->
                 <div class="flex items-center gap-3">
-                    <div class="hidden sm:flex items-center gap-3 text-xs text-[#64748b]">
+                    <div class="hidden sm:flex items-center gap-3 text-xs text-[#566175]">
                         <span class="flex items-center gap-1"><span class="inline-block w-3 h-3 rounded-sm"
                                 style="background:var(--cal-event-holiday)"></span> Holiday</span>
                         <span class="flex items-center gap-1"><span class="inline-block w-3 h-3 rounded-sm"
                                 style="background:var(--cal-event-shabbat)"></span> Shabbat</span>
                     </div>
-                    <button onclick="closeCalendarModal()"
-                        class="w-8 h-8 flex items-center justify-center rounded-full border border-[#c8b88a] bg-white/70 hover:bg-white text-[#64748b] hover:text-[#1f3f63] transition text-lg leading-none"
+                    <button onclick="closeCalendarModal()" type="button"
+                        class="w-8 h-8 flex items-center justify-center rounded-full border border-[#c8b88a] bg-white/70 hover:bg-white text-[#566175] hover:text-[#1f3f63] transition"
                         aria-label="Close calendar">
-                        &times;
+                        {{ phosphor('x', size=16) }}
                     </button>
                 </div>
             </div>
@@ -1535,8 +1582,8 @@
         class="fixed inset-0 z-[100] bg-slate-900/60 backdrop-blur-sm items-center justify-center p-4 hidden">
         <div
             class="bg-white rounded-2xl shadow-2xl w-full max-w-2xl max-h-[85vh] overflow-hidden flex flex-col relative">
-            <button onclick="closeTextsMenu()"
-                class="absolute top-4 right-4 text-2xl text-slate-400 hover:text-slate-800 z-10">&times;</button>
+            <button onclick="closeTextsMenu()" type="button" aria-label="Close"
+                class="absolute top-4 right-4 z-10 modal-close-icon-btn">{{ phosphor('x', size=20) }}</button>
 
             <div class="bg-gradient-to-r from-navy to-blue-900 text-white px-6 py-4 border-b">
                 <h2 class="font-serif text-xl font-bold" data-en="Browse Jewish Library" data-he="עיון בספרייה היהודית">
@@ -1603,8 +1650,8 @@
         <div
             class="bg-white rounded-2xl shadow-2xl w-full max-w-4xl max-h-[88vh] overflow-hidden flex flex-col relative">
             <button id="closeChapterGridModalBtn" type="button"
-                class="absolute top-3 right-3 text-2xl text-slate-500 hover:text-slate-800 z-10"
-                aria-label="Close chapter menu">&times;</button>
+                class="absolute top-3 right-3 z-10 modal-close-icon-btn"
+                aria-label="Close chapter menu">{{ phosphor('x', size=20) }}</button>
 
             <div class="chapter-grid-header px-6 py-4 border-b">
                 <h2 id="chapterGridTitle" class="font-serif text-xl font-bold">Select Section</h2>
@@ -1624,8 +1671,8 @@
         <div
             class="bg-white rounded-2xl shadow-2xl w-full max-w-3xl max-h-[85vh] overflow-hidden flex flex-col relative">
             <!-- Close Button -->
-            <button onclick="closeAiModal()"
-                class="absolute top-4 right-4 text-2xl text-slate-400 hover:text-slate-800 z-10">&times;</button>
+            <button onclick="closeAiModal()" type="button" aria-label="Close"
+                class="absolute top-4 right-4 z-10 modal-close-icon-btn">{{ phosphor('x', size=20) }}</button>
 
             <!-- Modal Header -->
             <div class="bg-gradient-to-r from-navy to-blue-900 text-white px-6 py-4 border-b">
@@ -1647,7 +1694,7 @@
                         class="prose prose-sm prose-slate max-w-none font-serif text-slate-800 leading-relaxed">
                     </div>
                     <!-- Answer feedback widget (plan.md §12.4) -->
-                    <div id="aiFeedback" class="mt-4 pt-4 border-t" style="border-color: var(--surface-border);"></div>
+                    <div id="aiFeedback" class="mt-3"></div>
                 </div>
 
                 <!-- Sources Section -->
@@ -1882,8 +1929,8 @@
         <div
             class="bg-white rounded-2xl shadow-2xl w-full max-w-3xl max-h-[88vh] overflow-hidden flex flex-col relative">
             <button id="closeLibraryCategoryBtn" type="button"
-                class="absolute top-3 right-3 text-2xl text-slate-500 hover:text-slate-800 z-10"
-                aria-label="Close category browser">&times;</button>
+                class="absolute top-3 right-3 z-10 modal-close-icon-btn"
+                aria-label="Close category browser">{{ phosphor('x', size=20) }}</button>
             <div id="libraryCategoryHeader" class="chapter-grid-header px-6 py-4 border-b">
                 <h2 id="libraryCategoryTitle" class="font-serif text-xl font-bold">Select a Text</h2>
                 <p id="libraryCategorySubtitle" class="chapter-grid-subtitle text-xs mt-1">Choose a section to browse
@@ -1899,7 +1946,7 @@
         <div
             class="bg-white rounded-2xl shadow-2xl w-full max-w-3xl max-h-[85vh] overflow-hidden flex flex-col relative">
             <button id="closeDevtoolsInspectorBtn" type="button"
-                class="absolute top-4 right-4 text-2xl text-slate-400 hover:text-slate-800 z-10">&times;</button>
+                class="absolute top-4 right-4 z-10 modal-close-icon-btn" aria-label="Close">{{ phosphor('x', size=20) }}</button>
             <div class="bg-gradient-to-r from-navy to-blue-900 text-white px-6 py-4 border-b">
                 <h2 class="font-serif text-xl font-bold" data-en="System Inspector" data-he="בודק מערכת">System
                     Inspector</h2>
@@ -1994,6 +2041,7 @@
         const readerLibraryTopBarBtn = document.getElementById('readerLibraryTopBarBtn');
         const readerPrevTopBarBtn = document.getElementById('readerPrevTopBarBtn');
         const readerNextTopBarBtn = document.getElementById('readerNextTopBarBtn');
+        const readerCommentaryTopBarBtn = document.getElementById('readerCommentaryTopBarBtn');
         const communityTimelineModal = document.getElementById('communityTimelineModal');
         const closeCommunityTimelineBtn = document.getElementById('closeCommunityTimelineBtn');
         const communityTimelineTitle = document.getElementById('communityTimelineTitle');
@@ -2130,19 +2178,6 @@
             });
         }
 
-        const MODAL_MARKDOWN_COMPONENT_STYLES = Object.freeze({
-            h2: {
-                display: 'block',
-                marginTop: '1rem',
-                marginBottom: '0.5rem',
-            },
-            h3: {
-                display: 'block',
-                marginTop: '1rem',
-                marginBottom: '0.5rem',
-            },
-        });
-
         function normalizeMarkdownSpacing(markdownText) {
             let normalized = String(markdownText || '').replace(/\r\n?/g, '\n');
 
@@ -2192,20 +2227,6 @@
             return out.join('\n').replace(/\n{5,}/g, '\n\n\n\n').trim();
         }
 
-        function applyMarkdownComponentStyles(containerEl, componentStyles) {
-            if (!containerEl || !componentStyles) {
-                return;
-            }
-
-            Object.entries(componentStyles).forEach(([tagName, styleMap]) => {
-                containerEl.querySelectorAll(tagName).forEach((node) => {
-                    Object.entries(styleMap).forEach(([styleKey, styleValue]) => {
-                        node.style[styleKey] = styleValue;
-                    });
-                });
-            });
-        }
-
         function renderAnswerMarkdown(answerText) {
             const raw = normalizeMarkdownSpacing(String(answerText || 'No synthesis available.'));
             if (window.marked && typeof window.marked.parse === 'function') {
@@ -2233,6 +2254,16 @@
             'medical', 'mental_health_or_self_harm', 'abuse_or_minor_safety', 'dangerous_or_illegal',
         ]);
 
+        // Trusted, static icon markup only -- same pattern as
+        // _PRIVACY_STATUS_ICONS below (Jinja-rendered once at page load into
+        // raw <path> markup, never combined with dynamic data via innerHTML;
+        // the banner's message text is always escaped separately below).
+        const _DISCLAIMER_BANNER_ICONS = {
+            breaker: '<path d="{{ phosphor_path("pause") }}"/>',
+            referral: '<path d="{{ phosphor_path("warning") }}"/>',
+            standard: '<path d="{{ phosphor_path("book-open") }}"/>',
+        };
+
         // Persistent, non-dismissible disclaimer banner (plan.md §8.B.1) --
         // rendered fresh on every answer so it can never be scrolled-past-once
         // and forgotten, and so referral-class answers (§8.B-AGE.2/.7) get a
@@ -2249,7 +2280,9 @@
             bannerEl.classList.toggle('ai-disclaimer-banner--breaker-paused', !!breakerTripped);
             bannerEl.classList.toggle('ai-disclaimer-banner--referral', isReferral && !breakerTripped);
             bannerEl.setAttribute('role', breakerTripped ? 'status' : (isReferral ? 'alert' : 'note'));
-            const icon = breakerTripped ? '⏸️' : (isReferral ? '⚠️' : '📖');
+            const iconPath = breakerTripped ? _DISCLAIMER_BANNER_ICONS.breaker
+                : isReferral ? _DISCLAIMER_BANNER_ICONS.referral
+                : _DISCLAIMER_BANNER_ICONS.standard;
             const text = breakerTripped
                 ? t(
                     'AI answers are paused for today to stay within our usage budget — you can still browse and search the full Torah library below. Please try again after midnight UTC.',
@@ -2264,7 +2297,7 @@
                     'AI-generated educational information, not a binding halachic ruling — always consult your rabbi for practical guidance.',
                     'מידע חינוכי שנוצר על ידי בינה מלאכותית, לא פסיקה הלכתית מחייבת — יש להתייעץ תמיד עם הרב שלך לקבלת הנחיה מעשית.'
                 );
-            bannerEl.innerHTML = `<span class="ai-disclaimer-banner-icon" aria-hidden="true">${icon}</span>`
+            bannerEl.innerHTML = `<span class="ai-disclaimer-banner-icon" aria-hidden="true"><svg viewBox="0 0 256 256" fill="currentColor" aria-hidden="true">${iconPath}</svg></span>`
                 + `<span class="ai-disclaimer-banner-text">${escapeHtml(text)}</span>`;
         }
         const READER_LAYOUT_MANUAL_KEY = "Sh'elahReaderLayoutManuallySet";
@@ -4433,9 +4466,9 @@
                             ${q}
                         </button>
                         <button type="button"
-                            class="ask-history-del opacity-0 group-hover:opacity-100 text-slate-300 hover:text-red-400 text-sm leading-none pt-1 transition-opacity flex-shrink-0"
+                            class="ask-history-del opacity-0 group-hover:opacity-100 flex-shrink-0"
                             data-id="${id}"
-                            aria-label="Delete">×</button>
+                            aria-label="Delete"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" width="14" height="14" fill="currentColor" aria-hidden="true"><path d="{{ phosphor_path('x') }}"/></svg></button>
                     </div>`;
             }).join('');
 
@@ -4740,8 +4773,8 @@
         function syncHebrewDateMobilePosition() {
             const dateEl = document.getElementById('hebrewDateDisplay');
             const brand = document.getElementById('brandHomeBtn');
-            const controls = document.getElementById('topbarControls');
-            if (!dateEl || !brand || !controls) return;
+            const settingsBtn = document.getElementById('settingsMenuBtn');
+            if (!dateEl || !brand || !settingsBtn) return;
 
             if (!isMobileViewport()) {
                 dateEl.style.removeProperty('display');
@@ -4750,14 +4783,17 @@
             }
 
             dateEl.style.display = 'block';
-            // Brand sits left of controls in LTR but right of controls in
-            // RTL (Hebrew mirrors the whole grid) -- compare positions
-            // instead of assuming which one is which.
+            // Brand sits left of the settings button in LTR but right of it
+            // in RTL (Hebrew mirrors the whole grid) -- compare positions
+            // instead of assuming which one is which. settingsMenuBtn is
+            // the first control in #topbarControls, i.e. the one right on
+            // the edge of the brand/controls gap, so its own rect (not the
+            // whole controls cluster's) marks the gap accurately.
             const brandRect = brand.getBoundingClientRect();
-            const controlsRect = controls.getBoundingClientRect();
-            const [leftBox, rightBox] = brandRect.left <= controlsRect.left
-                ? [brandRect, controlsRect]
-                : [controlsRect, brandRect];
+            const settingsRect = settingsBtn.getBoundingClientRect();
+            const [leftBox, rightBox] = brandRect.left <= settingsRect.left
+                ? [brandRect, settingsRect]
+                : [settingsRect, brandRect];
             const gap = rightBox.left - leftBox.right;
             const MIN_PADDING = 12;
 
@@ -4766,7 +4802,25 @@
                 return;
             }
 
-            dateEl.style.left = `${leftBox.right + gap / 2}px`;
+            // Sit snug next to the quick-settings button instead of the
+            // logo -- hug whichever side of the gap the settings button is
+            // actually on (it can be either leftBox or rightBox depending
+            // on LTR/RTL), clamped so it always keeps MIN_PADDING clear of
+            // the brand/logo on the far side. `left` is the element's
+            // horizontal CENTER (CSS applies translate(-50%, -50%)), so
+            // convert the desired edge into a center point via half-width.
+            const SETTINGS_GAP = 16;
+            const half = dateEl.offsetWidth / 2;
+            const settingsIsLeft = leftBox === settingsRect;
+            if (settingsIsLeft) {
+                const maxLeftEdge = rightBox.left - MIN_PADDING - dateEl.offsetWidth;
+                const leftEdge = Math.min(leftBox.right + SETTINGS_GAP, maxLeftEdge);
+                dateEl.style.left = `${leftEdge + half}px`;
+            } else {
+                const minRightEdge = leftBox.right + MIN_PADDING + dateEl.offsetWidth;
+                const rightEdge = Math.max(rightBox.left - SETTINGS_GAP, minRightEdge);
+                dateEl.style.left = `${rightEdge - half}px`;
+            }
         }
 
         function getSidebarRestoreTopOffset() {
@@ -5768,6 +5822,9 @@
             }
         }
 
+        // NOTE (a11y): the active-row type label below used text-[#7a684f],
+        // 4.48:1 against this row's active bg #f2eadc — just under the 4.5:1
+        // AA text threshold. Darkened to #6f5e46 (5.22:1), same warm-brown family.
         function renderShelfList(items, bucket = 'recent') {
             if (!items.length) {
                 return `<p class="text-xs italic text-slate-400">${t('No items yet.', 'אין פריטים עדיין.')}</p>`;
@@ -5792,7 +5849,7 @@
                         data-shelf-bucket="${escapeHtml(bucket)}"
                         data-label="${escapeHtml(item.label || item.value)}">
                         <span class="text-xs ${isActive ? 'text-[#4f4130] font-semibold' : 'text-slate-700'} block truncate">${escapeHtml(displayLabel)}</span>
-                        <span class="text-[10px] uppercase tracking-widest ${isActive ? 'text-[#7a684f]' : 'text-slate-400'}">${escapeHtml((UI_TYPE_LABELS[getCurrentLanguage()] || UI_TYPE_LABELS.en)[item.type] || item.type)}</span>
+                        <span class="text-[10px] uppercase tracking-widest ${isActive ? 'text-[#6f5e46]' : 'text-slate-400'}">${escapeHtml((UI_TYPE_LABELS[getCurrentLanguage()] || UI_TYPE_LABELS.en)[item.type] || item.type)}</span>
                     </button>
                 `;
             }).join('');
@@ -5942,8 +5999,40 @@
             selectionInsightsBody.innerHTML = '';
         }
 
+        const READER_COMMENTARY_HINT_KEY = 'shelahCommentaryHintSeen';
+
+        // One-time "there's something here" pulse on the reader topbar's
+        // Commentary button (see .reader-topbar-commentary-hint-dot in
+        // style.css) -- cleared the first time commentary actually becomes
+        // available, whether the user found it via a real text selection or
+        // by clicking the button itself.
+        function markCommentaryHintSeen() {
+            if (readerCommentaryTopBarBtn) {
+                readerCommentaryTopBarBtn.classList.remove('has-hint');
+            }
+            try {
+                localStorage.setItem(READER_COMMENTARY_HINT_KEY, '1');
+            } catch (_) {
+                // Private browsing / storage disabled -- pulse just won't persist across reloads.
+            }
+        }
+
+        function updateCommentaryHintVisibility() {
+            if (!readerCommentaryTopBarBtn) return;
+            let seen = false;
+            try {
+                seen = Boolean(localStorage.getItem(READER_COMMENTARY_HINT_KEY));
+            } catch (_) {
+                seen = false;
+            }
+            readerCommentaryTopBarBtn.classList.toggle('has-hint', !seen);
+        }
+
         function setCommentaryAvailability(hasAvailable) {
             commentaryAvailableForCurrentSelection = Boolean(hasAvailable);
+            if (commentaryAvailableForCurrentSelection) {
+                markCommentaryHintSeen();
+            }
             if (!showRightSidebarTopBtn) return;
 
             const canRestore = !isMobileViewport()
@@ -6181,27 +6270,11 @@
                 const altMarkup = altMeanings.length
                     ? `<p class="text-xs text-[#6a5842] mt-1">${altMeanings.map((value) => escapeHtml(value)).join(' · ')}</p>`
                     : '';
-                // plan.md §8.F.4 / Prompt 18 item 4: an online-translation
-                // fallback (Google Translate / MyMemory, backend/helpers.py
-                // ::_is_machine_translated_source) is never presented as an
-                // authoritative, curated definition -- label it, matching
-                // the "Note: ⚠️ ..." voice _build_source_attribution_note
-                // uses for lower-confidence AI answer sources.
-                // Reuses the alt-meanings text color (#6a5842 on #f2eadc,
-                // 5.69:1 -- verified against WCAG 2.1 AA's 4.5:1 normal-text
-                // threshold using this doc's own relative-luminance method,
-                // see docs/ACCESSIBILITY_AUDIT.md) rather than introducing
-                // an unaudited warning color; the ⚠️ + wording (not color
-                // alone) is what conveys the lower-confidence state.
-                const machineTranslatedMarkup = selectionCommentaryState.wordInfo.machineTranslated
-                    ? `<p class="text-[11px] text-[#6a5842] mt-1">${t('⚠️ Machine-translated — not a verified definition.', '⚠️ תרגום אוטומטי — לא הגדרה מאומתת.')}</p>`
-                    : '';
                 html += `
                     <div class="rounded-lg border border-[#d7c8ad] bg-[#f2eadc] px-3 py-2">
                         <p class="text-[11px] uppercase tracking-widest text-[#5d4c36] font-bold">${t('Word Meaning', 'משמעות מילה')}</p>
                         <p class="text-sm text-[#4f4130] mt-1"><span class="font-semibold">${escapeHtml(selectionCommentaryState.wordInfo.word || '')}</span>: ${escapeHtml(selectionCommentaryState.wordInfo.meaning || '')}</p>
                         ${altMarkup}
-                        ${machineTranslatedMarkup}
                     </div>
                 `;
             }
@@ -6237,7 +6310,6 @@
                     word: payload.word || word,
                     meaning: payload.meaning || '',
                     alternatives: Array.isArray(payload.alternatives) ? payload.alternatives : [],
-                    machineTranslated: Boolean(payload.machine_translated),
                 };
 
                 if (selectionCommentaryState.activeCommentaryRef) {
@@ -6503,7 +6575,6 @@
                     word: wordInfo.word || cleanWord,
                     meaning: wordInfo.meaning || '',
                     alternatives: Array.isArray(wordInfo.alternatives) ? wordInfo.alternatives : [],
-                    machineTranslated: Boolean(wordInfo.machine_translated),
                 }
                 : null;
             selectionCommentaryState.selectedText = selectedText;
@@ -7137,6 +7208,13 @@
                     readerNextTopBarBtn.classList.remove('hidden');
                     readerNextTopBarBtn.setAttribute('aria-label', t('Next Section', 'קטע הבא'));
                     readerNextTopBarBtn.title = t('Next Section', 'קטע הבא');
+                }
+
+                if (readerCommentaryTopBarBtn) {
+                    const commentaryLabel = t('Commentary', 'מפרשים');
+                    readerCommentaryTopBarBtn.setAttribute('aria-label', commentaryLabel);
+                    readerCommentaryTopBarBtn.title = commentaryLabel;
+                    updateCommentaryHintVisibility();
                 }
 
                 if (readerSettingsBtn) {
@@ -7811,6 +7889,27 @@
             readerLibraryTopBarBtn.addEventListener('click', (e) => {
                 e.stopPropagation();
                 toggleLeftSidebar();
+            });
+        }
+
+        if (readerCommentaryTopBarBtn) {
+            readerCommentaryTopBarBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                if (!commentaryAvailableForCurrentSelection) {
+                    resetSelectionInsights();
+                    setCommentaryAvailability(true);
+                    showSelectionInsights();
+                }
+                if (isMobileViewport()) {
+                    openMobilePanel('right');
+                } else {
+                    // Unconditional (not just when currently hidden): this is
+                    // what actually re-runs applySidebarVisibility() so the
+                    // commentaryAvailableForCurrentSelection flip above takes
+                    // effect and the column renders -- setting the state var
+                    // alone doesn't touch the DOM.
+                    setSidebarVisibility('right', true);
+                }
             });
         }
 
@@ -9834,6 +9933,13 @@
             return false;
         }
 
+        // Matches static/css/ai.css's #searchForm.search-liftoff animation
+        // duration (shelah-liftoff-spin, 420ms, defined in tokens.css) --
+        // a plain setTimeout rather than an 'animationend' listener because
+        // prefers-reduced-motion sets `animation: none` on that rule, which
+        // would never fire animationend and leave the class lingering.
+        const SEARCH_LIFTOFF_MS = 420;
+
         // /ask retry/timeout resilience now lives in static/js/ai-service.js::askAi()
         // (plan.md §19 Phase 1 / Prompt 32) -- this used to be an inline
         // askWithRetry() duplicating that module. See ai-service.js's module
@@ -9861,6 +9967,20 @@
             aiModal.style.display = 'flex';
             window.ShelahMotion?.animateIn(aiModal, { y: 12 });
             document.body.classList.add('search-loading');
+
+            // Brief "liftoff" glow pulse on the search bar itself, fired in the
+            // same tick as the modal's fade-in above -- a satisfying handoff
+            // moment, not a sustained loader (the modal's own ש-letter spinner
+            // owns that job once it's on screen; see loading.css). Self-cleaning
+            // via setTimeout so the class never lingers into the next search.
+            if (searchForm) {
+                searchForm.classList.remove('search-liftoff');
+                // Force reflow so back-to-back searches restart the CSS
+                // animation instead of the re-add being a no-op.
+                void searchForm.offsetWidth;
+                searchForm.classList.add('search-liftoff');
+                setTimeout(() => searchForm.classList.remove('search-liftoff'), SEARCH_LIFTOFF_MS);
+            }
 
             // Reset modal content with premium loading animation
             document.getElementById('aiSynthesis').innerHTML = `
@@ -10749,14 +10869,14 @@
             if (searchInput) {
                 if (lang === 'he') {
                     // RTL: padding on left for icon space created by JavaScript
-                    searchInput.classList.remove('pl-4', 'pr-10');
-                    searchInput.classList.add('pl-10', 'pr-4');
+                    searchInput.classList.remove('pl-4', 'pr-14');
+                    searchInput.classList.add('pl-14', 'pr-4');
                     // Update placeholder for RTL
                     searchInput.placeholder = 'שאל את ש\'אלה על כל נושא, הלכה או מנהג...';
                 } else {
                     // LTR: padding on right for icon space
-                    searchInput.classList.remove('pl-10', 'pr-4');
-                    searchInput.classList.add('pl-4', 'pr-10');
+                    searchInput.classList.remove('pl-14', 'pr-4');
+                    searchInput.classList.add('pl-4', 'pr-14');
                     searchInput.placeholder = "Ask Sh'elah about any topic, halachah, or custom...";
                 }
             }
@@ -10842,6 +10962,11 @@
                 const nextLabel = lang === 'he' ? 'קטע הבא' : 'Next Section';
                 readerNextTopBarBtn.setAttribute('aria-label', nextLabel);
                 readerNextTopBarBtn.title = nextLabel;
+            }
+            if (readerCommentaryTopBarBtn) {
+                const commentaryLabel = lang === 'he' ? 'מפרשים' : 'Commentary';
+                readerCommentaryTopBarBtn.setAttribute('aria-label', commentaryLabel);
+                readerCommentaryTopBarBtn.title = commentaryLabel;
             }
             if (appState.currentView?.type === 'text') {
                 updateReaderHeaderForVisibleChunk(infiniteReaderState.currentVisibleChunkIndex || 0);
@@ -11086,9 +11211,17 @@
             submitBtn.disabled = true;
 
             try {
-                const url = `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(city)}&format=json&limit=1&addressdetails=0`;
-                const res = await fetch(url, { headers: { 'Accept-Language': 'en' } });
-                const results = await res.json();
+                const url = `/api/geocode?q=${encodeURIComponent(city)}`;
+                const res = await fetch(url);
+                const payload = await res.json();
+                const results = payload?.results;
+
+                if (!res.ok) {
+                    errorEl.textContent = 'Search failed. Please try again shortly.';
+                    errorEl.classList.remove('hidden');
+                    statusEl.classList.add('hidden');
+                    return;
+                }
 
                 if (!results || results.length === 0) {
                     errorEl.textContent = 'City not found. Try a different spelling.';
@@ -11300,15 +11433,23 @@
         // see app.py::ask_question), `queryTitle` is the raw question text
         // (hashed server-side in backend/routes_feedback.py, never stored
         // verbatim).
+        // Trusted, static icon markup only -- same pattern as
+        // _PRIVACY_STATUS_ICONS below (Jinja-rendered once at page load into
+        // raw <path> markup, never combined with dynamic data via innerHTML).
+        const _ANSWER_FEEDBACK_ICONS = {
+            up: '<path d="{{ phosphor_path("thumbs-up") }}"/>',
+            down: '<path d="{{ phosphor_path("thumbs-down") }}"/>',
+        };
+
         function renderFeedbackWidget(container, data, queryTitle) {
             if (!container) return;
             container.innerHTML = `
                 <div class="answer-feedback" data-feedback-state="idle">
                     <span class="answer-feedback-prompt">${t('Was this answer helpful?', 'האם התשובה הייתה מועילה?')}</span>
                     <button type="button" class="answer-feedback-btn" data-verdict="helpful" aria-pressed="false"
-                        aria-label="${t('Helpful', 'מועיל')}">👍</button>
+                        aria-label="${t('Helpful', 'מועיל')}"><svg viewBox="0 0 256 256" fill="currentColor" aria-hidden="true">${_ANSWER_FEEDBACK_ICONS.up}</svg></button>
                     <button type="button" class="answer-feedback-btn" data-verdict="not_helpful" aria-pressed="false"
-                        aria-label="${t('Not helpful', 'לא מועיל')}">👎</button>
+                        aria-label="${t('Not helpful', 'לא מועיל')}"><svg viewBox="0 0 256 256" fill="currentColor" aria-hidden="true">${_ANSWER_FEEDBACK_ICONS.down}</svg></button>
                 </div>
             `;
             const root = container.querySelector('.answer-feedback');
@@ -11337,7 +11478,7 @@
 
             function showThanks() {
                 root.dataset.feedbackState = 'done';
-                root.innerHTML = `<span class="answer-feedback-thanks">${t('Thanks for the feedback!', 'תודה על המשוב!')}</span>`;
+                root.innerHTML = `<span class="answer-feedback-thanks">${t('Thank you for your feedback!', 'תודה על המשוב!')}</span>`;
             }
 
             buttons.forEach((btn) => {
@@ -11383,7 +11524,12 @@
             renderDisclaimerBanner(document.getElementById('readerDisclaimerBanner'), data.meta?.safety_class, data.meta?.breaker_tripped);
             const readerContentEl = document.getElementById('readerContent');
             readerContentEl.innerHTML = renderAnswerMarkdown(data.answer);
-            applyMarkdownComponentStyles(readerContentEl, MODAL_MARKDOWN_COMPONENT_STYLES);
+            // No fade-in triggered here: this runs while the reader is still
+            // `display:none` (viewFullArticle() reveals it 300ms later, behind
+            // the loading overlay's own fade-out), and an animation started
+            // against a non-rendered element has no visible effect by the time
+            // it's shown. viewFullArticle() plays the reveal-in on readerContent
+            // itself once the container is actually visible -- see there.
 
             // 2. Sources — same ranked/deduped list and box style as the AI answer box
             mirrorAiSourcesInto(document.getElementById('readerSources'));
@@ -11422,7 +11568,7 @@
             if (data.wiki && data.wiki.length > 0) {
                 html += `<h4 class="font-bold text-slate-800 mb-3 uppercase tracking-wider text-xs">${t('Encyclopedia', 'אנציקלופדיה')}</h4>`;
                 data.wiki.forEach(w => {
-                    if (w) html += `<div class="bg-slate-50 p-3 rounded border mb-3 text-xs leading-relaxed shadow-sm hover:shadow transition"><strong class="block text-navy mb-1 text-sm">${w.title}</strong><span class="text-slate-500">${w.summary.substring(0, 250)}...</span></div>`;
+                    if (w) html += `<div class="ai-wiki-result-card"><div class="ai-wiki-result-title">${escapeHtml(String(w.title || ''))}</div><div class="ai-wiki-result-body">${escapeHtml(String(w.summary || '').substring(0, 250))}...</div></div>`;
                 });
                 added = true;
             }
@@ -11430,7 +11576,7 @@
             if (data.customs && data.customs.length > 0) {
                 html += `<h4 class="font-bold text-slate-800 mb-3 mt-6 uppercase tracking-wider text-xs">${t('Community Traditions', 'מסורות קהילתיות')}</h4>`;
                 data.customs.forEach(c => {
-                    html += `<div class="bg-indigo-50 p-3 rounded border border-indigo-100 mb-3 text-xs leading-relaxed shadow-sm"><strong class="block text-indigo-900 mb-1">${c.community}</strong><span class="text-indigo-800">${c.ruling || c.notes}</span></div>`;
+                    html += `<div class="ai-customs-card"><div class="ai-customs-card-title">${escapeHtml(getCommunityDisplayName(c.community))}</div><div class="ai-customs-card-body">${escapeHtml(String(c.ruling || c.notes || ''))}</div></div>`;
                 });
                 added = true;
             }
@@ -11491,7 +11637,16 @@
             renderDisclaimerBanner(document.getElementById('aiDisclaimerBanner'), data.meta?.safety_class, data.meta?.breaker_tripped);
             const aiSynthesisEl = document.getElementById('aiSynthesis');
             aiSynthesisEl.innerHTML = renderAnswerMarkdown(data.answer);
-            applyMarkdownComponentStyles(aiSynthesisEl, MODAL_MARKDOWN_COMPONENT_STYLES);
+            // The branded loading state (spinner + cycling phase text, see
+            // handleAiSearch()) occupied this same element a moment ago and was
+            // just replaced in the synchronous write above -- without this, the
+            // swap is an instant cut from spinner to full answer, or (with a
+            // single animateIn) the whole block still appears to jump in at
+            // once. Staggering each top-level child in one at a time reads as
+            // the answer flowing/settling into place instead. Already no-ops
+            // to an instant state-set under prefers-reduced-motion, so no
+            // extra guard needed.
+            window.ShelahMotion?.staggerIn(aiSynthesisEl.children);
             renderFeedbackWidget(document.getElementById('aiFeedback'), data, queryTitle);
 
             // Hebrew transliteration varies by style guide (kh/ch are the same
@@ -11815,6 +11970,12 @@
             setTimeout(() => {
                 hideLoadingOverlay();
                 reader.classList.remove('hidden');
+                // Reveal-in the answer now that the reader is actually on
+                // screen (readerContent was populated above while still
+                // display:none, so the fade+rise has to start from here to be
+                // seen at all) -- same staggered treatment as the AI modal's
+                // own answer swap in populateAiModal().
+                window.ShelahMotion?.staggerIn(document.getElementById('readerContent').children);
             }, 300);
         }
 
