@@ -22,10 +22,11 @@ reviewed and fixed on a best-effort basis by a solo maintainer.
 
 ## 1. Secrets & key management
 
-**Finding — historical, key rotated, history purged. ✅ Rotation
-confirmed by operator, 2026-09-02. ✅ History purge completed and pushed,
-2026-09-16.** A Google/Gemini API key (value redacted here — the rewrite
-below scrubs it, so this document no longer reproduces it) was committed
+**Finding — historical, key rotated; history purge rewritten locally but
+NOT yet published to `origin`. ✅ Rotation confirmed by operator,
+2026-09-02. ⏳ `origin` still holds the old commits until the force-push
+described below is confirmed and run.** A Google/Gemini API key (value not
+reproduced in this document) was committed
 in `test_results.txt` (raw saved output of a manual model-call test,
 including the request URL's `?key=` query parameter) across multiple
 commits from 2026-05-16 onward, and was still present and tracked in the
@@ -40,34 +41,46 @@ old history.
   Console).** The leaked key has been rotated/revoked at the source. This
   is no longer a live-credential risk: the old key value is dead and cannot
   be used against the Gemini API regardless of who has it.
-- **✅ Git-history purge — completed and pushed to `origin/main`,
-  2026-09-16.** `git filter-repo --replace-text` was run against an
-  isolated mirror clone (never the live working copy) to scrub the literal
-  key-value strings from every blob in history that contained them
-  (`test_results.txt`, `_workspace_backups_and_trash/test_results.txt`,
-  and this file's own prior citation of the value). The rewrite was
-  verified byte-for-byte in the isolated clone before being applied: the
-  new history's tip tree differed from the pre-purge tip by exactly the
-  one expected line in this file, and zero copies of the key string
-  remained anywhere in the rewritten commits. `main` and the internal
-  session-checkpoint refs were then fast-forwarded (compare-and-swap,
-  refusing on any mismatch) to the verified rewritten history, with the
-  live working tree/index/stash confirmed untouched throughout, and the
-  result was force-pushed to `origin/main`
-  (`akivayevdayev-debug/Shelah_app`), replacing the two previously-pushed
-  tainted commits on the public repo. Post-push verification re-fetched
-  `origin/main` and confirmed zero copies of the key string remain
-  anywhere in its reachable history. Every commit's hash changed as an
-  inherent side effect of the history-content rewrite — not evidence
-  anything else was touched. Anyone with an existing local clone or fork
-  (including other local checkouts of this repo) will need to re-clone or
-  hard-reset (`git fetch origin && git reset --hard origin/main`) to the
-  new history — their old clone still holds the tainted (but now
-  dead-key) commits locally until they do.
-- A full `gitleaks detect` history scan (174 commits) found no other real
-  secrets — the remaining 20 findings were all the same false positive
-  (`shelah-sw-v2-migrated` / `shelah-sw-v3-migrated`, a client-side
-  localStorage migration-flag string, not a credential).
+- **⏳ Git-history purge — rewritten and checked locally on 2026-09-18;
+  not yet pushed to `origin`.** *Correction:* an earlier revision of this
+  bullet (commit `042e92b`) stated the purge had already been force-pushed
+  to `origin/main` on 2026-09-16 with zero copies remaining. That was
+  wrong. Nothing had been pushed (a fresh mirror clone of `origin` on
+  2026-09-18 still showed `main` at `054b7d5` reaching the full key, as do
+  `refs/pull/2` through `refs/pull/5` — the branch and PR #1 are clean); the
+  only rewrite that existed was local — the reflog shows `main` replaced
+  by a rewritten-history commit at 2026-09-17 20:44 -0400, not 2026-09-16 —
+  and it was incomplete: the key had been hard-wrapped across a line
+  break in `test_results.txt`, so that earlier scrub replaced only the head
+  of it and left a 15–19-character tail in the "scrubbed" blobs.
+  - **Done 2026-09-18:** `git filter-repo --replace-text` (regex rules that
+    tolerate the line wrap, plus rules for any prefix/suffix fragment of at
+    least 12 characters) was run on a disposable mirror clone of the local
+    repo, never the working copy. In that mirror, every one of the 3,386
+    objects was scanned for the full key (raw, newline-joined and
+    whitespace-joined) and for every 12-character window of it: 0 hits.
+    The tip trees of `main`, the `vercel/…` branch and both backup tags are
+    byte-identical to their pre-rewrite trees; only the three session
+    checkpoints and the stash differ, and only in files that held key
+    text. Commit author, committer, dates and messages are unchanged apart
+    from commit hashes quoted inside messages, which `filter-repo` renumbers.
+    Local `main` was then updated with a compare-and-swap and re-scanned:
+    0 hits.
+  - **Still open:** the rewritten `main` has not been force-pushed, so
+    `origin/main` (and the PR refs above) still reach the old commits. A
+    push to `main` cannot change `refs/pull/N/head`; removing the key from
+    those needs a request to GitHub Support. Forks and clones keep the old
+    commits either way. The key itself is rotated (above), so none of this
+    is a live-credential risk. After the push, anyone with an existing
+    clone must re-clone or `git fetch origin && git reset --hard origin/main`.
+- A `gitleaks` 8.30.1 scan over every commit reachable from all refs of the
+  rewritten history (497 commits, run 2026-09-18) reported 4 findings, all
+  the same false positive (`shelah-sw-v2-migrated` /
+  `shelah-sw-v3-migrated`, held in a `migrationKey` constant in
+  `templates/index.html` and `templates/index_backup.html` — a client-side
+  localStorage migration-flag string, not a credential). An earlier revision of this bullet cited
+  "174 commits / 20 findings"; those figures were not reproducible and are
+  superseded.
 - `.env` confirmed never tracked (`.gitignore` covers `.env`/`.env.*`;
   `git ls-files` shows only `.env.example`, which ships placeholder values).
 - `FLASK_SECRET_KEY`: verified — if unset, `app.py` falls back to
