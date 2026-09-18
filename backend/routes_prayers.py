@@ -90,20 +90,11 @@ def get_prayer(name):
     })
 
 
-@routes_prayers.route("/api/siddur/full/<path:prayer_name>")
-def get_siddur_full(prayer_name):
-    """Fetch full prayer text from Sefaria for any supported prayer service/book."""
-    from backend.sefaria_library import get_text
-
-    resolved_name = (unquote(prayer_name or "") or "").strip()
-    refs = _get_prayer_refs(resolved_name)
-    if not refs:
-        return jsonify({"error": f"No Sefaria mapping for '{resolved_name}'"}), 404
-
-    # Fetch every ref's text in parallel (bounded pool) instead of one at a
-    # time -- on a cold cache, up to 80 sequential Sefaria round-trips could
-    # take up to a full minute. Results are mapped back by index so ordering
-    # matches the original ref order regardless of completion order.
+def _fetch_ref_texts_parallel(refs, get_text):
+    """Fetch every ref's text in parallel (bounded pool) instead of one at a
+    time -- on a cold cache, up to 80 sequential Sefaria round-trips could
+    take up to a full minute. Results are mapped back by index so ordering
+    matches the original ref order regardless of completion order."""
     results = [None] * len(refs)
     worker_count = min(_SIDDUR_TEXT_FETCH_WORKERS, len(refs))
     with ThreadPoolExecutor(max_workers=worker_count) as executor:
@@ -119,7 +110,11 @@ def get_siddur_full(prayer_name):
                 # Preserve the same per-ref tolerance as the original
                 # sequential loop: one ref failing must not fail the batch.
                 results[idx] = {"error": "fetch failed"}
+    return results
 
+
+def _combine_prayer_lines(refs, results):
+    """Concatenate each successfully fetched ref's lines under a section header."""
     combined_lines = []
     for ref, data in zip(refs, results):
         data = data or {}
@@ -132,6 +127,21 @@ def get_siddur_full(prayer_name):
                 "type": "header"
             })
             combined_lines.extend(data.get("lines", []))
+    return combined_lines
+
+
+@routes_prayers.route("/api/siddur/full/<path:prayer_name>")
+def get_siddur_full(prayer_name):
+    """Fetch full prayer text from Sefaria for any supported prayer service/book."""
+    from backend.sefaria_library import get_text
+
+    resolved_name = (unquote(prayer_name or "") or "").strip()
+    refs = _get_prayer_refs(resolved_name)
+    if not refs:
+        return jsonify({"error": f"No Sefaria mapping for '{resolved_name}'"}), 404
+
+    results = _fetch_ref_texts_parallel(refs, get_text)
+    combined_lines = _combine_prayer_lines(refs, results)
 
     if not combined_lines:
         return jsonify({"error": "Could not fetch prayer text from Sefaria"}), 404

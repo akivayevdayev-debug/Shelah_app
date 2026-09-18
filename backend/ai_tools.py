@@ -243,6 +243,18 @@ _HOLIDAY_TITLE_STRIP_RE = re.compile(r"^[^\w֐-׿]+")
 _SOLAR_EVENT_PREFIXES = ("🌅", "🌇", "🌃")
 
 
+def _holiday_entry(event: dict, start: date_lib, end: date_lib) -> Optional[dict]:
+    """Return the {title, date} entry for a Hebcal-sourced event inside [start, end], else None."""
+    title = str(event.get("title") or "")
+    if title.startswith(_SOLAR_EVENT_PREFIXES):
+        return None
+    start_str = str(event.get("start") or "")[:10]
+    event_date = _parse_date(start_str)
+    if not event_date or not (start <= event_date <= end):
+        return None
+    return {"title": _HOLIDAY_TITLE_STRIP_RE.sub("", title).strip(), "date": start_str}
+
+
 async def _h_get_holidays(arguments: dict, context: dict) -> dict:
     start = _parse_date(arguments.get("start_date"))
     end = _parse_date(arguments.get("end_date"))
@@ -260,19 +272,7 @@ async def _h_get_holidays(arguments: dict, context: dict) -> dict:
     except (TypeError, ValueError):
         return {"error": _ERR_LATLON_NUMERIC}
 
-    holidays = []
-    for event in events or []:
-        title = str(event.get("title") or "")
-        if title.startswith(_SOLAR_EVENT_PREFIXES):
-            continue
-        start_str = str(event.get("start") or "")[:10]
-        event_date = _parse_date(start_str)
-        if not event_date or not (start <= event_date <= end):
-            continue
-        holidays.append({
-            "title": _HOLIDAY_TITLE_STRIP_RE.sub("", title).strip(),
-            "date": start_str,
-        })
+    holidays = [h for h in (_holiday_entry(event, start, end) for event in events or []) if h]
     return {"start_date": arguments.get("start_date"), "end_date": arguments.get("end_date"), "holidays": holidays}
 
 

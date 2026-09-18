@@ -134,6 +134,22 @@ _EMPTY_USER_PREFS_RESPONSE = {
 }
 
 
+_USER_PREFS_ENVELOPE_KEYS = ("prefs", "shelf", "notes", "reading_state")
+
+
+def _split_stored_prefs(stored):
+    """Return (prefs, shelf, notes, reading_state) from the stored `prefs` column value."""
+    if not isinstance(stored, dict):
+        return None, None, None, None
+    if any(key in stored for key in _USER_PREFS_ENVELOPE_KEYS):
+        return tuple(
+            stored.get(key) if isinstance(stored.get(key), dict) else None
+            for key in _USER_PREFS_ENVELOPE_KEYS
+        )
+    # Legacy shape where prefs JSON was stored directly.
+    return stored, None, None, None
+
+
 def _user_preferences_get_response(table, user_id):
     """GET branch of user_preferences(): fetch + normalize the stored prefs
     shape. Split out to keep this branch out of that route's own complexity
@@ -149,24 +165,7 @@ def _user_preferences_get_response(table, user_id):
     if not isinstance(record, dict):
         return jsonify(_EMPTY_USER_PREFS_RESPONSE)
 
-    stored = record.get("prefs")
-    prefs = None
-    shelf = None
-    notes = None
-    reading_state = None
-    if isinstance(stored, dict):
-        if any(key in stored for key in ("prefs", "shelf", "notes", "reading_state")):
-            prefs = stored.get("prefs") if isinstance(
-                stored.get("prefs"), dict) else None
-            shelf = stored.get("shelf") if isinstance(
-                stored.get("shelf"), dict) else None
-            notes = stored.get("notes") if isinstance(
-                stored.get("notes"), dict) else None
-            reading_state = stored.get("reading_state") if isinstance(
-                stored.get("reading_state"), dict) else None
-        else:
-            # Legacy shape where prefs JSON was stored directly.
-            prefs = stored
+    prefs, shelf, notes, reading_state = _split_stored_prefs(record.get("prefs"))
 
     return jsonify({
         "prefs": prefs,
