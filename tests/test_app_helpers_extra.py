@@ -268,12 +268,89 @@ class TestBuildAskCriticalErrorContext:
         import app as flask_app_module
         result = flask_app_module._build_ask_critical_error_context({
             "question": "Can I eat this?", "mode": "normal", "canonical_lens": "Ashkenaz",
+            "answer_language": "en",
         })
         assert result == {
             "question": "Can I eat this?", "mode": "normal", "community_lens": "Ashkenaz",
+            "input_length_bucket": "short", "language": "en",
         }
 
     def test_missing_locals_default_to_blank(self, test_client):
         import app as flask_app_module
         result = flask_app_module._build_ask_critical_error_context({})
-        assert result == {"question": "", "mode": "", "community_lens": ""}
+        assert result == {
+            "question": "", "mode": "", "community_lens": "",
+            "input_length_bucket": "empty", "language": "",
+        }
+
+
+class TestRunAskQuestionFallbackCapturesSafeDebugFields:
+    """Privacy regression: _run_ask_question_fallback's _capture_backend_error
+    context must carry a non-reversible length/language surrogate for the
+    question so failures stay debuggable even though backend/logging_setup.py's
+    _scrub_error_context redacts the raw "question" key before it reaches
+    logs/webhook/Sentry (see tests/test_logging_setup.py's TestScrubErrorContext)."""
+
+    def test_context_has_length_bucket_and_language_not_just_raw_question(self, test_client, monkeypatch):
+        import app as flask_app_module
+        from backend import logging_setup
+
+        captured = []
+        monkeypatch.setattr(
+            flask_app_module, "_capture_backend_error",
+            lambda event_name, error, context=None: captured.append((event_name, context)),
+        )
+        monkeypatch.setattr(
+            flask_app_module, "get_halakhic_sources",
+            lambda question: {
+                "warning": "", "sources": [], "source_count": 0, "status": "fallback",
+                "keywords": [], "sequence": [], "counts": {}, "fallback_level": "unknown",
+            },
+        )
+        monkeypatch.setattr(flask_app_module, "_store_user_memory_summary", lambda *a, **k: None)
+
+        question = "Is it permitted to drive on Shabbat for a medical emergency?"
+        ctx = {
+            "wiki_list": [], "halachipedia_list": [], "customs_info": [],
+            "knowledge_rows": [], "user_memory_summaries": [],
+        }
+        flask_app_module._run_ask_question_fallback(
+            question, "normal", "Ashkenaz", "en", "user_abc", RuntimeError("boom"), ctx,
+        )
+
+        assert len(captured) == 1
+        event_name, context = captured[0]
+        assert event_name == "ask_ai_synthesis_failed"
+        assert context["input_length_bucket"] == logging_setup.question_length_bucket(question)
+        assert context["language"] == "en"
+        assert context["user_id_hash"] == logging_setup.hash_user_id("user_abc")
+
+    def test_length_bucket_and_language_survive_scrubbing_alongside_filtered_question(self, monkeypatch):
+        """End-to-end: even though _capture_backend_error scrubs "question" to
+        "[Filtered]", the new safe fields must not be caught by the same
+        sensitive-key filter (they carry no question/answer content)."""
+        import app as flask_app_module
+        from backend import logging_setup
+        import json as json_module
+
+        logged = []
+        monkeypatch.setattr(
+            flask_app_module.app.logger, "error",
+            lambda msg, *a, **k: logged.append(a),
+        )
+        question = "Is it permitted to drive on Shabbat for a medical emergency?"
+        logging_setup._capture_backend_error(
+            "ask_ai_synthesis_failed", ValueError("boom"),
+            {
+                "question": question,
+                "mode": "normal",
+                "community_lens": "Ashkenaz",
+                "user_id_hash": logging_setup.hash_user_id("user_abc"),
+                "input_length_bucket": logging_setup.question_length_bucket(question),
+                "language": "en",
+            },
+        )
+        payload = json_module.loads(logged[0][0])
+        assert payload["context"]["question"] == "[Filtered]"
+        assert payload["context"]["input_length_bucket"] == logging_setup.question_length_bucket(question)
+        assert payload["context"]["language"] == "en"
