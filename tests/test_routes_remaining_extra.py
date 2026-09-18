@@ -10,7 +10,6 @@ from __future__ import annotations
 
 import builtins
 
-import pytest
 
 
 class TestCommunityApiAlias:
@@ -49,7 +48,6 @@ class TestCommunityDetailExceptionPath:
 
 class TestCommunityTimelineDataShapes:
     def test_timeline_with_list_of_dict_entries(self, test_client, monkeypatch):
-        import backend.routes_community as rc
         real_open = builtins.open
 
         def fake_open(path, *a, **k):
