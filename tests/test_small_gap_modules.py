@@ -8,9 +8,7 @@ covered happy paths.
 
 from __future__ import annotations
 
-import asyncio
 
-import pytest
 
 import backend.cost_meter as cost_meter
 import backend.data_service as data_service
@@ -55,6 +53,37 @@ class TestInsertUsageRow:
         monkeypatch.setattr(app, "_get_supabase_client", lambda: FakeClient())
         cost_meter._insert_usage_row({"provider": "anthropic", "model": "x"})
         assert inserted == [{"provider": "anthropic", "model": "x"}]
+
+    def test_client_exception_reaches_capture_backend_error(self, monkeypatch):
+        """Plan.md §20.1-C3b: a dead ledger must be audible (routed through
+        the project's structured-error funnel), not swallowed at
+        logger.debug where it's invisible at the default LOG_LEVEL=INFO."""
+        import app
+
+        class FakeClient:
+            def table(self, name):
+                raise RuntimeError("relation \"ai_usage_log\" does not exist")
+
+        monkeypatch.setattr(app, "_get_supabase_client", lambda: FakeClient())
+
+        captured = []
+        monkeypatch.setattr(
+            cost_meter, "_capture_backend_error",
+            lambda event, error, context=None: captured.append((event, error, context)),
+        )
+
+        # Must not raise -- the write stays non-fatal to the request.
+        cost_meter._insert_usage_row(
+            {"provider": "gemini", "model": "gemini-3.5-flash-lite", "route": "/ask"}
+        )
+
+        assert len(captured) == 1
+        event, error, context = captured[0]
+        assert event == "cost_meter_insert_failed"
+        assert isinstance(error, RuntimeError)
+        assert context["provider"] == "gemini"
+        assert context["model"] == "gemini-3.5-flash-lite"
+        assert context["route"] == "/ask"
 
 
 class TestRecordLlmCall:

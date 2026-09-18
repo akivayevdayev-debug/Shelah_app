@@ -17,8 +17,18 @@ inverted assertions were written): `_PRICE_PER_M` had no
 `estimate_cost_usd("gemini-3.5-flash-lite", 1000, 1000) == 0.0` on the code
 as it existed before this pass -- confirmed by direct inspection of
 backend/cost_meter.py's `_PRICE_PER_M` dict prior to the fix landing in the
-same change-set. `test_production_gemini_model_is_priced` below is that
-same assertion, inverted now that the price entry exists.
+same change-set.
+
+Update 2026-09-01 (Akiva): this project runs on Gemini's free tier, so every
+"gemini-*" entry in `_PRICE_PER_M` was deliberately set to
+`{"input": 0.0, "output": 0.0}` -- a real, explicit price-table entry, not
+the silent `_UNKNOWN_PRICE` fallback the original bug produced.
+`estimate_cost_usd(...)` now legitimately returns `0.0` for Gemini calls,
+numerically identical to the pre-fix bug's output -- so
+`test_production_gemini_model_is_priced` below asserts against the
+*presence* of the dict entry (which the missing-model warning path would
+catch if it ever silently disappeared again), not against a positive
+dollar amount.
 """
 
 from __future__ import annotations
@@ -38,34 +48,49 @@ def test_unknown_model_still_returns_zero_cost():
 
 
 def test_production_gemini_model_is_priced():
-    """Was $0.0 (plan.md §20.1-C1, verified against pre-fix _PRICE_PER_M).
-    _PRICE_PER_M now carries a real, non-zero entry for the production
-    Gemini model instead of silently falling back to _UNKNOWN_PRICE."""
+    """Was $0.0 via silent _UNKNOWN_PRICE fallback (plan.md §20.1-C1,
+    verified against pre-fix _PRICE_PER_M -- no dict key at all).
+    _PRICE_PER_M now carries a real, explicit entry for the production
+    Gemini model -- $0.00 deliberately (2026-09-01: this project runs on
+    Gemini's free tier), not because the key is missing. The distinction
+    that matters: an explicit zero-price entry never trips
+    _warn_unpriced_model_once() (see TestUnpricedModelWarnsOnceLoudly's
+    test_a_priced_model_never_warns), while a genuinely missing entry
+    always does -- so this test pins presence, not a dollar amount."""
+    model_key = claude_module._DEFAULT_GEMINI_MODEL.lower()
+    prices = cost_meter._PRICE_PER_M.get(model_key)
+    assert prices is not None, (
+        f"{claude_module._DEFAULT_GEMINI_MODEL!r} has no _PRICE_PER_M entry "
+        "at all -- this is the original silent-fallback bug, not the "
+        "deliberate free-tier $0.00 this test expects."
+    )
     cost = cost_meter.estimate_cost_usd(
         claude_module._DEFAULT_GEMINI_MODEL, 1_000_000, 1_000_000
     )
-    assert cost > 0.0
-    # Pin the literal value (Google ai.google.dev pricing, verified
-    # 2026-08-19: $0.30/1M input, $2.50/1M output) so a future accidental
-    # edit to the price table is caught here, not on an invoice.
-    assert cost == 0.30 + 2.50
+    # Pin the literal value: $0.00, deliberately (free tier), so a future
+    # accidental edit to the price table is caught here, not on an invoice.
+    assert cost == 0.0
 
 
 class TestEveryDispatchableModelIsPriced:
     """The CI guard that matters: fails on the PR that bumps a model name,
-    not three weeks later when the ledger total looks suspiciously low."""
+    not three weeks later when the ledger total looks suspiciously low.
 
-    def test_all_dispatchable_models_have_positive_prices(self):
+    Checks presence of a _PRICE_PER_M entry, not positivity -- Gemini
+    models are deliberately priced at $0.00 (free tier, 2026-09-01), which
+    must still count as "priced" (an explicit decision) rather than
+    "missing" (the original silent-fallback bug)."""
+
+    def test_all_dispatchable_models_have_an_explicit_price_entry(self):
         missing = []
         for model in sorted(claude_module.get_dispatchable_models()):
-            prices = cost_meter._PRICE_PER_M.get(model.lower())
-            if not prices or prices["input"] <= 0 or prices["output"] <= 0:
+            if cost_meter._PRICE_PER_M.get(model.lower()) is None:
                 missing.append(model)
         assert not missing, (
-            "backend/cost_meter.py's _PRICE_PER_M has no positive price "
+            "backend/cost_meter.py's _PRICE_PER_M has no entry at all "
             f"for dispatchable model(s): {missing}. Every model "
             "backend.claude.get_dispatchable_models() can actually call "
-            "must have a real entry."
+            "must have a real entry, even if the honest price is $0.00."
         )
 
     def test_guard_has_teeth(self, monkeypatch):
