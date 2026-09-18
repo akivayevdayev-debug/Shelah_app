@@ -25,6 +25,7 @@ import argparse
 import json
 import re
 import time
+import unicodedata
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Dict, List, Sequence, Tuple
@@ -36,7 +37,16 @@ SEFARIA_API = "https://www.sefaria.org/api"
 
 
 def normalize_key(value: str) -> str:
-    return re.sub(r"[^a-z0-9]+", "", str(value or "").lower())
+    """Comparison key for a title/ref: lower-cased letters and digits of ANY
+    script, with everything else (spaces, punctuation, and combining marks such
+    as Hebrew niqqud) removed. NFC first, so a precomposed letter and its
+    base + combining-mark spelling give the same key.
+
+    This used to keep only [a-z0-9], which turned a Hebrew-only title into ""
+    (dropped from the crawl by dedupe_leaf_titles, never looked up by
+    resolve_name_ref) and made distinct non-ASCII titles collide.
+    """
+    return re.sub(r"[\W_]+", "", unicodedata.normalize("NFC", str(value or "")).lower())
 
 
 def has_nonempty_text(value: Any) -> bool:
