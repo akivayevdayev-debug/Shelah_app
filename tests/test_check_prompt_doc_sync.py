@@ -10,8 +10,11 @@ what it does and does not promise.
 from __future__ import annotations
 
 import importlib.util
+import os
 import sys
 from pathlib import Path
+
+import pytest
 
 SCRIPT_PATH = Path(__file__).resolve().parent.parent / "scripts" / "check_prompt_doc_sync.py"
 _spec = importlib.util.spec_from_file_location("check_prompt_doc_sync", SCRIPT_PATH)
@@ -163,3 +166,146 @@ class TestFindMismatches:
         }
         findings = cpds.find_mismatches(plan_sections, prompts)
         assert findings == []
+
+
+class TestResolveRepoPath:
+    """SonarCloud pythonsecurity:S8707: --plan / --prompts are CLI-supplied and
+    were read without any containment check, so ``../`` or an absolute path
+    could point the script at any file the caller can read."""
+
+    def test_relative_path_inside_repo_resolves(self, tmp_path, monkeypatch):
+        (tmp_path / "plan.md").write_text("x")
+        monkeypatch.chdir(tmp_path)
+        assert cpds.resolve_repo_path("plan.md", tmp_path) == (tmp_path / "plan.md").resolve()
+
+    def test_nested_and_dotdot_that_stays_inside_is_allowed(self, tmp_path, monkeypatch):
+        (tmp_path / "docs").mkdir()
+        (tmp_path / "plan.md").write_text("x")
+        monkeypatch.chdir(tmp_path)
+        assert cpds.resolve_repo_path("docs/../plan.md", tmp_path) == (tmp_path / "plan.md").resolve()
+
+    def test_dotdot_traversal_out_of_repo_is_rejected(self, tmp_path, monkeypatch):
+        repo = tmp_path / "repo"
+        repo.mkdir()
+        (tmp_path / "secret.txt").write_text("secret")
+        monkeypatch.chdir(repo)
+        with pytest.raises(ValueError, match="outside the repository root"):
+            cpds.resolve_repo_path("../secret.txt", repo)
+
+    def test_deep_dotdot_traversal_is_rejected(self, tmp_path, monkeypatch):
+        repo = tmp_path / "repo"
+        repo.mkdir()
+        monkeypatch.chdir(repo)
+        with pytest.raises(ValueError):
+            cpds.resolve_repo_path("../" * 10 + "etc/passwd", repo)
+
+    def test_absolute_path_outside_repo_is_rejected(self, tmp_path):
+        repo = tmp_path / "repo"
+        repo.mkdir()
+        outside = tmp_path / "outside.md"
+        outside.write_text("x")
+        with pytest.raises(ValueError, match="outside the repository root"):
+            cpds.resolve_repo_path(str(outside), repo)
+
+    def test_absolute_path_inside_repo_is_allowed(self, tmp_path):
+        inside = tmp_path / "plan.md"
+        inside.write_text("x")
+        assert cpds.resolve_repo_path(str(inside), tmp_path) == inside.resolve()
+
+    def test_sibling_directory_sharing_the_repo_name_prefix_is_rejected(self, tmp_path):
+        # A naive str.startswith() containment check would accept "repo-evil".
+        repo = tmp_path / "repo"
+        evil = tmp_path / "repo-evil"
+        repo.mkdir()
+        evil.mkdir()
+        (evil / "plan.md").write_text("x")
+        with pytest.raises(ValueError):
+            cpds.resolve_repo_path(str(evil / "plan.md"), repo)
+
+    @pytest.mark.skipif(not hasattr(os, "symlink"), reason="needs symlink support")
+    def test_symlink_pointing_out_of_repo_is_rejected(self, tmp_path):
+        repo = tmp_path / "repo"
+        repo.mkdir()
+        target = tmp_path / "outside.md"
+        target.write_text("x")
+        link = repo / "plan.md"
+        link.symlink_to(target)
+        with pytest.raises(ValueError):
+            cpds.resolve_repo_path(str(link), repo)
+
+    def test_default_root_is_the_real_repository(self):
+        assert cpds.resolve_repo_path(str(SCRIPT_PATH)) == SCRIPT_PATH.resolve()
+
+
+class TestMainCli:
+    PLAN = "## 5. Some section\n\nAll done. \u2705\n"
+    PROMPTS = "## Prompt 1 -- \xa75: thing\n\n\U0001f534 still open\n"
+
+    def _repo(self, tmp_path, monkeypatch):
+        monkeypatch.setattr(cpds, "REPO_ROOT", tmp_path)
+        monkeypatch.chdir(tmp_path)
+        (tmp_path / "plan.md").write_text(self.PLAN, encoding="utf-8")
+        (tmp_path / "claude_code_prompts.md").write_text(self.PROMPTS, encoding="utf-8")
+
+    def test_reports_a_mismatch_for_in_repo_files(self, tmp_path, monkeypatch, capsys):
+        self._repo(tmp_path, monkeypatch)
+        assert cpds.main([]) == 0
+        out = capsys.readouterr().out
+        assert "1 candidate mismatch" in out
+        assert "Prompt 1 claims 'open' but plan.md \xa75 reads 'done'" in out
+
+    def test_strict_exits_1_on_mismatch(self, tmp_path, monkeypatch):
+        self._repo(tmp_path, monkeypatch)
+        assert cpds.main(["--strict"]) == 1
+
+    def test_no_mismatch_message(self, tmp_path, monkeypatch, capsys):
+        self._repo(tmp_path, monkeypatch)
+        (tmp_path / "claude_code_prompts.md").write_text(
+            "## Prompt 1 -- \xa75: thing\n\n\u2705 done\n", encoding="utf-8")
+        assert cpds.main(["--strict"]) == 0
+        assert "no status mismatches found" in capsys.readouterr().out
+
+    def test_missing_files_are_skipped_not_an_error(self, tmp_path, monkeypatch, capsys):
+        monkeypatch.setattr(cpds, "REPO_ROOT", tmp_path)
+        monkeypatch.chdir(tmp_path)
+        assert cpds.main([]) == 0
+        assert "skipping (missing" in capsys.readouterr().out
+
+    def test_dotdot_traversal_argument_is_rejected_with_a_clear_error(
+            self, tmp_path, monkeypatch, capsys):
+        repo = tmp_path / "repo"
+        repo.mkdir()
+        (tmp_path / "secret.md").write_text("# secret", encoding="utf-8")
+        monkeypatch.setattr(cpds, "REPO_ROOT", repo)
+        monkeypatch.chdir(repo)
+        with pytest.raises(SystemExit) as excinfo:
+            cpds.main(["--plan", "../secret.md"])
+        assert excinfo.value.code == 2
+        assert "outside the repository root" in capsys.readouterr().err
+
+    def test_absolute_path_escape_argument_is_rejected(self, tmp_path, monkeypatch, capsys):
+        repo = tmp_path / "repo"
+        repo.mkdir()
+        outside = tmp_path / "outside.md"
+        outside.write_text("# outside", encoding="utf-8")
+        monkeypatch.setattr(cpds, "REPO_ROOT", repo)
+        monkeypatch.chdir(repo)
+        with pytest.raises(SystemExit) as excinfo:
+            cpds.main(["--prompts", str(outside)])
+        assert excinfo.value.code == 2
+        assert "outside the repository root" in capsys.readouterr().err
+
+    def test_rejected_path_is_never_read(self, tmp_path, monkeypatch):
+        repo = tmp_path / "repo"
+        repo.mkdir()
+        outside = tmp_path / "outside.md"
+        outside.write_text("# outside", encoding="utf-8")
+        monkeypatch.setattr(cpds, "REPO_ROOT", repo)
+        monkeypatch.chdir(repo)
+        reads = []
+        real_read_text = Path.read_text
+        monkeypatch.setattr(Path, "read_text",
+                            lambda self, *a, **k: reads.append(self) or real_read_text(self, *a, **k))
+        with pytest.raises(SystemExit):
+            cpds.main(["--plan", str(outside)])
+        assert reads == []
