@@ -18,6 +18,7 @@ import logging
 import os
 import time
 import uuid
+from collections import OrderedDict
 from concurrent.futures import Future, ThreadPoolExecutor
 from contextvars import ContextVar, copy_context
 from datetime import datetime, timezone
@@ -75,6 +76,55 @@ def _traces_sampler(sampling_context: dict) -> float:
     return _TRACE_SAMPLE_RATE_DEFAULT
 
 
+# Backend equivalent of static/js/sentry-init.js's makeBeforeSend() session
+# throttle (plan.md §17.6 T4): the Sentry free tier's "per-key rate limit"
+# dashboard setting isn't available without a paid plan, so the same
+# dedupe-window + hard-cap protection is enforced here in code instead, one
+# quota-consuming project (backend) mirroring the other (browser). Process-
+# level rather than session-level, since a server process has no session
+# concept — OrderedDict + LRU eviction matches backend/rate_limit.py's
+# _InMemoryStore, the same "unbounded dict on a long-lived Fluid instance"
+# concern applies here.
+_SENTRY_DEDUPE_WINDOW_SECONDS = 30
+_MAX_SENTRY_EVENTS_PER_PROCESS = 200
+_SENTRY_SEEN_MAX_KEYS = 512
+_sentry_seen_at: "OrderedDict[str, float]" = OrderedDict()
+_sentry_sent_count = 0
+
+
+def _sentry_event_fingerprint(event: dict) -> str:
+    values = ((event.get("exception") or {}).get("values")) or []
+    if values:
+        first = values[0] or {}
+        return f"{first.get('type', '')}:{first.get('value', '')}"
+    return str(event.get("message") or "unknown")
+
+
+def _sentry_before_send(event: dict, hint: dict) -> dict | None:
+    """Drop a looping error's repeats and enforce a hard per-process cap
+    before it counts against the 5,000-events/month free-tier quota
+    (plan.md §17.1/§17.6) — see the module comment above."""
+    global _sentry_sent_count
+
+    fingerprint = _sentry_event_fingerprint(event)
+    now = time.monotonic()
+    last_seen = _sentry_seen_at.get(fingerprint)
+    if last_seen is not None and (now - last_seen) < _SENTRY_DEDUPE_WINDOW_SECONDS:
+        return None  # same error looping — drop repeats within the window
+
+    if fingerprint in _sentry_seen_at:
+        _sentry_seen_at.move_to_end(fingerprint)
+    elif len(_sentry_seen_at) >= _SENTRY_SEEN_MAX_KEYS:
+        _sentry_seen_at.popitem(last=False)
+    _sentry_seen_at[fingerprint] = now
+
+    _sentry_sent_count += 1
+    if _sentry_sent_count > _MAX_SENTRY_EVENTS_PER_PROCESS:
+        return None  # process-level cap — protects the monthly quota
+
+    return event
+
+
 def _build_sentry_init_kwargs(dsn: str) -> dict:
     """Assemble sentry_sdk.init() kwargs.
 
@@ -92,6 +142,7 @@ def _build_sentry_init_kwargs(dsn: str) -> dict:
         # mental-health/abuse-adjacent (§8.B/§8.D).
         "send_default_pii": False,
         "traces_sampler": _traces_sampler,
+        "before_send": _sentry_before_send,
         "environment": os.environ.get("VERCEL_ENV", "development"),
         "release": os.environ.get("VERCEL_GIT_COMMIT_SHA") or None,
     }
@@ -216,18 +267,6 @@ def bind_request_id(request_id: str | None = None) -> str:
 def get_request_id() -> str:
     """Return the current context's request_id (empty string if not set)."""
     return _request_id_var.get()
-
-
-def submit_with_context(executor, fn, *args, **kwargs):
-    """Submit *fn* to *executor*, propagating the calling contextvars.
-
-    ThreadPoolExecutor workers don't inherit the submitting thread's
-    contextvars by default, so request_id (and anything else on a
-    ContextVar) silently drops out of every background-thread log line
-    unless the submitting context is copied and replayed inside the worker.
-    """
-    ctx = copy_context()
-    return executor.submit(ctx.run, fn, *args, **kwargs)
 
 
 def bind_user_id(user_id: str | None = None) -> str:
@@ -368,6 +407,30 @@ def hash_user_id(user_id) -> str:
     return hashlib.sha256(str(user_id or "").encode()).hexdigest()[:16]
 
 
+def question_length_bucket(question) -> str:
+    """Coarse, non-reversible stand-in for halachic question text in
+    _capture_backend_error context, for callers that want more debugging
+    signal than _scrub_error_context's blanket "[Filtered]" on the
+    "question" key leaves behind.
+
+    Deliberately NOT a hash like hash_user_id: a Clerk `sub` is a
+    high-entropy random id, so hashing it is safe (no feasible dictionary
+    attack). Halachic questions are low-entropy free text that real users
+    repeat near-verbatim ("can I turn on lights on shabbat"), so hashing
+    would let anyone with a list of common questions reverse the hash by
+    comparison -- the opposite of privacy protection. A length bucket
+    carries no such risk.
+    """
+    length = len(str(question or ""))
+    if length == 0:
+        return "empty"
+    if length <= 60:
+        return "short"
+    if length <= 200:
+        return "medium"
+    return "long"
+
+
 def _is_discord_webhook_url(url: str) -> bool:
     """Discord webhook URLs are always ``https://[sub.]discord(app).com/api/webhooks/...`` —
     matches subdomains (``ptb.``, ``canary.``) via substring containment."""
@@ -434,13 +497,39 @@ def _capture_backend_error(event_name, error, context=None):
                 if _is_discord_webhook_url(error_log_webhook_url)
                 else payload
             )
-            _requests.post(
+            webhook_resp = _requests.post(
                 error_log_webhook_url,
                 json=webhook_body,
                 timeout=2,
             )
-        except Exception:
-            pass
+            if webhook_resp.status_code >= 300:
+                # Deliberately app.logger.warning, not _capture_backend_error --
+                # this exists precisely because a broken webhook must not go
+                # silent again (plan.md §48: a malformed webhook target went
+                # undetected for weeks because failures here were swallowed
+                # with no trace anywhere). Recursing into _capture_backend_error
+                # would also risk an infinite loop if the webhook itself is the
+                # failure. This still never raises to the caller.
+                #
+                # Deliberately metadata-only, not webhook_resp.text -- the
+                # webhook target is a third party (e.g. Discord, or whatever
+                # ERROR_LOG_WEBHOOK_URL points at) and its response body is
+                # unvetted content that could echo back request data or other
+                # sensitive material. _truncate_free_text() is the same
+                # defence-in-depth backstop _scrub_error_context() uses above
+                # for free-text values, applied here to the one remaining
+                # unbounded string (Content-Type).
+                _flask_app.app.logger.warning(
+                    "OBS_EVENT_WEBHOOK_POST_FAILED status=%s content_type=%s content_length=%s",
+                    webhook_resp.status_code,
+                    _truncate_free_text(webhook_resp.headers.get("Content-Type", "unknown")),
+                    webhook_resp.headers.get("Content-Length", "unknown"),
+                )
+        except Exception as webhook_exc:
+            _flask_app.app.logger.warning(
+                "OBS_EVENT_WEBHOOK_POST_FAILED error=%s: %s",
+                type(webhook_exc).__name__, webhook_exc,
+            )
 
     # Forward to Sentry when configured. True no-op when SENTRY_DSN is unset:
     # _sentry_enabled is only True after a successful sentry_sdk.init() above.

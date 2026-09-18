@@ -36,6 +36,7 @@ from backend.logging_setup import (
     setup_logging,
     _capture_backend_error,
     hash_user_id,
+    question_length_bucket,
     bind_request_id,
     get_logger,
     submit_with_context,
@@ -760,12 +761,16 @@ def _holiday_emoji_for_event(title, category=""):
 
 
 def _holiday_color_for_category(category):
+    # Keep in sync with static/css/tokens.css's light-mode --cal-event-*
+    # tokens (see the comment there). "roshchodesh" was #5a99b7, only
+    # 3.15:1 against the white event-chip text (textColor below) — fails
+    # WCAG AA's 4.5:1 text threshold; darkened to #35708c (5.46:1).
     palette = {
         "major": "#802f3e",
         "minor": "#594176",
         "modern": "#2563eb",
         "fast": "#374151",
-        "roshchodesh": "#5a99b7",
+        "roshchodesh": "#35708c",
         "shabbat": "#004e5f",
         "parashat": "#004e5f",
         "holiday": "#802f3e",
@@ -1971,6 +1976,8 @@ def _run_ask_question_fallback(question, mode, canonical_lens, answer_language, 
             "mode": mode,
             "community_lens": canonical_lens,
             "user_id_hash": hash_user_id(user_id),
+            "input_length_bucket": question_length_bucket(question),
+            "language": answer_language,
         },
     )
     fallback_payload = get_halakhic_sources(question)
@@ -2078,10 +2085,13 @@ def _build_ask_critical_error_context(local_vars):
     local was bound. Split out of ask_question() (SonarCloud
     python:S3776).
     """
+    question = local_vars.get("question", "")
     return {
-        "question": local_vars.get("question", ""),
+        "question": question,
         "mode": local_vars.get("mode", ""),
         "community_lens": local_vars.get("canonical_lens", ""),
+        "input_length_bucket": question_length_bucket(question),
+        "language": local_vars.get("answer_language", ""),
     }
 
 
