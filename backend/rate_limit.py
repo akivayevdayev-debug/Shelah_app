@@ -90,6 +90,18 @@ _POLICIES: dict[str, _Policy] = {
     "feedback": _Policy(window_seconds=60, max_requests=10, fail_open=True),
     "telemetry": _Policy(window_seconds=60, max_requests=10, fail_open=True),
     "cheap": _Policy(window_seconds=60, max_requests=120, fail_open=True),
+    # Privacy-sensitive routes that used to fall through to "cheap" (a 2026-
+    # 09-02 audit flagged this as under-protected, since "cheap" is also the
+    # bucket read-only library lookups share): account-data actions a
+    # legitimate caller invokes rarely, so a low ceiling costs nothing real
+    # while capping abuse -- and, for "account", keyed by Clerk user id (see
+    # _build_key) so one NATed IP can't cap every other user behind it.
+    "account": _Policy(window_seconds=60, max_requests=5, fail_open=True),
+    # /api/webhooks/clerk stays IP-keyed (no per-caller identity to key on --
+    # it's Clerk calling us, not an end user); Svix signature verification
+    # is the real gate on this cascade-delete trigger, but a materially
+    # tighter ceiling than "cheap" is still worth it as defense-in-depth.
+    "webhook": _Policy(window_seconds=60, max_requests=15, fail_open=True),
 }
 
 _DAILY_WINDOW_SECONDS = 86400
@@ -105,6 +117,9 @@ _ROUTE_CLASSES: list[tuple[str, str]] = [
     ("/api/geocode", "fanout"),
     ("/api/feedback", "feedback"),
     ("/api/client-errors", "telemetry"),
+    ("/api/user/delete-account", "account"),
+    ("/api/user/data-export", "account"),
+    ("/api/webhooks/clerk", "webhook"),
 ]
 
 
@@ -194,36 +209,91 @@ class _RedisStore(_RateLimitStore):
     == 1), so a steady stream of requests can't keep pushing the window
     forward -- classic "INCR then conditionally EXPIRE" fixed-window
     pattern, chosen over EXPIRE...NX for broad Redis/Upstash compatibility.
+
+    Loop-safety: this store is a module-level singleton (``_store`` below,
+    built once at import time -- see ``get_shared_store()``), but a
+    ``redis.asyncio`` client's connection pool binds its asyncio primitives
+    (locks/futures/transports) to whichever event loop is running the first
+    time a command actually executes. A process that outlives one event
+    loop and later serves requests on a *different* one -- every test here
+    (pytest-asyncio creates a fresh loop per test function) and, in
+    production, a warm Vercel Fluid Compute instance reused across
+    invocations -- would otherwise reuse a pool wired to a closed loop and
+    fail with "Task ... got Future ... attached to a different loop" /
+    "Event loop is closed". ``_client_for_current_loop()`` re-binds (by
+    building a fresh client against the same ``self._url``) whenever the
+    currently-running loop differs from the one the cached client was last
+    used on, so each event loop gets its own client instead of a stale one
+    being force-reused across loop boundaries. The stale client/pool is not
+    explicitly closed -- its transport belongs to a loop that may already be
+    closed by the time we notice, so attempting to close it here could
+    itself raise; it is simply dropped and left for GC.
     """
 
     def __init__(self, url: str) -> None:
         import redis.asyncio as redis_asyncio  # local import: optional until configured
 
+        self._url = url
+        # Built eagerly so a malformed URL still raises synchronously out of
+        # __init__ (matching _build_store()'s try/except, which must never
+        # let a bad URL crash app boot) -- but not yet "bound" to any event
+        # loop (_client_loop stays None until first real use binds it).
         self._client = redis_asyncio.Redis.from_url(
             url,
             decode_responses=True,
             socket_timeout=2.0,
             socket_connect_timeout=2.0,
         )
+        self._client_loop: object | None = None
+
+    def _client_for_current_loop(self):
+        """Return an async Redis client guaranteed to be bound to the
+        currently-running event loop, rebuilding it if the loop changed
+        since it was last used. Test doubles built via
+        ``_RateLimitStore.__new__(_RedisStore)`` (see tests/test_rate_limit.py)
+        skip __init__ and assign ``_client`` directly with no ``_url`` --
+        for those, there is nothing to rebind against, so the assigned fake
+        client is returned unchanged."""
+        url = getattr(self, "_url", None)
+        if url is None:
+            return self._client
+
+        import redis.asyncio as redis_asyncio  # local import: optional until configured
+
+        loop = asyncio.get_running_loop()
+        if self._client is None or (
+            self._client_loop is not None and self._client_loop is not loop
+        ):
+            self._client = redis_asyncio.Redis.from_url(
+                url,
+                decode_responses=True,
+                socket_timeout=2.0,
+                socket_connect_timeout=2.0,
+            )
+        self._client_loop = loop
+        return self._client
 
     async def incr(self, key: str, window_seconds: int) -> int:
         try:
-            count = await self._client.incr(key)
+            client = self._client_for_current_loop()
+            count = await client.incr(key)
             if count == 1:
-                await self._client.expire(key, window_seconds)
+                await client.expire(key, window_seconds)
             return int(count)
         except Exception as exc:  # redis.exceptions.* + connection/timeout errors
             raise _StoreUnavailable(str(exc)) from exc
 
     async def get(self, key: str) -> str | None:
         try:
-            return await self._client.get(key)
+            client = self._client_for_current_loop()
+            return await client.get(key)
         except Exception as exc:  # redis.exceptions.* + connection/timeout errors
             raise _StoreUnavailable(str(exc)) from exc
 
     async def setex(self, key: str, ttl_seconds: int, value: str) -> None:
         try:
-            await self._client.setex(key, ttl_seconds, value)
+            client = self._client_for_current_loop()
+            await client.setex(key, ttl_seconds, value)
         except Exception as exc:  # redis.exceptions.* + connection/timeout errors
             raise _StoreUnavailable(str(exc)) from exc
 
@@ -273,12 +343,15 @@ def get_shared_store() -> _RateLimitStore:
 
 
 def _build_key(route_class: str, client_ip: str, user_id: str | None) -> str:
-    if route_class == "llm" and user_id:
-        # Identity-aware for the one class that already shipped it pre-
-        # unification (asgi.py's old /ask-only limiter) -- an authenticated
-        # user gets a per-account bucket rather than sharing a NATed IP's
-        # bucket with every other user behind it. Extending this to other
-        # classes is Phase 9c scope, not this pass's.
+    if route_class in ("llm", "account") and user_id:
+        # Identity-aware for classes where an authenticated caller should
+        # get a per-account bucket instead of sharing a NATed IP's bucket
+        # with every other user behind it: "llm" shipped this pre-
+        # unification (asgi.py's old /ask-only limiter); "account" (the
+        # delete-account/data-export routes) was added per a 2026-09-02
+        # audit. "webhook" (/api/webhooks/clerk) deliberately stays IP-keyed
+        # -- see _ROUTE_CLASSES -- there is no caller identity to key on,
+        # it's Clerk calling us, not an end user.
         return f"rl:{route_class}:user:{user_id}"
     return f"rl:{route_class}:ip:{client_ip}"
 
@@ -345,7 +418,7 @@ class RateLimitMiddleware(BaseHTTPMiddleware):
             remote_addr=(request.client.host if request.client else None),
         )
         user_id = None
-        if route_class == "llm":
+        if route_class in ("llm", "account"):
             user_id = extract_user_id_from_bearer_value(request.headers.get("authorization"))
 
         allowed, retry_after = await _check(route_class, client_ip, user_id, path)
