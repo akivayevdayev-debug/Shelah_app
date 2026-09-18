@@ -224,7 +224,7 @@ def load_all_customs():
                     customs[name] = entries
 
         except Exception as e:
-            print(f"[Customs Load Error] {filepath}: {e}")
+            logger.exception("[Customs Load Error] %s: %s", filepath, e)
 
     _CUSTOMS_CACHE["signature"] = signature
     _CUSTOMS_CACHE["data"] = customs
