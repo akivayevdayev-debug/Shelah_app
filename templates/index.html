@@ -182,7 +182,7 @@
 
     <!-- Privacy-respecting analytics consent banner (plan.md §12.5.3, §8.A.4).
          Hidden until JS decides no prior choice is recorded. -->
-    <div id="analyticsConsentBanner" class="hidden" role="region" aria-label="Analytics consent">
+    <section id="analyticsConsentBanner" class="hidden" aria-label="Analytics consent">
         <p>
             <span data-en="We use cookieless, privacy-first analytics (no ad tracking, no cross-site profiling) to see which pages are useful. Is that OK?"
                 data-he="אנו משתמשים באנליטיקס ללא עוגיות ולא פוגעני פרטיות (ללא מעקב פרסומי, ללא פרופיל חוצה אתרים) כדי לראות אילו עמודים שימושיים. זה בסדר?">We
@@ -193,7 +193,7 @@
             <button type="button" id="analyticsConsentDecline" data-en="Decline" data-he="דחה">Decline</button>
             <button type="button" id="analyticsConsentAccept" data-en="Accept" data-he="קבל">Accept</button>
         </div>
-    </div>
+    </section>
 
     <!-- Mobile drawer backdrop — starts below the topbar -->
     <div id="mobileDrawerBackdrop" aria-hidden="true"
@@ -222,7 +222,7 @@
                 <!-- Library Button (Desktop Homepage Only) — placed after brand for natural flow -->
                 <button id="topbarLibraryBtn" type="button"
                     class="topbar-flat-btn hidden lg:inline-flex shrink-0 items-center gap-1.5 topbar-library-btn"
-                    onclick="openLibrarySidebar()" title="Library" aria-label="Library">
+                    onclick="openLibrarySidebar()" title="Library">
                     {{ phosphor('book-open', size=20, class='h-5 w-5 shrink-0') }}
                     <span class="text-xs font-medium" data-en="Library" data-he="ספרייה">Library</span>
                 </button>
