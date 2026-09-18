@@ -175,6 +175,10 @@ html.rtl .info-box {
 }
 
 .prose pre {
+    /* Tailwind Typography gives `pre` light text (#e5e7eb) for its own dark
+       block; this rule swaps in a light surface, so the text colour must
+       be overridden too (was 1.08:1 on /licenses). */
+    color: var(--ink-primary);
     background: var(--surface-1);
     border: 1px solid var(--surface-border);
     border-radius: var(--radius-md);
