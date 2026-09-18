@@ -128,9 +128,11 @@ old history.
   Clerk's plain default session token (`templates/index.html`'s `authHeaders()`),
   not a `"supabase"`-templated one, so `scripts/clerk_supabase_rls.py`
   (which expected the latter and had zero production importers) was
-  confirmed stale/unused and deleted 2026-08-31, along with the
-  `CLERK_TOKEN_TEMPLATE` env var it alone consumed (plan.md §21.2.1) —
-  see Prompt 34's 2026-08-24 update for the code-level evidence trail.
+  confirmed stale/unused. Its removal was recorded 2026-08-31 (plan.md
+  §21.2.1) but the file itself stayed on disk until 2026-09-18, when it was
+  actually deleted; the `CLERK_TOKEN_TEMPLATE` env var it alone consumed
+  went with it (plan.md §21.2.1; see Prompt 34's 2026-08-24 update for the
+  code-level evidence trail).
 - `STRICT_SUPABASE_RLS` (`app.py`) is a hardcoded `True` literal — enforced
   unconditionally, not just "in prod" — with the comment explaining this is
   a security posture, not per-deployment config.

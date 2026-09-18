@@ -17,9 +17,6 @@ does; this file just classifies how often you'd run them.
   empirically (insert a probe row, then try to read it back with the anon
   client). Run after applying that migration in the Supabase SQL editor, or
   anytime you want to re-verify the policy is still in effect.
-- **`clerk_supabase_rls.py`** — manual Clerk JWT → Supabase RLS debugging
-  utility. Not imported by the running app; invoke directly when debugging
-  user-scoped data access.
 - **`crawl_library_leaves.py`** — re-crawls the Sefaria library tree and
   regenerates the leaf remove/fix report. Re-run only when that report
   (`reports/library_leaf_remove_fix_report.full.json`, read at runtime by
