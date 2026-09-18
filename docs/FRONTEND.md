@@ -58,7 +58,7 @@ const response = await askAi('Can I use electricity on Shabbat?', {
 // response: { answer, sources, customs, wiki, meta, confidence }
 ```
 
-Internally, `askAi` reads the Clerk token from `window.Clerk.session`, builds the fetch request, handles 429 (rate limit) and 503 (service unavailable) gracefully, and calls `setState({ lastAiQuestion, lastAiResponse })` on success.
+Internally, `askAi` retries up to 3 attempts with a 60s per-attempt timeout, backing off 1200ms × attempt, on 502/503/504 responses or a network-level `AbortError`/`TypeError` -- never on 4xx or a clean response. On a 401 it refreshes the auth headers once (via `window.authHeaders`) and retries the full attempt cycle before giving up, since a 401 usually means a mid-session token expiry rather than a real failure. It does not handle 429 -- no caller sends one today (`plan.md` §19.2). On success it calls `setState({ ai: { pending, lastResponse, lastAnsweredAt } })`; on failure it throws an `Error` carrying `.status` (HTTP status, when a response arrived), `.code` (a structured backend error code such as `turnstile_required`, when present), and `.attempts` (retry count, only set when the failure came from exhausting network retries rather than a completed response) -- callers branch on those instead of inspecting a raw `Response`.
 
 ---
 
@@ -97,7 +97,7 @@ installZmanim({
 
 Key behaviours:
 
-- Resolves location from a previously-picked city (localStorage key `Sh'elahLastLocation`) or the session cookie set by `/set_location`, falling back server-side to IP-based geolocation
+- Resolves location from a previously-picked city (localStorage key `Sh'elahLastLocation`) or the session cookie set by `/set_location`, falling back server-side to IP-based geolocation — no `navigator.geolocation` permission prompt (removed 2026-08-21)
 - Fetches `/api/zmanim` (or `/api/zmanim?lat=…&lon=…` for an explicit location) and renders the zmanim times list
 - Highlights the row of the next upcoming zman and keeps a live countdown badge, self-rescheduling via `setTimeout` once a second (not a polling interval)
 - Re-renders the full display via `refreshZmanimDisplay(deps)` on a language switch, without a re-fetch
@@ -180,30 +180,77 @@ All colours are CSS custom properties defined on `:root` (light mode defaults) a
 
 ## Motion Conventions
 
-Animation classes are applied with JavaScript by adding/removing class names. All transitions use CSS custom properties for duration and easing, and must honour `prefers-reduced-motion`.
+Two layers, per `.agents/ENGINEERING_RULES.md`:
 
-### Animation classes
+1. **CSS keyframe layer** (`tokens.css`, "MOTION KEYFRAMES" section) — the single
+   source of truth for every `@keyframes` rule (`shelah-fade-in`, `shelah-fade-up`,
+   `shelah-scale-in`, `shelah-slide-in-left/right`, `shelah-slide-down-fade`,
+   `shelah-overlay-in`, `shelah-shimmer`, `shelah-spin`, `shelah-dot-bounce`,
+   `shelah-warm-pulse`). Feature sheets (`ai.css`, `loading.css`, `sidebar.css`, …)
+   apply these by name via `animation:` — they never define their own
+   `@keyframes` (CI guard: zero new `@keyframes` outside this layer). Durations
+   and easings come from the `--motion-dur-*` / `--motion-ease-*` custom
+   properties defined next to the keyframes in `tokens.css`.
+2. **JS motion layer** (`static/js/motion.js`, exposed as `window.ShelahMotion`) —
+   a thin wrapper around the vanilla [motion.dev](https://motion.dev) `animate()`
+   API for anything mounted/unmounted or moved by JavaScript (modals, source
+   boxes, sidebar drawers, presence toggles). Spring physics for movement,
+   tweens only for opacity — matching the Framer Motion rules in
+   `ENGINEERING_RULES.md` so each call has a direct React equivalent later.
 
-| Class | Effect | Duration |
+### Animation classes (CSS keyframe layer)
+
+| Class | Keyframe | Effect |
 |---|---|---|
-| `animate-fade-up` | Element fades in and translates upward | 200 ms |
-| `animate-fade-in` | Element fades in from opacity 0 | 150 ms |
-| `animate-scale-in` | Element scales from 0.95 to 1 while fading in | 200 ms |
+| `animate-fade-up` | `shelah-fade-up` | Fades in and translates upward |
+| `animate-fade-in` | `shelah-fade-in` | Fades in from opacity 0 |
+| `animate-scale-in` | `shelah-scale-in` | Scales from 0.95 to 1 while fading in |
+
+Durations are set per usage site (they vary by context — a chip pop vs. a
+modal entrance), not baked into the keyframe.
+
+### `window.ShelahMotion` helpers (JS motion layer)
+
+| Function | Use for | Framer Motion equivalent (future React) |
+|---|---|---|
+| `animateIn(el, {y})` / `animateOut(el, {y})` | Element mount/unmount fade+slide | `<motion.div initial exit>` |
+| `staggerIn(elements, {staggerDelay})` | List/grid entrance (e.g. source boxes) | `variants` + `staggerChildren` |
+| `springMove(el, transform)` | Repositioning an element | `animate` on a `motion` component |
+| `fadeOpacity(el, to)` | Opacity-only tween | `animate={{ opacity }}` |
+| `crossFade(outEl, inEl)` | Swapping two elements | `<AnimatePresence mode="wait">` |
+| `createPresence(el)` | Manual show()/hide() lifecycle | `<AnimatePresence>` |
+| `slideIn(el, {from})` / `slideOut(el, {to})` | Drawer/sidebar panels | `<motion.div layout>` with a `variants` slide |
+
+Every helper checks `isMotionReduced()` (`prefers-reduced-motion: reduce`) first
+and falls back to an instant, non-animated state change — the vanilla
+equivalent of skipping `<AnimatePresence>` variants.
+
+**If a React island is ever introduced**, replace `ShelahMotion` calls at that
+boundary with the Framer Motion APIs in the right-hand column above, reusing
+the same spring configs (`SPRING_ENTER`/`SPRING_EXIT`/`SPRING_MOVE` in
+`motion.js`) as `type: "spring"` variants. Do not re-implement motion.js logic
+in the React component — port the constants, not the imperative calls.
 
 ### Reduced-motion guard
 
 ```css
 @media (prefers-reduced-motion: reduce) {
-  .animate-fade-up,
-  .animate-fade-in,
-  .animate-scale-in {
-    animation: none;
-    transition: none;
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
   }
 }
 ```
 
-All skeleton loading states (shown while async data loads) also disable their shimmer animation under `prefers-reduced-motion`.
+This global fallback lives in `typography.css`. Components additionally set
+`animation: none` / `transition: none` explicitly on their own reduced-motion
+blocks (loading.css, ai.css) for a fully static end-state rather than relying
+on a near-zero-duration flash. All skeleton loading states (shown while async
+data loads) disable their shimmer animation under `prefers-reduced-motion`,
+and every `ShelahMotion` JS helper skips animation entirely via
+`isMotionReduced()`.
 
 ---
 

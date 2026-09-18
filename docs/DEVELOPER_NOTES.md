@@ -121,9 +121,6 @@ It is organized by runtime flow first, then file-by-file notes.
 - `customs/*.json`
   - Community-specific minhag datasets used by `backend/customs.py` and `/api/community/*`.
 
-- `sefardic_prayers.json`
-  - Prayer text source data used in prayer endpoints.
-
 - `.agents/`
   - Agent/skill metadata for Copilot tooling; not core runtime logic for Flask APIs.
 
@@ -131,9 +128,6 @@ It is organized by runtime flow first, then file-by-file notes.
 
 - `scripts/verify_integrations.py`
   - End-to-end service health checker (env, Supabase, Sefaria, Hebcal, local Flask, Vercel).
-
-- `scripts/clerk_supabase_rls.py`
-  - Clerk JWT verification and Supabase RLS helper utilities.
 
 - `scripts/fetch_sefardic_siddur.py`
   - Fetches Siddur text from Sefaria and prepares prayer data payloads.
