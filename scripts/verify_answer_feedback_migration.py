@@ -63,69 +63,94 @@ def info(msg: str) -> None:
     print(f"{Colors.YELLOW}INFO{Colors.RESET}  {msg}")
 
 
-def main() -> int:
-    url = (os.environ.get("SUPABASE_URL") or "").strip()
-    secret_key = (os.environ.get("SUPABASE_SECRET_KEY") or "").strip()
-    anon_key = (os.environ.get("SUPABASE_PUBLISHABLE_KEY") or "").strip()
+def _find_table_meta(snapshot):
+    """The snapshot entry for TABLE, or None when the snapshot lacks it."""
+    if not snapshot:
+        return None
+    for t in snapshot.get("tables", []):
+        if t.get("table_name") == TABLE:
+            return t
+    return None
 
-    if not url or not secret_key or not anon_key:
-        fail("SUPABASE_URL / SUPABASE_SECRET_KEY / SUPABASE_PUBLISHABLE_KEY must all be set in .env")
-        return 1
 
-    service = create_client(url, secret_key)
-    anon = create_client(url, anon_key)
-
+def _check_table_policies(table_meta) -> int:
+    """RLS is on, no SELECT-capable policy, and an INSERT policy exists.
+    Returns the number of failed checks."""
     failures = 0
+    if table_meta.get("rls_enabled"):
+        ok(f"{TABLE}.rls_enabled = true")
+    else:
+        fail(f"{TABLE}.rls_enabled = false -- RLS is OFF, every row would be world-readable")
+        failures += 1
 
+    policies = table_meta.get("policies", [])
+    select_policies = [p for p in policies if p.get("cmd") in ("SELECT", "ALL")]
+    insert_policies = [p for p in policies if p.get("cmd") in ("INSERT", "ALL")]
+
+    if select_policies:
+        fail(
+            f"{TABLE} has SELECT-capable polic{'y' if len(select_policies) == 1 else 'ies'}: "
+            f"{[p.get('name') for p in select_policies]} -- anon/authenticated should NOT be "
+            f"able to read"
+        )
+        failures += 1
+    else:
+        ok(
+            f"{TABLE} has zero SELECT policies -- Postgres RLS denies SELECT to every "
+            f"non-bypassrls role (anon AND authenticated) when a command has no policy"
+        )
+
+    if insert_policies:
+        ok(f"{TABLE} has an INSERT policy: {[p.get('name') for p in insert_policies]}")
+    else:
+        fail(f"{TABLE} has no INSERT policy -- POST /api/feedback will fail for anon/authenticated")
+        failures += 1
+    return failures
+
+
+def _check_structure(service) -> int:
+    """Structural check via get_schema_snapshot(). Returns the failure count."""
     print(f"\n=== Structural check: {TABLE} via get_schema_snapshot() ===")
-    snapshot = None
     try:
         snapshot = service.rpc("get_schema_snapshot", {}).execute().data
     except Exception as e:
         fail(f"get_schema_snapshot() RPC call failed: {e}")
         info("Has scripts/sql/introspect_schema.sql been run (separate, pre-existing migration)?")
-        failures += 1
+        return 1
 
-    table_meta = None
-    if snapshot:
-        for t in snapshot.get("tables", []):
-            if t.get("table_name") == TABLE:
-                table_meta = t
-                break
+    if snapshot is None:
+        return 0
 
-    if snapshot is not None and table_meta is None:
+    table_meta = _find_table_meta(snapshot)
+    if table_meta is None:
         fail(f"public.{TABLE} not found by get_schema_snapshot() -- migration not applied yet?")
-        failures += 1
-    elif table_meta is not None:
-        if table_meta.get("rls_enabled"):
-            ok(f"{TABLE}.rls_enabled = true")
-        else:
-            fail(f"{TABLE}.rls_enabled = false -- RLS is OFF, every row would be world-readable")
-            failures += 1
+        return 1
+    return _check_table_policies(table_meta)
 
-        policies = table_meta.get("policies", [])
-        select_policies = [p for p in policies if p.get("cmd") in ("SELECT", "ALL")]
-        insert_policies = [p for p in policies if p.get("cmd") in ("INSERT", "ALL")]
 
-        if select_policies:
+def _check_anon_select_denied(anon, probe_hash: str) -> int:
+    """The anon client must not be able to read back the row it just inserted."""
+    try:
+        result = anon.table(TABLE).select("*").eq("question_hash", probe_hash).execute()
+        rows = result.data or []
+        if rows:
             fail(
-                f"{TABLE} has SELECT-capable polic{'y' if len(select_policies) == 1 else 'ies'}: "
-                f"{[p.get('name') for p in select_policies]} -- anon/authenticated should NOT be "
-                f"able to read"
+                f"anon SELECT returned {len(rows)} row(s) for a row it just inserted -- "
+                f"RLS is NOT blocking SELECT for anon"
             )
-            failures += 1
-        else:
-            ok(
-                f"{TABLE} has zero SELECT policies -- Postgres RLS denies SELECT to every "
-                f"non-bypassrls role (anon AND authenticated) when a command has no policy"
-            )
+            return 1
+        ok("anon SELECT of its own just-inserted row returned zero rows -- RLS blocks anon SELECT")
+    except Exception as e:
+        # PostgREST can surface a denied SELECT as an error instead of an
+        # empty result depending on grants; either shape is an acceptable
+        # deny as long as no real data comes back.
+        ok(f"anon SELECT raised instead of returning data (also an acceptable deny): {e}")
+    return 0
 
-        if insert_policies:
-            ok(f"{TABLE} has an INSERT policy: {[p.get('name') for p in insert_policies]}")
-        else:
-            fail(f"{TABLE} has no INSERT policy -- POST /api/feedback will fail for anon/authenticated")
-            failures += 1
 
+def _check_anon_role(anon, service) -> int:
+    """Empirical check: insert a probe row as anon, try to read it back,
+    then clean it up with the service-role client. Returns the failure count."""
     print("\n=== Empirical check: anon-role client (publishable key, no bearer JWT) ===")
     probe_hash = f"acceptance-test-{uuid.uuid4().hex}"
     probe_row = {
@@ -139,6 +164,7 @@ def main() -> int:
         "safety_class": "ok",
     }
 
+    failures = 0
     try:
         anon.table(TABLE).insert(probe_row).execute()
         ok("anon INSERT succeeded (matches anyone_can_submit_feedback policy)")
@@ -146,28 +172,30 @@ def main() -> int:
         fail(f"anon INSERT failed: {e}")
         failures += 1
 
-    try:
-        result = anon.table(TABLE).select("*").eq("question_hash", probe_hash).execute()
-        rows = result.data or []
-        if rows:
-            fail(
-                f"anon SELECT returned {len(rows)} row(s) for a row it just inserted -- "
-                f"RLS is NOT blocking SELECT for anon"
-            )
-            failures += 1
-        else:
-            ok("anon SELECT of its own just-inserted row returned zero rows -- RLS blocks anon SELECT")
-    except Exception as e:
-        # PostgREST can surface a denied SELECT as an error instead of an
-        # empty result depending on grants; either shape is an acceptable
-        # deny as long as no real data comes back.
-        ok(f"anon SELECT raised instead of returning data (also an acceptable deny): {e}")
+    failures += _check_anon_select_denied(anon, probe_hash)
 
     try:
         service.table(TABLE).delete().eq("question_hash", probe_hash).execute()
         info("cleaned up acceptance-test row via service-role client")
     except Exception as e:
         info(f"cleanup delete failed (non-fatal, row is inert test data): {e}")
+    return failures
+
+
+def main() -> int:
+    url = (os.environ.get("SUPABASE_URL") or "").strip()
+    secret_key = (os.environ.get("SUPABASE_SECRET_KEY") or "").strip()
+    anon_key = (os.environ.get("SUPABASE_PUBLISHABLE_KEY") or "").strip()
+
+    if not url or not secret_key or not anon_key:
+        fail("SUPABASE_URL / SUPABASE_SECRET_KEY / SUPABASE_PUBLISHABLE_KEY must all be set in .env")
+        return 1
+
+    service = create_client(url, secret_key)
+    anon = create_client(url, anon_key)
+
+    failures = _check_structure(service)
+    failures += _check_anon_role(anon, service)
 
     print()
     if failures:

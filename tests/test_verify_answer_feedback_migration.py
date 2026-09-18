@@ -182,6 +182,21 @@ class TestBrokenMigrationIsReportedAsFailure:
         assert rc == 1
         assert "not found by get_schema_snapshot()" in out
 
+    def test_empty_snapshot_is_treated_as_table_not_found(self, env, monkeypatch, capsys):
+        rc, out = _run(monkeypatch, capsys, FakeClient(snapshot={}))
+        assert rc == 1
+        assert "not found by get_schema_snapshot()" in out
+
+    def test_snapshot_rpc_returning_null_skips_the_structural_check_without_failing(
+            self, env, monkeypatch, capsys):
+        """Pins today's behaviour: a null (not an error) from the RPC neither
+        fails nor passes the structural half; only the empirical half decides."""
+        rc, out = _run(monkeypatch, capsys, FakeClient(snapshot=None))
+        assert rc == 0
+        assert "not found by get_schema_snapshot()" not in out
+        assert "rls_enabled" not in out
+        assert "anon INSERT succeeded" in out
+
     def test_snapshot_rpc_failure_fails_and_points_at_the_introspection_migration(
             self, env, monkeypatch, capsys):
         rc, out = _run(monkeypatch, capsys, FakeClient(rpc_error=RuntimeError("rpc missing")))

@@ -19,6 +19,43 @@ from collections import defaultdict
 from pathlib import Path
 
 
+def _add_line_hits(per_line: dict[int, int], payload: str) -> None:
+    """Add one `DA:<line>,<hits>` payload into the per-line hit counts."""
+    line_no, hits = payload.split(",")[:2]
+    per_line[int(line_no)] = per_line.get(int(line_no), 0) + int(hits)
+
+
+def _add_branch_hits(per_branch: dict[tuple[int, str, str], int], payload: str) -> None:
+    """Add one `BRDA:<line>,<block>,<branch>,<taken>` payload into the branch hit counts."""
+    line_no, block, branch, taken = payload.split(",")[:4]
+    if not line_no.isdigit():
+        # Node's reporter can emit `BRDA:undefined,...` for a branch it
+        # cannot map back to a source line; there is nothing to report.
+        return
+    key = (int(line_no), block, branch)
+    per_branch[key] = per_branch.get(key, 0) + (0 if taken == "-" else int(taken))
+
+
+def _render_record(
+    source: str,
+    line_hits: dict[int, int],
+    branch_hits: dict[tuple[int, str, str], int],
+) -> list[str]:
+    """The lcov lines for one merged source-file record."""
+    out = [f"SF:{source}"]
+    for line_no in sorted(line_hits):
+        out.append(f"DA:{line_no},{line_hits[line_no]}")
+    out.append(f"LF:{len(line_hits)}")
+    out.append(f"LH:{sum(1 for hits in line_hits.values() if hits > 0)}")
+    for line_no, block, branch in sorted(branch_hits):
+        out.append(f"BRDA:{line_no},{block},{branch},{branch_hits[(line_no, block, branch)]}")
+    if branch_hits:
+        out.append(f"BRF:{len(branch_hits)}")
+        out.append(f"BRH:{sum(1 for hits in branch_hits.values() if hits > 0)}")
+    out.append("end_of_record")
+    return out
+
+
 def merge_lcov(text: str) -> str:
     """Return `text` (lcov tracefile contents) with one record per source file."""
     lines_by_file: dict[str, dict[int, int]] = defaultdict(dict)
@@ -37,36 +74,15 @@ def merge_lcov(text: str) -> str:
         elif current is None:
             continue
         elif record.startswith("DA:"):
-            line_no, hits = record[3:].split(",")[:2]
-            per_line = lines_by_file[current]
-            per_line[int(line_no)] = per_line.get(int(line_no), 0) + int(hits)
+            _add_line_hits(lines_by_file[current], record[3:])
         elif record.startswith("BRDA:"):
-            line_no, block, branch, taken = record[5:].split(",")[:4]
-            if not line_no.isdigit():
-                # Node's reporter can emit `BRDA:undefined,...` for a branch it
-                # cannot map back to a source line; there is nothing to report.
-                continue
-            key = (int(line_no), block, branch)
-            per_branch = branches_by_file[current]
-            per_branch[key] = per_branch.get(key, 0) + (0 if taken == "-" else int(taken))
+            _add_branch_hits(branches_by_file[current], record[5:])
         elif record == "end_of_record":
             current = None
 
     out: list[str] = []
     for source in order:
-        out.append(f"SF:{source}")
-        line_hits = lines_by_file[source]
-        for line_no in sorted(line_hits):
-            out.append(f"DA:{line_no},{line_hits[line_no]}")
-        out.append(f"LF:{len(line_hits)}")
-        out.append(f"LH:{sum(1 for hits in line_hits.values() if hits > 0)}")
-        branch_hits = branches_by_file[source]
-        for line_no, block, branch in sorted(branch_hits):
-            out.append(f"BRDA:{line_no},{block},{branch},{branch_hits[(line_no, block, branch)]}")
-        if branch_hits:
-            out.append(f"BRF:{len(branch_hits)}")
-            out.append(f"BRH:{sum(1 for hits in branch_hits.values() if hits > 0)}")
-        out.append("end_of_record")
+        out.extend(_render_record(source, lines_by_file[source], branches_by_file[source]))
     return "\n".join(out) + ("\n" if out else "")
 
 
