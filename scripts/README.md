@@ -10,9 +10,13 @@ does; this file just classifies how often you'd run them.
 - **`verify_integrations.py`** — health-checks the full stack (env vars, customs
   JSON, Supabase, Sefaria/Hebcal, local Flask, Vercel). Run when triaging a
   deployment or integration issue.
-- **`clerk_supabase_rls.py`** — manual Clerk JWT → Supabase RLS debugging
-  utility. Not imported by the running app; invoke directly when debugging
-  user-scoped data access.
+- **`verify_answer_feedback_migration.py`** — live acceptance check for the
+  `answer_feedback` RLS migration (`sql/migrate_answer_feedback.sql`):
+  confirms against the real database that anon/authenticated can insert but
+  cannot select, both structurally (via the `get_schema_snapshot()` RPC) and
+  empirically (insert a probe row, then try to read it back with the anon
+  client). Run after applying that migration in the Supabase SQL editor, or
+  anytime you want to re-verify the policy is still in effect.
 - **`crawl_library_leaves.py`** — re-crawls the Sefaria library tree and
   regenerates the leaf remove/fix report. Re-run only when that report
   (`reports/library_leaf_remove_fix_report.full.json`, read at runtime by
