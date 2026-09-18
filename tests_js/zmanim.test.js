@@ -20,7 +20,7 @@
  * the live templates/index.html markup — that still needs manual or
  * browser-automation verification.
  *
- * Run with: node --experimental-vm-modules --test tests_js/
+ * Run with: node --test tests_js/*.test.js
  */
 'use strict';
 
