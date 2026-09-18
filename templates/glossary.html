@@ -14,9 +14,9 @@
             if (t !== 'light' && t !== 'dark') {
                 t = (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) ? 'dark' : 'light';
             }
-            document.documentElement.setAttribute('data-theme', t);
+            document.documentElement.dataset.theme = t;
             document.documentElement.classList.toggle('theme-dark', t === 'dark');
-        } catch (e) { }
+        } catch (e) { /* storage/JSON unavailable: keep the stylesheet's default theme */ }
     })()</script>
     <title>Glossary – Sh'elah</title>
     <link rel="canonical" href="https://shelah-app.vercel.app/glossary">
