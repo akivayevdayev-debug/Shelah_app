@@ -17,10 +17,15 @@
 
 CREATE OR REPLACE FUNCTION public.get_schema_snapshot()
 RETURNS jsonb
-LANGUAGE sql
+LANGUAGE plpgsql
 STABLE
 AS $$
-    SELECT jsonb_build_object(
+DECLARE
+    -- The one schema this snapshot describes (SonarCloud plsql:S1192: the
+    -- literal used to be repeated in four WHERE clauses).
+    c_schema CONSTANT TEXT := 'public';
+BEGIN
+    RETURN jsonb_build_object(
         'tables', COALESCE((
             SELECT jsonb_agg(t ORDER BY t->>'table_name')
             FROM (
@@ -39,7 +44,7 @@ AS $$
                             ORDER BY col.ordinal_position
                         )
                         FROM information_schema.columns col
-                        WHERE col.table_schema = 'public'
+                        WHERE col.table_schema = c_schema
                           AND col.table_name = c.relname
                     ), '[]'::jsonb),
                     'indexes', COALESCE((
@@ -48,7 +53,7 @@ AS $$
                             ORDER BY i.indexname
                         )
                         FROM pg_indexes i
-                        WHERE i.schemaname = 'public'
+                        WHERE i.schemaname = c_schema
                           AND i.tablename = c.relname
                     ), '[]'::jsonb),
                     'policies', COALESCE((
@@ -63,17 +68,18 @@ AS $$
                             ORDER BY p.policyname
                         )
                         FROM pg_policies p
-                        WHERE p.schemaname = 'public'
+                        WHERE p.schemaname = c_schema
                           AND p.tablename = c.relname
                     ), '[]'::jsonb)
                 ) AS t
                 FROM pg_class c
                 JOIN pg_namespace n ON n.oid = c.relnamespace
-                WHERE n.nspname = 'public'
+                WHERE n.nspname = c_schema
                   AND c.relkind = 'r'  -- ordinary tables only, not views/sequences
             ) sub
         ), '[]'::jsonb)
     );
+END;
 $$;
 
 -- Service-role-only, matching check_and_reserve_user_budget.sql's posture:
