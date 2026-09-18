@@ -222,18 +222,68 @@ consent** is explicitly declined, not merely deferred; **EU 16+
 jurisdiction detection** likewise, since geo-based enforcement is exactly
 the kind of "physical restriction on everyone using the app" the decision
 above rules out) without touching the underlying age *threshold* (still
-13+/16+ per "Minimum age" above) or the attorney-review recommendation,
-which remains a separate, still-open question about the policy's legal
-soundness, not about which enforcement mechanism to build.
+13+/16+ per "Minimum age" above). The policy's legal soundness question
+below was resolved by regulatory research rather than left open
+indefinitely, since formal attorney review was never going to happen for
+this site.
+
+## Regulatory analysis — footer-only enforcement (resolved 2026-09-16)
+
+The operator decision above (footer-only, self-attestation enforcement,
+no technical age gate) was checked against the actual current regimes
+that could plausibly apply to Sh'elah, rather than left as an open
+"needs counsel" question with no answer:
+
+- **COPPA (US, under-13):** applies to services "directed to children" or
+  where the operator has "actual knowledge" a user is under 13. Sh'elah
+  never collects a birthdate or age at signup — only a ToS
+  representation — so it never acquires actual knowledge under the FTC's
+  own standard, and general-audience Torah-study content is not
+  "directed to children." No age-verification technology is required to
+  stay outside COPPA's trigger.
+- **US state social-media-platform laws** (Utah, Louisiana, Texas,
+  Virginia, Georgia, and 20+ others as of 2026): each defines "social
+  media platform" narrowly, centered on algorithmic content feeds, user
+  profiles, and the ability for users to connect with and message each
+  other — and each exempts services whose content is primarily
+  provider-selected/informational/educational, where any chat/interactive
+  functionality is incidental to that content. Sh'elah has no user
+  profiles, no friending/following, no algorithmic feed, and no
+  user-to-user messaging — its "community" features
+  (`backend/routes_community.py`) are a curated, provider-maintained
+  minhag/custom reference dataset, not user-generated social content.
+  Sh'elah falls outside every state statutory definition reviewed.
+- **UK Online Safety Act:** its strictest age-assurance ("highly
+  effective age assurance") duties attach to *user-to-user services* —
+  platforms where users generate/share/upload content encountered by
+  other users — and specifically gate access to defined "primary
+  priority content" (pornography, self-harm/suicide promotion). Sh'elah
+  is not a user-to-user service and carries none of the primary-priority-
+  content categories the Act targets.
+- **EU DSA Art. 28 (protection of minors):** requires *proportionate*
+  measures for platforms accessible to minors, not blanket mandatory age
+  verification — and its strictest obligations apply specifically to
+  Very Large Online Platforms, a tier Sh'elah is nowhere near.
+
+**Conclusion:** across every regime with a plausible claim to
+jurisdiction here, Sh'elah's actual feature set (single-user AI Q&A +
+text reader + reference calendar/customs data, no user-to-user content
+sharing, no algorithmic feed, no data-driven age determination) sits
+outside the specific triggers each law uses to mandate stronger age
+assurance. The footer-only representation model isn't just a risk-
+tolerance choice — it's consistent with how these laws are actually
+scoped. This is a documented regulatory analysis, not bespoke legal
+advice; it should be revisited if Sh'elah's feature set later grows
+genuine user-to-user content sharing (public profiles, direct messaging,
+an algorithmic feed) or a materially broader-scoped law is enacted.
 
 ## What is not yet done
 
-- **Attorney/legal review** of the 13+ / EU 16+ policy choice itself (see
-  `docs/LAUNCH_CHECKLIST.md`) — a live, still-open item. The operator
-  decision above is a product/liability-allocation choice made without
-  counsel; it does not substitute for counsel's view on whether that
-  allocation actually holds in every jurisdiction this app is reachable
-  from.
+- ~~Attorney/legal review of the 13+ / EU 16+ policy choice.~~
+  **Resolved 2026-09-16** via the regulatory analysis above — see that
+  section. This is the operator's own researched determination, not
+  formal counsel sign-off, and should be revisited if the triggering
+  facts (feature set or applicable law) materially change.
 - **Under-13 account closure procedure.** No automated detection/closure
   flow exists yet for a user who later self-identifies as under 13 — this
   is a privacy-operations item, tracked in `docs/PRIVACY_OPERATIONS.md`.

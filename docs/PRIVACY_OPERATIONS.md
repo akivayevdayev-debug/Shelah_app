@@ -174,18 +174,17 @@ legal-page URLs move.
 
 | Processor | Data received | DPA mechanism | Status |
 |---|---|---|---|
-| Clerk | Name, email, auth metadata | Click-through DPA (Clerk dashboard → legal, or clerk.com/legal/dpa) | ⏸ Not yet executed — action item |
-| Supabase | All app-stored user data (preferences, bookmarks, ask history, memories) | Click-through DPA (supabase.com/legal/dpa) | ⏸ Not yet executed — action item |
-| Vercel | Request/hosting logs, aggregated analytics | Vercel DPA (vercel.com/legal/dpa) | ⏸ Not yet executed — action item |
-| Google (Gemini API) | Question text + retrieved source excerpts (no account identifiers) | Google Cloud/API Data Processing Addendum (cloud.google.com/terms/data-processing-addendum) | ⏸ Not yet executed — action item |
-| Anthropic (Claude API) | Question text + retrieved source excerpts (no account identifiers) | Anthropic commercial DPA (anthropic.com/legal — commercial terms) | ⏸ Not yet executed — action item |
-| Sentry | Scrubbed error/crash reports (`docs/OBSERVABILITY.md`) | Click-through DPA (sentry.io/legal/dpa) | ⏸ Not yet executed — action item |
+| Clerk | Name, email, auth metadata | Click-through DPA (Clerk dashboard → legal, or clerk.com/legal/dpa) | ✅ Executed (operator-confirmed 2026-09-16) |
+| Supabase | All app-stored user data (preferences, bookmarks, ask history, memories) | Click-through DPA (supabase.com/legal/dpa) | ✅ Executed (operator-confirmed 2026-09-16) |
+| Vercel | Request/hosting logs, aggregated analytics | Vercel DPA (vercel.com/legal/dpa) | ✅ Executed (operator-confirmed 2026-09-16) |
+| Google (Gemini API) | Question text + retrieved source excerpts (no account identifiers) | Google Cloud/API Data Processing Addendum (cloud.google.com/terms/data-processing-addendum) | ✅ Executed (operator-confirmed 2026-09-16) |
+| Anthropic (Claude API) | Question text + retrieved source excerpts (no account identifiers) | Anthropic commercial DPA (anthropic.com/legal — commercial terms) | ✅ Executed (operator-confirmed 2026-09-16) |
+| Sentry | Scrubbed error/crash reports (`docs/OBSERVABILITY.md`) | Click-through DPA (sentry.io/legal/dpa) | ✅ Executed (operator-confirmed 2026-09-16) |
 | Sefaria, Hebcal, MyMemory/Google Translate | Search/lookup queries derived from the question, or text snippets — not account identity | No formal DPA sought — public APIs, no account-identifying data shared, source-text/calendar/translation lookups only | Documented, not a gap |
 
-**Action required (repo owner, not an engineering task):** click through
-and retain a copy of each ⏸ row's DPA before launch. This is the item
-plan.md §8.D.3 explicitly calls out as needing the account holder, not
-code.
+All click-through DPAs above have been executed by the account holder.
+Retain a copy of each vendor's DPA acceptance confirmation alongside this
+file if the vendor's dashboard doesn't keep one permanently accessible.
 
 ### 3.1 International transfer mechanism per sub-processor (researched 2026-09-04)
 
@@ -276,6 +275,34 @@ full retention table):
   application code.
 - **Cached AI responses — 24 hours** — an in-memory/edge cache, not a
   Supabase table; expires on its own via the cache's TTL.
+
+### Under-13 account closure (manual runbook)
+
+`docs/AGE_AND_SAFETY_POLICY.md` notes there is no automated detection
+flow for a user who later self-identifies as under 13, and that closing
+a *known* under-13 account on discovery is a retention obligation
+(distinct from age-gating at signup, which the policy deliberately
+doesn't do — see that doc's Operator decisions). This is the manual
+procedure for when that discovery happens (e.g. the user or a
+parent/guardian emails akiva.yevda@gmail.com, or it surfaces in a
+support conversation):
+
+1. **Verify the claim.** Same identity check as the DSR manual procedure
+   above — confirm the email/account the claim is about, so a false or
+   malicious report can't be used to close someone else's account.
+2. **Close the account promptly.** Run the same steps as the DSR manual
+   *Deletion* path above (§1, step 3): `POST /api/user/delete-account`
+   on the account's behalf, or the equivalent Supabase deletes + Clerk
+   identity deletion by hand if the account's own session isn't
+   available. There is no separate under-13-specific deletion code path
+   — it reuses the existing account-deletion flow.
+3. **Don't wait for the 30-day DSR window.** This isn't a discretionary
+   user request; treat it as time-sensitive and action it as soon as
+   the identity check in step 1 clears, not on the DSR response-time
+   budget.
+4. **Log it** in the same request log as DSR requests (§1, step 5),
+   noted as an under-13 closure rather than a user-initiated deletion,
+   so there's a record if ever asked to demonstrate compliance.
 
 ## 6. Breach response plan
 

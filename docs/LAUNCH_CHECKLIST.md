@@ -203,7 +203,7 @@ item below it was open as of 2026-08-20 but has since closed:**
 
 ### 5. "Privacy ops: DSR + account-deletion flow working, DPAs executed, retention job running, breach plan documented."
 
-**Status: ⚠️ Partial.**
+**Status: ✅ Done (both open sub-items closed as of 2026-09-16 — see below).**
 
 Done: `GET /api/user/data-export` and `POST /api/user/delete-account`
 (`backend/routes_privacy.py:114,196`) both work and are tested
@@ -213,13 +213,14 @@ reaches `_capture_backend_error` instead of failing silently). The breach
 response plan is written ([`docs/PRIVACY_OPERATIONS.md`](PRIVACY_OPERATIONS.md)
 §6, GDPR 72h timeline + notification templates).
 
-**Two sub-items are not done:**
+**One sub-item is now done, the other already was:**
 
-- **"DPAs executed" — not done, and `docs/PRIVACY_OPERATIONS.md` §3 says
-  so directly.** Every processor row in its DPA checklist (Clerk,
-  Supabase, Vercel, Google, Anthropic, Sentry) is marked "⏸ Not yet
-  executed — action item." This is explicitly a repo-owner action, not an
-  engineering task.
+- **"DPAs executed" — ✅ done, 2026-09-16 (operator-attested).**
+  `docs/PRIVACY_OPERATIONS.md` §3 now marks every processor row (Clerk,
+  Supabase, Vercel, Google, Anthropic, Sentry) "✅ Executed
+  (operator-confirmed 2026-09-16)." This was a repo-owner action, not an
+  engineering task, and the operator confirms all six click-through/vendor
+  DPAs have been accepted.
 - **"Retention job running" — ✅ `CRON_SECRET` confirmed set in production
   (operator-attested, 2026-09-06).** `GET /api/devtools/retention-enforce`
   (`backend/routes_privacy.py:272`) enforces 90-day windows on
@@ -294,7 +295,10 @@ have since closed:**
   when tripped — shipped 2026-08-22 (`plan.md` §16 Phase 9b,
   `claude_code_prompts.md` Prompt 29b). Vercel WAF L1 rules (3 custom
   firewall rules, including the `/ask` rate-limit rule) were entered into
-  the dashboard by the operator on 2026-08-26 (`docs/SECURITY.md` §7).
+  the dashboard by the operator on 2026-08-26 (`docs/SECURITY.md` §7), and
+  the rate-limit rule has since been flipped from Log to Enforce mode at
+  100 req/min per IP+JA4 (confirmed live in the dashboard 2026-09-16,
+  `akiva_tasks.md` T10).
 
 The B2-track note previously here — that `health.is_healthy('claude')`/
 `('gemini')` is never consulted before the *primary* `/ask` AI call — was
@@ -338,19 +342,20 @@ above is proven correct locally but not yet running in CI on `main`.
 
 ### 8. "Business: entity + insurance in place, trademark cleared."
 
-**Status: ⚠️ Decided, not "in place" — entity and insurance are both
-operator decisions now made, not open questions.**
+**Status: ⚠️ Decided, not "in place" — entity, insurance, and trademark
+clearance are all operator decisions now made, not open questions.**
 
 No engineering pass could resolve this line — it's entirely outside what
 code, tests, or documentation can close — but the operator has since made
-both calls: **entity — registering under the parent as an individual, not
-an LLC** (2026-09-04, too complex to stand up for a non-revenue site), and
-**insurance — declined** (2026-09-06, too costly and complex for a free,
-non-revenue site). Neither line item is something a policy or a
-certificate of formation now makes "in place"; both are accepted-risk
-decisions. Trademark clearance remains untouched. See "Business &
-compliance — needs human counsel" below (plan.md §8.G item 1) for the
-full reasoning and its consequences.
+all three calls: **entity — registering under the parent as an
+individual, not an LLC** (2026-09-04, too complex to stand up for a
+non-revenue site), **insurance — declined** (2026-09-06, too costly and
+complex for a free, non-revenue site), and **trademark/name clearance —
+declined** (2026-09-16, same cost reasoning). None of these three is
+something a policy, a certificate of formation, or a clearance search now
+makes "in place"; all three are accepted-risk decisions. See "Business &
+compliance — needs human counsel" below (plan.md §8.G items 1 and 2) for
+the full reasoning and its consequences.
 
 ### 9. "Backups + restore tested; rollback runbook validated on a preview deploy."
 
@@ -365,23 +370,37 @@ availability in the deploy environment isn't guaranteed).
 
 **What "tested"/"validated" would require, and hasn't happened:**
 
-- **Backup restore has not actually been performed once.** Separately,
-  Supabase's own backup/PITR guarantee for this project is now confirmed
-  (2026-09-01, Akiva) — **Free plan, no PITR (a paid Pro-plan add-on) and
-  no automated backups at all.** See `docs/RUNBOOKS.md`'s "Backups &
-  recovery" section: the only backup this project has is a manual
-  `pg_dump`, run on no schedule today. This is a real gap, not just an
-  unconfirmed one.
+- **Backup restore has not actually been performed once — re-confirmed
+  live 2026-09-16, still true.** Supabase's own backup/PITR guarantee for
+  this project was first confirmed 2026-09-01 (Akiva) and was re-checked
+  directly in the Supabase dashboard on 2026-09-16: all three tabs of
+  Database → Backups (Scheduled backups, Point in Time, Restore to new
+  project) are still gated behind a Pro-plan upgrade — **Free plan, no
+  PITR, no automated backups, and consequently no existing restore point
+  of any kind to test a restore against.** See `docs/RUNBOOKS.md`'s
+  "Backups & recovery" section: the only backup this project has is a
+  manual `pg_dump`, run on no schedule today. This means "test the
+  restore" cannot currently mean "restore an actual Supabase backup" —
+  none exists — only "dry-run the manual `pg_dump`/`psql` path against a
+  scratch database," which has also not been done.
   `scripts/migrate_customs_to_supabase.py` (the one Supabase-writing
   script whose safety matters for backup strategy) has been verified
   *re-runnable* (deterministic sha256 row IDs + upsert), but that is not
   the same claim as "a restore was tested."
-- **The rollback runbook has not been validated on an actual preview
-  deploy.** `claude_code_prompts.md` Prompt 24's status is explicit about
-  why: "CLI not authenticated in this environment, so the actual
-  preview-deploy verification hasn't run." The runbook's steps are
-  written from Vercel's documented dashboard behavior, not from having
-  exercised them against this project's real deployment.
+- **The rollback runbook has not been validated end-to-end on an actual
+  preview deploy — partially closed 2026-09-16.** `claude_code_prompts.md`
+  Prompt 24's status is explicit about why it was never exercised: "CLI
+  not authenticated in this environment, so the actual preview-deploy
+  verification hasn't run." A 2026-09-16 read-only check in the live
+  Vercel dashboard confirms the *mechanism* the runbook describes is real
+  and reachable — every past deployment's "…" menu has both **Instant
+  Rollback** and **Promote** one click away, and the deployment history
+  shows this has been used before (past entries labeled "Redeploy of
+  &lt;sha&gt;"). What's still open is the *end-to-end* validation this line
+  actually asks for — deliberately not triggered during this check, since
+  rolling back or promoting a real deployment is a live production action
+  that needs the operator's explicit go-ahead rather than being exercised
+  unprompted.
 
 ---
 
@@ -426,6 +445,16 @@ existing trademarks, and the domain/brand identity built around that name
 hasn't been legally confirmed as available to use. Building further brand
 equity (marketing, App Store listings, press) before this is cleared
 raises the cost of a forced rename later.
+
+**Operator decision, 2026-09-16 (Akiva): declining a formal clearance
+search.** A trademark/name-clearance search (and any resulting
+registration) is not being pursued — cost, same reasoning as the
+insurance and entity decisions above, for a free, non-revenue site. This
+is a permanent, accepted-risk decision, not a "later" item: the residual
+risk is a forced rename if a conflicting mark surfaces after the fact,
+weighed against the cost of clearing/registering a mark now. It has not
+been reviewed by counsel (attorney review is declined project-wide, per
+`akiva_tasks.md` T14).
 
 ### 3. Accessibility/consumer-protection posture for launch markets
 
