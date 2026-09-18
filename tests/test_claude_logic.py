@@ -12,7 +12,6 @@ that those integration tests don't isolate.
 
 from __future__ import annotations
 
-import pytest
 
 import backend.claude as claude
 
@@ -525,20 +524,36 @@ class TestBuildDynamicSystemContext:
         result = claude._build_dynamic_system_context(customs=[], user_memories=[], extra_context={})
         assert result == "No additional dynamic context provided."
 
+    def test_sections_wrapped_in_retrieved_context_boundary(self):
+        """Security audit P3: retrieved-context sections must be wrapped in
+        an explicit untrusted-data boundary tag."""
+        result = claude._build_dynamic_system_context(
+            customs=[{"community": "Ashkenaz", "ruling": "x"}],
+            user_memories=[{"summary": "prior question"}],
+            extra_context={"location": "Jerusalem"},
+        )
+        assert '<retrieved_context source="community_knowledge_supabase">' in result
+        assert '<retrieved_context source="user_memory_last_interactions">' in result
+        assert '<retrieved_context source="request_tool_context">' in result
+        assert result.count("</retrieved_context>") == 3
+
+    def test_core_system_prompt_names_retrieved_context_non_authoritative(self):
+        assert "<retrieved_context>" in claude.CORE_SYSTEM_PROMPT or "retrieved_context" in claude.CORE_SYSTEM_PROMPT
+
 
 # ─────────────────────────── Client construction ───────────────────────────
 
 class TestGetClient:
     def test_missing_api_key_returns_none(self, monkeypatch):
         monkeypatch.delenv("ANTHROPIC_API_KEY", raising=False)
-        claude._cached_client = None
-        claude._cached_api_key = None
+        monkeypatch.setattr(claude, "_cached_client", None)
+        monkeypatch.setattr(claude, "_cached_api_key", None)
         assert claude._get_client() is None
 
     def test_valid_api_key_returns_cached_client(self, monkeypatch):
         monkeypatch.setenv("ANTHROPIC_API_KEY", "test-key-123")
-        claude._cached_client = None
-        claude._cached_api_key = None
+        monkeypatch.setattr(claude, "_cached_client", None)
+        monkeypatch.setattr(claude, "_cached_api_key", None)
         client = claude._get_client()
         assert client is not None
         # Second call with same key reuses the cached instance.
@@ -548,14 +563,14 @@ class TestGetClient:
 class TestGetAsyncClient:
     def test_missing_api_key_returns_none(self, monkeypatch):
         monkeypatch.delenv("ANTHROPIC_API_KEY", raising=False)
-        claude._cached_async_client = None
-        claude._cached_api_key = None
+        monkeypatch.setattr(claude, "_cached_async_client", None)
+        monkeypatch.setattr(claude, "_cached_api_key", None)
         assert claude._get_async_client() is None
 
     def test_valid_api_key_returns_client(self, monkeypatch):
         monkeypatch.setenv("ANTHROPIC_API_KEY", "test-key-456")
-        claude._cached_async_client = None
-        claude._cached_api_key = None
+        monkeypatch.setattr(claude, "_cached_async_client", None)
+        monkeypatch.setattr(claude, "_cached_api_key", None)
         assert claude._get_async_client() is not None
 
 
@@ -563,15 +578,15 @@ class TestConfigureGeminiClient:
     def test_missing_api_key_returns_error_string(self, monkeypatch):
         monkeypatch.delenv("GEMINI_API_KEY", raising=False)
         monkeypatch.delenv("GOOGLE_API_KEY", raising=False)
-        claude._cached_gemini_client = None
-        claude._cached_gemini_api_key = None
+        monkeypatch.setattr(claude, "_cached_gemini_client", None)
+        monkeypatch.setattr(claude, "_cached_gemini_api_key", None)
         result = claude._configure_gemini_client()
         assert result == "gemini_api_key_missing"
 
     def test_valid_api_key_configures_client(self, monkeypatch):
         monkeypatch.setenv("GEMINI_API_KEY", "test-gemini-key")
-        claude._cached_gemini_client = None
-        claude._cached_gemini_api_key = None
+        monkeypatch.setattr(claude, "_cached_gemini_client", None)
+        monkeypatch.setattr(claude, "_cached_gemini_api_key", None)
         result = claude._configure_gemini_client()
         assert result is None
         assert claude._cached_gemini_client is not None
@@ -579,8 +594,8 @@ class TestConfigureGeminiClient:
     def test_normalizes_google_api_key_to_gemini_api_key(self, monkeypatch):
         monkeypatch.delenv("GEMINI_API_KEY", raising=False)
         monkeypatch.setenv("GOOGLE_API_KEY", "google-key-value")
-        claude._cached_gemini_client = None
-        claude._cached_gemini_api_key = None
+        monkeypatch.setattr(claude, "_cached_gemini_client", None)
+        monkeypatch.setattr(claude, "_cached_gemini_api_key", None)
         claude._configure_gemini_client()
         assert __import__("os").environ.get("GEMINI_API_KEY") == "google-key-value"
 
