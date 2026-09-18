@@ -33,8 +33,15 @@ jobs:
         # julian/memoization (zmanim's own direct deps) are the sole
         # --no-binary exception: verified sdist-only on PyPI, see
         # requirements.lock.txt's header for how that was confirmed.
+        #
+        # pre-commit, pip-audit and pip itself (formerly `pip install
+        # --upgrade pip` / `pip install pre-commit` / `pip install pip-audit`
+        # here and in the two steps below -- SonarCloud githubactions:S8544 +
+        # S8541) are now part of requirements-dev.lock.txt, so this single
+        # hash-verified, binary-only command is the only pip install in the
+        # job. pip is replaced by its locked, hash-verified version by this
+        # very command; no separate un-hashed `--upgrade pip` is needed.
         run: |
-          python -m pip install --upgrade pip
           pip install --require-hashes --only-binary=:all: --no-binary=julian,memoization \
             -r requirements.lock.txt -r requirements-dev.lock.txt
 
@@ -47,9 +54,7 @@ jobs:
         # only run locally and are bypassable with --no-verify; this runs the
         # same hooks in CI against every file on every push so a skipped
         # local hook can't ship a secret or a bandit-flagged pattern.
-        run: |
-          pip install pre-commit
-          pre-commit run --all-files --show-diff-on-failure
+        run: pre-commit run --all-files --show-diff-on-failure
 
       - name: Dependency vulnerability scan (pip-audit)
         # plan.md §8.C.4 SCA gate. Non-blocking for now, matching the ruff
@@ -59,7 +64,6 @@ jobs:
         # version bump) before it can safely block merges. See
         # docs/SECURITY.md for the current findings this surfaced.
         run: |
-          pip install pip-audit
           # Each lock file audited separately, --disable-pip: the two files
           # pin some packages (e.g. pygments) at different versions for
           # their own dependency trees, which pip-audit's shared resolver
@@ -80,7 +84,21 @@ jobs:
           cache: "npm"
 
       - name: Install Node dependencies
-        run: npm ci
+        # --ignore-scripts (SonarCloud githubactions:S6505): no dependency's
+        # install/postinstall script runs on the runner. The only package
+        # with one is puppeteer (pulled in by pa11y-ci), whose postinstall
+        # downloaded Chrome; that download is now the explicit, separate step
+        # below instead of an implicit lifecycle script. Every other script
+        # we use (`npm test`, `npm run test:a11y`) is run by name, not by npm
+        # lifecycle hooks, so --ignore-scripts does not affect them.
+        run: npm ci --ignore-scripts
+
+      - name: Install Chrome for the accessibility scan (puppeteer)
+        # Replaces puppeteer's skipped postinstall download. `--no-install`
+        # runs the puppeteer CLI from the lockfile-pinned node_modules copy
+        # (never a registry fetch), which downloads the exact Chrome build
+        # that puppeteer version is pinned to into ~/.cache/puppeteer.
+        run: npx --no-install puppeteer browsers install chrome
 
       - name: Node unit tests (node --test)
         # plan.md §41.3: this suite was never wired into CI. tests_js/sentry_init.test.js
