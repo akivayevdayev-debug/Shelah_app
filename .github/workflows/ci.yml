@@ -19,16 +19,55 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
         with:
-          python-version: "3.12"
+          python-version: "3.14"
           cache: "pip"
 
       - name: Install dependencies
+        # Security audit P2 / SonarCloud githubactions:S8544 x2, S8541:
+        # hash-verified, binary-only install instead of an unpinned,
+        # unverified transitive resolve that could fall back to executing
+        # an sdist's build-backend code. requirements.lock.txt /
+        # requirements-dev.lock.txt are regenerated from requirements.txt /
+        # requirements-dev.txt via `uv pip compile --generate-hashes` — see
+        # the header comment in either lock file for the exact command.
+        # julian/memoization (zmanim's own direct deps) are the sole
+        # --no-binary exception: verified sdist-only on PyPI, see
+        # requirements.lock.txt's header for how that was confirmed.
         run: |
           python -m pip install --upgrade pip
-          pip install -r requirements.txt -r requirements-dev.txt
+          pip install --require-hashes --only-binary=:all: --no-binary=julian,memoization \
+            -r requirements.lock.txt -r requirements-dev.lock.txt
 
       - name: Lint with ruff (non-blocking for now)
         run: ruff check .
+        continue-on-error: true
+
+      - name: Security scan — secrets + static analysis (pre-commit, all files)
+        # plan.md §8.C.4: the gitleaks/bandit hooks in .pre-commit-config.yaml
+        # only run locally and are bypassable with --no-verify; this runs the
+        # same hooks in CI against every file on every push so a skipped
+        # local hook can't ship a secret or a bandit-flagged pattern.
+        run: |
+          pip install pre-commit
+          pre-commit run --all-files --show-diff-on-failure
+
+      - name: Dependency vulnerability scan (pip-audit)
+        # plan.md §8.C.4 SCA gate. Non-blocking for now, matching the ruff
+        # step above -- this is the first pass wiring pip-audit in, and a
+        # hard-fail-on-CVE gate needs an established remediation workflow
+        # (e.g. for dev-only deps like pytest where a fix requires a major-
+        # version bump) before it can safely block merges. See
+        # docs/SECURITY.md for the current findings this surfaced.
+        run: |
+          pip install pip-audit
+          # Each lock file audited separately, --disable-pip: the two files
+          # pin some packages (e.g. pygments) at different versions for
+          # their own dependency trees, which pip-audit's shared resolver
+          # rejects as a conflict when both are passed together; auditing
+          # each hash-locked file independently sidesteps that and also
+          # skips spinning up an ephemeral resolve venv per run.
+          pip-audit -r requirements.lock.txt --disable-pip
+          pip-audit -r requirements-dev.lock.txt --disable-pip
         continue-on-error: true
 
       - name: Run tests with coverage
