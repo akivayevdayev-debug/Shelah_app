@@ -454,6 +454,7 @@ h6 {
     display: inline-flex;
     align-items: center;
     justify-content: center;
+    position: relative; /* anchors the ::after touch-target hit-slop below */
     border-radius: 0.35rem !important;
     transition: background var(--motion-dur-fast) var(--motion-ease-out), border-color var(--motion-dur-fast) var(--motion-ease-out), color var(--motion-dur-fast) var(--motion-ease-out);
 }
@@ -529,10 +530,6 @@ h6 {
    reaches the full 44px target. Width is a documented partial mitigation,
    not a full 44x44 -- the topbar has no more horizontal room to give at
    this breakpoint. */
-#settingsMenuBtn {
-    position: relative;
-}
-
 #settingsMenuBtn::after {
     content: "";
     position: absolute;
@@ -658,18 +655,6 @@ html.rtl #hebrewDateDisplay {
 
 #settingsPanel button:hover:not(#bookmarkCurrentBtn) {
     background: #cfd8e9 !important;
-}
-
-:is([data-theme="dark"], body.theme-dark) #settingsPanel button:not(#bookmarkCurrentBtn) {
-    background: rgba(168, 162, 158, 0.16) !important;
-    border-color: rgba(168, 162, 158, 0.6) !important;
-    color: var(--accent-cream) !important;
-}
-
-:is([data-theme="dark"], body.theme-dark) #settingsPanel button:hover:not(#bookmarkCurrentBtn) {
-    background: rgba(168, 162, 158, 0.26) !important;
-    border-color: rgba(168, 162, 158, 0.75) !important;
-    color: var(--accent-cream) !important;
 }
 
 #semanticBookmarkBtn {
@@ -2828,6 +2813,7 @@ html.rtl .home-main-layout #popularTextsGrid {
     background-color: var(--control-bg) !important;
     border-color: var(--control-border) !important;
     color: var(--control-text) !important;
+    position: relative; /* anchors the ::before touch-target hit-slop below */
 }
 
 /* Without this, :hover/:focus-visible feedback on these two buttons was
@@ -2865,10 +2851,6 @@ html.rtl .home-main-layout #popularTextsGrid {
    55px-tall topbar has the room. Measured 52x24 (English) / 45x24
    (עברית) -> hit-zone 58x44 / 51x44: a documented partial mitigation on
    width, full compliance on height. */
-.library-shell .lang-btn {
-    position: relative;
-}
-
 .library-shell .lang-btn::before {
     content: "";
     position: absolute;
@@ -3543,10 +3525,6 @@ html.theme-dark,
     background: var(--ai-warning-bg) !important;
     border-color: var(--ai-warning-border) !important;
     color: var(--ai-warning-text) !important;
-}
-
-:is([data-theme="dark"], body.theme-dark) #searchIcon {
-    color: var(--icon-muted) !important;
 }
 
 /* .segment-label/.segment-translit render real text (verse numbers,
@@ -4562,9 +4540,10 @@ html.rtl #readerTopBar #readerLibraryTopBarBtn {
     color: var(--accent-cream) !important;
 }
 
-/* This selector repeats the rule at ~L653 with identical specificity but
-   later source order, so it's the one that actually wins the cascade —
-   keep both in sync. Warm stone-chip treatment matches #settingsMenuBtn /
+/* The dark-mode Quick Settings button rules live only here (an identical
+   earlier copy near the light-theme #settingsPanel rules was removed: this
+   one always won the cascade, and duplicate selectors trip SonarCloud
+   css:S4666). Warm stone-chip treatment matches #settingsMenuBtn /
    #mobileLangToggle so all Quick Settings controls read consistently in
    dark mode instead of the near-invisible flat --surface-pill fill (and
    without the cool blue-gray tint slate-400 carried). */
