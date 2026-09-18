@@ -486,18 +486,3 @@ body:not(.library-shell) #themeToggleBtn:hover {
 .skip-to-content:focus {
     top: 0;
 }
-
-.draft-banner {
-    background: var(--surface-pill);
-    border: 1px solid #b45309;
-    border-left: 3px solid #b45309;
-    border-radius: var(--radius-md);
-    padding: var(--sp-4) var(--sp-6);
-    margin: var(--sp-6) 0;
-    color: var(--ink-primary);
-}
-
-html.rtl .draft-banner {
-    border-left: 1px solid #b45309;
-    border-right: 3px solid #b45309;
-}
