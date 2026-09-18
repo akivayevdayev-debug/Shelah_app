@@ -11,9 +11,9 @@
  * every later §19 extraction phase does — silently breaks the old guard and
  * double-binds the button: two POSTs, two billed AI summaries, two alerts.
  *
- * Run with: node --experimental-vm-modules --test tests_js/
+ * Run with: node --test tests_js/*.test.js
  * (wired into `npm test` in package.json; see tests_js/helpers/esm_harness.js
- * for why the flag is needed to load this real ES module in Node.)
+ * for how this real ES module is loaded in Node.)
  */
 'use strict';
 
