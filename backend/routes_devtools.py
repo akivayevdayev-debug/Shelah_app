@@ -194,6 +194,70 @@ def devtools_reliability():
     })
 
 
+# plan.md §21/§21.2.2 STEP 5: which tables an owner-scoped RLS policy
+# actually governs today. ask_history is deliberately excluded -- its
+# policy was dropped 2026-08-31 (STEP 6a): routes_user.py's history
+# endpoints only ever read it through the service-role client, so a
+# per-user policy on it was dead weight, not a real second gate.
+_RLS_OBSERVED_TABLES = {
+    "user_preferences": lambda: SUPABASE_PREFS_TABLE,
+    "user_memories": lambda: SUPABASE_USER_MEMORIES_TABLE,
+    "study_bookmarks": lambda: SUPABASE_STUDY_BOOKMARKS_TABLE,
+}
+
+
+def _observe_rls_row_counts(user_id):
+    """Compare a user-scoped-client row count against a service-role-client
+    row count for the CALLER'S OWN rows, on each RLS-relevant table.
+
+    This is the "observed result of a real user-scoped query" plan.md
+    §21.2.2 STEP 5 asks for, not just policy presence. It catches the
+    specific silent failure §21.1 documents: if auth.uid() doesn't resolve,
+    every RLS policy evaluates false and the user-scoped client returns
+    zero rows for a user who actually has data -- not an error, not a 403,
+    just an empty result indistinguishable from "no data yet" until you
+    compare it against the service-role client's ground truth, which is
+    exactly what this does. It does NOT test cross-user isolation (does
+    RLS block OTHER users' rows) -- that needs a second real test user's
+    token, which this endpoint (bound to the single caller's own session)
+    can't produce; that half is scripts/verify_rls.py's job.
+    """
+    service_client = _get_supabase_client()
+    scoped_client = _get_request_supabase_client()
+    observed = {}
+    for key, table_name_fn in _RLS_OBSERVED_TABLES.items():
+        table_name = table_name_fn()
+        if not service_client or not scoped_client:
+            observed[key] = {"observed": False, "reason": "client_unavailable"}
+            continue
+        try:
+            service_count = (
+                service_client.table(table_name)
+                .select("user_id", count="exact")
+                .eq("user_id", user_id)
+                .limit(1)
+                .execute()
+            ).count or 0
+            scoped_count = (
+                scoped_client.table(table_name)
+                .select("user_id", count="exact")
+                .eq("user_id", user_id)
+                .limit(1)
+                .execute()
+            ).count or 0
+            observed[key] = {
+                "observed": True,
+                "service_role_count": service_count,
+                "user_scoped_count": scoped_count,
+                "matches": service_count == scoped_count,
+            }
+        except Exception as e:
+            _capture_backend_error(
+                "rls_audit_observed_query_failed", e, {"table": table_name})
+            observed[key] = {"observed": False, "reason": "query_failed"}
+    return observed
+
+
 @routes_devtools.route("/api/devtools/rls-audit")
 @require_clerk_auth
 def devtools_rls_audit():
@@ -207,18 +271,20 @@ def devtools_rls_audit():
     """
     has_supabase_token = bool(_extract_supabase_access_token())
     user_id = _get_request_user_id()
+    # plan.md §21.2.2 STEP 5: only attempt the observed-query comparison when
+    # there's a real signed-in caller with a Supabase-bearing token -- an
+    # anonymous or tokenless request has no "own rows" to compare.
+    observed = _observe_rls_row_counts(
+        user_id) if (has_supabase_token and user_id) else {}
     return jsonify({
         "strict_rls": STRICT_SUPABASE_RLS,
         "tables": {
             "user_preferences": SUPABASE_PREFS_TABLE,
             "user_memories": SUPABASE_USER_MEMORIES_TABLE,
             "study_bookmarks": SUPABASE_STUDY_BOOKMARKS_TABLE,
-            # RLS policy for this one lives in scripts/migrate_ask_history.sql
-            # (not scripts/sql/SUPABASE_RLS_POLICIES.sql, unlike the three
-            # tables above) -- plan.md §8.C.2, security-audit pass: this
-            # table was reachable from _store_ask_history() but absent from
-            # this endpoint's reported posture, which meant the one automated
-            # RLS-coverage surface didn't actually cover it.
+            # Service-role-only by design (plan.md §21 STEP 6a, 2026-08-31)
+            # -- no RLS policy governs this table's access anymore; listed
+            # here for completeness, not as an RLS-coverage gap.
             "ask_history": SUPABASE_ASK_HISTORY_TABLE,
         },
         "user": {
@@ -229,6 +295,7 @@ def devtools_rls_audit():
             "supabase_access_token_present": has_supabase_token,
             "request_scoped_client_ready": bool(_get_request_supabase_client()),
         },
+        "observed": observed,
         "requirement": "RLS policies should use auth.uid() = user_id for user tables.",
         "ts": int(time.time()),
     })
