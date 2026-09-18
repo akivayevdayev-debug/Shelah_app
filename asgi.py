@@ -559,18 +559,18 @@ async def _dispatch_ask_async_ai_synthesis_call(question, mode, canonical_lens, 
         "route": "/ask", "async": True}
     tool_context["async"] = True
 
-    call_kwargs = dict(
-        question=question,
-        sefaria_sources=ctx["flat_sources_for_ai"],
-        customs=ctx["customs_info"],
-        user_memories=ctx["user_memory_summaries"],
-        wiki=ctx["wiki_context_for_ai"],
-        halachipedia=ctx["halachipedia_list"],
-        mode=mode,
-        community_lens=canonical_lens,
-        answer_language=answer_language,
-        tool_context=tool_context,
-    )
+    call_kwargs = {
+        "question": question,
+        "sefaria_sources": ctx["flat_sources_for_ai"],
+        "customs": ctx["customs_info"],
+        "user_memories": ctx["user_memory_summaries"],
+        "wiki": ctx["wiki_context_for_ai"],
+        "halachipedia": ctx["halachipedia_list"],
+        "mode": mode,
+        "community_lens": canonical_lens,
+        "answer_language": answer_language,
+        "tool_context": tool_context,
+    }
 
     ai_synthesis_coro = (
         ask_pipeline.run_agentic_ask(**call_kwargs)
@@ -927,6 +927,7 @@ async def _run_ask_async_synthesis_or_fallback(
         400: {"description": "No valid question provided"},
         401: {"description": "Authentication required"},
         402: {"description": "Daily AI usage limit reached for this account."},
+        403: {"description": "Turnstile verification required before continuing (anonymous callers)."},
         500: {"description": "An internal error occurred while processing your request"},
     },
 )

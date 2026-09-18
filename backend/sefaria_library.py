@@ -249,7 +249,7 @@ def _load_library_index_adjustments():
     try:
         payload = json.loads(path.read_text(encoding="utf-8"))
     except Exception as exc:
-        logger.error(f"[Sefaria Library] Failed loading index adjustments: {exc}")
+        logger.exception(f"[Sefaria Library] Failed loading index adjustments: {exc}")
         new_state = {"loaded": True, "mtime": mtime,
                       "remove_keys": set(), "fix_map": {}}
         with _library_index_adjustments_lock:
@@ -375,11 +375,11 @@ def _cached_get(url, ttl=CACHE_TTL):
             logger.error(
                 f"[Sefaria Library Error] Failed to fetch data from {url}. Status Code: {status_code}. Reason: Cloudflare 403 Forbidden. Sefaria is blocking the request.")
         elif status_code not in (400, 404):
-            logger.error(
+            logger.exception(
                 f"[Sefaria Library Error] HTTP error during fetch. URL: {url}. Status Code: {status_code}. Details: {str(e)}")
         return None
     except requests.RequestException as e:
-        logger.error(
+        logger.exception(
             f"[Sefaria Library Error] Network or request error. URL: {url}. Details: {str(e)}")
         return None
     except Exception as e:
