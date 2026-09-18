@@ -5,6 +5,33 @@ function normalizeDailyRef(value) {
     return ref || null;
 }
 
+// Split out of collectRefsFromPayload() so this per-value shape dispatch
+// isn't nested inside that function's own loop (SonarCloud javascript:S3776).
+function addRefsFromArrayItem(item, addRef) {
+    if (typeof item === "string") {
+        addRef(item);
+    } else if (item && typeof item === "object") {
+        addRef(item.ref);
+        addRef(item.title);
+    }
+}
+
+function addRefsFromValue(value, addRef) {
+    if (typeof value === "string") {
+        addRef(value);
+        return;
+    }
+    if (Array.isArray(value)) {
+        for (const item of value) {
+            addRefsFromArrayItem(item, addRef);
+        }
+        return;
+    }
+    if (value && typeof value === "object") {
+        addRef(value.ref);
+    }
+}
+
 function collectRefsFromPayload(payload) {
     if (!payload || typeof payload !== "object") {
         return [];
@@ -24,26 +51,8 @@ function collectRefsFromPayload(payload) {
     addRef(payload?.parasha?.ref);
     addRef(payload?.parasha_ref);
 
-    const values = Object.values(payload);
-    for (const value of values) {
-        if (typeof value === "string") {
-            addRef(value);
-            continue;
-        }
-        if (Array.isArray(value)) {
-            for (const item of value) {
-                if (typeof item === "string") {
-                    addRef(item);
-                } else if (item && typeof item === "object") {
-                    addRef(item.ref);
-                    addRef(item.title);
-                }
-            }
-            continue;
-        }
-        if (value && typeof value === "object") {
-            addRef(value.ref);
-        }
+    for (const value of Object.values(payload)) {
+        addRefsFromValue(value, addRef);
     }
 
     return Array.from(refs).slice(0, 9);
@@ -159,6 +168,7 @@ let currentZmanimLocationLabel = null;
 
 const ZMAN_FIELD_MAP = {
     zDawn: 'Dawn (16.1° / 72m)',
+    zFastStart: 'Fast Starts',
     zTalit: 'Earliest Tallit/Tefillin (10.2°)',
     zSunrise: 'Sunrise',
     zShemaGra: 'Latest Shema (GRA)',
@@ -173,12 +183,14 @@ const ZMAN_FIELD_MAP = {
     zSunset: 'Sunset',
     zMaariv: 'Arvit (Maariv)',
     zNight: 'Nightfall (3 Stars)',
+    zFastEnd: 'Fast Ends',
     zHavdalah: 'Havdalah',
     zMidnight: 'Chatzot HaLailah (Midnight)',
 };
 
 const ZMAN_ROW_BY_KEY = {
     'Dawn (16.1° / 72m)': 'zRowDawn',
+    'Fast Starts': 'zRowFastStart',
     'Earliest Tallit/Tefillin (10.2°)': 'zRowTalit',
     'Sunrise': 'zRowSunrise',
     'Latest Shema (GRA)': 'shemaGraRow',
@@ -193,6 +205,7 @@ const ZMAN_ROW_BY_KEY = {
     'Sunset': 'zRowSunset',
     'Arvit (Maariv)': 'zRowMaariv',
     'Nightfall (3 Stars)': 'zRowNight',
+    'Fast Ends': 'zRowFastEnd',
     'Havdalah': 'zRowHavdalah',
     'Chatzot HaLailah (Midnight)': 'zRowMidnight',
 };
@@ -212,6 +225,8 @@ export function applyOptionalZmanRows(zmanim) {
     setZmanRowVisibility('zRowMusaf', hasRealZman(zmanim['Latest Musaf']));
     setZmanRowVisibility('zRowCandles', hasRealZman(zmanim['Candle Lighting']));
     setZmanRowVisibility('zRowHavdalah', hasRealZman(zmanim['Havdalah']));
+    setZmanRowVisibility('zRowFastStart', hasRealZman(zmanim['Fast Starts']));
+    setZmanRowVisibility('zRowFastEnd', hasRealZman(zmanim['Fast Ends']));
 }
 
 export function setZmanimLocationLabel(label, timezone) {
