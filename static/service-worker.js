@@ -82,7 +82,9 @@ async function staleWhileRevalidate(request, cacheName, event, fallbackFactory, 
 
     const fetchAndRefresh = fetch(request)
         .then(async (response) => {
-            if (await isCacheable(response)) {
+            // isCacheable may be a plain predicate or an async one
+            // (isCacheableApiResponse); Promise.resolve() covers both.
+            if (await Promise.resolve(isCacheable(response))) {
                 await cache.put(request, response.clone());
             }
             return response;

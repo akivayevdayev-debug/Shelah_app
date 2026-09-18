@@ -36,6 +36,28 @@ async function buildAuthHeaders(baseHeaders) {
     return baseHeaders;
 }
 
+const AI_RETRYABLE_STATUSES = [502, 503, 504];
+
+function isRetryableUpstreamResponse(response) {
+    return !response.ok && AI_RETRYABLE_STATUSES.includes(response.status);
+}
+
+function isRetryableNetworkError(error) {
+    return error?.name === "AbortError" || error instanceof TypeError;
+}
+
+// Reports the upcoming retry to the caller's UI hook, then backs off.
+async function waitBeforeRetry(onRetry, attempt) {
+    if (typeof onRetry === "function") {
+        try {
+            onRetry(attempt);
+        } catch (_err) {
+            // Retry-UI hooks must never abort the request they're reporting on.
+        }
+    }
+    await new Promise((resolve) => setTimeout(resolve, 1200 * attempt));
+}
+
 // POSTs /ask with a bounded per-attempt timeout and automatic retry on
 // transient failures (abort/network/502/503/504) -- never on 4xx or a clean
 // response. Prevents the "times out after a couple of tries" failure mode
@@ -46,14 +68,7 @@ async function fetchAskWithRetry(requestBody, headers, onRetry) {
     let lastError = null;
     for (let attempt = 1; attempt <= AI_MAX_ATTEMPTS; attempt++) {
         if (attempt > 1) {
-            if (typeof onRetry === "function") {
-                try {
-                    onRetry(attempt);
-                } catch (_err) {
-                    // Retry-UI hooks must never abort the request they're reporting on.
-                }
-            }
-            await new Promise((resolve) => setTimeout(resolve, 1200 * attempt));
+            await waitBeforeRetry(onRetry, attempt);
         }
 
         const abortCtrl = new AbortController();
@@ -65,16 +80,14 @@ async function fetchAskWithRetry(requestBody, headers, onRetry) {
                 signal: abortCtrl.signal,
                 body: requestBody,
             });
-            const isRetryableStatus = [502, 503, 504].includes(response.status);
-            if (!response.ok && isRetryableStatus && attempt < AI_MAX_ATTEMPTS) {
+            if (isRetryableUpstreamResponse(response) && attempt < AI_MAX_ATTEMPTS) {
                 lastError = new Error(`Upstream error (${response.status})`);
                 continue;
             }
             return response;
         } catch (error) {
             lastError = error;
-            const isRetryable = error?.name === "AbortError" || error instanceof TypeError;
-            if (isRetryable && attempt < AI_MAX_ATTEMPTS) {
+            if (isRetryableNetworkError(error) && attempt < AI_MAX_ATTEMPTS) {
                 continue;
             }
             error.attempts = attempt;

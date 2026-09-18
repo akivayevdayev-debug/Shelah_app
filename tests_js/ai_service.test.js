@@ -157,3 +157,41 @@ test('askAi does not retry a clean 4xx response', async () => {
     });
     assert.equal(fetchFn.calls.length, 1, 'a 4xx must fail fast, never retried');
 });
+
+test('askAi retries a network TypeError once and reports the retry via onRetry', async () => {
+    const fetchFn = makeSequenceFetch([new TypeError('Failed to fetch'), makeJsonResponse(200, { answer: 'ok' })]);
+    const { mod } = await loadAiService({ fetch: fetchFn });
+    const retryAttempts = [];
+
+    const payload = await mod.namespace.askAi('question', { onRetry: (attempt) => retryAttempts.push(attempt) });
+
+    assert.deepEqual(payload, { answer: 'ok' });
+    assert.equal(fetchFn.calls.length, 2);
+    assert.deepEqual(retryAttempts, [2]);
+});
+
+test('askAi does not let a throwing onRetry hook abort the request it is reporting on', async () => {
+    const fetchFn = makeSequenceFetch([makeJsonResponse(503, {}), makeJsonResponse(200, { answer: 'ok' })]);
+    const { mod } = await loadAiService({ fetch: fetchFn });
+
+    const payload = await mod.namespace.askAi('question', {
+        onRetry: () => {
+            throw new Error('retry UI blew up');
+        },
+    });
+
+    assert.deepEqual(payload, { answer: 'ok' });
+    assert.equal(fetchFn.calls.length, 2);
+});
+
+test('askAi fails fast on an error that is neither an abort nor a network TypeError', async () => {
+    const fetchFn = makeSequenceFetch([new RangeError('not a transient failure')]);
+    const { mod } = await loadAiService({ fetch: fetchFn });
+
+    await assert.rejects(mod.namespace.askAi('question', {}), (error) => {
+        assert.equal(error.name, 'RangeError');
+        assert.equal(error.attempts, 1);
+        return true;
+    });
+    assert.equal(fetchFn.calls.length, 1, 'only AbortError/TypeError are retried');
+});
