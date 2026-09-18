@@ -171,8 +171,12 @@ export function installSemanticBookmarking() {
     if (!button) return;
 
     // templates/index.html owns semantic bookmarking in the main app shell.
-    // Skip module binding there to avoid duplicate handlers.
-    if (typeof window.saveSemanticBookmark === "function") {
+    // Skip module binding there to avoid duplicate handlers. This flag (not an
+    // implicit-global check) is scope-independent: it survives the inline block
+    // ever being wrapped in an IIFE or converted to a module, unlike checking
+    // `typeof window.saveSemanticBookmark === "function"`, which relied on the
+    // inline copy being a bare top-level classic-script function declaration.
+    if (window.__shelahLegacyBookmarkBound === true) {
         return;
     }
 
