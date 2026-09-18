@@ -13,6 +13,7 @@ Features:
 - get_linked_texts(ref): All linked commentaries for a ref
 """
 
+import logging
 import requests
 import time
 import difflib
@@ -27,6 +28,8 @@ from urllib.parse import quote, urlencode, unquote
 import os as _os
 
 from backend.cache import TTLCache, redis_cache_get, redis_cache_set
+
+logger = logging.getLogger(__name__)
 
 SEFARIA_API = _os.environ.get("SEFARIA_API", "https://www.sefaria.org.il/api").rstrip("/")
 SEFARIA_V3_API = _os.environ.get("SEFARIA_V3_API", "https://www.sefaria.org.il/api/v3").rstrip("/")
@@ -240,7 +243,7 @@ def _load_library_index_adjustments():
     try:
         payload = json.loads(path.read_text(encoding="utf-8"))
     except Exception as exc:
-        print(f"[Sefaria Library] Failed loading index adjustments: {exc}")
+        logger.error(f"[Sefaria Library] Failed loading index adjustments: {exc}")
         new_state = {"loaded": True, "mtime": mtime,
                       "remove_keys": set(), "fix_map": {}}
         with _library_index_adjustments_lock:
@@ -363,21 +366,19 @@ def _cached_get(url, ttl=CACHE_TTL):
                 "last_blocked_ts": now,
                 "consecutive_blocks": _sefaria_block_status.get("consecutive_blocks", 0) + 1,
             })
-            print(
+            logger.error(
                 f"[Sefaria Library Error] Failed to fetch data from {url}. Status Code: {status_code}. Reason: Cloudflare 403 Forbidden. Sefaria is blocking the request.")
         elif status_code not in (400, 404):
-            print(
+            logger.error(
                 f"[Sefaria Library Error] HTTP error during fetch. URL: {url}. Status Code: {status_code}. Details: {str(e)}")
         return None
     except requests.RequestException as e:
-        print(
+        logger.error(
             f"[Sefaria Library Error] Network or request error. URL: {url}. Details: {str(e)}")
         return None
     except Exception as e:
-        import traceback
-        print(
+        logger.exception(
             f"[Sefaria Library Error] Unexpected error occurred. URL: {url}. Type: {type(e).__name__}. Details: {str(e)}")
-        traceback.print_exc()
         return None
 
 
