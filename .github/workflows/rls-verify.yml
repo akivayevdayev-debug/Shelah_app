@@ -38,14 +38,17 @@ jobs:
           cache: "pip"
 
       - name: Install dependencies
-        # Matches the actually-committed ci.yml (requirements.txt /
-        # requirements-dev.txt, no --require-hashes) -- NOT the uncommitted
-        # working-tree draft of ci.yml, which references
-        # requirements.lock.txt/requirements-dev.lock.txt that were never
-        # committed to this repo and don't exist on a fresh checkout.
+        # Same hash-verified, binary-only install as ci.yml (SonarCloud
+        # githubactions:S8544 / S8541); julian/memoization are the sole
+        # sdist-only exceptions, see requirements.lock.txt's header.
+        # scripts/verify_rls.py needs only requests + python-dotenv, both in
+        # the runtime lock, so the dev lock is not installed here (the
+        # previous unlocked `pip install -r requirements-dev.txt` pulled
+        # pytest & co. into a job that never runs them). The runtime lock's
+        # wheels were dry-run-verified for CPython 3.12 as well as 3.14.
         run: |
-          python -m pip install --upgrade pip
-          pip install -r requirements.txt -r requirements-dev.txt
+          pip install --require-hashes --only-binary=:all: --no-binary=julian,memoization \
+            -r requirements.lock.txt
 
       - name: Run scripts/verify_rls.py
         env:
