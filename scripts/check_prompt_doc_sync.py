@@ -230,34 +230,46 @@ def parse_prompts(text: str) -> dict[str, dict[str, str]]:
     return prompts
 
 
+def _prompt_sort_key(kv: tuple[str, dict]) -> tuple[int, str]:
+    m = re.match(r"(\d+)([a-z]?)", kv[0])
+    return (int(m.group(1)), m.group(2)) if m else (0, kv[0])
+
+
+def _prompt_section_refs(prompt: dict[str, str]) -> list[str]:
+    """The plan.md section numbers a prompt's own header points at, in order, de-duplicated."""
+    segment_m = PROMPT_PRIMARY_SEGMENT_RE.match(prompt["header"])
+    segment = segment_m.group(1) if segment_m else prompt["header"]
+    return list(dict.fromkeys(SECTION_REF_RE.findall(segment)))
+
+
+def _plan_section_status(plan_sections: dict[str, tuple[str, str]], ref: str) -> str:
+    """Status the plan.md section reads as; "unknown" when the section is
+    absent or neither its own text nor its full text classifies."""
+    texts = plan_sections.get(ref)
+    if texts is None:
+        return "unknown"
+    own_text, full_text = texts
+    status = classify(own_text)
+    if status == "unknown":
+        status = classify(full_text)
+    return status
+
+
 def find_mismatches(
     plan_sections: dict[str, tuple[str, str]], prompts: dict[str, dict[str, str]]
 ) -> list[dict]:
     findings = []
-    def _sort_key(kv: tuple[str, dict]) -> tuple[int, str]:
-        m = re.match(r"(\d+)([a-z]?)", kv[0])
-        return (int(m.group(1)), m.group(2)) if m else (0, kv[0])
 
-    for pnum, prompt in sorted(prompts.items(), key=_sort_key):
-        segment_m = PROMPT_PRIMARY_SEGMENT_RE.match(prompt["header"])
-        segment = segment_m.group(1) if segment_m else prompt["header"]
-        refs = list(dict.fromkeys(SECTION_REF_RE.findall(segment)))
+    for pnum, prompt in sorted(prompts.items(), key=_prompt_sort_key):
+        refs = _prompt_section_refs(prompt)
         if not refs:
             continue
         prompt_status = classify(prompt["body"])
         if prompt_status == "unknown":
             continue
         for ref in refs:
-            texts = plan_sections.get(ref)
-            if texts is None:
-                continue
-            own_text, full_text = texts
-            section_status = classify(own_text)
-            if section_status == "unknown":
-                section_status = classify(full_text)
-            if section_status == "unknown":
-                continue
-            if prompt_status != section_status:
+            section_status = _plan_section_status(plan_sections, ref)
+            if section_status not in ("unknown", prompt_status):
                 findings.append(
                     {
                         "prompt": pnum,

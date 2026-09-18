@@ -517,15 +517,7 @@ def check_bookmarks_app_round_trip(base_url, user_a):
     return True, "sentinel round-tripped through /api/bookmarks/semantic"
 
 
-def main():
-    print_header("Sh'elah RLS live acceptance check (plan.md §21.2.2)")
-
-    base_url = (
-        os.environ.get("RLS_VERIFY_BASE_URL")
-        or os.environ.get("DEPLOYED_URL")
-        or os.environ.get("VERCEL_URL")
-        or ""
-    ).strip()
+def _configured_supabase_url():
     supabase_url = (os.environ.get("SUPABASE_URL") or "").strip()
     # app.py's own SUPABASE_URL usage (create_client(SUPABASE_URL, ...))
     # expects the bare project URL -- the supabase-py client appends
@@ -537,8 +529,10 @@ def main():
     # so a pasted REST URL doesn't silently 404 every table identically.
     if supabase_url.rstrip("/").endswith("/rest/v1"):
         supabase_url = supabase_url.rstrip("/")[: -len("/rest/v1")]
-    publishable_key = (os.environ.get("SUPABASE_PUBLISHABLE_KEY") or "").strip()
+    return supabase_url
 
+
+def _missing_configuration(base_url, supabase_url, publishable_key):
     missing = []
     if not base_url:
         missing.append("RLS_VERIFY_BASE_URL (or DEPLOYED_URL / VERCEL_URL)")
@@ -546,16 +540,18 @@ def main():
         missing.append("SUPABASE_URL")
     if not publishable_key:
         missing.append("SUPABASE_PUBLISHABLE_KEY")
-    if missing:
-        print_fail("Missing required configuration: " + ", ".join(missing))
-        return 1
+    return missing
 
+
+def _load_distinct_test_users():
+    """Resolve test users A and B. Prints the reason and returns None when
+    either is unavailable or both resolve to the same Clerk user."""
     try:
         user_a = _load_test_user("A")
         user_b = _load_test_user("B")
     except Exception as e:
         print_fail(f"Could not resolve test user tokens: {e}")
-        return 1
+        return None
 
     if not user_a or not user_b:
         print_fail(
@@ -565,7 +561,7 @@ def main():
             "to mint one fresh). This script never creates a Clerk account "
             "or session -- both test users' sessions must already exist."
         )
-        return 1
+        return None
 
     if user_a["user_id"] == user_b["user_id"]:
         print_fail(
@@ -573,13 +569,29 @@ def main():
             "Clerk user_id -- the negative cross-user assertion is "
             "meaningless without two distinct test users."
         )
-        return 1
+        return None
+    return user_a, user_b
 
+
+def _print_run_context(base_url, supabase_url, user_a, user_b):
     print_info(f"Base URL: {base_url}")
     print_info(f"Supabase project: {supabase_url}")
     print_info(f"Test user A: {user_a['user_id']} (token issuer: {user_a['issuer'] or 'unknown -- decode failed'})")
     print_info(f"Test user B: {user_b['user_id']} (token issuer: {user_b['issuer'] or 'unknown -- decode failed'})")
 
+
+def _print_table_messages(ok, messages):
+    """Every message but the last is context; the last one is the verdict."""
+    last_index = len(messages) - 1
+    for i, m in enumerate(messages):
+        if i == last_index:
+            (print_pass if ok else print_fail)(m)
+        else:
+            print_info(m)
+
+
+def _run_layer1(supabase_url, publishable_key, user_a, user_b):
+    """Direct Postgres RLS check on every table. Returns True when all pass."""
     all_ok = True
 
     print_header("Layer 1 -- direct Postgres RLS check (positive + negative)")
@@ -592,20 +604,12 @@ def main():
         ok, messages = check_table_rls(
             supabase_url, publishable_key, table_name, id_column, sentinel_column,
             user_a, user_b)
-        last_index = len(messages) - 1
-        for i, m in enumerate(messages):
-            if i == last_index:
-                (print_pass if ok else print_fail)(m)
-            else:
-                print_info(m)
+        _print_table_messages(ok, messages)
         all_ok = all_ok and ok
+    return all_ok
 
-    print_header("Layer 2 -- app-routed smoke check (full plumbing, user A only)")
-    try:
-        user_a_layer2 = _refresh_test_user_token(user_a)
-    except Exception as e:
-        print_warn(f"Could not refresh user A's token for Layer 2, reusing Layer 1's: {e}")
-        user_a_layer2 = user_a
+
+def _print_layer2_token_diagnostics(user_a_layer2):
     # Diagnostic (2026-09-01): a fresh Layer-2 token still hit "Invalid or
     # expired Clerk token" once already, even with _refresh_test_user_token
     # in place -- decode+log the token's own iat/exp against wall-clock time
@@ -621,6 +625,19 @@ def main():
         f"azp={claims_l2.get('azp')!r} iat={iat} exp={exp} now={now} "
         f"seconds_until_expiry={None if exp is None else exp - now}"
     )
+
+
+def _run_layer2(base_url, user_a):
+    """App-routed smoke check as user A. Returns True when every check passes."""
+    all_ok = True
+
+    print_header("Layer 2 -- app-routed smoke check (full plumbing, user A only)")
+    try:
+        user_a_layer2 = _refresh_test_user_token(user_a)
+    except Exception as e:
+        print_warn(f"Could not refresh user A's token for Layer 2, reusing Layer 1's: {e}")
+        user_a_layer2 = user_a
+    _print_layer2_token_diagnostics(user_a_layer2)
     for label, check_fn in (
         ("preferences", check_preferences_app_round_trip),
         ("bookmarks", check_bookmarks_app_round_trip),
@@ -631,6 +648,37 @@ def main():
             ok, message = False, f"{label}: unexpected error: {e}"
         (print_pass if ok else print_fail)(message)
         all_ok = all_ok and ok
+    return all_ok
+
+
+def main():
+    print_header("Sh'elah RLS live acceptance check (plan.md §21.2.2)")
+
+    base_url = (
+        os.environ.get("RLS_VERIFY_BASE_URL")
+        or os.environ.get("DEPLOYED_URL")
+        or os.environ.get("VERCEL_URL")
+        or ""
+    ).strip()
+    supabase_url = _configured_supabase_url()
+    publishable_key = (os.environ.get("SUPABASE_PUBLISHABLE_KEY") or "").strip()
+
+    missing = _missing_configuration(base_url, supabase_url, publishable_key)
+    if missing:
+        print_fail("Missing required configuration: " + ", ".join(missing))
+        return 1
+
+    users = _load_distinct_test_users()
+    if users is None:
+        return 1
+    user_a, user_b = users
+
+    _print_run_context(base_url, supabase_url, user_a, user_b)
+
+    all_ok = _run_layer1(supabase_url, publishable_key, user_a, user_b)
+    # Layer 2 always runs, even after a Layer 1 failure, so one run reports
+    # every problem instead of stopping at the first.
+    all_ok = _run_layer2(base_url, user_a) and all_ok
 
     print_header("Result")
     if all_ok:

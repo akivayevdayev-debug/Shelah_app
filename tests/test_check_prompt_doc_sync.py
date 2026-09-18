@@ -168,6 +168,56 @@ class TestFindMismatches:
         assert findings == []
 
 
+class TestFindMismatchesSkipPaths:
+    """Every reason find_mismatches() declines to compare a prompt with a section."""
+
+    _DONE_PROMPT = {
+        "header": "## Prompt 70 — §20: thing — for Opus 5",
+        "body": "## Prompt 70 — §20: thing — for Opus 5\n\n✅ done here.",
+    }
+
+    def test_prompt_without_a_section_reference_is_skipped(self):
+        prompts = {"71": {"header": "## Prompt 71 — no refs here: x", "body": "✅ done"}}
+        plan_sections = {"20": ("🔴 open", "🔴 open")}
+        assert cpds.find_mismatches(plan_sections, prompts) == []
+
+    def test_prompt_whose_own_status_is_unclassifiable_is_skipped(self):
+        prompts = {"70": {**self._DONE_PROMPT, "body": "Narrative with no status markers."}}
+        plan_sections = {"20": ("🔴 open", "🔴 open")}
+        assert cpds.find_mismatches(plan_sections, prompts) == []
+
+    def test_reference_to_a_section_missing_from_the_plan_is_skipped(self):
+        assert cpds.find_mismatches({}, {"70": self._DONE_PROMPT}) == []
+
+    def test_section_that_never_classifies_is_skipped(self):
+        plan_sections = {"20": ("Plain prose.", "More plain prose.")}
+        assert cpds.find_mismatches(plan_sections, {"70": self._DONE_PROMPT}) == []
+
+    def test_section_status_falls_back_to_full_text_when_own_text_is_unclassifiable(self):
+        plan_sections = {"20": ("Plain prose.", "## 20. Thing — 🔴 still open")}
+        findings = cpds.find_mismatches(plan_sections, {"70": self._DONE_PROMPT})
+        assert [(f["prompt_status"], f["section_status"]) for f in findings] == [("done", "open")]
+
+    def test_repeated_reference_in_one_header_is_reported_once(self):
+        prompt = {
+            "header": "## Prompt 70 — §20 and §20: thing — for Opus 5",
+            "body": "## Prompt 70 — §20 and §20: thing\n\n✅ done here.",
+        }
+        plan_sections = {"20": ("🔴 open", "🔴 open")}
+        assert len(cpds.find_mismatches(plan_sections, {"70": prompt})) == 1
+
+    def test_findings_come_out_in_numeric_prompt_order_with_letter_suffixes(self):
+        plan_sections = {"20": ("🔴 open", "🔴 open")}
+
+        def prompt(num):
+            header = f"## Prompt {num} — §20: thing"
+            return {"header": header, "body": f"{header}\n\n✅ done."}
+
+        prompts = {num: prompt(num) for num in ("10", "9b", "9a", "100")}
+        order = [f["prompt"] for f in cpds.find_mismatches(plan_sections, prompts)]
+        assert order == ["9a", "9b", "10", "100"]
+
+
 class TestResolveRepoPath:
     """SonarCloud pythonsecurity:S8707: --plan / --prompts are CLI-supplied and
     were read without any containment check, so ``../`` or an absolute path
