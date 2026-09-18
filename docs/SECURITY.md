@@ -22,10 +22,10 @@ reviewed and fixed on a best-effort basis by a solo maintainer.
 
 ## 1. Secrets & key management
 
-**Finding — historical, key rotated; history purge rewritten locally but
-NOT yet published to `origin`. ✅ Rotation confirmed by operator,
-2026-09-02. ⏳ `origin` still holds the old commits until the force-push
-described below is confirmed and run.** A Google/Gemini API key (value not
+**Finding — historical, key rotated; git history rewritten and force-pushed
+to `origin/main` on 2026-09-18, with two residual exposures still open
+(below). ✅ Rotation confirmed by operator, 2026-09-02.** A Google/Gemini API
+key (value not reproduced in this document) was committed
 reproduced in this document) was committed
 in `test_results.txt` (raw saved output of a manual model-call test,
 including the request URL's `?key=` query parameter) across multiple
@@ -41,41 +41,50 @@ old history.
   Console).** The leaked key has been rotated/revoked at the source. This
   is no longer a live-credential risk: the old key value is dead and cannot
   be used against the Gemini API regardless of who has it.
-- **⏳ Git-history purge — rewritten and checked locally on 2026-09-18;
-  not yet pushed to `origin`.** *Correction:* an earlier revision of this
-  bullet (commit `042e92b`) stated the purge had already been force-pushed
-  to `origin/main` on 2026-09-16 with zero copies remaining. That was
-  wrong. No purge was ever left in place on `origin`: an earlier local
+- **✅ Git-history purge — `origin/main` rewritten 2026-09-18; two residual
+  exposures remain open.** *Correction:* an earlier revision of this bullet
+  (commit `042e92b`) stated the purge had already been force-pushed to
+  `origin/main` on 2026-09-16 with zero copies remaining. That was wrong.
+  No purge was left in place on `origin` at that point: an earlier local
   rewrite (`main` replaced by a rewritten-history commit, `994147b`, at
   2026-09-17 20:44 -0400 — not 2026-09-16) was force-pushed to
   `origin/main` at 20:50 -0400, then reverted to the pre-rewrite `054b7d5`
   at 20:58 -0400 because it had dropped 217 commits that existed only on
-  `origin`. A fresh mirror clone of `origin` on 2026-09-18 shows `main` at
-  `054b7d5` reaching the full key, as do `refs/pull/2` through
-  `refs/pull/5` — the branch and PR #1 are clean. That earlier rewrite was
-  also incomplete: the key had been hard-wrapped across a line
-  break in `test_results.txt`, so that earlier scrub replaced only the head
-  of it and left a 15–19-character tail in the "scrubbed" blobs.
-  - **Done 2026-09-18:** `git filter-repo --replace-text` (regex rules that
-    tolerate the line wrap, plus rules for any prefix/suffix fragment of at
-    least 12 characters) was run on a disposable mirror clone of the local
-    repo, never the working copy. In that mirror, every one of the 3,386
-    objects was scanned for the full key (raw, newline-joined and
+  `origin`. That earlier rewrite was also incomplete: the key had been
+  hard-wrapped across a line break in `test_results.txt`, so it replaced only
+  the head of the key and left a 15–19-character tail in the "scrubbed" blobs.
+  - **Rewrite, 2026-09-18:** `git filter-repo --replace-text` (regex rules
+    that tolerate the line wrap, plus rules for any prefix/suffix fragment
+    of at least 12 characters) was run on a disposable mirror clone of the
+    local repo, never the working copy. In that mirror, every one of the
+    3,386 objects was scanned for the full key (raw, newline-joined and
     whitespace-joined) and for every 12-character window of it: 0 hits.
-    The tip trees of `main`, the `vercel/…` branch and both backup tags are
-    byte-identical to their pre-rewrite trees; only the three session
-    checkpoints and the stash differ, and only in files that held key
-    text. Commit author, committer, dates and messages are unchanged apart
-    from commit hashes quoted inside messages, which `filter-repo` renumbers.
-    Local `main` was then updated with a compare-and-swap and re-scanned:
-    0 hits.
-  - **Still open:** this complete rewrite of `main` has not been force-pushed, so
-    `origin/main` (and the PR refs above) still reach the old commits. A
-    push to `main` cannot change `refs/pull/N/head`; removing the key from
-    those needs a request to GitHub Support. Forks and clones keep the old
-    commits either way. The key itself is rotated (above), so none of this
-    is a live-credential risk. After the push, anyone with an existing
-    clone must re-clone or `git fetch origin && git reset --hard origin/main`.
+    The tip trees of `main`, the `vercel/…` branch and both backup tags were
+    byte-identical to their pre-rewrite trees. Commit author, committer,
+    dates and messages are unchanged apart from commit hashes quoted inside
+    messages, which `filter-repo` renumbers. The rewrite also collapsed the
+    duplicate lineages left by the earlier local rewrite, so the history is
+    now 392 commits with no dropped `origin`-only work.
+  - **Pushed 2026-09-18 15:56 -0400** with
+    `git push --force-with-lease=main:054b7d5 origin main`
+    (`054b7d5...e536a45`, forced update). A fresh mirror clone of `origin`
+    afterwards showed `refs/heads/main` at `e536a45`, its tree identical to
+    the local tree, and the same full-key-plus-fragment scan over everything
+    reachable from it returned 0 hits. The `vercel/…` branch and
+    `refs/pull/1` also returned 0 hits.
+  - **Still open — residual exposure 1:** `refs/pull/2/head` through
+    `refs/pull/5/head` on GitHub still reach the old, key-bearing commits
+    (the same scan flags the full key in each). A push to `main` cannot
+    change pull-request refs; removing them needs a request to GitHub
+    Support.
+  - **Still open — residual exposure 2:** GitHub still serves the old
+    commits by hash. On 2026-09-18, after the push, the API returned HTTP
+    200 for the old `origin/main` tip `054b7d5` and for the key-bearing
+    commit `37df59d`. The repository is public (0 forks at that time), and
+    any existing clone keeps the old history. Anyone with an existing clone
+    must re-clone or run `git fetch origin && git reset --hard origin/main`.
+  - The key itself is rotated (above), so none of this is a live-credential
+    risk; the residual exposures matter only as hygiene.
 - A `gitleaks` 8.30.1 scan over every commit reachable from all refs of the
   rewritten history (497 commits, run 2026-09-18) reported 4 findings, all
   the same false positive (`shelah-sw-v2-migrated` /
