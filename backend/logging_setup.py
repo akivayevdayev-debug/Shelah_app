@@ -463,6 +463,67 @@ def _discord_webhook_body(payload: dict) -> dict:
     return {"embeds": [embed]}
 
 
+def _post_error_webhook(app_logger, webhook_url: str, payload: dict) -> None:
+    """POST `payload` to ERROR_LOG_WEBHOOK_URL. Never raises to the caller."""
+    try:
+        import requests as _requests
+        webhook_body = (
+            _discord_webhook_body(payload)
+            if _is_discord_webhook_url(webhook_url)
+            else payload
+        )
+        webhook_resp = _requests.post(
+            webhook_url,
+            json=webhook_body,
+            timeout=2,
+        )
+        if webhook_resp.status_code >= 300:
+            # Deliberately app.logger.warning, not _capture_backend_error --
+            # this exists precisely because a broken webhook must not go
+            # silent again (plan.md §48: a malformed webhook target went
+            # undetected for weeks because failures here were swallowed
+            # with no trace anywhere). Recursing into _capture_backend_error
+            # would also risk an infinite loop if the webhook itself is the
+            # failure. This still never raises to the caller.
+            #
+            # Deliberately metadata-only, not webhook_resp.text -- the
+            # webhook target is a third party (e.g. Discord, or whatever
+            # ERROR_LOG_WEBHOOK_URL points at) and its response body is
+            # unvetted content that could echo back request data or other
+            # sensitive material. _truncate_free_text() is the same
+            # defence-in-depth backstop _scrub_error_context() uses above
+            # for free-text values, applied here to the one remaining
+            # unbounded string (Content-Type).
+            app_logger.warning(
+                "OBS_EVENT_WEBHOOK_POST_FAILED status=%s content_type=%s content_length=%s",
+                webhook_resp.status_code,
+                _truncate_free_text(webhook_resp.headers.get("Content-Type", "unknown")),
+                webhook_resp.headers.get("Content-Length", "unknown"),
+            )
+    except Exception as webhook_exc:
+        app_logger.warning(
+            "OBS_EVENT_WEBHOOK_POST_FAILED error=%s: %s",
+            type(webhook_exc).__name__, webhook_exc,
+        )
+
+
+def _forward_error_to_sentry(error, context: dict, request_id) -> None:
+    # Forward to Sentry when configured. True no-op when SENTRY_DSN is unset:
+    # _sentry_enabled is only True after a successful sentry_sdk.init() above.
+    # Isolated in its own try/except so a Sentry SDK failure can never break
+    # the caller — this must remain purely additive to the logging above.
+    if _sentry_enabled:
+        try:
+            sentry_sdk.capture_exception(
+                error if isinstance(error, BaseException) else None,
+                contexts={
+                    "backend_error": {**(context or {}), "request_id": request_id},
+                },
+            )
+        except Exception:
+            pass
+
+
 def _capture_backend_error(event_name, error, context=None):
     """Sentry-style structured logger for backend failures and AI prompt issues.
 
@@ -490,61 +551,9 @@ def _capture_backend_error(event_name, error, context=None):
 
     error_log_webhook_url = (os.environ.get("ERROR_LOG_WEBHOOK_URL") or "").strip()
     if error_log_webhook_url:
-        try:
-            import requests as _requests
-            webhook_body = (
-                _discord_webhook_body(payload)
-                if _is_discord_webhook_url(error_log_webhook_url)
-                else payload
-            )
-            webhook_resp = _requests.post(
-                error_log_webhook_url,
-                json=webhook_body,
-                timeout=2,
-            )
-            if webhook_resp.status_code >= 300:
-                # Deliberately app.logger.warning, not _capture_backend_error --
-                # this exists precisely because a broken webhook must not go
-                # silent again (plan.md §48: a malformed webhook target went
-                # undetected for weeks because failures here were swallowed
-                # with no trace anywhere). Recursing into _capture_backend_error
-                # would also risk an infinite loop if the webhook itself is the
-                # failure. This still never raises to the caller.
-                #
-                # Deliberately metadata-only, not webhook_resp.text -- the
-                # webhook target is a third party (e.g. Discord, or whatever
-                # ERROR_LOG_WEBHOOK_URL points at) and its response body is
-                # unvetted content that could echo back request data or other
-                # sensitive material. _truncate_free_text() is the same
-                # defence-in-depth backstop _scrub_error_context() uses above
-                # for free-text values, applied here to the one remaining
-                # unbounded string (Content-Type).
-                _flask_app.app.logger.warning(
-                    "OBS_EVENT_WEBHOOK_POST_FAILED status=%s content_type=%s content_length=%s",
-                    webhook_resp.status_code,
-                    _truncate_free_text(webhook_resp.headers.get("Content-Type", "unknown")),
-                    webhook_resp.headers.get("Content-Length", "unknown"),
-                )
-        except Exception as webhook_exc:
-            _flask_app.app.logger.warning(
-                "OBS_EVENT_WEBHOOK_POST_FAILED error=%s: %s",
-                type(webhook_exc).__name__, webhook_exc,
-            )
+        _post_error_webhook(_flask_app.app.logger, error_log_webhook_url, payload)
 
-    # Forward to Sentry when configured. True no-op when SENTRY_DSN is unset:
-    # _sentry_enabled is only True after a successful sentry_sdk.init() above.
-    # Isolated in its own try/except so a Sentry SDK failure can never break
-    # the caller — this must remain purely additive to the logging above.
-    if _sentry_enabled:
-        try:
-            sentry_sdk.capture_exception(
-                error if isinstance(error, BaseException) else None,
-                contexts={
-                    "backend_error": {**(context or {}), "request_id": request_id},
-                },
-            )
-        except Exception:
-            pass
+    _forward_error_to_sentry(error, context, request_id)
 
 
 _mitigation_logger = logging.getLogger("shelah.mitigation")

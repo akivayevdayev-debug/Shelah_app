@@ -659,16 +659,38 @@ def _export_chapter_as_docx(title, ref, normalized_lines, file_safe):
     )
 
 
-def _export_chapter_as_pdf(title, ref, normalized_lines, file_safe):
-    """The "pdf" branch of export_chapter(). Split out (SonarCloud
-    python:S3776) -- see _export_chapter_as_txt / _export_chapter_as_docx.
-    """
+def _load_reportlab():
+    """Return (LETTER, canvas module) or (None, None) when reportlab is unavailable."""
     try:
         from reportlab.lib.pagesizes import LETTER as _LETTER
         from reportlab.pdfgen import canvas as _canvas
     except Exception:
-        _LETTER = None
-        _canvas = None
+        return None, None
+    return _LETTER, _canvas
+
+
+def _pdf_text_lines(title, ref, normalized_lines):
+    """The text lines, in order, that the PDF export draws (blank strings are spacing)."""
+    lines = [title or "Sh'elah Chapter"]
+    if ref:
+        lines.append(ref)
+    lines.append("")
+
+    for idx, line in enumerate(normalized_lines, start=1):
+        lines.append(f"Segment {line.get('segment') or idx}")
+        if line.get("he"):
+            lines.append(f"Hebrew: {line['he']}")
+        if line.get("en"):
+            lines.append(f"English: {line['en']}")
+        lines.append("")
+    return lines
+
+
+def _export_chapter_as_pdf(title, ref, normalized_lines, file_safe):
+    """The "pdf" branch of export_chapter(). Split out (SonarCloud
+    python:S3776) -- see _export_chapter_as_txt / _export_chapter_as_docx.
+    """
+    _LETTER, _canvas = _load_reportlab()
     if _canvas is None or _LETTER is None:
         return jsonify({"error": "PDF export is unavailable on this server"}), 503
 
@@ -687,18 +709,8 @@ def _export_chapter_as_pdf(title, ref, normalized_lines, file_safe):
             pdf.drawString(left, y, chunk)
             y -= 14
 
-    draw_line(title or "Sh'elah Chapter")
-    if ref:
-        draw_line(ref)
-    draw_line("")
-
-    for idx, line in enumerate(normalized_lines, start=1):
-        draw_line(f"Segment {line.get('segment') or idx}")
-        if line.get("he"):
-            draw_line(f"Hebrew: {line['he']}")
-        if line.get("en"):
-            draw_line(f"English: {line['en']}")
-        draw_line("")
+    for text in _pdf_text_lines(title, ref, normalized_lines):
+        draw_line(text)
 
     pdf.save()
     pdf_buffer.seek(0)

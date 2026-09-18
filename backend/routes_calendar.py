@@ -241,6 +241,31 @@ def _holidays_fallback_chain(year, reason):
         return jsonify({"error": "Calendar data currently unavailable", "events": []}), 503
 
 
+def _hebcal_item_to_event(item):
+    """Map one Hebcal item to a FullCalendar event dict, or None when unusable."""
+    if not isinstance(item, dict):
+        return None
+
+    category = str(item.get("category") or "").strip().lower()
+    title_raw = item.get("title") or ""
+    title_clean = _strip_leading_symbol_prefix(title_raw)
+    start = item.get("date") or item.get("start")
+
+    if not title_clean or not start:
+        return None
+
+    emoji = _holiday_emoji_for_event(title_clean, category)
+    return {
+        "title": f"{emoji} {title_clean}",
+        "start": start,
+        "allDay": "T" not in str(start),
+        "display": "block",
+        "category": category or "default",
+        "color": _holiday_color_for_category(category),
+        "textColor": "#ffffff",
+    }
+
+
 @routes_calendar.route("/api/holidays")
 def get_holidays():
     """Returns Jewish holiday events for FullCalendar via Hebcal API."""
@@ -270,30 +295,7 @@ def get_holidays():
         if not isinstance(items, list):
             items = []
 
-        events = []
-        for item in items:
-            if not isinstance(item, dict):
-                continue
-
-            category = str(item.get("category") or "").strip().lower()
-            title_raw = item.get("title") or ""
-            title_clean = _strip_leading_symbol_prefix(title_raw)
-            start = item.get("date") or item.get("start")
-
-            if not title_clean or not start:
-                continue
-
-            emoji = _holiday_emoji_for_event(title_clean, category)
-            events.append({
-                "title": f"{emoji} {title_clean}",
-                "start": start,
-                "allDay": "T" not in str(start),
-                "display": "block",
-                "category": category or "default",
-                "color": _holiday_color_for_category(category),
-                "textColor": "#ffffff",
-            })
-
+        events = [event for event in map(_hebcal_item_to_event, items) if event]
         return jsonify(events)
     except Exception as e:
         health.record_failure('hebcal')
