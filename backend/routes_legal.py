@@ -18,7 +18,7 @@ from app import (
 routes_legal = Blueprint("legal", __name__)
 
 
-@routes_legal.route("/ai-disclosure")
+@routes_legal.route("/ai-disclosure", methods=["GET"])
 def ai_disclosure():
     return render_template(
         "ai-disclosure.html",
@@ -27,7 +27,7 @@ def ai_disclosure():
     )
 
 
-@routes_legal.route("/acceptable-use")
+@routes_legal.route("/acceptable-use", methods=["GET"])
 def acceptable_use():
     return render_template(
         "acceptable-use.html",
@@ -36,7 +36,7 @@ def acceptable_use():
     )
 
 
-@routes_legal.route("/dmca")
+@routes_legal.route("/dmca", methods=["GET"])
 def dmca():
     return render_template(
         "dmca.html",
@@ -45,7 +45,7 @@ def dmca():
     )
 
 
-@routes_legal.route("/licenses")
+@routes_legal.route("/licenses", methods=["GET"])
 def licenses():
     return render_template(
         "licenses.html",

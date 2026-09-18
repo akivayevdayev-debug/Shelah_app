@@ -419,7 +419,7 @@ def library_popular():
     return jsonify(get_popular_texts())
 
 
-@routes_library.route("/api/text/", strict_slashes=False)
+@routes_library.route("/api/text/", strict_slashes=False, methods=["GET"])
 def get_text_missing_ref():
     """`<path:ref>` below requires a non-empty first segment, so an empty
     ref (`/api/text/` or `/api/text`) never reaches it and would otherwise

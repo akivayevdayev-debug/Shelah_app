@@ -43,7 +43,7 @@ _SITEMAP_PATHS = [
 ]
 
 
-@routes_pages.route("/about")
+@routes_pages.route("/about", methods=["GET"])
 def about():
     return render_template(
         "about.html",
@@ -52,7 +52,7 @@ def about():
     )
 
 
-@routes_pages.route("/help")
+@routes_pages.route("/help", methods=["GET"])
 def help_page():
     return render_template(
         "help.html",
@@ -61,7 +61,7 @@ def help_page():
     )
 
 
-@routes_pages.route("/glossary")
+@routes_pages.route("/glossary", methods=["GET"])
 def glossary():
     entries = []
     try:
@@ -81,7 +81,7 @@ def glossary():
     )
 
 
-@routes_pages.route("/robots.txt")
+@routes_pages.route("/robots.txt", methods=["GET"])
 def robots_txt():
     lines = [
         "User-agent: *",
@@ -94,7 +94,7 @@ def robots_txt():
     return Response("\n".join(lines), mimetype="text/plain")
 
 
-@routes_pages.route("/sitemap.xml")
+@routes_pages.route("/sitemap.xml", methods=["GET"])
 def sitemap_xml():
     urls = []
     for path, changefreq, priority in _SITEMAP_PATHS:
@@ -114,7 +114,7 @@ def sitemap_xml():
     return Response(body, mimetype="application/xml")
 
 
-@routes_pages.route("/llms.txt")
+@routes_pages.route("/llms.txt", methods=["GET"])
 def llms_txt():
     lines = [
         "# Sh'elah",

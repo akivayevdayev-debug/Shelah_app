@@ -102,7 +102,7 @@ def stack_health():
     })
 
 
-@routes_devtools.route("/api/devtools/feedback-digest")
+@routes_devtools.route("/api/devtools/feedback-digest", methods=["GET"])
 @require_clerk_auth
 def feedback_digest():
     """Recent answer-feedback rows (plan.md §12.4.3), newest first.
@@ -372,7 +372,7 @@ def api_health_alias():
     return stack_health()
 
 
-@routes_devtools.route("/api/devtools/budget-check")
+@routes_devtools.route("/api/devtools/budget-check", methods=["GET"])
 def budget_check():
     """Daily AI-spend guardrail — intended to be triggered by Vercel Cron.
 

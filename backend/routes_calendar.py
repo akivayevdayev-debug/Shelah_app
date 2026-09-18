@@ -87,7 +87,7 @@ def _fetch_geocode_results(query):
         return None, (jsonify({"error": "City search failed."}), 502)
 
 
-@routes_calendar.route("/api/geocode")
+@routes_calendar.route("/api/geocode", methods=["GET"])
 def geocode_city():
     """Server-side proxy for the zmanim "search by city" box.
 
