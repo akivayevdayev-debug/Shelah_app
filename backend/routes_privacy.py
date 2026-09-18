@@ -37,8 +37,10 @@ from app import (
     SUPABASE_STUDY_BOOKMARKS_TABLE,
     SUPABASE_ASK_HISTORY_TABLE,
     SUPABASE_USER_MEMORIES_TABLE,
+    SUPABASE_ANSWER_FEEDBACK_TABLE,
     _get_supabase_client,
     _capture_backend_error,
+    hash_user_id,
 )
 
 routes_privacy = Blueprint("privacy", __name__)
@@ -49,13 +51,18 @@ routes_privacy = Blueprint("privacy", __name__)
 _AI_USAGE_LOG_TABLE = "ai_usage_log"
 
 # (export key, table name) -- every table here is keyed by a `user_id`
-# text column holding the Clerk `sub` claim.
+# text column holding the Clerk `sub` claim. Checked against every
+# app.py SUPABASE_*_TABLE constant (plan.md §39.1): SUPABASE_COMMUNITY_
+# KNOWLEDGE_TABLE is the only other one and is documented (docs/DATABASE.md)
+# as a shared reference corpus with no user_id column, so it is correctly
+# excluded.
 _USER_DATA_TABLES = (
     ("preferences", SUPABASE_PREFS_TABLE),
     ("bookmarks", SUPABASE_STUDY_BOOKMARKS_TABLE),
     ("ask_history", SUPABASE_ASK_HISTORY_TABLE),
     ("memories", SUPABASE_USER_MEMORIES_TABLE),
     ("ai_usage_log", _AI_USAGE_LOG_TABLE),
+    ("feedback", SUPABASE_ANSWER_FEEDBACK_TABLE),
 )
 
 # plan.md §8.D retention windows enforced by the scheduled job below. The
@@ -107,7 +114,7 @@ def _export_table_rows(supabase, table_name, user_id):
         return rows, None
     except Exception as e:
         _capture_backend_error("data_export_table_failed", e, {
-            "user_id": user_id, "table": table_name,
+            "user_id_hash": hash_user_id(user_id), "table": table_name,
         })
         return [], _GENERIC_TABLE_ERROR
 
@@ -154,7 +161,7 @@ def _delete_table_rows(supabase, table_name, user_id):
         return True, None
     except Exception as e:
         _capture_backend_error("account_delete_table_failed", e, {
-            "user_id": user_id, "table": table_name,
+            "user_id_hash": hash_user_id(user_id), "table": table_name,
         })
         return False, _GENERIC_DELETE_ERROR
 
@@ -188,7 +195,7 @@ def _delete_clerk_user(user_id):
         _capture_backend_error(
             "clerk_account_delete_skipped_no_secret_key",
             RuntimeError("CLERK_SECRET_KEY not configured"),
-            {"user_id": user_id},
+            {"user_id_hash": hash_user_id(user_id)},
         )
         return False, "CLERK_SECRET_KEY not configured"
 
@@ -198,7 +205,7 @@ def _delete_clerk_user(user_id):
         return True, None
     except Exception as e:
         _capture_backend_error(
-            "clerk_account_delete_failed", e, {"user_id": user_id})
+            "clerk_account_delete_failed", e, {"user_id_hash": hash_user_id(user_id)})
         return False, str(e)
 
 
