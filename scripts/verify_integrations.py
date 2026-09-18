@@ -246,6 +246,20 @@ def check_supabase():
         return False
 
 
+def _has_text(value):
+    """True when `value` is a non-blank string, or a (possibly nested) list
+    holding one -- the shapes Sefaria uses for a verse or a range of verses."""
+    if isinstance(value, str):
+        return bool(value.strip())
+    if isinstance(value, list):
+        return any(_has_text(item) for item in value)
+    return False
+
+
+# 2026-04-09 (the date check_hebcal converts) is 22 Nisan 5786: (hy, hm, hd).
+HEBCAL_EXPECTED_DATE = (5786, "Nisan", 22)
+
+
 def check_sefaria():
     """Test Sefaria API connectivity"""
     print_header("4. Sefaria API Connection")
@@ -254,18 +268,22 @@ def check_sefaria():
 
     try:
         response = requests.get(test_url, timeout=5)
-        if response.status_code == 200:
-            data = response.json()
-            if 'he' in data and ('text' in data or 'he' in data):
-                print_pass("Sefaria API reachable and returning text payload")
-                return True
-            else:
-                print_warn(
-                    "Sefaria returned data but missing Hebrew or English")
-                return True
-        else:
+        if response.status_code != 200:
             print_fail(f"Sefaria returned status {response.status_code}")
             return False
+
+        data = response.json()
+        # lang=bi asks for both languages, so BOTH must carry real text. A 200
+        # that lacks either (an {"error": ...} body, empty segment lists) means
+        # the integration is not working, so it fails rather than warns.
+        if isinstance(data, dict) and _has_text(data.get("he")) and _has_text(data.get("text")):
+            print_pass("Sefaria API reachable and returning Hebrew and English text")
+            return True
+
+        print_fail(
+            "Sefaria returned 200 but the Genesis 1:1 payload lacks non-empty "
+            f"Hebrew ('he') and English ('text'): {str(data)[:100]}")
+        return False
     except requests.Timeout:
         print_fail("Sefaria request timed out")
         return False
@@ -282,19 +300,23 @@ def check_hebcal():
 
     try:
         response = requests.get(test_url, timeout=5)
-        if response.status_code == 200:
-            data = response.json()
-            if 'hy' in data and 'hm' in data and 'hd' in data:
-                print_pass(
-                    "Hebcal API reachable and returning converted Hebrew date")
-                return True
-            else:
-                print_warn(
-                    "Hebcal returned data but missing expected date fields")
-                return True
-        else:
+        if response.status_code != 200:
             print_fail(f"Hebcal returned status {response.status_code}")
             return False
+
+        data = response.json()
+        # The request converts a fixed Gregorian date, so the answer is known:
+        # check the converted VALUE, not just that the keys exist.
+        if isinstance(data, dict) and (
+                data.get("hy"), data.get("hm"), data.get("hd")) == HEBCAL_EXPECTED_DATE:
+            print_pass(
+                "Hebcal API reachable and converted 2026-04-09 to 22 Nisan 5786")
+            return True
+
+        print_fail(
+            "Hebcal returned 200 but did not convert 2026-04-09 to 22 Nisan 5786: "
+            f"{str(data)[:100]}")
+        return False
     except requests.Timeout:
         print_fail("Hebcal request timed out")
         return False
