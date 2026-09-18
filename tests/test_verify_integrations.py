@@ -283,28 +283,79 @@ class TestCheckSupabase:
 
 
 class TestSefariaAndHebcal:
-    def test_sefaria_ok_and_odd_payload_and_errors(self, monkeypatch):
-        _patch_get(monkeypatch, _resp(200, {"he": ["x"], "text": ["y"]}))
+    """A reachable API that returns the WRONG thing is a FAIL, not a warning:
+    these checks exist to prove the integration works, not just that a host
+    answers. (They used to warn and return True on any 200 with an odd body,
+    and check_sefaria's key test repeated `'he' in data`, so it could not fail.)"""
+
+    GOOD_SEFARIA = {"he": ["בראשית ברא"], "text": ["When God began to create"]}
+    GOOD_HEBCAL = {"gy": 2026, "gm": 4, "gd": 9, "hy": 5786, "hm": "Nisan", "hd": 22}
+
+    def test_sefaria_good_payload_passes_including_nested_segment_lists(self, monkeypatch, capsys):
+        _patch_get(monkeypatch, _resp(200, self.GOOD_SEFARIA))
         assert vi.check_sefaria() is True
-        _patch_get(monkeypatch, _resp(200, {"other": 1}))
-        assert vi.check_sefaria() is True  # warns only; not this fix's scope
+        _patch_get(monkeypatch, _resp(200, {"he": [["א"], []], "text": [["a"]]}))
+        assert vi.check_sefaria() is True
+        assert "PASS" in capsys.readouterr().out
+
+    @pytest.mark.parametrize("payload", [
+        {"other": 1},                                 # neither language
+        {"he": ["בראשית"]},                            # Hebrew only
+        {"text": ["In the beginning"]},               # English only
+        {"he": [], "text": []},                       # keys present, nothing in them
+        {"he": ["בראשית"], "text": ["", "  "]},       # English is blank
+        {"he": "   ", "text": "In the beginning"},    # Hebrew is blank
+        {"he": None, "text": None},
+        {"error": "Couldn't find a text"},            # Sefaria's 200-with-error shape
+        ["he", "text"],                               # not an object
+        "he text",                                    # a bare string contains both substrings
+    ])
+    def test_sefaria_200_with_a_wrong_or_empty_payload_fails(self, monkeypatch, capsys, payload):
+        _patch_get(monkeypatch, _resp(200, payload))
+        assert vi.check_sefaria() is False
+        assert "FAIL" in capsys.readouterr().out
+
+    def test_sefaria_transport_problems_fail(self, monkeypatch):
         _patch_get(monkeypatch, _resp(500))
         assert vi.check_sefaria() is False
         _patch_get(monkeypatch, exc=requests.Timeout())
         assert vi.check_sefaria() is False
         _patch_get(monkeypatch, exc=RuntimeError("boom"))
         assert vi.check_sefaria() is False
+        _patch_get(monkeypatch, _resp(200, json_error=True))
+        assert vi.check_sefaria() is False
 
-    def test_hebcal_ok_and_odd_payload_and_errors(self, monkeypatch):
-        _patch_get(monkeypatch, _resp(200, {"hy": 1, "hm": "Nisan", "hd": 2}))
+    def test_hebcal_correct_conversion_passes(self, monkeypatch, capsys):
+        _patch_get(monkeypatch, _resp(200, self.GOOD_HEBCAL))
         assert vi.check_hebcal() is True
-        _patch_get(monkeypatch, _resp(200, {"hy": 1}))
-        assert vi.check_hebcal() is True  # warns only; not this fix's scope
+        assert "PASS" in capsys.readouterr().out
+
+    @pytest.mark.parametrize("payload", [
+        {"hy": 1},                                              # missing fields
+        {"hy": 1, "hm": "Nisan", "hd": 2},                      # all present, wrong date
+        {"hy": 5786, "hm": "Nisan", "hd": 21},                  # off by one day
+        {"hy": 5786, "hm": "Iyyar", "hd": 22},                  # wrong month
+        {"hy": 5785, "hm": "Nisan", "hd": 22},                  # wrong year
+        {"hy": "5786", "hm": "Nisan", "hd": "22"},              # right values, wrong types
+        {"error": "Invalid date"},
+        [5786, "Nisan", 22],                                    # not an object
+        "hy hm hd",                                             # a bare string contains all three
+    ])
+    def test_hebcal_200_with_a_wrong_conversion_fails_and_says_what_it_got(self, monkeypatch, capsys, payload):
+        _patch_get(monkeypatch, _resp(200, payload))
+        assert vi.check_hebcal() is False
+        out = capsys.readouterr().out
+        assert "FAIL" in out
+        assert "22 Nisan 5786" in out, "the failure must state the expected conversion"
+
+    def test_hebcal_transport_problems_fail(self, monkeypatch):
         _patch_get(monkeypatch, _resp(404))
         assert vi.check_hebcal() is False
         _patch_get(monkeypatch, exc=requests.Timeout())
         assert vi.check_hebcal() is False
         _patch_get(monkeypatch, exc=RuntimeError("boom"))
+        assert vi.check_hebcal() is False
+        _patch_get(monkeypatch, _resp(200, json_error=True))
         assert vi.check_hebcal() is False
 
 
