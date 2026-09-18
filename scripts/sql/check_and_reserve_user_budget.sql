@@ -72,8 +72,10 @@ DECLARE
     v_total NUMERIC;
     v_reservation_id UUID;
     v_start_of_day TIMESTAMPTZ := date_trunc('day', now() AT TIME ZONE 'utc') AT TIME ZONE 'utc';
+    -- SonarCloud plsql:S1192: this literal was repeated three times below.
+    c_user_id_column CONSTANT TEXT := 'user_id';
 BEGIN
-    IF p_key_column NOT IN ('user_id', 'client_key') THEN
+    IF p_key_column NOT IN (c_user_id_column, 'client_key') THEN
         RAISE EXCEPTION 'check_and_reserve_user_budget: invalid key_column %', p_key_column;
     END IF;
 
@@ -81,7 +83,7 @@ BEGIN
     -- below cannot race (plan.md §20.1-C2).
     PERFORM pg_advisory_xact_lock(hashtextextended(p_key_column || ':' || p_key_value, 0));
 
-    IF p_key_column = 'user_id' THEN
+    IF p_key_column = c_user_id_column THEN
         SELECT COALESCE(SUM(cost_usd), 0) INTO v_total
         FROM public.ai_usage_log
         WHERE user_id = p_key_value AND created_at >= v_start_of_day;
@@ -104,7 +106,7 @@ BEGIN
     ) VALUES (
         'reservation', 'reservation', 0, 0, p_reservation_usd,
         'budget-reservation', '',
-        CASE WHEN p_key_column = 'user_id' THEN p_key_value ELSE NULL END,
+        CASE WHEN p_key_column = c_user_id_column THEN p_key_value ELSE NULL END,
         CASE WHEN p_key_column = 'client_key' THEN p_key_value ELSE NULL END,
         now(),
         true, v_reservation_id, now() + INTERVAL '10 minutes'
