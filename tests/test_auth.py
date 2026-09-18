@@ -56,6 +56,19 @@ class TestExtractBearerToken:
         with app.test_request_context(headers={"Authorization": "Bearer "}):
             assert auth._extract_bearer_token() is None
 
+    def test_explicit_authorization_value_needs_no_flask_context(self):
+        """plan.md §35.1 / Prompt 47: asgi.py's native FastAPI /ask route has
+        no Flask request context at all -- passing the already-parsed
+        Authorization header value explicitly must work without one."""
+        assert auth._extract_bearer_token("Bearer abc123") == "abc123"
+
+    def test_no_explicit_value_and_no_flask_context_returns_none_not_raise(self):
+        """Before plan.md §35.1's fix, this unconditionally read Flask's
+        global `request` proxy and raised RuntimeError("Working outside of
+        request context") outside a Flask request context -- the exact
+        crash class this regression test guards against."""
+        assert auth._extract_bearer_token() is None
+
 
 # ─────────────────────────── _get_clerk_jwks_client ─────────────────────────
 
