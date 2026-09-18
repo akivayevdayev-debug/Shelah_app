@@ -45,12 +45,15 @@ old history.
   not yet pushed to `origin`.** *Correction:* an earlier revision of this
   bullet (commit `042e92b`) stated the purge had already been force-pushed
   to `origin/main` on 2026-09-16 with zero copies remaining. That was
-  wrong. Nothing had been pushed (a fresh mirror clone of `origin` on
-  2026-09-18 still showed `main` at `054b7d5` reaching the full key, as do
-  `refs/pull/2` through `refs/pull/5` — the branch and PR #1 are clean); the
-  only rewrite that existed was local — the reflog shows `main` replaced
-  by a rewritten-history commit at 2026-09-17 20:44 -0400, not 2026-09-16 —
-  and it was incomplete: the key had been hard-wrapped across a line
+  wrong. No purge was ever left in place on `origin`: an earlier local
+  rewrite (`main` replaced by a rewritten-history commit, `994147b`, at
+  2026-09-17 20:44 -0400 — not 2026-09-16) was force-pushed to
+  `origin/main` at 20:50 -0400, then reverted to the pre-rewrite `054b7d5`
+  at 20:58 -0400 because it had dropped 217 commits that existed only on
+  `origin`. A fresh mirror clone of `origin` on 2026-09-18 shows `main` at
+  `054b7d5` reaching the full key, as do `refs/pull/2` through
+  `refs/pull/5` — the branch and PR #1 are clean. That earlier rewrite was
+  also incomplete: the key had been hard-wrapped across a line
   break in `test_results.txt`, so that earlier scrub replaced only the head
   of it and left a 15–19-character tail in the "scrubbed" blobs.
   - **Done 2026-09-18:** `git filter-repo --replace-text` (regex rules that
@@ -66,7 +69,7 @@ old history.
     from commit hashes quoted inside messages, which `filter-repo` renumbers.
     Local `main` was then updated with a compare-and-swap and re-scanned:
     0 hits.
-  - **Still open:** the rewritten `main` has not been force-pushed, so
+  - **Still open:** this complete rewrite of `main` has not been force-pushed, so
     `origin/main` (and the PR refs above) still reach the old commits. A
     push to `main` cannot change `refs/pull/N/head`; removing the key from
     those needs a request to GitHub Support. Forks and clones keep the old
