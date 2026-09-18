@@ -188,7 +188,8 @@ class TestBuildSafetyReferralResult:
             "mental_health_or_self_harm", "en")
         he = claude._build_safety_referral_result(
             "mental_health_or_self_harm", "he")
-        assert en["answer"] and he["answer"]
+        assert en["answer"]
+        assert he["answer"]
         assert en["answer"] != he["answer"]
 
     def test_unknown_class_falls_back_to_medical_template(self):
@@ -247,7 +248,8 @@ class TestValidateModelOutputExplicitContent:
         he = claude.validate_model_output(
             "orgasm details follow", answer_language="he")
         assert en["safe_answer"] != he["safe_answer"]
-        assert en["safe_answer"] and he["safe_answer"]
+        assert en["safe_answer"]
+        assert he["safe_answer"]
 
     def test_hebrew_explicit_content_is_blocked(self):
         """Finding #11 (CONFIRMED, medium): the check had zero Hebrew

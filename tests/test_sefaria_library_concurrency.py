@@ -245,7 +245,8 @@ class TestImmutabilityContract:
         )
 
         first = sefaria_library_module._get_title_catalog()
-        assert first and first[0]["title"] == "Genesis"
+        assert first
+        assert first[0]["title"] == "Genesis"
         first[0]["title"] = "MUTATED-BY-TEST"
 
         second = sefaria_library_module._get_title_catalog()
