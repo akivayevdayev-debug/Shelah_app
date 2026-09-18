@@ -42,8 +42,6 @@ function initModules() {
     installDailyPrewarm();
     installZmanim(buildZmanimDeps());
 
-    void loadSemanticBookmarks();
-
     window.ShelahModules = {
         askAi,
         loadSemanticBookmarks,
