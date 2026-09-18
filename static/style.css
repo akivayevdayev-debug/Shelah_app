@@ -292,7 +292,11 @@ h6 {
 :is([data-theme="dark"], body.theme-dark) .topbar-flat-btn:hover,
 :is([data-theme="dark"], body.theme-dark) .topbar-flat-btn:focus-visible {
     background: var(--control-bg) !important;
-    color: var(--control-text-strong);
+    /* !important needed: at (0,3,1) this already outranks
+       .library-shell .lang-btn's always-on (0,2,0) color rule on
+       specificity alone, but importance is compared before specificity,
+       so a plain (non-important) color here still lost outright. */
+    color: var(--control-text-strong) !important;
 }
 
 /* ─── TOPBAR LIBRARY BUTTON ─────────────────────────────────── */
@@ -439,66 +443,121 @@ h6 {
     overflow-y: auto;
 }
 
+/* Light-mode background/border/color for this button are NOT set here --
+   `.library-shell #settingsMenuBtn` (search that selector further down)
+   has one extra class of specificity and wins the cascade for all three,
+   via --control-bg/--control-border/--control-text. Those tokens (tokens.css
+   --ctrl-*) are what actually renders; this block only owns the structural
+   properties nothing else touches. (--ctrl-text used to be a stray navy
+   blue -- see tokens.css's comment on that token for the fix.) */
 #settingsMenuBtn {
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    background: rgba(148, 163, 184, 0.08) !important;
-    border: 1px solid transparent !important;
     border-radius: 0.35rem !important;
-    color: #4e555f !important;
     transition: background var(--motion-dur-fast) var(--motion-ease-out), border-color var(--motion-dur-fast) var(--motion-ease-out), color var(--motion-dur-fast) var(--motion-ease-out);
 }
 
-#settingsMenuBtn:hover,
-#settingsMenuBtn:focus-visible {
-    background: rgba(148, 163, 184, 0.16) !important;
-    border-color: rgba(148, 163, 184, 0.22) !important;
-    color: #2f343b !important;
-}
-
-/* Fill stays a light 0.16 tint (any darker and it starts eating into
-   --accent-cream's 4.5:1 text contrast — this hue/panel combo can't hit
-   3:1 fill-vs-panel and 4.5:1 text-vs-fill at once, measured live). The
-   0.6-alpha border carries the WCAG 1.4.11 3:1 boundary-contrast
-   requirement instead — a legible, valid way to satisfy it without
-   touching the fill. */
+/* 2026-09 revision: the translucent warm-stone chip this rule used to draw
+   (rgba(168,162,158,...) fill+border) is removed on purpose, to match the
+   light-mode version of this button, which has never had a chip --
+   `.library-shell #settingsMenuBtn` (light mode) just tints --control-text
+   on a --control-bg fill so close in value to the light topbar that it
+   reads as flat/blended, not a distinct chip. Dark mode now blends the
+   same way: falls back to transparent -- note this needs an *explicit*
+   `transparent` below, not just deleting the old declarations. Deleting
+   them would resurface the unguarded `.library-shell #settingsMenuBtn`
+   rule further down (background: var(--control-bg), border-color:
+   var(--control-border)), which beats .topbar-flat-btn's own
+   `background: transparent` on specificity -- putting back the ~1:1-
+   contrast --control-bg fill that was the original reason this chip
+   existed. Legibility without a chip rests on the glyph color instead:
+   color stays --accent-cream (#ddd5c8, bold icon weight), which measures
+   11.58:1 against this topbar's dark background (--surface-2 #1e1d1a, via
+   the .bg-white dark override) -- far past the 3:1 WCAG 1.4.11 floor for a
+   graphical/icon control and past 4.5:1 too, so no token change was
+   needed. :hover/:focus-visible keep a --control-bg tint (~1.05:1 against
+   the topbar -- a deliberately subtle Fitts's-law affordance, not a chip)
+   so interaction still gets feedback; border-color stays pinned to
+   transparent even there because the unguarded
+   `.library-shell #settingsMenuBtn:hover` rule further down would
+   otherwise win that property (extra class selector outranks us at equal
+   id count). Keep #settingsMenuBtn and #mobileLangToggle in sync (mirrored
+   rules right below). See docs/ACCESSIBILITY_AUDIT.md for the chip
+   rationale this supersedes. */
 :is([data-theme="dark"], body.theme-dark) #settingsMenuBtn {
-    background: rgba(148, 163, 184, 0.16) !important;
-    border-color: rgba(148, 163, 184, 0.6) !important;
+    background: transparent !important;
+    border-color: transparent !important;
     color: var(--accent-cream) !important;
 }
 
 :is([data-theme="dark"], body.theme-dark) #settingsMenuBtn:hover,
 :is([data-theme="dark"], body.theme-dark) #settingsMenuBtn:focus-visible {
-    background: rgba(148, 163, 184, 0.26) !important;
-    border-color: rgba(148, 163, 184, 0.75) !important;
-    color: var(--accent-cream) !important;
+    background: var(--control-bg) !important;
+    border-color: transparent !important;
+    color: var(--control-text-strong) !important;
 }
 
-/* Mobile language toggle: same translucent cool-gray chip as the settings
-   gear above, for visual consistency. Without this, dark mode fell through
-   to .library-shell #mobileLangToggle's theme-agnostic --control-bg/
-   --control-text (measured: ~1.05:1 background contrast against the topbar
-   — the chip was nearly invisible against its own backdrop, unlike the
-   light-mode values of the same tokens which read fine against a cream
-   backdrop). See docs/ACCESSIBILITY_AUDIT.md. */
+/* Mobile language toggle: mirrors #settingsMenuBtn exactly (see the long
+   comment above) -- transparent at rest, a subtle --control-bg tint on
+   hover/focus only, no border at any state. Keep both in sync. */
 :is([data-theme="dark"], body.theme-dark) #mobileLangToggle {
-    background: rgba(148, 163, 184, 0.16) !important;
-    border-color: rgba(148, 163, 184, 0.6) !important;
+    background: transparent !important;
+    border-color: transparent !important;
     color: var(--accent-cream) !important;
 }
 
 :is([data-theme="dark"], body.theme-dark) #mobileLangToggle:hover,
 :is([data-theme="dark"], body.theme-dark) #mobileLangToggle:focus-visible {
-    background: rgba(148, 163, 184, 0.26) !important;
-    border-color: rgba(148, 163, 184, 0.75) !important;
-    color: var(--accent-cream) !important;
+    background: var(--control-bg) !important;
+    border-color: transparent !important;
+    color: var(--control-text-strong) !important;
 }
 
 #settingsMenuBtn svg {
     position: relative;
     top: 1px;
+}
+
+/* Touch-target minimum (44x44, this project's a11y bar) via an invisible
+   hit-slop pseudo-element rather than resizing the visible button --
+   growing the button itself would break this topbar's tight packing.
+   Measured live at 1280px width: #settingsMenuBtn renders 28x24 with only
+   ~6px of gap to the next control (#authControls); width could only be
+   safely grown to 38px without the hit-zone reaching into that neighbor's
+   own box. Vertically the 55px-tall topbar has ample headroom, so height
+   reaches the full 44px target. Width is a documented partial mitigation,
+   not a full 44x44 -- the topbar has no more horizontal room to give at
+   this breakpoint. */
+#settingsMenuBtn {
+    position: relative;
+}
+
+#settingsMenuBtn::after {
+    content: "";
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 38px;
+    height: 44px;
+    transform: translate(-50%, -50%);
+}
+
+/* #citySearchBtn (20x20) sits inside the Zmanim card, not a crowded
+   toolbar -- measured clearance above/below/right is well over 12px each
+   way, so this one reaches the full 44x44 target. */
+#citySearchBtn {
+    position: relative;
+}
+
+#citySearchBtn::after {
+    content: "";
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 44px;
+    height: 44px;
+    transform: translate(-50%, -50%);
 }
 
 html.rtl #hebrewDateDisplay {
@@ -602,41 +661,97 @@ html.rtl #hebrewDateDisplay {
 }
 
 :is([data-theme="dark"], body.theme-dark) #settingsPanel button:not(#bookmarkCurrentBtn) {
-    background: rgba(148, 163, 184, 0.16) !important;
-    border-color: rgba(148, 163, 184, 0.6) !important;
+    background: rgba(168, 162, 158, 0.16) !important;
+    border-color: rgba(168, 162, 158, 0.6) !important;
     color: var(--accent-cream) !important;
 }
 
 :is([data-theme="dark"], body.theme-dark) #settingsPanel button:hover:not(#bookmarkCurrentBtn) {
-    background: rgba(148, 163, 184, 0.26) !important;
-    border-color: rgba(148, 163, 184, 0.75) !important;
+    background: rgba(168, 162, 158, 0.26) !important;
+    border-color: rgba(168, 162, 158, 0.75) !important;
     color: var(--accent-cream) !important;
-}
-
-#bookmarkCurrentBtn {
-    background: #002147 !important;
-    color: #ffffff !important;
-}
-
-#bookmarkCurrentBtn:hover {
-    background: #1e3a5f !important;
-}
-
-:is([data-theme="dark"], body.theme-dark) #bookmarkCurrentBtn {
-    background: var(--control-strong-bg) !important;
-    color: var(--accent-cream, #ffffff) !important;
-}
-
-:is([data-theme="dark"], body.theme-dark) #bookmarkCurrentBtn:hover {
-    background: var(--control-strong-bg-hover) !important;
 }
 
 #semanticBookmarkBtn {
     border-color: #dacdb8 !important;
 }
 
+/* #searchIcon's `top-2` utility (templates/index.html) is a fixed 8px
+   offset that doesn't track #searchInput's actual height (which varies
+   with the sm: breakpoint's text-sm/text-base font-size change), so the
+   icon read as sitting a bit high inside the pill. True vertical
+   centering via top/transform tracks the input's height at any
+   breakpoint instead of guessing a fixed offset.
+
+   .search-icon-glass and .search-ai-sparkle (below) are separate inline
+   children of this box rather than being animated directly on #searchIcon
+   itself -- an earlier version put the loading spin on #searchIcon, which
+   overwrote this translateY(-50%) with the keyframe's own transform and
+   made the icon visibly jump out of vertical center for the whole loading
+   window. Splitting them means #searchIcon's own transform is never
+   touched by either child's animation. */
 #searchIcon {
     color: #a5947d !important;
+    top: 50%;
+    transform: translateY(-50%);
+    display: flex;
+    align-items: center;
+    gap: var(--sp-1);
+}
+
+.search-icon-glass {
+    display: inline-flex;
+    transition: opacity var(--motion-dur-base) var(--motion-ease-out);
+}
+
+/* Small gold 4-point star sitting inline next to the magnifying glass -- a
+   subtle, always-on hint that the search bar is also the "Ask Sh'elah" AI
+   entry point, not just plain text search. Previously an absolutely
+   positioned badge on the glass icon's corner, which read as clutter/
+   overlap rather than a companion icon -- now a plain flex sibling (see
+   #searchIcon's `gap` above), vertically centered alongside the glass icon
+   instead of layered on top of it. Reuses .ai-hint-icon's color/opacity
+   (see below) plus tokens.css's shelah-warm-pulse keyframe (already used
+   for the loading overlay's logo, ENGINEERING_RULES.md: "zero new
+   @keyframes outside the token layer") for the same ambient "something AI
+   is here" glow used elsewhere, rather than a new animation style. Kept
+   small and low-contrast at rest on purpose -- a hint, not a loading
+   spinner; body.search-loading (static/css/ai.css) swaps this to an actual
+   spin for the "asking AI" state.
+
+   Duration overridden to 3.4s here (vs. the 2.6s baseline the shared
+   keyframe is authored for): a solid filled star carries more "ink" than
+   the keyframe's original thin outline target, so the same opacity/scale
+   swing at the default pace reads more like an on/off blink than a gentle
+   fade. Slowing just this selector's pace (same keyframe, same 0.7
+   opacity floor) fixes that without touching sidebar.css's own separate
+   1.6s override of the same keyframe for an unrelated element. */
+.search-ai-sparkle {
+    display: inline-flex;
+    animation: shelah-warm-pulse 3.4s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .search-ai-sparkle {
+        animation: none !important;
+    }
+}
+
+/* Small gold star badge next to "Mode"/"Community" in Quick Settings,
+   signaling that those two controls shape the AI's answers (as opposed to
+   the plain display/appearance controls elsewhere in the panel). Same
+   'sparkle' icon and gold accent as the search bar's hint so the whole
+   site reads as one consistent "AI" visual language. */
+.ai-hint-icon {
+    display: inline-flex;
+    flex-shrink: 0;
+    /* !important needed to beat the dark-theme block's blanket
+       `:is([data-theme="dark"], body.theme-dark) svg { color: currentcolor }`
+       reset, which otherwise outranks this plain class selector on
+       specificity and leaves the icon inheriting its container's color
+       instead of showing gold. */
+    color: var(--accent-gold) !important;
+    opacity: 0.85;
 }
 
 .library-shell button svg,
@@ -658,8 +773,11 @@ html.rtl #hebrewDateDisplay {
     border-color: #d8d0c2 !important;
 }
 
+/* #64748b (slate-500) against this input's #fbf8f1 background measured
+   4.49:1 -- just under WCAG AA's 4.5:1 for text. Bumped one step to
+   slate-600 (#475569), same family/hue, now 7.14:1. */
 #searchInput::placeholder {
-    color: #64748b;
+    color: #475569;
     opacity: 1;
 }
 
@@ -671,6 +789,38 @@ html.rtl #hebrewDateDisplay {
 #searchSuggestions {
     border-color: #ddd4c3 !important;
     background: #fffaf1 !important;
+}
+
+/* #searchForm's hidden submit button (templates/index.html, the WCAG SC
+   3.2.2 / H32.2 fix documented there) is the only focusable .sr-only
+   element on the page. Tailwind's sr-only clip:rect(0,0,0,0) clips its
+   entire box -- including the global :focus-visible outline from
+   typography.css -- so a sighted keyboard user tabbing to it saw no focus
+   indicator at all (measured live: outline was present in computed style
+   but invisible on a 1x1px clipped box). Un-hidden on :focus-visible the
+   same way .skip-to-content already does elsewhere on this page. */
+#searchForm button[type="submit"].sr-only:focus-visible {
+    position: absolute;
+    width: auto;
+    height: auto;
+    padding: 0.4rem 0.9rem;
+    margin: 0;
+    overflow: visible;
+    clip: auto;
+    top: calc(100% + 0.5rem);
+    left: 0;
+    z-index: 90;
+    background: var(--ink, #002147);
+    color: #fff;
+    border-radius: var(--radius-md, 0.5rem);
+    font-size: 0.8rem;
+    font-weight: 600;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+:is([data-theme="dark"], body.theme-dark) #searchForm button[type="submit"].sr-only:focus-visible {
+    background: var(--accent-cream, #efe6d8);
+    color: var(--surface-base, #090a0c);
 }
 
 .navigator-pane {
@@ -719,7 +869,12 @@ html.rtl #hebrewDateDisplay {
     font-size: 0.72rem;
     letter-spacing: 0;
     text-transform: none;
-    color: #94a3b8;
+    /* Was a hardcoded slate-400 (#94a3b8): only 2.4:1 against the light
+       surfaces this renders on (verse-number labels are real text, not
+       decorative icons) — well under the 4.5:1 AA text threshold. Token
+       is tuned to clear every light AND dark surface (4.64-5.18:1 light,
+       5.17-6.30:1 dark via the [data-theme="dark"] remap below). */
+    color: var(--ink-secondary);
     background: transparent;
     border: 0;
     border-radius: 0;
@@ -1155,7 +1310,11 @@ html.rtl #hebrewDateDisplay {
 .segment-translit {
     font-family: 'Cardo', serif;
     letter-spacing: 0.02em;
-    color: #64748b;
+    /* Was a hardcoded slate-500 (#64748b): 4.07-4.45:1 against 4 of the 5
+       light surfaces (fails 4.5:1 AA text threshold on all but surface-2).
+       --ink-secondary clears every light and dark surface (see .segment-label
+       above for the same fix). */
+    color: var(--ink-secondary);
 }
 
 /* ═══════════════════════════════════════════════════════════════════ */
@@ -1309,14 +1468,38 @@ html.theme-dark::-webkit-scrollbar-thumb:hover,
     max-width: none;
 }
 
+/* Single source of truth for paragraph rhythm (was previously declared
+   twice in a row with drifting margin/line-height values). */
 .prose p {
-    margin: 1rem 0;
-    line-height: 1.75;
-    color: #334155;
+    margin: var(--sp-4) 0;
+    font-size: 0.95rem;
+    line-height: 1.7;
+    color: var(--ink-primary);
+}
+
+/* Lists and <hr> previously fell through to @tailwindcss/typography's own
+   em-based default scale (ul/ol/li/hr had no override here), which does not
+   share a rhythm with the rem-based p/h2/h3 rules above -- that mismatch is
+   what read as "spacing is all over the place". These pin lists/hr to the
+   same --sp-* rem scale as the rest of this block. */
+.prose ul,
+.prose ol {
+    margin: var(--sp-4) 0;
+    padding-inline-start: var(--sp-6);
+}
+
+.prose li {
+    margin: var(--sp-2) 0;
+}
+
+.prose hr {
+    margin: var(--sp-6) 0;
+    border: none;
+    border-top: 1px solid var(--surface-border);
 }
 
 .prose blockquote {
-    border-inline-start-color: #D4AF37;
+    border-inline-start-color: var(--accent-gold);
     background-color: #fffbf0;
     padding: 1rem;
     font-style: italic;
@@ -1326,15 +1509,8 @@ html.theme-dark::-webkit-scrollbar-thumb:hover,
     border-left-width: 4px;
 }
 
-.prose p {
-    font-size: 0.95rem;
-    line-height: 1.7;
-    color: #334155;
-    margin-bottom: 1rem;
-}
-
 .prose strong {
-    color: #002147;
+    color: var(--ink-heading);
     font-weight: 700;
 }
 
@@ -1353,7 +1529,7 @@ html.theme-dark::-webkit-scrollbar-thumb:hover,
 }
 
 .prose h2 {
-    color: #002147;
+    color: var(--ink-heading);
     font-size: 1.25rem;
     font-weight: 700;
     margin-top: 1.5rem;
@@ -1379,13 +1555,6 @@ html.theme-dark::-webkit-scrollbar-thumb:hover,
     padding: 2rem;
     margin-bottom: 2rem;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
-}
-
-#aiSynthesis h2,
-#aiSynthesis h3 {
-    display: block;
-    margin-top: 1rem;
-    margin-bottom: 0.5rem;
 }
 
 .ai-sources {
@@ -1829,6 +1998,40 @@ html.rtl #readerSettingsPanel {
     pointer-events: none;
 }
 
+/* Commentary sidebar entry point: rightmost, flex-shrink:0 like Prev/Next so
+   it doesn't get squeezed by the centered settings button. The hint dot is
+   a one-time "there's something here" cue (localStorage-gated in JS, see
+   READER_COMMENTARY_HINT_KEY) -- hidden by default, only shown via the
+   .has-hint class until the user opens the sidebar or makes a selection
+   with commentary once. */
+.reader-topbar-commentary-btn {
+    position: relative;
+    flex-shrink: 0;
+}
+
+.reader-topbar-commentary-hint-dot {
+    display: none;
+    position: absolute;
+    top: 0.2rem;
+    right: 0.2rem;
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--accent-gold);
+    pointer-events: none;
+}
+
+.reader-topbar-commentary-btn.has-hint .reader-topbar-commentary-hint-dot {
+    display: block;
+    animation: shelah-warm-pulse 2.2s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .reader-topbar-commentary-btn.has-hint .reader-topbar-commentary-hint-dot {
+        animation: none !important;
+    }
+}
+
 .reader-topbar-settings-wrap {
     display: flex;
     justify-content: center;
@@ -1874,7 +2077,12 @@ html.rtl #readerSettingsPanel {
 .library-shell #readerNextTopBarBtn {
     border: none !important;
     background: transparent !important;
-    color: #8b7868 !important;
+    /* Was #8b7868 (3.84:1 against the reader topbar's light bg #f9f4ea) —
+       fails the 4.5:1 AA text threshold (these render text labels like
+       "Reader Settings", not just icons). Darkened within the same warm
+       brown family, kept clear of the :hover/:focus-visible #5a4a3a
+       (7.74:1) so the two states stay visually distinct. New value: 5.02:1. */
+    color: #786650 !important;
 }
 
 .library-shell .reader-topbar-icon-btn:hover,
@@ -1889,7 +2097,12 @@ html.rtl #readerSettingsPanel {
 .library-shell .reader-topbar-shell #readerSettingsBtn {
     background: transparent !important;
     border: none !important;
-    color: #8b7868 !important;
+    /* Was #8b7868 (3.84:1 against the reader topbar's light bg #f9f4ea) —
+       fails the 4.5:1 AA text threshold (these render text labels like
+       "Reader Settings", not just icons). Darkened within the same warm
+       brown family, kept clear of the :hover/:focus-visible #5a4a3a
+       (7.74:1) so the two states stay visually distinct. New value: 5.02:1. */
+    color: #786650 !important;
 }
 
 .library-shell .reader-topbar-shell #readerSettingsBtn:hover,
@@ -2406,8 +2619,23 @@ html.rtl .home-main-layout #popularTextsGrid {
         overflow: visible;
     }
 
+    /* Escapes #topbarControls' own flex row (which is pinned to the right
+       edge) so the date can sit in the open space between the brand and
+       the controls cluster, regardless of where it's nested in the DOM.
+       position:fixed is relative to the viewport, not any ancestor --
+       .topbar's position:sticky/z-index do not change that. Hidden by
+       default: that gap's width varies (auth state, language, viewport),
+       so syncHebrewDateMobilePosition() in index.html measures it and
+       only shows this + sets `left` (the horizontal center of the gap,
+       matching the translateX(-50%) below) when the date actually fits. */
     #hebrewDateDisplay {
         display: none;
+        position: fixed;
+        top: calc(var(--topbar-height, 3.4rem) / 2);
+        transform: translate(-50%, -50%);
+        pointer-events: none;
+        white-space: nowrap;
+        z-index: 5;
     }
 
     #authControls {
@@ -2602,10 +2830,53 @@ html.rtl .home-main-layout #popularTextsGrid {
     color: var(--control-text) !important;
 }
 
+/* Without this, :hover/:focus-visible feedback on these two buttons was
+   silently cancelled: .topbar-flat-btn:hover's color has no !important,
+   so it always lost to this rule's always-on `color: ... !important`
+   above at equal (0,2,0) specificity by losing the source-order tie
+   (this rule comes later in the file). #settingsMenuBtn/#mobileLangToggle
+   don't have this problem -- they get a dedicated, higher-specificity
+   :hover override further down (search ".library-shell #settingsMenuBtn:hover")
+   that .lang-btn never had. Mirrors that same pattern instead of just
+   adding !important to the low-specificity rule, which would still lose
+   the source-order tie. */
+.library-shell .lang-btn:hover,
+.library-shell .lang-btn:focus-visible {
+    background-color: rgba(0, 0, 0, 0.06) !important;
+    color: #3a3128 !important;
+}
+
 .library-shell .lang-btn.lang-btn-active {
     background-color: rgba(0, 0, 0, 0.06) !important;
     color: #4d3d2a !important;
     font-weight: 700;
+}
+
+/* Touch-target minimum via invisible hit-slop (see #settingsMenuBtn above
+   for the same technique/rationale). Uses ::before, not ::after -- the
+   active language button already uses ::after for its underline indicator
+   (ai.css's .lang-btn-active::after), and both rules share this element's
+   only ::after box, so reusing it here clobbered the underline's
+   transform/opacity (confirmed live: computed transform came back as the
+   underline's scale-in keyframe instead of ours). English/עברית sit side
+   by side with only ~6px between them, so width can only safely grow +3px
+   each side (calc(100% + 6px), centered) without the two buttons' hit-zones
+   overlapping each other. Height reaches the full 44px target since the
+   55px-tall topbar has the room. Measured 52x24 (English) / 45x24
+   (עברית) -> hit-zone 58x44 / 51x44: a documented partial mitigation on
+   width, full compliance on height. */
+.library-shell .lang-btn {
+    position: relative;
+}
+
+.library-shell .lang-btn::before {
+    content: "";
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: calc(100% + 6px);
+    height: 44px;
+    transform: translate(-50%, -50%);
 }
 
 .library-shell #settingsMenuBtn,
@@ -2637,7 +2908,9 @@ html.rtl .home-main-layout #popularTextsGrid {
 }
 
 .library-shell #settingsMenuBtn:hover,
+.library-shell #settingsMenuBtn:focus-visible,
 .library-shell #mobileLangToggle:hover,
+.library-shell #mobileLangToggle:focus-visible,
 .library-shell #readerSettingsBtn:hover,
 .library-shell #openReaderSettingsFromMenu:hover,
 .library-shell #importShelfBtn:hover,
@@ -2660,12 +2933,20 @@ html.rtl .home-main-layout #popularTextsGrid {
     border-color: var(--surface-border) !important;
 }
 
+/* These 4 modal headers carry a .text-blue-100 subtitle (color #f8edd8,
+   see the .text-blue-100 rule above) directly on this gradient. The
+   original stops (#756d61 / #867d70) only cleared 3.49-4.40:1 against that
+   text -- failing 4.5:1 AA everywhere along the gradient, not just at one
+   end (the .text-white h2 title is large/bold text and was already fine
+   at 3:1). Darkened both stops ~17% in place, preserving the same hue and
+   gradient shape; now 4.75-5.63:1 against the subtitle and 5.52-6.76:1
+   against the white title. */
 .library-shell #textsMenuModal .bg-gradient-to-r.from-navy.to-blue-900,
 .library-shell #aiAssistantModal .bg-gradient-to-r.from-navy.to-blue-900,
 .library-shell #devtoolsInspectorModal .bg-gradient-to-r.from-navy.to-blue-900,
 .library-shell #sourceGraphModal .bg-gradient-to-r.from-navy.to-blue-900,
 .library-shell #communityTimelineModal .bg-gradient-to-r.from-navy.to-blue-900 {
-    background-image: linear-gradient(to right, #756d61, #867d70) !important;
+    background-image: linear-gradient(to right, #615a51, #6f685d) !important;
 }
 
 .library-shell #searchSuggestions .suggestion-item[aria-selected="true"] {
@@ -2883,6 +3164,55 @@ html.theme-dark,
     color: var(--tw-dark-text-slate-400) !important;
 }
 
+/* Light-mode counterpart to the dark remap above (light needs no theme
+   selector: it's the implicit default, and the dark rules above/below all
+   out-specificity this plain-class rule via their :is([data-theme="dark"],
+   body.theme-dark) wrapper, so this only ever applies outside dark mode).
+   Tailwind's raw .text-slate-400 (#94a3b8) and .text-slate-500 (#64748b)
+   were authored with a plain white background in mind: against this app's
+   warm light surfaces they land at 2.4:1 and 4.07-4.55:1 respectively —
+   both fail the 4.5:1 AA text threshold (slate-500 fails on 4 of 5
+   surfaces, slate-400 fails on all 5). --ink-secondary clears 4.64-5.18:1
+   on every light surface. Dark mode already had this remap; light mode
+   did not. */
+.text-slate-400,
+.text-slate-500 {
+    color: var(--ink-secondary) !important;
+}
+
+/* ── Modal close icon button (phosphor 'x') ───────────────────────────
+   Shared style for the small icon-only close buttons in the corner of
+   modal dialogs (AI Assistant, Texts Menu, Chapter Grid, Calendar,
+   Library Category, Devtools Inspector, ...). These previously rendered
+   a raw "&times;" HTML entity colored with Tailwind's .text-slate-400/
+   -500 utilities, which -- before the remap above -- measured well under
+   the WCAG 3:1 UI-component floor against this app's warm surfaces.
+   Now backed by the real phosphor 'x' icon (see templates/components/
+   icons.html) and --text-muted/--text-main, which already resolve to
+   WCAG-AA-safe, theme-aware values in both light and dark mode (see
+   --ink-secondary above and its dark-theme value in tokens.css), so no
+   separate :is([data-theme="dark"]) block is needed here. */
+.modal-close-icon-btn {
+    color: var(--text-muted);
+    transition: color var(--motion-dur-fast) var(--motion-ease-out);
+}
+
+.modal-close-icon-btn:hover {
+    color: var(--text-main);
+}
+
+.modal-close-icon-btn:focus-visible {
+    outline: 2px solid rgba(176, 154, 116, 0.65);
+    outline-offset: 2px;
+    border-radius: 3px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .modal-close-icon-btn {
+        transition: none;
+    }
+}
+
 :is([data-theme="dark"], body.theme-dark) .text-slate-200,
 :is([data-theme="dark"], body.theme-dark) .text-slate-300,
 :is([data-theme="dark"], body.theme-dark) .text-gray-200,
@@ -3067,8 +3397,11 @@ html.theme-dark,
        saturated steel-blue fill that read as a stray "blue icon" against
        the rest of the warm dark palette. --accent-gold (not -light) keeps
        it in the same muted-bronze family as the rest of the dark palette
-       instead of the brighter, more saturated gold reading as "yellow". */
-    background-color: rgba(255, 255, 255, 0.08) !important;
+       instead of the brighter, more saturated gold reading as "yellow".
+       Overlay dropped 0.08→0.05: composited over --surface-2, 0.08 put
+       --accent-gold text at 4.499:1 (fails 4.5:1 AA by a hair); 0.05
+       lightens the tint less, giving the gold text 4.96:1. */
+    background-color: rgba(255, 255, 255, 0.05) !important;
     border-color: var(--control-border) !important;
     color: var(--accent-gold) !important;
     font-weight: 700;
@@ -3158,6 +3491,11 @@ html.theme-dark,
 
 :is([data-theme="dark"], body.theme-dark) #settingsPanel input[type="range"],
 :is([data-theme="dark"], body.theme-dark) #readerSettingsPanel input[type="range"] {
+    /* Defensive fallback for a range input without .reader-range-slider;
+       every range input in these panels currently has that class, which
+       sets appearance:none and paints its own track via the
+       --range-complete/--range-incomplete gradient below, so accent-color
+       has no visible effect on them today. */
     accent-color: var(--gold);
 }
 
@@ -3207,10 +3545,18 @@ html.theme-dark,
     color: var(--ai-warning-text) !important;
 }
 
-:is([data-theme="dark"], body.theme-dark) #searchIcon,
+:is([data-theme="dark"], body.theme-dark) #searchIcon {
+    color: var(--icon-muted) !important;
+}
+
+/* .segment-label/.segment-translit render real text (verse numbers,
+   transliteration), not icons, so they need the 4.5:1 text threshold, not
+   the 3:1 UI-component threshold --icon-muted is tuned for (--icon-muted
+   only reaches 3.30-4.02:1 against the dark surfaces). --ink-secondary
+   clears 5.17-6.30:1 across all dark surfaces. */
 :is([data-theme="dark"], body.theme-dark) .segment-label,
 :is([data-theme="dark"], body.theme-dark) .segment-translit {
-    color: var(--icon-muted) !important;
+    color: var(--ink-secondary) !important;
 }
 
 :is([data-theme="dark"], body.theme-dark) #reader .reader-row-mid-label {
@@ -3426,16 +3772,6 @@ html.theme-dark,
 :is([data-theme="dark"], body.theme-dark) #settingsPanel .border-t,
 :is([data-theme="dark"], body.theme-dark) #readerSettingsPanel .border-t {
     border-top-color: var(--surface-border) !important;
-}
-
-:is([data-theme="dark"], body.theme-dark) #bookmarkCurrentBtn {
-    background: var(--control-strong-bg) !important;
-    border-color: var(--control-border) !important;
-    color: var(--control-text-strong) !important;
-}
-
-:is([data-theme="dark"], body.theme-dark) #bookmarkCurrentBtn:hover {
-    background: var(--control-strong-bg-hover) !important;
 }
 
 /* Fix right sidebar scrollbar in dark mode */
@@ -3715,14 +4051,21 @@ html.theme-dark,
        element, which shadows the global dark-theme tokens via normal CSS
        inheritance — referencing var(--range-complete) here without
        redeclaring it just resolves back to the light-mode value. Redeclare
-       both explicitly so the slider is actually theme-aware. */
-    --range-complete: #8b6f47;
-    --range-incomplete: #dfccb0;
+       both explicitly so the slider is actually theme-aware.
+       Previously #8b6f47/#dfccb0 (a gold-brown/beige pair) read as too
+       bright and out of the panel's control palette. --surface-pill is the
+       exact token the panel's own <select>s use for their background, and
+       --control-text is a neutral warm gray (not gold, not beige) for the
+       filled portion, so the slider now belongs to the same family as the
+       selects and buttons around it. */
+    --range-complete: var(--control-text);
+    --range-incomplete: var(--surface-pill);
     background: linear-gradient(90deg,
             var(--range-complete) 0%,
             var(--range-complete) var(--range-progress),
             var(--range-incomplete) var(--range-progress),
             var(--range-incomplete) 100%);
+    border: 1px solid var(--surface-border);
 }
 
 :is([data-theme="dark"], body.theme-dark) .reader-range-slider::-webkit-slider-thumb,
@@ -4152,10 +4495,16 @@ html.rtl #readerTopBar #readerLibraryTopBarBtn {
     border-color: var(--search-hover-border) !important;
 }
 
+/* Was --accent-blue (#6888a8) -- a stray cool steel-blue focus ring, out
+   of place against the rest of the warm dark palette (same family of fix
+   as the settings-button/lang-toggle slate tint above). Gold ties the
+   focus state to the search bar's AI-entry-point identity (see
+   .search-ai-sparkle) instead of reading as a generic form-field focus
+   color. */
 :is([data-theme="dark"], body.theme-dark) #searchInput:focus {
     background: var(--surface-elevated) !important;
-    border-color: var(--accent-blue) !important;
-    box-shadow: 0 0 0 3px rgba(31, 63, 99, 0.1) !important;
+    border-color: var(--accent-gold) !important;
+    box-shadow: 0 0 0 3px rgba(201, 172, 94, 0.22) !important;
 }
 
 :is([data-theme="dark"], body.theme-dark) #searchIcon { color: var(--text-muted) !important; }
@@ -4213,20 +4562,21 @@ html.rtl #readerTopBar #readerLibraryTopBarBtn {
     color: var(--accent-cream) !important;
 }
 
-/* This selector repeats the rule at ~L598 with identical specificity but
+/* This selector repeats the rule at ~L653 with identical specificity but
    later source order, so it's the one that actually wins the cascade —
-   keep both in sync. Slate-chip treatment matches #settingsMenuBtn /
+   keep both in sync. Warm stone-chip treatment matches #settingsMenuBtn /
    #mobileLangToggle so all Quick Settings controls read consistently in
-   dark mode instead of the near-invisible flat --surface-pill fill. */
+   dark mode instead of the near-invisible flat --surface-pill fill (and
+   without the cool blue-gray tint slate-400 carried). */
 :is([data-theme="dark"], body.theme-dark) #settingsPanel button:not(#bookmarkCurrentBtn) {
-    background: rgba(148, 163, 184, 0.16) !important;
-    border-color: rgba(148, 163, 184, 0.6) !important;
+    background: rgba(168, 162, 158, 0.16) !important;
+    border-color: rgba(168, 162, 158, 0.6) !important;
     color: var(--accent-cream) !important;
 }
 
 :is([data-theme="dark"], body.theme-dark) #settingsPanel button:not(#bookmarkCurrentBtn):hover {
-    background: rgba(148, 163, 184, 0.26) !important;
-    border-color: rgba(148, 163, 184, 0.75) !important;
+    background: rgba(168, 162, 158, 0.26) !important;
+    border-color: rgba(168, 162, 158, 0.75) !important;
     color: var(--accent-cream) !important;
 }
 
@@ -4236,25 +4586,28 @@ html.rtl #readerTopBar #readerLibraryTopBarBtn {
 /* #settingsPanel prefix boosts specificity past the button/select/input
    catch-all just above, which was flattening this to plain --control-bg
    and hiding the "Save Current" primary-action emphasis that light mode
-   keeps (navy bg). --control-strong-bg (#6888a8) measured only 2.5:1
-   against white/cream text at this button's small 0.72rem size, below
-   the 4.5:1 AA floor. #4f7599 is the widest point in this hue family
-   that clears BOTH floors at once: 4.84:1 text contrast and 3.48:1
-   against the near-black panel (WCAG 1.4.11 non-text) — measured live,
-   not eyeballed. Hover keeps the same fill (any lighter and text
-   contrast drops back under 4.5:1) and signals state via a brighter
-   border instead. */
+   keeps (--ctrl-filled-bg, #46688d bg, white text). Went through gold here
+   for a stretch (matching --accent-gold) but that read as an odd, out-of-
+   place accent next to the rest of the panel -- Save Current is the one
+   control the user actually wants to keep reading as light mode's blue
+   "primary action" identity, just re-tuned so it still clears contrast
+   against a dark panel (the light-mode fill itself would be a bit flat
+   here). #3d70ab is a warmer, softer blue than the earlier #4f7599 steel-
+   blue attempt (which was the original "harsh blue" complaint) -- fill
+   measures 3.29:1 against --surface-elevated (#1e1d1a) and white text
+   measures 5.12:1 against the fill, clearing the 3:1 / 4.5:1 AA floors.
+   Hover keeps the same fill and signals state via a brighter border. */
 :is([data-theme="dark"], body.theme-dark) #settingsPanel button#bookmarkCurrentBtn {
-    background: #4f7599 !important;
-    border-color: #3d5f85 !important;
+    background: #3d70ab !important;
+    border-color: #234a70 !important;
     color: #ffffff !important;
 }
 
 :is([data-theme="dark"], body.theme-dark) #settingsPanel button#bookmarkCurrentBtn:hover {
-    background: #4f7599 !important;
-    border-color: #8fb0d0 !important;
+    background: #3d70ab !important;
+    border-color: #7fb0e0 !important;
     color: #ffffff !important;
-    box-shadow: 0 0 0 2px rgba(143, 176, 208, 0.25) !important;
+    box-shadow: 0 0 0 2px rgba(127, 176, 224, 0.3) !important;
 }
 
 :is([data-theme="dark"], body.theme-dark) #settingsPanel .hover\:bg-slate-200:hover {
@@ -4317,6 +4670,25 @@ html.rtl #readerTopBar #readerLibraryTopBarBtn {
     background: var(--accent-primary) !important;
     border-color: var(--accent-primary) !important;
     color: var(--ink-on-accent) !important;
+}
+
+/* Dark theme's --accent-primary (#6888a8) against --ink-on-accent (#f0ebe3) is
+   only 3.12:1 -- below WCAG AA's 4.5:1, caught by the pa11y-ci dark-theme scan
+   (npm run test:a11y:dark). Darkened for this one button rather than the shared
+   token, since --accent-primary is used broadly and a global dark-theme retune
+   needs its own reviewed pass. #4e667e clears 4.5:1 with margin (~5.0:1). */
+[data-theme="dark"] #analyticsConsentAccept,
+html.theme-dark #analyticsConsentAccept,
+body.theme-dark #analyticsConsentAccept {
+    background: #4e667e !important;
+    border-color: #4e667e !important;
+}
+
+@media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) #analyticsConsentAccept {
+        background: #4e667e !important;
+        border-color: #4e667e !important;
+    }
 }
 
 .analytics-consent-actions button:hover {
