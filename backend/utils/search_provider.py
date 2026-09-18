@@ -558,6 +558,38 @@ def _build_external_source_entry(
     }
 
 
+def _external_source_for_provider(
+    provider, normalized_query, keywords, seen, discovery_stage, priority,
+):
+    """Search one provider for one query; return a new source entry, or None
+    when the provider yields nothing usable or the (provider, title) pair was
+    already collected. Split out of _collect_external_global_sources()
+    (SonarCloud python:S3776)."""
+    provider_name, domain, provider_search = provider
+    payload = _fetch_provider_search_payload(
+        provider_name, provider_search, normalized_query)
+    if payload is None:
+        return None
+
+    trusted = _extract_trusted_web_title_summary(
+        provider_name, payload, keywords)
+    if trusted is None:
+        return None
+    title, summary = trusted
+
+    dedupe_key = (provider_name.lower(), title.lower())
+    if dedupe_key in seen:
+        return None
+    seen.add(dedupe_key)
+
+    url = _build_external_source_url(
+        provider_name, title, normalized_query, payload)
+    return _build_external_source_entry(
+        provider_name, domain, title, summary, url,
+        discovery_stage, priority, normalized_query,
+    )
+
+
 def _collect_external_global_sources(queries, keywords, discovery_stage, priority, max_results=6):
     providers = [
         ("Halachipedia", "halachipedia.com", search.search_halachipedia),
@@ -572,30 +604,12 @@ def _collect_external_global_sources(queries, keywords, discovery_stage, priorit
         if not normalized_query:
             continue
 
-        for provider_name, domain, provider_search in providers:
-            payload = _fetch_provider_search_payload(
-                provider_name, provider_search, normalized_query)
-            if payload is None:
+        for provider in providers:
+            entry = _external_source_for_provider(
+                provider, normalized_query, keywords, seen, discovery_stage, priority)
+            if entry is None:
                 continue
-
-            trusted = _extract_trusted_web_title_summary(
-                provider_name, payload, keywords)
-            if trusted is None:
-                continue
-            title, summary = trusted
-
-            dedupe_key = (provider_name.lower(), title.lower())
-            if dedupe_key in seen:
-                continue
-            seen.add(dedupe_key)
-
-            url = _build_external_source_url(
-                provider_name, title, normalized_query, payload)
-            sources.append(_build_external_source_entry(
-                provider_name, domain, title, summary, url,
-                discovery_stage, priority, normalized_query,
-            ))
-
+            sources.append(entry)
             if len(sources) >= max_results:
                 return sources
 
@@ -636,14 +650,13 @@ def _iter_local_json_matches(payload, keywords, file_name, pointer="root"):
     return matches
 
 
-def _find_local_custom_matches(keywords, max_results=12):
+def _iter_local_custom_payloads():
+    """Yield (file name, parsed JSON) for every readable customs/*.json file.
+    Split out of _find_local_custom_matches() (SonarCloud python:S3776)."""
     roots = [
         APP_ROOT / ".github" / "customs",
         APP_ROOT / "customs",
     ]
-
-    collected = []
-    seen = set()
 
     for root in roots:
         if not root.exists() or not root.is_dir():
@@ -654,20 +667,31 @@ def _find_local_custom_matches(keywords, max_results=12):
                 payload = json.loads(file_path.read_text(encoding="utf-8"))
             except (OSError, UnicodeDecodeError, json.JSONDecodeError):
                 continue
+            yield file_path.name, payload
 
-            for match in _iter_local_json_matches(payload, keywords, file_path.name):
-                key = (
-                    match.get("file", ""),
-                    match.get("field", ""),
-                    str(match.get("value", "")).lower(),
-                    match.get("pointer", ""),
-                )
-                if key in seen:
-                    continue
-                seen.add(key)
-                collected.append(match)
-                if len(collected) >= max_results:
-                    return collected
+
+def _local_match_key(match):
+    return (
+        match.get("file", ""),
+        match.get("field", ""),
+        str(match.get("value", "")).lower(),
+        match.get("pointer", ""),
+    )
+
+
+def _find_local_custom_matches(keywords, max_results=12):
+    collected = []
+    seen = set()
+
+    for file_name, payload in _iter_local_custom_payloads():
+        for match in _iter_local_json_matches(payload, keywords, file_name):
+            key = _local_match_key(match)
+            if key in seen:
+                continue
+            seen.add(key)
+            collected.append(match)
+            if len(collected) >= max_results:
+                return collected
 
     return collected
 

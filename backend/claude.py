@@ -18,7 +18,7 @@ import json
 import threading
 from concurrent.futures import ThreadPoolExecutor
 from dataclasses import dataclass, field
-from typing import Any, Callable, Dict, List, Optional
+from typing import Any, Callable, Dict, List, Optional, Tuple
 
 from dotenv import load_dotenv
 from tenacity import retry, wait_random_exponential, stop_after_attempt, retry_if_exception_type
@@ -742,6 +742,15 @@ def _sanitize_model_output(text: str, max_chars: int = 0) -> str:
     return cleaned
 
 
+def _advance_string_state(char: str, escaped: bool) -> Tuple[bool, bool]:
+    """Return (still_in_string, escaped) after consuming `char` inside a JSON string."""
+    if escaped:
+        return True, False
+    if char == "\\":
+        return True, True
+    return char != '"', False
+
+
 def _find_matching_brace_end(text: str, start: int) -> Optional[int]:
     """Scan forward from `start` (must be an opening '{') for the index of
     its matching closing '}', honoring string-escaping so braces inside
@@ -758,19 +767,10 @@ def _find_matching_brace_end(text: str, start: int) -> Optional[int]:
         char = text[idx]
 
         if in_string:
-            if escaped:
-                escaped = False
-            elif char == "\\":
-                escaped = True
-            elif char == '"':
-                in_string = False
-            continue
-
-        if char == '"':
+            in_string, escaped = _advance_string_state(char, escaped)
+        elif char == '"':
             in_string = True
-            continue
-
-        if char == "{":
+        elif char == "{":
             depth += 1
         elif char == "}":
             depth -= 1
@@ -923,30 +923,50 @@ def _render_full_markdown_lines(
     return lines
 
 
+_MARKDOWN_LABELS = {
+    "he": {
+        "direct_header": "## תשובה ישירה",
+        "status_label": "**סטטוס הלכתי:** אסור",
+        "deeper_header": "## נימוק מעמיק",
+        "steps_label": "**צעדים מעשיים**",
+        "sources_label": "**מקורות**",
+        "summary_header": "## סיכום",
+        "no_answer_text": "לא נמצאה תשובה מסונתזת.",
+    },
+    "en": {
+        "direct_header": "## Direct Answer",
+        "status_label": "**Halachic Status:** Prohibited",
+        "deeper_header": "## Deeper Reasoning",
+        "steps_label": "**Practical Steps**",
+        "sources_label": "**Sources**",
+        "summary_header": "## Summary",
+        "no_answer_text": "No synthesized answer available.",
+    },
+}
+
+
+def _clean_text_list(values: Any) -> List[str]:
+    """Sanitize each item to a stripped string and drop the ones that end up empty."""
+    cleaned = (_sanitize_model_output(str(value or "")).strip() for value in (values or []))
+    return [value for value in cleaned if value]
+
+
 def render_structured_markdown(structured: Dict[str, Any], answer_language: str = "en", is_simple: bool = False) -> str:
-    lang = "he" if str(answer_language or "").strip().lower() == "he" else "en"
-    direct_header = "## תשובה ישירה" if lang == "he" else "## Direct Answer"
-    status_label = "**סטטוס הלכתי:** אסור" if lang == "he" else "**Halachic Status:** Prohibited"
-    deeper_header = "## נימוק מעמיק" if lang == "he" else "## Deeper Reasoning"
-    steps_label = "**צעדים מעשיים**" if lang == "he" else "**Practical Steps**"
-    sources_label = "**מקורות**" if lang == "he" else "**Sources**"
-    summary_header = "## סיכום" if lang == "he" else "## Summary"
-    no_answer_text = "לא נמצאה תשובה מסונתזת." if lang == "he" else "No synthesized answer available."
+    labels = _MARKDOWN_LABELS["he" if str(answer_language or "").strip().lower() == "he" else "en"]
+    direct_header = labels["direct_header"]
+    status_label = labels["status_label"]
+    deeper_header = labels["deeper_header"]
+    steps_label = labels["steps_label"]
+    sources_label = labels["sources_label"]
+    summary_header = labels["summary_header"]
+    no_answer_text = labels["no_answer_text"]
 
     ruling = _sanitize_model_output(
         str(structured.get("ruling") or "")).strip()
     summary = _sanitize_model_output(
         str(structured.get("summary") or "")).strip()
-    steps = [
-        _sanitize_model_output(str(step or "")).strip()
-        for step in (structured.get("practical_steps") or [])
-        if _sanitize_model_output(str(step or "")).strip()
-    ]
-    sources = [
-        _sanitize_model_output(str(src or "")).strip()
-        for src in (structured.get("sources") or [])
-        if _sanitize_model_output(str(src or "")).strip()
-    ]
+    steps = _clean_text_list(structured.get("practical_steps"))
+    sources = _clean_text_list(structured.get("sources"))
 
     # Detect simple: AI returned no steps and no summary, or caller flagged it
     no_steps = not steps
@@ -1858,6 +1878,23 @@ async def _call_anthropic_httpx_model(
         return _error_result(f"anthropic_sdk_error: {exc}")
 
 
+def _split_agentic_content(content: Any) -> Tuple[List[str], List[Dict[str, Any]]]:
+    """Split an Anthropic message.content list into (text chunks, tool_use dicts)."""
+    text_chunks: List[str] = []
+    tool_uses: List[Dict[str, Any]] = []
+    for block in (content or []):
+        block_type = getattr(block, "type", None)
+        if block_type == "text" and isinstance(getattr(block, "text", None), str):
+            text_chunks.append(block.text)
+        elif block_type == "tool_use":
+            tool_uses.append({
+                "id": getattr(block, "id", "") or "",
+                "name": getattr(block, "name", "") or "",
+                "input": getattr(block, "input", None) or {},
+            })
+    return text_chunks, tool_uses
+
+
 async def _call_anthropic_agentic_turn(
     messages: List[Dict[str, Any]],
     system_text: str,
@@ -1930,18 +1967,7 @@ async def _call_anthropic_agentic_turn(
         )
         health.record_success('claude')
 
-        text_chunks: List[str] = []
-        tool_uses: List[Dict[str, Any]] = []
-        for block in (message.content or []):
-            block_type = getattr(block, "type", None)
-            if block_type == "text" and isinstance(getattr(block, "text", None), str):
-                text_chunks.append(block.text)
-            elif block_type == "tool_use":
-                tool_uses.append({
-                    "id": getattr(block, "id", "") or "",
-                    "name": getattr(block, "name", "") or "",
-                    "input": getattr(block, "input", None) or {},
-                })
+        text_chunks, tool_uses = _split_agentic_content(message.content)
 
         return {
             "text": "\n".join(chunk for chunk in text_chunks if chunk.strip()).strip(),
