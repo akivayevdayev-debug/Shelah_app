@@ -13,16 +13,19 @@ enrichment sources, not the primary authoritative text source.
 import logging
 import requests
 import httpx
-import time
 import re
 from html import unescape
-from urllib.parse import quote_plus, urljoin
+from urllib.parse import quote, quote_plus, urljoin
 
 from backend.cache import TTLCache
+from backend.health_check import health
 
 logger = logging.getLogger(__name__)
 
+_DEFAULT_USER_AGENT = "Mozilla/5.0 (compatible; ShelahBot/1.0; +https://www.sefaria.org)"
+
 _HTTP = requests.Session()
+_HTTP.headers.update({"User-Agent": _DEFAULT_USER_AGENT})
 _ASYNC_HTTP_CLIENT: httpx.AsyncClient | None = None
 _CACHE_TTL_SECONDS = 60 * 10
 _CACHE_MAX_SIZE = 256
@@ -39,7 +42,9 @@ def _get_async_client() -> httpx.AsyncClient:
     instead of paying a fresh handshake every time (plan.md §3.6)."""
     global _ASYNC_HTTP_CLIENT
     if _ASYNC_HTTP_CLIENT is None:
-        _ASYNC_HTTP_CLIENT = httpx.AsyncClient(timeout=10.0)
+        _ASYNC_HTTP_CLIENT = httpx.AsyncClient(
+            timeout=10.0, headers={"User-Agent": _DEFAULT_USER_AGENT}
+        )
     return _ASYNC_HTTP_CLIENT
 
 
@@ -51,7 +56,8 @@ def search_wikipedia(title):
             return cached
 
     try:
-        url = f"https://en.wikipedia.org/api/rest_v1/page/summary/{title.replace(' ', '_')}"
+        safe_title = quote(str(title or "").strip().replace(" ", "_"), safe="_")
+        url = f"https://en.wikipedia.org/api/rest_v1/page/summary/{safe_title}"
         logger.debug("[Wiki Request] %s", url)
 
         r = _HTTP.get(url, timeout=10)
@@ -80,10 +86,14 @@ def get_daily_learning():
     if cached_daily:
         return cached_daily
 
+    if not health.is_healthy('hebcal'):
+        return {"parsha": None, "portions": []}
+
     try:
         url = "https://www.hebcal.com/hebcal?v=1&cfg=json&maj=on&min=on&mod=on&nx=on&year=now&month=now&ss=on&mf=on&c=on&geo=zip&zip=11213"
         response = _HTTP.get(url, timeout=10)
         data = response.json()
+        health.record_success('hebcal')
 
         items = data.get('items', [])
 
@@ -104,6 +114,7 @@ def get_daily_learning():
         _DAILY_CACHE.set(_DAILY_CACHE_KEY, payload)
         return payload
     except Exception as e:
+        health.record_failure('hebcal')
         logger.warning("[Hebcal Error] %s", e)
         return {"parsha": None, "portions": []}
 
@@ -118,9 +129,18 @@ def search_halachipedia(query):
 
     try:
         # Search for title
-        search_url = f"https://halachipedia.com/api.php?action=query&list=search&srsearch={query}&utf8=&format=json"
-
-        r_search = _HTTP.get(search_url, timeout=10)
+        search_url = "https://halachipedia.com/api.php"
+        r_search = _HTTP.get(
+            search_url,
+            params={
+                "action": "query",
+                "list": "search",
+                "srsearch": query,
+                "utf8": "",
+                "format": "json",
+            },
+            timeout=10,
+        )
         data = r_search.json()
 
         search_results = data.get("query", {}).get("search", [])
@@ -130,8 +150,19 @@ def search_halachipedia(query):
         top_title = search_results[0]["title"]
 
         # Get intro extract for top article
-        extract_url = f"https://halachipedia.com/api.php?action=query&prop=extracts&exsentences=10&exintro=1&explaintext=1&titles={top_title}&format=json"
-        r_extract = _HTTP.get(extract_url, timeout=10)
+        r_extract = _HTTP.get(
+            search_url,
+            params={
+                "action": "query",
+                "prop": "extracts",
+                "exsentences": 10,
+                "exintro": 1,
+                "explaintext": 1,
+                "titles": top_title,
+                "format": "json",
+            },
+            timeout=10,
+        )
         ext_data = r_extract.json()
 
         pages = ext_data.get("query", {}).get("pages", {})
@@ -154,6 +185,38 @@ def _clean_html_text(value):
     text = re.sub(r"<[^>]+>", " ", str(value or ""))
     text = unescape(text)
     return re.sub(r"\s+", " ", text).strip()
+
+
+def _parse_hebrewbooks_html(html, normalized_query):
+    """Extract a HebrewBooks search-result payload from a search-results page.
+
+    Returns None if there's no parseable result (a Cloudflare challenge page,
+    or no pdfpager link at all). Shared by the sync and async HebrewBooks
+    search functions below so the response-parsing branches aren't counted
+    against both call sites' own complexity (SonarCloud python:S3776).
+    """
+    lowered = html.lower()
+    if "just a moment" in lowered and "cloudflare" in lowered:
+        # Cloudflare challenge page; no parseable search content.
+        return None
+
+    match = re.search(
+        r'href="(?P<href>[^"#]*pdfpager\.aspx\?req=[^"]+)"[^>]*>(?P<title>.*?)</a>',
+        html,
+        flags=re.IGNORECASE | re.DOTALL,
+    )
+    if not match:
+        return None
+
+    href = str(match.group("href") or "").strip()
+    title_html = str(match.group("title") or "").strip()
+    title = _clean_html_text(title_html) or f"HebrewBooks search result for {normalized_query}"
+
+    return {
+        "title": f"[HebrewBooks] {title}",
+        "summary": f"HebrewBooks keyword search match for '{normalized_query}'.",
+        "url": urljoin("https://www.hebrewbooks.org/", href),
+    }
 
 
 def search_hebrewbooks(query):
@@ -182,34 +245,8 @@ def search_hebrewbooks(query):
         if response.status_code != 200:
             return None
 
-        html = response.text or ""
-        lowered = html.lower()
-        if "just a moment" in lowered and "cloudflare" in lowered:
-            # Cloudflare challenge page; no parseable search content.
-            return None
-
-        match = re.search(
-            r'href="(?P<href>[^"#]*pdfpager\.aspx\?req=[^"]+)"[^>]*>(?P<title>.*?)</a>',
-            html,
-            flags=re.IGNORECASE | re.DOTALL,
-        )
-        if not match:
-            return None
-
-        href = str(match.group("href") or "").strip()
-        title_html = str(match.group("title") or "").strip()
-        title = _clean_html_text(title_html)
-        if not title:
-            title = f"HebrewBooks search result for {normalized_query}"
-
-        result_url = urljoin("https://www.hebrewbooks.org/", href)
-        payload = {
-            "title": f"[HebrewBooks] {title}",
-            "summary": f"HebrewBooks keyword search match for '{normalized_query}'.",
-            "url": result_url,
-        }
-
-        if cache_key:
+        payload = _parse_hebrewbooks_html(response.text or "", normalized_query)
+        if payload and cache_key:
             _HEBREWBOOKS_CACHE.set(cache_key, payload)
         return payload
     except Exception as e:
@@ -230,7 +267,8 @@ async def async_search_wikipedia(title):
         return None
 
     try:
-        url = f"https://en.wikipedia.org/api/rest_v1/page/summary/{safe_title.replace(' ', '_')}"
+        encoded_title = quote(safe_title.replace(" ", "_"), safe="_")
+        url = f"https://en.wikipedia.org/api/rest_v1/page/summary/{encoded_title}"
         client = _get_async_client()
         response = await client.get(url)
 
@@ -343,31 +381,8 @@ async def async_search_hebrewbooks(query):
         if response.status_code != 200:
             return None
 
-        html = response.text or ""
-        lowered = html.lower()
-        if "just a moment" in lowered and "cloudflare" in lowered:
-            return None
-
-        match = re.search(
-            r'href="(?P<href>[^"#]*pdfpager\.aspx\?req=[^"]+)"[^>]*>(?P<title>.*?)</a>',
-            html,
-            flags=re.IGNORECASE | re.DOTALL,
-        )
-        if not match:
-            return None
-
-        href = str(match.group("href") or "").strip()
-        title_html = str(match.group("title") or "").strip()
-        title = _clean_html_text(title_html)
-        if not title:
-            title = f"HebrewBooks search result for {normalized_query}"
-
-        payload = {
-            "title": f"[HebrewBooks] {title}",
-            "summary": f"HebrewBooks keyword search match for '{normalized_query}'.",
-            "url": urljoin("https://www.hebrewbooks.org/", href),
-        }
-        if cache_key:
+        payload = _parse_hebrewbooks_html(response.text or "", normalized_query)
+        if payload and cache_key:
             _HEBREWBOOKS_CACHE.set(cache_key, payload)
         return payload
     except Exception as e:

@@ -26,7 +26,7 @@ GEMINI_PROBE_URL_RE = re.compile(r"https://generativelanguage\.googleapis\.com/v
 CLAUDE_PROBE_URL_RE = re.compile(r"https://api\.anthropic\.com/v1/models.*")
 
 
-@pytest.fixture()
+@pytest.fixture
 def health():
     return APIHealth()
 
