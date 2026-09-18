@@ -15,7 +15,6 @@ from backend.claude import sanitize_user_query
 from backend.auth import maybe_require_clerk_auth
 
 from app import (
-    app,
     SUPABASE_ANSWER_FEEDBACK_TABLE,
     _get_request_user_id,
     _get_supabase_client,

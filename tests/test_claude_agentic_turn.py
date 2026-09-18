@@ -12,7 +12,6 @@ catching a shape mismatch that an all-mocked test never could.
 from __future__ import annotations
 
 import httpx
-import pytest
 
 from backend import claude
 
