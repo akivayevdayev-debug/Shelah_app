@@ -224,9 +224,15 @@ def _load_library_index_adjustments():
     snapshot = _library_index_adjustments_cache
 
     if not path.exists():
-        if snapshot["loaded"] and snapshot["mtime"] == 0.0:
+        # "Report absent" is tracked with an explicit flag rather than by
+        # comparing the float mtime to a 0.0 sentinel (SonarCloud
+        # python:S1244). The sentinel also collided with the stat()-failed
+        # fallback below (mtime = 0.0 for a report that DOES exist and was
+        # parsed): if that report was later deleted, the old equality check
+        # matched, so the stale parsed removal/fix keys were served forever.
+        if snapshot["loaded"] and snapshot.get("absent"):
             return snapshot
-        new_state = {"loaded": True, "mtime": 0.0,
+        new_state = {"loaded": True, "mtime": 0.0, "absent": True,
                       "remove_keys": set(), "fix_map": {}}
         with _library_index_adjustments_lock:
             _library_index_adjustments_cache = new_state
