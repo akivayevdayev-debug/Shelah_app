@@ -88,8 +88,15 @@ class TestZmanimDSTBoundaries:
         """Sunrise must be computable — never None — at a valid location."""
         with freeze_time(date_str):
             result = get_community_zmanim(lat, lon, timezone_str=tz)
-        if "error" in result:
-            pytest.skip(f"[{label}] Engine returned error: {result['error']}")
+        # All DST_CASES fixtures are real, non-polar locations (NYC, Jerusalem)
+        # on ordinary calendar dates, with outbound HTTP (Hebcal) mocked — the
+        # engine's blanket `except Exception` in get_community_zmanim can only
+        # produce an "error" key here via a genuine computation bug, never a
+        # legitimate/expected condition for these inputs. Assert instead of
+        # skip so a real regression fails loudly.
+        assert "error" not in result, (
+            f"[{label}] Engine returned unexpected error: {result.get('error')}"
+        )
         iso_times = result.get("metadata", {}).get("zmanim_iso", {})
         assert iso_times.get("Sunrise") is not None, (
             f"[{label}] Sunrise is None in zmanim_iso"
@@ -98,8 +105,9 @@ class TestZmanimDSTBoundaries:
     def test_sunset_not_none_in_iso(self, label, date_str, lat, lon, tz, mock_outbound_http):
         with freeze_time(date_str):
             result = get_community_zmanim(lat, lon, timezone_str=tz)
-        if "error" in result:
-            pytest.skip(f"[{label}] Engine returned error: {result['error']}")
+        assert "error" not in result, (
+            f"[{label}] Engine returned unexpected error: {result.get('error')}"
+        )
         iso_times = result.get("metadata", {}).get("zmanim_iso", {})
         assert iso_times.get("Sunset") is not None, (
             f"[{label}] Sunset is None in zmanim_iso"
@@ -109,8 +117,9 @@ class TestZmanimDSTBoundaries:
         """Nightfall (3 Stars) / Tzet HaKochavim must be computable."""
         with freeze_time(date_str):
             result = get_community_zmanim(lat, lon, timezone_str=tz)
-        if "error" in result:
-            pytest.skip(f"[{label}] Engine returned error: {result['error']}")
+        assert "error" not in result, (
+            f"[{label}] Engine returned unexpected error: {result.get('error')}"
+        )
         iso_times = result.get("metadata", {}).get("zmanim_iso", {})
         assert iso_times.get("Nightfall (3 Stars)") is not None, (
             f"[{label}] Nightfall (3 Stars) is None in zmanim_iso"
@@ -120,12 +129,14 @@ class TestZmanimDSTBoundaries:
         """Sunrise ISO string must be parseable and contain a date fragment."""
         with freeze_time(date_str):
             result = get_community_zmanim(lat, lon, timezone_str=tz)
-        if "error" in result:
-            pytest.skip(f"[{label}] Engine returned error: {result['error']}")
+        assert "error" not in result, (
+            f"[{label}] Engine returned unexpected error: {result.get('error')}"
+        )
         iso_times = result.get("metadata", {}).get("zmanim_iso", {})
         sunrise_iso = iso_times.get("Sunrise")
-        if sunrise_iso is None:
-            pytest.skip(f"[{label}] Sunrise is None — skipping ISO format check")
+        assert sunrise_iso is not None, (
+            f"[{label}] Sunrise is None — cannot validate ISO format"
+        )
 
         # Must contain the target date fragment
         assert date_str[:7] in str(sunrise_iso), (
@@ -137,8 +148,9 @@ class TestZmanimDSTBoundaries:
         """All display zmanim values must be non-empty strings (e.g. '07:12 AM' or 'N/A')."""
         with freeze_time(date_str):
             result = get_community_zmanim(lat, lon, timezone_str=tz)
-        if "error" in result:
-            pytest.skip(f"[{label}] Engine returned error: {result['error']}")
+        assert "error" not in result, (
+            f"[{label}] Engine returned unexpected error: {result.get('error')}"
+        )
         zmanim = result.get("zmanim", {})
         for key, value in zmanim.items():
             assert isinstance(value, str), (
