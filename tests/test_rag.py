@@ -10,10 +10,10 @@ module in, since that's the actual integration seam these functions use.
 
 from __future__ import annotations
 
-import pytest
 
 import backend.rag as rag
 import app
+from backend.logging_setup import hash_user_id
 
 
 class _FakeResult:
@@ -236,6 +236,49 @@ class TestRetrieveCommunityKnowledge:
         result = rag._retrieve_community_knowledge("shabbat query", canonical_lens="Ashkenaz")
         assert result == []
 
+    def test_open_circuit_short_circuits_before_querying(self, monkeypatch):
+        # plan.md §12.3.4: community_knowledge now goes through the same
+        # APIHealth circuit breaker as translate/web/nominatim. When the
+        # circuit is open, the query must never even be attempted.
+        called = {"query": False}
+
+        def _boom(*args, **kwargs):
+            called["query"] = True
+            raise AssertionError("should not query while circuit is open")
+
+        monkeypatch.setattr(app, "_get_supabase_client", lambda: _FakeSupabaseClient(data=[]))
+        monkeypatch.setattr(rag, "_run_community_knowledge_query", _boom)
+        monkeypatch.setattr(rag.health, "is_healthy", lambda service: False)
+
+        assert rag._retrieve_community_knowledge("query") == []
+        assert called["query"] is False
+
+    def test_query_failure_records_circuit_failure(self, monkeypatch):
+        monkeypatch.setattr(app, "_get_supabase_client", lambda: _FakeSupabaseClient(error=RuntimeError("db down")))
+        monkeypatch.setattr(app, "RAG_TOP_KNOWLEDGE_ROWS", 5)
+        monkeypatch.setattr(app, "_extract_query_keywords", lambda q, max_keywords=10: [])
+        monkeypatch.setattr(app, "SUPABASE_COMMUNITY_KNOWLEDGE_TABLE", "community_knowledge")
+        monkeypatch.setattr(app, "_detect_community_in_text", lambda q: None)
+
+        recorded = {"failure": False}
+        monkeypatch.setattr(rag.health, "record_failure", lambda service: recorded.update(failure=True))
+
+        assert rag._retrieve_community_knowledge("query") == []
+        assert recorded["failure"] is True
+
+    def test_query_success_records_circuit_success(self, monkeypatch):
+        monkeypatch.setattr(app, "_get_supabase_client", lambda: _FakeSupabaseClient(data=[]))
+        monkeypatch.setattr(app, "RAG_TOP_KNOWLEDGE_ROWS", 5)
+        monkeypatch.setattr(app, "_extract_query_keywords", lambda q, max_keywords=10: [])
+        monkeypatch.setattr(app, "SUPABASE_COMMUNITY_KNOWLEDGE_TABLE", "community_knowledge")
+        monkeypatch.setattr(app, "_detect_community_in_text", lambda q: None)
+
+        recorded = {"success": False}
+        monkeypatch.setattr(rag.health, "record_success", lambda service: recorded.update(success=True))
+
+        rag._retrieve_community_knowledge("query")
+        assert recorded["success"] is True
+
 
 # ─────────────────────────── _env_int ───────────────────────────────────────
 
@@ -337,6 +380,25 @@ class TestFetchUserMemorySummaries:
         rag._fetch_user_memory_summaries("user-1", bearer_token="Bearer abc123")
         assert received == ["Bearer abc123"]
 
+    def test_eq_filter_uses_exact_user_id_argument(self, monkeypatch):
+        """plan.md §21.3 exit criteria: cross-user isolation for this
+        table cannot rely on RLS alone (backend/routes_devtools.py's
+        rls-audit only observes row counts, it doesn't prove which user_id
+        a given call filtered on). Pin the .eq("user_id", ...) call to the
+        exact argument passed in, for two different callers, so a future
+        edit that hardcodes/misroutes the filter shows up here instead of
+        silently returning another user's memory summaries."""
+        monkeypatch.setattr(app, "STRICT_SUPABASE_RLS", True)
+        monkeypatch.setattr(app, "SUPABASE_USER_MEMORIES_TABLE", "user_memories")
+        monkeypatch.setattr(app, "_normalize_rag_text", lambda text, max_chars=260: str(text or ""))
+
+        for uid in ("user-1", "user-2"):
+            client = _FakeSupabaseClient(data=[])
+            monkeypatch.setattr(app, "_get_user_scoped_supabase_client", lambda bearer_token=None, c=client: c)
+            rag._fetch_user_memory_summaries(uid)
+            eq_calls = [c for c in client.query.calls if c[0] == "eq"]
+            assert eq_calls == [("eq", ("user_id", uid), {})]
+
 
 # ─────────────────────────── _store_ask_history ─────────────────────────────
 
@@ -367,6 +429,29 @@ class TestStoreAskHistory:
         monkeypatch.setattr(app, "_get_supabase_client", lambda: client)
         monkeypatch.setattr(app, "SUPABASE_ASK_HISTORY_TABLE", "ask_history")
         rag._store_ask_history("user-1", "q", "a")  # should not raise
+
+    def test_insert_exception_reaches_capture_backend_error(self, monkeypatch):
+        """Regression test (plan.md §23.2.4): this is the defensibility-
+        logging table the accept_legal() clerk_id/user_id bug (§23.1) was
+        about. A write failure here must stay non-fatal but must not vanish
+        into a bare `except: return` — it has to reach
+        _capture_backend_error() so it's visible in Sentry/structured logs."""
+        client = _FakeSupabaseClient(error=RuntimeError("insert failed"))
+        monkeypatch.setattr(app, "_get_supabase_client", lambda: client)
+        monkeypatch.setattr(app, "SUPABASE_ASK_HISTORY_TABLE", "ask_history")
+        captured = []
+        monkeypatch.setattr(
+            rag, "_capture_backend_error",
+            lambda event, error, context: captured.append((event, error, context)),
+        )
+
+        rag._store_ask_history("user-1", "q", "a")  # should not raise
+
+        assert len(captured) == 1
+        event, error, context = captured[0]
+        assert event == "ask_history_store_failed"
+        assert isinstance(error, RuntimeError)
+        assert context["user_id_hash"] == hash_user_id("user-1")
 
     def test_safety_class_and_prompt_version_persisted(self, monkeypatch):
         """plan.md §8.B.6 defensibility logging: a stored answer's safety
@@ -431,3 +516,46 @@ class TestStoreUserMemorySummary:
         monkeypatch.setattr(app, "_build_interaction_summary", lambda q, a: "summary")
         monkeypatch.setattr(app, "SUPABASE_USER_MEMORIES_TABLE", "user_memories")
         rag._store_user_memory_summary("user-1", "q", "a")  # should not raise
+
+    def test_insert_exception_reaches_capture_backend_error(self, monkeypatch):
+        """Regression test (plan.md §23.2.4): kept non-fatal by design (a
+        memory-write failure must never block the user response), but the
+        failure itself must not be invisible — route it through
+        _capture_backend_error() instead of a bare `except: return`."""
+        client = _FakeSupabaseClient(error=RuntimeError("boom"))
+        monkeypatch.setattr(app, "_get_user_scoped_supabase_client", lambda: client)
+        monkeypatch.setattr(app, "STRICT_SUPABASE_RLS", True)
+        monkeypatch.setattr(app, "_build_interaction_summary", lambda q, a: "summary")
+        monkeypatch.setattr(app, "SUPABASE_USER_MEMORIES_TABLE", "user_memories")
+        captured = []
+        monkeypatch.setattr(
+            rag, "_capture_backend_error",
+            lambda event, error, context: captured.append((event, error, context)),
+        )
+
+        rag._store_user_memory_summary("user-1", "q", "a")  # should not raise
+
+        assert len(captured) == 1
+        event, error, context = captured[0]
+        assert event == "user_memory_store_failed"
+        assert isinstance(error, RuntimeError)
+        assert context["user_id_hash"] == hash_user_id("user-1")
+
+    def test_insert_payload_uses_exact_user_id_argument(self, monkeypatch):
+        """plan.md §21.3 exit criteria: pin the insert payload's user_id to
+        the exact argument passed in, for two different callers, so a
+        future edit can't accidentally write one user's interaction
+        summary under another user's id (a cross-user write, not just a
+        read, and RLS's own audit endpoint can't see which id a write
+        intended to use)."""
+        monkeypatch.setattr(app, "STRICT_SUPABASE_RLS", True)
+        monkeypatch.setattr(app, "_build_interaction_summary", lambda q, a: "summary")
+        monkeypatch.setattr(app, "SUPABASE_USER_MEMORIES_TABLE", "user_memories")
+
+        for uid in ("user-1", "user-2"):
+            client = _FakeSupabaseClient()
+            monkeypatch.setattr(app, "_get_user_scoped_supabase_client", lambda c=client: c)
+            rag._store_user_memory_summary(uid, "q", "a")
+            insert_calls = [c for c in client.query.calls if c[0] == "insert"]
+            assert len(insert_calls) == 1
+            assert insert_calls[0][1][0]["user_id"] == uid
