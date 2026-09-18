@@ -33,8 +33,8 @@
  * server. See README.md / docs/ACCESSIBILITY_AUDIT.md.
  */
 
-const fs = require('fs');
-const path = require('path');
+const fs = require('node:fs');
+const path = require('node:path');
 
 const REPO_ROOT = path.resolve(__dirname, '..');
 const CONFIG_PATH = path.join(REPO_ROOT, '.pa11yci.json');
@@ -56,7 +56,7 @@ const THEME_PREFS_KEY = "Sh'elahPrefs";
 
 function loadConfig() {
     const raw = JSON.parse(fs.readFileSync(CONFIG_PATH, 'utf8'));
-    const defaults = { ...(raw.defaults || {}) };
+    const defaults = { ...raw.defaults };
     // Comment keys are documentation for humans; pa11y rejects unknown ones.
     for (const key of Object.keys(defaults)) {
         if (key.startsWith('_')) {

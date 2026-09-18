@@ -285,7 +285,7 @@ export function formatZmanClockDisplay(value, deps) {
     if (!deps.isHebrewMode()) return raw;
     if (raw === 'N/A' || raw === '--:--') return raw;
 
-    const match = raw.match(/^(\d{1,2}:\d{2})(?:\s*([AP]M))?$/i);
+    const match = /^(\d{1,2}:\d{2})(?:\s*([AP]M))?$/i.exec(raw);
     if (!match) return raw;
     const timePart = match[1];
     const suffix = String(match[2] || '').toUpperCase();
@@ -302,7 +302,7 @@ export function startCountdown(deps) {
     if (!zmanimData) return;
     const nextZmanBadge = document.getElementById('nextZmanBadge');
 
-    const isoMap = (zmanimData.metadata && zmanimData.metadata.zmanim_iso) || {};
+    const isoMap = zmanimData.metadata?.zmanim_iso || {};
 
     Object.entries(zmanimData.zmanim).forEach(([key, val]) => {
         if (!val || val === 'N/A') return;
@@ -318,10 +318,10 @@ export function startCountdown(deps) {
 
         // Fallback for older payloads without ISO timestamps.
         if (!t) {
-            const match = val.match(/(\d+):(\d+)\s+(AM|PM)/);
+            const match = /(\d{1,2}):(\d{2})\s+(AM|PM)/.exec(val);
             if (!match) return;
-            let h = parseInt(match[1]);
-            let m = parseInt(match[2]);
+            let h = Number.parseInt(match[1]);
+            let m = Number.parseInt(match[2]);
             if (match[3] === 'PM' && h !== 12) h += 12;
             if (match[3] === 'AM' && h === 12) h = 0;
             t = new Date();
@@ -492,7 +492,7 @@ function renderShabbatWarning(meta, deps) {
 //    a fresh fetch (first time the decision needs making). Kept as the
 //    always-on canonical behavior rather than splitting them back out.
 export function refreshZmanimDisplay(deps) {
-    if (!zmanimData || !zmanimData.metadata) return;
+    if (!zmanimData?.metadata) return;
     const meta = zmanimData.metadata;
     const z = zmanimData.zmanim || {};
 
