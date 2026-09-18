@@ -132,6 +132,9 @@ It is organized by runtime flow first, then file-by-file notes.
 - `scripts/fetch_sefardic_siddur.py`
   - Fetches Siddur text from Sefaria and prepares prayer data payloads.
 
+- `scripts/clerk_supabase_rls.py`
+  - Clerk JWT verification and Supabase RLS helper utilities.
+
 ## 7) Config + Deployment
 
 - `requirements.txt`
