@@ -11,9 +11,9 @@
  * own return contract (parsed payload on success, a thrown Error carrying
  * `.status`/`.code`/`.attempts` on failure).
  *
- * Run with: node --experimental-vm-modules --test tests_js/
+ * Run with: node --test tests_js/*.test.js
  * (wired into `npm test`; see tests_js/helpers/esm_harness.js for why real
- * static/js/*.js ES modules need a vm.SourceTextModule-based loader in Node.)
+ * static/js/*.js ES modules need a module-hook-based loader in Node.)
  */
 'use strict';
 
@@ -87,16 +87,12 @@ test('askAi happy path: single attempt, resolves with the parsed payload, update
         onRetry: (attempt) => onRetryCalls.push(attempt),
     });
 
-    // JSON-compared, not assert.deepEqual: result/state are plain objects built
-    // inside the vm-sandboxed module's own realm (a different Object.prototype
-    // than this file's), so deepStrictEqual's prototype check fails even on
-    // genuinely identical content -- a vm-harness artifact, not a real bug.
-    assert.equal(JSON.stringify(result), JSON.stringify(payload));
+    assert.deepEqual(result, payload);
     assert.equal(fetchFn.calls.length, 1, 'a clean 200 must not be retried');
     assert.deepEqual(onRetryCalls, []);
     assert.equal(window.appState.ai.pending, false);
     assert.equal(window.appState.ai.lastError, null);
-    assert.equal(JSON.stringify(window.appState.ai.lastResponse), JSON.stringify(payload));
+    assert.deepEqual(window.appState.ai.lastResponse, payload);
 });
 
 test('askAi retries once on a 502 then succeeds, reporting the retry via onRetry', async () => {

@@ -8,7 +8,7 @@
     "test": "tests"
   },
   "scripts": {
-    "test": "node --experimental-vm-modules --test tests_js/*.test.js",
+    "test": "node --test tests_js/*.test.js",
     "build:css": "tailwindcss -i ./static/css/tailwind.input.css -o ./static/css/tailwind.css --minify",
     "test:a11y": "npm run test:a11y:light && npm run test:a11y:dark",
     "test:a11y:light": "pa11y-ci --config .pa11yci.json",
