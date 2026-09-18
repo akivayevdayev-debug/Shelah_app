@@ -35,20 +35,20 @@ _PRICE_PER_M = {
     # Anthropic Claude 4 family
     "claude-sonnet-4-6":   {"input": 3.00,  "output": 15.00},
     "claude-opus-4-8":     {"input": 15.00, "output": 75.00},
-    "claude-haiku-4-5":    {"input": 0.80,  "output": 4.00},
+    "claude-haiku-4-5":    {"input": 1.00,  "output": 5.00},
     # Legacy / fallback
     "claude-3-5-sonnet":   {"input": 3.00,  "output": 15.00},
     "claude-3-opus":       {"input": 15.00, "output": 75.00},
     "claude-3-haiku":      {"input": 0.25,  "output": 1.25},
-    # Google Gemini
-    "gemini-1.5-flash":    {"input": 0.075, "output": 0.30},
-    "gemini-1.5-pro":      {"input": 3.50,  "output": 10.50},
-    "gemini-2.0-flash":    {"input": 0.10,  "output": 0.40},
+    # Google Gemini — all $0.00 (2026-09-01, Akiva): this project runs on
+    # Gemini's free tier, so every Gemini call is genuinely $0 to log, not
+    # an unpriced-model gap. Update if the project ever moves off the free
+    # tier -- see ai.google.dev/gemini-api/docs/pricing for paid rates.
+    "gemini-1.5-flash":    {"input": 0.0, "output": 0.0},
+    "gemini-1.5-pro":      {"input": 0.0, "output": 0.0},
+    "gemini-2.0-flash":    {"input": 0.0, "output": 0.0},
     # Production primary model (backend/claude.py:_DEFAULT_GEMINI_MODEL).
-    # Verified against ai.google.dev/gemini-api/docs/pricing 2026-08-19 --
-    # was missing entirely (plan.md §20.1-C1), which meant every Gemini
-    # /ask call was logged to ai_usage_log at cost_usd=0.0.
-    "gemini-3.5-flash-lite": {"input": 0.30, "output": 2.50},
+    "gemini-3.5-flash-lite": {"input": 0.0, "output": 0.0},
     # Translation (per-call flat estimate, not token-based)
     "google-translate":    {"input": 0.0,   "output": 0.02},
     "mymemory":            {"input": 0.0,   "output": 0.0},
@@ -512,7 +512,7 @@ _RESERVATION_TTL_MINUTES = 10  # must match scripts/sql/check_and_reserve_user_b
 # primary Gemini call) + 1024 tokens (the Claude fallback's max_tokens, if
 # it also fires in the same request) = 4096, priced at the pricier of the
 # two dispatchable non-Gemini-default output rates (claude-haiku-4-5,
-# $4.00/1M) so the reservation covers either provider.
+# $5.00/1M) so the reservation covers either provider.
 # Input: CORE_SYSTEM_PROMPT (~5.1K chars) + the 2200-char sanitized dynamic
 # context cap (backend/claude.py::_sanitize_prompt_payload) + the 1200-char
 # MAX_INPUT_CHARS question cap ≈ 8500 chars, padded to 6000 tokens at a
@@ -520,8 +520,8 @@ _RESERVATION_TTL_MINUTES = 10  # must match scripts/sql/check_and_reserve_user_b
 # to cover Hebrew-heavy prompts).
 _MAX_SINGLE_ASK_OUTPUT_TOKENS = 4096
 _MAX_SINGLE_ASK_INPUT_TOKENS = 6000
-_MAX_SINGLE_ASK_INPUT_PRICE_PER_M = 0.80   # claude-haiku-4-5 input rate
-_MAX_SINGLE_ASK_OUTPUT_PRICE_PER_M = 4.00  # claude-haiku-4-5 output rate
+_MAX_SINGLE_ASK_INPUT_PRICE_PER_M = 1.00   # claude-haiku-4-5 input rate
+_MAX_SINGLE_ASK_OUTPUT_PRICE_PER_M = 5.00  # claude-haiku-4-5 output rate
 
 
 def _max_single_ask_reservation_usd() -> float:
