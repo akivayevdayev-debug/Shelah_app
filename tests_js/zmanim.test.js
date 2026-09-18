@@ -77,6 +77,7 @@ async function loadZmanim(overrides = {}) {
         document,
         localStorage,
         fetch: overrides.fetch,
+        ...(overrides.Date ? { Date: overrides.Date } : {}),
         setTimeout: timer.setTimeout,
         clearTimeout: timer.clearTimeout,
         URLSearchParams,
@@ -235,6 +236,54 @@ test('startCountdown highlights the soonest upcoming zman row and fills the badg
     const badge = document.getElementById('nextZmanBadge');
     assert.equal(badge.classList.contains('hidden'), false);
     assert.match(badge.innerHTML, /Sunset/);
+});
+
+// A Date whose zero-argument constructor is pinned to `instant`, so the
+// legacy "h:mm AM/PM" fallback (payloads without metadata.zmanim_iso, which
+// builds today's date from the clock string) is testable at any wall-clock time.
+function pinnedDate(instant) {
+    return class PinnedDate extends Date {
+        constructor(...args) {
+            if (args.length === 0) super(instant.getTime());
+            else super(...args);
+        }
+
+        static now() {
+            return instant.getTime();
+        }
+    };
+}
+
+test('startCountdown converts legacy 12-hour clock strings correctly (no ISO timestamps)', async () => {
+    const pinned = pinnedDate(new Date(2026, 2, 4, 10, 0, 0));
+    const cases = [
+        // [clock string, expected badge countdown, or null when nothing is upcoming]
+        ['3:30 PM', 'in 5h 30m'],
+        ['11:15 AM', 'in 1h 15m'],
+        ['12:00 PM', 'in 2h 0m'],
+        ['07:45 PM', 'in 9h 45m'],
+        ['12:30 AM', null],
+        ['9:59 AM', null],
+        ['soon', null],
+    ];
+
+    for (const [clock, expected] of cases) {
+        const fetchFn = makeSequenceFetch([
+            makeJsonResponse({ zmanim: { Sunset: clock }, metadata: {} }),
+        ]);
+        const { mod, document } = await loadZmanim({ fetch: fetchFn, Date: pinned });
+        addFakeChild(document.getElementById('zRowSunset'), 'span', { textContent: 'Sunset' });
+
+        await mod.namespace.fetchZmanimAPI(null, makeDeps());
+
+        const badge = document.getElementById('nextZmanBadge');
+        if (expected === null) {
+            assert.equal(badge.classList.contains('hidden'), true, `${clock} is not upcoming`);
+        } else {
+            assert.equal(badge.classList.contains('hidden'), false, `${clock} is upcoming`);
+            assert.match(badge.innerHTML, new RegExp(`Sunset <span[^>]*>${expected}</span>`), clock);
+        }
+    }
 });
 
 test('startCountdown hides the next-zman badge when nothing is upcoming', async () => {
