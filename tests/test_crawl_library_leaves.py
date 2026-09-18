@@ -83,6 +83,24 @@ class TestSmallHelpers:
     def test_normalize_key(self, raw, key):
         assert cl.normalize_key(raw) == key
 
+    @pytest.mark.parametrize("raw, key", [
+        ("בראשית", "בראשית"),                         # Hebrew letters are kept
+        ("בראשית א:א", "בראשיתאא"),                   # punctuation/space dropped, letters kept
+        ("Génesis", "génesis"),                        # accented Latin is not stripped to "gnesis"
+        ("שמות 2", "שמות2"),                           # mixed Hebrew + digits
+    ])
+    def test_normalize_key_keeps_non_ascii_letters(self, raw, key):
+        assert cl.normalize_key(raw) == key
+
+    def test_normalize_key_ignores_hebrew_vowel_points_and_unicode_composition(self):
+        # Niqqud/cantillation are combining marks, not part of the title's identity.
+        assert cl.normalize_key("בְּרֵאשִׁית") == cl.normalize_key("בראשית")
+        # "é" precomposed (U+00E9) and "e" + combining acute (U+0301) are the same title.
+        assert cl.normalize_key("G\u00e9nesis") == cl.normalize_key("Ge\u0301nesis") == "génesis"
+
+    def test_distinct_non_ascii_titles_get_distinct_keys(self):
+        assert cl.normalize_key("בראשית") != cl.normalize_key("שמות") != ""
+
     @pytest.mark.parametrize("value, expected", [
         ("text", True), ("   ", False), ([], False), (["", "  "], False),
         (["", ["", "deep"]], True), (None, False), (5, False),
@@ -153,6 +171,15 @@ class TestDedupe:
         assert [leaf["title"] for leaf in deduped] == ["Mishnah Berakhot", "Other"]
         assert duplicates == 1
 
+    def test_non_ascii_titles_are_kept_not_silently_dropped(self):
+        leaves = [{"title": "בראשית"}, {"title": "שמות"}, {"title": "בְּרֵאשִׁית!"},
+                  {"title": "Génesis"}]
+
+        deduped, duplicates = cl.dedupe_leaf_titles(leaves)
+
+        assert [leaf["title"] for leaf in deduped] == ["בראשית", "שמות", "Génesis"]
+        assert duplicates == 1
+
 
 class TestResolveNameRef:
     def test_returns_the_ref_only_when_sefaria_says_it_is_a_ref(self):
@@ -180,6 +207,13 @@ class TestResolveNameRef:
                 return _Resp(200, bad_json=True)
 
         assert cl.resolve_name_ref(_S(), "X", 5, {}) == ""
+
+    def test_hebrew_title_is_looked_up_not_treated_as_blank(self):
+        hebrew = "בראשית"
+        session = FakeSession(names={cl.encode_name_path(hebrew): {"is_ref": True, "ref": "Genesis"}})
+
+        assert cl.resolve_name_ref(session, hebrew, 5, {}) == "Genesis"
+        assert len(session.requests) == 1
 
     def test_blank_title_makes_no_request(self):
         session = FakeSession()
