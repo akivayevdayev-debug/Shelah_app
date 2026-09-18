@@ -1,3 +1,4 @@
+{% from "components/icons.html" import phosphor %}
 <!DOCTYPE html>
 <html lang="en">
 
@@ -80,12 +81,12 @@
 
 
             <div class="info-box">
-                <p data-en="🔒 Your Privacy Matters: Sh'elah does not sell your personal data. We collect only what we need to provide the Service and improve it. You may request access to, correction of, or deletion of your data at any time."
-                    data-he="🔒 הפרטיות שלך חשובה: Sh'elah אינה מוכרת את הנתונים האישיים שלך. אנו אוספים רק את מה שנדרש כדי לספק את השירות ולשפר אותו. תוכל לבקש גישה, תיקון או מחיקה של הנתונים שלך בכל עת.">
-                    <strong>🔒 Your Privacy Matters:</strong> Sh'elah does not sell your personal data. We collect only
+                <p>{{ phosphor('shield-check', 18, 'legal-inline-icon') }}<span data-en="Your Privacy Matters: Sh'elah does not sell your personal data. We collect only what we need to provide the Service and improve it. You may request access to, correction of, or deletion of your data at any time."
+                    data-he="הפרטיות שלך חשובה: Sh'elah אינה מוכרת את הנתונים האישיים שלך. אנו אוספים רק את מה שנדרש כדי לספק את השירות ולשפר אותו. תוכל לבקש גישה, תיקון או מחיקה של הנתונים שלך בכל עת.">
+                    <strong>Your Privacy Matters:</strong> Sh'elah does not sell your personal data. We collect only
                     what we need to provide the Service and improve it. You may request access to, correction of, or
                     deletion of your data at any time.
-                </p>
+                </span></p>
             </div>
 
             <h2 data-en="1. Information We Collect" data-he="1. מידע שאנו אוספים">1. Information We Collect</h2>
@@ -327,18 +328,21 @@
 
             <h2 data-en="5. International Data Transfers" data-he="5. העברות נתונים בינלאומיות">5. International
                 Data Transfers</h2>
-            <p data-en="Several of our sub-processors (Clerk, Vercel, Google, Anthropic) process data in the United States. If you are located in the European Economic Area, United Kingdom, or Switzerland, your data may be transferred to and processed in the US or other countries outside your jurisdiction. Where required, we rely on mechanisms such as Standard Contractual Clauses (SCCs) or a sub-processor's participation in the EU-U.S. Data Privacy Framework (DPF) to legitimize these transfers — see each provider's own privacy/DPA documentation for the specific mechanism it offers. [Placeholder — confirm each current sub-processor's specific transfer mechanism with counsel before relying on this section.]"
-                data-he="כמה ממעבדי-המשנה שלנו (Clerk, Vercel, Google, Anthropic) מעבדים נתונים בארצות הברית. אם אתה נמצא באזור הכלכלי האירופי, בבריטניה, או בשווייץ, ייתכן שהנתונים שלך יועברו ויעובדו בארה״ב או במדינות אחרות מחוץ לתחום השיפוט שלך. במקרים הנדרשים, אנו מסתמכים על מנגנונים כגון סעיפים חוזיים סטנדרטיים (SCCs) או השתתפות מעבד-משנה במסגרת הפרטיות EU-U.S. Data Privacy Framework (DPF) כדי להכשיר העברות אלה — ראה את תיעוד הפרטיות/DPA של כל ספק למנגנון הספציפי שהוא מציע. [מציין מקום — יש לאשר את מנגנון ההעברה הספציפי של כל מעבד-משנה נוכחי עם עורך דין לפני הסתמכות על סעיף זה.]">
-                Several of our sub-processors (Clerk, Vercel, Google, Anthropic) process data in the United States.
-                If you are located in the European Economic Area, United Kingdom, or Switzerland, your data may be
-                transferred to and processed in the US or other countries outside your jurisdiction. Where required,
-                we rely on mechanisms such as Standard Contractual Clauses (SCCs) or a sub-processor's participation
-                in the EU-U.S. Data Privacy Framework (DPF) to legitimize these transfers — see each provider's own
-                privacy/DPA documentation for the specific mechanism it offers.
-                <em data-en="[Placeholder — confirm each current sub-processor's specific transfer mechanism with counsel before relying on this section.]"
-                    data-he="[מציין מקום — יש לאשר את מנגנון ההעברה הספציפי של כל מעבד-משנה נוכחי עם עורך דין לפני הסתמכות על סעיף זה.]">[Placeholder
-                    — confirm each current sub-processor's specific transfer mechanism with counsel before relying
-                    on this section.]</em>
+            <p data-en="Several of our sub-processors process data in the United States. If you are located in the European Economic Area, United Kingdom, or Switzerland, your data may be transferred to and processed in the US or other countries outside your jurisdiction. As confirmed 2026-09-04 from each provider's own public DPF/DPA documentation: Clerk and Vercel are self-certified under the EU-U.S. Data Privacy Framework (DPF), including its UK and Swiss extensions, with Standard Contractual Clauses (SCCs) incorporated as a fallback where DPF does not apply; Google participates in the DPF and additionally relies on SCCs for transfers outside DPF's coverage; Anthropic documents SCCs (EU Module 2/3, plus UK and Swiss transfer addenda) as its primary transfer mechanism and separately participates in the DPF as a secondary basis. As confirmed 2026-09-05 from their own current public documentation, Supabase relies solely on SCCs (Module 2/3, plus UK and Swiss transfer addenda), with no DPF self-certification found in its DPA; Sentry is self-certified under the EU-U.S. DPF, with SCCs (Module 2/3, plus a UK addendum) incorporated as a fallback where DPF does not apply. See docs/PRIVACY_OPERATIONS.md §3 for source links. These are the standard transfer safeguards recognized by the European Commission (Standard Contractual Clauses and, where applicable, the EU-U.S. Data Privacy Framework) and are the mechanisms the vast majority of services relying on US-based providers use for this purpose; Sh'elah relies on each vendor's own executed safeguard as confirmed above, and will review this section if a vendor's certification or DPA terms materially change."
+                data-he="כמה ממעבדי-המשנה שלנו מעבדים נתונים בארצות הברית. אם אתה נמצא באזור הכלכלי האירופי, בבריטניה, או בשווייץ, ייתכן שהנתונים שלך יועברו ויעובדו בארה״ב או במדינות אחרות מחוץ לתחום השיפוט שלך. כפי שאושר בתאריך 4.9.2026 מתוך תיעוד ה-DPF/DPA הפומבי של כל ספק: Clerk ו-Vercel מוסמכות באופן עצמאי (self-certified) תחת מסגרת הפרטיות EU-U.S. Data Privacy Framework (DPF), לרבות ההרחבות לבריטניה ולשווייץ, עם סעיפים חוזיים סטנדרטיים (SCCs) המשולבים כגיבוי במקרים שבהם ה-DPF אינו חל; Google משתתפת ב-DPF ומסתמכת בנוסף על SCCs להעברות שאינן מכוסות במסגרת זו; Anthropic מתעדת SCCs (מודול 2/3 של האיחוד האירופי, בתוספת נספחים לבריטניה ולשווייץ) כמנגנון ההעברה העיקרי שלה, ומשתתפת בנפרד ב-DPF כבסיס משני. כפי שאושר בתאריך 5.9.2026 מתוך התיעוד הפומבי העדכני של כל ספק, Supabase מסתמכת אך ורק על SCCs (מודול 2/3, בתוספת נספחי העברה לבריטניה ולשווייץ), ולא נמצאה הסמכה עצמית תחת ה-DPF במסמך ה-DPA שלה; Sentry מוסמכת באופן עצמאי (self-certified) תחת מסגרת הפרטיות EU-U.S. Data Privacy Framework (DPF), עם SCCs (מודול 2/3, בתוספת נספח לבריטניה) המשולבים כגיבוי במקרים שבו ה-DPF אינו חל. ראה docs/PRIVACY_OPERATIONS.md §3 לקישורי המקורות. אלה מנגנוני ההעברה הסטנדרטיים המוכרים על ידי הנציבות האירופית (סעיפים חוזיים סטנדרטיים, וכאשר רלוונטי, מסגרת הפרטיות EU-U.S. Data Privacy Framework), והם המנגנונים שבהם משתמשים רוב השירותים המסתמכים על ספקים הממוקמים בארה״ב למטרה זו; Sh'elah מסתמכת על המנגנון המאושר של כל ספק כפי שאושר לעיל, ותבחן סעיף זה מחדש אם הסמכה או תנאי DPA של ספק ישתנו באופן מהותי.">
+                Several of our sub-processors process data in the United States. If you are located in the European
+                Economic Area, United Kingdom, or Switzerland, your data may be transferred to and processed in the
+                US or other countries outside your jurisdiction. As confirmed 2026-09-04 from each provider's own
+                public DPF/DPA documentation: Clerk and Vercel are self-certified under the EU-U.S. Data Privacy
+                Framework (DPF), including its UK and Swiss extensions, with Standard Contractual Clauses (SCCs)
+                incorporated as a fallback where DPF does not apply; Google participates in the DPF and additionally
+                relies on SCCs for transfers outside DPF's coverage; Anthropic documents SCCs (EU Module 2/3, plus UK
+                and Swiss transfer addenda) as its primary transfer mechanism and separately participates in the DPF
+                as a secondary basis. As confirmed 2026-09-05 from their own current public documentation, Supabase
+                relies solely on SCCs (Module 2/3, plus UK and Swiss transfer addenda), with no DPF
+                self-certification found in its DPA; Sentry is self-certified under the EU-U.S. DPF, with SCCs
+                (Module 2/3, plus a UK addendum) incorporated as a fallback where DPF does not apply. See
+                <code>docs/PRIVACY_OPERATIONS.md</code> §3 for source links.
             </p>
 
             <h2 data-en="6. Your Rights (GDPR, CCPA/CPRA &amp; Others)" data-he="6. זכויותיך (GDPR, CCPA/CPRA ואחרים)">6. Your Rights (GDPR, CCPA/CPRA &amp; Others)</h2>
@@ -446,16 +450,20 @@
             </p>
 
             <h2 data-en="10. EU Representative &amp; Data Protection Officer" data-he="10. נציג באיחוד האירופי וממונה הגנת מידע">10. EU Representative &amp; Data Protection Officer</h2>
-            <p data-en="Sh'elah is currently operated by an individual developer, not a registered company, and has not yet formally designated an EU representative under GDPR Art. 27 or a Data Protection Officer under Art. 37. [Placeholder — whether an Art. 27 representative or a DPO is required given the Service's scale and processing activities is a determination for counsel; until made, direct any EU-specific inquiry to the contact in §11.]"
-                data-he="Sh'elah מופעלת כיום על ידי מפתח יחיד, לא חברה רשומה, וטרם מינתה באופן פורמלי נציג באיחוד האירופי לפי סעיף 27 ל-GDPR או ממונה הגנת מידע לפי סעיף 37. [מציין מקום — האם נדרש נציג לפי סעיף 27 או ממונה הגנת מידע בהתחשב בהיקף השירות ופעילויות העיבוד שלו, היא קביעה עבור עורך דין; עד לקביעתה, יש להפנות כל פנייה ספציפית לאיחוד האירופי לפרטי הקשר בסעיף 11.]">
-                Sh'elah is currently operated by an individual developer, not a registered company, and has not yet
-                formally designated an EU representative under GDPR Art. 27 or a Data Protection Officer under Art.
-                37.
-                <em data-en="[Placeholder — whether an Art. 27 representative or a DPO is required given the Service's scale and processing activities is a determination for counsel; until made, direct any EU-specific inquiry to the contact in §11.]"
-                    data-he="[מציין מקום — האם נדרש נציג לפי סעיף 27 או ממונה הגנת מידע בהתחשב בהיקף השירות ופעילויות העיבוד שלו, היא קביעה עבור עורך דין; עד לקביעתה, יש להפנות כל פנייה ספציפית לאיחוד האירופי לפרטי הקשר בסעיף 11.]">[Placeholder
-                    — whether an Art. 27 representative or a DPO is required given the Service's scale and
-                    processing activities is a determination for counsel; until made, direct any EU-specific inquiry
-                    to the contact in §11.]</em>
+            <p data-en="Sh'elah is currently operated by Akiva Yevdayev, an individual, not a registered company, and has not formally designated an EU representative under GDPR Art. 27 or a Data Protection Officer under Art. 37. Sh'elah does not specifically market or target the Service to residents of the EU, UK, or Switzerland (no EU-specific advertising, currency, or localized marketing), does not carry out large-scale or systematic monitoring of users, and does not process special-category data as a core business activity — any sensitive subject matter arises incidentally within a user's own question, not through systematic collection or profiling. Based on GDPR Article 27(2)'s exemption for occasional, low-risk, non-large-scale processing and Article 37's large-scale/systematic-monitoring threshold for a Data Protection Officer, Sh'elah has determined that neither an EU representative nor a DPO is currently required. This determination will be revisited if the Service's scale, EU-specific marketing, or data-processing activities materially change. Direct any EU-specific inquiry to the contact in §11."
+                data-he="Sh'elah מופעלת כיום על ידי Akiva Yevdayev, יחיד, לא חברה רשומה, וטרם מינתה באופן פורמלי נציג באיחוד האירופי לפי סעיף 27 ל-GDPR או ממונה הגנת מידע לפי סעיף 37. Sh'elah אינה משווקת או מכוונת את השירות באופן ספציפי לתושבי האיחוד האירופי, בריטניה או שווייץ (ללא פרסום ספציפי לאיחוד האירופי, מטבע מקומי, או שיווק מותאם), אינה מבצעת מעקב שיטתי או בקנה מידה גדול אחר משתמשים, ואינה מעבדת נתונים מקטגוריות מיוחדות כפעילות עסקית מרכזית — כל נושא רגיש עולה באופן אגבי בתוך שאלת המשתמש עצמה, ולא באמצעות איסוף שיטתי או פרופיילינג. בהתבסס על הפטור בסעיף 27(2) ל-GDPR לעיבוד מזדמן, בסיכון נמוך ושאינו בקנה מידה גדול, ועל סף העיבוד בקנה מידה גדול/מעקב שיטתי הנדרש למינוי ממונה הגנת מידע לפי סעיף 37, קבעה Sh'elah כי נכון לעכשיו אין צורך לא בנציג באיחוד האירופי ולא בממונה הגנת מידע. קביעה זו תיבחן מחדש אם היקף השירות, שיווקו לאיחוד האירופי, או פעילויות עיבוד הנתונים שלו ישתנו באופן מהותי. יש להפנות כל פנייה ספציפית לאיחוד האירופי לפרטי הקשר בסעיף 11.">
+                Sh'elah is currently operated by Akiva Yevdayev, an individual, not a registered company, and has
+                not formally designated an EU representative under GDPR Art. 27 or a Data Protection Officer
+                under Art. 37. Sh'elah does not specifically market or target the Service to residents of the EU,
+                UK, or Switzerland (no EU-specific advertising, currency, or localized marketing), does not carry
+                out large-scale or systematic monitoring of users, and does not process special-category data as a
+                core business activity — any sensitive subject matter arises incidentally within a user's own
+                question, not through systematic collection or profiling. Based on GDPR Article 27(2)'s exemption
+                for occasional, low-risk, non-large-scale processing and Article 37's large-scale/systematic-
+                monitoring threshold for a Data Protection Officer, Sh'elah has determined that neither an EU
+                representative nor a DPO is currently required. This determination will be revisited if the
+                Service's scale, EU-specific marketing, or data-processing activities materially change. Direct any
+                EU-specific inquiry to the contact in §11.
             </p>
 
             <h2 data-en="11. Changes to This Policy" data-he="11. שינויים במדיניות זו">11. Changes to This Policy</h2>
@@ -474,6 +482,7 @@
                 For privacy-related questions, data requests, or to report a concern:
             </p>
             <ul>
+                <li><strong data-en="Contact:" data-he="איש קשר:">Contact:</strong> Akiva Yevdayev</li>
                 <li><strong data-en="Email:" data-he="דוא״ל:">Email:</strong> <a href="mailto:akiva.yevda@gmail.com">akiva.yevda@gmail.com</a></li>
             </ul>
 
@@ -493,6 +502,8 @@
 
     <footer class="border-t py-6 text-center text-xs"
         style="border-color: var(--surface-border); color: var(--ink-secondary); background: var(--surface-1);">
+        <p class="mb-2" data-en="© Sh'elah {{ current_year }}. All rights reserved." data-he="© Sh'elah {{ current_year }}. כל הזכויות שמורות.">©
+            Sh'elah {{ current_year }}. All rights reserved.</p>
         <p>
             <a href="/" class="font-semibold hover:underline" style="color: var(--ink-heading);"
                 data-en="Sh'elah Torah Encyclopedia" data-he="שאלה אנציקלופדיית תורה">Sh'elah Torah Encyclopedia</a>

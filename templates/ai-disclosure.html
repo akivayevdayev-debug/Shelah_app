@@ -1,3 +1,4 @@
+{% from "components/icons.html" import phosphor %}
 <!DOCTYPE html>
 <html lang="en">
 
@@ -79,12 +80,12 @@
 
 
             <div class="info-box">
-                <p data-en="🤖 You are interacting with an AI system. Every answer on Sh'elah is generated (in whole or in part) by large language models, not written or reviewed by a human before it reaches you. This page explains how that works and what it means for you."
-                    data-he="🤖 אתה מתקשר עם מערכת בינה מלאכותית. כל תשובה ב-Sh'elah נוצרת (כולה או חלקה) על ידי מודלי שפה גדולים, ואינה נכתבת או נבדקת על ידי אדם לפני שהיא מגיעה אליך. עמוד זה מסביר כיצד זה עובד ומה המשמעות עבורך.">
-                    <strong>🤖 You are interacting with an AI system.</strong> Every answer on Sh'elah is generated
+                <p>{{ phosphor('robot', 18, 'legal-inline-icon') }}<span data-en="You are interacting with an AI system. Every answer on Sh'elah is generated (in whole or in part) by large language models, not written or reviewed by a human before it reaches you. This page explains how that works and what it means for you."
+                    data-he="אתה מתקשר עם מערכת בינה מלאכותית. כל תשובה ב-Sh'elah נוצרת (כולה או חלקה) על ידי מודלי שפה גדולים, ואינה נכתבת או נבדקת על ידי אדם לפני שהיא מגיעה אליך. עמוד זה מסביר כיצד זה עובד ומה המשמעות עבורך.">
+                    <strong>You are interacting with an AI system.</strong> Every answer on Sh'elah is generated
                     (in whole or in part) by large language models, not written or reviewed by a human before it
                     reaches you. This page explains how that works and what it means for you.
-                </p>
+                </span></p>
             </div>
 
             <h2 data-en="1. Which AI Models We Use" data-he="1. באילו מודלי בינה מלאכותית אנו משתמשים">1. Which AI
@@ -221,6 +222,7 @@
                 Questions about this disclosure, or to report an AI Output that seemed unsafe, inaccurate, or
                 inappropriate:
             </p>
+            <p><strong data-en="Contact:" data-he="איש קשר:">Contact:</strong> Akiva Yevdayev</p>
             <p><strong data-en="Email:" data-he="דוא״ל:">Email:</strong> <a
                     href="mailto:akiva.yevda@gmail.com">akiva.yevda@gmail.com</a></p>
 
@@ -241,6 +243,8 @@
 
     <footer class="border-t py-6 text-center text-xs"
         style="border-color: var(--surface-border); color: var(--ink-secondary); background: var(--surface-1);">
+        <p class="mb-2" data-en="© Sh'elah {{ current_year }}. All rights reserved." data-he="© Sh'elah {{ current_year }}. כל הזכויות שמורות.">©
+            Sh'elah {{ current_year }}. All rights reserved.</p>
         <p>
             <a href="/" class="font-semibold hover:underline" style="color: var(--ink-heading);"
                 data-en="Sh'elah Torah Encyclopedia" data-he="שאלה אנציקלופדיית תורה">Sh'elah Torah Encyclopedia</a>
