@@ -9,6 +9,7 @@ __pycache__/
 .ruff_cache/
 coverage.xml
 .coverage
+coverage/
 
 # Build artifacts
 dist/
