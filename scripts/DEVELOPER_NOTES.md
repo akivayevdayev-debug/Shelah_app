@@ -14,15 +14,6 @@ Operational health checker for the full stack:
 
 Use when triaging deployment/integration issues.
 
-## `clerk_supabase_rls.py`
-
-Auth bridge utility for Clerk + Supabase RLS:
-- Extract/verify Clerk JWT.
-- Build JWT-authenticated Supabase client.
-- Query user-scoped preference rows safely.
-
-Use when debugging user-specific auth/data access behavior.
-
 ## `fetch_sefardic_siddur.py`
 
 Data prep utility:
