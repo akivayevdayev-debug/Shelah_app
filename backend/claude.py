@@ -70,6 +70,9 @@ _DEFAULT_GEMINI_MODEL = "gemini-3.5-flash-lite"
 # to come from instead of a second copy of the literal.
 _CLAUDE_FALLBACK_MODEL = "claude-haiku-4-5"
 _ERR_AI_PROVIDER_UNAVAILABLE = "AI provider is currently unavailable."
+# Subject label _detect_out_of_scope_subject() returns for content the assistant
+# refuses outright, compared against at the refusal call sites (python:S1192).
+_SUBJECT_INAPPROPRIATE = "inappropriate subject matter"
 
 
 def get_dispatchable_models() -> set[str]:
@@ -997,7 +1000,7 @@ def _detect_out_of_scope_subject(query_text: str) -> Optional[str]:
 
     # Check for explicitly inappropriate content only (hate speech, calls to violence)
     if any(pattern.search(text) for pattern in INAPPROPRIATE_CONTENT_PATTERNS):
-        return "inappropriate subject matter"
+        return _SUBJECT_INAPPROPRIATE
 
     # For Math, Science, Coding: use negative lookahead to check for halachic context
     # If any halachic marker is found, allow the query (e.g., "halachic status of electricity")
@@ -1029,7 +1032,7 @@ def classify_safety(query_text: str) -> str:
     if not text:
         return "ok"
 
-    if _detect_out_of_scope_subject(text) == "inappropriate subject matter":
+    if _detect_out_of_scope_subject(text) == _SUBJECT_INAPPROPRIATE:
         return "dangerous_or_illegal"
 
     # Highest-severity classes checked first: a query touching more than one
@@ -1107,7 +1110,7 @@ def validate_user_query(query: str) -> Dict[str, Any]:
         reasons.append("empty_query")
     if markers:
         reasons.append("prompt_injection_pattern")
-    if refusal_subject == "inappropriate subject matter":
+    if refusal_subject == _SUBJECT_INAPPROPRIATE:
         reasons.append("inappropriate_content")
     elif refusal_subject:
         # NOTE: Changed behavior - now only block truly inappropriate content.
