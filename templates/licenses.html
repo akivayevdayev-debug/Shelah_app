@@ -1,3 +1,4 @@
+{% from "components/icons.html" import phosphor %}
 <!DOCTYPE html>
 <html lang="en">
 
@@ -120,6 +121,19 @@
                 <a href="https://en.wikipedia.org/wiki/Wikipedia:Reusing_Wikipedia_content" target="_blank"
                     rel="noopener">Wikipedia's reuse guide</a> for the full terms.
             </p>
+            <p data-en="This obligation is not limited to a user's own downstream reuse — it also covers Sh'elah's own act of serving an AI Output. Where an AI Output substantially synthesizes retrieved Wikipedia content (the last-resort case described in the AI Disclosure page), that specific answer is treated as CC-BY-SA Adapted Material of the underlying Wikipedia passage: it is attributed to Wikipedia and made available under CC-BY-SA 4.0 for that specific answer, notwithstanding the general 'personal use only' Content license in the Terms of Service §9, which does not apply to this subset of AI Output. This is a deliberately conservative operator choice — adopted 2026-09-06 without a definitive legal determination of whether such synthesis actually creates an 'Adapted Material' obligation under CC BY-SA 4.0 §1.1 — made because treating the obligation as applicable is lower-risk than assuming it does not."
+                data-he="חובה זו אינה מוגבלת לשימוש חוזר של המשתמש עצמו — היא חלה גם על עצם מסירת פלט בינה מלאכותית על ידי Sh'elah. כאשר פלט בינה מלאכותית משלב באופן מהותי תוכן Wikipedia שאוחזר (המקרה של מוצא אחרון המתואר בעמוד גילוי הנאות בנושא בינה מלאכותית), אותה תשובה ספציפית מטופלת כ'חומר מותאם' (Adapted Material) תחת CC-BY-SA של קטע ה-Wikipedia הבסיסי: היא מיוחסת ל-Wikipedia ומוצגת תחת רישיון CC-BY-SA 4.0 עבור אותה תשובה ספציפית, על אף רישיון התוכן הכללי 'לשימוש אישי בלבד' בתנאי השירות סעיף 9, שאינו חל על תת-קבוצה זו של פלט בינה מלאכותית. זוהי בחירה שמרנית במכוון של המפעיל — שאומצה ב-2026-09-06 ללא קביעה משפטית סופית האם שילוב כאמור אכן יוצר חובת 'חומר מותאם' תחת CC BY-SA 4.0 סעיף 1.1 — שנעשתה משום שהתייחסות לחובה כחלה טומנת בחובה סיכון נמוך יותר מהנחה שאינה חלה.">
+                <strong data-en="Extended to Sh'elah's own AI Output (2026-09-06):" data-he="מורחב לפלט הבינה המלאכותית של Sh'elah עצמה (2026-09-06):">Extended to Sh'elah's own AI Output (2026-09-06):</strong>
+                this obligation is not limited to a user's own downstream reuse — it also covers Sh'elah's own act of
+                serving an AI Output. Where an AI Output substantially synthesizes retrieved Wikipedia content (the
+                last-resort case described in the AI Disclosure page), that specific answer is treated as CC-BY-SA
+                Adapted Material of the underlying Wikipedia passage: it is attributed to Wikipedia and made
+                available under CC-BY-SA 4.0 for that specific answer, notwithstanding the general "personal use
+                only" Content license in the Terms of Service §9, which does not apply to this subset of AI Output.
+                This is a deliberately conservative operator choice, made without a definitive legal determination of
+                whether such synthesis actually creates an "Adapted Material" obligation under CC BY-SA 4.0 §1.1 —
+                adopted because treating the obligation as applicable is lower-risk than assuming it does not.
+            </p>
 
             <h3 data-en="Halachipedia / HebrewBooks" data-he="Halachipedia / HebrewBooks">Halachipedia / HebrewBooks
             </h3>
@@ -228,9 +242,9 @@ SOFTWARE.</pre>
                 python-docx 1.1.2 (MIT), reportlab 4.2.2 (BSD-style license, per its own <code>license.txt</code>),
                 and sentry-sdk 2.63.0 (MIT).
             </p>
-            <p data-en="⚠️ zmanim 0.3.1 (used in the Service's zmanim/halachic-times calculation engine, backend/zmanim_engine.py) is not a simple permissive license — its installed package metadata declares the GNU Lesser General Public License v2 or later (LGPLv2+). LGPLv2+ is a &quot;weak copyleft&quot; library license: this project's own code may use the library and remain under its own MIT license (dynamic use/import doesn't trigger the copyleft), but redistributing the zmanim package itself would carry LGPL obligations — including making the LGPL-covered source available and, per LGPLv2 §6, allowing the library to be replaced or relinked with a modified version. No modifications to zmanim's own source are made in this repo."
-                data-he="⚠️ zmanim 0.3.1 (המשמשת במנוע חישוב הזמנים ההלכתיים של השירות, backend/zmanim_engine.py) אינה רישיון חופשי פשוט — מטא-נתוני החבילה המותקנת מצהירים על GNU Lesser General Public License v2 or later (LGPLv2+). LGPLv2+ הוא רישיון ספרייה מסוג &quot;copyleft חלש&quot;: הקוד של פרויקט זה עצמו רשאי להשתמש בספרייה ולהישאר תחת רישיון ה-MIT שלו (שימוש/ייבוא דינמי אינו מפעיל את חובת ה-copyleft), אך הפצה מחדש של חבילת zmanim עצמה תטיל חובות LGPL — לרבות הנגשת קוד המקור המכוסה תחת LGPL, ולפי סעיף 6 של LGPLv2, אפשרות להחליף או לקשר מחדש (relink) את הספרייה עם גרסה ששונתה. אין שינויים במקור של zmanim עצמה במאגר זה.">
-                <strong>⚠️ zmanim</strong> 0.3.1 (used in the Service's zmanim/halachic-times calculation engine,
+            <p>{{ phosphor('warning', 18, 'legal-inline-icon') }}<span data-en="zmanim 0.3.1 (used in the Service's zmanim/halachic-times calculation engine, backend/zmanim_engine.py) is not a simple permissive license — its installed package metadata declares the GNU Lesser General Public License v2 or later (LGPLv2+). LGPLv2+ is a &quot;weak copyleft&quot; library license: this project's own code may use the library and remain under its own MIT license (dynamic use/import doesn't trigger the copyleft), but redistributing the zmanim package itself would carry LGPL obligations — including making the LGPL-covered source available and, per LGPLv2 §6, allowing the library to be replaced or relinked with a modified version. No modifications to zmanim's own source are made in this repo."
+                data-he="zmanim 0.3.1 (המשמשת במנוע חישוב הזמנים ההלכתיים של השירות, backend/zmanim_engine.py) אינה רישיון חופשי פשוט — מטא-נתוני החבילה המותקנת מצהירים על GNU Lesser General Public License v2 or later (LGPLv2+). LGPLv2+ הוא רישיון ספרייה מסוג &quot;copyleft חלש&quot;: הקוד של פרויקט זה עצמו רשאי להשתמש בספרייה ולהישאר תחת רישיון ה-MIT שלו (שימוש/ייבוא דינמי אינו מפעיל את חובת ה-copyleft), אך הפצה מחדש של חבילת zmanim עצמה תטיל חובות LGPL — לרבות הנגשת קוד המקור המכוסה תחת LGPL, ולפי סעיף 6 של LGPLv2, אפשרות להחליף או לקשר מחדש (relink) את הספרייה עם גרסה ששונתה. אין שינויים במקור של zmanim עצמה במאגר זה.">
+                <strong>zmanim</strong> 0.3.1 (used in the Service's zmanim/halachic-times calculation engine,
                 <code>backend/zmanim_engine.py</code>) is <strong>not</strong> a simple permissive license — its
                 installed package metadata declares the <strong>GNU Lesser General Public License v2 or later
                     (LGPLv2+)</strong>. LGPLv2+ is a "weak copyleft" library license: this project's own code may
@@ -239,7 +253,7 @@ SOFTWARE.</pre>
                 — including making the LGPL-covered source available and, per LGPLv2 §6, allowing the library to
                 be replaced or relinked with a modified version. No modifications to <code>zmanim</code>'s own
                 source are made in this repo.
-            </p>
+            </span></p>
 
             <h2 data-en="5. AI Model Providers" data-he="5. ספקי מודלי בינה מלאכותית">5. AI Model Providers</h2>
             <p data-en="Anthropic (Claude) and Google (Gemini) provide the AI synthesis models used by the Service under their respective commercial API terms — not open-source licenses. See our AI Disclosure page for how these are used."
@@ -266,6 +280,8 @@ SOFTWARE.</pre>
 
     <footer class="border-t py-6 text-center text-xs"
         style="border-color: var(--surface-border); color: var(--ink-secondary); background: var(--surface-1);">
+        <p class="mb-2" data-en="© Sh'elah {{ current_year }}. All rights reserved." data-he="© Sh'elah {{ current_year }}. כל הזכויות שמורות.">©
+            Sh'elah {{ current_year }}. All rights reserved.</p>
         <p>
             <a href="/" class="font-semibold hover:underline" style="color: var(--ink-heading);"
                 data-en="Sh'elah Torah Encyclopedia" data-he="שאלה אנציקלופדיית תורה">Sh'elah Torah Encyclopedia</a>
