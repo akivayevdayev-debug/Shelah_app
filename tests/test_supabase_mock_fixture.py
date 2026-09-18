@@ -31,5 +31,6 @@ def test_rpc_response_is_a_bare_list_of_row_dicts(mock_outbound_httpx):
         },
     ).execute()
     assert isinstance(result.data, list)
-    assert result.data and isinstance(result.data[0], dict)
+    assert result.data
+    assert isinstance(result.data[0], dict)
     assert "allowed" in result.data[0]

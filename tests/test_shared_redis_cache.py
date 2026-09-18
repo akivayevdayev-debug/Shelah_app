@@ -53,7 +53,6 @@ def _clear_shared_client(monkeypatch):
     """Every test controls _shared_redis_client explicitly; start from None
     regardless of what a previous test (or module import) left behind."""
     monkeypatch.setattr(cache_module, "_shared_redis_client", None)
-    yield
 
 
 # ─── redis_cache_get / redis_cache_set (unconfigured) ───────────────────────

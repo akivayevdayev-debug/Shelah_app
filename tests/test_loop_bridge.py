@@ -82,8 +82,9 @@ class TestBridgePath:
         _patch_primary_model(monkeypatch, delay=0.3)
         monkeypatch.setattr(claude, "AI_TOTAL_BUDGET_SECONDS", 0.05)
 
+        coroutine = _call_sync_wrapper_from_within_loop()
         with pytest.raises(TimeoutError):
-            asyncio.run(_call_sync_wrapper_from_within_loop())
+            asyncio.run(coroutine)
 
     def test_timeout_cancels_the_underlying_coroutine(self, monkeypatch):
         """Regression test for a confirmed Phase 5 concurrency-review
@@ -113,8 +114,9 @@ class TestBridgePath:
                              _fake_primary_model)
         monkeypatch.setattr(claude, "AI_TOTAL_BUDGET_SECONDS", 0.05)
 
+        coroutine = _call_sync_wrapper_from_within_loop()
         with pytest.raises(TimeoutError):
-            asyncio.run(_call_sync_wrapper_from_within_loop())
+            asyncio.run(coroutine)
 
         # Well under the 0.3s sleep — the worker thread must have already
         # observed and propagated the cancellation by this point.
