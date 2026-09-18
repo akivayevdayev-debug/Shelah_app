@@ -218,7 +218,8 @@ async def test_get_zmanim_uses_context_location_as_fallback(monkeypatch):
 
 async def test_get_hebrew_date_gregorian_to_hebrew_direction():
     result = await ai_tools.execute_tool("get_hebrew_date", {"gregorian_date": "2026-08-21"})
-    assert "hebrew_date" in result and result.get("error") is None
+    assert "hebrew_date" in result
+    assert result.get("error") is None
 
 
 async def test_get_hebrew_date_hebrew_to_gregorian_direction():
@@ -502,7 +503,8 @@ async def test_convert_measurements_unknown_measure():
 
 async def test_convert_measurements_both_opinions_default():
     result = await ai_tools.execute_tool("convert_measurements", {"measure": "kezayit"})
-    assert "chazon_ish" in result and "chaim_naeh" in result
+    assert "chazon_ish" in result
+    assert "chaim_naeh" in result
     assert result["chazon_ish"]["metric_unit"] == "ml"
 
 
