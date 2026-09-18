@@ -83,14 +83,25 @@ class TestAuthoritiesFallback:
 
 class TestBuildContent:
     def test_combines_summary_practices_and_notes(self):
-        # Parts are joined with "\n" and then whitespace-normalised, so the
-        # stored content is a single line with the parts separated by a space.
+        # Each part sits on its own line; the line breaks are kept in the
+        # stored content instead of being flattened to spaces.
         content = mc._build_content("Summary.", ["a", "b", "c", "d", "e"], "Careful.")
-        assert content == "Summary. Common practices: a | b | c | d Notes: Careful."
+        assert content == "Summary.\nCommon practices: a | b | c | d\nNotes: Careful."
+        assert content.split("\n") == ["Summary.", "Common practices: a | b | c | d", "Notes: Careful."]
 
     def test_blank_practices_are_dropped_and_non_lists_ignored(self):
-        assert mc._build_content("S", ["", "  ", "x"], None) == "S Common practices: x"
+        assert mc._build_content("S", ["", "  ", "x"], None) == "S\nCommon practices: x"
         assert mc._build_content("S", "not a list", None) == "S"
+
+    def test_a_single_part_has_no_stray_line_breaks(self):
+        assert mc._build_content("Only summary.", None, None) == "Only summary."
+        assert mc._build_content("", None, "Only notes.") == "Notes: Only notes."
+
+    def test_whitespace_inside_a_field_is_still_collapsed(self):
+        # Each field is normalised on its own (as topic/source/name are); only
+        # the separators BETWEEN parts are preserved.
+        content = mc._build_content("Line one\n\n  line   two", ["a\tb"], "n1\nn2")
+        assert content == "Line one line two\nCommon practices: a b\nNotes: n1 n2"
 
     def test_everything_empty_gives_empty_content(self):
         assert mc._build_content("", [], "") == ""
@@ -100,6 +111,8 @@ class TestBuildContent:
         content = mc._build_content("x" * 2000, ["y" * 180] * 4, "z" * 2000)
         assert len(content) <= 2203
         assert content.endswith("...")
+        assert content.startswith("x" * 2000 + "\nCommon practices: ")
+        assert "\n" in content, "truncation must not flatten the line breaks"
 
 
 MODERN = {
@@ -131,7 +144,7 @@ class TestParseModernPayload:
         assert rows[0]["halakhic_source"] == "Rambam"
         assert rows[1]["halakhic_source"] == "Rambam", "no per-item source -> the authorities fallback"
         assert rows[0]["id"] == mc._stable_id("Yemenite", "Kiddush", "Rambam")
-        assert rows[0]["content"] == "Standing. Notes: n"
+        assert rows[0]["content"] == "Standing.\nNotes: n"
 
     def test_falls_back_to_heritage_id_then_unknown_and_generic_source(self):
         rows = mc._parse_modern_payload({"heritage_id": "H1", "halacha_index": [{"summary": "s"}]})
@@ -153,7 +166,7 @@ class TestParseLegacyPayload:
         assert row["community_name"] == "Ashkenazi"
         assert row["topic"] == "kitniyot on pesach"
         assert row["halakhic_source"] == "Rema"
-        assert row["content"] == "Avoid. Common practices: rice"
+        assert row["content"] == "Avoid.\nCommon practices: rice"
         assert row["id"] == mc._stable_id("Ashkenazi", "kitniyot on pesach", "Rema")
 
     def test_missing_source_defaults_to_community_tradition(self):

@@ -29,11 +29,14 @@ PROJECT_ROOT = Path(__file__).resolve().parent.parent
 CUSTOMS_DIR = PROJECT_ROOT / "customs"
 
 
-def _normalize_text(value: Any, max_chars: int = 2000) -> str:
-    text = " ".join(str(value or "").strip().split())
+def _truncate(text: str, max_chars: int) -> str:
     if len(text) > max_chars:
-        text = f"{text[:max_chars].rstrip()}..."
+        return f"{text[:max_chars].rstrip()}..."
     return text
+
+
+def _normalize_text(value: Any, max_chars: int = 2000) -> str:
+    return _truncate(" ".join(str(value or "").strip().split()), max_chars)
 
 
 def _stable_id(community_name: str, topic: str, halakhic_source: str) -> str:
@@ -90,7 +93,10 @@ def _build_content(summary: str, common_practices: Any, notes: Any) -> str:
     if notes_text:
         parts.append(f"Notes: {notes_text}")
 
-    return _normalize_text("\n".join(parts), max_chars=2200)
+    # Join with "\n" and cap the length WITHOUT _normalize_text(), which would
+    # collapse those line breaks back into spaces. Each part was already
+    # normalised above, so only the separators between parts are newlines.
+    return _truncate("\n".join(parts), 2200)
 
 
 def _parse_modern_payload(payload: Dict[str, Any]) -> List[Dict[str, str]]:
