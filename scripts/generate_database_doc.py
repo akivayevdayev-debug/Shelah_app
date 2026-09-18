@@ -76,7 +76,8 @@ def fetch_schema_snapshot(config: dict[str, str]) -> dict:
     client = create_client(config["url"], config["secret_key"])
     try:
         result = client.rpc("get_schema_snapshot", {}).execute()
-    except Exception as e:  # noqa: BLE001 - surfaced to the operator, not swallowed
+    # Surfaced to the operator below, not swallowed.
+    except Exception as e:  # noqa: BLE001
         print(
             "generate_database_doc: get_schema_snapshot() RPC call failed -- has "
             "scripts/sql/introspect_schema.sql been applied to this project's SQL "
