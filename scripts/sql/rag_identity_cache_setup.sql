@@ -64,18 +64,17 @@ for select
 to anon, authenticated
 using (true);
 
--- Block client-side direct access to user_memories; server uses service role.
+-- user_memories RLS: superseded 2026-08-31 (plan.md §21/§30.5). This table
+-- used to be locked to `using (false)` for anon/authenticated here (server-
+-- role-only by design) before backend/rag.py grew a request-scoped-client
+-- read/write path. scripts/sql/SUPABASE_RLS_POLICIES.sql later added
+-- auth.uid()::text = user_id owner-scoped policies on this same table under
+-- different policy names -- since Postgres OR's multiple PERMISSIVE
+-- policies per command instead of overriding, the two files disagreed on
+-- this table's actual access model depending on which had been run against
+-- a given project. Explicitly dropped here (not just left to bit-rot) so
+-- SUPABASE_RLS_POLICIES.sql is the only file that still defines a
+-- user_memories policy. Run SUPABASE_RLS_POLICIES.sql after this file (it
+-- is idempotent) so the owner-scoped policies are the ones actually live.
 drop policy if exists user_memories_block_client_select on public.user_memories;
-create policy user_memories_block_client_select
-on public.user_memories
-for select
-to anon, authenticated
-using (false);
-
 drop policy if exists user_memories_block_client_write on public.user_memories;
-create policy user_memories_block_client_write
-on public.user_memories
-for all
-to anon, authenticated
-using (false)
-with check (false);
