@@ -33,17 +33,20 @@ from backend.auth import maybe_require_clerk_auth
 routes_library = Blueprint("library", __name__)
 
 # Sefaria wholeRef/ref strings are short, well-formed citation strings (e.g.
-# "Berakhot 2a:1-13a:15"), but re.search(r'(\d+[ab])', ...) is O(n^2) on
-# adversarial all-digit input with no trailing a/b: it retries the same
-# greedy \d+ scan from every start position. Atomic groups only cut that to
-# a constant factor (still O(n^2)), so this bounds the input length too --
-# the real fix for a pattern with no backtracking-safe rewrite available
-# (SonarCloud python:S8786, verified via adversarial timing tests).
+# "Berakhot 2a:1-13a:15"), but an unanchored re.search(r'(\d+[ab])', ...) is
+# O(n^2) on adversarial all-digit input with no trailing a/b: it retries the
+# same greedy \d+ scan from every start position. Atomic groups alone only cut
+# that to a constant factor, so each pattern also starts with (?<!\d): a match
+# can only begin at the start of a digit run, which is where the leftmost match
+# always begins anyway (any later start inside the same run reaches the same
+# end), so results are identical and each run is scanned once
+# (SonarCloud python:S8786; tests/test_regex_linear_time.py). The length bound
+# below stays as defence in depth.
 _MAX_REF_SEGMENT_LEN = 500
 _DAF_RANGE_RE = re.compile(
-    r'((?>\d+)[ab])(?>[\d:]*)(?>\s*)-(?>\s*)((?>\d+)[ab])', re.IGNORECASE)
-_SECTION_RANGE_RE = re.compile(r'((?>\d+))-((?>\d+))')
-_DAF_TOKEN_RE = re.compile(r'(?>\d+)[ab]', re.IGNORECASE)
+    r'(?<!\d)((?>\d+)[ab])(?>[\d:]*)(?>\s*)-(?>\s*)((?>\d+)[ab])', re.IGNORECASE)
+_SECTION_RANGE_RE = re.compile(r'(?<!\d)((?>\d+))-((?>\d+))')
+_DAF_TOKEN_RE = re.compile(r'(?<!\d)(?>\d+)[ab]', re.IGNORECASE)
 
 
 @routes_library.route("/api/library/index")

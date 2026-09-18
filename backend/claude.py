@@ -532,8 +532,11 @@ def _extract_fenced_json_object(text: str) -> Optional[Dict[str, Any]]:
     if not raw:
         return None
 
+    # (?>\s*) is atomic: the lazy group below can already absorb whitespace, so
+    # giving it back never yields a different match, but letting the engine try
+    # was O(n^2) on an unclosed fence followed by a long whitespace run.
     fenced_match = re.search(
-        r"```(?:json)?\s*([\s\S]*?)```", raw, re.IGNORECASE)
+        r"```(?:json)?(?>\s*)([\s\S]*?)```", raw, re.IGNORECASE)
     if not fenced_match:
         return None
 
