@@ -16,6 +16,7 @@ import pytest
 import responses as responses_lib
 
 import backend.search as search_module
+from backend.health_check import FAIL_THRESHOLD
 
 HEBREWBOOKS_URL_RE = re.compile(r"https://www\.hebrewbooks\.org/search\.aspx.*")
 HALACHIPEDIA_URL_RE = re.compile(r"https://halachipedia\.com/api\.php.*")
@@ -227,6 +228,32 @@ class TestSearchWikipediaEdgeCases:
         assert await search_module.async_search_wikipedia("Error Page") is None
 
 
+# ─────────────────────────── Wikipedia User-Agent header (plan.md §27.1) ───
+#
+# Wikimedia's REST API documents a User-Agent policy and is known to 403/429
+# default-library User-Agent strings (python-requests/x.x, python-httpx/x.x).
+# Both the sync and async Wikipedia connectors must send the same descriptive
+# UA already used elsewhere in this file (HebrewBooks connectors).
+
+class TestWikipediaUserAgentHeader:
+    def test_sync_search_wikipedia_sends_user_agent(self, mock_outbound_http):
+        mock_outbound_http.add(
+            responses_lib.GET, WIKI_URL_RE,
+            json={"title": "Shabbat", "extract": "The Sabbath."}, status=200,
+        )
+        search_module.search_wikipedia("Shabbat")
+        sent_headers = mock_outbound_http.calls[-1].request.headers
+        assert sent_headers["User-Agent"] == search_module._DEFAULT_USER_AGENT
+
+    async def test_async_search_wikipedia_sends_user_agent(self, mock_outbound_httpx):
+        route = mock_outbound_httpx.get(WIKI_URL_RE).mock(
+            return_value=httpx.Response(200, json={"title": "Shabbat", "extract": "The Sabbath."})
+        )
+        await search_module.async_search_wikipedia("Shabbat")
+        sent_headers = route.calls.last.request.headers
+        assert sent_headers["user-agent"] == search_module._DEFAULT_USER_AGENT
+
+
 # ─────────────────────────── get_daily_learning edge cases ─────────────────
 
 class TestDailyLearningEdgeCases:
@@ -259,3 +286,47 @@ class TestGetAsyncClient:
         client1 = search_module._get_async_client()
         client2 = search_module._get_async_client()
         assert client1 is client2
+
+
+# ─────────────── Circuit-breaker hardening on Hebcal network calls ────────────
+#
+# get_daily_learning() is one of the four hebcal call sites that had zero
+# circuit-breaker wiring despite 'hebcal' already being a registered service
+# in backend/health_check.py (claude_code_prompts.md Prompt 3 status row,
+# closed under Prompt 17 item 1). The `_reset_api_health` autouse fixture in
+# conftest.py resets the shared `backend.health_check.health` singleton
+# around every test.
+
+
+class TestDailyLearningCircuitBreaker:
+    def test_skips_call_when_circuit_open(self, mock_outbound_http):
+        for _ in range(FAIL_THRESHOLD):
+            search_module.health.record_failure("hebcal")
+
+        with responses_lib.RequestsMock(assert_all_requests_are_fired=False) as rsps:
+            rsps.add(
+                responses_lib.GET, re.compile(r"https://www\.hebcal\.com/.*"),
+                json={"items": [{"title": "Parashat Should Not Be Reached"}]},
+                status=200,
+            )
+            result = search_module.get_daily_learning()
+            assert result == {"parsha": None, "portions": []}
+            assert len(rsps.calls) == 0
+
+    def test_upstream_failure_opens_circuit_after_threshold(self, monkeypatch):
+        def _raise(*a, **k):
+            raise ConnectionError("hebcal down")
+        monkeypatch.setattr(search_module._HTTP, "get", _raise)
+
+        for _ in range(FAIL_THRESHOLD):
+            search_module.get_daily_learning()
+
+        assert search_module.health.is_healthy("hebcal") is False
+
+    def test_success_records_health_success(self, mock_outbound_http):
+        search_module.health.record_failure("hebcal")
+        search_module.health.record_failure("hebcal")
+
+        search_module.get_daily_learning()
+
+        assert search_module.health._circuits["hebcal"].failures == 0
