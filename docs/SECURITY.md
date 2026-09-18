@@ -22,13 +22,15 @@ reviewed and fixed on a best-effort basis by a solo maintainer.
 
 ## 1. Secrets & key management
 
-**Finding — historical, key rotated. ✅ Rotation confirmed by operator,
-2026-09-02.** A Google/Gemini API key (`***REMOVED-ROTATED-KEY***...`) was
-committed in `test_results.txt` (raw saved output of a manual model-call
-test, including the request URL's `?key=` query parameter) across 3
-commits — 2026-05-16, 2026-06-06, and 2026-06-13 — and was still present
-and tracked in the working tree at the start of the original 2026-08-17
-pass, not just in old history.
+**Finding — historical, key rotated, history purged. ✅ Rotation
+confirmed by operator, 2026-09-02. ✅ History purge completed and pushed,
+2026-09-16.** A Google/Gemini API key (value redacted here — the rewrite
+below scrubs it, so this document no longer reproduces it) was committed
+in `test_results.txt` (raw saved output of a manual model-call test,
+including the request URL's `?key=` query parameter) across multiple
+commits from 2026-05-16 onward, and was still present and tracked in the
+working tree at the start of the original 2026-08-17 pass, not just in
+old history.
 
 - **Fixed 2026-08-17:** the file was removed from the current tree
   (`_workspace_backups_and_trash/test_results.txt`) and `test_results.txt` /
@@ -38,16 +40,30 @@ pass, not just in old history.
   Console).** The leaked key has been rotated/revoked at the source. This
   is no longer a live-credential risk: the old key value is dead and cannot
   be used against the Gemini API regardless of who has it.
-- **Still recoverable from git history, but no longer urgent.** The old
-  (now-dead) key value remains permanently readable from the repo's git
-  history (and on GitHub, if this commit range was ever pushed) — removing
-  it from the working tree never removed it from history, and rotation
-  doesn't retroactively scrub the commits either. Rewriting history to
-  purge those commits (`git filter-repo` or BFG, then a force-push) remains
-  a **destructive, hard-to-reverse operation on shared history** and is
-  **optional future cleanup**, not a required or urgent action now that the
-  key itself is dead — it needs an explicit decision from the repo owner,
-  and coordination if anyone else has a clone/fork, whenever it's taken up.
+- **✅ Git-history purge — completed and pushed to `origin/main`,
+  2026-09-16.** `git filter-repo --replace-text` was run against an
+  isolated mirror clone (never the live working copy) to scrub the literal
+  key-value strings from every blob in history that contained them
+  (`test_results.txt`, `_workspace_backups_and_trash/test_results.txt`,
+  and this file's own prior citation of the value). The rewrite was
+  verified byte-for-byte in the isolated clone before being applied: the
+  new history's tip tree differed from the pre-purge tip by exactly the
+  one expected line in this file, and zero copies of the key string
+  remained anywhere in the rewritten commits. `main` and the internal
+  session-checkpoint refs were then fast-forwarded (compare-and-swap,
+  refusing on any mismatch) to the verified rewritten history, with the
+  live working tree/index/stash confirmed untouched throughout, and the
+  result was force-pushed to `origin/main`
+  (`akivayevdayev-debug/Shelah_app`), replacing the two previously-pushed
+  tainted commits on the public repo. Post-push verification re-fetched
+  `origin/main` and confirmed zero copies of the key string remain
+  anywhere in its reachable history. Every commit's hash changed as an
+  inherent side effect of the history-content rewrite — not evidence
+  anything else was touched. Anyone with an existing local clone or fork
+  (including other local checkouts of this repo) will need to re-clone or
+  hard-reset (`git fetch origin && git reset --hard origin/main`) to the
+  new history — their old clone still holds the tainted (but now
+  dead-key) commits locally until they do.
 - A full `gitleaks detect` history scan (174 commits) found no other real
   secrets — the remaining 20 findings were all the same false positive
   (`shelah-sw-v2-migrated` / `shelah-sw-v3-migrated`, a client-side
@@ -430,20 +446,20 @@ This is plan.md §16.3-L1: the one layer that makes a flood *free* — per Verce
 
 **Hobby-tier budget: 3 total custom firewall rules, full stop.** ⚠️ **Corrected 2026-08-26 — the "1 rate-limit rule + 3 custom rules" framing below was wrong, found by actually doing this in the dashboard.** Rate-limiting is not a separate quota on Vercel; it is one action type available on an ordinary custom rule, and consumes one of the same 3 slots as any other rule. There is no fourth slot. All 3 are spent:
 
-1. **Rate-limit rule** (one of the 3 slots, spent on this action type):
+1. **Rate-limit rule** (one of the 3 slots, spent on this action type) — ✅ **flipped to Enforce, confirmed live in the dashboard 2026-09-16 (see `akiva_tasks.md` T10):**
    - Path: `/ask`, method: `POST`
    - Key: **IP + JA4 digest** (JA4 is a TLS-stack fingerprint — it survives the IP rotation a real flood uses; IP alone does not)
    - Algorithm: fixed window, **60 s**
-   - Limit: **do not enter a number yet — see below**
-   - Action: rate limit, with a **persistent block of 1–60 minutes** on repeat offenders so later requests from the same key are dropped even earlier in the request lifecycle
+   - Limit: **100 requests/minute**, set from a week of Log-mode traffic data as planned below
+   - Action: **"Too Many Requests (429)"** (Enforce, not Log), with repeat offenders locked out for **15 minutes**
 2. **Custom rule 2 — deny common scanner paths:** `/.env`, `/.git/*`, `/wp-admin/*`, `/vendor/*`, `/phpmyadmin/*`. Pure noise against this codebase (none of these paths exist), and every hit today still costs a full function invocation before Flask/FastAPI can 404 it.
-3. **Custom rule 3 — deny non-`GET`/`POST`/`HEAD`/`OPTIONS` methods, site-wide.**
+3. **Custom rule 3 — deny non-`GET`/`POST`/`HEAD`/`OPTIONS` methods, site-wide.** ⚠️ **Dashboard shows this rule's action as Log, not Deny, as of 2026-09-16** — either this description is stale or the rule was never flipped out of its own testing phase; worth a quick operator check (see `akiva_tasks.md` T9).
 
 **No incident-response slot is held in reserve — all 3 are in active use.** The original plan wanted a 4th, empty slot for 2 a.m. incident response; that slot does not exist at this budget. If one is needed later, it has to come from merging two of the above into one rule (e.g. scanner-path-deny and method-deny as one rule with multiple match conditions) or upgrading off Hobby tier — not from a slot that was never actually available.
 
 Two things to keep in mind when entering these:
 
-- **(a) Deploy the rate-limit rule in Log mode first.** Do not guess the per-minute threshold. Run it in Log-only mode for **one week**, read the actual numbers in the Firewall traffic overview, and set the enforced limit from that data — a number invented without traffic data is as likely to lock out real users during a legitimate traffic spike as it is to stop an attacker.
+- **(a) Deploy the rate-limit rule in Log mode first.** Do not guess the per-minute threshold. Run it in Log-only mode for **one week**, read the actual numbers in the Firewall traffic overview, and set the enforced limit from that data — a number invented without traffic data is as likely to lock out real users during a legitimate traffic spike as it is to stop an attacker. **✅ Done — flipped to Enforce at 100 req/min, confirmed live 2026-09-16.**
 - **(b) WAF counters are tracked per region.** This rule is only correct as "exactly one counter" because `vercel.json` pins `"regions": ["iad1"]` (a single region). If that pin is ever removed or a second region is added, this rule's counter silently splits per-region and the effective limit multiplies by region count without any error or warning — revisit this rule the same day a region change ships.
 
 This WAF layer (L1) sits in front of, not instead of, `backend/rate_limit.py`'s `RateLimitMiddleware` (L2, §5 above) and `backend/cost_meter.py`'s global cost breaker (L3, §16.3-L3) — see plan.md §16.3 for the full three-layer picture. All three must stay in sync conceptually (same route classes, same posture toward `/ask`) even though L1 lives in dashboard config rather than code.
