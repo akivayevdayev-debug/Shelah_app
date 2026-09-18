@@ -32,6 +32,20 @@ _HEBCAL_MONTH_CACHE_TTL_SECONDS = 60 * 30
 _HEBCAL_DAY_CACHE = TTLCache(ttl=_HEBCAL_DAY_CACHE_TTL_SECONDS)
 _HEBCAL_MONTH_CACHE = TTLCache(ttl=_HEBCAL_MONTH_CACHE_TTL_SECONDS)
 
+# backend.calendar_service.PyluachEngine.is_holiday() names these fast days
+# via pyluach's HebrewDate.holiday() -- exact strings pyluach returns, not
+# Hebcal's (e.g. "Tzom Gedalia" not "Tzom Gedaliah", "9 of Av" not "Tisha
+# B'Av"). Minor fasts run dawn-to-nightfall, entirely within their own civil
+# day. Major fasts run sunset-to-nightfall -- like Shabbat/Yom Tov, the
+# Hebrew day (and the fast) begins at the PRECEDING evening, so "today" only
+# shows a fast-start time when TOMORROW is a major fast (see
+# _compute_fast_times). Yom Kippur is a major fast AND a Yom Tov (it has
+# Musaf, unlike every other fast day); it isn't listed as "minor" or
+# repeated here since '_MAJOR_FAST_HOLIDAYS' membership alone drives its
+# fast-start/-end handling below, independent of its Yom Tov status.
+_MINOR_FAST_HOLIDAYS = frozenset({'Tzom Gedalia', '10 of Teves', 'Taanis Esther', '17 of Tamuz'})
+_MAJOR_FAST_HOLIDAYS = frozenset({'Yom Kippur', '9 of Av'})
+
 
 def _get_timezone_finder():
     """Lazy singleton: TimezoneFinder() loads a spatial boundary index on
@@ -89,6 +103,12 @@ def _get_hebcal_day_times(lat, lon, timezone_str, current_date):
         month = current_date.month
         hebcal_url = (
             "https://www.hebcal.com/hebcal?v=1&cfg=json"
+            # Without maj/min, Hebcal only emits the generic weekly Friday-
+            # candle/Saturday-havdalah pair -- no holiday-specific candle
+            # lighting (e.g. a Yom Tov's second-night lighting "from an
+            # existing flame", which differs from the standard pre-sunset
+            # offset) or holiday-ending havdalah gets returned at all.
+            f"&maj=on&min=on"
             f"&c=on&geo=pos&latitude={lat}&longitude={lon}"
             f"&tzid={timezone_str}&year={year}&month={month}&numMonths=1"
         )
@@ -156,15 +176,53 @@ def _get_omer_info(gregorian_day):
     return None
 
 
-def _compute_latest_musaf(is_holiday_today, is_shabbat, sunrise, sunset):
-    if (is_holiday_today or is_shabbat) and sunrise and sunset:
+def _compute_latest_musaf(is_yom_tov_today, is_shabbat, sunrise, sunset):
+    """Musaf is only said on Shabbat, Rosh Chodesh, and true Yom Tov days
+    (Rosh Hashana, Yom Kippur, Succos, Shmini Atzeres/Simchas Torah, Pesach,
+    Shavuos) -- never on a plain fast day or a minor holiday like Chanukah
+    or Purim. `is_yom_tov_today` must already reflect that narrower set
+    (calendar_service.PyluachEngine.is_holiday()'s holiday_type == 'Yom
+    Tov'), not "is any pyluach holiday", or this fires on every fast day
+    too (the bug this docstring exists to prevent regressing back to)."""
+    if (is_yom_tov_today or is_shabbat) and sunrise and sunset:
         shaah_zmanit = (sunset - sunrise) / 12
         return sunrise + (shaah_zmanit * 7)
     return None
 
 
-def _compute_candle_lighting(hebcal_candle_lighting, is_friday, is_holiday_start_day, calendar):
-    show_candle_lighting = is_friday or is_holiday_start_day
+def _compute_fast_times(today_holiday_name, tomorrow_holiday_name, dawn, nightfall,
+                         hebcal_candle_lighting, calendar):
+    """Fast-day start/end zmanim -- distinct from (and shown alongside)
+    Candle Lighting/Havdalah, which only cover Shabbat/Yom Tov.
+
+    Minor fasts (Tzom Gedalia, 10 Teves, Taanis Esther, 17 Tamuz) run
+    dawn-to-nightfall entirely within their own civil day. Major fasts (Yom
+    Kippur, 9 of Av) run sunset-to-nightfall: like any Hebrew day, the fast
+    begins at the PRECEDING evening, so a fast-start time only shows when
+    TOMORROW (not today) is tagged as the major fast -- "today" is Erev
+    [fast], and it's tonight's own sunset that starts it, same reasoning as
+    Friday's candle_lighting() starting Shabbat.
+    """
+    is_minor_fast_today = today_holiday_name in _MINOR_FAST_HOLIDAYS
+    is_major_fast_today = today_holiday_name in _MAJOR_FAST_HOLIDAYS
+    is_major_fast_starting_tonight = tomorrow_holiday_name in _MAJOR_FAST_HOLIDAYS
+
+    fast_starts = None
+    if is_minor_fast_today:
+        fast_starts = dawn
+    elif is_major_fast_starting_tonight:
+        fast_starts = hebcal_candle_lighting if hebcal_candle_lighting is not None else calendar.candle_lighting()
+
+    fast_ends = nightfall if (is_minor_fast_today or is_major_fast_today) else None
+    return fast_starts, fast_ends
+
+
+def _compute_candle_lighting(hebcal_candle_lighting, is_friday, is_yom_tov_tonight, calendar):
+    """`is_yom_tov_tonight` must already be anchored on TOMORROW being a true
+    Yom Tov day (see get_community_zmanim), matching how `is_friday` anchors
+    on tomorrow being Shabbat -- candle lighting always happens the evening
+    BEFORE the sacred day it starts, never on the sacred day's own morning."""
+    show_candle_lighting = is_friday or is_yom_tov_tonight
     if not show_candle_lighting:
         return None
     if hebcal_candle_lighting is not None:
@@ -237,8 +295,6 @@ def get_community_zmanim(lat, lon, timezone_str=None, community="standard"):
 
         # Keep zmanim calculations aligned to civil day while metadata follows halachic day.
         civil_holiday_info = calendar_engine.is_holiday(today)
-        yesterday_holiday_info = calendar_engine.is_holiday(
-            today - timedelta(days=1))
         tomorrow_holiday_info = calendar_engine.is_holiday(
             today + timedelta(days=1))
         holiday_info = calendar_engine.is_holiday(halachic_date)
@@ -261,27 +317,59 @@ def get_community_zmanim(lat, lon, timezone_str=None, community="standard"):
         chatzos = calendar.chatzos()
         mincha_gedola = calendar.mincha_gedola()
         sunset = sunset_for_day
-        is_holiday_today = bool(civil_holiday_info.get('is_holiday'))
-        is_holiday_start_day = is_holiday_today and not bool(
-            yesterday_holiday_info.get('is_holiday'))
-        is_holiday_last_day = is_holiday_today and not bool(
-            tomorrow_holiday_info.get('is_holiday'))
+        # "Yom Tov" (not "any pyluach holiday") gates Musaf/Candle Lighting/
+        # Havdalah -- those must stay off on a plain fast day (Tzom Gedalia,
+        # 9 of Av, ...) or a minor holiday (Chanukah, Purim, ...), none of
+        # which have Musaf or a Shabbat/Yom-Tov-style candle lighting or
+        # havdalah. `is_holiday`/`holiday_name` in the metadata below still
+        # reflect ANY pyluach holiday (fasts included) -- that's a correct,
+        # separate "what's special about today" signal, not a Musaf gate.
+        is_yom_tov_today = civil_holiday_info.get('holiday_type') == 'Yom Tov'
+        # Musaf is said every day of Sukkot/Pesach, Chol HaMoed included, so
+        # `is_yom_tov_today` (above) is deliberately Chol-HaMoed-inclusive
+        # for that purpose. Candle Lighting/Havdalah day-boundary detection
+        # needs the OPPOSITE: it must exclude Chol HaMoed and Hoshana
+        # Rabbah, or Shmini Atzeres's start-day would structurally never
+        # fire (Hoshana Rabbah, tagged with the same bare 'Succos' name, would
+        # always look like "yesterday was also Yom Tov" and cancel it out) --
+        # calendar_service.is_holiday()'s `is_yom_tov_proper` already carries
+        # that narrower, day-of-month-aware distinction.
+        is_yom_tov_proper_today = bool(civil_holiday_info.get('is_yom_tov_proper'))
+        is_yom_tov_proper_tomorrow = bool(tomorrow_holiday_info.get('is_yom_tov_proper'))
+        # Candle lighting always happens the evening BEFORE the sacred day it
+        # starts (like Friday's sunset starting Shabbat) -- so this must be
+        # anchored on TOMORROW being a true Yom Tov day, not on today being
+        # one. `is_yom_tov_proper_tomorrow` alone covers both real cases:
+        # true Erev Yom Tov (today isn't Yom Tov, tomorrow is) AND a 2-day
+        # Yom Tov's second night, lit from an existing flame (today AND
+        # tomorrow are both Yom Tov). Anchoring on "today" instead (the
+        # previous logic) only ever caught the second case, silently
+        # skipping the first -- the actual evening most people are checking
+        # this for.
+        is_yom_tov_tonight = is_yom_tov_proper_tomorrow
+        is_holiday_last_day = is_yom_tov_proper_today and not is_yom_tov_proper_tomorrow
         is_friday = today.weekday() == 4
         is_shabbat = today.weekday() == 5
 
-        latest_musaf = _compute_latest_musaf(is_holiday_today, is_shabbat, sunrise, sunset)
+        latest_musaf = _compute_latest_musaf(is_yom_tov_today, is_shabbat, sunrise, sunset)
 
         plag = calendar.plag_hamincha()
 
         hebcal_day_times = _get_hebcal_day_times(lat, lon, tz_name, today)
         candle_lighting = _compute_candle_lighting(
-            hebcal_day_times.get("candles"), is_friday, is_holiday_start_day, calendar)
+            hebcal_day_times.get("candles"), is_friday, is_yom_tov_tonight, calendar)
 
         nightfall_3stars = calendar.tzais({'degrees': 8.5})
         maariv_time = nightfall_3stars
 
         havdalah_time = _compute_havdalah(
             hebcal_day_times.get("havdalah"), is_shabbat, is_holiday_last_day, nightfall_3stars)
+
+        fast_starts, fast_ends = _compute_fast_times(
+            civil_holiday_info.get('holiday_name'),
+            tomorrow_holiday_info.get('holiday_name'),
+            dawn_16_1, nightfall_3stars,
+            hebcal_day_times.get("candles"), calendar)
 
         next_alos_16_1 = next_day_calendar.alos({'degrees': 16.1})
         midnight = _compute_midnight(sunset, next_alos_16_1, chatzos)
@@ -304,7 +392,7 @@ def get_community_zmanim(lat, lon, timezone_str=None, community="standard"):
                 "weekly_shabbat_parasha": weekly_shabbat_parasha,
                 "holiday": holiday_info.get('holiday_name'),
                 "is_holiday": bool(holiday_info.get('is_holiday')),
-                "is_holiday_start_day": is_holiday_start_day,
+                "is_holiday_start_day": is_yom_tov_tonight,
                 "is_holiday_last_day": is_holiday_last_day,
                 "is_shabbat": is_shabbat,
                 "omer_day": omer_info.get('day') if omer_info else None,
@@ -315,6 +403,7 @@ def get_community_zmanim(lat, lon, timezone_str=None, community="standard"):
                 "shabbat_warning": shabbat_warning,
                 "zmanim_iso": {
                     "Dawn (16.1° / 72m)": fmt_iso(dawn_16_1),
+                    "Fast Starts": fmt_iso(fast_starts),
                     "Earliest Tallit/Tefillin (10.2°)": fmt_iso(talit_tefillin_10_2),
                     "Sunrise": fmt_iso(sunrise),
                     "Latest Shema (GRA)": fmt_iso(shema_gra),
@@ -329,12 +418,14 @@ def get_community_zmanim(lat, lon, timezone_str=None, community="standard"):
                     "Sunset": fmt_iso(sunset_display),
                     "Arvit (Maariv)": fmt_iso(maariv_time),
                     "Nightfall (3 Stars)": fmt_iso(nightfall_3stars),
+                    "Fast Ends": fmt_iso(fast_ends),
                     "Havdalah": fmt_iso(havdalah_time),
                     "Chatzot HaLailah (Midnight)": fmt_iso(midnight),
                 }
             },
             "zmanim": {
                 "Dawn (16.1° / 72m)": fmt(dawn_16_1),
+                "Fast Starts": fmt(fast_starts),
                 "Earliest Tallit/Tefillin (10.2°)": fmt(talit_tefillin_10_2),
                 "Sunrise": fmt(sunrise),
                 "Latest Shema (GRA)": fmt(shema_gra),
@@ -349,6 +440,7 @@ def get_community_zmanim(lat, lon, timezone_str=None, community="standard"):
                 "Sunset": fmt(sunset_display) + (" (-20m)" if community.lower() == "bukharian" else ""),
                 "Arvit (Maariv)": fmt(maariv_time),
                 "Nightfall (3 Stars)": fmt(nightfall_3stars),
+                "Fast Ends": fmt(fast_ends),
                 "Havdalah": fmt(havdalah_time),
                 "Chatzot HaLailah (Midnight)": fmt(midnight),
             }
@@ -483,7 +575,7 @@ def get_monthly_events(lat, lon, timezone_str=None):
                 f"&maj=on&min=on&nx=on&mf=on&ss=on&s=on"
                 # candle lighting + user location
                 f"&c=on&geo=pos&latitude={lat}&longitude={lon}"
-                f"&tzid={timezone_str}"
+                f"&tzid={tz_name}"
                 f"&year={year}&month={month}&numMonths=2"
             )
 
@@ -494,7 +586,7 @@ def get_monthly_events(lat, lon, timezone_str=None):
 
         except Exception as e:
             health.record_failure('hebcal')
-            print(f"[Hebcal Error] {e}")
+            logger.exception("[Hebcal Error] %s", e)
 
     _HEBCAL_MONTH_CACHE.set(month_cache_key, list(events))
     return events

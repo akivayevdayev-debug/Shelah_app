@@ -9,28 +9,66 @@ from __future__ import annotations
 
 import re
 
+import pytest
 import responses as responses_lib
+
+from backend.health_check import FAIL_THRESHOLD
+
+
+_SAME_ORIGIN_HEADERS = {"Origin": "http://localhost"}
 
 
 class TestSetLocation:
+    """Security audit P3: /set_location now requires a same-origin
+    Origin/Referer, matching the guard already used by
+    routes_devtools.py's /api/client-errors."""
+
     def test_valid_coordinates_sets_session(self, test_client):
-        response = test_client.post("/set_location", json={"lat": 40.7, "lon": -74.0})
+        response = test_client.post(
+            "/set_location", json={"lat": 40.7, "lon": -74.0}, headers=_SAME_ORIGIN_HEADERS,
+        )
         assert response.status_code == 200
         body = response.get_json()
         assert body["status"] == "success"
         assert body["lat"] == 40.7
 
+    def test_valid_coordinates_mark_session_permanent(self, test_client):
+        """plan.md §46 / Prompt 58: session.permanent = True is now set at
+        this write site directly (not a blanket before_request hook), so
+        the 30-day persistent cookie behavior must still hold here."""
+        test_client.post(
+            "/set_location", json={"lat": 40.7, "lon": -74.0}, headers=_SAME_ORIGIN_HEADERS,
+        )
+        with test_client.session_transaction() as sess:
+            assert sess.permanent is True
+
     def test_invalid_coordinates_returns_400(self, test_client):
-        response = test_client.post("/set_location", json={"lat": 999, "lon": -74.0})
+        response = test_client.post(
+            "/set_location", json={"lat": 999, "lon": -74.0}, headers=_SAME_ORIGIN_HEADERS,
+        )
         assert response.status_code == 400
 
     def test_missing_coordinates_returns_400(self, test_client):
-        response = test_client.post("/set_location", json={})
+        response = test_client.post("/set_location", json={}, headers=_SAME_ORIGIN_HEADERS)
         assert response.status_code == 400
 
     def test_non_numeric_coordinates_returns_400(self, test_client):
-        response = test_client.post("/set_location", json={"lat": "not-a-number", "lon": -74.0})
+        response = test_client.post(
+            "/set_location", json={"lat": "not-a-number", "lon": -74.0}, headers=_SAME_ORIGIN_HEADERS,
+        )
         assert response.status_code == 400
+
+    def test_cross_origin_request_is_rejected(self, test_client):
+        response = test_client.post(
+            "/set_location",
+            json={"lat": 40.7, "lon": -74.0},
+            headers={"Origin": "https://evil.example.com"},
+        )
+        assert response.status_code == 403
+
+    def test_request_with_no_origin_or_referer_is_rejected(self, test_client):
+        response = test_client.post("/set_location", json={"lat": 40.7, "lon": -74.0})
+        assert response.status_code == 403
 
 
 class TestDailyStudy:
@@ -125,8 +163,68 @@ class TestHolidaysFallbackChain:
             assert len(body) == 1
             assert "Purim" in body[0]["title"]
 
+    def test_year_query_param_is_coerced_not_interpolated_raw(self, test_client):
+        # plan.md §8.C.5 security-audit pass: `year` used to be dropped
+        # straight into the outbound Hebcal URL unvalidated, so a value like
+        # "2026&geo=pos&latitude=1" injected extra query params onto the
+        # real request. Assert the actual outbound URL only ever carries a
+        # plain bounded integer.
+        with responses_lib.RequestsMock(assert_all_requests_are_fired=False) as rsps:
+            rsps.add(
+                responses_lib.GET, re.compile(r"https://www\.hebcal\.com/.*"),
+                json={"items": []}, status=200,
+            )
+            response = test_client.get(
+                "/api/holidays?year=2026%26geo=pos%26latitude=1")
+            assert response.status_code == 200
+            sent_url = rsps.calls[0].request.url
+            assert "geo=pos" not in sent_url
+            assert "latitude=1" not in sent_url
+            assert "year=2026" in sent_url
+
+    def test_out_of_range_year_falls_back_to_current_year(self, test_client):
+        with responses_lib.RequestsMock(assert_all_requests_are_fired=False) as rsps:
+            rsps.add(
+                responses_lib.GET, re.compile(r"https://www\.hebcal\.com/.*"),
+                json={"items": []}, status=200,
+            )
+            response = test_client.get("/api/holidays?year=99999999")
+            assert response.status_code == 200
+            sent_url = rsps.calls[0].request.url
+            assert "year=99999999" not in sent_url
+
 
 class TestParashaFallbackChain:
+    """GET /api/parasha (routes_calendar.py) routes its Sefaria fetch through
+    backend.sefaria_library._cached_get(), a memory+disk TTLCache shared by
+    every Sefaria fetch in the codebase (added because the parasha only
+    changes weekly but this endpoint used to hit Sefaria's calendars API on
+    every request, ~1.8s each -- see the comment at routes_calendar.py's
+    get_parasha()). That's a deliberate, correct perf win, not a regression:
+    but it means a cache hit -- the in-process memory tier (a module-level
+    singleton other tests/files can warm before this class ever runs) or the
+    on-disk tier (.sefaria_cache/, gitignored, persists real Sefaria
+    responses across whole dev sessions) -- returns real cached data and
+    short-circuits _cached_get() *before* it ever attempts the network call
+    these tests fail/mock. That masks the very fallback path under test:
+    every request_mock/monkeypatch below is a no-op against a warm cache.
+    Give each test here a private, empty memory cache and a disabled disk
+    tier so the simulated Sefaria failure always actually reaches the
+    network call.
+    """
+
+    @pytest.fixture(autouse=True)
+    def _isolate_sefaria_cache(self, monkeypatch):
+        import backend.sefaria_library as sefaria_library_module
+        from backend.cache import TTLCache
+
+        monkeypatch.setattr(
+            sefaria_library_module, "_cache",
+            TTLCache(maxsize=2048, ttl=3600, redis_prefix="sefaria_http:"),
+        )
+        monkeypatch.setattr(sefaria_library_module, "_disk_cache_get", lambda url: None)
+        monkeypatch.setattr(sefaria_library_module, "_disk_cache_set", lambda url, data: None)
+
     def test_sefaria_failure_falls_back_to_calendar_service(self, test_client, monkeypatch):
         import requests
 
@@ -176,3 +274,66 @@ class TestParashaFallbackChain:
             response = test_client.get("/api/parasha")
             assert response.status_code == 200
             assert response.get_json()["source"] == "calendar-fallback"
+
+
+# ─────────────── Circuit-breaker hardening on Hebcal network calls ────────────
+#
+# /api/holidays is one of the four hebcal call sites that had zero
+# circuit-breaker wiring despite 'hebcal' already being a registered service
+# in backend/health_check.py (claude_code_prompts.md Prompt 3 status row,
+# closed under Prompt 17 item 1). Mirrors the 'nominatim' circuit-breaker
+# tests below for _fetch_geocode_results/geocode_city in this same file. The
+# `_reset_api_health` autouse fixture in conftest.py resets the shared
+# `backend.health_check.health` singleton around every test.
+
+class TestHolidaysCircuitBreaker:
+    def test_skips_call_when_circuit_open(self, test_client, monkeypatch):
+        import backend.routes_calendar as routes_calendar_module
+
+        for _ in range(FAIL_THRESHOLD):
+            routes_calendar_module.health.record_failure("hebcal")
+
+        monkeypatch.setattr(
+            routes_calendar_module, "_build_pyluach_holiday_events",
+            lambda year: [{"title": "Pyluach Fallback", "start": "2026-01-01"}],
+        )
+        with responses_lib.RequestsMock(assert_all_requests_are_fired=False) as rsps:
+            rsps.add(
+                responses_lib.GET, re.compile(r"https://www\.hebcal\.com/.*"),
+                json={"items": [{"title": "Should Not Be Reached", "date": "2026-01-01"}]},
+                status=200,
+            )
+            response = test_client.get("/api/holidays")
+            assert response.status_code == 200
+            assert response.get_json() == [{"title": "Pyluach Fallback", "start": "2026-01-01"}]
+            assert len(rsps.calls) == 0
+
+    def test_upstream_failure_opens_circuit_after_threshold(self, test_client, monkeypatch):
+        import backend.routes_calendar as routes_calendar_module
+        import requests
+
+        def _raise(*a, **k):
+            raise requests.RequestException("hebcal down")
+
+        monkeypatch.setattr(requests, "get", _raise)
+        monkeypatch.setattr(routes_calendar_module, "_build_pyluach_holiday_events", lambda year: [])
+        monkeypatch.setattr(
+            routes_calendar_module, "get_engine",
+            lambda: type("FakeEngine", (), {"get_monthly_zmanim": lambda self: []})(),
+        )
+
+        for _ in range(FAIL_THRESHOLD):
+            test_client.get("/api/holidays")
+
+        assert routes_calendar_module.health.is_healthy("hebcal") is False
+
+    def test_success_records_health_success(self, test_client):
+        import backend.routes_calendar as routes_calendar_module
+
+        routes_calendar_module.health.record_failure("hebcal")
+        routes_calendar_module.health.record_failure("hebcal")
+
+        response = test_client.get("/api/holidays")
+        assert response.status_code == 200
+
+        assert routes_calendar_module.health._circuits["hebcal"].failures == 0

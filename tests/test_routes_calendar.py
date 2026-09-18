@@ -15,8 +15,6 @@ Hebcal and Sefaria outbound calls are intercepted by the autouse
 
 from __future__ import annotations
 
-import pytest
-
 
 class TestZmanimHappyPath:
     def test_zmanim_with_coords_returns_200(self, test_client):
@@ -38,6 +36,53 @@ class TestZmanimHappyPath:
         assert has_zmanim
 
 
+class TestZmanimSessionWriteOriginGuard:
+    """Security audit P2: /api/zmanim is a GET route with a session-write
+    side effect, and SESSION_COOKIE_SAMESITE=Lax allows cookies on
+    cross-site top-level GET navigation — a crafted link could otherwise
+    silently overwrite a victim's stored location. The response itself
+    (computed for the requested lat/lon) is unaffected by origin; only the
+    session persistence is gated."""
+
+    def test_response_succeeds_regardless_of_origin(self, test_client):
+        """Cross-origin/no-origin callers still get a valid computed
+        response -- only the session write is skipped, not the request."""
+        response = test_client.get("/api/zmanim?lat=40.7&lon=-74.0")
+        assert response.status_code == 200
+
+    def test_same_origin_request_persists_location_to_session(self, test_client):
+        with test_client.session_transaction() as sess:
+            sess.clear()
+        test_client.get("/api/zmanim?lat=40.7&lon=-74.0", headers={"Origin": "http://localhost"})
+        with test_client.session_transaction() as sess:
+            assert sess.get("lat") == 40.7
+            assert sess.get("lon") == -74.0
+
+    def test_same_origin_request_marks_session_permanent(self, test_client):
+        """plan.md §46 / Prompt 58: `session.permanent = True` used to be
+        set by an unconditional before_request hook on every request; it's
+        now set only at each session-write call site instead (here,
+        _remember_location_if_same_origin()). The persistent 30-day cookie
+        behavior must still hold for the route that actually writes the
+        session."""
+        with test_client.session_transaction() as sess:
+            sess.clear()
+        test_client.get("/api/zmanim?lat=40.7&lon=-74.0", headers={"Origin": "http://localhost"})
+        with test_client.session_transaction() as sess:
+            assert sess.permanent is True
+
+    def test_cross_origin_request_does_not_persist_location_to_session(self, test_client):
+        with test_client.session_transaction() as sess:
+            sess.clear()
+        test_client.get(
+            "/api/zmanim?lat=40.7&lon=-74.0",
+            headers={"Origin": "https://evil.example.com"},
+        )
+        with test_client.session_transaction() as sess:
+            assert "lat" not in sess
+            assert "lon" not in sess
+
+
 class TestZmanimMissingCoords:
     def test_zmanim_no_coords_returns_json(self, test_client):
         """Without lat/lon the engine falls back to a default location; must respond."""
@@ -48,7 +93,6 @@ class TestZmanimMissingCoords:
 
 
 class TestZmanimInvalidCoords:
-    @pytest.mark.xfail(reason="coordinate validation may return default instead of 400")
     def test_zmanim_invalid_coords_returns_error(self, test_client):
         """Coordinates outside valid range should produce a 400 or error payload."""
         response = test_client.get("/api/zmanim?lat=999&lon=999")
