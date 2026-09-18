@@ -65,6 +65,7 @@ exercise the fixed behavior, not the historical bug.
 
 from __future__ import annotations
 
+import asyncio
 import inspect
 import time
 
@@ -250,7 +251,13 @@ class TestMetaKeySetParity:
         assert _meta_keys_minus_transport_tag(meta) == self.SECURITY_BLOCKED_META_KEYS
 
     def test_flask_ai_failure_fallback_path_meta_keys(self, test_client, monkeypatch):
+        """Patches both the legacy ask_claude entry point AND
+        ask_pipeline.run_agentic_ask, since which one app.py actually calls
+        depends on claude.AI_AGENTIC_TOOLS (plan.md §9) -- this way the test
+        exercises the real failure path regardless of that flag's state
+        (plan.md §27.7)."""
         import backend.claude as claude_module
+        import backend.ask_pipeline as ask_pipeline_module
         import app as flask_app_module
 
         flask_app_module.ASK_RESPONSE_CACHE.clear()
@@ -258,7 +265,11 @@ class TestMetaKeySetParity:
         def _raise(*args, **kwargs):
             raise RuntimeError("Simulated Anthropic failure [meta-parity-fallback-flask]")
 
+        async def _raise_async(*args, **kwargs):
+            raise RuntimeError("Simulated Anthropic failure [meta-parity-fallback-flask]")
+
         monkeypatch.setattr(claude_module, "ask_claude", _raise)
+        monkeypatch.setattr(ask_pipeline_module, "run_agentic_ask", _raise_async)
         response = test_client.post(
             "/ask",
             json={"question": "What is Shabbat? [meta-parity-fallback-flask]"},
@@ -268,12 +279,16 @@ class TestMetaKeySetParity:
         assert _meta_keys_minus_transport_tag(meta) == self.FALLBACK_META_KEYS
 
     async def test_fastapi_ai_failure_fallback_path_meta_keys(self, fastapi_client, monkeypatch):
+        """See the Flask variant above for why both entry points are
+        patched (plan.md §27.7)."""
         import backend.claude as claude_module
+        import backend.ask_pipeline as ask_pipeline_module
 
         async def _raise(*args, **kwargs):
             raise RuntimeError("Simulated async AI failure [meta-parity-fallback-fastapi]")
 
         monkeypatch.setattr(claude_module, "ask_ai_async", _raise)
+        monkeypatch.setattr(ask_pipeline_module, "run_agentic_ask", _raise)
         response = await fastapi_client.post(
             "/ask",
             json={"question": "What is Shabbat? [meta-parity-fallback-fastapi]"},
@@ -296,7 +311,13 @@ class TestTimeoutBudgetParity:
     """
 
     def test_flask_total_budget_timeout_falls_back_gracefully(self, test_client, monkeypatch):
+        """Patches both the legacy ask_claude entry point AND
+        ask_pipeline.run_agentic_ask, mirroring test_ask.py::
+        TestAiTotalBudgetTimeout's FastAPI variant, since which one app.py
+        actually calls depends on claude.AI_AGENTIC_TOOLS (plan.md §9)
+        (plan.md §27.7)."""
         import backend.claude as claude_module
+        import backend.ask_pipeline as ask_pipeline_module
         import app as flask_app_module
 
         flask_app_module.ASK_RESPONSE_CACHE.clear()
@@ -306,7 +327,12 @@ class TestTimeoutBudgetParity:
             time.sleep(2)
             return {"answer": "should never get here", "structured": None}
 
+        async def _slow_async(*args, **kwargs):
+            await asyncio.sleep(2)
+            return {"answer": "should never get here", "structured": None}
+
         monkeypatch.setattr(claude_module, "ask_claude", _slow)
+        monkeypatch.setattr(ask_pipeline_module, "run_agentic_ask", _slow_async)
 
         response = test_client.post(
             "/ask",
@@ -347,12 +373,19 @@ class TestPromptSelectionThresholdParity:
     """
 
     def test_flask_is_simple_flag_forces_compact_rendering(self, test_client, monkeypatch):
+        """Patches both the legacy ask_claude entry point AND
+        ask_pipeline.run_agentic_ask, since which one app.py actually calls
+        depends on claude.AI_AGENTIC_TOOLS (plan.md §9) -- without this,
+        the test silently verified nothing under the flag, since conftest's
+        mock_outbound_httpx fixture answers with structured=None regardless
+        (plan.md §27.7)."""
         import backend.claude as claude_module
+        import backend.ask_pipeline as ask_pipeline_module
         import app as flask_app_module
 
         flask_app_module.ASK_RESPONSE_CACHE.clear()
 
-        def _fake_ask_claude(*args, **kwargs):
+        def _fake_result():
             return {
                 "answer": "placeholder",
                 "structured": _simple_structured_payload(),
@@ -363,7 +396,14 @@ class TestPromptSelectionThresholdParity:
                 "security": {"input": {"blocked": False}, "output": {"blocked": False, "reason": ""}},
             }
 
+        def _fake_ask_claude(*args, **kwargs):
+            return _fake_result()
+
+        async def _fake_run_agentic_ask(*args, **kwargs):
+            return _fake_result()
+
         monkeypatch.setattr(claude_module, "ask_claude", _fake_ask_claude)
+        monkeypatch.setattr(ask_pipeline_module, "run_agentic_ask", _fake_run_agentic_ask)
 
         response = test_client.post(
             "/ask",
@@ -374,9 +414,12 @@ class TestPromptSelectionThresholdParity:
         assert "Deeper Reasoning" not in response.get_json()["answer"]
 
     async def test_fastapi_is_simple_flag_forces_compact_rendering(self, fastapi_client, monkeypatch):
+        """See the Flask variant above for why both entry points are
+        patched (plan.md §27.7)."""
         import backend.claude as claude_module
+        import backend.ask_pipeline as ask_pipeline_module
 
-        async def _fake_ask_ai_async(*args, **kwargs):
+        def _fake_result():
             return {
                 "answer": "placeholder",
                 "structured": _simple_structured_payload(),
@@ -387,7 +430,14 @@ class TestPromptSelectionThresholdParity:
                 "security": {"input": {"blocked": False}, "output": {"blocked": False, "reason": ""}},
             }
 
+        async def _fake_ask_ai_async(*args, **kwargs):
+            return _fake_result()
+
+        async def _fake_run_agentic_ask(*args, **kwargs):
+            return _fake_result()
+
         monkeypatch.setattr(claude_module, "ask_ai_async", _fake_ask_ai_async)
+        monkeypatch.setattr(ask_pipeline_module, "run_agentic_ask", _fake_run_agentic_ask)
 
         response = await fastapi_client.post(
             "/ask",
