@@ -13,6 +13,7 @@ is byte-for-byte identical to the original lookup.
 """
 
 import json
+import logging
 import os
 from urllib.parse import unquote
 
@@ -22,6 +23,7 @@ from backend.helpers import COMMUNITIES, _canonicalize_community_name
 from app import _build_trusted_custom_sources
 
 routes_community = Blueprint("community", __name__)
+logger = logging.getLogger(__name__)
 
 # Project root (one level above backend/) — matches app.py's __file__ location,
 # so os.path.join(_PROJECT_ROOT, "customs", ...) resolves to the same path.
@@ -82,7 +84,40 @@ def get_community(name):
             "raw_data": data  # Full data available if needed
         })
     except Exception as e:
-        return jsonify({"error": f"Could not load community data: {str(e)}"}), 500
+        logger.exception("Could not load community data for %r: %s", canonical_name, e)
+        return jsonify({"error": "Could not load community data."}), 500
+
+
+def _timeline_entries_from_value(key, value):
+    """Normalize one community-data field into timeline entries.
+
+    Handles the three shapes community JSON files use for these fields:
+    a list of dicts, a list of plain strings, or a single string. Split out
+    of get_community_timeline() to keep this shape-dispatch out of that
+    route's own complexity count (SonarCloud python:S3776).
+    """
+    entries = []
+    if isinstance(value, list):
+        for item in value:
+            if isinstance(item, dict):
+                entries.append({
+                    "title": str(item.get("title") or item.get("period") or key).strip()[:120],
+                    "description": str(item.get("description") or item.get("event") or "").strip()[:400],
+                    "approx_period": str(item.get("year") or item.get("period") or "").strip()[:80],
+                })
+            elif isinstance(item, str):
+                entries.append({
+                    "title": key.replace("_", " ").title(),
+                    "description": item.strip()[:400],
+                    "approx_period": "",
+                })
+    elif isinstance(value, str) and value.strip():
+        entries.append({
+            "title": key.replace("_", " ").title(),
+            "description": value.strip()[:400],
+            "approx_period": "",
+        })
+    return entries
 
 
 @routes_community.route("/api/community/<name>/timeline")
@@ -100,7 +135,8 @@ def get_community_timeline(name):
         with open(filepath, 'r', encoding='utf-8') as f:
             data = json.load(f)
     except Exception as e:
-        return jsonify({"error": f"Could not load community data: {str(e)}"}), 500
+        logger.exception("Could not load community data for %r: %s", canonical_name, e)
+        return jsonify({"error": "Could not load community data."}), 500
 
     timeline = []
 
@@ -116,26 +152,7 @@ def get_community_timeline(name):
 
     for key in ("timeline", "history", "historical_timeline", "migration_story"):
         value = data.get(key) if isinstance(data, dict) else None
-        if isinstance(value, list):
-            for item in value:
-                if isinstance(item, dict):
-                    timeline.append({
-                        "title": str(item.get("title") or item.get("period") or key).strip()[:120],
-                        "description": str(item.get("description") or item.get("event") or "").strip()[:400],
-                        "approx_period": str(item.get("year") or item.get("period") or "").strip()[:80],
-                    })
-                elif isinstance(item, str):
-                    timeline.append({
-                        "title": key.replace("_", " ").title(),
-                        "description": item.strip()[:400],
-                        "approx_period": "",
-                    })
-        elif isinstance(value, str) and value.strip():
-            timeline.append({
-                "title": key.replace("_", " ").title(),
-                "description": value.strip()[:400],
-                "approx_period": "",
-            })
+        timeline.extend(_timeline_entries_from_value(key, value))
 
     if not timeline:
         timeline.append({
