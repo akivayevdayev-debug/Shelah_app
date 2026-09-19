@@ -543,7 +543,8 @@ class TestObserveRlsRowCounts:
 
         entry = devtools_module._observe_rls_row_counts("user_1")["study_bookmarks"]
 
-        assert entry["service_role_count"] == 0 and entry["user_scoped_count"] == 0
+        assert entry["service_role_count"] == 0
+        assert entry["user_scoped_count"] == 0
         assert entry["matches"] is True
 
     def test_query_failure_is_reported_per_table_without_aborting(self, monkeypatch, devtools_module):
@@ -595,4 +596,5 @@ class TestSegmentReportIdentity:
             test_client.post("/api/devtools/segment-report", json={"kind": "reader"})
 
         messages = [r.getMessage() for r in caplog.records if "SEGMENT_REPORT" in r.getMessage()]
-        assert messages and all('"user_id"' not in message for message in messages)
+        assert messages
+        assert all('"user_id"' not in message for message in messages)
