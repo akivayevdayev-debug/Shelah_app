@@ -85,3 +85,36 @@ class TestSiddurFull:
     def test_siddur_full_unknown_returns_404(self, test_client):
         response = test_client.get("/api/siddur/full/FakeNonExistentPrayer")
         assert response.status_code == 404
+
+
+class TestPrayersListMergesSefariaLiturgy:
+    def test_liturgy_books_are_appended_after_the_legacy_services_without_duplicates(
+        self, test_client, monkeypatch,
+    ):
+        import backend.sefaria_library as sefaria_library
+        from app import SIDDUR_SECTION_MAP
+
+        legacy_name = next(iter(SIDDUR_SECTION_MAP))
+        requested: list[int] = []
+
+        def fake_liturgy_books(max_items):
+            requested.append(max_items)
+            return [
+                {"title": "Siddur Sefard"},
+                {"title": legacy_name},          # already listed as a legacy service
+                {"title": "Siddur Sefard"},      # repeated by Sefaria
+                {"title": ""},                   # untitled
+                {},                              # no title key
+            ]
+
+        monkeypatch.setattr(sefaria_library, "get_liturgy_books", fake_liturgy_books)
+
+        items = test_client.get("/api/prayers/list").get_json()
+
+        assert requested == [200]
+
+        legacy = [item for item in items if item["source"] == "legacy-service"]
+        liturgy = [item for item in items if item["source"] == "sefaria-liturgy"]
+        assert [item["name"] for item in legacy] == list(SIDDUR_SECTION_MAP)
+        assert liturgy == [{"name": "Siddur Sefard", "title": "Siddur Sefard", "source": "sefaria-liturgy"}]
+        assert items[: len(legacy)] == legacy

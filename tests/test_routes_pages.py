@@ -129,3 +129,37 @@ class TestNewPagesLinkToLegalFooter:
             html = test_client.get(page).get_data(as_text=True)
             for legal_path in ("/terms", "/privacy"):
                 assert f'href="{legal_path}"' in html, f"{page} is missing a link to {legal_path}"
+
+
+class TestGlossaryDataFallback:
+    """/glossary must still render (with no entries) when its data file is
+    unreadable or malformed, rather than erroring."""
+
+    @staticmethod
+    def _serve_glossary_from(monkeypatch, opener):
+        import backend.routes_pages as routes_pages_module
+
+        # Shadows the builtin only inside routes_pages; Jinja's template
+        # loading (a different module) keeps using the real open().
+        monkeypatch.setattr(routes_pages_module, "open", opener, raising=False)
+
+    def test_an_unreadable_data_file_renders_an_empty_glossary(self, test_client, monkeypatch):
+        def unreadable(*args, **kwargs):
+            raise OSError("permission denied")
+
+        self._serve_glossary_from(monkeypatch, unreadable)
+
+        response = test_client.get("/glossary")
+
+        assert response.status_code == 200
+        assert "Kezayit" not in response.get_data(as_text=True)
+
+    def test_a_malformed_data_file_renders_an_empty_glossary(self, test_client, monkeypatch):
+        import io
+
+        self._serve_glossary_from(monkeypatch, lambda *args, **kwargs: io.StringIO("{not json"))
+
+        response = test_client.get("/glossary")
+
+        assert response.status_code == 200
+        assert "Kezayit" not in response.get_data(as_text=True)
