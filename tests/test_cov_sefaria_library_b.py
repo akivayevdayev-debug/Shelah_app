@@ -1001,3 +1001,103 @@ class TestGetIndexLeafRefs:
         monkeypatch.setattr(sl, "_lookup_canonical_index_title", lambda title: "")
 
         assert sl.get_index_leaf_refs("Empty") == []
+
+
+class TestTrySchemaFallbackTitle:
+    """`_try_schema_fallback_title` is the shared step of the index-schema title
+    fallbacks. Its success branch was only ever reached incidentally, through
+    leftover on-disk cache files from an earlier run, so it is pinned here with
+    a stubbed `get_index_entry`."""
+
+    def _stub(self, monkeypatch, entries):
+        looked_up = []
+
+        def fake_get_index_entry(title):
+            looked_up.append(title)
+            return entries.get(title)
+
+        monkeypatch.setattr(sl, "get_index_entry", fake_get_index_entry)
+        return looked_up
+
+    def test_candidate_with_a_schema_replaces_the_title(self, monkeypatch):
+        looked_up = self._stub(monkeypatch, {"Canonical": {"schema": {"key": "default"}}})
+
+        assert sl._try_schema_fallback_title("Alias", "Canonical") == ({"key": "default"}, "Canonical")
+        assert looked_up == ["Canonical"]
+
+    @pytest.mark.parametrize("candidate", ["", None])
+    def test_blank_candidate_keeps_the_title_without_a_lookup(self, monkeypatch, candidate):
+        looked_up = self._stub(monkeypatch, {})
+
+        assert sl._try_schema_fallback_title("Alias", candidate) == ({}, "Alias")
+        assert looked_up == []
+
+    def test_candidate_equal_to_the_current_title_is_not_looked_up_again(self, monkeypatch):
+        looked_up = self._stub(monkeypatch, {"Alias": {"schema": {"key": "default"}}})
+
+        assert sl._try_schema_fallback_title("Alias", "Alias") == ({}, "Alias")
+        assert looked_up == []
+
+    @pytest.mark.parametrize("entry", [None, {}, {"schema": {}}, ["not", "a", "dict"]])
+    def test_candidate_without_a_usable_schema_keeps_the_title(self, monkeypatch, entry):
+        looked_up = self._stub(monkeypatch, {"Canonical": entry})
+
+        assert sl._try_schema_fallback_title("Alias", "Canonical") == ({}, "Alias")
+        assert looked_up == ["Canonical"]
+
+
+class TestCachedGetDiskHit:
+    """The disk tier of `_cached_get` (memory -> disk -> network), exercised
+    through the real on-disk layer in the per-test temp dir that conftest
+    provides, with no leftover files needed."""
+
+    URL = "https://www.sefaria.org/api/texts/Genesis.1.1"
+
+    @pytest.fixture(autouse=True)
+    def _clean_memory_cache(self):
+        sl._cache.clear()
+        yield
+        sl._cache.clear()
+
+    @staticmethod
+    def _network_must_not_be_used(monkeypatch):
+        def boom(*args, **kwargs):
+            raise AssertionError("network used although the disk cache held the entry")
+
+        monkeypatch.setattr(sl._http_session, "get", boom)
+
+    def test_a_disk_entry_is_returned_without_touching_the_network(self, monkeypatch):
+        payload = {"ref": "Genesis 1:1", "text": ["In the beginning"]}
+        sl._disk_cache_set(self.URL, payload)
+        self._network_must_not_be_used(monkeypatch)
+
+        assert sl._cached_get(self.URL) == payload
+
+    def test_a_disk_hit_is_promoted_to_the_memory_cache(self, monkeypatch):
+        payload = {"ref": "Genesis 1:1"}
+        sl._disk_cache_set(self.URL, payload)
+        self._network_must_not_be_used(monkeypatch)
+        assert sl._cache.get(self.URL) is None
+
+        sl._cached_get(self.URL)
+
+        assert sl._cache.get(self.URL) == payload
+        sl._disk_cache_path(self.URL).unlink()
+        assert sl._cached_get(self.URL) == payload  # served from memory now
+
+    def test_an_expired_disk_entry_is_not_used(self, monkeypatch):
+        sl._disk_cache_set(self.URL, {"stale": True})
+        monkeypatch.setattr(sl, "DISK_CACHE_TTL", -1)
+        fetched = []
+
+        class _Response:
+            def raise_for_status(self):
+                return None
+
+            def json(self):
+                return {"fresh": True}
+
+        monkeypatch.setattr(sl._http_session, "get", lambda url, timeout: fetched.append(url) or _Response())
+
+        assert sl._cached_get(self.URL) == {"fresh": True}
+        assert fetched == [self.URL]
