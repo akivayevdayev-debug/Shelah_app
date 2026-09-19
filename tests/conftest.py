@@ -154,6 +154,21 @@ def _reset_api_health():
     _api_health.reset()
 
 
+@pytest.fixture(autouse=True)
+def _isolate_sefaria_disk_cache(tmp_path, monkeypatch):
+    """Point Sefaria's on-disk response cache at a per-test temp dir.
+
+    The outbound-HTTP mock answers Sefaria calls with canned "Genesis 1:1"
+    data, but those responses still went through the real disk-cache layer and
+    were written to the repo's .sefaria_cache. A later run then read the canned
+    entries back instead of exercising the code, so results (and which lines
+    were covered) depended on leftover files, and a fresh CI checkout behaved
+    differently from a developer machine."""
+    import backend.sefaria_library as sefaria_library
+
+    monkeypatch.setattr(sefaria_library, "_DISK_CACHE_DIR", tmp_path / ".sefaria_cache")
+
+
 # ─── Core client fixtures ─────────────────────────────────────────────────────
 
 @pytest.fixture
