@@ -181,14 +181,15 @@ PROMPT_INJECTION_PATTERNS = [
 
 # One small pattern per phrase, as above (SonarCloud python:S5843 / S8786). In
 # "hidden chain-of-thought" each gap is optional whitespace around one hyphen,
-# or whitespace containing at least one plain space; the two branches cannot
+# or whitespace containing at least one plain space. Both forms end in the same
+# optional whitespace, which is written once after the group; the branches cannot
 # match the same text, unlike the old `\s*[- ]\s*` whose whitespace runs overlap
 # the single [- ] (cubic backtracking on a long run of spaces).
 OUTPUT_POLICY_BLOCKLIST_PATTERNS = [
     re.compile(r"system\s+prompt", re.IGNORECASE),
     re.compile(r"developer\s+message", re.IGNORECASE),
     re.compile(r"internal\s+instructions", re.IGNORECASE),
-    re.compile(r"hidden\s+chain(?:\s*-\s*|[^\S ]* \s*)of(?:\s*-\s*|[^\S ]* \s*)thought", re.IGNORECASE),
+    re.compile(r"hidden\s+chain(?:\s*-|[^\S ]* )\s*of(?:\s*-|[^\S ]* )\s*thought", re.IGNORECASE),
 ]
 
 PROHIBITION_ASSERTION_RE = re.compile(
