@@ -34,6 +34,7 @@ from pydantic import BaseModel, Field
 
 import app as flask_app_module
 from backend import ask_pipeline, claude, search
+from backend.ask_payloads import build_ai_answer_payload, build_source_fallback_payload
 from backend.auth import CLERK_ENFORCE_AUTH, extract_user_id_from_bearer_value
 from backend.utils.search_provider import get_halakhic_sources
 from backend import sefaria as _backend_sefaria
@@ -41,7 +42,7 @@ from backend.data_service import ShelahEngine
 from backend.rag import _build_ask_tool_context, _retrieve_community_knowledge, _compose_answer_with_prefixes
 from backend.rag import _knowledge_rows_to_customs, RAG_TOP_KNOWLEDGE_ROWS, RAG_MEMORY_ROWS
 from backend.rag import _fetch_user_memory_summaries, _store_user_memory_summary, _store_ask_history
-from backend.helpers import _sanitize_answer_mode, _compact_ai_sources, extract_ai_cited, _resolve_client_ip, _coarse_ai_error_reason
+from backend.helpers import _sanitize_answer_mode, _compact_ai_sources, extract_ai_cited, _resolve_client_ip
 from backend.helpers import SECURITY_RESPONSE_HEADERS
 from backend.helpers import _canonicalize_community_name
 from backend.cache_policy import classify_cache_tier
@@ -699,34 +700,20 @@ async def _run_ask_async_ai_synthesis(
         prompt_version=claude.PROMPT_VERSION,
     )
 
-    return {
-        "answer": normalized_answer,
-        "confidence": result.get("confidence"),
-        "wiki": ctx["wiki_list"] + ctx["halachipedia_list"],
-        "customs": ctx["customs_info"],
-        "sources": display_sources,
-        "ai_cited_sources": ai_cited,
-        "meta": {
-            "mode": mode,
-            "language": answer_language,
-            "community_lens": canonical_lens,
-            "source_count": len(ctx["primary_sources"]),
-            "custom_count": len(ctx["customs_info"]),
-            "knowledge_count": len(ctx["knowledge_rows"]),
-            "memory_count": len(ctx["user_memory_summaries"]),
-            "identity_aware": bool(user_id),
-            "generated_at": int(time.time()),
-            "fallback": bool(result.get("is_fallback", False)),
-            "structured": bool(structured_payload),
-            "is_prohibited": bool((structured_payload or {}).get("is_prohibited", False)),
-            "input_sanitized": question_was_sanitized,
-            "security": result.get("security") or {},
-            "safety_class": safety_class,
-            "rabbinic_disclaimer": (structured_payload or {}).get(
-                "rabbinic_disclaimer") or claude.RABBI_FINAL_RULING_FOOTER,
-            "async": True,
-        },
-    }
+    return build_ai_answer_payload(
+        result=result,
+        answer=normalized_answer,
+        sources=display_sources,
+        ai_cited=ai_cited,
+        structured_payload=structured_payload,
+        ctx=ctx,
+        mode=mode,
+        answer_language=answer_language,
+        canonical_lens=canonical_lens,
+        user_id=user_id,
+        question_was_sanitized=question_was_sanitized,
+        extra_meta={"async": True},
+    )
 
 
 async def _run_ask_async_fallback(
@@ -772,37 +759,19 @@ async def _run_ask_async_fallback(
     fallback_sources = _compact_ai_sources(
         fallback_payload.get("sources", []))
 
-    return {
-        "answer": fallback_answer,
-        "confidence": 0.4,
-        "wiki": ctx["wiki_list"] + ctx["halachipedia_list"],
-        "customs": ctx["customs_info"],
-        "sources": fallback_sources,
-        "ai_cited_sources": [],
-        "meta": {
-            "mode": mode,
-            "language": answer_language,
-            "community_lens": canonical_lens,
-            "source_count": fallback_payload.get("source_count", 0),
-            "custom_count": len(ctx["customs_info"]),
-            "knowledge_count": len(ctx["knowledge_rows"]),
-            "memory_count": len(ctx["user_memory_summaries"]),
-            "identity_aware": bool(user_id),
-            "generated_at": int(time.time()),
-            "fallback": True,
-            "status": fallback_payload.get("status", "fallback"),
-            "fallback_detail": {
-                "keywords": fallback_payload.get("keywords", []),
-                "sequence": fallback_payload.get("sequence", []),
-                "counts": fallback_payload.get("counts", {}),
-                "level": fallback_payload.get("fallback_level", "unknown"),
-                "warning": fallback_warning,
-                "reason": _coarse_ai_error_reason(ai_error),
-            },
-            "safety_class": "ok",
-            "async": True,
-        },
-    }
+    return build_source_fallback_payload(
+        answer=fallback_answer,
+        sources=fallback_sources,
+        discovery=fallback_payload,
+        warning=fallback_warning,
+        ai_error=ai_error,
+        ctx=ctx,
+        mode=mode,
+        answer_language=answer_language,
+        canonical_lens=canonical_lens,
+        user_id=user_id,
+        extra_meta={"async": True},
+    )
 
 
 def _resolve_ask_async_question(payload):
