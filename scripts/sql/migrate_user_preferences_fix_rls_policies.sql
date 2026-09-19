@@ -86,8 +86,8 @@ using (auth.uid()::text = user_id);
 COMMIT;
 
 -- After running: verify only the four canonical policies remain --
---   SELECT policyname, cmd, qual, with_check FROM pg_policies
---   WHERE schemaname = 'public' AND tablename = 'user_preferences';
+SELECT policyname, cmd, qual, with_check FROM pg_policies
+WHERE schemaname = 'public' AND tablename = 'user_preferences';
 -- every qual/with_check should read `(auth.uid() = user_id)` with auth.uid()
 -- cast to text (`(auth.uid())::text = user_id` or equivalent), never a cast
 -- applied to user_id itself.

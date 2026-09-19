@@ -23,9 +23,8 @@
 -- Caveat: `prefs::jsonb` will fail if any existing row's prefs value is
 -- non-NULL but not valid JSON text (e.g. an empty string). NULL rows are
 -- unaffected (NULL::jsonb is NULL). If this errors, first check for
--- offending rows with:
---   SELECT user_id, prefs FROM public.user_preferences
---   WHERE prefs IS NOT NULL AND prefs !~ '^\s*[{\[]';
+-- offending rows: those in public.user_preferences whose non-NULL prefs text
+-- does not begin (after optional whitespace) with an opening brace or bracket.
 -- Idempotent if prefs is already jsonb: this ALTER becomes a no-op type
 -- change, and (unlike user_id's ALTER -- see
 -- scripts/migrate_user_preferences_user_id_to_text.sql) no RLS policy in
