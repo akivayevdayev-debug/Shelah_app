@@ -210,34 +210,12 @@ def _apply_output_validation(
     result: dict[str, Any], input_validation: dict, answer_language: str, safety_class: str,
 ) -> dict[str, Any]:
     """Validate the answer text, attach the security report, and stamp the
-    structured payload with the safety class / age-safe flag."""
+    structured payload with the safety class / age-safe flag. Delegates to
+    the single implementation in backend.claude."""
     from backend import claude as claude_module
 
-    output_validation = claude_module.validate_model_output(
-        result.get("answer", ""), answer_language=answer_language)
-    result["answer"] = output_validation["safe_answer"]
-    result["security"] = {
-        "input": input_validation,
-        "output": {
-            "blocked": output_validation["blocked"],
-            "reason": output_validation["reason"],
-        },
-    }
-    if output_validation["blocked"]:
-        result["error"] = result.get("error") or "security_blocked_output"
-        result["is_fallback"] = True
-
-    structured = result.get("structured")
-    if isinstance(structured, dict):
-        structured["safety_class"] = safety_class
-        structured["age_safe"] = not output_validation["blocked"]
-        if output_validation["reason"] == "blocked_explicit_content":
-            structured["ruling"] = output_validation["safe_answer"]
-            structured["summary"] = ""
-            structured["practical_steps"] = []
-            structured["sources"] = []
-
-    return result
+    return claude_module.apply_output_validation(
+        result, input_validation, answer_language, safety_class)
 
 
 async def run_agentic_ask(
