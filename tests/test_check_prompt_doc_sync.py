@@ -282,3 +282,37 @@ class TestMainCli:
             cpds.main([option, "../secret.md"])
         assert excinfo.value.code == 2
         assert f"unrecognized arguments: {option}" in capsys.readouterr().err
+
+
+class TestHeaderPatternsStayLinear:
+    """SonarCloud python:S8786: a whitespace run before a group that can also
+    start with whitespace was split every possible way when the line failed to
+    match. 30,000 spaces took seconds with the old patterns."""
+
+    N = 30_000
+    CEILING_SECONDS = 1.0
+
+    def _seconds(self, fn, text):
+        import time
+        started = time.perf_counter()
+        fn(text)
+        return time.perf_counter() - started
+
+    def test_prompt_segment_without_a_colon(self):
+        hostile = "## Prompt 1 --" + " " * self.N + "no colon here"
+        assert cpds.PROMPT_PRIMARY_SEGMENT_RE.match(hostile) is None
+        assert self._seconds(cpds.PROMPT_PRIMARY_SEGMENT_RE.match, hostile) < self.CEILING_SECONDS
+
+    def test_section_header_that_fails_at_a_newline(self):
+        hostile = "## 5." + " " * self.N + "title\nsecond line"
+        assert cpds.SECTION_HEADER_RE.match(hostile) is None
+        assert self._seconds(cpds.SECTION_HEADER_RE.match, hostile) < self.CEILING_SECONDS
+
+    def test_captures_are_unchanged(self):
+        header = cpds.SECTION_HEADER_RE.match("## 5.2.  The title  ")
+        assert header.groups() == ("##", "5.2", "The title  ")
+        assert cpds.SECTION_HEADER_RE.match("### 7. ").group(3) == ""
+        assert cpds.SECTION_HEADER_RE.match("#### 7. x") is None
+        segment = cpds.PROMPT_PRIMARY_SEGMENT_RE.match("## Prompt 44 —  \xa732: findings (\xa713: x)")
+        assert segment.group(1) == "\xa732"
+        assert cpds.PROMPT_PRIMARY_SEGMENT_RE.match("## Prompt 4b -- : nothing").group(1) == ""
