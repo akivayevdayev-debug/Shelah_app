@@ -179,10 +179,17 @@ PROMPT_INJECTION_PATTERNS = [
     re.compile(r"jailbreak", re.IGNORECASE),
 ]
 
-OUTPUT_POLICY_BLOCKLIST_RE = re.compile(
-    r"(system\s+prompt|developer\s+message|internal\s+instructions|hidden\s+chain\s*[- ]\s*of\s*[- ]\s*thought)",
-    re.IGNORECASE,
-)
+# One small pattern per phrase, as above (SonarCloud python:S5843 / S8786). In
+# "hidden chain-of-thought" each gap is optional whitespace around one hyphen,
+# or whitespace containing at least one plain space; the two branches cannot
+# match the same text, unlike the old `\s*[- ]\s*` whose whitespace runs overlap
+# the single [- ] (cubic backtracking on a long run of spaces).
+OUTPUT_POLICY_BLOCKLIST_PATTERNS = [
+    re.compile(r"system\s+prompt", re.IGNORECASE),
+    re.compile(r"developer\s+message", re.IGNORECASE),
+    re.compile(r"internal\s+instructions", re.IGNORECASE),
+    re.compile(r"hidden\s+chain(?:\s*-\s*|[^\S ]* \s*)of(?:\s*-\s*|[^\S ]* \s*)thought", re.IGNORECASE),
+]
 
 PROHIBITION_ASSERTION_RE = re.compile(
     r"(\b(?:not\s+permitted|may\s+not|must\s+not|assur|asur)\b|"
@@ -220,27 +227,34 @@ INAPPROPRIATE_CONTENT_PATTERNS = [
         "porn", "porno", "xxx", "sex", "sexual", "nude", "nsfw",
     )
 ]
-OUT_OF_SCOPE_PATTERNS = {
-    "Pure Math (no halachic context)": [
+# subject -> (topic pattern, halachic-context pattern). A query is out of scope
+# for a subject when its first line names the topic and none of the context
+# words (e.g. "halachic status of electricity" stays in scope). This replaces
+# one `^(?!.*context).*\b(topic)\b` pattern per subject: the lookahead made
+# each regex complex and quadratic-prone (SonarCloud python:S5843). Only the
+# first line is examined, exactly as before -- `.` never crossed a newline.
+OUT_OF_SCOPE_RULES = {
+    "Pure Math (no halachic context)": (
+        re.compile(r"\b(algebra|geometry|calculus|trigonometry|polynomial|matrix|eigenvalue)\b", re.IGNORECASE),
+        re.compile(r"omer|shabbat|zman|halachic|jewish|torah", re.IGNORECASE),
+    ),
+    "Pure Coding (no halachic context)": (
+        re.compile(r"\b(algorithm|refactor|debug|stack\s*trace|unit\s*test)\b", re.IGNORECASE),
+        re.compile(r"halachic|jewish|torah|shabbat|electricity|melacha", re.IGNORECASE),
+    ),
+    "Pure Science (no medical/halachic context)": (
         re.compile(
-            r"^(?!.*(?:omer|shabbat|zman|halachic|jewish|torah)).*\b(algebra|geometry|calculus|trigonometry|polynomial|matrix|eigenvalue)\b", re.IGNORECASE),
-    ],
-    "Pure Coding (no halachic context)": [
-        re.compile(
-            r"^(?!.*(?:halachic|jewish|torah|shabbat|electricity|melacha)).*\b(algorithm|refactor|debug|stack\s*trace|unit\s*test)\b", re.IGNORECASE),
-    ],
-    "Pure Science (no medical/halachic context)": [
-        re.compile(
-            r"^(?!.*(?:halachic|jewish|kosher|medicine|treif|vaccine|organ|fetus|heter|pikuach)).*\b(astrophysics|quantum\s*mechanics|evolutionary\s*biology|particle\s*physics)\b", re.IGNORECASE),
-    ],
-    "Pop Culture (explicitly non-religious)": [
-        re.compile(
-            r"^(?!.*(?:jewish|torah|rabbi)).*\b(netflix|anime|gaming|celebrity\s*gossip|movie\s*review)\b", re.IGNORECASE),
-    ],
+            r"\b(astrophysics|quantum\s*mechanics|evolutionary\s*biology|particle\s*physics)\b", re.IGNORECASE),
+        re.compile(r"halachic|jewish|kosher|medicine|treif|vaccine|organ|fetus|heter|pikuach", re.IGNORECASE),
+    ),
+    "Pop Culture (explicitly non-religious)": (
+        re.compile(r"\b(netflix|anime|gaming|celebrity\s*gossip|movie\s*review)\b", re.IGNORECASE),
+        re.compile(r"jewish|torah|rabbi", re.IGNORECASE),
+    ),
 }
 
 # --- §8.B-AGE safety-routing patterns (plan.md §8.B-AGE.2) ---------------
-# Heuristic, same philosophy as OUT_OF_SCOPE_PATTERNS above: narrow enough
+# Heuristic, same philosophy as OUT_OF_SCOPE_RULES above: narrow enough
 # that ordinary halachic Q&A is never over-refused, and higher-severity
 # classes are checked first in classify_safety() so an ambiguous query
 # routes to the more protective referral. The AGE_APPROPRIATE_DIRECTIVE
@@ -527,20 +541,32 @@ def _configure_gemini_client() -> Optional[str]:
     return None
 
 
+def _fenced_block_body(raw: str) -> Optional[str]:
+    """The text between the first ``` fence and the next one, minus a leading
+    "json" language tag (any case), or None when no fence is closed. Plain
+    str.find keeps this linear where the equivalent lazy regex needed a
+    quadratic-prone `\\s*([\\s\\S]*?)` (SonarCloud python:S8786)."""
+    opening = raw.find("```")
+    if opening < 0:
+        return None
+    body_start = opening + 3
+    closing = raw.find("```", body_start)
+    if closing < 0:
+        return None
+    body = raw[body_start:closing]
+    return body[4:] if body[:4].casefold() == "json" else body
+
+
 def _extract_fenced_json_object(text: str) -> Optional[Dict[str, Any]]:
     raw = str(text or "")
     if not raw:
         return None
 
-    # (?>\s*) is atomic: the lazy group below can already absorb whitespace, so
-    # giving it back never yields a different match, but letting the engine try
-    # was O(n^2) on an unclosed fence followed by a long whitespace run.
-    fenced_match = re.search(
-        r"```(?:json)?(?>\s*)([\s\S]*?)```", raw, re.IGNORECASE)
-    if not fenced_match:
+    body = _fenced_block_body(raw)
+    if body is None:
         return None
 
-    candidate = str(fenced_match.group(1) or "").strip()
+    candidate = body.strip()
     if not candidate:
         return None
 
@@ -1027,8 +1053,9 @@ def _detect_out_of_scope_subject(query_text: str) -> Optional[str]:
 
     # For Math, Science, Coding: use negative lookahead to check for halachic context
     # If any halachic marker is found, allow the query (e.g., "halachic status of electricity")
-    for subject, patterns in OUT_OF_SCOPE_PATTERNS.items():
-        if any(pattern.search(text) for pattern in patterns):
+    first_line = text.partition("\n")[0]
+    for subject, (topic, context) in OUT_OF_SCOPE_RULES.items():
+        if topic.search(first_line) and not context.search(first_line):
             return subject
 
     # Default: if unsure, allow it (Scholarly Librarian approach)
@@ -1157,7 +1184,7 @@ def validate_model_output(output_text: str, answer_language: str = "en") -> Dict
     cleaned = _sanitize_model_output(output_text)
     lang = "he" if str(answer_language or "").strip().lower() == "he" else "en"
 
-    if OUTPUT_POLICY_BLOCKLIST_RE.search(cleaned):
+    if any(pattern.search(cleaned) for pattern in OUTPUT_POLICY_BLOCKLIST_PATTERNS):
         return {
             "safe_answer": "No verified source found",
             "blocked": True,
