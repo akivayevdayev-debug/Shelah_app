@@ -359,28 +359,55 @@ export async function dismiss(el, { preset = 'popover', card = null, onHidden } 
  * Slide a highlight element to `x` (px, from the container's left edge).
  * Used by the bottom tab bar's active-tab pill: one element that travels
  * between buttons instead of each button repainting its own background.
- * The first call, or any call with animate:false (resize, theme change),
+ * The first placement, or any call with animate:false (resize, theme change),
  * places it without movement.
+ *
+ * Idempotent per target: a repeat call for the x it is already travelling to
+ * (or resting at) does nothing.  Tapping Search runs the tab sync several times
+ * in one gesture (click handler, expand handler, focus handler); each of those
+ * used to stop the spring in flight and snap the pill to its destination.
  */
+const _slides = new WeakMap(); // el -> { target, control }
+
 export function slideTo(el, x, { animate: withMotion = true } = {}) {
     if (!el) return;
-    const animate = _motionAnimate();
-    const state = _presenceState(el);
-    const from = el._shelahX ?? x;
-    el._shelahX = x;
-    if (!withMotion || !animate || isMotionReduced() || from === x) {
+    const slide = _slides.get(el);
+    if (slide && slide.target === x) return slide.control;
+
+    const place = () => {
+        slide?.control?.stop?.();
         el.style.transform = `translateX(${x}px)`;
+        _slides.set(el, { target: x, control: null });
+    };
+
+    const animate = _motionAnimate();
+    // No prior slide and no inline transform: first paint, nothing to travel from.
+    const placedBefore = Boolean(slide) || Boolean(el.style.transform);
+    if (!withMotion || !animate || isMotionReduced() || !placedBefore) {
+        place();
         return;
     }
-    // Continue from where an interrupted slide currently is.
+
+    // Continue from where an interrupted slide currently is (or from the
+    // instantly-placed position if the module loaded after the first paint).
     const m = new DOMMatrixReadOnly(getComputedStyle(el).transform);
-    const start = Number.isFinite(m.m41) ? m.m41 : from;
-    state.controls = [animate(
+    const start = Number.isFinite(m.m41) ? m.m41 : x;
+    if (Math.abs(start - x) < 0.5) {
+        place();
+        return;
+    }
+    slide?.control?.stop?.();
+    const control = animate(
         el,
         { transform: [`translateX(${start}px)`, `translateX(${x}px)`] },
         _springTransition({ stiffness: 420, damping: 32, mass: 0.8 }),
-    )];
-    return state.controls[0];
+    );
+    const entry = { target: x, control };
+    _slides.set(el, entry);
+    // Once it lands the pill is simply "resting at x"; drop the handle.
+    const done = () => { if (_slides.get(el) === entry) entry.control = null; };
+    control.then?.(done, done);
+    return control;
 }
 
 // Expose on window so legacy inline-script code can call without an import
