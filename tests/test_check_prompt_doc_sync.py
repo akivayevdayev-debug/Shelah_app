@@ -303,6 +303,14 @@ class TestHeaderPatternsStayLinear:
         assert cpds.PROMPT_PRIMARY_SEGMENT_RE.match(hostile) is None
         assert self._seconds(cpds.PROMPT_PRIMARY_SEGMENT_RE.match, hostile) < self.CEILING_SECONDS
 
+    @pytest.mark.parametrize("dash", ["-", "\u2013", "\u2014"])
+    def test_prompt_segment_after_a_long_dash_run_without_a_colon(self, dash):
+        """A dash is also a legal first character of the segment, so a
+        backtracking dash run was split every possible way (quadratic)."""
+        hostile = "## Prompt 1 " + dash * self.N + " no colon here"
+        assert cpds.PROMPT_PRIMARY_SEGMENT_RE.match(hostile) is None
+        assert self._seconds(cpds.PROMPT_PRIMARY_SEGMENT_RE.match, hostile) < self.CEILING_SECONDS
+
     def test_section_header_that_fails_at_a_newline(self):
         hostile = "## 5." + " " * self.N + "title\nsecond line"
         assert cpds.SECTION_HEADER_RE.match(hostile) is None
@@ -316,3 +324,7 @@ class TestHeaderPatternsStayLinear:
         segment = cpds.PROMPT_PRIMARY_SEGMENT_RE.match("## Prompt 44 —  \xa732: findings (\xa713: x)")
         assert segment.group(1) == "\xa732"
         assert cpds.PROMPT_PRIMARY_SEGMENT_RE.match("## Prompt 4b -- : nothing").group(1) == ""
+        for dash in ("-", "\u2013", "\u2014", "--", "\u2013\u2014"):
+            assert cpds.PROMPT_PRIMARY_SEGMENT_RE.match(f"## Prompt 3 {dash} \xa75: x").group(1) == "\xa75", dash
+        # A dash after the separating run belongs to the segment, as before.
+        assert cpds.PROMPT_PRIMARY_SEGMENT_RE.match("## Prompt 3 \u2014 \u2014 note: x").group(1) == "\u2014 note"
