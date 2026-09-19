@@ -2077,11 +2077,6 @@ def ask_question():
         return jsonify({"error": "An internal error occurred while processing your request."}), 500
 
 
-# ─── COMMUNITY CUSTOMS DATA (Merkava) ─────────────────────────────────────────
-# Shared community registry consumed by backend/routes_community.py and by the
-# _canonicalize_community_name / _detect_community_in_text helpers above.
-
-
 # ─── Blueprint registration (Stage 2 route decomposition) ────────────────
 # Imported at the bottom so each blueprint's `from app import ...` resolves
 # against a fully-initialized app module (no circular-import trap).
