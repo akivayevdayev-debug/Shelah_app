@@ -55,9 +55,11 @@ PROMPT_HEADER_RE = re.compile(r"^##\s+Prompt\s+(\d+[a-z]?)\b")
 # backstory about a *different* prompt, not this row's own tracked section,
 # and must not be compared against this row's status.
 # The segment starts at a non-space, non-colon character and runs to the first
-# colon, so the "\s*" before it cannot share whitespace with it (SonarCloud
-# python:S8786); group 1 is what the lazy "(.*?)" captured.
-PROMPT_PRIMARY_SEGMENT_RE = re.compile(r"^##\s+Prompt\s+\d+[a-z]?\s*[—–-]+\s*((?:[^\s:][^:\n]*)?):")
+# colon, so the "\s*" before it cannot share whitespace with it. The dash run is
+# possessive ("++"): a dash is also a legal first character of the segment, so a
+# backtracking "+" could hand dashes back to it and retry every split of a long
+# dash run (quadratic; SonarCloud python:S8786). Group 1 is the segment text.
+PROMPT_PRIMARY_SEGMENT_RE = re.compile(r"^##\s+Prompt\s+\d+[a-z]?\s*[—–-]++\s*((?:[^\s:][^:\n]*)?):")
 SECTION_REF_RE = re.compile(r"\xa7(\d+(?:\.\d+)?)")
 FENCE_RE = re.compile(r"```.*?```", re.DOTALL)
 
