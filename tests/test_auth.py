@@ -288,3 +288,53 @@ class TestRequireClerkAuth:
         resp = client.get("/strict", headers={"Authorization": "Bearer garbage"})
         assert resp.status_code == 401
         assert resp.get_json()["error"] == "Invalid or expired Clerk token"
+
+
+# ───────────────────── extract_user_id_from_bearer_value ─────────────────────
+
+class TestExtractUserIdFromBearerValue:
+    """Framework-agnostic header -> Clerk `sub` helper shared by the WSGI
+    stack and asgi.py / backend/rate_limit.py. Every failure mode returns
+    None rather than raising, because a bad header must degrade to
+    "anonymous", never to a 500."""
+
+    @pytest.mark.parametrize("header", [None, "", "   ", "Basic abc123", "Bearer", "Bearer    "])
+    def test_missing_or_non_bearer_header_returns_none_without_verifying(self, monkeypatch, header):
+        def _must_not_run(token):
+            raise AssertionError("token verification must not run")
+
+        monkeypatch.setattr(auth, "_verify_clerk_token", _must_not_run)
+
+        assert auth.extract_user_id_from_bearer_value(header) is None
+
+    def test_returns_the_subject_of_a_verified_token(self, monkeypatch):
+        seen = []
+
+        def _verify(token):
+            seen.append(token)
+            return {"sub": "user_abc"}
+
+        monkeypatch.setattr(auth, "_verify_clerk_token", _verify)
+
+        assert auth.extract_user_id_from_bearer_value("  BEARER   tok.en.value  ") == "user_abc"
+        assert seen == ["tok.en.value"]
+
+    def test_subject_is_stripped(self, monkeypatch):
+        monkeypatch.setattr(auth, "_verify_clerk_token", lambda token: {"sub": "  user_abc \n"})
+
+        assert auth.extract_user_id_from_bearer_value("Bearer t") == "user_abc"
+
+    @pytest.mark.parametrize("claims", [{}, {"sub": None}, {"sub": ""}, {"sub": "   "}])
+    def test_claims_without_a_usable_subject_return_none(self, monkeypatch, claims):
+        monkeypatch.setattr(auth, "_verify_clerk_token", lambda token: claims)
+
+        assert auth.extract_user_id_from_bearer_value("Bearer t") is None
+
+    @pytest.mark.parametrize("error", [ValueError("no issuer"), RuntimeError("jwks down"), Exception("expired")])
+    def test_verification_failure_returns_none_instead_of_raising(self, monkeypatch, error):
+        def _boom(token):
+            raise error
+
+        monkeypatch.setattr(auth, "_verify_clerk_token", _boom)
+
+        assert auth.extract_user_id_from_bearer_value("Bearer t") is None
