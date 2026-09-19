@@ -2246,14 +2246,20 @@ body.mobile-panel-open {
         width: min(22rem, calc(100vw - 1rem));
         max-width: calc(100vw - 1rem);
         max-height: calc(100vh - 5.5rem);
+        max-height: calc(100dvh - var(--topbar-height, 3.4rem) - var(--mobile-tabs-height, 3.1rem) - 0.5rem);
     }
 
+    /* Absolute inside the content row (`.flex.flex-1.min-h-0.relative`
+       under <body>), not fixed to the viewport: that row sits between the
+       top bar and the bottom tabs, so a drawer bounded by it can never run
+       underneath either bar (it used to be fixed with bottom: 0 and lose
+       its last ~50px behind the z-96 tab bar). */
     .mobile-drawer {
-        position: fixed;
-        top: var(--topbar-height, 3.4rem);
+        position: absolute;
+        top: 0;
         bottom: 0;
-        height: calc(100dvh - var(--topbar-height, 3.4rem));
-        max-height: calc(100dvh - var(--topbar-height, 3.4rem));
+        height: auto;
+        max-height: none;
         width: min(90vw, 22rem);
         max-width: 22rem;
         overflow-y: auto;
@@ -2289,13 +2295,9 @@ body.mobile-panel-open {
         box-shadow: 0 20px 60px rgba(15, 23, 42, 0.28);
     }
 
-    #reader {
-        padding-bottom: 6.5rem;
-    }
-
-    #readerTopBar {
-        top: var(--reader-topbar-offset, 3.95rem);
-    }
+    /* #reader / #readerTopBar / #mainContainer spacing for phones is set in
+       the "MOBILE LAYOUT" block below: both bars are in-flow there, so no
+       offsets or overlay-clearing padding are needed here. */
 
     .reader-topbar-settings-wrap {
         min-width: 0;
@@ -2644,19 +2646,29 @@ html.rtl .home-main-layout #popularTextsGrid {
         display: none !important;
     }
 
+    /* The body is a full-height flex column (top bar / content row / this
+       tab bar), so the tab bar is a real row: the content row above it is
+       exactly the space between the two bars, and the scroll pane inside
+       it reaches its true top and bottom. It used to be position: fixed,
+       an overlay covering the bottom of the pane, and every screen paid for
+       that with its own hand-tuned bottom padding.
+       `relative` (not static) only so z-index still lifts it above the
+       drawer backdrop and taps on it keep working while a drawer is open. */
+    body.library-shell {
+        height: 100vh;
+        /* dvh tracks the *visible* viewport as the mobile browser's own
+           toolbar shows/hides; plain vh is the largest one, which pushed the
+           bottom of the layout under that toolbar. */
+        height: 100dvh;
+    }
+
     .mobile-bottom-tabs {
-        position: fixed;
-        inset-inline-start: 0;
-        inset-inline-end: 0;
-        bottom: 0;
+        position: relative;
+        flex: 0 0 auto;
         display: grid;
         grid-template-columns: repeat(4, minmax(0, 1fr));
         background: rgba(250, 245, 236, 0.98);
-        -webkit-backdrop-filter: blur(8px);
-        backdrop-filter: blur(8px);
         min-height: 2.55rem;
-        contain: layout paint;
-        will-change: transform;
         border-top: 1px solid #d7ccb8;
         padding: 0.35rem max(0.35rem, env(safe-area-inset-right)) max(0.45rem, env(safe-area-inset-bottom)) max(0.35rem, env(safe-area-inset-left));
         z-index: 96;
@@ -2675,6 +2687,15 @@ html.rtl .home-main-layout #popularTextsGrid {
         border-radius: 0.6rem;
     }
 
+    /* Search tab: label + small AI sparkle (same mark as the search field's
+       own hint), centered as one unit. */
+    .mobile-tab-btn-ai {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.3rem;
+    }
+
     .mobile-tab-btn.mobile-tab-active {
         background: #ede3d1;
         color: #473d2f;
@@ -2685,12 +2706,31 @@ html.rtl .home-main-layout #popularTextsGrid {
         background: #e9dfcc;
     }
 
+    /* The reader's own bar is a normal row between the top bar and the
+       content (it is `position: absolute` on desktop, where #mainContainer
+       pads itself down to clear it -- neither applies here), so the
+       scroll pane starts below it and needs no top offset. */
+    #readerTopBar {
+        position: relative !important;
+        top: auto !important;
+        flex: 0 0 auto;
+        width: 100% !important;
+        margin-left: 0 !important;
+        margin-right: 0 !important;
+    }
+
+    #mainContainer {
+        padding-top: 0;
+    }
+
+    /* Nothing overlays the bottom of the scroll pane any more, so content
+       only needs ordinary end padding -- not a bar-height's worth of it. */
     #reader {
-        padding-bottom: 9rem;
+        padding-bottom: var(--sp-8);
     }
 
     #homeGrid {
-        padding-bottom: 7.6rem;
+        padding-bottom: var(--sp-6);
     }
 
     #leftSidebar.mobile-drawer {
@@ -2703,10 +2743,12 @@ html.rtl .home-main-layout #popularTextsGrid {
         inset-inline-end: 0;
         top: auto;
         bottom: 0;
-        width: 100vw;
+        width: 100%;
         max-width: none;
-        height: min(70dvh, 34rem);
-        max-height: 70dvh;
+        /* % of the content row (the space between the two bars), so the
+           sheet's bottom edge sits on the tab bar, not behind it. */
+        height: min(70%, 34rem);
+        max-height: 70%;
         border-inline-start: 0;
         border-top: 1px solid #cbd5e1;
         border-radius: 1rem 1rem 0 0;
@@ -2730,6 +2772,30 @@ html.rtl .home-main-layout #popularTextsGrid {
 
     .home-library-description {
         font-size: 0.9rem;
+    }
+}
+
+/* Modal cards cap their height in `vh` via Tailwind utilities
+   (max-h-[85vh] etc.). On phones `vh` is the LARGEST viewport, so a card can
+   extend under the mobile browser's own toolbar and lose its bottom edge.
+   Same percentages, in `dvh` (the currently visible viewport). Scoped by id
+   so it out-ranks the utility classes (tailwind.css loads after this file);
+   @supports keeps browsers without dvh on the existing vh caps. */
+@supports (height: 100dvh) {
+    #calendarModal > div {
+        max-height: 90dvh;
+    }
+
+    #textsMenuModal > div,
+    #aiAssistantModal > div,
+    #privacyDataModal > div,
+    #devtoolsInspectorModal > div {
+        max-height: 85dvh;
+    }
+
+    #chapterGridModal > div,
+    #libraryCategoryModal > div {
+        max-height: 88dvh;
     }
 }
 

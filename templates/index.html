@@ -108,7 +108,7 @@
             integrity="sha384-6ZdfL2Azuen6KYvcTkbxqJS1d7txbNWrVfmURkxNeCn7DtzhLRL6Fi6WGG6ZLdKn"
             crossorigin="anonymous"></script>
     <link rel="stylesheet" href="/static/css/tokens.css?v=20260915-v7">
-    <link rel="stylesheet" href="/static/style.css?v=20260915-v14">
+    <link rel="stylesheet" href="/static/style.css?v=20260918-v15">
     <!-- CSS modules (supplement style.css; do not replace) -->
     <link rel="stylesheet" href="/static/css/typography.css?v=20260817-v6">
     <link rel="stylesheet" href="/static/css/reader.css?v=20260817-v6">
@@ -1393,18 +1393,15 @@
                     padding-bottom: calc(var(--sp-2) + env(safe-area-inset-bottom, 0px));
                 }
 
-                /* Below 1024px, .mobile-bottom-tabs (static/style.css) is
-                   position:fixed to the viewport and layers on top of
-                   whatever this scroll pane reveals at the bottom -- so
-                   .site-footer would otherwise end up with its links
-                   covered rather than just being "below" it. Reserve the
-                   tab bar's own rendered height as extra bottom padding so
-                   the footer's content always clears it once scrolled into
-                   view. Kept in sync with .mobile-bottom-tabs's
-                   padding/min-height. */
+                /* Below 1024px, .mobile-bottom-tabs (static/style.css) is an
+                   in-flow row of the body's flex column, not an overlay, so
+                   this scroll pane already ends above it and the footer needs
+                   no extra bottom padding to clear it. The tab bar also
+                   owns the bottom safe-area inset there, so the footer must
+                   not add it a second time. */
                 @media (max-width: 1023px) {
                     .site-footer {
-                        padding-bottom: calc(0.35rem + 2.55rem + max(0.45rem, env(safe-area-inset-bottom)) + var(--sp-2));
+                        padding-bottom: var(--sp-2);
                     }
                 }
 
@@ -1522,8 +1519,12 @@
 
     <nav id="mobileBottomTabs" class="mobile-bottom-tabs lg:hidden" aria-label="Mobile quick navigation">
         <button type="button" class="mobile-tab-btn" data-mobile-tab="home" data-en="Home" data-he="בית">Home</button>
-        <button type="button" class="mobile-tab-btn" data-mobile-tab="search" data-en="Search"
-            data-he="חיפוש">Search</button>
+        <!-- Label lives in its own span: the language toggle sets textContent on any
+             [data-en] element, which would erase the icon if it sat on the button. -->
+        <button type="button" class="mobile-tab-btn mobile-tab-btn-ai" data-mobile-tab="search">
+            <span data-en="Search" data-he="חיפוש">Search</span>
+            <span class="ai-hint-icon" aria-hidden="true" title="Powered by AI">{{ phosphor('sparkle', size=12, class='h-3 w-3') }}</span>
+        </button>
         <button type="button" class="mobile-tab-btn" data-mobile-tab="library" data-en="Library"
             data-he="ספרייה">Library</button>
         <button type="button" class="mobile-tab-btn" data-mobile-tab="daily" data-en="Daily"
@@ -10779,6 +10780,12 @@
                 if (topbar) {
                     const h = topbar.getBoundingClientRect().height;
                     document.documentElement.style.setProperty('--topbar-height', h + 'px');
+                }
+                // Tab bar is display:none from 1024px up, so this reads 0 there.
+                const tabs = document.getElementById('mobileBottomTabs');
+                if (tabs) {
+                    document.documentElement.style.setProperty(
+                        '--mobile-tabs-height', tabs.getBoundingClientRect().height + 'px');
                 }
             }
             syncTopbarHeight();
