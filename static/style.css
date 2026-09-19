@@ -756,6 +756,9 @@ html.rtl #hebrewDateDisplay {
 #searchInput {
     background: #fbf8f1 !important;
     border-color: #d8d0c2 !important;
+    /* The placeholder is longer than the field on a phone; the default `clip`
+       cut it off mid-letter under the search/AI icons. */
+    text-overflow: ellipsis;
 }
 
 /* #64748b (slate-500) against this input's #fbf8f1 background measured
@@ -936,6 +939,18 @@ html.rtl #hebrewDateDisplay {
 #reader .reader-single-row .reader-text-he,
 #reader .reader-single-row .reader-text-en {
     padding-inline-end: 1.15rem;
+}
+
+/* The verse number is absolutely positioned at the physical right edge (see
+   .reader-row-right-label). English (ltr) reserves that room with the
+   padding-inline-end above, but the Hebrew block is dir="rtl", where
+   inline-end is the LEFT side -- so its first line used to run underneath the
+   number. Reserve the room on the Hebrew block's start (right) side instead:
+   min-width 1.15rem + the label's 0.2rem inset + a little air. */
+#reader .reader-interleaved-row .reader-text-he,
+#reader .reader-single-row .reader-text-he {
+    padding-inline-end: 0;
+    padding-inline-start: 1.7rem;
 }
 
 #reader .reader-side-row .reader-text-he {
@@ -1119,6 +1134,25 @@ html.rtl #hebrewDateDisplay {
     overflow: hidden;
     text-overflow: ellipsis;
     padding: 0 0.2rem;
+}
+
+/* Book-name tiles (library category modal): the name scales with the tile's own
+   width so "Deuteronomy" fits on narrow phones, and multi-word names wrap,
+   instead of being ellipsised. Scoped here because the chapter-number grid shares the class and
+   must keep its 1rem numerals. */
+#libraryCategoryBody .chapter-grid-item {
+    container-type: inline-size;
+}
+
+#libraryCategoryBody .chapter-grid-item-number {
+    font-size: clamp(0.625rem, 14cqw, 1rem);
+    /* Multi-word names ("Kitzur Shulchan Arukh") wrap instead of clipping. */
+    white-space: normal;
+    overflow-wrap: break-word;
+    text-wrap: balance;
+    text-align: center;
+    line-height: 1.15;
+    padding-block: 0.05em 0.12em; /* keeps descenders inside the overflow clip */
 }
 
 .chapter-grid-item-label {
@@ -1605,46 +1639,75 @@ html.theme-dark::-webkit-scrollbar-thumb:hover,
 }
 
 #readerSettingsPanel.reader-settings-dropdown {
-    left: 50% !important;
+    /* Centred on its anchor with arithmetic, not translateX(-50%): `transform`
+       stays free for the open/close animation (ShelahMotion.present). Same in
+       LTR and RTL, since `left` is physical. Keep in step with the Tailwind
+       w-[min(92vw,24rem)] on the element. */
+    --reader-settings-w: min(92vw, 24rem);
+    width: var(--reader-settings-w);
+    left: calc(50% - var(--reader-settings-w) / 2) !important;
     right: auto !important;
-    transform: translateX(-50%) !important;
     background: var(--surface-elevated);
     border: 1px solid var(--surface-border);
     box-shadow: 0 14px 32px color-mix(in srgb, var(--surface-base) 35%, transparent);
     color: var(--text-main);
 }
 
+/* The input's own box is the touch area (tall); the visible track is drawn
+   by the pseudo-elements, so a slider gets a comfortable hit area without a
+   thick bar. The fill uses --control-accent, the same colour a checked
+   .reader-switch uses, so the two controls in a panel read as one family. */
 .reader-range-slider {
     -webkit-appearance: none;
     appearance: none;
+    height: 1.75rem;
+    padding: 0;
+    background: transparent;
+    --range-progress: 50%;
+    --range-thumb: 1.125rem;
+    --range-complete: var(--control-accent);
+    --range-incomplete: #e6dcc9;
+    --range-track-border: #cbbfa8;
+    --range-thumb-bg: #fffaf2;
+    --range-thumb-border: var(--control-accent);
+    outline: none;
+    cursor: pointer;
+    touch-action: pan-y;
+}
+
+.reader-range-slider::-webkit-slider-runnable-track {
+    box-sizing: border-box;
     height: 0.5rem;
     border-radius: 9999px;
-    --range-progress: 50%;
-    --range-complete: #123866;
-    --range-incomplete: #f0e6d6;
+    border: 1px solid var(--range-track-border);
     background: linear-gradient(to right,
             var(--range-complete) 0%,
             var(--range-complete) var(--range-progress),
             var(--range-incomplete) var(--range-progress),
             var(--range-incomplete) 100%);
-    outline: none;
+    background-origin: border-box;
 }
 
 .reader-range-slider::-webkit-slider-thumb {
     -webkit-appearance: none;
     appearance: none;
-    width: 1rem;
-    height: 1rem;
+    box-sizing: border-box;
+    width: var(--range-thumb);
+    height: var(--range-thumb);
+    /* WebKit does not centre the thumb on the track by itself. */
+    margin-top: calc((0.5rem - var(--range-thumb)) / 2);
     border-radius: 50%;
-    border: 1px solid #c8bca6;
-    background: #f8f2e8;
-    box-shadow: 0 1px 3px rgba(31, 63, 99, 0.18);
+    border: 2px solid var(--range-thumb-border);
+    background: var(--range-thumb-bg);
+    box-shadow: 0 1px 3px rgba(31, 63, 99, 0.25);
     cursor: pointer;
 }
 
 .reader-range-slider::-moz-range-track {
+    box-sizing: border-box;
     height: 0.5rem;
     border-radius: 9999px;
+    border: 1px solid var(--range-track-border);
     background: var(--range-incomplete);
 }
 
@@ -1655,16 +1718,25 @@ html.theme-dark::-webkit-scrollbar-thumb:hover,
 }
 
 .reader-range-slider::-moz-range-thumb {
-    width: 1rem;
-    height: 1rem;
+    box-sizing: border-box;
+    width: var(--range-thumb);
+    height: var(--range-thumb);
     border-radius: 50%;
-    border: 1px solid #c8bca6;
-    background: #f8f2e8;
-    box-shadow: 0 1px 3px rgba(31, 63, 99, 0.18);
+    border: 2px solid var(--range-thumb-border);
+    background: var(--range-thumb-bg);
+    box-shadow: 0 1px 3px rgba(31, 63, 99, 0.25);
     cursor: pointer;
 }
 
-/* --range-complete / --range-incomplete defined in tokens.css dark block */
+.reader-range-slider:focus-visible::-webkit-slider-thumb {
+    outline: 2px solid var(--control-accent);
+    outline-offset: 2px;
+}
+
+.reader-range-slider:focus-visible::-moz-range-thumb {
+    outline: 2px solid var(--control-accent);
+    outline-offset: 2px;
+}
 
 .reader-switch {
     -webkit-appearance: none;
@@ -1693,8 +1765,8 @@ html.theme-dark::-webkit-scrollbar-thumb:hover,
 }
 
 .reader-switch:checked {
-    background: #315c86;
-    border-color: #315c86;
+    background: var(--control-accent);
+    border-color: var(--control-accent);
 }
 
 .reader-switch:checked::after {
@@ -1815,12 +1887,6 @@ html.rtl #readerTopBar .reader-topbar-track {
 html.rtl #readerTopBar .reader-topbar-settings-label {
     direction: rtl;
     text-align: center;
-}
-
-html.rtl #readerSettingsPanel {
-    left: 50% !important;
-    right: auto !important;
-    transform: translateX(-50%) !important;
 }
 
 #reader #readerContent,
@@ -2668,11 +2734,9 @@ html.rtl .home-main-layout #popularTextsGrid {
         display: grid;
         grid-template-columns: repeat(4, minmax(0, 1fr));
         background: rgba(250, 245, 236, 0.98);
-        min-height: 2.55rem;
         border-top: 1px solid #d7ccb8;
-        padding: 0.35rem max(0.35rem, env(safe-area-inset-right)) max(0.45rem, env(safe-area-inset-bottom)) max(0.35rem, env(safe-area-inset-left));
+        padding: 0.25rem max(0.35rem, env(safe-area-inset-right)) max(0.25rem, env(safe-area-inset-bottom)) max(0.35rem, env(safe-area-inset-left));
         z-index: 96;
-        min-height: 2.55rem;
     }
 
     .mobile-tab-btn {
@@ -2685,6 +2749,31 @@ html.rtl .home-main-layout #popularTextsGrid {
         color: #645a49;
         padding: 0.55rem 0.4rem;
         border-radius: 0.6rem;
+        /* 44px touch target (each tab is ~91px wide already). */
+        min-height: 2.75rem;
+    }
+
+    /* Small controls in the top bars: keep their drawn size but extend the
+       tappable area to 44px tall with an invisible hit-slop, the same
+       partial mitigation #settingsMenuBtn uses (height only -- the bars have
+       no spare width, and a wider slop would overlap the neighbouring
+       button). */
+    .reader-topbar-icon-btn,
+    #signInBtn,
+    #mobileLangToggle {
+        position: relative;
+    }
+
+    .reader-topbar-icon-btn::after,
+    #signInBtn::after,
+    #mobileLangToggle::after {
+        content: "";
+        position: absolute;
+        top: 50%;
+        left: 0;
+        width: 100%;
+        height: 44px;
+        transform: translateY(-50%);
     }
 
     /* Search tab: label + small AI sparkle (same mark as the search field's
@@ -2702,6 +2791,38 @@ html.rtl .home-main-layout #popularTextsGrid {
         box-shadow: inset 0 0 0 1px #d8c9af;
     }
 
+    /* The active pill is one sliding element (#mobileTabIndicator), positioned
+       by JS with a spring. Once it is placed (.has-indicator) it supplies the
+       fill, so the active button drops its own background; without JS the
+       button styling above still marks the tab. */
+    .mobile-tab-indicator {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 0;
+        height: 0;
+        border-radius: 0.6rem;
+        background: #ede3d1;
+        box-shadow: inset 0 0 0 1px #d8c9af;
+        pointer-events: none;
+        z-index: 0;
+        opacity: 0;
+    }
+
+    .mobile-bottom-tabs.has-indicator .mobile-tab-indicator {
+        opacity: 1;
+    }
+
+    .mobile-bottom-tabs.has-indicator .mobile-tab-btn.mobile-tab-active {
+        background: transparent;
+        box-shadow: none;
+    }
+
+    .mobile-tab-btn {
+        position: relative;
+        z-index: 1;
+    }
+
     .mobile-tab-btn:active {
         background: #e9dfcc;
     }
@@ -2717,6 +2838,27 @@ html.rtl .home-main-layout #popularTextsGrid {
         width: 100% !important;
         margin-left: 0 !important;
         margin-right: 0 !important;
+    }
+
+    /* The Reader Settings dropdown is anchored to the whole bar, not to its
+       button: the button sits off-centre between the prev/next and comment
+       icons, so centring on it (left: 50% of the button's own anchor) pushed
+       a 92vw panel past the left edge. Made static, the anchor stops being
+       the containing block and the panel positions against #readerTopBar
+       (full width); it fills the bar minus a gutter, capped at 24rem and
+       centred by auto margins. The doubled selector out-ranks the centring
+       rule above, whose `left` is !important. */
+    #readerTopBar .reader-topbar-settings-anchor {
+        position: static;
+    }
+
+    html #readerTopBar #readerSettingsPanel.reader-settings-dropdown {
+        left: var(--sp-2) !important;
+        right: var(--sp-2) !important;
+        width: auto;
+        max-width: 24rem;
+        margin-inline: auto;
+        max-height: min(70dvh, 32rem);
     }
 
     #mainContainer {
@@ -3149,6 +3291,16 @@ html.theme-dark,
     box-shadow: inset 0 0 0 1px var(--control-border);
 }
 
+:is([data-theme="dark"], body.theme-dark) .mobile-tab-indicator {
+    background: var(--control-bg-hover);
+    box-shadow: inset 0 0 0 1px var(--control-border);
+}
+
+:is([data-theme="dark"], body.theme-dark) .mobile-bottom-tabs.has-indicator .mobile-tab-btn.mobile-tab-active {
+    background: transparent;
+    box-shadow: none;
+}
+
 :is([data-theme="dark"], body.theme-dark) .bg-white {
     background-color: var(--surface-elevated) !important;
 }
@@ -3559,9 +3711,7 @@ html.theme-dark,
 }
 
 :is([data-theme="dark"], body.theme-dark) #settingsPanel input[type="checkbox"]:focus-visible,
-:is([data-theme="dark"], body.theme-dark) #readerSettingsPanel input[type="checkbox"]:focus-visible,
-:is([data-theme="dark"], body.theme-dark) #settingsPanel input[type="range"]:focus-visible,
-:is([data-theme="dark"], body.theme-dark) #readerSettingsPanel input[type="range"]:focus-visible {
+:is([data-theme="dark"], body.theme-dark) #readerSettingsPanel input[type="checkbox"]:focus-visible {
     outline: 2px solid rgba(176, 154, 116, 0.5);
     outline-offset: 2px;
 }
@@ -4096,32 +4246,16 @@ html.theme-dark,
 }
 
 :is([data-theme="dark"], body.theme-dark) .reader-range-slider {
-    /* The base rule above sets --range-complete/--range-incomplete as LOCAL
-       custom properties (light-mode hardcoded values) directly on this same
-       element, which shadows the global dark-theme tokens via normal CSS
-       inheritance — referencing var(--range-complete) here without
-       redeclaring it just resolves back to the light-mode value. Redeclare
-       both explicitly so the slider is actually theme-aware.
-       Previously #8b6f47/#dfccb0 (a gold-brown/beige pair) read as too
-       bright and out of the panel's control palette. --surface-pill is the
-       exact token the panel's own <select>s use for their background, and
-       --control-text is a neutral warm gray (not gold, not beige) for the
-       filled portion, so the slider now belongs to the same family as the
-       selects and buttons around it. */
-    --range-complete: var(--control-text);
+    /* The base rule sets these as LOCAL custom properties (light values) on
+       this same element, which shadows the global dark tokens through normal
+       inheritance, so they are redeclared here for dark. The unfilled track
+       uses --surface-pill (the panel's own <select> background); the fill is
+       --control-accent, the gold a checked switch beside it uses, and the
+       thumb is cream (--accent-cream), ringed in the same gold. */
+    --range-complete: var(--control-accent);
     --range-incomplete: var(--surface-pill);
-    background: linear-gradient(90deg,
-            var(--range-complete) 0%,
-            var(--range-complete) var(--range-progress),
-            var(--range-incomplete) var(--range-progress),
-            var(--range-incomplete) 100%);
-    border: 1px solid var(--surface-border);
-}
-
-:is([data-theme="dark"], body.theme-dark) .reader-range-slider::-webkit-slider-thumb,
-:is([data-theme="dark"], body.theme-dark) .reader-range-slider::-moz-range-thumb {
-    border-color: var(--reader-thumb-border);
-    background: var(--reader-thumb-bg);
+    --range-track-border: var(--control-border);
+    --range-thumb-bg: var(--accent-cream);
 }
 
 :is([data-theme="dark"], body.theme-dark) .reader-switch {
@@ -4134,8 +4268,8 @@ html.theme-dark,
 }
 
 :is([data-theme="dark"], body.theme-dark) .reader-switch:checked {
-    background: var(--gold);
-    border-color: var(--gold);
+    background: var(--control-accent);
+    border-color: var(--control-accent);
 }
 
 :is([data-theme="dark"], body.theme-dark) .mobile-drawer-left {

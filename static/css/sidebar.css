@@ -49,12 +49,8 @@
 /* shelah-slide-down-fade / shelah-warm-pulse keyframes live in
    tokens.css's MOTION KEYFRAMES token layer. */
 
-/* Settings panel & profile menu slide-down */
-#settingsPanel:not(.hidden),
-#userProfileMenu:not(.hidden),
-#readerSettingsPanel:not(.hidden) {
-    animation: shelah-slide-down-fade 0.2s cubic-bezier(0.16, 1, 0.3, 1) both;
-}
+/* Settings panel, profile menu and reader-settings dropdown: entrance and exit
+   are driven by ShelahMotion.present()/dismiss() (motion.js), not CSS keyframes. */
 
 /* Details/summary expand animation for library sidebar items */
 details[open]>summary~* {

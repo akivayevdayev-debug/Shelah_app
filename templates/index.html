@@ -107,16 +107,16 @@
     <script defer src="https://cdn.jsdelivr.net/npm/dompurify@3.4.9/dist/purify.min.js"
             integrity="sha384-6ZdfL2Azuen6KYvcTkbxqJS1d7txbNWrVfmURkxNeCn7DtzhLRL6Fi6WGG6ZLdKn"
             crossorigin="anonymous"></script>
-    <link rel="stylesheet" href="/static/css/tokens.css?v=20260915-v7">
-    <link rel="stylesheet" href="/static/style.css?v=20260918-v15">
+    <link rel="stylesheet" href="/static/css/tokens.css?v=20260918-v8">
+    <link rel="stylesheet" href="/static/style.css?v=20260918-v20">
     <!-- CSS modules (supplement style.css; do not replace) -->
     <link rel="stylesheet" href="/static/css/typography.css?v=20260817-v6">
     <link rel="stylesheet" href="/static/css/reader.css?v=20260817-v6">
-    <link rel="stylesheet" href="/static/css/sidebar.css?v=20260817-v6">
+    <link rel="stylesheet" href="/static/css/sidebar.css?v=20260918-v7">
     <link rel="stylesheet" href="/static/css/halacha.css?v=20260817-v6">
     <link rel="stylesheet" href="/static/css/prayer.css?v=20260817-v6">
-    <link rel="stylesheet" href="/static/css/ai.css?v=20260915-v9">
-    <link rel="stylesheet" href="/static/css/calendar.css?v=20260817-v6">
+    <link rel="stylesheet" href="/static/css/ai.css?v=20260918-v10">
+    <link rel="stylesheet" href="/static/css/calendar.css?v=20260918-v8">
     <link rel="stylesheet" href="/static/css/loading.css?v=20260817-v6">
     <!-- Tailwind CSS (pre-built; loads last so utilities override custom CSS — mirrors CDN runtime cascade behavior) -->
     <link rel="stylesheet" href="/static/css/tailwind.css?v=20260915-v7">
@@ -1518,6 +1518,9 @@
     </div>
 
     <nav id="mobileBottomTabs" class="mobile-bottom-tabs lg:hidden" aria-label="Mobile quick navigation">
+        <!-- Active-tab pill: one element that slides between the buttons (see
+             syncMobileTabIndicator); the buttons themselves stay transparent. -->
+        <span id="mobileTabIndicator" class="mobile-tab-indicator" aria-hidden="true"></span>
         <button type="button" class="mobile-tab-btn" data-mobile-tab="home" data-en="Home" data-he="בית">Home</button>
         <!-- Label lives in its own span: the language toggle sets textContent on any
              [data-en] element, which would erase the icon if it sat on the button. -->
@@ -1574,6 +1577,14 @@
             <!-- Calendar Content -->
             <div class="flex-1 overflow-y-auto p-4 sm:p-6 bg-[#faf7f0]">
                 <div id="calendar" class="min-h-[400px]"></div>
+                <!-- Selected-day agenda: the month grid's chips are too narrow on phones to
+                     show a full holiday name, so the tapped day's events are listed here
+                     in full. Filled by renderCalendarAgenda(). -->
+                <section id="calendarAgenda" class="cal-agenda" aria-labelledby="calendarAgendaHeading" hidden>
+                    <h3 id="calendarAgendaHeading" class="cal-agenda-heading" data-en="Selected day" data-he="היום הנבחר">Selected day</h3>
+                    <p id="calendarAgendaHebrew" class="cal-agenda-hebrew" lang="he"></p>
+                    <ul id="calendarAgendaList" class="cal-agenda-list" aria-live="polite"></ul>
+                </section>
             </div>
         </div>
     </dialog>
@@ -2814,15 +2825,14 @@
                 bodyEl.appendChild(secDiv);
             });
 
-            modal.classList.remove('hidden');
             modal.classList.add('flex');
+            presentEl(modal, modalMotion(modal));
         }
 
         function closeLibraryCategory() {
             const modal = document.getElementById('libraryCategoryModal');
             if (!modal) return;
-            modal.classList.add('hidden');
-            modal.classList.remove('flex');
+            dismissEl(modal, { ...modalMotion(modal), onHidden: () => modal.classList.remove('flex') });
         }
 
         // ─── COMMUNITY CUSTOMS MODAL ─────────────────────────────────────────
@@ -2842,8 +2852,8 @@
                 <div class="sk-prayer-row" aria-hidden="true"></div>
                 <div class="sk-prayer-row" aria-hidden="true" style="width:85%"></div>
                 <div class="sk-prayer-row" aria-hidden="true" style="width:70%"></div>`;
-            modal.classList.remove('hidden');
             modal.classList.add('flex');
+            presentEl(modal, modalMotion(modal));
 
             try {
                 let data = _customsCache[communityName];
@@ -4482,9 +4492,8 @@
                     appState.lastAiResponse = item;
                     document.getElementById('aiModalTitle').textContent = item.question;
                     const modal = document.getElementById('aiAssistantModal');
-                    modal.classList.remove('hidden');
                     modal.style.display = 'flex';
-                    window.ShelahMotion?.animateIn(modal, { y: 12 });
+                    presentEl(modal, modalMotion(modal));
                     populateAiModal(item, item.question);
                     if (searchInput) searchInput.value = item.question;
                 });
@@ -4551,12 +4560,40 @@
             return window.matchMedia('(max-width: 1023px)').matches;
         }
 
+        // Animated show / hide for menus, sheets and modals (window.ShelahMotion
+        // present/dismiss, see motion.js). They own the `hidden` class so an
+        // element only becomes display:none once its exit has played. Without
+        // the module (CDN blocked, stale cache) they degrade to a class toggle.
+        function presentEl(el, opts = {}) {
+            if (!el) return Promise.resolve();
+            if (window.ShelahMotion?.present) return window.ShelahMotion.present(el, opts);
+            el.classList.remove('hidden');
+            return Promise.resolve();
+        }
+
+        function dismissEl(el, opts = {}) {
+            if (!el) return Promise.resolve();
+            if (window.ShelahMotion?.dismiss) return window.ShelahMotion.dismiss(el, opts);
+            el.classList.add('hidden');
+            opts.onHidden?.();
+            return Promise.resolve();
+        }
+
+        // Phones get a bottom-sheet rise; larger screens a centred card.
+        function modalMotion(modal) {
+            return { preset: isMobileViewport() ? 'sheet' : 'modal', card: modal?.querySelector(':scope > div') ?? null };
+        }
+
         function setMobileDrawerState(drawer, open) {
             if (!drawer) return;
             if (open) {
-                // Remove hidden first, then add mobile-open on next frame so CSS transition fires
+                // Un-hide, force a style flush so the closed position is the
+                // transition's starting point, then open. (A single rAF could run
+                // before the browser had styled the un-hidden drawer, which made
+                // it jump open with no slide.)
                 drawer.classList.remove('hidden');
-                requestAnimationFrame(() => drawer.classList.add('mobile-open'));
+                void drawer.offsetWidth;
+                drawer.classList.add('mobile-open');
             } else {
                 // Remove mobile-open, wait for transition, then hide
                 drawer.classList.remove('mobile-open');
@@ -4584,10 +4621,13 @@
 
             setMobileDrawerState(leftSidebar, false);
             setMobileDrawerState(rightSidebar, false);
-            if (mobileDrawerBackdrop) {
-                mobileDrawerBackdrop.classList.add('hidden');
-            }
+            dismissEl(mobileDrawerBackdrop, { preset: 'fade' });
             document.body.classList.remove('mobile-panel-open');
+            // The Library tab lit up because its drawer was open; with the drawer
+            // gone the screen underneath is what is current again.
+            if (mobileBottomTabs?.querySelector('.mobile-tab-active')?.dataset.mobileTab === 'library') {
+                setActiveMobileTab('home');
+            }
         }
 
         function openMobilePanel(panel) {
@@ -4598,9 +4638,7 @@
             setMobileDrawerState(leftSidebar, openLeft);
             setMobileDrawerState(rightSidebar, openRight);
 
-            if (mobileDrawerBackdrop) {
-                mobileDrawerBackdrop.classList.remove('hidden');
-            }
+            presentEl(mobileDrawerBackdrop, { preset: 'fade' });
             document.body.classList.add('mobile-panel-open');
         }
 
@@ -4701,6 +4739,33 @@
             mobileBottomTabs.querySelectorAll('[data-mobile-tab]').forEach((btn) => {
                 btn.classList.toggle('mobile-tab-active', btn.dataset.mobileTab === tab);
             });
+            syncMobileTabIndicator({ animate: true });
+        }
+
+        // Places the sliding pill behind the active tab. Geometry is read from the
+        // button (offsetLeft/Top/Width/Height are physical, so this is the same in
+        // LTR and RTL) and applied instantly; only the horizontal travel is
+        // animated, by a spring (ShelahMotion.slideTo). animate:false is for
+        // resize / first paint, where the pill should simply be in the right place.
+        function syncMobileTabIndicator({ animate = false } = {}) {
+            const indicator = document.getElementById('mobileTabIndicator');
+            if (!indicator || !mobileBottomTabs) return;
+            const active = mobileBottomTabs.querySelector('.mobile-tab-active');
+            // Hidden nav (desktop) reports 0 sizes: nothing to place.
+            if (!active || !active.offsetWidth) {
+                mobileBottomTabs.classList.remove('has-indicator');
+                return;
+            }
+            indicator.style.width = `${active.offsetWidth}px`;
+            indicator.style.height = `${active.offsetHeight}px`;
+            indicator.style.top = `${active.offsetTop}px`;
+            const firstPlacement = !mobileBottomTabs.classList.contains('has-indicator');
+            mobileBottomTabs.classList.add('has-indicator');
+            if (window.ShelahMotion?.slideTo) {
+                window.ShelahMotion.slideTo(indicator, active.offsetLeft, { animate: animate && !firstPlacement });
+            } else {
+                indicator.style.transform = `translateX(${active.offsetLeft}px)`;
+            }
         }
 
         function setMobileSearchExpanded(expanded) {
@@ -4712,6 +4777,11 @@
             }
             if (!shouldExpand) {
                 searchInput?.blur();
+                // Search closed without picking another tab: the Search highlight
+                // has nothing left to point at, so hand it back to Home.
+                if (mobileBottomTabs?.querySelector('.mobile-tab-active')?.dataset.mobileTab === 'search') {
+                    setActiveMobileTab('home');
+                }
             }
         }
 
@@ -4954,7 +5024,7 @@
 
         function closeSettingsMenu() {
             if (!settingsPanel) return;
-            settingsPanel.classList.add('hidden');
+            dismissEl(settingsPanel, { preset: 'popover' });
             if (settingsMenuBtn) settingsMenuBtn.setAttribute('aria-expanded', 'false');
         }
 
@@ -4989,7 +5059,9 @@
             );
 
             menuEl.style.setProperty('position', 'fixed', 'important');
-            menuEl.style.setProperty('transform', 'none', 'important');
+            // Cancels the menus' CSS centring transform. A class, not an inline
+            // !important, so the open/close animation can still drive `transform`.
+            menuEl.classList.add('is-floating-menu');
             menuEl.style.setProperty('left', `${left}px`, 'important');
             menuEl.style.setProperty('top', `${top}px`, 'important');
             menuEl.style.setProperty('right', 'auto', 'important');
@@ -5022,26 +5094,25 @@
 
         function closeUserProfileMenu() {
             if (!userProfileMenu) return;
-            userProfileMenu.classList.add('hidden');
+            dismissEl(userProfileMenu, { preset: 'popover' });
             if (userProfileMenuBtn) userProfileMenuBtn.setAttribute('aria-expanded', 'false');
+        }
+
+        // Open, or on its way out (a re-tap during the exit brings it back).
+        function isMenuClosed(menuEl) {
+            return menuEl.classList.contains('hidden') || menuEl.classList.contains('is-hiding');
         }
 
         function toggleUserProfileMenu() {
             if (!userProfileMenu) return;
-            const willOpen = userProfileMenu.classList.contains('hidden');
+            const willOpen = isMenuClosed(userProfileMenu);
             if (!willOpen) {
-                // Animate out before hiding
-                userProfileMenu.classList.add('is-hiding');
-                if (userProfileMenuBtn) userProfileMenuBtn.setAttribute('aria-expanded', 'false');
-                setTimeout(() => {
-                    userProfileMenu.classList.add('hidden');
-                    userProfileMenu.classList.remove('is-hiding');
-                }, 150);
+                closeUserProfileMenu();
                 return;
             }
-            userProfileMenu.classList.remove('hidden');
-            if (userProfileMenuBtn) userProfileMenuBtn.setAttribute('aria-expanded', 'true');
             positionUserProfileMenu();
+            presentEl(userProfileMenu, { preset: 'popover' });
+            if (userProfileMenuBtn) userProfileMenuBtn.setAttribute('aria-expanded', 'true');
             window.requestAnimationFrame(() => {
                 if (!userProfileMenu.classList.contains('hidden')) {
                     positionUserProfileMenu();
@@ -5053,26 +5124,21 @@
 
         function toggleSettingsMenu() {
             if (!settingsPanel) return;
-            const willOpen = settingsPanel.classList.contains('hidden');
+            const willOpen = isMenuClosed(settingsPanel);
             if (willOpen) {
                 closeReaderSettingsPanel();
                 closeUserProfileMenu();
                 positionSettingsPanel();
-                settingsPanel.classList.remove('hidden');
+                presentEl(settingsPanel, { preset: 'popover' });
             } else {
-                // Animate out before hiding (vanilla AnimatePresence equivalent)
-                settingsPanel.classList.add('is-hiding');
-                setTimeout(() => {
-                    settingsPanel.classList.add('hidden');
-                    settingsPanel.classList.remove('is-hiding');
-                }, 150);
+                dismissEl(settingsPanel, { preset: 'popover' });
             }
             if (settingsMenuBtn) settingsMenuBtn.setAttribute('aria-expanded', willOpen ? 'true' : 'false');
         }
 
         function closeReaderSettingsPanel() {
             if (!readerSettingsPanel) return;
-            readerSettingsPanel.classList.add('hidden');
+            dismissEl(readerSettingsPanel, { preset: 'popover' });
             if (readerSettingsBtn) readerSettingsBtn.setAttribute('aria-expanded', 'false');
         }
 
@@ -5080,8 +5146,12 @@
             if (!readerSettingsPanel) return;
             const shouldOpen = typeof forceOpen === 'boolean'
                 ? forceOpen
-                : readerSettingsPanel.classList.contains('hidden');
-            readerSettingsPanel.classList.toggle('hidden', !shouldOpen);
+                : isMenuClosed(readerSettingsPanel);
+            if (shouldOpen) {
+                presentEl(readerSettingsPanel, { preset: 'popover' });
+            } else {
+                dismissEl(readerSettingsPanel, { preset: 'popover' });
+            }
             if (readerSettingsBtn) {
                 readerSettingsBtn.setAttribute('aria-expanded', shouldOpen ? 'true' : 'false');
             }
@@ -7826,6 +7896,12 @@
                 });
             });
             setActiveMobileTab('home');
+            // Keep the pill on its tab through rotation, font loading and language
+            // changes (label widths / bar height can shift).
+            if (typeof ResizeObserver === 'function') {
+                new ResizeObserver(() => syncMobileTabIndicator({ animate: false })).observe(mobileBottomTabs);
+            }
+            document.fonts?.ready?.then(() => syncMobileTabIndicator({ animate: false }));
         }
 
         if (mainContainer) {
@@ -8349,8 +8425,8 @@
             closeMobilePanels();
             closeReaderSettingsPanel();
             const modal = document.getElementById('textsMenuModal');
-            modal.classList.remove('hidden');
             modal.classList.add('flex');
+            presentEl(modal, modalMotion(modal));
             loadPrayersMenu();
             loadCommunitiesMenu();
             void loadLibraryIndexViews();
@@ -8358,16 +8434,22 @@
 
         function closeTextsMenu() {
             const modal = document.getElementById('textsMenuModal');
-            modal.classList.add('hidden');
-            modal.classList.remove('flex');
+            dismissEl(modal, { ...modalMotion(modal), onHidden: () => modal.classList.remove('flex') });
         }
 
         function closeChapterGrid() {
             if (!chapterGridModal) return;
-            chapterGridModal.classList.add('hidden');
-            chapterGridModal.classList.remove('flex');
-            chapterGridItems?.classList.remove('chapter-grid-items-prayer', 'chapter-grid-items-sectioned');
-            if (chapterGridModal.open) chapterGridModal.close();
+            // Exit first; the native close() must wait (closing a <dialog> drops it
+            // out of the top layer at once). The render code re-sets the grid's
+            // layout classes on every open, so clearing them can wait as well.
+            dismissEl(chapterGridModal, {
+                ...modalMotion(chapterGridModal),
+                onHidden: () => {
+                    chapterGridModal.classList.remove('flex');
+                    chapterGridItems?.classList.remove('chapter-grid-items-prayer', 'chapter-grid-items-sectioned');
+                    if (chapterGridModal.open) chapterGridModal.close();
+                },
+            });
         }
 
         // <dialog> closes on Escape natively; keep that path routed through
@@ -8381,9 +8463,13 @@
         });
 
         function _openChapterGridDialog() {
+            // Un-hidden before showModal() so focus can move into the dialog; the
+            // entrance then replays from its start state within the same task.
+            const wasOpen = chapterGridModal.open && !chapterGridModal.classList.contains('is-hiding');
             chapterGridModal.classList.remove('hidden');
             chapterGridModal.classList.add('flex');
             if (!chapterGridModal.open) chapterGridModal.showModal();
+            if (!wasOpen) presentEl(chapterGridModal, { ...modalMotion(chapterGridModal), replay: true });
         }
 
         function renderChapterGridParashaStrip(bookName) {
@@ -9964,9 +10050,8 @@
             setCurrentView('ask', question, question);
             // Show loading modal and animate the search icon
             const aiModal = document.getElementById('aiAssistantModal');
-            aiModal.classList.remove('hidden');
             aiModal.style.display = 'flex';
-            window.ShelahMotion?.animateIn(aiModal, { y: 12 });
+            presentEl(aiModal, modalMotion(aiModal));
             document.body.classList.add('search-loading');
 
             // Brief "liftoff" glow pulse on the search bar itself, fired in the
@@ -11105,6 +11190,90 @@
 
         let holidaysCalendar = null;
         let _calendarDidMount = false; // crossfade: skip animation on initial render
+        let calendarSelectedKey = null; // 'YYYY-MM-DD' of the day shown in the agenda
+
+        function calendarDateKey(d) {
+            const pad = (n) => String(n).padStart(2, '0');
+            return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+        }
+
+        function calendarEventsOn(key) {
+            if (!holidaysCalendar) return [];
+            return holidaysCalendar.getEvents().filter((ev) => {
+                const start = calendarDateKey(ev.start);
+                // FullCalendar's end is exclusive; single-day events have none.
+                const end = ev.end ? calendarDateKey(ev.end) : null;
+                return end ? (start <= key && key < end) : start === key;
+            });
+        }
+
+        // Highlights the selected day cell. Applied straight to the DOM (and from
+        // dayCellDidMount) so month changes and re-renders never lose it; the outline
+        // in calendar.css keeps the state visible without relying on colour alone.
+        function markCalendarSelectedDay() {
+            const calendarEl = document.getElementById('calendar');
+            if (!calendarEl) return;
+            calendarEl.querySelectorAll('.cal-day-selected').forEach((el) => el.classList.remove('cal-day-selected'));
+            if (!calendarSelectedKey) return;
+            calendarEl.querySelector(`.fc-daygrid-day[data-date="${calendarSelectedKey}"]`)?.classList.add('cal-day-selected');
+        }
+
+        function renderCalendarAgenda() {
+            const section = document.getElementById('calendarAgenda');
+            const list = document.getElementById('calendarAgendaList');
+            const heading = document.getElementById('calendarAgendaHeading');
+            const hebrew = document.getElementById('calendarAgendaHebrew');
+            if (!section || !list || !heading || !calendarSelectedKey) return;
+
+            const [y, m, d] = calendarSelectedKey.split('-').map(Number);
+            const date = new Date(y, m - 1, d);
+            const he = isHebrewMode();
+            heading.textContent = new Intl.DateTimeFormat(he ? 'he-IL' : 'en-US', {
+                weekday: 'long', month: 'long', day: 'numeric',
+            }).format(date);
+            try {
+                hebrew.textContent = new Intl.DateTimeFormat('he-u-ca-hebrew', {
+                    day: 'numeric', month: 'long', year: 'numeric',
+                }).format(date);
+            } catch (_) {
+                hebrew.textContent = '';
+            }
+            hebrew.hidden = !hebrew.textContent;
+
+            const events = calendarEventsOn(calendarSelectedKey);
+            list.replaceChildren();
+            if (!events.length) {
+                const empty = document.createElement('li');
+                empty.className = 'cal-agenda-empty';
+                empty.textContent = t('No holidays or special days.', 'אין חגים או ימים מיוחדים.');
+                list.appendChild(empty);
+            } else {
+                events.forEach((ev) => {
+                    const li = document.createElement('li');
+                    li.className = `cal-agenda-item cal-cat-${ev.extendedProps.category || 'default'}`;
+                    const swatch = document.createElement('span');
+                    swatch.className = 'cal-agenda-swatch';
+                    swatch.setAttribute('aria-hidden', 'true');
+                    const name = document.createElement('span');
+                    name.className = 'cal-agenda-title';
+                    name.textContent = ev.title;
+                    li.append(swatch, name);
+                    list.appendChild(li);
+                });
+            }
+            section.hidden = false;
+        }
+
+        function selectCalendarDay(key, { scroll = false } = {}) {
+            calendarSelectedKey = key;
+            markCalendarSelectedDay();
+            renderCalendarAgenda();
+            if (scroll) {
+                const section = document.getElementById('calendarAgenda');
+                const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+                section?.scrollIntoView({ behavior: reduce ? 'auto' : 'smooth', block: 'nearest' });
+            }
+        }
 
         function ensureCalendarReady() {
             if (holidaysCalendar) return;
@@ -11129,12 +11298,42 @@
                         })
                         .catch(e => failureCallback(e));
                 },
-                datesSet: function () {
+                datesSet: function (info) {
                     if (_calendarDidMount && window.ShelahMotion) {
                         const harness = calendarEl.querySelector('.fc-view-harness');
                         if (harness) window.ShelahMotion.animateIn(harness, { y: 6 });
                     }
                     _calendarDidMount = true;
+                    // Keep the agenda on a day inside the visible month: keep the current
+                    // pick if it is still in this month, else today, else the 1st.
+                    const monthStart = info.view.currentStart;
+                    const inMonth = (key) => key && key.slice(0, 7) === calendarDateKey(monthStart).slice(0, 7);
+                    const todayKey = calendarDateKey(new Date());
+                    selectCalendarDay(
+                        inMonth(calendarSelectedKey) ? calendarSelectedKey
+                            : inMonth(todayKey) ? todayKey
+                                : calendarDateKey(monthStart)
+                    );
+                },
+                // Events arrive asynchronously; refresh the agenda when they land.
+                eventsSet: function () {
+                    if (calendarSelectedKey) renderCalendarAgenda();
+                },
+                dateClick: function (info) {
+                    selectCalendarDay(info.dateStr.slice(0, 10), { scroll: true });
+                },
+                eventClick: function (info) {
+                    info.jsEvent.preventDefault();
+                    selectCalendarDay(calendarDateKey(info.event.start), { scroll: true });
+                },
+                // Chips are ellipsised on phones; the native tooltip gives the full name on hover.
+                eventDidMount: function (info) {
+                    info.el.title = info.event.title;
+                },
+                dayCellDidMount: function (info) {
+                    if (calendarSelectedKey && info.el.dataset.date === calendarSelectedKey) {
+                        info.el.classList.add('cal-day-selected');
+                    }
                 },
                 // Backend sends a fixed inline `color` per event (theme-agnostic) plus
                 // a `category`; deriving a class from category lets dark-mode CSS
@@ -11149,18 +11348,30 @@
 
         window.openCalendarModal = function () {
             const modal = document.getElementById('calendarModal');
+            // Un-hidden before showModal() so focus can move into the dialog.
             modal.classList.remove('hidden');
             modal.showModal();
             ensureCalendarReady();
-            setTimeout(() => {
+            if (calendarSelectedKey) renderCalendarAgenda(); // re-localise if the language changed
+            const calScroller = modal.querySelector('.overflow-y-auto');
+            if (calScroller) calScroller.scrollTop = 0; // reopen at the top, not wherever it was closed
+            // FullCalendar sizes its tables from getBoundingClientRect(), and the
+            // card's entrance starts scaled down (desktop) / shifted (phones), so a
+            // measurement taken while it plays is a few % too narrow and leaves a
+            // dead strip beside the last column. Re-measure once it has settled.
+            const resizeCalendar = () => {
                 if (holidaysCalendar) holidaysCalendar.updateSize();
-            }, 80);
+            };
+            setTimeout(resizeCalendar, 80);
+            presentEl(modal, { ...modalMotion(modal), replay: true }).then(resizeCalendar);
         };
 
         window.closeCalendarModal = function () {
             const modal = document.getElementById('calendarModal');
-            modal.classList.add('hidden');
-            if (modal.open) modal.close();
+            dismissEl(modal, {
+                ...modalMotion(modal),
+                onHidden: () => { if (modal.open) modal.close(); },
+            });
         };
 
         // <dialog> closes on Escape natively; keep that path routed through
@@ -11189,16 +11400,21 @@
 
             citySearchOpen = !citySearchOpen;
             if (citySearchOpen) {
-                popover.classList.remove('hidden');
                 // Position below the button
                 const rect = btn.getBoundingClientRect();
                 const sectionRect = btn.closest('.home-today-section').getBoundingClientRect();
                 popover.style.top = (rect.bottom - sectionRect.top + 6) + 'px';
+                presentEl(popover, { preset: 'popover' });
                 setTimeout(() => document.getElementById('citySearchInput')?.focus(), 50);
             } else {
-                popover.classList.add('hidden');
+                dismissEl(popover, { preset: 'popover' });
             }
         };
+
+        function closeCitySearchPopover() {
+            citySearchOpen = false;
+            dismissEl(document.getElementById('citySearchPopover'), { preset: 'popover' });
+        }
 
         window.searchByCity = async function () {
             const input = document.getElementById('citySearchInput');
@@ -11257,10 +11473,7 @@
                 window.ShelahModules.setCurrentZmanimLocationLabel(shortName);
 
                 statusEl.textContent = `Using: ${shortName}`;
-                setTimeout(() => {
-                    document.getElementById('citySearchPopover')?.classList.add('hidden');
-                    citySearchOpen = false;
-                }, 1200);
+                setTimeout(closeCitySearchPopover, 1200);
 
             } catch (err) {
                 errorEl.textContent = 'Search failed. Check your connection.';
@@ -11277,8 +11490,7 @@
                 searchByCity();
             }
             if (e.key === 'Escape' && citySearchOpen) {
-                document.getElementById('citySearchPopover')?.classList.add('hidden');
-                citySearchOpen = false;
+                closeCitySearchPopover();
             }
         });
 
@@ -11288,8 +11500,7 @@
             const popover = document.getElementById('citySearchPopover');
             const btn = document.getElementById('citySearchBtn');
             if (popover && btn && !popover.contains(e.target) && !btn.contains(e.target)) {
-                popover.classList.add('hidden');
-                citySearchOpen = false;
+                closeCitySearchPopover();
             }
         });
         // ─────────────────────────────────────────────────────────
@@ -11942,7 +12153,8 @@
         }
 
         function closeAiModal() {
-            document.getElementById('aiAssistantModal').style.display = 'none';
+            const aiModal = document.getElementById('aiAssistantModal');
+            dismissEl(aiModal, { ...modalMotion(aiModal), onHidden: () => { aiModal.style.display = 'none'; } });
             document.body.classList.remove('search-loading');
             searchInput.value = '';
         }
@@ -12044,8 +12256,8 @@
             if (confirmInput) { confirmInput.value = ''; confirmInput.disabled = false; }
             if (deleteBtn) deleteBtn.disabled = true;
             privacyDataModalTrigger = document.activeElement;
-            modal.classList.remove('hidden');
             modal.style.display = 'flex';
+            presentEl(modal, modalMotion(modal));
             const closeBtn = document.getElementById('privacyDataModalCloseBtn');
             if (closeBtn) closeBtn.focus();
         }
@@ -12059,8 +12271,7 @@
             if (privacyDeleteInFlight) return;
             const modal = document.getElementById('privacyDataModal');
             if (!modal) return;
-            modal.style.display = 'none';
-            modal.classList.add('hidden');
+            dismissEl(modal, { ...modalMotion(modal), onHidden: () => { modal.style.display = 'none'; } });
             if (privacyDataModalTrigger && typeof privacyDataModalTrigger.focus === 'function') {
                 privacyDataModalTrigger.focus();
             }
@@ -12251,7 +12462,7 @@
     <script src="https://cdn.jsdelivr.net/npm/motion@12.43.0/dist/motion.js"
             integrity="sha384-hgVFh5YKDMdpcWEjpRqk2kPXOKBH7I9NBCKe3uR6dHKgy/BWPe8kyL01kiYuRn1u"
             crossorigin="anonymous"></script>
-    <script type="module" src="/static/js/motion.js?v=20260817-v6"></script>
+    <script type="module" src="/static/js/motion.js?v=20260918-v8"></script>
     <script type="module" src="/static/js/main.js?v=20260817-v6"></script>
 </body>
 
