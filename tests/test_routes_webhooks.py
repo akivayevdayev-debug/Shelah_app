@@ -214,3 +214,57 @@ class TestUserDeletedCascade:
         assert all(body["deleted_tables"][t] for t in other_tables)
         assert prefs_table in body["table_errors"]
         assert "db down" not in body["table_errors"][prefs_table]
+
+
+class TestVerifySvixSignatureEdges:
+    """Direct unit tests for the hand-rolled verifier's malformed-input paths.
+
+    Each one must return False (never raise): a bad header is simply an
+    invalid signature.
+    """
+
+    def _valid(self, **overrides):
+        body = json.dumps(_user_deleted_payload())
+        timestamp = str(int(time.time()))
+        args = {
+            "secret": _TEST_SECRET,
+            "svix_id": "msg_edge",
+            "svix_timestamp": timestamp,
+            "body": body,
+            "svix_signature": _sign(_TEST_SECRET, "msg_edge", timestamp, body),
+        }
+        args.update(overrides)
+        return args
+
+    def test_the_baseline_arguments_verify(self):
+        assert routes_webhooks_module._verify_svix_signature(**self._valid()) is True
+
+    def test_a_non_integer_timestamp_is_rejected(self):
+        assert routes_webhooks_module._verify_svix_signature(
+            **self._valid(svix_timestamp="not-a-number")) is False
+
+    def test_a_secret_that_is_not_valid_base64_is_rejected(self):
+        assert routes_webhooks_module._verify_svix_signature(
+            **self._valid(secret="whsec_abc")) is False
+
+    def test_a_misconfigured_secret_never_verifies_against_an_empty_key(self):
+        """If a bad secret fell through to an empty HMAC key, anyone could
+        forge a passing signature with `hmac(b"", ...)`. It must fail closed."""
+        body = json.dumps(_user_deleted_payload())
+        timestamp = str(int(time.time()))
+        forged = hmac.new(b"", f"msg_edge.{timestamp}.{body}".encode("utf-8"), hashlib.sha256).digest()
+
+        assert routes_webhooks_module._verify_svix_signature(
+            secret="whsec_abc", svix_id="msg_edge", svix_timestamp=timestamp, body=body,
+            svix_signature=f"v1,{base64.b64encode(forged).decode('utf-8')}",
+        ) is False
+
+    def test_a_signature_without_a_version_separator_is_rejected(self):
+        assert routes_webhooks_module._verify_svix_signature(
+            **self._valid(svix_signature="not-a-versioned-signature")) is False
+
+    def test_a_valid_signature_among_several_rotated_ones_is_accepted(self):
+        good = self._valid()["svix_signature"]
+
+        assert routes_webhooks_module._verify_svix_signature(
+            **self._valid(svix_signature=f"v1,AAAA {good}")) is True
