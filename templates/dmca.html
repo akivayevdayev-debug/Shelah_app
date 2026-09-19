@@ -7,17 +7,7 @@
     <meta name="description" content="Sh'elah DMCA / Copyright Policy — how to report claimed copyright infringement.">
     <meta name="theme-color" content="#f3ede0" media="(prefers-color-scheme: light)">
     <meta name="theme-color" content="#0c0c0b" media="(prefers-color-scheme: dark)">
-    <script>(function () {
-        try {
-            var raw = localStorage.getItem("Sh'elahPrefs");
-            var t = raw ? JSON.parse(raw).theme : null;
-            if (t !== 'light' && t !== 'dark') {
-                t = (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) ? 'dark' : 'light';
-            }
-            document.documentElement.dataset.theme = t;
-            document.documentElement.classList.toggle('theme-dark', t === 'dark');
-        } catch (e) { /* storage/JSON unavailable: keep the stylesheet's default theme */ }
-    })()</script>
+    {% include 'components/theme_bootstrap.html' %}
     <title>DMCA / Copyright Policy – Sh'elah</title>
     <link rel="canonical" href="https://shelah-app.vercel.app/dmca">
     <script type="application/ld+json">
@@ -169,36 +159,7 @@
         </article>
     </main>
 
-    <footer class="border-t py-6 text-center text-xs"
-        style="border-color: var(--surface-border); color: var(--ink-secondary); background: var(--surface-1);">
-        <p class="mb-2" data-en="© Sh'elah {{ current_year }}. All rights reserved." data-he="© Sh'elah {{ current_year }}. כל הזכויות שמורות.">©
-            Sh'elah {{ current_year }}. All rights reserved.</p>
-        <p>
-            <a href="/" class="font-semibold hover:underline" style="color: var(--ink-heading);"
-                data-en="Sh'elah Torah Encyclopedia" data-he="שאלה אנציקלופדיית תורה">Sh'elah Torah Encyclopedia</a>
-            &nbsp;·&nbsp;
-            <a href="/terms" class="hover:underline" style="color: var(--ink-secondary);"
-                data-en="Terms of Service" data-he="תנאי שירות">Terms of Service</a>
-            &nbsp;·&nbsp;
-            <a href="/privacy" class="hover:underline" style="color: var(--ink-secondary);"
-                data-en="Privacy Policy" data-he="מדיניות פרטיות">Privacy Policy</a>
-            &nbsp;·&nbsp;
-            <a href="/ai-disclosure" class="hover:underline" style="color: var(--ink-secondary);"
-                data-en="AI Disclosure" data-he="גילוי נאות בינה מלאכותית">AI Disclosure</a>
-            &nbsp;·&nbsp;
-            <a href="/acceptable-use" class="hover:underline" style="color: var(--ink-secondary);"
-                data-en="Acceptable Use" data-he="שימוש מותר">Acceptable Use</a>
-            &nbsp;·&nbsp;
-            <a href="/dmca" class="hover:underline font-medium" style="color: var(--ink-heading);"
-                data-en="DMCA" data-he="DMCA">DMCA</a>
-            &nbsp;·&nbsp;
-            <a href="/accessibility" class="hover:underline" style="color: var(--ink-secondary);"
-                data-en="Accessibility" data-he="נגישות">Accessibility</a>
-            &nbsp;·&nbsp;
-            <a href="/licenses" class="hover:underline" style="color: var(--ink-secondary);"
-                data-en="Licenses" data-he="רישיונות">Licenses</a>
-        </p>
-    </footer>
+    {% with current='dmca' %}{% include 'components/legal_footer.html' %}{% endwith %}
 
     {% include 'components/legal_scripts.html' %}
 </body>
