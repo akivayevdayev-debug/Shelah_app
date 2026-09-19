@@ -8,17 +8,7 @@
     <meta name="robots" content="noindex">
     <meta name="theme-color" content="#f3ede0" media="(prefers-color-scheme: light)">
     <meta name="theme-color" content="#0c0c0b" media="(prefers-color-scheme: dark)">
-    <script>(function () {
-        try {
-            var raw = localStorage.getItem("Sh'elahPrefs");
-            var t = raw ? JSON.parse(raw).theme : null;
-            if (t !== 'light' && t !== 'dark') {
-                t = (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) ? 'dark' : 'light';
-            }
-            document.documentElement.dataset.theme = t;
-            document.documentElement.classList.toggle('theme-dark', t === 'dark');
-        } catch (e) { /* storage/JSON unavailable: keep the stylesheet's default theme */ }
-    })()</script>
+    {% include 'components/theme_bootstrap.html' %}
     <title>Page Not Found – Sh'elah</title>
     <link rel="icon" href="/static/favicon.svg" type="image/svg+xml">
     <link rel="preconnect" href="https://fonts.googleapis.com">
