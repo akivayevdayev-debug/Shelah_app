@@ -125,8 +125,8 @@ COMMIT;
 
 -- After running: verify all twelve policies now read (auth.jwt() ->> 'sub')
 -- instead of auth.uid() --
---   SELECT tablename, policyname, cmd, qual, with_check FROM pg_policies
---   WHERE schemaname = 'public'
---     AND tablename IN ('user_preferences', 'study_bookmarks', 'user_memories');
+SELECT tablename, policyname, cmd, qual, with_check FROM pg_policies
+WHERE schemaname = 'public'
+  AND tablename IN ('user_preferences', 'study_bookmarks', 'user_memories');
 -- every qual/with_check should read `((auth.jwt() -> 'sub'::text) = user_id)`
 -- or equivalent, with no reference to auth.uid() anywhere.

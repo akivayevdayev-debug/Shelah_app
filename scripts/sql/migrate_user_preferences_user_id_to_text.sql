@@ -74,6 +74,6 @@ END $$;
 COMMIT;
 
 -- After running: verify nothing was lost --
---   SELECT policyname, cmd, qual, with_check FROM pg_policies
---   WHERE schemaname = 'public' AND tablename = 'user_preferences';
+SELECT policyname, cmd, qual, with_check FROM pg_policies
+WHERE schemaname = 'public' AND tablename = 'user_preferences';
 -- should list the exact same policies (by name and clause) as before.
