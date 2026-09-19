@@ -209,7 +209,12 @@ class TestLoadRowsFromJson:
 
     def test_rerunning_yields_identical_rows_so_upserts_are_idempotent(self, tmp_path):
         self.write(tmp_path, "a.json", MODERN)
-        assert mc.load_rows_from_json(tmp_path) == mc.load_rows_from_json(tmp_path)
+
+        first_run = mc.load_rows_from_json(tmp_path)
+        second_run = mc.load_rows_from_json(tmp_path)
+
+        assert first_run, "the fixture must produce rows, or the comparison below proves nothing"
+        assert second_run == first_run
 
     def test_the_real_customs_directory_parses_into_unique_well_formed_rows(self):
         rows = mc.load_rows_from_json(mc.CUSTOMS_DIR)
