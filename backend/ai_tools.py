@@ -545,6 +545,10 @@ _M_TO_FT = 1 / 0.3048
 
 
 async def _h_convert_measurements(arguments: dict, context: dict) -> dict:
+    return await asyncio.to_thread(_convert_measurements, arguments)
+
+
+def _convert_measurements(arguments: dict) -> dict:
     measure = str(arguments.get("measure") or "").strip().lower()
     row = SHIURIM_TABLE.get(measure)
     if not row:
@@ -612,6 +616,10 @@ async def _h_calculate_hebrew_date_math(arguments: dict, context: dict) -> dict:
 # ── 22. format_source_citation ──────────────────────────────────────────────
 
 async def _h_format_source_citation(arguments: dict, context: dict) -> dict:
+    return await asyncio.to_thread(_format_source_citation_result, arguments)
+
+
+def _format_source_citation_result(arguments: dict) -> dict:
     ref = str(arguments.get("ref") or "").strip()
     if not ref:
         return {"error": _ERR_REF_REQUIRED}
