@@ -232,8 +232,10 @@ async def test_check_does_not_log_a_mitigation_event_when_allowed(monkeypatch):
     ids=["incr", "get", "setex"],
 )
 async def test_base_store_operations_are_abstract(call):
+    store = rate_limit._RateLimitStore()
+
     with pytest.raises(NotImplementedError):
-        await call(rate_limit._RateLimitStore())
+        await call(store)
 
 
 # ─── _InMemoryStore.incr: LRU eviction ──────────────────────────────────────

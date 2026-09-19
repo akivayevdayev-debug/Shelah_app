@@ -326,11 +326,15 @@ class TestGetUserScopedSupabaseClient:
 # ─── _get_request_user_id ───────────────────────────────────────────────────
 
 class TestGetRequestUserId:
-    def test_uses_the_verified_claims_already_on_g(self):
+    def test_uses_the_verified_claims_already_on_g(self, monkeypatch):
         with flask_app_module.app.test_request_context():
-            flask_app_module.g.clerk_claims = {"sub": "  user_123  "}
+            # Undone inside the request context: g is only reachable while it is pushed.
+            with monkeypatch.context() as scoped:
+                scoped.setattr(flask_app_module.g, "clerk_claims", {"sub": "  user_123  "}, raising=False)
 
-            assert flask_app_module._get_request_user_id() == "user_123"
+                assert flask_app_module._get_request_user_id() == "user_123"
+
+            assert not hasattr(flask_app_module.g, "clerk_claims")
 
     def test_verifies_the_bearer_token_when_claims_are_absent(self, monkeypatch):
         verified = []
