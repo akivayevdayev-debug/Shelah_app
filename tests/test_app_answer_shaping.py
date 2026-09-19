@@ -197,7 +197,8 @@ class TestSummarizeRuling:
 
     def test_overlong_summary_is_cut_with_an_ellipsis(self):
         out = app._summarize_ruling_text("word " * 200, max_chars=20)
-        assert out.endswith("...") and len(out) <= 23
+        assert out.endswith("...")
+        assert len(out) <= 23
 
     def test_blank_is_empty(self):
         assert app._summarize_ruling_text("   ") == ""

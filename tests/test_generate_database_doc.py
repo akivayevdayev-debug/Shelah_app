@@ -99,11 +99,13 @@ class TestRenderDoc:
 
     def test_document_ends_with_exactly_one_newline(self):
         doc = self.render()
-        assert doc.endswith("\n") and not doc.endswith("\n\n")
+        assert doc.endswith("\n")
+        assert not doc.endswith("\n\n")
 
     def test_empty_snapshot_still_renders_the_static_sections(self):
         doc = self.render({"tables": None})
-        assert "## Tables" in doc and "## Data Retention" in doc
+        assert "## Tables" in doc
+        assert "## Data Retention" in doc
 
     def test_strip_header_makes_runs_on_different_days_and_projects_comparable(self):
         a = self.render(on="2026-01-02", ref="proj-a")

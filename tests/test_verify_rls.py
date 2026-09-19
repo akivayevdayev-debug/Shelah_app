@@ -392,7 +392,8 @@ class TestAppRoundTrips:
         stack.app_get_status = 500
         ok, message = check("https://app.example", USER_A)
         assert ok is False
-        assert "GET" in message and "returned 500" in message
+        assert "GET" in message
+        assert "returned 500" in message
 
     @pytest.mark.parametrize("check", [vr.check_preferences_app_round_trip,
                                        vr.check_bookmarks_app_round_trip])

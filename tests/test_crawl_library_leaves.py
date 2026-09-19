@@ -381,8 +381,9 @@ class TestFetchIndexPayload:
             def get(self, url, timeout):
                 return _Resp(500)
 
+        session = _S()
         with pytest.raises(requests.HTTPError):
-            cl.fetch_index_payload(_S(), 5)
+            cl.fetch_index_payload(session, 5)
 
 
 class TestParseArgs:
@@ -440,7 +441,8 @@ class TestMain:
     def test_max_leaves_limits_the_crawl(self, session, monkeypatch, tmp_path):
         _, report = self.run(monkeypatch, tmp_path, "--max-leaves", "1")
         assert report["stats"]["leaf_count_unique"] == 1
-        assert report["fixes"] == [] and report["removals"] == []
+        assert report["fixes"] == []
+        assert report["removals"] == []
 
     def test_verbose_logs_every_leaf_and_sleep_is_applied_between_probes(self, session, monkeypatch,
                                                                        tmp_path, capsys):
