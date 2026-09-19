@@ -1,0 +1,11 @@
+<script>(function () {
+        try {
+            var raw = localStorage.getItem("Sh'elahPrefs");
+            var t = raw ? JSON.parse(raw).theme : null;
+            if (t !== 'light' && t !== 'dark') {
+                t = (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) ? 'dark' : 'light';
+            }
+            document.documentElement.dataset.theme = t;
+            document.documentElement.classList.toggle('theme-dark', t === 'dark');
+        } catch (e) { /* storage/JSON unavailable: keep the stylesheet's default theme */ }
+    })()</script>

@@ -7,17 +7,7 @@
     <meta name="description" content="Glossary of halachic terms used across Sh'elah — kezayit, muktzeh, eruv, and more, defined the same way the AI assistant itself defines them.">
     <meta name="theme-color" content="#f3ede0" media="(prefers-color-scheme: light)">
     <meta name="theme-color" content="#0c0c0b" media="(prefers-color-scheme: dark)">
-    <script>(function () {
-        try {
-            var raw = localStorage.getItem("Sh'elahPrefs");
-            var t = raw ? JSON.parse(raw).theme : null;
-            if (t !== 'light' && t !== 'dark') {
-                t = (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) ? 'dark' : 'light';
-            }
-            document.documentElement.dataset.theme = t;
-            document.documentElement.classList.toggle('theme-dark', t === 'dark');
-        } catch (e) { /* storage/JSON unavailable: keep the stylesheet's default theme */ }
-    })()</script>
+    {% include 'components/theme_bootstrap.html' %}
     <title>Glossary – Sh'elah</title>
     <link rel="canonical" href="https://shelah-app.vercel.app/glossary">
     <script type="application/ld+json">
