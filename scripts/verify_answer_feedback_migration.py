@@ -37,6 +37,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
 from dotenv import load_dotenv
+from postgrest import ReturnMethod
 from supabase import create_client
 
 load_dotenv()
@@ -168,7 +169,12 @@ def _check_anon_role(anon, service) -> int:
 
     failures = 0
     try:
-        anon.table(TABLE).insert(probe_row).execute()
+        # returning=minimal: supabase-py defaults to representation, i.e.
+        # INSERT ... RETURNING, which Postgres only allows for a role that also
+        # holds SELECT. migrate_security_hardening.sql deliberately revokes
+        # SELECT from anon, so without this a correctly secured table fails
+        # this probe with 42501 "permission denied for table".
+        anon.table(TABLE).insert(probe_row, returning=ReturnMethod.minimal).execute()
         ok("anon INSERT succeeded (matches anyone_can_submit_feedback policy)")
     except Exception as e:
         fail(f"anon INSERT failed: {e}")

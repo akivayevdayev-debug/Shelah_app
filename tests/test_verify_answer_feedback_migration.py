@@ -43,8 +43,8 @@ class _Query:
         self.action = None
         self.filter = None
 
-    def insert(self, row):
-        self.action, self.row = "insert", row
+    def insert(self, row, **kwargs):
+        self.action, self.row, self.insert_kwargs = "insert", row, kwargs
         return self
 
     def select(self, _cols):
@@ -65,7 +65,9 @@ class _Query:
 
 class FakeClient:
     def __init__(self, *, snapshot=None, rpc_error=None, insert_error=None, select_error=None,
-                 leaks_rows=False, delete_error=None):
+                 leaks_rows=False, delete_error=None, select_revoked=False):
+        self.select_revoked = select_revoked
+        self.returning = None
         self.snapshot, self.rpc_error = snapshot, rpc_error
         self.insert_error, self.select_error = insert_error, select_error
         self.leaks_rows, self.delete_error = leaks_rows, delete_error
@@ -92,6 +94,12 @@ class FakeClient:
         if q.action == "insert":
             if self.insert_error:
                 raise self.insert_error
+            returning = q.insert_kwargs.get("returning")
+            self.returning = getattr(returning, "value", returning)
+            if self.select_revoked and self.returning != "minimal":
+                # PostgREST's default is INSERT ... RETURNING, which Postgres only
+                # allows for a role that also holds SELECT on the table.
+                raise PermissionError({"message": f"permission denied for table {TABLE}", "code": "42501"})
             self.rows.append(q.row)
             return SimpleNamespace(data=[q.row])
         if q.action == "select":
@@ -125,6 +133,31 @@ def _run(monkeypatch, capsys, service, anon=None):
 
 def _snapshot(**overrides):
     return {"tables": [{**GOOD_TABLE_META, **overrides}]}
+
+
+class TestHardenedTableWithSelectRevoked:
+    """migrate_security_hardening.sql revokes the default SELECT grant from anon,
+    so the anon INSERT probe must not ask for the inserted row back: supabase-py
+    defaults to returning=representation (INSERT ... RETURNING), which needs
+    SELECT and fails with 42501 on a correctly secured table."""
+
+    def test_anon_insert_probe_succeeds_when_select_is_revoked(self, env, monkeypatch, capsys):
+        anon = FakeClient(select_revoked=True)
+        rc, out = _run(monkeypatch, capsys, FakeClient(snapshot=_snapshot()), anon)
+        assert rc == 0, out
+        assert "anon INSERT succeeded" in out
+        assert "all checks passed" in out
+
+    def test_probe_insert_asks_for_no_representation_back(self, env, monkeypatch, capsys):
+        anon = FakeClient(select_revoked=True)
+        _run(monkeypatch, capsys, FakeClient(snapshot=_snapshot()), anon)
+        assert anon.returning == "minimal"
+
+    def test_a_real_insert_denial_is_still_reported_when_select_is_revoked(self, env, monkeypatch, capsys):
+        anon = FakeClient(select_revoked=True, insert_error=PermissionError({"code": "42501"}))
+        rc, out = _run(monkeypatch, capsys, FakeClient(snapshot=_snapshot()), anon)
+        assert rc == 1
+        assert "anon INSERT failed" in out
 
 
 class TestHealthyMigration:
