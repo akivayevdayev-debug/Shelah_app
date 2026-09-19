@@ -87,6 +87,8 @@ def test_output_blocklist_stays_linear_on_long_whitespace_runs():
     "System  Prompt", "the developer\nmessage", "INTERNAL instructions",
     "hidden chain of thought", "hidden chain-of-thought", "Hidden Chain - Of - Thought",
     "hidden chain \t of \n thought", "hidden chain\t of thought",
+    "hidden  chain of thought", "hidden\nchain of thought", "hidden\t chain-of-thought",
+    "hidden chain - of thought", "hidden chain of - thought",
 ])
 def test_output_blocklist_still_blocks_each_phrase_and_chain_of_thought_spelling(text):
     assert _blocked(text) is True
@@ -96,6 +98,9 @@ def test_output_blocklist_still_blocks_each_phrase_and_chain_of_thought_spelling
     "hidden chainofthought",          # no separator at all
     "hidden chain--of--thought",      # two hyphens is not one hyphen
     "hidden chain\tof\tthought",      # whitespace with no plain space and no hyphen
+    "hidden chainof thought",         # the first gap is missing on its own
+    "hidden chain ofthought",         # the second gap is missing on its own
+    "hidden chain-of\tthought",       # a hyphen gap, then a tab-only gap
     "systemprompt", "chain of thought",
 ])
 def test_output_blocklist_keeps_its_previous_non_matches(text):
