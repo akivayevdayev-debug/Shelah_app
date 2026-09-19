@@ -2891,11 +2891,17 @@ html.rtl .home-main-layout #popularTextsGrid {
    :hover override further down (search ".library-shell #settingsMenuBtn:hover")
    that .lang-btn never had. Mirrors that same pattern instead of just
    adding !important to the low-specificity rule, which would still lose
-   the source-order tie. */
+   the source-order tie.
+   Theme tokens, not a translucent black overlay + a literal brown: that
+   literal was only readable in light theme (#3a3128 over the dark control
+   surface is 1.29:1) and stayed correct in dark solely because the
+   higher-specificity .topbar-flat-btn dark rule happened to override it.
+   The tokens hold in both themes on their own: light #4c3924 on #ece5d8
+   8.74:1, dark #b8b0a0 on #2d2b28 6.56:1. */
 .library-shell .lang-btn:hover,
 .library-shell .lang-btn:focus-visible {
-    background-color: rgba(0, 0, 0, 0.06) !important;
-    color: #3a3128 !important;
+    background-color: var(--control-bg-hover) !important;
+    color: var(--control-text-strong) !important;
 }
 
 .library-shell .lang-btn.lang-btn-active {
