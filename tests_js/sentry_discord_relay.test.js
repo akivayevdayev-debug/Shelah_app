@@ -34,7 +34,7 @@ async function invoke({ method = 'POST', body = '{}', headers = {}, env = {}, di
   const errors = [];
   const pending = [];
   globalThis.fetch = async (url, init) => {
-    discordCalls.push({ url, init, payload: init && init.body ? JSON.parse(init.body) : null });
+    discordCalls.push({ url, init, payload: init?.body ? JSON.parse(init.body) : null });
     if (discord instanceof Error) throw discord;
     return discord || new Response('', { status: 204 });
   };
@@ -187,7 +187,7 @@ test('embed: the last five stack frames are listed most-relevant first', async (
   const { discordCalls } = await invoke({ body });
   const trace = discordCalls[0].payload.embeds[0].fields.find((f) => f.name === 'Stacktrace (last 5)').value;
 
-  const lines = trace.replace(/```/g, '').split('\n');
+  const lines = trace.replaceAll('```', '').split('\n');
   assert.equal(lines.length, 5);
   assert.equal(lines[0], '  at <anonymous> (top.py:?:?)');
   assert.equal(lines[4], '  at f3 (m3.py:4:?)');
@@ -209,6 +209,7 @@ test('embed: level and culprit fall back to the event when the issue lacks them'
   const body = ISSUE_BODY({}, { event: { level: 'fatal', culprit: 'worker.py', environment: 'staging' } });
   const embed = (await invoke({ body })).discordCalls[0].payload.embeds[0];
   assert.equal(embed.color, 0x820000);
-  const names = embed.fields.map((f) => f.name);
-  assert.ok(names.includes('Culprit') && names.includes('Environment'));
+  const names = new Set(embed.fields.map((f) => f.name));
+  assert.ok(names.has('Culprit'));
+  assert.ok(names.has('Environment'));
 });
