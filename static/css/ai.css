@@ -776,7 +776,11 @@ body.search-loading .search-liftoff-underlay::before {
    can't live on this element directly). */
 .search-liftoff-underlay {
     position: absolute;
-    inset: -10px;
+    /* One --sp-2 step, not more: on mobile the topbar pads the form by exactly
+       that much, so this layout box (the blur doesn't count toward scrollable
+       overflow) stops at the viewport edge instead of adding 2px of
+       horizontal overflow at 320px. */
+    inset: calc(-1 * var(--sp-2));
     z-index: -1;
     border-radius: var(--radius-full);
     overflow: hidden;
