@@ -286,7 +286,9 @@ class TestConfiguration:
         vm.fail("b")
         vm.info("c")
         out = capsys.readouterr().out
-        assert "PASS" in out and "FAIL" in out and "INFO" in out
+        assert "PASS" in out
+        assert "FAIL" in out
+        assert "INFO" in out
 
 
 def test_script_entry_point_exits_with_main_return_code(env, monkeypatch):
