@@ -200,8 +200,12 @@ def _parse_hebrewbooks_html(html, normalized_query):
         # Cloudflare challenge page; no parseable search content.
         return None
 
+    # Every run is bounded: an unclosed anchor repeated through a large page
+    # made the unbounded `[^>]*` / lazy `.*?` rescan to the end of the document
+    # from each candidate href (O(n^2); SonarCloud python:S8786). A result
+    # anchor is a short tag with a short title, far inside these limits.
     match = re.search(
-        r'href="(?P<href>[^"#]*pdfpager\.aspx\?req=[^"]+)"[^>]*>(?P<title>.*?)</a>',
+        r'href="(?P<href>[^"#]{0,500}pdfpager\.aspx\?req=[^"]{1,500})"[^>]{0,1000}>(?P<title>.{0,2000}?)</a>',
         html,
         flags=re.IGNORECASE | re.DOTALL,
     )

@@ -18,24 +18,26 @@ CLOCK_TIME_LATEX_RE = re.compile(
     re.IGNORECASE,
 )
 DEBUG_OUTPUT_LINE_PATTERNS = [
-    # The leading "\s*#{0,6}\s*" is wrapped in one atomic group: since
-    # "#{0,6}" can match zero '#' chars, the two "\s*" runs are otherwise
-    # interchangeable across the same whitespace, and the engine explores
-    # every equivalent split before giving up on a non-matching line --
-    # O(n^2) (SonarCloud python:S8786, confirmed via adversarial timing:
-    # 20k leading spaces with no match took over 1s before this fix).
-    re.compile(r"^(?>\s*#{0,6}\s*)conflict\s*flags?\b.*$", re.IGNORECASE),
+    # "\s*(?:#{1,6}\s*)?" accepts exactly what the older "\s*#{0,6}\s*" did, but
+    # a run of whitespace can only be consumed one way; with two "\s*" around
+    # an optional "#{0,6}" the engine tried every split of the same spaces
+    # before giving up on a non-matching line (O(n^2); SonarCloud python:S8786).
+    re.compile(r"^\s*(?:#{1,6}\s*)?conflict\s*flags?\b.*$", re.IGNORECASE),
     re.compile(r"^\s*[-*]\s*conflict\s*flags?\b.*$", re.IGNORECASE),
     re.compile(
         r"^\s*(?:[-*]\s*)?source\s*:\s*community\s*knowledge\b.*$", re.IGNORECASE),
     re.compile(
         r"^\s*(?:[-*]\s*)?no\s+primary\s+sefaria\s+snippet\b.*$", re.IGNORECASE),
 ]
+# In both patterns below the text after the separator starts at a non-space
+# character ("\S.*"), so the "\s*" before it and the text can never split the
+# same whitespace two ways (SonarCloud python:S8786); the groups still hold
+# what "\s*(.+)?" / "\s*(.*)" captured.
 SECTION_KEY_VALUE_RE = re.compile(
-    r"^\s*(?P<key>[A-Za-z][A-Za-z0-9 /()'&-]{2,40}):\s*(?P<value>.+)?$"
+    r"^\s*(?P<key>[A-Za-z][A-Za-z0-9 /()'&-]{2,40}):\s*(?P<value>\S.*)?$"
 )
 BOLD_HEADER_RE = re.compile(
-    r"^\s*\*\*(?P<title>[A-Za-z][A-Za-z0-9 /()'&-]{2,40})\*\*:?\s*(?P<rest>.*)$"
+    r"^\s*\*\*(?P<title>[A-Za-z][A-Za-z0-9 /()'&-]{2,40})\*\*:?\s*(?P<rest>(?:\S.*)?)$"
 )
 HALAKHIC_VERDICT_RE = re.compile(
     r"\b(prohibited|forbidden|permitted|required|obligatory|invalid|valid|asur|assur|mutar)\b",
@@ -292,7 +294,6 @@ def _format_ui_answer(answer_text):
 
 
 CITATION_REF_UNDERSCORE_RE = re.compile(r"_+")
-CITATION_REF_COMMA_SPACING_RE = re.compile(r"\s*,\s*")
 # Splits "<title><sep><locator>" where sep is the single space/dot directly
 # before a trailing run of digits (dot- or colon-separated, e.g. "242.1" or
 # "1:1"). Anchored at both ends (fullmatch via ^...$) so the split point is
@@ -302,7 +303,28 @@ CITATION_REF_COMMA_SPACING_RE = re.compile(r"\s*,\s*")
 # Mishneh Torah, Hilchot Shabbat 1:1"). Non-greedy .*? has no effect on
 # *which* split is found (uniqueness is structural), only that re.match
 # doesn't needlessly backtrack past it.
-CITATION_TITLE_LOCATOR_RE = re.compile(r"^(?P<title>.*?)[.\s](?P<locator>\d+(?:[.:]\d+)*)$")
+#
+# The locator is bounded (numbers of at most 9 digits, at most 10 of them): a
+# lazy `.*?` title retried at every split with an unbounded trailing
+# `\d+(?:[.:]\d+)*` was O(n^2) on a long "1.1.1.1..." run that fails to end at
+# the string end (SonarCloud python:S8786). No real ref comes near the bound.
+CITATION_TITLE_LOCATOR_RE = re.compile(r"^(?P<title>.*?)[.\s](?P<locator>\d{1,9}(?:[.:]\d{1,9}){0,9})$")
+
+
+def _normalize_comma_spacing(text):
+    """Make every comma ", ": drop the whitespace on both sides of each comma
+    (leading/trailing whitespace of the whole string is left alone) and join
+    with one space. Same result as re.sub(r"\\s*,\\s*", ", ", text) without the
+    regex, which rescanned a long whitespace run from every start position
+    (SonarCloud python:S8786)."""
+    parts = text.split(",")
+    if len(parts) == 1:
+        return text
+    parts[0] = parts[0].rstrip()
+    parts[-1] = parts[-1].lstrip()
+    for index in range(1, len(parts) - 1):
+        parts[index] = parts[index].strip()
+    return ", ".join(parts)
 
 
 def format_source_citation(ref, title=None):
@@ -332,7 +354,7 @@ def format_source_citation(ref, title=None):
         return str(title or "").strip()
 
     spaced = CITATION_REF_UNDERSCORE_RE.sub(" ", raw_ref)
-    spaced = CITATION_REF_COMMA_SPACING_RE.sub(", ", spaced).strip()
+    spaced = _normalize_comma_spacing(spaced).strip()
 
     match = CITATION_TITLE_LOCATOR_RE.match(spaced)
     book_part = match.group("title").strip() if match else ""

@@ -131,3 +131,73 @@ def test_out_of_scope_only_reads_the_first_line_as_before():
 ])
 def test_fenced_block_takes_the_first_closed_fence_and_drops_a_json_tag(text, expected):
     assert claude._extract_fenced_json_object(text) == expected
+
+
+# --- backend/utils/text_engine.py, backend/search.py (python:S8786) ----------
+
+from backend import search  # noqa: E402  (grouped with the cases that use it)
+from backend.utils import text_engine as te  # noqa: E402
+
+_SPACES = " " * N
+# Regex scanning runs at C speed, so the hebrewbooks pattern needs a much bigger
+# page than the others before a quadratic version overruns the ceiling.
+_PAGE = 400_000
+
+
+@pytest.mark.parametrize(
+    "run, hostile",
+    [
+        (lambda s: te.DEBUG_OUTPUT_LINE_PATTERNS[0].match(s), _SPACES + "not a match"),
+        (lambda s: te.DEBUG_OUTPUT_LINE_PATTERNS[0].match(s), "#" + _SPACES + "conflict flag"),
+        (te.SECTION_KEY_VALUE_RE.match, "Ruling:" + _SPACES + "a\nb"),
+        (te.BOLD_HEADER_RE.match, "**Ruling**:" + _SPACES + "a\nb"),
+        (te._normalize_comma_spacing, _SPACES + "," + _SPACES + "x" + _SPACES),
+        (te.format_source_citation, "Genesis " + "1." * (N // 2) + "x"),
+        (te.format_source_citation, "," + " ," * (N // 2) + _SPACES),
+        (lambda h: search._parse_hebrewbooks_html(h, "q"), '<a href="pdfpager.aspx?req=1" ' * (_PAGE // 30)),
+        (lambda h: search._parse_hebrewbooks_html(h, "q"), '<a href="pdfpager.aspx?req=1">' * (_PAGE // 30)),
+    ],
+    ids=["conflict_flags_spaces", "conflict_flags_hash", "key_value", "bold_header", "comma_spacing",
+         "title_locator", "comma_citation", "hebrewbooks_unclosed_attrs", "hebrewbooks_unclosed_anchor"],
+)
+def test_text_patterns_stay_linear_on_hostile_input(run, hostile):
+    _, seconds = _elapsed(run, hostile)
+    assert seconds < CEILING_SECONDS
+
+
+def test_comma_spacing_only_touches_whitespace_next_to_commas():
+    assert te._normalize_comma_spacing("a , b,c ,  d") == "a, b, c, d"
+    assert te._normalize_comma_spacing("  a  ") == "  a  "
+    assert te._normalize_comma_spacing(" a ,b ") == " a, b "
+    assert te._normalize_comma_spacing("a , b") == "a, b"
+    assert te._normalize_comma_spacing("a , , b") == "a, , b"
+    assert te._normalize_comma_spacing(",") == ", "
+    assert te._normalize_comma_spacing("") == ""
+
+
+def test_text_patterns_still_capture_what_they_captured():
+    assert te.SECTION_KEY_VALUE_RE.match("  Ruling:   Yes  ").group("key", "value") == ("Ruling", "Yes  ")
+    assert te.SECTION_KEY_VALUE_RE.match("Ruling:   ").group("value") is None
+    assert te.BOLD_HEADER_RE.match("**Ruling**:  text").group("title", "rest") == ("Ruling", "text")
+    assert te.BOLD_HEADER_RE.match("**Ruling**:  ").group("rest") == ""
+    assert te.DEBUG_OUTPUT_LINE_PATTERNS[0].match("  ## Conflict Flags: none")
+    assert te.DEBUG_OUTPUT_LINE_PATTERNS[0].match("conflictflags")
+    assert te.DEBUG_OUTPUT_LINE_PATTERNS[0].match("x conflict flags") is None
+    assert te.format_source_citation("Shulchan_Arukh,_Orach_Chayim.242.1") == "Shulchan Arukh, Orach Chayim 242:1"
+    assert te.format_source_citation("Genesis 1:1") == "Genesis 1:1"
+    assert te.format_source_citation("242.1") == "242.1"
+
+
+def test_title_locator_numbers_are_bounded():
+    assert te.CITATION_TITLE_LOCATOR_RE.match("Genesis 123456789.1").group("locator") == "123456789.1"
+    assert te.CITATION_TITLE_LOCATOR_RE.match("Genesis 1:2:3:4:5:6:7:8:9:10").group("locator") == \
+        "1:2:3:4:5:6:7:8:9:10"
+    assert te.CITATION_TITLE_LOCATOR_RE.match("Genesis " + ":".join("1" * 12)) is None
+
+
+def test_hebrewbooks_anchor_still_found_with_attributes_and_nested_tags():
+    html = 'x <a class="r" href="/pdfpager.aspx?req=42&p=3" target="_b">A <b>Title</b>\n here</a> y'
+    found = search._parse_hebrewbooks_html(html, "q")
+    assert found["url"] == "https://www.hebrewbooks.org/pdfpager.aspx?req=42&p=3"
+    assert found["title"].startswith("[HebrewBooks] A Title")
+    assert search._parse_hebrewbooks_html("<a href=\"nothing\">t</a>", "q") is None
