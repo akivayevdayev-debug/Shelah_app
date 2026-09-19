@@ -30,7 +30,7 @@ ALTER TABLE public.user_preferences
 COMMIT;
 
 -- After running: verify the default is live --
---   SELECT column_name, column_default FROM information_schema.columns
---   WHERE table_schema = 'public' AND table_name = 'user_preferences'
---     AND column_name = 'updated_at';
+SELECT column_name, column_default FROM information_schema.columns
+WHERE table_schema = 'public' AND table_name = 'user_preferences'
+  AND column_name = 'updated_at';
 -- column_default should read `now()`.
