@@ -1724,33 +1724,14 @@ def _build_input_block_result(input_validation: Dict[str, Any]) -> Dict[str, Any
     }
 
 
-def run_protected_ai_wrapper(
-    *,
-    query: str,
-    prompt_builder: Callable[[str], str],
-    model_executor: Callable[[str], Dict[str, Any]],
-    answer_language: str = "en",
-) -> Dict[str, Any]:
-    """Generic security wrapper for present and future LLM/tool calls."""
-    input_validation = validate_user_query(query)
-    if input_validation["blocked"]:
-        return _build_input_block_result(input_validation)
+def apply_output_validation(result, input_validation, answer_language, safety_class):
+    """Validate the model's answer text, attach the security report, and stamp
+    the structured payload with the safety class / age-safe flag.
 
-    sanitized_query = input_validation["sanitized_query"]
-
-    # Classify the sanitized query, not the raw one — sanitize_user_query()
-    # already strips the hidden-Unicode/control characters (zero-width
-    # spaces, bidi overrides) that would otherwise silently break the \b
-    # word-boundary matches inside SELF_HARM_RE/ABUSE_MINOR_SAFETY_RE and
-    # let a safety-relevant query slip past classification.
-    safety_class = classify_safety(sanitized_query)
-    if safety_class in SAFETY_REFERRAL_CLASSES:
-        return _build_safety_referral_result(
-            safety_class, answer_language, input_validation)
-
-    prompt = _sanitize_prompt_payload(prompt_builder(sanitized_query))
-    result = model_executor(prompt)
-
+    The one implementation shared by every answer path (the sync wrapper,
+    ask_ai_async(), and ask_pipeline's agentic path) so the redaction rules
+    cannot drift between them. Mutates and returns `result`.
+    """
     output_validation = validate_model_output(
         result.get("answer", ""), answer_language=answer_language)
     result["answer"] = output_validation["safe_answer"]
@@ -1786,6 +1767,37 @@ def run_protected_ai_wrapper(
             structured["sources"] = []
 
     return result
+
+
+def run_protected_ai_wrapper(
+    *,
+    query: str,
+    prompt_builder: Callable[[str], str],
+    model_executor: Callable[[str], Dict[str, Any]],
+    answer_language: str = "en",
+) -> Dict[str, Any]:
+    """Generic security wrapper for present and future LLM/tool calls."""
+    input_validation = validate_user_query(query)
+    if input_validation["blocked"]:
+        return _build_input_block_result(input_validation)
+
+    sanitized_query = input_validation["sanitized_query"]
+
+    # Classify the sanitized query, not the raw one — sanitize_user_query()
+    # already strips the hidden-Unicode/control characters (zero-width
+    # spaces, bidi overrides) that would otherwise silently break the \b
+    # word-boundary matches inside SELF_HARM_RE/ABUSE_MINOR_SAFETY_RE and
+    # let a safety-relevant query slip past classification.
+    safety_class = classify_safety(sanitized_query)
+    if safety_class in SAFETY_REFERRAL_CLASSES:
+        return _build_safety_referral_result(
+            safety_class, answer_language, input_validation)
+
+    prompt = _sanitize_prompt_payload(prompt_builder(sanitized_query))
+    result = model_executor(prompt)
+
+    return apply_output_validation(
+        result, input_validation, answer_language, safety_class)
 
 
 def ask_claude(question, sefaria_sources, customs, user_memories=None, wiki=None, halachipedia=None, mode="balanced", community_lens="All", answer_language="en", tool_context=None):
@@ -2172,32 +2184,8 @@ async def ask_ai_async(
         )
     result["is_simple"] = is_simple
 
-    output_validation = validate_model_output(
-        result.get("answer", ""), answer_language=answer_language)
-    result["answer"] = output_validation["safe_answer"]
-    result["security"] = {
-        "input": input_validation,
-        "output": {
-            "blocked": output_validation["blocked"],
-            "reason": output_validation["reason"],
-        },
-    }
-
-    if output_validation["blocked"]:
-        result["error"] = result.get("error") or "security_blocked_output"
-        result["is_fallback"] = True
-
-    structured = result.get("structured")
-    if isinstance(structured, dict):
-        structured["safety_class"] = safety_class
-        structured["age_safe"] = not output_validation["blocked"]
-        if output_validation["reason"] == "blocked_explicit_content":
-            structured["ruling"] = output_validation["safe_answer"]
-            structured["summary"] = ""
-            structured["practical_steps"] = []
-            structured["sources"] = []
-
-    return result
+    return apply_output_validation(
+        result, input_validation, answer_language, safety_class)
 
 
 def _fallback_bookmark_summary(segment_text: str, notes: str) -> str:

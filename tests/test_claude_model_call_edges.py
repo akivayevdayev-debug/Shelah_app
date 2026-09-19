@@ -427,3 +427,176 @@ class TestSummarizeWithGeminiFallbacks:
         claude.summarize_with_gemini("The segment.", "")
 
         assert calls[0]["model"] == "custom-model"
+
+
+# ─── apply_output_validation: the one shared post-model validation step ─────
+
+def _validation(**overrides):
+    base = {"safe_answer": "SAFE", "blocked": False, "reason": "ok"}
+    base.update(overrides)
+    return base
+
+
+class TestApplyOutputValidation:
+    def test_a_clean_answer_is_stamped_but_not_flagged(self, monkeypatch):
+        monkeypatch.setattr(claude, "validate_model_output", lambda text, answer_language: _validation())
+        result = {"answer": "raw", "structured": {"ruling": "r", "summary": "s"}}
+
+        out = claude.apply_output_validation(result, {"blocked": False}, "en", "ok")
+
+        assert out is result
+        assert out["answer"] == "SAFE"
+        assert out["security"] == {
+            "input": {"blocked": False}, "output": {"blocked": False, "reason": "ok"},
+        }
+        assert "error" not in out and "is_fallback" not in out
+        assert out["structured"] == {"ruling": "r", "summary": "s", "safety_class": "ok", "age_safe": True}
+
+    def test_the_answer_language_reaches_the_validator(self, monkeypatch):
+        seen = {}
+
+        def fake_validate(text, answer_language):
+            seen.update(text=text, answer_language=answer_language)
+            return _validation()
+
+        monkeypatch.setattr(claude, "validate_model_output", fake_validate)
+
+        claude.apply_output_validation({"answer": "raw"}, {}, "he", "ok")
+
+        assert seen == {"text": "raw", "answer_language": "he"}
+
+    def test_a_blocked_answer_becomes_a_fallback_error(self, monkeypatch):
+        monkeypatch.setattr(
+            claude, "validate_model_output",
+            lambda text, answer_language: _validation(blocked=True, reason="other"),
+        )
+
+        out = claude.apply_output_validation(
+            {"answer": "raw", "structured": {"ruling": "r"}}, {}, "en", "sensitive_intimate")
+
+        assert out["error"] == "security_blocked_output"
+        assert out["is_fallback"] is True
+        assert out["security"]["output"] == {"blocked": True, "reason": "other"}
+        assert out["structured"]["age_safe"] is False
+        assert out["structured"]["safety_class"] == "sensitive_intimate"
+        assert out["structured"]["ruling"] == "r"       # only explicit-content blocks rewrite it
+
+    def test_an_existing_error_is_kept_when_the_answer_is_blocked(self, monkeypatch):
+        monkeypatch.setattr(
+            claude, "validate_model_output",
+            lambda text, answer_language: _validation(blocked=True, reason="x"),
+        )
+
+        out = claude.apply_output_validation({"answer": "a", "error": "earlier"}, {}, "en", "ok")
+
+        assert out["error"] == "earlier"
+
+    def test_blocked_explicit_content_wipes_every_structured_field(self, monkeypatch):
+        monkeypatch.setattr(
+            claude, "validate_model_output",
+            lambda text, answer_language: _validation(
+                blocked=True, reason="blocked_explicit_content", safe_answer="REDACTED"),
+        )
+        result = {"answer": "raw", "structured": {
+            "ruling": "r", "summary": "s", "practical_steps": ["p"], "sources": ["x"]}}
+
+        out = claude.apply_output_validation(result, {}, "en", "ok")
+
+        assert out["answer"] == "REDACTED"
+        assert out["structured"]["ruling"] == "REDACTED"
+        assert out["structured"]["summary"] == ""
+        assert out["structured"]["practical_steps"] == []
+        assert out["structured"]["sources"] == []
+
+    def test_a_result_without_a_structured_payload_only_gets_the_security_report(self, monkeypatch):
+        monkeypatch.setattr(claude, "validate_model_output", lambda text, answer_language: _validation())
+
+        out = claude.apply_output_validation({"answer": "a"}, {}, "en", "ok")
+
+        assert "structured" not in out
+        assert out["answer"] == "SAFE"
+
+    def test_a_missing_answer_is_validated_as_empty_text(self, monkeypatch):
+        seen = []
+        monkeypatch.setattr(
+            claude, "validate_model_output",
+            lambda text, answer_language: seen.append(text) or _validation(),
+        )
+
+        claude.apply_output_validation({}, {}, "en", "ok")
+
+        assert seen == [""]
+
+
+class TestEveryAnswerPathUsesTheSharedValidation:
+    """The same redaction rules must apply on every path; pinning that each one
+    delegates keeps a future inline copy from drifting."""
+
+    SENTINEL = {"answer": "via shared step"}
+
+    @pytest.fixture
+    def recorded(self, monkeypatch):
+        calls: list[tuple] = []
+
+        def fake_apply(result, input_validation, answer_language, safety_class):
+            calls.append((result, answer_language, safety_class))
+            return self.SENTINEL
+
+        monkeypatch.setattr(claude, "apply_output_validation", fake_apply)
+        return calls
+
+    def test_the_protected_wrapper_delegates(self, recorded):
+        model_result = {"answer": "model text"}
+
+        out = claude.run_protected_ai_wrapper(
+            query="What is Shabbat?",
+            prompt_builder=lambda q: q,
+            model_executor=lambda prompt: model_result,
+            answer_language="he",
+        )
+
+        assert out is self.SENTINEL
+        assert recorded == [(model_result, "he", "ok")]
+
+    async def test_ask_ai_async_delegates_with_the_classified_safety_class(self, monkeypatch, recorded):
+        async def fake_gemini(prompt, dynamic_system_context="", is_simple=False):
+            return {"answer": "model text", "is_fallback": False}
+
+        monkeypatch.setattr(claude, "_call_gemini_httpx_model", fake_gemini)
+        monkeypatch.setattr(claude, "classify_safety", lambda text: "sensitive_intimate")
+
+        out = await claude.ask_ai_async("What is Shabbat?", [], [], answer_language="he")
+
+        assert out is self.SENTINEL
+        [(result, language, safety_class)] = recorded
+        assert result["answer"] == "model text" and result["is_simple"] is True
+        assert (language, safety_class) == ("he", "sensitive_intimate")
+
+    async def test_ask_ai_async_redacts_a_blocked_answer_end_to_end(self, monkeypatch):
+        async def fake_gemini(prompt, dynamic_system_context="", is_simple=False):
+            return {"answer": "explicit", "structured": {"ruling": "explicit", "summary": "x"}}
+
+        monkeypatch.setattr(claude, "_call_gemini_httpx_model", fake_gemini)
+        monkeypatch.setattr(
+            claude, "validate_model_output",
+            lambda text, answer_language: _validation(
+                blocked=True, reason="blocked_explicit_content", safe_answer="REDACTED"),
+        )
+
+        out = await claude.ask_ai_async("What is Shabbat?", [], [])
+
+        assert out["answer"] == "REDACTED"
+        assert out["error"] == "security_blocked_output"
+        assert out["is_fallback"] is True
+        assert out["structured"]["ruling"] == "REDACTED"
+        assert out["structured"]["summary"] == ""
+
+    def test_the_agentic_pipeline_delegates(self, monkeypatch, recorded):
+        import backend.ask_pipeline as ask_pipeline
+
+        result = {"answer": "agentic text"}
+
+        out = ask_pipeline._apply_output_validation(result, {"blocked": False}, "he", "sensitive_intimate")
+
+        assert out is self.SENTINEL
+        assert recorded == [(result, "he", "sensitive_intimate")]
