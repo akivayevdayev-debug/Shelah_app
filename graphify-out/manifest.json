@@ -610,8 +610,8 @@
     "semantic_hash": ""
   },
   "templates/index.html": {
-    "mtime": 1789768005.467986,
-    "ast_hash": "837fd1ff730263a9070195818b776f76",
+    "mtime": 1789771780.401475,
+    "ast_hash": "90f93d6ac15dbd4a294bbb9003241f12",
     "semantic_hash": ""
   },
   "templates/privacy.html": {
@@ -1335,8 +1335,8 @@
     "semantic_hash": ""
   },
   "scripts/verify_answer_feedback_migration.py": {
-    "mtime": 1789770969.5158901,
-    "ast_hash": "b20dc5f67c71c3beeca3be41519f6a4c",
+    "mtime": 1789777482.8137693,
+    "ast_hash": "099d9801ea9aa3e2c96b2dc0c403119d",
     "semantic_hash": ""
   },
   "templates/components/icons.html": {
@@ -1580,8 +1580,8 @@
     "semantic_hash": ""
   },
   "tests/test_verify_answer_feedback_migration.py": {
-    "mtime": 1789770956.427234,
-    "ast_hash": "42d1ee0c199d988991db9c9f33837a72",
+    "mtime": 1789777473.7492247,
+    "ast_hash": "2b9304aa8d870a6bba2739e26a964976",
     "semantic_hash": ""
   },
   "tests/test_verify_integrations.py": {
