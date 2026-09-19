@@ -38,7 +38,10 @@ REPO_ROOT = Path(__file__).resolve().parent.parent
 PLAN_FILENAME = "plan.md"
 PROMPTS_FILENAME = "claude_code_prompts.md"
 
-SECTION_HEADER_RE = re.compile(r"^(#{2,3})\s+(\d+(?:\.\d+)?)\.?\s+(.*)$")
+# The title is "(?:\S.*)?" -- it starts at a non-space -- so the "\s+" before it
+# cannot share whitespace with it (SonarCloud python:S8786); group 3 is still
+# the text after the whitespace, "" when there is none.
+SECTION_HEADER_RE = re.compile(r"^(#{2,3})\s+(\d+(?:\.\d+)?)\.?\s+((?:\S.*)?)$")
 # Some prompt numbers carry a letter suffix (Prompt 4b, 29c, 33a/33b/33c) --
 # plain "\d+\b" does NOT set a word boundary before a trailing letter (both
 # are \w), so it silently fails to match "Prompt 33a" at all, letting that
@@ -51,7 +54,10 @@ PROMPT_HEADER_RE = re.compile(r"^##\s+Prompt\s+(\d+[a-z]?)\b")
 # (\xa713 ..., \xa714 ...)" tracks \xa732; \xa713/\xa714 after the colon are
 # backstory about a *different* prompt, not this row's own tracked section,
 # and must not be compared against this row's status.
-PROMPT_PRIMARY_SEGMENT_RE = re.compile(r"^##\s+Prompt\s+\d+[a-z]?\s*[—–-]+\s*(.*?):")
+# The segment starts at a non-space, non-colon character and runs to the first
+# colon, so the "\s*" before it cannot share whitespace with it (SonarCloud
+# python:S8786); group 1 is what the lazy "(.*?)" captured.
+PROMPT_PRIMARY_SEGMENT_RE = re.compile(r"^##\s+Prompt\s+\d+[a-z]?\s*[—–-]+\s*((?:[^\s:][^:\n]*)?):")
 SECTION_REF_RE = re.compile(r"\xa7(\d+(?:\.\d+)?)")
 FENCE_RE = re.compile(r"```.*?```", re.DOTALL)
 
