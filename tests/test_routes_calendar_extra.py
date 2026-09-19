@@ -337,3 +337,76 @@ class TestHolidaysCircuitBreaker:
         assert response.status_code == 200
 
         assert routes_calendar_module.health._circuits["hebcal"].failures == 0
+
+
+class TestZmanimMonthCoordinates:
+    """GET /api/zmanim/month shares _resolve_zmanim_query_coords() with
+    /api/zmanim; these cover the month route's own branches."""
+
+    @pytest.mark.parametrize(
+        "query_string",
+        ["?lat=999&lon=35", "?lat=abc&lon=35", "?lat=31.7&lon=999", "?lat=31.7&lon=north"],
+    )
+    def test_invalid_coordinates_return_400(self, test_client, query_string):
+        response = test_client.get(f"/api/zmanim/month{query_string}")
+
+        assert response.status_code == 400
+        assert "Invalid coordinates" in response.get_json()["error"]
+
+    def test_without_coordinates_uses_the_default_engine_and_is_never_publicly_cached(
+        self, test_client
+    ):
+        """No lat/lon means the response depends on the caller's remembered
+        location (get_engine() reads the session), so a CDN must not cache it."""
+        from backend.cache_policy import CACHE_TIER_PRIVATE
+
+        response = test_client.get("/api/zmanim/month")
+
+        assert response.status_code == 200
+        assert isinstance(response.get_json(), list)
+        assert response.headers["Cache-Control"] == CACHE_TIER_PRIVATE
+
+    def test_with_coordinates_the_response_is_not_forced_private(self, test_client):
+        from backend.cache_policy import CACHE_TIER_PRIVATE
+
+        response = test_client.get("/api/zmanim/month?lat=40.7&lon=-74.0")
+
+        assert response.status_code == 200
+        assert response.headers["Cache-Control"] != CACHE_TIER_PRIVATE
+
+
+class TestHolidaysUnexpectedHebcalShapes:
+    @pytest.mark.parametrize("items", [None, 5, "unexpected"], ids=["null", "number", "string"])
+    def test_items_that_is_not_a_list_yields_no_events(self, test_client, items):
+        """A well-formed 200 whose `items` is not a list is an empty calendar,
+        not an upstream failure: it must not fall through to the pyluach /
+        monthly-zmanim fallback chain (which would return other events)."""
+        with responses_lib.RequestsMock(assert_all_requests_are_fired=False) as rsps:
+            rsps.add(
+                responses_lib.GET, re.compile(r"https://www\.hebcal\.com/.*"),
+                json={"items": items}, status=200,
+            )
+            response = test_client.get("/api/holidays")
+
+        assert response.status_code == 200
+        assert response.get_json() == []
+
+
+class TestParashaSefariaHelperRaises:
+    def test_an_exception_from_the_sefaria_helper_falls_back_to_the_calendar_engine(
+        self, test_client, monkeypatch
+    ):
+        import backend.calendar_service as calendar_service_module
+        import backend.sefaria_library as sefaria_library_module
+
+        def _boom(*args, **kwargs):
+            raise RuntimeError("cache layer exploded")
+
+        monkeypatch.setattr(sefaria_library_module, "_cached_get", _boom)
+        monkeypatch.setattr(calendar_service_module.calendar_engine, "get_parasha", lambda: "Parashat Bo")
+
+        response = test_client.get("/api/parasha")
+
+        assert response.status_code == 200
+        assert response.get_json()["title"] == "Parashat Bo"
+        assert response.get_json()["source"] == "calendar-fallback"
