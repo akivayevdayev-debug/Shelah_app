@@ -218,3 +218,180 @@ async def test_check_does_not_log_a_mitigation_event_when_allowed(monkeypatch):
     allowed, _ = await rate_limit._check("cheap", "203.0.113.73", None, "/api/some/route")
     assert allowed is True
     assert calls == []
+
+
+# ─── _RateLimitStore base class ─────────────────────────────────────────────
+
+@pytest.mark.parametrize(
+    "call",
+    [
+        lambda store: store.incr("k", 60),
+        lambda store: store.get("k"),
+        lambda store: store.setex("k", 60, "v"),
+    ],
+    ids=["incr", "get", "setex"],
+)
+async def test_base_store_operations_are_abstract(call):
+    with pytest.raises(NotImplementedError):
+        await call(rate_limit._RateLimitStore())
+
+
+# ─── _InMemoryStore.incr: LRU eviction ──────────────────────────────────────
+
+async def test_in_memory_store_incr_evicts_least_recently_used_key_at_capacity(monkeypatch):
+    store = rate_limit._InMemoryStore()
+    monkeypatch.setattr(store, "_MAX_KEYS", 2)
+
+    await store.incr("a", 60)
+    await store.incr("b", 60)
+    await store.incr("a", 60)  # touching "a" makes "b" the least recently used
+    await store.incr("c", 60)  # at capacity -> evicts "b", not the older-inserted "a"
+
+    assert list(store._buckets) == ["a", "c"]
+    assert await store.incr("a", 60) == 3  # active caller's counter survived
+    assert await store.incr("b", 60) == 1  # evicted caller starts from scratch
+
+
+# ─── _RedisStore.incr and per-event-loop client rebinding ───────────────────
+
+class _CountingRedisClient:
+    """Fixed-window Redis double: records incr/expire and can be told to fail."""
+
+    def __init__(self, counts=(1,), raise_on_incr=False, raise_on_expire=False):
+        self._counts = iter(counts)
+        self._raise_on_incr = raise_on_incr
+        self._raise_on_expire = raise_on_expire
+        self.expire_calls: list[tuple[str, int]] = []
+
+    async def incr(self, key):
+        if self._raise_on_incr:
+            raise ConnectionError("redis unreachable")
+        return next(self._counts)
+
+    async def expire(self, key, seconds):
+        if self._raise_on_expire:
+            raise ConnectionError("redis unreachable")
+        self.expire_calls.append((key, seconds))
+
+
+async def test_redis_store_incr_sets_the_window_only_when_it_creates_the_key():
+    client = _CountingRedisClient(counts=(1, 2, 3))
+    store = _redis_store_with_fake_client(client)
+
+    assert [await store.incr("k", 60) for _ in range(3)] == [1, 2, 3]
+
+    # A steady stream must not keep pushing the fixed window forward.
+    assert client.expire_calls == [("k", 60)]
+
+
+async def test_redis_store_incr_returns_an_int_for_a_string_reply():
+    store = _redis_store_with_fake_client(_CountingRedisClient(counts=("2",)))
+    assert await store.incr("k", 60) == 2
+
+
+@pytest.mark.parametrize(
+    "client",
+    [_CountingRedisClient(raise_on_incr=True), _CountingRedisClient(raise_on_expire=True)],
+    ids=["incr-fails", "expire-fails"],
+)
+async def test_redis_store_incr_wraps_connection_errors(client):
+    store = _redis_store_with_fake_client(client)
+    with pytest.raises(rate_limit._StoreUnavailable, match="redis unreachable"):
+        await store.incr("k", 60)
+
+
+@pytest.fixture
+def built_redis_clients(monkeypatch):
+    """Replace redis.asyncio.Redis.from_url so building a store makes no
+    connection; every client it hands out is recorded in creation order."""
+    import redis.asyncio as redis_asyncio
+
+    built: list[tuple[str, object]] = []
+
+    def fake_from_url(url, **kwargs):
+        client = object()
+        built.append((url, client))
+        return client
+
+    monkeypatch.setattr(redis_asyncio.Redis, "from_url", staticmethod(fake_from_url))
+    return built
+
+
+async def test_redis_store_reuses_its_client_on_the_same_event_loop(built_redis_clients):
+    store = rate_limit._RedisStore("redis://example.invalid:6379/0")
+
+    first = store._client_for_current_loop()
+    second = store._client_for_current_loop()
+
+    assert first is second is built_redis_clients[0][1]
+    assert len(built_redis_clients) == 1
+
+
+async def test_redis_store_builds_a_fresh_client_when_the_event_loop_changed(built_redis_clients):
+    store = rate_limit._RedisStore("redis://example.invalid:6379/0")
+    original = store._client_for_current_loop()
+    store._client_loop = object()  # a loop that is no longer the running one
+
+    rebuilt = store._client_for_current_loop()
+
+    assert rebuilt is not original
+    assert [url for url, _ in built_redis_clients] == ["redis://example.invalid:6379/0"] * 2
+    # Bound to the running loop now, so a further call keeps the new client.
+    assert store._client_for_current_loop() is rebuilt
+
+
+async def test_redis_store_rebuilds_a_missing_client(built_redis_clients):
+    store = rate_limit._RedisStore("redis://example.invalid:6379/0")
+    store._client = None
+
+    assert store._client_for_current_loop() is built_redis_clients[-1][1]
+    assert len(built_redis_clients) == 2
+
+
+# ─── _build_store() ─────────────────────────────────────────────────────────
+
+def test_build_store_uses_redis_when_a_url_is_configured(monkeypatch, built_redis_clients):
+    monkeypatch.setattr(rate_limit, "RATE_LIMIT_REDIS_URL", "redis://example.invalid:6379/0")
+
+    store = rate_limit._build_store()
+
+    assert isinstance(store, rate_limit._RedisStore)
+
+
+def test_build_store_falls_back_in_process_when_no_url_is_set(monkeypatch, caplog):
+    monkeypatch.setattr(rate_limit, "RATE_LIMIT_REDIS_URL", "")
+
+    with caplog.at_level("WARNING", logger=rate_limit.logger.name):
+        store = rate_limit._build_store()
+
+    assert isinstance(store, rate_limit._InMemoryStore)
+    assert "RATE_LIMIT_REDIS_URL is not set" in caplog.text
+
+
+def test_build_store_never_crashes_boot_on_an_invalid_url(monkeypatch, caplog):
+    monkeypatch.setattr(rate_limit, "RATE_LIMIT_REDIS_URL", "not-a-redis-url")
+
+    with caplog.at_level("CRITICAL", logger=rate_limit.logger.name):
+        store = rate_limit._build_store()
+
+    assert isinstance(store, rate_limit._InMemoryStore)
+    assert "RATE_LIMIT_REDIS_URL is set but invalid" in caplog.text
+    # The password-bearing URL itself must not be echoed into the log.
+    assert "not-a-redis-url" not in caplog.text
+
+
+# ─── RateLimitMiddleware kill switch ────────────────────────────────────────
+
+async def test_middleware_passes_requests_through_when_rate_limiting_is_disabled(
+    fastapi_client, monkeypatch
+):
+    class _ForbiddenStore(rate_limit._RateLimitStore):
+        async def incr(self, key, window_seconds):
+            raise AssertionError("the store must not be consulted when disabled")
+
+    monkeypatch.setattr(rate_limit, "RATELIMIT_ENABLED", False)
+    monkeypatch.setattr(rate_limit, "_store", _ForbiddenStore())
+
+    response = await fastapi_client.get("/api/async/health")
+
+    assert response.status_code == 200
