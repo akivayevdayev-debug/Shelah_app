@@ -109,11 +109,11 @@ def _build_customs_signature(files):
     return tuple(sorted(signature))
 
 
-def _build_trusted_sources(data):
-    """Collect trustworthy sources from each community JSON."""
-    if not isinstance(data, dict):
-        return []
-
+def _collect_trusted_authority_candidates(data):
+    """Gather raw (possibly duplicate/blank) source-name candidates from a
+    community file's source_registry and core_halachic_authorities blocks.
+    Split out of _build_trusted_sources() (SonarCloud python:S3776).
+    """
     candidates = []
 
     source_registry = data.get("source_registry", {}) if isinstance(
@@ -135,19 +135,33 @@ def _build_trusted_sources(data):
         if isinstance(values, list):
             candidates.extend(values)
 
+    return candidates
+
+
+def _dedupe_source_labels(candidates):
+    """Strip, drop blanks, and case-insensitively dedupe a list of raw
+    source-name candidates, preserving first-seen order."""
     deduped = []
     seen = set()
-    for source in candidates:
-        value = str(source or "").strip()
-        if not value:
+    for item in candidates:
+        label = str(item or "").strip()
+        if not label:
             continue
-        key = value.lower()
+        key = label.lower()
         if key in seen:
             continue
         seen.add(key)
-        deduped.append(value)
+        deduped.append(label)
+    return deduped
 
-    return deduped[:6]
+
+def _build_trusted_sources(data):
+    """Collect trustworthy sources from each community JSON (at most 6).
+    Also re-exported by app.py as _build_trusted_custom_sources."""
+    if not isinstance(data, dict):
+        return []
+
+    return _dedupe_source_labels(_collect_trusted_authority_candidates(data))[:6]
 
 
 def _merge_simple_format_customs(customs, data):
