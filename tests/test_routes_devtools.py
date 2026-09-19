@@ -358,3 +358,241 @@ class TestSegmentReport:
         )
         assert response.status_code == 200
         assert response.get_json() == {"ok": True, "logged": True}
+
+
+class _FakeQuery:
+    """Chainable stand-in for a supabase-py query builder: records every call
+    and returns `result` from execute()."""
+
+    def __init__(self, result=None, error=None):
+        self.result = result
+        self.error = error
+        self.calls = []
+
+    def __getattr__(self, name):
+        def _record(*args, **kwargs):
+            self.calls.append((name, args, kwargs))
+            if name == "execute":
+                if self.error is not None:
+                    raise self.error
+                return self.result
+            return self
+
+        return _record
+
+    def table(self, name):
+        self.calls.append(("table", (name,), {}))
+        return self
+
+
+class _Result:
+    def __init__(self, data=None, count=None):
+        self.data = data
+        self.count = count
+
+
+class TestFeedbackDigest:
+    """GET /api/devtools/feedback-digest — plan.md §12.4.3: recent
+    answer-feedback rows, newest first, auth-gated because comments are
+    reader-supplied free text."""
+
+    URL = "/api/devtools/feedback-digest"
+
+    @pytest.fixture
+    def devtools_module(self):
+        import backend.routes_devtools as module
+
+        return module
+
+    def _use_client(self, monkeypatch, devtools_module, client):
+        monkeypatch.setattr(devtools_module, "_get_supabase_client", lambda: client)
+
+    def test_requires_auth(self, test_client):
+        assert test_client.get(self.URL).status_code == 401
+
+    def test_returns_503_when_supabase_is_not_configured(
+        self, test_client, authed, monkeypatch, devtools_module,
+    ):
+        self._use_client(monkeypatch, devtools_module, None)
+
+        response = test_client.get(self.URL, headers=AUTH_HEADERS)
+
+        assert response.status_code == 503
+        assert response.get_json() == {"error": "Supabase not configured"}
+
+    def test_counts_verdicts_and_returns_rows_newest_first(
+        self, test_client, authed, monkeypatch, devtools_module,
+    ):
+        rows = [
+            {"verdict": "helpful", "comment": "a"},
+            {"verdict": "not_helpful", "comment": "b"},
+            {"verdict": "helpful", "comment": "c"},
+            {"verdict": "something_else", "comment": "d"},
+        ]
+        client = _FakeQuery(result=_Result(data=rows))
+        self._use_client(monkeypatch, devtools_module, client)
+
+        response = test_client.get(self.URL, headers=AUTH_HEADERS)
+
+        assert response.status_code == 200
+        assert response.get_json() == {"count": 4, "helpful": 2, "not_helpful": 1, "rows": rows}
+        assert ("table", (devtools_module.SUPABASE_ANSWER_FEEDBACK_TABLE,), {}) in client.calls
+        assert ("order", ("created_at",), {"desc": True}) in client.calls
+
+    def test_null_data_is_an_empty_digest(self, test_client, authed, monkeypatch, devtools_module):
+        self._use_client(monkeypatch, devtools_module, _FakeQuery(result=_Result(data=None)))
+
+        response = test_client.get(self.URL, headers=AUTH_HEADERS)
+
+        assert response.get_json() == {"count": 0, "helpful": 0, "not_helpful": 0, "rows": []}
+
+    @pytest.mark.parametrize(
+        "query_string, expected_limit",
+        [
+            ("", 50), ("?limit=", 50), ("?limit=7", 7), ("?limit=200", 200), ("?limit=100000", 200),
+            # A bad query string used to raise ValueError -> HTML 500 (or, for
+            # a negative value, be forwarded to the query).
+            ("?limit=abc", 50), ("?limit=1.5", 50), ("?limit=0", 50), ("?limit=-5", 50),
+        ],
+    )
+    def test_limit_defaults_to_50_and_is_capped_at_200(
+        self, test_client, authed, monkeypatch, devtools_module, query_string, expected_limit,
+    ):
+        client = _FakeQuery(result=_Result(data=[]))
+        self._use_client(monkeypatch, devtools_module, client)
+
+        assert test_client.get(self.URL + query_string, headers=AUTH_HEADERS).status_code == 200
+
+        assert ("limit", (expected_limit,), {}) in client.calls
+
+    def test_query_failure_returns_500_and_is_reported(
+        self, test_client, authed, monkeypatch, devtools_module,
+    ):
+        captured = []
+        monkeypatch.setattr(
+            devtools_module, "_capture_backend_error",
+            lambda event, exc, context: captured.append((event, str(exc), context)),
+        )
+        self._use_client(monkeypatch, devtools_module, _FakeQuery(error=RuntimeError("db down")))
+
+        response = test_client.get(self.URL, headers=AUTH_HEADERS)
+
+        assert response.status_code == 500
+        assert response.get_json() == {"error": "Could not load feedback"}
+        assert captured == [("feedback_digest_query_failed", "db down", {})]
+
+
+class TestObserveRlsRowCounts:
+    """_observe_rls_row_counts compares a user-scoped row count with the
+    service-role ground truth (plan.md §21.2.2 STEP 5)."""
+
+    TABLE_KEYS = {"user_preferences", "user_memories", "study_bookmarks"}
+
+    @pytest.fixture
+    def devtools_module(self):
+        import backend.routes_devtools as module
+
+        return module
+
+    def _clients(self, monkeypatch, module, service, scoped):
+        monkeypatch.setattr(module, "_get_supabase_client", lambda: service)
+        monkeypatch.setattr(module, "_get_request_supabase_client", lambda: scoped)
+
+    @pytest.mark.parametrize("missing", ["service", "scoped", "both"])
+    def test_missing_client_marks_every_table_unobserved(self, monkeypatch, devtools_module, missing):
+        service = None if missing in ("service", "both") else _FakeQuery(result=_Result(count=1))
+        scoped = None if missing in ("scoped", "both") else _FakeQuery(result=_Result(count=1))
+        self._clients(monkeypatch, devtools_module, service, scoped)
+
+        observed = devtools_module._observe_rls_row_counts("user_1")
+
+        assert set(observed) == self.TABLE_KEYS
+        assert all(entry == {"observed": False, "reason": "client_unavailable"} for entry in observed.values())
+
+    def test_matching_counts_are_reported_as_matching(self, monkeypatch, devtools_module):
+        self._clients(
+            monkeypatch, devtools_module,
+            _FakeQuery(result=_Result(count=3)), _FakeQuery(result=_Result(count=3)),
+        )
+
+        observed = devtools_module._observe_rls_row_counts("user_1")
+
+        assert observed["user_memories"] == {
+            "observed": True, "service_role_count": 3, "user_scoped_count": 3, "matches": True,
+        }
+
+    def test_scoped_zero_versus_service_rows_is_the_silent_rls_failure(self, monkeypatch, devtools_module):
+        # plan.md §21.1: when auth.uid() does not resolve, the scoped client
+        # silently returns zero rows for a user who has data.
+        self._clients(
+            monkeypatch, devtools_module,
+            _FakeQuery(result=_Result(count=4)), _FakeQuery(result=_Result(count=0)),
+        )
+
+        observed = devtools_module._observe_rls_row_counts("user_1")
+
+        assert observed["user_preferences"]["matches"] is False
+        assert observed["user_preferences"]["service_role_count"] == 4
+        assert observed["user_preferences"]["user_scoped_count"] == 0
+
+    def test_null_counts_are_treated_as_zero(self, monkeypatch, devtools_module):
+        self._clients(
+            monkeypatch, devtools_module,
+            _FakeQuery(result=_Result(count=None)), _FakeQuery(result=_Result(count=None)),
+        )
+
+        entry = devtools_module._observe_rls_row_counts("user_1")["study_bookmarks"]
+
+        assert entry["service_role_count"] == 0 and entry["user_scoped_count"] == 0
+        assert entry["matches"] is True
+
+    def test_query_failure_is_reported_per_table_without_aborting(self, monkeypatch, devtools_module):
+        captured = []
+        monkeypatch.setattr(
+            devtools_module, "_capture_backend_error",
+            lambda event, exc, context: captured.append((event, context)),
+        )
+        self._clients(
+            monkeypatch, devtools_module,
+            _FakeQuery(error=RuntimeError("boom")), _FakeQuery(result=_Result(count=0)),
+        )
+
+        observed = devtools_module._observe_rls_row_counts("user_1")
+
+        assert set(observed) == self.TABLE_KEYS
+        assert all(entry == {"observed": False, "reason": "query_failed"} for entry in observed.values())
+        assert sorted(context["table"] for _, context in captured) == sorted(
+            [
+                devtools_module.SUPABASE_PREFS_TABLE,
+                devtools_module.SUPABASE_USER_MEMORIES_TABLE,
+                devtools_module.SUPABASE_STUDY_BOOKMARKS_TABLE,
+            ]
+        )
+        assert {event for event, _ in captured} == {"rls_audit_observed_query_failed"}
+
+
+class TestSegmentReportIdentity:
+    def test_authenticated_report_logs_the_clerk_subject(self, test_client, authed, caplog):
+        import logging
+
+        with caplog.at_level(logging.WARNING):
+            response = test_client.post(
+                "/api/devtools/segment-report",
+                json={"kind": "reader", "segment": "Genesis 1"},
+                headers=AUTH_HEADERS,
+            )
+
+        assert response.status_code == 200
+        assert any(
+            "SEGMENT_REPORT" in record.getMessage() and f'"user_id": "{FAKE_USER_ID}"' in record.getMessage()
+            for record in caplog.records
+        )
+
+    def test_anonymous_report_has_no_user_id(self, test_client, caplog):
+        import logging
+
+        with caplog.at_level(logging.WARNING):
+            test_client.post("/api/devtools/segment-report", json={"kind": "reader"})
+
+        messages = [r.getMessage() for r in caplog.records if "SEGMENT_REPORT" in r.getMessage()]
+        assert messages and all('"user_id"' not in message for message in messages)
