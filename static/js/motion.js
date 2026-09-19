@@ -217,8 +217,177 @@ export async function slideOut(el, { to = 'left', distance = '100%' } = {}) {
     );
 }
 
+// ── Presence: animated show / hide for menus, sheets and modals ─────────────
+//
+// present() / dismiss() are the vanilla stand-in for <AnimatePresence>: they
+// own the `hidden` class, so an element is only display:none once its exit has
+// finished, and they are safe to call in any order (a show during an exit
+// cancels it and vice versa -- `token` discards the stale completion).
+//
+// Each preset is the offset an element rises from on enter / sinks to on exit;
+// the transform is always written with the SAME function list (translateY +
+// scale) at both ends, which is what lets motion interpolate the strings.
+const _PRESENCE = {
+    // Anchored dropdowns: rise a few px into place.
+    popover: { y: 12, scale: 0.98, exitY: 8, exitScale: 0.98, spring: SPRING_ENTER },
+    // Phone bottom sheets / modal cards: slide up from below.
+    sheet:   { y: 56, scale: 1,    exitY: 40, exitScale: 1,   spring: { stiffness: 380, damping: 34, mass: 0.8 } },
+    // Centred modal cards on larger screens.
+    modal:   { y: 18, scale: 0.97, exitY: 10, exitScale: 0.98, spring: SPRING_ENTER },
+    // Opacity only (scrims, full-screen dialog shells).
+    fade:    { y: 0,  scale: 1,    exitY: 0,  exitScale: 1,   spring: SPRING_ENTER },
+};
+// Exit springs are critically damped so the element settles without a rebound
+// while it is already leaving.
+const SPRING_LEAVE = { stiffness: 420, damping: 40, mass: 0.8 };
+const _presence = new WeakMap();
+
+const _xf = (y, scale) => `translateY(${y}px) scale(${scale})`;
+
+function _presenceState(el) {
+    let state = _presence.get(el);
+    if (!state) {
+        state = { token: 0, controls: [] };
+        _presence.set(el, state);
+    }
+    state.controls.forEach((c) => c.stop?.());
+    state.controls = [];
+    return state;
+}
+
+// motion writes an animation's final value back to the element's inline style
+// as it finishes, which can land just after the promise it resolves; wait a
+// macrotask before clearing so that write cannot overwrite the cleanup.
+const _settle = () => new Promise((resolve) => setTimeout(resolve, 0));
+
+function _clearMotionStyles(...els) {
+    els.forEach((el) => {
+        if (!el) return;
+        el.style.removeProperty('opacity');
+        el.style.removeProperty('transform');
+    });
+}
+
+/**
+ * Show `el` with an entrance. `card` (optional) is a child that carries the
+ * movement while `el` itself only fades -- the shape of a modal, where `el` is
+ * the scrim/dialog shell and `card` the panel.  Resolves once settled.
+ *
+ * `replay: true` is for a caller that had to un-hide the element itself first
+ * (a <dialog> must be rendered when showModal() runs, or focus cannot move
+ * into it); without it an element that is already showing is left alone.
+ */
+export async function present(el, { preset = 'popover', card = null, replay = false } = {}) {
+    if (!el) return;
+    const wasHidden = el.classList.contains('hidden');
+    const leaving = el.classList.contains('is-hiding');
+    // Already showing (or still entering): nothing to replay.
+    if (!wasHidden && !leaving && !replay) return;
+    // Cancelling an exit half-way: fade back in from where it had got to.
+    const startOpacity = wasHidden || (replay && !leaving) ? 0 : Number.parseFloat(getComputedStyle(el).opacity) || 0;
+    const state = _presenceState(el);
+    const token = ++state.token;
+    el.classList.remove('hidden', 'is-hiding');
+
+    const animate = _motionAnimate();
+    const p = _PRESENCE[preset] ?? _PRESENCE.popover;
+    if (!animate || isMotionReduced()) {
+        _clearMotionStyles(el, card);
+        return;
+    }
+
+    const mover = card ?? (p.y || p.scale !== 1 ? el : null);
+    el.style.opacity = String(startOpacity);
+    if (mover) mover.style.transform = _xf(p.y, p.scale);
+
+    const controls = [animate(el, { opacity: [startOpacity, 1] }, { duration: 0.18, ease: [0.25, 0, 0.3, 1] })];
+    if (mover) {
+        controls.push(animate(mover, { transform: [_xf(p.y, p.scale), _xf(0, 1)] }, _springTransition(p.spring)));
+    }
+    state.controls = controls;
+    await Promise.all(controls);
+    await _settle();
+    if (state.token !== token) return; // superseded by a dismiss()
+    _clearMotionStyles(el, card);
+}
+
+/**
+ * Hide `el` with an exit, then add `hidden`.  Runs `onHidden` afterwards (a
+ * <dialog>'s close() belongs there: closing earlier would drop it out of the
+ * top layer mid-animation).  Resolves once hidden.
+ */
+export async function dismiss(el, { preset = 'popover', card = null, onHidden } = {}) {
+    if (!el) return;
+    if (el.classList.contains('hidden')) {
+        onHidden?.();
+        return;
+    }
+    const state = _presenceState(el);
+    const token = ++state.token;
+    const finish = () => {
+        el.classList.add('hidden');
+        el.classList.remove('is-hiding');
+        _clearMotionStyles(el, card);
+        onHidden?.();
+    };
+
+    const animate = _motionAnimate();
+    const p = _PRESENCE[preset] ?? _PRESENCE.popover;
+    if (!animate || isMotionReduced()) {
+        finish();
+        return;
+    }
+
+    el.classList.add('is-hiding'); // pointer-events: none while it leaves
+    const mover = card ?? (p.exitY || p.exitScale !== 1 ? el : null);
+    const fade = animate(el, { opacity: 0 }, { duration: 0.16, ease: [0.4, 0, 1, 1] });
+    const controls = [fade];
+    if (mover) {
+        controls.push(animate(mover, { transform: [_xf(0, 1), _xf(p.exitY, p.exitScale)] }, _springTransition(SPRING_LEAVE)));
+    }
+    state.controls = controls;
+    // Hide as soon as it has faded; the (longer) spring is cut off while invisible.
+    await fade;
+    if (state.token !== token) return; // superseded by a present()
+    controls.forEach((c) => c.stop?.());
+    await _settle();
+    if (state.token !== token) return;
+    finish();
+}
+
+/**
+ * Slide a highlight element to `x` (px, from the container's left edge).
+ * Used by the bottom tab bar's active-tab pill: one element that travels
+ * between buttons instead of each button repainting its own background.
+ * The first call, or any call with animate:false (resize, theme change),
+ * places it without movement.
+ */
+export function slideTo(el, x, { animate: withMotion = true } = {}) {
+    if (!el) return;
+    const animate = _motionAnimate();
+    const state = _presenceState(el);
+    const from = el._shelahX ?? x;
+    el._shelahX = x;
+    if (!withMotion || !animate || isMotionReduced() || from === x) {
+        el.style.transform = `translateX(${x}px)`;
+        return;
+    }
+    // Continue from where an interrupted slide currently is.
+    const m = new DOMMatrixReadOnly(getComputedStyle(el).transform);
+    const start = Number.isFinite(m.m41) ? m.m41 : from;
+    state.controls = [animate(
+        el,
+        { transform: [`translateX(${start}px)`, `translateX(${x}px)`] },
+        _springTransition({ stiffness: 420, damping: 32, mass: 0.8 }),
+    )];
+    return state.controls[0];
+}
+
 // Expose on window so legacy inline-script code can call without an import
 window.ShelahMotion = {
+    present,
+    dismiss,
+    slideTo,
     animateIn,
     animateOut,
     staggerIn,

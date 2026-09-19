@@ -464,14 +464,9 @@
    class the JS actually renders onto each box, and it's paired there with the
    matching prefers-reduced-motion override. */
 
-/* Modal open animation */
-#aiAssistantModal>div,
-#textsMenuModal>div,
-#chapterGridModal>div,
-#calendarModal>div,
-#libraryCategoryModal>div {
-    animation: shelah-scale-in 0.24s cubic-bezier(0.22, 1, 0.36, 1) both;
-}
+/* Modal entrance/exit (aiAssistant, textsMenu, chapterGrid, calendar,
+   libraryCategory, privacyData) is driven by ShelahMotion.present()/dismiss()
+   -- a bottom-sheet rise on phones, a centred card elsewhere. */
 
 /* Reader topbar slide-down */
 #readerTopBar {
@@ -697,25 +692,19 @@
     transition: transform var(--motion-dur-base) var(--motion-ease-decel) !important;
 }
 
-/* ── Modals ──────────────────────────────────────────────── */
-#aiAssistantModal:not(.hidden),
-#textsMenuModal:not(.hidden) {
-    animation: shelah-fade-in 0.22s ease both;
-}
-
-#settingsPanel:not(.hidden):not(.is-hiding) {
-    animation: shelah-fade-up 0.22s cubic-bezier(0.22, 1, 0.36, 1) both;
-}
-
-#userProfileMenu:not(.hidden):not(.is-hiding) {
-    animation: shelah-fade-up 0.2s cubic-bezier(0.22, 1, 0.36, 1) both;
-}
-
-/* Exit animations — play before adding .hidden (vanilla AnimatePresence) */
-#settingsPanel.is-hiding,
-#userProfileMenu.is-hiding {
-    animation: shelah-fade-in var(--motion-dur-fast, 150ms) var(--motion-ease-out, ease) reverse forwards;
+/* ── Menus & modals ──────────────────────────────────────── */
+/* Entrance/exit: ShelahMotion.present()/dismiss() (motion.js). `.is-hiding`
+   is set for the duration of an exit so the leaving element cannot be tapped. */
+.is-hiding {
     pointer-events: none;
+}
+
+/* positionFloatingMenu() places these with `position: fixed; left/top`, so the
+   CSS centring transform (translateX(-50%)) must not apply; a class rather than
+   an inline !important keeps `transform` free for the animation. */
+#settingsPanel.is-floating-menu,
+#userProfileMenu.is-floating-menu {
+    transform: none;
 }
 
 #userProfileMenu a,
