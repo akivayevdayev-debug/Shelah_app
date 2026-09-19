@@ -284,3 +284,135 @@ class TestGetParashaCircuitBreaker:
         result = PyluachEngine.get_parasha("garbage-date")
         assert result == "Parasha lookup unavailable"
         assert cs.health._circuits["hebcal"].failures == 0
+
+
+class TestGetParashaDefaultsToToday:
+    def test_none_looks_up_todays_date(self, monkeypatch):
+        import backend.calendar_service as cs
+
+        class _FrozenDate(date):
+            @classmethod
+            def today(cls):
+                return cls(2026, 1, 1)
+
+        seen_params = {}
+
+        def fake_get(url, params=None, **kwargs):
+            seen_params.update(params)
+            return type("R", (), {
+                "raise_for_status": lambda self: None,
+                "json": lambda self: {"events": ["Parashat Vaera"]},
+            })()
+
+        monkeypatch.setattr(cs, "date_lib", _FrozenDate)
+        monkeypatch.setattr(cs._HTTP, "get", fake_get)
+
+        assert PyluachEngine.get_parasha() == "Parashat Vaera"
+        assert (seen_params["gy"], seen_params["gm"], seen_params["gd"]) == (2026, 1, 1)
+
+
+class TestHebrewToGregorian:
+    def test_converts_a_hebrew_date(self):
+        result = PyluachEngine.hebrew_to_gregorian(5786, 7, 1)  # 1 Tishrei 5786 = Rosh Hashana
+
+        assert result == {
+            "gregorian_date": "2025-09-23",
+            "hebrew_date": "1 Tishrei 5786",
+            "hebrew_year": 5786,
+            "hebrew_month": 7,
+            "hebrew_day": 1,
+        }
+
+    def test_accepts_numeric_strings(self):
+        assert PyluachEngine.hebrew_to_gregorian("5786", "7", "1")["gregorian_date"] == "2025-09-23"
+
+    @pytest.mark.parametrize(
+        "args",
+        [
+            (5786, 13, 1),    # Adar II in a non-leap year
+            (5786, 7, 31),    # Tishrei has 30 days
+            (5786, 7, "x"),   # not a number
+        ],
+        ids=["adar-ii-non-leap", "day-out-of-range", "non-numeric"],
+    )
+    def test_invalid_hebrew_date_returns_error_shape(self, args):
+        result = PyluachEngine.hebrew_to_gregorian(*args)
+
+        assert result["gregorian_date"] is None
+        assert result["error"]
+
+
+class TestAddDaysToHebrewDate:
+    def test_adds_days_across_a_month_boundary(self):
+        # Tishrei has 30 days, so 1 Tishrei + 30 is 1 Cheshvan.
+        result = PyluachEngine.add_days_to_hebrew_date(5786, 7, 1, 30)
+
+        assert result["hebrew_date"] == "1 Cheshvan 5786"
+        assert (result["hebrew_year"], result["hebrew_month"], result["hebrew_day"]) == (5786, 8, 1)
+        assert result["gregorian_date"] == "2025-10-23"
+
+    def test_negative_days_cross_the_new_year_backwards(self):
+        # The day before Rosh Hashana 5786 is 29 Elul 5785.
+        result = PyluachEngine.add_days_to_hebrew_date(5786, 7, 1, -1)
+
+        assert result["hebrew_date"] == "29 Elul 5785"
+        assert (result["hebrew_year"], result["hebrew_month"], result["hebrew_day"]) == (5785, 6, 29)
+        assert result["gregorian_date"] == "2025-09-22"
+
+    @pytest.mark.parametrize(
+        "args",
+        [(5786, 13, 1, 5), (5786, 7, 1, "many")],
+        ids=["invalid-date", "non-numeric-days"],
+    )
+    def test_bad_input_returns_error_shape(self, args):
+        result = PyluachEngine.add_days_to_hebrew_date(*args)
+
+        assert result["error"]
+        assert "gregorian_date" not in result
+
+
+class TestNextOccurrenceOfHebrewDate:
+    def test_string_anchor_on_the_day_itself_returns_that_day(self):
+        # 7 Tishrei 5787 is 2026-09-18; "next occurrence" is inclusive of the anchor.
+        result = PyluachEngine.next_occurrence_of_hebrew_date(7, 7, "2026-09-18")
+
+        assert result["gregorian_date"] == "2026-09-18"
+        assert result["hebrew_date"] == "7 Tishrei 5787"
+
+    def test_date_object_anchor_after_the_day_rolls_to_next_year(self):
+        result = PyluachEngine.next_occurrence_of_hebrew_date(7, 7, date(2026, 9, 19))
+
+        assert result["gregorian_date"] == "2027-10-08"
+        assert (result["hebrew_year"], result["hebrew_month"], result["hebrew_day"]) == (5788, 7, 7)
+
+    def test_none_anchor_means_today(self, monkeypatch):
+        import backend.calendar_service as cs
+
+        class _FrozenDate(date):
+            @classmethod
+            def today(cls):
+                return cls(2026, 9, 18)
+
+        monkeypatch.setattr(cs, "date_lib", _FrozenDate)
+
+        result = PyluachEngine.next_occurrence_of_hebrew_date(7, 7)
+
+        assert result["gregorian_date"] == "2026-09-18"
+
+    def test_month_missing_from_this_year_skips_to_the_next_year_that_has_it(self):
+        # 5786 is not a leap year, so Adar II does not exist; 5787 is a leap year.
+        result = PyluachEngine.next_occurrence_of_hebrew_date(13, 1, "2025-09-30")
+
+        assert result["gregorian_date"] == "2027-03-10"
+        assert (result["hebrew_year"], result["hebrew_month"], result["hebrew_day"]) == (5787, 13, 1)
+
+    def test_a_date_that_never_exists_reports_that_it_could_not_be_resolved(self):
+        result = PyluachEngine.next_occurrence_of_hebrew_date(7, 31, "2026-09-18")
+
+        assert result == {"error": "Could not resolve a next occurrence within 3 Hebrew years"}
+
+    def test_unparseable_anchor_returns_error_shape(self):
+        result = PyluachEngine.next_occurrence_of_hebrew_date(7, 7, "garbage-date")
+
+        assert result["error"]
+        assert "gregorian_date" not in result
