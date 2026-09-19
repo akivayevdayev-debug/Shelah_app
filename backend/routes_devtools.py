@@ -102,6 +102,23 @@ def stack_health():
     })
 
 
+_FEEDBACK_DIGEST_DEFAULT_LIMIT = 50
+_FEEDBACK_DIGEST_MAX_LIMIT = 200
+
+
+def _feedback_digest_limit(raw):
+    """Row limit for the feedback digest: the default for a missing, empty,
+    non-numeric or non-positive value (a bad query string must not become a
+    500), otherwise capped at _FEEDBACK_DIGEST_MAX_LIMIT."""
+    try:
+        requested = int(raw)
+    except (TypeError, ValueError):
+        return _FEEDBACK_DIGEST_DEFAULT_LIMIT
+    if requested < 1:
+        return _FEEDBACK_DIGEST_DEFAULT_LIMIT
+    return min(requested, _FEEDBACK_DIGEST_MAX_LIMIT)
+
+
 @routes_devtools.route("/api/devtools/feedback-digest", methods=["GET"])
 @require_clerk_auth
 def feedback_digest():
@@ -111,7 +128,7 @@ def feedback_digest():
     supplied by readers (sanitized, but not meant for public display), so
     this has no legitimate anonymous caller.
     """
-    limit = min(int(request.args.get("limit", 50) or 50), 200)
+    limit = _feedback_digest_limit(request.args.get("limit"))
     supabase = _get_supabase_client()
     if not supabase:
         return jsonify({"error": "Supabase not configured"}), 503
