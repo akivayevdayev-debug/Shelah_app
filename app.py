@@ -42,6 +42,11 @@ from backend.logging_setup import (
     submit_with_context,
 )
 from backend.customs import validate_all_customs_at_startup
+from backend.customs import (  # noqa: F401  (re-import shims; see below)
+    _collect_trusted_authority_candidates,
+    _dedupe_source_labels,
+    _build_trusted_sources as _build_trusted_custom_sources,
+)
 # Re-export shim, consumed by routes_devtools.py's `from app import api_health`.
 from backend.health_check import health as api_health  # noqa: F401
 from backend.helpers import extract_ai_cited
@@ -55,6 +60,8 @@ from backend.helpers import (
 from backend.helpers import (
     _bounded_cache_set,
     _canonicalize_community_name,
+    COMMUNITIES,
+    COMMUNITY_ALIASES,
 )
 # WEB_LAST_RESORT_WARNING and _extract_query_keywords below are not called
 # directly in this file, but are consumed as `app.<name>` attributes by
@@ -231,63 +238,6 @@ def _set_cached_ask_payload(cache_key, payload):
 # _is_translation_echo / _extract_google_translated_text moved to
 # backend/utils/search_provider.py as the single canonical implementation.
 # Re-imported here as back-compat shims (search: "Re-import shims").
-
-
-def _collect_trusted_authority_candidates(data):
-    """Gather raw (possibly duplicate/blank) source-name candidates from a
-    community file's source_registry and core_halachic_authorities blocks.
-    Split out of _build_trusted_custom_sources() (SonarCloud python:S3776).
-    """
-    candidates = []
-
-    source_registry = data.get("source_registry", {}) if isinstance(
-        data.get("source_registry"), dict) else {}
-    candidates.extend(source_registry.get("primary", []) if isinstance(
-        source_registry.get("primary"), list) else [])
-
-    authorities = data.get("core_halachic_authorities", {}) if isinstance(
-        data.get("core_halachic_authorities"), dict) else {}
-    for key in (
-        "primary_codes",
-        "major_rishonim_base",
-        "later_ashkenazi_poskim",
-        "later_sephardi_poskim",
-        "later_moroccan_poskim",
-        "later_turkish_poskim",
-    ):
-        value = authorities.get(key)
-        if isinstance(value, list):
-            candidates.extend(value)
-
-    return candidates
-
-
-def _dedupe_source_labels(candidates):
-    """Strip, drop blanks, and case-insensitively dedupe a list of raw
-    source-name candidates, preserving first-seen order. Split out of
-    _build_trusted_custom_sources() (SonarCloud python:S3776).
-    """
-    deduped = []
-    seen = set()
-    for item in candidates:
-        label = str(item or "").strip()
-        if not label:
-            continue
-        key = label.lower()
-        if key in seen:
-            continue
-        seen.add(key)
-        deduped.append(label)
-    return deduped
-
-
-def _build_trusted_custom_sources(data):
-    """Build a stable source list from trusted halachic authorities in community files."""
-    if not isinstance(data, dict):
-        return []
-
-    candidates = _collect_trusted_authority_candidates(data)
-    return _dedupe_source_labels(candidates)[:6]
 
 
 # _lookup_english_word_meaning, _normalize_glossary_meaning,
@@ -665,13 +615,12 @@ def _coerce_ai_answer_shape(result, question, mode, answer_language="en"):
     return result
 
 
-# _canonicalize_community_name: reconciled to backend/helpers.py as part of
-# the Phase 4 Finding A cleanup above -- re-imported as a back-compat shim
-# (search: "Re-import shims"). backend/helpers.py's copy uses its own
-# COMMUNITIES/COMMUNITY_ALIASES dicts (byte-identical content to this file's
-# copies below); this file's copies stay because _detect_community_in_text
-# (not named for migration, reached into lazily by backend/rag.py and
-# monkeypatched directly in tests/test_rag.py) still needs them locally.
+# _canonicalize_community_name, COMMUNITIES and COMMUNITY_ALIASES: reconciled
+# to backend/helpers.py (the single copy of the registry) and re-imported
+# above as back-compat shims (search: "Re-import shims"). They stay importable
+# as `app.COMMUNITIES` etc. because _detect_community_in_text below (reached
+# into lazily by backend/rag.py, and monkeypatched in tests) reads them from
+# this module's namespace.
 
 
 def _detect_community_in_text(question):
@@ -2163,65 +2112,6 @@ def ask_question():
 # ─── COMMUNITY CUSTOMS DATA (Merkava) ─────────────────────────────────────────
 # Shared community registry consumed by backend/routes_community.py and by the
 # _canonicalize_community_name / _detect_community_in_text helpers above.
-
-COMMUNITIES = {
-    "Ashkenaz": "ashkenaz",
-    "Bukharian": "bukharian",
-    "Ethiopian": "ethiopian",
-    "Georgian": "georgian",
-    "Greek-Romaniote": "greek-romaniote",
-    "Iraqi": "iraqi",
-    "Kavkazi": "mountain-jewish-kavkazi",
-    "Syrian": "syrian",
-    "Persian": "persian",
-    "Sefardic": "sefardic",
-    "Turkish-Ottoman": "turkish-ottoman-sefardic",
-    "Yemenite": "yemenite",
-    "Moroccan": "moroccan",
-    "Israeli": "sefardic",
-}
-
-COMMUNITY_ALIASES = {
-    "ashkenazi": "Ashkenaz",
-    "ashkenaz": "Ashkenaz",
-    "sefardi": "Sefardic",
-    "sephardi": "Sefardic",
-    "sefardic": "Sefardic",
-    "sephardic": "Sefardic",
-    "iraqi": "Iraqi",
-    "mizrahi": "Iraqi",
-    "syrian": "Syrian",
-    "yemenite": "Yemenite",
-    "yemeni": "Yemenite",
-    "moroccan": "Moroccan",
-    "morrocan": "Moroccan",
-    "israeli": "Israeli",
-    "israel": "Israeli",
-    "kavkazi": "Kavkazi",
-    "mountain jewish": "Kavkazi",
-    "mountain-jewish": "Kavkazi",
-    "kavkazi jews": "Kavkazi",
-    "mountain-jewish-kavkazi": "Kavkazi",
-    "bukharan": "Bukharian",
-    "bukharian": "Bukharian",
-    "ethiopian": "Ethiopian",
-    "beta israel": "Ethiopian",
-    "georgian": "Georgian",
-    "persian": "Persian",
-    "iranian": "Persian",
-    "greek": "Greek-Romaniote",
-    "romaniote": "Greek-Romaniote",
-    "greek-romaniote": "Greek-Romaniote",
-    "turkish": "Turkish-Ottoman",
-    "ottoman": "Turkish-Ottoman",
-    "ottoman sefardic": "Turkish-Ottoman",
-    "turkish ottoman": "Turkish-Ottoman",
-    "turkish ottoman sefardic": "Turkish-Ottoman",
-    "turkish-ottoman community": "Turkish-Ottoman",
-    "turkish ottoman community": "Turkish-Ottoman",
-    "turkish-ottoman": "Turkish-Ottoman",
-    "turkish-ottoman-sefardic": "Turkish-Ottoman",
-}
 
 
 # ─── Blueprint registration (Stage 2 route decomposition) ────────────────
