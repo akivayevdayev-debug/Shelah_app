@@ -1,12 +1,15 @@
 """Behavior tests for scripts/merge_lcov.py (duplicate lcov records -> one)."""
 
 import importlib.util
+import io
+import subprocess
+import sys
 from pathlib import Path
 
 import pytest
 
-_SPEC = importlib.util.spec_from_file_location(
-    "merge_lcov", Path(__file__).resolve().parent.parent / "scripts" / "merge_lcov.py")
+SCRIPT = Path(__file__).resolve().parent.parent / "scripts" / "merge_lcov.py"
+_SPEC = importlib.util.spec_from_file_location("merge_lcov", SCRIPT)
 merge_lcov = importlib.util.module_from_spec(_SPEC)
 _SPEC.loader.exec_module(merge_lcov)
 
@@ -85,19 +88,49 @@ def test_lines_outside_any_record_are_ignored():
     assert "DA:2,1" in merged
 
 
-def test_main_writes_merged_file_and_creates_parent_directory(tmp_path):
-    source = tmp_path / "raw.info"
-    source.write_text(_record("a.js", [(1, 1)]) + _record("a.js", [(1, 2)]), encoding="utf-8")
-    destination = tmp_path / "nested" / "out" / "lcov.info"
+def _run_main(monkeypatch, capsysbinary, stdin_text, argv=("merge_lcov.py",)):
+    monkeypatch.setattr(sys, "stdin", io.TextIOWrapper(io.BytesIO(stdin_text.encode("utf-8"))))
+    rc = merge_lcov.main(list(argv))
+    return rc, capsysbinary.readouterr()
 
-    rc = merge_lcov.main(["merge_lcov.py", str(source), str(destination)])
+
+def test_main_merges_stdin_to_stdout(monkeypatch, capsysbinary):
+    raw = _record("a.js", [(1, 1)]) + _record("a.js", [(1, 2)])
+
+    rc, captured = _run_main(monkeypatch, capsysbinary, raw)
 
     assert rc == 0
-    assert destination.read_text(encoding="utf-8").count("DA:1,3") == 1
+    assert captured.out.decode("utf-8").count("DA:1,3") == 1
+    assert captured.err == b""
 
 
-@pytest.mark.parametrize("argv", [["merge_lcov.py"], ["merge_lcov.py", "only-one"],
-                                  ["merge_lcov.py", "a", "b", "c"]])
-def test_main_rejects_wrong_argument_count(argv, capsys):
-    assert merge_lcov.main(argv) == 2
-    assert "Usage" in capsys.readouterr().err
+def test_main_keeps_non_ascii_source_paths_intact(monkeypatch, capsysbinary):
+    raw = _record("static/js/\u05e9\u05dc.js", [(1, 1)]) + _record("static/js/\u05e9\u05dc.js", [(1, 1)])
+
+    rc, captured = _run_main(monkeypatch, capsysbinary, raw)
+
+    assert rc == 0
+    assert "SF:static/js/\u05e9\u05dc.js\n" in captured.out.decode("utf-8")
+
+
+def test_the_npm_pipeline_shape_works_end_to_end(tmp_path):
+    """`python3 scripts/merge_lcov.py < raw > merged` is what package.json runs."""
+    raw = tmp_path / "raw.info"
+    raw.write_text(_record("a.js", [(1, 1)]) + _record("a.js", [(1, 2)]), encoding="utf-8")
+    merged = tmp_path / "lcov.info"
+
+    with raw.open("rb") as stdin, merged.open("wb") as stdout:
+        done = subprocess.run([sys.executable, str(SCRIPT)], stdin=stdin, stdout=stdout,
+                              stderr=subprocess.PIPE, check=False)
+
+    assert done.returncode == 0, done.stderr
+    assert merged.read_text(encoding="utf-8").count("DA:1,3") == 1
+
+
+@pytest.mark.parametrize("argv", [["merge_lcov.py", "in.info"], ["merge_lcov.py", "in.info", "out.info"]])
+def test_main_rejects_the_old_path_arguments(argv, monkeypatch, capsysbinary):
+    rc, captured = _run_main(monkeypatch, capsysbinary, _record("a.js", [(1, 1)]), argv)
+
+    assert rc == 2
+    assert captured.out == b""
+    assert b"Usage: merge_lcov.py < INPUT.info > OUTPUT.info" in captured.err

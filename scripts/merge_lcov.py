@@ -11,12 +11,15 @@ file), so the reported coverage would be whatever a single test happened to hit.
 This script sums the hit counts per line (DA) and per branch (BRDA) across all
 records of the same file and writes one record per file.
 
-Usage: merge_lcov.py INPUT.info OUTPUT.info
+It is a stdin -> stdout filter on purpose: the shell that runs it (npm's
+`test:coverage` script) names the files, so the script never builds a
+filesystem path from its own arguments.
+
+Usage: merge_lcov.py < INPUT.info > OUTPUT.info
 """
 
 import sys
 from collections import defaultdict
-from pathlib import Path
 
 
 def _add_line_hits(per_line: dict[int, int], payload: str) -> None:
@@ -87,12 +90,15 @@ def merge_lcov(text: str) -> str:
 
 
 def main(argv: list[str]) -> int:
-    if len(argv) != 3:
+    if len(argv) != 1:
+        # Refuse the old `merge_lcov.py IN OUT` form instead of ignoring the
+        # arguments: a caller that still passes paths would otherwise get an
+        # empty result written to stdout and no file at all.
         print(__doc__.strip().splitlines()[-1], file=sys.stderr)
         return 2
-    source, destination = Path(argv[1]), Path(argv[2])
-    destination.parent.mkdir(parents=True, exist_ok=True)
-    destination.write_text(merge_lcov(source.read_text(encoding="utf-8")), encoding="utf-8")
+    merged = merge_lcov(sys.stdin.buffer.read().decode("utf-8"))
+    sys.stdout.buffer.write(merged.encode("utf-8"))
+    sys.stdout.buffer.flush()
     return 0
 
 
