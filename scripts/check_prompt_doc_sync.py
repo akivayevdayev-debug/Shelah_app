@@ -20,9 +20,8 @@ may be a false positive (ambiguous prose); an unreported one may still be
 real (the heuristic missed a signal). Read both cited sections before editing
 anything on the strength of this tool's output alone.
 
-Usage:
+Usage (always reads plan.md and claude_code_prompts.md at the repo root):
     python3 scripts/check_prompt_doc_sync.py
-    python3 scripts/check_prompt_doc_sync.py --plan plan.md --prompts claude_code_prompts.md
     python3 scripts/check_prompt_doc_sync.py --strict   # exit 1 if any mismatch found
 
 Exit code is 0 unless --strict is passed and at least one mismatch is found.
@@ -31,12 +30,13 @@ Exit code is 0 unless --strict is passed and at least one mismatch is found.
 from __future__ import annotations
 
 import argparse
-import os
 import re
 import sys
 from pathlib import Path
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
+PLAN_FILENAME = "plan.md"
+PROMPTS_FILENAME = "claude_code_prompts.md"
 
 SECTION_HEADER_RE = re.compile(r"^(#{2,3})\s+(\d+(?:\.\d+)?)\.?\s+(.*)$")
 # Some prompt numbers carry a letter suffix (Prompt 4b, 29c, 33a/33b/33c) --
@@ -281,27 +281,8 @@ def find_mismatches(
     return findings
 
 
-def resolve_repo_path(value: str, repo_root: Path | None = None) -> Path:
-    """Resolve a CLI-supplied path and require it stays inside the repo root.
-
-    Relative paths resolve against the current directory, as they always did
-    (so ``--plan ../plan.md`` from ``scripts/`` still works); symlinks and
-    ``..`` segments are collapsed with ``os.path.realpath`` *before* the
-    containment check, so neither ``../`` traversal nor a symlink pointing out
-    of the repo can escape it. Raises ValueError for anything that resolves
-    outside the root (SonarCloud pythonsecurity:S8707).
-    """
-    root = os.path.realpath(REPO_ROOT if repo_root is None else repo_root)
-    resolved = os.path.realpath(value)
-    if os.path.commonpath([root, resolved]) != root:
-        raise ValueError(f"{value!r} resolves outside the repository root ({root})")
-    return Path(resolved)
-
-
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--plan", default="plan.md")
-    parser.add_argument("--prompts", default="claude_code_prompts.md")
     parser.add_argument(
         "--strict",
         action="store_true",
@@ -309,11 +290,10 @@ def main(argv: list[str] | None = None) -> int:
     )
     args = parser.parse_args(argv)
 
-    try:
-        plan_path = resolve_repo_path(args.plan)
-        prompts_path = resolve_repo_path(args.prompts)
-    except ValueError as exc:
-        parser.error(str(exc))  # prints usage + message to stderr, exits 2
+    # The two documents are fixed repo files: nothing on the command line
+    # chooses which file gets read (SonarCloud pythonsecurity:S8707).
+    plan_path = REPO_ROOT / PLAN_FILENAME
+    prompts_path = REPO_ROOT / PROMPTS_FILENAME
     if not plan_path.exists() or not prompts_path.exists():
         print(f"check_prompt_doc_sync: skipping (missing {plan_path} or {prompts_path})")
         return 0
