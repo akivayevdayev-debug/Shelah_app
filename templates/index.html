@@ -432,7 +432,7 @@
             <!-- Library button — left anchor, in-track -->
             <button id="readerLibraryTopBarBtn" type="button"
                 class="reader-topbar-icon-btn reader-topbar-library-track" aria-label="Library" title="Library">
-                {{ phosphor('book-open', size=16, class='h-4 w-4') }}
+                <span class="contents" aria-hidden="true">{{ phosphor('book-open', size=16, class='h-4 w-4') }}</span>
             </button>
 
             <button id="readerPrevTopBarBtn" type="button" class="reader-topbar-icon-btn"
@@ -529,7 +529,7 @@
             <button id="readerCommentaryTopBarBtn" type="button"
                 class="reader-topbar-icon-btn reader-topbar-commentary-btn" aria-label="Commentary"
                 title="Commentary">
-                {{ phosphor('chat-text', size=16, class='h-4 w-4') }}
+                <span class="contents" aria-hidden="true">{{ phosphor('chat-text', size=16, class='h-4 w-4') }}</span>
                 <span id="readerCommentaryHintDot" class="reader-topbar-commentary-hint-dot" aria-hidden="true"></span>
             </button>
         </div>
@@ -884,7 +884,7 @@
                     <summary class="font-semibold hover:text-[#00827f] list-none border-b pb-2 mb-2"
                         data-en="Prayer Books" data-he="סידורי תפילה">Prayer Books</summary>
                     <ul id="prayerBooksNavList" class="ml-2 space-y-1 border-l-2 pl-3 border-[#00827f]/30"
-                        role="status" aria-live="polite" aria-busy="true">
+                        aria-busy="true">
                         <li class="sr-only" data-en="Loading prayer books..." data-he="טוען סידורי תפילה...">Loading
                             prayer books...</li>
                         <li class="sk-tree-row" aria-hidden="true"></li>
@@ -1090,7 +1090,7 @@
                                         onclick="openCitySearch()"
                                         class="inline-flex items-center justify-center w-5 h-5 rounded-full border border-[#c8b88a] bg-[#faf5e8] hover:bg-[#f5edce] text-[#4a6a8a] transition hover:border-[#a09060] hover:text-[#1f3f63]"
                                         aria-label="Find location by city">
-                                        {{ phosphor('map-pin', size=12, class='w-3 h-3') }}
+                                        <span class="contents" aria-hidden="true">{{ phosphor('map-pin', size=12, class='w-3 h-3') }}</span>
                                     </button>
                                 </span>
                             </h4>
@@ -1112,7 +1112,7 @@
                                     <button id="citySearchSubmit" type="button" onclick="searchByCity()"
                                         aria-label="Search city"
                                         class="px-3 py-1.5 rounded-lg bg-[#1f3f63] text-white text-sm font-semibold hover:bg-[#162d4a] transition">
-                                        {{ phosphor('magnifying-glass', size=16, class='h-4 w-4') }}
+                                        <span class="contents" aria-hidden="true">{{ phosphor('magnifying-glass', size=16, class='h-4 w-4') }}</span>
                                     </button>
                                 </div>
                                 <p id="citySearchError" class="hidden mt-1.5 text-xs text-red-600"></p>
@@ -1280,8 +1280,7 @@
                         <section class="home-today-section">
                             <h4 class="home-section-label mb-3" data-en="Daily Study" data-he="לימוד יומי">Daily Study
                             </h4>
-                            <div id="dailyStudyList" class="space-y-4" role="status" aria-busy="true"
-                                aria-label="Loading daily study schedule">
+                            <div id="dailyStudyList" class="space-y-4" aria-busy="true">
                                 <div class="home-daily-entry" aria-hidden="true">
                                     <span class="sk-line sk-daily-label"></span>
                                     <span class="sk-line sk-daily-link"></span>
@@ -1294,6 +1293,7 @@
                                     <span class="sk-line sk-daily-label"></span>
                                     <span class="sk-line sk-daily-link"></span>
                                 </div>
+                                <output class="sr-only" data-en="Loading daily study schedule..." data-he="טוען לימוד יומי...">Loading daily study schedule...</output>
                             </div>
                         </section>
                     </aside>
@@ -1304,7 +1304,7 @@
                     <h3 class="text-lg font-serif text-slate-700 mb-6" data-en="Popular Texts"
                         data-he="טקסטים פופולריים">Popular Texts
                     </h3>
-                    <div class="grid grid-cols-2 md:grid-cols-4 gap-3" id="popularTextsGrid" role="status"
+                    <output class="grid grid-cols-2 md:grid-cols-4 gap-3" id="popularTextsGrid"
                         aria-live="polite" aria-busy="true">
                         <!-- Populated via JS from /api/library/popular -->
                         <span class="sr-only" data-en="Loading library..." data-he="טוען ספרייה...">Loading
@@ -1331,7 +1331,7 @@
                             <div class="sk-line" style="height:0.65rem;width:90%"></div>
                             <div class="sk-line" style="height:0.65rem;width:60%"></div>
                         </div>
-                    </div>
+                    </output>
                 </div>
             </div>
 
@@ -1500,12 +1500,12 @@
             <section id="selectionInsights" class="hidden mb-6 border border-slate-200 rounded-xl bg-white p-4">
                 <h3 class="text-sm font-bold text-slate-700 uppercase tracking-widest" data-en="Selected Passage Tools"
                     data-he="כלים לקטע שנבחר">Selected Passage Tools</h3>
-                <p id="selectionInsightsHint" class="text-xs text-slate-500 mt-2" role="status" aria-live="polite"
+                <output id="selectionInsightsHint" class="block text-xs text-slate-500 mt-2" aria-live="polite"
                     data-en="Highlight a passage to load linked commentaries. Highlight one word to see its meaning."
                     data-he="סמן קטע כדי לטעון מפרשים מקושרים. סמן מילה אחת כדי לראות את פירושה.">Highlight a
-                    passage to load linked commentaries. Highlight one word to see its meaning.</p>
-                <div id="selectionInsightsBody" class="mt-3 space-y-3" role="status" aria-live="polite"
-                    aria-busy="false"></div>
+                    passage to load linked commentaries. Highlight one word to see its meaning.</output>
+                <output id="selectionInsightsBody" class="block mt-3 space-y-3" aria-live="polite"
+                    aria-busy="false"></output>
             </section>
 
             <div id="rightSidebarIdle"
@@ -1567,7 +1567,7 @@
                     <button onclick="closeCalendarModal()" type="button"
                         class="w-8 h-8 flex items-center justify-center rounded-full border border-[#c8b88a] bg-white/70 hover:bg-white text-[#566175] hover:text-[#1f3f63] transition"
                         aria-label="Close calendar">
-                        {{ phosphor('x', size=16) }}
+                        <span class="contents" aria-hidden="true">{{ phosphor('x', size=16) }}</span>
                     </button>
                 </div>
             </div>
@@ -1584,7 +1584,7 @@
         <div
             class="bg-white rounded-2xl shadow-2xl w-full max-w-2xl max-h-[85vh] overflow-hidden flex flex-col relative">
             <button onclick="closeTextsMenu()" type="button" aria-label="Close"
-                class="absolute top-4 right-4 z-10 modal-close-icon-btn">{{ phosphor('x', size=20) }}</button>
+                class="absolute top-4 right-4 z-10 modal-close-icon-btn"><span class="contents" aria-hidden="true">{{ phosphor('x', size=20) }}</span></button>
 
             <div class="bg-gradient-to-r from-navy to-blue-900 text-white px-6 py-4 border-b">
                 <h2 class="font-serif text-xl font-bold" data-en="Browse Jewish Library" data-he="עיון בספרייה היהודית">
@@ -1652,7 +1652,7 @@
             class="bg-white rounded-2xl shadow-2xl w-full max-w-4xl max-h-[88vh] overflow-hidden flex flex-col relative">
             <button id="closeChapterGridModalBtn" type="button"
                 class="absolute top-3 right-3 z-10 modal-close-icon-btn"
-                aria-label="Close chapter menu">{{ phosphor('x', size=20) }}</button>
+                aria-label="Close chapter menu"><span class="contents" aria-hidden="true">{{ phosphor('x', size=20) }}</span></button>
 
             <div class="chapter-grid-header px-6 py-4 border-b">
                 <h2 id="chapterGridTitle" class="font-serif text-xl font-bold">Select Section</h2>
@@ -1673,7 +1673,7 @@
             class="bg-white rounded-2xl shadow-2xl w-full max-w-3xl max-h-[85vh] overflow-hidden flex flex-col relative">
             <!-- Close Button -->
             <button onclick="closeAiModal()" type="button" aria-label="Close"
-                class="absolute top-4 right-4 z-10 modal-close-icon-btn">{{ phosphor('x', size=20) }}</button>
+                class="absolute top-4 right-4 z-10 modal-close-icon-btn"><span class="contents" aria-hidden="true">{{ phosphor('x', size=20) }}</span></button>
 
             <!-- Modal Header -->
             <div class="bg-gradient-to-r from-navy to-blue-900 text-white px-6 py-4 border-b">
@@ -1702,9 +1702,9 @@
                 <div id="aiSourcesSection" class="hidden">
                     <h3 class="font-serif text-lg font-bold text-navy mb-3 border-t pt-4" data-en="Sources"
                         data-he="מקורות">Sources</h3>
-                    <div id="aiSources" class="space-y-4" role="status">
+                    <output id="aiSources" class="block space-y-4">
                         <!-- Sources populated via JS -->
-                    </div>
+                    </output>
                 </div>
 
                 <!-- Customs Section -->
@@ -1830,7 +1830,7 @@
             <button id="privacyDataModalCloseBtn" type="button" onclick="closePrivacyDataModal()"
                 class="absolute top-2 right-2 min-h-[44px] min-w-[44px] flex items-center justify-center rounded-full text-white/80 hover:text-white hover:bg-white/10 transition z-10"
                 aria-label="Close">
-                {{ phosphor('x', size=20) }}
+                <span class="contents" aria-hidden="true">{{ phosphor('x', size=20) }}</span>
             </button>
 
             <div class="bg-gradient-to-r from-navy to-blue-900 text-white px-6 py-5 border-b">
@@ -1871,7 +1871,7 @@
                             {{ phosphor('download-simple', size=16) }}
                             <span data-en="Download my data (JSON)" data-he="הורד את הנתונים שלי (JSON)">Download my data (JSON)</span>
                         </button>
-                        <div id="privacyDataExportStatus" class="hidden" role="status" aria-live="polite"></div>
+                        <output id="privacyDataExportStatus" class="hidden" aria-live="polite"></output>
                     </div>
                 </div>
 
@@ -1909,7 +1909,7 @@
                             {{ phosphor('trash', size=16) }}
                             <span data-en="Permanently delete my account" data-he="מחק את חשבוני לצמיתות">Permanently delete my account</span>
                         </button>
-                        <div id="privacyDeleteStatus" class="hidden" role="status" aria-live="polite"></div>
+                        <output id="privacyDeleteStatus" class="hidden" aria-live="polite"></output>
                     </div>
                 </div>
             </div>
@@ -1931,7 +1931,7 @@
             class="bg-white rounded-2xl shadow-2xl w-full max-w-3xl max-h-[88vh] overflow-hidden flex flex-col relative">
             <button id="closeLibraryCategoryBtn" type="button"
                 class="absolute top-3 right-3 z-10 modal-close-icon-btn"
-                aria-label="Close category browser">{{ phosphor('x', size=20) }}</button>
+                aria-label="Close category browser"><span class="contents" aria-hidden="true">{{ phosphor('x', size=20) }}</span></button>
             <div id="libraryCategoryHeader" class="chapter-grid-header px-6 py-4 border-b">
                 <h2 id="libraryCategoryTitle" class="font-serif text-xl font-bold">Select a Text</h2>
                 <p id="libraryCategorySubtitle" class="chapter-grid-subtitle text-xs mt-1">Choose a section to browse
@@ -1947,7 +1947,7 @@
         <div
             class="bg-white rounded-2xl shadow-2xl w-full max-w-3xl max-h-[85vh] overflow-hidden flex flex-col relative">
             <button id="closeDevtoolsInspectorBtn" type="button"
-                class="absolute top-4 right-4 z-10 modal-close-icon-btn" aria-label="Close">{{ phosphor('x', size=20) }}</button>
+                class="absolute top-4 right-4 z-10 modal-close-icon-btn" aria-label="Close"><span class="contents" aria-hidden="true">{{ phosphor('x', size=20) }}</span></button>
             <div class="bg-gradient-to-r from-navy to-blue-900 text-white px-6 py-4 border-b">
                 <h2 class="font-serif text-xl font-bold" data-en="System Inspector" data-he="בודק מערכת">System
                     Inspector</h2>
@@ -10706,8 +10706,6 @@
                 renderDailyStudyFallback(list);
             } finally {
                 list.removeAttribute('aria-busy');
-                list.removeAttribute('role');
-                list.removeAttribute('aria-label');
             }
         }
 
