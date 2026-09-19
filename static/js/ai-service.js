@@ -36,10 +36,10 @@ async function buildAuthHeaders(baseHeaders) {
     return baseHeaders;
 }
 
-const AI_RETRYABLE_STATUSES = [502, 503, 504];
+const AI_RETRYABLE_STATUSES = new Set([502, 503, 504]);
 
 function isRetryableUpstreamResponse(response) {
-    return !response.ok && AI_RETRYABLE_STATUSES.includes(response.status);
+    return !response.ok && AI_RETRYABLE_STATUSES.has(response.status);
 }
 
 function isRetryableNetworkError(error) {
