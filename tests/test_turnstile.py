@@ -122,3 +122,32 @@ async def test_enforce_gate_past_threshold_requires_a_valid_token(monkeypatch):
 
 async def _async_true():
     return True
+
+
+def _load_fresh_turnstile_copy():
+    """Execute turnstile.py's module-level code again in an isolated module
+    object, so the shared backend.turnstile (imported elsewhere) is untouched."""
+    import importlib.util
+
+    spec = importlib.util.spec_from_file_location("turnstile_env_probe", turnstile_mod.__file__)
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return module
+
+
+def test_hourly_threshold_defaults_to_five_when_the_env_var_is_unset(monkeypatch):
+    monkeypatch.delenv("TURNSTILE_ANON_HOURLY_THRESHOLD", raising=False)
+
+    assert _load_fresh_turnstile_copy().TURNSTILE_ANON_HOURLY_THRESHOLD == 5
+
+
+def test_hourly_threshold_reads_the_env_var(monkeypatch):
+    monkeypatch.setenv("TURNSTILE_ANON_HOURLY_THRESHOLD", "12")
+
+    assert _load_fresh_turnstile_copy().TURNSTILE_ANON_HOURLY_THRESHOLD == 12
+
+
+def test_a_non_numeric_hourly_threshold_falls_back_to_five(monkeypatch):
+    monkeypatch.setenv("TURNSTILE_ANON_HOURLY_THRESHOLD", "many")
+
+    assert _load_fresh_turnstile_copy().TURNSTILE_ANON_HOURLY_THRESHOLD == 5

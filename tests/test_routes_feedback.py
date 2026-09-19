@@ -128,3 +128,101 @@ class TestFeedbackDigestRoute:
     def test_requires_auth(self, test_client):
         response = test_client.get("/api/devtools/feedback-digest")
         assert response.status_code in (401, 403)
+
+
+class _RecordingFeedbackClient:
+    """Stand-in for the Supabase client: records what is inserted, where."""
+
+    def __init__(self, *, execute_error=None):
+        self.tables: list[str] = []
+        self.inserted: list[dict] = []
+        self._execute_error = execute_error
+
+    def table(self, name):
+        self.tables.append(name)
+        return self
+
+    def insert(self, record):
+        self.inserted.append(record)
+        return self
+
+    def execute(self):
+        if self._execute_error is not None:
+            raise self._execute_error
+        return None
+
+
+class TestFeedbackPersistence:
+    def _post(self, test_client, **overrides):
+        payload = {"question": "What is Shabbat?", "verdict": "helpful", **overrides}
+        return test_client.post(
+            "/api/feedback", json=payload, content_type="application/json",
+            environ_base={"REMOTE_ADDR": "10.0.1.20"},
+        )
+
+    def test_the_record_stores_a_hash_not_the_question_and_applies_defaults(self, test_client, monkeypatch):
+        import hashlib
+
+        import backend.routes_feedback as routes_feedback_module
+
+        client = _RecordingFeedbackClient()
+        monkeypatch.setattr(routes_feedback_module, "_get_supabase_client", lambda: client)
+
+        response = self._post(test_client)
+
+        assert response.status_code == 200
+        assert client.tables == [routes_feedback_module.SUPABASE_ANSWER_FEEDBACK_TABLE]
+        [record] = client.inserted
+        assert record["question_hash"] == hashlib.sha256(b"What is Shabbat?").hexdigest()
+        assert "question" not in record
+        assert record["verdict"] == "helpful"
+        assert record["comment"] == ""
+        assert record["mode"] == "balanced"
+        assert record["language"] == "en"
+        assert record["fallback"] is False
+        assert record["safety_class"] == "ok"
+
+    def test_supplied_metadata_is_stored(self, test_client, monkeypatch):
+        import backend.routes_feedback as routes_feedback_module
+
+        client = _RecordingFeedbackClient()
+        monkeypatch.setattr(routes_feedback_module, "_get_supabase_client", lambda: client)
+
+        self._post(test_client, verdict="not_helpful", mode="strict", language="he",
+                   fallback=True, safety_class="sensitive", comment="Missed a case.")
+
+        [record] = client.inserted
+        assert (record["verdict"], record["mode"], record["language"]) == ("not_helpful", "strict", "he")
+        assert record["fallback"] is True
+        assert record["safety_class"] == "sensitive"
+        assert record["comment"] == "Missed a case."
+
+    def test_an_unconfigured_database_is_a_503(self, test_client, monkeypatch):
+        import backend.routes_feedback as routes_feedback_module
+
+        monkeypatch.setattr(routes_feedback_module, "_get_supabase_client", lambda: None)
+
+        response = self._post(test_client)
+
+        assert response.status_code == 503
+        assert response.get_json() == {"error": "Supabase not configured"}
+
+    def test_a_failed_insert_is_a_500_and_is_reported_without_the_question(self, test_client, monkeypatch):
+        import backend.routes_feedback as routes_feedback_module
+
+        boom = RuntimeError("insert refused")
+        monkeypatch.setattr(
+            routes_feedback_module, "_get_supabase_client",
+            lambda: _RecordingFeedbackClient(execute_error=boom),
+        )
+        captured: list[tuple] = []
+        monkeypatch.setattr(
+            routes_feedback_module, "_capture_backend_error",
+            lambda *args: captured.append(args),
+        )
+
+        response = self._post(test_client, verdict="not_helpful")
+
+        assert response.status_code == 500
+        assert response.get_json() == {"error": "Could not save feedback"}
+        assert captured == [("answer_feedback_persist_failed", boom, {"verdict": "not_helpful"})]
