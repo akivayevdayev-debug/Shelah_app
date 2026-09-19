@@ -55,6 +55,17 @@ def test_ref_patterns_still_extract_the_same_pieces():
     assert lib._DAF_RANGE_RE.search("Berakhot 2A - 3B").groups() == ("2A", "3B")
 
 
+def test_ref_numbers_are_bounded_to_nine_digits():
+    """The digit bound is what makes the patterns linear; a longer run is not a
+    citation number, so it must not match (and never as a truncated tail)."""
+    assert lib._DAF_TOKEN_RE.search("123456789a").group() == "123456789a"
+    assert lib._DAF_TOKEN_RE.search("1234567890a") is None
+    assert lib._SECTION_RANGE_RE.search("1-123456789").groups() == ("1", "123456789")
+    assert lib._SECTION_RANGE_RE.search("1-1234567890") is None
+    assert lib._DAF_RANGE_RE.search("1234567890a-2b") is None
+    assert lib._DAF_RANGE_RE.search("2a-1234567890b") is None
+
+
 def test_fenced_json_extraction_still_reads_json_fences():
     assert claude._extract_fenced_json_object('```json\n{"a": 1}\n```') == {"a": 1}
     assert claude._extract_fenced_json_object('intro ```  {"b": 2}  ``` outro') == {"b": 2}

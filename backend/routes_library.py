@@ -33,20 +33,20 @@ from backend.auth import maybe_require_clerk_auth
 routes_library = Blueprint("library", __name__)
 
 # Sefaria wholeRef/ref strings are short, well-formed citation strings (e.g.
-# "Berakhot 2a:1-13a:15"), but an unanchored re.search(r'(\d+[ab])', ...) is
+# "Berakhot 2a:1-13a:15"). An unanchored re.search(r'(\d+[ab])', ...) is
 # O(n^2) on adversarial all-digit input with no trailing a/b: it retries the
-# same greedy \d+ scan from every start position. Atomic groups alone only cut
-# that to a constant factor, so each pattern also starts with (?<!\d): a match
-# can only begin at the start of a digit run, which is where the leftmost match
-# always begins anyway (any later start inside the same run reaches the same
-# end), so results are identical and each run is scanned once
-# (SonarCloud python:S8786; tests/test_regex_linear_time.py). The length bound
-# below stays as defence in depth.
+# same greedy \d+ scan from every start position. Every number here is
+# therefore bounded to 9 digits (\d{1,9}; no daf or siman has more), so
+# an attempt costs a constant number of steps wherever it starts, and (?<!\d)
+# keeps a match from starting in the middle of a digit run. For every input
+# whose digit runs are all within the bound the results are identical to the
+# old unbounded patterns; a longer run is not a citation number and simply
+# does not match (SonarCloud python:S8786; tests/test_regex_linear_time.py).
+# The segment-length cap below stays as defence in depth.
 _MAX_REF_SEGMENT_LEN = 500
-_DAF_RANGE_RE = re.compile(
-    r'(?<!\d)((?>\d+)[ab])(?>[\d:]*)(?>\s*)-(?>\s*)((?>\d+)[ab])', re.IGNORECASE)
-_SECTION_RANGE_RE = re.compile(r'(?<!\d)((?>\d+))-((?>\d+))')
-_DAF_TOKEN_RE = re.compile(r'(?<!\d)(?>\d+)[ab]', re.IGNORECASE)
+_DAF_RANGE_RE = re.compile(r'(?<!\d)(\d{1,9}[ab])[\d:]*\s*-\s*(\d{1,9}[ab])', re.IGNORECASE)
+_SECTION_RANGE_RE = re.compile(r'(?<!\d)(\d{1,9})-(\d{1,9})(?!\d)')
+_DAF_TOKEN_RE = re.compile(r'(?<!\d)\d{1,9}[ab]', re.IGNORECASE)
 
 
 @routes_library.route("/api/library/index")
