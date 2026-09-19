@@ -89,9 +89,13 @@ def test_render_structured_markdown_uses_hebrew_labels_only_for_he():
     hebrew = claude.render_structured_markdown(structured, answer_language=" HE ")
     english = claude.render_structured_markdown(structured, answer_language="fr")
 
-    assert "## תשובה ישירה" in hebrew and "**צעדים מעשיים**" in hebrew and "## סיכום" in hebrew
-    assert "## Direct Answer" in english and "**Practical Steps**" in english
-    assert "## Summary" in english and "**Sources**" in english
+    assert "## תשובה ישירה" in hebrew
+    assert "**צעדים מעשיים**" in hebrew
+    assert "## סיכום" in hebrew
+    assert "## Direct Answer" in english
+    assert "**Practical Steps**" in english
+    assert "## Summary" in english
+    assert "**Sources**" in english
     assert "תשובה ישירה" not in english
 
 
@@ -161,7 +165,8 @@ def test_apply_output_validation_clean_answer_is_stamped_but_not_flagged():
 
     assert out["answer"] == "SAFE"
     assert out["security"] == {"input": {"blocked": False}, "output": {"blocked": False, "reason": "ok"}}
-    assert "error" not in out and "is_fallback" not in out
+    assert "error" not in out
+    assert "is_fallback" not in out
     assert out["structured"]["safety_class"] == "none"
     assert out["structured"]["age_safe"] is True
     assert out["structured"]["summary"] == "s"
@@ -225,7 +230,8 @@ def test_hebcal_item_to_event_shapes_a_fullcalendar_event():
     assert event["allDay"] is True
     assert event["category"] == "holiday"
     assert event["title"].endswith(" Rosh Hashana")
-    assert event["display"] == "block" and event["textColor"] == "#ffffff"
+    assert event["display"] == "block"
+    assert event["textColor"] == "#ffffff"
 
 
 def test_hebcal_item_to_event_timed_item_is_not_all_day_and_falls_back_to_start():
@@ -292,7 +298,8 @@ def test_pdf_text_lines_defaults_title_and_omits_missing_ref():
 
 def test_load_reportlab_returns_letter_and_canvas_module_when_installed():
     letter, canvas_module = routes_library._load_reportlab()
-    assert letter is not None and hasattr(canvas_module, "Canvas")
+    assert letter is not None
+    assert hasattr(canvas_module, "Canvas")
 
 
 def test_load_reportlab_degrades_to_none_pair_when_import_fails():
@@ -342,8 +349,10 @@ def test_external_source_for_provider_builds_an_entry_and_dedupes_repeats(monkey
     first = search_provider._external_source_for_provider(_PROVIDER, "q", ["k"], seen, "stage", 3)
     second = search_provider._external_source_for_provider(_PROVIDER, "q", ["k"], seen, "stage", 3)
 
-    assert first["title"] == "Shabbat" and first["source_provider"] == "Halachipedia"
-    assert first["priority"] == 3 and first["discovery_stage"] == "stage"
+    assert first["title"] == "Shabbat"
+    assert first["source_provider"] == "Halachipedia"
+    assert first["priority"] == 3
+    assert first["discovery_stage"] == "stage"
     assert ("halachipedia", "shabbat") in seen
     assert second is None
 
