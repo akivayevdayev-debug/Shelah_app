@@ -1,9 +1,10 @@
 /**
  * Behavior tests for static/service-worker.js's stale-while-revalidate fetch
  * handler. The worker is a classic script (no exports) that talks to the
- * `self`/`caches`/`fetch` globals, so it is evaluated in a vm context with
- * recording fakes and driven through the "fetch" event it registers -- the
- * same entry point the browser uses.
+ * `self`/`caches`/`fetch` globals, so those three globals are replaced with
+ * recording fakes for the duration of each test, the worker file is
+ * `require()`d fresh from its real path, and it is driven through the "fetch"
+ * event it registers -- the same entry point the browser uses.
  *
  * Covers both cacheability predicates staleWhileRevalidate() accepts: the
  * default synchronous isCacheableResponse() (static/runtime assets) and the
@@ -16,9 +17,7 @@
 
 const test = require('node:test');
 const assert = require('node:assert/strict');
-const fs = require('node:fs');
 const path = require('node:path');
-const vm = require('node:vm');
 
 const WORKER_PATH = path.join(__dirname, '..', 'static', 'service-worker.js');
 const ORIGIN = 'https://shelah.test';
@@ -43,12 +42,33 @@ function createFakeCaches() {
     };
 }
 
+// The worker reads these three names as bare globals, and does so when an
+// event fires (not just at load), so they must stay installed until the test
+// ends; t.after() restores whatever was there before.
+const WORKER_GLOBALS = ['self', 'caches', 'fetch'];
+const ORIGINAL_GLOBALS = Object.fromEntries(WORKER_GLOBALS.map((name) => [name, globalThis[name]]));
+
+function installGlobals(t, fakes) {
+    const saved = WORKER_GLOBALS.map((name) => [name, Object.getOwnPropertyDescriptor(globalThis, name)]);
+    t.after(() => {
+        for (const [name, descriptor] of saved) {
+            if (descriptor) Object.defineProperty(globalThis, name, descriptor);
+            else delete globalThis[name];
+        }
+    });
+    for (const name of WORKER_GLOBALS) {
+        Object.defineProperty(globalThis, name, {
+            value: fakes[name], writable: true, configurable: true, enumerable: true,
+        });
+    }
+}
+
 // Loads the worker and returns dispatch(url) -> { responded, waited } for the
 // fetch event it registered.
-function loadWorker({ fetchImpl }) {
+function loadWorker(t, { fetchImpl }) {
     const listeners = {};
     const caches = createFakeCaches();
-    const sandbox = {
+    installGlobals(t, {
         self: {
             addEventListener: (type, handler) => {
                 listeners[type] = handler;
@@ -59,13 +79,11 @@ function loadWorker({ fetchImpl }) {
         },
         caches,
         fetch: fetchImpl,
-        Response,
-        Request,
-        URL,
-        Promise,
-        console,
-    };
-    vm.runInNewContext(fs.readFileSync(WORKER_PATH, 'utf8'), sandbox, { filename: WORKER_PATH });
+    });
+    // A classic script with no exports: drop any cached copy so this load
+    // re-runs the file and registers its listeners on this test's fake `self`.
+    delete require.cache[require.resolve(WORKER_PATH)];
+    require(WORKER_PATH);
 
     async function dispatch(pathname) {
         const request = new Request(`${ORIGIN}${pathname}`);
@@ -96,8 +114,8 @@ const jsonResponse = (body, init = {}) =>
         ...init,
     });
 
-test('a static asset fetched from the network is returned and cached in the shell cache', async () => {
-    const { caches, dispatch } = loadWorker({
+test('a static asset fetched from the network is returned and cached in the shell cache', async (t) => {
+    const { caches, dispatch } = loadWorker(t, {
         fetchImpl: async () => new Response('body{}', { status: 200 }),
     });
 
@@ -109,8 +127,8 @@ test('a static asset fetched from the network is returned and cached in the shel
     assert.equal(caches.stores.get(shell).has(request.url), true);
 });
 
-test('a non-ok static response is returned but never cached', async () => {
-    const { caches, dispatch } = loadWorker({
+test('a non-ok static response is returned but never cached', async (t) => {
+    const { caches, dispatch } = loadWorker(t, {
         fetchImpl: async () => new Response('missing', { status: 404 }),
     });
 
@@ -120,9 +138,9 @@ test('a non-ok static response is returned but never cached', async () => {
     for (const store of caches.stores.values()) assert.equal(store.size, 0);
 });
 
-test('a cached asset is served immediately while the refresh is handed to waitUntil', async () => {
+test('a cached asset is served immediately while the refresh is handed to waitUntil', async (t) => {
     let network = 0;
-    const { caches, dispatch } = loadWorker({
+    const { caches, dispatch } = loadWorker(t, {
         fetchImpl: async () => {
             network += 1;
             return new Response(`v${network}`, { status: 200 });
@@ -140,12 +158,12 @@ test('a cached asset is served immediately while the refresh is handed to waitUn
     assert.equal(await caches.stores.get(shell).get(second.request.url).text(), 'v2', 'refresh replaced the entry');
 });
 
-test('a JSON API reply is cached, but one that reports an error in its body is not', async () => {
+test('a JSON API reply is cached, but one that reports an error in its body is not', async (t) => {
     const replies = {
         '/api/text/good': jsonResponse({ he: 'טקסט' }),
         '/api/text/bad': jsonResponse({ error: 'not found' }),
     };
-    const { caches, dispatch } = loadWorker({
+    const { caches, dispatch } = loadWorker(t, {
         fetchImpl: async (request) => replies[new URL(request.url).pathname].clone(),
     });
 
@@ -160,8 +178,8 @@ test('a JSON API reply is cached, but one that reports an error in its body is n
     assert.equal(caches.stores.get(api).has(bad.request.url), false);
 });
 
-test('offline with nothing cached: API reads get a JSON 503, assets a plain 503', async () => {
-    const { dispatch } = loadWorker({
+test('offline with nothing cached: API reads get a JSON 503, assets a plain 503', async (t) => {
+    const { dispatch } = loadWorker(t, {
         fetchImpl: async () => {
             throw new TypeError('offline');
         },
@@ -176,8 +194,8 @@ test('offline with nothing cached: API reads get a JSON 503, assets a plain 503'
     assert.equal(await asset.response.text(), '');
 });
 
-test('private API prefixes bypass the cache entirely', async () => {
-    const { caches, dispatch } = loadWorker({
+test('private API prefixes bypass the cache entirely', async (t) => {
+    const { caches, dispatch } = loadWorker(t, {
         fetchImpl: async () => jsonResponse({ prefs: {} }),
     });
 
@@ -185,4 +203,12 @@ test('private API prefixes bypass the cache entirely', async () => {
 
     assert.deepEqual(await response.json(), { prefs: {} });
     for (const store of caches.stores.values()) assert.equal(store.size, 0);
+});
+
+test('the fake worker globals are removed again once a test has finished', () => {
+    // Runs after the tests above (top-level tests in a file run in order), each
+    // of which installed fakes for self/caches/fetch.
+    for (const name of WORKER_GLOBALS) {
+        assert.equal(globalThis[name], ORIGINAL_GLOBALS[name], `globalThis.${name} leaked out of a test`);
+    }
 });
