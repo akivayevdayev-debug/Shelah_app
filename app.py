@@ -41,6 +41,7 @@ from backend.logging_setup import (
     get_logger,
     submit_with_context,
 )
+from backend.ask_payloads import build_ai_answer_payload, build_source_fallback_payload
 from backend.customs import validate_all_customs_at_startup
 from backend.customs import (  # noqa: F401  (re-import shims; see below)
     _collect_trusted_authority_candidates,
@@ -54,7 +55,6 @@ from backend.helpers import (
     _sanitize_answer_mode,
     _resolve_client_ip,
     _compact_ai_sources,
-    _coarse_ai_error_reason,
     SECURITY_RESPONSE_HEADERS,
 )
 from backend.helpers import (
@@ -1885,34 +1885,20 @@ def _run_ask_question_ai_synthesis(
     )
 
     # Successful AI answer path returns immediately; fallback is only for empty/error responses.
-    return {
-        "answer": normalized_answer,
-        "confidence": result.get("confidence"),
-        "wiki": ctx["wiki_list"] + ctx["halachipedia_list"],
-        "customs": ctx["customs_info"],
-        "sources": display_sources,
-        "ai_cited_sources": ai_cited,
-        "meta": {
-            "mode": mode,
-            "language": answer_language,
-            "community_lens": canonical_lens,
-            "source_count": len(ctx["primary_sources"]),
-            "custom_count": len(ctx["customs_info"]),
-            "knowledge_count": len(ctx["knowledge_rows"]),
-            "memory_count": len(ctx["user_memory_summaries"]),
-            "identity_aware": bool(user_id),
-            "generated_at": int(time.time()),
-            "fallback": bool(result.get("is_fallback", False)),
-            "structured": bool(structured_payload),
-            "is_prohibited": bool((structured_payload or {}).get("is_prohibited", False)),
-            "input_sanitized": question_was_sanitized,
-            "security": result.get("security") or {},
-            "safety_class": (structured_payload or {}).get("safety_class", "ok"),
-            "rabbinic_disclaimer": (structured_payload or {}).get(
-                "rabbinic_disclaimer") or claude.RABBI_FINAL_RULING_FOOTER,
-            "cached": False,
-        }
-    }
+    return build_ai_answer_payload(
+        result=result,
+        answer=normalized_answer,
+        sources=display_sources,
+        ai_cited=ai_cited,
+        structured_payload=structured_payload,
+        ctx=ctx,
+        mode=mode,
+        answer_language=answer_language,
+        canonical_lens=canonical_lens,
+        user_id=user_id,
+        question_was_sanitized=question_was_sanitized,
+        extra_meta={"cached": False},
+    )
 
 
 def _run_ask_question_fallback(question, mode, canonical_lens, answer_language, user_id, ai_error, ctx):
@@ -1948,37 +1934,19 @@ def _run_ask_question_fallback(question, mode, canonical_lens, answer_language, 
     DEVTOOLS_STATS["fallback_answers"] += 1
     fallback_sources = _compact_ai_sources(
         fallback_payload.get("sources", []))
-    return {
-        "answer": fallback_answer,
-        "confidence": 0.4,
-        "wiki": ctx["wiki_list"] + ctx["halachipedia_list"],
-        "customs": ctx["customs_info"],
-        "sources": fallback_sources,
-        "ai_cited_sources": [],
-        "meta": {
-            "mode": mode,
-            "language": answer_language,
-            "community_lens": canonical_lens,
-            "source_count": fallback_payload.get("source_count", 0),
-            "custom_count": len(ctx["customs_info"]),
-            "knowledge_count": len(ctx["knowledge_rows"]),
-            "memory_count": len(ctx["user_memory_summaries"]),
-            "identity_aware": bool(user_id),
-            "generated_at": int(time.time()),
-            "fallback": True,
-            "status": fallback_payload.get("status", "fallback"),
-            "fallback_detail": {
-                "keywords": fallback_payload.get("keywords", []),
-                "sequence": fallback_payload.get("sequence", []),
-                "counts": fallback_payload.get("counts", {}),
-                "level": fallback_payload.get("fallback_level", "unknown"),
-                "warning": fallback_warning,
-                "reason": _coarse_ai_error_reason(ai_error),
-            },
-            "safety_class": "ok",
-            "cached": False,
-        }
-    }
+    return build_source_fallback_payload(
+        answer=fallback_answer,
+        sources=fallback_sources,
+        discovery=fallback_payload,
+        warning=fallback_warning,
+        ai_error=ai_error,
+        ctx=ctx,
+        mode=mode,
+        answer_language=answer_language,
+        canonical_lens=canonical_lens,
+        user_id=user_id,
+        extra_meta={"cached": False},
+    )
 
 
 def _parse_and_validate_ask_question_request(data):
