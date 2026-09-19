@@ -115,7 +115,7 @@
     <link rel="stylesheet" href="/static/css/sidebar.css?v=20260918-v7">
     <link rel="stylesheet" href="/static/css/halacha.css?v=20260817-v6">
     <link rel="stylesheet" href="/static/css/prayer.css?v=20260817-v6">
-    <link rel="stylesheet" href="/static/css/ai.css?v=20260918-v10">
+    <link rel="stylesheet" href="/static/css/ai.css?v=20260919-v11">
     <link rel="stylesheet" href="/static/css/calendar.css?v=20260918-v8">
     <link rel="stylesheet" href="/static/css/loading.css?v=20260817-v6">
     <!-- Tailwind CSS (pre-built; loads last so utilities override custom CSS — mirrors CDN runtime cascade behavior) -->
@@ -4768,18 +4768,31 @@
             }
         }
 
+        // The search field replaces the brand + controls in the top bar while it is
+        // open. Cross-fade the incoming side (opacity only: an inline transform on
+        // these would re-anchor the position:fixed Hebrew date inside the controls).
+        function fadeTopbarSwap(searchOpen) {
+            const incoming = searchOpen ? '.topbar-search-wrap' : '.topbar-brand, #topbarControls';
+            document.querySelectorAll(incoming).forEach((el) => {
+                void presentEl(el, { preset: 'fade', replay: true });
+            });
+        }
+
         function setMobileSearchExpanded(expanded) {
             const shouldExpand = Boolean(expanded) && isMobileViewport();
+            const wasOpen = document.body.classList.contains('mobile-search-open');
+            const activeTab = () => mobileBottomTabs?.querySelector('.mobile-tab-active')?.dataset.mobileTab;
             document.body.classList.toggle('mobile-search-open', shouldExpand);
+            if (wasOpen !== shouldExpand) fadeTopbarSwap(shouldExpand);
             if (shouldExpand) {
                 closeSettingsMenu();
-                setActiveMobileTab('search');
+                if (activeTab() !== 'search') setActiveMobileTab('search');
             }
             if (!shouldExpand) {
                 searchInput?.blur();
                 // Search closed without picking another tab: the Search highlight
                 // has nothing left to point at, so hand it back to Home.
-                if (mobileBottomTabs?.querySelector('.mobile-tab-active')?.dataset.mobileTab === 'search') {
+                if (activeTab() === 'search') {
                     setActiveMobileTab('home');
                 }
             }
@@ -10039,6 +10052,7 @@
             // Kill the suggestion dropdown immediately — it must not persist while the modal is open
             suppressSuggestionMenu = true;
             hideSearchSuggestions();
+            setMobileSearchExpanded(false);
             // A leftover chapter-grid modal (z-[110]) sits above the AI modal (z-[100])
             // and would silently block it from view if left open — close it first.
             closeChapterGrid();
@@ -11550,7 +11564,9 @@
             if (e.key === 'Enter' && appState.activeSuggestionIndex >= 0) {
                 e.preventDefault();
                 const selected = appState.suggestionItems[appState.activeSuggestionIndex];
-                await openSearchTarget(selected, searchInput.value.trim());
+                const query = searchInput.value.trim();
+                if (isMobileViewport()) setMobileSearchExpanded(false);
+                await openSearchTarget(selected, query);
             }
         });
 
@@ -11571,7 +11587,26 @@
             if (!btn) return;
             const index = Number(btn.dataset.index);
             const selected = appState.suggestionItems[index];
-            await openSearchTarget(selected, searchInput.value.trim());
+            const query = searchInput.value.trim();
+            // Picking a topic is the end of searching: put the normal top bar back
+            // right away instead of after the (network-bound) navigation finishes.
+            setMobileSearchExpanded(false);
+            await openSearchTarget(selected, query);
+        });
+
+        // Tapping anywhere outside the open search field (and outside the tab bar,
+        // whose buttons manage the search state themselves) closes it again.
+        document.addEventListener('click', (e) => {
+            if (!document.body.classList.contains('mobile-search-open')) return;
+            if (e.target.closest?.('.topbar-search-wrap') || mobileBottomTabs?.contains(e.target)) return;
+            hideSearchSuggestions();
+            setMobileSearchExpanded(false);
+        });
+
+        document.addEventListener('keydown', (e) => {
+            if (e.key !== 'Escape' || !document.body.classList.contains('mobile-search-open')) return;
+            hideSearchSuggestions();
+            setMobileSearchExpanded(false);
         });
 
         document.addEventListener('click', (e) => {
@@ -11600,6 +11635,8 @@
             if (question !== searchInput.value.trim()) {
                 searchInput.value = question;
             }
+
+            setMobileSearchExpanded(false);
 
             if (appState.activeSuggestionIndex >= 0 && appState.suggestionItems[appState.activeSuggestionIndex]) {
                 await openSearchTarget(appState.suggestionItems[appState.activeSuggestionIndex], question);
@@ -12462,7 +12499,7 @@
     <script src="https://cdn.jsdelivr.net/npm/motion@12.43.0/dist/motion.js"
             integrity="sha384-hgVFh5YKDMdpcWEjpRqk2kPXOKBH7I9NBCKe3uR6dHKgy/BWPe8kyL01kiYuRn1u"
             crossorigin="anonymous"></script>
-    <script type="module" src="/static/js/motion.js?v=20260918-v8"></script>
+    <script type="module" src="/static/js/motion.js?v=20260919-v1"></script>
     <script type="module" src="/static/js/main.js?v=20260817-v6"></script>
 </body>
 
