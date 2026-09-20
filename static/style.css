@@ -2751,6 +2751,8 @@ html.rtl .home-main-layout #popularTextsGrid {
         border-radius: 0.6rem;
         /* 44px touch target (each tab is ~91px wide already). */
         min-height: 2.75rem;
+        position: relative;
+        z-index: 1;
     }
 
     /* Small controls in the top bars: keep their drawn size but extend the
@@ -2816,11 +2818,6 @@ html.rtl .home-main-layout #popularTextsGrid {
     .mobile-bottom-tabs.has-indicator .mobile-tab-btn.mobile-tab-active {
         background: transparent;
         box-shadow: none;
-    }
-
-    .mobile-tab-btn {
-        position: relative;
-        z-index: 1;
     }
 
     .mobile-tab-btn:active {
