@@ -3187,7 +3187,10 @@ html.rtl .home-main-layout #popularTextsGrid {
 .library-shell #leftSidebar button:focus-visible,
 .library-shell #topbarControls button:focus-visible,
 .library-shell #searchSuggestions .suggestion-item:focus-visible {
-    outline: 2px solid rgba(176, 154, 116, 0.58);
+    /* --control-accent is 5:1+ against the page in both themes; the old
+       translucent tan measured 1.67:1 (light) / 2.98:1 (dark), under the
+       3:1 WCAG 1.4.11 minimum for a focus indicator. */
+    outline: 2px solid var(--control-accent);
     outline-offset: 2px;
     background-color: #f4efe3 !important;
 }
@@ -4193,7 +4196,7 @@ html.theme-dark,
 :is([data-theme="dark"], body.theme-dark) .shelf-open:focus-visible,
 :is([data-theme="dark"], body.theme-dark) .track-toggle:focus-visible,
 :is([data-theme="dark"], body.theme-dark) .library-node-open:focus-visible {
-    outline: 2px solid rgba(176, 154, 116, 0.58);
+    outline: 2px solid var(--control-accent);
     outline-offset: 2px;
 }
 
