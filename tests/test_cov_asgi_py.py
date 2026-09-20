@@ -222,8 +222,11 @@ async def test_security_blocked_payload_defaults_when_structured_is_not_a_dict(m
     assert meta["is_prohibited"] is False
     assert meta["rabbinic_disclaimer"] == claude.RABBI_FINAL_RULING_FOOTER
     assert meta["security"] == {"rule": "x"}
-    assert meta["fallback"] is True and meta["structured"] is False and meta["async"] is True
-    assert meta["input_sanitized"] is True and meta["identity_aware"] is True
+    assert meta["fallback"] is True
+    assert meta["structured"] is False
+    assert meta["async"] is True
+    assert meta["input_sanitized"] is True
+    assert meta["identity_aware"] is True
     assert (meta["mode"], meta["community_lens"]) == ("strict", "Yemenite")
     assert (meta["knowledge_count"], meta["memory_count"]) == (2, 1)
     store.assert_called_once_with(
