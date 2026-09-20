@@ -2914,6 +2914,13 @@ html.rtl .home-main-layout #popularTextsGrid {
     }
 }
 
+/* A <dialog> gets the browser's own text colour (CanvasText: black / white),
+   not the page's. #privacyDataModal was a <div> until it became a native
+   <dialog> and its panel inherits text colour, so keep the themed one. */
+#privacyDataModal {
+    color: inherit;
+}
+
 /* Modal cards cap their height in `vh` via Tailwind utilities
    (max-h-[85vh] etc.). On phones `vh` is the LARGEST viewport, so a card can
    extend under the mobile browser's own toolbar and lose its bottom edge.
