@@ -51,6 +51,7 @@ from backend.helpers import (
     _translate_english_text_online,
     _translate_hebrew_text_online,
 )
+from backend.retrieval_guard import withhold_injected
 from backend.search import (
     async_search_halachipedia,
     async_search_hebrewbooks,
@@ -160,8 +161,14 @@ async def _h_search_responsa_external(arguments: dict, context: dict) -> dict:
     )
     results = []
     for hit in (halachipedia, hebrewbooks):
-        if isinstance(hit, dict) and hit:
-            results.append(hit)
+        if not (isinstance(hit, dict) and hit):
+            continue
+        # Halachipedia/HebrewBooks text is third-party and publicly editable:
+        # a hit carrying prompt-injection phrasing is dropped whole
+        # (AI_SECURITY_REVIEW M2). A dropped hit reads as "no result".
+        if withhold_injected(hit, source="search_responsa_external") is None:
+            continue
+        results.append(hit)
     return {"query": query, "results": results[:max_results]}
 
 
@@ -291,6 +298,11 @@ async def _h_web_search(arguments: dict, context: dict) -> dict:
     result = await async_search_wikipedia(query)
     if not result:
         return {"error": "no Wikipedia result found", "query": query}
+    # Wikipedia is publicly editable, so its text is untrusted input to the
+    # model: a page carrying prompt-injection phrasing is withheld whole
+    # rather than passed on as reference material (AI_SECURITY_REVIEW M2).
+    if withhold_injected(result, source="web_search") is None:
+        return {"error": "Wikipedia result withheld (flagged as possible prompt injection)", "query": query}
     return {"query": query, "source": "wikipedia", **result}
 
 
@@ -317,7 +329,9 @@ async def _h_translate_text(arguments: dict, context: dict) -> dict:
     direction = str(arguments.get("direction") or "he_to_en")
     fn = _translate_hebrew_text_online if direction == "he_to_en" else _translate_english_text_online
     translated, source = await asyncio.to_thread(fn, text)
-    if not translated:
+    # MyMemory is a crowd-sourced translation memory: anyone can contribute an
+    # entry, so the returned translation is untrusted third-party text.
+    if not translated or withhold_injected(translated, source="translate_text") is None:
         return {"text": text, "translated": False}
     return {"text": text, "translated": True, "result": translated, "source": source}
 
