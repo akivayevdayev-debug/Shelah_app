@@ -738,22 +738,21 @@ body.search-loading .search-ai-sparkle {
     animation: shelah-warm-pulse 1.6s ease-in-out infinite;
 }
 
-/* Continuous glow for the full request duration -- the liftoff burst below
-   only covers the first 420ms; without this, the underlay fades back to
-   opacity:0 and sits inert (invisible) for the remainder of a long AI wait.
-   Uses shelah-liftoff-spin-loop (tokens.css), not the generic shelah-spin --
-   see that keyframe's comment for why reusing shelah-spin here used to make
-   the gradient visibly drift off-center and snap back every 2.6s instead of
-   rotating in place. #searchForm.search-liftoff's higher (ID+class)
-   specificity still wins for the first 420ms, so this only takes over once
-   that class is removed. */
+/* Loading halo for the full request duration: a soft gold-and-blue gradient
+   orbiting the pill at a STEADY opacity -- it comes on once when loading starts
+   and goes off once when it ends (the base rule's short opacity transition),
+   but never pulses in between. Nothing here animates opacity; the only motion is the
+   gradient turning (shelah-halo-orbit in tokens.css, on the ::before below). */
 body.search-loading .search-liftoff-underlay {
-    opacity: 0.55;
-    transition: opacity var(--motion-dur-slow) var(--motion-ease-out);
+    opacity: 0.7;
 }
 
+/* The orbit is declared on the base ::before rule but held paused, and only
+   let run here. When loading ends the gradient therefore freezes where it is
+   while the halo fades out (dropping the animation instead would snap it back
+   to angle 0 mid-fade), and the next request resumes from that angle. */
 body.search-loading .search-liftoff-underlay::before {
-    animation: shelah-liftoff-spin-loop 2.6s linear infinite;
+    animation-play-state: running;
 }
 
 /* ── Search "liftoff" moment ──────────────────────────────
@@ -771,9 +770,12 @@ body.search-loading .search-liftoff-underlay::before {
 
 /* Fixed stadium-shaped mask: border-radius + overflow:hidden keep the
    VISIBLE silhouette a stable pill at every frame, no matter how its
-   ::before gradient layer rotates underneath (see the ::before rule below
-   and tokens.css's shelah-liftoff-fade/-spin comment for why the rotation
-   can't live on this element directly). */
+   ::before gradient layer rotates underneath (the rotation can't live on this
+   element directly: turning its own wide-but-short box would swing it into a
+   tall diagonal streak at steep angles, covering neighboring topbar content).
+   It sits one step outside the input and is blurred, so only a soft halo shows
+   past the input's edge (the input and icons paint above it via z-index:-1 +
+   the form's isolation). */
 .search-liftoff-underlay {
     position: absolute;
     /* One --sp-2 step, not more: on mobile the topbar pads the form by exactly
@@ -787,45 +789,51 @@ body.search-loading .search-liftoff-underlay::before {
     opacity: 0;
     pointer-events: none;
     filter: blur(9px);
+    transition: opacity var(--motion-dur-base) var(--motion-ease-out);
 }
 
-/* The actual rotating gradient -- a square more than 2x the mask's own
-   size (so its corners still cover the mask after a 150deg turn), rotated
-   around its own center and clipped back to the stadium shape above by the
-   mask's overflow:hidden every frame. */
+/* The rotating gradient: one side of the halo is always gold, the opposite
+   side always blue, with a soft blend between, and the whole thing turns so
+   the two swap sides. It is a square, turned around its own center and clipped
+   back to the stadium shape above by the mask's overflow:hidden every frame.
+   Its width is only what it needs to still cover the mask at every angle once
+   stretched (see scale below).
+
+   scale(2.2, 1) stretches the gradient horizontally, to match the bar's wide
+   shape. A conic gradient's colors are laid out by ANGLE from its center, and
+   on a bar ~15x wider than tall the long top and bottom edges would sit almost
+   entirely at angles near +/-90deg: the whole edge would show one color at a
+   time and flip in unison, reading as pulsing instead of turning. Stretched,
+   the colors are spread along the edges roughly in proportion to distance, so
+   the gold and blue halves genuinely travel around the bar. The two halves are
+   mirror images of each other, so the total brightness stays constant (within
+   a few percent) at every angle -- nothing dips or vanishes. Paused until
+   body.search-loading (see above). --accent-gold and --accent-primary already
+   resolve per theme. The first background is the sRGB fallback; `in oklab`
+   (second) blends gold into blue cleanly instead of muddy. */
 .search-liftoff-underlay::before {
     content: '';
     position: absolute;
     top: 50%;
     left: 50%;
-    width: 220%;
+    width: 70%;
     aspect-ratio: 1;
-    transform: translate(-50%, -50%);
+    transform: translate(-50%, -50%) scale(2.2, 1);
     background: conic-gradient(from 0deg,
-        var(--accent-gold-light) 0%,
-        var(--accent-gold) 30%,
-        #b8aa90 55%,
-        var(--ink-heading) 80%,
-        var(--accent-gold-light) 100%);
-}
-
-/* Dark theme: swap for tokens that read correctly on --surface-pill/#23211f
-   rather than the light-mode navy/tan stops, which would go muddy there. */
-:is([data-theme="dark"], body.theme-dark) .search-liftoff-underlay::before {
-    background: conic-gradient(from 0deg,
-        var(--accent-cream) 0%,
-        var(--accent-gold) 30%,
-        var(--accent-primary) 55%,
-        var(--surface-pill) 80%,
-        var(--accent-cream) 100%);
-}
-
-#searchForm.search-liftoff .search-liftoff-underlay {
-    animation: shelah-liftoff-fade 420ms var(--motion-ease-out) 1;
-}
-
-#searchForm.search-liftoff .search-liftoff-underlay::before {
-    animation: shelah-liftoff-spin 420ms var(--motion-ease-out) 1;
+        var(--accent-gold) 0%,
+        var(--accent-gold) 12%,
+        var(--accent-primary) 38%,
+        var(--accent-primary) 62%,
+        var(--accent-gold) 88%,
+        var(--accent-gold) 100%);
+    background: conic-gradient(in oklab from 0deg,
+        var(--accent-gold) 0%,
+        var(--accent-gold) 12%,
+        var(--accent-primary) 38%,
+        var(--accent-primary) 62%,
+        var(--accent-gold) 88%,
+        var(--accent-gold) 100%);
+    animation: shelah-halo-orbit 2.6s linear infinite paused;
 }
 
 /* .search-ai-sparkle's always-on ambient pulse lives in static/style.css
@@ -960,8 +968,6 @@ body.search-loading .search-liftoff-underlay::before {
     #aiModalTitle,
     .search-liftoff-underlay,
     .search-liftoff-underlay::before,
-    #searchForm.search-liftoff .search-liftoff-underlay,
-    #searchForm.search-liftoff .search-liftoff-underlay::before,
     #searchForm.search-liftoff .search-ai-sparkle {
         animation: none !important;
         transition: none !important;
