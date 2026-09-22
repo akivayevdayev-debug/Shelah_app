@@ -57,7 +57,7 @@ function fakeGetComputedStyle(el) {
 
 function FakeDOMMatrixReadOnly(transformStr) {
     const m = /translateX\((-?[\d.]+)px\)/.exec(transformStr || '');
-    return { m41: m ? Number(m[1]) : NaN };
+    return { m41: m ? Number(m[1]) : Number.NaN };
 }
 
 async function loadMotion({ reduced = false, withMotion = true, staggerFn, springFn } = {}) {
