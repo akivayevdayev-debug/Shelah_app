@@ -107,15 +107,15 @@
     <script defer src="https://cdn.jsdelivr.net/npm/dompurify@3.4.9/dist/purify.min.js"
             integrity="sha384-6ZdfL2Azuen6KYvcTkbxqJS1d7txbNWrVfmURkxNeCn7DtzhLRL6Fi6WGG6ZLdKn"
             crossorigin="anonymous"></script>
-    <link rel="stylesheet" href="/static/css/tokens.css?v=20260918-v8">
-    <link rel="stylesheet" href="/static/style.css?v=20260918-v20">
+    <link rel="stylesheet" href="/static/css/tokens.css?v=20260919-v11">
+    <link rel="stylesheet" href="/static/style.css?v=20260919-v22">
     <!-- CSS modules (supplement style.css; do not replace) -->
     <link rel="stylesheet" href="/static/css/typography.css?v=20260817-v6">
     <link rel="stylesheet" href="/static/css/reader.css?v=20260817-v6">
-    <link rel="stylesheet" href="/static/css/sidebar.css?v=20260918-v7">
+    <link rel="stylesheet" href="/static/css/sidebar.css?v=20260919-v8">
     <link rel="stylesheet" href="/static/css/halacha.css?v=20260817-v6">
     <link rel="stylesheet" href="/static/css/prayer.css?v=20260817-v6">
-    <link rel="stylesheet" href="/static/css/ai.css?v=20260919-v11">
+    <link rel="stylesheet" href="/static/css/ai.css?v=20260919-v16">
     <link rel="stylesheet" href="/static/css/calendar.css?v=20260918-v8">
     <link rel="stylesheet" href="/static/css/loading.css?v=20260817-v6">
     <!-- Tailwind CSS (pre-built; loads last so utilities override custom CSS — mirrors CDN runtime cascade behavior) -->
@@ -233,8 +233,8 @@
                     <div class="w-full min-w-0">
                         <!-- Search Form -->
                         <form id="searchForm" role="search" aria-label="Search texts" class="w-full relative min-w-0">
-                            <!-- Decorative "liftoff" glow underlay, toggled on submit by
-                                 handleAiSearch() via #searchForm.search-liftoff (static/css/ai.css).
+                            <!-- Decorative loading-halo underlay: a gold-and-blue gradient that
+                                 orbits the bar while body.search-loading is set (static/css/ai.css).
                                  Absolutely positioned + negative z-index: never affects layout or
                                  covers the input text / suggestions dropdown. -->
                             <div class="search-liftoff-underlay" aria-hidden="true"></div>
@@ -1507,13 +1507,6 @@
                 <output id="selectionInsightsBody" class="block mt-3 space-y-3" aria-live="polite"
                     aria-busy="false"></output>
             </section>
-
-            <div id="rightSidebarIdle"
-                class="hidden border border-slate-200 rounded-xl bg-white p-4 text-sm text-slate-600">
-                <p data-en="Select a passage in the reader to load linked commentary tools and lexical hints."
-                    data-he="בחר קטע בקורא כדי לטעון כלי מפרשים ורמזים לקסיקליים.">Select a passage in the reader to
-                    load linked commentary tools and lexical hints.</p>
-            </div>
         </aside>
     </div>
 
@@ -1981,7 +1974,6 @@
         const bookmarkCurrentBtn = document.getElementById('bookmarkCurrentBtn');
         const semanticBookmarkBtn = document.getElementById('semanticBookmarkBtn');
         const showLeftSidebarTopBtn = document.getElementById('showLeftSidebarTopBtn');
-        const showRightSidebarTopBtn = document.getElementById('showRightSidebarTopBtn');
         const settingsMenuBtn = document.getElementById('settingsMenuBtn');
         const settingsPanel = document.getElementById('settingsPanel');
         const settingsMenuContainer = document.getElementById('settingsMenuContainer');
@@ -2025,7 +2017,6 @@
         const mobileDrawerBackdrop = document.getElementById('mobileDrawerBackdrop');
         const leftSidebar = document.getElementById('leftSidebar');
         const rightSidebar = document.getElementById('rightSidebar');
-        const rightSidebarIdle = document.getElementById('rightSidebarIdle');
 
         const readerSettingsBtn = document.getElementById('readerSettingsBtn');
         const readerSettingsBtnLabel = document.getElementById('readerSettingsBtnLabel');
@@ -4999,16 +4990,6 @@
                 showLeftSidebarTopBtn.style.top = getSidebarRestoreTopOffset();
             }
 
-            if (showRightSidebarTopBtn) {
-                const showRightRestore = !mobile
-                    && !shulMode
-                    && !homeVisible
-                    && allowRightSidebar
-                    && !showRightSidebar; // The restore button should appear if the sidebar is hidden, regardless of content availability.
-                showRightSidebarTopBtn.style.display = showRightRestore ? 'flex' : 'none';
-                showRightSidebarTopBtn.style.top = getSidebarRestoreTopOffset();
-            }
-
             // Show topbar library button only on homepage when left sidebar is hidden on desktop
             const topbarLibraryBtn = document.getElementById('topbarLibraryBtn');
             if (topbarLibraryBtn) {
@@ -5224,7 +5205,6 @@
                 if (leftSidebar) leftSidebar.style.display = 'none';
                 if (rightSidebar) rightSidebar.style.display = 'none';
                 if (showLeftSidebarTopBtn) showLeftSidebarTopBtn.style.display = 'none';
-                if (showRightSidebarTopBtn) showRightSidebarTopBtn.style.display = 'none';
                 if (appState.prefs.shulAutoScroll) {
                     startShulAutoScroll();
                 } else {
@@ -6117,14 +6097,6 @@
             if (commentaryAvailableForCurrentSelection) {
                 markCommentaryHintSeen();
             }
-            if (!showRightSidebarTopBtn) return;
-
-            const canRestore = !isMobileViewport()
-                && !Boolean(appState.prefs.shulMode)
-                && appState.prefs.showRightSidebar === false
-                && commentaryAvailableForCurrentSelection;
-
-            showRightSidebarTopBtn.style.display = canRestore ? 'flex' : 'none';
         }
 
         function clearSelectionCommentaryState() {
@@ -6154,7 +6126,6 @@
 
         function showSelectionInsights() {
             selectionInsights?.classList.remove('hidden');
-            rightSidebarIdle?.classList.add('hidden');
         }
 
         function collapseCommentaryPanel() {
@@ -7858,9 +7829,6 @@
         }
         if (showLeftSidebarTopBtn) {
             showLeftSidebarTopBtn.addEventListener('click', () => setSidebarVisibility('left', true));
-        }
-        if (showRightSidebarTopBtn) {
-            showRightSidebarTopBtn.addEventListener('click', () => setSidebarVisibility('right', true));
         }
         if (mobileBottomTabs) {
             mobileBottomTabs.querySelectorAll('[data-mobile-tab]').forEach((btn) => {
@@ -10034,7 +10002,7 @@
         }
 
         // Matches static/css/ai.css's #searchForm.search-liftoff animation
-        // duration (shelah-liftoff-spin, 420ms, defined in tokens.css) --
+        // duration (the star's 420ms shelah-warm-pulse, defined in tokens.css) --
         // a plain setTimeout rather than an 'animationend' listener because
         // prefers-reduced-motion sets `animation: none` on that rule, which
         // would never fire animationend and leave the class lingering.
@@ -11883,7 +11851,7 @@
         }
 
         function populateAiModal(data, queryTitle) {
-            // Stop search-icon spin immediately when answer is ready
+            // Stop the search-bar loading state as soon as the answer is ready
             document.body.classList.remove('search-loading');
 
             // 1. Populate synthesis

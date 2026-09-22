@@ -1794,13 +1794,6 @@ html.theme-dark::-webkit-scrollbar-thumb:hover,
     box-shadow: 0 6px 18px rgba(15, 23, 42, 0.08);
 }
 
-/* Show-tab buttons: sidebar.css handles the order swap inside @media (min-width: 1024px);
-   these physical overrides stay here for the floating restore buttons only. */
-html.rtl #showRightSidebarTopBtn {
-    right: 0.75rem;
-    left: auto;
-}
-
 html.rtl #leftSidebar {
     direction: rtl;
 }
@@ -3127,7 +3120,6 @@ html.rtl .home-main-layout #popularTextsGrid {
 .library-shell #settingsPanel,
 .library-shell #readerSettingsPanel,
 .library-shell #selectionInsights,
-.library-shell #rightSidebarIdle,
 .library-shell #compareContainer {
     background: var(--surface-elevated) !important;
     border-color: var(--surface-border) !important;
@@ -3728,7 +3720,6 @@ html.theme-dark,
    elsewhere), so the panel itself reads as a distinct backdrop instead of
    blending into its own contents. */
 :is([data-theme="dark"], body.theme-dark) #selectionInsights,
-:is([data-theme="dark"], body.theme-dark) #rightSidebarIdle,
 :is([data-theme="dark"], body.theme-dark) #compareContainer,
 :is([data-theme="dark"], body.theme-dark) #sourceGraphCanvas {
     background: var(--surface-elevated) !important;
@@ -4626,13 +4617,6 @@ html[dir="rtl"] .mobile-drawer-right.mobile-open {
 
 :is([data-theme="dark"], body.theme-dark) #selectionInsightsBody .font-serif {
     color: var(--text-main) !important;
-}
-
-/* rightSidebarIdle dark mode */
-:is([data-theme="dark"], body.theme-dark) #rightSidebarIdle {
-    background: var(--surface-elevated) !important;
-    border-color: var(--surface-border) !important;
-    color: var(--text-muted) !important;
 }
 
 /* Reader topbar library button: right in RTL mode */
