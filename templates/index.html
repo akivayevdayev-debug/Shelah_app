@@ -507,15 +507,22 @@
                                 <span data-en="Shul Mode" data-he="מצב בית כנסת">Shul Mode</span>
                                 <input id="shulModeToggle" type="checkbox" class="reader-switch" />
                             </label>
-                            <label class="flex items-center justify-between text-xs text-slate-600">
-                                <span data-en="Auto Scroll" data-he="גלילה אוטומטית">Auto Scroll</span>
-                                <input id="shulAutoScrollToggle" type="checkbox" class="reader-switch" />
-                            </label>
-                            <label class="block text-xs text-slate-600">
-                                <span data-en="Scroll Speed" data-he="מהירות גלילה">Scroll Speed</span>
-                                <input id="shulScrollSpeed" type="range" min="8" max="80" value="28"
-                                    class="reader-range-slider mt-1 w-full" />
-                            </label>
+                            <!-- Only relevant once Shul Mode is on; applyShulMode() reveals this
+                                 with a smooth height/opacity transition (see .shul-sub-controls in
+                                 style.css) instead of always rendering it. -->
+                            <div id="shulSubControls" class="shul-sub-controls">
+                                <div class="shul-sub-controls-inner space-y-2">
+                                    <label class="flex items-center justify-between text-xs text-slate-600">
+                                        <span data-en="Auto Scroll" data-he="גלילה אוטומטית">Auto Scroll</span>
+                                        <input id="shulAutoScrollToggle" type="checkbox" class="reader-switch" />
+                                    </label>
+                                    <label class="block text-xs text-slate-600">
+                                        <span data-en="Scroll Speed" data-he="מהירות גלילה">Scroll Speed</span>
+                                        <input id="shulScrollSpeed" type="range" min="8" max="80" value="28"
+                                            class="reader-range-slider mt-1 w-full" />
+                                    </label>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -1991,6 +1998,7 @@
         const transliterationToggle = document.getElementById('transliterationToggle');
         const compareModeToggle = document.getElementById('compareModeToggle');
         const shulModeToggle = document.getElementById('shulModeToggle');
+        const shulSubControls = document.getElementById('shulSubControls');
         const shulAutoScrollToggle = document.getElementById('shulAutoScrollToggle');
         const shulScrollSpeed = document.getElementById('shulScrollSpeed');
         const showVowelsToggle = document.getElementById('showVowelsToggle');
@@ -3028,6 +3036,10 @@
                 shulScrollSpeed: 28,
                 theme: 'light',
             },
+            // Session-only "peek" state for the Shul-mode library sidebar -- NOT
+            // persisted. Always starts collapsed whenever Shul mode is
+            // (re-)enabled; see applyShulMode()/toggleShulLibrarySidebar().
+            shulSidebarOpen: false,
             currentView: null,
             lastAiQuestion: '',
             lastAiResponse: null,
@@ -3048,6 +3060,12 @@
         let syncedPrefsUserId = null;
         let shulScrollFrame = null;
         let inspectorPollInterval = null;
+        // Tracks the previous applyShulMode() enabled state so it can reset the
+        // sidebar "peek" below exactly on the false→true transition, not on every
+        // call (e.g. the window-resize handler re-calls applyShulMode() on every
+        // resize while Shul mode stays on, which must NOT re-collapse a sidebar
+        // the user just peeked open).
+        let shulModeWasEnabled = false;
 
         function getCurrentLanguage() {
             const raw = localStorage.getItem('preferredLanguage') || 'en';
@@ -4920,16 +4938,24 @@
         function syncReaderTopBarControls() {
             const mobile = isMobileViewport();
             const shulMode = Boolean(appState.prefs.shulMode);
-            const leftSidebarOpenDesktop = !mobile && !shulMode && (appState.prefs.showLeftSidebar !== false);
+            // In Shul mode the sidebar's "open" state is the transient peek flag,
+            // not the persisted preference (see applySidebarVisibility()).
+            const leftSidebarOpenDesktop = !mobile
+                && (shulMode ? Boolean(appState.shulSidebarOpen) : (appState.prefs.showLeftSidebar !== false));
             // Check if reader is actually active (topbar is visible)
             const readerTopBar = document.getElementById('readerTopBar');
             const isReaderActive = readerTopBar && !readerTopBar.classList.contains('hidden');
 
             if (readerLibraryTopBarBtn) {
-                const shouldShowLibraryBtn = !mobile && !leftSidebarOpenDesktop;
+                // Outside Shul mode this button only reopens a closed sidebar (it
+                // hides once open — nothing else closes it from here). In Shul
+                // mode it is the sidebar's only control, so it stays visible and
+                // toggles both ways.
+                const shouldShowLibraryBtn = !mobile && (shulMode || !leftSidebarOpenDesktop);
                 readerLibraryTopBarBtn.classList.toggle('hidden', !shouldShowLibraryBtn);
                 readerLibraryTopBarBtn.style.visibility = shouldShowLibraryBtn ? 'visible' : 'hidden';
                 readerLibraryTopBarBtn.disabled = !shouldShowLibraryBtn;
+                readerLibraryTopBarBtn.setAttribute('aria-expanded', String(leftSidebarOpenDesktop));
 
                 // Hide floating library restore button ONLY when reader is active (to avoid duplicate buttons)
                 // On homepage and pages without reader, show the floating button
@@ -4950,14 +4976,20 @@
         }
 
         function applySidebarVisibility() {
-            const showLeftSidebar = appState.prefs.showLeftSidebar !== false;
             const mobile = isMobileViewport();
             const shulMode = Boolean(appState.prefs.shulMode);
+            // In Shul mode the left sidebar auto-collapses and is only ever open
+            // via the transient peek toggle (toggleShulLibrarySidebar()), never
+            // the persisted showLeftSidebar preference -- that preference is left
+            // untouched so leaving Shul mode restores exactly what it was before.
+            const showLeftSidebar = shulMode
+                ? Boolean(appState.shulSidebarOpen)
+                : (appState.prefs.showLeftSidebar !== false);
             const readerViewActive = appState.currentView?.type === 'text';
             const homeVisible = Boolean(homeGrid && homeGrid.style.display !== 'none' && reader?.classList.contains('hidden'));
             const allowRightSidebar = readerViewActive && commentaryAvailableForCurrentSelection;
             const showRightSidebar = (appState.prefs.showRightSidebar !== false) && !homeVisible && allowRightSidebar;
-            const leftHiddenDesktop = !mobile && (!showLeftSidebar || shulMode);
+            const leftHiddenDesktop = !mobile && !showLeftSidebar;
             const rightHiddenDesktop = !mobile && (!showRightSidebar || shulMode);
 
             if (!mobile) {
@@ -4979,7 +5011,7 @@
                 if (leftSidebar) {
                     leftSidebar.classList.remove('mobile-open');
                     leftSidebar.classList.remove('hidden');
-                    leftSidebar.style.display = (showLeftSidebar && !shulMode) ? '' : 'none';
+                    leftSidebar.style.display = showLeftSidebar ? '' : 'none';
                 }
                 if (rightSidebar) {
                     rightSidebar.classList.remove('mobile-open');
@@ -5216,23 +5248,45 @@
             shulScrollFrame = requestAnimationFrame(step);
         }
 
+        async function toggleShulLibrarySidebar() {
+            const opening = !appState.shulSidebarOpen;
+            if (opening) {
+                appState.shulSidebarOpen = true;
+                applySidebarVisibility();
+                if (leftSidebar) await window.ShelahMotion?.slideIn(leftSidebar, { from: 'left' });
+            } else {
+                if (leftSidebar) await window.ShelahMotion?.slideOut(leftSidebar, { to: 'left' });
+                appState.shulSidebarOpen = false;
+                applySidebarVisibility();
+            }
+        }
+
         function applyShulMode() {
             const enabled = Boolean(appState.prefs.shulMode);
             document.body.classList.toggle('shul-mode', enabled);
 
-            if (enabled) {
-                if (leftSidebar) leftSidebar.style.display = 'none';
-                if (rightSidebar) rightSidebar.style.display = 'none';
-                if (showLeftSidebarTopBtn) showLeftSidebarTopBtn.style.display = 'none';
-                if (showRightSidebarTopBtn) showRightSidebarTopBtn.style.display = 'none';
-                if (appState.prefs.shulAutoScroll) {
-                    startShulAutoScroll();
-                } else {
-                    stopShulAutoScroll();
-                }
+            // Shul mode always starts with the library collapsed -- reset the
+            // peek state exactly on the false->true transition, not on every
+            // call. (The window-resize handler re-invokes this on every resize
+            // while Shul mode stays on, and must not re-collapse a sidebar the
+            // user just peeked open via toggleShulLibrarySidebar().)
+            if (enabled && !shulModeWasEnabled) {
+                appState.shulSidebarOpen = false;
+            }
+            shulModeWasEnabled = enabled;
+
+            applySidebarVisibility();
+
+            if (shulSubControls) {
+                shulSubControls.classList.toggle('is-open', enabled);
+                shulSubControls.toggleAttribute('inert', !enabled);
+                shulSubControls.setAttribute('aria-hidden', String(!enabled));
+            }
+
+            if (enabled && appState.prefs.shulAutoScroll) {
+                startShulAutoScroll();
             } else {
                 stopShulAutoScroll();
-                applySidebarVisibility();
             }
         }
 
@@ -7978,7 +8032,11 @@
         if (readerLibraryTopBarBtn) {
             readerLibraryTopBarBtn.addEventListener('click', (e) => {
                 e.stopPropagation();
-                toggleLeftSidebar();
+                if (appState.prefs.shulMode) {
+                    toggleShulLibrarySidebar();
+                } else {
+                    toggleLeftSidebar();
+                }
             });
         }
 
