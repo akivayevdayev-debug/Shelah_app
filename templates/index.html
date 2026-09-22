@@ -1835,8 +1835,8 @@
             color: var(--accent-red);
         }
     </style>
-    <div id="privacyDataModal" role="dialog" aria-modal="true" aria-labelledby="privacyDataModalTitle"
-        class="hidden fixed inset-0 z-[109] bg-slate-900/60 backdrop-blur-sm items-center justify-center p-4">
+    <dialog id="privacyDataModal" aria-labelledby="privacyDataModalTitle"
+        class="hidden fixed inset-0 z-[109] m-0 w-full h-full max-w-none max-h-none bg-slate-900/60 backdrop-blur-sm items-center justify-center p-4">
         <div class="privacy-modal-panel bg-white rounded-2xl shadow-2xl w-full max-w-lg max-h-[85vh] overflow-hidden flex flex-col relative">
             <button id="privacyDataModalCloseBtn" type="button" onclick="closePrivacyDataModal()"
                 class="absolute top-2 right-2 min-h-[44px] min-w-[44px] flex items-center justify-center rounded-full text-white/80 hover:text-white hover:bg-white/10 transition z-10"
@@ -1933,7 +1933,7 @@
                     data-he="סגור">Close</button>
             </div>
         </div>
-    </div>
+    </dialog>
 
     <!-- Library Category Browser Modal -->
     <div id="libraryCategoryModal"
@@ -12293,8 +12293,12 @@
             if (confirmInput) { confirmInput.value = ''; confirmInput.disabled = false; }
             if (deleteBtn) deleteBtn.disabled = true;
             privacyDataModalTrigger = document.activeElement;
-            modal.style.display = 'flex';
-            presentEl(modal, modalMotion(modal));
+            // Un-hidden before showModal() so focus can move into the dialog; the
+            // entrance then replays from its start state within the same task.
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+            if (!modal.open) modal.showModal();
+            presentEl(modal, { ...modalMotion(modal), replay: true });
             const closeBtn = document.getElementById('privacyDataModalCloseBtn');
             if (closeBtn) closeBtn.focus();
         }
@@ -12308,12 +12312,44 @@
             if (privacyDeleteInFlight) return;
             const modal = document.getElementById('privacyDataModal');
             if (!modal) return;
-            dismissEl(modal, { ...modalMotion(modal), onHidden: () => { modal.style.display = 'none'; } });
-            if (privacyDataModalTrigger && typeof privacyDataModalTrigger.focus === 'function') {
-                privacyDataModalTrigger.focus();
-            }
-            privacyDataModalTrigger = null;
+            // Exit first; the native close() must wait (closing a <dialog> drops it
+            // out of the top layer at once). Focus goes back to the trigger only
+            // after close(): while the dialog is open the rest of the page is inert,
+            // so focus() on the trigger would be a no-op.
+            dismissEl(modal, {
+                ...modalMotion(modal),
+                onHidden: () => {
+                    modal.classList.remove('flex');
+                    if (modal.open) modal.close();
+                    const trigger = privacyDataModalTrigger;
+                    privacyDataModalTrigger = null;
+                    if (trigger && typeof trigger.focus === 'function') trigger.focus();
+                },
+            });
         }
+
+        // <dialog> raises 'cancel' on Escape; route it through
+        // closePrivacyDataModal() (not the raw native close) so the in-flight
+        // guard and the class cleanup above always run.
+        document.getElementById('privacyDataModal')?.addEventListener('cancel', (e) => {
+            e.preventDefault();
+            closePrivacyDataModal();
+        });
+
+        // Safety net for the irreversible delete: a browser may close a modal
+        // <dialog> even though 'cancel' was prevented (a repeated Escape or back
+        // gesture with no user activation in between is not cancelable). If that
+        // happens mid-request, put the dialog back so the outcome stays visible;
+        // otherwise just make sure the hidden/flex classes match the closed state.
+        document.getElementById('privacyDataModal')?.addEventListener('close', (e) => {
+            const modal = e.currentTarget;
+            if (privacyDeleteInFlight) {
+                modal.showModal();
+                return;
+            }
+            modal.classList.remove('flex');
+            modal.classList.add('hidden');
+        });
 
         function handlePrivacyDeleteConfirmInput() {
             const confirmInput = document.getElementById('privacyDeleteConfirmInput');
@@ -12450,7 +12486,11 @@
                 closeDevtoolsInspector();
                 closeSourceGraph();
                 closeCommunityTimeline();
-                closePrivacyDataModal();
+                // privacyDataModal is a native <dialog>: its own 'cancel' listener
+                // handles Escape (calling closePrivacyDataModal() here too would
+                // double-fire). While a delete request is in flight, swallow the
+                // key so the browser cannot close the dialog on a repeat press.
+                if (privacyDeleteInFlight) e.preventDefault();
             }
         });
 

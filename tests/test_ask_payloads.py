@@ -84,7 +84,8 @@ class TestAiAnswerPayload:
     def test_flask_transport_key(self, ctx):
         meta = _ai(ctx, extra_meta={"cached": False})["meta"]
 
-        assert meta["cached"] is False and "async" not in meta
+        assert meta["cached"] is False
+        assert "async" not in meta
 
     def test_defaults_without_a_structured_payload(self, ctx):
         payload = _ai(ctx, structured_payload=None, user_id=None, question_was_sanitized=False,
@@ -93,7 +94,8 @@ class TestAiAnswerPayload:
         meta = payload["meta"]
         assert payload["confidence"] is None
         assert (meta["structured"], meta["is_prohibited"], meta["safety_class"]) == (False, False, "ok")
-        assert meta["identity_aware"] is False and meta["input_sanitized"] is False
+        assert meta["identity_aware"] is False
+        assert meta["input_sanitized"] is False
         assert meta["fallback"] is True
         assert meta["security"] == {}
         assert meta["rabbinic_disclaimer"] == claude.RABBI_FINAL_RULING_FOOTER
