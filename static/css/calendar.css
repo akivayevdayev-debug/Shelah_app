@@ -127,9 +127,11 @@ body.theme-dark {
     transform: translateY(-0.5px);
 }
 
-/* Day grid cells */
+/* Day grid cells. Every day is tappable: tapping one lists that day's
+   events in the agenda below the grid (see SELECTED DAY + AGENDA). */
 .fc .fc-daygrid-day {
     background: var(--cal-cell-bg);
+    cursor: pointer;
     transition: background var(--motion-dur-fast) var(--motion-ease-out);
 }
 
@@ -298,10 +300,6 @@ body.theme-dark {
 /* in templates/index.html). Colours come from theme      */
 /* tokens, so light, dark and RTL need no per-theme rules. */
 /* ═══════════════════════════════════════════════════════ */
-
-.fc .fc-daygrid-day {
-    cursor: pointer;
-}
 
 /* Shape-based (outline), not colour-only, and distinct from the 2px today ring. */
 .fc .fc-daygrid-day.cal-day-selected {
