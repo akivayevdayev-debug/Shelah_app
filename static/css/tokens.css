@@ -278,44 +278,19 @@
     50%      { opacity: 1;   transform: scale(1.04); filter: drop-shadow(0 0 14px rgba(201, 168, 78, 0.55)); }
 }
 
-/* One-shot pair for the search bar's "liftoff" moment (the instant an AI
-   question is submitted, synced with the AI modal's fade-in) --
-   static/css/ai.css's .search-liftoff-underlay. Unlike the ambient loops
-   above, these run a single ~420ms pass (see #searchForm.search-liftoff in
-   ai.css) and fade back to nothing rather than looping. Split in two so the
-   rotation never distorts the visible pill silhouette: -fade scales/fades
-   the outer mask (a fixed stadium shape, overflow:hidden + border-radius:
-   full), while -spin only rotates its ::before gradient layer, which the
-   mask clips back to that same stadium shape every frame -- rotating the
-   mask's own box directly would swing a wide-but-short rectangle into a
-   tall diagonal streak at steep angles, covering neighboring topbar
-   content. Transform + opacity only, per ENGINEERING_RULES.md's animation
-   performance guard. */
-@keyframes shelah-liftoff-fade {
-    0%   { opacity: 0;    transform: scale(0.88); }
-    30%  { opacity: 0.9;  transform: scale(1); }
-    100% { opacity: 0;    transform: scale(1.04); }
-}
-
-@keyframes shelah-liftoff-spin {
-    0%   { transform: translate(-50%, -50%) rotate(0deg); }
-    100% { transform: translate(-50%, -50%) rotate(150deg); }
-}
-
-/* Continuous follow-on to shelah-liftoff-spin, used once the 420ms burst
-   hands off to body.search-loading for the rest of the request (see
-   static/css/ai.css's body.search-loading .search-liftoff-underlay::before).
-   Picks up at 150deg so the handoff has no visible jump, and -- critically --
-   keeps translate(-50%, -50%) in BOTH keyframes so the browser interpolates
-   pure rotation. The generic shelah-spin keyframe (`to { transform:
-   rotate(360deg) }`) only has a rotate() term; animating this element (whose
-   base style is translate(-50%,-50%)) to that would matrix-interpolate
-   between mismatched transform lists, visibly dragging the square off-center
-   over each cycle and snapping it back at the loop boundary instead of
-   rotating in place. */
-@keyframes shelah-liftoff-spin-loop {
-    from { transform: translate(-50%, -50%) rotate(150deg); }
-    to   { transform: translate(-50%, -50%) rotate(510deg); }
+/* The search bar's loading halo (static/css/ai.css's .search-liftoff-underlay):
+   while an AI question is loading, its gold-and-blue conic gradient turns
+   steadily around the pill, the two colors swapping sides. Transform only, per
+   ENGINEERING_RULES.md's animation performance guard. Every keyframe repeats
+   the SAME transform list as the element's base transform (translate, then
+   scale, then rotate) so the browser interpolates each term on its own --
+   pure rotation. Mismatched lists (say, a bare rotate() against a base of
+   translate + scale) would matrix-interpolate and drag the square off-center
+   over each cycle, snapping it back at the loop boundary. The 2.2 horizontal
+   stretch must match the one in ai.css's .search-liftoff-underlay::before. */
+@keyframes shelah-halo-orbit {
+    from { transform: translate(-50%, -50%) scale(2.2, 1) rotate(0deg); }
+    to   { transform: translate(-50%, -50%) scale(2.2, 1) rotate(360deg); }
 }
 
 
