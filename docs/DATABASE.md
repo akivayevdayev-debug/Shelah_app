@@ -128,7 +128,7 @@ Server-generated per-user interaction-summary memory, used to build ask-time ide
 
 ### `ask_history`
 
-Per-user record of completed `/ask` interactions, including defensibility-logging metadata. Base table: [`scripts/migrate_ask_history.sql`](../scripts/migrate_ask_history.sql). Additive columns: [`scripts/migrate_ask_history_safety_metadata.sql`](../scripts/migrate_ask_history_safety_metadata.sql).
+Per-user record of completed `/ask` interactions, including defensibility-logging metadata. Base table: [`scripts/sql/migrate_ask_history.sql`](../scripts/sql/migrate_ask_history.sql). Additive columns: [`scripts/sql/migrate_ask_history_safety_metadata.sql`](../scripts/sql/migrate_ask_history_safety_metadata.sql).
 
 | Column | Type | Nullable | Default | Description |
 |---|---|---|---|---|
