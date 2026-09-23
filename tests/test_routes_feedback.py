@@ -294,5 +294,6 @@ class TestFeedbackMetadataFieldCaps:
         )
 
         assert record["mode"] == "strict"
-        assert "<" not in record["language"] and ">" not in record["language"]
+        assert "<" not in record["language"]
+        assert ">" not in record["language"]
         assert record["safety_class"] == "ok"
