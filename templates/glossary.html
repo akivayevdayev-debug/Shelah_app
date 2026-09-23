@@ -84,40 +84,7 @@
         </article>
     </main>
 
-    <footer class="border-t py-6 text-center text-xs"
-        style="border-color: var(--surface-border); color: var(--ink-secondary); background: var(--surface-1);">
-        <p>
-            <a href="/" class="font-semibold hover:underline" style="color: var(--ink-heading);"
-                data-en="Sh'elah Torah Encyclopedia" data-he="שאלה אנציקלופדיית תורה">Sh'elah Torah Encyclopedia</a>
-            &nbsp;·&nbsp;
-            <a href="/about" class="hover:underline" style="color: var(--ink-secondary);"
-                data-en="About" data-he="אודות">About</a>
-            &nbsp;·&nbsp;
-            <a href="/help" class="hover:underline" style="color: var(--ink-secondary);"
-                data-en="Help" data-he="עזרה">Help</a>
-            &nbsp;·&nbsp;
-            <a href="/terms" class="hover:underline font-medium" style="color: var(--ink-heading);"
-                data-en="Terms of Service" data-he="תנאי שירות">Terms of Service</a>
-            &nbsp;·&nbsp;
-            <a href="/privacy" class="hover:underline" style="color: var(--ink-secondary);"
-                data-en="Privacy Policy" data-he="מדיניות פרטיות">Privacy Policy</a>
-            &nbsp;·&nbsp;
-            <a href="/ai-disclosure" class="hover:underline" style="color: var(--ink-secondary);"
-                data-en="AI Disclosure" data-he="גילוי נאות בינה מלאכותית">AI Disclosure</a>
-            &nbsp;·&nbsp;
-            <a href="/acceptable-use" class="hover:underline" style="color: var(--ink-secondary);"
-                data-en="Acceptable Use" data-he="שימוש מותר">Acceptable Use</a>
-            &nbsp;·&nbsp;
-            <a href="/dmca" class="hover:underline" style="color: var(--ink-secondary);"
-                data-en="DMCA" data-he="DMCA">DMCA</a>
-            &nbsp;·&nbsp;
-            <a href="/accessibility" class="hover:underline" style="color: var(--ink-secondary);"
-                data-en="Accessibility" data-he="נגישות">Accessibility</a>
-            &nbsp;·&nbsp;
-            <a href="/licenses" class="hover:underline" style="color: var(--ink-secondary);"
-                data-en="Licenses" data-he="רישיונות">Licenses</a>
-        </p>
-    </footer>
+    {% with current='glossary' %}{% include 'components/site_footer.html' %}{% endwith %}
 
     {% include 'components/legal_scripts.html' %}
 </body>
