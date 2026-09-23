@@ -53,7 +53,8 @@ class TestWikipediaTitleStaysOneSafePathSegment:
         parts = urlsplit(url)
         assert (parts.scheme, parts.netloc) == ("https", "en.wikipedia.org")
         assert parts.path == self.EXPECTED_PATH
-        assert parts.query == "" and parts.fragment == ""
+        assert parts.query == ""
+        assert parts.fragment == ""
         assert unquote(parts.path.rsplit("/", 1)[1]) == "Shabbat?foo=bar&x=1#frag/a_b"
 
     def test_sync(self, mock_outbound_http):
