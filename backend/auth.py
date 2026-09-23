@@ -140,9 +140,9 @@ def extract_user_id_from_bearer_value(authorization):
     header = str(authorization or "").strip()
     if not header.lower().startswith("bearer "):
         return None
+    # header has no trailing whitespace (stripped above) and must have at
+    # least one non-whitespace char after "bearer ", so this can't be empty.
     token = header.split(" ", 1)[1].strip()
-    if not token:
-        return None
     try:
         claims = _verify_clerk_token(token)
     except Exception:
