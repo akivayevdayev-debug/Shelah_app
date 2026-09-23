@@ -372,7 +372,18 @@ async def _h_search_community_customs(arguments: dict, context: dict) -> dict:
         canonical = _canonicalize_community_name(str(community_filter))
         if canonical:
             results = [r for r in results if r.get("community") == canonical]
-    return {"query": query, "results": (results or [])[:12]}
+    # customs.py's data is presently static repo JSON (see that module's own
+    # docstring for the documented drift risk against the live Supabase
+    # table it is meant to eventually mirror), but this handler's contract
+    # is "tool output the model sees" -- screen it the same way every other
+    # tool handler here does (AI_SECURITY_REVIEW M2/E), per-row so one
+    # flagged row doesn't drop the whole result set, and so a future switch
+    # to a live/editable source doesn't silently reopen this channel.
+    screened = [
+        r for r in (results or [])[:12]
+        if withhold_injected(r, source="search_community_customs") is not None
+    ]
+    return {"query": query, "results": screened}
 
 
 # ── 15. get_community_profile ───────────────────────────────────────────────
@@ -400,7 +411,7 @@ async def _h_get_community_profile(arguments: dict, context: dict) -> dict:
     except (OSError, ValueError) as exc:
         return {"error": f"could not load profile for {canonical}: {exc}"}
 
-    return {
+    profile = {
         "community": canonical,
         "heritage_id": data.get("heritage_id"),
         "identity": data.get("identity"),
@@ -412,6 +423,14 @@ async def _h_get_community_profile(arguments: dict, context: dict) -> dict:
         "core_halachic_authorities": _cap_nested(data.get("core_halachic_authorities")),
         "unique_minhagim": _cap_nested(data.get("unique_minhagim")),
     }
+    # Same rationale as _h_search_community_customs above (AI_SECURITY_REVIEW
+    # M2/E): screen the tool output. A profile is one semantic unit, so a
+    # flagged field withholds the whole profile rather than partially
+    # trimming it (partial trimming is trivially evadable -- see
+    # retrieval_guard's module docstring).
+    if withhold_injected(profile, source="get_community_profile") is None:
+        return {"error": f"profile content withheld for {canonical}"}
+    return profile
 
 
 def _cap_nested(value: Any, max_items: int = 10) -> Any:

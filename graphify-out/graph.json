@@ -791,7 +791,7 @@
       "file_type": "code",
       "source_file": "app.py",
       "source_location": "L1644",
-      "community": 43,
+      "community": 295,
       "norm_label": "_security_blocked_ask_payload()",
       "id": "app_security_blocked_ask_payload"
     },
@@ -1115,7 +1115,7 @@
       "file_type": "rationale",
       "source_file": "app.py",
       "source_location": "L1648",
-      "community": 43,
+      "community": 295,
       "norm_label": "the \"security_blocked\" branch of ask_question()'s ai-synthesis     stage. split",
       "id": "app_rationale_1648"
     },
@@ -5750,7 +5750,7 @@
       "file_type": "code",
       "source_file": "backend/logging_setup.py",
       "source_location": "L1",
-      "community": 449,
+      "community": 43,
       "norm_label": "logging_setup.py",
       "id": "backend_logging_setup"
     },
@@ -5768,7 +5768,7 @@
       "file_type": "code",
       "source_file": "backend/logging_setup.py",
       "source_location": "L95",
-      "community": 449,
+      "community": 43,
       "norm_label": "_sentry_event_fingerprint()",
       "id": "backend_logging_setup_sentry_event_fingerprint"
     },
@@ -5777,7 +5777,7 @@
       "file_type": "code",
       "source_file": "backend/logging_setup.py",
       "source_location": "L103",
-      "community": 449,
+      "community": 43,
       "norm_label": "_sentry_before_send()",
       "id": "backend_logging_setup_sentry_before_send"
     },
@@ -5858,7 +5858,7 @@
       "file_type": "code",
       "source_file": "backend/logging_setup.py",
       "source_location": "L272",
-      "community": 449,
+      "community": 43,
       "norm_label": "bind_user_id()",
       "id": "backend_logging_setup_bind_user_id"
     },
@@ -5867,7 +5867,7 @@
       "file_type": "code",
       "source_file": "backend/logging_setup.py",
       "source_location": "L284",
-      "community": 449,
+      "community": 43,
       "norm_label": "get_user_id()",
       "id": "backend_logging_setup_get_user_id"
     },
@@ -5876,7 +5876,7 @@
       "file_type": "code",
       "source_file": "backend/logging_setup.py",
       "source_location": "L289",
-      "community": 449,
+      "community": 43,
       "norm_label": "bind_client_key()",
       "id": "backend_logging_setup_bind_client_key"
     },
@@ -5921,7 +5921,7 @@
       "file_type": "code",
       "source_file": "backend/logging_setup.py",
       "source_location": "L333",
-      "community": 295,
+      "community": 43,
       "norm_label": "submit_with_context()",
       "id": "backend_logging_setup_submit_with_context"
     },
@@ -5930,7 +5930,7 @@
       "file_type": "code",
       "source_file": "backend/logging_setup.py",
       "source_location": "L333",
-      "community": 295,
+      "community": 43,
       "norm_label": "threadpoolexecutor",
       "id": "backend_logging_setup_py_threadpoolexecutor"
     },
@@ -5939,7 +5939,7 @@
       "file_type": "code",
       "source_file": "backend/logging_setup.py",
       "source_location": "L333",
-      "community": 295,
+      "community": 43,
       "norm_label": "_t",
       "id": "t"
     },
@@ -5948,7 +5948,7 @@
       "file_type": "code",
       "source_file": "backend/logging_setup.py",
       "source_location": "L333",
-      "community": 295,
+      "community": 43,
       "norm_label": "any",
       "id": "backend_logging_setup_py_any"
     },
@@ -5957,7 +5957,7 @@
       "file_type": "code",
       "source_file": "backend/logging_setup.py",
       "source_location": "L364",
-      "community": 295,
+      "community": 43,
       "norm_label": "_is_sensitive_context_key()",
       "id": "backend_logging_setup_is_sensitive_context_key"
     },
@@ -6056,7 +6056,7 @@
       "file_type": "rationale",
       "source_file": "backend/logging_setup.py",
       "source_location": "L1",
-      "community": 449,
+      "community": 43,
       "norm_label": "structured json logging configuration for sh'elah.  usage:     from backend.logg",
       "id": "backend_logging_setup_rationale_1"
     },
@@ -6074,7 +6074,7 @@
       "file_type": "rationale",
       "source_file": "backend/logging_setup.py",
       "source_location": "L104",
-      "community": 449,
+      "community": 43,
       "norm_label": "drop a looping error's repeats and enforce a hard per-process cap     before it",
       "id": "backend_logging_setup_rationale_104"
     },
@@ -6128,7 +6128,7 @@
       "file_type": "rationale",
       "source_file": "backend/logging_setup.py",
       "source_location": "L273",
-      "community": 449,
+      "community": 43,
       "norm_label": "set the authenticated user_id in the current context and return it.      mirrors",
       "id": "backend_logging_setup_rationale_273"
     },
@@ -6137,7 +6137,7 @@
       "file_type": "rationale",
       "source_file": "backend/logging_setup.py",
       "source_location": "L285",
-      "community": 449,
+      "community": 43,
       "norm_label": "return the current context's user_id (empty string if anonymous/unset).",
       "id": "backend_logging_setup_rationale_285"
     },
@@ -6146,7 +6146,7 @@
       "file_type": "rationale",
       "source_file": "backend/logging_setup.py",
       "source_location": "L290",
-      "community": 449,
+      "community": 43,
       "norm_label": "set an anonymous-caller identifier (e.g. \"ip:1.2.3.4\") in the current     contex",
       "id": "backend_logging_setup_rationale_290"
     },
@@ -6398,7 +6398,7 @@
       "file_type": "code",
       "source_file": "backend/rag.py",
       "source_location": "L355",
-      "community": 43,
+      "community": 295,
       "norm_label": "_store_ask_history()",
       "id": "backend_rag_store_ask_history"
     },
@@ -6461,7 +6461,7 @@
       "file_type": "rationale",
       "source_file": "backend/rag.py",
       "source_location": "L368",
-      "community": 43,
+      "community": 295,
       "norm_label": "persist a completed ask interaction to the per-user ask_history table.      safe",
       "id": "backend_rag_rationale_368"
     },
@@ -9143,7 +9143,7 @@
       "file_type": "code",
       "source_file": "backend/sefaria_library.py",
       "source_location": "L275",
-      "community": 280,
+      "community": 648,
       "norm_label": "_apply_library_index_fix()",
       "id": "backend_sefaria_library_apply_library_index_fix"
     },
@@ -9152,7 +9152,7 @@
       "file_type": "code",
       "source_file": "backend/sefaria_library.py",
       "source_location": "L291",
-      "community": 280,
+      "community": 648,
       "norm_label": "_prune_library_index_list()",
       "id": "backend_sefaria_library_prune_library_index_list"
     },
@@ -9161,7 +9161,7 @@
       "file_type": "code",
       "source_file": "backend/sefaria_library.py",
       "source_location": "L302",
-      "community": 280,
+      "community": 648,
       "norm_label": "_prune_library_index_children()",
       "id": "backend_sefaria_library_prune_library_index_children"
     },
@@ -9170,7 +9170,7 @@
       "file_type": "code",
       "source_file": "backend/sefaria_library.py",
       "source_location": "L314",
-      "community": 280,
+      "community": 648,
       "norm_label": "_prune_and_fix_library_index()",
       "id": "backend_sefaria_library_prune_and_fix_library_index"
     },
@@ -9179,7 +9179,7 @@
       "file_type": "code",
       "source_file": "backend/sefaria_library.py",
       "source_location": "L335",
-      "community": 509,
+      "community": 555,
       "norm_label": "_cached_get()",
       "id": "backend_sefaria_library_cached_get"
     },
@@ -9251,7 +9251,7 @@
       "file_type": "code",
       "source_file": "backend/sefaria_library.py",
       "source_location": "L479",
-      "community": 555,
+      "community": 562,
       "norm_label": "_build_v3_text_url()",
       "id": "backend_sefaria_library_build_v3_text_url"
     },
@@ -9584,7 +9584,7 @@
       "file_type": "code",
       "source_file": "backend/sefaria_library.py",
       "source_location": "L1051",
-      "community": 122,
+      "community": 648,
       "norm_label": "_library_index_snapshot_is_fresh()",
       "id": "backend_sefaria_library_library_index_snapshot_is_fresh"
     },
@@ -9593,7 +9593,7 @@
       "file_type": "code",
       "source_file": "backend/sefaria_library.py",
       "source_location": "L1064",
-      "community": 122,
+      "community": 648,
       "norm_label": "get_library_index()",
       "id": "backend_sefaria_library_get_library_index"
     },
@@ -10160,7 +10160,7 @@
       "file_type": "rationale",
       "source_file": "backend/sefaria_library.py",
       "source_location": "L276",
-      "community": 280,
+      "community": 648,
       "norm_label": "attach a fixed opening ref to `clone` if `title_key` has a suggested     fix and",
       "id": "backend_sefaria_library_rationale_276"
     },
@@ -10169,7 +10169,7 @@
       "file_type": "rationale",
       "source_file": "backend/sefaria_library.py",
       "source_location": "L292",
-      "community": 280,
+      "community": 648,
       "norm_label": "recursively prune each item of a library-index list. split out of     _prune_and",
       "id": "backend_sefaria_library_rationale_292"
     },
@@ -10178,7 +10178,7 @@
       "file_type": "rationale",
       "source_file": "backend/sefaria_library.py",
       "source_location": "L303",
-      "community": 280,
+      "community": 648,
       "norm_label": "recursively prune one node's \"contents\"/\"children\" list fields in     place. spl",
       "id": "backend_sefaria_library_rationale_303"
     },
@@ -10187,7 +10187,7 @@
       "file_type": "rationale",
       "source_file": "backend/sefaria_library.py",
       "source_location": "L315",
-      "community": 280,
+      "community": 648,
       "norm_label": "remove known non-loading works and attach fixed opening refs where needed.",
       "id": "backend_sefaria_library_rationale_315"
     },
@@ -10196,7 +10196,7 @@
       "file_type": "rationale",
       "source_file": "backend/sefaria_library.py",
       "source_location": "L336",
-      "community": 509,
+      "community": 555,
       "norm_label": "cached http get wrapper \u2014 checks memory \u2192 disk \u2192 network.",
       "id": "backend_sefaria_library_rationale_336"
     },
@@ -10214,7 +10214,7 @@
       "file_type": "rationale",
       "source_file": "backend/sefaria_library.py",
       "source_location": "L480",
-      "community": 555,
+      "community": 562,
       "norm_label": "build a sefaria v3 texts endpoint url requesting source (he) + translation (en).",
       "id": "backend_sefaria_library_rationale_480"
     },
@@ -10493,7 +10493,7 @@
       "file_type": "rationale",
       "source_file": "backend/sefaria_library.py",
       "source_location": "L1052",
-      "community": 122,
+      "community": 648,
       "norm_label": "shared freshness check for the pruned/adjusted library-index view,     against b",
       "id": "backend_sefaria_library_rationale_1052"
     },
@@ -10502,7 +10502,7 @@
       "file_type": "rationale",
       "source_file": "backend/sefaria_library.py",
       "source_location": "L1065",
-      "community": 122,
+      "community": 648,
       "norm_label": "fetches the full sefaria library category tree.     returns a nested structure o",
       "id": "backend_sefaria_library_rationale_1065"
     },
@@ -46196,7 +46196,7 @@
       "file_type": "code",
       "source_file": "tests/test_rag.py",
       "source_location": "L520",
-      "community": 239,
+      "community": 337,
       "norm_label": ".test_insert_exception_reaches_capture_backend_error()",
       "id": "tests_test_rag_teststoreusermemorysummary_test_insert_exception_reaches_capture_backend_error"
     },
@@ -46268,7 +46268,7 @@
       "file_type": "rationale",
       "source_file": "tests/test_rag.py",
       "source_location": "L521",
-      "community": 239,
+      "community": 337,
       "norm_label": "regression test (plan.md \u00a723.2.4): kept non-fatal by design (a         memory-wr",
       "id": "tests_test_rag_rationale_521"
     },
@@ -53450,7 +53450,7 @@
       "file_type": "code",
       "source_file": "tests/test_routes_user.py",
       "source_location": "L197",
-      "community": 648,
+      "community": 185,
       "norm_label": ".test_get_preferences_authed_non_dict_row_returns_nulls()",
       "id": "tests_test_routes_user_testuserpreferences_test_get_preferences_authed_non_dict_row_returns_nulls"
     },
@@ -53666,7 +53666,7 @@
       "file_type": "code",
       "source_file": "tests/test_routes_user.py",
       "source_location": "L516",
-      "community": 390,
+      "community": 771,
       "norm_label": "testacceptlegal",
       "id": "tests_test_routes_user_testacceptlegal"
     },
@@ -53675,7 +53675,7 @@
       "file_type": "code",
       "source_file": "tests/test_routes_user.py",
       "source_location": "L517",
-      "community": 390,
+      "community": 771,
       "norm_label": ".test_accept_legal_without_auth_returns_200_client()",
       "id": "tests_test_routes_user_testacceptlegal_test_accept_legal_without_auth_returns_200_client"
     },
@@ -53747,7 +53747,7 @@
       "file_type": "code",
       "source_file": "tests/test_routes_user.py",
       "source_location": "L560",
-      "community": 337,
+      "community": 291,
       "norm_label": ".test_accept_legal_failure_reaches_capture_backend_error()",
       "id": "tests_test_routes_user_testacceptlegalauthenticated_test_accept_legal_failure_reaches_capture_backend_error"
     },
@@ -53774,7 +53774,7 @@
       "file_type": "code",
       "source_file": "tests/test_routes_user.py",
       "source_location": "L602",
-      "community": 771,
+      "community": 291,
       "norm_label": ".test_accept_legal_without_age_attested_does_not_persist_it()",
       "id": "tests_test_routes_user_testacceptlegalauthenticated_test_accept_legal_without_age_attested_does_not_persist_it"
     },
@@ -53783,7 +53783,7 @@
       "file_type": "code",
       "source_file": "tests/test_routes_user.py",
       "source_location": "L611",
-      "community": 291,
+      "community": 789,
       "norm_label": ".test_accept_legal_persists_client_supplied_versions()",
       "id": "tests_test_routes_user_testacceptlegalauthenticated_test_accept_legal_persists_client_supplied_versions"
     },
@@ -53855,7 +53855,7 @@
       "file_type": "code",
       "source_file": "tests/test_routes_user.py",
       "source_location": "L675",
-      "community": 185,
+      "community": 390,
       "norm_label": "testgetaskhistory",
       "id": "tests_test_routes_user_testgetaskhistory"
     },
@@ -53864,7 +53864,7 @@
       "file_type": "code",
       "source_file": "tests/test_routes_user.py",
       "source_location": "L676",
-      "community": 185,
+      "community": 390,
       "norm_label": ".test_without_auth_is_401()",
       "id": "tests_test_routes_user_testgetaskhistory_test_without_auth_is_401"
     },
@@ -53873,7 +53873,7 @@
       "file_type": "code",
       "source_file": "tests/test_routes_user.py",
       "source_location": "L680",
-      "community": 185,
+      "community": 390,
       "norm_label": ".test_authed_but_no_sub_claim_is_401()",
       "id": "tests_test_routes_user_testgetaskhistory_test_authed_but_no_sub_claim_is_401"
     },
@@ -53882,7 +53882,7 @@
       "file_type": "code",
       "source_file": "tests/test_routes_user.py",
       "source_location": "L685",
-      "community": 185,
+      "community": 390,
       "norm_label": ".test_no_supabase_client_is_503()",
       "id": "tests_test_routes_user_testgetaskhistory_test_no_supabase_client_is_503"
     },
@@ -53891,7 +53891,7 @@
       "file_type": "code",
       "source_file": "tests/test_routes_user.py",
       "source_location": "L690",
-      "community": 185,
+      "community": 390,
       "norm_label": ".test_happy_path_returns_items()",
       "id": "tests_test_routes_user_testgetaskhistory_test_happy_path_returns_items"
     },
@@ -53900,7 +53900,7 @@
       "file_type": "code",
       "source_file": "tests/test_routes_user.py",
       "source_location": "L698",
-      "community": 185,
+      "community": 390,
       "norm_label": ".test_limit_is_clamped_between_1_and_50()",
       "id": "tests_test_routes_user_testgetaskhistory_test_limit_is_clamped_between_1_and_50"
     },
@@ -53909,7 +53909,7 @@
       "file_type": "code",
       "source_file": "tests/test_routes_user.py",
       "source_location": "L704",
-      "community": 185,
+      "community": 390,
       "norm_label": ".test_supabase_exception_returns_500()",
       "id": "tests_test_routes_user_testgetaskhistory_test_supabase_exception_returns_500"
     },
@@ -54098,7 +54098,7 @@
       "file_type": "rationale",
       "source_file": "tests/test_routes_user.py",
       "source_location": "L200",
-      "community": 648,
+      "community": 185,
       "norm_label": "a malformed (non-dict) row in `.data` should fall back to nulls.",
       "id": "tests_test_routes_user_rationale_200"
     },
@@ -54143,7 +54143,7 @@
       "file_type": "rationale",
       "source_file": "tests/test_routes_user.py",
       "source_location": "L518",
-      "community": 390,
+      "community": 771,
       "norm_label": "unauthenticated users get client-side-only storage \u2014 still 200.",
       "id": "tests_test_routes_user_rationale_518"
     },
@@ -54161,7 +54161,7 @@
       "file_type": "rationale",
       "source_file": "tests/test_routes_user.py",
       "source_location": "L561",
-      "community": 337,
+      "community": 291,
       "norm_label": "regression test (plan.md \u00a723.2.4): this is the exact function whose         prio",
       "id": "tests_test_routes_user_rationale_561"
     },
@@ -54179,7 +54179,7 @@
       "file_type": "rationale",
       "source_file": "tests/test_routes_user.py",
       "source_location": "L603",
-      "community": 771,
+      "community": 291,
       "norm_label": "absence of an explicit attestation must not be silently recorded as true.",
       "id": "tests_test_routes_user_rationale_603"
     },
@@ -54188,7 +54188,7 @@
       "file_type": "rationale",
       "source_file": "tests/test_routes_user.py",
       "source_location": "L612",
-      "community": 291,
+      "community": 789,
       "norm_label": "plan.md \u00a78.a.1/\u00a78.d.2: the versions the consent modal displayed         must be",
       "id": "tests_test_routes_user_rationale_612"
     },
@@ -80540,7 +80540,7 @@
       "file_type": "rationale",
       "source_file": "app.py",
       "source_location": "L1699",
-      "community": 43,
+      "community": 295,
       "norm_label": "the \"security_blocked\" branch of ask_question()'s ai-synthesis     stage. split",
       "id": "app_rationale_1699"
     },
@@ -82322,7 +82322,7 @@
       "file_type": "rationale",
       "source_file": "app.py",
       "source_location": "L1682",
-      "community": 43,
+      "community": 295,
       "norm_label": "the \"security_blocked\" branch of ask_question()'s ai-synthesis     stage. split",
       "id": "app_rationale_1682"
     },
@@ -83123,7 +83123,7 @@
       "file_type": "rationale",
       "source_file": "backend/logging_setup.py",
       "source_location": "L221",
-      "community": 449,
+      "community": 43,
       "norm_label": "submit *fn* to *executor*, propagating the calling contextvars.      threadpoole",
       "id": "backend_logging_setup_rationale_221"
     },
@@ -83132,7 +83132,7 @@
       "file_type": "rationale",
       "source_file": "backend/logging_setup.py",
       "source_location": "L233",
-      "community": 449,
+      "community": 43,
       "norm_label": "set the authenticated user_id in the current context and return it.      mirrors",
       "id": "backend_logging_setup_rationale_233"
     },
@@ -83141,7 +83141,7 @@
       "file_type": "rationale",
       "source_file": "backend/logging_setup.py",
       "source_location": "L245",
-      "community": 449,
+      "community": 43,
       "norm_label": "return the current context's user_id (empty string if anonymous/unset).",
       "id": "backend_logging_setup_rationale_245"
     },
@@ -83150,7 +83150,7 @@
       "file_type": "rationale",
       "source_file": "backend/logging_setup.py",
       "source_location": "L250",
-      "community": 449,
+      "community": 43,
       "norm_label": "set an anonymous-caller identifier (e.g. \"ip:1.2.3.4\") in the current     contex",
       "id": "backend_logging_setup_rationale_250"
     },
@@ -83195,7 +83195,7 @@
       "file_type": "rationale",
       "source_file": "backend/logging_setup.py",
       "source_location": "L296",
-      "community": 295,
+      "community": 43,
       "norm_label": "submit *fn* to *pool*, preserving the caller's contextvars.      threadpoolexecu",
       "id": "backend_logging_setup_rationale_296"
     },
@@ -83897,7 +83897,7 @@
       "file_type": "rationale",
       "source_file": "backend/sefaria_library.py",
       "source_location": "L251",
-      "community": 280,
+      "community": 648,
       "norm_label": "attach a fixed opening ref to `clone` if `title_key` has a suggested     fix and",
       "id": "backend_sefaria_library_rationale_251"
     },
@@ -83906,7 +83906,7 @@
       "file_type": "rationale",
       "source_file": "backend/sefaria_library.py",
       "source_location": "L267",
-      "community": 280,
+      "community": 648,
       "norm_label": "remove known non-loading works and attach fixed opening refs where needed.",
       "id": "backend_sefaria_library_rationale_267"
     },
@@ -83915,7 +83915,7 @@
       "file_type": "rationale",
       "source_file": "backend/sefaria_library.py",
       "source_location": "L299",
-      "community": 509,
+      "community": 555,
       "norm_label": "cached http get wrapper \u2014 checks memory \u2192 disk \u2192 network.",
       "id": "backend_sefaria_library_rationale_299"
     },
@@ -83933,7 +83933,7 @@
       "file_type": "rationale",
       "source_file": "backend/sefaria_library.py",
       "source_location": "L445",
-      "community": 555,
+      "community": 562,
       "norm_label": "build a sefaria v3 texts endpoint url requesting source (he) + translation (en).",
       "id": "backend_sefaria_library_rationale_445"
     },
@@ -84041,7 +84041,7 @@
       "file_type": "rationale",
       "source_file": "backend/sefaria_library.py",
       "source_location": "L902",
-      "community": 122,
+      "community": 648,
       "norm_label": "fetches the full sefaria library category tree.     returns a nested structure o",
       "id": "backend_sefaria_library_rationale_902"
     },
@@ -84905,7 +84905,7 @@
       "file_type": "rationale",
       "source_file": "tests/test_rag.py",
       "source_location": "L501",
-      "community": 239,
+      "community": 337,
       "norm_label": "regression test (plan.md \u00a723.2.4): kept non-fatal by design (a         memory-wr",
       "id": "tests_test_rag_rationale_501"
     },
@@ -85121,7 +85121,7 @@
       "file_type": "rationale",
       "source_file": "tests/test_routes_user.py",
       "source_location": "L197",
-      "community": 648,
+      "community": 185,
       "norm_label": "a malformed (non-dict) row in `.data` should fall back to nulls.",
       "id": "tests_test_routes_user_rationale_197"
     },
@@ -85166,7 +85166,7 @@
       "file_type": "rationale",
       "source_file": "tests/test_routes_user.py",
       "source_location": "L515",
-      "community": 390,
+      "community": 771,
       "norm_label": "unauthenticated users get client-side-only storage \u2014 still 200.",
       "id": "tests_test_routes_user_rationale_515"
     },
@@ -85184,7 +85184,7 @@
       "file_type": "rationale",
       "source_file": "tests/test_routes_user.py",
       "source_location": "L558",
-      "community": 337,
+      "community": 291,
       "norm_label": "regression test (plan.md \u00a723.2.4): this is the exact function whose         prio",
       "id": "tests_test_routes_user_rationale_558"
     },
@@ -85202,7 +85202,7 @@
       "file_type": "rationale",
       "source_file": "tests/test_routes_user.py",
       "source_location": "L600",
-      "community": 771,
+      "community": 291,
       "norm_label": "absence of an explicit attestation must not be silently recorded as true.",
       "id": "tests_test_routes_user_rationale_600"
     },
@@ -85211,7 +85211,7 @@
       "file_type": "rationale",
       "source_file": "tests/test_routes_user.py",
       "source_location": "L609",
-      "community": 291,
+      "community": 789,
       "norm_label": "plan.md \u00a78.a.1/\u00a78.d.2: the versions the consent modal displayed         must be",
       "id": "tests_test_routes_user_rationale_609"
     },
@@ -86516,7 +86516,7 @@
       "file_type": "rationale",
       "source_file": "app.py",
       "source_location": "L1673",
-      "community": 43,
+      "community": 295,
       "norm_label": "the \"security_blocked\" branch of ask_question()'s ai-synthesis     stage. split",
       "id": "app_rationale_1673"
     },
@@ -86714,7 +86714,7 @@
       "file_type": "rationale",
       "source_file": "backend/logging_setup.py",
       "source_location": "L238",
-      "community": 449,
+      "community": 43,
       "norm_label": "set an anonymous-caller identifier (e.g. \"ip:1.2.3.4\") in the current     contex",
       "id": "backend_logging_setup_rationale_238"
     },
@@ -86750,7 +86750,7 @@
       "file_type": "rationale",
       "source_file": "backend/logging_setup.py",
       "source_location": "L284",
-      "community": 295,
+      "community": 43,
       "norm_label": "submit *fn* to *pool*, preserving the caller's contextvars.      threadpoolexecu",
       "id": "backend_logging_setup_rationale_284"
     },
@@ -86975,7 +86975,7 @@
       "file_type": "rationale",
       "source_file": "tests/test_rag.py",
       "source_location": "L484",
-      "community": 239,
+      "community": 337,
       "norm_label": "regression test (plan.md \u00a723.2.4): kept non-fatal by design (a         memory-wr",
       "id": "tests_test_rag_rationale_484"
     },
@@ -87767,7 +87767,7 @@
       "file_type": "rationale",
       "source_file": "app.py",
       "source_location": "L1637",
-      "community": 43,
+      "community": 295,
       "norm_label": "the \"security_blocked\" branch of ask_question()'s ai-synthesis     stage. split",
       "id": "app_rationale_1637"
     },
@@ -88514,7 +88514,7 @@
       "file_type": "rationale",
       "source_file": "app.py",
       "source_location": "L1704",
-      "community": 43,
+      "community": 295,
       "norm_label": "the \"security_blocked\" branch of ask_question()'s ai-synthesis     stage. split",
       "id": "app_rationale_1704"
     },
@@ -88883,7 +88883,7 @@
       "file_type": "rationale",
       "source_file": "tests/test_routes_user.py",
       "source_location": "L195",
-      "community": 648,
+      "community": 185,
       "norm_label": "a malformed (non-dict) row in `.data` should fall back to nulls.",
       "id": "tests_test_routes_user_rationale_195"
     },
@@ -88910,7 +88910,7 @@
       "file_type": "rationale",
       "source_file": "tests/test_routes_user.py",
       "source_location": "L477",
-      "community": 390,
+      "community": 771,
       "norm_label": "unauthenticated users get client-side-only storage \u2014 still 200.",
       "id": "tests_test_routes_user_rationale_477"
     },
@@ -88928,7 +88928,7 @@
       "file_type": "rationale",
       "source_file": "tests/test_routes_user.py",
       "source_location": "L520",
-      "community": 337,
+      "community": 291,
       "norm_label": "regression test (plan.md \u00a723.2.4): this is the exact function whose         prio",
       "id": "tests_test_routes_user_rationale_520"
     },
@@ -88946,7 +88946,7 @@
       "file_type": "rationale",
       "source_file": "tests/test_routes_user.py",
       "source_location": "L562",
-      "community": 771,
+      "community": 291,
       "norm_label": "absence of an explicit attestation must not be silently recorded as true.",
       "id": "tests_test_routes_user_rationale_562"
     },
@@ -88955,7 +88955,7 @@
       "file_type": "rationale",
       "source_file": "tests/test_routes_user.py",
       "source_location": "L571",
-      "community": 291,
+      "community": 789,
       "norm_label": "plan.md \u00a78.a.1/\u00a78.d.2: the versions the consent modal displayed         must be",
       "id": "tests_test_routes_user_rationale_571"
     },
@@ -89270,7 +89270,7 @@
       "file_type": "rationale",
       "source_file": "app.py",
       "source_location": "L1677",
-      "community": 43,
+      "community": 295,
       "norm_label": "the \"security_blocked\" branch of ask_question()'s ai-synthesis     stage. split",
       "id": "app_rationale_1677"
     },
@@ -89387,7 +89387,7 @@
       "file_type": "rationale",
       "source_file": "backend/rag.py",
       "source_location": "L361",
-      "community": 43,
+      "community": 295,
       "norm_label": "persist a completed ask interaction to the per-user ask_history table.      safe",
       "id": "backend_rag_rationale_361"
     },
@@ -89531,7 +89531,7 @@
       "file_type": "rationale",
       "source_file": "tests/test_rag.py",
       "source_location": "L441",
-      "community": 239,
+      "community": 337,
       "norm_label": "regression test (plan.md \u00a723.2.4): kept non-fatal by design (a         memory-wr",
       "id": "tests_test_rag_rationale_441"
     },
@@ -89576,7 +89576,7 @@
       "file_type": "rationale",
       "source_file": "backend/rag.py",
       "source_location": "L359",
-      "community": 43,
+      "community": 295,
       "norm_label": "persist a completed ask interaction to the per-user ask_history table.      safe",
       "id": "backend_rag_rationale_359"
     },
@@ -89675,7 +89675,7 @@
       "file_type": "rationale",
       "source_file": "tests/test_routes_user.py",
       "source_location": "L539",
-      "community": 771,
+      "community": 291,
       "norm_label": "absence of an explicit attestation must not be silently recorded as true.",
       "id": "tests_test_routes_user_rationale_539"
     },
@@ -89684,7 +89684,7 @@
       "file_type": "rationale",
       "source_file": "tests/test_routes_user.py",
       "source_location": "L548",
-      "community": 291,
+      "community": 789,
       "norm_label": "plan.md \u00a78.a.1/\u00a78.d.2: the versions the consent modal displayed         must be",
       "id": "tests_test_routes_user_rationale_548"
     },
@@ -89927,7 +89927,7 @@
       "file_type": "rationale",
       "source_file": "app.py",
       "source_location": "L1675",
-      "community": 43,
+      "community": 295,
       "norm_label": "the \"security_blocked\" branch of ask_question()'s ai-synthesis     stage. split",
       "id": "app_rationale_1675"
     },
@@ -90602,7 +90602,7 @@
       "file_type": "rationale",
       "source_file": "app.py",
       "source_location": "L1671",
-      "community": 43,
+      "community": 295,
       "norm_label": "the \"security_blocked\" branch of ask_question()'s ai-synthesis     stage. split",
       "id": "app_rationale_1671"
     },
@@ -92051,7 +92051,7 @@
       "file_type": "rationale",
       "source_file": "backend/logging_setup.py",
       "source_location": "L220",
-      "community": 449,
+      "community": 43,
       "norm_label": "set the authenticated user_id in the current context and return it.      mirrors",
       "id": "backend_logging_setup_rationale_220"
     },
@@ -92060,7 +92060,7 @@
       "file_type": "rationale",
       "source_file": "backend/logging_setup.py",
       "source_location": "L232",
-      "community": 449,
+      "community": 43,
       "norm_label": "return the current context's user_id (empty string if anonymous/unset).",
       "id": "backend_logging_setup_rationale_232"
     },
@@ -92069,7 +92069,7 @@
       "file_type": "rationale",
       "source_file": "backend/logging_setup.py",
       "source_location": "L237",
-      "community": 449,
+      "community": 43,
       "norm_label": "set an anonymous-caller identifier (e.g. \"ip:1.2.3.4\") in the current     contex",
       "id": "backend_logging_setup_rationale_237"
     },
@@ -92096,7 +92096,7 @@
       "file_type": "rationale",
       "source_file": "backend/logging_setup.py",
       "source_location": "L262",
-      "community": 295,
+      "community": 43,
       "norm_label": "submit *fn* to *pool*, preserving the caller's contextvars.      threadpoolexecu",
       "id": "backend_logging_setup_rationale_262"
     },
@@ -92339,7 +92339,7 @@
       "file_type": "rationale",
       "source_file": "app.py",
       "source_location": "L1672",
-      "community": 43,
+      "community": 295,
       "norm_label": "the \"security_blocked\" branch of ask_question()'s ai-synthesis     stage. split",
       "id": "app_rationale_1672"
     },
@@ -92951,7 +92951,7 @@
       "file_type": "rationale",
       "source_file": "backend/sefaria_library.py",
       "source_location": "L880",
-      "community": 122,
+      "community": 648,
       "norm_label": "fetches the full sefaria library category tree.     returns a nested structure o",
       "id": "backend_sefaria_library_rationale_880"
     },
@@ -95219,7 +95219,7 @@
       "file_type": "rationale",
       "source_file": "backend/logging_setup.py",
       "source_location": "L228",
-      "community": 295,
+      "community": 43,
       "norm_label": "submit *fn* to *pool*, preserving the caller's contextvars.      threadpoolexecu",
       "id": "backend_logging_setup_rationale_228"
     },
@@ -95237,7 +95237,7 @@
       "file_type": "rationale",
       "source_file": "backend/rag.py",
       "source_location": "L322",
-      "community": 43,
+      "community": 295,
       "norm_label": "persist a completed ask interaction to the per-user ask_history table.      safe",
       "id": "backend_rag_rationale_322"
     },
@@ -95579,7 +95579,7 @@
       "file_type": "rationale",
       "source_file": "backend/sefaria_library.py",
       "source_location": "L228",
-      "community": 280,
+      "community": 648,
       "norm_label": "remove known non-loading works and attach fixed opening refs where needed.",
       "id": "backend_sefaria_library_rationale_228"
     },
@@ -95588,7 +95588,7 @@
       "file_type": "rationale",
       "source_file": "backend/sefaria_library.py",
       "source_location": "L265",
-      "community": 509,
+      "community": 555,
       "norm_label": "cached http get wrapper \u2014 checks memory \u2192 disk \u2192 network.",
       "id": "backend_sefaria_library_rationale_265"
     },
@@ -95606,7 +95606,7 @@
       "file_type": "rationale",
       "source_file": "backend/sefaria_library.py",
       "source_location": "L411",
-      "community": 555,
+      "community": 562,
       "norm_label": "build a sefaria v3 texts endpoint url requesting source (he) + translation (en).",
       "id": "backend_sefaria_library_rationale_411"
     },
@@ -95642,7 +95642,7 @@
       "file_type": "rationale",
       "source_file": "backend/sefaria_library.py",
       "source_location": "L786",
-      "community": 122,
+      "community": 648,
       "norm_label": "fetches the full sefaria library category tree.     returns a nested structure o",
       "id": "backend_sefaria_library_rationale_786"
     },
@@ -96173,7 +96173,7 @@
       "file_type": "rationale",
       "source_file": "tests/test_routes_user.py",
       "source_location": "L479",
-      "community": 390,
+      "community": 771,
       "norm_label": "unauthenticated users get client-side-only storage \u2014 still 200.",
       "id": "tests_test_routes_user_rationale_479"
     },
@@ -96200,7 +96200,7 @@
       "file_type": "rationale",
       "source_file": "tests/test_routes_user.py",
       "source_location": "L541",
-      "community": 771,
+      "community": 291,
       "norm_label": "absence of an explicit attestation must not be silently recorded as true.",
       "id": "tests_test_routes_user_rationale_541"
     },
@@ -96209,7 +96209,7 @@
       "file_type": "rationale",
       "source_file": "tests/test_routes_user.py",
       "source_location": "L550",
-      "community": 291,
+      "community": 789,
       "norm_label": "plan.md \u00a78.a.1/\u00a78.d.2: the versions the consent modal displayed         must be",
       "id": "tests_test_routes_user_rationale_550"
     },
@@ -97838,7 +97838,7 @@
       "file_type": "rationale",
       "source_file": "backend/rag.py",
       "source_location": "L320",
-      "community": 43,
+      "community": 295,
       "norm_label": "persist a completed ask interaction to the per-user ask_history table.      safe",
       "id": "backend_rag_rationale_320"
     },
@@ -98108,7 +98108,7 @@
       "file_type": "rationale",
       "source_file": "backend/logging_setup.py",
       "source_location": "L229",
-      "community": 295,
+      "community": 43,
       "norm_label": "submit *fn* to *pool*, preserving the caller's contextvars.      threadpoolexecu",
       "id": "backend_logging_setup_rationale_229"
     },
@@ -99035,7 +99035,7 @@
       "file_type": "rationale",
       "source_file": "backend/rag.py",
       "source_location": "L318",
-      "community": 43,
+      "community": 295,
       "norm_label": "persist a completed ask interaction to the per-user ask_history table.",
       "id": "backend_rag_rationale_318"
     },
@@ -99755,7 +99755,7 @@
       "file_type": "rationale",
       "source_file": "backend/sefaria_library.py",
       "source_location": "L193",
-      "community": 280,
+      "community": 648,
       "norm_label": "remove known non-loading works and attach fixed opening refs where needed.",
       "id": "backend_sefaria_library_rationale_193"
     },
@@ -99764,7 +99764,7 @@
       "file_type": "rationale",
       "source_file": "backend/sefaria_library.py",
       "source_location": "L230",
-      "community": 509,
+      "community": 555,
       "norm_label": "cached http get wrapper \u2014 checks memory \u2192 disk \u2192 network.",
       "id": "backend_sefaria_library_rationale_230"
     },
@@ -99782,7 +99782,7 @@
       "file_type": "rationale",
       "source_file": "backend/sefaria_library.py",
       "source_location": "L373",
-      "community": 555,
+      "community": 562,
       "norm_label": "build a sefaria v3 texts endpoint url requesting source (he) + translation (en).",
       "id": "backend_sefaria_library_rationale_373"
     },
@@ -99818,7 +99818,7 @@
       "file_type": "rationale",
       "source_file": "backend/sefaria_library.py",
       "source_location": "L729",
-      "community": 122,
+      "community": 648,
       "norm_label": "fetches the full sefaria library category tree.     returns a nested structure o",
       "id": "backend_sefaria_library_rationale_729"
     },
@@ -100376,7 +100376,7 @@
       "file_type": "rationale",
       "source_file": "tests/test_routes_user.py",
       "source_location": "L192",
-      "community": 648,
+      "community": 185,
       "norm_label": "a malformed (non-dict) row in `.data` should fall back to nulls.",
       "id": "tests_test_routes_user_rationale_192"
     },
@@ -100403,7 +100403,7 @@
       "file_type": "rationale",
       "source_file": "tests/test_routes_user.py",
       "source_location": "L474",
-      "community": 390,
+      "community": 771,
       "norm_label": "unauthenticated users get client-side-only storage \u2014 still 200.",
       "id": "tests_test_routes_user_rationale_474"
     },
@@ -103301,7 +103301,7 @@
       "file_type": "rationale",
       "source_file": "tests/test_routes_user.py",
       "source_location": "L73",
-      "community": 390,
+      "community": 771,
       "norm_label": "unauthenticated users get client-side-only storage \u2014 still 200.",
       "id": "tests_test_routes_user_rationale_73"
     },
@@ -104102,7 +104102,7 @@
       "file_type": "rationale",
       "source_file": "backend/sefaria_library.py",
       "source_location": "L192",
-      "community": 280,
+      "community": 648,
       "norm_label": "remove known non-loading works and attach fixed opening refs where needed.",
       "id": "backend_sefaria_library_rationale_192"
     },
@@ -104111,7 +104111,7 @@
       "file_type": "rationale",
       "source_file": "backend/sefaria_library.py",
       "source_location": "L229",
-      "community": 509,
+      "community": 555,
       "norm_label": "cached http get wrapper \u2014 checks memory \u2192 disk \u2192 network.",
       "id": "backend_sefaria_library_rationale_229"
     },
@@ -104129,7 +104129,7 @@
       "file_type": "rationale",
       "source_file": "backend/sefaria_library.py",
       "source_location": "L372",
-      "community": 555,
+      "community": 562,
       "norm_label": "build a sefaria v3 texts endpoint url requesting source (he) + translation (en).",
       "id": "backend_sefaria_library_rationale_372"
     },
@@ -104165,7 +104165,7 @@
       "file_type": "rationale",
       "source_file": "backend/sefaria_library.py",
       "source_location": "L728",
-      "community": 122,
+      "community": 648,
       "norm_label": "fetches the full sefaria library category tree.     returns a nested structure o",
       "id": "backend_sefaria_library_rationale_728"
     },
@@ -107310,7 +107310,7 @@
       "source_file": "app.py",
       "source_location": "L4421",
       "_origin": "ast",
-      "community": 555,
+      "community": 101,
       "norm_label": "get_prayer()",
       "id": "app_get_prayer"
     },
@@ -107320,7 +107320,7 @@
       "source_file": "app.py",
       "source_location": "L4463",
       "_origin": "ast",
-      "community": 555,
+      "community": 101,
       "norm_label": "get_siddur_full()",
       "id": "app_get_siddur_full"
     },
@@ -107630,7 +107630,7 @@
       "source_file": "app.py",
       "source_location": "L4422",
       "_origin": "ast",
-      "community": 555,
+      "community": 101,
       "norm_label": "returns prayer-book preview content in english and hebrew.",
       "id": "app_rationale_4422"
     },
@@ -107640,7 +107640,7 @@
       "source_file": "app.py",
       "source_location": "L4464",
       "_origin": "ast",
-      "community": 555,
+      "community": 101,
       "norm_label": "fetch full prayer text from sefaria for any supported prayer service/book.",
       "id": "app_rationale_4464"
     },
@@ -269080,5 +269080,5 @@
       "confidence_score": 1.0
     }
   ],
-  "built_at_commit": "7fcb297c7b08d15913a4a4bfeb2c1c5e69a16db9"
+  "built_at_commit": "b93c77e3c7d40fb031a5926ff7a49cd756614a78"
 }

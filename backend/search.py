@@ -10,10 +10,12 @@ These helpers are intentionally simple and resilient because they are best-effor
 enrichment sources, not the primary authoritative text source.
 """
 
+import asyncio
 import logging
 import requests
 import httpx
 import re
+import weakref
 from html import unescape
 from urllib.parse import quote, quote_plus, urljoin
 
@@ -26,7 +28,9 @@ _DEFAULT_USER_AGENT = "Mozilla/5.0 (compatible; ShelahBot/1.0; +https://www.sefa
 
 _HTTP = requests.Session()
 _HTTP.headers.update({"User-Agent": _DEFAULT_USER_AGENT})
-_ASYNC_HTTP_CLIENT: httpx.AsyncClient | None = None
+_ASYNC_HTTP_CLIENTS: "weakref.WeakKeyDictionary[asyncio.AbstractEventLoop, httpx.AsyncClient]" = (
+    weakref.WeakKeyDictionary()
+)
 _CACHE_TTL_SECONDS = 60 * 10
 _CACHE_MAX_SIZE = 256
 _DAILY_CACHE_KEY = "daily_learning"
@@ -37,15 +41,23 @@ _DAILY_CACHE = TTLCache(ttl=60 * 5)
 
 
 def _get_async_client() -> httpx.AsyncClient:
-    """Lazily-created, process-wide httpx.AsyncClient shared by the three
-    async_search_* connectors below so each call reuses pooled connections
-    instead of paying a fresh handshake every time (plan.md §3.6)."""
-    global _ASYNC_HTTP_CLIENT
-    if _ASYNC_HTTP_CLIENT is None:
-        _ASYNC_HTTP_CLIENT = httpx.AsyncClient(
-            timeout=10.0, headers={"User-Agent": _DEFAULT_USER_AGENT}
-        )
-    return _ASYNC_HTTP_CLIENT
+    """Per-event-loop httpx.AsyncClient shared by the three async_search_*
+    connectors below so calls within one loop's lifetime reuse pooled
+    connections instead of paying a fresh handshake every time (plan.md
+    §3.6). Keyed by the running loop (AI_SECURITY_REVIEW L3): a single
+    module-level client used to be handed to whichever loop called it
+    first, so a later, unrelated loop -- e.g. a second `asyncio.run()`,
+    which Vercel's serverless runtime may use per invocation -- could
+    receive a client bound to a transport whose original loop had already
+    closed. The WeakKeyDictionary drops an entry on its own once that loop
+    is garbage-collected, and `is_closed` catches a client whose loop closed
+    without ever being collected."""
+    loop = asyncio.get_running_loop()
+    client = _ASYNC_HTTP_CLIENTS.get(loop)
+    if client is None or client.is_closed:
+        client = httpx.AsyncClient(timeout=10.0, headers={"User-Agent": _DEFAULT_USER_AGENT})
+        _ASYNC_HTTP_CLIENTS[loop] = client
+    return client
 
 
 def search_wikipedia(title):
