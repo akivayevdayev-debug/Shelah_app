@@ -359,7 +359,7 @@
                             </div>
 
                             <div class="grid grid-cols-2 gap-2 border-t border-slate-100 pt-2">
-                                <label class="col-span-2 text-xs text-slate-600">
+                                <label class="export-text-only hidden col-span-2 text-xs text-slate-600">
                                     <span data-en="Export format" data-he="פורמט ייצוא">Export format</span>
                                     <select id="exportFormatSelect"
                                         class="mt-1 w-full px-2 py-1.5 rounded border border-slate-200 bg-slate-50 text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-400">
@@ -369,7 +369,7 @@
                                     </select>
                                 </label>
                                 <button id="exportCitationBtn" type="button"
-                                    class="px-2.5 py-1.5 rounded-lg bg-slate-100 text-slate-700 border border-slate-200 hover:bg-slate-200 transition font-semibold text-xs"
+                                    class="export-text-only hidden px-2.5 py-1.5 rounded-lg bg-slate-100 text-slate-700 border border-slate-200 hover:bg-slate-200 transition font-semibold text-xs"
                                     data-en="Export" data-he="ייצוא">Export</button>
                                 <button id="trackCurrentBtn" type="button"
                                     class="px-2.5 py-1.5 rounded-lg bg-slate-100 text-slate-700 border border-slate-200 hover:bg-slate-200 transition font-semibold text-xs"
@@ -5827,7 +5827,19 @@
             updateBookmarkButton();
         }
 
+        // Export/citation controls only make sense with an open text chapter
+        // to export (buildCurrentCitationExportPayload() requires
+        // currentView.type === 'text'); keep them out of the settings panel
+        // on every other page instead of showing a control that just alerts.
+        function updateExportControlsVisibility() {
+            const showExport = appState.currentView?.type === 'text';
+            document.querySelectorAll('.export-text-only').forEach((el) => {
+                el.classList.toggle('hidden', !showExport);
+            });
+        }
+
         function updateBookmarkButton() {
+            updateExportControlsVisibility();
             const current = appState.currentView;
             if (!current || !bookmarkCurrentBtn) {
                 bookmarkCurrentBtn.textContent = t('Save Current', 'שמור נוכחי');

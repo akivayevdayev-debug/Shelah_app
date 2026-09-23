@@ -649,6 +649,14 @@ html.rtl #hebrewDateDisplay {
     line-height: 1.6 !important;
 }
 
+/* #settingsPanel button's !important display:inline-block above outranks
+   the .hidden utility on any button inside the panel (higher specificity,
+   also !important); this rule out-specifies both so export-only controls
+   can still be toggled off outside text pages. */
+#settingsPanel .export-text-only.hidden {
+    display: none !important;
+}
+
 #settingsPanel button:not(#bookmarkCurrentBtn) {
     background: #e2e8f0 !important;
     border-color: #cbd5e1 !important;
