@@ -291,6 +291,7 @@
         isOffOriginNoise: isOffOriginNoise,
         makeBeforeSend: makeBeforeSend,
         makeBeforeBreadcrumb: makeBeforeBreadcrumb,
+        initSentry: initSentry,
     };
 
     if (typeof module !== 'undefined' && module.exports) {
