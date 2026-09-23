@@ -6060,14 +6060,46 @@
             return normalized === 'bilingual' || normalized === 'bilingual-reverse';
         }
 
+        // Finds the reader chunk nearest the viewport's top edge (the first one
+        // whose bottom hasn't scrolled past it yet) and a tracking key for it.
+        function getReaderScrollAnchor() {
+            const chain = getCurrentTextPayloadChain();
+            const chunkEls = document.querySelectorAll('#readerSources [data-text-chunk-index]');
+            for (const el of chunkEls) {
+                const rect = el.getBoundingClientRect();
+                if (rect.bottom > 0) {
+                    const chunk = chain[Number(el.dataset.textChunkIndex)];
+                    const refKey = getRefTrackingKey(chunk?.ref || chunk?.title || '');
+                    if (refKey) return { el, refKey, viewportTop: rect.top };
+                    break;
+                }
+            }
+            return null;
+        }
+
         function captureReaderScrollState() {
             const target = getPrimaryScrollElement();
             const pageTarget = target === document.documentElement || target === document.body;
             const top = getPrimaryScrollTop();
 
+            // Anchor to a specific chunk rather than a raw pixel offset.
+            // loadPreviousTextChunk() prepends a new chunk above the current
+            // one, which pushes every already-rendered chunk (and whatever
+            // scrollTop used to line up with them) down by the prepended
+            // chunk's height; restoring the old raw scrollTop after that lands
+            // on unrelated, much-earlier content -- the "scrolling up jumps
+            // several passages" bug. Restoring the SAME chunk to the SAME
+            // position relative to the viewport, instead of the same pixel
+            // offset, keeps the same text in view regardless of how much was
+            // prepended above it (and is a no-op for appends, since nothing
+            // above the anchor moves).
+            const anchor = getReaderScrollAnchor();
+
             return {
                 pageTarget,
                 top,
+                anchorRefKey: anchor?.refKey || null,
+                anchorViewportTop: anchor?.viewportTop ?? null,
             };
         }
 
@@ -6078,17 +6110,35 @@
                 ? (document.scrollingElement || document.documentElement)
                 : getPrimaryScrollElement();
             const pageTarget = target === document.documentElement || target === document.body;
+
+            let nextTop = state.top;
+
+            if (state.anchorRefKey) {
+                const chain = getCurrentTextPayloadChain();
+                const chunkEls = document.querySelectorAll('#readerSources [data-text-chunk-index]');
+                for (const el of chunkEls) {
+                    const chunk = chain[Number(el.dataset.textChunkIndex)];
+                    const refKey = getRefTrackingKey(chunk?.ref || chunk?.title || '');
+                    if (refKey === state.anchorRefKey) {
+                        const currentTop = pageTarget ? (window.pageYOffset || 0) : target.scrollTop;
+                        const newViewportTop = el.getBoundingClientRect().top;
+                        nextTop = currentTop + (newViewportTop - state.anchorViewportTop);
+                        break;
+                    }
+                }
+            }
+
             const max = pageTarget
                 ? Math.max(0, (document.documentElement.scrollHeight || 0) - window.innerHeight)
                 : Math.max(0, target.scrollHeight - target.clientHeight);
-            const nextTop = Math.max(0, Math.min(max, Math.round(state.top || 0)));
+            const clampedTop = Math.max(0, Math.min(max, Math.round(nextTop || 0)));
 
             if (pageTarget) {
-                window.scrollTo({ top: nextTop, behavior: 'auto' });
+                window.scrollTo({ top: clampedTop, behavior: 'auto' });
                 return;
             }
 
-            target.scrollTop = nextTop;
+            target.scrollTop = clampedTop;
         }
 
         function formatSegmentLabel(segment, idx) {
