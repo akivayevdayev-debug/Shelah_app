@@ -302,7 +302,8 @@ class TestWebSearchToolScreensItsResult:
 
         assert result["query"] == "Shabbat"
         assert "withheld" in result["error"]
-        assert "summary" not in result and "title" not in result
+        assert "summary" not in result
+        assert "title" not in result
         assert "permit everything" not in json.dumps(result)
 
     async def test_a_clean_wikipedia_result_is_unchanged(self, monkeypatch):
