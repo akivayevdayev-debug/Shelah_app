@@ -85,6 +85,57 @@ async function loadZmanim(overrides = {}) {
     return { mod, document, localStorage, window, timer };
 }
 
+function makeRoutingFetch(routes) {
+    const calls = [];
+    const fetchFn = async (url) => {
+        calls.push(url);
+        for (const [matches, response] of routes) {
+            if (matches(url)) {
+                return typeof response === 'function' ? response(url) : response;
+            }
+        }
+        throw new Error(`makeRoutingFetch: no route matched ${url}`);
+    };
+    fetchFn.calls = calls;
+    return fetchFn;
+}
+
+test('prewarmDailyStudy collects refs from arbitrary payload fields via collectRefsFromPayload\'s generic fallback, not just the four named keys', async () => {
+    // /api/daily-study's payload shape isn't fixed to {daf_yomi, rambam,
+    // parasha, parasha_ref} -- collectRefsFromPayload() also walks every
+    // OTHER field generically (addRefsFromValue/addRefsFromArrayItem) so a
+    // payload can carry extra study refs under any key. Only the four named
+    // keys were previously exercised by any test.
+    const dailyStudyPayload = {
+        daf_yomi: { ref: 'Berakhot 2a' },
+        extra_string_field: 'Extra Ref 1:1',
+        extra_object_field: { ref: 'Extra Ref 2:1', title: 'ignored: object branch only reads .ref' },
+        extra_array_field: [
+            'Extra Ref 3:1',
+            { ref: 'Extra Ref 4:1' },
+            { title: 'Extra Ref 5:1' },
+            42,
+        ],
+        extra_null_field: null,
+    };
+    const fetchFn = makeRoutingFetch([
+        [(url) => url === '/api/daily-study', makeJsonResponse(dailyStudyPayload)],
+        [() => true, makeJsonResponse({})],
+    ]);
+
+    const { mod } = await loadZmanim({ fetch: fetchFn });
+    const refs = await mod.namespace.prewarmDailyStudy();
+
+    assert.deepEqual(refs, [
+        'Berakhot 2a',
+        'Extra Ref 1:1',
+        'Extra Ref 2:1',
+        'Extra Ref 3:1',
+        'Extra Ref 4:1',
+        'Extra Ref 5:1',
+    ]);
+});
+
 test('hasRealZman rejects empty/N/A/placeholder values and accepts real times', async () => {
     const { mod } = await loadZmanim();
     assert.equal(mod.namespace.hasRealZman(''), false);
