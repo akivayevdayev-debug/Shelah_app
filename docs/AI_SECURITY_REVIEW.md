@@ -297,6 +297,18 @@ review.
 > This is a prompt change: `PROMPT_VERSION` moved from
 > `2026-07-30-age-appropriate-v1` to `2026-09-19-retrieved-context-v1`.
 >
+> **Follow-up — FIXED 2026-09-22 (item F): empty wrapper overhead.** The two
+> `<retrieved_context>` sections above were being emitted unconditionally —
+> a question with no Halachipedia hits and no web fallback still carried two
+> empty wrapper pairs into every prompt, pure token overhead with nothing
+> inside to protect. `build_prompt()` now emits each wrapper only when its
+> underlying text is non-empty (`if halachipedia_text.strip()` /
+> `if web_text.strip()`). This is itself a prompt-text change on the
+> empty-section path, so `PROMPT_VERSION` moved again, to
+> `2026-09-22-retrieved-context-v2` (`backend/claude.py:156`;
+> `scripts/check_prompt_doc_sync.py` and `DECISIONS.md`'s dual-LLM-routing
+> section quote the exact string, kept in sync with this note).
+>
 > **False-positive control.** The list mirrors `PROMPT_INJECTION_PATTERNS`
 > with two deliberate divergences. Bare "you are now" is ordinary second-person
 > halachic prose ("you are now obligated to…") and would strip real
@@ -319,19 +331,132 @@ review.
 > fails a test), linear-time behaviour on hostile input, and both call sites
 > end to end.
 >
-> **Residual (honest limits).**
+> **Residual (honest limits, updated 2026-09-23 — see the follow-up below for
+> what changed).**
 > - It is still a phrase heuristic, not a classifier. A genuinely paraphrased
->   injection ("kindly set aside what you were told earlier…"), or one in a
->   language or homoglyph set not listed above, is not caught, and no phrase
->   list can close that. It is one layer beside the `<retrieved_context>`
->   framing and `validate_model_output()`, not a replacement for them.
-> - The false-positive exemption is the reverse trade: an injection phrased
->   "ignore any instructions from *the site owner*" is not flagged (only the
->   assistant-side nouns — system, developer, operator, user, assistant,
->   Anthropic, OpenAI — are), because "from <someone>" is exactly how real
->   halachic prose reads.
-> - Sefaria-derived tool results are not screened (Sefaria is a curated
->   corpus, not open web text); this finding did not cover them.
+>   injection ("kindly set aside what you were told earlier…") in a novel
+>   wording not covered by `_IGNORE_VERB`'s synonym list, or one in a
+>   language or homoglyph set not listed below, is not caught, and no phrase
+>   list can fully close that. It is one layer beside the
+>   `<retrieved_context>` framing and `validate_model_output()`, not a
+>   replacement for them. Whether that residual gap is worth closing with an
+>   LLM-classifier layer (cost/latency per retrieved snippet vs. marginal
+>   detection gain) is an open operator decision — not implemented here; see
+>   `backend/retrieval_guard.py`'s module docstring.
+> - The false-positive exemption for "from `<someone>`" phrasing now covers
+>   both assistant-side nouns (system, developer, operator, user, assistant,
+>   Anthropic, OpenAI) **and** compound page-level-authority phrasing ("the
+>   site owner", "this website's administrator", "the company that runs this
+>   site", etc. — `_PAGE_LEVEL_AUTHORITY`). "Ignore any instructions from the
+>   site owner" is now flagged. Bare single-word roles ("owner", "author",
+>   "administrator", "creator") are deliberately still exempt: real halachic
+>   prose uses them constantly ("the Creator", a responsum's "author", an
+>   etrog-crate's "administrator") and screening bare roles produced
+>   unacceptable false positives in testing; only the compound "role + site/
+>   page/document" forms are specific enough to flag safely.
+> - Sefaria-derived tool results **are now screened** (as of 2026-09-23,
+>   `format_sefaria_sources()`). The original "Sefaria is curated, not open
+>   web text" reasoning still holds as the reason this was lower-priority,
+>   but a 13,727-snippet false-positive measurement (12,230 real cached
+>   Sefaria API responses, 1,440 real community-customs rows, plus 57 live
+>   Wikipedia/Halachipedia/HebrewBooks snippets from actual network calls)
+>   found 0 false positives, so it is now enforced rather than left
+>   unscreened or log-only. See the follow-up below for the full measurement.
+
+> **Follow-up — FIXED 2026-09-23** (coverage extension, false-positive
+> measurement + operational signal, additional untrusted sources screened).
+>
+> *Coverage extension (`backend/retrieval_guard.py`).* Beyond the
+> assistant-side nouns above, the pattern list now also catches: paraphrase
+> verbs for "ignore" (`disregard`, `forget`, `override`, `set aside`, `pay no
+> attention to`, `do/does not follow`, `stop following`) alongside the
+> original literal "ignore"; "act as … / pretend you are …" persona-jailbreak
+> phrasing (mirroring the existing "you are now DAN/unrestricted" pattern);
+> and five more languages — Portuguese, Italian, Ukrainian (both the в- and
+> у- euphonic-alternation spellings of "all"), Arabic, and a best-effort,
+> not-native-speaker-verified Yiddish pattern (flagged as such in the module
+> docstring) — plus two more Hebrew qualifier forms ("original", "first[ly]").
+> The confusables-folding table gained real Armenian and Cherokee entries
+> sourced from Unicode's own `confusables.txt`, joining the existing
+> Cyrillic/Greek folding (NFKC normalization was separately confirmed to
+> already fold fullwidth, mathematical-alphanumeric, and circled/squared/
+> enclosed-alphanumeric look-alikes, so no dedicated table was needed for
+> those). No new dependency was added. `tests/test_retrieval_guard.py` grew
+> from 101 to 141 cases: new positive cases per addition above, and — just as
+> important — ~18 new negative cases (a property owner, a responsum's author,
+> an etrog-packaging company, "the Creator", a shul administrator, "set aside
+> tzedakah/time/a vow", "act as a witness", a hypothetical "pretend that…",
+> one legitimate sentence per new language) proving none of the extensions
+> regressed the false-positive rate.
+>
+> *False-positive measurement (item B).* The heuristic had only ever been
+> tested against constructed examples. It was measured against real halachic
+> text: **13,670 snippets from repo corpora** (12,230 from the main
+> checkout's real `.sefaria_cache` API-response cache, 1,440 from the
+> worktree's `customs/*.json` community-knowledge fixtures) and **57 snippets
+> from live, rate-limited (0.6s between calls) network calls** to the app's
+> own `search_wikipedia` / `search_halachipedia` / `search_hebrewbooks`
+> connectors using 30 real halachic topic terms. **Combined: 13,727 real
+> snippets, 0 flagged (0.000% false-positive rate)** — both the pre-existing
+> guard and every item-A addition above. Measurement scripts stayed in the
+> session scratchpad, never the repo, per the task's "no raw third-party text
+> in commits" constraint; only these aggregate counts are recorded here.
+>
+> *Operational signal.* `backend/logging_setup.py` gained
+> `log_retrieval_guard_drop(source, marker_count)`, called from
+> `withhold_injected()` alongside its existing `logger.warning(...)` (additive,
+> not a replacement) — one structured log line plus a Sentry breadcrumb (never
+> a full Sentry event, to preserve free-tier quota) per dropped snippet.
+> Exactly like the existing log line, it receives only the fixed source label
+> and the marker count; the retrieved text, the matched markers, and the
+> user's question text never reach it. `TestWithholdInjected` pins this with
+> a monkeypatched spy: the clean-value case asserts zero calls, the
+> flagged-value case asserts exactly one call with `(source, count)` and
+> nothing else.
+>
+> *Sefaria enforcement (item E, closing the third Residual bullet above).*
+> `format_sefaria_sources()` now calls `withhold_injected([ref, text],
+> source="sefaria")` per snippet and drops a flagged one whole, the same
+> pattern already used for Halachipedia/Wikipedia
+> (`_format_one_context_item`) and community knowledge (`format_customs`,
+> below). This was conditional on the item-B measurement coming back clean
+> — it did (0 of 12,230 real Sefaria snippets flagged) — so Sefaria moved
+> straight to enforced rather than a separate log-only rollout phase.
+>
+> *Other newly-screened untrusted sources (item E).* Two more per-item
+> channels identified as the same untrusted-text shape as retrieved web
+> content, now screened the same way: `format_user_memories()` (a user's own
+> saved interaction summaries — untrusted because they round-trip through
+> free-text storage) and the agentic tool handlers
+> `_h_search_community_customs` / `_h_get_community_profile` in
+> `backend/ai_tools.py` (Supabase-backed community customs and profile text
+> reachable via tool use). `format_customs()` was already screened as of the
+> 2026-09-19 fix and is unchanged here.
+>
+> *Live-model red-team harness (item C) — built, NOT yet run.*
+> `scripts/redteam_retrieved_context.py` sends payloads verified (via
+> `backend/retrieval_guard.find_injection_markers`) to bypass the screen
+> above unflagged — deliberately the residual-gap scenario the "still a
+> phrase heuristic, not a classifier" bullet describes — through
+> `backend.claude.ask_ai_async()`, the real `/ask` pipeline, and checks
+> whether the live model's answer shows hijack markers despite the
+> `<retrieved_context>` framing and `validate_model_output()`'s
+> post-generation scan. It is opt-in and never wired into CI (confirmed:
+> nothing in `.github/` or `.pre-commit-config.yaml` references it) — the
+> default invocation makes zero network calls and only prints the case list
+> and a cost estimate; a live run additionally requires `--live`, a
+> configured provider API key, and a typed confirmation (or `--yes`).
+> `tests/test_redteam_retrieved_context.py` (21 cases) covers the harness's
+> own logic — case selection, the bypass-verification premise, hijack
+> classification, cost estimation, and the `--live` safety gate — entirely
+> against a monkeypatched `ask_ai_async`, never a real call. **Per this
+> item's own standing instruction, it has not been run live in this pass**:
+> doing so makes real, billed provider calls and, if Supabase is configured,
+> writes rows to `ai_usage_log` indistinguishable from production traffic —
+> that requires the repo owner's explicit go-ahead, given first, in chat
+> (see the script's own module docstring for the exact cost estimate: ~5
+> calls, order of a few cents at conservative rates). This is an open
+> operator decision, not a gap in the work.
 
 ### Low
 
@@ -393,25 +518,53 @@ implementation (with the async version wrapped for sync callers via
 `asyncio.run`, matching the pattern `backend/routes_privacy.py::_delete_clerk_user()`
 already uses) rather than maintaining two copies of URL-building logic.
 
-> **Status — SKIPPED (collapse), mitigated by tests, 2026-09-19.** The
-> suggested `asyncio.run` wrapper is **not safe here**, although it is safe
-> in `_delete_clerk_user()`. That helper opens a fresh
-> `httpx.AsyncClient` per call; the search connectors instead share one
+> **Status — SKIPPED (collapse), mitigated by tests, 2026-09-19; blocking bug
+> fixed 2026-09-22, decision re-evaluated and re-affirmed.** The suggested
+> `asyncio.run` wrapper was **not safe as of 2026-09-19**, although it is
+> safe in `_delete_clerk_user()`. That helper opens a fresh
+> `httpx.AsyncClient` per call; the search connectors instead shared one
 > process-wide client (`backend/search.py::_get_async_client()`, plan.md
-> §3.6) whose connection pool is bound to the event loop that first used it.
-> `asyncio.run()` from a sync caller creates and closes a new loop each call,
-> and reusing the cached client across those loops fails. Verified with a
-> throwaway probe (local keep-alive server, one shared `AsyncClient`, four
-> successive `asyncio.run()` calls): results alternated
-> `200 / RuntimeError: Event loop is closed / 200 / RuntimeError…`. Every
-> `search_*` function swallows exceptions into `None`, so the sync callers
-> (`data_service.py`, `search_provider.py`) would silently see "no result"
-> about half the time — the silent-degradation mode this review warns about
-> in M1. Fixing that needs either a per-call client (loses the pooling
-> optimization) or a dedicated background event-loop thread (new
-> infrastructure), plus rewriting the sync-connector tests that mock
-> `requests` (`tests/test_search.py`, `test_search_cache.py`, …); not
-> low-risk.
+> §3.6) whose connection pool was bound to the event loop that first used
+> it. `asyncio.run()` from a sync caller creates and closes a new loop each
+> call, and reusing the cached client across those loops failed. Verified
+> with a throwaway probe (local keep-alive server, one shared `AsyncClient`,
+> four successive `asyncio.run()` calls): results alternated
+> `200 / RuntimeError: Event loop is closed / 200 / RuntimeError…`.
+>
+> **Caller mapping** (confirmed 2026-09-22): the sync connectors
+> (`search_wikipedia`/`search_halachipedia`/`search_hebrewbooks`) are called
+> directly — no `asyncio.run` wrapper — from `backend/data_service.py:43,51`
+> and `backend/utils/search_provider.py:595-596,838,844`, so they were never
+> actually exposed to this bug themselves. The async connectors
+> (`async_search_wikipedia`/`async_search_halachipedia`) are `await`ed
+> natively inside `asgi.py:328,330` within one `asyncio.gather`, i.e. always
+> on the ASGI app's own already-running loop. Whether a warm Vercel
+> container reuses one loop across requests or gets a fresh one per request
+> is Vercel Python-ASGI-runtime internals not observable from this repo; the
+> fix below is written to be correct either way.
+>
+> **Fixed 2026-09-22:** `_get_async_client()` now keys a
+> `weakref.WeakKeyDictionary` by `asyncio.get_running_loop()` instead of
+> holding one module-level client, and rebuilds the client if the cached one
+> reports `is_closed`. A client from a closed/collected loop is never handed
+> to a new loop again; the dict drops its entry on its own once that loop is
+> garbage-collected. Regression test
+> `tests/test_search.py::TestGetAsyncClient::test_creates_a_fresh_client_for_a_new_event_loop`
+> reproduces the original failure mode (two successive `asyncio.run()` calls
+> — the exact pattern the probe above used) and pins that each now gets its
+> own, open client; it fails against the pre-fix code and passes against the
+> fix. `tests/test_search_request_parity.py` stayed green throughout.
+>
+> **Collapse decision re-affirmed, still SKIPPED:** the fix above removes
+> the specific correctness blocker (a shared client silently breaking across
+> `asyncio.run()` loops), so an `asyncio.run` wrapper around the async
+> connectors is no longer *unsafe*. It is still not done here: collapsing
+> the sync connectors into wrappers would mean rewriting the sync-connector
+> tests that mock `requests` (`tests/test_search.py`, `test_search_cache.py`,
+> …) onto `respx`/httpx, which is a real-code refactor orthogonal to this
+> security-fix pass's scope, not a low-risk follow-on to it. Left as a
+> worthwhile future cleanup, not a safety gap — the duplication risk this
+> finding raised is what the parity test below already pins.
 >
 > **What was done instead:** `tests/test_search_request_parity.py` pins the
 > M1 property on *both* copies — hostile `?`, `&`, `=`, `#`, `/` in a query

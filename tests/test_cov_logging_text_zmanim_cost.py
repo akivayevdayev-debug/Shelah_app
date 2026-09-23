@@ -221,6 +221,51 @@ class TestLogMitigationBreadcrumb:
         assert records[0].key_hash == "hash-xyz"
 
 
+class TestLogRetrievalGuardDropBreadcrumb:
+    """Mirrors TestLogMitigationBreadcrumb above for the sibling
+    log_retrieval_guard_drop() function (AI_SECURITY_REVIEW.md M2
+    follow-up item B's operational signal)."""
+
+    def test_breadcrumb_recorded_when_sentry_enabled(self, monkeypatch):
+        fake = _FakeSentry()
+        monkeypatch.setattr(logging_setup, "_sentry_enabled", True)
+        monkeypatch.setattr(logging_setup, "sentry_sdk", fake)
+
+        logging_setup.log_retrieval_guard_drop("Halachipedia", 2)
+
+        assert fake.breadcrumbs == [{
+            "category": "retrieval_guard",
+            "message": "withheld:Halachipedia",
+            "level": "info",
+            "data": {"marker_count": 2},
+        }]
+
+    def test_no_breadcrumb_when_sentry_disabled(self, monkeypatch):
+        fake = _FakeSentry()
+        monkeypatch.setattr(logging_setup, "_sentry_enabled", False)
+        monkeypatch.setattr(logging_setup, "sentry_sdk", fake)
+
+        logging_setup.log_retrieval_guard_drop("Halachipedia", 1)
+
+        assert fake.breadcrumbs == []
+
+    def test_breadcrumb_failure_is_swallowed_and_log_line_still_emitted(
+        self, monkeypatch, caplog
+    ):
+        monkeypatch.setattr(logging_setup, "_sentry_enabled", True)
+        monkeypatch.setattr(
+            logging_setup, "sentry_sdk", _FakeSentry(raises=RuntimeError("sentry down")))
+
+        with caplog.at_level(logging.INFO, logger="shelah.retrieval_guard"):
+            logging_setup.log_retrieval_guard_drop("sefaria", 3)
+
+        records = [r for r in caplog.records if r.name == "shelah.retrieval_guard"]
+        assert len(records) == 1
+        assert records[0].getMessage() == "retrieval_guard_drop"
+        assert records[0].source == "sefaria"
+        assert records[0].marker_count == 3
+
+
 class TestModuleLevelSentryInit:
     """Lines 165-172 of logging_setup run once at import. Re-executing the
     module file under a throw-away name exercises them without reloading (and

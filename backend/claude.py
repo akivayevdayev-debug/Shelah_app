@@ -153,7 +153,7 @@ RABBI_FINAL_RULING_FOOTER = "Please consult with your local Rabbi for a final ru
 # row (plan.md §8.B.6 defensibility logging) so a stored answer's governing
 # prompt version is reconstructable during a dispute, without retaining the
 # full prompt text itself.
-PROMPT_VERSION = "2026-09-19-retrieved-context-v1"
+PROMPT_VERSION = "2026-09-22-retrieved-context-v2"
 # INTERNAL_AI_KNOWLEDGE_DISCLAIMER: canonical copy lives in
 # backend/utils/search_provider.py (re-exported via backend/helpers.py) —
 # an unused, byte-identical duplicate previously lived here too (plan.md §2
@@ -1270,6 +1270,13 @@ def format_sefaria_sources(sources, max_items=4, max_chars=180):
         if len(text) > max_chars:
             text = f"{text[:max_chars].rstrip()}..."
         ref = s.get("ref", "")
+        # Sefaria text is API-fetched third-party content, the same untrusted
+        # channel as Halachipedia/Wikipedia (AI_SECURITY_REVIEW M2/E). A
+        # 13,727-snippet measurement over real Sefaria + customs corpora and
+        # live connector traffic found 0 false positives, so this source is
+        # enforced (not log-only). Only the label + marker count is logged.
+        if withhold_injected([ref, text], source="sefaria") is None:
+            continue
         output += f"\n--- {ref} ---\n{text}\n"
     return output
 
@@ -1286,6 +1293,14 @@ def format_customs(customs, max_items=5, max_chars=220):
                         or c.get("content") or "").strip())
         if len(ruling) > max_chars:
             ruling = f"{ruling[:max_chars].rstrip()}..."
+        # community_knowledge rows are community-submitted free text, the same
+        # untrusted-channel shape as retrieved web text (AI_SECURITY_REVIEW
+        # M2/E): screen exactly what would reach the prompt and drop a
+        # flagged row whole rather than the whole batch. Only the label +
+        # marker count is logged, never the row's own text.
+        if withhold_injected([community, topic, source, ruling],
+                              source="community_knowledge_supabase") is None:
+            continue
         label = community or "Community"
         if topic:
             label = f"{label} | {topic}"
@@ -1305,6 +1320,14 @@ def format_user_memories(user_memories, max_items=2, max_chars=220):
             continue
         if len(summary) > max_chars:
             summary = f"{summary[:max_chars].rstrip()}..."
+        # A stored memory summary re-enters a *later* turn as system-authored
+        # context rather than as a user turn, so validate_user_query() never
+        # sees it -- a delayed self-injection planted in one conversation
+        # could otherwise resurface as trusted context in another
+        # (AI_SECURITY_REVIEW M2/E). Screen it the same way retrieved web
+        # text is screened and drop a flagged entry whole.
+        if withhold_injected(summary, source="user_memory_last_interactions") is None:
+            continue
         lines.append(f"- {summary}")
     return "\n".join(lines)
 
@@ -1456,16 +1479,22 @@ def build_prompt(question, sefaria_sources, wiki, halachipedia=None, mode="balan
     )
     # Web/Halachipedia/HebrewBooks excerpts are third-party text (AI_SECURITY_REVIEW
     # M2): framed as untrusted data exactly like the system-prompt context sections.
+    # A wrapper is emitted only when its section actually has content (plan.md /
+    # AI_SECURITY_REVIEW follow-up F): every prompt otherwise carried two empty
+    # <retrieved_context> pairs even on a question with no web/Halachipedia hits,
+    # pure token overhead with nothing inside to protect. PROMPT_VERSION bumped
+    # for this (prompt text changes on the empty-section path) -- see
+    # scripts/check_prompt_doc_sync.py / DECISIONS.md for the quoted string.
     halachipedia_section = _wrap_retrieved_context(
         "whitelisted_external_web",
         "WHITELISTED EXTERNAL CONTEXT (HEBREWBOOKS / HALACHIPEDIA / CONTEMPORARY POSKIM / RESPONSA)",
         halachipedia_text,
-    )
+    ) if halachipedia_text.strip() else ""
     web_section = _wrap_retrieved_context(
         "general_web_last_resort",
         "TERTIARY LAST-RESORT WEB CONTEXT (USE ONLY IF PRIMARY + SECONDARY ARE EMPTY)",
         web_text,
-    )
+    ) if web_text.strip() else ""
     detail_expectation = _detail_expectation_for_question(question, mode)
     simple = _is_simple_question(question)
 

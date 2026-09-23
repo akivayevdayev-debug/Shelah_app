@@ -594,3 +594,41 @@ def log_mitigation(tier: str, route_class: str, key_hash: str, route: str) -> No
             )
         except Exception:
             pass
+
+
+_retrieval_guard_logger = logging.getLogger("shelah.retrieval_guard")
+
+
+def log_retrieval_guard_drop(source: str, marker_count: int) -> None:
+    """One structured log line + Sentry breadcrumb per snippet
+    backend.retrieval_guard.withhold_injected() drops (AI_SECURITY_REVIEW
+    follow-up B: an operational signal for how often the M2 screen actually
+    fires in production, without exposing what it fired on).
+
+    Deliberately NOT routed through _capture_backend_error() for the same
+    reason log_mitigation() above isn't: a dropped snippet is the screen
+    doing its job, not an application error, and turning every one into a
+    Sentry *event* would burn the free-tier events quota on routine
+    operation. A breadcrumb instead keeps this visible as context on
+    whatever real error/event follows.
+
+    `source` is the short fixed label the calling code already chose
+    ("Halachipedia", "community_knowledge_supabase", ...) -- never the
+    retrieved text. `marker_count` is a count, never the matched phrases
+    themselves. Neither the retrieved text, the matched markers, nor any
+    user question text is ever passed to this function or logged by it.
+    """
+    _retrieval_guard_logger.info(
+        "retrieval_guard_drop",
+        extra={"source": source, "marker_count": marker_count},
+    )
+    if _sentry_enabled:
+        try:
+            sentry_sdk.add_breadcrumb(
+                category="retrieval_guard",
+                message=f"withheld:{source}",
+                level="info",
+                data={"marker_count": marker_count},
+            )
+        except Exception:
+            pass

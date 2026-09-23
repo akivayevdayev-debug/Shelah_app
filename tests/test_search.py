@@ -9,6 +9,7 @@ branches not already exercised.
 
 from __future__ import annotations
 
+import asyncio
 import re
 
 import httpx
@@ -282,10 +283,27 @@ class TestDailyLearningEdgeCases:
 # ─────────────────────────── _get_async_client ─────────────────────────────
 
 class TestGetAsyncClient:
-    def test_returns_same_instance_on_repeated_calls(self):
+    async def test_returns_same_instance_on_repeated_calls(self):
         client1 = search_module._get_async_client()
         client2 = search_module._get_async_client()
         assert client1 is client2
+
+    def test_creates_a_fresh_client_for_a_new_event_loop(self):
+        """AI_SECURITY_REVIEW L3: a module-level singleton client used to
+        survive `asyncio.run()`'s loop teardown and get handed to the next,
+        unrelated loop -- bound to a transport whose original loop had
+        already closed. Vercel's serverless runtime may create a fresh loop
+        per invocation, so two successive `asyncio.run()` calls (the async
+        ASGI entrypoint's own call pattern) must each get their own client
+        rather than reusing one left over from a loop that no longer runs."""
+        async def get_client():
+            return search_module._get_async_client()
+
+        client_from_loop_1 = asyncio.run(get_client())
+        client_from_loop_2 = asyncio.run(get_client())
+
+        assert client_from_loop_1 is not client_from_loop_2
+        assert not client_from_loop_2.is_closed
 
 
 # ─────────────── Circuit-breaker hardening on Hebcal network calls ────────────

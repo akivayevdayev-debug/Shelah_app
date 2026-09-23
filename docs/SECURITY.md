@@ -411,24 +411,36 @@ gaps found and fixed in this pass:
     key (`_hash_key`, sha256 truncated to 16 hex — never a raw IP or Clerk
     `sub`) via `log_mitigation()` / `_capture_backend_error()`, per §8's
     mitigation-observability note below.
-- **Indirect prompt injection via retrieved web text (2026-09-19,
-  `docs/AI_SECURITY_REVIEW.md` M2):** `validate_user_query()` only screens the
-  user's own question, but Wikipedia/Halachipedia/HebrewBooks/MyMemory text is
-  publicly editable or crowd-sourced and reaches the model as reference
-  material (live `/ask` pre-fetch sections via `build_prompt()`, and the
-  agentic `web_search` / `search_responsa_external` / `translate_text` tool
+- **Indirect prompt injection via retrieved web text (2026-09-19, extended
+  2026-09-23, `docs/AI_SECURITY_REVIEW.md` M2):** `validate_user_query()` only
+  screens the user's own question, but Wikipedia/Halachipedia/HebrewBooks/
+  MyMemory text is publicly editable or crowd-sourced and reaches the model as
+  reference material (live `/ask` pre-fetch sections via `build_prompt()`, and
+  the agentic `web_search` / `search_responsa_external` / `translate_text` tool
   results). Two layers now apply. `backend/retrieval_guard.py` drops a snippet
-  carrying injection phrasing before it enters the prompt (English, plus
-  Hebrew/French/Spanish/German/Russian phrasing; zero-width, fullwidth and
-  Cyrillic/Greek look-alike spellings), logging only a source label and a
-  marker count — never the retrieved text or any question text. And the
-  pre-fetch sections are wrapped in `<retrieved_context>` tags that both system
-  prompts name as data, never instructions (`PROMPT_VERSION`
-  `2026-09-19-retrieved-context-v1`). It is a conservative phrase heuristic —
-  bare "you are now" and "ignore any instructions from his doctor" are
+  carrying injection phrasing before it enters the prompt — English paraphrase
+  verbs (ignore/disregard/forget/override/set aside/...), "act as.../pretend
+  you are..." persona jailbreaks, page-level-authority phrasing ("the site
+  owner", "this website's administrator"), plus Hebrew/French/Spanish/German/
+  Russian/Portuguese/Italian/Ukrainian/Arabic/Yiddish phrasing; zero-width,
+  fullwidth, Cyrillic/Greek/Armenian/Cherokee look-alike spellings — logging
+  only a source label and a marker count — never the retrieved text or any
+  question text, plus a Sentry breadcrumb via `log_retrieval_guard_drop()` for
+  operational visibility. And the pre-fetch sections are wrapped in
+  `<retrieved_context>` tags that both system prompts name as data, never
+  instructions (`PROMPT_VERSION` `2026-09-22-retrieved-context-v2` — bumped
+  again 2026-09-22 when the wrapper was changed to emit only for non-empty
+  sections, removing pure token overhead on questions with no web/Halachipedia
+  hits). A
+  13,727-snippet measurement against real Sefaria/community-knowledge corpora
+  and live connector traffic found 0 false positives, so screening now also
+  covers Sefaria snippets, community-knowledge rows, user-memory summaries and
+  the community-customs/profile tool handlers, not just web/Halachipedia text.
+  It is a conservative phrase heuristic — bare "you are now" and "ignore any
+  instructions from his doctor" (or a bare "the owner"/"the Creator") are
   deliberately not markers, being normal halachic prose — and one layer beside
   the untrusted-data framing and `validate_model_output()`, not a classifier:
-  a truly paraphrased injection is not caught.
+  a truly novel paraphrase is not caught.
 - `answer_feedback` metadata (`mode`, `language`, `safety_class`) is now
   length-capped and sanitized like `comment` (`AI_SECURITY_REVIEW` L2).
 - Payload size: `app.py`'s `MAX_CONTENT_LENGTH` (256 KiB) covers every
