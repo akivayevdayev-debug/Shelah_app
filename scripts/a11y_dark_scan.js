@@ -54,8 +54,8 @@ const puppeteer = require(
 // re-running the light-theme scan a second time.
 const THEME_PREFS_KEY = "Sh'elahPrefs";
 
-function loadConfig() {
-    const raw = JSON.parse(fs.readFileSync(CONFIG_PATH, 'utf8'));
+function loadConfig(configPath = CONFIG_PATH) {
+    const raw = JSON.parse(fs.readFileSync(configPath, 'utf8'));
     const defaults = { ...raw.defaults };
     // Comment keys are documentation for humans; pa11y rejects unknown ones.
     for (const key of Object.keys(defaults)) {
@@ -66,7 +66,7 @@ function loadConfig() {
     return { defaults, urls: raw.urls || [] };
 }
 
-async function checkUrl(browser, url, defaults) {
+async function checkUrl(browser, url, defaults, pa11yFn = pa11y) {
     const page = await browser.newPage();
     try {
         await page.evaluateOnNewDocument((key) => {
@@ -96,7 +96,7 @@ async function checkUrl(browser, url, defaults) {
                 'light-theme scan.');
         }
 
-        return await pa11y(url, {
+        return await pa11yFn(url, {
             ...defaults,
             browser,
             page,
@@ -107,21 +107,21 @@ async function checkUrl(browser, url, defaults) {
     }
 }
 
-async function main() {
-    const { defaults, urls } = loadConfig();
+async function main(puppeteerLib = puppeteer, pa11yFn = pa11y, configPath = CONFIG_PATH) {
+    const { defaults, urls } = loadConfig(configPath);
     if (!urls.length) {
         console.error('No URLs configured in .pa11yci.json');
         process.exitCode = 1;
         return;
     }
 
-    const browser = await puppeteer.launch(defaults.chromeLaunchConfig || {});
+    const browser = await puppeteerLib.launch(defaults.chromeLaunchConfig || {});
     let failures = 0;
 
     try {
         console.log(`Running pa11y (dark theme) on ${urls.length} URLs:`);
         for (const url of urls) {
-            const result = await checkUrl(browser, url, defaults);
+            const result = await checkUrl(browser, url, defaults, pa11yFn);
             const issues = result.issues || [];
             if (issues.length) {
                 failures += 1;
@@ -147,7 +147,11 @@ async function main() {
     }
 }
 
-main().catch((error) => {
-    console.error(error);
-    process.exitCode = 1;
-});
+if (require.main === module) {
+    main().catch((error) => {
+        console.error(error);
+        process.exitCode = 1;
+    });
+}
+
+module.exports = { loadConfig, checkUrl, main, THEME_PREFS_KEY, CONFIG_PATH };
