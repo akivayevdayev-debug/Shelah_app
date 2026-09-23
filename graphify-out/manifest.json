@@ -600,8 +600,8 @@
     "semantic_hash": "3b8aec7b5101992b5b9b2bd817f41b21"
   },
   "templates/components/legal_scripts.html": {
-    "mtime": 1790119533.6006114,
-    "ast_hash": "0cbb102d71e6769e40490c7f5a47d1a6",
+    "mtime": 1790193443.35237,
+    "ast_hash": "f70cb80bf4fa901dbb6a7bff8c75b774",
     "semantic_hash": ""
   },
   "templates/components/legal_topbar.html": {
@@ -610,8 +610,8 @@
     "semantic_hash": ""
   },
   "templates/index.html": {
-    "mtime": 1790138507.4834032,
-    "ast_hash": "885504551661addc28be6a8177ea02c4",
+    "mtime": 1790193474.764631,
+    "ast_hash": "e81aaf716597d7d56b0200479deb56aa",
     "semantic_hash": ""
   },
   "templates/privacy.html": {
@@ -1777,6 +1777,16 @@
   "templates/components/site_footer.html": {
     "mtime": 1790182854.8379047,
     "ast_hash": "eca8c1ab04d151ae62c54cd16fc6f7f7",
+    "semantic_hash": ""
+  },
+  "static/js/topbar_shared.js": {
+    "mtime": 1790193411.4629562,
+    "ast_hash": "50bc7dd2c4c94b53953add1aa256eda1",
+    "semantic_hash": ""
+  },
+  "tests_js/topbar_shared.test.js": {
+    "mtime": 1790193184.2135577,
+    "ast_hash": "1f3cbcd2179554a1c09b04a4c7679b8f",
     "semantic_hash": ""
   }
 }
