@@ -18,6 +18,7 @@ const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const os = require('node:os');
 const path = require('node:path');
+const crypto = require('node:crypto');
 const a11yDarkScan = require('../scripts/a11y_dark_scan.js');
 
 function makeFakePage({ theme = 'dark' } = {}) {
@@ -66,7 +67,7 @@ function makeStubPa11y(resultOrFn) {
 }
 
 function writeTempConfig(obj) {
-    const file = path.join(os.tmpdir(), `a11y-dark-scan-test-${process.pid}-${Math.random().toString(36).slice(2)}.json`);
+    const file = path.join(os.tmpdir(), `a11y-dark-scan-test-${process.pid}-${crypto.randomUUID()}.json`);
     fs.writeFileSync(file, JSON.stringify(obj));
     return file;
 }
