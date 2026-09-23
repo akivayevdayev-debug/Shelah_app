@@ -113,7 +113,7 @@ RETRIEVED_INJECTION_PATTERNS = [
     # ends in a final mem (התעלם) in the imperative but a plain one when inflected.
     re.compile(r"התעל[םמ]\w*\s+מ(?:כל\s+)?ה?הוראות\s+ה?(?:קודמות|שלך|לעיל)"),
     re.compile(r"ignore[zr]?\s+(?:toutes\s+)?(?:les\s+)?instructions\s+(?:pr[ée]c[ée]dentes|ant[ée]rieures)", re.IGNORECASE),
-    re.compile(r"ignora(?:r|d)?\s+(?:todas\s+)?(?:las\s+)?instrucciones\s+(?:anteriores|previas)", re.IGNORECASE),
+    re.compile(r"ignora[rd]?\s+(?:todas\s+)?(?:las\s+)?instrucciones\s+(?:anteriores|previas)", re.IGNORECASE),
     re.compile(r"ignorier(?:e|en)?\s+(?:alle\s+)?(?:vorherigen|bisherigen|fr[üu]heren)\s+(?:anweisungen|instruktionen)", re.IGNORECASE),
     re.compile(r"игнорируй(?:те)?\s+(?:все\s+)?(?:предыдущие|прежние)\s+(?:инструкции|указания)", re.IGNORECASE),
 ]

@@ -9,7 +9,7 @@
   },
   "scripts": {
     "test": "node --test tests_js/*.test.js",
-    "test:coverage": "mkdir -p coverage && node --test --experimental-test-coverage --test-coverage-include=static/** --test-coverage-include=sentry-discord-relay/src/** --test-coverage-include=tests_js/** --test-reporter=spec --test-reporter-destination=stdout --test-reporter=lcov --test-reporter-destination=coverage/lcov.raw.info tests_js/*.test.js && python3 scripts/merge_lcov.py < coverage/lcov.raw.info > coverage/lcov.info",
+    "test:coverage": "mkdir -p coverage && node --test --experimental-test-coverage --test-coverage-include=static/** --test-coverage-include=sentry-discord-relay/src/** --test-coverage-include=scripts/a11y_dark_scan.js --test-coverage-include=tests_js/** --test-reporter=spec --test-reporter-destination=stdout --test-reporter=lcov --test-reporter-destination=coverage/lcov.raw.info tests_js/*.test.js && python3 scripts/merge_lcov.py < coverage/lcov.raw.info > coverage/lcov.info",
     "build:css": "tailwindcss -i ./static/css/tailwind.input.css -o ./static/css/tailwind.css --minify",
     "test:a11y": "npm run test:a11y:light && npm run test:a11y:dark",
     "test:a11y:light": "pa11y-ci --config .pa11yci.json",
