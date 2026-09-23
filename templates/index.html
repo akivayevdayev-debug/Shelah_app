@@ -92,6 +92,7 @@
             crossorigin="anonymous"></script>
     <script src="/static/js/sentry-init.js?v=20260731"></script>
     {% endif %}
+    <script src="/static/js/topbar_shared.js?v=20260923-v1"></script>
     <!-- DaisyUI component library (non-destructive — adds .btn, .card etc. utility classes) -->
     <link href="https://cdn.jsdelivr.net/npm/daisyui@4.12.24/dist/full.min.css" rel="stylesheet"
           integrity="sha384-2V5uSMIWpBK7suX6yRDZH6ll7ktPJF2O58y0HSz+HiFCBCsmqZpxX1AZB4qAHuYI"
@@ -5023,49 +5024,30 @@
         }
 
         function positionFloatingMenu(menuEl, triggerEl, options = {}) {
-            if (!menuEl || !triggerEl) return;
-
-            const viewportWidth = Math.max(Math.round(window.innerWidth || 0), 320);
-            const viewportHeight = Math.max(Math.round(window.innerHeight || 0), 320);
-            const padding = Number.isFinite(options.padding) ? options.padding : 8;
-            const offset = Number.isFinite(options.offset) ? options.offset : 0;
-            const minWidth = Number.isFinite(options.minWidth) ? options.minWidth : 160;
-            const maxWidth = Number.isFinite(options.maxWidth) ? options.maxWidth : 352;
-            const triggerRect = triggerEl.getBoundingClientRect();
-            const panelWidth = Math.min(maxWidth, Math.max(minWidth, viewportWidth - (padding * 2)));
-
-            // Always center the dropdown under the trigger button for consistent placement.
-            // This works for both LTR and RTL layouts and helps avoid guessing side alignment.
-            const preferredLeft = Math.round(triggerRect.left + triggerRect.width / 2 - panelWidth / 2);
-            const left = Math.max(padding, Math.min(preferredLeft, viewportWidth - panelWidth - padding));
-
-            // Anchor to the topbar's own bottom edge rather than each trigger's
-            // individual bottom — triggers vary slightly in height/padding, so
-            // anchoring per-trigger made settings and profile menus open at
-            // different depths. Anchoring to the shared topbar edge means every
-            // floating topbar menu opens flush at the same height, directly
-            // below the bar.
-            const topbarEl = document.querySelector('header[role="banner"]');
-            const anchorBottom = topbarEl ? topbarEl.getBoundingClientRect().bottom : triggerRect.bottom;
-            const top = Math.min(
-                viewportHeight - padding,
-                Math.round(anchorBottom + offset),
-            );
+            // Geometry (centering under the trigger, anchoring to the shared
+            // topbar's bottom edge) lives in static/js/topbar_shared.js,
+            // shared with components/legal_scripts.html's own
+            // positionFloatingMenu. Only the style-application step below is
+            // index.html-specific (a CSS class instead of an inline
+            // !important transform, so the open/close animation can still
+            // drive `transform`).
+            const pos = computeFloatingMenuPosition(menuEl, triggerEl, options);
+            if (!pos) return;
 
             menuEl.style.setProperty('position', 'fixed', 'important');
             // Cancels the menus' CSS centring transform. A class, not an inline
             // !important, so the open/close animation can still drive `transform`.
             menuEl.classList.add('is-floating-menu');
-            menuEl.style.setProperty('left', `${left}px`, 'important');
-            menuEl.style.setProperty('top', `${top}px`, 'important');
+            menuEl.style.setProperty('left', `${pos.left}px`, 'important');
+            menuEl.style.setProperty('top', `${pos.top}px`, 'important');
             menuEl.style.setProperty('right', 'auto', 'important');
             // CSS-only fallback rules (style.css) give these a resting
             // margin-top for the case where this JS hasn't run yet — zero it
             // out here so it can't add a hidden extra gap under the `top` we
             // just computed.
             menuEl.style.setProperty('margin-top', '0', 'important');
-            menuEl.style.setProperty('width', `${panelWidth}px`, 'important');
-            menuEl.style.setProperty('max-width', `${Math.max(0, viewportWidth - (padding * 2))}px`, 'important');
+            menuEl.style.setProperty('width', `${pos.width}px`, 'important');
+            menuEl.style.setProperty('max-width', `${pos.maxWidth}px`, 'important');
         }
 
         function positionSettingsPanel() {
@@ -10886,24 +10868,12 @@
 
         // Multi-language Toggle with data attributes
         function toggleLanguage(lang, options = {}) {
-            if (lang !== 'en' && lang !== 'he') {
-                lang = 'en';
-            }
-
-            const autoChange = Boolean(options?.auto);
-
-            // Persist early so dynamic render helpers read the new language immediately.
-            localStorage.setItem('preferredLanguage', lang);
-            if (!autoChange) {
-                localStorage.setItem(LANGUAGE_MANUAL_KEY, '1');
-            }
-
-            // Update all elements with data-* attributes
-            document.querySelectorAll('[data-en], [data-he]').forEach(el => {
-                if (el.dataset[lang]) {
-                    el.textContent = el.dataset[lang];
-                }
-            });
+            // Normalizing, persisting, and swapping [data-en]/[data-he] text
+            // lives in static/js/topbar_shared.js, shared with
+            // components/legal_scripts.html's own toggleLanguage. Everything
+            // below is index.html-specific (search icon RTL swap, modal
+            // titles, and the rest of this app's own DOM).
+            lang = applyLanguagePreference(lang, options, LANGUAGE_MANUAL_KEY);
 
             // Handle lang + RTL for Hebrew.
             const html = document.documentElement;
