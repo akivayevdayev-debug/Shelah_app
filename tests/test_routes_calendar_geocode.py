@@ -119,9 +119,29 @@ class TestGeocodeSuccess:
 
         request = responses_lib.calls[0].request
         assert request.headers["User-Agent"].startswith("ShelahApp/")
+        assert request.headers["Accept-Language"] == "en"
         assert request.params["q"] == "Tel Aviv"
         assert request.params["format"] == "json"
         assert request.params["limit"] == "1"
+
+    @responses_lib.activate
+    def test_lang_he_requests_hebrew_results_from_nominatim(self, test_client):
+        responses_lib.add(responses_lib.GET, NOMINATIM_URL, json=[])
+
+        test_client.get("/api/geocode?q=Jerusalem&lang=he")
+
+        request = responses_lib.calls[0].request
+        assert request.headers["Accept-Language"] == "he"
+
+    @responses_lib.activate
+    @pytest.mark.parametrize("lang", ["", "fr", "HE", "he "])
+    def test_unrecognized_lang_values_fall_back_to_english(self, test_client, lang):
+        responses_lib.add(responses_lib.GET, NOMINATIM_URL, json=[])
+
+        test_client.get(f"/api/geocode?q=Jerusalem&lang={lang}")
+
+        request = responses_lib.calls[0].request
+        assert request.headers["Accept-Language"] == "en"
 
     @responses_lib.activate
     def test_success_closes_a_partially_failed_circuit(self, test_client, routes_calendar_module):

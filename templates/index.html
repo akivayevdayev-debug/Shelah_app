@@ -11704,7 +11704,7 @@
             submitBtn.disabled = true;
 
             try {
-                const url = `/api/geocode?q=${encodeURIComponent(city)}`;
+                const url = `/api/geocode?q=${encodeURIComponent(city)}&lang=${isHebrewMode() ? 'he' : 'en'}`;
                 const res = await fetch(url);
                 const payload = await res.json();
                 const results = payload?.results;
