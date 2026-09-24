@@ -1653,21 +1653,24 @@ html.theme-dark::-webkit-scrollbar-thumb:hover,
     color: var(--text-main);
 }
 
-/* The input's own box is the touch area (tall); the visible track is drawn
-   by the pseudo-elements, so a slider gets a comfortable hit area without a
-   thick bar. The fill uses --control-accent, the same colour a checked
-   .reader-switch uses, so the two controls in a panel read as one family. */
+/* The input's own box is the 44px touch area; the visible track is drawn by the
+   pseudo-elements, so the hit area is generous without a thick bar. Track and thumb
+   sizes are the Apple slider metrics from tokens.css (4px capsule, 28px knob that
+   grows to 32px under the finger). The fill uses --control-accent, the same colour a
+   checked .reader-switch uses, so the two controls in a panel read as one family.
+   The thumb keeps a 2px ring in the accent so its edge stays >= 3:1 against the panel
+   (WCAG 1.4.11) rather than relying on a shadow alone. */
 .reader-range-slider {
     -webkit-appearance: none;
     appearance: none;
-    height: 1.75rem;
+    height: var(--hit-min);
     padding: 0;
     background: transparent;
     --range-progress: 50%;
-    --range-thumb: 1.125rem;
+    --range-track: var(--slider-track-h);
+    --range-thumb: var(--slider-thumb);
     --range-complete: var(--control-accent);
-    --range-incomplete: #e6dcc9;
-    --range-track-border: #cbbfa8;
+    --range-incomplete: #d7cebc;
     --range-thumb-bg: #fffaf2;
     --range-thumb-border: var(--control-accent);
     outline: none;
@@ -1675,17 +1678,19 @@ html.theme-dark::-webkit-scrollbar-thumb:hover,
     touch-action: pan-y;
 }
 
+.reader-range-slider:active {
+    --range-thumb: var(--slider-thumb-press);
+}
+
 .reader-range-slider::-webkit-slider-runnable-track {
     box-sizing: border-box;
-    height: 0.5rem;
+    height: var(--range-track);
     border-radius: 9999px;
-    border: 1px solid var(--range-track-border);
     background: linear-gradient(to right,
             var(--range-complete) 0%,
             var(--range-complete) var(--range-progress),
             var(--range-incomplete) var(--range-progress),
             var(--range-incomplete) 100%);
-    background-origin: border-box;
 }
 
 .reader-range-slider::-webkit-slider-thumb {
@@ -1695,24 +1700,26 @@ html.theme-dark::-webkit-scrollbar-thumb:hover,
     width: var(--range-thumb);
     height: var(--range-thumb);
     /* WebKit does not centre the thumb on the track by itself. */
-    margin-top: calc((0.5rem - var(--range-thumb)) / 2);
+    margin-top: calc((var(--range-track) - var(--range-thumb)) / 2);
     border-radius: 50%;
     border: 2px solid var(--range-thumb-border);
     background: var(--range-thumb-bg);
-    box-shadow: 0 1px 3px rgba(31, 63, 99, 0.25);
+    box-shadow: 0 2px 6px rgba(31, 63, 99, 0.28), 0 0 1px rgba(31, 63, 99, 0.4);
     cursor: pointer;
+    /* Size, not transform: the press-grow is a layout-free size change on the thumb. */
+    transition: width var(--motion-dur-fast, 150ms) ease-out, height var(--motion-dur-fast, 150ms) ease-out,
+        margin-top var(--motion-dur-fast, 150ms) ease-out;
 }
 
 .reader-range-slider::-moz-range-track {
     box-sizing: border-box;
-    height: 0.5rem;
+    height: var(--range-track);
     border-radius: 9999px;
-    border: 1px solid var(--range-track-border);
     background: var(--range-incomplete);
 }
 
 .reader-range-slider::-moz-range-progress {
-    height: 0.5rem;
+    height: var(--range-track);
     border-radius: 9999px;
     background: var(--range-complete);
 }
@@ -1724,8 +1731,9 @@ html.theme-dark::-webkit-scrollbar-thumb:hover,
     border-radius: 50%;
     border: 2px solid var(--range-thumb-border);
     background: var(--range-thumb-bg);
-    box-shadow: 0 1px 3px rgba(31, 63, 99, 0.25);
+    box-shadow: 0 2px 6px rgba(31, 63, 99, 0.28), 0 0 1px rgba(31, 63, 99, 0.4);
     cursor: pointer;
+    transition: width var(--motion-dur-fast, 150ms) ease-out, height var(--motion-dur-fast, 150ms) ease-out;
 }
 
 .reader-range-slider:focus-visible::-webkit-slider-thumb {
@@ -1736,6 +1744,13 @@ html.theme-dark::-webkit-scrollbar-thumb:hover,
 .reader-range-slider:focus-visible::-moz-range-thumb {
     outline: 2px solid var(--control-accent);
     outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .reader-range-slider::-webkit-slider-thumb,
+    .reader-range-slider::-moz-range-thumb {
+        transition: none;
+    }
 }
 
 .reader-switch {
@@ -2004,8 +2019,11 @@ html.rtl #readerTopBar .reader-topbar-settings-label {
 }
 
 .reader-topbar-icon-btn {
-    min-height: 1.8rem;
-    min-width: auto;
+    /* 44px hit target (WCAG 2.1 AA / ENGINEERING_RULES) without growing the
+       glyph itself -- padding/font-size stay the same, min-height/min-width
+       just pad out the box around them. */
+    min-height: var(--hit-min, 44px);
+    min-width: var(--hit-min, 44px);
     border: none;
     background: transparent;
     color: var(--control-text);
@@ -2154,10 +2172,6 @@ html.rtl #readerTopBar .reader-topbar-settings-label {
     background: transparent !important;
     border: none !important;
     color: #5a4a3a !important;
-}
-
-#readerTopBar button {
-    min-height: 2rem;
 }
 
 #readerTopBar button:disabled {
@@ -2372,11 +2386,6 @@ body.mobile-panel-open {
 
     .reader-topbar-settings-label {
         font-size: 0.72rem;
-    }
-
-    #readerTopBar button {
-        min-height: 2rem;
-        min-width: 2rem;
     }
 
     #reader header .flex.flex-wrap.justify-center.items-center {
@@ -2744,22 +2753,19 @@ html.rtl .home-main-layout #popularTextsGrid {
         border-radius: 0.6rem;
         /* 44px touch target (each tab is ~91px wide already). */
         min-height: 2.75rem;
-        position: relative;
-        z-index: 1;
     }
 
     /* Small controls in the top bars: keep their drawn size but extend the
        tappable area to 44px tall with an invisible hit-slop, the same
        partial mitigation #settingsMenuBtn uses (height only -- the bars have
        no spare width, and a wider slop would overlap the neighbouring
-       button). */
-    .reader-topbar-icon-btn,
+       button). .reader-topbar-icon-btn is excluded: its own box is already
+       44x44 (min-height/min-width: var(--hit-min)), so it needs no slop. */
     #signInBtn,
     #mobileLangToggle {
         position: relative;
     }
 
-    .reader-topbar-icon-btn::after,
     #signInBtn::after,
     #mobileLangToggle::after {
         content: "";
@@ -2811,6 +2817,11 @@ html.rtl .home-main-layout #popularTextsGrid {
     .mobile-bottom-tabs.has-indicator .mobile-tab-btn.mobile-tab-active {
         background: transparent;
         box-shadow: none;
+    }
+
+    .mobile-tab-btn {
+        position: relative;
+        z-index: 1;
     }
 
     .mobile-tab-btn:active {
@@ -2905,13 +2916,6 @@ html.rtl .home-main-layout #popularTextsGrid {
     .home-library-description {
         font-size: 0.9rem;
     }
-}
-
-/* A <dialog> gets the browser's own text colour (CanvasText: black / white),
-   not the page's. #privacyDataModal was a <div> until it became a native
-   <dialog> and its panel inherits text colour, so keep the themed one. */
-#privacyDataModal {
-    color: inherit;
 }
 
 /* Modal cards cap their height in `vh` via Tailwind utilities
@@ -4251,8 +4255,7 @@ html.theme-dark,
        --control-accent, the gold a checked switch beside it uses, and the
        thumb is cream (--accent-cream), ringed in the same gold. */
     --range-complete: var(--control-accent);
-    --range-incomplete: var(--surface-pill);
-    --range-track-border: var(--control-border);
+    --range-incomplete: var(--control-border);
     --range-thumb-bg: var(--accent-cream);
 }
 
