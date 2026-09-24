@@ -247,7 +247,10 @@ class TestParseV3Response:
         }
         result = sl._parse_v3_response(data, "Genesis 1:1")
         assert result["ref"] == "Genesis 1:1"
-        assert result["title"] == "Genesis"
+        # Sefaria's own `title` is section-level and coarser than a verse
+        # ref ("Genesis" here vs. "Genesis 1:1") -- see
+        # test_prefers_ref_derived_title_over_sections_level_api_title.
+        assert result["title"] == "Genesis 1:1"
         assert result["he"] == ["בְּרֵאשִׁית"]
         assert result["en"] == ["In the beginning"]
         assert len(result["lines"]) == 1
@@ -260,6 +263,33 @@ class TestParseV3Response:
         }
         result = sl._parse_v3_response(data, "Genesis 1:1")
         assert result["title"] == "Genesis 1:1"
+
+    def test_prefers_ref_derived_title_over_sections_level_api_title(self):
+        # Sefaria's v3 API always sets `title` to the *section* (book +
+        # chapter) title, even for a verse range: title="Numbers 4" for
+        # ref="Numbers 4:17-19", dropping the verses the reader asked for
+        # (reproduced live against sefaria.org 2026-09-22). The reader
+        # header should show the full ref instead.
+        data = {
+            "ref": "Numbers 4:17-19",
+            "title": "Numbers 4",
+            "indexTitle": "Numbers",
+            "book": "Numbers",
+            "versions": [{"language": "he", "direction": "rtl", "isSource": True, "text": ["x"]}],
+        }
+        result = sl._parse_v3_response(data, "Numbers 4:17-19")
+        assert result["title"] == "Numbers 4:17-19"
+
+    def test_uses_api_title_when_ref_has_no_verse_level_detail(self):
+        # A whole-chapter ref has no ":" to lose -- Sefaria's title is used
+        # as-is (it may legitimately differ, e.g. a display alias).
+        data = {
+            "ref": "Genesis 1",
+            "title": "Bereshit 1",
+            "versions": [{"language": "he", "direction": "rtl", "isSource": True, "text": ["x"]}],
+        }
+        result = sl._parse_v3_response(data, "Genesis 1")
+        assert result["title"] == "Bereshit 1"
 
     def test_no_extractable_text_returns_none(self):
         data = {"ref": "Genesis 1:1", "versions": [{"language": "he", "direction": "rtl", "isSource": True, "text": []}]}
