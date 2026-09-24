@@ -1585,6 +1585,9 @@
             </div>
             <!-- Calendar Content -->
             <div class="flex-1 overflow-y-auto p-4 sm:p-6 bg-[#faf7f0]">
+                <div id="calendarLoadError"
+                    class="hidden mb-3 text-orange-600 text-xs font-bold bg-orange-50 border-l-2 border-orange-600 p-2">
+                </div>
                 <div id="calendar" class="min-h-[400px]"></div>
                 <!-- Selected-day agenda: the month grid's chips are too narrow on phones to
                      show a full holiday name, so the tapped day's events are listed here
@@ -11415,6 +11418,41 @@
             }
         }
 
+        // Self-recovery for the holidays calendar's events fetch (§13): a
+        // failed month fetch used to leave the grid showing no events with
+        // no indication anything went wrong. One automatic retry, then a
+        // visible retry control so it never gets permanently stuck.
+        let calendarRetryAttempted = false;
+
+        function clearCalendarLoadError() {
+            const el = document.getElementById('calendarLoadError');
+            if (!el) return;
+            el.classList.add('hidden');
+            el.textContent = '';
+        }
+
+        function showCalendarLoadError() {
+            const el = document.getElementById('calendarLoadError');
+            if (!el) return;
+            el.classList.remove('hidden');
+            el.textContent = '';
+
+            const msg = document.createElement('span');
+            msg.textContent = t("Couldn't load this month's holidays.", 'לא ניתן היה לטעון את החגים לחודש זה.');
+
+            const retryBtn = document.createElement('button');
+            retryBtn.type = 'button';
+            retryBtn.className = 'underline font-semibold ms-1';
+            retryBtn.textContent = t('Retry', 'נסה שוב');
+            retryBtn.addEventListener('click', () => {
+                calendarRetryAttempted = false;
+                clearCalendarLoadError();
+                holidaysCalendar?.refetchEvents();
+            });
+
+            el.append(msg, retryBtn);
+        }
+
         function ensureCalendarReady() {
             if (holidaysCalendar) return;
             const calendarEl = document.getElementById('calendar');
@@ -11434,9 +11472,19 @@
                                 ...item,
                                 extendedProps: { ...(item.extendedProps || {}), category: item.category },
                             }));
+                            calendarRetryAttempted = false;
+                            clearCalendarLoadError();
                             successCallback(withExtendedProps);
                         })
-                        .catch(e => failureCallback(e));
+                        .catch(e => {
+                            if (!calendarRetryAttempted) {
+                                calendarRetryAttempted = true;
+                                window.setTimeout(() => holidaysCalendar?.refetchEvents(), 3000);
+                            } else {
+                                showCalendarLoadError();
+                            }
+                            failureCallback(e);
+                        });
                 },
                 datesSet: function (info) {
                     if (_calendarDidMount && window.ShelahMotion) {
