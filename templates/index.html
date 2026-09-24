@@ -3999,6 +3999,43 @@
                 .trim();
         }
 
+        // Sefaria commentary (e.g. Rashi's bolded/italicized dibbur hamatchil
+        // lead words) legitimately wraps text in <b>/<strong>/<i>/<em> in both
+        // the he and en fields -- normalizeDisplayText()'s catch-all tag strip
+        // is correct for its plain-text call sites (bookmarks, aria-labels,
+        // transliteration input) but loses that real formatting for HTML
+        // display. This variant runs the same footnote-stripping, then hands
+        // off to DOMPurify with a four-tag allowlist rather than hand-rolling
+        // tag preservation with regex: DOMPurify parses a real DOM (so an
+        // attribute-bearing or unbalanced tag -- e.g. a stray "<b onclick=...>"
+        // -- can't leave a dangling closing tag or slip through unescaped the
+        // way a regex placeholder swap could) and its output is already safe
+        // to insert via innerHTML, matching how renderAnswerMarkdown() already
+        // uses DOMPurify for the AI-answer pipeline.
+        const DISPLAY_SAFE_TAGS = ['b', 'strong', 'i', 'em'];
+
+        function escapeDisplayTextPreservingEmphasis(text = '') {
+            const withoutFootnotes = String(text || '')
+                .replace(/<sup[^>]*>[\s\S]*?<\/sup>\s*<(?:i|span|small)[^>]*>[\s\S]*?<\/(?:i|span|small)>/gi, ' ')
+                .replace(/<(?:i|span|small)[^>]*class=["'][^"']*footnote[^"']*["'][^>]*>[\s\S]*?<\/(?:i|span|small)>/gi, ' ')
+                .replace(/<sup[^>]*>[\s\S]*?<\/sup>/gi, ' ');
+
+            const withBreaksAsNewlines = withoutFootnotes.replace(/<br\s*\/?>/gi, '\n');
+
+            const sanitized = (window.DOMPurify && typeof window.DOMPurify.sanitize === 'function')
+                ? DOMPurify.sanitize(withBreaksAsNewlines, { ALLOWED_TAGS: DISPLAY_SAFE_TAGS, ALLOWED_ATTR: [] })
+                : escapeHtml(withBreaksAsNewlines.replace(/<[^>]*>/g, ' '));
+
+            return sanitized
+                .replace(/\u00a0/g, ' ')
+                .replace(/&nbsp;/gi, ' ')
+                .replace(/&thinsp;/gi, ' ')
+                .replace(/[ \t]+/g, ' ')
+                .replace(/\s*\n\s*/g, '\n')
+                .replace(/\n{3,}/g, '\n\n')
+                .trim();
+        }
+
         const INPUT_HIDDEN_UNICODE_RE = /[\u0000-\u001F\u007F-\u009F\u200B-\u200F\u202A-\u202E\u2060-\u206F\uFEFF]/g;
         const INPUT_SYSTEM_META_RE = /[`$<>\\|{}]/g;
 
@@ -5720,7 +5757,7 @@
                 const leftSample = (base.lines || []).slice(0, 8);
                 const rightSample = (other.lines || []).slice(0, 8);
                 const maxRows = Math.max(leftSample.length, rightSample.length);
-                const cleanLine = (text = '') => escapeHtml(normalizeDisplayText(text)).replace(/\n/g, '<br>');
+                const cleanLine = (text = '') => escapeDisplayTextPreservingEmphasis(text).replace(/\n/g, '<br>');
 
                 let rows = '';
                 for (let i = 0; i < maxRows; i += 1) {
@@ -6615,17 +6652,19 @@
             const sourceLines = Array.isArray(data?.lines) ? data.lines : [];
             const renderedLines = sourceLines.map((line, idx) => {
                 const heRaw = normalizeDisplayText(line?.he || '');
-                const he = heRaw ? applyHebrewDisplaySettings(heRaw) : '';
-                const en = normalizeDisplayText(line?.en || '');
+                const enRaw = normalizeDisplayText(line?.en || '');
 
-                if (!he && !en) return '';
+                if (!heRaw && !enRaw) return '';
+
+                const he = heRaw ? escapeDisplayTextPreservingEmphasis(applyHebrewDisplaySettings(line?.he || '')) : '';
+                const en = enRaw ? escapeDisplayTextPreservingEmphasis(line?.en || '') : '';
 
                 const segmentLabel = formatSegmentLabel(line?.segment, idx);
                 const hebrewMarkup = he
-                    ? `<p dir="rtl" class="font-hebrew text-start text-[1.05rem] leading-[1.9] text-slate-800">${escapeHtml(he).replace(/\n/g, '<br>')}</p>`
+                    ? `<p dir="rtl" class="font-hebrew text-start text-[1.05rem] leading-[1.9] text-slate-800">${he.replace(/\n/g, '<br>')}</p>`
                     : '';
                 const englishMarkup = en
-                    ? `<p dir="ltr" class="font-serif text-start text-sm leading-relaxed text-slate-700 mt-2">${escapeHtml(en).replace(/\n/g, '<br>')}</p>`
+                    ? `<p dir="ltr" class="font-serif text-start text-sm leading-relaxed text-slate-700 mt-2">${en.replace(/\n/g, '<br>')}</p>`
                     : '';
 
                 return `
@@ -6651,15 +6690,17 @@
 
             return Array.from({ length: fallbackLen }, (_, idx) => {
                 const heRaw = normalizeDisplayText(heFallbackLines[idx] || '');
-                const he = heRaw ? applyHebrewDisplaySettings(heRaw) : '';
-                const en = normalizeDisplayText(enFallbackLines[idx] || '');
-                if (!he && !en) return '';
+                const enRaw = normalizeDisplayText(enFallbackLines[idx] || '');
+                if (!heRaw && !enRaw) return '';
+
+                const he = heRaw ? escapeDisplayTextPreservingEmphasis(applyHebrewDisplaySettings(heFallbackLines[idx] || '')) : '';
+                const en = enRaw ? escapeDisplayTextPreservingEmphasis(enFallbackLines[idx] || '') : '';
 
                 const hebrewMarkup = he
-                    ? `<p dir="rtl" class="font-hebrew text-start text-[1.05rem] leading-[1.9] text-slate-800">${escapeHtml(he).replace(/\n/g, '<br>')}</p>`
+                    ? `<p dir="rtl" class="font-hebrew text-start text-[1.05rem] leading-[1.9] text-slate-800">${he.replace(/\n/g, '<br>')}</p>`
                     : '';
                 const englishMarkup = en
-                    ? `<p dir="ltr" class="font-serif text-start text-sm leading-relaxed text-slate-700 mt-2">${escapeHtml(en).replace(/\n/g, '<br>')}</p>`
+                    ? `<p dir="ltr" class="font-serif text-start text-sm leading-relaxed text-slate-700 mt-2">${en.replace(/\n/g, '<br>')}</p>`
                     : '';
 
                 return `
@@ -7259,7 +7300,7 @@
 
         function renderTextRowsForPayload(data, layout) {
             const cleanLine = (text = '') => {
-                const normalized = escapeHtml(normalizeDisplayText(text));
+                const normalized = escapeDisplayTextPreservingEmphasis(text);
                 return normalized
                     .replace(/\n{2,}/g, '<br><br>')
                     .replace(/\n/g, ' ')
@@ -7274,9 +7315,9 @@
             return data.lines.map((line, idx) => {
                 const label = formatSegmentLabel(line.segment, idx);
                 const heRaw = normalizeDisplayText(line.he || '');
-                const he = heRaw ? cleanLine(applyHebrewDisplaySettings(heRaw)) : '';
+                const he = heRaw ? cleanLine(applyHebrewDisplaySettings(line.he || '')) : '';
                 const enRaw = normalizeDisplayText(line.en || '');
-                const en = enRaw ? cleanLine(enRaw) : '';
+                const en = enRaw ? cleanLine(line.en || '') : '';
                 const translit = appState.prefs.transliteration ? transliterationMarkup(heRaw) : '';
 
                 const hebrewBlock = he
