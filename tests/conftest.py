@@ -44,7 +44,8 @@ os.environ.setdefault("CLERK_WEBHOOK_SIGNING_SECRET", "")
 # below), so this is what forces backend.rate_limit._build_store() to fall
 # back to the safe in-process store instead.
 os.environ.setdefault("RATE_LIMIT_REDIS_URL", "")
-# RATELIMIT_ENABLED is deliberately NOT set here. Rate limiting is now
+# RATELIMIT_ENABLED is deliberately NOT blanked here (it is pinned to true
+# after the app imports, below). Rate limiting is now
 # enforced centrally by backend.rate_limit.RateLimitMiddleware (plan.md
 # §16.3-L2, replacing Flask-Limiter and asgi.py's old independent
 # in-process limiter -- see plan.md §16.8.1), registered on asgi.py's
@@ -101,6 +102,13 @@ import backend.rate_limit as _rate_limit_module
 
 _rate_limit_module.RATE_LIMIT_REDIS_URL = ""
 _rate_limit_module._store = _rate_limit_module._build_store()
+
+# Same override=True leak, the other direction: a developer's .env may set
+# RATELIMIT_ENABLED=false for local dev (e.g. when the Upstash host is
+# unreachable and /ask would otherwise fail closed). The suite needs the
+# limiter live (see the RATELIMIT_ENABLED comment above), so pin it back on.
+os.environ["RATELIMIT_ENABLED"] = "true"
+_rate_limit_module.RATELIMIT_ENABLED = True
 
 # Same leak as RATE_LIMIT_REDIS_URL above, but for app.py's own
 # module-level SENTRY_DSN_BROWSER constant (app.py:862): it's a plain
