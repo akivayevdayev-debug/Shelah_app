@@ -262,6 +262,32 @@ export function cacheZmanimLocation(location) {
     localStorage.setItem(ZMANIM_LOCATION_CACHE_KEY, JSON.stringify(location));
 }
 
+// The location the zmanim panel is showing right now -- what other surfaces (the
+// calendar's holiday card) use for their own clock times. Prefers the location the
+// panel last resolved (the city search, the session, or IP); falls back to the
+// saved city search before the first fetch has come back. Null when there is none.
+export function getZmanimLocation() {
+    const meta = zmanimData?.metadata || {};
+    let lat = meta.lat;
+    let lon = meta.lon;
+    if (!Number.isFinite(lat) || !Number.isFinite(lon)) {
+        try {
+            const saved = JSON.parse(localStorage.getItem(ZMANIM_LOCATION_CACHE_KEY) || 'null');
+            lat = saved?.lat;
+            lon = saved?.lon;
+        } catch (_) {
+            lat = null; // a corrupt cache entry is "no saved location", not an error
+        }
+    }
+    if (!Number.isFinite(lat) || !Number.isFinite(lon)) return null;
+    return {
+        lat,
+        lon,
+        label: currentZmanimLocationLabel || meta.location_label || meta.city || meta.timezone || '',
+        timezone: meta.timezone || '',
+    };
+}
+
 export function formatCountdownDuration(msRemaining, deps) {
     const totalSeconds = Math.max(0, Math.floor(msRemaining / 1000));
     const hours = Math.floor(totalSeconds / 3600);

@@ -217,6 +217,80 @@ export async function slideOut(el, { to = 'left', distance = '100%' } = {}) {
     );
 }
 
+// ── Apple spring parameterisation ────────────────────────────────────────────
+//
+// Apple describes a spring by how long it takes to settle and how much it
+// overshoots (WWDC23 "Animate with springs"): `duration` (s) and `bounce`
+// (0 = critically damped, ~0.15 = a hair of overshoot, ~0.3 = playful).
+// With unit mass those map to the physical model as
+//     stiffness = (2π / duration)²      damping = 4π · (1 − bounce) / duration
+// so the same two numbers can drive motion.dev's stiffness/damping/mass.
+export function appleSpring(duration, bounce = 0) {
+    const w = (2 * Math.PI) / duration;
+    return { stiffness: w * w, damping: 2 * w * (1 - bounce), mass: 1 };
+}
+
+// Named presets, matching SwiftUI's .smooth / .snappy / .bouncy (0.5 s each).
+export const APPLE_SPRING = {
+    smooth: appleSpring(0.5, 0),
+    snappy: appleSpring(0.5, 0.15),
+    bouncy: appleSpring(0.5, 0.3),
+};
+
+/**
+ * Spring `keyframes` onto `el`, carrying `velocity` (px/s, or the unit of the
+ * animated property) into the spring so a release from a drag continues at the
+ * finger's speed instead of restarting from rest.  Returns motion's controls,
+ * or null when motion is unavailable/reduced (the caller then sets the end
+ * state itself).
+ */
+export function springAnimate(el, keyframes, spring, { velocity } = {}) {
+    const animate = _motionAnimate();
+    if (!el || !animate || isMotionReduced()) return null;
+    const extra = Number.isFinite(velocity) ? { velocity } : {};
+    return animate(el, keyframes, _springTransition(spring, extra));
+}
+
+/**
+ * Spring a plain number from `from` to `to`, calling `onUpdate(value)` each
+ * frame.  For gesture-driven motion (a sheet released mid-drag) the caller owns
+ * the value, so an interrupting touch can read where it is right now and start
+ * the next spring from there, carrying `velocity` (units/s) so there is no
+ * seam between the finger and the animation.  With motion unavailable or
+ * reduced it jumps to `to` and returns null.
+ */
+export function springValue(from, to, spring, { velocity = 0, onUpdate, onComplete } = {}) {
+    const animate = _motionAnimate();
+    if (!animate || isMotionReduced()) {
+        onUpdate?.(to);
+        onComplete?.();
+        return null;
+    }
+    return animate(from, to, { ..._springTransition(spring, { velocity }), onUpdate, onComplete });
+}
+
+// ── Grow-from / collapse-into the trigger ────────────────────────────────────
+//
+// Menus and modals open out of the control that summoned them and fold back
+// into it on close (spatial consistency: what leaves the way it came).  The
+// mover scales about a transform-origin placed on the trigger, so no
+// translation is needed and the two ends share one transform function list.
+const _ORIGIN_SCALE = { popover: 0.5, modal: 0.55 };
+
+function _originMorph(mover, origin, preset) {
+    const scale = _ORIGIN_SCALE[preset];
+    if (!mover || scale === undefined || !origin || !origin.isConnected) return null;
+    // Measure the settled box: an interrupted exit can leave a transform behind.
+    mover.style.transform = 'none';
+    const o = origin.getBoundingClientRect();
+    if (!o.width && !o.height) return null; // trigger is hidden (display:none)
+    const r = mover.getBoundingClientRect();
+    if (!r.width || !r.height) return null;
+    const x = o.left + o.width / 2 - r.left;
+    const y = o.top + o.height / 2 - r.top;
+    return { scale, origin: `${Math.round(x)}px ${Math.round(y)}px` };
+}
+
 // ── Presence: animated show / hide for menus, sheets and modals ─────────────
 //
 // present() / dismiss() are the vanilla stand-in for <AnimatePresence>: they
@@ -227,13 +301,36 @@ export async function slideOut(el, { to = 'left', distance = '100%' } = {}) {
 // Each preset is the offset an element rises from on enter / sinks to on exit;
 // the transform is always written with the SAME function list (translateY +
 // scale) at both ends, which is what lets motion interpolate the strings.
+//
+// Anchored menus (settings, profile, reader settings, city search) are opened and
+// dismissed constantly and carry no gesture momentum, so they get the quickest
+// motion in the app: critically damped springs (no overshoot tail to wait out)
+// that read as settled in ~0.2 s going in and ~0.13 s going out, with the fade
+// finishing first.  Every other preset keeps the `_FADE` defaults and its own spring.
+const SPRING_MENU_ENTER = appleSpring(0.22, 0);
+const SPRING_MENU_LEAVE = appleSpring(0.14, 0);
+// A modal opened by tap (not a drag/flick) carries no gesture momentum, so --
+// same reasoning as the menu springs above -- it gets no bounce either. It is
+// a bigger, weightier surface than a dropdown, so its response is a touch
+// longer (0.32s vs. the menu's 0.22s), but critically damped, not the ~0.5s
+// bouncy APPLE_SPRING.snappy that present() falls back to for a morph preset
+// with no explicit morphSpring. That silent fallback was what made the
+// calendar modal (the only modal opened with a trigger `origin`, so the only
+// one that ever takes the morph path) feel slow next to the retuned menus.
+const SPRING_MODAL_ENTER = appleSpring(0.32, 0);
+const _FADE = { in: 0.18, out: 0.16, outMorph: 0.22, outEase: [0.4, 0, 1, 1] };
 const _PRESENCE = {
-    // Anchored dropdowns: rise a few px into place.
-    popover: { y: 12, scale: 0.98, exitY: 8, exitScale: 0.98, spring: SPRING_ENTER },
+    // Anchored dropdowns: rise a few px into place (or grow out of their trigger).
+    popover: {
+        y: 12, scale: 0.98, exitY: 8, exitScale: 0.98,
+        spring: SPRING_MENU_ENTER, morphSpring: SPRING_MENU_ENTER, leave: SPRING_MENU_LEAVE,
+        // Ease-out on the way out too: the fade starts moving at once instead of lingering.
+        fade: { in: 0.12, out: 0.1, outMorph: 0.12, outEase: [0.25, 0, 0.3, 1] },
+    },
     // Phone bottom sheets / modal cards: slide up from below.
     sheet:   { y: 56, scale: 1,    exitY: 40, exitScale: 1,   spring: { stiffness: 380, damping: 34, mass: 0.8 } },
     // Centred modal cards on larger screens.
-    modal:   { y: 18, scale: 0.97, exitY: 10, exitScale: 0.98, spring: SPRING_ENTER },
+    modal:   { y: 18, scale: 0.97, exitY: 10, exitScale: 0.98, spring: SPRING_ENTER, morphSpring: SPRING_MODAL_ENTER },
     // Opacity only (scrims, full-screen dialog shells).
     fade:    { y: 0,  scale: 1,    exitY: 0,  exitScale: 1,   spring: SPRING_ENTER },
 };
@@ -265,6 +362,7 @@ function _clearMotionStyles(...els) {
         if (!el) return;
         el.style.removeProperty('opacity');
         el.style.removeProperty('transform');
+        el.style.removeProperty('transform-origin');
     });
 }
 
@@ -277,7 +375,7 @@ function _clearMotionStyles(...els) {
  * (a <dialog> must be rendered when showModal() runs, or focus cannot move
  * into it); without it an element that is already showing is left alone.
  */
-export async function present(el, { preset = 'popover', card = null, replay = false } = {}) {
+export async function present(el, { preset = 'popover', card = null, replay = false, origin = null } = {}) {
     if (!el) return;
     const wasHidden = el.classList.contains('hidden');
     const leaving = el.classList.contains('is-hiding');
@@ -287,6 +385,7 @@ export async function present(el, { preset = 'popover', card = null, replay = fa
     const startOpacity = wasHidden || (replay && !leaving) ? 0 : Number.parseFloat(getComputedStyle(el).opacity) || 0;
     const state = _presenceState(el);
     const token = ++state.token;
+    state.origin = origin; // dismiss() folds back into it; never carry a stale trigger over
     el.classList.remove('hidden', 'is-hiding');
 
     const animate = _motionAnimate();
@@ -296,13 +395,19 @@ export async function present(el, { preset = 'popover', card = null, replay = fa
         return;
     }
 
-    const mover = card ?? (p.y || p.scale !== 1 ? el : null);
+    const mover = card ?? (p.y || p.scale !== 1 || state.origin ? el : null);
+    const morph = _originMorph(mover, state.origin, preset);
+    const from = morph ? _xf(0, morph.scale) : _xf(p.y, p.scale);
     el.style.opacity = String(startOpacity);
-    if (mover) mover.style.transform = _xf(p.y, p.scale);
-
-    const controls = [animate(el, { opacity: [startOpacity, 1] }, { duration: 0.18, ease: [0.25, 0, 0.3, 1] })];
     if (mover) {
-        controls.push(animate(mover, { transform: [_xf(p.y, p.scale), _xf(0, 1)] }, _springTransition(p.spring)));
+        if (morph) mover.style.transformOrigin = morph.origin;
+        mover.style.transform = from;
+    }
+
+    const fade = { ..._FADE, ...p.fade };
+    const controls = [animate(el, { opacity: [startOpacity, 1] }, { duration: fade.in, ease: [0.25, 0, 0.3, 1] })];
+    if (mover) {
+        controls.push(animate(mover, { transform: [from, _xf(0, 1)] }, _springTransition(morph ? (p.morphSpring ?? APPLE_SPRING.snappy) : p.spring)));
     }
     state.controls = controls;
     await Promise.all(controls);
@@ -339,11 +444,16 @@ export async function dismiss(el, { preset = 'popover', card = null, onHidden } 
     }
 
     el.classList.add('is-hiding'); // pointer-events: none while it leaves
-    const mover = card ?? (p.exitY || p.exitScale !== 1 ? el : null);
-    const fade = animate(el, { opacity: 0 }, { duration: 0.16, ease: [0.4, 0, 1, 1] });
+    const mover = card ?? (p.exitY || p.exitScale !== 1 || state.origin ? el : null);
+    const morph = _originMorph(mover, state.origin, preset);
+    if (morph) mover.style.transformOrigin = morph.origin;
+    // Folding into a trigger reads better with a touch more time on screen.
+    const timing = { ..._FADE, ...p.fade };
+    const fade = animate(el, { opacity: 0 }, { duration: morph ? timing.outMorph : timing.out, ease: timing.outEase });
     const controls = [fade];
     if (mover) {
-        controls.push(animate(mover, { transform: [_xf(0, 1), _xf(p.exitY, p.exitScale)] }, _springTransition(SPRING_LEAVE)));
+        const to = morph ? _xf(0, morph.scale) : _xf(p.exitY, p.exitScale);
+        controls.push(animate(mover, { transform: [_xf(0, 1), to] }, _springTransition(p.leave ?? SPRING_LEAVE)));
     }
     state.controls = controls;
     // Hide as soon as it has faded; the (longer) spring is cut off while invisible.
@@ -415,6 +525,10 @@ window.ShelahMotion = {
     present,
     dismiss,
     slideTo,
+    appleSpring,
+    APPLE_SPRING,
+    springAnimate,
+    springValue,
     animateIn,
     animateOut,
     staggerIn,

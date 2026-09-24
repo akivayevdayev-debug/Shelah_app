@@ -754,3 +754,65 @@ body.theme-dark {
         --search-hover-border:      #484038;
     }
 }
+
+
+/* ═══════════════════════════════════════════════════════════════════
+   APPLE-STYLE SURFACES — geometry, material, motion (calendar detail card,
+   Clerk modals, sliders)
+   ─────────────────────────────────────────────────────────────────
+   Radii follow the concentric rule: an inner radius is the outer radius
+   minus the padding between them (`--radius-inner`).  Sizes on the 4/8 grid.
+   The pt values Apple does not publish (popover/sheet radius, slider
+   dimensions) are calibrated estimates, so they live here as tokens and
+   can be tuned in one place.
+═══════════════════════════════════════════════════════════════════ */
+
+:root {
+    --radius-popover: 14px;
+    --radius-sheet:   20px;
+    --radius-control: 12px;
+    --surface-pad:    8px;                                             /* inset between a surface and the rows in it */
+    --radius-inner:   calc(var(--radius-popover) - var(--surface-pad)); /* concentric child of a popover */
+
+    --hit-min: 44px;                                                    /* minimum touch target */
+
+    /* Slider (iOS-style): a slim track and a large thumb that grows on press */
+    --slider-track-h:   4px;
+    --slider-thumb:     28px;
+    --slider-thumb-press: 32px;
+
+    /* Material — warm cream glass over the page */
+    --glass-blur:    22px;
+    --glass-sat:     1.7;
+    --glass-bg:      rgba(255, 249, 241, 0.90);
+    --glass-edge:    rgba(255, 255, 255, 0.70);
+    --glass-hairline: rgba(51, 65, 85, 0.14);
+    --glass-shadow:  0 18px 48px rgba(52, 40, 18, 0.20), 0 2px 8px rgba(52, 40, 18, 0.10);
+    --glass-shadow-sheet: 0 -12px 40px rgba(52, 40, 18, 0.20), 0 -1px 6px rgba(52, 40, 18, 0.08);
+}
+
+[data-theme="dark"],
+html.theme-dark,
+body.theme-dark {
+    --glass-bg:      rgba(30, 29, 26, 0.90);
+    --glass-edge:    rgba(255, 255, 255, 0.10);
+    --glass-hairline: rgba(255, 255, 255, 0.10);
+    --glass-shadow:  0 18px 48px rgba(0, 0, 0, 0.62), 0 2px 8px rgba(0, 0, 0, 0.40);
+    --glass-shadow-sheet: 0 -12px 40px rgba(0, 0, 0, 0.62), 0 -1px 6px rgba(0, 0, 0, 0.40);
+}
+
+@media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+        --glass-bg:      rgba(30, 29, 26, 0.90);
+        --glass-edge:    rgba(255, 255, 255, 0.10);
+        --glass-hairline: rgba(255, 255, 255, 0.10);
+        --glass-shadow:  0 18px 48px rgba(0, 0, 0, 0.62), 0 2px 8px rgba(0, 0, 0, 0.40);
+        --glass-shadow-sheet: 0 -12px 40px rgba(0, 0, 0, 0.62), 0 -1px 6px rgba(0, 0, 0, 0.40);
+    }
+}
+
+/* Reduce Transparency is handled where the material is applied (it must beat
+   the dark-OS block above, which has higher specificity than a bare :root). */
+@media (prefers-contrast: more) {
+    :root { --glass-hairline: var(--ink-secondary); }
+}

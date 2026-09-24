@@ -9,6 +9,7 @@
     src="https://cdn.jsdelivr.net/npm/@clerk/clerk-js@5.127.0/dist/clerk.browser.js"
     integrity="sha384-9BfgqxUZJLeppMqmDGDPFU1zC63bMyEwEXG8xMcQwhDz5qU3WUR4PwpVcZ4fKU8D"></script>
 {% endif %}
+<script src="/static/js/clerk-appearance.js?v=20260919-v1"></script>
 <script src="/static/js/topbar_shared.js?v=20260923-v1"></script>
 <script>
     // ===== APP STATE & CONSTANTS =====
@@ -238,7 +239,7 @@
         }
 
         if (window.Clerk) {
-            window.Clerk.load().then(() => {
+            window.Clerk.load({ appearance: window.ShelahClerkAppearance?.() }).then(() => {
                 refreshAuthUi();
                 window.Clerk.addListener(refreshAuthUi);
             });
@@ -275,7 +276,7 @@
         if (signInBtn) {
             signInBtn.addEventListener('click', () => {
                 if (window.Clerk) {
-                    window.Clerk.openSignIn();
+                    window.Clerk.openSignIn({ appearance: window.ShelahClerkAppearance?.() });
                 }
             });
         }
