@@ -301,6 +301,45 @@ class TestGetMonthlyEventsBranches:
         assert not any("🌙" in e["title"] or "✡️" in e["title"] for e in events)
 
 
+class TestGetMonthlyEventsUsesLocationDate:
+    """get_monthly_events()'s 30-day window must start from the requested
+    location's own calendar date, not the server's -- otherwise a user whose
+    timezone is far from the server's rolls over to "today" a day early or
+    late relative to what their own clock says (item 12 of the Sep 2026 UI
+    batch: mirrors the fix already applied in get_community_zmanim())."""
+
+    LA_LAT, LA_LON, LA_TZ = 34.0522, -118.2437, "America/Los_Angeles"
+
+    def test_today_uses_location_timezone_not_server_local(self, mock_outbound_http):
+        mock_outbound_http.replace(
+            responses_lib.GET, re.compile(r"https://www\.hebcal\.com/.*"),
+            json={"items": []}, status=200,
+        )
+        # 03:00 UTC on Jan 15 is still Jan 14, 19:00 in Los Angeles (UTC-8 in
+        # January) -- a server-local date.today() would say "Jan 15" while
+        # the location's own calendar day is still "Jan 14".
+        with freeze_time("2026-01-15 03:00:00"):
+            events = ze.get_monthly_events(self.LA_LAT, self.LA_LON, self.LA_TZ)
+
+        sunrise_events = [e for e in events if "Sunrise" in e["title"]]
+        assert sunrise_events
+        assert sunrise_events[0]["start"][:10] == "2026-01-14"
+
+    def test_cache_key_rolls_over_at_location_midnight_not_server_midnight(self, mock_outbound_http):
+        mock_outbound_http.replace(
+            responses_lib.GET, re.compile(r"https://www\.hebcal\.com/.*"),
+            json={"items": []}, status=200,
+        )
+        with freeze_time("2026-01-15 03:00:00"):
+            ze.get_monthly_events(self.LA_LAT, self.LA_LON, self.LA_TZ)
+
+        cache_key = (
+            ze._cache_coord(self.LA_LAT), ze._cache_coord(self.LA_LON),
+            self.LA_TZ, 2026, 1,
+        )
+        assert ze._HEBCAL_MONTH_CACHE.get(cache_key) is not None
+
+
 # ─────────────── Circuit-breaker hardening on Hebcal network calls ────────────
 #
 # backend/health_check.py has always registered 'hebcal' as an actively-probed
