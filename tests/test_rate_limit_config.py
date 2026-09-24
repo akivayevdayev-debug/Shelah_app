@@ -40,6 +40,10 @@ _BASE_ENV = {
     "ANTHROPIC_API_KEY": "mock-anthropic-key",
     "GEMINI_API_KEY": "mock-gemini-key",
     "LOG_LEVEL": "ERROR",
+    # backend/claude.py's load_dotenv(override=True) would otherwise read
+    # the developer's real .env and override the value under test (a local
+    # RATELIMIT_ENABLED=false turned the "unset" case into False).
+    "PYTHON_DOTENV_DISABLED": "1",
 }
 
 

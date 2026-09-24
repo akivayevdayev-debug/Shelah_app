@@ -26,6 +26,7 @@ import collections
 import hashlib
 import logging
 import os
+import threading
 import time
 from dataclasses import dataclass
 
@@ -123,6 +124,17 @@ _ROUTE_CLASSES: list[tuple[str, str]] = [
 ]
 
 
+# Paths the limiter never consults the store for. /static/* is plain asset
+# serving (CSS/JS/icons); a single page load fetches dozens of them, which
+# would both eat the "cheap" bucket that read-only API calls share and put
+# a store round trip in front of every asset.
+_EXEMPT_PREFIXES: tuple[str, ...] = ("/static/",)
+
+
+def is_exempt(path: str) -> bool:
+    return path.startswith(_EXEMPT_PREFIXES)
+
+
 def classify_route(path: str) -> str:
     for prefix, cls in _ROUTE_CLASSES:
         if path == prefix or path.startswith(prefix):
@@ -133,7 +145,85 @@ def classify_route(path: str) -> str:
 # ─── Store abstraction ──────────────────────────────────────────────────────
 
 class _StoreUnavailable(Exception):
-    """Raised by a store's incr() when the backend could not be reached."""
+    """Raised by a store's incr() when the backend could not be reached.
+
+    ``report`` says whether this failure is worth an error log / Sentry
+    capture. It is False for failures the circuit breaker below has already
+    reported once for the current outage -- a short-circuited call, or a
+    call that was already in flight when the breaker opened -- so a Redis
+    outage produces one report per cooldown window, not one per request.
+    """
+
+    def __init__(self, message: str = "", *, report: bool = True) -> None:
+        super().__init__(message)
+        self.report = report
+
+
+class _CircuitOpen(_StoreUnavailable):
+    """Raised without touching the backend while the circuit breaker is open."""
+
+    def __init__(self) -> None:
+        super().__init__("rate-limit store circuit open", report=False)
+
+
+# How long the breaker skips the store after a failure before letting one
+# half-open probe through. Redis connect/read timeouts are 2s each (see
+# the Redis client _RedisStore builds), so without this every request
+# during an outage stalled ~2s before failing open.
+_BREAKER_COOLDOWN_SECONDS = 20.0
+
+
+class _CircuitBreaker:
+    """Closed -> (failure) -> open for _BREAKER_COOLDOWN_SECONDS -> one
+    half-open probe -> closed on success / re-open on failure.
+
+    Guarded by a threading.Lock, not an asyncio.Lock: the store is a
+    process-wide singleton reached from more than one thread and event
+    loop, and every critical section is a few attribute reads/writes, so it
+    never blocks the event loop meaningfully.
+    """
+
+    def __init__(self, cooldown_seconds: float = _BREAKER_COOLDOWN_SECONDS) -> None:
+        self._cooldown_seconds = cooldown_seconds
+        self._lock = threading.Lock()
+        self._opened_at: float | None = None
+        self._probe_in_flight = False
+
+    def acquire(self) -> bool:
+        """Admit a call or raise _CircuitOpen. Returns True when the admitted
+        call is the half-open probe."""
+        with self._lock:
+            if self._opened_at is None:
+                return False
+            if self._probe_in_flight or time.monotonic() - self._opened_at < self._cooldown_seconds:
+                raise _CircuitOpen()
+            self._probe_in_flight = True
+            return True
+
+    def record_success(self, is_probe: bool) -> None:
+        with self._lock:
+            self._opened_at = None
+            if is_probe:
+                self._probe_in_flight = False
+
+    def record_failure(self, is_probe: bool) -> bool:
+        """Open (or re-open) the breaker. Returns True when this failure is
+        the one that opened it -- i.e. the one worth reporting."""
+        with self._lock:
+            if is_probe:
+                self._probe_in_flight = False
+            elif self._opened_at is not None:
+                # Already open: a call admitted before the trip, failing late.
+                return False
+            self._opened_at = time.monotonic()
+            return True
+
+    def release_probe(self, is_probe: bool) -> None:
+        """A call ended with neither result (e.g. cancelled): free the probe
+        slot so the breaker cannot wedge open forever."""
+        if is_probe:
+            with self._lock:
+                self._probe_in_flight = False
 
 
 class _RateLimitStore:
@@ -245,6 +335,7 @@ class _RedisStore(_RateLimitStore):
             socket_connect_timeout=2.0,
         )
         self._client_loop: object | None = None
+        self._breaker = _CircuitBreaker()
 
     def _client_for_current_loop(self):
         """Return an async Redis client guaranteed to be bound to the
@@ -273,29 +364,37 @@ class _RedisStore(_RateLimitStore):
         self._client_loop = loop
         return self._client
 
-    async def incr(self, key: str, window_seconds: int) -> int:
+    async def _guarded(self, command):
+        """Run ``command(client)`` behind the circuit breaker: while it is
+        open, raise _CircuitOpen immediately instead of waiting out another
+        connect timeout. Covers every caller of the shared store -- the
+        limiter, backend/turnstile.py, and backend/cost_meter.py's breaker."""
+        is_probe = self._breaker.acquire()
         try:
-            client = self._client_for_current_loop()
+            result = await command(self._client_for_current_loop())
+        except Exception as exc:  # redis.exceptions.* + connection/timeout errors
+            opened = self._breaker.record_failure(is_probe)
+            raise _StoreUnavailable(str(exc), report=opened) from exc
+        except BaseException:  # cancellation -- no verdict on the store
+            self._breaker.release_probe(is_probe)
+            raise
+        self._breaker.record_success(is_probe)
+        return result
+
+    async def incr(self, key: str, window_seconds: int) -> int:
+        async def command(client):
             count = await client.incr(key)
             if count == 1:
                 await client.expire(key, window_seconds)
             return int(count)
-        except Exception as exc:  # redis.exceptions.* + connection/timeout errors
-            raise _StoreUnavailable(str(exc)) from exc
+
+        return await self._guarded(command)
 
     async def get(self, key: str) -> str | None:
-        try:
-            client = self._client_for_current_loop()
-            return await client.get(key)
-        except Exception as exc:  # redis.exceptions.* + connection/timeout errors
-            raise _StoreUnavailable(str(exc)) from exc
+        return await self._guarded(lambda client: client.get(key))
 
     async def setex(self, key: str, ttl_seconds: int, value: str) -> None:
-        try:
-            client = self._client_for_current_loop()
-            await client.setex(key, ttl_seconds, value)
-        except Exception as exc:  # redis.exceptions.* + connection/timeout errors
-            raise _StoreUnavailable(str(exc)) from exc
+        await self._guarded(lambda client: client.setex(key, ttl_seconds, value))
 
 
 RATE_LIMIT_REDIS_URL = (os.environ.get("RATE_LIMIT_REDIS_URL") or "").strip()
@@ -386,6 +485,11 @@ async def _check(route_class: str, client_ip: str, user_id: str | None, path: st
 
         return True, policy.window_seconds
     except _StoreUnavailable as exc:
+        # Applies the class's posture either way; only the failure that
+        # opened the store's circuit breaker is logged/captured, once per
+        # cooldown window rather than once per request.
+        if not exc.report:
+            return policy.fail_open, policy.window_seconds
         key_hash = _hash_key(key)
         logger.error(
             "rate_limit_store_unavailable class=%s key_hash=%s fail_open=%s",
@@ -407,10 +511,10 @@ class RateLimitMiddleware(BaseHTTPMiddleware):
     """
 
     async def dispatch(self, request: Request, call_next):
-        if not RATELIMIT_ENABLED:
+        path = request.url.path
+        if not RATELIMIT_ENABLED or is_exempt(path):
             return await call_next(request)
 
-        path = request.url.path
         route_class = classify_route(path)
 
         client_ip = _resolve_client_ip(

@@ -185,3 +185,61 @@ class TestPrivacySensitiveRoutesGetAStricterPolicyThanCheap:
             "/api/webhooks/clerk", headers={"X-Forwarded-For": ip},
         )
         assert over_limit.status_code == 429
+
+
+class _DownRedisClient:
+    """A redis.asyncio client double for an unreachable server; counts every
+    command so a test can prove the circuit breaker kept requests off it."""
+
+    def __init__(self):
+        self.calls = 0
+
+    async def incr(self, key):
+        self.calls += 1
+        raise ConnectionError("Timeout connecting to server")
+
+
+def _redis_store_that_is_down():
+    store = rate_limit._RateLimitStore.__new__(rate_limit._RedisStore)
+    store._client = _DownRedisClient()
+    store._breaker = rate_limit._CircuitBreaker()
+    return store
+
+
+class TestStoreCircuitBreakerThroughTheMiddleware:
+    """One Redis failure opens the store's breaker: later requests in the
+    cooldown get their class's posture immediately (no 2s connect timeout
+    each), and the outage is captured once, not once per request."""
+
+    async def test_outage_touches_redis_and_captures_once_then_short_circuits(
+        self, fastapi_client, monkeypatch
+    ):
+        store = _redis_store_that_is_down()
+        monkeypatch.setattr(rate_limit, "_store", store)
+        captured = []
+        monkeypatch.setattr(
+            rate_limit, "_capture_backend_error",
+            lambda event, error, context=None: captured.append(context["class"]),
+        )
+
+        feedback = [
+            await fastapi_client.post(
+                "/api/feedback",
+                json={"question": "What is Shabbat?", "verdict": "helpful"},
+                headers={"X-Forwarded-For": "192.0.2.221"},
+            )
+            for _ in range(3)
+        ]
+        asks = [
+            await fastapi_client.post(
+                "/ask",
+                json={"question": "What is Shabbat?"},
+                headers={"X-Forwarded-For": "198.51.100.221"},
+            )
+            for _ in range(2)
+        ]
+
+        assert [r.status_code for r in feedback] == [200, 200, 200]  # fail-open
+        assert [r.status_code for r in asks] == [429, 429]  # llm stays fail-closed
+        assert store._client.calls == 1
+        assert captured == ["feedback"]
