@@ -14,8 +14,10 @@ import {
     setZmanimLocationLabel,
     setCurrentZmanimLocationLabel,
     cacheZmanimLocation,
+    getZmanimLocation,
     refreshZmanimDisplay,
 } from "./zmanim.js";
+import { installRouter, readRoute } from "./router.js";
 
 // installZmanim()'s dependency contract (plan.md §19 Phase 2, §19.9
 // constraint 3): the module takes these seven inline classic-script globals
@@ -51,11 +53,18 @@ function initModules() {
         setZmanimLocationLabel,
         setCurrentZmanimLocationLabel,
         cacheZmanimLocation,
+        getZmanimLocation,
         refreshZmanimDisplay,
         getState,
         setState,
         subscribe,
     };
+
+    // installRouter's handler fires on popstate (back/forward); the initial
+    // hydrate call handles the URL the page was actually loaded with, since
+    // popstate never fires for that first load.
+    installRouter((route) => window.hydrateRoute?.(route));
+    window.hydrateRoute?.(readRoute(), { isInitial: true });
 }
 
 if (document.readyState === "loading") {

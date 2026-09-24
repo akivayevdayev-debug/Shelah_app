@@ -118,6 +118,7 @@
     <link rel="stylesheet" href="/static/css/prayer.css?v=20260817-v6">
     <link rel="stylesheet" href="/static/css/ai.css?v=20260919-v16">
     <link rel="stylesheet" href="/static/css/calendar.css?v=20260918-v8">
+    <link rel="stylesheet" href="/static/css/calendar-detail.css?v=20260919-v7">
     <link rel="stylesheet" href="/static/css/loading.css?v=20260817-v6">
     <!-- Tailwind CSS (pre-built; loads last so utilities override custom CSS — mirrors CDN runtime cascade behavior) -->
     <link rel="stylesheet" href="/static/css/tailwind.css?v=20260915-v7">
@@ -1583,6 +1584,27 @@
         </div>
     </dialog>
 
+    <!-- Calendar detail card: anchored popover on desktop, bottom sheet on phones.
+         Built and driven by static/js/calendar-detail.js; a sibling of #calendarModal
+         (not a child) so it can stack above it in the top layer. -->
+    <dialog id="calDetail" class="cal-detail" data-mode="popover" aria-labelledby="calDetailTitle">
+        <div class="cal-detail__scrim"></div>
+        <div class="cal-detail__panel" tabindex="-1">
+            <span class="cal-detail__arrow" aria-hidden="true"></span>
+            <div class="cal-detail__drag">
+                <span class="cal-detail__grabber" aria-hidden="true"></span>
+                <div class="cal-detail__bar">
+                    <button type="button" class="cal-detail__back" hidden></button>
+                    <span class="cal-detail__kicker"><span class="cal-detail__dot" aria-hidden="true"></span><span class="cal-detail__kind"></span></span>
+                    <button type="button" class="cal-detail__close" aria-label="Close">
+                        <span class="contents" aria-hidden="true">{{ phosphor('x', size=14) }}</span>
+                    </button>
+                </div>
+            </div>
+            <div class="cal-detail__scroll"></div>
+        </div>
+    </dialog>
+
     <!-- Texts Menu Modal (Browse Prayers, Communities, and Text Library) -->
     <div id="textsMenuModal"
         class="fixed inset-0 z-[100] bg-slate-900/60 backdrop-blur-sm items-center justify-center p-4 hidden">
@@ -1829,8 +1851,8 @@
             color: var(--accent-red);
         }
     </style>
-    <dialog id="privacyDataModal" aria-labelledby="privacyDataModalTitle"
-        class="hidden fixed inset-0 z-[109] m-0 w-full h-full max-w-none max-h-none bg-slate-900/60 backdrop-blur-sm items-center justify-center p-4">
+    <div id="privacyDataModal" role="dialog" aria-modal="true" aria-labelledby="privacyDataModalTitle"
+        class="hidden fixed inset-0 z-[109] bg-slate-900/60 backdrop-blur-sm items-center justify-center p-4">
         <div class="privacy-modal-panel bg-white rounded-2xl shadow-2xl w-full max-w-lg max-h-[85vh] overflow-hidden flex flex-col relative">
             <button id="privacyDataModalCloseBtn" type="button" onclick="closePrivacyDataModal()"
                 class="absolute top-2 right-2 min-h-[44px] min-w-[44px] flex items-center justify-center rounded-full text-white/80 hover:text-white hover:bg-white/10 transition z-10"
@@ -1927,7 +1949,7 @@
                     data-he="סגור">Close</button>
             </div>
         </div>
-    </dialog>
+    </div>
 
     <!-- Library Category Browser Modal -->
     <div id="libraryCategoryModal"
@@ -4128,6 +4150,15 @@
                     syncedPrefsUserId = userId;
                     await loadPrefsFromServerIfSignedIn();
                     void loadAskHistory();
+                    // The initial hydrateRoute() call can run before Clerk has
+                    // a session (main.js's module hydrate fires on
+                    // DOMContentLoaded, ahead of Clerk's own async init), so a
+                    // page loaded directly on a ?chat= link needs a retry here
+                    // once sign-in actually completes.
+                    const route = window.ShelahRouter?.readRoute();
+                    if (route?.chat) {
+                        void hydrateChatId(route.chat);
+                    }
                 }
             } else {
                 signInBtn?.classList.remove('hidden');
@@ -4157,7 +4188,7 @@
                     return;
                 }
 
-                await window.Clerk.load({ publishableKey });
+                await window.Clerk.load({ publishableKey, appearance: window.ShelahClerkAppearance?.() });
                 window.Clerk.addListener(async () => {
                     await refreshAuthUi();
                     await handleAuthRouteIntent();
@@ -4192,6 +4223,7 @@
             if (!window.Clerk) return;
             await window.Clerk.openSignIn({
                 fallbackRedirectUrl: window.location.href,
+                appearance: window.ShelahClerkAppearance?.(),
             });
         }
 
@@ -4212,7 +4244,7 @@
             try {
                 if (typeof window.Clerk.openUserProfile === 'function') {
                     // Clerk handles internal settings/profile sections inside this modal.
-                    window.Clerk.openUserProfile();
+                    window.Clerk.openUserProfile({ appearance: window.ShelahClerkAppearance?.() });
                     closeUserProfileMenu();
                     return true;
                 }
@@ -4442,6 +4474,24 @@
             }
         }
 
+        // Shared by the history-list click handler and hydrateChatId (URL
+        // hydration on load/back-forward) so both paths render an answer and
+        // update the URL identically.
+        function openStoredAskAnswer(item, options = {}) {
+            if (!item) return;
+            appState.lastAiQuestion = item.question;
+            appState.lastAiResponse = item;
+            document.getElementById('aiModalTitle').textContent = item.question;
+            const modal = document.getElementById('aiAssistantModal');
+            modal.style.display = 'flex';
+            presentEl(modal, modalMotion(modal));
+            populateAiModal(item, item.question);
+            if (searchInput) searchInput.value = item.question;
+            if (!options.fromRoute && item.id) {
+                window.ShelahRouter?.pushRoute({ chat: item.id }, { exclusive: true, replace: Boolean(options.replace) });
+            }
+        }
+
         function renderAskHistory(items) {
             const section = document.getElementById('askHistorySection');
             const list = document.getElementById('askHistoryList');
@@ -4479,15 +4529,7 @@
                 btn.addEventListener('click', () => {
                     const id = btn.getAttribute('data-id');
                     const item = items.find(i => i.id === id);
-                    if (!item) return;
-                    appState.lastAiQuestion = item.question;
-                    appState.lastAiResponse = item;
-                    document.getElementById('aiModalTitle').textContent = item.question;
-                    const modal = document.getElementById('aiAssistantModal');
-                    modal.style.display = 'flex';
-                    presentEl(modal, modalMotion(modal));
-                    populateAiModal(item, item.question);
-                    if (searchInput) searchInput.value = item.question;
+                    openStoredAskAnswer(item);
                 });
             });
 
@@ -4505,6 +4547,27 @@
                 const headers = await authHeaders();
                 await fetch(`/api/user/history/${encodeURIComponent(id)}`, { method: 'DELETE', headers });
             } catch (_) {}
+        }
+
+        // Resolves a ?chat=<id> deep link against the caller's own history
+        // (GET /api/user/history/<id> is scoped server-side to the verified
+        // Clerk user, so a stale/foreign/deleted id 404s and just clears the
+        // URL instead of erroring visibly).
+        async function hydrateChatId(id) {
+            if (!id) return;
+            if (!isClerkConfigured() || !window.Clerk?.session) return;
+            try {
+                const headers = await authHeaders();
+                const resp = await fetch(`/api/user/history/${encodeURIComponent(id)}`, { headers });
+                if (!resp.ok) {
+                    window.ShelahRouter?.clearRoute();
+                    return;
+                }
+                const item = await resp.json();
+                openStoredAskAnswer(item, { fromRoute: true });
+            } catch (_) {
+                window.ShelahRouter?.clearRoute();
+            }
         }
 
         function setReaderSubtitle(text = '') {
@@ -5087,7 +5150,7 @@
                 return;
             }
             positionUserProfileMenu();
-            presentEl(userProfileMenu, { preset: 'popover' });
+            presentEl(userProfileMenu, { preset: 'popover', origin: userProfileMenuBtn });
             if (userProfileMenuBtn) userProfileMenuBtn.setAttribute('aria-expanded', 'true');
             window.requestAnimationFrame(() => {
                 if (!userProfileMenu.classList.contains('hidden')) {
@@ -5105,7 +5168,7 @@
                 closeReaderSettingsPanel();
                 closeUserProfileMenu();
                 positionSettingsPanel();
-                presentEl(settingsPanel, { preset: 'popover' });
+                presentEl(settingsPanel, { preset: 'popover', origin: settingsMenuBtn });
             } else {
                 dismissEl(settingsPanel, { preset: 'popover' });
             }
@@ -5124,7 +5187,7 @@
                 ? forceOpen
                 : isMenuClosed(readerSettingsPanel);
             if (shouldOpen) {
-                presentEl(readerSettingsPanel, { preset: 'popover' });
+                presentEl(readerSettingsPanel, { preset: 'popover', origin: readerSettingsBtn });
             } else {
                 dismissEl(readerSettingsPanel, { preset: 'popover' });
             }
@@ -5722,7 +5785,12 @@
             renderPersonalShelf();
         }
 
-        function setCurrentView(type, value, label) {
+        // Views this maps route the URL when the caller switches to them;
+        // 'ask' is deliberately excluded -- AI answers are routed by their
+        // own history_id (see handleAiSearch), not by question text.
+        const ROUTE_TYPE_FOR_VIEW = { text: 'text', prayer: 'prayer', community: 'community' };
+
+        function setCurrentView(type, value, label, options = {}) {
             appState.currentView = { type, value, label: label || value };
             appState.readingState = {
                 ...appState.readingState,
@@ -5733,6 +5801,11 @@
             };
             addRecentItem(appState.currentView);
             updateBookmarkButton();
+
+            const routeKey = ROUTE_TYPE_FOR_VIEW[type];
+            if (routeKey && !options.fromRoute && window.ShelahRouter) {
+                window.ShelahRouter.pushRoute({ [routeKey]: value }, { exclusive: true });
+            }
         }
 
         function updateBookmarkButton() {
@@ -9448,7 +9521,7 @@
                 .filter(Boolean);
         }
 
-        async function displayPrayer(prayerName) {
+        async function displayPrayer(prayerName, options = {}) {
             homeGrid.style.display = 'none';
             reader.classList.add('hidden');
             showLoadingOverlay();
@@ -9580,7 +9653,7 @@
                 applySidebarVisibility();
 
                 document.getElementById('readerTitle').innerText = prayerData.title;
-                setCurrentView('prayer', prayerName, prayerData.title || prayerName);
+                setCurrentView('prayer', prayerName, prayerData.title || prayerName, options);
 
                 // Store current prayer content globally for language switching
                 window.currentPrayerContent = prayerData.content;
@@ -9625,7 +9698,7 @@
             return html;
         }
 
-        async function displayCommunity(communityName) {
+        async function displayCommunity(communityName, options = {}) {
             homeGrid.style.display = 'none';
             reader.classList.add('hidden');
             showLoadingOverlay();
@@ -9653,7 +9726,7 @@
                     ? `מנהגי קהילת ${communityLabel}`
                     : `${communityName} Community Customs`;
                 document.getElementById('readerTitle').innerText = communityTitle;
-                setCurrentView('community', communityName, communityTitle);
+                setCurrentView('community', communityName, communityTitle, options);
                 document.getElementById('readerContent').innerHTML = renderCommunityContent(communityData);
                 window.currentCommunityData = communityData;
                 window.currentPrayerContent = null;
@@ -9753,7 +9826,7 @@
             return `<div class="prayer-clean-lines">${rows}</div>`;
         }
 
-        function goHome() {
+        function goHome(options = {}) {
             closeMobilePanels();
             setMobileSearchExpanded(false);
             closeReaderSettingsPanel();
@@ -9782,6 +9855,9 @@
             });
             setTimeout(() => { homeGrid.classList.remove('opacity-0'); }, 10);
             sidebarContent.innerHTML = `<p class="italic text-slate-400">${t('Search a halacha to view cross-referenced Encyclopedia and Customs data...', 'חפש הלכה כדי לצפות בנתונים מקושרים מהאנציקלופדיה ומהמנהגים...')}</p>`;
+            if (!options.fromRoute) {
+                window.ShelahRouter?.clearRoute();
+            }
         }
 
         function setQuery(q) {
@@ -10128,6 +10204,9 @@
                 populateAiModal(data, question);
                 // Refresh history sidebar so the new entry appears immediately
                 void loadAskHistory();
+                if (data?.history_id) {
+                    window.ShelahRouter?.pushRoute({ chat: data.history_id }, { exclusive: true });
+                }
                 if (data?.meta?.fallback) {
                     logReliability('ai-fallback-used', {
                         mode: data?.meta?.mode,
@@ -10562,7 +10641,7 @@
                 // titling" bug where a chunk's title box would appear/disappear
                 // across renders for no reason tied to that chunk itself.
                 window.currentTextAnchorTitle = titleEl.innerText;
-                setCurrentView('text', data.ref || resolvedRef || normalizedRequestRef || ref, data.title || data.ref || resolvedRef || normalizedRequestRef || ref);
+                setCurrentView('text', data.ref || resolvedRef || normalizedRequestRef || ref, data.title || data.ref || resolvedRef || normalizedRequestRef || ref, options);
                 window.currentTextPayload = data;
                 window.currentTextPayloadChain = [data];
                 resetInfiniteReaderState(data);
@@ -11170,6 +11249,47 @@
             calendarEl.querySelector(`.fc-daygrid-day[data-date="${calendarSelectedKey}"]`)?.classList.add('cal-day-selected');
         }
 
+        // Plain-object view of a FullCalendar event for the detail card
+        // (static/js/calendar-detail.js), so that module never touches FullCalendar.
+        function calendarPlainEvent(ev) {
+            return {
+                key: calendarDateKey(ev.start),
+                title: ev.title,
+                category: ev.extendedProps.category || 'default',
+                detail: ev.extendedProps.detail || {},
+            };
+        }
+
+        // Opens the Apple-style detail card (popover on desktop, sheet on phones)
+        // for a day, or straight to `focusEvent` when a specific event was tapped.
+        function openCalendarDetail(anchor, key, focusEvent = null) {
+            if (!window.ShelahCalendarDetail || !anchor || !holidaysCalendar) return;
+            const events = calendarEventsOn(key).map(calendarPlainEvent);
+            const tapped = focusEvent
+                ? (events.find((e) => e.title === focusEvent.title) ?? calendarPlainEvent(focusEvent))
+                : null;
+            window.ShelahCalendarDetail.open({
+                anchor,
+                dateKey: key,
+                events,
+                allEvents: holidaysCalendar.getEvents().map(calendarPlainEvent),
+                event: tapped,
+                he: isHebrewMode(),
+                // Where the zmanim panel is set, so the card can show real clock times.
+                location: window.ShelahModules?.getZmanimLocation?.() ?? null,
+                // Tapping a reading (Torah / Haftarah / Maftir) opens that text in the reader.
+                openText: openCalendarText,
+                bookName: getHebrewBookDisplayName,
+            });
+        }
+
+        // Leave the calendar (a modal dialog above the reader; closing it closes the card
+        // too) and open the text.
+        async function openCalendarText(ref) {
+            await window.closeCalendarModal();
+            readText(ref);
+        }
+
         function renderCalendarAgenda() {
             const section = document.getElementById('calendarAgenda');
             const list = document.getElementById('calendarAgendaList');
@@ -11209,14 +11329,21 @@
                     const name = document.createElement('span');
                     name.className = 'cal-agenda-title';
                     name.textContent = ev.title;
-                    li.append(swatch, name);
+                    // A real <button>: keyboard/AT users can open the same detail card.
+                    const btn = document.createElement('button');
+                    btn.type = 'button';
+                    btn.className = 'cal-agenda-btn';
+                    btn.append(swatch, name);
+                    btn.addEventListener('click', () => openCalendarDetail(li, calendarSelectedKey, ev));
+                    li.classList.add('is-actionable');
+                    li.appendChild(btn);
                     list.appendChild(li);
                 });
             }
             section.hidden = false;
         }
 
-        function selectCalendarDay(key, { scroll = false } = {}) {
+        function selectCalendarDay(key, { scroll = false, pushUrl = false } = {}) {
             calendarSelectedKey = key;
             markCalendarSelectedDay();
             renderCalendarAgenda();
@@ -11224,6 +11351,12 @@
                 const section = document.getElementById('calendarAgenda');
                 const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
                 section?.scrollIntoView({ behavior: reduce ? 'auto' : 'smooth', block: 'nearest' });
+            }
+            // Only an explicit user pick (dateClick/eventClick) writes to the
+            // URL -- datesSet's auto-reselect on month pagination must not,
+            // or paging through months would spam history entries.
+            if (pushUrl) {
+                window.ShelahRouter?.pushRoute({ date: key }, { replace: true });
             }
         }
 
@@ -11244,13 +11377,14 @@
                             // not auto-promoted, so eventClassNames below never saw it.
                             const withExtendedProps = items.map((item) => ({
                                 ...item,
-                                extendedProps: { ...(item.extendedProps || {}), category: item.category },
+                                extendedProps: { ...(item.extendedProps || {}), category: item.category, detail: item.detail || {} },
                             }));
                             successCallback(withExtendedProps);
                         })
                         .catch(e => failureCallback(e));
                 },
                 datesSet: function (info) {
+                    window.ShelahCalendarDetail?.close({ immediate: true });
                     if (_calendarDidMount && window.ShelahMotion) {
                         const harness = calendarEl.querySelector('.fc-view-harness');
                         if (harness) window.ShelahMotion.animateIn(harness, { y: 6 });
@@ -11272,11 +11406,15 @@
                     if (calendarSelectedKey) renderCalendarAgenda();
                 },
                 dateClick: function (info) {
-                    selectCalendarDay(info.dateStr.slice(0, 10), { scroll: true });
+                    const key = info.dateStr.slice(0, 10);
+                    selectCalendarDay(key, { pushUrl: true });
+                    openCalendarDetail(info.dayEl, key);
                 },
                 eventClick: function (info) {
                     info.jsEvent.preventDefault();
-                    selectCalendarDay(calendarDateKey(info.event.start), { scroll: true });
+                    const key = calendarDateKey(info.event.start);
+                    selectCalendarDay(key, { pushUrl: true });
+                    openCalendarDetail(info.el, key, info.event);
                 },
                 // Chips are ellipsised on phones; the native tooltip gives the full name on hover.
                 eventDidMount: function (info) {
@@ -11315,12 +11453,17 @@
                 if (holidaysCalendar) holidaysCalendar.updateSize();
             };
             setTimeout(resizeCalendar, 80);
-            presentEl(modal, { ...modalMotion(modal), replay: true }).then(resizeCalendar);
+            // The modal grows out of the control that opened it (and folds back into it).
+            const opener = document.activeElement?.closest?.('button');
+            const origin = opener && opener.offsetParent !== null ? opener : document.querySelector('.home-calendar-btn');
+            presentEl(modal, { ...modalMotion(modal), replay: true, origin }).then(resizeCalendar);
         };
 
         window.closeCalendarModal = function () {
             const modal = document.getElementById('calendarModal');
-            dismissEl(modal, {
+            window.ShelahCalendarDetail?.close({ immediate: true });
+            window.ShelahRouter?.pushRoute({ date: null }, { replace: true });
+            return dismissEl(modal, {
                 ...modalMotion(modal),
                 onHidden: () => { if (modal.open) modal.close(); },
             });
@@ -11342,6 +11485,17 @@
             }
         });
 
+        // Opens the calendar overlay directly on a ?date= deep link. Called
+        // from hydrateRoute on load/back-forward, so it must not itself push
+        // a new URL entry (selectCalendarDay's default pushUrl: false).
+        function hydrateCalendarDate(dateKey) {
+            if (!/^\d{4}-\d{2}-\d{2}$/.test(String(dateKey || ''))) return;
+            window.openCalendarModal();
+            const [y, m, d] = dateKey.split('-').map(Number);
+            try { holidaysCalendar?.gotoDate(new Date(y, m - 1, d)); } catch (_) { /* pre-render guard */ }
+            selectCalendarDay(dateKey, { scroll: true });
+        }
+
         // ─── City Location Search ─────────────────────────────────
         let citySearchOpen = false;
 
@@ -11356,7 +11510,7 @@
                 const rect = btn.getBoundingClientRect();
                 const sectionRect = btn.closest('.home-today-section').getBoundingClientRect();
                 popover.style.top = (rect.bottom - sectionRect.top + 6) + 'px';
-                presentEl(popover, { preset: 'popover' });
+                presentEl(popover, { preset: 'popover', origin: btn });
                 setTimeout(() => document.getElementById('citySearchInput')?.focus(), 50);
             } else {
                 dismissEl(popover, { preset: 'popover' });
@@ -12231,12 +12385,8 @@
             if (confirmInput) { confirmInput.value = ''; confirmInput.disabled = false; }
             if (deleteBtn) deleteBtn.disabled = true;
             privacyDataModalTrigger = document.activeElement;
-            // Un-hidden before showModal() so focus can move into the dialog; the
-            // entrance then replays from its start state within the same task.
-            modal.classList.remove('hidden');
-            modal.classList.add('flex');
-            if (!modal.open) modal.showModal();
-            presentEl(modal, { ...modalMotion(modal), replay: true });
+            modal.style.display = 'flex';
+            presentEl(modal, modalMotion(modal));
             const closeBtn = document.getElementById('privacyDataModalCloseBtn');
             if (closeBtn) closeBtn.focus();
         }
@@ -12250,44 +12400,12 @@
             if (privacyDeleteInFlight) return;
             const modal = document.getElementById('privacyDataModal');
             if (!modal) return;
-            // Exit first; the native close() must wait (closing a <dialog> drops it
-            // out of the top layer at once). Focus goes back to the trigger only
-            // after close(): while the dialog is open the rest of the page is inert,
-            // so focus() on the trigger would be a no-op.
-            dismissEl(modal, {
-                ...modalMotion(modal),
-                onHidden: () => {
-                    modal.classList.remove('flex');
-                    if (modal.open) modal.close();
-                    const trigger = privacyDataModalTrigger;
-                    privacyDataModalTrigger = null;
-                    if (trigger && typeof trigger.focus === 'function') trigger.focus();
-                },
-            });
-        }
-
-        // <dialog> raises 'cancel' on Escape; route it through
-        // closePrivacyDataModal() (not the raw native close) so the in-flight
-        // guard and the class cleanup above always run.
-        document.getElementById('privacyDataModal')?.addEventListener('cancel', (e) => {
-            e.preventDefault();
-            closePrivacyDataModal();
-        });
-
-        // Safety net for the irreversible delete: a browser may close a modal
-        // <dialog> even though 'cancel' was prevented (a repeated Escape or back
-        // gesture with no user activation in between is not cancelable). If that
-        // happens mid-request, put the dialog back so the outcome stays visible;
-        // otherwise just make sure the hidden/flex classes match the closed state.
-        document.getElementById('privacyDataModal')?.addEventListener('close', (e) => {
-            const modal = e.currentTarget;
-            if (privacyDeleteInFlight) {
-                modal.showModal();
-                return;
+            dismissEl(modal, { ...modalMotion(modal), onHidden: () => { modal.style.display = 'none'; } });
+            if (privacyDataModalTrigger && typeof privacyDataModalTrigger.focus === 'function') {
+                privacyDataModalTrigger.focus();
             }
-            modal.classList.remove('flex');
-            modal.classList.add('hidden');
-        });
+            privacyDataModalTrigger = null;
+        }
 
         function handlePrivacyDeleteConfirmInput() {
             const confirmInput = document.getElementById('privacyDeleteConfirmInput');
@@ -12424,11 +12542,7 @@
                 closeDevtoolsInspector();
                 closeSourceGraph();
                 closeCommunityTimeline();
-                // privacyDataModal is a native <dialog>: its own 'cancel' listener
-                // handles Escape (calling closePrivacyDataModal() here too would
-                // double-fire). While a delete request is in flight, swallow the
-                // key so the browser cannot close the dialog on a repeat press.
-                if (privacyDeleteInFlight) e.preventDefault();
+                closePrivacyDataModal();
             }
         });
 
@@ -12470,6 +12584,34 @@
             });
         }
         initAnalyticsConsent();
+
+        // Single dispatcher driven by router.js: called once on initial page
+        // load (isInitial: true, from main.js) and again on every
+        // popstate (back/forward). `isInitial` suppresses the "no view key"
+        // fallbacks (goHome / closing the calendar) on first load, since the
+        // homepage/no-overlay state is already the default DOM state --
+        // running them anyway would just be redundant, not incorrect.
+        function hydrateRoute(route, { isInitial = false } = {}) {
+            route = route || {};
+            if (route.text) {
+                readText(route.text, { fromRoute: true });
+            } else if (route.prayer) {
+                displayPrayer(route.prayer, { fromRoute: true });
+            } else if (route.community) {
+                displayCommunity(route.community, { fromRoute: true });
+            } else if (route.chat) {
+                void hydrateChatId(route.chat);
+            } else if (!isInitial) {
+                goHome({ fromRoute: true });
+            }
+
+            if (route.date) {
+                hydrateCalendarDate(route.date);
+            } else if (!isInitial) {
+                window.closeCalendarModal?.();
+            }
+        }
+        window.hydrateRoute = hydrateRoute;
     </script>
     <!-- Motion One / motion.dev vanilla animation engine — static/js/motion.js wraps
          this as window.Motion; degrades gracefully to instant state-changes if this
@@ -12477,8 +12619,10 @@
     <script src="https://cdn.jsdelivr.net/npm/motion@12.43.0/dist/motion.js"
             integrity="sha384-hgVFh5YKDMdpcWEjpRqk2kPXOKBH7I9NBCKe3uR6dHKgy/BWPe8kyL01kiYuRn1u"
             crossorigin="anonymous"></script>
-    <script type="module" src="/static/js/motion.js?v=20260919-v1"></script>
-    <script type="module" src="/static/js/main.js?v=20260817-v6"></script>
+    <script src="/static/js/clerk-appearance.js?v=20260919-v1"></script>
+    <script type="module" src="/static/js/motion.js?v=20260919-v2"></script>
+    <script type="module" src="/static/js/calendar-detail.js?v=20260919-v11"></script>
+    <script type="module" src="/static/js/main.js?v=20260919-v1"></script>
 </body>
 
 </html>
