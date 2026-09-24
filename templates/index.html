@@ -11201,6 +11201,12 @@
                 readerCommentaryTopBarBtn.setAttribute('aria-label', commentaryLabel);
                 readerCommentaryTopBarBtn.title = commentaryLabel;
             }
+            const citySearchBtn = document.getElementById('citySearchBtn');
+            if (citySearchBtn) {
+                const citySearchLabel = lang === 'he' ? 'חפש לפי עיר' : 'Search by city';
+                citySearchBtn.setAttribute('aria-label', citySearchLabel);
+                citySearchBtn.title = citySearchLabel;
+            }
             if (appState.currentView?.type === 'text') {
                 updateReaderHeaderForVisibleChunk(infiniteReaderState.currentVisibleChunkIndex || 0);
             }
@@ -11616,7 +11622,7 @@
 
             errorEl.classList.add('hidden');
             statusEl.classList.remove('hidden');
-            statusEl.textContent = 'Searching...';
+            statusEl.textContent = t('Searching...', 'מחפש...');
             submitBtn.disabled = true;
 
             try {
@@ -11626,14 +11632,14 @@
                 const results = payload?.results;
 
                 if (!res.ok) {
-                    errorEl.textContent = 'Search failed. Please try again shortly.';
+                    errorEl.textContent = t('Search failed. Please try again shortly.', 'החיפוש נכשל. נסה שוב בקרוב.');
                     errorEl.classList.remove('hidden');
                     statusEl.classList.add('hidden');
                     return;
                 }
 
                 if (!results || results.length === 0) {
-                    errorEl.textContent = 'City not found. Try a different spelling.';
+                    errorEl.textContent = t('City not found. Try a different spelling.', 'העיר לא נמצאה. נסה איות אחר.');
                     errorEl.classList.remove('hidden');
                     statusEl.classList.add('hidden');
                     return;
@@ -11660,11 +11666,11 @@
                 const shortName = display_name.split(',').slice(0, 2).join(', ');
                 window.ShelahModules.setCurrentZmanimLocationLabel(shortName);
 
-                statusEl.textContent = `Using: ${shortName}`;
+                statusEl.textContent = `${t('Using:', 'משתמש ב:')} ${shortName}`;
                 setTimeout(closeCitySearchPopover, 1200);
 
             } catch (err) {
-                errorEl.textContent = 'Search failed. Check your connection.';
+                errorEl.textContent = t('Search failed. Check your connection.', 'החיפוש נכשל. בדוק את החיבור שלך.');
                 errorEl.classList.remove('hidden');
                 statusEl.classList.add('hidden');
             } finally {
