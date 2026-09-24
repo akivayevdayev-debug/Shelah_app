@@ -3834,9 +3834,13 @@
             'Tevet': 'טבת', 'Sh[’\']vat': 'שבט', 'Shevat': 'שבט', 'Adar': 'אדר',
         };
 
-        function translateHolidayName(name) {
+        // Mode-independent core of translateHolidayName(), split out so callers
+        // that need a Hebrew name to *cache* (e.g. the parasha quick-link's
+        // data-he attribute, read back after a later language toggle) can force
+        // the translation regardless of the UI language active right now.
+        function holidayNameToHebrew(name) {
             const raw = String(name || '').trim();
-            if (!raw || !isHebrewMode()) return raw;
+            if (!raw) return raw;
             const direct = HOLIDAY_HE_MAP[raw];
             if (direct) return direct;
 
@@ -3897,6 +3901,12 @@
             });
 
             return result;
+        }
+
+        function translateHolidayName(name) {
+            const raw = String(name || '').trim();
+            if (!raw || !isHebrewMode()) return raw;
+            return holidayNameToHebrew(raw);
         }
 
         function formatOmerLabel(meta) {
@@ -10912,10 +10922,18 @@
                 if (!resp.ok) return;
 
                 const data = await resp.json();
+                const enTitle = (data.title || 'Parashat HaShavua').trim();
+                // The Sefaria-calendars source (data.source === 'sefaria-calendars')
+                // always includes a Hebrew title; the Hebcal-converter fallback
+                // (data.source === 'calendar-fallback', used when Sefaria is down)
+                // only returns the bare English parasha name. Derive the Hebrew
+                // name ourselves in that case rather than showing English text
+                // under a Hebrew-mode heading.
+                const heTitle = (data.heTitle || '').trim() || holidayNameToHebrew(enTitle);
                 const payload = {
                     ref: data.ref || 'Genesis 1',
-                    enTitle: (data.title || 'Parashat HaShavua').trim(),
-                    heTitle: (data.heTitle || '').trim(),
+                    enTitle,
+                    heTitle,
                 };
                 payload.titleEn = payload.heTitle
                     ? `${payload.enTitle} · ${payload.heTitle}`
