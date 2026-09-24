@@ -13,7 +13,7 @@ This module is the core time/calendar backend used by /api/zmanim and
 
 import logging
 from zoneinfo import ZoneInfo
-from datetime import date, datetime, timedelta
+from datetime import datetime, timedelta
 from pyluach import dates as heb_dates
 from zmanim.zmanim_calendar import ZmanimCalendar
 from zmanim.util.geo_location import GeoLocation
@@ -540,11 +540,15 @@ def get_monthly_events(lat, lon, timezone_str=None):
     - Daily sunrise, sunset & nightfall from KosherJava
     - Jewish holidays (with candle lighting times) from Hebcal API
     """
-    _, tz_name = _resolve_timezone(lat, lon, timezone_str)
+    tz, tz_name = _resolve_timezone(lat, lon, timezone_str)
     location = GeoLocation("User Location", float(lat), float(lon), tz_name, 0)
 
     events = []
-    today = date.today()
+    # Use the target location's timezone date, not server local date (matches
+    # get_community_zmanim() above) -- otherwise the 30-day window and month
+    # cache key roll over at server midnight instead of the user's, which can
+    # shift or drop "today" for locations far from the server's own timezone.
+    today = datetime.now(tz).date()
     month_cache_key = (
         _cache_coord(lat),
         _cache_coord(lon),
