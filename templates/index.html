@@ -3907,6 +3907,71 @@
                 .trim();
         }
 
+        // Same cleanup as normalizeDisplayText() (footnote stripping, <br> to
+        // newline, entity decoding, whitespace collapsing) but keeps Sefaria's
+        // <b>/<strong>/<i>/<em> emphasis markup as literal substrings instead
+        // of stripping every tag. Used by callers that store "normalized but
+        // unescaped" text for reuse across multiple render passes -- e.g.
+        // displayPrayer's paragraphPairs -- so escapeDisplayTextPreservingEmphasis()
+        // can render that emphasis later instead of it already being gone.
+        function normalizeDisplayTextPreservingEmphasis(text = '') {
+            const withoutFootnotes = String(text)
+                .replace(/<sup[^>]*>[\s\S]*?<\/sup>\s*<(?:i|span|small)[^>]*>[\s\S]*?<\/(?:i|span|small)>/gi, ' ')
+                .replace(/<(?:i|span|small)[^>]*class=["'][^"']*footnote[^"']*["'][^>]*>[\s\S]*?<\/(?:i|span|small)>/gi, ' ')
+                .replace(/<sup[^>]*>[\s\S]*?<\/sup>/gi, ' ');
+
+            const withoutTags = withoutFootnotes
+                .replace(/<br\s*\/?>/gi, '\n')
+                .replace(/<(?!\/?(?:b|strong|i|em)(?:[\s>]|$))[^>]*>/gi, ' ');
+
+            return decodeHtmlEntities(withoutTags)
+                .replace(/\u00A0/g, ' ')
+                .replace(/&nbsp;/gi, ' ')
+                .replace(/&thinsp;/gi, ' ')
+                .replace(/[ \t]+/g, ' ')
+                .replace(/\s*\n\s*/g, '\n')
+                .replace(/\n{3,}/g, '\n\n')
+                .trim();
+        }
+
+        // Sefaria liturgy text (e.g. rubric/instruction emphasis in the
+        // siddur, or a commentary's bolded/italicized lead words) legitimately
+        // wraps text in <b>/<strong>/<i>/<em> in both the he and en fields --
+        // normalizeDisplayText()'s catch-all tag strip is correct for its
+        // plain-text call sites (bookmarks, aria-labels, transliteration
+        // input) but loses that real formatting for HTML display. This
+        // variant runs the same footnote-stripping, then hands off to
+        // DOMPurify with a four-tag allowlist rather than hand-rolling tag
+        // preservation with regex: DOMPurify parses a real DOM (so an
+        // attribute-bearing or unbalanced tag -- e.g. a stray "<b onclick=...>"
+        // -- can't leave a dangling closing tag or slip through unescaped the
+        // way a regex placeholder swap could) and its output is already safe
+        // to insert via innerHTML, matching how renderAnswerMarkdown() already
+        // uses DOMPurify for the AI-answer pipeline.
+        const DISPLAY_SAFE_TAGS = ['b', 'strong', 'i', 'em'];
+
+        function escapeDisplayTextPreservingEmphasis(text = '') {
+            const withoutFootnotes = String(text || '')
+                .replace(/<sup[^>]*>[\s\S]*?<\/sup>\s*<(?:i|span|small)[^>]*>[\s\S]*?<\/(?:i|span|small)>/gi, ' ')
+                .replace(/<(?:i|span|small)[^>]*class=["'][^"']*footnote[^"']*["'][^>]*>[\s\S]*?<\/(?:i|span|small)>/gi, ' ')
+                .replace(/<sup[^>]*>[\s\S]*?<\/sup>/gi, ' ');
+
+            const withBreaksAsNewlines = withoutFootnotes.replace(/<br\s*\/?>/gi, '\n');
+
+            const sanitized = (window.DOMPurify && typeof window.DOMPurify.sanitize === 'function')
+                ? DOMPurify.sanitize(withBreaksAsNewlines, { ALLOWED_TAGS: DISPLAY_SAFE_TAGS, ALLOWED_ATTR: [] })
+                : escapeHtml(withBreaksAsNewlines.replace(/<[^>]*>/g, ' '));
+
+            return sanitized
+                .replace(/\u00A0/g, ' ')
+                .replace(/&nbsp;/gi, ' ')
+                .replace(/&thinsp;/gi, ' ')
+                .replace(/[ \t]+/g, ' ')
+                .replace(/\s*\n\s*/g, '\n')
+                .replace(/\n{3,}/g, '\n\n')
+                .trim();
+        }
+
         const INPUT_HIDDEN_UNICODE_RE = /[\u0000-\u001F\u007F-\u009F\u200B-\u200F\u202A-\u202E\u2060-\u206F\uFEFF]/g;
         const INPUT_SYSTEM_META_RE = /[`$<>\\|{}]/g;
 
@@ -7497,13 +7562,15 @@
             // (see paragraphPairs construction in displayPrayer) -- these two
             // functions are the single point where paragraph text becomes
             // HTML, so they escape unconditionally rather than trusting an
-            // upstream isHtml flag that doesn't cover every caller.
+            // upstream isHtml flag that doesn't cover every caller. They use
+            // escapeDisplayTextPreservingEmphasis() rather than escapeHtml()
+            // so Sefaria's <b>/<strong>/<i>/<em> rubric emphasis survives.
             const renderHebrewParagraph = (rawText = '', includeTransliteration = true) => {
                 const displayText = applyHebrewDisplaySettings(rawText || '');
                 if (!displayText) {
                     return `<p class="text-slate-300 italic">${t('No Hebrew text in source', 'אין טקסט עברי במקור')}</p>`;
                 }
-                return `<p class="font-hebrew">${escapeHtml(displayText)}</p>${includeTransliteration ? transliterationMarkup(displayText) : ''}`;
+                return `<p class="font-hebrew">${escapeDisplayTextPreservingEmphasis(displayText)}</p>${includeTransliteration ? transliterationMarkup(displayText) : ''}`;
             };
 
             const renderEnglishParagraph = (rawText = '') => {
@@ -7511,7 +7578,7 @@
                 if (!displayText) {
                     return `<p class="text-slate-300 italic">${t('No English translation in source', 'אין תרגום אנגלי במקור')}</p>`;
                 }
-                return `<p class="font-serif">${escapeHtml(displayText)}</p>`;
+                return `<p class="font-serif">${escapeDisplayTextPreservingEmphasis(displayText)}</p>`;
             };
 
             const renderPrayerBilingualRow = ({ heText = '', enText = '', isHeader = false }) => {
@@ -7520,10 +7587,10 @@
                 const rowPadding = isHeader ? 'pt-3 pb-2' : 'py-2';
 
                 const hebrewContent = isHeader
-                    ? `<h3 class="font-hebrew text-xl font-bold">${heDisplay ? escapeHtml(heDisplay) : '&nbsp;'}</h3>`
+                    ? `<h3 class="font-hebrew text-xl font-bold">${heDisplay ? escapeDisplayTextPreservingEmphasis(heDisplay) : '&nbsp;'}</h3>`
                     : renderHebrewParagraph(heText, true);
                 const englishContent = isHeader
-                    ? `<h3 class="font-serif text-xl font-bold">${enDisplay ? escapeHtml(enDisplay) : '&nbsp;'}</h3>`
+                    ? `<h3 class="font-serif text-xl font-bold">${enDisplay ? escapeDisplayTextPreservingEmphasis(enDisplay) : '&nbsp;'}</h3>`
                     : renderEnglishParagraph(enText);
 
                 if (layout === 'interleaved') {
@@ -9590,23 +9657,33 @@
                             // raw-vs-escaped straight here (rather than escaping once and
                             // reusing the same string for both) is what avoids
                             // double-escaping paragraphPairs downstream.
+                            //
+                            // he/en are normalized with normalizeDisplayTextPreservingEmphasis()
+                            // rather than normalizeDisplayText() so Sefaria's <b>/<strong>/
+                            // <i>/<em> rubric emphasis survives into paragraphPairs (and
+                            // heHtml/enHtml, escaped below via
+                            // escapeDisplayTextPreservingEmphasis()) instead of being
+                            // stripped like every other tag. isDuplicateLeadingLine()'s own
+                            // normalizeComparablePrayerTitle() call re-normalizes with the
+                            // full strip internally, so passing it emphasis-preserving text
+                            // doesn't change that comparison.
                             sefariaData.lines.forEach(line => {
                                 if (line.type === 'header') {
-                                    const heHeaderRaw = normalizeDisplayText(line.he || '');
-                                    const enHeaderRaw = normalizeDisplayText(line.en || '');
+                                    const heHeaderRaw = normalizeDisplayTextPreservingEmphasis(line.he || '');
+                                    const enHeaderRaw = normalizeDisplayTextPreservingEmphasis(line.en || '');
                                     if (isDuplicateLeadingLine(heHeaderRaw, enHeaderRaw)) {
                                         return;
                                     }
-                                    heHtml += `<h3 class="text-xl font-bold font-hebrew mt-8 mb-3 pb-1 border-b border-slate-200">${escapeHtml(heHeaderRaw)}</h3>`;
-                                    enHtml += `<h3 class="text-xl font-bold font-serif mt-8 mb-3 pb-1 border-b border-slate-200">${escapeHtml(enHeaderRaw)}</h3>`;
+                                    heHtml += `<h3 class="text-xl font-bold font-hebrew mt-8 mb-3 pb-1 border-b border-slate-200">${escapeDisplayTextPreservingEmphasis(heHeaderRaw)}</h3>`;
+                                    enHtml += `<h3 class="text-xl font-bold font-serif mt-8 mb-3 pb-1 border-b border-slate-200">${escapeDisplayTextPreservingEmphasis(enHeaderRaw)}</h3>`;
                                     paragraphPairs.push({
                                         type: 'header',
                                         he: heHeaderRaw,
                                         en: enHeaderRaw,
                                     });
                                 } else {
-                                    const heLine = normalizeDisplayText(line.he || '');
-                                    const enLine = normalizeDisplayText(line.en || '');
+                                    const heLine = normalizeDisplayTextPreservingEmphasis(line.he || '');
+                                    const enLine = normalizeDisplayTextPreservingEmphasis(line.en || '');
                                     if (isDuplicateLeadingLine(heLine, enLine)) {
                                         return;
                                     }
@@ -9625,10 +9702,10 @@
                                     }
 
                                     if (heParagraph) {
-                                        heHtml += `<p class="mb-3">${escapeHtml(heParagraph)}</p>`;
+                                        heHtml += `<p class="mb-3">${escapeDisplayTextPreservingEmphasis(heParagraph)}</p>`;
                                     }
                                     if (enParagraph) {
-                                        enHtml += `<p class="mb-3">${escapeHtml(enParagraph)}</p>`;
+                                        enHtml += `<p class="mb-3">${escapeDisplayTextPreservingEmphasis(enParagraph)}</p>`;
                                     }
 
                                     paragraphPairs.push({
