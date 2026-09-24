@@ -549,9 +549,25 @@ def _extract_v3_flat_text_lists(lines):
     return he_flat, en_flat
 
 
+def _resolve_display_title(data, fallback_title):
+    """Sefaria's own `title` (v2 and v3 alike) is always the *section*
+    title -- book + chapter, e.g. "Numbers 4" -- even when the resolved ref
+    names a specific verse or verse range ("Numbers 4:17-19") or a Talmud
+    line ("Shabbat 21a:1"). Passing that straight through silently drops
+    the very thing the user asked to read from the reader's header. Once
+    the ref is that specific (it has a ":"), prefer the ref-derived
+    fallback_title instead; Sefaria's title is never more specific than
+    the ref, so there is nothing to lose. Shared by _resolve_v3_title and
+    _resolve_text_title (SonarCloud python:S3776).
+    """
+    if ":" in fallback_title:
+        return fallback_title
+    return data.get("title") or data.get("indexTitle") or data.get("book") or fallback_title
+
+
 def _resolve_v3_title(data, fallback_title):
     """Split out of _build_v3_result_dict (SonarCloud python:S3776)."""
-    return data.get("title") or data.get("indexTitle") or data.get("book") or fallback_title
+    return _resolve_display_title(data, fallback_title)
 
 
 def _build_v3_result_dict(data, requested_ref, lines):
@@ -1345,8 +1361,7 @@ def _resolve_text_title(data, resolved_output_ref, requested_ref):
     python:S3776)."""
     fallback_title = str(resolved_output_ref or requested_ref).split(",", 1)[
         0].strip()
-    return data.get("title") or data.get(
-        "indexTitle") or data.get("book") or fallback_title
+    return _resolve_display_title(data, fallback_title)
 
 
 def get_text(ref, lang="both", context=0):
