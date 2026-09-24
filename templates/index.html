@@ -3242,6 +3242,9 @@
             'Devarim': 'דברים', 'Vaetchanan': 'ואתחנן', 'Eikev': 'עקב', 'Reeh': 'ראה',
             'Shoftim': 'שופטים', 'Ki Teitzei': 'כי תצא', 'Ki Tavo': 'כי תבוא', 'Nitzavim': 'נצבים',
             'Vayelech': 'וילך', 'Haazinu': 'האזינו', 'Vezot Haberakhah': 'וזאת הברכה',
+            // Aliases for Hebcal's transliteration of the same parashot (calendar events).
+            'Vayeilech': 'וילך', 'Behaalotcha': 'בהעלותך', 'Shlach': 'שלח',
+            'Vayetzei': 'ויצא', 'Nasso': 'נשא', 'Shmini': 'שמיני',
         };
 
         const STATIC_HEBREW_TEXT_MAP = {
@@ -3810,24 +3813,90 @@
             return translateCategoryPath(subtitle || '');
         }
 
+        // Special Shabbatot named for their maftir/haftarah rather than the weekly
+        // parasha (e.g. "Shabbat Shuva"); must run before the generic Shabbat
+        // replacement below or the English suffix is stranded after "שבת ".
+        const SPECIAL_SHABBAT_HE_MAP = {
+            'Shabbat Chazon': 'שבת חזון',
+            'Shabbat HaChodesh': 'שבת החודש',
+            'Shabbat HaGadol': 'שבת הגדול',
+            'Shabbat Nachamu': 'שבת נחמו',
+            'Shabbat Parah': 'שבת פרה',
+            'Shabbat Shekalim': 'שבת שקלים',
+            'Shabbat Shirah': 'שבת שירה',
+            'Shabbat Shuva': 'שבת שובה',
+            'Shabbat Zachor': 'שבת זכור',
+        };
+
+        const HOLIDAY_MONTH_HE_MAP = {
+            'Nisan': 'ניסן', 'Iyyar': 'אייר', 'Iyar': 'אייר', 'Sivan': 'סיוון', 'Tamuz': 'תמוז',
+            'Av': 'אב', 'Elul': 'אלול', 'Tishrei': 'תשרי', 'Cheshvan': 'חשוון', 'Kislev': 'כסלו',
+            'Tevet': 'טבת', 'Sh[’\']vat': 'שבט', 'Shevat': 'שבט', 'Adar': 'אדר',
+        };
+
         function translateHolidayName(name) {
             const raw = String(name || '').trim();
             if (!raw || !isHebrewMode()) return raw;
             const direct = HOLIDAY_HE_MAP[raw];
             if (direct) return direct;
 
-            return raw
+            let result = raw;
+            Object.entries(SPECIAL_SHABBAT_HE_MAP).forEach(([en, he]) => {
+                result = result.replace(new RegExp(en, 'gi'), he);
+            });
+
+            result = result
+                .replace(/Parashat\s+([A-Za-z’'\s-]+?)(?=\s*$)/i, (_m, names) => {
+                    const clean = (s) => s.trim().replace(/[’']/g, '');
+                    const whole = PARASHA_HE_MAP[clean(names)];
+                    if (whole) return `פרשת ${whole}`;
+                    const he = names.split('-')
+                        .map((part) => PARASHA_HE_MAP[clean(part)] || part.trim())
+                        .join('-');
+                    return `פרשת ${he}`;
+                })
+                .replace(/Mevarchim\s+Chodesh/gi, 'מברכים חודש')
                 .replace(/Rosh\s+Chodesh/gi, 'ראש חודש')
                 .replace(/Chol\s+HaMoed/gi, 'חול המועד')
-                .replace(/Shabbat/gi, 'שבת')
+                .replace(/Shmini\s+Atzeret/gi, 'שמיני עצרת')
+                .replace(/Simchat\s+Torah/gi, 'שמחת תורה')
+                .replace(/Pesach\s+Sheni/gi, 'פסח שני')
                 .replace(/Pesach|Passover/gi, 'פסח')
                 .replace(/Sukkot/gi, 'סוכות')
                 .replace(/Shavuot/gi, 'שבועות')
+                .replace(/Shushan\s+Purim/gi, 'שושן פורים')
                 .replace(/Purim/gi, 'פורים')
                 .replace(/Hanukkah|Chanukah/gi, 'חנוכה')
                 .replace(/Yom\s+Kippur/gi, 'יום כיפור')
-                .replace(/Rosh\s+Hashanah/gi, 'ראש השנה')
-                .replace(/Tisha\s+B'Av|Tisha\s+BAv/gi, 'תשעה באב');
+                .replace(/Rosh\s+Hashan(?:ah|a)/gi, 'ראש השנה')
+                .replace(/Tish[’']?a\s+B[’']Av|Tisha\s+B[’']?Av/gi, 'תשעה באב')
+                .replace(/Tu\s+BiShvat/gi, 'ט״ו בשבט')
+                .replace(/Tu\s+B[’']Av/gi, 'ט״ו באב')
+                .replace(/Ta[’']anit\s+Bechorot/gi, 'תענית בכורות')
+                .replace(/Ta[’']anit\s+Esther/gi, 'תענית אסתר')
+                .replace(/Asara\s+B[’']Tevet/gi, 'עשרה בטבת')
+                .replace(/Tzom\s+Gedaliah/gi, 'צום גדליה')
+                .replace(/Tzom\s+Tam+uz/gi, 'צום תמוז')
+                .replace(/Yom\s+HaAtzma[’']?ut/gi, 'יום העצמאות')
+                .replace(/Yom\s+HaZikaron/gi, 'יום הזיכרון')
+                .replace(/Yom\s+HaShoah/gi, 'יום השואה')
+                .replace(/Yom\s+HaAliyah/gi, 'יום העלייה')
+                .replace(/Yom\s+Yerushalayim/gi, 'יום ירושלים')
+                .replace(/LaBehemot/gi, 'לבהמות')
+                .replace(/Lag\s+BaOmer/gi, 'ל״ג בעומר')
+                .replace(/\bKatan\b/gi, 'קטן')
+                .replace(/Hoshana\s+Raba/gi, 'הושענא רבה')
+                .replace(/Leil\s+Selichot/gi, 'ליל סליחות')
+                .replace(/Chag\s+HaBanot/gi, 'חג הבנות')
+                .replace(/\bSigd\b/gi, 'סיגד')
+                .replace(/\bErev\s+/gi, 'ערב ')
+                .replace(/Shabbat/gi, 'שבת');
+
+            Object.entries(HOLIDAY_MONTH_HE_MAP).forEach(([en, he]) => {
+                result = result.replace(new RegExp(`\\b${en}\\b`, 'g'), he);
+            });
+
+            return result;
         }
 
         function formatOmerLabel(meta) {
@@ -11218,6 +11287,11 @@
             renderPersonalShelf();
             updateBookmarkButton();
             applySidebarVisibility();
+            const calendarModalEl = document.getElementById('calendarModal');
+            if (calendarModalEl?.open && holidaysCalendar) {
+                holidaysCalendar.refetchEvents();
+                if (calendarSelectedKey) renderCalendarAgenda();
+            }
             if (appState.suggestionItems.length) {
                 renderSearchSuggestions();
             }
@@ -11405,7 +11479,7 @@
                     swatch.setAttribute('aria-hidden', 'true');
                     const name = document.createElement('span');
                     name.className = 'cal-agenda-title';
-                    name.textContent = ev.title;
+                    name.textContent = translateHolidayName(ev.title);
                     li.append(swatch, name);
                     list.appendChild(li);
                 });
@@ -11520,9 +11594,13 @@
                     info.jsEvent.preventDefault();
                     selectCalendarDay(calendarDateKey(info.event.start), { scroll: true });
                 },
+                // Localize the holiday name shown in month-grid chips (backend sends English only).
+                eventContent: function (arg) {
+                    return { html: escapeHtml(translateHolidayName(arg.event.title)) };
+                },
                 // Chips are ellipsised on phones; the native tooltip gives the full name on hover.
                 eventDidMount: function (info) {
-                    info.el.title = info.event.title;
+                    info.el.title = translateHolidayName(info.event.title);
                 },
                 dayCellDidMount: function (info) {
                     if (calendarSelectedKey && info.el.dataset.date === calendarSelectedKey) {
