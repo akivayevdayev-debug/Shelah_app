@@ -1570,9 +1570,11 @@
                 <div class="flex items-center gap-3">
                     <div class="hidden sm:flex items-center gap-3 text-xs text-[#566175]">
                         <span class="flex items-center gap-1"><span class="inline-block w-3 h-3 rounded-sm"
-                                style="background:var(--cal-event-holiday)"></span> Holiday</span>
+                                style="background:var(--cal-event-holiday)"></span>
+                            <span data-en="Holiday" data-he="חג">Holiday</span></span>
                         <span class="flex items-center gap-1"><span class="inline-block w-3 h-3 rounded-sm"
-                                style="background:var(--cal-event-shabbat)"></span> Shabbat</span>
+                                style="background:var(--cal-event-shabbat)"></span>
+                            <span data-en="Shabbat" data-he="שבת">Shabbat</span></span>
                     </div>
                     <button onclick="closeCalendarModal()" type="button"
                         class="w-8 h-8 flex items-center justify-center rounded-full border border-[#c8b88a] bg-white/70 hover:bg-white text-[#566175] hover:text-[#1f3f63] transition"
@@ -3443,6 +3445,10 @@
             'Ralbag': 'רלב"ג',
             'Radak': 'רד"ק',
             'Rashi on Torah': 'רש"י על התורה',
+            'Tosafot': 'תוספות',
+            'Bartenura': 'ברטנורא',
+            'Bertinoro': 'ברטנורא',
+            'Maharsha': 'מהרש"א',
         };
 
         const TALMUD_SECTION_HE_MAP = {
@@ -5663,7 +5669,7 @@
 
                 compareContainer.innerHTML = `
                     <div class="flex items-center justify-between mb-3">
-                        <h3 class="font-bold text-slate-700">${escapeHtml(base.ref || appState.currentView?.value || '')} vs ${escapeHtml(other.ref || compareRef)}</h3>
+                        <h3 class="font-bold text-slate-700">${escapeHtml(base.ref || appState.currentView?.value || '')} ${t('vs', 'לעומת')} ${escapeHtml(other.ref || compareRef)}</h3>
                     </div>
                     ${rows}
                 `;
