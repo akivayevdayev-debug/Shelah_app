@@ -18,6 +18,7 @@ html {
     --reader-topbar-left-gap: 0px;
     --reader-topbar-right-gap: 0px;
     --reader-outer-max-width: 56rem;
+    --reader-shul-max-width: 76rem;
     --reader-inline-padding: 1rem;
 
     /* Legacy spacing scale aliases — not in tokens.css */
@@ -646,6 +647,14 @@ html.rtl #hebrewDateDisplay {
     padding: 0.42rem 0.62rem !important;
     font-size: 0.72rem !important;
     line-height: 1.6 !important;
+}
+
+/* #settingsPanel button's !important display:inline-block above outranks
+   the .hidden utility on any button inside the panel (higher specificity,
+   also !important); this rule out-specifies both so export-only controls
+   can still be toggled off outside text pages. */
+#settingsPanel .export-text-only.hidden {
+    display: none !important;
 }
 
 #settingsPanel button:not(#bookmarkCurrentBtn) {
@@ -2258,8 +2267,46 @@ body.shul-mode #readerSettingsPanel:hover {
 }
 
 body.shul-mode #reader {
-    max-width: 76rem;
+    max-width: var(--reader-shul-max-width);
     padding-top: 1.25rem;
+}
+
+/* Auto Scroll + Scroll Speed controls only matter once Shul Mode is on
+   (see applyShulMode() in templates/index.html). A grid-rows 0fr->1fr
+   collapse animates height without knowing the content's pixel height and
+   without touching any layout property via JS (transform/opacity only, per
+   ENGINEERING_RULES.md) — the "inner" wrapper is required for the trick and
+   is what actually clips the content while collapsed. */
+.shul-sub-controls {
+    display: grid;
+    grid-template-rows: 0fr;
+    opacity: 0;
+    transition: grid-template-rows var(--motion-dur-base, 200ms) var(--motion-ease-out, ease-out),
+                opacity var(--motion-dur-base, 200ms) var(--motion-ease-out, ease-out);
+}
+
+.shul-sub-controls.is-open {
+    grid-template-rows: 1fr;
+    opacity: 1;
+}
+
+.shul-sub-controls-inner {
+    min-height: 0;
+    overflow: hidden;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .shul-sub-controls {
+        transition: none;
+    }
+}
+
+/* Keep the reader-settings top bar's inner track in step with the widened
+   Shul-mode reading column above (#reader, same var) — otherwise the bar
+   stays pinned to the default --reader-outer-max-width and renders as a
+   narrow floating pill against the now-wider text below it. */
+body.shul-mode .reader-topbar-track {
+    max-width: var(--reader-shul-max-width);
 }
 
 body.shul-mode #reader #readerContent,

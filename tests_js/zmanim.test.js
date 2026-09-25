@@ -259,7 +259,9 @@ test('fetchZmanimAPI does not render when the API reports an error', async () =>
     await mod.namespace.fetchZmanimAPI(null, makeDeps());
 
     assert.equal(document.getElementById('zmanLoc').innerText, '', 'label is untouched when the fetch reports an error');
-    assert.equal(timer.setTimeout.calls.length, 0, 'no countdown is started for an errored response');
+    assert.equal(document.getElementById('zmanimWarning').dataset.zmanimLoadError, '1', 'the error banner is shown instead of a silent no-op');
+    assert.equal(timer.setTimeout.calls.length, 1, 'a retry is scheduled after an errored response, not a countdown tick');
+    assert.equal(timer.setTimeout.calls[0].delay, 3000, 'the first retry uses the shortest configured backoff');
 });
 
 test('startCountdown highlights the soonest upcoming zman row and fills the badge text', async () => {
