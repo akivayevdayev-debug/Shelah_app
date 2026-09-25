@@ -1655,8 +1655,8 @@ html.theme-dark::-webkit-scrollbar-thumb:hover,
 
 /* The input's own box is the 44px touch area; the visible track is drawn by the
    pseudo-elements, so the hit area is generous without a thick bar. Track and thumb
-   sizes are the Apple slider metrics from tokens.css (4px capsule, 28px knob that
-   grows to 32px under the finger). The fill uses --control-accent, the same colour a
+   sizes come from tokens.css (4px capsule, 14px knob that grows to 16px under
+   the finger); the 44px input height keeps the hit area. The fill uses --control-accent, the same colour a
    checked .reader-switch uses, so the two controls in a panel read as one family.
    The thumb keeps a 2px ring in the accent so its edge stays >= 3:1 against the panel
    (WCAG 1.4.11) rather than relying on a shadow alone. */
@@ -2534,9 +2534,10 @@ html.rtl .home-main-layout #popularTextsGrid {
     transition: background var(--motion-dur-fast) var(--motion-ease-out), border-color var(--motion-dur-fast) var(--motion-ease-out), box-shadow var(--motion-dur-fast) var(--motion-ease-out), transform var(--motion-dur-fast) var(--motion-ease-out);
 }
 
-.home-calendar-btn::before {
-    content: "📅";
-    font-size: 0.85em;
+.home-calendar-btn__icon {
+    flex: none;
+    width: 1.1em;
+    height: 1.1em;
 }
 
 .home-calendar-btn:hover {
@@ -3180,6 +3181,7 @@ html.rtl .home-main-layout #popularTextsGrid {
         border-color var(--motion-dur-base) var(--motion-ease-out),
         box-shadow var(--motion-dur-base) var(--motion-ease-out),
         transform var(--motion-dur-fast) var(--motion-ease-out),
+        scale var(--motion-dur-fast) var(--motion-ease-out),
         opacity var(--motion-dur-fast) var(--motion-ease-out);
     -webkit-tap-highlight-color: rgba(221, 201, 168, 0.36);
 }
@@ -3403,7 +3405,7 @@ html.theme-dark,
    separate :is([data-theme="dark"]) block is needed here. */
 .modal-close-icon-btn {
     color: var(--text-muted);
-    transition: color var(--motion-dur-fast) var(--motion-ease-out);
+    transition: color var(--motion-dur-fast) var(--motion-ease-out), scale var(--motion-dur-fast) var(--motion-ease-out);
 }
 
 .modal-close-icon-btn:hover {
@@ -4842,7 +4844,7 @@ html.rtl #readerTopBar #readerLibraryTopBarBtn {
     font-size: var(--text-sm);
     font-weight: 600;
     cursor: pointer;
-    transition: background-color 200ms ease-out;
+    transition: background-color 200ms ease-out, scale var(--motion-dur-fast) var(--motion-ease-out);
 }
 
 #analyticsConsentAccept {
@@ -4882,5 +4884,122 @@ body.theme-dark #analyticsConsentAccept {
 @media (prefers-reduced-motion: reduce) {
     .analytics-consent-actions button {
         transition: none;
+    }
+}
+
+
+/* ═══════════════════════════════════════════════════════════════════
+   MOTION POLISH — screen entrances, press feedback, hover gaps
+   Keyframes live in tokens.css; transform/opacity only; all of it is
+   switched off under prefers-reduced-motion. The AI surfaces
+   (conversation.css, ai.css) own their motion and are excluded.
+═══════════════════════════════════════════════════════════════════ */
+
+/* Screens (home, reader, the reader's panels, the consent banner) rise
+   into place when shown. The class is added by watchViewEntrance()
+   (index.html) and removed on animationend, so no transform lingers to
+   become a containing block for anything positioned inside. */
+.view-enter {
+    animation: shelah-fade-up var(--motion-dur-slow) var(--motion-ease-decel);
+}
+
+/* Press feedback: controls dip a little while held. The standalone
+   `scale` property composes with any `transform` a control already has
+   (centring translates, hover lifts), so pressing never knocks one out.
+   Controls that tune their own :active (top-bar buttons, bottom tabs,
+   the reader's deliberately static icon row) keep theirs. */
+.library-shell :is(button, [role="button"], summary):where(:not(:disabled, [aria-disabled="true"], .reader-topbar-icon-btn, .topbar-flat-btn, .topbar-brand, .mobile-tab-btn, #topbarAskBtn, #legalAcceptBtn, .answer-feedback-btn)):where(:not(:is(#convPanel, #convPip, #mobileSearchTray, #aiAssistantModal, #aiMiniBar, #aiDiscoveryTip) *)):active {
+    scale: var(--press-scale, 0.97);
+}
+
+/* Wide cards and rows shrink by more pixels for the same ratio; ease
+   them off so a press reads as a dip, not a jump. */
+.library-shell :is(.home-library-link, #popularTextsGrid button, #leftSidebar button, #leftSidebar summary, .shelf-open, .library-node-open) {
+    --press-scale: 0.985;
+}
+
+/* Tailwind's transition utilities load after this sheet and replace the
+   property list above, so `scale` is added back for the controls that
+   use them -- otherwise the press would snap in and out. */
+.library-shell :is(button, [role="button"], summary).transition {
+    transition-property: color, background-color, border-color, text-decoration-color, fill, stroke, opacity, box-shadow, transform, filter, backdrop-filter, scale;
+}
+
+.library-shell :is(button, [role="button"], summary).transition-colors {
+    transition-property: color, background-color, border-color, text-decoration-color, fill, stroke, scale;
+}
+
+/* Hover gaps ---------------------------------------------------------- */
+
+/* The AA remap of .text-slate-400/500 (above) is !important, which also
+   beat every hover:text-* utility on those controls -- the sidebar's
+   section summaries and small text buttons showed no hover at all.
+   Hovering now moves them to the primary ink: darker in light, lighter
+   in dark (both AA on every surface, see tokens.css). The AI-surface
+   exclusion sits in :where() so its ids add no specificity -- the
+   dark sidebar's own #leftSidebar hover colours must still win. */
+.library-shell :is(button, a[href], summary, [role="button"]):is(.text-slate-400, .text-slate-500):not(:disabled):where(:not(:is(#convPanel, #convPip, #mobileSearchTray, #aiAssistantModal, #aiMiniBar, #aiDiscoveryTip) *)):hover {
+    color: var(--ink-primary) !important;
+}
+
+/* The open text's row in the library sidebar had no hover of its own. */
+.library-shell .shelf-open.shelf-open-active:hover {
+    background: #ede2d0;
+}
+
+:is([data-theme="dark"], body.theme-dark) .shelf-open.shelf-open-active:hover {
+    background: var(--ctrl-bg-hover) !important;
+}
+
+/* Filled navy button whose hover:bg-blue-900 went LIGHTER than its fill. */
+.library-shell #privacyDataExportBtn:not(:disabled):hover {
+    background-color: color-mix(in srgb, #002147 80%, black);
+}
+
+/* The consent banner's Accept fill is !important, so the shared
+   .analytics-consent-actions hover never showed on it. Light: the
+   accent's hover shade. Dark: deepen the AA-tuned fill (its text is
+   light, so darker only widens the 5.0:1 margin). */
+#analyticsConsentAccept:hover {
+    background: var(--accent-primary-hover) !important;
+    border-color: var(--accent-primary-hover) !important;
+}
+
+:is([data-theme="dark"], html.theme-dark, body.theme-dark) #analyticsConsentAccept:hover {
+    background: color-mix(in srgb, #4e667e 82%, black) !important;
+    border-color: color-mix(in srgb, #4e667e 82%, black) !important;
+}
+
+@media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) #analyticsConsentAccept:hover {
+        background: color-mix(in srgb, #4e667e 82%, black) !important;
+        border-color: color-mix(in srgb, #4e667e 82%, black) !important;
+    }
+}
+
+/* The selected prayer-family tab took the (lighter) generic tab hover,
+   so hovering it looked like it was being deselected. Deepen instead. */
+.prayer-family-tab-active:hover {
+    background: color-mix(in srgb, #ede1cf 70%, #b9a487);
+}
+
+:is([data-theme="dark"], body.theme-dark) .prayer-family-tab-active:hover {
+    background: var(--ctrl-bg-hover);
+}
+
+/* Texts-menu "Clear": its hover:bg-slate-200 is remapped paler than the
+   remapped bg-slate-100 fill. The control hover token is darker in
+   light and lighter in dark. */
+.library-shell #libraryIndexFilterClear:hover {
+    background: var(--ctrl-bg-hover) !important;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .view-enter {
+        animation: none;
+    }
+
+    .library-shell :is(button, [role="button"], summary):active {
+        scale: none;
     }
 }

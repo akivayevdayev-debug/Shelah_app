@@ -333,6 +333,15 @@ const _PRESENCE = {
     modal:   { y: 18, scale: 0.97, exitY: 10, exitScale: 0.98, spring: SPRING_ENTER, morphSpring: SPRING_MODAL_ENTER },
     // Opacity only (scrims, full-screen dialog shells).
     fade:    { y: 0,  scale: 1,    exitY: 0,  exitScale: 1,   spring: SPRING_ENTER },
+    // Dialog windows (chapter grid, library category, privacy, calendar): a
+    // plain cross-fade with a barely-there settle in scale -- no travel and no
+    // morph out of the trigger (no _ORIGIN_SCALE entry), so every window
+    // simply appears where it lives, on phones and desktop alike.
+    window:  {
+        y: 0, scale: 0.985, exitY: 0, exitScale: 0.985,
+        spring: appleSpring(0.3, 0), leave: SPRING_MENU_LEAVE,
+        fade: { in: 0.22, out: 0.16 },
+    },
 };
 // Exit springs are critically damped so the element settles without a rebound
 // while it is already leaving.

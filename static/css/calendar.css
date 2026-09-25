@@ -178,7 +178,6 @@ body.theme-dark {
 }
 
 .fc-event:hover {
-    opacity: 0.88;
     transform: translateY(-1px);
 }
 
@@ -543,4 +542,61 @@ html.rtl .fc .fc-col-header-cell {
 
 html.rtl .fc .fc-daygrid-day {
     direction: rtl;
+}
+/* Phosphor markers that stand in for the emoji prefixes on event titles
+   (see splitCalendarEmoji in index.html). Sized to the text, tinted by it. */
+.cal-event-icon {
+    display: inline-block;
+    flex: none;
+    width: 1em;
+    height: 1em;
+    vertical-align: -0.125em;
+    margin-inline-end: var(--sp-1);
+}
+.cal-agenda-btn > .cal-event-icon {
+    margin: 0.2em 0 0;
+}
+
+/* Hover darkens a chip instead of fading it (fading washed the white label
+   toward the cell and lowered its contrast). The shade is a black overlay
+   behind the label -- isolation keeps the z-index:-1 layer above the chip's
+   own fill but under its text -- so only its opacity animates. */
+.fc-daygrid-event {
+    isolation: isolate;
+    transition: transform var(--motion-dur-fast) var(--motion-ease-out),
+        scale var(--motion-dur-fast) var(--motion-ease-out);
+}
+.fc-daygrid-event::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    border-radius: inherit;
+    background: black;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity var(--motion-dur-fast) var(--motion-ease-out);
+}
+.fc-daygrid-event:hover::after { opacity: 0.14; }
+.fc-daygrid-event:active { scale: 0.97; }
+
+/* Close: a full 44px target (the markup's w-8 h-8 was 32px) whose hover
+   shades the fill darker, not the old lift to solid white. */
+#calendarModal button[aria-label="Close calendar"] {
+    width: var(--hit-min);
+    height: var(--hit-min);
+    flex: none;
+    transition: background-color var(--motion-dur-fast) var(--motion-ease-out),
+        color var(--motion-dur-fast) var(--motion-ease-out),
+        scale var(--motion-dur-fast) var(--motion-ease-out);
+}
+#calendarModal button[aria-label="Close calendar"]:hover { background-color: var(--ctrl-bg-hover); }
+#calendarModal button[aria-label="Close calendar"]:active { scale: 0.97; }
+
+@media (prefers-reduced-motion: reduce) {
+    .fc-daygrid-event,
+    .fc-daygrid-event::after,
+    #calendarModal button[aria-label="Close calendar"] { transition: none; }
+    .fc-daygrid-event:active,
+    #calendarModal button[aria-label="Close calendar"]:active { scale: none; }
 }
