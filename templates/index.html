@@ -361,7 +361,7 @@
                             </div>
 
                             <div class="grid grid-cols-2 gap-2 border-t border-slate-100 pt-2">
-                                <label class="col-span-2 text-xs text-slate-600">
+                                <label class="export-text-only hidden col-span-2 text-xs text-slate-600">
                                     <span data-en="Export format" data-he="פורמט ייצוא">Export format</span>
                                     <select id="exportFormatSelect"
                                         class="mt-1 w-full px-2 py-1.5 rounded border border-slate-200 bg-slate-50 text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-400">
@@ -371,7 +371,7 @@
                                     </select>
                                 </label>
                                 <button id="exportCitationBtn" type="button"
-                                    class="px-2.5 py-1.5 rounded-lg bg-slate-100 text-slate-700 border border-slate-200 hover:bg-slate-200 transition font-semibold text-xs"
+                                    class="export-text-only hidden px-2.5 py-1.5 rounded-lg bg-slate-100 text-slate-700 border border-slate-200 hover:bg-slate-200 transition font-semibold text-xs"
                                     data-en="Export" data-he="ייצוא">Export</button>
                                 <button id="trackCurrentBtn" type="button"
                                     class="px-2.5 py-1.5 rounded-lg bg-slate-100 text-slate-700 border border-slate-200 hover:bg-slate-200 transition font-semibold text-xs"
@@ -509,15 +509,22 @@
                                 <span data-en="Shul Mode" data-he="מצב בית כנסת">Shul Mode</span>
                                 <input id="shulModeToggle" type="checkbox" class="reader-switch" />
                             </label>
-                            <label class="flex items-center justify-between text-xs text-slate-600">
-                                <span data-en="Auto Scroll" data-he="גלילה אוטומטית">Auto Scroll</span>
-                                <input id="shulAutoScrollToggle" type="checkbox" class="reader-switch" />
-                            </label>
-                            <label class="block text-xs text-slate-600">
-                                <span data-en="Scroll Speed" data-he="מהירות גלילה">Scroll Speed</span>
-                                <input id="shulScrollSpeed" type="range" min="8" max="80" value="28"
-                                    class="reader-range-slider mt-1 w-full" />
-                            </label>
+                            <!-- Only relevant once Shul Mode is on; applyShulMode() reveals this
+                                 with a smooth height/opacity transition (see .shul-sub-controls in
+                                 style.css) instead of always rendering it. -->
+                            <div id="shulSubControls" class="shul-sub-controls">
+                                <div class="shul-sub-controls-inner space-y-2">
+                                    <label class="flex items-center justify-between text-xs text-slate-600">
+                                        <span data-en="Auto Scroll" data-he="גלילה אוטומטית">Auto Scroll</span>
+                                        <input id="shulAutoScrollToggle" type="checkbox" class="reader-switch" />
+                                    </label>
+                                    <label class="block text-xs text-slate-600">
+                                        <span data-en="Scroll Speed" data-he="מהירות גלילה">Scroll Speed</span>
+                                        <input id="shulScrollSpeed" type="range" min="8" max="80" value="28"
+                                            class="reader-range-slider mt-1 w-full" />
+                                    </label>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -1559,9 +1566,11 @@
                 <div class="flex items-center gap-3">
                     <div class="hidden sm:flex items-center gap-3 text-xs text-[#566175]">
                         <span class="flex items-center gap-1"><span class="inline-block w-3 h-3 rounded-sm"
-                                style="background:var(--cal-event-holiday)"></span> Holiday</span>
+                                style="background:var(--cal-event-holiday)"></span>
+                            <span data-en="Holiday" data-he="חג">Holiday</span></span>
                         <span class="flex items-center gap-1"><span class="inline-block w-3 h-3 rounded-sm"
-                                style="background:var(--cal-event-shabbat)"></span> Shabbat</span>
+                                style="background:var(--cal-event-shabbat)"></span>
+                            <span data-en="Shabbat" data-he="שבת">Shabbat</span></span>
                     </div>
                     <button onclick="closeCalendarModal()" type="button"
                         class="w-8 h-8 flex items-center justify-center rounded-full border border-[#c8b88a] bg-white/70 hover:bg-white text-[#566175] hover:text-[#1f3f63] transition"
@@ -1572,6 +1581,9 @@
             </div>
             <!-- Calendar Content -->
             <div class="flex-1 overflow-y-auto p-4 sm:p-6 bg-[#faf7f0]">
+                <div id="calendarLoadError"
+                    class="hidden mb-3 text-orange-600 text-xs font-bold bg-orange-50 border-l-2 border-orange-600 p-2">
+                </div>
                 <div id="calendar" class="min-h-[400px]"></div>
                 <!-- Selected-day agenda: the month grid's chips are too narrow on phones to
                      show a full holiday name, so the tapped day's events are listed here
@@ -2007,6 +2019,7 @@
         const transliterationToggle = document.getElementById('transliterationToggle');
         const compareModeToggle = document.getElementById('compareModeToggle');
         const shulModeToggle = document.getElementById('shulModeToggle');
+        const shulSubControls = document.getElementById('shulSubControls');
         const shulAutoScrollToggle = document.getElementById('shulAutoScrollToggle');
         const shulScrollSpeed = document.getElementById('shulScrollSpeed');
         const showVowelsToggle = document.getElementById('showVowelsToggle');
@@ -3077,6 +3090,10 @@
                 shulScrollSpeed: 28,
                 theme: 'light',
             },
+            // Session-only "peek" state for the Shul-mode library sidebar -- NOT
+            // persisted. Always starts collapsed whenever Shul mode is
+            // (re-)enabled; see applyShulMode()/toggleShulLibrarySidebar().
+            shulSidebarOpen: false,
             currentView: null,
             lastAiQuestion: '',
             lastAiResponse: null,
@@ -3097,6 +3114,12 @@
         let syncedPrefsUserId = null;
         let shulScrollFrame = null;
         let inspectorPollInterval = null;
+        // Tracks the previous applyShulMode() enabled state so it can reset the
+        // sidebar "peek" below exactly on the false→true transition, not on every
+        // call (e.g. the window-resize handler re-calls applyShulMode() on every
+        // resize while Shul mode stays on, which must NOT re-collapse a sidebar
+        // the user just peeked open).
+        let shulModeWasEnabled = false;
 
         function getCurrentLanguage() {
             const raw = localStorage.getItem('preferredLanguage') || 'en';
@@ -3268,6 +3291,9 @@
             'Devarim': 'דברים', 'Vaetchanan': 'ואתחנן', 'Eikev': 'עקב', 'Reeh': 'ראה',
             'Shoftim': 'שופטים', 'Ki Teitzei': 'כי תצא', 'Ki Tavo': 'כי תבוא', 'Nitzavim': 'נצבים',
             'Vayelech': 'וילך', 'Haazinu': 'האזינו', 'Vezot Haberakhah': 'וזאת הברכה',
+            // Aliases for Hebcal's transliteration of the same parashot (calendar events).
+            'Vayeilech': 'וילך', 'Behaalotcha': 'בהעלותך', 'Shlach': 'שלח',
+            'Vayetzei': 'ויצא', 'Nasso': 'נשא', 'Shmini': 'שמיני',
         };
 
         const STATIC_HEBREW_TEXT_MAP = {
@@ -3474,6 +3500,10 @@
             'Ralbag': 'רלב"ג',
             'Radak': 'רד"ק',
             'Rashi on Torah': 'רש"י על התורה',
+            'Tosafot': 'תוספות',
+            'Bartenura': 'ברטנורא',
+            'Bertinoro': 'ברטנורא',
+            'Maharsha': 'מהרש"א',
         };
 
         const TALMUD_SECTION_HE_MAP = {
@@ -3832,24 +3862,100 @@
             return translateCategoryPath(subtitle || '');
         }
 
-        function translateHolidayName(name) {
+        // Special Shabbatot named for their maftir/haftarah rather than the weekly
+        // parasha (e.g. "Shabbat Shuva"); must run before the generic Shabbat
+        // replacement below or the English suffix is stranded after "שבת ".
+        const SPECIAL_SHABBAT_HE_MAP = {
+            'Shabbat Chazon': 'שבת חזון',
+            'Shabbat HaChodesh': 'שבת החודש',
+            'Shabbat HaGadol': 'שבת הגדול',
+            'Shabbat Nachamu': 'שבת נחמו',
+            'Shabbat Parah': 'שבת פרה',
+            'Shabbat Shekalim': 'שבת שקלים',
+            'Shabbat Shirah': 'שבת שירה',
+            'Shabbat Shuva': 'שבת שובה',
+            'Shabbat Zachor': 'שבת זכור',
+        };
+
+        const HOLIDAY_MONTH_HE_MAP = {
+            'Nisan': 'ניסן', 'Iyyar': 'אייר', 'Iyar': 'אייר', 'Sivan': 'סיוון', 'Tamuz': 'תמוז',
+            'Av': 'אב', 'Elul': 'אלול', 'Tishrei': 'תשרי', 'Cheshvan': 'חשוון', 'Kislev': 'כסלו',
+            'Tevet': 'טבת', 'Sh[’\']vat': 'שבט', 'Shevat': 'שבט', 'Adar': 'אדר',
+        };
+
+        // Mode-independent core of translateHolidayName(), split out so callers
+        // that need a Hebrew name to *cache* (e.g. the parasha quick-link's
+        // data-he attribute, read back after a later language toggle) can force
+        // the translation regardless of the UI language active right now.
+        function holidayNameToHebrew(name) {
             const raw = String(name || '').trim();
-            if (!raw || !isHebrewMode()) return raw;
+            if (!raw) return raw;
             const direct = HOLIDAY_HE_MAP[raw];
             if (direct) return direct;
 
-            return raw
+            let result = raw;
+            Object.entries(SPECIAL_SHABBAT_HE_MAP).forEach(([en, he]) => {
+                result = result.replace(new RegExp(en, 'gi'), he);
+            });
+
+            result = result
+                .replace(/Parashat\s+([A-Za-z’'\s-]+?)(?=\s*$)/i, (_m, names) => {
+                    const clean = (s) => s.trim().replace(/[’']/g, '');
+                    const whole = PARASHA_HE_MAP[clean(names)];
+                    if (whole) return `פרשת ${whole}`;
+                    const he = names.split('-')
+                        .map((part) => PARASHA_HE_MAP[clean(part)] || part.trim())
+                        .join('-');
+                    return `פרשת ${he}`;
+                })
+                .replace(/Mevarchim\s+Chodesh/gi, 'מברכים חודש')
                 .replace(/Rosh\s+Chodesh/gi, 'ראש חודש')
                 .replace(/Chol\s+HaMoed/gi, 'חול המועד')
-                .replace(/Shabbat/gi, 'שבת')
+                .replace(/Shmini\s+Atzeret/gi, 'שמיני עצרת')
+                .replace(/Simchat\s+Torah/gi, 'שמחת תורה')
+                .replace(/Pesach\s+Sheni/gi, 'פסח שני')
                 .replace(/Pesach|Passover/gi, 'פסח')
                 .replace(/Sukkot/gi, 'סוכות')
                 .replace(/Shavuot/gi, 'שבועות')
+                .replace(/Shushan\s+Purim/gi, 'שושן פורים')
                 .replace(/Purim/gi, 'פורים')
                 .replace(/Hanukkah|Chanukah/gi, 'חנוכה')
                 .replace(/Yom\s+Kippur/gi, 'יום כיפור')
-                .replace(/Rosh\s+Hashanah/gi, 'ראש השנה')
-                .replace(/Tisha\s+B'Av|Tisha\s+BAv/gi, 'תשעה באב');
+                .replace(/Rosh\s+Hashan(?:ah|a)/gi, 'ראש השנה')
+                .replace(/Tish[’']?a\s+B[’']Av|Tisha\s+B[’']?Av/gi, 'תשעה באב')
+                .replace(/Tu\s+BiShvat/gi, 'ט״ו בשבט')
+                .replace(/Tu\s+B[’']Av/gi, 'ט״ו באב')
+                .replace(/Ta[’']anit\s+Bechorot/gi, 'תענית בכורות')
+                .replace(/Ta[’']anit\s+Esther/gi, 'תענית אסתר')
+                .replace(/Asara\s+B[’']Tevet/gi, 'עשרה בטבת')
+                .replace(/Tzom\s+Gedaliah/gi, 'צום גדליה')
+                .replace(/Tzom\s+Tam+uz/gi, 'צום תמוז')
+                .replace(/Yom\s+HaAtzma[’']?ut/gi, 'יום העצמאות')
+                .replace(/Yom\s+HaZikaron/gi, 'יום הזיכרון')
+                .replace(/Yom\s+HaShoah/gi, 'יום השואה')
+                .replace(/Yom\s+HaAliyah/gi, 'יום העלייה')
+                .replace(/Yom\s+Yerushalayim/gi, 'יום ירושלים')
+                .replace(/LaBehemot/gi, 'לבהמות')
+                .replace(/Lag\s+BaOmer/gi, 'ל״ג בעומר')
+                .replace(/\bKatan\b/gi, 'קטן')
+                .replace(/Hoshana\s+Raba/gi, 'הושענא רבה')
+                .replace(/Leil\s+Selichot/gi, 'ליל סליחות')
+                .replace(/Chag\s+HaBanot/gi, 'חג הבנות')
+                .replace(/\bSigd\b/gi, 'סיגד')
+                .replace(/\bErev\s+/gi, 'ערב ')
+                .replace(/Shabbat/gi, 'שבת');
+
+            Object.entries(HOLIDAY_MONTH_HE_MAP).forEach(([en, he]) => {
+                result = result.replace(new RegExp(`\\b${en}\\b`, 'g'), he);
+            });
+
+            return result;
+        }
+
+        function translateHolidayName(name) {
+            const raw = String(name || '').trim();
+            if (!raw || !isHebrewMode()) return raw;
+            return holidayNameToHebrew(raw);
         }
 
         function formatOmerLabel(meta) {
@@ -5078,16 +5184,24 @@
         function syncReaderTopBarControls() {
             const mobile = isMobileViewport();
             const shulMode = Boolean(appState.prefs.shulMode);
-            const leftSidebarOpenDesktop = !mobile && !shulMode && (appState.prefs.showLeftSidebar !== false);
+            // In Shul mode the sidebar's "open" state is the transient peek flag,
+            // not the persisted preference (see applySidebarVisibility()).
+            const leftSidebarOpenDesktop = !mobile
+                && (shulMode ? Boolean(appState.shulSidebarOpen) : (appState.prefs.showLeftSidebar !== false));
             // Check if reader is actually active (topbar is visible)
             const readerTopBar = document.getElementById('readerTopBar');
             const isReaderActive = readerTopBar && !readerTopBar.classList.contains('hidden');
 
             if (readerLibraryTopBarBtn) {
-                const shouldShowLibraryBtn = !mobile && !leftSidebarOpenDesktop;
+                // Outside Shul mode this button only reopens a closed sidebar (it
+                // hides once open — nothing else closes it from here). In Shul
+                // mode it is the sidebar's only control, so it stays visible and
+                // toggles both ways.
+                const shouldShowLibraryBtn = !mobile && (shulMode || !leftSidebarOpenDesktop);
                 readerLibraryTopBarBtn.classList.toggle('hidden', !shouldShowLibraryBtn);
                 readerLibraryTopBarBtn.style.visibility = shouldShowLibraryBtn ? 'visible' : 'hidden';
                 readerLibraryTopBarBtn.disabled = !shouldShowLibraryBtn;
+                readerLibraryTopBarBtn.setAttribute('aria-expanded', String(leftSidebarOpenDesktop));
 
                 // Hide floating library restore button ONLY when reader is active (to avoid duplicate buttons)
                 // On homepage and pages without reader, show the floating button
@@ -5108,14 +5222,20 @@
         }
 
         function applySidebarVisibility() {
-            const showLeftSidebar = appState.prefs.showLeftSidebar !== false;
             const mobile = isMobileViewport();
             const shulMode = Boolean(appState.prefs.shulMode);
+            // In Shul mode the left sidebar auto-collapses and is only ever open
+            // via the transient peek toggle (toggleShulLibrarySidebar()), never
+            // the persisted showLeftSidebar preference -- that preference is left
+            // untouched so leaving Shul mode restores exactly what it was before.
+            const showLeftSidebar = shulMode
+                ? Boolean(appState.shulSidebarOpen)
+                : (appState.prefs.showLeftSidebar !== false);
             const readerViewActive = appState.currentView?.type === 'text';
             const homeVisible = Boolean(homeGrid && homeGrid.style.display !== 'none' && reader?.classList.contains('hidden'));
             const allowRightSidebar = readerViewActive && commentaryAvailableForCurrentSelection;
             const showRightSidebar = (appState.prefs.showRightSidebar !== false) && !homeVisible && allowRightSidebar;
-            const leftHiddenDesktop = !mobile && (!showLeftSidebar || shulMode);
+            const leftHiddenDesktop = !mobile && !showLeftSidebar;
             const rightHiddenDesktop = !mobile && (!showRightSidebar || shulMode);
 
             if (!mobile) {
@@ -5137,7 +5257,7 @@
                 if (leftSidebar) {
                     leftSidebar.classList.remove('mobile-open');
                     leftSidebar.classList.remove('hidden');
-                    leftSidebar.style.display = (showLeftSidebar && !shulMode) ? '' : 'none';
+                    leftSidebar.style.display = showLeftSidebar ? '' : 'none';
                 }
                 if (rightSidebar) {
                     rightSidebar.classList.remove('mobile-open');
@@ -5345,22 +5465,45 @@
             shulScrollFrame = requestAnimationFrame(step);
         }
 
+        async function toggleShulLibrarySidebar() {
+            const opening = !appState.shulSidebarOpen;
+            if (opening) {
+                appState.shulSidebarOpen = true;
+                applySidebarVisibility();
+                if (leftSidebar) await window.ShelahMotion?.slideIn(leftSidebar, { from: 'left' });
+            } else {
+                if (leftSidebar) await window.ShelahMotion?.slideOut(leftSidebar, { to: 'left' });
+                appState.shulSidebarOpen = false;
+                applySidebarVisibility();
+            }
+        }
+
         function applyShulMode() {
             const enabled = Boolean(appState.prefs.shulMode);
             document.body.classList.toggle('shul-mode', enabled);
 
-            if (enabled) {
-                if (leftSidebar) leftSidebar.style.display = 'none';
-                if (rightSidebar) rightSidebar.style.display = 'none';
-                if (showLeftSidebarTopBtn) showLeftSidebarTopBtn.style.display = 'none';
-                if (appState.prefs.shulAutoScroll) {
-                    startShulAutoScroll();
-                } else {
-                    stopShulAutoScroll();
-                }
+            // Shul mode always starts with the library collapsed -- reset the
+            // peek state exactly on the false->true transition, not on every
+            // call. (The window-resize handler re-invokes this on every resize
+            // while Shul mode stays on, and must not re-collapse a sidebar the
+            // user just peeked open via toggleShulLibrarySidebar().)
+            if (enabled && !shulModeWasEnabled) {
+                appState.shulSidebarOpen = false;
+            }
+            shulModeWasEnabled = enabled;
+
+            applySidebarVisibility();
+
+            if (shulSubControls) {
+                shulSubControls.classList.toggle('is-open', enabled);
+                shulSubControls.toggleAttribute('inert', !enabled);
+                shulSubControls.setAttribute('aria-hidden', String(!enabled));
+            }
+
+            if (enabled && appState.prefs.shulAutoScroll) {
+                startShulAutoScroll();
             } else {
                 stopShulAutoScroll();
-                applySidebarVisibility();
             }
         }
 
@@ -5706,7 +5849,7 @@
                 const leftSample = (base.lines || []).slice(0, 8);
                 const rightSample = (other.lines || []).slice(0, 8);
                 const maxRows = Math.max(leftSample.length, rightSample.length);
-                const cleanLine = (text = '') => escapeHtml(normalizeDisplayText(text)).replace(/\n/g, '<br>');
+                const cleanLine = (text = '') => escapeDisplayTextPreservingEmphasis(text).replace(/\n/g, '<br>');
 
                 let rows = '';
                 for (let i = 0; i < maxRows; i += 1) {
@@ -5737,7 +5880,7 @@
 
                 compareContainer.innerHTML = `
                     <div class="flex items-center justify-between mb-3">
-                        <h3 class="font-bold text-slate-700">${escapeHtml(base.ref || appState.currentView?.value || '')} vs ${escapeHtml(other.ref || compareRef)}</h3>
+                        <h3 class="font-bold text-slate-700">${escapeHtml(base.ref || appState.currentView?.value || '')} ${t('vs', 'לעומת')} ${escapeHtml(other.ref || compareRef)}</h3>
                     </div>
                     ${rows}
                 `;
@@ -5911,7 +6054,19 @@
             }
         }
 
+        // Export/citation controls only make sense with an open text chapter
+        // to export (buildCurrentCitationExportPayload() requires
+        // currentView.type === 'text'); keep them out of the settings panel
+        // on every other page instead of showing a control that just alerts.
+        function updateExportControlsVisibility() {
+            const showExport = appState.currentView?.type === 'text';
+            document.querySelectorAll('.export-text-only').forEach((el) => {
+                el.classList.toggle('hidden', !showExport);
+            });
+        }
+
         function updateBookmarkButton() {
+            updateExportControlsVisibility();
             const current = appState.currentView;
             if (!current || !bookmarkCurrentBtn) {
                 bookmarkCurrentBtn.textContent = t('Save Current', 'שמור נוכחי');
@@ -6144,14 +6299,46 @@
             return normalized === 'bilingual' || normalized === 'bilingual-reverse';
         }
 
+        // Finds the reader chunk nearest the viewport's top edge (the first one
+        // whose bottom hasn't scrolled past it yet) and a tracking key for it.
+        function getReaderScrollAnchor() {
+            const chain = getCurrentTextPayloadChain();
+            const chunkEls = document.querySelectorAll('#readerSources [data-text-chunk-index]');
+            for (const el of chunkEls) {
+                const rect = el.getBoundingClientRect();
+                if (rect.bottom > 0) {
+                    const chunk = chain[Number(el.dataset.textChunkIndex)];
+                    const refKey = getRefTrackingKey(chunk?.ref || chunk?.title || '');
+                    if (refKey) return { el, refKey, viewportTop: rect.top };
+                    break;
+                }
+            }
+            return null;
+        }
+
         function captureReaderScrollState() {
             const target = getPrimaryScrollElement();
             const pageTarget = target === document.documentElement || target === document.body;
             const top = getPrimaryScrollTop();
 
+            // Anchor to a specific chunk rather than a raw pixel offset.
+            // loadPreviousTextChunk() prepends a new chunk above the current
+            // one, which pushes every already-rendered chunk (and whatever
+            // scrollTop used to line up with them) down by the prepended
+            // chunk's height; restoring the old raw scrollTop after that lands
+            // on unrelated, much-earlier content -- the "scrolling up jumps
+            // several passages" bug. Restoring the SAME chunk to the SAME
+            // position relative to the viewport, instead of the same pixel
+            // offset, keeps the same text in view regardless of how much was
+            // prepended above it (and is a no-op for appends, since nothing
+            // above the anchor moves).
+            const anchor = getReaderScrollAnchor();
+
             return {
                 pageTarget,
                 top,
+                anchorRefKey: anchor?.refKey || null,
+                anchorViewportTop: anchor?.viewportTop ?? null,
             };
         }
 
@@ -6162,17 +6349,35 @@
                 ? (document.scrollingElement || document.documentElement)
                 : getPrimaryScrollElement();
             const pageTarget = target === document.documentElement || target === document.body;
+
+            let nextTop = state.top;
+
+            if (state.anchorRefKey) {
+                const chain = getCurrentTextPayloadChain();
+                const chunkEls = document.querySelectorAll('#readerSources [data-text-chunk-index]');
+                for (const el of chunkEls) {
+                    const chunk = chain[Number(el.dataset.textChunkIndex)];
+                    const refKey = getRefTrackingKey(chunk?.ref || chunk?.title || '');
+                    if (refKey === state.anchorRefKey) {
+                        const currentTop = pageTarget ? (window.pageYOffset || 0) : target.scrollTop;
+                        const newViewportTop = el.getBoundingClientRect().top;
+                        nextTop = currentTop + (newViewportTop - state.anchorViewportTop);
+                        break;
+                    }
+                }
+            }
+
             const max = pageTarget
                 ? Math.max(0, (document.documentElement.scrollHeight || 0) - window.innerHeight)
                 : Math.max(0, target.scrollHeight - target.clientHeight);
-            const nextTop = Math.max(0, Math.min(max, Math.round(state.top || 0)));
+            const clampedTop = Math.max(0, Math.min(max, Math.round(nextTop || 0)));
 
             if (pageTarget) {
-                window.scrollTo({ top: nextTop, behavior: 'auto' });
+                window.scrollTo({ top: clampedTop, behavior: 'auto' });
                 return;
             }
 
-            target.scrollTop = nextTop;
+            target.scrollTop = clampedTop;
         }
 
         function formatSegmentLabel(segment, idx) {
@@ -6540,17 +6745,19 @@
             const sourceLines = Array.isArray(data?.lines) ? data.lines : [];
             const renderedLines = sourceLines.map((line, idx) => {
                 const heRaw = normalizeDisplayText(line?.he || '');
-                const he = heRaw ? applyHebrewDisplaySettings(heRaw) : '';
-                const en = normalizeDisplayText(line?.en || '');
+                const enRaw = normalizeDisplayText(line?.en || '');
 
-                if (!he && !en) return '';
+                if (!heRaw && !enRaw) return '';
+
+                const he = heRaw ? escapeDisplayTextPreservingEmphasis(applyHebrewDisplaySettings(line?.he || '')) : '';
+                const en = enRaw ? escapeDisplayTextPreservingEmphasis(line?.en || '') : '';
 
                 const segmentLabel = formatSegmentLabel(line?.segment, idx);
                 const hebrewMarkup = he
-                    ? `<p dir="rtl" class="font-hebrew text-start text-[1.05rem] leading-[1.9] text-slate-800">${escapeHtml(he).replace(/\n/g, '<br>')}</p>`
+                    ? `<p dir="rtl" class="font-hebrew text-start text-[1.05rem] leading-[1.9] text-slate-800">${he.replace(/\n/g, '<br>')}</p>`
                     : '';
                 const englishMarkup = en
-                    ? `<p dir="ltr" class="font-serif text-start text-sm leading-relaxed text-slate-700 mt-2">${escapeHtml(en).replace(/\n/g, '<br>')}</p>`
+                    ? `<p dir="ltr" class="font-serif text-start text-sm leading-relaxed text-slate-700 mt-2">${en.replace(/\n/g, '<br>')}</p>`
                     : '';
 
                 return `
@@ -6576,15 +6783,17 @@
 
             return Array.from({ length: fallbackLen }, (_, idx) => {
                 const heRaw = normalizeDisplayText(heFallbackLines[idx] || '');
-                const he = heRaw ? applyHebrewDisplaySettings(heRaw) : '';
-                const en = normalizeDisplayText(enFallbackLines[idx] || '');
-                if (!he && !en) return '';
+                const enRaw = normalizeDisplayText(enFallbackLines[idx] || '');
+                if (!heRaw && !enRaw) return '';
+
+                const he = heRaw ? escapeDisplayTextPreservingEmphasis(applyHebrewDisplaySettings(heFallbackLines[idx] || '')) : '';
+                const en = enRaw ? escapeDisplayTextPreservingEmphasis(enFallbackLines[idx] || '') : '';
 
                 const hebrewMarkup = he
-                    ? `<p dir="rtl" class="font-hebrew text-start text-[1.05rem] leading-[1.9] text-slate-800">${escapeHtml(he).replace(/\n/g, '<br>')}</p>`
+                    ? `<p dir="rtl" class="font-hebrew text-start text-[1.05rem] leading-[1.9] text-slate-800">${he.replace(/\n/g, '<br>')}</p>`
                     : '';
                 const englishMarkup = en
-                    ? `<p dir="ltr" class="font-serif text-start text-sm leading-relaxed text-slate-700 mt-2">${escapeHtml(en).replace(/\n/g, '<br>')}</p>`
+                    ? `<p dir="ltr" class="font-serif text-start text-sm leading-relaxed text-slate-700 mt-2">${en.replace(/\n/g, '<br>')}</p>`
                     : '';
 
                 return `
@@ -7184,7 +7393,7 @@
 
         function renderTextRowsForPayload(data, layout) {
             const cleanLine = (text = '') => {
-                const normalized = escapeHtml(normalizeDisplayText(text));
+                const normalized = escapeDisplayTextPreservingEmphasis(text);
                 return normalized
                     .replace(/\n{2,}/g, '<br><br>')
                     .replace(/\n/g, ' ')
@@ -7199,9 +7408,9 @@
             return data.lines.map((line, idx) => {
                 const label = formatSegmentLabel(line.segment, idx);
                 const heRaw = normalizeDisplayText(line.he || '');
-                const he = heRaw ? cleanLine(applyHebrewDisplaySettings(heRaw)) : '';
+                const he = heRaw ? cleanLine(applyHebrewDisplaySettings(line.he || '')) : '';
                 const enRaw = normalizeDisplayText(line.en || '');
-                const en = enRaw ? cleanLine(enRaw) : '';
+                const en = enRaw ? cleanLine(line.en || '') : '';
                 const translit = appState.prefs.transliteration ? transliterationMarkup(heRaw) : '';
 
                 const hebrewBlock = he
@@ -8106,7 +8315,11 @@
         if (readerLibraryTopBarBtn) {
             readerLibraryTopBarBtn.addEventListener('click', (e) => {
                 e.stopPropagation();
-                toggleLeftSidebar();
+                if (appState.prefs.shulMode) {
+                    toggleShulLibrarySidebar();
+                } else {
+                    toggleLeftSidebar();
+                }
             });
         }
 
@@ -10858,10 +11071,18 @@
                 if (!resp.ok) return;
 
                 const data = await resp.json();
+                const enTitle = (data.title || 'Parashat HaShavua').trim();
+                // The Sefaria-calendars source (data.source === 'sefaria-calendars')
+                // always includes a Hebrew title; the Hebcal-converter fallback
+                // (data.source === 'calendar-fallback', used when Sefaria is down)
+                // only returns the bare English parasha name. Derive the Hebrew
+                // name ourselves in that case rather than showing English text
+                // under a Hebrew-mode heading.
+                const heTitle = (data.heTitle || '').trim() || holidayNameToHebrew(enTitle);
                 const payload = {
                     ref: data.ref || 'Genesis 1',
-                    enTitle: (data.title || 'Parashat HaShavua').trim(),
-                    heTitle: (data.heTitle || '').trim(),
+                    enTitle,
+                    heTitle,
                 };
                 payload.titleEn = payload.heTitle
                     ? `${payload.enTitle} · ${payload.heTitle}`
@@ -11204,6 +11425,12 @@
                 readerCommentaryTopBarBtn.setAttribute('aria-label', commentaryLabel);
                 readerCommentaryTopBarBtn.title = commentaryLabel;
             }
+            const citySearchBtn = document.getElementById('citySearchBtn');
+            if (citySearchBtn) {
+                const citySearchLabel = lang === 'he' ? 'חפש לפי עיר' : 'Search by city';
+                citySearchBtn.setAttribute('aria-label', citySearchLabel);
+                citySearchBtn.title = citySearchLabel;
+            }
             if (appState.currentView?.type === 'text') {
                 updateReaderHeaderForVisibleChunk(infiniteReaderState.currentVisibleChunkIndex || 0);
             }
@@ -11215,6 +11442,11 @@
             renderPersonalShelf();
             updateBookmarkButton();
             applySidebarVisibility();
+            const calendarModalEl = document.getElementById('calendarModal');
+            if (calendarModalEl?.open && holidaysCalendar) {
+                holidaysCalendar.refetchEvents();
+                if (calendarSelectedKey) renderCalendarAgenda();
+            }
             if (appState.suggestionItems.length) {
                 renderSearchSuggestions();
             }
@@ -11443,7 +11675,7 @@
                     swatch.setAttribute('aria-hidden', 'true');
                     const name = document.createElement('span');
                     name.className = 'cal-agenda-title';
-                    name.textContent = ev.title;
+                    name.textContent = translateHolidayName(ev.title);
                     // A real <button>: keyboard/AT users can open the same detail card.
                     const btn = document.createElement('button');
                     btn.type = 'button';
@@ -11474,6 +11706,41 @@
             if (pushUrl) {
                 window.ShelahRouter?.pushRoute({ date: key }, { replace: true });
             }
+        }
+
+        // Self-recovery for the holidays calendar's events fetch (§13): a
+        // failed month fetch used to leave the grid showing no events with
+        // no indication anything went wrong. One automatic retry, then a
+        // visible retry control so it never gets permanently stuck.
+        let calendarRetryAttempted = false;
+
+        function clearCalendarLoadError() {
+            const el = document.getElementById('calendarLoadError');
+            if (!el) return;
+            el.classList.add('hidden');
+            el.textContent = '';
+        }
+
+        function showCalendarLoadError() {
+            const el = document.getElementById('calendarLoadError');
+            if (!el) return;
+            el.classList.remove('hidden');
+            el.textContent = '';
+
+            const msg = document.createElement('span');
+            msg.textContent = t("Couldn't load this month's holidays.", 'לא ניתן היה לטעון את החגים לחודש זה.');
+
+            const retryBtn = document.createElement('button');
+            retryBtn.type = 'button';
+            retryBtn.className = 'underline font-semibold ms-1';
+            retryBtn.textContent = t('Retry', 'נסה שוב');
+            retryBtn.addEventListener('click', () => {
+                calendarRetryAttempted = false;
+                clearCalendarLoadError();
+                holidaysCalendar?.refetchEvents();
+            });
+
+            el.append(msg, retryBtn);
         }
 
         // The server prefixes titles with an emoji marker (🕍 Parashat …, 🌙 Rosh
@@ -11544,9 +11811,19 @@
                                     extendedProps: { ...(item.extendedProps || {}), category: item.category, detail: item.detail || {}, icon },
                                 };
                             });
+                            calendarRetryAttempted = false;
+                            clearCalendarLoadError();
                             successCallback(withExtendedProps);
                         })
-                        .catch(e => failureCallback(e));
+                        .catch(e => {
+                            if (!calendarRetryAttempted) {
+                                calendarRetryAttempted = true;
+                                window.setTimeout(() => holidaysCalendar?.refetchEvents(), 3000);
+                            } else {
+                                showCalendarLoadError();
+                            }
+                            failureCallback(e);
+                        });
                 },
                 datesSet: function (info) {
                     window.ShelahCalendarDetail?.close({ immediate: true });
@@ -11581,9 +11858,13 @@
                     selectCalendarDay(key, { pushUrl: true });
                     openCalendarDetail(info.el, key, info.event);
                 },
+                // Localize the holiday name shown in month-grid chips (backend sends English only).
+                eventContent: function (arg) {
+                    return { html: escapeHtml(translateHolidayName(arg.event.title)) };
+                },
                 // Chips are ellipsised on phones; the native tooltip gives the full name on hover.
                 eventDidMount: function (info) {
-                    info.el.title = info.event.title;
+                    info.el.title = translateHolidayName(info.event.title);
                     const icon = calendarIconEl(info.event.extendedProps.icon);
                     const slot = info.el.querySelector('.fc-event-title') || info.el.querySelector('.fc-event-main-frame');
                     if (icon && slot) slot.prepend(icon);
@@ -11700,24 +11981,24 @@
 
             errorEl.classList.add('hidden');
             statusEl.classList.remove('hidden');
-            statusEl.textContent = 'Searching...';
+            statusEl.textContent = t('Searching...', 'מחפש...');
             submitBtn.disabled = true;
 
             try {
-                const url = `/api/geocode?q=${encodeURIComponent(city)}`;
+                const url = `/api/geocode?q=${encodeURIComponent(city)}&lang=${isHebrewMode() ? 'he' : 'en'}`;
                 const res = await fetch(url);
                 const payload = await res.json();
                 const results = payload?.results;
 
                 if (!res.ok) {
-                    errorEl.textContent = 'Search failed. Please try again shortly.';
+                    errorEl.textContent = t('Search failed. Please try again shortly.', 'החיפוש נכשל. נסה שוב בקרוב.');
                     errorEl.classList.remove('hidden');
                     statusEl.classList.add('hidden');
                     return;
                 }
 
                 if (!results || results.length === 0) {
-                    errorEl.textContent = 'City not found. Try a different spelling.';
+                    errorEl.textContent = t('City not found. Try a different spelling.', 'העיר לא נמצאה. נסה איות אחר.');
                     errorEl.classList.remove('hidden');
                     statusEl.classList.add('hidden');
                     return;
@@ -11744,11 +12025,11 @@
                 const shortName = display_name.split(',').slice(0, 2).join(', ');
                 window.ShelahModules.setCurrentZmanimLocationLabel(shortName);
 
-                statusEl.textContent = `Using: ${shortName}`;
+                statusEl.textContent = `${t('Using:', 'משתמש ב:')} ${shortName}`;
                 setTimeout(closeCitySearchPopover, 1200);
 
             } catch (err) {
-                errorEl.textContent = 'Search failed. Check your connection.';
+                errorEl.textContent = t('Search failed. Check your connection.', 'החיפוש נכשל. בדוק את החיבור שלך.');
                 errorEl.classList.remove('hidden');
                 statusEl.classList.add('hidden');
             } finally {

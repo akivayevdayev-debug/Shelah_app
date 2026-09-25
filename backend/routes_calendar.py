@@ -53,7 +53,7 @@ def set_location():
     return jsonify({"status": "success", "lat": lat, "lon": lon})
 
 
-def _fetch_geocode_results(query):
+def _fetch_geocode_results(query, lang='en'):
     """Fetch + parse Nominatim results for `query`.
 
     Returns (results, None) on success, or (None, error_response) on
@@ -72,7 +72,7 @@ def _fetch_geocode_results(query):
                     "limit": 1, "addressdetails": 0},
             headers={
                 "User-Agent": "ShelahApp/1.0 (halachic study app; contact via app support)",
-                "Accept-Language": "en",
+                "Accept-Language": "he" if lang == 'he' else "en",
             },
             timeout=6,
         )
@@ -102,7 +102,8 @@ def geocode_city():
     if not query:
         return jsonify({"error": "Missing query parameter 'q'."}), 400
 
-    results, error_response = _fetch_geocode_results(query)
+    lang = 'he' if request.args.get('lang') == 'he' else 'en'
+    results, error_response = _fetch_geocode_results(query, lang)
     if error_response is not None:
         return error_response
 
