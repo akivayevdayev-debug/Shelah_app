@@ -226,3 +226,74 @@ class TestFeedbackPersistence:
         assert response.status_code == 500
         assert response.get_json() == {"error": "Could not save feedback"}
         assert captured == [("answer_feedback_persist_failed", boom, {"verdict": "not_helpful"})]
+
+
+class TestFeedbackMetadataFieldCaps:
+    """AI_SECURITY_REVIEW L2: mode/language/safety_class were stored with no
+    length cap; they are now capped (and defaulted) the way `comment` is."""
+
+    def _post_and_get_record(self, test_client, monkeypatch, **overrides):
+        import backend.routes_feedback as routes_feedback_module
+
+        client = _RecordingFeedbackClient()
+        monkeypatch.setattr(routes_feedback_module, "_get_supabase_client", lambda: client)
+        payload = {"question": "What is Shabbat?", "verdict": "helpful", **overrides}
+        response = test_client.post(
+            "/api/feedback", json=payload, content_type="application/json",
+            environ_base={"REMOTE_ADDR": "10.0.1.21"},
+        )
+        assert response.status_code == 200
+        [record] = client.inserted
+        return record
+
+    def test_oversized_metadata_fields_are_truncated_to_their_caps(self, test_client, monkeypatch):
+        import backend.routes_feedback as routes_feedback_module
+
+        record = self._post_and_get_record(
+            test_client, monkeypatch,
+            mode="m" * 5000, language="l" * 5000, safety_class="s" * 5000,
+        )
+
+        assert record["mode"] == "m" * routes_feedback_module._MAX_MODE_CHARS
+        assert record["language"] == "l" * routes_feedback_module._MAX_LANGUAGE_CHARS
+        assert record["safety_class"] == "s" * routes_feedback_module._MAX_SAFETY_CLASS_CHARS
+
+    def test_the_comment_cap_is_unchanged(self, test_client, monkeypatch):
+        import backend.routes_feedback as routes_feedback_module
+
+        record = self._post_and_get_record(test_client, monkeypatch, comment="c" * 5000)
+
+        assert record["comment"] == "c" * routes_feedback_module._MAX_COMMENT_CHARS
+
+    def test_every_legitimate_value_fits_within_its_cap(self, test_client, monkeypatch):
+        """The caps must never clip a real value: the longest safety class
+        the classifier can emit, and the values the UI actually sends."""
+        from backend.claude import SAFETY_REFERRAL_CLASSES
+
+        longest_safety_class = max(SAFETY_REFERRAL_CLASSES, key=len)
+        record = self._post_and_get_record(
+            test_client, monkeypatch,
+            mode="practical", language="he", safety_class=longest_safety_class,
+        )
+
+        assert record["mode"] == "practical"
+        assert record["language"] == "he"
+        assert record["safety_class"] == longest_safety_class
+
+    def test_missing_blank_and_whitespace_only_values_keep_the_defaults(self, test_client, monkeypatch):
+        record = self._post_and_get_record(
+            test_client, monkeypatch, mode="   ", language="", safety_class=None,
+        )
+
+        assert (record["mode"], record["language"], record["safety_class"]) == ("balanced", "en", "ok")
+
+    def test_control_characters_and_markup_are_stripped_from_metadata_fields(self, test_client, monkeypatch):
+        record = self._post_and_get_record(
+            test_client, monkeypatch,
+            mode="stri​ct", language="<b>he</b>", safety_class="o\x00k",
+        )
+
+        assert record["mode"] == "strict"
+        assert "<" not in record["language"]
+        assert ">" not in record["language"]
+        assert record["safety_class"] == "ok"

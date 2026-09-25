@@ -31,6 +31,10 @@ _HEBCAL_DAY_CACHE_TTL_SECONDS = 60 * 30
 _HEBCAL_MONTH_CACHE_TTL_SECONDS = 60 * 30
 _HEBCAL_DAY_CACHE = TTLCache(ttl=_HEBCAL_DAY_CACHE_TTL_SECONDS)
 _HEBCAL_MONTH_CACHE = TTLCache(ttl=_HEBCAL_MONTH_CACHE_TTL_SECONDS)
+# One entry per (location, month): every candle-lighting/havdalah stamp Hebcal
+# lists for that month, so a calendar card asking about a run of days costs
+# one lookup instead of one per day.
+_HEBCAL_CANDLES_MONTH_CACHE = TTLCache(ttl=_HEBCAL_DAY_CACHE_TTL_SECONDS)
 
 # backend.calendar_service.PyluachEngine.is_holiday() names these fast days
 # via pyluach's HebrewDate.holiday() -- exact strings pyluach returns, not
@@ -133,6 +137,92 @@ def _get_hebcal_day_times(lat, lon, timezone_str, current_date):
 
     _HEBCAL_DAY_CACHE.set(cache_key, result)
     return dict(result)
+
+
+def _get_hebcal_month_candle_times(lat, lon, timezone_str, year, month):
+    """Candle-lighting and havdalah stamps Hebcal lists for one Gregorian month.
+
+    Returns {"YYYY-MM-DD": {"candles": datetime|None, "havdalah": datetime|None}};
+    a day Hebcal doesn't mention (an ordinary weekday) is simply absent. Same
+    query as _get_hebcal_day_times (holiday-aware, so a yom tov's own candle
+    lighting and holiday-ending havdalah are included) but every day of the
+    month is kept, not just one. A failure returns {} and is not cached, so
+    the next request can retry once the health circuit allows it.
+    """
+    cache_key = (
+        _cache_coord(lat), _cache_coord(lon), str(timezone_str or ""), year, month,
+    )
+    cached = _HEBCAL_CANDLES_MONTH_CACHE.get(cache_key)
+    if isinstance(cached, dict):
+        return {day: dict(times) for day, times in cached.items()}
+    if not health.is_healthy('hebcal'):
+        return {}
+
+    hebcal_url = (
+        "https://www.hebcal.com/hebcal?v=1&cfg=json&maj=on&min=on"
+        f"&c=on&geo=pos&latitude={lat}&longitude={lon}"
+        f"&tzid={timezone_str}&year={year}&month={month}&numMonths=1"
+    )
+    try:
+        data = _HTTP.get(hebcal_url, timeout=6).json()
+        health.record_success('hebcal')
+    except Exception:
+        health.record_failure('hebcal')
+        return {}
+
+    days = {}
+    for item in data.get("items", []):
+        category = item.get("category", "")
+        stamp = item.get("date", "")
+        if category not in ("candles", "havdalah") or len(stamp) < 10:
+            continue
+        try:
+            when = datetime.fromisoformat(stamp)
+        except ValueError:
+            continue
+        days.setdefault(stamp[:10], {"candles": None, "havdalah": None})[category] = when
+
+    _HEBCAL_CANDLES_MONTH_CACHE.set(cache_key, days)
+    return {day: dict(times) for day, times in days.items()}
+
+
+def get_day_times(lat, lon, days, timezone_str=None):
+    """Clock times for each requested date at a location.
+
+    Feeds the calendar's holiday card, which shows "Begins: candle lighting
+    6:24 PM" instead of just "Sundown". Every value is an ISO timestamp in the
+    location's own timezone, or None when it doesn't exist that day (no
+    candle lighting on a plain Tuesday) or can't be computed (polar summer).
+    Candle lighting and havdalah come from Hebcal, like the main zmanim panel;
+    dawn and nightfall use the same degrees as that panel.
+    """
+    _, tz_name = _resolve_timezone(lat, lon, timezone_str)
+    location = GeoLocation("User Location", float(lat), float(lon), tz_name, 0)
+
+    hebcal = {}
+    for year, month in sorted({(d.year, d.month) for d in days}):
+        hebcal.update(_get_hebcal_month_candle_times(lat, lon, tz_name, year, month))
+
+    def iso(moment):
+        return moment.isoformat() if moment else None
+
+    result = {}
+    for day in days:
+        stamps = hebcal.get(day.isoformat(), {})
+        entry = {
+            "dawn": None, "sunset": None, "nightfall": None,
+            "candles": iso(stamps.get("candles")),
+            "havdalah": iso(stamps.get("havdalah")),
+        }
+        try:
+            calendar = ZmanimCalendar(geo_location=location, date=day)
+            entry["dawn"] = iso(calendar.alos({'degrees': 16.1}))
+            entry["sunset"] = iso(calendar.sunset())
+            entry["nightfall"] = iso(calendar.tzais({'degrees': 8.5}))
+        except Exception:
+            logger.warning("get_day_times: no solar times for %s at %s,%s", day, lat, lon)
+        result[day.isoformat()] = entry
+    return {"timezone": tz_name, "days": result}
 
 
 def _get_weekly_shabbat_parasha(current_date):

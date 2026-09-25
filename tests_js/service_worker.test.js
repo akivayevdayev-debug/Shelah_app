@@ -104,7 +104,14 @@ function loadWorker(t, { fetchImpl }) {
         return { request, response, waited: event.waited.length };
     }
 
-    return { caches, dispatch };
+    async function dispatchMessage(data) {
+        const event = { data, waited: [], waitUntil(promise) { this.waited.push(promise); } };
+        listeners.message(event);
+        await Promise.all(event.waited);
+        return { waited: event.waited.length };
+    }
+
+    return { caches, dispatch, dispatchMessage };
 }
 
 const jsonResponse = (body, init = {}) =>
@@ -203,6 +210,98 @@ test('private API prefixes bypass the cache entirely', async (t) => {
 
     assert.deepEqual(await response.json(), { prefs: {} });
     for (const store of caches.stores.values()) assert.equal(store.size, 0);
+});
+
+// ── isCacheableApiResponse's three branches ─────────────────────────────
+// (the JSON-body-with-an-error-field branch is already covered above by
+// "a JSON API reply is cached, but one that reports an error in its body
+// is not")
+
+test('a non-ok API response is not cached (isCacheableResponse\'s early return)', async (t) => {
+    const { caches, dispatch } = loadWorker(t, {
+        fetchImpl: async () => new Response('server error', { status: 500 }),
+    });
+
+    const { response } = await dispatch('/api/text/broken');
+
+    assert.equal(response.status, 500);
+    const api = [...caches.stores.keys()].find((name) => name.startsWith('shelah-api-'));
+    assert.equal(caches.stores.get(api).size, 0);
+});
+
+test('a non-JSON-content-type API response is cached without ever inspecting its body for an error field', async (t) => {
+    // The body below is valid JSON AND shaped like the "reports an error"
+    // case, on purpose: it proves the content-type gate itself (not just an
+    // unparsable body) is what skips the error-field check, not incidental
+    // JSON-parse failure -- if the content-type check were ever removed,
+    // this body would parse fine and get flagged as an error, so this test
+    // would then correctly fail.
+    const { caches, dispatch } = loadWorker(t, {
+        fetchImpl: async () => new Response(JSON.stringify({ error: 'looks like an error, but content-type says no' }), {
+            status: 200,
+            headers: { 'content-type': 'text/plain' },
+        }),
+    });
+
+    const { request } = await dispatch('/api/text/mislabeled');
+
+    const api = [...caches.stores.keys()].find((name) => name.startsWith('shelah-api-'));
+    assert.equal(caches.stores.get(api).has(request.url), true);
+});
+
+test('a JSON-content-type API response with an unparsable body is still cached (fails open)', async (t) => {
+    const { caches, dispatch } = loadWorker(t, {
+        fetchImpl: async () => new Response('not valid json{{', {
+            status: 200,
+            headers: { 'content-type': 'application/json' },
+        }),
+    });
+
+    const { request } = await dispatch('/api/text/malformed');
+
+    const api = [...caches.stores.keys()].find((name) => name.startsWith('shelah-api-'));
+    assert.equal(caches.stores.get(api).has(request.url), true);
+});
+
+// ── prewarmDailyRefs (the PREWARM_DAILY message handler) ────────────────
+
+test('PREWARM_DAILY dedupes refs, drops blanks, and prefetches both translation variants for each into the prewarm cache', async (t) => {
+    const fetchedUrls = [];
+    const { caches, dispatchMessage } = loadWorker(t, {
+        fetchImpl: async (request) => {
+            // prewarmDailyRefs() calls fetch(url, {...}) with a plain string
+            // URL, unlike the fetch handler above which passes a Request.
+            fetchedUrls.push(typeof request === 'string' ? request : request.url);
+            return jsonResponse({ he: 'טקסט' });
+        },
+    });
+
+    await dispatchMessage({
+        type: 'PREWARM_DAILY',
+        refs: ['Berakhot 2a', 'Berakhot 2a', '   ', 'Genesis 1:1'],
+    });
+
+    assert.deepEqual([...fetchedUrls].sort(), [
+        '/api/text/Berakhot%202a?autotranslate=0',
+        '/api/text/Berakhot%202a?autotranslate=1',
+        '/api/text/Genesis%201%3A1?autotranslate=0',
+        '/api/text/Genesis%201%3A1?autotranslate=1',
+    ].sort(), 'the duplicate ref and the blank ref must not be re-fetched');
+
+    const prewarm = [...caches.stores.keys()].find((name) => name.startsWith('shelah-prewarm-'));
+    assert.equal(caches.stores.get(prewarm).size, 4);
+});
+
+test('a message with no refs (or the wrong type) is a no-op', async (t) => {
+    let fetchCalled = false;
+    const { dispatchMessage } = loadWorker(t, {
+        fetchImpl: async () => { fetchCalled = true; return jsonResponse({}); },
+    });
+
+    await dispatchMessage({ type: 'PREWARM_DAILY', refs: [] });
+    await dispatchMessage({ type: 'SOME_OTHER_MESSAGE', refs: ['Berakhot 2a'] });
+
+    assert.equal(fetchCalled, false);
 });
 
 test('the fake worker globals are removed again once a test has finished', () => {

@@ -165,6 +165,18 @@ bounded to fixed, public, read-only third-party hosts with no credential
 or session exposure, and already wrapped in failure-tolerant error
 handling.
 
+> **Status — FIXED (commit `3b51bd7`, 2026-09-17; verified 2026-09-19).**
+> Fixed by the "Harden search.py" commit, not by this review's follow-up:
+> the Wikipedia title is percent-encoded as a single path segment
+> (`quote(..., safe="")`), and the Halachipedia / HebrewBooks queries go out
+> as `params=` values rather than f-string query strings, for both the sync
+> `requests` and async `httpx` twins. `tests/test_search_request_parity.py`
+> now pins it with a hostile query (`Shabbat?foo=bar&x=1#frag/a b`): the
+> Wikipedia path is `.../page/summary/Shabbat%3Ffoo%3Dbar%26x%3D1%23frag%2Fa_b`,
+> the Halachipedia `srsearch`/`titles` and HebrewBooks `q` arrive as literal
+> parameter values with exactly the expected key sets, and the sync and async
+> connectors emit identical requests.
+
 ---
 
 #### M2 — Indirect prompt injection via last-resort web-search tool results is not screened by the same heuristic applied to the user's own query
@@ -221,6 +233,106 @@ known, hard-to-fully-solve class of risk in any RAG+tool-use LLM app;
 bounded by the app's own "last resort only" design and multi-layer output
 review.
 
+> **Status — FIXED 2026-09-19** (screening and delimiting; the residual limits are listed at the end).
+>
+> **Trace: how retrieved text actually reaches the prompt.** The finding's
+> premise was partly inaccurate, and the delimiting half was wrong in *both*
+> directions. There are three routes, not one:
+>
+> 1. **Live `/ask` pre-fetch (the main route, Flask and ASGI).** *(Trace as
+>    found; the wrapper gap it describes is now closed — see "Fix".)*
+>    `engine.get_wiki()` / `get_halachipedia_summary()` (Flask) or
+>    `async_search_wikipedia` / `async_search_halachipedia` (ASGI) →
+>    `ask_ai_async` / `ask_claude` → `build_prompt()` →
+>    `_format_context_items()`, into the *user prompt* under the headings
+>    "WHITELISTED EXTERNAL CONTEXT" and "TERTIARY LAST-RESORT WEB CONTEXT".
+>    This route never touches `_format_extra_context()` /
+>    `_wrap_retrieved_context()` (those carry only community knowledge, user
+>    memory and lat/lon/timezone), so it was **not** `<retrieved_context>`-
+>    wrapped, and `CORE_SYSTEM_PROMPT`'s Security paragraph does not name it.
+>    Only hidden-Unicode stripping and a length cap applied. **This was the
+>    real gap, and it was slightly worse than the review described on the
+>    delimiting side.**
+> 2. **Agentic `web_search` / `search_responsa_external`.** Results go back
+>    as structured `tool_result` blocks via `_sanitize_model_output()` (not
+>    `_sanitize_prompt_payload()` as the finding says; strips hidden Unicode,
+>    4,000-char cap), and `_build_agentic_system_text()` already tells the
+>    model tool results are untrusted data. Here the structural delimiting
+>    the finding asks for **already existed**; only the phrase screening was
+>    missing.
+> 3. **`search_provider.get_halakhic_sources()` last-resort tier.** This runs
+>    only *after* AI synthesis has already failed (`asgi.py` / `app.py`
+>    fallback ladder) and its output is displayed to the reader as sources; it
+>    **never enters a prompt**, so there is nothing to screen there. No change.
+>
+> **Fix.** Two layers, matching the finding's two suggestions.
+>
+> *Screening.* New leaf module `backend/retrieval_guard.py`
+> (`withhold_injected()`), applied at the places retrieved third-party text
+> reaches the model: `claude._format_one_context_item()` (covers route 1 for
+> both transports and the agentic path's own `build_prompt` call) and the
+> `web_search`, `search_responsa_external` and `translate_text` handlers in
+> `backend/ai_tools.py` (route 2; `translate_text` returns MyMemory output, a
+> crowd-sourced translation memory, and a flagged translation comes back as
+> `translated: false`). A flagged snippet is **dropped whole** (sentence-trimming is
+> trivially evadable — the attacker chooses where the payload sits) and only
+> a source label plus a marker *count* is logged; neither the retrieved text
+> nor any user question text is ever logged. Matching runs on NFKC-normalized
+> text with control/format characters removed, because
+> `_sanitize_prompt_payload` later strips hidden Unicode — a payload split
+> with zero-width characters would otherwise reach the model intact. A second
+> matching copy folds Cyrillic/Greek look-alike letters to Latin (an `ignоre`
+> with a Cyrillic `о` is caught; genuine Russian and Greek text is matched
+> unfolded and left alone), and the list also covers Hebrew, French, Spanish,
+> German and Russian "ignore previous instructions" phrasing.
+>
+> *Delimiting.* The pre-fetch sections in `build_prompt()` are now wrapped in
+> `<retrieved_context source="whitelisted_external_web">` and
+> `<retrieved_context source="general_web_last_resort">` (the same
+> `_wrap_retrieved_context()` the system-prompt sections use), and both
+> `CORE_SYSTEM_PROMPT` (Security paragraph, now naming web / Halachipedia /
+> HebrewBooks excerpts) and `SIMPLE_SYSTEM_PROMPT` (a new one-line rule) tell
+> the model content inside those tags is data, never instructions. The
+> closing tag itself is a marker, so a snippet cannot end its wrapper early.
+> This is a prompt change: `PROMPT_VERSION` moved from
+> `2026-07-30-age-appropriate-v1` to `2026-09-19-retrieved-context-v1`.
+>
+> **False-positive control.** The list mirrors `PROMPT_INJECTION_PATTERNS`
+> with two deliberate divergences. Bare "you are now" is ordinary second-person
+> halachic prose ("you are now obligated to…") and would strip real
+> Halachipedia text, so only its unmistakable jailbreak forms ("you are now
+> DAN / unrestricted…") count. And "ignore/disregard/override all|any|your
+> instructions" *without* a qualifier such as "previous"/"prior"/"above" is
+> not flagged when a word follows that names whose instructions they are
+> ("ignore any instructions from his doctor", "…the doctor gives", "…of the
+> mohel") — normal prose about medical guidance on a fast day. The qualified
+> forms, and "instructions from/of the system / developer / user…", stay
+> flagged unconditionally so the exemption is not a way around the screen; the
+> Hebrew phrase needs "previous/your/above" after "instructions", so
+> "אין להתעלם מהוראות הרופא" is untouched. Added markers are strings no legitimate
+> halachic text contains (chat-template tokens, the app's own
+> `<retrieved_context>` delimiter). `tests/test_retrieval_guard.py` pins both
+> directions (injection-style snippets flagged; 12 realistic halachic
+> snippets, English, Hebrew, Russian and Greek, not flagged; every obfuscated
+> and non-English variant flagged), parity with the query-side list
+> (adding a query-side pattern without deciding its retrieved-text treatment
+> fails a test), linear-time behaviour on hostile input, and both call sites
+> end to end.
+>
+> **Residual (honest limits).**
+> - It is still a phrase heuristic, not a classifier. A genuinely paraphrased
+>   injection ("kindly set aside what you were told earlier…"), or one in a
+>   language or homoglyph set not listed above, is not caught, and no phrase
+>   list can close that. It is one layer beside the `<retrieved_context>`
+>   framing and `validate_model_output()`, not a replacement for them.
+> - The false-positive exemption is the reverse trade: an injection phrased
+>   "ignore any instructions from *the site owner*" is not flagged (only the
+>   assistant-side nouns — system, developer, operator, user, assistant,
+>   Anthropic, OpenAI — are), because "from <someone>" is exactly how real
+>   halachic prose reads.
+> - Sefaria-derived tool results are not screened (Sefaria is a curated
+>   corpus, not open web text); this finding did not cover them.
+
 ### Low
 
 #### L1 — `_is_same_origin_request()` is a forgeable check, relied on as the sole gate for `/api/client-errors`
@@ -257,6 +369,16 @@ malformed/oversized value could land in a column expected to hold a short
 enum-like string), not an availability or injection risk. Suggest capping
 these three fields the same way `comment` already is.
 
+> **Status — FIXED 2026-09-19.** `backend/routes_feedback.py` now runs the
+> three fields through `sanitize_user_query()` (the same sanitizer `comment`
+> uses) with per-field caps — `mode` 32, `language` 16, `safety_class` 32
+> (the longest real safety class is 26 chars) — falling back to the existing
+> defaults (`"balanced"`, `"en"`, `"ok"`) when a value is missing or
+> sanitizes to nothing. Regression tests in `tests/test_routes_feedback.py`
+> (`TestFeedbackMetadataFieldCaps`) cover truncation, unchanged `comment`
+> cap, legitimate values fitting their caps, defaults, and control/markup
+> stripping.
+
 #### L3 — Sync `search_wikipedia`/`search_halachipedia`/`search_hebrewbooks` duplicate their async counterparts and carry the M1 bug independently
 
 Noted separately from M1 because these sync versions
@@ -270,6 +392,36 @@ reappear in whichever one is patched last — worth collapsing to one
 implementation (with the async version wrapped for sync callers via
 `asyncio.run`, matching the pattern `backend/routes_privacy.py::_delete_clerk_user()`
 already uses) rather than maintaining two copies of URL-building logic.
+
+> **Status — SKIPPED (collapse), mitigated by tests, 2026-09-19.** The
+> suggested `asyncio.run` wrapper is **not safe here**, although it is safe
+> in `_delete_clerk_user()`. That helper opens a fresh
+> `httpx.AsyncClient` per call; the search connectors instead share one
+> process-wide client (`backend/search.py::_get_async_client()`, plan.md
+> §3.6) whose connection pool is bound to the event loop that first used it.
+> `asyncio.run()` from a sync caller creates and closes a new loop each call,
+> and reusing the cached client across those loops fails. Verified with a
+> throwaway probe (local keep-alive server, one shared `AsyncClient`, four
+> successive `asyncio.run()` calls): results alternated
+> `200 / RuntimeError: Event loop is closed / 200 / RuntimeError…`. Every
+> `search_*` function swallows exceptions into `None`, so the sync callers
+> (`data_service.py`, `search_provider.py`) would silently see "no result"
+> about half the time — the silent-degradation mode this review warns about
+> in M1. Fixing that needs either a per-call client (loses the pooling
+> optimization) or a dedicated background event-loop thread (new
+> infrastructure), plus rewriting the sync-connector tests that mock
+> `requests` (`tests/test_search.py`, `test_search_cache.py`, …); not
+> low-risk.
+>
+> **What was done instead:** `tests/test_search_request_parity.py` pins the
+> M1 property on *both* copies — hostile `?`, `&`, `=`, `#`, `/` in a query
+> stay literal data in the Wikipedia path segment / Halachipedia and
+> HebrewBooks parameters — and asserts sync and async send the identical
+> request. A fix (or regression) applied to only one copy now fails a test,
+> which is the concrete risk this finding raised. A regression of the
+> pre-M1 unencoded splice was simulated and caught. The duplication itself
+> remains; a shared pure-helper extraction (URL/params/payload builders used
+> by both) would address it without the event-loop problem if desired.
 
 ### Informational
 

@@ -25,6 +25,20 @@ routes_feedback = Blueprint("feedback", __name__)
 
 _VALID_VERDICTS = ("helpful", "not_helpful")
 _MAX_COMMENT_CHARS = 500
+# The three metadata fields are enum-like short strings ("balanced"/"strict",
+# "en"/"he", "ok"/"mental_health_or_self_harm" -- the longest safety class is
+# 26 chars), so their caps are far tighter than the free-text comment's.
+_MAX_MODE_CHARS = 32
+_MAX_LANGUAGE_CHARS = 16
+_MAX_SAFETY_CLASS_CHARS = 32
+
+
+def _short_field(payload, key, default, max_chars):
+    """A capped, sanitized enum-like string field; `default` when the value
+    is missing or sanitizes to nothing. Caps the way `comment` is capped
+    (sanitize_user_query) so a malformed/oversized value can't land in a
+    column that is expected to hold a short label (AI_SECURITY_REVIEW L2)."""
+    return sanitize_user_query(str(payload.get(key) or ""), max_chars=max_chars) or default
 
 
 @routes_feedback.route("/api/feedback", methods=["POST"])
@@ -49,10 +63,10 @@ def submit_feedback():
         "question_hash": question_hash,
         "verdict": verdict,
         "comment": comment,
-        "mode": str(payload.get("mode") or "balanced"),
-        "language": str(payload.get("language") or "en"),
+        "mode": _short_field(payload, "mode", "balanced", _MAX_MODE_CHARS),
+        "language": _short_field(payload, "language", "en", _MAX_LANGUAGE_CHARS),
         "fallback": bool(payload.get("fallback")),
-        "safety_class": str(payload.get("safety_class") or "ok"),
+        "safety_class": _short_field(payload, "safety_class", "ok", _MAX_SAFETY_CLASS_CHARS),
     }
 
     try:

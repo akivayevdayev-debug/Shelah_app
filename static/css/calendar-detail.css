@@ -1,0 +1,406 @@
+/*
+  calendar-detail.css — the Apple-style detail card for calendar days & events.
+
+  One <dialog id="calDetail"> that is an anchored popover on desktop (arrow,
+  opens out of the tapped event/day) and a bottom sheet on phones (grabber,
+  drag-to-dismiss).  Behaviour lives in static/js/calendar-detail.js.
+
+  Motion rules (ENGINEERING_RULES.md): transform is driven only by springs in
+  JS — nothing here transitions transform.  Opacity/colour are the only CSS
+  transitions, which doubles as the reduced-motion cross-fade.
+  Sizes/radii/material come from tokens.css ("APPLE-STYLE SURFACES").
+*/
+
+/* ── Shell ─────────────────────────────────────────────────────────── */
+.cal-detail {
+    position: fixed;
+    inset: 0;
+    z-index: 110; /* above #calendarModal (z-100); the dialog also sits in the top layer */
+    width: 100%;
+    height: 100%;
+    max-width: none;
+    max-height: none;
+    margin: 0;
+    padding: 0;
+    border: 0;
+    background: transparent;
+    color: var(--ink-primary);
+    overflow: visible;
+}
+.cal-detail:not([open]) { display: none; }
+.cal-detail::backdrop { background: transparent; }
+
+.cal-detail__scrim {
+    position: absolute;
+    inset: 0;
+    background: transparent; /* popover: light-dismiss only, nothing dims */
+    opacity: 0;
+    transition: opacity 240ms ease-out;
+}
+.cal-detail[data-mode="sheet"] .cal-detail__scrim { background: var(--surface-scrim); }
+.cal-detail__scrim.is-shown { opacity: 1; }
+
+/* ── Panel (the material) ──────────────────────────────────────────── */
+.cal-detail__panel {
+    position: absolute;
+    display: flex;
+    flex-direction: column;
+    box-sizing: border-box;
+    isolation: isolate;
+    color: var(--ink-primary);
+    background: var(--glass-bg);
+    -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-sat));
+    backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-sat));
+    border: 1px solid var(--glass-hairline);
+    box-shadow: var(--glass-shadow), inset 0 1px 0 var(--glass-edge);
+    opacity: 0;
+    transition: opacity 160ms ease-out;
+    outline: none;
+}
+.cal-detail__panel.is-shown { opacity: 1; }
+.cal-detail__panel:focus-visible { outline: 2px solid var(--accent-primary); outline-offset: 2px; }
+
+.cal-detail[data-mode="popover"] .cal-detail__panel {
+    width: clamp(18.75rem, 24vw, 22.5rem); /* 300–360px */
+    max-height: min(72vh, 35rem);
+    border-radius: var(--radius-popover);
+}
+.cal-detail[data-mode="sheet"] .cal-detail__panel {
+    left: 0;
+    right: 0;
+    bottom: 0;
+    width: 100%;
+    max-height: min(88dvh, 44rem);
+    border-radius: var(--radius-sheet) var(--radius-sheet) 0 0;
+    border-bottom: 0;
+    box-shadow: var(--glass-shadow-sheet), inset 0 1px 0 var(--glass-edge);
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+
+/* Continuous ("squircle") corners where the engine has them; plain radii elsewhere. */
+@supports (corner-shape: squircle) {
+    .cal-detail__panel { corner-shape: squircle; }
+}
+
+/* Where the blur is unavailable the material is simply a solid surface. */
+@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+    .cal-detail__panel { background: var(--surface-2); }
+}
+@media (prefers-reduced-transparency: reduce) {
+    .cal-detail__panel {
+        -webkit-backdrop-filter: none;
+        backdrop-filter: none;
+        background: var(--surface-2);
+    }
+}
+
+/* ── Arrow (popover only) ──────────────────────────────────────────── */
+.cal-detail__arrow { display: none; }
+.cal-detail[data-mode="popover"] .cal-detail__arrow {
+    display: block;
+    position: absolute;
+    width: 14px;
+    height: 14px;
+    background: var(--surface-2);
+    border: 0 solid var(--glass-hairline);
+    transform: rotate(45deg);
+    pointer-events: none;
+}
+/* The rotated square's two outward edges carry the hairline; the inward half is
+   covered by the panel, so the seam disappears. */
+.cal-detail__panel[data-placement="right"] .cal-detail__arrow  { left: -8px;  border-left-width: 1px; border-bottom-width: 1px; }
+.cal-detail__panel[data-placement="left"] .cal-detail__arrow   { right: -8px; border-right-width: 1px; border-top-width: 1px; }
+.cal-detail__panel[data-placement="bottom"] .cal-detail__arrow { top: -8px;   border-left-width: 1px; border-top-width: 1px; }
+.cal-detail__panel[data-placement="top"] .cal-detail__arrow    { bottom: -8px; border-right-width: 1px; border-bottom-width: 1px; }
+
+/* ── Header (also the sheet's drag handle) ─────────────────────────── */
+.cal-detail__drag { flex: none; touch-action: none; }
+.cal-detail__grabber {
+    display: none;
+    width: 2.25rem;  /* 36px */
+    height: 0.3125rem; /* 5px */
+    margin: var(--sp-2) auto 0;
+    border-radius: var(--radius-full);
+    background: var(--ink-secondary);
+    opacity: 0.45;
+}
+.cal-detail[data-mode="sheet"] .cal-detail__grabber { display: block; }
+
+.cal-detail__bar {
+    display: flex;
+    align-items: center;
+    gap: var(--sp-2);
+    min-height: var(--hit-min);
+    padding: var(--sp-2) var(--sp-2) 0 var(--sp-4);
+}
+.cal-detail__kicker {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--sp-2);
+    min-width: 0;
+    margin-inline-end: auto;
+    font-size: 0.8125rem; /* 13px */
+    font-weight: 600;
+    letter-spacing: 0.01em;
+    color: var(--ink-secondary);
+}
+.cal-detail__dot {
+    flex: none;
+    width: 0.5rem;
+    height: 0.5rem;
+    border-radius: var(--radius-full);
+    background: var(--cal-event-special);
+}
+.cal-detail__dot.cal-cat-major,
+.cal-detail__dot.cal-cat-holiday   { background: var(--cal-event-holiday); }
+.cal-detail__dot.cal-cat-shabbat,
+.cal-detail__dot.cal-cat-parashat  { background: var(--cal-event-shabbat); }
+.cal-detail__dot.cal-cat-roshchodesh { background: var(--cal-event-rh); }
+.cal-detail__dot.cal-cat-minor     { background: var(--cal-event-minor); }
+.cal-detail__dot.cal-cat-modern    { background: var(--cal-event-modern); }
+.cal-detail__dot.cal-cat-fast      { background: var(--cal-event-fast); }
+
+/* Buttons: 44px hit area, smaller visible disc (Apple's "large hit region, quiet glyph"). */
+.cal-detail__close,
+.cal-detail__back {
+    flex: none;
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: var(--hit-min);
+    min-height: var(--hit-min);
+    padding: 0;
+    border: 0;
+    background: transparent;
+    color: var(--ink-secondary);
+    font: inherit;
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+}
+.cal-detail__close::before {
+    content: "";
+    position: absolute;
+    width: 1.75rem; /* 28px disc inside the 44px target */
+    height: 1.75rem;
+    border-radius: var(--radius-full);
+    background: var(--surface-pill);
+    transition: background-color 150ms ease-out;
+}
+.cal-detail__close > * { position: relative; }
+.cal-detail__close:hover::before { background: var(--ctrl-bg-hover); }
+.cal-detail__close:active::before { background: var(--surface-border); }
+.cal-detail__back {
+    gap: var(--sp-1);
+    padding-inline: var(--sp-2);
+    color: var(--accent-primary);
+    font-size: 0.9375rem;
+    font-weight: 500;
+    transition: opacity 150ms ease-out;
+}
+.cal-detail__back:hover { opacity: 0.75; }
+.cal-detail__back:active { opacity: 0.55; }
+.cal-detail__back[hidden] { display: none; }
+[dir="rtl"] .cal-detail__back svg { transform: scaleX(-1); }
+.cal-detail__close:focus-visible,
+.cal-detail__back:focus-visible,
+.cal-detail__item:focus-visible,
+.cal-detail__ref:focus-visible,
+.cal-detail__link:focus-visible {
+    outline: 2px solid var(--accent-primary);
+    outline-offset: -2px;
+    border-radius: var(--radius-inner);
+}
+
+/* ── Scrolling content ─────────────────────────────────────────────── */
+.cal-detail__scroll {
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    -webkit-overflow-scrolling: touch;
+    border-radius: inherit;
+    padding-bottom: var(--sp-2);
+    transition: opacity 150ms ease-out;
+}
+.cal-detail__scroll.is-swapping { opacity: 0; }
+
+.cal-detail__head { padding: var(--sp-1) var(--sp-4) var(--sp-2); }
+.cal-detail__title {
+    margin: 0;
+    font-family: var(--font-serif, Georgia, serif);
+    font-size: clamp(1.25rem, 1.1rem + 0.6vw, 1.5rem);
+    font-weight: 700;
+    line-height: 1.2;
+    letter-spacing: -0.015em; /* display size: tighten, as SF does */
+    color: var(--ink-heading);
+    overflow-wrap: anywhere;
+    unicode-bidi: plaintext;
+}
+.cal-detail__hebrew {
+    margin: var(--sp-1) 0 0;
+    font-family: var(--font-hebrew, 'Ezra SIL', 'Cardo', serif);
+    font-size: 1.125rem;
+    line-height: 1.4;
+    color: var(--ink-secondary);
+}
+.cal-detail__hebrew[hidden] { display: none; }
+/* The description: prose straight under the title, not a row in the times group. */
+.cal-detail__about {
+    margin: var(--sp-3) 0 0;
+    font-size: 0.9375rem; /* 15px, as the rows */
+    line-height: 1.55;
+    color: var(--ink-primary);
+    overflow-wrap: anywhere;
+    unicode-bidi: plaintext; /* Hebcal's memo is English, also inside the RTL Hebrew UI */
+}
+
+/* Grouped rows: an inset list whose corners are concentric with the panel. */
+.cal-detail__group {
+    margin: var(--sp-2);
+    padding: 0;
+    list-style: none;
+    background: var(--surface-pill);
+    border-radius: var(--radius-inner);
+    overflow: hidden;
+}
+.cal-detail__row {
+    display: grid;
+    grid-template-columns: 5.5rem minmax(0, 1fr);
+    gap: var(--sp-3);
+    padding: var(--sp-3);
+    font-size: 0.9375rem; /* 15px */
+    line-height: 1.5;
+}
+.cal-detail__row + .cal-detail__row { border-top: 1px solid var(--glass-hairline); }
+.cal-detail__row dt {
+    margin: 0;
+    font-size: 0.8125rem;
+    font-weight: 500;
+    line-height: 1.85; /* optical alignment with the 15px value's first line */
+    color: var(--ink-secondary);
+}
+.cal-detail__row dd { margin: 0; color: var(--ink-primary); overflow-wrap: anywhere; }
+.cal-detail__nowrap { white-space: nowrap; }
+.cal-detail__row dd small { display: block; font-size: 0.8125rem; color: var(--ink-secondary); }
+.cal-detail__row--where { grid-template-columns: minmax(0, 1fr); }
+/* A row whose words were just swapped for real clock times fades in (opacity only). */
+.cal-detail__row { transition: opacity var(--motion-dur-fast) ease-out; }
+.cal-detail__row.is-fresh { opacity: 0; }
+/* "Times for <city>": a footnote row saying which location the clock times belong to. */
+.cal-detail__row--where { padding-block: var(--sp-2); }
+.cal-detail__where { margin: 0; font-size: 0.75rem; line-height: 1.4; color: var(--ink-secondary); overflow-wrap: anywhere; }
+
+/* Readings: each reference is a full-width tappable line (44px), like a list cell. */
+.cal-detail__row--refs { padding-block: 0; }
+.cal-detail__row--refs dt { line-height: var(--hit-min); }
+.cal-detail__row--refs dd { display: flex; flex-direction: column; }
+.cal-detail__ref {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--sp-2);
+    min-height: var(--hit-min);
+    padding: 0;
+    border: 0;
+    background: transparent;
+    /* -hover, not the base blue: it is the lighter blue in dark mode, and on the
+       group's --surface-pill the base is 4.34:1 there (this is 5.43:1). */
+    color: var(--accent-primary-hover);
+    font: inherit;
+    font-weight: 500;
+    text-align: start;
+    cursor: pointer;
+    transition: opacity 150ms ease-out;
+    -webkit-tap-highlight-color: transparent;
+}
+.cal-detail__ref + .cal-detail__ref { border-top: 1px solid var(--glass-hairline); }
+.cal-detail__ref-label { white-space: nowrap; }
+.cal-detail__ref:hover .cal-detail__ref-label { text-decoration: underline; text-underline-offset: 3px; }
+.cal-detail__ref:active { opacity: 0.6; }
+.cal-detail__ref svg { flex: none; color: var(--ink-secondary); }
+.cal-detail__row--refs dd small { padding-bottom: var(--sp-2); }
+
+/* Day view: tappable event rows. */
+.cal-detail__item {
+    display: flex;
+    align-items: center;
+    gap: var(--sp-3);
+    width: 100%;
+    min-height: var(--hit-min);
+    padding: var(--sp-2) var(--sp-3);
+    border: 0;
+    background: transparent;
+    color: var(--ink-primary);
+    font: inherit;
+    font-size: 0.9375rem;
+    line-height: 1.4;
+    text-align: start;
+    cursor: pointer;
+    transition: background-color 150ms ease-out;
+    -webkit-tap-highlight-color: transparent;
+}
+.cal-detail__item + .cal-detail__item { border-top: 1px solid var(--glass-hairline); }
+.cal-detail__item:hover { background: var(--ctrl-bg-hover); }
+.cal-detail__item:active { background: var(--surface-border); }
+.cal-detail__item-title { flex: 1 1 auto; min-width: 0; overflow-wrap: anywhere; unicode-bidi: plaintext; }
+.cal-detail__item svg { flex: none; color: var(--ink-secondary); }
+[dir="rtl"] .cal-detail__item svg,
+[dir="rtl"] .cal-detail__ref svg { transform: scaleX(-1); }
+.cal-detail__empty { margin: 0; padding: var(--sp-3); font-size: 0.9375rem; color: var(--ink-secondary); }
+
+/* Footer: learn-more link + required Hebcal attribution (CC BY 4.0). */
+.cal-detail__foot {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0 var(--sp-4);
+    padding: 0 var(--sp-4) var(--sp-2);
+}
+.cal-detail__link {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--sp-1);
+    min-height: var(--hit-min);
+    color: var(--accent-primary);
+    font-size: 0.9375rem;
+    font-weight: 500;
+    text-decoration: none;
+    transition: opacity 150ms ease-out;
+}
+.cal-detail__link:hover { text-decoration: underline; text-underline-offset: 3px; }
+.cal-detail__link:active { opacity: 0.6; }
+.cal-detail__credit { margin: 0; font-size: 0.75rem; line-height: 1.4; color: var(--ink-secondary); }
+.cal-detail__credit a { color: inherit; text-decoration: underline; text-underline-offset: 2px; }
+
+/* Agenda rows under the grid are now buttons that open the card. */
+.cal-agenda-item > .cal-agenda-btn {
+    display: flex;
+    align-items: flex-start;
+    gap: var(--sp-3);
+    flex: 1 1 auto;
+    min-width: 0;
+    padding: 0;
+    border: 0;
+    background: transparent;
+    color: inherit;
+    font: inherit;
+    text-align: start;
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+}
+.cal-agenda-item > .cal-agenda-btn:focus-visible {
+    outline: 2px solid var(--accent-primary);
+    outline-offset: 4px;
+    border-radius: var(--radius-sm);
+}
+.cal-agenda-item.is-actionable { transition: background-color 150ms ease-out; }
+.cal-agenda-item.is-actionable:hover { background: var(--ctrl-bg-hover); }
+
+@media (prefers-contrast: more) {
+    .cal-detail__panel { border-color: var(--ink-secondary); }
+}
+@media print {
+    .cal-detail { display: none !important; }
+}
