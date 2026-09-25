@@ -616,7 +616,7 @@ class TestAskTransportKeySetParity:
     identical safety guarantee without that interaction.
     """
 
-    TOP_LEVEL_KEYS = {"answer", "confidence", "wiki", "customs", "sources", "ai_cited_sources", "meta"}
+    TOP_LEVEL_KEYS = {"answer", "confidence", "wiki", "customs", "sources", "ai_cited_sources", "history_id", "meta"}
 
     def test_flask_success_path_key_set(self, test_client):
         response = test_client.post(

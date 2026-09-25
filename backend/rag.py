@@ -373,16 +373,21 @@ def _store_ask_history(
     without retaining the full prompt text itself. Requires
     scripts/migrate_ask_history_safety_metadata.sql to have been applied —
     see that file.
+
+    Returns the stored row's id (str) on success, or None if nothing was
+    stored (no user_id, no configured client, or the insert raised) — the
+    id lets the /ask response carry a deep link (?chat=<id>) back to this
+    exact answer.
     """
     import app as _app
     from uuid import uuid4
 
     if not user_id:
-        return
+        return None
 
     supabase = _app._get_supabase_client()
     if not supabase:
-        return
+        return None
 
     payload = {
         "id": str(uuid4()),
@@ -400,6 +405,7 @@ def _store_ask_history(
 
     try:
         supabase.table(_app.SUPABASE_ASK_HISTORY_TABLE).insert(payload).execute()
+        return payload["id"]
     except Exception as e:
         # plan.md §23.2.4: a PostgREST schema error must never be
         # indistinguishable from success — this is the exact defensibility-

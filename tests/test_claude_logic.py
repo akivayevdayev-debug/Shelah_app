@@ -508,6 +508,69 @@ class TestBuildPrompt:
         prompt = claude.build_prompt("q", [], [], answer_language="he")
         assert "Hebrew" in prompt
 
+    def test_no_conversation_history_omits_the_section(self):
+        prompt = claude.build_prompt("q", [], [])
+        assert "CONVERSATION SO FAR" not in prompt
+
+    def test_conversation_history_is_embedded_before_the_question(self):
+        prompt = claude.build_prompt(
+            "Follow-up question",
+            [], [],
+            conversation_history=[
+                {"role": "user", "content": "First question"},
+                {"role": "assistant", "content": "First answer"},
+            ],
+        )
+        assert "CONVERSATION SO FAR" in prompt
+        assert "User: First question" in prompt
+        assert "Assistant: First answer" in prompt
+        assert prompt.index("First answer") < prompt.index("QUESTION:\nFollow-up question")
+
+
+class TestFormatConversationHistory:
+    def test_empty_or_none_returns_empty_string(self):
+        assert claude._format_conversation_history(None) == ""
+        assert claude._format_conversation_history([]) == ""
+
+    def test_formats_user_and_assistant_roles(self):
+        text = claude._format_conversation_history([
+            {"role": "user", "content": "Hi"},
+            {"role": "assistant", "content": "Hello"},
+        ])
+        assert text == "User: Hi\nAssistant: Hello"
+
+    def test_skips_non_dict_entries(self):
+        text = claude._format_conversation_history([
+            "not-a-dict",
+            {"role": "user", "content": "Real turn"},
+        ])
+        assert text == "User: Real turn"
+
+    def test_skips_turns_with_blank_content(self):
+        text = claude._format_conversation_history([
+            {"role": "user", "content": "   "},
+            {"role": "assistant", "content": "Answer"},
+        ])
+        assert text == "Assistant: Answer"
+
+    def test_collapses_internal_whitespace(self):
+        text = claude._format_conversation_history([
+            {"role": "user", "content": "line one\n\n  line two"},
+        ])
+        assert text == "User: line one line two"
+
+    def test_truncates_long_turn_text(self):
+        text = claude._format_conversation_history(
+            [{"role": "user", "content": "x" * 50}],
+            max_chars_per_turn=10,
+        )
+        assert text == f"User: {'x' * 10}..."
+
+    def test_keeps_only_the_most_recent_max_turns(self):
+        history = [{"role": "user", "content": f"turn {i}"} for i in range(5)]
+        text = claude._format_conversation_history(history, max_turns=2)
+        assert text == "User: turn 3\nUser: turn 4"
+
 
 class TestBuildDynamicSystemContext:
     def test_combines_all_sections(self):

@@ -406,29 +406,33 @@ class TestStoreAskHistory:
     def test_no_user_id_does_nothing(self, monkeypatch):
         client = _FakeSupabaseClient()
         monkeypatch.setattr(app, "_get_supabase_client", lambda: client)
-        rag._store_ask_history(None, "q", "a")
+        result = rag._store_ask_history(None, "q", "a")
         assert client.query.calls == []
+        assert result is None
 
     def test_no_client_does_nothing(self, monkeypatch):
         monkeypatch.setattr(app, "_get_supabase_client", lambda: None)
-        rag._store_ask_history("user-1", "q", "a")  # should not raise
+        result = rag._store_ask_history("user-1", "q", "a")  # should not raise
+        assert result is None
 
     def test_happy_path_inserts_payload(self, monkeypatch):
         client = _FakeSupabaseClient()
         monkeypatch.setattr(app, "_get_supabase_client", lambda: client)
         monkeypatch.setattr(app, "SUPABASE_ASK_HISTORY_TABLE", "ask_history")
-        rag._store_ask_history("user-1", "question", "answer", sources=[{"ref": "x"}])
+        result = rag._store_ask_history("user-1", "question", "answer", sources=[{"ref": "x"}])
         insert_calls = [c for c in client.query.calls if c[0] == "insert"]
         assert len(insert_calls) == 1
         payload = insert_calls[0][1][0]
         assert payload["user_id"] == "user-1"
         assert payload["question"] == "question"
+        assert result == payload["id"]
 
     def test_insert_exception_swallowed(self, monkeypatch):
         client = _FakeSupabaseClient(error=RuntimeError("insert failed"))
         monkeypatch.setattr(app, "_get_supabase_client", lambda: client)
         monkeypatch.setattr(app, "SUPABASE_ASK_HISTORY_TABLE", "ask_history")
-        rag._store_ask_history("user-1", "q", "a")  # should not raise
+        result = rag._store_ask_history("user-1", "q", "a")  # should not raise
+        assert result is None
 
     def test_insert_exception_reaches_capture_backend_error(self, monkeypatch):
         """Regression test (plan.md §23.2.4): this is the defensibility-

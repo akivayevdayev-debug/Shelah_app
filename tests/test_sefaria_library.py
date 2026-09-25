@@ -918,6 +918,30 @@ class TestGetLinkedTexts:
             assert "Commentary" in result
             assert result["Commentary"][0]["ref"] == "Rashi on Genesis 1:1"
 
+    def test_carries_hebrew_ref_and_collective_title(self):
+        # /related puts the Hebrew ref in sourceHeRef, not heRef.
+        with responses_lib.RequestsMock(assert_all_requests_are_fired=False) as rsps:
+            rsps.add(
+                responses_lib.GET, re.compile(re.escape(sl.SEFARIA_API) + r"/related/.*"),
+                json={"links": [
+                    {"type": "commentary", "category": "Commentary", "ref": "Rashbam on Genesis 1:1:1",
+                     "sourceHeRef": "רשב\"ם על בראשית א׳:א׳:א׳", "anchorRef": "Genesis 1:1",
+                     "collectiveTitle": {"en": "Rashbam", "he": "רשב\"ם"}},
+                    {"type": "midrash", "category": "Midrash", "ref": "Bereshit Rabbah 1:1",
+                     "anchorRef": "Genesis 1:1", "collectiveTitle": "not-a-dict"},
+                ]},
+                status=200,
+            )
+            result = sl.get_linked_texts("Genesis 1:1")
+            rashbam = next(i for i in result["Commentary"] if i["ref"].startswith("Rashbam"))
+            assert rashbam["heRef"] == "רשב\"ם על בראשית א׳:א׳:א׳"
+            assert rashbam["collectiveTitle"] == {"en": "Rashbam", "he": "רשב\"ם"}
+            assert result["Midrash"][0]["heRef"] == ""
+            assert result["Midrash"][0]["collectiveTitle"] == {"en": "", "he": ""}
+            injected = result["Commentary"][0]
+            assert injected["ref"] == "Rashi on Genesis 1:1"
+            assert injected["collectiveTitle"]["he"] == "רש\"י"
+
     def test_injects_rashi_for_tanakh_ref_when_missing(self):
         with responses_lib.RequestsMock(assert_all_requests_are_fired=False) as rsps:
             rsps.add(

@@ -26,6 +26,7 @@ import collections
 import hashlib
 import logging
 import os
+import re
 import threading
 import time
 from dataclasses import dataclass
@@ -121,6 +122,24 @@ _ROUTE_CLASSES: list[tuple[str, str]] = [
     ("/api/user/delete-account", "account"),
     ("/api/user/data-export", "account"),
     ("/api/webhooks/clerk", "webhook"),
+    # Conversation CRUD (list/get/create/rename/pin/delete, plus client-
+    # supplied messages) makes no model call -- "cheap" is the deliberate
+    # choice, not a fall-through. Its model-calling /ask child is carved
+    # out ahead of this entry by _ROUTE_PATTERNS below.
+    ("/api/conversations", "cheap"),
+    # Public shared-answer reads (backend/routes_answer_share.py): no auth,
+    # one DB read each -- per-IP "fanout" keeps token guessing slow.
+    ("/api/public/answer", "fanout"),
+]
+
+# (compiled pattern, class) -- checked BEFORE _ROUTE_CLASSES, for routes
+# whose class-deciding segment sits after a path parameter and so can't be
+# expressed as a prefix. /api/conversations/<id>/ask runs the same AI
+# synthesis as /ask (backend/routes_conversations.py's ask_in_conversation)
+# and so gets the same fail-closed, per-account "llm" budget -- without this
+# it fell through to "cheap" (120/min, fail-open), an unmetered model route.
+_ROUTE_PATTERNS: list[tuple[re.Pattern[str], str]] = [
+    (re.compile(r"^/api/conversations/[^/]+/ask/?$"), "llm"),
 ]
 
 
@@ -136,6 +155,9 @@ def is_exempt(path: str) -> bool:
 
 
 def classify_route(path: str) -> str:
+    for pattern, cls in _ROUTE_PATTERNS:
+        if pattern.match(path):
+            return cls
     for prefix, cls in _ROUTE_CLASSES:
         if path == prefix or path.startswith(prefix):
             return cls

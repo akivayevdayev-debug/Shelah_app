@@ -449,8 +449,7 @@ class TestApplyOutputValidation:
         assert out["security"] == {
             "input": {"blocked": False}, "output": {"blocked": False, "reason": "ok"},
         }
-        assert "error" not in out
-        assert "is_fallback" not in out
+        assert "error" not in out and "is_fallback" not in out
         assert out["structured"] == {"ruling": "r", "summary": "s", "safety_class": "ok", "age_safe": True}
 
     def test_the_answer_language_reaches_the_validator(self, monkeypatch):
@@ -570,8 +569,7 @@ class TestEveryAnswerPathUsesTheSharedValidation:
 
         assert out is self.SENTINEL
         [(result, language, safety_class)] = recorded
-        assert result["answer"] == "model text"
-        assert result["is_simple"] is True
+        assert result["answer"] == "model text" and result["is_simple"] is True
         assert (language, safety_class) == ("he", "sensitive_intimate")
 
     async def test_ask_ai_async_redacts_a_blocked_answer_end_to_end(self, monkeypatch):

@@ -230,6 +230,7 @@ async def run_agentic_ask(
     community_lens: str = "All",
     answer_language: str = "en",
     tool_context: dict | None = None,
+    conversation_history: list | None = None,
 ) -> dict[str, Any]:
     """Agent loop: tool_use -> execute -> tool_result -> repeat, hard-capped
     at AI_AGENTIC_MAX_ROUNDS rounds (plan.md §9.4). Returns the same plain-
@@ -289,6 +290,7 @@ async def run_agentic_ask(
         mode=mode,
         community_lens=community_lens,
         answer_language=answer_language,
+        conversation_history=conversation_history,
     )
     base_prompt = claude_module._sanitize_prompt_payload(base_prompt)
 

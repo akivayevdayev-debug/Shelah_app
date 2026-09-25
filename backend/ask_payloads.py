@@ -33,8 +33,14 @@ def build_ai_answer_payload(
     user_id: Optional[str],
     question_was_sanitized: bool,
     extra_meta: Dict[str, Any],
+    history_id: Optional[str] = None,
 ) -> Dict[str, Any]:
-    """The payload for a successful AI answer."""
+    """The payload for a successful AI answer.
+
+    ``history_id`` is the ask_history row's id (None if storage was skipped
+    or failed) -- carried on the wire so the client can build a deep link
+    (?chat=<history_id>) back to this exact answer.
+    """
     structured = structured_payload or {}
     return {
         "answer": answer,
@@ -43,6 +49,7 @@ def build_ai_answer_payload(
         "customs": ctx["customs_info"],
         "sources": sources,
         "ai_cited_sources": ai_cited,
+        "history_id": history_id,
         "meta": {
             "mode": mode,
             "language": answer_language,
@@ -82,7 +89,12 @@ def build_source_fallback_payload(
 ) -> Dict[str, Any]:
     """The payload returned when AI synthesis failed and the answer is the
     halakhic-source-discovery fallback. ``discovery`` is what
-    get_halakhic_sources() returned; ``warning`` is its stripped warning."""
+    get_halakhic_sources() returned; ``warning`` is its stripped warning.
+
+    ``history_id`` is always None here -- this fallback path never calls
+    _store_ask_history, so there is no row to link to -- but the key is
+    still present so the top-level key set matches the success payload's
+    (see tests/test_ask.py's TestAskTransportKeySetParity)."""
     return {
         "answer": answer,
         "confidence": 0.4,
@@ -90,6 +102,7 @@ def build_source_fallback_payload(
         "customs": ctx["customs_info"],
         "sources": sources,
         "ai_cited_sources": [],
+        "history_id": None,
         "meta": {
             "mode": mode,
             "language": answer_language,

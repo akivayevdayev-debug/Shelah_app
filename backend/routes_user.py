@@ -8,6 +8,10 @@ unchanged; only the route decorator target moved from ``@app.route`` to
 and ``backend``.
 """
 
+import base64
+import binascii
+import json
+import re
 from datetime import datetime, timezone
 from uuid import uuid4
 
@@ -39,6 +43,41 @@ routes_user = Blueprint("user", __name__)
 
 _ERR_MISSING_USER_IDENTITY = "Missing user identity"
 _ERR_SUPABASE_NOT_CONFIGURED = "Supabase not configured"
+
+_HISTORY_COLUMNS = "id,question,answer,sources,ai_cited_sources,community,mode,language,created_at"
+_HISTORY_ID_RE = re.compile(r"^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$", re.I)
+# created_at as PostgREST returns a timestamptz ("2026-09-24T10:00:00.123456+00:00").
+_CURSOR_TS_RE = re.compile(r"^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d{1,6})?(?:Z|[+-]\d{2}:\d{2})$")
+_MAX_HISTORY_QUERY_CHARS = 200
+
+
+# History pages are keyset-paginated on (created_at, id), newest first: the
+# cursor is the last row of the previous page, so a page never repeats or
+# skips a row when new answers are stored in between (an offset would).
+# It's opaque to clients -- base64url JSON [created_at, id].
+def _encode_history_cursor(row):
+    raw = json.dumps([row.get("created_at"), row.get("id")], separators=(",", ":"))
+    return base64.urlsafe_b64encode(raw.encode("utf-8")).decode("ascii").rstrip("=")
+
+
+def _decode_history_cursor(cursor):
+    """(created_at, id) for a cursor this API issued, or None."""
+    try:
+        padded = cursor + "=" * (-len(cursor) % 4)
+        created_at, entry_id = json.loads(base64.urlsafe_b64decode(padded.encode("ascii")))
+    except (ValueError, TypeError, binascii.Error, UnicodeError):
+        return None
+    if not isinstance(created_at, str) or not isinstance(entry_id, str):
+        return None
+    if not _CURSOR_TS_RE.match(created_at) or not _HISTORY_ID_RE.match(entry_id):
+        return None
+    return created_at, entry_id
+
+
+def _escape_like(text):
+    """A literal ILIKE substring: the user's %, _ and backslash match
+    themselves instead of acting as wildcards."""
+    return text.replace("\\", "\\\\").replace("%", "\\%").replace("_", "\\_")
 
 
 @routes_user.route("/api/accept-legal", methods=["POST"])
@@ -348,7 +387,12 @@ def api_preferences_alias():
 @routes_user.route("/api/user/history", methods=["GET"])
 @require_clerk_auth
 def get_ask_history():
-    """Return the signed-in user's ask history, newest first."""
+    """Return one page of the signed-in user's ask history, newest first.
+
+    Query args: ``limit`` (1-50, default 20); ``cursor`` (the previous
+    page's ``next_cursor``); ``q`` (case-insensitive substring of the
+    question). ``next_cursor`` is null on the last page.
+    """
     claims = getattr(g, "clerk_claims", {}) or {}
     user_id = str(claims.get("sub") or "").strip()
     if not user_id:
@@ -360,19 +404,85 @@ def get_ask_history():
 
     try:
         limit = max(1, min(int(request.args.get("limit", 20)), 50))
-        result = (
+    except (TypeError, ValueError):
+        limit = 20
+    after = None
+    raw_cursor = str(request.args.get("cursor") or "").strip()
+    if raw_cursor:
+        after = _decode_history_cursor(raw_cursor)
+        if after is None:
+            return jsonify({"error": "Invalid cursor"}), 400
+    search = " ".join(str(request.args.get("q") or "").split())[:_MAX_HISTORY_QUERY_CHARS]
+
+    try:
+        query = (
             supabase
             .table(SUPABASE_ASK_HISTORY_TABLE)
-            .select("id,question,answer,sources,ai_cited_sources,community,mode,language,created_at")
+            .select(_HISTORY_COLUMNS)
             .eq("user_id", user_id)
+        )
+        if search:
+            query = query.ilike("question", f"%{_escape_like(search)}%")
+        if after:
+            created_at, entry_id = after
+            # Quoted: a timestamp's ":" "." "+" are reserved inside or=().
+            query = query.or_(
+                f'created_at.lt."{created_at}",and(created_at.eq."{created_at}",id.lt.{entry_id})'
+            )
+        # One extra row says whether another page exists.
+        result = (
+            query
             .order("created_at", desc=True)
-            .limit(limit)
+            .order("id", desc=True)
+            .limit(limit + 1)
             .execute()
         )
-        return jsonify({"items": result.data or []})
+        rows = result.data or []
+        items = rows[:limit]
+        next_cursor = _encode_history_cursor(items[-1]) if len(rows) > limit else None
+        return jsonify({"items": items, "next_cursor": next_cursor})
     except Exception as e:
         _capture_backend_error("ask_history_fetch_failed", e, {"user_id_hash": hash_user_id(user_id)})
         return jsonify({"error": "Failed to load history"}), 500
+
+
+@routes_user.route("/api/user/history/<entry_id>", methods=["GET"])
+@require_clerk_auth
+def get_ask_history_entry(entry_id):
+    """Return a single ask-history entry owned by the signed-in user, so a
+    deep link (/answer/<id>) can hydrate that exact answer. 404s both when the
+    id doesn't exist and when it belongs to someone else, so a caller can
+    never distinguish "not found" from "not yours"."""
+    claims = getattr(g, "clerk_claims", {}) or {}
+    user_id = str(claims.get("sub") or "").strip()
+    if not user_id:
+        return jsonify({"error": _ERR_MISSING_USER_IDENTITY}), 401
+    # ids are uuids: anything else can't exist, and would only make
+    # Postgres raise (22P02) -- a 500 instead of the honest 404.
+    if not _HISTORY_ID_RE.match(str(entry_id or "")):
+        return jsonify({"error": "Not found"}), 404
+
+    supabase = _get_supabase_client()
+    if not supabase:
+        return jsonify({"error": _ERR_SUPABASE_NOT_CONFIGURED}), 503
+
+    try:
+        result = (
+            supabase
+            .table(SUPABASE_ASK_HISTORY_TABLE)
+            .select(_HISTORY_COLUMNS)
+            .eq("id", str(entry_id))
+            .eq("user_id", user_id)
+            .limit(1)
+            .execute()
+        )
+        rows = result.data or []
+        if not rows:
+            return jsonify({"error": "Not found"}), 404
+        return jsonify(rows[0])
+    except Exception as e:
+        _capture_backend_error("ask_history_get_failed", e, {"user_id_hash": hash_user_id(user_id), "entry_id": entry_id})
+        return jsonify({"error": "Failed to load history entry"}), 500
 
 
 @routes_user.route("/api/user/history/<entry_id>", methods=["DELETE"])

@@ -33,6 +33,7 @@ from backend import sefaria
 from backend import claude
 from backend import ask_pipeline
 from backend import cost_gates
+from backend import page_meta
 from backend.logging_setup import (
     setup_logging,
     _capture_backend_error,
@@ -840,6 +841,12 @@ SUPABASE_STUDY_BOOKMARKS_TABLE = (os.environ.get(
     "SUPABASE_STUDY_BOOKMARKS_TABLE") or "study_bookmarks").strip()
 SUPABASE_ASK_HISTORY_TABLE = (os.environ.get(
     "SUPABASE_ASK_HISTORY_TABLE") or "ask_history").strip()
+SUPABASE_CONVERSATIONS_TABLE = (os.environ.get(
+    "SUPABASE_CONVERSATIONS_TABLE") or "conversations").strip()
+SUPABASE_MESSAGES_TABLE = (os.environ.get(
+    "SUPABASE_MESSAGES_TABLE") or "messages").strip()
+SUPABASE_CITATIONS_TABLE = (os.environ.get(
+    "SUPABASE_CITATIONS_TABLE") or "citations").strip()
 SUPABASE_ANSWER_FEEDBACK_TABLE = (os.environ.get(
     "SUPABASE_ANSWER_FEEDBACK_TABLE") or "answer_feedback").strip()
 # Security posture, not per-deployment config -- every environment should
@@ -1308,8 +1315,15 @@ def index():
     # TTFB on every cold-cache instance. The client now fetches
     # /api/daily-study itself after first paint (populateDailyStudy() in
     # index.html) and fills in the skeleton.
+    return render_spa_shell(page_meta.query_meta(request.args))
+
+
+def render_spa_shell(meta):
+    """The SPA shell with this URL's title/og:url/canonical (backend/page_meta.py).
+    Shared by index() and the path deep links in backend/routes_spa_paths.py."""
     return render_template(
         "index.html",
+        page_meta=meta,
         clerk_publishable_key=CLERK_PUBLISHABLE_KEY,
         clerk_enforce_auth=CLERK_ENFORCE_AUTH,
         sentry_dsn_browser=SENTRY_DSN_BROWSER,
@@ -1628,6 +1642,7 @@ def _ask_question_strict_payload(mode, canonical_lens, ctx):
         "customs": ctx["customs_info"],
         "sources": display_sources,
         "ai_cited_sources": [],
+        "history_id": None,
         "meta": {
             "mode": mode,
             "community_lens": canonical_lens,
@@ -1680,7 +1695,7 @@ def _security_blocked_ask_payload(
     # Deliberately does NOT also call _store_user_memory_summary here --
     # that's a separate mechanism (fed back into future prompts as context)
     # outside plan.md §8.B.6's scope.
-    _store_ask_history(
+    history_id = _store_ask_history(
         user_id,
         question,
         blocked_answer,
@@ -1700,6 +1715,7 @@ def _security_blocked_ask_payload(
         "customs": [],
         "sources": [],
         "ai_cited_sources": [],
+        "history_id": history_id,
         "meta": {
             "mode": mode,
             "community_lens": canonical_lens,
@@ -1722,11 +1738,16 @@ def _security_blocked_ask_payload(
     }
 
 
-def _dispatch_ask_ai_synthesis_call(question, mode, canonical_lens, answer_language, ctx, engine):
+def _dispatch_ask_ai_synthesis_call(question, mode, canonical_lens, answer_language, ctx, engine, conversation_history=None):
     """Submit the AI-synthesis call (agentic tool-use loop or the plain
     claude.ask_claude() call, per AI_AGENTIC_TOOLS) to the bounded thread
     pool and block for its result, within AI_TOTAL_BUDGET_SECONDS. Split
     out of _run_ask_question_ai_synthesis() (SonarCloud python:S3776).
+
+    `conversation_history` is None for the single-shot /ask route (its only
+    caller until backend/routes_conversations.py's ask_in_conversation()) --
+    passing it through is a no-op there, so this stays byte-for-byte the
+    prior behavior for /ask.
 
     Bounded by AI_TOTAL_BUDGET_SECONDS via the module-level _THREAD_POOL so
     a slow/stuck model call can't hang this request indefinitely — mirrors
@@ -1755,6 +1776,7 @@ def _dispatch_ask_ai_synthesis_call(question, mode, canonical_lens, answer_langu
         "community_lens": canonical_lens,
         "answer_language": answer_language,
         "tool_context": _build_ask_tool_context(engine),
+        "conversation_history": conversation_history,
     }
 
     if claude.AI_AGENTIC_TOOLS:
@@ -1872,7 +1894,7 @@ def _run_ask_question_ai_synthesis(
     display_sources = _compact_ai_sources(ctx["primary_sources"])
     ai_cited = extract_ai_cited(structured_payload)
 
-    _store_ask_history(
+    history_id = _store_ask_history(
         user_id,
         question,
         normalized_answer,
@@ -1899,6 +1921,7 @@ def _run_ask_question_ai_synthesis(
         user_id=user_id,
         question_was_sanitized=question_was_sanitized,
         extra_meta={"cached": False},
+        history_id=history_id,
     )
 
 
@@ -2180,6 +2203,9 @@ _BLUEPRINTS = [
     ("backend.routes_community", "routes_community"),
     ("backend.routes_calendar", "routes_calendar"),
     ("backend.routes_user", "routes_user"),
+    ("backend.routes_conversations", "routes_conversations"),
+    ("backend.routes_answer_share", "routes_answer_share"),
+    ("backend.routes_spa_paths", "routes_spa_paths"),
     ("backend.routes_devtools", "routes_devtools"),
     ("backend.routes_legal", "routes_legal"),
     ("backend.routes_privacy", "routes_privacy"),
