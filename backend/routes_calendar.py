@@ -8,6 +8,7 @@ and shared helpers/constants are imported from ``app`` and ``backend``.
 """
 
 from datetime import date as greg_date
+from urllib.parse import urlparse
 
 import requests
 from flask import Blueprint, g, jsonify, request, session
@@ -203,6 +204,55 @@ def get_zmanim_month():
     return jsonify(events)
 
 
+# A holiday's whole run (Sukkot through Simchat Torah, plus the eve and the
+# day after) is the most one card ever asks about.
+_DAY_TIMES_MAX_DATES = 16
+_DAY_TIMES_YEARS = range(1900, 2201)
+
+
+def _parse_iso_dates(raw):
+    """Parse the comma-separated `dates` param into a sorted list of date
+    objects, or None when it's missing, malformed, too long or out of range."""
+    parts = [part.strip() for part in (raw or '').split(',') if part.strip()]
+    if not parts or len(parts) > _DAY_TIMES_MAX_DATES:
+        return None
+    days = set()
+    for part in parts:
+        try:
+            day = greg_date.fromisoformat(part)
+        except ValueError:
+            return None
+        if day.year not in _DAY_TIMES_YEARS:
+            return None
+        days.add(day)
+    return sorted(days)
+
+
+@routes_calendar.route('/api/zmanim/days')
+def get_zmanim_days():
+    """Clock times (dawn, sunset, nightfall, candle lighting, havdalah) for
+    specific dates at an explicit location -- what the calendar's holiday card
+    shows instead of "Sundown"/"Nightfall".
+
+    lat/lon are required. Unlike /api/zmanim there is no session fallback and
+    no session write, so the response is a pure function of the URL and is
+    safely public-cacheable (see backend/cache_policy.py).
+    """
+    lat, lon, error_response = _resolve_zmanim_query_coords()
+    if error_response is not None:
+        return error_response
+    if lat is None or lon is None:
+        return jsonify({"error": "Both lat and lon are required."}), 400
+
+    days = _parse_iso_dates(request.args.get('dates'))
+    if days is None:
+        return jsonify({
+            "error": f"dates must be 1-{_DAY_TIMES_MAX_DATES} comma-separated YYYY-MM-DD values."
+        }), 400
+
+    return jsonify(ShelahEngine(lat=lat, lon=lon).get_day_times(days))
+
+
 @routes_calendar.route("/api/daily-study")
 def daily_study_api():
     """Return daily refs for Daf Yomi, Rambam, and related daily study prewarming.
@@ -242,6 +292,53 @@ def _holidays_fallback_chain(year, reason):
         return jsonify({"error": "Calendar data currently unavailable", "events": []}), 503
 
 
+_HEBCAL_LINK_HOSTS = frozenset({"hebcal.com", "www.hebcal.com"})
+_HEBCAL_LEYNING_KEYS = ("torah", "haftarah", "maftir")
+
+
+def _safe_hebcal_link(value):
+    """Return `value` only when it is an https URL on hebcal.com, else None.
+
+    The link is third-party data that the client renders as an <a href>, so it
+    is allow-listed here (and again in the browser) rather than trusted.
+    """
+    if not isinstance(value, str):
+        return None
+    parsed = urlparse(value.strip())
+    if parsed.scheme != "https" or parsed.hostname not in _HEBCAL_LINK_HOSTS:
+        return None
+    return parsed.geturl()
+
+
+def _hebcal_detail(item):
+    """Extract the fields the calendar's detail card shows from one Hebcal item.
+
+    Kept compact on purpose: Hebcal's `leyning` object also carries seven
+    aliyot plus a triennial cycle per parasha, which would multiply the
+    /api/holidays payload for a card that only shows Torah/Haftarah/Maftir.
+    """
+    detail = {}
+    for key in ("hebrew", "hdate", "memo", "subcat"):
+        value = item.get(key)
+        if isinstance(value, str) and value.strip():
+            detail[key] = value.strip()
+    link = _safe_hebcal_link(item.get("link"))
+    if link:
+        detail["link"] = link
+    if item.get("yomtov") is True:
+        detail["yomtov"] = True
+    leyning = item.get("leyning")
+    if isinstance(leyning, dict):
+        readings = {
+            key: leyning[key].strip()
+            for key in _HEBCAL_LEYNING_KEYS
+            if isinstance(leyning.get(key), str) and leyning[key].strip()
+        }
+        if readings:
+            detail["leyning"] = readings
+    return detail
+
+
 def _hebcal_item_to_event(item):
     """Map one Hebcal item to a FullCalendar event dict, or None when unusable."""
     if not isinstance(item, dict):
@@ -264,6 +361,7 @@ def _hebcal_item_to_event(item):
         "category": category or "default",
         "color": _holiday_color_for_category(category),
         "textColor": "#ffffff",
+        "detail": _hebcal_detail(item),
     }
 
 

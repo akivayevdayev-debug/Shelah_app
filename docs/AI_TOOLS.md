@@ -82,7 +82,7 @@ The `AI_AGENTIC_TOOLS` gate at both call sites (`app.py`'s `_run_ask_question_ai
 - `classify_safety()` runs **before** the loop starts — medical/self-harm/abuse queries never reach tool-use; they route straight to referral, identical to the non-agentic path.
 - Every tool call is timed out, narrowly caught, and circuit-broken (`health.record_success`/`record_failure` per attempt, fail-open on a dead provider).
 - `cost_meter` records the underlying model call each round via the same `record_llm_call` path `_call_anthropic_agentic_turn` shares with the rest of `claude.py`.
-- Tool results are sanitized as untrusted content (`claude._sanitize_model_output`, capped at 4000 chars) before being re-injected into the conversation, since `web_search` results in particular are external, unvetted text.
+- Tool results are sanitized as untrusted content (`claude._sanitize_model_output`, capped at 4000 chars) before being re-injected into the conversation, since `web_search` results in particular are external, unvetted text. On top of that, the handlers that return publicly-editable or crowd-sourced third-party text (`web_search`, `search_responsa_external`, `translate_text`) run each result through `backend/retrieval_guard.py::withhold_injected()` and drop a hit carrying prompt-injection phrasing whole (a dropped `web_search` result comes back as a "withheld" error; a dropped responsa hit simply isn't in `results`; a dropped translation comes back as `translated: false`). Only a source label and a marker count are logged, never the text.
 
 ## Implementation notes & deviations from plan.md's literal text
 

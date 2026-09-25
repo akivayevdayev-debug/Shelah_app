@@ -156,15 +156,6 @@ body.theme-dark #leftSidebar h3.text-slate-400 {
     }
 }
 
-#rightSidebarIdle {
-    border-radius: var(--radius-md, 0.7rem);
-}
-
-body.theme-dark #rightSidebarIdle {
-    background: var(--surface-elevated) !important;
-    border-color: var(--surface-border) !important;
-}
-
 #leftSidebar,
 #rightSidebar {
     will-change: transform;
