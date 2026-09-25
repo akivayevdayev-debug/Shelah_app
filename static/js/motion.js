@@ -275,7 +275,7 @@ export function springValue(from, to, spring, { velocity = 0, onUpdate, onComple
 // into it on close (spatial consistency: what leaves the way it came).  The
 // mover scales about a transform-origin placed on the trigger, so no
 // translation is needed and the two ends share one transform function list.
-const _ORIGIN_SCALE = { popover: 0.5, modal: 0.55 };
+const _ORIGIN_SCALE = { popover: 0.5, modal: 0.55, emerge: 0.2 };
 
 function _originMorph(mover, origin, preset) {
     const scale = _ORIGIN_SCALE[preset];
@@ -342,6 +342,28 @@ const _PRESENCE = {
         spring: appleSpring(0.3, 0), leave: SPRING_MENU_LEAVE,
         fade: { in: 0.22, out: 0.16 },
     },
+    // Grows out of the control that summoned it from a small seed on a soft
+    // spring with a whisper of overshoot, and folds back into it on close;
+    // without a trigger it rises gently instead. (The desktop AI widget used
+    // this until it moved to the plain "window" cross-fade; nothing uses it
+    // now.)
+    emerge:  {
+        y: 24, scale: 0.96, exitY: 12, exitScale: 0.97,
+        spring: appleSpring(0.45, 0.12), morphSpring: appleSpring(0.5, 0.14),
+        leave: appleSpring(0.26, 0),
+        fade: { in: 0.16, out: 0.16, outMorph: 0.22 },
+    },
+    // Surfaces docked to the bottom edge on phones (the conversation sheet,
+    // its minimised bar, the search tray): travel the element's full height
+    // from / back off the bottom of the screen, fully opaque most of the way
+    // so it reads as sliding rather than fading. `awaitExit` keeps it on
+    // screen until the slide has finished instead of cutting it at the fade.
+    drawer:  {
+        y: 'full', scale: 1, exitY: 'full', exitScale: 1,
+        spring: appleSpring(0.42, 0.08), leave: appleSpring(0.3, 0),
+        fade: { in: 0.1, out: 0.24, outEase: [0.7, 0, 1, 1] },
+        awaitExit: true,
+    },
 };
 // Exit springs are critically damped so the element settles without a rebound
 // while it is already leaving.
@@ -349,6 +371,13 @@ const SPRING_LEAVE = { stiffness: 420, damping: 40, mass: 0.8 };
 const _presence = new WeakMap();
 
 const _xf = (y, scale) => `translateY(${y}px) scale(${scale})`;
+
+// 'full' offsets resolve to the element's own height plus a little clearance
+// (a shadow or safe-area inset) so it starts completely off-screen.
+function _offset(value, mover) {
+    if (value !== 'full') return value;
+    return Math.ceil((mover?.getBoundingClientRect().height || 0) + 24);
+}
 
 function _presenceState(el) {
     let state = _presence.get(el);
@@ -406,7 +435,7 @@ export async function present(el, { preset = 'popover', card = null, replay = fa
 
     const mover = card ?? (p.y || p.scale !== 1 || state.origin ? el : null);
     const morph = _originMorph(mover, state.origin, preset);
-    const from = morph ? _xf(0, morph.scale) : _xf(p.y, p.scale);
+    const from = morph ? _xf(0, morph.scale) : _xf(_offset(p.y, mover), p.scale);
     el.style.opacity = String(startOpacity);
     if (mover) {
         if (morph) mover.style.transformOrigin = morph.origin;
@@ -461,12 +490,12 @@ export async function dismiss(el, { preset = 'popover', card = null, onHidden } 
     const fade = animate(el, { opacity: 0 }, { duration: morph ? timing.outMorph : timing.out, ease: timing.outEase });
     const controls = [fade];
     if (mover) {
-        const to = morph ? _xf(0, morph.scale) : _xf(p.exitY, p.exitScale);
+        const to = morph ? _xf(0, morph.scale) : _xf(_offset(p.exitY, mover), p.exitScale);
         controls.push(animate(mover, { transform: [_xf(0, 1), to] }, _springTransition(p.leave ?? SPRING_LEAVE)));
     }
     state.controls = controls;
     // Hide as soon as it has faded; the (longer) spring is cut off while invisible.
-    await fade;
+    await (p.awaitExit ? Promise.all(controls) : fade);
     if (state.token !== token) return; // superseded by a present()
     controls.forEach((c) => c.stop?.());
     await _settle();

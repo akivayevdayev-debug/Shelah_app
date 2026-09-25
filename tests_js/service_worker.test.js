@@ -85,8 +85,11 @@ function loadWorker(t, { fetchImpl }) {
     delete require.cache[require.resolve(WORKER_PATH)];
     require(WORKER_PATH);
 
-    async function dispatch(pathname) {
-        const request = new Request(`${ORIGIN}${pathname}`);
+    // `navigate` sends a page load (a Request can't be constructed with
+    // mode "navigate", so it's a plain stand-in with the fields the worker reads).
+    async function dispatch(pathname, { navigate = false } = {}) {
+        const url = `${ORIGIN}${pathname}`;
+        const request = navigate ? { url, method: 'GET', mode: 'navigate' } : new Request(url);
         const event = {
             request,
             responded: null,
@@ -304,10 +307,85 @@ test('a message with no refs (or the wrong type) is a no-op', async (t) => {
     assert.equal(fetchCalled, false);
 });
 
+test('page loads are network-first and cached per URL', async (t) => {
+    const { caches, dispatch } = loadWorker(t, {
+        fetchImpl: async () => new Response('<html>shell</html>', { status: 200 }),
+    });
+    const { response } = await dispatch('/text/Genesis.1', { navigate: true });
+    assert.equal(await response.text(), '<html>shell</html>');
+    const runtime = [...caches.stores.entries()].find(([name]) => name.startsWith('shelah-runtime-'))[1];
+    assert.ok(runtime.has(`${ORIGIN}/text/Genesis.1`));
+});
+
+test('offline, a never-visited app path falls back to the precached shell; other pages to offline.html', async (t) => {
+    const { caches, dispatch } = loadWorker(t, {
+        fetchImpl: async () => {
+            throw new TypeError('offline');
+        },
+    });
+    caches.match = async (request) => ({ '/': 'SHELL', '/static/offline.html': 'OFFLINE' })[request];
+
+    for (const pathname of ['/text/Genesis.1', '/prayer/shacharit', '/answer/0b6a3f58-2f5e-4c1d-9a7e-3d2b1c0a9f88',
+        '/a/Zx9_-abcDEF0123456789q', '/calendar/2026-09-25', '/history', '/history/']) {
+        assert.equal((await dispatch(pathname, { navigate: true })).response, 'SHELL', pathname);
+    }
+    for (const pathname of ['/about', '/text/', '/history/extra', '/settings']) {
+        assert.equal((await dispatch(pathname, { navigate: true })).response, 'OFFLINE', pathname);
+    }
+
+    caches.match = async (request) => (request === '/static/offline.html' ? 'OFFLINE' : undefined);
+    assert.equal((await dispatch('/text/Genesis.1', { navigate: true })).response, 'OFFLINE', 'no precached shell yet');
+});
+
+test('offline, a visited page is served from the runtime cache first', async (t) => {
+    let online = true;
+    const { dispatch } = loadWorker(t, {
+        fetchImpl: async () => {
+            if (!online) throw new TypeError('offline');
+            return new Response('<html>genesis</html>', { status: 200 });
+        },
+    });
+    await dispatch('/text/Genesis.1', { navigate: true });
+    online = false;
+    const { response } = await dispatch('/text/Genesis.1', { navigate: true });
+    assert.equal(await response.text(), '<html>genesis</html>');
+});
+
 test('the fake worker globals are removed again once a test has finished', () => {
     // Runs after the tests above (top-level tests in a file run in order), each
     // of which installed fakes for self/caches/fetch.
     for (const name of WORKER_GLOBALS) {
         assert.equal(globalThis[name], ORIGINAL_GLOBALS[name], `globalThis.${name} leaked out of a test`);
     }
+});
+
+test('zmanim and daily-study are network-first: fresh when online, the cached copy only offline', async (t) => {
+    let online = true;
+    let day = 0;
+    const { caches, dispatch } = loadWorker(t, {
+        fetchImpl: async () => {
+            if (!online) throw new TypeError('offline');
+            day += 1;
+            return jsonResponse({ metadata: { hebrew_date: `day ${day}` } });
+        },
+    });
+
+    for (const path of ['/api/zmanim?lat=1&lon=2', '/api/daily-study']) {
+        const first = await dispatch(path);
+        const second = await dispatch(path);
+        assert.equal(second.waited, 0, 'no background refresh: the answer itself is fresh');
+        assert.notDeepEqual(await second.response.json(), await first.response.json(), `${path}: never yesterday's copy`);
+
+        online = false;
+        const offline = await dispatch(path);
+        assert.deepEqual(await offline.response.json(), { metadata: { hebrew_date: `day ${day}` } }, `${path}: last good copy offline`);
+        online = true;
+    }
+
+    online = false;
+    const never = await dispatch('/api/zmanim?lat=9&lon=9');
+    assert.equal(never.response.status, 503);
+    assert.deepEqual(await never.response.json(), { error: 'Offline' });
+    const api = [...caches.stores.keys()].find((name) => name.startsWith('shelah-api-'));
+    assert.ok(api);
 });

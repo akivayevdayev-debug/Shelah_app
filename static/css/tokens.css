@@ -272,6 +272,14 @@
     to   { transform: translateX(100%); }
 }
 
+/* The one-time AI discovery tip's ring around its anchor (conversation.css
+   .ai-attention::after): a ripple that grows out and fades. */
+@keyframes shelah-attention-ping {
+    0%   { transform: scale(1);    opacity: 0.7; }
+    70%  { transform: scale(1.25); opacity: 0; }
+    100% { transform: scale(1.25); opacity: 0; }
+}
+
 @keyframes shelah-spin {
     to { transform: rotate(360deg); }
 }
