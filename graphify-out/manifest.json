@@ -610,8 +610,8 @@
     "semantic_hash": ""
   },
   "templates/index.html": {
-    "mtime": 1790367412.7773871,
-    "ast_hash": "8c84542c91fab09b8f41a483f6c97274",
+    "mtime": 1790367519.4710276,
+    "ast_hash": "79fbc208790aaaff385b02a461149615",
     "semantic_hash": ""
   },
   "templates/privacy.html": {
@@ -1825,8 +1825,8 @@
     "semantic_hash": ""
   },
   "static/js/router.js": {
-    "mtime": 1790350020.6441426,
-    "ast_hash": "40cf20adeb25d3091689ab6b8d51ce08",
+    "mtime": 1790367493.9206383,
+    "ast_hash": "13f54a1d8cee17b0de3d263f8eb75ade",
     "semantic_hash": ""
   },
   "tests/test_routes_calendar_detail.py": {
@@ -1865,8 +1865,8 @@
     "semantic_hash": ""
   },
   "tests_js/router.test.js": {
-    "mtime": 1790367386.8698156,
-    "ast_hash": "fba49def648b6368299e880d6eb366d8",
+    "mtime": 1790367531.834809,
+    "ast_hash": "75e1b50be085fe6052fcf4884b442a08",
     "semantic_hash": ""
   },
   "backend/cost_gates.py": {
@@ -1950,8 +1950,8 @@
     "semantic_hash": ""
   },
   "tests/test_routes_spa_paths.py": {
-    "mtime": 1790367443.8042083,
-    "ast_hash": "5ad7e5d2fbe657ca5e36726fcd000b96",
+    "mtime": 1790367585.9065027,
+    "ast_hash": "c11b0a3f47c06c66cecefe62f5119572",
     "semantic_hash": ""
   },
   "scripts/sql/migrate_answer_feedback_history_link.sql": {
