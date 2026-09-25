@@ -2811,24 +2811,52 @@ html.rtl .home-main-layout #popularTextsGrid {
         flex: 0 0 auto;
         display: grid;
         grid-template-columns: repeat(4, minmax(0, 1fr));
+        /* Equal columns with a gutter, so neighbouring pills never touch. */
+        column-gap: var(--sp-1);
         background: rgba(250, 245, 236, 0.98);
         border-top: 1px solid #d7ccb8;
-        padding: 0.25rem max(0.35rem, env(safe-area-inset-right)) max(0.25rem, env(safe-area-inset-bottom)) max(0.35rem, env(safe-area-inset-left));
+        padding: var(--sp-1) max(var(--sp-2), env(safe-area-inset-right)) max(var(--sp-1), env(safe-area-inset-bottom)) max(var(--sp-2), env(safe-area-inset-left));
         z-index: 96;
     }
 
+    /* Icon stacked over label, both centered in the column: the icons sit
+       on an even rhythm whatever each label's width. */
     .mobile-tab-btn {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: var(--sp-1);
         border: 0;
         background: transparent;
-        font-size: 0.72rem;
+        font-size: 0.66rem;
         font-weight: 700;
         letter-spacing: 0.08em;
+        line-height: 1;
         text-transform: uppercase;
         color: #645a49;
-        padding: 0.55rem 0.4rem;
-        border-radius: 0.6rem;
-        /* 44px touch target (each tab is ~91px wide already). */
-        min-height: 2.75rem;
+        padding: var(--sp-2) var(--sp-1);
+        border-radius: var(--radius-md);
+        min-width: 0;
+        min-height: var(--hit-min);
+    }
+
+    .mobile-tab-btn__icon {
+        position: relative;
+        display: inline-flex;
+    }
+
+    .mobile-tab-btn__label {
+        max-width: 100%;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    @media (hover: hover) {
+        .mobile-tab-btn:not(.mobile-tab-active):hover {
+            background: var(--ctrl-bg-hover);
+        }
     }
 
     /* Small controls in the top bars: keep their drawn size but extend the
@@ -2853,13 +2881,13 @@ html.rtl .home-main-layout #popularTextsGrid {
         transform: translateY(-50%);
     }
 
-    /* Search tab: label + small AI sparkle (same mark as the search field's
-       own hint), centered as one unit. */
-    .mobile-tab-btn-ai {
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        gap: 0.3rem;
+    /* Search tab: a small AI sparkle (same mark as the search field's own
+       hint) tucked on the icon's corner, so it never shifts the label off
+       the column's center. */
+    .mobile-tab-btn__ai {
+        position: absolute;
+        top: calc(var(--sp-1) * -1);
+        inset-inline-end: calc(var(--sp-2) * -1);
     }
 
     .mobile-tab-btn.mobile-tab-active {

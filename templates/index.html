@@ -109,14 +109,14 @@
             integrity="sha384-6ZdfL2Azuen6KYvcTkbxqJS1d7txbNWrVfmURkxNeCn7DtzhLRL6Fi6WGG6ZLdKn"
             crossorigin="anonymous"></script>
     <link rel="stylesheet" href="/static/css/tokens.css?v=20260925-ui10">
-    <link rel="stylesheet" href="/static/style.css?v=20260925-ui10">
+    <link rel="stylesheet" href="/static/style.css?v=20260925-tabs1">
     <!-- CSS modules (supplement style.css; do not replace) -->
     <link rel="stylesheet" href="/static/css/typography.css?v=20260817-v6">
     <link rel="stylesheet" href="/static/css/reader.css?v=20260925-ui10">
     <link rel="stylesheet" href="/static/css/sidebar.css?v=20260925-mp1">
     <link rel="stylesheet" href="/static/css/halacha.css?v=20260817-v6">
     <link rel="stylesheet" href="/static/css/prayer.css?v=20260817-v6">
-    <link rel="stylesheet" href="/static/css/ai.css?v=20260925-ui10">
+    <link rel="stylesheet" href="/static/css/ai.css?v=20260925-tabs1">
     <link rel="stylesheet" href="/static/css/calendar.css?v=20260925-ui10">
     <link rel="stylesheet" href="/static/css/calendar-detail.css?v=20260925-mp1">
     <link rel="stylesheet" href="/static/css/loading.css?v=20260817-v6">
@@ -1542,17 +1542,29 @@
         <!-- Active-tab pill: one element that slides between the buttons (see
              syncMobileTabIndicator); the buttons themselves stay transparent. -->
         <span id="mobileTabIndicator" class="mobile-tab-indicator" aria-hidden="true"></span>
-        <button type="button" class="mobile-tab-btn" data-mobile-tab="home" data-en="Home" data-he="בית">Home</button>
-        <!-- Label lives in its own span: the language toggle sets textContent on any
-             [data-en] element, which would erase the icon if it sat on the button. -->
-        <button type="button" class="mobile-tab-btn mobile-tab-btn-ai" data-mobile-tab="search">
-            <span data-en="Search" data-he="חיפוש">Search</span>
-            <span class="ai-hint-icon" aria-hidden="true" title="Powered by AI">{{ phosphor('sparkle', size=12, class='h-3 w-3') }}</span>
+        <!-- Icon over label, both centered in equal columns, so the tabs read as
+             evenly spaced whatever each label's width. Labels live in their own
+             span: the language toggle sets textContent on any [data-en] element,
+             which would erase the icon if it sat on the button. -->
+        <button type="button" class="mobile-tab-btn" data-mobile-tab="home">
+            <span class="mobile-tab-btn__icon">{{ phosphor('house', size=20) }}</span>
+            <span class="mobile-tab-btn__label" data-en="Home" data-he="בית">Home</span>
         </button>
-        <button type="button" class="mobile-tab-btn" data-mobile-tab="library" data-en="Library"
-            data-he="ספרייה">Library</button>
-        <button type="button" class="mobile-tab-btn" data-mobile-tab="daily" data-en="Daily"
-            data-he="יומי">Daily</button>
+        <button type="button" class="mobile-tab-btn mobile-tab-btn-ai" data-mobile-tab="search">
+            <span class="mobile-tab-btn__icon">
+                {{ phosphor('magnifying-glass', size=20) }}
+                <span class="ai-hint-icon mobile-tab-btn__ai" aria-hidden="true" title="Powered by AI">{{ phosphor('sparkle', size=10) }}</span>
+            </span>
+            <span class="mobile-tab-btn__label" data-en="Search" data-he="חיפוש">Search</span>
+        </button>
+        <button type="button" class="mobile-tab-btn" data-mobile-tab="library">
+            <span class="mobile-tab-btn__icon">{{ phosphor('book-open', size=20) }}</span>
+            <span class="mobile-tab-btn__label" data-en="Library" data-he="ספרייה">Library</span>
+        </button>
+        <button type="button" class="mobile-tab-btn" data-mobile-tab="daily">
+            <span class="mobile-tab-btn__icon">{{ phosphor('sun', size=20) }}</span>
+            <span class="mobile-tab-btn__label" data-en="Daily" data-he="יומי">Daily</span>
+        </button>
     </nav>
 
     {% if turnstile_enabled and turnstile_site_key %}
