@@ -1,0 +1,396 @@
+/* ═══════════════════════════════════════════════════════════════════
+   /history — every stored AI answer, searchable, paged.
+   Markup: static/js/ask-history.js (shellHtml/resultsHtml/moreHtml),
+   rendered into #readerContent by index.html's displayAskHistoryPage().
+
+   Colours only from tokens.css (color-mix for tints), spacing from --sp-*,
+   type from the clamp() --text-* scale, logical properties so lang=he
+   mirrors. Every control is at least 44×44px. Skeleton rows use loading.css's
+   .sk-line shimmer (static under prefers-reduced-motion) and match a real
+   row's height, so the list doesn't shift when it lands.
+═══════════════════════════════════════════════════════════════════ */
+
+:root {
+    --history-row-min-h: 3.5rem;           /* 56px: two-line question + date */
+    --history-row-bg: var(--surface-2);
+    --history-row-hover: color-mix(in srgb, var(--accent-primary) 6%, var(--surface-2));
+    --history-danger: var(--accent-red);
+    --history-danger-ink: var(--ink-on-accent);
+}
+
+[data-theme="dark"],
+html.theme-dark,
+body.theme-dark {
+    /* Raw --accent-red is under 4.5:1 on the dark surfaces; mix toward the
+       heading ink as conversation.css does for its danger text. */
+    --history-danger: color-mix(in srgb, var(--accent-red) 60%, var(--ink-heading));
+    --history-danger-ink: var(--surface-0);
+}
+@media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+        --history-danger: color-mix(in srgb, var(--accent-red) 60%, var(--ink-heading));
+        --history-danger-ink: var(--surface-0);
+    }
+}
+
+.history-page {
+    display: flex;
+    flex-direction: column;
+    gap: var(--sp-4);
+    inline-size: 100%;
+    max-inline-size: 48rem;
+}
+
+/* ── Search ─────────────────────────────────────────────────────── */
+.history-search {
+    position: relative;
+}
+
+.history-search-icon {
+    position: absolute;
+    inset-block: 0;
+    inset-inline-start: var(--sp-3);
+    display: flex;
+    align-items: center;
+    color: var(--ink-secondary);
+    pointer-events: none;
+}
+
+.history-search-icon svg {
+    inline-size: 1.125rem;
+    block-size: 1.125rem;
+}
+
+.history-search-input {
+    inline-size: 100%;
+    min-block-size: 2.75rem;
+    padding-block: var(--sp-2);
+    padding-inline: calc(var(--sp-3) + 1.125rem + var(--sp-2)) var(--sp-3);
+    border: 1px solid var(--ctrl-border);
+    border-radius: var(--radius-md);
+    background: var(--surface-2);
+    color: var(--ink-primary);
+    font-size: var(--text-base);
+    transition: border-color var(--motion-dur-fast) var(--motion-ease-out),
+        box-shadow var(--motion-dur-fast) var(--motion-ease-out);
+}
+
+.history-search-input::placeholder {
+    color: var(--ink-secondary);
+    opacity: 1;
+}
+
+.history-search-input:hover:not(:disabled) {
+    border-color: color-mix(in srgb, var(--accent-primary) 45%, var(--ctrl-border));
+}
+
+.history-search-input:focus-visible {
+    outline: 2px solid var(--accent-primary);
+    outline-offset: 2px;
+}
+
+.history-search-input:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+/* ── Reader prose opt-out ───────────────────────────────────────── */
+/* The page renders inside #readerContent, a .prose container. The section's
+   `not-prose` class drops Tailwind typography, but ai.css/style.css scope
+   their own list, paragraph and link rhythm to `#readerContent.prose`, which
+   outranks plain classes: reset just those properties here. */
+#readerContent.prose .history-page :is(ul, li, p) {
+    margin: 0;
+}
+
+#readerContent.prose .history-page .history-list {
+    padding: 0;
+}
+
+#readerContent.prose .history-page .history-message p {
+    font-size: inherit;
+    line-height: 1.5;
+    color: inherit;
+}
+
+#readerContent.prose .history-page a.history-row-open {
+    color: var(--ink-primary);
+    font-weight: inherit;
+    text-decoration: none;
+}
+
+/* ── List ───────────────────────────────────────────────────────── */
+.history-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: var(--sp-2);
+}
+
+/* Wraps only while confirming a delete on a narrow screen: the question keeps
+   at least 12rem and the confirm group drops onto its own line. */
+.history-row {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: stretch;
+    gap: var(--sp-1);
+    min-block-size: var(--history-row-min-h);
+    border: 1px solid var(--surface-border);
+    border-radius: var(--radius-md);
+    background: var(--history-row-bg);
+    transition: background-color var(--motion-dur-fast) var(--motion-ease-out),
+        border-color var(--motion-dur-fast) var(--motion-ease-out);
+}
+
+.history-row:hover {
+    background: var(--history-row-hover);
+}
+
+.history-row--confirming {
+    border-color: var(--history-danger);
+}
+
+.history-row-open {
+    flex: 1 1 12rem;
+    min-inline-size: 0;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: var(--sp-1);
+    padding: var(--sp-2) var(--sp-3);
+    border-radius: var(--radius-md);
+    color: var(--ink-primary);
+    text-decoration: none;
+}
+
+.history-row-open:focus-visible,
+.history-row-del:focus-visible,
+.history-btn:focus-visible {
+    outline: 2px solid var(--accent-primary);
+    outline-offset: 2px;
+}
+
+.history-row-q {
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    overflow-wrap: anywhere;
+    font-size: var(--text-sm);
+    font-weight: 600;
+    line-height: 1.35;
+    color: var(--ink-heading);
+}
+
+.history-row-open:hover .history-row-q {
+    text-decoration: underline;
+    text-underline-offset: 2px;
+}
+
+.history-row-date {
+    font-size: var(--text-xs);
+    line-height: 1.4;
+    color: var(--ink-secondary);
+}
+
+.history-row-del {
+    flex: 0 0 auto;
+    align-self: center;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    inline-size: 2.75rem;
+    block-size: 2.75rem;
+    margin-inline-end: var(--sp-1);
+    border: 0;
+    border-radius: var(--radius-sm);
+    background: transparent;
+    color: var(--ink-secondary);
+    cursor: pointer;
+    transition: color var(--motion-dur-fast) var(--motion-ease-out),
+        background-color var(--motion-dur-fast) var(--motion-ease-out);
+}
+
+.history-row-del svg {
+    inline-size: 1.125rem;
+    block-size: 1.125rem;
+}
+
+.history-row-del:hover {
+    color: var(--history-danger);
+    background: color-mix(in srgb, var(--history-danger) 10%, transparent);
+}
+
+.history-row-del:active {
+    transform: scale(0.94);
+}
+
+.history-row-confirm {
+    flex: 1 0 auto;
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+    gap: var(--sp-2);
+    padding: var(--sp-1) var(--sp-2);
+}
+
+.history-row-confirm-text {
+    font-size: var(--text-sm);
+    font-weight: 600;
+    color: var(--history-danger);
+}
+
+/* ── Buttons (confirm, load more, sign in, retry) ───────────────── */
+.history-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-block-size: 2.75rem;
+    min-inline-size: 2.75rem;
+    padding: var(--sp-2) var(--sp-4);
+    border: 1px solid var(--ctrl-border);
+    border-radius: var(--radius-md);
+    background: var(--ctrl-bg);
+    color: var(--ctrl-text-strong);
+    font-size: var(--text-sm);
+    font-weight: 600;
+    cursor: pointer;
+    transition: background-color var(--motion-dur-fast) var(--motion-ease-out),
+        border-color var(--motion-dur-fast) var(--motion-ease-out),
+        transform var(--motion-dur-fast) var(--motion-ease-out);
+}
+
+.history-btn:hover:not(:disabled) {
+    background: var(--ctrl-bg-hover);
+}
+
+.history-btn:active:not(:disabled) {
+    transform: scale(0.97);
+}
+
+.history-btn:disabled {
+    opacity: 0.6;
+    cursor: progress;
+}
+
+.history-btn--primary {
+    border-color: transparent;
+    background: var(--ctrl-filled-bg);
+    color: var(--ink-on-accent);
+}
+
+.history-btn--primary:hover:not(:disabled) {
+    background: var(--ctrl-filled-hover);
+}
+
+.history-btn--danger {
+    border-color: transparent;
+    background: var(--history-danger);
+    color: var(--history-danger-ink);
+}
+
+.history-btn--danger:hover:not(:disabled) {
+    background: color-mix(in srgb, var(--history-danger) 88%, var(--ink-heading));
+}
+
+.history-more {
+    display: flex;
+    justify-content: center;
+}
+
+.history-more:empty {
+    display: none;
+}
+
+/* ── Empty / signed-out / error ─────────────────────────────────── */
+.history-message {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--sp-4);
+    padding: var(--sp-8) var(--sp-4);
+    border: 1px dashed var(--surface-border);
+    border-radius: var(--radius-md);
+    text-align: center;
+    color: var(--ink-primary);
+    font-size: var(--text-base);
+}
+
+.history-message p {
+    margin: 0;
+    max-inline-size: 32rem;
+}
+
+/* ── Skeleton rows: same box as a real row ──────────────────────── */
+/* Same padding, gap and line boxes as .history-row-open's question + date. */
+.history-row--skeleton {
+    flex-direction: column;
+    justify-content: center;
+    gap: var(--sp-1);
+    padding: var(--sp-2) var(--sp-3);
+}
+
+.history-row--skeleton:hover {
+    background: var(--history-row-bg);
+}
+
+.history-skel {
+    display: block;
+}
+
+.history-skel--q { inline-size: 70%; block-size: calc(var(--text-sm) * 1.35); }
+.history-skel--meta { inline-size: 5rem; block-size: calc(var(--text-xs) * 1.4); }
+.history-row--skeleton:nth-child(even) .history-skel--q { inline-size: 55%; }
+
+@media (prefers-reduced-motion: reduce) {
+    .history-row,
+    .history-row-del,
+    .history-btn,
+    .history-search-input {
+        transition: none;
+    }
+    .history-row-del:active,
+    .history-btn:active:not(:disabled) {
+        transform: none;
+    }
+}
+
+/* ── Sidebar "Ask History" header: the link to the full page ────── */
+.ask-history-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--sp-2);
+    margin-block: var(--sp-1) var(--sp-1);
+}
+
+.ask-history-view-all {
+    display: inline-flex;
+    align-items: center;
+    min-block-size: 2.75rem;
+    padding-inline: var(--sp-2);
+    border-radius: var(--radius-sm);
+    font-size: var(--text-xs);
+    font-weight: 600;
+    color: var(--accent-primary);
+    text-decoration: none;
+    transition: background-color var(--motion-dur-fast) var(--motion-ease-out);
+}
+
+.ask-history-view-all:hover {
+    background: color-mix(in srgb, var(--accent-primary) 8%, transparent);
+    text-decoration: underline;
+    text-underline-offset: 2px;
+}
+
+.ask-history-view-all:focus-visible {
+    outline: 2px solid var(--accent-primary);
+    outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .ask-history-view-all { transition: none; }
+}
