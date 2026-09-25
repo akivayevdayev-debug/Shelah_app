@@ -304,65 +304,65 @@ class _RedisStore(_RateLimitStore):
     built once at import time -- see ``get_shared_store()``), but a
     ``redis.asyncio`` client's connection pool binds its asyncio primitives
     (locks/futures/transports) to whichever event loop is running the first
-    time a command actually executes. A process that outlives one event
-    loop and later serves requests on a *different* one -- every test here
-    (pytest-asyncio creates a fresh loop per test function) and, in
-    production, a warm Vercel Fluid Compute instance reused across
-    invocations -- would otherwise reuse a pool wired to a closed loop and
-    fail with "Task ... got Future ... attached to a different loop" /
-    "Event loop is closed". ``_client_for_current_loop()`` re-binds (by
-    building a fresh client against the same ``self._url``) whenever the
-    currently-running loop differs from the one the cached client was last
-    used on, so each event loop gets its own client instead of a stale one
-    being force-reused across loop boundaries. The stale client/pool is not
-    explicitly closed -- its transport belongs to a loop that may already be
-    closed by the time we notice, so attempting to close it here could
-    itself raise; it is simply dropped and left for GC.
+    time a command actually executes. The process runs more than one loop:
+    the ASGI app's own, pytest-asyncio's fresh loop per test, a warm Vercel
+    Fluid Compute instance reused across invocations, and -- concurrently
+    with the ASGI loop -- every ``asyncio.run()`` on backend/claude.py's
+    loop-bridge threads (e.g. backend/cost_gates.py's call into
+    cost_meter.is_global_cost_breaker_tripped, which reads this store).
+    ``_client_for_current_loop()`` therefore keeps one client PER LOOP
+    rather than a single client re-bound on every loop change: a single
+    slot would be torn down and rebuilt each time the bridge and the ASGI
+    loop alternated (dropping the ASGI loop's pooled connections), and a
+    bridge thread could swap it out from under a coroutine on the ASGI
+    loop mid-request ("... attached to a different loop"). Entries whose
+    loop has since closed are dropped on the next miss; their clients are
+    not explicitly closed -- the transport belongs to a closed loop, so
+    closing it here could itself raise -- and are left for GC.
     """
 
     def __init__(self, url: str) -> None:
-        import redis.asyncio as redis_asyncio  # local import: optional until configured
-
         self._url = url
         # Built eagerly so a malformed URL still raises synchronously out of
         # __init__ (matching _build_store()'s try/except, which must never
-        # let a bad URL crash app boot) -- but not yet "bound" to any event
-        # loop (_client_loop stays None until first real use binds it).
-        self._client = redis_asyncio.Redis.from_url(
-            url,
+        # let a bad URL crash app boot) -- but not yet bound to any event
+        # loop: the first loop to use the store adopts it.
+        self._client = self._build_client()
+        self._loop_clients: dict[asyncio.AbstractEventLoop, object] = {}
+        self._loop_clients_lock = threading.Lock()
+        self._breaker = _CircuitBreaker()
+
+    def _build_client(self):
+        import redis.asyncio as redis_asyncio  # local import: optional until configured
+
+        return redis_asyncio.Redis.from_url(
+            self._url,
             decode_responses=True,
             socket_timeout=2.0,
             socket_connect_timeout=2.0,
         )
-        self._client_loop: object | None = None
-        self._breaker = _CircuitBreaker()
 
     def _client_for_current_loop(self):
-        """Return an async Redis client guaranteed to be bound to the
-        currently-running event loop, rebuilding it if the loop changed
-        since it was last used. Test doubles built via
-        ``_RateLimitStore.__new__(_RedisStore)`` (see tests/test_rate_limit.py)
-        skip __init__ and assign ``_client`` directly with no ``_url`` --
-        for those, there is nothing to rebind against, so the assigned fake
-        client is returned unchanged."""
-        url = getattr(self, "_url", None)
-        if url is None:
+        """Return the async Redis client owned by the currently-running
+        event loop, building one on that loop's first use. Test doubles
+        built via ``_RateLimitStore.__new__(_RedisStore)`` (see
+        tests/test_rate_limit.py) skip __init__ and assign ``_client``
+        directly with no ``_url`` -- for those, there is nothing to build,
+        so the assigned fake client is returned unchanged."""
+        if getattr(self, "_url", None) is None:
             return self._client
 
-        import redis.asyncio as redis_asyncio  # local import: optional until configured
-
         loop = asyncio.get_running_loop()
-        if self._client is None or (
-            self._client_loop is not None and self._client_loop is not loop
-        ):
-            self._client = redis_asyncio.Redis.from_url(
-                url,
-                decode_responses=True,
-                socket_timeout=2.0,
-                socket_connect_timeout=2.0,
-            )
-        self._client_loop = loop
-        return self._client
+        # Locked: the ASGI loop and loop-bridge threads can both miss at once.
+        with self._loop_clients_lock:
+            client = self._loop_clients.get(loop)
+            if client is None:
+                for stale_loop in [lp for lp in self._loop_clients if lp.is_closed()]:
+                    del self._loop_clients[stale_loop]
+                client = self._client if self._client is not None else self._build_client()
+                self._client = None
+                self._loop_clients[loop] = client
+        return client
 
     async def _guarded(self, command):
         """Run ``command(client)`` behind the circuit breaker: while it is

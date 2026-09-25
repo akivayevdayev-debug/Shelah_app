@@ -331,17 +331,42 @@ async def test_redis_store_reuses_its_client_on_the_same_event_loop(built_redis_
     assert len(built_redis_clients) == 1
 
 
-async def test_redis_store_builds_a_fresh_client_when_the_event_loop_changed(built_redis_clients):
+def _client_on_a_fresh_loop(store):
+    """Resolve the store's client from inside a throwaway asyncio.run() loop
+    on another thread -- what a loop-bridge hop (backend/cost_gates.py)
+    does while the ASGI loop keeps serving. Returns (client, that loop)."""
+    import concurrent.futures
+
+    async def resolve():
+        return store._client_for_current_loop(), asyncio.get_running_loop()
+
+    with concurrent.futures.ThreadPoolExecutor(max_workers=1) as pool:
+        return pool.submit(asyncio.run, resolve()).result()
+
+
+async def test_redis_store_gives_another_event_loop_its_own_client(built_redis_clients):
     store = rate_limit._RedisStore("redis://example.invalid:6379/0")
     original = store._client_for_current_loop()
-    store._client_loop = object()  # a loop that is no longer the running one
 
-    rebuilt = store._client_for_current_loop()
+    bridge_client, _ = _client_on_a_fresh_loop(store)
 
-    assert rebuilt is not original
+    assert bridge_client is not original
     assert [url for url, _ in built_redis_clients] == ["redis://example.invalid:6379/0"] * 2
-    # Bound to the running loop now, so a further call keeps the new client.
-    assert store._client_for_current_loop() is rebuilt
+    # The other loop's visit must not evict this loop's client (and with it
+    # this loop's pooled connections).
+    assert store._client_for_current_loop() is original
+    assert len(built_redis_clients) == 2
+
+
+async def test_redis_store_drops_clients_whose_loop_has_closed(built_redis_clients):
+    store = rate_limit._RedisStore("redis://example.invalid:6379/0")
+    store._client_for_current_loop()
+    _, first_bridge_loop = _client_on_a_fresh_loop(store)
+    _, second_bridge_loop = _client_on_a_fresh_loop(store)
+
+    assert first_bridge_loop.is_closed()
+    assert first_bridge_loop not in store._loop_clients
+    assert set(store._loop_clients) == {asyncio.get_running_loop(), second_bridge_loop}
 
 
 async def test_redis_store_rebuilds_a_missing_client(built_redis_clients):

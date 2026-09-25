@@ -198,7 +198,7 @@
     font-weight: 500;
     transition: opacity 150ms ease-out;
 }
-.cal-detail__back:hover { opacity: 0.75; }
+.cal-detail__back:hover { text-decoration: underline; text-underline-offset: 3px; }
 .cal-detail__back:active { opacity: 0.55; }
 .cal-detail__back[hidden] { display: none; }
 [dir="rtl"] .cal-detail__back svg { transform: scaleX(-1); }
