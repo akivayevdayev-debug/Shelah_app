@@ -6,7 +6,7 @@
     - Daily-study prewarm channel for Daf Yomi / Rambam / Parasha refs.
 */
 
-const CACHE_VERSION = "v14-20260922";
+const CACHE_VERSION = "v22-20260925";
 const SHELL_CACHE = `shelah-shell-${CACHE_VERSION}`;
 const RUNTIME_CACHE = `shelah-runtime-${CACHE_VERSION}`;
 const API_CACHE = `shelah-api-${CACHE_VERSION}`;
@@ -33,7 +33,26 @@ const PRIVATE_API_PREFIXES = [
     "/api/bookmarks/",
     "/api/auth/",
     "/api/client-errors",
+    // Per-user conversation threads: caching them by URL would show one
+    // user's transcript to the next person on a shared device.
+    "/api/conversations",
+    // Shared answers: stale-while-revalidate would keep serving an answer
+    // after its owner revoked the link.
+    "/api/public/answer",
 ];
+
+// Answers that depend on the current time (today's zmanim, the Hebrew date,
+// the day's learning): stale-while-revalidate would first hand back
+// yesterday's copy after midnight or sunset. These go to the network first
+// and use the cached copy only when offline.
+const TIME_SENSITIVE_API_PREFIXES = [
+    "/api/zmanim",
+    "/api/daily-study",
+];
+
+function isTimeSensitiveApi(pathname) {
+    return TIME_SENSITIVE_API_PREFIXES.some((prefix) => pathname.startsWith(prefix));
+}
 
 function shouldBypassApiCache(pathname) {
     return PRIVATE_API_PREFIXES.some((prefix) => pathname.startsWith(prefix));
@@ -110,6 +129,25 @@ async function staleWhileRevalidate(request, cacheName, event, fallbackFactory, 
     return new Response("", { status: 503, statusText: "Offline" });
 }
 
+async function networkFirstApi(request, offlineResponse) {
+    try {
+        const fresh = await fetch(request);
+        if (await isCacheableApiResponse(fresh)) {
+            const cache = await caches.open(API_CACHE);
+            await cache.put(request, fresh.clone());
+        }
+        return fresh;
+    } catch (_err) {
+        const cached = await (await caches.open(API_CACHE)).match(request);
+        return cached || offlineResponse();
+    }
+}
+
+// Paths static/js/router.js writes (backend/routes_spa_paths.py serves the
+// same shell as "/" on each). Offline, a never-visited one falls back to the
+// precached shell, whose router then reads the path.
+const SPA_PATH_RE = /^\/(?:text|prayer|answer|a|calendar)\/[^/]|^\/history\/?$/;
+
 async function networkFirstNavigation(request) {
     try {
         const fresh = await fetch(request);
@@ -122,6 +160,12 @@ async function networkFirstNavigation(request) {
         const cached = await cache.match(request);
         if (cached) {
             return cached;
+        }
+        if (SPA_PATH_RE.test(new URL(request.url).pathname)) {
+            const shell = await caches.match("/");
+            if (shell) {
+                return shell;
+            }
         }
         return caches.match("/static/offline.html");
     }
@@ -224,15 +268,16 @@ self.addEventListener("fetch", (event) => {
             return;
         }
 
-        event.respondWith(
-            staleWhileRevalidate(request, API_CACHE, event, () => {
-                return new Response(JSON.stringify({ error: "Offline" }), {
-                    status: 503,
-                    statusText: "Offline",
-                    headers: { "Content-Type": "application/json" },
-                });
-            }, isCacheableApiResponse)
-        );
+        const offline = () => new Response(JSON.stringify({ error: "Offline" }), {
+            status: 503,
+            statusText: "Offline",
+            headers: { "Content-Type": "application/json" },
+        });
+        if (isTimeSensitiveApi(url.pathname)) {
+            event.respondWith(networkFirstApi(request, offline));
+            return;
+        }
+        event.respondWith(staleWhileRevalidate(request, API_CACHE, event, offline, isCacheableApiResponse));
         return;
     }
 

@@ -292,6 +292,22 @@
     border-radius: 3px;
 }
 
+/* Phones: the answer is a bottom sheet (docked to the bottom edge, full
+   width, rounded top) that slides up from off-screen -- templates/index.html
+   aiModalMotion() uses motion.js's 'drawer' preset for it. */
+@media (max-width: 1023px) {
+    #aiAssistantModal {
+        align-items: flex-end;
+        padding: 0;
+    }
+    #aiAssistantModal > div {
+        max-width: none;
+        max-height: min(88dvh, 88vh);
+        border-radius: var(--radius-xl) var(--radius-xl) 0 0;
+        padding-bottom: env(safe-area-inset-bottom);
+    }
+}
+
 /* AI modal backdrop isolation */
 #aiAssistantModal,
 #textsMenuModal,
@@ -440,6 +456,21 @@
 @media (max-width: 600px) {
     .ai-src-box-body {
         grid-template-columns: 1fr;
+    }
+    /* Phones: the ref gets the whole first row (it was cut to "SHUL..."
+       next to the links), and the links wrap onto their own row below. */
+    .ai-src-box-header {
+        flex-wrap: wrap;
+    }
+    .ai-src-box-id {
+        flex-basis: 100%;
+    }
+    .ai-src-box-title {
+        white-space: normal;
+    }
+    .ai-src-box-links {
+        max-width: none;
+        justify-content: flex-start;
     }
 }
 
@@ -1348,6 +1379,308 @@ body.search-loading .search-liftoff-underlay::before {
     width: 0.9375rem;
     height: 0.9375rem;
     flex-shrink: 0;
+}
+
+/* "Copy link" on a stored answer (static/js/answer-link.js): in the AI
+   modal footer beside "View Full Article", and at the bottom of the
+   full-article view. Clicking flashes a green "Copied!" face for ~1.6s; both
+   faces share one grid cell so the swap never changes the button's width,
+   and the state is carried by the icon + label, not by color alone. */
+.ai-modal-footer__actions {
+    display: flex;
+    flex-wrap: wrap;
+    /* Top-aligned so Copy link and View Full Article stay level when the
+       Shared line wraps in under Copy link. */
+    align-items: flex-start;
+    justify-content: flex-end;
+    gap: var(--sp-2);
+    /* Basis 0, not content size: the full-width lines inside .answer-link
+       (Shared state, status) would otherwise make this want the whole row
+       and push Close onto a line of its own. Narrow screens still wrap it
+       under Close via the min-width. */
+    flex: 1 1 0;
+    min-width: min(100%, 16rem);
+}
+
+.ai-modal-footer__actions > .answer-link {
+    flex: 1 1 0;
+    min-width: min(100%, 11rem);
+    justify-content: flex-end;
+}
+
+.answer-link {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--sp-2);
+}
+
+.answer-link.hidden {
+    display: none;
+}
+
+.answer-link--article {
+    margin-top: var(--sp-6);
+    padding-top: var(--sp-4);
+    border-top: 1px solid var(--surface-border);
+}
+
+.answer-link-btn {
+    --link-copied-fg: #166534;
+    --link-copied-bg: #dcfce7;
+    --link-copied-border: #86efac;
+    display: inline-grid;
+    align-items: center;
+    min-height: 44px;
+    padding: var(--sp-2) var(--sp-4);
+    border: 1px solid var(--surface-border);
+    border-radius: var(--radius-md);
+    background: transparent;
+    color: var(--ink-primary);
+    font-size: var(--text-sm);
+    font-weight: 600;
+    cursor: pointer;
+    transition: background-color var(--motion-dur-fast) var(--motion-ease-out),
+        border-color var(--motion-dur-fast) var(--motion-ease-out),
+        color var(--motion-dur-fast) var(--motion-ease-out),
+        transform var(--motion-dur-fast) var(--motion-ease-out);
+}
+
+[data-theme="dark"] .answer-link-btn,
+html.theme-dark .answer-link-btn,
+body.theme-dark .answer-link-btn {
+    --link-copied-fg: var(--tw-dark-text-emerald);
+    --link-copied-bg: var(--tw-dark-bg-emerald);
+    --link-copied-border: var(--tw-dark-border-emerald);
+}
+
+@media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) .answer-link-btn {
+        --link-copied-fg: var(--tw-dark-text-emerald);
+        --link-copied-bg: var(--tw-dark-bg-emerald);
+        --link-copied-border: var(--tw-dark-border-emerald);
+    }
+}
+
+.answer-link-btn__face {
+    grid-area: 1 / 1;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--sp-2);
+    transition: opacity var(--motion-dur-fast) var(--motion-ease-out),
+        transform 220ms var(--motion-ease-out);
+}
+
+.answer-link-btn__face--copied {
+    opacity: 0;
+    transform: translateY(6px) scale(0.92);
+}
+
+.answer-link-btn[data-state="copied"] .answer-link-btn__face--idle {
+    opacity: 0;
+    transform: translateY(-6px) scale(0.92);
+}
+
+.answer-link-btn[data-state="copied"] .answer-link-btn__face--copied {
+    opacity: 1;
+    transform: none;
+}
+
+.answer-link-btn[data-state="copied"] {
+    border-color: var(--link-copied-border);
+    background: var(--link-copied-bg);
+    color: var(--link-copied-fg);
+}
+
+.answer-link-btn:hover:not([data-state="copied"]) {
+    background: var(--ctrl-bg-hover);
+}
+
+.answer-link-btn:active {
+    transform: scale(0.97);
+}
+
+.answer-link-btn:focus-visible {
+    outline: 2px solid var(--accent-primary);
+    outline-offset: 2px;
+}
+
+.answer-link-btn:disabled {
+    cursor: progress;
+}
+
+.answer-link-btn svg {
+    flex-shrink: 0;
+}
+
+/* Announced to screen readers always; shown on screen only when it's an
+   error or the manual-copy hint (the button itself says "Copied!"). */
+.answer-link-status:not(.is-visible) {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    white-space: nowrap;
+}
+
+.answer-link-status.is-visible {
+    flex: 1 1 100%;
+    font-size: var(--text-xs);
+    color: var(--ink-secondary);
+}
+
+.answer-link-fallback {
+    flex: 1 1 14rem;
+    min-width: 0;
+    min-height: 44px;
+    padding: var(--sp-2) var(--sp-3);
+    border: 1px solid var(--surface-border);
+    border-radius: var(--radius-md);
+    background: var(--surface-1);
+    color: var(--ink-primary);
+    font-size: var(--text-xs);
+    font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+}
+
+.answer-link-fallback.hidden {
+    display: none;
+}
+
+.answer-link-fallback:focus-visible {
+    outline: 2px solid var(--accent-primary);
+    outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .answer-link-btn,
+    .answer-link-btn__face {
+        transition: opacity var(--motion-dur-fast) linear, background-color var(--motion-dur-fast) linear,
+            color var(--motion-dur-fast) linear, border-color var(--motion-dur-fast) linear;
+    }
+
+    .answer-link-btn__face--copied,
+    .answer-link-btn[data-state="copied"] .answer-link-btn__face--idle,
+    .answer-link-btn:active {
+        transform: none;
+    }
+}
+
+/* Public share state (static/js/answer-share.js): a full-width line under
+   the Copy link button while the answer has a live public link. The state is
+   carried by the globe icon + the words, not by color. */
+.answer-share-state {
+    flex: 1 1 100%;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: flex-end;
+    gap: var(--sp-1) var(--sp-3);
+    margin: 0;
+    font-size: var(--text-xs);
+    color: var(--ink-secondary);
+}
+
+.answer-link--article .answer-share-state {
+    justify-content: flex-start;
+}
+
+.answer-share-state.hidden {
+    display: none;
+}
+
+.answer-share-state__label {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--sp-1);
+}
+
+.answer-share-state__label svg {
+    flex-shrink: 0;
+}
+
+.answer-share-revoke {
+    min-height: 44px;
+    min-width: 44px;
+    padding: var(--sp-2) var(--sp-3);
+    border: 0;
+    border-radius: var(--radius-md);
+    background: transparent;
+    color: var(--ink-primary);
+    font-size: var(--text-xs);
+    font-weight: 600;
+    text-decoration: underline;
+    text-underline-offset: 3px;
+    cursor: pointer;
+    transition: background-color var(--motion-dur-fast) var(--motion-ease-out);
+}
+
+.answer-share-revoke:hover:not(:disabled) {
+    background: var(--ctrl-bg-hover);
+}
+
+.answer-share-revoke:focus-visible {
+    outline: 2px solid var(--accent-primary);
+    outline-offset: 2px;
+}
+
+.answer-share-revoke:disabled {
+    cursor: progress;
+    opacity: 0.7;
+}
+
+/* A visitor on a shared link (?a=) didn't ask anything: no "sign in to ask
+   follow-ups" hint, whatever conversation-ui.js decides about auth. */
+#aiAssistantModal[data-answer-view="public"] #aiSignInHint {
+    display: none;
+}
+
+/* A shared link with no answer to show hides the AI disclaimer
+   (index.html showPublicAnswerUnavailable); every rendered answer shows it. */
+.ai-disclaimer-banner.hidden {
+    display: none;
+}
+
+.ai-public-loading {
+    display: flex;
+    flex-direction: column;
+    gap: var(--sp-3);
+    padding-block: var(--sp-2);
+}
+
+.ai-public-unavailable {
+    display: flex;
+    align-items: flex-start;
+    gap: var(--sp-3);
+    padding: var(--sp-4);
+    border: 1px solid var(--surface-border);
+    border-radius: var(--radius-md);
+    background: var(--surface-1);
+    color: var(--ink-primary);
+    font-family: inherit;
+}
+
+.ai-public-unavailable p {
+    margin: 0;
+}
+
+.ai-public-unavailable__icon {
+    display: inline-flex;
+    flex-shrink: 0;
+    color: var(--ink-secondary);
+}
+
+.ai-public-unavailable__icon svg {
+    width: 1.25rem;
+    height: 1.25rem;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .answer-share-revoke {
+        transition: none;
+    }
 }
 
 .answer-feedback-comment-row {

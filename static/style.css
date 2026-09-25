@@ -63,6 +63,18 @@ h6 {
     text-align: right;
 }
 
+/* Ezra SIL ships a single weight, so <b>/<strong> in it (a commentary's
+   opening words, a bolded term in a Hebrew source or title) got only the
+   browser's synthetic bold: about 1% more ink, invisible next to the English
+   side, where Cardo has a real bold (~30% more). A thin stroke in the text
+   colour brings it to ~25%, the same visual weight, and leaves niqqud and
+   te'amim where they are. */
+:is(.font-hebrew, .reader-text-he, .source-he, .ai-src-box-he, html.rtl #readerTitle) :is(b, strong),
+:is(.font-hebrew, .reader-text-he, .source-he, .ai-src-box-he):is(b, strong) {
+    font-weight: 700;
+    -webkit-text-stroke: 0.05em currentColor;
+}
+
 /* Proper line height for Hebrew */
 [dir="rtl"] {
     line-height: 1.8;
@@ -659,8 +671,10 @@ html.rtl #hebrewDateDisplay {
 
 /* #settingsPanel button's !important display:inline-block above outranks
    the .hidden utility on any button inside the panel (higher specificity,
-   also !important); this rule out-specifies both so export-only controls
+   also !important); these rules out-specify both so the export-only
+   controls (updateExportControlsVisibility() / syncSettingsExportControls())
    can still be toggled off outside text pages. */
+#settingsPanel button.hidden,
 #settingsPanel .export-text-only.hidden {
     display: none !important;
 }
@@ -2879,6 +2893,37 @@ html.rtl .home-main-layout #popularTextsGrid {
         width: 100%;
         height: 44px;
         transform: translateY(-50%);
+    }
+
+    /* Phone Ask button: drawn 32px tall so it doesn't make the bar taller
+       than its other controls; the same 44px hit-slop, on ::before because
+       the discovery tip's .ai-attention ring owns ::after. Width is already
+       44px. */
+    #mobileTopbarAskBtn {
+        min-height: var(--sp-8);
+        height: var(--sp-8);
+        /* The controls row's own gap already spaces it. */
+        margin-inline-start: 0;
+    }
+
+    #mobileTopbarAskBtn::before {
+        content: "";
+        position: absolute;
+        top: 50%;
+        left: 0;
+        width: 100%;
+        height: var(--hit-min);
+        transform: translateY(-50%);
+    }
+
+    /* Smallest phones: brand + settings + Ask + Sign In + language toggle
+       overflow one row by a few px, so drop the brand's subtitle rather than
+       wrap the controls onto a second row. (Two classes: Tailwind's .block,
+       loaded after this sheet, would win a single-class tie.) */
+    @media (max-width: 359px) {
+        .topbar-brand .topbar-brand-subtitle {
+            display: none;
+        }
     }
 
     /* Search tab: a small AI sparkle (same mark as the search field's own
@@ -5105,4 +5150,43 @@ body.theme-dark #analyticsConsentAccept {
     .library-shell :is(button, [role="button"], summary):active {
         scale: none;
     }
+}
+
+/* ── Reader: a failed text load (index.html renderReaderLoadError) ── */
+.reader-load-error {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--sp-3);
+    padding-block: var(--sp-4);
+}
+
+.reader-load-retry {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-block-size: 2.75rem;
+    min-inline-size: 2.75rem;
+    padding: var(--sp-2) var(--sp-4);
+    border: 1px solid var(--ctrl-border);
+    border-radius: var(--radius-md);
+    background: var(--ctrl-bg);
+    color: var(--ctrl-text-strong);
+    font-size: var(--text-sm);
+    font-weight: 600;
+    cursor: pointer;
+    transition: background-color var(--motion-dur-fast) var(--motion-ease-out),
+        transform var(--motion-dur-fast) var(--motion-ease-out);
+}
+
+.reader-load-retry:hover { background: var(--ctrl-bg-hover); }
+.reader-load-retry:active { transform: scale(0.97); }
+.reader-load-retry:focus-visible {
+    outline: 2px solid var(--accent-primary);
+    outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .reader-load-retry { transition: none; }
+    .reader-load-retry:active { transform: none; }
 }

@@ -212,8 +212,18 @@ function formats(he) {
     return {
         long: (key) => long.format(dateOf(key)),
         short: (key) => short.format(dateOf(key)),
-        hebrew: (key) => (hebrew ? hebrew.format(dateOf(key)) : ''),
+        hebrew: (key) => (hebrew ? hebrewDate(hebrew, dateOf(key), he) : ''),
     };
+}
+
+// In Hebrew, day and year in gematria ("י״ד בתשרי תשפ״ז") via
+// static/js/hebrew-ref.js (a classic script loaded before this module).
+function hebrewDate(formatter, date, he) {
+    const numeral = window.ShelahHebrewRef?.hebrewNumeral;
+    if (!he || !numeral) return formatter.format(date);
+    return formatter.formatToParts(date)
+        .map((part) => (part.type === 'day' || part.type === 'year' ? numeral(Number(part.value)) : part.value))
+        .join('');
 }
 
 const row = (label, ...value) => h('div', { class: 'cal-detail__row' }, h('dt', { text: label }), h('dd', {}, ...value));
@@ -263,8 +273,11 @@ function readingRow(label, text) {
     const el = row(label,
         refs.map(({ book, range, ref }) => {
             const name = he && bookName ? bookName(book) : book;
-            return h('button', { type: 'button', class: 'cal-detail__ref', 'aria-label': `${T.read}: ${name} ${range}`, onclick: () => readRef(ref) },
-                h('span', { class: 'cal-detail__ref-label' }, `${name} `, h('span', { dir: 'ltr', text: range })),
+            // "22:26-23:44" -> "כ״ב:כ״ו-כ״ג:מ״ד" in the Hebrew UI, read right to left.
+            const numeral = he && window.ShelahHebrewRef?.hebrewNumeral;
+            const shown = numeral ? range.replace(/\d+/g, (n) => numeral(Number(n))) : range;
+            return h('button', { type: 'button', class: 'cal-detail__ref', 'aria-label': `${T.read}: ${name} ${shown}`, onclick: () => readRef(ref) },
+                h('span', { class: 'cal-detail__ref-label' }, `${name} `, h('span', { dir: numeral ? 'rtl' : 'ltr', text: shown })),
                 icon(CARET_RIGHT));
         }),
         note ? h('small', { text: note }) : null);
@@ -351,10 +364,26 @@ function timeRows(ev, allEvents) {
     return rows;
 }
 
+// "Asia/Jerusalem" -> "Israel Time" / "שעון ישראל" when no city was picked
+// (same rule as zmanim.js's timezoneLabel; this module stays import-free).
+function timezoneLabel(timezone, lang) {
+    const tz = String(timezone || '').trim();
+    if (!tz) return '';
+    try {
+        const name = new Intl.DateTimeFormat(lang === 'he' ? 'he-IL' : 'en-US', { timeZone: tz, timeZoneName: 'longGeneric' })
+            .formatToParts(new Date()).find((part) => part.type === 'timeZoneName')?.value;
+        if (name && !/^GMT|^UTC/.test(name)) return name;
+    } catch (_) {
+        // Unknown zone ID: fall through to the ID itself.
+    }
+    return tz.split('/').pop().replace(/_/g, ' ');
+}
+
 // "Times for Brooklyn, NY" -- which location the clock times above belong to.
 function whereRow() {
-    const { T, location } = state.ctx;
-    const place = location.label || location.timezone || `${location.lat.toFixed(2)}, ${location.lon.toFixed(2)}`;
+    const { T, location, he } = state.ctx;
+    const place = location.label || timezoneLabel(location.timezone, he ? 'he' : 'en')
+        || `${location.lat.toFixed(2)}, ${location.lon.toFixed(2)}`;
     const el = h('div', { class: 'cal-detail__row cal-detail__row--where' }, h('p', { class: 'cal-detail__where', text: `${T.timesFor} ${place}` }));
     el.dataset.slot = 'where';
     return el;

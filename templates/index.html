@@ -93,6 +93,8 @@
     <script src="/static/js/sentry-init.js?v=20260731"></script>
     {% endif %}
     <script src="/static/js/topbar_shared.js?v=20260923-v1"></script>
+    <script src="/static/js/hebrew-ref.js?v=20260925-v1"></script>
+    <script src="/static/js/community-labels.js?v=20260925-v1"></script>
     <!-- DaisyUI component library (non-destructive — adds .btn, .card etc. utility classes) -->
     <link href="https://cdn.jsdelivr.net/npm/daisyui@4.12.24/dist/full.min.css" rel="stylesheet"
           integrity="sha384-2V5uSMIWpBK7suX6yRDZH6ll7ktPJF2O58y0HSz+HiFCBCsmqZpxX1AZB4qAHuYI"
@@ -109,19 +111,21 @@
             integrity="sha384-6ZdfL2Azuen6KYvcTkbxqJS1d7txbNWrVfmURkxNeCn7DtzhLRL6Fi6WGG6ZLdKn"
             crossorigin="anonymous"></script>
     <link rel="stylesheet" href="/static/css/tokens.css?v=20260925-ui10">
-    <link rel="stylesheet" href="/static/style.css?v=20260925-tabs1">
+    <link rel="stylesheet" href="/static/style.css?v=20260925-ui15">
     <!-- CSS modules (supplement style.css; do not replace) -->
     <link rel="stylesheet" href="/static/css/typography.css?v=20260817-v6">
     <link rel="stylesheet" href="/static/css/reader.css?v=20260925-ui10">
     <link rel="stylesheet" href="/static/css/sidebar.css?v=20260925-mp1">
     <link rel="stylesheet" href="/static/css/halacha.css?v=20260817-v6">
     <link rel="stylesheet" href="/static/css/prayer.css?v=20260817-v6">
-    <link rel="stylesheet" href="/static/css/ai.css?v=20260925-tabs1">
+    <link rel="stylesheet" href="/static/css/ai.css?v=20260925-ui11">
+    <link rel="stylesheet" href="/static/css/conversation.css?v=20260924-v7">
+    <link rel="stylesheet" href="/static/css/history.css?v=20260925-v3">
     <link rel="stylesheet" href="/static/css/calendar.css?v=20260925-ui10">
     <link rel="stylesheet" href="/static/css/calendar-detail.css?v=20260925-mp1">
     <link rel="stylesheet" href="/static/css/loading.css?v=20260817-v6">
     <!-- Tailwind CSS (pre-built; loads last so utilities override custom CSS — mirrors CDN runtime cascade behavior) -->
-    <link rel="stylesheet" href="/static/css/tailwind.css?v=20260915-v7">
+    <link rel="stylesheet" href="/static/css/tailwind.css?v=20260924-v8">
 
     <!-- FullCalendar -->
     <script defer src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.15/index.global.min.js"
@@ -306,6 +310,35 @@
                             </div>
                         </form>
                     </div>
+                    <!-- Ask Sh'elah, right beside the search bar (desktop): opens the
+                         conversation as the floating corner widget. Conversation
+                         history lives in the panel's header; on phones the search
+                         tray (#mobileSearchTray) carries Ask + history instead.
+                         Wired by static/js/conversation-ui.js. -->
+                    <button id="topbarAskBtn" type="button"
+                        class="topbar-ask-btn hidden lg:inline-flex shrink-0"
+                        aria-controls="convPanel" aria-expanded="false"
+                        title="Ask Sh'elah — AI answers that cite their sources"
+                        data-aria-en="Ask Sh'elah — AI answers that cite their sources"
+                        data-aria-he="שאל את ש׳אלה — תשובות בינה מלאכותית עם מקורות">
+                        {# Icon-only: the AI mark in a navy-to-gold gradient. The second
+                           path (a deeper/brighter shade per theme) fades in on hover. #}
+                        <svg class="topbar-ask-btn__mark" viewBox="0 0 256 256" width="24" height="24" aria-hidden="true" focusable="false">
+                            <defs>
+                                <linearGradient id="askMarkGradient" x1="0" y1="0" x2="1" y2="1">
+                                    <stop offset="0.15" class="topbar-ask-btn__from"/>
+                                    <stop offset="0.9" class="topbar-ask-btn__to"/>
+                                </linearGradient>
+                                <linearGradient id="askMarkGradientHover" x1="0" y1="0" x2="1" y2="1">
+                                    <stop offset="0.15" class="topbar-ask-btn__from-hover"/>
+                                    <stop offset="0.9" class="topbar-ask-btn__to-hover"/>
+                                </linearGradient>
+                            </defs>
+                            <path d="{{ phosphor_path('sparkle') }}" fill="url(#askMarkGradient)"/>
+                            <path class="topbar-ask-btn__mark-hover" d="{{ phosphor_path('sparkle') }}" fill="url(#askMarkGradientHover)"/>
+                        </svg>
+                        <span class="sr-only" data-en="Ask AI" data-he="שאל AI">Ask AI</span>
+                    </button>
                 </div>
 
                 <div id="topbarControls"
@@ -385,7 +418,9 @@
                             </div>
 
                             <div class="grid grid-cols-2 gap-2 border-t border-slate-100 pt-2">
-                                <label class="export-text-only hidden col-span-2 text-xs text-slate-600">
+                                <!-- Export needs an open text: syncSettingsExportControls() hides the
+                                     format + Export button everywhere else. -->
+                                <label id="exportFormatField" class="export-text-only hidden col-span-2 text-xs text-slate-600">
                                     <span data-en="Export format" data-he="פורמט ייצוא">Export format</span>
                                     <select id="exportFormatSelect"
                                         class="mt-1 w-full px-2 py-1.5 rounded border border-slate-200 bg-slate-50 text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-400">
@@ -403,6 +438,34 @@
                             </div>
                         </div>
                     </div>
+
+                    <!-- Ask Sh'elah on phones: the same gradient mark as #topbarAskBtn,
+                         which lives inside the search wrap (hidden below lg). Sits right
+                         after settings so syncHebrewDateMobilePosition() still measures
+                         the brand/controls gap from #settingsMenuBtn. Own gradient ids:
+                         url(#...) into a display:none subtree paints nothing. Wired by
+                         static/js/conversation-ui.js. -->
+                    <button id="mobileTopbarAskBtn" type="button"
+                        class="topbar-ask-btn inline-flex lg:hidden shrink-0"
+                        aria-controls="convPanel" aria-expanded="false"
+                        aria-label="Ask Sh'elah — AI answers that cite their sources"
+                        data-aria-en="Ask Sh'elah — AI answers that cite their sources"
+                        data-aria-he="שאל את ש׳אלה — תשובות בינה מלאכותית עם מקורות">
+                        <svg class="topbar-ask-btn__mark" viewBox="0 0 256 256" width="24" height="24" aria-hidden="true" focusable="false">
+                            <defs>
+                                <linearGradient id="askMarkGradientPhone" x1="0" y1="0" x2="1" y2="1">
+                                    <stop offset="0.15" class="topbar-ask-btn__from"/>
+                                    <stop offset="0.9" class="topbar-ask-btn__to"/>
+                                </linearGradient>
+                                <linearGradient id="askMarkGradientPhoneHover" x1="0" y1="0" x2="1" y2="1">
+                                    <stop offset="0.15" class="topbar-ask-btn__from-hover"/>
+                                    <stop offset="0.9" class="topbar-ask-btn__to-hover"/>
+                                </linearGradient>
+                            </defs>
+                            <path d="{{ phosphor_path('sparkle') }}" fill="url(#askMarkGradientPhone)"/>
+                            <path class="topbar-ask-btn__mark-hover" d="{{ phosphor_path('sparkle') }}" fill="url(#askMarkGradientPhoneHover)"/>
+                        </svg>
+                    </button>
 
                     <div id="authControls" class="hidden items-center gap-1.5 mr-1">
                         <div id="userProfileMenuContainer" class="hidden relative shrink-0 flex items-center">
@@ -1002,8 +1065,12 @@
                 </div>
 
                 <div id="askHistorySection" class="hidden">
-                    <h3 class="text-xs font-bold text-slate-400 uppercase tracking-widest mt-2 mb-3"
-                        data-en="Ask History" data-he="היסטוריית שאלות">Ask History</h3>
+                    <div class="ask-history-head">
+                        <h3 class="text-xs font-bold text-slate-400 uppercase tracking-widest"
+                            data-en="Ask History" data-he="היסטוריית שאלות">Ask History</h3>
+                        <a href="/history" id="askHistoryViewAll" class="ask-history-view-all"
+                            data-en="View all" data-he="הצג הכול">View all</a>
+                    </div>
                     <div id="askHistoryList" class="text-sm pb-10 space-y-1"></div>
                 </div>
         </nav>
@@ -1397,6 +1464,33 @@
 
                 <!-- Answer feedback widget (plan.md §12.4) -->
                 <div id="readerFeedback" class="mt-6"></div>
+
+                <!-- Copy link at the bottom of the full-article answer view
+                     (static/js/answer-link.js, same control as the modal footer). -->
+                <div id="readerAnswerLink" class="answer-link answer-link--article hidden">
+                    <button type="button" class="answer-link-btn" data-state="idle">
+                        <span class="answer-link-btn__face answer-link-btn__face--idle">
+                            <span class="contents" aria-hidden="true">{{ phosphor('link-simple', size=16) }}</span>
+                            <span data-en="Copy link" data-he="העתק קישור">Copy link</span>
+                        </span>
+                        <span class="answer-link-btn__face answer-link-btn__face--copied" aria-hidden="true">
+                            <span class="contents" aria-hidden="true">{{ phosphor('check', size=16) }}</span>
+                            <span data-en="Copied!" data-he="הועתק!">Copied!</span>
+                        </span>
+                    </button>
+                    <!-- Public share state (static/js/answer-share.js): shown while
+                         this answer has a live public link. -->
+                    <p class="answer-share-state hidden">
+                        <span class="answer-share-state__label">
+                            <span class="contents" aria-hidden="true">{{ phosphor('globe-simple', size=16) }}</span>
+                            <span data-en="Shared · anyone with the link can view" data-he="משותף · כל מי שיש לו את הקישור יכול לצפות">Shared · anyone with the link can view</span>
+                        </span>
+                        <button type="button" class="answer-share-revoke" data-en="Stop sharing" data-he="הפסקת שיתוף">Stop sharing</button>
+                    </p>
+                    <input type="text" class="answer-link-fallback hidden" readonly
+                        aria-label="Link to this answer" data-aria-en="Link to this answer" data-aria-he="קישור לתשובה זו">
+                    <span class="answer-link-status" role="status" aria-live="polite"></span>
+                </div>
 
             </article>
 
@@ -1792,6 +1886,12 @@
                     </div>
                     <!-- Answer feedback widget (plan.md §12.4) -->
                     <div id="aiFeedback" class="mt-3"></div>
+                    <!-- Decision A1: signed-out questions land here instead of the
+                         conversation UI; conversation-ui.js shows this hint then. -->
+                    <p id="aiSignInHint" class="conv-signin-hint hidden">
+                        <span data-en="Sign in to save your conversations and ask follow-ups." data-he="התחבר כדי לשמור את השיחות שלך ולשאול שאלות המשך.">Sign in to save your conversations and ask follow-ups.</span>
+                        <button type="button" class="conv-link-btn" data-conv-action="sign-in" data-en="Sign in" data-he="התחברות">Sign in</button>
+                    </p>
                 </div>
 
                 <!-- Sources Section -->
@@ -1823,16 +1923,332 @@
             </div>
 
             <!-- Modal Footer -->
-            <div class="bg-slate-50 border-t px-6 py-4 flex justify-between items-center">
+            <div class="bg-slate-50 border-t px-6 py-4 flex flex-wrap justify-between items-center gap-2">
                 <button onclick="closeAiModal()" class="px-4 py-2 text-slate-700 hover:bg-slate-100 rounded transition"
                     data-en="Close" data-he="סגור">Close</button>
-                <button onclick="viewFullArticle()"
-                    class="px-4 py-2 bg-navy text-white hover:bg-blue-900 rounded transition font-semibold"
-                    data-en="View Full Article" data-he="הצג מאמר מלא">View Full
-                    Article</button>
+                <div class="ai-modal-footer__actions">
+                    <!-- Copy link to a stored answer. Wired by static/js/answer-link.js;
+                         hidden for answers with no history id (signed-out asks). -->
+                    <div id="aiAnswerLink" class="answer-link hidden">
+                        <button type="button" class="answer-link-btn" data-state="idle">
+                            <span class="answer-link-btn__face answer-link-btn__face--idle">
+                                <span class="contents" aria-hidden="true">{{ phosphor('link-simple', size=16) }}</span>
+                                <span data-en="Copy link" data-he="העתק קישור">Copy link</span>
+                            </span>
+                            <span class="answer-link-btn__face answer-link-btn__face--copied" aria-hidden="true">
+                                <span class="contents" aria-hidden="true">{{ phosphor('check', size=16) }}</span>
+                                <span data-en="Copied!" data-he="הועתק!">Copied!</span>
+                            </span>
+                        </button>
+                        <!-- Public share state (static/js/answer-share.js): shown while
+                             this answer has a live public link. -->
+                        <p class="answer-share-state hidden">
+                            <span class="answer-share-state__label">
+                                <span class="contents" aria-hidden="true">{{ phosphor('globe-simple', size=16) }}</span>
+                                <span data-en="Shared · anyone with the link can view" data-he="משותף · כל מי שיש לו את הקישור יכול לצפות">Shared · anyone with the link can view</span>
+                            </span>
+                            <button type="button" class="answer-share-revoke" data-en="Stop sharing" data-he="הפסקת שיתוף">Stop sharing</button>
+                        </p>
+                        <input type="text" class="answer-link-fallback hidden" readonly
+                            aria-label="Link to this answer" data-aria-en="Link to this answer" data-aria-he="קישור לתשובה זו">
+                        <span class="answer-link-status" role="status" aria-live="polite"></span>
+                    </div>
+                    <button onclick="viewFullArticle()"
+                        class="px-4 py-2 bg-navy text-white hover:bg-blue-900 rounded transition font-semibold"
+                        data-en="View Full Article" data-he="הצג מאמר מלא">View Full
+                        Article</button>
+                </div>
             </div>
         </div>
     </div>
+
+    <!-- The single-answer modal, minimized: opening one of its sources loads the
+         text in the reader and folds the answer into this bar (minimizeAiModal),
+         which reopens it. Styles in static/css/conversation.css. -->
+    <div id="aiMiniBar" class="ai-mini-bar hidden" role="region"
+        aria-label="Minimized answer" data-aria-en="Minimized answer" data-aria-he="תשובה ממוזערת">
+        <button type="button" id="aiMiniBarOpen" class="ai-mini-bar__open" onclick="restoreAiModal()">
+            <span class="ai-mini-bar__icon" aria-hidden="true">{{ phosphor('sparkle', size=14, class='h-3.5 w-3.5') }}</span>
+            <span class="ai-mini-bar__text">
+                <span class="ai-mini-bar__label" data-en="Sh'elah's answer" data-he="התשובה של ש׳אלה">Sh'elah's answer</span>
+                <span id="aiMiniBarTitle" class="ai-mini-bar__title" dir="auto"></span>
+            </span>
+            {{ phosphor('caret-up', size=16, class='h-4 w-4 ai-mini-bar__caret') }}
+        </button>
+        <button type="button" class="ai-mini-bar__close" onclick="closeAiModal()"
+            aria-label="Close answer" title="Close answer" data-aria-en="Close answer" data-aria-he="סגור תשובה">
+            {{ phosphor('x', size=16, class='h-4 w-4') }}
+        </button>
+    </div>
+
+    <!-- ═══ Conversation UI (design artifact "Conversation UI Placement Options") ═══
+         One panel, several sizes: data-size = overlay | full | mini, data-layout =
+         desktop | mobile (on phones overlay renders as a bottom sheet and mini as
+         the #convPip bar). It is the same element and transcript at every size, so
+         switching keeps the thread and its scroll position. Rendered from
+         conversation-store.js by static/js/conversation-ui.js; styles in
+         static/css/conversation.css. -->
+    <div id="convScrim" class="conv-scrim hidden" aria-hidden="true"></div>
+    <section id="convPanel" class="conv-panel hidden" data-size="overlay" data-layout="desktop"
+        role="dialog" aria-modal="true" aria-labelledby="convTitle" tabindex="-1">
+        <aside class="conv-sidebar" aria-labelledby="convSidebarHeading">
+            <p class="conv-sidebar__brand font-serif" data-en="Sh'elah" data-he="שאלה">Sh'elah</p>
+            <button type="button" class="conv-new-btn" data-conv-action="new">
+                {{ phosphor('plus', size=14, class='h-3.5 w-3.5') }}
+                <span data-en="New conversation" data-he="שיחה חדשה">New conversation</span>
+            </button>
+            <h3 id="convSidebarHeading" class="conv-eyebrow" data-en="Conversations" data-he="שיחות">Conversations</h3>
+            <ul class="conv-list" data-conv-list="sidebar" aria-labelledby="convSidebarHeading"></ul>
+        </aside>
+
+        <div class="conv-main">
+            <div class="conv-grabber" aria-hidden="true"><span></span></div>
+            <header class="conv-header">
+                <span class="conv-grip" aria-hidden="true">{{ phosphor('dots-six-vertical', size=14, class='h-3.5 w-3.5') }}</span>
+                <span class="conv-live-dot" aria-hidden="true"></span>
+                <button type="button" id="convHistoryBtn" class="conv-icon-btn conv-history-trigger"
+                    aria-haspopup="dialog" aria-expanded="false" aria-controls="convHistoryPop"
+                    aria-label="Conversation history" title="Conversation history"
+                    data-aria-en="Conversation history" data-aria-he="היסטוריית שיחות">
+                    {{ phosphor('clock-counter-clockwise', size=16, class='h-4 w-4') }}
+                </button>
+                <div class="conv-heading">
+                    <h2 id="convTitle" class="conv-title">Ask Sh'elah</h2>
+                    <p id="convSubtitle" class="conv-subtitle"></p>
+                </div>
+                <div class="conv-header__actions">
+                    <button type="button" id="convMinhagChip" class="conv-chip" aria-haspopup="true"
+                        aria-expanded="false" aria-controls="convMenu">
+                        {{ phosphor('lock-simple', size=12, class='h-3 w-3') }}
+                        <span id="convMinhagChipLabel">All</span>
+                        {{ phosphor('caret-down', size=10, class='h-2.5 w-2.5') }}
+                    </button>
+                    <div class="conv-menu-wrap">
+                        <button type="button" id="convMenuBtn" class="conv-icon-btn" aria-haspopup="true"
+                            aria-expanded="false" aria-controls="convMenu"
+                            aria-label="Conversation settings" title="Conversation settings"
+                            data-aria-en="Conversation settings" data-aria-he="הגדרות שיחה">
+                            <span class="conv-icon--desktop">{{ phosphor('sliders-horizontal', size=16, class='h-4 w-4') }}</span>
+                            <span class="conv-icon--mobile">{{ phosphor('dots-three-vertical', size=16, class='h-4 w-4') }}</span>
+                        </button>
+                        <div id="convMenu" class="conv-menu hidden" role="group" aria-labelledby="convMenuHeading">
+                            <p id="convMenuHeading" class="conv-eyebrow" data-en="Community" data-he="קהילה">Community</p>
+                            <p id="convMenuMinhagLocked" class="conv-menu__note"></p>
+                            <label id="convMenuMinhagDraft" class="conv-menu__field">
+                                <span class="sr-only" data-en="Community for this conversation" data-he="קהילה לשיחה זו">Community for this conversation</span>
+                                <select id="convMinhagSelect" class="conv-select"></select>
+                            </label>
+                            <div class="conv-menu__rule" aria-hidden="true"></div>
+                            <p class="conv-eyebrow" id="convModeHeading" data-en="AI mode" data-he="מצב בינה מלאכותית">AI mode</p>
+                            <div class="conv-mode-group" role="radiogroup" aria-labelledby="convModeHeading">
+                                <button type="button" role="radio" aria-checked="true" class="conv-mode-opt" data-conv-mode="balanced" data-en="Balanced" data-he="מאוזן">Balanced</button>
+                                <button type="button" role="radio" aria-checked="false" class="conv-mode-opt" data-conv-mode="practical" data-en="Practical First" data-he="מעשי תחילה">Practical First</button>
+                                <button type="button" role="radio" aria-checked="false" class="conv-mode-opt" data-conv-mode="sources" data-en="Deep Sources" data-he="מקורות מעמיקים">Deep Sources</button>
+                                <button type="button" role="radio" aria-checked="false" class="conv-mode-opt" data-conv-mode="strict" data-en="Strict Sources" data-he="מקורות בלבד">Strict Sources</button>
+                            </div>
+                            <div class="conv-menu__rule" aria-hidden="true"></div>
+                            <div class="conv-menu__actions">
+                                <button type="button" class="conv-menu__item" data-conv-action="new">
+                                    {{ phosphor('plus', size=14, class='h-3.5 w-3.5') }}
+                                    <span data-en="New conversation" data-he="שיחה חדשה">New conversation</span>
+                                </button>
+                                <button type="button" class="conv-menu__item conv-only-mobile-overlay" data-conv-size="full">
+                                    {{ phosphor('arrows-out-simple', size=14, class='h-3.5 w-3.5') }}
+                                    <span data-en="Open full page" data-he="פתח בעמוד מלא">Open full page</span>
+                                </button>
+                                <button type="button" class="conv-menu__item conv-only-mobile-full" data-conv-size="overlay">
+                                    {{ phosphor('arrows-in-simple', size=14, class='h-3.5 w-3.5') }}
+                                    <span data-en="Collapse to sheet" data-he="כווץ לחלונית">Collapse to sheet</span>
+                                </button>
+                                <button type="button" class="conv-menu__item conv-needs-thread" data-conv-action="rename">
+                                    {{ phosphor('pencil-simple', size=14, class='h-3.5 w-3.5') }}
+                                    <span data-en="Rename" data-he="שנה שם">Rename</span>
+                                </button>
+                                <button type="button" class="conv-menu__item conv-needs-thread" data-conv-action="pin">
+                                    {{ phosphor('push-pin', size=14, class='h-3.5 w-3.5') }}
+                                    <span id="convPinLabel">Pin</span>
+                                </button>
+                                <button type="button" class="conv-menu__item conv-menu__item--danger conv-needs-thread" data-conv-action="delete">
+                                    {{ phosphor('trash', size=14, class='h-3.5 w-3.5') }}
+                                    <span data-en="Delete conversation" data-he="מחק שיחה">Delete conversation</span>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    <button type="button" id="convThemeBtn" class="conv-icon-btn conv-only-full-desktop"
+                        aria-label="Toggle light or dark theme" title="Light / dark"
+                        data-aria-en="Toggle light or dark theme" data-aria-he="החלף מצב בהיר או כהה">
+                        {{ phosphor('sun', size=16, class='h-4 w-4') }}
+                    </button>
+                    <button type="button" class="conv-icon-btn conv-only-overlay-desktop" data-conv-size="mini"
+                        aria-label="Pop out to floating widget" title="Pop out to floating widget"
+                        data-aria-en="Pop out to floating widget" data-aria-he="הוצא לחלון צף">
+                        {{ phosphor('picture-in-picture', size=16, class='h-4 w-4') }}
+                    </button>
+                    <button type="button" id="convExpandBtn" class="conv-icon-btn conv-only-expand" data-conv-size="expand"
+                        aria-label="Open full page" title="Open full page"
+                        data-aria-en="Open full page" data-aria-he="פתח בעמוד מלא">
+                        {{ phosphor('arrows-out-simple', size=16, class='h-4 w-4') }}
+                    </button>
+                    <button type="button" class="conv-icon-btn conv-only-full-desktop" data-conv-size="overlay"
+                        aria-label="Collapse to overlay" title="Collapse to overlay"
+                        data-aria-en="Collapse to overlay" data-aria-he="כווץ לחלון">
+                        {{ phosphor('arrows-in-simple', size=16, class='h-4 w-4') }}
+                    </button>
+                    <button type="button" class="conv-icon-btn conv-only-mobile" data-conv-size="mini"
+                        aria-label="Minimize to bar" title="Minimize"
+                        data-aria-en="Minimize to bar" data-aria-he="מזער לפס">
+                        {{ phosphor('caret-down', size=16, class='h-4 w-4') }}
+                    </button>
+                    <button type="button" class="conv-icon-btn conv-only-close" data-conv-action="close"
+                        aria-label="Close conversation" title="Close"
+                        data-aria-en="Close conversation" data-aria-he="סגור שיחה">
+                        {{ phosphor('x', size=14, class='h-3.5 w-3.5') }}
+                    </button>
+                </div>
+            </header>
+
+            <p id="convLockLine" class="conv-lockline"></p>
+
+            <div id="convScroller" class="conv-scroller">
+                <div id="convEmpty" class="conv-empty">
+                    <p class="conv-empty__title font-serif" data-en="What would you like to learn?" data-he="מה תרצה ללמוד?">What would you like to learn?</p>
+                    <p class="conv-empty__text"
+                        data-en="Ask a question and follow up as much as you like. Every answer cites its sources."
+                        data-he="שאל שאלה והמשך לשאול כרצונך. כל תשובה מציינת את מקורותיה.">Ask a question and follow up
+                        as much as you like. Every answer cites its sources.</p>
+                    <!-- Signed out: a question still gets an answer (in the single-answer
+                         modal), but follow-ups need an account -- say so up front. -->
+                    <p id="convSignedOutHint" class="conv-empty__hint conv-signin-callout hidden">
+                        <span class="conv-signin-callout__icon" aria-hidden="true">{{ phosphor('lock-simple', size=16) }}</span>
+                        <span class="conv-signin-callout__text"
+                            data-en="Follow-up questions need an account. Sign in to ask follow-ups and save your conversations."
+                            data-he="שאלות המשך דורשות חשבון. התחבר/י כדי לשאול שאלות המשך ולשמור את השיחות שלך.">Follow-up questions need an account. Sign in to ask follow-ups and save your conversations.</span>
+                        <button type="button" class="conv-link-btn" data-conv-action="sign-in" data-en="Sign in" data-he="התחברות">Sign in</button>
+                    </p>
+                </div>
+                <div id="convLoading" class="conv-loading hidden" aria-hidden="true">
+                    <div class="conv-skel conv-skel--bubble"></div>
+                    <div class="conv-skel conv-skel--line"></div>
+                    <div class="conv-skel conv-skel--line conv-skel--short"></div>
+                    <div class="conv-skel conv-skel--bubble"></div>
+                </div>
+                <ol id="convMessages" class="conv-messages" role="log" aria-live="polite" aria-relevant="additions text"
+                    aria-label="Conversation"></ol>
+                <button type="button" id="convJumpBtn" class="conv-jump hidden"
+                    aria-label="Jump to latest answer" title="Jump to latest answer"
+                    data-aria-en="Jump to latest answer" data-aria-he="קפוץ לתשובה האחרונה">
+                    {{ phosphor('caret-double-down', size=16, class='h-4 w-4') }}
+                </button>
+            </div>
+
+            <div id="convNotice" class="conv-notice hidden" role="status" aria-live="polite">
+                <span id="convNoticeText"></span>
+                <button type="button" id="convNoticeAction" class="conv-link-btn hidden"></button>
+            </div>
+
+            <div class="conv-composer-shell">
+                <details id="convSources" class="conv-sources hidden">
+                    <summary class="conv-sources__summary">
+                        <span class="conv-sources__dot" aria-hidden="true"></span>
+                        <span id="convSourcesLabel"></span>
+                        {{ phosphor('caret-down', size=10, class='h-2.5 w-2.5 conv-sources__caret') }}
+                    </summary>
+                    <ul id="convSourcesList" class="conv-sources__list"></ul>
+                </details>
+                <form id="convComposer" class="conv-composer" novalidate>
+                    <div class="conv-halo" aria-hidden="true"></div>
+                    <div class="conv-composer__fill">
+                        <label for="convInput" class="sr-only" data-en="Ask a question" data-he="שאל שאלה">Ask a question</label>
+                        <textarea id="convInput" rows="1" dir="auto" maxlength="2000" autocomplete="off"></textarea>
+                        <button type="submit" id="convSendBtn" class="conv-send" aria-label="Send" title="Send"
+                            data-aria-en="Send" data-aria-he="שלח">
+                            {{ phosphor('arrow-up', size=14, class='h-3.5 w-3.5') }}
+                        </button>
+                    </div>
+                </form>
+                <p class="conv-disclaimer"
+                    data-en="AI-generated educational information, not a halachic ruling. Ask your rabbi for practical guidance."
+                    data-he="מידע חינוכי שנוצר על ידי בינה מלאכותית, לא פסיקה הלכתית. שאל את רבך להנחיה מעשית.">AI-generated
+                    educational information, not a halachic ruling. Ask your rabbi for practical guidance.</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Phone "minimized" state: a now-playing style bar above the tab bar. -->
+    <div id="convPip" class="conv-pip hidden">
+        <button type="button" id="convPipOpen" class="conv-pip__open">
+            <span class="conv-live-dot" aria-hidden="true"></span>
+            <span class="conv-pip__text">
+                <span id="convPipTitle" class="conv-pip__title"></span>
+                <span id="convPipStatus" class="conv-pip__status"></span>
+            </span>
+            <span class="conv-pip__icon" aria-hidden="true">{{ phosphor('caret-up', size=14, class='h-3.5 w-3.5') }}</span>
+        </button>
+        <button type="button" class="conv-icon-btn" data-conv-action="close"
+            aria-label="Dismiss conversation" title="Dismiss"
+            data-aria-en="Dismiss conversation" data-aria-he="סגור שיחה">
+            {{ phosphor('x', size=14, class='h-3.5 w-3.5') }}
+        </button>
+    </div>
+
+    <!-- Recent-conversations popover, shared by every history button (topbar,
+         mobile search tray, and the panel's own header). -->
+    <div id="convHistoryPop" class="conv-pop hidden" role="dialog" aria-labelledby="convHistoryPopHeading">
+        <button type="button" class="conv-pop__new" data-conv-action="new">
+            {{ phosphor('plus', size=14, class='h-3.5 w-3.5') }}
+            <span data-en="New conversation" data-he="שיחה חדשה">New conversation</span>
+        </button>
+        <p id="convHistoryPopHeading" class="conv-eyebrow" data-en="Recent conversations" data-he="שיחות אחרונות">Recent conversations</p>
+        <ul class="conv-list" data-conv-list="popover" aria-labelledby="convHistoryPopHeading"></ul>
+        <p class="conv-pop__signed-out hidden">
+            <span data-en="Sign in to save and revisit your conversations." data-he="התחבר כדי לשמור ולחזור לשיחות שלך.">Sign in to save and revisit your conversations.</span>
+            <button type="button" class="conv-link-btn" data-conv-action="sign-in" data-en="Sign in" data-he="התחברות">Sign in</button>
+        </p>
+    </div>
+
+    <!-- Phone search tray: rises above the tab bar while search is open, with the
+         AI conversation button and the history button side by side. -->
+    <div id="mobileSearchTray" class="mobile-search-tray hidden" role="group" aria-label="Ask Sh'elah"
+        data-aria-en="Ask Sh'elah" data-aria-he="שאל את ש׳אלה">
+        <button type="button" id="mobileTrayAskBtn" class="mobile-search-tray__ask">
+            {{ phosphor('sparkle', size=14, class='h-3.5 w-3.5') }}
+            <span data-en="Ask Sh'elah" data-he="שאל את ש׳אלה">Ask Sh'elah</span>
+        </button>
+        <button type="button" id="mobileTrayHistoryBtn" class="conv-icon-btn conv-history-trigger mobile-search-tray__history"
+            aria-haspopup="dialog" aria-expanded="false" aria-controls="convHistoryPop"
+            aria-label="Conversation history" title="Conversation history"
+            data-aria-en="Conversation history" data-aria-he="היסטוריית שיחות">
+            {{ phosphor('clock-counter-clockwise', size=18, class='h-[18px] w-[18px]') }}
+        </button>
+    </div>
+
+    <!-- AI discovery tip: shown to visitors who have never used the AI, anchored
+         to the topbar "Ask AI" button (desktop) or the phone top bar's Ask button
+         (phones); gone for good after the first AI use or "Not now".
+         Positioned and wired by static/js/conversation-ui.js. -->
+    <div id="aiDiscoveryTip" class="ai-tip hidden" role="dialog" aria-modal="false"
+        aria-labelledby="aiDiscoveryTipTitle" aria-describedby="aiDiscoveryTipText">
+        <span class="ai-tip__arrow" aria-hidden="true"></span>
+        <span class="ai-tip__badge" aria-hidden="true">{{ phosphor('sparkle', size=16, class='h-4 w-4') }}</span>
+        <div class="ai-tip__body">
+            <p id="aiDiscoveryTipTitle" class="ai-tip__title" data-en="Ask Sh'elah anything" data-he="שאל את ש׳אלה כל שאלה">Ask Sh'elah anything</p>
+            <p id="aiDiscoveryTipText" class="ai-tip__text"
+                data-en="Our AI answers questions on halachah, customs and texts — and every answer cites its sources."
+                data-he="הבינה המלאכותית שלנו עונה על שאלות בהלכה, במנהגים ובטקסטים — וכל תשובה מציינת את מקורותיה.">Our AI answers questions on halachah, customs and texts — and every answer cites its sources.</p>
+            <div class="ai-tip__actions">
+                <button type="button" id="aiDiscoveryTipTry" class="ai-tip__try" data-en="Try it" data-he="נסה עכשיו">Try it</button>
+                <button type="button" id="aiDiscoveryTipDismiss" class="ai-tip__dismiss" data-en="Not now" data-he="לא עכשיו">Not now</button>
+            </div>
+        </div>
+    </div>
+
+    <script type="application/json" id="convIconPaths">{
+        "check": "{{ phosphor_path('check') }}",
+        "caret-down": "{{ phosphor_path('caret-down') }}",
+        "pin": "{{ phosphor_path('push-pin') }}",
+        "warning": "{{ phosphor_path('warning-circle') }}"
+    }</script>
 
     <!-- Privacy & Data Modal (plan.md §8.D self-serve DSR: download / delete) -->
     <style>
@@ -2401,6 +2817,9 @@
         // ordinary answer chrome.
         function renderDisclaimerBanner(bannerEl, safetyClass, breakerTripped) {
             if (!bannerEl) return;
+            // Only hidden while a shared link has no answer to show
+            // (showPublicAnswerUnavailable); every rendered answer gets one.
+            bannerEl.classList.remove('hidden');
             const isReferral = SAFETY_REFERRAL_UI_CLASSES.has(String(safetyClass || 'ok'));
             // breakerTripped (plan.md §16.3-L3 / Prompt 29b) takes precedence over
             // the ordinary referral/note split -- the global cost breaker always
@@ -2433,72 +2852,10 @@
         const READER_LAYOUT_MANUAL_KEY = "Sh'elahReaderLayoutManuallySet";
         const PARASHA_CACHE_TTL_MS = 1000 * 60 * 60;
         const POPULAR_TEXTS_CACHE_TTL_MS = 1000 * 60 * 60 * 12;
-        const TORAH_PARASHA_BY_BOOK = {
-            'Genesis': [
-                { chapter: 1, name: 'Bereshit' },
-                { chapter: 6, name: 'Noach' },
-                { chapter: 12, name: 'Lech-Lecha' },
-                { chapter: 18, name: 'Vayera' },
-                { chapter: 23, name: 'Chayei Sara' },
-                { chapter: 25, name: 'Toldot' },
-                { chapter: 28, name: 'Vayetze' },
-                { chapter: 32, name: 'Vayishlach' },
-                { chapter: 37, name: 'Vayeshev' },
-                { chapter: 41, name: 'Miketz' },
-                { chapter: 44, name: 'Vayigash' },
-                { chapter: 47, name: 'Vayechi' },
-            ],
-            'Exodus': [
-                { chapter: 1, name: 'Shemot' },
-                { chapter: 6, name: 'Vaera' },
-                { chapter: 10, name: 'Bo' },
-                { chapter: 13, name: 'Beshalach' },
-                { chapter: 18, name: 'Yitro' },
-                { chapter: 21, name: 'Mishpatim' },
-                { chapter: 25, name: 'Terumah' },
-                { chapter: 27, name: 'Tetzaveh' },
-                { chapter: 30, name: 'Ki Tisa' },
-                { chapter: 35, name: 'Vayakhel' },
-                { chapter: 38, name: 'Pekudei' },
-            ],
-            'Leviticus': [
-                { chapter: 1, name: 'Vayikra' },
-                { chapter: 6, name: 'Tzav' },
-                { chapter: 9, name: 'Shemini' },
-                { chapter: 12, name: 'Tazria' },
-                { chapter: 14, name: 'Metzora' },
-                { chapter: 16, name: 'Achrei Mot' },
-                { chapter: 19, name: 'Kedoshim' },
-                { chapter: 21, name: 'Emor' },
-                { chapter: 25, name: 'Behar' },
-                { chapter: 26, name: 'Bechukotai' },
-            ],
-            'Numbers': [
-                { chapter: 1, name: 'Bamidbar' },
-                { chapter: 4, name: 'Naso' },
-                { chapter: 8, name: 'Behaalotecha' },
-                { chapter: 13, name: 'Shelach' },
-                { chapter: 16, name: 'Korach' },
-                { chapter: 19, name: 'Chukat' },
-                { chapter: 22, name: 'Balak' },
-                { chapter: 25, name: 'Pinchas' },
-                { chapter: 30, name: 'Matot' },
-                { chapter: 33, name: 'Masei' },
-            ],
-            'Deuteronomy': [
-                { chapter: 1, name: 'Devarim' },
-                { chapter: 3, name: 'Vaetchanan' },
-                { chapter: 7, name: 'Eikev' },
-                { chapter: 11, name: 'Reeh' },
-                { chapter: 16, name: 'Shoftim' },
-                { chapter: 21, name: 'Ki Teitzei' },
-                { chapter: 26, name: 'Ki Tavo' },
-                { chapter: 29, name: 'Nitzavim' },
-                { chapter: 31, name: 'Vayelech' },
-                { chapter: 32, name: 'Haazinu' },
-                { chapter: 33, name: 'Vezot Haberakhah' },
-            ],
-        };
+        // Verse-accurate portion starts ({chapter, verse, name}) from
+        // static/js/hebrew-ref.js, which carries Sefaria's boundaries.
+        const hebrewRef = window.ShelahHebrewRef;
+        const TORAH_PARASHA_BY_BOOK = hebrewRef ? hebrewRef.parashotByBook() : {};
 
         const CHAPTER_GRID_BOOKS = Object.freeze({
             Genesis: 50,
@@ -3008,14 +3365,14 @@
                 let html = '';
                 Object.entries(grouped).forEach(([cat, items]) => {
                     html += `<div class="mb-5">
-                        <p class="chapter-grid-group-label mb-2">${escapeHtml(cat)}</p>
+                        <p class="chapter-grid-group-label mb-2" dir="auto">${escapeHtml(communityLabelText(cat))}</p>
                         <div class="space-y-3">`;
                     items.forEach(item => {
                         const practices = Array.isArray(item.common_practices)
                             ? item.common_practices.map(p => `<li class="ml-4 list-disc text-slate-600">${escapeHtml(p)}</li>`).join('')
                             : '';
                         html += `<div class="border border-slate-200 rounded-lg p-3 bg-white hover:bg-slate-50 transition">
-                            <p class="font-semibold text-navy text-sm">${escapeHtml(item.topic || '')}</p>
+                            <p class="font-semibold text-navy text-sm" dir="auto">${escapeHtml(communityLabelText(item.topic))}</p>
                             ${item.summary ? `<p class="text-slate-600 text-sm mt-1">${escapeHtml(item.summary)}</p>` : ''}
                             ${practices ? `<ul class="text-sm mt-2 space-y-1">${practices}</ul>` : ''}
                         </div>`;
@@ -3287,8 +3644,8 @@
         }
 
         const UI_TYPE_LABELS = {
-            en: { text: 'Text', prayer: 'Prayer', community: 'Community', ask: 'Ask' },
-            he: { text: 'טקסט', prayer: 'תפילה', community: 'קהילה', ask: 'שאלה' },
+            en: { text: 'Text', prayer: 'Prayer', community: 'Community', ask: 'Ask', history: 'History' },
+            he: { text: 'טקסט', prayer: 'תפילה', community: 'קהילה', ask: 'שאלה', history: 'היסטוריה' },
         };
 
         const CATEGORY_HE_MAP = {
@@ -3635,6 +3992,12 @@
                 || normalized;
         }
 
+        // Gematria for Hebrew-mode labels ("5" -> "ה׳"); digits pass through
+        // if static/js/hebrew-ref.js somehow didn't load.
+        function hebrewNumber(value) {
+            return hebrewRef ? hebrewRef.hebrewNumeral(Number(value)) : String(value);
+        }
+
         function localizeReferenceLabel(value) {
             const raw = String(value || '').replace(/\s+/g, ' ').trim();
             if (!raw || !isHebrewMode()) return raw;
@@ -3652,18 +4015,18 @@
             const chapterRangeMatch = raw.match(/^(.+?)\s+(\d+):(\d+)-(\d+):(\d+)$/);
             if (chapterRangeMatch) {
                 const book = getHebrewBookDisplayName(chapterRangeMatch[1]);
-                const startChapter = chapterRangeMatch[2];
-                const startVerse = chapterRangeMatch[3];
-                const endChapter = chapterRangeMatch[4];
-                const endVerse = chapterRangeMatch[5];
+                const startChapter = hebrewNumber(chapterRangeMatch[2]);
+                const startVerse = hebrewNumber(chapterRangeMatch[3]);
+                const endChapter = hebrewNumber(chapterRangeMatch[4]);
+                const endVerse = hebrewNumber(chapterRangeMatch[5]);
                 return `${book} ${startChapter}:${startVerse}-${endChapter}:${endVerse}`;
             }
 
             const chapterMatch = raw.match(/^(.+?)\s+(\d+)(?::(\d+))?$/);
             if (chapterMatch) {
                 const book = getHebrewBookDisplayName(chapterMatch[1]);
-                const chapter = chapterMatch[2];
-                const verse = chapterMatch[3] ? `:${chapterMatch[3]}` : '';
+                const chapter = hebrewNumber(chapterMatch[2]);
+                const verse = chapterMatch[3] ? `:${hebrewNumber(chapterMatch[3])}` : '';
                 return `${book} ${chapter}${verse}`;
             }
 
@@ -3739,9 +4102,9 @@
             const raw = String(token || '').trim();
             const match = raw.match(/^(\d+)([ab])(?::(\d+))?$/i);
             if (!match) return raw;
-            const side = match[2].toLowerCase() === 'a' ? 'א' : 'ב';
-            const line = match[3] ? `:${match[3]}` : '';
-            return `${match[1]}${side}${line}`;
+            const side = match[2].toLowerCase() === 'a' ? 'ע״א' : 'ע״ב';
+            const line = match[3] ? `:${hebrewNumber(match[3])}` : '';
+            return `${hebrewNumber(match[1])} ${side}${line}`;
         }
 
         function localizeTalmudSectionLabel(label) {
@@ -3753,9 +4116,15 @@
                 || raw;
         }
 
+        // ref -> { heRef, en, he } from the links payload: Sefaria's own
+        // Hebrew ref and the commentator's short title in both languages.
+        const commentaryRefMeta = new Map();
+
         function localizeCommentaryReferenceLabel(ref) {
             const raw = String(ref || '').replace(/\s+/g, ' ').trim();
             if (!raw || !isHebrewMode()) return raw;
+            const sefariaHeRef = commentaryRefMeta.get(raw)?.heRef;
+            if (sefariaHeRef) return sefariaHeRef;
 
             const onMatch = raw.match(/^(.+?)\s+on\s+(.+)$/i);
             if (onMatch) {
@@ -3798,20 +4167,41 @@
                 'Adar II': 'אדר ב׳',
             };
 
+            // Longest first, so "Adar II" isn't read as "Adar" + "II".
             let localized = raw;
-            Object.entries(monthMap).forEach(([monthEn, monthHe]) => {
-                localized = localized.replace(new RegExp(`\\b${monthEn}\\b`, 'gi'), monthHe);
-            });
+            Object.entries(monthMap)
+                .sort(([a], [b]) => b.length - a.length)
+                .forEach(([monthEn, monthHe]) => {
+                    localized = localized.replace(new RegExp(`\\b${monthEn}\\b`, 'gi'), monthHe);
+                });
 
-            const mdy = localized.match(/^([^\d]+?)\s+(\d{3,4})\s+(\d{1,2})$/);
-            if (mdy) {
-                const month = String(mdy[1] || '').trim();
-                const year = String(mdy[2] || '').trim();
-                const day = String(mdy[3] || '').trim();
-                return `${day} ${month} ${year}`.replace(/\s+/g, ' ').trim();
+            // "15 Tishrei 5787" (or "Tishrei 5787 15") -> "ט״ו בתשרי תשפ״ז".
+            const numeral = window.ShelahHebrewRef?.hebrewNumeral || String;
+            const dmy = localized.match(/^(\d{1,2})\s+([^\d]+?)\s+(\d{4})$/);
+            const mdy = localized.match(/^([^\d]+?)\s+(\d{4})\s+(\d{1,2})$/);
+            if (dmy || mdy) {
+                const [day, month, year] = dmy ? [dmy[1], dmy[2], dmy[3]] : [mdy[3], mdy[1], mdy[2]];
+                return `${numeral(Number(day))} ב${month.trim()} ${numeral(Number(year))}`;
             }
 
             return localized;
+        }
+
+        // The header's Hebrew date is the zmanim location's: /api/zmanim
+        // works it out in that place's timezone and rolls it over at its
+        // sunset. /api/daily-study's server-side date only fills in until
+        // the zmanim answer arrives.
+        let hebrewDateFromLocation = false;
+        function setLocationHebrewDate(hebrewDate) {
+            const dateEl = document.getElementById('hebrewDateDisplay');
+            const value = String(hebrewDate || '').trim();
+            if (!dateEl || !value) return;
+            hebrewDateFromLocation = true;
+            if (dateEl.dataset.en === value) return;
+            dateEl.dataset.en = value;
+            delete dateEl.dataset.he;
+            refreshHebrewDateDisplay();
+            syncHebrewDateMobilePosition();
         }
 
         function refreshHebrewDateDisplay(lang = getCurrentLanguage()) {
@@ -4004,6 +4394,17 @@
             Object.entries(HOLIDAY_MONTH_HE_MAP).forEach(([en, he]) => {
                 result = result.replace(new RegExp(`\\b${en}\\b`, 'g'), he);
             });
+
+            // Hebcal's day numbering and counts ("Sukkot III (CH''M)",
+            // "Chanukah: 3 Candles", "Rosh Hashana 5787"): left in Latin, an
+            // RTL line also moved them to the wrong end ("II ראש השנה").
+            const ROMAN = { I: 1, II: 2, III: 3, IV: 4, V: 5, VI: 6, VII: 7, VIII: 8 };
+            result = result
+                .replace(/\(CH[’'"]{1,2}M\)/gi, '(חוה״מ)')
+                .replace(/:\s*(\d+)\s+Candles?\b/gi, (_m, n) => (Number(n) === 1 ? ': נר ראשון' : `: ${hebrewNumber(n)} נרות`))
+                .replace(/:\s*(\d+)(?:st|nd|rd|th)\s+Day\b/gi, (_m, n) => `: יום ${hebrewNumber(n)}`)
+                .replace(/([\u0590-\u05FF]\s)(VIII|VII|VI|IV|V|III|II|I)\b/g, (_m, lead, numeral) => `${lead}${hebrewNumber(ROMAN[numeral])}`)
+                .replace(/\b(5\d{3})\b/g, (_m, year) => hebrewNumber(year));
 
             return result;
         }
@@ -4415,7 +4816,7 @@
                     // The initial hydrateRoute() call can run before Clerk has
                     // a session (main.js's module hydrate fires on
                     // DOMContentLoaded, ahead of Clerk's own async init), so a
-                    // page loaded directly on a ?chat= link needs a retry here
+                    // page loaded directly on an /answer/<id> link needs a retry here
                     // once sign-in actually completes.
                     const route = window.ShelahRouter?.readRoute();
                     if (route?.chat) {
@@ -4434,6 +4835,7 @@
                 const histList = document.getElementById('askHistoryList');
                 if (histList) histList.innerHTML = '';
             }
+            document.dispatchEvent(new CustomEvent('shelah:auth-changed', { detail: { signedIn: Boolean(user) } }));
         }
 
         async function initClerkAuth() {
@@ -4598,8 +5000,95 @@
             debouncedPushPrefsToServer();
         }
 
+        // Deep-link display overrides (router.js DISPLAY_KEYS). A link like
+        // ?text=Genesis.1&layout=hebrew&taamim=0 changes how THIS page looks
+        // without rewriting the visitor's own saved preferences:
+        // routePrefOverrides remembers each overridden pref's own value, and
+        // persistablePrefs() writes that value back in its place. Touching
+        // the matching reader control hands the pref back to the visitor
+        // (releaseRouteDisplayPref) -- from then on it saves normally.
+        const ROUTE_DISPLAY_PREFS = {
+            layout: { pref: 'readerLayout', read: (v) => v, write: (v) => String(v) },
+            vowels: { pref: 'showVowels', read: (v) => v === '1', write: (v) => (v !== false ? '1' : '0') },
+            taamim: { pref: 'showCantillation', read: (v) => v === '1', write: (v) => (v !== false ? '1' : '0') },
+            translit: { pref: 'transliteration', read: (v) => v === '1', write: (v) => (v ? '1' : '0') },
+            size: { pref: 'fontSize', read: (v) => Number(v), write: (v) => String(v) },
+        };
+        let routePrefOverrides = {};
+
+        function persistablePrefs() {
+            return { ...appState.prefs, ...routePrefOverrides };
+        }
+
+        // Returns true when any reader pref changed, so the caller can
+        // re-render once. A key missing from `route` (e.g. after back/forward)
+        // restores the visitor's own value.
+        function applyRouteDisplayPrefs(route = {}) {
+            let changed = false;
+            Object.entries(ROUTE_DISPLAY_PREFS).forEach(([routeKey, spec]) => {
+                if (route[routeKey] !== undefined) {
+                    if (!(spec.pref in routePrefOverrides)) {
+                        routePrefOverrides[spec.pref] = appState.prefs[spec.pref];
+                    }
+                    const value = spec.read(route[routeKey]);
+                    if (appState.prefs[spec.pref] !== value) changed = true;
+                    appState.prefs[spec.pref] = value;
+                } else if (spec.pref in routePrefOverrides) {
+                    if (appState.prefs[spec.pref] !== routePrefOverrides[spec.pref]) changed = true;
+                    appState.prefs[spec.pref] = routePrefOverrides[spec.pref];
+                    delete routePrefOverrides[spec.pref];
+                }
+            });
+            if (route.lang && route.lang !== getCurrentLanguage()) {
+                toggleLanguage(route.lang, { auto: true, fromRoute: true });
+            }
+            return changed;
+        }
+
+        // The visitor just changed `routeKey`'s setting themselves: it's
+        // theirs again (saved normally), and if the URL carries that key it
+        // is rewritten so the address bar keeps describing what's on screen.
+        function releaseRouteDisplayPref(routeKey) {
+            const spec = ROUTE_DISPLAY_PREFS[routeKey];
+            if (spec) delete routePrefOverrides[spec.pref];
+            const router = window.ShelahRouter;
+            if (!router || router.readRoute()[routeKey] === undefined) return;
+            const value = spec ? spec.write(appState.prefs[spec.pref]) : getCurrentLanguage();
+            router.pushRoute({ [routeKey]: value }, { replace: true });
+        }
+
+        // While a text is open the address bar carries its reader display
+        // settings, so a copied or refreshed text link comes back with the
+        // same layout and vowel/cantillation/transliteration toggles.
+        // `size`/`lang` aren't written automatically (a link that has them
+        // is still honored).
+        const READER_ROUTE_KEYS = ['layout', 'vowels', 'taamim', 'translit'];
+
+        // `onText`: the settings on screen. Otherwise the keys are dropped,
+        // except one a deep link is still overriding (dropping that would
+        // lose it on refresh).
+        function readerDisplayRoutePatch(onText) {
+            const patch = {};
+            READER_ROUTE_KEYS.forEach((key) => {
+                const spec = ROUTE_DISPLAY_PREFS[key];
+                const keep = onText || spec.pref in routePrefOverrides;
+                patch[key] = keep ? spec.write(appState.prefs[spec.pref]) : null;
+            });
+            return patch;
+        }
+
+        function syncReaderDisplayRoute() {
+            const router = window.ShelahRouter;
+            if (!router || appState.currentView?.type !== 'text') return;
+            const route = router.readRoute();
+            if (!route.text) return;
+            const patch = readerDisplayRoutePatch(true);
+            if (READER_ROUTE_KEYS.every((key) => route[key] === patch[key])) return;
+            router.pushRoute(patch, { replace: true });
+        }
+
         function savePrefs() {
-            localStorage.setItem(APP_PREFS_KEY, JSON.stringify(appState.prefs));
+            localStorage.setItem(APP_PREFS_KEY, JSON.stringify(persistablePrefs()));
             debouncedPushPrefsToServer();
         }
 
@@ -4675,9 +5164,14 @@
                 };
                 localStorage.setItem(APP_SHELF_KEY, JSON.stringify(incomingShelf));
 
+                // The server's values are the visitor's own now: re-apply any
+                // deep-link display overrides on top of them.
+                routePrefOverrides = {};
+                applyRouteDisplayPrefs(window.ShelahRouter?.readRoute() || {});
+
                 syncPrefsInputsFromState();
 
-                localStorage.setItem(APP_PREFS_KEY, JSON.stringify(appState.prefs));
+                localStorage.setItem(APP_PREFS_KEY, JSON.stringify(persistablePrefs()));
                 applyReaderPreferences();
                 applySidebarVisibility();
                 applyShulMode();
@@ -4701,7 +5195,7 @@
                     method: 'PUT',
                     headers,
                     body: JSON.stringify({
-                        prefs: appState.prefs,
+                        prefs: persistablePrefs(),
                         shelf,
                         notes: shelf.notes || {},
                         reading_state: appState.readingState || {},
@@ -4745,10 +5239,12 @@
             appState.lastAiResponse = item;
             document.getElementById('aiModalTitle').textContent = item.question;
             const modal = document.getElementById('aiAssistantModal');
+            hideAiMiniBar();
             modal.style.display = 'flex';
             presentEl(modal, modalMotion(modal));
             populateAiModal(item, item.question);
-            if (searchInput) searchInput.value = item.question;
+            // A visitor on a shared link didn't ask anything here.
+            if (searchInput) searchInput.value = item.public ? '' : item.question;
             if (!options.fromRoute && item.id) {
                 window.ShelahRouter?.pushRoute({ chat: item.id }, { exclusive: true, replace: Boolean(options.replace) });
             }
@@ -4798,7 +5294,10 @@
             list.querySelectorAll('.ask-history-del').forEach((btn) => {
                 btn.addEventListener('click', async () => {
                     const id = btn.getAttribute('data-id');
-                    await deleteAskHistoryEntry(id);
+                    if (await deleteAskHistoryEntry(id)) {
+                        dropShelfAsk(id);
+                        askHistoryPage?.refresh();
+                    }
                     await loadAskHistory();
                 });
             });
@@ -4807,11 +5306,162 @@
         async function deleteAskHistoryEntry(id) {
             try {
                 const headers = await authHeaders();
-                await fetch(`/api/user/history/${encodeURIComponent(id)}`, { method: 'DELETE', headers });
-            } catch (_) {}
+                const resp = await fetch(`/api/user/history/${encodeURIComponent(id)}`, { method: 'DELETE', headers });
+                return resp.ok;
+            } catch (_) {
+                return false;
+            }
         }
 
-        // Resolves a ?chat=<id> deep link against the caller's own history
+        // One stored answer of the caller's: the item, or null when there is
+        // none (404: deleted, or not theirs). Other failures throw, so a
+        // caller can tell "gone" from "couldn't check".
+        async function fetchAskHistoryEntry(id) {
+            const headers = await authHeaders();
+            const resp = await fetch(`/api/user/history/${encodeURIComponent(id)}`, { headers });
+            if (resp.status === 404) return null;
+            if (!resp.ok) throw new Error(`history entry ${resp.status}`);
+            return resp.json();
+        }
+
+        // A page of the caller's history ({ items, next_cursor }); q filters
+        // on the question text (backend/routes_user.py get_ask_history).
+        async function fetchAskHistoryPage({ q = '', cursor = '', limit } = {}) {
+            const qs = window.ShelahAskHistory.historyQueryString({ q, cursor, limit });
+            const headers = await authHeaders();
+            const resp = await fetch(`/api/user/history?${qs}`, { headers });
+            if (!resp.ok) throw new Error(`history ${resp.status}`);
+            return resp.json();
+        }
+
+        function askHistoryAuthState() {
+            if (!isClerkConfigured()) return 'unavailable';
+            if (!window.Clerk) return document.readyState === 'loading' ? 'pending' : 'unavailable';
+            if (window.Clerk.user && window.Clerk.session) return 'signed-in';
+            return window.Clerk.loaded ? 'signed-out' : 'pending';
+        }
+
+        // Shelf 'ask' entries hold the answer's ask_history id (label = the
+        // question), so reopening one shows the stored answer instead of
+        // paying for /ask again. Entries saved before that held the question
+        // text; they're rewritten here once the answer's id is known.
+        function promoteShelfAsk(question, id) {
+            const next = window.ShelahAskHistory?.promoteAskEntries(getShelfData(), question, id);
+            if (appState.currentView?.type === 'ask'
+                && window.ShelahAskHistory?.sameQuestion(appState.currentView.value, question)) {
+                appState.currentView = { type: 'ask', value: id, label: appState.currentView.label || question };
+                window.ShelahState?.setState({ currentView: appState.currentView });
+            }
+            if (next) {
+                saveShelfData(next);
+                renderPersonalShelf();
+            }
+            updateBookmarkButton();
+        }
+
+        function dropShelfAsk(id) {
+            const shelf = getShelfData();
+            const keep = (item) => !(item?.type === 'ask' && item.value === id);
+            if (shelf.recent.every(keep) && shelf.bookmarks.every(keep)) return;
+            shelf.recent = shelf.recent.filter(keep);
+            shelf.bookmarks = shelf.bookmarks.filter(keep);
+            saveShelfData(shelf);
+            renderPersonalShelf();
+        }
+
+        // ── /history page ──────────────────────────────────────────────────
+        // static/js/ask-history.js renders and drives the list; this sets up
+        // the reader around it the way displayCommunity() does.
+        const _ASK_HISTORY_ICONS = {
+            search: '<path d="{{ phosphor_path("magnifying-glass") }}"/>',
+            delete: '<path d="{{ phosphor_path("trash") }}"/>',
+        };
+        let askHistoryPage = null;
+
+        function closeAskHistoryPage() {
+            askHistoryPage?.destroy();
+            askHistoryPage = null;
+        }
+
+        function displayAskHistoryPage(options = {}) {
+            if (!window.ShelahAskHistory) return;
+            // Back from /answer/<id> lands here: the list, not the answer
+            // still open over it.
+            const aiModal = document.getElementById('aiAssistantModal');
+            if (options.fromRoute && aiModal && aiModal.style.display === 'flex') closeAiModal();
+            // Already showing (back from an answer opened here): keep its
+            // search and loaded pages as they were.
+            if (askHistoryPage && appState.currentView?.type === 'history'
+                && document.getElementById('askHistoryPageRoot')?.isConnected && !reader.classList.contains('hidden')) {
+                return;
+            }
+            closeAskHistoryPage();
+            closeMobilePanels();
+            closeTextsMenu();
+            closeReaderSettingsPanel();
+            homeGrid.style.display = 'none';
+            hideLoadingOverlay();
+            reader.classList.remove('hidden');
+            readerTopBar?.classList.add('hidden');
+            applySidebarVisibility();
+            setReaderSubtitle('');
+
+            const title = t('Your questions', 'השאלות שלך');
+            document.getElementById('readerTitle').innerText = title;
+            setCurrentView('history', '1', title, options);
+            window.currentCommunityData = null;
+            window.currentPrayerContent = null;
+            window.currentPrayerParagraphPairs = [];
+            window.currentPrayerName = null;
+            window.currentTextPayload = null;
+            window.currentTextPayloadChain = [];
+            resetInfiniteReaderState(null);
+            collapseCommentaryPanel();
+            resetSelectionInsights();
+            clearCompareReference(false);
+            document.getElementById('readerSources').innerHTML = '';
+            document.getElementById('readerMedia').innerHTML = '';
+            document.getElementById('readerFeedback').innerHTML = '';
+            // The list isn't an answer; each one opens with its own disclaimer.
+            document.getElementById('readerDisclaimerBanner').innerHTML = '';
+            window.ShelahAnswerLink?.article.hide();
+            sidebarContent.innerHTML = `<p class="text-xs text-slate-500">${t(
+                'Every answer you get while signed in is saved here. Open one to read it again, copy its link, or share it.',
+                'כל תשובה שמתקבלת כשאת/ה מחובר/ת נשמרת כאן. פתח/י תשובה כדי לקרוא אותה שוב, להעתיק קישור או לשתף.')}</p>`;
+
+            // A child of #readerContent, so the page's listeners go away with
+            // it the moment another view renders there.
+            const content = document.getElementById('readerContent');
+            content.innerHTML = '<div id="askHistoryPageRoot"></div>';
+            askHistoryPage = window.ShelahAskHistory.createHistoryPage(document.getElementById('askHistoryPageRoot'), {
+                authState: askHistoryAuthState,
+                fetchPage: ({ q, cursor }) => fetchAskHistoryPage({ q, cursor }),
+                deleteEntry: deleteAskHistoryEntry,
+                openEntry: (item) => openStoredAskAnswer(item),
+                signIn: () => { void handleSignIn(); },
+                onDeleted: (id) => {
+                    dropShelfAsk(id);
+                    void loadAskHistory();
+                },
+                t,
+                escapeHtml,
+                formatDate: (iso) => new Date(iso).toLocaleDateString(isHebrewMode() ? 'he' : undefined,
+                    { year: 'numeric', month: 'short', day: 'numeric' }),
+                answerHref: (id) => `/answer/${encodeURIComponent(id)}`,
+                icons: _ASK_HISTORY_ICONS,
+            });
+            scrollPrimaryToTop('auto');
+        }
+
+        // Sign-in finishing (or signing out) while the page shows.
+        document.addEventListener('shelah:auth-changed', () => askHistoryPage?.refresh());
+        document.getElementById('askHistoryViewAll')?.addEventListener('click', (event) => {
+            if (event.button > 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
+            event.preventDefault();
+            displayAskHistoryPage();
+        });
+
+        // Resolves an /answer/<id> (old: ?chat=<id>) deep link against the caller's own history
         // (GET /api/user/history/<id> is scoped server-side to the verified
         // Clerk user, so a stale/foreign/deleted id 404s and just clears the
         // URL instead of erroring visibly).
@@ -4822,14 +5472,92 @@
                 const headers = await authHeaders();
                 const resp = await fetch(`/api/user/history/${encodeURIComponent(id)}`, { headers });
                 if (!resp.ok) {
-                    window.ShelahRouter?.clearRoute();
+                    window.ShelahRouter?.pushRoute({ chat: null }, { replace: true });
                     return;
                 }
                 const item = await resp.json();
                 openStoredAskAnswer(item, { fromRoute: true });
             } catch (_) {
-                window.ShelahRouter?.clearRoute();
+                window.ShelahRouter?.pushRoute({ chat: null }, { replace: true });
             }
+        }
+
+        // Resolves an /a/<share token> (old: ?a=) public link (backend/routes_answer_share.py).
+        // No auth: it works signed out, and opens the answer read-only -- no
+        // Copy link / Stop sharing (the payload carries no history id), no
+        // follow-up hint. Visitors can still rate it (feedbackAnswerLink). A 404 means
+        // the link was revoked, never existed, or the answer was deleted: the
+        // key is cleared and the visitor is told. Other failures keep the key
+        // so a reload can retry.
+        async function hydratePublicAnswer(token) {
+            if (!token) return;
+            showPublicAnswerLoading();
+            let resp = null;
+            let item = null;
+            try {
+                resp = await fetch(`/api/public/answer/${encodeURIComponent(token)}`, { cache: 'no-store' });
+                if (resp.ok) item = await resp.json();
+            } catch (_) {
+                item = null;
+            }
+            // The visitor may have navigated elsewhere while this loaded.
+            if (window.ShelahRouter?.readRoute().a !== token) return;
+            if (item?.answer) {
+                // share_token stays on this client-side copy: feedback sends it
+                // (feedbackAnswerLink) since the payload carries no row id.
+                openStoredAskAnswer({ ...item, public: true, share_token: token }, { fromRoute: true });
+                return;
+            }
+            const gone = resp?.status === 404;
+            if (gone) window.ShelahRouter?.pushRoute({ a: null }, { replace: true });
+            showPublicAnswerUnavailable(gone);
+        }
+
+        function resetAiModalForPublicAnswer(title) {
+            const modal = document.getElementById('aiAssistantModal');
+            modal.dataset.answerView = 'public';
+            document.getElementById('aiModalTitle').textContent = title;
+            ['aiSourcesSection', 'aiCustomsSection', 'aiWikiSection'].forEach((id) => {
+                document.getElementById(id)?.classList.add('hidden');
+            });
+            document.getElementById('aiFeedback').innerHTML = '';
+            window.ShelahAnswerLink?.modal.hide();
+            if (modal.style.display !== 'flex') {
+                hideAiMiniBar();
+                modal.style.display = 'flex';
+                presentEl(modal, modalMotion(modal));
+            }
+        }
+
+        function showPublicAnswerLoading() {
+            resetAiModalForPublicAnswer(t('Shared answer', 'תשובה משותפת'));
+            // Rendered up front so the banner doesn't push the answer down
+            // when it lands.
+            renderDisclaimerBanner(document.getElementById('aiDisclaimerBanner'), 'ok', false);
+            document.getElementById('aiSynthesis').innerHTML = `
+                <div class="ai-public-loading" role="status" aria-busy="true">
+                    <span class="sr-only">${t('Loading shared answer…', 'טוען תשובה משותפת…')}</span>
+                    <div class="ai-src-skeleton-line ai-src-skeleton-line--wide" aria-hidden="true"></div>
+                    <div class="ai-src-skeleton-line ai-src-skeleton-line--medium" aria-hidden="true"></div>
+                    <div class="ai-src-skeleton-line ai-src-skeleton-line--wide" aria-hidden="true"></div>
+                    <div class="ai-src-skeleton-line ai-src-skeleton-line--medium" aria-hidden="true"></div>
+                </div>`;
+        }
+
+        function showPublicAnswerUnavailable(gone) {
+            resetAiModalForPublicAnswer(gone
+                ? t("This shared answer isn't available", 'התשובה המשותפת אינה זמינה')
+                : t("Couldn't load this shared answer", 'לא ניתן היה לטעון את התשובה המשותפת'));
+            document.getElementById('aiDisclaimerBanner').classList.add('hidden');
+            const message = gone
+                ? t('The link may have been turned off by the person who shared it, or the answer was deleted. You can still ask your own question.',
+                    'ייתכן שמי ששיתף את הקישור הפסיק לשתף אותו, או שהתשובה נמחקה. עדיין אפשר לשאול שאלה משלך.')
+                : t('Check your connection and reload the page to try again.', 'בדוק/י את החיבור וטען/י מחדש את הדף כדי לנסות שוב.');
+            document.getElementById('aiSynthesis').innerHTML = `
+                <div class="ai-public-unavailable" role="alert">
+                    <span class="ai-public-unavailable__icon" aria-hidden="true"><svg viewBox="0 0 256 256" fill="currentColor" aria-hidden="true"><path d="{{ phosphor_path('link-simple') }}"/></svg></span>
+                    <p>${escapeHtml(message)}</p>
+                </div>`;
         }
 
         function setReaderSubtitle(text = '') {
@@ -4896,12 +5624,53 @@
             return Promise.resolve();
         }
 
-        // Dialog windows (chapter grid, library category, privacy, calendar,
-        // the AI answer) simply fade in where they live, with a barely-there
-        // scale settle (motion.js 'window' preset) -- no rise from the bottom
-        // and no flight out of the trigger.
+        // The control the reader last pressed (pointer, or Enter/Space on a
+        // focused control). Modals opened from it morph out of it -- and fold
+        // back into it on close, motion.js keeps the origin -- the same way
+        // the calendar card grows out of its button, instead of rising from
+        // nowhere on a slower spring.
+        let lastMotionTrigger = null;
+        let lastMotionTriggerAt = 0;
+        const MOTION_TRIGGER_SELECTOR = 'button, a[href], summary, [role="button"], [role="menuitem"]';
+
+        function rememberMotionTrigger(target) {
+            const trigger = target?.closest?.(MOTION_TRIGGER_SELECTOR);
+            if (!trigger) return;
+            lastMotionTrigger = trigger;
+            lastMotionTriggerAt = performance.now();
+        }
+        document.addEventListener('pointerdown', (e) => rememberMotionTrigger(e.target), { capture: true, passive: true });
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter' || e.key === ' ') rememberMotionTrigger(document.activeElement);
+        }, { capture: true });
+
+        // Only a trigger pressed moments ago, still on screen, and outside the
+        // modal itself (a button inside the card would be a meaningless origin).
+        function recentMotionTrigger(modal) {
+            const trigger = lastMotionTrigger;
+            if (!trigger || !trigger.isConnected) return null;
+            if (performance.now() - lastMotionTriggerAt > 1500) return null;
+            if (modal?.contains(trigger)) return null;
+            const rect = trigger.getBoundingClientRect();
+            return rect.width || rect.height ? trigger : null;
+        }
+
+        // Dialog windows (chapter grid, library category, privacy, calendar)
+        // simply fade in where they live, with a barely-there scale settle
+        // (motion.js 'window' preset) -- no rise and no flight from the trigger.
         function modalMotion(modal) {
-            return { preset: 'window', card: modal?.querySelector(':scope > div') ?? null };
+            const card = modal?.querySelector(':scope > div') ?? null;
+            return { preset: 'window', card };
+        }
+
+        // The AI answer flows out of the control that asked for it on larger
+        // screens (the control pressed just before it opened), and is a bottom
+        // sheet on phones (ai.css) that slides the whole way up from the
+        // bottom edge and back down on close.
+        function aiModalMotion(modal) {
+            const card = modal?.querySelector(':scope > div') ?? null;
+            if (isMobileViewport()) return { preset: 'drawer', card };
+            return { preset: 'modal', card, origin: recentMotionTrigger(modal) };
         }
 
         function setMobileDrawerState(drawer, open) {
@@ -5440,12 +6209,22 @@
             closeReaderSettingsPanel();
         }
 
+        // Export works on the text open in the reader, so its controls only
+        // show there; "Add to Track" (any view) then takes the full row.
+        function syncSettingsExportControls() {
+            const onText = appState.currentView?.type === 'text' && !reader?.classList.contains('hidden');
+            document.getElementById('exportFormatField')?.classList.toggle('hidden', !onText);
+            exportCitationBtn?.classList.toggle('hidden', !onText);
+            trackCurrentBtn?.classList.toggle('col-span-2', !onText);
+        }
+
         function toggleSettingsMenu() {
             if (!settingsPanel) return;
             const willOpen = isMenuClosed(settingsPanel);
             if (willOpen) {
                 closeReaderSettingsPanel();
                 closeUserProfileMenu();
+                syncSettingsExportControls();
                 positionSettingsPanel();
                 presentEl(settingsPanel, { preset: 'popover', origin: settingsMenuBtn });
             } else {
@@ -6101,10 +6880,17 @@
         // Views this maps route the URL when the caller switches to them;
         // 'ask' is deliberately excluded -- AI answers are routed by their
         // own history_id (see handleAiSearch), not by question text.
-        const ROUTE_TYPE_FOR_VIEW = { text: 'text', prayer: 'prayer', community: 'community' };
+        const ROUTE_TYPE_FOR_VIEW = { text: 'text', prayer: 'prayer', community: 'community', history: 'history' };
+        // The /history page is where you find things, not something you read:
+        // it stays out of Recent.
+        const VIEWS_KEPT_OUT_OF_RECENT = new Set(['history']);
 
         function setCurrentView(type, value, label, options = {}) {
             appState.currentView = { type, value, label: label || value };
+            // state.js subscribers see every view change, not only the ones
+            // made through setState() (appState is state.js's store object).
+            window.ShelahState?.setState({ currentView: appState.currentView });
+            if (type !== 'history') closeAskHistoryPage();
             appState.readingState = {
                 ...appState.readingState,
                 last_type: type,
@@ -6112,12 +6898,16 @@
                 last_label: label || value,
                 last_opened_at: new Date().toISOString(),
             };
-            addRecentItem(appState.currentView);
+            if (!VIEWS_KEPT_OUT_OF_RECENT.has(type)) addRecentItem(appState.currentView);
             updateBookmarkButton();
+            // The article-view Copy link belongs to the answer shown there only.
+            if (type !== 'ask') window.ShelahAnswerLink?.article.hide();
 
             const routeKey = ROUTE_TYPE_FOR_VIEW[type];
             if (routeKey && !options.fromRoute && window.ShelahRouter) {
-                window.ShelahRouter.pushRoute({ [routeKey]: value }, { exclusive: true });
+                window.ShelahRouter.pushRoute({ [routeKey]: value, ...readerDisplayRoutePatch(type === 'text') }, { exclusive: true });
+            } else if (type === 'text') {
+                syncReaderDisplayRoute();
             }
         }
 
@@ -6576,21 +7366,76 @@
             const refs = [];
             const seen = new Set();
 
-            Object.entries(linkData).forEach(([category, items]) => {
-                const isCommentaryCategory = /commentary|targum|midrash|supercommentary|parshan/i.test(String(category || ''));
-                if (!Array.isArray(items) || !isCommentaryCategory) return;
-
-                items.forEach((item) => {
-                    const ref = String(item?.ref || '').trim();
-                    if (!ref) return;
-                    const key = ref.toLowerCase();
-                    if (seen.has(key)) return;
-                    seen.add(key);
-                    refs.push(ref);
+            // Commentary before Targum before Midrash, whatever order the
+            // payload's keys arrive in. "Quoting Commentary" is works that
+            // cite this verse while commenting on another one -- not a
+            // commentary on it. The list used to stop at the first 24 refs,
+            // which on Genesis 1:1 kept six commentators and dropped Rashi.
+            const categoryRank = (category) => {
+                const name = String(category || '');
+                if (/quoting/i.test(name)) return -1;
+                if (/^commentary$/i.test(name)) return 0;
+                if (/commentary|supercommentary|parshan/i.test(name)) return 1;
+                if (/targum/i.test(name)) return 2;
+                if (/midrash/i.test(name)) return 3;
+                return -1;
+            };
+            Object.entries(linkData)
+                .map(([category, items]) => ({ rank: categoryRank(category), items }))
+                .filter(({ rank, items }) => rank >= 0 && Array.isArray(items))
+                .sort((a, b) => a.rank - b.rank)
+                .forEach(({ items }) => {
+                    items.forEach((item) => {
+                        const ref = String(item?.ref || '').trim();
+                        if (!ref) return;
+                        const key = ref.toLowerCase();
+                        if (seen.has(key)) return;
+                        seen.add(key);
+                        refs.push(ref);
+                        const heRef = String(item?.heRef || '').trim();
+                        const en = String(item?.collectiveTitle?.en || '').trim();
+                        const he = String(item?.collectiveTitle?.he || '').trim();
+                        if (heRef || en || he) commentaryRefMeta.set(ref, { heRef, en, he });
+                    });
                 });
-            });
 
-            return refs.slice(0, 24);
+            // Safety bound only: a Talmud daf can carry thousands of links.
+            return refs.slice(0, COMMENTARY_REF_LIMIT);
+        }
+
+        const COMMENTARY_REF_LIMIT = 800;
+
+        // Commentators readers look for first; everything else follows in
+        // link-category order (commentary, targum, midrash), then A-Z.
+        const COMMENTARY_PRIORITY = [
+            'Rashi', 'Onkelos', 'Ramban', 'Ibn Ezra', 'Rashbam', 'Sforno', 'Radak', 'Or HaChaim',
+            'Kli Yakar', "Ba'al HaTurim", 'Rabbeinu Bahya', 'Chizkuni', "Da'at Zekenim", 'Abarbanel',
+            'Malbim', 'Haamek Davar', 'Siftei Chakhamim', 'Mizrachi', 'Gur Aryeh', 'Torah Temimah',
+            'Rav Hirsch', 'Shadal', 'Steinsaltz',
+            'Bartenura', 'Tosafot Yom Tov', 'Rambam', 'Ikar Tosafot Yom Tov', 'Tosafot', 'Rashba',
+            'Ritva', 'Maharsha', 'Mishnah Berurah', 'Magen Avraham', 'Turei Zahav', "Ba'er Hetev",
+            'Beur HaGra', "Sha'arei Teshuvah",
+        ];
+        const COMMENTARY_PRIORITY_RANK = new Map(COMMENTARY_PRIORITY.map((name, index) => [name.toLowerCase(), index]));
+
+        function getCommentaryAuthorBase(ref) {
+            const raw = String(ref || '').trim();
+            const sefariaTitle = commentaryRefMeta.get(raw)?.en;
+            // Sefaria titles the Targum per book ("Onkelos Genesis"); one
+            // "Onkelos" key ranks and groups it across the Chumash.
+            if (sefariaTitle) return sefariaTitle.replace(/^Onkelos\s+(?:Genesis|Exodus|Leviticus|Numbers|Deuteronomy)$/i, 'Onkelos');
+            const onMatch = raw.match(/^([^,]+?)\s+on\s+/i);
+            if (onMatch?.[1]) return onMatch[1].trim();
+            // "Bereshit Rabbah 1:5", "Targum Neofiti 1:1": drop the section
+            // numbers so every passage of one work lands in one group.
+            const base = raw.split(',')[0]?.trim() || raw;
+            return base.replace(/\s+\d+[a-b]?(?:[:.]\d+[a-b]?)*(?:-\d+(?:[:.]\d+)*)?$/i, '').trim() || base;
+        }
+
+        function commentaryBucket(ref) {
+            if (/\s+on\s+/i.test(ref)) return 0;
+            if (/^(?:onkelos|targum|tafsir)\b/i.test(ref)) return 1;
+            return 2;
         }
 
         // Bounded caches for the commentary sidebar -- reselecting the same
@@ -6751,6 +7596,7 @@
             selectionInsightsBody.addEventListener('toggle', (event) => {
                 const details = event.target;
                 if (!(details instanceof HTMLDetailsElement) || !details.open) return;
+                fillCommentaryGroup(details);
                 const first = details.querySelector('[data-commentary-ref]');
                 if (first) prefetchCommentaryText(first.dataset.commentaryRef);
             }, true);
@@ -6759,18 +7605,8 @@
         function getCommentaryAuthorLabel(ref) {
             const raw = String(ref || '').trim();
             if (!raw) return t('Unknown commentator', 'פרשן לא ידוע');
-
-            const onMatch = raw.match(/^([^,]+?)\s+on\s+/i);
-            if (onMatch?.[1]) {
-                return getCommentaryAuthorDisplayName(onMatch[1]);
-            }
-
-            const commaBase = raw.split(',')[0]?.trim();
-            if (commaBase) {
-                return getCommentaryAuthorDisplayName(commaBase);
-            }
-
-            return getCommentaryAuthorDisplayName(raw);
+            const sefariaHe = isHebrewMode() ? commentaryRefMeta.get(raw)?.he : '';
+            return sefariaHe || getCommentaryAuthorDisplayName(getCommentaryAuthorBase(raw));
         }
 
         function groupCommentaryRefsByAuthor(refs) {
@@ -6781,19 +7617,26 @@
                 const author = getCommentaryAuthorLabel(ref);
                 const authorKey = normalizeLibraryLookupKey(author || ref) || String(author || ref).toLowerCase();
                 if (!byAuthor.has(authorKey)) {
-                    byAuthor.set(authorKey, { author, refs: [] });
+                    const base = getCommentaryAuthorBase(ref).toLowerCase();
+                    byAuthor.set(authorKey, {
+                        author,
+                        refs: [],
+                        rank: COMMENTARY_PRIORITY_RANK.has(base) ? COMMENTARY_PRIORITY_RANK.get(base) : Infinity,
+                        bucket: commentaryBucket(ref),
+                    });
                 }
                 byAuthor.get(authorKey).refs.push(ref);
             });
 
             return Array.from(byAuthor.values())
+                .sort((a, b) => (a.rank - b.rank) || (a.bucket - b.bucket)
+                    || String(a.author).localeCompare(String(b.author), undefined, { numeric: true }))
                 .map((entry) => ({
                     author: entry.author,
                     refs: entry.refs
                         .filter(Boolean)
                         .sort((a, b) => String(a).localeCompare(String(b), undefined, { numeric: true })),
-                }))
-                .sort((a, b) => String(a.author).localeCompare(String(b.author), undefined, { numeric: true }));
+                }));
         }
 
         function renderCommentaryChooser(groupedCommentaries) {
@@ -6801,30 +7644,42 @@
                 return `<p class="text-xs text-slate-500 italic">${t('No linked commentaries found for this passage.', 'לא נמצאו מפרשים מקושרים לקטע זה.')}</p>`;
             }
 
-            return groupedCommentaries.map((group) => {
-                const refsMarkup = group.refs.map((ref) => {
-                    const encoded = encodeURIComponent(ref);
-                    const displayRef = localizeCommentaryReferenceLabel(ref);
-                    const textAlignClass = isHebrewMode() ? 'text-end' : 'text-start';
-                    const refDir = isHebrewMode() ? 'rtl' : 'ltr';
-                    return `
-                        <button type="button" onclick="openCommentaryInline(decodeURIComponent('${encoded}'))"
-                            data-commentary-ref="${escapeHtml(ref)}"
-                            dir="${refDir}"
-                            class="block w-full ${textAlignClass} px-3 py-2 rounded border border-slate-200 bg-white hover:bg-slate-100 text-sm text-slate-700 transition">
-                            ${escapeHtml(displayRef)}
-                        </button>
-                    `;
-                }).join('');
-
-                return `
-                    <details class="rounded border border-slate-200 bg-slate-50 p-2">
+            // A verse can link hundreds of passages (Genesis 1:1: ~700 in ~95
+            // groups), so each group's buttons are built when it is opened.
+            renderedCommentaryGroups = groupedCommentaries;
+            return groupedCommentaries.map((group, index) => `
+                    <details class="rounded border border-slate-200 bg-slate-50 p-2" data-commentary-group="${index}">
                         <summary class="cursor-pointer text-sm font-semibold text-slate-700 flex items-center justify-between">
                             <span>${escapeHtml(group.author)}</span>
                             <span class="text-[11px] text-slate-500">${group.refs.length}</span>
                         </summary>
-                        <div class="mt-2 space-y-1">${refsMarkup}</div>
+                        <div class="mt-2 space-y-1"></div>
                     </details>
+                `).join('');
+        }
+
+        let renderedCommentaryGroups = [];
+
+        function fillCommentaryGroup(details) {
+            const body = details?.querySelector(':scope > div');
+            const group = renderedCommentaryGroups[Number(details?.dataset.commentaryGroup)];
+            if (!body || !group || body.childElementCount) return;
+            body.innerHTML = renderCommentaryGroupRefs(group);
+        }
+
+        function renderCommentaryGroupRefs(group) {
+            return group.refs.map((ref) => {
+                const encoded = encodeURIComponent(ref);
+                const displayRef = localizeCommentaryReferenceLabel(ref);
+                const textAlignClass = isHebrewMode() ? 'text-end' : 'text-start';
+                const refDir = isHebrewMode() ? 'rtl' : 'ltr';
+                return `
+                    <button type="button" onclick="openCommentaryInline(decodeURIComponent('${encoded}'))"
+                        data-commentary-ref="${escapeHtml(ref)}"
+                        dir="${refDir}"
+                        class="block w-full ${textAlignClass} px-3 py-2 rounded border border-slate-200 bg-white hover:bg-slate-100 text-sm text-slate-700 transition">
+                        ${escapeHtml(displayRef)}
+                    </button>
                 `;
             }).join('');
         }
@@ -7764,11 +8619,30 @@
         function getChunkDisplayTitle(chunk = {}) {
             const titleEn = String(chunk?.title || '').trim();
             const titleHe = String(chunk?.heTitle || '').trim();
+            const chunkRef = String(chunk?.ref || '').trim();
 
             if (isHebrewMode()) {
+                // heTitle is only the book ("במדבר"); a ref with a section
+                // gives the exact place ("במדבר ה׳").
+                if (/\d/.test(chunkRef)) {
+                    const located = localizeReferenceLabel(chunkRef);
+                    if (located && !/[A-Za-z]/.test(located)) return located;
+                    // Book name unknown to the local maps ("Shulchan Arukh,
+                    // Orach Chayim 345"): Sefaria's heTitle + the section.
+                    const tail = chunkRef.match(/\s(\d+[ab]?(?:[:.]\d+)*(?:-\d+[ab]?(?:[:.]\d+)*)?)$/i)?.[1];
+                    if (titleHe && tail) {
+                        const heTail = tail.replace(/(\d+)([ab])?/gi, (_, n, side) => (
+                            hebrewNumber(n) + (side ? ` ${side.toLowerCase() === 'a' ? 'ע״א' : 'ע״ב'}` : '')
+                        ));
+                        return `${titleHe} ${heTail}`;
+                    }
+                }
                 if (titleHe) return titleHe;
                 if (titleEn) return localizeReferenceLabel(titleEn);
             } else if (titleEn) {
+                // A Chumash chapter's header already names its parashah in
+                // English, so it doesn't also need the Hebrew book name.
+                if (getChunkParashaLabel(chunk)) return titleEn;
                 return titleHe && titleHe !== titleEn ? `${titleEn} · ${titleHe}` : titleEn;
             }
 
@@ -7778,6 +8652,12 @@
             }
 
             return isHebrewMode() ? localizeReferenceLabel(ref) : ref;
+        }
+
+        // The reader header: exact place plus the weekly portion, e.g.
+        // "במדבר ה׳ · פרשת נשא" / "Numbers 5 · Parashat Naso".
+        function getChunkHeaderTitle(chunk = {}) {
+            return [getChunkDisplayTitle(chunk), getChunkParashaLabel(chunk)].filter(Boolean).join(' · ');
         }
 
         function getChunkDisplayRef(chunk = {}) {
@@ -7800,38 +8680,35 @@
             return a.includes(b) || b.includes(a);
         }
 
-        function getChunkChapterLabel(chunk = {}) {
-            const ref = String(chunk?.ref || '').trim();
-            if (!ref) return '';
-            const match = ref.match(/\s(\d+)(?::\d+)?$/);
-            const chapterNum = Number(match?.[1] || 0);
-            if (!Number.isFinite(chapterNum) || chapterNum < 1) return '';
-            return isHebrewMode() ? `פרק ${chapterNum}` : `Chapter ${chapterNum}`;
-        }
-
         function getChunkParashaLabel(chunk = {}) {
             const sectionRef = String(chunk?.ref || appState.currentView?.value || '').trim();
-            if (!sectionRef) return '';
+            if (!sectionRef || !hebrewRef) return '';
+            return hebrewRef.parashaLabel(sectionRef, isHebrewMode() ? 'he' : 'en');
+        }
 
-            try {
-                const refParts = sectionRef.split(' ');
-                const chapterNum = parseInt(refParts[refParts.length - 1], 10);
-                const bookName = refParts.slice(0, refParts.length - 1).join(' ');
-                if (!Number.isFinite(chapterNum) || !bookName) return '';
+        // True when `routeRef` points inside `chunkRef` ("Genesis.1" or
+        // "Orach_Chayim.261.2" inside "Genesis 1" / "Orach Chayim 261"), so
+        // a link to a specific verse/seif isn't widened to its chapter.
+        function textRefWithin(routeRef, chunkRef) {
+            const norm = (v) => String(v || '').replace(/[._]/g, ' ').replace(/\s+/g, ' ').trim().toLowerCase();
+            const inner = norm(routeRef);
+            const outer = norm(chunkRef);
+            if (!outer || !inner.startsWith(outer)) return false;
+            const next = inner.charAt(outer.length);
+            return next === '' || next === ' ' || next === ':' || next === '-';
+        }
 
-                const normalizedBook = normalizeChapterGridBookName(bookName);
-                const parashaEntries = Array.isArray(TORAH_PARASHA_BY_BOOK[normalizedBook])
-                    ? TORAH_PARASHA_BY_BOOK[normalizedBook]
-                    : [];
-                const match = parashaEntries.find((entry) => Number(entry?.chapter) === chapterNum);
-                if (!match?.name) return '';
-
-                const nameEn = String(match.name).trim();
-                const nameHe = PARASHA_HE_MAP[nameEn] || nameEn;
-                return isHebrewMode() ? `פרשת ${nameHe}` : `Parashat ${nameEn}`;
-            } catch (_) {
-                return '';
-            }
+        // Keeps ?text= on the section the reader is actually looking at as
+        // infinite scroll moves through chapters, so a refresh or a copied
+        // URL lands there. replaceState: scrolling shouldn't add a Back entry
+        // per chapter.
+        function syncVisibleTextRoute(chunk) {
+            const router = window.ShelahRouter;
+            const ref = String(chunk?.ref || '').trim();
+            if (!router || !ref) return;
+            const route = router.readRoute();
+            if (!route.text || route.text === ref || textRefWithin(route.text, ref)) return;
+            router.pushRoute({ text: ref }, { replace: true });
         }
 
         function updateReaderHeaderForVisibleChunk(chunkIndex) {
@@ -7842,14 +8719,13 @@
             const clampedIndex = Math.min(Math.max(Number(chunkIndex) || 0, 0), chain.length - 1);
             const chunk = chain[clampedIndex] || chain[0];
 
-            const titleEl = document.getElementById('readerTitle');
-            const sectionTitle = getChunkDisplayTitle(chunk);
-            const sectionRef = getChunkDisplayRef(chunk);
-            const chapterLabel = getChunkChapterLabel(chunk);
-            const parashaLabel = getChunkParashaLabel(chunk);
+            syncVisibleTextRoute(chunk);
 
-            if (titleEl && sectionTitle) {
-                titleEl.innerText = sectionTitle;
+            const titleEl = document.getElementById('readerTitle');
+            const headerTitle = getChunkHeaderTitle(chunk);
+
+            if (titleEl && headerTitle) {
+                titleEl.innerText = headerTitle;
             }
 
             // Keep the title block clean for text views: no repeated metadata subtitle.
@@ -8039,6 +8915,7 @@
         function applyReaderPreferences() {
             const layout = getNormalizedReaderLayout();
             appState.prefs.readerLayout = layout;
+            syncReaderDisplayRoute();
 
             reader.style.setProperty('--reader-font-size', `${appState.prefs.fontSize}px`);
             reader.style.setProperty('--reader-line-height', `${appState.prefs.lineHeight}`);
@@ -8366,6 +9243,13 @@
             applySidebarVisibility();
             renderPersonalShelf();
             updateBookmarkButton();
+
+            preferencesHydrated = true;
+            if (pendingInitialRoute) {
+                const route = pendingInitialRoute;
+                pendingInitialRoute = null;
+                hydrateRoute(route, { isInitial: true });
+            }
         }
 
         async function openShelfItem(type, value, label) {
@@ -8381,8 +9265,27 @@
                 await displayCommunity(value);
                 return;
             }
+            if (type === 'history') {
+                displayAskHistoryPage();
+                return;
+            }
             if (type === 'ask') {
-                await handleAiSearch(value || label || '');
+                // Stored answer by id; a legacy question-text entry is matched to
+                // the stored answer (and rewritten to its id); otherwise ask again.
+                const result = window.ShelahAskHistory
+                    ? await window.ShelahAskHistory.resolveShelfAsk({ value, label }, {
+                        signedIn: askHistoryAuthState() === 'signed-in',
+                        fetchEntry: fetchAskHistoryEntry,
+                        searchHistory: (q) => fetchAskHistoryPage({ q, limit: 10 }),
+                    })
+                    : { reask: value || label || '' };
+                if (result.migrateTo) promoteShelfAsk(value, result.migrateTo);
+                if (result.staleId) dropShelfAsk(result.staleId);
+                if (result.item) {
+                    openStoredAskAnswer(result.item);
+                    return;
+                }
+                await handleAiSearch(result.reask || '');
             }
         }
 
@@ -8405,6 +9308,7 @@
         readerLayoutSelect.addEventListener('change', () => {
             appState.prefs.readerLayout = readerLayoutSelect.value;
             localStorage.setItem(READER_LAYOUT_MANUAL_KEY, '1');
+            releaseRouteDisplayPref('layout');
             savePrefs();
             applyReaderPreferences();
         });
@@ -8412,6 +9316,7 @@
         readerFontSize.addEventListener('input', () => {
             appState.prefs.fontSize = Number(readerFontSize.value);
             updateReaderRangeFill(readerFontSize);
+            releaseRouteDisplayPref('size');
             savePrefs();
             applyReaderPreferences();
         });
@@ -8426,6 +9331,7 @@
         if (transliterationToggle) {
             transliterationToggle.addEventListener('change', () => {
                 appState.prefs.transliteration = transliterationToggle.checked;
+                releaseRouteDisplayPref('translit');
                 savePrefs();
                 applyReaderPreferences();
             });
@@ -8469,6 +9375,7 @@
         if (showVowelsToggle) {
             showVowelsToggle.addEventListener('change', () => {
                 appState.prefs.showVowels = showVowelsToggle.checked;
+                releaseRouteDisplayPref('vowels');
                 savePrefs();
                 applyReaderPreferences();
             });
@@ -8477,6 +9384,7 @@
         if (showCantillationToggle) {
             showCantillationToggle.addEventListener('change', () => {
                 appState.prefs.showCantillation = showCantillationToggle.checked;
+                releaseRouteDisplayPref('taamim');
                 savePrefs();
                 applyReaderPreferences();
             });
@@ -9169,8 +10077,12 @@
                     const nameEn = String(entry?.name || '').trim() || `${t('Chapter', 'פרק')} ${chapterNum}`;
                     const nameHe = PARASHA_HE_MAP[nameEn] || nameEn;
                     const label = isHebrewMode() ? nameHe : nameEn;
-                    const chapterLabel = isHebrewMode() ? `פרק ${chapterNum}` : `Chapter ${chapterNum}`;
-                    const compactChapterLabel = isHebrewMode() ? `פ${chapterNum}` : `Ch ${chapterNum}`;
+                    // Where the portion actually starts ("4:21" / "ד׳:כ״א").
+                    const startLabel = hebrewRef
+                        ? hebrewRef.parashaStartLabel(entry, isHebrewMode() ? 'he' : 'en')
+                        : String(chapterNum);
+                    const chapterLabel = isHebrewMode() ? `מתחילה ב${startLabel}` : `Starts at ${startLabel}`;
+                    const compactChapterLabel = startLabel;
 
                     return `
                         <button type="button"
@@ -10369,10 +11281,13 @@
                 reader.classList.remove('hidden');
                 applySidebarVisibility();
 
-                const communityLabel = getCommunityDisplayName(communityName);
+                // A link can spell the name loosely (/?community=moroccan);
+                // the data's own name is the one to show.
+                const canonicalName = String(communityData?.name || communityName).trim();
+                const communityLabel = getCommunityDisplayName(canonicalName);
                 const communityTitle = isHebrewMode()
                     ? `מנהגי קהילת ${communityLabel}`
-                    : `${communityName} Community Customs`;
+                    : `${canonicalName} Community Customs`;
                 document.getElementById('readerTitle').innerText = communityTitle;
                 setCurrentView('community', communityName, communityTitle, options);
                 document.getElementById('readerContent').innerHTML = renderCommunityContent(communityData);
@@ -10397,8 +11312,8 @@
                     <div class="text-xs space-y-2">
                         <div><span class="font-bold text-slate-700">${t('Community:', 'קהילה:')}</span> <span class="text-slate-500">${communityLabel}</span></div>
                         <div><span class="font-bold text-slate-700">${t('Source Base:', 'בסיס מקורות:')}</span> <span class="text-slate-500">${t('Community source registry + major poskim', 'רישום מקורות קהילתי + פוסקים מרכזיים')}</span></div>
-                        ${majorSources ? `<div><span class="font-bold text-slate-700">${t('Major Authorities:', 'סמכויות מרכזיות:')}</span> <span class="text-slate-500">${escapeHtml(majorSources)}</span></div>` : ''}
-                        <div><span class="font-bold text-slate-700">${t('Primary Origin:', 'מוצא עיקרי:')}</span> <span class="text-slate-500">${communityData.primary_origin ? escapeHtml(String(communityData.primary_origin)) : '--'}</span></div>
+                        ${majorSources ? `<div><span class="font-bold text-slate-700">${t('Major Authorities:', 'סמכויות מרכזיות:')}</span> <span class="text-slate-500" dir="auto">${escapeHtml(communitySourceText(majorSources))}</span></div>` : ''}
+                        <div><span class="font-bold text-slate-700">${t('Primary Origin:', 'מוצא עיקרי:')}</span> <span class="text-slate-500" dir="auto">${communityData.primary_origin ? escapeHtml(communityLabelText(communityData.primary_origin)) : '--'}</span></div>
                     </div>`;
 
                 scrollPrimaryToTop('smooth');
@@ -10409,6 +11324,20 @@
                 applySidebarVisibility();
                 document.getElementById('readerContent').innerHTML = `<p class="text-red-500">${t('Error loading community:', 'שגיאה בטעינת קהילה:')} ${err.message}</p>`;
             }
+        }
+
+        // The customs data is English; its titles and sources have Hebrew
+        // names (static/js/community-labels.js). Unknown text stays as is.
+        function communityLabelText(text) {
+            const labels = window.ShelahCommunityLabels;
+            const lang = isHebrewMode() ? 'he' : 'en';
+            return labels ? labels.label(String(text || '').trim(), lang) : String(text || '').trim();
+        }
+
+        function communitySourceText(text) {
+            const labels = window.ShelahCommunityLabels;
+            const lang = isHebrewMode() ? 'he' : 'en';
+            return labels ? labels.sourceList(text, lang) : String(text || '').trim();
         }
 
         function renderCommunityContent(communityData) {
@@ -10429,9 +11358,9 @@
             rows += `
                 <div class="prayer-clean-row border-b border-slate-200 last:border-b-0 py-2">
                     <div class="prayer-clean-en" dir="ltr">
-                        <div class="font-bold text-slate-800">${escapeHtml(isHebrewMode() ? `מנהגי קהילת ${communityLabel}` : `${communityName} Community Customs`)}</div>
+                        <div class="font-bold text-slate-800" dir="auto">${escapeHtml(isHebrewMode() ? `מנהגי קהילת ${communityLabel}` : `${communityName} Community Customs`)}</div>
                         ${communityData?.primary_origin
-                    ? `<div class="text-slate-600 mt-1"><span class="font-semibold">${t('Primary Origin:', 'מוצא עיקרי:')}</span> ${escapeHtml(String(communityData.primary_origin))}</div>`
+                    ? `<div class="text-slate-600 mt-1" dir="auto"><span class="font-semibold">${t('Primary Origin:', 'מוצא עיקרי:')}</span> ${escapeHtml(communityLabelText(communityData.primary_origin))}</div>`
                     : ''}
                     </div>
                 </div>
@@ -10449,9 +11378,9 @@
                 entries.forEach((item) => {
                     const category = String(item.category || '').trim();
                     const topic = String(item.topic || '').trim();
-                    const title = [category, topic].filter(Boolean).join(': ') || t('Custom Entry', 'פריט מנהג');
+                    const title = [category, topic].filter(Boolean).map(communityLabelText).join(': ') || t('Custom Entry', 'פריט מנהג');
                     const ruling = String(item.ruling || '').trim();
-                    const source = String(item.source || '').trim();
+                    const source = communitySourceText(item.source);
                     const practices = Array.isArray(item.common_practices)
                         ? item.common_practices.map((entry) => String(entry || '').trim()).filter(Boolean)
                         : [];
@@ -10459,9 +11388,9 @@
                     rows += `
                         <div class="prayer-clean-row border-b border-slate-200 last:border-b-0 py-2">
                             <div class="prayer-clean-en" dir="ltr">
-                                <div class="font-semibold text-slate-800 capitalize">${escapeHtml(title)}</div>
+                                <div class="font-semibold text-slate-800 capitalize" dir="auto">${escapeHtml(title)}</div>
                                 ${ruling ? `<p class="text-slate-700 mt-1">${escapeHtml(ruling)}</p>` : ''}
-                                ${source ? `<p class="text-slate-500 text-xs mt-1"><span class="font-semibold">${t('Source:', 'מקור:')}</span> ${escapeHtml(source)}</p>` : ''}
+                                ${source ? `<p class="text-slate-500 text-xs mt-1" dir="auto"><span class="font-semibold">${t('Source:', 'מקור:')}</span> ${escapeHtml(source)}</p>` : ''}
                                 ${practices.length
                             ? `<ul class="list-disc ml-5 text-slate-600 text-sm space-y-1 mt-2">${practices.map((entry) => `<li>${escapeHtml(entry)}</li>`).join('')}</ul>`
                             : ''}
@@ -10483,7 +11412,9 @@
             searchInput.value = '';
             readerTopBar?.classList.add('hidden'); // Explicitly hide readerTopBar
             hideSearchSuggestions();
+            closeAskHistoryPage();
             appState.currentView = null;
+            window.ShelahState?.setState({ currentView: null });
             window.currentTextPayload = null;
             window.currentTextPayloadChain = [];
             resetInfiniteReaderState(null);
@@ -10504,7 +11435,10 @@
             setTimeout(() => { homeGrid.classList.remove('opacity-0'); }, 10);
             sidebarContent.innerHTML = `<p class="italic text-slate-400">${t('Search a halacha to view cross-referenced Encyclopedia and Customs data...', 'חפש הלכה כדי לצפות בנתונים מקושרים מהאנציקלופדיה ומהמנהגים...')}</p>`;
             if (!options.fromRoute) {
-                window.ShelahRouter?.clearRoute();
+                // Going home underneath an open conversation leaves it open
+                // (it is an overlay, like the calendar's date).
+                window.ShelahRouter?.clearRoute({ keep: ['conversation', 'cv'] });
+                window.ShelahRouter?.pushRoute(readerDisplayRoutePatch(false), { replace: true });
             }
         }
 
@@ -10738,8 +11672,10 @@
             setCurrentView('ask', question, question);
             // Show loading modal and animate the search icon
             const aiModal = document.getElementById('aiAssistantModal');
+            hideAiMiniBar();
+            window.ShelahConversationUI?.markAiUsed?.();
             aiModal.style.display = 'flex';
-            presentEl(aiModal, modalMotion(aiModal));
+            presentEl(aiModal, aiModalMotion(aiModal));
             document.body.classList.add('search-loading');
 
             // Brief "liftoff" glow pulse on the search bar itself, fired in the
@@ -10854,6 +11790,7 @@
                 void loadAskHistory();
                 if (data?.history_id) {
                     window.ShelahRouter?.pushRoute({ chat: data.history_id }, { exclusive: true });
+                    promoteShelfAsk(question, data.history_id);
                 }
                 if (data?.meta?.fallback) {
                     logReliability('ai-fallback-used', {
@@ -11139,6 +12076,7 @@
 
             const boundedAttempts = attempts.slice(0, 6);
             let lastErrorPayload = { error: 'Text not found' };
+            let reachedServer = false;
 
             for (const candidate of boundedAttempts) {
                 if (textPayloadCache.has(candidate)) {
@@ -11150,6 +12088,7 @@
                 try {
                     const resp = await fetch(`/api/text/${encodeURIComponent(candidate)}?autotranslate=0`);
                     const payload = await resp.json();
+                    reachedServer = true;
                     if (!payload?.error) {
                         cacheTextPayload(candidate, payload);
                         cacheTextPayload(requestedRef, payload);
@@ -11175,11 +12114,21 @@
                 }
             }
 
+            // The server looked and there is no such text: Sefaria won't have
+            // it either, and its failure mustn't relabel this as "blocked".
+            if (lastErrorPayload?.error_type === 'not_found') {
+                return { payload: lastErrorPayload, resolvedRef: requestedRef };
+            }
+
             // Last resort: try fetching directly from Sefaria API (browser CORS)
             const directPayload = await _fetchFromSefariaDirectly(requestedRef);
             if (directPayload && !directPayload.error) {
                 cacheTextPayload(requestedRef, directPayload);
                 return { payload: directPayload, resolvedRef: requestedRef };
+            }
+            // Neither our server nor Sefaria answered: that's the connection.
+            if (!reachedServer) {
+                return { payload: { error: 'Network error', error_type: 'network', he: [], en: [] }, resolvedRef: requestedRef };
             }
             // If the direct fetch returned a typed error (blocked/CORS), surface it.
             if (directPayload && directPayload.error_type) {
@@ -11190,6 +12139,39 @@
         }
 
         // ─── INLINE SEFARIA TEXT READER ───────────────────────────────────────
+        // A failed text load recovers by itself: it retries after 2s and 6s,
+        // and again as soon as the browser comes back online. The Retry
+        // button stays for anything past that. A retry only fires while
+        // this same error is still on screen, so navigating away cancels it.
+        const READER_RETRY_DELAYS_MS = [2000, 6000];
+        function renderReaderLoadError(messageHtml, ref, options = {}, { autoRetry = true } = {}) {
+            const readerContent = document.getElementById('readerContent');
+            if (!readerContent) return;
+            const attempt = Number(options.loadRetryAttempt) || 0;
+            readerContent.innerHTML = `
+                <div class="reader-load-error" role="alert">
+                    <p class="text-red-500">${messageHtml}</p>
+                    <button type="button" class="reader-load-retry">${escapeHtml(t('Retry', 'נסה שוב'))}</button>
+                </div>`;
+            const box = readerContent.firstElementChild;
+            let done = false;
+            const retry = (nextAttempt) => {
+                if (done || !box.isConnected) return;
+                done = true;
+                window.removeEventListener('online', onOnline);
+                void readText(ref, { ...options, loadRetryAttempt: nextAttempt });
+            };
+            const onOnline = () => retry(attempt);
+            box.querySelector('.reader-load-retry').addEventListener('click', () => retry(0));
+            if (!autoRetry) return;
+            window.addEventListener('online', onOnline, { once: true });
+            if (attempt < READER_RETRY_DELAYS_MS.length) {
+                setTimeout(() => {
+                    if (navigator.onLine !== false) retry(attempt + 1);
+                }, READER_RETRY_DELAYS_MS[attempt]);
+            }
+        }
+
         async function readText(ref, options = {}) {
             const myRequestId = ++_readTextRequestGen;
             const normalizedRequestRef = String(ref || '').replace(/\s+/g, ' ').trim();
@@ -11248,7 +12230,14 @@
                     const _errStr = String(data.error || '');
                     const _errType = data.error_type || '';
                     let _friendlyError;
-                    if (_errType === 'sefaria_blocked' || _errStr.includes('403') || _errStr.toLowerCase().includes('blocked')) {
+                    if (_errType === 'network') {
+                        _friendlyError = t(
+                            "Couldn't connect to load this text. Check your connection.",
+                            'לא ניתן היה להתחבר כדי לטעון את הטקסט. בדקו את החיבור.'
+                        );
+                    } else if (_errType === 'not_found') {
+                        _friendlyError = t('This text could not be found.', 'הטקסט לא נמצא.');
+                    } else if (_errType === 'sefaria_blocked' || _errStr.includes('403') || _errStr.toLowerCase().includes('blocked')) {
                         _friendlyError = t(
                             '\u26a0\ufe0f Sefaria is temporarily unavailable (access blocked). Please try again later.',
                             '\u26a0\ufe0f ספריא אינה זמינה כרגע (חסימת גישה). אנא נסה שנית מאוחר יותר.'
@@ -11261,8 +12250,8 @@
                     } else {
                         _friendlyError = `${t('Could not load text:', 'לא ניתן לטעון את הטקסט:')} ${_errStr}`;
                     }
-                    document.getElementById('readerContent').innerHTML =
-                        `<p class="text-red-500">${_friendlyError}</p>`;
+                    // A missing text won't appear on a retry; everything else may.
+                    renderReaderLoadError(_friendlyError, ref, options, { autoRetry: _errType !== 'not_found' });
                     readerTopBar?.classList.add('hidden');
                     window.currentTextPayload = null;
                     window.currentTextPayloadChain = [];
@@ -11274,11 +12263,7 @@
                 // Title
                 const titleEl = document.getElementById('readerTitle');
                 const fallbackTitle = data.title || normalizedRequestRef || String(ref || '');
-                if (isHebrewMode()) {
-                    titleEl.innerText = String(data.heTitle || localizeReferenceLabel(fallbackTitle) || fallbackTitle);
-                } else {
-                    titleEl.innerText = data.heTitle ? `${data.title} · ${data.heTitle}` : fallbackTitle;
-                }
+                titleEl.innerText = getChunkHeaderTitle({ ...data, title: fallbackTitle, ref: data.ref || normalizedRequestRef || String(ref || '') }) || fallbackTitle;
                 // Stable snapshot of the title as first loaded — used to decide
                 // whether the first chunk's own section-title bar would be a
                 // redundant repeat of the page title (see renderCurrentTextByLayout).
@@ -11340,8 +12325,7 @@
                 const fallbackMessage = t('Error loading text.', 'שגיאה בטעינת הטקסט.');
                 const runtimeMessage = String(err?.message || '').trim();
                 const displayMessage = runtimeMessage ? `${fallbackMessage} ${escapeHtml(runtimeMessage)}` : fallbackMessage;
-                document.getElementById('readerContent').innerHTML =
-                    `<p class="text-red-500">${displayMessage}</p>`;
+                renderReaderLoadError(displayMessage, ref, options);
                 readerTopBar?.classList.add('hidden');
                 window.currentTextPayload = null;
                 window.currentTextPayloadChain = [];
@@ -11452,7 +12436,7 @@
                 if (!r.ok) throw new Error('daily-study unavailable');
                 const daily = await r.json().catch(() => ({}));
 
-                if (dateEl && daily?.hebrew_date) {
+                if (dateEl && daily?.hebrew_date && !hebrewDateFromLocation) {
                     // Go through refreshHebrewDateDisplay() (not a direct
                     // textContent write) so the EN->HE cache it keeps on
                     // dataset.en gets the real date instead of staying
@@ -11610,6 +12594,13 @@
             // below is index.html-specific (search icon RTL swap, modal
             // titles, and the rest of this app's own DOM).
             lang = applyLanguagePreference(lang, options, LANGUAGE_MANUAL_KEY);
+            if (!options.auto && !options.fromRoute) {
+                releaseRouteDisplayPref('lang');
+                // Mirror a manual switch in the address bar so the URL (and a
+                // shared link) says which language is on screen. replace, not
+                // push: a language switch isn't a navigation for Back to undo.
+                window.ShelahRouter?.pushRoute({ lang }, { replace: true });
+            }
 
             // Handle lang + RTL for Hebrew.
             const html = document.documentElement;
@@ -11760,6 +12751,9 @@
             updateBookmarkButton();
             applySidebarVisibility();
             const calendarModalEl = document.getElementById('calendarModal');
+            // toggleLanguage also runs during startup, before the calendar's
+            // `let` below is initialized: touch it only once it was built.
+            if (calendarModalEl?.dataset.calendarBuilt === '1') syncCalendarLanguage();
             if (calendarModalEl?.open && holidaysCalendar) {
                 holidaysCalendar.refetchEvents();
                 if (calendarSelectedKey) renderCalendarAgenda();
@@ -12106,9 +13100,12 @@
                 weekday: 'long', month: 'long', day: 'numeric',
             }).format(date);
             try {
+                // "י״ד בתשרי תשפ״ז", not Intl's "14 בתשרי 5787".
                 hebrew.textContent = new Intl.DateTimeFormat('he-u-ca-hebrew', {
                     day: 'numeric', month: 'long', year: 'numeric',
-                }).format(date);
+                }).formatToParts(date)
+                    .map((part) => (part.type === 'day' || part.type === 'year' ? hebrewNumber(part.value) : part.value))
+                    .join('');
             } catch (_) {
                 hebrew.textContent = '';
             }
@@ -12198,11 +13195,42 @@
             el.append(msg, retryBtn);
         }
 
+        function calendarLanguageOptions() {
+            const he = isHebrewMode();
+            return {
+                direction: he ? 'rtl' : 'ltr',
+                buttonText: { today: he ? 'היום' : 'Today' },
+                buttonHints: he
+                    ? { prev: 'החודש הקודם', next: 'החודש הבא', today: 'עבור להיום' }
+                    : { prev: 'Previous month', next: 'Next month', today: 'Go to today' },
+            };
+        }
+
+        // Grid direction, weekday headers and the month title follow the
+        // reader's language; called on a language switch even while closed.
+        function syncCalendarLanguage() {
+            if (!holidaysCalendar) return;
+            const options = calendarLanguageOptions();
+            Object.entries(options).forEach(([key, value]) => holidaysCalendar.setOption(key, value));
+            holidaysCalendar.render();
+        }
+
         function ensureCalendarReady() {
             if (holidaysCalendar) return;
             const calendarEl = document.getElementById('calendar');
             holidaysCalendar = new FullCalendar.Calendar(calendarEl, {
                 initialView: 'dayGridMonth',
+                ...calendarLanguageOptions(),
+                // FullCalendar's global build ships English only; these read
+                // the language at render time, so a language switch re-renders
+                // them (syncCalendarLanguage).
+                // arg.date is a UTC-midnight marker, so formatting it in local
+                // time west of UTC names the day before: go by arg.dow instead
+                // (4 Jan 2026 was a Sunday).
+                dayHeaderContent: (arg) => new Intl.DateTimeFormat(isHebrewMode() ? 'he-IL' : 'en-US', { weekday: 'short', timeZone: 'UTC' })
+                    .format(new Date(Date.UTC(2026, 0, 4 + arg.dow))),
+                titleFormat: (arg) => new Intl.DateTimeFormat(isHebrewMode() ? 'he-IL' : 'en-US', { month: 'long', year: 'numeric' })
+                    .format(new Date(arg.date.year, arg.date.month, 1)),
                 events: function (fetchInfo, successCallback, failureCallback) {
                     // A month grid can straddle two years (late Dec / early Jan).
                     const years = new Set([
@@ -12297,6 +13325,7 @@
                 height: 'auto'
             });
             holidaysCalendar.render();
+            document.getElementById('calendarModal')?.setAttribute('data-calendar-built', '1');
         }
 
         window.openCalendarModal = function () {
@@ -12552,7 +13581,7 @@
         // whose buttons manage the search state themselves) closes it again.
         document.addEventListener('click', (e) => {
             if (!document.body.classList.contains('mobile-search-open')) return;
-            if (e.target.closest?.('.topbar-search-wrap') || mobileBottomTabs?.contains(e.target)) return;
+            if (e.target.closest?.('.topbar-search-wrap, .mobile-search-tray, #convHistoryPop') || mobileBottomTabs?.contains(e.target)) return;
             hideSearchSuggestions();
             setMobileSearchExpanded(false);
         });
@@ -12648,8 +13677,19 @@
             down: '<path d="{{ phosphor_path("thumbs-down") }}"/>',
         };
 
+        // Which stored answer a rating is about: the owner's ask_history id,
+        // or on a public shared link (/a/<token>) the token -- the server
+        // resolves it to the row and never stores it (backend/routes_feedback.py
+        // _linked_answer). An answer that was never stored sends neither.
+        function feedbackAnswerLink(data) {
+            if (data?.public) return data.share_token ? { share_token: String(data.share_token) } : {};
+            const id = String(data?.history_id || data?.id || '').trim();
+            return window.ShelahAskHistory?.isHistoryId(id) ? { history_id: id } : {};
+        }
+
         function renderFeedbackWidget(container, data, queryTitle) {
             if (!container) return;
+            const answerLink = feedbackAnswerLink(data);
             container.innerHTML = `
                 <div class="answer-feedback" data-feedback-state="idle">
                     <span class="answer-feedback-prompt">${t('Was this answer helpful?', 'האם התשובה הייתה מועילה?')}</span>
@@ -12676,6 +13716,7 @@
                             language: data?.meta?.language || 'en',
                             fallback: !!data?.meta?.fallback,
                             safety_class: data?.meta?.safety_class || 'ok',
+                            ...answerLink,
                         }),
                     });
                 } catch (_) {
@@ -12722,15 +13763,33 @@
             });
         }
 
+        // The parts every view of an answer shares -- the live answer, a
+        // stored one (/answer/<id>, the /history page), a public shared link
+        // (/a/<token>), in the modal or the full-article view: the AI
+        // disclaimer (always, before the answer), the answer itself, the
+        // feedback widget and Copy link. Returns the answer's element.
+        const ANSWER_SURFACES = {
+            modal: { disclaimer: 'aiDisclaimerBanner', body: 'aiSynthesis', feedback: 'aiFeedback' },
+            article: { disclaimer: 'readerDisclaimerBanner', body: 'readerContent', feedback: 'readerFeedback' },
+        };
+
+        function renderAnswerCore(surface, data, queryTitle) {
+            const ids = ANSWER_SURFACES[surface];
+            renderDisclaimerBanner(document.getElementById(ids.disclaimer), data.meta?.safety_class, data.meta?.breaker_tripped);
+            const bodyEl = document.getElementById(ids.body);
+            bodyEl.innerHTML = renderAnswerMarkdown(data.answer);
+            renderFeedbackWidget(document.getElementById(ids.feedback), data, queryTitle);
+            window.ShelahAnswerLink?.[surface].show(data);
+            return bodyEl;
+        }
+
         function renderArticle(data, queryTitle) {
             // Title already set
             collapseCommentaryPanel();
             resetSelectionInsights();
 
-            // 1. Content Synthesis
-            renderDisclaimerBanner(document.getElementById('readerDisclaimerBanner'), data.meta?.safety_class, data.meta?.breaker_tripped);
-            const readerContentEl = document.getElementById('readerContent');
-            readerContentEl.innerHTML = renderAnswerMarkdown(data.answer);
+            // 1. Disclaimer, answer, feedback, Copy link
+            renderAnswerCore('article', data, queryTitle);
             // No fade-in triggered here: this runs while the reader is still
             // `display:none` (viewFullArticle() reveals it 300ms later, behind
             // the loading overlay's own fade-out), and an animation started
@@ -12760,9 +13819,6 @@
 
             // 4. Update Left Sidebar
             updateSidebar(data);
-
-            // 5. Feedback widget
-            renderFeedbackWidget(document.getElementById('readerFeedback'), data, queryTitle);
 
             // Scroll to top of article
             scrollPrimaryToTop('smooth');
@@ -12840,10 +13896,12 @@
             // Stop the search-bar loading state as soon as the answer is ready
             document.body.classList.remove('search-loading');
 
-            // 1. Populate synthesis
-            renderDisclaimerBanner(document.getElementById('aiDisclaimerBanner'), data.meta?.safety_class, data.meta?.breaker_tripped);
-            const aiSynthesisEl = document.getElementById('aiSynthesis');
-            aiSynthesisEl.innerHTML = renderAnswerMarkdown(data.answer);
+            // A shared (/a/<token>) answer is read-only for its visitor; ai.css keys
+            // off this to keep owner-only UI (the sign-in follow-up hint) away.
+            document.getElementById('aiAssistantModal').dataset.answerView = data.public ? 'public' : 'own';
+
+            // 1. Disclaimer, answer, feedback, Copy link
+            const aiSynthesisEl = renderAnswerCore('modal', data, queryTitle);
             // The branded loading state (spinner + cycling phase text, see
             // handleAiSearch()) occupied this same element a moment ago and was
             // just replaced in the synchronous write above -- without this, the
@@ -12854,7 +13912,6 @@
             // to an instant state-set under prefers-reduced-motion, so no
             // extra guard needed.
             window.ShelahMotion?.staggerIn(aiSynthesisEl.children);
-            renderFeedbackWidget(document.getElementById('aiFeedback'), data, queryTitle);
 
             // Hebrew transliteration varies by style guide (kh/ch are the same
             // letter — "Aruch" vs "Arukh", "Tanach" vs "Tanakh", etc). The AI and
@@ -12866,65 +13923,15 @@
                 return String(ref || '').trim().replace(/kh/gi, 'ch');
             }
 
-            // Returns a coloured pill badge classifying a source reference by type.
+            // Badge, external links and preview body come from the shared
+            // static/js/source-cards.js (window.ShelahSourceCards), so the
+            // conversation panel renders a cited source exactly like this modal.
             function _sourceTypeBadge(ref) {
-                const r = _normalizeRefForMatch(ref);
-                if (/^(Genesis|Exodus|Leviticus|Numbers|Deuteronomy|Joshua|Judges|I?\s*Samuel|I?\s*Kings|Isaiah|Jeremiah|Ezekiel|Hosea|Joel|Amos|Obadiah|Jonah|Micah|Nahum|Habakkuk|Zephaniah|Haggai|Zechariah|Malachi|Psalms|Proverbs|Job|Song of Songs|Ruth|Lamentations|Ecclesiastes|Esther|Daniel|Ezra|Nehemiah|I?\s*Chronicles)\b/i.test(r))
-                    return '<span class="ai-src-badge ai-src-badge--tanakh">Tanakh</span>';
-                if (/^(Berachot|Shabbat|Eruvin|Pesachim|Shekalim|Yoma|Sukkah|Beitzah|Rosh Hashanah|Taanit|Megillah|Moed Katan|Chagigah|Yevamot|Ketubot|Nedarim|Nazir|Sotah|Gittin|Kiddushin|Bava Kamma|Bava Metzia|Bava Batra|Sanhedrin|Makkot|Shevuot|Avodah Zarah|Horayot|Zevachim|Menachot|Chullin|Bechorot|Arachin|Temurah|Keritot|Niddah|Talmud\b)\b/i.test(r))
-                    return '<span class="ai-src-badge ai-src-badge--talmud">Talmud</span>';
-                if (/^(Shulchan Aruch|Mishnah Berurah|Kitzur Shulchan Aruch|Aruch HaShulchan|Ben Ish Hai|Mishneh Torah|Rambam|Tur\b|Sefer HaMitzvot|Sefer HaChinuch)\b/i.test(r))
-                    return '<span class="ai-src-badge ai-src-badge--halacha">Halacha</span>';
-                if (/^(Igrot Moshe|Yabia Omer|Tzitz Eliezer|Chazon Ish|Minchat Yitzchak|Chelkat Yaakov|Piskei Teshuvot|Noda BiYehudah|Chatam Sofer|Responsa|Maharsha|Maharam|She'elot)\b/i.test(r))
-                    return '<span class="ai-src-badge ai-src-badge--responsa">Responsa</span>';
-                if (/^(Mishnah\b|Pirkei Avot|Avot)\b/i.test(r))
-                    return '<span class="ai-src-badge ai-src-badge--mishnah">Mishnah</span>';
-                return '<span class="ai-src-badge ai-src-badge--other">Source</span>';
+                return window.ShelahSourceCards.sourceBadgeHtml(ref, getCurrentLanguage());
             }
 
-            // Generate all relevant external links for a given source ref string.
-            // Talmud    → Dicta + AlHaTorah + Sefaria
-            // Tanakh    → AlHaTorah + Sefaria
-            // On Sefaria halachic works → Sefaria direct + Halachipedia (for practical codes)
-            // Responsa / other → HebrewBooks
             function _externalLinksForRef(ref) {
-                if (!ref) return '';
-                const r = String(ref).trim();
-                const m = _normalizeRefForMatch(ref);
-                const links = [];
-
-                const talmudMatch = m.match(/^([A-Za-z\s]+?)\s+(\d+[ab])/);
-                const isTanakh = /^(Genesis|Exodus|Leviticus|Numbers|Deuteronomy|Joshua|Judges|I?\s*Samuel|I?\s*Kings|Isaiah|Jeremiah|Ezekiel|Hosea|Joel|Amos|Obadiah|Jonah|Micah|Nahum|Habakkuk|Zephaniah|Haggai|Zechariah|Malachi|Psalms|Proverbs|Job|Song of Songs|Ruth|Lamentations|Ecclesiastes|Esther|Daniel|Ezra|Nehemiah|I?\s*Chronicles)\b/i.test(m);
-                const isOnSefaria = /^(Shulchan Aruch|Mishneh Torah|Tur\b|Kitzur Shulchan Aruch|Ben Ish Hai|Aruch HaShulchan|Mishnah Berurah|Mishnah\b|Talmud|Sefer HaMitzvot|Sefer HaChinuch|Rambam|Pirkei Avot|Avot|Siddur)\b/i.test(m);
-                const isPracticalHalacha = /^(Shulchan Aruch|Mishnah Berurah|Kitzur Shulchan Aruch|Aruch HaShulchan|Ben Ish Hai|Piskei Teshuvot|Igrot Moshe|Chazon Ish|Tzitz Eliezer|Yabia Omer)\b/i.test(m);
-
-                if (talmudMatch) {
-                    const tractate = talmudMatch[1].trim();
-                    const daf = talmudMatch[2];
-                    links.push(`<a href="https://dicta.org.il/talmudsearch?search=${encodeURIComponent(tractate + ' ' + daf)}" target="_blank" rel="noopener noreferrer" class="src-ext-link">Dicta ↗</a>`);
-                    links.push(`<a href="https://alhatorah.org/Full/${encodeURIComponent(r)}" target="_blank" rel="noopener noreferrer" class="src-ext-link">AlHaTorah ↗</a>`);
-                } else if (isTanakh) {
-                    links.push(`<a href="https://alhatorah.org/Full/${encodeURIComponent(r)}" target="_blank" rel="noopener noreferrer" class="src-ext-link">AlHaTorah ↗</a>`);
-                } else if (!isOnSefaria) {
-                    // hebrewbooks.org has no documented/stable public search URL (its
-                    // search form is JS-driven, not a plain query-string endpoint) — a
-                    // guessed direct link 404s. A site-restricted Google search always
-                    // resolves and still surfaces the right HebrewBooks page.
-                    links.push(`<a href="https://www.google.com/search?q=${encodeURIComponent('site:hebrewbooks.org ' + r.split(',')[0].trim())}" target="_blank" rel="noopener noreferrer" class="src-ext-link">HebrewBooks ↗</a>`);
-                }
-
-                // Direct Sefaria link for any work in the Sefaria corpus
-                if (isOnSefaria || talmudMatch || isTanakh) {
-                    links.push(`<a href="https://www.sefaria.org/${encodeURIComponent(r)}" target="_blank" rel="noopener noreferrer" class="src-ext-link">Sefaria ↗</a>`);
-                }
-
-                // Halachipedia for practical halachic codes — strip trailing chapter/verse numbers for query
-                if (isPracticalHalacha) {
-                    const hpQuery = r.replace(/[\s,.:;]+\d[\d\s,.:;]*$/, '').trim() || r;
-                    links.push(`<a href="https://halachipedia.com/index.php?search=${encodeURIComponent(hpQuery)}" target="_blank" rel="noopener noreferrer" class="src-ext-link">Halachipedia ↗</a>`);
-                }
-
-                return links.join('');
+                return window.ShelahSourceCards.externalLinksHtml(ref);
             }
 
             // 2. Populate sources — accumulate all HTML first, write DOM once.
@@ -12936,15 +13943,7 @@
             let _srcIdx = 0;
 
             function _bilingualContentHtml(lines) {
-                if (!Array.isArray(lines) || !lines.length) return '';
-                const heTexts = lines.slice(0, 3).map(l => String(l?.he || '').replace(/<[^>]*>/gm, '').trim()).filter(Boolean);
-                const enTexts = lines.slice(0, 3).map(l => String(l?.en || l || '').replace(/<[^>]*>/gm, '').trim()).filter(Boolean);
-                if (!heTexts.length && !enTexts.length) return '';
-                let html = '<div class="ai-src-box-body">';
-                if (heTexts.length) html += `<div class="ai-src-box-he" dir="rtl">${heTexts.map(h => `<p>${escapeHtml(h)}</p>`).join('')}</div>`;
-                if (enTexts.length) html += `<div class="ai-src-box-en">${enTexts.map(e => `<p>${escapeHtml(e)}</p>`).join('')}</div>`;
-                html += '</div>';
-                return html;
+                return window.ShelahSourceCards.previewHtml(lines);
             }
 
             // Shared link-building so cited and ranked sources render identically:
@@ -12953,7 +13952,7 @@
                 const isExternal = source && source.domain && !String(source.domain).includes('sefaria') && source.url;
                 const localLinkHtml = isExternal
                     ? `<a href="${safeHref(source.url)}" target="_blank" rel="noopener noreferrer" class="src-open-link">${escapeHtml(String(source.source_provider || source.domain || ''))} ↗</a>`
-                    : `<a href="#" data-local-ref="${escapeHtml((ref || '').replace(/"/g, ''))}" class="source-local-link src-open-link">${t('Open in Reader ↗', 'פתח בקורא ↗')}</a>`;
+                    : `<a href="${escapeHtml(window.ShelahRouter?.routeUrl({ text: ref || '' }) || `/text/${encodeURIComponent(ref || '')}`)}" data-local-ref="${escapeHtml((ref || '').replace(/"/g, ''))}" class="source-local-link src-open-link">${t('Open in Reader ↗', 'פתח בקורא ↗')}</a>`;
                 return _externalLinksForRef(ref) + localLinkHtml;
             }
 
@@ -13095,7 +14094,11 @@
                     if (!a) return;
                     e.preventDefault();
                     const ref = a.getAttribute('data-local-ref');
-                    if (ref) readText(ref, { skipNavigationGrid: true });
+                    if (!ref) return;
+                    // Fold the answer into #aiMiniBar so the text is actually
+                    // visible -- the modal used to stay on top of the reader.
+                    minimizeAiModal();
+                    readText(ref, { skipNavigationGrid: true });
                 });
             }
 
@@ -13143,18 +14146,54 @@
             }
         }
 
-        function closeAiModal() {
+        // keepMiniBar: the global Escape handler calls this on every Escape,
+        // which must not throw away an answer the reader minimized on purpose.
+        function closeAiModal({ keepMiniBar = false } = {}) {
             const aiModal = document.getElementById('aiAssistantModal');
-            dismissEl(aiModal, { ...modalMotion(aiModal), onHidden: () => { aiModal.style.display = 'none'; } });
+            dismissEl(aiModal, { ...aiModalMotion(aiModal), onHidden: () => { aiModal.style.display = 'none'; } });
             document.body.classList.remove('search-loading');
             searchInput.value = '';
+            if (!keepMiniBar) hideAiMiniBar();
+        }
+
+        // Opening one of the answer's sources: the text loads in the reader
+        // and the answer folds into #aiMiniBar (the same way the conversation
+        // panel shrinks to its corner widget), one tap from coming back.
+        function minimizeAiModal() {
+            const aiModal = document.getElementById('aiAssistantModal');
+            const bar = document.getElementById('aiMiniBar');
+            if (!aiModal || !bar || aiModal.classList.contains('hidden')) return;
+            document.getElementById('aiMiniBarTitle').textContent =
+                appState.lastAiQuestion || document.getElementById('aiModalTitle').textContent || '';
+            dismissEl(aiModal, { ...aiModalMotion(aiModal), onHidden: () => { aiModal.style.display = 'none'; } });
+            presentEl(bar, { preset: 'drawer' });
+        }
+
+        function restoreAiModal() {
+            const aiModal = document.getElementById('aiAssistantModal');
+            const bar = document.getElementById('aiMiniBar');
+            aiModal.style.display = 'flex';
+            // Grows back out of the bar it was folded into.
+            presentEl(aiModal, { ...aiModalMotion(aiModal), origin: bar });
+            hideAiMiniBar();
+        }
+
+        function hideAiMiniBar() {
+            const bar = document.getElementById('aiMiniBar');
+            if (bar && !bar.classList.contains('hidden')) dismissEl(bar, { preset: 'drawer' });
         }
 
         function viewFullArticle() {
             // Hide modal and show full reader view instead
             closeAiModal();
             const question = appState.lastAiQuestion || document.getElementById('aiModalTitle').textContent;
-            setCurrentView('ask', question, question);
+            const storedId = String(appState.lastAiResponse?.history_id || appState.lastAiResponse?.id || '').trim();
+            // A shared answer isn't the visitor's: it stays off their shelf.
+            if (!appState.lastAiResponse?.public) {
+                setCurrentView('ask', window.ShelahAskHistory?.isHistoryId(storedId) ? storedId : question, question);
+            } else {
+                closeAskHistoryPage();
+            }
             setReaderSubtitle('');
             collapseCommentaryPanel();
             resetSelectionInsights();
@@ -13394,7 +14433,7 @@
             if (e.key === 'Escape') {
                 closeSettingsMenu();
                 closeReaderSettingsPanel();
-                closeAiModal();
+                closeAiModal({ keepMiniBar: true });
                 closeTextsMenu();
                 // chapterGridModal is a native <dialog> — its own 'cancel'
                 // listener (see closeChapterGrid's registration) already
@@ -13456,16 +14495,42 @@
         // fallbacks (goHome / closing the calendar) on first load, since the
         // homepage/no-overlay state is already the default DOM state --
         // running them anyway would just be redundant, not incorrect.
+        //
+        // main.js makes the initial call as soon as the module runs, which is
+        // BEFORE DOMContentLoaded -- i.e. before hydratePreferences() has
+        // loaded the visitor's stored prefs. Opening a view that early renders
+        // (and saves) the default prefs over the stored ones, so the initial
+        // call is parked until hydratePreferences() finishes and replays it.
+        let preferencesHydrated = false;
+        let pendingInitialRoute = null;
+
         function hydrateRoute(route, { isInitial = false } = {}) {
             route = route || {};
+            if (isInitial && !preferencesHydrated) {
+                pendingInitialRoute = route;
+                return;
+            }
+            // Display keys first, so a text/prayer opened below renders with
+            // them instead of re-rendering afterwards.
+            if (applyRouteDisplayPrefs(route)) {
+                syncPrefsInputsFromState();
+                applyReaderPreferences();
+            }
             if (route.text) {
-                readText(route.text, { fromRoute: true });
+                // A link names the exact section to show: /text/Genesis.1 is
+                // chapter 1, not a request to pick a chapter from the grid a
+                // library click on "Genesis" opens.
+                readText(route.text, { fromRoute: true, skipNavigationGrid: true });
             } else if (route.prayer) {
                 displayPrayer(route.prayer, { fromRoute: true });
             } else if (route.community) {
                 displayCommunity(route.community, { fromRoute: true });
             } else if (route.chat) {
                 void hydrateChatId(route.chat);
+            } else if (route.a) {
+                void hydratePublicAnswer(route.a);
+            } else if (route.history) {
+                displayAskHistoryPage({ fromRoute: true });
             } else if (!isInitial) {
                 goHome({ fromRoute: true });
             }
@@ -13475,6 +14540,10 @@
             } else if (!isInitial) {
                 window.closeCalendarModal?.();
             }
+
+            // conversation/cv: static/js/conversation-ui.js opens, resizes or
+            // closes the conversation panel to match.
+            window.ShelahConversationUI?.hydrate(route, { isInitial });
         }
         window.hydrateRoute = hydrateRoute;
     </script>
@@ -13485,9 +14554,9 @@
             integrity="sha384-hgVFh5YKDMdpcWEjpRqk2kPXOKBH7I9NBCKe3uR6dHKgy/BWPe8kyL01kiYuRn1u"
             crossorigin="anonymous"></script>
     <script src="/static/js/clerk-appearance.js?v=20260919-v1"></script>
-    <script type="module" src="/static/js/motion.js?v=20260925-mp1"></script>
-    <script type="module" src="/static/js/calendar-detail.js?v=20260919-v11"></script>
-    <script type="module" src="/static/js/main.js?v=20260919-v1"></script>
+    <script type="module" src="/static/js/motion.js?v=20260924-v4"></script>
+    <script type="module" src="/static/js/calendar-detail.js?v=20260925-v13"></script>
+    <script type="module" src="/static/js/main.js?v=20260925-v6"></script>
 </body>
 
 </html>

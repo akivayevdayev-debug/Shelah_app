@@ -12,15 +12,14 @@ function addRefsFromArrayItem(item, addRef) {
         addRef(item);
     } else if (item && typeof item === "object") {
         addRef(item.ref);
-        addRef(item.title);
     }
 }
 
+// A bare top-level string is metadata, not a ref: `hebrew_date` ("14 Tishrei
+// 5787") used to be prefetched as /api/text/14 Tishrei 5787. Refs come from
+// `.ref` fields and from arrays of ref strings. A `.title` is a display label
+// ("Vessels 18-20"), never a fetchable ref.
 function addRefsFromValue(value, addRef) {
-    if (typeof value === "string") {
-        addRef(value);
-        return;
-    }
     if (Array.isArray(value)) {
         for (const item of value) {
             addRefsFromArrayItem(item, addRef);
@@ -229,6 +228,25 @@ export function applyOptionalZmanRows(zmanim) {
     setZmanRowVisibility('zRowFastEnd', hasRealZman(zmanim['Fast Ends']));
 }
 
+// "Asia/Jerusalem" -> "Israel Time" / "שעון ישראל": the zone's own localized
+// name, shown when no city has been picked instead of the raw IANA ID. Falls
+// back to the ID's city part ("Jerusalem") where Intl can't name the zone.
+export function timezoneLabel(timezone, lang = document.documentElement?.lang) {
+    const tz = String(timezone || '').trim();
+    if (!tz) return '';
+    try {
+        const parts = new Intl.DateTimeFormat(lang === 'he' ? 'he-IL' : 'en-US', {
+            timeZone: tz,
+            timeZoneName: 'longGeneric',
+        }).formatToParts(new Date());
+        const name = parts.find((part) => part.type === 'timeZoneName')?.value;
+        if (name && !/^GMT|^UTC/.test(name)) return name;
+    } catch (_) {
+        // Unknown zone ID: fall through to the ID itself.
+    }
+    return tz.split('/').pop().replace(/_/g, ' ');
+}
+
 export function setZmanimLocationLabel(label, timezone) {
     const labelEl = document.getElementById('zmanLoc');
     if (!labelEl) return;
@@ -237,7 +255,8 @@ export function setZmanimLocationLabel(label, timezone) {
     labelEl.classList.remove('sk-line');
     labelEl.style.removeProperty('width');
     labelEl.style.removeProperty('height');
-    labelEl.innerText = normalizedLabel || fallbackTimezone || 'Local';
+    labelEl.innerText = normalizedLabel || timezoneLabel(fallbackTimezone)
+        || (document.documentElement?.lang === 'he' ? 'מקומי' : 'Local');
     if (fallbackTimezone && fallbackTimezone !== normalizedLabel) {
         labelEl.setAttribute('title', fallbackTimezone);
     } else {
@@ -283,7 +302,7 @@ export function getZmanimLocation() {
     return {
         lat,
         lon,
-        label: currentZmanimLocationLabel || meta.location_label || meta.city || meta.timezone || '',
+        label: currentZmanimLocationLabel || meta.location_label || meta.city || '',
         timezone: meta.timezone || '',
     };
 }
@@ -522,6 +541,11 @@ export function refreshZmanimDisplay(deps) {
     const meta = zmanimData.metadata;
     const z = zmanimData.zmanim || {};
 
+    // Re-labelled on every render so a language switch re-localizes a
+    // timezone-only label ("Israel Time" <-> "שעון ישראל").
+    setZmanimLocationLabel(meta.location_label || currentZmanimLocationLabel || meta.city || '', meta.timezone);
+    // The header date follows the location: its timezone, rolled over at its sunset.
+    if (meta.hebrew_date) deps.setHebrewDate?.(meta.hebrew_date);
     renderZmanClockFields(z, deps);
     applyOptionalZmanRows(z);
     renderGraBhtRow(z, deps, SHEMA_GRA_BHT_ROW);
@@ -592,9 +616,30 @@ function showZmanimLoadError(location, deps) {
     }
 }
 
+// Past the automatic retries, the panel still recovers by itself once the
+// network returns or the tab is shown again (a laptop waking from sleep),
+// once per failure: the next fetch re-arms it only if it fails too.
+function refetchWhenBack(location, deps) {
+    const retry = () => {
+        window.removeEventListener('online', retry);
+        document.removeEventListener('visibilitychange', onVisible);
+        if (!document.getElementById('zmanimWarning')?.dataset.zmanimLoadError) return;
+        clearZmanimLoadError();
+        fetchZmanimAPI(location, deps);
+    };
+    const onVisible = () => {
+        if (document.visibilityState === 'visible') retry();
+    };
+    window.addEventListener('online', retry);
+    document.addEventListener('visibilitychange', onVisible);
+}
+
 function scheduleZmanimRetry(location, deps) {
     showZmanimLoadError(location, deps);
-    if (zmanimRetryAttempts >= ZMANIM_RETRY_DELAYS_MS.length) return; // manual retry only from here on
+    if (zmanimRetryAttempts >= ZMANIM_RETRY_DELAYS_MS.length) {
+        refetchWhenBack(location, deps);
+        return; // no more timed retries
+    }
     const delay = ZMANIM_RETRY_DELAYS_MS[zmanimRetryAttempts];
     zmanimRetryAttempts += 1;
     zmanimRetryTimer = setTimeout(() => {
@@ -619,7 +664,7 @@ export function fetchZmanimAPI(location = null, deps = {}) {
             if (!data.error) {
                 zmanimData = data;
                 const meta = data.metadata || {};
-                setZmanimLocationLabel(meta.location_label || currentZmanimLocationLabel || meta.city || meta.timezone || '', meta.timezone);
+                setZmanimLocationLabel(meta.location_label || currentZmanimLocationLabel || meta.city || '', meta.timezone);
                 refreshZmanimDisplay(deps);
                 clearZmanimLoadError();
             } else {
