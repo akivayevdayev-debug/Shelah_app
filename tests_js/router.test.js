@@ -477,3 +477,59 @@ test('pushPath works before installRouter (no handler yet)', async () => {
     assert.deepEqual(router.pushPath('/prayer/mincha'), { prayer: 'mincha' });
     assert.equal(urlOf(window), '/prayer/mincha');
 });
+
+// ── canonical <link> follows in-app navigation (audit U-1) ─────────────
+
+function makeHead(canonicalHref) {
+    const nodes = [];
+    const el = (attrs) => ({
+        attrs: { ...attrs },
+        getAttribute(name) { return this.attrs[name] ?? null; },
+        setAttribute(name, value) { this.attrs[name] = String(value); },
+        remove() { const i = nodes.indexOf(this); if (i !== -1) nodes.splice(i, 1); },
+    });
+    nodes.push(el({ property: 'og:url', content: 'https://shelah-app.vercel.app/text/Genesis.1' }));
+    if (canonicalHref) nodes.push(el({ rel: 'canonical', href: canonicalHref }));
+    const doc = {
+        head: { appendChild(node) { nodes.push(node); } },
+        createElement: () => el({}),
+        querySelector(selector) {
+            if (selector === 'meta[property="og:url"]') return nodes.find((n) => n.attrs.property === 'og:url') || null;
+            if (selector === 'link[rel="canonical"]') return nodes.find((n) => n.attrs.rel === 'canonical') || null;
+            return null;
+        },
+    };
+    return { doc, canonical: () => nodes.find((n) => n.attrs.rel === 'canonical')?.attrs.href ?? null };
+}
+
+async function loadRouterWithHead(search, pathname, canonicalHref) {
+    const window = makeWindow(search, pathname);
+    const head = makeHead(canonicalHref);
+    window.document = head.doc;
+    const mod = await loadEsmModule('static/js/router.js', { window });
+    return { router: mod.namespace, window, head };
+}
+
+test('a view push points the canonical at the new path, without display keys or overlays', async () => {
+    const { router, head } = await loadRouterWithHead('', '/text/Genesis.1', 'https://shelah-app.vercel.app/text/Genesis.1');
+    router.pushRoute({ prayer: 'Upon Arising', date: '2026-09-25', lang: 'he' }, { exclusive: true });
+    assert.equal(head.canonical(), 'https://shelah-app.vercel.app/prayer/Upon_Arising');
+    router.clearRoute();
+    assert.equal(head.canonical(), 'https://shelah-app.vercel.app/');
+});
+
+test('a private view drops the canonical and a library view brings it back', async () => {
+    const { router, head } = await loadRouterWithHead('', '/text/Genesis.1', 'https://shelah-app.vercel.app/text/Genesis.1');
+    router.pushRoute({ chat: 'h1' }, { exclusive: true });
+    assert.equal(head.canonical(), null);
+    router.pushRoute({ text: 'Exodus 2' }, { exclusive: true });
+    assert.equal(head.canonical(), 'https://shelah-app.vercel.app/text/Exodus.2');
+});
+
+test('popstate syncs the canonical to the route it restores', async () => {
+    const { router, window, head } = await loadRouterWithHead('', '/history', null);
+    router.installRouter(() => {});
+    window.location.pathname = '/text/Genesis.1';
+    window.dispatch('popstate', { state: { shelahRoute: { text: 'Genesis 1' } } });
+    assert.equal(head.canonical(), 'https://shelah-app.vercel.app/text/Genesis.1');
+});

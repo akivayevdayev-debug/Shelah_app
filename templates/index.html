@@ -7,18 +7,19 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <meta name="theme-color" content="#f3ede0" media="(prefers-color-scheme: light)">
     <meta name="theme-color" content="#0c0c0b" media="(prefers-color-scheme: dark)">
-    <title>Sh'elah - Torah Encyclopedia</title>
-    <meta name="description" content="AI-powered Torah encyclopedia — search halacha, Talmud, Tanakh, and Jewish law with source citations and community-aware answers.">
-    <meta property="og:title" content="Sh'elah - Torah Encyclopedia">
-    <meta property="og:description" content="AI-powered Torah encyclopedia with source citations from Sefaria, halachic rulings, and community customs.">
+    {# Per-URL values from backend/page_meta.py; a private view has no canonical. #}
+    <title>{{ page_meta.title }}</title>
+    <meta name="description" content="{{ page_meta.description }}">
+    <meta property="og:title" content="{{ page_meta.title }}">
+    <meta property="og:description" content="{{ page_meta.og_description }}">
     <meta property="og:type" content="website">
-    <meta property="og:url" content="https://shelah-app.vercel.app/">
+    <meta property="og:url" content="{{ page_meta.url }}">
     <meta property="og:image" content="https://shelah-app.vercel.app/static/og-image.png">
     <meta name="twitter:card" content="summary_large_image">
-    <meta name="twitter:title" content="Sh'elah - Torah Encyclopedia">
-    <meta name="twitter:description" content="AI-powered Torah encyclopedia with source citations from Sefaria, halachic rulings, and community customs.">
+    <meta name="twitter:title" content="{{ page_meta.title }}">
+    <meta name="twitter:description" content="{{ page_meta.og_description }}">
     <meta name="twitter:image" content="https://shelah-app.vercel.app/static/og-image.png">
-    <link rel="canonical" href="https://shelah-app.vercel.app/">
+    {% if page_meta.canonical %}<link rel="canonical" href="{{ page_meta.canonical }}">{% endif %}
     <script type="application/ld+json">
     {
         "@context": "https://schema.org",
@@ -6885,6 +6886,21 @@
         // it stays out of Recent.
         const VIEWS_KEPT_OUT_OF_RECENT = new Set(['history']);
 
+        // The tab title for the view on screen. The server renders an
+        // English one per URL (backend/page_meta.py, same "<view> · Sh'elah"
+        // shape); this localizes it and keeps it current in-app.
+        // (A function declaration with no outer const: toggleLanguage calls
+        // it during boot, before this line has run.)
+        function syncDocumentTitle() {
+            const maxLabel = 70;
+            const view = appState.currentView;
+            let label = String((view?.type === 'text' && window.currentTextAnchorTitle) || view?.label || '').trim();
+            if (label.length > maxLabel) label = `${label.slice(0, maxLabel - 1).trimEnd()}…`;
+            document.title = label
+                ? `${label} · ${t("Sh'elah", 'שאלה')}`
+                : t("Sh'elah - Torah Encyclopedia", 'שאלה - אנציקלופדיית תורה');
+        }
+
         function setCurrentView(type, value, label, options = {}) {
             appState.currentView = { type, value, label: label || value };
             // state.js subscribers see every view change, not only the ones
@@ -6909,6 +6925,7 @@
             } else if (type === 'text') {
                 syncReaderDisplayRoute();
             }
+            syncDocumentTitle();
         }
 
         // Export/citation controls only make sense with an open text chapter
@@ -11415,6 +11432,7 @@
             closeAskHistoryPage();
             appState.currentView = null;
             window.ShelahState?.setState({ currentView: null });
+            syncDocumentTitle();
             window.currentTextPayload = null;
             window.currentTextPayloadChain = [];
             resetInfiniteReaderState(null);
@@ -12778,7 +12796,7 @@
             applyReaderPreferences();
 
             // Update page title to match language
-            document.title = lang === 'he' ? "שאלה - אנציקלופדיית תורה" : "Sh'elah - Torah Encyclopedia";
+            syncDocumentTitle();
 
             updateThemeToggleUi(lang);
 
