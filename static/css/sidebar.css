@@ -115,7 +115,7 @@ body.theme-dark html.rtl .library-tree-children {
    smooths whichever color each theme already swaps to -- no new color
    values needed here. */
 .library-tree-summary {
-    transition: color var(--motion-dur-fast) var(--motion-ease-out);
+    transition: color var(--motion-dur-fast) var(--motion-ease-out), scale var(--motion-dur-fast) var(--motion-ease-out);
 }
 
 body.theme-dark #leftSidebar .border-b,

@@ -32,6 +32,7 @@ from backend.data_service import ShelahEngine
 from backend import sefaria
 from backend import claude
 from backend import ask_pipeline
+from backend import cost_gates
 from backend.logging_setup import (
     setup_logging,
     _capture_backend_error,
@@ -1949,6 +1950,80 @@ def _run_ask_question_fallback(question, mode, canonical_lens, answer_language, 
     )
 
 
+def _ask_question_breaker_paused_payload(mode, canonical_lens, answer_language, ctx):
+    """Stage 2.5 of ask_question(): the no-LLM-call response served while
+    the global cost breaker is tripped. Sync mirror of asgi.py's
+    _ask_async_breaker_paused_payload (same shape, same DEVTOOLS_STATS
+    bump); the stale-cache fallback that route tries first already ran at
+    the top of ask_question(), so a cache hit never reaches here.
+    """
+    DEVTOOLS_STATS["answers_total"] += 1
+    DEVTOOLS_STATS["fallback_answers"] += 1
+    display_sources = _compact_ai_sources(ctx["primary_sources"])
+    return {
+        "answer": (
+            "AI answers are paused for today -- the full Torah library below is unaffected. "
+            "Please try again after midnight UTC, or browse the sources directly."
+        ),
+        "confidence": 0.0,
+        "wiki": ctx["wiki_list"] + ctx["halachipedia_list"],
+        "customs": ctx["customs_info"],
+        "sources": display_sources,
+        "ai_cited_sources": [],
+        "history_id": None,
+        "meta": {
+            "mode": mode,
+            "language": answer_language,
+            "community_lens": canonical_lens,
+            "source_count": len(ctx["primary_sources"]),
+            "custom_count": len(ctx["customs_info"]),
+            "generated_at": int(time.time()),
+            "fallback": True,
+            "breaker_tripped": True,
+            "safety_class": "ok",
+            "cached": False,
+        },
+    }
+
+
+def _apply_ask_question_cost_gates(user_id, mode, canonical_lens, answer_language, ctx):
+    """Stage 2.5 of ask_question(): the same global-breaker and per-caller
+    daily-budget gates asgi.py's /ask applies, then bind the caller's
+    identity + budget reservation so record_llm_call() attributes this
+    request's model spend (see backend/cost_gates.py). Returns a response
+    to send as-is, or None to proceed to AI synthesis.
+
+    Runs after the prayer/strict short-circuits, which make no model call,
+    so neither of them strands a budget reservation. Signed-out callers are
+    budgeted and attributed by client IP ("ip:<addr>"), as on asgi.py's
+    /ask. Fails open if the gate hop itself errors or times out -- the same
+    posture each cost_meter gate already takes on a Supabase/cache failure
+    -- but still binds identity, so the spend is attributed regardless.
+    """
+    client_ip = _extract_client_ip() or ""
+    try:
+        gates = cost_gates.evaluate_cost_gates_sync(user_id, client_ip)
+    except Exception as gate_error:
+        _capture_backend_error("ask_cost_gates_unavailable", gate_error, {
+            "user_id_hash": hash_user_id(user_id),
+        })
+        gates = {"tripped": False, "budget": {"allowed": True}, "reservation_id": ""}
+
+    if gates["tripped"]:
+        return jsonify(_ask_question_breaker_paused_payload(
+            mode, canonical_lens, answer_language, ctx))
+
+    budget = gates["budget"]
+    if not budget["allowed"]:
+        return jsonify({
+            "error": cost_gates.budget_exhausted_message(budget),
+            "code": "daily_budget_exhausted",
+        }), 402
+
+    cost_gates.bind_cost_attribution(user_id, client_ip, gates["reservation_id"])
+    return None
+
+
 def _parse_and_validate_ask_question_request(data):
     """Parse and normalize the /ask request body into the values
     ask_question() needs downstream, or None if the question is empty
@@ -2052,6 +2127,11 @@ def ask_question():
             _set_cached_ask_payload(ask_cache_key, strict_payload)
             return jsonify(strict_payload)
 
+        gate_response = _apply_ask_question_cost_gates(
+            user_id, mode, canonical_lens, answer_language, ctx)
+        if gate_response is not None:
+            return gate_response
+
         try:
             payload = _run_ask_question_ai_synthesis(
                 question, mode, canonical_lens, answer_language, user_id,
@@ -2075,6 +2155,8 @@ def ask_question():
             _build_ask_critical_error_context(locals()),
         )
         return jsonify({"error": "An internal error occurred while processing your request."}), 500
+    finally:
+        cost_gates.clear_cost_attribution()
 
 
 # ─── Blueprint registration (Stage 2 route decomposition) ────────────────

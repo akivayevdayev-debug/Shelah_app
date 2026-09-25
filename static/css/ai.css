@@ -522,7 +522,7 @@
 #popularTextsGrid button,
 .home-daily-entry,
 .home-today-section {
-    transition: transform var(--motion-dur-fast) var(--motion-ease-out), box-shadow var(--motion-dur-fast) var(--motion-ease-out);
+    transition: transform var(--motion-dur-fast) var(--motion-ease-out), box-shadow var(--motion-dur-fast) var(--motion-ease-out), scale var(--motion-dur-fast) var(--motion-ease-out);
 }
 
 #popularTextsGrid button:hover {
@@ -681,11 +681,11 @@
 #rightSidebar button,
 #leftSidebar a,
 #rightSidebar a {
-    transition: background-color var(--motion-dur-fast) var(--motion-ease-out), color var(--motion-dur-fast) var(--motion-ease-out), padding-left var(--motion-dur-fast) var(--motion-ease-out) !important;
+    transition: background-color var(--motion-dur-fast) var(--motion-ease-out), color var(--motion-dur-fast) var(--motion-ease-out), padding-left var(--motion-dur-fast) var(--motion-ease-out), scale var(--motion-dur-fast) var(--motion-ease-out) !important;
 }
 
 #leftSidebar details>summary {
-    transition: color var(--motion-dur-fast) var(--motion-ease-out);
+    transition: color var(--motion-dur-fast) var(--motion-ease-out), scale var(--motion-dur-fast) var(--motion-ease-out);
 }
 
 #leftSidebar details>summary .text-slate-300 {
@@ -882,7 +882,7 @@ body.search-loading .search-liftoff-underlay::before {
 .home-library-link,
 .home-daily-link,
 .home-calendar-btn {
-    transition: transform var(--motion-dur-fast) var(--motion-ease-out), opacity var(--motion-dur-fast) var(--motion-ease-out) !important;
+    transition: transform var(--motion-dur-fast) var(--motion-ease-out), opacity var(--motion-dur-fast) var(--motion-ease-out), scale var(--motion-dur-fast) var(--motion-ease-out) !important;
 }
 
 .home-library-link:hover {

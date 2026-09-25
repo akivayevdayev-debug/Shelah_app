@@ -45,7 +45,6 @@ from app import app as flask_app
 from backend.utils import search_provider as sp
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
-CLAUDE_PATH = REPO_ROOT / "backend" / "claude.py"
 MERGE_LCOV_PATH = REPO_ROOT / "scripts" / "merge_lcov.py"
 VERIFY_INTEGRATIONS_PATH = REPO_ROOT / "scripts" / "verify_integrations.py"
 PROMPT_DOC_SYNC_PATH = REPO_ROOT / "scripts" / "check_prompt_doc_sync.py"
@@ -380,53 +379,62 @@ class TestToolResultIsInsufficient:
 # ─────────────────────────────── backend/claude.py ───────────────────────────
 
 
-def _load_private_claude_copy(monkeypatch, exceptions_module):
-    """Execute backend/claude.py's file as a throwaway module so its import-time
-    ``google.api_core.exceptions`` lookup runs against the stand-in module."""
-    spec = importlib.util.spec_from_file_location("backend_claude_private_copy", CLAUDE_PATH)
-    module = importlib.util.module_from_spec(spec)
-    monkeypatch.setitem(sys.modules, spec.name, module)
-    monkeypatch.setitem(sys.modules, "google.api_core.exceptions", exceptions_module)
-    # claude.py calls load_dotenv(override=True) at import; never let a re-run
-    # clobber this process's environment with a developer's real .env.
-    monkeypatch.setattr("dotenv.load_dotenv", lambda *args, **kwargs: False)
-    spec.loader.exec_module(module)
-    return module
+def _gemini_api_error(code):
+    from google.genai import errors as genai_errors
+
+    return genai_errors.APIError(code, {"error": {"code": code, "message": "x", "status": "S"}})
 
 
-class TestClaudeResourceExhaustedImport:
-    def test_module_uses_the_google_api_core_exception_class_when_available(self, monkeypatch):
-        fake = types.ModuleType("google.api_core.exceptions")
-        fake.ResourceExhausted = type("ResourceExhausted", (Exception,), {})
+class TestGeminiRetryPolicy:
+    """Only a rate-limit/overload status is retried. The old policy matched
+    google.api_core's ResourceExhausted, which isn't installed in prod, so it
+    fell back to plain Exception and retried every error."""
 
-        module = _load_private_claude_copy(monkeypatch, fake)
+    @pytest.fixture(autouse=True)
+    def _no_backoff(self, monkeypatch):
+        import backend.claude as claude_module
 
-        assert module.ResourceExhausted is fake.ResourceExhausted
+        monkeypatch.setattr(
+            claude_module._generate_gemini_content_with_retry.retry, "sleep", lambda seconds: None)
 
-    def test_module_falls_back_to_exception_when_the_class_is_missing(self, monkeypatch):
-        module = _load_private_claude_copy(
-            monkeypatch, types.ModuleType("google.api_core.exceptions"))
-
-        assert module.ResourceExhausted is Exception
-
-    def test_gemini_retry_fires_only_for_the_imported_exception_class(self, monkeypatch):
-        exhausted = type("ResourceExhausted", (Exception,), {})
-        fake = types.ModuleType("google.api_core.exceptions")
-        fake.ResourceExhausted = exhausted
-        module = _load_private_claude_copy(monkeypatch, fake)
-        retrying = module._generate_gemini_content_with_retry.retry
-        monkeypatch.setattr(retrying, "sleep", lambda seconds: None)
+    def test_429_503_504_are_retried(self):
+        import backend.claude as claude_module
 
         flaky = MagicMock()
-        flaky.models.generate_content.side_effect = [exhausted("429"), exhausted("429"), "ok"]
-        assert module._generate_gemini_content_with_retry(flaky, "model", "prompt") == "ok"
+        flaky.models.generate_content.side_effect = [
+            _gemini_api_error(429), _gemini_api_error(503), "ok"]
+        assert claude_module._generate_gemini_content_with_retry(flaky, "model", "prompt") == "ok"
         assert flaky.models.generate_content.call_count == 3
+        assert claude_module._is_retryable_gemini_error(_gemini_api_error(504)) is True
+
+    @pytest.mark.parametrize("exc", [
+        ValueError("bad request"),
+        TimeoutError("read timed out"),
+        RuntimeError("sdk bug"),
+    ])
+    def test_other_errors_fail_straight_through(self, exc):
+        import backend.claude as claude_module
 
         broken = MagicMock()
-        broken.models.generate_content.side_effect = ValueError("bad request")
-        with pytest.raises(ValueError):
-            module._generate_gemini_content_with_retry(broken, "model", "prompt")
+        broken.models.generate_content.side_effect = exc
+        with pytest.raises(type(exc)):
+            claude_module._generate_gemini_content_with_retry(broken, "model", "prompt")
         assert broken.models.generate_content.call_count == 1
+
+    def test_client_errors_other_than_429_are_not_retried(self):
+        import backend.claude as claude_module
+
+        for code in (400, 401, 403, 404, 500):
+            assert claude_module._is_retryable_gemini_error(_gemini_api_error(code)) is False
+
+    def test_no_retry_once_the_synthesis_budget_is_spent(self):
+        import backend.claude as claude_module
+
+        token = claude_module._model_deadline.set(0.0)  # long past
+        try:
+            assert claude_module._is_retryable_gemini_error(_gemini_api_error(429)) is False
+        finally:
+            claude_module._model_deadline.reset(token)
 
 
 # ─────────────────────────────── backend/data_service.py ─────────────────────
