@@ -203,6 +203,36 @@ function buildUrl(route, currentPath = "/") {
     return qs ? `${path}?${qs}` : path;
 }
 
+// The server renders each URL's <link rel="canonical"> (backend/page_meta.py);
+// this keeps it true after an in-app navigation. A library view points at its
+// own path (display keys and overlays aside), a private view -- one person's
+// answer, their history, a shared answer -- carries none.
+const PRIVATE_VIEW_KEYS = Object.freeze(["chat", "a", "history"]);
+
+function syncCanonical(route) {
+    const doc = window.document;
+    if (!doc) return;
+    try {
+        const ogUrl = doc.querySelector('meta[property="og:url"]')?.getAttribute("content");
+        const origin = ogUrl ? new URL(ogUrl).origin : window.location.origin;
+        const path = window.location.pathname;
+        if (!isRouterPath(path)) return;
+        let link = doc.querySelector('link[rel="canonical"]');
+        if (PRIVATE_VIEW_KEYS.some((key) => route[key])) {
+            link?.remove();
+            return;
+        }
+        if (!link) {
+            link = doc.createElement("link");
+            link.setAttribute("rel", "canonical");
+            doc.head.appendChild(link);
+        }
+        link.setAttribute("href", `${origin}${pathFor(route, path)}`);
+    } catch (_) {
+        // Non-critical: crawlers read the server-rendered tag.
+    }
+}
+
 // A push to the URL already showing replaces it instead: re-opening the
 // view you're on (a second click, a hydrate that re-renders the current
 // route) must not stack a duplicate entry for Back to step through.
@@ -214,6 +244,7 @@ function writeHistory(route, replace) {
     } catch (_) {
         // Non-critical history update failure (e.g. sandboxed iframe).
     }
+    syncCanonical(route);
 }
 
 function pickKeys(route, keys) {
@@ -300,6 +331,7 @@ function installRouter(handler) {
     canonicalizeUrl();
     window.addEventListener("popstate", (event) => {
         const route = (event.state && event.state.shelahRoute) || readRoute();
+        syncCanonical(route);
         onRouteChange?.(route);
     });
 }
