@@ -108,17 +108,17 @@
     <script defer src="https://cdn.jsdelivr.net/npm/dompurify@3.4.9/dist/purify.min.js"
             integrity="sha384-6ZdfL2Azuen6KYvcTkbxqJS1d7txbNWrVfmURkxNeCn7DtzhLRL6Fi6WGG6ZLdKn"
             crossorigin="anonymous"></script>
-    <link rel="stylesheet" href="/static/css/tokens.css?v=20260919-v11">
-    <link rel="stylesheet" href="/static/style.css?v=20260919-v22">
+    <link rel="stylesheet" href="/static/css/tokens.css?v=20260925-mp1">
+    <link rel="stylesheet" href="/static/style.css?v=20260925-mp1">
     <!-- CSS modules (supplement style.css; do not replace) -->
     <link rel="stylesheet" href="/static/css/typography.css?v=20260817-v6">
     <link rel="stylesheet" href="/static/css/reader.css?v=20260817-v6">
-    <link rel="stylesheet" href="/static/css/sidebar.css?v=20260919-v8">
+    <link rel="stylesheet" href="/static/css/sidebar.css?v=20260925-mp1">
     <link rel="stylesheet" href="/static/css/halacha.css?v=20260817-v6">
     <link rel="stylesheet" href="/static/css/prayer.css?v=20260817-v6">
-    <link rel="stylesheet" href="/static/css/ai.css?v=20260919-v16">
-    <link rel="stylesheet" href="/static/css/calendar.css?v=20260918-v8">
-    <link rel="stylesheet" href="/static/css/calendar-detail.css?v=20260919-v7">
+    <link rel="stylesheet" href="/static/css/ai.css?v=20260925-mp1">
+    <link rel="stylesheet" href="/static/css/calendar.css?v=20260925-mp1">
+    <link rel="stylesheet" href="/static/css/calendar-detail.css?v=20260925-mp1">
     <link rel="stylesheet" href="/static/css/loading.css?v=20260817-v6">
     <!-- Tailwind CSS (pre-built; loads last so utilities override custom CSS — mirrors CDN runtime cascade behavior) -->
     <link rel="stylesheet" href="/static/css/tailwind.css?v=20260915-v7">
@@ -439,7 +439,7 @@
 
             <button id="readerPrevTopBarBtn" type="button" class="reader-topbar-icon-btn"
                 aria-label="Previous Section" title="Previous Section">
-                <span aria-hidden="true">&#9664;</span>
+                {{ phosphor('caret-left', size=18) }}
             </button>
 
             <div class="text-start reader-topbar-settings-wrap">
@@ -525,7 +525,7 @@
 
             <button id="readerNextTopBarBtn" type="button" class="reader-topbar-icon-btn"
                 aria-label="Next Section" title="Next Section">
-                <span aria-hidden="true">&#9654;</span>
+                {{ phosphor('caret-right', size=18) }}
             </button>
 
             <button id="readerCommentaryTopBarBtn" type="button"
@@ -1249,9 +1249,10 @@
                                 </div>
                             </div>
 
-                            <button onclick="openCalendarModal()" class="home-calendar-btn"
-                                data-en="Monthly Holiday Calendar" data-he="לוח חגים חודשי">Monthly Holiday
-                                Calendar</button>
+                            <button onclick="openCalendarModal()" class="home-calendar-btn">
+                                {{ phosphor('calendar-blank', size=16, class='home-calendar-btn__icon') }}
+                                <span data-en="Monthly Holiday Calendar" data-he="לוח חגים חודשי">Monthly Holiday
+                                    Calendar</span></button>
                         </section>
 
                         <section class="home-today-section">
@@ -2106,10 +2107,44 @@
             }, 220);
         }
 
+        // Screens rise into place instead of popping. Whenever one of these
+        // goes from hidden to shown -- through any of the many paths that
+        // toggle them (readText, goHome, displayPrayer, displayCommunity,
+        // viewFullArticle, ...) -- it replays a short entrance (.view-enter,
+        // style.css; transform + opacity only, off under
+        // reduced motion). Watching the attributes keeps this in one place.
+        // (#readerTopBar already fades up on show via ai.css.)
+        // attributeOldValue catches a hide + re-show inside one task (a
+        // cached text swapping into an already-open reader) as well.
+        function watchViewEntrance(el, enterClass = 'view-enter') {
+            if (!el || typeof MutationObserver === 'undefined') return;
+            const isShown = () => !el.classList.contains('hidden') && el.style.display !== 'none';
+            const wasHidden = (record) => (record.attributeName === 'class'
+                ? /(^|\s)hidden(\s|$)/.test(record.oldValue || '')
+                : /display:\s*none/.test(record.oldValue || ''));
+            let shown = isShown();
+            new MutationObserver((records) => {
+                const now = isShown();
+                if (now && (!shown || records.some(wasHidden))) {
+                    el.classList.remove(enterClass);
+                    void el.offsetWidth; // restart the animation if it was mid-play
+                    el.classList.add(enterClass);
+                }
+                shown = now;
+            }).observe(el, { attributes: true, attributeFilter: ['class', 'style'], attributeOldValue: true });
+            el.addEventListener('animationend', (e) => {
+                if (e.target === el) el.classList.remove(enterClass);
+            });
+        }
+        watchViewEntrance(homeGrid);
+        watchViewEntrance(reader);
+        watchViewEntrance(compareContainer);
+
         const sidebarContent = document.getElementById('sourcesDynamicContent');
         const selectionInsights = document.getElementById('selectionInsights');
         const selectionInsightsBody = document.getElementById('selectionInsightsBody');
         const selectionInsightsHint = document.getElementById('selectionInsightsHint');
+        watchViewEntrance(selectionInsights);
 
         let infiniteReaderState = {
             loading: false,
@@ -4699,9 +4734,12 @@
             return Promise.resolve();
         }
 
-        // Phones get a bottom-sheet rise; larger screens a centred card.
+        // Dialog windows (chapter grid, library category, privacy, calendar,
+        // the AI answer) simply fade in where they live, with a barely-there
+        // scale settle (motion.js 'window' preset) -- no rise from the bottom
+        // and no flight out of the trigger.
         function modalMotion(modal) {
-            return { preset: isMobileViewport() ? 'sheet' : 'modal', card: modal?.querySelector(':scope > div') ?? null };
+            return { preset: 'window', card: modal?.querySelector(':scope > div') ?? null };
         }
 
         function setMobileDrawerState(drawer, open) {
@@ -11410,7 +11448,8 @@
                     const btn = document.createElement('button');
                     btn.type = 'button';
                     btn.className = 'cal-agenda-btn';
-                    btn.append(swatch, name);
+                    const icon = calendarIconEl(ev.extendedProps.icon);
+                    btn.append(...[swatch, icon, name].filter(Boolean));
                     btn.addEventListener('click', () => openCalendarDetail(li, calendarSelectedKey, ev));
                     li.classList.add('is-actionable');
                     li.appendChild(btn);
@@ -11437,6 +11476,51 @@
             }
         }
 
+        // The server prefixes titles with an emoji marker (🕍 Parashat …, 🌙 Rosh
+        // Chodesh …). The UI draws those as Phosphor icons instead: strip the
+        // emoji from the title and remember which icon it stood for.
+        const CAL_EMOJI_ICONS = [
+            ['🌅', 'sun-horizon'], ['🌇', 'sun-horizon'], ['🌃', 'moon-stars'],
+            ['🕍', 'synagogue'], ['🌙', 'moon'], ['🕎', 'flame'], ['🕯', 'flame'],
+            ['🔥', 'fire'], ['🇮🇱', 'flag'], ['⛰', 'mountains'], ['🌸', 'flower'],
+            ['🌿', 'leaf'], ['🍋', 'leaf'], ['⏳', 'hourglass'],
+        ];
+        const CAL_ICON_PATHS = {
+            'sun-horizon': "{{ phosphor_path('sun-horizon') }}",
+            'moon-stars': "{{ phosphor_path('moon-stars') }}",
+            'synagogue': "{{ phosphor_path('synagogue') }}",
+            'moon': "{{ phosphor_path('moon') }}",
+            'flame': "{{ phosphor_path('flame') }}",
+            'fire': "{{ phosphor_path('fire') }}",
+            'flag': "{{ phosphor_path('flag') }}",
+            'mountains': "{{ phosphor_path('mountains') }}",
+            'flower': "{{ phosphor_path('flower') }}",
+            'leaf': "{{ phosphor_path('leaf') }}",
+            'hourglass': "{{ phosphor_path('hourglass') }}",
+            'star-of-david': "{{ phosphor_path('star-of-david') }}",
+        };
+        function splitCalendarEmoji(rawTitle) {
+            const raw = String(rawTitle || '');
+            const prefix = (raw.match(/^[^\p{L}\p{N}]+/u) || [''])[0];
+            if (!prefix.trim()) return { title: raw.trim(), icon: null };
+            const hit = CAL_EMOJI_ICONS.find(([emoji]) => prefix.includes(emoji));
+            return { title: raw.slice(prefix.length).trim(), icon: hit ? hit[1] : 'star-of-david' };
+        }
+        function calendarIconEl(name) {
+            const d = CAL_ICON_PATHS[name];
+            if (!d) return null;
+            const ns = 'http://www.w3.org/2000/svg';
+            const svg = document.createElementNS(ns, 'svg');
+            svg.setAttribute('viewBox', '0 0 256 256');
+            svg.setAttribute('fill', 'currentColor');
+            svg.setAttribute('aria-hidden', 'true');
+            svg.setAttribute('class', 'cal-event-icon');
+            const path = document.createElementNS(ns, 'path');
+            path.setAttribute('d', d);
+            svg.appendChild(path);
+            return svg;
+        }
+
         function ensureCalendarReady() {
             if (holidaysCalendar) return;
             const calendarEl = document.getElementById('calendar');
@@ -11452,10 +11536,14 @@
                             // extendedProps when they're nested there in the source
                             // data — a bare top-level `category` is silently dropped,
                             // not auto-promoted, so eventClassNames below never saw it.
-                            const withExtendedProps = items.map((item) => ({
-                                ...item,
-                                extendedProps: { ...(item.extendedProps || {}), category: item.category, detail: item.detail || {} },
-                            }));
+                            const withExtendedProps = items.map((item) => {
+                                const { title, icon } = splitCalendarEmoji(item.title);
+                                return {
+                                    ...item,
+                                    title,
+                                    extendedProps: { ...(item.extendedProps || {}), category: item.category, detail: item.detail || {}, icon },
+                                };
+                            });
                             successCallback(withExtendedProps);
                         })
                         .catch(e => failureCallback(e));
@@ -11496,6 +11584,9 @@
                 // Chips are ellipsised on phones; the native tooltip gives the full name on hover.
                 eventDidMount: function (info) {
                     info.el.title = info.event.title;
+                    const icon = calendarIconEl(info.event.extendedProps.icon);
+                    const slot = info.el.querySelector('.fc-event-title') || info.el.querySelector('.fc-event-main-frame');
+                    if (icon && slot) slot.prepend(icon);
                 },
                 dayCellDidMount: function (info) {
                     if (calendarSelectedKey && info.el.dataset.date === calendarSelectedKey) {
@@ -11530,10 +11621,8 @@
                 if (holidaysCalendar) holidaysCalendar.updateSize();
             };
             setTimeout(resizeCalendar, 80);
-            // The modal grows out of the control that opened it (and folds back into it).
-            const opener = document.activeElement?.closest?.('button');
-            const origin = opener && opener.offsetParent !== null ? opener : document.querySelector('.home-calendar-btn');
-            presentEl(modal, { ...modalMotion(modal), replay: true, origin }).then(resizeCalendar);
+            // Fades in like every other window (modalMotion).
+            presentEl(modal, { ...modalMotion(modal), replay: true }).then(resizeCalendar);
         };
 
         window.closeCalendarModal = function () {
@@ -12649,15 +12738,18 @@
             }
             if (stored === 'denied') return;
 
+            // Rises in from the bottom edge and fades out on either choice,
+            // instead of appearing and vanishing in a single frame.
+            watchViewEntrance(banner);
             banner.classList.remove('hidden');
             document.getElementById('analyticsConsentAccept')?.addEventListener('click', () => {
                 localStorage.setItem(ANALYTICS_CONSENT_KEY, 'granted');
-                banner.classList.add('hidden');
+                dismissEl(banner, { preset: 'fade' });
                 loadVercelAnalytics();
             });
             document.getElementById('analyticsConsentDecline')?.addEventListener('click', () => {
                 localStorage.setItem(ANALYTICS_CONSENT_KEY, 'denied');
-                banner.classList.add('hidden');
+                dismissEl(banner, { preset: 'fade' });
             });
         }
         initAnalyticsConsent();
@@ -12697,7 +12789,7 @@
             integrity="sha384-hgVFh5YKDMdpcWEjpRqk2kPXOKBH7I9NBCKe3uR6dHKgy/BWPe8kyL01kiYuRn1u"
             crossorigin="anonymous"></script>
     <script src="/static/js/clerk-appearance.js?v=20260919-v1"></script>
-    <script type="module" src="/static/js/motion.js?v=20260919-v2"></script>
+    <script type="module" src="/static/js/motion.js?v=20260925-mp1"></script>
     <script type="module" src="/static/js/calendar-detail.js?v=20260919-v11"></script>
     <script type="module" src="/static/js/main.js?v=20260919-v1"></script>
 </body>
