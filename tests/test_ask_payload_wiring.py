@@ -86,34 +86,28 @@ class TestSuccessfulAnswerWiring:
     def test_flask_marks_the_payload_cached_false_and_forwards_the_inputs(self, ctx, ai_result):
         meta = _sync_ai(ctx, ai_result)["meta"]
 
-        assert meta["cached"] is False
-        assert "async" not in meta
+        assert meta["cached"] is False and "async" not in meta
         assert (meta["mode"], meta["language"], meta["community_lens"]) == ("strict", "he", "Yemenite")
-        assert meta["input_sanitized"] is True
-        assert meta["identity_aware"] is True
+        assert meta["input_sanitized"] is True and meta["identity_aware"] is True
         assert meta["source_count"] == 1
 
     async def test_asgi_marks_the_payload_async_and_forwards_the_inputs(self, ctx, ai_result):
         meta = (await _async_ai(ctx, ai_result))["meta"]
 
-        assert meta["async"] is True
-        assert "cached" not in meta
+        assert meta["async"] is True and "cached" not in meta
         assert (meta["mode"], meta["language"], meta["community_lens"]) == ("strict", "he", "Yemenite")
-        assert meta["input_sanitized"] is True
-        assert meta["identity_aware"] is True
+        assert meta["input_sanitized"] is True and meta["identity_aware"] is True
         assert meta["source_count"] == 1
 
     def test_flask_identity_and_sanitisation_follow_the_request(self, ctx, ai_result):
         meta = _sync_ai(ctx, dict(ai_result), user_id=None, question_was_sanitized=False)["meta"]
 
-        assert meta["identity_aware"] is False
-        assert meta["input_sanitized"] is False
+        assert meta["identity_aware"] is False and meta["input_sanitized"] is False
 
     async def test_asgi_identity_and_sanitisation_follow_the_request(self, ctx, ai_result):
         meta = (await _async_ai(ctx, dict(ai_result), user_id=None, question_was_sanitized=False))["meta"]
 
-        assert meta["identity_aware"] is False
-        assert meta["input_sanitized"] is False
+        assert meta["identity_aware"] is False and meta["input_sanitized"] is False
 
 
 class TestSourceFallbackWiring:
@@ -121,8 +115,7 @@ class TestSourceFallbackWiring:
         payload = _sync_fallback(ctx, RuntimeError("upstream call timeout"))
 
         meta = payload["meta"]
-        assert meta["cached"] is False
-        assert "async" not in meta
+        assert meta["cached"] is False and "async" not in meta
         assert (meta["mode"], meta["language"], meta["community_lens"]) == ("sources", "he", "Georgian")
         assert meta["identity_aware"] is True
         assert meta["fallback_detail"]["reason"] == "timeout"
@@ -133,8 +126,7 @@ class TestSourceFallbackWiring:
         payload = await _async_fallback(ctx, RuntimeError("anthropic_sdk_error: 429 rate limit exceeded"))
 
         meta = payload["meta"]
-        assert meta["async"] is True
-        assert "cached" not in meta
+        assert meta["async"] is True and "cached" not in meta
         assert (meta["mode"], meta["language"], meta["community_lens"]) == ("sources", "he", "Georgian")
         assert meta["identity_aware"] is True
         assert meta["fallback_detail"]["reason"] == "rate_limited"

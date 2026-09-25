@@ -194,8 +194,7 @@ class TestGetLibraryIndexAdjustedView:
         assert sl.get_library_index() == [{"title": "local"}]
         assert sl._library_index_view_cache["data"] == [{"title": "local"}]
         assert sl._library_index_view_cache["report_mtime"] == 5.0
-        assert len(stores) == 1
-        assert stores[0][1]["data"] == [{"title": "local"}]
+        assert len(stores) == 1 and stores[0][1]["data"] == [{"title": "local"}]
 
 
 # ─── _find_category_child_node ─────────────────────────────────────────────
