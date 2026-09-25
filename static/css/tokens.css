@@ -776,10 +776,12 @@ body.theme-dark {
 
     --hit-min: 44px;                                                    /* minimum touch target */
 
-    /* Slider (iOS-style): a slim track and a large thumb that grows on press */
+    /* Slider: a slim track and a small 14px thumb that grows slightly on
+       press. The 44px hit area comes from the input's own height
+       (--hit-min on .reader-range-slider), not from the thumb. */
     --slider-track-h:   4px;
-    --slider-thumb:     28px;
-    --slider-thumb-press: 32px;
+    --slider-thumb:     14px;
+    --slider-thumb-press: 16px;
 
     /* Material — warm cream glass over the page */
     --glass-blur:    22px;
