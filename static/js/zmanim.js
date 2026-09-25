@@ -534,6 +534,75 @@ export function refreshZmanimDisplay(deps) {
     startCountdown(deps);
 }
 
+// A failed/errored fetch used to leave the panel exactly as it started --
+// "--:--" placeholders and (on first load) a shimmering #zmanLoc skeleton,
+// forever, with no indication anything went wrong. Self-recovers with a
+// couple of automatic retries, then falls back to a visible retry control
+// so the panel never gets permanently stuck.
+const ZMANIM_RETRY_DELAYS_MS = [3000, 8000];
+let zmanimRetryAttempts = 0;
+let zmanimRetryTimer = null;
+
+function clearZmanimLoadError() {
+    zmanimRetryAttempts = 0;
+    if (zmanimRetryTimer) {
+        clearTimeout(zmanimRetryTimer);
+        zmanimRetryTimer = null;
+    }
+    const warningEl = document.getElementById('zmanimWarning');
+    if (warningEl?.dataset.zmanimLoadError === '1') {
+        warningEl.classList.add('hidden');
+        warningEl.textContent = '';
+        delete warningEl.dataset.zmanimLoadError;
+    }
+}
+
+function showZmanimLoadError(location, deps) {
+    const warningEl = document.getElementById('zmanimWarning');
+    if (warningEl) {
+        warningEl.dataset.zmanimLoadError = '1';
+        warningEl.classList.remove('hidden');
+        warningEl.textContent = '';
+
+        const msg = document.createElement('span');
+        msg.textContent = deps.t
+            ? deps.t("Couldn't load zmanim times.", 'לא ניתן היה לטעון את הזמנים.')
+            : "Couldn't load zmanim times.";
+
+        const retryBtn = document.createElement('button');
+        retryBtn.type = 'button';
+        retryBtn.className = 'underline font-semibold ms-1';
+        retryBtn.textContent = deps.t ? deps.t('Retry', 'נסה שוב') : 'Retry';
+        retryBtn.addEventListener('click', () => {
+            clearZmanimLoadError();
+            fetchZmanimAPI(location, deps);
+        });
+
+        warningEl.append(msg, retryBtn);
+    }
+
+    // Stop the location label from shimmering forever if this is the
+    // first-ever load (it starts as a loading skeleton, not "--:--").
+    const locEl = document.getElementById('zmanLoc');
+    if (locEl?.classList.contains('sk-line')) {
+        locEl.classList.remove('sk-line');
+        locEl.style.removeProperty('width');
+        locEl.style.removeProperty('height');
+        locEl.innerText = deps.t ? deps.t('Unavailable', 'לא זמין') : 'Unavailable';
+    }
+}
+
+function scheduleZmanimRetry(location, deps) {
+    showZmanimLoadError(location, deps);
+    if (zmanimRetryAttempts >= ZMANIM_RETRY_DELAYS_MS.length) return; // manual retry only from here on
+    const delay = ZMANIM_RETRY_DELAYS_MS[zmanimRetryAttempts];
+    zmanimRetryAttempts += 1;
+    zmanimRetryTimer = setTimeout(() => {
+        zmanimRetryTimer = null;
+        fetchZmanimAPI(location, deps);
+    }, delay);
+}
+
 export function fetchZmanimAPI(location = null, deps = {}) {
     let url = '/api/zmanim';
     if (location && Number.isFinite(location.lat) && Number.isFinite(location.lon)) {
@@ -552,7 +621,13 @@ export function fetchZmanimAPI(location = null, deps = {}) {
                 const meta = data.metadata || {};
                 setZmanimLocationLabel(meta.location_label || currentZmanimLocationLabel || meta.city || meta.timezone || '', meta.timezone);
                 refreshZmanimDisplay(deps);
+                clearZmanimLoadError();
+            } else {
+                scheduleZmanimRetry(location, deps);
             }
+        })
+        .catch(() => {
+            scheduleZmanimRetry(location, deps);
         });
 }
 
