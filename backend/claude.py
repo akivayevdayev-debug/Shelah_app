@@ -11,17 +11,19 @@ then this file focuses on LLM formatting and call execution.
 """
 
 import asyncio
+import contextvars
 import os
 import re
 import logging
 import json
 import threading
+import time
 from concurrent.futures import ThreadPoolExecutor
 from dataclasses import dataclass, field
 from typing import Any, Callable, Dict, List, Optional, Tuple
 
 from dotenv import load_dotenv
-from tenacity import retry, wait_random_exponential, stop_after_attempt, retry_if_exception_type
+from tenacity import retry, wait_random_exponential, stop_after_attempt, retry_if_exception
 
 from backend.cost_meter import record_llm_call
 from backend.health_check import health
@@ -39,20 +41,15 @@ genai_types: Any = None
 _anthropic_loaded = False
 _genai_loaded = False
 
-ResourceExhausted: Any = Exception
-try:
-    _google_api_core_exceptions = __import__(
-        "google.api_core.exceptions",
-        fromlist=["ResourceExhausted"],
-    )
-    ResourceExhausted = getattr(
-        _google_api_core_exceptions,
-        "ResourceExhausted",
-        Exception,
-    )
-except Exception:
-    # Keep a broad Exception fallback so retry wiring remains active even without google.api_core.
-    ResourceExhausted = Exception
+# HTTP statuses worth retrying a Gemini call on: rate-limited (429) or the
+# service being briefly overloaded/slow (503/504). google-genai raises
+# google.genai.errors.APIError (ClientError/ServerError) with the status as an
+# int `.code`. Everything else -- a bad request, an auth failure, a timeout
+# that already spent the budget, a bug -- fails straight through to the
+# Claude fallback. (This used to match google.api_core's ResourceExhausted,
+# which isn't in requirements.lock.txt, so the import fell back to plain
+# Exception and every error was retried.)
+_RETRYABLE_GEMINI_STATUS_CODES = frozenset({429, 503, 504})
 
 # override=True: project .env must win over any stale var already exported
 # in the shell (a leftover `export GEMINI_API_KEY=...` in ~/.zshrc silently
@@ -119,12 +116,55 @@ class HalakhicContext:
 # that belongs in code review rather than an operator-settable env var.
 MAX_INPUT_CHARS = 1200
 MAX_PROMPT_CHARS = 16000
-MODEL_REQUEST_TIMEOUT_SECONDS = 50
+# Per-HTTP-request ceiling for one model call. Well under AI_TOTAL_BUDGET_SECONDS
+# so a hung Gemini primary still leaves the Claude fallback ~15s of the budget
+# (it used to be 50s -- longer than the whole 45s budget). Inside a budgeted
+# call the effective timeout is further clamped to whatever budget remains --
+# see _model_call_timeout().
+MODEL_REQUEST_TIMEOUT_SECONDS = 30
 # Total wall-clock budget for a full /ask AI synthesis call (one shared constant
 # for both app.py and asgi.py so the two transports can't drift — plan.md §23.4).
 # Must stay under functions.maxDuration in vercel.json so the platform never
 # kills the request before the graceful fallback path gets a chance to run.
 AI_TOTAL_BUDGET_SECONDS = _int_env("AI_TOTAL_BUDGET_SECONDS", 45)
+
+# Below this much remaining budget, a model call (or a Gemini retry) isn't
+# started at all -- it couldn't finish, and the caller is about to give up.
+_MIN_MODEL_CALL_SECONDS = 1.0
+# Gemini turns the request timeout into a server deadline and rejects anything
+# shorter with 400 INVALID_ARGUMENT ("Minimum allowed deadline is 10s",
+# verified live 2026-09-24), so a Gemini attempt needs at least this much
+# budget -- and a retry that much plus its longest backoff wait.
+_GEMINI_MIN_TIMEOUT_SECONDS = 10.0
+_GEMINI_RETRY_WAIT_MAX_SECONDS = 4.0
+
+# time.monotonic() deadline for the model calls of the current /ask synthesis,
+# set by _call_primary_model(). A contextvar rather than a parameter so the
+# sync Gemini leg (a blocking SDK call that asyncio.wait_for cannot cancel)
+# and the Claude leg can both size every HTTP timeout and retry to the budget
+# that's actually left, and a worker thread is released when the budget runs
+# out instead of when the SDKs' own worst-case retry schedules finish.
+_model_deadline: contextvars.ContextVar[Optional[float]] = contextvars.ContextVar(
+    "claude_model_deadline", default=None)
+
+
+def _remaining_model_budget() -> Optional[float]:
+    """Seconds left before the current synthesis deadline, or None if the
+    caller set no deadline (e.g. the ASGI path, bounded by asgi.py's own
+    asyncio.wait_for, which does cancel its fully-async calls)."""
+    deadline = _model_deadline.get()
+    if deadline is None:
+        return None
+    return max(0.0, deadline - time.monotonic())
+
+
+def _model_call_timeout() -> float:
+    """HTTP timeout for the next model request: the per-request ceiling,
+    clamped to the remaining synthesis budget."""
+    remaining = _remaining_model_budget()
+    if remaining is None:
+        return float(MODEL_REQUEST_TIMEOUT_SECONDS)
+    return min(float(MODEL_REQUEST_TIMEOUT_SECONDS), remaining)
 
 # Agentic tool-use gate (plan.md §9, Prompt 20). Unconditionally OFF by
 # default in every environment -- unlike CLERK_ENFORCE_AUTH's prod-aware
@@ -425,6 +465,8 @@ EXPLICIT_CONTENT_MARKER_RE = re.compile(
 
 _cached_client = None
 _cached_async_client = None
+_async_clients_by_loop: Dict[asyncio.AbstractEventLoop, Tuple[str, Any]] = {}
+_async_clients_lock = threading.Lock()
 _cached_api_key = None
 _cached_gemini_client = None
 _cached_gemini_api_key = None
@@ -481,25 +523,56 @@ def _get_client():
     return _cached_client
 
 
+def _build_async_client(api_key: str):
+    return anthropic.AsyncAnthropic(
+        api_key=api_key,
+        timeout=MODEL_REQUEST_TIMEOUT_SECONDS,
+        max_retries=2,
+    )
+
+
 def _get_async_client():
-    """Create/cache AsyncAnthropic client from environment at call-time."""
+    """Create/cache an AsyncAnthropic client from environment at call-time.
+
+    Cached per event loop: an AsyncAnthropic client's pooled connections
+    belong to the loop that opened them, and this module is driven from
+    several -- the ASGI loop plus a fresh asyncio.run() loop for every sync
+    /ask synthesis and loop-bridge hop. One shared client made the first
+    call on each new loop fail on a dead keep-alive connection (hidden by
+    max_retries at ~0.4s a call, and fatal with retries off). Entries for
+    loops that have since closed are dropped on the next miss and left for
+    GC, like backend/rate_limit.py's _RedisStore._client_for_current_loop.
+    Outside a running loop the single module-level client is used.
+    """
     global _cached_async_client, _cached_api_key
     _ensure_anthropic_loaded()
 
     api_key = (os.environ.get("ANTHROPIC_API_KEY") or "").strip()
     if not anthropic or not api_key:
         _cached_async_client = None
+        with _async_clients_lock:
+            _async_clients_by_loop.clear()
         return None
 
-    if _cached_async_client is None or _cached_api_key != api_key:
-        _cached_async_client = anthropic.AsyncAnthropic(
-            api_key=api_key,
-            timeout=MODEL_REQUEST_TIMEOUT_SECONDS,
-            max_retries=2,
-        )
-        _cached_api_key = api_key
+    try:
+        loop = asyncio.get_running_loop()
+    except RuntimeError:
+        loop = None
 
-    return _cached_async_client
+    if loop is None:
+        if _cached_async_client is None or _cached_api_key != api_key:
+            _cached_async_client = _build_async_client(api_key)
+            _cached_api_key = api_key
+        return _cached_async_client
+
+    with _async_clients_lock:
+        entry = _async_clients_by_loop.get(loop)
+        if entry is None or entry[0] != api_key:
+            for stale_loop in [lp for lp in _async_clients_by_loop if lp.is_closed()]:
+                del _async_clients_by_loop[stale_loop]
+            entry = (api_key, _build_async_client(api_key))
+            _async_clients_by_loop[loop] = entry
+    return entry[1]
 
 
 def _configure_gemini_client() -> Optional[str]:
@@ -598,9 +671,20 @@ def _extract_gemini_response_text(response: Any) -> str:
     return "\n".join(chunks).strip()
 
 
+def _is_retryable_gemini_error(exc: BaseException) -> bool:
+    """True only for a rate-limit/overload response (see
+    _RETRYABLE_GEMINI_STATUS_CODES) -- and only while the backoff wait plus
+    a full minimum-length attempt still fit in the remaining budget."""
+    if getattr(exc, "code", None) not in _RETRYABLE_GEMINI_STATUS_CODES:
+        return False
+    remaining = _remaining_model_budget()
+    return remaining is None or (
+        remaining >= _GEMINI_MIN_TIMEOUT_SECONDS + _GEMINI_RETRY_WAIT_MAX_SECONDS)
+
+
 @retry(
-    retry=retry_if_exception_type(ResourceExhausted),
-    wait=wait_random_exponential(multiplier=1, min=1, max=4),
+    retry=retry_if_exception(_is_retryable_gemini_error),
+    wait=wait_random_exponential(multiplier=1, min=1, max=_GEMINI_RETRY_WAIT_MAX_SECONDS),
     stop=stop_after_attempt(3),
     reraise=True,
 )
@@ -611,13 +695,18 @@ def _generate_gemini_content_with_retry(
     system_instruction: str = "",
     max_tokens: int = 3072,
 ) -> Any:
-    """Retry Gemini content generation only for ResourceExhausted (429)."""
+    """Gemini content generation, retried only on 429/503/504, with each
+    attempt's HTTP timeout clamped to the remaining synthesis budget."""
+    timeout = _model_call_timeout()
+    if timeout < _GEMINI_MIN_TIMEOUT_SECONDS:
+        raise TimeoutError("ai_budget_exhausted")
     config = None
     if genai_types is not None:
         config = genai_types.GenerateContentConfig(  # type: ignore[attr-defined]
             system_instruction=system_instruction or None,
             max_output_tokens=max_tokens,
             temperature=0.3,
+            http_options=genai_types.HttpOptions(timeout=int(timeout * 1000)),
         )
     return client.models.generate_content(  # type: ignore[attr-defined]
         model=model_name,
@@ -1589,6 +1678,12 @@ async def _call_claude_model(
 
 
 async def _call_primary_model(prompt: str, dynamic_system_context: str = "", max_tokens: int = 3072) -> Dict[str, Any]:
+    # The Gemini leg below is a blocking SDK call that no asyncio.wait_for can
+    # interrupt, so the budget is enforced from inside instead: every HTTP
+    # timeout and retry on both legs is clamped to this deadline (see
+    # _model_call_timeout). Kept if an outer caller already set one.
+    if _model_deadline.get() is None:
+        _model_deadline.set(time.monotonic() + AI_TOTAL_BUDGET_SECONDS)
     primary_result = _call_gemini_model(
         prompt,
         dynamic_system_context=dynamic_system_context,
@@ -1893,6 +1988,12 @@ async def _call_anthropic_httpx_model(
     if not client:
         return _error_result("anthropic_api_key_missing")
 
+    # Whatever the Gemini leg left of the synthesis budget. Not a provider
+    # failure, so the circuit is left alone.
+    timeout = _model_call_timeout()
+    if timeout < _MIN_MODEL_CALL_SECONDS:
+        return _error_result("ai_budget_exhausted")
+
     system_text = CORE_SYSTEM_PROMPT
     if dynamic_system_context:
         system_text = f"{CORE_SYSTEM_PROMPT}\n\n{dynamic_system_context}"
@@ -1904,6 +2005,7 @@ async def _call_anthropic_httpx_model(
             max_tokens=1024,
             messages=[{"role": "user", "content": prompt}],
             extra_headers={"anthropic-beta": "prompt-caching-2024-07-31"},
+            timeout=timeout,
         )
         usage = getattr(message, "usage", None)
         await record_llm_call(
