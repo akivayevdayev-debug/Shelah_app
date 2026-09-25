@@ -9,6 +9,8 @@
     src="https://cdn.jsdelivr.net/npm/@clerk/clerk-js@5.127.0/dist/clerk.browser.js"
     integrity="sha384-9BfgqxUZJLeppMqmDGDPFU1zC63bMyEwEXG8xMcQwhDz5qU3WUR4PwpVcZ4fKU8D"></script>
 {% endif %}
+<script src="/static/js/clerk-appearance.js?v=20260919-v1"></script>
+<script src="/static/js/topbar_shared.js?v=20260923-v1"></script>
 <script>
     // ===== APP STATE & CONSTANTS =====
     const LANGUAGE_MANUAL_KEY = 'preferredLanguageManual';
@@ -112,22 +114,7 @@
     }
 
     function toggleLanguage(lang, options = {}) {
-        if (lang !== 'en' && lang !== 'he') {
-            lang = 'en';
-        }
-
-        const autoChange = Boolean(options?.auto);
-        localStorage.setItem('preferredLanguage', lang);
-        if (!autoChange) {
-            localStorage.setItem(LANGUAGE_MANUAL_KEY, '1');
-        }
-
-        // Update all elements with data-* attributes
-        document.querySelectorAll('[data-en], [data-he]').forEach(el => {
-            if (el.dataset[lang]) {
-                el.textContent = el.dataset[lang];
-            }
-        });
+        lang = applyLanguagePreference(lang, options, LANGUAGE_MANUAL_KEY);
 
         // Handle RTL + lang for Hebrew
         const html = document.documentElement;
@@ -171,35 +158,20 @@
     // without it (as was the case here before) the menu renders pinned to
     // the page's top-left corner instead of under the button.
     function positionFloatingMenu(menuEl, triggerEl, options = {}) {
-        if (!menuEl || !triggerEl) return;
-
-        const viewportWidth = Math.max(Math.round(window.innerWidth || 0), 320);
-        const viewportHeight = Math.max(Math.round(window.innerHeight || 0), 320);
-        const padding = Number.isFinite(options.padding) ? options.padding : 8;
-        const offset = Number.isFinite(options.offset) ? options.offset : 0;
-        const minWidth = Number.isFinite(options.minWidth) ? options.minWidth : 160;
-        const maxWidth = Number.isFinite(options.maxWidth) ? options.maxWidth : 352;
-        const triggerRect = triggerEl.getBoundingClientRect();
-        const panelWidth = Math.min(maxWidth, Math.max(minWidth, viewportWidth - (padding * 2)));
-
-        const preferredLeft = Math.round(triggerRect.left + triggerRect.width / 2 - panelWidth / 2);
-        const left = Math.max(padding, Math.min(preferredLeft, viewportWidth - panelWidth - padding));
-
-        const topbarEl = document.querySelector('header[role="banner"]');
-        const anchorBottom = topbarEl ? topbarEl.getBoundingClientRect().bottom : triggerRect.bottom;
-        const top = Math.min(viewportHeight - padding, Math.round(anchorBottom + offset));
+        const pos = computeFloatingMenuPosition(menuEl, triggerEl, options);
+        if (!pos) return;
 
         menuEl.style.setProperty('position', 'fixed', 'important');
         menuEl.style.setProperty('transform', 'none', 'important');
-        menuEl.style.setProperty('left', `${left}px`, 'important');
-        menuEl.style.setProperty('top', `${top}px`, 'important');
+        menuEl.style.setProperty('left', `${pos.left}px`, 'important');
+        menuEl.style.setProperty('top', `${pos.top}px`, 'important');
         menuEl.style.setProperty('right', 'auto', 'important');
         // static/style.css's #userProfileMenu fallback rule gives it a resting
         // margin-top for when this JS hasn't run yet — zero it out so it can't
         // add a hidden extra gap under the `top` we just computed.
         menuEl.style.setProperty('margin-top', '0', 'important');
-        menuEl.style.setProperty('width', `${panelWidth}px`, 'important');
-        menuEl.style.setProperty('max-width', `${Math.max(0, viewportWidth - (padding * 2))}px`, 'important');
+        menuEl.style.setProperty('width', `${pos.width}px`, 'important');
+        menuEl.style.setProperty('max-width', `${pos.maxWidth}px`, 'important');
     }
 
     function positionUserProfileMenu() {
@@ -267,7 +239,7 @@
         }
 
         if (window.Clerk) {
-            window.Clerk.load().then(() => {
+            window.Clerk.load({ appearance: window.ShelahClerkAppearance?.() }).then(() => {
                 refreshAuthUi();
                 window.Clerk.addListener(refreshAuthUi);
             });
@@ -304,7 +276,7 @@
         if (signInBtn) {
             signInBtn.addEventListener('click', () => {
                 if (window.Clerk) {
-                    window.Clerk.openSignIn();
+                    window.Clerk.openSignIn({ appearance: window.ShelahClerkAppearance?.() });
                 }
             });
         }

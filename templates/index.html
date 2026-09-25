@@ -92,6 +92,7 @@
             crossorigin="anonymous"></script>
     <script src="/static/js/sentry-init.js?v=20260731"></script>
     {% endif %}
+    <script src="/static/js/topbar_shared.js?v=20260923-v1"></script>
     <!-- DaisyUI component library (non-destructive — adds .btn, .card etc. utility classes) -->
     <link href="https://cdn.jsdelivr.net/npm/daisyui@4.12.24/dist/full.min.css" rel="stylesheet"
           integrity="sha384-2V5uSMIWpBK7suX6yRDZH6ll7ktPJF2O58y0HSz+HiFCBCsmqZpxX1AZB4qAHuYI"
@@ -107,16 +108,17 @@
     <script defer src="https://cdn.jsdelivr.net/npm/dompurify@3.4.9/dist/purify.min.js"
             integrity="sha384-6ZdfL2Azuen6KYvcTkbxqJS1d7txbNWrVfmURkxNeCn7DtzhLRL6Fi6WGG6ZLdKn"
             crossorigin="anonymous"></script>
-    <link rel="stylesheet" href="/static/css/tokens.css?v=20260918-v8">
-    <link rel="stylesheet" href="/static/style.css?v=20260918-v20">
+    <link rel="stylesheet" href="/static/css/tokens.css?v=20260919-v11">
+    <link rel="stylesheet" href="/static/style.css?v=20260919-v22">
     <!-- CSS modules (supplement style.css; do not replace) -->
     <link rel="stylesheet" href="/static/css/typography.css?v=20260817-v6">
     <link rel="stylesheet" href="/static/css/reader.css?v=20260817-v6">
-    <link rel="stylesheet" href="/static/css/sidebar.css?v=20260918-v7">
+    <link rel="stylesheet" href="/static/css/sidebar.css?v=20260919-v8">
     <link rel="stylesheet" href="/static/css/halacha.css?v=20260817-v6">
     <link rel="stylesheet" href="/static/css/prayer.css?v=20260817-v6">
-    <link rel="stylesheet" href="/static/css/ai.css?v=20260919-v11">
+    <link rel="stylesheet" href="/static/css/ai.css?v=20260919-v16">
     <link rel="stylesheet" href="/static/css/calendar.css?v=20260918-v8">
+    <link rel="stylesheet" href="/static/css/calendar-detail.css?v=20260919-v7">
     <link rel="stylesheet" href="/static/css/loading.css?v=20260817-v6">
     <!-- Tailwind CSS (pre-built; loads last so utilities override custom CSS — mirrors CDN runtime cascade behavior) -->
     <link rel="stylesheet" href="/static/css/tailwind.css?v=20260915-v7">
@@ -233,8 +235,8 @@
                     <div class="w-full min-w-0">
                         <!-- Search Form -->
                         <form id="searchForm" role="search" aria-label="Search texts" class="w-full relative min-w-0">
-                            <!-- Decorative "liftoff" glow underlay, toggled on submit by
-                                 handleAiSearch() via #searchForm.search-liftoff (static/css/ai.css).
+                            <!-- Decorative loading-halo underlay: a gold-and-blue gradient that
+                                 orbits the bar while body.search-loading is set (static/css/ai.css).
                                  Absolutely positioned + negative z-index: never affects layout or
                                  covers the input text / suggestions dropdown. -->
                             <div class="search-liftoff-underlay" aria-hidden="true"></div>
@@ -1514,13 +1516,6 @@
                 <output id="selectionInsightsBody" class="block mt-3 space-y-3" aria-live="polite"
                     aria-busy="false"></output>
             </section>
-
-            <div id="rightSidebarIdle"
-                class="hidden border border-slate-200 rounded-xl bg-white p-4 text-sm text-slate-600">
-                <p data-en="Select a passage in the reader to load linked commentary tools and lexical hints."
-                    data-he="בחר קטע בקורא כדי לטעון כלי מפרשים ורמזים לקסיקליים.">Select a passage in the reader to
-                    load linked commentary tools and lexical hints.</p>
-            </div>
         </aside>
     </div>
 
@@ -1598,6 +1593,27 @@
                     <ul id="calendarAgendaList" class="cal-agenda-list" aria-live="polite"></ul>
                 </section>
             </div>
+        </div>
+    </dialog>
+
+    <!-- Calendar detail card: anchored popover on desktop, bottom sheet on phones.
+         Built and driven by static/js/calendar-detail.js; a sibling of #calendarModal
+         (not a child) so it can stack above it in the top layer. -->
+    <dialog id="calDetail" class="cal-detail" data-mode="popover" aria-labelledby="calDetailTitle">
+        <div class="cal-detail__scrim"></div>
+        <div class="cal-detail__panel" tabindex="-1">
+            <span class="cal-detail__arrow" aria-hidden="true"></span>
+            <div class="cal-detail__drag">
+                <span class="cal-detail__grabber" aria-hidden="true"></span>
+                <div class="cal-detail__bar">
+                    <button type="button" class="cal-detail__back" hidden></button>
+                    <span class="cal-detail__kicker"><span class="cal-detail__dot" aria-hidden="true"></span><span class="cal-detail__kind"></span></span>
+                    <button type="button" class="cal-detail__close" aria-label="Close">
+                        <span class="contents" aria-hidden="true">{{ phosphor('x', size=14) }}</span>
+                    </button>
+                </div>
+            </div>
+            <div class="cal-detail__scroll"></div>
         </div>
     </dialog>
 
@@ -1847,8 +1863,8 @@
             color: var(--accent-red);
         }
     </style>
-    <dialog id="privacyDataModal" aria-labelledby="privacyDataModalTitle"
-        class="hidden fixed inset-0 z-[109] m-0 w-full h-full max-w-none max-h-none bg-slate-900/60 backdrop-blur-sm items-center justify-center p-4">
+    <div id="privacyDataModal" role="dialog" aria-modal="true" aria-labelledby="privacyDataModalTitle"
+        class="hidden fixed inset-0 z-[109] bg-slate-900/60 backdrop-blur-sm items-center justify-center p-4">
         <div class="privacy-modal-panel bg-white rounded-2xl shadow-2xl w-full max-w-lg max-h-[85vh] overflow-hidden flex flex-col relative">
             <button id="privacyDataModalCloseBtn" type="button" onclick="closePrivacyDataModal()"
                 class="absolute top-2 right-2 min-h-[44px] min-w-[44px] flex items-center justify-center rounded-full text-white/80 hover:text-white hover:bg-white/10 transition z-10"
@@ -1945,7 +1961,7 @@
                     data-he="סגור">Close</button>
             </div>
         </div>
-    </dialog>
+    </div>
 
     <!-- Library Category Browser Modal -->
     <div id="libraryCategoryModal"
@@ -1993,7 +2009,6 @@
         const bookmarkCurrentBtn = document.getElementById('bookmarkCurrentBtn');
         const semanticBookmarkBtn = document.getElementById('semanticBookmarkBtn');
         const showLeftSidebarTopBtn = document.getElementById('showLeftSidebarTopBtn');
-        const showRightSidebarTopBtn = document.getElementById('showRightSidebarTopBtn');
         const settingsMenuBtn = document.getElementById('settingsMenuBtn');
         const settingsPanel = document.getElementById('settingsPanel');
         const settingsMenuContainer = document.getElementById('settingsMenuContainer');
@@ -2038,7 +2053,6 @@
         const mobileDrawerBackdrop = document.getElementById('mobileDrawerBackdrop');
         const leftSidebar = document.getElementById('leftSidebar');
         const rightSidebar = document.getElementById('rightSidebar');
-        const rightSidebarIdle = document.getElementById('rightSidebarIdle');
 
         const readerSettingsBtn = document.getElementById('readerSettingsBtn');
         const readerSettingsBtnLabel = document.getElementById('readerSettingsBtnLabel');
@@ -3999,14 +4013,42 @@
                 .trim();
         }
 
-        // Sefaria commentary (e.g. Rashi's bolded/italicized dibbur hamatchil
-        // lead words) legitimately wraps text in <b>/<strong>/<i>/<em> in both
-        // the he and en fields -- normalizeDisplayText()'s catch-all tag strip
-        // is correct for its plain-text call sites (bookmarks, aria-labels,
-        // transliteration input) but loses that real formatting for HTML
-        // display. This variant runs the same footnote-stripping, then hands
-        // off to DOMPurify with a four-tag allowlist rather than hand-rolling
-        // tag preservation with regex: DOMPurify parses a real DOM (so an
+        // Same cleanup as normalizeDisplayText() (footnote stripping, <br> to
+        // newline, entity decoding, whitespace collapsing) but keeps Sefaria's
+        // <b>/<strong>/<i>/<em> emphasis markup as literal substrings instead
+        // of stripping every tag. Used by callers that store "normalized but
+        // unescaped" text for reuse across multiple render passes -- e.g.
+        // displayPrayer's paragraphPairs -- so escapeDisplayTextPreservingEmphasis()
+        // can render that emphasis later instead of it already being gone.
+        function normalizeDisplayTextPreservingEmphasis(text = '') {
+            const withoutFootnotes = String(text)
+                .replace(/<sup[^>]*>[\s\S]*?<\/sup>\s*<(?:i|span|small)[^>]*>[\s\S]*?<\/(?:i|span|small)>/gi, ' ')
+                .replace(/<(?:i|span|small)[^>]*class=["'][^"']*footnote[^"']*["'][^>]*>[\s\S]*?<\/(?:i|span|small)>/gi, ' ')
+                .replace(/<sup[^>]*>[\s\S]*?<\/sup>/gi, ' ');
+
+            const withoutTags = withoutFootnotes
+                .replace(/<br\s*\/?>/gi, '\n')
+                .replace(/<(?!\/?(?:b|strong|i|em)(?:[\s>]|$))[^>]*>/gi, ' ');
+
+            return decodeHtmlEntities(withoutTags)
+                .replace(/\u00A0/g, ' ')
+                .replace(/&nbsp;/gi, ' ')
+                .replace(/&thinsp;/gi, ' ')
+                .replace(/[ \t]+/g, ' ')
+                .replace(/\s*\n\s*/g, '\n')
+                .replace(/\n{3,}/g, '\n\n')
+                .trim();
+        }
+
+        // Sefaria liturgy text (e.g. rubric/instruction emphasis in the
+        // siddur, or a commentary's bolded/italicized lead words) legitimately
+        // wraps text in <b>/<strong>/<i>/<em> in both the he and en fields --
+        // normalizeDisplayText()'s catch-all tag strip is correct for its
+        // plain-text call sites (bookmarks, aria-labels, transliteration
+        // input) but loses that real formatting for HTML display. This
+        // variant runs the same footnote-stripping, then hands off to
+        // DOMPurify with a four-tag allowlist rather than hand-rolling tag
+        // preservation with regex: DOMPurify parses a real DOM (so an
         // attribute-bearing or unbalanced tag -- e.g. a stray "<b onclick=...>"
         // -- can't leave a dangling closing tag or slip through unescaped the
         // way a regex placeholder swap could) and its output is already safe
@@ -4027,7 +4069,7 @@
                 : escapeHtml(withBreaksAsNewlines.replace(/<[^>]*>/g, ' '));
 
             return sanitized
-                .replace(/\u00a0/g, ' ')
+                .replace(/\u00A0/g, ' ')
                 .replace(/&nbsp;/gi, ' ')
                 .replace(/&thinsp;/gi, ' ')
                 .replace(/[ \t]+/g, ' ')
@@ -4279,6 +4321,15 @@
                     syncedPrefsUserId = userId;
                     await loadPrefsFromServerIfSignedIn();
                     void loadAskHistory();
+                    // The initial hydrateRoute() call can run before Clerk has
+                    // a session (main.js's module hydrate fires on
+                    // DOMContentLoaded, ahead of Clerk's own async init), so a
+                    // page loaded directly on a ?chat= link needs a retry here
+                    // once sign-in actually completes.
+                    const route = window.ShelahRouter?.readRoute();
+                    if (route?.chat) {
+                        void hydrateChatId(route.chat);
+                    }
                 }
             } else {
                 signInBtn?.classList.remove('hidden');
@@ -4308,7 +4359,7 @@
                     return;
                 }
 
-                await window.Clerk.load({ publishableKey });
+                await window.Clerk.load({ publishableKey, appearance: window.ShelahClerkAppearance?.() });
                 window.Clerk.addListener(async () => {
                     await refreshAuthUi();
                     await handleAuthRouteIntent();
@@ -4343,6 +4394,7 @@
             if (!window.Clerk) return;
             await window.Clerk.openSignIn({
                 fallbackRedirectUrl: window.location.href,
+                appearance: window.ShelahClerkAppearance?.(),
             });
         }
 
@@ -4363,7 +4415,7 @@
             try {
                 if (typeof window.Clerk.openUserProfile === 'function') {
                     // Clerk handles internal settings/profile sections inside this modal.
-                    window.Clerk.openUserProfile();
+                    window.Clerk.openUserProfile({ appearance: window.ShelahClerkAppearance?.() });
                     closeUserProfileMenu();
                     return true;
                 }
@@ -4593,6 +4645,24 @@
             }
         }
 
+        // Shared by the history-list click handler and hydrateChatId (URL
+        // hydration on load/back-forward) so both paths render an answer and
+        // update the URL identically.
+        function openStoredAskAnswer(item, options = {}) {
+            if (!item) return;
+            appState.lastAiQuestion = item.question;
+            appState.lastAiResponse = item;
+            document.getElementById('aiModalTitle').textContent = item.question;
+            const modal = document.getElementById('aiAssistantModal');
+            modal.style.display = 'flex';
+            presentEl(modal, modalMotion(modal));
+            populateAiModal(item, item.question);
+            if (searchInput) searchInput.value = item.question;
+            if (!options.fromRoute && item.id) {
+                window.ShelahRouter?.pushRoute({ chat: item.id }, { exclusive: true, replace: Boolean(options.replace) });
+            }
+        }
+
         function renderAskHistory(items) {
             const section = document.getElementById('askHistorySection');
             const list = document.getElementById('askHistoryList');
@@ -4630,15 +4700,7 @@
                 btn.addEventListener('click', () => {
                     const id = btn.getAttribute('data-id');
                     const item = items.find(i => i.id === id);
-                    if (!item) return;
-                    appState.lastAiQuestion = item.question;
-                    appState.lastAiResponse = item;
-                    document.getElementById('aiModalTitle').textContent = item.question;
-                    const modal = document.getElementById('aiAssistantModal');
-                    modal.style.display = 'flex';
-                    presentEl(modal, modalMotion(modal));
-                    populateAiModal(item, item.question);
-                    if (searchInput) searchInput.value = item.question;
+                    openStoredAskAnswer(item);
                 });
             });
 
@@ -4656,6 +4718,27 @@
                 const headers = await authHeaders();
                 await fetch(`/api/user/history/${encodeURIComponent(id)}`, { method: 'DELETE', headers });
             } catch (_) {}
+        }
+
+        // Resolves a ?chat=<id> deep link against the caller's own history
+        // (GET /api/user/history/<id> is scoped server-side to the verified
+        // Clerk user, so a stale/foreign/deleted id 404s and just clears the
+        // URL instead of erroring visibly).
+        async function hydrateChatId(id) {
+            if (!id) return;
+            if (!isClerkConfigured() || !window.Clerk?.session) return;
+            try {
+                const headers = await authHeaders();
+                const resp = await fetch(`/api/user/history/${encodeURIComponent(id)}`, { headers });
+                if (!resp.ok) {
+                    window.ShelahRouter?.clearRoute();
+                    return;
+                }
+                const item = await resp.json();
+                openStoredAskAnswer(item, { fromRoute: true });
+            } catch (_) {
+                window.ShelahRouter?.clearRoute();
+            }
         }
 
         function setReaderSubtitle(text = '') {
@@ -5156,16 +5239,6 @@
                 showLeftSidebarTopBtn.style.top = getSidebarRestoreTopOffset();
             }
 
-            if (showRightSidebarTopBtn) {
-                const showRightRestore = !mobile
-                    && !shulMode
-                    && !homeVisible
-                    && allowRightSidebar
-                    && !showRightSidebar; // The restore button should appear if the sidebar is hidden, regardless of content availability.
-                showRightSidebarTopBtn.style.display = showRightRestore ? 'flex' : 'none';
-                showRightSidebarTopBtn.style.top = getSidebarRestoreTopOffset();
-            }
-
             // Show topbar library button only on homepage when left sidebar is hidden on desktop
             const topbarLibraryBtn = document.getElementById('topbarLibraryBtn');
             if (topbarLibraryBtn) {
@@ -5199,49 +5272,30 @@
         }
 
         function positionFloatingMenu(menuEl, triggerEl, options = {}) {
-            if (!menuEl || !triggerEl) return;
-
-            const viewportWidth = Math.max(Math.round(window.innerWidth || 0), 320);
-            const viewportHeight = Math.max(Math.round(window.innerHeight || 0), 320);
-            const padding = Number.isFinite(options.padding) ? options.padding : 8;
-            const offset = Number.isFinite(options.offset) ? options.offset : 0;
-            const minWidth = Number.isFinite(options.minWidth) ? options.minWidth : 160;
-            const maxWidth = Number.isFinite(options.maxWidth) ? options.maxWidth : 352;
-            const triggerRect = triggerEl.getBoundingClientRect();
-            const panelWidth = Math.min(maxWidth, Math.max(minWidth, viewportWidth - (padding * 2)));
-
-            // Always center the dropdown under the trigger button for consistent placement.
-            // This works for both LTR and RTL layouts and helps avoid guessing side alignment.
-            const preferredLeft = Math.round(triggerRect.left + triggerRect.width / 2 - panelWidth / 2);
-            const left = Math.max(padding, Math.min(preferredLeft, viewportWidth - panelWidth - padding));
-
-            // Anchor to the topbar's own bottom edge rather than each trigger's
-            // individual bottom — triggers vary slightly in height/padding, so
-            // anchoring per-trigger made settings and profile menus open at
-            // different depths. Anchoring to the shared topbar edge means every
-            // floating topbar menu opens flush at the same height, directly
-            // below the bar.
-            const topbarEl = document.querySelector('header[role="banner"]');
-            const anchorBottom = topbarEl ? topbarEl.getBoundingClientRect().bottom : triggerRect.bottom;
-            const top = Math.min(
-                viewportHeight - padding,
-                Math.round(anchorBottom + offset),
-            );
+            // Geometry (centering under the trigger, anchoring to the shared
+            // topbar's bottom edge) lives in static/js/topbar_shared.js,
+            // shared with components/legal_scripts.html's own
+            // positionFloatingMenu. Only the style-application step below is
+            // index.html-specific (a CSS class instead of an inline
+            // !important transform, so the open/close animation can still
+            // drive `transform`).
+            const pos = computeFloatingMenuPosition(menuEl, triggerEl, options);
+            if (!pos) return;
 
             menuEl.style.setProperty('position', 'fixed', 'important');
             // Cancels the menus' CSS centring transform. A class, not an inline
             // !important, so the open/close animation can still drive `transform`.
             menuEl.classList.add('is-floating-menu');
-            menuEl.style.setProperty('left', `${left}px`, 'important');
-            menuEl.style.setProperty('top', `${top}px`, 'important');
+            menuEl.style.setProperty('left', `${pos.left}px`, 'important');
+            menuEl.style.setProperty('top', `${pos.top}px`, 'important');
             menuEl.style.setProperty('right', 'auto', 'important');
             // CSS-only fallback rules (style.css) give these a resting
             // margin-top for the case where this JS hasn't run yet — zero it
             // out here so it can't add a hidden extra gap under the `top` we
             // just computed.
             menuEl.style.setProperty('margin-top', '0', 'important');
-            menuEl.style.setProperty('width', `${panelWidth}px`, 'important');
-            menuEl.style.setProperty('max-width', `${Math.max(0, viewportWidth - (padding * 2))}px`, 'important');
+            menuEl.style.setProperty('width', `${pos.width}px`, 'important');
+            menuEl.style.setProperty('max-width', `${pos.maxWidth}px`, 'important');
         }
 
         function positionSettingsPanel() {
@@ -5281,7 +5335,7 @@
                 return;
             }
             positionUserProfileMenu();
-            presentEl(userProfileMenu, { preset: 'popover' });
+            presentEl(userProfileMenu, { preset: 'popover', origin: userProfileMenuBtn });
             if (userProfileMenuBtn) userProfileMenuBtn.setAttribute('aria-expanded', 'true');
             window.requestAnimationFrame(() => {
                 if (!userProfileMenu.classList.contains('hidden')) {
@@ -5299,7 +5353,7 @@
                 closeReaderSettingsPanel();
                 closeUserProfileMenu();
                 positionSettingsPanel();
-                presentEl(settingsPanel, { preset: 'popover' });
+                presentEl(settingsPanel, { preset: 'popover', origin: settingsMenuBtn });
             } else {
                 dismissEl(settingsPanel, { preset: 'popover' });
             }
@@ -5318,7 +5372,7 @@
                 ? forceOpen
                 : isMenuClosed(readerSettingsPanel);
             if (shouldOpen) {
-                presentEl(readerSettingsPanel, { preset: 'popover' });
+                presentEl(readerSettingsPanel, { preset: 'popover', origin: readerSettingsBtn });
             } else {
                 dismissEl(readerSettingsPanel, { preset: 'popover' });
             }
@@ -5939,7 +5993,12 @@
             renderPersonalShelf();
         }
 
-        function setCurrentView(type, value, label) {
+        // Views this maps route the URL when the caller switches to them;
+        // 'ask' is deliberately excluded -- AI answers are routed by their
+        // own history_id (see handleAiSearch), not by question text.
+        const ROUTE_TYPE_FOR_VIEW = { text: 'text', prayer: 'prayer', community: 'community' };
+
+        function setCurrentView(type, value, label, options = {}) {
             appState.currentView = { type, value, label: label || value };
             appState.readingState = {
                 ...appState.readingState,
@@ -5950,6 +6009,11 @@
             };
             addRecentItem(appState.currentView);
             updateBookmarkButton();
+
+            const routeKey = ROUTE_TYPE_FOR_VIEW[type];
+            if (routeKey && !options.fromRoute && window.ShelahRouter) {
+                window.ShelahRouter.pushRoute({ [routeKey]: value }, { exclusive: true });
+            }
         }
 
         // Export/citation controls only make sense with an open text chapter
@@ -6358,14 +6422,6 @@
             if (commentaryAvailableForCurrentSelection) {
                 markCommentaryHintSeen();
             }
-            if (!showRightSidebarTopBtn) return;
-
-            const canRestore = !isMobileViewport()
-                && !Boolean(appState.prefs.shulMode)
-                && appState.prefs.showRightSidebar === false
-                && commentaryAvailableForCurrentSelection;
-
-            showRightSidebarTopBtn.style.display = canRestore ? 'flex' : 'none';
         }
 
         function clearSelectionCommentaryState() {
@@ -6395,7 +6451,6 @@
 
         function showSelectionInsights() {
             selectionInsights?.classList.remove('hidden');
-            rightSidebarIdle?.classList.add('hidden');
         }
 
         function collapseCommentaryPanel() {
@@ -7716,13 +7771,15 @@
             // (see paragraphPairs construction in displayPrayer) -- these two
             // functions are the single point where paragraph text becomes
             // HTML, so they escape unconditionally rather than trusting an
-            // upstream isHtml flag that doesn't cover every caller.
+            // upstream isHtml flag that doesn't cover every caller. They use
+            // escapeDisplayTextPreservingEmphasis() rather than escapeHtml()
+            // so Sefaria's <b>/<strong>/<i>/<em> rubric emphasis survives.
             const renderHebrewParagraph = (rawText = '', includeTransliteration = true) => {
                 const displayText = applyHebrewDisplaySettings(rawText || '');
                 if (!displayText) {
                     return `<p class="text-slate-300 italic">${t('No Hebrew text in source', 'אין טקסט עברי במקור')}</p>`;
                 }
-                return `<p class="font-hebrew">${escapeHtml(displayText)}</p>${includeTransliteration ? transliterationMarkup(displayText) : ''}`;
+                return `<p class="font-hebrew">${escapeDisplayTextPreservingEmphasis(displayText)}</p>${includeTransliteration ? transliterationMarkup(displayText) : ''}`;
             };
 
             const renderEnglishParagraph = (rawText = '') => {
@@ -7730,7 +7787,7 @@
                 if (!displayText) {
                     return `<p class="text-slate-300 italic">${t('No English translation in source', 'אין תרגום אנגלי במקור')}</p>`;
                 }
-                return `<p class="font-serif">${escapeHtml(displayText)}</p>`;
+                return `<p class="font-serif">${escapeDisplayTextPreservingEmphasis(displayText)}</p>`;
             };
 
             const renderPrayerBilingualRow = ({ heText = '', enText = '', isHeader = false }) => {
@@ -7739,10 +7796,10 @@
                 const rowPadding = isHeader ? 'pt-3 pb-2' : 'py-2';
 
                 const hebrewContent = isHeader
-                    ? `<h3 class="font-hebrew text-xl font-bold">${heDisplay ? escapeHtml(heDisplay) : '&nbsp;'}</h3>`
+                    ? `<h3 class="font-hebrew text-xl font-bold">${heDisplay ? escapeDisplayTextPreservingEmphasis(heDisplay) : '&nbsp;'}</h3>`
                     : renderHebrewParagraph(heText, true);
                 const englishContent = isHeader
-                    ? `<h3 class="font-serif text-xl font-bold">${enDisplay ? escapeHtml(enDisplay) : '&nbsp;'}</h3>`
+                    ? `<h3 class="font-serif text-xl font-bold">${enDisplay ? escapeDisplayTextPreservingEmphasis(enDisplay) : '&nbsp;'}</h3>`
                     : renderEnglishParagraph(enText);
 
                 if (layout === 'interleaved') {
@@ -8103,9 +8160,6 @@
         }
         if (showLeftSidebarTopBtn) {
             showLeftSidebarTopBtn.addEventListener('click', () => setSidebarVisibility('left', true));
-        }
-        if (showRightSidebarTopBtn) {
-            showRightSidebarTopBtn.addEventListener('click', () => setSidebarVisibility('right', true));
         }
         if (mobileBottomTabs) {
             mobileBottomTabs.querySelectorAll('[data-mobile-tab]').forEach((btn) => {
@@ -9747,7 +9801,7 @@
                 .filter(Boolean);
         }
 
-        async function displayPrayer(prayerName) {
+        async function displayPrayer(prayerName, options = {}) {
             homeGrid.style.display = 'none';
             reader.classList.add('hidden');
             showLoadingOverlay();
@@ -9816,23 +9870,33 @@
                             // raw-vs-escaped straight here (rather than escaping once and
                             // reusing the same string for both) is what avoids
                             // double-escaping paragraphPairs downstream.
+                            //
+                            // he/en are normalized with normalizeDisplayTextPreservingEmphasis()
+                            // rather than normalizeDisplayText() so Sefaria's <b>/<strong>/
+                            // <i>/<em> rubric emphasis survives into paragraphPairs (and
+                            // heHtml/enHtml, escaped below via
+                            // escapeDisplayTextPreservingEmphasis()) instead of being
+                            // stripped like every other tag. isDuplicateLeadingLine()'s own
+                            // normalizeComparablePrayerTitle() call re-normalizes with the
+                            // full strip internally, so passing it emphasis-preserving text
+                            // doesn't change that comparison.
                             sefariaData.lines.forEach(line => {
                                 if (line.type === 'header') {
-                                    const heHeaderRaw = normalizeDisplayText(line.he || '');
-                                    const enHeaderRaw = normalizeDisplayText(line.en || '');
+                                    const heHeaderRaw = normalizeDisplayTextPreservingEmphasis(line.he || '');
+                                    const enHeaderRaw = normalizeDisplayTextPreservingEmphasis(line.en || '');
                                     if (isDuplicateLeadingLine(heHeaderRaw, enHeaderRaw)) {
                                         return;
                                     }
-                                    heHtml += `<h3 class="text-xl font-bold font-hebrew mt-8 mb-3 pb-1 border-b border-slate-200">${escapeHtml(heHeaderRaw)}</h3>`;
-                                    enHtml += `<h3 class="text-xl font-bold font-serif mt-8 mb-3 pb-1 border-b border-slate-200">${escapeHtml(enHeaderRaw)}</h3>`;
+                                    heHtml += `<h3 class="text-xl font-bold font-hebrew mt-8 mb-3 pb-1 border-b border-slate-200">${escapeDisplayTextPreservingEmphasis(heHeaderRaw)}</h3>`;
+                                    enHtml += `<h3 class="text-xl font-bold font-serif mt-8 mb-3 pb-1 border-b border-slate-200">${escapeDisplayTextPreservingEmphasis(enHeaderRaw)}</h3>`;
                                     paragraphPairs.push({
                                         type: 'header',
                                         he: heHeaderRaw,
                                         en: enHeaderRaw,
                                     });
                                 } else {
-                                    const heLine = normalizeDisplayText(line.he || '');
-                                    const enLine = normalizeDisplayText(line.en || '');
+                                    const heLine = normalizeDisplayTextPreservingEmphasis(line.he || '');
+                                    const enLine = normalizeDisplayTextPreservingEmphasis(line.en || '');
                                     if (isDuplicateLeadingLine(heLine, enLine)) {
                                         return;
                                     }
@@ -9851,10 +9915,10 @@
                                     }
 
                                     if (heParagraph) {
-                                        heHtml += `<p class="mb-3">${escapeHtml(heParagraph)}</p>`;
+                                        heHtml += `<p class="mb-3">${escapeDisplayTextPreservingEmphasis(heParagraph)}</p>`;
                                     }
                                     if (enParagraph) {
-                                        enHtml += `<p class="mb-3">${escapeHtml(enParagraph)}</p>`;
+                                        enHtml += `<p class="mb-3">${escapeDisplayTextPreservingEmphasis(enParagraph)}</p>`;
                                     }
 
                                     paragraphPairs.push({
@@ -9879,7 +9943,7 @@
                 applySidebarVisibility();
 
                 document.getElementById('readerTitle').innerText = prayerData.title;
-                setCurrentView('prayer', prayerName, prayerData.title || prayerName);
+                setCurrentView('prayer', prayerName, prayerData.title || prayerName, options);
 
                 // Store current prayer content globally for language switching
                 window.currentPrayerContent = prayerData.content;
@@ -9924,7 +9988,7 @@
             return html;
         }
 
-        async function displayCommunity(communityName) {
+        async function displayCommunity(communityName, options = {}) {
             homeGrid.style.display = 'none';
             reader.classList.add('hidden');
             showLoadingOverlay();
@@ -9952,7 +10016,7 @@
                     ? `מנהגי קהילת ${communityLabel}`
                     : `${communityName} Community Customs`;
                 document.getElementById('readerTitle').innerText = communityTitle;
-                setCurrentView('community', communityName, communityTitle);
+                setCurrentView('community', communityName, communityTitle, options);
                 document.getElementById('readerContent').innerHTML = renderCommunityContent(communityData);
                 window.currentCommunityData = communityData;
                 window.currentPrayerContent = null;
@@ -10052,7 +10116,7 @@
             return `<div class="prayer-clean-lines">${rows}</div>`;
         }
 
-        function goHome() {
+        function goHome(options = {}) {
             closeMobilePanels();
             setMobileSearchExpanded(false);
             closeReaderSettingsPanel();
@@ -10081,6 +10145,9 @@
             });
             setTimeout(() => { homeGrid.classList.remove('opacity-0'); }, 10);
             sidebarContent.innerHTML = `<p class="italic text-slate-400">${t('Search a halacha to view cross-referenced Encyclopedia and Customs data...', 'חפש הלכה כדי לצפות בנתונים מקושרים מהאנציקלופדיה ומהמנהגים...')}</p>`;
+            if (!options.fromRoute) {
+                window.ShelahRouter?.clearRoute();
+            }
         }
 
         function setQuery(q) {
@@ -10283,7 +10350,7 @@
         }
 
         // Matches static/css/ai.css's #searchForm.search-liftoff animation
-        // duration (shelah-liftoff-spin, 420ms, defined in tokens.css) --
+        // duration (the star's 420ms shelah-warm-pulse, defined in tokens.css) --
         // a plain setTimeout rather than an 'animationend' listener because
         // prefers-reduced-motion sets `animation: none` on that rule, which
         // would never fire animationend and leave the class lingering.
@@ -10427,6 +10494,9 @@
                 populateAiModal(data, question);
                 // Refresh history sidebar so the new entry appears immediately
                 void loadAskHistory();
+                if (data?.history_id) {
+                    window.ShelahRouter?.pushRoute({ chat: data.history_id }, { exclusive: true });
+                }
                 if (data?.meta?.fallback) {
                     logReliability('ai-fallback-used', {
                         mode: data?.meta?.mode,
@@ -10861,7 +10931,7 @@
                 // titling" bug where a chunk's title box would appear/disappear
                 // across renders for no reason tied to that chunk itself.
                 window.currentTextAnchorTitle = titleEl.innerText;
-                setCurrentView('text', data.ref || resolvedRef || normalizedRequestRef || ref, data.title || data.ref || resolvedRef || normalizedRequestRef || ref);
+                setCurrentView('text', data.ref || resolvedRef || normalizedRequestRef || ref, data.title || data.ref || resolvedRef || normalizedRequestRef || ref, options);
                 window.currentTextPayload = data;
                 window.currentTextPayloadChain = [data];
                 resetInfiniteReaderState(data);
@@ -11175,24 +11245,12 @@
 
         // Multi-language Toggle with data attributes
         function toggleLanguage(lang, options = {}) {
-            if (lang !== 'en' && lang !== 'he') {
-                lang = 'en';
-            }
-
-            const autoChange = Boolean(options?.auto);
-
-            // Persist early so dynamic render helpers read the new language immediately.
-            localStorage.setItem('preferredLanguage', lang);
-            if (!autoChange) {
-                localStorage.setItem(LANGUAGE_MANUAL_KEY, '1');
-            }
-
-            // Update all elements with data-* attributes
-            document.querySelectorAll('[data-en], [data-he]').forEach(el => {
-                if (el.dataset[lang]) {
-                    el.textContent = el.dataset[lang];
-                }
-            });
+            // Normalizing, persisting, and swapping [data-en]/[data-he] text
+            // lives in static/js/topbar_shared.js, shared with
+            // components/legal_scripts.html's own toggleLanguage. Everything
+            // below is index.html-specific (search icon RTL swap, modal
+            // titles, and the rest of this app's own DOM).
+            lang = applyLanguagePreference(lang, options, LANGUAGE_MANUAL_KEY);
 
             // Handle lang + RTL for Hebrew.
             const html = document.documentElement;
@@ -11500,6 +11558,47 @@
             calendarEl.querySelector(`.fc-daygrid-day[data-date="${calendarSelectedKey}"]`)?.classList.add('cal-day-selected');
         }
 
+        // Plain-object view of a FullCalendar event for the detail card
+        // (static/js/calendar-detail.js), so that module never touches FullCalendar.
+        function calendarPlainEvent(ev) {
+            return {
+                key: calendarDateKey(ev.start),
+                title: ev.title,
+                category: ev.extendedProps.category || 'default',
+                detail: ev.extendedProps.detail || {},
+            };
+        }
+
+        // Opens the Apple-style detail card (popover on desktop, sheet on phones)
+        // for a day, or straight to `focusEvent` when a specific event was tapped.
+        function openCalendarDetail(anchor, key, focusEvent = null) {
+            if (!window.ShelahCalendarDetail || !anchor || !holidaysCalendar) return;
+            const events = calendarEventsOn(key).map(calendarPlainEvent);
+            const tapped = focusEvent
+                ? (events.find((e) => e.title === focusEvent.title) ?? calendarPlainEvent(focusEvent))
+                : null;
+            window.ShelahCalendarDetail.open({
+                anchor,
+                dateKey: key,
+                events,
+                allEvents: holidaysCalendar.getEvents().map(calendarPlainEvent),
+                event: tapped,
+                he: isHebrewMode(),
+                // Where the zmanim panel is set, so the card can show real clock times.
+                location: window.ShelahModules?.getZmanimLocation?.() ?? null,
+                // Tapping a reading (Torah / Haftarah / Maftir) opens that text in the reader.
+                openText: openCalendarText,
+                bookName: getHebrewBookDisplayName,
+            });
+        }
+
+        // Leave the calendar (a modal dialog above the reader; closing it closes the card
+        // too) and open the text.
+        async function openCalendarText(ref) {
+            await window.closeCalendarModal();
+            readText(ref);
+        }
+
         function renderCalendarAgenda() {
             const section = document.getElementById('calendarAgenda');
             const list = document.getElementById('calendarAgendaList');
@@ -11539,14 +11638,21 @@
                     const name = document.createElement('span');
                     name.className = 'cal-agenda-title';
                     name.textContent = translateHolidayName(ev.title);
-                    li.append(swatch, name);
+                    // A real <button>: keyboard/AT users can open the same detail card.
+                    const btn = document.createElement('button');
+                    btn.type = 'button';
+                    btn.className = 'cal-agenda-btn';
+                    btn.append(swatch, name);
+                    btn.addEventListener('click', () => openCalendarDetail(li, calendarSelectedKey, ev));
+                    li.classList.add('is-actionable');
+                    li.appendChild(btn);
                     list.appendChild(li);
                 });
             }
             section.hidden = false;
         }
 
-        function selectCalendarDay(key, { scroll = false } = {}) {
+        function selectCalendarDay(key, { scroll = false, pushUrl = false } = {}) {
             calendarSelectedKey = key;
             markCalendarSelectedDay();
             renderCalendarAgenda();
@@ -11554,6 +11660,12 @@
                 const section = document.getElementById('calendarAgenda');
                 const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
                 section?.scrollIntoView({ behavior: reduce ? 'auto' : 'smooth', block: 'nearest' });
+            }
+            // Only an explicit user pick (dateClick/eventClick) writes to the
+            // URL -- datesSet's auto-reselect on month pagination must not,
+            // or paging through months would spam history entries.
+            if (pushUrl) {
+                window.ShelahRouter?.pushRoute({ date: key }, { replace: true });
             }
         }
 
@@ -11609,7 +11721,7 @@
                             // not auto-promoted, so eventClassNames below never saw it.
                             const withExtendedProps = items.map((item) => ({
                                 ...item,
-                                extendedProps: { ...(item.extendedProps || {}), category: item.category },
+                                extendedProps: { ...(item.extendedProps || {}), category: item.category, detail: item.detail || {} },
                             }));
                             calendarRetryAttempted = false;
                             clearCalendarLoadError();
@@ -11626,6 +11738,7 @@
                         });
                 },
                 datesSet: function (info) {
+                    window.ShelahCalendarDetail?.close({ immediate: true });
                     if (_calendarDidMount && window.ShelahMotion) {
                         const harness = calendarEl.querySelector('.fc-view-harness');
                         if (harness) window.ShelahMotion.animateIn(harness, { y: 6 });
@@ -11647,11 +11760,15 @@
                     if (calendarSelectedKey) renderCalendarAgenda();
                 },
                 dateClick: function (info) {
-                    selectCalendarDay(info.dateStr.slice(0, 10), { scroll: true });
+                    const key = info.dateStr.slice(0, 10);
+                    selectCalendarDay(key, { pushUrl: true });
+                    openCalendarDetail(info.dayEl, key);
                 },
                 eventClick: function (info) {
                     info.jsEvent.preventDefault();
-                    selectCalendarDay(calendarDateKey(info.event.start), { scroll: true });
+                    const key = calendarDateKey(info.event.start);
+                    selectCalendarDay(key, { pushUrl: true });
+                    openCalendarDetail(info.el, key, info.event);
                 },
                 // Localize the holiday name shown in month-grid chips (backend sends English only).
                 eventContent: function (arg) {
@@ -11694,12 +11811,17 @@
                 if (holidaysCalendar) holidaysCalendar.updateSize();
             };
             setTimeout(resizeCalendar, 80);
-            presentEl(modal, { ...modalMotion(modal), replay: true }).then(resizeCalendar);
+            // The modal grows out of the control that opened it (and folds back into it).
+            const opener = document.activeElement?.closest?.('button');
+            const origin = opener && opener.offsetParent !== null ? opener : document.querySelector('.home-calendar-btn');
+            presentEl(modal, { ...modalMotion(modal), replay: true, origin }).then(resizeCalendar);
         };
 
         window.closeCalendarModal = function () {
             const modal = document.getElementById('calendarModal');
-            dismissEl(modal, {
+            window.ShelahCalendarDetail?.close({ immediate: true });
+            window.ShelahRouter?.pushRoute({ date: null }, { replace: true });
+            return dismissEl(modal, {
                 ...modalMotion(modal),
                 onHidden: () => { if (modal.open) modal.close(); },
             });
@@ -11721,6 +11843,17 @@
             }
         });
 
+        // Opens the calendar overlay directly on a ?date= deep link. Called
+        // from hydrateRoute on load/back-forward, so it must not itself push
+        // a new URL entry (selectCalendarDay's default pushUrl: false).
+        function hydrateCalendarDate(dateKey) {
+            if (!/^\d{4}-\d{2}-\d{2}$/.test(String(dateKey || ''))) return;
+            window.openCalendarModal();
+            const [y, m, d] = dateKey.split('-').map(Number);
+            try { holidaysCalendar?.gotoDate(new Date(y, m - 1, d)); } catch (_) { /* pre-render guard */ }
+            selectCalendarDay(dateKey, { scroll: true });
+        }
+
         // ─── City Location Search ─────────────────────────────────
         let citySearchOpen = false;
 
@@ -11735,7 +11868,7 @@
                 const rect = btn.getBoundingClientRect();
                 const sectionRect = btn.closest('.home-today-section').getBoundingClientRect();
                 popover.style.top = (rect.bottom - sectionRect.top + 6) + 'px';
-                presentEl(popover, { preset: 'popover' });
+                presentEl(popover, { preset: 'popover', origin: btn });
                 setTimeout(() => document.getElementById('citySearchInput')?.focus(), 50);
             } else {
                 dismissEl(popover, { preset: 'popover' });
@@ -12200,7 +12333,7 @@
         }
 
         function populateAiModal(data, queryTitle) {
-            // Stop search-icon spin immediately when answer is ready
+            // Stop the search-bar loading state as soon as the answer is ready
             document.body.classList.remove('search-loading');
 
             // 1. Populate synthesis
@@ -12610,12 +12743,8 @@
             if (confirmInput) { confirmInput.value = ''; confirmInput.disabled = false; }
             if (deleteBtn) deleteBtn.disabled = true;
             privacyDataModalTrigger = document.activeElement;
-            // Un-hidden before showModal() so focus can move into the dialog; the
-            // entrance then replays from its start state within the same task.
-            modal.classList.remove('hidden');
-            modal.classList.add('flex');
-            if (!modal.open) modal.showModal();
-            presentEl(modal, { ...modalMotion(modal), replay: true });
+            modal.style.display = 'flex';
+            presentEl(modal, modalMotion(modal));
             const closeBtn = document.getElementById('privacyDataModalCloseBtn');
             if (closeBtn) closeBtn.focus();
         }
@@ -12629,44 +12758,12 @@
             if (privacyDeleteInFlight) return;
             const modal = document.getElementById('privacyDataModal');
             if (!modal) return;
-            // Exit first; the native close() must wait (closing a <dialog> drops it
-            // out of the top layer at once). Focus goes back to the trigger only
-            // after close(): while the dialog is open the rest of the page is inert,
-            // so focus() on the trigger would be a no-op.
-            dismissEl(modal, {
-                ...modalMotion(modal),
-                onHidden: () => {
-                    modal.classList.remove('flex');
-                    if (modal.open) modal.close();
-                    const trigger = privacyDataModalTrigger;
-                    privacyDataModalTrigger = null;
-                    if (trigger && typeof trigger.focus === 'function') trigger.focus();
-                },
-            });
-        }
-
-        // <dialog> raises 'cancel' on Escape; route it through
-        // closePrivacyDataModal() (not the raw native close) so the in-flight
-        // guard and the class cleanup above always run.
-        document.getElementById('privacyDataModal')?.addEventListener('cancel', (e) => {
-            e.preventDefault();
-            closePrivacyDataModal();
-        });
-
-        // Safety net for the irreversible delete: a browser may close a modal
-        // <dialog> even though 'cancel' was prevented (a repeated Escape or back
-        // gesture with no user activation in between is not cancelable). If that
-        // happens mid-request, put the dialog back so the outcome stays visible;
-        // otherwise just make sure the hidden/flex classes match the closed state.
-        document.getElementById('privacyDataModal')?.addEventListener('close', (e) => {
-            const modal = e.currentTarget;
-            if (privacyDeleteInFlight) {
-                modal.showModal();
-                return;
+            dismissEl(modal, { ...modalMotion(modal), onHidden: () => { modal.style.display = 'none'; } });
+            if (privacyDataModalTrigger && typeof privacyDataModalTrigger.focus === 'function') {
+                privacyDataModalTrigger.focus();
             }
-            modal.classList.remove('flex');
-            modal.classList.add('hidden');
-        });
+            privacyDataModalTrigger = null;
+        }
 
         function handlePrivacyDeleteConfirmInput() {
             const confirmInput = document.getElementById('privacyDeleteConfirmInput');
@@ -12803,11 +12900,7 @@
                 closeDevtoolsInspector();
                 closeSourceGraph();
                 closeCommunityTimeline();
-                // privacyDataModal is a native <dialog>: its own 'cancel' listener
-                // handles Escape (calling closePrivacyDataModal() here too would
-                // double-fire). While a delete request is in flight, swallow the
-                // key so the browser cannot close the dialog on a repeat press.
-                if (privacyDeleteInFlight) e.preventDefault();
+                closePrivacyDataModal();
             }
         });
 
@@ -12849,6 +12942,34 @@
             });
         }
         initAnalyticsConsent();
+
+        // Single dispatcher driven by router.js: called once on initial page
+        // load (isInitial: true, from main.js) and again on every
+        // popstate (back/forward). `isInitial` suppresses the "no view key"
+        // fallbacks (goHome / closing the calendar) on first load, since the
+        // homepage/no-overlay state is already the default DOM state --
+        // running them anyway would just be redundant, not incorrect.
+        function hydrateRoute(route, { isInitial = false } = {}) {
+            route = route || {};
+            if (route.text) {
+                readText(route.text, { fromRoute: true });
+            } else if (route.prayer) {
+                displayPrayer(route.prayer, { fromRoute: true });
+            } else if (route.community) {
+                displayCommunity(route.community, { fromRoute: true });
+            } else if (route.chat) {
+                void hydrateChatId(route.chat);
+            } else if (!isInitial) {
+                goHome({ fromRoute: true });
+            }
+
+            if (route.date) {
+                hydrateCalendarDate(route.date);
+            } else if (!isInitial) {
+                window.closeCalendarModal?.();
+            }
+        }
+        window.hydrateRoute = hydrateRoute;
     </script>
     <!-- Motion One / motion.dev vanilla animation engine — static/js/motion.js wraps
          this as window.Motion; degrades gracefully to instant state-changes if this
@@ -12856,8 +12977,10 @@
     <script src="https://cdn.jsdelivr.net/npm/motion@12.43.0/dist/motion.js"
             integrity="sha384-hgVFh5YKDMdpcWEjpRqk2kPXOKBH7I9NBCKe3uR6dHKgy/BWPe8kyL01kiYuRn1u"
             crossorigin="anonymous"></script>
-    <script type="module" src="/static/js/motion.js?v=20260919-v1"></script>
-    <script type="module" src="/static/js/main.js?v=20260817-v6"></script>
+    <script src="/static/js/clerk-appearance.js?v=20260919-v1"></script>
+    <script type="module" src="/static/js/motion.js?v=20260919-v2"></script>
+    <script type="module" src="/static/js/calendar-detail.js?v=20260919-v11"></script>
+    <script type="module" src="/static/js/main.js?v=20260919-v1"></script>
 </body>
 
 </html>

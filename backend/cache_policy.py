@@ -57,6 +57,7 @@ _IMMUTABLE_CATEGORY_PREFIX = "/api/library/category/"
 _DATED_EXACT = {
     "/api/zmanim",         # ONLY public when lat+lon are both explicit query params -- see module docstring
     "/api/zmanim/month",   # same caveat
+    "/api/zmanim/days",    # lat+lon are REQUIRED here (no session fallback), so always a pure function of the URL
     "/api/daily-study",    # date-only; verified location-independent (backend/data_service.py::get_daily_learning)
     "/api/holidays",       # location-independent on its primary + pyluach-fallback paths; last-resort branch opts out itself
     "/api/parasha",
