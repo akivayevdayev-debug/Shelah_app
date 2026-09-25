@@ -108,16 +108,16 @@
     <script defer src="https://cdn.jsdelivr.net/npm/dompurify@3.4.9/dist/purify.min.js"
             integrity="sha384-6ZdfL2Azuen6KYvcTkbxqJS1d7txbNWrVfmURkxNeCn7DtzhLRL6Fi6WGG6ZLdKn"
             crossorigin="anonymous"></script>
-    <link rel="stylesheet" href="/static/css/tokens.css?v=20260925-mp1">
-    <link rel="stylesheet" href="/static/style.css?v=20260925-mp1">
+    <link rel="stylesheet" href="/static/css/tokens.css?v=20260925-ui10">
+    <link rel="stylesheet" href="/static/style.css?v=20260925-ui10">
     <!-- CSS modules (supplement style.css; do not replace) -->
     <link rel="stylesheet" href="/static/css/typography.css?v=20260817-v6">
-    <link rel="stylesheet" href="/static/css/reader.css?v=20260817-v6">
+    <link rel="stylesheet" href="/static/css/reader.css?v=20260925-ui10">
     <link rel="stylesheet" href="/static/css/sidebar.css?v=20260925-mp1">
     <link rel="stylesheet" href="/static/css/halacha.css?v=20260817-v6">
     <link rel="stylesheet" href="/static/css/prayer.css?v=20260817-v6">
-    <link rel="stylesheet" href="/static/css/ai.css?v=20260925-mp1">
-    <link rel="stylesheet" href="/static/css/calendar.css?v=20260925-mp1">
+    <link rel="stylesheet" href="/static/css/ai.css?v=20260925-ui10">
+    <link rel="stylesheet" href="/static/css/calendar.css?v=20260925-ui10">
     <link rel="stylesheet" href="/static/css/calendar-detail.css?v=20260925-mp1">
     <link rel="stylesheet" href="/static/css/loading.css?v=20260817-v6">
     <!-- Tailwind CSS (pre-built; loads last so utilities override custom CSS — mirrors CDN runtime cascade behavior) -->
@@ -157,14 +157,54 @@
             siteKey: {{ turnstile_site_key | tojson }},
         };
         window.__turnstileToken = '';
+        // The challenge modal (#turnstileModal) opens only when Cloudflare
+        // needs the visitor to interact, and closes itself once a token (or
+        // an error) comes back -- nothing about Turnstile lives in the top bar.
+        (function () {
+            let lastFocus = null;
+            function modalParts() {
+                const modal = document.getElementById('turnstileModal');
+                return { modal, card: modal && modal.querySelector('.turnstile-modal__card') };
+            }
+            window.showTurnstileModal = function () {
+                const { modal, card } = modalParts();
+                if (!modal || modal.classList.contains('is-open')) return;
+                lastFocus = document.activeElement;
+                modal.removeAttribute('inert');
+                modal.classList.add('is-open');
+                const motion = window.ShelahMotion;
+                if (card && motion && motion.springAnimate) {
+                    motion.springAnimate(card, { transform: ['translateY(8px) scale(0.96)', 'translateY(0px) scale(1)'] },
+                        motion.appleSpring(0.28, 0));
+                }
+                if (card) card.focus({ preventScroll: true });
+            };
+            window.hideTurnstileModal = function () {
+                const { modal } = modalParts();
+                if (!modal || !modal.classList.contains('is-open')) return;
+                modal.classList.remove('is-open');
+                modal.setAttribute('inert', '');
+                if (lastFocus && lastFocus.isConnected && typeof lastFocus.focus === 'function') {
+                    lastFocus.focus({ preventScroll: true });
+                }
+                lastFocus = null;
+            };
+        })();
+        window.onTurnstileBeforeInteractive = function () {
+            window.showTurnstileModal();
+        };
         window.onTurnstileToken = function (token) {
             window.__turnstileToken = token || '';
+            window.hideTurnstileModal();
         };
+        // Expiry: drop the stale token. Turnstile refreshes on its own and
+        // re-opens the modal via before-interactive only if it needs the visitor.
         window.onTurnstileExpired = function () {
             window.__turnstileToken = '';
         };
         window.onTurnstileError = function () {
             window.__turnstileToken = '';
+            window.hideTurnstileModal();
         };
     </script>
     {% if turnstile_enabled and turnstile_site_key %}
@@ -266,22 +306,6 @@
                             </div>
                         </form>
                     </div>
-                    {% if turnstile_enabled and turnstile_site_key %}
-                    <!-- Cloudflare Turnstile widget (Managed mode, configured via the
-                         Cloudflare dashboard for this site key -- not something this
-                         markup controls). data-appearance="interaction-only" reserves
-                         zero layout space for the vast majority of visitors who pass
-                         invisibly; it only expands to show an interactive challenge
-                         when Cloudflare's risk engine actually requires one, which is
-                         an intentional, expected shift, not a CLS regression.
-                         data-size="flexible" keeps that (rare) challenge responsive
-                         at any viewport width instead of a fixed-width box. -->
-                    <div id="turnstileWidget" class="cf-turnstile shrink-0 max-w-[300px]"
-                        data-sitekey="{{ turnstile_site_key }}" data-appearance="interaction-only"
-                        data-size="flexible" data-callback="onTurnstileToken"
-                        data-expired-callback="onTurnstileExpired" data-error-callback="onTurnstileError"
-                        aria-live="polite"></div>
-                    {% endif %}
                 </div>
 
                 <div id="topbarControls"
@@ -381,7 +405,7 @@
                     </div>
 
                     <div id="authControls" class="hidden items-center gap-1.5 mr-1">
-                        <div id="userProfileMenuContainer" class="hidden relative shrink-0">
+                        <div id="userProfileMenuContainer" class="hidden relative shrink-0 flex items-center">
                             <button id="userProfileMenuBtn" type="button" aria-expanded="false" aria-haspopup="true"
                                 class="topbar-user-menu-btn topbar-flat-btn text-xs text-[#334155] inline-flex items-center gap-1.5"
                                 title="Open profile menu">
@@ -400,12 +424,6 @@
                                 <button id="userProfileSignOutAction" type="button"
                                     class="topbar-user-menu-item topbar-user-menu-signout w-full text-start px-3 py-1.5 text-xs text-slate-700 hover:bg-slate-100 transition"
                                     data-en="Sign Out" data-he="התנתקות">Sign Out</button>
-                                <a id="userProfileTermsLink" href="/terms" target="_blank" rel="noopener"
-                                    class="topbar-user-menu-item block px-3 py-1.5 text-xs text-slate-700 hover:bg-slate-100 transition"
-                                    data-en="Terms of Service" data-he="תנאי השירות">Terms of Service</a>
-                                <a id="userProfilePrivacyLink" href="/privacy" target="_blank" rel="noopener"
-                                    class="topbar-user-menu-item block px-3 py-1.5 text-xs text-slate-700 hover:bg-slate-100 transition"
-                                    data-en="Privacy Policy" data-he="מדיניות הפרטיות">Privacy Policy</a>
                                 <a id="userProfileAccessibilityLink" href="/accessibility" target="_blank" rel="noopener"
                                     class="topbar-user-menu-item block px-3 py-1.5 text-xs text-slate-700 hover:bg-slate-100 transition"
                                     data-en="Accessibility" data-he="נגישות">Accessibility</a>
@@ -1537,6 +1555,34 @@
             data-he="יומי">Daily</button>
     </nav>
 
+    {% if turnstile_enabled and turnstile_site_key %}
+    <!-- Cloudflare Turnstile (Managed mode, configured in the Cloudflare
+         dashboard for this site key). The widget runs invisibly for the vast
+         majority of visitors (data-appearance="interaction-only"); only when
+         Cloudflare's risk engine asks for an interactive challenge does
+         onTurnstileBeforeInteractive() open this small centred modal, and the
+         token/error callbacks close it again. The shell stays rendered
+         (visibility, not display:none) so the background check can run while
+         it is closed; `inert` keeps it out of the tab order until then. -->
+    <div id="turnstileModal" class="turnstile-modal" role="dialog" aria-modal="true"
+        aria-labelledby="turnstileModalTitle" aria-describedby="turnstileModalDesc" inert>
+        <div class="turnstile-modal__scrim" aria-hidden="true"></div>
+        <div class="turnstile-modal__card" tabindex="-1">
+            <h2 id="turnstileModalTitle" class="turnstile-modal__title" data-en="Quick verification"
+                data-he="אימות קצר">Quick verification</h2>
+            <p id="turnstileModalDesc" class="turnstile-modal__desc"
+                data-en="Please confirm you're human to keep asking questions."
+                data-he="אנא אשר שאתה אדם כדי להמשיך לשאול שאלות.">Please confirm you're human to keep asking
+                questions.</p>
+            <div id="turnstileWidget" class="cf-turnstile turnstile-modal__widget"
+                data-sitekey="{{ turnstile_site_key }}" data-appearance="interaction-only"
+                data-size="flexible" data-callback="onTurnstileToken"
+                data-expired-callback="onTurnstileExpired" data-error-callback="onTurnstileError"
+                data-before-interactive-callback="onTurnstileBeforeInteractive"></div>
+        </div>
+    </div>
+    {% endif %}
+
     <!-- Calendar Modal -->
     <dialog id="calendarModal"
         class="hidden fixed inset-0 z-[100] m-0 w-full h-full max-w-none max-h-none bg-slate-900/55 backdrop-blur-[3px] flex items-start justify-center px-4 pb-4 pt-14"
@@ -1565,12 +1611,10 @@
                 <!-- Legend + close -->
                 <div class="flex items-center gap-3">
                     <div class="hidden sm:flex items-center gap-3 text-xs text-[#566175]">
-                        <span class="flex items-center gap-1"><span class="inline-block w-3 h-3 rounded-sm"
-                                style="background:var(--cal-event-holiday)"></span>
-                            <span data-en="Holiday" data-he="חג">Holiday</span></span>
-                        <span class="flex items-center gap-1"><span class="inline-block w-3 h-3 rounded-sm"
-                                style="background:var(--cal-event-shabbat)"></span>
-                            <span data-en="Shabbat" data-he="שבת">Shabbat</span></span>
+                        <span class="flex items-center gap-1"><span class="cal-legend-mark cal-legend-mark--holiday"
+                                aria-hidden="true"></span><span data-en="Holiday" data-he="חג">Holiday</span></span>
+                        <span class="flex items-center gap-1"><span class="cal-legend-mark cal-legend-mark--shabbat"
+                                aria-hidden="true"></span><span data-en="Shabbat" data-he="שבת">Shabbat</span></span>
                     </div>
                     <button onclick="closeCalendarModal()" type="button"
                         class="w-8 h-8 flex items-center justify-center rounded-full border border-[#c8b88a] bg-white/70 hover:bg-white text-[#566175] hover:text-[#1f3f63] transition"
@@ -5921,10 +5965,22 @@
             }
         }
 
+        // The type-ahead list is an anchored popover like the settings/profile
+        // menus: it grows out of the search field on the shared menu spring
+        // and folds back into it, instead of a CSS fade that had no exit.
+        // Content is cleared only once the exit has finished.
+        function dismissSearchSuggestions() {
+            dismissEl(searchSuggestions, {
+                preset: 'popover',
+                onHidden: () => {
+                    if (!appState.suggestionItems.length) searchSuggestions.innerHTML = '';
+                },
+            });
+        }
+
         function renderSearchSuggestions() {
             if (!appState.suggestionItems.length) {
-                searchSuggestions.classList.add('hidden');
-                searchSuggestions.innerHTML = '';
+                dismissSearchSuggestions();
                 return;
             }
 
@@ -5975,14 +6031,13 @@
                 `;
             }).join('');
 
-            searchSuggestions.classList.remove('hidden');
+            presentEl(searchSuggestions, { preset: 'popover', origin: searchInput });
         }
 
         function hideSearchSuggestions() {
             appState.suggestionItems = [];
             appState.activeSuggestionIndex = -1;
-            searchSuggestions.classList.add('hidden');
-            searchSuggestions.innerHTML = '';
+            dismissSearchSuggestions();
         }
 
         async function fetchOmniboxSuggestions(query) {
@@ -6373,11 +6428,11 @@
             const clampedTop = Math.max(0, Math.min(max, Math.round(nextTop || 0)));
 
             if (pageTarget) {
-                window.scrollTo({ top: clampedTop, behavior: 'auto' });
+                window.scrollTo({ top: clampedTop, behavior: 'instant' });
                 return;
             }
 
-            target.scrollTop = clampedTop;
+            target.scrollTo({ top: clampedTop, behavior: 'instant' });
         }
 
         function formatSegmentLabel(segment, idx) {
@@ -6562,17 +6617,34 @@
                 return { links: {}, resolvedRef: '' };
             }
 
-            // Fire every candidate concurrently instead of awaiting them one
-            // at a time -- each round trip can be slow, and a sequential
-            // loop multiplied that latency by up to ~4 candidates. Still
-            // honors candidate priority (segment ref before whole-verse
-            // before chapter-level fallback) by taking the first non-empty
-            // result in normalizedCandidates order, not whichever settles
-            // first.
-            const results = await Promise.all(normalizedCandidates.map(async (normalized) => {
-                if (commentaryLinksCache.has(normalized)) {
-                    return commentaryLinksCache.get(normalized);
-                }
+            // Fire every candidate concurrently, then walk them in priority
+            // order (segment ref before whole-verse before chapter-level
+            // fallback) and return as soon as the highest-priority non-empty
+            // result is known. Previously this was a Promise.all, so a hit on
+            // the segment ref still waited for the chapter-level fallback --
+            // on Sefaria that is ~1MB of links for a whole chapter and the
+            // slowest request of the set. Lower-priority requests keep
+            // running in the background and land in the cache.
+            const pending = normalizedCandidates.map((normalized) => fetchCommentaryLinks(normalized));
+            for (const promise of pending) {
+                const result = await promise;
+                if (result) return result;
+            }
+            return { links: {}, resolvedRef: '' };
+        }
+
+        // In-flight de-duplication: a pointerdown prefetch and the selection
+        // lookup that follows it ~150ms later share one request.
+        const commentaryLinksInflight = new Map();
+
+        function fetchCommentaryLinks(normalized) {
+            if (commentaryLinksCache.has(normalized)) {
+                return Promise.resolve(commentaryLinksCache.get(normalized));
+            }
+            if (commentaryLinksInflight.has(normalized)) {
+                return commentaryLinksInflight.get(normalized);
+            }
+            const request = (async () => {
                 try {
                     const resp = await fetch(`/api/text/${encodeURIComponent(normalized)}/links`);
                     if (!resp.ok) return null;
@@ -6583,10 +6655,93 @@
                     return result;
                 } catch (_) {
                     return null;
+                } finally {
+                    commentaryLinksInflight.delete(normalized);
                 }
-            }));
+            })();
+            commentaryLinksInflight.set(normalized, request);
+            return request;
+        }
 
-            return results.find(Boolean) || { links: {}, resolvedRef: '' };
+        // Commentary text, fetched WITHOUT on-demand translation first so the
+        // Sefaria text paints immediately; the backend's machine-translation
+        // pass (helpers.py::_fill_missing_english_lines, up to ~1.2s) only
+        // runs afterwards, and only when some lines actually lack English.
+        const commentaryTextInflight = new Map();
+
+        function commentaryNeedsTranslation(data) {
+            const lines = Array.isArray(data?.lines) ? data.lines : [];
+            return lines.some((line) => String(line?.he || '').trim() && !String(line?.en || '').trim());
+        }
+
+        function fetchCommentaryText(ref, { translate = false } = {}) {
+            const cacheKey = translate ? `${ref}\u0000t` : ref;
+            if (commentaryTextCache.has(cacheKey)) {
+                return Promise.resolve(commentaryTextCache.get(cacheKey));
+            }
+            // A translated payload is a superset of the plain one.
+            if (!translate && commentaryTextCache.has(`${ref}\u0000t`)) {
+                return Promise.resolve(commentaryTextCache.get(`${ref}\u0000t`));
+            }
+            if (commentaryTextInflight.has(cacheKey)) {
+                return commentaryTextInflight.get(cacheKey);
+            }
+            const request = (async () => {
+                try {
+                    const resp = await fetch(`/api/text/${encodeURIComponent(ref)}?autotranslate=${translate ? 1 : 0}`);
+                    const data = await resp.json();
+                    if (!resp.ok || data?.error) {
+                        throw new Error(data?.error || `HTTP ${resp.status}`);
+                    }
+                    _cacheBounded(commentaryTextCache, cacheKey, data);
+                    return data;
+                } finally {
+                    commentaryTextInflight.delete(cacheKey);
+                }
+            })();
+            commentaryTextInflight.set(cacheKey, request);
+            return request;
+        }
+
+        // Intent prefetch for the commentary chooser: a short hover dwell,
+        // keyboard focus, or the press itself starts the text request before
+        // the click lands. Deliberately not "prefetch the whole list" --
+        // /api/text/* sits in the 30/min "fanout" rate-limit class
+        // (backend/rate_limit.py), shared with the reader's own chunk loads.
+        let commentaryHoverPrefetchTimer = null;
+        function prefetchCommentaryText(ref) {
+            const normalized = String(ref || '').trim();
+            if (!normalized) return;
+            fetchCommentaryText(normalized).catch(() => { });
+        }
+
+        function commentaryButtonFromEvent(event) {
+            const button = event.target?.closest?.('[data-commentary-ref]');
+            return button && selectionInsightsBody?.contains(button) ? button : null;
+        }
+
+        function wireCommentaryIntentPrefetch() {
+            if (!selectionInsightsBody || selectionInsightsBody.dataset.prefetchBound === '1') return;
+            selectionInsightsBody.dataset.prefetchBound = '1';
+            selectionInsightsBody.addEventListener('pointerover', (event) => {
+                const button = commentaryButtonFromEvent(event);
+                clearTimeout(commentaryHoverPrefetchTimer);
+                if (!button) return;
+                commentaryHoverPrefetchTimer = setTimeout(() => prefetchCommentaryText(button.dataset.commentaryRef), 90);
+            });
+            ['pointerdown', 'focusin'].forEach((type) => {
+                selectionInsightsBody.addEventListener(type, (event) => {
+                    const button = commentaryButtonFromEvent(event);
+                    if (button) prefetchCommentaryText(button.dataset.commentaryRef);
+                });
+            });
+            // Opening an author group prefetches its first entry.
+            selectionInsightsBody.addEventListener('toggle', (event) => {
+                const details = event.target;
+                if (!(details instanceof HTMLDetailsElement) || !details.open) return;
+                const first = details.querySelector('[data-commentary-ref]');
+                if (first) prefetchCommentaryText(first.dataset.commentaryRef);
+            }, true);
         }
 
         function getCommentaryAuthorLabel(ref) {
@@ -6642,6 +6797,7 @@
                     const refDir = isHebrewMode() ? 'rtl' : 'ltr';
                     return `
                         <button type="button" onclick="openCommentaryInline(decodeURIComponent('${encoded}'))"
+                            data-commentary-ref="${escapeHtml(ref)}"
                             dir="${refDir}"
                             class="block w-full ${textAlignClass} px-3 py-2 rounded border border-slate-200 bg-white hover:bg-slate-100 text-sm text-slate-700 transition">
                             ${escapeHtml(displayRef)}
@@ -6708,6 +6864,8 @@
             }
 
             selectionInsightsBody.innerHTML = html;
+            selectionInsightsBody.setAttribute('aria-busy', 'false');
+            wireCommentaryIntentPrefetch();
             showSelectionInsights();
             selectionInsightsHint.textContent = t('Selected text:', 'הטקסט שנבחר:') + ` ${selectionCommentaryState.selectedText}`;
         }
@@ -6808,58 +6966,82 @@
                 .join('');
         }
 
+        function renderCommentaryView(commentaryRef, data) {
+            const enTitle = String(data?.title || commentaryRef).trim();
+            const heTitle = String(data?.heTitle || '').trim();
+            const displayTitle = isHebrewMode()
+                ? (heTitle || enTitle)
+                : (heTitle ? `${enTitle} · ${heTitle}` : enTitle);
+
+            // Keep the reader's place when the translated payload replaces
+            // the plain one in place.
+            const previousScroller = selectionInsightsBody.querySelector('[data-commentary-scroll]');
+            const previousScrollTop = previousScroller ? previousScroller.scrollTop : 0;
+
+            selectionInsightsBody.innerHTML = `
+                <div class="rounded-lg border border-slate-200 bg-white px-3 py-3">
+                    <div class="flex items-center justify-between gap-2 mb-2">
+                        <p class="text-[11px] uppercase tracking-widest text-slate-500 font-bold">${t('Commentary', 'פירוש')}</p>
+                        <button type="button" onclick="renderSelectionInsightsChooser()"
+                            class="text-[11px] font-semibold text-[#004e5f] hover:underline">
+                            ${t('Back to list', 'חזרה לרשימה')}
+                        </button>
+                    </div>
+                    <h5 class="text-sm font-semibold text-slate-800 mb-3">${escapeHtml(displayTitle)}</h5>
+                    <div class="max-h-[50dvh] overflow-y-auto pr-1 space-y-2" data-commentary-scroll>
+                        ${renderInlineCommentaryLines(data)}
+                    </div>
+                </div>
+            `;
+            if (previousScrollTop) {
+                const scroller = selectionInsightsBody.querySelector('[data-commentary-scroll]');
+                if (scroller) scroller.scrollTop = previousScrollTop;
+            }
+            selectionInsightsBody.setAttribute('aria-busy', 'false');
+            const commentaryHintLabel = localizeCommentaryReferenceLabel(commentaryRef);
+            selectionInsightsHint.textContent = t('Viewing commentary:', 'מציג פירוש:') + ` ${commentaryHintLabel}`;
+        }
+
         async function openCommentaryInline(ref) {
             const commentaryRef = String(ref || '').trim();
             if (!commentaryRef || !selectionInsightsBody) return;
 
             selectionCommentaryState.activeCommentaryRef = commentaryRef;
+            // A later click (or "Back to list") supersedes this one; checked
+            // after every await so a slow response can't paint over it.
+            const isCurrent = () => selectionCommentaryState.activeCommentaryRef === commentaryRef;
 
-            selectionInsightsHint.textContent = '';
-            selectionInsightsBody.setAttribute('aria-busy', 'true');
-            selectionInsightsBody.innerHTML = `
-                <div class="rounded-lg border border-slate-200 bg-white px-3 py-3 space-y-2" aria-hidden="true">
-                    <div class="sk-reader-para" style="width:60%"></div>
-                    <div class="sk-reader-para"></div>
-                    <div class="sk-reader-para" style="width:80%"></div>
-                    <div class="sk-reader-para"></div>
-                </div>`;
+            const cached = commentaryTextCache.get(`${commentaryRef}\u0000t`) || commentaryTextCache.get(commentaryRef);
+            if (!cached) {
+                selectionInsightsHint.textContent = '';
+                selectionInsightsBody.setAttribute('aria-busy', 'true');
+                selectionInsightsBody.innerHTML = `
+                    <div class="rounded-lg border border-slate-200 bg-white px-3 py-3 space-y-2" aria-hidden="true">
+                        <div class="sk-reader-para" style="width:60%"></div>
+                        <div class="sk-reader-para"></div>
+                        <div class="sk-reader-para" style="width:80%"></div>
+                        <div class="sk-reader-para"></div>
+                    </div>`;
+            }
 
             try {
-                let data = commentaryTextCache.get(commentaryRef);
-                if (!data) {
-                    const resp = await fetch(`/api/text/${encodeURIComponent(commentaryRef)}?autotranslate=1`);
-                    data = await resp.json();
-                    if (!resp.ok || data?.error) {
-                        throw new Error(data?.error || `HTTP ${resp.status}`);
+                const data = cached || await fetchCommentaryText(commentaryRef);
+                if (!isCurrent()) return;
+                renderCommentaryView(commentaryRef, data);
+
+                // Progressive translation: only when some lines have Hebrew
+                // but no English, and only if the plain payload we painted
+                // isn't already the translated one.
+                if (!commentaryTextCache.has(`${commentaryRef}\u0000t`) && commentaryNeedsTranslation(data)) {
+                    try {
+                        const translated = await fetchCommentaryText(commentaryRef, { translate: true });
+                        if (isCurrent()) renderCommentaryView(commentaryRef, translated);
+                    } catch (_) {
+                        // The untranslated text is already on screen.
                     }
-                    _cacheBounded(commentaryTextCache, commentaryRef, data);
                 }
-
-                const enTitle = String(data?.title || commentaryRef).trim();
-                const heTitle = String(data?.heTitle || '').trim();
-                const displayTitle = isHebrewMode()
-                    ? (heTitle || enTitle)
-                    : (heTitle ? `${enTitle} · ${heTitle}` : enTitle);
-
-                selectionInsightsBody.innerHTML = `
-                    <div class="rounded-lg border border-slate-200 bg-white px-3 py-3">
-                        <div class="flex items-center justify-between gap-2 mb-2">
-                            <p class="text-[11px] uppercase tracking-widest text-slate-500 font-bold">${t('Commentary', 'פירוש')}</p>
-                            <button type="button" onclick="renderSelectionInsightsChooser()"
-                                class="text-[11px] font-semibold text-[#004e5f] hover:underline">
-                                ${t('Back to list', 'חזרה לרשימה')}
-                            </button>
-                        </div>
-                        <h5 class="text-sm font-semibold text-slate-800 mb-3">${escapeHtml(displayTitle)}</h5>
-                        <div class="max-h-[50dvh] overflow-y-auto pr-1 space-y-2">
-                            ${renderInlineCommentaryLines(data)}
-                        </div>
-                    </div>
-                `;
-                selectionInsightsBody.setAttribute('aria-busy', 'false');
-                const commentaryHintLabel = localizeCommentaryReferenceLabel(commentaryRef);
-                selectionInsightsHint.textContent = t('Viewing commentary:', 'מציג פירוש:') + ` ${commentaryHintLabel}`;
             } catch (_) {
+                if (!isCurrent()) return;
                 selectionCommentaryState.activeCommentaryRef = '';
                 selectionInsightsBody.innerHTML = `
                     <div class="rounded-lg border border-red-200 bg-red-50 px-3 py-3">
@@ -6900,6 +7082,12 @@
         }
 
         async function updateSelectionInsights() {
+            // Newer selections (or a cleared one) supersede older lookups:
+            // every await below is followed by an isCurrent() check so a slow
+            // response can't paint over the passage the reader has moved to.
+            const lookupSeq = ++selectionInsightsSeq;
+            const isCurrent = () => lookupSeq === selectionInsightsSeq;
+
             if (!selectionInsightsBody || appState.currentView?.type !== 'text') {
                 collapseCommentaryPanel();
                 return;
@@ -6956,6 +7144,21 @@
                 : '';
 
             selectionInsightsHint.textContent = t('Loading selected passage tools...', 'טוען כלים לקטע שנבחר...');
+            // Skeleton in place of the previous passage's list, but only when
+            // the panel is already on screen -- a closed panel stays closed
+            // until there is something to show.
+            if (selectionInsightsBody && !selectionInsights?.classList.contains('hidden')
+                && !commentaryLinksCache.has(commentaryRefCandidates[0])) {
+                selectionCommentaryState.activeCommentaryRef = '';
+                selectionInsightsBody.setAttribute('aria-busy', 'true');
+                selectionInsightsBody.innerHTML = `
+                    <div class="rounded-lg border border-slate-200 bg-white px-3 py-3 space-y-2" aria-hidden="true">
+                        <div class="sk-reader-para" style="width:45%"></div>
+                        <div class="sk-reader-para"></div>
+                        <div class="sk-reader-para"></div>
+                        <div class="sk-reader-para" style="width:70%"></div>
+                    </div>`;
+            }
 
             const commentaryPromise = fetchCommentaryLinksWithFallback(commentaryRefCandidates);
             const wordMeaningLang = containsHebrewLetters(cleanWord) ? 'en' : (isHebrewMode() ? 'he' : 'en');
@@ -6969,7 +7172,15 @@
                     .catch(() => null)
                 : Promise.resolve(null);
 
-            const [{ links }, wordInfo] = await Promise.all([commentaryPromise, wordPromise]);
+            // Don't hold the commentary list hostage to the word lookup (it can
+            // fall back to an online translation): if the links arrive first,
+            // render them now and merge the meaning in when it lands.
+            const WORD_PENDING = Symbol('word-pending');
+            const { links } = await commentaryPromise;
+            if (!isCurrent()) return;
+            let wordInfo = await Promise.race([wordPromise, Promise.resolve(WORD_PENDING)]);
+            const wordStillPending = wordInfo === WORD_PENDING;
+            if (wordStillPending) wordInfo = null;
 
             let commentaryRefs = extractCommentaryRefs(links);
             if (!commentaryRefs.length) {
@@ -6985,10 +7196,30 @@
 
             const groupedCommentaries = groupCommentaryRefsByAuthor(commentaryRefs);
 
+            if (wordStillPending && !groupedCommentaries.length) {
+                // Nothing to show yet except (maybe) the meaning -- wait for it.
+                wordInfo = await wordPromise;
+                if (!isCurrent()) return;
+            }
+
             const hasWordMeaning = Boolean(cleanWord && wordInfo?.meaning);
             if (!groupedCommentaries.length && !hasWordMeaning) {
                 collapseCommentaryPanel();
                 return;
+            }
+
+            if (wordStillPending && groupedCommentaries.length) {
+                wordPromise.then((lateWordInfo) => {
+                    if (!isCurrent() || !lateWordInfo?.meaning) return;
+                    selectionCommentaryState.wordInfo = {
+                        word: lateWordInfo.word || cleanWord,
+                        meaning: lateWordInfo.meaning || '',
+                        alternatives: Array.isArray(lateWordInfo.alternatives) ? lateWordInfo.alternatives : [],
+                    };
+                    // Only re-render the list view; an open commentary keeps
+                    // the meaning for when the reader goes back to the list.
+                    if (!selectionCommentaryState.activeCommentaryRef) renderSelectionInsightsChooser();
+                });
             }
 
             selectionCommentaryState.groupedCommentaries = groupedCommentaries;
@@ -7012,7 +7243,24 @@
             }
         }
 
+        let selectionInsightsSeq = 0;
         let selectionInsightsTimer = null;
+
+        // Head start for the links lookup: a text selection begins with a
+        // pointerdown on the verse, ~150ms+ before mouseup and the debounced
+        // updateSelectionInsights() run, so start the segment-level request
+        // then. One request per verse (cached + de-duplicated in
+        // fetchCommentaryLinks), primary text only.
+        function prefetchSegmentCommentaryLinks(event) {
+            if (appState.currentView?.type !== 'text' || !isCommentaryEligiblePrimaryText()) return;
+            const segmentRow = event.target?.closest?.('.segment-row');
+            if (!segmentRow?.dataset?.segment) return;
+            const currentRef = String(window.currentTextPayload?.ref || appState.currentView?.value || '').trim();
+            const segmentRef = buildSegmentReference(currentRef, segmentRow.dataset.segment);
+            const normalized = String(segmentRef || '').replace(/\s+/g, ' ').trim();
+            if (normalized) fetchCommentaryLinks(normalized);
+        }
+
         function scheduleSelectionInsightsUpdate() {
             if (selectionInsightsTimer) {
                 clearTimeout(selectionInsightsTimer);
@@ -7031,6 +7279,7 @@
             targets.forEach((target) => {
                 if (!target || target.dataset.selectionBound === '1') return;
                 target.dataset.selectionBound = '1';
+                target.addEventListener('pointerdown', prefetchSegmentCommentaryLinks, { passive: true });
                 target.addEventListener('mouseup', scheduleSelectionInsightsUpdate);
                 target.addEventListener('touchend', scheduleSelectionInsightsUpdate);
                 target.addEventListener('keyup', scheduleSelectionInsightsUpdate);
@@ -7387,7 +7636,12 @@
                 infiniteReaderState.prevRef = '';
             } finally {
                 infiniteReaderState.loadingPrev = false;
-                renderCurrentTextByLayout({ preserveScroll: true });
+                // Anchor on the section the reader was looking at, not the
+                // absolute scrollTop: restoring the same scrollTop after a
+                // prepend left the view inside the *new* section near the
+                // top, so the next momentum scroll event immediately loaded
+                // another one — chaining several sections back in one swipe.
+                renderCurrentTextByLayout({ anchorToVisibleChunk: true });
             }
         }
 
@@ -7590,8 +7844,59 @@
             setReaderSubtitle('');
         }
 
+        // Records which rendered section sits at the top of the viewport and
+        // where, so a re-render that changes content *above* it (prepending
+        // the previous section) can put it back at the same on-screen spot.
+        // Anchor on the first verse row the reader can see (falling back to its
+        // section): a section that stops being the first one gains its sticky
+        // chapter-title bar on re-render, so anchoring on the section box
+        // alone still let the text inside it shift down by that bar's height.
+        function readerAnchorElements() {
+            return Array.from(document.querySelectorAll('#readerSources .reader-source-clean[data-text-chunk-ref]'));
+        }
+
+        function captureReaderChunkAnchor() {
+            const target = getPrimaryScrollElement();
+            const pageTarget = target === document.documentElement || target === document.body;
+            const viewTop = pageTarget ? 0 : target.getBoundingClientRect().top;
+            for (const chunk of readerAnchorElements()) {
+                const rect = chunk.getBoundingClientRect();
+                if (rect.bottom <= viewTop) continue;
+                const row = Array.from(chunk.querySelectorAll('.segment-row[data-segment]'))
+                    .find((el) => el.getBoundingClientRect().bottom > viewTop);
+                return {
+                    ref: chunk.dataset.textChunkRef,
+                    segment: row?.dataset.segment || '',
+                    offset: (row || chunk).getBoundingClientRect().top - viewTop,
+                };
+            }
+            return null;
+        }
+
+        function restoreReaderChunkAnchor(anchor) {
+            if (!anchor?.ref) return false;
+            const chunk = readerAnchorElements().find((el) => el.dataset.textChunkRef === anchor.ref);
+            if (!chunk) return false;
+            const row = anchor.segment
+                ? Array.from(chunk.querySelectorAll('.segment-row[data-segment]')).find((el) => el.dataset.segment === anchor.segment)
+                : null;
+            const target = getPrimaryScrollElement();
+            const pageTarget = target === document.documentElement || target === document.body;
+            const viewTop = pageTarget ? 0 : target.getBoundingClientRect().top;
+            const delta = ((row || chunk).getBoundingClientRect().top - viewTop) - anchor.offset;
+            if (Math.abs(delta) < 1) return true;
+            // 'instant' — html has scroll-behavior:smooth, so 'auto' would
+            // animate the correction and read as a jump.
+            if (pageTarget) {
+                window.scrollTo({ top: getPrimaryScrollTop() + delta, behavior: 'instant' });
+            } else {
+                target.scrollTo({ top: target.scrollTop + delta, behavior: 'instant' });
+            }
+            return true;
+        }
+
         function renderCurrentTextByLayout(options = {}) {
-            const { preserveScroll = false } = options;
+            const { preserveScroll = false, anchorToVisibleChunk = false } = options;
             const chain = getCurrentTextPayloadChain();
             const data = chain[0];
             const readerContent = document.getElementById('readerContent');
@@ -7599,7 +7904,8 @@
 
             if (!data || !readerContent || !sourcesDiv) return;
 
-            const scrollState = preserveScroll ? captureReaderScrollState() : null;
+            const chunkAnchor = anchorToVisibleChunk ? captureReaderChunkAnchor() : null;
+            const scrollState = (preserveScroll || anchorToVisibleChunk) ? captureReaderScrollState() : null;
             const layout = getNormalizedReaderLayout();
             infiniteReaderState.currentVisibleChunkIndex = Math.min(
                 Math.max(Number(infiniteReaderState.currentVisibleChunkIndex) || 0, 0),
@@ -7686,7 +7992,7 @@
                 `;
 
                 return `
-                    <div class="reader-source-clean mb-6" data-text-chunk-index="${index}">
+                    <div class="reader-source-clean mb-6" data-text-chunk-index="${index}" data-text-chunk-ref="${escapeHtml(getRefTrackingKey(sectionRef) || sectionRef)}">
                         ${sectionTitleMarkup}
                         <div class="reader-source-lines">
                             ${sectionRows}
@@ -7697,7 +8003,9 @@
 
             sourcesDiv.innerHTML = `${sectionsMarkup}${infiniteReaderStatusMarkup()}`;
 
-            if (scrollState) {
+            // Synchronous (pre-paint) so the prepended section never flashes
+            // into view before the correction lands.
+            if (!(chunkAnchor && restoreReaderChunkAnchor(chunkAnchor)) && scrollState) {
                 requestAnimationFrame(() => restoreReaderScrollState(scrollState));
             }
 
@@ -10553,16 +10861,17 @@
                     // appearance means this is often invisible; Cloudflare's risk
                     // engine decides, not this code).
                     window.__turnstileToken = '';
+                    // Re-running the widget pops the challenge modal up only if
+                    // Cloudflare wants the visitor to interact.
                     const turnstileWidget = document.getElementById('turnstileWidget');
                     if (window.turnstile && turnstileWidget) {
                         try { window.turnstile.reset(turnstileWidget); } catch (_err) { /* widget not ready yet */ }
-                        turnstileWidget.scrollIntoView({ behavior: window.ShelahMotion?.isMotionReduced() ? 'auto' : 'smooth', block: 'nearest' });
                     }
                     document.getElementById('aiSynthesis').innerHTML = `
                         <div class="ai-turnstile-notice" role="alert">
                             <p>${t(
-                                'Please complete the quick verification check near the search bar, then ask your question again.',
-                                'אנא השלם את בדיקת האימות הקצרה ליד שורת החיפוש, ולאחר מכן שאל שוב את שאלתך.'
+                                'Please complete the quick verification check, then ask your question again.',
+                                'אנא השלם את בדיקת האימות הקצרה, ולאחר מכן שאל שוב את שאלתך.'
                             )}</p>
                         </div>`;
                     logReliability('ai-turnstile-required');
@@ -11395,10 +11704,6 @@
 
             if (signInBtn) signInBtn.textContent = lang === 'he' ? 'התחברות' : 'Sign In';
             if (userProfileSignOutAction) userProfileSignOutAction.textContent = lang === 'he' ? 'התנתקות' : 'Sign Out';
-            const userProfileTermsLink = document.getElementById('userProfileTermsLink');
-            if (userProfileTermsLink) userProfileTermsLink.textContent = lang === 'he' ? 'תנאי השירות' : 'Terms of Service';
-            const userProfilePrivacyLink = document.getElementById('userProfilePrivacyLink');
-            if (userProfilePrivacyLink) userProfilePrivacyLink.textContent = lang === 'he' ? 'מדיניות הפרטיות' : 'Privacy Policy';
             if (userProfileMenuLabel && userProfileMenuLabel.textContent === 'Signed in') {
                 userProfileMenuLabel.textContent = lang === 'he' ? 'מחובר' : 'Signed in';
             }
@@ -11569,6 +11874,144 @@
         let holidaysCalendar = null;
         let _calendarDidMount = false; // crossfade: skip animation on initial render
         let calendarSelectedKey = null; // 'YYYY-MM-DD' of the day shown in the agenda
+        let calendarDayKinds = new Map(); // 'YYYY-MM-DD' -> 'holiday' | 'shabbat'
+
+        // One request per year for the page's lifetime. The first open used to
+        // wait on this fetch (grid drawn, then events popping in a beat later);
+        // prefetching it on idle / on intent means the grid renders with its
+        // events already in hand, and paging months is a cache hit.
+        const calendarHolidayCache = new Map(); // year -> Promise<event[]>
+        // The server prefixes titles with an emoji marker (🕍 Parashat …, 🌙 Rosh
+        // Chodesh …). The UI draws those as Phosphor icons instead: strip the
+        // emoji from the title and remember which icon it stood for.
+        const CAL_EMOJI_ICONS = [
+            ['🌅', 'sun-horizon'], ['🌇', 'sun-horizon'], ['🌃', 'moon-stars'],
+            ['🕍', 'synagogue'], ['🌙', 'moon'], ['🕎', 'flame'], ['🕯', 'flame'],
+            ['🔥', 'fire'], ['🇮🇱', 'flag'], ['⛰', 'mountains'], ['🌸', 'flower'],
+            ['🌿', 'leaf'], ['🍋', 'leaf'], ['⏳', 'hourglass'],
+        ];
+        const CAL_ICON_PATHS = {
+            'sun-horizon': "{{ phosphor_path('sun-horizon') }}",
+            'moon-stars': "{{ phosphor_path('moon-stars') }}",
+            'synagogue': "{{ phosphor_path('synagogue') }}",
+            'moon': "{{ phosphor_path('moon') }}",
+            'flame': "{{ phosphor_path('flame') }}",
+            'fire': "{{ phosphor_path('fire') }}",
+            'flag': "{{ phosphor_path('flag') }}",
+            'mountains': "{{ phosphor_path('mountains') }}",
+            'flower': "{{ phosphor_path('flower') }}",
+            'leaf': "{{ phosphor_path('leaf') }}",
+            'hourglass': "{{ phosphor_path('hourglass') }}",
+            'star-of-david': "{{ phosphor_path('star-of-david') }}",
+        };
+        function splitCalendarEmoji(rawTitle) {
+            const raw = String(rawTitle || '');
+            const prefix = (raw.match(/^[^\p{L}\p{N}]+/u) || [''])[0];
+            if (!prefix.trim()) return { title: raw.trim(), icon: null };
+            const hit = CAL_EMOJI_ICONS.find(([emoji]) => prefix.includes(emoji));
+            return { title: raw.slice(prefix.length).trim(), icon: hit ? hit[1] : 'star-of-david' };
+        }
+        function calendarIconEl(name) {
+            const d = CAL_ICON_PATHS[name];
+            if (!d) return null;
+            const ns = 'http://www.w3.org/2000/svg';
+            const svg = document.createElementNS(ns, 'svg');
+            svg.setAttribute('viewBox', '0 0 256 256');
+            svg.setAttribute('fill', 'currentColor');
+            svg.setAttribute('aria-hidden', 'true');
+            svg.setAttribute('class', 'cal-event-icon');
+            const path = document.createElementNS(ns, 'path');
+            path.setAttribute('d', d);
+            svg.appendChild(path);
+            return svg;
+        }
+
+        function fetchCalendarHolidays(year) {
+            if (!calendarHolidayCache.has(year)) {
+                const request = fetch(`/api/holidays?year=${year}`)
+                    .then((r) => {
+                        if (!r.ok) throw new Error(`HTTP ${r.status}`);
+                        return r.json();
+                    })
+                    .then((data) => {
+                        const items = Array.isArray(data) ? data : (data.items || []);
+                        // FullCalendar only exposes non-standard fields via
+                        // extendedProps when they're nested there in the source
+                        // data — a bare top-level `category` is silently dropped,
+                        // not auto-promoted, so eventClassNames never saw it.
+                        return items.map((item) => {
+                            const { title, icon } = splitCalendarEmoji(item.title);
+                            return {
+                                ...item,
+                                title,
+                                extendedProps: { ...(item.extendedProps || {}), category: item.category, detail: item.detail || {}, icon },
+                            };
+                        });
+                    });
+                // A failed year may be retried on the next open.
+                request.catch(() => calendarHolidayCache.delete(year));
+                calendarHolidayCache.set(year, request);
+            }
+            return calendarHolidayCache.get(year);
+        }
+
+        function prefetchCalendar() {
+            fetchCalendarHolidays(new Date().getFullYear()).catch(() => {});
+        }
+
+        (function wireCalendarPrefetch() {
+            const btn = document.querySelector('.home-calendar-btn');
+            ['pointerenter', 'focus', 'touchstart'].forEach((type) => {
+                btn?.addEventListener(type, prefetchCalendar, { once: true, passive: true });
+            });
+            const idle = window.requestIdleCallback || ((cb) => setTimeout(cb, 2000));
+            window.addEventListener('load', () => idle(prefetchCalendar), { once: true });
+        })();
+
+        // Hebcal files every festival, fast, minor and modern day under the one
+        // category 'holiday' and says which in detail.subcat -- so colour by the
+        // subcat (Shabbat Shuva green, a fast grey, Yom Kippur red) rather than
+        // painting all of them holiday-red.
+        function calendarVisualCategory(props = {}) {
+            const cat = props.category || 'default';
+            const sub = String(props.detail?.subcat || '').toLowerCase();
+            return cat === 'holiday' && sub ? sub : cat;
+        }
+
+        // Holidays red, Shabbat and parashah days green (a Yom Tov on Shabbat
+        // stays red). Every Saturday is Shabbat even before events arrive.
+        const CAL_HOLIDAY_CATEGORIES = new Set(['major']);
+        const CAL_SHABBAT_CATEGORIES = new Set(['shabbat', 'parashat']);
+        function computeCalendarDayKinds() {
+            const kinds = new Map();
+            (holidaysCalendar?.getEvents() || []).forEach((ev) => {
+                const cat = calendarVisualCategory(ev.extendedProps);
+                const kind = CAL_HOLIDAY_CATEGORIES.has(cat) ? 'holiday'
+                    : CAL_SHABBAT_CATEGORIES.has(cat) ? 'shabbat' : null;
+                if (!kind || !ev.start) return;
+                const day = new Date(ev.start);
+                do {
+                    const key = calendarDateKey(day);
+                    if (kinds.get(key) !== 'holiday') kinds.set(key, kind);
+                    day.setDate(day.getDate() + 1);
+                } while (ev.end && day < ev.end);
+            });
+            calendarDayKinds = kinds;
+        }
+
+        function applyCalendarDayKind(cell) {
+            const key = cell?.dataset?.date;
+            if (!key) return;
+            const kind = calendarDayKinds.get(key) || (cell.classList.contains('fc-day-sat') ? 'shabbat' : null);
+            cell.classList.toggle('cal-day-holiday', kind === 'holiday');
+            cell.classList.toggle('cal-day-shabbat', kind === 'shabbat');
+        }
+
+        function markCalendarDayKinds() {
+            document.getElementById('calendar')
+                ?.querySelectorAll('.fc-daygrid-day[data-date]')
+                .forEach(applyCalendarDayKind);
+        }
 
         function calendarDateKey(d) {
             const pad = (n) => String(n).padStart(2, '0');
@@ -11669,7 +12112,7 @@
             } else {
                 events.forEach((ev) => {
                     const li = document.createElement('li');
-                    li.className = `cal-agenda-item cal-cat-${ev.extendedProps.category || 'default'}`;
+                    li.className = `cal-agenda-item cal-cat-${calendarVisualCategory(ev.extendedProps)}`;
                     const swatch = document.createElement('span');
                     swatch.className = 'cal-agenda-swatch';
                     swatch.setAttribute('aria-hidden', 'true');
@@ -11743,79 +12186,26 @@
             el.append(msg, retryBtn);
         }
 
-        // The server prefixes titles with an emoji marker (🕍 Parashat …, 🌙 Rosh
-        // Chodesh …). The UI draws those as Phosphor icons instead: strip the
-        // emoji from the title and remember which icon it stood for.
-        const CAL_EMOJI_ICONS = [
-            ['🌅', 'sun-horizon'], ['🌇', 'sun-horizon'], ['🌃', 'moon-stars'],
-            ['🕍', 'synagogue'], ['🌙', 'moon'], ['🕎', 'flame'], ['🕯', 'flame'],
-            ['🔥', 'fire'], ['🇮🇱', 'flag'], ['⛰', 'mountains'], ['🌸', 'flower'],
-            ['🌿', 'leaf'], ['🍋', 'leaf'], ['⏳', 'hourglass'],
-        ];
-        const CAL_ICON_PATHS = {
-            'sun-horizon': "{{ phosphor_path('sun-horizon') }}",
-            'moon-stars': "{{ phosphor_path('moon-stars') }}",
-            'synagogue': "{{ phosphor_path('synagogue') }}",
-            'moon': "{{ phosphor_path('moon') }}",
-            'flame': "{{ phosphor_path('flame') }}",
-            'fire': "{{ phosphor_path('fire') }}",
-            'flag': "{{ phosphor_path('flag') }}",
-            'mountains': "{{ phosphor_path('mountains') }}",
-            'flower': "{{ phosphor_path('flower') }}",
-            'leaf': "{{ phosphor_path('leaf') }}",
-            'hourglass': "{{ phosphor_path('hourglass') }}",
-            'star-of-david': "{{ phosphor_path('star-of-david') }}",
-        };
-        function splitCalendarEmoji(rawTitle) {
-            const raw = String(rawTitle || '');
-            const prefix = (raw.match(/^[^\p{L}\p{N}]+/u) || [''])[0];
-            if (!prefix.trim()) return { title: raw.trim(), icon: null };
-            const hit = CAL_EMOJI_ICONS.find(([emoji]) => prefix.includes(emoji));
-            return { title: raw.slice(prefix.length).trim(), icon: hit ? hit[1] : 'star-of-david' };
-        }
-        function calendarIconEl(name) {
-            const d = CAL_ICON_PATHS[name];
-            if (!d) return null;
-            const ns = 'http://www.w3.org/2000/svg';
-            const svg = document.createElementNS(ns, 'svg');
-            svg.setAttribute('viewBox', '0 0 256 256');
-            svg.setAttribute('fill', 'currentColor');
-            svg.setAttribute('aria-hidden', 'true');
-            svg.setAttribute('class', 'cal-event-icon');
-            const path = document.createElementNS(ns, 'path');
-            path.setAttribute('d', d);
-            svg.appendChild(path);
-            return svg;
-        }
-
         function ensureCalendarReady() {
             if (holidaysCalendar) return;
             const calendarEl = document.getElementById('calendar');
             holidaysCalendar = new FullCalendar.Calendar(calendarEl, {
                 initialView: 'dayGridMonth',
                 events: function (fetchInfo, successCallback, failureCallback) {
-                    const year = fetchInfo.start.getFullYear();
-                    fetch(`/api/holidays?year=${year}`)
-                        .then(r => r.json())
-                        .then(data => {
-                            const items = Array.isArray(data) ? data : (data.items || []);
-                            // FullCalendar only exposes non-standard fields via
-                            // extendedProps when they're nested there in the source
-                            // data — a bare top-level `category` is silently dropped,
-                            // not auto-promoted, so eventClassNames below never saw it.
-                            const withExtendedProps = items.map((item) => {
-                                const { title, icon } = splitCalendarEmoji(item.title);
-                                return {
-                                    ...item,
-                                    title,
-                                    extendedProps: { ...(item.extendedProps || {}), category: item.category, detail: item.detail || {}, icon },
-                                };
-                            });
+                    // A month grid can straddle two years (late Dec / early Jan).
+                    const years = new Set([
+                        fetchInfo.start.getFullYear(),
+                        new Date(fetchInfo.end.getTime() - 1).getFullYear(),
+                    ]);
+                    // fetchCalendarHolidays() drops a failed year from its cache,
+                    // so the refetch below really goes back to the network.
+                    Promise.all([...years].map(fetchCalendarHolidays))
+                        .then((lists) => {
                             calendarRetryAttempted = false;
                             clearCalendarLoadError();
-                            successCallback(withExtendedProps);
+                            successCallback(lists.flat());
                         })
-                        .catch(e => {
+                        .catch((e) => {
                             if (!calendarRetryAttempted) {
                                 calendarRetryAttempted = true;
                                 window.setTimeout(() => holidaysCalendar?.refetchEvents(), 3000);
@@ -11827,6 +12217,13 @@
                 },
                 datesSet: function (info) {
                     window.ShelahCalendarDetail?.close({ immediate: true });
+                    markCalendarDayKinds();
+                    // Near a year boundary, warm the neighbouring year so paging
+                    // across Dec/Jan is a cache hit too.
+                    const shown = info.view.currentStart;
+                    const neighbour = shown.getMonth() === 0 ? shown.getFullYear() - 1
+                        : shown.getMonth() >= 10 ? shown.getFullYear() + 1 : null;
+                    if (neighbour) fetchCalendarHolidays(neighbour).catch(() => {});
                     if (_calendarDidMount && window.ShelahMotion) {
                         const harness = calendarEl.querySelector('.fc-view-harness');
                         if (harness) window.ShelahMotion.animateIn(harness, { y: 6 });
@@ -11845,6 +12242,8 @@
                 },
                 // Events arrive asynchronously; refresh the agenda when they land.
                 eventsSet: function () {
+                    computeCalendarDayKinds();
+                    markCalendarDayKinds();
                     if (calendarSelectedKey) renderCalendarAgenda();
                 },
                 dateClick: function (info) {
@@ -11866,18 +12265,21 @@
                 eventDidMount: function (info) {
                     info.el.title = translateHolidayName(info.event.title);
                     const icon = calendarIconEl(info.event.extendedProps.icon);
-                    const slot = info.el.querySelector('.fc-event-title') || info.el.querySelector('.fc-event-main-frame');
+                    // eventContent above replaces FullCalendar's inner markup (no
+                    // .fc-event-title / -main-frame), so fall back to .fc-event-main.
+                    const slot = info.el.querySelector('.fc-event-title, .fc-event-main-frame, .fc-event-main');
                     if (icon && slot) slot.prepend(icon);
                 },
                 dayCellDidMount: function (info) {
                     if (calendarSelectedKey && info.el.dataset.date === calendarSelectedKey) {
                         info.el.classList.add('cal-day-selected');
                     }
+                    applyCalendarDayKind(info.el);
                 },
                 // Backend sends a fixed inline `color` per event (theme-agnostic) plus
                 // a `category`; deriving a class from category lets dark-mode CSS
                 // recolor events per-category instead of flattening them all to one gray.
-                eventClassNames: (arg) => [`cal-cat-${arg.event.extendedProps.category || 'default'}`],
+                eventClassNames: (arg) => [`cal-cat-${calendarVisualCategory(arg.event.extendedProps)}`],
                 eventColor: '#002147',
                 dayMaxEvents: true,
                 height: 'auto'
@@ -11887,23 +12289,24 @@
 
         window.openCalendarModal = function () {
             const modal = document.getElementById('calendarModal');
+            const card = modal.querySelector(':scope > div');
+            prefetchCalendar();
             // Un-hidden before showModal() so focus can move into the dialog.
             modal.classList.remove('hidden');
             modal.showModal();
-            ensureCalendarReady();
-            if (calendarSelectedKey) renderCalendarAgenda(); // re-localise if the language changed
             const calScroller = modal.querySelector('.overflow-y-auto');
             if (calScroller) calScroller.scrollTop = 0; // reopen at the top, not wherever it was closed
-            // FullCalendar sizes its tables from getBoundingClientRect(), and the
-            // card's entrance starts scaled down (desktop) / shifted (phones), so a
-            // measurement taken while it plays is a few % too narrow and leaves a
-            // dead strip beside the last column. Re-measure once it has settled.
-            const resizeCalendar = () => {
-                if (holidaysCalendar) holidaysCalendar.updateSize();
-            };
-            setTimeout(resizeCalendar, 80);
+            // FullCalendar sizes its tables from getBoundingClientRect(), so it
+            // must measure the card at rest -- before the entrance puts a scale
+            // on it. Measuring mid-entrance (the old 80ms timer) left the grid
+            // a fraction of the card's width until something else re-laid it out.
+            if (card) card.style.transform = 'none';
+            ensureCalendarReady();
+            holidaysCalendar?.updateSize();
+            markCalendarDayKinds();
+            if (calendarSelectedKey) renderCalendarAgenda(); // re-localise if the language changed
             // Fades in like every other window (modalMotion).
-            presentEl(modal, { ...modalMotion(modal), replay: true }).then(resizeCalendar);
+            presentEl(modal, { ...modalMotion(modal), replay: true }).then(() => holidaysCalendar?.updateSize());
         };
 
         window.closeCalendarModal = function () {

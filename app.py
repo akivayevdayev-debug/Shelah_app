@@ -722,8 +722,8 @@ def _holiday_color_for_category(category):
         "modern": "#2563eb",
         "fast": "#374151",
         "roshchodesh": "#35708c",
-        "shabbat": "#004e5f",
-        "parashat": "#004e5f",
+        "shabbat": "#04694a",
+        "parashat": "#04694a",
         "holiday": "#802f3e",
         "special": "#6b7280",
     }

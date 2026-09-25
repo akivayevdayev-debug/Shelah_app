@@ -154,6 +154,76 @@ body.theme-dark {
     font-weight: 700;
 }
 
+/* Shabbat / parashah days (green) and holidays (red). Classes come from
+   markCalendarDayKinds() in templates/index.html. The marker before the
+   number differs in SHAPE too -- a filled dot for a holiday, a ring for
+   Shabbat -- so the state never rests on colour alone; the legend in the
+   modal header uses the same two marks. */
+.fc .fc-daygrid-day.cal-day-shabbat {
+    background: color-mix(in srgb, var(--cal-day-shabbat-fg) 6%, var(--cal-cell-bg));
+}
+
+.fc .fc-daygrid-day.cal-day-holiday {
+    background: color-mix(in srgb, var(--cal-day-holiday-fg) 7%, var(--cal-cell-bg));
+}
+
+.fc .fc-daygrid-day.cal-day-shabbat:hover {
+    background: color-mix(in srgb, var(--cal-day-shabbat-fg) 11%, var(--cal-cell-bg));
+}
+
+.fc .fc-daygrid-day.cal-day-holiday:hover {
+    background: color-mix(in srgb, var(--cal-day-holiday-fg) 12%, var(--cal-cell-bg));
+}
+
+.fc .cal-day-shabbat .fc-daygrid-day-number { color: var(--cal-day-shabbat-fg); }
+.fc .cal-day-holiday .fc-daygrid-day-number { color: var(--cal-day-holiday-fg); }
+
+.fc .cal-day-shabbat .fc-daygrid-day-number::before,
+.fc .cal-day-holiday .fc-daygrid-day-number::before,
+.cal-legend-mark {
+    content: '';
+    display: inline-block;
+    flex-shrink: 0;
+    width: var(--sp-2);
+    height: var(--sp-2);
+    border-radius: 50%;
+    vertical-align: middle;
+}
+
+.fc .cal-day-shabbat .fc-daygrid-day-number::before,
+.fc .cal-day-holiday .fc-daygrid-day-number::before {
+    margin-inline-end: var(--sp-1);
+    transform: translateY(-1px);
+}
+
+/* style.css paints the dark day frame with --surface-base and forces the
+   day number cream with !important; the tint and colour have to win there. */
+:is([data-theme="dark"], body.theme-dark) .fc .cal-day-shabbat .fc-daygrid-day-frame {
+    background: color-mix(in srgb, var(--cal-day-shabbat-fg) 8%, var(--surface-base));
+}
+
+:is([data-theme="dark"], body.theme-dark) .fc .cal-day-holiday .fc-daygrid-day-frame {
+    background: color-mix(in srgb, var(--cal-day-holiday-fg) 9%, var(--surface-base));
+}
+
+:is([data-theme="dark"], body.theme-dark) .fc .cal-day-shabbat .fc-daygrid-day-number {
+    color: var(--cal-day-shabbat-fg) !important;
+}
+
+:is([data-theme="dark"], body.theme-dark) .fc .cal-day-holiday .fc-daygrid-day-number {
+    color: var(--cal-day-holiday-fg) !important;
+}
+
+.fc .cal-day-holiday .fc-daygrid-day-number::before,
+.cal-legend-mark--holiday {
+    background: var(--cal-day-holiday-fg);
+}
+
+.fc .cal-day-shabbat .fc-daygrid-day-number::before,
+.cal-legend-mark--shabbat {
+    box-shadow: inset 0 0 0 2px var(--cal-day-shabbat-fg);
+}
+
 /* Column headers (day names) */
 .fc .fc-col-header-cell-cushion {
     color: var(--cal-number-color);

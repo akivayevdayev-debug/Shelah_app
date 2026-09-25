@@ -571,6 +571,14 @@ html.rtl #hebrewDateDisplay {
     background: #fff;
 }
 
+/* Same 18px line box as the other top-bar buttons (Tailwind's text-xs,
+   which loads last, gave 16px, so this one sat 2px short). Its container is
+   flex (index.html) so the button isn't placed on a text baseline, which
+   dropped it ~1px below its neighbours. */
+.topbar-flat-btn.topbar-user-menu-btn {
+    line-height: 1.5;
+}
+
 .topbar-user-menu-btn:hover,
 .topbar-user-menu-btn:focus-visible {
     background: var(--control-bg-hover);
@@ -1713,7 +1721,7 @@ html.theme-dark::-webkit-scrollbar-thumb:hover,
     border-radius: 50%;
     border: 2px solid var(--range-thumb-border);
     background: var(--range-thumb-bg);
-    box-shadow: 0 2px 6px rgba(31, 63, 99, 0.28), 0 0 1px rgba(31, 63, 99, 0.4);
+    box-shadow: 0 1px 3px rgba(31, 63, 99, 0.26), 0 0 1px rgba(31, 63, 99, 0.4);
     cursor: pointer;
     /* Size, not transform: the press-grow is a layout-free size change on the thumb. */
     transition: width var(--motion-dur-fast, 150ms) ease-out, height var(--motion-dur-fast, 150ms) ease-out,
@@ -1740,7 +1748,7 @@ html.theme-dark::-webkit-scrollbar-thumb:hover,
     border-radius: 50%;
     border: 2px solid var(--range-thumb-border);
     background: var(--range-thumb-bg);
-    box-shadow: 0 2px 6px rgba(31, 63, 99, 0.28), 0 0 1px rgba(31, 63, 99, 0.4);
+    box-shadow: 0 1px 3px rgba(31, 63, 99, 0.26), 0 0 1px rgba(31, 63, 99, 0.4);
     cursor: pointer;
     transition: width var(--motion-dur-fast, 150ms) ease-out, height var(--motion-dur-fast, 150ms) ease-out;
 }
@@ -1943,7 +1951,14 @@ html.rtl #readerTopBar .reader-topbar-settings-label {
     border-bottom: 1px solid #d8cfbe !important;
     border-inline-start: 0 !important;
     border-inline-end: 0 !important;
-    background: rgba(249, 244, 234, 0.97) !important;
+    /* Very subtle translucency: the reader column scrolls underneath this
+       bar (#mainContainer's padding-top sits under it), so a ~93% surface
+       mix plus a soft blur lets the text shadow through without costing
+       legibility. Dark mode uses the same mix (reader.css). */
+    background: color-mix(in srgb, var(--surface-topbar) 93%, transparent) !important;
+    /* Slim bar: no vertical padding (overrides the py-1 utility); the track
+       sets the visual height and the buttons keep a 44px hit area. */
+    padding-block: 0;
     margin-top: 0;
     margin-bottom: 0;
     border-radius: 0 !important;
@@ -1959,8 +1974,8 @@ html.rtl #readerTopBar .reader-topbar-settings-label {
     width: calc(100% - var(--reader-topbar-left-gap, 0px) - var(--reader-topbar-right-gap, 0px));
     margin-left: var(--reader-topbar-left-gap, 0px);
     margin-right: var(--reader-topbar-right-gap, 0px);
-    -webkit-backdrop-filter: blur(4px);
-    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(12px) saturate(1.3);
+    backdrop-filter: blur(12px) saturate(1.3);
 }
 
 .reader-topbar-shell {
@@ -1981,6 +1996,17 @@ html.rtl #readerTopBar .reader-topbar-settings-label {
     display: flex;
     align-items: center;
     gap: 0.35rem;
+    /* Visual height of the reader bar (36px + 1px borders = 38px, was 54px).
+       syncReaderTopBarOffset() measures the bar, so #mainContainer's
+       padding and the sidebar offsets follow automatically. */
+    min-height: var(--reader-topbar-track-h, 2.25rem);
+}
+
+/* Buttons keep the full 44px hit area (ENGINEERING_RULES) but give back the
+   overhang with negative block margins, so they don't inflate the slim track;
+   the extra 4px of hit area simply extends past the track edges. */
+.reader-topbar-track .reader-topbar-icon-btn {
+    margin-block: calc((var(--reader-topbar-track-h, 2.25rem) - var(--hit-min, 44px)) / 2);
 }
 
 /* #readerTopBar is position: absolute and no longer reserves flow height
@@ -2400,14 +2426,16 @@ body.mobile-panel-open {
         inset-inline-start: 0;
         border-inline-end: 1px solid #e2e8f0;
         transform: translateX(-105%);
-        transition: transform var(--motion-dur-slow) var(--motion-ease-decel), box-shadow var(--motion-dur-slow) var(--motion-ease-out);
+        /* Same quick, overshoot-free settle as the menus/calendar (was 400ms
+           plus a box-shadow transition); transform only. */
+        transition: transform var(--motion-dur-base) var(--motion-ease-decel);
     }
 
     .mobile-drawer-right {
         inset-inline-end: 0;
         border-inline-start: 1px solid #e2e8f0;
         transform: translateX(105%);
-        transition: transform var(--motion-dur-slow) var(--motion-ease-decel), box-shadow var(--motion-dur-slow) var(--motion-ease-out);
+        transition: transform var(--motion-dur-base) var(--motion-ease-decel);
     }
 
     .mobile-drawer.mobile-open {
@@ -2944,7 +2972,7 @@ html.rtl .home-main-layout #popularTextsGrid {
         border-top: 1px solid #cbd5e1;
         border-radius: 1rem 1rem 0 0;
         transform: translateY(106%);
-        transition: transform var(--motion-dur-slow) var(--motion-ease-decel), box-shadow var(--motion-dur-slow) var(--motion-ease-out);
+        transition: transform var(--motion-dur-base) var(--motion-ease-decel);
         padding-bottom: max(1rem, env(safe-area-inset-bottom));
     }
 
