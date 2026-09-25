@@ -195,7 +195,15 @@
     /* ── Calendar event colors (by Hebcal category — must match
        backend/app.py's _holiday_color_for_category palette) ────────── */
     --cal-event-holiday:   #802f3e;
-    --cal-event-shabbat:   #004e5f;
+    /* Shabbat / parashah are green again (the consolidation pass turned them
+       teal). Derived from --accent-green; #04694a = 6.72:1 against the white
+       chip text. Kept in sync with app.py's palette. */
+    --cal-event-shabbat:   color-mix(in srgb, var(--accent-green) 70%, black);
+    /* Day-number tint for Shabbat/parashah and holiday cells (paired with a
+       marker glyph in calendar.css, so state is never colour-only).
+       6.29:1 / 8.2:1 on the cream cell. */
+    --cal-day-shabbat-fg:  var(--cal-event-shabbat);
+    --cal-day-holiday-fg:  var(--cal-event-holiday);
     /* Was #5a99b7: only 3.15:1 against the white event-chip text
        (textColor: "#ffffff" from the calendar API) — fails 4.5:1 AA.
        Darkened within the same blue family; now 5.46:1. Kept in sync
@@ -516,7 +524,12 @@ body.theme-dark {
        all failing 4.5:1 AA. Darkened within each hue family; now
        6.52/6.61/5.89/6.01:1 respectively. holiday (7.22:1), minor (5.53:1)
        and fast (5.87:1) already passed and are unchanged. */
-    --cal-event-shabbat:        #206676;
+    /* Green (not teal): 7.77:1 against the white chip text. The chip
+       reds/greens are too dark for day-number text on the dark cell
+       (≈2.4:1), so the day tints are lifted — ≥5.6:1 on #1c1c1c. */
+    --cal-event-shabbat:        color-mix(in srgb, var(--accent-green) 55%, black);
+    --cal-day-shabbat-fg:       var(--accent-green);
+    --cal-day-holiday-fg:       color-mix(in srgb, var(--cal-event-holiday) 60%, white);
     --cal-event-rh:             #27637f;
     --cal-event-minor:          #7a5aa0;
     --cal-event-modern:         #3a63ad;
@@ -718,7 +731,9 @@ body.theme-dark {
 
         /* ── Calendar ─────────────────────────────────────────────── */
         --cal-event-holiday:        #9c3040;
-        --cal-event-shabbat:        #206676;
+        --cal-event-shabbat:        color-mix(in srgb, var(--accent-green) 55%, black);
+        --cal-day-shabbat-fg:       var(--accent-green);
+        --cal-day-holiday-fg:       color-mix(in srgb, var(--cal-event-holiday) 60%, white);
         --cal-event-rh:             #27637f;
         --cal-event-minor:          #7a5aa0;
         --cal-event-modern:         #3a63ad;
