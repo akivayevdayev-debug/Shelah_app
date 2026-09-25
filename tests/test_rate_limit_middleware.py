@@ -187,6 +187,65 @@ class TestPrivacySensitiveRoutesGetAStricterPolicyThanCheap:
         assert over_limit.status_code == 429
 
 
+class TestConversationAskClassifiesAsLlm:
+    """/api/conversations/<id>/ask runs the same AI synthesis as /ask, but
+    its model-calling segment sits after a path parameter, so the prefix
+    table alone sent it to "cheap" (120/min, fail-open) -- an unmetered
+    model route. _ROUTE_PATTERNS carves it out ahead of the prefix table;
+    the conversation CRUD siblings stay "cheap" by explicit choice."""
+
+    def test_conversation_ask_is_llm(self):
+        for path in (
+            "/api/conversations/3f2b1c9e-0000-4000-8000-000000000001/ask",
+            "/api/conversations/abc/ask/",
+        ):
+            assert rate_limit.classify_route(path) == "llm"
+
+    def test_conversation_crud_routes_stay_cheap(self):
+        for path in (
+            "/api/conversations",
+            "/api/conversations/abc",
+            "/api/conversations/abc/messages",
+            # Not the ask route: extra segment after /ask, or /ask as the id.
+            "/api/conversations/abc/ask/extra",
+            "/api/conversations/ask",
+        ):
+            assert rate_limit.classify_route(path) == "cheap"
+
+    def test_conversation_ask_is_keyed_by_clerk_user_id(self):
+        route_class = rate_limit.classify_route("/api/conversations/abc/ask")
+        keyed = rate_limit._build_key(route_class, "203.0.113.94", "user-conv-key-test")
+        assert keyed == "rl:llm:user:user-conv-key-test"
+
+    async def test_conversation_ask_fails_closed_when_store_is_unavailable(self, fastapi_client, monkeypatch):
+        """End-to-end through RateLimitMiddleware: a store outage rejects the
+        request with 429 before it can reach the (unauthenticated -> 401)
+        Flask handler -- same fail-closed posture /ask gets."""
+        monkeypatch.setattr(rate_limit, "_store", _AlwaysUnavailableStore())
+        monkeypatch.setattr(rate_limit, "_capture_backend_error", lambda *a, **k: None)
+
+        response = await fastapi_client.post(
+            "/api/conversations/abc/ask",
+            json={"question": "What is Shabbat?"},
+            headers={"X-Forwarded-For": "198.51.100.211"},
+        )
+
+        assert response.status_code == 429
+        assert response.json()["code"] == "rate_limited"
+
+    async def test_conversation_list_fails_open_when_store_is_unavailable(self, fastapi_client, monkeypatch):
+        """Contrast case: the CRUD routes are "cheap" (fail-open), so the same
+        outage lets the request through to the route's own 401."""
+        monkeypatch.setattr(rate_limit, "_store", _AlwaysUnavailableStore())
+        monkeypatch.setattr(rate_limit, "_capture_backend_error", lambda *a, **k: None)
+
+        response = await fastapi_client.get(
+            "/api/conversations", headers={"X-Forwarded-For": "198.51.100.212"},
+        )
+
+        assert response.status_code == 401
+
+
 class _DownRedisClient:
     """A redis.asyncio client double for an unreachable server; counts every
     command so a test can prove the circuit breaker kept requests off it."""

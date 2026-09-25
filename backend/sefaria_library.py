@@ -1724,10 +1724,18 @@ def _group_links_by_category(links):
     for link in links:
         link_type = link.get("type", "Other")
         category = link.get("category", link_type)
+        # /related names the Hebrew ref "sourceHeRef"; collectiveTitle is the
+        # work's short name ("Rashi" / "רש\"י") the UI groups and labels by.
+        collective = link.get("collectiveTitle")
+        collective = collective if isinstance(collective, dict) else {}
         grouped.setdefault(category, []).append({
             "ref": link.get("ref", ""),
-            "heRef": link.get("heRef", ""),
-            "anchorRef": link.get("anchorRef", "")
+            "heRef": link.get("heRef") or link.get("sourceHeRef", ""),
+            "anchorRef": link.get("anchorRef", ""),
+            "collectiveTitle": {
+                "en": str(collective.get("en") or ""),
+                "he": str(collective.get("he") or ""),
+            },
         })
     return grouped
 
@@ -1795,6 +1803,7 @@ def _ensure_rashi_commentary_link(grouped, ref, book, chapter, verse):
         "ref": rashi_ref,
         "heRef": "",
         "anchorRef": str(ref or ""),
+        "collectiveTitle": {"en": "Rashi", "he": "רש\"י"},
     })
 
 
