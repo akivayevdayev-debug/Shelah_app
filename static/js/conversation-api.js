@@ -197,10 +197,15 @@ export function getConversation(id) {
 
 // `minhag` is locked into the thread here and never editable afterwards
 // (routes_conversations.create_conversation); "All"/blank means no lens.
-export function createConversation({ minhag = null } = {}) {
+// `fromHistoryId` continues one of the caller's own search-bar answers: the
+// server copies it in as the first turn, locks the thread to that answer's
+// community (ignoring `minhag`) and returns the turns as `messages`.
+export function createConversation({ minhag = null, fromHistoryId = null } = {}) {
+    const body = { minhag: minhag || null };
+    if (fromHistoryId) body.from_history_id = String(fromHistoryId);
     return request("/api/conversations", {
         method: "POST",
-        body: { minhag: minhag || null },
+        body,
         retry: false,
     });
 }

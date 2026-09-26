@@ -6,7 +6,7 @@
 
 /* Smooth sidebar tab transitions */
 .sidebar-show-tab {
-    transition: opacity var(--motion-dur-fast) var(--motion-ease-out), box-shadow var(--motion-dur-fast) var(--motion-ease-out), background var(--motion-dur-fast) var(--motion-ease-out);
+    transition: opacity var(--motion-dur-fast) var(--motion-ease-out), background var(--motion-dur-fast) var(--motion-ease-out);
 }
 
 /* Mobile drawer: base state (hidden) */
@@ -62,6 +62,7 @@ details>summary .group-open\:rotate-90 {
 }
 
 #loadingOverlay .font-hebrew {
+    filter: drop-shadow(0 0 10px rgba(201, 168, 78, 0.4));
     animation: shelah-warm-pulse 1.6s ease-in-out infinite !important;
 }
 

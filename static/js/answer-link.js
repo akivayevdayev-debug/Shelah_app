@@ -1,5 +1,5 @@
-// "Copy link" for a stored AI answer: in the #aiAssistantModal footer and at
-// the bottom of the full-article view (#readerAnswerLink).
+// "Copy link" for a stored AI answer: in the action row of the conversation
+// panel's answer turn (#convAnswerLink, moved there by conversation-ui.js).
 //
 // The default link is the owner's private deep link, `/answer/<ask_history id>`
 // (router.js `chat` key, hydrated by index.html's hydrateChatId): it opens the
@@ -12,8 +12,8 @@
 // signed-out answers never do -- so the control stays hidden for them.
 //
 // The markup lives in templates/index.html so the icons can come from the
-// phosphor() macro; this module only wires it. main.js installs one
-// controller per placement (window.ShelahAnswerLink.modal / .article).
+// phosphor() macro; this module only wires it. main.js installs the one
+// controller, window.ShelahAnswerLink.panel.
 
 const COPIED_MS = 1600;
 

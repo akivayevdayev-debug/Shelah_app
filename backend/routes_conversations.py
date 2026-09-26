@@ -32,6 +32,7 @@ UI, sidebar, search, and sharing are later steps and not implemented here.
 from __future__ import annotations
 
 import math
+import re
 import uuid
 from datetime import datetime, timedelta, timezone
 
@@ -53,6 +54,7 @@ from backend.helpers import (
 
 from app import (
     STRICT_SUPABASE_RLS,
+    SUPABASE_ASK_HISTORY_TABLE,
     SUPABASE_CONVERSATIONS_TABLE,
     SUPABASE_MESSAGES_TABLE,
     SUPABASE_CITATIONS_TABLE,
@@ -81,6 +83,12 @@ _VALID_STATUSES = ("streaming", "complete", "stopped", "error")
 _MAX_HISTORY_MESSAGES = 20
 _AUTO_TITLE_MAX_LEN = 80
 _CONVERSATION_HEADER_COLUMNS = "id,title,title_is_custom,minhag,pinned_at,created_at,updated_at"
+_HISTORY_ID_RE = re.compile(r"^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$", re.I)
+# A search-bar answer names each cited source "Ref — note" (the prompt's em
+# dash separator; static/js/conversation-store.js answerCitations splits it
+# the same way and shows at most six).
+_CITED_SOURCE_RE = re.compile(r"^(.*?)\s[–—]\s(.*)$", re.S)
+_MAX_SEED_CITATIONS = 6
 _AI_PAUSED_MESSAGE = "AI answers are paused for today. Please try again after midnight UTC."
 
 
@@ -159,9 +167,21 @@ def create_conversation():
     payload = request.get_json(silent=True) or {}
     minhag = str(payload.get("minhag") or "").strip()[:80] or None
 
+    # `from_history_id`: continue a search-bar answer (one of the caller's own
+    # ask_history rows) as a thread. Its question and answer become the first
+    # turn, read from the stored row -- never from the request -- and the
+    # thread is locked to the community that answer used.
+    seed = None
+    from_history_id = payload.get("from_history_id")
+    if from_history_id is not None:
+        seed = _load_history_seed(user_id, from_history_id)
+        if seed is None:
+            return jsonify({"error": _ERR_NOT_FOUND}), 404
+        minhag = seed["minhag"]
+
     record = {
         "user_id": user_id,
-        "title": "",
+        "title": _derive_title(seed["question"]) if seed else "",
         "title_is_custom": False,
         "minhag": minhag,
     }
@@ -170,10 +190,115 @@ def create_conversation():
         rows = result.data or []
         if not rows:
             return jsonify({"error": "Failed to create conversation"}), 500
-        return jsonify(rows[0]), 201
+        conversation = rows[0]
     except Exception as e:
         _capture_backend_error("conversation_create_failed", e, {"user_id_hash": hash_user_id(user_id)})
         return jsonify({"error": "Failed to create conversation"}), 500
+
+    if not seed:
+        return jsonify(conversation), 201
+    try:
+        conversation["messages"] = _insert_seed_turns(supabase, conversation["id"], seed)
+    except Exception as e:
+        # A thread missing its first answer would send the follow-up with no
+        # context: remove it rather than leave it half-made.
+        _capture_backend_error("conversation_seed_failed", e, {"user_id_hash": hash_user_id(user_id)})
+        _discard_conversation(supabase, conversation["id"], user_id)
+        return jsonify({"error": "Failed to create conversation"}), 500
+    return jsonify(conversation), 201
+
+
+def _load_history_seed(user_id, entry_id):
+    """The caller's own ask_history row as a thread's first turn, or None
+    when the id is malformed, not theirs, has no answer, or can't be read.
+    Read with the service client and the caller's user_id, the same way
+    routes_user.get_ask_history_entry() reads it."""
+    entry_id = str(entry_id or "").strip()
+    if not _HISTORY_ID_RE.match(entry_id):
+        return None
+    supabase = _get_supabase_client()
+    if not supabase:
+        return None
+    try:
+        result = (
+            supabase
+            .table(SUPABASE_ASK_HISTORY_TABLE)
+            .select("id,question,answer,ai_cited_sources,community")
+            .eq("id", entry_id)
+            .eq("user_id", user_id)
+            .limit(1)
+            .execute()
+        )
+    except Exception as e:
+        _capture_backend_error("conversation_seed_lookup_failed", e, {"user_id_hash": hash_user_id(user_id)})
+        return None
+    rows = result.data or []
+    if not rows:
+        return None
+    row = rows[0]
+    question = str(row.get("question") or "").strip()
+    answer = str(row.get("answer") or "").strip()
+    if not question or not answer:
+        return None
+    community = str(row.get("community") or "").strip()[:80]
+    return {
+        "question": question,
+        "answer": answer,
+        "citations": _seed_citations(row.get("ai_cited_sources")),
+        "minhag": community if community and community.lower() != "all" else None,
+    }
+
+
+def _seed_citations(ai_cited_sources):
+    """ask_history's "Ref — note" strings as citation rows (ref + the note as
+    its English excerpt), de-duplicated by ref and capped like the modal."""
+    citations = []
+    seen = set()
+    for raw in ai_cited_sources if isinstance(ai_cited_sources, list) else []:
+        text = str(raw or "").strip()
+        match = _CITED_SOURCE_RE.match(text)
+        ref, note = (match.group(1).strip(), match.group(2).strip()) if match else (text, "")
+        if not ref or ref.lower() in seen:
+            continue
+        seen.add(ref.lower())
+        citations.append({"source_ref": ref, "excerpt_en": note or None})
+        if len(citations) >= _MAX_SEED_CITATIONS:
+            break
+    return citations
+
+
+def _insert_seed_turns(supabase, conversation_id, seed):
+    """Write the seed's question and answer as two complete turns, one insert
+    each so their created_at values keep them in order. Returns them in
+    get_conversation()'s message shape."""
+    turns = []
+    for role, content in (("user", seed["question"]), ("assistant", seed["answer"])):
+        result = supabase.table(SUPABASE_MESSAGES_TABLE).insert({
+            "conversation_id": str(conversation_id),
+            "role": role,
+            "content": content,
+            "status": "complete",
+        }).execute()
+        rows = result.data or []
+        if not rows:
+            raise RuntimeError(f"seed {role} turn was not saved")
+        message = rows[0]
+        message["citations"] = (
+            _insert_message_citations(supabase, message["id"], seed["citations"])
+            if role == "assistant" else []
+        )
+        turns.append(message)
+    return turns
+
+
+def _discard_conversation(supabase, conversation_id, user_id):
+    """Best-effort hard delete of a thread this request just created (its
+    messages and citations cascade)."""
+    try:
+        supabase.table(SUPABASE_CONVERSATIONS_TABLE).delete().eq(
+            "id", str(conversation_id)).eq("user_id", user_id).execute()
+    except Exception as e:
+        _capture_backend_error("conversation_seed_cleanup_failed", e, {"user_id_hash": hash_user_id(user_id)})
 
 
 @routes_conversations.route("/api/conversations", methods=["GET"])

@@ -11,6 +11,25 @@ const test = require('node:test');
 const assert = require('node:assert/strict');
 const ref = require('../static/js/hebrew-ref.js');
 
+test('hebrewDate writes the header date from pyluach or Intl month spellings', () => {
+    assert.equal(ref.hebrewDate(15, 'Tishrei', 5787), 'ט״ו בתשרי תשפ״ז');
+    assert.equal(ref.hebrewDate('15', 'Tishri', '5787'), 'ט״ו בתשרי תשפ״ז');
+    assert.equal(ref.hebrewDate(3, 'Teves', 5787), 'ג׳ בטבת תשפ״ז');
+    assert.equal(ref.hebrewDate(3, 'Tevet', 5787), 'ג׳ בטבת תשפ״ז');
+    assert.equal(ref.hebrewDate(14, 'Adar 2', 5784), 'י״ד באדר ב׳ תשפ״ד');
+    assert.equal(ref.hebrewDate(14, 'Adar I', 5784), 'י״ד באדר א׳ תשפ״ד');
+    assert.equal(ref.hebrewDate(1, 'Nissan', 5787), 'א׳ בניסן תשפ״ז');
+    // An unknown month name passes through rather than vanishing.
+    assert.equal(ref.hebrewDate(1, 'Mystery', 5787), 'א׳ בMystery תשפ״ז');
+});
+
+test('HEBREW_MONTHS covers every month name pyluach returns', () => {
+    for (const name of ['Tishrei', 'Cheshvan', 'Kislev', 'Teves', 'Shevat', 'Adar', 'Adar 1', 'Adar 2',
+        'Nissan', 'Iyar', 'Sivan', 'Tammuz', 'Av', 'Elul']) {
+        assert.ok(ref.HEBREW_MONTHS[name], name);
+    }
+});
+
 test('hebrewNumeral writes gematria with geresh / gershayim', () => {
     assert.equal(ref.hebrewNumeral(1), 'א׳');
     assert.equal(ref.hebrewNumeral(5), 'ה׳');

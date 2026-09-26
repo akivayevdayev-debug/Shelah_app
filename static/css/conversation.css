@@ -2,14 +2,18 @@
    CONVERSATION UI — multi-turn "Ask Sh'elah" (design artifact
    "Conversation UI Placement Options"). Markup: templates/index.html
    (#convPanel, #convPip, #convHistoryPop, #mobileSearchTray, #topbarAskBtn,
-   #aiDiscoveryTip, and the single-answer modal's #aiMiniBar);
-   behaviour: static/js/conversation-ui.js.
+   #aiDiscoveryTip); behaviour: static/js/conversation-ui.js. Search-bar
+   answers (/ask) open in this same panel as its first turn.
 
    One panel element, several sizes, driven by two attributes:
      data-size   = overlay | full | mini
      data-layout = desktop | mobile   (< 1024px, isMobileViewport())
    Mobile overlay renders as a bottom sheet; mobile mini hides the panel and
    shows #convPip instead.
+
+   One accent (--accent-primary) carries every filled control and active
+   state; everything else is ink on the house surfaces. Motion is transform
+   and opacity only, on --conv-ease, with a reduced-motion fallback below.
 
    Colours come only from tokens.css (derived with color-mix where a tint is
    needed), spacing from --sp-*, type from the clamp() --text-* scale. Logical
@@ -21,43 +25,45 @@
 
 :root {
     --conv-bubble-bg: color-mix(in srgb, var(--accent-primary) 9%, var(--surface-1));
-    --conv-send-bg: linear-gradient(135deg, var(--accent-primary), color-mix(in srgb, var(--accent-primary) 70%, var(--accent-gold)));
+    --conv-send-bg: var(--accent-primary);
     --conv-panel-bg: var(--surface-1);
     --conv-hairline: var(--surface-border);
     --conv-z-scrim: 210;
     --conv-z-panel: 220;
     --conv-z-pop: 240;
     --conv-z-mini: 190;
-    --conv-z-bar: 97; /* just above #mobileBottomTabs (96) */
-    /* Text-safe accents (WCAG AA >= 4.5:1 on the panel, measured): raw
-       --accent-gold is 1.8:1 on cream, and raw --accent-red 3.9:1 on the
-       dark panel, so each theme mixes toward its heading ink. */
-    --conv-label: color-mix(in srgb, var(--accent-gold) 45%, var(--ink-heading));
+    /* Just BELOW #mobileBottomTabs (96): the phone's minimised bar and the
+       search tray dock above the tab bar and slide in from behind it, not
+       across it (motion.js "drawer" travels them off the bottom edge). */
+    --conv-z-bar: 95;
+    /* Strong ease-out for entrances and presses. */
+    --conv-ease: cubic-bezier(0.23, 1, 0.32, 1);
+    /* Text-safe danger: --accent-red clears WCAG AA 4.5:1 on the panel in
+       both themes, so it is used as is. */
+    --conv-label: var(--ink-secondary);
     --conv-danger: var(--accent-red);
     /* Text on filled accent: --ink-on-accent is only 3.1:1 on the dark
        theme's lighter --accent-primary, so dark flips to the page ink. */
     --conv-on-accent: var(--ink-on-accent);
     /* Hover on filled AI buttons: a shade darker. The dark theme's fills are
        already light with dark text, so there the shade goes the other way
-       (darkening would pull the label under 4.5:1). */
-    --conv-fill-hover: brightness(0.9);
+       (darkening would pull the label under 4.5:1). A layer colour laid
+       over the fill (see .ai-tip__try below): black at 10% is the old
+       brightness(0.9); white at 13% matches brightness(1.12)'s luminance. */
+    --conv-fill-hover: rgb(0 0 0 / 0.1);
 }
 
 [data-theme="dark"],
 html.theme-dark,
 body.theme-dark {
-    --conv-label: var(--accent-gold);
-    --conv-danger: color-mix(in srgb, var(--accent-red) 60%, var(--ink-heading));
     --conv-on-accent: var(--surface-0);
-    --conv-fill-hover: brightness(1.12);
+    --conv-fill-hover: rgb(255 255 255 / 0.13);
 }
 @media (prefers-color-scheme: dark) {
     :root:not([data-theme="light"]) {
-        --conv-label: var(--accent-gold);
-        --conv-danger: color-mix(in srgb, var(--accent-red) 60%, var(--ink-heading));
         --conv-on-accent: var(--surface-0);
-        --conv-fill-hover: brightness(1.12);
-        }
+        --conv-fill-hover: rgb(255 255 255 / 0.13);
+    }
 }
 
 /* ── Scrim ───────────────────────────────────────────────────────── */
@@ -189,15 +195,13 @@ body.conv-modal-open {
 .conv-new-btn:hover,
 .conv-pop__new:hover { background: var(--ctrl-bg-hover); }
 .conv-new-btn:active,
-.conv-pop__new:active { transform: scale(0.98); }
+.conv-pop__new:active { transform: scale(0.97); }
 
 .conv-eyebrow {
     margin: 0;
     padding-inline: var(--sp-2);
-    font-size: var(--text-xs);
-    font-weight: 700;
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
+    font-size: var(--text-sm);
+    font-weight: 600;
     color: var(--ink-secondary);
 }
 
@@ -383,15 +387,15 @@ body.conv-modal-open {
     background: var(--ctrl-bg-hover);
     color: var(--ink-primary);
 }
-.conv-icon-btn:active { transform: scale(0.94); }
+.conv-icon-btn:active { transform: scale(0.97); }
 .conv-icon-btn[aria-expanded="true"] {
     background: var(--ctrl-bg-hover);
     color: var(--accent-primary);
 }
 
-:is(.conv-icon-btn, .conv-new-btn, .conv-pop__new, .conv-list__item, .conv-chip, .conv-send,
+:is(.conv-icon-btn, .conv-new-btn, .conv-pop__new, .conv-list__item, .conv-send,
     .conv-mode-opt, .conv-menu__item, .conv-link-btn, .conv-jump, .conv-turn__retry,
-    .topbar-ask-btn, .ai-tip__try, .ai-tip__dismiss, .ai-mini-bar__open, .ai-mini-bar__close,
+    .topbar-ask-btn, .ai-tip__try, .ai-tip__dismiss, .conv-signin-follow__btn,
     .conv-source-card__preview > summary, .mobile-search-tray__ask, .conv-pip__open, .conv-cite a,
     .conv-sources__summary, .conv-select):focus-visible {
     outline: 2px solid var(--accent-primary);
@@ -400,25 +404,25 @@ body.conv-modal-open {
 
 /* Which header controls each size shows (design, per surface):
      overlay desktop — history, menu, pop-out, full page, close
-     full desktop    — minhag chip, menu, theme, collapse, close
+     full desktop    — settings (with community label), theme, collapse, close
      mini desktop    — grip, dot, expand, close
      sheet (mobile)  — history, menu (kebab), minimise, close
-     full (mobile)   — history, minhag chip, menu (kebab), close */
+     full (mobile)   — history, settings (with community label), close */
 .conv-only-full-desktop,
 .conv-only-overlay-desktop,
 .conv-only-expand,
 .conv-only-mobile,
 .conv-icon--mobile,
-.conv-chip { display: none; }
+.conv-menu-btn__minhag { display: none; }
 /* Scoped under the panel so the menu rows' own display rule can't win. */
 .conv-panel .conv-only-mobile-overlay,
 .conv-panel .conv-only-mobile-full { display: none; }
 
-.conv-panel[data-layout="desktop"][data-size="full"] :is(.conv-only-full-desktop, .conv-chip),
+.conv-panel[data-layout="desktop"][data-size="full"] :is(.conv-only-full-desktop, .conv-menu-btn__minhag),
 .conv-panel[data-layout="desktop"][data-size="overlay"] :is(.conv-only-overlay-desktop, .conv-only-expand),
 .conv-panel[data-layout="desktop"][data-size="mini"] .conv-only-expand,
 .conv-panel[data-layout="mobile"][data-size="overlay"] .conv-only-mobile,
-.conv-panel[data-layout="mobile"][data-size="full"] .conv-chip {
+.conv-panel[data-layout="mobile"][data-size="full"] .conv-menu-btn__minhag {
     display: inline-flex;
 }
 .conv-panel[data-layout="mobile"][data-size="overlay"] .conv-only-mobile-overlay,
@@ -429,32 +433,30 @@ body.conv-modal-open {
 .conv-panel[data-layout="mobile"] .conv-icon--mobile { display: inline-flex; }
 .conv-icon--desktop { display: inline-flex; }
 
-.conv-panel[data-size="mini"] :is(#convHistoryBtn, .conv-menu-wrap),
+.conv-panel[data-size="mini"] .conv-menu-wrap,
 .conv-panel[data-layout="desktop"][data-size="full"] #convHistoryBtn {
     display: none;
 }
 
-/* Minhag lock chip. */
-.conv-chip {
+/* Full page: the settings button grows into a pill that also names the
+   community, so one control carries both (no separate minhag chip). */
+.conv-menu-btn__minhag {
     align-items: center;
     gap: var(--sp-1);
-    min-height: 32px;
-    padding: var(--sp-1) var(--sp-3);
-    border-radius: var(--radius-full);
-    border: 1px solid color-mix(in srgb, var(--accent-gold) 45%, var(--conv-hairline));
-    background: color-mix(in srgb, var(--accent-gold) 12%, transparent);
-    color: var(--ink-primary);
     font-size: var(--text-xs);
     font-weight: 600;
-    cursor: pointer;
-    position: relative;
+    color: var(--ink-primary);
+    white-space: nowrap;
 }
-/* Keep a 44px hit area around the 32px pill. */
-.conv-chip::after {
-    content: '';
-    position: absolute;
-    inset: -6px 0;
+.conv-panel[data-size="full"] .conv-menu-btn {
+    width: auto;
+    gap: var(--sp-2);
+    padding-inline: var(--sp-3);
+    border: 1px solid var(--ctrl-border);
+    background: var(--ctrl-bg);
 }
+.conv-panel[data-size="full"] .conv-menu-btn:hover { background: var(--ctrl-bg-hover); }
+.conv-menu-btn:not([data-locked="true"]) .conv-menu-btn__minhag > svg { display: none; }
 
 /* ── Settings menu ───────────────────────────────────────────────── */
 .conv-menu-wrap { position: relative; }
@@ -549,7 +551,6 @@ body.conv-modal-open {
     padding: var(--sp-2) var(--sp-4);
     font-size: var(--text-xs);
     color: var(--ink-secondary);
-    background: color-mix(in srgb, var(--accent-gold) 7%, transparent);
     border-bottom: 1px solid var(--conv-hairline);
     text-align: center;
 }
@@ -697,17 +698,10 @@ body.conv-modal-open {
     border: 1px dashed var(--conv-danger);
 }
 
-.conv-turn__label {
-    margin: 0;
-    font-size: var(--text-xs);
-    font-weight: 700;
-    letter-spacing: 0.1em;
-    text-transform: uppercase;
-    color: var(--conv-label);
-}
 .conv-answer {
+    max-width: 68ch;
     color: var(--ink-primary);
-    line-height: 1.65;
+    line-height: 1.7;
     overflow-wrap: anywhere;
     font-family: var(--font-serif);
     font-size: var(--text-md);
@@ -720,11 +714,26 @@ body.conv-modal-open {
 .conv-answer ul { list-style: disc; }
 .conv-answer ol { list-style: decimal; }
 .conv-answer :is(h1, h2, h3, h4) {
-    margin-block: var(--sp-4) var(--sp-2);
+    margin-block: var(--sp-6) var(--sp-2);
     font-size: var(--text-md);
+    line-height: 1.35;
+    letter-spacing: -0.005em;
     color: var(--ink-heading);
 }
-.conv-answer a { color: var(--accent-primary); text-decoration: underline; }
+.conv-answer li + li { margin-top: var(--sp-1); }
+.conv-answer blockquote {
+    margin: 0 0 var(--sp-3);
+    padding-inline-start: var(--sp-4);
+    border-inline-start: 2px solid var(--conv-hairline);
+    color: var(--ink-secondary);
+}
+.conv-answer a {
+    color: var(--accent-primary);
+    text-decoration: underline;
+    text-decoration-color: color-mix(in srgb, var(--accent-primary) 45%, transparent);
+    text-underline-offset: 3px;
+}
+.conv-answer a:hover { text-decoration-color: currentColor; }
 .conv-answer strong { color: var(--ink-heading); }
 
 .conv-turn__skel { height: 14px; width: 90%; }
@@ -756,6 +765,90 @@ body.conv-modal-open {
     cursor: pointer;
 }
 .conv-turn__retry:hover { background: var(--ctrl-bg-hover); }
+.conv-turn__retry:active { transform: scale(0.97); }
+
+/* Safety banner inside an answer turn: only the referral / breaker-paused
+   variants render (conversation-ui.js decorateAnswerTurn). */
+.conv-turn__banner { margin: 0; }
+.conv-turn__banner:empty { display: none; }
+
+/* Community customs under a search-bar answer: a quiet list set off by a
+   rule, not a stack of tinted cards. */
+.conv-customs {
+    display: flex;
+    flex-direction: column;
+    gap: var(--sp-2);
+    margin-top: var(--sp-2);
+    padding-top: var(--sp-3);
+    border-top: 1px solid var(--conv-hairline);
+}
+.conv-customs__title {
+    margin: 0;
+    font-size: var(--text-sm);
+    font-weight: 600;
+    color: var(--ink-secondary);
+}
+.conv-customs ul {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: var(--sp-3);
+}
+.conv-custom {
+    display: flex;
+    flex-direction: column;
+    gap: var(--sp-1);
+    padding-inline-start: var(--sp-3);
+    border-inline-start: 2px solid color-mix(in srgb, var(--accent-primary) 35%, var(--conv-hairline));
+}
+.conv-custom__name {
+    font-size: var(--text-sm);
+    font-weight: 700;
+    color: var(--ink-heading);
+}
+.conv-custom__text {
+    margin: 0;
+    font-size: var(--text-sm);
+    line-height: 1.6;
+    color: var(--ink-primary);
+}
+
+/* Feedback + Copy link under an answer. */
+.conv-turn__actions {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: var(--sp-2) var(--sp-4);
+    margin-top: var(--sp-1);
+}
+.conv-turn__feedback { flex: 1 1 16rem; min-width: 0; }
+.conv-turn__feedback:empty { display: none; }
+.conv-turn__actions > .answer-link {
+    flex: 0 1 auto;
+    justify-content: flex-end;
+    margin-inline-start: auto;
+}
+.conv-turn__actions .answer-feedback { margin: 0; }
+.conv-turn__actions:not(:has(.answer-feedback, .answer-link:not(.hidden))) { display: none; }
+
+/* An answer replacing its skeleton reveals block by block. */
+.conv-turn--reveal .conv-answer > *,
+.conv-turn--reveal :is(.conv-customs, .conv-cites, .conv-turn__actions) {
+    animation: conv-rise 360ms var(--conv-ease) both;
+}
+.conv-turn--reveal .conv-answer > :nth-child(2) { animation-delay: 40ms; }
+.conv-turn--reveal .conv-answer > :nth-child(3) { animation-delay: 80ms; }
+.conv-turn--reveal .conv-answer > :nth-child(4) { animation-delay: 120ms; }
+.conv-turn--reveal .conv-answer > :nth-child(n + 5),
+.conv-turn--reveal :is(.conv-customs, .conv-cites) { animation-delay: 160ms; }
+.conv-turn--reveal .conv-turn__actions { animation-delay: 220ms; }
+@keyframes conv-rise {
+    from { opacity: 0; transform: translateY(6px); }
+    to { opacity: 1; transform: none; }
+}
 
 /* Citations. */
 .conv-cites {
@@ -849,7 +942,7 @@ body.conv-modal-open {
         transform var(--motion-dur-fast) var(--motion-ease-out);
 }
 .conv-jump:hover { background: var(--ctrl-bg-hover); }
-.conv-jump:active { transform: scale(0.94); }
+.conv-jump:active { transform: scale(0.97); }
 
 /* ── Notice (errors, delete-undo) ────────────────────────────────── */
 .conv-notice {
@@ -1059,18 +1152,16 @@ body.conv-modal-open {
 }
 /* 44px hit area around the 36px disc. */
 .conv-send::after { content: ''; position: absolute; inset: -4px; }
-.conv-send { transition: transform var(--motion-dur-fast) var(--motion-ease-out),
-    opacity var(--motion-dur-fast) var(--motion-ease-out), filter var(--motion-dur-fast) var(--motion-ease-out); }
-.conv-send:hover:not(:disabled) { transform: translateY(-1px); filter: var(--conv-fill-hover); }
-.conv-send:active { transform: scale(0.94); }
+.conv-send:active:not(:disabled) { transform: scale(0.97); }
 .conv-send:disabled {
     cursor: not-allowed;
     opacity: 0.45;
     transform: none;
 }
 
-/* Halo behind the composer while an answer is in flight (same material as
-   the search bar's .search-liftoff-underlay in ai.css). */
+/* Halo behind the composer while an answer is in flight: the gold/blue
+   gradient orbiting the search bar (.search-liftoff-underlay in ai.css),
+   same material, so the question visibly carries over into the panel. */
 .conv-halo {
     position: absolute;
     inset: calc(-1 * var(--sp-1));
@@ -1105,6 +1196,44 @@ body.conv-modal-open {
 }
 .conv-panel[data-size="mini"] .conv-disclaimer { display: none; }
 
+/* Signed out, under a search-bar answer: in place of the composer. */
+.conv-signin-follow {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--sp-2) var(--sp-3);
+    margin: 0;
+    padding: var(--sp-1) var(--sp-1) var(--sp-1) var(--sp-4);
+    border: 1px solid var(--ctrl-border);
+    border-radius: var(--radius-full);
+    background: var(--surface-1);
+    animation: conv-rise 280ms var(--conv-ease) both;
+}
+[dir="rtl"] .conv-signin-follow { padding: var(--sp-1) var(--sp-4) var(--sp-1) var(--sp-1); }
+.conv-signin-follow.hidden { display: none; }
+.conv-signin-follow__text {
+    flex: 1 1 14ch;
+    font-size: var(--text-sm);
+    color: var(--ink-secondary);
+}
+.conv-signin-follow__btn {
+    min-height: var(--hit-min);
+    padding: 0 var(--sp-4);
+    border: 0;
+    border-radius: var(--radius-full);
+    background: var(--conv-send-bg);
+    color: var(--conv-on-accent);
+    font-size: var(--text-sm);
+    font-weight: 700;
+    cursor: pointer;
+    transition: transform var(--motion-dur-fast) var(--conv-ease);
+}
+.conv-signin-follow__btn:active { transform: scale(0.97); }
+
+/* A search-bar answer isn't a conversation yet: no minhag lock to show. */
+.conv-panel[data-answer-view="true"][data-layout][data-size] :is(.conv-menu-btn__minhag, .conv-lockline, .conv-subtitle) { display: none; }
+
 /* ── History popover ─────────────────────────────────────────────── */
 .conv-pop {
     position: fixed;
@@ -1132,17 +1261,19 @@ body.conv-modal-open {
     color: var(--ink-secondary);
 }
 
-/* ── Mobile minimised bar ────────────────────────────────────────── */
+/* ── Mobile minimised bar: a floating pill above the tab bar ────────── */
 .conv-pip {
     position: fixed;
     z-index: var(--conv-z-bar);
-    inset-inline: var(--sp-2);
+    inset-inline: 0;
+    margin-inline: auto;
+    width: min(26rem, calc(100% - 2 * var(--sp-4)));
     bottom: calc(var(--mobile-tabs-height, 64px) + var(--sp-2));
     display: flex;
     align-items: center;
     gap: var(--sp-1);
     padding: var(--sp-1);
-    border-radius: var(--radius-lg);
+    border-radius: var(--radius-full);
     border: 1px solid var(--glass-hairline);
     background: var(--glass-bg);
     backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-sat));
@@ -1158,14 +1289,16 @@ body.conv-modal-open {
     min-height: var(--hit-min);
     padding: 0 var(--sp-3);
     border: 0;
-    border-radius: var(--radius-md);
+    border-radius: var(--radius-full);
     background: transparent;
     color: var(--ink-primary);
     text-align: start;
     cursor: pointer;
-    transition: background-color var(--motion-dur-fast) var(--motion-ease-out);
+    transition: background-color var(--motion-dur-fast) var(--motion-ease-out),
+        transform var(--motion-dur-fast) var(--conv-ease);
 }
 .conv-pip__open:hover { background: var(--ctrl-bg-hover); }
+.conv-pip__open:active { transform: scale(0.97); }
 .conv-pip__text { display: flex; flex-direction: column; min-width: 0; flex: 1; }
 .conv-pip__title {
     overflow: hidden;
@@ -1178,21 +1311,25 @@ body.conv-modal-open {
 .conv-pip__status:empty { display: none; }
 .conv-pip__icon { display: inline-flex; color: var(--ink-secondary); }
 
-/* ── Mobile search tray (rises above the tab bar while search is open) ── */
+/* ── Mobile search tray: a floating pill that rises from behind the tab
+   bar while search is open ── */
 .mobile-search-tray {
     position: fixed;
     z-index: var(--conv-z-bar);
     inset-inline: 0;
-    bottom: var(--mobile-tabs-height, 64px);
+    margin-inline: auto;
+    width: min(26rem, calc(100% - 2 * var(--sp-4)));
+    bottom: calc(var(--mobile-tabs-height, 64px) + var(--sp-2));
     display: flex;
     align-items: center;
-    gap: var(--sp-2);
-    padding: var(--sp-2) max(var(--sp-3), env(safe-area-inset-right)) var(--sp-2) max(var(--sp-3), env(safe-area-inset-left));
-    border-top: 1px solid var(--glass-hairline);
+    gap: var(--sp-1);
+    padding: var(--sp-1);
+    border: 1px solid var(--glass-hairline);
+    border-radius: var(--radius-full);
     background: var(--glass-bg);
     backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-sat));
     -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-sat));
-    box-shadow: var(--glass-shadow-sheet);
+    box-shadow: var(--glass-shadow);
 }
 .mobile-search-tray__ask {
     display: inline-flex;
@@ -1209,10 +1346,9 @@ body.conv-modal-open {
     font-size: var(--text-sm);
     font-weight: 700;
     cursor: pointer;
-    transition: transform var(--motion-dur-fast) var(--motion-ease-out), filter var(--motion-dur-fast) var(--motion-ease-out);
+    transition: transform var(--motion-dur-fast) var(--motion-ease-out);
 }
-.mobile-search-tray__ask:hover { filter: var(--conv-fill-hover); }
-.mobile-search-tray__ask:active { transform: scale(0.98); }
+.mobile-search-tray__ask:active { transform: scale(0.97); }
 .mobile-search-tray__history {
     border: 1px solid var(--ctrl-border);
     background: var(--ctrl-bg);
@@ -1295,7 +1431,7 @@ body.theme-dark .topbar-ask-btn {
     position: absolute;
     inset: -3px;
     border-radius: var(--radius-full);
-    border: 2px solid color-mix(in srgb, var(--accent-gold) 70%, var(--accent-primary));
+    border: 2px solid var(--accent-primary);
     pointer-events: none;
     animation: shelah-attention-ping 1.6s var(--motion-ease-out) infinite;
 }
@@ -1364,112 +1500,40 @@ body.theme-dark .topbar-ask-btn {
     font-size: var(--text-sm);
     font-weight: 700;
     cursor: pointer;
-    transition: filter var(--motion-dur-fast) var(--motion-ease-out),
-        background-color var(--motion-dur-fast) var(--motion-ease-out),
+    transition: background-color var(--motion-dur-fast) var(--motion-ease-out),
         transform var(--motion-dur-fast) var(--motion-ease-out);
 }
 .ai-tip__try { border: 0; background: var(--conv-send-bg); color: var(--conv-on-accent); }
-.ai-tip__try:hover { filter: var(--conv-fill-hover); }
 .ai-tip__dismiss { border: 1px solid var(--ctrl-border); background: transparent; color: var(--ink-primary); }
 .ai-tip__dismiss:hover { background: var(--ctrl-bg-hover); }
 .ai-tip__try:active,
 .ai-tip__dismiss:active { transform: scale(0.97); }
 
-/* ── Single-answer modal, minimised (#aiMiniBar) ─────────────────── */
-.ai-mini-bar {
-    position: fixed;
-    z-index: var(--conv-z-mini);
-    bottom: max(var(--sp-4), env(safe-area-inset-bottom));
-    inset-inline: 0;
-    margin-inline: auto;
-    width: min(480px, calc(100% - 2 * var(--sp-4)));
-    display: flex;
-    align-items: center;
-    gap: var(--sp-1);
-    padding: var(--sp-1);
-    border-radius: var(--radius-full);
-    border: 1px solid var(--glass-hairline);
-    background: var(--glass-bg);
-    backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-sat));
-    -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-sat));
-    box-shadow: var(--glass-shadow);
+/* The filled buttons' hover shade (audit M-9): a layer under the label
+   whose opacity fades, drawn once, instead of a brightness() filter
+   tweened (a repaint of the button every frame). isolation keeps the
+   z-index:-1 layer above the button's own fill; ::after is .conv-send's
+   hit area, so the shade is ::before. */
+:is(.conv-send, .conv-signin-follow__btn, .mobile-search-tray__ask, .ai-tip__try) {
+    position: relative;
+    isolation: isolate;
 }
-@media (max-width: 1023px) {
-    .ai-mini-bar {
-        z-index: var(--conv-z-bar);
-        bottom: calc(var(--mobile-tabs-height, 64px) + var(--sp-2));
-        border-radius: var(--radius-lg);
-    }
+:is(.conv-send, .conv-signin-follow__btn, .mobile-search-tray__ask, .ai-tip__try)::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    border-radius: inherit;
+    background: var(--conv-fill-hover);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity var(--motion-dur-fast) var(--motion-ease-out);
 }
-.ai-mini-bar__open {
-    display: flex;
-    align-items: center;
-    gap: var(--sp-3);
-    flex: 1;
-    min-width: 0;
-    min-height: var(--hit-min);
-    padding: 0 var(--sp-3);
-    border: 0;
-    border-radius: var(--radius-full);
-    background: transparent;
-    color: var(--ink-primary);
-    text-align: start;
-    cursor: pointer;
-    transition: background-color var(--motion-dur-fast) var(--motion-ease-out);
+:is(.conv-send, .conv-signin-follow__btn, .mobile-search-tray__ask, .ai-tip__try):hover:not(:disabled)::before {
+    opacity: 1;
 }
-.ai-mini-bar__open:hover { background: var(--ctrl-bg-hover); }
-.ai-mini-bar__icon {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    flex: none;
-    width: 32px;
-    height: 32px;
-    border-radius: var(--radius-full);
-    background: var(--conv-send-bg);
-    color: var(--conv-on-accent);
-}
-.ai-mini-bar__text { display: flex; flex-direction: column; min-width: 0; flex: 1; }
-.ai-mini-bar__label { font-size: var(--text-xs); font-weight: 700; color: var(--conv-label); }
-.ai-mini-bar__title {
-    overflow: hidden;
-    white-space: nowrap;
-    text-overflow: ellipsis;
-    font-size: var(--text-sm);
-    font-weight: 600;
-}
-.ai-mini-bar__caret { display: inline-flex; flex: none; color: var(--ink-secondary); }
-.ai-mini-bar__close {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    flex: none;
-    width: var(--hit-min);
-    height: var(--hit-min);
-    border: 0;
-    border-radius: var(--radius-full);
-    background: transparent;
-    color: var(--ink-secondary);
-    cursor: pointer;
-    transition: background-color var(--motion-dur-fast) var(--motion-ease-out), color var(--motion-dur-fast) var(--motion-ease-out);
-}
-.ai-mini-bar__close:hover { background: var(--ctrl-bg-hover); color: var(--ink-primary); }
 
 [dir="rtl"] .conv-flip-rtl { transform: scaleX(-1); }
-
-/* Legacy modal's signed-out hint (decision A1). */
-.conv-signin-hint {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    gap: var(--sp-1);
-    margin: var(--sp-3) 0 0;
-    padding: var(--sp-2) var(--sp-3);
-    border-radius: var(--radius-md);
-    background: var(--surface-2);
-    color: var(--ink-secondary);
-    font-size: var(--text-sm);
-}
 
 /* ── Reduced motion ──────────────────────────────────────────────── */
 @media (prefers-reduced-motion: reduce) {
@@ -1481,9 +1545,7 @@ body.theme-dark .topbar-ask-btn {
     .topbar-ask-btn,
     .topbar-ask-btn *,
     .ai-tip,
-    .ai-tip *,
-    .ai-mini-bar,
-    .ai-mini-bar * {
+    .ai-tip * {
         transition-duration: 1ms !important;
     }
     .ai-attention::after,
@@ -1492,6 +1554,8 @@ body.theme-dark .topbar-ask-btn {
         animation: none !important;
     }
     .conv-halo::before,
+    .conv-signin-follow,
+    .conv-turn--reveal *,
     .conv-sources__dot,
     .conv-live-dot,
     .conv-skel::after,
@@ -1503,9 +1567,8 @@ body.theme-dark .topbar-ask-btn {
 
 /* ── Additions: turn entrance, draft chip, inline rename ─────────── */
 .conv-turn--enter {
-    animation: shelah-fade-up var(--motion-dur-base) var(--motion-ease-out) both;
+    animation: conv-rise 320ms var(--conv-ease) both;
 }
-.conv-chip:not([data-locked="true"]) > svg:first-child { display: none; }
 .conv-title-input {
     width: 100%;
     min-height: 36px;

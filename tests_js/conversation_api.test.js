@@ -207,6 +207,14 @@ test('createConversation sends null for a blank minhag', async () => {
     assert.deepEqual(fetchFn.calls[0].body, { minhag: null });
 });
 
+test('createConversation continues a stored answer via from_history_id, still without retry', async () => {
+    const fetchFn = makeRoutedFetch([['POST', /\/api\/conversations$/, [jsonResponse(502, {})]]]);
+    const api = await loadApi(fetchFn);
+    await assert.rejects(api.createConversation({ fromHistoryId: 'h-1' }), { code: 'server' });
+    assert.equal(fetchFn.calls.length, 1);
+    assert.deepEqual(fetchFn.calls[0].body, { minhag: null, from_history_id: 'h-1' });
+});
+
 test('idempotent reads retry on 503 then succeed', async () => {
     const fetchFn = makeRoutedFetch([['GET', /\/api\/conversations\?limit=5$/, [jsonResponse(503, {}), jsonResponse(200, { items: [{ id: 'c1' }] })]]]);
     const api = await loadApi(fetchFn);

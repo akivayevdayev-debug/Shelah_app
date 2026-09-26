@@ -11,6 +11,8 @@ Covers:
   - GET /favicon.ico          → SVG image (or redirect)
 """
 
+import re
+from pathlib import Path
 
 
 class TestIndexRoute:
@@ -140,6 +142,63 @@ class TestServiceWorker:
         response = test_client.get("/service-worker.js")
         ct = response.content_type.lower()
         assert "javascript" in ct
+
+    @staticmethod
+    def _served_version(test_client):
+        body = test_client.get("/service-worker.js").get_data(as_text=True)
+        return re.search(r'const CACHE_VERSION = "([^"]*)"', body).group(1)
+
+    @staticmethod
+    def _file_version():
+        text = (Path(__file__).resolve().parent.parent / "static" / "service-worker.js").read_text()
+        return re.search(r'const CACHE_VERSION = "([^"]*)"', text).group(1)
+
+    def test_locally_the_files_own_cache_version_stands(self, test_client, monkeypatch):
+        import app as app_module
+        monkeypatch.delenv("DEPLOY_HASH", raising=False)
+        monkeypatch.setattr(app_module, "SENTRY_RELEASE", "")
+        assert self._served_version(test_client) == self._file_version()
+
+    def test_each_deploy_gets_its_own_caches(self, test_client, monkeypatch):
+        import app as app_module
+        monkeypatch.delenv("DEPLOY_HASH", raising=False)
+        monkeypatch.setattr(app_module, "SENTRY_RELEASE", "0123456789abcdef0123")
+        assert self._served_version(test_client) == f"{self._file_version()}-0123456789ab"
+
+    def test_deploy_hash_replaces_the_base_only(self, test_client, monkeypatch):
+        import app as app_module
+        monkeypatch.setenv("DEPLOY_HASH", "v99")
+        monkeypatch.setattr(app_module, "SENTRY_RELEASE", "0123456789abcdef0123")
+        assert self._served_version(test_client) == "v99-0123456789ab"
+        monkeypatch.setattr(app_module, "SENTRY_RELEASE", "")
+        assert self._served_version(test_client) == "v99"
+
+    def test_a_worker_without_a_cache_version_line_is_served_as_is(self, monkeypatch):
+        import app as app_module
+        monkeypatch.delenv("DEPLOY_HASH", raising=False)
+        monkeypatch.setattr(app_module, "SENTRY_RELEASE", "")
+        assert app_module.service_worker_cache_version("self.x = 1;") == "v8"
+
+
+class TestViewTransitionsFlag:
+    """VIEW_TRANSITIONS=true opts every visitor into view transitions (audit
+    §2.3); off, the shell carries no marker and a browser opts in itself."""
+
+    @staticmethod
+    def _html_tag(test_client, path="/"):
+        body = test_client.get(path).get_data(as_text=True)
+        return re.search(r"<html\b[^>]*>", body).group(0)
+
+    def test_off_by_default(self, test_client, monkeypatch):
+        import app as app_module
+        monkeypatch.setattr(app_module, "VIEW_TRANSITIONS_ENABLED", False)
+        assert "data-view-transitions" not in self._html_tag(test_client)
+
+    def test_on_marks_the_shell_on_every_spa_path(self, test_client, monkeypatch):
+        import app as app_module
+        monkeypatch.setattr(app_module, "VIEW_TRANSITIONS_ENABLED", True)
+        assert "data-view-transitions" in self._html_tag(test_client)
+        assert "data-view-transitions" in self._html_tag(test_client, "/text/Genesis.1")
 
 
 class TestFavicon:

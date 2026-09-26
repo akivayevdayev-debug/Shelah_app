@@ -184,7 +184,7 @@ test('copyText resolves false when every path fails', async () => {
     assert.equal(await m.copyText('x', { navigator: {}, document: {} }), false);
 });
 
-// ── #aiAnswerLink controller ────────────────────────────────────────────
+// ── #convAnswerLink controller ──────────────────────────────────────────
 
 test('installAnswerLink with no root is a harmless no-op', async () => {
     const m = await load();

@@ -68,43 +68,11 @@
 }
 
 /* ═══════════════════════════════════════════════════════ */
-/* AI SYNTHESIS CARD — VARIABLE-BASED COLORS */
-/* ═══════════════════════════════════════════════════════ */
-
-.ai-synthesis {
-    background: var(--ai-surface);
-    border-color: var(--ai-border);
-    transition: border-color var(--motion-dur-base) var(--motion-ease-out);
-}
-
-.ai-wiki-card {
-    background: var(--ai-wiki-card-bg);
-    border-inline-start: 4px solid var(--ai-wiki-accent);
-    border-left-color: var(--ai-wiki-accent);
-}
-
-.ai-custom-card {
-    background: var(--ai-custom-card-bg);
-    border-inline-start: 4px solid var(--ai-custom-accent);
-    border-left-color: var(--ai-custom-accent);
-}
-
-/* ═══════════════════════════════════════════════════════ */
-/* AI TRUST SECTION */
-/* ═══════════════════════════════════════════════════════ */
-
-#aiTrustSection {
-    background: var(--ai-trust-bg);
-    border-color: var(--ai-trust-border);
-    border-radius: var(--radius-md, 0.7rem);
-}
-
-/* ═══════════════════════════════════════════════════════ */
 /* DISCLAIMER BANNER — plan.md §8.B.1                       */
 /* Persistent, non-dismissible "not a halachic ruling"      */
-/* notice rendered above every AI answer (AI modal + reader */
-/* view). Shared class, two instances (#aiDisclaimerBanner, */
-/* #readerDisclaimerBanner) — populated by                  */
+/* notice for AI answers. The conversation panel shows the  */
+/* referral / breaker-paused variants inside an answer turn */
+/* (conversation-ui.js decorateAnswerTurn), rendered by     */
 /* renderDisclaimerBanner() in templates/index.html.        */
 /* ═══════════════════════════════════════════════════════ */
 
@@ -168,23 +136,6 @@
     border-color: var(--ai-warning-border);
     background: var(--ai-warning-bg);
     color: var(--ai-warning-text);
-}
-
-/* Turnstile "verification required" notice (backend/turnstile.py) -- same
-   warning color system as the banners above (WCAG AA already verified for
-   both themes) so this reads as a routine, recoverable notice rather than a
-   hard failure; shown in place of the answer in #aiSynthesis when /ask
-   returns the turnstile_required error code. */
-.ai-turnstile-notice {
-    display: flex;
-    align-items: flex-start;
-    padding: 0.75rem 1rem;
-    border: 1px solid var(--ai-warning-border);
-    border-radius: var(--radius-md, 0.7rem);
-    background: var(--ai-warning-bg);
-    color: var(--ai-warning-text);
-    font-weight: 600;
-    animation: shelah-fade-in 0.35s ease both;
 }
 
 /* Turnstile challenge modal (templates/index.html #turnstileModal). Always
@@ -268,48 +219,17 @@
 }
 
 /* ═══════════════════════════════════════════════════════ */
-/* AI MODAL DARK MODE */
-/* ═══════════════════════════════════════════════════════ */
-
-/* .ai-synthesis's background/border-color already auto-flip via --ai-surface/
-   --ai-border; only the text color needs a dark-specific value. */
-:is([data-theme="dark"], body.theme-dark) .ai-synthesis {
-    color: var(--accent-cream) !important;
-}
-
-/* .ai-custom-card / .ai-wiki-card fully auto-flip via --ai-custom-card-bg,
-   --ai-wiki-card-bg, --ai-custom-accent, --ai-wiki-accent — no override needed. */
-
-/* ═══════════════════════════════════════════════════════ */
-/* AI MODAL ACCESSIBILITY */
+/* MODAL ACCESSIBILITY */
 /* ═══════════════════════════════════════════════════════ */
 
 /* Focus ring for modal close button */
-#aiAssistantModal button:focus-visible,
 #textsMenuModal button:focus-visible {
     outline: 2px solid rgba(176, 154, 116, 0.65);
     outline-offset: 2px;
     border-radius: 3px;
 }
 
-/* Phones: the answer is a bottom sheet (docked to the bottom edge, full
-   width, rounded top) that slides up from off-screen -- templates/index.html
-   aiModalMotion() uses motion.js's 'drawer' preset for it. */
-@media (max-width: 1023px) {
-    #aiAssistantModal {
-        align-items: flex-end;
-        padding: 0;
-    }
-    #aiAssistantModal > div {
-        max-width: none;
-        max-height: min(88dvh, 88vh);
-        border-radius: var(--radius-xl) var(--radius-xl) 0 0;
-        padding-bottom: env(safe-area-inset-bottom);
-    }
-}
-
-/* AI modal backdrop isolation */
-#aiAssistantModal,
+/* Modal backdrop isolation */
 #textsMenuModal,
 #sourceGraphModal,
 #communityTimelineModal {
@@ -331,17 +251,6 @@
 }
 
 /* ═══════════════════════════════════════════════════════ */
-/* AI BADGE HOVER STATES */
-/* ═══════════════════════════════════════════════════════ */
-
-:is([data-theme="dark"], body.theme-dark) #aiConfidenceBadge:hover,
-:is([data-theme="dark"], body.theme-dark) #aiModeBadge:hover,
-:is([data-theme="dark"], body.theme-dark) #aiCommunityBadge:hover,
-:is([data-theme="dark"], body.theme-dark) #aiSourcesBadge:hover {
-    border-color: var(--ai-badge-hover-border) !important;
-}
-
-/* ═══════════════════════════════════════════════════════ */
 /* AI SOURCE BOXES — VISUAL CARD STYLE (like reader sourceDualTemplate) */
 /* ═══════════════════════════════════════════════════════ */
 
@@ -352,7 +261,10 @@
     overflow: hidden;
     margin-bottom: 1rem;
     box-shadow: 0 1px 4px rgba(78, 64, 45, 0.07);
-    transition: box-shadow var(--motion-dur-base) var(--motion-ease-out), border-color var(--motion-dur-base) var(--motion-ease-out), transform var(--motion-dur-fast) var(--motion-ease-out);
+    /* No box-shadow tween (a repaint every frame, audit M-9); overflow:
+       hidden would clip a shadow layer, so the raised shadow just lands
+       while the lift and the border ease. */
+    transition: border-color var(--motion-dur-base) var(--motion-ease-out), transform var(--motion-dur-fast) var(--motion-ease-out);
 }
 
 .ai-source-box:hover {
@@ -575,7 +487,7 @@
    class the JS actually renders onto each box, and it's paired there with the
    matching prefers-reduced-motion override. */
 
-/* Modal entrance/exit (aiAssistant, textsMenu, chapterGrid, calendar,
+/* Modal entrance/exit (textsMenu, chapterGrid, calendar,
    libraryCategory, privacyData) is driven by ShelahMotion.present()/dismiss()
    -- a bottom-sheet rise on phones, a centred card elsewhere. */
 
@@ -619,7 +531,9 @@
 
 /* Popular texts grid */
 #popularTextsGrid>* {
-    animation: shelah-fade-up 0.25s ease both;
+    /* backwards, not both: a fill kept after the end holds transform at
+       translateY(0) and cancels the cards' hover lift below. */
+    animation: shelah-fade-up 0.25s ease backwards;
 }
 
 /* Home grid sections */
@@ -631,22 +545,56 @@
 #popularTextsGrid button,
 .home-daily-entry,
 .home-today-section {
-    transition: transform var(--motion-dur-fast) var(--motion-ease-out), box-shadow var(--motion-dur-fast) var(--motion-ease-out), scale var(--motion-dur-fast) var(--motion-ease-out);
+    transition: transform var(--motion-dur-fast) var(--motion-ease-out), scale var(--motion-dur-fast) var(--motion-ease-out);
 }
 
 #popularTextsGrid button:hover {
     transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.09);
+    /* The raised shadow is the ::after layer below; none here also keeps
+       the cards' own hover:shadow-sm utility off. */
+    box-shadow: none;
 }
 
-/* AI synthesis fade-in */
-#aiSynthesis {
-    animation: shelah-fade-in 0.3s ease both;
+/* Hover elevation (audit M-9): the raised shadow is drawn once on a layer
+   whose opacity fades, instead of tweening box-shadow (a repaint of the
+   card every frame). The resting shadow stays on the element; the layer
+   adds the raised one, from its border edge (inset -1px). The dark theme
+   never raised these two, so there the layer is dropped. */
+#popularTextsGrid button,
+.home-calendar-btn {
+    position: relative;
+}
+
+#popularTextsGrid button { --hover-lift-shadow: 0 4px 12px rgba(0, 0, 0, 0.09); }
+.home-calendar-btn { --hover-lift-shadow: 0 3px 10px rgba(78, 64, 30, 0.18); }
+.sidebar-show-tab { --hover-lift-shadow: 0 6px 18px rgba(15, 23, 42, 0.08); }
+
+#popularTextsGrid button::after,
+.home-calendar-btn::after,
+.sidebar-show-tab::after {
+    content: '';
+    position: absolute;
+    inset: -1px;
+    border-radius: inherit;
+    box-shadow: var(--hover-lift-shadow);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity var(--motion-dur-fast) var(--motion-ease-out);
+}
+
+#popularTextsGrid button:hover::after,
+.home-calendar-btn:hover::after,
+.sidebar-show-tab:hover::after {
+    opacity: 1;
+}
+
+:is([data-theme="dark"], body.theme-dark) :is(#popularTextsGrid button, .home-calendar-btn)::after {
+    content: none;
 }
 
 /* Source boxes in reader article */
 .border.border-slate-300.rounded-lg.bg-white {
-    transition: box-shadow var(--motion-dur-base) var(--motion-ease-out), border-color var(--motion-dur-base) var(--motion-ease-out);
+    transition: border-color var(--motion-dur-base) var(--motion-ease-out);
 }
 
 .border.border-slate-300.rounded-lg.bg-white:hover {
@@ -660,7 +608,6 @@
     .animate-fade-up,
     .animate-fade-in,
     .animate-scale-in,
-    #aiAssistantModal>div,
     #textsMenuModal>div,
     #chapterGridModal>div,
     #calendarModal>div,
@@ -669,9 +616,7 @@
     #searchSuggestions,
     #readerSources>div,
     #popularTextsGrid>*,
-    .home-today-section,
-    #aiSynthesis,
-    .ai-turnstile-notice {
+    .home-today-section {
         animation: none !important;
         transition: none !important;
     }
@@ -741,7 +686,7 @@
 
 /* ── Topbar & brand ──────────────────────────────────────── */
 .topbar {
-    transition: background-color var(--motion-dur-base) var(--motion-ease-out), box-shadow var(--motion-dur-base) var(--motion-ease-out);
+    transition: background-color var(--motion-dur-base) var(--motion-ease-out);
 }
 
 .topbar-brand {
@@ -758,7 +703,7 @@
 
 .topbar-flat-btn {
     transition: background-color var(--motion-dur-fast) var(--motion-ease-out), color var(--motion-dur-fast) var(--motion-ease-out), border-color var(--motion-dur-fast) var(--motion-ease-out),
-        box-shadow var(--motion-dur-fast) var(--motion-ease-out), transform var(--motion-dur-fast) var(--motion-ease-out) !important;
+        transform var(--motion-dur-fast) var(--motion-ease-out) !important;
 }
 
 .topbar-flat-btn:active {
@@ -768,11 +713,34 @@
 /* ── Mobile bottom tabs ──────────────────────────────────── */
 .mobile-tab-btn {
     transition: background-color var(--motion-dur-base) var(--motion-ease-out), color var(--motion-dur-fast) var(--motion-ease-out),
-        transform var(--motion-dur-fast) var(--motion-ease-out), box-shadow var(--motion-dur-fast) var(--motion-ease-out) !important;
+        transform var(--motion-dur-fast) var(--motion-ease-out) !important;
 }
 
 .mobile-tab-btn:active {
     transform: scale(0.97) !important;
+}
+
+/* ── Modal scrims on phones (audit M-9) ──────────────────────
+   A full-viewport backdrop-filter re-blurs the page under it whenever
+   something on or under it moves, and phones pay the most for that.
+   Below 768px the scrims are flat: the tint the page already had (the
+   privacy dialog had only the blur, so it gets the scrim token). The
+   dark theme's scrims were already flat (style.css). */
+@media (max-width: 767px) {
+    #calendarModal,
+    #textsMenuModal,
+    #chapterGridModal,
+    #privacyDataModal,
+    #libraryCategoryModal,
+    #devtoolsInspectorModal,
+    #mobileDrawerBackdrop {
+        -webkit-backdrop-filter: none;
+        backdrop-filter: none;
+    }
+
+    #privacyDataModal {
+        background-color: var(--surface-scrim);
+    }
 }
 
 /* ── Mobile drawer backdrop ──────────────────────────────── */
@@ -790,7 +758,7 @@
 #rightSidebar button,
 #leftSidebar a,
 #rightSidebar a {
-    transition: background-color var(--motion-dur-fast) var(--motion-ease-out), color var(--motion-dur-fast) var(--motion-ease-out), padding-left var(--motion-dur-fast) var(--motion-ease-out), scale var(--motion-dur-fast) var(--motion-ease-out) !important;
+    transition: background-color var(--motion-dur-fast) var(--motion-ease-out), color var(--motion-dur-fast) var(--motion-ease-out), scale var(--motion-dur-fast) var(--motion-ease-out) !important;
 }
 
 #leftSidebar details>summary {
@@ -823,7 +791,9 @@
 
 /* ── Search bar & icon ───────────────────────────────────── */
 #searchForm input[type="text"] {
-    transition: border-color var(--motion-dur-base) var(--motion-ease-out), box-shadow var(--motion-dur-base) var(--motion-ease-out), background-color var(--motion-dur-base) var(--motion-ease-out) !important;
+    /* The focus ring (a box-shadow) lands at once: no repaint per frame,
+       and a focus indicator shouldn't lag the focus. */
+    transition: border-color var(--motion-dur-base) var(--motion-ease-out), background-color var(--motion-dur-base) var(--motion-ease-out) !important;
 }
 
 #searchIcon {
@@ -957,7 +927,7 @@ body.search-loading .search-liftoff-underlay::before {
 /* ── Library sidebar tab ─────────────────────────────────── */
 .sidebar-show-tab {
     transition: opacity var(--motion-dur-base) var(--motion-ease-out), transform var(--motion-dur-base) var(--motion-ease-decel),
-        box-shadow var(--motion-dur-fast) var(--motion-ease-out), background var(--motion-dur-fast) var(--motion-ease-out) !important;
+        background var(--motion-dur-fast) var(--motion-ease-out) !important;
 }
 
 .sidebar-show-tab:hover {
@@ -980,13 +950,6 @@ body.search-loading .search-liftoff-underlay::before {
     transform: none !important;
 }
 
-/* ── AI results sections ─────────────────────────────────── */
-#aiSourcesSection:not(.hidden),
-#aiCustomsSection:not(.hidden),
-#aiWikiSection:not(.hidden) {
-    animation: shelah-fade-up 0.3s cubic-bezier(0.22, 1, 0.36, 1) both;
-}
-
 /* ── Home grid ───────────────────────────────────────────── */
 .home-library-link,
 .home-daily-link,
@@ -1000,7 +963,7 @@ body.search-loading .search-liftoff-underlay::before {
 
 /* ── Legal modal ─────────────────────────────────────────── */
 #legalModal input[type="checkbox"] {
-    transition: background-color var(--motion-dur-fast) var(--motion-ease-out), border-color var(--motion-dur-fast) var(--motion-ease-out), box-shadow var(--motion-dur-fast) var(--motion-ease-out) !important;
+    transition: background-color var(--motion-dur-fast) var(--motion-ease-out), border-color var(--motion-dur-fast) var(--motion-ease-out) !important;
 }
 
 #legalAcceptBtn {
@@ -1019,10 +982,6 @@ body.search-loading .search-liftoff-underlay::before {
 /* ── Theme & language ────────────────────────────────────── */
 #themeToggleBtn {
     transition: background-color var(--motion-dur-base) var(--motion-ease-out), color var(--motion-dur-base) var(--motion-ease-out), border-color var(--motion-dur-base) var(--motion-ease-out) !important;
-}
-
-#aiModalTitle {
-    transition: opacity var(--motion-dur-base) var(--motion-ease-out) !important;
 }
 
 .lang-btn {
@@ -1069,12 +1028,7 @@ body.search-loading .search-liftoff-underlay::before {
     #legalAcceptBtn,
     #themeToggleBtn,
     .lang-btn,
-    #aiSourcesSection,
-    #aiCustomsSection,
-    #aiWikiSection,
-    #aiAssistantModal,
     #textsMenuModal,
-    #aiModalTitle,
     .search-liftoff-underlay,
     .search-liftoff-underlay::before,
     #searchForm.search-liftoff .search-ai-sparkle {
@@ -1084,105 +1038,27 @@ body.search-loading .search-liftoff-underlay::before {
 }
 
 /* ═══════════════════════════════════════════════════════ */
-/* AI CUSTOMS CARDS — fully token-based, no hardcoded hex */
-/* Light + dark handled entirely via token layer.         */
-/* ═══════════════════════════════════════════════════════ */
-
-.ai-customs-card {
-    background: var(--ai-src-header-bg);
-    border: 1px solid var(--ai-border);
-    border-radius: var(--radius-sm);
-    padding: var(--sp-3);
-    margin-bottom: var(--sp-2);
-}
-
-.ai-customs-card-title {
-    font-weight: 700;
-    color: var(--ink-heading);
-    font-size: var(--text-sm);
-    margin-bottom: var(--sp-1);
-}
-
-.ai-customs-card-body {
-    font-size: var(--text-xs);
-    color: var(--ink-primary);
-    line-height: 1.55;
-}
-
-/* ═══════════════════════════════════════════════════════ */
-/* AI WIKI / ENCYCLOPEDIA RESULT CARDS                    */
-/* ═══════════════════════════════════════════════════════ */
-
-.ai-wiki-result-card {
-    background: var(--ai-src-header-bg);
-    border: 1px solid var(--ai-border);
-    border-radius: var(--radius-sm);
-    padding: var(--sp-3);
-    margin-bottom: var(--sp-2);
-}
-
-.ai-wiki-result-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: flex-start;
-    gap: var(--sp-2);
-    margin-bottom: var(--sp-1);
-}
-
-.ai-wiki-result-title {
-    font-weight: 700;
-    color: var(--ink-heading);
-    font-size: var(--text-sm);
-    flex: 1;
-    min-width: 0;
-}
-
-.ai-wiki-result-link {
-    font-size: var(--text-xs);
-    color: var(--ai-wiki-accent);
-    text-decoration: none;
-    white-space: nowrap;
-    flex-shrink: 0;
-    transition: color var(--motion-dur-fast) var(--motion-ease-out);
-}
-
-.ai-wiki-result-link:hover {
-    color: var(--ink-heading);
-    text-decoration: underline;
-}
-
-.ai-wiki-result-body {
-    font-size: var(--text-xs);
-    color: var(--ink-primary);
-    line-height: 1.55;
-}
-
-/* ═══════════════════════════════════════════════════════ */
-/* AI ANSWER TYPOGRAPHY -- spacing pinned to the --sp-* grid */
+/* READER ARTICLE TYPOGRAPHY -- spacing pinned to the --sp-* grid */
 /* Tailwind Typography's own .prose/.prose-sm ship an em-    */
 /* based scale (ENGINEERING_RULES.md forbids magic-number    */
-/* margins) that drifts between #readerContent's 16px base   */
-/* and #aiSynthesis's prose-sm 14px base -- every markdown-   */
-/* generated element here is repinned to explicit --sp-*      */
-/* tokens instead, so both surfaces read identically. Normal  */
+/* margins); every markdown-generated element in             */
+/* #readerContent is repinned to explicit --sp-* tokens       */
+/* instead. Normal                                             */
 /* specificity beats Tailwind's :where()-wrapped selectors    */
 /* (zero specificity by design) regardless of load order.     */
 /* Mirrors static/css/legal.css's .prose override, which only */
 /* loads on the standalone legal pages, not here.              */
 /* ═══════════════════════════════════════════════════════ */
 
-#readerContent.prose > :first-child,
-#aiSynthesis.prose > :first-child {
+#readerContent.prose > :first-child {
     margin-top: 0;
 }
 
-#readerContent.prose > :last-child,
-#aiSynthesis.prose > :last-child {
+#readerContent.prose > :last-child {
     margin-bottom: 0;
 }
 
-#readerContent.prose h1,
-#aiSynthesis.prose h1 {
+#readerContent.prose h1 {
     font-weight: 700;
     color: var(--ink-heading);
     line-height: 1.25;
@@ -1190,8 +1066,7 @@ body.search-loading .search-liftoff-underlay::before {
     margin-bottom: var(--sp-4);
 }
 
-#readerContent.prose h2,
-#aiSynthesis.prose h2 {
+#readerContent.prose h2 {
     font-weight: 700;
     color: var(--ink-heading);
     line-height: 1.3;
@@ -1199,8 +1074,7 @@ body.search-loading .search-liftoff-underlay::before {
     margin-bottom: var(--sp-2);
 }
 
-#readerContent.prose h3,
-#aiSynthesis.prose h3 {
+#readerContent.prose h3 {
     font-weight: 600;
     color: var(--ink-heading);
     line-height: 1.35;
@@ -1208,44 +1082,37 @@ body.search-loading .search-liftoff-underlay::before {
     margin-bottom: var(--sp-2);
 }
 
-#readerContent.prose h4,
-#aiSynthesis.prose h4 {
+#readerContent.prose h4 {
     font-weight: 600;
     color: var(--ink-primary);
     margin-top: var(--sp-4);
     margin-bottom: var(--sp-1);
 }
 
-#readerContent.prose p,
-#aiSynthesis.prose p {
+#readerContent.prose p {
     margin-top: 0;
     margin-bottom: var(--sp-4);
     line-height: 1.75;
 }
 
 #readerContent.prose ul,
-#readerContent.prose ol,
-#aiSynthesis.prose ul,
-#aiSynthesis.prose ol {
+#readerContent.prose ol {
     margin-top: 0;
     margin-bottom: var(--sp-4);
     padding-inline-start: var(--sp-6);
 }
 
-#readerContent.prose li,
-#aiSynthesis.prose li {
+#readerContent.prose li {
     margin-top: var(--sp-1);
     margin-bottom: var(--sp-1);
 }
 
-#readerContent.prose li > p,
-#aiSynthesis.prose li > p {
+#readerContent.prose li > p {
     margin-top: var(--sp-1);
     margin-bottom: var(--sp-1);
 }
 
-#readerContent.prose blockquote,
-#aiSynthesis.prose blockquote {
+#readerContent.prose blockquote {
     margin: var(--sp-4) 0;
     padding-inline-start: var(--sp-4);
     border-inline-start: 3px solid var(--ai-border);
@@ -1253,37 +1120,31 @@ body.search-loading .search-liftoff-underlay::before {
     font-style: italic;
 }
 
-#readerContent.prose hr,
-#aiSynthesis.prose hr {
+#readerContent.prose hr {
     margin: var(--sp-6) 0;
     border: none;
     border-top: 1px solid var(--surface-border);
 }
 
-#readerContent.prose strong,
-#aiSynthesis.prose strong {
+#readerContent.prose strong {
     color: var(--ink-heading);
     font-weight: 700;
 }
 
-#readerContent.prose a,
-#aiSynthesis.prose a {
+#readerContent.prose a {
     color: var(--accent-primary);
     text-decoration: underline;
     text-underline-offset: 2px;
 }
 
-#readerContent.prose table,
-#aiSynthesis.prose table {
+#readerContent.prose table {
     margin: var(--sp-4) 0;
     border-collapse: collapse;
     width: 100%;
 }
 
 #readerContent.prose th,
-#readerContent.prose td,
-#aiSynthesis.prose th,
-#aiSynthesis.prose td {
+#readerContent.prose td {
     padding: var(--sp-2) var(--sp-3);
     border: 1px solid var(--surface-border);
     text-align: start;
@@ -1381,33 +1242,11 @@ body.search-loading .search-liftoff-underlay::before {
     flex-shrink: 0;
 }
 
-/* "Copy link" on a stored answer (static/js/answer-link.js): in the AI
-   modal footer beside "View Full Article", and at the bottom of the
-   full-article view. Clicking flashes a green "Copied!" face for ~1.6s; both
-   faces share one grid cell so the swap never changes the button's width,
-   and the state is carried by the icon + label, not by color alone. */
-.ai-modal-footer__actions {
-    display: flex;
-    flex-wrap: wrap;
-    /* Top-aligned so Copy link and View Full Article stay level when the
-       Shared line wraps in under Copy link. */
-    align-items: flex-start;
-    justify-content: flex-end;
-    gap: var(--sp-2);
-    /* Basis 0, not content size: the full-width lines inside .answer-link
-       (Shared state, status) would otherwise make this want the whole row
-       and push Close onto a line of its own. Narrow screens still wrap it
-       under Close via the min-width. */
-    flex: 1 1 0;
-    min-width: min(100%, 16rem);
-}
-
-.ai-modal-footer__actions > .answer-link {
-    flex: 1 1 0;
-    min-width: min(100%, 11rem);
-    justify-content: flex-end;
-}
-
+/* "Copy link" on a stored answer (static/js/answer-link.js), in the
+   conversation panel's answer turn. Clicking flashes a green "Copied!" face
+   for ~1.6s; both faces share one grid cell so the swap never changes the
+   button's width, and the state is carried by the icon + label, not by
+   color alone. */
 .answer-link {
     display: flex;
     flex-wrap: wrap;
@@ -1417,12 +1256,6 @@ body.search-loading .search-liftoff-underlay::before {
 
 .answer-link.hidden {
     display: none;
-}
-
-.answer-link--article {
-    margin-top: var(--sp-6);
-    padding-top: var(--sp-4);
-    border-top: 1px solid var(--surface-border);
 }
 
 .answer-link-btn {
@@ -1583,10 +1416,6 @@ body.theme-dark .answer-link-btn {
     color: var(--ink-secondary);
 }
 
-.answer-link--article .answer-share-state {
-    justify-content: flex-start;
-}
-
 .answer-share-state.hidden {
     display: none;
 }
@@ -1631,50 +1460,9 @@ body.theme-dark .answer-link-btn {
     opacity: 0.7;
 }
 
-/* A visitor on a shared link (?a=) didn't ask anything: no "sign in to ask
-   follow-ups" hint, whatever conversation-ui.js decides about auth. */
-#aiAssistantModal[data-answer-view="public"] #aiSignInHint {
-    display: none;
-}
-
-/* A shared link with no answer to show hides the AI disclaimer
-   (index.html showPublicAnswerUnavailable); every rendered answer shows it. */
+/* A turn whose answer needs no extra banner hides it. */
 .ai-disclaimer-banner.hidden {
     display: none;
-}
-
-.ai-public-loading {
-    display: flex;
-    flex-direction: column;
-    gap: var(--sp-3);
-    padding-block: var(--sp-2);
-}
-
-.ai-public-unavailable {
-    display: flex;
-    align-items: flex-start;
-    gap: var(--sp-3);
-    padding: var(--sp-4);
-    border: 1px solid var(--surface-border);
-    border-radius: var(--radius-md);
-    background: var(--surface-1);
-    color: var(--ink-primary);
-    font-family: inherit;
-}
-
-.ai-public-unavailable p {
-    margin: 0;
-}
-
-.ai-public-unavailable__icon {
-    display: inline-flex;
-    flex-shrink: 0;
-    color: var(--ink-secondary);
-}
-
-.ai-public-unavailable__icon svg {
-    width: 1.25rem;
-    height: 1.25rem;
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -1741,5 +1529,29 @@ body.theme-dark .answer-link-btn {
     .answer-feedback-btn,
     .answer-feedback-submit {
         transition: none;
+    }
+}
+
+/* M-7: opening a citation marks the verse it landed on, once, then fades.
+   A layer (compositor-only, audit M-9) rather than a background-color
+   transition, so it never repaints the row underneath. */
+.segment-row {
+    position: relative;
+}
+
+.segment-row.cite-highlight::after {
+    content: '';
+    position: absolute;
+    inset: -2px -4px;
+    border-radius: var(--radius-sm, 4px);
+    background: color-mix(in srgb, var(--accent-primary) 22%, transparent);
+    opacity: 0;
+    pointer-events: none;
+    animation: shelah-cite-highlight 1.2s var(--motion-ease-out) both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .segment-row.cite-highlight::after {
+        animation: none;
     }
 }

@@ -31,7 +31,12 @@ function createFakeCaches() {
     return {
         stores,
         open: async (name) => ({
-            match: async (request) => store(name).get(typeof request === 'string' ? request : request.url),
+            match: async (request, options = {}) => {
+            const url = typeof request === 'string' ? request : request.url;
+            if (store(name).has(url) || !options.ignoreSearch) return store(name).get(url);
+            const bare = url.split('?')[0];
+            return [...store(name)].find(([key]) => key.split('?')[0] === bare)?.[1];
+        },
             put: async (request, response) => {
                 store(name).set(typeof request === 'string' ? request : request.url, response);
             },
@@ -157,10 +162,10 @@ test('a cached asset is served immediately while the refresh is handed to waitUn
         },
     });
 
-    const first = await dispatch('/static/app.js');
+    const first = await dispatch('/static/app.css');
     assert.equal(await first.response.text(), 'v1');
 
-    const second = await dispatch('/static/app.js');
+    const second = await dispatch('/static/app.css');
     assert.equal(await second.response.text(), 'v1', 'stale copy is served first');
     assert.equal(second.waited, 1, 'the background refresh is kept alive via waitUntil');
     assert.equal(network, 2);
@@ -326,10 +331,11 @@ test('offline, a never-visited app path falls back to the precached shell; other
     caches.match = async (request) => ({ '/': 'SHELL', '/static/offline.html': 'OFFLINE' })[request];
 
     for (const pathname of ['/text/Genesis.1', '/prayer/shacharit', '/answer/0b6a3f58-2f5e-4c1d-9a7e-3d2b1c0a9f88',
-        '/a/Zx9_-abcDEF0123456789q', '/calendar/2026-09-25', '/history', '/history/']) {
+        '/a/Zx9_-abcDEF0123456789q', '/calendar/2026-09-25', '/history', '/history/', '/community/Ashkenaz',
+        '/chat/new/all/balanced', '/text/Genesis.1/chat/c1/full', '/history/chat/c1', '/signin', '/profile', '/settings']) {
         assert.equal((await dispatch(pathname, { navigate: true })).response, 'SHELL', pathname);
     }
-    for (const pathname of ['/about', '/text/', '/history/extra', '/settings']) {
+    for (const pathname of ['/about', '/text/', '/history/extra', '/chat/', '/signin/extra']) {
         assert.equal((await dispatch(pathname, { navigate: true })).response, 'OFFLINE', pathname);
     }
 
@@ -389,3 +395,51 @@ test('zmanim and daily-study are network-first: fresh when online, the cached co
     const api = [...caches.stores.keys()].find((name) => name.startsWith('shelah-api-'));
     assert.ok(api);
 });
+
+test('parasha and holidays are network-first: never last week\'s parasha after Shabbat (L-11)', async (t) => {
+    let week = 0;
+    let online = true;
+    const { dispatch } = loadWorker(t, {
+        fetchImpl: async () => {
+            if (!online) throw new TypeError('offline');
+            week += 1;
+            return jsonResponse({ parasha: `week ${week}` });
+        },
+    });
+    for (const path of ['/api/parasha', '/api/holidays?year=2026']) {
+        await dispatch(path);
+        const second = await dispatch(path);
+        assert.equal(second.waited, 0, `${path}: no stale copy first`);
+        assert.deepEqual(await second.response.json(), { parasha: `week ${week}` });
+        online = false;
+        assert.deepEqual(await (await dispatch(path)).response.json(), { parasha: `week ${week}` }, `${path}: cached copy offline`);
+        online = true;
+    }
+});
+
+test('scripts are network-first: a new deploy\'s module runs on the first load after it (L-10)', async (t) => {
+    let deploy = 1;
+    let online = true;
+    const { caches, dispatch } = loadWorker(t, {
+        fetchImpl: async () => {
+            if (!online) throw new TypeError('offline');
+            return new Response(`export const v = ${deploy};`, { status: 200 });
+        },
+    });
+
+    await dispatch('/static/js/router.js');
+    deploy = 2;
+    const next = await dispatch('/static/js/router.js');
+    assert.equal(await next.response.text(), 'export const v = 2;', 'the fresh copy, not the cached one');
+    assert.equal(next.waited, 0, 'no background refresh needed');
+    const shell = [...caches.stores.entries()].find(([name]) => name.startsWith('shelah-shell-'))[1];
+    assert.equal(await shell.get(next.request.url).clone().text(), 'export const v = 2;', 'the cache holds the latest copy');
+
+    online = false;
+    assert.equal(await (await dispatch('/static/js/router.js')).response.clone().text(), 'export const v = 2;', 'offline: the cached copy');
+    assert.equal(await (await dispatch('/static/js/router.js?v=abc123')).response.clone().text(), 'export const v = 2;',
+        'offline, a version never fetched falls back to the last copy of that file');
+    const never = await dispatch('/static/js/never-seen.js?v=1');
+    assert.equal(never.response.status, 503);
+});
+

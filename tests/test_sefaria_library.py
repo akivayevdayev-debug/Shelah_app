@@ -27,6 +27,7 @@ def _reset_all_module_caches(monkeypatch):
     sl._cache.clear()
     sl._resolved_title_ref_cache.clear()
     sl._resolved_query_ref_cache.clear()
+    sl._missing_text_refs.clear()
     sl._search_query_cache.clear()
     sl._title_catalog_cache.update({"ts": 0, "report_mtime": 0.0, "data": []})
     sl._library_index_view_cache.update({"ts": 0.0, "report_mtime": 0.0, "data": None})
@@ -45,6 +46,7 @@ def _reset_all_module_caches(monkeypatch):
     })
     yield
     sl._cache.clear()
+    sl._missing_text_refs.clear()
 
 
 # ─────────────────────────── Pure logic helpers ───────────────────────────
@@ -698,6 +700,58 @@ class TestGetText:
             assert result["error_type"] == "not_found"
             assert result["he"] == []
             assert result["en"] == []
+
+    @staticmethod
+    def _sefaria_says(rsps, *, is_ref, text_status=200, text_body=None):
+        # First match wins: the name API, then every text endpoint (v3 and v2),
+        # then anything else candidate resolution asks for.
+        rsps.add(responses_lib.GET, re.compile(re.escape(sl.SEFARIA_API) + r"/name/.*"),
+                 json={"is_ref": is_ref, "completions": []}, status=200)
+        text_kwargs = {"body": text_body} if text_body is not None else {"json": {"error": "nope"}, "status": text_status}
+        rsps.add(responses_lib.GET, re.compile(re.escape(sl.SEFARIA_V3_API) + r"/texts/.*"), **text_kwargs)
+        rsps.add(responses_lib.GET, re.compile(re.escape(sl.SEFARIA_API) + r"/texts/.*"), **text_kwargs)
+        rsps.add(responses_lib.GET, re.compile(re.escape(sl.SEFARIA_V3_API) + r"/.*"), json={"error": "nope"}, status=200)
+        rsps.add(responses_lib.GET, re.compile(re.escape(sl.SEFARIA_API) + r"/.*"), json={"error": "nope"}, status=200)
+
+    def test_remembers_a_ref_sefaria_says_does_not_exist(self):
+        with responses_lib.RequestsMock(assert_all_requests_are_fired=False) as rsps:
+            self._sefaria_says(rsps, is_ref=False)
+            assert sl.get_text("Blorp 4")["error_type"] == "not_found"
+        # Read back with no network at all (the shell route never fetches).
+        with responses_lib.RequestsMock():
+            assert sl.is_known_missing_text("Blorp 4")
+            assert sl.is_known_missing_text("blorp 4")
+            assert sl.is_known_missing_text("Blorp%204")
+
+    def test_a_real_ref_that_failed_to_load_is_not_remembered(self):
+        # "Gen 99"-style: Sefaria knows the title, so it's the reader's call.
+        with responses_lib.RequestsMock(assert_all_requests_are_fired=False) as rsps:
+            self._sefaria_says(rsps, is_ref=True)
+            assert sl.get_text("Genesis 99")["error_type"] == "not_found"
+        assert not sl.is_known_missing_text("Genesis 99")
+
+    @pytest.mark.parametrize("failure", [
+        {"text_body": __import__("requests").ConnectionError("down")},
+        {"text_status": 503},
+        {"text_status": 403},
+    ])
+    def test_a_lookup_sefaria_did_not_answer_is_not_proof(self, failure):
+        with responses_lib.RequestsMock(assert_all_requests_are_fired=False) as rsps:
+            self._sefaria_says(rsps, is_ref=False, **failure)
+            assert "error" in sl.get_text("Talmud Bavli Berakhot 2a")
+        assert not sl.is_known_missing_text("Talmud Bavli Berakhot 2a")
+
+    def test_a_sefaria_404_for_the_text_is_still_an_answer(self):
+        with responses_lib.RequestsMock(assert_all_requests_are_fired=False) as rsps:
+            self._sefaria_says(rsps, is_ref=False, text_status=404)
+            sl.get_text("Blorp 4")
+        assert sl.is_known_missing_text("Blorp 4")
+
+    def test_an_unseen_or_empty_ref_is_never_known_missing(self):
+        with responses_lib.RequestsMock():  # any fetch would raise
+            assert not sl.is_known_missing_text("Genesis 1")
+            assert not sl.is_known_missing_text("")
+            assert not sl.is_known_missing_text(None)
 
     def test_blocked_status_surfaces_specific_error(self):
         # Real HTTP 403s (not 200-with-error-body) so _cached_get's block-status
