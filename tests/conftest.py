@@ -31,6 +31,9 @@ os.environ.setdefault("LOG_LEVEL", "ERROR")
 # load_dotenv() (called on app import) won't override an already-set var.
 os.environ.setdefault("SENTRY_DSN", "")
 os.environ.setdefault("SENTRY_DSN_BROWSER", "")
+# Same leak for the error-bot webhook: a local .env pointing it at the real
+# Discord channel made every error-path test post a live alert there.
+os.environ.setdefault("ERROR_LOG_WEBHOOK_URL", "")
 # Same leak this project already hit once with RATE_LIMIT_REDIS_URL
 # (plan.md §36.1 / Prompt 48/§36): a developer's local .env may set a real
 # Clerk webhook secret, and load_dotenv() won't override an already-set
@@ -97,6 +100,7 @@ os.environ["RATE_LIMIT_REDIS_URL"] = ""
 os.environ["SENTRY_DSN"] = ""
 os.environ["SENTRY_DSN_BROWSER"] = ""
 os.environ["CLERK_WEBHOOK_SIGNING_SECRET"] = ""
+os.environ["ERROR_LOG_WEBHOOK_URL"] = ""
 
 import backend.rate_limit as _rate_limit_module
 

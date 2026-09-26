@@ -20,23 +20,49 @@
     // the language, persist it, and swap every [data-en]/[data-he] element's
     // visible text. Returns the normalized language so the caller can use it
     // for whatever page-specific work (RTL attributes, lang-btn styling, ...)
-    // comes next.
+    // comes next. `persist: false` shows the language without saving it (a
+    // link's ?lang= is that page load's language, not the visitor's choice).
     function applyLanguagePreference(lang, options, languageManualKey) {
         const normalized = (lang === 'en' || lang === 'he') ? lang : 'en';
         const autoChange = Boolean(options && options.auto);
+        const persist = !(options && options.persist === false);
 
-        localStorage.setItem('preferredLanguage', normalized);
-        if (!autoChange) {
-            localStorage.setItem(languageManualKey, '1');
+        if (persist) {
+            localStorage.setItem('preferredLanguage', normalized);
+            if (!autoChange) {
+                localStorage.setItem(languageManualKey, '1');
+            }
         }
 
-        document.querySelectorAll('[data-en], [data-he]').forEach((el) => {
-            if (el.dataset[normalized]) {
-                el.textContent = el.dataset[normalized];
-            }
-        });
+        swapLanguageText(normalized, document);
 
         return normalized;
+    }
+
+    // Swap every [data-en]/[data-he] element under `scope` to `lang`'s text,
+    // leaving any element with no text for that language alone.
+    function swapLanguageText(lang, scope) {
+        scope.querySelectorAll('[data-en], [data-he]').forEach((el) => {
+            if (el.dataset[lang]) {
+                el.textContent = el.dataset[lang];
+            }
+        });
+    }
+
+    // index.html's head script marks a Hebrew load data-lang-pending, which
+    // keeps [data-he] text unseen until toggleLanguage() swaps it in. A region
+    // that calls this from an inline script right after its markup gets its
+    // Hebrew text laid out before first paint instead, so the swap doesn't
+    // shift the page, and data-lang-ready shows it at once (style.css).
+    function swapPendingLanguage(scope) {
+        const html = document.documentElement;
+        if (!scope || !html.hasAttribute('data-lang-pending')) return;
+        const lang = html.getAttribute('lang') === 'he' ? 'he' : 'en';
+        swapLanguageText(lang, scope);
+        scope.querySelectorAll(`[data-${lang}-placeholder]`).forEach((el) => {
+            el.placeholder = el.dataset[`${lang}Placeholder`];
+        });
+        scope.setAttribute('data-lang-ready', '');
     }
 
     // The shared geometry of both positionFloatingMenu() implementations:
@@ -72,12 +98,13 @@
         };
     }
 
-    const api = { applyLanguagePreference, computeFloatingMenuPosition };
+    const api = { applyLanguagePreference, swapPendingLanguage, computeFloatingMenuPosition };
 
     if (typeof module !== 'undefined' && module.exports) {
         module.exports = api;
     } else {
         root.applyLanguagePreference = applyLanguagePreference;
+        root.swapPendingLanguage = swapPendingLanguage;
         root.computeFloatingMenuPosition = computeFloatingMenuPosition;
     }
 })(typeof window !== 'undefined' ? window : globalThis);

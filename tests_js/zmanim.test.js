@@ -138,6 +138,12 @@ test('prewarmDailyStudy collects refs from arbitrary payload fields via collectR
     assert.ok(!textFetches.some((url) => url.includes('Tishrei')), 'the Hebrew date is never fetched as a text');
 });
 
+test('prewarmDailyStudy offline: the failed fetch resolves to no refs, not a rejection', async () => {
+    const fetchFn = async () => { throw new TypeError('Failed to fetch'); };
+    const { mod } = await loadZmanim({ fetch: fetchFn });
+    assert.deepEqual(await mod.namespace.prewarmDailyStudy(), []);
+});
+
 test('hasRealZman rejects empty/N/A/placeholder values and accepts real times', async () => {
     const { mod } = await loadZmanim();
     assert.equal(mod.namespace.hasRealZman(''), false);
@@ -264,6 +270,24 @@ test('fetchZmanimAPI does not render when the API reports an error', async () =>
     assert.equal(document.getElementById('zmanimWarning').dataset.zmanimLoadError, '1', 'the error banner is shown instead of a silent no-op');
     assert.equal(timer.setTimeout.calls.length, 1, 'a retry is scheduled after an errored response, not a countdown tick');
     assert.equal(timer.setTimeout.calls[0].delay, 3000, 'the first retry uses the shortest configured backoff');
+});
+
+test('fetchZmanimAPI marks the times list busy while /api/zmanim is out, and not after', async () => {
+    let release;
+    const busyDuring = [];
+    const { mod, document } = await loadZmanim({
+        fetch: async () => {
+            busyDuring.push(document.getElementById('todayZmanimList').getAttribute('aria-busy'));
+            await new Promise((resolve) => { release = resolve; });
+            return makeJsonResponse({ error: 'no data' });
+        },
+    });
+    const pending = mod.namespace.fetchZmanimAPI(null, makeDeps());
+    await new Promise((resolve) => setImmediate(resolve));
+    release();
+    await pending;
+    assert.deepEqual(busyDuring, ['true']);
+    assert.equal(document.getElementById('todayZmanimList').getAttribute('aria-busy'), 'false', 'not busy once the error shows');
 });
 
 test('startCountdown highlights the soonest upcoming zman row and fills the badge text', async () => {

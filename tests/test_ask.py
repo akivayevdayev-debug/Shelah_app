@@ -694,8 +694,8 @@ class TestAiModelTimeoutWiring:
 
 
 class TestAiCitationFormatPrompt:
-    """Regression guard for the colon-splitting bug in templates/index.html's
-    populateAiModal(): the model must be told to separate ref/note with an em
+    """Regression guard for the colon-splitting bug in
+    static/js/conversation-store.js answerCitations(): the model must be told to separate ref/note with an em
     dash, never a colon, since refs like "Genesis 1:1" already contain one.
     If this prompt instruction reverts to colon-based formatting, the frontend
     parser (which now splits on " — "/" – " only) will silently stop

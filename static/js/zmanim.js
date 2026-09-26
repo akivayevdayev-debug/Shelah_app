@@ -58,11 +58,13 @@ function collectRefsFromPayload(payload) {
 }
 
 async function fetchDailyStudyRefs() {
+    // Offline, or the request failing: nothing to prewarm. Not an
+    // unhandled rejection (prewarmDailyStudy runs unawaited).
     const response = await fetch("/api/daily-study", {
         method: "GET",
         credentials: "same-origin",
-    });
-    if (!response.ok) {
+    }).catch(() => null);
+    if (!response?.ok) {
         return [];
     }
 
@@ -648,6 +650,11 @@ function scheduleZmanimRetry(location, deps) {
     }, delay);
 }
 
+// The times list is busy while /api/zmanim is out (audit §6).
+function setZmanimBusy(busy) {
+    document.getElementById('todayZmanimList')?.setAttribute('aria-busy', busy ? 'true' : 'false');
+}
+
 export function fetchZmanimAPI(location = null, deps = {}) {
     let url = '/api/zmanim';
     if (location && Number.isFinite(location.lat) && Number.isFinite(location.lon)) {
@@ -658,9 +665,11 @@ export function fetchZmanimAPI(location = null, deps = {}) {
         url = `/api/zmanim?${query.toString()}`;
     }
 
+    setZmanimBusy(true);
     return fetch(url)
         .then((r) => r.json())
         .then((data) => {
+            setZmanimBusy(false);
             if (!data.error) {
                 zmanimData = data;
                 const meta = data.metadata || {};
@@ -672,6 +681,7 @@ export function fetchZmanimAPI(location = null, deps = {}) {
             }
         })
         .catch(() => {
+            setZmanimBusy(false);
             scheduleZmanimRetry(location, deps);
         });
 }

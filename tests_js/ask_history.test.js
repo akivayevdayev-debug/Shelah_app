@@ -407,6 +407,48 @@ test('an unchanged query does not refetch; no matches is announced', async () =>
     assert.match(root.parts['[data-history-results]'].innerHTML, /No questions match “zzz”/);
 });
 
+test('initialQuery opens on that search (/history?q=); each change is reported once', async () => {
+    const m = await load();
+    const root = fakeRoot();
+    const changes = [];
+    const deps = controllerDeps({ initialQuery: '  shabbat   candles ', onQueryChange: (q) => changes.push(q) });
+    deps.pages.push({ items: [row(ID1, 'shabbat candles')], next_cursor: null });
+    const page = m.createHistoryPage(root, deps);
+    await flush();
+    assert.equal(root.parts['#historySearchInput'].value, 'shabbat candles');
+    assert.deepEqual(deps.fetchCalls[0], { q: 'shabbat candles', cursor: '' });
+    assert.equal(page.state.q, 'shabbat candles');
+    assert.deepEqual(changes, [], 'opening on a search is not a change');
+
+    const input = root.parts['#historySearchInput'];
+    deps.pages.push({ items: [], next_cursor: null }, { items: [], next_cursor: null });
+    input.value = 'kiddush';
+    input.emit('input');
+    deps.timers.at(-1).fn();
+    input.value = 'kiddush';
+    root.parts['[data-history-search]'].emit('submit', { preventDefault() {} });
+    input.value = '';
+    input.emit('input');
+    deps.timers.at(-1).fn();
+    assert.deepEqual(changes, ['kiddush', ''], 'an unchanged submit reports nothing; clearing reports ""');
+});
+
+test('a search while signed out keeps the query but fetches nothing', async () => {
+    const m = await load();
+    const root = fakeRoot();
+    const changes = [];
+    const deps = controllerDeps({ auth: 'signed-out', onQueryChange: (q) => changes.push(q) });
+    const page = m.createHistoryPage(root, deps);
+    const input = root.parts['#historySearchInput'];
+    input.value = 'kiddush';
+    input.emit('input');
+    deps.timers.at(-1).fn();
+    root.parts['[data-history-search]'].emit('submit', { preventDefault() {} });
+    assert.equal(deps.fetchCalls.length, 0);
+    assert.equal(page.state.status, 'signed-out');
+    assert.deepEqual(changes, ['kiddush']);
+});
+
 test('a plain click on a row opens the answer in-app; a modified click is left to the browser', async () => {
     const m = await load();
     const root = fakeRoot();

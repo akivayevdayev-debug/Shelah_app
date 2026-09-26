@@ -3,16 +3,16 @@
 //   - signed in  -> "conversation": the multi-turn conversation UI
 //     (conversation-store.js). /api/conversations/* needs a Clerk user, so
 //     this is the only state in which that UI can save anything.
-//   - signed out -> "legacy": the existing single-answer AI modal
-//     (aiAssistantModal / handleAiSearch in templates/index.html), shown with
-//     SIGN_IN_HINT so the user knows signing in keeps their conversations.
+//   - signed out -> "legacy": a one-shot /ask answer (handleAiSearch in
+//     templates/index.html), shown in the same panel with a sign-in prompt
+//     in place of the composer.
 
 export const ASK_SURFACE = Object.freeze({
     CONVERSATION: "conversation",
     LEGACY: "legacy",
 });
 
-// Hint for the legacy modal when the user is signed out.
+// Hint for a signed-out user.
 export const SIGN_IN_HINT = "Sign in to save your conversations.";
 
 // Same test templates/index.html uses before its signed-in-only fetches

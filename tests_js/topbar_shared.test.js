@@ -14,7 +14,7 @@
 
 const test = require('node:test');
 const assert = require('node:assert/strict');
-const { applyLanguagePreference, computeFloatingMenuPosition } = require('../static/js/topbar_shared.js');
+const { applyLanguagePreference, swapPendingLanguage, computeFloatingMenuPosition } = require('../static/js/topbar_shared.js');
 
 function createFakeLocalStorage() {
     const store = new Map();
@@ -114,6 +114,19 @@ test('applyLanguagePreference marks the change manual when options.auto is absen
     assert.equal(localStorage.getItem('preferredLanguageManual'), '1');
 });
 
+test('applyLanguagePreference with persist: false shows the language without saving it (a link\'s ?lang=)', (t) => {
+    const el = createFakeElement({ dataset: { en: 'Hello', he: 'שלום' } });
+    const { localStorage } = withGlobals(t, { elements: [el] });
+    localStorage.setItem('preferredLanguage', 'en');
+
+    const result = applyLanguagePreference('he', { auto: true, fromRoute: true, persist: false }, 'preferredLanguageManual');
+
+    assert.equal(result, 'he');
+    assert.equal(el.textContent, 'שלום');
+    assert.equal(localStorage.getItem('preferredLanguage'), 'en');
+    assert.equal(localStorage.getItem('preferredLanguageManual'), null);
+});
+
 test('applyLanguagePreference leaves an element untouched when it has no text for the target language', (t) => {
     const el = createFakeElement({ dataset: { en: 'Hello' } }); // no `he`
     el.textContent = 'placeholder';
@@ -122,6 +135,52 @@ test('applyLanguagePreference leaves an element untouched when it has no text fo
     applyLanguagePreference('he', {}, 'preferredLanguageManual');
 
     assert.equal(el.textContent, 'placeholder');
+});
+
+// ── swapPendingLanguage ─────────────────────────────────────────────────
+
+function createFakeScope(elements) {
+    const attrs = {};
+    return {
+        querySelectorAll: () => elements,
+        setAttribute: (name, value) => { attrs[name] = value; },
+        attrs,
+    };
+}
+
+function withHtml(t, attrs) {
+    const { localStorage } = withGlobals(t, {});
+    globalThis.document.documentElement = {
+        hasAttribute: (name) => Object.prototype.hasOwnProperty.call(attrs, name),
+        getAttribute: (name) => (name in attrs ? attrs[name] : null),
+    };
+    return { localStorage };
+}
+
+test('swapPendingLanguage lays a pending Hebrew load\'s text out early and marks the region ready', (t) => {
+    const el = createFakeElement({ dataset: { en: 'Sign In', he: 'התחברות' } });
+    el.textContent = 'Sign In';
+    const scope = createFakeScope([el]);
+    const { localStorage } = withHtml(t, { lang: 'he', 'data-lang-pending': '' });
+
+    swapPendingLanguage(scope);
+
+    assert.equal(el.textContent, 'התחברות');
+    assert.equal(scope.attrs['data-lang-ready'], '');
+    assert.equal(localStorage.getItem('preferredLanguage'), null, 'nothing is saved');
+});
+
+test('swapPendingLanguage does nothing once the language is settled (no pending flag)', (t) => {
+    const el = createFakeElement({ dataset: { en: 'Sign In', he: 'התחברות' } });
+    el.textContent = 'Sign In';
+    const scope = createFakeScope([el]);
+    withHtml(t, { lang: 'he' });
+
+    swapPendingLanguage(scope);
+    swapPendingLanguage(null);
+
+    assert.equal(el.textContent, 'Sign In');
+    assert.equal(scope.attrs['data-lang-ready'], undefined);
 });
 
 // ── computeFloatingMenuPosition ─────────────────────────────────────────

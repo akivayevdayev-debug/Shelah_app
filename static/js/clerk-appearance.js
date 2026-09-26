@@ -48,11 +48,11 @@
         const ink = token('--ink-primary', dark ? '#c0bab0' : '#334155');
         const heading = token('--ink-heading', dark ? '#d4cec4' : '#002147');
         const muted = token('--ink-secondary', dark ? '#999188' : '#5a6b85');
-        const danger = dark ? '#e0708f' : token('--accent-red', '#be123c');       // 5.53 / 6.01 on the card
+        const danger = token('--accent-red', dark ? '#f26b6b' : '#be123c');       // 5.69 / 6.01 on the card
         const success = dark ? token('--accent-green', '#2aaa7a') : '#047857';    // 5.72 / 5.24 on the card
 
         const sans = "'Inter', system-ui, sans-serif";
-        const serif = "'Cardo', Georgia, serif";
+        const serif = "'Cardo', 'Cardo Fallback', Georgia, serif";
         const radius = '12px';       // --radius-control
         const cardRadius = '20px';   // --radius-sheet
         const control = { minHeight: '44px', borderRadius: radius };

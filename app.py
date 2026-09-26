@@ -34,6 +34,7 @@ from backend import claude
 from backend import ask_pipeline
 from backend import cost_gates
 from backend import page_meta
+from backend import module_versions
 from backend.logging_setup import (
     setup_logging,
     _capture_backend_error,
@@ -180,9 +181,14 @@ def _set_cached_ask_payload(cache_key, payload):
     if not isinstance(payload, dict):
         return
     try:
+        cached = json.loads(json.dumps(payload))
+        # history_id is the first asker's own ask_history row: a cache hit
+        # served to someone else must not carry it (Copy link, follow-ups).
+        if "history_id" in cached:
+            cached["history_id"] = None
         _bounded_cache_set(ASK_RESPONSE_CACHE, cache_key, {
             "ts": time.time(),
-            "payload": json.loads(json.dumps(payload)),
+            "payload": cached,
         })
     except Exception:
         return
@@ -1318,12 +1324,22 @@ def index():
     return render_spa_shell(page_meta.query_meta(request.args))
 
 
+# View transitions between the SPA's views (audit §2.3) ship behind this
+# flag: VIEW_TRANSITIONS=true turns them on for every visitor. A browser can
+# try them (or opt out) on its own with localStorage "shelah.viewTransitions"
+# = "on" / "off" (index.html's head).
+VIEW_TRANSITIONS_ENABLED = (os.environ.get("VIEW_TRANSITIONS") or "").strip().lower() == "true"
+
+
 def render_spa_shell(meta):
     """The SPA shell with this URL's title/og:url/canonical (backend/page_meta.py).
     Shared by index() and the path deep links in backend/routes_spa_paths.py."""
     return render_template(
         "index.html",
         page_meta=meta,
+        view_transitions=VIEW_TRANSITIONS_ENABLED,
+        module_url=module_versions.module_url,
+        module_import_map=module_versions.import_map(),
         clerk_publishable_key=CLERK_PUBLISHABLE_KEY,
         clerk_enforce_auth=CLERK_ENFORCE_AUTH,
         sentry_dsn_browser=SENTRY_DSN_BROWSER,
@@ -1375,14 +1391,24 @@ def favicon():
     return send_from_directory("static", "favicon.svg", mimetype="image/svg+xml")
 
 
+_SW_CACHE_VERSION_RE = re.compile(r'const CACHE_VERSION = "([^"]*)"')
+
+
+def service_worker_cache_version(content):
+    """The worker's cache names: DEPLOY_HASH (a manual bump) or the file's own
+    CACHE_VERSION, plus the deploy's commit on Vercel, so every deploy gets
+    fresh caches and drops the last one's copies (audit L-10)."""
+    found = _SW_CACHE_VERSION_RE.search(content)
+    base = os.environ.get("DEPLOY_HASH", "").strip() or (found.group(1) if found else "v8")
+    return f"{base}-{SENTRY_RELEASE[:12]}" if SENTRY_RELEASE else base
+
+
 @app.route("/service-worker.js")
 def service_worker():
-    deploy_hash = os.environ.get("DEPLOY_HASH", "v8")
     sw_path = Path(app.static_folder) / "service-worker.js"
     content = sw_path.read_text(encoding="utf-8")
-    versioned = re.sub(
-        r'const CACHE_VERSION = "[^"]*"',
-        f'const CACHE_VERSION = "{deploy_hash}"',
+    versioned = _SW_CACHE_VERSION_RE.sub(
+        f'const CACHE_VERSION = "{service_worker_cache_version(content)}"',
         content,
         count=1,
     )

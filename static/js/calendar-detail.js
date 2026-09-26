@@ -747,7 +747,10 @@ function dragEnd() {
 function attachDrag() {
     gripEl.addEventListener('pointerdown', (e) => {
         if (e.button > 0 || e.target.closest('button')) return;
-        if (dragBegin(e.clientY)) gripEl.setPointerCapture(e.pointerId);
+        if (!dragBegin(e.clientY)) return;
+        // Android Chrome can retire the pointer before this runs (NotFoundError);
+        // the drag still tracks via the grip's own move/up listeners.
+        try { gripEl.setPointerCapture(e.pointerId); } catch { /* pointer already gone */ }
     });
     gripEl.addEventListener('pointermove', (e) => { if (state.drag) dragMove(e.clientY); });
     const release = () => { if (state.drag) dragEnd(); };

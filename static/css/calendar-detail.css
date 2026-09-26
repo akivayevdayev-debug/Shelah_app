@@ -187,7 +187,10 @@
     background: var(--surface-pill);
     transition: background-color 150ms ease-out;
 }
-.cal-detail__close > * { position: relative; }
+/* Lift the glyph itself above the disc. Its wrapper is `display: contents` (no box),
+   so positioning the wrapper did nothing and strict paint order (WebKit) drew the
+   absolutely positioned disc over the unpositioned svg, hiding the X. */
+.cal-detail__close svg { position: relative; z-index: 1; }
 .cal-detail__close:hover::before { background: var(--ctrl-bg-hover); }
 .cal-detail__close:active::before { background: var(--surface-border); }
 .cal-detail__back {

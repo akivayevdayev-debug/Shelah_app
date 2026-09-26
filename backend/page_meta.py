@@ -34,8 +34,9 @@ _HOME_OG_DESCRIPTION = (
 )
 
 # The query forms of the private views (router.js rewrites them to their
-# paths on load, but a crawler reads the response it was sent).
-PRIVATE_QUERY_KEYS = ("chat", "a", "history")
+# paths on load, but a crawler reads the response it was sent), and the
+# conversation overlay, which is one person's thread on any page.
+PRIVATE_QUERY_KEYS = ("chat", "a", "history", "conversation")
 
 _DATE_RE = re.compile(r"^\d{4}-\d{2}-\d{2}$")
 
@@ -69,8 +70,15 @@ def _encode_segment(value):
 
 def _path_value(raw):
     # Flask's <path:> hands over the decoded value; a trailing slash is the
-    # same view (router.js parsePath strips it too).
+    # same view (router.js parsePath strips it too, and the slashed form
+    # 308s to the bare one, routes_spa_paths.py).
     return str(raw or "").rstrip("/").strip()
+
+
+def _slug_value(raw):
+    # A typed or form-encoded "+" means a space here: refs and prayer names
+    # never contain one (router.js parsePath reads it the same way).
+    return _path_value(raw).replace("+", " ")
 
 
 def _meta(title=None, description=None, canonical_path="/", og_path=None):
@@ -93,25 +101,55 @@ def private_meta(path="/"):
     return _meta(canonical_path=None, og_path=path)
 
 
+# The canonical paths, shared by the <head> builders below and the sitemap
+# (routes_pages.py), so a sitemap <loc> is always the page's own canonical.
+def text_path(ref):
+    return f"/text/{_encode_segment(ref_to_slug(ref))}"
+
+
+def prayer_path(name):
+    return f"/prayer/{_encode_segment(name.replace(' ', '_'))}"
+
+
+def community_path(name):
+    return f"/community/{_encode_segment(name.replace(' ', '_'))}"
+
+
+def text_ref(raw_slug):
+    # The ref the reader asks /api/text for (router.js slugToRef).
+    return slug_to_ref(_slug_value(raw_slug)).strip()
+
+
 def text_meta(raw_slug):
-    ref = slug_to_ref(_path_value(raw_slug)).strip()
+    ref = text_ref(raw_slug)
     if not ref:
         return home_meta()
     return _meta(
         title=ref,
         description=f"Read {ref} with sources and commentary on {SITE_NAME}, the AI-powered Torah encyclopedia.",
-        canonical_path=f"/text/{_encode_segment(ref_to_slug(ref))}",
+        canonical_path=text_path(ref),
     )
 
 
 def prayer_meta(raw_slug):
-    name = _path_value(raw_slug).replace("_", " ").strip()
+    name = _slug_value(raw_slug).replace("_", " ").strip()
     if not name:
         return home_meta()
     return _meta(
         title=name,
         description=f"{name}: prayer text on {SITE_NAME}, the AI-powered Torah encyclopedia.",
-        canonical_path=f"/prayer/{_encode_segment(name.replace(' ', '_'))}",
+        canonical_path=prayer_path(name),
+    )
+
+
+def community_meta(raw_slug):
+    name = _slug_value(raw_slug).replace("_", " ").strip()
+    if not name:
+        return home_meta()
+    return _meta(
+        title=f"{name} Community Customs",  # the label the app gives the view
+        description=f"The {name} community's customs and practice on {SITE_NAME}, the AI-powered Torah encyclopedia.",
+        canonical_path=community_path(name),
     )
 
 
@@ -128,11 +166,14 @@ def calendar_meta(day):
 
 def query_meta(args):
     """``/`` and its legacy query links: a private key wins, then an old
-    ``?text=`` / ``?prayer=`` link canonicalizes to its path form."""
+    ``?text=`` / ``?prayer=`` / ``?community=`` link canonicalizes to its
+    path form."""
     if any(args.get(key) for key in PRIVATE_QUERY_KEYS):
         return private_meta("/")
     if args.get("text"):
         return text_meta(ref_to_slug(args["text"]))
     if args.get("prayer"):
         return prayer_meta(args["prayer"])
+    if args.get("community"):
+        return community_meta(args["community"])
     return home_meta()
