@@ -20,20 +20,39 @@ SHELL_PATHS = [
     "/text/Genesis.1",
     "/text/Shulchan%20Arukh,%20Orach%20Chayim%20345:1",
     "/text/a%2Fb",
-    "/text/Genesis.1/",
+    "/text/Genesis+1",
     "/prayer/shacharit",
     "/prayer/birkat%20hamazon",
+    "/community/Ashkenaz",
+    "/community/Greek-Romaniote",
     "/calendar/2026-09-25",
     "/answer/0b6a3f58-2f5e-4c1d-9a7e-3d2b1c0a9f88",
     "/a/Zx9_-abcDEF0123456789q",
     "/history",
-    "/history/",
+    # Formal URLs: the overlay and AI tail after a view (router.js "Paths").
+    "/chat/new",
+    "/chat/0b6a3f58-2f5e-4c1d-9a7e-3d2b1c0a9f88/all/balanced/full",
+    "/answer/0b6a3f58-2f5e-4c1d-9a7e-3d2b1c0a9f88/sefardic/strict",
+    "/a/Zx9_-abcDEF0123456789q/greek-romaniote",
+    "/text/Genesis.1/chat/new/ashkenaz/sources/mini",
+    "/text/Genesis.1/calendar/2026-09-25",
+    "/prayer/shacharit/signin",
+    "/community/Ashkenaz/chat/c1",
+    "/calendar/2026-09-25/chat/c1/full",
+    "/history/chat/c1",
+    "/signin",
+    "/profile",
+    "/settings",
 ]
 
 PRIVATE_PATHS = [
     "/answer/0b6a3f58-2f5e-4c1d-9a7e-3d2b1c0a9f88",
     "/a/Zx9_-abcDEF0123456789q",
     "/history",
+    "/chat/new/all/balanced",
+    "/answer/0b6a3f58-2f5e-4c1d-9a7e-3d2b1c0a9f88/sefardic/strict",
+    "/history/chat/c1",
+    "/signin",
 ]
 
 
@@ -51,8 +70,8 @@ def _head_values(html):
 
 
 def _shell_marker(html):
-    # The SPA shell's own markers: the router's module entry and the AI modal.
-    return 'src="/static/js/main.js' in html and 'id="aiAssistantModal"' in html
+    # The SPA shell's own markers: the router's module entry and the AI panel.
+    return 'src="/static/js/main.js' in html and 'id="convPanel"' in html
 
 
 class TestShellPaths:
@@ -72,12 +91,13 @@ class TestShellPaths:
         response = test_client.get(path)
         assert response.headers["X-Robots-Tag"] == "noindex, nofollow"
 
-    @pytest.mark.parametrize("path", ["/text/Genesis.1", "/prayer/shacharit", "/calendar/2026-09-25"])
+    @pytest.mark.parametrize("path", ["/text/Genesis.1", "/prayer/shacharit", "/community/Ashkenaz", "/calendar/2026-09-25"])
     def test_library_paths_stay_indexable(self, test_client, path):
         assert "X-Robots-Tag" not in test_client.get(path).headers
 
     @pytest.mark.parametrize("query", [
         "chat=0b6a3f58-2f5e-4c1d-9a7e-3d2b1c0a9f88", "a=Zx9_-abcDEF0123456789q", "history=1", "text=Genesis.1&chat=x",
+        "conversation=0b6a3f58-2f5e-4c1d-9a7e-3d2b1c0a9f88", "conversation=abc&cv=overlay",
     ])
     def test_legacy_query_links_to_answers_are_noindex_too(self, test_client, query):
         assert test_client.get(f"/?{query}").headers["X-Robots-Tag"] == "noindex, nofollow"
@@ -86,19 +106,106 @@ class TestShellPaths:
     def test_other_pages_and_queries_stay_indexable(self, test_client, url):
         assert "X-Robots-Tag" not in test_client.get(url).headers
 
-    @pytest.mark.parametrize("path", ["/text", "/text/", "/prayer/", "/answer/", "/a/", "/calendar/", "/history/extra"])
+    @pytest.mark.parametrize("path", ["/text", "/text/", "/prayer/", "/community/", "/answer/", "/a/", "/calendar/", "/history/extra"])
     def test_a_path_without_its_value_is_not_captured(self, test_client, path):
         assert test_client.get(path).status_code == 404
+
+    @pytest.mark.parametrize("path", [
+        "/chat", "/chat/", "/chat/c1/extra.words", "/chat/c1/sefardic/ashkenaz", "/chat/c1/full/mini",
+        "/answer/h1/full", "/answer/h1/calendar/soon", "/calendar/2026-09-25/strict", "/history/sefardic",
+        "/signin/extra", "/sefardic", "/strict",
+    ])
+    def test_a_tail_the_router_cannot_read_is_a_404(self, test_client, path):
+        assert test_client.get(path).status_code == 404, path
+
+    def test_a_tail_leaves_the_view_as_the_canonical_page(self, test_client):
+        head = _head_values(test_client.get("/text/Genesis.1/chat/new/all/balanced/mini").get_data(as_text=True))
+        assert head["canonicals"] == [SITE + "/text/Genesis.1"]
+        assert head["title"] == "Genesis 1 · Sh&#39;elah"
+        cal = _head_values(test_client.get("/calendar/2026-09-25/chat/c1").get_data(as_text=True))
+        assert cal["canonicals"] == [SITE + "/calendar/2026-09-25"]
 
     @pytest.mark.parametrize("path", ["/text/Genesis.1", "/history"])
     def test_only_get_is_routed(self, test_client, path):
         assert test_client.post(path).status_code == 405
+
+    @pytest.mark.parametrize("path, location", [
+        ("/text/Genesis.1/", "/text/Genesis.1"),
+        ("/text/Genesis.1//", "/text/Genesis.1"),
+        ("/text/Shulchan_Arukh,_Orach_Chayim.345.1/", "/text/Shulchan_Arukh,_Orach_Chayim.345.1"),
+        ("/text/%D7%91%D7%A8%D7%90%D7%A9%D7%99%D7%AA.1/", "/text/%D7%91%D7%A8%D7%90%D7%A9%D7%99%D7%AA.1"),
+        ("/prayer/shacharit/", "/prayer/shacharit"),
+        ("/community/Ashkenaz/", "/community/Ashkenaz"),
+        ("/calendar/2026-09-25/", "/calendar/2026-09-25"),
+        ("/answer/0b6a3f58-2f5e-4c1d-9a7e-3d2b1c0a9f88/", "/answer/0b6a3f58-2f5e-4c1d-9a7e-3d2b1c0a9f88"),
+        ("/a/Zx9_-abcDEF0123456789q/", "/a/Zx9_-abcDEF0123456789q"),
+        ("/history/", "/history"),
+        ("/chat/new/all/balanced/", "/chat/new/all/balanced"),
+        ("/text/Genesis.1/?layout=parallel&conversation=abc", "/text/Genesis.1?layout=parallel&conversation=abc"),
+    ])
+    def test_a_trailing_slash_redirects_to_the_bare_path(self, test_client, path, location):
+        response = test_client.get(path)
+        assert response.status_code == 308, path
+        assert response.headers["Location"] == location
+        # Following it lands on the shell.
+        assert test_client.get(location).status_code == 200
+
+    def test_head_redirects_too_and_post_is_left_alone(self, test_client):
+        assert test_client.head("/text/Genesis.1/").status_code == 308
+        assert test_client.post("/text/Genesis.1/").status_code != 308
+
+    @pytest.mark.parametrize("path", ["/about/", "/api/", "/static/", "/texts/Genesis/"])
+    def test_other_slashed_paths_are_not_redirected(self, test_client, path):
+        assert test_client.get(path).status_code != 308
+
+    async def test_trailing_slash_redirect_through_asgi(self, fastapi_client):
+        response = await fastapi_client.get("/text/Genesis.1/?layout=parallel")
+        assert response.status_code == 308
+        assert response.headers["location"] == "/text/Genesis.1?layout=parallel"
 
     async def test_paths_reach_the_shell_through_asgi(self, fastapi_client):
         for path in SHELL_PATHS:
             response = await fastapi_client.get(path)
             assert response.status_code == 200, path
             assert _shell_marker(response.text), path
+
+
+class TestMissingText:
+    """/text/<ref> for a text the reader has already found doesn't exist
+    (sefaria_library.is_known_missing_text, never a Sefaria request) is a
+    real 404 with the shell, kept out of search results (audit U-14)."""
+
+    @pytest.fixture(autouse=True)
+    def _blorp_is_missing(self, monkeypatch):
+        from backend import sefaria_library
+        asked = []
+
+        def known_missing(ref):
+            asked.append(ref)
+            return ref == "Blorp 4"
+
+        monkeypatch.setattr(sefaria_library, "is_known_missing_text", known_missing)
+        return asked
+
+    @pytest.mark.parametrize("path", ["/text/Blorp.4", "/text/Blorp%204", "/text/Blorp+4"])
+    def test_a_known_missing_text_is_a_404_shell(self, test_client, path):
+        response = test_client.get(path)
+        html = response.get_data(as_text=True)
+        assert response.status_code == 404
+        assert response.headers["X-Robots-Tag"] == "noindex, nofollow"
+        assert _shell_marker(html), "the reader still loads and shows its own not-found"
+        assert _head_values(html)["canonicals"] == []
+
+    def test_any_other_text_is_the_usual_shell(self, test_client, _blorp_is_missing):
+        response = test_client.get("/text/Genesis.1")
+        assert response.status_code == 200
+        assert "X-Robots-Tag" not in response.headers
+        assert _blorp_is_missing == ["Genesis 1"], "checked with the ref the reader asks for"
+
+    async def test_the_404_comes_through_asgi(self, fastapi_client):
+        response = await fastapi_client.get("/text/Blorp.4")
+        assert response.status_code == 404
+        assert _shell_marker(response.text)
 
 
 SITE = "https://shelah-app.vercel.app"
@@ -110,17 +217,23 @@ class TestPageMeta:
 
     @pytest.mark.parametrize("path, canonical, title", [
         ("/text/Genesis.1", "/text/Genesis.1", "Genesis 1"),
-        ("/text/Genesis.1/", "/text/Genesis.1", "Genesis 1"),
         ("/text/Genesis%201", "/text/Genesis.1", "Genesis 1"),
+        ("/text/Genesis+1", "/text/Genesis.1", "Genesis 1"),
+        ("/text/Shulchan+Arukh,+Orach+Chayim+345:1",
+         "/text/Shulchan_Arukh,_Orach_Chayim.345.1", "Shulchan Arukh, Orach Chayim 345:1"),
         ("/text/Shulchan%20Arukh,%20Orach%20Chayim%20345:1",
          "/text/Shulchan_Arukh,_Orach_Chayim.345.1", "Shulchan Arukh, Orach Chayim 345:1"),
         ("/text/Berakhot.2a.5", "/text/Berakhot.2a.5", "Berakhot 2a:5"),
         ("/text/a%2Fb", "/text/a%2Fb", "a/b"),
         ("/prayer/birkat%20hamazon", "/prayer/birkat_hamazon", "birkat hamazon"),
         ("/prayer/Upon_Arising", "/prayer/Upon_Arising", "Upon Arising"),
+        ("/prayer/birkat+hamazon", "/prayer/birkat_hamazon", "birkat hamazon"),
         ("/calendar/2026-09-25", "/calendar/2026-09-25", "Jewish calendar 2026-09-25"),
         ("/?text=Genesis.1", "/text/Genesis.1", "Genesis 1"),
         ("/?prayer=Upon_Arising", "/prayer/Upon_Arising", "Upon Arising"),
+        ("/community/Ashkenaz", "/community/Ashkenaz", "Ashkenaz Community Customs"),
+        ("/community/Spanish%20and%20Portuguese", "/community/Spanish_and_Portuguese", "Spanish and Portuguese Community Customs"),
+        ("/?community=Sefardic", "/community/Sefardic", "Sefardic Community Customs"),
     ])
     def test_library_urls_declare_themselves(self, test_client, path, canonical, title):
         head = _head_values(test_client.get(path).get_data(as_text=True))
@@ -128,13 +241,13 @@ class TestPageMeta:
         assert head["og_url"] == SITE + canonical
         assert head["title"] == head["og_title"] == f"{title} · Sh&#39;elah"
 
-    @pytest.mark.parametrize("path", ["/", "/settings", "/profile", "/?lang=he", "/calendar/not-a-date", "/text/_", "/prayer/_"])
+    @pytest.mark.parametrize("path", ["/", "/settings", "/profile", "/?lang=he", "/calendar/not-a-date", "/text/_", "/prayer/_", "/community/_"])
     def test_home_keeps_the_site_title_and_root_canonical(self, test_client, path):
         head = _head_values(test_client.get(path).get_data(as_text=True))
         assert head["canonicals"] == [SITE + "/"]
         assert head["title"] == "Sh&#39;elah - Torah Encyclopedia"
 
-    @pytest.mark.parametrize("path", PRIVATE_PATHS + ["/?chat=abc", "/?text=Genesis.1&chat=x", "/?history=1"])
+    @pytest.mark.parametrize("path", PRIVATE_PATHS + ["/?chat=abc", "/?text=Genesis.1&chat=x", "/?history=1", "/?conversation=abc"])
     def test_private_views_have_no_canonical(self, test_client, path):
         head = _head_values(test_client.get(path).get_data(as_text=True))
         assert head["canonicals"] == []

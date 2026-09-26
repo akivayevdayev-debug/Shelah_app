@@ -142,6 +142,22 @@ export function noticeFor(error, lang = "en") {
         case ERROR_CODES.ANSWER_INCOMPLETE:
             // Rendered on the turn itself ("Check again"), not as a banner.
             return null;
+        // Search-bar answers (/ask, conversation-store.js askSearch).
+        case "turnstile_required":
+            return {
+                tone: "warn",
+                text: tr({
+                    en: "Please complete the quick verification check, then try again.",
+                    he: "אנא השלם את בדיקת האימות הקצרה ונסה שוב.",
+                }, lang),
+                action: null,
+            };
+        case "timeout":
+            return {
+                tone: "warn",
+                text: tr({ en: "The answer took too long. Please try again.", he: "התשובה התעכבה יותר מדי. נסה שוב." }, lang),
+                action: null,
+            };
         default:
             return {
                 tone: "warn",

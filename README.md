@@ -228,7 +228,8 @@ Every value below already has a working default in code. Set one only to overrid
 | `SENTRY_DSN` / `SENTRY_DSN_BROWSER` | — | Sentry error tracking (server / browser) — true no-op until set |
 | `ERROR_LOG_WEBHOOK_URL` | — | Also POST backend error payloads to this URL |
 | `CRON_SECRET` | — | Shared secret Vercel Cron sends as a Bearer token to `/api/devtools/budget-check` and `/api/devtools/retention-enforce` (see `vercel.json`); only needed on Vercel |
-| `DEPLOY_HASH` | `v8` | Service-worker cache-busting version string (`static/service-worker.js`'s `CACHE_VERSION`) — bump to force clients to drop old caches on deploy |
+| `DEPLOY_HASH` | unset (`static/service-worker.js`'s own `CACHE_VERSION`) | Service-worker cache version base. Every Vercel deploy already gets fresh caches (the commit is appended); set this only to force a change between deploys of the same commit |
+| `VIEW_TRANSITIONS` | `false` | `true` animates moves between views (home, a text, a prayer, a community, history) with the View Transitions API, for every visitor; browsers without the API just swap. One browser can opt in or out alone with `localStorage.setItem("shelah.viewTransitions", "on" \| "off")` |
 | `SUPABASE_PREFS_TABLE`, `SUPABASE_COMMUNITY_KNOWLEDGE_TABLE`, `SUPABASE_USER_MEMORIES_TABLE`, `SUPABASE_STUDY_BOOKMARKS_TABLE`, `SUPABASE_ASK_HISTORY_TABLE` | `user_preferences`, `community_knowledge`, `user_memories`, `study_bookmarks`, `ask_history` | Supabase table-name overrides — only needed if your tables are named differently from the defaults |
 | `VERCEL`, `VERCEL_ENV`, `VERCEL_GIT_COMMIT_SHA` | — | Set automatically by the Vercel platform (production-runtime detection, Sentry environment/release tagging) — do not set these manually |
 

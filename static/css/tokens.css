@@ -27,6 +27,49 @@
 */
 
 /* ═══════════════════════════════════════════════════════════════════
+   FALLBACK FACES (audit L-12)
+   Local fonts resized to the web fonts' metrics and named right after them
+   in the font stacks, so text drawn before Cardo or Ezra SIL arrive takes
+   the space it will keep, and nothing reflows when they swap in (both
+   stay font-display: swap). Measured in Chrome on a paragraph at 1000px:
+   size-adjust matches the width; ascent/descent-override are the web
+   font's ascent and descent divided by that size. Where the local font is
+   missing (no Georgia on Android, say) the face is skipped and the stack
+   carries on as before.
+   ═══════════════════════════════════════════════════════════════════ */
+@font-face {
+    font-family: 'Cardo Fallback';
+    src: local('Georgia'), local('Georgia Regular');
+    font-weight: 400;
+    size-adjust: 96.57%;
+    ascent-override: 102.52%;
+    descent-override: 37.69%;
+    line-gap-override: 0%;
+}
+
+@font-face {
+    font-family: 'Cardo Fallback';
+    src: local('Georgia Bold'), local('Georgia-Bold');
+    font-weight: 700;
+    size-adjust: 89.67%;
+    ascent-override: 110.4%;
+    descent-override: 40.59%;
+    line-gap-override: 0%;
+}
+
+/* Hebrew letters and points only: Latin in a Hebrew run falls through to
+   Cardo, as it did before. */
+@font-face {
+    font-family: 'Ezra SIL Fallback';
+    src: local('Times New Roman'), local('TimesNewRomanPSMT');
+    unicode-range: U+0590-05FF, U+FB1D-FB4F;
+    size-adjust: 134.04%;
+    ascent-override: 80.05%;
+    descent-override: 30.14%;
+    line-gap-override: 0%;
+}
+
+/* ═══════════════════════════════════════════════════════════════════
    LIGHT THEME (default / :root)
 ═══════════════════════════════════════════════════════════════════ */
 
@@ -158,6 +201,11 @@
        distinct from --motion-ease-spring; was repeated as a raw literal at
        5+ sites across style.css/ai.css before being named here. */
     --motion-ease-decel: cubic-bezier(0.22, 1, 0.36, 1);
+    /* Views (audit §2): the old one fades out, the new one fades in
+       shifted 12px from the side the navigation goes to. */
+    --motion-dur-view-out: 120ms;
+    --motion-dur-view-in:  240ms;
+    --motion-view-shift:   var(--sp-3);
 
     /* ── Elevation (shadow tokens) ──────────────────────────────────── */
     --shadow-sm:  0 1px 3px rgba(0,0,0,0.08), 0 1px 2px rgba(0,0,0,0.05);
@@ -188,9 +236,9 @@
     --control-strong-bg-hover: var(--ctrl-filled-hover);
 
     /* ── Typography ─────────────────────────────────────────────────── */
-    --font-serif:  'Cardo', Georgia, serif;
+    --font-serif:  'Cardo', 'Cardo Fallback', Georgia, serif;
     --font-sans:   'Inter', system-ui, sans-serif;
-    --font-hebrew: 'Ezra SIL', 'Cardo', serif;
+    --font-hebrew: 'Ezra SIL', 'Ezra SIL Fallback', 'Cardo', 'Cardo Fallback', serif;
 
     /* ── Calendar event colors (by Hebcal category — must match
        backend/app.py's _holiday_color_for_category palette) ────────── */
@@ -289,9 +337,13 @@
     40%            { transform: translateY(-6px);  opacity: 1;   }
 }
 
+/* Transform and opacity only, so the loop runs on the compositor. It used
+   to pulse a drop-shadow as well, which repainted the element on every
+   frame for as long as it looped; the glow is now a static filter on the
+   elements that want one (.search-ai-sparkle, #loadingOverlay .font-hebrew). */
 @keyframes shelah-warm-pulse {
-    0%, 100% { opacity: 0.7; transform: scale(0.97); filter: drop-shadow(0 0 6px rgba(201, 168, 78, 0.25)); }
-    50%      { opacity: 1;   transform: scale(1.04); filter: drop-shadow(0 0 14px rgba(201, 168, 78, 0.55)); }
+    0%, 100% { opacity: 0.7; transform: scale(0.97); }
+    50%      { opacity: 1;   transform: scale(1.04); }
 }
 
 /* The search bar's loading halo (static/css/ai.css's .search-liftoff-underlay):
@@ -307,6 +359,65 @@
 @keyframes shelah-halo-orbit {
     from { transform: translate(-50%, -50%) scale(2.2, 1) rotate(0deg); }
     to   { transform: translate(-50%, -50%) scale(2.2, 1) rotate(360deg); }
+}
+
+/* View transitions (::view-transition-*(root), below). Forward comes in
+   from the inline end, Back from the inline start; RTL mirrors both. */
+@keyframes shelah-view-in {
+    from {
+        opacity: 0;
+        transform: translateX(calc(var(--motion-view-shift) * var(--motion-view-dir, 1) * var(--motion-view-sign, 1)));
+    }
+    to { opacity: 1; transform: none; }
+}
+@keyframes shelah-view-out {
+    from { opacity: 1; }
+    to   { opacity: 0; }
+}
+
+/* M-7: the verse a citation opened at gets a one-shot wash, so the reader
+   doesn't just "jump somewhere" (ai.css .segment-row.cite-highlight). */
+@keyframes shelah-cite-highlight {
+    0%, 60% { opacity: 1; }
+    100%    { opacity: 0; }
+}
+
+
+/* ═══════════════════════════════════════════════════════════════════
+   VIEW TRANSITIONS (audit §2.3; static/js/motion.js transitionView)
+   Only with <html data-view-transitions> (the VIEW_TRANSITIONS flag).
+   The page's chrome, and the overlays over it, get names of their own
+   while a transition runs (data-vt-active) so they hold still while the
+   page underneath changes; otherwise they'd be part of the root snapshot
+   and slide with it.
+═══════════════════════════════════════════════════════════════════ */
+
+html[dir="rtl"] { --motion-view-sign: -1; }
+/* Back: the type where supported, else the attribute motion.js sets. */
+html[data-vt-direction="back"] { --motion-view-dir: -1; }
+@supports selector(:active-view-transition-type(back)) {
+    html:active-view-transition-type(back) { --motion-view-dir: -1; }
+}
+
+html[data-view-transitions]::view-transition-old(root) {
+    animation: shelah-view-out var(--motion-dur-view-out) var(--motion-ease-out) both;
+}
+html[data-view-transitions]::view-transition-new(root) {
+    animation: shelah-view-in var(--motion-dur-view-in) var(--motion-ease-decel) both;
+}
+
+html[data-vt-active] header[role="banner"] { view-transition-name: shelah-topbar; }
+html[data-vt-active] #leftSidebar { view-transition-name: shelah-library; }
+html[data-vt-active] #rightSidebar { view-transition-name: shelah-commentary; }
+html[data-vt-active] #mobileBottomTabs { view-transition-name: shelah-tabs; }
+html[data-vt-active] #convPanel { view-transition-name: shelah-conv-panel; }
+html[data-vt-active] #convPip { view-transition-name: shelah-conv-pip; }
+html[data-vt-active] #calendarModal { view-transition-name: shelah-calendar; }
+
+@media (prefers-reduced-motion: reduce) {
+    ::view-transition-group(*),
+    ::view-transition-old(*),
+    ::view-transition-new(*) { animation: none !important; }
 }
 
 
@@ -377,7 +488,10 @@ body.theme-dark {
     --accent-purple:      #8868c0;
     --accent-teal:        #2a9c88;
     --accent-green:       #2aaa7a;
-    --accent-red:         #c04870;
+    /* Was #c04870, a rose (hue ~340°) that read pink, and at 3.1-4.1:1 it
+       needed mixing toward the heading ink for text, pinker still. A true
+       red (hue 0°) instead: 4.96-6.61:1 on every dark surface as is. */
+    --accent-red:         #f26b6b;
     --accent-orange:      #c86840;
 
     /* ── Controls ───────────────────────────────────────────────────── */
@@ -608,7 +722,7 @@ body.theme-dark {
         --accent-purple:      #8868c0;
         --accent-teal:        #2a9c88;
         --accent-green:       #2aaa7a;
-        --accent-red:         #c04870;
+        --accent-red:         #f26b6b;
         --accent-orange:      #c86840;
 
         --ctrl-bg:            #23211f;
@@ -804,7 +918,9 @@ body.theme-dark {
        (--hit-min on .reader-range-slider), not from the thumb. */
     --slider-track-h:   4px;
     --slider-thumb:     14px;
-    --slider-thumb-press: 16px;
+    /* The press-grow to 16px, as a scale (16 / 14) so it runs on the
+       compositor instead of resizing the thumb every frame. */
+    --slider-thumb-press-scale: 1.1429;
 
     /* Material — warm cream glass over the page */
     --glass-blur:    22px;

@@ -1,6 +1,9 @@
 import { getState, setState } from "./state.js";
 
 const CLIENT_ERROR_ENDPOINT = "/api/client-errors";
+// Benign browser noise (a ResizeObserver callback that resized its own
+// target); sentry-init.js drops the same message before it reaches Sentry.
+const BENIGN_ERROR_RE = /ResizeObserver loop/i;
 const SEMANTIC_BOOKMARKS_ENDPOINT = "/api/bookmarks/semantic";
 
 async function buildAuthHeaders(baseHeaders) {
@@ -38,6 +41,7 @@ async function postClientError(payload) {
 
 export function installGlobalErrorBoundary() {
     window.addEventListener("error", (event) => {
+        if (BENIGN_ERROR_RE.test(String(event?.message || ""))) return;
         void postClientError({
             type: "window.error",
             message: String(event?.message || "Unknown client error").slice(0, 500),

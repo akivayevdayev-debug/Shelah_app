@@ -177,6 +177,20 @@ test('staggerIn filters out falsy entries and animates the rest with a stagger d
     assert.equal(animate.calls[0].transition.delay, 'staggered:0.05');
 });
 
+test('staggerIn bounds a long list: first 8 cascade within 240ms, the rest show at once', async () => {
+    const staggerFn = (d) => d;
+    const { mod, animate } = await loadMotion({ staggerFn });
+    const els = Array.from({ length: 40 }, () => makeEl());
+    await mod.staggerIn(els);
+    assert.equal(animate.calls.length, 1);
+    assert.equal(animate.calls[0].target.length, 8);
+    assert.ok(animate.calls[0].transition.delay * 7 <= 0.24 + 1e-9, 'total spread stays within 240ms');
+    els.slice(8).forEach((el) => {
+        assert.equal(el.style.opacity, '1');
+        assert.equal(el.style.transform, 'none');
+    });
+});
+
 // ── springMove ───────────────────────────────────────────────────────────
 
 test('springMove no-ops on a null element', async () => {
@@ -439,6 +453,93 @@ test('present() must not clear el\'s inline styles while a dismiss() it was supe
     assert.equal('opacity' in el.style, false, "dismiss() finishing must clear the element's inline styles");
 });
 
+// Fake timers for the ceiling tests: a hidden tab can leave an animation
+// `running` forever, so present()/dismiss() race it against a setTimeout.
+function makeFakeTimers() {
+    let nextId = 1;
+    const pending = new Map();
+    return {
+        setTimeout: (fn, ms) => { const id = nextId++; pending.set(id, { fn, ms }); return id; },
+        clearTimeout: (id) => { pending.delete(id); },
+        delays: () => Array.from(pending.values()).map((t) => t.ms),
+        // Runs every timer due by `ms` (the ceiling's own, and the 0 ms settle
+        // it queues next), yielding to microtasks between them.
+        async advance(ms) {
+            for (let guard = 0; guard < 20; guard += 1) {
+                await new Promise((r) => setImmediate(r));
+                const due = Array.from(pending.entries()).find(([, t]) => t.ms <= ms);
+                if (!due) return;
+                pending.delete(due[0]);
+                due[1].fn();
+            }
+        },
+    };
+}
+
+async function loadMotionWithStuckAnimations() {
+    const animate = makeControllableAnimate(); // never settles on its own
+    const timers = makeFakeTimers();
+    const window = { matchMedia: () => ({ matches: false }), Motion: { animate, stagger: (d) => d, spring: 'SPRING' } };
+    const mod = (await loadEsmModule(MOTION_PATH, {
+        window, getComputedStyle: fakeGetComputedStyle, DOMMatrixReadOnly: FakeDOMMatrixReadOnly,
+        setTimeout: timers.setTimeout, clearTimeout: timers.clearTimeout,
+    })).namespace;
+    return { mod, animate, timers };
+}
+
+test('dismiss() still hides once its fade never reports finished (M-14 ceiling)', async () => {
+    const { mod, animate, timers } = await loadMotionWithStuckAnimations();
+    const el = makeEl();
+    let hiddenCalled = false;
+    const done = mod.dismiss(el, { preset: 'fade', onHidden: () => { hiddenCalled = true; } });
+    await timers.advance(0);
+    assert.equal(el.classList.contains('is-hiding'), true, 'still leaving before the ceiling');
+    assert.deepEqual(timers.delays(), [360], "the ceiling is the fade's own 0.16 s plus 0.2 s");
+    await timers.advance(360);
+    await done;
+    assert.equal(el.classList.contains('hidden'), true);
+    assert.equal(el.classList.contains('is-hiding'), false);
+    assert.equal(hiddenCalled, true);
+    assert.equal(animate.calls[0].control.stopped ?? true, true);
+});
+
+test('dismiss() of a drawer waits for its slide, bounded by the spring ceiling', async () => {
+    const { mod, timers } = await loadMotionWithStuckAnimations();
+    const el = makeEl();
+    el.getBoundingClientRect = () => ({ height: 300 });
+    const done = mod.dismiss(el, { preset: 'drawer' });
+    await timers.advance(0);
+    assert.deepEqual(timers.delays(), [1200]);
+    await timers.advance(1200);
+    await done;
+    assert.equal(el.classList.contains('hidden'), true);
+});
+
+test('present() clears its entrance styles once the animation never reports finished', async () => {
+    const { mod, timers } = await loadMotionWithStuckAnimations();
+    const el = makeEl(['hidden']);
+    const done = mod.present(el, { preset: 'fade' });
+    await timers.advance(0);
+    assert.equal(el.style.opacity, '0');
+    await timers.advance(1000);
+    await done;
+    assert.equal('opacity' in el.style, false);
+    assert.equal(el.classList.contains('hidden'), false);
+});
+
+test("a dismiss() ceiling firing after a present() superseded it doesn't hide the element", async () => {
+    const { mod, animate, timers } = await loadMotionWithStuckAnimations();
+    const el = makeEl();
+    const leaving = mod.dismiss(el, { preset: 'fade' });
+    await timers.advance(0);
+    const showing = mod.present(el, { preset: 'fade' }); // stops the exit, so its ceiling race resolves
+    await leaving;
+    animate.calls.at(-1).control.settle();
+    await timers.advance(1000);
+    await showing;
+    assert.equal(el.classList.contains('hidden'), false, 'present (the later call) wins');
+});
+
 test('dismiss() on an already-hidden element calls onHidden without animating', async () => {
     const { mod, animate } = await loadMotion();
     const el = makeEl(['hidden']);
@@ -570,4 +671,86 @@ test('the module attaches every public helper to window.ShelahMotion for legacy 
     for (const name of expected) {
         assert.equal(typeof window.ShelahMotion[name], 'function', `window.ShelahMotion.${name} must be a function`);
     }
+});
+
+// ── transitionView (audit M-3, behind the VIEW_TRANSITIONS flag) ─────────
+
+function makeVtDocument({ api = true, flag = true, visible = true } = {}) {
+    const attrs = new Map(flag ? [['data-view-transitions', '']] : []);
+    const doc = {
+        visibilityState: visible ? 'visible' : 'hidden',
+        documentElement: {
+            hasAttribute: (name) => attrs.has(name),
+            setAttribute: (name, value) => attrs.set(name, String(value)),
+            removeAttribute: (name) => attrs.delete(name),
+            getAttribute: (name) => (attrs.has(name) ? attrs.get(name) : null),
+        },
+        started: [],
+    };
+    if (api) {
+        doc.startViewTransition = (arg) => {
+            let finish;
+            const vt = {
+                arg,
+                finished: new Promise((resolve) => { finish = resolve; }),
+                updateCallbackDone: Promise.resolve(),
+                skipped: false,
+                skipTransition() { this.skipped = true; finish(); },
+            };
+            vt.finish = finish;
+            doc.started.push(vt);
+            return vt;
+        };
+    }
+    return doc;
+}
+
+async function loadMotionWithDocument(document, { reduced = false } = {}) {
+    const window = { matchMedia: () => ({ matches: reduced }) };
+    const mod = await loadEsmModule(MOTION_PATH, {
+        window,
+        document,
+        getComputedStyle: fakeGetComputedStyle,
+        DOMMatrixReadOnly: FakeDOMMatrixReadOnly,
+        setTimeout,
+    });
+    return mod.namespace;
+}
+
+test('transitionView swaps at once, with no transition, when it cannot or should not animate', async () => {
+    const cases = [
+        ['no View Transitions API', makeVtDocument({ api: false }), {}],
+        ['flag off', makeVtDocument({ flag: false }), {}],
+        ['tab hidden', makeVtDocument({ visible: false }), {}],
+        ['reduced motion', makeVtDocument(), { reduced: true }],
+    ];
+    for (const [label, document, opts] of cases) {
+        const motion = await loadMotionWithDocument(document, opts);
+        let swapped = 0;
+        assert.equal(motion.transitionView(() => { swapped += 1; }), null, label);
+        assert.equal(swapped, 1, `${label}: the swap still runs, synchronously`);
+        assert.equal(document.started?.length || 0, 0, `${label}: no transition started`);
+    }
+});
+
+test('transitionView marks the direction while it runs and clears it when done', async () => {
+    const document = makeVtDocument();
+    const motion = await loadMotionWithDocument(document);
+    const root = document.documentElement;
+    const vt = motion.transitionView(() => {}, { direction: 'back' });
+    assert.equal(vt, document.started[0]);
+    assert.deepEqual(vt.arg.types, ['back']);
+    assert.equal(root.getAttribute('data-vt-direction'), 'back');
+    assert.equal(root.hasAttribute('data-vt-active'), true);
+
+    const next = motion.transitionView(() => {}, { direction: 'forward' });
+    assert.equal(vt.skipped, true, 'a newer transition ends the one running');
+    await vt.finished;
+    await Promise.resolve();
+    assert.equal(root.getAttribute('data-vt-direction'), 'forward', 'the older one ending leaves the newer marks');
+    next.finish();
+    await next.finished;
+    await Promise.resolve();
+    assert.equal(root.hasAttribute('data-vt-active'), false);
+    assert.equal(root.hasAttribute('data-vt-direction'), false);
 });

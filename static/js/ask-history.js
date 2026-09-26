@@ -26,6 +26,11 @@ export const SEARCH_DEBOUNCE_MS = 300;
 // The search box's cap; the API trims queries to the same length.
 export const MAX_QUERY_CHARS = 200;
 const SKELETON_ROWS = 6;
+
+// A search as the page runs it: whitespace collapsed, trimmed, capped.
+function cleanQuery(value) {
+    return String(value || "").replace(/\s+/g, " ").trim().slice(0, MAX_QUERY_CHARS);
+}
 const SHELF_BUCKETS = ["recent", "bookmarks"];
 
 export function isHistoryId(value) {
@@ -233,6 +238,8 @@ export function moreHtml(state, { t, escapeHtml }) {
 //   signIn()               opens Clerk's sign-in
 //   onDeleted(id)          optional: refresh other views of the history
 //   t, escapeHtml, formatDate(iso), answerHref(id), icons { search, delete }
+//   initialQuery           optional: the search to open with (/history?q=)
+//   onQueryChange(q)       optional: the search changed ("" when cleared)
 //   setTimeout, clearTimeout (injectable for tests)
 export function createHistoryPage(root, deps) {
     const setTimer = deps.setTimeout || setTimeout;
@@ -241,7 +248,7 @@ export function createHistoryPage(root, deps) {
         status: "pending",
         items: [],
         nextCursor: null,
-        q: "",
+        q: cleanQuery(deps.initialQuery),
         loadingMore: false,
         confirmId: null,
         deleting: new Set(),
@@ -255,6 +262,13 @@ export function createHistoryPage(root, deps) {
     const results = root.querySelector("[data-history-results]");
     const more = root.querySelector("[data-history-more]");
     const status = root.querySelector("[data-history-status]");
+    input.value = state.q;
+
+    function setQuery(q) {
+        if (q === state.q) return;
+        state.q = q;
+        deps.onQueryChange?.(q);
+    }
 
     function render() {
         if (destroyed) return;
@@ -329,13 +343,13 @@ export function createHistoryPage(root, deps) {
     }
 
     function onInput() {
-        const next = String(input.value || "").replace(/\s+/g, " ").trim().slice(0, MAX_QUERY_CHARS);
+        const next = cleanQuery(input.value);
         if (searchTimer) clearTimer(searchTimer);
         searchTimer = setTimer(() => {
             searchTimer = null;
             if (next === state.q && state.status !== "error") return;
-            state.q = next;
-            void load();
+            setQuery(next);
+            refresh(); // signed out: the search is kept, nothing is fetched
         }, SEARCH_DEBOUNCE_MS);
     }
 
@@ -343,8 +357,8 @@ export function createHistoryPage(root, deps) {
         event.preventDefault();
         if (searchTimer) clearTimer(searchTimer);
         searchTimer = null;
-        state.q = String(input.value || "").replace(/\s+/g, " ").trim().slice(0, MAX_QUERY_CHARS);
-        void load();
+        setQuery(cleanQuery(input.value));
+        refresh();
     }
 
     async function confirmDelete(id) {

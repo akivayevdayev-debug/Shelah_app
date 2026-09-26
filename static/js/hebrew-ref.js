@@ -47,6 +47,40 @@
             : `${letters.slice(0, -1)}${GERSHAYIM}${letters.slice(-1)}`;
     }
 
+    // Hebrew month names, keyed by every English spelling the app meets:
+    // pyluach's (the server's "15 Teves 5787") and Intl's hebrew calendar
+    // ("Tevet", "Adar I"), which the header prefills from before first paint.
+    const HEBREW_MONTHS = {
+        Tishrei: 'תשרי',
+        Tishri: 'תשרי',
+        Cheshvan: 'חשוון',
+        Heshvan: 'חשוון',
+        Kislev: 'כסלו',
+        Teves: 'טבת',
+        Tevet: 'טבת',
+        Shevat: 'שבט',
+        Shvat: 'שבט',
+        Adar: 'אדר',
+        'Adar 1': 'אדר א׳',
+        'Adar I': 'אדר א׳',
+        'Adar 2': 'אדר ב׳',
+        'Adar II': 'אדר ב׳',
+        Nissan: 'ניסן',
+        Nisan: 'ניסן',
+        Iyar: 'אייר',
+        Sivan: 'סיוון',
+        Tammuz: 'תמוז',
+        Tamuz: 'תמוז',
+        Av: 'אב',
+        Elul: 'אלול',
+    };
+
+    // (15, "Tishrei", 5787) -> "ט״ו בתשרי תשפ״ז", the header's Hebrew date.
+    function hebrewDate(day, month, year) {
+        const name = String(month ?? '').trim();
+        return `${hebrewNumeral(day)} ב${HEBREW_MONTHS[name] || name} ${hebrewNumeral(year)}`;
+    }
+
     // [book, startChapter, startVerse, English name, Hebrew name], in order.
     const PARASHOT = [
         ['Genesis', 1, 1, 'Bereshit', 'בראשית'],
@@ -183,6 +217,8 @@
 
     const api = {
         hebrewNumeral,
+        hebrewDate,
+        HEBREW_MONTHS,
         parseTorahRef,
         parashaAt,
         parashotInChapter,

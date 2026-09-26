@@ -70,6 +70,26 @@ _http_session.headers.update({
 _resolved_title_ref_cache = TTLCache(maxsize=8192, ttl=30 * 24 * 3600)
 _resolved_query_ref_cache = TTLCache(maxsize=8192, ttl=30 * 24 * 3600)
 
+# Refs get_text() has found don't exist, by Sefaria's own answer: every
+# request it made was answered (no timeout, 5xx or block along the way) and
+# the name API says the string isn't a ref. The SPA shell's /text/<ref>
+# route reads it -- never the network -- to send a real 404
+# (routes_spa_paths.py); a ref it hasn't seen fail gets the usual shell.
+_missing_text_refs = TTLCache(maxsize=4096, ttl=CACHE_TTL, redis_prefix="sefaria_missing_ref:")
+
+# Per-thread count of Sefaria fetches that failed without an answer, so
+# get_text() can tell "Sefaria said no" from "Sefaria didn't say". Its
+# lookups run one after another on one thread.
+_fetch_failures = threading.local()
+
+
+def _note_fetch_failure():
+    _fetch_failures.count = getattr(_fetch_failures, "count", 0) + 1
+
+
+def _fetch_failure_count():
+    return getattr(_fetch_failures, "count", 0)
+
 # Matches a trailing "<chapter>[:<verse>]" token once str.rsplit(None, 1)
 # (below) has already split it off the book name in linear time. The split
 # itself must NOT be done with a regex like r"^(.+?)\s+(\d+)...$": "." and
@@ -364,6 +384,8 @@ def _cached_get(url, ttl=CACHE_TTL):
         return data
     except requests.HTTPError as e:
         status_code = e.response.status_code if e.response is not None else None
+        if status_code not in (400, 404):
+            _note_fetch_failure()
         if status_code == 403:
             _sefaria_block_status.update({
                 "is_blocked": True,
@@ -379,10 +401,12 @@ def _cached_get(url, ttl=CACHE_TTL):
                 f"[Sefaria Library Error] HTTP error during fetch. URL: {url}. Status Code: {status_code}. Details: {str(e)}")
         return None
     except requests.RequestException as e:
+        _note_fetch_failure()
         logger.exception(
             f"[Sefaria Library Error] Network or request error. URL: {url}. Details: {str(e)}")
         return None
     except Exception as e:
+        _note_fetch_failure()
         logger.exception(
             f"[Sefaria Library Error] Unexpected error occurred. URL: {url}. Type: {type(e).__name__}. Details: {str(e)}")
         return None
@@ -1364,6 +1388,21 @@ def _resolve_text_title(data, resolved_output_ref, requested_ref):
     return _resolve_display_title(data, fallback_title)
 
 
+def _remember_missing_text(requested_ref, cache_key):
+    """Record a ref every lookup failed for, when Sefaria's name API (already
+    asked, and cached, by _resolve_ref_candidates) says it isn't a ref."""
+    name_data = _cache.get(f"{SEFARIA_API}/name/{_encode_ref_path(requested_ref)}")
+    if isinstance(name_data, dict) and name_data.get("is_ref") is False:
+        _missing_text_refs.set(cache_key, True)
+
+
+def is_known_missing_text(ref):
+    """True only for a ref get_text() has already found doesn't exist (see
+    _missing_text_refs). Never fetches."""
+    key = _normalize_requested_ref(ref).lower()
+    return bool(key) and _missing_text_refs.get(key) is not None
+
+
 def get_text(ref, lang="both", context=0):
     """
     Fetches a specific text passage from Sefaria.
@@ -1385,6 +1424,7 @@ def get_text(ref, lang="both", context=0):
         return {"error": "Text not found", "ref": "", "he": [], "en": []}
 
     cache_key = requested_ref.lower()
+    failures_before = _fetch_failure_count()
 
     parsed_v3 = _try_v3_text(requested_ref, cache_key)
     if parsed_v3:
@@ -1395,6 +1435,8 @@ def get_text(ref, lang="both", context=0):
 
     if not data or "error" in data:
         _resolved_query_ref_cache.delete(cache_key)
+        if _fetch_failure_count() == failures_before:
+            _remember_missing_text(requested_ref, cache_key)
         return _build_text_not_found_response(requested_ref)
 
     _cache_resolved_text_ref(cache_key, resolved_ref, data, requested_ref)

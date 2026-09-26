@@ -94,6 +94,205 @@ test('first send creates the conversation with the draft minhag, then locks it',
     assert.deepEqual(state.list.items.map((i) => i.id), ['c1'], 'new thread appears in the sidebar list');
 });
 
+function seededThread() {
+    return {
+        id: 'c9', title: 'Dishwasher?', minhag: 'Sefardic',
+        messages: [
+            { id: 'u0', role: 'user', content: 'Dishwasher?', status: 'complete', citations: [] },
+            { id: 'a0', role: 'assistant', content: 'Designate it.', status: 'complete',
+              citations: [{ ordinal: 0, source_ref: 'Yalkut Yosef', excerpt_en: 'dedicated use' }] },
+        ],
+    };
+}
+
+// A search-bar /ask payload as ai-service.js askAi() resolves it.
+function askPayload(extra = {}) {
+    return {
+        answer: 'Designate it.',
+        history_id: 'h-1',
+        ai_cited_sources: ['Yalkut Yosef — dedicated use', 'Shulchan Arukh YD 95:3', 'yalkut yosef – again'],
+        ...extra,
+    };
+}
+
+test('answerCitations: splits "Ref — note", de-duplicates refs, caps at six', async () => {
+    const { answerCitations } = await loadStore();
+
+    assert.deepEqual(answerCitations(askPayload()).map((c) => [c.ordinal, c.ref, c.excerptEn]), [
+        [0, 'Yalkut Yosef', 'dedicated use'],
+        [1, 'Shulchan Arukh YD 95:3', ''],
+    ]);
+    assert.equal(answerCitations({ ai_cited_sources: Array.from({ length: 9 }, (_, n) => `Genesis ${n + 1}:1`) }).length, 6);
+    assert.deepEqual(answerCitations({ ai_cited_sources: null }), []);
+    assert.deepEqual(answerCitations(null), []);
+});
+
+test('showAnswer shows a stored answer as the first turn, unlocked, with its sources', async () => {
+    const { createConversationStore, SOURCES_PHASE } = await loadStore();
+    const store = createConversationStore({ api: makeApi() });
+
+    store.showAnswer(askPayload(), { question: ' Dishwasher? ' });
+
+    const state = store.getState();
+    assert.deepEqual(state.answerView, { historyId: 'h-1', isPublic: false, request: null });
+    assert.equal(state.conversation, null);
+    assert.equal(state.minhagLocked, false);
+    assert.deepEqual(state.messages.map((m) => [m.role, m.content]), [['user', 'Dishwasher?'], ['assistant', 'Designate it.']]);
+    assert.equal(state.messages[1].answer.history_id, 'h-1');
+    assert.equal(state.sources.phase, SOURCES_PHASE.DONE);
+    assert.equal(state.sources.messageId, state.messages[1].id);
+    assert.deepEqual(state.sources.citations.map((c) => c.ref), ['Yalkut Yosef', 'Shulchan Arukh YD 95:3']);
+});
+
+test('showAnswer: a shared answer (/a/<token>) is never a seed', async () => {
+    const { createConversationStore } = await loadStore();
+    const store = createConversationStore({ api: makeApi() });
+
+    store.showAnswer({ answer: 'Shared.', question: 'Q?', public: true, id: 'tok' });
+
+    assert.deepEqual(store.getState().answerView, { historyId: null, isPublic: true, request: null });
+    assert.equal(store.getState().messages[0].content, 'Q?');
+});
+
+test('askSearch: pending turns while asking, then the answer view with its request', async () => {
+    const { createConversationStore, MESSAGE_STATUS, SOURCES_PHASE } = await loadStore();
+    const pending = deferred();
+    const asked = [];
+    const askAnswer = (question, request) => { asked.push([question, request]); return pending.promise; };
+    const store = createConversationStore({ api: makeApi(), askAnswer });
+    const request = { mode: 'practical', community: 'Sefardic' };
+
+    const result = store.askSearch(' Dishwasher? ', request);
+
+    let state = store.getState();
+    assert.deepEqual(asked, [['Dishwasher?', request]]);
+    assert.equal(state.sending, true);
+    assert.deepEqual(state.messages.map((m) => [m.role, m.status]), [
+        ['user', MESSAGE_STATUS.PENDING], ['assistant', MESSAGE_STATUS.PENDING],
+    ]);
+    assert.equal(state.sources.phase, SOURCES_PHASE.SEARCHING);
+
+    pending.resolve(askPayload());
+    assert.equal((await result).history_id, 'h-1');
+    state = store.getState();
+    assert.equal(state.sending, false);
+    assert.deepEqual(state.answerView, { historyId: 'h-1', isPublic: false, request });
+    assert.deepEqual(state.messages.map((m) => [m.role, m.content]), [['user', 'Dishwasher?'], ['assistant', 'Designate it.']]);
+    assert.equal(state.sources.phase, SOURCES_PHASE.DONE);
+});
+
+test('askSearch does nothing without a question or an /ask client', async () => {
+    const { createConversationStore } = await loadStore();
+    assert.equal(await createConversationStore({ api: makeApi() }).askSearch('Q?'), null);
+    let called = false;
+    const store = createConversationStore({ api: makeApi(), askAnswer: async () => { called = true; } });
+    assert.equal(await store.askSearch('   '), null);
+    assert.equal(called, false);
+});
+
+test('askSearch never lands in a thread the user has since opened', async () => {
+    const { createConversationStore } = await loadStore();
+    const pending = deferred();
+    const store = createConversationStore({ api: makeApi(), askAnswer: () => pending.promise });
+
+    const result = store.askSearch('Q?');
+    await store.open('c2');
+    pending.resolve(askPayload());
+
+    assert.equal(await result, null);
+    assert.equal(store.getState().conversation.id, 'c2');
+    assert.equal(store.getState().answerView, null);
+});
+
+test('askSearch failure: question stays FAILED with a search error code, and rethrows', async () => {
+    const { createConversationStore, MESSAGE_STATUS } = await loadStore();
+    const cases = [
+        [Object.assign(new Error('verify'), { code: 'turnstile_required' }), 'turnstile_required'],
+        [Object.assign(new Error('slow'), { name: 'AbortError' }), 'timeout'],
+        [Object.assign(new Error('busy'), { status: 429 }), 'rate_limited'],
+        [Object.assign(new Error('signin'), { status: 401 }), 'unauthorized'],
+        [Object.assign(new Error('boom'), { status: 500 }), 'server'],
+        [new Error('offline'), 'network'],
+    ];
+    for (const [error, code] of cases) {
+        const store = createConversationStore({ api: makeApi(), askAnswer: async () => { throw error; } });
+        await assert.rejects(store.askSearch('Q?'), error);
+        const state = store.getState();
+        assert.equal(state.lastError.code, code);
+        assert.equal(state.sending, false);
+        assert.deepEqual(state.messages.map((m) => [m.role, m.status]), [['user', MESSAGE_STATUS.FAILED]]);
+    }
+});
+
+test('retrying a failed search-bar question asks /ask again with the same request', async () => {
+    const { createConversationStore } = await loadStore();
+    const asked = [];
+    let fail = true;
+    const askAnswer = async (question, request) => {
+        asked.push([question, request]);
+        if (fail) { fail = false; throw new Error('offline'); }
+        return askPayload();
+    };
+    const api = makeApi();
+    const store = createConversationStore({ api, askAnswer });
+    const request = { mode: 'deep' };
+    await store.askSearch('Q?', request).catch(() => {});
+
+    assert.equal(await store.retry(store.getState().messages[0].id), true);
+
+    assert.deepEqual(asked, [['Q?', request], ['Q?', request]]);
+    assert.equal(store.getState().messages[1].content, 'Designate it.');
+    assert.equal(api.calls.length, 0);
+});
+
+test('a follow-up on a saved answer seeds the thread from it and keeps its payload', async () => {
+    const { createConversationStore } = await loadStore();
+    const api = makeApi({ createConversation: async () => seededThread() });
+    const store = createConversationStore({ api, getPrefs: () => ({ community: 'Ashkenaz' }) });
+    store.showAnswer(askPayload(), { question: 'Dishwasher?' });
+
+    assert.equal(await store.send('And a dairy one?'), true);
+
+    assert.deepEqual(api.calls[0], ['createConversation', { fromHistoryId: 'h-1' }]);
+    const ask = api.calls.find((c) => c[0] === 'ask');
+    assert.equal(ask[1], 'c9');
+    assert.deepEqual(ask[3].knownMessageIds, ['u0', 'a0']);
+    const state = store.getState();
+    assert.equal(state.answerView, null);
+    assert.equal(state.minhagLocked, true);
+    assert.deepEqual(state.messages.map((m) => m.id), ['u0', 'a0', 'u1', 'a1']);
+    assert.equal(state.messages[1].answer.history_id, 'h-1');
+});
+
+test('a follow-up on a shared or unsaved answer starts a plain thread instead', async () => {
+    const { createConversationStore } = await loadStore();
+    for (const payload of [{ answer: 'Shared.', public: true, id: 'tok' }, askPayload({ history_id: null })]) {
+        const api = makeApi();
+        const store = createConversationStore({ api, getPrefs: () => ({ community: 'Ashkenaz' }) });
+        store.showAnswer(payload, { question: 'Q?' });
+
+        assert.equal(await store.send('Follow-up?'), true);
+
+        assert.deepEqual(api.calls[0], ['create', { minhag: 'Ashkenaz' }]);
+        assert.deepEqual(store.getState().messages.map((m) => m.id), ['u1', 'a1']);
+    }
+});
+
+test('a refused seed leaves the follow-up FAILED on screen below the answer', async () => {
+    const { createConversationStore, MESSAGE_STATUS } = await loadStore();
+    const api = makeApi({ createConversation: async () => { throw apiError('not_found'); } });
+    const store = createConversationStore({ api });
+    store.showAnswer(askPayload(), { question: 'Dishwasher?' });
+
+    assert.equal(await store.send('And a dairy one?'), false);
+
+    const state = store.getState();
+    assert.equal(state.lastError.code, 'not_found');
+    assert.equal(state.conversation, null);
+    assert.equal(state.messages.at(-1).status, MESSAGE_STATUS.FAILED);
+    assert.equal(state.messages[1].content, 'Designate it.');
+});
+
 test('"All" draft community is created as a null minhag', async () => {
     const { createConversationStore } = await loadStore();
     const api = makeApi();

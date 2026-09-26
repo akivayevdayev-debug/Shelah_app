@@ -21,14 +21,10 @@
 [data-theme="dark"],
 html.theme-dark,
 body.theme-dark {
-    /* Raw --accent-red is under 4.5:1 on the dark surfaces; mix toward the
-       heading ink as conversation.css does for its danger text. */
-    --history-danger: color-mix(in srgb, var(--accent-red) 60%, var(--ink-heading));
     --history-danger-ink: var(--surface-0);
 }
 @media (prefers-color-scheme: dark) {
     :root:not([data-theme="light"]) {
-        --history-danger: color-mix(in srgb, var(--accent-red) 60%, var(--ink-heading));
         --history-danger-ink: var(--surface-0);
     }
 }
@@ -71,8 +67,7 @@ body.theme-dark {
     background: var(--surface-2);
     color: var(--ink-primary);
     font-size: var(--text-base);
-    transition: border-color var(--motion-dur-fast) var(--motion-ease-out),
-        box-shadow var(--motion-dur-fast) var(--motion-ease-out);
+    transition: border-color var(--motion-dur-fast) var(--motion-ease-out);
 }
 
 .history-search-input::placeholder {

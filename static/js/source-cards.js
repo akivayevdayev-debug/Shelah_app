@@ -1,8 +1,7 @@
-// Source cards shared by both AI answer surfaces: the single-answer modal
-// (#aiAssistantModal, populateAiModal() in templates/index.html) and the
-// conversation panel (static/js/conversation-ui.js). Pure string builders --
-// no DOM, no fetch -- so both surfaces render a cited source identically and
-// tests_js/source_cards.test.js can exercise them directly. Styles are the
+// Source cards for the conversation panel (static/js/conversation-ui.js),
+// which shows both search-bar answers and conversation turns. Pure string
+// builders -- no DOM, no fetch -- so every turn renders a cited source
+// identically and tests_js/source_cards.test.js can exercise them directly. Styles are the
 // global .ai-source-box / .ai-src-* / .src-ext-link rules in static/css/ai.css.
 //
 // main.js exposes this module as window.ShelahSourceCards for the classic

@@ -122,14 +122,56 @@ function initialThreadState(draftMinhag) {
         sending: false,
         sources: { phase: SOURCES_PHASE.IDLE, citations: [], messageId: null },
         lastError: null,
+        // A search-bar answer (/ask, saved to ask_history) shown as the
+        // thread's first turn before any conversation row exists:
+        // { historyId, isPublic, request }. The first follow-up turns it into
+        // a conversation (ensureConversation). null for ordinary threads.
+        answerView: null,
     };
+}
+
+// A search-bar answer's "Ref — note" strings (ai_cited_sources) as citations,
+// the same way the server seeds them when the answer becomes a conversation
+// (routes_conversations._seed_citations): de-duplicated by ref, capped at six.
+const CITED_SOURCE_RE = /^(.*?)\s[\u2013\u2014]\s(.*)$/;
+const CITED_SOURCE_LIMIT = 6;
+
+export function answerCitations(data) {
+    const cited = Array.isArray(data?.ai_cited_sources) ? data.ai_cited_sources : [];
+    const seen = new Set();
+    const citations = [];
+    for (const raw of cited) {
+        const text = String(raw || "").trim();
+        const match = text.match(CITED_SOURCE_RE);
+        const ref = (match ? match[1] : text).trim();
+        if (!ref || seen.has(ref.toLowerCase())) continue;
+        seen.add(ref.toLowerCase());
+        citations.push({ id: null, ordinal: citations.length, ref, excerptEn: match ? match[2].trim() : "", excerptHe: "", url: null });
+        if (citations.length >= CITED_SOURCE_LIMIT) break;
+    }
+    return citations;
+}
+
+// The one-shot /ask client (ai-service.js askAi) throws plain Errors carrying
+// .status / .code / .name; map them onto the codes the notices understand.
+export const SEARCH_ERROR_CODES = Object.freeze({ TURNSTILE: "turnstile_required", TIMEOUT: "timeout" });
+
+function searchErrorCode(error) {
+    if (error?.code === SEARCH_ERROR_CODES.TURNSTILE) return SEARCH_ERROR_CODES.TURNSTILE;
+    if (error?.name === "AbortError") return SEARCH_ERROR_CODES.TIMEOUT;
+    switch (error?.status) {
+        case 401: return ERROR_CODES.UNAUTHORIZED;
+        case 429: return ERROR_CODES.RATE_LIMITED;
+        case undefined: case null: return ERROR_CODES.NETWORK;
+        default: return ERROR_CODES.SERVER;
+    }
 }
 
 function isServerId(id) {
     return Boolean(id) && !String(id).startsWith(LOCAL_ID_PREFIX);
 }
 
-export function createConversationStore({ api = defaultApi, getPrefs = () => ({}) } = {}) {
+export function createConversationStore({ api = defaultApi, getPrefs = () => ({}), askAnswer = null } = {}) {
     let state = {
         ...initialThreadState(getPrefs()?.community),
         list: { status: "idle", items: [], error: null },
@@ -214,6 +256,76 @@ export function createConversationStore({ api = defaultApi, getPrefs = () => ({}
         }
     }
 
+    // ── search-bar answers ──────────────────────────────────────────────
+
+    function answerTurns(question, data, ids = [nextLocalId(), nextLocalId()]) {
+        return [
+            { ...normalizeMessage({ role: "user", content: question }), id: ids[0] },
+            { ...normalizeMessage({ role: "assistant", content: data?.answer }), id: ids[1], citations: answerCitations(data), answer: data },
+        ];
+    }
+
+    function viewFor(data, request = null) {
+        const id = String(data?.history_id || data?.id || "").trim();
+        return { historyId: data?.public ? null : id || null, isPublic: Boolean(data?.public), request };
+    }
+
+    // Show a stored answer (history, shelf, /answer/<id>, /a/<token>) as
+    // this view's first turn.
+    function showAnswer(data, { question } = {}) {
+        generation += 1;
+        const asked = String(question ?? data?.question ?? "").trim();
+        const messages = answerTurns(asked, data);
+        setState({
+            ...initialThreadState(getPrefs()?.community),
+            answerView: viewFor(data),
+            messages,
+            sources: { phase: SOURCES_PHASE.DONE, citations: messages[1].citations, messageId: messages[1].id },
+        });
+    }
+
+    // Ask from the search bar through the one-shot /ask (saved to
+    // ask_history, works signed out). Resolves the payload, or null when the
+    // user moved on meanwhile; rethrows a failure for the caller's side
+    // effects (Turnstile reset, logging) after showing it as a FAILED turn.
+    async function askSearch(question, request = {}) {
+        const text = String(question || "").trim();
+        if (!text || typeof askAnswer !== "function") return null;
+        const myGeneration = ++generation;
+        const ids = [nextLocalId(), nextLocalId()];
+        setState({
+            ...initialThreadState(getPrefs()?.community),
+            answerView: { historyId: null, isPublic: false, request },
+            sending: true,
+            messages: [
+                { ...normalizeMessage({ role: "user", content: text }), id: ids[0], status: MESSAGE_STATUS.PENDING },
+                { ...normalizeMessage({ role: "assistant" }), id: ids[1], status: MESSAGE_STATUS.PENDING },
+            ],
+            sources: { phase: SOURCES_PHASE.SEARCHING, citations: [], messageId: ids[1] },
+        });
+        try {
+            const data = await askAnswer(text, request);
+            if (myGeneration !== generation) return null;
+            const messages = answerTurns(text, data, ids);
+            setState({
+                sending: false,
+                answerView: viewFor(data, request),
+                messages,
+                sources: { phase: SOURCES_PHASE.DONE, citations: messages[1].citations, messageId: ids[1] },
+            });
+            return data;
+        } catch (error) {
+            if (myGeneration !== generation) return null;
+            setState({
+                sending: false,
+                lastError: { ...errorInfo(error), code: searchErrorCode(error) },
+                messages: [{ ...normalizeMessage({ role: "user", content: text }), id: ids[0], status: MESSAGE_STATUS.FAILED }],
+                sources: { phase: SOURCES_PHASE.IDLE, citations: [], messageId: null },
+            });
+            throw error;
+        }
+    }
+
     // Re-read the open thread (e.g. "Check again" on an INCOMPLETE answer).
     function refresh() {
         return state.conversation ? open(state.conversation.id) : Promise.resolve(false);
@@ -227,17 +339,38 @@ export function createConversationStore({ api = defaultApi, getPrefs = () => ({}
 
     // ── sending ─────────────────────────────────────────────────────────
 
+    // The row is created on the first send. Following up on one of the
+    // caller's own search-bar answers seeds it from that ask_history row, so
+    // the answer is the thread's first turn server-side too: its local turns
+    // are swapped for the stored ones, and keep the answer's payload so its
+    // Copy link / feedback stay on screen.
     async function ensureConversation(myGeneration) {
         if (state.conversation) return state.conversation;
+        const seedId = seedHistoryId();
         const draft = state.draftMinhag;
-        const created = await api.createConversation({
+        const created = await api.createConversation(seedId ? { fromHistoryId: seedId } : {
             minhag: draft && draft.toLowerCase() !== "all" ? draft : null,
         });
         if (myGeneration !== generation) return null;
         const conversation = normalizeHeader(created);
-        setState({ conversation, minhagLocked: true });
+        const patch = { conversation, minhagLocked: true, answerView: null };
+        if (seedId) {
+            const seeded = (created?.messages || []).map(normalizeMessage);
+            const shown = state.messages.filter((m) => m.answer);
+            const payload = shown[0]?.answer || null;
+            const lastSeeded = [...seeded].reverse().find((m) => m.role === "assistant");
+            if (lastSeeded && payload) lastSeeded.answer = payload;
+            const localIds = state.messages.slice(0, 2).map((m) => m.id);
+            patch.messages = seeded.length ? replaceLocal(localIds, seeded) : state.messages;
+        }
+        setState(patch);
         upsertListItem(conversation);
         return conversation;
+    }
+
+    function seedHistoryId() {
+        const view = state.answerView;
+        return view && !view.isPublic && view.historyId ? view.historyId : null;
     }
 
     function replaceLocal(localIds, replacements) {
@@ -283,10 +416,13 @@ export function createConversationStore({ api = defaultApi, getPrefs = () => ({}
         const text = String(question || "").trim();
         if (!text || state.sending || state.loadStatus === "loading") return false;
 
+        // A shared answer, or one that was never saved, can't be continued:
+        // the question starts a thread of its own instead.
+        if (state.answerView && !seedHistoryId()) startNew({ minhag: state.draftMinhag });
+
         const myGeneration = generation;
         const userLocalId = nextLocalId();
         const answerLocalId = nextLocalId();
-        const knownMessageIds = knownServerIds();
 
         setState({
             sending: true,
@@ -302,6 +438,7 @@ export function createConversationStore({ api = defaultApi, getPrefs = () => ({}
         try {
             const conversation = await ensureConversation(myGeneration);
             if (!conversation) return false;
+            const knownMessageIds = knownServerIds();
 
             const result = await api.askInConversation(
                 conversation.id,
@@ -424,6 +561,10 @@ export function createConversationStore({ api = defaultApi, getPrefs = () => ({}
         }
         let question = null;
         let dropIds = [];
+        if (target.role === "user" && target.status === MESSAGE_STATUS.FAILED && state.answerView && !state.conversation) {
+            // A failed search-bar question is asked again the same way.
+            return askSearch(target.content, state.answerView.request || {}).then(Boolean, () => false);
+        }
         if (target.role === "user" && target.status === MESSAGE_STATUS.FAILED) {
             question = target.content;
             dropIds = [target.id];
@@ -528,6 +669,8 @@ export function createConversationStore({ api = defaultApi, getPrefs = () => ({}
         },
         startNew,
         open,
+        showAnswer,
+        askSearch,
         refresh,
         setDraftMinhag,
         send,

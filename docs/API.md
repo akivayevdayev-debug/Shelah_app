@@ -145,7 +145,7 @@ Returns the crawler-directives file: allows `/`, disallows `/api/` and `/devtool
 
 ### `GET /sitemap.xml`
 
-Returns an XML sitemap covering only stable public routes (home, `/about`, `/help`, `/glossary`, `/terms`, `/privacy`, the four Legal Pages routes above, `/accessibility`) with `changefreq`/`priority` hints. Deliberately excludes per-ref library pages, `/ask` (personalized/dynamic), and any `/api/`/`/devtools/` route.
+Returns an XML sitemap of the stable public routes (home, `/about`, `/help`, `/glossary`, `/terms`, `/privacy`, the four Legal Pages routes above, `/accessibility`) plus the library's content pages, each at its canonical path: every Tanakh chapter (`/text/Genesis.1` … `/text/II_Chronicles.36`, 929 URLs, mirroring the reader's chapter grid), the fixed prayer services (`/prayer/Weekday_Shacharit`, …) and the community pages (`/community/Ashkenaz`, …). Built from static data only (no Sefaria call) and cached per process, with `changefreq`/`priority` hints. Excludes private views (`/answer/`, `/a/`, `/history`), `/ask` (personalized/dynamic), and any `/api/`/`/devtools/` route.
 
 - **Auth required:** No
 - **Response:** XML (`application/xml`)
@@ -154,7 +154,7 @@ Returns an XML sitemap covering only stable public routes (home, `/about`, `/hel
 
 ### `GET /llms.txt`
 
-Returns an [llms.txt](https://llmstxt.org/)-style plain-text summary of the site for LLM crawlers/agents, listing the same stable public routes as `/sitemap.xml` (iterating the same list, so the two can't silently drift apart).
+Returns an [llms.txt](https://llmstxt.org/)-style plain-text summary of the site for LLM crawlers/agents, listing the same stable public routes as `/sitemap.xml` (iterating the same list, so the two can't silently drift apart); the sitemap's library pages are left out.
 
 - **Auth required:** No
 - **Response:** Plain text (`text/plain`)
@@ -748,7 +748,7 @@ Update the authenticated user's preferences.
 
 ## Privacy
 
-Routes defined in `backend/routes_privacy.py` (plan.md §8.D) — the self-serve GDPR/CCPA data-subject-request (DSR) flow: "download my data" and "delete my account + data". Both operate over the same six user-scoped Supabase tables (`_USER_DATA_TABLES`), each filtered/deleted with an explicit `.eq("user_id", ...)`:
+Routes defined in `backend/routes_privacy.py` (plan.md §8.D) — the self-serve GDPR/CCPA data-subject-request (DSR) flow: "download my data" and "delete my account + data". Both operate over the same seven user-scoped Supabase tables (`_USER_DATA_TABLES`), each filtered/deleted with an explicit `.eq("user_id", ...)`:
 
 | Export key | Table |
 |---|---|
@@ -758,12 +758,13 @@ Routes defined in `backend/routes_privacy.py` (plan.md §8.D) — the self-serve
 | `memories` | `user_memories` |
 | `ai_usage_log` | `ai_usage_log` |
 | `feedback` | `answer_feedback` |
+| `ai_conversations` | `conversations` (export embeds each conversation's `messages`, each with its `citations`; delete cascades to both) |
 
 Both endpoints use the service-role Supabase client (not the RLS-scoped, JWT-derived client used elsewhere) — see the module docstring in `backend/routes_privacy.py` for why: the frontend sends a plain Clerk session token, not a Supabase-compatible JWT, so gating a DSR endpoint behind the RLS-scoped client would 403 for exactly the users this feature exists to serve.
 
 ### `GET /api/user/data-export`
 
-plan.md §8.D.1: returns a single JSON export of every row across the six tables above that belongs to the signed-in user. Fetches each table independently and paginates (`.range()`, 1000 rows/page, up to 200 pages) so a high-volume table (`ai_usage_log`, `ask_history`) isn't silently truncated by PostgREST's default per-request row cap. A failure reading one table does not fail the whole export — that table's array comes back empty and its `export_key` is listed in `partial_errors` instead.
+plan.md §8.D.1: returns a single JSON export of every row across the seven tables above that belongs to the signed-in user. Fetches each table independently and paginates (`.range()`, 1000 rows/page, up to 200 pages) so a high-volume table (`ai_usage_log`, `ask_history`) isn't silently truncated by PostgREST's default per-request row cap. A failure reading one table does not fail the whole export — that table's array comes back empty and its `export_key` is listed in `partial_errors` instead.
 
 - **Auth required:** Yes
 
@@ -779,7 +780,8 @@ plan.md §8.D.1: returns a single JSON export of every row across the six tables
     "ask_history": ["object — raw ask_history row(s)"],
     "memories": ["object — raw user_memories row(s)"],
     "ai_usage_log": ["object — raw ai_usage_log row(s)"],
-    "feedback": ["object — raw answer_feedback row(s)"]
+    "feedback": ["object — raw answer_feedback row(s)"],
+    "ai_conversations": ["object — raw conversations row(s), each with `messages` (oldest first, each with numbered `citations`)"]
   },
   "partial_errors": {
     "<export_key>": "string — present only if that table failed to read; other tables still export normally"

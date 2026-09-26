@@ -2,11 +2,12 @@
     Service worker strategy:
     - Precache shell assets.
     - Stale-while-revalidate for runtime/static/API reads.
-    - Network-first for HTML navigation with offline fallback.
+    - Network-first for HTML navigation, scripts and time-sensitive API reads,
+      with the cached copy as the offline fallback.
     - Daily-study prewarm channel for Daf Yomi / Rambam / Parasha refs.
 */
 
-const CACHE_VERSION = "v22-20260925";
+const CACHE_VERSION = "v23-20260925";
 const SHELL_CACHE = `shelah-shell-${CACHE_VERSION}`;
 const RUNTIME_CACHE = `shelah-runtime-${CACHE_VERSION}`;
 const API_CACHE = `shelah-api-${CACHE_VERSION}`;
@@ -42,12 +43,15 @@ const PRIVATE_API_PREFIXES = [
 ];
 
 // Answers that depend on the current time (today's zmanim, the Hebrew date,
-// the day's learning): stale-while-revalidate would first hand back
-// yesterday's copy after midnight or sunset. These go to the network first
-// and use the cached copy only when offline.
+// the day's learning, this week's parasha, the coming holidays):
+// stale-while-revalidate would first hand back yesterday's copy after
+// midnight or sunset, or last week's parasha after Shabbat. These go to the
+// network first and use the cached copy only when offline.
 const TIME_SENSITIVE_API_PREFIXES = [
     "/api/zmanim",
     "/api/daily-study",
+    "/api/parasha",
+    "/api/holidays",
 ];
 
 function isTimeSensitiveApi(pathname) {
@@ -143,10 +147,32 @@ async function networkFirstApi(request, offlineResponse) {
     }
 }
 
+// Code is network-first too (audit L-10): stale-while-revalidate would run
+// the last deploy's module under this deploy's page for one load. The HTTP
+// cache still answers a fresh copy without a round trip. Offline, this exact
+// version comes from the cache, else the last version seen of that file.
+function isScript(pathname) {
+    return pathname.startsWith("/static/js/") && pathname.endsWith(".js");
+}
+
+async function networkFirstScript(request) {
+    const cache = await caches.open(SHELL_CACHE);
+    try {
+        const fresh = await fetch(request);
+        await cachePut(SHELL_CACHE, request, fresh);
+        return fresh;
+    } catch (_err) {
+        return (await cache.match(request))
+            || (await cache.match(request, { ignoreSearch: true }))
+            || new Response("", { status: 503, statusText: "Offline" });
+    }
+}
+
 // Paths static/js/router.js writes (backend/routes_spa_paths.py serves the
-// same shell as "/" on each). Offline, a never-visited one falls back to the
-// precached shell, whose router then reads the path.
-const SPA_PATH_RE = /^\/(?:text|prayer|answer|a|calendar)\/[^/]|^\/history\/?$/;
+// same shell as "/" on each), tails included (`/chat/new/all/balanced`,
+// `/history/chat/<id>`, `/signin`). Offline, a never-visited one falls back
+// to the precached shell, whose router then reads the path.
+const SPA_PATH_RE = /^\/(?:text|prayer|community|answer|a|calendar|chat)\/[^/]|^\/history(?:\/?$|\/chat\/[^/])|^\/(?:signin|profile|settings)\/?$/;
 
 async function networkFirstNavigation(request) {
     try {
@@ -278,6 +304,11 @@ self.addEventListener("fetch", (event) => {
             return;
         }
         event.respondWith(staleWhileRevalidate(request, API_CACHE, event, offline, isCacheableApiResponse));
+        return;
+    }
+
+    if (isScript(url.pathname)) {
+        event.respondWith(networkFirstScript(request));
         return;
     }
 

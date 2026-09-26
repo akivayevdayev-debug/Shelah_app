@@ -24,9 +24,13 @@ without waiting on a manual request:
   "Download my data" calls `GET /api/user/data-export`
   (`backend/routes_privacy.py`), which returns a JSON bundle of every row
   the user owns across `user_preferences`, `study_bookmarks`,
-  `ask_history`, `user_memories`, `ai_usage_log`, and `answer_feedback`
+  `ask_history`, `user_memories`, `ai_usage_log`, `answer_feedback`
   (added 2026-08-27, plan.md §39.1 — previously excluded, so a feedback
-  row survived account deletion undiscoverable and unreachable). This
+  row survived account deletion undiscoverable and unreachable) and
+  `conversations`, the AI chat history, with its messages and citations
+  embedded (added 2026-09-26; before that, chat threads were neither
+  exported nor deleted). The panel also adds this browser's local
+  recent history, shelf and settings under `this_device`. This
   satisfies GDPR Art. 15 (access) and Art. 20 (portability — the export is
   already machine-readable JSON, matching the "JSON/CSV" commitment in
   `privacy.html` §6) in one action.
