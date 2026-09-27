@@ -12,6 +12,43 @@ html {
     scroll-behavior: smooth;
 }
 
+/* A Hebrew first paint: the head script in index.html sets lang/dir (and
+   data-lang-pending) before the body script swaps the [data-he] texts in, so
+   the English ones hold their place unseen instead of flashing (visibility,
+   not display: no box changes size). toggleLanguage clears the flag. Pages
+   without that head script never set it. A region swapped early
+   (swapPendingLanguage, data-lang-ready) already shows its Hebrew. */
+html[data-lang-pending][lang="he"] [data-he]:not([data-lang-ready] *) {
+    visibility: hidden;
+}
+
+/* The topbar's auth slot (index.html #authControls) is laid out from the
+   first paint at its likely shape -- Sign In, or the profile button when
+   Clerk's cookie says a session exists (html.auth-likely-in) -- and its
+   content only fades in once refreshAuthUi knows who is here and drops
+   aria-busy. Held with visibility, never display:none, so the topbar never
+   grows under the reader. */
+#authControls > * {
+    transition: opacity var(--motion-dur-base, 200ms) var(--motion-ease-out, ease-out);
+}
+#authControls[aria-busy="true"] > * {
+    visibility: hidden;
+    opacity: 0;
+}
+html.auth-likely-in #authControls[aria-busy="true"] #signInBtn {
+    display: none;
+}
+html.auth-likely-in #authControls[aria-busy="true"] #userProfileMenuContainer {
+    display: flex;
+}
+
+/* The language buttons keep one width whether or not their web font
+   (Cardo / the Hebrew face) has arrived. */
+.lang-btn {
+    min-inline-size: 3.5rem;
+    justify-content: center;
+}
+
 :root {
     /* Reader layout — not in tokens.css */
     --reader-topbar-offset: 3.2rem;
@@ -58,7 +95,7 @@ h6 {
 /* Hebrew text support */
 [lang="he"],
 .font-hebrew {
-    font-family: 'Ezra SIL', 'Cardo', serif;
+    font-family: 'Ezra SIL', 'Ezra SIL Fallback', 'Cardo', 'Cardo Fallback', serif;
     direction: rtl;
     text-align: right;
 }
@@ -89,7 +126,7 @@ h6 {
     border-radius: 8px;
     background: #ffffff;
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
-    transition: border-color var(--motion-dur-base) var(--motion-ease-out), box-shadow var(--motion-dur-base) var(--motion-ease-out);
+    transition: border-color var(--motion-dur-base) var(--motion-ease-out);
 }
 
 .source-card:hover {
@@ -171,7 +208,7 @@ h6 {
 }
 
 .prayer-english {
-    font-family: 'Cardo', serif;
+    font-family: 'Cardo', 'Cardo Fallback', serif;
     font-size: 0.9rem;
     line-height: 1.6;
     color: #475569;
@@ -262,10 +299,11 @@ h6 {
     background: var(--surface-base);
 }
 
+/* No backdrop-filter: at 97% opacity the blur was invisible, but it still
+   made the sticky bar re-blur whatever scrolled or animated under it on
+   every frame (costly in Safari). */
 .topbar {
     background: linear-gradient(180deg, rgba(248, 244, 236, 0.97) 0%, rgba(245, 240, 232, 0.97) 100%);
-    -webkit-backdrop-filter: blur(6px);
-    backdrop-filter: blur(6px);
     border-bottom: 1px solid var(--surface-border);
     box-shadow: 0 2px 8px rgba(78, 64, 45, 0.06);
     position: sticky;
@@ -614,12 +652,22 @@ html.rtl #hebrewDateDisplay {
     inset-inline-end: 0;
     inset-inline-start: auto;
     margin-top: 0.375rem;
+    padding: var(--sp-1);
+    width: max-content;
+    min-width: 7rem;
 }
 
+/* Every row (links and buttons alike) shares one size: the same inset,
+   type and height, with the hover fill inset as a rounded row. */
 .topbar-user-menu-item {
     font-family: Georgia, "Times New Roman", serif;
+    line-height: 1.25;
     color: #334155 !important;
-    display: block !important;
+    display: flex !important;
+    align-items: center;
+    min-height: 1.5rem;
+    padding: var(--sp-1) var(--sp-3) !important;
+    border-radius: var(--radius-sm);
     visibility: visible !important;
     opacity: 1 !important;
     pointer-events: auto !important;
@@ -627,16 +675,14 @@ html.rtl #hebrewDateDisplay {
     text-decoration: none;
 }
 
+@media (pointer: coarse) {
+    .topbar-user-menu-item { min-height: var(--hit-min); }
+}
+
 .topbar-user-menu-item:hover,
 .topbar-user-menu-item:focus-visible {
     background: #f4eee2 !important;
     color: #223e5a !important;
-}
-
-.topbar-user-menu-signout {
-    border-top: 1px solid #e8dfcf;
-    margin-top: 0.25rem;
-    padding-top: 0.5rem;
 }
 
 :is([data-theme="dark"], body.theme-dark) #userProfileMenu {
@@ -652,10 +698,6 @@ html.rtl #hebrewDateDisplay {
 :is([data-theme="dark"], body.theme-dark) .topbar-user-menu-item:focus-visible {
     background: var(--control-bg-hover) !important;
     color: var(--control-text-strong) !important;
-}
-
-:is([data-theme="dark"], body.theme-dark) .topbar-user-menu-signout {
-    border-top-color: var(--surface-border);
 }
 
 /* Settings Panel & General Button Styling for Tailwind Compatibility */
@@ -715,6 +757,19 @@ html.rtl #hebrewDateDisplay {
     gap: var(--sp-1);
 }
 
+/* In Hebrew the icon sits at the input's left and the input keeps its room
+   there, keyed off dir so it's right from the head script's first paint
+   (toggleLanguage used to swap the utility classes after it, shifting both). */
+html[dir="rtl"] #searchIcon {
+    right: auto;
+    left: var(--sp-3);
+}
+
+html[dir="rtl"] #searchInput {
+    padding-left: calc(var(--sp-12) + var(--sp-2));
+    padding-right: var(--sp-4);
+}
+
 .search-icon-glass {
     display: inline-flex;
     transition: opacity var(--motion-dur-base) var(--motion-ease-out);
@@ -744,6 +799,7 @@ html.rtl #hebrewDateDisplay {
    1.6s override of the same keyframe for an unrelated element. */
 .search-ai-sparkle {
     display: inline-flex;
+    filter: drop-shadow(0 0 10px rgba(201, 168, 78, 0.4));
     animation: shelah-warm-pulse 3.4s ease-in-out infinite;
 }
 
@@ -1084,7 +1140,7 @@ html.rtl #hebrewDateDisplay {
     flex-direction: column;
     align-items: flex-start;
     gap: 0.14rem;
-    font-family: 'Cardo', serif;
+    font-family: 'Cardo', 'Cardo Fallback', serif;
     font-size: 0.91rem;
     font-weight: 700;
     line-height: 1.22;
@@ -1156,7 +1212,7 @@ html.rtl #hebrewDateDisplay {
 }
 
 .chapter-grid-item-number {
-    font-family: 'Cardo', serif;
+    font-family: 'Cardo', 'Cardo Fallback', serif;
     font-size: 1rem;
     font-weight: 700;
     line-height: 1;
@@ -1235,7 +1291,7 @@ html.rtl #hebrewDateDisplay {
     border-radius: 0.7rem;
     background: #fffaf1;
     color: #345271;
-    font-family: 'Cardo', serif;
+    font-family: 'Cardo', 'Cardo Fallback', serif;
     font-size: 0.93rem;
     line-height: 1.25;
     padding: 0.5rem 0.6rem;
@@ -1300,7 +1356,7 @@ html.rtl #hebrewDateDisplay {
 
 .study-track-complete-label {
     color: #2f4a67;
-    font-family: 'Cardo', serif;
+    font-family: 'Cardo', 'Cardo Fallback', serif;
     font-style: italic;
     letter-spacing: 0.02em;
 }
@@ -1358,7 +1414,7 @@ html.rtl #hebrewDateDisplay {
 }
 
 .segment-translit {
-    font-family: 'Cardo', serif;
+    font-family: 'Cardo', 'Cardo Fallback', serif;
     letter-spacing: 0.02em;
     /* Was a hardcoded slate-500 (#64748b): 4.07-4.45:1 against 4 of the 5
        light surfaces (fails 4.5:1 AA text threshold on all but surface-2).
@@ -1700,6 +1756,7 @@ html.theme-dark::-webkit-scrollbar-thumb:hover,
     --range-progress: 50%;
     --range-track: var(--slider-track-h);
     --range-thumb: var(--slider-thumb);
+    --range-thumb-scale: 1;
     --range-complete: var(--control-accent);
     --range-incomplete: #d7cebc;
     --range-thumb-bg: #fffaf2;
@@ -1710,7 +1767,7 @@ html.theme-dark::-webkit-scrollbar-thumb:hover,
 }
 
 .reader-range-slider:active {
-    --range-thumb: var(--slider-thumb-press);
+    --range-thumb-scale: var(--slider-thumb-press-scale);
 }
 
 .reader-range-slider::-webkit-slider-runnable-track {
@@ -1737,9 +1794,10 @@ html.theme-dark::-webkit-scrollbar-thumb:hover,
     background: var(--range-thumb-bg);
     box-shadow: 0 1px 3px rgba(31, 63, 99, 0.26), 0 0 1px rgba(31, 63, 99, 0.4);
     cursor: pointer;
-    /* Size, not transform: the press-grow is a layout-free size change on the thumb. */
-    transition: width var(--motion-dur-fast, 150ms) ease-out, height var(--motion-dur-fast, 150ms) ease-out,
-        margin-top var(--motion-dur-fast, 150ms) ease-out;
+    /* The press-grow is a scale (audit M-9): tweening width, height and
+       margin-top re-laid the thumb out every frame. */
+    transform: scale(var(--range-thumb-scale));
+    transition: transform var(--motion-dur-fast, 150ms) ease-out;
 }
 
 .reader-range-slider::-moz-range-track {
@@ -1764,7 +1822,8 @@ html.theme-dark::-webkit-scrollbar-thumb:hover,
     background: var(--range-thumb-bg);
     box-shadow: 0 1px 3px rgba(31, 63, 99, 0.26), 0 0 1px rgba(31, 63, 99, 0.4);
     cursor: pointer;
-    transition: width var(--motion-dur-fast, 150ms) ease-out, height var(--motion-dur-fast, 150ms) ease-out;
+    transform: scale(var(--range-thumb-scale));
+    transition: transform var(--motion-dur-fast, 150ms) ease-out;
 }
 
 .reader-range-slider:focus-visible::-webkit-slider-thumb {
@@ -1837,7 +1896,7 @@ html.theme-dark::-webkit-scrollbar-thumb:hover,
 
 .sidebar-show-tab:hover {
     opacity: 1;
-    box-shadow: 0 6px 18px rgba(15, 23, 42, 0.08);
+    /* The raised shadow is a fading layer (ai.css, audit M-9). */
 }
 
 html.rtl #leftSidebar {
@@ -2518,7 +2577,7 @@ body.mobile-panel-open {
 }
 
 .home-topic-title {
-    font-family: 'Cardo', serif;
+    font-family: 'Cardo', 'Cardo Fallback', serif;
     font-weight: 700;
 }
 
@@ -2544,7 +2603,7 @@ html.rtl .home-main-layout #popularTextsGrid {
 
 .home-library-title {
     display: block;
-    font-family: 'Cardo', serif;
+    font-family: 'Cardo', 'Cardo Fallback', serif;
     font-size: clamp(1.6rem, 2.2vw, 2.1rem);
     line-height: 1.1;
     font-weight: 700;
@@ -2620,7 +2679,7 @@ html.rtl .home-main-layout #popularTextsGrid {
     letter-spacing: 0.04em;
     cursor: pointer;
     box-shadow: 0 1px 4px rgba(78, 64, 30, 0.12), inset 0 1px 0 rgba(255, 255, 255, 0.6);
-    transition: background var(--motion-dur-fast) var(--motion-ease-out), border-color var(--motion-dur-fast) var(--motion-ease-out), box-shadow var(--motion-dur-fast) var(--motion-ease-out), transform var(--motion-dur-fast) var(--motion-ease-out);
+    transition: background var(--motion-dur-fast) var(--motion-ease-out), border-color var(--motion-dur-fast) var(--motion-ease-out), transform var(--motion-dur-fast) var(--motion-ease-out);
 }
 
 .home-calendar-btn__icon {
@@ -2632,7 +2691,7 @@ html.rtl .home-main-layout #popularTextsGrid {
 .home-calendar-btn:hover {
     background: linear-gradient(135deg, #fff5e0 0%, #f2e8c8 100%);
     border-color: #b09050;
-    box-shadow: 0 3px 10px rgba(78, 64, 30, 0.18), inset 0 1px 0 rgba(255, 255, 255, 0.7);
+    /* The raised shadow is a fading layer (ai.css, audit M-9). */
     transform: translateY(-1px);
 }
 
@@ -2690,7 +2749,7 @@ html.rtl .home-main-layout #popularTextsGrid {
     padding: 0;
     color: #1e293b;
     font-size: 1.05rem;
-    font-family: 'Cardo', serif;
+    font-family: 'Cardo', 'Cardo Fallback', serif;
     font-weight: 700;
     text-align: left;
 }
@@ -2792,7 +2851,7 @@ html.rtl .home-main-layout #popularTextsGrid {
     }
 
     #settingsMenuBtn,
-    #authControls button,
+    #authControls button:not(.topbar-user-menu-item),
     #mobileLangToggle {
         font-size: 11px;
         line-height: 1.2;
@@ -2827,8 +2886,10 @@ html.rtl .home-main-layout #popularTextsGrid {
         grid-template-columns: repeat(4, minmax(0, 1fr));
         /* Equal columns with a gutter, so neighbouring pills never touch. */
         column-gap: var(--sp-1);
-        background: rgba(250, 245, 236, 0.98);
-        border-top: 1px solid #d7ccb8;
+        /* The page's own surface (not a warmer one-off tint), so the bar
+           reads as the same material as the content above it. */
+        background: color-mix(in srgb, var(--surface-base) 97%, transparent);
+        border-top: 1px solid var(--surface-border);
         padding: var(--sp-1) max(var(--sp-2), env(safe-area-inset-right)) max(var(--sp-1), env(safe-area-inset-bottom)) max(var(--sp-2), env(safe-area-inset-left));
         z-index: 96;
     }
@@ -3079,7 +3140,6 @@ html.rtl .home-main-layout #popularTextsGrid {
     }
 
     #textsMenuModal > div,
-    #aiAssistantModal > div,
     #privacyDataModal > div,
     #devtoolsInspectorModal > div {
         max-height: 85dvh;
@@ -3241,15 +3301,13 @@ html.rtl .home-main-layout #popularTextsGrid {
     color: var(--control-text) !important;
 }
 
-.library-shell #bookmarkCurrentBtn,
-.library-shell #viewFullArticleBtn {
+.library-shell #bookmarkCurrentBtn {
     background-color: var(--control-strong-bg) !important;
     border-color: var(--control-strong-bg) !important;
     color: #f5f8fd !important;
 }
 
-.library-shell #bookmarkCurrentBtn:hover,
-.library-shell #viewFullArticleBtn:hover {
+.library-shell #bookmarkCurrentBtn:hover {
     background-color: var(--control-strong-bg-hover) !important;
 }
 
@@ -3278,7 +3336,7 @@ html.rtl .home-main-layout #popularTextsGrid {
     border-color: var(--surface-border) !important;
 }
 
-/* These 4 modal headers carry a .text-blue-100 subtitle (color #f8edd8,
+/* These modal headers carry a .text-blue-100 subtitle (color #f8edd8,
    see the .text-blue-100 rule above) directly on this gradient. The
    original stops (#756d61 / #867d70) only cleared 3.49-4.40:1 against that
    text -- failing 4.5:1 AA everywhere along the gradient, not just at one
@@ -3287,7 +3345,6 @@ html.rtl .home-main-layout #popularTextsGrid {
    gradient shape; now 4.75-5.63:1 against the subtitle and 5.52-6.76:1
    against the white title. */
 .library-shell #textsMenuModal .bg-gradient-to-r.from-navy.to-blue-900,
-.library-shell #aiAssistantModal .bg-gradient-to-r.from-navy.to-blue-900,
 .library-shell #devtoolsInspectorModal .bg-gradient-to-r.from-navy.to-blue-900,
 .library-shell #sourceGraphModal .bg-gradient-to-r.from-navy.to-blue-900,
 .library-shell #communityTimelineModal .bg-gradient-to-r.from-navy.to-blue-900 {
@@ -3327,7 +3384,6 @@ html.rtl .home-main-layout #popularTextsGrid {
         background-color var(--motion-dur-base) var(--motion-ease-out),
         color var(--motion-dur-base) var(--motion-ease-out),
         border-color var(--motion-dur-base) var(--motion-ease-out),
-        box-shadow var(--motion-dur-base) var(--motion-ease-out),
         transform var(--motion-dur-fast) var(--motion-ease-out),
         scale var(--motion-dur-fast) var(--motion-ease-out),
         opacity var(--motion-dur-fast) var(--motion-ease-out);
@@ -3430,7 +3486,7 @@ html.theme-dark,
 }
 
 :is([data-theme="dark"], body.theme-dark) .mobile-bottom-tabs {
-    background: rgba(22, 19, 16, 0.97);
+    background: color-mix(in srgb, var(--surface-base) 97%, transparent);
     border-top-color: var(--surface-border);
 }
 
@@ -3793,8 +3849,7 @@ html.theme-dark,
 }
 
 :is([data-theme="dark"], body.theme-dark) #calendarModal,
-:is([data-theme="dark"], body.theme-dark) #textsMenuModal,
-:is([data-theme="dark"], body.theme-dark) #aiAssistantModal {
+:is([data-theme="dark"], body.theme-dark) #textsMenuModal {
     background-color: color-mix(in srgb, var(--surface-base) 84%, transparent) !important;
     -webkit-backdrop-filter: none !important;
     backdrop-filter: none !important;
@@ -4550,7 +4605,6 @@ html.theme-dark,
 }
 
 :is([data-theme="dark"], body.theme-dark) #textsMenuModal .bg-gradient-to-r.from-navy.to-blue-900,
-:is([data-theme="dark"], body.theme-dark) #aiAssistantModal .bg-gradient-to-r.from-navy.to-blue-900,
 :is([data-theme="dark"], body.theme-dark) #devtoolsInspectorModal .bg-gradient-to-r.from-navy.to-blue-900,
 :is([data-theme="dark"], body.theme-dark) #sourceGraphModal .bg-gradient-to-r.from-navy.to-blue-900,
 :is([data-theme="dark"], body.theme-dark) #communityTimelineModal .bg-gradient-to-r.from-navy.to-blue-900 {
@@ -5048,7 +5102,7 @@ body.theme-dark #analyticsConsentAccept {
    (index.html) and removed on animationend, so no transform lingers to
    become a containing block for anything positioned inside. */
 .view-enter {
-    animation: shelah-fade-up var(--motion-dur-slow) var(--motion-ease-decel);
+    animation: shelah-fade-up var(--motion-dur-base) var(--motion-ease-decel);
 }
 
 /* Press feedback: controls dip a little while held. The standalone
@@ -5056,7 +5110,7 @@ body.theme-dark #analyticsConsentAccept {
    (centring translates, hover lifts), so pressing never knocks one out.
    Controls that tune their own :active (top-bar buttons, bottom tabs,
    the reader's deliberately static icon row) keep theirs. */
-.library-shell :is(button, [role="button"], summary):where(:not(:disabled, [aria-disabled="true"], .reader-topbar-icon-btn, .topbar-flat-btn, .topbar-brand, .mobile-tab-btn, #topbarAskBtn, #legalAcceptBtn, .answer-feedback-btn)):where(:not(:is(#convPanel, #convPip, #mobileSearchTray, #aiAssistantModal, #aiMiniBar, #aiDiscoveryTip) *)):active {
+.library-shell :is(button, [role="button"], summary):where(:not(:disabled, [aria-disabled="true"], .reader-topbar-icon-btn, .topbar-flat-btn, .topbar-brand, .mobile-tab-btn, #topbarAskBtn, #legalAcceptBtn, .answer-feedback-btn)):where(:not(:is(#convPanel, #convPip, #mobileSearchTray, #aiDiscoveryTip) *)):active {
     scale: var(--press-scale, 0.97);
 }
 
@@ -5070,7 +5124,9 @@ body.theme-dark #analyticsConsentAccept {
    property list above, so `scale` is added back for the controls that
    use them -- otherwise the press would snap in and out. */
 .library-shell :is(button, [role="button"], summary).transition {
-    transition-property: color, background-color, border-color, text-decoration-color, fill, stroke, opacity, box-shadow, transform, filter, backdrop-filter, scale;
+    /* Not box-shadow, filter or backdrop-filter: each repaints every
+       frame it tweens (audit M-9). */
+    transition-property: color, background-color, border-color, text-decoration-color, fill, stroke, opacity, transform, scale;
 }
 
 .library-shell :is(button, [role="button"], summary).transition-colors {
@@ -5086,7 +5142,7 @@ body.theme-dark #analyticsConsentAccept {
    in dark (both AA on every surface, see tokens.css). The AI-surface
    exclusion sits in :where() so its ids add no specificity -- the
    dark sidebar's own #leftSidebar hover colours must still win. */
-.library-shell :is(button, a[href], summary, [role="button"]):is(.text-slate-400, .text-slate-500):not(:disabled):where(:not(:is(#convPanel, #convPip, #mobileSearchTray, #aiAssistantModal, #aiMiniBar, #aiDiscoveryTip) *)):hover {
+.library-shell :is(button, a[href], summary, [role="button"]):is(.text-slate-400, .text-slate-500):not(:disabled):where(:not(:is(#convPanel, #convPip, #mobileSearchTray, #aiDiscoveryTip) *)):hover {
     color: var(--ink-primary) !important;
 }
 
@@ -5097,11 +5153,6 @@ body.theme-dark #analyticsConsentAccept {
 
 :is([data-theme="dark"], body.theme-dark) .shelf-open.shelf-open-active:hover {
     background: var(--ctrl-bg-hover) !important;
-}
-
-/* Filled navy button whose hover:bg-blue-900 went LIGHTER than its fill. */
-.library-shell #privacyDataExportBtn:not(:disabled):hover {
-    background-color: color-mix(in srgb, #002147 80%, black);
 }
 
 /* The consent banner's Accept fill is !important, so the shared
@@ -5152,16 +5203,29 @@ body.theme-dark #analyticsConsentAccept {
     }
 }
 
-/* ── Reader: a failed text load (index.html renderReaderLoadError) ── */
-.reader-load-error {
+/* ── A region that failed to load (static/js/load-region.js) ──────── */
+.region-error {
     display: flex;
     flex-direction: column;
     align-items: flex-start;
     gap: var(--sp-3);
     padding-block: var(--sp-4);
+    grid-column: 1 / -1; /* the full row of a grid region (popular texts) */
 }
 
-.reader-load-retry {
+.region-error__message {
+    margin: 0;
+    color: var(--accent-red);
+}
+
+.region-error__actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--sp-2);
+}
+
+.region-error__retry,
+.region-error__action {
     display: inline-flex;
     align-items: center;
     justify-content: center;
@@ -5179,14 +5243,20 @@ body.theme-dark #analyticsConsentAccept {
         transform var(--motion-dur-fast) var(--motion-ease-out);
 }
 
-.reader-load-retry:hover { background: var(--ctrl-bg-hover); }
-.reader-load-retry:active { transform: scale(0.97); }
-.reader-load-retry:focus-visible {
+:is(.region-error__retry, .region-error__action):hover { background: var(--ctrl-bg-hover); }
+:is(.region-error__retry, .region-error__action):active { transform: scale(0.97); }
+:is(.region-error__retry, .region-error__action):focus-visible {
     outline: 2px solid var(--accent-primary);
     outline-offset: 2px;
 }
 
+/* A control whose view is on its way (index.html markTriggerPending). */
+[data-pending="true"] {
+    cursor: progress;
+    opacity: 0.7;
+}
+
 @media (prefers-reduced-motion: reduce) {
-    .reader-load-retry { transition: none; }
-    .reader-load-retry:active { transform: none; }
+    :is(.region-error__retry, .region-error__action) { transition: none; }
+    :is(.region-error__retry, .region-error__action):active { transform: none; }
 }
