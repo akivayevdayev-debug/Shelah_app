@@ -520,6 +520,15 @@ function renderShabbatWarning(meta, deps) {
     }
 }
 
+// Today's sunset at the zmanim location (a Date), or null before the panel
+// has a location: the siddur's Today card rolls to the next Hebrew day
+// after it (static/js/siddur-day.js hebrewDayFor).
+export function getSunset() {
+    const iso = zmanimData?.metadata?.zmanim_iso?.Sunset;
+    const parsed = iso ? new Date(iso) : null;
+    return parsed && !Number.isNaN(parsed.getTime()) ? parsed : null;
+}
+
 // The single "render current zmanimData to the DOM" function -- the
 // reconciliation §19.9 constraint 1 requires between fetchZmanimAPI's own
 // first-render logic and templates/index.html's toggleLanguage(), which

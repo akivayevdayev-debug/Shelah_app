@@ -85,8 +85,12 @@ def when_tags(text: str) -> list[str]:
     if not text or len(text) > MAX_LABEL_CHARS or _NEGATION_RE.search(text):
         return []
     tags = [key for key, pattern in _WHEN_PATTERNS if pattern.search(text)]
-    if _CHOL_HAMOED_RE.search(text) and not any(t.startswith("chol-hamoed") for t in tags):
-        tags += ["chol-hamoed-pesach", "chol-hamoed-sukkot"]
+    if _CHOL_HAMOED_RE.search(text):
+        # A Chol HaMoed rubric is only that: not the festival's Yom Tov days
+        # (the weekday Amidah it sits in isn't said on them).
+        tags = [t for t in tags if t not in ("pesach", "sukkot")]
+        if not any(t.startswith("chol-hamoed") for t in tags):
+            tags += ["chol-hamoed-pesach", "chol-hamoed-sukkot"]
     return tags
 
 # Hebrew vowel points (sheva..qubuts, dagesh/mappiq, shin/sin dots, qamats
