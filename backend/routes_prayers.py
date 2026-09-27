@@ -9,9 +9,10 @@ and shared helpers/constants are imported from ``app``.
 """
 
 from concurrent.futures import ThreadPoolExecutor
+from html import escape as _escape_html
 from urllib.parse import unquote
 
-from flask import Blueprint, jsonify
+from flask import Blueprint, jsonify, request
 
 from app import SIDDUR_SECTION_MAP, _get_prayer_refs
 from backend.logging_setup import submit_with_context
@@ -121,13 +122,34 @@ def _combine_prayer_lines(refs, results):
         if "error" not in data and (data.get("he") or data.get("en")):
             section_title = ref.split(", ")[-1] if ", " in ref else ref
             he_title = data.get("heTitle", section_title)
+            # he_title/section_title come from Sefaria's own index metadata,
+            # not user input, but are still interpolated into HTML the
+            # client renders via innerHTML -- escape defensively so a title
+            # containing "<"/">"/quotes can never break out of the <strong>.
             combined_lines.append({
-                "he": f"<strong class='text-navy'>{he_title}</strong>",
-                "en": f"<strong class='text-navy'>{section_title}</strong>",
+                "he": f"<strong class='text-navy'>{_escape_html(he_title)}</strong>",
+                "en": f"<strong class='text-navy'>{_escape_html(section_title)}</strong>",
                 "type": "header"
             })
             combined_lines.extend(data.get("lines", []))
     return combined_lines
+
+
+@routes_prayers.route("/api/siddur/section-refs/<path:prayer_name>")
+def get_siddur_section_refs(prayer_name):
+    """Lightweight ref list for a legacy prayer-service name.
+
+    Fallback path for openPrayerEntry() when the name isn't a real Sefaria
+    index title (so /api/library/leaf-refs can't resolve it): returns the
+    same refs /api/siddur/full/<name> would, without fetching every ref's
+    text from Sefaria first just to read back .sources.
+    """
+    resolved_name = (unquote(prayer_name or "") or "").strip()
+    refs = _get_prayer_refs(resolved_name)
+    if not refs:
+        return jsonify({"error": f"No Sefaria mapping for '{resolved_name}'"}), 404
+
+    return jsonify({"prayer": resolved_name, "sources": refs})
 
 
 @routes_prayers.route("/api/siddur/full/<path:prayer_name>")

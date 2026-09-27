@@ -49,6 +49,7 @@ _IMMUTABLE_PREFIXES = (
     "/api/text/",        # by-ref text + /links + /graph (commentary/source graph)
     "/api/prayer/",       # singular: preview text -- distinct from /api/prayers/list below
     "/api/siddur/full/",
+    "/api/siddur/section-refs/",
 )
 _IMMUTABLE_CATEGORY_PREFIX = "/api/library/category/"
 

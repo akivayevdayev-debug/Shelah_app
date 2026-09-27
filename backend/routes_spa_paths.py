@@ -30,7 +30,7 @@ the other real pages keep their own routes; nothing here overlaps them.
 """
 
 import re
-from urllib.parse import quote
+from urllib.parse import quote, urlencode
 
 from flask import Blueprint, abort, make_response, redirect, request
 
@@ -137,6 +137,29 @@ def _redirect_trailing_slash():
     query = request.query_string.decode("utf-8", "replace")
     if query:
         location += "?" + quote(query, safe=_QUERY_SAFE)
+    return redirect(location, code=308)
+
+
+@routes_spa_paths.before_app_request
+def _redirect_legacy_query_links():
+    """``/?prayer=Shacharit`` (and ``?text=``/``?community=``) 308 to their
+    path form.
+
+    page_meta.query_meta() already computes this exact path for the <head>
+    canonical tag, but the URL itself stayed on ``/`` -- a shared or
+    bookmarked legacy link never reached its canonical, indexable path.
+    """
+    if request.method not in ("GET", "HEAD") or request.path != "/":
+        return None
+    target_path = page_meta.legacy_query_redirect_path(request.args)
+    if not target_path:
+        return None
+    remaining = request.args.copy()
+    for key in ("text", "prayer", "community"):
+        remaining.pop(key, None)
+    location = quote(target_path, safe=_PATH_SAFE)
+    if remaining:
+        location += "?" + urlencode(remaining, doseq=True)
     return redirect(location, code=308)
 
 
