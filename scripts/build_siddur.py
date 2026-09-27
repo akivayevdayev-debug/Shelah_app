@@ -38,8 +38,9 @@ import json
 import re
 import sys
 import urllib.parse
-import urllib.request
 from pathlib import Path
+
+import requests
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(REPO_ROOT))
@@ -144,9 +145,9 @@ def fetch_sources(source_dir: Path | None) -> dict:
             local = source_dir / Path(path).name
             loaded[name] = json.loads(local.read_text(encoding="utf-8"))
             continue
-        url = f"{EXPORT_BASE}/{urllib.parse.quote(path)}"
-        with urllib.request.urlopen(url, timeout=60) as response:  # noqa: S310 -- fixed https URL
-            loaded[name] = json.loads(response.read().decode("utf-8"))
+        response = requests.get(f"{EXPORT_BASE}/{urllib.parse.quote(path)}", timeout=60)
+        response.raise_for_status()
+        loaded[name] = json.loads(response.content.decode("utf-8"))
     return loaded
 
 

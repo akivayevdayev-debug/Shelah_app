@@ -189,3 +189,35 @@ async def test_native_route_previously_had_no_cache_control_now_gets_private(fas
     resp = await fastapi_client.get("/api/async/health")
     assert resp.status_code == 200
     assert resp.headers.get("cache-control") == cache_policy.CACHE_TIER_PRIVATE
+
+
+# ─── Siddur v2 + error responses (Prayers audit R7) ─────────────────────────
+
+@pytest.mark.parametrize("path, tier", [
+    ("/api/siddur/v2/service/edot-hamizrach/shacharit", cache_policy.CACHE_TIER_IMMUTABLE),
+    ("/api/siddur/v2/day", cache_policy.CACHE_TIER_IMMUTABLE),
+    ("/api/siddur/v2/toc/edot-hamizrach", cache_policy.CACHE_TIER_CORPUS),
+])
+def test_classify_cache_tier_siddur_v2(path, tier):
+    assert cache_policy.classify_cache_tier("GET", path) == tier
+
+
+@pytest.mark.parametrize("status", [400, 404, 429, 500, 502, 503])
+@pytest.mark.parametrize("path", ["/api/text/Genesis.1.1", "/api/siddur/full/shacharit", "/api/zmanim", "/api/prayers/list"])
+def test_error_responses_are_never_publicly_cached(path, status):
+    assert cache_policy.classify_cache_tier("GET", path, status) == cache_policy.CACHE_TIER_PRIVATE
+
+
+@pytest.mark.parametrize("status", [200, 204, 301, 304, 308])
+def test_success_and_redirect_statuses_keep_their_tier(status):
+    assert cache_policy.classify_cache_tier("GET", "/api/text/Genesis.1.1", status) == cache_policy.CACHE_TIER_IMMUTABLE
+
+
+def test_status_defaults_to_success_for_existing_callers():
+    assert cache_policy.classify_cache_tier("GET", "/api/text/Genesis.1.1") == cache_policy.CACHE_TIER_IMMUTABLE
+
+
+def test_a_404_through_the_flask_hook_is_private(test_client):
+    response = test_client.get("/api/siddur/v2/service/edot-hamizrach/not-a-service")
+    assert response.status_code == 404
+    assert response.headers["Cache-Control"] == cache_policy.CACHE_TIER_PRIVATE
