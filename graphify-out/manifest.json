@@ -210,8 +210,8 @@
     "semantic_hash": "67093389918cdfdfec53e654ed5a2d22"
   },
   "static/js/zmanim.js": {
-    "mtime": 1790460031.0892243,
-    "ast_hash": "9e7360194715a61be1debf9adb598a6a",
+    "mtime": 1790520790.3424969,
+    "ast_hash": "0a39f3433254983fdf7b086138912732",
     "semantic_hash": ""
   },
   "static/service-worker.js": {
@@ -610,8 +610,8 @@
     "semantic_hash": ""
   },
   "templates/index.html": {
-    "mtime": 1790490004.849928,
-    "ast_hash": "69165672f21c1149631f806e9a383c49",
+    "mtime": 1790521034.72825,
+    "ast_hash": "f94939454f4533470a8d5ebc61231c19",
     "semantic_hash": ""
   },
   "templates/privacy.html": {
