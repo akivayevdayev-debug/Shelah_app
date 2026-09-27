@@ -119,6 +119,16 @@ class TestSiddurData:
         ("Grace after meals", ("birkat-hamazon", None)),
         ("weekday evening", ("arbit", None)),
         ("Blessing of Children", ("leil-shabbat", "blessing-of-children")),
+        # The name the query covers most closely wins: Shacharit's Shema,
+        # not the bedtime Shema, whose name only contains the word.
+        ("Shema", ("shacharit", "keriat-shema")),
+        ("Bedtime Shema", ("keriat-shema-al-hamita", None)),
+        ("Amida of Mincha", ("mincha", "amida")),
+        ("weekday arvit", ("arbit", None)),
+        ("Ma'ariv", ("arbit", None)),
+        ("Shemoneh Esrei", ("shacharit", "amida")),
+        ("Havdalah", ("motzaei-shabbat", "havdala")),
+        ("Aleinu", ("shacharit", "alenu")),
     ])
     def test_search_services(self, query, expected):
         service, section = siddur_data.search_services(query)
@@ -127,6 +137,9 @@ class TestSiddurData:
     def test_search_misses(self):
         assert siddur_data.search_services("") is None
         assert siddur_data.search_services("zzzz qqqq") is None
+        assert siddur_data.search_services("the") is None  # only stopwords
+        # A service name that is a small part of the query isn't a match.
+        assert siddur_data.search_services("Kaddish after Mincha") is None
 
     def test_paths(self):
         assert siddur_data.siddur_path("edot-hamizrach") == "/siddur/edot-hamizrach"
