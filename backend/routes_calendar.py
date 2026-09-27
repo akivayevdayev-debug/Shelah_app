@@ -228,7 +228,7 @@ def _parse_iso_dates(raw):
     return sorted(days)
 
 
-@routes_calendar.route('/api/zmanim/days')
+@routes_calendar.route('/api/zmanim/days', methods=['GET'])
 def get_zmanim_days():
     """Clock times (dawn, sunset, nightfall, candle lighting, havdalah) for
     specific dates at an explicit location -- what the calendar's holiday card

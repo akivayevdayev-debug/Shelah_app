@@ -19,7 +19,7 @@ pip install -r requirements-dev.txt
 cp .env.example .env   # fill in what you need — see README's Environment Variables table
 ```
 
-See [README.md § Quick Start](README.md#quick-start) for the full setup, and [README.md § Environment Variables](README.md#environment-variables) for what each variable actually does (reconciled against the live code, not just `.env.example`'s prose).
+See [README.md § Running it locally](README.md#running-it-locally) for the full setup, and [docs/ENVIRONMENT.md](docs/ENVIRONMENT.md) for what each variable actually does (reconciled against the live code, not just `.env.example`'s prose).
 
 ## Running tests
 
@@ -29,7 +29,7 @@ pytest
 
 - The suite runs **fully offline** — `tests/conftest.py` sets mock credentials and disables auth enforcement, so no live Clerk/Supabase/Sefaria/Hebcal/Gemini/Anthropic access is required.
 - Coverage is gated at `--cov-fail-under=85` against `backend/` (see `pytest.ini`). A PR that drops coverage below the gate will fail CI.
-- If you're moving or refactoring existing behavior (not just adding new code), follow this repo's **golden-master rule**: write a characterization test pinning the *current* behavior first, confirm it passes, then make your change — the same test should still pass afterward unless your PR's entire point is to fix that exact behavior, in which case flip it deliberately and say so in the PR description. See [README.md § Testing](README.md#testing) for more on why this repo does this (it's how the `app.py` → `backend/` module extraction shipped without regressions).
+- If you're moving or refactoring existing behavior (not just adding new code), follow this repo's **golden-master rule**: write a characterization test pinning the *current* behavior first, confirm it passes, then make your change — the same test should still pass afterward unless your PR's entire point is to fix that exact behavior, in which case flip it deliberately and say so in the PR description. See `plan.md` §6.2 for more on why this repo does this (it's how the `app.py` → `backend/` module extraction shipped without regressions).
 - Frontend/accessibility changes: `npm ci && npm run test:a11y` runs the same `pa11y-ci` WCAG 2.1 AA scan CI runs, against both light and dark themes.
 
 ## Coding standards
