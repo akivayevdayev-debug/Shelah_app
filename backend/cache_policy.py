@@ -40,6 +40,7 @@ CACHE_TIER_PRIVATE = "private, no-store"
 # Sefaria/Torah-library content: sourced from an external, independently
 # versioned corpus our own deploys don't mutate the *content* of.
 _IMMUTABLE_EXACT = {
+    "/api/siddur/v2/day",  # a pure function of ?date=&il= (backend/siddur_day.py), same answer forever
     "/api/library/index",
     "/api/library/leaf-refs",
     "/api/library/popular",
@@ -50,6 +51,9 @@ _IMMUTABLE_PREFIXES = (
     "/api/prayer/",       # singular: preview text -- distinct from /api/prayers/list below
     "/api/siddur/full/",
     "/api/siddur/section-refs/",
+    # Checked-in siddur text (backend/routes_siddur.py). The client fetches
+    # a service with ?v=<toc version>, so each data version has its own key.
+    "/api/siddur/v2/service/",
 )
 _IMMUTABLE_CATEGORY_PREFIX = "/api/library/category/"
 
@@ -77,23 +81,33 @@ _CORPUS_EXACT = {
     "/api/geocode",
 }
 _CORPUS_PREFIX = "/api/community/"  # /api/community/<name> and /api/community/<name>/timeline
+# The siddur's table of contents is fetched without a version key (it is
+# what carries the version), so it gets the hour-long tier: a deploy that
+# changes the siddur reaches readers within the hour even if the CDN does
+# not purge on deploy (unverified, see app.py's after_request).
+_CORPUS_PREFIXES = (_CORPUS_PREFIX, "/api/siddur/v2/toc/")
 
 
-def classify_cache_tier(method: str, path: str) -> str | None:
+def classify_cache_tier(method: str, path: str, status: int = 200) -> str | None:
     """Return the Cache-Control value for (method, path), or None to leave
     the header untouched (the caller's existing static/HTML logic applies).
 
     Only GET is ever promoted to a public tier -- every other method stays
     on the private/no-store fail-safe regardless of path, since a write
     endpoint is never cacheable by definition.
+
+    Nor is an error response (``status`` >= 400): on the immutable tier a
+    transient upstream failure (Sefaria down, answered as a 404 or 5xx)
+    would otherwise sit in the CDN for a day, with a week's
+    stale-while-revalidate behind it (Prayers audit R7).
     """
-    if method == "GET":
+    if method == "GET" and status < 400:
         if path in _IMMUTABLE_EXACT or path.startswith(_IMMUTABLE_PREFIXES) or \
                 path.startswith(_IMMUTABLE_CATEGORY_PREFIX):
             return CACHE_TIER_IMMUTABLE
         if path in _DATED_EXACT:
             return CACHE_TIER_DATED
-        if path in _CORPUS_EXACT or path.startswith(_CORPUS_PREFIX):
+        if path in _CORPUS_EXACT or path.startswith(_CORPUS_PREFIXES):
             return CACHE_TIER_CORPUS
 
     return _private_default(path)

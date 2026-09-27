@@ -1178,7 +1178,7 @@ def apply_response_cache_policy(response):
     if getattr(g, "cache_tier_force_private", False):
         cache_control = CACHE_TIER_PRIVATE
     else:
-        cache_control = classify_cache_tier(request.method, path)
+        cache_control = classify_cache_tier(request.method, path, response.status_code)
     if cache_control is not None:
         response.headers["Cache-Control"] = cache_control
         # Informational only (cache-debugging: confirms which deploy served
@@ -2230,6 +2230,7 @@ del _sys
 _BLUEPRINTS = [
     ("backend.routes_library", "routes_library"),
     ("backend.routes_prayers", "routes_prayers"),
+    ("backend.routes_siddur", "routes_siddur"),
     ("backend.routes_community", "routes_community"),
     ("backend.routes_calendar", "routes_calendar"),
     ("backend.routes_user", "routes_user"),

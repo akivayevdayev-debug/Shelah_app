@@ -244,7 +244,7 @@ async def request_id_middleware(request: Request, call_next):
         # as the security headers above -- a WSGI-routed response that
         # already set its own Cache-Control via Flask's hook is untouched.
         if "cache-control" not in response.headers:
-            cache_control = classify_cache_tier(request.method, request.url.path)
+            cache_control = classify_cache_tier(request.method, request.url.path, response.status_code)
             if cache_control is not None:
                 response.headers["Cache-Control"] = cache_control
         response.headers["X-Request-Id"] = request_id
