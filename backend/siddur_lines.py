@@ -76,7 +76,7 @@ _WHEN_PATTERNS = (
 _CHOL_HAMOED_RE = re.compile(r"חוה(?:\"|'')מ|חול המועד")
 # "…אין אומרים", "…שאינו שבת", "מלבד…": a rubric saying when NOT to say
 # something isn't a switch for that day.
-_NEGATION_RE = re.compile(r"אין|שאינו|אינו|מלבד|(?:^|\s)לא(?:\s|$)")
+_NEGATION_RE = re.compile(r"אין|אינו|מלבד|(?:^|\s)לא(?:\s|$)")
 
 
 def when_tags(text: str) -> list[str]:
@@ -175,7 +175,8 @@ def _render_nodes(nodes) -> str:
     return "".join(out)
 
 
-_EDGE_BR_RE = re.compile(r"^(?:\s*<br>)+|(?:<br>\s*)+$")
+# Each alternative grouped with its own anchor: leading or trailing <br>s.
+_EDGE_BR_RE = re.compile(r"(?:^(?:\s*<br>)+)|(?:(?:<br>\s*)+$)")
 
 
 def _render(nodes) -> str:
