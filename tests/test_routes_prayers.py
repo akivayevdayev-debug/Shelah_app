@@ -126,6 +126,7 @@ class TestPrayersListMergesSefariaLiturgy:
             requested.append(max_items)
             return [
                 {"title": "Siddur Sefard"},
+                {"title": "Siddur Edot HaMizrach"},  # served, typed, by the /siddur reader
                 {"title": legacy_name},          # already listed as a legacy service
                 {"title": "Siddur Sefard"},      # repeated by Sefaria
                 {"title": ""},                   # untitled

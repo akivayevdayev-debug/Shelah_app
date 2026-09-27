@@ -22,6 +22,17 @@ does; this file just classifies how often you'd run them.
   (`reports/library_leaf_remove_fix_report.full.json`, read at runtime by
   `backend/sefaria_library.py`) needs refreshing — it's slow (probes every
   leaf) and the output is committed, so this isn't part of any normal workflow.
+  It needs www.sefaria.org. A complex-schema work (siddur, machzor, haggadah)
+  is probed at the first leaf of its schema, the ref the library opens it at;
+  the April 2026 report predates that and removed 441 such works on bare-title
+  400s.
+- **`verify_library_removals.py`** — re-checks that report's removals against
+  the public Sefaria-Export bucket (no sefaria.org access needed) and writes
+  `reports/library_leaf_reinstated.json`: the removed works that have a
+  complex schema and real text there. The backend takes those back out of the
+  removals for that report run only, so re-running the crawler supersedes it.
+  Re-run after regenerating the report only if the new crawl can't reach
+  sefaria.org's per-title index.
 
 ## One-time (setup / migration)
 

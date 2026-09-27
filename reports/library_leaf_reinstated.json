@@ -1,0 +1,2235 @@
+{
+  "machine_generated": true,
+  "generated_at_utc": "2026-09-27T19:40:26.108169+00:00",
+  "report": "reports/library_leaf_remove_fix_report.full.json",
+  "report_generated_at_utc": "2026-04-21T01:44:51.887622+00:00",
+  "source": "https://storage.googleapis.com/sefaria-export",
+  "method": "A removal is reinstated when the work has a complex schema in Sefaria-Export (so the report's bare-title probes could not have loaded it, and the library opens it at the schema's first leaf, opening_ref) and at least 2048 bytes of text there.",
+  "stats": {
+    "removals": 448,
+    "reinstated": 426,
+    "still_removed": 22
+  },
+  "reinstated": [
+    {
+      "title": "Bekhor Shor",
+      "opening_ref": "Bekhor Shor, Genesis",
+      "text_bytes": 1605970
+    },
+    {
+      "title": "Chizkuni",
+      "opening_ref": "Chizkuni, Chizkooni, Introduction",
+      "text_bytes": 2970201
+    },
+    {
+      "title": "Mashmia Yeshuah",
+      "opening_ref": "Mashmia Yeshuah, Introduction",
+      "text_bytes": 1846605
+    },
+    {
+      "title": "Paaneach Raza",
+      "opening_ref": "Paaneach Raza, Introduction",
+      "text_bytes": 905531
+    },
+    {
+      "title": "Rabbeinu Bahya",
+      "opening_ref": "Rabbeinu Bahya, Rabbeinu Behaye, Introduction",
+      "text_bytes": 7624114
+    },
+    {
+      "title": "Tur HaArokh",
+      "opening_ref": "Tur HaArokh, Introduction",
+      "text_bytes": 3330702
+    },
+    {
+      "title": "Aderet Eliyahu",
+      "opening_ref": "Aderet Eliyahu, Introduction",
+      "text_bytes": 1668366
+    },
+    {
+      "title": "Aderet Eliyahu (Rabbi Yosef Chaim)",
+      "opening_ref": "Aderet Eliyahu (Rabbi Yosef Chaim), Title Page",
+      "text_bytes": 2327989
+    },
+    {
+      "title": "Ahavat Yehonatan",
+      "opening_ref": "Ahavat Yehonatan, Introduction",
+      "text_bytes": 1680311
+    },
+    {
+      "title": "Avi Ezer",
+      "opening_ref": "Avi Ezer, Genesis",
+      "text_bytes": 508327
+    },
+    {
+      "title": "Ba'alei Brit Avram",
+      "opening_ref": "Ba'alei Brit Avram, Endorsement",
+      "text_bytes": 1239898
+    },
+    {
+      "title": "Nachal Sorek",
+      "opening_ref": "Nachal Sorek, Haftarah of Bereshit",
+      "text_bytes": 314715
+    },
+    {
+      "title": "Penei David",
+      "opening_ref": "Penei David, Title Page",
+      "text_bytes": 2142109
+    },
+    {
+      "title": "Rosh David",
+      "opening_ref": "Rosh David, Title Page",
+      "text_bytes": 3895344
+    },
+    {
+      "title": "Tzaverei Shalal",
+      "opening_ref": "Tzaverei Shalal, Title Page",
+      "text_bytes": 633445
+    },
+    {
+      "title": "Em LaMikra",
+      "opening_ref": "Em LaMikra, Genesis",
+      "text_bytes": 1985255
+    },
+    {
+      "title": "Eretz Chemdah",
+      "opening_ref": "Eretz Chemdah, Bereshit",
+      "text_bytes": 3744469
+    },
+    {
+      "title": "HaKtav VeHaKabalah",
+      "opening_ref": "HaKtav VeHaKabalah, Introduction",
+      "text_bytes": 5929649
+    },
+    {
+      "title": "Levush HaOrah",
+      "opening_ref": "Levush HaOrah, Introduction",
+      "text_bytes": 1613001
+    },
+    {
+      "title": "Malbim on Leviticus",
+      "opening_ref": "Malbim on Leviticus, Vayikra",
+      "text_bytes": 4669492
+    },
+    {
+      "title": "Maskil LeDavid",
+      "opening_ref": "Maskil LeDavid, Introduction",
+      "text_bytes": 3035046
+    },
+    {
+      "title": "Mechokekei Yehudah; Karnei Ohr",
+      "opening_ref": "Mechokekei Yehudah; Karnei Ohr, Genesis",
+      "text_bytes": 1780053
+    },
+    {
+      "title": "Mechokekei Yehudah; Yahel Ohr",
+      "opening_ref": "Mechokekei Yehudah; Yahel Ohr, Introduction",
+      "text_bytes": 3063396
+    },
+    {
+      "title": "Megalleh Amukkot on Torah",
+      "opening_ref": "Megalleh Amukkot on Torah, Noach",
+      "text_bytes": 2703064
+    },
+    {
+      "title": "Meshekh Chokhmah",
+      "opening_ref": "Meshekh Chokhmah, Meir Simcha HaCohen, Bereshit",
+      "text_bytes": 2909531
+    },
+    {
+      "title": "Mizrachi",
+      "opening_ref": "Mizrachi, Re'em, Genesis",
+      "text_bytes": 7005254
+    },
+    {
+      "title": "Nachalat Ya'akov",
+      "opening_ref": "Nachalat Ya'akov, Introduction",
+      "text_bytes": 1041497
+    },
+    {
+      "title": "Netinah LaGer",
+      "opening_ref": "Netinah LaGer, Genesis",
+      "text_bytes": 958881
+    },
+    {
+      "title": "Od Yosef Chai; Derashot",
+      "opening_ref": "Od Yosef Chai; Derashot, Introduction",
+      "text_bytes": 3031283
+    },
+    {
+      "title": "Ohev Ger",
+      "opening_ref": "Ohev Ger, Introduction",
+      "text_bytes": 553172
+    },
+    {
+      "title": "Pardes Yosef",
+      "opening_ref": "Pardes Yosef, Introduction",
+      "text_bytes": 7307945
+    },
+    {
+      "title": "Siftei Chakhamim",
+      "opening_ref": "Siftei Chakhamim, Genesis",
+      "text_bytes": 3506305
+    },
+    {
+      "title": "Tevat Gome",
+      "opening_ref": "Tevat Gome, Author's Introduction",
+      "text_bytes": 502064
+    },
+    {
+      "title": "Tze'enah Ure'enah",
+      "opening_ref": "Tze'enah Ure'enah, Bereshit",
+      "text_bytes": 3634963
+    },
+    {
+      "title": "Cassuto on Genesis",
+      "opening_ref": "Cassuto on Genesis, From Adam to Noah, Introduction",
+      "text_bytes": 1667457
+    },
+    {
+      "title": "From David to Destruction",
+      "opening_ref": "From David to Destruction, Editor's Foreword",
+      "text_bytes": 1286612
+    },
+    {
+      "title": "Covenant and Conversation; Genesis; The Book of the Beginnings",
+      "opening_ref": "Covenant and Conversation; Genesis; The Book of the Beginnings, Living with the Times; The Parasha",
+      "text_bytes": 635097
+    },
+    {
+      "title": "Covenant and Conversation; Hebrew Edition",
+      "opening_ref": "Covenant and Conversation; Hebrew Edition, Introduction to the Hebrew Edition",
+      "text_bytes": 2175765
+    },
+    {
+      "title": "Covenant and Conversation Family Edition",
+      "opening_ref": "Covenant and Conversation Family Edition, Introduction",
+      "text_bytes": 1931001
+    },
+    {
+      "title": "Covenant and Conversation; Exodus; The Book of Redemption",
+      "opening_ref": "Covenant and Conversation; Exodus; The Book of Redemption, Exodus; The Birth of a Nation",
+      "text_bytes": 646293
+    },
+    {
+      "title": "Covenant and Conversation; Leviticus; The Book of Holiness",
+      "opening_ref": "Covenant and Conversation; Leviticus; The Book of Holiness, Leviticus; The Democratisation of Holiness",
+      "text_bytes": 857131
+    },
+    {
+      "title": "Covenant and Conversation; Numbers; The Wilderness Years",
+      "opening_ref": "Covenant and Conversation; Numbers; The Wilderness Years, Numbers; Then and Now",
+      "text_bytes": 852098
+    },
+    {
+      "title": "Covenant and Conversation; Deuteronomy; Renewal of the Sinai Covenant",
+      "opening_ref": "Covenant and Conversation; Deuteronomy; Renewal of the Sinai Covenant, Deuteronomy; Covenant Society",
+      "text_bytes": 715185
+    },
+    {
+      "title": "Essays in Ethics; A Weekly Reading of the Jewish Bible",
+      "opening_ref": "Essays in Ethics; A Weekly Reading of the Jewish Bible, Foreword; Ethicising Religion",
+      "text_bytes": 684436
+    },
+    {
+      "title": "I Believe; A Weekly Reading of the Jewish Bible",
+      "opening_ref": "I Believe; A Weekly Reading of the Jewish Bible, Foreword; Faith, Leadership, and Legacy",
+      "text_bytes": 752111
+    },
+    {
+      "title": "Judaism's Life Changing Ideas; A Weekly Reading of the Jewish Bible",
+      "opening_ref": "Judaism's Life Changing Ideas; A Weekly Reading of the Jewish Bible, Foreword; The Secret of Our Staying Power",
+      "text_bytes": 740185
+    },
+    {
+      "title": "Lessons in Leadership; A Weekly Reading of the Jewish Bible",
+      "opening_ref": "Lessons in Leadership; A Weekly Reading of the Jewish Bible, Foreword; Leadership and Public Learning",
+      "text_bytes": 586445
+    },
+    {
+      "title": "Lessons in Leadership; Hebrew Edition",
+      "opening_ref": "Lessons in Leadership; Hebrew Edition, Introduction; Daring Greatly",
+      "text_bytes": 764294
+    },
+    {
+      "title": "Studies in Spirituality; A Weekly Reading of the Jewish Bible",
+      "opening_ref": "Studies in Spirituality; A Weekly Reading of the Jewish Bible, Foreword; Writing Our Own Chapter",
+      "text_bytes": 537960
+    },
+    {
+      "title": "Megillat Ruth; From Chaos to Kingship",
+      "opening_ref": "Megillat Ruth; From Chaos to Kingship, Acknowledgements",
+      "text_bytes": 339350
+    },
+    {
+      "title": "Moses; A Human Life",
+      "opening_ref": "Moses; A Human Life, Acknowledgments",
+      "text_bytes": 429507
+    },
+    {
+      "title": "Redeeming Relevance; Exodus",
+      "opening_ref": "Redeeming Relevance; Exodus, Acknowledgments",
+      "text_bytes": 321245
+    },
+    {
+      "title": "Redeeming Relevance; Numbers",
+      "opening_ref": "Redeeming Relevance; Numbers, Preface and Acknowledgments",
+      "text_bytes": 328769
+    },
+    {
+      "title": "Redeeming Relevance; Deuteronomy",
+      "opening_ref": "Redeeming Relevance; Deuteronomy, A Note to the Reader",
+      "text_bytes": 301408
+    },
+    {
+      "title": "Sefer Daniel; Opportunity in Exile",
+      "opening_ref": "Sefer Daniel; Opportunity in Exile, Introduction",
+      "text_bytes": 292813
+    },
+    {
+      "title": "Tribal Lands",
+      "opening_ref": "Tribal Lands, Foreword",
+      "text_bytes": 684258
+    },
+    {
+      "title": "Mishnat Eretz Yisrael, Preface",
+      "opening_ref": "Mishnat Eretz Yisrael, Preface",
+      "text_bytes": 862805
+    },
+    {
+      "title": "Introductions to Amoraic Literature",
+      "opening_ref": "Introductions to Amoraic Literature, Editor's Preface",
+      "text_bytes": 1834083
+    },
+    {
+      "title": "Introductions to Tanaitic Literature",
+      "opening_ref": "Introductions to Tanaitic Literature, Editor's Preface",
+      "text_bytes": 3386720
+    },
+    {
+      "title": "Introductions to the Babylonian Talmud",
+      "opening_ref": "Introductions to the Babylonian Talmud, Berakhot, Introduction to Berakhot",
+      "text_bytes": 2774219
+    },
+    {
+      "title": "Rosh on Menachot",
+      "opening_ref": "Rosh on Menachot, Halachot Ketanot laRosh, Hilchot Sefer Torah",
+      "text_bytes": 437291
+    },
+    {
+      "title": "Divrey Chamudot on Menachot",
+      "opening_ref": "Divrey Chamudot on Menachot, Hilchot Sefer Torah",
+      "text_bytes": 693258
+    },
+    {
+      "title": "Maadaney Yom Tov on Menachot",
+      "opening_ref": "Maadaney Yom Tov on Menachot, Hilchot Sefer Torah",
+      "text_bytes": 445280
+    },
+    {
+      "title": "Rereading the Rabbis; A Woman's Voice",
+      "opening_ref": "Rereading the Rabbis; A Woman's Voice, Acknowledgments",
+      "text_bytes": 782963
+    },
+    {
+      "title": "Notes by Heinrich Guggenheimer on Jerusalem Talmud",
+      "opening_ref": "Notes by Heinrich Guggenheimer on Jerusalem Talmud, Berakhot",
+      "text_bytes": 157748
+    },
+    {
+      "title": "Mekhilta DeRabbi Yishmael",
+      "opening_ref": "Mekhilta DeRabbi Yishmael, Tractate Pischa",
+      "text_bytes": 1617109
+    },
+    {
+      "title": "Sifra",
+      "opening_ref": "Sifra, Baraita DeRabbi Yishmael",
+      "text_bytes": 1737662
+    },
+    {
+      "title": "Chafetz Chaim on Sifra",
+      "opening_ref": "Chafetz Chaim on Sifra, Introduction",
+      "text_bytes": 2463736
+    },
+    {
+      "title": "Ra'avad on Sifra",
+      "opening_ref": "Ra'avad on Sifra, Baraita DeRabbi Yishmael",
+      "text_bytes": 1762111
+    },
+    {
+      "title": "Bereshit Rabbati",
+      "opening_ref": "Bereshit Rabbati, Parashat Bereshit",
+      "text_bytes": 749381
+    },
+    {
+      "title": "Ein Yaakov",
+      "opening_ref": "Ein Yaakov, Ein Yacov, Berakhot",
+      "text_bytes": 5994101
+    },
+    {
+      "title": "Ein Yaakov (Glick Edition)",
+      "opening_ref": "Ein Yaakov (Glick Edition), En Jacob, Berakhot",
+      "text_bytes": 2870752
+    },
+    {
+      "title": "Midrash Aggadah",
+      "opening_ref": "Midrash Aggadah, Genesis",
+      "text_bytes": 1775155
+    },
+    {
+      "title": "Midrash Lekach Tov",
+      "opening_ref": "Midrash Lekach Tov, Genesis",
+      "text_bytes": 4303479
+    },
+    {
+      "title": "Beur HaRe'em on Midrash Lekach Tov",
+      "opening_ref": "Beur HaRe'em on Midrash Lekach Tov, Leviticus, Vayikra",
+      "text_bytes": 586705
+    },
+    {
+      "title": "Midrash Sekhel Tov",
+      "opening_ref": "Midrash Sekhel Tov, Bereshit",
+      "text_bytes": 2539508
+    },
+    {
+      "title": "Midrash Tanchuma",
+      "opening_ref": "Midrash Tanchuma, Tanḥuma, Bereshit",
+      "text_bytes": 4180832
+    },
+    {
+      "title": "Midrash Tanchuma Buber",
+      "opening_ref": "Midrash Tanchuma Buber, Tanḥ., ed. Bub, Bereshit",
+      "text_bytes": 3315001
+    },
+    {
+      "title": "Otzar Midrashim",
+      "opening_ref": "Otzar Midrashim, Midrash Abba Gorion",
+      "text_bytes": 4885619
+    },
+    {
+      "title": "Sefer HaYashar (midrash)",
+      "opening_ref": "Sefer HaYashar (midrash), Introduction",
+      "text_bytes": 804766
+    },
+    {
+      "title": "Sifrei Aggadah on Esther",
+      "opening_ref": "Sifrei Aggadah on Esther, Sifre deagadeta, Midrash Abba Guryon",
+      "text_bytes": 223436
+    },
+    {
+      "title": "Sifrei Zuta; Midrashah shel Lod",
+      "opening_ref": "Sifrei Zuta; Midrashah shel Lod, Sifrei Zuta (Lieberman), Introduction",
+      "text_bytes": 562178
+    },
+    {
+      "title": "Steinsaltz Introductions to Mishneh Torah",
+      "opening_ref": "Steinsaltz Introductions to Mishneh Torah, Foundations of the Torah",
+      "text_bytes": 327065
+    },
+    {
+      "title": "Tur",
+      "opening_ref": "Tur, Orach Chayim, Introduction",
+      "text_bytes": 32077100
+    },
+    {
+      "title": "Bach",
+      "opening_ref": "Bach, Orach Chayim",
+      "text_bytes": 22192180
+    },
+    {
+      "title": "Beit Yosef",
+      "opening_ref": "Beit Yosef, Introduction",
+      "text_bytes": 32077100
+    },
+    {
+      "title": "Darkhei Moshe",
+      "opening_ref": "Darkhei Moshe, Orach Chayim",
+      "text_bytes": 3306140
+    },
+    {
+      "title": "Drisha",
+      "opening_ref": "Drisha, Orach Chayim",
+      "text_bytes": 10910001
+    },
+    {
+      "title": "Prisha",
+      "opening_ref": "Prisha, Orach Chayim",
+      "text_bytes": 12617902
+    },
+    {
+      "title": "Kol Yaakov on Shulchan Arukh",
+      "opening_ref": "Kol Yaakov on Shulchan Arukh, Orach Chayim",
+      "text_bytes": 715476
+    },
+    {
+      "title": "Peri Megadim on Yoreh De'ah",
+      "opening_ref": "Peri Megadim on Yoreh De'ah, Mishbezot Zahav",
+      "text_bytes": 5190832
+    },
+    {
+      "title": "Peri Megadim on Orach Chayim",
+      "opening_ref": "Peri Megadim on Orach Chayim, Author's Introduction",
+      "text_bytes": 9984641
+    },
+    {
+      "title": "Shulchan Arukh HaRav",
+      "opening_ref": "Shulchan Arukh HaRav, Introduction by the Author's Sons",
+      "text_bytes": 13923329
+    },
+    {
+      "title": "Kuntres Acharon on Shulchan Arukh HaRav",
+      "opening_ref": "Kuntres Acharon on Shulchan Arukh HaRav, Orach Chayim",
+      "text_bytes": 1298545
+    },
+    {
+      "title": "Piskei HaSiddur",
+      "opening_ref": "Piskei HaSiddur, Rising In The Morning",
+      "text_bytes": 249991
+    },
+    {
+      "title": "Arukh HaShulchan",
+      "opening_ref": "Arukh HaShulchan, Introduction",
+      "text_bytes": 33465411
+    },
+    {
+      "title": "Arukh HaShulchan HeAtid",
+      "opening_ref": "Arukh HaShulchan HeAtid, Laws of Zeraim",
+      "text_bytes": 1591784
+    },
+    {
+      "title": "Ben Ish Hai",
+      "opening_ref": "Ben Ish Hai, Introduction",
+      "text_bytes": 4049863
+    },
+    {
+      "title": "Sefer HaMitzvot",
+      "opening_ref": "Sefer HaMitzvot, Introductions, Translator's Introduction",
+      "text_bytes": 1241633
+    },
+    {
+      "title": "Hasagot HaRamban on Sefer HaMitzvot",
+      "opening_ref": "Hasagot HaRamban on Sefer HaMitzvot, Introduction",
+      "text_bytes": 585674
+    },
+    {
+      "title": "Megillat Esther on Sefer HaMitzvot",
+      "opening_ref": "Megillat Esther on Sefer HaMitzvot, Introduction",
+      "text_bytes": 482419
+    },
+    {
+      "title": "Marganita Tava on Sefer HaMitzvot",
+      "opening_ref": "Marganita Tava on Sefer HaMitzvot, Introduction",
+      "text_bytes": 1241633
+    },
+    {
+      "title": "Kinaat Sofrim on Sefer HaMitzvot",
+      "opening_ref": "Kinaat Sofrim on Sefer HaMitzvot, Introduction",
+      "text_bytes": 553129
+    },
+    {
+      "title": "Lev Sameach",
+      "opening_ref": "Lev Sameach, Shorashim",
+      "text_bytes": 1023551
+    },
+    {
+      "title": "Sefer HaMitzvot HaKatzar",
+      "opening_ref": "Sefer HaMitzvot HaKatzar, Introduction",
+      "text_bytes": 205027
+    },
+    {
+      "title": "Sefer Hamitzvot of Rasag",
+      "opening_ref": "Sefer Hamitzvot of Rasag, Positive Commandments",
+      "text_bytes": 53416
+    },
+    {
+      "title": "Sefer Mitzvot Gadol",
+      "opening_ref": "Sefer Mitzvot Gadol, SeMaG, Negative Commandments, Introduction",
+      "text_bytes": 5104368
+    },
+    {
+      "title": "Sefer Charedim",
+      "opening_ref": "Sefer Charedim, Introduction",
+      "text_bytes": 702170
+    },
+    {
+      "title": "Abudarham",
+      "opening_ref": "Abudarham, Introduction",
+      "text_bytes": 1984213
+    },
+    {
+      "title": "Avodat HaKodesh",
+      "opening_ref": "Avodat HaKodesh, Part One, Beit Netivot, Introduction",
+      "text_bytes": 554035
+    },
+    {
+      "title": "Ba'alei HaNefesh",
+      "opening_ref": "Ba'alei HaNefesh, Author's Introduction",
+      "text_bytes": 331672
+    },
+    {
+      "title": "HaAgur",
+      "opening_ref": "HaAgur, Introduction",
+      "text_bytes": 1575897
+    },
+    {
+      "title": "Leket Yosher",
+      "opening_ref": "Leket Yosher, Volume I (Orach Chayim)",
+      "text_bytes": 1431484
+    },
+    {
+      "title": "Likkutei HaPardes",
+      "opening_ref": "Likkutei HaPardes, Sefer Likutei HaPardes, The Laws of Niddah",
+      "text_bytes": 273126
+    },
+    {
+      "title": "Machzor Vitry",
+      "opening_ref": "Machzor Vitry, Laws of Shacharit",
+      "text_bytes": 3416920
+    },
+    {
+      "title": "Ohr Zarua",
+      "opening_ref": "Ohr Zarua, Volume I, Alpha Beta",
+      "text_bytes": 11860246
+    },
+    {
+      "title": "Sefer HaOrah",
+      "opening_ref": "Sefer HaOrah, Introduction",
+      "text_bytes": 608029
+    },
+    {
+      "title": "Sefer HaTerumah",
+      "opening_ref": "Sefer HaTerumah, Simanim",
+      "text_bytes": 1951307
+    },
+    {
+      "title": "Sela HaMachlakot on Ba'alei HaNefesh",
+      "opening_ref": "Sela HaMachlakot on Ba'alei HaNefesh, Author's Introduction",
+      "text_bytes": 104105
+    },
+    {
+      "title": "Sha'ar HaMayim HaAroch",
+      "opening_ref": "Sha'ar HaMayim HaAroch, Preface",
+      "text_bytes": 100902
+    },
+    {
+      "title": "The Sabbath Epistle",
+      "opening_ref": "The Sabbath Epistle, Author's Preface",
+      "text_bytes": 194461
+    },
+    {
+      "title": "Torat HaAdam",
+      "opening_ref": "Torat HaAdam, Introduction",
+      "text_bytes": 994186
+    },
+    {
+      "title": "Torat HaBayit HaAroch",
+      "opening_ref": "Torat HaBayit HaAroch, Introduction",
+      "text_bytes": 2321411
+    },
+    {
+      "title": "Torat HaBayit HaKatzar",
+      "opening_ref": "Torat HaBayit HaKatzar, The First House, The First Gate",
+      "text_bytes": 595195
+    },
+    {
+      "title": "Ahavat Chesed",
+      "opening_ref": "Ahavat Chesed, Foreword",
+      "text_bytes": 677629
+    },
+    {
+      "title": "Chafetz Chaim",
+      "opening_ref": "Chafetz Chaim, Preface",
+      "text_bytes": 616483
+    },
+    {
+      "title": "Ein HaTekhelet",
+      "opening_ref": "Ein HaTekhelet, Introduction",
+      "text_bytes": 996944
+    },
+    {
+      "title": "Od Yosef Chai; Halakhot",
+      "opening_ref": "Od Yosef Chai; Halakhot, Bereshit",
+      "text_bytes": 891916
+    },
+    {
+      "title": "Seder HaYom",
+      "opening_ref": "Seder HaYom, Introduction",
+      "text_bytes": 889503
+    },
+    {
+      "title": "Shabbat HaAretz",
+      "opening_ref": "Shabbat HaAretz, Introduction",
+      "text_bytes": 959188
+    },
+    {
+      "title": "Shev Shmateta",
+      "opening_ref": "Shev Shmateta, Introduction",
+      "text_bytes": 1308058
+    },
+    {
+      "title": "Care of the Critically Ill",
+      "opening_ref": "Care of the Critically Ill, Preface",
+      "text_bytes": 472534
+    },
+    {
+      "title": "Contemporary Halakhic Problems, Vol I",
+      "opening_ref": "Contemporary Halakhic Problems, Vol I, Editor's Foreword",
+      "text_bytes": 1108137
+    },
+    {
+      "title": "Contemporary Halakhic Problems, Vol II",
+      "opening_ref": "Contemporary Halakhic Problems, Vol II, Editor's Foreword",
+      "text_bytes": 1177631
+    },
+    {
+      "title": "Contemporary Halakhic Problems, Vol III",
+      "opening_ref": "Contemporary Halakhic Problems, Vol III, Editor's Foreword",
+      "text_bytes": 1150671
+    },
+    {
+      "title": "Contemporary Halakhic Problems, Vol IV",
+      "opening_ref": "Contemporary Halakhic Problems, Vol IV, Editor's Foreword",
+      "text_bytes": 1169863
+    },
+    {
+      "title": "Contemporary Halakhic Problems, Vol V",
+      "opening_ref": "Contemporary Halakhic Problems, Vol V, Preface",
+      "text_bytes": 1229471
+    },
+    {
+      "title": "Contemporary Halakhic Problems, Vol VI",
+      "opening_ref": "Contemporary Halakhic Problems, Vol VI, Preface",
+      "text_bytes": 1224140
+    },
+    {
+      "title": "From Sinai to Ethiopia",
+      "opening_ref": "From Sinai to Ethiopia, Foreword by Rabbi Dr Daniel Sperber",
+      "text_bytes": 857999
+    },
+    {
+      "title": "Gray Matter I",
+      "opening_ref": "Gray Matter I, Grappling With the Problem of Agunot, Coercing a Husband to Give a Get",
+      "text_bytes": 550035
+    },
+    {
+      "title": "Gray Matter II",
+      "opening_ref": "Gray Matter II, Laws of Shabbat, Saving Lives on Shabbat",
+      "text_bytes": 962547
+    },
+    {
+      "title": "Gray Matter III",
+      "opening_ref": "Gray Matter III, Music, Jewish Perspectives on Music",
+      "text_bytes": 749018
+    },
+    {
+      "title": "Gray Matter IV",
+      "opening_ref": "Gray Matter IV, Non Observant Jews, Inviting a Non Observant Jew for a Shabbat or Yom Tov Meal",
+      "text_bytes": 792129
+    },
+    {
+      "title": "HaHalakhah; Kochah VeTafkidah",
+      "opening_ref": "HaHalakhah; Kochah VeTafkidah, Introductory Remarks",
+      "text_bytes": 1015740
+    },
+    {
+      "title": "Jewish Legal Writings by Women",
+      "opening_ref": "Jewish Legal Writings by Women, INTRODUCTION",
+      "text_bytes": 825808
+    },
+    {
+      "title": "Rabbinic Authority I",
+      "opening_ref": "Rabbinic Authority I, Foreword",
+      "text_bytes": 953582
+    },
+    {
+      "title": "Rabbinic Authority II",
+      "opening_ref": "Rabbinic Authority II, Preface",
+      "text_bytes": 1051880
+    },
+    {
+      "title": "Rabbinic Authority III",
+      "opening_ref": "Rabbinic Authority III, Preface",
+      "text_bytes": 1051397
+    },
+    {
+      "title": "Rabbinic Authority IV",
+      "opening_ref": "Rabbinic Authority IV, Preface",
+      "text_bytes": 899388
+    },
+    {
+      "title": "Rabbinic Authority V",
+      "opening_ref": "Rabbinic Authority V, Preface",
+      "text_bytes": 992542
+    },
+    {
+      "title": "Sefer Puah",
+      "opening_ref": "Sefer Puah, First Volume; Family and Purity, Introduction",
+      "text_bytes": 7180580
+    },
+    {
+      "title": "Shaleach Teshalach",
+      "opening_ref": "Shaleach Teshalach, Introduction",
+      "text_bytes": 948315
+    },
+    {
+      "title": "Tenai BeNissuin Uveget",
+      "opening_ref": "Tenai BeNissuin Uveget, Introductory remarks by Rabbi Yechiel Ya'akov Weinberg",
+      "text_bytes": 655027
+    },
+    {
+      "title": "Torat HaHiggayon BaHalakhah",
+      "opening_ref": "Torat HaHiggayon BaHalakhah, I; The Causes; Material, Formative and Creative, and Formal",
+      "text_bytes": 735944
+    },
+    {
+      "title": "Be'er Mayim Chaim on Chafetz Chaim",
+      "opening_ref": "Be'er Mayim Chaim on Chafetz Chaim, Preface",
+      "text_bytes": 744095
+    },
+    {
+      "title": "Bedek HaBayit on Torat HaBayit HaArokh",
+      "opening_ref": "Bedek HaBayit on Torat HaBayit HaArokh, Introduction",
+      "text_bytes": 707698
+    },
+    {
+      "title": "Binat Adam",
+      "opening_ref": "Binat Adam, Shaar Rov Vechazaka",
+      "text_bytes": 1357135
+    },
+    {
+      "title": "Brit Moshe",
+      "opening_ref": "Brit Moshe, Negative Commandments",
+      "text_bytes": 5344815
+    },
+    {
+      "title": "Commentary on Sefer Hamitzvot of Rasag",
+      "opening_ref": "Commentary on Sefer Hamitzvot of Rasag, Title Page",
+      "text_bytes": 18420895
+    },
+    {
+      "title": "Mishmeret HaBayit on Torat HaBayit HaAroch",
+      "opening_ref": "Mishmeret HaBayit on Torat HaBayit HaAroch, Introduction",
+      "text_bytes": 899113
+    },
+    {
+      "title": "Netiv Chesed on Ahavat Chesed",
+      "opening_ref": "Netiv Chesed on Ahavat Chesed, Introduction",
+      "text_bytes": 184641
+    },
+    {
+      "title": "Zohar HaRakia",
+      "opening_ref": "Zohar HaRakia, Index, Positive Commandments",
+      "text_bytes": 764513
+    },
+    {
+      "title": "Zohar",
+      "opening_ref": "Zohar, Introduction",
+      "text_bytes": 17292332
+    },
+    {
+      "title": "Zohar Chadash",
+      "opening_ref": "Zohar Chadash, New Zohar, Bereshit",
+      "text_bytes": 3520475
+    },
+    {
+      "title": "Sulam on Zohar",
+      "opening_ref": "Sulam on Zohar, Introduction",
+      "text_bytes": 17292332
+    },
+    {
+      "title": "Ohr Ne'erav",
+      "opening_ref": "Ohr Ne'erav, PART I, Subject",
+      "text_bytes": 362860
+    },
+    {
+      "title": "Pri Etz Chaim",
+      "opening_ref": "Pri Etz Chaim, Gate of Prayer, Introduction",
+      "text_bytes": 3541284
+    },
+    {
+      "title": "Sha'ar HaHakdamot",
+      "opening_ref": "Sha'ar HaHakdamot, Introductions",
+      "text_bytes": 2105593
+    },
+    {
+      "title": "Sha'ar HaKavanot",
+      "opening_ref": "Sha'ar HaKavanot, Introduction",
+      "text_bytes": 2542225
+    },
+    {
+      "title": "Sha'ar HaMitzvot",
+      "opening_ref": "Sha'ar HaMitzvot, Introduction",
+      "text_bytes": 623440
+    },
+    {
+      "title": "Sha'ar HaPesukim",
+      "opening_ref": "Sha'ar HaPesukim, Parashat Bereshit",
+      "text_bytes": 1166099
+    },
+    {
+      "title": "Sha'ar Ma'amarei Rashbi",
+      "opening_ref": "Sha'ar Ma'amarei Rashbi, Introduction",
+      "text_bytes": 1550945
+    },
+    {
+      "title": "Sha'ar Ma'amarei Razal",
+      "opening_ref": "Sha'ar Ma'amarei Razal, Tractate Berakhot",
+      "text_bytes": 276407
+    },
+    {
+      "title": "Sha'arei Kedusha",
+      "opening_ref": "Sha'arei Kedusha, Introduction",
+      "text_bytes": 436756
+    },
+    {
+      "title": "Giving; The Essential Teaching of the Kabbalah",
+      "opening_ref": "Giving; The Essential Teaching of the Kabbalah, Foreword",
+      "text_bytes": 42251
+    },
+    {
+      "title": "Kuntres Mattan Torah",
+      "opening_ref": "Kuntres Mattan Torah, First Introduction; Time to Act",
+      "text_bytes": 342040
+    },
+    {
+      "title": "Talmud Eser HaSefirot",
+      "opening_ref": "Talmud Eser HaSefirot, Introduction",
+      "text_bytes": 6132951
+    },
+    {
+      "title": "Chesed LeAvraham",
+      "opening_ref": "Chesed LeAvraham, Introduction",
+      "text_bytes": 1471463
+    },
+    {
+      "title": "Maaseh Rokeach on Mishnah",
+      "opening_ref": "Maaseh Rokeach on Mishnah, Introduction",
+      "text_bytes": 1061268
+    },
+    {
+      "title": "Reshit Chokhmah",
+      "opening_ref": "Reshit Chokhmah, Introduction",
+      "text_bytes": 4003004
+    },
+    {
+      "title": "Sha'arei Orah",
+      "opening_ref": "Sha'arei Orah, Introduction",
+      "text_bytes": 1625678
+    },
+    {
+      "title": "Shomer Emunim",
+      "opening_ref": "Shomer Emunim, First Introduction",
+      "text_bytes": 473689
+    },
+    {
+      "title": "Sefer HaCheshek",
+      "opening_ref": "Sefer HaCheshek, Part I, Introduction",
+      "text_bytes": 217935
+    },
+    {
+      "title": "Siddur Ashkenaz",
+      "opening_ref": "Siddur Ashkenaz, Weekday, Shacharit, Preparatory Prayers, Modeh Ani",
+      "text_bytes": 1451133
+    },
+    {
+      "title": "Siddur Edot HaMizrach",
+      "opening_ref": "Siddur Edot HaMizrach, Preparatory Prayers, Modeh Ani",
+      "text_bytes": 2070866
+    },
+    {
+      "title": "Siddur Sefard",
+      "opening_ref": "Siddur Sefard, Upon Arising, Modeh Ani",
+      "text_bytes": 3403239
+    },
+    {
+      "title": "Shabbat Siddur Sefard Linear",
+      "opening_ref": "Shabbat Siddur Sefard Linear, Eiruv Tavshilin",
+      "text_bytes": 1112274
+    },
+    {
+      "title": "Weekday Siddur Chabad",
+      "opening_ref": "Weekday Siddur Chabad, Siddur Tehilat Hashem, Shacharit, Upon Arising",
+      "text_bytes": 600880
+    },
+    {
+      "title": "Weekday Siddur Sefard Linear",
+      "opening_ref": "Weekday Siddur Sefard Linear, The Morning Prayers, Upon Arising in the Morning",
+      "text_bytes": 750564
+    },
+    {
+      "title": "Pesach Haggadah",
+      "opening_ref": "Pesach Haggadah, Kadesh",
+      "text_bytes": 103450
+    },
+    {
+      "title": "Pesach Haggadah Edot Hamizrah",
+      "opening_ref": "Pesach Haggadah Edot Hamizrah, Kadesh",
+      "text_bytes": 135729
+    },
+    {
+      "title": "Ephod Bad on Pesach Haggadah",
+      "opening_ref": "Ephod Bad on Pesach Haggadah, Kadesh",
+      "text_bytes": 267273
+    },
+    {
+      "title": "Kimcha Davshuna on Pesach Haggadah",
+      "opening_ref": "Kimcha Davshuna on Pesach Haggadah, Kadesh",
+      "text_bytes": 95399
+    },
+    {
+      "title": "Kos Eliyahu on Pesach Haggadah",
+      "opening_ref": "Kos Eliyahu on Pesach Haggadah, Kadesh",
+      "text_bytes": 209196
+    },
+    {
+      "title": "Tevele Bondi on Pesach Haggadah",
+      "opening_ref": "Tevele Bondi on Pesach Haggadah, Maarechet Heidenheim on Pesach Hagadah, Kadesh",
+      "text_bytes": 204636
+    },
+    {
+      "title": "Maaseh Nissim on Pesach Haggadah",
+      "opening_ref": "Maaseh Nissim on Pesach Haggadah, Kadesh",
+      "text_bytes": 180300
+    },
+    {
+      "title": "Marbeh Lesaper on Pesach Haggadah",
+      "opening_ref": "Marbeh Lesaper on Pesach Haggadah, The Simanim",
+      "text_bytes": 500253
+    },
+    {
+      "title": "Naftali Seva Ratzon on Pesach Haggadah",
+      "opening_ref": "Naftali Seva Ratzon on Pesach Haggadah, Kadesh",
+      "text_bytes": 342578
+    },
+    {
+      "title": "Yismach Yisrael on Pesach Haggadah",
+      "opening_ref": "Yismach Yisrael on Pesach Haggadah, Kadesh",
+      "text_bytes": 172100
+    },
+    {
+      "title": "Commentary of Ritva on Pesach Haggadah",
+      "opening_ref": "Commentary of Ritva on Pesach Haggadah, Magid, Ha Lachma Anya",
+      "text_bytes": 70539
+    },
+    {
+      "title": "Simchat HaRegel on Pesach Haggadah",
+      "opening_ref": "Simchat HaRegel on Pesach Haggadah, Title",
+      "text_bytes": 927036
+    },
+    {
+      "title": "Geulat Olam on Pesach Haggadah",
+      "opening_ref": "Geulat Olam on Pesach Haggadah, Magid, Ha Lachma Anya",
+      "text_bytes": 145173
+    },
+    {
+      "title": "Safa Echat on Pesach Haggadah",
+      "opening_ref": "Safa Echat on Pesach Haggadah, Magid, Ha Lachma Anya",
+      "text_bytes": 130377
+    },
+    {
+      "title": "Zeroa Yamin on Pesach Haggadah",
+      "opening_ref": "Zeroa Yamin on Pesach Haggadah, Magid, Ha Lachma Anya",
+      "text_bytes": 215798
+    },
+    {
+      "title": "Peh Echad on Pesach Haggadah",
+      "opening_ref": "Peh Echad on Pesach Haggadah, Magid, Ha Lachma Anya",
+      "text_bytes": 132338
+    },
+    {
+      "title": "Batei HaNefesh on Pesach Haggadah",
+      "opening_ref": "Batei HaNefesh on Pesach Haggadah, Magid, Ha Lachma Anya",
+      "text_bytes": 113726
+    },
+    {
+      "title": "Minchat Ani on Pesach Haggadah",
+      "opening_ref": "Minchat Ani on Pesach Haggadah, Kadesh",
+      "text_bytes": 182198
+    },
+    {
+      "title": "Shibolei HaLeket on Pesach Haggadah",
+      "opening_ref": "Shibolei HaLeket on Pesach Haggadah, Kadesh",
+      "text_bytes": 138924
+    },
+    {
+      "title": "Barukh SheAmar on Pesach Haggadah",
+      "opening_ref": "Barukh SheAmar on Pesach Haggadah, Kadesh",
+      "text_bytes": 209106
+    },
+    {
+      "title": "Divrei Negidim on Pesach Haggadah",
+      "opening_ref": "Divrei Negidim on Pesach Haggadah, Kadesh",
+      "text_bytes": 192999
+    },
+    {
+      "title": "Zevach Pesach on Pesach Haggadah",
+      "opening_ref": "Zevach Pesach on Pesach Haggadah, Introduction",
+      "text_bytes": 608084
+    },
+    {
+      "title": "Peirush Hafla'ah on Pesach Haggadah",
+      "opening_ref": "Peirush Hafla'ah on Pesach Haggadah, Kadesh",
+      "text_bytes": 171975
+    },
+    {
+      "title": "The Jonathan Sacks Haggadah",
+      "opening_ref": "The Jonathan Sacks Haggadah, The Seder",
+      "text_bytes": 144508
+    },
+    {
+      "title": "Midrash BeChiddush on Pesach Haggadah",
+      "opening_ref": "Midrash BeChiddush on Pesach Haggadah, Introduction",
+      "text_bytes": 403002
+    },
+    {
+      "title": "Machzor Rosh Hashanah Ashkenaz",
+      "opening_ref": "Machzor Rosh Hashanah Ashkenaz, Annullment of Vows",
+      "text_bytes": 848828
+    },
+    {
+      "title": "Machzor Rosh Hashanah Ashkenaz Linear",
+      "opening_ref": "Machzor Rosh Hashanah Ashkenaz Linear, Metsudah Rosh Hashanah Machzor, Annullment of Vows",
+      "text_bytes": 1127055
+    },
+    {
+      "title": "Machzor Rosh Hashanah Edot HaMizrach",
+      "opening_ref": "Machzor Rosh Hashanah Edot HaMizrach, Annulment of Vows and Curses",
+      "text_bytes": 842972
+    },
+    {
+      "title": "Machzor Rosh Hashanah Sefard",
+      "opening_ref": "Machzor Rosh Hashanah Sefard, Laws of Erev Rosh Hashanah",
+      "text_bytes": 1369670
+    },
+    {
+      "title": "Machzor Yom Kippur Ashkenaz",
+      "opening_ref": "Machzor Yom Kippur Ashkenaz, Kaporos",
+      "text_bytes": 1292365
+    },
+    {
+      "title": "Machzor Yom Kippur Ashkenaz Linear",
+      "opening_ref": "Machzor Yom Kippur Ashkenaz Linear, Kaporos",
+      "text_bytes": 1575438
+    },
+    {
+      "title": "Machzor Yom Kippur Edot HaMizrach",
+      "opening_ref": "Machzor Yom Kippur Edot HaMizrach, Kapparot",
+      "text_bytes": 1288937
+    },
+    {
+      "title": "Machzor Yom Kippur Sefard",
+      "opening_ref": "Machzor Yom Kippur Sefard, Kapparot",
+      "text_bytes": 1682885
+    },
+    {
+      "title": "Selichot Nusach Ashkenaz Lita",
+      "opening_ref": "Selichot Nusach Ashkenaz Lita, First Day",
+      "text_bytes": 1359366
+    },
+    {
+      "title": "Selichot Nusach Lita Linear",
+      "opening_ref": "Selichot Nusach Lita Linear, First Day",
+      "text_bytes": 1731144
+    },
+    {
+      "title": "Selichot Nusach Polin",
+      "opening_ref": "Selichot Nusach Polin, First Day",
+      "text_bytes": 1168256
+    },
+    {
+      "title": "Azharot of Solomon ibn Gabirol",
+      "opening_ref": "Azharot of Solomon ibn Gabirol, Prelude",
+      "text_bytes": 51885
+    },
+    {
+      "title": "Birkat Hamazon",
+      "opening_ref": "Birkat Hamazon, Preliminary Psalms",
+      "text_bytes": 31097
+    },
+    {
+      "title": "Kinnot for Tisha B'Av (Ashkenaz)",
+      "opening_ref": "Kinnot for Tisha B'Av (Ashkenaz), Kinot for Tisha B'Av, Kinot for Tisha B'Av Night",
+      "text_bytes": 249686
+    },
+    {
+      "title": "Leshon Chakhamim",
+      "opening_ref": "Leshon Chakhamim, Part I, Introduction",
+      "text_bytes": 1916854
+    },
+    {
+      "title": "Ma'avar Yabbok",
+      "opening_ref": "Ma'avar Yabbok, Introduction",
+      "text_bytes": 1846574
+    },
+    {
+      "title": "Seder Tisha B'Av (Edot HaMizrach)",
+      "opening_ref": "Seder Tisha B'Av (Edot HaMizrach), Tisha B'Av Night, Al Naharot Bavel",
+      "text_bytes": 275888
+    },
+    {
+      "title": "Duties of the Heart",
+      "opening_ref": "Duties of the Heart, Introduction of the Author",
+      "text_bytes": 1491467
+    },
+    {
+      "title": "Pat Lechem",
+      "opening_ref": "Pat Lechem, Introduction to Commentary",
+      "text_bytes": 1407823
+    },
+    {
+      "title": "Marpeh la'Nefesh",
+      "opening_ref": "Marpeh la'Nefesh, Introduction to Commentary",
+      "text_bytes": 859006
+    },
+    {
+      "title": "Tov haLevanon",
+      "opening_ref": "Tov haLevanon, Introduction of the Author",
+      "text_bytes": 803780
+    },
+    {
+      "title": "Guide for the Perplexed",
+      "opening_ref": "Guide for the Perplexed, More Nevuchim, Introduction of Ibn Tibon",
+      "text_bytes": 5087890
+    },
+    {
+      "title": "HaEmunot veHaDeot",
+      "opening_ref": "HaEmunot veHaDeot, The Book of Beliefs and Opinions, Introduction",
+      "text_bytes": 693325
+    },
+    {
+      "title": "Minchat Kenaot",
+      "opening_ref": "Minchat Kenaot, Title page",
+      "text_bytes": 834965
+    },
+    {
+      "title": "Ohr Hashem",
+      "opening_ref": "Ohr Hashem",
+      "text_bytes": 916482
+    },
+    {
+      "title": "Sefer HaIkkarim",
+      "opening_ref": "Sefer HaIkkarim, Book of Principles, Title",
+      "text_bytes": 1668222
+    },
+    {
+      "title": "The Wars of the Lord",
+      "opening_ref": "The Wars of the Lord, Milchamot HaShem, Introduction",
+      "text_bytes": 1618565
+    },
+    {
+      "title": "Beit Elohim",
+      "opening_ref": "Beit Elohim, Introduction",
+      "text_bytes": 2279367
+    },
+    {
+      "title": "Derekh Hashem",
+      "opening_ref": "Derekh Hashem, The Way of God, Introduction",
+      "text_bytes": 312936
+    },
+    {
+      "title": "Imrei Binah",
+      "opening_ref": "Imrei Binah, Introduction",
+      "text_bytes": 912046
+    },
+    {
+      "title": "Be'er HaGolah",
+      "opening_ref": "Be'er HaGolah",
+      "text_bytes": 1311244
+    },
+    {
+      "title": "Drashot Maharal",
+      "opening_ref": "Drashot Maharal, Introduction",
+      "text_bytes": 387298
+    },
+    {
+      "title": "Ner Mitzvah",
+      "opening_ref": "Ner Mitzvah, Volume I",
+      "text_bytes": 218768
+    },
+    {
+      "title": "Netivot Olam",
+      "opening_ref": "Netivot Olam",
+      "text_bytes": 3018670
+    },
+    {
+      "title": "Notes by Rabbi Yehoshua Hartman on Be'er HaGolah",
+      "opening_ref": "Notes by Rabbi Yehoshua Hartman on Be'er HaGolah, Introduction to Be'er HaGolah",
+      "text_bytes": 4549008
+    },
+    {
+      "title": "Notes by Rabbi Yehoshua Hartman on Ner Mitzvah",
+      "opening_ref": "Notes by Rabbi Yehoshua Hartman on Ner Mitzvah, Volume I",
+      "text_bytes": 710819
+    },
+    {
+      "title": "Notes by Rabbi Yehoshua Hartman on Netivot Olam",
+      "opening_ref": "Notes by Rabbi Yehoshua Hartman on Netivot Olam, Introduction to Netivot Olam",
+      "text_bytes": 4588639
+    },
+    {
+      "title": "Matteh Dan",
+      "opening_ref": "Matteh Dan, Kuzari Sheni, Title Page",
+      "text_bytes": 854282
+    },
+    {
+      "title": "Nefesh HaChayim",
+      "opening_ref": "Nefesh HaChayim, An Introduction by the Author's Son",
+      "text_bytes": 1009318
+    },
+    {
+      "title": "Torat HaOlah",
+      "opening_ref": "Torat HaOlah, Author's Introduction",
+      "text_bytes": 2407706
+    },
+    {
+      "title": "Dirshuni I",
+      "opening_ref": "Dirshuni I, Preface",
+      "text_bytes": 376498
+    },
+    {
+      "title": "Dirshuni II",
+      "opening_ref": "Dirshuni II, A Song in Honor of Torah",
+      "text_bytes": 442185
+    },
+    {
+      "title": "A Jewish Critique of the Philosophy of Martin Buber",
+      "opening_ref": "A Jewish Critique of the Philosophy of Martin Buber, Editor's Introduction",
+      "text_bytes": 206966
+    },
+    {
+      "title": "Between Yesterday and Tomorrow",
+      "opening_ref": "Between Yesterday and Tomorrow, Preface",
+      "text_bytes": 281105
+    },
+    {
+      "title": "Crisis and Faith",
+      "opening_ref": "Crisis and Faith, Preface",
+      "text_bytes": 317075
+    },
+    {
+      "title": "Jewish Women in Time and Torah",
+      "opening_ref": "Jewish Women in Time and Torah, Foreword by Rahel Berkovits",
+      "text_bytes": 313331
+    },
+    {
+      "title": "Judaism; Fossil or Ferment",
+      "opening_ref": "Judaism; Fossil or Ferment, Preface",
+      "text_bytes": 423172
+    },
+    {
+      "title": "Major Themes in Modern Philosophies of Judaism",
+      "opening_ref": "Major Themes in Modern Philosophies of Judaism, Foreword",
+      "text_bytes": 645187
+    },
+    {
+      "title": "Man and God",
+      "opening_ref": "Man and God, Preface",
+      "text_bytes": 791686
+    },
+    {
+      "title": "Towards Historic Judaism",
+      "opening_ref": "Towards Historic Judaism, Preface",
+      "text_bytes": 287673
+    },
+    {
+      "title": "Unity in Judaism",
+      "opening_ref": "Unity in Judaism, Foreword",
+      "text_bytes": 53292
+    },
+    {
+      "title": "What is the Talmud",
+      "opening_ref": "What is the Talmud, Editor's Foreword",
+      "text_bytes": 313237
+    },
+    {
+      "title": "With God in Hell",
+      "opening_ref": "With God in Hell, Preface",
+      "text_bytes": 344660
+    },
+    {
+      "title": "Em HaBanim Semecha",
+      "opening_ref": "Em HaBanim Semecha, Title",
+      "text_bytes": 1295744
+    },
+    {
+      "title": "Gan Naul",
+      "opening_ref": "Gan Naul, Title",
+      "text_bytes": 3464674
+    },
+    {
+      "title": "Hegyonei Uziel",
+      "opening_ref": "Hegyonei Uziel, Introduction",
+      "text_bytes": 2162162
+    },
+    {
+      "title": "In the Narrow Places; Daily Inspiration for the Three Weeks",
+      "opening_ref": "In the Narrow Places; Daily Inspiration for the Three Weeks, Acknowledgments",
+      "text_bytes": 234895
+    },
+    {
+      "title": "Kol Dodi Dofek",
+      "opening_ref": "Kol Dodi Dofek, The Righteous Suffer",
+      "text_bytes": 163031
+    },
+    {
+      "title": "Leadership in the Wilderness; Authority and Anarchy in the Book of Numbers",
+      "opening_ref": "Leadership in the Wilderness; Authority and Anarchy in the Book of Numbers, Preface",
+      "text_bytes": 526219
+    },
+    {
+      "title": "Moreh Nevukhei HaZeman",
+      "opening_ref": "Moreh Nevukhei HaZeman, Cover",
+      "text_bytes": 1918065
+    },
+    {
+      "title": "Arguments for the Sake of Heaven",
+      "opening_ref": "Arguments for the Sake of Heaven, Publisher's Preface",
+      "text_bytes": 606984
+    },
+    {
+      "title": "Ceremony and Celebration Family Edition, The Hagim",
+      "opening_ref": "Ceremony and Celebration Family Edition, The Hagim, Ceremony and Celebration; The Hagim; Family Edition, Introduction",
+      "text_bytes": 476100
+    },
+    {
+      "title": "Ceremony and Celebration; Introduction to the Holidays",
+      "opening_ref": "Ceremony and Celebration; Introduction to the Holidays, Rosh HaShana; The Anniversary of Creation",
+      "text_bytes": 1024677
+    },
+    {
+      "title": "Community of Faith",
+      "opening_ref": "Community of Faith, Publisher's Preface",
+      "text_bytes": 330400
+    },
+    {
+      "title": "Crisis and Covenant; Jewish Thought after the Holocaust",
+      "opening_ref": "Crisis and Covenant; Jewish Thought after the Holocaust, Publisher's Preface",
+      "text_bytes": 648016
+    },
+    {
+      "title": "Faith in the Future",
+      "opening_ref": "Faith in the Future, Publisher's Preface",
+      "text_bytes": 626735
+    },
+    {
+      "title": "One People? Tradition, Modernity, and Jewish Unity",
+      "opening_ref": "One People? Tradition, Modernity, and Jewish Unity, Publisher's Preface",
+      "text_bytes": 704811
+    },
+    {
+      "title": "Radical Then, Radical Now",
+      "opening_ref": "Radical Then, Radical Now, Preface",
+      "text_bytes": 628171
+    },
+    {
+      "title": "The Dignity of Difference; How to Avoid the Clash of Civilizations",
+      "opening_ref": "The Dignity of Difference; How to Avoid the Clash of Civilizations, Prologue",
+      "text_bytes": 636080
+    },
+    {
+      "title": "The Great Partnership; God, Science, and the Search for Meaning",
+      "opening_ref": "The Great Partnership; God, Science, and the Search for Meaning, Acknowledgements",
+      "text_bytes": 981811
+    },
+    {
+      "title": "The Home We Build Together; Recreating Society",
+      "opening_ref": "The Home We Build Together; Recreating Society, Foreword",
+      "text_bytes": 893300
+    },
+    {
+      "title": "The Jonathan Sacks Haggadah; Essays",
+      "opening_ref": "The Jonathan Sacks Haggadah; Essays, The Story of Stories",
+      "text_bytes": 388135
+    },
+    {
+      "title": "Tradition in an Untraditional Age",
+      "opening_ref": "Tradition in an Untraditional Age, Publisher's Preface",
+      "text_bytes": 770969
+    },
+    {
+      "title": "Will We Have Jewish Grandchildren? Jewish Continuity and How to Achieve It",
+      "opening_ref": "Will We Have Jewish Grandchildren? Jewish Continuity and How to Achieve It, Publisher's Preface",
+      "text_bytes": 335118
+    },
+    {
+      "title": "Darkhei Moshe (Amiel)",
+      "opening_ref": "Darkhei Moshe (Amiel), Introduction",
+      "text_bytes": 4904296
+    },
+    {
+      "title": "HaMiddot leCheker haHalakhah",
+      "opening_ref": "HaMiddot leCheker haHalakhah, Part I, Introduction",
+      "text_bytes": 6748231
+    },
+    {
+      "title": "Hegyonot El Ami",
+      "opening_ref": "Hegyonot El Ami, Preface",
+      "text_bytes": 1786572
+    },
+    {
+      "title": "Sermons Unto My People",
+      "opening_ref": "Sermons Unto My People, Derashot El Ami, Introduction",
+      "text_bytes": 2833355
+    },
+    {
+      "title": "Footnotes on Orot",
+      "opening_ref": "Footnotes on Orot, Lights from Darkness, Land of Israel",
+      "text_bytes": 8588
+    },
+    {
+      "title": "Olat Reiyah",
+      "opening_ref": "Olat Reiyah, Introduction",
+      "text_bytes": 1545994
+    },
+    {
+      "title": "Orot",
+      "opening_ref": "Orot, Lights from Darkness, Land of Israel",
+      "text_bytes": 621313
+    },
+    {
+      "title": "Return; Daily Inspiration for the Days of Awe",
+      "opening_ref": "Return; Daily Inspiration for the Days of Awe, Foreword",
+      "text_bytes": 305404
+    },
+    {
+      "title": "Zakhor VeShamor",
+      "opening_ref": "Zakhor VeShamor, Preface",
+      "text_bytes": 1576840
+    },
+    {
+      "title": "Adam Min HaAdamah",
+      "opening_ref": "Adam Min HaAdamah, Man of the Earth, Preface",
+      "text_bytes": 819898
+    },
+    {
+      "title": "Al Kapot HaMan'ul; Homilies for the Days of Awe",
+      "opening_ref": "Al Kapot HaMan'ul; Homilies for the Days of Awe, Introduction",
+      "text_bytes": 241726
+    },
+    {
+      "title": "Efodi on Guide for the Perplexed",
+      "opening_ref": "Efodi on Guide for the Perplexed, Letter to R Joseph son of Judah",
+      "text_bytes": 602413
+    },
+    {
+      "title": "Crescas on Guide for the Perplexed",
+      "opening_ref": "Crescas on Guide for the Perplexed, Letter to R Joseph son of Judah",
+      "text_bytes": 585139
+    },
+    {
+      "title": "Abarbanel on Guide for the Perplexed",
+      "opening_ref": "Abarbanel on Guide for the Perplexed, Introduction, Letter to R Joseph son of Judah",
+      "text_bytes": 1409898
+    },
+    {
+      "title": "Shem Tov on Guide for the Perplexed",
+      "opening_ref": "Shem Tov on Guide for the Perplexed, Letter to R Joseph son of Judah",
+      "text_bytes": 1810216
+    },
+    {
+      "title": "Narboni on Guide for the Perplexed",
+      "opening_ref": "Narboni on Guide for the Perplexed, Introduction, Publisher's Introduction",
+      "text_bytes": 875489
+    },
+    {
+      "title": "Nishmat Chayyim",
+      "opening_ref": "Nishmat Chayyim, Introduction",
+      "text_bytes": 1252805
+    },
+    {
+      "title": "Penei Sheviit Nekabelah",
+      "opening_ref": "Penei Sheviit Nekabelah, Let Us Welcome the Shmita, Acknowledgments",
+      "text_bytes": 275794
+    },
+    {
+      "title": "Pur Hu HaGoral; Homilies for Purim",
+      "opening_ref": "Pur Hu HaGoral; Homilies for Purim, Introduction",
+      "text_bytes": 312437
+    },
+    {
+      "title": "Zikaron leYom Rishon",
+      "opening_ref": "Zikaron leYom Rishon, Foreword to 2nd Edition",
+      "text_bytes": 198704
+    },
+    {
+      "title": "Ben Porat Yosef",
+      "opening_ref": "Ben Porat Yosef, Foreword",
+      "text_bytes": 2100455
+    },
+    {
+      "title": "Kedushat Levi",
+      "opening_ref": "Kedushat Levi, Letters of Approbation",
+      "text_bytes": 2492979
+    },
+    {
+      "title": "Ketonet Pasim",
+      "opening_ref": "Ketonet Pasim, Vayikra",
+      "text_bytes": 1175890
+    },
+    {
+      "title": "Me'or Einayim",
+      "opening_ref": "Me'or Einayim, Title",
+      "text_bytes": 1671604
+    },
+    {
+      "title": "Noam Elimelekh",
+      "opening_ref": "Noam Elimelekh, Sefer Noam Elimelech, Introduction, Approbations",
+      "text_bytes": 1741704
+    },
+    {
+      "title": "Peri HaAretz",
+      "opening_ref": "Peri HaAretz, Title Page",
+      "text_bytes": 493243
+    },
+    {
+      "title": "Toldot Yaakov Yosef",
+      "opening_ref": "Toldot Yaakov Yosef, Title",
+      "text_bytes": 4425850
+    },
+    {
+      "title": "Tzofnat Paneach",
+      "opening_ref": "Tzofnat Paneach, Shemot",
+      "text_bytes": 2006967
+    },
+    {
+      "title": "Likkutei Etzot",
+      "opening_ref": "Likkutei Etzot, Introduction to First Edition",
+      "text_bytes": 1180720
+    },
+    {
+      "title": "Likutei Halakhot",
+      "opening_ref": "Likutei Halakhot, Author's Introduction",
+      "text_bytes": 35462721
+    },
+    {
+      "title": "Likutei Tefilot",
+      "opening_ref": "Likutei Tefilot, Introduction",
+      "text_bytes": 4404564
+    },
+    {
+      "title": "Sefer HaMiddot",
+      "opening_ref": "Sefer HaMiddot, Introduction",
+      "text_bytes": 580080
+    },
+    {
+      "title": "Derekh Mitzvotekha",
+      "opening_ref": "Derekh Mitzvotekha, The commandment of procreation",
+      "text_bytes": 2056480
+    },
+    {
+      "title": "Likkutei Torah",
+      "opening_ref": "Likkutei Torah, Beshalach",
+      "text_bytes": 6652031
+    },
+    {
+      "title": "Sources and References on Likkutei Torah",
+      "opening_ref": "Sources and References on Likkutei Torah, Beshalach",
+      "text_bytes": 3195703
+    },
+    {
+      "title": "Sources and References on Torah Ohr",
+      "opening_ref": "Sources and References on Torah Ohr, Bereshit",
+      "text_bytes": 1498945
+    },
+    {
+      "title": "Tanya",
+      "opening_ref": "Tanya, Likutei Amarim, Part I; Likkutei Amarim, Title Page",
+      "text_bytes": 1517874
+    },
+    {
+      "title": "Torah Ohr",
+      "opening_ref": "Torah Ohr, Bereshit",
+      "text_bytes": 2434163
+    },
+    {
+      "title": "Mei HaShiloach",
+      "opening_ref": "Mei HaShiloach, Living Waters, Volume I, Introduction",
+      "text_bytes": 3272559
+    },
+    {
+      "title": "Sha'ar HaEmunah VeYesod HaChasidut",
+      "opening_ref": "Sha'ar HaEmunah VeYesod HaChasidut, Introduction to Beit Yaakov",
+      "text_bytes": 609891
+    },
+    {
+      "title": "Sod Yesharim",
+      "opening_ref": "Sod Yesharim, Rosh Hashanah",
+      "text_bytes": 4765647
+    },
+    {
+      "title": "Tiferet Yosef",
+      "opening_ref": "Tiferet Yosef, Rosh Hashanah",
+      "text_bytes": 1150221
+    },
+    {
+      "title": "Dover Tzedek",
+      "opening_ref": "Dover Tzedek, Title Page",
+      "text_bytes": 1166042
+    },
+    {
+      "title": "Likkutei Maamarim",
+      "opening_ref": "Likkutei Maamarim, On Book of Joshua",
+      "text_bytes": 942745
+    },
+    {
+      "title": "Meshiv Tzedek",
+      "opening_ref": "Meshiv Tzedek, A Rebuttal Regarding Sitting in the Sukkah on Shemini Atzeret",
+      "text_bytes": 369928
+    },
+    {
+      "title": "Ohr Zarua LaTzadik",
+      "opening_ref": "Ohr Zarua LaTzadik, Introduction",
+      "text_bytes": 466227
+    },
+    {
+      "title": "Peri Tzadik",
+      "opening_ref": "Peri Tzadik, Title",
+      "text_bytes": 9175611
+    },
+    {
+      "title": "Bnei Machshava Tova",
+      "opening_ref": "Bnei Machshava Tova, The Association's Goals",
+      "text_bytes": 231542
+    },
+    {
+      "title": "Derekh HaMelekh",
+      "opening_ref": "Derekh HaMelekh, Kuntres Tiferet Banim, Introduction",
+      "text_bytes": 1874435
+    },
+    {
+      "title": "Esh Kodesh",
+      "opening_ref": "Esh Kodesh, Preface",
+      "text_bytes": 564372
+    },
+    {
+      "title": "Agra DeKala",
+      "opening_ref": "Agra DeKala, Permutations of Bereshit",
+      "text_bytes": 4594968
+    },
+    {
+      "title": "Arvei Nachal",
+      "opening_ref": "Arvei Nachal, Bereshit",
+      "text_bytes": 4260565
+    },
+    {
+      "title": "Avodat Yisrael",
+      "opening_ref": "Avodat Yisrael, Title",
+      "text_bytes": 1473990
+    },
+    {
+      "title": "Ba'al Shem Tov",
+      "opening_ref": "Ba'al Shem Tov, Introduction",
+      "text_bytes": 1507240
+    },
+    {
+      "title": "Bat Ayin",
+      "opening_ref": "Bat Ayin, Bereshit",
+      "text_bytes": 1885236
+    },
+    {
+      "title": "Be'er Mayim Chaim",
+      "opening_ref": "Be'er Mayim Chaim, Genesis",
+      "text_bytes": 8268743
+    },
+    {
+      "title": "BePardes HaChasidut VeHakabbalah",
+      "opening_ref": "BePardes HaChasidut VeHakabbalah, Editor's Preface",
+      "text_bytes": 944512
+    },
+    {
+      "title": "Beit Aharon",
+      "opening_ref": "Beit Aharon, Title",
+      "text_bytes": 2198057
+    },
+    {
+      "title": "Beit Yisrael (Ruzhin)",
+      "opening_ref": "Beit Yisrael (Ruzhin), Introduction",
+      "text_bytes": 637974
+    },
+    {
+      "title": "Bnei Yissaschar",
+      "opening_ref": "Bnei Yissaschar, Introduction",
+      "text_bytes": 3607040
+    },
+    {
+      "title": "Chanah Ariel",
+      "opening_ref": "Chanah Ariel, Introduction",
+      "text_bytes": 3567709
+    },
+    {
+      "title": "Darkhei Yesharim",
+      "opening_ref": "Darkhei Yesharim, Title",
+      "text_bytes": 81880
+    },
+    {
+      "title": "Degel Machaneh Ephraim",
+      "opening_ref": "Degel Machaneh Ephraim, Title",
+      "text_bytes": 1392524
+    },
+    {
+      "title": "Divrei Emet",
+      "opening_ref": "Divrei Emet, Title Page",
+      "text_bytes": 746216
+    },
+    {
+      "title": "Imrei Shefer",
+      "opening_ref": "Imrei Shefer, Parashat Vayera",
+      "text_bytes": 172517
+    },
+    {
+      "title": "Irin Kadishin",
+      "opening_ref": "Irin Kadishin, Noach",
+      "text_bytes": 377080
+    },
+    {
+      "title": "Irin Kadishin Tinyana",
+      "opening_ref": "Irin Kadishin Tinyana, Introduction",
+      "text_bytes": 157912
+    },
+    {
+      "title": "Irin Kadishin Tlita'a",
+      "opening_ref": "Irin Kadishin Tlita'a, Publisher's Introduction",
+      "text_bytes": 252018
+    },
+    {
+      "title": "Maor VaShemesh",
+      "opening_ref": "Maor VaShemesh, Introduction by the Author's Son",
+      "text_bytes": 3485978
+    },
+    {
+      "title": "Ohev Yisrael",
+      "opening_ref": "Ohev Yisrael, Title",
+      "text_bytes": 1703382
+    },
+    {
+      "title": "Ohr HaMeir",
+      "opening_ref": "Ohr HaMeir, Bereshit",
+      "text_bytes": 3265675
+    },
+    {
+      "title": "Ohr LaShamayim",
+      "opening_ref": "Ohr LaShamayim, Bereshit",
+      "text_bytes": 1165502
+    },
+    {
+      "title": "Sefat Emet",
+      "opening_ref": "Sefat Emet, Genesis, Bereshit",
+      "text_bytes": 7484475
+    },
+    {
+      "title": "Sha'arei Avodah",
+      "opening_ref": "Sha'arei Avodah, Introduction",
+      "text_bytes": 1668835
+    },
+    {
+      "title": "Sha'arei HaYichud VeEmunah",
+      "opening_ref": "Sha'arei HaYichud VeEmunah, Preface",
+      "text_bytes": 1744358
+    },
+    {
+      "title": "Shem MiShmuel",
+      "opening_ref": "Shem MiShmuel, Introduction",
+      "text_bytes": 14088704
+    },
+    {
+      "title": "Sidduro Shel Shabbat",
+      "opening_ref": "Sidduro Shel Shabbat, Volume I, Introduction",
+      "text_bytes": 1662376
+    },
+    {
+      "title": "Tiferet Shlomo",
+      "opening_ref": "Tiferet Shlomo, on Torah, Bereshit",
+      "text_bytes": 3882186
+    },
+    {
+      "title": "Yakar MiPaz",
+      "opening_ref": "Yakar MiPaz, Title Page",
+      "text_bytes": 101046
+    },
+    {
+      "title": "Yismach Moshe",
+      "opening_ref": "Yismach Moshe, Introduction",
+      "text_bytes": 6152485
+    },
+    {
+      "title": "Yosher Divrei Emet",
+      "opening_ref": "Yosher Divrei Emet, Introduction",
+      "text_bytes": 265945
+    },
+    {
+      "title": "Zera Kodesh",
+      "opening_ref": "Zera Kodesh, Approbations",
+      "text_bytes": 2574967
+    },
+    {
+      "title": "Kad HaKemach",
+      "opening_ref": "Kad HaKemach, Introduction",
+      "text_bytes": 1577763
+    },
+    {
+      "title": "Ma'alot HaMiddot",
+      "opening_ref": "Ma'alot HaMiddot, Introduction",
+      "text_bytes": 707563
+    },
+    {
+      "title": "Menorat HaMaor",
+      "opening_ref": "Menorat HaMaor, Piyyut",
+      "text_bytes": 3651272
+    },
+    {
+      "title": "Shekel HaKodesh",
+      "opening_ref": "Shekel HaKodesh, Prelude",
+      "text_bytes": 102029
+    },
+    {
+      "title": "Yesod HaYirah",
+      "opening_ref": "Yesod HaYirah, Prelude",
+      "text_bytes": 66218
+    },
+    {
+      "title": "Sefer HaChaim",
+      "opening_ref": "Sefer HaChaim, Title Page",
+      "text_bytes": 359060
+    },
+    {
+      "title": "Shemirat HaLashon",
+      "opening_ref": "Shemirat HaLashon, Book I, Introduction",
+      "text_bytes": 1358193
+    },
+    {
+      "title": "Shenei Luchot HaBerit",
+      "opening_ref": "Shenei Luchot HaBerit, Toldot Adam, Introduction",
+      "text_bytes": 12016774
+    },
+    {
+      "title": "Yesod VeShoresh HaAvodah",
+      "opening_ref": "Yesod VeShoresh HaAvodah, Title Page",
+      "text_bytes": 1704968
+    },
+    {
+      "title": "Ohr HaTzafun",
+      "opening_ref": "Ohr HaTzafun, Bereshit, I",
+      "text_bytes": 1735618
+    },
+    {
+      "title": "Toratan shel Rishonim",
+      "opening_ref": "Toratan shel Rishonim, Title Page",
+      "text_bytes": 214830
+    },
+    {
+      "title": "Iggerot HaRambam",
+      "opening_ref": "Iggerot HaRambam, Khiddushei HaRambam",
+      "text_bytes": 1032014
+    },
+    {
+      "title": "Sefer HaTashbetz",
+      "opening_ref": "Sefer HaTashbetz, Approbrations",
+      "text_bytes": 7734521
+    },
+    {
+      "title": "Terumat HaDeshen",
+      "opening_ref": "Terumat HaDeshen, Index to part I",
+      "text_bytes": 2332690
+    },
+    {
+      "title": "Teshuvot Maharam",
+      "opening_ref": "Teshuvot Maharam, Cremona Edition",
+      "text_bytes": 4981920
+    },
+    {
+      "title": "Admat Kodesh",
+      "opening_ref": "Admat Kodesh, Orach Chayim",
+      "text_bytes": 3536376
+    },
+    {
+      "title": "Be'er Yitzchak",
+      "opening_ref": "Be'er Yitzchak, Orach Chayim",
+      "text_bytes": 3197383
+    },
+    {
+      "title": "Binyan Olam",
+      "opening_ref": "Binyan Olam, Introduction",
+      "text_bytes": 3382818
+    },
+    {
+      "title": "Chiddushei HaRim Responsa",
+      "opening_ref": "Chiddushei HaRim Responsa, Orach Chayim",
+      "text_bytes": 1940660
+    },
+    {
+      "title": "HaElef Lekha Shlomo",
+      "opening_ref": "HaElef Lekha Shlomo, Orach Chayim",
+      "text_bytes": 2303822
+    },
+    {
+      "title": "Halakhot Ketanot",
+      "opening_ref": "Halakhot Ketanot, Author's Introduction",
+      "text_bytes": 761261
+    },
+    {
+      "title": "Noda BiYehudah I",
+      "opening_ref": "Noda BiYehudah I, Noda BeYehuda, Author's Introduction",
+      "text_bytes": 5246114
+    },
+    {
+      "title": "Noda BiYehudah II",
+      "opening_ref": "Noda BiYehudah II, Orach Chaim",
+      "text_bytes": 6250739
+    },
+    {
+      "title": "Responsa Chatam Sofer",
+      "opening_ref": "Responsa Chatam Sofer, Teshuvot Hatam Sofer, Orach Chayim",
+      "text_bytes": 14833041
+    },
+    {
+      "title": "Responsa Maharashdam",
+      "opening_ref": "Responsa Maharashdam, Approbrations",
+      "text_bytes": 10476374
+    },
+    {
+      "title": "Responsa Rav Pealim",
+      "opening_ref": "Responsa Rav Pealim, Volume I, Introduction",
+      "text_bytes": 7759909
+    },
+    {
+      "title": "Sheilat Yaavetz",
+      "opening_ref": "Sheilat Yaavetz, Introduction",
+      "text_bytes": 4129900
+    },
+    {
+      "title": "Teshuvot Bayit Chadash",
+      "opening_ref": "Teshuvot Bayit Chadash, HaYeshanot",
+      "text_bytes": 3893143
+    },
+    {
+      "title": "Teshuvot Maharit",
+      "opening_ref": "Teshuvot Maharit",
+      "text_bytes": 6663240
+    },
+    {
+      "title": "Teshuvot Meshiv Davar",
+      "opening_ref": "Teshuvot Meshiv Davar, Introduction",
+      "text_bytes": 1964392
+    },
+    {
+      "title": "Collected Responsa in Wartime",
+      "opening_ref": "Collected Responsa in Wartime, Introduction",
+      "text_bytes": 121691
+    },
+    {
+      "title": "Collected Responsa to Chaplains",
+      "opening_ref": "Collected Responsa to Chaplains, Preface",
+      "text_bytes": 85712
+    },
+    {
+      "title": "LaKelal VeLaPerat",
+      "opening_ref": "LaKelal VeLaPerat, Preface",
+      "text_bytes": 1240837
+    },
+    {
+      "title": "Mishpetei Uziel",
+      "opening_ref": "Mishpetei Uziel, Volume I, Orach Chayim",
+      "text_bytes": 13426904
+    },
+    {
+      "title": "Nishmat HaBayit",
+      "opening_ref": "Nishmat HaBayit, Foreword by Rabbi Yaakov Warhaftig",
+      "text_bytes": 972589
+    },
+    {
+      "title": "Responsa Benei Banim",
+      "opening_ref": "Responsa Benei Banim, Volume I, Approbations and Letters",
+      "text_bytes": 4518763
+    },
+    {
+      "title": "Yein HaTov",
+      "opening_ref": "Yein HaTov, Approbations",
+      "text_bytes": 1768304
+    },
+    {
+      "title": "Megillat Ta'anit",
+      "opening_ref": "Megillat Ta'anit, Meg. Taan., Nisan",
+      "text_bytes": 57399
+    },
+    {
+      "title": "The Testaments of the Twelve Patriarchs",
+      "opening_ref": "The Testaments of the Twelve Patriarchs, The Testament of Reuben the First born Son of Jacob and Leah",
+      "text_bytes": 165095
+    },
+    {
+      "title": "Allegorical Interpretation of Genesis",
+      "opening_ref": "Allegorical Interpretation of Genesis, Legum Allegoriae, Book I, Introduction",
+      "text_bytes": 321208
+    },
+    {
+      "title": "On Dreams",
+      "opening_ref": "On Dreams, De Somniis, Book I, Introduction",
+      "text_bytes": 322637
+    },
+    {
+      "title": "On the Life of Moses",
+      "opening_ref": "On the Life of Moses, Book I, Introduction",
+      "text_bytes": 305234
+    },
+    {
+      "title": "On the Special Laws",
+      "opening_ref": "On the Special Laws, De Specialibus Legibus, Book I, Introduction",
+      "text_bytes": 666230
+    },
+    {
+      "title": "Sefer HeArukh",
+      "opening_ref": "Sefer HeArukh, Introduction of Musaf HeArukh",
+      "text_bytes": 4332305
+    },
+    {
+      "title": "Otzar La'azei Rashi",
+      "opening_ref": "Otzar La'azei Rashi, Talmud, Berakhot",
+      "text_bytes": 1089088
+    },
+    {
+      "title": "Hafla'ah ShebaArakhin on Sefer HeArukh",
+      "opening_ref": "Hafla'ah ShebaArakhin on Sefer HeArukh, Introduction",
+      "text_bytes": 1757379
+    },
+    {
+      "title": "Machberet Menachem",
+      "opening_ref": "Machberet Menachem, Introduction",
+      "text_bytes": 1401236
+    },
+    {
+      "title": "Sefer HaBachur",
+      "opening_ref": "Sefer HaBachur, Dikduk Eliyyah, Title Page",
+      "text_bytes": 283854
+    },
+    {
+      "title": "Ayin Zokher",
+      "opening_ref": "Ayin Zokher, Ein Zocher, Introduction",
+      "text_bytes": 1351016
+    },
+    {
+      "title": "Devash LeFi",
+      "opening_ref": "Devash LeFi, Introduction",
+      "text_bytes": 649854
+    },
+    {
+      "title": "Midbar Kedemot",
+      "opening_ref": "Midbar Kedemot, Introduction",
+      "text_bytes": 594910
+    },
+    {
+      "title": "Seder HaDorot",
+      "opening_ref": "Seder HaDorot, Introduction",
+      "text_bytes": 5669484
+    },
+    {
+      "title": "Hagahot Menachem Tzion",
+      "opening_ref": "Hagahot Menachem Tzion, Letter Alef",
+      "text_bytes": 420153
+    },
+    {
+      "title": "Kuntres Peleitat Sefarim",
+      "opening_ref": "Kuntres Peleitat Sefarim, Introduction",
+      "text_bytes": 229286
+    },
+    {
+      "title": "Shem HaGedolim, Maarekhet Sefarim",
+      "opening_ref": "Shem HaGedolim, Maarekhet Sefarim, Letter Alef",
+      "text_bytes": 996988
+    },
+    {
+      "title": "The Jewish Spiritual Heroes",
+      "opening_ref": "The Jewish Spiritual Heroes, Volume I; The Creators of the Mishna, Introduction",
+      "text_bytes": 1914097
+    }
+  ],
+  "still_removed": [
+    {
+      "title": "Nechama Leibowitz",
+      "why": "no schema in the export"
+    },
+    {
+      "title": "Steinsaltz Introductions to Tanakh",
+      "why": "no text in the export"
+    },
+    {
+      "title": "The Early Prophets, by Everett Fox",
+      "why": "no text in the export"
+    },
+    {
+      "title": "The Five Books of Moses, by Everett Fox",
+      "why": "no text in the export"
+    },
+    {
+      "title": "Learning to Read Midrash",
+      "why": "no text in the export"
+    },
+    {
+      "title": "A Lifetime Companion to the Laws of Jewish Family Life",
+      "why": "no text in the export"
+    },
+    {
+      "title": "Machzor Yom Ha'atzmaut & Yom Yerushalyim",
+      "why": "no schema in the export"
+    },
+    {
+      "title": "Future Tense; A Vision for Jews and Judaism in the Global Culture (Hebrew)",
+      "why": "no schema in the export"
+    },
+    {
+      "title": "Morality; Restoring the Common Good in Divided Times (Hebrew)",
+      "why": "no schema in the export"
+    },
+    {
+      "title": "Not in God's Name; Confronting Religious Violence (Hebrew)",
+      "why": "no schema in the export"
+    },
+    {
+      "title": "To Heal a Fractured World; The Ethics of Responsibility (Hebrew)",
+      "why": "no schema in the export"
+    },
+    {
+      "title": "Standing Again at Sinai; Judaism from a Feminist Perspective",
+      "why": "no text in the export"
+    },
+    {
+      "title": "Torah of the Mothers",
+      "why": "no text in the export"
+    },
+    {
+      "title": "Lindenbaum Center",
+      "why": "no schema in the export"
+    },
+    {
+      "title": "Jastrow",
+      "why": "no text in the export"
+    },
+    {
+      "title": "Klein Dictionary",
+      "why": "no text in the export"
+    },
+    {
+      "title": "Sefer HaShorashim",
+      "why": "no text in the export"
+    },
+    {
+      "title": "Animadversions by Elias Levita on Sefer HaShorashim",
+      "why": "no text in the export"
+    },
+    {
+      "title": "A Dictionary of the Talmud",
+      "why": "no text in the export"
+    },
+    {
+      "title": "BDB",
+      "why": "no text in the export"
+    },
+    {
+      "title": "BDB Aramaic",
+      "why": "no text in the export"
+    },
+    {
+      "title": "Kovetz Yesodot VaChakirot",
+      "why": "no text in the export"
+    }
+  ]
+}
