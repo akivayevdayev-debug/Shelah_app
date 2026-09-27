@@ -161,7 +161,7 @@ class TestLlmsTxtRoute:
 
         llms_urls = {line[2:] for line in llms_body.splitlines() if line.startswith("- ")}
         sitemap_urls = set(re.findall(r"<loc>(.*?)</loc>", sitemap_body))
-        library = re.compile(r"^https://shelah-app\.vercel\.app/(text|prayer|community)/")
+        library = re.compile(r"^https://shelah-app\.vercel\.app/(text|prayer|community|siddur)/")
 
         assert llms_urls == {url for url in sitemap_urls if not library.match(url)}
         assert llms_urls  # non-empty, guards against both sides silently going blank

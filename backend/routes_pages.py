@@ -22,7 +22,7 @@ from app import (
     CLERK_ENFORCE_AUTH,
     SIDDUR_SECTION_MAP,
 )
-from backend import page_meta
+from backend import page_meta, siddur_data
 from backend.helpers import COMMUNITIES
 
 routes_pages = Blueprint("pages", __name__)
@@ -76,6 +76,14 @@ def _library_sitemap_paths():
             yield page_meta.text_path(f"{book} {chapter}"), "yearly", "0.5"
     for name in SIDDUR_SECTION_MAP:
         yield page_meta.prayer_path(name), "yearly", "0.5"
+    # The siddur: its contents, every service, and each section of a
+    # multi-section service (backend/siddur_data.py; checked-in, no fetch).
+    yield siddur_data.siddur_path(siddur_data.DEFAULT_RITE), "monthly", "0.6"
+    for _occasion, service in siddur_data.iter_services():
+        yield siddur_data.siddur_path(siddur_data.DEFAULT_RITE, service["slug"]), "yearly", "0.6"
+        if len(service["sections"]) > 1:
+            for section in service["sections"]:
+                yield siddur_data.siddur_path(siddur_data.DEFAULT_RITE, service["slug"], section["slug"]), "yearly", "0.5"
     for name in sorted(COMMUNITIES):
         yield page_meta.community_path(name), "monthly", "0.5"
 

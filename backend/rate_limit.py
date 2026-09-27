@@ -130,6 +130,9 @@ _ROUTE_CLASSES: list[tuple[str, str]] = [
     # Public shared-answer reads (backend/routes_answer_share.py): no auth,
     # one DB read each -- per-IP "fanout" keeps token guessing slow.
     ("/api/public/answer", "fanout"),
+    # The siddur v2 API (backend/routes_siddur.py) serves checked-in files
+    # and a pure date computation -- no upstream call, nothing to fan out.
+    ("/api/siddur/v2/", "cheap"),
 ]
 
 # (compiled pattern, class) -- checked BEFORE _ROUTE_CLASSES, for routes

@@ -49,13 +49,15 @@ class _Resp:
 
 
 class FakeSession:
-    """Serves /texts/<ref> for the refs in `texts`, /name/<title> from `names`
-    and /index from `index`; anything else is a 404. Records every request."""
+    """Serves /texts/<ref> for the refs in `texts`, /name/<title> from `names`,
+    /index from `index` and /index/<title> from `indexes`; anything else is a
+    404. Records every request."""
 
-    def __init__(self, texts=None, names=None, index=None, errors=()):
+    def __init__(self, texts=None, names=None, index=None, errors=(), indexes=None):
         self.texts = texts or {}      # encoded ref path -> payload
         self.names = names or {}      # encoded title path -> payload
         self.index = index
+        self.indexes = indexes or {}  # encoded title path -> index record
         self.errors = set(errors)     # url suffixes that raise a network error
         self.requests = []
 
@@ -65,6 +67,11 @@ class FakeSession:
             raise requests.ConnectionError("down")
         if url == f"{API}/index":
             return _Resp(200, self.index)
+        if url.startswith(f"{API}/index/"):
+            payload = self.indexes.get(url[len(f"{API}/index/"):])
+            if isinstance(payload, _Resp):
+                return payload
+            return _Resp(200, payload) if payload is not None else _Resp(404)
         if url.startswith(f"{API}/name/"):
             payload = self.names.get(url[len(f"{API}/name/"):])
             return _Resp(200, payload) if payload is not None else _Resp(404)
@@ -366,6 +373,92 @@ class TestAnalyzeLeaf:
 
     def test_initial_ref_falls_back_to_the_title(self):
         assert self.analyze(FakeSession(), {"title": "Ghost"})["initial_ref"] == "Ghost"
+
+
+# A complex schema the way Sefaria's /api/index/<title> returns it: the
+# work's own root node, then sections of sections.
+SIDDUR_INDEX = {
+    "title": "Siddur Sefard",
+    "schema": {
+        "titles": [{"lang": "en", "text": "Siddur Sefard", "primary": True}],
+        "key": "Siddur Sefard",
+        "nodes": [
+            {"titles": [{"lang": "en", "text": "Upon Arising", "primary": True}], "key": "Upon Arising",
+             "nodes": [
+                 {"titles": [{"lang": "en", "text": "Modeh Ani", "primary": True}], "key": "Modeh Ani"},
+                 {"titles": [{"lang": "en", "text": "Tallit", "primary": True}], "key": "Tallit"},
+             ]},
+        ],
+    },
+}
+
+
+class TestSchemaPhase:
+    """The April 2026 report removed 441 complex-schema works (every siddur,
+    machzor and haggadah) because it only probed their bare titles and
+    "Title 1"-shaped guesses, all 400s for a "Title, Section, Subsection"
+    work. The schema phase probes the ref the library actually opens."""
+
+    def analyze(self, session, leaf):
+        return cl.analyze_leaf(session, leaf, 5, {}, {})
+
+    def test_a_complex_work_is_fixed_to_its_first_schema_leaf(self):
+        session = FakeSession(indexes={"Siddur_Sefard": SIDDUR_INDEX},
+                              texts={"Siddur_Sefard,_Upon_Arising,_Modeh_Ani": TEXT})
+        result = self.analyze(session, {"title": "Siddur Sefard", "categories": ["Liturgy", "Siddur"]})
+
+        assert result["action"] == "fix"
+        assert result["suggested_ref"] == "Siddur Sefard, Upon Arising, Modeh Ani"
+        assert result["resolution_phase"] == "schema"
+        assert [a["phase"] for a in result["attempts"]] == ["primary", "schema"]
+
+    def test_the_index_first_section_ref_is_tried_before_the_walk(self):
+        index = dict(SIDDUR_INDEX, firstSectionRef="Siddur Sefard, Upon Arising, Tallit")
+        session = FakeSession(indexes={"Siddur_Sefard": index},
+                              texts={"Siddur_Sefard,_Upon_Arising,_Tallit": TEXT})
+        result = self.analyze(session, {"title": "Siddur Sefard"})
+
+        assert result["suggested_ref"] == "Siddur Sefard, Upon Arising, Tallit"
+        assert [a["ref"] for a in result["attempts"] if a["phase"] == "schema"] == [
+            "Siddur Sefard, Upon Arising, Tallit"]
+
+    def test_a_complex_work_whose_opening_ref_fails_is_still_removed_with_that_evidence(self):
+        session = FakeSession(indexes={"Siddur_Sefard": SIDDUR_INDEX})
+        result = self.analyze(session, {"title": "Siddur Sefard"})
+
+        assert result["action"] == "remove"
+        schema_attempts = [a for a in result["attempts"] if a["phase"] == "schema"]
+        assert schema_attempts == [{"phase": "schema", "ref": "Siddur Sefard, Upon Arising, Modeh Ani",
+                                    "ok": False, "reason": "status_404"}]
+        assert result["attempts"][-1]["phase"] == "heuristic"
+
+    @pytest.mark.parametrize("index", [
+        {"title": "Foo", "schema": {"key": "Foo", "depth": 2}},   # simple schema: bare title is the right probe
+        {"error": "Index not found"},
+        {"title": "Foo", "schema": "not a dict"},
+        _Resp(500),
+        _Resp(200, bad_json=True),
+        None,                                                     # 404
+    ])
+    def test_no_schema_phase_without_a_complex_schema(self, index):
+        session = FakeSession(indexes={"Foo": index} if index is not None else {}, texts={"Foo_1": TEXT})
+        result = self.analyze(session, {"title": "Foo"})
+
+        assert "schema" not in [a["phase"] for a in result["attempts"]]
+        assert result["resolution_phase"] == "heuristic"
+
+    def test_an_unreachable_index_skips_the_schema_phase(self):
+        session = FakeSession(errors={"/index/Foo"}, texts={"Foo_1": TEXT})
+        assert self.analyze(session, {"title": "Foo"})["resolution_phase"] == "heuristic"
+
+    def test_a_schema_ref_already_probed_is_not_probed_twice(self):
+        leaf = {"title": "Siddur Sefard", "first_section_ref": "Siddur Sefard, Upon Arising, Modeh Ani"}
+        session = FakeSession(indexes={"Siddur_Sefard": SIDDUR_INDEX})
+        result = self.analyze(session, leaf)
+
+        refs = [a["ref"] for a in result["attempts"]]
+        assert refs.count("Siddur Sefard, Upon Arising, Modeh Ani") == 1
+        assert "schema" not in [a["phase"] for a in result["attempts"]]
 
 
 class TestFetchIndexPayload:

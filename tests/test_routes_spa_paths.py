@@ -229,17 +229,30 @@ class TestPageMeta:
         ("/prayer/Upon_Arising", "/prayer/Upon_Arising", "Upon Arising"),
         ("/prayer/birkat+hamazon", "/prayer/birkat_hamazon", "birkat hamazon"),
         ("/calendar/2026-09-25", "/calendar/2026-09-25", "Jewish calendar 2026-09-25"),
-        ("/?text=Genesis.1", "/text/Genesis.1", "Genesis 1"),
-        ("/?prayer=Upon_Arising", "/prayer/Upon_Arising", "Upon Arising"),
         ("/community/Ashkenaz", "/community/Ashkenaz", "Ashkenaz Community Customs"),
         ("/community/Spanish%20and%20Portuguese", "/community/Spanish_and_Portuguese", "Spanish and Portuguese Community Customs"),
-        ("/?community=Sefardic", "/community/Sefardic", "Sefardic Community Customs"),
     ])
     def test_library_urls_declare_themselves(self, test_client, path, canonical, title):
         head = _head_values(test_client.get(path).get_data(as_text=True))
         assert head["canonicals"] == [SITE + canonical]
         assert head["og_url"] == SITE + canonical
         assert head["title"] == head["og_title"] == f"{title} · Sh&#39;elah"
+
+    @pytest.mark.parametrize("path, location, title", [
+        ("/?text=Genesis.1", "/text/Genesis.1", "Genesis 1"),
+        ("/?prayer=Upon_Arising", "/prayer/Upon_Arising", "Upon Arising"),
+        ("/?community=Sefardic", "/community/Sefardic", "Sefardic Community Customs"),
+    ])
+    def test_legacy_query_links_redirect_to_the_page_that_declares_itself(
+        self, test_client, path, location, title,
+    ):
+        response = test_client.get(path)
+        assert response.status_code == 308
+        assert response.headers["Location"] == location
+        head = _head_values(test_client.get(location).get_data(as_text=True))
+        assert head["canonicals"] == [SITE + location]
+        assert head["og_url"] == SITE + location
+        assert head["title"] == f"{title} · Sh&#39;elah"
 
     @pytest.mark.parametrize("path", ["/", "/settings", "/profile", "/?lang=he", "/calendar/not-a-date", "/text/_", "/prayer/_", "/community/_"])
     def test_home_keeps_the_site_title_and_root_canonical(self, test_client, path):
@@ -314,3 +327,114 @@ def test_vercel_json_has_no_catch_all_rewrite():
     config = json.loads((REPO_ROOT / "vercel.json").read_text(encoding="utf-8"))
     assert "rewrites" not in config
     assert "routes" not in config
+
+
+class TestLegacyQueryRedirect:
+    """``/?text=`` / ``?prayer=`` / ``?community=`` 308 to their path form, with
+    the same precedence page_meta uses for the canonical tag."""
+
+    @pytest.mark.parametrize("path, location", [
+        ("/?prayer=Upon_Arising&text=Genesis.1", "/text/Genesis.1"),
+        ("/?community=Sefardic&prayer=Upon_Arising", "/prayer/Upon_Arising"),
+        ("/?prayer=birkat%20hamazon", "/prayer/birkat_hamazon"),
+        ("/?text=Shulchan+Arukh,+Orach+Chayim+345:1", "/text/Shulchan_Arukh,_Orach_Chayim.345.1"),
+        ("/?text=Genesis.1&lang=he&layout=parallel", "/text/Genesis.1?lang=he&layout=parallel"),
+    ])
+    def test_precedence_normalisation_and_other_params_are_kept(self, test_client, path, location):
+        response = test_client.get(path)
+        assert response.status_code == 308
+        assert response.headers["Location"] == location
+
+    @pytest.mark.parametrize("path", ["/?text=Genesis.1&chat=x", "/?text=", "/?lang=he", "/"])
+    def test_private_empty_or_unrelated_queries_stay_on_the_shell(self, test_client, path):
+        assert test_client.get(path).status_code == 200
+
+    def test_head_redirects_and_post_is_left_alone(self, test_client):
+        assert test_client.head("/?text=Genesis.1").status_code == 308
+        assert test_client.post("/?text=Genesis.1").status_code != 308
+
+    def test_only_the_root_path_is_redirected(self, test_client):
+        assert test_client.get("/about?text=Genesis.1").status_code != 308
+
+    @pytest.mark.parametrize("path, canonical", [
+        ("/settings?text=Genesis.1", "/text/Genesis.1"),
+        ("/profile?prayer=Havdalah", "/prayer/Havdalah"),
+        ("/settings?community=Ashkenaz", "/community/Ashkenaz"),
+    ])
+    def test_the_other_shell_routes_keep_the_query_canonical(self, test_client, path, canonical):
+        """/settings and /profile serve the same shell as / but aren't
+        redirected, so page_meta.query_meta still names the canonical --
+        the same path the redirect on / would have gone to."""
+        response = test_client.get(path)
+        assert response.status_code == 200
+        html = response.get_data(as_text=True)
+        assert f'<link rel="canonical" href="https://shelah-app.vercel.app{canonical}">' in html
+
+
+class TestReaderKindBadge:
+    """The reader's "Sh'elah Synthesis" badge ships hidden: text, prayer and
+    siddur pages are Sefaria's own text, and a page still loading (or that
+    failed to) is nothing yet. setCurrentView shows it for a community page."""
+
+    @pytest.mark.parametrize("path", ["/", "/siddur/edot-hamizrach/mincha", "/text/Genesis.1", "/prayer/Havdalah"])
+    def test_the_shell_never_claims_synthesis_up_front(self, test_client, path):
+        import re
+
+        html = test_client.get(path).get_data(as_text=True)
+        tag = re.search(r'<nav id="readerKindBadge"[^>]*>', html).group(0)
+        assert re.search(r'class="hidden\b', tag), tag
+
+
+class TestSiddurPaths:
+    """/siddur/<rite>[/<service>[/<section>]] (backend/routes_spa_paths.py
+    siddur_page): every page is known in advance, so a missing one is a real
+    404; each gets its own title and canonical (page_meta.siddur_meta)."""
+
+    @pytest.mark.parametrize("path, title, canonical", [
+        ("/siddur/edot-hamizrach", "Siddur · Sephardi (Edot HaMizrach)", "/siddur/edot-hamizrach"),
+        ("/siddur/edot-hamizrach/shacharit", "Shacharit", "/siddur/edot-hamizrach/shacharit"),
+        ("/siddur/edot-hamizrach/shacharit/amida", "Amida · Shacharit", "/siddur/edot-hamizrach/shacharit/amida"),
+        ("/siddur/edot-hamizrach/birkat-hamazon", "Birkat Hamazon", "/siddur/edot-hamizrach/birkat-hamazon"),
+        # An overlay after the page: the page is still the page.
+        ("/siddur/edot-hamizrach/mincha/chat/new", "Mincha", "/siddur/edot-hamizrach/mincha"),
+        ("/siddur/edot-hamizrach/arbit/calendar/2026-09-27", "Arbit", "/siddur/edot-hamizrach/arbit"),
+    ])
+    def test_pages_declare_themselves(self, test_client, path, title, canonical):
+        response = test_client.get(path)
+        assert response.status_code == 200
+        head = _head_values(response.get_data(as_text=True))
+        assert head["canonicals"] == [SITE + canonical]
+        assert head["title"] == f"{title} · Sh&#39;elah"
+
+    def test_bare_siddur_redirects_to_the_default_rite_keeping_the_query(self, test_client):
+        response = test_client.get("/siddur?lang=he")
+        assert response.status_code == 308
+        assert response.headers["Location"] == "/siddur/edot-hamizrach?lang=he"
+        assert test_client.get("/siddur").headers["Location"] == "/siddur/edot-hamizrach"
+
+    def test_a_trailing_slash_redirects(self, test_client):
+        response = test_client.get("/siddur/edot-hamizrach/shacharit/")
+        assert response.status_code == 308
+        assert response.headers["Location"] == "/siddur/edot-hamizrach/shacharit"
+
+    @pytest.mark.parametrize("path", [
+        "/siddur/ashkenaz",
+        "/siddur/edot-hamizrach/no-such-service",
+        "/siddur/edot-hamizrach/shacharit/no-such-section",
+        "/siddur/edot-hamizrach/shacharit/amida/extra",
+        # A one-section service has no separate section page.
+        "/siddur/edot-hamizrach/birkat-hamazon/birkat-hamazon",
+        "/siddur/edot-hamizrach/mincha/sefardic",  # a community with no conversation
+    ])
+    def test_pages_the_siddur_lacks_are_404(self, test_client, path):
+        assert test_client.get(path).status_code == 404
+
+    def test_the_sitemap_lists_every_siddur_page(self, test_client):
+        from backend import siddur_data
+
+        body = test_client.get("/sitemap.xml").get_data(as_text=True)
+        services = list(siddur_data.iter_services())
+        sections = sum(len(s["sections"]) for _, s in services if len(s["sections"]) > 1)
+        assert body.count(f"<loc>{SITE}/siddur/") == 1 + len(services) + sections
+        assert f"<loc>{SITE}/siddur/edot-hamizrach/shacharit/amida</loc>" in body
+        assert f"<loc>{SITE}/siddur/edot-hamizrach/birkat-hamazon/birkat-hamazon</loc>" not in body

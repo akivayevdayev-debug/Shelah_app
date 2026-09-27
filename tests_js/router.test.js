@@ -164,7 +164,7 @@ test('installRouter: popstate trusts its own state object, falls back to the URL
 test('ShelahRouter is exposed on window with the same API', async () => {
     const { router, window } = await loadRouter('');
     assert.equal(window.ShelahRouter.readRoute, router.readRoute);
-    assert.deepEqual([...window.ShelahRouter.VIEW_KEYS], ['text', 'prayer', 'community', 'chat', 'a', 'history']);
+    assert.deepEqual([...window.ShelahRouter.VIEW_KEYS], ['text', 'prayer', 'community', 'siddur', 'chat', 'a', 'history']);
     assert.deepEqual([...window.ShelahRouter.CONVERSATION_SIZES], ['mini', 'overlay', 'full']);
 });
 
@@ -876,4 +876,82 @@ test('a conversation over a view keeps that view as the canonical page', async (
     assert.equal(head.canonical(), 'https://shelah-app.vercel.app/text/Genesis.1');
     router.pushRoute({ text: null });
     assert.equal(head.canonical(), null, 'the conversation alone over home is private');
+});
+
+// ── the siddur (/siddur/<rite>[/<service>[/<section>]]) ─────────────────────
+
+test('siddur paths parse to one slash-joined value, up to three slugs', async () => {
+    const { router } = await loadRouter('', '/');
+    assert.deepEqual(router.parsePath('/siddur/edot-hamizrach'), { siddur: 'edot-hamizrach' });
+    assert.deepEqual(router.parsePath('/siddur/edot-hamizrach/shacharit'), { siddur: 'edot-hamizrach/shacharit' });
+    assert.deepEqual(router.parsePath('/siddur/edot-hamizrach/shacharit/amida/'), { siddur: 'edot-hamizrach/shacharit/amida' });
+    // `/siddur` alone is the default rite's contents.
+    assert.deepEqual(router.parsePath('/siddur'), { siddur: 'edot-hamizrach' });
+});
+
+test('a siddur path takes the usual overlay tail after its slugs', async () => {
+    const { router } = await loadRouter('', '/');
+    assert.deepEqual(router.parsePath('/siddur/edot-hamizrach/shacharit/chat/new'), {
+        siddur: 'edot-hamizrach/shacharit', conversation: 'new',
+    });
+    assert.deepEqual(router.parsePath('/siddur/edot-hamizrach/mincha/amida/calendar/2026-09-27'), {
+        siddur: 'edot-hamizrach/mincha/amida', date: '2026-09-27',
+    });
+    assert.deepEqual(router.parsePath('/siddur/edot-hamizrach/signin'), { siddur: 'edot-hamizrach', auth: 'signin' });
+});
+
+test('a fourth slug or a malformed one makes the path not ours', async () => {
+    const { router } = await loadRouter('', '/');
+    assert.deepEqual(router.parsePath('/siddur/edot-hamizrach/shacharit/amida/extra'), {});
+    assert.deepEqual(router.parsePath('/siddur/edot-hamizrach/shacharit/amida/sefardic'), {});
+    // A capitalised or underscored word isn't a slug, so it falls to the tail and fits nowhere.
+    assert.deepEqual(router.parsePath('/siddur/Edot_HaMizrach'), {});
+});
+
+test('siddur routes write their path and keep display keys in the query', async () => {
+    const { router } = await loadRouter('', '/');
+    assert.equal(router.routeUrl({ siddur: 'edot-hamizrach/mincha/amida', lang: 'he' }), '/siddur/edot-hamizrach/mincha/amida?lang=he');
+    assert.equal(router.routeUrl({ siddur: 'edot-hamizrach', conversation: 'new' }), '/siddur/edot-hamizrach/chat/new');
+    // A value that isn't slugs is dropped rather than written.
+    assert.equal(router.routeUrl({ siddur: '../etc', text: 'Genesis 1' }), '/text/Genesis.1');
+});
+
+test('the old ?siddur= query and a bare /siddur canonicalize once, in place', async () => {
+    const { router, window } = await loadRouter('?siddur=edot-hamizrach/arbit', '/');
+    router.installRouter(() => {});
+    assert.equal(urlOf(window), '/siddur/edot-hamizrach/arbit');
+    assert.equal(window.history.calls.filter(([kind]) => kind === 'push').length, 0);
+
+    const bare = await loadRouter('', '/siddur');
+    bare.router.installRouter(() => {});
+    assert.equal(urlOf(bare.window), '/siddur/edot-hamizrach');
+});
+
+test('moving between sections replaces the entry; opening the siddur from a text pushes', async () => {
+    const { router, window } = await loadRouter('', '/text/Genesis.1');
+    router.pushRoute({ siddur: 'edot-hamizrach/shacharit' }, { exclusive: true });
+    assert.deepEqual(window.history.calls.at(-1), ['push', { shelahRoute: { siddur: 'edot-hamizrach/shacharit' } }, '/siddur/edot-hamizrach/shacharit']);
+    router.pushRoute({ siddur: 'edot-hamizrach/shacharit/amida' }, { replace: true });
+    assert.deepEqual(window.history.calls.at(-1)[0], 'replace');
+    assert.equal(urlOf(window), '/siddur/edot-hamizrach/shacharit/amida');
+});
+
+test('a siddur page keeps its own canonical', async () => {
+    const head = [];
+    const document = {
+        head: { appendChild(el) { head.push(el); } },
+        querySelector(selector) {
+            if (selector === 'link[rel="canonical"]') return head.find((el) => el.rel === 'canonical') || null;
+            return null;
+        },
+        createElement() {
+            return { attrs: {}, setAttribute(k, v) { this.attrs[k] = v; if (k === 'rel') this.rel = v; }, getAttribute(k) { return this.attrs[k]; }, remove() {} };
+        },
+    };
+    const window = makeWindow('', '/');
+    window.document = document;
+    window.location.origin = 'https://shelah-app.vercel.app';
+    const router = (await loadEsmModule('static/js/router.js', { window })).namespace;
+    router.pushRoute({ siddur: 'edot-hamizrach/shacharit/amida' }, { exclusive: true });
+    assert.equal(head[0].getAttribute('href'), 'https://shelah-app.vercel.app/siddur/edot-hamizrach/shacharit/amida');
 });

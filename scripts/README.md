@@ -22,15 +22,28 @@ does; this file just classifies how often you'd run them.
   (`reports/library_leaf_remove_fix_report.full.json`, read at runtime by
   `backend/sefaria_library.py`) needs refreshing — it's slow (probes every
   leaf) and the output is committed, so this isn't part of any normal workflow.
+  It needs www.sefaria.org. A complex-schema work (siddur, machzor, haggadah)
+  is probed at the first leaf of its schema, the ref the library opens it at;
+  the April 2026 report predates that and removed 441 such works on bare-title
+  400s.
+- **`verify_library_removals.py`** — re-checks that report's removals against
+  the public Sefaria-Export bucket (no sefaria.org access needed) and writes
+  `reports/library_leaf_reinstated.json`: the removed works that have a
+  complex schema and real text there. The backend takes those back out of the
+  removals for that report run only, so re-running the crawler supersedes it.
+  Re-run after regenerating the report only if the new crawl can't reach
+  sefaria.org's per-title index.
 
 ## One-time (setup / migration)
 
 - **`migrate_customs_to_supabase.py`** — seeds `community_knowledge` from the
   `customs/*.json` files. Supports `--dry-run` and `--community <name>`. Run
   once per environment, or after a customs-data change you want pushed.
-- **`fetch_sefardic_siddur.py`** — pulled Siddur content from Sefaria to build
-  the `PRAYERS_DATA` literal that was pasted into `app.py`. Historical/
-  reference only — there's no live wiring that re-runs this automatically.
+- **`build_siddur.py`** — rebuilds the checked-in siddur
+  (`data/siddur/edot-hamizrach/`) from the public Sefaria-Export bucket:
+  curated table of contents plus typed lines per service. Refuses any text
+  version not licensed CC0 or Public Domain. Re-run when Sefaria's export or
+  the curation in the script changes, and commit the output.
 - **`migrate_ask_history.sql`** — run once in the Supabase SQL editor to create
   the `ask_history` table + RLS policy.
 - **`sql/SUPABASE_RLS_POLICIES.sql`**, **`sql/bookmarks_and_preferences_setup.sql`**,

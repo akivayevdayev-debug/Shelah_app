@@ -84,7 +84,9 @@ A related but separate tool, `scripts/crawl_library_leaves.py`, crawls
 the Sefaria API's library index (not the customs corpus) and probes each
 leaf title to confirm its ref is actually loadable, producing a
 machine-generated JSON report of suggested "fix" refs or "remove"
-recommendations for broken/renamed Sefaria references. This validates
+recommendations for broken/renamed Sefaria references
+(`scripts/verify_library_removals.py` re-checks those removals against
+Sefaria's bulk export; see `scripts/README.md`). This validates
 that the *links into* Sefaria's library resolve — it says nothing about
 whether Sefaria's own text or Sh'elah's synthesis of it is halakhically
 accurate.
