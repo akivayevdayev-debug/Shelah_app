@@ -28,9 +28,11 @@ does; this file just classifies how often you'd run them.
 - **`migrate_customs_to_supabase.py`** — seeds `community_knowledge` from the
   `customs/*.json` files. Supports `--dry-run` and `--community <name>`. Run
   once per environment, or after a customs-data change you want pushed.
-- **`fetch_sefardic_siddur.py`** — pulled Siddur content from Sefaria to build
-  the `PRAYERS_DATA` literal that was pasted into `app.py`. Historical/
-  reference only — there's no live wiring that re-runs this automatically.
+- **`build_siddur.py`** — rebuilds the checked-in siddur
+  (`data/siddur/edot-hamizrach/`) from the public Sefaria-Export bucket:
+  curated table of contents plus typed lines per service. Refuses any text
+  version not licensed CC0 or Public Domain. Re-run when Sefaria's export or
+  the curation in the script changes, and commit the output.
 - **`migrate_ask_history.sql`** — run once in the Supabase SQL editor to create
   the `ask_history` table + RLS policy.
 - **`sql/SUPABASE_RLS_POLICIES.sql`**, **`sql/bookmarks_and_preferences_setup.sql`**,
