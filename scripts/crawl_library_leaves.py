@@ -5,7 +5,12 @@ Crawl Sefaria library leaf titles and produce a machine-generated remove/fix rep
 What this script does:
 1) Downloads the full Sefaria index tree.
 2) Collects every leaf node that has a title.
-3) Probes each leaf for loadability using direct refs + conservative fallback candidates.
+3) Probes each leaf for loadability: its direct refs, then -- for a
+   complex-schema work (a siddur, machzor or haggadah is "Title, Section,
+   Subsection", so its bare title is a 400) -- the first leaf ref of its
+   schema, the very ref the library opens it at
+   (backend.sefaria_library.leaf_refs_from_schema), then conservative
+   numeric fallbacks.
 4) Writes a JSON report with suggested "fix" refs or "remove" recommendations.
 
 Example usage:
@@ -24,6 +29,7 @@ from __future__ import annotations
 import argparse
 import json
 import re
+import sys
 import time
 import unicodedata
 from datetime import datetime, timezone
@@ -32,6 +38,12 @@ from typing import Any, Dict, List, Sequence, Tuple
 from urllib.parse import quote
 
 import requests
+
+REPO_ROOT = Path(__file__).resolve().parent.parent
+if str(REPO_ROOT) not in sys.path:
+    sys.path.insert(0, str(REPO_ROOT))
+
+from backend.sefaria_library import leaf_refs_from_schema  # noqa: E402
 
 SEFARIA_API = "https://www.sefaria.org/api"
 
@@ -244,6 +256,35 @@ def probe_ref(
     return result
 
 
+def fetch_index_entry(session: requests.Session, title: str, timeout_seconds: float) -> Dict[str, Any]:
+    """The work's own index record (/api/index/<title>), or {} on any failure."""
+    try:
+        resp = session.get(f"{SEFARIA_API}/index/{encode_name_path(title)}", timeout=timeout_seconds)
+    except requests.RequestException:
+        return {}
+    if resp.status_code != 200:
+        return {}
+    try:
+        payload = resp.json()
+    except ValueError:
+        return {}
+    return payload if isinstance(payload, dict) and not payload.get("error") else {}
+
+
+def build_schema_candidates(entry: Dict[str, Any], title: str, existing: Sequence[str]) -> List[str]:
+    """For a complex-schema work, the refs the library opens it at: the
+    index's own firstSectionRef, else the first leaf of its schema. Empty for
+    a simple (one-node) schema, whose bare title the primary phase covers."""
+    schema = entry.get("schema")
+    if not isinstance(schema, dict) or not schema.get("nodes"):
+        return []
+    candidates: List[str] = []
+    add_candidate(candidates, entry.get("firstSectionRef") or "")
+    add_candidate(candidates, leaf_refs_from_schema(schema, str(entry.get("title") or title), 1)[0])
+    existing_set = {str(item).strip() for item in existing}
+    return [candidate for candidate in candidates if candidate not in existing_set]
+
+
 def add_candidate(candidates: List[str], value: str) -> None:
     clean = str(value or "").strip()
     if clean and clean not in candidates:
@@ -332,9 +373,17 @@ def analyze_leaf(
         session, primary_candidates, "primary", timeout_seconds, probe_cache, attempts)
     success_phase = "primary" if success_ref else ""
 
+    tried = list(primary_candidates)
     if not success_ref:
-        heuristic_candidates = build_heuristic_candidates(
-            leaf, primary_candidates)
+        schema_candidates = build_schema_candidates(
+            fetch_index_entry(session, title, timeout_seconds), title, tried)
+        tried += schema_candidates
+        success_ref = _probe_candidates(
+            session, schema_candidates, "schema", timeout_seconds, probe_cache, attempts)
+        success_phase = "schema" if success_ref else ""
+
+    if not success_ref:
+        heuristic_candidates = build_heuristic_candidates(leaf, tried)
         success_ref = _probe_candidates(
             session, heuristic_candidates, "heuristic", timeout_seconds, probe_cache, attempts)
         success_phase = "heuristic" if success_ref else ""

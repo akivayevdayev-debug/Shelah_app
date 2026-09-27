@@ -12,7 +12,7 @@ from concurrent.futures import ThreadPoolExecutor
 from html import escape as _escape_html
 from urllib.parse import unquote
 
-from flask import Blueprint, jsonify, request
+from flask import Blueprint, jsonify
 
 from app import SIDDUR_SECTION_MAP, _get_prayer_refs
 from backend.logging_setup import submit_with_context
@@ -29,11 +29,17 @@ _SIDDUR_TEXT_FETCH_WORKERS = 6
 
 @routes_prayers.route("/api/prayers/list")
 def get_prayers_list():
-    """Returns all prayer books from Sefaria Liturgy plus legacy quick services."""
+    """Returns all prayer books from Sefaria Liturgy plus legacy quick services.
+
+    The Sefaria index the checked-in siddur is built from is left out: the
+    /siddur reader already serves it, typed and sectioned, so listing the
+    raw book too would put the same siddur in the menu twice."""
+    from backend import siddur_data
     from backend.sefaria_library import get_liturgy_books
 
     items = []
-    seen = set()
+    toc = siddur_data.get_toc(siddur_data.DEFAULT_RITE) or {}
+    seen = {toc["source"]["index"]} if toc.get("source") else set()
 
     for name in SIDDUR_SECTION_MAP.keys():
         items.append({"name": name, "title": name, "source": "legacy-service"})

@@ -38,10 +38,12 @@ class _FakeReportPath:
 
 
 @pytest.fixture(autouse=True)
-def _fresh_adjustments_cache(monkeypatch):
+def _fresh_adjustments_cache(monkeypatch, tmp_path):
     monkeypatch.setattr(sl, "_library_index_adjustments_cache", {
         "loaded": False, "mtime": 0.0, "remove_keys": set(), "fix_map": {},
     })
+    # The checked-in reinstatement file stays out of these fake-report runs.
+    monkeypatch.setattr(sl, "_LIBRARY_REINSTATED_PATH", tmp_path / "reinstated.json")
 
 
 def _install(monkeypatch, fake):
@@ -92,3 +94,80 @@ def test_report_deleted_after_stat_failure_does_not_serve_stale_keys(monkeypatch
 
     assert after_delete["remove_keys"] == set()
     assert after_delete["fix_map"] == {}
+
+
+class TestReinstatedRemovals:
+    """reports/library_leaf_reinstated.json (scripts/verify_library_removals.py)
+    takes removals the crawl got wrong back out -- for the report run it
+    names, and no other."""
+
+    RUN = "2026-04-21T01:44:51+00:00"
+    REPORT = {
+        "generated_at_utc": RUN,
+        "removals": [
+            {"title": "Siddur Sefard", "name_ref": "Siddur Sefard", "initial_ref": "Siddur Sefard"},
+            {"title": "Jastrow", "initial_ref": "Jastrow"},
+        ],
+        "fixes": [],
+    }
+
+    def _load(self, monkeypatch, tmp_path, reinstated):
+        _install(monkeypatch, _FakeReportPath(self.REPORT))
+        path = tmp_path / "reinstated.json"
+        if reinstated is not None:
+            path.write_text(reinstated if isinstance(reinstated, str) else json.dumps(reinstated), encoding="utf-8")
+        return sl._load_library_index_adjustments()
+
+    def test_a_reinstated_work_is_no_longer_removed(self, monkeypatch, tmp_path):
+        state = self._load(monkeypatch, tmp_path, {
+            "report_generated_at_utc": self.RUN,
+            "reinstated": [{"title": "Siddur Sefard", "opening_ref": "Siddur Sefard, Upon Arising, Modeh Ani"}],
+        })
+        assert state["remove_keys"] == {"jastrow"}
+
+    @pytest.mark.parametrize("reinstated", [
+        None,                                                   # no file
+        "{not json",                                            # unreadable
+        ["Siddur Sefard"],                                      # wrong shape
+        {"report_generated_at_utc": "2026-10-01T00:00:00+00:00",  # another crawl's
+         "reinstated": [{"title": "Siddur Sefard"}]},
+    ])
+    def test_otherwise_the_report_stands(self, monkeypatch, tmp_path, reinstated):
+        state = self._load(monkeypatch, tmp_path, reinstated)
+        assert state["remove_keys"] == {"siddursefard", "jastrow"}
+
+    def test_a_report_without_a_run_stamp_takes_no_reinstatements(self, monkeypatch, tmp_path):
+        _install(monkeypatch, _FakeReportPath({"removals": [{"title": "Siddur Sefard"}]}))
+        (tmp_path / "reinstated.json").write_text(json.dumps(
+            {"report_generated_at_utc": None, "reinstated": [{"title": "Siddur Sefard"}]}), encoding="utf-8")
+        assert sl._load_library_index_adjustments()["remove_keys"] == {"siddursefard"}
+
+    def test_a_newer_reinstatement_file_refreshes_the_cached_keys(self, monkeypatch, tmp_path):
+        before = self._load(monkeypatch, tmp_path, None)
+        assert "siddursefard" in before["remove_keys"]
+
+        path = tmp_path / "reinstated.json"
+        path.write_text(json.dumps({"report_generated_at_utc": self.RUN,
+                                    "reinstated": [{"title": "Siddur Sefard"}]}), encoding="utf-8")
+        after = sl._load_library_index_adjustments()
+
+        assert after is not before
+        assert after["remove_keys"] == {"jastrow"}
+
+
+def test_the_checked_in_reinstatements_apply_to_the_checked_in_report():
+    """The shipped pair must line up, or every siddur, machzor and haggadah
+    the April crawl mis-probed silently disappears from the library again."""
+    root = sl._PROJECT_ROOT / "reports"
+    report = json.loads((root / "library_leaf_remove_fix_report.full.json").read_text(encoding="utf-8"))
+    reinstated = json.loads((root / "library_leaf_reinstated.json").read_text(encoding="utf-8"))
+    assert reinstated["report_generated_at_utc"] == report["generated_at_utc"]
+
+    removed = {sl._normalize_title_key(row["title"]) for row in report["removals"]}
+    back = {sl._normalize_title_key(row["title"]) for row in reinstated["reinstated"]}
+    assert back <= removed
+    for title in ("Siddur Edot HaMizrach", "Siddur Sefard", "Siddur Ashkenaz", "Pesach Haggadah",
+                  "Birkat Hamazon", "Machzor Yom Kippur Sefard"):
+        assert sl._normalize_title_key(title) in back, title
+    # A removal the export has no text for (Jastrow, a lexicon) stays out.
+    assert sl._normalize_title_key("Jastrow") not in back

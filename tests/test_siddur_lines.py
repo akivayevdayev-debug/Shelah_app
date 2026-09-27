@@ -136,3 +136,10 @@ class TestBuildLines:
     ])
     def test_english_alignment(self, he, en, aligned):
         assert sl.english_is_aligned(he, en) is aligned
+
+
+def test_self_closing_tags_are_read_like_their_open_form():
+    """Sefaria text mixes <br> and <br/>; an unknown void tag (<img/>)
+    is dropped like any tag outside the allowed set."""
+    lines = sl.build_lines(["א<br/>ב", "<img src=x/>ג"], ["a<br />b", "c"])
+    assert [(line["he"], line["en"]) for line in lines] == [("א<br>ב", "a<br>b"), ("ג", "c")]
