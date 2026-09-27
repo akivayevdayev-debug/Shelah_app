@@ -185,23 +185,30 @@ function createDocument() {
 }
 
 // ── Harness ─────────────────────────────────────────────────────────────────
+//
+// ONE module instance for the whole file, as on the page. Beyond realism this keeps
+// coverage honest: Node numbers branch blocks per loaded copy, so every extra copy
+// would add its own set of mostly-zero branch entries that scripts/merge_lcov.py
+// cannot line up with the others. Each test re-configures the fakes via reset().
 
 const tick = (ms = 0) => new Promise((resolve) => setTimeout(resolve, ms));
 
-async function loadCard({ sheet = false, fetchImpl = null, hebrewRef = null } = {}) {
+const config = { sheet: false, fetchImpl: null, hebrewRef: null };
+const fetchCalls = [];
+
+const shared = (async () => {
     const document = createDocument();
-    const fetchCalls = [];
     const window = {
         innerWidth: 1280,
         innerHeight: 800,
         addEventListener() {},
-        matchMedia: (query) => ({ matches: query === SHEET_QUERY ? sheet : false, addEventListener() {} }),
-        ShelahHebrewRef: hebrewRef,
+        matchMedia: (query) => ({ matches: query === SHEET_QUERY ? config.sheet : false, addEventListener() {} }),
+        get ShelahHebrewRef() { return config.hebrewRef; },
     };
     const fetch = async (url) => {
         fetchCalls.push(url);
-        if (!fetchImpl) throw new Error('no network in this test');
-        return fetchImpl(url);
+        if (!config.fetchImpl) throw new Error('no network in this test');
+        return config.fetchImpl(url);
     };
     await loadEsmModule(MODULE_PATH, {
         window,
@@ -210,9 +217,18 @@ async function loadCard({ sheet = false, fetchImpl = null, hebrewRef = null } = 
         requestAnimationFrame: () => 1,
         cancelAnimationFrame() {},
     });
+    return { api: window.ShelahCalendarDetail, document };
+})();
+
+async function loadCard({ sheet = false, fetchImpl = null, hebrewRef = null } = {}) {
+    const { api, document } = await shared;
+    await api.close({ immediate: true });
+    Object.assign(config, { sheet, fetchImpl, hebrewRef });
+    fetchCalls.length = 0;
+    document.activeElement = null;
     const scroll = document.body.querySelector('.cal-detail__scroll');
     const rowText = (slot) => scroll.querySelector(`[data-slot="${slot}"]`)?.textContent ?? null;
-    return { api: window.ShelahCalendarDetail, document, scroll, fetchCalls, rowText };
+    return { api, document, scroll, fetchCalls, rowText };
 }
 
 const LINK = 'https://www.hebcal.com/holidays/rosh-hashana-2026';
@@ -353,7 +369,7 @@ test('with a location, the words are swapped for clock times at that place', asy
 
 test('when the times request fails the card keeps its words', async () => {
     const { api, rowText, fetchCalls } = await loadCard(); // fetch rejects
-    openRoshHashana(api, { location: { lat: 40.7, lon: -74 } });
+    openRoshHashana(api, { location: { lat: 41.9, lon: -87.6 } }); // not cached by the test above
     await tick(5);
 
     assert.equal(fetchCalls.length, 1);
