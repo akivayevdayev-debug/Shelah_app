@@ -607,3 +607,27 @@ test('after the timed retries run out, zmanim re-fetch once the network is back'
     assert.equal(listeners.has('online'), false, 'the listeners are one-shot');
     assert.equal(listeners.has('visibilitychange'), false);
 });
+
+// getZmanimLocation(): what the calendar's holiday card uses for clock times.
+// Before the panel's first fetch it falls back to the saved city search.
+test('getZmanimLocation falls back to the saved city search before the first fetch', async () => {
+    const localStorage = createFakeLocalStorage();
+    localStorage.setItem("Sh'elahLastLocation", JSON.stringify({ lat: 31.78, lon: 35.22 }));
+    const { mod } = await loadZmanim({ localStorage });
+
+    assert.deepEqual(mod.namespace.getZmanimLocation(), { lat: 31.78, lon: 35.22, label: '', timezone: '' });
+});
+
+test('getZmanimLocation treats a corrupt saved location as no location', async () => {
+    const localStorage = createFakeLocalStorage();
+    localStorage.setItem("Sh'elahLastLocation", '{not json');
+    const { mod } = await loadZmanim({ localStorage });
+
+    assert.equal(mod.namespace.getZmanimLocation(), null);
+});
+
+test('getZmanimLocation is null with nothing fetched or saved', async () => {
+    const { mod } = await loadZmanim();
+
+    assert.equal(mod.namespace.getZmanimLocation(), null);
+});

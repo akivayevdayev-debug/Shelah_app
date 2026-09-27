@@ -274,6 +274,8 @@
     padding: var(--sp-3);
     font-size: 0.9375rem; /* 15px */
     line-height: 1.5;
+    /* A row whose words were just swapped for real clock times fades in (opacity only). */
+    transition: opacity var(--motion-dur-fast) ease-out;
 }
 .cal-detail__row + .cal-detail__row { border-top: 1px solid var(--glass-hairline); }
 .cal-detail__row dt {
@@ -286,12 +288,9 @@
 .cal-detail__row dd { margin: 0; color: var(--ink-primary); overflow-wrap: anywhere; }
 .cal-detail__nowrap { white-space: nowrap; }
 .cal-detail__row dd small { display: block; font-size: 0.8125rem; color: var(--ink-secondary); }
-.cal-detail__row--where { grid-template-columns: minmax(0, 1fr); }
-/* A row whose words were just swapped for real clock times fades in (opacity only). */
-.cal-detail__row { transition: opacity var(--motion-dur-fast) ease-out; }
-.cal-detail__row.is-fresh { opacity: 0; }
 /* "Times for <city>": a footnote row saying which location the clock times belong to. */
-.cal-detail__row--where { padding-block: var(--sp-2); }
+.cal-detail__row--where { grid-template-columns: minmax(0, 1fr); padding-block: var(--sp-2); }
+.cal-detail__row.is-fresh { opacity: 0; }
 .cal-detail__where { margin: 0; font-size: 0.75rem; line-height: 1.4; color: var(--ink-secondary); overflow-wrap: anywhere; }
 
 /* Readings: each reference is a full-width tappable line (44px), like a list cell. */
