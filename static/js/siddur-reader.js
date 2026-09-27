@@ -310,6 +310,27 @@ export function writePosition(key, section, storage = globalThis.localStorage) {
 // browser drops the lock whenever the page is hidden, so it is re-taken on
 // return while the user still wants it. A refused request (battery saver)
 // just leaves the switch off.
+// Asks the service worker to keep the whole siddur (table of contents and
+// every service) for offline use -- a reader who opened it will want it with
+// no signal. In the installed app, also asks for storage the browser won't
+// evict: Chrome and Safari grant that there without a prompt, where
+// Firefox's tab would stop the reader with a permission question.
+export function keepOffline(toc, { nav = globalThis.navigator, win = globalThis.window } = {}) {
+    const controller = nav?.serviceWorker?.controller;
+    if (controller && toc?.rite?.slug && toc?.version) {
+        controller.postMessage({
+            type: "PRECACHE_SIDDUR",
+            rite: toc.rite.slug,
+            version: toc.version,
+            services: (toc.occasions || []).flatMap((occasion) => occasion.services.map((service) => service.slug)),
+        });
+    }
+    const installed = win?.matchMedia?.("(display-mode: standalone)")?.matches || nav?.standalone === true;
+    if (installed && nav?.storage?.persist) {
+        Promise.resolve().then(() => nav.storage.persist()).catch(() => {});
+    }
+}
+
 export function createWakeLock({ nav = globalThis.navigator, doc = globalThis.document } = {}) {
     const supported = Boolean(nav?.wakeLock?.request);
     let wanted = false;
