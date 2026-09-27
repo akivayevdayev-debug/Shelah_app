@@ -721,6 +721,18 @@ html.rtl #hebrewDateDisplay {
     display: none !important;
 }
 
+/* Quick Settings' "AI settings" row: icon, two-line label, caret. */
+#settingsPanel #openAiSettingsBtn {
+    display: flex !important;
+    align-items: center;
+    gap: var(--sp-2);
+    min-height: 44px;
+}
+
+[dir="rtl"] #openAiSettingsBtn .ai-settings-caret {
+    transform: scaleX(-1);
+}
+
 #settingsPanel button:not(#bookmarkCurrentBtn) {
     background: #e2e8f0 !important;
     border-color: #cbd5e1 !important;
