@@ -128,8 +128,10 @@ jobs:
         #
         # `npm run test:coverage` is the same suite (same files, same blocking
         # exit code) plus an lcov report for SonarCloud
-        # (sonar.javascript.lcov.reportPaths); scripts/merge_lcov.py folds the
-        # per-test module copies into one record per file.
+        # (sonar.javascript.lcov.reportPaths). tests_js/helpers/esm_harness.js
+        # rebases each per-test module copy's V8 coverage onto the file on disk
+        # so Node merges the copies itself; scripts/merge_lcov.py folds any
+        # record that still arrives duplicated into one per file.
         run: npm run test:coverage
 
       - name: Accessibility scan (pa11y-ci, WCAG2AA — light + dark theme)
