@@ -129,8 +129,8 @@ It is organized by runtime flow first, then file-by-file notes.
 - `scripts/verify_integrations.py`
   - End-to-end service health checker (env, Supabase, Sefaria, Hebcal, local Flask, Vercel).
 
-- `scripts/fetch_sefardic_siddur.py`
-  - Fetches Siddur text from Sefaria and prepares prayer data payloads.
+- `scripts/build_siddur.py`
+  - Rebuilds the checked-in siddur (`data/siddur/`) from Sefaria-Export; CC0/Public Domain versions only.
 
 ## 7) Config + Deployment
 
