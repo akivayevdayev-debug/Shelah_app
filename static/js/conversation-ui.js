@@ -19,21 +19,26 @@
 //
 // Sources: every citation (inline under an answer, and the cards in the
 // "Consulted N sources" drawer) opens the exact text in the reader and folds
-// the conversation to mini so the text is what's on screen. The cards are the
-// same .ai-source-box markup as the single-answer modal (source-cards.js).
+// the conversation to mini so the text is what's on screen. The cards are
+// .ai-source-box markup from source-cards.js.
 //
-// Routing (router.js): ?conversation=<id|new>&cv=<size>. Opening pushes a
+// Routing (router.js): /chat/<id|new>[/<community>/<mode>][/mini|/full]. Opening pushes a
 // history entry, resizing replaces it, and once the first question creates
 // the row, `new` is replaced by the real id so the URL is shareable. The
 // classic script's hydrateRoute() hands every route to hydrate() below.
 //
-// Decision A1: the conversation UI saves nothing without a Clerk user, so a
-// signed-out question goes to the legacy single-answer modal
-// (handleAiSearch) with a sign-in hint instead.
+// Search-bar answers: the classic script's handleAiSearch asks through the
+// one-shot /ask (saved to ask_history, works signed out) and shows the answer
+// here as the first turn (store.askSearch); stored and shared answers
+// (/answer/<id>, /a/<token>, history, shelf) open the same way
+// (store.showAnswer). The first follow-up turns a signed-in answer into a
+// conversation seeded from its ask_history row. Decision A1: conversations
+// are saved per Clerk user, so signed out the composer asks a new one-shot
+// question instead, and an answer on screen offers "Sign in to follow up".
 
 import { createConversationStore, MESSAGE_STATUS, SOURCES_PHASE } from "./conversation-store.js";
 import { isSignedIn } from "./conversation-entry.js";
-import { pushRoute, readRoute } from "./router.js";
+import { closeOverlay, pushRoute, readRoute, routeUrl } from "./router.js";
 import { sourceBadgeHtml, externalLinksHtml, previewHtml } from "./source-cards.js";
 import {
     normalizeSize,
@@ -71,6 +76,8 @@ const ui = {
     size: "overlay",
     layout: "desktop",
     mode: null,
+    // A link's community (router.js AI keys) while it's in the URL.
+    routeMinhag: null,
     signedIn: false,
     authResolved: false,
     awaitingOpenId: null,     // deep-linked id waiting for sign-in
@@ -93,6 +100,8 @@ const ui = {
     tipDeferred: false,
     tipObserver: null,
     previews: new Map(),      // ref -> Promise<html> for the sources drawer
+    publicState: null,        // "loading" | "gone" | "error" while a shared link resolves;
+                              // "saved" | "saved-gone" | "saved-error" for an /answer/<id> one
 };
 
 let store = null;
@@ -152,6 +161,12 @@ function currentMode() {
     return ui.mode;
 }
 
+// The community a new thread starts with: a link's community, else the
+// visitor's own preference (which the link never overwrites).
+function defaultMinhag() {
+    return ui.routeMinhag || window.appState?.prefs?.community;
+}
+
 function effectiveLayout() {
     return window.matchMedia(MOBILE_QUERY).matches ? "mobile" : "desktop";
 }
@@ -203,7 +218,6 @@ function collectElements() {
         title: $("convTitle"),
         subtitle: $("convSubtitle"),
         historyBtn: $("convHistoryBtn"),
-        chip: $("convMinhagChip"),
         chipLabel: $("convMinhagChipLabel"),
         menuBtn: $("convMenuBtn"),
         menu: $("convMenu"),
@@ -243,7 +257,9 @@ function collectElements() {
         tip: $("aiDiscoveryTip"),
         tipTry: $("aiDiscoveryTipTry"),
         tipDismiss: $("aiDiscoveryTipDismiss"),
-        aiSignInHint: $("aiSignInHint"),
+        signInFollowUp: $("convSignInFollowUp"),
+        answerLink: $("convAnswerLink"),
+        answerLinkPark: $("convAnswerLinkPark"),
         lists: [...document.querySelectorAll("[data-conv-list]")],
     };
 }
@@ -268,20 +284,39 @@ function render() {
     const minhag = state.minhagLocked ? conversation?.minhag : state.draftMinhag;
     const name = communityName(minhag, l, options);
     const hasMessages = state.messages.length > 0;
+    if (hasMessages) ui.publicState = null;
+    const answerView = Boolean(state.answerView) && !conversation;
+    const hasAnswer = state.messages.some((m) => m.answer);
+    // Signed out, an answer on screen can't be followed up: the composer
+    // gives way to "Sign in to follow up". No Clerk (local dev): it asks
+    // another one-shot question instead.
+    const followUpLocked = answerView && hasAnswer && !ui.signedIn && clerkConfigured();
 
     els.panel.dataset.hasThread = conversation ? "true" : "false";
+    els.panel.dataset.answerView = answerView || ui.publicState ? "true" : "false";
     els.panel.dataset.sending = state.sending ? "true" : "false";
     els.pip.dataset.sending = state.sending ? "true" : "false";
 
+    // An /answer/<id> link: loading until Clerk knows who this is, then
+    // (signed out) a prompt to sign in in the answer's place (audit L-5).
+    const savedLink = String(ui.publicState || "").startsWith("saved");
+    const savedNeedsSignIn = ui.publicState === "saved" && ui.authResolved && !ui.signedIn && clerkConfigured();
+
     // Header.
-    const title = conversation?.title || (hasMessages ? tr("New conversation", "שיחה חדשה") : tr("Ask Sh'elah", "שאל את ש׳אלה"));
+    const question = answerView ? state.messages.find((m) => m.role === "user")?.content : "";
+    const title = conversation?.title
+        || question
+        || (ui.publicState ? (savedLink ? tr("Saved answer", "תשובה שמורה") : tr("Shared answer", "תשובה משותפת")) : "")
+        || (hasMessages ? tr("New conversation", "שיחה חדשה") : tr("Ask Sh'elah", "שאל את ש׳אלה"));
     if (!els.title.querySelector("input")) els.title.textContent = title;
     els.subtitle.textContent = ui.layout === "mobile" ? tr(`${name} practice`, `מנהג ${name}`) : "";
     els.chipLabel.textContent = name;
-    els.chip.dataset.locked = state.minhagLocked ? "true" : "false";
-    els.chip.setAttribute("aria-label", state.minhagLocked
-        ? tr(`Community: ${name}, locked for this conversation`, `קהילה: ${name}, נעולה לשיחה זו`)
-        : tr(`Community: ${name}`, `קהילה: ${name}`));
+    els.menuBtn.dataset.locked = state.minhagLocked ? "true" : "false";
+    const settingsLabel = state.minhagLocked
+        ? tr(`Conversation settings. Community: ${name}, locked for this conversation`, `הגדרות שיחה. קהילה: ${name}, נעולה לשיחה זו`)
+        : tr(`Conversation settings. Community: ${name}`, `הגדרות שיחה. קהילה: ${name}`);
+    els.menuBtn.setAttribute("aria-label", settingsLabel);
+    els.menuBtn.title = settingsLabel;
 
     els.lockLine.textContent = state.minhagLocked
         ? lockLine(conversation?.minhag, l, options)
@@ -300,7 +335,8 @@ function render() {
     els.pinLabel.textContent = conversation?.pinnedAt ? tr("Unpin", "בטל הצמדה") : tr("Pin", "הצמד");
 
     // Body: loading / empty / transcript.
-    const loading = state.loadStatus === "loading" || (ui.awaitingOpenId && !ui.authResolved);
+    const loading = state.loadStatus === "loading" || (ui.awaitingOpenId && !ui.authResolved) || ui.publicState === "loading"
+        || (ui.publicState === "saved" && !savedNeedsSignIn);
     els.loading.classList.toggle("hidden", !loading);
     els.empty.classList.toggle("hidden", loading || hasMessages || state.loadStatus === "error");
     els.signedOutHint.classList.toggle("hidden", !clerkConfigured() || ui.signedIn || !ui.authResolved);
@@ -316,13 +352,36 @@ function render() {
     } else if (state.lastError) notice = noticeFor(state.lastError, l);
     else if (ui.awaitingOpenId && ui.authResolved && !ui.signedIn && clerkConfigured()) {
         notice = { tone: "info", text: tr("Sign in to open this conversation.", "התחבר כדי לפתוח את השיחה הזו."), action: "sign-in" };
+    } else if (savedNeedsSignIn) {
+        notice = { tone: "info", text: tr("Sign in to see this saved answer.", "התחבר כדי לראות את התשובה השמורה."), action: "sign-in" };
+    } else if (ui.publicState === "saved-gone") {
+        notice = { tone: "info", text: tr(
+            "This saved answer isn't available. It may have been deleted, or saved under another account.",
+            "התשובה השמורה אינה זמינה. ייתכן שנמחקה, או שנשמרה בחשבון אחר.") };
+    } else if (ui.publicState === "saved-error") {
+        notice = { tone: "warn", text: tr(
+            "Couldn't load this saved answer. Check your connection and reload the page to try again.",
+            "לא ניתן היה לטעון את התשובה השמורה. בדוק/י את החיבור וטען/י מחדש את הדף.") };
+    } else if (ui.publicState === "gone") {
+        notice = { tone: "info", text: tr(
+            "This shared answer isn't available. The link may have been turned off, or the answer was deleted. You can still ask your own question.",
+            "התשובה המשותפת אינה זמינה. ייתכן שהקישור בוטל או שהתשובה נמחקה. עדיין אפשר לשאול שאלה משלך.") };
+    } else if (ui.publicState === "error") {
+        notice = { tone: "warn", text: tr(
+            "Couldn't load this shared answer. Check your connection and reload the page to try again.",
+            "לא ניתן היה לטעון את התשובה המשותפת. בדוק/י את החיבור וטען/י מחדש את הדף.") };
     }
     renderNotice(notice);
 
     renderSources(state, l);
 
     // Composer.
-    els.input.placeholder = hasMessages ? tr("Ask a follow-up…", "שאל שאלת המשך…") : tr("Ask a question…", "שאל שאלה…");
+    const continues = !answerView || (ui.signedIn && Boolean(state.answerView?.historyId));
+    els.input.placeholder = !hasMessages
+        ? tr("Ask a question…", "שאל שאלה…")
+        : continues ? tr("Ask a follow-up…", "שאל שאלת המשך…") : tr("Ask a new question…", "שאל שאלה חדשה…");
+    els.composer.classList.toggle("hidden", followUpLocked);
+    els.signInFollowUp?.classList.toggle("hidden", !followUpLocked);
     syncSendDisabled();
 
     // Minimised bar.
@@ -334,6 +393,7 @@ function render() {
 
     renderLists(state, l);
     syncRoute(state);
+    syncAiRoute(minhag);
 }
 
 function syncMinhagSelect(options, value, l) {
@@ -394,7 +454,7 @@ function renderSources(state, l) {
     }
 }
 
-// One consulted source, as the single-answer modal draws it: type badge, ref,
+// One consulted source: type badge, ref,
 // where else to read it, and "Open in reader". The text preview is fetched
 // only when its <details> is opened (loadPreview).
 function sourceCardHtml(citation, l) {
@@ -403,7 +463,7 @@ function sourceCardHtml(citation, l) {
     if (!ref) {
         return excerpt ? `<li class="ai-source-box conv-source-card"><div class="ai-src-box-note" dir="auto">${escapeText(excerpt)}</div></li>` : "";
     }
-    const open = `<a href="/?text=${encodeURIComponent(ref)}" class="src-open-link conv-source-card__open" data-cite-ref="${escapeText(ref)}">${escapeText(tr("Open in reader", "פתח בקורא"))} ↗</a>`;
+    const open = `<a href="${escapeText(routeUrl({ text: ref }))}" class="src-open-link conv-source-card__open" data-cite-ref="${escapeText(ref)}">${escapeText(tr("Open in reader", "פתח בקורא"))} ↗</a>`;
     return `<li class="ai-source-box conv-source-card">
         <div class="ai-src-box-header">
             <span class="ai-src-box-id">${sourceBadgeHtml(ref, l)}<span class="ai-src-box-title" dir="auto" title="${escapeText(ref)}">${escapeText(ref)}</span></span>
@@ -479,14 +539,13 @@ function turnInnerHtml(message, index, messages, l) {
         }
         return html;
     }
-    const label = `<p class="conv-turn__label">${escapeText(tr("Sh'elah", "ש׳אלה"))}</p>`;
     switch (message.status) {
         case MESSAGE_STATUS.PENDING:
-            return `${label}<span class="sr-only">${escapeText(tr("Sh'elah is answering…", "ש׳אלה עונה…"))}</span>`
+            return `<span class="sr-only">${escapeText(tr("Sh'elah is answering…", "ש׳אלה עונה…"))}</span>`
                 + '<div class="conv-turn__skel"></div><div class="conv-turn__skel"></div><div class="conv-turn__skel"></div>';
         case MESSAGE_STATUS.ERROR: {
             const isLast = index === messages.length - 1;
-            return label + statusRow({
+            return statusRow({
                 tone: "error",
                 text: tr("Sh'elah couldn't answer this one.", "ש׳אלה לא הצליחה לענות על זה."),
                 action: isLast ? "retry" : null,
@@ -495,7 +554,7 @@ function turnInnerHtml(message, index, messages, l) {
             });
         }
         case MESSAGE_STATUS.INCOMPLETE:
-            return label + statusRow({
+            return statusRow({
                 text: tr("The answer is taking longer than usual.", "התשובה מתעכבת מהרגיל."),
                 action: "check",
                 actionLabel: tr("Check again", "בדוק שוב"),
@@ -506,15 +565,72 @@ function turnInnerHtml(message, index, messages, l) {
                 ? `<ol class="conv-cites" aria-label="${escapeText(tr("Sources", "מקורות"))}">${message.citations.map((c, i) => {
                     const excerpt = citationExcerpt(c, l);
                     const ref = c.ref
-                        ? `<a href="/?text=${encodeURIComponent(c.ref)}" class="conv-cite__ref" data-cite-ref="${escapeText(c.ref)}" dir="auto">${escapeText(c.ref)}</a>`
+                        ? `<a href="${escapeText(routeUrl({ text: c.ref }))}" class="conv-cite__ref" data-cite-ref="${escapeText(c.ref)}" dir="auto">${escapeText(c.ref)}</a>`
                         : "";
                     const links = c.ref ? `<span class="conv-cite__links">${externalLinksHtml(c.ref)}</span>` : "";
                     const badge = c.ref ? sourceBadgeHtml(c.ref, l) : "";
                     return `<li class="conv-cite"><span class="conv-cite__num" aria-hidden="true">${i + 1}</span><span class="conv-cite__head">${badge}${ref}</span>${excerpt ? `<p class="conv-cite__excerpt" dir="auto">${escapeText(excerpt)}</p>` : ""}${links}</li>`;
                 }).join("")}</ol>`
                 : "";
-            return `${label}<div class="conv-answer" dir="auto">${answerHtml(message.content)}</div>${cites}`;
+            // A search-bar answer (message.answer = its /ask payload) also
+            // carries its safety banner, community customs, feedback and
+            // Copy link; decorateAnswerTurn fills the hosts.
+            const data = message.answer;
+            if (!data) return `<div class="conv-answer" dir="auto">${answerHtml(message.content)}</div>${cites}`;
+            return '<div class="conv-turn__banner" data-answer-banner></div>'
+                + `<div class="conv-answer" dir="auto">${answerHtml(message.content)}</div>`
+                + customsHtml(data, l)
+                + cites
+                + '<div class="conv-turn__actions" data-answer-actions><div class="conv-turn__feedback"></div></div>';
         }
+    }
+}
+
+// The answer's per-community customs, as a compact list under it.
+function customsHtml(data, l) {
+    const customs = (Array.isArray(data?.customs) ? data.customs : [])
+        .map((c) => ({ community: c?.community, text: String(c?.ruling || c?.notes || "").trim() }))
+        .filter((c) => c.text);
+    if (!customs.length) return "";
+    const name = (community) => {
+        try {
+            if (typeof window.getCommunityDisplayName === "function") return window.getCommunityDisplayName(community);
+        } catch (_err) { /* fall through */ }
+        return communityName(community, l, communityOptions());
+    };
+    return `<section class="conv-customs" aria-label="${escapeText(tr("Community customs", "מנהגי קהילות"))}">`
+        + `<h3 class="conv-customs__title">${escapeText(tr("Community customs", "מנהגי קהילות"))}</h3><ul>`
+        + customs.map((c) => `<li class="conv-custom"><span class="conv-custom__name">${escapeText(name(c.community))}</span>`
+            + `<p class="conv-custom__text" dir="auto">${escapeText(c.text)}</p></li>`).join("")
+        + "</ul></section>";
+}
+
+// Fills an answer turn's hosts. The safety banner shows only when it says
+// something the panel's standing disclaimer doesn't (a referral, or the
+// cost breaker); the one Copy link control moves into the turn showing it.
+function decorateAnswerTurn(li, message, question) {
+    const data = message.answer;
+    const banner = li.querySelector("[data-answer-banner]");
+    if (banner && typeof window.renderDisclaimerBanner === "function") {
+        banner.className = "ai-disclaimer-banner conv-turn__banner";
+        window.renderDisclaimerBanner(banner, data.meta?.safety_class, data.meta?.breaker_tripped);
+        if (!banner.matches(".ai-disclaimer-banner--referral, .ai-disclaimer-banner--breaker-paused")) banner.remove();
+    } else {
+        banner?.remove();
+    }
+    const actions = li.querySelector("[data-answer-actions]");
+    if (!actions) return;
+    window.renderFeedbackWidget?.(actions.querySelector(".conv-turn__feedback"), data, question || data.question || "");
+    if (els.answerLink) {
+        actions.appendChild(els.answerLink);
+        window.ShelahAnswerLink?.panel?.show(data);
+    }
+}
+
+// Back to its hidden home before the turn holding it is re-rendered or removed.
+function parkAnswerLink() {
+    if (els.answerLink && els.answerLinkPark && els.answerLink.parentElement !== els.answerLinkPark) {
+        els.answerLinkPark.appendChild(els.answerLink);
     }
 }
 
@@ -527,6 +643,7 @@ function renderTurns(state, l) {
         // A thread that got its id from the first question keeps its turns.
         const draftToSaved = ui.turns.size > 0 && ui.threadKey?.startsWith("draft:") && ui.threadKey.endsWith(`:${l}`);
         if (!draftToSaved) {
+            parkAnswerLink();
             ui.turns.clear();
             els.messages.innerHTML = "";
             ui.animateInserts = false;
@@ -541,7 +658,9 @@ function renderTurns(state, l) {
     state.messages.forEach((message, index) => {
         const key = String(message.id);
         seen.add(key);
-        const sig = `${turnSignature(message)}:${index === state.messages.length - 1}`;
+        // Last-ness only changes an error turn (its Retry); keeping it out
+        // of other turns' signatures keeps a rated answer rated.
+        const sig = `${turnSignature(message)}:${message.answer ? "a" : ""}:${message.status === MESSAGE_STATUS.ERROR && index === state.messages.length - 1}`;
         let entry = ui.turns.get(key);
         // A saved turn replacing its optimistic placeholder (local id -> server
         // id) takes over the placeholder's row, so it doesn't animate in twice.
@@ -567,7 +686,21 @@ function renderTurns(state, l) {
             const li = entry.li;
             li.className = `conv-turn conv-turn--${message.role}${message.status === MESSAGE_STATUS.FAILED ? " conv-turn--failed" : ""}${li.classList.contains("conv-turn--enter") ? " conv-turn--enter" : ""}`;
             li.setAttribute("aria-busy", message.status === MESSAGE_STATUS.PENDING ? "true" : "false");
+            if (els.answerLink && li.contains(els.answerLink)) parkAnswerLink();
             li.innerHTML = turnInnerHtml(message, index, state.messages, l);
+            if (message.answer && message.status === MESSAGE_STATUS.COMPLETE) {
+                decorateAnswerTurn(li, message, state.messages[index - 1]?.content);
+            }
+            // An answer arriving in place of its skeleton reveals block by
+            // block (conversation.css .conv-turn--reveal); a timer, not
+            // animationend, since the staggered children each fire one.
+            if (entry.status === MESSAGE_STATUS.PENDING && message.status === MESSAGE_STATUS.COMPLETE
+                && message.role === "assistant" && !reducedMotion()) {
+                li.classList.add("conv-turn--reveal");
+                clearTimeout(entry.revealTimer);
+                entry.revealTimer = setTimeout(() => li.classList.remove("conv-turn--reveal"), 900);
+            }
+            entry.status = message.status;
             entry.sig = sig;
         }
         const expectedPosition = previous ? previous.nextSibling : els.messages.firstChild;
@@ -576,10 +709,12 @@ function renderTurns(state, l) {
     });
     for (const [key, entry] of ui.turns) {
         if (!seen.has(key)) {
+            if (els.answerLink && entry.li.contains(els.answerLink)) parkAnswerLink();
             entry.li.remove();
             ui.turns.delete(key);
         }
     }
+    if (els.answerLink?.parentElement === els.answerLinkPark) window.ShelahAnswerLink?.panel?.hide();
     // Only turns that arrive after a thread is on screen animate in; a
     // thread being (re)loaded renders all at once.
     ui.animateInserts = state.loadStatus !== "loading";
@@ -591,14 +726,25 @@ function renderTurns(state, l) {
     updateJumpButton();
 }
 
-function scrollToLatest(smooth = true) {
+// Where "latest" is: the newest question at the top, so a long answer is
+// read from its start rather than landed on at its last line.
+function latestTop() {
     const scroller = els.scroller;
-    scroller.scrollTo({ top: scroller.scrollHeight, behavior: smooth && !reducedMotion() ? "smooth" : "auto" });
+    const bottom = scroller.scrollHeight - scroller.clientHeight;
+    const questions = els.messages.querySelectorAll(".conv-turn--user");
+    const last = questions[questions.length - 1];
+    if (!last) return bottom;
+    const offset = last.getBoundingClientRect().top - scroller.getBoundingClientRect().top + scroller.scrollTop - 12;
+    return Math.max(0, Math.min(bottom, offset));
+}
+
+function scrollToLatest(smooth = true) {
+    els.scroller.scrollTo({ top: latestTop(), behavior: smooth && !reducedMotion() ? "smooth" : "auto" });
 }
 
 function updateJumpButton() {
     const scroller = els.scroller;
-    const away = scroller.scrollHeight - scroller.scrollTop - scroller.clientHeight > NEAR_BOTTOM_PX * 2;
+    const away = latestTop() - scroller.scrollTop > NEAR_BOTTOM_PX * 2;
     els.jump.classList.toggle("hidden", !(away && store.getState().messages.length > 0));
 }
 
@@ -612,11 +758,14 @@ function renderLists(state, l) {
     let html;
     if (!ui.signedIn) {
         html = "";
-    } else if (list.status === "loading" && list.items.length === 0) {
+    } else if (list.status !== "ready" && list.status !== "error" && list.items.length === 0) {
+        // Not loaded yet (idle or loading): skeletons, never a premature
+        // "No conversations yet".
         html = '<li aria-hidden="true"><div class="conv-list__skel"></div></li>'.repeat(3);
     } else if (list.status === "error" && list.items.length === 0) {
         html = `<li class="conv-list__error">${escapeText(tr("Couldn't load conversations.", "לא ניתן לטעון שיחות."))} <button type="button" class="conv-link-btn" data-conv-action="reload-list">${escapeText(tr("Try again", "נסה שוב"))}</button></li>`;
     } else if (list.items.length === 0) {
+        // Only a successful load that came back empty.
         html = `<li class="conv-list__empty">${escapeText(tr("No conversations yet.", "אין עדיין שיחות."))}</li>`;
     } else {
         const options = communityOptions();
@@ -636,19 +785,53 @@ function renderLists(state, l) {
     popList?.classList.toggle("hidden", !ui.signedIn);
 }
 
-// Keep ?conversation= in step with the store: `new` becomes the real id once
+// Keep the route's conversation (`/chat/<id>`) in step with the store: `new` becomes the real id once
 // the first question creates the row, and a deleted open thread falls back
 // to `new`. Only while signed in -- a deep link waiting for sign-in must
-// keep its id.
+// keep its id. A search-bar answer is routed by the classic script
+// (/answer/<id>); following it up swaps that URL for the new thread's in an
+// entry of its own, so Back returns to the answer.
 function syncRoute(state) {
     if (!ui.open || !ui.signedIn || ui.awaitingOpenId) return;
+    if ((state.answerView && !state.conversation) || ui.publicState) return;
     let desired = null;
     if (state.conversation) desired = state.conversation.id;
     else if (state.loadStatus === "ready") desired = "new";
     if (!desired) return;
     const route = readRoute();
     if (route.conversation === desired) return;
-    pushRoute({ conversation: desired, cv: ui.size }, { replace: true });
+    const fromAnswer = Boolean(route.chat || route.a);
+    pushRoute({ conversation: desired, cv: ui.size, chat: null, a: null }, fromAnswer ? { overlay: "conversation" } : { replace: true });
+}
+
+// The URL names the community and AI mode the open panel answers with
+// (router.js AI keys: `/chat/<id>/sefardic/strict`), kept in step as the
+// user changes them. Only alongside a conversation or answer in the route.
+function syncAiRoute(minhag) {
+    if (!ui.open || ui.publicState || ui.awaitingOpenId) return;
+    const route = readRoute();
+    if (!route.conversation && !route.chat && !route.a) return;
+    const patch = aiRoute(minhag);
+    if (route.minhag === patch.minhag && route.mode === patch.mode) return;
+    pushRoute(patch, { replace: true });
+}
+
+function aiRoute(minhag) {
+    if (minhag === undefined) {
+        const state = store.getState();
+        minhag = state.minhagLocked ? state.conversation?.minhag : state.draftMinhag;
+    }
+    return { minhag: minhag || "All", mode: currentMode() };
+}
+
+// A link's community and mode (`/chat/<id>/sefardic/strict`): the panel answers that way. The router has
+// already dropped malformed values; a community this page doesn't offer is
+// ignored too.
+function applyAiRoute(route) {
+    if (route.mode) ui.mode = route.mode;
+    const known = Boolean(route.minhag) && communityOptions().some((o) => o.value === route.minhag);
+    ui.routeMinhag = known ? route.minhag : null;
+    if (known) store.setDraftMinhag(route.minhag);
 }
 
 // ── open / close / size ────────────────────────────────────────────────
@@ -696,26 +879,72 @@ function hide(el, preset) {
     return Promise.resolve();
 }
 
-// FLIP between two sizes: measure, switch, and spring from the old box.
+// FLIP between two sizes: measure, switch, and spring from the old box
+// (audit M-5). The panel scales, and its content takes the inverse scale so
+// no glyph is ever squashed (Framer Motion's layout "scale correction");
+// one spring drives both, so the two stay exact inverses every frame. A
+// resize during a resize stops the running one first: the panel is then
+// measured where it visibly is, and the next spring starts from there.
+let flipControls = null;
+
+function flipContent(el) {
+    return [...el.children].filter((child) => !child.hidden);
+}
+
+function clearFlip(el) {
+    for (const node of [el, ...flipContent(el)]) {
+        node.style.removeProperty("transform");
+        node.style.removeProperty("transform-origin");
+    }
+}
+
+// Detached before stop(), so a stop that completes can't clear the transform.
+function haltFlip() {
+    const running = flipControls;
+    flipControls = null;
+    running?.stop?.();
+}
+
+function stopFlip(el) {
+    haltFlip();
+    clearFlip(el);
+}
+
 function flipResize(mutate) {
     const el = els.panel;
+    haltFlip();
     const first = el.getBoundingClientRect();
+    clearFlip(el);
     mutate();
     const last = el.getBoundingClientRect();
     const M = motion();
-    if (!M?.springAnimate || reducedMotion() || !first.width || !last.width || el.classList.contains("hidden")) return;
+    if (!M?.springValue || reducedMotion() || !first.width || !last.width || el.classList.contains("hidden")) return;
     const dx = first.left - last.left;
     const dy = first.top - last.top;
-    const sx = first.width / last.width;
-    const sy = first.height / last.height;
-    el.style.transformOrigin = "top left";
-    const controls = M.springAnimate(el, {
-        transform: [`translate(${dx}px, ${dy}px) scale(${sx}, ${sy})`, "translate(0px, 0px) scale(1, 1)"],
-    }, M.APPLE_SPRING?.snappy || { stiffness: 158, damping: 21, mass: 1 });
-    Promise.resolve(controls).finally(() => {
-        el.style.removeProperty("transform");
-        el.style.removeProperty("transform-origin");
+    const sx0 = first.width / last.width;
+    const sy0 = first.height / last.height;
+    const content = flipContent(el);
+    for (const node of [el, ...content]) node.style.transformOrigin = "top left";
+    const frame = (t) => {
+        const sx = sx0 + (1 - sx0) * t;
+        const sy = sy0 + (1 - sy0) * t;
+        el.style.transform = `translate(${dx * (1 - t)}px, ${dy * (1 - t)}px) scale(${sx}, ${sy})`;
+        const inverse = `scale(${1 / sx}, ${1 / sy})`;
+        for (const node of content) node.style.transform = inverse;
+    };
+    frame(0);
+    let controls = null;
+    controls = M.springValue(0, 1, M.APPLE_SPRING?.snappy || { stiffness: 158, damping: 21, mass: 1 }, {
+        onUpdate: frame,
+        onComplete: () => {
+            if (!controls || flipControls !== controls) return;
+            flipControls = null;
+            clearFlip(el);
+        },
     });
+    // null: nothing animated (its onComplete ran before `controls` was set).
+    if (controls) flipControls = controls;
+    else clearFlip(el);
 }
 
 function applyVisibility({ previousSize = null, origin = null, opening = false } = {}) {
@@ -774,7 +1003,9 @@ function openPanel({ size = null, origin = null, fromRoute = false, routeId = nu
     if (!fromRoute) {
         const state = store.getState();
         const id = routeId || state.conversation?.id || "new";
-        pushRoute({ conversation: id, cv: ui.size }, { replace: wasOpen });
+        // Opening is an entry of its own, marked so closing steps Back off
+        // it (router.js closeOverlay); resizing an open panel replaces.
+        pushRoute({ conversation: id, cv: ui.size }, wasOpen ? { replace: true } : { overlay: "conversation" });
     }
     scheduleRender();
 }
@@ -789,6 +1020,7 @@ function syncAskExpanded() {
 function closePanel({ fromRoute = false } = {}) {
     if (!ui.open) return;
     ui.open = false;
+    ui.publicState = null;
     syncAskExpanded();
     closeMenu();
     closeHistoryPop();
@@ -799,7 +1031,17 @@ function closePanel({ fromRoute = false } = {}) {
     const target = ui.returnFocus;
     ui.returnFocus = null;
     if (target && document.contains(target) && target.offsetParent !== null) target.focus({ preventScroll: true });
-    if (!fromRoute) pushRoute({ conversation: null, cv: null });
+    // Back off the entry opening it pushed, so Back doesn't re-open it; a
+    // cold-loaded /chat/<id> link is removed in place instead. An answer
+    // (/answer/<id>, /a/<token>) closes the same way.
+    if (!fromRoute) {
+        const route = readRoute();
+        if (route.chat || route.a) closeOverlay("answer", { chat: null, a: null, conversation: null, cv: null });
+        else closeOverlay("conversation", { conversation: null, cv: null });
+    }
+    // Asking made the answer the current view (Recent, the bookmark
+    // button); the page underneath gets it back.
+    window.restoreShownView?.();
 }
 
 function setSize(size, { fromRoute = false } = {}) {
@@ -826,14 +1068,66 @@ async function waitForAuth() {
     await Promise.race([authReady, new Promise((r) => setTimeout(r, AUTH_TIMEOUT_MS))]);
 }
 
-function syncSignInHint() {
-    els.aiSignInHint?.classList.toggle("hidden", ui.signedIn || !clerkConfigured());
+// ── search-bar answers ─────────────────────────────────────────────────
+
+// Opens the panel on the answer being shown: the overlay from the search
+// bar (or the full page, if that's where it already is).
+function presentAnswer() {
+    ui.awaitingOpenId = null;
+    ui.forceScroll = true;
+    markAiUsed();
+    openPanel({ size: ui.open && ui.size === "full" ? "full" : "overlay", fromRoute: true });
 }
 
-// Decision A1: a signed-out question gets the legacy single-answer modal.
-function askLegacy(question) {
-    syncSignInHint();
-    closePanel();
+// handleAiSearch: ask through /ask and show it here. Resolves the payload,
+// or null when another question or answer replaced it meanwhile; rejects
+// (after showing the failure on the turn) for the caller's side effects.
+function askFromSearch(question, request = {}) {
+    ui.publicState = null;
+    // Follow-ups (and the URL) use the settings this answer was asked with:
+    // the search bar asks with the visitor's own community.
+    if (request.mode) ui.mode = request.mode;
+    ui.routeMinhag = null;
+    const pending = store.askSearch(question, request);
+    presentAnswer();
+    return pending;
+}
+
+// A stored answer: history, shelf, /answer/<id>, /a/<token>.
+function showStoredAnswer(item) {
+    if (!item) return;
+    ui.publicState = null;
+    store.showAnswer(item, { question: item.question });
+    presentAnswer();
+}
+
+function showPublicLoading() {
+    store.startNew({ minhag: defaultMinhag() });
+    ui.publicState = "loading";
+    presentAnswer();
+}
+
+function showPublicUnavailable(gone) {
+    ui.publicState = gone ? "gone" : "error";
+    scheduleRender();
+}
+
+// An /answer/<id> link (the classic script's hydrateChatId): the answer's
+// loading state while Clerk and the fetch resolve. Signed out, render()
+// swaps it for a sign-in prompt and the URL stays, so signing in opens it.
+function showSavedLoading() {
+    store.startNew({ minhag: defaultMinhag() });
+    ui.publicState = "saved";
+    presentAnswer();
+}
+
+function showSavedUnavailable(gone) {
+    ui.publicState = gone ? "saved-gone" : "saved-error";
+    scheduleRender();
+}
+
+// Signed out (Decision A1), a question is a one-shot /ask of its own.
+function askOneShot(question) {
     if (typeof window.handleAiSearch === "function") void window.handleAiSearch(question);
 }
 
@@ -845,10 +1139,11 @@ async function openConversation({ id = null, fresh = false, question = "", trigg
     if (text) {
         await waitForAuth();
         if (!ui.signedIn) {
-            askLegacy(text);
+            askOneShot(text);
             return;
         }
     }
+    ui.publicState = null;
     const state = store.getState();
     if (id) {
         ui.awaitingOpenId = null;
@@ -858,7 +1153,7 @@ async function openConversation({ id = null, fresh = false, question = "", trigg
     }
     if (fresh || (text && (state.conversation || state.messages.length))) {
         if (state.conversation || state.messages.length || state.loadStatus !== "ready") {
-            store.startNew({ minhag: window.appState?.prefs?.community });
+            store.startNew({ minhag: defaultMinhag() });
         }
         ui.awaitingOpenId = null;
     }
@@ -873,16 +1168,20 @@ async function openConversation({ id = null, fresh = false, question = "", trigg
 // hydrateRoute() for the initial URL and on every back/forward.
 function hydrate(route = {}, { isInitial = false } = {}) {
     if (!store) return;
+    applyAiRoute(route);
     const id = route.conversation;
     if (!id) {
         ui.awaitingOpenId = null;
+        // An answer's URL: the classic script (hydrateChatId /
+        // hydratePublicAnswer) shows it here.
+        if (route.chat || route.a) return;
         closePanel({ fromRoute: true });
         return;
     }
     const size = normalizeSize(route.cv);
     if (id === "new") {
         const state = store.getState();
-        if (state.conversation) store.startNew({ minhag: window.appState?.prefs?.community });
+        if (state.conversation) store.startNew({ minhag: defaultMinhag() });
         ui.awaitingOpenId = null;
     } else if (store.getState().conversation?.id !== id) {
         if (ui.authResolved && ui.signedIn) {
@@ -970,7 +1269,7 @@ function openMenu(trigger) {
     ui.menuOpen = true;
     render();
     show(els.menu, "popover", trigger);
-    [els.menuBtn, els.chip].forEach((btn) => btn.setAttribute("aria-expanded", btn === trigger ? "true" : "false"));
+    els.menuBtn.setAttribute("aria-expanded", "true");
     requestAnimationFrame(() => {
         const first = els.menu.querySelector("select:not([disabled]), [aria-checked='true'], button");
         first?.focus({ preventScroll: true });
@@ -981,9 +1280,8 @@ function closeMenu({ restoreFocus = false } = {}) {
     if (!els || !ui.menuOpen) return;
     ui.menuOpen = false;
     hide(els.menu, "popover");
-    const trigger = [els.menuBtn, els.chip].find((btn) => btn.getAttribute("aria-expanded") === "true");
-    [els.menuBtn, els.chip].forEach((btn) => btn.setAttribute("aria-expanded", "false"));
-    if (restoreFocus) trigger?.focus({ preventScroll: true });
+    els.menuBtn.setAttribute("aria-expanded", "false");
+    if (restoreFocus) els.menuBtn.focus({ preventScroll: true });
 }
 
 // ── thread actions ─────────────────────────────────────────────────────
@@ -1058,7 +1356,32 @@ function openCitation(ref) {
     if (ui.size !== "mini") setSize("mini");
     // skipNavigationGrid: a cited ref is already specific ("Berakhot 2a"),
     // so go straight to the text rather than a chapter picker.
-    if (typeof window.readText === "function") void window.readText(ref, { skipNavigationGrid: true });
+    if (typeof window.readText === "function") {
+        void window.readText(ref, { skipNavigationGrid: true }).then(() => highlightCitedSegment(ref));
+    }
+}
+
+// M-7: the reader opens at the ref without marking which line it is; a
+// one-shot highlight (ai.css .segment-row.cite-highlight) says "here",
+// same as the anchor Back/Forward restores to. Only the specific verse a
+// citation names ("Genesis 1:3") gets one; a whole-page ref ("Berakhot
+// 2a") has no single row to mark. Fetching one verse renders it as the
+// chunk's sole row (its data-segment is always "1", not the verse
+// number), so the target is "the row in the chunk this ref opened",
+// matched by the same tracking key the reader anchors with, not a
+// verse-number lookup.
+function highlightCitedSegment(ref) {
+    if (!/:\d+\s*$/.test(String(ref || "").trim()) || window.ShelahMotion?.isMotionReduced?.()) return;
+    const key = window.getRefTrackingKey?.(ref);
+    const chunk = key
+        ? document.querySelector(`#readerSources .reader-source-clean[data-text-chunk-ref="${CSS.escape(key)}"]`)
+        : document.querySelector("#readerSources .reader-source-clean[data-text-chunk-ref]");
+    const row = chunk?.querySelector(".segment-row");
+    if (!row) return;
+    row.classList.remove("cite-highlight");
+    void row.offsetWidth; // restart the animation if the same verse is cited twice in a row
+    row.classList.add("cite-highlight");
+    window.setTimeout(() => row.classList.remove("cite-highlight"), 1200);
 }
 
 // ── topbar Ask button + discovery tip ─────────────────────────────────
@@ -1124,8 +1447,7 @@ function maybeShowTip() {
         const busy = ui.open
             || openTipBlockingMenu()
             || document.body.classList.contains("mobile-search-open")
-            || document.body.classList.contains("conv-modal-open")
-            || !document.getElementById("aiAssistantModal")?.classList.contains("hidden");
+            || document.body.classList.contains("conv-modal-open");
         const anchor = tipAnchor();
         if (busy || !anchor || anchor.offsetParent === null || readFlag(AI_USED_KEY) || readFlag(TIP_DISMISSED_KEY)) return;
         ui.tipAnchor = anchor;
@@ -1207,7 +1529,7 @@ async function submitComposer() {
     if (!ui.signedIn) {
         els.input.value = "";
         autosize();
-        askLegacy(text);
+        askOneShot(text);
         return;
     }
     els.input.value = "";
@@ -1233,6 +1555,7 @@ function installMiniDrag() {
     els.header.addEventListener("pointerdown", (event) => {
         if (ui.layout !== "desktop" || ui.size !== "mini" || event.button !== 0) return;
         if (event.target.closest("button, input, select, a")) return;
+        stopFlip(els.panel); // a snap still springing: the drag owns the transform now
         const rect = els.panel.getBoundingClientRect();
         drag = { id: event.pointerId, x: event.clientX, y: event.clientY, rect };
         els.header.setPointerCapture(event.pointerId);
@@ -1354,7 +1677,7 @@ function onDocumentClick(event) {
     if (!els.pop.classList.contains("hidden") && !els.pop.contains(target) && !target.closest(".conv-history-trigger")) {
         closeHistoryPop();
     }
-    if (ui.menuOpen && !els.menu.contains(target) && !target.closest("#convMenuBtn, #convMinhagChip")) {
+    if (ui.menuOpen && !els.menu.contains(target) && !target.closest("#convMenuBtn")) {
         closeMenu();
     }
 
@@ -1404,7 +1727,7 @@ function onDocumentClick(event) {
 
     const cite = target.closest("[data-cite-ref]");
     if (cite && (els.messages.contains(cite) || els.sourcesList.contains(cite))) {
-        // Modified clicks keep the browser's own behaviour (new tab via ?text=).
+        // Modified clicks keep the browser's own behaviour (new tab on /text/<ref>).
         if (event.metaKey || event.ctrlKey || event.shiftKey || event.button !== 0) return;
         event.preventDefault();
         openCitation(cite.dataset.citeRef);
@@ -1457,7 +1780,7 @@ function onNoticeAction() {
         const id = readRoute().conversation;
         if (id && id !== "new") void store.open(id);
     } else if (action === "new") {
-        store.startNew({ minhag: window.appState?.prefs?.community });
+        store.startNew({ minhag: defaultMinhag() });
     }
     scheduleRender();
 }
@@ -1470,7 +1793,6 @@ function onAuthChanged(event) {
         ui.authResolved = true;
         resolveAuth();
     }
-    syncSignInHint();
     if (signedIn && !was) {
         ui.listLoadedAt = 0;
         maybeLoadList(true);
@@ -1481,7 +1803,7 @@ function onAuthChanged(event) {
         }
     } else if (!signedIn && was) {
         // Signed out: never leave someone else's thread on screen.
-        store.startNew({ minhag: window.appState?.prefs?.community });
+        store.startNew({ minhag: defaultMinhag() });
         closePanel();
     }
     scheduleRender();
@@ -1522,12 +1844,12 @@ function bindEvents() {
 
     els.scrim.addEventListener("click", () => closePanel());
     els.menuBtn.addEventListener("click", () => openMenu(els.menuBtn));
-    els.chip.addEventListener("click", () => openMenu(els.chip));
     els.pipOpen.addEventListener("click", () => setSize("overlay"));
     els.jump.addEventListener("click", () => scrollToLatest(true));
     els.scroller.addEventListener("scroll", updateJumpButton, { passive: true });
     els.noticeAction.addEventListener("click", onNoticeAction);
     els.minhagSelect.addEventListener("change", () => {
+        ui.routeMinhag = null;
         store.setDraftMinhag(els.minhagSelect.value);
     });
     els.themeBtn?.addEventListener("click", () => {
@@ -1627,8 +1949,13 @@ export function installConversationUI({ storeFactory = createConversationStore }
     }
 
     store = storeFactory({
+        // Search-bar answers go through the one-shot /ask (ai-service.js).
+        askAnswer: (question, options) => {
+            if (!window.ShelahModules?.askAi) throw new Error("AI module unavailable");
+            return window.ShelahModules.askAi(question, options);
+        },
         getPrefs: () => ({
-            community: window.appState?.prefs?.community,
+            community: defaultMinhag(),
             mode: currentMode(),
             language: lang(),
         }),
@@ -1645,7 +1972,6 @@ export function installConversationUI({ storeFactory = createConversationStore }
 
     bindEvents();
     relocalize();
-    syncSignInHint();
     syncTray();
     if (ui.signedIn) maybeLoadList(true);
     maybeShowTip();
@@ -1657,8 +1983,24 @@ export function installConversationUI({ storeFactory = createConversationStore }
         setSize,
         openHistory: (trigger) => openHistoryPop(trigger),
         getStore: () => store,
-        // The single-answer modal counts as using the AI too (handleAiSearch).
         markAiUsed,
+        askFromSearch,
+        showAnswer: showStoredAnswer,
+        showPublicLoading,
+        showPublicUnavailable,
+        showSavedLoading,
+        showSavedUnavailable,
+        isShowingAnswer: () => ui.open && Boolean(store.getState().answerView),
+        // The community and AI mode for the URL (router.js AI keys).
+        aiRoute: () => aiRoute(),
+        // Back/Forward onto /answer/<id> for the answer still in the panel
+        // (signed out, the server won't hand it back): reopen it as is.
+        reopenAnswer(historyId) {
+            const view = store.getState().answerView;
+            if (!historyId || view?.historyId !== historyId) return false;
+            if (!ui.open) presentAnswer();
+            return true;
+        },
     };
     window.ShelahConversationUI = api;
     return api;
