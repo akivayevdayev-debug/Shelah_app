@@ -1471,12 +1471,15 @@ def _ask_question_prayer_payload(question, mode, answer_language, canonical_lens
     }
 
 
-def _collect_primary_sources_sync(question, engine):
+def _collect_primary_sources_sync(question, engine, context=()):
     """Fetch + fully resolve the primary Sefaria source texts for a
     question (thread-pool parallel). Split out of ask_question()
     (SonarCloud python:S3776) -- see _ask_question_prayer_payload.
+    `context`: a conversation's earlier questions, newest first (see
+    sefaria.find_refs_for_question).
     """
-    primary_refs = sefaria.find_refs_for_question(question)
+    primary_refs = (sefaria.find_refs_for_question(question, context) if context
+                    else sefaria.find_refs_for_question(question))
     max_primary_refs = _env_int(
         "ASK_PRIMARY_SOURCE_LIMIT", 4)  # Capped at 4 for speed
     max_primary_refs = max(1, min(max_primary_refs, 8))
@@ -1600,14 +1603,15 @@ def _derive_ask_question_context_flags(flat_sources_for_claude, knowledge_rows, 
     return has_primary_sources, has_customs, has_whitelisted_external, use_tertiary_web_context, wiki_context_for_claude
 
 
-def _collect_ask_question_context(question, canonical_lens, user_id, answer_language, engine):
+def _collect_ask_question_context(question, canonical_lens, user_id, answer_language, engine,
+                                  retrieval_context=()):
     """Stage 1 of ask_question(): parallel source/knowledge collection
     (thread-pool based, since this is the sync Flask route). Returns a
     context dict consumed by the strict-guard and AI-synthesis stages
     below. Split out of ask_question() (SonarCloud python:S3776) -- see
     _ask_question_prayer_payload.
     """
-    primary_sources = _collect_primary_sources_sync(question, engine)
+    primary_sources = _collect_primary_sources_sync(question, engine, retrieval_context)
 
     # 2-4. Fetch remaining context in parallel using the module-level pool.
     halachipedia_info, knowledge_rows, user_memory_summaries, wiki_info = (
