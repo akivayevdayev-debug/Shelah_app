@@ -8420,11 +8420,16 @@
                 : '';
 
             selectionInsightsHint.textContent = t('Loading selected passage tools...', 'טוען כלים לקטע שנבחר...');
-            // Skeleton in place of the previous passage's list, but only when
-            // the panel is already on screen -- a closed panel stays closed
-            // until there is something to show.
-            if (selectionInsightsBody && !selectionInsights?.classList.contains('hidden')
-                && !commentaryLinksCache.has(commentaryRefCandidates[0])) {
+            // Skeleton feedback as soon as we know this lookup won't resolve
+            // instantly from cache. This used to only paint when the panel
+            // was already open, so a first selection (panel closed) showed
+            // nothing at all until the network round-trip finished -- which
+            // read as the sidebar hanging rather than loading. Opening the
+            // panel early means a selection that ends up with no commentary
+            // or meaning briefly flashes open then collapses (see the
+            // `collapseCommentaryPanel()` call below); that's preferable to
+            // no feedback during a slow lookup.
+            if (selectionInsightsBody && !commentaryLinksCache.has(commentaryRefCandidates[0])) {
                 selectionCommentaryState.activeCommentaryRef = '';
                 selectionInsightsBody.setAttribute('aria-busy', 'true');
                 selectionInsightsBody.innerHTML = `
@@ -8434,6 +8439,12 @@
                         <div class="sk-reader-para"></div>
                         <div class="sk-reader-para" style="width:70%"></div>
                     </div>`;
+                showSelectionInsights();
+                if (isMobileViewport()) {
+                    openMobilePanel('right');
+                } else if (appState.prefs.showRightSidebar === false) {
+                    setSidebarVisibility('right', true);
+                }
             }
 
             const commentaryPromise = fetchCommentaryLinksWithFallback(commentaryRefCandidates);
