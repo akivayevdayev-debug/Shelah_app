@@ -343,3 +343,63 @@ test('wake lock: a refused request leaves it off; unsupported browsers say so', 
     assert.equal(await none.enable(), false);
     await none.disable();
 });
+
+// ── keepOffline ───────────────────────────────────────────────────────────
+
+function fakeKeepEnv({ controller = true, standalone = false, iosStandalone = false, persist } = {}) {
+    const posted = [];
+    const persisted = [];
+    const nav = {
+        serviceWorker: controller ? { controller: { postMessage: (message) => posted.push(message) } } : {},
+        storage: persist === null ? {} : { persist: persist || (async () => { persisted.push(true); return true; }) },
+    };
+    if (iosStandalone) nav.standalone = true;
+    const win = { matchMedia: (query) => ({ matches: standalone && query === '(display-mode: standalone)' }) };
+    return { nav, win, posted, persisted };
+}
+
+test('keepOffline asks the service worker to keep every service of this version', async () => {
+    const r = await reader();
+    const env = fakeKeepEnv();
+    r.keepOffline(TOC, env);
+    assert.deepEqual(env.posted, [{
+        type: 'PRECACHE_SIDDUR', rite: 'edot-hamizrach', version: 'abc123',
+        services: ['shacharit', 'mincha', 'birkat-hamazon'],
+    }]);
+});
+
+test('keepOffline posts nothing without a controlling worker or a versioned contents', async () => {
+    const r = await reader();
+    const none = fakeKeepEnv({ controller: false });
+    r.keepOffline(TOC, none);
+    assert.deepEqual(none.posted, []);
+
+    const unversioned = fakeKeepEnv();
+    r.keepOffline({ ...TOC, version: '' }, unversioned);
+    r.keepOffline(null, unversioned);
+    assert.deepEqual(unversioned.posted, []);
+    assert.doesNotThrow(() => r.keepOffline(TOC, { nav: undefined, win: undefined }));
+});
+
+test('keepOffline asks for persistent storage only in the installed app', async () => {
+    const r = await reader();
+    const tab = fakeKeepEnv();
+    r.keepOffline(TOC, tab);
+    await new Promise((resolve) => setImmediate(resolve));
+    assert.deepEqual(tab.persisted, [], 'in a tab Firefox would prompt; never asked there');
+
+    for (const options of [{ standalone: true }, { iosStandalone: true }]) {
+        const installed = fakeKeepEnv(options);
+        r.keepOffline(TOC, installed);
+        await new Promise((resolve) => setImmediate(resolve));
+        assert.deepEqual(installed.persisted, [true], JSON.stringify(options));
+    }
+
+    const refused = fakeKeepEnv({ standalone: true, persist: async () => { throw new Error('denied'); } });
+    r.keepOffline(TOC, refused);
+    await new Promise((resolve) => setImmediate(resolve));
+    assert.equal(refused.posted.length, 1, 'a refusal is swallowed; the precache still went out');
+
+    const noApi = fakeKeepEnv({ standalone: true, persist: null });
+    assert.doesNotThrow(() => r.keepOffline(TOC, noApi));
+});

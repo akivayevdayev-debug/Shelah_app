@@ -119,7 +119,7 @@ function loadWorker(t, { fetchImpl }) {
         return { waited: event.waited.length };
     }
 
-    return { caches, dispatch, dispatchMessage };
+    return { caches, dispatch, dispatchMessage, listeners };
 }
 
 const jsonResponse = (body, init = {}) =>
@@ -332,10 +332,11 @@ test('offline, a never-visited app path falls back to the precached shell; other
 
     for (const pathname of ['/text/Genesis.1', '/prayer/shacharit', '/answer/0b6a3f58-2f5e-4c1d-9a7e-3d2b1c0a9f88',
         '/a/Zx9_-abcDEF0123456789q', '/calendar/2026-09-25', '/history', '/history/', '/community/Ashkenaz',
-        '/chat/new/all/balanced', '/text/Genesis.1/chat/c1/full', '/history/chat/c1', '/signin', '/profile', '/settings']) {
+        '/chat/new/all/balanced', '/text/Genesis.1/chat/c1/full', '/history/chat/c1', '/signin', '/profile', '/settings',
+        '/siddur', '/siddur/', '/siddur/edot-hamizrach', '/siddur/edot-hamizrach/shacharit/amida']) {
         assert.equal((await dispatch(pathname, { navigate: true })).response, 'SHELL', pathname);
     }
-    for (const pathname of ['/about', '/text/', '/history/extra', '/chat/', '/signin/extra']) {
+    for (const pathname of ['/about', '/text/', '/history/extra', '/chat/', '/signin/extra', '/siddurs']) {
         assert.equal((await dispatch(pathname, { navigate: true })).response, 'OFFLINE', pathname);
     }
 
@@ -443,3 +444,123 @@ test('scripts are network-first: a new deploy\'s module runs on the first load a
     assert.equal(never.response.status, 503);
 });
 
+
+
+// ── The siddur, kept for offline use (R6) ─────────────────────────────────
+
+const SIDDUR_VERSION = '79f598a0845c';
+const siddurCache = (caches, name) => caches.stores.get(name);
+const precacheMessage = (overrides = {}) => ({
+    type: 'PRECACHE_SIDDUR', rite: 'edot-hamizrach', version: SIDDUR_VERSION,
+    services: ['shacharit', 'mincha', 'shacharit'], ...overrides,
+});
+
+test('PRECACHE_SIDDUR keeps the contents and every service of that version', async (t) => {
+    const fetched = [];
+    const { caches, dispatchMessage } = loadWorker(t, {
+        fetchImpl: async (url) => { fetched.push(url); return jsonResponse({ url }); },
+    });
+
+    await dispatchMessage(precacheMessage());
+
+    const name = `shelah-siddur-edot-hamizrach@${SIDDUR_VERSION}`;
+    assert.deepEqual([...siddurCache(caches, name).keys()], [
+        `${ORIGIN}/api/siddur/v2/toc/edot-hamizrach`,
+        `${ORIGIN}/api/siddur/v2/service/edot-hamizrach/shacharit?v=${SIDDUR_VERSION}`,
+        `${ORIGIN}/api/siddur/v2/service/edot-hamizrach/mincha?v=${SIDDUR_VERSION}`,
+    ]);
+    assert.equal(fetched.length, 3, 'a repeated slug is fetched once');
+
+    await dispatchMessage(precacheMessage());
+    assert.equal(fetched.length, 3, 'what is already kept is not fetched again');
+});
+
+test('PRECACHE_SIDDUR ignores a message that could name a path of its own', async (t) => {
+    const fetched = [];
+    const { caches, dispatchMessage } = loadWorker(t, {
+        fetchImpl: async (url) => { fetched.push(url); return jsonResponse({}); },
+    });
+    await dispatchMessage(precacheMessage({ rite: '../api/user' }));
+    await dispatchMessage(precacheMessage({ version: 'v=1&x' }));
+    await dispatchMessage(precacheMessage({ services: 'shacharit' }));
+    assert.deepEqual(fetched, []);
+
+    await dispatchMessage(precacheMessage({ services: ['../../user', 'Shacharit', 7, 'mincha'] }));
+    assert.deepEqual(fetched.map((url) => url.slice(ORIGIN.length)), [
+        '/api/siddur/v2/toc/edot-hamizrach',
+        `/api/siddur/v2/service/edot-hamizrach/mincha?v=${SIDDUR_VERSION}`,
+    ]);
+    assert.ok([...caches.stores.keys()].every((name) => !name.includes('..')));
+});
+
+test('a new version replaces the old only once it is whole, and never touches another rite', async (t) => {
+    let failMincha = true;
+    const { caches, dispatchMessage } = loadWorker(t, {
+        fetchImpl: async (url) => {
+            if (url.includes('/mincha') && failMincha) throw new TypeError('offline');
+            if (url.includes('/shacharit') && failMincha) return jsonResponse({ error: 'nope' });
+            return jsonResponse({ url });
+        },
+    });
+    for (const name of ['shelah-siddur-edot-hamizrach@0000aaaa', 'shelah-siddur-edot@0000aaaa']) {
+        (await caches.open(name)).put(`${ORIGIN}/api/siddur/v2/toc/x`, jsonResponse({}));
+    }
+
+    await dispatchMessage(precacheMessage());
+    assert.ok(caches.stores.has('shelah-siddur-edot-hamizrach@0000aaaa'), 'kept while the new one is partial');
+
+    failMincha = false;
+    await dispatchMessage(precacheMessage());
+    assert.ok(!caches.stores.has('shelah-siddur-edot-hamizrach@0000aaaa'), 'replaced once whole');
+    assert.ok(caches.stores.has('shelah-siddur-edot@0000aaaa'), 'a rite whose name is a prefix is left alone');
+});
+
+test('a kept service answers with no network; the contents falls back to the kept copy offline', async (t) => {
+    let online = true;
+    const { dispatch, dispatchMessage } = loadWorker(t, {
+        fetchImpl: async (request) => {
+            if (!online) throw new TypeError('offline');
+            const url = typeof request === 'string' ? request : request.url;
+            return jsonResponse({ from: 'network', url: url.slice(ORIGIN.length) });
+        },
+    });
+    await dispatchMessage(precacheMessage({ services: ['shacharit'] }));
+    online = false;
+
+    const service = await dispatch(`/api/siddur/v2/service/edot-hamizrach/shacharit?v=${SIDDUR_VERSION}`);
+    assert.deepEqual(await service.response.json(),
+        { from: 'network', url: `/api/siddur/v2/service/edot-hamizrach/shacharit?v=${SIDDUR_VERSION}` });
+    assert.equal(service.waited, 0, 'a versioned service never changes: no refresh');
+
+    const toc = await dispatch('/api/siddur/v2/toc/edot-hamizrach');
+    assert.deepEqual(await toc.response.json(), { from: 'network', url: '/api/siddur/v2/toc/edot-hamizrach' });
+
+    const missing = await dispatch(`/api/siddur/v2/service/edot-hamizrach/mincha?v=${SIDDUR_VERSION}`);
+    assert.equal(missing.response.status, 503);
+    assert.deepEqual(await missing.response.json(), { error: 'Offline' });
+});
+
+test('online, the contents is read as usual (not pinned to the kept copy)', async (t) => {
+    let edition = 1;
+    const { dispatch, dispatchMessage } = loadWorker(t, {
+        fetchImpl: async () => jsonResponse({ edition }),
+    });
+    await dispatchMessage(precacheMessage({ services: [] }));
+    edition = 2;
+    const first = await dispatch('/api/siddur/v2/toc/edot-hamizrach');
+    assert.deepEqual(await first.response.json(), { edition: 2 });
+    const unversioned = await dispatch('/api/siddur/v2/service/edot-hamizrach/shacharit');
+    assert.deepEqual(await unversioned.response.json(), { edition: 2 }, 'no ?v=: not answered from the kept copy');
+});
+
+test('activating a new deploy keeps the siddur and drops the old deploy\'s caches', async (t) => {
+    const { caches, listeners } = loadWorker(t, { fetchImpl: async () => jsonResponse({}) });
+    for (const name of ['shelah-shell-v1-old', 'shelah-api-v1-old', `shelah-siddur-edot-hamizrach@${SIDDUR_VERSION}`]) {
+        await caches.open(name);
+        caches.stores.set(name, new Map([['k', 'v']]));
+    }
+    const waited = [];
+    listeners.activate({ waitUntil: (promise) => waited.push(promise) });
+    await Promise.all(waited);
+    assert.deepEqual([...caches.stores.keys()], [`shelah-siddur-edot-hamizrach@${SIDDUR_VERSION}`]);
+});

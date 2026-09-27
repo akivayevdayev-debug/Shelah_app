@@ -84,8 +84,15 @@ function fakeRoot(html) {
         line.insertAdjacentHTML = (_where, markup) => { if (/siddur-today-badge/.test(markup)) line.badge = true; };
         return line;
     });
+    // Section bodies at a settable viewport top (the tracker's reading line
+    // is a third of the way down the window), first section at the top.
+    const bodies = [...html.matchAll(/data-siddur-section-body="([^"]+)"/g)].map(([, slug], index) => {
+        const body = { dataset: { siddurSectionBody: slug }, top: index * 2000 };
+        body.getBoundingClientRect = () => ({ top: body.top });
+        return body;
+    });
     const root = {
-        html, slot, wake, cont, lines, clicks,
+        html, slot, wake, cont, lines, clicks, bodies,
         isConnected: true,
         offsetParent: {},
         currentChip: null,
@@ -99,6 +106,7 @@ function fakeRoot(html) {
         },
         querySelectorAll(sel) {
             if (sel === '[data-when]') return lines;
+            if (sel === '[data-siddur-section-body]') return bodies;
             return [];
         },
         click(target) {
@@ -174,6 +182,70 @@ test('open draws a service with its Today card, fetched once per data version', 
     assert.equal(fetch.calls.filter((u) => u.startsWith('/api/siddur/v2/service/')).length, 1);
     assert.equal(fetch.calls.filter((u) => u.startsWith('/api/siddur/v2/toc/')).length, 1);
     assert.match(fetch.calls.find((u) => u.startsWith('/api/siddur/v2/service/')), new RegExp(`\\?v=${TOC.version}$`));
+});
+
+test('opening pages asks the service worker to keep the siddur once per data version', async () => {
+    const posted = [];
+    const nav = { serviceWorker: { controller: { postMessage: (message) => posted.push(message) } } };
+    const { siddur } = await makeSiddur({ nav });
+
+    await siddur.renderToc({ setAttribute() {}, innerHTML: '' });
+    assert.equal(posted.length, 0, 'a menu drawing the contents is not a reader opening the siddur');
+
+    await siddur.open('edot-hamizrach/arbit', { container: fakeContainer() });
+    await siddur.open('edot-hamizrach/shacharit', { container: fakeContainer() });
+    await siddur.open('edot-hamizrach', { container: fakeContainer() });
+    assert.equal(posted.length, 1);
+    assert.equal(posted[0].type, 'PRECACHE_SIDDUR');
+    assert.equal(posted[0].rite, 'edot-hamizrach');
+    assert.ok(posted[0].services.includes('arbit'));
+});
+
+test('reading into a section saves the position and names it in the URL; a hidden page does neither', async () => {
+    const listeners = {};
+    const win = {
+        innerHeight: 900,
+        addEventListener: (type, fn) => { listeners[type] = fn; },
+        removeEventListener() {},
+        requestAnimationFrame: (fn) => { fn(); return 0; },
+        cancelAnimationFrame() {},
+    };
+    const { siddur, routes, storage } = await makeSiddur({ win });
+    const container = fakeContainer();
+    await siddur.open('edot-hamizrach/arbit', { container });
+    const root = container.firstElementChild;
+    assert.deepEqual(root.bodies.map((b) => b.dataset.siddurSectionBody), ['barchu', 'keriat-shema', 'amidah', 'alenu']);
+    assert.deepEqual(routes, [], 'opening the page is not the reader moving');
+
+    root.bodies[1].top = 100;
+    root.bodies[2].top = 250;
+    listeners.scroll();
+    assert.equal(routes.at(-1), 'edot-hamizrach/arbit/amidah');
+    assert.ok([...storage.store.values()].some((value) => value.includes('amidah')), 'position saved');
+
+    root.bodies[1].top = 2000;
+    root.bodies[2].top = 4000;
+    listeners.scroll();
+    assert.equal(routes.at(-1), 'edot-hamizrach/arbit', 'back at the first section: the service\'s own URL');
+
+    const count = routes.length;
+    const saved = JSON.stringify([...storage.store]);
+    root.offsetParent = null;  // another view is up: a real move, not recorded
+    root.bodies[1].top = 100;
+    root.bodies[2].top = 250;
+    listeners.scroll();
+    root.offsetParent = {};
+    root.isConnected = false;  // replaced by another page
+    root.bodies[2].top = 2000;
+    listeners.scroll();
+    assert.equal(routes.length, count);
+    assert.equal(JSON.stringify([...storage.store]), saved);
+
+    root.isConnected = true;  // the guard, not the tracker, held those back
+    root.bodies[1].top = 3000;
+    listeners.scroll();
+    assert.equal(routes.length, count + 1);
+    assert.equal(routes.at(-1), 'edot-hamizrach/arbit');
 });
 
 test('the rite page draws the contents, with no service fetch', async () => {

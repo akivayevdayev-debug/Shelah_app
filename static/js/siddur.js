@@ -57,6 +57,16 @@ export function createSiddur({ fetchImpl = globalThis.fetch, deps, storage = glo
         return cached(tocs, rite, () => fetchJson(`/api/siddur/v2/toc/${encodeURIComponent(rite)}`));
     }
 
+    // Once per rite and data version: the reader opened the siddur, so keep
+    // it for offline use (siddur-reader.js keepOffline).
+    const kept = new Set();
+    function keepOnce(toc) {
+        const key = `${toc.rite?.slug}@${toc.version}`;
+        if (kept.has(key)) return;
+        kept.add(key);
+        reader.keepOffline(toc, { nav, win });
+    }
+
     function loadService(toc, slug) {
         return cached(services, `${toc.rite.slug}/${slug}@${toc.version}`,
             () => fetchJson(`/api/siddur/v2/service/${toc.rite.slug}/${slug}?v=${toc.version}`));
@@ -179,6 +189,7 @@ export function createSiddur({ fetchImpl = globalThis.fetch, deps, storage = glo
         const toc = await loadToc(parsed.rite);
         const where = reader.locate(toc, parsed);
         if (!where) throw new SiddurNotFound(String(value));
+        keepOnce(toc);
         const { date } = whichDay();
         const dayRequest = dayClient.get(date, israel()).catch(() => null);
         const payload = where.service ? await loadService(toc, where.service.slug) : null;
