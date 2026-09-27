@@ -195,7 +195,7 @@
     "semantic_hash": ""
   },
   "static/js/main.js": {
-    "mtime": 1790460866.7149425,
+    "mtime": 1790463001.2862055,
     "ast_hash": "5d276c723e5642b24cee38eee91d7639",
     "semantic_hash": ""
   },
@@ -495,8 +495,8 @@
     "semantic_hash": ""
   },
   "docs/DATABASE.md": {
-    "mtime": 1790183195.336001,
-    "ast_hash": "1b1c7616c15c812c9da1c74094d5d530",
+    "mtime": 1790477807.5367055,
+    "ast_hash": "3e328c2bd64c1e8d817f9762304fc13d",
     "semantic_hash": ""
   },
   "docs/DEVELOPER_NOTES.md": {
@@ -600,8 +600,8 @@
     "semantic_hash": "3b8aec7b5101992b5b9b2bd817f41b21"
   },
   "templates/components/legal_scripts.html": {
-    "mtime": 1790442128.8493361,
-    "ast_hash": "9b8f01ed3a8d50fefa861fcbf6033f4e",
+    "mtime": 1790477780.3040357,
+    "ast_hash": "d368daab613f76681e3dbf5dcfee5f5c",
     "semantic_hash": ""
   },
   "templates/components/legal_topbar.html": {
@@ -610,8 +610,8 @@
     "semantic_hash": ""
   },
   "templates/index.html": {
-    "mtime": 1790460706.0644732,
-    "ast_hash": "620d0fdfe38b0b9911635f1502ec7f49",
+    "mtime": 1790477950.928585,
+    "ast_hash": "3917a38c284f4e37cbddd6117a00751d",
     "semantic_hash": ""
   },
   "templates/privacy.html": {
@@ -830,8 +830,8 @@
     "semantic_hash": ""
   },
   "backend/helpers.py": {
-    "mtime": 1789825997.9162326,
-    "ast_hash": "860db802dec798feab24a636db540054",
+    "mtime": 1790477561.2538803,
+    "ast_hash": "3d2a54243aea676f5bc660af99563430",
     "semantic_hash": ""
   },
   "tests/test_cache.py": {
@@ -1825,7 +1825,7 @@
     "semantic_hash": ""
   },
   "static/js/router.js": {
-    "mtime": 1790460436.7520916,
+    "mtime": 1790463001.2863712,
     "ast_hash": "2f485b95f2c289dba5b2aa9ebb5557ca",
     "semantic_hash": ""
   },
@@ -1865,7 +1865,7 @@
     "semantic_hash": ""
   },
   "tests_js/router.test.js": {
-    "mtime": 1790460436.7523031,
+    "mtime": 1790463001.2875972,
     "ast_hash": "ffcd4ab706942faddcbaf18ca796534c",
     "semantic_hash": ""
   },
@@ -1885,8 +1885,8 @@
     "semantic_hash": ""
   },
   "static/js/conversation-ui.js": {
-    "mtime": 1790460866.7139819,
-    "ast_hash": "c7039035886a9f68842615c60a77205b",
+    "mtime": 1790477722.534197,
+    "ast_hash": "5d426a268f3d8ef63af54a80e7c5f97c",
     "semantic_hash": ""
   },
   "tests_js/conversation_ui_helpers.test.js": {
@@ -2027,6 +2027,11 @@
   "tests_js/load_region.test.js": {
     "mtime": 1790440762.9704428,
     "ast_hash": "ce7e83eaba2f55290f23bd83f9dfa9dc",
+    "semantic_hash": ""
+  },
+  "scripts/sql/supabase_migrations_history_setup.sql": {
+    "mtime": 1790477805.6309972,
+    "ast_hash": "8cdee3b90282877f4ad70369ff2e0c78",
     "semantic_hash": ""
   }
 }
