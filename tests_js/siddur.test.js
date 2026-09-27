@@ -186,7 +186,7 @@ test('open draws a service with its Today card, fetched once per data version', 
 
 test('opening pages asks the service worker to keep the siddur once per data version', async () => {
     const posted = [];
-    const nav = { serviceWorker: { controller: { postMessage: (message) => posted.push(message) } } };
+    const nav = { serviceWorker: { ready: Promise.resolve({ active: { postMessage: (message) => posted.push(message) } }) } };
     const { siddur } = await makeSiddur({ nav });
 
     await siddur.renderToc({ setAttribute() {}, innerHTML: '' });
@@ -195,6 +195,7 @@ test('opening pages asks the service worker to keep the siddur once per data ver
     await siddur.open('edot-hamizrach/arbit', { container: fakeContainer() });
     await siddur.open('edot-hamizrach/shacharit', { container: fakeContainer() });
     await siddur.open('edot-hamizrach', { container: fakeContainer() });
+    await new Promise((resolve) => setImmediate(resolve));
     assert.equal(posted.length, 1);
     assert.equal(posted[0].type, 'PRECACHE_SIDDUR');
     assert.equal(posted[0].rite, 'edot-hamizrach');
