@@ -49,15 +49,61 @@ def test_distinct_files_stay_separate_in_first_seen_order():
     assert "LH:0" in merged.split("SF:a.js")[1]  # a.js: nothing covered
 
 
-def test_branch_hits_are_summed_and_untaken_dash_counts_as_zero():
-    text = _record("a.js", [(1, 1)], brda=[(1, "0", "0", "-"), (1, "0", "1", 2)]) + \
-        _record("a.js", [(1, 1)], brda=[(1, "0", "0", 3), (1, "0", "1", "-")])
+def test_branch_hits_are_merged_per_line_and_untaken_dash_counts_as_zero():
+    # Each copy took one of line 1's two branches. Node's ids cannot say
+    # whether it was the same branch, so the merge claims only what one copy
+    # proved on its own: two branches, one covered, all hits kept.
+    text = _record("a.js", [(1, 1)], brda=[(1, "0", "0", "-"), (1, "1", "0", 2)]) + \
+        _record("a.js", [(1, 1)], brda=[(1, "0", "0", 3), (1, "1", "0", "-")])
 
     merged = merge_lcov.merge_lcov(text)
 
-    assert "BRDA:1,0,0,3" in merged
-    assert "BRDA:1,0,1,2" in merged
+    assert "BRDA:1,0,0,5" in merged
+    assert "BRDA:1,1,0,0" in merged
     assert "BRF:2" in merged
+    assert "BRH:1" in merged
+
+
+def test_a_branch_whose_block_id_differs_between_copies_is_counted_once():
+    # The reported bug: Node numbers BRDA blocks by position in each record,
+    # and a copy that ran more functions lists more ranges before line 9. The
+    # same line-9 branch arrives as block 2 in one copy and block 0 in the
+    # other; keyed by block id it became two branches, one never taken.
+    text = _record("static/js/zmanim.js", [(1, 1), (9, 1)],
+                   brda=[(1, "0", "0", 1), (5, "1", "0", 1), (9, "2", "0", 4)]) + \
+        _record("static/js/zmanim.js", [(1, 1), (9, 0)],
+                brda=[(9, "0", "0", 0)])
+
+    merged = merge_lcov.merge_lcov(text)
+
+    assert [line for line in merged.splitlines() if line.startswith("BRDA:9,")] == ["BRDA:9,2,0,4"]
+    assert "BRF:3" in merged
+    assert "BRH:3" in merged
+
+
+def test_a_line_keeps_the_most_branches_any_single_copy_listed():
+    # V8 only lists the ranges a copy's run could tell apart, so copies list
+    # different numbers of branches for one line; the merge keeps the widest.
+    text = _record("a.js", [(4, 1)], brda=[(4, "0", "0", 1)]) + \
+        _record("a.js", [(4, 1)], brda=[(4, "0", "0", 0), (4, "1", "0", 2), (4, "2", "0", 0)])
+
+    merged = merge_lcov.merge_lcov(text)
+
+    assert [line for line in merged.splitlines() if line.startswith("BRDA:")] == [
+        "BRDA:4,0,0,3", "BRDA:4,1,0,0", "BRDA:4,2,0,0"]
+    assert "BRF:3" in merged
+    assert "BRH:1" in merged
+
+
+def test_a_single_record_keeps_its_branch_counts():
+    text = _record("a.js", [(1, 1), (7, 1)],
+                   brda=[(7, "0", "0", 0), (1, "1", "0", 2), (7, "2", "0", 5)])
+
+    merged = merge_lcov.merge_lcov(text)
+
+    assert [line for line in merged.splitlines() if line.startswith("BRDA:")] == [
+        "BRDA:1,0,0,2", "BRDA:7,1,0,5", "BRDA:7,2,0,0"]
+    assert "BRF:3" in merged
     assert "BRH:2" in merged
 
 
