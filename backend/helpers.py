@@ -740,46 +740,78 @@ def _lookup_hebrew_word_in_local_glossary(variants):
     return "", ""
 
 
+def _first_hit(fn, candidates, is_hit, max_workers):
+    """Run fn(candidate) over candidates with bounded concurrency, resolving
+    as soon as the highest-priority (earliest) candidate whose result
+    satisfies is_hit() is known -- without waiting on slower, lower-priority
+    candidates the way a plain pool.map() gather would.
+
+    Submitting every candidate at once (no cap) traded one failure mode for
+    a worse one: it fixed the "waits for every candidate" latency, but it
+    also fires several near-simultaneous requests at whatever fn() calls out
+    to. Sefaria's lexicon shrugs that off, but the online-translation
+    providers (_translate_hebrew_text_online) sit behind a shared,
+    process-wide circuit breaker (backend/health_check.py, FAIL_THRESHOLD=3
+    consecutive failures -> 120s locked out) -- a burst of concurrent calls
+    against the same unofficial endpoint from one process is exactly the
+    kind of traffic that trips it, and once it's open every *other* word
+    lookup gets nothing from that provider for two minutes. Capping
+    max_workers keeps a real speed win (later candidates are usually
+    already running, or already done, by the time an earlier one is
+    checked) without hammering any one provider.
+
+    A raw ThreadPoolExecutor (not the `with` form) lets an early exit drop
+    queued candidates and skip waiting on already-started ones that are no
+    longer needed, instead of blocking on the pool's implicit shutdown.
+    """
+    if not candidates:
+        return None
+    pool = ThreadPoolExecutor(max_workers=min(max_workers, len(candidates)))
+    futures = [pool.submit(fn, c) for c in candidates]
+    try:
+        for future in futures:
+            result = future.result()
+            if is_hit(result):
+                return result
+    finally:
+        pool.shutdown(wait=False, cancel_futures=True)
+    return None
+
+
 def _lookup_hebrew_word_in_sefaria_lexicon(variants):
     """Stage 2 of _lookup_hebrew_word_meaning(): Sefaria lexicon lookup.
-    Split out (SonarCloud python:S3776).
-
-    Each variant is its own ~3s-timeout network round trip; on a miss (no
-    variant matches, the common case for a word outside the lexicon) up to
-    8 of them used to run one after another. Probed concurrently instead,
-    so the stage costs about one round trip rather than len(variants) of
-    them -- this and _lookup_hebrew_word_via_online_translation() below are
-    what made selecting an unfamiliar word feel like it hung.
+    Split out (SonarCloud python:S3776). See _first_hit()'s docstring for
+    why this is bounded, early-exiting concurrency rather than a plain loop
+    or an uncapped gather.
     """
-    if not variants:
+    result = _first_hit(_lookup_sefaria_lexicon, variants, lambda r: bool(r[0]), max_workers=6)
+    if not result:
         return "", ""
-    with ThreadPoolExecutor(max_workers=len(variants)) as pool:
-        results = list(pool.map(_lookup_sefaria_lexicon, variants))
-    for lex_def, lex_src in results:
-        if lex_def:
-            return lex_def, lex_src or "sefaria-lexicon"
-    return "", ""
+    lex_def, lex_src = result
+    return lex_def, lex_src or "sefaria-lexicon"
 
 
 def _lookup_hebrew_word_via_online_translation(variants, clean_word):
     """Stages 3-4 of _lookup_hebrew_word_meaning(): online machine
     translation, tried per-variant and then against the full clean word,
-    rejecting results that look like transliteration rather than an
-    actual English meaning. Split out (SonarCloud python:S3776).
+    rejecting results that look like transliteration rather than an actual
+    English meaning. Split out (SonarCloud python:S3776).
 
-    Each candidate can cost up to ~5s (Google then MyMemory) -- see
-    _translate_hebrew_text_online()'s own docstring. Probed concurrently
-    (same rationale as the lexicon stage above), then resolved in the
-    original variants-first, clean_word-last preference order so the
-    result matches what the sequential version would have picked.
+    max_workers=2: see _first_hit()'s docstring -- this is the stage that
+    shares a circuit breaker with every other translation caller in the
+    process, so concurrency here stays deliberately gentle.
     """
     candidates = [*variants, clean_word]
-    with ThreadPoolExecutor(max_workers=len(candidates)) as pool:
-        results = list(pool.map(_translate_hebrew_text_online, candidates))
-    for generated, source in results:
-        if generated and not _looks_like_transliteration(generated):
-            return generated, source or "automatic-translation"
-    return "", ""
+    result = _first_hit(
+        _translate_hebrew_text_online,
+        candidates,
+        lambda r: bool(r[0]) and not _looks_like_transliteration(r[0]),
+        max_workers=2,
+    )
+    if not result:
+        return "", ""
+    generated, source = result
+    return generated, source or "automatic-translation"
 
 
 def _lookup_hebrew_word_meaning(word):
