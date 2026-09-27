@@ -149,6 +149,7 @@
     <link rel="stylesheet" href="/static/css/sidebar.css?v=20260925-mp2">
     <link rel="stylesheet" href="/static/css/halacha.css?v=20260817-v6">
     <link rel="stylesheet" href="/static/css/prayer.css?v=20260817-v6">
+    <link rel="stylesheet" href="/static/css/siddur.css?v=20260927-s1">
     <link rel="stylesheet" href="/static/css/ai.css?v=20260926-cv1">
     <link rel="stylesheet" href="/static/css/conversation.css?v=20260926-ai2">
     <link rel="stylesheet" href="/static/css/history.css?v=20260926-rd1">
@@ -997,9 +998,21 @@
                 <h3 class="text-xs font-bold text-slate-400 uppercase tracking-widest mt-6 mb-3"
                     data-en="Prayer Services" data-he="שירותי תפילה">
                     Prayer Services</h3>
+                <!-- The siddur (Edot HaMizrach): one curated tree, the same one the
+                     Texts menu shows (static/js/siddur-reader.js tocMarkup). -->
+                <details class="group cursor-pointer" open>
+                    <summary class="font-semibold hover:text-[#00827f] list-none border-b pb-2 mb-2"
+                        data-en="Siddur" data-he="סידור">Siddur</summary>
+                    <div id="siddurTocSidebar" class="siddur-toc-mount" aria-busy="true">
+                        <p class="sr-only" data-en="Loading the siddur..." data-he="טוען את הסידור...">Loading the siddur...</p>
+                        <div class="sk-tree-row" aria-hidden="true"></div>
+                        <div class="sk-tree-row" aria-hidden="true" style="width:80%"></div>
+                        <div class="sk-tree-row" aria-hidden="true" style="width:90%"></div>
+                    </div>
+                </details>
                 <details class="group cursor-pointer">
                     <summary class="font-semibold hover:text-[#00827f] list-none border-b pb-2 mb-2"
-                        data-en="Prayer Books" data-he="סידורי תפילה">Prayer Books</summary>
+                        data-en="Other prayer books" data-he="סידורים נוספים">Other prayer books</summary>
                     <ul id="prayerBooksNavList" class="ml-2 space-y-1 border-l-2 pl-3 border-[#00827f]/30"
                         aria-busy="true">
                         <li class="sr-only" data-en="Loading prayer books..." data-he="טוען סידורי תפילה...">Loading
@@ -1176,6 +1189,15 @@
                                     data-he="יצירות הלכתיות המדריכות את חיי המעשה היהודיים לפי פסיקה קלאסית.">Legal
                                     works guiding daily Jewish practice through classical rulings.</span>
                             </button>
+
+                            <a href="/siddur/edot-hamizrach" data-siddur-path="edot-hamizrach"
+                                class="home-library-link home-link-siddur text-start w-full">
+                                <span class="home-library-title" data-en="Siddur" data-he="סידור">Siddur</span>
+                                <span class="home-library-description"
+                                    data-en="The Sephardi (Edot HaMizrach) siddur in prayer order, with what changes today."
+                                    data-he="סידור עדות המזרח לפי סדר התפילה, עם מה שמשתנה היום.">The Sephardi
+                                    (Edot HaMizrach) siddur in prayer order, with what changes today.</span>
+                            </a>
 
                             <button type="button" onclick="openLibraryCategory('customs')"
                                 class="home-library-link home-link-customs text-start w-full">
@@ -1832,12 +1854,19 @@
             </div>
 
             <div class="overflow-y-auto flex-1 px-6 py-6 custom-scrollbar">
-                <!-- Siddur Section -->
+                <!-- Siddur Section: the curated Edot HaMizrach siddur first -->
                 <div class="mb-8">
-                    <h3 class="font-serif text-lg font-bold text-[#00827f] mb-4 pb-2 border-b" data-en="Prayer Books"
-                        data-he="סידורי תפילה">Prayer
-                        Books
-                    </h3>
+                    <h3 class="font-serif text-lg font-bold text-[#00827f] mb-4 pb-2 border-b" data-en="Siddur"
+                        data-he="סידור">Siddur</h3>
+                    <div id="siddurTocMenu" class="siddur-toc-mount" aria-busy="true">
+                        <div class="sk-prayer-row" aria-hidden="true"></div>
+                        <div class="sk-prayer-row" aria-hidden="true" style="width:85%"></div>
+                        <div class="sk-prayer-row" aria-hidden="true" style="width:70%"></div>
+                    </div>
+                </div>
+                <div class="mb-8">
+                    <h3 class="font-serif text-lg font-bold text-[#00827f] mb-4 pb-2 border-b" data-en="Other prayer books"
+                        data-he="סידורים נוספים">Other prayer books</h3>
                     <output id="prayersList" class="block prayer-menu-layout space-y-2" aria-busy="true">
                         <div class="sk-prayer-row" aria-hidden="true"></div>
                         <div class="sk-prayer-row" aria-hidden="true" style="width:85%"></div>
@@ -7210,7 +7239,7 @@
         // Views this maps route the URL when the caller switches to them;
         // 'ask' is deliberately excluded -- AI answers are routed by their
         // own history_id (see handleAiSearch), not by question text.
-        const ROUTE_TYPE_FOR_VIEW = { text: 'text', prayer: 'prayer', community: 'community', history: 'history' };
+        const ROUTE_TYPE_FOR_VIEW = { text: 'text', prayer: 'prayer', community: 'community', siddur: 'siddur', history: 'history' };
         // The /history page is where you find things, not something you read:
         // it stays out of Recent.
         const VIEWS_KEPT_OUT_OF_RECENT = new Set(['history']);
@@ -7234,6 +7263,10 @@
         }
 
         function setCurrentView(type, value, label, options = {}) {
+            // Leaving the siddur stops its scroll tracking and lets go of a
+            // screen wake lock (static/js/siddur.js close); an answer panel
+            // over it ('ask') doesn't leave it.
+            if (type !== 'siddur' && type !== 'ask') window.ShelahSiddur?.close();
             appState.currentView = { type, value, label: label || value };
             // 'ask' is the answer panel over the page, not the page.
             if (type !== 'ask') {
@@ -9408,6 +9441,8 @@
                     renderCurrentTextByLayout({ preserveScroll: hasRenderedText });
                 }
             }
+            // The siddur draws its own layout / vowels / cantillation.
+            if (appState.currentView?.type === 'siddur') window.ShelahSiddur?.rerender();
 
             const sizePx = `${appState.prefs.fontSize}px`;
             const lineHeight = String(appState.prefs.lineHeight);
@@ -9752,6 +9787,10 @@
             }
             if (type === 'prayer') {
                 await displayPrayer(value);
+                return;
+            }
+            if (type === 'siddur') {
+                await displaySiddur(value);
                 return;
             }
             if (type === 'community') {
@@ -10926,6 +10965,7 @@
 
         async function loadPrayersMenu(attempt = 0) {
             const modalList = document.getElementById('prayersList');
+            renderSiddurMenus();
 
             try {
                 const prayers = await ensurePrayerListLoaded({ rethrow: true });
@@ -11097,7 +11137,10 @@
 
         function prayerFamilyLabel(familyKey) {
             const labels = {
-                sefardic: t('Sefardic Prayers', 'תפילות ספרד'),
+                // Siddur Sefard is the Chassidic rite (its own Sefaria
+                // description), not the Sephardi one: the Sephardi siddur
+                // is the curated Edot HaMizrach above (audit N5).
+                sefardic: t('Nusach Sefard (Chassidic)', 'נוסח ספרד (חסידי)'),
                 ashkenaz: t('Ashkenaz Prayers', 'תפילות אשכנז'),
                 edotHamizrach: t('Edot HaMizrach Prayers', 'תפילות עדות המזרח'),
                 other: t('Additional Prayer Collections', 'אוספי תפילה נוספים'),
@@ -11814,6 +11857,133 @@
             return html;
         }
 
+        // ─── Siddur (Prayers redesign) ─────────────────────────────────────
+        // The curated Edot HaMizrach siddur at /siddur/<rite>[/<service>[/<section>]].
+        // static/js/siddur.js (window.ShelahSiddur) loads and draws the page
+        // body; this owns the reader chrome, the split displayPrayer has.
+        // prepare() only loads, so a load this view has moved on from is
+        // dropped before anything is drawn.
+        async function displaySiddur(value, options = {}) {
+            const myRequestId = ++_readTextRequestGen;
+            leaveViewScroll();
+            appState.shownView = null;
+            await swapView(() => {
+                homeGrid.style.display = 'none';
+                showReaderSkeleton(t('Siddur', 'סידור'));
+                closeMobilePanels();
+                closeTextsMenu();
+                closeReaderSettingsPanel();
+                setReaderSubtitle('');
+                readerTopBar?.classList.add('hidden');
+            }, { transition: options.loadRetryAttempt == null });
+            if (myRequestId !== _readTextRequestGen) return;
+
+            const siddur = window.ShelahSiddur;
+            try {
+                if (!siddur) throw new Error('The siddur module has not loaded');
+                const prepared = await siddur.prepare(value);
+                if (myRequestId !== _readTextRequestGen) return;
+                hideReaderSkeleton();
+                applySidebarVisibility();
+
+                window.currentPrayerContent = null;
+                window.currentPrayerParagraphPairs = [];
+                window.currentPrayerIsHtml = false;
+                window.currentPrayerName = null;
+                window.currentCommunityData = null;
+                window.currentTextPayload = null;
+                window.currentTextPayloadChain = [];
+                resetInfiniteReaderState(null);
+                collapseCommentaryPanel();
+                resetSelectionInsights();
+                clearCompareReference(false);
+                document.getElementById('readerSources').innerHTML = '';
+
+                const { label, section } = siddur.mount(document.getElementById('readerContent'), prepared);
+                document.getElementById('readerTitle').innerText = label;
+                setCurrentView('siddur', value, label, options);
+                const source = prepared.toc.source;
+                sidebarContent.innerHTML = `
+                    <div class="text-xs space-y-2">
+                        <div><span class="font-bold text-slate-700">${t('From:', 'מקור:')}</span> <span class="text-slate-500">${escapeHtml(source.index)} · Sefaria</span></div>
+                        <div><span class="font-bold text-slate-700">${t('Hebrew:', 'עברית:')}</span> <span class="text-slate-500">${escapeHtml(`${source.he.title} (${source.he.license})`)}</span></div>
+                        <div><span class="font-bold text-slate-700">${t('English:', 'אנגלית:')}</span> <span class="text-slate-500">${escapeHtml(`${source.en.title} (${source.en.license})`)}</span></div>
+                    </div>`;
+                renderSiddurMenus();
+                if (!section && !restoreViewScroll(options.restoreScroll, 'siddur')) scrollPrimaryToTop('auto');
+            } catch (err) {
+                if (myRequestId !== _readTextRequestGen) return;
+                hideReaderSkeleton({ loaded: false });
+                applySidebarVisibility();
+                renderSiddurLoadError(value, options, err);
+            }
+        }
+
+        // A page the siddur doesn't have gets "Back to the siddur" (and the
+        // next visit a real 404); anything else -- offline, a server error --
+        // offers Retry and retries on its own (static/js/load-region.js).
+        function renderSiddurLoadError(value, options, err) {
+            const content = document.getElementById('readerContent');
+            const regions = window.ShelahLoadRegion;
+            if (!content || !regions) return;
+            document.getElementById('readerTitle').textContent = t('Siddur', 'סידור');
+            readerTopBar?.classList.add('hidden');
+            const missing = err?.name === 'SiddurNotFound';
+            const attempt = Number(options.loadRetryAttempt) || 0;
+            const retry = (nextAttempt) => {
+                if (reader.classList.contains('hidden')) return;
+                void displaySiddur(value, { ...options, loadRetryAttempt: nextAttempt });
+            };
+            regions.renderRegionError(content, {
+                message: missing
+                    ? t("This page isn't in the siddur.", 'הדף הזה אינו בסידור.')
+                    : t("Couldn't load the siddur. Check your connection.", 'לא ניתן היה לטעון את הסידור. בדקו את החיבור.'),
+                retry: missing ? null : () => retry(0),
+                actions: missing ? [{ label: t('Back to the siddur', 'חזרה לסידור'), onClick: () => void displaySiddur('edot-hamizrach') }] : [],
+            });
+            if (missing) {
+                if (options.fromRoute) window.ShelahRouter?.markNotFound();
+            } else {
+                regions.retryLater(content, retry, { attempt });
+            }
+        }
+
+        // The siddur's table of contents in the Texts menu and the sidebar,
+        // with the service on screen marked. Called when those menus load,
+        // on a language switch, and by main.js once the module is up (it can
+        // arrive after the classic script first asks). A function
+        // declaration, so the startup toggleLanguage can call it early.
+        function renderSiddurMenus() {
+            const siddur = window.ShelahSiddur;
+            if (!siddur) return;
+            const shown = appState?.currentView?.type === 'siddur' ? String(appState.currentView.value || '') : '';
+            const current = shown.split('/')[1] || null;
+            const mounts = [
+                [document.getElementById('siddurTocMenu'), { compact: false, current }],
+                [document.getElementById('siddurTocSidebar'), { compact: true, current }],
+            ];
+            mounts.forEach(([mount, opts]) => {
+                if (!mount) return;
+                siddur.renderToc(mount, opts).catch(() => {
+                    failListRegions([mount],
+                        t("Couldn't load the siddur. Check your connection.", 'לא ניתן היה לטעון את הסידור. בדקו את החיבור.'),
+                        () => renderSiddurMenus(), 0);
+                });
+            });
+        }
+        window.renderSiddurMenus = renderSiddurMenus;
+
+        // Siddur links (menus, cards, breadcrumb, next/previous) are real
+        // links -- a new tab, a copied or shared URL all work -- that a plain
+        // click opens in place.
+        document.addEventListener('click', (event) => {
+            const link = event.target.closest?.('a[data-siddur-path]');
+            if (!link || event.defaultPrevented || event.button !== 0
+                || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
+            event.preventDefault();
+            void displaySiddur(link.dataset.siddurPath);
+        });
+
         async function displayCommunity(communityName, options = {}) {
             const myRequestId = ++_readTextRequestGen;
             leaveViewScroll();
@@ -11994,6 +12164,7 @@
             // clicked mid-load: that load must not paint (or retry) over home.
             cancelReaderLoad();
             leaveViewScroll();
+            window.ShelahSiddur?.close();
             appState.currentView = null;
             appState.shownView = { type: 'home', value: null, view: null };
             window.ShelahState?.setState({ currentView: null });
@@ -13286,6 +13457,13 @@
                 populatePrayersListHTML(textsCache.prayersList);
                 populatePrayerBooksNavigator(textsCache.prayersList);
             }
+            renderSiddurMenus();
+            const siddurPage = appState.currentView?.type === 'siddur' ? window.ShelahSiddur?.rerender() : null;
+            if (siddurPage) {
+                appState.currentView.label = siddurPage.label;
+                document.getElementById('readerTitle').innerText = siddurPage.label;
+                syncDocumentTitle();
+            }
             if (Array.isArray(textsCache.communitiesList)) {
                 populateCommunitiesListHTML(textsCache.communitiesList);
             }
@@ -14318,6 +14496,8 @@
                     .some((chunk) => chunk?.ref && textRefWithin(route.text, chunk.ref));
             }
             if (route.prayer) return shown.type === 'prayer' && shown.value === route.prayer;
+            // The same service, whichever of its sections the URL names.
+            if (route.siddur) return shown.type === 'siddur' && Boolean(window.ShelahSiddur?.isShowing(route.siddur));
             if (route.community) return shown.type === 'community' && shown.value === route.community;
             if (route.history) return shown.type === 'history';
             return shown.type === 'home';
@@ -14647,6 +14827,7 @@
                 // day) leaves the page under it as it is.
                 const overlayMoved = ['chat', 'a', 'conversation', 'date', 'auth'].some((key) => (route[key] || null) !== (left?.[key] || null));
                 if (route.text && left?.text && !overlayMoved) restoreViewScroll(restoreScroll, 'text');
+                if (route.siddur && !overlayMoved) window.ShelahSiddur?.scrollTo(route.siddur);
             } else if (route.text) {
                 // A link names the exact section to show: /text/Genesis.1 is
                 // chapter 1, not a request to pick a chapter from the grid a
@@ -14654,6 +14835,8 @@
                 readText(route.text, { fromRoute: true, skipNavigationGrid: true, restoreScroll });
             } else if (route.prayer) {
                 displayPrayer(route.prayer, { fromRoute: true, restoreScroll });
+            } else if (route.siddur) {
+                displaySiddur(route.siddur, { fromRoute: true, restoreScroll });
             } else if (route.community) {
                 displayCommunity(route.community, { fromRoute: true, restoreScroll });
             } else if (route.chat) {

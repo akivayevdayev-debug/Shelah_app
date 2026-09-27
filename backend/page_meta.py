@@ -20,6 +20,8 @@ beside it would be a mixed signal.
 import re
 from urllib.parse import quote
 
+from backend import siddur_data
+
 SITE_BASE_URL = "https://shelah-app.vercel.app"
 SITE_NAME = "Sh'elah"
 SITE_TITLE = "Sh'elah - Torah Encyclopedia"
@@ -177,6 +179,31 @@ def query_meta(args):
     if args.get("community"):
         return community_meta(args["community"])
     return home_meta()
+
+
+def siddur_meta(rite, service=None, section=None):
+    """The siddur's rite contents, a service, or one of its sections
+    (backend/siddur_data.py; the caller has checked the page exists).
+    Transliterated names, as the page's own heading reads."""
+    toc = siddur_data.get_toc(rite)
+    rite_name = toc["rite"]["title"]["en"]
+    path = siddur_data.siddur_path(rite, service, section)
+    if not service:
+        return _meta(
+            title=f"Siddur · {rite_name}",
+            description=f"The complete {rite_name} siddur on {SITE_NAME}: weekday, Shabbat and festival prayers "
+                        "in liturgical order, with what changes today.",
+            canonical_path=path,
+        )
+    entry, sec = siddur_data.find(rite, service, section)
+    name = entry["title"]["en"]
+    title = f"{sec['title']['en']} · {name}" if section else name
+    return _meta(
+        title=title,
+        description=f"{title} ({entry['title']['he']}), {entry.get('gloss', '')}: the {rite_name} siddur on "
+                    f"{SITE_NAME}, in Hebrew with English where translated.",
+        canonical_path=path,
+    )
 
 
 def legacy_query_redirect_path(args):

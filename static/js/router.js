@@ -48,6 +48,8 @@
 //
 //   view:  /text/<ref>  /prayer/<name>  /community/<name>  /answer/<uuid> (chat)
 //          /a/<token>   /history
+//          /siddur/<rite>[/<service>[/<section>]]  (up to three slugs; the
+//          route value joins them with `/`, e.g. "edot-hamizrach/shacharit/amida")
 //   tail:  chat/<id>              the conversation (`new` for a fresh one)
 //          <community> <mode>     the AI keys, e.g. `sefardic/strict`
 //          full | mini            the conversation's size (overlay is implicit)
@@ -85,7 +87,7 @@
 // entry of ours underneath to go back to). A replace keeps the marker while
 // its overlay is still in the route; a new marker is only ever written by a
 // real push.
-const VIEW_KEYS = ["text", "prayer", "community", "chat", "a", "history"];
+const VIEW_KEYS = ["text", "prayer", "community", "siddur", "chat", "a", "history"];
 // A view's own state, dropped with the view: `q` is the history page's
 // search (`/history?q=`, audit U-15).
 const VIEW_PARAM_KEYS = ["q"];
@@ -115,11 +117,17 @@ const DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
 // Route key -> first path segment. Order matters: when a non-exclusive push
 // leaves two view keys set, the first one here takes the path and the other
 // stays in the query.
-const PATH_SEGMENTS = Object.freeze({ text: "text", prayer: "prayer", community: "community", chat: "answer", a: "a", history: "history" });
+const PATH_SEGMENTS = Object.freeze({ text: "text", prayer: "prayer", community: "community", siddur: "siddur", chat: "answer", a: "a", history: "history" });
 const PATH_KEYS = Object.keys(PATH_SEGMENTS);
 const SEGMENT_KEYS = Object.freeze(Object.fromEntries(PATH_KEYS.map((key) => [PATH_SEGMENTS[key], key])));
 // Words a community's slug can't be: it would read back as something else.
 const RESERVED_WORDS = new Set([...Object.keys(TAIL_WORDS), ...Object.keys(TAIL_PAIRS), ...Object.keys(SEGMENT_KEYS)]);
+// The siddur (/siddur/<rite>[/<service>[/<section>]]): lowercase slugs that
+// scripts/build_siddur.py keeps clear of RESERVED_WORDS, so the tail after
+// them still reads. `/siddur` alone is the default rite's contents.
+const SIDDUR_SLUG_RE = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
+const SIDDUR_VALUE_RE = /^[a-z0-9]+(?:-[a-z0-9]+)*(?:\/[a-z0-9]+(?:-[a-z0-9]+)*){0,2}$/;
+const DEFAULT_SIDDUR_RITE = "edot-hamizrach";
 
 // A community in a path is its lowercase slug (`greek-romaniote`); every
 // community name is title case per hyphenated part, so the slug reads back.
@@ -139,6 +147,7 @@ const DISPLAY_VALIDATORS = {
 
 function normalizeRoute(route) {
     if ("a" in route && !SHARE_TOKEN_RE.test(route.a)) delete route.a;
+    if ("siddur" in route && !SIDDUR_VALUE_RE.test(route.siddur)) delete route.siddur;
     if ("q" in route) {
         const q = route.history ? String(route.q).replace(/\s+/g, " ").trim().slice(0, MAX_HISTORY_QUERY_CHARS) : "";
         if (q) route.q = q;
@@ -227,6 +236,16 @@ function parsePath(pathname) {
     if (view === "history") {
         route.history = "1";
         i = 1;
+    } else if (view === "siddur") {
+        const slugs = [];
+        i = 1;
+        while (i < parts.length && slugs.length < 3) {
+            const word = decodeSegment(parts[i]);
+            if (!SIDDUR_SLUG_RE.test(word) || RESERVED_WORDS.has(word)) break;
+            slugs.push(word);
+            i += 1;
+        }
+        route.siddur = slugs.length ? slugs.join("/") : DEFAULT_SIDDUR_RITE;
     } else if (view) {
         const raw = parts[1] === undefined ? "" : decodeSegment(parts[1]);
         if (!raw) return {};
@@ -295,6 +314,7 @@ function pathFor(route, currentPath = "/") {
     const parts = [];
     const key = PATH_KEYS.find((k) => route[k]);
     if (key === "history") parts.push("history");
+    else if (key === "siddur") parts.push("siddur", ...route.siddur.split("/"));
     else if (key) parts.push(PATH_SEGMENTS[key], encodeSegment(PATH_SLUGS[key] ? PATH_SLUGS[key].write(route[key]) : route[key]));
     if (route.conversation) parts.push("chat", encodeSegment(route.conversation));
     if (route.conversation || route.chat || route.a) {

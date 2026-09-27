@@ -631,3 +631,17 @@ test('getZmanimLocation is null with nothing fetched or saved', async () => {
 
     assert.equal(mod.namespace.getZmanimLocation(), null);
 });
+
+test('getSunset: the location\'s sunset once zmanim load, null before and for a bad value', async () => {
+    const sunsetIso = '2026-10-20T18:05:00.000Z';
+    const data = { zmanim: { Sunset: '6:05 PM' }, metadata: { timezone: 'UTC', zmanim_iso: { Sunset: sunsetIso } } };
+    const { mod } = await loadZmanim({ fetch: makeSequenceFetch([makeJsonResponse(data)]) });
+    assert.equal(mod.namespace.getSunset(), null);
+    await mod.namespace.fetchZmanimAPI(null, makeDeps());
+    assert.equal(mod.namespace.getSunset().toISOString(), sunsetIso);
+
+    const bad = { zmanim: {}, metadata: { zmanim_iso: { Sunset: 'not a time' } } };
+    const other = await loadZmanim({ fetch: makeSequenceFetch([makeJsonResponse(bad)]) });
+    await other.mod.namespace.fetchZmanimAPI(null, makeDeps());
+    assert.equal(other.mod.namespace.getSunset(), null);
+});
