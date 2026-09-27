@@ -16,7 +16,7 @@
 -- needs (it runs ADD COLUMN IF NOT EXISTS itself).
 --
 -- Not exposed through the API: supabase_migrations is not in the exposed
--- schemas, and nothing is granted to anon or authenticated.
+-- schemas, nothing is granted to anon or authenticated, and RLS is on.
 --
 -- Idempotent.
 
@@ -27,6 +27,10 @@ CREATE TABLE IF NOT EXISTS supabase_migrations.schema_migrations (
     statements TEXT[],
     name       TEXT
 );
+
+-- RLS on, no policies: a second lock behind the REVOKEs. The dashboard and
+-- the CLI read as postgres, which bypasses RLS.
+ALTER TABLE supabase_migrations.schema_migrations ENABLE ROW LEVEL SECURITY;
 
 REVOKE ALL ON SCHEMA supabase_migrations FROM PUBLIC, anon, authenticated;
 REVOKE ALL ON supabase_migrations.schema_migrations FROM PUBLIC, anon, authenticated;
