@@ -358,6 +358,12 @@ self.addEventListener("activate", (event) => {
 });
 
 self.addEventListener("message", (event) => {
+    // Only this origin's own pages can ask the worker to fetch or cache
+    // anything -- a service worker has no other legitimate sender, but the
+    // check is explicit rather than assumed (postMessage security rule).
+    if (event.origin !== self.location.origin) {
+        return;
+    }
     const data = event.data || {};
     if (data.type === "PREWARM_DAILY") {
         const refs = Array.isArray(data.refs) ? data.refs : [];
