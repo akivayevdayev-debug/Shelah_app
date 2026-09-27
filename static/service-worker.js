@@ -184,7 +184,15 @@ async function networkFirstScript(request) {
 // same shell as "/" on each), tails included (`/chat/new/all/balanced`,
 // `/history/chat/<id>`, `/signin`). Offline, a never-visited one falls back
 // to the precached shell, whose router then reads the path.
-const SPA_PATH_RE = /^\/(?:text|prayer|community|answer|a|calendar|chat|siddur)\/[^/]|^\/history(?:\/?$|\/chat\/[^/])|^\/(?:signin|profile|settings|siddur)\/?$/;
+const SPA_PATH_PATTERNS = [
+    /^\/(?:text|prayer|community|answer|a|calendar|chat|siddur)\/[^/]/,
+    /^\/history(?:\/?$|\/chat\/[^/])/,
+    /^\/(?:signin|profile|settings|siddur)\/?$/,
+];
+
+function isSpaPath(pathname) {
+    return SPA_PATH_PATTERNS.some((pattern) => pattern.test(pathname));
+}
 
 async function networkFirstNavigation(request) {
     try {
@@ -199,7 +207,7 @@ async function networkFirstNavigation(request) {
         if (cached) {
             return cached;
         }
-        if (SPA_PATH_RE.test(new URL(request.url).pathname)) {
+        if (isSpaPath(new URL(request.url).pathname)) {
             const shell = await caches.match("/");
             if (shell) {
                 return shell;
@@ -292,9 +300,13 @@ async function precacheSiddur({ rite, version, services }) {
     const slugs = [...new Set(services.filter(isSiddurSlug))].slice(0, SIDDUR_MAX_SERVICES);
     const name = siddurCacheName(rite, version);
     const cache = await caches.open(name);
+    // Validated above, and encoded anyway: nothing a message carries can
+    // reach past its own path segment.
+    const riteSegment = encodeURIComponent(rite);
+    const versionParam = encodeURIComponent(version);
     const paths = [
-        `/api/siddur/v2/toc/${rite}`,
-        ...slugs.map((slug) => `/api/siddur/v2/service/${rite}/${slug}?v=${version}`),
+        `/api/siddur/v2/toc/${riteSegment}`,
+        ...slugs.map((slug) => `/api/siddur/v2/service/${riteSegment}/${encodeURIComponent(slug)}?v=${versionParam}`),
     ];
     let whole = true;
     // One at a time: the reader's own requests go first.
@@ -310,7 +322,8 @@ async function precacheSiddur({ rite, version, services }) {
             } else {
                 whole = false;
             }
-        } catch (_err) {
+        } catch {
+            // Offline or refused: this version isn't whole yet; a later open retries.
             whole = false;
         }
     }
