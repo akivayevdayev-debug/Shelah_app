@@ -312,18 +312,22 @@ export function writePosition(key, section, storage = globalThis.localStorage) {
 // just leaves the switch off.
 // Asks the service worker to keep the whole siddur (table of contents and
 // every service) for offline use -- a reader who opened it will want it with
-// no signal. In the installed app, also asks for storage the browser won't
-// evict: Chrome and Safari grant that there without a prompt, where
-// Firefox's tab would stop the reader with a permission question.
+// no signal. Sent to the active worker via `ready`, not to the page's
+// controller: on a first visit that lands on the siddur, the worker is only
+// registered during this very load, so nothing controls the page yet. In the
+// installed app, also asks for storage the browser won't evict: Chrome and
+// Safari grant that there without a prompt, where Firefox's tab would stop
+// the reader with a permission question.
 export function keepOffline(toc, { nav = globalThis.navigator, win = globalThis.window } = {}) {
-    const controller = nav?.serviceWorker?.controller;
-    if (controller && toc?.rite?.slug && toc?.version) {
-        controller.postMessage({
+    const ready = nav?.serviceWorker?.ready;
+    if (ready && toc?.rite?.slug && toc?.version) {
+        const message = {
             type: "PRECACHE_SIDDUR",
             rite: toc.rite.slug,
             version: toc.version,
             services: (toc.occasions || []).flatMap((occasion) => occasion.services.map((service) => service.slug)),
-        });
+        };
+        Promise.resolve(ready).then((registration) => registration?.active?.postMessage(message)).catch(() => {});
     }
     const installed = win?.matchMedia?.("(display-mode: standalone)")?.matches || nav?.standalone === true;
     if (installed && nav?.storage?.persist) {

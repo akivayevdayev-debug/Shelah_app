@@ -1495,8 +1495,10 @@
                 <header class="mb-10 text-center">
                     <h1 id="readerTitle" class="text-2xl lg:text-3xl font-serif text-navy mb-4 font-bold"></h1>
                     <p id="readerSubtitle" class="hidden text-sm text-slate-500 font-serif -mt-2 mb-4"></p>
-                    <nav aria-label="breadcrumb"
-                        class="flex justify-center items-center gap-2 text-sm text-slate-500 uppercase tracking-widest font-bold">
+                    <!-- Hidden until setCurrentView knows the page is Sh'elah's own
+                         (a community page), never over Sefaria's text. -->
+                    <nav id="readerKindBadge" aria-label="breadcrumb"
+                        class="hidden flex justify-center items-center gap-2 text-sm text-slate-500 uppercase tracking-widest font-bold">
                         <ol class="flex items-center gap-2">
                             <li><span class="bg-slate-100 px-3 py-1 rounded" data-en="Sh'elah Synthesis"
                                     data-he="סינתזת שאילה">Sh'elah Synthesis</span></li>
@@ -7262,11 +7264,19 @@
                 : t("Sh'elah - Torah Encyclopedia", 'שאלה - אנציקלופדיית תורה');
         }
 
+        const PRIMARY_TEXT_VIEWS = new Set(['text', 'prayer', 'siddur']);
+
         function setCurrentView(type, value, label, options = {}) {
             // Leaving the siddur stops its scroll tracking and lets go of a
             // screen wake lock (static/js/siddur.js close); an answer panel
             // over it ('ask') doesn't leave it.
             if (type !== 'siddur' && type !== 'ask') window.ShelahSiddur?.close();
+            // "Sh'elah Synthesis" would claim Sefaria's own text (a verse, a
+            // prayer, the siddur) as the app's writing; it shows only once a
+            // page Sh'elah composes itself has loaded.
+            if (type !== 'ask') {
+                document.getElementById('readerKindBadge')?.classList.toggle('hidden', PRIMARY_TEXT_VIEWS.has(type));
+            }
             appState.currentView = { type, value, label: label || value };
             // 'ask' is the answer panel over the page, not the page.
             if (type !== 'ask') {

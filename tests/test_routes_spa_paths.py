@@ -371,6 +371,20 @@ class TestLegacyQueryRedirect:
         assert f'<link rel="canonical" href="https://shelah-app.vercel.app{canonical}">' in html
 
 
+class TestReaderKindBadge:
+    """The reader's "Sh'elah Synthesis" badge ships hidden: text, prayer and
+    siddur pages are Sefaria's own text, and a page still loading (or that
+    failed to) is nothing yet. setCurrentView shows it for a community page."""
+
+    @pytest.mark.parametrize("path", ["/", "/siddur/edot-hamizrach/mincha", "/text/Genesis.1", "/prayer/Havdalah"])
+    def test_the_shell_never_claims_synthesis_up_front(self, test_client, path):
+        import re
+
+        html = test_client.get(path).get_data(as_text=True)
+        tag = re.search(r'<nav id="readerKindBadge"[^>]*>', html).group(0)
+        assert re.search(r'class="hidden\b', tag), tag
+
+
 class TestSiddurPaths:
     """/siddur/<rite>[/<service>[/<section>]] (backend/routes_spa_paths.py
     siddur_page): every page is known in advance, so a missing one is a real
