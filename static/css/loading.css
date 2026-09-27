@@ -114,6 +114,56 @@
 .sk-reader-para + .sk-reader-para { margin-top: var(--sp-2); }
 .sk-reader-para:last-child        { width: 65%; }
 
+/* ── Reader skeleton (index.html #readerSkeleton, audit L-1) ────────
+   Verse-shaped rows at the reader's own font size, drawn in place of the
+   text while it loads (and from the first paint of a cold /text/ or
+   /prayer/ load), so the page keeps its shape instead of flashing a
+   full-screen overlay. */
+.reader-skeleton {
+    --sk-row: var(--reader-font-size, 18px);
+    display: flex;
+    flex-direction: column;
+    gap: calc(var(--sk-row) * 0.8);
+    padding-block: var(--sp-4);
+}
+.reader-skeleton .sk-reader-para {
+    block-size: var(--sk-row);
+    margin: 0;
+}
+.reader-skeleton .sk-reader-para:nth-child(3n + 1) { inline-size: 96%; }
+.reader-skeleton .sk-reader-para:nth-child(3n + 2) { inline-size: 88%; }
+.reader-skeleton .sk-reader-para:nth-child(3n)     { inline-size: 74%; }
+.reader-skeleton .sk-reader-para:last-child        { inline-size: 52%; }
+html[dir="rtl"] .reader-skeleton { align-items: flex-end; }
+
+/* An empty title (a cold load, before the ref is known) keeps its line. */
+#readerTitle:empty::before { content: '\00a0'; }
+
+/* The last view's category badge would sit under the new title while it
+   loads: held unseen, its box kept, so nothing moves when the new one comes. */
+#reader.is-loading header nav[aria-label="breadcrumb"],
+html[data-cold-view] #reader header nav[aria-label="breadcrumb"] {
+    visibility: hidden;
+}
+
+/* A text loading: its toolbar holds its place (index.html
+   showReaderSkeleton), its buttons not live until the text is. */
+#readerTopBar.is-pending .reader-topbar-track {
+    visibility: hidden;
+}
+
+/* Skeleton to text: the text fades in where the rows stood. Opacity only
+   (no transform), so nothing inside gains a containing block and nothing
+   moves; the class goes on animationend (index.html hideReaderSkeleton). */
+.reader-content-enter {
+    /* shelah-overlay-in: the token layer's opacity-only fade. */
+    animation: shelah-overlay-in var(--motion-dur-base) var(--motion-ease-out);
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .reader-content-enter { animation: none; }
+}
+
 
 /* ─────────────────────────────────────────────────────────────────
    AI LOADING STATE — menorah-inspired spinner + phase text
@@ -220,6 +270,11 @@
 
 #loadingOverlay {
     background: var(--load-overlay-bg);
+    /* Its backdrop-blur-sm class blurred the page under a 92-94% opaque
+       fill, where the blur can't be seen, at the cost of re-blurring the
+       viewport while the overlay fades (audit M-9). */
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
     animation: shelah-overlay-in var(--motion-dur-base) var(--motion-ease-out) var(--load-overlay-delay) both;
 }
 
@@ -240,12 +295,15 @@
 
 /* ─────────────────────────────────────────────────────────────────
    SOURCE BOX STAGGER — CSS custom property per-box (§7.1.4 fix)
-   Immune to sibling insertion; unlimited count; no nth-child cap.
+   Immune to sibling insertion; any count. The delay stops growing at
+   the 7th box (240ms): uncapped, box 20 of an answer waited 1.2s.
 ───────────────────────────────────────────────────────────────── */
 
 .ai-source-box.animate-fade-up {
-    animation: shelah-fade-up var(--motion-dur-slow) var(--motion-ease-out) both;
-    animation-delay: calc(var(--i, 0) * 60ms);
+    /* backwards: a forwards fill would hold transform and cancel the
+       box's hover lift (ai.css). */
+    animation: shelah-fade-up var(--motion-dur-base) var(--motion-ease-out) backwards;
+    animation-delay: calc(min(var(--i, 0), 6) * 40ms);
 }
 
 

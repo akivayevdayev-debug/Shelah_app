@@ -128,7 +128,7 @@ Server-generated per-user interaction-summary memory, used to build ask-time ide
 
 ### `ask_history`
 
-Per-user record of completed `/ask` interactions, including defensibility-logging metadata. Base table: [`scripts/migrate_ask_history.sql`](../scripts/migrate_ask_history.sql). Additive columns: [`scripts/migrate_ask_history_safety_metadata.sql`](../scripts/migrate_ask_history_safety_metadata.sql).
+Per-user record of completed `/ask` interactions, including defensibility-logging metadata. Base table: [`scripts/sql/migrate_ask_history.sql`](../scripts/sql/migrate_ask_history.sql). Additive columns: [`scripts/sql/migrate_ask_history_safety_metadata.sql`](../scripts/sql/migrate_ask_history_safety_metadata.sql).
 
 | Column | Type | Nullable | Default | Description |
 |---|---|---|---|---|
@@ -228,6 +228,11 @@ additive `ALTER`s live in `scripts/migrate_*.sql`. There is no
 migration-tracking table, ordering convention, or rollback SQL — this doc
 plus each file's own header comment (provenance, dependencies) is the
 closest thing to one.
+
+`supabase_migrations.schema_migrations` exists but stays empty
+([`scripts/sql/supabase_migrations_history_setup.sql`](../scripts/sql/supabase_migrations_history_setup.sql)):
+the dashboard's Migrations page and the CLI read it, and without it every
+such read logged a 42P01 in postgres_logs. The app never reads it.
 
 ---
 

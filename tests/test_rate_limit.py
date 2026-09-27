@@ -11,6 +11,7 @@ new value-store surface those tests don't touch.
 
 from __future__ import annotations
 
+import asyncio
 import dataclasses
 
 import pytest
@@ -101,6 +102,7 @@ class _FakeRedisClient:
 def _redis_store_with_fake_client(fake_client):
     store = rate_limit._RateLimitStore.__new__(rate_limit._RedisStore)
     store._client = fake_client
+    store._breaker = rate_limit._CircuitBreaker()
     return store
 
 
@@ -329,17 +331,42 @@ async def test_redis_store_reuses_its_client_on_the_same_event_loop(built_redis_
     assert len(built_redis_clients) == 1
 
 
-async def test_redis_store_builds_a_fresh_client_when_the_event_loop_changed(built_redis_clients):
+def _client_on_a_fresh_loop(store):
+    """Resolve the store's client from inside a throwaway asyncio.run() loop
+    on another thread -- what a loop-bridge hop (backend/cost_gates.py)
+    does while the ASGI loop keeps serving. Returns (client, that loop)."""
+    import concurrent.futures
+
+    async def resolve():
+        return store._client_for_current_loop(), asyncio.get_running_loop()
+
+    with concurrent.futures.ThreadPoolExecutor(max_workers=1) as pool:
+        return pool.submit(asyncio.run, resolve()).result()
+
+
+async def test_redis_store_gives_another_event_loop_its_own_client(built_redis_clients):
     store = rate_limit._RedisStore("redis://example.invalid:6379/0")
     original = store._client_for_current_loop()
-    store._client_loop = object()  # a loop that is no longer the running one
 
-    rebuilt = store._client_for_current_loop()
+    bridge_client, _ = _client_on_a_fresh_loop(store)
 
-    assert rebuilt is not original
+    assert bridge_client is not original
     assert [url for url, _ in built_redis_clients] == ["redis://example.invalid:6379/0"] * 2
-    # Bound to the running loop now, so a further call keeps the new client.
-    assert store._client_for_current_loop() is rebuilt
+    # The other loop's visit must not evict this loop's client (and with it
+    # this loop's pooled connections).
+    assert store._client_for_current_loop() is original
+    assert len(built_redis_clients) == 2
+
+
+async def test_redis_store_drops_clients_whose_loop_has_closed(built_redis_clients):
+    store = rate_limit._RedisStore("redis://example.invalid:6379/0")
+    store._client_for_current_loop()
+    _, first_bridge_loop = _client_on_a_fresh_loop(store)
+    _, second_bridge_loop = _client_on_a_fresh_loop(store)
+
+    assert first_bridge_loop.is_closed()
+    assert first_bridge_loop not in store._loop_clients
+    assert set(store._loop_clients) == {asyncio.get_running_loop(), second_bridge_loop}
 
 
 async def test_redis_store_rebuilds_a_missing_client(built_redis_clients):
@@ -348,6 +375,158 @@ async def test_redis_store_rebuilds_a_missing_client(built_redis_clients):
 
     assert store._client_for_current_loop() is built_redis_clients[-1][1]
     assert len(built_redis_clients) == 2
+
+
+# ─── _RedisStore circuit breaker ────────────────────────────────────────────
+# A down Redis costs every caller the full 2s connect timeout; after one
+# failure the store must skip Redis for the cooldown, then admit one probe.
+
+class _FlakyRedisClient:
+    """Counts every command; fails while ``down`` is True."""
+
+    def __init__(self, down=True):
+        self.down = down
+        self.calls = 0
+
+    async def incr(self, key):
+        self.calls += 1
+        if self.down:
+            raise ConnectionError("Timeout connecting to server")
+        return 2  # never 1, so no expire() round trip to account for
+
+    async def get(self, key):
+        self.calls += 1
+        if self.down:
+            raise ConnectionError("Timeout connecting to server")
+        return "v"
+
+    async def setex(self, key, ttl_seconds, value):
+        self.calls += 1
+        if self.down:
+            raise ConnectionError("Timeout connecting to server")
+
+
+@pytest.fixture
+def fake_clock(monkeypatch):
+    now = [1000.0]
+    monkeypatch.setattr(rate_limit.time, "monotonic", lambda: now[0])
+    return now
+
+
+async def test_breaker_opens_after_a_store_failure_and_reports_it_once(fake_clock):
+    store = _redis_store_with_fake_client(_FlakyRedisClient(down=True))
+
+    with pytest.raises(rate_limit._StoreUnavailable) as first:
+        await store.incr("k", 60)
+
+    assert not isinstance(first.value, rate_limit._CircuitOpen)
+    assert first.value.report is True
+    assert store._breaker._opened_at == fake_clock[0]
+
+
+async def test_open_breaker_skips_redis_for_every_command_during_cooldown(fake_clock):
+    client = _FlakyRedisClient(down=True)
+    store = _redis_store_with_fake_client(client)
+    with pytest.raises(rate_limit._StoreUnavailable):
+        await store.incr("k", 60)
+    client.down = False  # even a healed Redis is not consulted until cooldown ends
+
+    fake_clock[0] += rate_limit._BREAKER_COOLDOWN_SECONDS - 1
+    for call in (store.incr("k", 60), store.get("k"), store.setex("k", 30, "v")):
+        with pytest.raises(rate_limit._CircuitOpen) as short_circuit:
+            await call
+        assert short_circuit.value.report is False
+
+    assert client.calls == 1
+
+
+async def test_half_open_probe_success_closes_the_breaker(fake_clock):
+    client = _FlakyRedisClient(down=True)
+    store = _redis_store_with_fake_client(client)
+    with pytest.raises(rate_limit._StoreUnavailable):
+        await store.incr("k", 60)
+
+    client.down = False
+    fake_clock[0] += rate_limit._BREAKER_COOLDOWN_SECONDS
+
+    assert await store.incr("k", 60) == 2  # the probe
+    assert store._breaker._opened_at is None
+    assert await store.get("k") == "v"  # closed: traffic flows normally again
+    assert client.calls == 3
+
+
+async def test_half_open_probe_failure_reopens_and_reports_again(fake_clock):
+    client = _FlakyRedisClient(down=True)
+    store = _redis_store_with_fake_client(client)
+    with pytest.raises(rate_limit._StoreUnavailable):
+        await store.incr("k", 60)
+
+    fake_clock[0] += rate_limit._BREAKER_COOLDOWN_SECONDS
+    with pytest.raises(rate_limit._StoreUnavailable) as probe:
+        await store.incr("k", 60)
+
+    assert not isinstance(probe.value, rate_limit._CircuitOpen)
+    assert probe.value.report is True  # one report per cooldown window
+    assert store._breaker._opened_at == fake_clock[0]  # a fresh cooldown
+    with pytest.raises(rate_limit._CircuitOpen):
+        await store.incr("k", 60)
+    assert client.calls == 2
+
+
+def test_breaker_admits_only_one_half_open_probe_at_a_time(fake_clock):
+    breaker = rate_limit._CircuitBreaker()
+    breaker.record_failure(is_probe=False)
+    fake_clock[0] += rate_limit._BREAKER_COOLDOWN_SECONDS
+
+    assert breaker.acquire() is True
+    with pytest.raises(rate_limit._CircuitOpen):
+        breaker.acquire()
+
+
+def test_late_failure_of_a_call_admitted_before_the_trip_is_not_reported_again(fake_clock):
+    breaker = rate_limit._CircuitBreaker()
+    assert breaker.record_failure(is_probe=False) is True
+    opened_at = breaker._opened_at
+
+    fake_clock[0] += 1
+    assert breaker.record_failure(is_probe=False) is False
+    assert breaker._opened_at == opened_at  # does not extend the cooldown
+
+
+async def test_cancelled_probe_frees_the_probe_slot(fake_clock):
+    class _HangingClient:
+        async def get(self, key):
+            await asyncio.Event().wait()
+
+    store = _redis_store_with_fake_client(_HangingClient())
+    store._breaker.record_failure(is_probe=False)
+    fake_clock[0] += rate_limit._BREAKER_COOLDOWN_SECONDS
+
+    probe = asyncio.ensure_future(store.get("k"))
+    await asyncio.sleep(0)
+    probe.cancel()
+    with pytest.raises(asyncio.CancelledError):
+        await probe
+
+    # The next caller becomes the probe instead of the breaker wedging open.
+    assert store._breaker.acquire() is True
+
+
+async def test_check_does_not_log_or_capture_a_short_circuited_failure(monkeypatch, caplog):
+    class _OpenCircuitStore(rate_limit._RateLimitStore):
+        async def incr(self, key, window_seconds):
+            raise rate_limit._CircuitOpen()
+
+    captured = []
+    monkeypatch.setattr(rate_limit, "_store", _OpenCircuitStore())
+    monkeypatch.setattr(rate_limit, "_capture_backend_error", lambda *a, **k: captured.append(a))
+
+    with caplog.at_level("ERROR", logger=rate_limit.logger.name):
+        assert await rate_limit._check("cheap", "192.0.2.50", None, "/api/x") == (True, 60)
+        assert await rate_limit._check("llm", "192.0.2.50", None, "/ask") == (False, 60)
+
+    assert captured == []
+    assert "rate_limit_store_unavailable" not in caplog.text
 
 
 # ─── _build_store() ─────────────────────────────────────────────────────────
@@ -397,3 +576,22 @@ async def test_middleware_passes_requests_through_when_rate_limiting_is_disabled
     response = await fastapi_client.get("/api/async/health")
 
     assert response.status_code == 200
+
+
+async def test_static_assets_bypass_the_limiter_entirely(fastapi_client, monkeypatch):
+    class _ForbiddenStore(rate_limit._RateLimitStore):
+        async def incr(self, key, window_seconds):
+            raise AssertionError("the store must not be consulted for /static/*")
+
+    monkeypatch.setattr(rate_limit, "_store", _ForbiddenStore())
+
+    response = await fastapi_client.get("/static/style.css")
+
+    assert response.status_code == 200
+
+
+def test_only_static_paths_are_exempt():
+    assert rate_limit.is_exempt("/static/css/ai.css")
+    assert not rate_limit.is_exempt("/static")
+    assert not rate_limit.is_exempt("/api/static/x")
+    assert not rate_limit.is_exempt("/ask")

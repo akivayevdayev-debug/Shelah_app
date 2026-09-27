@@ -85,6 +85,65 @@ async function loadZmanim(overrides = {}) {
     return { mod, document, localStorage, window, timer };
 }
 
+function makeRoutingFetch(routes) {
+    const calls = [];
+    const fetchFn = async (url) => {
+        calls.push(url);
+        for (const [matches, response] of routes) {
+            if (matches(url)) {
+                return typeof response === 'function' ? response(url) : response;
+            }
+        }
+        throw new Error(`makeRoutingFetch: no route matched ${url}`);
+    };
+    fetchFn.calls = calls;
+    return fetchFn;
+}
+
+test('prewarmDailyStudy collects refs from arbitrary payload fields via collectRefsFromPayload\'s generic fallback, not just the four named keys', async () => {
+    // Top-level strings (hebrew_date) and .title labels are not refs.
+    // /api/daily-study's payload shape isn't fixed to {daf_yomi, rambam,
+    // parasha, parasha_ref} -- collectRefsFromPayload() also walks every
+    // OTHER field generically (addRefsFromValue/addRefsFromArrayItem) so a
+    // payload can carry extra study refs under any key. Only the four named
+    // keys were previously exercised by any test.
+    const dailyStudyPayload = {
+        daf_yomi: { ref: 'Berakhot 2a' },
+        hebrew_date: '14 Tishrei 5787',
+        extra_string_field: 'Extra Ref 1:1',
+        extra_object_field: { ref: 'Extra Ref 2:1', title: 'ignored: object branch only reads .ref' },
+        extra_array_field: [
+            'Extra Ref 3:1',
+            { ref: 'Extra Ref 4:1' },
+            { title: 'Extra Ref 5:1' },
+            42,
+        ],
+        extra_null_field: null,
+    };
+    const fetchFn = makeRoutingFetch([
+        [(url) => url === '/api/daily-study', makeJsonResponse(dailyStudyPayload)],
+        [() => true, makeJsonResponse({})],
+    ]);
+
+    const { mod } = await loadZmanim({ fetch: fetchFn });
+    const refs = await mod.namespace.prewarmDailyStudy();
+
+    assert.deepEqual(refs, [
+        'Berakhot 2a',
+        'Extra Ref 2:1',
+        'Extra Ref 3:1',
+        'Extra Ref 4:1',
+    ]);
+    const textFetches = fetchFn.calls.filter((url) => String(url).startsWith('/api/text/'));
+    assert.ok(!textFetches.some((url) => url.includes('Tishrei')), 'the Hebrew date is never fetched as a text');
+});
+
+test('prewarmDailyStudy offline: the failed fetch resolves to no refs, not a rejection', async () => {
+    const fetchFn = async () => { throw new TypeError('Failed to fetch'); };
+    const { mod } = await loadZmanim({ fetch: fetchFn });
+    assert.deepEqual(await mod.namespace.prewarmDailyStudy(), []);
+});
+
 test('hasRealZman rejects empty/N/A/placeholder values and accepts real times', async () => {
     const { mod } = await loadZmanim();
     assert.equal(mod.namespace.hasRealZman(''), false);
@@ -208,7 +267,27 @@ test('fetchZmanimAPI does not render when the API reports an error', async () =>
     await mod.namespace.fetchZmanimAPI(null, makeDeps());
 
     assert.equal(document.getElementById('zmanLoc').innerText, '', 'label is untouched when the fetch reports an error');
-    assert.equal(timer.setTimeout.calls.length, 0, 'no countdown is started for an errored response');
+    assert.equal(document.getElementById('zmanimWarning').dataset.zmanimLoadError, '1', 'the error banner is shown instead of a silent no-op');
+    assert.equal(timer.setTimeout.calls.length, 1, 'a retry is scheduled after an errored response, not a countdown tick');
+    assert.equal(timer.setTimeout.calls[0].delay, 3000, 'the first retry uses the shortest configured backoff');
+});
+
+test('fetchZmanimAPI marks the times list busy while /api/zmanim is out, and not after', async () => {
+    let release;
+    const busyDuring = [];
+    const { mod, document } = await loadZmanim({
+        fetch: async () => {
+            busyDuring.push(document.getElementById('todayZmanimList').getAttribute('aria-busy'));
+            await new Promise((resolve) => { release = resolve; });
+            return makeJsonResponse({ error: 'no data' });
+        },
+    });
+    const pending = mod.namespace.fetchZmanimAPI(null, makeDeps());
+    await new Promise((resolve) => setImmediate(resolve));
+    release();
+    await pending;
+    assert.deepEqual(busyDuring, ['true']);
+    assert.equal(document.getElementById('todayZmanimList').getAttribute('aria-busy'), 'false', 'not busy once the error shows');
 });
 
 test('startCountdown highlights the soonest upcoming zman row and fills the badge text', async () => {
@@ -474,4 +553,95 @@ test('refreshZmanimDisplay shows the translated Shabbat warning only while the A
 
     await renderNext();
     assert.equal(warning().classList.contains('hidden'), true);
+});
+
+test('timezoneLabel names a zone in the reader\'s language instead of its IANA ID', async () => {
+    const { mod } = await loadZmanim();
+    const { timezoneLabel } = mod.namespace;
+    assert.equal(timezoneLabel('Asia/Jerusalem', 'en'), 'Israel Time');
+    assert.equal(timezoneLabel('Asia/Jerusalem', 'he'), 'שעון ישראל');
+    assert.equal(timezoneLabel('Not/A_Real_Zone', 'en'), 'A Real Zone');
+    assert.equal(timezoneLabel('', 'en'), '');
+});
+
+test('refreshZmanimDisplay hands the location\'s Hebrew date to the header, and skips an empty one', async () => {
+    const seen = [];
+    const { renderNext } = await renderSequence([
+        { zmanim: {}, metadata: { hebrew_date: '15 Tishrei 5787', timezone: 'Asia/Jerusalem' } },
+        { zmanim: {}, metadata: { timezone: 'Asia/Jerusalem' } },
+    ], { setHebrewDate: (value) => seen.push(value) });
+    await renderNext();
+    await renderNext();
+    assert.deepEqual(seen, ['15 Tishrei 5787']);
+});
+
+test('after the timed retries run out, zmanim re-fetch once the network is back', async () => {
+    const error = makeJsonResponse({ error: 'no data' });
+    const ok = makeJsonResponse({ zmanim: {}, metadata: { location_label: 'Back Again' } });
+    const fetchFn = makeSequenceFetch([error, error, error, ok]);
+    const listeners = new Map();
+    const on = (type, fn) => listeners.set(type, fn);
+    const off = (type, fn) => { if (listeners.get(type) === fn) listeners.delete(type); };
+    const window = { addEventListener: on, removeEventListener: off };
+    const document = createFakeDocument();
+    document.addEventListener = on;
+    document.removeEventListener = off;
+    const { mod, timer } = await loadZmanim({ fetch: fetchFn, window, document });
+    const flush = () => new Promise((resolve) => setImmediate(resolve));
+
+    await mod.namespace.fetchZmanimAPI(null, makeDeps());
+    for (let i = 0; i < 2; i += 1) {
+        timer.setTimeout.calls.shift().fn();
+        await flush();
+    }
+    assert.equal(fetchFn.calls.length, 3, 'the initial fetch plus two timed retries');
+    assert.equal(timer.setTimeout.calls.length, 0, 'no third timed retry');
+    assert.equal(typeof listeners.get('online'), 'function');
+    assert.equal(typeof listeners.get('visibilitychange'), 'function');
+
+    listeners.get('online')();
+    await flush();
+    assert.equal(fetchFn.calls.length, 4);
+    assert.equal(document.getElementById('zmanLoc').innerText, 'Back Again');
+    assert.equal(document.getElementById('zmanimWarning').dataset.zmanimLoadError, undefined);
+    assert.equal(listeners.has('online'), false, 'the listeners are one-shot');
+    assert.equal(listeners.has('visibilitychange'), false);
+});
+
+// getZmanimLocation(): what the calendar's holiday card uses for clock times.
+// Before the panel's first fetch it falls back to the saved city search.
+test('getZmanimLocation falls back to the saved city search before the first fetch', async () => {
+    const localStorage = createFakeLocalStorage();
+    localStorage.setItem("Sh'elahLastLocation", JSON.stringify({ lat: 31.78, lon: 35.22 }));
+    const { mod } = await loadZmanim({ localStorage });
+
+    assert.deepEqual(mod.namespace.getZmanimLocation(), { lat: 31.78, lon: 35.22, label: '', timezone: '' });
+});
+
+test('getZmanimLocation treats a corrupt saved location as no location', async () => {
+    const localStorage = createFakeLocalStorage();
+    localStorage.setItem("Sh'elahLastLocation", '{not json');
+    const { mod } = await loadZmanim({ localStorage });
+
+    assert.equal(mod.namespace.getZmanimLocation(), null);
+});
+
+test('getZmanimLocation is null with nothing fetched or saved', async () => {
+    const { mod } = await loadZmanim();
+
+    assert.equal(mod.namespace.getZmanimLocation(), null);
+});
+
+test('getSunset: the location\'s sunset once zmanim load, null before and for a bad value', async () => {
+    const sunsetIso = '2026-10-20T18:05:00.000Z';
+    const data = { zmanim: { Sunset: '6:05 PM' }, metadata: { timezone: 'UTC', zmanim_iso: { Sunset: sunsetIso } } };
+    const { mod } = await loadZmanim({ fetch: makeSequenceFetch([makeJsonResponse(data)]) });
+    assert.equal(mod.namespace.getSunset(), null);
+    await mod.namespace.fetchZmanimAPI(null, makeDeps());
+    assert.equal(mod.namespace.getSunset().toISOString(), sunsetIso);
+
+    const bad = { zmanim: {}, metadata: { zmanim_iso: { Sunset: 'not a time' } } };
+    const other = await loadZmanim({ fetch: makeSequenceFetch([makeJsonResponse(bad)]) });
+    await other.mod.namespace.fetchZmanimAPI(null, makeDeps());
+    assert.equal(other.mod.namespace.getSunset(), null);
 });

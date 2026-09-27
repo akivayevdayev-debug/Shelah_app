@@ -8,8 +8,9 @@ module.exports = {
     extend: {
       fontFamily: {
         sans:   ['Inter', 'sans-serif'],
-        serif:  ['Cardo', 'serif'],
-        hebrew: ['"Ezra SIL"', 'serif'],
+        // The fallback faces are defined in static/css/tokens.css (audit L-12).
+        serif:  ['Cardo', '"Cardo Fallback"', 'serif'],
+        hebrew: ['"Ezra SIL"', '"Ezra SIL Fallback"', 'serif'],
       },
       colors: {
         navy: '#002147',

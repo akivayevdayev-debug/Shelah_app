@@ -1,6 +1,16 @@
 {
   "model": "opusplan",
   "hooks": {
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "cd \"/Users/akivayevdayev/Documents/Sh'elah_app\" 2>/dev/null && git fetch origin main --quiet 2>/dev/null; BEHIND=$(git rev-list --count main..origin/main 2>/dev/null || echo 0); if [ \"${BEHIND:-0}\" -gt 0 ] 2>/dev/null; then echo \"{\\\"hookSpecificOutput\\\":{\\\"hookEventName\\\":\\\"SessionStart\\\",\\\"additionalContext\\\":\\\"git: local main is $BEHIND commit(s) behind origin/main (just fetched, working tree untouched). Run \\`git sync\\` to fast-forward.\\\"}}\"; fi || true"
+          }
+        ]
+      }
+    ],
     "PreToolUse": [
       {
         "matcher": "Bash",

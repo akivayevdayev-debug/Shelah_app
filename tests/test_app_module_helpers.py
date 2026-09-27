@@ -89,6 +89,14 @@ class TestSetCachedAskPayload:
 
         assert ask_cache["k"] == {"ts": 42.0, "payload": {"answer": "yes", "sources": [1]}}
 
+    def test_the_first_askers_history_id_is_not_cached(self, ask_cache):
+        payload = {"answer": "yes", "history_id": "0b6a3f58-2f5e-4c1d-9a7e-3d2b1c0a9f88"}
+
+        flask_app_module._set_cached_ask_payload("k", payload)
+
+        assert ask_cache["k"]["payload"] == {"answer": "yes", "history_id": None}
+        assert payload["history_id"] == "0b6a3f58-2f5e-4c1d-9a7e-3d2b1c0a9f88"
+
     @pytest.mark.parametrize("payload", [None, "text", ["list"], 5])
     def test_non_dict_payloads_are_not_cached(self, ask_cache, payload):
         flask_app_module._set_cached_ask_payload("k", payload)

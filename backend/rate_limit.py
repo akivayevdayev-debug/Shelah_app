@@ -26,6 +26,8 @@ import collections
 import hashlib
 import logging
 import os
+import re
+import threading
 import time
 from dataclasses import dataclass
 
@@ -120,10 +122,45 @@ _ROUTE_CLASSES: list[tuple[str, str]] = [
     ("/api/user/delete-account", "account"),
     ("/api/user/data-export", "account"),
     ("/api/webhooks/clerk", "webhook"),
+    # Conversation CRUD (list/get/create/rename/pin/delete, plus client-
+    # supplied messages) makes no model call -- "cheap" is the deliberate
+    # choice, not a fall-through. Its model-calling /ask child is carved
+    # out ahead of this entry by _ROUTE_PATTERNS below.
+    ("/api/conversations", "cheap"),
+    # Public shared-answer reads (backend/routes_answer_share.py): no auth,
+    # one DB read each -- per-IP "fanout" keeps token guessing slow.
+    ("/api/public/answer", "fanout"),
+    # The siddur v2 API (backend/routes_siddur.py) serves checked-in files
+    # and a pure date computation -- no upstream call, nothing to fan out.
+    ("/api/siddur/v2/", "cheap"),
+]
+
+# (compiled pattern, class) -- checked BEFORE _ROUTE_CLASSES, for routes
+# whose class-deciding segment sits after a path parameter and so can't be
+# expressed as a prefix. /api/conversations/<id>/ask runs the same AI
+# synthesis as /ask (backend/routes_conversations.py's ask_in_conversation)
+# and so gets the same fail-closed, per-account "llm" budget -- without this
+# it fell through to "cheap" (120/min, fail-open), an unmetered model route.
+_ROUTE_PATTERNS: list[tuple[re.Pattern[str], str]] = [
+    (re.compile(r"^/api/conversations/[^/]+/ask/?$"), "llm"),
 ]
 
 
+# Paths the limiter never consults the store for. /static/* is plain asset
+# serving (CSS/JS/icons); a single page load fetches dozens of them, which
+# would both eat the "cheap" bucket that read-only API calls share and put
+# a store round trip in front of every asset.
+_EXEMPT_PREFIXES: tuple[str, ...] = ("/static/",)
+
+
+def is_exempt(path: str) -> bool:
+    return path.startswith(_EXEMPT_PREFIXES)
+
+
 def classify_route(path: str) -> str:
+    for pattern, cls in _ROUTE_PATTERNS:
+        if pattern.match(path):
+            return cls
     for prefix, cls in _ROUTE_CLASSES:
         if path == prefix or path.startswith(prefix):
             return cls
@@ -133,7 +170,85 @@ def classify_route(path: str) -> str:
 # ─── Store abstraction ──────────────────────────────────────────────────────
 
 class _StoreUnavailable(Exception):
-    """Raised by a store's incr() when the backend could not be reached."""
+    """Raised by a store's incr() when the backend could not be reached.
+
+    ``report`` says whether this failure is worth an error log / Sentry
+    capture. It is False for failures the circuit breaker below has already
+    reported once for the current outage -- a short-circuited call, or a
+    call that was already in flight when the breaker opened -- so a Redis
+    outage produces one report per cooldown window, not one per request.
+    """
+
+    def __init__(self, message: str = "", *, report: bool = True) -> None:
+        super().__init__(message)
+        self.report = report
+
+
+class _CircuitOpen(_StoreUnavailable):
+    """Raised without touching the backend while the circuit breaker is open."""
+
+    def __init__(self) -> None:
+        super().__init__("rate-limit store circuit open", report=False)
+
+
+# How long the breaker skips the store after a failure before letting one
+# half-open probe through. Redis connect/read timeouts are 2s each (see
+# the Redis client _RedisStore builds), so without this every request
+# during an outage stalled ~2s before failing open.
+_BREAKER_COOLDOWN_SECONDS = 20.0
+
+
+class _CircuitBreaker:
+    """Closed -> (failure) -> open for _BREAKER_COOLDOWN_SECONDS -> one
+    half-open probe -> closed on success / re-open on failure.
+
+    Guarded by a threading.Lock, not an asyncio.Lock: the store is a
+    process-wide singleton reached from more than one thread and event
+    loop, and every critical section is a few attribute reads/writes, so it
+    never blocks the event loop meaningfully.
+    """
+
+    def __init__(self, cooldown_seconds: float = _BREAKER_COOLDOWN_SECONDS) -> None:
+        self._cooldown_seconds = cooldown_seconds
+        self._lock = threading.Lock()
+        self._opened_at: float | None = None
+        self._probe_in_flight = False
+
+    def acquire(self) -> bool:
+        """Admit a call or raise _CircuitOpen. Returns True when the admitted
+        call is the half-open probe."""
+        with self._lock:
+            if self._opened_at is None:
+                return False
+            if self._probe_in_flight or time.monotonic() - self._opened_at < self._cooldown_seconds:
+                raise _CircuitOpen()
+            self._probe_in_flight = True
+            return True
+
+    def record_success(self, is_probe: bool) -> None:
+        with self._lock:
+            self._opened_at = None
+            if is_probe:
+                self._probe_in_flight = False
+
+    def record_failure(self, is_probe: bool) -> bool:
+        """Open (or re-open) the breaker. Returns True when this failure is
+        the one that opened it -- i.e. the one worth reporting."""
+        with self._lock:
+            if is_probe:
+                self._probe_in_flight = False
+            elif self._opened_at is not None:
+                # Already open: a call admitted before the trip, failing late.
+                return False
+            self._opened_at = time.monotonic()
+            return True
+
+    def release_probe(self, is_probe: bool) -> None:
+        """A call ended with neither result (e.g. cancelled): free the probe
+        slot so the breaker cannot wedge open forever."""
+        if is_probe:
+            with self._lock:
+                self._probe_in_flight = False
 
 
 class _RateLimitStore:
@@ -214,88 +329,97 @@ class _RedisStore(_RateLimitStore):
     built once at import time -- see ``get_shared_store()``), but a
     ``redis.asyncio`` client's connection pool binds its asyncio primitives
     (locks/futures/transports) to whichever event loop is running the first
-    time a command actually executes. A process that outlives one event
-    loop and later serves requests on a *different* one -- every test here
-    (pytest-asyncio creates a fresh loop per test function) and, in
-    production, a warm Vercel Fluid Compute instance reused across
-    invocations -- would otherwise reuse a pool wired to a closed loop and
-    fail with "Task ... got Future ... attached to a different loop" /
-    "Event loop is closed". ``_client_for_current_loop()`` re-binds (by
-    building a fresh client against the same ``self._url``) whenever the
-    currently-running loop differs from the one the cached client was last
-    used on, so each event loop gets its own client instead of a stale one
-    being force-reused across loop boundaries. The stale client/pool is not
-    explicitly closed -- its transport belongs to a loop that may already be
-    closed by the time we notice, so attempting to close it here could
-    itself raise; it is simply dropped and left for GC.
+    time a command actually executes. The process runs more than one loop:
+    the ASGI app's own, pytest-asyncio's fresh loop per test, a warm Vercel
+    Fluid Compute instance reused across invocations, and -- concurrently
+    with the ASGI loop -- every ``asyncio.run()`` on backend/claude.py's
+    loop-bridge threads (e.g. backend/cost_gates.py's call into
+    cost_meter.is_global_cost_breaker_tripped, which reads this store).
+    ``_client_for_current_loop()`` therefore keeps one client PER LOOP
+    rather than a single client re-bound on every loop change: a single
+    slot would be torn down and rebuilt each time the bridge and the ASGI
+    loop alternated (dropping the ASGI loop's pooled connections), and a
+    bridge thread could swap it out from under a coroutine on the ASGI
+    loop mid-request ("... attached to a different loop"). Entries whose
+    loop has since closed are dropped on the next miss; their clients are
+    not explicitly closed -- the transport belongs to a closed loop, so
+    closing it here could itself raise -- and are left for GC.
     """
 
     def __init__(self, url: str) -> None:
-        import redis.asyncio as redis_asyncio  # local import: optional until configured
-
         self._url = url
         # Built eagerly so a malformed URL still raises synchronously out of
         # __init__ (matching _build_store()'s try/except, which must never
-        # let a bad URL crash app boot) -- but not yet "bound" to any event
-        # loop (_client_loop stays None until first real use binds it).
-        self._client = redis_asyncio.Redis.from_url(
-            url,
+        # let a bad URL crash app boot) -- but not yet bound to any event
+        # loop: the first loop to use the store adopts it.
+        self._client = self._build_client()
+        self._loop_clients: dict[asyncio.AbstractEventLoop, object] = {}
+        self._loop_clients_lock = threading.Lock()
+        self._breaker = _CircuitBreaker()
+
+    def _build_client(self):
+        import redis.asyncio as redis_asyncio  # local import: optional until configured
+
+        return redis_asyncio.Redis.from_url(
+            self._url,
             decode_responses=True,
             socket_timeout=2.0,
             socket_connect_timeout=2.0,
         )
-        self._client_loop: object | None = None
 
     def _client_for_current_loop(self):
-        """Return an async Redis client guaranteed to be bound to the
-        currently-running event loop, rebuilding it if the loop changed
-        since it was last used. Test doubles built via
-        ``_RateLimitStore.__new__(_RedisStore)`` (see tests/test_rate_limit.py)
-        skip __init__ and assign ``_client`` directly with no ``_url`` --
-        for those, there is nothing to rebind against, so the assigned fake
-        client is returned unchanged."""
-        url = getattr(self, "_url", None)
-        if url is None:
+        """Return the async Redis client owned by the currently-running
+        event loop, building one on that loop's first use. Test doubles
+        built via ``_RateLimitStore.__new__(_RedisStore)`` (see
+        tests/test_rate_limit.py) skip __init__ and assign ``_client``
+        directly with no ``_url`` -- for those, there is nothing to build,
+        so the assigned fake client is returned unchanged."""
+        if getattr(self, "_url", None) is None:
             return self._client
 
-        import redis.asyncio as redis_asyncio  # local import: optional until configured
-
         loop = asyncio.get_running_loop()
-        if self._client is None or (
-            self._client_loop is not None and self._client_loop is not loop
-        ):
-            self._client = redis_asyncio.Redis.from_url(
-                url,
-                decode_responses=True,
-                socket_timeout=2.0,
-                socket_connect_timeout=2.0,
-            )
-        self._client_loop = loop
-        return self._client
+        # Locked: the ASGI loop and loop-bridge threads can both miss at once.
+        with self._loop_clients_lock:
+            client = self._loop_clients.get(loop)
+            if client is None:
+                for stale_loop in [lp for lp in self._loop_clients if lp.is_closed()]:
+                    del self._loop_clients[stale_loop]
+                client = self._client if self._client is not None else self._build_client()
+                self._client = None
+                self._loop_clients[loop] = client
+        return client
+
+    async def _guarded(self, command):
+        """Run ``command(client)`` behind the circuit breaker: while it is
+        open, raise _CircuitOpen immediately instead of waiting out another
+        connect timeout. Covers every caller of the shared store -- the
+        limiter, backend/turnstile.py, and backend/cost_meter.py's breaker."""
+        is_probe = self._breaker.acquire()
+        try:
+            result = await command(self._client_for_current_loop())
+        except Exception as exc:  # redis.exceptions.* + connection/timeout errors
+            opened = self._breaker.record_failure(is_probe)
+            raise _StoreUnavailable(str(exc), report=opened) from exc
+        except BaseException:  # cancellation -- no verdict on the store
+            self._breaker.release_probe(is_probe)
+            raise
+        self._breaker.record_success(is_probe)
+        return result
 
     async def incr(self, key: str, window_seconds: int) -> int:
-        try:
-            client = self._client_for_current_loop()
+        async def command(client):
             count = await client.incr(key)
             if count == 1:
                 await client.expire(key, window_seconds)
             return int(count)
-        except Exception as exc:  # redis.exceptions.* + connection/timeout errors
-            raise _StoreUnavailable(str(exc)) from exc
+
+        return await self._guarded(command)
 
     async def get(self, key: str) -> str | None:
-        try:
-            client = self._client_for_current_loop()
-            return await client.get(key)
-        except Exception as exc:  # redis.exceptions.* + connection/timeout errors
-            raise _StoreUnavailable(str(exc)) from exc
+        return await self._guarded(lambda client: client.get(key))
 
     async def setex(self, key: str, ttl_seconds: int, value: str) -> None:
-        try:
-            client = self._client_for_current_loop()
-            await client.setex(key, ttl_seconds, value)
-        except Exception as exc:  # redis.exceptions.* + connection/timeout errors
-            raise _StoreUnavailable(str(exc)) from exc
+        await self._guarded(lambda client: client.setex(key, ttl_seconds, value))
 
 
 RATE_LIMIT_REDIS_URL = (os.environ.get("RATE_LIMIT_REDIS_URL") or "").strip()
@@ -386,6 +510,11 @@ async def _check(route_class: str, client_ip: str, user_id: str | None, path: st
 
         return True, policy.window_seconds
     except _StoreUnavailable as exc:
+        # Applies the class's posture either way; only the failure that
+        # opened the store's circuit breaker is logged/captured, once per
+        # cooldown window rather than once per request.
+        if not exc.report:
+            return policy.fail_open, policy.window_seconds
         key_hash = _hash_key(key)
         logger.error(
             "rate_limit_store_unavailable class=%s key_hash=%s fail_open=%s",
@@ -407,10 +536,10 @@ class RateLimitMiddleware(BaseHTTPMiddleware):
     """
 
     async def dispatch(self, request: Request, call_next):
-        if not RATELIMIT_ENABLED:
+        path = request.url.path
+        if not RATELIMIT_ENABLED or is_exempt(path):
             return await call_next(request)
 
-        path = request.url.path
         route_class = classify_route(path)
 
         client_ip = _resolve_client_ip(

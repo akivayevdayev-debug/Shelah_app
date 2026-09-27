@@ -32,6 +32,9 @@ from backend.data_service import ShelahEngine
 from backend import sefaria
 from backend import claude
 from backend import ask_pipeline
+from backend import cost_gates
+from backend import page_meta
+from backend import module_versions
 from backend.logging_setup import (
     setup_logging,
     _capture_backend_error,
@@ -178,9 +181,14 @@ def _set_cached_ask_payload(cache_key, payload):
     if not isinstance(payload, dict):
         return
     try:
+        cached = json.loads(json.dumps(payload))
+        # history_id is the first asker's own ask_history row: a cache hit
+        # served to someone else must not carry it (Copy link, follow-ups).
+        if "history_id" in cached:
+            cached["history_id"] = None
         _bounded_cache_set(ASK_RESPONSE_CACHE, cache_key, {
             "ts": time.time(),
-            "payload": json.loads(json.dumps(payload)),
+            "payload": cached,
         })
     except Exception:
         return
@@ -721,8 +729,8 @@ def _holiday_color_for_category(category):
         "modern": "#2563eb",
         "fast": "#374151",
         "roshchodesh": "#35708c",
-        "shabbat": "#004e5f",
-        "parashat": "#004e5f",
+        "shabbat": "#04694a",
+        "parashat": "#04694a",
         "holiday": "#802f3e",
         "special": "#6b7280",
     }
@@ -839,6 +847,12 @@ SUPABASE_STUDY_BOOKMARKS_TABLE = (os.environ.get(
     "SUPABASE_STUDY_BOOKMARKS_TABLE") or "study_bookmarks").strip()
 SUPABASE_ASK_HISTORY_TABLE = (os.environ.get(
     "SUPABASE_ASK_HISTORY_TABLE") or "ask_history").strip()
+SUPABASE_CONVERSATIONS_TABLE = (os.environ.get(
+    "SUPABASE_CONVERSATIONS_TABLE") or "conversations").strip()
+SUPABASE_MESSAGES_TABLE = (os.environ.get(
+    "SUPABASE_MESSAGES_TABLE") or "messages").strip()
+SUPABASE_CITATIONS_TABLE = (os.environ.get(
+    "SUPABASE_CITATIONS_TABLE") or "citations").strip()
 SUPABASE_ANSWER_FEEDBACK_TABLE = (os.environ.get(
     "SUPABASE_ANSWER_FEEDBACK_TABLE") or "answer_feedback").strip()
 # Security posture, not per-deployment config -- every environment should
@@ -1164,7 +1178,7 @@ def apply_response_cache_policy(response):
     if getattr(g, "cache_tier_force_private", False):
         cache_control = CACHE_TIER_PRIVATE
     else:
-        cache_control = classify_cache_tier(request.method, path)
+        cache_control = classify_cache_tier(request.method, path, response.status_code)
     if cache_control is not None:
         response.headers["Cache-Control"] = cache_control
         # Informational only (cache-debugging: confirms which deploy served
@@ -1307,8 +1321,25 @@ def index():
     # TTFB on every cold-cache instance. The client now fetches
     # /api/daily-study itself after first paint (populateDailyStudy() in
     # index.html) and fills in the skeleton.
+    return render_spa_shell(page_meta.query_meta(request.args))
+
+
+# View transitions between the SPA's views (audit §2.3) ship behind this
+# flag: VIEW_TRANSITIONS=true turns them on for every visitor. A browser can
+# try them (or opt out) on its own with localStorage "shelah.viewTransitions"
+# = "on" / "off" (index.html's head).
+VIEW_TRANSITIONS_ENABLED = (os.environ.get("VIEW_TRANSITIONS") or "").strip().lower() == "true"
+
+
+def render_spa_shell(meta):
+    """The SPA shell with this URL's title/og:url/canonical (backend/page_meta.py).
+    Shared by index() and the path deep links in backend/routes_spa_paths.py."""
     return render_template(
         "index.html",
+        page_meta=meta,
+        view_transitions=VIEW_TRANSITIONS_ENABLED,
+        module_url=module_versions.module_url,
+        module_import_map=module_versions.import_map(),
         clerk_publishable_key=CLERK_PUBLISHABLE_KEY,
         clerk_enforce_auth=CLERK_ENFORCE_AUTH,
         sentry_dsn_browser=SENTRY_DSN_BROWSER,
@@ -1360,14 +1391,24 @@ def favicon():
     return send_from_directory("static", "favicon.svg", mimetype="image/svg+xml")
 
 
+_SW_CACHE_VERSION_RE = re.compile(r'const CACHE_VERSION = "([^"]*)"')
+
+
+def service_worker_cache_version(content):
+    """The worker's cache names: DEPLOY_HASH (a manual bump) or the file's own
+    CACHE_VERSION, plus the deploy's commit on Vercel, so every deploy gets
+    fresh caches and drops the last one's copies (audit L-10)."""
+    found = _SW_CACHE_VERSION_RE.search(content)
+    base = os.environ.get("DEPLOY_HASH", "").strip() or (found.group(1) if found else "v8")
+    return f"{base}-{SENTRY_RELEASE[:12]}" if SENTRY_RELEASE else base
+
+
 @app.route("/service-worker.js")
 def service_worker():
-    deploy_hash = os.environ.get("DEPLOY_HASH", "v8")
     sw_path = Path(app.static_folder) / "service-worker.js"
     content = sw_path.read_text(encoding="utf-8")
-    versioned = re.sub(
-        r'const CACHE_VERSION = "[^"]*"',
-        f'const CACHE_VERSION = "{deploy_hash}"',
+    versioned = _SW_CACHE_VERSION_RE.sub(
+        f'const CACHE_VERSION = "{service_worker_cache_version(content)}"',
         content,
         count=1,
     )
@@ -1430,12 +1471,15 @@ def _ask_question_prayer_payload(question, mode, answer_language, canonical_lens
     }
 
 
-def _collect_primary_sources_sync(question, engine):
+def _collect_primary_sources_sync(question, engine, context=()):
     """Fetch + fully resolve the primary Sefaria source texts for a
     question (thread-pool parallel). Split out of ask_question()
     (SonarCloud python:S3776) -- see _ask_question_prayer_payload.
+    `context`: a conversation's earlier questions, newest first (see
+    sefaria.find_refs_for_question).
     """
-    primary_refs = sefaria.find_refs_for_question(question)
+    primary_refs = (sefaria.find_refs_for_question(question, context) if context
+                    else sefaria.find_refs_for_question(question))
     max_primary_refs = _env_int(
         "ASK_PRIMARY_SOURCE_LIMIT", 4)  # Capped at 4 for speed
     max_primary_refs = max(1, min(max_primary_refs, 8))
@@ -1559,14 +1603,15 @@ def _derive_ask_question_context_flags(flat_sources_for_claude, knowledge_rows, 
     return has_primary_sources, has_customs, has_whitelisted_external, use_tertiary_web_context, wiki_context_for_claude
 
 
-def _collect_ask_question_context(question, canonical_lens, user_id, answer_language, engine):
+def _collect_ask_question_context(question, canonical_lens, user_id, answer_language, engine,
+                                  retrieval_context=()):
     """Stage 1 of ask_question(): parallel source/knowledge collection
     (thread-pool based, since this is the sync Flask route). Returns a
     context dict consumed by the strict-guard and AI-synthesis stages
     below. Split out of ask_question() (SonarCloud python:S3776) -- see
     _ask_question_prayer_payload.
     """
-    primary_sources = _collect_primary_sources_sync(question, engine)
+    primary_sources = _collect_primary_sources_sync(question, engine, retrieval_context)
 
     # 2-4. Fetch remaining context in parallel using the module-level pool.
     halachipedia_info, knowledge_rows, user_memory_summaries, wiki_info = (
@@ -1627,6 +1672,7 @@ def _ask_question_strict_payload(mode, canonical_lens, ctx):
         "customs": ctx["customs_info"],
         "sources": display_sources,
         "ai_cited_sources": [],
+        "history_id": None,
         "meta": {
             "mode": mode,
             "community_lens": canonical_lens,
@@ -1679,7 +1725,7 @@ def _security_blocked_ask_payload(
     # Deliberately does NOT also call _store_user_memory_summary here --
     # that's a separate mechanism (fed back into future prompts as context)
     # outside plan.md §8.B.6's scope.
-    _store_ask_history(
+    history_id = _store_ask_history(
         user_id,
         question,
         blocked_answer,
@@ -1699,6 +1745,7 @@ def _security_blocked_ask_payload(
         "customs": [],
         "sources": [],
         "ai_cited_sources": [],
+        "history_id": history_id,
         "meta": {
             "mode": mode,
             "community_lens": canonical_lens,
@@ -1721,11 +1768,16 @@ def _security_blocked_ask_payload(
     }
 
 
-def _dispatch_ask_ai_synthesis_call(question, mode, canonical_lens, answer_language, ctx, engine):
+def _dispatch_ask_ai_synthesis_call(question, mode, canonical_lens, answer_language, ctx, engine, conversation_history=None):
     """Submit the AI-synthesis call (agentic tool-use loop or the plain
     claude.ask_claude() call, per AI_AGENTIC_TOOLS) to the bounded thread
     pool and block for its result, within AI_TOTAL_BUDGET_SECONDS. Split
     out of _run_ask_question_ai_synthesis() (SonarCloud python:S3776).
+
+    `conversation_history` is None for the single-shot /ask route (its only
+    caller until backend/routes_conversations.py's ask_in_conversation()) --
+    passing it through is a no-op there, so this stays byte-for-byte the
+    prior behavior for /ask.
 
     Bounded by AI_TOTAL_BUDGET_SECONDS via the module-level _THREAD_POOL so
     a slow/stuck model call can't hang this request indefinitely — mirrors
@@ -1754,6 +1806,7 @@ def _dispatch_ask_ai_synthesis_call(question, mode, canonical_lens, answer_langu
         "community_lens": canonical_lens,
         "answer_language": answer_language,
         "tool_context": _build_ask_tool_context(engine),
+        "conversation_history": conversation_history,
     }
 
     if claude.AI_AGENTIC_TOOLS:
@@ -1871,7 +1924,7 @@ def _run_ask_question_ai_synthesis(
     display_sources = _compact_ai_sources(ctx["primary_sources"])
     ai_cited = extract_ai_cited(structured_payload)
 
-    _store_ask_history(
+    history_id = _store_ask_history(
         user_id,
         question,
         normalized_answer,
@@ -1898,6 +1951,7 @@ def _run_ask_question_ai_synthesis(
         user_id=user_id,
         question_was_sanitized=question_was_sanitized,
         extra_meta={"cached": False},
+        history_id=history_id,
     )
 
 
@@ -1947,6 +2001,80 @@ def _run_ask_question_fallback(question, mode, canonical_lens, answer_language, 
         user_id=user_id,
         extra_meta={"cached": False},
     )
+
+
+def _ask_question_breaker_paused_payload(mode, canonical_lens, answer_language, ctx):
+    """Stage 2.5 of ask_question(): the no-LLM-call response served while
+    the global cost breaker is tripped. Sync mirror of asgi.py's
+    _ask_async_breaker_paused_payload (same shape, same DEVTOOLS_STATS
+    bump); the stale-cache fallback that route tries first already ran at
+    the top of ask_question(), so a cache hit never reaches here.
+    """
+    DEVTOOLS_STATS["answers_total"] += 1
+    DEVTOOLS_STATS["fallback_answers"] += 1
+    display_sources = _compact_ai_sources(ctx["primary_sources"])
+    return {
+        "answer": (
+            "AI answers are paused for today -- the full Torah library below is unaffected. "
+            "Please try again after midnight UTC, or browse the sources directly."
+        ),
+        "confidence": 0.0,
+        "wiki": ctx["wiki_list"] + ctx["halachipedia_list"],
+        "customs": ctx["customs_info"],
+        "sources": display_sources,
+        "ai_cited_sources": [],
+        "history_id": None,
+        "meta": {
+            "mode": mode,
+            "language": answer_language,
+            "community_lens": canonical_lens,
+            "source_count": len(ctx["primary_sources"]),
+            "custom_count": len(ctx["customs_info"]),
+            "generated_at": int(time.time()),
+            "fallback": True,
+            "breaker_tripped": True,
+            "safety_class": "ok",
+            "cached": False,
+        },
+    }
+
+
+def _apply_ask_question_cost_gates(user_id, mode, canonical_lens, answer_language, ctx):
+    """Stage 2.5 of ask_question(): the same global-breaker and per-caller
+    daily-budget gates asgi.py's /ask applies, then bind the caller's
+    identity + budget reservation so record_llm_call() attributes this
+    request's model spend (see backend/cost_gates.py). Returns a response
+    to send as-is, or None to proceed to AI synthesis.
+
+    Runs after the prayer/strict short-circuits, which make no model call,
+    so neither of them strands a budget reservation. Signed-out callers are
+    budgeted and attributed by client IP ("ip:<addr>"), as on asgi.py's
+    /ask. Fails open if the gate hop itself errors or times out -- the same
+    posture each cost_meter gate already takes on a Supabase/cache failure
+    -- but still binds identity, so the spend is attributed regardless.
+    """
+    client_ip = _extract_client_ip() or ""
+    try:
+        gates = cost_gates.evaluate_cost_gates_sync(user_id, client_ip)
+    except Exception as gate_error:
+        _capture_backend_error("ask_cost_gates_unavailable", gate_error, {
+            "user_id_hash": hash_user_id(user_id),
+        })
+        gates = {"tripped": False, "budget": {"allowed": True}, "reservation_id": ""}
+
+    if gates["tripped"]:
+        return jsonify(_ask_question_breaker_paused_payload(
+            mode, canonical_lens, answer_language, ctx))
+
+    budget = gates["budget"]
+    if not budget["allowed"]:
+        return jsonify({
+            "error": cost_gates.budget_exhausted_message(budget),
+            "code": "daily_budget_exhausted",
+        }), 402
+
+    cost_gates.bind_cost_attribution(user_id, client_ip, gates["reservation_id"])
+    return None
 
 
 def _parse_and_validate_ask_question_request(data):
@@ -2052,6 +2180,11 @@ def ask_question():
             _set_cached_ask_payload(ask_cache_key, strict_payload)
             return jsonify(strict_payload)
 
+        gate_response = _apply_ask_question_cost_gates(
+            user_id, mode, canonical_lens, answer_language, ctx)
+        if gate_response is not None:
+            return gate_response
+
         try:
             payload = _run_ask_question_ai_synthesis(
                 question, mode, canonical_lens, answer_language, user_id,
@@ -2075,6 +2208,8 @@ def ask_question():
             _build_ask_critical_error_context(locals()),
         )
         return jsonify({"error": "An internal error occurred while processing your request."}), 500
+    finally:
+        cost_gates.clear_cost_attribution()
 
 
 # ─── Blueprint registration (Stage 2 route decomposition) ────────────────
@@ -2095,9 +2230,13 @@ del _sys
 _BLUEPRINTS = [
     ("backend.routes_library", "routes_library"),
     ("backend.routes_prayers", "routes_prayers"),
+    ("backend.routes_siddur", "routes_siddur"),
     ("backend.routes_community", "routes_community"),
     ("backend.routes_calendar", "routes_calendar"),
     ("backend.routes_user", "routes_user"),
+    ("backend.routes_conversations", "routes_conversations"),
+    ("backend.routes_answer_share", "routes_answer_share"),
+    ("backend.routes_spa_paths", "routes_spa_paths"),
     ("backend.routes_devtools", "routes_devtools"),
     ("backend.routes_legal", "routes_legal"),
     ("backend.routes_privacy", "routes_privacy"),

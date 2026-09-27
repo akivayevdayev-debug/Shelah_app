@@ -10,6 +10,8 @@ This file is mostly curated domain mapping data plus matching utilities.
 """
 
 import logging
+import re
+from itertools import zip_longest
 import requests
 
 from backend.cache import TTLCache
@@ -259,23 +261,64 @@ def get_daily_study():
         return payload
 
 
-def find_refs_for_question(question):
-    """Match question keywords to known refs with enhanced matching"""
-    q_lower = question.lower()
-    matched_refs = []
+# Words of a multi-word keyword that must not match on their own: "on"
+# (from "work on shabbat") is inside nearly every question and pulled
+# Orach Chayim 306 into unrelated answers, and "yom"/"rosh" are shared by
+# holidays that need different sources (yom tov vs yom kippur, rosh
+# hashana vs rosh chodesh). The full phrase still matches.
+_PARTIAL_MATCH_SKIP_WORDS = frozenset({"on", "after", "work", "waiting", "35", "yom", "rosh"})
 
+_DEFAULT_REFS = (
+    "Shulchan_Arukh,_Orach_Chayim.1",
+    "Rambam,_Mishneh_Torah,_Laws_of_Prayer.1",
+)
+
+
+def _starts_a_word(term, text):
+    """term appears in text at the start of a word, so plurals and suffixes
+    still match ("candles", "shabbat's") but "get" (divorce) no longer
+    matches inside "forget", nor "fast" inside "breakfast"."""
+    return re.search(r"(?<![a-z0-9'])" + re.escape(term), text) is not None
+
+
+def _match_topic_refs(text):
+    """Refs of every TOPIC_REFS keyword found in text (whole phrase, or any
+    distinctive word of a multi-word keyword), in TOPIC_REFS order."""
+    q_lower = str(text or "").lower()
+    matched_refs = []
     for keyword, refs in TOPIC_REFS.items():
-        # Support both exact and partial keyword matching
-        if keyword in q_lower or any(word in q_lower for word in keyword.split()):
+        if _starts_a_word(keyword, q_lower) or any(
+            _starts_a_word(word, q_lower) for word in keyword.split()
+            if word not in _PARTIAL_MATCH_SKIP_WORDS
+        ):
             for ref in refs:
                 if ref not in matched_refs:
                     matched_refs.append(ref)
+    return matched_refs
+
+
+def find_refs_for_question(question, context=()):
+    """Match question keywords to known refs with enhanced matching.
+
+    `context` is the conversation's earlier questions, newest first. A
+    follow-up like "And what if I forgot?" names no topic of its own, so
+    its sources come from what the conversation is about; when both match,
+    the follow-up's refs and the context's refs alternate so neither
+    crowds the other out of the capped list."""
+    matched_refs = _match_topic_refs(question)
+    context_refs = []
+    for earlier in context or ():
+        for ref in _match_topic_refs(earlier):
+            if ref not in context_refs and ref not in matched_refs:
+                context_refs.append(ref)
+    if context_refs:
+        interleaved = []
+        for pair in zip_longest(matched_refs, context_refs):
+            interleaved.extend(ref for ref in pair if ref)
+        matched_refs = interleaved
 
     # Default fallback
     if not matched_refs:
-        matched_refs = [
-            "Shulchan_Arukh,_Orach_Chayim.1",
-            "Rambam,_Mishneh_Torah,_Laws_of_Prayer.1"
-        ]
+        matched_refs = list(_DEFAULT_REFS)
 
     return matched_refs[:7]  # Max 7 refs to balance coverage and token cost

@@ -18,7 +18,7 @@ tests without booting the Flask app. Two tools in plan.md's tables
 (get_community_profile, get_prayer_text) named app.py-only backing
 functions (_build_trusted_custom_sources, SIDDUR_SECTION_MAP /
 _get_prayer_refs); both are reimplemented here against backend-only
-data sources instead (see each handler's docstring for the deviation
+data sources instead (see each handler's docstring for the data source
 and its consequence).
 
 Every handler has the uniform signature
@@ -32,6 +32,7 @@ of the whole agent loop (plan.md §9.5, fail-open).
 from __future__ import annotations
 
 import asyncio
+import html
 import json
 import logging
 import os
@@ -40,7 +41,7 @@ from dataclasses import dataclass
 from datetime import date as date_lib
 from typing import Any, Awaitable, Callable, Optional
 
-from backend import calendar_service, customs, sefaria, sefaria_library, zmanim_engine
+from backend import calendar_service, customs, sefaria, sefaria_library, siddur_data, zmanim_engine
 from backend.data_service import ShelahEngine
 from backend.health_check import health
 from backend.helpers import (
@@ -479,28 +480,111 @@ async def _h_search_library(arguments: dict, context: dict) -> dict:
 
 # ── 18. get_prayer_text ─────────────────────────────────────────────────────
 
+# Lines of prayer text per section a tool result carries; the rest is
+# counted, and the reader page (``path``) has it all.
+_PRAYER_LINES_PER_SECTION = 6
+_TAG_RE = re.compile(r"<[^>]+>")
+
+
+def _plain_line(fragment: str) -> str:
+    """Typed siddur line markup (b/i/small/br only) as plain text, with
+    an inline rubric (<small>) kept apart from the words said, in [...]."""
+    fragment = fragment.replace("<br>", "\n").replace("<small>", "[").replace("</small>", "]")
+    return html.unescape(_TAG_RE.sub("", fragment)).strip()
+
+
+def _siddur_section_result(rite: str, service: dict, toc_section: dict, lines: list, with_text: bool) -> dict:
+    result = {
+        "ref": toc_section["ref"],
+        "title": toc_section["title"]["en"],
+        "title_he": toc_section["title"]["he"],
+        "path": siddur_data.siddur_path(rite, service["slug"],
+                                        toc_section["slug"] if len(service["sections"]) > 1 else None),
+        "line_count": len(lines),
+    }
+    if with_text:
+        kept = lines[:_PRAYER_LINES_PER_SECTION]
+        result["lines"] = [
+            {"type": line["t"], "ref": f"{toc_section['ref']} {line['n']}",
+             "he": _plain_line(line.get("he", "")), "en": _plain_line(line.get("en", ""))}
+            for line in kept
+        ]
+        result["truncated"] = len(lines) > len(kept)
+    return result
+
+
+def _curated_prayer_text(prayer_name: str, max_sections: int) -> dict | None:
+    """The checked-in Edot HaMizrach siddur's answer (backend/siddur_data),
+    or None when the name matches none of its services or sections."""
+    rite = siddur_data.DEFAULT_RITE
+    toc = siddur_data.get_toc(rite)
+    match = siddur_data.search_services(prayer_name, rite)
+    if toc is None or match is None:
+        return None
+    service, section = match
+    data = siddur_data.get_service(rite, service["slug"])
+    if data is None:
+        return None
+    lines_by_slug = {sec["slug"]: sec["lines"] for sec in data["sections"]}
+    wanted = [section] if section else service["sections"][:max_sections]
+    sections = [
+        _siddur_section_result(rite, service, sec, lines_by_slug.get(sec["slug"], []), with_text=True)
+        for sec in wanted
+    ]
+    source = toc["source"]
+    result = {
+        "prayer_name": prayer_name,
+        "found": True,
+        "source": f"{source['index']} ({source['he']['title']}, {source['he']['license']}; "
+                  f"English: {source['en']['title']}, {source['en']['license']}) from Sefaria",
+        "rite": toc["rite"]["title"]["en"],
+        "service": {"title": service["title"]["en"], "title_he": service["title"]["he"],
+                    "path": siddur_data.siddur_path(rite, service["slug"])},
+        "sections": sections,
+        "note": "Lines of type 'instruction' and 'conditional' are the siddur's own rubrics "
+                "(when a passage is said), not prayer text.",
+    }
+    if section is None and len(service["sections"]) > len(wanted):
+        result["more_sections"] = [
+            _siddur_section_result(rite, service, sec, lines_by_slug.get(sec["slug"], []), with_text=False)
+            for sec in service["sections"][len(wanted):]
+        ]
+    return result
+
+
 async def _h_get_prayer_text(arguments: dict, context: dict) -> dict:
-    """Backs onto sefaria_library.get_index_leaf_refs +
-    sefaria_library.get_text, not app.py's SIDDUR_SECTION_MAP /
-    _get_prayer_refs (app.py-only, forbidden by this module's import
-    contract). This means curated friendly-name -> ref mappings for
-    common prayer names are not available here; resolution falls back
-    to Sefaria's own index-title search, which is less precise for
-    prayer names that don't match a Sefaria index title closely. See
-    docs/AI_TOOLS.md for the tracked follow-up.
+    """The checked-in, curated siddur first (backend/siddur_data: the
+    Edot HaMizrach services the /siddur reader serves, matched by service
+    or section name, "Shema" -> Shacharit's Shema), so the common prayer
+    names resolve precisely with no network call. Anything it doesn't
+    hold falls back to Sefaria's own index-title search
+    (sefaria_library.get_index_leaf_refs + get_text), gated on the
+    Sefaria circuit here rather than in the ToolSpec, since the curated
+    answer never touches Sefaria.
     """
     prayer_name = str(arguments.get("prayer_name") or "").strip()
     if not prayer_name:
         return {"error": "prayer_name is required"}
     max_sections = _clamp_int(arguments.get("max_sections"), 6, 1, 20)
 
-    refs = await asyncio.to_thread(sefaria_library.get_index_leaf_refs, prayer_name, max_sections)
-    if not refs:
-        return {"prayer_name": prayer_name, "found": False}
+    curated = await asyncio.to_thread(_curated_prayer_text, prayer_name, max_sections)
+    if curated is not None:
+        return curated
 
-    texts = await asyncio.gather(
-        *(asyncio.to_thread(sefaria_library.get_text, ref) for ref in refs[:max_sections])
-    )
+    if not await asyncio.to_thread(health.is_healthy, "sefaria"):
+        return {"error": "get_prayer_text is temporarily unavailable (circuit open for sefaria)"}
+    try:
+        refs = await asyncio.to_thread(sefaria_library.get_index_leaf_refs, prayer_name, max_sections)
+        if not refs:
+            health.record_success("sefaria")
+            return {"prayer_name": prayer_name, "found": False}
+        texts = await asyncio.gather(
+            *(asyncio.to_thread(sefaria_library.get_text, ref) for ref in refs[:max_sections])
+        )
+    except Exception:
+        health.record_failure("sefaria")
+        raise
+    health.record_success("sefaria")
     sections = [
         {"ref": t.get("ref"), "he": t.get("he", [])[:6], "en": t.get("en", [])[:6]}
         for t in texts if isinstance(t, dict) and not t.get("error")
@@ -901,7 +985,12 @@ TOOLS: list[ToolSpec] = [
     ),
     ToolSpec(
         name="get_prayer_text",
-        description="Retrieve liturgy text for a specific prayer by name.",
+        description=(
+            "Retrieve liturgy text for a prayer or service by name (e.g. 'Shacharit', 'Shema', "
+            "'Amida of Mincha', 'Birkat Hamazon', 'ערבית'). Answers from the site's own Edot HaMizrach "
+            "(Sephardic) siddur with Sefaria refs and a /siddur page path; other names fall back to "
+            "Sefaria's index search."
+        ),
         input_schema={
             "type": "object",
             "properties": {
@@ -911,7 +1000,7 @@ TOOLS: list[ToolSpec] = [
             "required": ["prayer_name"],
         },
         handler=_h_get_prayer_text,
-        service="sefaria",
+        service=None,  # the curated siddur is local; the Sefaria fallback gates itself
     ),
     ToolSpec(
         name="get_daily_zmanim_summary",

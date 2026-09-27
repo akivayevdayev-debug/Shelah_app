@@ -524,6 +524,22 @@ def _forward_error_to_sentry(error, context: dict, request_id) -> None:
             pass
 
 
+# PostgREST's timing rejections of the caller's Clerk token (PGRST303): the
+# token expired in flight, or a small clock difference put its start a moment
+# ahead of Supabase's. Routine and self-healing (the next request carries a
+# fresh token), so these are logged as a warning instead of alerted. Other
+# PGRST303 reasons, like "JWT not in audience", are setup problems and still
+# alert.
+_TOKEN_TIMING_MESSAGES = frozenset({"JWT expired", "JWT not yet valid", "JWT issued at future"})
+
+
+def _is_token_timing_rejection(error) -> bool:
+    return (
+        getattr(error, "code", None) == "PGRST303"
+        and getattr(error, "message", None) in _TOKEN_TIMING_MESSAGES
+    )
+
+
 def _capture_backend_error(event_name, error, context=None):
     """Sentry-style structured logger for backend failures and AI prompt issues.
 
@@ -543,6 +559,12 @@ def _capture_backend_error(event_name, error, context=None):
         "request_id": request_id,
         "ts": int(time.time()),
     }
+
+    if _is_token_timing_rejection(error):
+        # Still visible in the server log; no webhook, no Sentry event.
+        _flask_app.app.logger.warning(
+            "OBS_EVENT_QUIET %s", json.dumps(payload, ensure_ascii=True))
+        return
 
     _flask_app.app.logger.error(
         "OBS_EVENT %s", json.dumps(payload, ensure_ascii=True),
