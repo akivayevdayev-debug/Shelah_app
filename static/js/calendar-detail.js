@@ -96,6 +96,7 @@ function safeHebcalUrl(value) {
         const url = new URL(String(value || ''));
         return url.protocol === 'https:' && HEBCAL_HOSTS.has(url.hostname) ? url.href : null;
     } catch (_) {
+        // Not a parseable URL at all: treat it the same as an off-list host.
         return null;
     }
 }
@@ -156,10 +157,12 @@ function bind() {
 // Consecutive yom tov days of one holiday (Rosh Hashana I–II).  Only yom tov days
 // count: Erev and Chol HaMoed share the holiday's Hebcal link but are not the
 // observance itself.
+const byKey = (a, b) => a.localeCompare(b);
+
 function runOfSameHoliday(ev, allEvents) {
     const link = ev.detail?.link;
     if (!link) return { first: ev.key, last: ev.key };
-    const keys = [...new Set(allEvents.filter((e) => e.detail?.link === link && e.detail?.yomtov).map((e) => e.key))].sort();
+    const keys = [...new Set(allEvents.filter((e) => e.detail?.link === link && e.detail?.yomtov).map((e) => e.key))].sort(byKey);
     let i = keys.indexOf(ev.key);
     if (i < 0) return { first: ev.key, last: ev.key };
     let lo = i; let hi = i;
@@ -239,15 +242,56 @@ function readingNodes(text) {
 // continuation ("Exodus 21:1-24:18, 30:11-16") or a trailing label ("… | Shabbat Zachor").
 // Each piece becomes one reference the reader can open; anything that doesn't parse
 // cleanly yields no references, so the text is shown plain rather than linked wrongly.
-const PIECE = /^(?:(\D.*?)\s+)?(\d+):(\d+)(?:-(?:(\d+):)?(\d+))?$/;
+const RANGE = /^(\d+):(\d+)(?:-(?:(\d+):)?(\d+))?$/;
+const LINE_BREAK = /[\n\r\u2028\u2029]/;
+const isSpace = (ch) => /\s/.test(ch);
+
+// "Genesis 21:1-34" -> [piece, book, chapter, verse, endChapter, endVerse], the shape of a
+// regex match (book undefined for a bare "30:11-16" that continues the previous book).
+// Scans instead of one big regex: "book, whitespace, range" backtracks super-linearly.
+function matchPiece(piece) {
+    let cut = piece.length;
+    while (cut > 0 && !isSpace(piece[cut - 1])) cut -= 1;
+    const range = RANGE.exec(piece.slice(cut));
+    if (!range) return null;
+    if (cut === 0) return [piece, undefined, ...range.slice(1)];
+    let end = cut;
+    while (end > 0 && isSpace(piece[end - 1])) end -= 1;
+    const book = piece.slice(0, end);
+    if (!book || /\d/.test(book[0]) || LINE_BREAK.test(book.slice(1))) return null;
+    return [piece, book, ...range.slice(1)];
+}
+
+// Split on a "|" with whitespace on both sides, the separator taking that whitespace
+// with it -- what split(/\s+\|\s+/) did, without its quadratic backtracking.
+function splitLabel(text) {
+    const parts = [];
+    let start = 0;
+    let i = 0;
+    while (i < text.length) {
+        if (text[i] === '|' && i - 1 >= start && isSpace(text[i - 1]) && i + 1 < text.length && isSpace(text[i + 1])) {
+            let from = i - 1;
+            while (from > start && isSpace(text[from - 1])) from -= 1;
+            let to = i + 1;
+            while (to < text.length && isSpace(text[to])) to += 1;
+            parts.push(text.slice(start, from));
+            start = to;
+            i = to;
+        } else {
+            i += 1;
+        }
+    }
+    parts.push(text.slice(start));
+    return parts;
+}
 
 function parseReading(text) {
-    const [list, ...rest] = String(text).split(/\s+\|\s+/);
+    const [list, ...rest] = splitLabel(String(text));
     const note = rest.join(' | ');
     const refs = [];
     let book = '';
-    for (const piece of list.split(/\s*[;,]\s*/)) {
-        const m = PIECE.exec(piece.trim());
+    for (const piece of list.split(/[;,]/)) {
+        const m = matchPiece(piece.trim());
         if (!m || !(m[1] || book)) return { refs: [], note };
         book = m[1] || book;
         const [, , chapter, verse, endChapter, endVerse] = m;
@@ -317,7 +361,8 @@ async function loadTimes(loc, keys) {
         }
         return true;
     } catch (_) {
-        return false; // offline or a bad response: the words stay
+        // Offline or a bad response: the card keeps its words ("at sundown") instead.
+        return false;
     }
 }
 
@@ -344,6 +389,15 @@ function momentAt(at, key) {
     return iso ? { name, iso, tz: t.tz } : null;
 }
 
+// One Begins / Ends row: the clock time when it's known, otherwise the words.
+function boundaryRow(slot, label, part, eventKey, f) {
+    const { T, he } = state.ctx;
+    const m = momentAt(part.at, part.key);
+    if (!m) return slotRow(slot, label, T[part.at], h('small', { text: f.short(part.key) }));
+    const note = part.key === eventKey ? T.at[m.name] : `${T.at[m.name]} · ${f.short(part.key)}`;
+    return slotRow(slot, label, clock(m.iso, m.tz, he), h('small', { text: note }));
+}
+
 // Begins / Ends (and an eve's own candle lighting): a row per moment.
 function timeRows(ev, allEvents) {
     const { T, he } = state.ctx;
@@ -352,10 +406,7 @@ function timeRows(ev, allEvents) {
     const span = observance(ev, allEvents);
     if (span) {
         for (const [slot, label, part] of [['begins', T.begins, span.begins], ['ends', T.ends, span.ends]]) {
-            const m = momentAt(part.at, part.key);
-            rows.push(slotRow(slot, label,
-                m ? clock(m.iso, m.tz, he) : T[part.at],
-                h('small', { text: m ? (part.key === ev.key ? T.at[m.name] : `${T.at[m.name]} · ${f.short(part.key)}`) : f.short(part.key) })));
+            rows.push(boundaryRow(slot, label, part, ev.key, f));
         }
     }
     const eve = isErev(ev) ? timesOf(ev.key)?.candles : null;
@@ -419,22 +470,10 @@ async function upgradeToClockTimes(ev) {
 }
 
 function eventNodes(ev) {
-    const { T, he, allEvents } = state.ctx;
+    const { he, allEvents } = state.ctx;
     const f = formats(he);
     const d = ev.detail || {};
-    const rows = [];
-
-    // Hebcal's own hdate is English ("1 Tishrei 5787"), which an RTL row would reorder:
-    // the Hebrew UI shows the Hebrew-calendar date in Hebrew instead.
-    const hdate = he ? (f.hebrew(ev.key) || d.hdate) : (d.hdate || f.hebrew(ev.key));
-    rows.push(row(T.date, f.long(ev.key), hdate ? h('small', { text: hdate, dir: he && !f.hebrew(ev.key) ? 'ltr' : null }) : null));
-
-    rows.push(...timeRows(ev, allEvents));
-    if (d.leyning) {
-        for (const key of ['torah', 'haftarah', 'maftir']) {
-            if (d.leyning[key]) rows.push(readingRow(T[key], d.leyning[key]));
-        }
-    }
+    const rows = [dateRow(ev, d, f), ...timeRows(ev, allEvents), ...readingRows(d.leyning)];
 
     const nodes = [
         h('div', { class: 'cal-detail__head' },
@@ -447,13 +486,31 @@ function eventNodes(ev) {
     ];
 
     const url = safeHebcalUrl(d.link);
-    if (url || Object.keys(d).length) {
-        nodes.push(h('div', { class: 'cal-detail__foot' },
-            url ? h('a', { class: 'cal-detail__link', href: url, target: '_blank', rel: 'noopener noreferrer' }, T.learn, h('span', { 'aria-hidden': 'true', text: '↗' })) : null,
-            h('p', { class: 'cal-detail__credit' }, `${T.credit} `,
-                h('a', { href: 'https://www.hebcal.com/', target: '_blank', rel: 'noopener noreferrer', text: 'Hebcal.com' }), ' (CC BY 4.0)')));
-    }
+    if (url || Object.keys(d).length) nodes.push(footNode(url));
     return nodes;
+}
+
+// Hebcal's own hdate is English ("1 Tishrei 5787"), which an RTL row would reorder:
+// the Hebrew UI shows the Hebrew-calendar date in Hebrew instead.
+function dateRow(ev, d, f) {
+    const { T, he } = state.ctx;
+    const hdate = he ? (f.hebrew(ev.key) || d.hdate) : (d.hdate || f.hebrew(ev.key));
+    const dir = he && !f.hebrew(ev.key) ? 'ltr' : null;
+    return row(T.date, f.long(ev.key), hdate ? h('small', { text: hdate, dir }) : null);
+}
+
+function readingRows(leyning) {
+    if (!leyning) return [];
+    const { T } = state.ctx;
+    return ['torah', 'haftarah', 'maftir'].filter((key) => leyning[key]).map((key) => readingRow(T[key], leyning[key]));
+}
+
+function footNode(url) {
+    const { T } = state.ctx;
+    return h('div', { class: 'cal-detail__foot' },
+        url ? h('a', { class: 'cal-detail__link', href: url, target: '_blank', rel: 'noopener noreferrer' }, T.learn, h('span', { 'aria-hidden': 'true', text: '↗' })) : null,
+        h('p', { class: 'cal-detail__credit' }, `${T.credit} `,
+            h('a', { href: 'https://www.hebcal.com/', target: '_blank', rel: 'noopener noreferrer', text: 'Hebcal.com' }), ' (CC BY 4.0)'));
 }
 
 // Static, trusted SVG markup only (never data from Hebcal).
@@ -616,7 +673,7 @@ function animateIn() {
         panel.style.transformOrigin = `${tip.x}px ${tip.y}px`;
         panel.style.transform = 'scale(0.5)';
     }
-    void panel.offsetWidth; // commit the start pose before opacity/motion begin
+    panel.getBoundingClientRect(); // force layout: commit the start pose before opacity/motion begin
     panel.classList.add('is-shown');
     scrim.classList.add('is-shown');
 
@@ -650,7 +707,7 @@ function finish() {
     stopFollowingAnchor();
     const back = state.prevFocus;
     state.prevFocus = null;
-    if (back && back.isConnected && typeof back.focus === 'function') back.focus({ preventScroll: true });
+    if (back?.isConnected && typeof back.focus === 'function') back.focus({ preventScroll: true });
 }
 
 async function close({ immediate = false, velocity = 0 } = {}) {
@@ -724,7 +781,7 @@ function dragMove(y) {
 function dragEnd() {
     const d = state.drag;
     state.drag = null;
-    if (!d || !d.active) { scrim.style.transition = ''; return; }
+    if (!d?.active) { scrim.style.transition = ''; return; }
     const first = d.samples[0]; const last = d.samples[d.samples.length - 1];
     const dt = Math.max(last.t - first.t, 1);
     const velocity = ((last.y - first.y) / dt) * 1000; // px/s, + is downward

@@ -297,7 +297,8 @@ export function getZmanimLocation() {
             lat = saved?.lat;
             lon = saved?.lon;
         } catch (_) {
-            lat = null; // a corrupt cache entry is "no saved location", not an error
+            // A corrupt cache entry is "no saved location", not an error.
+            lat = null;
         }
     }
     if (!Number.isFinite(lat) || !Number.isFinite(lon)) return null;
