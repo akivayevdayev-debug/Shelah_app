@@ -189,6 +189,46 @@ class TestCaptureBackendError:
         assert len(posted) == 1
         assert posted[0][0] == "https://example.com/webhook"
 
+    @pytest.mark.parametrize("message", ["JWT expired", "JWT not yet valid", "JWT issued at future"])
+    def test_token_timing_rejection_is_logged_not_alerted(self, monkeypatch, message):
+        """A PostgREST PGRST303 timing rejection of the caller's token is
+        routine: a warning in the log, no webhook post, no Sentry event."""
+        from postgrest.exceptions import APIError
+        import app as flask_app_module
+        errors, warnings, posted, sentry = [], [], [], []
+        monkeypatch.setattr(flask_app_module.app.logger, "error", lambda msg, *a, **k: errors.append(msg))
+        monkeypatch.setattr(
+            flask_app_module.app.logger, "warning",
+            lambda msg, *a, **k: warnings.append(msg % a if a else msg),
+        )
+        monkeypatch.setenv("ERROR_LOG_WEBHOOK_URL", "https://example.com/webhook")
+        import requests
+        monkeypatch.setattr(requests, "post", lambda url, json=None, timeout=None: posted.append(url))
+        monkeypatch.setattr(logging_setup, "_forward_error_to_sentry", lambda *a, **k: sentry.append(a))
+
+        error = APIError({"message": message, "code": "PGRST303", "hint": None, "details": None})
+        logging_setup._capture_backend_error("user_preferences_sync_failed", error, {"user_id_hash": "h"})
+
+        assert errors == [] and posted == [] and sentry == []
+        assert len(warnings) == 1
+        assert warnings[0].startswith("OBS_EVENT_QUIET ")
+        assert "user_preferences_sync_failed" in warnings[0]
+
+    def test_other_pgrst303_rejection_still_alerts(self, monkeypatch):
+        """A wrong-audience token is a setup problem, not timing: it alerts."""
+        from postgrest.exceptions import APIError
+        import app as flask_app_module
+        monkeypatch.setattr(flask_app_module.app.logger, "error", lambda *a, **k: None)
+        monkeypatch.setenv("ERROR_LOG_WEBHOOK_URL", "https://example.com/webhook")
+        posted = []
+        import requests
+        monkeypatch.setattr(requests, "post", lambda url, json=None, timeout=None: posted.append(url))
+
+        error = APIError({"message": "JWT not in audience", "code": "PGRST303", "hint": None, "details": None})
+        logging_setup._capture_backend_error("user_preferences_sync_failed", error)
+
+        assert posted == ["https://example.com/webhook"]
+
     def test_webhook_failure_is_swallowed(self, monkeypatch):
         import app as flask_app_module
         monkeypatch.setattr(flask_app_module.app.logger, "error", lambda *a, **k: None)
