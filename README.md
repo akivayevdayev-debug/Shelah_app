@@ -88,7 +88,7 @@ When I first put Sh'elah up it could already answer questions using primary sour
 
 ### Devlog 5: the AI can finally go look things up
 
-- Gave the AI real tool use. It now fetches live prayer times, calendar dates, and texts when it needs them, instead of having everything pre-loaded into every single request. Judaic texts always come first, and web search is strictly a last resort.
+- Built real tool use for the AI, so it can fetch live prayer times, calendar dates, and texts when it needs them instead of having everything pre-loaded into every single request. Judaic texts always come first, and web search is strictly a last resort. (It's behind an on/off switch, `AI_AGENTIC_TOOLS`, since every tool call is another paid model call and I want the rate limiting fully hardened before it's on for everyone.)
 - Filed the site for DMCA copyright protection.
 - Added self-serve privacy controls so you can export or delete your own account and data.
 - Added a feedback button on AI answers so people can flag bad ones directly.
@@ -164,7 +164,7 @@ If anything at all is broken, email me at **akiva.yevda@gmail.com** and I'll try
 
 The `/ask` endpoint runs a retrieval pipeline: before the model sees your question at all, `backend/rag.py` pulls in live Sefaria results, the 14-community customs data, and your own saved context (if you're signed in). **Gemini is the main model, and Claude is the automatic backup** if Gemini errors out or is down (`backend/claude.py`). Both get the exact same guardrails, and there are tests that make sure that stays true.
 
-On top of that there's a tool-use layer (`backend/ai_tools.py`, 22 tools) so the AI can go fetch texts, zmanim, calendar dates, and Hebrew-date math when it actually needs them, instead of everything getting shoved into the prompt every time. It's behind the `AI_AGENTIC_TOOLS` flag. Details in [docs/AI_TOOLS.md](docs/AI_TOOLS.md).
+On top of that there's a tool-use layer (`backend/ai_tools.py`, 22 tools) so the AI can go fetch texts, zmanim, calendar dates, and Hebrew-date math when it actually needs them, instead of everything getting shoved into the prompt every time. It's switched on with `AI_AGENTIC_TOOLS=true` and is off by default. With it off, the AI still gets the Sefaria results, customs, and calendar data up front, just not the ability to go fetch more mid-answer. Why it's a switch: one question can turn into several tool rounds, which means several paid model calls, so it shouldn't be on until the rate limiter uses a shared store (`RATE_LIMIT_REDIS_URL`). Details in [docs/AI_TOOLS.md](docs/AI_TOOLS.md).
 
 **Where answers are allowed to come from**, in order (this is baked into the system prompt, `CORE_SYSTEM_PROMPT` in `backend/claude.py`):
 
@@ -189,7 +189,7 @@ General web search (like Wikipedia) is a last resort for when the texts and the 
 - **Hosting:** Vercel, as one serverless function.
 - **Database:** Supabase (Postgres), with row-level security so users can only see their own stuff.
 - **Auth:** Clerk.
-- **AI:** Gemini first, Claude as backup, with tool use (see above).
+- **AI:** Gemini first, Claude as backup, with optional tool use (see above).
 - **Texts and calendar data:** Sefaria for texts, Hebcal for the calendar and zmanim, MyMemory / Google Translate for the translation fallback, plus the 14 community customs datasets in `customs/`.
 - **Frontend:** plain HTML/CSS/JS (ES modules), Tailwind + DaisyUI, marked + DOMPurify for rendering AI answers safely.
 - **Keeping it alive:** Turnstile for bot checks, Sentry and a Discord webhook for errors, circuit breakers on every external service, SonarCloud for code quality, and a lot of CI.
