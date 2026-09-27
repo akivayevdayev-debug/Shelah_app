@@ -2657,7 +2657,8 @@ html.rtl .home-main-layout #popularTextsGrid {
 
 .home-library-link:hover .home-library-title,
 .home-topic-title:hover,
-.home-daily-link:hover {
+.home-daily-link:hover,
+.home-stat-link:hover {
     text-decoration: underline;
     text-underline-offset: 0.18em;
 }
@@ -2764,6 +2765,20 @@ html.rtl .home-main-layout #popularTextsGrid {
     font-family: 'Cardo', 'Cardo Fallback', serif;
     font-weight: 700;
     text-align: left;
+}
+
+/* Reset button chrome for a value that's now a link (holidayName,
+   shabbatWeekName) while keeping the Tailwind utility classes it already
+   carries (.text-slate-700, .text-end, .max-w-[60%]) in control of color,
+   alignment and truncation -- only the browser's own button styling needs
+   overriding here. */
+.home-stat-link {
+    background: transparent;
+    border: 0;
+    padding: 0;
+    margin: 0;
+    font: inherit;
+    cursor: pointer;
 }
 
 .today-zmanim-list [data-zman-row] {

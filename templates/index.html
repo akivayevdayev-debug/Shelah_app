@@ -1389,12 +1389,16 @@
                             <div class="space-y-2 text-sm">
                                 <div class="flex justify-between items-center py-1.5 border-b border-slate-100">
                                     <span class="text-slate-500" data-en="Today" data-he="היום">Today</span>
-                                    <b id="holidayName" class="text-slate-700 text-end max-w-[60%]">Regular Day</b>
+                                    <button type="button" id="holidayName"
+                                        class="home-stat-link text-slate-700 text-end max-w-[60%] font-bold"
+                                        onclick="openTodayInCalendar()">Regular Day</button>
                                 </div>
                                 <div class="flex justify-between items-center py-1.5 border-b border-slate-100">
                                     <span class="text-slate-500" data-en="This Week's Shabbat" data-he="שבת השבוע">This
                                         Week's Shabbat</span>
-                                    <b id="shabbatWeekName" class="text-slate-700 text-end max-w-[60%]">--</b>
+                                    <button type="button" id="shabbatWeekName"
+                                        class="home-stat-link text-slate-700 text-end max-w-[60%] font-bold"
+                                        onclick="readText('Genesis 1')">--</button>
                                 </div>
                                 <div id="omerRow"
                                     class="hidden flex justify-between items-center py-1.5 border-b border-slate-100">
@@ -12920,7 +12924,8 @@
         async function loadParashaQuickLink(attempt = 0) {
             const quickLink = document.getElementById('parashaQuickLink');
             const homeQuickLink = document.getElementById('homeParashaQuickLink');
-            if (!quickLink && !homeQuickLink) return;
+            const shabbatWeekLink = document.getElementById('shabbatWeekName');
+            if (!quickLink && !homeQuickLink && !shabbatWeekLink) return;
 
             const applyParashaLink = (payload) => {
                 if (!payload) return;
@@ -12930,20 +12935,32 @@
                 const heTitle = (payload.heTitle || '').trim();
                 const titleEn = payload.titleEn || (heTitle ? `${enTitle} · ${heTitle}` : enTitle);
                 const titleHe = payload.titleHe || heTitle || enTitle;
+                const openTip = isHebrewMode()
+                    ? (heTitle ? `פתח ${heTitle}` : `פתח ${enTitle}`)
+                    : (heTitle ? `Open ${enTitle} (${heTitle})` : `Open ${enTitle}`);
 
                 const applyToElement = (linkEl) => {
                     if (!linkEl) return;
                     linkEl.dataset.en = titleEn;
                     linkEl.dataset.he = titleHe;
                     linkEl.textContent = isHebrewMode() ? titleHe : titleEn;
-                    linkEl.title = isHebrewMode()
-                        ? (heTitle ? `פתח ${heTitle}` : `פתח ${enTitle}`)
-                        : (heTitle ? `Open ${enTitle} (${heTitle})` : `Open ${enTitle}`);
+                    linkEl.title = openTip;
                     linkEl.onclick = () => readText(ref);
                 };
 
                 applyToElement(quickLink);
                 applyToElement(homeQuickLink);
+
+                // "This Week's Shabbat" (Holiday Season widget) keeps its own
+                // text -- zmanim.js's renderShabbatWeekName() already names it
+                // from a different, already-loaded source, and overwriting it
+                // here would race that render -- but it reuses this same
+                // resolved ref so the value opens the parasha text, exactly
+                // like the two quick links above.
+                if (shabbatWeekLink) {
+                    shabbatWeekLink.title = openTip;
+                    shabbatWeekLink.onclick = () => readText(ref);
+                }
             };
 
             const hasFreshCachedParasha = textsCache.parashaQuickLink
@@ -13950,6 +13967,24 @@
             const [y, m, d] = dateKey.split('-').map(Number);
             try { holidaysCalendar?.gotoDate(new Date(y, m - 1, d)); } catch (_) { /* pre-render guard */ }
             selectCalendarDay(dateKey, { scroll: true });
+        }
+
+        // Same date-jump as hydrateCalendarDate, but for a fresh user click
+        // (the "Holiday Season" home widget's holiday name) rather than a
+        // ?date= route already in the URL: openCalendarModal() here (not
+        // {fromRoute: true}) pushes its own history entry, which
+        // selectCalendarDay's pushUrl:true then corrects in place to this
+        // date instead of leaving it on whatever was last selected.
+        function openCalendarOnDate(dateKey) {
+            if (!/^\d{4}-\d{2}-\d{2}$/.test(String(dateKey || ''))) return;
+            window.openCalendarModal();
+            const [y, m, d] = dateKey.split('-').map(Number);
+            try { holidaysCalendar?.gotoDate(new Date(y, m - 1, d)); } catch (_) { /* pre-render guard */ }
+            selectCalendarDay(dateKey, { scroll: true, pushUrl: true });
+        }
+
+        function openTodayInCalendar() {
+            openCalendarOnDate(calendarDateKey(new Date()));
         }
 
         // ─── City Location Search ─────────────────────────────────
