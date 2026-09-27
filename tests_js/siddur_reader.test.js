@@ -384,7 +384,7 @@ test('keepOffline posts nothing without service workers, an active worker, or a 
     r.keepOffline(null, unversioned);
     await settle();
     assert.deepEqual(unversioned.posted, []);
-    assert.doesNotThrow(() => r.keepOffline(TOC, { nav: undefined, win: undefined }));
+    assert.doesNotThrow(() => r.keepOffline(TOC, { nav: null, win: null }));
 
     // A registration with no active worker, or one whose `ready` rejects.
     for (const ready of [Promise.resolve({ active: null }), Promise.reject(new Error('no sw'))]) {

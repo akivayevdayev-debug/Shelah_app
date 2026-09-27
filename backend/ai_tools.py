@@ -498,8 +498,9 @@ def _curated_prayer_text(prayer_name: str, max_sections: int) -> dict | None:
     """The checked-in Edot HaMizrach siddur's answer (backend/siddur_data),
     or None when the name matches none of its services or sections."""
     rite = siddur_data.DEFAULT_RITE
+    toc = siddur_data.get_toc(rite)
     match = siddur_data.search_services(prayer_name, rite)
-    if match is None:
+    if toc is None or match is None:
         return None
     service, section = match
     data = siddur_data.get_service(rite, service["slug"])
@@ -511,7 +512,6 @@ def _curated_prayer_text(prayer_name: str, max_sections: int) -> dict | None:
         _siddur_section_result(rite, service, sec, lines_by_slug.get(sec["slug"], []), with_text=True)
         for sec in wanted
     ]
-    toc = siddur_data.get_toc(rite)
     source = toc["source"]
     result = {
         "prayer_name": prayer_name,
