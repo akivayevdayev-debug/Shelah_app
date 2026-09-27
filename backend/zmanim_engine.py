@@ -27,6 +27,8 @@ logger = logging.getLogger(__name__)
 
 _tf = None
 _HTTP = requests.Session()
+# GeoLocation requires a name; it is only a label inside the zmanim library.
+_LOCATION_NAME = "User Location"
 _HEBCAL_DAY_CACHE_TTL_SECONDS = 60 * 30
 _HEBCAL_MONTH_CACHE_TTL_SECONDS = 60 * 30
 _HEBCAL_DAY_CACHE = TTLCache(ttl=_HEBCAL_DAY_CACHE_TTL_SECONDS)
@@ -197,7 +199,7 @@ def get_day_times(lat, lon, days, timezone_str=None):
     dawn and nightfall use the same degrees as that panel.
     """
     _, tz_name = _resolve_timezone(lat, lon, timezone_str)
-    location = GeoLocation("User Location", float(lat), float(lon), tz_name, 0)
+    location = GeoLocation(_LOCATION_NAME, float(lat), float(lon), tz_name, 0)
 
     hebcal = {}
     for year, month in sorted({(d.year, d.month) for d in days}):
@@ -362,7 +364,7 @@ def get_community_zmanim(lat, lon, timezone_str=None, community="standard"):
 
         # 1. Setup Location & Calendar
         location = GeoLocation(
-            "User Location", float(lat), float(lon), tz_name, 0)
+            _LOCATION_NAME, float(lat), float(lon), tz_name, 0)
         calendar = ZmanimCalendar(geo_location=location, date=today)
         next_day_calendar = ZmanimCalendar(
             geo_location=location,
@@ -631,7 +633,7 @@ def get_monthly_events(lat, lon, timezone_str=None):
     - Jewish holidays (with candle lighting times) from Hebcal API
     """
     tz, tz_name = _resolve_timezone(lat, lon, timezone_str)
-    location = GeoLocation("User Location", float(lat), float(lon), tz_name, 0)
+    location = GeoLocation(_LOCATION_NAME, float(lat), float(lon), tz_name, 0)
 
     events = []
     # Use the target location's timezone date, not server local date (matches

@@ -123,22 +123,28 @@ class TestGetDayTimes:
     def test_an_ordinary_day_has_solar_times_but_no_candles(self, hebcal):
         day = ze.get_day_times(*NYC, [date(2026, 9, 16)])["days"]["2026-09-16"]
 
-        assert day["candles"] is None and day["havdalah"] is None
-        assert day["dawn"] and day["sunset"] and day["nightfall"]
+        assert day["candles"] is None
+        assert day["havdalah"] is None
+        assert day["dawn"]
+        assert day["sunset"]
+        assert day["nightfall"]
 
     def test_one_hebcal_fetch_per_distinct_month(self, hebcal):
         ze.get_day_times(*NYC, [date(2026, 9, 29), date(2026, 9, 30), date(2026, 10, 1), date(2026, 10, 2)])
 
         assert len(hebcal) == 2
-        assert "month=9" in hebcal[0] and "month=10" in hebcal[1]
+        assert "month=9" in hebcal[0]
+        assert "month=10" in hebcal[1]
 
     def test_hebcal_being_down_still_yields_solar_times(self, monkeypatch):
         monkeypatch.setattr(ze._HTTP, "get", lambda *a, **k: (_ for _ in ()).throw(OSError("down")))
 
         day = ze.get_day_times(*NYC, [date(2026, 9, 11)])["days"]["2026-09-11"]
 
-        assert day["candles"] is None and day["havdalah"] is None
-        assert day["sunset"] and day["nightfall"]
+        assert day["candles"] is None
+        assert day["havdalah"] is None
+        assert day["sunset"]
+        assert day["nightfall"]
 
     def test_a_day_the_solar_library_rejects_degrades_to_nulls(self, hebcal, monkeypatch):
         def broken(*args, **kwargs):
@@ -148,7 +154,9 @@ class TestGetDayTimes:
 
         day = ze.get_day_times(*NYC, [date(2026, 9, 11)])["days"]["2026-09-11"]
 
-        assert day["dawn"] is None and day["sunset"] is None and day["nightfall"] is None
+        assert day["dawn"] is None
+        assert day["sunset"] is None
+        assert day["nightfall"] is None
         assert day["candles"] is not None  # Hebcal's own stamp survives
 
 
@@ -168,7 +176,8 @@ class TestDaysRoute:
 
         assert resp.headers["Cache-Control"] == cache_policy.CACHE_TIER_DATED
         with test_client.session_transaction() as sess:
-            assert "lat" not in sess and "lon" not in sess
+            assert "lat" not in sess
+            assert "lon" not in sess
 
     @pytest.mark.parametrize("query", [
         "dates=2026-09-11",                                   # no location at all
