@@ -479,6 +479,7 @@ function renderHolidayName(meta, deps) {
     if (!holidayName) return;
     const text = deps.translateHolidayName(meta.holiday || 'Regular Day');
     holidayName.innerText = text;
+    holidayName.title = deps.t('Open today in the calendar', 'פתח את היום בלוח השנה');
     setHebrewRtlStyle(holidayName, deps.isHebrewMode() && text !== 'Regular Day');
 }
 
