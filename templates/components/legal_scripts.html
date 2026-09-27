@@ -274,10 +274,15 @@
         }
 
         if (signInBtn) {
+            // /signin opens the sign-in window over the app; closing it comes
+            // back to this page (index.html authReturnPath).
             signInBtn.addEventListener('click', () => {
-                if (window.Clerk) {
-                    window.Clerk.openSignIn({ appearance: window.ShelahClerkAppearance?.() });
+                try {
+                    sessionStorage.setItem('shelah:authReturn', JSON.stringify({ path: window.location.pathname, at: Date.now() }));
+                } catch (_) {
+                    // Storage blocked: closing the window lands on the home page.
                 }
+                window.location.assign('/signin');
             });
         }
 

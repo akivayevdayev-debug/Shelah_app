@@ -142,7 +142,7 @@
             integrity="sha384-6ZdfL2Azuen6KYvcTkbxqJS1d7txbNWrVfmURkxNeCn7DtzhLRL6Fi6WGG6ZLdKn"
             crossorigin="anonymous"></script>
     <link rel="stylesheet" href="/static/css/tokens.css?v=20260926-vt1">
-    <link rel="stylesheet" href="/static/style.css?v=20260926-pm4">
+    <link rel="stylesheet" href="/static/style.css?v=20260926-pm5">
     <!-- CSS modules (supplement style.css; do not replace) -->
     <link rel="stylesheet" href="/static/css/typography.css?v=20260817-v6">
     <link rel="stylesheet" href="/static/css/reader.css?v=20260925-ui10">
@@ -392,49 +392,32 @@
                             <p class="text-[11px] uppercase tracking-widest text-slate-500 font-bold" data-en="Quick Settings"
                                 data-he="הגדרות מהירות">Quick Settings</p>
 
-                            <label class="block text-xs text-slate-600">
-                                <span class="inline-flex items-center gap-1">
-                                    <span data-en="Mode" data-he="מצב">Mode</span>
-                                    <span class="ai-hint-icon" title="Shapes how the AI answers">{{ phosphor('sparkle', size=11, class='h-[11px] w-[11px]') }}</span>
+                            <button id="openAiSettingsBtn" type="button"
+                                class="w-full px-3 py-2 rounded bg-slate-100 text-slate-700 border border-slate-200 hover:bg-slate-200 transition font-semibold text-xs text-start">
+                                {{ phosphor('sparkle', size=14, class='h-3.5 w-3.5 shrink-0') }}
+                                <span class="flex-1">
+                                    <span class="block" data-en="AI settings" data-he="הגדרות בינה מלאכותית">AI settings</span>
+                                    <span class="block font-normal text-[11px] text-slate-600" data-en="Community and answer mode, in the chat" data-he="קהילה ומצב תשובה, בצ׳אט">Community and answer mode, in the chat</span>
                                 </span>
-                                <select id="answerModeSelect"
-                                    class="mt-1 w-full px-2 py-1.5 rounded border border-slate-200 bg-slate-50 text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-400">
-                                    <option value="balanced" data-en="Balanced" data-he="מאוזן">Balanced</option>
-                                    <option value="practical" data-en="Practical First" data-he="מעשי תחילה">Practical First
-                                    </option>
-                                    <option value="sources" data-en="Deep Sources" data-he="מקורות מעמיקים">Deep Sources
-                                    </option>
-                                    <option value="strict" data-en="Strict Sources" data-he="מקורות בלבד">Strict Sources
-                                    </option>
-                                </select>
-                            </label>
-
-                            <label class="block text-xs text-slate-600">
-                                <span class="inline-flex items-center gap-1">
-                                    <span data-en="Community" data-he="קהילה">Community</span>
-                                    <span class="ai-hint-icon" title="Shapes how the AI answers">{{ phosphor('sparkle', size=11, class='h-[11px] w-[11px]') }}</span>
-                                </span>
-                                <select id="communityLensSelect"
-                                    class="mt-1 w-full px-2 py-1.5 rounded border border-slate-200 bg-slate-50 text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-400">
-                                    <option value="All" data-en="All" data-he="הכל">All</option>
-                                    <option value="Ashkenaz" data-en="Ashkenaz" data-he="אשכנז">Ashkenaz</option>
-                                    <option value="Sefardic" data-en="Sefardic" data-he="ספרדי">Sefardic</option>
-                                    <option value="Bukharian" data-en="Bukharian" data-he="בוכרי">Bukharian</option>
-                                    <option value="Persian" data-en="Persian" data-he="פרסי">Persian</option>
-                                    <option value="Ethiopian" data-en="Ethiopian" data-he="אתיופי">Ethiopian</option>
-                                    <option value="Georgian" data-en="Georgian" data-he="גרוזיני">Georgian</option>
-                                    <option value="Greek-Romaniote" data-en="Greek-Romaniote" data-he="רומניוטי">Greek-Romaniote
-                                    </option>
-                                    <option value="Iraqi" data-en="Iraqi" data-he="עיראקי">Iraqi</option>
-                                    <option value="Syrian" data-en="Syrian" data-he="סורי">Syrian</option>
-                                    <option value="Yemenite" data-en="Yemenite" data-he="תימני">Yemenite</option>
-                                    <option value="Moroccan" data-en="Moroccan" data-he="מרוקאי">Moroccan</option>
-                                    <option value="Kavkazi" data-en="Kavkazi" data-he="קווקזי">Kavkazi</option>
-                                    <option value="Turkish-Ottoman" data-en="Turkish-Ottoman" data-he="טורקי-עות׳מאני">
-                                        Turkish-Ottoman</option>
-                                    <option value="Israeli" data-en="Israeli" data-he="ישראלי">Israeli</option>
-                                </select>
-                            </label>
+                                {{ phosphor('caret-right', size=12, class='h-3 w-3 shrink-0 ai-settings-caret') }}
+                            </button>
+                            <template id="communityOptions">
+                                <option value="All" data-en="All" data-he="הכל">All</option>
+                                <option value="Ashkenaz" data-en="Ashkenaz" data-he="אשכנז">Ashkenaz</option>
+                                <option value="Sefardic" data-en="Sefardic" data-he="ספרדי">Sefardic</option>
+                                <option value="Bukharian" data-en="Bukharian" data-he="בוכרי">Bukharian</option>
+                                <option value="Persian" data-en="Persian" data-he="פרסי">Persian</option>
+                                <option value="Ethiopian" data-en="Ethiopian" data-he="אתיופי">Ethiopian</option>
+                                <option value="Georgian" data-en="Georgian" data-he="גרוזיני">Georgian</option>
+                                <option value="Greek-Romaniote" data-en="Greek-Romaniote" data-he="רומניוטי">Greek-Romaniote</option>
+                                <option value="Iraqi" data-en="Iraqi" data-he="עיראקי">Iraqi</option>
+                                <option value="Syrian" data-en="Syrian" data-he="סורי">Syrian</option>
+                                <option value="Yemenite" data-en="Yemenite" data-he="תימני">Yemenite</option>
+                                <option value="Moroccan" data-en="Moroccan" data-he="מרוקאי">Moroccan</option>
+                                <option value="Kavkazi" data-en="Kavkazi" data-he="קווקזי">Kavkazi</option>
+                                <option value="Turkish-Ottoman" data-en="Turkish-Ottoman" data-he="טורקי-עות׳מאני">Turkish-Ottoman</option>
+                                <option value="Israeli" data-en="Israeli" data-he="ישראלי">Israeli</option>
+                            </template>
 
                             <div class="border-t border-slate-100 pt-2">
                                 <button id="themeToggleBtn" type="button"
@@ -2604,8 +2587,7 @@
         const searchForm = document.getElementById('searchForm');
         const searchInput = document.getElementById('searchInput');
         const searchSuggestions = document.getElementById('searchSuggestions');
-        const answerModeSelect = document.getElementById('answerModeSelect');
-        const communityLensSelect = document.getElementById('communityLensSelect');
+        const openAiSettingsBtn = document.getElementById('openAiSettingsBtn');
         const bookmarkCurrentBtn = document.getElementById('bookmarkCurrentBtn');
         const semanticBookmarkBtn = document.getElementById('semanticBookmarkBtn');
         const showLeftSidebarTopBtn = document.getElementById('showLeftSidebarTopBtn');
@@ -5183,6 +5165,28 @@
         let authModal = null; // { page, kind: 'signin' | 'profile', observer, timer }
         let authLeaving = false;
 
+        // A legal page's Sign In (legal_scripts.html) goes to /signin with its
+        // own path saved. Closing the modal on that /signin returns there
+        // instead of to the home page. Only a /signin load reads it, and it
+        // stays saved until used so an OAuth round trip back to /signin keeps it.
+        const AUTH_RETURN_KEY = 'shelah:authReturn';
+        const AUTH_RETURN_MAX_AGE_MS = 10 * 60 * 1000;
+        let authReturnPath = (() => {
+            try {
+                const raw = sessionStorage.getItem(AUTH_RETURN_KEY);
+                if (!raw) return null;
+                if (window.location.pathname.replace(/\/+$/, '') !== '/signin') {
+                    sessionStorage.removeItem(AUTH_RETURN_KEY);
+                    return null;
+                }
+                const saved = JSON.parse(raw);
+                const fresh = Date.now() - Number(saved?.at) < AUTH_RETURN_MAX_AGE_MS;
+                return fresh && /^\/[a-z][a-z-]*$/.test(saved?.path || '') ? saved.path : null;
+            } catch (_) {
+                return null;
+            }
+        })();
+
         function stopWatchingAuthModal() {
             if (!authModal) return;
             authModal.observer.disconnect();
@@ -5227,6 +5231,14 @@
         function leaveAuthRoute() {
             if (authLeaving || !currentAuthPage()) return;
             stopWatchingAuthModal();
+            if (authReturnPath) {
+                const path = authReturnPath;
+                authReturnPath = null;
+                try { sessionStorage.removeItem(AUTH_RETURN_KEY); } catch (_) { /* storage blocked */ }
+                authLeaving = true;
+                window.location.replace(path);
+                return;
+            }
             const how = window.ShelahRouter?.closeOverlay('auth', { auth: null });
             if (how === 'back') {
                 authLeaving = true;
@@ -5297,6 +5309,8 @@
         function syncAuthRoute(route) {
             const page = route?.auth || '';
             if (!page) {
+                // Left /signin some other way (Back): no longer a return trip.
+                authReturnPath = null;
                 if (authModal) closeAuthModal();
                 return;
             }
@@ -5468,8 +5482,6 @@
         }
 
         function syncPrefsInputsFromState() {
-            answerModeSelect.value = appState.prefs.mode;
-            communityLensSelect.value = appState.prefs.community;
             readerLayoutSelect.value = appState.prefs.readerLayout;
             readerFontSize.value = String(appState.prefs.fontSize);
             readerLineHeight.value = String(appState.prefs.lineHeight);
@@ -9813,15 +9825,22 @@
             }
         }
 
-        answerModeSelect.addEventListener('change', () => {
-            appState.prefs.mode = answerModeSelect.value;
-            savePrefs();
-        });
+        // The AI mode and community are picked in the chat's settings menu
+        // (conversation-ui.js), which saves them here as the defaults.
+        window.ShelahPrefs = {
+            set(key, value) {
+                if (!['mode', 'community'].includes(key) || appState.prefs[key] === value) return;
+                appState.prefs[key] = value;
+                savePrefs();
+            },
+        };
 
-        communityLensSelect.addEventListener('change', () => {
-            appState.prefs.community = communityLensSelect.value;
-            savePrefs();
-        });
+        if (openAiSettingsBtn) {
+            openAiSettingsBtn.addEventListener('click', () => {
+                closeSettingsMenu();
+                window.ShelahConversationUI?.openSettings(settingsMenuBtn);
+            });
+        }
 
         if (themeToggleBtn) {
             themeToggleBtn.addEventListener('click', () => {
