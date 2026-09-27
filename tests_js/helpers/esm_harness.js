@@ -26,8 +26,20 @@
  * references resolve to the test's fakes instead of the real Node globals —
  * per module instance, without touching globalThis. The preamble sits on the
  * FIRST line with no newline, so every later line keeps its line number.
- * Because the files execute at their real URLs, `node --test
- * --experimental-test-coverage` attributes their coverage to static/js/*.js.
+ *
+ * Coverage (`node --test --experimental-test-coverage`): V8 reports block
+ * ranges as character offsets into the source it ran, which includes the
+ * preamble, while Node maps those offsets onto lines using the file on disk.
+ * Left alone, every range would land `preamble.length` characters late
+ * (several lines, e.g. a function declared on line 10 reported on line 14),
+ * and each `?esmHarnessCtx=<n>` copy would be its own script, which Node's
+ * lcov reporter writes as a separate `SF:` record with record-local branch
+ * ids that cannot be merged afterwards. So, when coverage is on, this process
+ * flushes its V8 coverage at exit (`rebaseCoverageResult` below): it shifts
+ * each copy's offsets back by its preamble length and drops the query, and
+ * Node's own offset-exact merge then folds every copy into one script per
+ * static/js/*.js file, exactly as it merges a module imported by two test
+ * files. This relies on the default per-file process isolation of `node --test`.
  *
  * Fidelity note: only the names in `globals` are shadowed. A module that
  * touches some other browser-only global gets Node's real global of that name
@@ -38,7 +50,9 @@
  */
 'use strict';
 
+const fs = require('node:fs');
 const path = require('node:path');
+const v8 = require('node:v8');
 const { registerHooks } = require('node:module');
 const { pathToFileURL } = require('node:url');
 
@@ -52,8 +66,71 @@ const REPO_ROOT = path.resolve(__dirname, '..', '..');
 const contexts = new Map();
 globalThis[REGISTRY_KEY] = { get: (ctx) => contexts.get(ctx).globals };
 
+// ctx id -> length of the preamble prepended to every module of that load.
+// Unlike `contexts` it lives until exit: the coverage flush needs it.
+const preambleLengths = new Map();
+
 let hooksRegistered = false;
 let nextContextId = 0;
+
+/**
+ * Map V8 coverage of harness-loaded module copies back onto the files on disk.
+ *
+ * @param {Array<{url: string, functions: Array<{ranges: Array<{startOffset: number, endOffset: number}>}>}>} result
+ *   The `result` array of a NODE_V8_COVERAGE JSON file.
+ * @param {Map<string, number>} lengths ctx id -> preamble length.
+ * @returns A new array: each `?esmHarnessCtx=<n>` script gets the plain file
+ *   URL and its offsets shifted back by that ctx's preamble length (clamped at
+ *   0, so the module's own top-level range still starts at the file's first
+ *   character). Other scripts are returned unchanged.
+ */
+function rebaseCoverageResult(result, lengths) {
+    return result.map((script) => {
+        if (!script.url.startsWith('file:')) return script;
+        const url = new URL(script.url);
+        const ctx = url.searchParams.get(CTX_PARAM);
+        if (ctx === null) return script;
+        if (!lengths.has(ctx)) {
+            // A copy this process did not load: shifting it by a guess would
+            // silently misplace its coverage, so refuse instead.
+            throw new Error(`esm_harness: no preamble length recorded for ${script.url}`);
+        }
+        const shift = lengths.get(ctx);
+        url.searchParams.delete(CTX_PARAM);
+        return {
+            ...script,
+            url: url.href,
+            functions: script.functions.map((fn) => ({
+                ...fn,
+                ranges: fn.ranges.map((range) => ({
+                    ...range,
+                    startOffset: Math.max(0, range.startOffset - shift),
+                    endOffset: Math.max(0, range.endOffset - shift),
+                })),
+            })),
+        };
+    });
+}
+
+/** Process-exit hook: write this process's V8 coverage, rebased. See the header. */
+function flushRebasedCoverage() {
+    const dir = process.env.NODE_V8_COVERAGE;
+    if (!dir || preambleLengths.size === 0) return;
+
+    const prefix = `coverage-${process.pid}-`;
+    const before = new Set(fs.readdirSync(dir));
+    v8.takeCoverage();
+    // Nothing more is recorded or written at exit, so the file rewritten
+    // below is this process's only coverage output.
+    v8.stopCoverage();
+    for (const name of fs.readdirSync(dir)) {
+        if (before.has(name) || !name.startsWith(prefix) || !name.endsWith('.json')) continue;
+        const file = path.join(dir, name);
+        const coverage = JSON.parse(fs.readFileSync(file, 'utf8'));
+        coverage.result = rebaseCoverageResult(coverage.result, preambleLengths);
+        fs.writeFileSync(file, JSON.stringify(coverage));
+    }
+}
 
 function ensureHooksRegistered() {
     if (hooksRegistered) return;
@@ -79,9 +156,11 @@ function ensureHooksRegistered() {
             const loaded = nextLoad(url, { ...context, format: 'module' });
             const { names } = contexts.get(ctx);
             const preamble = `const { ${names.join(', ')} } = globalThis[Symbol.for('shelah.esmHarness.globals')].get(${JSON.stringify(ctx)});`;
+            preambleLengths.set(ctx, preamble.length);
             return { ...loaded, format: 'module', source: preamble + String(loaded.source) };
         },
     });
+    process.once('exit', flushRebasedCoverage);
     hooksRegistered = true;
 }
 
@@ -125,4 +204,4 @@ async function loadEsmModule(entryPath, globals) {
     }
 }
 
-module.exports = { loadEsmModule };
+module.exports = { loadEsmModule, rebaseCoverageResult };
