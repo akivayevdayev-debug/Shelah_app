@@ -188,11 +188,11 @@ NON_LOADING_LITURGY_TITLES = {
     _normalize_title_key("Ma'aneh Lashon Chabad"),
     _normalize_title_key("Ma'avar Yabbok"),
     _normalize_title_key("Machzor Rosh Hashanah Linear"),
-    _normalize_title_key("Machzor Yom Ha'atzmaut & Yom Yerushalayim"),
-    _normalize_title_key("Machzor Yom Ha'atzmaut & Yom Yetushalayim"),
+    # Report's actual title is "...Yerushalyim" (no second "a") -- neither
+    # prior guess here matched it, so this exclusion never fired.
+    _normalize_title_key("Machzor Yom Ha'atzmaut & Yom Yerushalyim"),
     _normalize_title_key("Seder Ma'amadot"),
     _normalize_title_key("Seder Tisha B'Av (Edot HaMizrach)"),
-    _normalize_title_key("Seder Tisha B'Av (Edot HaMizrac)"),
     _normalize_title_key("Weekday Siddur Chabad"),
 }
 

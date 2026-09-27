@@ -438,10 +438,10 @@
                                     data-en="Save Study Note" data-he="שמור הערת לימוד">Save Study Note</button>
                             </div>
 
-                            <div class="grid grid-cols-2 gap-2 border-t border-slate-100 pt-2">
-                                <!-- Export needs an open text: syncSettingsExportControls() hides the
-                                     format + Export button everywhere else. -->
-                                <label id="exportFormatField" class="export-text-only hidden col-span-2 text-xs text-slate-600">
+                            <!-- Export needs an open text: syncSettingsExportControls() hides this
+                                 whole row everywhere else. -->
+                            <div id="exportControls" class="export-text-only hidden grid grid-cols-2 gap-2 border-t border-slate-100 pt-2">
+                                <label id="exportFormatField" class="col-span-2 text-xs text-slate-600">
                                     <span data-en="Export format" data-he="פורמט ייצוא">Export format</span>
                                     <select id="exportFormatSelect"
                                         class="mt-1 w-full px-2 py-1.5 rounded border border-slate-200 bg-slate-50 text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-400">
@@ -451,11 +451,8 @@
                                     </select>
                                 </label>
                                 <button id="exportCitationBtn" type="button"
-                                    class="export-text-only hidden px-2.5 py-1.5 rounded-lg bg-slate-100 text-slate-700 border border-slate-200 hover:bg-slate-200 transition font-semibold text-xs"
+                                    class="col-span-2 px-2.5 py-1.5 rounded-lg bg-slate-100 text-slate-700 border border-slate-200 hover:bg-slate-200 transition font-semibold text-xs"
                                     data-en="Export" data-he="ייצוא">Export</button>
-                                <button id="trackCurrentBtn" type="button"
-                                    class="px-2.5 py-1.5 rounded-lg bg-slate-100 text-slate-700 border border-slate-200 hover:bg-slate-200 transition font-semibold text-xs"
-                                    data-en="Add Current to Study Track" data-he="הוסף למסלול לימוד">Add to Track</button>
                             </div>
                         </div>
                     </div>
@@ -2613,7 +2610,6 @@
         const exportCitationBtn = document.getElementById('exportCitationBtn');
         const exportFormatSelect = document.getElementById('exportFormatSelect');
         const communityTimelineBtn = document.getElementById('communityTimelineBtn');
-        const trackCurrentBtn = document.getElementById('trackCurrentBtn');
         const prayerBooksNavList = document.getElementById('prayerBooksNavList');
         const libraryIndexSidebar = document.getElementById('libraryIndexSidebar');
         const libraryIndexModal = document.getElementById('libraryIndexModal');
@@ -4780,7 +4776,13 @@
 
             const withoutTags = withoutFootnotes
                 .replace(/<br\s*\/?>/gi, '\n')
-                .replace(/<(?!\/?(?:b|strong|i|em)(?:[\s>]|$))[^>]*>/gi, ' ');
+                // "small" preserved alongside b/strong/i/em: Sefaria wraps
+                // siddur rubrics/instructions in <b><small>...</small></b>,
+                // and stripping the <small> here (before it ever reaches
+                // escapeDisplayTextPreservingEmphasis's DOMPurify pass)
+                // made rubric text visually identical to ordinary bolded
+                // prayer text -- no non-color way to style it distinctly.
+                .replace(/<(?!\/?(?:b|strong|i|em|small)(?:[\s>]|$))[^>]*>/gi, ' ');
 
             return decodeHtmlEntities(withoutTags)
                 .replace(/\u00A0/g, ' ')
@@ -4806,7 +4808,7 @@
         // way a regex placeholder swap could) and its output is already safe
         // to insert via innerHTML, matching how renderAnswerMarkdown() already
         // uses DOMPurify for the AI-answer pipeline.
-        const DISPLAY_SAFE_TAGS = ['b', 'strong', 'i', 'em'];
+        const DISPLAY_SAFE_TAGS = ['b', 'strong', 'i', 'em', 'small'];
 
         function escapeDisplayTextPreservingEmphasis(text = '') {
             const withoutFootnotes = String(text || '')
@@ -6564,13 +6566,11 @@
             closeReaderSettingsPanel();
         }
 
-        // Export works on the text open in the reader, so its controls only
-        // show there; "Add to Track" (any view) then takes the full row.
+        // Export works on the text open in the reader, so its row only
+        // shows there.
         function syncSettingsExportControls() {
             const onText = appState.currentView?.type === 'text' && !reader?.classList.contains('hidden');
-            document.getElementById('exportFormatField')?.classList.toggle('hidden', !onText);
-            exportCitationBtn?.classList.toggle('hidden', !onText);
-            trackCurrentBtn?.classList.toggle('col-span-2', !onText);
+            document.getElementById('exportControls')?.classList.toggle('hidden', !onText);
         }
 
         function toggleSettingsMenu() {
@@ -6829,36 +6829,6 @@
             appendDevtoolsLog('shelf-imported-from-hash');
         }
 
-        function addCurrentToStudyTrack() {
-            const current = appState.currentView;
-            if (!current) return;
-
-            const shelf = getShelfData();
-            const track = Array.isArray(shelf.tracks['Daily Study']) ? shelf.tracks['Daily Study'] : [];
-            const exists = track.some((item) => `${item.type}:${item.value}` === `${current.type}:${current.value}`);
-            if (!exists) {
-                track.unshift({
-                    type: current.type,
-                    value: current.value,
-                    label: current.label,
-                    completed: false,
-                });
-            }
-            shelf.tracks['Daily Study'] = track.slice(0, 40);
-            saveShelfData(shelf);
-            renderPersonalShelf();
-        }
-
-        function toggleTrackItem(index) {
-            const shelf = getShelfData();
-            const track = Array.isArray(shelf.tracks['Daily Study']) ? shelf.tracks['Daily Study'] : [];
-            if (!track[index]) return;
-            track[index].completed = !track[index].completed;
-            shelf.tracks['Daily Study'] = track;
-            saveShelfData(shelf);
-            renderPersonalShelf();
-        }
-
         function removeRecentShelfItem(type, value) {
             const safeType = String(type || '').trim();
             const safeValue = String(value || '').trim();
@@ -6870,20 +6840,6 @@
             shelf.recent = (Array.isArray(shelf.recent) ? shelf.recent : []).filter((item) => `${item.type}:${item.value}` !== key);
             if (shelf.recent.length === initialLength) return;
 
-            saveShelfData(shelf);
-            renderPersonalShelf();
-        }
-
-        function removeTrackItem(index) {
-            const idx = Number(index);
-            if (!Number.isFinite(idx) || idx < 0) return;
-
-            const shelf = getShelfData();
-            const track = Array.isArray(shelf.tracks['Daily Study']) ? shelf.tracks['Daily Study'] : [];
-            if (!track[idx]) return;
-
-            track.splice(idx, 1);
-            shelf.tracks['Daily Study'] = track;
             saveShelfData(shelf);
             renderPersonalShelf();
         }
@@ -7487,9 +7443,6 @@
 
         function renderPersonalShelf() {
             const shelf = getShelfData();
-            const track = Array.isArray(shelf.tracks['Daily Study']) ? shelf.tracks['Daily Study'] : [];
-            const completed = track.filter((item) => item.completed).length;
-            const shelfAlignClass = isHebrewMode() ? 'text-end' : 'text-start';
             personalShelf.innerHTML = `
                 <div class="space-y-4">
                     <div>
@@ -7505,27 +7458,6 @@
                         </div>
                         <p class="text-[10px] text-slate-400 mb-1">${t('Right-click an item to remove it.', 'לחיצה ימנית להסרת פריט.')}</p>
                         <div class="space-y-1">${renderShelfList(shelf.recent.slice(0, 6), 'recent')}</div>
-                    </div>
-                    <div>
-                        <div class="flex justify-between items-center mb-2">
-                            <h4 class="text-xs font-bold uppercase tracking-wider text-slate-500">${t('Study Track', 'מסלול לימוד')}</h4>
-                            <span class="text-[10px] text-slate-400">${completed}/${track.length}</span>
-                        </div>
-                        <p class="text-[10px] text-slate-400 mb-1">${t('Right-click an item to remove it.', 'לחיצה ימנית להסרת פריט.')}</p>
-                        <div class="space-y-1">
-                            ${track.length
-                    ? track.slice(0, 6).map((item, index) => {
-                        const trackLabel = getShelfDisplayLabel(item) || String(item.label || item.value || '').trim();
-                        return `
-                                        <button class="track-toggle w-full ${shelfAlignClass} px-2 py-1 rounded border border-slate-200 bg-white hover:bg-slate-100 transition"
-                                            data-index="${index}">
-                                            <span class="text-xs ${item.completed ? 'line-through text-slate-400' : 'text-slate-700'} block truncate">${escapeHtml(trackLabel)}</span>
-                                            <span class="text-[10px] ${item.completed ? 'study-track-complete-label' : 'uppercase tracking-widest text-slate-300'}">${item.completed ? t('Complete', 'הושלם') : t('Pending', 'ממתין')}</span>
-                                        </button>
-                                    `;
-                    }).join('')
-                    : `<p class="text-xs italic text-slate-400">${t('No track items yet.', 'אין עדיין פריטים במסלול.')}</p>`}
-                        </div>
                     </div>
                 </div>
             `;
@@ -9652,13 +9584,23 @@
                         : contentRaw;
                     const fontClass = lang === 'he' ? 'font-hebrew' : 'font-serif';
                     const translit = lang === 'he' ? transliterationMarkup(normalizeDisplayText(contentRaw || '')) : '';
+                    // Some Sefaria sources (e.g. Havdala in Siddur Sefard) have no
+                    // English translation at all -- without this, a single-language
+                    // English view renders a blank content pane instead of an
+                    // explanation (audit C4). Matches the placeholder already used
+                    // by renderHebrewParagraph/renderEnglishParagraph below.
+                    const isEmpty = !String(contentDisplay || '').trim();
+                    const bodyMarkup = isEmpty
+                        ? `<p class="text-slate-300 italic">${lang === 'he'
+                            ? t('No Hebrew text in source', 'אין טקסט עברי במקור')
+                            : t('No English translation in source', 'אין תרגום אנגלי במקור')}</p>`
+                        : `<div class="${fontClass}">${contentDisplay}</div>${translit}`;
 
                     contentDiv.innerHTML = `
                         <div class="prayer-clean-lines">
                             <div class="prayer-clean-row border-b border-slate-200 last:border-b-0 py-2">
                                 <div class="${lang === 'he' ? 'prayer-clean-he text-start' : 'prayer-clean-en'}" dir="${dir}">
-                                    <div class="${fontClass}">${contentDisplay}</div>
-                                    ${translit}
+                                    ${bodyMarkup}
                                 </div>
                             </div>
                         </div>
@@ -10232,10 +10174,6 @@
                 void exportCurrentCitation();
             });
         }
-        if (trackCurrentBtn) {
-            trackCurrentBtn.addEventListener('click', addCurrentToStudyTrack);
-        }
-
         if (personalShelf) {
             personalShelf.addEventListener('click', async (e) => {
                 const clearBtn = e.target.closest('[data-action="clear-recents"]');
@@ -10244,15 +10182,6 @@
                     shelf.recent = [];
                     saveShelfData(shelf);
                     renderPersonalShelf();
-                    return;
-                }
-
-                const trackBtn = e.target.closest('.track-toggle');
-                if (trackBtn) {
-                    const index = Number(trackBtn.dataset.index);
-                    if (Number.isFinite(index)) {
-                        toggleTrackItem(index);
-                    }
                     return;
                 }
 
@@ -10265,16 +10194,6 @@
             });
 
             personalShelf.addEventListener('contextmenu', (e) => {
-                const trackBtn = e.target.closest('.track-toggle');
-                if (trackBtn) {
-                    e.preventDefault();
-                    const index = Number(trackBtn.dataset.index);
-                    if (Number.isFinite(index)) {
-                        removeTrackItem(index);
-                    }
-                    return;
-                }
-
                 const itemBtn = e.target.closest('.shelf-open');
                 if (!itemBtn) return;
 
@@ -11111,7 +11030,10 @@
             if (!safeName) return [];
 
             try {
-                const response = await fetch(`/api/siddur/full/${encodeURIComponent(safeName)}`);
+                // Lightweight ref-list endpoint -- unlike /api/siddur/full,
+                // it doesn't fetch every ref's text from Sefaria just to
+                // read back .sources (audit R4).
+                const response = await fetch(`/api/siddur/section-refs/${encodeURIComponent(safeName)}`);
                 if (!response.ok) return [];
                 const payload = await response.json();
                 return Array.isArray(payload?.sources)
@@ -11414,6 +11336,8 @@
             tabs.forEach((btn) => {
                 const isActive = btn.dataset.family === nextFamily;
                 btn.classList.toggle('prayer-family-tab-active', isActive);
+                btn.setAttribute('aria-selected', isActive ? 'true' : 'false');
+                btn.setAttribute('tabindex', isActive ? '0' : '-1');
             });
 
             list.querySelectorAll('.prayer-family-panel').forEach((panel) => {
@@ -11515,7 +11439,7 @@
             const tabsMarkup = familyOrder
                 .map((family) => {
                     const isActive = family === resolvedFamily;
-                    return `<button type="button" class="prayer-family-tab${isActive ? ' prayer-family-tab-active' : ''}" data-family="${family}">${escapeHtml(prayerFamilyLabel(family))}</button>`;
+                    return `<button type="button" role="tab" id="prayer-tab-${family}" aria-controls="prayer-panel-${family}" aria-selected="${isActive ? 'true' : 'false'}" tabindex="${isActive ? '0' : '-1'}" class="prayer-family-tab${isActive ? ' prayer-family-tab-active' : ''}" data-family="${family}">${escapeHtml(prayerFamilyLabel(family))}</button>`;
                 })
                 .join('');
 
@@ -11562,12 +11486,12 @@
                         `;
                     });
 
-                    return `<div class="prayer-family-panel ${isActive ? '' : 'hidden'}" data-family="${family}">${groupsMarkup}</div>`;
+                    return `<div class="prayer-family-panel ${isActive ? '' : 'hidden'}" role="tabpanel" id="prayer-panel-${family}" aria-labelledby="prayer-tab-${family}" tabindex="0" data-family="${family}">${groupsMarkup}</div>`;
                 })
                 .join('');
 
             list.innerHTML = `
-                <div class="prayer-family-tabs">${tabsMarkup}</div>
+                <div class="prayer-family-tabs" role="tablist">${tabsMarkup}</div>
                 <div class="prayer-family-panels mt-3 space-y-4">${panelsMarkup}</div>
             `;
             list.setAttribute('aria-busy', 'false');
@@ -11579,6 +11503,31 @@
                     const family = String(tabBtn.dataset.family || '').trim();
                     if (!family) return;
                     setActivePrayerFamily(family);
+                });
+                // Standard ARIA tablist keyboard pattern: Left/Right (and
+                // Home/End) move focus AND selection among tabs; the tabs
+                // use a roving tabindex (only the active tab is Tab-key
+                // reachable, set in setActivePrayerFamily), so arrow keys
+                // are the only way to move among them without a mouse.
+                list.addEventListener('keydown', (event) => {
+                    const tabBtn = event.target.closest('.prayer-family-tab');
+                    if (!tabBtn) return;
+                    const tabs = Array.from(list.querySelectorAll('.prayer-family-tab'));
+                    const currentIndex = tabs.indexOf(tabBtn);
+                    if (currentIndex === -1) return;
+                    const isRtl = document.documentElement.dir === 'rtl';
+                    let nextIndex = null;
+                    if (event.key === 'ArrowRight') nextIndex = isRtl ? currentIndex - 1 : currentIndex + 1;
+                    else if (event.key === 'ArrowLeft') nextIndex = isRtl ? currentIndex + 1 : currentIndex - 1;
+                    else if (event.key === 'Home') nextIndex = 0;
+                    else if (event.key === 'End') nextIndex = tabs.length - 1;
+                    if (nextIndex === null) return;
+                    event.preventDefault();
+                    nextIndex = (nextIndex + tabs.length) % tabs.length;
+                    const nextFamily = String(tabs[nextIndex].dataset.family || '').trim();
+                    if (!nextFamily) return;
+                    setActivePrayerFamily(nextFamily);
+                    tabs[nextIndex].focus();
                 });
                 list.dataset.prayerTabsBound = '1';
             }

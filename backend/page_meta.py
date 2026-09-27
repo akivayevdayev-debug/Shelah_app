@@ -177,3 +177,22 @@ def query_meta(args):
     if args.get("community"):
         return community_meta(args["community"])
     return home_meta()
+
+
+def legacy_query_redirect_path(args):
+    """The canonical path an old ``?text=``/``?prayer=``/``?community=``
+    link on ``/`` should 308 to, or None when none applies.
+
+    Same precedence as query_meta (a private key wins, text beats prayer
+    beats community) so the redirect target always matches what the <head>
+    canonical tag would already have claimed for this URL.
+    """
+    if any(args.get(key) for key in PRIVATE_QUERY_KEYS):
+        return None
+    if args.get("text"):
+        return text_path(args["text"])
+    if args.get("prayer"):
+        return prayer_path(args["prayer"])
+    if args.get("community"):
+        return community_path(args["community"])
+    return None
