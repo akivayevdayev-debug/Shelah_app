@@ -142,7 +142,11 @@ def main(argv: Optional[List[str]] = None, session=None) -> int:
     args = parser.parse_args(argv)
 
     report = json.loads(args.report.read_text(encoding="utf-8"))
-    payload = run(report, session or requests.Session())
+    if session is not None:
+        payload = run(report, session)
+    else:
+        with requests.Session() as owned_session:
+            payload = run(report, owned_session)
     args.output.write_text(json.dumps(payload, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
     stats = payload["stats"]
     print(f"{stats['reinstated']} of {stats['removals']} removals reinstated -> {args.output}")

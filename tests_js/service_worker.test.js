@@ -112,8 +112,8 @@ function loadWorker(t, { fetchImpl }) {
         return { request, response, waited: event.waited.length };
     }
 
-    async function dispatchMessage(data) {
-        const event = { data, waited: [], waitUntil(promise) { this.waited.push(promise); } };
+    async function dispatchMessage(data, { origin = ORIGIN } = {}) {
+        const event = { data, origin, waited: [], waitUntil(promise) { this.waited.push(promise); } };
         listeners.message(event);
         await Promise.all(event.waited);
         return { waited: event.waited.length };
@@ -308,6 +308,18 @@ test('a message with no refs (or the wrong type) is a no-op', async (t) => {
 
     await dispatchMessage({ type: 'PREWARM_DAILY', refs: [] });
     await dispatchMessage({ type: 'SOME_OTHER_MESSAGE', refs: ['Berakhot 2a'] });
+
+    assert.equal(fetchCalled, false);
+});
+
+test('a message from a different origin is ignored outright', async (t) => {
+    let fetchCalled = false;
+    const { dispatchMessage } = loadWorker(t, {
+        fetchImpl: async () => { fetchCalled = true; return jsonResponse({}); },
+    });
+
+    await dispatchMessage({ type: 'PREWARM_DAILY', refs: ['Berakhot 2a'] }, { origin: 'https://evil.test' });
+    await dispatchMessage(precacheMessage(), { origin: 'https://evil.test' });
 
     assert.equal(fetchCalled, false);
 });
