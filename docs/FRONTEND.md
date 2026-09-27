@@ -106,6 +106,18 @@ Other exports: `fetchZmanimAPI(location, deps)`, `refreshZmanimDisplay(deps)`, `
 
 ---
 
+### `siddur.js`, `siddur-reader.js`, `siddur-day.js` — the siddur at `/siddur`
+
+The checked-in Edot HaMizrach siddur (`data/siddur/`, built by `scripts/build_siddur.py`, served by `/api/siddur/v2/*` in `backend/routes_siddur.py`). `main.js` builds `window.ShelahSiddur = createSiddur({ deps })`; the inline `displaySiddur()` in `templates/index.html` calls its `prepare(value)` / `mount(container, prepared)` pair, so a route change that arrives mid-load drops the stale page before anything is drawn.
+
+- **`siddur.js`** — `createSiddur({ fetchImpl, deps, storage, win, nav, doc })`: loads the table of contents and each service (`?v=<data version>`, so a rebuild never serves a stale copy), draws the page, keeps the URL on the section being read (`replaceState` via `deps.replaceRoute`), saves the reading position, and owns the screen wake lock. Also `renderToc(mount)` for the Texts menu and sidebar, and `SiddurNotFound` for a page the siddur doesn't have.
+- **`siddur-reader.js`** — pure markup and helpers: typed lines (`prayer` / `instruction` / `conditional` / `heading`, with inline rubrics as `<small>`), the contents, section tracking, saved positions, the wake lock, and `keepOffline(toc)`.
+- **`siddur-day.js`** — the "Today in the siddur" card: which Hebrew day it is (after the zmanim panel's sunset it is tomorrow's), Israel or Diaspora (guessed from the zmanim location, then the reader's own choice), and the per-service reminders built from `/api/siddur/v2/day` (Tachanun, Hallel, Mashiv/Morid, Barech Alenu, Ya'aleh VeYavo, Al HaNissim, the Ten Days, Aneinu, Musaf, the Omer). Reminders sit beside the text; nothing in the siddur is hidden or rewritten.
+
+**Offline.** The first time a reader opens a siddur page, `keepOffline` posts `PRECACHE_SIDDUR` to the service worker, which keeps the contents and every service (~600 KB gzipped) in a cache named for the siddur's data version (`shelah-siddur-<rite>@<version>`), not the deploy, so deploys don't discard it; a rebuild's version replaces it once fully fetched. A versioned service is then answered from that cache with no network at all, and the contents falls back to it offline. In the installed app only, it also asks `navigator.storage.persist()` so the browser won't evict it: Chrome and Safari grant that there without a prompt, while in a Firefox tab it would interrupt the reader with a permission question.
+
+---
+
 ### `main.js` — bootstrap
 
 The entry point. Imported by `templates/index.html` as a module script. Responsibilities:
