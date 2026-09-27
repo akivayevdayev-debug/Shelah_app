@@ -38,6 +38,7 @@ from app import (
     SUPABASE_ASK_HISTORY_TABLE,
     SUPABASE_USER_MEMORIES_TABLE,
     SUPABASE_ANSWER_FEEDBACK_TABLE,
+    SUPABASE_CONVERSATIONS_TABLE,
     _get_supabase_client,
     _capture_backend_error,
     hash_user_id,
@@ -55,7 +56,9 @@ _AI_USAGE_LOG_TABLE = "ai_usage_log"
 # app.py SUPABASE_*_TABLE constant (plan.md §39.1): SUPABASE_COMMUNITY_
 # KNOWLEDGE_TABLE is the only other one and is documented (docs/DATABASE.md)
 # as a shared reference corpus with no user_id column, so it is correctly
-# excluded.
+# excluded. conversations is the AI chat history; its messages and
+# citations have no user_id of their own (they cascade-delete with the
+# parent conversation) so the export embeds them, see _EXPORT_SELECTS.
 _USER_DATA_TABLES = (
     ("preferences", SUPABASE_PREFS_TABLE),
     ("bookmarks", SUPABASE_STUDY_BOOKMARKS_TABLE),
@@ -63,7 +66,13 @@ _USER_DATA_TABLES = (
     ("memories", SUPABASE_USER_MEMORIES_TABLE),
     ("ai_usage_log", _AI_USAGE_LOG_TABLE),
     ("feedback", SUPABASE_ANSWER_FEEDBACK_TABLE),
+    ("ai_conversations", SUPABASE_CONVERSATIONS_TABLE),
 )
+
+# Per-table PostgREST select for the export; "*" for any table not listed.
+_EXPORT_SELECTS = {
+    SUPABASE_CONVERSATIONS_TABLE: "*, messages(*, citations(*))",
+}
 
 # plan.md §8.D retention windows enforced by the scheduled job below. The
 # other rows in that table (account info/inactivity, bookmarks, consent
@@ -102,7 +111,7 @@ def _export_table_rows(supabase, table_name, user_id):
         for _ in range(_EXPORT_MAX_PAGES):
             result = (
                 supabase.table(table_name)
-                .select("*")
+                .select(_EXPORT_SELECTS.get(table_name, "*"))
                 .eq("user_id", user_id)
                 .range(offset, offset + _EXPORT_PAGE_SIZE - 1)
                 .execute()
@@ -112,12 +121,28 @@ def _export_table_rows(supabase, table_name, user_id):
             if len(page) < _EXPORT_PAGE_SIZE:
                 break
             offset += _EXPORT_PAGE_SIZE
+        for row in rows:
+            _order_conversation_thread(row)
         return rows, None
     except Exception as e:
         _capture_backend_error("data_export_table_failed", e, {
             "user_id_hash": hash_user_id(user_id), "table": table_name,
         })
         return [], _GENERIC_TABLE_ERROR
+
+
+def _order_conversation_thread(row):
+    """Embedded messages/citations come back in no guaranteed order; put a
+    conversation's messages in the order they were written and each
+    message's citations in their numbered order. No-op for other rows."""
+    messages = row.get("messages") if isinstance(row, dict) else None
+    if not isinstance(messages, list):
+        return
+    messages.sort(key=lambda m: str(m.get("created_at") or ""))
+    for message in messages:
+        citations = message.get("citations")
+        if isinstance(citations, list):
+            citations.sort(key=lambda c: c.get("ordinal") or 0)
 
 
 @routes_privacy.route("/api/user/data-export", methods=["GET"])

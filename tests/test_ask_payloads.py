@@ -63,6 +63,7 @@ class TestAiAnswerPayload:
             "customs": [{"c": 1}, {"c": 2}],
             "sources": [{"s": 1}],
             "ai_cited_sources": ["Shulchan Arukh"],
+            "history_id": None,
             "meta": {
                 "mode": "strict", "language": "he", "community_lens": "Sefardic",
                 "source_count": 3, "custom_count": 2, "knowledge_count": 2, "memory_count": 1,
@@ -107,6 +108,10 @@ class TestAiAnswerPayload:
     def test_an_empty_structured_dict_is_not_reported_as_structured(self, ctx):
         assert _ai(ctx, structured_payload={})["meta"]["structured"] is False
 
+    def test_history_id_defaults_to_none_and_is_forwarded_when_given(self, ctx):
+        assert _ai(ctx)["history_id"] is None
+        assert _ai(ctx, history_id="row-123")["history_id"] == "row-123"
+
     def test_the_input_dictionaries_are_not_mutated(self, ctx):
         before = {key: list(value) for key, value in ctx.items()}
 
@@ -126,6 +131,7 @@ class TestSourceFallbackPayload:
             "customs": [{"c": 1}, {"c": 2}],
             "sources": [{"n": "a"}],
             "ai_cited_sources": [],
+            "history_id": None,
             "meta": {
                 "mode": "balanced", "language": "en", "community_lens": "All",
                 "source_count": 4, "custom_count": 2, "knowledge_count": 2, "memory_count": 1,

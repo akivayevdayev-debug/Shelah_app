@@ -27,6 +27,7 @@ def _reset_all_module_caches(monkeypatch):
     sl._cache.clear()
     sl._resolved_title_ref_cache.clear()
     sl._resolved_query_ref_cache.clear()
+    sl._missing_text_refs.clear()
     sl._search_query_cache.clear()
     sl._title_catalog_cache.update({"ts": 0, "report_mtime": 0.0, "data": []})
     sl._library_index_view_cache.update({"ts": 0.0, "report_mtime": 0.0, "data": None})
@@ -45,6 +46,7 @@ def _reset_all_module_caches(monkeypatch):
     })
     yield
     sl._cache.clear()
+    sl._missing_text_refs.clear()
 
 
 # ─────────────────────────── Pure logic helpers ───────────────────────────
@@ -247,7 +249,10 @@ class TestParseV3Response:
         }
         result = sl._parse_v3_response(data, "Genesis 1:1")
         assert result["ref"] == "Genesis 1:1"
-        assert result["title"] == "Genesis"
+        # Sefaria's own `title` is section-level and coarser than a verse
+        # ref ("Genesis" here vs. "Genesis 1:1") -- see
+        # test_prefers_ref_derived_title_over_sections_level_api_title.
+        assert result["title"] == "Genesis 1:1"
         assert result["he"] == ["בְּרֵאשִׁית"]
         assert result["en"] == ["In the beginning"]
         assert len(result["lines"]) == 1
@@ -260,6 +265,33 @@ class TestParseV3Response:
         }
         result = sl._parse_v3_response(data, "Genesis 1:1")
         assert result["title"] == "Genesis 1:1"
+
+    def test_prefers_ref_derived_title_over_sections_level_api_title(self):
+        # Sefaria's v3 API always sets `title` to the *section* (book +
+        # chapter) title, even for a verse range: title="Numbers 4" for
+        # ref="Numbers 4:17-19", dropping the verses the reader asked for
+        # (reproduced live against sefaria.org 2026-09-22). The reader
+        # header should show the full ref instead.
+        data = {
+            "ref": "Numbers 4:17-19",
+            "title": "Numbers 4",
+            "indexTitle": "Numbers",
+            "book": "Numbers",
+            "versions": [{"language": "he", "direction": "rtl", "isSource": True, "text": ["x"]}],
+        }
+        result = sl._parse_v3_response(data, "Numbers 4:17-19")
+        assert result["title"] == "Numbers 4:17-19"
+
+    def test_uses_api_title_when_ref_has_no_verse_level_detail(self):
+        # A whole-chapter ref has no ":" to lose -- Sefaria's title is used
+        # as-is (it may legitimately differ, e.g. a display alias).
+        data = {
+            "ref": "Genesis 1",
+            "title": "Bereshit 1",
+            "versions": [{"language": "he", "direction": "rtl", "isSource": True, "text": ["x"]}],
+        }
+        result = sl._parse_v3_response(data, "Genesis 1")
+        assert result["title"] == "Bereshit 1"
 
     def test_no_extractable_text_returns_none(self):
         data = {"ref": "Genesis 1:1", "versions": [{"language": "he", "direction": "rtl", "isSource": True, "text": []}]}
@@ -669,6 +701,58 @@ class TestGetText:
             assert result["he"] == []
             assert result["en"] == []
 
+    @staticmethod
+    def _sefaria_says(rsps, *, is_ref, text_status=200, text_body=None):
+        # First match wins: the name API, then every text endpoint (v3 and v2),
+        # then anything else candidate resolution asks for.
+        rsps.add(responses_lib.GET, re.compile(re.escape(sl.SEFARIA_API) + r"/name/.*"),
+                 json={"is_ref": is_ref, "completions": []}, status=200)
+        text_kwargs = {"body": text_body} if text_body is not None else {"json": {"error": "nope"}, "status": text_status}
+        rsps.add(responses_lib.GET, re.compile(re.escape(sl.SEFARIA_V3_API) + r"/texts/.*"), **text_kwargs)
+        rsps.add(responses_lib.GET, re.compile(re.escape(sl.SEFARIA_API) + r"/texts/.*"), **text_kwargs)
+        rsps.add(responses_lib.GET, re.compile(re.escape(sl.SEFARIA_V3_API) + r"/.*"), json={"error": "nope"}, status=200)
+        rsps.add(responses_lib.GET, re.compile(re.escape(sl.SEFARIA_API) + r"/.*"), json={"error": "nope"}, status=200)
+
+    def test_remembers_a_ref_sefaria_says_does_not_exist(self):
+        with responses_lib.RequestsMock(assert_all_requests_are_fired=False) as rsps:
+            self._sefaria_says(rsps, is_ref=False)
+            assert sl.get_text("Blorp 4")["error_type"] == "not_found"
+        # Read back with no network at all (the shell route never fetches).
+        with responses_lib.RequestsMock():
+            assert sl.is_known_missing_text("Blorp 4")
+            assert sl.is_known_missing_text("blorp 4")
+            assert sl.is_known_missing_text("Blorp%204")
+
+    def test_a_real_ref_that_failed_to_load_is_not_remembered(self):
+        # "Gen 99"-style: Sefaria knows the title, so it's the reader's call.
+        with responses_lib.RequestsMock(assert_all_requests_are_fired=False) as rsps:
+            self._sefaria_says(rsps, is_ref=True)
+            assert sl.get_text("Genesis 99")["error_type"] == "not_found"
+        assert not sl.is_known_missing_text("Genesis 99")
+
+    @pytest.mark.parametrize("failure", [
+        {"text_body": __import__("requests").ConnectionError("down")},
+        {"text_status": 503},
+        {"text_status": 403},
+    ])
+    def test_a_lookup_sefaria_did_not_answer_is_not_proof(self, failure):
+        with responses_lib.RequestsMock(assert_all_requests_are_fired=False) as rsps:
+            self._sefaria_says(rsps, is_ref=False, **failure)
+            assert "error" in sl.get_text("Talmud Bavli Berakhot 2a")
+        assert not sl.is_known_missing_text("Talmud Bavli Berakhot 2a")
+
+    def test_a_sefaria_404_for_the_text_is_still_an_answer(self):
+        with responses_lib.RequestsMock(assert_all_requests_are_fired=False) as rsps:
+            self._sefaria_says(rsps, is_ref=False, text_status=404)
+            sl.get_text("Blorp 4")
+        assert sl.is_known_missing_text("Blorp 4")
+
+    def test_an_unseen_or_empty_ref_is_never_known_missing(self):
+        with responses_lib.RequestsMock():  # any fetch would raise
+            assert not sl.is_known_missing_text("Genesis 1")
+            assert not sl.is_known_missing_text("")
+            assert not sl.is_known_missing_text(None)
+
     def test_blocked_status_surfaces_specific_error(self):
         # Real HTTP 403s (not 200-with-error-body) so _cached_get's block-status
         # handling actually fires instead of clearing the flag on a "successful" 200.
@@ -887,6 +971,30 @@ class TestGetLinkedTexts:
             result = sl.get_linked_texts("Genesis 1:1")
             assert "Commentary" in result
             assert result["Commentary"][0]["ref"] == "Rashi on Genesis 1:1"
+
+    def test_carries_hebrew_ref_and_collective_title(self):
+        # /related puts the Hebrew ref in sourceHeRef, not heRef.
+        with responses_lib.RequestsMock(assert_all_requests_are_fired=False) as rsps:
+            rsps.add(
+                responses_lib.GET, re.compile(re.escape(sl.SEFARIA_API) + r"/related/.*"),
+                json={"links": [
+                    {"type": "commentary", "category": "Commentary", "ref": "Rashbam on Genesis 1:1:1",
+                     "sourceHeRef": "רשב\"ם על בראשית א׳:א׳:א׳", "anchorRef": "Genesis 1:1",
+                     "collectiveTitle": {"en": "Rashbam", "he": "רשב\"ם"}},
+                    {"type": "midrash", "category": "Midrash", "ref": "Bereshit Rabbah 1:1",
+                     "anchorRef": "Genesis 1:1", "collectiveTitle": "not-a-dict"},
+                ]},
+                status=200,
+            )
+            result = sl.get_linked_texts("Genesis 1:1")
+            rashbam = next(i for i in result["Commentary"] if i["ref"].startswith("Rashbam"))
+            assert rashbam["heRef"] == "רשב\"ם על בראשית א׳:א׳:א׳"
+            assert rashbam["collectiveTitle"] == {"en": "Rashbam", "he": "רשב\"ם"}
+            assert result["Midrash"][0]["heRef"] == ""
+            assert result["Midrash"][0]["collectiveTitle"] == {"en": "", "he": ""}
+            injected = result["Commentary"][0]
+            assert injected["ref"] == "Rashi on Genesis 1:1"
+            assert injected["collectiveTitle"]["he"] == "רש\"י"
 
     def test_injects_rashi_for_tanakh_ref_when_missing(self):
         with responses_lib.RequestsMock(assert_all_requests_are_fired=False) as rsps:

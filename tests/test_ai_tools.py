@@ -483,19 +483,127 @@ async def test_get_prayer_text_requires_name():
     assert result == {"error": "prayer_name is required"}
 
 
+def _no_sefaria(monkeypatch):
+    def fail(*args, **kwargs):
+        raise AssertionError("the curated siddur answer must not call Sefaria")
+
+    monkeypatch.setattr(ai_tools.sefaria_library, "get_index_leaf_refs", fail)
+    monkeypatch.setattr(ai_tools.sefaria_library, "get_text", fail)
+
+
 async def test_get_prayer_text_not_found(monkeypatch):
     monkeypatch.setattr(ai_tools.sefaria_library, "get_index_leaf_refs", lambda name, n: [])
     result = await ai_tools.execute_tool("get_prayer_text", {"prayer_name": "Not A Real Prayer"})
     assert result == {"prayer_name": "Not A Real Prayer", "found": False}
 
 
-async def test_get_prayer_text_found(monkeypatch):
-    monkeypatch.setattr(ai_tools.sefaria_library, "get_index_leaf_refs", lambda name, n: ["Siddur, Shema 1"])
+async def test_get_prayer_text_falls_back_to_sefaria_for_names_the_siddur_lacks(monkeypatch):
+    monkeypatch.setattr(ai_tools.sefaria_library, "get_index_leaf_refs", lambda name, n: ["Pesach Haggadah, Kadesh 1"])
     monkeypatch.setattr(ai_tools.sefaria_library, "get_text",
                          lambda ref: {"ref": ref, "he": ["א"] * 10, "en": ["A"] * 10})
-    result = await ai_tools.execute_tool("get_prayer_text", {"prayer_name": "Shema"})
+    result = await ai_tools.execute_tool("get_prayer_text", {"prayer_name": "Pesach Haggadah"})
     assert result["found"] is True
+    assert result["sections"][0]["ref"] == "Pesach Haggadah, Kadesh 1"
     assert len(result["sections"][0]["he"]) == 6
+
+
+async def test_get_prayer_text_answers_a_section_name_from_the_curated_siddur(monkeypatch):
+    _no_sefaria(monkeypatch)
+    result = await ai_tools.execute_tool("get_prayer_text", {"prayer_name": "Shema"})
+
+    assert result["found"] is True
+    assert result["rite"] == "Sephardi (Edot HaMizrach)"
+    assert "CC0" in result["source"]
+    assert result["service"]["path"] == "/siddur/edot-hamizrach/shacharit"
+    [section] = result["sections"]
+    assert section["ref"] == "Siddur Edot HaMizrach, Weekday Shacharit, The Shema"
+    assert section["path"] == "/siddur/edot-hamizrach/shacharit/keriat-shema"
+    assert len(section["lines"]) == 6 and section["truncated"] is True
+    assert section["line_count"] > 6
+    first = section["lines"][0]
+    assert first["type"] == "heading"
+    assert first["ref"] == f"{section['ref']} 1"
+    assert "more_sections" not in result
+
+
+async def test_get_prayer_text_keeps_inline_rubrics_apart_and_drops_markup(monkeypatch):
+    _no_sefaria(monkeypatch)
+    result = await ai_tools.execute_tool("get_prayer_text", {"prayer_name": "Keriat Shema"})
+    blessing = result["sections"][0]["lines"][1]["he"]
+    assert "<" not in blessing
+    assert "[כשיתחיל יוצר אור" in blessing  # the tefillin rubric, not said aloud
+
+
+async def test_get_prayer_text_outlines_a_whole_service(monkeypatch):
+    _no_sefaria(monkeypatch)
+    result = await ai_tools.execute_tool("get_prayer_text", {"prayer_name": "Shacharit", "max_sections": 2})
+
+    assert [s["path"] for s in result["sections"]] == [
+        "/siddur/edot-hamizrach/shacharit/petichat-eliyahu",
+        "/siddur/edot-hamizrach/shacharit/order-of-talit",
+    ]
+    rest = result["more_sections"]
+    assert rest[0]["title"] == "Order of Tefillin"
+    assert all("lines" not in s for s in rest)
+    assert len(result["sections"]) + len(rest) > 10
+
+
+async def test_get_prayer_text_one_section_service_has_no_section_path(monkeypatch):
+    _no_sefaria(monkeypatch)
+    result = await ai_tools.execute_tool("get_prayer_text", {"prayer_name": "Grace after meals"})
+    assert result["sections"][0]["path"] == "/siddur/edot-hamizrach/birkat-hamazon"
+    assert "more_sections" not in result
+
+
+async def test_get_prayer_text_falls_back_when_the_siddur_is_missing(monkeypatch):
+    monkeypatch.setattr(ai_tools.siddur_data, "get_toc", lambda rite: None)
+    monkeypatch.setattr(ai_tools.sefaria_library, "get_index_leaf_refs", lambda name, n: [])
+    result = await ai_tools.execute_tool("get_prayer_text", {"prayer_name": "Shema"})
+    assert result == {"prayer_name": "Shema", "found": False}
+
+
+async def test_get_prayer_text_falls_back_when_a_listed_service_file_is_missing(monkeypatch):
+    monkeypatch.setattr(ai_tools.siddur_data, "get_service", lambda rite, slug: None)
+    monkeypatch.setattr(ai_tools.sefaria_library, "get_index_leaf_refs", lambda name, n: [])
+    result = await ai_tools.execute_tool("get_prayer_text", {"prayer_name": "Shema"})
+    assert result == {"prayer_name": "Shema", "found": False}
+
+
+async def test_get_prayer_text_curated_answer_survives_a_sefaria_outage(monkeypatch):
+    import backend.health_check as health_check_module
+
+    _no_sefaria(monkeypatch)
+    monkeypatch.setattr(health_check_module.health, "is_healthy", lambda service: False)
+    result = await ai_tools.execute_tool("get_prayer_text", {"prayer_name": "Amida of Mincha"})
+    assert result["sections"][0]["path"] == "/siddur/edot-hamizrach/mincha/amida"
+
+    result = await ai_tools.execute_tool("get_prayer_text", {"prayer_name": "Pesach Haggadah"})
+    assert result == {"error": "get_prayer_text is temporarily unavailable (circuit open for sefaria)"}
+
+
+async def test_get_prayer_text_fallback_keeps_the_sefaria_circuit_books(monkeypatch):
+    import backend.health_check as health_check_module
+
+    calls = []
+    monkeypatch.setattr(health_check_module.health, "is_healthy", lambda service: True)
+    monkeypatch.setattr(health_check_module.health, "record_success", lambda service: calls.append(("ok", service)))
+    monkeypatch.setattr(health_check_module.health, "record_failure", lambda service: calls.append(("fail", service)))
+
+    _no_sefaria(monkeypatch)
+    await ai_tools.execute_tool("get_prayer_text", {"prayer_name": "Shema"})
+    assert calls == [], "a local answer says nothing about Sefaria's health"
+
+    monkeypatch.setattr(ai_tools.sefaria_library, "get_index_leaf_refs", lambda name, n: [])
+    await ai_tools.execute_tool("get_prayer_text", {"prayer_name": "Pesach Haggadah"})
+    assert calls == [("ok", "sefaria")]
+
+    def down(name, n):
+        raise ConnectionError("sefaria down")
+
+    monkeypatch.setattr(ai_tools.sefaria_library, "get_index_leaf_refs", down)
+    result = await ai_tools.execute_tool("get_prayer_text", {"prayer_name": "Pesach Haggadah"})
+    assert result == {"error": "get_prayer_text failed: ConnectionError"}
+    assert calls[-1] == ("fail", "sefaria")
 
 
 # ── 19. get_daily_zmanim_summary ─────────────────────────────────────────────

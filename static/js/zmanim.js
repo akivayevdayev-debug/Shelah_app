@@ -12,15 +12,14 @@ function addRefsFromArrayItem(item, addRef) {
         addRef(item);
     } else if (item && typeof item === "object") {
         addRef(item.ref);
-        addRef(item.title);
     }
 }
 
+// A bare top-level string is metadata, not a ref: `hebrew_date` ("14 Tishrei
+// 5787") used to be prefetched as /api/text/14 Tishrei 5787. Refs come from
+// `.ref` fields and from arrays of ref strings. A `.title` is a display label
+// ("Vessels 18-20"), never a fetchable ref.
 function addRefsFromValue(value, addRef) {
-    if (typeof value === "string") {
-        addRef(value);
-        return;
-    }
     if (Array.isArray(value)) {
         for (const item of value) {
             addRefsFromArrayItem(item, addRef);
@@ -59,11 +58,13 @@ function collectRefsFromPayload(payload) {
 }
 
 async function fetchDailyStudyRefs() {
+    // Offline, or the request failing: nothing to prewarm. Not an
+    // unhandled rejection (prewarmDailyStudy runs unawaited).
     const response = await fetch("/api/daily-study", {
         method: "GET",
         credentials: "same-origin",
-    });
-    if (!response.ok) {
+    }).catch(() => null);
+    if (!response?.ok) {
         return [];
     }
 
@@ -229,6 +230,25 @@ export function applyOptionalZmanRows(zmanim) {
     setZmanRowVisibility('zRowFastEnd', hasRealZman(zmanim['Fast Ends']));
 }
 
+// "Asia/Jerusalem" -> "Israel Time" / "שעון ישראל": the zone's own localized
+// name, shown when no city has been picked instead of the raw IANA ID. Falls
+// back to the ID's city part ("Jerusalem") where Intl can't name the zone.
+export function timezoneLabel(timezone, lang = document.documentElement?.lang) {
+    const tz = String(timezone || '').trim();
+    if (!tz) return '';
+    try {
+        const parts = new Intl.DateTimeFormat(lang === 'he' ? 'he-IL' : 'en-US', {
+            timeZone: tz,
+            timeZoneName: 'longGeneric',
+        }).formatToParts(new Date());
+        const name = parts.find((part) => part.type === 'timeZoneName')?.value;
+        if (name && !/^GMT|^UTC/.test(name)) return name;
+    } catch (_) {
+        // Unknown zone ID: fall through to the ID itself.
+    }
+    return tz.split('/').pop().replace(/_/g, ' ');
+}
+
 export function setZmanimLocationLabel(label, timezone) {
     const labelEl = document.getElementById('zmanLoc');
     if (!labelEl) return;
@@ -237,7 +257,8 @@ export function setZmanimLocationLabel(label, timezone) {
     labelEl.classList.remove('sk-line');
     labelEl.style.removeProperty('width');
     labelEl.style.removeProperty('height');
-    labelEl.innerText = normalizedLabel || fallbackTimezone || 'Local';
+    labelEl.innerText = normalizedLabel || timezoneLabel(fallbackTimezone)
+        || (document.documentElement?.lang === 'he' ? 'מקומי' : 'Local');
     if (fallbackTimezone && fallbackTimezone !== normalizedLabel) {
         labelEl.setAttribute('title', fallbackTimezone);
     } else {
@@ -260,6 +281,33 @@ export function setCurrentZmanimLocationLabel(label) {
 // write this cache key directly against the (now-deleted) inline constant.
 export function cacheZmanimLocation(location) {
     localStorage.setItem(ZMANIM_LOCATION_CACHE_KEY, JSON.stringify(location));
+}
+
+// The location the zmanim panel is showing right now -- what other surfaces (the
+// calendar's holiday card) use for their own clock times. Prefers the location the
+// panel last resolved (the city search, the session, or IP); falls back to the
+// saved city search before the first fetch has come back. Null when there is none.
+export function getZmanimLocation() {
+    const meta = zmanimData?.metadata || {};
+    let lat = meta.lat;
+    let lon = meta.lon;
+    if (!Number.isFinite(lat) || !Number.isFinite(lon)) {
+        try {
+            const saved = JSON.parse(localStorage.getItem(ZMANIM_LOCATION_CACHE_KEY) || 'null');
+            lat = saved?.lat;
+            lon = saved?.lon;
+        } catch (_) {
+            // A corrupt cache entry is "no saved location", not an error.
+            lat = null;
+        }
+    }
+    if (!Number.isFinite(lat) || !Number.isFinite(lon)) return null;
+    return {
+        lat,
+        lon,
+        label: currentZmanimLocationLabel || meta.location_label || meta.city || '',
+        timezone: meta.timezone || '',
+    };
 }
 
 export function formatCountdownDuration(msRemaining, deps) {
@@ -432,6 +480,7 @@ function renderHolidayName(meta, deps) {
     if (!holidayName) return;
     const text = deps.translateHolidayName(meta.holiday || 'Regular Day');
     holidayName.innerText = text;
+    holidayName.title = deps.t('Open today in the calendar', 'פתח את היום בלוח השנה');
     setHebrewRtlStyle(holidayName, deps.isHebrewMode() && text !== 'Regular Day');
 }
 
@@ -471,6 +520,15 @@ function renderShabbatWarning(meta, deps) {
     }
 }
 
+// Today's sunset at the zmanim location (a Date), or null before the panel
+// has a location: the siddur's Today card rolls to the next Hebrew day
+// after it (static/js/siddur-day.js hebrewDayFor).
+export function getSunset() {
+    const iso = zmanimData?.metadata?.zmanim_iso?.Sunset;
+    const parsed = iso ? new Date(iso) : null;
+    return parsed && !Number.isNaN(parsed.getTime()) ? parsed : null;
+}
+
 // The single "render current zmanimData to the DOM" function -- the
 // reconciliation §19.9 constraint 1 requires between fetchZmanimAPI's own
 // first-render logic and templates/index.html's toggleLanguage(), which
@@ -496,6 +554,11 @@ export function refreshZmanimDisplay(deps) {
     const meta = zmanimData.metadata;
     const z = zmanimData.zmanim || {};
 
+    // Re-labelled on every render so a language switch re-localizes a
+    // timezone-only label ("Israel Time" <-> "שעון ישראל").
+    setZmanimLocationLabel(meta.location_label || currentZmanimLocationLabel || meta.city || '', meta.timezone);
+    // The header date follows the location: its timezone, rolled over at its sunset.
+    if (meta.hebrew_date) deps.setHebrewDate?.(meta.hebrew_date);
     renderZmanClockFields(z, deps);
     applyOptionalZmanRows(z);
     renderGraBhtRow(z, deps, SHEMA_GRA_BHT_ROW);
@@ -508,6 +571,101 @@ export function refreshZmanimDisplay(deps) {
     startCountdown(deps);
 }
 
+// A failed/errored fetch used to leave the panel exactly as it started --
+// "--:--" placeholders and (on first load) a shimmering #zmanLoc skeleton,
+// forever, with no indication anything went wrong. Self-recovers with a
+// couple of automatic retries, then falls back to a visible retry control
+// so the panel never gets permanently stuck.
+const ZMANIM_RETRY_DELAYS_MS = [3000, 8000];
+let zmanimRetryAttempts = 0;
+let zmanimRetryTimer = null;
+
+function clearZmanimLoadError() {
+    zmanimRetryAttempts = 0;
+    if (zmanimRetryTimer) {
+        clearTimeout(zmanimRetryTimer);
+        zmanimRetryTimer = null;
+    }
+    const warningEl = document.getElementById('zmanimWarning');
+    if (warningEl?.dataset.zmanimLoadError === '1') {
+        warningEl.classList.add('hidden');
+        warningEl.textContent = '';
+        delete warningEl.dataset.zmanimLoadError;
+    }
+}
+
+function showZmanimLoadError(location, deps) {
+    const warningEl = document.getElementById('zmanimWarning');
+    if (warningEl) {
+        warningEl.dataset.zmanimLoadError = '1';
+        warningEl.classList.remove('hidden');
+        warningEl.textContent = '';
+
+        const msg = document.createElement('span');
+        msg.textContent = deps.t
+            ? deps.t("Couldn't load zmanim times.", 'לא ניתן היה לטעון את הזמנים.')
+            : "Couldn't load zmanim times.";
+
+        const retryBtn = document.createElement('button');
+        retryBtn.type = 'button';
+        retryBtn.className = 'underline font-semibold ms-1';
+        retryBtn.textContent = deps.t ? deps.t('Retry', 'נסה שוב') : 'Retry';
+        retryBtn.addEventListener('click', () => {
+            clearZmanimLoadError();
+            fetchZmanimAPI(location, deps);
+        });
+
+        warningEl.append(msg, retryBtn);
+    }
+
+    // Stop the location label from shimmering forever if this is the
+    // first-ever load (it starts as a loading skeleton, not "--:--").
+    const locEl = document.getElementById('zmanLoc');
+    if (locEl?.classList.contains('sk-line')) {
+        locEl.classList.remove('sk-line');
+        locEl.style.removeProperty('width');
+        locEl.style.removeProperty('height');
+        locEl.innerText = deps.t ? deps.t('Unavailable', 'לא זמין') : 'Unavailable';
+    }
+}
+
+// Past the automatic retries, the panel still recovers by itself once the
+// network returns or the tab is shown again (a laptop waking from sleep),
+// once per failure: the next fetch re-arms it only if it fails too.
+function refetchWhenBack(location, deps) {
+    const retry = () => {
+        window.removeEventListener('online', retry);
+        document.removeEventListener('visibilitychange', onVisible);
+        if (!document.getElementById('zmanimWarning')?.dataset.zmanimLoadError) return;
+        clearZmanimLoadError();
+        fetchZmanimAPI(location, deps);
+    };
+    const onVisible = () => {
+        if (document.visibilityState === 'visible') retry();
+    };
+    window.addEventListener('online', retry);
+    document.addEventListener('visibilitychange', onVisible);
+}
+
+function scheduleZmanimRetry(location, deps) {
+    showZmanimLoadError(location, deps);
+    if (zmanimRetryAttempts >= ZMANIM_RETRY_DELAYS_MS.length) {
+        refetchWhenBack(location, deps);
+        return; // no more timed retries
+    }
+    const delay = ZMANIM_RETRY_DELAYS_MS[zmanimRetryAttempts];
+    zmanimRetryAttempts += 1;
+    zmanimRetryTimer = setTimeout(() => {
+        zmanimRetryTimer = null;
+        fetchZmanimAPI(location, deps);
+    }, delay);
+}
+
+// The times list is busy while /api/zmanim is out (audit §6).
+function setZmanimBusy(busy) {
+    document.getElementById('todayZmanimList')?.setAttribute('aria-busy', busy ? 'true' : 'false');
+}
+
 export function fetchZmanimAPI(location = null, deps = {}) {
     let url = '/api/zmanim';
     if (location && Number.isFinite(location.lat) && Number.isFinite(location.lon)) {
@@ -518,15 +676,24 @@ export function fetchZmanimAPI(location = null, deps = {}) {
         url = `/api/zmanim?${query.toString()}`;
     }
 
+    setZmanimBusy(true);
     return fetch(url)
         .then((r) => r.json())
         .then((data) => {
+            setZmanimBusy(false);
             if (!data.error) {
                 zmanimData = data;
                 const meta = data.metadata || {};
-                setZmanimLocationLabel(meta.location_label || currentZmanimLocationLabel || meta.city || meta.timezone || '', meta.timezone);
+                setZmanimLocationLabel(meta.location_label || currentZmanimLocationLabel || meta.city || '', meta.timezone);
                 refreshZmanimDisplay(deps);
+                clearZmanimLoadError();
+            } else {
+                scheduleZmanimRetry(location, deps);
             }
+        })
+        .catch(() => {
+            setZmanimBusy(false);
+            scheduleZmanimRetry(location, deps);
         });
 }
 

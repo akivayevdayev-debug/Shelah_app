@@ -616,7 +616,7 @@ class TestAskTransportKeySetParity:
     identical safety guarantee without that interaction.
     """
 
-    TOP_LEVEL_KEYS = {"answer", "confidence", "wiki", "customs", "sources", "ai_cited_sources", "meta"}
+    TOP_LEVEL_KEYS = {"answer", "confidence", "wiki", "customs", "sources", "ai_cited_sources", "history_id", "meta"}
 
     def test_flask_success_path_key_set(self, test_client):
         response = test_client.post(
@@ -694,8 +694,8 @@ class TestAiModelTimeoutWiring:
 
 
 class TestAiCitationFormatPrompt:
-    """Regression guard for the colon-splitting bug in templates/index.html's
-    populateAiModal(): the model must be told to separate ref/note with an em
+    """Regression guard for the colon-splitting bug in
+    static/js/conversation-store.js answerCitations(): the model must be told to separate ref/note with an em
     dash, never a colon, since refs like "Genesis 1:1" already contain one.
     If this prompt instruction reverts to colon-based formatting, the frontend
     parser (which now splits on " — "/" – " only) will silently stop

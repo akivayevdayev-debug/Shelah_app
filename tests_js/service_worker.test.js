@@ -31,7 +31,12 @@ function createFakeCaches() {
     return {
         stores,
         open: async (name) => ({
-            match: async (request) => store(name).get(typeof request === 'string' ? request : request.url),
+            match: async (request, options = {}) => {
+            const url = typeof request === 'string' ? request : request.url;
+            if (store(name).has(url) || !options.ignoreSearch) return store(name).get(url);
+            const bare = url.split('?')[0];
+            return [...store(name)].find(([key]) => key.split('?')[0] === bare)?.[1];
+        },
             put: async (request, response) => {
                 store(name).set(typeof request === 'string' ? request : request.url, response);
             },
@@ -85,8 +90,11 @@ function loadWorker(t, { fetchImpl }) {
     delete require.cache[require.resolve(WORKER_PATH)];
     require(WORKER_PATH);
 
-    async function dispatch(pathname) {
-        const request = new Request(`${ORIGIN}${pathname}`);
+    // `navigate` sends a page load (a Request can't be constructed with
+    // mode "navigate", so it's a plain stand-in with the fields the worker reads).
+    async function dispatch(pathname, { navigate = false } = {}) {
+        const url = `${ORIGIN}${pathname}`;
+        const request = navigate ? { url, method: 'GET', mode: 'navigate' } : new Request(url);
         const event = {
             request,
             responded: null,
@@ -104,7 +112,14 @@ function loadWorker(t, { fetchImpl }) {
         return { request, response, waited: event.waited.length };
     }
 
-    return { caches, dispatch };
+    async function dispatchMessage(data, { origin = ORIGIN } = {}) {
+        const event = { data, origin, waited: [], waitUntil(promise) { this.waited.push(promise); } };
+        listeners.message(event);
+        await Promise.all(event.waited);
+        return { waited: event.waited.length };
+    }
+
+    return { caches, dispatch, dispatchMessage, listeners };
 }
 
 const jsonResponse = (body, init = {}) =>
@@ -147,10 +162,10 @@ test('a cached asset is served immediately while the refresh is handed to waitUn
         },
     });
 
-    const first = await dispatch('/static/app.js');
+    const first = await dispatch('/static/app.css');
     assert.equal(await first.response.text(), 'v1');
 
-    const second = await dispatch('/static/app.js');
+    const second = await dispatch('/static/app.css');
     assert.equal(await second.response.text(), 'v1', 'stale copy is served first');
     assert.equal(second.waited, 1, 'the background refresh is kept alive via waitUntil');
     assert.equal(network, 2);
@@ -205,10 +220,359 @@ test('private API prefixes bypass the cache entirely', async (t) => {
     for (const store of caches.stores.values()) assert.equal(store.size, 0);
 });
 
+// ── isCacheableApiResponse's three branches ─────────────────────────────
+// (the JSON-body-with-an-error-field branch is already covered above by
+// "a JSON API reply is cached, but one that reports an error in its body
+// is not")
+
+test('a non-ok API response is not cached (isCacheableResponse\'s early return)', async (t) => {
+    const { caches, dispatch } = loadWorker(t, {
+        fetchImpl: async () => new Response('server error', { status: 500 }),
+    });
+
+    const { response } = await dispatch('/api/text/broken');
+
+    assert.equal(response.status, 500);
+    const api = [...caches.stores.keys()].find((name) => name.startsWith('shelah-api-'));
+    assert.equal(caches.stores.get(api).size, 0);
+});
+
+test('a non-JSON-content-type API response is cached without ever inspecting its body for an error field', async (t) => {
+    // The body below is valid JSON AND shaped like the "reports an error"
+    // case, on purpose: it proves the content-type gate itself (not just an
+    // unparsable body) is what skips the error-field check, not incidental
+    // JSON-parse failure -- if the content-type check were ever removed,
+    // this body would parse fine and get flagged as an error, so this test
+    // would then correctly fail.
+    const { caches, dispatch } = loadWorker(t, {
+        fetchImpl: async () => new Response(JSON.stringify({ error: 'looks like an error, but content-type says no' }), {
+            status: 200,
+            headers: { 'content-type': 'text/plain' },
+        }),
+    });
+
+    const { request } = await dispatch('/api/text/mislabeled');
+
+    const api = [...caches.stores.keys()].find((name) => name.startsWith('shelah-api-'));
+    assert.equal(caches.stores.get(api).has(request.url), true);
+});
+
+test('a JSON-content-type API response with an unparsable body is still cached (fails open)', async (t) => {
+    const { caches, dispatch } = loadWorker(t, {
+        fetchImpl: async () => new Response('not valid json{{', {
+            status: 200,
+            headers: { 'content-type': 'application/json' },
+        }),
+    });
+
+    const { request } = await dispatch('/api/text/malformed');
+
+    const api = [...caches.stores.keys()].find((name) => name.startsWith('shelah-api-'));
+    assert.equal(caches.stores.get(api).has(request.url), true);
+});
+
+// ── prewarmDailyRefs (the PREWARM_DAILY message handler) ────────────────
+
+test('PREWARM_DAILY dedupes refs, drops blanks, and prefetches both translation variants for each into the prewarm cache', async (t) => {
+    const fetchedUrls = [];
+    const { caches, dispatchMessage } = loadWorker(t, {
+        fetchImpl: async (request) => {
+            // prewarmDailyRefs() calls fetch(url, {...}) with a plain string
+            // URL, unlike the fetch handler above which passes a Request.
+            fetchedUrls.push(typeof request === 'string' ? request : request.url);
+            return jsonResponse({ he: 'טקסט' });
+        },
+    });
+
+    await dispatchMessage({
+        type: 'PREWARM_DAILY',
+        refs: ['Berakhot 2a', 'Berakhot 2a', '   ', 'Genesis 1:1'],
+    });
+
+    assert.deepEqual([...fetchedUrls].sort(), [
+        '/api/text/Berakhot%202a?autotranslate=0',
+        '/api/text/Berakhot%202a?autotranslate=1',
+        '/api/text/Genesis%201%3A1?autotranslate=0',
+        '/api/text/Genesis%201%3A1?autotranslate=1',
+    ].sort(), 'the duplicate ref and the blank ref must not be re-fetched');
+
+    const prewarm = [...caches.stores.keys()].find((name) => name.startsWith('shelah-prewarm-'));
+    assert.equal(caches.stores.get(prewarm).size, 4);
+});
+
+test('a message with no refs (or the wrong type) is a no-op', async (t) => {
+    let fetchCalled = false;
+    const { dispatchMessage } = loadWorker(t, {
+        fetchImpl: async () => { fetchCalled = true; return jsonResponse({}); },
+    });
+
+    await dispatchMessage({ type: 'PREWARM_DAILY', refs: [] });
+    await dispatchMessage({ type: 'SOME_OTHER_MESSAGE', refs: ['Berakhot 2a'] });
+
+    assert.equal(fetchCalled, false);
+});
+
+test('a message from a different origin is ignored outright', async (t) => {
+    let fetchCalled = false;
+    const { dispatchMessage } = loadWorker(t, {
+        fetchImpl: async () => { fetchCalled = true; return jsonResponse({}); },
+    });
+
+    await dispatchMessage({ type: 'PREWARM_DAILY', refs: ['Berakhot 2a'] }, { origin: 'https://evil.test' });
+    await dispatchMessage(precacheMessage(), { origin: 'https://evil.test' });
+
+    assert.equal(fetchCalled, false);
+});
+
+test('page loads are network-first and cached per URL', async (t) => {
+    const { caches, dispatch } = loadWorker(t, {
+        fetchImpl: async () => new Response('<html>shell</html>', { status: 200 }),
+    });
+    const { response } = await dispatch('/text/Genesis.1', { navigate: true });
+    assert.equal(await response.text(), '<html>shell</html>');
+    const runtime = [...caches.stores.entries()].find(([name]) => name.startsWith('shelah-runtime-'))[1];
+    assert.ok(runtime.has(`${ORIGIN}/text/Genesis.1`));
+});
+
+test('offline, a never-visited app path falls back to the precached shell; other pages to offline.html', async (t) => {
+    const { caches, dispatch } = loadWorker(t, {
+        fetchImpl: async () => {
+            throw new TypeError('offline');
+        },
+    });
+    caches.match = async (request) => ({ '/': 'SHELL', '/static/offline.html': 'OFFLINE' })[request];
+
+    for (const pathname of ['/text/Genesis.1', '/prayer/shacharit', '/answer/0b6a3f58-2f5e-4c1d-9a7e-3d2b1c0a9f88',
+        '/a/Zx9_-abcDEF0123456789q', '/calendar/2026-09-25', '/history', '/history/', '/community/Ashkenaz',
+        '/chat/new/all/balanced', '/text/Genesis.1/chat/c1/full', '/history/chat/c1', '/signin', '/profile', '/settings',
+        '/siddur', '/siddur/', '/siddur/edot-hamizrach', '/siddur/edot-hamizrach/shacharit/amida']) {
+        assert.equal((await dispatch(pathname, { navigate: true })).response, 'SHELL', pathname);
+    }
+    for (const pathname of ['/about', '/text/', '/history/extra', '/chat/', '/signin/extra', '/siddurs']) {
+        assert.equal((await dispatch(pathname, { navigate: true })).response, 'OFFLINE', pathname);
+    }
+
+    caches.match = async (request) => (request === '/static/offline.html' ? 'OFFLINE' : undefined);
+    assert.equal((await dispatch('/text/Genesis.1', { navigate: true })).response, 'OFFLINE', 'no precached shell yet');
+});
+
+test('offline, a visited page is served from the runtime cache first', async (t) => {
+    let online = true;
+    const { dispatch } = loadWorker(t, {
+        fetchImpl: async () => {
+            if (!online) throw new TypeError('offline');
+            return new Response('<html>genesis</html>', { status: 200 });
+        },
+    });
+    await dispatch('/text/Genesis.1', { navigate: true });
+    online = false;
+    const { response } = await dispatch('/text/Genesis.1', { navigate: true });
+    assert.equal(await response.text(), '<html>genesis</html>');
+});
+
 test('the fake worker globals are removed again once a test has finished', () => {
     // Runs after the tests above (top-level tests in a file run in order), each
     // of which installed fakes for self/caches/fetch.
     for (const name of WORKER_GLOBALS) {
         assert.equal(globalThis[name], ORIGINAL_GLOBALS[name], `globalThis.${name} leaked out of a test`);
     }
+});
+
+test('zmanim and daily-study are network-first: fresh when online, the cached copy only offline', async (t) => {
+    let online = true;
+    let day = 0;
+    const { caches, dispatch } = loadWorker(t, {
+        fetchImpl: async () => {
+            if (!online) throw new TypeError('offline');
+            day += 1;
+            return jsonResponse({ metadata: { hebrew_date: `day ${day}` } });
+        },
+    });
+
+    for (const path of ['/api/zmanim?lat=1&lon=2', '/api/daily-study']) {
+        const first = await dispatch(path);
+        const second = await dispatch(path);
+        assert.equal(second.waited, 0, 'no background refresh: the answer itself is fresh');
+        assert.notDeepEqual(await second.response.json(), await first.response.json(), `${path}: never yesterday's copy`);
+
+        online = false;
+        const offline = await dispatch(path);
+        assert.deepEqual(await offline.response.json(), { metadata: { hebrew_date: `day ${day}` } }, `${path}: last good copy offline`);
+        online = true;
+    }
+
+    online = false;
+    const never = await dispatch('/api/zmanim?lat=9&lon=9');
+    assert.equal(never.response.status, 503);
+    assert.deepEqual(await never.response.json(), { error: 'Offline' });
+    const api = [...caches.stores.keys()].find((name) => name.startsWith('shelah-api-'));
+    assert.ok(api);
+});
+
+test('parasha and holidays are network-first: never last week\'s parasha after Shabbat (L-11)', async (t) => {
+    let week = 0;
+    let online = true;
+    const { dispatch } = loadWorker(t, {
+        fetchImpl: async () => {
+            if (!online) throw new TypeError('offline');
+            week += 1;
+            return jsonResponse({ parasha: `week ${week}` });
+        },
+    });
+    for (const path of ['/api/parasha', '/api/holidays?year=2026']) {
+        await dispatch(path);
+        const second = await dispatch(path);
+        assert.equal(second.waited, 0, `${path}: no stale copy first`);
+        assert.deepEqual(await second.response.json(), { parasha: `week ${week}` });
+        online = false;
+        assert.deepEqual(await (await dispatch(path)).response.json(), { parasha: `week ${week}` }, `${path}: cached copy offline`);
+        online = true;
+    }
+});
+
+test('scripts are network-first: a new deploy\'s module runs on the first load after it (L-10)', async (t) => {
+    let deploy = 1;
+    let online = true;
+    const { caches, dispatch } = loadWorker(t, {
+        fetchImpl: async () => {
+            if (!online) throw new TypeError('offline');
+            return new Response(`export const v = ${deploy};`, { status: 200 });
+        },
+    });
+
+    await dispatch('/static/js/router.js');
+    deploy = 2;
+    const next = await dispatch('/static/js/router.js');
+    assert.equal(await next.response.text(), 'export const v = 2;', 'the fresh copy, not the cached one');
+    assert.equal(next.waited, 0, 'no background refresh needed');
+    const shell = [...caches.stores.entries()].find(([name]) => name.startsWith('shelah-shell-'))[1];
+    assert.equal(await shell.get(next.request.url).clone().text(), 'export const v = 2;', 'the cache holds the latest copy');
+
+    online = false;
+    assert.equal(await (await dispatch('/static/js/router.js')).response.clone().text(), 'export const v = 2;', 'offline: the cached copy');
+    assert.equal(await (await dispatch('/static/js/router.js?v=abc123')).response.clone().text(), 'export const v = 2;',
+        'offline, a version never fetched falls back to the last copy of that file');
+    const never = await dispatch('/static/js/never-seen.js?v=1');
+    assert.equal(never.response.status, 503);
+});
+
+
+
+// ── The siddur, kept for offline use (R6) ─────────────────────────────────
+
+const SIDDUR_VERSION = '79f598a0845c';
+const siddurCache = (caches, name) => caches.stores.get(name);
+const precacheMessage = (overrides = {}) => ({
+    type: 'PRECACHE_SIDDUR', rite: 'edot-hamizrach', version: SIDDUR_VERSION,
+    services: ['shacharit', 'mincha', 'shacharit'], ...overrides,
+});
+
+test('PRECACHE_SIDDUR keeps the contents and every service of that version', async (t) => {
+    const fetched = [];
+    const { caches, dispatchMessage } = loadWorker(t, {
+        fetchImpl: async (url) => { fetched.push(url); return jsonResponse({ url }); },
+    });
+
+    await dispatchMessage(precacheMessage());
+
+    const name = `shelah-siddur-edot-hamizrach@${SIDDUR_VERSION}`;
+    assert.deepEqual([...siddurCache(caches, name).keys()], [
+        `${ORIGIN}/api/siddur/v2/toc/edot-hamizrach`,
+        `${ORIGIN}/api/siddur/v2/service/edot-hamizrach/shacharit?v=${SIDDUR_VERSION}`,
+        `${ORIGIN}/api/siddur/v2/service/edot-hamizrach/mincha?v=${SIDDUR_VERSION}`,
+    ]);
+    assert.equal(fetched.length, 3, 'a repeated slug is fetched once');
+
+    await dispatchMessage(precacheMessage());
+    assert.equal(fetched.length, 3, 'what is already kept is not fetched again');
+});
+
+test('PRECACHE_SIDDUR ignores a message that could name a path of its own', async (t) => {
+    const fetched = [];
+    const { caches, dispatchMessage } = loadWorker(t, {
+        fetchImpl: async (url) => { fetched.push(url); return jsonResponse({}); },
+    });
+    await dispatchMessage(precacheMessage({ rite: '../api/user' }));
+    await dispatchMessage(precacheMessage({ version: 'v=1&x' }));
+    await dispatchMessage(precacheMessage({ services: 'shacharit' }));
+    assert.deepEqual(fetched, []);
+
+    await dispatchMessage(precacheMessage({ services: ['../../user', 'Shacharit', 7, 'mincha'] }));
+    assert.deepEqual(fetched.map((url) => url.slice(ORIGIN.length)), [
+        '/api/siddur/v2/toc/edot-hamizrach',
+        `/api/siddur/v2/service/edot-hamizrach/mincha?v=${SIDDUR_VERSION}`,
+    ]);
+    assert.ok([...caches.stores.keys()].every((name) => !name.includes('..')));
+});
+
+test('a new version replaces the old only once it is whole, and never touches another rite', async (t) => {
+    let failMincha = true;
+    const { caches, dispatchMessage } = loadWorker(t, {
+        fetchImpl: async (url) => {
+            if (url.includes('/mincha') && failMincha) throw new TypeError('offline');
+            if (url.includes('/shacharit') && failMincha) return jsonResponse({ error: 'nope' });
+            return jsonResponse({ url });
+        },
+    });
+    for (const name of ['shelah-siddur-edot-hamizrach@0000aaaa', 'shelah-siddur-edot@0000aaaa']) {
+        (await caches.open(name)).put(`${ORIGIN}/api/siddur/v2/toc/x`, jsonResponse({}));
+    }
+
+    await dispatchMessage(precacheMessage());
+    assert.ok(caches.stores.has('shelah-siddur-edot-hamizrach@0000aaaa'), 'kept while the new one is partial');
+
+    failMincha = false;
+    await dispatchMessage(precacheMessage());
+    assert.ok(!caches.stores.has('shelah-siddur-edot-hamizrach@0000aaaa'), 'replaced once whole');
+    assert.ok(caches.stores.has('shelah-siddur-edot@0000aaaa'), 'a rite whose name is a prefix is left alone');
+});
+
+test('a kept service answers with no network; the contents falls back to the kept copy offline', async (t) => {
+    let online = true;
+    const { dispatch, dispatchMessage } = loadWorker(t, {
+        fetchImpl: async (request) => {
+            if (!online) throw new TypeError('offline');
+            const url = typeof request === 'string' ? request : request.url;
+            return jsonResponse({ from: 'network', url: url.slice(ORIGIN.length) });
+        },
+    });
+    await dispatchMessage(precacheMessage({ services: ['shacharit'] }));
+    online = false;
+
+    const service = await dispatch(`/api/siddur/v2/service/edot-hamizrach/shacharit?v=${SIDDUR_VERSION}`);
+    assert.deepEqual(await service.response.json(),
+        { from: 'network', url: `/api/siddur/v2/service/edot-hamizrach/shacharit?v=${SIDDUR_VERSION}` });
+    assert.equal(service.waited, 0, 'a versioned service never changes: no refresh');
+
+    const toc = await dispatch('/api/siddur/v2/toc/edot-hamizrach');
+    assert.deepEqual(await toc.response.json(), { from: 'network', url: '/api/siddur/v2/toc/edot-hamizrach' });
+
+    const missing = await dispatch(`/api/siddur/v2/service/edot-hamizrach/mincha?v=${SIDDUR_VERSION}`);
+    assert.equal(missing.response.status, 503);
+    assert.deepEqual(await missing.response.json(), { error: 'Offline' });
+});
+
+test('online, the contents is read as usual (not pinned to the kept copy)', async (t) => {
+    let edition = 1;
+    const { dispatch, dispatchMessage } = loadWorker(t, {
+        fetchImpl: async () => jsonResponse({ edition }),
+    });
+    await dispatchMessage(precacheMessage({ services: [] }));
+    edition = 2;
+    const first = await dispatch('/api/siddur/v2/toc/edot-hamizrach');
+    assert.deepEqual(await first.response.json(), { edition: 2 });
+    const unversioned = await dispatch('/api/siddur/v2/service/edot-hamizrach/shacharit');
+    assert.deepEqual(await unversioned.response.json(), { edition: 2 }, 'no ?v=: not answered from the kept copy');
+});
+
+test('activating a new deploy keeps the siddur and drops the old deploy\'s caches', async (t) => {
+    const { caches, listeners } = loadWorker(t, { fetchImpl: async () => jsonResponse({}) });
+    for (const name of ['shelah-shell-v1-old', 'shelah-api-v1-old', `shelah-siddur-edot-hamizrach@${SIDDUR_VERSION}`]) {
+        await caches.open(name);
+        caches.stores.set(name, new Map([['k', 'v']]));
+    }
+    const waited = [];
+    listeners.activate({ waitUntil: (promise) => waited.push(promise) });
+    await Promise.all(waited);
+    assert.deepEqual([...caches.stores.keys()], [`shelah-siddur-edot-hamizrach@${SIDDUR_VERSION}`]);
 });

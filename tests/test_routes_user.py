@@ -18,6 +18,8 @@ Covers:
     handler as /api/user/preferences
   - GET  /api/user/history        without auth → 401; with auth → happy path,
     Supabase-not-configured 503, limit clamping, exception 500
+  - GET  /api/user/history/<id>   without auth → 401; with auth → happy path,
+    Supabase-not-configured 503, missing entry 404, exception 500
   - DELETE /api/user/history/<id> without auth → 401; with auth → happy path,
     Supabase-not-configured 503, exception 500
 
@@ -58,6 +60,9 @@ def authed(monkeypatch):
         lambda token: {"sub": FAKE_USER_ID, "sid": "sess_fake"},
     )
     return FAKE_USER_ID
+
+
+ENTRY_UUID = "0b6a3f58-2f5e-4c1d-9a7e-3d2b1c0a9f88"
 
 
 class _FakeResult:
@@ -706,6 +711,65 @@ class TestGetAskHistory:
         monkeypatch.setattr(routes_user_module, "_get_supabase_client", lambda: client)
         response = test_client.get("/api/user/history", headers=AUTH_HEADERS)
         assert response.status_code == 500
+
+
+class TestGetAskHistoryEntry:
+    def test_a_non_uuid_id_is_404_without_a_query(self, test_client, authed, monkeypatch):
+        """ids are uuids: a malformed one can't exist, and sending it to
+        Postgres would only raise 22P02 (a 500)."""
+        client = _FakeSupabaseClient(error=AssertionError("must not query"))
+        monkeypatch.setattr(routes_user_module, "_get_supabase_client", lambda: client)
+        for bad in ("entry-1", "not-a-uuid", "0b6a3f58-2f5e-4c1d-9a7e-3d2b1c0a9f8"):
+            response = test_client.get(f"/api/user/history/{bad}", headers=AUTH_HEADERS)
+            assert response.status_code == 404, bad
+
+    def test_without_auth_is_401(self, test_client):
+        response = test_client.get(f"/api/user/history/{ENTRY_UUID}")
+        assert response.status_code == 401
+
+    def test_authed_but_no_sub_claim_is_401(self, test_client, monkeypatch):
+        monkeypatch.setattr(auth_module, "_verify_clerk_token", lambda token: {"sid": "sess"})
+        response = test_client.get(f"/api/user/history/{ENTRY_UUID}", headers=AUTH_HEADERS)
+        assert response.status_code == 401
+
+    def test_no_supabase_client_is_503(self, test_client, authed, monkeypatch):
+        monkeypatch.setattr(routes_user_module, "_get_supabase_client", lambda: None)
+        response = test_client.get(f"/api/user/history/{ENTRY_UUID}", headers=AUTH_HEADERS)
+        assert response.status_code == 503
+
+    def test_happy_path_returns_entry(self, test_client, authed, monkeypatch):
+        row = {"id": ENTRY_UUID, "question": "Is this permitted?", "answer": "Yes."}
+        client = _FakeSupabaseClient(data=[row])
+        monkeypatch.setattr(routes_user_module, "_get_supabase_client", lambda: client)
+        response = test_client.get(f"/api/user/history/{ENTRY_UUID}", headers=AUTH_HEADERS)
+        assert response.status_code == 200
+        assert response.get_json() == row
+
+    def test_missing_entry_is_404(self, test_client, authed, monkeypatch):
+        client = _FakeSupabaseClient(data=[])
+        monkeypatch.setattr(routes_user_module, "_get_supabase_client", lambda: client)
+        response = test_client.get("/api/user/history/0b6a3f58-0000-4c1d-9a7e-3d2b1c0a9f88", headers=AUTH_HEADERS)
+        assert response.status_code == 404
+
+    def test_supabase_exception_returns_500(self, test_client, authed, monkeypatch):
+        client = _FakeSupabaseClient(error=RuntimeError("db down"))
+        monkeypatch.setattr(routes_user_module, "_get_supabase_client", lambda: client)
+        response = test_client.get(f"/api/user/history/{ENTRY_UUID}", headers=AUTH_HEADERS)
+        assert response.status_code == 500
+
+    def test_scopes_lookup_to_caller_own_user_id(self, test_client, authed, monkeypatch):
+        """Even if an attacker guesses another user's entry_id, the query still
+        carries `.eq("user_id", <caller's own id>)` as a second filter -- a row
+        matching the id but owned by someone else matches zero rows here, RLS
+        or not, and comes back as 404 rather than leaking the other user's
+        answer."""
+        client = _FakeSupabaseClient(data=[])
+        monkeypatch.setattr(routes_user_module, "_get_supabase_client", lambda: client)
+        other = "9f9f9f9f-2f5e-4c1d-9a7e-3d2b1c0a9f88"
+        response = test_client.get(f"/api/user/history/{other}", headers=AUTH_HEADERS)
+        assert response.status_code == 404
+        assert ("id", other) in client._query.eq_calls
+        assert ("user_id", FAKE_USER_ID) in client._query.eq_calls
 
 
 class TestDeleteAskHistoryEntry:

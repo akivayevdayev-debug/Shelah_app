@@ -244,7 +244,7 @@ async def request_id_middleware(request: Request, call_next):
         # as the security headers above -- a WSGI-routed response that
         # already set its own Cache-Control via Flask's hook is untouched.
         if "cache-control" not in response.headers:
-            cache_control = classify_cache_tier(request.method, request.url.path)
+            cache_control = classify_cache_tier(request.method, request.url.path, response.status_code)
             if cache_control is not None:
                 response.headers["Cache-Control"] = cache_control
         response.headers["X-Request-Id"] = request_id
@@ -415,6 +415,7 @@ def _ask_async_strict_block(mode, canonical_lens, ctx):
         "customs": ctx["customs_info"],
         "sources": display_sources,
         "ai_cited_sources": [],
+        "history_id": None,
         "meta": {
             "mode": mode,
             "community_lens": canonical_lens,
@@ -449,6 +450,7 @@ def _ask_async_breaker_paused_payload(mode, canonical_lens, answer_language, ctx
         "customs": ctx["customs_info"],
         "sources": display_sources,
         "ai_cited_sources": [],
+        "history_id": None,
         "meta": {
             "mode": mode,
             "language": answer_language,
@@ -499,7 +501,7 @@ async def _security_blocked_ask_async_payload(
     # Defensibility logging (plan.md §8.B.6) -- mirrors app.py's
     # _security_blocked_ask_payload exactly. Deliberately does NOT call
     # _store_user_memory_summary, same reasoning as that function.
-    await asyncio.to_thread(
+    history_id = await asyncio.to_thread(
         _store_ask_history,
         user_id,
         question,
@@ -520,6 +522,7 @@ async def _security_blocked_ask_async_payload(
         "customs": [],
         "sources": [],
         "ai_cited_sources": [],
+        "history_id": history_id,
         "meta": {
             "mode": mode,
             "community_lens": canonical_lens,
@@ -686,7 +689,7 @@ async def _run_ask_async_ai_synthesis(
 
     safety_class = (structured_payload or {}).get("safety_class", "ok")
 
-    await asyncio.to_thread(
+    history_id = await asyncio.to_thread(
         _store_ask_history,
         user_id,
         question,
@@ -713,6 +716,7 @@ async def _run_ask_async_ai_synthesis(
         user_id=user_id,
         question_was_sanitized=question_was_sanitized,
         extra_meta={"async": True},
+        history_id=history_id,
     )
 
 

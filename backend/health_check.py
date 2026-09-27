@@ -93,10 +93,15 @@ def _probe_gemini() -> bool:
         "GOOGLE_API_KEY") or os.environ.get("GEMINI_API_KEY")
     if not api_key:
         return True  # Can't probe without key; assume up
+    # Key in the x-goog-api-key header, never in a ?key= query string: a
+    # connection error's message embeds the full URL, and _probe() logs it.
     r = requests.get(
-        f"https://generativelanguage.googleapis.com/v1beta/models?key={api_key}",
+        "https://generativelanguage.googleapis.com/v1beta/models",
         timeout=REQUEST_TIMEOUT,
-        headers={"User-Agent": _HEALTH_CHECK_USER_AGENT},
+        headers={
+            "x-goog-api-key": api_key,
+            "User-Agent": _HEALTH_CHECK_USER_AGENT,
+        },
     )
     return r.status_code == 200
 

@@ -70,6 +70,26 @@ _http_session.headers.update({
 _resolved_title_ref_cache = TTLCache(maxsize=8192, ttl=30 * 24 * 3600)
 _resolved_query_ref_cache = TTLCache(maxsize=8192, ttl=30 * 24 * 3600)
 
+# Refs get_text() has found don't exist, by Sefaria's own answer: every
+# request it made was answered (no timeout, 5xx or block along the way) and
+# the name API says the string isn't a ref. The SPA shell's /text/<ref>
+# route reads it -- never the network -- to send a real 404
+# (routes_spa_paths.py); a ref it hasn't seen fail gets the usual shell.
+_missing_text_refs = TTLCache(maxsize=4096, ttl=CACHE_TTL, redis_prefix="sefaria_missing_ref:")
+
+# Per-thread count of Sefaria fetches that failed without an answer, so
+# get_text() can tell "Sefaria said no" from "Sefaria didn't say". Its
+# lookups run one after another on one thread.
+_fetch_failures = threading.local()
+
+
+def _note_fetch_failure():
+    _fetch_failures.count = getattr(_fetch_failures, "count", 0) + 1
+
+
+def _fetch_failure_count():
+    return getattr(_fetch_failures, "count", 0)
+
 # Matches a trailing "<chapter>[:<verse>]" token once str.rsplit(None, 1)
 # (below) has already split it off the book name in linear time. The split
 # itself must NOT be done with a regex like r"^(.+?)\s+(\d+)...$": "." and
@@ -116,6 +136,12 @@ _library_index_view_lock = threading.Lock()
 _PROJECT_ROOT = Path(__file__).resolve().parent.parent
 _LIBRARY_REPORT_PATH = _PROJECT_ROOT / "reports" / \
     "library_leaf_remove_fix_report.full.json"
+# Removals of that report shown to be wrong (scripts/verify_library_removals.py):
+# its crawl probed complex-schema works (siddurim, machzorim, haggadot) at
+# refs of the wrong shape, so their 400s were never evidence the work
+# doesn't load. Applies only to the report run it names.
+_LIBRARY_REINSTATED_PATH = _PROJECT_ROOT / "reports" / \
+    "library_leaf_reinstated.json"
 # Writes under the deployment bundle root, which is read-only at runtime on
 # Vercel (only /tmp is writable) -- _disk_cache_set()'s mkdir/write_text
 # silently no-ops via its own try/except there, so this tier has never
@@ -168,11 +194,11 @@ NON_LOADING_LITURGY_TITLES = {
     _normalize_title_key("Ma'aneh Lashon Chabad"),
     _normalize_title_key("Ma'avar Yabbok"),
     _normalize_title_key("Machzor Rosh Hashanah Linear"),
-    _normalize_title_key("Machzor Yom Ha'atzmaut & Yom Yerushalayim"),
-    _normalize_title_key("Machzor Yom Ha'atzmaut & Yom Yetushalayim"),
+    # Report's actual title is "...Yerushalyim" (no second "a") -- neither
+    # prior guess here matched it, so this exclusion never fired.
+    _normalize_title_key("Machzor Yom Ha'atzmaut & Yom Yerushalyim"),
     _normalize_title_key("Seder Ma'amadot"),
     _normalize_title_key("Seder Tisha B'Av (Edot HaMizrach)"),
-    _normalize_title_key("Seder Tisha B'Av (Edot HaMizrac)"),
     _normalize_title_key("Weekday Siddur Chabad"),
 }
 
@@ -193,15 +219,38 @@ def _extract_adjustment_keys(row):
             yield key
 
 
+def _load_reinstated_titles(report_generated_at):
+    """Normalized titles of the removals verify_library_removals.py showed
+    to be loadable, when its file names this report run; empty otherwise
+    (no file, unreadable, or written for a different run -- a fresh crawl
+    supersedes it)."""
+    try:
+        payload = json.loads(_LIBRARY_REINSTATED_PATH.read_text(encoding="utf-8"))
+    except (OSError, ValueError):
+        return set()
+    if not isinstance(payload, dict) or not report_generated_at \
+            or payload.get("report_generated_at_utc") != report_generated_at:
+        return set()
+    return {
+        _normalize_title_key(row.get("title"))
+        for row in payload.get("reinstated", []) or []
+        if isinstance(row, dict) and row.get("title")
+    }
+
+
 def _parse_library_adjustments_payload(payload):
     """Build (remove_keys, fix_map) from a crawl_library_leaves.py report
-    payload. Split out of _load_library_index_adjustments() (SonarCloud
-    python:S3776) -- see _extract_adjustment_keys.
+    payload, less the removals reinstated for this run
+    (_load_reinstated_titles). Split out of _load_library_index_adjustments()
+    (SonarCloud python:S3776) -- see _extract_adjustment_keys.
     """
     remove_keys = set()
     fix_map = {}
+    reinstated = _load_reinstated_titles(payload.get("generated_at_utc"))
 
     for row in payload.get("removals", []) or []:
+        if _normalize_title_key(row.get("title")) in reinstated:
+            continue
         remove_keys.update(_extract_adjustment_keys(row))
 
     for row in payload.get("fixes", []) or []:
@@ -242,6 +291,11 @@ def _load_library_index_adjustments():
         mtime = path.stat().st_mtime
     except Exception:
         mtime = 0.0
+    try:
+        # A new reinstatement file changes the keys as much as a new report.
+        mtime = max(mtime, _LIBRARY_REINSTATED_PATH.stat().st_mtime)
+    except OSError:
+        pass
 
     if snapshot["loaded"] and snapshot["mtime"] >= mtime:
         return snapshot
@@ -364,6 +418,8 @@ def _cached_get(url, ttl=CACHE_TTL):
         return data
     except requests.HTTPError as e:
         status_code = e.response.status_code if e.response is not None else None
+        if status_code not in (400, 404):
+            _note_fetch_failure()
         if status_code == 403:
             _sefaria_block_status.update({
                 "is_blocked": True,
@@ -379,10 +435,12 @@ def _cached_get(url, ttl=CACHE_TTL):
                 f"[Sefaria Library Error] HTTP error during fetch. URL: {url}. Status Code: {status_code}. Details: {str(e)}")
         return None
     except requests.RequestException as e:
+        _note_fetch_failure()
         logger.exception(
             f"[Sefaria Library Error] Network or request error. URL: {url}. Details: {str(e)}")
         return None
     except Exception as e:
+        _note_fetch_failure()
         logger.exception(
             f"[Sefaria Library Error] Unexpected error occurred. URL: {url}. Type: {type(e).__name__}. Details: {str(e)}")
         return None
@@ -549,9 +607,25 @@ def _extract_v3_flat_text_lists(lines):
     return he_flat, en_flat
 
 
+def _resolve_display_title(data, fallback_title):
+    """Sefaria's own `title` (v2 and v3 alike) is always the *section*
+    title -- book + chapter, e.g. "Numbers 4" -- even when the resolved ref
+    names a specific verse or verse range ("Numbers 4:17-19") or a Talmud
+    line ("Shabbat 21a:1"). Passing that straight through silently drops
+    the very thing the user asked to read from the reader's header. Once
+    the ref is that specific (it has a ":"), prefer the ref-derived
+    fallback_title instead; Sefaria's title is never more specific than
+    the ref, so there is nothing to lose. Shared by _resolve_v3_title and
+    _resolve_text_title (SonarCloud python:S3776).
+    """
+    if ":" in fallback_title:
+        return fallback_title
+    return data.get("title") or data.get("indexTitle") or data.get("book") or fallback_title
+
+
 def _resolve_v3_title(data, fallback_title):
     """Split out of _build_v3_result_dict (SonarCloud python:S3776)."""
-    return data.get("title") or data.get("indexTitle") or data.get("book") or fallback_title
+    return _resolve_display_title(data, fallback_title)
 
 
 def _build_v3_result_dict(data, requested_ref, lines):
@@ -1345,8 +1419,22 @@ def _resolve_text_title(data, resolved_output_ref, requested_ref):
     python:S3776)."""
     fallback_title = str(resolved_output_ref or requested_ref).split(",", 1)[
         0].strip()
-    return data.get("title") or data.get(
-        "indexTitle") or data.get("book") or fallback_title
+    return _resolve_display_title(data, fallback_title)
+
+
+def _remember_missing_text(requested_ref, cache_key):
+    """Record a ref every lookup failed for, when Sefaria's name API (already
+    asked, and cached, by _resolve_ref_candidates) says it isn't a ref."""
+    name_data = _cache.get(f"{SEFARIA_API}/name/{_encode_ref_path(requested_ref)}")
+    if isinstance(name_data, dict) and name_data.get("is_ref") is False:
+        _missing_text_refs.set(cache_key, True)
+
+
+def is_known_missing_text(ref):
+    """True only for a ref get_text() has already found doesn't exist (see
+    _missing_text_refs). Never fetches."""
+    key = _normalize_requested_ref(ref).lower()
+    return bool(key) and _missing_text_refs.get(key) is not None
 
 
 def get_text(ref, lang="both", context=0):
@@ -1370,6 +1458,7 @@ def get_text(ref, lang="both", context=0):
         return {"error": "Text not found", "ref": "", "he": [], "en": []}
 
     cache_key = requested_ref.lower()
+    failures_before = _fetch_failure_count()
 
     parsed_v3 = _try_v3_text(requested_ref, cache_key)
     if parsed_v3:
@@ -1380,6 +1469,8 @@ def get_text(ref, lang="both", context=0):
 
     if not data or "error" in data:
         _resolved_query_ref_cache.delete(cache_key)
+        if _fetch_failure_count() == failures_before:
+            _remember_missing_text(requested_ref, cache_key)
         return _build_text_not_found_response(requested_ref)
 
     _cache_resolved_text_ref(cache_key, resolved_ref, data, requested_ref)
@@ -1709,10 +1800,18 @@ def _group_links_by_category(links):
     for link in links:
         link_type = link.get("type", "Other")
         category = link.get("category", link_type)
+        # /related names the Hebrew ref "sourceHeRef"; collectiveTitle is the
+        # work's short name ("Rashi" / "רש\"י") the UI groups and labels by.
+        collective = link.get("collectiveTitle")
+        collective = collective if isinstance(collective, dict) else {}
         grouped.setdefault(category, []).append({
             "ref": link.get("ref", ""),
-            "heRef": link.get("heRef", ""),
-            "anchorRef": link.get("anchorRef", "")
+            "heRef": link.get("heRef") or link.get("sourceHeRef", ""),
+            "anchorRef": link.get("anchorRef", ""),
+            "collectiveTitle": {
+                "en": str(collective.get("en") or ""),
+                "he": str(collective.get("he") or ""),
+            },
         })
     return grouped
 
@@ -1780,6 +1879,7 @@ def _ensure_rashi_commentary_link(grouped, ref, book, chapter, verse):
         "ref": rashi_ref,
         "heRef": "",
         "anchorRef": str(ref or ""),
+        "collectiveTitle": {"en": "Rashi", "he": "רש\"י"},
     })
 
 
@@ -2092,13 +2192,11 @@ def _walk_index_schema_for_leaf_refs(node, path_segments, title, title_norm, see
     _add_leaf_ref(title, next_path, seen, refs)
 
 
-def get_index_leaf_refs(title, max_refs=120):
-    """Build leaf refs from a text schema (e.g., full Siddur structure)."""
-    schema, title = _resolve_index_schema_with_fallbacks(title)
-
-    if not schema:
-        return []
-
+def leaf_refs_from_schema(schema, title, max_refs=120):
+    """Leaf refs ("Title, Node, Subnode") of an index schema, in order --
+    the refs the library opens a work at. Public so
+    scripts/crawl_library_leaves.py probes exactly the ref the app would
+    open, not a guess at its shape."""
     refs = []
     seen = set()
     title_norm = _normalize_title_for_compare(title)
@@ -2109,3 +2207,12 @@ def get_index_leaf_refs(title, max_refs=120):
     if not refs:
         refs.append(title)
     return refs[:max_refs]
+
+
+def get_index_leaf_refs(title, max_refs=120):
+    """Build leaf refs from a text schema (e.g., full Siddur structure)."""
+    schema, title = _resolve_index_schema_with_fallbacks(title)
+
+    if not schema:
+        return []
+    return leaf_refs_from_schema(schema, title, max_refs)

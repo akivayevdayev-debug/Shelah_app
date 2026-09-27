@@ -27,6 +27,49 @@
 */
 
 /* ═══════════════════════════════════════════════════════════════════
+   FALLBACK FACES (audit L-12)
+   Local fonts resized to the web fonts' metrics and named right after them
+   in the font stacks, so text drawn before Cardo or Ezra SIL arrive takes
+   the space it will keep, and nothing reflows when they swap in (both
+   stay font-display: swap). Measured in Chrome on a paragraph at 1000px:
+   size-adjust matches the width; ascent/descent-override are the web
+   font's ascent and descent divided by that size. Where the local font is
+   missing (no Georgia on Android, say) the face is skipped and the stack
+   carries on as before.
+   ═══════════════════════════════════════════════════════════════════ */
+@font-face {
+    font-family: 'Cardo Fallback';
+    src: local('Georgia'), local('Georgia Regular');
+    font-weight: 400;
+    size-adjust: 96.57%;
+    ascent-override: 102.52%;
+    descent-override: 37.69%;
+    line-gap-override: 0%;
+}
+
+@font-face {
+    font-family: 'Cardo Fallback';
+    src: local('Georgia Bold'), local('Georgia-Bold');
+    font-weight: 700;
+    size-adjust: 89.67%;
+    ascent-override: 110.4%;
+    descent-override: 40.59%;
+    line-gap-override: 0%;
+}
+
+/* Hebrew letters and points only: Latin in a Hebrew run falls through to
+   Cardo, as it did before. */
+@font-face {
+    font-family: 'Ezra SIL Fallback';
+    src: local('Times New Roman'), local('TimesNewRomanPSMT');
+    unicode-range: U+0590-05FF, U+FB1D-FB4F;
+    size-adjust: 134.04%;
+    ascent-override: 80.05%;
+    descent-override: 30.14%;
+    line-gap-override: 0%;
+}
+
+/* ═══════════════════════════════════════════════════════════════════
    LIGHT THEME (default / :root)
 ═══════════════════════════════════════════════════════════════════ */
 
@@ -158,6 +201,11 @@
        distinct from --motion-ease-spring; was repeated as a raw literal at
        5+ sites across style.css/ai.css before being named here. */
     --motion-ease-decel: cubic-bezier(0.22, 1, 0.36, 1);
+    /* Views (audit §2): the old one fades out, the new one fades in
+       shifted 12px from the side the navigation goes to. */
+    --motion-dur-view-out: 120ms;
+    --motion-dur-view-in:  240ms;
+    --motion-view-shift:   var(--sp-3);
 
     /* ── Elevation (shadow tokens) ──────────────────────────────────── */
     --shadow-sm:  0 1px 3px rgba(0,0,0,0.08), 0 1px 2px rgba(0,0,0,0.05);
@@ -188,14 +236,22 @@
     --control-strong-bg-hover: var(--ctrl-filled-hover);
 
     /* ── Typography ─────────────────────────────────────────────────── */
-    --font-serif:  'Cardo', Georgia, serif;
+    --font-serif:  'Cardo', 'Cardo Fallback', Georgia, serif;
     --font-sans:   'Inter', system-ui, sans-serif;
-    --font-hebrew: 'Ezra SIL', 'Cardo', serif;
+    --font-hebrew: 'Ezra SIL', 'Ezra SIL Fallback', 'Cardo', 'Cardo Fallback', serif;
 
     /* ── Calendar event colors (by Hebcal category — must match
        backend/app.py's _holiday_color_for_category palette) ────────── */
     --cal-event-holiday:   #802f3e;
-    --cal-event-shabbat:   #004e5f;
+    /* Shabbat / parashah are green again (the consolidation pass turned them
+       teal). Derived from --accent-green; #04694a = 6.72:1 against the white
+       chip text. Kept in sync with app.py's palette. */
+    --cal-event-shabbat:   color-mix(in srgb, var(--accent-green) 70%, black);
+    /* Day-number tint for Shabbat/parashah and holiday cells (paired with a
+       marker glyph in calendar.css, so state is never colour-only).
+       6.29:1 / 8.2:1 on the cream cell. */
+    --cal-day-shabbat-fg:  var(--cal-event-shabbat);
+    --cal-day-holiday-fg:  var(--cal-event-holiday);
     /* Was #5a99b7: only 3.15:1 against the white event-chip text
        (textColor: "#ffffff" from the calendar API) — fails 4.5:1 AA.
        Darkened within the same blue family; now 5.46:1. Kept in sync
@@ -205,6 +261,42 @@
     --cal-event-modern:    #2563eb;
     --cal-event-fast:      #374151;
     --cal-event-special:   #6b7280;
+
+    /* ═══════════════════════════════════════════════════════════════════
+       APPLE-STYLE SURFACES — geometry, material, motion (calendar detail card,
+       Clerk modals, sliders)
+       ─────────────────────────────────────────────────────────────────
+       Radii follow the concentric rule: an inner radius is the outer radius
+       minus the padding between them (`--radius-inner`).  Sizes on the 4/8 grid.
+       The pt values Apple does not publish (popover/sheet radius, slider
+       dimensions) are calibrated estimates, so they live here as tokens and
+       can be tuned in one place.
+    ═══════════════════════════════════════════════════════════════════ */
+    --radius-popover: 14px;
+    --radius-sheet:   20px;
+    --radius-control: 12px;
+    --surface-pad:    8px;                                             /* inset between a surface and the rows in it */
+    --radius-inner:   calc(var(--radius-popover) - var(--surface-pad)); /* concentric child of a popover */
+
+    --hit-min: 44px;                                                    /* minimum touch target */
+
+    /* Slider: a slim track and a small 14px thumb that grows slightly on
+       press. The 44px hit area comes from the input's own height
+       (--hit-min on .reader-range-slider), not from the thumb. */
+    --slider-track-h:   4px;
+    --slider-thumb:     14px;
+    /* The press-grow to 16px, as a scale (16 / 14) so it runs on the
+       compositor instead of resizing the thumb every frame. */
+    --slider-thumb-press-scale: 1.1429;
+
+    /* Material — warm cream glass over the page */
+    --glass-blur:    22px;
+    --glass-sat:     1.7;
+    --glass-bg:      rgba(255, 249, 241, 0.90);
+    --glass-edge:    rgba(255, 255, 255, 0.70);
+    --glass-hairline: rgba(51, 65, 85, 0.14);
+    --glass-shadow:  0 18px 48px rgba(52, 40, 18, 0.20), 0 2px 8px rgba(52, 40, 18, 0.10);
+    --glass-shadow-sheet: 0 -12px 40px rgba(52, 40, 18, 0.20), 0 -1px 6px rgba(52, 40, 18, 0.08);
 }
 
 
@@ -264,6 +356,14 @@
     to   { transform: translateX(100%); }
 }
 
+/* The one-time AI discovery tip's ring around its anchor (conversation.css
+   .ai-attention::after): a ripple that grows out and fades. */
+@keyframes shelah-attention-ping {
+    0%   { transform: scale(1);    opacity: 0.7; }
+    70%  { transform: scale(1.25); opacity: 0; }
+    100% { transform: scale(1.25); opacity: 0; }
+}
+
 @keyframes shelah-spin {
     to { transform: rotate(360deg); }
 }
@@ -273,49 +373,87 @@
     40%            { transform: translateY(-6px);  opacity: 1;   }
 }
 
+/* Transform and opacity only, so the loop runs on the compositor. It used
+   to pulse a drop-shadow as well, which repainted the element on every
+   frame for as long as it looped; the glow is now a static filter on the
+   elements that want one (.search-ai-sparkle, #loadingOverlay .font-hebrew). */
 @keyframes shelah-warm-pulse {
-    0%, 100% { opacity: 0.7; transform: scale(0.97); filter: drop-shadow(0 0 6px rgba(201, 168, 78, 0.25)); }
-    50%      { opacity: 1;   transform: scale(1.04); filter: drop-shadow(0 0 14px rgba(201, 168, 78, 0.55)); }
+    0%, 100% { opacity: 0.7; transform: scale(0.97); }
+    50%      { opacity: 1;   transform: scale(1.04); }
 }
 
-/* One-shot pair for the search bar's "liftoff" moment (the instant an AI
-   question is submitted, synced with the AI modal's fade-in) --
-   static/css/ai.css's .search-liftoff-underlay. Unlike the ambient loops
-   above, these run a single ~420ms pass (see #searchForm.search-liftoff in
-   ai.css) and fade back to nothing rather than looping. Split in two so the
-   rotation never distorts the visible pill silhouette: -fade scales/fades
-   the outer mask (a fixed stadium shape, overflow:hidden + border-radius:
-   full), while -spin only rotates its ::before gradient layer, which the
-   mask clips back to that same stadium shape every frame -- rotating the
-   mask's own box directly would swing a wide-but-short rectangle into a
-   tall diagonal streak at steep angles, covering neighboring topbar
-   content. Transform + opacity only, per ENGINEERING_RULES.md's animation
-   performance guard. */
-@keyframes shelah-liftoff-fade {
-    0%   { opacity: 0;    transform: scale(0.88); }
-    30%  { opacity: 0.9;  transform: scale(1); }
-    100% { opacity: 0;    transform: scale(1.04); }
+/* The search bar's loading halo (static/css/ai.css's .search-liftoff-underlay):
+   while an AI question is loading, its gold-and-blue conic gradient turns
+   steadily around the pill, the two colors swapping sides. Transform only, per
+   ENGINEERING_RULES.md's animation performance guard. Every keyframe repeats
+   the SAME transform list as the element's base transform (translate, then
+   scale, then rotate) so the browser interpolates each term on its own --
+   pure rotation. Mismatched lists (say, a bare rotate() against a base of
+   translate + scale) would matrix-interpolate and drag the square off-center
+   over each cycle, snapping it back at the loop boundary. The 2.2 horizontal
+   stretch must match the one in ai.css's .search-liftoff-underlay::before. */
+@keyframes shelah-halo-orbit {
+    from { transform: translate(-50%, -50%) scale(2.2, 1) rotate(0deg); }
+    to   { transform: translate(-50%, -50%) scale(2.2, 1) rotate(360deg); }
 }
 
-@keyframes shelah-liftoff-spin {
-    0%   { transform: translate(-50%, -50%) rotate(0deg); }
-    100% { transform: translate(-50%, -50%) rotate(150deg); }
+/* View transitions (::view-transition-*(root), below). Forward comes in
+   from the inline end, Back from the inline start; RTL mirrors both. */
+@keyframes shelah-view-in {
+    from {
+        opacity: 0;
+        transform: translateX(calc(var(--motion-view-shift) * var(--motion-view-dir, 1) * var(--motion-view-sign, 1)));
+    }
+    to { opacity: 1; transform: none; }
+}
+@keyframes shelah-view-out {
+    from { opacity: 1; }
+    to   { opacity: 0; }
 }
 
-/* Continuous follow-on to shelah-liftoff-spin, used once the 420ms burst
-   hands off to body.search-loading for the rest of the request (see
-   static/css/ai.css's body.search-loading .search-liftoff-underlay::before).
-   Picks up at 150deg so the handoff has no visible jump, and -- critically --
-   keeps translate(-50%, -50%) in BOTH keyframes so the browser interpolates
-   pure rotation. The generic shelah-spin keyframe (`to { transform:
-   rotate(360deg) }`) only has a rotate() term; animating this element (whose
-   base style is translate(-50%,-50%)) to that would matrix-interpolate
-   between mismatched transform lists, visibly dragging the square off-center
-   over each cycle and snapping it back at the loop boundary instead of
-   rotating in place. */
-@keyframes shelah-liftoff-spin-loop {
-    from { transform: translate(-50%, -50%) rotate(150deg); }
-    to   { transform: translate(-50%, -50%) rotate(510deg); }
+/* M-7: the verse a citation opened at gets a one-shot wash, so the reader
+   doesn't just "jump somewhere" (ai.css .segment-row.cite-highlight). */
+@keyframes shelah-cite-highlight {
+    0%, 60% { opacity: 1; }
+    100%    { opacity: 0; }
+}
+
+
+/* ═══════════════════════════════════════════════════════════════════
+   VIEW TRANSITIONS (audit §2.3; static/js/motion.js transitionView)
+   Only with <html data-view-transitions> (the VIEW_TRANSITIONS flag).
+   The page's chrome, and the overlays over it, get names of their own
+   while a transition runs (data-vt-active) so they hold still while the
+   page underneath changes; otherwise they'd be part of the root snapshot
+   and slide with it.
+═══════════════════════════════════════════════════════════════════ */
+
+html[dir="rtl"] { --motion-view-sign: -1; }
+/* Back: the type where supported, else the attribute motion.js sets. */
+html[data-vt-direction="back"] { --motion-view-dir: -1; }
+@supports selector(:active-view-transition-type(back)) {
+    html:active-view-transition-type(back) { --motion-view-dir: -1; }
+}
+
+html[data-view-transitions]::view-transition-old(root) {
+    animation: shelah-view-out var(--motion-dur-view-out) var(--motion-ease-out) both;
+}
+html[data-view-transitions]::view-transition-new(root) {
+    animation: shelah-view-in var(--motion-dur-view-in) var(--motion-ease-decel) both;
+}
+
+html[data-vt-active] header[role="banner"] { view-transition-name: shelah-topbar; }
+html[data-vt-active] #leftSidebar { view-transition-name: shelah-library; }
+html[data-vt-active] #rightSidebar { view-transition-name: shelah-commentary; }
+html[data-vt-active] #mobileBottomTabs { view-transition-name: shelah-tabs; }
+html[data-vt-active] #convPanel { view-transition-name: shelah-conv-panel; }
+html[data-vt-active] #convPip { view-transition-name: shelah-conv-pip; }
+html[data-vt-active] #calendarModal { view-transition-name: shelah-calendar; }
+
+@media (prefers-reduced-motion: reduce) {
+    ::view-transition-group(*),
+    ::view-transition-old(*),
+    ::view-transition-new(*) { animation: none !important; }
 }
 
 
@@ -386,7 +524,10 @@ body.theme-dark {
     --accent-purple:      #8868c0;
     --accent-teal:        #2a9c88;
     --accent-green:       #2aaa7a;
-    --accent-red:         #c04870;
+    /* Was #c04870, a rose (hue ~340°) that read pink, and at 3.1-4.1:1 it
+       needed mixing toward the heading ink for text, pinker still. A true
+       red (hue 0°) instead: 4.96-6.61:1 on every dark surface as is. */
+    --accent-red:         #f26b6b;
     --accent-orange:      #c86840;
 
     /* ── Controls ───────────────────────────────────────────────────── */
@@ -541,7 +682,12 @@ body.theme-dark {
        all failing 4.5:1 AA. Darkened within each hue family; now
        6.52/6.61/5.89/6.01:1 respectively. holiday (7.22:1), minor (5.53:1)
        and fast (5.87:1) already passed and are unchanged. */
-    --cal-event-shabbat:        #206676;
+    /* Green (not teal): 7.77:1 against the white chip text. The chip
+       reds/greens are too dark for day-number text on the dark cell
+       (≈2.4:1), so the day tints are lifted — ≥5.6:1 on #1c1c1c. */
+    --cal-event-shabbat:        color-mix(in srgb, var(--accent-green) 55%, black);
+    --cal-day-shabbat-fg:       var(--accent-green);
+    --cal-day-holiday-fg:       color-mix(in srgb, var(--cal-event-holiday) 60%, white);
     --cal-event-rh:             #27637f;
     --cal-event-minor:          #7a5aa0;
     --cal-event-modern:         #3a63ad;
@@ -575,6 +721,13 @@ body.theme-dark {
     --icon-muted:               #787068;
     --tooltip-text:             #e0d8cc;
     --search-hover-border:      #484038;
+
+    /* ── Apple-style surfaces: material (see the :root section) ─────── */
+    --glass-bg:      rgba(30, 29, 26, 0.90);
+    --glass-edge:    rgba(255, 255, 255, 0.10);
+    --glass-hairline: rgba(255, 255, 255, 0.10);
+    --glass-shadow:  0 18px 48px rgba(0, 0, 0, 0.62), 0 2px 8px rgba(0, 0, 0, 0.40);
+    --glass-shadow-sheet: 0 -12px 40px rgba(0, 0, 0, 0.62), 0 -1px 6px rgba(0, 0, 0, 0.40);
 }
 
 
@@ -612,7 +765,7 @@ body.theme-dark {
         --accent-purple:      #8868c0;
         --accent-teal:        #2a9c88;
         --accent-green:       #2aaa7a;
-        --accent-red:         #c04870;
+        --accent-red:         #f26b6b;
         --accent-orange:      #c86840;
 
         --ctrl-bg:            #23211f;
@@ -743,7 +896,9 @@ body.theme-dark {
 
         /* ── Calendar ─────────────────────────────────────────────── */
         --cal-event-holiday:        #9c3040;
-        --cal-event-shabbat:        #206676;
+        --cal-event-shabbat:        color-mix(in srgb, var(--accent-green) 55%, black);
+        --cal-day-shabbat-fg:       var(--accent-green);
+        --cal-day-holiday-fg:       color-mix(in srgb, var(--cal-event-holiday) 60%, white);
         --cal-event-rh:             #27637f;
         --cal-event-minor:          #7a5aa0;
         --cal-event-modern:         #3a63ad;
@@ -777,5 +932,19 @@ body.theme-dark {
         --icon-muted:               #787068;
         --tooltip-text:             #e0d8cc;
         --search-hover-border:      #484038;
+
+        /* ── Apple-style surfaces: material ───────────────────────── */
+        --glass-bg:      rgba(30, 29, 26, 0.90);
+        --glass-edge:    rgba(255, 255, 255, 0.10);
+        --glass-hairline: rgba(255, 255, 255, 0.10);
+        --glass-shadow:  0 18px 48px rgba(0, 0, 0, 0.62), 0 2px 8px rgba(0, 0, 0, 0.40);
+        --glass-shadow-sheet: 0 -12px 40px rgba(0, 0, 0, 0.62), 0 -1px 6px rgba(0, 0, 0, 0.40);
     }
+}
+
+
+/* Reduce Transparency is handled where the material is applied (it must beat
+   the dark-OS block above, which has higher specificity than a bare :root). */
+@media (prefers-contrast: more) {
+    :root { --glass-hairline: var(--ink-secondary); }
 }

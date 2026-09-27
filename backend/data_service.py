@@ -15,7 +15,7 @@ from backend import sefaria
 from backend import customs
 from backend import search
 from backend.sefaria_library import get_text
-from backend.zmanim_engine import get_community_zmanim, get_monthly_events
+from backend.zmanim_engine import get_community_zmanim, get_day_times, get_monthly_events
 
 logger = logging.getLogger(__name__)
 
@@ -33,6 +33,10 @@ class ShelahEngine:
     def get_monthly_zmanim(self):
         """Returns FullCalendar events"""
         return get_monthly_events(self.lat, self.lon, self.tz)
+
+    def get_day_times(self, days):
+        """Returns clock times (dawn, sunset, nightfall, candles, havdalah) for the given dates"""
+        return get_day_times(self.lat, self.lon, days, self.tz)
 
     def get_daily_learning(self):
         """Uses our robust Sefaria daily study function"""

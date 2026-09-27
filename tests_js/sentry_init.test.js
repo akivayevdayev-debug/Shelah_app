@@ -205,3 +205,114 @@ test('isAskUrl matches /ask with and without query strings', () => {
     assert.ok(sentryInit.isAskUrl('https://shelah.org/ask?debug=1'));
     assert.ok(!sentryInit.isAskUrl('https://shelah.org/api/library/search'));
 });
+
+// ── initSentry (the actual SDK bootstrap; only ever runs on `root`, i.e.
+// `window` in a browser or Node's own `globalThis` here) ───────────────────
+
+function withGlobals(overrides, run) {
+    const keys = Object.keys(overrides);
+    const had = {};
+    const saved = {};
+    for (const key of keys) {
+        had[key] = Object.prototype.hasOwnProperty.call(globalThis, key);
+        saved[key] = globalThis[key];
+        globalThis[key] = overrides[key];
+    }
+    try {
+        return run();
+    } finally {
+        for (const key of keys) {
+            if (had[key]) {
+                globalThis[key] = saved[key];
+            } else {
+                delete globalThis[key];
+            }
+        }
+    }
+}
+
+function makeStubSentry() {
+    const calls = [];
+    return { calls, init: (options) => { calls.push(options); } };
+}
+
+test('initSentry is a silent no-op when the Sentry CDN script never loaded', () => {
+    withGlobals({ Sentry: undefined, __SHELAH_SENTRY_DSN__: 'https://example.ingest.sentry.io/1' }, () => {
+        assert.doesNotThrow(() => sentryInit.initSentry());
+    });
+});
+
+test('initSentry is a silent no-op when SENTRY_DSN_BROWSER is unset', () => {
+    const sentry = makeStubSentry();
+    withGlobals({ Sentry: sentry, __SHELAH_SENTRY_DSN__: undefined }, () => {
+        sentryInit.initSentry();
+    });
+    assert.equal(sentry.calls.length, 0);
+});
+
+test('initSentry is a silent no-op when Sentry.init is not a function', () => {
+    withGlobals({ Sentry: { init: 'not-a-function' }, __SHELAH_SENTRY_DSN__: 'https://example.ingest.sentry.io/1' }, () => {
+        assert.doesNotThrow(() => sentryInit.initSentry());
+    });
+});
+
+test('initSentry calls Sentry.init with the DSN, the privacy overrides, and origin-derived defaults', () => {
+    const sentry = makeStubSentry();
+    withGlobals({
+        Sentry: sentry,
+        __SHELAH_SENTRY_DSN__: 'https://example.ingest.sentry.io/1',
+        location: { origin: 'https://shelah.org' },
+    }, () => {
+        sentryInit.initSentry();
+    });
+
+    assert.equal(sentry.calls.length, 1);
+    const options = sentry.calls[0];
+    assert.equal(options.dsn, 'https://example.ingest.sentry.io/1');
+    assert.equal(options.environment, 'development');
+    assert.equal(options.release, undefined);
+    assert.equal(options.sendDefaultPii, false);
+    assert.equal(options.tracesSampleRate, 0);
+    assert.deepEqual(options.dataCollection, { userInfo: false, httpBodies: [] });
+    assert.equal(typeof options.beforeSend, 'function');
+    assert.equal(typeof options.beforeBreadcrumb, 'function');
+});
+
+test('initSentry reads environment and release from their global overrides when present', () => {
+    const sentry = makeStubSentry();
+    withGlobals({
+        Sentry: sentry,
+        __SHELAH_SENTRY_DSN__: 'https://example.ingest.sentry.io/1',
+        __SHELAH_SENTRY_ENV__: 'production',
+        __SHELAH_SENTRY_RELEASE__: 'shelah@1.2.3',
+        location: { origin: 'https://shelah.org' },
+    }, () => {
+        sentryInit.initSentry();
+    });
+    assert.equal(sentry.calls[0].environment, 'production');
+    assert.equal(sentry.calls[0].release, 'shelah@1.2.3');
+});
+
+test('initSentry swallows an exception thrown by Sentry.init instead of breaking the app', () => {
+    const sentry = { init: () => { throw new Error('boom'); } };
+    withGlobals({
+        Sentry: sentry,
+        __SHELAH_SENTRY_DSN__: 'https://example.ingest.sentry.io/1',
+        location: { origin: 'https://shelah.org' },
+    }, () => {
+        assert.doesNotThrow(() => sentryInit.initSentry());
+    });
+});
+
+// ── isOffOriginNoise's catch branch (an unparseable frame filename) ────────
+
+test('isOffOriginNoise treats an unparseable frame filename as same-origin (fails safe, keeps the event)', () => {
+    const event = {
+        exception: {
+            values: [
+                { stacktrace: { frames: [{ filename: '://not-a-valid-url' }] } },
+            ],
+        },
+    };
+    assert.equal(sentryInit.isOffOriginNoise(event, ALLOWED_ORIGIN), false);
+});

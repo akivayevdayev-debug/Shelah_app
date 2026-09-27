@@ -87,6 +87,58 @@ class TestSitemapXmlRoute:
         body = test_client.get("/sitemap.xml").get_data(as_text=True)
         assert "/ask" not in body
         assert "/api/" not in body
+        assert "/answer/" not in body
+        assert "/history" not in body
+
+    def test_sitemap_lists_the_library_pages(self, test_client):
+        import re
+
+        body = test_client.get("/sitemap.xml").get_data(as_text=True)
+        locs = re.findall(r"<loc>(.*?)</loc>", body)
+        base = "https://shelah-app.vercel.app"
+        texts = [loc for loc in locs if loc.startswith(f"{base}/text/")]
+        assert len(texts) == 929, "every Tanakh chapter, once"
+        for path in (
+            "/text/Genesis.1", "/text/Genesis.50", "/text/I_Samuel.31",
+            "/text/Song_of_Songs.8", "/text/II_Chronicles.36",
+            "/prayer/Weekday_Shacharit", "/prayer/Havdalah",
+            "/community/Ashkenaz", "/community/Greek-Romaniote",
+        ):
+            assert f"{base}{path}" in locs, path
+        assert f"{base}/text/Genesis.51" not in locs
+        assert len(locs) == len(set(locs)), "no URL listed twice"
+
+    def test_each_library_loc_is_its_pages_own_canonical(self, test_client):
+        """A sitemap URL that isn't the page's canonical is a mixed signal:
+        every prayer and community, and a spread of chapters, are served and
+        point their canonical at exactly the listed URL."""
+        import re
+
+        body = test_client.get("/sitemap.xml").get_data(as_text=True)
+        base = "https://shelah-app.vercel.app"
+        locs = [loc for loc in re.findall(r"<loc>(.*?)</loc>", body)
+                if loc.startswith((f"{base}/text/", f"{base}/prayer/", f"{base}/community/"))]
+        sample = [loc for loc in locs if "/text/" not in loc] + [
+            loc for loc in locs if "/text/" in loc][::60]
+        for loc in sample:
+            response = test_client.get(loc[len(base):])
+            assert response.status_code == 200, loc
+            html = response.get_data(as_text=True)
+            assert f'<link rel="canonical" href="{loc}">' in html, loc
+
+    def test_tanakh_chapter_table_matches_the_readers_grid(self):
+        """routes_pages._TANAKH_CHAPTERS mirrors CHAPTER_GRID_BOOKS in
+        templates/index.html; the two can't drift apart."""
+        import re
+        from pathlib import Path
+
+        from backend.routes_pages import _TANAKH_CHAPTERS
+
+        html = (Path(__file__).resolve().parent.parent / "templates" / "index.html").read_text(encoding="utf-8")
+        block = re.search(r"const CHAPTER_GRID_BOOKS = Object\.freeze\(\{(.*?)\}\);", html, re.S).group(1)
+        grid = [(name.strip("'\""), int(count))
+                for name, count in re.findall(r"^\s*('[^']+'|\w+):\s*(\d+),", block, re.M)]
+        assert grid == list(_TANAKH_CHAPTERS)
 
 
 class TestLlmsTxtRoute:
@@ -100,7 +152,8 @@ class TestLlmsTxtRoute:
 
     def test_llms_txt_urls_match_sitemap(self, test_client):
         """The two routes both derive from _SITEMAP_PATHS -- assert they
-        can't silently drift apart from each other."""
+        can't silently drift apart from each other. The sitemap also lists
+        the library's pages; llms.txt keeps to the site's own."""
         import re
 
         llms_body = test_client.get("/llms.txt").get_data(as_text=True)
@@ -108,8 +161,9 @@ class TestLlmsTxtRoute:
 
         llms_urls = {line[2:] for line in llms_body.splitlines() if line.startswith("- ")}
         sitemap_urls = set(re.findall(r"<loc>(.*?)</loc>", sitemap_body))
+        library = re.compile(r"^https://shelah-app\.vercel\.app/(text|prayer|community|siddur)/")
 
-        assert llms_urls == sitemap_urls
+        assert llms_urls == {url for url in sitemap_urls if not library.match(url)}
         assert llms_urls  # non-empty, guards against both sides silently going blank
 
 

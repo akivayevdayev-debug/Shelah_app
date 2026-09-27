@@ -12,12 +12,50 @@ html {
     scroll-behavior: smooth;
 }
 
+/* A Hebrew first paint: the head script in index.html sets lang/dir (and
+   data-lang-pending) before the body script swaps the [data-he] texts in, so
+   the English ones hold their place unseen instead of flashing (visibility,
+   not display: no box changes size). toggleLanguage clears the flag. Pages
+   without that head script never set it. A region swapped early
+   (swapPendingLanguage, data-lang-ready) already shows its Hebrew. */
+html[data-lang-pending][lang="he"] [data-he]:not([data-lang-ready] *) {
+    visibility: hidden;
+}
+
+/* The topbar's auth slot (index.html #authControls) is laid out from the
+   first paint at its likely shape -- Sign In, or the profile button when
+   Clerk's cookie says a session exists (html.auth-likely-in) -- and its
+   content only fades in once refreshAuthUi knows who is here and drops
+   aria-busy. Held with visibility, never display:none, so the topbar never
+   grows under the reader. */
+#authControls > * {
+    transition: opacity var(--motion-dur-base, 200ms) var(--motion-ease-out, ease-out);
+}
+#authControls[aria-busy="true"] > * {
+    visibility: hidden;
+    opacity: 0;
+}
+html.auth-likely-in #authControls[aria-busy="true"] #signInBtn {
+    display: none;
+}
+html.auth-likely-in #authControls[aria-busy="true"] #userProfileMenuContainer {
+    display: flex;
+}
+
+/* The language buttons keep one width whether or not their web font
+   (Cardo / the Hebrew face) has arrived. */
+.lang-btn {
+    min-inline-size: 3.5rem;
+    justify-content: center;
+}
+
 :root {
     /* Reader layout — not in tokens.css */
     --reader-topbar-offset: 3.2rem;
     --reader-topbar-left-gap: 0px;
     --reader-topbar-right-gap: 0px;
     --reader-outer-max-width: 56rem;
+    --reader-shul-max-width: 76rem;
     --reader-inline-padding: 1rem;
 
     /* Legacy spacing scale aliases — not in tokens.css */
@@ -57,9 +95,21 @@ h6 {
 /* Hebrew text support */
 [lang="he"],
 .font-hebrew {
-    font-family: 'Ezra SIL', 'Cardo', serif;
+    font-family: 'Ezra SIL', 'Ezra SIL Fallback', 'Cardo', 'Cardo Fallback', serif;
     direction: rtl;
     text-align: right;
+}
+
+/* Ezra SIL ships a single weight, so <b>/<strong> in it (a commentary's
+   opening words, a bolded term in a Hebrew source or title) got only the
+   browser's synthetic bold: about 1% more ink, invisible next to the English
+   side, where Cardo has a real bold (~30% more). A thin stroke in the text
+   colour brings it to ~25%, the same visual weight, and leaves niqqud and
+   te'amim where they are. */
+:is(.font-hebrew, .reader-text-he, .source-he, .ai-src-box-he, html.rtl #readerTitle) :is(b, strong),
+:is(.font-hebrew, .reader-text-he, .source-he, .ai-src-box-he):is(b, strong) {
+    font-weight: 700;
+    -webkit-text-stroke: 0.05em currentColor;
 }
 
 /* Proper line height for Hebrew */
@@ -76,7 +126,7 @@ h6 {
     border-radius: 8px;
     background: #ffffff;
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
-    transition: border-color var(--motion-dur-base) var(--motion-ease-out), box-shadow var(--motion-dur-base) var(--motion-ease-out);
+    transition: border-color var(--motion-dur-base) var(--motion-ease-out);
 }
 
 .source-card:hover {
@@ -158,7 +208,7 @@ h6 {
 }
 
 .prayer-english {
-    font-family: 'Cardo', serif;
+    font-family: 'Cardo', 'Cardo Fallback', serif;
     font-size: 0.9rem;
     line-height: 1.6;
     color: #475569;
@@ -249,10 +299,11 @@ h6 {
     background: var(--surface-base);
 }
 
+/* No backdrop-filter: at 97% opacity the blur was invisible, but it still
+   made the sticky bar re-blur whatever scrolled or animated under it on
+   every frame (costly in Safari). */
 .topbar {
     background: linear-gradient(180deg, rgba(248, 244, 236, 0.97) 0%, rgba(245, 240, 232, 0.97) 100%);
-    -webkit-backdrop-filter: blur(6px);
-    backdrop-filter: blur(6px);
     border-bottom: 1px solid var(--surface-border);
     box-shadow: 0 2px 8px rgba(78, 64, 45, 0.06);
     position: sticky;
@@ -570,6 +621,14 @@ html.rtl #hebrewDateDisplay {
     background: #fff;
 }
 
+/* Same 18px line box as the other top-bar buttons (Tailwind's text-xs,
+   which loads last, gave 16px, so this one sat 2px short). Its container is
+   flex (index.html) so the button isn't placed on a text baseline, which
+   dropped it ~1px below its neighbours. */
+.topbar-flat-btn.topbar-user-menu-btn {
+    line-height: 1.5;
+}
+
 .topbar-user-menu-btn:hover,
 .topbar-user-menu-btn:focus-visible {
     background: var(--control-bg-hover);
@@ -593,12 +652,22 @@ html.rtl #hebrewDateDisplay {
     inset-inline-end: 0;
     inset-inline-start: auto;
     margin-top: 0.375rem;
+    padding: var(--sp-1);
+    width: max-content;
+    min-width: 7rem;
 }
 
+/* Every row (links and buttons alike) shares one size: the same inset,
+   type and height, with the hover fill inset as a rounded row. */
 .topbar-user-menu-item {
     font-family: Georgia, "Times New Roman", serif;
+    line-height: 1.25;
     color: #334155 !important;
-    display: block !important;
+    display: flex !important;
+    align-items: center;
+    min-height: 1.5rem;
+    padding: var(--sp-1) var(--sp-3) !important;
+    border-radius: var(--radius-sm);
     visibility: visible !important;
     opacity: 1 !important;
     pointer-events: auto !important;
@@ -606,16 +675,14 @@ html.rtl #hebrewDateDisplay {
     text-decoration: none;
 }
 
+@media (pointer: coarse) {
+    .topbar-user-menu-item { min-height: var(--hit-min); }
+}
+
 .topbar-user-menu-item:hover,
 .topbar-user-menu-item:focus-visible {
     background: #f4eee2 !important;
     color: #223e5a !important;
-}
-
-.topbar-user-menu-signout {
-    border-top: 1px solid #e8dfcf;
-    margin-top: 0.25rem;
-    padding-top: 0.5rem;
 }
 
 :is([data-theme="dark"], body.theme-dark) #userProfileMenu {
@@ -633,10 +700,6 @@ html.rtl #hebrewDateDisplay {
     color: var(--control-text-strong) !important;
 }
 
-:is([data-theme="dark"], body.theme-dark) .topbar-user-menu-signout {
-    border-top-color: var(--surface-border);
-}
-
 /* Settings Panel & General Button Styling for Tailwind Compatibility */
 #settingsPanel button {
     color: #334155 !important;
@@ -646,6 +709,28 @@ html.rtl #hebrewDateDisplay {
     padding: 0.42rem 0.62rem !important;
     font-size: 0.72rem !important;
     line-height: 1.6 !important;
+}
+
+/* #settingsPanel button's !important display:inline-block above outranks
+   the .hidden utility on any button inside the panel (higher specificity,
+   also !important); these rules out-specify both so the export-only
+   controls (updateExportControlsVisibility() / syncSettingsExportControls())
+   can still be toggled off outside text pages. */
+#settingsPanel button.hidden,
+#settingsPanel .export-text-only.hidden {
+    display: none !important;
+}
+
+/* Quick Settings' "AI settings" row: icon, two-line label, caret. */
+#settingsPanel #openAiSettingsBtn {
+    display: flex !important;
+    align-items: center;
+    gap: var(--sp-2);
+    min-height: 44px;
+}
+
+[dir="rtl"] #openAiSettingsBtn .ai-settings-caret {
+    transform: scaleX(-1);
 }
 
 #settingsPanel button:not(#bookmarkCurrentBtn) {
@@ -684,6 +769,19 @@ html.rtl #hebrewDateDisplay {
     gap: var(--sp-1);
 }
 
+/* In Hebrew the icon sits at the input's left and the input keeps its room
+   there, keyed off dir so it's right from the head script's first paint
+   (toggleLanguage used to swap the utility classes after it, shifting both). */
+html[dir="rtl"] #searchIcon {
+    right: auto;
+    left: var(--sp-3);
+}
+
+html[dir="rtl"] #searchInput {
+    padding-left: calc(var(--sp-12) + var(--sp-2));
+    padding-right: var(--sp-4);
+}
+
 .search-icon-glass {
     display: inline-flex;
     transition: opacity var(--motion-dur-base) var(--motion-ease-out);
@@ -713,6 +811,7 @@ html.rtl #hebrewDateDisplay {
    1.6s override of the same keyframe for an unrelated element. */
 .search-ai-sparkle {
     display: inline-flex;
+    filter: drop-shadow(0 0 10px rgba(201, 168, 78, 0.4));
     animation: shelah-warm-pulse 3.4s ease-in-out infinite;
 }
 
@@ -1053,7 +1152,7 @@ html.rtl #hebrewDateDisplay {
     flex-direction: column;
     align-items: flex-start;
     gap: 0.14rem;
-    font-family: 'Cardo', serif;
+    font-family: 'Cardo', 'Cardo Fallback', serif;
     font-size: 0.91rem;
     font-weight: 700;
     line-height: 1.22;
@@ -1125,7 +1224,7 @@ html.rtl #hebrewDateDisplay {
 }
 
 .chapter-grid-item-number {
-    font-family: 'Cardo', serif;
+    font-family: 'Cardo', 'Cardo Fallback', serif;
     font-size: 1rem;
     font-weight: 700;
     line-height: 1;
@@ -1204,7 +1303,7 @@ html.rtl #hebrewDateDisplay {
     border-radius: 0.7rem;
     background: #fffaf1;
     color: #345271;
-    font-family: 'Cardo', serif;
+    font-family: 'Cardo', 'Cardo Fallback', serif;
     font-size: 0.93rem;
     line-height: 1.25;
     padding: 0.5rem 0.6rem;
@@ -1220,6 +1319,12 @@ html.rtl #hebrewDateDisplay {
 .prayer-nav-link {
     border-radius: 0.45rem;
     padding-inline: 0.35rem;
+    /* WCAG 2.1 target size: text-sm + py-0.5 alone renders ~24px tall.
+       Flex-centering within a taller box keeps the same visual text
+       density while giving the button a real 44px tap target. */
+    display: flex;
+    align-items: center;
+    min-height: 44px;
 }
 
 .prayer-nav-link:hover,
@@ -1267,13 +1372,6 @@ html.rtl #hebrewDateDisplay {
     color: var(--text-muted);
 }
 
-.study-track-complete-label {
-    color: #2f4a67;
-    font-family: 'Cardo', serif;
-    font-style: italic;
-    letter-spacing: 0.02em;
-}
-
 .library-index-sidebar-tree {
     margin-inline-start: 0.5rem;
     padding-inline-start: 0.75rem;
@@ -1317,6 +1415,24 @@ html.rtl #hebrewDateDisplay {
     text-align: left;
 }
 
+/* Sefaria wraps siddur rubrics/instructions ("Take the cup and say:") in
+   <b><small>...</small></b>, mixed inline with ordinary prayer text in the
+   same line. WCAG 1.4.1 (no color-only state): style survives on ITS OWN
+   without any surrounding color, using three non-color cues together --
+   size, italic slant, and a dotted underline -- so it reads distinctly in
+   light and dark theme alike, and even in a high-contrast/forced-colors
+   mode that strips background/foreground color entirely.
+   !important is required: renderPrayerDisplayByLayout() force-sets
+   `el.style.fontSize = 'inherit'` as an inline style on every descendant
+   of #prayer-display after each render (so the reader's font-size control
+   reaches nested markup), which would otherwise always beat this rule. */
+#reader .prayer-clean-lines small {
+    font-size: 0.83em !important;
+    font-style: italic;
+    text-decoration: underline dotted;
+    text-underline-offset: 0.15em;
+}
+
 @media (max-width: 1023px) {
     #reader .reader-row-mid-label {
         left: auto;
@@ -1327,7 +1443,7 @@ html.rtl #hebrewDateDisplay {
 }
 
 .segment-translit {
-    font-family: 'Cardo', serif;
+    font-family: 'Cardo', 'Cardo Fallback', serif;
     letter-spacing: 0.02em;
     /* Was a hardcoded slate-500 (#64748b): 4.07-4.45:1 against 4 of the 5
        light surfaces (fails 4.5:1 AA text threshold on all but surface-2).
@@ -1653,21 +1769,25 @@ html.theme-dark::-webkit-scrollbar-thumb:hover,
     color: var(--text-main);
 }
 
-/* The input's own box is the touch area (tall); the visible track is drawn
-   by the pseudo-elements, so a slider gets a comfortable hit area without a
-   thick bar. The fill uses --control-accent, the same colour a checked
-   .reader-switch uses, so the two controls in a panel read as one family. */
+/* The input's own box is the 44px touch area; the visible track is drawn by the
+   pseudo-elements, so the hit area is generous without a thick bar. Track and thumb
+   sizes come from tokens.css (4px capsule, 14px knob that grows to 16px under
+   the finger); the 44px input height keeps the hit area. The fill uses --control-accent, the same colour a
+   checked .reader-switch uses, so the two controls in a panel read as one family.
+   The thumb keeps a 2px ring in the accent so its edge stays >= 3:1 against the panel
+   (WCAG 1.4.11) rather than relying on a shadow alone. */
 .reader-range-slider {
     -webkit-appearance: none;
     appearance: none;
-    height: 1.75rem;
+    height: var(--hit-min);
     padding: 0;
     background: transparent;
     --range-progress: 50%;
-    --range-thumb: 1.125rem;
+    --range-track: var(--slider-track-h);
+    --range-thumb: var(--slider-thumb);
+    --range-thumb-scale: 1;
     --range-complete: var(--control-accent);
-    --range-incomplete: #e6dcc9;
-    --range-track-border: #cbbfa8;
+    --range-incomplete: #d7cebc;
     --range-thumb-bg: #fffaf2;
     --range-thumb-border: var(--control-accent);
     outline: none;
@@ -1675,17 +1795,19 @@ html.theme-dark::-webkit-scrollbar-thumb:hover,
     touch-action: pan-y;
 }
 
+.reader-range-slider:active {
+    --range-thumb-scale: var(--slider-thumb-press-scale);
+}
+
 .reader-range-slider::-webkit-slider-runnable-track {
     box-sizing: border-box;
-    height: 0.5rem;
+    height: var(--range-track);
     border-radius: 9999px;
-    border: 1px solid var(--range-track-border);
     background: linear-gradient(to right,
             var(--range-complete) 0%,
             var(--range-complete) var(--range-progress),
             var(--range-incomplete) var(--range-progress),
             var(--range-incomplete) 100%);
-    background-origin: border-box;
 }
 
 .reader-range-slider::-webkit-slider-thumb {
@@ -1695,24 +1817,27 @@ html.theme-dark::-webkit-scrollbar-thumb:hover,
     width: var(--range-thumb);
     height: var(--range-thumb);
     /* WebKit does not centre the thumb on the track by itself. */
-    margin-top: calc((0.5rem - var(--range-thumb)) / 2);
+    margin-top: calc((var(--range-track) - var(--range-thumb)) / 2);
     border-radius: 50%;
     border: 2px solid var(--range-thumb-border);
     background: var(--range-thumb-bg);
-    box-shadow: 0 1px 3px rgba(31, 63, 99, 0.25);
+    box-shadow: 0 1px 3px rgba(31, 63, 99, 0.26), 0 0 1px rgba(31, 63, 99, 0.4);
     cursor: pointer;
+    /* The press-grow is a scale (audit M-9): tweening width, height and
+       margin-top re-laid the thumb out every frame. */
+    transform: scale(var(--range-thumb-scale));
+    transition: transform var(--motion-dur-fast, 150ms) ease-out;
 }
 
 .reader-range-slider::-moz-range-track {
     box-sizing: border-box;
-    height: 0.5rem;
+    height: var(--range-track);
     border-radius: 9999px;
-    border: 1px solid var(--range-track-border);
     background: var(--range-incomplete);
 }
 
 .reader-range-slider::-moz-range-progress {
-    height: 0.5rem;
+    height: var(--range-track);
     border-radius: 9999px;
     background: var(--range-complete);
 }
@@ -1724,8 +1849,10 @@ html.theme-dark::-webkit-scrollbar-thumb:hover,
     border-radius: 50%;
     border: 2px solid var(--range-thumb-border);
     background: var(--range-thumb-bg);
-    box-shadow: 0 1px 3px rgba(31, 63, 99, 0.25);
+    box-shadow: 0 1px 3px rgba(31, 63, 99, 0.26), 0 0 1px rgba(31, 63, 99, 0.4);
     cursor: pointer;
+    transform: scale(var(--range-thumb-scale));
+    transition: transform var(--motion-dur-fast, 150ms) ease-out;
 }
 
 .reader-range-slider:focus-visible::-webkit-slider-thumb {
@@ -1736,6 +1863,13 @@ html.theme-dark::-webkit-scrollbar-thumb:hover,
 .reader-range-slider:focus-visible::-moz-range-thumb {
     outline: 2px solid var(--control-accent);
     outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .reader-range-slider::-webkit-slider-thumb,
+    .reader-range-slider::-moz-range-thumb {
+        transition: none;
+    }
 }
 
 .reader-switch {
@@ -1791,14 +1925,7 @@ html.theme-dark::-webkit-scrollbar-thumb:hover,
 
 .sidebar-show-tab:hover {
     opacity: 1;
-    box-shadow: 0 6px 18px rgba(15, 23, 42, 0.08);
-}
-
-/* Show-tab buttons: sidebar.css handles the order swap inside @media (min-width: 1024px);
-   these physical overrides stay here for the floating restore buttons only. */
-html.rtl #showRightSidebarTopBtn {
-    right: 0.75rem;
-    left: auto;
+    /* The raised shadow is a fading layer (ai.css, audit M-9). */
 }
 
 html.rtl #leftSidebar {
@@ -1926,7 +2053,14 @@ html.rtl #readerTopBar .reader-topbar-settings-label {
     border-bottom: 1px solid #d8cfbe !important;
     border-inline-start: 0 !important;
     border-inline-end: 0 !important;
-    background: rgba(249, 244, 234, 0.97) !important;
+    /* Very subtle translucency: the reader column scrolls underneath this
+       bar (#mainContainer's padding-top sits under it), so a ~93% surface
+       mix plus a soft blur lets the text shadow through without costing
+       legibility. Dark mode uses the same mix (reader.css). */
+    background: color-mix(in srgb, var(--surface-topbar) 93%, transparent) !important;
+    /* Slim bar: no vertical padding (overrides the py-1 utility); the track
+       sets the visual height and the buttons keep a 44px hit area. */
+    padding-block: 0;
     margin-top: 0;
     margin-bottom: 0;
     border-radius: 0 !important;
@@ -1942,8 +2076,8 @@ html.rtl #readerTopBar .reader-topbar-settings-label {
     width: calc(100% - var(--reader-topbar-left-gap, 0px) - var(--reader-topbar-right-gap, 0px));
     margin-left: var(--reader-topbar-left-gap, 0px);
     margin-right: var(--reader-topbar-right-gap, 0px);
-    -webkit-backdrop-filter: blur(4px);
-    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(12px) saturate(1.3);
+    backdrop-filter: blur(12px) saturate(1.3);
 }
 
 .reader-topbar-shell {
@@ -1964,6 +2098,17 @@ html.rtl #readerTopBar .reader-topbar-settings-label {
     display: flex;
     align-items: center;
     gap: 0.35rem;
+    /* Visual height of the reader bar (36px + 1px borders = 38px, was 54px).
+       syncReaderTopBarOffset() measures the bar, so #mainContainer's
+       padding and the sidebar offsets follow automatically. */
+    min-height: var(--reader-topbar-track-h, 2.25rem);
+}
+
+/* Buttons keep the full 44px hit area (ENGINEERING_RULES) but give back the
+   overhang with negative block margins, so they don't inflate the slim track;
+   the extra 4px of hit area simply extends past the track edges. */
+.reader-topbar-track .reader-topbar-icon-btn {
+    margin-block: calc((var(--reader-topbar-track-h, 2.25rem) - var(--hit-min, 44px)) / 2);
 }
 
 /* #readerTopBar is position: absolute and no longer reserves flow height
@@ -2011,8 +2156,11 @@ html.rtl #readerTopBar .reader-topbar-settings-label {
 }
 
 .reader-topbar-icon-btn {
-    min-height: 1.8rem;
-    min-width: auto;
+    /* 44px hit target (WCAG 2.1 AA / ENGINEERING_RULES) without growing the
+       glyph itself -- padding/font-size stay the same, min-height/min-width
+       just pad out the box around them. */
+    min-height: var(--hit-min, 44px);
+    min-width: var(--hit-min, 44px);
     border: none;
     background: transparent;
     color: var(--control-text);
@@ -2163,10 +2311,6 @@ html.rtl #readerTopBar .reader-topbar-settings-label {
     color: #5a4a3a !important;
 }
 
-#readerTopBar button {
-    min-height: 2rem;
-}
-
 #readerTopBar button:disabled {
     opacity: 0.45;
     pointer-events: none;
@@ -2251,8 +2395,46 @@ body.shul-mode #readerSettingsPanel:hover {
 }
 
 body.shul-mode #reader {
-    max-width: 76rem;
+    max-width: var(--reader-shul-max-width);
     padding-top: 1.25rem;
+}
+
+/* Auto Scroll + Scroll Speed controls only matter once Shul Mode is on
+   (see applyShulMode() in templates/index.html). A grid-rows 0fr->1fr
+   collapse animates height without knowing the content's pixel height and
+   without touching any layout property via JS (transform/opacity only, per
+   ENGINEERING_RULES.md) — the "inner" wrapper is required for the trick and
+   is what actually clips the content while collapsed. */
+.shul-sub-controls {
+    display: grid;
+    grid-template-rows: 0fr;
+    opacity: 0;
+    transition: grid-template-rows var(--motion-dur-base, 200ms) var(--motion-ease-out, ease-out),
+                opacity var(--motion-dur-base, 200ms) var(--motion-ease-out, ease-out);
+}
+
+.shul-sub-controls.is-open {
+    grid-template-rows: 1fr;
+    opacity: 1;
+}
+
+.shul-sub-controls-inner {
+    min-height: 0;
+    overflow: hidden;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .shul-sub-controls {
+        transition: none;
+    }
+}
+
+/* Keep the reader-settings top bar's inner track in step with the widened
+   Shul-mode reading column above (#reader, same var) — otherwise the bar
+   stays pinned to the default --reader-outer-max-width and renders as a
+   narrow floating pill against the now-wider text below it. */
+body.shul-mode .reader-topbar-track {
+    max-width: var(--reader-shul-max-width);
 }
 
 body.shul-mode #reader #readerContent,
@@ -2346,14 +2528,16 @@ body.mobile-panel-open {
         inset-inline-start: 0;
         border-inline-end: 1px solid #e2e8f0;
         transform: translateX(-105%);
-        transition: transform var(--motion-dur-slow) var(--motion-ease-decel), box-shadow var(--motion-dur-slow) var(--motion-ease-out);
+        /* Same quick, overshoot-free settle as the menus/calendar (was 400ms
+           plus a box-shadow transition); transform only. */
+        transition: transform var(--motion-dur-base) var(--motion-ease-decel);
     }
 
     .mobile-drawer-right {
         inset-inline-end: 0;
         border-inline-start: 1px solid #e2e8f0;
         transform: translateX(105%);
-        transition: transform var(--motion-dur-slow) var(--motion-ease-decel), box-shadow var(--motion-dur-slow) var(--motion-ease-out);
+        transition: transform var(--motion-dur-base) var(--motion-ease-decel);
     }
 
     .mobile-drawer.mobile-open {
@@ -2379,11 +2563,6 @@ body.mobile-panel-open {
 
     .reader-topbar-settings-label {
         font-size: 0.72rem;
-    }
-
-    #readerTopBar button {
-        min-height: 2rem;
-        min-width: 2rem;
     }
 
     #reader header .flex.flex-wrap.justify-center.items-center {
@@ -2427,7 +2606,7 @@ body.mobile-panel-open {
 }
 
 .home-topic-title {
-    font-family: 'Cardo', serif;
+    font-family: 'Cardo', 'Cardo Fallback', serif;
     font-weight: 700;
 }
 
@@ -2453,7 +2632,7 @@ html.rtl .home-main-layout #popularTextsGrid {
 
 .home-library-title {
     display: block;
-    font-family: 'Cardo', serif;
+    font-family: 'Cardo', 'Cardo Fallback', serif;
     font-size: clamp(1.6rem, 2.2vw, 2.1rem);
     line-height: 1.1;
     font-weight: 700;
@@ -2495,7 +2674,8 @@ html.rtl .home-main-layout #popularTextsGrid {
 
 .home-library-link:hover .home-library-title,
 .home-topic-title:hover,
-.home-daily-link:hover {
+.home-daily-link:hover,
+.home-stat-link:hover {
     text-decoration: underline;
     text-underline-offset: 0.18em;
 }
@@ -2529,18 +2709,19 @@ html.rtl .home-main-layout #popularTextsGrid {
     letter-spacing: 0.04em;
     cursor: pointer;
     box-shadow: 0 1px 4px rgba(78, 64, 30, 0.12), inset 0 1px 0 rgba(255, 255, 255, 0.6);
-    transition: background var(--motion-dur-fast) var(--motion-ease-out), border-color var(--motion-dur-fast) var(--motion-ease-out), box-shadow var(--motion-dur-fast) var(--motion-ease-out), transform var(--motion-dur-fast) var(--motion-ease-out);
+    transition: background var(--motion-dur-fast) var(--motion-ease-out), border-color var(--motion-dur-fast) var(--motion-ease-out), transform var(--motion-dur-fast) var(--motion-ease-out);
 }
 
-.home-calendar-btn::before {
-    content: "📅";
-    font-size: 0.85em;
+.home-calendar-btn__icon {
+    flex: none;
+    width: 1.1em;
+    height: 1.1em;
 }
 
 .home-calendar-btn:hover {
     background: linear-gradient(135deg, #fff5e0 0%, #f2e8c8 100%);
     border-color: #b09050;
-    box-shadow: 0 3px 10px rgba(78, 64, 30, 0.18), inset 0 1px 0 rgba(255, 255, 255, 0.7);
+    /* The raised shadow is a fading layer (ai.css, audit M-9). */
     transform: translateY(-1px);
 }
 
@@ -2598,9 +2779,23 @@ html.rtl .home-main-layout #popularTextsGrid {
     padding: 0;
     color: #1e293b;
     font-size: 1.05rem;
-    font-family: 'Cardo', serif;
+    font-family: 'Cardo', 'Cardo Fallback', serif;
     font-weight: 700;
     text-align: left;
+}
+
+/* Reset button chrome for a value that's now a link (holidayName,
+   shabbatWeekName) while keeping the Tailwind utility classes it already
+   carries (.text-slate-700, .text-end, .max-w-[60%]) in control of color,
+   alignment and truncation -- only the browser's own button styling needs
+   overriding here. */
+.home-stat-link {
+    background: transparent;
+    border: 0;
+    padding: 0;
+    margin: 0;
+    font: inherit;
+    cursor: pointer;
 }
 
 .today-zmanim-list [data-zman-row] {
@@ -2700,7 +2895,7 @@ html.rtl .home-main-layout #popularTextsGrid {
     }
 
     #settingsMenuBtn,
-    #authControls button,
+    #authControls button:not(.topbar-user-menu-item),
     #mobileLangToggle {
         font-size: 11px;
         line-height: 1.2;
@@ -2733,38 +2928,67 @@ html.rtl .home-main-layout #popularTextsGrid {
         flex: 0 0 auto;
         display: grid;
         grid-template-columns: repeat(4, minmax(0, 1fr));
-        background: rgba(250, 245, 236, 0.98);
-        border-top: 1px solid #d7ccb8;
-        padding: 0.25rem max(0.35rem, env(safe-area-inset-right)) max(0.25rem, env(safe-area-inset-bottom)) max(0.35rem, env(safe-area-inset-left));
+        /* Equal columns with a gutter, so neighbouring pills never touch. */
+        column-gap: var(--sp-1);
+        /* The page's own surface (not a warmer one-off tint), so the bar
+           reads as the same material as the content above it. */
+        background: color-mix(in srgb, var(--surface-base) 97%, transparent);
+        border-top: 1px solid var(--surface-border);
+        padding: var(--sp-1) max(var(--sp-2), env(safe-area-inset-right)) max(var(--sp-1), env(safe-area-inset-bottom)) max(var(--sp-2), env(safe-area-inset-left));
         z-index: 96;
     }
 
+    /* Icon stacked over label, both centered in the column: the icons sit
+       on an even rhythm whatever each label's width. */
     .mobile-tab-btn {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: var(--sp-1);
         border: 0;
         background: transparent;
-        font-size: 0.72rem;
+        font-size: 0.66rem;
         font-weight: 700;
         letter-spacing: 0.08em;
+        line-height: 1;
         text-transform: uppercase;
         color: #645a49;
-        padding: 0.55rem 0.4rem;
-        border-radius: 0.6rem;
-        /* 44px touch target (each tab is ~91px wide already). */
-        min-height: 2.75rem;
+        padding: var(--sp-2) var(--sp-1);
+        border-radius: var(--radius-md);
+        min-width: 0;
+        min-height: var(--hit-min);
+    }
+
+    .mobile-tab-btn__icon {
+        position: relative;
+        display: inline-flex;
+    }
+
+    .mobile-tab-btn__label {
+        max-width: 100%;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    @media (hover: hover) {
+        .mobile-tab-btn:not(.mobile-tab-active):hover {
+            background: var(--ctrl-bg-hover);
+        }
     }
 
     /* Small controls in the top bars: keep their drawn size but extend the
        tappable area to 44px tall with an invisible hit-slop, the same
        partial mitigation #settingsMenuBtn uses (height only -- the bars have
        no spare width, and a wider slop would overlap the neighbouring
-       button). */
-    .reader-topbar-icon-btn,
+       button). .reader-topbar-icon-btn is excluded: its own box is already
+       44x44 (min-height/min-width: var(--hit-min)), so it needs no slop. */
     #signInBtn,
     #mobileLangToggle {
         position: relative;
     }
 
-    .reader-topbar-icon-btn::after,
     #signInBtn::after,
     #mobileLangToggle::after {
         content: "";
@@ -2776,13 +3000,44 @@ html.rtl .home-main-layout #popularTextsGrid {
         transform: translateY(-50%);
     }
 
-    /* Search tab: label + small AI sparkle (same mark as the search field's
-       own hint), centered as one unit. */
-    .mobile-tab-btn-ai {
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        gap: 0.3rem;
+    /* Phone Ask button: drawn 32px tall so it doesn't make the bar taller
+       than its other controls; the same 44px hit-slop, on ::before because
+       the discovery tip's .ai-attention ring owns ::after. Width is already
+       44px. */
+    #mobileTopbarAskBtn {
+        min-height: var(--sp-8);
+        height: var(--sp-8);
+        /* The controls row's own gap already spaces it. */
+        margin-inline-start: 0;
+    }
+
+    #mobileTopbarAskBtn::before {
+        content: "";
+        position: absolute;
+        top: 50%;
+        left: 0;
+        width: 100%;
+        height: var(--hit-min);
+        transform: translateY(-50%);
+    }
+
+    /* Smallest phones: brand + settings + Ask + Sign In + language toggle
+       overflow one row by a few px, so drop the brand's subtitle rather than
+       wrap the controls onto a second row. (Two classes: Tailwind's .block,
+       loaded after this sheet, would win a single-class tie.) */
+    @media (max-width: 359px) {
+        .topbar-brand .topbar-brand-subtitle {
+            display: none;
+        }
+    }
+
+    /* Search tab: a small AI sparkle (same mark as the search field's own
+       hint) tucked on the icon's corner, so it never shifts the label off
+       the column's center. */
+    .mobile-tab-btn__ai {
+        position: absolute;
+        top: calc(var(--sp-1) * -1);
+        inset-inline-end: calc(var(--sp-2) * -1);
     }
 
     .mobile-tab-btn.mobile-tab-active {
@@ -2895,7 +3150,7 @@ html.rtl .home-main-layout #popularTextsGrid {
         border-top: 1px solid #cbd5e1;
         border-radius: 1rem 1rem 0 0;
         transform: translateY(106%);
-        transition: transform var(--motion-dur-slow) var(--motion-ease-decel), box-shadow var(--motion-dur-slow) var(--motion-ease-out);
+        transition: transform var(--motion-dur-base) var(--motion-ease-decel);
         padding-bottom: max(1rem, env(safe-area-inset-bottom));
     }
 
@@ -2929,7 +3184,6 @@ html.rtl .home-main-layout #popularTextsGrid {
     }
 
     #textsMenuModal > div,
-    #aiAssistantModal > div,
     #privacyDataModal > div,
     #devtoolsInspectorModal > div {
         max-height: 85dvh;
@@ -3084,22 +3338,19 @@ html.rtl .home-main-layout #popularTextsGrid {
 .library-shell #exportCitationBtn,
 .library-shell #sourceGraphBtn,
 .library-shell #communityTimelineBtn,
-.library-shell #trackCurrentBtn,
 .library-shell #themeToggleBtn {
     background-color: var(--control-bg) !important;
     border-color: var(--control-border) !important;
     color: var(--control-text) !important;
 }
 
-.library-shell #bookmarkCurrentBtn,
-.library-shell #viewFullArticleBtn {
+.library-shell #bookmarkCurrentBtn {
     background-color: var(--control-strong-bg) !important;
     border-color: var(--control-strong-bg) !important;
     color: #f5f8fd !important;
 }
 
-.library-shell #bookmarkCurrentBtn:hover,
-.library-shell #viewFullArticleBtn:hover {
+.library-shell #bookmarkCurrentBtn:hover {
     background-color: var(--control-strong-bg-hover) !important;
 }
 
@@ -3113,7 +3364,6 @@ html.rtl .home-main-layout #popularTextsGrid {
 .library-shell #exportCitationBtn:hover,
 .library-shell #sourceGraphBtn:hover,
 .library-shell #communityTimelineBtn:hover,
-.library-shell #trackCurrentBtn:hover,
 .library-shell #themeToggleBtn:hover {
     background-color: var(--control-bg-hover) !important;
     border-color: #ccbca2 !important;
@@ -3123,13 +3373,12 @@ html.rtl .home-main-layout #popularTextsGrid {
 .library-shell #settingsPanel,
 .library-shell #readerSettingsPanel,
 .library-shell #selectionInsights,
-.library-shell #rightSidebarIdle,
 .library-shell #compareContainer {
     background: var(--surface-elevated) !important;
     border-color: var(--surface-border) !important;
 }
 
-/* These 4 modal headers carry a .text-blue-100 subtitle (color #f8edd8,
+/* These modal headers carry a .text-blue-100 subtitle (color #f8edd8,
    see the .text-blue-100 rule above) directly on this gradient. The
    original stops (#756d61 / #867d70) only cleared 3.49-4.40:1 against that
    text -- failing 4.5:1 AA everywhere along the gradient, not just at one
@@ -3138,7 +3387,6 @@ html.rtl .home-main-layout #popularTextsGrid {
    gradient shape; now 4.75-5.63:1 against the subtitle and 5.52-6.76:1
    against the white title. */
 .library-shell #textsMenuModal .bg-gradient-to-r.from-navy.to-blue-900,
-.library-shell #aiAssistantModal .bg-gradient-to-r.from-navy.to-blue-900,
 .library-shell #devtoolsInspectorModal .bg-gradient-to-r.from-navy.to-blue-900,
 .library-shell #sourceGraphModal .bg-gradient-to-r.from-navy.to-blue-900,
 .library-shell #communityTimelineModal .bg-gradient-to-r.from-navy.to-blue-900 {
@@ -3178,19 +3426,21 @@ html.rtl .home-main-layout #popularTextsGrid {
         background-color var(--motion-dur-base) var(--motion-ease-out),
         color var(--motion-dur-base) var(--motion-ease-out),
         border-color var(--motion-dur-base) var(--motion-ease-out),
-        box-shadow var(--motion-dur-base) var(--motion-ease-out),
         transform var(--motion-dur-fast) var(--motion-ease-out),
+        scale var(--motion-dur-fast) var(--motion-ease-out),
         opacity var(--motion-dur-fast) var(--motion-ease-out);
     -webkit-tap-highlight-color: rgba(221, 201, 168, 0.36);
 }
 
 .library-shell .shelf-open:focus-visible,
-.library-shell .track-toggle:focus-visible,
 .library-shell .library-node-open:focus-visible,
 .library-shell #leftSidebar button:focus-visible,
 .library-shell #topbarControls button:focus-visible,
 .library-shell #searchSuggestions .suggestion-item:focus-visible {
-    outline: 2px solid rgba(176, 154, 116, 0.58);
+    /* --control-accent is 5:1+ against the page in both themes; the old
+       translucent tan measured 1.67:1 (light) / 2.98:1 (dark), under the
+       3:1 WCAG 1.4.11 minimum for a focus indicator. */
+    outline: 2px solid var(--control-accent);
     outline-offset: 2px;
     background-color: #f4efe3 !important;
 }
@@ -3277,7 +3527,7 @@ html.theme-dark,
 }
 
 :is([data-theme="dark"], body.theme-dark) .mobile-bottom-tabs {
-    background: rgba(22, 19, 16, 0.97);
+    background: color-mix(in srgb, var(--surface-base) 97%, transparent);
     border-top-color: var(--surface-border);
 }
 
@@ -3400,7 +3650,7 @@ html.theme-dark,
    separate :is([data-theme="dark"]) block is needed here. */
 .modal-close-icon-btn {
     color: var(--text-muted);
-    transition: color var(--motion-dur-fast) var(--motion-ease-out);
+    transition: color var(--motion-dur-fast) var(--motion-ease-out), scale var(--motion-dur-fast) var(--motion-ease-out);
 }
 
 .modal-close-icon-btn:hover {
@@ -3640,8 +3890,7 @@ html.theme-dark,
 }
 
 :is([data-theme="dark"], body.theme-dark) #calendarModal,
-:is([data-theme="dark"], body.theme-dark) #textsMenuModal,
-:is([data-theme="dark"], body.theme-dark) #aiAssistantModal {
+:is([data-theme="dark"], body.theme-dark) #textsMenuModal {
     background-color: color-mix(in srgb, var(--surface-base) 84%, transparent) !important;
     -webkit-backdrop-filter: none !important;
     backdrop-filter: none !important;
@@ -3721,7 +3970,6 @@ html.theme-dark,
    elsewhere), so the panel itself reads as a distinct backdrop instead of
    blending into its own contents. */
 :is([data-theme="dark"], body.theme-dark) #selectionInsights,
-:is([data-theme="dark"], body.theme-dark) #rightSidebarIdle,
 :is([data-theme="dark"], body.theme-dark) #compareContainer,
 :is([data-theme="dark"], body.theme-dark) #sourceGraphCanvas {
     background: var(--surface-elevated) !important;
@@ -4064,10 +4312,6 @@ html.theme-dark,
     color: var(--control-text-strong);
 }
 
-:is([data-theme="dark"], body.theme-dark) .study-track-complete-label {
-    color: var(--text-muted);
-}
-
 :is([data-theme="dark"], body.theme-dark) #popularTextsGrid button {
     background: var(--surface-elevated) !important;
     border-color: var(--surface-border) !important;
@@ -4194,9 +4438,8 @@ html.theme-dark,
 }
 
 :is([data-theme="dark"], body.theme-dark) .shelf-open:focus-visible,
-:is([data-theme="dark"], body.theme-dark) .track-toggle:focus-visible,
 :is([data-theme="dark"], body.theme-dark) .library-node-open:focus-visible {
-    outline: 2px solid rgba(176, 154, 116, 0.58);
+    outline: 2px solid var(--control-accent);
     outline-offset: 2px;
 }
 
@@ -4253,8 +4496,7 @@ html.theme-dark,
        --control-accent, the gold a checked switch beside it uses, and the
        thumb is cream (--accent-cream), ringed in the same gold. */
     --range-complete: var(--control-accent);
-    --range-incomplete: var(--surface-pill);
-    --range-track-border: var(--control-border);
+    --range-incomplete: var(--control-border);
     --range-thumb-bg: var(--accent-cream);
 }
 
@@ -4399,7 +4641,6 @@ html.theme-dark,
 }
 
 :is([data-theme="dark"], body.theme-dark) #textsMenuModal .bg-gradient-to-r.from-navy.to-blue-900,
-:is([data-theme="dark"], body.theme-dark) #aiAssistantModal .bg-gradient-to-r.from-navy.to-blue-900,
 :is([data-theme="dark"], body.theme-dark) #devtoolsInspectorModal .bg-gradient-to-r.from-navy.to-blue-900,
 :is([data-theme="dark"], body.theme-dark) #sourceGraphModal .bg-gradient-to-r.from-navy.to-blue-900,
 :is([data-theme="dark"], body.theme-dark) #communityTimelineModal .bg-gradient-to-r.from-navy.to-blue-900 {
@@ -4619,13 +4860,6 @@ html[dir="rtl"] .mobile-drawer-right.mobile-open {
 
 :is([data-theme="dark"], body.theme-dark) #selectionInsightsBody .font-serif {
     color: var(--text-main) !important;
-}
-
-/* rightSidebarIdle dark mode */
-:is([data-theme="dark"], body.theme-dark) #rightSidebarIdle {
-    background: var(--surface-elevated) !important;
-    border-color: var(--surface-border) !important;
-    color: var(--text-muted) !important;
 }
 
 /* Reader topbar library button: right in RTL mode */
@@ -4848,7 +5082,7 @@ html.rtl #readerTopBar #readerLibraryTopBarBtn {
     font-size: var(--text-sm);
     font-weight: 600;
     cursor: pointer;
-    transition: background-color 200ms ease-out;
+    transition: background-color 200ms ease-out, scale var(--motion-dur-fast) var(--motion-ease-out);
 }
 
 #analyticsConsentAccept {
@@ -4889,4 +5123,176 @@ body.theme-dark #analyticsConsentAccept {
     .analytics-consent-actions button {
         transition: none;
     }
+}
+
+
+/* ═══════════════════════════════════════════════════════════════════
+   MOTION POLISH — screen entrances, press feedback, hover gaps
+   Keyframes live in tokens.css; transform/opacity only; all of it is
+   switched off under prefers-reduced-motion. The AI surfaces
+   (conversation.css, ai.css) own their motion and are excluded.
+═══════════════════════════════════════════════════════════════════ */
+
+/* Screens (home, reader, the reader's panels, the consent banner) rise
+   into place when shown. The class is added by watchViewEntrance()
+   (index.html) and removed on animationend, so no transform lingers to
+   become a containing block for anything positioned inside. */
+.view-enter {
+    animation: shelah-fade-up var(--motion-dur-base) var(--motion-ease-decel);
+}
+
+/* Press feedback: controls dip a little while held. The standalone
+   `scale` property composes with any `transform` a control already has
+   (centring translates, hover lifts), so pressing never knocks one out.
+   Controls that tune their own :active (top-bar buttons, bottom tabs,
+   the reader's deliberately static icon row) keep theirs. */
+.library-shell :is(button, [role="button"], summary):where(:not(:disabled, [aria-disabled="true"], .reader-topbar-icon-btn, .topbar-flat-btn, .topbar-brand, .mobile-tab-btn, #topbarAskBtn, #legalAcceptBtn, .answer-feedback-btn)):where(:not(:is(#convPanel, #convPip, #mobileSearchTray, #aiDiscoveryTip) *)):active {
+    scale: var(--press-scale, 0.97);
+}
+
+/* Wide cards and rows shrink by more pixels for the same ratio; ease
+   them off so a press reads as a dip, not a jump. */
+.library-shell :is(.home-library-link, #popularTextsGrid button, #leftSidebar button, #leftSidebar summary, .shelf-open, .library-node-open) {
+    --press-scale: 0.985;
+}
+
+/* Tailwind's transition utilities load after this sheet and replace the
+   property list above, so `scale` is added back for the controls that
+   use them -- otherwise the press would snap in and out. */
+.library-shell :is(button, [role="button"], summary).transition {
+    /* Not box-shadow, filter or backdrop-filter: each repaints every
+       frame it tweens (audit M-9). */
+    transition-property: color, background-color, border-color, text-decoration-color, fill, stroke, opacity, transform, scale;
+}
+
+.library-shell :is(button, [role="button"], summary).transition-colors {
+    transition-property: color, background-color, border-color, text-decoration-color, fill, stroke, scale;
+}
+
+/* Hover gaps ---------------------------------------------------------- */
+
+/* The AA remap of .text-slate-400/500 (above) is !important, which also
+   beat every hover:text-* utility on those controls -- the sidebar's
+   section summaries and small text buttons showed no hover at all.
+   Hovering now moves them to the primary ink: darker in light, lighter
+   in dark (both AA on every surface, see tokens.css). The AI-surface
+   exclusion sits in :where() so its ids add no specificity -- the
+   dark sidebar's own #leftSidebar hover colours must still win. */
+.library-shell :is(button, a[href], summary, [role="button"]):is(.text-slate-400, .text-slate-500):not(:disabled):where(:not(:is(#convPanel, #convPip, #mobileSearchTray, #aiDiscoveryTip) *)):hover {
+    color: var(--ink-primary) !important;
+}
+
+/* The open text's row in the library sidebar had no hover of its own. */
+.library-shell .shelf-open.shelf-open-active:hover {
+    background: #ede2d0;
+}
+
+:is([data-theme="dark"], body.theme-dark) .shelf-open.shelf-open-active:hover {
+    background: var(--ctrl-bg-hover) !important;
+}
+
+/* The consent banner's Accept fill is !important, so the shared
+   .analytics-consent-actions hover never showed on it. Light: the
+   accent's hover shade. Dark: deepen the AA-tuned fill (its text is
+   light, so darker only widens the 5.0:1 margin). */
+#analyticsConsentAccept:hover {
+    background: var(--accent-primary-hover) !important;
+    border-color: var(--accent-primary-hover) !important;
+}
+
+:is([data-theme="dark"], html.theme-dark, body.theme-dark) #analyticsConsentAccept:hover {
+    background: color-mix(in srgb, #4e667e 82%, black) !important;
+    border-color: color-mix(in srgb, #4e667e 82%, black) !important;
+}
+
+@media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) #analyticsConsentAccept:hover {
+        background: color-mix(in srgb, #4e667e 82%, black) !important;
+        border-color: color-mix(in srgb, #4e667e 82%, black) !important;
+    }
+}
+
+/* The selected prayer-family tab took the (lighter) generic tab hover,
+   so hovering it looked like it was being deselected. Deepen instead. */
+.prayer-family-tab-active:hover {
+    background: color-mix(in srgb, #ede1cf 70%, #b9a487);
+}
+
+:is([data-theme="dark"], body.theme-dark) .prayer-family-tab-active:hover {
+    background: var(--ctrl-bg-hover);
+}
+
+/* Texts-menu "Clear": its hover:bg-slate-200 is remapped paler than the
+   remapped bg-slate-100 fill. The control hover token is darker in
+   light and lighter in dark. */
+.library-shell #libraryIndexFilterClear:hover {
+    background: var(--ctrl-bg-hover) !important;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .view-enter {
+        animation: none;
+    }
+
+    .library-shell :is(button, [role="button"], summary):active {
+        scale: none;
+    }
+}
+
+/* ── A region that failed to load (static/js/load-region.js) ──────── */
+.region-error {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--sp-3);
+    padding-block: var(--sp-4);
+    grid-column: 1 / -1; /* the full row of a grid region (popular texts) */
+}
+
+.region-error__message {
+    margin: 0;
+    color: var(--accent-red);
+}
+
+.region-error__actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--sp-2);
+}
+
+.region-error__retry,
+.region-error__action {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-block-size: 2.75rem;
+    min-inline-size: 2.75rem;
+    padding: var(--sp-2) var(--sp-4);
+    border: 1px solid var(--ctrl-border);
+    border-radius: var(--radius-md);
+    background: var(--ctrl-bg);
+    color: var(--ctrl-text-strong);
+    font-size: var(--text-sm);
+    font-weight: 600;
+    cursor: pointer;
+    transition: background-color var(--motion-dur-fast) var(--motion-ease-out),
+        transform var(--motion-dur-fast) var(--motion-ease-out);
+}
+
+:is(.region-error__retry, .region-error__action):hover { background: var(--ctrl-bg-hover); }
+:is(.region-error__retry, .region-error__action):active { transform: scale(0.97); }
+:is(.region-error__retry, .region-error__action):focus-visible {
+    outline: 2px solid var(--accent-primary);
+    outline-offset: 2px;
+}
+
+/* A control whose view is on its way (index.html markTriggerPending). */
+[data-pending="true"] {
+    cursor: progress;
+    opacity: 0.7;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    :is(.region-error__retry, .region-error__action) { transition: none; }
+    :is(.region-error__retry, .region-error__action):active { transform: none; }
 }

@@ -50,6 +50,9 @@ function createFakeElement(id) {
         addEventListener: () => {},
         removeEventListener: () => {},
         querySelector: (selector) => children.find((c) => c._tagName === selector.toLowerCase()) || null,
+        // Element.append(...nodes): only tracks the nodes for querySelector's
+        // benefit, same as addFakeChild -- no real DOM tree is maintained.
+        append: (...nodes) => nodes.forEach((node) => node && children.push(node)),
         _children: children,
     };
     return el;
@@ -85,9 +88,18 @@ function createFakeDocument() {
         return Array.from(elementsById.values()).filter((el) => el.hasAttribute(attr));
     }
 
+    // Detached (not id-registered): showZmanimLoadError() builds a <span>
+    // and a retry <button> this way before appending them to a real element.
+    function createElement(tagName) {
+        const el = createFakeElement(undefined);
+        el._tagName = String(tagName || '').toLowerCase();
+        return el;
+    }
+
     return {
         getElementById,
         querySelectorAll,
+        createElement,
         addEventListener: () => {},
         removeEventListener: () => {},
         readyState: 'complete',

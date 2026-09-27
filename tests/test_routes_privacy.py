@@ -155,6 +155,7 @@ class TestDataExport:
             routes_privacy_module.SUPABASE_USER_MEMORIES_TABLE: [{"id": "m1", "summary": "..."}],
             routes_privacy_module._AI_USAGE_LOG_TABLE: [{"id": "u1", "model": "claude-sonnet-4-6"}],
             routes_privacy_module.SUPABASE_ANSWER_FEEDBACK_TABLE: [{"id": "f1", "verdict": "helpful"}],
+            routes_privacy_module.SUPABASE_CONVERSATIONS_TABLE: [{"id": "c1", "title": "Shabbat candles"}],
         }
         client = _FakeSupabaseClient(table_data=seeded)
         monkeypatch.setattr(routes_privacy_module, "_get_supabase_client", lambda: client)
@@ -171,12 +172,40 @@ class TestDataExport:
         assert body["data"]["memories"] == seeded[routes_privacy_module.SUPABASE_USER_MEMORIES_TABLE]
         assert body["data"]["ai_usage_log"] == seeded[routes_privacy_module._AI_USAGE_LOG_TABLE]
         assert body["data"]["feedback"] == seeded[routes_privacy_module.SUPABASE_ANSWER_FEEDBACK_TABLE]
+        assert body["data"]["ai_conversations"] == seeded[routes_privacy_module.SUPABASE_CONVERSATIONS_TABLE]
 
         # RLS-equivalent guarantee at the query-construction level: every
         # table query must have been filtered to this caller's user_id.
         for table_name in ALL_TABLES:
             query = client.queries[table_name][0]
             assert ("eq", ("user_id", FAKE_USER_ID), {}) in query.calls
+
+    def test_ai_conversations_embed_ordered_messages_and_citations(
+        self, test_client, authed, monkeypatch
+    ):
+        """The AI chat history exports as whole threads: each conversation
+        embeds its messages (oldest first), each with its citations in
+        numbered order, via one PostgREST embedded select."""
+        conversations_table = routes_privacy_module.SUPABASE_CONVERSATIONS_TABLE
+        conversation = {
+            "id": "c1",
+            "messages": [
+                {"id": "m2", "role": "assistant", "created_at": "2026-09-25T20:31:00+00:00",
+                 "citations": [{"ordinal": 2, "source_ref": "B"}, {"ordinal": 1, "source_ref": "A"}]},
+                {"id": "m1", "role": "user", "created_at": "2026-09-25T20:30:00+00:00", "citations": []},
+            ],
+        }
+        client = _FakeSupabaseClient(table_data={conversations_table: [conversation]})
+        monkeypatch.setattr(routes_privacy_module, "_get_supabase_client", lambda: client)
+
+        response = test_client.get("/api/user/data-export", headers=AUTH_HEADERS)
+        assert response.status_code == 200
+        thread = response.get_json()["data"]["ai_conversations"][0]
+        assert [m["id"] for m in thread["messages"]] == ["m1", "m2"]
+        assert [c["source_ref"] for c in thread["messages"][1]["citations"]] == ["A", "B"]
+        query = client.queries[conversations_table][0]
+        assert ("select", ("*, messages(*, citations(*))",), {}) in query.calls
+        assert ("eq", ("user_id", FAKE_USER_ID), {}) in query.calls
 
     def test_one_table_exception_reports_partial_error_without_failing_others(
         self, test_client, authed, monkeypatch
