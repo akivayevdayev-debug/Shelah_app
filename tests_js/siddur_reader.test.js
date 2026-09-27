@@ -350,7 +350,8 @@ function fakeKeepEnv({ controller = true, standalone = false, iosStandalone = fa
     const posted = [];
     const persisted = [];
     const nav = {
-        serviceWorker: controller ? { controller: { postMessage: (message) => posted.push(message) } } : {},
+        // `ready` resolves to the registration; its active worker takes the message.
+        serviceWorker: controller ? { ready: Promise.resolve({ active: { postMessage: (message) => posted.push(message) } }) } : {},
         storage: persist === null ? {} : { persist: persist || (async () => { persisted.push(true); return true; }) },
     };
     if (iosStandalone) nav.standalone = true;
@@ -358,27 +359,51 @@ function fakeKeepEnv({ controller = true, standalone = false, iosStandalone = fa
     return { nav, win, posted, persisted };
 }
 
+const settle = () => new Promise((resolve) => setImmediate(resolve));
+
 test('keepOffline asks the service worker to keep every service of this version', async () => {
     const r = await reader();
     const env = fakeKeepEnv();
     r.keepOffline(TOC, env);
+    await settle();
     assert.deepEqual(env.posted, [{
         type: 'PRECACHE_SIDDUR', rite: 'edot-hamizrach', version: 'abc123',
         services: ['shacharit', 'mincha', 'birkat-hamazon'],
     }]);
 });
 
-test('keepOffline posts nothing without a controlling worker or a versioned contents', async () => {
+test('keepOffline posts nothing without service workers, an active worker, or a versioned contents', async () => {
     const r = await reader();
     const none = fakeKeepEnv({ controller: false });
     r.keepOffline(TOC, none);
+    await settle();
     assert.deepEqual(none.posted, []);
 
     const unversioned = fakeKeepEnv();
     r.keepOffline({ ...TOC, version: '' }, unversioned);
     r.keepOffline(null, unversioned);
+    await settle();
     assert.deepEqual(unversioned.posted, []);
     assert.doesNotThrow(() => r.keepOffline(TOC, { nav: undefined, win: undefined }));
+
+    // A registration with no active worker, or one whose `ready` rejects.
+    for (const ready of [Promise.resolve({ active: null }), Promise.reject(new Error('no sw'))]) {
+        assert.doesNotThrow(() => r.keepOffline(TOC, { nav: { serviceWorker: { ready } }, win: {} }));
+    }
+    await settle();
+});
+
+test('keepOffline reaches the worker on a first visit, before it controls the page', async () => {
+    const r = await reader();
+    const posted = [];
+    let activate;
+    const ready = new Promise((resolve) => { activate = resolve; });
+    r.keepOffline(TOC, { nav: { serviceWorker: { controller: null, ready } }, win: {} });
+    await settle();
+    assert.deepEqual(posted, [], 'nothing is active yet');
+    activate({ active: { postMessage: (message) => posted.push(message) } });
+    await settle();
+    assert.equal(posted.length, 1);
 });
 
 test('keepOffline asks for persistent storage only in the installed app', async () => {
