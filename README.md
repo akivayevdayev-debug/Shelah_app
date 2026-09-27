@@ -6,41 +6,37 @@
 [![CI](https://github.com/akivayevdayev-debug/Shelah_app/actions/workflows/ci.yml/badge.svg)](https://github.com/akivayevdayev-debug/Shelah_app/actions/workflows/ci.yml)
 [![Quality gate status](https://sonarcloud.io/api/project_badges/measure?project=akivayevdayev-debug_Shelah_app&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=akivayevdayev-debug_Shelah_app)
 
-**[shelah.org](https://shelah.org)** — the Torah Encyclopedia (literally, that's kind of the whole idea lol)
+**[shelah.org](https://shelah.org)** — the Torah Encyclopedia — literally
 
-Sh'elah (שאלה, "question") is a Jewish learning website I built by myself. It does three things:
+Sh'elah (שאלה meaning question in Hebrew) is a Jewish learning website I built by myself (and yes ofc with ai as well because without it it would still be an idea long forgotten). It has three things:
 
 1. A searchable library of Torah and Judaic texts and commentary (all powered by Sefaria's texts, but made to actually feel easy to use), with customs broken out by community: Ashkenazi, Sefardi, Teimani, and a bunch of others.
-2. An AI assistant that answers questions on Jewish law (halacha) by pulling from primary sources like the Torah and other Judaic texts instead of just guessing.
+2. An AI assistant that answers questions on Jewish law (halacha) by pulling information from primary sources like the Torah and other Judaic texts instead of just guessing.
 3. The practical stuff people actually need every day: live prayer times (zmanim) and candle-lighting times based on where you are, and a Hebrew calendar with the weekly Torah portion built in.
 
-Quick but important thing before anything else: **Sh'elah is for learning, not for rulings.** The AI isn't a rabbi and doesn't pretend to be one. Every answer ends by telling you to take real questions to your own rabbi, and I mean that. (Same goes for legal stuff: ask an actual lawyer, not my website lol.)
+One quick but important thing before anything else: **Sh'elah is for learning, not for rulings.** The AI isn't a rabbi and doesn't pretend to be one. Every answer ends by telling you to take real questions with halachic uncertainty to your own rabbi.
 
 ## What it does right now
 
 - Answers halacha questions with the actual sources it used cited, and always points you back to your own rabbi for anything that's a real ruling.
-- Refuses to touch anything medical, mental-health, or abuse-related. Instead of the AI trying to answer, it sends you to real help. Halacha touches sensitive stuff, and a chatbot is the wrong thing to be answering those questions.
-- Has safeguards against weird off-topic questions and prompt injection (because we don't want the site getting hacked lol).
-- A Torah/Judaic text library with commentary and word translations, shown in English and Hebrew side by side (with proper right-to-left layout for the Hebrew).
+- Refuses to touch anything medical, mental-health, or abuse-related. Instead of the AI trying to answer, it sends you to real help. Halacha touches sensitive stuff, and an ai is the wrong thing to be answering those questions.
+- Has safeguards against weird off-topic questions and prompt injection (because we don't want the site getting hacked °~°).
+- A Torah/Judaic text library with commentary and word translations, shown in English and Hebrew side by side (with proper RTL layout in Hebrew).
 - Community-aware answers and customs for 14 traditions: Ashkenaz, Sefardic, Yemenite (Teimani), Moroccan, Persian, Syrian, Bukharian, Iraqi, Ethiopian, Georgian, Greek/Romaniote, Mountain Jewish (Kavkazi), Turkish/Ottoman Sefardic, and more as I add them.
-- Prayer services (Shacharit, Mincha, Maariv) that know about your community's nusach.
+- Prayer services (Shacharit, Mincha, Aaravit) that know about your community's nusach.
 - Daily study stuff like Daf Yomi and Mishna Yomit, pulled live from Hebcal.
 - Bookmarks and saved preferences once you sign in.
-- You can install it like an app (it's a PWA), and the core reading stuff works offline.
+- You can install it like an app on your phone (it's a PWA), and the core reading stuff works offline.
 - Live zmanim and candle-lighting times based on your real location, including fast start/end times and the right times on holidays.
 - A Hebrew calendar with the parashah, plus holiday cards with real clock times and links straight into the text.
 - Works in English and Hebrew, light and dark mode, and on desktop, tablets, and phones.
 - Every page has a real link. A specific text, a prayer, a calendar day, an AI answer, even your settings. Send someone the link and it opens exactly where you were.
-- You can export or delete your own account and data yourself, no emailing me required.
-- Keyboard and screen-reader support, bot protection, and a per-user daily AI spending cap so the site can stay free without me going broke °~°
+- You can export or delete your own account and data yourself.
+- Keyboard and screen-reader support, bot protection, and a per-user daily AI spending cap so the site can stay free without me going broke (YIPEEEE!)
 
 ## What was hard
 
-Getting the AI to have safeguards, not hallucinate, follow Judaic law and texts, and all set up took way longer than I originally expected. It's easy to make a chatbot that sounds confident; it's much harder to make one that cites where an answer actually comes from, doesn't quietly make things up, and knows when to deflect a question or a malicious prompt.
-
-I also spent a LOT of time on things nobody will ever see directly: locking down who can access what in the database, making sure a runaway request can't rack up a huge AI bill (because this site is made for the public to be free, and not to make me go broke °~°), and keeping the whole thing fast and not-broken across English and Hebrew, light and dark mode, and phone-sized screens.
-
-And the reader page jumping around while you scroll. That one bug haunted me for literal months. More on that below :|
+Getting the AI to have safeguards, not hallucinate, follow Judaic law and texts, and all set up took way longer than I originally expected. It's easy to make a chatbot that sounds confident; it's much harder to make one that cites where an answer actually comes from, doesn't quietly make things up, and knows when to deflect a question or a malicious prompt. I also spent a LOT of time on things nobody will ever see directly: locking down who can access what in the database, making sure a runaway request can't rack up a huge AI bill (because this site is made for the public to be free, and not to make me go broke °~°), and keeping the whole thing fast and not-broken across English and Hebrew, light and dark mode, and phone-sized screens. There’s also a bug where the page jumped up by 5-10 chapters at once which I fixed (and have been trying to fix that issue for MONTHS!)
 
 ## How it came together
 
@@ -48,14 +44,14 @@ I posted devlogs the whole way through, so here's the (slightly cleaned up) vers
 
 ### The early build
 
-When I first put Sh'elah up it could already answer questions using primary sources, search the library with customs split out by community, and calculate live zmanim and a Hebrew calendar. It worked, but it was early, and I was pretty upfront that a lot still needed doing:
+When I first put Sh'elah up it could already answer questions using primary sources, search the library with customs split out by community, and calculate live zmanim and a Hebrew calendar. It worked, but it was early, and I was pretty upfront that a lot still needed doing like:
 
 - The AI only knew whatever got stuffed into the prompt ahead of time. No real tool use yet, so it couldn't go look anything up.
 - The safety layer was still in progress. I wanted anything medical, mental-health, or abuse-related to go to real professional resources instead of an AI ruling, and I didn't want a younger user getting graphic content when the real answer should just be "ask your rabbi for the details."
 - One backend file (the AI question-answering one) had gotten way too big to maintain.
 - The caching layer needed to handle a bunch of requests at once without breaking, and I needed circuit breakers so one third-party outage couldn't take the whole site down.
 
-### Devlog 2: the "please don't bankrupt me" update
+### Devlog 2: the update so I don't go broke (and to fix issues where the site just refused to load)
 
 - Removed a leftover routing rule in Vercel that was returning a 404 on the production site.
 - Added a server-side daily AI budget per user, so if someone goes way past normal usage they get rate limited and can't spam requests. Also fixed a bug where AI usage was being logged as $0 when it definitely wasn't.
@@ -66,27 +62,27 @@ When I first put Sh'elah up it could already answer questions using primary sour
 - Added CI checks and Vercel Speed Insights.
 - Swapped the GPS permission popup for zmanim over to cookie/IP-based location instead.
 
-### Devlog 3: cleanup
+### Devlog 3: app cleanup
 
-- Fixed a bug where a malformed cache config could crash the entire app on startup. Fun.
+- Fixed a bug where a malformed cache config could crash the entire app on startup. (how fun!)
 - Split that giant AI question-answering file into smaller pieces, and added tests to make sure the Gemini version and the Claude version always answer the same way with the same guardrails.
 - Added a shared caching layer so the library, prayers, texts, daily study, and calendar pages stop hitting the database on every single request.
 - Moved rate limiting into one place for the whole site instead of having it scattered everywhere.
 - Cleaned up files the code was referencing that were never committed (which were causing boot errors).
-- Simplified some functions that had gotten too complicated to safely touch.
+- Simplified some functions that had gotten too complicated to safely work on.
 - Sped up cold starts by only loading the AI libraries when they're actually needed.
 
-### Devlog 4: security (which was a pain :<)
+### Devlog 4: security, accessibility, legal, and more cleanup!
 
 - Fixed row-level security in Supabase so one user can't see another user's personal info, plus some security issues with Vercel and Clerk. Which was a pain to fix :<
-- Found out my login system and database weren't even linked to each other correctly, which was breaking every signed-in read and write. Fixed.
+- Found out my login system and database weren't even linked to each other correctly, which was breaking every signed-in read and write.
 - Added an AI usage tracker and fixed the old usage records so the spending log is actually correct.
 - My webhook (discord error bot) was malfunctioning (and still kinda is in clerk :<) and no longer is! YAY MORE ERRORS FOR ME! (at least I'll know why they happen :|)
 - Fixed a bug where the site was incorrectly caching files in browsers, making things slower AND more expensive at the same time (yay less money to spend!!!!!)
 - Ran accessibility tests and fixed what they found.
 - Fixed some legal doc issues (Privacy Policy and ToS) so I don't get sued!!!
 
-### Devlog 5: the AI can finally go look things up
+### Devlog 5: the AI can finally go look things up ( I thought I had solved this issue before but apparently not), and more accessibility, legal, and security fixes!
 
 - Built real tool use for the AI, so it can fetch live prayer times, calendar dates, and texts when it needs them instead of having everything pre-loaded into every single request. Judaic texts always come first, and web search is strictly a last resort. (It's behind an on/off switch, `AI_AGENTIC_TOOLS`, since every tool call is another paid model call and I want the rate limiting fully hardened before it's on for everyone.)
 - Filed the site for DMCA copyright protection.
@@ -99,7 +95,7 @@ When I first put Sh'elah up it could already answer questions using primary sour
 - Fixed a security-check script that had been quietly failing every single scheduled run for over a week. Nobody told me. Not even the script.
 - Spent a lot of time simplifying complicated functions across the codebase.
 
-### Devlog 6: tests, tests, and more tests
+### Devlog 6: tests, tests, and more tests, and more bug fixes! (WHEN WILL THE BUGS EVER END)
 
 - Fixed dark mode colors that didn't match the rest of the site.
 - Added a star-shaped AI icon and animations on the search bar while the AI is thinking, plus fixed spacing issues in AI answers.
@@ -156,11 +152,11 @@ Go to [shelah.org](https://shelah.org) and:
 - Switch the site to Hebrew and see if anything breaks.
 - Try it on your phone.
 - Check the prayer times for where you are, and poke around the calendar.
-- Go bananas!
+- Go absolutely bananas!
 
 If anything at all is broken, email me at **akiva.yevda@gmail.com** and I'll try my best to fix it as soon as I can.
 
-## How the AI works (and how it stays in its lane)
+## How the AI works (and how it stays in its lane) (Skip this if ur not into boring coding stuff)
 
 The `/ask` endpoint runs a retrieval pipeline: before the model sees your question at all, `backend/rag.py` pulls in live Sefaria results, the 14-community customs data, and your own saved context (if you're signed in). **Gemini is the main model, and Claude is the automatic backup** if Gemini errors out or is down (`backend/claude.py`). Both get the exact same guardrails, and there are tests that make sure that stays true.
 
@@ -187,14 +183,14 @@ General web search (like Wikipedia) is a last resort for when the texts and the 
 
 - **Backend:** Flask + FastAPI together. FastAPI handles the async AI `/ask` pipeline and Flask handles everything else (it's mounted inside the FastAPI app). New routes live in `backend/` as their own blueprints, not in `app.py`, which is still bigger than I'd like.
 - **Hosting:** Vercel, as one serverless function.
-- **Database:** Supabase (Postgres), with row-level security so users can only see their own stuff.
+- **Database:** Supabase (Postgres), with RLS so users can only see their own stuff.
 - **Auth:** Clerk.
 - **AI:** Gemini first, Claude as backup, with optional tool use (see above).
 - **Texts and calendar data:** Sefaria for texts, Hebcal for the calendar and zmanim, MyMemory / Google Translate for the translation fallback, plus the 14 community customs datasets in `customs/`.
 - **Frontend:** plain HTML/CSS/JS (ES modules), Tailwind + DaisyUI, marked + DOMPurify for rendering AI answers safely.
 - **Keeping it alive:** Turnstile for bot checks, Sentry and a Discord webhook for errors, circuit breakers on every external service, SonarCloud for code quality, and a lot of CI.
 
-### How it's wired together
+### How it's wired together (ai made this part don't ask me how it all works I can't give u a clear answer unfortunately °—°)
 
 ```
 Browser
@@ -239,7 +235,7 @@ The full breakdown is in [docs/SERVICE_ARCHITECTURE.md](docs/SERVICE_ARCHITECTUR
 | `backend/turnstile.py` | Bot check |
 | `backend/routes_*.py` | Blueprints: library, calendar, community, prayers, user, privacy, conversations, answer sharing, feedback, legal, webhooks, devtools, and the deep-link paths |
 
-## Running it locally
+## Running it locally (YES YOU TOO CAN RUN IT YOURSELF)
 
 You'll need Python 3.14 (that's what CI runs and what the lockfiles are built against, pinned in `.python-version`; 3.12+ might work but I haven't checked), plus your own Clerk project, Supabase project, and a Gemini and/or Anthropic API key.
 
@@ -364,4 +360,3 @@ Please **don't** open a public issue for it. Email the address in [docs/SECURITY
 
 Sh'elah uses and shows a lot of third-party content that keeps its own license, and my MIT license **doesn't** relicense any of it: Sefaria (a mix of CC0, CC-BY, CC-BY-NC, and public domain, depending on the text), Hebcal, Wikipedia (CC-BY-SA), Halachipedia and HebrewBooks, the SILEOT font, and MIT-licensed libraries like Tailwind CSS, DaisyUI, marked, and DOMPurify. Full attributions are in [THIRD_PARTY_LICENSES.md](THIRD_PARTY_LICENSES.md).
 
-Huge thanks to Sefaria especially. None of this would exist without them.
