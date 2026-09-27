@@ -608,7 +608,7 @@ class TestConversationsClientErrorAcrossRoutes:
 
 def _patch_ai_pipeline(
     monkeypatch, *, security_blocked=False, raise_exc=None,
-    answer_text="The answer.", primary_sources=None,
+    answer_text="The answer.", primary_sources=None, structured=None,
 ):
     """Patches every app.py AI-synthesis helper ask_in_conversation() calls,
     so these tests exercise only routes_conversations.py's own wiring (turn
@@ -618,12 +618,13 @@ def _patch_ai_pipeline(
     caller can inspect for the kwargs _dispatch_ask_ai_synthesis_call() was
     given (only populated when raise_exc is None)."""
     monkeypatch.setattr(routes_conversations_module, "get_engine", lambda: object())
-    monkeypatch.setattr(
-        routes_conversations_module, "_collect_ask_question_context",
-        lambda question, canonical_lens, user_id, answer_language, engine: {
-            "primary_sources": primary_sources or [],
-        },
-    )
+    seen_retrieval_context = []
+
+    def _collect(question, canonical_lens, user_id, answer_language, engine, retrieval_context=()):
+        seen_retrieval_context.append(list(retrieval_context))
+        return {"primary_sources": primary_sources or []}
+
+    monkeypatch.setattr(routes_conversations_module, "_collect_ask_question_context", _collect)
 
     if raise_exc is not None:
         def _dispatch(*a, **k):
@@ -631,7 +632,7 @@ def _patch_ai_pipeline(
         monkeypatch.setattr(routes_conversations_module, "_dispatch_ask_ai_synthesis_call", _dispatch)
         return {}
 
-    seen_dispatch_kwargs = {}
+    seen_dispatch_kwargs = {"retrieval_context": seen_retrieval_context}
 
     def _dispatch(question, mode, canonical_lens, answer_language, ctx, engine, conversation_history=None):
         seen_dispatch_kwargs.update({
@@ -657,7 +658,7 @@ def _patch_ai_pipeline(
         )
         monkeypatch.setattr(
             routes_conversations_module, "_extract_raw_ai_answer",
-            lambda result, answer_language: (None, "raw answer"),
+            lambda result, answer_language: (structured, "raw answer"),
         )
         monkeypatch.setattr(
             routes_conversations_module, "_resolve_ask_web_warning_flag",
@@ -745,6 +746,8 @@ class TestAskInConversation:
         # minhag is read from the conversation row, not the request body.
         assert seen["canonical_lens"] == "Ashkenaz"
         assert seen["conversation_history"] == [{"role": "user", "content": "Earlier turn"}]
+        # Source retrieval also sees the earlier question, not just this one.
+        assert seen["retrieval_context"] == [["Earlier turn"]]
 
         assert client.table(CONV_TABLE).update_calls, "conversation.updated_at must be bumped"
 
@@ -1068,6 +1071,107 @@ class TestAskInConversation:
         cit_insert_rows = client.table(CIT_TABLE).insert_calls[0][0][0]
         assert len(cit_insert_rows) == 1
         assert cit_insert_rows[0]["source_ref"] == "OC 1:1"
+
+
+class TestEarlierQuestions:
+    """_earlier_questions(): what a follow-up's source retrieval draws on."""
+
+    def test_user_turns_newest_first_capped(self):
+        history = [
+            {"role": "user", "content": "First?"},
+            {"role": "assistant", "content": "Answer one."},
+            {"role": "user", "content": "Second?"},
+            {"role": "assistant", "content": "Answer two."},
+            {"role": "user", "content": "  "},
+            {"role": "user", "content": "Third?"},
+            {"role": "user", "content": "Fourth?"},
+        ]
+        assert routes_conversations_module._earlier_questions(history) == [
+            "Fourth?", "Third?", "Second?",
+        ]
+
+    def test_empty_history(self):
+        assert routes_conversations_module._earlier_questions([]) == []
+        assert routes_conversations_module._earlier_questions(None) == []
+
+
+class TestAskCitesWhatTheAnswerCites:
+    """A follow-up's cards are the sources its answer cites (like the
+    thread's first turn), not the generic hits retrieval found for the
+    follow-up's own words."""
+
+    def _ask(self, test_client, monkeypatch, structured, primary_sources):
+        client = _FakeSupabaseClient({
+            CONV_TABLE: _FakeQuery(data=[{"id": "conv-1", "minhag": None}]),
+            MSG_TABLE: _FakeQuery(insert_data=[
+                {"id": "msg-user-1", "role": "user", "content": "q", "status": "complete"},
+                {"id": "msg-assistant-1", "role": "assistant", "content": "a", "status": "complete"},
+            ]),
+            CIT_TABLE: _FakeQuery(data=[{"id": "c1"}]),
+        })
+        monkeypatch.setattr(routes_conversations_module, "_get_user_scoped_supabase_client", lambda: client)
+        _patch_ai_pipeline(monkeypatch, primary_sources=primary_sources, structured=structured)
+        response = test_client.post(
+            "/api/conversations/conv-1/ask", json={"question": "and on Shabbat?"}, headers=AUTH_HEADERS
+        )
+        assert response.status_code == 201
+        return client.table(CIT_TABLE).insert_calls[0][0][0]
+
+    def test_cited_sources_replace_the_retrieved_ones(self, test_client, authed, monkeypatch):
+        rows = self._ask(
+            test_client, monkeypatch,
+            structured={"sources": [
+                "Mishnah Berurah 318:1 — cooking on Shabbat",
+                "Shulchan Arukh, Orach Chayim 318:1 — the base ruling",
+                "mishnah berurah 318:1 — duplicate, dropped",
+            ]},
+            primary_sources=[
+                {"ref": "Shulchan Arukh, Orach Chayim 1:1", "title": "OC 1:1", "lines": [{"en": "Generic.", "he": "כללי"}]},
+            ],
+        )
+        assert [r["source_ref"] for r in rows] == [
+            "Mishnah Berurah 318:1", "Shulchan Arukh, Orach Chayim 318:1",
+        ]
+        assert rows[0]["excerpt_en"] == "cooking on Shabbat"
+        assert rows[0]["excerpt_he"] is None and rows[0]["url"] is None
+
+    def test_a_cited_source_that_was_retrieved_gains_its_text_and_link(self, test_client, authed, monkeypatch):
+        rows = self._ask(
+            test_client, monkeypatch,
+            structured={"sources": ["Mishnah Berurah 318:1 — cooking on Shabbat", "Rambam, Shabbat 9:1"]},
+            primary_sources=[
+                {"ref": "mishnah berurah 318:1", "title": "MB", "lines": [{"en": "Text.", "he": "טקסט"}], "url": "https://example.com/mb"},
+            ],
+        )
+        assert rows[0] == {
+            "message_id": "msg-assistant-1", "ordinal": 0, "source_ref": "Mishnah Berurah 318:1",
+            "excerpt_en": "cooking on Shabbat", "excerpt_he": "טקסט", "url": "https://example.com/mb",
+        }
+        # No note: the retrieved English stands in.
+        assert rows[1]["source_ref"] == "Rambam, Shabbat 9:1"
+        assert rows[1]["excerpt_en"] is None
+
+    def test_match_ignores_aruch_arukh_spelling_and_punctuation(self, test_client, authed, monkeypatch):
+        rows = self._ask(
+            test_client, monkeypatch,
+            structured={"sources": ["Shulchan Aruch, Orach Chayim 589"]},
+            primary_sources=[
+                {"ref": "Shulchan Arukh, Orach Chayim 589", "title": "OC 589",
+                 "lines": [{"en": "Women are exempt.", "he": "נשים פטורות"}], "url": "https://example.com/oc589"},
+            ],
+        )
+        assert rows[0]["source_ref"] == "Shulchan Aruch, Orach Chayim 589"
+        assert rows[0]["url"] == "https://example.com/oc589"
+        assert rows[0]["excerpt_he"] == "נשים פטורות"
+
+    def test_no_cited_sources_falls_back_to_retrieved(self, test_client, authed, monkeypatch):
+        rows = self._ask(
+            test_client, monkeypatch,
+            structured={"sources": []},
+            primary_sources=[{"ref": "OC 1:1", "title": "OC 1:1", "lines": [{"en": "Some text.", "he": ""}]}],
+        )
+        assert [r["source_ref"] for r in rows] == ["OC 1:1"]
+        assert rows[0]["excerpt_en"] == "Some text."
 
 
 class TestAskAutoTitle:

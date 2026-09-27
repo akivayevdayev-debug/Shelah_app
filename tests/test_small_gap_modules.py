@@ -187,3 +187,42 @@ class TestFindRefsForQuestionFallback:
     def test_max_seven_refs_returned(self):
         result = sefaria_module.find_refs_for_question("shabbat")
         assert len(result) <= 7
+
+
+class TestFindRefsForQuestionContext:
+    """A follow-up's refs come from the conversation when it names no topic."""
+
+    def test_follow_up_without_topic_uses_earlier_question(self):
+        alone = sefaria_module.find_refs_for_question("What about for a woman?")
+        with_context = sefaria_module.find_refs_for_question(
+            "What about for a woman?", ["Do I have to hear the shofar?"])
+        assert alone == list(sefaria_module._DEFAULT_REFS)
+        assert with_context == sefaria_module._match_topic_refs("shofar")
+
+    def test_follow_up_and_context_refs_alternate(self):
+        own = sefaria_module._match_topic_refs("shofar")
+        earlier = sefaria_module._match_topic_refs("tefillin")
+        result = sefaria_module.find_refs_for_question("And the shofar?", ["tefillin"])
+        assert result[:2] == [own[0], earlier[0]]
+        assert set(result) <= set(own) | set(earlier)
+        assert len(result) <= 7
+
+    def test_nothing_anywhere_falls_back(self):
+        assert sefaria_module.find_refs_for_question("And then?", ["Hmm?"]) == list(
+            sefaria_module._DEFAULT_REFS)
+
+    def test_stop_words_of_phrases_do_not_match_alone(self):
+        # "on" (from "work on shabbat") used to pull Shabbat refs into any
+        # question; "yom" matched yom kippur for a yom tov question.
+        refs = sefaria_module.find_refs_for_question("Can I cook food on Yom Tov?")
+        assert refs == sefaria_module._match_topic_refs("yom tov")
+        assert not set(sefaria_module.TOPIC_REFS["work on shabbat"]) & set(refs)
+        assert not set(sefaria_module.TOPIC_REFS["yom kippur"]) & set(refs)
+        assert set(sefaria_module.TOPIC_REFS["work on shabbat"]) <= set(
+            sefaria_module._match_topic_refs("Can I work on Shabbat?"))
+
+    def test_keywords_match_only_at_word_start(self):
+        assert sefaria_module._match_topic_refs("And what if I forget?") == []
+        assert sefaria_module._match_topic_refs("Is breakfast allowed?") == []
+        assert sefaria_module._match_topic_refs("Shabbat's candles") == (
+            sefaria_module._match_topic_refs("shabbat"))
