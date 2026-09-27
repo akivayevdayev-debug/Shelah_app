@@ -16,6 +16,7 @@ discipline rather than a simplified model of it.
 from __future__ import annotations
 
 import json
+from pathlib import Path
 import threading
 import time
 from types import SimpleNamespace
@@ -341,6 +342,9 @@ class TestAtomicSwapFreshnessRace:
 
         monkeypatch.setattr(
             sefaria_library_module, "_LIBRARY_REPORT_PATH", _FakeReportPath())
+        # Only the report's mtime is in play here, not the reinstatement file's.
+        monkeypatch.setattr(
+            sefaria_library_module, "_LIBRARY_REINSTATED_PATH", Path("/nonexistent/reinstated.json"))
 
         a_result = {}
 

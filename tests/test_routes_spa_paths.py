@@ -356,6 +356,20 @@ class TestLegacyQueryRedirect:
     def test_only_the_root_path_is_redirected(self, test_client):
         assert test_client.get("/about?text=Genesis.1").status_code != 308
 
+    @pytest.mark.parametrize("path, canonical", [
+        ("/settings?text=Genesis.1", "/text/Genesis.1"),
+        ("/profile?prayer=Havdalah", "/prayer/Havdalah"),
+        ("/settings?community=Ashkenaz", "/community/Ashkenaz"),
+    ])
+    def test_the_other_shell_routes_keep_the_query_canonical(self, test_client, path, canonical):
+        """/settings and /profile serve the same shell as / but aren't
+        redirected, so page_meta.query_meta still names the canonical --
+        the same path the redirect on / would have gone to."""
+        response = test_client.get(path)
+        assert response.status_code == 200
+        html = response.get_data(as_text=True)
+        assert f'<link rel="canonical" href="https://shelah-app.vercel.app{canonical}">' in html
+
 
 class TestSiddurPaths:
     """/siddur/<rite>[/<service>[/<section>]] (backend/routes_spa_paths.py
