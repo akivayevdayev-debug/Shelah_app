@@ -71,8 +71,9 @@ class TestSanitizing:
 class TestWhenTags:
     @pytest.mark.parametrize("text, tags", [
         ("בראש חודש ובחול המועד אומרים:", ["rosh-chodesh", "chol-hamoed-pesach", "chol-hamoed-sukkot"]),
-        ('בחוה"מ פסח:', ["chol-hamoed-pesach", "pesach"]),
-        ("חוה''מ סוכות", ["chol-hamoed-sukkot", "sukkot"]),
+        ('בחוה"מ פסח:', ["chol-hamoed-pesach"]),
+        ("חוה''מ סוכות", ["chol-hamoed-sukkot"]),
+        ("בסוכות:", ["sukkot"]),  # Birkat Hamazon's Ya'aleh VeYavo: all of Sukkot
         ("בחנוכה ופורים אומרים:", ["chanukah", "purim"]),
         ("בתענית ציבור השליח ציבור אומר בחזרה", ["fast"]),
         ("בשבת אומרים", ["shabbat"]),

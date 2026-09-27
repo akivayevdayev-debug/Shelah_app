@@ -35,7 +35,7 @@ from urllib.parse import quote, urlencode
 from flask import Blueprint, abort, make_response, redirect, request
 
 from app import render_spa_shell
-from backend import page_meta, sefaria_library
+from backend import page_meta, sefaria_library, siddur_data
 
 routes_spa_paths = Blueprint("spa_paths", __name__)
 
@@ -46,7 +46,7 @@ _PRIVATE_QUERY_KEYS = page_meta.PRIVATE_QUERY_KEYS
 # The path views whose value follows the prefix. A trailing slash on any of
 # them (or on /history) is the same page, and one URL per page is what
 # crawlers and shared links should see.
-_VALUE_PREFIXES = ("/text/", "/prayer/", "/community/", "/calendar/", "/answer/", "/a/", "/chat/")
+_VALUE_PREFIXES = ("/text/", "/prayer/", "/community/", "/siddur/", "/calendar/", "/answer/", "/a/", "/chat/")
 # RFC 3986 path characters left as they are when re-encoding the decoded path.
 _PATH_SAFE = "/:@!$&'()*+,;=-._~"
 _QUERY_SAFE = _PATH_SAFE + "?%"
@@ -182,6 +182,34 @@ def text_path(ref):
 def prayer_path(name):
     name, _ = _view_and_tail(name)
     return render_spa_shell(page_meta.prayer_meta(name))
+
+
+# The siddur: /siddur/<rite>[/<service>[/<section>]], then the usual tail.
+# Unlike the free-form views above, every siddur page is known in advance
+# (backend/siddur_data.py), so one it doesn't have is a real 404 -- and the
+# slugs can't be mistaken for tail words (scripts/build_siddur.py keeps them
+# apart).
+@routes_spa_paths.route("/siddur", methods=["GET"])
+def siddur_root():
+    location = siddur_data.siddur_path(siddur_data.DEFAULT_RITE)
+    query = request.query_string.decode("utf-8", "replace")
+    return redirect(location + ("?" + quote(query, safe=_QUERY_SAFE) if query else ""), code=308)
+
+
+@routes_spa_paths.route("/siddur/<path:rest>", methods=["GET"])
+def siddur_page(rest):
+    parts = rest.rstrip("/").split("/")
+    rite, service, section = parts[0], None, None
+    if siddur_data.get_toc(rite) is None:
+        abort(404)
+    i = 1
+    if i < len(parts) and siddur_data.find(rite, parts[i]):
+        service, i = parts[i], i + 1
+        if i < len(parts) and siddur_data.find(rite, service, parts[i]):
+            section, i = parts[i], i + 1
+    if _parse_tail(parts[i:]) is None:
+        abort(404)
+    return render_spa_shell(page_meta.siddur_meta(rite, service, section))
 
 
 @routes_spa_paths.route("/community/<path:name>", methods=["GET"])

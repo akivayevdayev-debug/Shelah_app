@@ -355,3 +355,58 @@ class TestLegacyQueryRedirect:
 
     def test_only_the_root_path_is_redirected(self, test_client):
         assert test_client.get("/about?text=Genesis.1").status_code != 308
+
+
+class TestSiddurPaths:
+    """/siddur/<rite>[/<service>[/<section>]] (backend/routes_spa_paths.py
+    siddur_page): every page is known in advance, so a missing one is a real
+    404; each gets its own title and canonical (page_meta.siddur_meta)."""
+
+    @pytest.mark.parametrize("path, title, canonical", [
+        ("/siddur/edot-hamizrach", "Siddur · Sephardi (Edot HaMizrach)", "/siddur/edot-hamizrach"),
+        ("/siddur/edot-hamizrach/shacharit", "Shacharit", "/siddur/edot-hamizrach/shacharit"),
+        ("/siddur/edot-hamizrach/shacharit/amida", "Amida · Shacharit", "/siddur/edot-hamizrach/shacharit/amida"),
+        ("/siddur/edot-hamizrach/birkat-hamazon", "Birkat Hamazon", "/siddur/edot-hamizrach/birkat-hamazon"),
+        # An overlay after the page: the page is still the page.
+        ("/siddur/edot-hamizrach/mincha/chat/new", "Mincha", "/siddur/edot-hamizrach/mincha"),
+        ("/siddur/edot-hamizrach/arbit/calendar/2026-09-27", "Arbit", "/siddur/edot-hamizrach/arbit"),
+    ])
+    def test_pages_declare_themselves(self, test_client, path, title, canonical):
+        response = test_client.get(path)
+        assert response.status_code == 200
+        head = _head_values(response.get_data(as_text=True))
+        assert head["canonicals"] == [SITE + canonical]
+        assert head["title"] == f"{title} · Sh&#39;elah"
+
+    def test_bare_siddur_redirects_to_the_default_rite_keeping_the_query(self, test_client):
+        response = test_client.get("/siddur?lang=he")
+        assert response.status_code == 308
+        assert response.headers["Location"] == "/siddur/edot-hamizrach?lang=he"
+        assert test_client.get("/siddur").headers["Location"] == "/siddur/edot-hamizrach"
+
+    def test_a_trailing_slash_redirects(self, test_client):
+        response = test_client.get("/siddur/edot-hamizrach/shacharit/")
+        assert response.status_code == 308
+        assert response.headers["Location"] == "/siddur/edot-hamizrach/shacharit"
+
+    @pytest.mark.parametrize("path", [
+        "/siddur/ashkenaz",
+        "/siddur/edot-hamizrach/no-such-service",
+        "/siddur/edot-hamizrach/shacharit/no-such-section",
+        "/siddur/edot-hamizrach/shacharit/amida/extra",
+        # A one-section service has no separate section page.
+        "/siddur/edot-hamizrach/birkat-hamazon/birkat-hamazon",
+        "/siddur/edot-hamizrach/mincha/sefardic",  # a community with no conversation
+    ])
+    def test_pages_the_siddur_lacks_are_404(self, test_client, path):
+        assert test_client.get(path).status_code == 404
+
+    def test_the_sitemap_lists_every_siddur_page(self, test_client):
+        from backend import siddur_data
+
+        body = test_client.get("/sitemap.xml").get_data(as_text=True)
+        services = list(siddur_data.iter_services())
+        sections = sum(len(s["sections"]) for _, s in services if len(s["sections"]) > 1)
+        assert body.count(f"<loc>{SITE}/siddur/") == 1 + len(services) + sections
+        assert f"<loc>{SITE}/siddur/edot-hamizrach/shacharit/amida</loc>" in body
+        assert f"<loc>{SITE}/siddur/edot-hamizrach/birkat-hamazon/birkat-hamazon</loc>" not in body

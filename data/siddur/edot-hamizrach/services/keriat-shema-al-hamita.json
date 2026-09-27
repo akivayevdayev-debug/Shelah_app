@@ -1,4 +1,4 @@
-{"rite": "edot-hamizrach", "service": "keriat-shema-al-hamita", "version": "8d1f969974c4", "sections": [
+{"rite": "edot-hamizrach", "service": "keriat-shema-al-hamita", "version": "79f598a0845c", "sections": [
 {"slug": "keriat-shema-al-hamita", "ref": "Siddur Edot HaMizrach, Bedtime Shema", "lines": [
 {"t": "heading", "he": "קריאת שמע שעל המיטה", "en": "Recitation of Shema' upon the Bed", "n": 1},
 {"t": "instruction", "he": "אם נשאר ער עד אחר חצות יקרא ק\"ש שעל המטה חצי שעה לפני חצות, ואם שכח לקרוא קודם חצות יכול לקרוא כל סדר ק\"ש אחר חצות <small>(רב פעלים ח\"ב ס\"ב)</small>.", "n": 2},
