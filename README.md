@@ -1,5 +1,11 @@
 # Sh'elah
 
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+[![Python 3.14](https://img.shields.io/badge/python-3.14-blue.svg)](.github/workflows/ci.yml)
+[![Deployed on Vercel](https://img.shields.io/badge/deployed%20on-Vercel-black?logo=vercel&logoColor=white)](https://vercel.com)
+[![CI](https://github.com/akivayevdayev-debug/Shelah_app/actions/workflows/ci.yml/badge.svg)](https://github.com/akivayevdayev-debug/Shelah_app/actions/workflows/ci.yml)
+[![Quality gate status](https://sonarcloud.io/api/project_badges/measure?project=akivayevdayev-debug_Shelah_app&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=akivayevdayev-debug_Shelah_app)
+
 **[shelah.org](https://shelah.org)** — the Torah Encyclopedia (literally, that's kind of the whole idea lol)
 
 Sh'elah (שאלה, "question") is a Jewish learning website I built by myself. It does three things:
@@ -8,14 +14,19 @@ Sh'elah (שאלה, "question") is a Jewish learning website I built by myself. I
 2. An AI assistant that answers questions on Jewish law (halacha) by pulling from primary sources like the Torah and other Judaic texts instead of just guessing.
 3. The practical stuff people actually need every day: live prayer times (zmanim) and candle-lighting times based on where you are, and a Hebrew calendar with the weekly Torah portion built in.
 
-Quick but important thing before anything else: **Sh'elah is for learning, not for rulings.** The AI isn't a rabbi and doesn't pretend to be one. Every answer ends by telling you to take real questions to your own rabbi, and I mean that.
+Quick but important thing before anything else: **Sh'elah is for learning, not for rulings.** The AI isn't a rabbi and doesn't pretend to be one. Every answer ends by telling you to take real questions to your own rabbi, and I mean that. (Same goes for legal stuff: ask an actual lawyer, not my website lol.)
 
 ## What it does right now
 
 - Answers halacha questions with the actual sources it used cited, and always points you back to your own rabbi for anything that's a real ruling.
 - Refuses to touch anything medical, mental-health, or abuse-related. Instead of the AI trying to answer, it sends you to real help. Halacha touches sensitive stuff, and a chatbot is the wrong thing to be answering those questions.
 - Has safeguards against weird off-topic questions and prompt injection (because we don't want the site getting hacked lol).
-- A Torah/Judaic text library with commentary, word translations, and community-specific customs.
+- A Torah/Judaic text library with commentary and word translations, shown in English and Hebrew side by side (with proper right-to-left layout for the Hebrew).
+- Community-aware answers and customs for 14 traditions: Ashkenaz, Sefardic, Yemenite (Teimani), Moroccan, Persian, Syrian, Bukharian, Iraqi, Ethiopian, Georgian, Greek/Romaniote, Mountain Jewish (Kavkazi), Turkish/Ottoman Sefardic, and more as I add them.
+- Prayer services (Shacharit, Mincha, Maariv) that know about your community's nusach.
+- Daily study stuff like Daf Yomi and Mishna Yomit, pulled live from Hebcal.
+- Bookmarks and saved preferences once you sign in.
+- You can install it like an app (it's a PWA), and the core reading stuff works offline.
 - Live zmanim and candle-lighting times based on your real location, including fast start/end times and the right times on holidays.
 - A Hebrew calendar with the parashah, plus holiday cards with real clock times and links straight into the text.
 - Works in English and Hebrew, light and dark mode, and on desktop, tablets, and phones.
@@ -149,21 +160,88 @@ Go to [shelah.org](https://shelah.org) and:
 
 If anything at all is broken, email me at **akiva.yevda@gmail.com** and I'll try my best to fix it as soon as I can.
 
+## How the AI works (and how it stays in its lane)
+
+The `/ask` endpoint runs a retrieval pipeline: before the model sees your question at all, `backend/rag.py` pulls in live Sefaria results, the 14-community customs data, and your own saved context (if you're signed in). **Gemini is the main model, and Claude is the automatic backup** if Gemini errors out or is down (`backend/claude.py`). Both get the exact same guardrails, and there are tests that make sure that stays true.
+
+On top of that there's a tool-use layer (`backend/ai_tools.py`, 22 tools) so the AI can go fetch texts, zmanim, calendar dates, and Hebrew-date math when it actually needs them, instead of everything getting shoved into the prompt every time. It's behind the `AI_AGENTIC_TOOLS` flag. Details in [docs/AI_TOOLS.md](docs/AI_TOOLS.md).
+
+**Where answers are allowed to come from**, in order (this is baked into the system prompt, `CORE_SYSTEM_PROMPT` in `backend/claude.py`):
+
+1. Direct, chapter-level Sefaria citations (Talmud, Tanakh, Shulchan Aruch, Mishneh Torah, the major commentaries)
+2. Broader keyword evidence from Sefaria, HebrewBooks, and Halachipedia
+3. Acharonim and modern poskim (19th–21st century responsa)
+4. The model's own knowledge, ONLY when 1–3 come up empty or clearly contradict each other
+
+General web search (like Wikipedia) is a last resort for when the texts and the calendar math genuinely can't answer something, and it's never allowed to be the only basis for a halachic answer.
+
+**The guardrails:**
+
+- Every answer carries a disclaimer you can't dismiss ("Please consult with your local Rabbi for a final ruling"), both in the AI window and in the reader. The AI is never allowed to claim it's a rabbi or that anything it says is a binding ruling (`NO_IMPERSONATION_DIRECTIVE`).
+- A safety classifier (`classify_safety()` in `backend/claude.py`) catches medical, mental-health/self-harm, abuse/minor-safety, and dangerous/illegal stuff, and swaps the answer for a much more prominent referral to real help.
+- Minimum age is 13+ (16+ in the EU/UK), with an age confirmation. There's also an age-appropriate output layer, so sensitive topics (like niddah) stay clinical and educational instead of explicit, without dumbing down the sourcing. The whole policy is in [docs/AGE_AND_SAFETY_POLICY.md](docs/AGE_AND_SAFETY_POLICY.md).
+- Prompt injection defenses, Turnstile in front of the AI endpoint, sanitized links in answers (after the malicious-link thing from devlog 5 :|), sitewide rate limiting, and the per-user daily budget.
+- The full "here's what AI we use and how we handle your data" disclosure lives at [/ai-disclosure](https://shelah.org/ai-disclosure).
+
 ## The stack
 
-- **Backend:** Flask + FastAPI together. FastAPI handles the async AI `/ask` pipeline and Flask handles everything else (it's mounted inside the FastAPI app). New routes live in `backend/` as their own modules, not in `app.py`, which is already way too big.
-- **Hosting:** Vercel, as a serverless function.
+- **Backend:** Flask + FastAPI together. FastAPI handles the async AI `/ask` pipeline and Flask handles everything else (it's mounted inside the FastAPI app). New routes live in `backend/` as their own blueprints, not in `app.py`, which is still bigger than I'd like.
+- **Hosting:** Vercel, as one serverless function.
 - **Database:** Supabase (Postgres), with row-level security so users can only see their own stuff.
 - **Auth:** Clerk.
-- **AI:** Gemini is the main model, and Claude is the backup if Gemini fails. Both go through the same guardrails (there are tests for that). The AI uses tools to fetch texts, zmanim, and calendar data when it needs them instead of getting everything shoved into the prompt.
-- **Texts and calendar data:** Sefaria for texts, Hebcal for the calendar. Plus 16 community customs datasets in `customs/`.
-- **Keeping it alive:** Turnstile for bot checks, Sentry and a Discord webhook for errors, SonarCloud for code quality, and a lot of CI.
+- **AI:** Gemini first, Claude as backup, with tool use (see above).
+- **Texts and calendar data:** Sefaria for texts, Hebcal for the calendar and zmanim, MyMemory / Google Translate for the translation fallback, plus the 14 community customs datasets in `customs/`.
+- **Frontend:** plain HTML/CSS/JS (ES modules), Tailwind + DaisyUI, marked + DOMPurify for rendering AI answers safely.
+- **Keeping it alive:** Turnstile for bot checks, Sentry and a Discord webhook for errors, circuit breakers on every external service, SonarCloud for code quality, and a lot of CI.
 
-If you want the deep technical details, they're in [`docs/`](docs/). [SERVICE_ARCHITECTURE.md](docs/SERVICE_ARCHITECTURE.md) is the best place to start, [AI_TOOLS.md](docs/AI_TOOLS.md) covers the AI's tools, and [AGE_AND_SAFETY_POLICY.md](docs/AGE_AND_SAFETY_POLICY.md) covers the safety stuff.
+### How it's wired together
+
+```
+Browser
+  |
+  v
+Vercel (catch-all route → asgi.py)
+  |
+  v
+asgi.py  (FastAPI app)
+  |-- async /ask pipeline (auth → rate limit → budget check → RAG / tools → AI → response)
+  |-- WSGIMiddleware → Flask app (app.py)
+        |-- HTML pages + /api/* endpoints
+        |-- backend/ blueprints for each area of the site
+              |
+              |-- Supabase    (preferences, bookmarks, conversations, ask history,
+              |                community knowledge, ai_usage_log)
+              |-- Sefaria API (texts, search, library tree)
+              |-- Hebcal API  (calendar, zmanim, parashah)
+              |-- Gemini      (main AI)
+              |-- Claude      (backup AI)
+              |-- MyMemory / Google Translate (translation fallback)
+```
+
+The full breakdown is in [docs/SERVICE_ARCHITECTURE.md](docs/SERVICE_ARCHITECTURE.md). The important pieces:
+
+| File | What it does |
+|---|---|
+| `app.py` | The Flask app: page routes, middleware, and wiring up the blueprints |
+| `asgi.py` | FastAPI wrapper that owns the async `/ask` pipeline and mounts Flask |
+| `backend/ask_pipeline.py` | The `/ask` flow itself, including the agentic tool loop |
+| `backend/ai_tools.py` | The AI's tool registry |
+| `backend/claude.py` | Model calls (Gemini first, Claude backup), prompts, safety classifier |
+| `backend/rag.py` | Builds the context the AI gets before answering |
+| `backend/auth.py` | Clerk JWT verification |
+| `backend/sefaria.py`, `backend/sefaria_library.py` | Sefaria client, library tree, text browsing |
+| `backend/calendar_service.py`, `backend/zmanim_engine.py` | Calendar, Daf Yomi, and zmanim math |
+| `backend/customs.py` | Loads and matches community customs |
+| `backend/cost_meter.py`, `backend/cost_gates.py` | AI spend tracking and the daily budget checks |
+| `backend/rate_limit.py` | The sitewide rate limiter (with its own circuit breaker) |
+| `backend/health_check.py` | Circuit breakers for external APIs |
+| `backend/cache.py`, `backend/cache_policy.py` | The shared caching layer and browser cache headers |
+| `backend/turnstile.py` | Bot check |
+| `backend/routes_*.py` | Blueprints: library, calendar, community, prayers, user, privacy, conversations, answer sharing, feedback, legal, webhooks, devtools, and the deep-link paths |
 
 ## Running it locally
 
-You'll need Python 3.14 (that's what CI runs), plus your own Clerk project, Supabase project, and a Gemini and/or Anthropic API key.
+You'll need Python 3.14 (that's what CI runs and what the lockfiles are built against, pinned in `.python-version`; 3.12+ might work but I haven't checked), plus your own Clerk project, Supabase project, and a Gemini and/or Anthropic API key.
 
 ```bash
 git clone https://github.com/akivayevdayev-debug/Shelah_app.git
@@ -176,7 +254,9 @@ pip install -r requirements.txt
 cp .env.example .env           # then fill in your keys
 ```
 
-Every environment variable is documented in [`docs/ENVIRONMENT.md`](docs/ENVIRONMENT.md). Heads up: `.env.example` is set up for local dev (auth enforcement is off by default), so don't ship it to production as-is.
+Every environment variable (required vs optional, defaults, what each one does) is documented in [`docs/ENVIRONMENT.md`](docs/ENVIRONMENT.md). The ones you actually need to get going: `FLASK_SECRET_KEY`, `GEMINI_API_KEY` and/or `ANTHROPIC_API_KEY`, `CLERK_PUBLISHABLE_KEY`, `CLERK_JWT_ISSUER`, `SUPABASE_URL`, `SUPABASE_PUBLISHABLE_KEY`, and `SUPABASE_SECRET_KEY`.
+
+Heads up: `.env.example` is set up for local dev (`CLERK_ENFORCE_AUTH=false`), so don't ship it to production as-is. Production turns auth enforcement on automatically anyway, but set `DAILY_BUDGET_USD` and `CRON_SECRET` yourself before a real deploy. And never commit real keys (ask me how I know °~°).
 
 Then run it:
 
@@ -193,14 +273,95 @@ pip install -r requirements-dev.txt
 pytest
 ```
 
-The tests run fully offline. Everything external (Sefaria, Hebcal, Clerk, Supabase, Gemini, Anthropic) is mocked, so you don't need any real keys. The build fails if backend coverage drops under 85%.
+- **Fully offline.** `tests/conftest.py` sets fake credentials and turns off auth enforcement, so everything external (Sefaria, Hebcal, Clerk, Supabase, Gemini, Anthropic) is mocked and you don't need any real keys.
+- **Coverage gate.** `pytest.ini` fails the build if `backend/` coverage drops under 85%. That number only goes up, never down.
+- **Golden-master rule.** Before I move or refactor anything, I write a test that pins down what it does *right now*, make sure it passes on the old code, then make the change and make sure the same test still passes. (Unless the whole point of the change is fixing that exact behavior, in which case the test gets flipped on purpose.) That's how I pulled a ton of code out of `app.py` into `backend/` without breaking stuff. More in `plan.md` §6.2.
+- **CI** (`.github/workflows/ci.yml`) runs the whole suite with coverage, plus `ruff` (non-blocking for now), `pre-commit` with gitleaks + bandit for secrets and security (blocking), `pip-audit` for vulnerable dependencies (non-blocking for now), JS tests, a pa11y WCAG 2.1 AA scan of the main and legal pages in both light and dark mode, and SonarCloud. There's also a scheduled RLS check (`rls-verify.yml`) that makes sure the database access rules are still doing their job.
+
+## Deploying
+
+### Vercel (what shelah.org runs on)
+
+`vercel.json` sends every request to `asgi.py`. All the env vars go in the Vercel dashboard (Settings → Environment Variables). Vercel Cron also hits the budget-check and data-retention jobs on a schedule (that's what `CRON_SECRET` is for).
+
+```bash
+vercel link       # first time only
+vercel deploy     # preview
+vercel --prod     # production
+```
+
+### Hosting it yourself
+
+```bash
+uvicorn asgi:fastapi_app --host 0.0.0.0 --port 8000 --workers 4    # ASGI
+# or
+gunicorn app:app --bind 0.0.0.0:5001 --workers 4                   # WSGI (no async /ask)
+```
+
+## Where everything lives
+
+```
+.
+├── app.py                  Flask app: pages, middleware, blueprint wiring
+├── asgi.py                 FastAPI wrapper, owns the async /ask pipeline
+├── vercel.json             Vercel routing + cron jobs
+├── requirements*.txt       Python deps (+ hash-locked *.lock.txt versions)
+│
+├── backend/                Everything server-side: AI, auth, caching, rate limits,
+│   │                       Sefaria, calendar, customs, and all the routes_*.py blueprints
+│   └── utils/              text_engine.py + search_provider.py (pulled out of app.py)
+│
+├── templates/              index.html (the main app) + about, help, glossary,
+│                           legal pages, 404
+├── static/
+│   ├── js/                 ES modules: router, reader, AI/conversation UI, zmanim, calendar...
+│   ├── css/                tokens.css (design tokens) + per-feature stylesheets
+│   ├── service-worker.js   Offline support
+│   └── manifest.webmanifest
+│
+├── customs/                The 14 community customs datasets (+ schema.json)
+├── docs/                   All the deep documentation (see below)
+├── scripts/                Utility scripts + sql/ (Supabase schema and RLS policies)
+├── tests/                  Python tests
+└── tests_js/               JS tests
+```
+
+## Docs
+
+| Doc | What's in it |
+|---|---|
+| [SERVICE_ARCHITECTURE.md](docs/SERVICE_ARCHITECTURE.md) | How the modules fit together and how a request flows through them |
+| [API.md](docs/API.md) | Every route: method, path, params, auth, response |
+| [ENVIRONMENT.md](docs/ENVIRONMENT.md) | Every environment variable |
+| [AI_TOOLS.md](docs/AI_TOOLS.md) | The AI's tool-use layer and all 22 tools |
+| [OBSERVABILITY.md](docs/OBSERVABILITY.md) | Logging, request IDs, Sentry, cost tracking, circuit breakers |
+| [FRONTEND.md](docs/FRONTEND.md) | Templates, theming, motion rules, JS module map |
+| [DATABASE.md](docs/DATABASE.md) | The Supabase schema (generated from the live database) |
+| [DEVELOPER_NOTES.md](docs/DEVELOPER_NOTES.md) | Dev notes and conventions |
+| [SECURITY.md](docs/SECURITY.md) | Security findings: secrets, RLS, CSP, dependencies, input validation, auth, and how to report a vulnerability |
+| [PRIVACY_OPERATIONS.md](docs/PRIVACY_OPERATIONS.md) | Account deletion flow, data retention, GDPR records, breach response |
+| [DPIA.md](docs/DPIA.md) | Data Protection Impact Assessment for the AI |
+| [RUNBOOKS.md](docs/RUNBOOKS.md) | Deploying, rolling back, incidents, backups, spend guardrails |
+| [AGE_AND_SAFETY_POLICY.md](docs/AGE_AND_SAFETY_POLICY.md) | Age policy and the age-appropriate AI output layer |
+| [LAUNCH_CHECKLIST.md](docs/LAUNCH_CHECKLIST.md) | The launch checklist, checked off against real evidence |
+| [ACCESSIBILITY_AUDIT.md](docs/ACCESSIBILITY_AUDIT.md) | WCAG 2.1 AA color-contrast audit, light and dark |
+| [CONTENT_QA.md](docs/CONTENT_QA.md) | How religious accuracy gets reviewed, and the "not rabbinically supervised" disclosure |
+
+Old docs from earlier versions of the project are in [docs/archive/](docs/archive/). I kept them instead of deleting them. There's also a [CHANGELOG.md](CHANGELOG.md) if you want the version-by-version history.
+
+## Contributing
+
+It's just me right now, so there isn't a big contribution process, but issues, bug reports, and small PRs are totally welcome! [CONTRIBUTING.md](CONTRIBUTING.md) has the dev setup, how to run the tests, and the coding rules this repo follows (`.agents/ENGINEERING_RULES.md`). Everyone's expected to follow the [code of conduct](CODE_OF_CONDUCT.md) (adapted from the Contributor Covenant v2.1). Basically, be nice.
 
 ## Found a security issue?
 
-Please don't open a public issue for it. The contact info and details are in [`docs/SECURITY.md`](docs/SECURITY.md).
+Please **don't** open a public issue for it. Email the address in [docs/SECURITY.md](docs/SECURITY.md) (under "Reporting a vulnerability") with the details and, if you can, how to reproduce it. That file also shows up in this repo's Security tab.
 
 ## License and credits
 
-My code is [MIT licensed](LICENSE). The website's own text, branding, and media are © 2026, all rights reserved.
+- **My code:** [MIT licensed](LICENSE).
+- **The website's content:** all the text, branding, and media on the Sh'elah site are © 2026, all rights reserved.
 
-The texts themselves come from Sefaria, and the calendar data comes from Hebcal. Those (and everything else Sh'elah uses, like Wikipedia, Halachipedia, HebrewBooks, and the fonts and libraries) keep their own licenses, which my MIT license doesn't change. All of that is listed in [THIRD_PARTY_LICENSES.md](THIRD_PARTY_LICENSES.md). Huge thanks to Sefaria especially. None of this would exist without them.
+Sh'elah uses and shows a lot of third-party content that keeps its own license, and my MIT license **doesn't** relicense any of it: Sefaria (a mix of CC0, CC-BY, CC-BY-NC, and public domain, depending on the text), Hebcal, Wikipedia (CC-BY-SA), Halachipedia and HebrewBooks, the SILEOT font, and MIT-licensed libraries like Tailwind CSS, DaisyUI, marked, and DOMPurify. Full attributions are in [THIRD_PARTY_LICENSES.md](THIRD_PARTY_LICENSES.md).
+
+Huge thanks to Sefaria especially. None of this would exist without them.
