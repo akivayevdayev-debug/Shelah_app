@@ -295,7 +295,7 @@ const _ORIGIN_SCALE = { popover: 0.5 };
 
 function _originMorph(mover, origin, preset) {
     const scale = _ORIGIN_SCALE[preset];
-    if (!mover || scale === undefined || !origin || !origin.isConnected) return null;
+    if (!mover || scale === undefined || !origin?.isConnected) return null;
     // Measure the settled box: an interrupted exit can leave a transform behind.
     mover.style.transform = 'none';
     const o = origin.getBoundingClientRect();
