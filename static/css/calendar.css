@@ -131,6 +131,7 @@ body.theme-dark {
 .fc .fc-daygrid-day {
     background: var(--cal-cell-bg);
     transition: background var(--motion-dur-fast) var(--motion-ease-out);
+    cursor: pointer; /* tapping a day lists its events below the grid (see SELECTED DAY) */
 }
 
 .fc .fc-daygrid-day:hover {
@@ -367,10 +368,6 @@ body.theme-dark {
 /* in templates/index.html). Colours come from theme      */
 /* tokens, so light, dark and RTL need no per-theme rules. */
 /* ═══════════════════════════════════════════════════════ */
-
-.fc .fc-daygrid-day {
-    cursor: pointer;
-}
 
 /* Shape-based (outline), not colour-only, and distinct from the 2px today ring. */
 .fc .fc-daygrid-day.cal-day-selected {
