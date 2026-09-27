@@ -13,6 +13,7 @@ Alternatives pipeline:
 
 import re
 import time
+from concurrent.futures import ThreadPoolExecutor
 from urllib.parse import unquote, quote, urlparse
 
 import requests as _requests
@@ -742,9 +743,19 @@ def _lookup_hebrew_word_in_local_glossary(variants):
 def _lookup_hebrew_word_in_sefaria_lexicon(variants):
     """Stage 2 of _lookup_hebrew_word_meaning(): Sefaria lexicon lookup.
     Split out (SonarCloud python:S3776).
+
+    Each variant is its own ~3s-timeout network round trip; on a miss (no
+    variant matches, the common case for a word outside the lexicon) up to
+    8 of them used to run one after another. Probed concurrently instead,
+    so the stage costs about one round trip rather than len(variants) of
+    them -- this and _lookup_hebrew_word_via_online_translation() below are
+    what made selecting an unfamiliar word feel like it hung.
     """
-    for variant in variants:
-        lex_def, lex_src = _lookup_sefaria_lexicon(variant)
+    if not variants:
+        return "", ""
+    with ThreadPoolExecutor(max_workers=len(variants)) as pool:
+        results = list(pool.map(_lookup_sefaria_lexicon, variants))
+    for lex_def, lex_src in results:
         if lex_def:
             return lex_def, lex_src or "sefaria-lexicon"
     return "", ""
@@ -755,16 +766,19 @@ def _lookup_hebrew_word_via_online_translation(variants, clean_word):
     translation, tried per-variant and then against the full clean word,
     rejecting results that look like transliteration rather than an
     actual English meaning. Split out (SonarCloud python:S3776).
+
+    Each candidate can cost up to ~5s (Google then MyMemory) -- see
+    _translate_hebrew_text_online()'s own docstring. Probed concurrently
+    (same rationale as the lexicon stage above), then resolved in the
+    original variants-first, clean_word-last preference order so the
+    result matches what the sequential version would have picked.
     """
-    for variant in variants:
-        generated, source = _translate_hebrew_text_online(variant)
+    candidates = [*variants, clean_word]
+    with ThreadPoolExecutor(max_workers=len(candidates)) as pool:
+        results = list(pool.map(_translate_hebrew_text_online, candidates))
+    for generated, source in results:
         if generated and not _looks_like_transliteration(generated):
             return generated, source or "automatic-translation"
-
-    generated, source = _translate_hebrew_text_online(clean_word)
-    if generated and not _looks_like_transliteration(generated):
-        return generated, source or "automatic-translation"
-
     return "", ""
 
 
@@ -805,12 +819,27 @@ def _collect_hebrew_word_meaning_options(raw_word, primary_meaning, options, add
     for candidate in _parse_meaning_candidates(primary_meaning):
         add_option(candidate)
 
-    for variant in variants[:2]:
-        lex_def, _ = _lookup_sefaria_lexicon(variant)
+    probe_variants = variants[:2]
+    if not probe_variants:
+        return
+
+    # Same fan-out as the primary lookup's stages above: the two lexicon
+    # probes don't depend on each other, so run them together instead of
+    # one after another.
+    with ThreadPoolExecutor(max_workers=len(probe_variants)) as pool:
+        lex_results = list(pool.map(_lookup_sefaria_lexicon, probe_variants))
+
+    pending_translation = []
+    for variant, (lex_def, _) in zip(probe_variants, lex_results):
         if lex_def:
             add_option(lex_def)
         elif len(options) < 2:
-            translated, _ = _translate_hebrew_text_online(variant)
+            pending_translation.append(variant)
+
+    if pending_translation:
+        with ThreadPoolExecutor(max_workers=len(pending_translation)) as pool:
+            translations = list(pool.map(_translate_hebrew_text_online, pending_translation))
+        for translated, _ in translations:
             add_option(translated)
 
 
