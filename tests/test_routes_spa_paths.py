@@ -229,17 +229,30 @@ class TestPageMeta:
         ("/prayer/Upon_Arising", "/prayer/Upon_Arising", "Upon Arising"),
         ("/prayer/birkat+hamazon", "/prayer/birkat_hamazon", "birkat hamazon"),
         ("/calendar/2026-09-25", "/calendar/2026-09-25", "Jewish calendar 2026-09-25"),
-        ("/?text=Genesis.1", "/text/Genesis.1", "Genesis 1"),
-        ("/?prayer=Upon_Arising", "/prayer/Upon_Arising", "Upon Arising"),
         ("/community/Ashkenaz", "/community/Ashkenaz", "Ashkenaz Community Customs"),
         ("/community/Spanish%20and%20Portuguese", "/community/Spanish_and_Portuguese", "Spanish and Portuguese Community Customs"),
-        ("/?community=Sefardic", "/community/Sefardic", "Sefardic Community Customs"),
     ])
     def test_library_urls_declare_themselves(self, test_client, path, canonical, title):
         head = _head_values(test_client.get(path).get_data(as_text=True))
         assert head["canonicals"] == [SITE + canonical]
         assert head["og_url"] == SITE + canonical
         assert head["title"] == head["og_title"] == f"{title} · Sh&#39;elah"
+
+    @pytest.mark.parametrize("path, location, title", [
+        ("/?text=Genesis.1", "/text/Genesis.1", "Genesis 1"),
+        ("/?prayer=Upon_Arising", "/prayer/Upon_Arising", "Upon Arising"),
+        ("/?community=Sefardic", "/community/Sefardic", "Sefardic Community Customs"),
+    ])
+    def test_legacy_query_links_redirect_to_the_page_that_declares_itself(
+        self, test_client, path, location, title,
+    ):
+        response = test_client.get(path)
+        assert response.status_code == 308
+        assert response.headers["Location"] == location
+        head = _head_values(test_client.get(location).get_data(as_text=True))
+        assert head["canonicals"] == [SITE + location]
+        assert head["og_url"] == SITE + location
+        assert head["title"] == f"{title} · Sh&#39;elah"
 
     @pytest.mark.parametrize("path", ["/", "/settings", "/profile", "/?lang=he", "/calendar/not-a-date", "/text/_", "/prayer/_", "/community/_"])
     def test_home_keeps_the_site_title_and_root_canonical(self, test_client, path):
@@ -314,3 +327,31 @@ def test_vercel_json_has_no_catch_all_rewrite():
     config = json.loads((REPO_ROOT / "vercel.json").read_text(encoding="utf-8"))
     assert "rewrites" not in config
     assert "routes" not in config
+
+
+class TestLegacyQueryRedirect:
+    """``/?text=`` / ``?prayer=`` / ``?community=`` 308 to their path form, with
+    the same precedence page_meta uses for the canonical tag."""
+
+    @pytest.mark.parametrize("path, location", [
+        ("/?prayer=Upon_Arising&text=Genesis.1", "/text/Genesis.1"),
+        ("/?community=Sefardic&prayer=Upon_Arising", "/prayer/Upon_Arising"),
+        ("/?prayer=birkat%20hamazon", "/prayer/birkat_hamazon"),
+        ("/?text=Shulchan+Arukh,+Orach+Chayim+345:1", "/text/Shulchan_Arukh,_Orach_Chayim.345.1"),
+        ("/?text=Genesis.1&lang=he&layout=parallel", "/text/Genesis.1?lang=he&layout=parallel"),
+    ])
+    def test_precedence_normalisation_and_other_params_are_kept(self, test_client, path, location):
+        response = test_client.get(path)
+        assert response.status_code == 308
+        assert response.headers["Location"] == location
+
+    @pytest.mark.parametrize("path", ["/?text=Genesis.1&chat=x", "/?text=", "/?lang=he", "/"])
+    def test_private_empty_or_unrelated_queries_stay_on_the_shell(self, test_client, path):
+        assert test_client.get(path).status_code == 200
+
+    def test_head_redirects_and_post_is_left_alone(self, test_client):
+        assert test_client.head("/?text=Genesis.1").status_code == 308
+        assert test_client.post("/?text=Genesis.1").status_code != 308
+
+    def test_only_the_root_path_is_redirected(self, test_client):
+        assert test_client.get("/about?text=Genesis.1").status_code != 308
