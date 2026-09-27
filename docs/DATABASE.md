@@ -229,6 +229,11 @@ migration-tracking table, ordering convention, or rollback SQL — this doc
 plus each file's own header comment (provenance, dependencies) is the
 closest thing to one.
 
+`supabase_migrations.schema_migrations` exists but stays empty
+([`scripts/sql/supabase_migrations_history_setup.sql`](../scripts/sql/supabase_migrations_history_setup.sql)):
+the dashboard's Migrations page and the CLI read it, and without it every
+such read logged a 42P01 in postgres_logs. The app never reads it.
+
 ---
 
 ## Data Retention

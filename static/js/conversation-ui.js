@@ -150,10 +150,11 @@ function clerkConfigured() {
     return Boolean(window.APP_CLERK && window.APP_CLERK.publishableKey);
 }
 
+// The community list lives in index.html's <template id="communityOptions">.
 function communityOptions() {
-    const select = document.getElementById("communityLensSelect");
-    if (!select) return [];
-    return [...select.options].map((o) => ({ value: o.value, en: o.dataset.en || o.value, he: o.dataset.he || o.value }));
+    const list = document.getElementById("communityOptions");
+    if (!list) return [];
+    return [...list.content.querySelectorAll("option")].map((o) => ({ value: o.value, en: o.dataset.en || o.value, he: o.dataset.he || o.value }));
 }
 
 function currentMode() {
@@ -1260,6 +1261,23 @@ function maybeLoadList(force = false) {
 
 // ── settings menu ──────────────────────────────────────────────────────
 
+// The chat menu is the one place to pick the AI mode and community, so a
+// choice there is also the saved default (index.html's ShelahPrefs).
+function savePref(key, value) {
+    if (value) window.ShelahPrefs?.set(key, value);
+}
+
+// Quick Settings' "AI settings": open the panel, then its menu. The menu
+// opens a task later so the click that got here can't close it again
+// (onDocumentClick closes the menu on clicks outside it).
+async function openSettings(trigger = null) {
+    const size = ui.open && ui.size !== "mini" ? null : "overlay";
+    await openConversation({ trigger, size });
+    setTimeout(() => {
+        if (ui.open && !ui.menuOpen) openMenu(els.menuBtn);
+    }, 0);
+}
+
 function openMenu(trigger) {
     if (ui.menuOpen) {
         closeMenu();
@@ -1714,6 +1732,7 @@ function onDocumentClick(event) {
     const modeBtn = target.closest("[data-conv-mode]");
     if (modeBtn && els.menu.contains(modeBtn)) {
         ui.mode = modeBtn.dataset.convMode;
+        savePref("mode", ui.mode);
         render();
         return;
     }
@@ -1851,6 +1870,7 @@ function bindEvents() {
     els.minhagSelect.addEventListener("change", () => {
         ui.routeMinhag = null;
         store.setDraftMinhag(els.minhagSelect.value);
+        savePref("community", els.minhagSelect.value);
     });
     els.themeBtn?.addEventListener("click", () => {
         const dark = document.documentElement.getAttribute("data-theme") === "dark";
@@ -1982,6 +2002,7 @@ export function installConversationUI({ storeFactory = createConversationStore }
         close: () => closePanel(),
         setSize,
         openHistory: (trigger) => openHistoryPop(trigger),
+        openSettings,
         getStore: () => store,
         markAiUsed,
         askFromSearch,
