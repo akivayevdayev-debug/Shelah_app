@@ -610,8 +610,8 @@
     "semantic_hash": ""
   },
   "templates/index.html": {
-    "mtime": 1790477950.928585,
-    "ast_hash": "3917a38c284f4e37cbddd6117a00751d",
+    "mtime": 1790490004.849928,
+    "ast_hash": "69165672f21c1149631f806e9a383c49",
     "semantic_hash": ""
   },
   "templates/privacy.html": {
@@ -830,8 +830,8 @@
     "semantic_hash": ""
   },
   "backend/helpers.py": {
-    "mtime": 1790477561.2538803,
-    "ast_hash": "3d2a54243aea676f5bc660af99563430",
+    "mtime": 1790489458.4993632,
+    "ast_hash": "fcd6cbdd8ce420bc1a7bdedcc6dca4d6",
     "semantic_hash": ""
   },
   "tests/test_cache.py": {
