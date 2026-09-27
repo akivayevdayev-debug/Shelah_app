@@ -50,6 +50,7 @@ from backend.helpers import (
     _sanitize_answer_mode,
     _canonicalize_community_name,
     _compact_ai_sources,
+    extract_ai_cited,
 )
 
 from app import (
@@ -89,6 +90,8 @@ _HISTORY_ID_RE = re.compile(r"^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[
 # the same way and shows at most six).
 _CITED_SOURCE_RE = re.compile(r"^(.*?)\s[–—]\s(.*)$", re.S)
 _MAX_SEED_CITATIONS = 6
+# Earlier user questions a follow-up's source retrieval draws on.
+_MAX_RETRIEVAL_CONTEXT_QUESTIONS = 3
 _AI_PAUSED_MESSAGE = "AI answers are paused for today. Please try again after midnight UTC."
 
 
@@ -636,6 +639,42 @@ def _display_sources_to_citations(display_sources):
     return citations
 
 
+def _ref_key(ref):
+    """A ref reduced for matching the AI's spelling of a source against
+    Sefaria's: case, punctuation and the common Aruch/Arukh transliteration
+    ("Shulchan Aruch" vs Sefaria's "Shulchan Arukh") are ignored."""
+    words = re.findall(r"[a-z0-9]+", str(ref or "").lower())
+    return " ".join("arukh" if w == "aruch" else w for w in words)
+
+
+def _answer_citations(structured_payload, display_sources):
+    """A follow-up turn's citation rows: the sources its answer actually
+    cites, the same "Ref — note" rows a thread's first turn gets from
+    ask_history (_seed_citations()). The retrieved sources were searched
+    for the follow-up's own words alone, so a short follow-up ("and on
+    Shabbat?") got the same generic hits every time instead of what the
+    answer used. A cited ref that was also retrieved gains that source's
+    Hebrew text and link. Falls back to the retrieved sources when the
+    answer names none."""
+    retrieved = _display_sources_to_citations(display_sources)
+    cited = _seed_citations(extract_ai_cited(structured_payload))
+    if not cited:
+        return retrieved
+    by_ref = {_ref_key(c["source_ref"]): c for c in retrieved if c["source_ref"]}
+    citations = []
+    for row in cited:
+        match = by_ref.get(_ref_key(row["source_ref"]))
+        if match:
+            row = {
+                **row,
+                "excerpt_en": row["excerpt_en"] or match["excerpt_en"],
+                "excerpt_he": match["excerpt_he"],
+                "url": match["url"],
+            }
+        citations.append(row)
+    return citations
+
+
 def _store_error_placeholder_message(supabase, conversation_id, user_id):
     """Best-effort status=error assistant message so the thread shows a
     visible, retryable failure instead of silently dropping the turn --
@@ -662,6 +701,20 @@ def _store_error_placeholder_message(supabase, conversation_id, user_id):
     return {"role": "assistant", "content": "", "status": "error", "citations": []}
 
 
+def _earlier_questions(conversation_history, limit=_MAX_RETRIEVAL_CONTEXT_QUESTIONS):
+    """The thread's most recent user questions, newest first, for source
+    retrieval. A follow-up such as "What about for a woman?" names no topic
+    of its own; retrieving on its words alone found nothing and fell back
+    to the same generic refs (Orach Chayim 1) every time, which the answer
+    then cited."""
+    questions = [
+        str(turn.get("content") or "").strip()
+        for turn in reversed(conversation_history or [])
+        if turn.get("role") == "user"
+    ]
+    return [q for q in questions if q][:limit]
+
+
 def _synthesize_and_store_assistant_reply(
     supabase, conversation_id, user_id, question, mode, canonical_lens,
     answer_language, conversation_history,
@@ -674,7 +727,8 @@ def _synthesize_and_store_assistant_reply(
     try:
         engine = get_engine()
         ctx = _collect_ask_question_context(
-            question, canonical_lens, user_id, answer_language, engine)
+            question, canonical_lens, user_id, answer_language, engine,
+            retrieval_context=_earlier_questions(conversation_history))
         result = _dispatch_ask_ai_synthesis_call(
             question, mode, canonical_lens, answer_language, ctx, engine,
             conversation_history=conversation_history,
@@ -692,7 +746,7 @@ def _synthesize_and_store_assistant_reply(
             needs_web_warning = _resolve_ask_web_warning_flag(result, ctx)
             answer_text = _compose_validated_ask_answer(raw_ai_answer, needs_web_warning)
             _store_user_memory_summary(user_id, question, answer_text)
-            citations = _display_sources_to_citations(_compact_ai_sources(ctx["primary_sources"]))
+            citations = _answer_citations(structured_payload, _compact_ai_sources(ctx["primary_sources"]))
 
         message_result = supabase.table(SUPABASE_MESSAGES_TABLE).insert({
             "conversation_id": str(conversation_id),
