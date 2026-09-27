@@ -527,6 +527,13 @@ async def test_get_prayer_text_one_section_service_has_no_section_path(monkeypat
     assert "more_sections" not in result
 
 
+async def test_get_prayer_text_falls_back_when_the_siddur_is_missing(monkeypatch):
+    monkeypatch.setattr(ai_tools.siddur_data, "get_toc", lambda rite: None)
+    monkeypatch.setattr(ai_tools.sefaria_library, "get_index_leaf_refs", lambda name, n: [])
+    result = await ai_tools.execute_tool("get_prayer_text", {"prayer_name": "Shema"})
+    assert result == {"prayer_name": "Shema", "found": False}
+
+
 async def test_get_prayer_text_falls_back_when_a_listed_service_file_is_missing(monkeypatch):
     monkeypatch.setattr(ai_tools.siddur_data, "get_service", lambda rite, slug: None)
     monkeypatch.setattr(ai_tools.sefaria_library, "get_index_leaf_refs", lambda name, n: [])
