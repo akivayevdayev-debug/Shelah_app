@@ -87,6 +87,31 @@ class TestSiddurFull:
         assert response.status_code == 404
 
 
+class TestSiddurSectionRefs:
+    def test_legacy_service_returns_its_refs_without_fetching_text(self, test_client, monkeypatch):
+        from app import SIDDUR_SECTION_MAP
+        import backend.sefaria_library as sefaria_library
+
+        def no_text_fetch(*_args, **_kwargs):
+            raise AssertionError("section-refs must not fetch ref text")
+
+        monkeypatch.setattr(sefaria_library, "get_text", no_text_fetch)
+        response = test_client.get("/api/siddur/section-refs/Upon%20Arising")
+        assert response.status_code == 200
+        assert response.get_json() == {
+            "prayer": "Upon Arising",
+            "sources": SIDDUR_SECTION_MAP["Upon Arising"],
+        }
+
+    def test_unknown_prayer_returns_404(self, test_client, monkeypatch):
+        import backend.sefaria_library as sefaria_library
+
+        monkeypatch.setattr(sefaria_library, "get_index_leaf_refs", lambda *_a, **_k: [])
+        response = test_client.get("/api/siddur/section-refs/FakeNonExistentPrayer")
+        assert response.status_code == 404
+        assert "FakeNonExistentPrayer" in response.get_json()["error"]
+
+
 class TestPrayersListMergesSefariaLiturgy:
     def test_liturgy_books_are_appended_after_the_legacy_services_without_duplicates(
         self, test_client, monkeypatch,
