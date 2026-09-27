@@ -1,0 +1,1664 @@
+{
+ "schema": 1,
+ "rite": {
+  "slug": "edot-hamizrach",
+  "title": {
+   "en": "Sephardi (Edot HaMizrach)",
+   "he": "נוסח עדות המזרח"
+  }
+ },
+ "source": {
+  "index": "Siddur Edot HaMizrach",
+  "provider": "Sefaria (sefaria.org), via the Sefaria-Export bulk dump",
+  "he": {
+   "title": "Shaliehsaboo Edition",
+   "license": "CC0",
+   "source": "https://www.sefaria.org"
+  },
+  "en": {
+   "title": "Sefaria Community Translation",
+   "license": "CC0",
+   "source": "https://www.sefaria.org"
+  }
+ },
+ "occasions": [
+  {
+   "slug": "weekday",
+   "title": {
+    "en": "Weekdays",
+    "he": "ימות החול"
+   },
+   "services": [
+    {
+     "slug": "hashkamat-haboker",
+     "title": {
+      "en": "Hashkamat HaBoker",
+      "he": "סדר השכמת הבוקר"
+     },
+     "gloss": "On waking",
+     "sections": [
+      {
+       "slug": "modeh-ani",
+       "title": {
+        "en": "Modeh Ani",
+        "he": "מודה אני"
+       },
+       "ref": "Siddur Edot HaMizrach, Preparatory Prayers, Modeh Ani",
+       "lines": 4,
+       "english": 4
+      },
+      {
+       "slug": "morning-blessings",
+       "title": {
+        "en": "Morning Blessings",
+        "he": "ברכות השחר"
+       },
+       "ref": "Siddur Edot HaMizrach, Preparatory Prayers, Morning Blessings",
+       "lines": 27,
+       "english": 27
+      },
+      {
+       "slug": "torah-blessings",
+       "title": {
+        "en": "Torah Blessings",
+        "he": "ברכות התורה"
+       },
+       "ref": "Siddur Edot HaMizrach, Preparatory Prayers, Torah Blessings",
+       "lines": 5,
+       "english": 5
+      }
+     ]
+    },
+    {
+     "slug": "shacharit",
+     "title": {
+      "en": "Shacharit",
+      "he": "שחרית לימי החול"
+     },
+     "gloss": "Weekday morning",
+     "sections": [
+      {
+       "slug": "petichat-eliyahu",
+       "title": {
+        "en": "Petichat Eliyahu",
+        "he": "פתיחת אליהו"
+       },
+       "ref": "Siddur Edot HaMizrach, Weekday Shacharit, Petichat Eliyahu",
+       "lines": 11,
+       "english": 1
+      },
+      {
+       "slug": "order-of-talit",
+       "title": {
+        "en": "Order of Talit",
+        "he": "סדר עטיפת ציצית"
+       },
+       "ref": "Siddur Edot HaMizrach, Weekday Shacharit, Order of Talit",
+       "lines": 3,
+       "english": 2
+      },
+      {
+       "slug": "order-of-tefillin",
+       "title": {
+        "en": "Order of Tefillin",
+        "he": "סדר הנחת תפילין"
+       },
+       "ref": "Siddur Edot HaMizrach, Weekday Shacharit, Order of Tefillin",
+       "lines": 6,
+       "english": 1
+      },
+      {
+       "slug": "vatitpalel-chana",
+       "title": {
+        "en": "Hanna's Prayer",
+        "he": "ותתפלל חנה"
+       },
+       "ref": "Siddur Edot HaMizrach, Weekday Shacharit, Hanna's Prayer",
+       "lines": 2,
+       "english": 0
+      },
+      {
+       "slug": "morning-prayer",
+       "title": {
+        "en": "Morning Prayer",
+        "he": "תפילת שחרית"
+       },
+       "ref": "Siddur Edot HaMizrach, Weekday Shacharit, Morning Prayer",
+       "lines": 19,
+       "english": 0
+      },
+      {
+       "slug": "incense-offering",
+       "title": {
+        "en": "Incense Offering",
+        "he": "פטום הקטורת"
+       },
+       "ref": "Siddur Edot HaMizrach, Weekday Shacharit, Incense Offering",
+       "lines": 35,
+       "english": 18
+      },
+      {
+       "slug": "hodu",
+       "title": {
+        "en": "Hodu",
+        "he": "הודו"
+       },
+       "ref": "Siddur Edot HaMizrach, Weekday Shacharit, Hodu",
+       "lines": 15,
+       "english": 0
+      },
+      {
+       "slug": "pesukei-dezimra",
+       "title": {
+        "en": "Pesukei D'Zimra",
+        "he": "פסוקי דזמרה"
+       },
+       "ref": "Siddur Edot HaMizrach, Weekday Shacharit, Pesukei D'Zimra",
+       "lines": 26,
+       "english": 5
+      },
+      {
+       "slug": "keriat-shema",
+       "title": {
+        "en": "The Shema",
+        "he": "ק\"ש וברכותיה"
+       },
+       "ref": "Siddur Edot HaMizrach, Weekday Shacharit, The Shema",
+       "lines": 21,
+       "english": 20
+      },
+      {
+       "slug": "amida",
+       "title": {
+        "en": "Amida",
+        "he": "עמידה"
+       },
+       "ref": "Siddur Edot HaMizrach, Weekday Shacharit, Amida",
+       "lines": 108,
+       "english": 91
+      },
+      {
+       "slug": "vidui",
+       "title": {
+        "en": "Vidui",
+        "he": "וידוי"
+       },
+       "ref": "Siddur Edot HaMizrach, Weekday Shacharit, Vidui",
+       "lines": 34,
+       "english": 9
+      },
+      {
+       "slug": "torah-reading",
+       "title": {
+        "en": "Torah Reading",
+        "he": "קריאת התורה"
+       },
+       "ref": "Siddur Edot HaMizrach, Weekday Shacharit, Torah Reading",
+       "lines": 21,
+       "english": 0
+      },
+      {
+       "slug": "ashrei",
+       "title": {
+        "en": "Ashrei",
+        "he": "אשרי"
+       },
+       "ref": "Siddur Edot HaMizrach, Weekday Shacharit, Ashrei",
+       "lines": 6,
+       "english": 3
+      },
+      {
+       "slug": "uva-lesion",
+       "title": {
+        "en": "Uva LeSion",
+        "he": "ובא לציון"
+       },
+       "ref": "Siddur Edot HaMizrach, Weekday Shacharit, Uva LeSion",
+       "lines": 10,
+       "english": 0
+      },
+      {
+       "slug": "beit-yaakov",
+       "title": {
+        "en": "Beit Yaakov",
+        "he": "בית יעקב"
+       },
+       "ref": "Siddur Edot HaMizrach, Weekday Shacharit, Beit Yaakov",
+       "lines": 5,
+       "english": 0
+      },
+      {
+       "slug": "song-of-the-day",
+       "title": {
+        "en": "Song of the Day",
+        "he": "שיר של יום"
+       },
+       "ref": "Siddur Edot HaMizrach, Weekday Shacharit, Song of the Day",
+       "lines": 30,
+       "english": 0
+      },
+      {
+       "slug": "kaveh",
+       "title": {
+        "en": "Kaveh",
+        "he": "קוה"
+       },
+       "ref": "Siddur Edot HaMizrach, Weekday Shacharit, Kaveh",
+       "lines": 19,
+       "english": 0,
+       "englishOmitted": "misaligned"
+      },
+      {
+       "slug": "alenu",
+       "title": {
+        "en": "Alenu",
+        "he": "עלינו"
+       },
+       "ref": "Siddur Edot HaMizrach, Weekday Shacharit, Alenu",
+       "lines": 6,
+       "english": 3
+      }
+     ]
+    },
+    {
+     "slug": "tosafot-shacharit",
+     "title": {
+      "en": "Tosafot LeShacharit",
+      "he": "תוספות לשחרית"
+     },
+     "gloss": "After Shacharit",
+     "sections": [
+      {
+       "slug": "thirteen-principles-of-faith",
+       "title": {
+        "en": "Thirteen Principles of Faith",
+        "he": "שלשה עשר עיקרים"
+       },
+       "ref": "Siddur Edot HaMizrach, Additions for Shacharit, Thirteen Principles of Faith",
+       "lines": 3,
+       "english": 3
+      },
+      {
+       "slug": "ten-remembrances",
+       "title": {
+        "en": "Ten Remembrances",
+        "he": "עשר זכירות"
+       },
+       "ref": "Siddur Edot HaMizrach, Additions for Shacharit, Ten Remembrances",
+       "lines": 25,
+       "english": 0
+      }
+     ]
+    },
+    {
+     "slug": "mincha",
+     "title": {
+      "en": "Mincha",
+      "he": "מנחה לימי החול"
+     },
+     "gloss": "Weekday afternoon",
+     "sections": [
+      {
+       "slug": "offerings",
+       "title": {
+        "en": "Offerings",
+        "he": "קרבנות"
+       },
+       "ref": "Siddur Edot HaMizrach, Weekday Mincha, Offerings",
+       "lines": 16,
+       "english": 16
+      },
+      {
+       "slug": "amida",
+       "title": {
+        "en": "Amida",
+        "he": "עמידה"
+       },
+       "ref": "Siddur Edot HaMizrach, Weekday Mincha, Amida",
+       "lines": 107,
+       "english": 89
+      },
+      {
+       "slug": "vidui",
+       "title": {
+        "en": "Vidui",
+        "he": "וידוי"
+       },
+       "ref": "Siddur Edot HaMizrach, Weekday Mincha, Vidui",
+       "lines": 24,
+       "english": 18
+      },
+      {
+       "slug": "alenu",
+       "title": {
+        "en": "Alenu",
+        "he": "עלינו"
+       },
+       "ref": "Siddur Edot HaMizrach, Weekday Mincha, Alenu",
+       "lines": 4,
+       "english": 3
+      }
+     ]
+    },
+    {
+     "slug": "arbit",
+     "title": {
+      "en": "Arbit",
+      "he": "ערבית לימי החול"
+     },
+     "gloss": "Weekday evening",
+     "sections": [
+      {
+       "slug": "barchu",
+       "title": {
+        "en": "Barchu",
+        "he": "ברכו"
+       },
+       "ref": "Siddur Edot HaMizrach, Weekday Arvit, Barchu",
+       "lines": 11,
+       "english": 11
+      },
+      {
+       "slug": "keriat-shema",
+       "title": {
+        "en": "The Shema",
+        "he": "ק\"ש וברכותיה"
+       },
+       "ref": "Siddur Edot HaMizrach, Weekday Arvit, The Shema",
+       "lines": 13,
+       "english": 11
+      },
+      {
+       "slug": "amidah",
+       "title": {
+        "en": "Amidah",
+        "he": "עמידה"
+       },
+       "ref": "Siddur Edot HaMizrach, Weekday Arvit, Amidah",
+       "lines": 73,
+       "english": 50
+      },
+      {
+       "slug": "alenu",
+       "title": {
+        "en": "Alenu",
+        "he": "עלינו"
+       },
+       "ref": "Siddur Edot HaMizrach, Weekday Arvit, Alenu",
+       "lines": 4,
+       "english": 3
+      }
+     ]
+    },
+    {
+     "slug": "keriat-shema-al-hamita",
+     "title": {
+      "en": "Keriat Shema Al HaMita",
+      "he": "קריאת שמע שעל המיטה"
+     },
+     "gloss": "Bedtime Shema",
+     "sections": [
+      {
+       "slug": "keriat-shema-al-hamita",
+       "title": {
+        "en": "Bedtime Shema",
+        "he": "קריאת שמע שעל המיטה"
+       },
+       "ref": "Siddur Edot HaMizrach, Bedtime Shema",
+       "lines": 29,
+       "english": 18
+      }
+     ]
+    },
+    {
+     "slug": "tikkun-chatzot",
+     "title": {
+      "en": "Tikkun Chatzot",
+      "he": "סדר תיקון חצות"
+     },
+     "gloss": "The midnight rite",
+     "sections": [
+      {
+       "slug": "leshem-yichud",
+       "title": {
+        "en": "LeShem Yichud",
+        "he": "לשם יחוד"
+       },
+       "ref": "Siddur Edot HaMizrach, The Midnight Rite, LeShem Yichud",
+       "lines": 4,
+       "english": 3
+      },
+      {
+       "slug": "tikkun-rachel",
+       "title": {
+        "en": "Tikkun Rachel",
+        "he": "תיקון רחל"
+       },
+       "ref": "Siddur Edot HaMizrach, The Midnight Rite, Tikkun Rachel",
+       "lines": 9,
+       "english": 0
+      },
+      {
+       "slug": "tikkun-leah",
+       "title": {
+        "en": "Tikkun Leah",
+        "he": "תיקון לאה"
+       },
+       "ref": "Siddur Edot HaMizrach, The Midnight Rite, Tikkun Leah",
+       "lines": 15,
+       "english": 0
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "slug": "shabbat",
+   "title": {
+    "en": "Shabbat",
+    "he": "שבת"
+   },
+   "services": [
+    {
+     "slug": "hadlakat-nerot",
+     "title": {
+      "en": "Hadlakat Nerot",
+      "he": "סדר הדלקת נרות שבת"
+     },
+     "gloss": "Candle lighting",
+     "sections": [
+      {
+       "slug": "hadlakat-nerot",
+       "title": {
+        "en": "Shabbat Candle Lighting",
+        "he": "סדר הדלקת נרות שבת"
+       },
+       "ref": "Siddur Edot HaMizrach, Shabbat Candle Lighting",
+       "lines": 7,
+       "english": 3
+      }
+     ]
+    },
+    {
+     "slug": "shir-hashirim",
+     "title": {
+      "en": "Shir HaShirim",
+      "he": "שיר השירים"
+     },
+     "gloss": "Song of Songs",
+     "sections": [
+      {
+       "slug": "shir-hashirim",
+       "title": {
+        "en": "Song of Songs",
+        "he": "שיר השירים"
+       },
+       "ref": "Siddur Edot HaMizrach, Song of Songs",
+       "lines": 12,
+       "english": 0
+      }
+     ]
+    },
+    {
+     "slug": "kabbalat-shabbat",
+     "title": {
+      "en": "Kabbalat Shabbat",
+      "he": "קבלת שבת"
+     },
+     "gloss": "Welcoming Shabbat",
+     "sections": [
+      {
+       "slug": "kabbalat-shabbat",
+       "title": {
+        "en": "Kabbalat Shabbat",
+        "he": "קבלת שבת"
+       },
+       "ref": "Siddur Edot HaMizrach, Kabbalat Shabbat",
+       "lines": 35,
+       "english": 0
+      }
+     ]
+    },
+    {
+     "slug": "arbit-shabbat",
+     "title": {
+      "en": "Arbit Shel Shabbat",
+      "he": "ערבית של שבת"
+     },
+     "gloss": "Friday night",
+     "sections": [
+      {
+       "slug": "barchu",
+       "title": {
+        "en": "Barchu",
+        "he": "ברכו"
+       },
+       "ref": "Siddur Edot HaMizrach, Shabbat Arvit, Barchu",
+       "lines": 8,
+       "english": 0
+      },
+      {
+       "slug": "keriat-shema",
+       "title": {
+        "en": "The Shema",
+        "he": "ק\"ש וברכותיה"
+       },
+       "ref": "Siddur Edot HaMizrach, Shabbat Arvit, The Shema",
+       "lines": 15,
+       "english": 13
+      },
+      {
+       "slug": "magen-avot",
+       "title": {
+        "en": "Magen Avot",
+        "he": "תפילת שבע"
+       },
+       "ref": "Siddur Edot HaMizrach, Shabbat Arvit, Magen Avot",
+       "lines": 49,
+       "english": 0
+      },
+      {
+       "slug": "alenu",
+       "title": {
+        "en": "Alenu",
+        "he": "עלינו"
+       },
+       "ref": "Siddur Edot HaMizrach, Shabbat Arvit, Alenu",
+       "lines": 19,
+       "english": 0
+      }
+     ]
+    },
+    {
+     "slug": "leil-shabbat",
+     "title": {
+      "en": "Leil Shabbat",
+      "he": "סדר ליל שבת"
+     },
+     "gloss": "Kiddush and the Friday night meal",
+     "sections": [
+      {
+       "slug": "shalom-alekhem",
+       "title": {
+        "en": "Shalom Alekhem",
+        "he": "שלום עליכם"
+       },
+       "ref": "Siddur Edot HaMizrach, Shabbat Evening, Shalom Alekhem",
+       "lines": 10,
+       "english": 0
+      },
+      {
+       "slug": "eshet-hayil",
+       "title": {
+        "en": "Eshet Hayil",
+        "he": "אשת חיל"
+       },
+       "ref": "Siddur Edot HaMizrach, Shabbat Evening, Eshet Hayil",
+       "lines": 3,
+       "english": 0
+      },
+      {
+       "slug": "atkenu-seudata",
+       "title": {
+        "en": "Atkenu Seudata",
+        "he": "אתקינו סעודתא"
+       },
+       "ref": "Siddur Edot HaMizrach, Shabbat Evening, Atkenu Seudata",
+       "lines": 29,
+       "english": 0
+      },
+      {
+       "slug": "kiddush",
+       "title": {
+        "en": "Kiddush",
+        "he": "קידוש ליל שבת"
+       },
+       "ref": "Siddur Edot HaMizrach, Shabbat Evening, Kiddush",
+       "lines": 14,
+       "english": 5
+      },
+      {
+       "slug": "blessing-of-children",
+       "title": {
+        "en": "Blessing of Children",
+        "he": "ברכת הבנים"
+       },
+       "ref": "Siddur Edot HaMizrach, Shabbat Evening, Blessing of Children",
+       "lines": 6,
+       "english": 5
+      },
+      {
+       "slug": "first-meal",
+       "title": {
+        "en": "First Meal",
+        "he": "סעודה ראשונה"
+       },
+       "ref": "Siddur Edot HaMizrach, Shabbat Evening, First Meal",
+       "lines": 11,
+       "english": 3
+      },
+      {
+       "slug": "zohar",
+       "title": {
+        "en": "Zohar",
+        "he": "זוהר לסעודה ראשונה"
+       },
+       "ref": "Siddur Edot HaMizrach, Shabbat Evening, Zohar",
+       "lines": 15,
+       "english": 0
+      },
+      {
+       "slug": "songs-for-shabbat",
+       "title": {
+        "en": "Songs for Shabbat",
+        "he": "שירי שבת"
+       },
+       "ref": "Siddur Edot HaMizrach, Shabbat Evening, Songs for Shabbat",
+       "lines": 148,
+       "english": 0
+      }
+     ]
+    },
+    {
+     "slug": "shacharit-shabbat",
+     "title": {
+      "en": "Shacharit Shel Shabbat",
+      "he": "שחרית של שבת"
+     },
+     "gloss": "Shabbat morning",
+     "sections": [
+      {
+       "slug": "psalms-for-shabbat",
+       "title": {
+        "en": "Psalms for Shabbat",
+        "he": "ליום השבת"
+       },
+       "ref": "Siddur Edot HaMizrach, Shabbat Shacharit, Psalms for Shabbat",
+       "lines": 40,
+       "english": 0
+      },
+      {
+       "slug": "pesukei-dezimra",
+       "title": {
+        "en": "Pesukei D'Zimra",
+        "he": "פסוקי דזמרה"
+       },
+       "ref": "Siddur Edot HaMizrach, Shabbat Shacharit, Pesukei D'Zimra",
+       "lines": 37,
+       "english": 0
+      },
+      {
+       "slug": "keriat-shema",
+       "title": {
+        "en": "The Shema",
+        "he": "ק\"ש וברכותיה"
+       },
+       "ref": "Siddur Edot HaMizrach, Shabbat Shacharit, The Shema",
+       "lines": 26,
+       "english": 0
+      },
+      {
+       "slug": "amidah",
+       "title": {
+        "en": "Amidah",
+        "he": "עמידה"
+       },
+       "ref": "Siddur Edot HaMizrach, Shabbat Shacharit, Amidah",
+       "lines": 85,
+       "english": 0
+      },
+      {
+       "slug": "torah-reading",
+       "title": {
+        "en": "Torah Reading",
+        "he": "קריאת התורה"
+       },
+       "ref": "Siddur Edot HaMizrach, Shabbat Shacharit, Torah Reading",
+       "lines": 28,
+       "english": 0
+      },
+      {
+       "slug": "hagomel",
+       "title": {
+        "en": "HaGomel",
+        "he": "ברכת הגומל"
+       },
+       "ref": "Siddur Edot HaMizrach, Shabbat Shacharit, HaGomel",
+       "lines": 11,
+       "english": 0
+      },
+      {
+       "slug": "zeved-habat",
+       "title": {
+        "en": "Zeved HaBat",
+        "he": "סדר זבד הבת"
+       },
+       "ref": "Siddur Edot HaMizrach, Shabbat Shacharit, Zeved HaBat",
+       "lines": 3,
+       "english": 0
+      },
+      {
+       "slug": "shabbat-chatan",
+       "title": {
+        "en": "Shabbat Chatan",
+        "he": "לשבת חתן"
+       },
+       "ref": "Siddur Edot HaMizrach, Shabbat Shacharit, Shabbat Chatan",
+       "lines": 20,
+       "english": 0
+      },
+      {
+       "slug": "haftarah",
+       "title": {
+        "en": "Haftarah",
+        "he": "ברכות ההפטרה"
+       },
+       "ref": "Siddur Edot HaMizrach, Shabbat Shacharit, Haftarah",
+       "lines": 10,
+       "english": 0
+      },
+      {
+       "slug": "birkat-hachodesh",
+       "title": {
+        "en": "Birkat HaChodesh",
+        "he": "הכרזת ראש חדש"
+       },
+       "ref": "Siddur Edot HaMizrach, Shabbat Shacharit, Birkat HaChodesh",
+       "lines": 7,
+       "english": 0
+      },
+      {
+       "slug": "announcement-of-fast",
+       "title": {
+        "en": "Announcement of Fast",
+        "he": "הכרזת תענית"
+       },
+       "ref": "Siddur Edot HaMizrach, Shabbat Shacharit, Announcement of Fast",
+       "lines": 3,
+       "english": 0
+      },
+      {
+       "slug": "mi-sheberach",
+       "title": {
+        "en": "Mi Sheberach",
+        "he": "מי שברך לקהל"
+       },
+       "ref": "Siddur Edot HaMizrach, Shabbat Shacharit, Mi Sheberach",
+       "lines": 2,
+       "english": 0
+      },
+      {
+       "slug": "ashrei",
+       "title": {
+        "en": "Ashrei",
+        "he": "אשרי"
+       },
+       "ref": "Siddur Edot HaMizrach, Shabbat Shacharit, Ashrei",
+       "lines": 10,
+       "english": 0
+      }
+     ]
+    },
+    {
+     "slug": "musaf-shabbat",
+     "title": {
+      "en": "Musaf Shel Shabbat",
+      "he": "מוסף של שבת"
+     },
+     "gloss": "Shabbat Musaf",
+     "sections": [
+      {
+       "slug": "amida",
+       "title": {
+        "en": "Amida",
+        "he": "עמידה"
+       },
+       "ref": "Siddur Edot HaMizrach, Shabbat Mussaf, Amida",
+       "lines": 64,
+       "english": 0
+      },
+      {
+       "slug": "incense-offering",
+       "title": {
+        "en": "Incense Offering",
+        "he": "פטום הקטורת"
+       },
+       "ref": "Siddur Edot HaMizrach, Shabbat Mussaf, Incense Offering",
+       "lines": 16,
+       "english": 0
+      },
+      {
+       "slug": "alenu",
+       "title": {
+        "en": "Alenu",
+        "he": "עלינו"
+       },
+       "ref": "Siddur Edot HaMizrach, Shabbat Mussaf, Alenu",
+       "lines": 4,
+       "english": 0
+      }
+     ]
+    },
+    {
+     "slug": "seuda-sheniya",
+     "title": {
+      "en": "Seuda Sheniya",
+      "he": "סדר סעודה שניה"
+     },
+     "gloss": "The Shabbat day meal",
+     "sections": [
+      {
+       "slug": "daytime-meal",
+       "title": {
+        "en": "Daytime Meal",
+        "he": "סדר סעודה שניה"
+       },
+       "ref": "Siddur Edot HaMizrach, Daytime Meal, Daytime Meal",
+       "lines": 28,
+       "english": 0
+      },
+      {
+       "slug": "kiddush",
+       "title": {
+        "en": "Kiddush",
+        "he": "קידוש היום"
+       },
+       "ref": "Siddur Edot HaMizrach, Daytime Meal, Kiddush",
+       "lines": 12,
+       "english": 0
+      }
+     ]
+    },
+    {
+     "slug": "mincha-shabbat",
+     "title": {
+      "en": "Mincha Shel Shabbat",
+      "he": "מנחה של שבת"
+     },
+     "gloss": "Shabbat afternoon",
+     "sections": [
+      {
+       "slug": "offerings",
+       "title": {
+        "en": "Offerings",
+        "he": "קרבנות"
+       },
+       "ref": "Siddur Edot HaMizrach, Shabbat Mincha, Offerings",
+       "lines": 13,
+       "english": 0
+      },
+      {
+       "slug": "uva-lesion",
+       "title": {
+        "en": "Uva LeSion",
+        "he": "ובא לציון גואל"
+       },
+       "ref": "Siddur Edot HaMizrach, Shabbat Mincha, Uva LeSion",
+       "lines": 23,
+       "english": 0
+      },
+      {
+       "slug": "amida",
+       "title": {
+        "en": "Amida",
+        "he": "עמידה"
+       },
+       "ref": "Siddur Edot HaMizrach, Shabbat Mincha, Amida",
+       "lines": 48,
+       "english": 0
+      },
+      {
+       "slug": "alenu",
+       "title": {
+        "en": "Alenu",
+        "he": "עלינו"
+       },
+       "ref": "Siddur Edot HaMizrach, Shabbat Mincha, Alenu",
+       "lines": 3,
+       "english": 0
+      }
+     ]
+    },
+    {
+     "slug": "seuda-shelishit",
+     "title": {
+      "en": "Seuda Shelishit",
+      "he": "סעודה שלישית"
+     },
+     "gloss": "The third meal",
+     "sections": [
+      {
+       "slug": "seuda-shelishit",
+       "title": {
+        "en": "Third Meal",
+        "he": "סעודה שלישית"
+       },
+       "ref": "Siddur Edot HaMizrach, Third Meal",
+       "lines": 35,
+       "english": 0
+      }
+     ]
+    },
+    {
+     "slug": "motzaei-shabbat",
+     "title": {
+      "en": "Motzaei Shabbat",
+      "he": "מוצאי שבת"
+     },
+     "gloss": "Havdala and Saturday night",
+     "sections": [
+      {
+       "slug": "before-havdalah",
+       "title": {
+        "en": "Before Havdalah",
+        "he": "קודם הבדלה"
+       },
+       "ref": "Siddur Edot HaMizrach, Havdalah, Before Havdalah",
+       "lines": 18,
+       "english": 0
+      },
+      {
+       "slug": "havdala",
+       "title": {
+        "en": "Havdala",
+        "he": "סדר הבדלה"
+       },
+       "ref": "Siddur Edot HaMizrach, Havdalah, Havdala",
+       "lines": 21,
+       "english": 13
+      },
+      {
+       "slug": "motzei-shabbat-songs",
+       "title": {
+        "en": "Motzei Shabbat Songs",
+        "he": "שירים למוצאי שבת"
+       },
+       "ref": "Siddur Edot HaMizrach, Havdalah, Motzei Shabbat Songs",
+       "lines": 69,
+       "english": 0
+      },
+      {
+       "slug": "veyiten-lecha",
+       "title": {
+        "en": "Veyiten Lecha",
+        "he": "ויתן לך"
+       },
+       "ref": "Siddur Edot HaMizrach, Havdalah, Veyiten Lecha",
+       "lines": 6,
+       "english": 0
+      },
+      {
+       "slug": "fourth-meal",
+       "title": {
+        "en": "Fourth Meal",
+        "he": "סעודה רביעית"
+       },
+       "ref": "Siddur Edot HaMizrach, Havdalah, Fourth Meal",
+       "lines": 6,
+       "english": 0
+      }
+     ]
+    },
+    {
+     "slug": "mishnayot-shabbat",
+     "title": {
+      "en": "Mishnayot LeShabbat",
+      "he": "משניות לשבת"
+     },
+     "gloss": "Mishna study for Shabbat",
+     "sections": [
+      {
+       "slug": "first-meal",
+       "title": {
+        "en": "First Meal",
+        "he": "לסעודה ראשונה"
+       },
+       "ref": "Siddur Edot HaMizrach, Mishna Study for Shabbat, First Meal",
+       "lines": 10,
+       "english": 0
+      },
+      {
+       "slug": "second-meal",
+       "title": {
+        "en": "Second Meal",
+        "he": "משניות שבת לסעודה שניה"
+       },
+       "ref": "Siddur Edot HaMizrach, Mishna Study for Shabbat, Second Meal",
+       "lines": 9,
+       "english": 0
+      },
+      {
+       "slug": "third-meal",
+       "title": {
+        "en": "Third Meal",
+        "he": "משניות שבת לסעודה שלישית"
+       },
+       "ref": "Siddur Edot HaMizrach, Mishna Study for Shabbat, Third Meal",
+       "lines": 9,
+       "english": 0
+      },
+      {
+       "slug": "pirkei-avot",
+       "title": {
+        "en": "Pirkei Avot",
+        "he": "פרקי אבות"
+       },
+       "ref": "Siddur Edot HaMizrach, Mishna Study for Shabbat, Pirkei Avot",
+       "lines": 142,
+       "english": 4
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "slug": "festivals",
+   "title": {
+    "en": "Rosh Chodesh and festivals",
+    "he": "ראש חודש ומועדים"
+   },
+   "services": [
+    {
+     "slug": "rosh-chodesh",
+     "title": {
+      "en": "Rosh Chodesh",
+      "he": "סדר ראש חודש"
+     },
+     "gloss": "The new month",
+     "sections": [
+      {
+       "slug": "rosh-hodesh",
+       "title": {
+        "en": "Rosh Hodesh",
+        "he": "סדר ראש חודש"
+       },
+       "ref": "Siddur Edot HaMizrach, Rosh Hodesh, Rosh Hodesh",
+       "lines": 3,
+       "english": 3
+      },
+      {
+       "slug": "hallel",
+       "title": {
+        "en": "Hallel",
+        "he": "הלל לראש חודש ולמועדים"
+       },
+       "ref": "Siddur Edot HaMizrach, Rosh Hodesh, Hallel",
+       "lines": 44,
+       "english": 0
+      },
+      {
+       "slug": "uva-lesion",
+       "title": {
+        "en": "Uva LeSion",
+        "he": "ובא לציון גואל"
+       },
+       "ref": "Siddur Edot HaMizrach, Rosh Hodesh, Uva LeSion",
+       "lines": 5,
+       "english": 0
+      },
+      {
+       "slug": "song-of-the-day",
+       "title": {
+        "en": "Song of the Day",
+        "he": "שיר של יום"
+       },
+       "ref": "Siddur Edot HaMizrach, Rosh Hodesh, Song of the Day",
+       "lines": 19,
+       "english": 0
+      },
+      {
+       "slug": "mussaf",
+       "title": {
+        "en": "Mussaf",
+        "he": "מוסף"
+       },
+       "ref": "Siddur Edot HaMizrach, Rosh Hodesh, Mussaf",
+       "lines": 48,
+       "english": 0
+      },
+      {
+       "slug": "barchi-nafshi",
+       "title": {
+        "en": "Barchi Nafshi",
+        "he": "ברכי נפשי"
+       },
+       "ref": "Siddur Edot HaMizrach, Rosh Hodesh, Barchi Nafshi",
+       "lines": 6,
+       "english": 0
+      },
+      {
+       "slug": "kaveh",
+       "title": {
+        "en": "Kaveh",
+        "he": "קוה"
+       },
+       "ref": "Siddur Edot HaMizrach, Rosh Hodesh, Kaveh",
+       "lines": 3,
+       "english": 0
+      },
+      {
+       "slug": "incense-offering",
+       "title": {
+        "en": "Incense Offering",
+        "he": "פטום הקטורת"
+       },
+       "ref": "Siddur Edot HaMizrach, Rosh Hodesh, Incense Offering",
+       "lines": 16,
+       "english": 0
+      },
+      {
+       "slug": "alenu",
+       "title": {
+        "en": "Alenu",
+        "he": "עלינו"
+       },
+       "ref": "Siddur Edot HaMizrach, Rosh Hodesh, Alenu",
+       "lines": 4,
+       "english": 0
+      }
+     ]
+    },
+    {
+     "slug": "birkat-halevana",
+     "title": {
+      "en": "Birkat HaLevana",
+      "he": "ברכת הלבנה"
+     },
+     "gloss": "Blessing of the moon",
+     "sections": [
+      {
+       "slug": "birkat-halevana",
+       "title": {
+        "en": "Blessing of the Moon",
+        "he": "ברכת הלבנה"
+       },
+       "ref": "Siddur Edot HaMizrach, Blessing of the Moon",
+       "lines": 26,
+       "english": 26
+      }
+     ]
+    },
+    {
+     "slug": "shalosh-regalim",
+     "title": {
+      "en": "Shalosh Regalim",
+      "he": "תפילה לשלש רגלים"
+     },
+     "gloss": "Pesach, Shavuot, Sukkot",
+     "sections": [
+      {
+       "slug": "prayers-for-three-festivals",
+       "title": {
+        "en": "Prayers for Three Festivals",
+        "he": "תפילה לשלש רגלים"
+       },
+       "ref": "Siddur Edot HaMizrach, Prayers for Three Festivals, Prayers for Three Festivals",
+       "lines": 2,
+       "english": 0
+      },
+      {
+       "slug": "song-for-passover",
+       "title": {
+        "en": "Song for Passover",
+        "he": "מזמור לפסח"
+       },
+       "ref": "Siddur Edot HaMizrach, Prayers for Three Festivals, Song for Passover",
+       "lines": 3,
+       "english": 0
+      },
+      {
+       "slug": "song-for-shavuot",
+       "title": {
+        "en": "Song for Shavuot",
+        "he": "מזמור לשבועות"
+       },
+       "ref": "Siddur Edot HaMizrach, Prayers for Three Festivals, Song for Shavuot",
+       "lines": 2,
+       "english": 0
+      },
+      {
+       "slug": "song-for-sukkot",
+       "title": {
+        "en": "Song for Sukkot",
+        "he": "מזמור לסוכות"
+       },
+       "ref": "Siddur Edot HaMizrach, Prayers for Three Festivals, Song for Sukkot",
+       "lines": 3,
+       "english": 0
+      },
+      {
+       "slug": "song-for-shemini-atzeret",
+       "title": {
+        "en": "Song for Shemini Atzeret",
+        "he": "מזמור לשמיני עצרת"
+       },
+       "ref": "Siddur Edot HaMizrach, Prayers for Three Festivals, Song for Shemini Atzeret",
+       "lines": 6,
+       "english": 0
+      },
+      {
+       "slug": "amidah",
+       "title": {
+        "en": "Amidah",
+        "he": "עמידה"
+       },
+       "ref": "Siddur Edot HaMizrach, Prayers for Three Festivals, Amidah",
+       "lines": 72,
+       "english": 0
+      },
+      {
+       "slug": "mussaf",
+       "title": {
+        "en": "Mussaf",
+        "he": "מוסף"
+       },
+       "ref": "Siddur Edot HaMizrach, Prayers for Three Festivals, Mussaf",
+       "lines": 296,
+       "english": 8
+      }
+     ]
+    },
+    {
+     "slug": "sefirat-haomer",
+     "title": {
+      "en": "Sefirat HaOmer",
+      "he": "ספירת העומר"
+     },
+     "gloss": "Counting the Omer",
+     "sections": [
+      {
+       "slug": "sefirat-haomer",
+       "title": {
+        "en": "Counting of the Omer",
+        "he": "ספירת העומר"
+       },
+       "ref": "Siddur Edot HaMizrach, Counting of the Omer",
+       "lines": 161,
+       "english": 65
+      }
+     ]
+    },
+    {
+     "slug": "chanukah",
+     "title": {
+      "en": "Chanukah",
+      "he": "חנוכה"
+     },
+     "gloss": "Chanukah",
+     "sections": [
+      {
+       "slug": "menorah-lighting",
+       "title": {
+        "en": "Menorah Lighting",
+        "he": "סדר ההדלקה"
+       },
+       "ref": "Siddur Edot HaMizrach, Hanukkah, Menorah Lighting",
+       "lines": 21,
+       "english": 21
+      },
+      {
+       "slug": "shacharit",
+       "title": {
+        "en": "Shacharit",
+        "he": "שחרית"
+       },
+       "ref": "Siddur Edot HaMizrach, Hanukkah, Shacharit",
+       "lines": 28,
+       "english": 0
+      }
+     ]
+    },
+    {
+     "slug": "purim",
+     "title": {
+      "en": "Purim",
+      "he": "פורים"
+     },
+     "gloss": "Purim",
+     "sections": [
+      {
+       "slug": "shabbat-zachor",
+       "title": {
+        "en": "Shabbat Zachor",
+        "he": "שבת זכור"
+       },
+       "ref": "Siddur Edot HaMizrach, Purim, Shabbat Zachor",
+       "lines": 92,
+       "english": 0
+      },
+      {
+       "slug": "megillah-reading",
+       "title": {
+        "en": "Megillah Reading",
+        "he": "קריאת המגילה"
+       },
+       "ref": "Siddur Edot HaMizrach, Purim, Megillah Reading",
+       "lines": 15,
+       "english": 0
+      },
+      {
+       "slug": "purim-day",
+       "title": {
+        "en": "Purim Day",
+        "he": "סדר יום פורים"
+       },
+       "ref": "Siddur Edot HaMizrach, Purim, Purim Day",
+       "lines": 10,
+       "english": 0
+      }
+     ]
+    },
+    {
+     "slug": "nissan",
+     "title": {
+      "en": "Chodesh Nissan",
+      "he": "חודש ניסן"
+     },
+     "gloss": "The month of Nissan",
+     "sections": [
+      {
+       "slug": "blessing-of-the-trees",
+       "title": {
+        "en": "Blessing of the Trees",
+        "he": "סדר ברכת האילנות"
+       },
+       "ref": "Siddur Edot HaMizrach, Nissan, Blessing of the Trees",
+       "lines": 15,
+       "english": 3
+      },
+      {
+       "slug": "learning-of-the-day",
+       "title": {
+        "en": "Learning of the Day",
+        "he": "סדר למוד לחדש ניסן"
+       },
+       "ref": "Siddur Edot HaMizrach, Nissan, Learning of the Day",
+       "lines": 88,
+       "english": 0
+      }
+     ]
+    },
+    {
+     "slug": "taaniyot",
+     "title": {
+      "en": "Taaniyot VaAvelut",
+      "he": "תעניות ואבילות"
+     },
+     "gloss": "Fast days and mourning",
+     "sections": [
+      {
+       "slug": "fast-of-gedalya",
+       "title": {
+        "en": "Fast of Gedalya",
+        "he": "סליחות לצום גדליה"
+       },
+       "ref": "Siddur Edot HaMizrach, Fast Days and Mourning, Fast of Gedalya",
+       "lines": 30,
+       "english": 0
+      },
+      {
+       "slug": "tenth-of-tevet",
+       "title": {
+        "en": "Tenth of Tevet",
+        "he": "סליחות לעשרה בטבת"
+       },
+       "ref": "Siddur Edot HaMizrach, Fast Days and Mourning, Tenth of Tevet",
+       "lines": 37,
+       "english": 7
+      },
+      {
+       "slug": "fast-of-esther",
+       "title": {
+        "en": "Fast of Esther",
+        "he": "סליחות לתענית אסתר"
+       },
+       "ref": "Siddur Edot HaMizrach, Fast Days and Mourning, Fast of Esther",
+       "lines": 35,
+       "english": 0
+      },
+      {
+       "slug": "seventeenth-of-tammuz",
+       "title": {
+        "en": "Seventeenth of Tammuz",
+        "he": "סליחות לי\"ז בתמוז"
+       },
+       "ref": "Siddur Edot HaMizrach, Fast Days and Mourning, Seventeenth of Tammuz",
+       "lines": 39,
+       "english": 0
+      },
+      {
+       "slug": "mourning",
+       "title": {
+        "en": "Mourning",
+        "he": "אבלות"
+       },
+       "ref": "Siddur Edot HaMizrach, Fast Days and Mourning, Mourning",
+       "lines": 31,
+       "english": 0
+      },
+      {
+       "slug": "torah-reading-for-fast-days",
+       "title": {
+        "en": "Torah Reading for Fast Days",
+        "he": "קריאת התורה לתענית ציבור"
+       },
+       "ref": "Siddur Edot HaMizrach, Fast Days and Mourning, Torah Reading for Fast Days",
+       "lines": 2,
+       "english": 0
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "slug": "berachot",
+   "title": {
+    "en": "Blessings",
+    "he": "ברכות"
+   },
+   "services": [
+    {
+     "slug": "birkat-hamazon",
+     "title": {
+      "en": "Birkat Hamazon",
+      "he": "ברכת המזון"
+     },
+     "gloss": "Grace after meals",
+     "sections": [
+      {
+       "slug": "birkat-hamazon",
+       "title": {
+        "en": "Post Meal Blessing",
+        "he": "ברכת המזון"
+       },
+       "ref": "Siddur Edot HaMizrach, Post Meal Blessing",
+       "lines": 59,
+       "english": 42
+      }
+     ]
+    },
+    {
+     "slug": "meen-shalosh",
+     "title": {
+      "en": "Me'en Shalosh",
+      "he": "ברכת מעין שלוש"
+     },
+     "gloss": "Al Hamichya",
+     "sections": [
+      {
+       "slug": "meen-shalosh",
+       "title": {
+        "en": "Al Hamihya",
+        "he": "ברכת מעין שלוש"
+       },
+       "ref": "Siddur Edot HaMizrach, Al Hamihya",
+       "lines": 21,
+       "english": 0
+      }
+     ]
+    },
+    {
+     "slug": "birkot-hanehenin",
+     "title": {
+      "en": "Birkot HaNehenin",
+      "he": "ברכות הנהנין"
+     },
+     "gloss": "Blessings on food and pleasures",
+     "sections": [
+      {
+       "slug": "birkot-hanehenin",
+       "title": {
+        "en": "Blessings on Enjoyments",
+        "he": "ברכות הנהנין"
+       },
+       "ref": "Siddur Edot HaMizrach, Blessings on Enjoyments",
+       "lines": 21,
+       "english": 7
+      }
+     ]
+    },
+    {
+     "slug": "berachot-shonot",
+     "title": {
+      "en": "Berachot Shonot",
+      "he": "ברכות ותפילות שונות"
+     },
+     "gloss": "Life events and other blessings",
+     "sections": [
+      {
+       "slug": "marriage",
+       "title": {
+        "en": "Marriage",
+        "he": "סדר ארוסין ונשואין"
+       },
+       "ref": "Siddur Edot HaMizrach, Assorted Blessings and Prayers, Marriage",
+       "lines": 8,
+       "english": 0
+      },
+      {
+       "slug": "sheva-berachot",
+       "title": {
+        "en": "Sheva Berachot",
+        "he": "סדר שבע ברכות"
+       },
+       "ref": "Siddur Edot HaMizrach, Assorted Blessings and Prayers, Sheva Berachot",
+       "lines": 13,
+       "english": 0
+      },
+      {
+       "slug": "brit-mila",
+       "title": {
+        "en": "Brit Mila",
+        "he": "סדר ברית מילה"
+       },
+       "ref": "Siddur Edot HaMizrach, Assorted Blessings and Prayers, Brit Mila",
+       "lines": 41,
+       "english": 0
+      },
+      {
+       "slug": "redeeming-the-first-born",
+       "title": {
+        "en": "Redeeming the First Born",
+        "he": "סדר פדיון הבן"
+       },
+       "ref": "Siddur Edot HaMizrach, Assorted Blessings and Prayers, Redeeming the First Born",
+       "lines": 14,
+       "english": 0
+      },
+      {
+       "slug": "mezuza",
+       "title": {
+        "en": "Mezuza",
+        "he": "ברכת המזוזה"
+       },
+       "ref": "Siddur Edot HaMizrach, Assorted Blessings and Prayers, Mezuza",
+       "lines": 5,
+       "english": 5
+      },
+      {
+       "slug": "building-a-fence",
+       "title": {
+        "en": "Building a Fence",
+        "he": "ברכת המעקה"
+       },
+       "ref": "Siddur Edot HaMizrach, Assorted Blessings and Prayers, Building a Fence",
+       "lines": 3,
+       "english": 0
+      },
+      {
+       "slug": "separating-hallah",
+       "title": {
+        "en": "Separating Hallah",
+        "he": "סדר הפרשת חלה"
+       },
+       "ref": "Siddur Edot HaMizrach, Assorted Blessings and Prayers, Separating Hallah",
+       "lines": 10,
+       "english": 4
+      },
+      {
+       "slug": "tevillat-kelim",
+       "title": {
+        "en": "Tevillat Kelim",
+        "he": "ברכת טבילת כלים"
+       },
+       "ref": "Siddur Edot HaMizrach, Assorted Blessings and Prayers, Tevillat Kelim",
+       "lines": 4,
+       "english": 0
+      },
+      {
+       "slug": "separating-tithes",
+       "title": {
+        "en": "Separating Tithes",
+        "he": "סדר הפרשת תרומות ומעשרות"
+       },
+       "ref": "Siddur Edot HaMizrach, Assorted Blessings and Prayers, Separating Tithes",
+       "lines": 22,
+       "english": 0
+      },
+      {
+       "slug": "rainbow",
+       "title": {
+        "en": "Rainbow",
+        "he": "ברכת הקשת"
+       },
+       "ref": "Siddur Edot HaMizrach, Assorted Blessings and Prayers, Rainbow",
+       "lines": 3,
+       "english": 0
+      },
+      {
+       "slug": "blessings-on-lighting-and-thunder",
+       "title": {
+        "en": "Blessings on Lighting and Thunder",
+        "he": "ברכת ברקים ורעמים"
+       },
+       "ref": "Siddur Edot HaMizrach, Assorted Blessings and Prayers, Blessings on Lighting and Thunder",
+       "lines": 5,
+       "english": 5
+      },
+      {
+       "slug": "prayer-for-taking-medicine",
+       "title": {
+        "en": "Prayer for Taking Medicine",
+        "he": "תפלת הנוטל תרופה"
+       },
+       "ref": "Siddur Edot HaMizrach, Assorted Blessings and Prayers, Prayer for Taking Medicine",
+       "lines": 3,
+       "english": 2
+      },
+      {
+       "slug": "tefillat-haderech",
+       "title": {
+        "en": "Traveler's Prayer",
+        "he": "תפלת הדרך"
+       },
+       "ref": "Siddur Edot HaMizrach, Assorted Blessings and Prayers, Traveler's Prayer",
+       "lines": 9,
+       "english": 1
+      }
+     ]
+    }
+   ]
+  }
+ ],
+ "version": "8d1f969974c4"
+}
