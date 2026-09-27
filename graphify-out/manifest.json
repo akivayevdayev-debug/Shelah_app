@@ -50,8 +50,8 @@
     "semantic_hash": ""
   },
   "backend/logging_setup.py": {
-    "mtime": 1789825977.8841057,
-    "ast_hash": "cf4f3b7d02adfbe8e5f54ed94d2929e6",
+    "mtime": 1790478735.191748,
+    "ast_hash": "3a36be30301bfc1f67e282f5a24d2422",
     "semantic_hash": ""
   },
   "backend/rag.py": {
@@ -955,8 +955,8 @@
     "semantic_hash": ""
   },
   "tests/test_logging_setup.py": {
-    "mtime": 1789739578.6331658,
-    "ast_hash": "3a1f1b9ea6074c8843c0154ea7677d39",
+    "mtime": 1790478735.1925251,
+    "ast_hash": "d65693e61b52a730c883db350043e389",
     "semantic_hash": ""
   },
   "tests/test_rag.py": {
@@ -2030,8 +2030,8 @@
     "semantic_hash": ""
   },
   "scripts/sql/supabase_migrations_history_setup.sql": {
-    "mtime": 1790477805.6309972,
-    "ast_hash": "8cdee3b90282877f4ad70369ff2e0c78",
+    "mtime": 1790478280.2314095,
+    "ast_hash": "7b0402eb0669c86edb42b1466847f84d",
     "semantic_hash": ""
   }
 }
