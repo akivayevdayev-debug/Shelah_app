@@ -15,6 +15,7 @@ import {
     setCurrentZmanimLocationLabel,
     cacheZmanimLocation,
     getZmanimLocation,
+    getSunset,
     refreshZmanimDisplay,
 } from "./zmanim.js";
 import { installRouter, readRoute } from "./router.js";
@@ -23,6 +24,7 @@ import * as sourceCards from "./source-cards.js";
 import { installAnswerLink, answerIdOf } from "./answer-link.js";
 import { createAnswerShare, installShareState } from "./answer-share.js";
 import * as askHistory from "./ask-history.js";
+import { createSiddur } from "./siddur.js";
 
 // Source-card markup for the conversation panel (and any classic-script caller).
 window.ShelahSourceCards = sourceCards;
@@ -67,6 +69,30 @@ function buildZmanimDeps() {
     };
 }
 
+// The siddur's dependencies on the classic script (static/js/siddur.js),
+// gathered here like buildZmanimDeps.
+function buildSiddurDeps() {
+    return {
+        t: (en, he) => window.t(en, he),
+        isHebrewMode: () => window.isHebrewMode(),
+        escapeHtml: (text) => window.escapeHtml(text),
+        applyHebrewDisplaySettings: (text) => window.applyHebrewDisplaySettings?.(text) ?? text,
+        getPrefs: () => window.appState?.prefs || {},
+        getSunset,
+        getLocation: getZmanimLocation,
+        reduceMotion: () => Boolean(window.matchMedia?.("(prefers-reduced-motion: reduce)").matches),
+        // Scrolling a service moves the URL to the section being read:
+        // replaceState, so Back leaves the service rather than stepping
+        // through its sections (audit U4).
+        // Only while the URL is a siddur page: a late scroll event must never
+        // pull another view's URL back to the siddur.
+        replaceRoute: (value) => {
+            const router = window.ShelahRouter;
+            if (router?.readRoute().siddur) router.pushRoute({ siddur: value }, { replace: true });
+        },
+    };
+}
+
 function initModules() {
     installGlobalErrorBoundary();
     installSemanticBookmarking();
@@ -98,6 +124,10 @@ function initModules() {
     // into the answer turn showing it and calls .show per answer. The copied
     // link is public (/a/<token>, static/js/answer-share.js).
     const answerShare = createAnswerShare();
+    // The siddur view (index.html displaySiddur) and its menus.
+    window.ShelahSiddur = createSiddur({ deps: buildSiddurDeps() });
+    window.renderSiddurMenus?.();
+
     window.ShelahAnswerLink = {
         panel: installAnswerLinkPlacement(document.getElementById("convAnswerLink"), answerShare),
     };

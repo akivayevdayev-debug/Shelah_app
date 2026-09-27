@@ -14,11 +14,13 @@ Operational health checker for the full stack:
 
 Use when triaging deployment/integration issues.
 
-## `fetch_sefardic_siddur.py`
+## `build_siddur.py`
 
-Data prep utility:
-- Pulls Siddur content from Sefaria.
-- Normalizes Hebrew/English content.
-- Builds prayer payloads used by runtime prayer endpoints.
+Data prep utility for the siddur (`/siddur`, `/api/siddur/v2/*`):
+- Reads Siddur Edot HaMizrach from the public Sefaria-Export bucket
+  (schema + Hebrew " Shaliehsaboo Edition" + English Community Translation).
+- Checks each version's license (CC0 / Public Domain only).
+- Types every line (heading / instruction / conditional / prayer) with
+  `backend/siddur_lines.py` and writes `data/siddur/edot-hamizrach/`.
 
-Use when refreshing or regenerating prayer source data.
+Use when refreshing the siddur text or changing its table of contents.

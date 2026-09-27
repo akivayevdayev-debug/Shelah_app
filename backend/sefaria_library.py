@@ -136,6 +136,12 @@ _library_index_view_lock = threading.Lock()
 _PROJECT_ROOT = Path(__file__).resolve().parent.parent
 _LIBRARY_REPORT_PATH = _PROJECT_ROOT / "reports" / \
     "library_leaf_remove_fix_report.full.json"
+# Removals of that report shown to be wrong (scripts/verify_library_removals.py):
+# its crawl probed complex-schema works (siddurim, machzorim, haggadot) at
+# refs of the wrong shape, so their 400s were never evidence the work
+# doesn't load. Applies only to the report run it names.
+_LIBRARY_REINSTATED_PATH = _PROJECT_ROOT / "reports" / \
+    "library_leaf_reinstated.json"
 # Writes under the deployment bundle root, which is read-only at runtime on
 # Vercel (only /tmp is writable) -- _disk_cache_set()'s mkdir/write_text
 # silently no-ops via its own try/except there, so this tier has never
@@ -188,11 +194,11 @@ NON_LOADING_LITURGY_TITLES = {
     _normalize_title_key("Ma'aneh Lashon Chabad"),
     _normalize_title_key("Ma'avar Yabbok"),
     _normalize_title_key("Machzor Rosh Hashanah Linear"),
-    _normalize_title_key("Machzor Yom Ha'atzmaut & Yom Yerushalayim"),
-    _normalize_title_key("Machzor Yom Ha'atzmaut & Yom Yetushalayim"),
+    # Report's actual title is "...Yerushalyim" (no second "a") -- neither
+    # prior guess here matched it, so this exclusion never fired.
+    _normalize_title_key("Machzor Yom Ha'atzmaut & Yom Yerushalyim"),
     _normalize_title_key("Seder Ma'amadot"),
     _normalize_title_key("Seder Tisha B'Av (Edot HaMizrach)"),
-    _normalize_title_key("Seder Tisha B'Av (Edot HaMizrac)"),
     _normalize_title_key("Weekday Siddur Chabad"),
 }
 
@@ -213,15 +219,38 @@ def _extract_adjustment_keys(row):
             yield key
 
 
+def _load_reinstated_titles(report_generated_at):
+    """Normalized titles of the removals verify_library_removals.py showed
+    to be loadable, when its file names this report run; empty otherwise
+    (no file, unreadable, or written for a different run -- a fresh crawl
+    supersedes it)."""
+    try:
+        payload = json.loads(_LIBRARY_REINSTATED_PATH.read_text(encoding="utf-8"))
+    except (OSError, ValueError):
+        return set()
+    if not isinstance(payload, dict) or not report_generated_at \
+            or payload.get("report_generated_at_utc") != report_generated_at:
+        return set()
+    return {
+        _normalize_title_key(row.get("title"))
+        for row in payload.get("reinstated", []) or []
+        if isinstance(row, dict) and row.get("title")
+    }
+
+
 def _parse_library_adjustments_payload(payload):
     """Build (remove_keys, fix_map) from a crawl_library_leaves.py report
-    payload. Split out of _load_library_index_adjustments() (SonarCloud
-    python:S3776) -- see _extract_adjustment_keys.
+    payload, less the removals reinstated for this run
+    (_load_reinstated_titles). Split out of _load_library_index_adjustments()
+    (SonarCloud python:S3776) -- see _extract_adjustment_keys.
     """
     remove_keys = set()
     fix_map = {}
+    reinstated = _load_reinstated_titles(payload.get("generated_at_utc"))
 
     for row in payload.get("removals", []) or []:
+        if _normalize_title_key(row.get("title")) in reinstated:
+            continue
         remove_keys.update(_extract_adjustment_keys(row))
 
     for row in payload.get("fixes", []) or []:
@@ -262,6 +291,11 @@ def _load_library_index_adjustments():
         mtime = path.stat().st_mtime
     except Exception:
         mtime = 0.0
+    try:
+        # A new reinstatement file changes the keys as much as a new report.
+        mtime = max(mtime, _LIBRARY_REINSTATED_PATH.stat().st_mtime)
+    except OSError:
+        pass
 
     if snapshot["loaded"] and snapshot["mtime"] >= mtime:
         return snapshot
@@ -2158,13 +2192,11 @@ def _walk_index_schema_for_leaf_refs(node, path_segments, title, title_norm, see
     _add_leaf_ref(title, next_path, seen, refs)
 
 
-def get_index_leaf_refs(title, max_refs=120):
-    """Build leaf refs from a text schema (e.g., full Siddur structure)."""
-    schema, title = _resolve_index_schema_with_fallbacks(title)
-
-    if not schema:
-        return []
-
+def leaf_refs_from_schema(schema, title, max_refs=120):
+    """Leaf refs ("Title, Node, Subnode") of an index schema, in order --
+    the refs the library opens a work at. Public so
+    scripts/crawl_library_leaves.py probes exactly the ref the app would
+    open, not a guess at its shape."""
     refs = []
     seen = set()
     title_norm = _normalize_title_for_compare(title)
@@ -2175,3 +2207,12 @@ def get_index_leaf_refs(title, max_refs=120):
     if not refs:
         refs.append(title)
     return refs[:max_refs]
+
+
+def get_index_leaf_refs(title, max_refs=120):
+    """Build leaf refs from a text schema (e.g., full Siddur structure)."""
+    schema, title = _resolve_index_schema_with_fallbacks(title)
+
+    if not schema:
+        return []
+    return leaf_refs_from_schema(schema, title, max_refs)

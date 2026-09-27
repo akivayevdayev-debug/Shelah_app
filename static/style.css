@@ -1319,6 +1319,12 @@ html[dir="rtl"] #searchInput {
 .prayer-nav-link {
     border-radius: 0.45rem;
     padding-inline: 0.35rem;
+    /* WCAG 2.1 target size: text-sm + py-0.5 alone renders ~24px tall.
+       Flex-centering within a taller box keeps the same visual text
+       density while giving the button a real 44px tap target. */
+    display: flex;
+    align-items: center;
+    min-height: 44px;
 }
 
 .prayer-nav-link:hover,
@@ -1366,13 +1372,6 @@ html[dir="rtl"] #searchInput {
     color: var(--text-muted);
 }
 
-.study-track-complete-label {
-    color: #2f4a67;
-    font-family: 'Cardo', 'Cardo Fallback', serif;
-    font-style: italic;
-    letter-spacing: 0.02em;
-}
-
 .library-index-sidebar-tree {
     margin-inline-start: 0.5rem;
     padding-inline-start: 0.75rem;
@@ -1414,6 +1413,24 @@ html[dir="rtl"] #searchInput {
 
 #reader .prayer-clean-row-dual .prayer-clean-en {
     text-align: left;
+}
+
+/* Sefaria wraps siddur rubrics/instructions ("Take the cup and say:") in
+   <b><small>...</small></b>, mixed inline with ordinary prayer text in the
+   same line. WCAG 1.4.1 (no color-only state): style survives on ITS OWN
+   without any surrounding color, using three non-color cues together --
+   size, italic slant, and a dotted underline -- so it reads distinctly in
+   light and dark theme alike, and even in a high-contrast/forced-colors
+   mode that strips background/foreground color entirely.
+   !important is required: renderPrayerDisplayByLayout() force-sets
+   `el.style.fontSize = 'inherit'` as an inline style on every descendant
+   of #prayer-display after each render (so the reader's font-size control
+   reaches nested markup), which would otherwise always beat this rule. */
+#reader .prayer-clean-lines small {
+    font-size: 0.83em !important;
+    font-style: italic;
+    text-decoration: underline dotted;
+    text-underline-offset: 0.15em;
 }
 
 @media (max-width: 1023px) {
@@ -2657,7 +2674,8 @@ html.rtl .home-main-layout #popularTextsGrid {
 
 .home-library-link:hover .home-library-title,
 .home-topic-title:hover,
-.home-daily-link:hover {
+.home-daily-link:hover,
+.home-stat-link:hover {
     text-decoration: underline;
     text-underline-offset: 0.18em;
 }
@@ -2764,6 +2782,20 @@ html.rtl .home-main-layout #popularTextsGrid {
     font-family: 'Cardo', 'Cardo Fallback', serif;
     font-weight: 700;
     text-align: left;
+}
+
+/* Reset button chrome for a value that's now a link (holidayName,
+   shabbatWeekName) while keeping the Tailwind utility classes it already
+   carries (.text-slate-700, .text-end, .max-w-[60%]) in control of color,
+   alignment and truncation -- only the browser's own button styling needs
+   overriding here. */
+.home-stat-link {
+    background: transparent;
+    border: 0;
+    padding: 0;
+    margin: 0;
+    font: inherit;
+    cursor: pointer;
 }
 
 .today-zmanim-list [data-zman-row] {
@@ -3306,7 +3338,6 @@ html.rtl .home-main-layout #popularTextsGrid {
 .library-shell #exportCitationBtn,
 .library-shell #sourceGraphBtn,
 .library-shell #communityTimelineBtn,
-.library-shell #trackCurrentBtn,
 .library-shell #themeToggleBtn {
     background-color: var(--control-bg) !important;
     border-color: var(--control-border) !important;
@@ -3333,7 +3364,6 @@ html.rtl .home-main-layout #popularTextsGrid {
 .library-shell #exportCitationBtn:hover,
 .library-shell #sourceGraphBtn:hover,
 .library-shell #communityTimelineBtn:hover,
-.library-shell #trackCurrentBtn:hover,
 .library-shell #themeToggleBtn:hover {
     background-color: var(--control-bg-hover) !important;
     border-color: #ccbca2 !important;
@@ -3403,7 +3433,6 @@ html.rtl .home-main-layout #popularTextsGrid {
 }
 
 .library-shell .shelf-open:focus-visible,
-.library-shell .track-toggle:focus-visible,
 .library-shell .library-node-open:focus-visible,
 .library-shell #leftSidebar button:focus-visible,
 .library-shell #topbarControls button:focus-visible,
@@ -4283,10 +4312,6 @@ html.theme-dark,
     color: var(--control-text-strong);
 }
 
-:is([data-theme="dark"], body.theme-dark) .study-track-complete-label {
-    color: var(--text-muted);
-}
-
 :is([data-theme="dark"], body.theme-dark) #popularTextsGrid button {
     background: var(--surface-elevated) !important;
     border-color: var(--surface-border) !important;
@@ -4413,7 +4438,6 @@ html.theme-dark,
 }
 
 :is([data-theme="dark"], body.theme-dark) .shelf-open:focus-visible,
-:is([data-theme="dark"], body.theme-dark) .track-toggle:focus-visible,
 :is([data-theme="dark"], body.theme-dark) .library-node-open:focus-visible {
     outline: 2px solid var(--control-accent);
     outline-offset: 2px;
