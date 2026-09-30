@@ -180,97 +180,6 @@ h6 {
 }
 
 /* ═══════════════════════════════════════════════════════════════════ */
-/* SIDDUR PRAYER LAYOUT (Clean & Readable) */
-/* ═══════════════════════════════════════════════════════════════════ */
-
-.prayer-section {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 2rem;
-    margin: 2rem 0;
-    padding: 2rem;
-    background: #ffffff;
-    border-radius: 12px;
-    border: 1px solid #e2e8f0;
-}
-
-.prayer-section.bilingual-english {
-    grid-template-columns: 1fr;
-}
-
-.prayer-hebrew {
-    font-family: 'Frank Ruhl Libre', serif;
-    font-size: 0.95rem;
-    line-height: 1.8;
-    text-align: right;
-    color: #1e293b;
-    direction: rtl;
-}
-
-.prayer-english {
-    font-family: 'Cardo', 'Cardo Fallback', serif;
-    font-size: 0.9rem;
-    line-height: 1.6;
-    color: #475569;
-}
-
-.prayer-rubric {
-    font-style: italic;
-    color: #64748b;
-    font-size: 0.925rem;
-    margin: 1rem 0;
-    padding: 0.75rem;
-    background-color: #f8fafc;
-    border-radius: 4px;
-    border-inline-start: 3px solid #d4af37;
-}
-
-/* ═══════════════════════════════════════════════════════════════════ */
-/* MERKAVA-INSPIRED CUSTOM BOXES */
-/* ═══════════════════════════════════════════════════════════════════ */
-
-.custom-ruling {
-    background: linear-gradient(135deg, #f5f3ff 0%, #faf5ff 100%);
-    border-inline-start: 4px solid #7c3aed;
-    padding: 1rem;
-    border-radius: 6px;
-    margin: 1rem 0;
-}
-
-.custom-ruling.ashkenazi {
-    border-inline-start-color: #0891b2;
-    background: linear-gradient(135deg, #ecf0ff 0%, #f0f4ff 100%);
-}
-
-.custom-ruling.sefardi {
-    border-inline-start-color: #ea580c;
-    background: linear-gradient(135deg, #fff7ed 0%, #fffbf0 100%);
-}
-
-.custom-ruling.yemenite {
-    border-inline-start-color: #059669;
-    background: linear-gradient(135deg, #f0fdf4 0%, #f4fdf7 100%);
-}
-
-.custom-ruling.bukharian {
-    border-inline-start-color: #d946ef;
-    background: linear-gradient(135deg, #faf5ff 0%, #fdf2f8 100%);
-}
-
-.custom-label {
-    display: inline-block;
-    font-size: 0.75rem;
-    font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-    margin-bottom: 0.5rem;
-    padding: 0.25rem 0.75rem;
-    border-radius: 4px;
-    background-color: rgba(124, 58, 237, 0.1);
-    color: #7c3aed;
-}
-
-/* ═══════════════════════════════════════════════════════════════════ */
 /* SOURCE REFERENCE STYLING */
 /* ═══════════════════════════════════════════════════════════════════ */
 
@@ -787,32 +696,13 @@ html[dir="rtl"] #searchInput {
     transition: opacity var(--motion-dur-base) var(--motion-ease-out);
 }
 
-/* Small gold 4-point star sitting inline next to the magnifying glass -- a
-   subtle, always-on hint that the search bar is also the "Ask Sh'elah" AI
-   entry point, not just plain text search. Previously an absolutely
-   positioned badge on the glass icon's corner, which read as clutter/
-   overlap rather than a companion icon -- now a plain flex sibling (see
-   #searchIcon's `gap` above), vertically centered alongside the glass icon
-   instead of layered on top of it. Reuses .ai-hint-icon's color/opacity
-   (see below) plus tokens.css's shelah-warm-pulse keyframe (already used
-   for the loading overlay's logo, ENGINEERING_RULES.md: "zero new
-   @keyframes outside the token layer") for the same ambient "something AI
-   is here" glow used elsewhere, rather than a new animation style. Kept
-   small and low-contrast at rest on purpose -- a hint, not a loading
-   spinner; body.search-loading (static/css/ai.css) swaps this to an actual
-   spin for the "asking AI" state.
-
-   Duration overridden to 3.4s here (vs. the 2.6s baseline the shared
-   keyframe is authored for): a solid filled star carries more "ink" than
-   the keyframe's original thin outline target, so the same opacity/scale
-   swing at the default pace reads more like an on/off blink than a gentle
-   fade. Slowing just this selector's pace (same keyframe, same 0.7
-   opacity floor) fixes that without touching sidebar.css's own separate
-   1.6s override of the same keyframe for an unrelated element. */
+/* Small gold 4-point star sitting inline next to the magnifying glass: a
+   quiet, static hint that the search bar is also the "Ask Sh'elah" entry
+   point. A plain flex sibling of the glass (see #searchIcon's `gap`), at rest
+   it does not glow or pulse; it only pulses while an answer is being asked
+   for (body.search-loading, static/css/ai.css). */
 .search-ai-sparkle {
     display: inline-flex;
-    filter: drop-shadow(0 0 10px rgba(201, 168, 78, 0.4));
-    animation: shelah-warm-pulse 3.4s ease-in-out infinite;
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -1261,88 +1151,6 @@ html[dir="rtl"] #searchInput {
     color: #64748b;
 }
 
-.prayer-family-tabs {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
-    gap: 0.45rem;
-}
-
-.prayer-family-tab {
-    border: 1px solid #ded3c2;
-    border-radius: 999px;
-    background: #f8f3e9;
-    color: #4d647f;
-    font-size: 0.74rem;
-    font-weight: 700;
-    letter-spacing: 0.06em;
-    text-transform: uppercase;
-    padding: 0.42rem 0.55rem;
-}
-
-.prayer-family-tab:hover,
-.prayer-family-tab:focus-visible {
-    background: #f1e8d9;
-    border-color: #c8b69d;
-    color: #2a4767;
-}
-
-.prayer-family-tab-active {
-    background: #ede1cf;
-    border-color: #b9a487;
-    color: #1f3f63;
-}
-
-.prayer-grid-list {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
-    gap: 0.45rem;
-}
-
-.prayer-grid-item {
-    border: 1px solid #ddd2c0;
-    border-radius: 0.7rem;
-    background: #fffaf1;
-    color: #345271;
-    font-family: 'Cardo', 'Cardo Fallback', serif;
-    font-size: 0.93rem;
-    line-height: 1.25;
-    padding: 0.5rem 0.6rem;
-}
-
-.prayer-grid-item:hover,
-.prayer-grid-item:focus-visible {
-    background: #f2eadb;
-    border-color: #bea98c;
-    color: #1f3e5d;
-}
-
-.prayer-nav-link {
-    border-radius: 0.45rem;
-    padding-inline: 0.35rem;
-    /* WCAG 2.1 target size: text-sm + py-0.5 alone renders ~24px tall.
-       Flex-centering within a taller box keeps the same visual text
-       density while giving the button a real 44px tap target. */
-    display: flex;
-    align-items: center;
-    min-height: 44px;
-}
-
-.prayer-nav-link:hover,
-.prayer-nav-link:focus-visible {
-    background: rgba(0, 0, 0, 0.03);
-}
-
-.prayer-nav-family>summary,
-.prayer-nav-nested>summary {
-    cursor: pointer;
-    list-style: none;
-}
-
-.prayer-nav-family>summary::-webkit-details-marker,
-.prayer-nav-nested>summary::-webkit-details-marker {
-    display: none;
-}
-
 /* Table-of-Contents accordion (#leftSidebar) — one consistent chevron for every
    <summary>, replacing each browser's own native disclosure-triangle glyph
    (previously shown, unstyled, on any summary missing list-none) and filling
@@ -1357,19 +1165,26 @@ html[dir="rtl"] #searchInput {
 }
 
 #leftSidebar .space-y-4 summary::after {
-    content: '›';
+    content: '';
     display: inline-block;
+    inline-size: 0.75em;
+    block-size: 0.75em;
     margin-inline-start: 0.35rem;
-    color: #cbd5e1;
+    vertical-align: -0.05em;
+    background: var(--text-muted);
+    -webkit-mask: var(--icon-caret-right) center / contain no-repeat;
+    mask: var(--icon-caret-right) center / contain no-repeat;
     transition: transform var(--motion-dur-fast) var(--motion-ease-out);
 }
 
-#leftSidebar .space-y-4 details[open]>summary::after {
-    transform: rotate(90deg);
+/* The chevron points toward the content, so it turns around in RTL. */
+#leftSidebar .space-y-4 summary:dir(rtl)::after {
+    transform: scaleX(-1);
 }
 
-:is([data-theme="dark"], body.theme-dark) #leftSidebar .space-y-4 summary::after {
-    color: var(--text-muted);
+#leftSidebar .space-y-4 details[open]>summary::after,
+#leftSidebar .space-y-4 details[open]>summary:dir(rtl)::after {
+    transform: rotate(90deg);
 }
 
 .library-index-sidebar-tree {
@@ -1634,14 +1449,10 @@ html.theme-dark::-webkit-scrollbar-thumb:hover,
 }
 
 .prose blockquote {
-    border-inline-start-color: var(--accent-gold);
-    background-color: #fffbf0;
-    padding: 1rem;
+    margin: 0 0 var(--sp-6);
+    padding-inline-start: var(--sp-4);
     font-style: italic;
-    border-radius: 4px;
-    color: #475569;
-    margin-bottom: 1.5rem;
-    border-left-width: 4px;
+    color: var(--ink-secondary);
 }
 
 .prose strong {
@@ -2591,7 +2402,7 @@ body.mobile-panel-open {
 
 .home-section-label {
     font-size: 0.72rem;
-    letter-spacing: 2px;
+    letter-spacing: 0.17em;
     text-transform: uppercase;
     font-variant: small-caps;
     /* Was a hardcoded #64748b (the pre-2026-08-15 --ink-secondary value,
@@ -2745,7 +2556,7 @@ html.rtl .home-main-layout #popularTextsGrid {
 .home-daily-label {
     display: block;
     font-size: 0.72rem;
-    letter-spacing: 2px;
+    letter-spacing: 0.17em;
     text-transform: uppercase;
     /* Same stale-hardcoded-hex issue as .home-section-label above. */
     color: var(--ink-secondary);
@@ -4280,38 +4091,6 @@ html.theme-dark,
     color: var(--text-muted) !important;
 }
 
-:is([data-theme="dark"], body.theme-dark) .prayer-family-tab {
-    background: var(--surface-elevated);
-    border-color: var(--surface-border);
-    color: var(--text-main);
-}
-
-:is([data-theme="dark"], body.theme-dark) .prayer-family-tab:hover,
-:is([data-theme="dark"], body.theme-dark) .prayer-family-tab:focus-visible {
-    background: var(--surface-pill);
-    border-color: var(--control-border);
-    color: var(--control-text-strong);
-}
-
-:is([data-theme="dark"], body.theme-dark) .prayer-family-tab-active {
-    background: var(--control-bg);
-    border-color: var(--control-border);
-    color: var(--control-text-strong);
-}
-
-:is([data-theme="dark"], body.theme-dark) .prayer-grid-item {
-    background: var(--surface-elevated);
-    border-color: var(--surface-border);
-    color: var(--accent-cream);
-}
-
-:is([data-theme="dark"], body.theme-dark) .prayer-grid-item:hover,
-:is([data-theme="dark"], body.theme-dark) .prayer-grid-item:focus-visible {
-    background: var(--surface-pill);
-    border-color: var(--control-border);
-    color: var(--control-text-strong);
-}
-
 :is([data-theme="dark"], body.theme-dark) #popularTextsGrid button {
     background: var(--surface-elevated) !important;
     border-color: var(--surface-border) !important;
@@ -4626,7 +4405,6 @@ html.theme-dark,
     color: var(--prose-text-dark) !important;
 }
 
-:is([data-theme="dark"], body.theme-dark) .prose blockquote,
 :is([data-theme="dark"], body.theme-dark) .prose code {
     background: var(--surface-elevated) !important;
     border-color: var(--surface-border) !important;
@@ -4723,21 +4501,8 @@ html[dir="rtl"] .mobile-drawer-right.mobile-open {
 }
 
 /* ═══════════════════════════════════════════════════════════════════ */
-/* DARK MODE ADDITIONS — loading overlay, city search, commentary UI */
+/* DARK MODE ADDITIONS — city search, commentary UI */
 /* ═══════════════════════════════════════════════════════════════════ */
-
-/* Loading overlay dark mode */
-:is([data-theme="dark"], body.theme-dark) #loadingOverlay {
-    background: rgba(30, 30, 27, 0.92) !important;
-}
-
-:is([data-theme="dark"], body.theme-dark) #loadingOverlay .text-navy {
-    color: var(--accent-cream) !important;
-}
-
-:is([data-theme="dark"], body.theme-dark) #loadingOverlay p {
-    color: var(--text-muted) !important;
-}
 
 /* City search popover dark mode */
 :is([data-theme="dark"], body.theme-dark) #citySearchPopover {
@@ -5210,16 +4975,6 @@ body.theme-dark #analyticsConsentAccept {
         background: color-mix(in srgb, #4e667e 82%, black) !important;
         border-color: color-mix(in srgb, #4e667e 82%, black) !important;
     }
-}
-
-/* The selected prayer-family tab took the (lighter) generic tab hover,
-   so hovering it looked like it was being deselected. Deepen instead. */
-.prayer-family-tab-active:hover {
-    background: color-mix(in srgb, #ede1cf 70%, #b9a487);
-}
-
-:is([data-theme="dark"], body.theme-dark) .prayer-family-tab-active:hover {
-    background: var(--ctrl-bg-hover);
 }
 
 /* Texts-menu "Clear": its hover:bg-slate-200 is remapped paler than the

@@ -14,6 +14,7 @@ How to navigate this file:
 """
 
 import asyncio
+import functools
 import json
 import re
 from concurrent.futures import ThreadPoolExecutor
@@ -32,6 +33,7 @@ from backend.data_service import ShelahEngine
 from backend import sefaria
 from backend import claude
 from backend import ask_pipeline
+from backend import ask_progress
 from backend import cost_gates
 from backend import page_meta
 from backend import module_versions
@@ -1542,30 +1544,58 @@ def _flatten_primary_sources_for_claude(primary_sources, answer_language):
     return flat_sources_for_claude
 
 
-def _gather_ask_question_context_futures(question, canonical_lens, user_id, engine):
-    """Submit the 3 secondary-context lookups (halachipedia, community
-    knowledge, user memory, wiki) to the module-level thread pool and
-    collect each with its own timeout, tolerating individual failures.
-    Split out of _collect_ask_question_context() (SonarCloud
-    python:S3776).
-    """
-    halachipedia_future = submit_with_context(
-        _THREAD_POOL, engine.get_halachipedia_summary, question)
-    knowledge_future = submit_with_context(
-        _THREAD_POOL,
-        _retrieve_community_knowledge,
-        question,
-        canonical_lens=canonical_lens,
-        max_rows=RAG_TOP_KNOWLEDGE_ROWS,
-    )
-    memory_future = submit_with_context(
-        _THREAD_POOL,
-        _fetch_user_memory_summaries,
-        user_id,
-        limit=RAG_MEMORY_ROWS,
-    )
-    wiki_future = submit_with_context(_THREAD_POOL, engine.get_wiki, question)
+def _progress_tracked(stage_id, fn):
+    """`fn` as one live-progress step (backend/ask_progress.py). The pool
+    worker carries the submitting request's context, so the step reports to
+    that request's stream, and to nobody when none is bound. The wrapper
+    keeps `fn`'s name, so what is submitted still reads as that lookup."""
+    @functools.wraps(fn)
+    def run(*args, **kwargs):
+        with ask_progress.stage(stage_id):
+            return fn(*args, **kwargs)
+    return run
 
+
+def _submit_ask_question_context_futures(question, canonical_lens, user_id, engine):
+    """Start the secondary-context lookups (halachipedia, community
+    knowledge, user memory, wiki) on the module-level thread pool and return
+    their futures without waiting. Split from the collecting half so
+    _collect_ask_question_context() can start them BEFORE it resolves the
+    primary Sefaria sources: they are independent of each other, and
+    submitting them afterwards made every follow-up pay the primary-source
+    stage and then the slowest secondary lookup back to back.
+    """
+    return (
+        submit_with_context(
+            _THREAD_POOL,
+            _progress_tracked(ask_progress.STAGE_COMMENTARY, engine.get_halachipedia_summary),
+            question),
+        submit_with_context(
+            _THREAD_POOL,
+            _progress_tracked(ask_progress.STAGE_CUSTOMS, _retrieve_community_knowledge),
+            question,
+            canonical_lens=canonical_lens,
+            max_rows=RAG_TOP_KNOWLEDGE_ROWS,
+        ),
+        submit_with_context(
+            _THREAD_POOL,
+            _progress_tracked(ask_progress.STAGE_CUSTOMS, _fetch_user_memory_summaries),
+            user_id,
+            limit=RAG_MEMORY_ROWS,
+        ),
+        submit_with_context(
+            _THREAD_POOL,
+            _progress_tracked(ask_progress.STAGE_COMMENTARY, engine.get_wiki),
+            question),
+    )
+
+
+def _collect_ask_question_context_futures(futures):
+    """Collect the futures from _submit_ask_question_context_futures() with
+    each lookup's own timeout, tolerating individual failures. Split out of
+    _collect_ask_question_context() (SonarCloud python:S3776).
+    """
+    halachipedia_future, knowledge_future, memory_future, wiki_future = futures
     try:
         halachipedia_info = halachipedia_future.result(timeout=4)
     except Exception:
@@ -1584,6 +1614,12 @@ def _gather_ask_question_context_futures(question, canonical_lens, user_id, engi
         wiki_info = None
 
     return halachipedia_info, knowledge_rows, user_memory_summaries, wiki_info
+
+
+def _gather_ask_question_context_futures(question, canonical_lens, user_id, engine):
+    """Submit and collect the secondary-context lookups in one step."""
+    return _collect_ask_question_context_futures(
+        _submit_ask_question_context_futures(question, canonical_lens, user_id, engine))
 
 
 def _derive_ask_question_context_flags(flat_sources_for_claude, knowledge_rows, halachipedia_list, wiki_list):
@@ -1611,11 +1647,16 @@ def _collect_ask_question_context(question, canonical_lens, user_id, answer_lang
     below. Split out of ask_question() (SonarCloud python:S3776) -- see
     _ask_question_prayer_payload.
     """
-    primary_sources = _collect_primary_sources_sync(question, engine, retrieval_context)
+    # 2-4 first: start the secondary lookups on the module-level pool so they
+    # run while the primary Sefaria sources below are being resolved.
+    secondary_futures = _submit_ask_question_context_futures(
+        question, canonical_lens, user_id, engine)
 
-    # 2-4. Fetch remaining context in parallel using the module-level pool.
+    with ask_progress.stage(ask_progress.STAGE_SOURCES):
+        primary_sources = _collect_primary_sources_sync(question, engine, retrieval_context)
+
     halachipedia_info, knowledge_rows, user_memory_summaries, wiki_info = (
-        _gather_ask_question_context_futures(question, canonical_lens, user_id, engine)
+        _collect_ask_question_context_futures(secondary_futures)
     )
 
     halachipedia_list = [halachipedia_info] if halachipedia_info else []
@@ -1768,6 +1809,13 @@ def _security_blocked_ask_payload(
     }
 
 
+def _tracked_ask_tool_context(engine):
+    """The zmanim / Hebrew-date / parasha lookup behind every answer's tool
+    context, reported as the "times" progress step."""
+    with ask_progress.stage(ask_progress.STAGE_TIMES):
+        return _build_ask_tool_context(engine)
+
+
 def _dispatch_ask_ai_synthesis_call(question, mode, canonical_lens, answer_language, ctx, engine, conversation_history=None):
     """Submit the AI-synthesis call (agentic tool-use loop or the plain
     claude.ask_claude() call, per AI_AGENTIC_TOOLS) to the bounded thread
@@ -1805,10 +1853,11 @@ def _dispatch_ask_ai_synthesis_call(question, mode, canonical_lens, answer_langu
         "mode": mode,
         "community_lens": canonical_lens,
         "answer_language": answer_language,
-        "tool_context": _build_ask_tool_context(engine),
+        "tool_context": _tracked_ask_tool_context(engine),
         "conversation_history": conversation_history,
     }
 
+    ask_progress.begin(ask_progress.STAGE_THINKING)
     if claude.AI_AGENTIC_TOOLS:
         def _run_agentic(**kwargs):
             return asyncio.run(ask_pipeline.run_agentic_ask(**kwargs))

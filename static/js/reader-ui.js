@@ -25,7 +25,17 @@ function hasAuthorizationHeader(headers) {
     return Boolean(headers.Authorization || headers.authorization);
 }
 
+// A handler that throws on a timer or a scroll would otherwise post the same
+// error many times a second, queueing behind (and starving) the requests the
+// page's buttons make. Each distinct error is sent once, and a page stops
+// reporting after a fixed number.
+const MAX_CLIENT_ERRORS = 20;
+const reportedErrors = new Set();
+
 async function postClientError(payload) {
+    const key = `${payload.type}|${payload.message}|${payload.url}|${payload.line || 0}|${payload.column || 0}`;
+    if (reportedErrors.has(key) || reportedErrors.size >= MAX_CLIENT_ERRORS) return;
+    reportedErrors.add(key);
     try {
         await fetch(CLIENT_ERROR_ENDPOINT, {
             method: "POST",

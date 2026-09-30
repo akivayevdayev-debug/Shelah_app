@@ -432,3 +432,114 @@ test('reconcileRetry tolerates a thread with no messages array', async () => {
     const api = await loadApi(fetchFn);
     assert.deepEqual(await api.reconcileRetry('c1', 'e1'), { outcome: 'not_saved' });
 });
+
+// -- progress stream (Accept: application/x-ndjson) -------------------------
+
+function ndjsonResponse(events, { status = 200 } = {}) {
+    const encoder = new TextEncoder();
+    const chunks = events.map((event) => encoder.encode(`${JSON.stringify(event)}\n`));
+    let i = 0;
+    return {
+        status,
+        ok: status >= 200 && status < 300,
+        headers: { get: (name) => (String(name).toLowerCase() === 'content-type' ? 'application/x-ndjson' : null) },
+        body: {
+            getReader: () => ({
+                read: async () => (i < chunks.length ? { done: false, value: chunks[i++] } : { done: true }),
+                cancel: async () => {},
+            }),
+        },
+    };
+}
+
+test('askInConversation asks for the progress stream and still accepts the plain 201', async () => {
+    const fetchFn = makeRoutedFetch([['POST', ASK_RE, [jsonResponse(201, ASK_OK)]]]);
+    const api = await loadApi(fetchFn);
+
+    const result = await api.askInConversation('c1', { question: 'Q?' }, { onProgress: () => {} });
+
+    assert.deepEqual(result, ASK_OK);
+    assert.match(fetchFn.calls[0].headers.Accept, /application\/x-ndjson/);
+    assert.match(fetchFn.calls[0].headers.Accept, /application\/json/);
+});
+
+test('askInConversation forwards each step and resolves with the streamed result body', async () => {
+    const fetchFn = makeRoutedFetch([['POST', ASK_RE, [ndjsonResponse([
+        { type: 'stage', stage: 'sources', state: 'start' },
+        { type: 'ping' },
+        { type: 'stage', stage: 'sources', state: 'done' },
+        { type: 'stage', stage: 'thinking', state: 'start' },
+        { type: 'result', status: 201, body: ASK_OK },
+    ])]]]);
+    const api = await loadApi(fetchFn);
+    const steps = [];
+
+    const result = await api.askInConversation('c1', { question: 'Q?' }, {
+        onProgress: (event) => steps.push(`${event.type}:${event.stage || ''}:${event.state || ''}`),
+    });
+
+    assert.deepEqual(result, ASK_OK);
+    // Keep-alive pings reach the sink too; the store ignores them.
+    assert.deepEqual(steps, ['stage:sources:start', 'ping::', 'stage:sources:done', 'stage:thinking:start']);
+    assert.equal(fetchFn.calls.length, 1);
+});
+
+test('askInConversation: a failure reported inside the stream keeps its status and code', async () => {
+    const fetchFn = makeRoutedFetch([['POST', ASK_RE, [ndjsonResponse([
+        { type: 'stage', stage: 'sources', state: 'start' },
+        { type: 'error', status: 429, body: { error: 'Slow down', code: 'rate_limited' }, retry_after: 30 },
+    ])]]]);
+    const api = await loadApi(fetchFn);
+
+    await assert.rejects(api.askInConversation('c1', { question: 'Q?' }, { onProgress: () => {} }), {
+        code: 'rate_limited',
+        status: 429,
+        retryAfter: 30,
+        message: 'Slow down',
+    });
+    assert.equal(fetchFn.calls.length, 1, 'a rate limit is not retried or reconciled');
+});
+
+test('askInConversation: a stream cut off after the server saved AND answered recovers the stored turns', async () => {
+    const thread = { id: 'c1', title: 'Q?', messages: [USER_MSG, ANSWER] };
+    const fetchFn = makeRoutedFetch([
+        ['POST', ASK_RE, [ndjsonResponse([{ type: 'stage', stage: 'thinking', state: 'start' }])]],
+        ['GET', GET_RE, [jsonResponse(200, thread)]],
+    ]);
+    const api = await loadApi(fetchFn);
+
+    const result = await api.askInConversation('c1', { question: 'Q?' }, { onProgress: () => {} });
+
+    assert.equal(result.assistant_message.id, 'a1');
+    assert.equal(fetchFn.calls.filter((c) => c.method === 'POST').length, 1, 'must not re-send a saved question');
+});
+
+test('askInConversation: a stream cut off before the question was saved re-sends once', async () => {
+    const fetchFn = makeRoutedFetch([
+        ['POST', ASK_RE, [
+            ndjsonResponse([{ type: 'stage', stage: 'sources', state: 'start' }]),
+            jsonResponse(201, ASK_OK),
+        ]],
+        ['GET', GET_RE, [jsonResponse(200, { id: 'c1', messages: [] })]],
+    ]);
+    const api = await loadApi(fetchFn);
+
+    const result = await api.askInConversation('c1', { question: 'Q?' }, { onProgress: () => {} });
+
+    assert.deepEqual(result, ASK_OK);
+    assert.deepEqual(fetchFn.calls.map((c) => c.method), ['POST', 'GET', 'POST']);
+});
+
+test('askInConversation: a throwing progress sink never fails the answer', async () => {
+    const fetchFn = makeRoutedFetch([['POST', ASK_RE, [ndjsonResponse([
+        { type: 'stage', stage: 'sources', state: 'start' },
+        { type: 'result', status: 201, body: ASK_OK },
+    ])]]]);
+    const api = await loadApi(fetchFn);
+
+    const result = await api.askInConversation('c1', { question: 'Q?' }, {
+        onProgress: () => { throw new Error('ui bug'); },
+    });
+
+    assert.deepEqual(result, ASK_OK);
+});

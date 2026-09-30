@@ -431,7 +431,7 @@ gaps found and fixed in this pass:
   instructions (`PROMPT_VERSION` `2026-09-22-retrieved-context-v2` — bumped
   again 2026-09-22 when the wrapper was changed to emit only for non-empty
   sections, removing pure token overhead on questions with no web/Halachipedia
-  hits). A
+  hits; the wrapper is unchanged in the current `2026-09-30-depth-minhag-followup-v3`). A
   13,727-snippet measurement against real Sefaria/community-knowledge corpora
   and live connector traffic found 0 false positives, so screening now also
   covers Sefaria snippets, community-knowledge rows, user-memory summaries and

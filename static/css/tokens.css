@@ -74,6 +74,12 @@
 ═══════════════════════════════════════════════════════════════════ */
 
 :root {
+    /* Phosphor (bold) glyphs for CSS-drawn marks: painted with mask-image so
+       they take currentColor and follow the theme. Use as
+       `mask: var(--icon-check) center / contain no-repeat`. */
+    --icon-check: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 256 256'%3E%3Cpath d='M232.49,80.49l-128,128a12,12,0,0,1-17,0l-56-56a12,12,0,1,1,17-17L96,183,215.51,63.51a12,12,0,0,1,17,17Z'/%3E%3C/svg%3E");
+    --icon-caret-right: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 256 256'%3E%3Cpath d='M184.49,136.49l-80,80a12,12,0,0,1-17-17L159,128,87.51,56.49a12,12,0,1,1,17-17l80,80A12,12,0,0,1,184.49,136.49Z'/%3E%3C/svg%3E");
+
     color-scheme: light dark;
 
     /* ── Surface hierarchy ──────────────────────────────────────────── */
@@ -147,22 +153,6 @@
     --load-skeleton-base:      #ede8df;
     --load-skeleton-highlight: #f7f2ea;
     --load-skeleton-shimmer:   rgba(255,255,255,0.55);
-    --load-spinner-ring:       #002147;
-    --load-spinner-accent:     #b8a07a;
-    --load-spinner-ring-faint: rgba(0, 33, 71, 0.10);
-    --load-phase-text:         #002147;
-    --load-dot-fill:           rgba(0, 33, 71, 0.40);
-    --load-tag-library-bg:     #e8f4f5;
-    --load-tag-library-border: rgba(0, 78, 95, 0.30);
-    --load-tag-library-text:   #004e5f;
-    --load-tag-customs-bg:     #f3f0ff;
-    --load-tag-customs-border: rgba(124, 58, 237, 0.20);
-    --load-tag-customs-text:   #7c3aed;
-    --load-tag-halacha-bg:     #fef9e6;
-    --load-tag-halacha-border: rgba(184, 134, 11, 0.20);
-    --load-tag-halacha-text:   #8c6e2b;
-    --load-overlay-bg:         rgba(240, 235, 225, 0.92);
-    --load-overlay-delay:      150ms;   /* no-flash on fast loads */
 
     /* ── Border radii ───────────────────────────────────────────────── */
     --radius-xs:  0.25rem;   /* 4px  */
@@ -376,25 +366,10 @@
 /* Transform and opacity only, so the loop runs on the compositor. It used
    to pulse a drop-shadow as well, which repainted the element on every
    frame for as long as it looped; the glow is now a static filter on the
-   elements that want one (.search-ai-sparkle, #loadingOverlay .font-hebrew). */
+   elements that want one. */
 @keyframes shelah-warm-pulse {
     0%, 100% { opacity: 0.7; transform: scale(0.97); }
     50%      { opacity: 1;   transform: scale(1.04); }
-}
-
-/* The search bar's loading halo (static/css/ai.css's .search-liftoff-underlay):
-   while an AI question is loading, its gold-and-blue conic gradient turns
-   steadily around the pill, the two colors swapping sides. Transform only, per
-   ENGINEERING_RULES.md's animation performance guard. Every keyframe repeats
-   the SAME transform list as the element's base transform (translate, then
-   scale, then rotate) so the browser interpolates each term on its own --
-   pure rotation. Mismatched lists (say, a bare rotate() against a base of
-   translate + scale) would matrix-interpolate and drag the square off-center
-   over each cycle, snapping it back at the loop boundary. The 2.2 horizontal
-   stretch must match the one in ai.css's .search-liftoff-underlay::before. */
-@keyframes shelah-halo-orbit {
-    from { transform: translate(-50%, -50%) scale(2.2, 1) rotate(0deg); }
-    to   { transform: translate(-50%, -50%) scale(2.2, 1) rotate(360deg); }
 }
 
 /* View transitions (::view-transition-*(root), below). Forward comes in
@@ -562,21 +537,6 @@ body.theme-dark {
     --load-skeleton-base:      #23211f;
     --load-skeleton-highlight: #2d2b28;
     --load-skeleton-shimmer:   rgba(255,255,255,0.04);
-    --load-spinner-ring:       #c0bab0;
-    --load-spinner-accent:     #b89028;
-    --load-spinner-ring-faint: rgba(192, 186, 176, 0.12);
-    --load-phase-text:         #d4cec4;
-    --load-dot-fill:           rgba(192, 186, 176, 0.40);
-    --load-tag-library-bg:     rgba(42, 156, 136, 0.12);
-    --load-tag-library-border: rgba(42, 156, 136, 0.25);
-    --load-tag-library-text:   #2a9c88;
-    --load-tag-customs-bg:     rgba(136, 104, 192, 0.12);
-    --load-tag-customs-border: rgba(136, 104, 192, 0.25);
-    --load-tag-customs-text:   #8868c0;
-    --load-tag-halacha-bg:     rgba(184, 144, 40, 0.12);
-    --load-tag-halacha-border: rgba(184, 144, 40, 0.25);
-    --load-tag-halacha-text:   #b89028;
-    --load-overlay-bg:         rgba(13, 12, 10, 0.94);
 
     /* ── Elevation ──────────────────────────────────────────────────── */
     --shadow-sm:  0 1px 3px rgba(0,0,0,0.50), 0 1px 2px rgba(0,0,0,0.35);
@@ -792,21 +752,6 @@ body.theme-dark {
         --load-skeleton-base:      #23211f;
         --load-skeleton-highlight: #2d2b28;
         --load-skeleton-shimmer:   rgba(255,255,255,0.04);
-        --load-spinner-ring:       #c0bab0;
-        --load-spinner-accent:     #b89028;
-        --load-spinner-ring-faint: rgba(192,186,176,0.12);
-        --load-phase-text:         #d4cec4;
-        --load-dot-fill:           rgba(192,186,176,0.40);
-        --load-tag-library-bg:     rgba(42,156,136,0.12);
-        --load-tag-library-border: rgba(42,156,136,0.25);
-        --load-tag-library-text:   #2a9c88;
-        --load-tag-customs-bg:     rgba(136,104,192,0.12);
-        --load-tag-customs-border: rgba(136,104,192,0.25);
-        --load-tag-customs-text:   #8868c0;
-        --load-tag-halacha-bg:     rgba(184,144,40,0.12);
-        --load-tag-halacha-border: rgba(184,144,40,0.25);
-        --load-tag-halacha-text:   #b89028;
-        --load-overlay-bg:         rgba(13,12,10,0.94);
 
         --shadow-sm:  0 1px 3px rgba(0,0,0,0.50), 0 1px 2px rgba(0,0,0,0.35);
         --shadow-md:  0 4px 12px rgba(0,0,0,0.60), 0 2px 4px rgba(0,0,0,0.40);

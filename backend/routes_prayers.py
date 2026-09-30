@@ -145,10 +145,10 @@ def _combine_prayer_lines(refs, results):
 def get_siddur_section_refs(prayer_name):
     """Lightweight ref list for a legacy prayer-service name.
 
-    Fallback path for openPrayerEntry() when the name isn't a real Sefaria
-    index title (so /api/library/leaf-refs can't resolve it): returns the
-    same refs /api/siddur/full/<name> would, without fetching every ref's
-    text from Sefaria first just to read back .sources.
+    Kept for old bookmarks and API consumers; the in-app siddur now reads
+    /api/siddur/v2 and nothing in the client calls this. Returns the same
+    refs /api/siddur/full/<name> would, without fetching every ref's text
+    from Sefaria first just to read back .sources.
     """
     resolved_name = (unquote(prayer_name or "") or "").strip()
     refs = _get_prayer_refs(resolved_name)

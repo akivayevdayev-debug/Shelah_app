@@ -884,3 +884,147 @@ test('a delete made while an undo is in flight is not cleared by that undo', asy
     assert.equal(await undoing, true);
     assert.equal(store.getState().lastDeleted.id, 'old');
 });
+
+// -- live progress while an answer is prepared ------------------------------
+
+const stage = (id, state) => ({ type: 'stage', stage: id, state });
+
+test('send: the server\'s steps land in state.progress, starting fresh for every send', async () => {
+    const { createConversationStore } = await loadStore();
+    const gate = deferred();
+    let sink = null;
+    const base = makeApi();
+    const api = makeApi({
+        askInConversation: async (id, payload, { onProgress }) => {
+            sink = onProgress;
+            await gate.promise;
+            return base.askInConversation(id, payload);
+        },
+    });
+    const store = createConversationStore({ api });
+
+    const sending = store.send('Q?');
+    await new Promise((r) => setImmediate(r));
+    assert.deepEqual(store.getState().progress, { order: [], status: {} });
+
+    sink(stage('sources', 'start'));
+    sink(stage('sources', 'done'));
+    sink(stage('thinking', 'start'));
+    sink({ type: 'ping' });
+    assert.deepEqual(store.getState().progress, {
+        order: ['sources', 'thinking'],
+        status: { sources: 'done', thinking: 'active' },
+    });
+
+    gate.resolve();
+    await sending;
+    assert.equal(store.getState().sending, false);
+
+    // The next send does not inherit the previous answer's steps.
+    const second = store.send('again');
+    await new Promise((r) => setImmediate(r));
+    assert.deepEqual(store.getState().progress, { order: [], status: {} });
+    gate.resolve();
+    await second;
+});
+
+test('progress events that change nothing do not re-render the store', async () => {
+    const { createConversationStore } = await loadStore();
+    const gate = deferred();
+    let sink = null;
+    const base = makeApi();
+    const api = makeApi({
+        askInConversation: async (id, payload, { onProgress }) => {
+            sink = onProgress;
+            await gate.promise;
+            return base.askInConversation(id, payload);
+        },
+    });
+    const store = createConversationStore({ api });
+    const sending = store.send('Q?');
+    await new Promise((r) => setImmediate(r));
+    let renders = 0;
+    store.subscribe(() => { renders += 1; });
+
+    sink(stage('sources', 'start'));
+    const afterFirst = renders;
+    sink(stage('sources', 'start'));
+    sink({ type: 'ping' });
+    sink(stage('not-a-stage', 'start'));
+
+    assert.equal(afterFirst, 1);
+    assert.equal(renders, 1, 'repeats, pings and unknown steps are no-ops');
+    gate.resolve();
+    await sending;
+});
+
+test('steps from an answer the user has since left are dropped', async () => {
+    const { createConversationStore } = await loadStore();
+    const gate = deferred();
+    let sink = null;
+    const base = makeApi();
+    const api = makeApi({
+        askInConversation: async (id, payload, { onProgress }) => {
+            sink = onProgress;
+            await gate.promise;
+            return base.askInConversation(id, payload);
+        },
+    });
+    const store = createConversationStore({ api });
+    const sending = store.send('Q?');
+    await new Promise((r) => setImmediate(r));
+
+    store.startNew({ minhag: 'Persian' });
+    sink(stage('sources', 'start'));
+
+    assert.deepEqual(store.getState().progress, { order: [], status: {} });
+    gate.resolve();
+    await sending;
+});
+
+test('askSearch hands the /ask client a progress sink and shows its steps', async () => {
+    const { createConversationStore } = await loadStore();
+    const pending = deferred();
+    let extra = null;
+    const askAnswer = (question, request, options) => { extra = options; return pending.promise; };
+    const store = createConversationStore({ api: makeApi(), askAnswer });
+
+    const result = store.askSearch('Q?', { mode: 'practical' });
+    extra.onProgress(stage('customs', 'start'));
+
+    assert.deepEqual(store.getState().progress.status, { customs: 'active' });
+    pending.resolve(askPayload());
+    await result;
+});
+
+test('retrying a stored error turn also reports live steps', async () => {
+    const { createConversationStore } = await loadStore();
+    let sink = null;
+    const gate = deferred();
+    const errorTurn = { id: 'e1', role: 'assistant', content: '', status: 'error', citations: [] };
+    const base = makeApi();
+    const api = makeApi({
+        askInConversation: async (id, payload, options) => {
+            if (!payload.retryOf) {
+                return {
+                    user_message: { id: 'u1', role: 'user', content: payload.question, status: 'complete' },
+                    assistant_message: errorTurn,
+                    conversation: { id, title: payload.question },
+                };
+            }
+            sink = options.onProgress;
+            await gate.promise;
+            return base.askInConversation(id, payload);
+        },
+    });
+    const store = createConversationStore({ api });
+    await store.send('Q?');
+
+    const retrying = store.retry('e1');
+    await new Promise((r) => setImmediate(r));
+    sink(stage('times', 'start'));
+
+    assert.deepEqual(store.getState().progress.status, { times: 'active' });
+    gate.resolve();
+    await retrying;
+});

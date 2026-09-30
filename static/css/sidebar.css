@@ -61,26 +61,6 @@ details>summary .group-open\:rotate-90 {
     transition: transform var(--motion-dur-base) var(--motion-ease-out);
 }
 
-#loadingOverlay .font-hebrew {
-    filter: drop-shadow(0 0 10px rgba(201, 168, 78, 0.4));
-    animation: shelah-warm-pulse 1.6s ease-in-out infinite !important;
-}
-
-/* The rule above uses !important on an ID+class selector, which outranks
-   typography.css's global `*, *::before, *::after { animation-duration:
-   0.01ms !important }` reduced-motion fallback on specificity (both are
-   !important, so specificity is the tiebreaker) — without this override the
-   infinite pulse would keep running for prefers-reduced-motion users. */
-@media (prefers-reduced-motion: reduce) {
-    #loadingOverlay .font-hebrew {
-        animation: none !important;
-    }
-}
-
-body.theme-dark #loadingOverlay .font-hebrew {
-    filter: drop-shadow(0 0 10px rgba(201, 168, 78, 0.30));
-}
-
 /* RTL-safe border placement for sidebar tree depth */
 html.rtl .library-index-sidebar-tree {
     border-inline-start: 2px solid rgba(0, 33, 71, 0.3);

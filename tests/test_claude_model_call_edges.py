@@ -306,7 +306,7 @@ class TestAsyncGeminiPrimary:
         [call] = models.calls
         assert call["contents"] == "prompt"
         assert call["config"].system_instruction == f"{claude.SIMPLE_SYSTEM_PROMPT}\n\nEXTRA CONTEXT".strip()
-        assert call["config"].max_output_tokens == 512
+        assert call["config"].max_output_tokens == claude.SIMPLE_ANSWER_MAX_TOKENS
         assert result["is_fallback"] is False
         assert health._circuits["gemini"].failures == 0
 

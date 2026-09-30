@@ -39,7 +39,17 @@ export function answerLinkUrl(id, origin) {
 // writeText() afterwards is refused; handing clipboard.write() a
 // ClipboardItem whose blob is still pending starts the write inside the
 // click and lets the browser wait for the link.
-export async function copyText(text, env = { navigator, document, ClipboardItem: globalThis.ClipboardItem, Blob: globalThis.Blob }) {
+export async function copyText(text, env) {
+    // Built here, not as the parameter's default, so referencing these
+    // globals only happens when a caller omits `env` (SonarCloud flags an
+    // object-literal default that eagerly reads bare `navigator`/`document`
+    // as unreliable outside a browser, e.g. under Node-based tests).
+    env ??= {
+        navigator: globalThis.navigator,
+        document: globalThis.document,
+        ClipboardItem: globalThis.ClipboardItem,
+        Blob: globalThis.Blob,
+    };
     const clipboard = env.navigator?.clipboard;
     if (typeof text !== "string" && clipboard?.write && env.ClipboardItem && env.Blob) {
         try {

@@ -72,8 +72,12 @@ HALAKHIC_VERDICT_LABELS = {
     "mutar": "Mutar",
 }
 
-WEB_LAST_RESORT_WARNING = "⚠️ **WARNING:** No matches found in Sefaria or verified customs. The following info is from the general web and may not be Halakhically accurate. Consult a Rabbi."
+WEB_LAST_RESORT_WARNING = "**Warning:** No matches found in Sefaria or verified customs. The following info is from the general web and may not be Halakhically accurate. Consult a Rabbi."
 WEB_LAST_RESORT_WARNING_PLAIN = WEB_LAST_RESORT_WARNING.replace("**", "")
+# Saved answers and model output may still open with the emoji form this
+# warning used to have, so the strippers recognise it too.
+_LEGACY_WEB_LAST_RESORT_WARNING = "⚠️ **WARNING:** No matches found in Sefaria or verified customs. The following info is from the general web and may not be Halakhically accurate. Consult a Rabbi."
+_LEGACY_WEB_LAST_RESORT_WARNING_PLAIN = _LEGACY_WEB_LAST_RESORT_WARNING.replace("**", "")
 RABBI_FINAL_RULING_FOOTER = "Please consult with your local Rabbi for a final ruling."
 
 
@@ -82,7 +86,12 @@ def _strip_model_web_warning_prefix(answer_text):
     if not text:
         return ""
 
-    for marker in (WEB_LAST_RESORT_WARNING, WEB_LAST_RESORT_WARNING_PLAIN):
+    for marker in (
+        WEB_LAST_RESORT_WARNING,
+        WEB_LAST_RESORT_WARNING_PLAIN,
+        _LEGACY_WEB_LAST_RESORT_WARNING,
+        _LEGACY_WEB_LAST_RESORT_WARNING_PLAIN,
+    ):
         if text.startswith(marker):
             text = text[len(marker):].lstrip()
 
@@ -91,13 +100,17 @@ def _strip_model_web_warning_prefix(answer_text):
     return text.strip()
 
 
+# "Note: this is educational information ..." -- with or without the warning
+# emoji the note used to carry.
+_ATTRIBUTION_PREFIX_RE = re.compile(r"note:\s*(?:\u26a0\ufe0f?\s*)?this is educational information", re.IGNORECASE)
+
+
 def _strip_source_attribution_prefix(answer_text):
     text = str(answer_text or "").strip()
     if not text:
         return ""
 
-    lower_text = text.lower()
-    if not lower_text.startswith("note: ⚠️ this is educational information"):
+    if not _ATTRIBUTION_PREFIX_RE.match(text):
         return text
 
     # Preferred shape is: note line, blank line, then body.

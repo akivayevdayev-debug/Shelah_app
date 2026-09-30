@@ -109,7 +109,7 @@ QUERY_STOPWORDS = {
 HEBREW_PREFIXES = ("ו", "ה", "ל", "ב", "ש", "מ")
 
 INTERNAL_AI_KNOWLEDGE_DISCLAIMER = (
-    "Note: ⚠️ This is educational information derived from general halakhic "
+    "Note: This is educational information derived from general halakhic "
     f"knowledge, as the specific database source was unavailable — not a "
     f"halachic ruling. {RABBI_FINAL_RULING_FOOTER}"
 )

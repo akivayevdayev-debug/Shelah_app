@@ -59,7 +59,9 @@ test('externalLinks: Tanakh, practical halacha, responsa, empty', async () => {
 test('externalLinksHtml escapes and opens in a new tab safely', async () => {
     const c = await load();
     const html = c.externalLinksHtml('Genesis 1:1');
-    assert.match(html, /target="_blank" rel="noopener noreferrer" class="src-ext-link">AlHaTorah ↗<\/a>/);
+    // The "leaves this page" mark is a Phosphor arrow-up-right, not a text glyph.
+    assert.match(html, /target="_blank" rel="noopener noreferrer" class="src-ext-link">AlHaTorah<svg [^>]*class="src-ext-icon"[^>]*aria-hidden="true"[^>]*><path d="[^"]+"\/><\/svg><\/a>/);
+    assert.ok(!html.includes('↗'));
     assert.equal(c.escapeHtml(`<a href="x">'&`), '&lt;a href=&quot;x&quot;&gt;&#39;&amp;');
 });
 

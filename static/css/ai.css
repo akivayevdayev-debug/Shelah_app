@@ -20,23 +20,6 @@
     --ai-src-body-bg: #fffaf2;
     --ai-src-he-bg: #fffdf8;
     --ai-src-en-bg: #faf7f0;
-    /* Source-type badge palette (categorical, not part of the semantic
-       surface/ink system) — auto-flips here so .ai-src-badge--* rules and
-       their skeleton-shimmer gradients need no separate dark-mode override. */
-    --ai-badge-tanakh-bg: #fef3c7;
-    --ai-badge-tanakh-text: #92400e;
-    --ai-badge-talmud-bg: #e0f2fe;
-    --ai-badge-talmud-text: #075985;
-    --ai-badge-halacha-bg: #dcfce7;
-    --ai-badge-halacha-text: #166534;
-    --ai-badge-responsa-bg: #f3e8ff;
-    --ai-badge-responsa-text: #6b21a8;
-    --ai-badge-mishnah-bg: #fff7ed;
-    --ai-badge-mishnah-text: #9a3412;
-    --ai-badge-other-bg: #f1f5f9;
-    --ai-badge-other-text: #475569;
-    --ai-wiki-card-bg: linear-gradient(135deg, #eff6ff 0%, #f0f9ff 100%);
-    --ai-custom-card-bg: linear-gradient(135deg, #faf5ff 0%, #f5f3ff 100%);
 }
 
 :is([data-theme="dark"], body.theme-dark) {
@@ -51,20 +34,6 @@
     --ai-src-body-bg: var(--surface-elevated);
     --ai-src-he-bg: var(--surface-elevated);
     --ai-src-en-bg: var(--surface-pill);
-    --ai-badge-tanakh-bg: rgba(254, 243, 199, 0.14);
-    --ai-badge-tanakh-text: #fcd34d;
-    --ai-badge-talmud-bg: rgba(224, 242, 254, 0.12);
-    --ai-badge-talmud-text: #7dd3fc;
-    --ai-badge-halacha-bg: rgba(220, 252, 231, 0.12);
-    --ai-badge-halacha-text: #86efac;
-    --ai-badge-responsa-bg: rgba(243, 232, 255, 0.12);
-    --ai-badge-responsa-text: #d8b4fe;
-    --ai-badge-mishnah-bg: rgba(255, 247, 237, 0.12);
-    --ai-badge-mishnah-text: #fdba74;
-    --ai-badge-other-bg: rgba(241, 245, 249, 0.10);
-    --ai-badge-other-text: #94a3b8;
-    --ai-wiki-card-bg: var(--surface-elevated);
-    --ai-custom-card-bg: var(--surface-elevated);
 }
 
 /* ═══════════════════════════════════════════════════════ */
@@ -251,100 +220,33 @@
 }
 
 /* ═══════════════════════════════════════════════════════ */
-/* AI SOURCE BOXES — VISUAL CARD STYLE (like reader sourceDualTemplate) */
+/* CITED SOURCES -- shared pieces                          */
+/* The list itself is conversation.css's .conv-cite*. What */
+/* is shared: the type label, the external links, and the  */
+/* text preview body. Flat: no cards, no per-type colours. */
 /* ═══════════════════════════════════════════════════════ */
 
-.ai-source-box {
-    border: 1px solid var(--ai-border, #d7cebc);
-    border-radius: 0.55rem;
-    background: var(--ai-src-body-bg, #fffaf2);
-    overflow: hidden;
-    margin-bottom: 1rem;
-    box-shadow: 0 1px 4px rgba(78, 64, 45, 0.07);
-    /* No box-shadow tween (a repaint every frame, audit M-9); overflow:
-       hidden would clip a shadow layer, so the raised shadow just lands
-       while the lift and the border ease. */
-    transition: border-color var(--motion-dur-base) var(--motion-ease-out), transform var(--motion-dur-fast) var(--motion-ease-out);
-}
-
-.ai-source-box:hover {
-    box-shadow: 0 4px 14px rgba(78, 64, 45, 0.12);
-    border-color: #b8aa90;
-}
-
-@media (prefers-reduced-motion: no-preference) {
-    .ai-source-box:hover {
-        transform: translateY(-1px);
-    }
-}
-
-.ai-src-box-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    background: var(--ai-src-header-bg, #f1ede4);
-    padding: 0.45rem 0.9rem;
-    border-bottom: 1px solid var(--ai-border, #d7cebc);
-    gap: 0.5rem;
-}
-
-.ai-src-box-title {
-    font-size: 0.68rem;
-    font-weight: 700;
-    letter-spacing: 0.06em;
-    color: var(--ink, #002147);
-    text-transform: uppercase;
-    flex: 1;
-    min-width: 0;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-}
-
-/* Groups the type badge + title together on the left side of the header */
-.ai-src-box-id {
-    display: flex;
-    align-items: center;
-    gap: 0.4rem;
-    min-width: 0;
-    flex: 1;
-    overflow: hidden;
-}
-
-/* Source-type classification badge */
+/* Source-type label. One quiet treatment for every kind -- the word carries
+   the meaning, so there is no colour-coding to decode (or to fail AA). */
 .ai-src-badge {
     display: inline-flex;
     align-items: center;
-    font-size: 0.58rem;
-    font-weight: 700;
-    letter-spacing: 0.05em;
-    text-transform: uppercase;
-    padding: 0.1rem 0.35rem;
-    border-radius: 0.25rem;
+    flex-shrink: 0;
+    padding: 0 var(--sp-2);
+    border: 1px solid var(--ctrl-border);
+    border-radius: var(--radius-full);
+    color: var(--ink-secondary);
+    font-size: var(--text-xs);
+    font-weight: 500;
+    line-height: 1.5;
     white-space: nowrap;
-    flex-shrink: 0;
-    line-height: 1.4;
-}
-
-.ai-src-badge--tanakh   { background: var(--ai-badge-tanakh-bg); color: var(--ai-badge-tanakh-text); }
-.ai-src-badge--talmud   { background: var(--ai-badge-talmud-bg); color: var(--ai-badge-talmud-text); }
-.ai-src-badge--halacha  { background: var(--ai-badge-halacha-bg); color: var(--ai-badge-halacha-text); }
-.ai-src-badge--responsa { background: var(--ai-badge-responsa-bg); color: var(--ai-badge-responsa-text); }
-.ai-src-badge--mishnah  { background: var(--ai-badge-mishnah-bg); color: var(--ai-badge-mishnah-text); }
-.ai-src-badge--other    { background: var(--ai-badge-other-bg); color: var(--ai-badge-other-text); }
-
-.ai-src-box-links {
-    display: flex;
-    align-items: center;
-    gap: 0.4rem;
-    flex-shrink: 0;
-    flex-wrap: wrap;
-    justify-content: flex-end;
-    max-width: 58%;
 }
 
 .src-ext-link,
 .src-open-link {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-xs);
     font-size: 0.68rem;
     font-weight: 600;
     color: var(--accent-deep-blue, #1f3f63);
@@ -359,41 +261,26 @@
     text-decoration: underline;
 }
 
+/* The Phosphor arrow-up-right that marks a link that leaves the answer. */
+.src-ext-icon {
+    flex-shrink: 0;
+}
+
+/* The text of a source, Hebrew over English. Plain text on the panel's own
+   surface, separated by a hairline -- not two tinted bands. */
 .ai-src-box-body {
     display: grid;
-    grid-template-columns: 1fr 1fr;
+    grid-template-columns: 1fr;
     font-size: 0.8rem;
 }
 
-@media (max-width: 600px) {
-    .ai-src-box-body {
-        grid-template-columns: 1fr;
-    }
-    /* Phones: the ref gets the whole first row (it was cut to "SHUL..."
-       next to the links), and the links wrap onto their own row below. */
-    .ai-src-box-header {
-        flex-wrap: wrap;
-    }
-    .ai-src-box-id {
-        flex-basis: 100%;
-    }
-    .ai-src-box-title {
-        white-space: normal;
-    }
-    .ai-src-box-links {
-        max-width: none;
-        justify-content: flex-start;
-    }
-}
-
 .ai-src-box-he {
-    background: var(--ai-src-he-bg, #fffdf8);
     font-family: var(--font-hebrew, 'Ezra SIL', serif);
     font-size: 1rem;
     line-height: 1.7;
-    padding: 0.75rem 0.9rem;
-    border-right: 1px solid var(--ai-border, #d7cebc);
-    color: var(--ink, #002147);
+    padding: var(--sp-2) 0;
+    border-bottom: 1px solid var(--ai-border, #d7cebc);
+    color: var(--ink-primary);
     direction: rtl;
 }
 
@@ -402,44 +289,25 @@
 }
 
 .ai-src-box-en {
-    background: var(--ai-src-en-bg, #faf7f0);
     font-family: var(--font-serif, 'Cardo', Georgia, serif);
     font-size: 0.85rem;
     line-height: 1.65;
-    padding: 0.75rem 0.9rem;
-    color: var(--text-main, #334155);
+    padding: var(--sp-2) 0;
+    color: var(--ink-secondary);
 }
 
 .ai-src-box-en p {
     margin: 0 0 0.4rem;
 }
 
+.ai-src-box-he:last-child {
+    border-bottom: 0;
+}
+
 .ai-src-box-note {
-    padding: 0.5rem 0.9rem;
+    padding: var(--sp-2) 0;
     font-size: 0.78rem;
-    color: var(--text-muted, #64748b);
-    background: var(--ai-src-header-bg, #f1ede4);
-    font-style: italic;
-    border-top: 1px solid var(--ai-border, #d7cebc);
-}
-
-.ai-src-section-label {
-    font-size: 0.65rem;
-    font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: 0.08em;
-    color: var(--text-muted, #64748b);
-    margin: 0.75rem 0 0.4rem;
-}
-
-/* .ai-source-box, .ai-src-box-header, .src-ext-link/.src-open-link (base),
-   .ai-src-box-en, .ai-src-box-note all fully auto-flip via --ai-border,
-   --ai-src-header-bg, --ai-src-body-bg, --ai-src-en-bg, --accent-deep-blue,
-   --text-main, --text-muted — no override rule needed. Only the two
-   properties below have a genuinely dark-specific value with no light-mode
-   equivalent token. */
-:is([data-theme="dark"], body.theme-dark) .ai-src-box-title {
-    color: var(--accent-cream) !important;
+    color: var(--ink-secondary);
 }
 
 /* Dark theme's --accent-deep-blue (aliases --accent-primary, #6888a8) against
@@ -456,10 +324,6 @@
 
 :is([data-theme="dark"], body.theme-dark) .src-ext-link:hover,
 :is([data-theme="dark"], body.theme-dark) .src-open-link:hover {
-    color: var(--accent-cream) !important;
-}
-
-:is([data-theme="dark"], body.theme-dark) .ai-src-box-he {
     color: var(--accent-cream) !important;
 }
 
@@ -480,12 +344,6 @@
 .animate-scale-in {
     animation: shelah-scale-in 0.26s cubic-bezier(0.22, 1, 0.36, 1) both;
 }
-
-/* .ai-source-box stagger-delay (--i custom property, unlimited count, unaffected
-   by sibling <p> label elements resetting nth-child) is defined once, canonically,
-   in loading.css's ".ai-source-box.animate-fade-up" rule — that's the compound
-   class the JS actually renders onto each box, and it's paired there with the
-   matching prefers-reduced-motion override. */
 
 /* Modal entrance/exit (textsMenu, chapterGrid, calendar,
    libraryCategory, privacyData) is driven by ShelahMotion.present()/dismiss()
@@ -630,27 +488,6 @@
 
 /* shelah-shimmer keyframe lives in tokens.css's MOTION KEYFRAMES layer. */
 
-.ai-src-skeleton {
-    border: 1px solid var(--ai-border, #d7cebc);
-    border-radius: 0.55rem;
-    overflow: hidden;
-    margin-bottom: 1rem;
-    min-height: 5rem;
-}
-
-/* .ai-src-skeleton-header's height/background/animation are fully owned by
-   loading.css's shared skeleton rule (same specificity, loads after this
-   file, so it wins for every property it sets) — no declarations needed
-   here beyond what loading.css doesn't cover. */
-
-.ai-src-skeleton-body {
-    padding: 0.75rem 0.9rem;
-    display: flex;
-    flex-direction: column;
-    gap: 0.5rem;
-    background: var(--ai-src-body-bg, #fffaf2);
-}
-
 .ai-src-skeleton-line {
     height: 0.75rem;
 }
@@ -743,6 +580,14 @@
     }
 }
 
+@media (prefers-reduced-transparency: reduce) {
+    .turnstile-modal__scrim {
+        background: var(--surface-scrim);
+        -webkit-backdrop-filter: none;
+        backdrop-filter: none;
+    }
+}
+
 /* ── Mobile drawer backdrop ──────────────────────────────── */
 #mobileDrawerBackdrop {
     transition: opacity var(--motion-dur-base) var(--motion-ease-out) !important;
@@ -801,127 +646,16 @@
 }
 
 /* While asking AI: fade the magnifying glass down and let the AI star
-   badge pulse faster as the loading cue, instead of animating #searchIcon
-   as a whole (see static/style.css's #searchIcon comment for why that
-   used to fight the icon's own vertical-centering transform). Reuses the
-   same shelah-warm-pulse keyframe as the star's own ambient idle pulse
-   (static/style.css's .search-ai-sparkle) rather than a spin -- rotating a
-   4-point star reads as it losing its points/deforming at this size, where
-   a faster scale+glow pulse of the same motion the star already does at
-   rest just reads as "thinking harder". */
+   pulse as the loading cue, instead of animating #searchIcon as a whole
+   (see static/style.css's #searchIcon comment for why that used to fight
+   the icon's own vertical-centering transform). A pulse rather than a spin:
+   rotating a 4-point star reads as it losing its points at this size. */
 body.search-loading .search-icon-glass {
     opacity: 0.25;
 }
 
 body.search-loading .search-ai-sparkle {
     animation: shelah-warm-pulse 1.6s ease-in-out infinite;
-}
-
-/* Loading halo for the full request duration: a soft gold-and-blue gradient
-   orbiting the pill at a STEADY opacity -- it comes on once when loading starts
-   and goes off once when it ends (the base rule's short opacity transition),
-   but never pulses in between. Nothing here animates opacity; the only motion is the
-   gradient turning (shelah-halo-orbit in tokens.css, on the ::before below). */
-body.search-loading .search-liftoff-underlay {
-    opacity: 0.7;
-}
-
-/* The orbit is declared on the base ::before rule but held paused, and only
-   let run here. When loading ends the gradient therefore freezes where it is
-   while the halo fades out (dropping the animation instead would snap it back
-   to angle 0 mid-fade), and the next request resumes from that angle. */
-body.search-loading .search-liftoff-underlay::before {
-    animation-play-state: running;
-}
-
-/* ── Search "liftoff" moment ──────────────────────────────
-   handleAiSearch() toggles #searchForm.search-liftoff for ~420ms at the
-   instant a question is submitted, synced with window.ShelahMotion
-   .animateIn(aiModal, ...) firing in the same tick -- a brief handoff pulse
-   as the full-screen AI modal takes over, not a persistent loader (the
-   modal's own ש-letter spinner in loading.css owns that job once it's on
-   screen). #searchForm gets `isolation: isolate` so the underlay's negative
-   z-index only sinks below its OWN siblings (the input, #searchIcon,
-   #searchSuggestions) -- never below the topbar's opaque background. */
-#searchForm {
-    isolation: isolate;
-}
-
-/* Fixed stadium-shaped mask: border-radius + overflow:hidden keep the
-   VISIBLE silhouette a stable pill at every frame, no matter how its
-   ::before gradient layer rotates underneath (the rotation can't live on this
-   element directly: turning its own wide-but-short box would swing it into a
-   tall diagonal streak at steep angles, covering neighboring topbar content).
-   It sits one step outside the input and is blurred, so only a soft halo shows
-   past the input's edge (the input and icons paint above it via z-index:-1 +
-   the form's isolation). */
-.search-liftoff-underlay {
-    position: absolute;
-    /* One --sp-2 step, not more: on mobile the topbar pads the form by exactly
-       that much, so this layout box (the blur doesn't count toward scrollable
-       overflow) stops at the viewport edge instead of adding 2px of
-       horizontal overflow at 320px. */
-    inset: calc(-1 * var(--sp-2));
-    z-index: -1;
-    border-radius: var(--radius-full);
-    overflow: hidden;
-    opacity: 0;
-    pointer-events: none;
-    filter: blur(9px);
-    transition: opacity var(--motion-dur-base) var(--motion-ease-out);
-}
-
-/* The rotating gradient: one side of the halo is always gold, the opposite
-   side always blue, with a soft blend between, and the whole thing turns so
-   the two swap sides. It is a square, turned around its own center and clipped
-   back to the stadium shape above by the mask's overflow:hidden every frame.
-   Its width is only what it needs to still cover the mask at every angle once
-   stretched (see scale below).
-
-   scale(2.2, 1) stretches the gradient horizontally, to match the bar's wide
-   shape. A conic gradient's colors are laid out by ANGLE from its center, and
-   on a bar ~15x wider than tall the long top and bottom edges would sit almost
-   entirely at angles near +/-90deg: the whole edge would show one color at a
-   time and flip in unison, reading as pulsing instead of turning. Stretched,
-   the colors are spread along the edges roughly in proportion to distance, so
-   the gold and blue halves genuinely travel around the bar. The two halves are
-   mirror images of each other, so the total brightness stays constant (within
-   a few percent) at every angle -- nothing dips or vanishes. Paused until
-   body.search-loading (see above). --accent-gold and --accent-primary already
-   resolve per theme. The first background is the sRGB fallback; `in oklab`
-   (second) blends gold into blue cleanly instead of muddy. */
-.search-liftoff-underlay::before {
-    content: '';
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    width: 70%;
-    aspect-ratio: 1;
-    transform: translate(-50%, -50%) scale(2.2, 1);
-    background: conic-gradient(from 0deg,
-        var(--accent-gold) 0%,
-        var(--accent-gold) 12%,
-        var(--accent-primary) 38%,
-        var(--accent-primary) 62%,
-        var(--accent-gold) 88%,
-        var(--accent-gold) 100%);
-    background: conic-gradient(in oklab from 0deg,
-        var(--accent-gold) 0%,
-        var(--accent-gold) 12%,
-        var(--accent-primary) 38%,
-        var(--accent-primary) 62%,
-        var(--accent-gold) 88%,
-        var(--accent-gold) 100%);
-    animation: shelah-halo-orbit 2.6s linear infinite paused;
-}
-
-/* .search-ai-sparkle's always-on ambient pulse lives in static/style.css
-   (shelah-warm-pulse 3.4s infinite) -- this compound selector's higher
-   specificity takes over for the liftoff window only, without editing that
-   element's markup, then hands back to the ambient rule once the class is
-   removed. */
-#searchForm.search-liftoff .search-ai-sparkle {
-    animation: shelah-warm-pulse 420ms ease-in-out 1;
 }
 
 /* ── Library sidebar tab ─────────────────────────────────── */
@@ -1028,10 +762,7 @@ body.search-loading .search-liftoff-underlay::before {
     #legalAcceptBtn,
     #themeToggleBtn,
     .lang-btn,
-    #textsMenuModal,
-    .search-liftoff-underlay,
-    .search-liftoff-underlay::before,
-    #searchForm.search-liftoff .search-ai-sparkle {
+    #textsMenuModal {
         animation: none !important;
         transition: none !important;
     }
@@ -1115,7 +846,6 @@ body.search-loading .search-liftoff-underlay::before {
 #readerContent.prose blockquote {
     margin: var(--sp-4) 0;
     padding-inline-start: var(--sp-4);
-    border-inline-start: 3px solid var(--ai-border);
     color: var(--ink-secondary);
     font-style: italic;
 }

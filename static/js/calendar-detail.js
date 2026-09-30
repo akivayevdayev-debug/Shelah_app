@@ -18,6 +18,8 @@
  * Public API: window.ShelahCalendarDetail = { open, close, isOpen }.
  */
 
+import { icon as phosphor } from './icons.js';
+
 const SHEET_QUERY = '(max-width: 767px)';
 const ARROW = 8;              // how far the arrow protrudes past the panel edge (px)
 const GAP = 10;               // panel ↔ anchor distance: arrow plus breathing room
@@ -59,9 +61,10 @@ const STR = {
     },
 };
 
-// Phosphor "caret" glyphs (regular weight), inline so the module needs no icon macro.
-const CARET_RIGHT = '<svg viewBox="0 0 256 256" width="16" height="16" fill="currentColor" aria-hidden="true"><path d="M181.66,133.66l-80,80a8,8,0,0,1-11.32-11.32L164.69,128,90.34,53.66a8,8,0,0,1,11.32-11.32l80,80A8,8,0,0,1,181.66,133.66Z"/></svg>';
-const CARET_LEFT = '<svg viewBox="0 0 256 256" width="16" height="16" fill="currentColor" aria-hidden="true"><path d="M165.66,202.34a8,8,0,0,1-11.32,11.32l-80-80a8,8,0,0,1,0-11.32l80-80a8,8,0,0,1,11.32,11.32L91.31,128Z"/></svg>';
+// Phosphor glyphs (regular weight) from the shared icon module.
+const CARET_RIGHT = phosphor('caret-right', { weight: 'regular' });
+const CARET_LEFT = phosphor('caret-left', { weight: 'regular' });
+const ARROW_OUT = phosphor('arrow-up-right', { size: 14, weight: 'bold' });
 
 // ── Small helpers ──────────────────────────────────────────────────────────
 
@@ -427,7 +430,7 @@ function timezoneLabel(timezone, lang) {
     } catch (_) {
         // Unknown zone ID: fall through to the ID itself.
     }
-    return tz.split('/').pop().replace(/_/g, ' ');
+    return tz.split('/').pop().replaceAll('_', ' ');
 }
 
 // "Times for Brooklyn, NY" -- which location the clock times above belong to.
@@ -508,7 +511,7 @@ function readingRows(leyning) {
 function footNode(url) {
     const { T } = state.ctx;
     return h('div', { class: 'cal-detail__foot' },
-        url ? h('a', { class: 'cal-detail__link', href: url, target: '_blank', rel: 'noopener noreferrer' }, T.learn, h('span', { 'aria-hidden': 'true', text: '↗' })) : null,
+        url ? h('a', { class: 'cal-detail__link', href: url, target: '_blank', rel: 'noopener noreferrer' }, T.learn, icon(ARROW_OUT)) : null,
         h('p', { class: 'cal-detail__credit' }, `${T.credit} `,
             h('a', { href: 'https://www.hebcal.com/', target: '_blank', rel: 'noopener noreferrer', text: 'Hebcal.com' }), ' (CC BY 4.0)'));
 }

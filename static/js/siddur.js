@@ -97,15 +97,15 @@ export function createSiddur({ fetchImpl = globalThis.fetch, deps, storage = glo
         });
     }
 
-    function renderToday(root, dayData, { kind, il, afterSunset }) {
+    function renderToday(root, dayData, { kind, il, afterSunset, toc }) {
         const slot = root.querySelector("[data-siddur-today]");
         if (!slot) return;
         slot.innerHTML = dayData
-            ? day.todayCardMarkup(dayData, { kind, il, afterSunset, t, escapeHtml: deps.escapeHtml, isHebrew: isHebrew() })
+            ? day.todayCardMarkup(dayData, { kind, il, afterSunset, toc, t, escapeHtml: deps.escapeHtml, isHebrew: isHebrew() })
             : "";
     }
 
-    async function refreshDay(root, kind) {
+    async function refreshDay(root, kind, toc) {
         const { date, afterSunset } = whichDay();
         const il = israel();
         let dayData = null;
@@ -115,7 +115,7 @@ export function createSiddur({ fetchImpl = globalThis.fetch, deps, storage = glo
             dayData = null;
         }
         if (shown?.root !== root) return null;
-        renderToday(root, dayData, { kind, il, afterSunset });
+        renderToday(root, dayData, { kind, il, afterSunset, toc });
         markToday(root, dayData ? day.activeTags(dayData) : new Set());
         return dayData;
     }
@@ -127,10 +127,10 @@ export function createSiddur({ fetchImpl = globalThis.fetch, deps, storage = glo
                 const name = action.dataset.siddurAction;
                 if (name === "toggle-israel") {
                     day.writeIsrael(!israel(), storage);
-                    void refreshDay(root, kind);
+                    void refreshDay(root, kind, toc);
                 } else if (name === "toggle-evening") {
                     eveningOverride = !whichDay().afterSunset;
-                    void refreshDay(root, kind);
+                    void refreshDay(root, kind, toc);
                 } else if (name === "wake") {
                     const turnOn = !wake.active;
                     void (turnOn ? wake.enable() : wake.disable()).then(() => {
@@ -227,9 +227,9 @@ export function createSiddur({ fetchImpl = globalThis.fetch, deps, storage = glo
         // it lands where it stays. A late answer re-applies the jump once
         // the card is in.
         if (early) {
-            renderToday(root, early, { kind, il: israel(), afterSunset: whichDay().afterSunset });
+            renderToday(root, early, { kind, il: israel(), afterSunset: whichDay().afterSunset, toc });
         } else {
-            void refreshDay(root, kind).then(jump);
+            void refreshDay(root, kind, toc).then(jump);
         }
         jump();
         if (where.service && !section) showContinue(root, toc, where);
@@ -281,5 +281,10 @@ export function createSiddur({ fetchImpl = globalThis.fetch, deps, storage = glo
         }
     }
 
-    return { prepare, mount, open, rerender, scrollTo, isShowing, close, renderToc, loadToc, wake };
+    // The siddur page a search query names, as a route value, or null.
+    async function find(query) {
+        return reader.findPage(await loadToc(), query);
+    }
+
+    return { prepare, mount, open, rerender, scrollTo, isShowing, close, renderToc, loadToc, find, wake };
 }

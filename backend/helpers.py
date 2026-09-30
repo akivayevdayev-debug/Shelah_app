@@ -1087,7 +1087,7 @@ def _build_source_attribution_note(*, has_sefaria=False, has_customs=False, has_
 
     joined_sources = _join_with_and(sources)
     return (
-        f"Note: ⚠️ This is educational information pulled from {joined_sources}, "
+        f"Note: This is educational information pulled from {joined_sources}, "
         f"not a halachic ruling. {RABBI_FINAL_RULING_FOOTER}"
     )
 

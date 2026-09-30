@@ -55,9 +55,9 @@ _QUERY_SAFE = _PATH_SAFE + "?%"
 # router.js parsePath's tail grammar (TAIL_PAIRS / TAIL_WORDS / MINHAG_RE).
 _TAIL_PAIRS = {"chat": "conversation", "calendar": "date"}
 _TAIL_WORDS = {
-    **{size: "cv" for size in ("mini", "overlay", "full")},
-    **{mode: "mode" for mode in ("balanced", "practical", "sources", "strict")},
-    **{page: "auth" for page in ("signin", "profile", "settings")},
+    **dict.fromkeys(("mini", "overlay", "full"), "cv"),
+    **dict.fromkeys(("balanced", "practical", "sources", "strict"), "mode"),
+    **dict.fromkeys(("signin", "profile", "settings"), "auth"),
 }
 _MINHAG_RE = re.compile(r"^[A-Za-z][A-Za-z-]{0,39}$")
 _DATE_RE = re.compile(r"^\d{4}-\d{2}-\d{2}$")

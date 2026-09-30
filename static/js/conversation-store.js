@@ -17,6 +17,7 @@
 // answer can never land in the wrong transcript.
 
 import * as defaultApi from "./conversation-api.js";
+import { applyProgressEvent, createProgress } from "./ask-progress.js";
 
 const { ERROR_CODES } = defaultApi;
 
@@ -120,6 +121,9 @@ function initialThreadState(draftMinhag) {
         loadStatus: "ready",
         loadError: null,
         sending: false,
+        // Live steps of the answer being prepared (ask-progress.js); reset on
+        // every send and only meaningful while `sending`.
+        progress: createProgress(),
         sources: { phase: SOURCES_PHASE.IDLE, citations: [], messageId: null },
         lastError: null,
         // A search-bar answer (/ask, saved to ask_history) shown as the
@@ -204,6 +208,17 @@ export function createConversationStore({ api = defaultApi, getPrefs = () => ({}
             code: error?.code || ERROR_CODES.NETWORK,
             message: String(error?.message || "Something went wrong"),
             retryAfter: error?.retryAfter ?? null,
+        };
+    }
+
+    // The onProgress hook handed to the ask clients. Steps from a request the
+    // user has since moved away from (another thread opened) are dropped, like
+    // its result would be.
+    function progressSink(myGeneration) {
+        return (event) => {
+            if (myGeneration !== generation) return;
+            const progress = applyProgressEvent(state.progress, event);
+            if (progress !== state.progress) setState({ progress });
         };
     }
 
@@ -304,7 +319,7 @@ export function createConversationStore({ api = defaultApi, getPrefs = () => ({}
             sources: { phase: SOURCES_PHASE.SEARCHING, citations: [], messageId: ids[1] },
         });
         try {
-            const data = await askAnswer(text, request);
+            const data = await askAnswer(text, request, { onProgress: progressSink(myGeneration) });
             if (myGeneration !== generation) return null;
             const messages = answerTurns(text, data, ids);
             setState({
@@ -426,6 +441,7 @@ export function createConversationStore({ api = defaultApi, getPrefs = () => ({}
 
         setState({
             sending: true,
+            progress: createProgress(),
             lastError: null,
             messages: [
                 ...state.messages,
@@ -443,7 +459,7 @@ export function createConversationStore({ api = defaultApi, getPrefs = () => ({}
             const result = await api.askInConversation(
                 conversation.id,
                 { question: text, ...askOptions(mode, language) },
-                { knownMessageIds },
+                { knownMessageIds, onProgress: progressSink(myGeneration) },
             );
             if (myGeneration !== generation) return false;
 
@@ -503,6 +519,7 @@ export function createConversationStore({ api = defaultApi, getPrefs = () => ({}
         const pending = { ...normalizeMessage({ role: "assistant" }), id: answerLocalId, status: MESSAGE_STATUS.PENDING };
         setState({
             sending: true,
+            progress: createProgress(),
             lastError: null,
             messages: state.messages.map((m) => (m.id === target.id ? pending : m)),
             sources: { phase: SOURCES_PHASE.SEARCHING, citations: [], messageId: answerLocalId },
@@ -512,7 +529,7 @@ export function createConversationStore({ api = defaultApi, getPrefs = () => ({}
             const result = await api.askInConversation(
                 state.conversation.id,
                 { question: asked.content, ...askOptions(mode, language), retryOf: target.id },
-                { knownMessageIds },
+                { knownMessageIds, onProgress: progressSink(myGeneration) },
             );
             if (myGeneration !== generation) return false;
 

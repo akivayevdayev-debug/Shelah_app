@@ -14,6 +14,8 @@
 // Line HTML is the server's sanitized subset (b/i/small/br); it is
 // re-checked here before insertion.
 
+import { icon } from "./icons.js";
+
 const SAFE_TAG_RE = /<(?!\/?(?:b|i|small)>|br>)/g;
 
 export function safeLineHtml(html) {
@@ -61,6 +63,46 @@ export function locate(toc, { service, section }) {
 
 function titleFor(entry, isHebrew) {
     return isHebrew ? entry.title.he : entry.title.en;
+}
+
+function searchKey(text) {
+    return String(text || "")
+        .normalize("NFKD")
+        .replace(/[\u0591-\u05c7\u0300-\u036f]/g, "")
+        .toLowerCase()
+        .replace(/[^\p{L}\p{N}]+/gu, " ")
+        .trim();
+}
+
+// The siddur page a search names ("shacharit", "Kabbalat Shabbat", "חנוכה"):
+// an exact service or section title wins; a longer query may also be the
+// start of a service title. Nothing matches from the middle of a title
+// ("shabbat" stays the tractate) and sections only match exactly ("psalms"
+// stays the book). Returns a route value or null.
+export function findPage(toc, query) {
+    const key = searchKey(query);
+    if (!key) return null;
+    let partial = null;
+    for (const occasion of toc?.occasions || []) {
+        for (const service of occasion.services) {
+            const names = [service.title.en, service.title.he].map(searchKey);
+            if (names.includes(key)) return routeValue(toc.rite.slug, service.slug);
+            if (!partial && key.length >= 5 && names.some((name) => name.startsWith(key))) {
+                partial = routeValue(toc.rite.slug, service.slug);
+            }
+        }
+    }
+    for (const occasion of toc?.occasions || []) {
+        for (const service of occasion.services) {
+            if (service.sections.length < 2) continue;
+            for (const section of service.sections) {
+                if ([section.title.en, section.title.he].map(searchKey).includes(key)) {
+                    return routeValue(toc.rite.slug, service.slug, section.slug);
+                }
+            }
+        }
+    }
+    return partial;
 }
 
 // The label a view gets (tab title, Recent, bookmarks).
@@ -205,7 +247,7 @@ export function serviceMarkup(toc, where, payload, {
         <header class="siddur-service-head">
             <nav class="siddur-breadcrumb" aria-label="${escapeHtml(t("Breadcrumb", "מיקום"))}">
                 <a href="${sitePath(rite)}" data-siddur-path="${rite}">${escapeHtml(t("Siddur", "סידור"))}</a>
-                <span aria-hidden="true">›</span>
+                ${icon("caret-right", { size: 12, className: "siddur-breadcrumb-sep" })}
                 <span>${escapeHtml(isHebrew ? occasion.title.he : occasion.title.en)}</span>
             </nav>
             <p class="siddur-service-gloss">${escapeHtml(isHebrew ? service.title.en : `${service.title.he} · ${service.gloss || ""}`)}</p>
@@ -319,15 +361,19 @@ export function writePosition(key, section, storage = globalThis.localStorage) {
 // Safari grant that there without a prompt, where Firefox's tab would stop
 // the reader with a permission question.
 export function keepOffline(toc, { nav = globalThis.navigator, win = globalThis.window } = {}) {
+    // Checked by presence (`!== undefined`), not the Promise's own
+    // truthiness -- `if (nav.serviceWorker.ready)` is always true regardless
+    // of whether a worker is active, which is what SonarCloud javascript:S6544
+    // flagged at this line.
     const ready = nav?.serviceWorker?.ready;
-    if (ready && toc?.rite?.slug && toc?.version) {
+    if (ready !== undefined && toc?.rite?.slug && toc?.version) {
         const message = {
             type: "PRECACHE_SIDDUR",
             rite: toc.rite.slug,
             version: toc.version,
             services: (toc.occasions || []).flatMap((occasion) => occasion.services.map((service) => service.slug)),
         };
-        Promise.resolve(ready).then((registration) => registration?.active?.postMessage(message)).catch(() => {});
+        ready.then((registration) => registration?.active?.postMessage(message)).catch(() => {});
     }
     const installed = win?.matchMedia?.("(display-mode: standalone)")?.matches || nav?.standalone === true;
     if (installed && nav?.storage?.persist) {

@@ -22,9 +22,6 @@
 
 .sk-line,
 .sk-block,
-.ai-src-skeleton,
-.ai-src-skeleton-header,
-.ai-src-skeleton-body,
 .ai-src-skeleton-line,
 .sk-tree-row,
 .sk-calendar-cell,
@@ -38,12 +35,9 @@
 
 /* Shimmer sweep — a translateX-animated overlay (transform-only) rather
    than animating the element's own background-position directly. Applied
-   only to the classes that actually shimmer; .ai-src-skeleton (outer card)
-   and .ai-src-skeleton-body (flex container) stay static — their children
-   shimmer instead. */
+   only to the classes that actually shimmer. */
 .sk-line::after,
 .sk-block::after,
-.ai-src-skeleton-header::after,
 .ai-src-skeleton-line::after,
 .sk-tree-row::after,
 .sk-calendar-cell::after,
@@ -56,29 +50,7 @@
     animation: shelah-shimmer 1.6s ease-in-out infinite;
 }
 
-/* ── AI source skeleton ─────────────────────────────────────────── */
-.ai-src-skeleton {
-    border-radius: var(--radius-md);
-    padding: 1rem;
-    height: auto;
-    background: var(--load-skeleton-base); /* override — shimmer on children */
-    border: 1px solid var(--surface-border);
-    margin-bottom: var(--sp-3);
-}
-
-.ai-src-skeleton-header {
-    height: 1.1rem;
-    width: 55%;
-    margin-bottom: var(--sp-2);
-}
-
-.ai-src-skeleton-body {
-    display: flex;
-    flex-direction: column;
-    gap: var(--sp-2);
-    background: none;
-}
-
+/* ── Source-preview skeleton lines ─────────────────────────────── */
 .ai-src-skeleton-line {
     height: 0.85rem;
 }
@@ -166,148 +138,6 @@ html[data-cold-view] #reader header nav[aria-label="breadcrumb"] {
 
 
 /* ─────────────────────────────────────────────────────────────────
-   AI LOADING STATE — menorah-inspired spinner + phase text
-   All colors from --load-* tokens. Zero hardcoded hex.
-───────────────────────────────────────────────────────────────── */
-
-.ai-loading-spinner-outer {
-    position: absolute;
-    inset: 0;
-    border-radius: 50%;
-    border: 2px solid var(--load-spinner-ring-faint);
-}
-
-.ai-loading-spinner-main {
-    position: absolute;
-    inset: 0;
-    border-radius: 50%;
-    border: 2px solid transparent;
-    border-top-color: var(--load-spinner-ring);
-    animation: shelah-spin 1s cubic-bezier(0.4, 0, 0.6, 1) infinite;
-}
-
-.ai-loading-spinner-inner {
-    position: absolute;
-    inset: 8px;
-    border-radius: 50%;
-    border: 1px solid transparent;
-    border-right-color: var(--load-spinner-accent);
-    animation: shelah-spin 1.5s cubic-bezier(0.4, 0, 0.6, 1) infinite reverse;
-}
-
-.ai-loading-spinner-letter {
-    font-family: var(--font-serif);
-    color: var(--load-spinner-ring);
-    font-size: 1.25rem;
-    user-select: none;
-    line-height: 1;
-}
-
-.ai-loading-phase-text {
-    color: var(--load-phase-text);
-    font-family: var(--font-serif);
-    font-size: 1rem;
-    font-weight: 600;
-    animation: shelah-fade-in 0.4s ease both;
-}
-
-.ai-loading-subtitle {
-    color: var(--ink-secondary);
-    font-size: 0.875rem;
-    font-style: italic;
-}
-
-.ai-loading-dot {
-    width: 0.5rem;
-    height: 0.5rem;
-    border-radius: var(--radius-full);
-    background: var(--load-dot-fill);
-}
-.ai-loading-dot:nth-child(1) { animation: shelah-dot-bounce 1.2s ease infinite 0ms; }
-.ai-loading-dot:nth-child(2) { animation: shelah-dot-bounce 1.2s ease infinite 200ms; }
-.ai-loading-dot:nth-child(3) { animation: shelah-dot-bounce 1.2s ease infinite 400ms; }
-
-/* Source tag chips in loading state */
-.ai-loading-tags {
-    animation: shelah-fade-up 0.5s ease 0.3s both;
-}
-
-.ai-loading-tag {
-    padding: 0.25rem 0.625rem;
-    border-radius: var(--radius-full);
-    font-size: 0.75rem;
-    border-width: 1px;
-    border-style: solid;
-    animation: shelah-scale-in 0.3s ease both;
-}
-
-.ai-loading-tag--library {
-    background: var(--load-tag-library-bg);
-    border-color: var(--load-tag-library-border);
-    color: var(--load-tag-library-text);
-    animation-delay: 0.4s;
-}
-
-.ai-loading-tag--customs {
-    background: var(--load-tag-customs-bg);
-    border-color: var(--load-tag-customs-border);
-    color: var(--load-tag-customs-text);
-    animation-delay: 0.55s;
-}
-
-.ai-loading-tag--halacha {
-    background: var(--load-tag-halacha-bg);
-    border-color: var(--load-tag-halacha-border);
-    color: var(--load-tag-halacha-text);
-    animation-delay: 0.7s;
-}
-
-
-/* ─────────────────────────────────────────────────────────────────
-   LOADING OVERLAY (#loadingOverlay)
-   Delayed appearance (no-flash on fast loads), fade before content.
-───────────────────────────────────────────────────────────────── */
-
-#loadingOverlay {
-    background: var(--load-overlay-bg);
-    /* Its backdrop-blur-sm class blurred the page under a 92-94% opaque
-       fill, where the blur can't be seen, at the cost of re-blurring the
-       viewport while the overlay fades (audit M-9). */
-    -webkit-backdrop-filter: none;
-    backdrop-filter: none;
-    animation: shelah-overlay-in var(--motion-dur-base) var(--motion-ease-out) var(--load-overlay-delay) both;
-}
-
-#loadingOverlay.is-hiding {
-    animation: shelah-overlay-in var(--motion-dur-base) var(--motion-ease-out) reverse forwards;
-}
-
-/* text colors use token references, not hardcoded values */
-#loadingOverlay .text-navy,
-#loadingOverlay .text-\[#002147\] {
-    color: var(--ink-heading);
-}
-
-#loadingOverlay p {
-    color: var(--ink-secondary);
-}
-
-
-/* ─────────────────────────────────────────────────────────────────
-   SOURCE BOX STAGGER — CSS custom property per-box (§7.1.4 fix)
-   Immune to sibling insertion; any count. The delay stops growing at
-   the 7th box (240ms): uncapped, box 20 of an answer waited 1.2s.
-───────────────────────────────────────────────────────────────── */
-
-.ai-source-box.animate-fade-up {
-    /* backwards: a forwards fill would hold transform and cancel the
-       box's hover lift (ai.css). */
-    animation: shelah-fade-up var(--motion-dur-base) var(--motion-ease-out) backwards;
-    animation-delay: calc(min(var(--i, 0), 6) * 40ms);
-}
-
-
-/* ─────────────────────────────────────────────────────────────────
    SHIMMER READER LOADING — shared keyframe
 ───────────────────────────────────────────────────────────────── */
 
@@ -334,7 +164,6 @@ html[data-cold-view] #reader header nav[aria-label="breadcrumb"] {
 @media (prefers-reduced-motion: reduce) {
     .sk-line::after,
     .sk-block::after,
-    .ai-src-skeleton-header::after,
     .ai-src-skeleton-line::after,
     .sk-tree-row::after,
     .sk-calendar-cell::after,
@@ -343,31 +172,5 @@ html[data-cold-view] #reader header nav[aria-label="breadcrumb"] {
     .reader-loading-shimmer::after {
         animation: none;
         display: none;
-    }
-
-    .ai-loading-spinner-main,
-    .ai-loading-spinner-inner {
-        animation: none;
-        opacity: 0.5;
-    }
-
-    .ai-loading-dot {
-        animation: none;
-        opacity: 0.5;
-    }
-
-    .ai-source-box.animate-fade-up {
-        animation: none;
-    }
-
-    .ai-loading-phase-text,
-    .ai-loading-tags,
-    .ai-loading-tag {
-        animation: none;
-        opacity: 1;
-    }
-
-    #loadingOverlay {
-        animation: none;
     }
 }

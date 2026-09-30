@@ -95,7 +95,7 @@
     <!-- A cold load of a page view (/text/, /prayer/, /community/, /history, or their old
          query forms) paints the reader and its skeleton, not the home grid it
          is about to replace (#homeGrid / #reader rules in the <style> by the
-         footer). hideLoadingOverlay() and goHome() clear the flag; the timer
+         footer). finishViewSwap() and goHome() clear the flag; the timer
          only matters if the app script never runs. -->
     <script>(function(){try{var d=document.documentElement,p=location.pathname,q=new URLSearchParams(location.search);if(/^\/(text|prayer|community)\/./.test(p)||/^\/history\/?$/.test(p)||q.get('text')||q.get('prayer')||q.get('community')||q.get('history')){d.setAttribute('data-cold-view',/^\/text\/./.test(p)||q.get('text')?'text':'');setTimeout(function(){d.removeAttribute('data-cold-view');},8000);}}catch(e){}})()</script>
     {% if sentry_dsn_browser %}
@@ -141,21 +141,21 @@
     <script defer src="https://cdn.jsdelivr.net/npm/dompurify@3.4.9/dist/purify.min.js"
             integrity="sha384-6ZdfL2Azuen6KYvcTkbxqJS1d7txbNWrVfmURkxNeCn7DtzhLRL6Fi6WGG6ZLdKn"
             crossorigin="anonymous"></script>
-    <link rel="stylesheet" href="/static/css/tokens.css?v=20260926-vt1">
-    <link rel="stylesheet" href="/static/style.css?v=20260926-pm5">
+    <link rel="stylesheet" href="/static/css/tokens.css?v=20260930-t3">
+    <link rel="stylesheet" href="/static/style.css?v=20260930-s7">
     <!-- CSS modules (supplement style.css; do not replace) -->
     <link rel="stylesheet" href="/static/css/typography.css?v=20260817-v6">
-    <link rel="stylesheet" href="/static/css/reader.css?v=20260925-ui10">
-    <link rel="stylesheet" href="/static/css/sidebar.css?v=20260925-mp2">
+    <link rel="stylesheet" href="/static/css/reader.css?v=20260930-rd11">
+    <link rel="stylesheet" href="/static/css/sidebar.css?v=20260930-sb3">
     <link rel="stylesheet" href="/static/css/halacha.css?v=20260817-v6">
-    <link rel="stylesheet" href="/static/css/prayer.css?v=20260817-v6">
-    <link rel="stylesheet" href="/static/css/siddur.css?v=20260927-s3">
-    <link rel="stylesheet" href="/static/css/ai.css?v=20260926-cv1">
-    <link rel="stylesheet" href="/static/css/conversation.css?v=20260926-ai2">
+    <link rel="stylesheet" href="/static/css/prayer.css?v=20260930-v7">
+    <link rel="stylesheet" href="/static/css/siddur.css?v=20260930-s7">
+    <link rel="stylesheet" href="/static/css/ai.css?v=20260930-ai5">
+    <link rel="stylesheet" href="/static/css/conversation.css?v=20260930-cv5">
     <link rel="stylesheet" href="/static/css/history.css?v=20260926-rd1">
     <link rel="stylesheet" href="/static/css/calendar.css?v=20260926-f1">
-    <link rel="stylesheet" href="/static/css/calendar-detail.css?v=20260926-cv1">
-    <link rel="stylesheet" href="/static/css/loading.css?v=20260926-l1">
+    <link rel="stylesheet" href="/static/css/calendar-detail.css?v=20260930-cd2">
+    <link rel="stylesheet" href="/static/css/loading.css?v=20260930-l4">
     <!-- Tailwind CSS (pre-built; loads last so utilities override custom CSS — mirrors CDN runtime cascade behavior) -->
     <link rel="stylesheet" href="/static/css/tailwind.css?v=20260926-f1">
 
@@ -313,11 +313,6 @@
                     <div class="w-full min-w-0">
                         <!-- Search Form -->
                         <form id="searchForm" role="search" aria-label="Search texts" class="w-full relative min-w-0">
-                            <!-- Decorative loading-halo underlay: a gold-and-blue gradient that
-                                 orbits the bar while body.search-loading is set (static/css/ai.css).
-                                 Absolutely positioned + negative z-index: never affects layout or
-                                 covers the input text / suggestions dropdown. -->
-                            <div class="search-liftoff-underlay" aria-hidden="true"></div>
                             <input type="text" id="searchInput"
                                 aria-label="Ask Sh'elah about any topic, halachah, or custom"
                                 placeholder="Ask Sh'elah about any topic, halachah, or custom..."
@@ -360,22 +355,8 @@
                         title="Ask Sh'elah — AI answers that cite their sources"
                         data-aria-en="Ask Sh'elah — AI answers that cite their sources"
                         data-aria-he="שאל את ש׳אלה — תשובות בינה מלאכותית עם מקורות">
-                        {# Icon-only: the AI mark in a navy-to-gold gradient. The second
-                           path (a deeper/brighter shade per theme) fades in on hover. #}
-                        <svg class="topbar-ask-btn__mark" viewBox="0 0 256 256" width="24" height="24" aria-hidden="true" focusable="false">
-                            <defs>
-                                <linearGradient id="askMarkGradient" x1="0" y1="0" x2="1" y2="1">
-                                    <stop offset="0.15" class="topbar-ask-btn__from"/>
-                                    <stop offset="0.9" class="topbar-ask-btn__to"/>
-                                </linearGradient>
-                                <linearGradient id="askMarkGradientHover" x1="0" y1="0" x2="1" y2="1">
-                                    <stop offset="0.15" class="topbar-ask-btn__from-hover"/>
-                                    <stop offset="0.9" class="topbar-ask-btn__to-hover"/>
-                                </linearGradient>
-                            </defs>
-                            <path d="{{ phosphor_path('sparkle') }}" fill="url(#askMarkGradient)"/>
-                            <path class="topbar-ask-btn__mark-hover" d="{{ phosphor_path('sparkle') }}" fill="url(#askMarkGradientHover)"/>
-                        </svg>
+                        {# Icon-only: the AI mark, one flat colour. #}
+                        {{ phosphor('sparkle', size=24, class='topbar-ask-btn__mark') }}
                         <span class="sr-only" data-en="Ask AI" data-he="שאל AI">Ask AI</span>
                     </button>
                 </div>
@@ -458,11 +439,10 @@
                         </div>
                     </div>
 
-                    <!-- Ask Sh'elah on phones: the same gradient mark as #topbarAskBtn,
-                         which lives inside the search wrap (hidden below lg). Sits right
+                    <!-- Ask Sh'elah on phones: the same mark as #topbarAskBtn, which
+                         lives inside the search wrap (hidden below lg). Sits right
                          after settings so syncHebrewDateMobilePosition() still measures
-                         the brand/controls gap from #settingsMenuBtn. Own gradient ids:
-                         url(#...) into a display:none subtree paints nothing. Wired by
+                         the brand/controls gap from #settingsMenuBtn. Wired by
                          static/js/conversation-ui.js. -->
                     <button id="mobileTopbarAskBtn" type="button"
                         class="topbar-ask-btn inline-flex lg:hidden shrink-0"
@@ -470,20 +450,7 @@
                         aria-label="Ask Sh'elah — AI answers that cite their sources"
                         data-aria-en="Ask Sh'elah — AI answers that cite their sources"
                         data-aria-he="שאל את ש׳אלה — תשובות בינה מלאכותית עם מקורות">
-                        <svg class="topbar-ask-btn__mark" viewBox="0 0 256 256" width="24" height="24" aria-hidden="true" focusable="false">
-                            <defs>
-                                <linearGradient id="askMarkGradientPhone" x1="0" y1="0" x2="1" y2="1">
-                                    <stop offset="0.15" class="topbar-ask-btn__from"/>
-                                    <stop offset="0.9" class="topbar-ask-btn__to"/>
-                                </linearGradient>
-                                <linearGradient id="askMarkGradientPhoneHover" x1="0" y1="0" x2="1" y2="1">
-                                    <stop offset="0.15" class="topbar-ask-btn__from-hover"/>
-                                    <stop offset="0.9" class="topbar-ask-btn__to-hover"/>
-                                </linearGradient>
-                            </defs>
-                            <path d="{{ phosphor_path('sparkle') }}" fill="url(#askMarkGradientPhone)"/>
-                            <path class="topbar-ask-btn__mark-hover" d="{{ phosphor_path('sparkle') }}" fill="url(#askMarkGradientPhoneHover)"/>
-                        </svg>
+                        {{ phosphor('sparkle', size=24, class='topbar-ask-btn__mark') }}
                     </button>
 
                     {# Laid out from the first paint when sign-in exists, content hidden
@@ -1011,19 +978,6 @@
                     </div>
                 </details>
                 <details class="group cursor-pointer">
-                    <summary class="font-semibold hover:text-[#00827f] list-none border-b pb-2 mb-2"
-                        data-en="Other prayer books" data-he="סידורים נוספים">Other prayer books</summary>
-                    <ul id="prayerBooksNavList" class="ml-2 space-y-1 border-l-2 pl-3 border-[#00827f]/30"
-                        aria-busy="true">
-                        <li class="sr-only" data-en="Loading prayer books..." data-he="טוען סידורי תפילה...">Loading
-                            prayer books...</li>
-                        <li class="sk-tree-row" aria-hidden="true"></li>
-                        <li class="sk-tree-row" aria-hidden="true" style="width:80%"></li>
-                        <li class="sk-tree-row" aria-hidden="true" style="width:90%"></li>
-                        <li class="sk-tree-row" aria-hidden="true" style="width:70%"></li>
-                    </ul>
-                </details>
-                <details class="group cursor-pointer">
                     <summary class="font-semibold hover:text-[#594176] list-none border-b pb-2 mb-2"
                         data-en="Community Customs" data-he="מנהגים קהילתיים">Community Customs
                     </summary>
@@ -1119,20 +1073,6 @@
         <main id="mainContainer" aria-label="Main content"
             class="content-canvas flex-1 bg-[#faf7f0] relative flex flex-col overflow-y-auto">
 
-            <output id="loadingOverlay" aria-busy="false"
-                aria-label="Loading"
-                class="hidden fixed inset-0 backdrop-blur-sm z-[500] flex flex-col items-center justify-center">
-                <div class="flex flex-col items-center gap-4" aria-hidden="true">
-                    <div class="relative flex items-center justify-center" style="width:3.5rem;height:3.5rem">
-                        <div class="ai-loading-spinner-outer"></div>
-                        <div class="ai-loading-spinner-main"></div>
-                        <div class="ai-loading-spinner-inner"></div>
-                        <span class="ai-loading-spinner-letter">ש</span>
-                    </div>
-                    <p class="ai-loading-phase-text" data-en="Synthesizing Halachic Library..."
-                        data-he="סינתזה של ספרייה הלכתית...">Synthesizing Halachic Library...</p>
-                </div>
-            </output>
 
             <!-- HOME: BROWSE THE LIBRARY GRID -->
             <div id="homeGrid"
@@ -1867,15 +1807,6 @@
                         <div class="sk-prayer-row" aria-hidden="true" style="width:70%"></div>
                     </div>
                 </div>
-                <div class="mb-8">
-                    <h3 class="font-serif text-lg font-bold text-[#00827f] mb-4 pb-2 border-b" data-en="Other prayer books"
-                        data-he="סידורים נוספים">Other prayer books</h3>
-                    <output id="prayersList" class="block prayer-menu-layout space-y-2" aria-busy="true">
-                        <div class="sk-prayer-row" aria-hidden="true"></div>
-                        <div class="sk-prayer-row" aria-hidden="true" style="width:85%"></div>
-                        <div class="sk-prayer-row" aria-hidden="true" style="width:70%"></div>
-                    </output>
-                </div>
 
                 <!-- Communities Section -->
                 <div class="mb-8">
@@ -2100,16 +2031,7 @@
             </div>
 
             <div class="conv-composer-shell">
-                <details id="convSources" class="conv-sources hidden">
-                    <summary class="conv-sources__summary">
-                        <span class="conv-sources__dot" aria-hidden="true"></span>
-                        <span id="convSourcesLabel"></span>
-                        {{ phosphor('caret-down', size=10, class='h-2.5 w-2.5 conv-sources__caret') }}
-                    </summary>
-                    <ul id="convSourcesList" class="conv-sources__list"></ul>
-                </details>
                 <form id="convComposer" class="conv-composer" novalidate>
-                    <div class="conv-halo" aria-hidden="true"></div>
                     <div class="conv-composer__fill">
                         <label for="convInput" class="sr-only" data-en="Ask a question" data-he="שאל שאלה">Ask a question</label>
                         <textarea id="convInput" rows="1" dir="auto" maxlength="2000" autocomplete="off"></textarea>
@@ -2568,7 +2490,7 @@
             <footer class="privacy-foot">
                 <a href="/privacy" target="_blank" rel="noopener" class="privacy-link">
                     <span data-en="Privacy policy" data-he="מדיניות הפרטיות">Privacy policy</span>
-                    <span aria-hidden="true">↗</span>
+                    {{ phosphor('arrow-up-right', size=14) }}
                 </a>
             </footer>
         </div>
@@ -2642,7 +2564,6 @@
         const exportCitationBtn = document.getElementById('exportCitationBtn');
         const exportFormatSelect = document.getElementById('exportFormatSelect');
         const communityTimelineBtn = document.getElementById('communityTimelineBtn');
-        const prayerBooksNavList = document.getElementById('prayerBooksNavList');
         const libraryIndexSidebar = document.getElementById('libraryIndexSidebar');
         const libraryIndexModal = document.getElementById('libraryIndexModal');
         const libraryIndexFilterInput = document.getElementById('libraryIndexFilterInput');
@@ -2702,39 +2623,18 @@
 
         const homeGrid = document.getElementById('homeGrid');
         const reader = document.getElementById('reader');
-        const loadingOverlay = document.getElementById('loadingOverlay');
         const mainContainer = document.getElementById('mainContainer');
-
-        // Tracked so a show/hide within the 220ms hide-transition window can't
-        // race: without this, a stale hide timer from a PRIOR call could fire
-        // after a new showLoadingOverlay() and force the overlay back to
-        // hidden mid-load — the direct cause of "unexpected loading overlays".
-        let _loadingOverlayHideTimer = null;
 
         // Monotonic request-generation counter for readText(): without this, a
         // slow first selection's response can resolve AFTER a faster second
         // selection's and overwrite its already-rendered content with stale data.
         let _readTextRequestGen = 0;
 
-        function showLoadingOverlay() {
-            clearTimeout(_loadingOverlayHideTimer);
-            mainContainer?.classList.add('is-swapping-view');
-            loadingOverlay.setAttribute('aria-busy', 'true');
-            loadingOverlay.classList.remove('is-hiding');
-            loadingOverlay.classList.remove('hidden');
-        }
-
-        function hideLoadingOverlay() {
-            clearTimeout(_loadingOverlayHideTimer);
-            // Every loader ends here, in the same task that shows its view.
+        // Every loader ends here, in the same task that shows its view: the
+        // view-swap flag and the cold-load flag both clear together.
+        function finishViewSwap() {
             mainContainer?.classList.remove('is-swapping-view');
             document.documentElement.removeAttribute('data-cold-view');
-            loadingOverlay.setAttribute('aria-busy', 'false');
-            loadingOverlay.classList.add('is-hiding');
-            _loadingOverlayHideTimer = setTimeout(() => {
-                loadingOverlay.classList.add('hidden');
-                loadingOverlay.classList.remove('is-hiding');
-            }, 220);
         }
 
         // ─── Reader loads (audit L-1, L-2) ───────────────────────────────
@@ -2815,7 +2715,7 @@
                     el.classList.add('reader-content-enter');
                 });
             }
-            hideLoadingOverlay();
+            finishViewSwap();
         }
 
         // Home, the history page or any other view taking over: a reader load
@@ -4131,7 +4031,6 @@
             'Community Traditions': 'מסורות קהילתיות',
             'Encyclopedia Context': 'הקשר אנציקלופדי',
             'Source Name': 'שם המקור',
-            'View in Library ↗': 'צפה בספרייה ↗',
             'Laws of blessings and prayer': 'הלכות ברכות ותפילה',
             'Laws of berakhot and prayer': 'הלכות ברכות ותפילה',
             'Abridged code of Jewish law': 'קיצור ההלכה היהודית',
@@ -5828,7 +5727,7 @@
                 closeTextsMenu();
                 closeReaderSettingsPanel();
                 homeGrid.style.display = 'none';
-                hideLoadingOverlay();
+                finishViewSwap();
                 reader.classList.remove('hidden');
                 readerTopBar?.classList.add('hidden');
                 applySidebarVisibility();
@@ -7277,6 +7176,12 @@
             // page Sh'elah composes itself has loaded.
             if (type !== 'ask') {
                 document.getElementById('readerKindBadge')?.classList.toggle('hidden', PRIMARY_TEXT_VIEWS.has(type));
+                // Styling hook (siddur.css sets the siddur's own title size).
+                document.getElementById('reader')?.setAttribute('data-view', type);
+                // The siddur sets its own type and lists: the markdown "prose"
+                // rhythm (ai.css) is for composed answers, and every rule
+                // the siddur needs would otherwise have to outrank it.
+                document.getElementById('readerContent')?.classList.toggle('prose', type !== 'siddur');
             }
             appState.currentView = { type, value, label: label || value };
             // 'ask' is the answer panel over the page, not the page.
@@ -10422,26 +10327,41 @@
             }).join('');
         }
 
-        function renderLibraryIndexViews() {
+        // The tree is a pure function of (data, filter, language), so each
+        // region is rebuilt only when one of those three changes -- opening
+        // the Texts menu used to rebuild and re-parse both regions every time
+        // and collapsed whatever the reader had expanded. The Texts-menu tree
+        // (depth 5, ~10k nodes) is also built only when the menu is opened,
+        // not at startup while it is hidden.
+        let libraryIndexSidebarKey = null;
+        let libraryIndexModalKey = null;
+
+        function renderLibraryIndexViews({ modal = false } = {}) {
             if (!libraryIndexData) return;
             const filterValue = normalizeLibraryFilterValue(libraryIndexFilterInput?.value || '');
-            const sidebarMarkup = buildLibraryIndexMarkup(libraryIndexData, filterValue, 0, 3);
-            const modalMarkup = buildLibraryIndexMarkup(libraryIndexData, filterValue, 0, 5);
+            const renderKey = `${isHebrewMode() ? 'he' : 'en'}|${filterValue}`;
+            const empty = `<p class="text-xs italic text-slate-400">${t('No matching topics found.', 'לא נמצאו נושאים תואמים.')}</p>`;
 
-            if (libraryIndexSidebar) {
-                libraryIndexSidebar.innerHTML = sidebarMarkup
-                    || `<p class="text-xs italic text-slate-400">${t('No matching topics found.', 'לא נמצאו נושאים תואמים.')}</p>`;
-                libraryIndexSidebar.setAttribute('aria-busy', 'false');
+            if (libraryIndexSidebar && renderKey !== libraryIndexSidebarKey) {
+                libraryIndexSidebarKey = renderKey;
+                libraryIndexSidebar.innerHTML = buildLibraryIndexMarkup(libraryIndexData, filterValue, 0, 3) || empty;
             }
+            libraryIndexSidebar?.setAttribute('aria-busy', 'false');
 
-            if (libraryIndexModal) {
-                libraryIndexModal.innerHTML = modalMarkup
-                    || `<p class="text-xs italic text-slate-400">${t('No matching topics found.', 'לא נמצאו נושאים תואמים.')}</p>`;
+            if (modal && libraryIndexModal) {
+                if (renderKey !== libraryIndexModalKey) {
+                    libraryIndexModalKey = renderKey;
+                    libraryIndexModal.innerHTML = buildLibraryIndexMarkup(libraryIndexData, filterValue, 0, 5) || empty;
+                }
                 libraryIndexModal.setAttribute('aria-busy', 'false');
             }
         }
 
-        async function loadLibraryIndexViews(attempt = 0) {
+        function textsMenuIsOpen() {
+            return document.getElementById('textsMenuModal')?.classList.contains('flex') === true;
+        }
+
+        async function loadLibraryIndexViews(attempt = 0, { modal = false } = {}) {
             if (!libraryIndexData) {
                 try {
                     const response = await fetch('/api/library/index');
@@ -10453,18 +10373,23 @@
                             ? data.contents
                             : [];
                 } catch (_) {
-                    failListRegions([libraryIndexSidebar, libraryIndexModal],
+                    libraryIndexSidebarKey = null;
+                    libraryIndexModalKey = null;
+                    failListRegions(modal ? [libraryIndexSidebar, libraryIndexModal] : [libraryIndexSidebar],
                         t("Couldn't load the library index. Check your connection.", 'לא ניתן לטעון את אינדקס הספרייה. בדקו את החיבור.'),
-                        loadLibraryIndexViews, attempt);
+                        (next) => loadLibraryIndexViews(next, { modal }), attempt);
                     return;
                 }
             }
-            renderLibraryIndexViews();
+            renderLibraryIndexViews({ modal: modal || textsMenuIsOpen() });
         }
 
         if (libraryIndexFilterInput) {
+            // One rebuild per pause in typing, not one per keystroke.
+            let libraryFilterTimer = 0;
             libraryIndexFilterInput.addEventListener('input', () => {
-                renderLibraryIndexViews();
+                clearTimeout(libraryFilterTimer);
+                libraryFilterTimer = setTimeout(() => renderLibraryIndexViews({ modal: textsMenuIsOpen() }), 120);
             });
         }
 
@@ -10472,7 +10397,7 @@
             libraryIndexFilterClear.addEventListener('click', () => {
                 if (libraryIndexFilterInput) {
                     libraryIndexFilterInput.value = '';
-                    renderLibraryIndexViews();
+                    renderLibraryIndexViews({ modal: textsMenuIsOpen() });
                 }
             });
         }
@@ -10536,9 +10461,9 @@
             const modal = document.getElementById('textsMenuModal');
             modal.classList.add('flex');
             presentEl(modal, modalMotion(modal));
-            loadPrayersMenu();
+            renderSiddurMenus();
             loadCommunitiesMenu();
-            void loadLibraryIndexViews();
+            void loadLibraryIndexViews(0, { modal: true });
         }
 
         function closeTextsMenu() {
@@ -10974,21 +10899,6 @@
             return true;
         }
 
-        async function loadPrayersMenu(attempt = 0) {
-            const modalList = document.getElementById('prayersList');
-            renderSiddurMenus();
-
-            try {
-                const prayers = await ensurePrayerListLoaded({ rethrow: true });
-                populatePrayersListHTML(prayers);
-                populatePrayerBooksNavigator(prayers);
-            } catch (err) {
-                failListRegions([modalList, prayerBooksNavList],
-                    t("Couldn't load the prayers. Check your connection.", 'לא ניתן לטעון את התפילות. בדקו את החיבור.'),
-                    loadPrayersMenu, attempt);
-            }
-        }
-
         // `rethrow`: a failed fetch throws (the menu shows Retry) instead of
         // quietly giving [].
         async function ensurePrayerListLoaded({ rethrow = false } = {}) {
@@ -11074,520 +10984,6 @@
                     <div class="flex items-center justify-between gap-2">${prevButton}${nextButton}</div>
                 </div>
             `;
-        }
-
-        async function fetchPrayerSectionRefs(prayerName) {
-            const safeName = String(prayerName || '').trim();
-            if (!safeName) return [];
-
-            try {
-                // Lightweight ref-list endpoint -- unlike /api/siddur/full,
-                // it doesn't fetch every ref's text from Sefaria just to
-                // read back .sources (audit R4).
-                const response = await fetch(`/api/siddur/section-refs/${encodeURIComponent(safeName)}`);
-                if (!response.ok) return [];
-                const payload = await response.json();
-                return Array.isArray(payload?.sources)
-                    ? payload.sources.map((ref) => String(ref || '').replace(/\s+/g, ' ').trim()).filter(Boolean).slice(0, 180)
-                    : [];
-            } catch (_) {
-                return [];
-            }
-        }
-
-        async function openPrayerEntry(prayerName) {
-            const safeName = String(prayerName || '').trim();
-            if (!safeName) return;
-
-            // Both fetches below are network round-trips: the prayer's button
-            // shows it is working meanwhile (audit L-2), so the click doesn't
-            // look inert, without covering the page.
-            const settleTrigger = markTriggerPending();
-            let leafRefs;
-            try {
-                leafRefs = await fetchIndexLeafRefs(safeName);
-                if (!Array.isArray(leafRefs) || leafRefs.length < 2) {
-                    leafRefs = await fetchPrayerSectionRefs(safeName);
-                }
-            } finally {
-                settleTrigger();
-            }
-
-            if (Array.isArray(leafRefs) && leafRefs.length > 1) {
-                hideLoadingOverlay();
-                closeTextsMenu();
-                openReferenceGrid(safeName, leafRefs);
-                return;
-            }
-
-            await displayPrayer(safeName);
-        }
-
-        function buildPrayerNavigatorButton(name) {
-            const label = getPrayerDisplayName(name);
-            const encodedName = encodeURIComponent(name);
-            const alignClass = isHebrewMode() ? 'text-end' : 'text-start';
-            return `<button onclick="openPrayerEntry(decodeURIComponent('${encodedName}'))" class="prayer-nav-link ${alignClass} text-slate-600 hover:text-[#00827f] text-sm w-full py-0.5 font-serif">${escapeHtml(label)}</button>`;
-        }
-
-        function classifyPrayerFamily(entry) {
-            const name = String(entry?.name || '').toLowerCase();
-            const source = String(entry?.source || '').toLowerCase();
-            const compact = normalizeLibraryLookupKey(name);
-
-            if (/ashkenaz|ashkenazi/.test(name) || /ashkenaz/.test(compact)) return 'ashkenaz';
-            if (/edot\s*ha\s*mizrach|mizrach|mizrahi|iraqi|syrian|yemen|moroccan|bukhar|persian/.test(name)
-                || /edothamizrach|mizrach|mizrahi|iraqi|syrian|yemen|moroccan|bukhar|persian/.test(compact)) {
-                return 'edotHamizrach';
-            }
-            if (source === 'legacy-service' || /sefard|sephard/.test(name) || /sefard|sephard|siddursefard/.test(compact)) {
-                return 'sefardic';
-            }
-            return 'other';
-        }
-
-        function prayerFamilyLabel(familyKey) {
-            const labels = {
-                // Siddur Sefard is the Chassidic rite (its own Sefaria
-                // description), not the Sephardi one: the Sephardi siddur
-                // is the curated Edot HaMizrach above (audit N5).
-                sefardic: t('Nusach Sefard (Chassidic)', 'נוסח ספרד (חסידי)'),
-                ashkenaz: t('Ashkenaz Prayers', 'תפילות אשכנז'),
-                edotHamizrach: t('Edot HaMizrach Prayers', 'תפילות עדות המזרח'),
-                other: t('Additional Prayer Collections', 'אוספי תפילה נוספים'),
-            };
-            return labels[familyKey] || labels.other;
-        }
-
-        function prayerFamilyNusach(familyKey) {
-            const labels = {
-                sefardic: { en: 'Sefard', he: 'ספרד' },
-                ashkenaz: { en: 'Ashkenaz', he: 'אשכנז' },
-                edotHamizrach: { en: 'Edot HaMizrach', he: 'עדות המזרח' },
-                other: { en: 'General', he: 'כללי' },
-            };
-            return labels[familyKey] || labels.other;
-        }
-
-        function prayerFamilyOrder() {
-            return ['sefardic', 'ashkenaz', 'edotHamizrach', 'other'];
-        }
-
-        function getPrayerFamilyBuckets(entries) {
-            const buckets = Object.fromEntries(prayerFamilyOrder().map((family) => [family, []]));
-            entries.forEach((entry) => {
-                const family = classifyPrayerFamily(entry);
-                if (!buckets[family]) buckets[family] = [];
-                buckets[family].push(entry);
-            });
-
-            Object.keys(buckets).forEach((family) => {
-                buckets[family] = buckets[family]
-                    .slice()
-                    .sort((a, b) => a.name.localeCompare(b.name, 'en', { sensitivity: 'base' }));
-            });
-
-            return buckets;
-        }
-
-        function classifyPrayerCollection(entry, familyKey) {
-            const name = String(entry?.name || '').toLowerCase();
-            const source = String(entry?.source || '').toLowerCase();
-            const compact = normalizeLibraryLookupKey(name);
-            const hasSiddur = source === 'legacy-service' || /siddur/.test(name) || /siddur/.test(compact);
-            const hasLinear = /linear/.test(name) || /linear/.test(compact);
-            const hasWeekday = /weekday|daily|upon\s*arising|bedtime|shacharit|mincha|maariv|arvit|selichot/.test(name)
-                || /weekday|daily|uponarising|bedtime|shacharit|mincha|maariv|arvit|selichot/.test(compact);
-            const hasShabbat = /shabbat|kabbalat|havdalah|kiddush/.test(name)
-                || /shabbat|kabbalat|havdalah|kiddush/.test(compact);
-
-            if (/haggadah|pesach|passover|seder|afikoman/.test(name) || /haggadah|pesach|passover|seder|afikoman/.test(compact)) {
-                return 'haggadahPesach';
-            }
-            if (/machzor|rosh\s*hashanah|yom\s*kippur|yamim\s*noraim|kol\s*nidrei|neilah/.test(name)
-                || /machzor|roshhashanah|yomkippur|yamimnoraim|kolnidrei|neilah/.test(compact)) {
-                return 'machzor';
-            }
-            if (/sukkot|hoshana|simchat\s*torah|shemini\s*atzeret/.test(name)
-                || /sukkot|hoshana|simchattorah|sheminiatzeret/.test(compact)) {
-                return 'sukkot';
-            }
-            if (/shavuot|omer/.test(name) || /shavuot|omer/.test(compact)) {
-                return 'shavuot';
-            }
-            if (/purim|chanuk|hanukk|fast|tisha|taanit|kinnot|selichot/.test(name)
-                || /purim|chanuk|hanukk|fast|tisha|taanit|kinnot|selichot/.test(compact)) {
-                return 'specialDays';
-            }
-            if (hasSiddur && hasWeekday && hasLinear) return 'weekdayLinear';
-            if (hasSiddur && hasShabbat && hasLinear) return 'shabbatLinear';
-            if (hasSiddur && hasWeekday) return 'weekdaySiddur';
-            if (hasSiddur && hasShabbat) return 'shabbatSiddur';
-            if (hasSiddur) return familyKey === 'other' ? 'generalSiddur' : 'familySiddur';
-
-            return 'other';
-        }
-
-        function prayerCollectionOrder() {
-            return [
-                'weekdayLinear',
-                'shabbatLinear',
-                'weekdaySiddur',
-                'shabbatSiddur',
-                'familySiddur',
-                'machzor',
-                'haggadahPesach',
-                'sukkot',
-                'shavuot',
-                'specialDays',
-                'generalSiddur',
-                'other',
-            ];
-        }
-
-        function prayerCollectionLabel(collectionKey, familyKey) {
-            const nusach = prayerFamilyNusach(familyKey);
-            const labelMap = {
-                weekdayLinear: {
-                    en: `Weekday Siddur ${nusach.en} Linear`,
-                    he: `סידור ${nusach.he} ימי חול (ליניארי)`,
-                },
-                shabbatLinear: {
-                    en: `Shabbat Siddur ${nusach.en} Linear`,
-                    he: `סידור ${nusach.he} שבת (ליניארי)`,
-                },
-                weekdaySiddur: {
-                    en: `Weekday Siddur ${nusach.en}`,
-                    he: `סידור ${nusach.he} ימי חול`,
-                },
-                shabbatSiddur: {
-                    en: `Shabbat Siddur ${nusach.en}`,
-                    he: `סידור ${nusach.he} שבת`,
-                },
-                familySiddur: {
-                    en: `${nusach.en} Siddur`,
-                    he: `סידור ${nusach.he}`,
-                },
-                machzor: {
-                    en: `${nusach.en} Machzorim`,
-                    he: `מחזורים ${nusach.he}`,
-                },
-                haggadahPesach: {
-                    en: `${nusach.en} Haggadah & Pesach`,
-                    he: `הגדה ופסח ${nusach.he}`,
-                },
-                sukkot: {
-                    en: `${nusach.en} Sukkot Cycle`,
-                    he: `מעגל סוכות ${nusach.he}`,
-                },
-                shavuot: {
-                    en: `${nusach.en} Shavuot Cycle`,
-                    he: `מעגל שבועות ${nusach.he}`,
-                },
-                specialDays: {
-                    en: `${nusach.en} Special Days`,
-                    he: `ימים מיוחדים ${nusach.he}`,
-                },
-                generalSiddur: {
-                    en: 'General Prayer Books',
-                    he: 'סידורים כלליים',
-                },
-                other: {
-                    en: 'Additional Prayer Books',
-                    he: 'סידורי תפילה נוספים',
-                },
-            };
-
-            const label = labelMap[collectionKey] || labelMap.other;
-            return isHebrewMode() ? label.he : label.en;
-        }
-
-        function classifyPrayerChapter(entry) {
-            const name = String(entry?.name || '').toLowerCase();
-            const compact = normalizeLibraryLookupKey(name);
-
-            if (/upon\s*arising|modeh\s*ani|morning\s*blessings|bedtime/.test(name)
-                || /uponarising|modehani|morningblessings|bedtime/.test(compact)) {
-                return 'intro';
-            }
-            if (/shacharit/.test(name) || /shacharit/.test(compact)) return 'shacharit';
-            if (/mincha/.test(name) || /mincha/.test(compact)) return 'mincha';
-            if (/maariv|arvit/.test(name) || /maariv|arvit/.test(compact)) return 'maariv';
-            if (/kiddush|havdalah/.test(name) || /kiddush|havdalah/.test(compact)) return 'meal';
-            if (/amidah/.test(name) || /amidah/.test(compact)) return 'amidah';
-            if (/shema/.test(name) || /shema/.test(compact)) return 'shema';
-            if (/torah\s*reading|musaf|hallel|yizkor/.test(name)
-                || /torahreading|musaf|hallel|yizkor/.test(compact)) {
-                return 'festival';
-            }
-
-            return 'general';
-        }
-
-        function prayerChapterOrder() {
-            return ['intro', 'shacharit', 'mincha', 'maariv', 'shema', 'amidah', 'meal', 'festival', 'general'];
-        }
-
-        function prayerChapterLabel(chapterKey) {
-            const labels = {
-                intro: t('Intro & Preparation', 'פתיחה והכנה'),
-                shacharit: t('Shacharit', 'שחרית'),
-                mincha: t('Mincha', 'מנחה'),
-                maariv: t('Maariv', 'מעריב'),
-                shema: t('Shema', 'שמע'),
-                amidah: t('Amidah', 'עמידה'),
-                meal: t('Meals & Transition', 'סעודות ומעברים'),
-                festival: t('Festival Sections', 'קטעי חג'),
-                general: t('General Sections', 'קטעים כלליים'),
-            };
-            return labels[chapterKey] || labels.general;
-        }
-
-        function getPrayerCollectionBuckets(entries, familyKey) {
-            const collectionOrder = prayerCollectionOrder();
-            const chapterOrder = prayerChapterOrder();
-            const buckets = Object.fromEntries(collectionOrder.map((collectionKey) => [
-                collectionKey,
-                Object.fromEntries(chapterOrder.map((chapterKey) => [chapterKey, []])),
-            ]));
-
-            entries.forEach((entry) => {
-                const collectionKey = classifyPrayerCollection(entry, familyKey);
-                const chapterKey = classifyPrayerChapter(entry);
-                if (!buckets[collectionKey]) {
-                    buckets[collectionKey] = Object.fromEntries(chapterOrder.map((key) => [key, []]));
-                }
-                if (!buckets[collectionKey][chapterKey]) {
-                    buckets[collectionKey][chapterKey] = [];
-                }
-                buckets[collectionKey][chapterKey].push(entry);
-            });
-
-            collectionOrder.forEach((collectionKey) => {
-                chapterOrder.forEach((chapterKey) => {
-                    buckets[collectionKey][chapterKey] = (buckets[collectionKey][chapterKey] || [])
-                        .slice()
-                        .sort((a, b) => a.name.localeCompare(b.name, 'en', { sensitivity: 'base' }));
-                });
-            });
-
-            return { buckets, collectionOrder, chapterOrder };
-        }
-
-        let activePrayerFamily = 'sefardic';
-
-        function setActivePrayerFamily(familyKey) {
-            const list = document.getElementById('prayersList');
-            if (!list) return;
-
-            const tabs = Array.from(list.querySelectorAll('.prayer-family-tab'));
-            const availableFamilies = tabs.map((btn) => String(btn.dataset.family || '').trim()).filter(Boolean);
-            const nextFamily = availableFamilies.includes(familyKey) ? familyKey : (availableFamilies[0] || '');
-            if (!nextFamily) return;
-
-            activePrayerFamily = nextFamily;
-
-            tabs.forEach((btn) => {
-                const isActive = btn.dataset.family === nextFamily;
-                btn.classList.toggle('prayer-family-tab-active', isActive);
-                btn.setAttribute('aria-selected', isActive ? 'true' : 'false');
-                btn.setAttribute('tabindex', isActive ? '0' : '-1');
-            });
-
-            list.querySelectorAll('.prayer-family-panel').forEach((panel) => {
-                panel.classList.toggle('hidden', panel.dataset.family !== nextFamily);
-            });
-        }
-
-        function populatePrayerBooksNavigator(prayers) {
-            if (!prayerBooksNavList) return;
-
-            const entries = normalizePrayerList(prayers);
-            if (!entries.length) {
-                prayerBooksNavList.innerHTML = `<li class="text-xs italic text-slate-400">${t('No prayer books available right now.', 'אין כעת סידורי תפילה זמינים.')}</li>`;
-                prayerBooksNavList.setAttribute('aria-busy', 'false');
-                return;
-            }
-
-            const buckets = getPrayerFamilyBuckets(entries);
-            const familyOrder = prayerFamilyOrder().filter((family) => (buckets[family] || []).length > 0);
-
-            let html = '';
-
-            familyOrder.forEach((family) => {
-                let familyItems = '';
-                const { buckets: collectionBuckets, collectionOrder, chapterOrder } = getPrayerCollectionBuckets(buckets[family] || [], family);
-                collectionOrder.forEach((collectionKey) => {
-                    const chapterBuckets = collectionBuckets[collectionKey] || {};
-                    const nonEmptyChapterKeys = chapterOrder.filter((chapterKey) => (chapterBuckets[chapterKey] || []).length > 0);
-                    if (!nonEmptyChapterKeys.length) return;
-
-                    let collectionRows = '';
-                    const showChapterLabels = nonEmptyChapterKeys.length > 1;
-
-                    nonEmptyChapterKeys.forEach((chapterKey) => {
-                        const items = chapterBuckets[chapterKey] || [];
-                        if (!items.length) return;
-
-                        let chapterRows = '';
-                        items.forEach((entry) => {
-                            chapterRows += `<li>${buildPrayerNavigatorButton(entry.name)}</li>`;
-                        });
-
-                        if (showChapterLabels) {
-                            collectionRows += `
-                                <li>
-                                    <details class="prayer-nav-nested pl-2">
-                                        <summary class="text-[10px] text-slate-400 font-medium py-0.5">${escapeHtml(prayerChapterLabel(chapterKey))}</summary>
-                                        <ul class="space-y-0.5 pl-2">${chapterRows}</ul>
-                                    </details>
-                                </li>
-                            `;
-                        } else {
-                            collectionRows += chapterRows;
-                        }
-                    });
-
-                    if (!collectionRows) return;
-                    familyItems += `
-                        <li>
-                            <details class="prayer-nav-nested" open>
-                                <summary class="text-[10px] uppercase tracking-[0.11em] text-slate-400 font-semibold py-0.5">${escapeHtml(prayerCollectionLabel(collectionKey, family))}</summary>
-                                <ul class="space-y-0.5 pl-2">${collectionRows}</ul>
-                            </details>
-                        </li>
-                    `;
-                });
-
-                if (!familyItems) return;
-                html += `
-                    <li>
-                        <details class="prayer-nav-family" open>
-                            <summary class="prayer-family-nav-label text-[11px] uppercase tracking-widest text-slate-400 font-bold py-1 mt-2">${prayerFamilyLabel(family)}</summary>
-                            <ul class="space-y-1">${familyItems}</ul>
-                        </details>
-                    </li>
-                `;
-            });
-
-            prayerBooksNavList.innerHTML = html;
-            prayerBooksNavList.setAttribute('aria-busy', 'false');
-            applyStaticHebrewFallbackTranslations();
-        }
-
-        function populatePrayersListHTML(prayers) {
-            const list = document.getElementById('prayersList');
-            if (!list) return;
-
-            const entries = normalizePrayerList(prayers);
-            if (!entries.length) {
-                list.innerHTML = `<p class="text-slate-400 italic text-sm">${t('No prayer books available right now.', 'אין כעת סידורי תפילה זמינים.')}</p>`;
-                list.setAttribute('aria-busy', 'false');
-                return;
-            }
-
-            const buckets = getPrayerFamilyBuckets(entries);
-            const familyOrder = prayerFamilyOrder().filter((family) => (buckets[family] || []).length > 0);
-            const resolvedFamily = familyOrder.includes(activePrayerFamily) ? activePrayerFamily : (familyOrder[0] || 'sefardic');
-
-            const tabsMarkup = familyOrder
-                .map((family) => {
-                    const isActive = family === resolvedFamily;
-                    return `<button type="button" role="tab" id="prayer-tab-${family}" aria-controls="prayer-panel-${family}" aria-selected="${isActive ? 'true' : 'false'}" tabindex="${isActive ? '0' : '-1'}" class="prayer-family-tab${isActive ? ' prayer-family-tab-active' : ''}" data-family="${family}">${escapeHtml(prayerFamilyLabel(family))}</button>`;
-                })
-                .join('');
-
-            const panelsMarkup = familyOrder
-                .map((family) => {
-                    const isActive = family === resolvedFamily;
-                    const { buckets: collectionBuckets, collectionOrder, chapterOrder } = getPrayerCollectionBuckets(buckets[family] || [], family);
-                    let groupsMarkup = '';
-
-                    collectionOrder.forEach((collectionKey) => {
-                        const chapterBuckets = collectionBuckets[collectionKey] || {};
-                        const nonEmptyChapterKeys = chapterOrder.filter((chapterKey) => (chapterBuckets[chapterKey] || []).length > 0);
-                        if (!nonEmptyChapterKeys.length) return;
-
-                        const showChapterLabels = nonEmptyChapterKeys.length > 1;
-                        let chapterMarkup = '';
-
-                        nonEmptyChapterKeys.forEach((chapterKey) => {
-                            const items = chapterBuckets[chapterKey] || [];
-                            if (!items.length) return;
-
-                            const itemMarkup = items
-                                .map((entry) => {
-                                    const label = getPrayerDisplayName(entry.name);
-                                    const encodedName = encodeURIComponent(entry.name);
-                                    const alignClass = isHebrewMode() ? 'text-end' : 'text-start';
-                                    return `<button onclick="openPrayerEntry(decodeURIComponent('${encodedName}'))" class="prayer-grid-item ${alignClass}">${escapeHtml(label)}</button>`;
-                                })
-                                .join('');
-
-                            chapterMarkup += `
-                                <div class="space-y-2">
-                                    ${showChapterLabels ? `<p class="text-[10px] uppercase tracking-[0.11em] text-slate-400 font-semibold">${escapeHtml(prayerChapterLabel(chapterKey))}</p>` : ''}
-                                    <div class="prayer-grid-list">${itemMarkup}</div>
-                                </div>
-                            `;
-                        });
-
-                        groupsMarkup += `
-                            <section class="prayer-group-block space-y-2">
-                                <p class="text-[11px] uppercase tracking-widest text-slate-400 font-bold">${escapeHtml(prayerCollectionLabel(collectionKey, family))}</p>
-                                ${chapterMarkup}
-                            </section>
-                        `;
-                    });
-
-                    return `<div class="prayer-family-panel ${isActive ? '' : 'hidden'}" role="tabpanel" id="prayer-panel-${family}" aria-labelledby="prayer-tab-${family}" tabindex="0" data-family="${family}">${groupsMarkup}</div>`;
-                })
-                .join('');
-
-            list.innerHTML = `
-                <div class="prayer-family-tabs" role="tablist">${tabsMarkup}</div>
-                <div class="prayer-family-panels mt-3 space-y-4">${panelsMarkup}</div>
-            `;
-            list.setAttribute('aria-busy', 'false');
-
-            if (!list.dataset.prayerTabsBound) {
-                list.addEventListener('click', (event) => {
-                    const tabBtn = event.target.closest('.prayer-family-tab');
-                    if (!tabBtn) return;
-                    const family = String(tabBtn.dataset.family || '').trim();
-                    if (!family) return;
-                    setActivePrayerFamily(family);
-                });
-                // Standard ARIA tablist keyboard pattern: Left/Right (and
-                // Home/End) move focus AND selection among tabs; the tabs
-                // use a roving tabindex (only the active tab is Tab-key
-                // reachable, set in setActivePrayerFamily), so arrow keys
-                // are the only way to move among them without a mouse.
-                list.addEventListener('keydown', (event) => {
-                    const tabBtn = event.target.closest('.prayer-family-tab');
-                    if (!tabBtn) return;
-                    const tabs = Array.from(list.querySelectorAll('.prayer-family-tab'));
-                    const currentIndex = tabs.indexOf(tabBtn);
-                    if (currentIndex === -1) return;
-                    const isRtl = document.documentElement.dir === 'rtl';
-                    let nextIndex = null;
-                    if (event.key === 'ArrowRight') nextIndex = isRtl ? currentIndex - 1 : currentIndex + 1;
-                    else if (event.key === 'ArrowLeft') nextIndex = isRtl ? currentIndex + 1 : currentIndex - 1;
-                    else if (event.key === 'Home') nextIndex = 0;
-                    else if (event.key === 'End') nextIndex = tabs.length - 1;
-                    if (nextIndex === null) return;
-                    event.preventDefault();
-                    nextIndex = (nextIndex + tabs.length) % tabs.length;
-                    const nextFamily = String(tabs[nextIndex].dataset.family || '').trim();
-                    if (!nextFamily) return;
-                    setActivePrayerFamily(nextFamily);
-                    tabs[nextIndex].focus();
-                });
-                list.dataset.prayerTabsBound = '1';
-            }
-
-            setActivePrayerFamily(resolvedFamily);
-            applyStaticHebrewFallbackTranslations();
         }
 
         async function loadCommunitiesMenu(attempt = 0) {
@@ -11973,16 +11369,23 @@
                 [document.getElementById('siddurTocMenu'), { compact: false, current }],
                 [document.getElementById('siddurTocSidebar'), { compact: true, current }],
             ];
-            mounts.forEach(([mount, opts]) => {
-                if (!mount) return;
-                siddur.renderToc(mount, opts).catch(() => {
-                    failListRegions([mount],
-                        t("Couldn't load the siddur. Check your connection.", 'לא ניתן היה לטעון את הסידור. בדקו את החיבור.'),
-                        () => renderSiddurMenus(), 0);
-                });
-            });
+            mounts.forEach(([mount, opts]) => { void renderSiddurMount(mount, opts, 0); });
         }
         window.renderSiddurMenus = renderSiddurMenus;
+
+        // One menu's table of contents. A failed load retries on the region's
+        // own backoff (attempt carries through, so the delays grow and then
+        // stop for a manual Retry) instead of starting over at the shortest
+        // delay every time -- which retried a dead endpoint forever.
+        function renderSiddurMount(mount, opts, attempt) {
+            const siddur = window.ShelahSiddur;
+            if (!mount || !siddur) return Promise.resolve();
+            return siddur.renderToc(mount, opts).catch(() => {
+                failListRegions([mount],
+                    t("Couldn't load the siddur. Check your connection.", 'לא ניתן היה לטעון את הסידור. בדקו את החיבור.'),
+                    (next) => renderSiddurMount(mount, opts, next), attempt);
+            });
+        }
 
         // Siddur links (menus, cards, breadcrumb, next/previous) are real
         // links -- a new tab, a copied or shared URL all work -- that a plain
@@ -12248,11 +11651,6 @@
             return aiKeywords.some(k => q.includes(k));
         }
 
-        async function getPrayerTitlesForSearch() {
-            const list = await ensurePrayerListLoaded();
-            return list.map(p => p.title || p.name).filter(Boolean);
-        }
-
         function buildTalmudRefCandidates(query) {
             const raw = String(query || '').trim();
             if (!raw) return [];
@@ -12283,19 +11681,12 @@
         async function resolveSearchTarget(query) {
             const key = normalizeSearchKey(query);
 
-            // Resolve prayer books/services first so liturgy searches open in the prayer reader flow.
-            const prayerTitles = await getPrayerTitlesForSearch();
-            const exactPrayer = prayerTitles.find(t => normalizeSearchKey(t) === key);
-            if (exactPrayer) {
-                return { type: 'prayer', value: exactPrayer };
-            }
-
-            const partialPrayer = prayerTitles.find(t => {
-                const tKey = normalizeSearchKey(t);
-                return key.length >= 4 && (tKey.includes(key) || key.includes(tKey));
-            });
-            if (partialPrayer) {
-                return { type: 'prayer', value: partialPrayer };
+            // Liturgy searches open the siddur, the one prayer reader.
+            try {
+                const siddurPage = await window.ShelahSiddur?.find(query);
+                if (siddurPage) return { type: 'siddur', value: siddurPage };
+            } catch (_) {
+                // The siddur's table of contents is unreachable: fall through to the text search.
             }
 
             // Fast aliases for common book/topic lookups
@@ -12405,6 +11796,12 @@
                 return true;
             }
 
+            if (target.type === 'siddur') {
+                await displaySiddur(target.value);
+                clearSearchAfterNavigation();
+                return true;
+            }
+
             if (target.type === 'community') {
                 await displayCommunity(target.value);
                 clearSearchAfterNavigation();
@@ -12424,13 +11821,6 @@
 
             return false;
         }
-
-        // Matches static/css/ai.css's #searchForm.search-liftoff animation
-        // duration (the star's 420ms shelah-warm-pulse, defined in tokens.css) --
-        // a plain setTimeout rather than an 'animationend' listener because
-        // prefers-reduced-motion sets `animation: none` on that rule, which
-        // would never fire animationend and leave the class lingering.
-        const SEARCH_LIFTOFF_MS = 420;
 
         // /ask retry/timeout resilience now lives in static/js/ai-service.js::askAi()
         // (plan.md §19 Phase 1 / Prompt 32) -- this used to be an inline
@@ -12459,19 +11849,6 @@
             // (restoreShownView).
             setCurrentView('ask', question, question);
             document.body.classList.add('search-loading');
-
-            // Brief "liftoff" glow pulse on the search bar itself, fired in the
-            // same tick as the panel opening -- a handoff moment, not a
-            // sustained loader. Self-cleaning via setTimeout so the class never
-            // lingers into the next search.
-            if (searchForm) {
-                searchForm.classList.remove('search-liftoff');
-                // Force reflow so back-to-back searches restart the CSS
-                // animation instead of the re-add being a no-op.
-                void searchForm.offsetWidth;
-                searchForm.classList.add('search-liftoff');
-                setTimeout(() => searchForm.classList.remove('search-liftoff'), SEARCH_LIFTOFF_MS);
-            }
 
             try {
                 // The conversation panel shows the question and a pending
@@ -12898,7 +12275,7 @@
                     settleTrigger();
                 }
                 if (openedGrid) {
-                    hideLoadingOverlay();
+                    finishViewSwap();
                     return;
                 }
                 // Another load started while this one asked.
@@ -13310,7 +12687,7 @@
             }
 
             queueBackgroundTask(() => {
-                void loadPrayersMenu();
+                renderSiddurMenus();
             }, 1200);
             queueBackgroundTask(() => {
                 void loadLibraryIndexViews();
@@ -13464,10 +12841,6 @@
 
             applyStaticHebrewFallbackTranslations(lang);
 
-            if (Array.isArray(textsCache.prayersList)) {
-                populatePrayersListHTML(textsCache.prayersList);
-                populatePrayerBooksNavigator(textsCache.prayersList);
-            }
             renderSiddurMenus();
             const siddurPage = appState.currentView?.type === 'siddur' ? window.ShelahSiddur?.rerender() : null;
             if (siddurPage) {
@@ -13478,7 +12851,7 @@
             if (Array.isArray(textsCache.communitiesList)) {
                 populateCommunitiesListHTML(textsCache.communitiesList);
             }
-            renderLibraryIndexViews();
+            renderLibraryIndexViews({ modal: textsMenuIsOpen() });
             populatePopularTexts();
 
             if (selectionCommentaryState.groupedCommentaries.length) {
@@ -14884,7 +14257,7 @@
             crossorigin="anonymous"></script>
     <script src="/static/js/clerk-appearance.js?v=20260926-rd1"></script>
     <script type="module" src="{{ module_url('motion.js') }}"></script>
-    <script type="module" src="/static/js/calendar-detail.js?v=20260926-v14"></script>
+    <script type="module" src="/static/js/calendar-detail.js?v=20260930-v15"></script>
     <script type="module" src="{{ module_url('main.js') }}"></script>
 </body>
 

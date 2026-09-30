@@ -234,6 +234,23 @@ Submit a halachic question and receive an AI-synthesised answer with source cita
 | `429` | Rate limit exceeded — per-minute bucket or, for authenticated callers, the daily `/ask` quota |
 | `503` | Both AI providers unavailable (circuit breakers open) |
 
+**Live progress stream (opt-in).** A client that sends `Accept: application/x-ndjson` gets the same answer preceded by one line per pipeline step, so the UI can say what is happening while it waits. `POST /api/conversations/<id>/ask` behaves identically. Any other `Accept` header (curl, tests, older cached JS) gets the single JSON response above, unchanged. Implementation: `backend/ask_progress.py` (server), `static/js/ask-progress.js` (client).
+
+The body is newline-delimited JSON, one object per line:
+
+```json
+{"type":"stage","stage":"sources","state":"start"}
+{"type":"stage","stage":"sources","state":"done"}
+{"type":"ping"}
+{"type":"result","payload":{ ...the JSON body above... }}
+```
+
+- `stage` is one of `sources`, `commentary`, `customs`, `times`, `thinking`; `state` is `start` or `done`. Steps overlap, and a step that fans out into several lookups reports one `start` and one `done`.
+- `ping` is a keep-alive sent after 10 s of silence; clients ignore it.
+- The last line is always a terminal `result` (the normal response body in `payload`; the conversation route sends `status` and `body`) or `error` (`status` plus `detail`). A stream that ends without one was interrupted.
+- The HTTP status stays real. Streaming starts only after the pre-flight checks (validation, auth, Turnstile, budget) pass, so a refusal is still an ordinary `400`/`401`/`402`/`403`/`429`; an answer that never reports a step (the prayer shortcut) comes back as plain JSON. After streaming starts, failures arrive as an `error` line.
+- A client that disconnects mid-stream does not cancel the answer: it still finishes, is recorded, and is charged as on the plain path.
+
 ---
 
 ## Rate limiting & abuse mitigation

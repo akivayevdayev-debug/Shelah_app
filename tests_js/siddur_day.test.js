@@ -235,3 +235,102 @@ test('the Today card: reminders, switches and their pressed state, escaped', asy
     assert.match(quiet, /siddur-today-empty">No seasonal changes today. &lt;x&gt;/);
     assert.doesNotMatch(quiet, /siddur-today-note/);
 });
+
+// A slice of the real toc: the pages the day's additions live on.
+function tocFixture() {
+    const title = (en, he = en) => ({ en, he });
+    const sections = (...slugs) => slugs.map((slug) => ({ slug, title: title(slug.replace(/-/g, ' ')) }));
+    const service = (slug, ...secs) => ({ slug, title: title(slug), sections: sections(...(secs.length ? secs : [slug])) });
+    return {
+        rite: { slug: 'edot-hamizrach' },
+        occasions: [
+            { slug: 'shabbat', services: [service('musaf-shabbat', 'amida', 'alenu', 'incense-offering')] },
+            {
+                slug: 'festivals',
+                services: [
+                    service('rosh-chodesh', 'rosh-hodesh', 'hallel', 'mussaf'),
+                    service('shalosh-regalim', 'song-for-passover', 'song-for-sukkot', 'amidah', 'mussaf'),
+                    service('sefirat-haomer'),
+                    service('chanukah', 'menorah-lighting', 'shacharit'),
+                    service('purim', 'megillah-reading', 'purim-day'),
+                    service('taaniyot', 'tenth-of-tevet', 'fast-of-gedalya', 'mourning', 'torah-reading-for-fast-days'),
+                ],
+            },
+        ],
+    };
+}
+
+test('linkFor sends a reminder to the page that holds it, and to nothing the toc lacks', async () => {
+    const d = await day();
+    const toc = tocFixture();
+    const rc = dayFixture({ occasions: ['rosh-chodesh'] });
+    assert.deepEqual(d.linkFor('hallel', rc, toc), {
+        service: 'rosh-chodesh', section: 'hallel', value: 'edot-hamizrach/rosh-chodesh/hallel',
+        href: '/siddur/edot-hamizrach/rosh-chodesh/hallel', title: { en: 'hallel', he: 'hallel' },
+    });
+    assert.equal(d.linkFor('yaaleh', rc, toc).value, 'edot-hamizrach/rosh-chodesh/rosh-hodesh');
+    assert.equal(d.linkFor('musaf', rc, toc).value, 'edot-hamizrach/rosh-chodesh/mussaf');
+    const pesach = dayFixture({ occasions: ['pesach', 'chol-hamoed-pesach'] });
+    assert.equal(d.linkFor('yaaleh', pesach, toc).value, 'edot-hamizrach/shalosh-regalim/amidah');
+    assert.equal(d.linkFor('musaf', dayFixture({ occasions: ['shabbat'] }), toc).value, 'edot-hamizrach/musaf-shabbat');
+    // A one-section service has no section pages of its own.
+    assert.equal(d.linkFor('omer', dayFixture(), toc).value, 'edot-hamizrach/sefirat-haomer');
+    // Rosh Hashana has no siddur page here, nor does a key with no target.
+    assert.equal(d.linkFor('yaaleh', dayFixture({ occasions: ['rosh-hashana'] }), toc), null);
+    assert.equal(d.linkFor('tachanun', rc, toc), null);
+    assert.equal(d.linkFor('hallel', rc, null), null);
+    assert.equal(d.linkFor('hallel', null, toc), null);
+    assert.equal(d.linkFor('hallel', rc, { rite: { slug: 'edot-hamizrach' }, occasions: [] }), null);
+});
+
+test('a fast day links its Selichot and Torah reading; Tisha BAv links the mourning page', async () => {
+    const d = await day();
+    const toc = tocFixture();
+    const tevet = dayFixture({ fastDay: 'tenth-of-tevet', aneinu: true });
+    assert.equal(d.linkFor('aneinu', tevet, toc).value, 'edot-hamizrach/taaniyot/tenth-of-tevet');
+    assert.deepEqual(d.extraPages(tevet, toc).map((p) => p.value), [
+        'edot-hamizrach/taaniyot/tenth-of-tevet',
+        'edot-hamizrach/taaniyot/torah-reading-for-fast-days',
+    ]);
+    const av = dayFixture({ fastDay: 'tisha-beav', aneinu: true });
+    assert.equal(d.linkFor('aneinu', av, toc).value, 'edot-hamizrach/taaniyot/mourning');
+    assert.deepEqual(d.extraPages(av, toc).map((p) => p.value), ['edot-hamizrach/taaniyot/mourning']);
+    // A fast the rite has no Selichot for still shows the reading.
+    assert.deepEqual(d.extraPages(dayFixture({ fastDay: 'fast-of-esther' }), toc).map((p) => p.value), [
+        'edot-hamizrach/taaniyot/torah-reading-for-fast-days',
+    ]);
+});
+
+test('holidays add their own pages: menorah, Megillah, the festival song', async () => {
+    const d = await day();
+    const toc = tocFixture();
+    assert.deepEqual(d.extraPages(dayFixture({ occasions: ['chanukah'] }), toc).map((p) => p.value), ['edot-hamizrach/chanukah/menorah-lighting']);
+    assert.deepEqual(d.extraPages(dayFixture({ occasions: ['purim'] }), toc).map((p) => p.value), [
+        'edot-hamizrach/purim/megillah-reading', 'edot-hamizrach/purim/purim-day',
+    ]);
+    assert.deepEqual(d.extraPages(dayFixture({ occasions: ['pesach', 'chol-hamoed-pesach'] }), toc).map((p) => p.value), ['edot-hamizrach/shalosh-regalim/song-for-passover']);
+    // The toc has no song for Shavuot here, so nothing is offered.
+    assert.deepEqual(d.extraPages(dayFixture({ occasions: ['shavuot'] }), toc), []);
+    assert.deepEqual(d.extraPages(dayFixture(), toc), []);
+    assert.deepEqual(d.extraPages(null, toc), []);
+    assert.deepEqual(d.extraPages(dayFixture({ occasions: ['purim'] }), null), []);
+});
+
+test('the Today card links reminders and lists the holiday\'s other pages once', async () => {
+    const d = await day();
+    const toc = tocFixture();
+    const tevet = dayFixture({ fastDay: 'tenth-of-tevet', aneinu: true, tachanun: { shacharit: true, mincha: true } });
+    const html = d.todayCardMarkup(tevet, { t, escapeHtml, toc });
+    // The reminder links Selichot; the extras row skips that page and keeps the reading.
+    assert.match(html, /<li data-reminder="aneinu">Fast day: Aneinu <a class="siddur-today-link" href="\/siddur\/edot-hamizrach\/taaniyot\/tenth-of-tevet" data-siddur-path="edot-hamizrach\/taaniyot\/tenth-of-tevet" aria-label="Open: tenth of tevet">Open<\/a><\/li>/);
+    assert.match(html, /Also in the siddur today<\/span><a class="siddur-today-link" href="[^"]*torah-reading-for-fast-days"[^>]*>torah reading for fast days<\/a><\/p>/);
+    assert.equal((html.match(/tenth-of-tevet/g) || []).length, 2);
+    // Without a toc the card is the plain reminders.
+    const plain = d.todayCardMarkup(tevet, { t, escapeHtml });
+    assert.doesNotMatch(plain, /siddur-today-link|Also in the siddur/);
+    // One service's card (Shacharit) never adds the holiday row.
+    assert.doesNotMatch(d.todayCardMarkup(dayFixture({ occasions: ['chanukah'] }), { kind: 'shacharit', t, escapeHtml, toc }), /Also in the siddur/);
+    // Hebrew readers get Hebrew labels.
+    const he = d.todayCardMarkup(dayFixture({ occasions: ['chanukah'] }), { t: tHe, escapeHtml, toc, isHebrew: true });
+    assert.match(he, /עוד בסידור היום/);
+});

@@ -131,6 +131,20 @@ class TestOccasions:
         day = g("2026-09-14")  # Tzom Gedalia
         assert "fast" in day["occasions"] and day["aneinu"] and day["aseretYemeiTeshuva"]
 
+    @pytest.mark.parametrize("date, fast", [
+        ("2026-09-14", "fast-of-gedalya"),
+        ("2026-12-20", "tenth-of-tevet"),
+        ("2027-03-22", "fast-of-esther"),
+        ("2027-07-22", "seventeenth-of-tammuz"),
+        ("2027-08-12", "tisha-beav"),
+    ])
+    def test_fast_day_names_which_fast_it_is(self, date, fast):
+        assert g(date)["fastDay"] == fast
+
+    def test_fastDay_is_none_off_a_fast(self):
+        assert g("2026-10-20")["fastDay"] is None
+        assert g("2026-09-21")["fastDay"] is None  # Yom Kippur is not one of the public fasts
+
     def test_yom_kippur_has_musaf(self):
         day = g("2026-09-21")
         assert "yom-kippur" in day["occasions"] and day["musaf"] and "fast" not in day["occasions"]

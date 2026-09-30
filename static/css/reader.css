@@ -189,6 +189,13 @@ html.rtl #readerSubtitle {
     margin-inline: auto;
     max-width: min(100%, 78ch);
 }
+@media (prefers-reduced-transparency: reduce) {
+    .reader-source-title {
+        background: var(--surface-elevated);
+        -webkit-backdrop-filter: none;
+        backdrop-filter: none;
+    }
+}
 
 .reader-source-title-main {
     font-size: 0.94rem;

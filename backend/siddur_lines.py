@@ -175,8 +175,13 @@ def _render_nodes(nodes) -> str:
     return "".join(out)
 
 
-# Each alternative grouped with its own anchor: leading or trailing <br>s.
-_EDGE_BR_RE = re.compile(r"(?:^(?:\s*<br>)+)|(?:(?:<br>\s*)+$)")
+# Leading or trailing run of <br>s (with their adjoining whitespace). \s*
+# sits after the <br> literal in both branches, not before it inside the
+# repeated group, so there's only one way to split a match across
+# iterations -- SonarCloud python:S8786 flagged the old \s*<br> ordering as
+# superlinear on pathological input (the caller's trailing .strip() makes
+# the two forms produce the same final text either way).
+_EDGE_BR_RE = re.compile(r"^\s*(?:<br>\s*)+|(?:<br>\s*)+$")
 
 
 def _render(nodes) -> str:

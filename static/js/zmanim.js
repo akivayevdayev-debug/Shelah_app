@@ -166,6 +166,9 @@ const ZMANIM_LOCATION_LABEL_KEY = "ShelahZmanimLocationLabel";
 let zmanimData = null;
 let countdownInterval = null;
 let currentZmanimLocationLabel = null;
+// What the countdown last drew, so a tick that changes nothing writes nothing.
+let countdownBadgeHtml = null;
+let countdownRow = null;
 
 const ZMAN_FIELD_MAP = {
     zDawn: 'Dawn (16.1° / 72m)',
@@ -246,7 +249,7 @@ export function timezoneLabel(timezone, lang = document.documentElement?.lang) {
     } catch (_) {
         // Unknown zone ID: fall through to the ID itself.
     }
-    return tz.split('/').pop().replace(/_/g, ' ');
+    return tz.split('/').pop().replaceAll('_', ' ');
 }
 
 export function setZmanimLocationLabel(label, timezone) {
@@ -343,6 +346,15 @@ export function formatZmanClockDisplay(value, deps) {
     return `${timePart} ${localizedMeridiem}`;
 }
 
+// A hidden tab shows nobody the seconds: it ticks rarely, and the tab coming
+// back redraws at once (installCountdownVisibility).
+const COUNTDOWN_TICK_MS = 1000;
+const COUNTDOWN_HIDDEN_TICK_MS = 30000;
+
+function nextCountdownDelay() {
+    return document.hidden ? COUNTDOWN_HIDDEN_TICK_MS : COUNTDOWN_TICK_MS;
+}
+
 export function startCountdown(deps) {
     if (countdownInterval) clearTimeout(countdownInterval);
     const times = [];
@@ -381,19 +393,20 @@ export function startCountdown(deps) {
         }
     });
 
-    document.querySelectorAll('[data-zman-row]').forEach((row) => {
-        row.classList.remove('zman-next-highlight');
-    });
-
     times.sort((a, b) => a.t - b.t);
     const nextZman = times.length > 0 ? times[0] : null;
 
     if (!nextZman) {
-        if (nextZmanBadge) {
+        document.querySelectorAll('[data-zman-row]').forEach((row) => {
+            row.classList.remove('zman-next-highlight');
+        });
+        countdownRow = null;
+        if (nextZmanBadge && countdownBadgeHtml !== '') {
             nextZmanBadge.classList.add('hidden');
             nextZmanBadge.textContent = '';
+            countdownBadgeHtml = '';
         }
-        countdownInterval = setTimeout(() => startCountdown(deps), 1000);
+        countdownInterval = setTimeout(() => startCountdown(deps), nextCountdownDelay());
         return;
     }
 
@@ -406,8 +419,12 @@ export function startCountdown(deps) {
     }
 
     const row = highlightRowId ? document.getElementById(highlightRowId) : null;
-    if (row) {
-        row.classList.add('zman-next-highlight');
+    if (row !== countdownRow) {
+        document.querySelectorAll('[data-zman-row]').forEach((other) => {
+            other.classList.remove('zman-next-highlight');
+        });
+        if (row) row.classList.add('zman-next-highlight');
+        countdownRow = row;
     }
 
     if (nextZmanBadge) {
@@ -415,11 +432,22 @@ export function startCountdown(deps) {
         const label = rowLabel || nextZman.name;
         const remaining = Math.max(0, nextZman.t.getTime() - now.getTime());
         const countdownLabel = formatCountdownDuration(remaining, deps);
-        nextZmanBadge.innerHTML = `<span class="text-[1.03rem] leading-snug font-semibold text-[#31597d]">${deps.escapeHtml(label)} <span class="font-medium text-[#4f7596]">${deps.t('in', 'בעוד')} ${deps.escapeHtml(countdownLabel)}</span></span>`;
-        nextZmanBadge.classList.remove('hidden');
+        const html = `<span class="text-[1.03rem] leading-snug font-semibold text-[#31597d]">${deps.escapeHtml(label)} <span class="font-medium text-[#4f7596]">${deps.t('in', 'בעוד')} ${deps.escapeHtml(countdownLabel)}</span></span>`;
+        if (html !== countdownBadgeHtml || !nextZmanBadge.innerHTML || nextZmanBadge.classList.contains('hidden')) {
+            nextZmanBadge.innerHTML = html;
+            nextZmanBadge.classList.remove('hidden');
+            countdownBadgeHtml = html;
+        }
     }
 
-    countdownInterval = setTimeout(() => startCountdown(deps), 1000);
+    countdownInterval = setTimeout(() => startCountdown(deps), nextCountdownDelay());
+}
+
+// Redraws the countdown the moment a hidden tab is shown again.
+export function installCountdownVisibility(deps, doc = document) {
+    doc?.addEventListener?.('visibilitychange', () => {
+        if (!doc.hidden && zmanimData) startCountdown(deps);
+    });
 }
 
 function renderZmanClockFields(z, deps) {
@@ -726,5 +754,6 @@ export function initZmanim(deps) {
 }
 
 export function installZmanim(deps) {
+    installCountdownVisibility(deps);
     return initZmanim(deps);
 }

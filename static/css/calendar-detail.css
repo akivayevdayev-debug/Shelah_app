@@ -319,7 +319,10 @@
 .cal-detail__ref + .cal-detail__ref { border-top: 1px solid var(--glass-hairline); }
 .cal-detail__ref-label { white-space: nowrap; }
 .cal-detail__ref:hover .cal-detail__ref-label { text-decoration: underline; text-underline-offset: 3px; }
-.cal-detail__ref:active { opacity: 0.6; }
+/* Background, not opacity: this is a full-width tappable row (see the
+   comment above .cal-detail__row--refs), the same category as
+   .cal-detail__item, which already presses with a background change. */
+.cal-detail__ref:active { background: var(--surface-border); }
 .cal-detail__ref svg { flex: none; color: var(--ink-secondary); }
 .cal-detail__row--refs dd small { padding-bottom: var(--sp-2); }
 

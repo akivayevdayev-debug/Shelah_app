@@ -26,6 +26,8 @@
 // A 401 refreshes the Clerk token once and repeats the call -- the auth
 // decorator rejects before any write, so that repeat is always safe.
 
+import { ACCEPT_PROGRESS, isProgressResponse, readProgressStream } from "./ask-progress.js";
+
 // Client abort ceiling: above the server's AI_TOTAL_BUDGET_SECONDS (45s,
 // backend/claude.py) and below Vercel's maxDuration (90s, vercel.json), same
 // ordering ai-service.js's /ask client uses.
@@ -101,8 +103,9 @@ function wait(ms) {
 
 // One fetch with its own abort watchdog. The watchdog is cleared on every
 // exit path so no timer outlives the attempt.
-async function fetchOnce(path, { method, body }) {
+async function fetchOnce(path, { method, body, accept }) {
     const headers = await buildHeaders(body !== undefined);
+    if (accept) headers.Accept = accept;
     const abortCtrl = new AbortController();
     const abortTimer = setTimeout(() => abortCtrl.abort(), REQUEST_TIMEOUT_MS);
     try {
@@ -120,7 +123,7 @@ async function fetchOnce(path, { method, body }) {
 // Fetch with bounded retry on transient failures (`retry: false` disables
 // it), plus the one-time 401 token-refresh repeat. Returns the final
 // Response; throws ConversationApiError(NETWORK) when no response arrived.
-async function fetchWithPolicy(path, { method = "GET", body, retry = true, onRetry } = {}) {
+async function fetchWithPolicy(path, { method = "GET", body, retry = true, onRetry, accept } = {}) {
     const attempts = retry ? MAX_ATTEMPTS : 1;
     let refreshedAuth = false;
     let lastError = null;
@@ -133,7 +136,7 @@ async function fetchWithPolicy(path, { method = "GET", body, retry = true, onRet
         }
         let response;
         try {
-            response = await fetchOnce(path, { method, body });
+            response = await fetchOnce(path, { method, body, accept });
         } catch (error) {
             lastError = error;
             if (isRetryableNetworkError(error)) continue;
@@ -172,6 +175,20 @@ async function toApiError(response) {
     return new ConversationApiError(payload?.error || `Request failed (${response.status})`, {
         code: CODE_BY_BODY_CODE[payload?.code] || codeForStatus(response.status),
         status: response.status,
+        retryAfter,
+    });
+}
+
+// The same ConversationApiError toApiError() builds from a response, for an
+// `error` line that ended a progress stream (the stream's own 200 status says
+// nothing about the failure; `status`/`body`/`retry_after` carry it).
+function streamTerminalToApiError(terminal) {
+    const status = Number(terminal.status) || 500;
+    const payload = terminal.body && typeof terminal.body === "object" ? terminal.body : null;
+    const retryAfter = terminal.retry_after ? Number(terminal.retry_after) || null : null;
+    return new ConversationApiError(payload?.error || `Request failed (${status})`, {
+        code: CODE_BY_BODY_CODE[payload?.code] || codeForStatus(status),
+        status,
         retryAfter,
     });
 }
@@ -312,7 +329,13 @@ function answeredResult(state) {
 // -- so the thread is re-read and that answer returned. The same re-read runs
 // when the FIRST attempt gets invalid_retry (another tab retried the turn
 // already); it only throws when no fresh answer is found.
-export async function askInConversation(id, { question, mode, language, retryOf } = {}, { knownMessageIds = [], onRetry } = {}) {
+//
+// `onProgress(event)` receives the server's live pipeline steps (see
+// ask-progress.js) while the answer is prepared. A stream that ends in a
+// result resolves exactly like the plain 201; one that ends in an error line
+// or is cut short goes through the same transient-failure reconcile as a
+// plain failure, so a dropped connection never re-sends a saved question.
+export async function askInConversation(id, { question, mode, language, retryOf } = {}, { knownMessageIds = [], onRetry, onProgress } = {}) {
     const body = { question: String(question || "").trim(), mode, language };
     if (retryOf) body.retry_of = String(retryOf);
     const path = conversationPath(id, "/ask");
@@ -326,10 +349,24 @@ export async function askInConversation(id, { question, mode, language, retryOf 
         let response = null;
         let error = null;
         try {
-            response = await fetchWithPolicy(path, { method: "POST", body, retry: false });
+            response = await fetchWithPolicy(path, { method: "POST", body, retry: false, accept: ACCEPT_PROGRESS });
         } catch (err) {
             if (!(err instanceof ConversationApiError)) throw err;
             error = err;
+        }
+        if (response?.ok && isProgressResponse(response)) {
+            try {
+                const terminal = await readProgressStream(response, onProgress, { timeoutMs: REQUEST_TIMEOUT_MS });
+                if (terminal.type === "result") return terminal.body;
+                error = streamTerminalToApiError(terminal);
+            } catch (streamError) {
+                // Cut off or timed out after the server started on the turn:
+                // the same "no usable response" case as a network failure.
+                error = new ConversationApiError(streamError?.message || "Network request failed", {
+                    code: ERROR_CODES.NETWORK,
+                });
+            }
+            response = null;
         }
         if (response?.ok) return readJson(response);
         // The body is read once, here: its `code` decides transient vs not.

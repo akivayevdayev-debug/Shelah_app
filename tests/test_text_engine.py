@@ -12,6 +12,8 @@ job is to prove the move changed nothing, not to improve formatting.
 
 from __future__ import annotations
 
+import pytest
+
 from backend.utils.text_engine import (
     HEBREW_DIACRITICS_RE,
     WEB_LAST_RESORT_WARNING,
@@ -74,6 +76,21 @@ def test_strip_model_web_warning_prefix_removes_bold_warning():
 def test_strip_model_web_warning_prefix_removes_plain_warning():
     warned = WEB_LAST_RESORT_WARNING_PLAIN + "\n\nSome general web info follows."
     assert _strip_model_web_warning_prefix(warned) == "Some general web info follows."
+
+
+def test_web_warning_has_no_emoji():
+    # Icons belong to the client (Phosphor); answer text stays plain.
+    assert WEB_LAST_RESORT_WARNING.isascii()
+    assert WEB_LAST_RESORT_WARNING.startswith("**Warning:**")
+
+
+@pytest.mark.parametrize("legacy", [
+    "\u26a0\ufe0f **WARNING:** No matches found in Sefaria or verified customs. The following info is from the general web and may not be Halakhically accurate. Consult a Rabbi.",
+    "\u26a0\ufe0f WARNING: No matches found in Sefaria or verified customs. The following info is from the general web and may not be Halakhically accurate. Consult a Rabbi.",
+])
+def test_strip_model_web_warning_prefix_removes_the_old_emoji_form(legacy):
+    # Answers saved (or emitted by the model) before the emoji was dropped.
+    assert _strip_model_web_warning_prefix(legacy + "\n\nSome general web info follows.") == "Some general web info follows."
 
 
 # ── _collapse_markdown_spacing (multi-blank-line markdown) ───────────────────
@@ -160,6 +177,17 @@ def test_strip_source_attribution_prefix_single_line_shape():
         f"not a halachic ruling. {RABBI_FOOTER} Actual body."
     )
     assert _strip_source_attribution_prefix(note) == "Actual body."
+
+
+@pytest.mark.parametrize("marker", ["Note: ", "note:\u26a0\ufe0f ", "Note: \u26a0 "])
+def test_strip_source_attribution_prefix_accepts_the_note_with_or_without_the_emoji(marker):
+    note = f"{marker}This is educational information pulled from Sefaria, not a halachic ruling.\n\nActual body."
+    assert _strip_source_attribution_prefix(note) == "Actual body."
+
+
+def test_strip_source_attribution_prefix_leaves_other_notes_alone():
+    text = "Note: the next section is about Shabbat.\n\nBody."
+    assert _strip_source_attribution_prefix(text) == text
 
 
 # ── _should_drop_debug_line / _normalize_answer_line (UI_SECTION_KEYS) ───────

@@ -289,6 +289,15 @@ html.rtl .info-box {
     text-decoration: none;
 }
 
+.legal-back-link svg {
+    flex-shrink: 0;
+}
+
+/* "Back" points the way the page reads from, so the arrow turns around in RTL. */
+.legal-back-link svg:dir(rtl) {
+    transform: scaleX(-1);
+}
+
 .select-all-btn {
     display: inline-flex;
     align-items: center;

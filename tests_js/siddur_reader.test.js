@@ -428,3 +428,17 @@ test('keepOffline asks for persistent storage only in the installed app', async 
     const noApi = fakeKeepEnv({ standalone: true, persist: null });
     assert.doesNotThrow(() => r.keepOffline(TOC, noApi));
 });
+
+test('findPage resolves a search to a service or an exact section, never from mid-title', async () => {
+    const r = await reader();
+    assert.equal(r.findPage(TOC, 'Shacharit'), 'edot-hamizrach/shacharit');
+    assert.equal(r.findPage(TOC, '  MINCHA! '), 'edot-hamizrach/mincha');
+    assert.equal(r.findPage(TOC, 'ברכת המזון'), 'edot-hamizrach/birkat-hamazon');
+    assert.equal(r.findPage(TOC, 'The Shema'), 'edot-hamizrach/shacharit/keriat-shema', 'a section of a multi-section service');
+    assert.equal(r.findPage(TOC, 'birkat ham'), 'edot-hamizrach/birkat-hamazon', 'a long enough start of a service title');
+    assert.equal(r.findPage(TOC, 'hamazon'), null, 'not from the middle of a title');
+    assert.equal(r.findPage(TOC, 'amid'), null, 'sections only match exactly');
+    assert.equal(r.findPage(TOC, 'Psalms'), null);
+    assert.equal(r.findPage(TOC, ''), null);
+    assert.equal(r.findPage(null, 'shacharit'), null);
+});

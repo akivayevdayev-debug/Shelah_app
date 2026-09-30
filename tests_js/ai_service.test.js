@@ -67,14 +67,35 @@ async function loadAiService(globalsOverrides = {}) {
         // is harmless here because none of these fetch mocks inspect
         // `opts.signal` -- calling `abortCtrl.abort()` on an ignored signal has
         // no observable effect on a mock's own resolution/rejection.
-        setTimeout: (fn) => {
+        setTimeout: globalsOverrides.setTimeout || ((fn) => {
             fn();
             return 0;
-        },
+        }),
         clearTimeout: () => {},
         AbortController,
     });
     return { mod, window };
+}
+
+// Fires the short backoff timers at once but leaves the 60s watchdogs (the
+// abort timer and the stream reader's deadline) unfired.
+const setTimeoutSparingWatchdogs = (fn, ms) => (ms >= 60000 ? 0 : (fn(), 0));
+
+function makeNdjsonResponse(events, status = 200) {
+    const encoder = new TextEncoder();
+    const chunks = events.map((event) => encoder.encode(`${JSON.stringify(event)}\n`));
+    let i = 0;
+    return {
+        status,
+        ok: status >= 200 && status < 300,
+        headers: { get: (name) => (String(name).toLowerCase() === 'content-type' ? 'application/x-ndjson' : null) },
+        body: {
+            getReader: () => ({
+                read: async () => (i < chunks.length ? { done: false, value: chunks[i++] } : { done: true }),
+                cancel: async () => {},
+            }),
+        },
+    };
 }
 
 test('askAi happy path: single attempt, resolves with the parsed payload, updates state.ai, no retries', async () => {
@@ -194,4 +215,77 @@ test('askAi fails fast on an error that is neither an abort nor a network TypeEr
         return true;
     });
     assert.equal(fetchFn.calls.length, 1, 'only AbortError/TypeError are retried');
+});
+
+test('askAi asks for the progress stream and still accepts plain JSON', async () => {
+    const fetchFn = makeSequenceFetch([makeJsonResponse(200, { answer: 'plain' })]);
+    const { mod } = await loadAiService({ fetch: fetchFn });
+
+    const result = await mod.namespace.askAi('question', { onProgress: () => {} });
+
+    assert.deepEqual(result, { answer: 'plain' });
+    assert.match(fetchFn.calls[0].opts.headers.Accept, /application\/x-ndjson/);
+    assert.match(fetchFn.calls[0].opts.headers.Accept, /application\/json/);
+});
+
+test('askAi forwards each pipeline step to onProgress, then resolves with the streamed answer', async () => {
+    const payload = { answer: 'streamed', sources: [] };
+    const fetchFn = makeSequenceFetch([makeNdjsonResponse([
+        { type: 'stage', stage: 'sources', state: 'start' },
+        { type: 'stage', stage: 'sources', state: 'done' },
+        { type: 'stage', stage: 'thinking', state: 'start' },
+        { type: 'result', payload },
+    ])]);
+    const { mod, window } = await loadAiService({ fetch: fetchFn, setTimeout: setTimeoutSparingWatchdogs });
+    const steps = [];
+
+    const result = await mod.namespace.askAi('question', { onProgress: (event) => steps.push(`${event.stage}:${event.state}`) });
+
+    assert.deepEqual(result, payload);
+    assert.deepEqual(steps, ['sources:start', 'sources:done', 'thinking:start']);
+    assert.equal(fetchFn.calls.length, 1);
+    assert.equal(window.appState.ai.pending, false);
+    assert.deepEqual(window.appState.ai.lastResponse, payload);
+});
+
+test('askAi turns a failure reported inside the stream into the usual status/code error', async () => {
+    const fetchFn = makeSequenceFetch([makeNdjsonResponse([
+        { type: 'stage', stage: 'sources', state: 'start' },
+        { type: 'error', status: 500, detail: { error: 'Something broke', code: 'internal' } },
+    ])]);
+    const { mod, window } = await loadAiService({ fetch: fetchFn, setTimeout: setTimeoutSparingWatchdogs });
+
+    await assert.rejects(mod.namespace.askAi('question', {}), (error) => {
+        assert.equal(error.status, 500);
+        assert.equal(error.code, 'internal');
+        assert.equal(error.message, 'Something broke');
+        return true;
+    });
+    assert.equal(window.appState.ai.pending, false);
+    assert.equal(window.appState.ai.lastError, 'Something broke');
+});
+
+test('askAi does not re-send a question whose stream was cut off', async () => {
+    const fetchFn = makeSequenceFetch([makeNdjsonResponse([
+        { type: 'stage', stage: 'sources', state: 'start' },
+    ])]);
+    const { mod, window } = await loadAiService({ fetch: fetchFn, setTimeout: setTimeoutSparingWatchdogs });
+
+    await assert.rejects(mod.namespace.askAi('question', {}), (error) => {
+        assert.equal(error.interrupted, true);
+        return true;
+    });
+    assert.equal(fetchFn.calls.length, 1, 'an answer already being generated is never paid for twice');
+    assert.equal(window.appState.ai.pending, false);
+});
+
+test('askAi passes a refusal that came before the stream straight through', async () => {
+    const fetchFn = makeSequenceFetch([makeJsonResponse(402, { detail: 'Daily AI usage limit reached' })]);
+    const { mod } = await loadAiService({ fetch: fetchFn });
+
+    await assert.rejects(mod.namespace.askAi('question', { onProgress: () => {} }), (error) => {
+        assert.equal(error.status, 402);
+        assert.equal(error.message, 'Daily AI usage limit reached');
+        return true;
+    });
 });

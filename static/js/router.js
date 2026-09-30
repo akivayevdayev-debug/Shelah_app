@@ -204,17 +204,17 @@ const SLUG_SECTIONS_RE = new RegExp(String.raw`^(.+?)\.(${SECTIONS})$`, "i");
 function refToSlug(ref) {
     const text = String(ref).trim();
     const match = REF_SECTIONS_RE.exec(text);
-    if (!match) return text.replace(/ /g, "_");
-    return `${match[1].replace(/ /g, "_")}.${match[2].replace(/:/g, ".")}`;
+    if (!match) return text.replaceAll(" ", "_");
+    return `${match[1].replaceAll(" ", "_")}.${match[2].replaceAll(":", ".")}`;
 }
 
 function slugToRef(slug) {
-    const text = String(slug).replace(/_/g, " ");
+    const text = String(slug).replaceAll("_", " ");
     const match = SLUG_SECTIONS_RE.exec(text);
-    return match ? `${match[1]} ${match[2].replace(/\./g, ":")}` : text;
+    return match ? `${match[1]} ${match[2].replaceAll(".", ":")}` : text;
 }
 
-const NAME_SLUG = Object.freeze({ write: (name) => String(name).replace(/ /g, "_"), read: (slug) => slug.replace(/_/g, " ") });
+const NAME_SLUG = Object.freeze({ write: (name) => String(name).replaceAll(" ", "_"), read: (slug) => slug.replaceAll("_", " ") });
 const PATH_SLUGS = Object.freeze({
     text: { write: refToSlug, read: slugToRef },
     prayer: NAME_SLUG,
@@ -228,7 +228,9 @@ const PATH_SLUGS = Object.freeze({
 function parsePath(pathname) {
     const path = String(pathname || "");
     if (!path.startsWith("/")) return {};
-    const parts = path.slice(1).replace(/\/+$/, "").split("/");
+    let bare = path.slice(1);
+    while (bare.endsWith("/")) bare = bare.slice(0, -1);
+    const parts = bare.split("/");
     if (parts.length === 1 && !parts[0]) return {};
     const route = {};
     let i = 0;
@@ -252,7 +254,7 @@ function parsePath(pathname) {
         // A `+` in a path is a literal plus (we never write one), but people
         // and other sites type `/text/Genesis+1` meaning a space. No ref or
         // prayer name contains a plus, so it reads as one.
-        route[view] = PATH_SLUGS[view] ? PATH_SLUGS[view].read(raw.replace(/\+/g, " ")) : raw;
+        route[view] = PATH_SLUGS[view] ? PATH_SLUGS[view].read(raw.replaceAll("+", " ")) : raw;
         i = 2;
     }
     while (i < parts.length) {

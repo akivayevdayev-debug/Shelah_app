@@ -29,11 +29,11 @@ import anyio.from_thread  # noqa: F401
 
 from fastapi import FastAPI, Header, HTTPException, Request
 from fastapi.middleware.wsgi import WSGIMiddleware
-from fastapi.responses import JSONResponse
+from fastapi.responses import JSONResponse, StreamingResponse
 from pydantic import BaseModel, Field
 
 import app as flask_app_module
-from backend import ask_pipeline, claude, search
+from backend import ask_pipeline, ask_progress, claude, search
 from backend.ask_payloads import build_ai_answer_payload, build_source_fallback_payload
 from backend.auth import CLERK_ENFORCE_AUTH, extract_user_id_from_bearer_value
 from backend.utils.search_provider import get_halakhic_sources
@@ -309,6 +309,35 @@ def _ask_async_prayer_result(question, mode, canonical_lens):
     }
 
 
+# Per-stage ceilings (seconds) for the /ask retrieval fan-out. asyncio.gather
+# waits for its slowest member and every httpx call in backend/search.py
+# defaults to 10s (Halachipedia makes two sequential ones), so a single slow
+# secondary source used to hold the whole answer for up to ~20s. A stage that
+# misses its ceiling contributes nothing and the answer proceeds without it --
+# the same shape as the sync route's per-future timeouts in app.py.
+_ASK_CONTEXT_TIMEOUT_SECONDS = {
+    "primary": 15.0,
+    "halachipedia": 6.0,
+    "wiki": 3.0,
+    "knowledge": 5.0,
+    "memory": 3.0,
+    "tool_context": 3.0,
+}
+
+
+async def _within(stage: str, awaitable, default):
+    """Await one retrieval stage under its _ASK_CONTEXT_TIMEOUT_SECONDS
+    ceiling, returning `default` if it runs out of time. Only the timeout is
+    absorbed; any other failure propagates exactly as it did before."""
+    try:
+        return await asyncio.wait_for(awaitable, _ASK_CONTEXT_TIMEOUT_SECONDS[stage])
+    except asyncio.TimeoutError:
+        logger.warning(
+            "ask context stage %r exceeded %.1fs; answering without it",
+            stage, _ASK_CONTEXT_TIMEOUT_SECONDS[stage])
+        return default
+
+
 async def _collect_ask_async_context(
     question, canonical_lens, user_id, answer_language, bearer_token=None,
 ):
@@ -323,28 +352,36 @@ async def _collect_ask_async_context(
     context ever pushed, so that chain cannot fall back to reading Flask's
     global `request` proxy the way Flask-side callers do (plan.md §35.1).
     """
-    primary_task = asyncio.create_task(_collect_primary_sources(question))
-    halachipedia_task = asyncio.create_task(
-        search.async_search_halachipedia(question))
-    wiki_task = asyncio.create_task(
-        search.async_search_wikipedia(question))
-    knowledge_task = asyncio.create_task(
-        asyncio.to_thread(
+    # Each lookup also reports to the optional live-progress stream
+    # (backend/ask_progress.py); with no stream bound that is a no-op.
+    primary_task = asyncio.create_task(ask_progress.track(
+        ask_progress.STAGE_SOURCES,
+        _within("primary", _collect_primary_sources(question), ([], []))))
+    halachipedia_task = asyncio.create_task(ask_progress.track(
+        ask_progress.STAGE_COMMENTARY,
+        _within("halachipedia", search.async_search_halachipedia(question), None)))
+    wiki_task = asyncio.create_task(ask_progress.track(
+        ask_progress.STAGE_COMMENTARY,
+        _within("wiki", search.async_search_wikipedia(question), None)))
+    knowledge_task = asyncio.create_task(ask_progress.track(
+        ask_progress.STAGE_CUSTOMS,
+        _within("knowledge", asyncio.to_thread(
             _retrieve_community_knowledge,
             question,
             canonical_lens,
             RAG_TOP_KNOWLEDGE_ROWS,
-        )
-    )
-    memory_task = asyncio.create_task(
-        asyncio.to_thread(
+        ), [])))
+    memory_task = asyncio.create_task(ask_progress.track(
+        ask_progress.STAGE_CUSTOMS,
+        _within("memory", asyncio.to_thread(
             _fetch_user_memory_summaries,
             user_id,
             RAG_MEMORY_ROWS,
             bearer_token,
-        )
-    )
-    tool_context_task = asyncio.create_task(_build_tool_context())
+        ), [])))
+    tool_context_task = asyncio.create_task(ask_progress.track(
+        ask_progress.STAGE_TIMES,
+        _within("tool_context", _build_tool_context(), {"route": "/ask", "async": True})))
 
     (_, primary_sources), halachipedia_info, wiki_info, knowledge_rows, user_memory_summaries, tool_context = await asyncio.gather(
         primary_task,
@@ -581,6 +618,7 @@ async def _dispatch_ask_async_ai_synthesis_call(question, mode, canonical_lens, 
         if claude.AI_AGENTIC_TOOLS
         else claude.ask_ai_async(**call_kwargs)
     )
+    ask_progress.begin(ask_progress.STAGE_THINKING)
     return await asyncio.wait_for(
         ai_synthesis_coro,
         timeout=claude.AI_TOTAL_BUDGET_SECONDS,
@@ -893,8 +931,91 @@ async def _run_ask_async_synthesis_or_fallback(
         )
 
 
+# Seconds of silence on a progress stream before a keep-alive line is sent, so
+# an idle-timeout proxy in front of a long model call doesn't cut the stream.
+_ASK_STREAM_KEEPALIVE_SECONDS = 10.0
+
+# Strong references to in-flight streamed answers. A client that leaves
+# mid-stream cancels the response generator but not the answer itself (the
+# same as the plain JSON path, where the handler always runs to completion),
+# so the task must not be garbage collected while it still has history and
+# cost accounting to write.
+_ASK_STREAM_TASKS: set[asyncio.Task] = set()
+
+
+async def _ask_stream_events(first_event, queue):
+    """NDJSON body for a streamed answer: `first_event`, then whatever the
+    run publishes, ending at its terminal result/error event. A quiet queue
+    yields keep-alive lines instead of going silent."""
+    event = first_event
+    while True:
+        yield ask_progress.encode_event(event)
+        if event["type"] in ("result", "error"):
+            return
+        while True:
+            try:
+                event = await asyncio.wait_for(queue.get(), _ASK_STREAM_KEEPALIVE_SECONDS)
+                break
+            except asyncio.TimeoutError:
+                yield ask_progress.encode_event({"type": "ping"})
+
+
+async def _ask_async_progress_response(request, payload, authorization):
+    """/ask for a client that sent `Accept: application/x-ndjson`: the same
+    answer, preceded by one line per pipeline step so the UI can show what is
+    happening ("Searching the sources", "Thinking it through", ...).
+
+    The HTTP status is still the real one. The response is only committed to
+    streaming once the first step is reported, and steps are only reported
+    after every pre-flight check (validation, auth, Turnstile, budget) has
+    passed, so a refusal raises its ordinary 400/401/402/403 here, and an
+    answer that never streamed anything (the prayer shortcut) comes back as
+    plain JSON. After that point a failure is an in-stream `error` event.
+    """
+    queue: asyncio.Queue = asyncio.Queue()
+    loop = asyncio.get_running_loop()
+
+    def send(event):
+        # Steps report from worker threads too (asyncio.to_thread).
+        loop.call_soon_threadsafe(queue.put_nowait, event)
+
+    async def run():
+        token = ask_progress.bind(send)
+        terminal_sent = False
+        try:
+            result = await _ask_async_impl(request, payload, authorization)
+            terminal_sent = True
+            send({"type": "result", "payload": result})
+        except HTTPException as exc:
+            terminal_sent = True
+            send({"type": "error", "status": exc.status_code, "detail": exc.detail})
+        finally:
+            ask_progress.unbind(token)
+            if not terminal_sent:
+                # Cancelled, or something the impl's own handler did not turn
+                # into an HTTPException: never leave the reader waiting.
+                send({"type": "error", "status": 500,
+                      "detail": "An internal error occurred while processing your request."})
+
+    task = asyncio.create_task(run())
+    _ASK_STREAM_TASKS.add(task)
+    task.add_done_callback(_ASK_STREAM_TASKS.discard)
+
+    first = await queue.get()
+    if first["type"] == "error":
+        raise HTTPException(status_code=first["status"], detail=first["detail"])
+    if first["type"] == "result":
+        return first["payload"]
+    return StreamingResponse(
+        _ask_stream_events(first, queue),
+        media_type=ask_progress.NDJSON_MIMETYPE,
+        headers={"Cache-Control": "no-store, no-transform", "X-Accel-Buffering": "no"},
+    )
+
+
 @fastapi_app.post(
     "/ask",
+    response_model=None,
     responses={
         429: {"description": "Rate limit exceeded. Please wait before sending another request."},
         400: {"description": "No valid question provided"},
@@ -908,6 +1029,16 @@ async def ask_async(
     request: Request,
     payload: AskRequest,
     authorization: Annotated[str | None, Header()] = None,
+) -> dict[str, Any] | StreamingResponse:
+    if ask_progress.wants_stream(request.headers.get("accept")):
+        return await _ask_async_progress_response(request, payload, authorization)
+    return await _ask_async_impl(request, payload, authorization)
+
+
+async def _ask_async_impl(
+    request: Request,
+    payload: AskRequest,
+    authorization: str | None,
 ) -> dict[str, Any]:
     # Bound in the outer except's error report even if an exception hits
     # before these are ever assigned a real value (plan.md §32.1 -- avoids

@@ -7,6 +7,8 @@
 // main.js exposes this module as window.ShelahSourceCards for the classic
 // inline script.
 
+import { icon } from "./icons.js";
+
 const TANAKH = /^(Genesis|Exodus|Leviticus|Numbers|Deuteronomy|Joshua|Judges|I?\s*Samuel|I?\s*Kings|Isaiah|Jeremiah|Ezekiel|Hosea|Joel|Amos|Obadiah|Jonah|Micah|Nahum|Habakkuk|Zephaniah|Haggai|Zechariah|Malachi|Psalms|Proverbs|Job|Song of Songs|Ruth|Lamentations|Ecclesiastes|Esther|Daniel|Ezra|Nehemiah|I?\s*Chronicles)\b/i;
 const TALMUD = /^(Berachot|Shabbat|Eruvin|Pesachim|Shekalim|Yoma|Sukkah|Beitzah|Rosh Hashanah|Taanit|Megillah|Moed Katan|Chagigah|Yevamot|Ketubot|Nedarim|Nazir|Sotah|Gittin|Kiddushin|Bava Kamma|Bava Metzia|Bava Batra|Sanhedrin|Makkot|Shevuot|Avodah Zarah|Horayot|Zevachim|Menachot|Chullin|Bechorot|Arachin|Temurah|Keritot|Niddah|Talmud\b)\b/i;
 const HALACHA = /^(Shulchan Aruch|Mishnah Berurah|Kitzur Shulchan Aruch|Aruch HaShulchan|Ben Ish Hai|Mishneh Torah|Rambam|Tur\b|Sefer HaMitzvot|Sefer HaChinuch)\b/i;
@@ -14,7 +16,11 @@ const RESPONSA = /^(Igrot Moshe|Yabia Omer|Tzitz Eliezer|Chazon Ish|Minchat Yitz
 const MISHNAH = /^(Mishnah\b|Pirkei Avot|Avot)\b/i;
 const ON_SEFARIA = /^(Shulchan Aruch|Mishneh Torah|Tur\b|Kitzur Shulchan Aruch|Ben Ish Hai|Aruch HaShulchan|Mishnah Berurah|Mishnah\b|Talmud|Sefer HaMitzvot|Sefer HaChinuch|Rambam|Pirkei Avot|Avot|Siddur)\b/i;
 const PRACTICAL_HALACHA = /^(Shulchan Aruch|Mishnah Berurah|Kitzur Shulchan Aruch|Aruch HaShulchan|Ben Ish Hai|Piskei Teshuvot|Igrot Moshe|Chazon Ish|Tzitz Eliezer|Yabia Omer)\b/i;
-const DAF = /^([A-Za-z\s]+?)\s+(\d+[ab])/;
+// Word-then-optional-more-words, so group 1 can never itself swallow the
+// whitespace that has to separate it from the page number -- the old
+// `([A-Za-z\s]+?)\s+` let both sides claim the same run of spaces,
+// which is SonarCloud javascript:S8786's super-linear-regex shape.
+const DAF = /^([A-Za-z]+(?:\s+[A-Za-z]+)*)\s+(\d+[ab])/;
 
 const KIND_LABELS = {
     tanakh: { en: "Tanakh", he: "תנ״ך" },
@@ -27,11 +33,11 @@ const KIND_LABELS = {
 
 export function escapeHtml(value) {
     return String(value ?? "")
-        .replace(/&/g, "&amp;")
-        .replace(/</g, "&lt;")
-        .replace(/>/g, "&gt;")
-        .replace(/"/g, "&quot;")
-        .replace(/'/g, "&#39;");
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;")
+        .replaceAll("'", "&#39;");
 }
 
 // Transliteration varies by style guide ("Aruch"/"Arukh", "Tanach"/"Tanakh"),
@@ -85,7 +91,13 @@ export function externalLinks(ref) {
         links.push({ label: "Sefaria", href: `https://www.sefaria.org/${encodeURIComponent(r)}` });
     }
     if (PRACTICAL_HALACHA.test(m)) {
-        const query = r.replace(/[\s,.:;]+\d[\d\s,.:;]*$/, "").trim() || r;
+        // `(?=(X+))\1` matches the same leading separator run as a plain
+        // `X+` would, but atomically (JS has no possessive quantifiers): a
+        // failed `\d` after it can't reopen the lookahead to retry shorter
+        // spans, which is what made the old `[\s,.:;]+\d[\d\s,.:;]*$`
+        // super-linear on separator-heavy input (SonarCloud javascript:S8786;
+        // its class overlaps the trailing `[\d\s,.:;]*`).
+        const query = r.replace(/(?=([\s,.:;]+))\1\d[\d\s,.:;]*$/, "").trim() || r;
         links.push({ label: "Halachipedia", href: `https://halachipedia.com/index.php?search=${encodeURIComponent(query)}` });
     }
     return links;
@@ -93,11 +105,26 @@ export function externalLinks(ref) {
 
 export function externalLinksHtml(ref) {
     return externalLinks(ref)
-        .map((l) => `<a href="${escapeHtml(l.href)}" target="_blank" rel="noopener noreferrer" class="src-ext-link">${escapeHtml(l.label)} ↗</a>`)
+        .map((l) => `<a href="${escapeHtml(l.href)}" target="_blank" rel="noopener noreferrer" class="src-ext-link">${escapeHtml(l.label)}${icon("arrow-up-right", { size: 12, className: "src-ext-icon" })}</a>`)
         .join("");
 }
 
-const stripTags = (value) => String(value || "").replace(/<[^>]*>/gm, "").trim();
+// Non-regex tag strip (SonarCloud javascript:S8786 flagged `/<[^>]*>/gm`,
+// even though a negated class is provably linear) -- only drops a `<...>`
+// span when it finds the closing `>`, matching the old regex's behavior on
+// an unterminated `<` at the end of a truncated string.
+function stripTags(value) {
+    const text = String(value || "");
+    let out = "";
+    let from = 0;
+    for (let start = text.indexOf("<", from); start !== -1; start = text.indexOf("<", from)) {
+        const end = text.indexOf(">", start);
+        if (end === -1) break;
+        out += text.slice(from, start);
+        from = end + 1;
+    }
+    return (out + text.slice(from)).trim();
+}
 
 // First three lines of a /api/text payload as a bilingual preview body.
 export function previewHtml(lines, { max = 3 } = {}) {

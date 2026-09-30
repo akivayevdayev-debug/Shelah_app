@@ -48,6 +48,15 @@ MAX_DATE = dt.date(2099, 12, 31)
 
 NISAN, IYAR, SIVAN, TAMMUZ, AV, ELUL, TISHREI, CHESHVAN, KISLEV, TEVET, SHEVAT, ADAR, ADAR_II = range(1, 14)
 _PUBLIC_FASTS = {"tzom_gedalyah", "tenth_of_teves", "taanis_esther", "seventeen_of_tammuz", "tisha_beav"}
+# Which public fast it is, named by the siddur's own "Taaniyot" section
+# (data/siddur/*/services/taaniyot.json; Tisha B'Av has no section of its own).
+_FAST_SLUGS = {
+    "tzom_gedalyah": "fast-of-gedalya",
+    "tenth_of_teves": "tenth-of-tevet",
+    "taanis_esther": "fast-of-esther",
+    "seventeen_of_tammuz": "seventeenth-of-tammuz",
+    "tisha_beav": "tisha-beav",
+}
 SERVICES = ("arbit", "shacharit", "musaf", "mincha")
 
 
@@ -254,5 +263,6 @@ def day_guidance(date: dt.date, il: bool) -> dict:
         "aseretYemeiTeshuva": "aseret-yemei-teshuva" in active,
         "musaf": "shabbat" in active or "rosh-chodesh" in active or festival,
         "aneinu": "fast" in active,
+        "fastDay": _FAST_SLUGS.get(jc.significant_day()),
         "omer": {"today": _omer(date, il), "tonight": _omer(date + dt.timedelta(days=1), il)},
     }

@@ -645,3 +645,33 @@ test('getSunset: the location\'s sunset once zmanim load, null before and for a 
     await other.mod.namespace.fetchZmanimAPI(null, makeDeps());
     assert.equal(other.mod.namespace.getSunset(), null);
 });
+
+test('the countdown redraws only when its text changes, and ticks slowly while the tab is hidden', async () => {
+    const nowMs = Date.now();
+    const data = {
+        zmanim: { Sunset: '7:45 PM' },
+        metadata: { zmanim_iso: { Sunset: new Date(nowMs + 3 * 3600 * 1000).toISOString() } },
+    };
+    const fetchFn = makeSequenceFetch([makeJsonResponse(data)]);
+    const { mod, document, timer } = await loadZmanim({ fetch: fetchFn });
+    await mod.namespace.fetchZmanimAPI(null, makeDeps());
+
+    // More than an hour out the label reads "Xh Ym": a second later it is the same.
+    const badge = document.getElementById('nextZmanBadge');
+    let writes = 0;
+    let html = badge.innerHTML;
+    Object.defineProperty(badge, 'innerHTML', {
+        get: () => html,
+        set: (value) => { writes += 1; html = value; },
+    });
+    mod.namespace.startCountdown(makeDeps());
+    mod.namespace.startCountdown(makeDeps());
+    assert.equal(writes, 0, 'an unchanged label is not written again');
+
+    document.hidden = true;
+    mod.namespace.startCountdown(makeDeps());
+    assert.equal(timer.setTimeout.calls.at(-1).delay, 30000);
+    document.hidden = false;
+    mod.namespace.startCountdown(makeDeps());
+    assert.equal(timer.setTimeout.calls.at(-1).delay, 1000);
+});

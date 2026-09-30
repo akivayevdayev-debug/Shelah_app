@@ -1,4 +1,5 @@
 import { getState, setState } from "./state.js";
+import { ACCEPT_PROGRESS, isProgressResponse, readProgressStream } from "./ask-progress.js";
 
 // plan.md §19 Phase 1 (claude_code_prompts.md Prompt 32): this module is the
 // canonical POST /ask implementation. It absorbed the retry/timeout resilience
@@ -21,6 +22,12 @@ import { getState, setState } from "./state.js";
 // Callers branch on `.code` / `.status` for UI handling instead of inspecting
 // a raw Response, per Prompt 32 step 3 -- this is the ES-module-native shape
 // and the only one `window.ShelahModules` can express cleanly.
+//
+// Live progress: askAi() asks the server for an NDJSON stream (see
+// ask-progress.js) and reports each pipeline step to `options.onProgress`
+// (one event per call). The stream ends in the same payload or the same
+// failure shape as the plain response, and a server that answers with plain
+// JSON is handled exactly as before.
 
 const AI_REQUEST_TIMEOUT_MS = 60000;
 const AI_MAX_ATTEMPTS = 3;
@@ -111,6 +118,7 @@ export async function askAi(question, options = {}) {
     const community = String(options.community || state?.prefs?.community || "All");
     const language = String(options.language || state?.prefs?.language || "en");
     const onRetry = typeof options.onRetry === "function" ? options.onRetry : null;
+    const onProgress = typeof options.onProgress === "function" ? options.onProgress : null;
 
     setState({
         ai: {
@@ -132,7 +140,8 @@ export async function askAi(question, options = {}) {
             turnstile_token: window.__turnstileToken || "",
         });
 
-        let headers = await buildAuthHeaders({ "Content-Type": "application/json" });
+        const baseHeaders = { "Content-Type": "application/json", Accept: ACCEPT_PROGRESS };
+        let headers = await buildAuthHeaders(baseHeaders);
         let response = await fetchAskWithRetry(requestBody, headers, onRetry);
 
         // A 401 here almost always means the Clerk token expired mid-session
@@ -140,12 +149,26 @@ export async function askAi(question, options = {}) {
         // the token once and retry the full attempt cycle before giving up,
         // matching the pattern saveSemanticBookmark() uses for the same case.
         if (response.status === 401) {
-            headers = await buildAuthHeaders({ "Content-Type": "application/json" });
+            headers = await buildAuthHeaders(baseHeaders);
             response = await fetchAskWithRetry(requestBody, headers, onRetry);
         }
 
-        const payload = await response.json().catch(() => ({}));
-        if (!response.ok) {
+        let payload;
+        let failedStatus = response.ok ? 0 : response.status;
+        if (response.ok && isProgressResponse(response)) {
+            const terminal = await readProgressStream(response, onProgress, { timeoutMs: AI_REQUEST_TIMEOUT_MS });
+            if (terminal.type === "result") {
+                payload = terminal.payload;
+            } else {
+                // A failure after the stream started: same body shape the
+                // plain response would have had, just carried in the last line.
+                failedStatus = Number(terminal.status) || 500;
+                payload = { detail: terminal.detail };
+            }
+        } else {
+            payload = await response.json().catch(() => ({}));
+        }
+        if (failedStatus) {
             // FastAPI's default HTTPException handler nests structured errors (e.g.
             // turnstile_required) under detail as { error, code } rather than a top
             // -level "error" string -- unwrap that shape before falling back.
@@ -154,7 +177,7 @@ export async function askAi(question, options = {}) {
                 payload?.error || (detail && typeof detail === "object" ? detail.error : detail) || "Ask request failed"
             );
             const error = new Error(message);
-            error.status = response.status;
+            error.status = failedStatus;
             if (detail && typeof detail === "object" && detail.code) {
                 error.code = detail.code;
             }

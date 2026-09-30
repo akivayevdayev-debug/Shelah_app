@@ -36,9 +36,11 @@
 // are saved per Clerk user, so signed out the composer asks a new one-shot
 // question instead, and an answer on screen offers "Sign in to follow up".
 
-import { createConversationStore, MESSAGE_STATUS, SOURCES_PHASE } from "./conversation-store.js";
+import { createConversationStore, MESSAGE_STATUS } from "./conversation-store.js";
 import { isSignedIn } from "./conversation-entry.js";
 import { closeOverlay, pushRoute, readRoute, routeUrl } from "./router.js";
+import { icon as phosphorIcon } from "./icons.js";
+import { activeLabel, createProgress, doneLabel, progressView } from "./ask-progress.js";
 import { sourceBadgeHtml, externalLinksHtml, previewHtml } from "./source-cards.js";
 import {
     normalizeSize,
@@ -61,6 +63,9 @@ const LIST_STALE_MS = 30000;
 const TOAST_MS = 8000;
 const NEAR_BOTTOM_PX = 96;
 const SWIPE_CLOSE_PX = 120;
+// A step's name stays up at least this long before the next replaces it, so a
+// lookup that finishes in a blink is never read as a flicker.
+const STATUS_MIN_DWELL_MS = 700;
 const AI_USED_KEY = "shelah.ai.used";
 const TIP_DISMISSED_KEY = "shelah.ai.tipDismissed";
 const TIP_DELAY_MS = 1600;
@@ -132,11 +137,11 @@ function reducedMotion() {
 
 function escapeText(value) {
     return String(value ?? "")
-        .replace(/&/g, "&amp;")
-        .replace(/</g, "&lt;")
-        .replace(/>/g, "&gt;")
-        .replace(/"/g, "&quot;")
-        .replace(/'/g, "&#39;");
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;")
+        .replaceAll("'", "&#39;");
 }
 
 let iconPaths = {};
@@ -238,9 +243,6 @@ function collectElements() {
         notice: $("convNotice"),
         noticeText: $("convNoticeText"),
         noticeAction: $("convNoticeAction"),
-        sources: $("convSources"),
-        sourcesLabel: $("convSourcesLabel"),
-        sourcesList: $("convSourcesList"),
         composer: $("convComposer"),
         input: $("convInput"),
         send: $("convSendBtn"),
@@ -343,6 +345,7 @@ function render() {
     els.signedOutHint.classList.toggle("hidden", !clerkConfigured() || ui.signedIn || !ui.authResolved);
     els.scroller.setAttribute("aria-busy", loading ? "true" : "false");
     renderTurns(state, l);
+    const progress = state.sending ? renderStatus(state, l) : null;
 
     // Notice: toast > load error > send error > awaiting sign-in.
     let notice = null;
@@ -374,7 +377,6 @@ function render() {
     }
     renderNotice(notice);
 
-    renderSources(state, l);
 
     // Composer.
     const continues = !answerView || (ui.signedIn && Boolean(state.answerView?.historyId));
@@ -387,7 +389,7 @@ function render() {
 
     // Minimised bar.
     els.pipTitle.textContent = title;
-    els.pipStatus.textContent = state.sending ? tr("Thinking…", "חושב…") : "";
+    els.pipStatus.textContent = progress ? `${activeLabel(progress.active, l)}…` : "";
     els.pipOpen.setAttribute("aria-label", tr(`Open conversation: ${title}`, `פתח שיחה: ${title}`));
 
     syncAskExpanded();
@@ -431,58 +433,6 @@ function renderNotice(notice) {
     if (label) els.noticeAction.textContent = label;
 }
 
-function renderSources(state, l) {
-    const { phase, citations } = state.sources;
-    const searching = phase === SOURCES_PHASE.SEARCHING;
-    const done = phase === SOURCES_PHASE.DONE && citations.length > 0;
-    els.sources.classList.toggle("hidden", !(searching || done));
-    els.sources.dataset.phase = searching ? "searching" : "done";
-    if (searching) {
-        els.sourcesLabel.textContent = tr("Consulting sources…", "מעיין במקורות…");
-        els.sourcesList.innerHTML = "";
-        els.sources.open = false;
-        return;
-    }
-    if (!done) return;
-    els.sourcesLabel.textContent = citations.length === 1
-        ? tr("Consulted 1 source", "עיין במקור אחד")
-        : tr(`Consulted ${citations.length} sources`, `עיין ב-${citations.length} מקורות`);
-    const key = `${l}:${state.sources.messageId}`;
-    if (els.sourcesList.dataset.key !== key) {
-        els.sourcesList.innerHTML = citations.map((c) => sourceCardHtml(c, l)).join("");
-        els.sourcesList.dataset.key = key;
-        if (els.sources.open) animateSourceCards();
-    }
-}
-
-// One consulted source: type badge, ref,
-// where else to read it, and "Open in reader". The text preview is fetched
-// only when its <details> is opened (loadPreview).
-function sourceCardHtml(citation, l) {
-    const ref = citation.ref || "";
-    const excerpt = citationExcerpt(citation, l);
-    if (!ref) {
-        return excerpt ? `<li class="ai-source-box conv-source-card"><div class="ai-src-box-note" dir="auto">${escapeText(excerpt)}</div></li>` : "";
-    }
-    const open = `<a href="${escapeText(routeUrl({ text: ref }))}" class="src-open-link conv-source-card__open" data-cite-ref="${escapeText(ref)}">${escapeText(tr("Open in reader", "פתח בקורא"))} ↗</a>`;
-    return `<li class="ai-source-box conv-source-card">
-        <div class="ai-src-box-header">
-            <span class="ai-src-box-id">${sourceBadgeHtml(ref, l)}<span class="ai-src-box-title" dir="auto" title="${escapeText(ref)}">${escapeText(ref)}</span></span>
-        </div>
-        <div class="conv-source-card__links">${open}${externalLinksHtml(ref)}</div>
-        ${excerpt ? `<div class="ai-src-box-note" dir="auto">${escapeText(excerpt)}</div>` : ""}
-        <details class="conv-source-card__preview" data-preview-ref="${escapeText(ref)}">
-            <summary>${icon("caret-down", "conv-source-card__caret")}<span>${escapeText(tr("Preview the text", "הצג את הטקסט"))}</span></summary>
-            <div class="conv-source-card__preview-body"></div>
-        </details>
-    </li>`;
-}
-
-function animateSourceCards() {
-    const cards = [...els.sourcesList.querySelectorAll(".conv-source-card")];
-    if (cards.length && !reducedMotion()) motion()?.staggerIn?.(cards, { staggerDelay: 0.04, y: 8 });
-}
-
 function fetchPreview(ref) {
     if (!ui.previews.has(ref)) {
         const request = fetch(`/api/text/${encodeURIComponent(ref)}?autotranslate=0`)
@@ -497,7 +447,7 @@ function fetchPreview(ref) {
 }
 
 async function loadPreview(details) {
-    const body = details.querySelector(".conv-source-card__preview-body");
+    const body = details.querySelector(".conv-cite__preview-body");
     if (!body || !details.open || body.dataset.state === "done" || body.dataset.state === "loading") return;
     body.dataset.state = "loading";
     body.setAttribute("aria-busy", "true");
@@ -516,13 +466,32 @@ async function loadPreview(details) {
     }
 }
 
+// One cited source, inline under the answer that cites it: type, reference
+// (opens the reader), the model's one-line note, where else to read it, and
+// the text itself on demand (loaded when the disclosure opens -- loadPreview).
+function citeHtml(citation, index, l) {
+    const ref = citation.ref || "";
+    const excerpt = citationExcerpt(citation, l);
+    const head = ref
+        ? `${sourceBadgeHtml(ref, l)}<a href="${escapeText(routeUrl({ text: ref }))}" class="conv-cite__ref" data-cite-ref="${escapeText(ref)}" dir="auto">${escapeText(ref)}</a>`
+        : "";
+    const note = excerpt ? `<p class="conv-cite__excerpt" dir="auto">${escapeText(excerpt)}</p>` : "";
+    const links = ref ? `<span class="conv-cite__links">${externalLinksHtml(ref)}</span>` : "";
+    const preview = ref
+        ? `<details class="conv-cite__preview" data-preview-ref="${escapeText(ref)}">`
+            + `<summary>${icon("caret-down", "conv-cite__caret")}<span>${escapeText(tr("Preview the text", "הצג את הטקסט"))}</span></summary>`
+            + '<div class="conv-cite__preview-body"></div></details>'
+        : "";
+    return `<li class="conv-cite"><span class="conv-cite__num" aria-hidden="true">${index + 1}</span><span class="conv-cite__head">${head}</span>${note}${links}${preview}</li>`;
+}
+
 function answerHtml(content) {
     if (typeof window.renderAnswerMarkdown === "function") {
         try {
             return window.renderAnswerMarkdown(content);
         } catch (_err) { /* fall back to plain text */ }
     }
-    return escapeText(content).replace(/\n/g, "<br>");
+    return escapeText(content).replaceAll("\n", "<br>");
 }
 
 function statusRow({ tone = "", text, action = null, actionLabel = "", messageId = "" }) {
@@ -530,6 +499,50 @@ function statusRow({ tone = "", text, action = null, actionLabel = "", messageId
         ? `<button type="button" class="conv-turn__retry" data-turn-action="${action}" data-message-id="${escapeText(messageId)}">${escapeText(actionLabel)}</button>`
         : "";
     return `<p class="conv-turn__status${tone ? ` conv-turn__status--${tone}` : ""}">${tone === "error" ? icon("warning") : ""}<span>${escapeText(text)}</span>${button}</p>`;
+}
+
+// What Sh'elah is doing while a turn is pending: one line naming the step
+// that is running (it blinks slowly, conversation.css .conv-status__now) and,
+// under it, the steps already finished. The two rows are always laid out so
+// steps arriving never move the skeleton below. renderStatus() fills them in
+// place, so a state change never rebuilds the turn (and restarts the blink).
+function statusHtml() {
+    return '<div class="conv-status" data-conv-status role="status">'
+        + '<span class="conv-status__now" data-status-now dir="auto"></span>'
+        + '<span class="conv-status__done" data-status-done dir="auto" data-empty="true"></span>'
+        + '</div>';
+}
+
+function applyStatus(host, view, l) {
+    clearTimeout(host._statusTimer);
+    const wanted = view.active || "";
+    const shown = host.dataset.stage;
+    const heldFor = performance.now() - (host._stageShownAt || 0);
+    if (shown !== undefined && shown !== wanted && heldFor < STATUS_MIN_DWELL_MS) {
+        host._statusTimer = setTimeout(() => {
+            if (host.isConnected) applyStatus(host, progressView(store?.getState().progress || createProgress()), lang());
+        }, STATUS_MIN_DWELL_MS - heldFor);
+    } else if (shown !== wanted || host.dataset.lang !== l) {
+        host.querySelector("[data-status-now]").textContent = `${activeLabel(wanted, l)}…`;
+        host.dataset.stage = wanted;
+        host.dataset.lang = l;
+        host._stageShownAt = performance.now();
+    }
+    const doneEl = host.querySelector("[data-status-done]");
+    const doneText = view.done.map((id) => doneLabel(id, l)).join(" · ");
+    const doneKey = `${l}:${doneText}`;
+    if (doneEl.dataset.key !== doneKey) {
+        doneEl.dataset.key = doneKey;
+        doneEl.dataset.empty = doneText ? "false" : "true";
+        doneEl.innerHTML = doneText ? `${phosphorIcon("check", { size: 14, weight: "bold" })}<span>${escapeText(doneText)}</span>` : "";
+    }
+}
+
+function renderStatus(state, l) {
+    const view = progressView(state.progress || createProgress());
+    const host = els.messages.querySelector("[data-conv-status]");
+    if (host) applyStatus(host, view, l);
+    return view;
 }
 
 function turnInnerHtml(message, index, messages, l) {
@@ -542,7 +555,7 @@ function turnInnerHtml(message, index, messages, l) {
     }
     switch (message.status) {
         case MESSAGE_STATUS.PENDING:
-            return `<span class="sr-only">${escapeText(tr("Sh'elah is answering…", "ש׳אלה עונה…"))}</span>`
+            return statusHtml()
                 + '<div class="conv-turn__skel"></div><div class="conv-turn__skel"></div><div class="conv-turn__skel"></div>';
         case MESSAGE_STATUS.ERROR: {
             const isLast = index === messages.length - 1;
@@ -563,15 +576,7 @@ function turnInnerHtml(message, index, messages, l) {
             });
         default: {
             const cites = message.citations.length
-                ? `<ol class="conv-cites" aria-label="${escapeText(tr("Sources", "מקורות"))}">${message.citations.map((c, i) => {
-                    const excerpt = citationExcerpt(c, l);
-                    const ref = c.ref
-                        ? `<a href="${escapeText(routeUrl({ text: c.ref }))}" class="conv-cite__ref" data-cite-ref="${escapeText(c.ref)}" dir="auto">${escapeText(c.ref)}</a>`
-                        : "";
-                    const links = c.ref ? `<span class="conv-cite__links">${externalLinksHtml(c.ref)}</span>` : "";
-                    const badge = c.ref ? sourceBadgeHtml(c.ref, l) : "";
-                    return `<li class="conv-cite"><span class="conv-cite__num" aria-hidden="true">${i + 1}</span><span class="conv-cite__head">${badge}${ref}</span>${excerpt ? `<p class="conv-cite__excerpt" dir="auto">${escapeText(excerpt)}</p>` : ""}${links}</li>`;
-                }).join("")}</ol>`
+                ? `<ol class="conv-cites" aria-label="${escapeText(tr("Sources", "מקורות"))}">${message.citations.map((c, i) => citeHtml(c, i, l)).join("")}</ol>`
                 : "";
             // A search-bar answer (message.answer = its /ask payload) also
             // carries its safety banner, community customs, feedback and
@@ -1606,6 +1611,12 @@ function installMiniDrag() {
     els.header.addEventListener("pointercancel", end);
 }
 
+// Soft ceiling for a drag past the boundary (WWDC18 "Designing Fluid
+// Interfaces" rubberbanding) -- mirrors calendar-detail.js's identical helper.
+function rubberband(overshoot, dimension, c = 0.55) {
+    return (overshoot * dimension * c) / (dimension + c * overshoot);
+}
+
 // Phone sheet: swipe down on the grabber/header to minimise to the bar.
 function installSheetSwipe() {
     let swipe = null;
@@ -1617,7 +1628,11 @@ function installSheetSwipe() {
     };
     const move = (event) => {
         if (!swipe || event.pointerId !== swipe.id) return;
-        swipe.dy = Math.max(0, event.clientY - swipe.y);
+        const raw = event.clientY - swipe.y;
+        // Downward drag (toward minimise) tracks 1:1; an upward drag past the
+        // top boundary is resisted, not hard-clamped, so it still moves a
+        // little instead of feeling frozen.
+        swipe.dy = raw >= 0 ? raw : -rubberband(-raw, 300);
         els.panel.style.transform = `translateY(${swipe.dy}px)`;
     };
     const end = (event) => {
@@ -1745,7 +1760,7 @@ function onDocumentClick(event) {
     }
 
     const cite = target.closest("[data-cite-ref]");
-    if (cite && (els.messages.contains(cite) || els.sourcesList.contains(cite))) {
+    if (cite && els.messages.contains(cite)) {
         // Modified clicks keep the browser's own behaviour (new tab on /text/<ref>).
         if (event.metaKey || event.ctrlKey || event.shiftKey || event.button !== 0) return;
         event.preventDefault();
@@ -1850,7 +1865,6 @@ function relocalize() {
     });
     ui.lastListRef = null;
     els.minhagSelect.dataset.key = "";
-    els.sourcesList.dataset.key = "";
     applyAttributes();
     if (ui.tipAnchor) requestAnimationFrame(positionTip);
     scheduleRender();
@@ -1899,13 +1913,10 @@ function bindEvents() {
             dismissTip();
         }
     });
-    // The drawer's text previews load when opened (toggle doesn't bubble).
-    els.sourcesList.addEventListener("toggle", (event) => {
-        if (event.target instanceof HTMLDetailsElement) void loadPreview(event.target);
+    // A source's text preview loads when it is opened (toggle doesn't bubble).
+    els.messages.addEventListener("toggle", (event) => {
+        if (event.target instanceof HTMLDetailsElement && event.target.dataset.previewRef) void loadPreview(event.target);
     }, true);
-    els.sources.addEventListener("toggle", () => {
-        if (els.sources.open) animateSourceCards();
-    });
 
     els.trayAsk?.addEventListener("click", () => {
         const input = document.getElementById("searchInput");
@@ -1970,9 +1981,9 @@ export function installConversationUI({ storeFactory = createConversationStore }
 
     store = storeFactory({
         // Search-bar answers go through the one-shot /ask (ai-service.js).
-        askAnswer: (question, options) => {
+        askAnswer: (question, options, extra) => {
             if (!window.ShelahModules?.askAi) throw new Error("AI module unavailable");
-            return window.ShelahModules.askAi(question, options);
+            return window.ShelahModules.askAi(question, { ...options, ...extra });
         },
         getPrefs: () => ({
             community: defaultMinhag(),
