@@ -191,14 +191,16 @@ def _normalize_title_key(text):
 
 NON_LOADING_LITURGY_TITLES = {
     _normalize_title_key("Kinnot for Tisha B'Av (Ashkenaz)"),
-    _normalize_title_key("Ma'aneh Lashon Chabad"),
-    _normalize_title_key("Ma'avar Yabbok"),
-    _normalize_title_key("Machzor Rosh Hashanah Linear"),
+    # "...Linear" alone never matched Sefaria's real title (missing
+    # "Ashkenaz") -- this exclusion was a no-op while the actual book, under
+    # its real name, is a complex schema whose leaf refs the schema walker
+    # still can't resolve to a loadable ref (verified live 2026-09-27).
+    _normalize_title_key("Machzor Rosh Hashanah Ashkenaz Linear"),
     # Report's actual title is "...Yerushalyim" (no second "a") -- neither
-    # prior guess here matched it, so this exclusion never fired.
+    # prior guess here matched it, so this exclusion never fired. It's also
+    # no longer an Index on Sefaria at all (now a Collection), so it can
+    # never resolve to a text ref regardless of spelling.
     _normalize_title_key("Machzor Yom Ha'atzmaut & Yom Yerushalyim"),
-    _normalize_title_key("Seder Ma'amadot"),
-    _normalize_title_key("Seder Tisha B'Av (Edot HaMizrach)"),
     _normalize_title_key("Weekday Siddur Chabad"),
 }
 

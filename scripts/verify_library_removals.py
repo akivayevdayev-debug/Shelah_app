@@ -135,11 +135,24 @@ def run(report: Dict[str, Any], session, workers: int = 16,
     return build_payload(report, results, now())
 
 
+def _within_repo(path: Path) -> Path:
+    """Resolve a CLI-supplied path and reject one that escapes REPO_ROOT
+    (SonarCloud python-security:S8707) -- this script's --report/--output
+    are meant to point inside reports/, never at an arbitrary filesystem
+    path a caller (human or agent) might pass."""
+    resolved = path.resolve()
+    if resolved != REPO_ROOT and REPO_ROOT not in resolved.parents:
+        raise ValueError(f"path escapes the repo root ({REPO_ROOT}): {resolved}")
+    return resolved
+
+
 def main(argv: Optional[List[str]] = None, session=None) -> int:
     parser = argparse.ArgumentParser(description=__doc__.split("\n\n")[0])
     parser.add_argument("--report", type=Path, default=REPORT_PATH)
     parser.add_argument("--output", type=Path, default=OUT_PATH)
     args = parser.parse_args(argv)
+    args.report = _within_repo(args.report)
+    args.output = _within_repo(args.output)
 
     report = json.loads(args.report.read_text(encoding="utf-8"))
     if session is not None:

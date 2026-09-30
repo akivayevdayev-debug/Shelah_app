@@ -146,7 +146,12 @@ class TestRunAndMain:
         assert payload["still_removed"] == [{"title": "Jastrow", "why": "no text in the export"}]
         assert payload["machine_generated"] is True
 
-    def test_main_writes_the_file(self, tmp_path, capsys):
+    def test_main_writes_the_file(self, tmp_path, monkeypatch, capsys):
+        # _within_repo (python-security:S8707) rejects a --report/--output
+        # outside REPO_ROOT; tmp_path stands in as this test's own repo root
+        # so main()'s real end-to-end path (parse args, validate, read,
+        # write) runs against an isolated directory instead of the real one.
+        monkeypatch.setattr(vr, "REPO_ROOT", tmp_path)
         report = tmp_path / "report.json"
         report.write_text(json.dumps(REPORT), encoding="utf-8")
         out = tmp_path / "out.json"
@@ -156,3 +161,13 @@ class TestRunAndMain:
         written = json.loads(out.read_text(encoding="utf-8"))
         assert written["stats"]["reinstated"] == 1
         assert "1 of 2 removals reinstated" in capsys.readouterr().out
+
+    def test_main_rejects_a_report_or_output_path_outside_the_repo_root(self, tmp_path, monkeypatch):
+        monkeypatch.setattr(vr, "REPO_ROOT", tmp_path / "repo")
+        (tmp_path / "repo").mkdir()
+        outside = tmp_path / "elsewhere" / "report.json"
+        outside.parent.mkdir()
+        outside.write_text(json.dumps(REPORT), encoding="utf-8")
+
+        with pytest.raises(ValueError, match="path escapes the repo root"):
+            vr.main(["--report", str(outside)], session=self.export())
