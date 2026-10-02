@@ -258,6 +258,15 @@ class TestParseV3Response:
         assert len(result["lines"]) == 1
         assert result["lines"][0]["segment"] == "1"
 
+    def test_carries_sefarias_hebrew_ref_through(self):
+        # The Hebrew UI renders a citation's reference from this field.
+        versions = [{"language": "he", "direction": "rtl", "isSource": True, "text": ["x"]}]
+        with_he_ref = {"ref": "Berakhot 2a", "heRef": "ברכות ב׳ א", "versions": versions}
+        assert sl._parse_v3_response(with_he_ref, "Berakhot 2a")["heRef"] == "ברכות ב׳ א"
+        # Absent upstream (older cached payloads) it is an empty string, never missing.
+        without = {"ref": "Berakhot 2a", "versions": versions}
+        assert sl._parse_v3_response(without, "Berakhot 2a")["heRef"] == ""
+
     def test_falls_back_to_ref_derived_title_when_no_title_fields(self):
         data = {
             "ref": "Genesis 1:1",

@@ -2045,7 +2045,7 @@
                     <div class="conv-skel conv-skel--bubble"></div>
                 </div>
                 <ol id="convMessages" class="conv-messages" role="log" aria-live="polite" aria-relevant="additions text"
-                    aria-label="Conversation"></ol>
+                    aria-label="Conversation" data-aria-en="Conversation" data-aria-he="שיחה"></ol>
                 <button type="button" id="convJumpBtn" class="conv-jump hidden"
                     aria-label="Jump to latest answer" title="Jump to latest answer"
                     data-aria-en="Jump to latest answer" data-aria-he="קפוץ לתשובה האחרונה">
@@ -4100,8 +4100,12 @@
             'Morning Blessings': 'ברכות הבוקר',
         };
 
+        // Keys are every spelling the app meets: the community picker's option
+        // values and the `name` of each customs/*.json file (the AI answer's
+        // customs list carries the latter, e.g. 'Ashkenazi', 'Bukharan').
         const COMMUNITY_HE_MAP = {
             'Ashkenaz': 'אשכנז',
+            'Ashkenazi': 'אשכנז',
             'Sefardic': 'ספרדי',
             'Sephardi': 'ספרדי',
             'Iraqi': 'עיראקי',
@@ -4109,12 +4113,15 @@
             'Yemenite': 'תימני',
             'Moroccan': 'מרוקאי',
             'Kavkazi': 'קווקזי',
+            'Mountain (Kavkazi)': 'קווקזי',
             'Israeli': 'ישראלי',
             'Bukharian': 'בוכרי',
+            'Bukharan': 'בוכרי',
             'Persian': 'פרסי',
             'Ethiopian': 'אתיופי',
             'Georgian': 'גרוזיני',
             'Greek-Romaniote': 'רומניוטי',
+            'Greek / Romaniote': 'רומניוטי',
             'turkish-ottoman-sefardic': 'טורקי-עות׳מאני',
             'Turkish-Ottoman Sefardic': 'טורקי-עות׳מאני',
             'Turkish-Ottoman': 'טורקי-עות׳מאני',

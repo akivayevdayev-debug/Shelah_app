@@ -41,7 +41,7 @@ import { isSignedIn } from "./conversation-entry.js";
 import { closeOverlay, pushRoute, readRoute, routeUrl } from "./router.js";
 import { icon as phosphorIcon } from "./icons.js";
 import { activeLabel, createProgress, doneLabel, progressView } from "./ask-progress.js";
-import { sourceBadgeHtml, externalLinksHtml, previewHtml } from "./source-cards.js";
+import { sourceBadgeHtml, externalLinksHtml, previewHtml, hebrewRefName } from "./source-cards.js";
 import {
     normalizeSize,
     expandedSize,
@@ -104,7 +104,7 @@ const ui = {
     tipTimer: null,
     tipDeferred: false,
     tipObserver: null,
-    previews: new Map(),      // ref -> Promise<html> for the sources drawer
+    previews: new Map(),      // ref -> Promise<text payload | null>: the sources drawer and Hebrew ref names
     publicState: null,        // "loading" | "gone" | "error" while a shared link resolves;
                               // "saved" | "saved-gone" | "saved-error" for an /answer/<id> one
 };
@@ -433,17 +433,35 @@ function renderNotice(notice) {
     if (label) els.noticeAction.textContent = label;
 }
 
-function fetchPreview(ref) {
+// One /api/text payload per cited ref, shared by the preview drawer (its
+// lines) and the Hebrew interface (its heRef).
+function fetchSourceText(ref) {
     if (!ui.previews.has(ref)) {
         const request = fetch(`/api/text/${encodeURIComponent(ref)}?autotranslate=0`)
             .then((resp) => (resp.ok ? resp.json() : null))
-            .then((payload) => (payload && !payload.error ? previewHtml(payload.lines) : ""))
-            .catch(() => "");
+            .then((payload) => (payload && !payload.error ? payload : null))
+            .catch(() => null);
         // A failed fetch is not cached, so reopening the preview retries it.
-        request.then((html) => { if (!html) ui.previews.delete(ref); });
+        request.then((payload) => { if (!payload) ui.previews.delete(ref); });
         ui.previews.set(ref, request);
     }
     return ui.previews.get(ref);
+}
+
+// In the Hebrew interface a citation's reference reads in Hebrew too. The
+// English ref renders first (it is what the reader link and the preview are
+// keyed on, and it is the fallback when Sefaria has no Hebrew spelling); the
+// Hebrew name replaces its text once the passage's payload arrives.
+function hydrateHebrewRefs(root) {
+    if (lang() !== "he") return;
+    for (const link of root.querySelectorAll(".conv-cite__ref[data-cite-ref]")) {
+        void fetchSourceText(link.dataset.citeRef).then((payload) => {
+            const name = hebrewRefName(payload);
+            if (!name || !link.isConnected) return;
+            link.textContent = name;
+            link.lang = "he";
+        });
+    }
 }
 
 async function loadPreview(details) {
@@ -452,7 +470,8 @@ async function loadPreview(details) {
     body.dataset.state = "loading";
     body.setAttribute("aria-busy", "true");
     body.innerHTML = '<div class="ai-src-box-body ai-cited-fetch-skeleton" aria-hidden="true"><div class="ai-src-skeleton-line ai-src-skeleton-line--wide"></div><div class="ai-src-skeleton-line ai-src-skeleton-line--medium"></div></div>';
-    const html = await fetchPreview(details.dataset.previewRef);
+    const payload = await fetchSourceText(details.dataset.previewRef);
+    const html = payload ? previewHtml(payload.lines, { lang: lang() }) : "";
     if (!body.isConnected) return;
     body.innerHTML = html || `<div class="ai-src-box-note">${escapeText(tr(
         "Preview unavailable for this source — use the links above to open it.",
@@ -476,7 +495,7 @@ function citeHtml(citation, index, l) {
         ? `${sourceBadgeHtml(ref, l)}<a href="${escapeText(routeUrl({ text: ref }))}" class="conv-cite__ref" data-cite-ref="${escapeText(ref)}" dir="auto">${escapeText(ref)}</a>`
         : "";
     const note = excerpt ? `<p class="conv-cite__excerpt" dir="auto">${escapeText(excerpt)}</p>` : "";
-    const links = ref ? `<span class="conv-cite__links">${externalLinksHtml(ref)}</span>` : "";
+    const links = ref ? `<span class="conv-cite__links">${externalLinksHtml(ref, l)}</span>` : "";
     const preview = ref
         ? `<details class="conv-cite__preview" data-preview-ref="${escapeText(ref)}">`
             + `<summary>${icon("caret-down", "conv-cite__caret")}<span>${escapeText(tr("Preview the text", "הצג את הטקסט"))}</span></summary>`
@@ -697,6 +716,7 @@ function renderTurns(state, l) {
             if (message.answer && message.status === MESSAGE_STATUS.COMPLETE) {
                 decorateAnswerTurn(li, message, state.messages[index - 1]?.content);
             }
+            if (message.citations?.length) hydrateHebrewRefs(li);
             // An answer arriving in place of its skeleton reveals block by
             // block (conversation.css .conv-turn--reveal); a timer, not
             // animationend, since the staggered children each fire one.

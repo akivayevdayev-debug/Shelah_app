@@ -22,6 +22,17 @@ const PRACTICAL_HALACHA = /^(Shulchan Aruch|Mishnah Berurah|Kitzur Shulchan Aruc
 // which is SonarCloud javascript:S8786's super-linear-regex shape.
 const DAF = /^([A-Za-z]+(?:\s+[A-Za-z]+)*)\s+(\d+[ab])/;
 
+// Hebrew names for the sites a source can be read on. Dicta and AlHaTorah
+// are brands with a Hebrew-script spelling of their own; the rest are
+// transliterated the way Hebrew-language pages write them.
+const SITE_LABELS_HE = {
+    Dicta: "דיקטה",
+    AlHaTorah: "על התורה",
+    Sefaria: "ספריא",
+    HebrewBooks: "היברובוקס",
+    Halachipedia: "הלכיפדיה",
+};
+
 const KIND_LABELS = {
     tanakh: { en: "Tanakh", he: "תנ״ך" },
     talmud: { en: "Talmud", he: "תלמוד" },
@@ -70,6 +81,7 @@ export function sourceBadgeHtml(ref, lang = "en") {
 //   Sefaria-corpus halachic works -> Sefaria (+ Halachipedia for practical codes)
 //   Responsa / anything else      -> HebrewBooks (via a site search, which
 //                                     always resolves; its own search is JS-only)
+// Each link carries `label` (the site's English name) and `labelHe`.
 export function externalLinks(ref) {
     const r = String(ref || "").trim();
     if (!r) return [];
@@ -100,13 +112,20 @@ export function externalLinks(ref) {
         const query = r.replace(/(?=([\s,.:;]+))\1\d[\d\s,.:;]*$/, "").trim() || r;
         links.push({ label: "Halachipedia", href: `https://halachipedia.com/index.php?search=${encodeURIComponent(query)}` });
     }
-    return links;
+    return links.map((l) => ({ ...l, labelHe: SITE_LABELS_HE[l.label] || l.label }));
 }
 
-export function externalLinksHtml(ref) {
+export function externalLinksHtml(ref, lang = "en") {
     return externalLinks(ref)
-        .map((l) => `<a href="${escapeHtml(l.href)}" target="_blank" rel="noopener noreferrer" class="src-ext-link">${escapeHtml(l.label)}${icon("arrow-up-right", { size: 12, className: "src-ext-icon" })}</a>`)
+        .map((l) => `<a href="${escapeHtml(l.href)}" target="_blank" rel="noopener noreferrer" class="src-ext-link">${escapeHtml(lang === "he" ? l.labelHe : l.label)}${icon("arrow-up-right", { size: 12, className: "src-ext-icon" })}</a>`)
         .join("");
+}
+
+// The Hebrew spelling of a cited ref ("ברכות ב׳ א"), as Sefaria writes it in
+// a /api/text payload; "" when the payload has none, so callers keep the
+// English ref rather than show a bare book title for a specific passage.
+export function hebrewRefName(payload) {
+    return typeof payload?.heRef === "string" ? payload.heRef.trim() : "";
 }
 
 // Non-regex tag strip (SonarCloud javascript:S8786 flagged `/<[^>]*>/gm`,
@@ -126,15 +145,18 @@ function stripTags(value) {
     return (out + text.slice(from)).trim();
 }
 
-// First three lines of a /api/text payload as a bilingual preview body.
-export function previewHtml(lines, { max = 3 } = {}) {
+// First three lines of a /api/text payload as a preview body: Hebrew over
+// English, or Hebrew alone when the interface is Hebrew. A passage with no
+// Hebrew text still shows its English rather than an empty preview.
+export function previewHtml(lines, { max = 3, lang = "en" } = {}) {
     if (!Array.isArray(lines) || !lines.length) return "";
     const head = lines.slice(0, max);
     const he = head.map((l) => stripTags(l?.he)).filter(Boolean);
     const en = head.map((l) => stripTags(typeof l === "string" ? l : l?.en)).filter(Boolean);
     if (!he.length && !en.length) return "";
+    const showEn = en.length && !(lang === "he" && he.length);
     let html = '<div class="ai-src-box-body">';
     if (he.length) html += `<div class="ai-src-box-he" dir="rtl">${he.map((t) => `<p>${escapeHtml(t)}</p>`).join("")}</div>`;
-    if (en.length) html += `<div class="ai-src-box-en">${en.map((t) => `<p>${escapeHtml(t)}</p>`).join("")}</div>`;
+    if (showEn) html += `<div class="ai-src-box-en">${en.map((t) => `<p>${escapeHtml(t)}</p>`).join("")}</div>`;
     return `${html}</div>`;
 }

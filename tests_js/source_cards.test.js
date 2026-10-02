@@ -81,3 +81,40 @@ test('previewHtml renders up to three bilingual lines, stripped and escaped', as
     assert.equal(c.previewHtml(null), '');
     assert.match(c.previewHtml(['plain & english']), /<div class="ai-src-box-en"><p>plain &amp; english<\/p><\/div>/);
 });
+
+test('externalLinks carries a Hebrew label for every site, and the Hebrew interface shows it', async () => {
+    const c = await load();
+    const talmud = c.externalLinks('Berachot 2a');
+    assert.deepEqual(talmud.map((l) => l.labelHe), ['דיקטה', 'על התורה', 'ספריא']);
+    const sa = c.externalLinks('Shulchan Aruch, Orach Chayim 261:2');
+    assert.deepEqual(sa.map((l) => l.labelHe), ['ספריא', 'הלכיפדיה']);
+    assert.equal(c.externalLinks('Chatam Sofer, Orach Chaim 1')[0].labelHe, 'היברובוקס');
+    // Same links, same targets; only the visible name changes with the language.
+    const he = c.externalLinksHtml('Genesis 1:1', 'he');
+    assert.match(he, />על התורה<svg /);
+    assert.match(he, />ספריא<svg /);
+    assert.doesNotMatch(he, /AlHaTorah|Sefaria</);
+    assert.match(c.externalLinksHtml('Genesis 1:1', 'en'), />AlHaTorah<svg /);
+    assert.equal(c.externalLinksHtml('Genesis 1:1'), c.externalLinksHtml('Genesis 1:1', 'en'));
+});
+
+test('previewHtml in Hebrew shows the Hebrew text alone, falling back to English when there is none', async () => {
+    const c = await load();
+    const lines = [{ he: 'בראשית ברא', en: 'In the beginning' }];
+    const he = c.previewHtml(lines, { lang: 'he' });
+    assert.match(he, /<div class="ai-src-box-he" dir="rtl"><p>בראשית ברא<\/p><\/div>/);
+    assert.doesNotMatch(he, /ai-src-box-en|In the beginning/);
+    // English interface keeps both languages.
+    assert.match(c.previewHtml(lines, { lang: 'en' }), /ai-src-box-he[\s\S]*ai-src-box-en/);
+    // No Hebrew line to show: the English stays so the preview is never empty.
+    const fallback = c.previewHtml([{ he: '', en: 'only english' }], { lang: 'he' });
+    assert.match(fallback, /<div class="ai-src-box-en"><p>only english<\/p><\/div>/);
+});
+
+test('hebrewRefName reads Sefaria\'s heRef and is empty when it is missing', async () => {
+    const c = await load();
+    assert.equal(c.hebrewRefName({ heRef: '  ברכות ב׳ א ' }), 'ברכות ב׳ א');
+    assert.equal(c.hebrewRefName({ heRef: '' }), '');
+    assert.equal(c.hebrewRefName({ heTitle: 'ברכות' }), '');
+    assert.equal(c.hebrewRefName(null), '');
+});
