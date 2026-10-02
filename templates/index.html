@@ -142,16 +142,16 @@
             integrity="sha384-6ZdfL2Azuen6KYvcTkbxqJS1d7txbNWrVfmURkxNeCn7DtzhLRL6Fi6WGG6ZLdKn"
             crossorigin="anonymous"></script>
     <link rel="stylesheet" href="/static/css/tokens.css?v=20260930-t3">
-    <link rel="stylesheet" href="/static/style.css?v=20260930-s7">
+    <link rel="stylesheet" href="/static/style.css?v=20261002-s8">
     <!-- CSS modules (supplement style.css; do not replace) -->
     <link rel="stylesheet" href="/static/css/typography.css?v=20260817-v6">
     <link rel="stylesheet" href="/static/css/reader.css?v=20260930-rd11">
     <link rel="stylesheet" href="/static/css/sidebar.css?v=20260930-sb3">
     <link rel="stylesheet" href="/static/css/halacha.css?v=20260817-v6">
     <link rel="stylesheet" href="/static/css/prayer.css?v=20260930-v7">
-    <link rel="stylesheet" href="/static/css/siddur.css?v=20260930-s7">
-    <link rel="stylesheet" href="/static/css/ai.css?v=20260930-ai5">
-    <link rel="stylesheet" href="/static/css/conversation.css?v=20260930-cv5">
+    <link rel="stylesheet" href="/static/css/siddur.css?v=20261002-s8">
+    <link rel="stylesheet" href="/static/css/ai.css?v=20261002-ai6">
+    <link rel="stylesheet" href="/static/css/conversation.css?v=20261002-cv6">
     <link rel="stylesheet" href="/static/css/history.css?v=20260926-rd1">
     <link rel="stylesheet" href="/static/css/calendar.css?v=20260926-f1">
     <link rel="stylesheet" href="/static/css/calendar-detail.css?v=20260930-cd2">
@@ -355,8 +355,22 @@
                         title="Ask Sh'elah — AI answers that cite their sources"
                         data-aria-en="Ask Sh'elah — AI answers that cite their sources"
                         data-aria-he="שאל את ש׳אלה — תשובות בינה מלאכותית עם מקורות">
-                        {# Icon-only: the AI mark, one flat colour. #}
-                        {{ phosphor('sparkle', size=24, class='topbar-ask-btn__mark') }}
+                        {# Icon-only: the AI mark in a navy-to-gold gradient. The second
+                           path (a deeper/brighter shade per theme) fades in on hover. #}
+                        <svg class="topbar-ask-btn__mark" viewBox="0 0 256 256" width="24" height="24" aria-hidden="true" focusable="false">
+                            <defs>
+                                <linearGradient id="askMarkGradient" x1="0" y1="0" x2="1" y2="1">
+                                    <stop offset="0.15" class="topbar-ask-btn__from"/>
+                                    <stop offset="0.9" class="topbar-ask-btn__to"/>
+                                </linearGradient>
+                                <linearGradient id="askMarkGradientHover" x1="0" y1="0" x2="1" y2="1">
+                                    <stop offset="0.15" class="topbar-ask-btn__from-hover"/>
+                                    <stop offset="0.9" class="topbar-ask-btn__to-hover"/>
+                                </linearGradient>
+                            </defs>
+                            <path d="{{ phosphor_path('sparkle') }}" fill="url(#askMarkGradient)"/>
+                            <path class="topbar-ask-btn__mark-hover" d="{{ phosphor_path('sparkle') }}" fill="url(#askMarkGradientHover)"/>
+                        </svg>
                         <span class="sr-only" data-en="Ask AI" data-he="שאל AI">Ask AI</span>
                     </button>
                 </div>
@@ -439,10 +453,11 @@
                         </div>
                     </div>
 
-                    <!-- Ask Sh'elah on phones: the same mark as #topbarAskBtn, which
-                         lives inside the search wrap (hidden below lg). Sits right
+                    <!-- Ask Sh'elah on phones: the same gradient mark as #topbarAskBtn,
+                         which lives inside the search wrap (hidden below lg). Sits right
                          after settings so syncHebrewDateMobilePosition() still measures
-                         the brand/controls gap from #settingsMenuBtn. Wired by
+                         the brand/controls gap from #settingsMenuBtn. Own gradient ids:
+                         url(#...) into a display:none subtree paints nothing. Wired by
                          static/js/conversation-ui.js. -->
                     <button id="mobileTopbarAskBtn" type="button"
                         class="topbar-ask-btn inline-flex lg:hidden shrink-0"
@@ -450,7 +465,20 @@
                         aria-label="Ask Sh'elah — AI answers that cite their sources"
                         data-aria-en="Ask Sh'elah — AI answers that cite their sources"
                         data-aria-he="שאל את ש׳אלה — תשובות בינה מלאכותית עם מקורות">
-                        {{ phosphor('sparkle', size=24, class='topbar-ask-btn__mark') }}
+                        <svg class="topbar-ask-btn__mark" viewBox="0 0 256 256" width="24" height="24" aria-hidden="true" focusable="false">
+                            <defs>
+                                <linearGradient id="askMarkGradientPhone" x1="0" y1="0" x2="1" y2="1">
+                                    <stop offset="0.15" class="topbar-ask-btn__from"/>
+                                    <stop offset="0.9" class="topbar-ask-btn__to"/>
+                                </linearGradient>
+                                <linearGradient id="askMarkGradientPhoneHover" x1="0" y1="0" x2="1" y2="1">
+                                    <stop offset="0.15" class="topbar-ask-btn__from-hover"/>
+                                    <stop offset="0.9" class="topbar-ask-btn__to-hover"/>
+                                </linearGradient>
+                            </defs>
+                            <path d="{{ phosphor_path('sparkle') }}" fill="url(#askMarkGradientPhone)"/>
+                            <path class="topbar-ask-btn__mark-hover" d="{{ phosphor_path('sparkle') }}" fill="url(#askMarkGradientPhoneHover)"/>
+                        </svg>
                     </button>
 
                     {# Laid out from the first paint when sign-in exists, content hidden
@@ -11822,6 +11850,13 @@
             return false;
         }
 
+        // Matches static/css/ai.css's #searchForm.search-liftoff animation
+        // duration (the star's 420ms shelah-warm-pulse, defined in tokens.css) --
+        // a plain setTimeout rather than an 'animationend' listener because
+        // prefers-reduced-motion sets `animation: none` on that rule, which
+        // would never fire animationend and leave the class lingering.
+        const SEARCH_LIFTOFF_MS = 420;
+
         // /ask retry/timeout resilience now lives in static/js/ai-service.js::askAi()
         // (plan.md §19 Phase 1 / Prompt 32) -- this used to be an inline
         // askWithRetry() duplicating that module. See ai-service.js's module
@@ -11849,6 +11884,19 @@
             // (restoreShownView).
             setCurrentView('ask', question, question);
             document.body.classList.add('search-loading');
+
+            // Brief "liftoff" glow pulse on the search bar itself, fired in the
+            // same tick as the panel opening -- a handoff moment, not a
+            // sustained loader. Self-cleaning via setTimeout so the class never
+            // lingers into the next search.
+            if (searchForm) {
+                searchForm.classList.remove('search-liftoff');
+                // Force reflow so back-to-back searches restart the CSS
+                // animation instead of the re-add being a no-op.
+                void searchForm.offsetWidth;
+                searchForm.classList.add('search-liftoff');
+                setTimeout(() => searchForm.classList.remove('search-liftoff'), SEARCH_LIFTOFF_MS);
+            }
 
             try {
                 // The conversation panel shows the question and a pending

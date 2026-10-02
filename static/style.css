@@ -696,13 +696,32 @@ html[dir="rtl"] #searchInput {
     transition: opacity var(--motion-dur-base) var(--motion-ease-out);
 }
 
-/* Small gold 4-point star sitting inline next to the magnifying glass: a
-   quiet, static hint that the search bar is also the "Ask Sh'elah" entry
-   point. A plain flex sibling of the glass (see #searchIcon's `gap`), at rest
-   it does not glow or pulse; it only pulses while an answer is being asked
-   for (body.search-loading, static/css/ai.css). */
+/* Small gold 4-point star sitting inline next to the magnifying glass -- a
+   subtle, always-on hint that the search bar is also the "Ask Sh'elah" AI
+   entry point, not just plain text search. Previously an absolutely
+   positioned badge on the glass icon's corner, which read as clutter/
+   overlap rather than a companion icon -- now a plain flex sibling (see
+   #searchIcon's `gap` above), vertically centered alongside the glass icon
+   instead of layered on top of it. Reuses .ai-hint-icon's color/opacity
+   (see below) plus tokens.css's shelah-warm-pulse keyframe (already used
+   for the loading overlay's logo, ENGINEERING_RULES.md: "zero new
+   @keyframes outside the token layer") for the same ambient "something AI
+   is here" glow used elsewhere, rather than a new animation style. Kept
+   small and low-contrast at rest on purpose -- a hint, not a loading
+   spinner; body.search-loading (static/css/ai.css) swaps this to an actual
+   spin for the "asking AI" state.
+
+   Duration overridden to 3.4s here (vs. the 2.6s baseline the shared
+   keyframe is authored for): a solid filled star carries more "ink" than
+   the keyframe's original thin outline target, so the same opacity/scale
+   swing at the default pace reads more like an on/off blink than a gentle
+   fade. Slowing just this selector's pace (same keyframe, same 0.7
+   opacity floor) fixes that without touching sidebar.css's own separate
+   1.6s override of the same keyframe for an unrelated element. */
 .search-ai-sparkle {
     display: inline-flex;
+    filter: drop-shadow(0 0 10px rgba(201, 168, 78, 0.4));
+    animation: shelah-warm-pulse 3.4s ease-in-out infinite;
 }
 
 @media (prefers-reduced-motion: reduce) {

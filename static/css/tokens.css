@@ -366,7 +366,7 @@
 /* Transform and opacity only, so the loop runs on the compositor. It used
    to pulse a drop-shadow as well, which repainted the element on every
    frame for as long as it looped; the glow is now a static filter on the
-   elements that want one. */
+   elements that want one (.search-ai-sparkle). */
 @keyframes shelah-warm-pulse {
     0%, 100% { opacity: 0.7; transform: scale(0.97); }
     50%      { opacity: 1;   transform: scale(1.04); }

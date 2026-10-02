@@ -646,16 +646,29 @@
 }
 
 /* While asking AI: fade the magnifying glass down and let the AI star
-   pulse as the loading cue, instead of animating #searchIcon as a whole
-   (see static/style.css's #searchIcon comment for why that used to fight
-   the icon's own vertical-centering transform). A pulse rather than a spin:
-   rotating a 4-point star reads as it losing its points at this size. */
+   badge pulse faster as the loading cue, instead of animating #searchIcon
+   as a whole (see static/style.css's #searchIcon comment for why that
+   used to fight the icon's own vertical-centering transform). Reuses the
+   same shelah-warm-pulse keyframe as the star's own ambient idle pulse
+   (static/style.css's .search-ai-sparkle) rather than a spin -- rotating a
+   4-point star reads as it losing its points/deforming at this size, where
+   a faster scale+glow pulse of the same motion the star already does at
+   rest just reads as "thinking harder". */
 body.search-loading .search-icon-glass {
     opacity: 0.25;
 }
 
 body.search-loading .search-ai-sparkle {
     animation: shelah-warm-pulse 1.6s ease-in-out infinite;
+}
+
+/* .search-ai-sparkle's always-on ambient pulse lives in static/style.css
+   (shelah-warm-pulse 3.4s infinite) -- this compound selector's higher
+   specificity takes over for the liftoff window only, without editing that
+   element's markup, then hands back to the ambient rule once the class is
+   removed. */
+#searchForm.search-liftoff .search-ai-sparkle {
+    animation: shelah-warm-pulse 420ms ease-in-out 1;
 }
 
 /* ── Library sidebar tab ─────────────────────────────────── */
@@ -762,7 +775,8 @@ body.search-loading .search-ai-sparkle {
     #legalAcceptBtn,
     #themeToggleBtn,
     .lang-btn,
-    #textsMenuModal {
+    #textsMenuModal,
+    #searchForm.search-liftoff .search-ai-sparkle {
         animation: none !important;
         transition: none !important;
     }

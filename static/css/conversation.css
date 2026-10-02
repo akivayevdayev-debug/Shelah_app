@@ -1303,12 +1303,21 @@ body.conv-modal-open {
     .conv-pip { display: none !important; }
 }
 
-/* ── Topbar "Ask AI" (beside the search bar on desktop; in the controls row
-   on phones) ─────────────────────────────────────────────────────────
-   Icon-only: the Phosphor sparkle in the heading ink on a transparent 44px
-   hit area -- no fill, border, ring or gradient. Hover and the open state
-   shift it to the accent colour. */
+/* ── Topbar "Ask AI" (desktop, beside the search bar) ─────────────── */
+/* Icon-only: just the AI mark, in a navy-to-gold gradient, on a
+   transparent 44px hit area -- no fill, border or ring around it. Hover
+   cross-fades a deeper shade of the mark in (lighter in dark, where the
+   blue is already light) and nudges it larger; only opacity/transform move.
+   The mark's blue end keeps >= 3:1 against the top bar in both themes
+   (WCAG 1.4.11), so the mark stays discernible; the gold end is tuned for
+   balance against that blue instead -- a brighter gold in light (the old
+   72%-black mix read muddy/olive), a slightly muted one in dark (full
+   --accent-gold glared next to the blue). */
 .topbar-ask-btn {
+    --ask-from: var(--ink-heading);
+    --ask-to: color-mix(in srgb, var(--accent-gold) 90%, black);
+    --ask-from-hover: color-mix(in srgb, var(--ink-heading) 80%, black);
+    --ask-to-hover: color-mix(in srgb, var(--accent-gold) 76%, black);
     position: relative;
     align-items: center;
     justify-content: center;
@@ -1320,17 +1329,43 @@ body.conv-modal-open {
     border: 0;
     border-radius: var(--radius-full);
     background: transparent;
-    color: var(--ink-heading);
     cursor: pointer;
-    transition: color var(--motion-dur-fast) var(--motion-ease-out), scale var(--motion-dur-fast) var(--motion-ease-out);
+    transition: scale var(--motion-dur-fast) var(--motion-ease-out);
 }
+[data-theme="dark"] .topbar-ask-btn,
+html.theme-dark .topbar-ask-btn,
+body.theme-dark .topbar-ask-btn {
+    --ask-from: var(--accent-primary);
+    --ask-to: color-mix(in srgb, var(--accent-gold) 82%, black);
+    --ask-from-hover: var(--accent-primary-hover);
+    --ask-to-hover: var(--accent-gold);
+}
+@media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) .topbar-ask-btn {
+        --ask-from: var(--accent-primary);
+        --ask-to: color-mix(in srgb, var(--accent-gold) 82%, black);
+        --ask-from-hover: var(--accent-primary-hover);
+        --ask-to-hover: var(--accent-gold);
+    }
+}
+.topbar-ask-btn__from { stop-color: var(--ask-from); }
+.topbar-ask-btn__to { stop-color: var(--ask-to); }
+.topbar-ask-btn__from-hover { stop-color: var(--ask-from-hover); }
+.topbar-ask-btn__to-hover { stop-color: var(--ask-to-hover); }
 .topbar-ask-btn__mark {
     display: block;
     width: 24px;
     height: 24px;
+    transition: transform var(--motion-dur-base) var(--motion-ease-out);
 }
-.topbar-ask-btn:hover,
-.topbar-ask-btn[aria-expanded="true"] { color: var(--accent-primary); }
+.topbar-ask-btn__mark-hover {
+    opacity: 0;
+    transition: opacity var(--motion-dur-fast) var(--motion-ease-out);
+}
+.topbar-ask-btn:hover .topbar-ask-btn__mark,
+.topbar-ask-btn[aria-expanded="true"] .topbar-ask-btn__mark { transform: scale(1.1) rotate(8deg); }
+.topbar-ask-btn:hover .topbar-ask-btn__mark-hover,
+.topbar-ask-btn[aria-expanded="true"] .topbar-ask-btn__mark-hover { opacity: 1; }
 .topbar-ask-btn:active { scale: 0.97; }
 
 /* ── Attention ring on the tip's anchor (Ask button / Search tab) ── */
