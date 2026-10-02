@@ -21,6 +21,7 @@ import {
 import { installRouter, readRoute } from "./router.js";
 import { installConversationUI } from "./conversation-ui.js";
 import * as sourceCards from "./source-cards.js";
+import * as commentaryPreload from "./commentary-preload.js";
 import { installAnswerLink, answerIdOf } from "./answer-link.js";
 import { createAnswerShare, installShareState } from "./answer-share.js";
 import * as askHistory from "./ask-history.js";
@@ -28,6 +29,9 @@ import { createSiddur } from "./siddur.js";
 
 // Source-card markup for the conversation panel (and any classic-script caller).
 window.ShelahSourceCards = sourceCards;
+// The reader's commentary sidebar: finds the verse in view and preloads its
+// commentary (index.html's ensureCommentaryPreloader builds the preloader).
+window.ShelahCommentaryPreload = commentaryPreload;
 // The /history page and the shelf's stored-answer entries (index.html's
 // displayAskHistoryPage / openShelfItem / promoteShelfAsk).
 window.ShelahAskHistory = askHistory;

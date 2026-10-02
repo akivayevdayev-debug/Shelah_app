@@ -3747,6 +3747,12 @@
             wordInfo: null,
             selectedText: '',
             activeCommentaryRef: '',
+            // 'selection': the panel answers the passage the reader highlighted.
+            // 'reading': the reader opened it without selecting anything, so it
+            // lists the commentary on the verse they are on and follows them
+            // as they read (see startReadingCommentary).
+            mode: 'selection',
+            readingRef: '',
         };
         let commentaryAvailableForCurrentSelection = false;
         let syncedPrefsUserId = null;
@@ -7636,6 +7642,8 @@
             selectionCommentaryState.wordInfo = null;
             selectionCommentaryState.selectedText = '';
             selectionCommentaryState.activeCommentaryRef = '';
+            selectionCommentaryState.mode = 'selection';
+            selectionCommentaryState.readingRef = '';
             setCommentaryAvailability(false);
         }
 
@@ -7786,17 +7794,13 @@
                 return { links: {}, resolvedRef: '' };
             }
 
-            // Fire every candidate concurrently, then walk them in priority
-            // order (segment ref before whole-verse before chapter-level
-            // fallback) and return as soon as the highest-priority non-empty
-            // result is known. Previously this was a Promise.all, so a hit on
-            // the segment ref still waited for the chapter-level fallback --
-            // on Sefaria that is ~1MB of links for a whole chapter and the
-            // slowest request of the set. Lower-priority requests keep
-            // running in the background and land in the cache.
-            const pending = normalizedCandidates.map((normalized) => fetchCommentaryLinks(normalized));
-            for (const promise of pending) {
-                const result = await promise;
+            // Walk the candidates in priority order (segment ref before
+            // whole-verse before chapter-level fallback) and stop at the first
+            // that has commentary. They used to all be requested at once, which
+            // meant every selection also pulled the chapter's links -- ~1MB on
+            // Sefaria -- although the verse itself nearly always has some.
+            for (const normalized of normalizedCandidates) {
+                const result = await fetchCommentaryLinks(normalized);
                 if (result) return result;
             }
             return { links: {}, resolvedRef: '' };
@@ -7806,7 +7810,33 @@
         // lookup that follows it ~150ms later share one request.
         const commentaryLinksInflight = new Map();
 
-        function fetchCommentaryLinks(normalized) {
+        function httpStatusError(status) {
+            return Object.assign(new Error(`HTTP ${status}`), { status });
+        }
+
+        // The sidebar endpoint serves just the commentary/targum/midrash refs,
+        // cached on the server (backend/sidebar_bundle.py) -- a fraction of the
+        // full /links payload (Genesis 1:1: 230KB against 700KB, every other
+        // category dropped). The full payload remains the fallback if it is
+        // unavailable, but not when it rate-limits us.
+        async function fetchCommentaryLinksPayload(normalized) {
+            try {
+                const resp = await fetch(`/api/sidebar/${encodeURIComponent(normalized)}?stage=links`);
+                if (resp.ok) return (await resp.json())?.links || {};
+                if (resp.status === 429) throw httpStatusError(429);
+            } catch (err) {
+                if (err?.status === 429) throw err;
+            }
+            const resp = await fetch(`/api/text/${encodeURIComponent(normalized)}/links`);
+            if (!resp.ok) throw httpStatusError(resp.status);
+            return await resp.json();
+        }
+
+        // Resolves to {links, resolvedRef} (null when the ref has no
+        // commentary) and rejects, with the HTTP status when there was one, if
+        // the request failed. The cache and the in-flight map are shared by
+        // the selection lookup, the pointer-down prefetch and the preloader.
+        function requestCommentaryLinks(normalized) {
             if (commentaryLinksCache.has(normalized)) {
                 return Promise.resolve(commentaryLinksCache.get(normalized));
             }
@@ -7814,22 +7844,18 @@
                 return commentaryLinksInflight.get(normalized);
             }
             const request = (async () => {
-                try {
-                    const resp = await fetch(`/api/text/${encodeURIComponent(normalized)}/links`);
-                    if (!resp.ok) return null;
-                    const payload = await resp.json();
-                    const refs = extractCommentaryRefs(payload);
-                    const result = refs.length ? { links: payload, resolvedRef: normalized } : null;
-                    _cacheBounded(commentaryLinksCache, normalized, result);
-                    return result;
-                } catch (_) {
-                    return null;
-                } finally {
-                    commentaryLinksInflight.delete(normalized);
-                }
-            })();
+                const payload = await fetchCommentaryLinksPayload(normalized);
+                const refs = extractCommentaryRefs(payload);
+                const result = refs.length ? { links: payload, resolvedRef: normalized } : null;
+                _cacheBounded(commentaryLinksCache, normalized, result, 300);
+                return result;
+            })().finally(() => commentaryLinksInflight.delete(normalized));
             commentaryLinksInflight.set(normalized, request);
             return request;
+        }
+
+        function fetchCommentaryLinks(normalized) {
+            return requestCommentaryLinks(normalized).catch(() => null);
         }
 
         // Commentary text, fetched WITHOUT on-demand translation first so the
@@ -7862,13 +7888,41 @@
                     if (!resp.ok || data?.error) {
                         throw new Error(data?.error || `HTTP ${resp.status}`);
                     }
-                    _cacheBounded(commentaryTextCache, cacheKey, data);
+                    _cacheBounded(commentaryTextCache, cacheKey, data, 320);
                     return data;
                 } finally {
                     commentaryTextInflight.delete(cacheKey);
                 }
             })();
             commentaryTextInflight.set(cacheKey, request);
+            return request;
+        }
+
+        // The text of the main commentators on one verse, in one cached request
+        // (stage=texts of the sidebar endpoint), filled into the same cache the
+        // chooser reads: opening one of them paints from memory, with its
+        // translation, instead of two sequential round trips. Passages the
+        // server did not translate go under the plain key, so opening them still
+        // runs the on-demand translation.
+        const sidebarTextsInflight = new Map();
+        const sidebarTextsDone = new Map();
+
+        function loadSidebarTexts(ref) {
+            if (sidebarTextsDone.has(ref)) return Promise.resolve();
+            if (sidebarTextsInflight.has(ref)) return sidebarTextsInflight.get(ref);
+            const request = (async () => {
+                const resp = await fetch(`/api/sidebar/${encodeURIComponent(ref)}?stage=texts`);
+                if (!resp.ok) throw httpStatusError(resp.status);
+                const payload = await resp.json();
+                const texts = payload?.texts && typeof payload.texts === 'object' ? payload.texts : {};
+                Object.entries(texts).forEach(([commentaryRef, data]) => {
+                    if (!data || !Array.isArray(data.lines)) return;
+                    const key = data.translation_attempted ? `${commentaryRef}\u0000t` : commentaryRef;
+                    _cacheBounded(commentaryTextCache, key, data, 320);
+                });
+                _cacheBounded(sidebarTextsDone, ref, true, 300);
+            })().finally(() => sidebarTextsInflight.delete(ref));
+            sidebarTextsInflight.set(ref, request);
             return request;
         }
 
@@ -7999,6 +8053,16 @@
         function renderSelectionInsightsChooser() {
             if (!selectionInsightsBody) return;
 
+            // "Back to list" after the reader has read on: list the verse they
+            // are on now, not the one the list was first opened for.
+            if (selectionCommentaryState.mode === 'reading') {
+                const liveRef = commentaryPreloader?.currentRef() || '';
+                if (liveRef && liveRef !== selectionCommentaryState.readingRef) {
+                    void renderReadingCommentary(liveRef);
+                    return;
+                }
+            }
+
             selectionCommentaryState.activeCommentaryRef = '';
 
             const groupedCommentaries = selectionCommentaryState.groupedCommentaries;
@@ -8046,7 +8110,121 @@
             selectionInsightsBody.setAttribute('aria-busy', 'false');
             wireCommentaryIntentPrefetch();
             showSelectionInsights();
-            selectionInsightsHint.textContent = t('Selected text:', 'הטקסט שנבחר:') + ` ${selectionCommentaryState.selectedText}`;
+            selectionInsightsHint.textContent = selectionCommentaryState.mode === 'reading'
+                ? t('Commentary on', 'פירושים על') + ` ${readingRefLabel(selectionCommentaryState.readingRef)}`
+                : t('Selected text:', 'הטקסט שנבחר:') + ` ${selectionCommentaryState.selectedText}`;
+        }
+
+        function readingRefLabel(ref) {
+            return isHebrewMode() ? localizeReferenceLabel(ref) : String(ref || '');
+        }
+
+        // ── Commentary for the verse being read ──────────────────────────────
+        // Opening the sidebar without selecting anything lists the commentary
+        // on the verse the reader is on -- already loaded, see
+        // ensureCommentaryPreloader -- and follows them as they read on.
+        let commentaryPreloader = null;
+
+        function commentaryBaseRefForRow(row) {
+            const chunkEl = row?.closest?.('.reader-source-clean[data-text-chunk-index]');
+            const chunkIndex = Number.parseInt(chunkEl?.dataset?.textChunkIndex ?? '', 10);
+            // Per chunk: a chapter that infinite scroll appended below the
+            // first one is not window.currentTextPayload.
+            const chunkRef = Number.isNaN(chunkIndex) ? '' : getCurrentTextPayloadChain()[chunkIndex]?.ref;
+            return String(chunkRef || window.currentTextPayload?.ref || appState.currentView?.value || '').trim();
+        }
+
+        function commentaryRefForRow(row) {
+            if (!row) return '';
+            return buildSegmentReference(commentaryBaseRefForRow(row), row.dataset?.segment || '')
+                .replace(/\s+/g, ' ')
+                .trim();
+        }
+
+        function ensureCommentaryPreloader() {
+            if (commentaryPreloader) return commentaryPreloader;
+            const factory = window.ShelahCommentaryPreload?.createCommentaryPreloader;
+            // main.js (an ES module) hasn't run yet: the next render retries.
+            if (typeof factory !== 'function') return null;
+            commentaryPreloader = factory({
+                getScrollEl: getPrimaryScrollElement,
+                resolveRef: commentaryRefForRow,
+                isEligible: () => appState.currentView?.type === 'text' && isCommentaryEligiblePrimaryText(),
+                loadLinks: (ref) => requestCommentaryLinks(ref),
+                // A verse with no commentary has no text to preload either.
+                loadTexts: async (ref) => {
+                    if (commentaryLinksCache.get(ref)) await loadSidebarTexts(ref);
+                },
+                onReadingRef: (ref) => {
+                    const following = selectionCommentaryState.mode === 'reading'
+                        && !selectionCommentaryState.activeCommentaryRef
+                        && !selectionInsights?.classList.contains('hidden');
+                    if (following) void renderReadingCommentary(ref);
+                },
+            });
+            return commentaryPreloader;
+        }
+
+        // main.js may finish after the first text renders; try again once the page has loaded.
+        window.addEventListener('load', () => ensureCommentaryPreloader()?.refresh(), { once: true });
+
+        function buildGroupedCommentaries(links, currentRef) {
+            let commentaryRefs = extractCommentaryRefs(links);
+            if (!commentaryRefs.length) {
+                const tanakhMatch = currentRef.match(/^(.+?)\s+(\d+)(?::\d+)?$/);
+                const tanakhBook = normalizeChapterGridBookName(tanakhMatch?.[1] || '');
+                if (tanakhBook && CHAPTER_GRID_BOOKS[tanakhBook]) {
+                    const fallbackVerseRef = currentRef.includes(':')
+                        ? currentRef
+                        : `${tanakhBook} ${tanakhMatch?.[2] || 1}:1`;
+                    commentaryRefs = [`Rashi on ${fallbackVerseRef}`];
+                }
+            }
+            return groupCommentaryRefsByAuthor(commentaryRefs);
+        }
+
+        async function renderReadingCommentary(ref) {
+            if (!selectionInsightsBody || !ref) return;
+            const lookupSeq = ++selectionInsightsSeq;
+            const isCurrent = () => lookupSeq === selectionInsightsSeq && selectionCommentaryState.mode === 'reading';
+
+            selectionCommentaryState.readingRef = ref;
+            selectionCommentaryState.activeCommentaryRef = '';
+            selectionCommentaryState.wordInfo = null;
+            selectionCommentaryState.selectedText = '';
+            selectionInsightsHint.textContent = t('Commentary on', 'פירושים על') + ` ${readingRefLabel(ref)}`;
+            if (!commentaryLinksCache.has(ref)) {
+                selectionInsightsBody.setAttribute('aria-busy', 'true');
+                selectionInsightsBody.innerHTML = `
+                    <div class="rounded-lg border border-slate-200 bg-white px-3 py-3 space-y-2" aria-hidden="true">
+                        <div class="sk-reader-para" style="width:45%"></div>
+                        <div class="sk-reader-para"></div>
+                        <div class="sk-reader-para"></div>
+                        <div class="sk-reader-para" style="width:70%"></div>
+                    </div>`;
+            }
+
+            const { links } = await fetchCommentaryLinksWithFallback([ref]);
+            if (!isCurrent()) return;
+            const grouped = buildGroupedCommentaries(links, ref);
+            selectionCommentaryState.groupedCommentaries = grouped;
+            if (!grouped.length) {
+                selectionInsightsBody.innerHTML = `<p class="text-xs text-slate-500 italic">${t('No linked commentaries found for this passage.', 'לא נמצאו מפרשים מקושרים לקטע זה.')}</p>`;
+                selectionInsightsBody.setAttribute('aria-busy', 'false');
+                return;
+            }
+            renderSelectionInsightsChooser();
+        }
+
+        async function startReadingCommentary() {
+            selectionCommentaryState.mode = 'reading';
+            setCommentaryAvailability(true);
+            showSelectionInsights();
+            const preloader = ensureCommentaryPreloader();
+            preloader?.refresh({ immediate: true });
+            const ref = preloader?.currentRef() || '';
+            if (ref) await renderReadingCommentary(ref);
+            else resetSelectionInsights();
         }
 
         async function refreshSelectionWordMeaning() {
@@ -8221,6 +8399,11 @@
             }
 
             try {
+                // Not preloaded: ask for the translated text alongside the plain
+                // one rather than after it, so the translation no longer waits
+                // for the plain text to arrive and paint first.
+                const translatedRequest = cached ? null : fetchCommentaryText(commentaryRef, { translate: true });
+                translatedRequest?.catch(() => { });
                 const data = cached || await fetchCommentaryText(commentaryRef);
                 if (!isCurrent()) return;
                 renderCommentaryView(commentaryRef, data);
@@ -8230,7 +8413,7 @@
                 // isn't already the translated one.
                 if (!commentaryTextCache.has(`${commentaryRef}\u0000t`) && commentaryNeedsTranslation(data)) {
                     try {
-                        const translated = await fetchCommentaryText(commentaryRef, { translate: true });
+                        const translated = await (translatedRequest || fetchCommentaryText(commentaryRef, { translate: true }));
                         if (isCurrent()) renderCommentaryView(commentaryRef, translated);
                     } catch (_) {
                         // The untranslated text is already on screen.
@@ -8291,14 +8474,18 @@
 
             const sel = window.getSelection();
             const selectedText = String(sel?.toString() || '').replace(/\s+/g, ' ').trim();
+            // A panel the reader opened on purpose (the Commentary button)
+            // stays open when they click into the text or select too much.
+            const keepReadingPanel = selectionCommentaryState.mode === 'reading';
             if (!selectedText) {
+                if (keepReadingPanel) return;
                 resetSelectionInsights();
                 collapseCommentaryPanel();
                 return;
             }
 
             if (selectedText.length > 220) {
-                collapseCommentaryPanel();
+                if (!keepReadingPanel) collapseCommentaryPanel();
                 return;
             }
 
@@ -8315,9 +8502,14 @@
                 : null;
             const segmentRow = anchor?.closest?.('.segment-row') || null;
 
-            const currentRef = String(window.currentTextPayload?.ref || appState.currentView?.value || '').trim();
+            // The chunk the highlighted verse sits in, not just the first one
+            // loaded: with infinite scroll the reader may be in a later chapter.
+            const currentRef = (segmentRow && commentaryBaseRefForRow(segmentRow))
+                || String(window.currentTextPayload?.ref || appState.currentView?.value || '').trim();
             const segmentRef = buildSegmentReference(currentRef, segmentRow?.dataset?.segment || '');
             const commentaryRefCandidates = [];
+            selectionCommentaryState.mode = 'selection';
+            selectionCommentaryState.readingRef = '';
 
             if (segmentRef) {
                 commentaryRefCandidates.push(segmentRef);
@@ -8389,19 +8581,7 @@
             const wordStillPending = wordInfo === WORD_PENDING;
             if (wordStillPending) wordInfo = null;
 
-            let commentaryRefs = extractCommentaryRefs(links);
-            if (!commentaryRefs.length) {
-                const tanakhMatch = currentRef.match(/^(.+?)\s+(\d+)(?::\d+)?$/);
-                const tanakhBook = normalizeChapterGridBookName(tanakhMatch?.[1] || '');
-                if (tanakhBook && CHAPTER_GRID_BOOKS[tanakhBook]) {
-                    const fallbackVerseRef = currentRef.includes(':')
-                        ? currentRef
-                        : `${tanakhBook} ${tanakhMatch?.[2] || 1}:1`;
-                    commentaryRefs = [`Rashi on ${fallbackVerseRef}`];
-                }
-            }
-
-            const groupedCommentaries = groupCommentaryRefsByAuthor(commentaryRefs);
+            const groupedCommentaries = buildGroupedCommentaries(links, currentRef);
 
             if (wordStillPending && !groupedCommentaries.length) {
                 // Nothing to show yet except (maybe) the meaning -- wait for it.
@@ -8462,9 +8642,15 @@
             if (appState.currentView?.type !== 'text' || !isCommentaryEligiblePrimaryText()) return;
             const segmentRow = event.target?.closest?.('.segment-row');
             if (!segmentRow?.dataset?.segment) return;
-            const currentRef = String(window.currentTextPayload?.ref || appState.currentView?.value || '').trim();
-            const segmentRef = buildSegmentReference(currentRef, segmentRow.dataset.segment);
-            const normalized = String(segmentRef || '').replace(/\s+/g, ' ').trim();
+            // The verse the reader pressed on is the verse they are on: the
+            // preloader loads its commentary and text (and, if the panel is
+            // following the reading, lists it).
+            const preloader = ensureCommentaryPreloader();
+            if (preloader) {
+                preloader.focusRow(segmentRow);
+                return;
+            }
+            const normalized = commentaryRefForRow(segmentRow);
             if (normalized) fetchCommentaryLinks(normalized);
         }
 
@@ -9358,6 +9544,9 @@
             }
 
             bindSelectionInsightsEvents();
+            // Start loading the commentary for the verse in view (once the
+            // scroll position has been restored and settled).
+            ensureCommentaryPreloader()?.refresh();
 
             // Set up section visibility observer and scroll-up loader after render
             setTimeout(() => {
@@ -10044,7 +10233,12 @@
         if (readerCommentaryTopBarBtn) {
             readerCommentaryTopBarBtn.addEventListener('click', (e) => {
                 e.stopPropagation();
-                if (!commentaryAvailableForCurrentSelection) {
+                if (isCommentaryEligiblePrimaryText()
+                    && (selectionCommentaryState.mode === 'reading' || !commentaryAvailableForCurrentSelection)) {
+                    // No passage selected: list the commentary on the verse
+                    // being read (loaded ahead of time) and follow the reader.
+                    void startReadingCommentary();
+                } else if (!commentaryAvailableForCurrentSelection) {
                     resetSelectionInsights();
                     setCommentaryAvailability(true);
                     showSelectionInsights();
@@ -12424,6 +12618,7 @@
                 window.currentTextPayload = data;
                 window.currentTextPayloadChain = [data];
                 resetInfiniteReaderState(data);
+                commentaryPreloader?.reset();
                 window.currentPrayerName = null;
 
                 // Badge

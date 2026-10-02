@@ -350,6 +350,55 @@ Fetch a specific Sefaria text by reference string.
 
 ---
 
+### `GET /api/sidebar/<ref>`
+
+Slim commentary data for the reader's sidebar, in two cached stages, so the client can load it for the verse being read before anything is selected (`static/js/commentary-preload.js`). Logic in `backend/sidebar_bundle.py`.
+
+- **Auth required:** No
+- **Path parameter:** `ref` — URL-encoded passage reference, e.g. `Genesis%201%3A1` (max 200 characters)
+- **Query parameter:** `stage` — `links` (default) or `texts`
+- **Rate limit class:** `sidebar` (90 requests/min, fails open) — a reader moving through a chapter makes about two requests per verse
+
+**`stage=links` response (200):** the commentary, targum and midrash refs only, in the shape `GET /api/text/<ref>/links` uses (`{category: [item]}`), without the rest of Sefaria's `/related` payload (about a third of the size for Genesis 1:1). Ordered commentary → targum → midrash, de-duplicated, capped at 800 refs.
+
+```json
+{
+  "ref": "Genesis 1:1",
+  "links": {
+    "Commentary": [
+      { "ref": "Rashi on Genesis 1:1:1", "heRef": "...", "collectiveTitle": { "en": "Rashi", "he": "..." } }
+    ],
+    "Targum": [ { "ref": "Onkelos Genesis 1:1" } ]
+  }
+}
+```
+
+**`stage=texts` response (200):** the text of the first few passages (3 per commentator) of the four most-read commentators present on that verse (priority list: `COMMENTARY_PRIORITY`), fetched in parallel and keyed by the commentary's own ref. The first three passages carry a machine-generated English translation and `"translation_attempted": true`; the rest are untranslated and are translated on demand by the client as before. Passages over 60 KB, and anything past a 160 KB bundle total, are left out; stragglers still running after 3 s are left out and retried on the next request (a partial result is cached for 60 s instead of the usual 30 min).
+
+```json
+{
+  "ref": "Genesis 1:1",
+  "texts": {
+    "Rashi on Genesis 1:1:1": {
+      "ref": "...", "title": "...", "heTitle": "...", "heRef": "...",
+      "lines": [ { "he": "...", "en": "..." } ],
+      "translation_attempted": true
+    }
+  }
+}
+```
+
+Both stages are cached per ref server-side, and concurrent requests for one ref share a single upstream fan-out. The service worker serves `/api/*` stale-while-revalidate.
+
+**Errors:**
+
+| Status | Meaning |
+|---|---|
+| `400` | Missing/overlong `ref`, or unknown `stage` |
+| `429` | Rate limit exceeded (`Retry-After: 60`); the client stops speculative requests for 30 s |
+
+---
+
 ### `GET /api/library/search`
 
 Full-text search across the Sefaria library.

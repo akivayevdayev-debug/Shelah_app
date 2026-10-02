@@ -89,6 +89,12 @@ _POLICIES: dict[str, _Policy] = {
     ),
     "heavy": _Policy(window_seconds=60, max_requests=10, fail_open=True),
     "fanout": _Policy(window_seconds=60, max_requests=30, fail_open=True),
+    # The reader's commentary sidebar preloads two small cached requests for
+    # the verse being read (backend/sidebar_bundle.py), plus the next verse's
+    # while the reader lingers -- a rate the 30/min "fanout" bucket, shared
+    # with the reader's own chunk loads, would starve. Each is one cached
+    # upstream fan-out per ref, so a higher ceiling costs Sefaria nothing.
+    "sidebar": _Policy(window_seconds=60, max_requests=90, fail_open=True),
     "feedback": _Policy(window_seconds=60, max_requests=10, fail_open=True),
     "telemetry": _Policy(window_seconds=60, max_requests=10, fail_open=True),
     "cheap": _Policy(window_seconds=60, max_requests=120, fail_open=True),
@@ -114,6 +120,7 @@ _ROUTE_CLASSES: list[tuple[str, str]] = [
     ("/api/export/chapter", "heavy"),
     ("/api/siddur/full/", "heavy"),
     ("/api/library/search", "fanout"),
+    ("/api/sidebar/", "sidebar"),
     ("/api/text/", "fanout"),
     ("/api/word/meaning", "fanout"),
     ("/api/geocode", "fanout"),

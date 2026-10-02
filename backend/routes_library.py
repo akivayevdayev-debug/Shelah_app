@@ -882,6 +882,31 @@ def get_text_links(ref):
     return jsonify(get_linked_texts(decoded_ref))
 
 
+@routes_library.route("/api/sidebar/<path:ref>")
+def get_sidebar_bundle(ref):
+    """Commentary-sidebar data for one verse, in two cached stages.
+
+    ``?stage=links`` (default): the commentary/targum/midrash refs, in
+    /api/text/<ref>/links's shape without the categories the sidebar never
+    lists. ``?stage=texts``: the text (and a first English translation) of the
+    first few passages of the most-read commentators, keyed by their ref. The
+    reader requests both for the verse being read, so the sidebar opens with
+    everything already in the browser (see backend/sidebar_bundle.py).
+    """
+    from backend.sidebar_bundle import MAX_REF_LENGTH, build_sidebar_links, build_sidebar_texts
+
+    decoded_ref = _decode_route_ref(ref)
+    if not decoded_ref or len(decoded_ref) > MAX_REF_LENGTH:
+        return jsonify({"error": "Missing or invalid text reference."}), 400
+
+    stage = str(request.args.get("stage", "links")).strip().lower()
+    if stage == "texts":
+        return jsonify(build_sidebar_texts(decoded_ref))
+    if stage == "links":
+        return jsonify(build_sidebar_links(decoded_ref))
+    return jsonify({"error": "Unknown stage; use 'links' or 'texts'."}), 400
+
+
 @routes_library.route("/api/text/<path:ref>/graph")
 def get_text_graph(ref):
     """Build a lightweight source graph around a text reference."""
