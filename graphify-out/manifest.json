@@ -70,8 +70,8 @@
     "semantic_hash": ""
   },
   "backend/sefaria_library.py": {
-    "mtime": 1790787841.025748,
-    "ast_hash": "8b6e42f6529806c7fe836ae68387eb90",
+    "mtime": 1790982016.6553395,
+    "ast_hash": "9a8e36dccb61158b78342c117f4c2c78",
     "semantic_hash": ""
   },
   "backend/zmanim_engine.py": {
@@ -605,18 +605,18 @@
     "semantic_hash": ""
   },
   "templates/index.html": {
-    "mtime": 1790807465.514706,
-    "ast_hash": "544a22e0549362266bd1461c00f7d47e",
+    "mtime": 1790982230.264214,
+    "ast_hash": "00767d9457e0bd3a47a49fec3f759904",
     "semantic_hash": ""
   },
   "templates/privacy.html": {
-    "mtime": 1790807465.5165956,
-    "ast_hash": "fc095561446ac2eee12c133d7e260bb4",
+    "mtime": 1790981061.079858,
+    "ast_hash": "f55d470a43dd9a732310022cf080a113",
     "semantic_hash": ""
   },
   "templates/terms.html": {
-    "mtime": 1790807465.515491,
-    "ast_hash": "3e50bc59a5d146255d3649dce759855f",
+    "mtime": 1790981061.0804093,
+    "ast_hash": "fad71f51acd727a1062f231b898f15c1",
     "semantic_hash": ""
   },
   "static/apple-touch-icon.png": {
@@ -880,8 +880,8 @@
     "semantic_hash": ""
   },
   "templates/accessibility.html": {
-    "mtime": 1790807465.5113797,
-    "ast_hash": "aa254b228b11dce6e936a7736419103b",
+    "mtime": 1790981061.0711498,
+    "ast_hash": "815a1ac4eca1ac4025947fedfc2929bf",
     "semantic_hash": ""
   },
   "api/index.py": {
@@ -980,8 +980,8 @@
     "semantic_hash": ""
   },
   "tests/test_sefaria_library.py": {
-    "mtime": 1790389722.3745053,
-    "ast_hash": "bd8a35c8c17d6f20b7d38b65773eb9d6",
+    "mtime": 1790982054.636375,
+    "ast_hash": "cc1fb8a037d5e908598a497b542b8613",
     "semantic_hash": ""
   },
   "tests/test_small_gap_modules.py": {
@@ -1100,23 +1100,23 @@
     "semantic_hash": ""
   },
   "templates/acceptable-use.html": {
-    "mtime": 1790807465.5163896,
-    "ast_hash": "31ea1824fe9be0139904a25f752a5979",
+    "mtime": 1790981061.0705936,
+    "ast_hash": "c9ac7afad00176f2db6c579015038a17",
     "semantic_hash": ""
   },
   "templates/ai-disclosure.html": {
-    "mtime": 1790807465.5162761,
-    "ast_hash": "2aec286f27bd8f4f5f6295eb313a6133",
+    "mtime": 1790981061.0717194,
+    "ast_hash": "89dba773f13d245a661237b40f49e167",
     "semantic_hash": ""
   },
   "templates/dmca.html": {
-    "mtime": 1790807465.5158858,
-    "ast_hash": "c6db992456f7562eb5ce1198d8655d50",
+    "mtime": 1790981061.072444,
+    "ast_hash": "fd5c92ae9b060fd1736f9a9e2da9c458",
     "semantic_hash": ""
   },
   "templates/licenses.html": {
-    "mtime": 1790807465.5157654,
-    "ast_hash": "dc5e0291106393fd9f9f2f2ac965a15a",
+    "mtime": 1790981061.0793574,
+    "ast_hash": "26dfdaa4a3ee569a57ce831b2bd592f0",
     "semantic_hash": ""
   },
   "requirements-dev.lock.txt": {
@@ -1285,18 +1285,18 @@
     "semantic_hash": ""
   },
   "templates/about.html": {
-    "mtime": 1790807465.5152574,
-    "ast_hash": "b6ff1c428f33f46846fe72604516c2d6",
+    "mtime": 1790981061.069869,
+    "ast_hash": "edb4b41a0fef20769b3a1fe1d4a8578b",
     "semantic_hash": ""
   },
   "templates/glossary.html": {
-    "mtime": 1790807465.516003,
-    "ast_hash": "237515202f7fef698f710b7e396468c2",
+    "mtime": 1790981061.0728176,
+    "ast_hash": "fed63dfab471d57216f6fa23e9327a55",
     "semantic_hash": ""
   },
   "templates/help.html": {
-    "mtime": 1790807465.5115612,
-    "ast_hash": "3943d1df1b8cc0fc7ec394b45535d09f",
+    "mtime": 1790981061.0733922,
+    "ast_hash": "b58f56852990ee0057ca732b77a937de",
     "semantic_hash": ""
   },
   "scripts/sql/rls_auto_enable_setup.sql": {
@@ -1315,8 +1315,8 @@
     "semantic_hash": ""
   },
   "templates/components/icons.html": {
-    "mtime": 1790799495.654992,
-    "ast_hash": "524560e59bcc1c0fd5d6bec2558cd2fb",
+    "mtime": 1790981039.9281757,
+    "ast_hash": "2cbf8a86aa4b1a0f047b544355fe837b",
     "semantic_hash": ""
   },
   "backend/cache_policy.py": {
@@ -1625,8 +1625,8 @@
     "semantic_hash": ""
   },
   "templates/404.html": {
-    "mtime": 1790807465.5156133,
-    "ast_hash": "4a30d717579c85aaae8e40ae4f0a573b",
+    "mtime": 1790981061.0688381,
+    "ast_hash": "22a0a67d6032535866a8236a433aae63",
     "semantic_hash": ""
   },
   "static/og-image.png": {
@@ -1875,8 +1875,8 @@
     "semantic_hash": ""
   },
   "static/js/conversation-ui.js": {
-    "mtime": 1790806601.8955193,
-    "ast_hash": "972a951f92c653964fcfb5f8a28004eb",
+    "mtime": 1790982279.1345482,
+    "ast_hash": "2ec221632a10da23a825284fa0734fa3",
     "semantic_hash": ""
   },
   "tests_js/conversation_ui_helpers.test.js": {
@@ -1885,13 +1885,13 @@
     "semantic_hash": ""
   },
   "static/js/source-cards.js": {
-    "mtime": 1790799386.7647843,
-    "ast_hash": "0c62a2447f0f8a2a9fdacafc6e16cec5",
+    "mtime": 1790982027.3976367,
+    "ast_hash": "14a40a66cbc04bb0ab1d8456b8d651c2",
     "semantic_hash": ""
   },
   "tests_js/source_cards.test.js": {
-    "mtime": 1790799423.666326,
-    "ast_hash": "c26ec9a889fc26ece8f03d37ff0fbf9c",
+    "mtime": 1790982047.578409,
+    "ast_hash": "5636c91b765f064fa50c7490b2765d35",
     "semantic_hash": ""
   },
   "tests/test_model_call_budget.py": {
@@ -2229,11 +2229,6 @@
     "ast_hash": "9b491ce38558829e241cb86b9a936824",
     "semantic_hash": ""
   },
-  "reports/library_leaf_remove_fix_report.fresh.json": {
-    "mtime": 1790787841.0760434,
-    "ast_hash": "fd0a842d79075916da126b4feaedecf0",
-    "semantic_hash": ""
-  },
   "scripts/build_siddur.py": {
     "mtime": 1790542182.1265316,
     "ast_hash": "f5ce69697c09db84e6bfc3bae99bee4b",
@@ -2347,6 +2342,11 @@
   "docs/SITE_AUDIT_PROMPT.md": {
     "mtime": 1790542182.106334,
     "ast_hash": "96fc542b598265db579fb7364cde401e",
+    "semantic_hash": ""
+  },
+  "tests/test_customs_hebrew_names.py": {
+    "mtime": 1790982379.1286697,
+    "ast_hash": "2c4fcf700c9880f142d01d02211a04c0",
     "semantic_hash": ""
   }
 }
