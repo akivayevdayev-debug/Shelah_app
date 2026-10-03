@@ -48,7 +48,7 @@ This repo has one canonical rules document — **[.agents/ENGINEERING_RULES.md](
 
 Read it before making a non-trivial change; PRs that visibly conflict with it (e.g. a new blocking `requests.get()` on the async path, or a new route added directly to `app.py`) will be asked to fix that before merge.
 
-Linting: `ruff check .` runs in CI (currently non-blocking, but please keep new code clean). Secret and security scanning (`pre-commit run --all-files`: gitleaks and bandit) **is** blocking in CI, so the hook you installed above catches the same things locally. The dependency audit (`pip-audit`) reports in CI without blocking. SonarCloud also analyses every push; its quality gate needs to stay green.
+Linting: `ruff check .` is blocking in CI, so run it before you push. Secret and security scanning (`pre-commit run --all-files`: gitleaks and bandit) is blocking too, so the hook you installed above catches the same things locally. The dependency audit (`pip-audit`, run against each lock file) is also blocking: a newly published advisory fails the next CI run, and the fix is a lock bump (see above) or, if no fixed version exists yet, a dated `--ignore-vuln` entry in `ci.yml`. SonarCloud also analyses every push; its quality gate needs to stay green.
 
 ## Pull request process
 

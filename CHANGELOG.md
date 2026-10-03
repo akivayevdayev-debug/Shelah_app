@@ -21,7 +21,7 @@ Everything since 1.0.0 (2026-09-16). Nothing has been tagged since, so this sect
 - **Operations documentation.** Runbooks (deploy, rollback, incident response, spend guardrails), a cost-optimisation guide, an environment-variable reference, a database reference with a script that regenerates it from the live schema, an AI security review, and a standing whole-site audit prompt.
 
 ### Changed
-- **Runtime and dependencies.** Python 3.14; every dependency installs from hash-locked files in CI; the CI runner is pinned to `ubuntu-24.04`; `pip-audit` findings in both lock files were cleared.
+- **Runtime and dependencies.** Python 3.14; every dependency installs from hash-locked files in CI; the CI runner is pinned to `ubuntu-24.04`; `pip-audit` findings in both lock files were cleared, and the `ruff` and `pip-audit` CI steps are now blocking.
 - **Cost and delivery.** The cost meter was repriced and spend is now attributed to the user on the synchronous `/ask` path too; retries and timeouts are clamped to the remaining request budget.
 - **Interface.** Windows present with a soft fade and scale; the mobile top and bottom bars are part of the page layout rather than floating overlays; the library focus ring and several dark-theme contrasts were corrected to meet WCAG 2.1 AA; the Privacy and Data window is a native `<dialog>`; repeated markup (theme bootstrap, legal footer) moved into shared partials.
 - **Design tokens.** Calendar colours, motion durations and easing, and other per-file duplicates were consolidated into `static/css/tokens.css`; every `@keyframes` rule now lives there (the Ask panel's five moved over, and the privacy dialog's spinner reuses `shelah-spin`), and a test fails if one is defined anywhere else.

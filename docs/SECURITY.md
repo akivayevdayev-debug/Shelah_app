@@ -220,8 +220,12 @@ entirely):
     skipped local hook (`--no-verify`) cannot ship a secret or a
     bandit-flagged pattern.
   - `pip-audit` against each lock file separately (`--disable-pip`) —
-    currently **non-blocking** (`continue-on-error`), like the `ruff` step; a
-    hard-fail gate needs an established remediation workflow first.
+    **blocking** since 2026-10-03, like the `ruff` step (both were clean when
+    promoted). A new advisory fails the next run. The fix is to bump the
+    affected package and regenerate the lock files (`uv pip compile`, see
+    `CONTRIBUTING.md`), or, when no fixed version exists yet, to add a
+    `--ignore-vuln <ID>` to the `ci.yml` command with a dated reason and
+    remove it once a fix ships.
   - The full pytest suite with an 85 % backend coverage floor, the Node test
     suite (`node --test`, blocking because it gates PII-scrubbing
     correctness), and the WCAG 2.1 AA accessibility scan in light and dark
@@ -691,8 +695,6 @@ Items needing a human decision or an operator action, collected in one place:
 - **`WSGIMiddleware` deprecation** (§4): plan the move to `a2wsgi`.
 - **Tailwind 3 → 4 migration** (§11) to clear the last `npm audit` chain
   (dev tooling only).
-- **`pip-audit` and `ruff` CI steps are non-blocking** (§4); promote them to
-  blocking once a remediation workflow exists.
 - **Backups** (§9): the Supabase Free plan has no automated backups or PITR;
   upgrade, or schedule the manual dump.
 - **Turnstile** (§8) is provisioned but off in production (both keys are set,

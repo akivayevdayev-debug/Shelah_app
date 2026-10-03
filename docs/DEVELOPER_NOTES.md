@@ -100,7 +100,7 @@ Notes:
 
 ## 7. CI and hooks
 
-- `.github/workflows/ci.yml`: ruff (non-blocking), the pre-commit security scan over all files (bandit and gitleaks, blocking), `pip-audit` (non-blocking), pytest with the coverage floor, Node tests with coverage, the dual-theme accessibility scan, and SonarCloud.
+- `.github/workflows/ci.yml`: ruff (blocking), the pre-commit security scan over all files (bandit and gitleaks, blocking), `pip-audit` (blocking), pytest with the coverage floor, Node tests with coverage, the dual-theme accessibility scan, and SonarCloud.
 - `.github/workflows/rls-verify.yml`: live Row Level Security acceptance check against the real project. Manual only (`workflow_dispatch`): the weekly schedule was disabled on 2026-09-15 because the test users' Clerk session ids expire, which fails the run without any RLS regression. Run it by hand, with fresh session ids, after touching auth or RLS configuration.
 - `.pre-commit-config.yaml`: bandit and gitleaks block the commit; a documentation-sync check prints an advisory report and never blocks.
 - Vercel skips builds for commits that touch only documentation (`ignoreCommand` in `vercel.json`).

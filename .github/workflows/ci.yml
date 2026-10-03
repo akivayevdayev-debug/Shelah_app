@@ -48,9 +48,8 @@ jobs:
           pip install --require-hashes --only-binary=:all: --no-binary=julian,memoization \
             -r requirements.lock.txt -r requirements-dev.lock.txt
 
-      - name: Lint with ruff (non-blocking for now)
+      - name: Lint with ruff
         run: ruff check .
-        continue-on-error: true
 
       - name: Security scan — secrets + static analysis (pre-commit, all files)
         # The gitleaks/bandit hooks in .pre-commit-config.yaml
@@ -71,7 +70,6 @@ jobs:
           # skips spinning up an ephemeral resolve venv per run.
           pip-audit -r requirements.lock.txt --disable-pip
           pip-audit -r requirements-dev.lock.txt --disable-pip
-        continue-on-error: true
 
       - name: Run tests with coverage
         # SonarCloud reads coverage.xml and counts every file it analyses that

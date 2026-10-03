@@ -432,11 +432,9 @@ needs the operator's explicit go-ahead given it touches production.
       floor in `pytest.ini` fails the run if it drops). Use the project
       virtualenv (`.venv/bin/python -m pytest`), not the system Python.
 - [ ] `npm test` green locally (628 frontend tests).
-- [ ] `ruff check .` clean, or any findings are understood and either
-      fixed or consciously deferred. CI's ruff step
-      (`.github/workflows/ci.yml`) currently runs with
-      `continue-on-error: true` — it's non-blocking today, so don't rely
-      on CI to catch lint issues before merge.
+- [ ] `ruff check .` clean. CI's ruff step (`.github/workflows/ci.yml`)
+      is blocking, so a finding fails the build, but running it locally
+      first saves the round trip.
 - [ ] Any new SQL migration (`scripts/*.sql`, `scripts/sql/*.sql`) has
       been applied to the target Supabase project. There is no
       migration-runner in this repo — migrations are applied manually via
