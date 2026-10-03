@@ -1,4 +1,4 @@
-# Data Protection Impact Assessment — Automated Religious Guidance (plan.md §8.D.4)
+# Data Protection Impact Assessment — Automated Religious Guidance
 
 **Status:** basic DPIA, written 2026-08-17 as an engineering-informed
 first pass, not a substitute for a counsel-reviewed DPIA before public
@@ -109,7 +109,7 @@ No formal Data Protection Officer or external consultation has occurred
 (`privacy.html` §10 already states no DPO/Art. 27 representative has been
 designated). Given the solo-operator scale, the recommended next step
 before public launch is a review of this DPIA by counsel alongside the
-rest of the plan.md §8.G business/compliance scaffolding, not a full
+rest of the business/compliance items (see `docs/LAUNCH_CHECKLIST.md`), not a full
 external DPO engagement.
 
 ## 6. Outcome

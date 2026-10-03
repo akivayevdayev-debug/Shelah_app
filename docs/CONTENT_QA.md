@@ -1,10 +1,10 @@
 # Content QA — Religious Accuracy
 
-**Status:** engineering documentation of plan.md §8.F.3 ("Content QA for
-religious accuracy"). This describes what the codebase actually does
+**Status:** engineering documentation of the content-QA approach for
+religious accuracy. This describes what the codebase actually does
 today — not an aspirational editorial process. It should be reviewed by a
-rabbinic advisor or counsel before public launch, same as the rest of the
-§8.F/§8.G scaffolding (see `docs/LAUNCH_CHECKLIST.md`).
+rabbinic advisor before public launch, as should the legal and compliance
+items tracked in `docs/LAUNCH_CHECKLIST.md`.
 
 ## Sh'elah is not rabbinically supervised
 

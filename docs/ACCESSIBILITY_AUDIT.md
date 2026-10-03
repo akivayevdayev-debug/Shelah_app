@@ -1,8 +1,7 @@
 # Accessibility Audit — Color Contrast (2026-08-01, updated 2026-08-20)
 
 WCAG 2.1 AA contrast audit of the core design tokens in `static/css/tokens.css`,
-run as part of the Phase E dark-mode token migration (see `plan.md` §18,
-`claude_code_prompts.md` Prompt 9). Ratios are computed directly from the
+run as part of the dark-mode token migration. Ratios are computed directly from the
 tokens' hex values using the standard WCAG relative-luminance formula — not
 asserted. Thresholds: **4.5:1** for normal text, **3:1** for large text
 (≥18px, or ≥14px bold) and for UI-component boundaries essential to
@@ -28,7 +27,7 @@ app itself reads (`Sh'elahPrefs`) before first paint and asserts the page
 actually rendered dark before auditing it. Both halves run inside CI's single
 "Accessibility scan" step (`.github/workflows/ci.yml`), and both must report
 0 errors for the job to pass: 16 checks total. Dark theme was **not** covered
-until 2026-08-20 (plan.md §26.2) — headless Chrome resolves
+until 2026-08-20 — headless Chrome resolves
 `prefers-color-scheme` to light in CI, and this app normalizes an absent
 stored preference to light regardless, so the original gate silently scanned
 light theme twice.
@@ -56,8 +55,8 @@ finding 4 below was found — a pairing this table had never listed.
 
 Recomputed 2026-08-20 against the current token values. The `--ink-secondary`
 rows below had been stale since 2026-08-15: they still quoted the ratios for
-`#807870`, which Prompt 18 had already replaced with `#888077` and §26.2 has
-now replaced with `#999188`.
+`#807870`, which an earlier pass had already replaced with `#888077` and
+this pass replaced with `#999188`.
 
 | Pair | Ratio | Needs | Result |
 |---|---|---|---|
@@ -121,7 +120,7 @@ now replaced with `#999188`.
    using it for normal-weight text on the accent surface.
 
 4. **Dark-theme muted text failed on the surfaces nobody had measured —
-   resolved 2026-08-20** (plan.md §26.2). The first-ever dark-theme pa11y run
+   resolved 2026-08-20**. The first-ever dark-theme pa11y run
    flagged 16 elements on `/`: 15 at 4.34:1 (`--ink-secondary` `#888077` on
    `--surface-2` `#1e1d1a` — the Popular Texts card subtitles and the site
    footer's disclaimer text) and 1 at 4.10:1 (`--ctrl-text` `#888070` on
@@ -131,7 +130,7 @@ now replaced with `#999188`.
 
    This is the **third** time `--ink-secondary` has been lightened, and the
    pattern is the finding: each previous pass fixed only the one surface it
-   had measured (`#807870`→`#888077` for `--surface-1` in Prompt 18, and
+   had measured (`#807870`→`#888077` for `--surface-1` in an earlier pass, and
    before that a light-theme-only fix that explicitly declared dark "already
    passes" based on `--surface-0` alone). So this pass checked the new values
    against **every** dark surface in the palette, hover states included, and

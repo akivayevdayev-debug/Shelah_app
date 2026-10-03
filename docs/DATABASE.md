@@ -1,22 +1,22 @@
 # Sh'elah — Database Schema Reference
 
-> ⚠️ **Interim manual reconstruction (2026-08-21), not yet machine-generated.**
-> This file was rewritten by hand against the repo's own `scripts/sql/*.sql` /
-> `scripts/migrate_*.sql` files (plan.md §23.1's audit, cross-checked against
-> every table name/column read or written by `backend/*.py`), because the
-> previous version was wrong in almost every particular — wrong tenant key
-> (`clerk_id` instead of `user_id`), a `rag_identity_cache` table that
-> doesn't exist, a `bookmarks` table that's actually `study_bookmarks`, a
-> `queries` analytics table that was pure fiction — and that drift already
-> shipped a real production bug (a legal-consent write silently rejected by
-> PostgREST; see plan.md §23.1). This rewrite is believed accurate as of
-> 2026-08-21 but has **not** been confirmed against the live Supabase project
-> — this environment has no direct Postgres/`information_schema` access.
-> **Replace this file with the real generated output** by running
+> ⚠️ **Hand-maintained reference, not machine-generated.**
+> This file was reconstructed by hand on 2026-08-21 against the repo's own
+> `scripts/sql/*.sql` / `scripts/migrate_*.sql` files, cross-checked against
+> every table name and column read or written by `backend/*.py`, because the
+> previous version was wrong in almost every particular (wrong tenant key,
+> a `rag_identity_cache` table that doesn't exist, a `bookmarks` table that's
+> actually `study_bookmarks`, an invented `queries` analytics table) — and
+> that drift had already shipped a real production bug (a legal-consent write
+> silently rejected by PostgREST). Parts of it have since been checked
+> against the live Supabase project (`pg_policies` and `pg_class` queries on
+> 2026-09-03, the Advisor scan below), but the column listings have not been
+> diffed against `information_schema` wholesale.
+> **To replace it with generated output:** run
 > `scripts/sql/introspect_schema.sql` once in the Supabase SQL editor, then
-> `python scripts/generate_database_doc.py` (plan.md §23.2.3) — that is the
-> version of this doc that cannot drift silently again, because a
-> `--check` mode can diff it against live schema on demand.
+> `python scripts/generate_database_doc.py` — that version cannot drift
+> silently, because a `--check` mode can diff it against the live schema on
+> demand.
 
 This document describes the Supabase (Postgres) `public`-schema tables used
 by Sh'elah. The application authenticates users via **Clerk** JWTs and
@@ -25,11 +25,14 @@ table below — there is no `clerk_id` column anywhere in this schema.
 
 > **Secret-key access only**: the backend always uses `SUPABASE_SECRET_KEY`,
 > which bypasses RLS. The policies listed per-table below are
-> defense-in-depth — see `plan.md` §21 for the open question of whether
-> `auth.uid()` actually resolves a Clerk JWT in this project at all (Supabase
-> Third-Party Auth for Clerk must be enabled in the dashboard, and that
-> setting is versioned nowhere in this repo) — and support direct
-> Supabase-dashboard access.
+> defense-in-depth and support direct Supabase-dashboard access. Whether
+> `auth.uid()` resolves a Clerk JWT in this project depends on Supabase
+> Third-Party Auth for Clerk and Clerk's session-token claims, both of which
+> are dashboard settings versioned nowhere in this repo; they were confirmed
+> working end to end on 2026-09-04 (see [`docs/SECURITY.md`](SECURITY.md) §2).
+> Note that the user-scoped clients still authenticate as the Postgres
+> `authenticated` role, so the policies below are enforced for those paths,
+> not merely decorative.
 
 ---
 
@@ -39,7 +42,7 @@ table below — there is no `clerk_id` column anywhere in this schema.
 
 Per-user application settings and legal-consent/age-attestation records.
 Base table: [`scripts/sql/bookmarks_and_preferences_setup.sql`](../scripts/sql/bookmarks_and_preferences_setup.sql).
-Additive columns: [`scripts/migrate_user_preferences_legal_consent.sql`](../scripts/migrate_user_preferences_legal_consent.sql), [`scripts/migrate_user_preferences_legal_version.sql`](../scripts/migrate_user_preferences_legal_version.sql), [`scripts/migrate_user_preferences_user_id_to_text.sql`](../scripts/migrate_user_preferences_user_id_to_text.sql) (normalizes `user_id` to `text` — idempotent if already so).
+Additive columns: [`scripts/migrate_user_preferences_legal_consent.sql`](../scripts/sql/migrate_user_preferences_legal_consent.sql), [`scripts/migrate_user_preferences_legal_version.sql`](../scripts/sql/migrate_user_preferences_legal_version.sql), [`scripts/migrate_user_preferences_user_id_to_text.sql`](../scripts/sql/migrate_user_preferences_user_id_to_text.sql) (normalizes `user_id` to `text` — idempotent if already so).
 
 | Column | Type | Nullable | Default | Description |
 |---|---|---|---|---|
@@ -51,9 +54,9 @@ Additive columns: [`scripts/migrate_user_preferences_legal_consent.sql`](../scri
 | `updated_at` | `timestamptz` | NOT NULL | `now()` | Last update timestamp |
 | `legal_accepted` | `boolean` | NOT NULL | `false` | Terms + Privacy acceptance |
 | `legal_accepted_at` | `timestamptz` | YES | — | UTC timestamp of acceptance |
-| `age_attested` | `boolean` | NOT NULL | `false` | plan.md §8.B-AGE.6 13+/16+ attestation |
+| `age_attested` | `boolean` | NOT NULL | `false` | 13+/16+ attestation flag (dormant: no UI collects it, see `docs/AGE_AND_SAFETY_POLICY.md`) |
 | `age_attested_at` | `timestamptz` | YES | — | UTC timestamp of attestation |
-| `legal_terms_version` | `text` | YES | — | Terms version accepted (plan.md §8.A.1/§8.D.2) |
+| `legal_terms_version` | `text` | YES | — | Terms version accepted |
 | `legal_privacy_version` | `text` | YES | — | Privacy Policy version accepted |
 
 **Primary key**: `user_id` · **Upsert conflict target**: `user_id`
@@ -108,7 +111,7 @@ Shared reference knowledge base (not user-scoped). Base table: [`scripts/sql/rag
 
 ### `user_memories`
 
-Server-generated per-user interaction-summary memory, used to build ask-time identity context. Base table: [`scripts/sql/rag_identity_cache_setup.sql`](../scripts/sql/rag_identity_cache_setup.sql) (note: the *file* is named for a `rag_identity_cache` table that this migration never actually creates — it creates `community_knowledge` and this table instead; the filename itself is one of the doc-drift artifacts plan.md §23.1 found).
+Server-generated per-user interaction-summary memory, used to build ask-time identity context. Base table: [`scripts/sql/rag_identity_cache_setup.sql`](../scripts/sql/rag_identity_cache_setup.sql) (note: the *file* is named for a `rag_identity_cache` table that this migration never actually creates — it creates `community_knowledge` and this table instead; the filename is a leftover from an earlier design).
 
 | Column | Type | Nullable | Default | Description |
 |---|---|---|---|---|
@@ -120,7 +123,7 @@ Server-generated per-user interaction-summary memory, used to build ask-time ide
 
 **Primary key**: `id` · **Index**: `(user_id, created_at DESC)`
 
-**RLS**: enabled, governed by `scripts/sql/SUPABASE_RLS_POLICIES.sql`'s owner-scoped policies (`auth.uid()::text = user_id`) — the same idiom as `user_preferences`/`study_bookmarks` above. `backend/rag.py::_store_user_memory_summary`/`_fetch_user_memory_summaries` read/write through the request-scoped, RLS-gated client (`app.py::_get_user_scoped_supabase_client`) first, not the service-role client — corrected 2026-08-31 (plan.md §21/§30.5); the previous text here describing this table as service-role-only was stale and did not match the code.
+**RLS**: enabled, governed by `scripts/sql/SUPABASE_RLS_POLICIES.sql`'s owner-scoped policies (`auth.uid()::text = user_id`) — the same idiom as `user_preferences`/`study_bookmarks` above. `backend/rag.py::_store_user_memory_summary`/`_fetch_user_memory_summaries` read/write through the request-scoped, RLS-gated client (`app.py::_get_user_scoped_supabase_client`) first, not the service-role client — corrected 2026-08-31; the previous text here describing this table as service-role-only was stale and did not match the code.
 >
 > **Resolved doc-drift, recorded for history:** `rag_identity_cache_setup.sql` (this table's base-table file) originally also shipped a fully-locked-down pair of policies (`user_memories_block_client_select`/`_write`, `using (false)` for `anon`/`authenticated`) from when this table was service-role-only by design. `SUPABASE_RLS_POLICIES.sql` later added owner-scoped policies under different names without removing the old ones; since Postgres OR's multiple `PERMISSIVE` policies together per command, the owner-scoped policies granted access whenever both had actually been applied to the live project — but a project where only the older file had run would have this table fully locked for every real user, contradicting what this doc said. The block-all policies were dropped in the same pass that corrected this paragraph; `SUPABASE_RLS_POLICIES.sql` is now the single source of truth for this table's RLS.
 
@@ -141,13 +144,13 @@ Per-user record of completed `/ask` interactions, including defensibility-loggin
 | `community` | `text` | NOT NULL | `'All'` | Community lens used |
 | `mode` | `text` | NOT NULL | `'balanced'` | Answer mode |
 | `language` | `text` | NOT NULL | `'en'` | Response language |
-| `safety_class` | `text` | NOT NULL | `'ok'` | plan.md §8.B-AGE safety-routing outcome |
+| `safety_class` | `text` | NOT NULL | `'ok'` | Safety-routing outcome (`ok`, `medical`, `mental_health_or_self_harm`, `abuse_or_minor_safety`, `dangerous_or_illegal`) |
 | `prompt_version` | `text` | YES | — | Governing system-prompt version |
 | `created_at` | `timestamptz` | NOT NULL | `now()` | Creation timestamp |
 
 **Primary key**: `id` · **Index**: `(user_id, created_at DESC)`
 
-**RLS**: enabled, zero policies — service-role-only by design, decided 2026-08-31 (plan.md §21 STEP 6a). `backend/routes_user.py`'s GET/DELETE `/api/user/history` handlers only ever read this table through the service-role client (`_get_supabase_client()`, `app.py:910`, which uses `SUPABASE_SECRET_KEY` specifically to bypass RLS) with a hand-written `.eq("user_id", ...)` filter, so a user-scoped RLS policy is never actually exercised by any code path. Same posture as `ai_usage_log` below.
+**RLS**: enabled, zero policies — service-role-only by design, decided 2026-08-31. `backend/routes_user.py`'s GET/DELETE `/api/user/history` handlers only ever read this table through the service-role client (`_get_supabase_client()`, `app.py:910`, which uses `SUPABASE_SECRET_KEY` specifically to bypass RLS) with a hand-written `.eq("user_id", ...)` filter, so a user-scoped RLS policy is never actually exercised by any code path. Same posture as `ai_usage_log` below.
 
 **Correction (2026-09-03):** the previous `user_own_history` policy was written up as "dropped rather than migrated on 2026-08-31," but a live `pg_policies` query via `npx supabase db query --linked` on 2026-09-03 found it was still present in production, unwrapped, and still flagged by the Advisor's `auth_rls_initplan` lint — the DROP had been documented but never actually executed live. Verified via CLI query that this policy was genuinely never consulted by any code path (confirmed above), then dropped for real: `DROP POLICY IF EXISTS "user_own_history" ON public.ask_history;` run directly via `npx supabase db query --linked`, 2026-09-03. Re-ran `npx supabase db advisors --linked` immediately after: `ask_history` now shows the same `rls_enabled_no_policy` (INFO, by-design) posture as `ai_usage_log`, and the `auth_rls_initplan` finding for it is gone. See `docs/SECURITY.md` §2 for the full history.
 
@@ -157,13 +160,13 @@ Per-user record of completed `/ask` interactions, including defensibility-loggin
 
 ### `ai_usage_log`
 
-Per-call AI cost ledger and atomic per-caller daily-budget reservation bookkeeping. Base table: [`scripts/sql/ai_usage_log_setup.sql`](../scripts/sql/ai_usage_log_setup.sql) (reconstructed 2026-08-20 — this table's original `CREATE TABLE` was never committed anywhere). Additive columns: [`scripts/migrate_ai_usage_log_add_user_columns.sql`](../scripts/migrate_ai_usage_log_add_user_columns.sql), [`scripts/sql/check_and_reserve_user_budget.sql`](../scripts/sql/check_and_reserve_user_budget.sql) (reservation columns + the `check_and_reserve_user_budget()` function below).
+Per-call AI cost ledger and atomic per-caller daily-budget reservation bookkeeping. Base table: [`scripts/sql/ai_usage_log_setup.sql`](../scripts/sql/ai_usage_log_setup.sql) (reconstructed 2026-08-20 — this table's original `CREATE TABLE` was never committed anywhere). Additive columns: [`scripts/migrate_ai_usage_log_add_user_columns.sql`](../scripts/sql/migrate_ai_usage_log_add_user_columns.sql), [`scripts/sql/check_and_reserve_user_budget.sql`](../scripts/sql/check_and_reserve_user_budget.sql) (reservation columns + the `check_and_reserve_user_budget()` function below).
 
 | Column | Type | Nullable | Default | Description |
 |---|---|---|---|---|
 | `id` | `uuid` | NOT NULL | `gen_random_uuid()` | Row ID |
 | `provider` | `text` | YES | — | e.g. `anthropic`, `gemini` |
-| `model` | `text` | YES | — | Model identifier (renamed from the misleadingly-named `provider`-holds-a-model-name convention, plan.md §20a) |
+| `model` | `text` | YES | — | Model identifier (renamed from the misleadingly-named `provider`-holds-a-model-name convention) |
 | `input_tokens` | `integer` | YES | — | Input token count |
 | `output_tokens` | `integer` | YES | — | Output token count |
 | `cost_usd` | `numeric` | NOT NULL | `0` | Computed cost |
@@ -180,7 +183,7 @@ Per-call AI cost ledger and atomic per-caller daily-budget reservation bookkeepi
 
 **RLS**: **none** — deliberate. This table is written and read exclusively by the server-side `SUPABASE_SECRET_KEY` client, never from the browser.
 
-**Function**: `public.check_and_reserve_user_budget(key_column, key_value, threshold_usd, reservation_usd)` — atomic check-and-reserve for the per-caller daily spend ceiling (plan.md §20.2 Phase 20b), `pg_advisory_xact_lock`-serialized per key, `REVOKE ALL FROM PUBLIC` (service-role/RPC-only).
+**Function**: `public.check_and_reserve_user_budget(key_column, key_value, threshold_usd, reservation_usd)` — atomic check-and-reserve for the per-caller daily spend ceiling, `pg_advisory_xact_lock`-serialized per key, `REVOKE ALL FROM PUBLIC` (service-role/RPC-only).
 
 **Retention**: 90-day rolling window, enforced by the `retention_enforce` cron; abandoned reservations past their 10-minute TTL are swept by the same cron (`expire_stale_budget_reservations()`).
 
@@ -200,14 +203,14 @@ Write-only thumbs up/down (plus an optional short comment) a reader leaves on an
 | `mode` | `text` | NOT NULL | `'balanced'` | Answer mode the feedback refers to |
 | `language` | `text` | NOT NULL | `'en'` | Response language |
 | `fallback` | `boolean` | NOT NULL | `false` | Whether the answer was a fallback response |
-| `safety_class` | `text` | NOT NULL | `'ok'` | plan.md §8.B-AGE safety-routing outcome |
+| `safety_class` | `text` | NOT NULL | `'ok'` | Safety-routing outcome (`ok`, `medical`, `mental_health_or_self_harm`, `abuse_or_minor_safety`, `dangerous_or_illegal`) |
 | `created_at` | `timestamptz` | NOT NULL | `now()` | Creation timestamp |
 
 **Primary key**: `id` · **Index**: `(created_at DESC)`
 
 **RLS**: enabled. Policy `anyone_can_submit_feedback` (`FOR INSERT`, `WITH CHECK (true)`) lets both `anon` and `authenticated` insert rows — a deliberate public write-only form, not a per-user-owned resource. There is no `SELECT` policy for either role; only the backend's service-role client (which bypasses RLS) reads this table. The default `SELECT` grant `anon`/`authenticated` get on a new Supabase table was separately revoked (`migrate_security_hardening.sql`) to close a Supabase-linter-flagged schema-exposure gap, since a missing policy alone still let the table (and its column names) be discovered via GraphQL/PostgREST even with every row read blocked.
 
-**Retention**: no dedicated rolling-window cron (not part of `retention_enforce`'s scope); retained until account deletion. Included in both `/api/user/data-export` and `/api/user/delete-account` (`backend/routes_privacy.py`'s `_USER_DATA_TABLES`, added 2026-08-27 per plan.md §39.1 — see `docs/SECURITY.md` §9).
+**Retention**: no dedicated rolling-window cron (not part of `retention_enforce`'s scope); retained until account deletion. Included in both `/api/user/data-export` and `/api/user/delete-account` (`backend/routes_privacy.py`'s `_USER_DATA_TABLES`, added 2026-08-27 — see `docs/SECURITY.md` §9).
 
 ---
 
@@ -220,9 +223,9 @@ Write-only thumbs up/down (plus an optional short comment) a reader leaves on an
 ## Migrations
 
 There is no `supabase/` CLI migration directory in this repo (a CLI-migration
-workflow adoption was considered and deliberately deferred — plan.md
-§23.2.3, to avoid taking on that workflow-migration risk before the schema
-was even *recorded*). Schema changes are hand-pasted `.sql` files, run once
+workflow adoption was considered and deliberately deferred, to avoid taking
+on that workflow-migration risk before the schema was even *recorded*).
+Schema changes are hand-pasted `.sql` files, run once
 in the Supabase SQL editor: base tables/functions live in `scripts/sql/`,
 additive `ALTER`s live in `scripts/migrate_*.sql`. There is no
 migration-tracking table, ordering convention, or rollback SQL — this doc
@@ -256,17 +259,17 @@ Users may request full data export or deletion via `/api/user/data-export` and `
 
 A Supabase Advisor scan was run directly against the live project on
 2026-09-03. This subsection records every finding and its resolution.
-Two are real bugs with a **fix written but not yet applied** — the
-operator must run the migration below by hand; everything else was
-either already correct by design or reviewed and deliberately left as
-is. See `docs/SECURITY.md` §10 for the security-focused summary of the
-same scan.
+Two real findings were fixed by a migration that **was applied and
+verified live the same day**; everything else was either already correct
+by design or reviewed and deliberately left as is. See
+`docs/SECURITY.md` §10 for the security-focused summary of the same scan.
 
-### Live fixes — pending operator execution
+### Live fixes — applied 2026-09-03
 
-**`scripts/sql/migrate_search_path_and_rls_perf_fixes.sql`** (new file,
-this pass) contains every statement below. Run it once, by hand, in the
-Supabase SQL editor; it is idempotent.
+**`scripts/sql/migrate_search_path_and_rls_perf_fixes.sql`** contains every
+statement below. It is idempotent, was run once by hand in the Supabase SQL
+editor, and a re-run of the Advisor afterwards showed the fixed findings
+gone.
 
 1. **`function_search_path_mutable`** (WARN, SECURITY) — `public.get_schema_snapshot()`
    and `public.set_updated_at_timestamp()` both had a role-mutable

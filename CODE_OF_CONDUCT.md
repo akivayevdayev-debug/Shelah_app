@@ -61,7 +61,9 @@ public spaces.
 Instances of abusive, harassing, or otherwise unacceptable behavior may be
 reported to the project maintainer at **akiva.yevda@gmail.com** (the same
 contact listed in [docs/SECURITY.md](docs/SECURITY.md)). All complaints will
-be reviewed and investigated promptly and fairly.
+be reviewed and investigated promptly and fairly. A security vulnerability is
+not a conduct report; send those privately as described in
+[docs/SECURITY.md](docs/SECURITY.md#reporting-a-vulnerability).
 
 All project maintainers are obligated to respect the privacy and security of
 the reporter of any incident.

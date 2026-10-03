@@ -1,24 +1,27 @@
-# Customs Data Notes
+# Customs data notes
 
-> Sync status (2026-05-12): No changes to customs data files this cycle. Sync status current.
+Community minhag data: thirteen community files, a JSON Schema, and one retired legacy aggregate.
 
-This folder contains community minhag data files used by `/api/community/*` and customs lookups.
+## Files
 
-## File patterns
+| File | What it is |
+|---|---|
+| `ashkenaz.json`, `bukharian.json`, `ethiopian.json`, `georgian.json`, `greek-romaniote.json`, `iraqi.json`, `moroccan.json`, `mountain-jewish-kavkazi.json`, `persian.json`, `sefardic.json`, `syrian.json`, `turkish-ottoman-sefardic.json`, `yemenite.json` | One structured file per community |
+| `schema.json` | JSON Schema for the structured shape. Required: `version`, `heritage_id`, `name`, `halacha_index` |
+| `customs_db.json` | The legacy flat aggregate (`Kafkazi`, `Bukharian`, `Sephardic`, `Ashkenazic`). The loader skips it: it is retired from community and customs browsing and kept only as history |
 
-- Community-specific files (`ashkenaz.json`, `sefardic.json`, etc.):
-  - Typically include identity metadata, `halacha_index`, and source registry data.
-- Aggregated file (`customs_db.json`):
-  - Legacy/alternate shape supported by loader logic in `customs.py`.
+A structured file carries `version`, `type`, `heritage_id`, `name`, `aliases`, `database_scope`, `identity`, `languages`, `genealogy`, `historical_background`, `core_halachic_authorities`, `halacha_index`, `unique_minhagim` and `source_registry`.
 
-## How runtime uses this data
+## Where the data is used
 
-1. `customs.py` loads all JSON files.
-2. It normalizes different schema shapes into a searchable in-memory map.
-3. Fuzzy matching/keyword matching returns relevant custom rulings and notes.
+- **`backend/customs.py`** loads every `customs/*.json` (except `customs_db.json`) into an in-memory map, re-reading when a file's name or modification time changes, and answers `search_customs(topic)` with exact and fuzzy matching. Callers: `ShelahEngine` (`backend/data_service.py`) and the `search_community_customs` tool in the AI tool registry (`backend/ai_tools.py`).
+- **`backend/routes_community.py`** reads the structured files directly for `/api/community/*` (the community pages).
+- **Live `/ask` retrieval** reads Supabase's `community_knowledge` table (`backend/rag.py`), not these files. The JSON is the source that `scripts/migrate_customs_to_supabase.py` seeds that table from, with deterministic upserts. After editing a customs file, re-run the script (`--dry-run` first; `--community <name>` limits it to one community) so answers see the change.
+- **Startup validation** (`validate_all_customs_at_startup`) checks every structured file for `heritage_id`, `name` and a non-empty `halacha_index`, and logs an error per bad file without stopping the app. It skips `customs_db.json` and `schema.json`.
 
 ## Editing guidance
 
-- Preserve valid JSON and UTF-8 encoding.
-- Keep topic/category fields consistent to improve matcher quality.
-- Include source metadata where possible for transparency in UI output.
+- Keep each file valid JSON in UTF-8 with the three required fields populated.
+- Keep topic and category fields consistent across communities; the matcher's quality depends on it.
+- Cite a source in `source_registry` for each custom wherever one exists, so the UI can show where a ruling comes from.
+- A changed file is not live in `/ask` until it has been migrated to Supabase (see above).

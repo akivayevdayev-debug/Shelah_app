@@ -30,8 +30,8 @@ Every value below already has a working default in code. Set one only to overrid
 | `AI_AGENTIC_TOOLS` | `false` | `true` turns on the AI's tool-use loop (`backend/ask_pipeline.py::run_agentic_ask`, 22 tools in `backend/ai_tools.py`). Off, `/ask` answers from the up-front retrieval context only. Each tool round is another metered model call, so don't enable in production until `RATE_LIMIT_REDIS_URL` points at a shared store — see [AI_TOOLS.md](AI_TOOLS.md) |
 | `AI_TOTAL_BUDGET_SECONDS` | `45` | Wall-clock budget (seconds) for a full `/ask` AI synthesis call, shared by the Flask and FastAPI transports — must stay under `vercel.json`'s `functions.maxDuration` (90s) so the platform never kills the request before the graceful-fallback path can run |
 | `PER_USER_DAILY_BUDGET_USD` | `2.00` | Per-caller daily AI-spend ceiling, enforced atomically before every `/ask` model call (`backend/cost_meter.py::check_user_budget_and_enforce`) — set to `"0"` to disable |
-| `DAILY_BUDGET_USD` | unset (disabled) | Global daily AI-spend guardrail/alert threshold — unset disables the check entirely |
-| `RATE_LIMIT_REDIS_URL` | unset (in-process fallback) | Shared store for the unified rate-limit middleware (`backend/rate_limit.py`) — per-process only until pointed at a shared store (e.g. Upstash Redis over `rediss://`); see plan.md §16.1 D3 for the known multi-instance limitation on Vercel Fluid |
+| `DAILY_BUDGET_USD` | unset (disabled) | Global daily AI-spend guardrail/alert threshold — unset disables the check (and `/api/stack/health` then reports `security.cost_breaker.configured: false`). Production runs `10.00` |
+| `RATE_LIMIT_REDIS_URL` | unset (in-process fallback) | Shared store for the unified rate-limit middleware (`backend/rate_limit.py`) — per-process only until pointed at a shared store (e.g. Upstash Redis over `rediss://`), which matters on Vercel Fluid where several instances run at once. Production uses Upstash Redis (confirmed 2026-08-26); a malformed URL falls back to the in-process store with a CRITICAL log instead of failing boot |
 | `RATELIMIT_ENABLED` | `true` | Kill switch for the whole rate-limit middleware; read once at import time |
 | `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY` | — | Fallback name for `CLERK_PUBLISHABLE_KEY` |
 | `CLERK_AUDIENCE` | — | Audience claim expected in Clerk JWTs — recommended for production; unset skips JWT audience verification entirely |
@@ -50,7 +50,7 @@ Every value below already has a working default in code. Set one only to overrid
 
 **Never commit real values for any of the above** — `.env` is gitignored; use `.env.example`'s blank placeholders as the template.
 
-**Not actually environment variables** (documented here to prevent confusion, since both names surface in `plan.md`/tests):
+**Not actually environment variables** (documented here to prevent confusion, since these names surface in tests and older commit messages):
 - `STRICT_SUPABASE_RLS` is a hardcoded `True` literal in `app.py` — RLS enforcement is treated as a fixed security posture, not per-deployment config, so setting an environment variable of this name has no effect. The name only appears in test monkeypatches (`tests/test_routes_user.py`, `tests/test_rag.py`).
-- `RATE_LIMIT_ASK` (`"20 per minute"` on `/ask`) and `RATE_LIMIT_DEFAULT` (`"60 per minute"` blanket default) are also literals in `app.py`, deliberately not environment-configurable — rate-limit policy is treated as a code change requiring redeploy either way, not a runtime setting (see the comment at `app.py:762-768`).
+- `RATE_LIMIT_ASK` and `RATE_LIMIT_DEFAULT` belonged to the removed Flask-Limiter and no longer exist. Rate-limit policy is one code table, `_POLICIES` in `backend/rate_limit.py` (for example `/ask` is 20 per minute anonymous, 40 per minute signed in, 200 per day), deliberately not environment-configurable: a policy change is a code change requiring a redeploy. `/api/stack/health` reports the live policy. The only runtime switches are `RATELIMIT_ENABLED` and `RATE_LIMIT_REDIS_URL` above.
 

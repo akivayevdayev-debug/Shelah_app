@@ -1,24 +1,24 @@
 # Runbooks
 
 Operational procedures for Sh'elah: deploy, rollback, incident response, and
-cost guardrails. This document grows as later phases of `plan.md` §8.E and
-§14 land — it now covers Vercel spend guardrails (§14.2.2), region/function
-config, startup-cost gating, observability, uptime monitoring, backups &
-recovery, incident response, rollback, the deploy checklist, and
-rate-limiting/cost-ceiling status.
+cost guardrails. It covers Vercel spend guardrails, region/function config,
+startup-cost gating, observability, uptime monitoring, backups & recovery,
+incident response, rollback, the deploy checklist, and
+rate-limiting/cost-ceiling status. Each section records its own
+configuration status inline, with the date it was last confirmed.
 
-## Vercel spend guardrails (§14.2.2 — dashboard actions, not code)
+## Vercel spend guardrails (dashboard actions, not code)
 
 These are **dashboard-only actions** the project owner must take manually;
 nothing in the repo can configure them. Recommended values, given the app's
 actual cost profile (`/ask` is I/O-bound — Provisioned Memory dominates over
-Active CPU; see `plan.md` §14.1):
+Active CPU):
 
 1. **Spend Management hard cap** (Vercel dashboard → Settings → Billing →
    Spend Management): set a hard monthly cap that stops serving traffic
    before an unexpected bill accrues, rather than a soft alert-only
    threshold. Start conservative (e.g. 2–3× the expected steady-state
-   monthly cost observed in the first 30-day baseline — see §14.7.1) and
+   monthly cost observed in a 30-day baseline) and
    revisit once real usage data exists. A hard stop is safer than a soft
    alert for a solo-operated project with no on-call to react to a 2am
    notification.
@@ -27,7 +27,7 @@ Active CPU; see `plan.md` §14.1):
    Spend Management cap (or of the Hobby free-tier allowances, if still on
    Hobby) for each of the four billed meters — Active CPU, Provisioned
    Memory, Invocations, Fast Origin Transfer — so a traffic spike, crawler,
-   or runaway agent loop (§9) surfaces before it becomes a bill.
+   or runaway agent loop surfaces before it becomes a bill.
 3. **AI provider spend caps** (independent of Vercel): set hard monthly
    budget caps on the Anthropic and Google (Gemini) billing dashboards
    directly — these are the other real cost surface and are not bounded by
@@ -35,10 +35,14 @@ Active CPU; see `plan.md` §14.1):
    per call for visibility, but a provider-side hard cap is the actual
    backstop.
 
-**Status:** not yet configured by the project owner as of 2026-07-30 — this
-section documents the recommended values; someone with dashboard access
-must apply them. Re-visit the cap value once the §14.7.1 30-day usage
-baseline is captured.
+**Status:** the last recorded state (2026-07-30) was not yet configured;
+this repository cannot see the Vercel or provider dashboards, so nothing
+here confirms they have since been applied. This section documents the
+recommended values; someone with dashboard access must apply and re-check
+them. Re-visit the cap value once a 30-day usage baseline is captured. The
+in-repo layers that *are* verified live are the global daily budget cap
+(`DAILY_BUDGET_USD`, below) and the edge WAF rate limit
+([`docs/SECURITY.md`](SECURITY.md) §7).
 
 ## Region & function configuration
 
@@ -46,8 +50,8 @@ baseline is captured.
 ($0.128/CPU-hr, $0.0106/GB-hr) alongside `pdx1`/`cle1`. Revisit if the user
 base skews non-US-East and observed latency justifies a different region.
 
-`"fluid": true` is deliberately **not** set in `vercel.json` — per §14.2.1,
-that flag changes the execution model and should only be flipped after
+`"fluid": true` is deliberately **not** set in `vercel.json` — that flag
+changes the execution model and should only be flipped after
 confirming the project's current Fluid state in the dashboard (Fluid is
 default for projects created after 2025-04-23; this project's actual state
 has not been confirmed here).
@@ -67,7 +71,7 @@ singleton (`_get_timezone_finder()`) — it loads a spatial boundary index on
 construction, so building it eagerly at import time billed every cold start
 even for requests that never resolve a timezone.
 
-## Observability (§7.3 / §8.E.1)
+## Observability
 
 **Structured logging & request IDs.** `backend/logging_setup.py`'s
 `setup_logging()` configures the root logger to emit single-line JSON
@@ -116,29 +120,32 @@ from a Flask WSGI route).
 cost and, once it reaches `DAILY_BUDGET_USD`, raises through
 `_capture_backend_error` (Sentry + structured log + webhook). Disabled
 (no Supabase read at all) unless `DAILY_BUDGET_USD` is set — it's an
-opt-in guardrail, not a hard spend cap (see §14.2.2 above for the actual
-hard caps, which live in the Vercel/Anthropic/Google billing dashboards,
-not in this repo). Exposed at `GET /api/devtools/budget-check` and wired
-into `vercel.json`'s `crons` (`0 13 * * *`, once daily — Hobby-plan
-compatible). **Set `CRON_SECRET`** in the Vercel project env vars to gate
-this route behind the `Authorization: Bearer <CRON_SECRET>` header Vercel
-Cron sends automatically once that var exists; without it the route is
-open (fine for local dev, not for production).
+opt-in guardrail, not a hard spend cap (see the spend guardrails above for
+the actual hard caps, which live in the Vercel/Anthropic/Google billing
+dashboards, not in this repo). Exposed at `GET /api/devtools/budget-check`
+and wired into `vercel.json`'s `crons` (`0 13 * * *`, once daily —
+Hobby-plan compatible). **Set `CRON_SECRET`** in the Vercel project env vars: this
+route (and `retention-enforce`) requires the
+`Authorization: Bearer <CRON_SECRET>` header Vercel Cron sends
+automatically once that var exists. `budget-check` fails closed — it
+returns `503` when `CRON_SECRET` is unset and `401` on a mismatch.
 
 **Status:** request-ID propagation, Sentry wiring, and cost-meter coverage
-land in this repo as of 2026-07-31. `SENTRY_DSN`, `DAILY_BUDGET_USD`, and
-`CRON_SECRET` are operator actions (Vercel dashboard env vars) — none are
-set by default.
+are in the repo. `SENTRY_DSN`, `DAILY_BUDGET_USD`, and `CRON_SECRET` are
+operator actions (Vercel dashboard env vars) — none are set by default.
+Operator-confirmed in production: `DAILY_BUDGET_USD=10.00` (live since
+2026-09-01, reconfirmed 2026-09-04) and `CRON_SECRET` (2026-09-06); the
+`SENTRY_DSN` value is not recorded in this repo. When the budget variable
+is missing, `backend/cost_meter.py` logs a warning and
+`/api/stack/health` reports `security.cost_breaker.configured: false`.
 
-## Uptime monitoring (§8.E.2, reconciled with §14.6.2)
+## Uptime monitoring
 
-`plan.md` §14.6.2 identified a real conflict between §8.E.2 ("add uptime
-monitoring") and §14.6 (the "stay inactive" invocation-cost rule): an
-external monitor hitting the function-backed `/api/health` every 30 seconds
-is **2,880 invocations/day (~86k/month)** of pure Vercel cost with no
-user-facing value, and each hit can wake a paused Fluid instance. The
-resolution already decided there (mirrored in §17.5's Sentry product table)
-is a two-tier check:
+Uptime monitoring conflicts with the project's "stay inactive"
+invocation-cost rule: an external monitor hitting the function-backed
+`/api/health` every 30 seconds is **2,880 invocations/day (~86k/month)** of
+pure Vercel cost with no user-facing value, and each hit can wake a paused
+Fluid instance. The decided resolution is a two-tier check:
 
 1. **Primary check — a static, edge-served asset.** Point it at any file
    under `/static/`, e.g. `https://<domain>/static/favicon.svg`.
@@ -146,16 +153,15 @@ is a two-tier check:
    `Cache-Control: public, max-age=3600`, and files under `static/` are
    served directly rather than through `api/index.py`, so this check costs
    zero function invocations and zero Active CPU/Provisioned Memory no
-   matter how often it runs. **Interval: 5 minutes**, not 30 seconds — this
-   is the number §14.6.2 and §17.5 both settled on for a solo-operated
-   project; only shorten it if a real incident shows 5 minutes is too slow
+   matter how often it runs. **Interval: 5 minutes**, not 30 seconds — the
+   number settled on for a solo-operated project; only shorten it if a real incident shows 5 minutes is too slow
    for an acceptable downtime window.
 2. **Secondary check — the function-backed deep check, at low frequency.**
    Point a second, less frequent check at `/api/health` (aliases to
    `/api/stack/health`, `backend/routes_devtools.py:253-260`). Recommended
    interval: **15–30 minutes** — enough to catch "process is up but a
-   dependency is broken" without meaningfully adding to the §14.6
-   invocation budget.
+   dependency is broken" without meaningfully adding to the invocation
+   budget.
    - **Configuration caveat that matters:** both `/api/health` and
      `/api/stack/health` are gated by `@require_clerk_auth`
      (`backend/routes_devtools.py:58,254` — a security-audit fix, since the
@@ -177,8 +183,8 @@ is a two-tier check:
      config presence plus one live library check without leaking
      rate-limit thresholds. Either endpoint satisfies the "secondary,
      low-frequency deep check" requirement.
-3. Both endpoints already satisfy the "keep it cheap" half of §14.6.2 as
-   written: `stack_health()`'s `status_summary()` call
+3. Both endpoints already satisfy the "keep it cheap" requirement:
+   `stack_health()`'s `status_summary()` call
    (`backend/health_check.py:190-193`) only reads an in-memory
    circuit-breaker dict — no upstream HTTP fan-out, no Supabase round-trip
    on the default path. If a future change adds a live upstream probe to
@@ -186,21 +192,20 @@ is a two-tier check:
 
 **Provider:** nothing in this repo depends on which uptime provider is
 used — any service that can hit two URLs on independent schedules with
-per-check status-code overrides works. `plan.md` §17.5 already selected
-**Sentry Uptime Monitoring** at a 5-minute interval as the intended
-provider (it's already in this stack for error reporting, and uptime
-checks don't count against the 5,000-events/month error quota). UptimeRobot
-(free tier) or Better Uptime are equally workable alternatives if Sentry
-Uptime isn't enabled.
+per-check status-code overrides works. The intended provider is **Sentry
+Uptime Monitoring** at a 5-minute interval (it's already in this stack for
+error reporting, and uptime checks don't count against the
+5,000-events/month error quota). UptimeRobot (free tier) or Better Uptime
+are equally workable alternatives if Sentry Uptime isn't enabled.
 
 **Status: not yet configured by the operator.** No uptime monitor is wired
-up as of this writing — this section records the intervals and target
-endpoints `plan.md` already decided on so whoever configures the first
-monitor has concrete values to enter rather than re-deriving them.
+up as of 2026-10-02 — this section records the intervals and target
+endpoints so whoever configures the first monitor has concrete values to
+enter rather than re-deriving them.
 
 **2026-09-16 clarification:** the operator reported this item as "set up
 with Upstash Redis in prod." Upstash Redis is a separate, already-done
-piece of infrastructure (`akiva_tasks.md` T2 — it's the backing store for
+piece of infrastructure (it's the backing store for
 `backend/rate_limit.py`'s rate limiter, `RATE_LIMIT_REDIS_URL`), not an
 uptime-monitoring product — it has no capability to poll a URL on a
 schedule or page anyone on downtime. Uptime monitoring specifically (an
@@ -291,16 +296,16 @@ first to confirm the parsed row count and sample output before writing.
 of any kind.** This is a real, currently-unaddressed gap: a Supabase
 incident with no manual `pg_dump` taken recently means total data loss,
 no partial recovery. Recommended next step: a scheduled manual backup —
-this repo's own §14.6 "no warmers/keepalive/scheduled-request" rule
+this repo's "no warmers/keepalive/scheduled-request" rule
 argues against adding a new Vercel cron purely for this, so it should run
 off-platform (e.g. a local or CI-hosted cron invoking `supabase db dump`
 or `pg_dump`) rather than as a new Vercel Cron entry. Not yet built —
-tracked here as an open item, not a numbered prompt.
+tracked here as an open item.
 
 ## Incident response
 
 **Roles:** solo-operated project, one person holds every role.
-`docs/PRIVACY_OPERATIONS.md` §6 already defines roles and the 72-hour GDPR
+`docs/PRIVACY_OPERATIONS.md` §6 defines roles and the 72-hour GDPR
 Art. 33 timeline for *data breaches* specifically — this section is the
 general-purpose version for incidents that aren't necessarily a breach (an
 outage, a broken deploy, a cost spike, a user-facing bug). If a general
@@ -368,8 +373,7 @@ itself and took the whole app down.
 **Fix:** commit `352ccd0` (2026-08-26) — `_build_store()` now wraps the
 `_RedisStore(url)` construction in the same graceful in-memory-fallback path
 already used for the unset case, logged at CRITICAL since a malformed URL
-is a misconfiguration, not an expected absence. See `plan.md` §36.1's
-2026-08-26 update for the fuller investigation narrative.
+is a misconfiguration, not an expected absence.
 
 ## Rollback procedure (Vercel preview → promote)
 
@@ -424,7 +428,10 @@ needs the operator's explicit go-ahead given it touches production.
 
 **Pre-deploy:**
 
-- [ ] `pytest -q` green locally (full suite).
+- [ ] `pytest -q` green locally (full suite, 4,700 tests; the 85% coverage
+      floor in `pytest.ini` fails the run if it drops). Use the project
+      virtualenv (`.venv/bin/python -m pytest`), not the system Python.
+- [ ] `npm test` green locally (628 frontend tests).
 - [ ] `ruff check .` clean, or any findings are understood and either
       fixed or consciously deferred. CI's ruff step
       (`.github/workflows/ci.yml`) currently runs with
@@ -467,16 +474,14 @@ needs the operator's explicit go-ahead given it touches production.
       a healthy health-check endpoint only confirms the process is up,
       not that the change works.
 
-## Rate limiting & cost-ceiling status (§8.E.6)
+## Rate limiting & cost-ceiling status
 
-As of plan.md §16 Phase 9a, rate limiting is unified into a single
-Starlette middleware, `backend/rate_limit.py`'s `RateLimitMiddleware`,
-registered once on `asgi.py`'s `fastapi_app`. It covers every native
-FastAPI route and every Flask route reached through the `WSGIMiddleware`
-mount — Flask-Limiter and asgi.py's old independent in-process limiter are
-both removed (`plan.md` §16.8.1). Do not re-audit the two-limiter-drift
-finding here; it's resolved. If the status changes, update `plan.md` §16.8,
-not this file.
+Rate limiting is a single Starlette middleware,
+`backend/rate_limit.py`'s `RateLimitMiddleware`, registered once on
+`asgi.py`'s `fastapi_app`. It covers every native FastAPI route and every
+Flask route reached through the `WSGIMiddleware` mount — Flask-Limiter and
+the old independent in-process limiter in `asgi.py` are both removed, so
+there is one policy and one counter store.
 
 1. **Storage backend is per-instance unless configured.**
    `RATE_LIMIT_REDIS_URL` (`backend/rate_limit.py`) is unset by default,
@@ -484,10 +489,10 @@ not this file.
    Vercel Fluid, multiple concurrent instances each keep their own
    counters in that mode, so the effective ceiling is closer to
    `configured_limit × live_instances` than the configured number, and it
-   resets on every cold start/deploy. This is the still-open half of
-   `plan.md`'s §16.1 "D3" finding — point `RATE_LIMIT_REDIS_URL` at a
-   shared store (e.g. Upstash Redis, `rediss://…`) to close it in
-   production.
+   resets on every cold start/deploy. Production points
+   `RATE_LIMIT_REDIS_URL` at an Upstash Redis `rediss://…` store
+   (confirmed live 2026-08-26 after the incident in the history above), so
+   counters are shared across instances there.
 2. **Policy is one table, not two hand-kept literals.**
    `backend/rate_limit.py`'s `_POLICIES` dict is the single source of
    truth for every route class's window/limit/fail-open behavior —
@@ -504,11 +509,13 @@ the actual hard spend ceilings (Vercel Spend Management cap,
 Anthropic/Google provider-side budget caps) — those, not the rate limiter,
 are the real backstop against a runaway bill.
 
-**Status:** unchanged from `plan.md`'s §16.8 as of this writing —
-shared-store rate limiting remains open, tracked there.
+**Status (2026-10-02):** shared-store rate limiting is live in production;
+the global cost breaker and the edge WAF rate-limit rule sit in front of
+it ([`docs/SECURITY.md`](SECURITY.md) §5 and §7). Local development and CI
+use the in-process fallback by design.
 
 ---
 
 *This runbook documents its own configuration status inline, section by
-section. See `plan.md` §8.E / §14 / §16 for the full phase-by-phase history
-behind these decisions.*
+section; the dated "confirmed" notes are the last time each fact was
+verified.*

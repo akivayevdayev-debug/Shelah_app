@@ -1,17 +1,19 @@
-# Privacy Operations (plan.md §8.D)
+# Privacy Operations
 
-**Status:** privacy-operations pass, implemented 2026-08-17. This document
-is the DSR procedure, DPA checklist, Records of Processing table, and
-breach response plan that plan.md §8.D.1/§8.D.3/§8.D.4/§8.D.6 call for. The
-basic DPIA plan.md §8.D.4 also calls for lives in `docs/DPIA.md`.
+**Status (2026-10-02):** implemented 2026-08-17 and kept current since.
+This document is the DSR procedure, DPA checklist, Records of Processing
+table, and breach response plan. The DPIA lives in `docs/DPIA.md`. All six
+processor DPAs are executed (operator-confirmed 2026-09-16) and the
+retention cron is running (`CRON_SECRET` confirmed set in production
+2026-09-06).
 
 Sh'elah is operated by a solo developer (Akiva Yevdayev), not a company
 with a dedicated privacy team — every "who does this" answer below is the
 same person, contactable at **akiva.yevda@gmail.com**.
 
-See [`docs/LAUNCH_CHECKLIST.md`](LAUNCH_CHECKLIST.md) for how this
-document's items map onto the plan.md §8.H launch-gate checklist,
-including the DPA-execution and retention-cron items that are still open.
+See [`docs/LAUNCH_CHECKLIST.md`](LAUNCH_CHECKLIST.md) (line 5, "Privacy
+operations") for how this document's items map onto the launch-gate
+checklist.
 
 ## 1. Data-subject request (DSR) flow
 
@@ -25,7 +27,7 @@ without waiting on a manual request:
   (`backend/routes_privacy.py`), which returns a JSON bundle of every row
   the user owns across `user_preferences`, `study_bookmarks`,
   `ask_history`, `user_memories`, `ai_usage_log`, `answer_feedback`
-  (added 2026-08-27, plan.md §39.1 — previously excluded, so a feedback
+  (added 2026-08-27 — previously excluded, so a feedback
   row survived account deletion undiscoverable and unreachable) and
   `conversations`, the AI chat history, with its messages and citations
   embedded (added 2026-09-26; before that, chat threads were neither
@@ -47,7 +49,7 @@ without waiting on a manual request:
   are individually idempotent, so a retried request after a partial failure
   is safe to resend as-is.
 - **Completeness backstop for deletions this app doesn't initiate** (added
-  2026-08-27, plan.md §39.2) — `POST /api/webhooks/clerk`
+  2026-08-27) — `POST /api/webhooks/clerk`
   (`backend/routes_webhooks.py`) listens for Clerk's `user.deleted`
   webhook and runs the same per-table cascade delete above, keyed on the
   event's `data.id`. This exists because `delete_account()` above is not
@@ -65,7 +67,7 @@ without waiting on a manual request:
   (Akiva, Clerk Dashboard) — self-service account deletion is live for
   this app's Clerk instance. Carries no completeness risk: the webhook
   above already backstops this exact path. See `docs/SECURITY.md` §9 for
-  the dated record (plan.md §39.2 STEP 3).
+  the dated record.
 
 Neither endpoint reaches a table via the RLS-scoped client — see the
 module docstring in `backend/routes_privacy.py` for why (the frontend's
@@ -150,13 +152,13 @@ the in-app flow:
 
 `POST /api/accept-legal` (`backend/routes_user.py`) stores, per signed-in
 user in `user_preferences`: `legal_accepted`, `legal_accepted_at`,
-`legal_terms_version`, `legal_privacy_version`, and (plan.md §8.B-AGE.6)
+`legal_terms_version`, `legal_privacy_version`, and
 `age_attested`/`age_attested_at`. The frontend's consent modal keys its
 localStorage re-prompt flag off `LEGAL_TERMS_VERSION`/
 `LEGAL_PRIVACY_VERSION` (`app.py`), so bumping either constant both
 re-shows the modal to every user and produces a distinguishable acceptance
 record for the new version — that's what makes "re-prompt on material
-version change" (plan.md §8.D.2) real rather than aspirational.
+version change" real rather than aspirational.
 
 **Bug fixed in this pass:** `accept_legal()` previously upserted against a
 `clerk_id` column that does not exist anywhere in the schema (the table's
@@ -212,9 +214,10 @@ chase down:
 each vendor offer," which is a fact anyone can look up. It does **not**
 answer whether that mechanism is legally sufficient for *this* Service's
 actual data flows and EU/UK/Swiss exposure — that residual judgment call
-is still for the attorney review in `plan.md` §8.H line 1 / `akiva_tasks.md`
-T14, and vendor certifications/DPA terms can change without notice, so
-re-verify before relying on this table for anything beyond drafting.
+is the kind an attorney review would settle; the operator declined
+attorney review on 2026-09-05, so it stands as an accepted-risk
+judgment. Vendor certifications and DPA terms can change without notice,
+so re-verify before relying on this table for anything beyond drafting.
 
 **Research note (2026-09-05):** Supabase and Sentry — the two remaining
 sub-processors not covered in the 2026-09-04 pass — were researched
@@ -236,7 +239,7 @@ reflected in `privacy.html` §5.
 | Halachic Q&A (ask pipeline) | Registered + anonymous users | Question text, AI answer, cited sources, community/mode/language settings | Generate and store the AI answer, per-user history | Google Gemini, Anthropic Claude, Sefaria, Supabase | 90 days, then deleted (automated — §5 below) | RLS-scoped table, encryption at rest (Supabase) |
 | User preferences & study data | Registered users | UI prefs, bookmarks, study notes, AI summaries | Personalize reading experience | Supabase only | Until user deletes or account deletion | RLS-scoped table |
 | Conversation memory | Registered users | Short AI-generated summaries of prior interactions | Personalize future answers | Supabase, (indirectly) Gemini/Claude at inference time | Until account deletion | RLS blocks all client access; service-role only |
-| AI usage/cost metering | Registered + anonymous (IP-keyed) users | Model name, token counts, estimated cost, `user_id` or `client_key` | Enforce per-caller budget caps (plan.md §8.C.1/§16) | Supabase only | 90 days, then deleted (automated — §5 below) | Service-role only, not client-readable |
+| AI usage/cost metering | Registered + anonymous (IP-keyed) users | Model name, token counts, estimated cost, `user_id` or `client_key` | Enforce per-caller budget caps | Supabase only | 90 days, then deleted (automated — §5 below) | Service-role only, not client-readable |
 | Legal consent & age attestation | Registered users | ToS/Privacy version + timestamp, 13+/16+ attestation | Demonstrate consent, enforce minimum age | Supabase only | Duration of account + reasonable post-deletion period (defensibility) | RLS-scoped table |
 | Error/crash telemetry | Registered + anonymous users | Scrubbed stack traces, request IDs — question/answer text excluded | Debug production incidents | Sentry | Sentry's own retention (project-configured) | Data scrubbing enabled (`docs/OBSERVABILITY.md`) |
 
@@ -333,7 +336,7 @@ breach itself):**
    are affected, and whether it meets the GDPR Art. 33 "risk to the rights
    and freedoms of natural persons" bar for notification. Given the app's
    halachic-question domain, treat exposure of question/answer content as
-   higher-risk by default — plan.md §8.B's safety classifier exists
+   higher-risk by default — the app's safety classifier exists
    because that content is routinely medical, marital, mental-health, and
    abuse-adjacent.
 3. **Hour 24–72 — notify (if required).** If notification is required:
@@ -372,4 +375,4 @@ required):**
 ## 7. DPIA
 
 A basic Data Protection Impact Assessment covering the app's automated
-religious-guidance processing lives in `docs/DPIA.md` (plan.md §8.D.4).
+religious-guidance processing lives in `docs/DPIA.md`.

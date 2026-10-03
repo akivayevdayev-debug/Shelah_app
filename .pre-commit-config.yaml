@@ -22,7 +22,7 @@ repos:
         name: check-prompt-doc-sync (advisory)
         description: >-
           Flags claude_code_prompts.md rows whose status claim disagrees with
-          the plan.md section they track. Advisory only (see plan.md §51) --
+          the plan.md section they track. Advisory only --
           never blocks the commit; verbose so the report still prints when
           these files are touched.
         entry: python3 scripts/check_prompt_doc_sync.py

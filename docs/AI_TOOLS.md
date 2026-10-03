@@ -1,6 +1,6 @@
 # AI tool-use (agentic layer)
 
-Plan reference: `plan.md` §9. Implementation: `backend/ai_tools.py` (registry), `backend/ask_pipeline.py::run_agentic_ask` (orchestration loop), `backend/claude.py::_call_anthropic_agentic_turn` (raw Anthropic Messages API tool-use call).
+**Status (2026-10-02):** shipped and tested, **off by default** (`AI_AGENTIC_TOOLS=false` in code and in `.env.example`); production runs the pre-fetch RAG path. Implementation: `backend/ai_tools.py` (registry), `backend/ask_pipeline.py::run_agentic_ask` (orchestration loop), `backend/claude.py::_call_anthropic_agentic_turn` (raw Anthropic Messages API tool-use call).
 
 ## What this is
 
@@ -10,10 +10,10 @@ The agentic layer is a second, flag-gated path where the model is given a set of
 
 ## The flag: `AI_AGENTIC_TOOLS`
 
-- Env var, `backend/claude.py`. **Unconditionally off by default in every environment** — unlike `CLERK_ENFORCE_AUTH`'s prod-aware default, this flag has no environment carve-out, per plan.md §9.4's explicit "do not enable the flag by default."
+- Env var, `backend/claude.py`. **Unconditionally off by default in every environment** — unlike `CLERK_ENFORCE_AUTH`'s prod-aware default, this flag has no environment carve-out, by design: it must never be enabled by default.
 - Off (default): `/ask` behaves exactly as it did before this layer existed — `app.py` calls `claude.ask_claude(...)`, `asgi.py` calls `claude.ask_ai_async(...)`. Neither function was modified by this work; both remain fully independent of `ask_pipeline.run_agentic_ask` (enforced by `tests/test_agent_loop.py::test_scenario_g_ask_claude_and_ask_ai_async_untouched_by_this_module`, which asserts via `inspect.getsource` that neither function's source references `run_agentic_ask`).
 - On: both transports instead call `ask_pipeline.run_agentic_ask(...)`, which drives the tool-use loop against the live Anthropic API.
-- To enable: set `AI_AGENTIC_TOOLS=true`. There is no default-on rollout plan yet — flipping this changes the live model-call shape (a `tools=[...]` parameter on every `/ask` turn) and should happen deliberately, after soak, not as a side effect of this work. **Do not enable in production before `claude_code_prompts.md` Prompt 29a's D3 (Upstash rate-limit store + middleware unification) lands** — the agentic loop can issue multiple tool-call rounds (and therefore multiple metered model calls) per `/ask` request, multiplying per-question cost, and the roadmap's own ordering (Prompt 20's original prerequisite) gated this specifically on rate limiting being hardened first.
+- To enable: set `AI_AGENTIC_TOOLS=true`. There is no default-on rollout plan yet — flipping this changes the live model-call shape (a `tools=[...]` parameter on every `/ask` turn) and should happen deliberately, after soak, not as a side effect of an unrelated change. The agentic loop can issue multiple tool-call rounds (and therefore multiple metered model calls) per `/ask` request, multiplying per-question cost, so it was gated on rate limiting being hardened first. That prerequisite is met: the shared Upstash-backed rate-limit store and the unified `RateLimitMiddleware` are live in production (see `docs/SECURITY.md` §5), as are the global daily budget cap and cost breaker. The remaining decision is the operator's, and should be weighed against the per-question cost multiplier.
 
 ## Source hierarchy (non-negotiable)
 
@@ -45,7 +45,7 @@ All tools wrap **existing** backend functions — this layer adds no new busines
 | `get_daily_study` | Hebcal/Sefaria daily-learning calendars (daf yomi, mishnah yomi) |
 | `get_daily_zmanim_summary` | Composed `zmanim_engine` digest — "what do I need to know today" |
 | `calculate_hebrew_date_math` | `PyluachEngine` — yahrzeit/anniversary date arithmetic |
-| `convert_measurements` | New deterministic shiurim table (Chazon Ish vs. R' Chaim Naeh) — the one genuinely new piece of logic in this layer, called for explicitly by plan.md §9.2b |
+| `convert_measurements` | New deterministic shiurim table (Chazon Ish vs. R' Chaim Naeh) — the one genuinely new piece of logic in this layer, the one piece of logic in this layer with no existing backend function to wrap |
 
 **Language & community:**
 | Tool | Backs onto |
@@ -61,9 +61,9 @@ All tools wrap **existing** backend functions — this layer adds no new busines
 |---|---|
 | `web_search` | `search.async_search_wikipedia` + the existing allowlist in `search.py` only — no new provider. Orchestrator-gated (see below). |
 
-**Deliberately not exposed as model tools:** `export_answer` and `save_bookmark` mutate state / produce files — they stay UI-only actions on a finished answer, keeping the agent loop read-only and side-effect-free, per plan.md §9.2's explicit instruction.
+**Deliberately not exposed as model tools:** `export_answer` and `save_bookmark` mutate state / produce files — they stay UI-only actions on a finished answer, keeping the agent loop read-only and side-effect-free.
 
-## Web-search last-resort gate (§9.3)
+## Web-search last-resort gate
 
 Three layers, belt-and-suspenders:
 
@@ -77,26 +77,26 @@ Loop: send the question + the currently-allowed tool schemas → the model retur
 
 The `AI_AGENTIC_TOOLS` gate at both call sites (`app.py`'s `_run_ask_question_ai_synthesis`, `asgi.py`'s `_run_ask_async_ai_synthesis`) is the only new branch point in either route handler — everything downstream (fallback ladder, response-shape building, safety-output validation) is shared with the non-agentic path.
 
-## Safety, cost, reliability (§9.5)
+## Safety, cost, reliability
 
 - `classify_safety()` runs **before** the loop starts — medical/self-harm/abuse queries never reach tool-use; they route straight to referral, identical to the non-agentic path.
 - Every tool call is timed out, narrowly caught, and circuit-broken (`health.record_success`/`record_failure` per attempt, fail-open on a dead provider).
 - `cost_meter` records the underlying model call each round via the same `record_llm_call` path `_call_anthropic_agentic_turn` shares with the rest of `claude.py`.
 - Tool results are sanitized as untrusted content (`claude._sanitize_model_output`, capped at 4000 chars) before being re-injected into the conversation, since `web_search` results in particular are external, unvetted text. On top of that, the handlers that return publicly-editable, crowd-sourced, or user/community-submitted third-party text (`web_search`, `search_responsa_external`, `translate_text`, and — as of 2026-09-23 — `search_community_customs`, `get_community_profile`) run each result through `backend/retrieval_guard.py::withhold_injected()` and drop a hit carrying prompt-injection phrasing whole (a dropped `web_search` result comes back as a "withheld" error; a dropped responsa hit simply isn't in `results`; a dropped translation comes back as `translated: false`; a dropped `search_community_customs` row simply isn't in `results`; a dropped `get_community_profile` comes back as a "content withheld" error). Only a source label and a marker count are logged, never the text — see `docs/AI_SECURITY_REVIEW.md` M2 for the full pattern-coverage and false-positive-measurement writeup.
 
-## Implementation notes & deviations from plan.md's literal text
+## Implementation notes
 
-Documented here rather than silently — each is a deliberate, evidence-based call made while implementing Prompt 20, not an oversight:
+Each of these is a deliberate, evidence-based design call, not an oversight:
 
-1. **`get_community_profile` and `get_prayer_text` reimplemented, not wrapped.** Plan.md §9.2b names these as backing onto `_build_trusted_custom_sources` / `SIDDUR_SECTION_MAP` and `_get_prayer_refs` — both of which live in `app.py`, not `backend/`. `backend/ai_tools.py` must import `backend.*` only (never `app`, to stay callable from any transport and from tests without booting Flask) — the same constraint Prompt 20 itself states. Both tools are therefore reimplemented against backend-only data sources instead of wrapping the named app.py functions; see each handler's own docstring in `ai_tools.py` for the specific data-source substitution. `get_prayer_text`'s original gap (no curated friendly-name mapping, only Sefaria's index-title search) is closed: it now answers first from `backend/siddur_data.py`, the backend-owned table of contents of the checked-in siddur (`data/siddur/`), matching service and section names by word set with common spellings folded ("Shema" → Shacharit's Shema, "Ma'ariv" → Arbit, "Amida of Mincha"), and returns typed lines (prayer / instruction / conditional / heading) with Sefaria segment refs and the `/siddur/...` page path. Only names the siddur doesn't hold reach Sefaria, so the tool's `ToolSpec.service` is `None` and the Sefaria fallback gates on and books the `sefaria` circuit itself — a Sefaria outage no longer hides the local answer.
-2. **`_THREAD_POOL` not reused for parallel tool execution.** Plan.md §9.4 says to reuse `_THREAD_POOL` (defined in `app.py`) for the `asyncio.gather` + `to_thread` parallel tool dispatch. `backend/ask_pipeline.py` cannot import from `app.py` without violating the same backend-import-discipline rule — `app.py` imports `backend.*`, not the reverse, and reversing that creates a circular import. `run_agentic_ask` instead calls `asyncio.gather()` directly over the already-async `execute_tool()` coroutines, each of which internally uses a bare `asyncio.to_thread` for its own blocking calls — functionally equivalent "parallel, non-blocking" behavior without the illegal import.
-3. **Anthropic only, not Gemini.** The pre-fetch path is multi-model (Gemini primary, Claude fallback). The agentic loop (`_call_anthropic_agentic_turn`) is Anthropic-only — Gemini's function-calling API has a different request/response shape and would need its own parsing branch. Scoped out as deliberate follow-up rather than attempted partially; see the new findings section (plan.md, "Findings from implementing Prompt 20") for the concrete next step.
-4. **`is_healthy()` off-loop everywhere in this layer.** `is_healthy()` can perform a blocking `requests.get` re-probe when a circuit's recovery interval has elapsed. Every call site added by this work — `_call_anthropic_agentic_turn`'s circuit check and `ai_tools.execute_tool`'s per-tool circuit check — wraps it in `await asyncio.to_thread(health.is_healthy, ...)`, matching the existing pattern in `claude.py`'s other async model-call functions (§26.1). `execute_tool`'s bare (non-`to_thread`) call was a bug introduced during this same implementation pass and fixed before this document was written, not deferred.
+1. **`get_community_profile` and `get_prayer_text` reimplemented, not wrapped.** The obvious backing functions (`_build_trusted_custom_sources`, `SIDDUR_SECTION_MAP` and `_get_prayer_refs`) live in `app.py`, not `backend/`. `backend/ai_tools.py` must import `backend.*` only (never `app`, to stay callable from any transport and from tests without booting Flask). Both tools are therefore reimplemented against backend-only data sources instead of wrapping the `app.py` functions; see each handler's own docstring in `ai_tools.py` for the specific data-source substitution. `get_prayer_text`'s original gap (no curated friendly-name mapping, only Sefaria's index-title search) is closed: it now answers first from `backend/siddur_data.py`, the backend-owned table of contents of the checked-in siddur (`data/siddur/`), matching service and section names by word set with common spellings folded ("Shema" → Shacharit's Shema, "Ma'ariv" → Arbit, "Amida of Mincha"), and returns typed lines (prayer / instruction / conditional / heading) with Sefaria segment refs and the `/siddur/...` page path. Only names the siddur doesn't hold reach Sefaria, so the tool's `ToolSpec.service` is `None` and the Sefaria fallback gates on and books the `sefaria` circuit itself — a Sefaria outage no longer hides the local answer.
+2. **`_THREAD_POOL` not reused for parallel tool execution.** Reusing `_THREAD_POOL` (defined in `app.py`) for the `asyncio.gather` + `to_thread` parallel tool dispatch would be the obvious choice, but `backend/ask_pipeline.py` cannot import from `app.py` without violating the same backend-import-discipline rule — `app.py` imports `backend.*`, not the reverse, and reversing that creates a circular import. `run_agentic_ask` instead calls `asyncio.gather()` directly over the already-async `execute_tool()` coroutines, each of which internally uses a bare `asyncio.to_thread` for its own blocking calls — functionally equivalent "parallel, non-blocking" behavior without the illegal import.
+3. **Anthropic only, not Gemini.** The pre-fetch path is multi-model (Gemini primary, Claude fallback). The agentic loop (`_call_anthropic_agentic_turn`) is Anthropic-only — Gemini's function-calling API has a different request/response shape and would need its own parsing branch. Scoped out as a deliberate follow-up rather than attempted partially; the concrete next step is a Gemini-specific parsing branch behind the same `run_agentic_ask` interface.
+4. **`is_healthy()` off-loop everywhere in this layer.** `is_healthy()` can perform a blocking `requests.get` re-probe when a circuit's recovery interval has elapsed. Every call site added by this work — `_call_anthropic_agentic_turn`'s circuit check and `ai_tools.execute_tool`'s per-tool circuit check — wraps it in `await asyncio.to_thread(health.is_healthy, ...)`, matching the existing pattern in `claude.py`'s other async model-call functions.
 
 ## Tests
 
 - `tests/test_ai_tools.py` — registry shape, param validation, and per-tool handler behavior against mocked engines (offline).
-- `tests/test_agent_loop.py` — orchestration scenarios (a)–(g) from plan.md §9.6: texts-only answers never expose `web_search`; zmanim/Hebrew-date questions call the right deterministic tool; a non-Judaic factual gap unlocks `web_search` only after a texts search comes back insufficient, and the result carries the web warning; the round cap is enforced; a circuit-open provider is hidden from the model; the flag-off path reproduces today's behavior exactly (verified structurally, not just by value, per the note above).
+- `tests/test_agent_loop.py` — orchestration scenarios (a)–(g): texts-only answers never expose `web_search`; zmanim/Hebrew-date questions call the right deterministic tool; a non-Judaic factual gap unlocks `web_search` only after a texts search comes back insufficient, and the result carries the web warning; the round cap is enforced; a circuit-open provider is hidden from the model; the flag-off path reproduces today's behavior exactly (verified structurally, not just by value, per the note above).
 - `tests/test_claude_agentic_turn.py` — the raw `_call_anthropic_agentic_turn` Messages-API call against the suite's respx-mocked Anthropic endpoint (real SDK `Message` object parsing, not an all-mocked shape).
 
 `pytest -q` is green with `AI_AGENTIC_TOOLS` both unset (default) and `=true`.

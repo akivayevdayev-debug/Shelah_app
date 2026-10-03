@@ -1,231 +1,172 @@
-# Service Architecture
+# Service architecture
 
-This document describes the runtime architecture of the Sh'elah application: how requests flow, what each module owns, how async safety is enforced, and how the system behaves in a serverless environment.
-
----
-
-## System Overview
-
-```
-┌─────────────────────────────────────────────────────────┐
-│                        Browser                          │
-└────────────────────────────┬────────────────────────────┘
-                             │ HTTPS
-                             ▼
-┌─────────────────────────────────────────────────────────┐
-│                    Vercel (serverless)                   │
-│   vercel.json: catch-all rewrite → asgi.py              │
-└────────────────────────────┬────────────────────────────┘
-                             │
-                             ▼
-┌─────────────────────────────────────────────────────────┐
-│                 asgi.py  (FastAPI app)                   │
-│                                                         │
-│  ┌──────────────────────────────────────────────────┐   │
-│  │  Async /ask pipeline                             │   │
-│  │  auth → rate-limit → RAG → AI → fallback ladder  │   │
-│  └──────────────────────────────────────────────────┘   │
-│                                                         │
-│  ┌──────────────────────────────────────────────────┐   │
-│  │  WSGIMiddleware → Flask app (app.py)             │   │
-│  │  48 routes: HTML, /api/library, /api/calendar,   │   │
-│  │  /api/community, /api/prayers, /api/user,        │   │
-│  │  /api/devtools, /api/async/health                │   │
-│  └──────────────────────────────────────────────────┘   │
-└──────────┬───────────────────┬───────────────────────────┘
-           │                   │
-           ▼                   ▼
-┌──────────────────┐  ┌────────────────────────────────────┐
-│    Supabase      │  │         Upstream APIs               │
-│  (PostgreSQL)    │  │  Sefaria API   Hebcal API           │
-│                  │  │  Anthropic Claude                   │
-│ user_memory      │  │  Google Gemini                      │
-│ community_       │  │  MyMemory / Google Translate        │
-│   knowledge      │  └────────────────────────────────────┘
-│ ai_usage_log     │
-│ bookmarks        │
-│ preferences      │
-└──────────────────┘
-```
+**Status (2026-10-02):** a Flask + FastAPI hybrid on Vercel (one region, `iad1`). The AI path, the conversation routes, rate limiting, per-user and global cost gates, the circuit breakers and the CDN cache tiers are all implemented and covered by tests (about 4,700 pytest tests at 99.8% backend coverage, an 85% floor enforced in CI). This document describes how requests flow, what each module owns, how async safety is enforced, and how the system behaves in a serverless environment. Route-by-route detail is in [API.md](API.md); the data model is in [DATABASE.md](DATABASE.md); configuration is in [ENVIRONMENT.md](ENVIRONMENT.md).
 
 ---
 
-## Module Breakdown
+## 1. System overview
 
-### `app.py`
+```text
+Browser (SPA shell + ES modules + service worker)
+        │ HTTPS
+        ▼
+Vercel (iad1)          vercel.json: functions api/index.py, maxDuration 90 s,
+        │              two crons, /static/ Cache-Control
+        ▼
+api/index.py ── re-exports asgi.app
+        │
+        ▼
+asgi.py  (FastAPI)
+  middleware, outermost first:
+    request_id_middleware   body cap (256 KiB), x-request-id, security headers,
+                            Cache-Control tier, request_complete log line
+    RateLimitMiddleware     one limiter for native AND Flask routes
+  native routes:
+    POST /ask               the async answer pipeline (section 4)
+    GET  /api/async/health
+  mount "/"  ──► WSGIMiddleware(app.py Flask)
+                   15 blueprints (section 3), the SPA shell, pages, 404
+        │
+        ├── Supabase (Postgres + RLS)   user data, history, conversations, usage log
+        ├── Upstash Redis               rate-limit counters, shared caches
+        ├── Gemini (primary) / Claude (fallback)
+        ├── Sefaria, Hebcal, Nominatim, Wikipedia/Halachipedia, MyMemory/Google Translate
+        ├── Clerk (JWT verification, JWKS; Backend API for account deletion)
+        └── Cloudflare Turnstile (siteverify), Sentry
+```
 
-The main Flask application. Responsibilities:
+Everything that is not `POST /ask` or `GET /api/async/health` is a Flask route reached through the WSGI mount, run on a worker thread. `app.py` also still defines a synchronous `POST /ask`, but in production the native FastAPI route matches first, so it is unreachable there; `tests/test_ask_transport_parity.py` pins the two to the same payload shape so they cannot drift.
 
-- Registers all route blueprints from `backend/routes_*.py`
-- Configures CORS, session handling
-- Runs `setup_logging()` at startup so all loggers inherit the JSON formatter
-- Exposes the WSGI callable (`app`) consumed by `asgi.py` via `WSGIMiddleware`
-- Contains legacy inline route handlers being migrated to blueprints
-- Owns in-process module-level state: `DEVTOOLS_STATS` counters, circuit-breaker instances
-- Carries no rate limiter of its own — see `backend/rate_limit.py` below
+---
+
+## 2. Process-level modules
 
 ### `asgi.py`
 
-The FastAPI ASGI entrypoint. Responsibilities:
+The ASGI entry point and the only place the two stacks meet.
 
-- Creates a `fastapi_app` instance that Vercel routes all traffic to
-- Mounts Flask at `/` via `asgiref.wsgi.WsgiToAsgi` (or `starlette.middleware.wsgi.WSGIMiddleware`)
-- Owns the **async `/ask` pipeline** as a native FastAPI route — this allows true async I/O for the latency-sensitive AI path without blocking the event loop
-- Exposes `GET /api/async/health` as a FastAPI-native health endpoint
+- `request_id_middleware`: rejects bodies over 256 KiB by `Content-Length` before any parsing (Flask's own `MAX_CONTENT_LENGTH` does not cover native routes), binds a `request_id` (an inbound `X-Request-Id` is kept, otherwise one is generated and written back into the ASGI headers so the Flask layer reports the same id), adds the security headers and a `Cache-Control` tier to native responses that lack them, and logs `request_complete` with the duration.
+- `RateLimitMiddleware` (`backend/rate_limit.py`): registered first so the id middleware ends up outermost; it rejects with 429 before dispatch to either FastAPI or Flask.
+- The `/ask` handler and its helpers (section 4), `GET /api/async/health`, and `fastapi_app.mount("/", WSGIMiddleware(flask_app_module.app))`.
+- `import backend.logging_setup` (which runs `sentry_sdk.init()`) must stay ahead of the `FastAPI(...)` call, or Sentry silently stops instrumenting.
 
-### `backend/auth.py`
+### `app.py`
 
-Clerk JWT verification. Fetches the JWKS from the Clerk issuer URL and verifies token signatures, expiry, audience, and issuer claims. Caches the JWKS to avoid redundant fetches. Returns a `UserContext` dataclass with `user_id`, `email`, and permission scopes.
+The Flask application: configuration, the request hooks, the SPA shell and a few pages (`/`, `/settings`, `/profile`, `/terms`, `/privacy`, `/accessibility`, `/manifest.webmanifest`, `/favicon.ico`, `/service-worker.js`), the 404 handler, shared helpers that blueprints import (`get_engine`, the Supabase client factories, the ask-time retrieval helpers), and the loop that registers the blueprints. A blueprint that fails to import aborts startup with the module name instead of serving 404s for an unknown subset of routes. In-process counters (`DEVTOOLS_STATS`) live here.
 
-### `backend/rate_limit.py`
+Hooks: `before_request` binds the request id; `after_request` logs completion and applies the security headers and the cache tier. New routes go in a `backend/routes_*.py` blueprint, not `app.py`.
 
-The single rate-limit enforcement point for the whole app (plan.md §16.3-L2), registered as a Starlette middleware on `fastapi_app` in `asgi.py`. Covers every native FastAPI route (`/ask`) and every Flask route reached through the `WSGIMiddleware` mount — one middleware registration sees both. Classifies each request path into a policy class (`llm`, `heavy`, `fanout`, `feedback`, `telemetry`, `cheap`), keys the counter by Clerk user id (when present, `llm` class only) or client IP otherwise, and increments a fixed-window counter in Redis (`RATE_LIMIT_REDIS_URL`, e.g. Upstash) or an in-process fallback store when unset. The `llm` class fails closed on a store outage (an unmetered `/ask` during an outage is a budget hole); every other class fails open (a Redis blip shouldn't block reader traffic).
+### `api/index.py`
 
-### `backend/rag.py`
-
-Retrieval-augmented generation context assembly. Takes a user question and assembles the full context payload for the AI prompt: Sefaria source texts, community customs, user memory fragments, wiki/Halachipedia entries, and the community lens. Returns a `RAGContext` object consumed by `claude.build_prompt()`.
-
-### `backend/claude.py`
-
-AI call layer. Responsibilities:
-
-- Builds structured prompts via `build_prompt()`
-- Calls Google Gemini (primary) with `asyncio.to_thread` / async httpx
-- Falls back to Anthropic Claude on Gemini error or timeout
-- Parses and validates the structured JSON response from the model
-- Applies the "Scholarly Librarian" system prompt — defaults to providing sources for borderline halachic queries rather than refusing
-- Exposes `validate_user_query()` which gates only hateful/illegal/empty inputs
-
-### `backend/sefaria.py`
-
-Sefaria REST API client. Maintains a `TOPIC_REFS` mapping of 100+ halachic topics to Sefaria reference strings. `find_refs_for_question()` does keyword matching to select relevant refs; `get_sources()` fetches them from the Sefaria API with a 10-second timeout.
-
-### `backend/sefaria_library.py`
-
-Sefaria library tree and text browsing. Powers the `/api/library/index` and `/api/library/text/<ref>` endpoints, fetching the library table of contents and individual texts.
-
-### `backend/search.py`
-
-Full-text search integration. Calls the Sefaria search API and normalizes results for the UI.
-
-### `backend/calendar_service.py`
-
-Jewish calendar service. Fetches parasha, holidays, Daf Yomi, and Mishna Yomit from Hebcal. Combines with `zmanim_engine.py` output to produce the daily calendar payload.
-
-### `backend/zmanim_engine.py`
-
-Halachic time calculation engine. Accepts latitude, longitude, and date; returns the full set of zmanim (Alos, sunrise, Sof Zman Krias Shema, Sof Zman Tefilla, Chatzos, Mincha Gedola, Mincha Ketana, Plag HaMincha, sunset/Shkia, Tzeis Hakochavim).
-
-### `backend/customs.py`
-
-Community customs loader. Reads from `customs/*.json` — 14 community datasets — and matches the user's community lens to the correct dataset. Used by RAG and the `/api/community/customs` endpoint.
-
-### `backend/data_service.py`
-
-`ShelahEngine` — the top-level orchestrator for the synchronous `/ask` path (called from Flask). Coordinates: query validation → Sefaria source collection → customs lookup → user memory fetch → RAG assembly → AI call → response serialization.
-
-### `backend/logging_setup.py`
-
-Structured JSON logging. `setup_logging()` installs a `JSONFormatter` on the root logger. Every log line is a JSON object. `get_logger(__name__)` returns a module-scoped logger; `bind_request_id()` sets the `request_id` context variable for the current request.
-
-### `backend/health_check.py`
-
-Circuit-breaker implementation for four external dependencies: Sefaria, Hebcal, Gemini, Claude. Opens after 3 consecutive failures; half-opens after 120 seconds. State is exposed via `/api/devtools/reliability`.
-
-### `backend/cost_meter.py`
-
-LLM cost metering. `record_llm_call()` is an async function that writes a row to the `ai_usage_log` Supabase table after every AI response.
-
-### `backend/routes_*.py`
-
-Blueprint modules that own specific API surface areas. Each file registers its routes with Flask and imports only the service modules it needs, keeping `app.py` from growing further.
+Vercel requires the function entry point under `api/`; this file only re-exports `asgi.app`.
 
 ---
 
-## The `/ask` Pipeline
+## 3. Blueprints (`backend/routes_*.py`)
 
-The async pipeline in `asgi.py` executes these steps in order for every `POST /ask` request:
+| Blueprint | Owns |
+|---|---|
+| `routes_library` | `/api/library/*` (index, search, categories, popular, leaf refs), `/api/texts-index`, `/api/text/*` (text, links, graph), `/api/sidebar/*` (the commentary bundle), `/api/search/suggest`, `/api/word/meaning`, `/api/export/chapter`, `/api/diagnostics/sefaria` |
+| `routes_prayers` | `/api/prayers/list`, `/api/prayer/*`, and the first-generation siddur reads (`/api/siddur/full/*`, `/api/siddur/section-refs/*`) |
+| `routes_siddur` | `/api/siddur/v2/*` (contents, service and day endpoints over the checked-in siddur) |
+| `routes_community` | `/api/communities*`, `/api/community/*` (read from `customs/*.json`) |
+| `routes_calendar` | `/api/zmanim*`, `/api/holidays`, `/api/parasha`, `/api/daily-study`, `/api/geocode`, `/set_location` |
+| `routes_user` | `/api/auth/me`, `/api/user/preferences` (and its `/api/preferences` alias), ask history (`/api/user/history*`), semantic bookmarks, `/api/accept-legal` |
+| `routes_conversations` | `/api/conversations/*`, including the multi-turn `/ask` |
+| `routes_answer_share` | Sharing a stored answer (`/api/user/history/<id>/share`) and reading a shared one (`/api/public/answer/<token>`) |
+| `routes_spa_paths` | Path deep links (`/text/…`, `/prayer/…`, `/community/…`, `/siddur/…`, `/calendar/…`, `/answer/…`, `/a/…`, `/chat/…`, `/history`, `/signin`) served as the SPA shell, with the 308 redirects and `noindex` rules |
+| `routes_devtools` | `/api/stack/health`, `/api/health`, `/api/devtools/*` (heartbeat, reliability, RLS audit, feedback digest, segment report), client-error intake, and the `budget-check` cron target |
+| `routes_legal`, `routes_pages` | `/ai-disclosure`, `/acceptable-use`, `/dmca`, `/licenses`; `/about`, `/help`, `/glossary`, `robots.txt`, `sitemap.xml`, `llms.txt` |
+| `routes_privacy` | `/api/user/data-export`, `/api/user/delete-account`, and the `retention-enforce` cron target |
+| `routes_feedback` | Answer feedback |
+| `routes_webhooks` | Clerk webhooks (signature-verified) |
 
-```
-1. Auth check
-   └── backend/auth.py → verify Clerk JWT if Authorization header present
-       → UserContext (anonymous if no token, when CLERK_ENFORCE_AUTH=false)
+`docs/API.md` lists every route with its auth label and rate-limit class.
 
-2. Rate limit
-   └── backend/rate_limit.py's RateLimitMiddleware (llm class: 20/min, keyed
-       by Clerk user id when present, else IP)
-       → 429 Too Many Requests if exceeded
+---
 
-3. Input validation
-   └── backend/claude.py → validate_user_query()
-       → 400 Bad Request for empty, hateful, or injection-pattern queries
+## 4. The `/ask` pipeline
 
-4. Sefaria source collection
-   └── backend/sefaria.py → find_refs_for_question() → get_sources()
-       → list of {ref, text_he, text_en, url} dicts
-       → asyncio.to_thread (blocking HTTP → thread pool)
+`POST /ask` in `asgi.py` runs these stages in order. A client that sends `Accept: application/x-ndjson` gets one progress line per step and then the result (the HTTP status is still real: a refusal is an ordinary 4xx; once streaming starts, a failure is an in-stream `error` line).
 
-5. RAG context assembly
-   └── backend/rag.py → build RAGContext
-       ├── Sefaria sources (step 4)
-       ├── Community customs (backend/customs.py)
-       ├── User memory fragments (Supabase user_memory)
-       ├── Wiki / Halachipedia snippets
-       └── Community lens string
-
-6. AI synthesis
-   └── backend/claude.py → build_prompt() → call Gemini (async httpx)
-       → on error/timeout: fallback to Anthropic Claude (async httpx)
-       → parse structured JSON response
-
-7. Fallback ladder
-   └── If both AI providers fail:
-       → return cached similar answer (if available)
-       → else return graceful degradation message with raw Sefaria sources
-
-8. Response
-   └── {answer, sources, customs, wiki, meta, confidence}
-       → also calls backend/cost_meter.py → record_llm_call() (fire-and-forget)
+```text
+ 0. Rate limit        RateLimitMiddleware (llm class, fail-closed)       → 429
+ 1. Sanitize          claude.sanitize_user_query                          → 400
+ 2. Identity          Clerk bearer → user id (CLERK_ENFORCE_AUTH)        → 401
+ 3. Turnstile         anonymous callers only, once past the hourly
+                      threshold and only when TURNSTILE_ENABLED          → 403 turnstile_required
+ 4. Budget            per-user daily cap, reserved atomically            → 402
+ 5. Prayer shortcut   a question naming Shacharit/Mincha/Maariv/Kiddush/
+                      Havdalah returns a static pointer to the siddur, no model call
+ 6. Retrieval         six concurrent stages, each under its own ceiling
+                      (primary sources 15 s, Halachipedia 6, wiki 3, Supabase
+                      community knowledge 5, user memory 3, tool context 3); a stage
+                      that times out contributes nothing and the answer proceeds
+ 7. Strict guard      mode "strict" with no primary source → strict_blocked answer, no model call
+ 8. Cost breaker      global daily breaker tripped → cached answer (marked) or
+                      the "AI answers are paused" payload, no model call
+ 9. Synthesis         claude.ask_ai_async, or the agentic tool loop when
+                      AI_AGENTIC_TOOLS=true (backend/ask_pipeline.run_agentic_ask),
+                      under AI_TOTAL_BUDGET_SECONDS (45 s)
+10. Persist           user-memory summary, ask_history row (with safety class and
+                      PROMPT_VERSION), cost row
+11. Fallback          any synthesis failure → halakhic source discovery
+                      (get_halakhic_sources), returned as a source-only answer
 ```
 
----
+Notes:
 
-## Async Safety Rules
-
-Sh'elah runs on a single-threaded asyncio event loop (uvicorn). These rules are mandatory:
-
-1. **No blocking I/O on the event loop.** All `requests` library calls, file reads, and CPU-bound work must go through `asyncio.to_thread()`.
-
-2. **Shared `httpx.AsyncClient`.** A single `httpx.AsyncClient` instance is created at module level in `backend/claude.py` and reused across requests. Do not create per-request clients.
-
-3. **Flask routes are synchronous** — they run in a thread pool via `WSGIMiddleware`. Inside Flask route handlers, regular blocking I/O is fine; do not mix `asyncio.run()` inside Flask handlers.
-
-4. **FastAPI routes are async** — use `async def` and `await` throughout. Use `asyncio.to_thread()` for any call into synchronous library code (e.g., `pyluach`, Supabase SDK sync methods).
-
-5. **Contextvars for request_id.** The `request_id` is stored in a `contextvars.ContextVar` and propagates automatically across `await` boundaries within one request. Do not pass it as a function argument.
+- **Providers.** Gemini is primary (`gemini-3.5-flash-lite`, overridable with `GEMINI_MODEL`) through the SDK's async client; Claude Haiku 4.5 is the fallback through async `httpx`. Every call is gated by that provider's circuit breaker (`backend/health_check.py`): 3 consecutive failures open it, it half-opens after 120 s, and an open circuit skips straight to the next provider. A `security_blocked` result is returned as is, never retried on the other provider.
+- **Timeouts.** One request ceiling of 30 s per model call, clamped to the budget that remains (a contextvar deadline); Gemini rejects deadlines under 10 s, so it is not started with less. The 45 s synthesis budget sits under Vercel's 90 s `maxDuration` so the fallback in stage 11 always gets to run.
+- **Prompt and answer shape.** The model returns structured JSON (`ruling`, `sources`, `summary`, `practical_steps`, …) and tags each claim with a source number; `backend/citation_markers.py` renumbers the markers against the cleaned source list and drops any that point at nothing. Retrieved third-party text passes `backend/retrieval_guard.py` before it reaches the prompt (a snippet carrying injection phrases is dropped whole). `claude.PROMPT_VERSION` is stored with each saved answer so the governing prompt is reconstructable.
+- **The conversation ask** (`POST /api/conversations/<id>/ask`, in `routes_conversations.py`) runs the same retrieval and synthesis through `app.py`'s sync helpers on a worker thread, adds the thread's prior turns to the prompt, enforces the minhag lock from the conversation row (never the request body), and applies the same two cost gates through `backend/cost_gates.py`. It carries the `llm` rate-limit class through a path pattern.
+- **Streaming and cancellation.** A streamed answer is held by a strong reference in `_ASK_STREAM_TASKS`, so a client that disconnects mid-stream does not cancel the history and cost writes that follow.
 
 ---
 
-## Serverless Considerations
+## 5. Supporting modules
 
-Vercel runs `asgi.py` as a serverless function. Key implications:
+| Module | Role |
+|---|---|
+| `backend/auth.py` | Clerk JWT verification (JWKS cached per process; issuer, optional audience, expiry), `require_clerk_auth` (unconditional) and `maybe_require_clerk_auth` (honors `CLERK_ENFORCE_AUTH`, which defaults on in production) |
+| `backend/rate_limit.py` | Fixed-window limiter in Redis with an in-process fallback; route classes `llm`, `heavy`, `fanout`, `sidebar`, `feedback`, `telemetry`, `cheap`, `account`, `webhook`; keyed by Clerk id for `llm`, else client IP; `llm` fails closed, the rest fail open; `/static/` exempt |
+| `backend/turnstile.py` | Cloudflare Turnstile gate for anonymous `/ask` |
+| `backend/cost_meter.py`, `backend/cost_gates.py` | Per-call cost recording to `ai_usage_log`, the atomic per-user daily reservation (`PER_USER_DAILY_BUDGET_USD`), the global daily budget and breaker (`DAILY_BUDGET_USD`), and the sync/async gate bridge |
+| `backend/claude.py` | System prompts, prompt assembly, the Gemini then Claude call ladder, structured-output parsing, input sanitizing and the safety classifiers |
+| `backend/ask_pipeline.py`, `backend/ai_tools.py` | The agentic tool-use loop and its tool registry (22 tools); off by default, see [AI_TOOLS.md](AI_TOOLS.md) |
+| `backend/rag.py` | Ask-time context assembly: community-knowledge retrieval and scoring from the Supabase `community_knowledge` table, user-memory fetch and store, the ask-history writer, answer prefixes |
+| `backend/data_service.py` | `ShelahEngine`, a thin facade over zmanim, daily learning, Halachipedia and wiki summaries and library text for the Flask routes |
+| `backend/sefaria.py`, `backend/sefaria_library.py` | Topic-to-reference table; the library, text, links and search client with bounded caches |
+| `backend/sidebar_bundle.py` | The commentary sidebar's two-stage, server-cached bundle (slim links, then preloaded text) |
+| `backend/search.py`, `backend/utils/search_provider.py` | Wikipedia, Halachipedia and Hebcal connectors; corpus matching and the source-discovery fallback; translation (MyMemory, Google) |
+| `backend/customs.py` | Loads and fuzzy-matches the community customs under `customs/` (13 community files, `schema.json`, and the aggregate `customs_db.json`). The JSON files seed the `community_knowledge` table (`scripts/migrate_customs_to_supabase.py`), back `/api/community/*`, and serve the agentic `search_community_customs` tool; the live `/ask` retrieval reads `community_knowledge`, not the files |
+| `backend/zmanim_engine.py`, `backend/calendar_service.py` | Zmanim and the Hebrew calendar (pyluach first, Hebcal cross-checks); month events for FullCalendar |
+| `backend/siddur_data.py`, `siddur_day.py`, `siddur_lines.py` | The checked-in siddur (`data/siddur/`), what changes on a Hebrew day, and typed lines |
+| `backend/cache.py`, `backend/cache_policy.py` | A bounded TTL/LRU cache with an optional Redis tier; the single source of truth for `Cache-Control` tiers |
+| `backend/page_meta.py`, `backend/module_versions.py` | Per-URL `<head>` values for the SPA shell; content-hashed ES module URLs and the import map |
+| `backend/health_check.py` | Circuit breakers for Sefaria, Hebcal, Gemini and Claude (per process); state shown by `/api/devtools/reliability` |
+| `backend/logging_setup.py` | JSON logging, request/user/client contextvars, Sentry init and scrubbing, `log_mitigation` |
+| `backend/ref_aliases.py`, `backend/citation_markers.py`, `backend/ask_payloads.py`, `backend/ask_progress.py` | Mishneh Torah spelling aliases; numbered source markers; the response-body builders shared by both ask transports; live progress events |
 
-### Per-instance state
+---
 
-The following are module-level (process-local) and **not shared across Vercel instances**:
+## 6. Async safety rules
 
-- `DEVTOOLS_STATS` counters in `app.py` — instance-local only; use `/api/devtools/stats` for a single-instance snapshot
-- `backend/rate_limit.py`'s in-memory fallback store — used only when `RATE_LIMIT_REDIS_URL` is unset; set it (e.g. to an Upstash Redis URL over `rediss://`) to share rate-limit state across instances
-- Circuit-breaker state in `backend/health_check.py` — instance-local; each instance maintains its own open/closed state
+The FastAPI side runs on one event loop. These rules are mandatory (`.agents/ENGINEERING_RULES.md`):
 
-### Supabase as the persistence layer
+1. **No blocking I/O on the event loop.** `requests`, file reads, Supabase's sync client and CPU-heavy work go through `asyncio.to_thread()`; outbound HTTP on the async path uses `httpx.AsyncClient`.
+2. **Flask routes are synchronous** and run on the WSGI thread pool, where blocking I/O is fine. Do not call `asyncio.run()` inside a Flask handler except through the documented bridge in `claude.py` and `cost_gates.py`, which handle both the no-loop and running-loop cases.
+3. **`request_id` and the identity fields are contextvars**, copied into tasks and threads at creation, so binding them in the middleware reaches everything the request spawns.
+4. **One Redis client per event loop** for the limiter, because an async client cannot be shared across loops.
+5. **No warmers and no polling** of any route by the client for ordinary visitors (a billing rule; see [VERCEL_COST_OPTIMIZATION.md](VERCEL_COST_OPTIMIZATION.md)).
 
-All cross-instance state (user preferences, bookmarks, AI usage logs, community knowledge) lives in Supabase. Always use Supabase for anything that must survive a cold start or be visible to all instances.
+---
 
-### Cold starts
+## 7. Serverless behavior
 
-A cold start initializes the Flask app, loads all blueprint modules, and sets up logging. The JWKS cache for Clerk is empty on cold start and populated on the first authenticated request. Keep module-level initialization fast — no blocking network calls at import time.
-
-### Timeouts
-
-Vercel serverless functions have a maximum execution time (typically 10–30 seconds depending on plan). `MODEL_REQUEST_TIMEOUT_SECONDS` (backend/claude.py, a literal — not env-configurable) ensures AI calls complete within budget. Sefaria calls use a 10-second timeout; Hebcal uses 5 seconds.
+- **Per-instance state.** Process-local and not shared across instances: `DEVTOOLS_STATS`, the circuit-breaker state, the in-process rate-limit fallback (used only when `RATE_LIMIT_REDIS_URL` is unset), and each `TTLCache`'s memory tier. Anything that must be seen by every instance lives in Supabase or Redis.
+- **Cold starts.** Import time loads the blueprints and sets up logging; the Clerk JWKS cache is empty until the first authenticated request. Keep import-time work free of network calls; customs validation at startup is off in the production runtime.
+- **Time limits.** `maxDuration` is 90 s. Upstream reads (Sefaria, Hebcal, Wikipedia and the rest) use short per-call timeouts, mostly 5 to 12 s, and the retrieval stages in section 4 have their own ceilings; the model budget is in section 4.
+- **Scheduled work.** Two crons in `vercel.json`: `budget-check` (13:00 UTC) and `retention-enforce` (14:00 UTC), both bearer-authenticated with `CRON_SECRET`.
+- **CDN.** `cache_policy.py` classifies every response into an immutable, date-deterministic, corpus-derived or private tier; a response that depends on a session (a zmanim call that falls back to the session location) is forced private for that request. Details in [VERCEL_COST_OPTIMIZATION.md](VERCEL_COST_OPTIMIZATION.md).
+- **Security layers in front.** Vercel WAF, then the rate limiter, Turnstile and the cost gates; see [SECURITY.md](SECURITY.md).

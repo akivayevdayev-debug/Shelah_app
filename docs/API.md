@@ -1,240 +1,193 @@
 # API Reference
 
-All routes are served from the single Vercel deployment. The base URL in production is your Vercel project URL (e.g. `https://shelah-app.vercel.app`).
+Every route is served from one Vercel deployment. The base URL in production is the project's Vercel URL (for example `https://shelah-app.vercel.app`).
 
-Authentication is handled via Clerk JWTs. Pass the token in the `Authorization: Bearer <token>` header. When `CLERK_ENFORCE_AUTH=false` (default), unauthenticated requests to most endpoints succeed with reduced personalisation. Endpoints marked **Auth required** return `401` without a valid token regardless of the flag.
+**Status (2026-10-02):** written against the route table in the code (`app.py`, `asgi.py` and every `backend/routes_*.py` blueprint), not against an earlier design. `POST /ask` and `GET /api/async/health` are native FastAPI routes in `asgi.py`; everything else is Flask, reached through the `WSGIMiddleware` mount underneath. Both stacks share one rate limiter, one cache-policy table and one auth module.
 
----
+## Conventions
 
-## Core
+**Authentication.** Clerk JWTs, sent as `Authorization: Bearer <token>`. Each route is one of:
 
-### `GET /`
+| Label | Meaning |
+|---|---|
+| **Public** | No token needed. |
+| **Optional** | `maybe_require_clerk_auth`. With no token the request runs anonymously unless `CLERK_ENFORCE_AUTH` is on, in which case it is a `401`. A token that is sent must verify, or it is a `401` either way. |
+| **Clerk** | `require_clerk_auth`. A missing or invalid token is always a `401`, whatever `CLERK_ENFORCE_AUTH` says. |
+| **Cron secret** | `Authorization: Bearer <CRON_SECRET>`, compared in constant time. Fails closed (`503`) when `CRON_SECRET` is unset. |
+| **Svix signature** | Webhook signature check in place of a JWT. |
 
-Returns the main SPA HTML shell.
+`CLERK_ENFORCE_AUTH` defaults to `true` when `VERCEL=1` or `FLASK_ENV=production` and to `false` otherwise (`backend/auth.py`), so on the deployed site the **Optional** routes require sign-in. See `docs/ENVIRONMENT.md` and `docs/SECURITY.md` §6.
 
-- **Auth required:** No
-- **Response:** HTML (`text/html`)
-- **Errors:** None expected
+**Errors.** Flask routes return `{"error": "<message>"}`. The native FastAPI routes return `{"detail": "<message>"}`. A `429` always carries the rate-limiter body below, whichever stack answered.
 
----
+**Request identity.** Every response carries a request id for log correlation. Every non-private cacheable response also carries `X-Deploy-Hash` (diagnostic only).
 
-### `GET /terms`
+**Rate limits and caching.** Each route belongs to a rate-limit class (see [Rate limiting](#rate-limiting--abuse-mitigation)) and a `Cache-Control` tier (see [Cache tiers](#cache-tiers)). Both are listed per route group below.
 
-Returns the Terms of Service HTML page.
+**Safe to share.** Nothing here depends on a secret except where a section says so.
 
-- **Auth required:** No
-- **Response:** HTML (`text/html`)
+## Route index
 
----
-
-### `GET /privacy`
-
-Returns the Privacy Policy HTML page.
-
-- **Auth required:** No
-- **Response:** HTML (`text/html`)
-
----
-
-### `GET /favicon.svg`
-
-Returns the application favicon.
-
-- **Auth required:** No
-- **Response:** SVG image (`image/svg+xml`)
-
----
-
-### `GET /static/manifest.webmanifest`
-
-Returns the PWA web app manifest.
-
-- **Auth required:** No
-- **Response:** JSON (`application/manifest+json`)
+| Group | Routes |
+|---|---|
+| [Pages](#pages) | `/`, `/settings`, `/profile`, `/terms`, `/privacy`, `/accessibility`, `/about`, `/help`, `/glossary`, `/ai-disclosure`, `/acceptable-use`, `/dmca`, `/licenses`, `/robots.txt`, `/sitemap.xml`, `/llms.txt`, `/manifest.webmanifest`, `/favicon.ico`, `/service-worker.js` |
+| [Deep-link paths](#deep-link-paths) | `/text/…`, `/prayer/…`, `/siddur[/…]`, `/community/…`, `/calendar/…`, `/answer/…`, `/a/…`, `/chat/…`, `/history[/…]`, `/signin` |
+| [Ask](#ask-pipeline) | `POST /ask` |
+| [Conversations](#conversations) | `/api/conversations` (+ `/<id>`, `/<id>/messages`, `/<id>/restore`, `/<id>/ask`) |
+| [History and sharing](#answer-history-and-sharing) | `/api/user/history` (+ `/<id>`, `/<id>/share`), `/api/public/answer/<token>` |
+| [Library and texts](#library-and-texts) | `/api/library/*`, `/api/texts-index`, `/api/text/<ref>` (+ `/links`, `/graph`), `/api/sidebar/<ref>`, `/api/search/suggest`, `/api/word/meaning`, `/api/export/chapter`, `/api/diagnostics/sefaria` |
+| [Prayers and siddur](#prayers-and-siddur) | `/api/prayers/list`, `/api/prayer/<name>`, `/api/siddur/v2/*`, `/api/siddur/full/*`, `/api/siddur/section-refs/*` |
+| [Calendar and location](#calendar-and-location) | `/set_location`, `/api/geocode`, `/api/zmanim` (+ `/month`, `/days`), `/api/daily-study`, `/api/holidays`, `/api/parasha` |
+| [Communities](#communities) | `/api/communities`, `/api/communities/list`, `/api/community/<name>` (+ `/timeline`) |
+| [Feedback](#feedback) | `POST /api/feedback` |
+| [Account](#account) | `/api/auth/me`, `/api/user/preferences`, `/api/preferences`, `/api/bookmarks/semantic`, `/api/accept-legal` |
+| [Privacy](#privacy) | `GET /api/user/data-export`, `POST /api/user/delete-account` |
+| [Webhooks](#webhooks) | `POST /api/webhooks/clerk` |
+| [Operations](#operations-and-health) | `/api/async/health`, `/api/health`, `/api/stack/health`, `/api/devtools/*`, `/api/client-errors` |
 
 ---
 
-### `GET /static/service-worker.js`
+## Pages
 
-Returns the PWA service worker script.
+HTML pages are Jinja templates sharing one context (`clerk_publishable_key`, `clerk_enforce_auth`). None require auth; all are **Public**.
 
-- **Auth required:** No
-- **Response:** JavaScript (`application/javascript`)
-
----
-
-## Legal Pages
-
-Routes defined in `backend/routes_legal.py` (plan.md §8.A). All four render a Jinja template with the same `clerk_publishable_key`/`clerk_enforce_auth` context as every other page, and none require auth.
-
-### `GET /ai-disclosure`
-
-Returns the AI Disclosure HTML page.
-
-- **Auth required:** No
-- **Response:** HTML (`text/html`)
-
----
-
-### `GET /acceptable-use`
-
-Returns the Acceptable Use Policy HTML page.
-
-- **Auth required:** No
-- **Response:** HTML (`text/html`)
-
----
-
-### `GET /dmca`
-
-Returns the DMCA / copyright-takedown HTML page.
-
-- **Auth required:** No
-- **Response:** HTML (`text/html`)
-
----
-
-### `GET /licenses`
-
-Returns the third-party licenses/attributions HTML page.
-
-- **Auth required:** No
-- **Response:** HTML (`text/html`)
-
----
-
-## Site Pages
-
-Routes defined in `backend/routes_pages.py` (plan.md §12.1, §12.2, §12.5.1).
-
-### `GET /about`
-
-Returns the About page HTML.
-
-- **Auth required:** No
-- **Response:** HTML (`text/html`)
-
----
-
-### `GET /help`
-
-Returns the Help page HTML.
-
-- **Auth required:** No
-- **Response:** HTML (`text/html`)
-
----
-
-### `GET /glossary`
-
-Returns the glossary page HTML, populated from `static/data/glossary.json` (passed to the template as `glossary_entries`). If that file is missing or fails to parse, the page renders with an empty glossary rather than erroring.
-
-- **Auth required:** No
-- **Response:** HTML (`text/html`)
-
----
+| Route | Page |
+|---|---|
+| `GET /`, `GET /settings`, `GET /profile` | The single-page app shell (`templates/index.html`). The three paths serve the same shell; the client router decides the view. |
+| `GET /terms`, `GET /privacy`, `GET /accessibility` | Terms of Service, Privacy Policy, accessibility statement (`app.py`). |
+| `GET /ai-disclosure`, `GET /acceptable-use`, `GET /dmca`, `GET /licenses` | AI Disclosure, Acceptable Use Policy, DMCA / copyright takedown, third-party licences and attributions (`backend/routes_legal.py`). |
+| `GET /about`, `GET /help` | About and Help (`backend/routes_pages.py`). |
+| `GET /glossary` | Glossary, populated from `static/data/glossary.json` and passed to the template as `glossary_entries`. A missing or unparseable file renders an empty glossary instead of an error. |
+| `GET /manifest.webmanifest` | The PWA manifest. |
+| `GET /favicon.ico` | The favicon. |
+| `GET /service-worker.js` | The PWA service worker, served from the site root so its scope covers the whole app. It serves `/api/*` stale-while-revalidate. |
 
 ### `GET /robots.txt`
 
-Returns the crawler-directives file: allows `/`, disallows `/api/` and `/devtools/`, and points crawlers at `/sitemap.xml`.
-
-- **Auth required:** No
-- **Response:** Plain text (`text/plain`)
-
----
+Plain text. Allows `/`, disallows `/api/` and `/devtools/`, and points crawlers at `/sitemap.xml`.
 
 ### `GET /sitemap.xml`
 
-Returns an XML sitemap of the stable public routes (home, `/about`, `/help`, `/glossary`, `/terms`, `/privacy`, the four Legal Pages routes above, `/accessibility`) plus the library's content pages, each at its canonical path: every Tanakh chapter (`/text/Genesis.1` … `/text/II_Chronicles.36`, 929 URLs, mirroring the reader's chapter grid), the fixed prayer services (`/prayer/Weekday_Shacharit`, …) and the community pages (`/community/Ashkenaz`, …). Built from static data only (no Sefaria call) and cached per process, with `changefreq`/`priority` hints. Excludes private views (`/answer/`, `/a/`, `/history`), `/ask` (personalized/dynamic), and any `/api/`/`/devtools/` route.
-
-- **Auth required:** No
-- **Response:** XML (`application/xml`)
-
----
+`application/xml`. The stable public routes (home, `/about`, `/help`, `/glossary`, `/terms`, `/privacy`, the four legal pages above, `/accessibility`) plus the library's content pages at their canonical paths: every Tanakh chapter (`/text/Genesis.1` … `/text/II_Chronicles.36`, 929 URLs, mirroring the reader's chapter grid), the fixed prayer services (`/prayer/Weekday_Shacharit`, …) and the community pages (`/community/Ashkenaz`, …). Built from static data only (no Sefaria call), cached per process, with `changefreq` and `priority` hints. Private views (`/answer/`, `/a/`, `/history`), `/ask` and every `/api/` and `/devtools/` route are excluded.
 
 ### `GET /llms.txt`
 
-Returns an [llms.txt](https://llmstxt.org/)-style plain-text summary of the site for LLM crawlers/agents, listing the same stable public routes as `/sitemap.xml` (iterating the same list, so the two can't silently drift apart); the sitemap's library pages are left out.
-
-- **Auth required:** No
-- **Response:** Plain text (`text/plain`)
+Plain text, in the [llms.txt](https://llmstxt.org/) style: a short summary of the site for LLM crawlers, listing the same stable public routes as the sitemap by iterating the same list, so the two cannot drift apart. The sitemap's library pages are left out.
 
 ---
 
-## Ask Pipeline
+## Deep-link paths
+
+`backend/routes_spa_paths.py`. The client router (`static/js/router.js`) keeps the main view in the URL path, so these routes serve the **same shell as `/`** with a per-URL `<title>`, `og:url` and canonical link (`backend/page_meta.py`). A cold open or refresh on any of them paints the app instead of a 404. All are `GET`, **Public**.
+
+| Path | View |
+|---|---|
+| `/text/<ref>` | A text in the reader, e.g. `/text/Genesis.1`. |
+| `/prayer/<name>` | A prayer service. |
+| `/siddur`, `/siddur/<rite>[/<service>[/<section>]]` | The siddur reader. `/siddur` answers `308` to the default rite. Every siddur page is known in advance (`backend/siddur_data.py`), so an unknown rite, or a segment that is neither a service, a section nor a tail word, is a real `404`. |
+| `/community/<name>` | A community's customs. |
+| `/calendar/<YYYY-MM-DD>` | The calendar on a day. |
+| `/answer/<id>` | One of the caller's own stored answers (private; loaded through `GET /api/user/history/<id>`). |
+| `/a/<token>` | A publicly shared answer (loaded through `GET /api/public/answer/<token>`). |
+| `/chat/<id>` | A conversation. |
+| `/history`, `/history/<rest>` | The answer history. |
+| `/signin` | The sign-in overlay (`/profile` and `/settings` are served by `app.py`, above). |
+
+After the view comes an optional **tail** of overlay and AI keys, all path segments: `chat/<id>`, a community slug, an answer mode (`balanced`, `practical`, `sources`, `strict`), `mini` / `overlay` / `full`, `calendar/<day>`, and `signin` / `profile` / `settings`. Examples: `/chat/new/sefardic/strict`, `/text/Genesis.1/chat/<id>/mini`. The server checks the tail against the router's own grammar, so a segment that fits nowhere is a real `404` rather than a soft-404 shell. The view value itself is not validated, with one exception: a text the reader has already found does not exist (`sefaria_library.is_known_missing_text`, never a Sefaria request here) is served with a real `404` status and kept out of search results.
+
+- A trailing slash (`/text/Genesis.1/`, `/history/`) answers `308` to the bare path, query string kept.
+- Legacy query links (`/?text=…`, `/?prayer=…`, `/?community=…`) answer `308` to their path form, other query keys kept, so a shared or bookmarked old link reaches its canonical, indexable URL.
+- One person's answers, history, conversations and the sign-in overlay (`/answer/…`, `/a/…`, `/chat/…`, `/history…`, `/signin`) are served with `X-Robots-Tag: noindex, nofollow`, as is `/` when a private query key is present.
+- No `vercel.json` rewrite is involved; Vercel's implicit routing sends every path to the one ASGI function, and a catch-all rewrite there once 404'd production.
+
+---
+
+## Ask pipeline
 
 ### `POST /ask`
 
-Submit a halachic question and receive an AI-synthesised answer with source citations. This endpoint is handled by the async FastAPI pipeline in `asgi.py` (Vercel routes it there via the catch-all rewrite). The synchronous Flask version at the same path is mounted underneath and used as a fallback.
+Submit a halachic or Torah-study question and receive an AI-synthesised answer with source citations. Handled by the async FastAPI route in `asgi.py`. A synchronous Flask implementation of `/ask` still exists in `app.py`, but the native route shadows it and it is not reachable in production.
 
-- **Auth required:** No (auth enriches the response with user memory and personalised community lens)
+- **Auth:** Optional. Required whenever `CLERK_ENFORCE_AUTH` is on (the production default). Auth enriches the answer with the caller's memory summaries and records it in the caller's history.
+- **Rate-limit class:** `llm` (fails closed).
+- **Cache:** `private, no-store`.
 - **Content-Type:** `application/json`
 
 **Request body:**
 
 ```json
 {
-  "question": "string — the user's halachic question (required)",
-  "mode": "string — 'balanced' | 'strict' | 'lenient' (optional, default: 'balanced')",
-  "community": "string — community lens, e.g. 'ashkenaz' | 'sefardic' | 'yemenite' (optional)",
-  "language": "string — 'en' | 'he' (optional, default: 'en')"
+  "question": "string, the user's question (required)",
+  "mode": "string, 'balanced' | 'practical' | 'sources' | 'strict' (optional, default 'balanced'; an unknown value falls back to 'balanced')",
+  "community": "string, community lens such as 'Ashkenaz' or 'Sefardic' (optional, default 'All'; names and aliases are canonicalised)",
+  "language": "string, 'en' | 'he' (optional, default 'en')",
+  "turnstile_token": "string, Cloudflare Turnstile response token (optional; only read once an anonymous caller has crossed the hourly threshold, see Rate limiting)"
 }
 ```
+
+The question is sanitised before use (hidden and control characters removed, whitespace collapsed) and cut to 1,200 characters. A question that is empty after sanitising is a `400`.
 
 **Response (200):**
 
 ```json
 {
-  "answer": "string — AI-generated halachic answer",
+  "answer": "string, the answer in markdown, claims tied to sources with [n] markers",
+  "confidence": "number | null, the model's confidence signal",
+  "wiki": [ { "title": "…", "snippet": "…", "url": "…" } ],
+  "customs": [ { "…": "community customs relevant to the question" } ],
   "sources": [
     {
-      "ref": "string — Sefaria reference, e.g. 'Shulchan Arukh, Orach Chayim 318:1'",
-      "text_he": "string — Hebrew source text",
-      "text_en": "string — English source text",
-      "url": "string — Sefaria URL"
+      "ref": "string, Sefaria reference, e.g. 'Shulchan Arukh, Orach Chayim 318:1'",
+      "title": "string",
+      "lines": [ { "he": "string", "en": "string" } ]
     }
   ],
-  "customs": [
-    {
-      "community": "string — community name",
-      "ruling": "string — community-specific ruling or custom"
-    }
-  ],
-  "wiki": [
-    {
-      "title": "string — article title",
-      "snippet": "string — relevant excerpt",
-      "url": "string — source URL"
-    }
-  ],
+  "ai_cited_sources": [ "string, one per source the model cites, written 'Ref — one-line note'" ],
+  "history_id": "string (uuid) | null, the stored ask_history row, for the /answer/<id> deep link",
   "meta": {
-    "model": "string — AI model used",
-    "provider": "string — 'gemini' | 'claude'",
-    "community_lens": "string — effective community lens applied",
-    "request_id": "string — UUID for log correlation"
-  },
-  "confidence": "number — 0.0–1.0 model confidence signal"
+    "mode": "string",
+    "language": "string",
+    "community_lens": "string, the lens actually applied",
+    "source_count": "number",
+    "custom_count": "number",
+    "knowledge_count": "number",
+    "memory_count": "number",
+    "identity_aware": "boolean",
+    "generated_at": "number, unix seconds",
+    "fallback": "boolean, true when the Claude fallback or a no-model fallback answered",
+    "structured": "boolean",
+    "is_prohibited": "boolean",
+    "input_sanitized": "boolean, true when the question was altered by sanitising",
+    "security": "object",
+    "safety_class": "string, 'ok' unless the answer was classed otherwise",
+    "rabbinic_disclaimer": "string",
+    "async": true
+  }
 }
 ```
 
-**Request body (additional field, Turnstile only):**
+`sources` is trimmed for transfer (at most 8 entries, 3 lines each, 280 characters per line). Three cases return a `200` with a smaller `meta` and no model call:
 
-```json
-{
-  "turnstile_token": "string — Cloudflare Turnstile response token (optional; only read once an anonymous caller has crossed the hourly threshold below — see Rate limiting & abuse mitigation)"
-}
-```
+| Case | Signal |
+|---|---|
+| Strict mode, no primary source matched with enough confidence | `meta.strict_blocked: true`, `meta.fallback: true`, `confidence: 0.2` |
+| The global daily cost breaker is tripped | `meta.breaker_tripped: true`, `meta.fallback: true`, `confidence: 0.0`; a previously cached answer for the same question is served instead when one exists, with `meta.cached: true` |
+| A prayer-service keyword (Shacharit, Mincha, Maariv, Kiddush, Havdalah) | A short pointer to the prayer sections, `confidence: 0.85`, `sources` naming Sefaria Liturgy |
 
 **Errors:**
 
 | Status | Meaning |
 |---|---|
-| `400` | Empty question, question too long, or detected injection/hateful pattern |
-| `403` | Turnstile verification required or failed (anonymous callers past the hourly threshold — only when `TURNSTILE_ENABLED=true`) |
-| `429` | Rate limit exceeded — per-minute bucket or, for authenticated callers, the daily `/ask` quota |
-| `503` | Both AI providers unavailable (circuit breakers open) |
+| `400` | `No valid question provided` |
+| `401` | Authentication required (`CLERK_ENFORCE_AUTH` on and no valid token) |
+| `402` | Daily AI usage limit reached for this account (per-user budget, `PER_USER_DAILY_BUDGET_USD`); try again after midnight UTC |
+| `403` | Turnstile verification required or failed (anonymous callers past the hourly threshold; only when `TURNSTILE_ENABLED=true`) |
+| `429` | Rate limit exceeded, either the per-minute bucket or the signed-in daily quota |
+| `500` | An internal error occurred (reported to Sentry) |
 
-**Live progress stream (opt-in).** A client that sends `Accept: application/x-ndjson` gets the same answer preceded by one line per pipeline step, so the UI can say what is happening while it waits. `POST /api/conversations/<id>/ask` behaves identically. Any other `Accept` header (curl, tests, older cached JS) gets the single JSON response above, unchanged. Implementation: `backend/ask_progress.py` (server), `static/js/ask-progress.js` (client).
+When the primary provider (Gemini) fails the answer comes from the Claude fallback and `meta.fallback` is `true`. When both providers fail the answer is built from the retrieved sources alone, without a model summary.
+
+**Live progress stream (opt-in).** A client that sends `Accept: application/x-ndjson` gets the same answer preceded by one line per pipeline step, so the UI can say what is happening while it waits. `POST /api/conversations/<id>/ask` behaves identically. Any other `Accept` header gets the single JSON response above, unchanged. Implementation: `backend/ask_progress.py` (server), `static/js/ask-progress.js` (client).
 
 The body is newline-delimited JSON, one object per line:
 
@@ -251,23 +204,103 @@ The body is newline-delimited JSON, one object per line:
 - The HTTP status stays real. Streaming starts only after the pre-flight checks (validation, auth, Turnstile, budget) pass, so a refusal is still an ordinary `400`/`401`/`402`/`403`/`429`; an answer that never reports a step (the prayer shortcut) comes back as plain JSON. After streaming starts, failures arrive as an `error` line.
 - A client that disconnects mid-stream does not cancel the answer: it still finishes, is recorded, and is charged as on the plain path.
 
-**Source markers.** `answer` ties a claim to a source with a numbered marker, `[n]` (the 1-based position in `ai_cited_sources`), placed after the claim instead of naming the source in the prose: `"Kindling is forbidden on Shabbat.[1][2]"`. The server finalizes the list in `backend/citation_markers.py` before it is returned or stored (empty entries dropped, a source named twice kept once, capped at 6, the way the conversation UI caps its citations) and renumbers every marker to match, so a number always points at the right entry; a marker whose source did not survive is removed rather than left dangling. Only digits count (`[1]`, `[1, 2]` and `[1-3]` are markers; `[2a]` and `[the Rema]` stay text). Answers stored before markers existed simply have none. When an earlier turn is shown to the model as history its markers are stripped, since their numbers belong to another answer's list.
+**Source markers.** `answer` ties a claim to a source with a numbered marker, `[n]` (the 1-based position in `ai_cited_sources`), placed after the claim instead of naming the source in the prose: `"Kindling is forbidden on Shabbat.[1][2]"`. The server finalises the list in `backend/citation_markers.py` before it is returned or stored (empty entries dropped, a source named twice kept once, capped at 6, the way the conversation UI caps its citations) and renumbers every marker to match, so a number always points at the right entry; a marker whose source did not survive is removed rather than left dangling. Only digits count (`[1]`, `[1, 2]` and `[1-3]` are markers; `[2a]` and `[the Rema]` stay text). Answers stored before markers existed simply have none. When an earlier turn is shown to the model as history its markers are stripped, since their numbers belong to another answer's list.
 
 The client (`static/js/citation-markers.js`, `citation-popover.js`) renders each marker as a small numbered chip, shows the sources once, in the sources area under the answer (it drops the duplicate trailing "Sources" list the server also puts in the answer's markdown), and opens a card on hover, click, tap or Enter with the reference, the model's one-line note, the first lines of the text, "Open in reader" and "Show in sources". A source the reader cannot open (not on Sefaria) shows plain text with a search link instead of a dead one.
 
-**Reference spellings.** `GET /api/text/<ref>` still answers an unresolvable reference with `200` and `{"error", "error_type": "not_found"}`. Before trying the reference as written it now tries Sefaria's title for a transliterated Mishneh Torah reference (`Hilchot Shabbat 2:1` and `Rambam, Hilchot Shabbat 2:1` resolve as `Mishneh Torah, Sabbath 2:1`; table in `backend/ref_aliases.py`), which is how the model tends to write them.
+**Reference spellings.** `GET /api/text/<ref>` answers an unresolvable reference with `200` and `{"error", "error_type": "not_found"}`. Before trying the reference as written it tries Sefaria's title for a transliterated Mishneh Torah reference (`Hilchot Shabbat 2:1` and `Rambam, Hilchot Shabbat 2:1` resolve as `Mishneh Torah, Sabbath 2:1`; table in `backend/ref_aliases.py`), which is how the model tends to write them.
 
-**Outbound links.** Sources that Sefaria carries are opened in the site's own reader and are no longer linked to sefaria.org. Talmud and Tanakh references also link to AlHaTorah (`shas.alhatorah.org/Full/<Tractate>/<daf>`, the Bavli only, and `mg.alhatorah.org/Full/<Book>/<chapter>.<verse>`), with the tractate or book name normalised to the spelling each site accepts (`static/js/source-cards.js`: `alhatorahTractate`, `alhatorahBook`). Responsa and other works not on Sefaria link to a HebrewBooks search.
+**Outbound links.** Sources that Sefaria carries are opened in the site's own reader and are not linked to sefaria.org. Talmud and Tanakh references also link to AlHaTorah (`shas.alhatorah.org/Full/<Tractate>/<daf>`, the Bavli only, and `mg.alhatorah.org/Full/<Book>/<chapter>.<verse>`), with the tractate or book name normalised to the spelling each site accepts (`static/js/source-cards.js`: `alhatorahTractate`, `alhatorahBook`). Responsa and other works not on Sefaria link to a HebrewBooks search.
+
+---
+
+## Conversations
+
+`backend/routes_conversations.py`. Multi-turn threads, separate from the single-shot answer history. Stored in the `conversations`, `messages` and `citations` tables, read through the caller's RLS-scoped Supabase client (service-role fallback only when `STRICT_SUPABASE_RLS` is off), and **every route also filters on the caller's own verified `sub` at the application layer**, so a guessed or foreign id is a `404`, never a leak. All routes are **Clerk**. Class: `cheap`, except `/ask` (see below). Cache: `private, no-store`.
+
+| Route | Purpose |
+|---|---|
+| `POST /api/conversations` | Start a thread. Body: `minhag` (optional string, the community lock, cut to 80 characters) and `from_history_id` (optional, one of the caller's own `ask_history` ids). With `from_history_id` the stored question and answer become the first turn, read from the stored row and never from the request, and the thread locks to the community that answer used. Returns `201` with the conversation, plus `messages` when seeded. |
+| `GET /api/conversations` | The sidebar list: pinned first, then most recently updated, soft-deleted threads excluded. Query: `limit` (1–50, default 20). Returns `{"items": [{id, title, title_is_custom, minhag, pinned_at, created_at, updated_at}]}`. |
+| `GET /api/conversations/<id>` | One thread with every live turn, each with its `citations` embedded (`id, ordinal, source_ref, excerpt_he, excerpt_en, url`). Turns superseded by a retry are excluded. |
+| `POST /api/conversations/<id>/messages` | Append one turn. Body: `role` (`user` or `assistant`), `status` (`streaming`, `complete`, `stopped`, `error`; default `complete`), `content`, and an optional `citations` list. Bumps the thread's `updated_at`. Returns `201` with the message. |
+| `PATCH /api/conversations/<id>` | Rename (`title`) and/or pin (`pinned`: boolean). The community lock is deliberately not editable; switching community means a new thread. `400` when neither field is sent. |
+| `DELETE /api/conversations/<id>` | Soft delete (sets `deleted_at`), so the client can offer Undo. Returns `{"ok": true}`. |
+| `POST /api/conversations/<id>/restore` | Undo a soft delete. Owner-only and idempotent: restoring a thread that is not deleted returns it unchanged. |
+| `POST /api/conversations/<id>/ask` | Ask a follow-up with real multi-turn context. |
+
+### `POST /api/conversations/<id>/ask`
+
+- **Rate-limit class:** `llm` (fails closed), carved out ahead of the `cheap` prefix by a route pattern, so a thread answer is metered exactly like `/ask`.
+- **Body:** `question` (required unless retrying), `mode`, `language`, and optionally `retry_of`.
+- The thread's prior complete turns go into the prompt. The community comes from the conversation row, never from the request body (the minhag lock).
+- `retry_of`: the id of a `status: "error"` assistant message in this thread. The failed turn is re-answered without writing a new user turn, the body's `question` is ignored, and the error row is then superseded so `GET` stops returning it. The `201` body gains `superseded_message_id`.
+- Streams like `POST /ask` when the client sends `Accept: application/x-ndjson` (the terminal line carries `status` and `body`).
+- Applies the same two cost gates as `/ask`, checked before the user turn is written, so a refused ask leaves the thread untouched.
+
+**Response (201):**
+
+```json
+{
+  "user_message": "the stored user turn (absent content change on a retry, which writes none)",
+  "assistant_message": "the stored assistant turn, with its citations",
+  "conversation": "the conversation header after this turn (the title may just have been derived)",
+  "superseded_message_id": "present only on a retry"
+}
+```
+
+**Errors:** `400` (no valid question, invalid `retry_of`), `401`, `402` `{"code": "daily_budget_exhausted"}`, `404` (unknown or foreign conversation), `429`, `503` `{"code": "ai_paused"}` with a `Retry-After` to the next UTC midnight when the global breaker is tripped. There is no cached-answer fallback here: a thread's answer depends on the thread's own history.
+
+---
+
+## Answer history and sharing
+
+### History (`backend/routes_user.py`)
+
+Stored in `ask_history`, which is **service-role only** (RLS on, no policies); every route filters on the caller's verified `sub`. All **Clerk**; `cheap`; `private, no-store`.
+
+| Route | Purpose |
+|---|---|
+| `GET /api/user/history` | One page of the caller's answers, newest first. Query: `limit` (1–50, default 20), `cursor` (the previous page's `next_cursor`; an invalid one is a `400`), `q` (case-insensitive substring of the question, up to 200 characters). Returns `{"items": [...], "next_cursor": "string \| null"}`. |
+| `GET /api/user/history/<id>` | One entry, so `/answer/<id>` can hydrate it. A malformed id, a missing id and someone else's id all answer the same `404`. |
+| `DELETE /api/user/history/<id>` | Delete one entry. Returns `{"ok": true}`. |
+
+An entry holds `id, question, answer, sources, ai_cited_sources, community, mode, language, created_at`. Entries older than 90 days are removed by the retention job.
+
+### Sharing (`backend/routes_answer_share.py`)
+
+The owner can mint a public link for one stored answer; anyone holding `/a/<token>` can read it without signing in. The token is unguessable (`secrets.token_urlsafe(16)`); the public read selects only answer columns and never `user_id` or the row id. These need the columns from `scripts/sql/migrate_ask_history_share.sql`; until it has been applied they answer `503 {"code": "share_unavailable"}`.
+
+| Route | Auth | Purpose |
+|---|---|---|
+| `GET /api/user/history/<id>/share` | Clerk | The owner's share state for the answer: `{"shared": true, "share_token": "…", "path": "/a/<token>"}`, or `{"shared": false}`. |
+| `POST /api/user/history/<id>/share` | Clerk | Make the answer public. Idempotent: an already-shared answer keeps its token (`200`), otherwise a new one is minted (`201`). The write is a compare-and-set, so two concurrent shares cannot overwrite a link someone has already copied. |
+| `DELETE /api/user/history/<id>/share` | Clerk | Stop sharing. The token is cleared and the old link `404`s for good; sharing again mints a new one. The owner's own `/answer/<id>` link is untouched. Returns `{"shared": false}`. |
+| `GET /api/public/answer/<token>` | Public | The shared answer: `question, answer, sources, ai_cited_sources, community, mode, language, created_at`, `meta` (`safety_class`, `mode`, `language`) and `public: true`. A malformed, unknown, revoked or private token all answer the same `404`, so the response never says whether a token once existed. Always `noindex`. Rate-limit class `fanout` (per IP). |
 
 ---
 
 ## Rate limiting & abuse mitigation
 
-`POST /ask` is the only route with a request-body-level abuse gate (Turnstile); every route is covered by the identity-aware rate limiter below. **Corrects an earlier version of this document**, which claimed a `429` on `/ask` driven by a `RATE_LIMIT_PER_MIN` env var — that var never existed in this codebase; the real mechanism is `backend/rate_limit.py`'s unified ASGI middleware, described here.
+Every route is covered by the identity-aware rate limiter (`backend/rate_limit.py`, an ASGI middleware on the FastAPI app, so it fronts both native and Flask routes). `/static/*` is exempt. `POST /ask` and `POST /api/conversations/<id>/ask` additionally carry the Turnstile gate for anonymous callers (`/ask` only).
 
-### Rate limiting (`backend/rate_limit.py`, `plan.md` §16.3-L2 / §16.6 Phase 9c)
+### Rate limiting (`backend/rate_limit.py`)
 
-Every route is classified into a policy class (`llm` for `/ask`, `cheap` for everything else) with its own per-minute request budget. The bucket key is **identity-aware**: a Clerk `sub` when the caller is authenticated, the trusted-IP key (`X-Vercel-Forwarded-For` → `X-Forwarded-For` → `X-Real-IP` → socket address, never a spoofable header alone) otherwise — an authenticated caller and an anonymous caller behind the same IP always land in separate buckets. Authenticated callers on the `llm` class get a higher per-minute allowance than anonymous callers, **plus** an independent daily quota; anonymous callers have no daily cap, only the tighter per-minute IP bucket.
+Each route is classified by path prefix (first match wins; a route pattern for `/api/conversations/<id>/ask` is checked before the prefixes) and everything unlisted is `cheap`. The bucket key is **identity-aware**: the Clerk `sub` when the caller is authenticated, the trusted-IP key (`X-Vercel-Forwarded-For`, then `X-Forwarded-For`, then `X-Real-IP`, then the socket address; never a spoofable header alone) otherwise, so a signed-in caller and an anonymous caller behind the same IP land in separate buckets.
+
+| Class | Per minute | On store outage | Routes |
+|---|---|---|---|
+| `llm` | 20 anonymous, 40 signed in, plus 200/day signed in | fails **closed** | `/ask`, `/api/conversations/<id>/ask` |
+| `heavy` | 10 | open | `/api/export/chapter`, `/api/siddur/full/*` |
+| `fanout` | 30 | open | `/api/library/search`, `/api/text/*`, `/api/word/meaning`, `/api/geocode`, `/api/public/answer/*` |
+| `sidebar` | 90 | open | `/api/sidebar/*` |
+| `feedback` | 10 | open | `/api/feedback` |
+| `telemetry` | 10 | open | `/api/client-errors` |
+| `account` | 5 (keyed by Clerk id) | open | `/api/user/delete-account`, `/api/user/data-export` |
+| `webhook` | 15 (per IP) | open | `/api/webhooks/clerk` |
+| `cheap` | 120 | open | everything else, including `/api/conversations*` CRUD and `/api/siddur/v2/*` |
+
+Anonymous callers have no daily cap, only the tighter per-minute IP bucket. A signed-in caller's daily quota is an independent counter.
 
 **429 response body:**
 
@@ -278,15 +311,17 @@ Every route is classified into a policy class (`llm` for `/ask`, `cheap` for eve
 }
 ```
 
-**`Retry-After` header:** seconds until the caller may retry — `60` (the per-minute window) for an ordinary per-minute rejection, or `86400` (`_DAILY_WINDOW_SECONDS`) when an authenticated caller's *daily* `/ask` quota is what rejected the request. Always present on a `429`.
+**`Retry-After`:** seconds until the caller may retry, always present on a `429`: `60` (the window) for a per-minute rejection, or `86400` when a signed-in caller's *daily* quota is what rejected the request.
 
-**Fail-open / fail-closed posture:** the `llm` class (i.e. `/ask`) fails **closed** on a store outage — an unmetered `/ask` during an outage is a budget hole. Every other route class fails **open** — a reader should not be blocked by a transient Redis blip.
+**Store outage posture:** the `llm` class fails **closed**, because an unmetered `/ask` during an outage is a budget hole. Every other class fails **open**, so a reader is not blocked by a transient Redis blip. Redis failures open a 20-second circuit breaker and are reported once per cooldown rather than once per request.
 
-### Turnstile (`backend/turnstile.py`, `plan.md` §16.4 / §16.6 Phase 9c)
+An earlier version of this document named a `RATE_LIMIT_PER_MIN` variable; that variable never existed. The mechanism is this middleware. A Vercel WAF rate-limit layer sits in front of all of it (`docs/SECURITY.md` §7).
 
-Anonymous `/ask` traffic past a per-IP hourly request threshold is challenged with Cloudflare Turnstile (chosen over Vercel BotID — see `docs/SECURITY.md` §8 for why). Authenticated callers never see this gate; they already have Clerk signup plus the identity-aware daily quota above. Below the threshold, or whenever `TURNSTILE_ENABLED` is unset (the default), this is a true no-op with zero overhead.
+### Turnstile (`backend/turnstile.py`)
 
-**403 response body (challenge owed and no valid token supplied):**
+Anonymous `/ask` traffic past a per-IP hourly request threshold is challenged with Cloudflare Turnstile (chosen over Vercel BotID; `docs/SECURITY.md` §8 has the reasoning). Signed-in callers never see this gate; they already have Clerk signup plus the daily quota above. Below the threshold, or whenever `TURNSTILE_ENABLED` is unset (the default), this is a true no-op.
+
+**403 response body (a challenge is owed and no valid token was supplied):**
 
 ```json
 {
@@ -295,79 +330,93 @@ Anonymous `/ask` traffic past a per-IP hourly request threshold is challenged wi
 }
 ```
 
-Supply a solved token in the request body's `turnstile_token` field (above) to pass the gate.
+Supply a solved token in the request body's `turnstile_token` field to pass the gate.
 
 ### Env var matrix
 
 | Variable | Default | Purpose |
 |---|---|---|
-| `RATELIMIT_ENABLED` | `true` | Kill switch for the entire rate-limit middleware. |
-| `RATE_LIMIT_REDIS_URL` | unset | Upstash Redis (`rediss://`) shared store; falls back to a per-process in-memory store with a loud startup warning when unset — not a real cross-instance limit on Vercel Fluid's multiple concurrent instances. |
-| `TURNSTILE_ENABLED` | `false` | Kill switch for the anonymous-`/ask` Turnstile gate; every function in `backend/turnstile.py` is a true no-op when this is unset. |
-| `TURNSTILE_SECRET_KEY` | unset | Cloudflare Turnstile server secret. Required once `TURNSTILE_ENABLED=true` — if the flag is on and this is empty, every challenged request is rejected (fails closed). |
+| `RATELIMIT_ENABLED` | `true` | Kill switch for the whole rate-limit middleware. |
+| `RATE_LIMIT_REDIS_URL` | unset | Upstash Redis (`rediss://`) shared store. Falls back to a per-process in-memory store with a loud startup warning when unset, which is not a real cross-instance limit on Vercel Fluid. |
+| `TURNSTILE_ENABLED` | `false` | Kill switch for the anonymous-`/ask` Turnstile gate; every function in `backend/turnstile.py` is a no-op when unset. |
+| `TURNSTILE_SECRET_KEY` | unset | Cloudflare Turnstile server secret. Required once `TURNSTILE_ENABLED=true`; with the flag on and this empty, every challenged request is rejected (fails closed). |
 | `TURNSTILE_SITE_KEY` | unset | Cloudflare Turnstile public site key (not a secret; for the frontend widget). |
-| `TURNSTILE_ANON_HOURLY_THRESHOLD` | `5` | Anonymous requests per IP per trailing hour before a Turnstile challenge is owed. |
-| `PER_USER_DAILY_BUDGET_USD` | `2.00` | Per-authenticated-caller daily AI spend ceiling — a good-faith guardrail, not an anti-abuse control (Clerk signup is frictionless). Set `0` to disable. |
-| `DAILY_BUDGET_USD` | unset (breaker inert) | Global cross-caller daily spend ceiling (`backend/cost_meter.py`) — the real ceiling against a multi-account attacker, independent of any per-user cap above. |
+| `TURNSTILE_ANON_HOURLY_THRESHOLD` | `5` | Anonymous requests per IP per trailing hour before a challenge is owed. |
+| `PER_USER_DAILY_BUDGET_USD` | `2.00` | Per-signed-in-caller daily AI spend ceiling, a good-faith guardrail rather than an anti-abuse control. `0` disables it. |
+| `DAILY_BUDGET_USD` | unset (breaker inert) | Global cross-caller daily spend ceiling (`backend/cost_meter.py`), the real ceiling against a multi-account attacker. |
 
 ---
 
-## Library
+## Library and texts
+
+Texts come from Sefaria through `backend/sefaria_library.py`, behind a circuit breaker, a memory-plus-disk TTL cache and a block detector. All routes here are **Public** `GET`s unless noted.
 
 ### `GET /api/library/index`
 
-Returns the Sefaria library table of contents tree.
+The Sefaria library table of contents, with removed texts pruned and fix refs applied. Cache: immutable tier.
 
-- **Auth required:** No
-- **Response:** JSON array of category nodes, each with `title`, `heTitle`, `contents` children
+### `GET /api/library/category/<category>`
 
-**Errors:**
+Every book in one library category. Cache: immutable tier.
 
-| Status | Meaning |
-|---|---|
-| `502` | Sefaria API unavailable |
+### `GET /api/library/leaf-refs`
 
----
+Section references for one work, to power the section-grid selectors. Query: `title` (the index title) and `max` (default 140, 1–800). Returns `{"title", "refs": [...], "sections": [...]}`; `sections` groups large works into labelled ranges (Talmud daf ranges, Shulchan Arukh topics) where the index carries them. An empty `title` returns empty lists. Cache: immutable tier.
 
-### `GET /api/library/text/<ref>`
+### `GET /api/library/popular`
 
-Fetch a specific Sefaria text by reference string.
+Curated popular texts per category. Cache: immutable tier.
 
-- **Auth required:** No
-- **Path parameter:** `ref` — URL-encoded Sefaria reference, e.g. `Berakhot.2a` or `Shulchan%20Arukh%2C%20Orach%20Chayim%201%3A1`
+### `GET /api/texts-index`
+
+The complete browsable index (prayers, communities, Sefaria texts) for the top menu. Cache: immutable tier.
+
+### `GET /api/text/<ref>`
+
+One text, Hebrew and English with metadata. `<ref>` is a Sefaria reference, URL-encoded as needed (`Berakhot.2a`, `Shulchan%20Arukh%2C%20Orach%20Chayim%201%3A1`). Class `fanout`. Cache: immutable tier.
+
+- **Query:** `autotranslate` (default on; `0`, `false`, `no` or `off` disables it). Lines with no English are machine-translated unless disabled.
 
 **Response (200):**
 
 ```json
 {
-  "ref": "string — canonical reference",
-  "heRef": "string — Hebrew reference",
-  "text": ["string — English text segments"],
-  "he": ["string — Hebrew text segments"],
-  "sectionRef": "string",
-  "url": "string — Sefaria URL"
+  "ref": "string, the resolved reference",
+  "title": "string",
+  "heTitle": "string",
+  "heRef": "string, Sefaria's Hebrew spelling (may be empty)",
+  "he": ["string, Hebrew lines"],
+  "en": ["string, English lines"],
+  "lines": [ { "he": "…", "en": "…" } ],
+  "sections": [],
+  "sectionNames": [],
+  "next": "string | null",
+  "prev": "string | null",
+  "categories": [],
+  "authors": [],
+  "era": "string"
 }
 ```
 
-**Errors:**
+An unresolvable reference answers `200` with `{"error", "error_type": "not_found", "ref", "he": [], "en": []}` (and is not cached). While Sefaria is actively blocking requests the answer is `503` with `error_type: "sefaria_blocked"`. A request with no reference (`/api/text/`) is a `400`.
 
-| Status | Meaning |
-|---|---|
-| `404` | Reference not found in Sefaria |
-| `502` | Sefaria API unavailable |
+### `GET /api/text/<ref>/links`
 
----
+Linked commentaries and parallel texts for a reference, as `{category: [item]}`. Class `fanout`. Cache: immutable tier.
+
+### `GET /api/text/<ref>/graph`
+
+A lightweight source graph around a reference: `{"ref", "nodes": [{id, label, kind, category?}], "edges": [{source, target, label}]}`, with at most 14 links per category. Class `fanout`. Cache: immutable tier.
 
 ### `GET /api/sidebar/<ref>`
 
 Slim commentary data for the reader's sidebar, in two cached stages, so the client can load it for the verse being read before anything is selected (`static/js/commentary-preload.js`). Logic in `backend/sidebar_bundle.py`.
 
-- **Auth required:** No
-- **Path parameter:** `ref` — URL-encoded passage reference, e.g. `Genesis%201%3A1` (max 200 characters)
-- **Query parameter:** `stage` — `links` (default) or `texts`
-- **Rate limit class:** `sidebar` (90 requests/min, fails open) — a reader moving through a chapter makes about two requests per verse
+- **Path parameter:** `ref`, a URL-encoded passage reference such as `Genesis%201%3A1` (at most 200 characters).
+- **Query:** `stage`, `links` (default) or `texts`.
+- **Rate-limit class:** `sidebar` (90 per minute, fails open). A reader moving through a chapter makes about two requests per verse.
 
-**`stage=links` response (200):** the commentary, targum and midrash refs only, in the shape `GET /api/text/<ref>/links` uses (`{category: [item]}`), without the rest of Sefaria's `/related` payload (about a third of the size for Genesis 1:1). Ordered commentary → targum → midrash, de-duplicated, capped at 800 refs.
+**`stage=links` response (200):** the commentary, targum and midrash refs only, in the shape `GET /api/text/<ref>/links` uses (`{category: [item]}`), without the rest of Sefaria's `/related` payload (about a third of the size for Genesis 1:1). Ordered commentary, then targum, then midrash, de-duplicated, capped at 800 refs.
 
 ```json
 {
@@ -381,7 +430,7 @@ Slim commentary data for the reader's sidebar, in two cached stages, so the clie
 }
 ```
 
-**`stage=texts` response (200):** the text of the first few passages (3 per commentator) of the four most-read commentators present on that verse (priority list: `COMMENTARY_PRIORITY`), fetched in parallel and keyed by the commentary's own ref. The first three passages carry a machine-generated English translation and `"translation_attempted": true`; the rest are untranslated and are translated on demand by the client as before. Passages over 60 KB, and anything past a 160 KB bundle total, are left out; stragglers still running after 3 s are left out and retried on the next request (a partial result is cached for 60 s instead of the usual 30 min).
+**`stage=texts` response (200):** the text of the first few passages (3 per commentator) of the four most-read commentators present on that verse (priority list `COMMENTARY_PRIORITY`), fetched in parallel and keyed by the commentary's own ref. The first three passages carry a machine-generated English translation and `"translation_attempted": true`; the rest are untranslated and are translated on demand by the client. Passages over 60 KB, and anything past a 160 KB bundle total, are left out; stragglers still running after 3 s are left out and retried on the next request (a partial result is cached for 60 s instead of the usual 30 min).
 
 ```json
 {
@@ -396,288 +445,132 @@ Slim commentary data for the reader's sidebar, in two cached stages, so the clie
 }
 ```
 
-Both stages are cached per ref server-side, and concurrent requests for one ref share a single upstream fan-out. The service worker serves `/api/*` stale-while-revalidate.
-
-**Errors:**
+Both stages are cached per ref server-side, and concurrent requests for one ref share a single upstream fan-out.
 
 | Status | Meaning |
 |---|---|
-| `400` | Missing/overlong `ref`, or unknown `stage` |
+| `400` | Missing or overlong `ref`, or an unknown `stage` |
 | `429` | Rate limit exceeded (`Retry-After: 60`); the client stops speculative requests for 30 s |
-
----
 
 ### `GET /api/library/search`
 
-Full-text search across the Sefaria library.
+Full-text search across the library, with removed texts filtered out. Class `fanout`. Cache: corpus-derived tier.
 
-- **Auth required:** No
-- **Query parameters:**
-  - `q` (required) — search query string
-  - `size` (optional, default `10`) — number of results
-  - `page` (optional, default `1`) — result page
+- **Query:** `q` (required for results; empty returns `[]`), `size` (default 10, 1–50), plus the optional metadata filters read by `_extract_search_metadata_filters`.
+- **Response (200):** a JSON array of hits, each with `ref`, `heRef`, `text` (the matched title or label), `categories`, `path`, `authors` and `era`. Matches come from Sefaria's name completion and the library catalogue, not a body-text index.
 
-**Response (200):**
+### `GET /api/search/suggest`
 
-```json
-{
-  "hits": [
-    {
-      "ref": "string",
-      "heRef": "string",
-      "text": "string — matched snippet",
-      "score": "number"
-    }
-  ],
-  "total": "number — total matching results"
-}
-```
+Omnibox suggestions: popular Torah aliases, communities, prayer books, text hits, and an "Ask Sh'elah" option. Cache: corpus-derived tier.
 
-**Errors:**
+- **Query:** `q` (empty returns `[]`), `size` (default 8, 1–20).
+- **Response (200):** an array, best first, of `{"type": "text" | "prayer" | "community" | "ask", "label", "label_he", "value", "subtitle", "subtitle_he", "score"}`.
 
-| Status | Meaning |
-|---|---|
-| `400` | Missing or empty `q` parameter |
-| `502` | Sefaria search API unavailable |
+### `GET /api/word/meaning`
 
----
+A best-effort meaning for a highlighted Hebrew or English word. Class `fanout`. Cache: corpus-derived tier.
 
-## Calendar
+- **Query:** `word` (required; `400` when missing) and `lang` (`en` or `he`; a Hebrew source word always answers in English).
+- **Response (200):** the primary meaning, any alternatives, the `source`, `lang`, `status: "ok"`, and `machine_translated`, which is `true` when the definition came from an online translation fallback so the client never presents it as a curated entry.
 
-### `GET /api/calendar/zmanim`
+### `POST /api/export/chapter`
 
-Returns halachic prayer times for a given location and date.
-
-- **Auth required:** No
-- **Query parameters:**
-  - `lat` (required) — latitude as decimal, e.g. `40.7128`
-  - `lon` (required) — longitude as decimal, e.g. `-74.0060`
-  - `date` (optional) — ISO 8601 date string, e.g. `2026-06-11`; defaults to today
-
-**Response (200):**
-
-```json
-{
-  "date": "string — ISO date",
-  "location": {"lat": "number", "lon": "number"},
-  "zmanim": {
-    "alos": "string — HH:MM",
-    "sunrise": "string — HH:MM",
-    "sof_zman_shma_gra": "string — HH:MM",
-    "sof_zman_tefilla_gra": "string — HH:MM",
-    "chatzos": "string — HH:MM",
-    "mincha_gedola": "string — HH:MM",
-    "mincha_ketana": "string — HH:MM",
-    "plag_hamincha": "string — HH:MM",
-    "shkia": "string — HH:MM",
-    "tzeis": "string — HH:MM"
-  }
-}
-```
-
-**Errors:**
-
-| Status | Meaning |
-|---|---|
-| `400` | Missing `lat` or `lon` parameter |
-| `502` | Hebcal API unavailable |
-
----
-
-### `GET /api/calendar/today`
-
-Returns the full daily calendar payload: Hebrew date, parasha, holidays, Daf Yomi, Mishna Yomit, and zmanim (location optional).
-
-- **Auth required:** No
-- **Query parameters:**
-  - `lat` (optional) — latitude for zmanim
-  - `lon` (optional) — longitude for zmanim
-
-**Response (200):**
-
-```json
-{
-  "hebrew_date": "string — e.g. '11 Sivan 5786'",
-  "parasha": "string — weekly Torah portion",
-  "holidays": ["string — holiday names if applicable"],
-  "daf_yomi": "string — e.g. 'Gittin 45'",
-  "mishna_yomit": "string — e.g. 'Bava Kamma 3:1'",
-  "zmanim": {}
-}
-```
-
----
-
-### `GET /api/calendar/parasha`
-
-Returns the current week's parasha information.
-
-- **Auth required:** No
-
-**Response (200):**
-
-```json
-{
-  "parasha": "string — English name",
-  "parasha_he": "string — Hebrew name",
-  "book": "string — Torah book",
-  "summary": "string — brief description"
-}
-```
-
----
-
-## Community
-
-### `GET /api/community/customs`
-
-Returns the customs and halachic profile for a specific community tradition.
-
-- **Auth required:** No
-- **Query parameters:**
-  - `community` (required) — community identifier, e.g. `ashkenaz`, `sefardic`, `yemenite`, `moroccan`, `persian`, `syrian`, `bukharian`, `iraqi`, `ethiopian`, `georgian`, `greek`, `mountain-jewish`, `turkish-ottoman`
-
-**Response (200):**
-
-```json
-{
-  "identity": {
-    "id": "string",
-    "display_name": "string",
-    "hebrew_name": "string",
-    "region": "string"
-  },
-  "halacha_index": [
-    {
-      "topic": "string",
-      "ruling": "string",
-      "sources": ["string"]
-    }
-  ],
-  "minhagim": ["string — notable customs"]
-}
-```
-
-**Errors:**
-
-| Status | Meaning |
-|---|---|
-| `400` | Missing `community` parameter |
-| `404` | Unknown community identifier |
-
----
-
-### `POST /api/community/knowledge`
-
-Submit a community knowledge contribution (e.g. a local minhag or tradition).
-
-- **Auth required:** Yes
+Export a chapter's lines as a file. **Optional** auth. Class `heavy`.
 
 **Request body:**
 
 ```json
 {
-  "community": "string — community identifier",
-  "topic": "string — halachic topic",
-  "content": "string — the knowledge contribution",
-  "source": "string — optional source citation"
+  "title": "string",
+  "ref": "string",
+  "format": "'txt' | 'docx' | 'pdf' (default 'txt')",
+  "lines": [ { "segment": "…", "he": "…", "en": "…" } ]
 }
 ```
 
-**Response (201):**
+**Response (200):** the file as an attachment (`text/plain`, a Word document or a PDF), named from the title. **Errors:** `400` for an unsupported format or no usable lines.
 
-```json
-{
-  "id": "string — UUID of created record",
-  "status": "pending"
-}
-```
+### `GET /api/diagnostics/sefaria`
 
-**Errors:**
+A live availability probe of the upstream Sefaria API (the v3 and v2 endpoints, plus any cached block information). `200` when Sefaria is available overall, `503` otherwise.
 
-| Status | Meaning |
+---
+
+## Prayers and siddur
+
+### Siddur v2 (`backend/routes_siddur.py`)
+
+The in-app siddur reads these. Every response is a pure function of its URL (the text is checked-in data in `backend/siddur_data.py`, and the day guidance is computed from the date and the Israel flag alone in `backend/siddur_day.py`), so all three are publicly cacheable. Class `cheap`. **Public**.
+
+| Route | Response |
 |---|---|
-| `400` | Missing required fields |
-| `401` | Not authenticated |
+| `GET /api/siddur/v2/toc/<rite>` | The curated table of contents for a rite, including a `version`. `404` for an unknown rite. Hour-long cache tier, because it is fetched without a version key (it is what carries the version). |
+| `GET /api/siddur/v2/service/<rite>/<service>` | One whole service of typed lines. The client passes the toc's `version` as `?v=`, which the server ignores but which gives each data version its own cache key. `404` for an unknown rite or service. Immutable tier. |
+| `GET /api/siddur/v2/day?date=YYYY-MM-DD&il=0\|1` | The day's prayer guidance for that date, with `il=1` for Israel. `400` for a malformed date, an `il` other than `0` or `1`, or a date outside 1900-01-01 … 2099-12-31. Immutable tier. |
+
+### Prayer books and legacy services (`backend/routes_prayers.py`)
+
+| Route | Response |
+|---|---|
+| `GET /api/prayers/list` | `[{"name", "title", "source": "legacy-service" \| "sefaria-liturgy"}]`: the quick services plus Sefaria's Liturgy books. The Sefaria index the checked-in siddur is built from is left out, since the siddur reader already serves it. Corpus-derived tier. |
+| `GET /api/prayer/<name>` | A preview of one prayer book or service, in English and Hebrew. `404` when the name maps to no reference. Immutable tier. |
+| `GET /api/siddur/full/<name>` | The full prayer text, fetched from Sefaria in parallel and combined: `{"prayer", "lines", "sources"}`. `404` when unmapped or when nothing could be fetched. Class `heavy`. Immutable tier. |
+| `GET /api/siddur/section-refs/<name>` | `{"prayer", "sources": [refs]}`, the references `/api/siddur/full/<name>` would fetch, without fetching them. Kept for old bookmarks and API consumers; nothing in the client calls it. Immutable tier. |
 
 ---
 
-### `GET /api/community/timeline`
+## Calendar and location
 
-Returns the community knowledge timeline — recent accepted contributions.
+`backend/routes_calendar.py`, backed by `backend/zmanim_engine.py` and Hebcal. All **Public**; none make an AI call.
 
-- **Auth required:** No
+A location is a `lat`/`lon` pair, validated as numeric and in range (`-90…90`, `-180…180`). A parameter that is present but invalid is a `400`; an absent one falls back to the session location (below) or the default engine location.
 
-**Response (200):**
+### `POST /set_location`
 
-```json
-{
-  "items": [
-    {
-      "id": "string",
-      "community": "string",
-      "topic": "string",
-      "content": "string",
-      "created_at": "string — ISO 8601"
-    }
-  ]
-}
-```
+Store the caller's location in the Flask session cookie (`SameSite=Lax`, `HttpOnly`, `Secure` in production). Body: `{"lat": number, "lon": number}`. Returns `{"status": "success", "lat", "lon"}`. Only same-origin requests are accepted (`403` otherwise); `400` for invalid coordinates. Cache: `private, no-store`.
 
----
+### `GET /api/geocode`
 
-## Prayers
+Server-side proxy for the "search by city" box (the page's CSP does not allow calling Nominatim directly, and Nominatim requires an identifying User-Agent). Query: `q` (required) and `lang` (`he` or `en`). Returns `{"results": [{"lat", "lon", "display_name"}]}` with at most one result, or an empty `results` when nothing matched. Errors: `400` (no `q`), `502` (lookup failed), `503` (circuit open). Class `fanout`. Corpus-derived tier.
 
-### `GET /api/prayers/shacharit`
+### `GET /api/zmanim`
 
-Returns the morning prayer service structure.
+Halachic times for a location. Query: `lat`, `lon` and `community` (default `standard`). Returns the engine's times for that day. Same-origin callers with explicit coordinates also have the location remembered in the session.
 
-- **Auth required:** No
-- **Query parameters:**
-  - `community` (optional) — community nusach variant
+### `GET /api/zmanim/month`
 
-**Response (200):**
+The month's zmanim as calendar events, same location rules as `/api/zmanim`.
 
-```json
-{
-  "service": "shacharit",
-  "nusach": "string — e.g. 'ashkenaz' | 'sefard' | 'edot-hamizrach'",
-  "sections": [
-    {
-      "name": "string — e.g. 'Birkhot HaShachar'",
-      "name_he": "string",
-      "components": [
-        {
-          "title": "string",
-          "text_he": "string — Hebrew prayer text",
-          "text_en": "string — English translation",
-          "rubric": "string — instruction or rubric note"
-        }
-      ]
-    }
-  ]
-}
-```
+Both routes above fall back to the **session** location when `lat`/`lon` are absent, which makes that response user-specific; the cache layer forces it to `private` (`g.cache_tier_force_private`), so one user's location can never be served from the CDN to another.
+
+### `GET /api/zmanim/days`
+
+Clock times (dawn, sunset, nightfall, candle lighting, havdalah) for specific dates, as ISO timestamps in the location's own timezone or `null` where they do not exist. `lat` and `lon` are **required** (no session fallback, no session write), and `dates` is 1–16 comma-separated `YYYY-MM-DD` values between 1900 and 2200. Returns one entry per date. Errors: `400` for missing coordinates or a bad `dates`. Because it is a pure function of its URL it is publicly cacheable.
+
+### `GET /api/daily-study`
+
+Today's daily refs (Daf Yomi, Rambam and related), straight from Sefaria's daily-study data. It never touches the session, which keeps the response cacheable.
+
+### `GET /api/holidays`
+
+Jewish holiday events for the calendar, from Hebcal. Query: `year` (default the current year, 1583–3000). Returns a JSON array of calendar events: `title` (emoji-prefixed), `start`, `allDay`, `display`, `category`, `color`, `textColor` and `detail`. If Hebcal is down or its circuit is open, a fallback chain answers instead of an error.
+
+### `GET /api/parasha`
+
+The current weekly portion. Returns `{"title", "heTitle", "ref", "source"}`, where `source` is `sefaria-calendars`, `calendar-fallback` or `default-fallback` depending on what answered.
 
 ---
 
-### `GET /api/prayers/mincha`
+## Communities
 
-Returns the afternoon prayer service structure. Same response shape as `/api/prayers/shacharit` with `"service": "mincha"`.
+`backend/routes_community.py`, reading the checked-in `customs/*.json` files. All **Public** `GET`s.
 
-- **Auth required:** No
-- **Query parameters:**
-  - `community` (optional)
-
----
-
-### `GET /api/prayers/maariv`
-
-Returns the evening prayer service structure. Same response shape as `/api/prayers/shacharit` with `"service": "maariv"`.
-
-- **Auth required:** No
-- **Query parameters:**
-  - `community` (optional)
+| Route | Response |
+|---|---|
+| `GET /api/communities/list` | `[{"name": "Ashkenaz"}, …]`, the supported community names, sorted. Corpus-derived tier. |
+| `GET /api/communities` | Alias of the list above, kept for older clients. |
+| `GET /api/community/<name>` | One community's customs: `name`, `requested_name`, `heritage_id`, `primary_origin`, `customs` (keyed `category_topic`, each with `category`, `topic`, `ruling`, `common_practices`, `source`) and the full `raw_data`. The name accepts aliases and is canonicalised; an unknown name is a `404`, an unreadable file a `500`. |
+| `GET /api/community/<name>/timeline` | `{"name", "events": [{"title", "description", "approx_period"}]}`, at most 30 events built from the community file's origin and history fields. |
 
 ---
 
@@ -685,144 +578,68 @@ Returns the evening prayer service structure. Same response shape as `/api/praye
 
 ### `POST /api/feedback`
 
-Submit a thumbs up/down (and optional short comment) on an AI answer. Writes one row to the `answer_feedback` table (`backend/routes_feedback.py`, plan.md §12.4). Accepted from signed-out readers too — `user_id` is nullable. The table is write-only from the client's perspective: its RLS policy grants `INSERT` to everyone but has no `SELECT` policy for the `anon`/`authenticated` roles, so submitted feedback can only be read back via the backend's own service-role Supabase client.
+Submit a thumbs up or down (and an optional short comment) on an AI answer. Writes one row to the `answer_feedback` table (`backend/routes_feedback.py`). Accepted from signed-out readers too, since `user_id` is nullable. The table is write-only from the client's side: its RLS policy grants `INSERT` to everyone and has no `SELECT` policy for `anon` or `authenticated`, so submitted feedback can only be read back through the backend's own service-role client (see `GET /api/devtools/feedback-digest`).
 
-- **Auth required:** No (optional — if no bearer token is sent, the request proceeds anonymously unless `CLERK_ENFORCE_AUTH=true`, in which case a missing token returns `401`. If a bearer token *is* sent, it must verify: an invalid/expired token returns `401` regardless of `CLERK_ENFORCE_AUTH`. A verified token's `sub` claim is attached as `user_id`.)
+- **Auth:** Optional. A verified token's `sub` is attached as `user_id`.
+- **Rate-limit class:** `feedback`.
 
 **Request body:**
 
 ```json
 {
-  "verdict": "string — required, 'helpful' | 'not_helpful'",
-  "question": "string — required, the original question text (hashed server-side with SHA-256 into the stored `question_hash`; the raw question text itself is not persisted)",
-  "comment": "string — optional, sanitised (control/hidden characters stripped) and truncated to 500 chars; stored as '' if omitted",
-  "mode": "string — optional, answer mode e.g. 'balanced' (default 'balanced' if omitted)",
-  "language": "string — optional, e.g. 'en' (default 'en' if omitted)",
-  "fallback": "boolean — optional, whether the answer came from the fallback model (default false)",
-  "safety_class": "string — optional (default 'ok' if omitted)"
+  "verdict": "string, required, 'helpful' | 'not_helpful'",
+  "question": "string, required, the original question (hashed server-side with SHA-256 into question_hash; the raw text is not persisted)",
+  "comment": "string, optional, sanitised and truncated to 500 characters; stored as '' if omitted",
+  "mode": "string, optional (default 'balanced')",
+  "language": "string, optional (default 'en')",
+  "fallback": "boolean, optional, whether the answer came from the fallback model (default false)",
+  "safety_class": "string, optional (default 'ok')"
 }
 ```
 
-**Response (200):**
-
-```json
-{
-  "success": true
-}
-```
-
-**Errors:**
+**Response (200):** `{"success": true}`
 
 | Status | Meaning |
 |---|---|
-| `400` | `verdict` missing or not one of `helpful`/`not_helpful` |
-| `400` | `question` missing |
-| `401` | No token sent and `CLERK_ENFORCE_AUTH=true`, or a token was sent but failed verification (invalid/expired) |
+| `400` | `verdict` missing or not `helpful`/`not_helpful`, or `question` missing |
+| `401` | No token and `CLERK_ENFORCE_AUTH` on, or a token that failed verification |
+| `500` | The insert into `answer_feedback` failed |
 | `503` | Supabase not configured |
-| `500` | Insert into `answer_feedback` failed |
 
 ---
 
-## User
+## Account
 
-### `GET /api/user/profile`
+`backend/routes_user.py`.
 
-Returns the authenticated user's profile and preferences.
+### `GET /api/auth/me`
 
-- **Auth required:** Yes
+**Public.** `{"authenticated": false}` with no token; `{"authenticated": true, "user_id", "session_id"}` for a valid one; `401 {"authenticated": false}` for a token that does not verify.
 
-**Response (200):**
+### `GET /api/user/preferences`, `PUT /api/user/preferences`
 
-```json
-{
-  "user_id": "string — Clerk user ID",
-  "email": "string",
-  "community": "string — selected community lens",
-  "preferences": {
-    "font_size": "number",
-    "theme": "string — 'light' | 'dark'",
-    "language": "string — 'en' | 'he'"
-  },
-  "legal_accepted_at": "string — ISO 8601 or null"
-}
-```
+**Clerk.** Cross-device sync of the caller's UI state, stored in `user_preferences` through the RLS-scoped client (service-role fallback only when `STRICT_SUPABASE_RLS` is off; in strict mode with no Supabase session the answer is `403`). `GET /api/preferences` and `PUT /api/preferences` are an alias kept for older clients.
 
-**Errors:**
+- `GET` returns `{"prefs", "shelf", "notes", "reading_state", "updated_at"}`, each `null` when nothing is stored.
+- `PUT` takes `{"prefs": object (required), "shelf": object, "notes": object, "reading_state": object}` (the last three default to `{}`) and returns `{"ok": true, "updated_at"}`. A non-object value is a `400`.
+- `500` when the sync fails; `503` when Supabase is not configured.
 
-| Status | Meaning |
-|---|---|
-| `401` | Not authenticated |
+### `GET /api/bookmarks/semantic`, `POST /api/bookmarks/semantic`
 
----
+**Clerk.** Semantic bookmarks with notes and an AI summary, stored in `study_bookmarks`.
 
-### `GET /api/user/bookmarks`
+- `GET` returns `{"items": [{id, ref, label, segment_text, ai_summary, notes, created_at}]}`, newest first, up to 50.
+- `POST` takes `ref`, `label`, `segment_text`, `notes` and an optional `ai_summary` (a reference or a text segment is required, else `400`). When `segment_text` is given and no summary is, one is generated with Gemini. Returns `{"ok": true, "item", "summary_generated": boolean, "summary_error": string}`.
 
-Returns the authenticated user's saved bookmarks.
+### `POST /api/accept-legal`
 
-- **Auth required:** Yes
-
-**Response (200):**
-
-```json
-{
-  "bookmarks": [
-    {
-      "id": "string — UUID",
-      "ref": "string — Sefaria reference",
-      "title": "string",
-      "note": "string — optional user note",
-      "created_at": "string — ISO 8601"
-    }
-  ]
-}
-```
-
-**Errors:**
-
-| Status | Meaning |
-|---|---|
-| `401` | Not authenticated |
-
----
-
-### `POST /api/user/preferences`
-
-Update the authenticated user's preferences.
-
-- **Auth required:** Yes
-
-**Request body (all fields optional):**
-
-```json
-{
-  "community": "string — community lens identifier",
-  "font_size": "number",
-  "theme": "string — 'light' | 'dark'",
-  "language": "string — 'en' | 'he'"
-}
-```
-
-**Response (200):**
-
-```json
-{
-  "status": "updated",
-  "preferences": {}
-}
-```
-
-**Errors:**
-
-| Status | Meaning |
-|---|---|
-| `400` | Invalid preference values |
-| `401` | Not authenticated |
+**Optional.** Records acceptance of the terms and privacy policy versions and the age attestation. **Currently dormant:** no client code calls it, but the route and its `user_preferences` columns remain. Anonymous callers get `{"success": true, "stored": "client"}`; signed-in callers get `{"success": true, "stored": "server"}` after a best-effort write.
 
 ---
 
 ## Privacy
 
-Routes defined in `backend/routes_privacy.py` (plan.md §8.D) — the self-serve GDPR/CCPA data-subject-request (DSR) flow: "download my data" and "delete my account + data". Both operate over the same seven user-scoped Supabase tables (`_USER_DATA_TABLES`), each filtered/deleted with an explicit `.eq("user_id", ...)`:
+`backend/routes_privacy.py`: the self-serve GDPR/CCPA data-subject-request flow, "download my data" and "delete my account and data". Both operate over the same seven user-scoped Supabase tables (`_USER_DATA_TABLES`), each filtered or deleted with an explicit `.eq("user_id", ...)`. Both are **Clerk**, class `account`, `private, no-store`.
 
 | Export key | Table |
 |---|---|
@@ -832,63 +649,49 @@ Routes defined in `backend/routes_privacy.py` (plan.md §8.D) — the self-serve
 | `memories` | `user_memories` |
 | `ai_usage_log` | `ai_usage_log` |
 | `feedback` | `answer_feedback` |
-| `ai_conversations` | `conversations` (export embeds each conversation's `messages`, each with its `citations`; delete cascades to both) |
+| `ai_conversations` | `conversations` (the export embeds each conversation's `messages`, each with its `citations`; delete cascades to both) |
 
-Both endpoints use the service-role Supabase client (not the RLS-scoped, JWT-derived client used elsewhere) — see the module docstring in `backend/routes_privacy.py` for why: the frontend sends a plain Clerk session token, not a Supabase-compatible JWT, so gating a DSR endpoint behind the RLS-scoped client would 403 for exactly the users this feature exists to serve.
+Both endpoints use the service-role Supabase client rather than the RLS-scoped, JWT-derived one: the frontend sends a plain Clerk session token, not a Supabase-compatible JWT, so gating a DSR endpoint behind the RLS-scoped client would `403` for exactly the users the feature exists to serve. Every query is still filtered to the caller's own verified `sub`.
 
 ### `GET /api/user/data-export`
 
-plan.md §8.D.1: returns a single JSON export of every row across the seven tables above that belongs to the signed-in user. Fetches each table independently and paginates (`.range()`, 1000 rows/page, up to 200 pages) so a high-volume table (`ai_usage_log`, `ask_history`) isn't silently truncated by PostgREST's default per-request row cap. A failure reading one table does not fail the whole export — that table's array comes back empty and its `export_key` is listed in `partial_errors` instead.
-
-- **Auth required:** Yes
+One JSON export of every row across the seven tables that belongs to the signed-in user. Each table is fetched independently and paginated (`.range()`, 1,000 rows per page, up to 200 pages), so a high-volume table (`ai_usage_log`, `ask_history`) is not silently truncated by PostgREST's default row cap. A failure reading one table does not fail the export: that table's array comes back empty and its export key is listed in `partial_errors`.
 
 **Response (200):**
 
 ```json
 {
-  "user_id": "string — Clerk user ID",
-  "exported_at": "string — ISO 8601, UTC",
+  "user_id": "string, Clerk user ID",
+  "exported_at": "string, ISO 8601, UTC",
   "data": {
-    "preferences": ["object — raw user_preferences row(s)"],
-    "bookmarks": ["object — raw study_bookmarks row(s)"],
-    "ask_history": ["object — raw ask_history row(s)"],
-    "memories": ["object — raw user_memories row(s)"],
-    "ai_usage_log": ["object — raw ai_usage_log row(s)"],
-    "feedback": ["object — raw answer_feedback row(s)"],
-    "ai_conversations": ["object — raw conversations row(s), each with `messages` (oldest first, each with numbered `citations`)"]
+    "preferences": ["raw user_preferences rows"],
+    "bookmarks": ["raw study_bookmarks rows"],
+    "ask_history": ["raw ask_history rows"],
+    "memories": ["raw user_memories rows"],
+    "ai_usage_log": ["raw ai_usage_log rows"],
+    "feedback": ["raw answer_feedback rows"],
+    "ai_conversations": ["raw conversations rows, each with `messages` (oldest first, each with numbered `citations`)"]
   },
   "partial_errors": {
-    "<export_key>": "string — present only if that table failed to read; other tables still export normally"
+    "<export_key>": "string, present only if that table failed to read"
   }
 }
 ```
 
-**Errors:**
-
 | Status | Meaning |
 |---|---|
-| `401` | Not authenticated / missing user identity in token claims |
+| `401` | Not authenticated, or no user identity in the token claims |
 | `503` | Supabase not configured |
-
----
 
 ### `POST /api/user/delete-account`
 
-plan.md §8.D.1: irreversible self-serve "delete my account + data". Deletes rows from all six tables above, then — only if every table delete succeeded — deletes the Clerk identity itself via Clerk's Backend API (`DELETE https://api.clerk.com/v1/users/{id}`, requires `CLERK_SECRET_KEY`). Table deletes are naturally idempotent (deleting zero remaining rows is not an error), so a retried call after a partial prior failure is safe.
+Irreversible. Deletes the caller's rows from all seven tables above, then, only if every table delete succeeded, deletes the Clerk identity through Clerk's Backend API (`DELETE https://api.clerk.com/v1/users/{id}`, needs `CLERK_SECRET_KEY`; a `404` from Clerk counts as already deleted). Table deletes are naturally idempotent, so a retry after a partial failure is safe.
 
-If any table delete fails, the Clerk account is deliberately **left intact** (not deleted) and the response says so — the Clerk identity is the user's only way to authenticate and retry, so deleting it while Supabase rows remain would orphan that data permanently with no self-serve recovery path.
+If any table delete fails, the Clerk account is deliberately **left intact** and the response says so: the Clerk identity is the user's only way to authenticate and retry, so deleting it while rows remain would orphan that data with no self-serve recovery.
 
-- **Auth required:** Yes
+**Request body:** `{"confirmation": "DELETE"}` (the literal string, required).
 
-**Request body:**
-
-```json
-{
-  "confirmation": "string — required, must be the literal string \"DELETE\""
-}
-```
-
-**Response (200 — full success):**
+**Response (200, full success):**
 
 ```json
 {
@@ -899,43 +702,33 @@ If any table delete fails, the Clerk account is deliberately **left intact** (no
     "ask_history": true,
     "user_memories": true,
     "ai_usage_log": true,
-    "answer_feedback": true
+    "answer_feedback": true,
+    "conversations": true
   },
   "clerk_deleted": true
 }
 ```
 
-**Response (207 — partial; a table delete failed, Clerk account untouched):**
+**Response (207, a table delete failed; Clerk account untouched):**
 
 ```json
 {
   "ok": false,
-  "deleted_tables": { "...": "boolean per table, as above" },
+  "deleted_tables": { "<table>": "boolean per table, as above" },
   "clerk_deleted": false,
-  "table_errors": { "<table_name>": "string — generic error message" },
+  "table_errors": { "<table_name>": "string, generic error message" },
   "clerk_skipped": "Clerk account was not deleted because one or more data tables failed to delete. Please retry."
 }
 ```
 
-**Response (207 — all tables deleted, Clerk delete itself failed, e.g. `CLERK_SECRET_KEY` unset):**
-
-```json
-{
-  "ok": false,
-  "deleted_tables": { "...": true },
-  "clerk_deleted": false,
-  "clerk_error": "string"
-}
-```
-
-**Errors:**
+**Response (207, every table deleted but the Clerk delete failed, for example `CLERK_SECRET_KEY` is unset):** the same shape with `"ok": false`, `"clerk_deleted": false` and `"clerk_error": "string"`.
 
 | Status | Meaning |
 |---|---|
 | `400` | `confirmation` missing or not exactly `"DELETE"` |
-| `401` | Not authenticated / missing user identity in token claims |
+| `401` | Not authenticated, or no user identity in the token claims |
 | `503` | Supabase not configured |
-| `207` | Partial success — see response shapes above (Supabase and/or Clerk delete did not fully complete) |
+| `207` | Partial success, see above |
 
 ---
 
@@ -943,24 +736,23 @@ If any table delete fails, the Clerk account is deliberately **left intact** (no
 
 ### `POST /api/webhooks/clerk`
 
-Defined in `backend/routes_webhooks.py` (plan.md §39.2). Completeness backstop for account deletion: `POST /api/user/delete-account` above is the only code path in this app that deletes Supabase rows for a user, but a Clerk identity can also be deleted through doors this app doesn't control — Clerk's hosted `<UserProfile />` self-service delete UI, or an operator removing a user from the Clerk Dashboard. Neither path calls this app, so neither triggers cleanup without this webhook. On a `user.deleted` event, cascades the same delete across the same six tables listed under **Privacy** above, keyed on the event payload's `data.id` (there is no live Clerk JWT to authenticate with — the identity may already be gone by the time this fires).
+`backend/routes_webhooks.py`. A completeness backstop for account deletion: `POST /api/user/delete-account` is the only code path in this app that deletes a user's Supabase rows, but a Clerk identity can also be deleted through doors the app does not control (Clerk's hosted `<UserProfile />` self-service delete, or an operator removing a user in the Clerk Dashboard). Neither calls this app, so neither would trigger cleanup without this webhook. On a `user.deleted` event it cascades the same delete across the same seven tables listed under [Privacy](#privacy), keyed on the payload's `data.id`; there is no live Clerk JWT to authenticate with, because the identity may already be gone.
 
-- **Auth required:** No Clerk JWT — authentication is [Svix](https://www.svix.com/) HMAC-SHA256 signature verification instead. The request must carry `svix-id`, `svix-timestamp`, and `svix-signature` headers; the signature is computed over `"{svix-id}.{svix-timestamp}.{raw body}"` using `CLERK_WEBHOOK_SIGNING_SECRET` (base64-decoded after stripping a `whsec_` prefix) and must match one of the space-delimited `v1,<base64>` values in `svix-signature`. `svix-timestamp` must also be within 300 seconds of the server's clock, in either direction. Verified by hand against the documented Svix scheme rather than adding the `svix` package as a dependency.
+- **Auth:** Svix signature. The request must carry `svix-id`, `svix-timestamp` and `svix-signature`. The signature is HMAC-SHA256 over `"{svix-id}.{svix-timestamp}.{raw body}"` with `CLERK_WEBHOOK_SIGNING_SECRET` (base64-decoded after stripping a `whsec_` prefix) and must match one of the space-delimited `v1,<base64>` values in `svix-signature`. `svix-timestamp` must be within 300 seconds of the server's clock in either direction. Verified by hand against the documented Svix scheme rather than adding the `svix` package as a dependency.
+- **Rate-limit class:** `webhook` (15 per minute per IP).
 
-**Request body:** a Clerk webhook event payload (JSON), e.g.:
+**Request body:** a Clerk webhook event, for example:
 
 ```json
 {
-  "type": "string — Clerk event type, e.g. 'user.deleted'",
-  "data": {
-    "id": "string — Clerk user ID"
-  }
+  "type": "user.deleted",
+  "data": { "id": "string, Clerk user ID" }
 }
 ```
 
-Only `type == "user.deleted"` triggers the delete cascade. Any other event type (including Clerk's own webhook-setup test payload) is acknowledged with `200` and skipped, so Clerk doesn't retry it forever.
+Only `type == "user.deleted"` triggers the cascade. Any other event type (including Clerk's own setup test payload) is acknowledged with `200` and skipped, so Clerk does not retry it forever.
 
-**Response (200 — cascade succeeded):**
+**Response (200, cascade succeeded):**
 
 ```json
 {
@@ -971,147 +763,91 @@ Only `type == "user.deleted"` triggers the delete cascade. Any other event type 
     "ask_history": true,
     "user_memories": true,
     "ai_usage_log": true,
-    "answer_feedback": true
+    "answer_feedback": true,
+    "conversations": true
   }
 }
 ```
 
-Or, when the event type is not `user.deleted`:
+**Response (200, other event types):** `{"ok": true, "skipped": "<event type or 'unrecognized_payload'>"}`.
 
-```json
-{
-  "ok": true,
-  "skipped": "string — the event type that was ignored, or 'unrecognized_payload'"
-}
-```
-
-**Response (207 — one or more table deletes failed):**
-
-```json
-{
-  "ok": false,
-  "deleted_tables": { "...": "boolean per table" },
-  "table_errors": { "<table_name>": "string — generic error message" }
-}
-```
-
-**Errors:**
+**Response (207, one or more table deletes failed):** `{"ok": false, "deleted_tables": {...}, "table_errors": {"<table>": "generic message"}}`.
 
 | Status | Meaning |
 |---|---|
-| `400` | Verified payload is missing `data.id` |
-| `401` | Missing/invalid Svix signature or stale timestamp |
-| `503` | `CLERK_WEBHOOK_SIGNING_SECRET` not configured |
-| `503` | Supabase not configured |
-| `207` | Partial success — one or more table deletes failed (see `table_errors`) |
+| `400` | The verified payload has no `data.id` |
+| `401` | Missing or invalid Svix signature, or a stale timestamp |
+| `503` | `CLERK_WEBHOOK_SIGNING_SECRET` or Supabase not configured |
+| `207` | Partial success, see `table_errors` |
 
-Idempotent by construction: Svix delivers at-least-once, and a replayed event just deletes zero remaining rows (still a success) rather than erroring.
-
----
-
-## Devtools
-
-### `GET /api/devtools/reliability`
-
-Returns the current circuit-breaker state for all external dependencies.
-
-- **Auth required:** No (informational — no sensitive data)
-
-**Response (200):**
-
-```json
-{
-  "services": {
-    "sefaria": {
-      "state": "string — 'closed' | 'open' | 'half-open'",
-      "failures": "number",
-      "last_checked": "string — ISO 8601"
-    },
-    "hebcal": {},
-    "gemini": {},
-    "claude": {}
-  }
-}
-```
+Idempotent by construction: Svix delivers at least once, and a replayed event just deletes zero remaining rows, which is still a success.
 
 ---
 
-### `GET /api/devtools/stats`
+## Operations and health
 
-Returns in-process counters for the current Vercel instance. Values reset on cold start and are not aggregated across instances.
+Nothing here is meant for end users. Gating matters because several of these reveal configuration or user data, so most are **Clerk** or **Cron secret**; the exceptions are listed explicitly.
 
-- **Auth required:** No
+| Route | Auth | Purpose |
+|---|---|---|
+| `GET /api/async/health` | Public | Liveness of the ASGI process. Returns `{"ok": true, "runtime": "fastapi", "flask_mounted": true, "ts": <unix seconds>}` immediately; probes nothing external. |
+| `GET /api/stack/health` and its alias `GET /api/health` | Clerk | Runtime readiness: rate-limit store and per-class policy, cost-breaker configuration, Clerk and Supabase configuration state, external API circuit-breaker summary, in-process counters. Cheap: no outbound calls. Reveals configuration, hence the gate. |
+| `GET /api/devtools/heartbeat` | Public | A low-noise diagnostic for the hidden devtools inspector (Alt+Shift+I), which any visitor can open. Returns `{"ok", "ts", "elapsed_ms", "checks": {"library_popular_ready", "library_popular_ms"}, "stats"}`. Configuration-presence booleans feed the `ok` rollup but are deliberately left out of the body. The inspector polls it every 15 s, and only while the panel is open. |
+| `GET /api/devtools/reliability` | Clerk | In-process counters (`stats`) for this instance. Values reset on a cold start and are not aggregated across instances. |
+| `GET /api/devtools/rls-audit` | Clerk | The caller's own RLS posture: strict-mode flag, the user-scoped tables, whether a Supabase token was present, and, for a signed-in caller with one, a service-role versus user-scoped row-count comparison per table (`observed`). That comparison catches the silent failure where an unresolved `auth.uid()` makes every policy evaluate false. It does not test cross-user isolation; `scripts/verify_rls.py` does. |
+| `GET /api/devtools/feedback-digest` | Clerk | Recent `answer_feedback` rows, newest first: `{"count", "helpful", "not_helpful", "rows"}`. Query `limit` (default 50, max 200; a bad value falls back to the default). `503` without Supabase. |
+| `POST /api/devtools/segment-report` | Optional | A reader's "this segment looks wrong" report. Fields are stringified and length-capped; logged and counted, not stored. Returns `{"ok": true, "logged": true}`. |
+| `POST /api/client-errors` | Public, same-origin only | Frontend error boundary reports (`message`, `url`, `stack` cut to 2,000 characters, `component`). Forwarded to Sentry with the user agent but no IP. `403` for a cross-origin caller. Class `telemetry`. |
+| `GET /api/devtools/budget-check` | Cron secret | The daily AI-spend guardrail (`backend/cost_meter.py`), run by Vercel Cron at 13:00 UTC. A no-op until `DAILY_BUDGET_USD` is set. `401` for a wrong secret, `503` when `CRON_SECRET` is unset. |
+| `GET /api/devtools/retention-enforce` | Cron secret | The retention job, run by Vercel Cron at 14:00 UTC. See below. |
 
-**Response (200):**
-
-```json
-{
-  "instance_id": "string",
-  "uptime_seconds": "number",
-  "counters": {
-    "ask_total": "number",
-    "ask_gemini_success": "number",
-    "ask_claude_fallback": "number",
-    "ask_error": "number",
-    "sefaria_cache_hit": "number",
-    "sefaria_cache_miss": "number"
-  }
-}
-```
-
----
+`vercel.json` carries exactly these two crons. Vercel sends `CRON_SECRET` as a bearer token on cron-triggered requests once the variable is set on the project.
 
 ### `GET /api/devtools/retention-enforce`
 
-Defined in `backend/routes_privacy.py` (plan.md §8.D.5). Scheduled job (Vercel Cron — see `vercel.json`) that actually deletes data past the retention windows documented in `templates/privacy.html` §3, rather than leaving that a policy-only promise: `ask_history` and `ai_usage_log` rows older than 90 days (by `created_at`) are hard-deleted. Also sweeps abandoned atomic AI-spend budget reservations (`ai_usage_log` rows with `reserved=true` past their `reservation_expires_at`) into the same daily run, via `expire_stale_budget_reservations()`, rather than standing up a separate job.
+`backend/routes_privacy.py`. Deletes data past the retention windows documented in `templates/privacy.html` §3, so that policy is enforced rather than promised: `ask_history` and `ai_usage_log` rows older than 90 days (by `created_at`) are hard-deleted. It also sweeps abandoned atomic AI-spend budget reservations (`ai_usage_log` rows with `reserved=true` past their `reservation_expires_at`) in the same run, through `expire_stale_budget_reservations()`, rather than standing up a separate job.
 
-- **Auth required:** Yes — gated by `CRON_SECRET`, not a Clerk JWT. Same pattern as `routes_devtools.budget_check()`: fails closed (`503`) if `CRON_SECRET` is unset, so a misconfigured deployment can't be triggered by an unauthenticated caller. Pass `Authorization: Bearer <CRON_SECRET>`.
-
-**Response (200 — fully succeeded):**
+**Response (200, fully succeeded):**
 
 ```json
 {
   "ok": true,
-  "ts": "string — ISO 8601, UTC",
-  "ask_history": { "deleted": "number", "cutoff": "string — ISO 8601" },
-  "ai_usage_log": { "deleted": "number", "cutoff": "string — ISO 8601" },
+  "ts": "string, ISO 8601, UTC",
+  "ask_history": { "deleted": "number", "cutoff": "string, ISO 8601" },
+  "ai_usage_log": { "deleted": "number", "cutoff": "string, ISO 8601" },
   "budget_reservations": { "deleted": "number" }
 }
 ```
 
-**Response (500 — one or more steps failed; `ok` is `false` and the failing step's key holds an `error` string instead of `deleted`/`cutoff`):**
+**Response (500, one or more steps failed):** `ok` is `false` and the failing step's key holds an `error` string in place of `deleted` and `cutoff`:
 
 ```json
 {
   "ok": false,
-  "ts": "string — ISO 8601, UTC",
+  "ts": "string, ISO 8601, UTC",
   "ask_history": { "error": "string" },
   "ai_usage_log": { "deleted": 0, "cutoff": "string" },
   "budget_reservations": { "deleted": 0, "error": "string" }
 }
 ```
 
-**Errors:**
-
 | Status | Meaning |
 |---|---|
-| `401` | Missing/incorrect `Authorization: Bearer <CRON_SECRET>` |
+| `401` | Missing or incorrect `Authorization: Bearer <CRON_SECRET>` |
 | `503` | `CRON_SECRET` not configured, or Supabase not configured |
-| `500` | One or more retention/reservation-sweep steps failed (see per-key `error`) |
+| `500` | One or more steps failed (see the per-key `error`) |
 
 ---
 
-### `GET /api/async/health`
+## Cache tiers
 
-FastAPI-native health endpoint. Returns `200` immediately if the ASGI process is alive. Does not probe external services.
+`backend/cache_policy.py` is the single source of truth for `Cache-Control`, consulted from both the Flask `after_request` hook and the ASGI request middleware. Only `GET` is ever promoted to a public tier, and any error response (status 400 or above) from a public-tier route is downgraded to `private, no-store`, so a transient upstream failure cannot sit in the CDN.
 
-- **Auth required:** No
+| Tier | Header | Routes |
+|---|---|---|
+| Immutable | `public, s-maxage=86400, stale-while-revalidate=604800` | `/api/library/index`, `/api/library/leaf-refs`, `/api/library/popular`, `/api/library/category/*`, `/api/texts-index`, `/api/text/*`, `/api/prayer/*`, `/api/siddur/full/*`, `/api/siddur/section-refs/*`, `/api/siddur/v2/day`, `/api/siddur/v2/service/*` |
+| Deterministic by date | `public, s-maxage=3600, stale-while-revalidate=86400` | `/api/zmanim`, `/api/zmanim/month`, `/api/zmanim/days`, `/api/daily-study`, `/api/holidays`, `/api/parasha` |
+| Corpus-derived | `public, s-maxage=3600, stale-while-revalidate=86400` | `/api/communities/list`, `/api/communities`, `/api/prayers/list`, `/api/word/meaning`, `/api/library/search`, `/api/search/suggest`, `/api/geocode`, `/api/community/*`, `/api/siddur/v2/toc/*` |
+| Private | `private, no-store` | `/ask`, `/set_location`, and every other `/api/*` route; an unclassified route is never accidentally made public |
 
-**Response (200):**
-
-```json
-{
-  "status": "ok",
-  "runtime": "fastapi"
-}
-```
+`/api/zmanim` and `/api/zmanim/month` drop to `private` when they fall back to the session location. `docs/VERCEL_COST_OPTIMIZATION.md` explains why the tiers exist and what they save.

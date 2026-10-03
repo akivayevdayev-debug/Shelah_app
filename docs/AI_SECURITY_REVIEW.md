@@ -540,8 +540,8 @@ already uses) rather than maintaining two copies of URL-building logic.
 > `asyncio.run` wrapper was **not safe as of 2026-09-19**, although it is
 > safe in `_delete_clerk_user()`. That helper opens a fresh
 > `httpx.AsyncClient` per call; the search connectors instead shared one
-> process-wide client (`backend/search.py::_get_async_client()`, plan.md
-> §3.6) whose connection pool was bound to the event loop that first used
+> process-wide client (`backend/search.py::_get_async_client()`) whose
+> connection pool was bound to the event loop that first used
 > it. `asyncio.run()` from a sync caller creates and closes a new loop each
 > call, and reusing the cached client across those loops failed. Verified
 > with a throwaway probe (local keep-alive server, one shared `AsyncClient`,
@@ -660,21 +660,19 @@ now-rotated Gemini key remains only in git history, which is out of scope
 for this pass per the task brief and is already tracked in
 `docs/SECURITY.md`.)
 
-#### I6 — Documentation currency note (not a regression)
+#### I6 — Documentation currency note (resolved)
 
-`docs/SECURITY.md` §8 describes, as of its last update, an unresolved
+An earlier revision of `docs/SECURITY.md` described an unresolved
 production bug where `backend/rag.py::_fetch_user_memory_summaries()`
 reached Flask's global `request` proxy from the FastAPI native `/ask`
 path with no Flask request context, causing every authenticated `/ask`
-call to 500. Reading the current code shows this has since been fixed:
+call to 500. Reading the code showed this had already been fixed:
 `_fetch_user_memory_summaries(user_id, limit=None, bearer_token=None)`
-now accepts an explicit `bearer_token` parameter, and `asgi.py:312-343,976`
-threads the raw `Authorization` header value down to it explicitly rather
-than reading Flask's global `request`. This is **not** a regression —
-it is the opposite: the code has moved ahead of what `docs/SECURITY.md`
-currently describes. Flagged only so the operator can update that
-document's §8 note to reflect the fix, since a future reader could
-otherwise mistake it for still-open.
+accepts an explicit `bearer_token` parameter, and `asgi.py` threads the
+raw `Authorization` header value down to it explicitly rather than reading
+Flask's global `request`. It was not a regression: the code had moved
+ahead of the document. The 2026-10-02 rewrite of `docs/SECURITY.md`
+removed the stale note, so there is nothing left to reconcile.
 
 ---
 

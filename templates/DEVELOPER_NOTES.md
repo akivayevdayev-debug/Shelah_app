@@ -1,35 +1,41 @@
-# Templates Notes
+# Templates notes
 
-> Sync status (2026-05-12): Updated — source links now open in local reader (not sefaria.org), quick-settings panel right-aligns on desktop, centers on large mobile, left-aligns on phone. AI modal populates local-reader source links via data attribute + event delegation.
+## `index.html`: the application shell
 
-## `index.html` responsibilities
+The single-page app shell, about 14,500 lines. It holds the markup for the whole UI, the no-flash theme and preference bootstraps in `<head>`, the import map for the ES modules under `static/js/`, and one classic inline script that owns most of the interactive behaviour (state, rendering, the reader, the calendar, the settings panel). Newer surfaces live in ES modules and reach the inline script through the `window.Shelah*` bridges. Details: [`docs/FRONTEND.md`](../docs/FRONTEND.md).
 
-- Main single-page shell for the entire UI.
-- Includes Tailwind config, top nav, sidebars, reader area, settings panel, and modal/dialog markup.
-- Contains the central frontend controller script (state, rendering, API calls, interactions).
+Tailwind is **built** (`static/css/tailwind.css`, via `npm run build:css`), not configured inline. After adding utility classes here, rebuild it.
 
-## Key UI zones
+### Page zones
 
-- Top bar: search, language toggle, settings shortcuts.
-- Left sidebar (`#leftSidebar`): text navigation and library tree.
-- Center content (`#mainContainer`): home cards and reader.
-- Right sidebar (`#rightSidebar`): zmanim/today panel and daily learning cards.
+| Zone | Element | Holds |
+|---|---|---|
+| Top bar | `<header role="banner">` | Search, language toggle, the Ask entry, account and settings controls |
+| Left sidebar | `#leftSidebar` | Text tree, siddur contents, community list |
+| Main content | `#mainContainer` | `#homeGrid` (home cards), the reader, prayer, community and history pages |
+| Commentary panel | `#rightSidebar` | Commentary on the selected passage, or the verse in view in reading mode |
+| Ask Sh'elah | `#convPanel` (plus `#convPip`, `#convHistoryPop`, `#mobileSearchTray`) | Multi-turn AI conversations and search answers, owned by `conversation-ui.js` |
 
-## Reader system
+### Reader
 
-- Layout modes: bilingual, bilingual-reverse, interleaved, hebrew-only, english-only.
-- Reader preferences are stored in `appState.prefs` and applied by `applyReaderPreferences()`.
-- Hebrew text controls include toggles for vowels and cantillation.
+Layout modes are bilingual, bilingual-reverse, interleaved, Hebrew-only and English-only. Preferences live in `prefs` (persisted under `localStorage["Sh'elahPrefs"]`) and are applied by `applyReaderPreferences()`. Hebrew vowel and cantillation toggles are part of the same preferences.
 
-## Mobile behavior
+### Mobile
 
-- Mobile controls: `#mobileNavBtn`, `#mobilePulseBtn`, `#mobileDrawerBackdrop`.
-- Drawer state is managed by `openMobilePanel`, `closeMobilePanels`, and `toggleMobilePanel`.
-- Mobile breakpoint logic uses `isMobileViewport()` and CSS media queries in `static/style.css`.
+On narrow viewports the sidebars become drawers (`#mobileDrawerBackdrop`, `openMobilePanel`, `closeMobilePanels`, `toggleMobilePanel`, `isMobileViewport`), and a bottom tab bar (`#mobileBottomTabs`) plus a search tray (`#mobileSearchTray`, with the Ask and History buttons) replace the desktop chrome. Breakpoint rules live in `static/style.css` and the per-surface sheets.
 
-## API integration points
+### Backend contract
 
-Frontend calls backend endpoints for:
-- Library/text data (`/api/library/*`, `/api/text/*`).
-- Prayer and community content (`/api/prayer/*`, `/api/community/*`).
-- Time/calendar widgets (`/api/zmanim*`, `/api/holidays`, `/api/parasha`).
+The shell is rendered by Flask with per-URL `<head>` values from `backend/page_meta.py`; path deep links (`/library/...`, `/siddur/...`, `/conversations/...`, shared answers) are served by `backend/routes_spa_paths.py` and parsed in the browser by `static/js/router.js`. Both ends must agree on the path grammar. API usage by surface is listed in [`docs/API.md`](../docs/API.md).
+
+## Other templates
+
+| Template | Route | Owner |
+|---|---|---|
+| `about.html`, `help.html`, `glossary.html` | `/about`, `/help`, `/glossary` | `backend/routes_pages.py` |
+| `terms.html`, `privacy.html`, `accessibility.html` | `/terms`, `/privacy`, `/accessibility` | `app.py` |
+| `ai-disclosure.html`, `acceptable-use.html`, `dmca.html`, `licenses.html` | same-named routes | `backend/routes_legal.py` |
+| `404.html` | the not-found handler | `app.py` |
+| `components/` | `theme_bootstrap.html` (no-flash theme script), `icons.html`, and the shared `legal_topbar`, `legal_footer`, `legal_scripts`, `site_footer` partials | included by the pages above |
+
+The legal and information pages are server-rendered and do not load the SPA. Their content is a legal matter; do not change wording without the owner's say-so.

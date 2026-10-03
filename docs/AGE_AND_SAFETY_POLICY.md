@@ -1,13 +1,13 @@
 # Age & Safety Policy
 
-**Status:** engineering implementation of plan.md §8.B-AGE. The age-gate
+**Status:** engineering implementation of the age and safety policy. The age-gate
 *mechanism* was originally a click-through consent modal; it has since been
 replaced with a static, non-blocking footer notice (see "Age notice at
 sign-up" below) — the minimum-age *decision* itself is unchanged. That
 decision is a product/legal policy choice, not a purely technical one — it
 should be confirmed with counsel before public launch (see
-`docs/LAUNCH_CHECKLIST.md`), same as the rest of the §8.A/§8.G legal
-scaffolding.
+`docs/LAUNCH_CHECKLIST.md`), same as the rest of the legal
+documents.
 
 ## Minimum age
 
@@ -54,7 +54,7 @@ decision below) is the highest-risk posture available under a
 differentiated treatment but not the current zero-screening approach.
 This risk is being knowingly carried forward, consistent with the
 footer-only decision below and the project-wide decision to forgo
-attorney review (`akiva_tasks.md` T14) — it is not resolved, only
+attorney review — it is not resolved, only
 disclosed here for the record.
 
 ## Age notice at sign-up (implemented)
@@ -148,7 +148,7 @@ every `/ask` response shape (both `app.py` and `asgi.py` — see
 `_run_ask_question_ai_synthesis`/`_security_blocked_ask_payload`/
 `_run_ask_async_ai_synthesis`), which `templates/index.html`'s
 `renderDisclaimerBanner()` reads to render the persistent, non-dismissible
-"educational information, not a halachic ruling" banner (plan.md §8.B.1)
+"educational information, not a halachic ruling" banner
 above every answer in both the AI modal and reader view — switching to a
 visually distinct, prominent referral variant (icon + amber theme tokens,
 never color alone) for `medical`/`mental_health_or_self_harm`/
