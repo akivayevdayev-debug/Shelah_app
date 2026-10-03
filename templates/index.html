@@ -140,7 +140,7 @@
     <script defer src="https://cdn.jsdelivr.net/npm/dompurify@3.4.9/dist/purify.min.js"
             integrity="sha384-6ZdfL2Azuen6KYvcTkbxqJS1d7txbNWrVfmURkxNeCn7DtzhLRL6Fi6WGG6ZLdKn"
             crossorigin="anonymous"></script>
-    <link rel="stylesheet" href="/static/css/tokens.css?v=20260930-t3">
+    <link rel="stylesheet" href="/static/css/tokens.css?v=20261003-t4">
     <link rel="stylesheet" href="/static/style.css?v=20261002-s8">
     <!-- CSS modules (supplement style.css; do not replace) -->
     <link rel="stylesheet" href="/static/css/typography.css?v=20260817-v6">
@@ -150,7 +150,7 @@
     <link rel="stylesheet" href="/static/css/prayer.css?v=20260930-v7">
     <link rel="stylesheet" href="/static/css/siddur.css?v=20261002-s8">
     <link rel="stylesheet" href="/static/css/ai.css?v=20261002-ai6">
-    <link rel="stylesheet" href="/static/css/conversation.css?v=20261002-cv10">
+    <link rel="stylesheet" href="/static/css/conversation.css?v=20261003-cv11">
     <link rel="stylesheet" href="/static/css/history.css?v=20260926-rd1">
     <link rel="stylesheet" href="/static/css/calendar.css?v=20260926-f1">
     <link rel="stylesheet" href="/static/css/calendar-detail.css?v=20260930-cd2">
@@ -2438,9 +2438,8 @@
             border: 2px solid var(--surface-border);
             border-top-color: var(--accent-primary);
             border-radius: var(--radius-full);
-            animation: privacy-spin 700ms linear infinite;
+            animation: shelah-spin 700ms linear infinite;
         }
-        @keyframes privacy-spin { to { transform: rotate(360deg); } }
         @media (prefers-reduced-motion: reduce) {
             .privacy-status[data-kind="pending"]::before { animation: none; }
             .privacy-btn, .privacy-close::before { transition: none; }

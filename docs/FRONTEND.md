@@ -178,7 +178,7 @@ Fonts: Ezra SIL is self-hosted (`static/fonts/SILEOT.woff2`, preloaded); Cardo a
 
 Two layers, per `.agents/ENGINEERING_RULES.md`:
 
-1. **CSS keyframes** live in `tokens.css` (`shelah-fade-in`, `-fade-up`, `-scale-in`, `-slide-in-left/right`, `-slide-down-fade`, `-overlay-in`, `-shimmer`, `-spin`, `-dot-bounce`, `-warm-pulse`, `-attention-ping`, `-cite-highlight`, `-view-in`, `-view-out`). Feature sheets apply them by name. One known exception: `conversation.css` still defines five `conv-*` keyframes (`conv-rise`, `conv-cite-flash`, `conv-citepop-in`, `conv-status-blink`, `conv-status-dot`); folding them into `tokens.css` is open work. The PR rule is no new `@keyframes` outside `tokens.css`.
+1. **CSS keyframes** live in `tokens.css` (`shelah-fade-in`, `-fade-up`, `-scale-in`, `-slide-in-left/right`, `-slide-down-fade`, `-overlay-in`, `-shimmer`, `-spin`, `-dot-bounce`, `-warm-pulse`, `-attention-ping`, `-cite-highlight`, `-view-in`, `-view-out`) plus the Ask panel's five (`conv-rise`, `conv-cite-flash`, `conv-citepop-in`, `conv-status-blink`, `conv-status-dot`, which kept their `conv-` names). Feature sheets and inline template styles apply them by name. The rule is no `@keyframes` anywhere but `tokens.css`, and `tests/test_css_keyframes_guard.py` fails the build if one appears elsewhere.
 2. **`static/js/motion.js`** (`window.ShelahMotion`) wraps the vanilla motion.dev `animate()` for anything JavaScript mounts, unmounts or moves:
 
 | Helper | Use for |

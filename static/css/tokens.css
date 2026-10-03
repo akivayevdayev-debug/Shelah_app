@@ -393,6 +393,29 @@
     100%    { opacity: 0; }
 }
 
+/* The Ask panel's own motion (conversation.css applies these by name; the
+   conv- prefix is kept so a grep from either file finds the other). */
+@keyframes conv-status-blink {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.75; }
+}
+@keyframes conv-status-dot {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.25; }
+}
+@keyframes conv-rise {
+    from { opacity: 0; transform: translateY(6px); }
+    to { opacity: 1; transform: none; }
+}
+@keyframes conv-cite-flash {
+    0%, 100% { opacity: 0; }
+    18%, 60% { opacity: 1; }
+}
+@keyframes conv-citepop-in {
+    from { opacity: 0; transform: scale(0.96); }
+    to { opacity: 1; transform: none; }
+}
+
 
 /* ═══════════════════════════════════════════════════════════════════
    VIEW TRANSITIONS (audit §2.3; static/js/motion.js transitionView)

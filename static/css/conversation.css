@@ -789,14 +789,6 @@ body.conv-modal-open {
 }
 .conv-status__done[data-empty="true"] { visibility: hidden; }
 .conv-status__done svg { flex: none; width: 14px; height: 14px; }
-@keyframes conv-status-blink {
-    0%, 100% { opacity: 1; }
-    50% { opacity: 0.75; }
-}
-@keyframes conv-status-dot {
-    0%, 100% { opacity: 1; }
-    50% { opacity: 0.25; }
-}
 
 .conv-turn__status {
     display: flex;
@@ -901,10 +893,6 @@ body.conv-modal-open {
 .conv-turn--reveal .conv-answer > :nth-child(n + 5),
 .conv-turn--reveal :is(.conv-customs, .conv-cites__title, .conv-cites) { animation-delay: 160ms; }
 .conv-turn--reveal .conv-turn__actions { animation-delay: 220ms; }
-@keyframes conv-rise {
-    from { opacity: 0; transform: translateY(6px); }
-    to { opacity: 1; transform: none; }
-}
 
 /* Sources: a heading and one flat list under the answer, the one place the
    answer's sources are written out. Each row is a number, the source (type +
@@ -1045,10 +1033,6 @@ body.conv-modal-open {
 }
 .conv-cite--active::before { opacity: 1; }
 .conv-cite--flash::before { animation: conv-cite-flash 1400ms var(--motion-ease-out) both; }
-@keyframes conv-cite-flash {
-    0%, 100% { opacity: 0; }
-    18%, 60% { opacity: 1; }
-}
 .conv-cite:focus:not(:focus-visible) { outline: none; }
 /* A source the reader cannot open is written out, not linked. */
 .conv-cite__ref--plain { cursor: default; }
@@ -1141,10 +1125,6 @@ body.conv-modal-open {
     transform-origin: var(--citepop-origin, 50% 0);
 }
 .conv-citepop--in { animation: conv-citepop-in 160ms var(--conv-ease) both; }
-@keyframes conv-citepop-in {
-    from { opacity: 0; transform: scale(0.96); }
-    to { opacity: 1; transform: none; }
-}
 .conv-citepop__head {
     display: flex;
     align-items: center;
