@@ -121,7 +121,10 @@ function flushRebasedCoverage() {
     const before = new Set(fs.readdirSync(dir));
     v8.takeCoverage();
     // Nothing more is recorded or written at exit, so the file rewritten
-    // below is this process's only coverage output.
+    // below is this process's only coverage output. Node's own exit-time
+    // collection then finds coverage already stopped and logs "Failed to get
+    // 'result' from coverage profile response: Precise coverage has not been
+    // started" once per test process: expected, harmless, nothing is lost.
     v8.stopCoverage();
     for (const name of fs.readdirSync(dir)) {
         if (before.has(name) || !name.startsWith(prefix) || !name.endsWith('.json')) continue;
