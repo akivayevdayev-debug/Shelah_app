@@ -421,7 +421,10 @@ Other controls:
 - `CLERK_ENFORCE_AUTH` (`backend/auth.py`) defaults to `True` whenever
   `VERCEL == "1"` or `FLASK_ENV == "production"` and can be overridden
   explicitly in either direction, so it fails toward enforcement in production
-  by default.
+  by default. The deployed value is not recorded in the repository, and
+  `.env.example` ships `CLERK_ENFORCE_AUTH=false` for local development, so a
+  copy of that file into the Vercel project's variables would silently turn
+  enforcement off; §13 lists the check.
 
 ## 7. Vercel WAF (dashboard-configured) — entered 2026-08-26, last confirmed 2026-09-16
 
@@ -590,16 +593,19 @@ the statements. **The migration was applied and verified live on 2026-09-03**
   Anon `INSERT` must use `returning=minimal`, since anon has no `SELECT` by
   design and an insert that asks for the row back fails with `42501`.
 
-## 11. `npm audit` — 7 high-severity findings, dev/build tooling only (checked 2026-10-02)
+## 11. `npm audit` — 5 high-severity findings, dev/build tooling only (checked 2026-10-03)
 
-`npm audit` reports 7 high-severity advisories; every one is in tooling that
-never ships to production or runs on any request path:
+`npm audit` reports 5 high-severity advisories, all in one chain, in tooling
+that never ships to production or runs on any request path:
 
 | Chain | Pulled in by | Fix |
 | --- | --- | --- |
 | `tailwindcss@3.4.19` → `chokidar` / `micromatch` / `fast-glob` → `braces` | `tailwindcss` (direct; run locally by `npm run build:css`, its output `static/css/tailwind.css` is committed) | needs Tailwind 4.x — a major-version migration |
-| `pa11y-ci` → `cheerio` → `undici` (≤ 6.28.0) | `pa11y-ci` (direct; used only by `npm run test:a11y`) | in-range fix available via `npm audit fix` |
-| `pa11y-ci` → `globby` → `glob` → `minimatch` → `brace-expansion` | `pa11y-ci` | in-range fix available via `npm audit fix` |
+
+The two `pa11y-ci` chains that used to sit beside it (`cheerio` → `undici` and
+`globby` → `glob` → `minimatch` → `brace-expansion`) were cleared on
+2026-10-03 with in-range lockfile updates (`undici` 6.29.0, `brace-expansion`
+1.1.21); nothing in `package.json` changed.
 
 The earlier `extract-zip` finding (a symlink path traversal in `puppeteer`'s
 ZIP extraction, [GHSA-jmr9-qjv8-65gv](https://github.com/advisories/GHSA-jmr9-qjv8-65gv))
@@ -607,12 +613,9 @@ is no longer in the tree: `package.json`'s `overrides` pin `pa11y` ^10 and
 `puppeteer` ^25.
 
 **Accepted risk, not a gap.** The `tailwindcss` chain only runs when a
-developer rebuilds the stylesheet from this repository's own input files; the
-`undici` / `brace-expansion` chains are reachable only through the
-accessibility scanner, which fetches this project's own pages. None is
-reachable through any input the deployed application accepts. The two
-`pa11y-ci` chains have a non-breaking fix available and are queued (§13); the
-Tailwind chain waits on a deliberate 3 → 4 migration. Re-run `npm audit`
+developer rebuilds the stylesheet from this repository's own input files, so
+it is not reachable through any input the deployed application accepts. It
+waits on a deliberate 3 → 4 migration (§13). Re-run `npm audit`
 periodically, or when `tailwindcss` / `pa11y-ci` / `puppeteer` cut a release.
 
 ## 12. Shared answers & conversations
@@ -653,10 +656,27 @@ Items needing a human decision or an operator action, collected in one place:
 - **CSP `'unsafe-inline'`** (§3): blocked on refactoring 112 inline `onclick=`
   handlers and 40 `style=` attributes before a nonce-based policy is possible.
 - **`WSGIMiddleware` deprecation** (§4): plan the move to `a2wsgi`.
-- **`npm audit fix`** (§11) for the two `pa11y-ci` chains; Tailwind 4
-  migration for the third.
+- **Tailwind 3 → 4 migration** (§11) to clear the last `npm audit` chain
+  (dev tooling only).
 - **`pip-audit` and `ruff` CI steps are non-blocking** (§4); promote them to
   blocking once a remediation workflow exists.
 - **Backups** (§9): the Supabase Free plan has no automated backups or PITR;
   upgrade, or schedule the manual dump.
+- **Confirm `CLERK_ENFORCE_AUTH` is not `false` in Vercel** (§6). The code
+  default there is `true`, so the variable should be unset. A signed-out
+  request to an **Optional** route should be a `401` on the live site.
+  `/api/accept-legal` is the safe probe: dormant, and for an anonymous caller
+  it only answers, never writes or calls a model.
+
+  ```bash
+  curl -s -w "\n%{http_code}\n" -X POST https://<your-domain>/api/accept-legal \
+    -H "Content-Type: application/json" -d '{}'
+  ```
+
+  `401` (`{"error":"Authentication required"}`) means enforcement is on. `200`
+  (`{"stored":"client","success":true}`) means the variable is set to `false`;
+  remove it in Vercel → Settings → Environment Variables and redeploy. Don't
+  probe with `POST /ask {}`: the live `/ask` is the native FastAPI route,
+  which rejects an empty question with `400` before it looks at auth, so that
+  request can't tell the two states apart.
 - **Turnstile** (§8) ships disabled; enabling it is an operator action.

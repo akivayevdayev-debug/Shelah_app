@@ -4,10 +4,11 @@
 *mechanism* was originally a click-through consent modal; it has since been
 replaced with a static, non-blocking footer notice (see "Age notice at
 sign-up" below) — the minimum-age *decision* itself is unchanged. That
-decision is a product/legal policy choice, not a purely technical one — it
-should be confirmed with counsel before public launch (see
-`docs/LAUNCH_CHECKLIST.md`), same as the rest of the legal
-documents.
+decision is a product/legal policy choice, not a purely technical one.
+Formal attorney review is declined project-wide (operator decision
+2026-09-05; see `docs/LAUNCH_CHECKLIST.md`), so the choice rests on the
+operator's own regulatory research, recorded below (resolved 2026-09-16),
+the same basis as the rest of the legal documents.
 
 ## Minimum age
 

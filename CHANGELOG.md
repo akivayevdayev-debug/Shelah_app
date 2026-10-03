@@ -24,7 +24,7 @@ Everything since 1.0.0 (2026-09-16). Nothing has been tagged since, so this sect
 - **Runtime and dependencies.** Python 3.14; every dependency installs from hash-locked files in CI; the CI runner is pinned to `ubuntu-24.04`; `pip-audit` findings in both lock files were cleared.
 - **Cost and delivery.** The cost meter was repriced and spend is now attributed to the user on the synchronous `/ask` path too; retries and timeouts are clamped to the remaining request budget.
 - **Interface.** Windows present with a soft fade and scale; the mobile top and bottom bars are part of the page layout rather than floating overlays; the library focus ring and several dark-theme contrasts were corrected to meet WCAG 2.1 AA; the Privacy and Data window is a native `<dialog>`; repeated markup (theme bootstrap, legal footer) moved into shared partials.
-- **Design tokens.** Calendar colours, motion durations and easing, and other per-file duplicates were consolidated into `static/css/tokens.css`.
+- **Design tokens.** Calendar colours, motion durations and easing, and other per-file duplicates were consolidated into `static/css/tokens.css`; every `@keyframes` rule now lives there (the Ask panel's five moved over, and the privacy dialog's spinner reuses `shelah-spin`), and a test fails if one is defined anywhere else.
 - **Tests and quality gates.** The coverage gate rose from 60% to 85% against `backend/`; the JavaScript suite grew to cover most modules and the CI helper scripts; SonarCloud's findings (complexity, regexes, duplicated code, test smells) were worked through. The suite is now about 4,700 Python and 600 Node tests.
 - **Documentation.** The README, `docs/API.md`, `docs/FRONTEND.md`, `docs/SERVICE_ARCHITECTURE.md`, `docs/SECURITY.md`, the developer notes, the launch checklist and the decision log were rewritten against the current code, and references to internal planning documents were removed from documentation, code comments and configuration.
 
@@ -45,7 +45,7 @@ Everything since 1.0.0 (2026-09-16). Nothing has been tagged since, so this sect
 - The leaked Gemini key (rotated 2026-09-02) was scrubbed from the repository history; what remains exposed is described in `docs/SECURITY.md`.
 - Path-traversal and super-linear regex findings were fixed in the documentation-sync checker, the text engine, the citation parser and the Hebcal reading parser.
 - Backend Sentry throttling mirrors the frontend's.
-- The npm audit's high findings (one dependency chain through `pa11y`) were cleared.
+- The npm audit's high findings (one dependency chain through `pa11y`) were cleared, and the `pa11y-ci` `undici` and `brace-expansion` advisories followed with in-range lockfile updates. The five that remain are all in the Tailwind 3 build chain (dev tooling only).
 
 ## [1.0.0] - 2026-09-16
 

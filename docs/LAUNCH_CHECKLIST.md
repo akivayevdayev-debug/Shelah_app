@@ -144,6 +144,11 @@ The full engineering review is [`docs/SECURITY.md`](SECURITY.md). Summary:
   as an open item.
 - **Authentication and authorization review — ✅ Done**
   (`docs/SECURITY.md` §6). `CLERK_AUDIENCE` is set in production.
+- **Auth enforcement on the live site — ⚠️ operator check.**
+  `CLERK_ENFORCE_AUTH` defaults to `true` on Vercel, so the "Optional" routes
+  (including `/ask`) require sign-in there, but the deployed value is not
+  recorded in the repository and `.env.example` ships `false` for local use.
+  The one-command check is in `docs/SECURITY.md` §13.
 - **Penetration test / external security review — not done.** The engineering
   review says outright that it is not a substitute for one.
 

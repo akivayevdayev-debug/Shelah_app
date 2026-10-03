@@ -35,7 +35,7 @@ Every value below already has a working default in code. Set one only to overrid
 | `RATELIMIT_ENABLED` | `true` | Kill switch for the whole rate-limit middleware; read once at import time |
 | `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY` | — | Fallback name for `CLERK_PUBLISHABLE_KEY` |
 | `CLERK_AUDIENCE` | — | Audience claim expected in Clerk JWTs — recommended for production; unset skips JWT audience verification entirely |
-| `CLERK_ENFORCE_AUTH` | `true` when `VERCEL=1` or `FLASK_ENV=production`, else `false` | Explicitly force auth enforcement on protected `/api/*` routes, overriding the runtime-based auto-default |
+| `CLERK_ENFORCE_AUTH` | `true` when `VERCEL=1` or `FLASK_ENV=production`, else `false` | Explicitly force auth enforcement on protected `/api/*` routes, overriding the runtime-based auto-default. Leave it unset on Vercel: `.env.example` ships `false` for local development, and a literal `false` in the Vercel project's variables turns anonymous `/ask` back on. The deployed value is not recorded in the repository; `docs/SECURITY.md` §13 has the one-line check |
 | `CLERK_SECRET_KEY` | — | Required for `/api/user/delete-account` to also delete the Clerk identity itself (not just Supabase rows) via Clerk's Backend API (`backend/routes_privacy.py`). Without it, account deletion still wipes Supabase data but reports `clerk_deleted=false` |
 | `SEFARIA_API` / `SEFARIA_V3_API` | `https://www.sefaria.org.il/api` / `.../api/v3` | Sefaria API base URL overrides — mainly used to point at a mock endpoint in CI/tests |
 | `VALIDATE_CUSTOMS_AT_STARTUP` | unset (off in production runtime, on elsewhere) | Validates the customs corpus at startup; skip in production to avoid billing cold-start CPU |
