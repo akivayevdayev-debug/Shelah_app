@@ -22,7 +22,10 @@ on:
 
 jobs:
   verify-rls:
-    runs-on: ubuntu-latest
+    # Pinned, not ubuntu-latest: that label moves to Ubuntu 26.04 from
+    # 2026-10-19 (actions/runner-images#14748). Move to 26.04 on purpose, once
+    # a run there is green.
+    runs-on: ubuntu-24.04
     # continue-on-error: a stale-token 404 (see above) must not paint this
     # red in the Actions tab -- only a real RLS finding should. Re-tighten
     # once session-id refresh is automated.

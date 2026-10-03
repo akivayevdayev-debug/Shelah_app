@@ -8,7 +8,10 @@ on:
 
 jobs:
   test:
-    runs-on: ubuntu-latest
+    # Pinned, not ubuntu-latest: that label moves to Ubuntu 26.04 from
+    # 2026-10-19 (actions/runner-images#14748). Move to 26.04 on purpose, once
+    # a run there is green.
+    runs-on: ubuntu-24.04
 
     steps:
       - name: Checkout code
