@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
 """
-Live Postgres RLS acceptance check (plan.md §21.2.2 STEP 2/3, §21.3 exit
-criteria; claude_code_prompts.md Prompt 34).
+Live Postgres RLS acceptance check.
 
 This is NOT a unit test. It performs real HTTP calls against a deployed
 Sh'elah instance and a real Supabase project, as two real (dedicated test)
@@ -34,7 +33,7 @@ Design notes -- read before changing the assertions below:
        PostgREST directly, with user B's own forwarded JWT but a filter
        naming user A's user_id, is the only way to ask Postgres itself
        "does RLS let user B see user A's row" -- the actual question
-       plan.md §21.2.2 STEP 3 needs answered.
+       this check needs answered.
 
     2. APP-ROUTED SMOKE CHECK (proves the full plumbing, not just the
        database) -- a PUT/GET or POST/GET sentinel round trip through the
@@ -42,9 +41,10 @@ Design notes -- read before changing the assertions below:
        (/api/user/preferences, /api/bookmarks/semantic), as user A only.
        This is what actually exercises Clerk JWT -> Flask ->
        _get_user_scoped_supabase_client() -> Supabase, the real request
-       path plan.md §21.1's four call sites use. If Supabase isn't
+       path every user-scoped call site uses. If Supabase isn't
        configured to trust Clerk (auth.uid() resolves NULL), this check
-       fails exactly the way §21.1 warns about: not an error, not a 403,
+       fails the way that misconfiguration does in production: not an
+       error, not a 403,
        an empty/missing sentinel that looks like "no data yet".
 
   * user_memories has no dedicated HTTP endpoint (backend/rag.py's
@@ -55,7 +55,7 @@ Design notes -- read before changing the assertions below:
     question for that table; live observed-vs-service-role counts for it
     are additionally surfaced on every real authenticated request via
     GET /api/devtools/rls-audit (backend/routes_devtools.py), so the "no
-    user-visible symptom" gap plan.md §21.1 flagged for this table has a
+    user-visible symptom" gap for this table has a
     second, always-on check, not just this on-demand script.
 
   * Test users must be DEDICATED test accounts, never real ones. This
@@ -90,13 +90,12 @@ Optional:
     even with a valid bypass token." If Layer 2 still 429s with a Vercel
     "Security Checkpoint" page after this is set, check Project -> Firewall
     -> Firewall Observability for which rule actually matched. Confirmed
-    live 2026-08-31 -- see plan.md §21's Prompt 34 update.
+    live 2026-08-31.
 
 A session_id is not a permanent credential -- Clerk sessions expire (or end
 via sign-out / Clerk's own session policy). Once a session has ended, minting
 a token from its id fails with a 404 `resource_not_found` from
-https://api.clerk.com/v1/sessions/{id}/tokens (confirmed live 2026-08-31,
-see plan.md §21's Prompt 34 update) -- NOT an auth-header or Content-Type
+https://api.clerk.com/v1/sessions/{id}/tokens (confirmed live 2026-08-31) -- NOT an auth-header or Content-Type
 problem, and not something this script can recover from on its own. If you
 hit that, sign in again as the dedicated test user, copy the NEW session_id
 from Clerk Dashboard -> Users -> (test user) -> Sessions, and update the
@@ -230,7 +229,7 @@ def _refresh_test_user_token(user):
     Clerk session tokens are short-lived by default (~60s). Layer 1 makes
     a dozen-plus sequential Supabase round trips across three tables before
     Layer 2 ever runs, on the SAME token object minted once at the top of
-    main() -- confirmed live 2026-08-31 (plan.md §21's Prompt 34 update)
+    main() -- confirmed live 2026-08-31
     that this can expire the token well before Layer 2 uses it, surfacing
     as a generic app-layer "Invalid or expired Clerk token" 401 that has
     nothing to do with RLS. Only possible when the user was resolved from a
@@ -299,7 +298,7 @@ def check_table_rls(supabase_url, publishable_key, table_name, id_column, sentin
     if insert_resp.status_code not in (200, 201, 204):
         hint = (
             "either RLS's INSERT policy is rejecting a legitimate owner, or "
-            "auth.uid() isn't resolving at all (plan.md §21.1)."
+            "auth.uid() isn't resolving at all."
         )
         if insert_resp.status_code == 404 and "PGRST125" in insert_resp.text:
             # Reached PostgREST fine, but it doesn't recognize this path --
@@ -319,7 +318,7 @@ def check_table_rls(supabase_url, publishable_key, table_name, id_column, sentin
             )
         elif insert_resp.status_code == 401 and "PGRST301" in insert_resp.text:
             # PostgREST could not verify the JWT's SIGNATURE at all here --
-            # RLS was never reached, so this is not the §21.1 "auth.uid()
+            # RLS was never reached, so this is not the "auth.uid()
             # resolves NULL" scenario (that fails the RLS check itself, with
             # a 403/42501, after the JWT verifies fine). PGRST301 means the
             # Third-Party Auth / JWKS trust relationship itself is broken:
@@ -347,8 +346,8 @@ def check_table_rls(supabase_url, publishable_key, table_name, id_column, sentin
 
     try:
         # Positive control: owner reading their own row must see it. Also
-        # satisfies plan.md §21.2.2 STEP 3's "demonstrate the negative
-        # assertion can fail before trusting the positive one" -- this is
+        # demonstrates that the negative assertion can fail before the
+        # positive one is trusted -- this is
         # the same query shape the negative check below uses, run where the
         # answer SHOULD be "yes, data" (against its own author), so a
         # structurally broken query (wrong table/column, auth failure) would
@@ -367,7 +366,7 @@ def check_table_rls(supabase_url, publishable_key, table_name, id_column, sentin
             messages.append(
                 f"{table_name}: owner's own sentinel row did not come back "
                 f"(got {own_rows!r}). This is the silent-zero-rows symptom "
-                "plan.md §21.1 warns about."
+                "the usual sign that Supabase isn't trusting Clerk's JWT."
             )
             return False, messages
         messages.append(f"{table_name}: owner can read their own row (positive control OK)")
@@ -412,7 +411,7 @@ def _vercel_bypass_headers():
     URLs) via Project Settings -> Deployment Protection -> Protection Bypass
     for Automation. This does NOT bypass Vercel's Firewall-level checks
     (Attack Mode, managed bot/DDoS rulesets, custom WAF rules) -- confirmed
-    live 2026-08-31 (plan.md §21's Prompt 34 update): Vercel's own docs say
+    live 2026-08-31: Vercel's own docs say
     those "cannot be bypassed even with a valid bypass token." If Layer 2
     still 429s with a Vercel "Security Checkpoint" page after this header is
     set, the cause is a Firewall-level rule, not Deployment Protection --
@@ -463,7 +462,7 @@ def check_preferences_app_round_trip(base_url, user_a):
         return False, (
             "Sentinel did not round-trip through /api/user/preferences -- "
             f"expected {sentinel!r}, got {got!r}. This is the exact "
-            "silent-zero-rows symptom plan.md §21.1 warns about if "
+            "silent-zero-rows symptom you get if "
             "Supabase isn't trusting Clerk's JWT."
         )
     return True, "sentinel round-tripped through /api/user/preferences"
@@ -511,7 +510,7 @@ def check_bookmarks_app_round_trip(base_url, user_a):
         return False, (
             "Sentinel bookmark did not round-trip through "
             "/api/bookmarks/semantic -- this is the silent-zero-rows "
-            "symptom plan.md §21.1 warns about if Supabase isn't trusting "
+            "symptom you get if Supabase isn't trusting "
             "Clerk's JWT."
         )
     return True, "sentinel round-tripped through /api/bookmarks/semantic"
@@ -525,8 +524,7 @@ def _configured_supabase_url():
     # REST endpoint, this script's own f"{supabase_url}/rest/v1/{table}"
     # construction below would double that path, which PostgREST reports as
     # PGRST125 "Invalid path specified in request URL" (confirmed live
-    # 2026-08-31, see plan.md §21's Prompt 34 update). Strip it defensively
-    # so a pasted REST URL doesn't silently 404 every table identically.
+    # 2026-08-31). Strip it defensively so a pasted REST URL doesn't silently 404 every table identically.
     if supabase_url.rstrip("/").endswith("/rest/v1"):
         supabase_url = supabase_url.rstrip("/")[: -len("/rest/v1")]
     return supabase_url
@@ -652,7 +650,7 @@ def _run_layer2(base_url, user_a):
 
 
 def main():
-    print_header("Sh'elah RLS live acceptance check (plan.md §21.2.2)")
+    print_header("Sh'elah RLS live acceptance check")
 
     base_url = (
         os.environ.get("RLS_VERIFY_BASE_URL")

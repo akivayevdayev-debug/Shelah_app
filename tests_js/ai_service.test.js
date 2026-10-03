@@ -1,9 +1,8 @@
 /**
- * plan.md §19 Phase 1 (claude_code_prompts.md Prompt 32) — the /ask
- * reconciliation. static/js/ai-service.js::askAi() is now the sole
+ * The /ask reconciliation. static/js/ai-service.js::askAi() is the sole
  * implementation of POST /ask; it absorbed the retry/timeout resilience that
  * used to live only in templates/index.html's inline askWithRetry(). These
- * tests are the "fails when the extraction is reverted" floor §19.9 requires:
+ * tests are the "fails when the extraction is reverted" floor:
  * they cover the exact behaviors that made the inline copy the stronger
  * implementation (60s per-attempt timeout, 3-attempt retry with backoff on
  * 502/503/504, retry on AbortError/TypeError, no retry on a clean 4xx,

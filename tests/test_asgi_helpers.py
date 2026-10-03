@@ -1,6 +1,6 @@
 """
 Direct unit tests for asgi.py's pure helper functions -- test anchors for
-the plan.md §32.1 complexity refactor of _flatten_sources_for_ai (and its
+the complexity refactor of _flatten_sources_for_ai (and its
 extracted helpers _select_source_line_text / _flatten_one_source_for_ai)
 and of _run_ask_async_ai_synthesis (and its five extracted helpers,
 _dispatch_ask_async_ai_synthesis_call / _validate_ask_async_ai_result /

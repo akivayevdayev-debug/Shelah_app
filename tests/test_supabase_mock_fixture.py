@@ -1,6 +1,6 @@
 """
 Pins the shared `mock_outbound_httpx` fixture's Supabase response shapes
-(plan.md §25) -- a real PostgREST response is never a {"data":...,
+ -- a real PostgREST response is never a {"data":...,
 "error":...} envelope, it's a bare JSON array for both table ops and RPC
 calls. This round-trips through the real supabase-py/postgrest-py client
 construction (`app._get_supabase_client()`), not a hand-rolled fake, so a

@@ -3,7 +3,7 @@ Characterization tests for the 4 hand-rolled caches in backend/search.py
 (_WIKI_CACHE, _HALACHIPEDIA_CACHE, _HEBREWBOOKS_CACHE, _DAILY_CACHE).
 
 Written BEFORE these caches are swapped to the shared backend.cache.TTLCache
-utility (plan.md §3.6/§4 cache consolidation). Key behavior to preserve: the
+utility (the cache consolidation). Key behavior to preserve: the
 sync and async variants of each search function (e.g. search_wikipedia /
 async_search_wikipedia) deliberately share the SAME cache dict — a sync call
 populates an entry the async call can then read, and vice versa.

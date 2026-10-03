@@ -72,8 +72,7 @@ class PyluachEngine:
                 return cached.get("value")
 
             # Use Hebcal converter API for parasha information in events array.
-            # Circuit-broken like every other hebcal call site (plan.md §8.E /
-            # Prompt 17 item 1). The is_healthy gate + record_success/
+            # Circuit-broken like every other hebcal call site. The is_healthy gate + record_success/
             # record_failure wrap only the network call itself -- not the
             # date-parsing/cache-lookup above -- so a malformed
             # `gregorian_date` is never misattributed as a hebcal outage. A
@@ -179,7 +178,7 @@ class PyluachEngine:
     def hebrew_to_gregorian(hebrew_year, hebrew_month, hebrew_day):
         """Convert a Hebrew date to Gregorian using Pyluach (reverse of gregorian_to_hebrew).
 
-        Added for plan.md §9 (backend/ai_tools.py's get_hebrew_date /
+        Added for the agentic tools (backend/ai_tools.py's get_hebrew_date /
         calculate_hebrew_date_math tools) -- the class previously only
         supported the Gregorian->Hebrew direction.
         """
@@ -204,7 +203,7 @@ class PyluachEngine:
     def add_days_to_hebrew_date(hebrew_year, hebrew_month, hebrew_day, days):
         """Add (or subtract, if negative) a number of days to a Hebrew date.
 
-        Added for plan.md §9's calculate_hebrew_date_math tool -- pure
+        Added for the calculate_hebrew_date_math tool -- pure
         Pyluach arithmetic (HebrewDate.__add__), no new date logic beyond
         what the library already provides.
         """

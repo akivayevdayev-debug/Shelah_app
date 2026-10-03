@@ -94,7 +94,7 @@ export async function animateOut(el, { delay = 0, y = -6 } = {}) {
 
 /**
  * Stagger-fade a NodeList / array of elements in.
- * Replaces nth-child stagger rules (§7.1.4): works for any element count,
+ * Replaces nth-child stagger rules: works for any element count,
  * immune to sibling insertions, honors reduced-motion.
  *
  * The cascade is bounded: only the first STAGGER_MAX_ITEMS elements take

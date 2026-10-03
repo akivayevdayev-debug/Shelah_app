@@ -2,7 +2,7 @@
 Tests for backend/cache.py's TTLCache utility.
 
 Written before TTLCache gets adopted into sefaria_library.py, sefaria.py,
-search.py, and zmanim_engine.py (plan.md §3.1.4/§4 cache consolidation) — this
+search.py, and zmanim_engine.py (the cache consolidation) — this
 is the characterization-test safety net for that swap, plus standalone
 coverage since the utility itself was previously orphaned (0% covered).
 """

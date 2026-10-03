@@ -25,7 +25,7 @@ CREATE INDEX IF NOT EXISTS ask_history_user_idx
 -- Enable Row Level Security
 ALTER TABLE public.ask_history ENABLE ROW LEVEL SECURITY;
 
--- Service-role-only by design, decided 2026-08-31 (plan.md §21, STEP 6a):
+-- Service-role-only by design, decided 2026-08-31:
 -- backend/routes_user.py's GET/DELETE /api/user/history handlers both read
 -- this table through the service-role client (_get_supabase_client()) with
 -- a hand-written .eq("user_id", ...) filter, never through the RLS-gated

@@ -175,7 +175,7 @@ def get_zmanim_api():
         _remember_location_if_same_origin(lat, lon)
         engine = ShelahEngine(lat=lat, lon=lon)
     else:
-        # plan.md §14.3.1: no lat/lon in the URL -- get_engine() falls back to
+        # No lat/lon in the URL -- get_engine() falls back to
         # session['lat']/session['lon'], so this response is NOT a pure
         # function of the URL and must never be cached publicly (one user's
         # location would leak to the next request that hits the CDN cache).
@@ -257,7 +257,7 @@ def get_zmanim_days():
 def daily_study_api():
     """Return daily refs for Daf Yomi, Rambam, and related daily study prewarming.
 
-    plan.md §47: this used to go through get_engine(), but
+    This used to go through get_engine(), but
     ShelahEngine.get_daily_learning() forwards straight to
     sefaria.get_daily_study(), which never reads lat/lon (Hebcal is called
     with a hardcoded zip). get_engine() itself unconditionally touches
@@ -368,7 +368,7 @@ def _hebcal_item_to_event(item):
 @routes_calendar.route("/api/holidays")
 def get_holidays():
     """Returns Jewish holiday events for FullCalendar via Hebcal API."""
-    # plan.md §8.C.5 security-audit pass: `year` used to be interpolated into
+    # Security-audit fix: `year` used to be interpolated into
     # the outbound Hebcal URL unvalidated, letting a value like
     # "2026&geo=pos&latitude=1" inject extra query parameters onto the real
     # request. Coerced to a bounded int first, matching every other numeric

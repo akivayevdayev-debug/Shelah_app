@@ -20,17 +20,16 @@ import requests as _requests
 from flask import request as _flask_request
 
 # Canonical HEBREW_DIACRITICS_RE/RABBI_FINAL_RULING_FOOTER now live in
-# backend/utils/text_engine.py (Phase 1 backend refactor, plan.md §1.3.5) —
+# backend/utils/text_engine.py (backend refactor) —
 # re-imported here to avoid the divergent-duplicate constants that previously
 # existed in both files.
 from backend.utils.text_engine import HEBREW_DIACRITICS_RE, RABBI_FINAL_RULING_FOOTER
-# Phase 2 backend refactor (plan.md): HEBREW_WORD_GLOSSARY, _translate_text_google,
+# Backend refactor: HEBREW_WORD_GLOSSARY, _translate_text_google,
 # _translate_text_mymemory, _is_translation_echo, and _extract_google_translated_text
 # now live in backend/utils/search_provider.py as the single canonical
-# implementation (they were previously diverged, duplicated copies -- plan.md
-# section 2). Re-imported here to avoid reintroducing the duplicate.
+# implementation (they were previously diverged, duplicated copies). Re-imported here to avoid reintroducing the duplicate.
 # HEBREW_LETTER_RE and INTERNAL_AI_KNOWLEDGE_DISCLAIMER were also independently
-# duplicated (undocumented in plan.md's table) and are reconciled the same way.
+# duplicated and are reconciled the same way.
 from backend.utils.search_provider import (
     HEBREW_WORD_GLOSSARY,
     HEBREW_LETTER_RE,
@@ -75,7 +74,7 @@ def _is_same_origin_request() -> bool:
 # audit P2 — headers previously only covered the Flask-routed half of the
 # app). Defined once here so the two transports can't drift out of sync.
 #
-# NOTE (plan.md §7g / Prompt 11): a nonce-based, 'unsafe-inline'-free CSP is
+# NOTE: a nonce-based, 'unsafe-inline'-free CSP is
 # NOT a simple rewrite here — templates/index.html has 112 inline onclick=
 # handlers and 43 inline style= attributes (verified 2026-08-01). Nonces only
 # cover <script>/<style> BLOCKS, not inline event-handler or style
@@ -85,14 +84,14 @@ def _is_same_origin_request() -> bool:
 # (onclick -> addEventListener, style= -> classes), not the Tailwind CDN JIT
 # compiler this comment used to cite — that part was already resolved
 # (Tailwind is a prebuilt static/css/tailwind.css now, see package.json's
-# build:css). See claude_code_prompts.md's CSP hardening prompt for the
-# options and why this isn't done inline here.
+# build:css). DECISIONS.md records the options and why this isn't done
+# inline here.
 SECURITY_RESPONSE_HEADERS = {
     "X-Frame-Options": "SAMEORIGIN",
     "X-Content-Type-Options": "nosniff",
     "Referrer-Policy": "strict-origin-when-cross-origin",
     # X-XSS-Protection intentionally omitted — deprecated, ignored by modern
-    # browsers, and can introduce vulnerabilities in old ones (plan.md §8.C).
+    # browsers, and can introduce vulnerabilities in old ones.
     # geolocation=() — the app never calls navigator.geolocation (removed
     # 2026-08-21 in favor of the session-cookie + IP-geolocation fallback
     # already used server-side by get_engine() in app.py).
@@ -369,7 +368,7 @@ def _coerce_int(value, default, min_value=1, max_value=100):
 # supplied values for those two headers cannot pass through unmodified.
 # CF-Connecting-IP is deliberately never read here — this deployment has no
 # Cloudflare in front of it, so that header arrives verbatim from whoever
-# sends it and is trivially spoofable (plan.md §16.1 D2; previously read
+# sends it and is trivially spoofable (previously read
 # first, independently, in both app.py's _rate_limit_key and asgi.py's
 # _get_client_ip -- reconciled here into the one implementation both import).
 def _resolve_client_ip(headers, remote_addr=None, default="unknown"):
@@ -392,11 +391,11 @@ def _decode_route_ref(value, max_rounds=3):
 
 # ── Translation infrastructure ────────────────────────────────────────────────
 
-# Phase 2 backend refactor (plan.md): GOOGLE_TRANSLATE_API_URL,
+# Backend refactor: GOOGLE_TRANSLATE_API_URL,
 # MYMEMORY_TRANSLATE_API_URL, _is_translation_echo, _extract_google_translated_text,
 # _translate_text_google, and _translate_text_mymemory moved to
 # backend/utils/search_provider.py as the single canonical implementation
-# (re-imported above; search: "Phase 2 backend refactor").
+# (re-imported above; search: "Backend refactor").
 
 
 def _translate_hebrew_text_google(text):
@@ -1063,7 +1062,7 @@ def _is_machine_translated_source(source):
     then machine-translated to Hebrew) since the machine-translation step
     still touched the text the user sees.
 
-    plan.md §8.F.4 / Prompt 18 item 4: machine-translated content must be
+    machine-translated content must be
     labeled as such, never presented as authoritative -- this is the single
     place that decision is made so every caller (currently
     routes_library.py's /api/word/meaning) labels consistently.
@@ -1205,7 +1204,7 @@ def extract_ai_cited(structured_payload):
     """Pull the AI's own citation list out of a structured /ask payload.
 
     Single source of truth for both app.py and asgi.py so the two transports
-    cannot drift in what counts as an "AI-cited" source (plan.md §23.4).
+    cannot drift in what counts as an "AI-cited" source.
     """
     ai_cited = []
     if isinstance(structured_payload, dict):

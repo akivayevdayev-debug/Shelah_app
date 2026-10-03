@@ -1,5 +1,5 @@
 /**
- * plan.md §19 Phase 0 — the semantic-bookmark double-bind tripwire.
+ * The semantic-bookmark double-bind tripwire.
  *
  * static/js/reader-ui.js's installSemanticBookmarking() must skip binding
  * its own click listener whenever templates/index.html's inline copy has
@@ -8,7 +8,7 @@
  * "function"` (the old guard), which only worked because the inline copy
  * happened to be a bare top-level classic-script function declaration.
  * Wrapping that block in an IIFE or converting it to a module — exactly what
- * every later §19 extraction phase does — silently breaks the old guard and
+ * every later extraction does — silently breaks the old guard and
  * double-binds the button: two POSTs, two billed AI summaries, two alerts.
  *
  * Run with: node --test tests_js/*.test.js

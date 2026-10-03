@@ -1,7 +1,7 @@
 -- Supabase RLS baseline for user-scoped Shelah tables.
 -- Apply in Supabase SQL editor after verifying actual column names.
 --
--- 2026-08-31 (plan.md §21, Prompt 34): policies below use
+-- 2026-08-31: policies below use
 -- (auth.jwt() ->> 'sub') = user_id, not auth.uid()::text = user_id.
 -- auth.uid() casts the JWT `sub` claim to `uuid` internally -- correct for
 -- Supabase's own auth, but Clerk's `sub` (format `user_XXXX...`) is never

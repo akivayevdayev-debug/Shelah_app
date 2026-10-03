@@ -53,9 +53,9 @@ function installAnswerLinkPlacement(root, share) {
     };
 }
 
-// installZmanim()'s dependency contract (plan.md §19 Phase 2, §19.9
-// constraint 3): the module takes these eight inline classic-script globals
-// as an explicit `deps` object instead of reaching for `window.*` itself.
+// installZmanim()'s dependency contract: the module takes these eight inline
+// classic-script globals as an explicit `deps` object instead of reaching
+// for `window.*` itself.
 // This is the one place that reach happens -- main.js is the documented
 // wiring boundary between the classic script and the ES modules, same as
 // buildAuthHeaders's window.authHeaders reach elsewhere, but centralized

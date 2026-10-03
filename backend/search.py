@@ -43,8 +43,8 @@ _DAILY_CACHE = TTLCache(ttl=60 * 5)
 def _get_async_client() -> httpx.AsyncClient:
     """Per-event-loop httpx.AsyncClient shared by the three async_search_*
     connectors below so calls within one loop's lifetime reuse pooled
-    connections instead of paying a fresh handshake every time (plan.md
-    §3.6). Keyed by the running loop (AI_SECURITY_REVIEW L3): a single
+    connections instead of paying a fresh handshake every time.
+    Keyed by the running loop (AI_SECURITY_REVIEW L3): a single
     module-level client used to be handed to whichever loop called it
     first, so a later, unrelated loop -- e.g. a second `asyncio.run()`,
     which Vercel's serverless runtime may use per invocation -- could

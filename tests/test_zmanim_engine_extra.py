@@ -344,9 +344,7 @@ class TestGetMonthlyEventsUsesLocationDate:
 #
 # backend/health_check.py has always registered 'hebcal' as an actively-probed
 # circuit-breaker service, but until now no call site in this module actually
-# consulted is_healthy()/recorded success or failure against it (a gap flagged
-# in claude_code_prompts.md's Prompt 3 status row, closed under Prompt 17 item
-# 1). The `_reset_api_health` autouse fixture in conftest.py resets the shared
+# consulted is_healthy()/recorded success or failure against it. The `_reset_api_health` autouse fixture in conftest.py resets the shared
 # `backend.health_check.health` singleton around every test.
 
 
@@ -431,7 +429,7 @@ class TestGetMonthlyEventsCircuitBreaker:
 
 
 class TestGetMonthlyEventsTimezoneParam:
-    """plan.md §27.2 — the Hebcal URL must use the resolved tz_name, not the
+    """The Hebcal URL must use the resolved tz_name, not the
     raw (possibly-None) timezone_str parameter, or the request degrades to a
     literal '&tzid=None'."""
 

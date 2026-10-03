@@ -1,5 +1,5 @@
 """
-Master fixture file for Sh'elah Phase 2.6 offline test suite.
+Master fixture file for Sh'elah's offline test suite.
 
 Sets up environment variables BEFORE any app import so all module-level reads
 see the test values. Provides:
@@ -35,12 +35,12 @@ os.environ.setdefault("SENTRY_DSN_BROWSER", "")
 # Discord channel made every error-path test post a live alert there.
 os.environ.setdefault("ERROR_LOG_WEBHOOK_URL", "")
 # Same leak this project already hit once with RATE_LIMIT_REDIS_URL
-# (plan.md §36.1 / Prompt 48/§36): a developer's local .env may set a real
+# A developer's local .env may set a real
 # Clerk webhook secret, and load_dotenv() won't override an already-set
 # var -- blank it so backend/routes_webhooks.py's tests never validate
 # against a real production secret.
 os.environ.setdefault("CLERK_WEBHOOK_SIGNING_SECRET", "")
-# plan.md §36.1: a developer's local .env may set this to a real Upstash
+# A developer's local .env may set this to a real Upstash
 # DSN, and load_dotenv() (called on app import) won't override an
 # already-set var -- blank it so tests never leak reads/writes to a shared
 # production-adjacent Redis instance. RATELIMIT_ENABLED is left live (see
@@ -49,9 +49,9 @@ os.environ.setdefault("CLERK_WEBHOOK_SIGNING_SECRET", "")
 os.environ.setdefault("RATE_LIMIT_REDIS_URL", "")
 # RATELIMIT_ENABLED is deliberately NOT blanked here (it is pinned to true
 # after the app imports, below). Rate limiting is now
-# enforced centrally by backend.rate_limit.RateLimitMiddleware (plan.md
-# §16.3-L2, replacing Flask-Limiter and asgi.py's old independent
-# in-process limiter -- see plan.md §16.8.1), registered on asgi.py's
+# enforced centrally by backend.rate_limit.RateLimitMiddleware (replacing
+# Flask-Limiter and asgi.py's old independent in-process limiter),
+# registered on asgi.py's
 # fastapi_app and read once at import time. Leaving it unset keeps the
 # limiter fully live for this entire suite, which is what
 # tests/test_ask.py::TestAskRateLimit and
@@ -357,7 +357,7 @@ def mock_outbound_httpx():
         # array of row objects for any TABLE(...)-returning function, per
         # postgrest-py's own response parsing). The RPC route is registered
         # before the general table-op route so it wins on `/rest/v1/rpc/...`
-        # (respx matches routes in registration order) -- see plan.md §25.
+        # (respx matches routes in registration order).
         mock.get(
             url__regex=r"https://mock\.supabase\.co/.*"
         ).mock(

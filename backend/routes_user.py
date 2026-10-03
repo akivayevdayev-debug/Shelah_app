@@ -84,12 +84,12 @@ def _escape_like(text):
 @maybe_require_clerk_auth
 def accept_legal():
     """Record that a user has accepted the Terms of Service and Privacy
-    Policy, and (plan.md §8.B-AGE.6) their 13+/16+ age attestation. Absence
+    Policy, and their 13+/16+ age attestation. Absence
     of an explicit ``age_attested: true`` in the request body is treated as
     not attested — the frontend gate blocks continued use until the
     checkbox is checked, so this is a real barrier, not a nudge.
 
-    plan.md §8.A.1/§8.D.2: also records which document *version* the user
+    Also records which document *version* the user
     accepted (``terms_version``/``privacy_version`` from the consent
     modal's payload, defaulting to the server's current constants if the
     client omits them). This is what makes "re-prompt on material version
@@ -112,7 +112,7 @@ def accept_legal():
         supabase_client = _get_supabase_client()
         if supabase_client:
             record = {
-                # plan.md §8.D bug fix: user_preferences' actual primary key
+                # user_preferences' actual primary key
                 # is `user_id` (scripts/sql/bookmarks_and_preferences_setup.sql)
                 # -- there is no `clerk_id` column anywhere in the schema, so
                 # the previous on_conflict="clerk_id" upsert was rejected by
@@ -134,7 +134,7 @@ def accept_legal():
                 on_conflict="user_id",
             ).execute()
     except Exception as e:
-        # plan.md §23.2.4: this is the exact function whose prior
+        # This is the exact function whose prior
         # on_conflict="clerk_id" bug (see the comment above) silently
         # dropped every legal-consent write — a bare app.logger.warning()
         # is the same swallow shape that hid it, just spelled differently.

@@ -1,5 +1,5 @@
 """
-Tests for backend/routes_webhooks.py (plan.md §39.2).
+Tests for backend/routes_webhooks.py.
 
 Covers:
   - CLERK_WEBHOOK_SIGNING_SECRET unset -> 503 (fails closed, matches the

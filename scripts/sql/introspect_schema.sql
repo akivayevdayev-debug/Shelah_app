@@ -1,4 +1,4 @@
--- plan.md §23.2.3 (Prompt 36): read-only schema-introspection RPC backing
+-- Read-only schema-introspection RPC backing
 -- scripts/generate_database_doc.py.
 --
 -- Supabase's PostgREST layer only exposes the `public` schema as REST

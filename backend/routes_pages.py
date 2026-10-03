@@ -1,13 +1,13 @@
 """
-Product-surface pages blueprint for Sh'elah (plan.md §12.1, §12.2, §12.5.1).
+Product-surface pages blueprint for Sh'elah.
 
 Covers /about, /help, /glossary, /robots.txt, and /sitemap.xml.
 
 robots.txt/sitemap.xml are served as Flask routes rather than physical files
 in static/, matching the existing pattern for favicon.ico/manifest.webmanifest/
 service-worker.js in app.py (all three are Flask routes, not root-level static
-files) -- see the deferred write-up for why plan.md's "served as static files"
-framing doesn't hold given vercel.json currently has no rewrites array at all.
+files). vercel.json has no rewrites array, so serving them as plain static
+files at the root is not an option.
 """
 
 import json
@@ -29,7 +29,7 @@ routes_pages = Blueprint("pages", __name__)
 
 _SITE_BASE_URL = "https://shelah-app.vercel.app"
 
-# plan.md §12.5.1: the site's own pages -- no /ask (personalized/dynamic), no
+# The site's own pages -- no /ask (personalized/dynamic), no
 # devtools/api. A parasha page is NOT included here because no crawlable HTML
 # parasha page exists yet (only the JSON /api/parasha endpoint) -- see the
 # deferred write-up. /llms.txt lists these; /sitemap.xml adds the library's

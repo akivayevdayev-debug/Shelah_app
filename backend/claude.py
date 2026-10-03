@@ -31,9 +31,9 @@ from backend.health_check import health
 from backend.logging_setup import get_request_id, submit_with_context
 from backend.retrieval_guard import withhold_injected
 
-# Deferred per plan.md §14.4.1: importing the anthropic/google-genai SDKs is
-# real module-load work billed as Active CPU on every cold start (Vercel
-# §14.4), even for requests that never call an LLM (static pages, calendar,
+# Deferred: importing the anthropic/google-genai SDKs is
+# real module-load work billed as Active CPU on every cold start (Vercel),
+# even for requests that never call an LLM (static pages, calendar,
 # library browsing, etc). Loaded on first use by _ensure_anthropic_loaded()/
 # _ensure_genai_loaded() below instead of at import time.
 anthropic: Any = None
@@ -83,7 +83,7 @@ def get_dispatchable_models() -> set[str]:
     test (tests/test_cost_meter_pricing.py) -- reading from here instead of
     a hand-maintained parallel list in cost_meter.py is what makes a price-
     table gap fail the PR that changes a model name instead of silently
-    zeroing the cost ledger (plan.md §20.1-C1 / §20a.2).
+    zeroing the cost ledger.
     """
     gemini_model = (
         os.environ.get("GEMINI_MODEL") or _DEFAULT_GEMINI_MODEL
@@ -129,7 +129,7 @@ COMPLEX_ANSWER_MAX_TOKENS = 3072
 # see _model_call_timeout().
 MODEL_REQUEST_TIMEOUT_SECONDS = 30
 # Total wall-clock budget for a full /ask AI synthesis call (one shared constant
-# for both app.py and asgi.py so the two transports can't drift — plan.md §23.4).
+# for both app.py and asgi.py so the two transports can't drift).
 # Must stay under functions.maxDuration in vercel.json so the platform never
 # kills the request before the graceful fallback path gets a chance to run.
 AI_TOTAL_BUDGET_SECONDS = _int_env("AI_TOTAL_BUDGET_SECONDS", 45)
@@ -172,10 +172,10 @@ def _model_call_timeout() -> float:
         return float(MODEL_REQUEST_TIMEOUT_SECONDS)
     return min(float(MODEL_REQUEST_TIMEOUT_SECONDS), remaining)
 
-# Agentic tool-use gate (plan.md §9, Prompt 20). Unconditionally OFF by
+# Agentic tool-use gate. Unconditionally OFF by
 # default in every environment -- unlike CLERK_ENFORCE_AUTH's prod-aware
-# default (backend/auth.py), Prompt 20 explicitly requires "do not enable
-# the flag by default" with no environment carve-out: flipping it changes
+# default (backend/auth.py), this flag has no environment carve-out and is
+# never enabled by default: flipping it changes
 # the live model-call shape (tools=[...] on every /ask turn, a second
 # Anthropic SDK code path) rather than just gating an auth requirement, so
 # rollout is opt-in only until a deliberate follow-up enables it after soak.
@@ -202,14 +202,14 @@ _WEB_WARNING_PLAIN_FORMS = tuple(
 RABBI_FINAL_RULING_FOOTER = "Please consult with your local Rabbi for a final ruling."
 # Bumped whenever CORE_SYSTEM_PROMPT/SIMPLE_SYSTEM_PROMPT/AGE_APPROPRIATE_DIRECTIVE/
 # NO_IMPERSONATION_DIRECTIVE change materially. Stored alongside each ask-history
-# row (plan.md §8.B.6 defensibility logging) so a stored answer's governing
+# row (defensibility logging) so a stored answer's governing
 # prompt version is reconstructable during a dispute, without retaining the
 # full prompt text itself.
 PROMPT_VERSION = "2026-10-02-source-markers-v4"
 # INTERNAL_AI_KNOWLEDGE_DISCLAIMER: canonical copy lives in
 # backend/utils/search_provider.py (re-exported via backend/helpers.py) —
-# an unused, byte-identical duplicate previously lived here too (plan.md §2
-# de-dup discipline); removed rather than reconciled since nothing in this
+# an unused, byte-identical duplicate previously lived here too;
+# removed rather than reconciled since nothing in this
 # module referenced it.
 
 HIDDEN_UNICODE_RE = re.compile(
@@ -307,7 +307,7 @@ OUT_OF_SCOPE_RULES = {
     ),
 }
 
-# --- §8.B-AGE safety-routing patterns (plan.md §8.B-AGE.2) ---------------
+# --- Age-safety routing patterns -----------------------------------------
 # Heuristic, same philosophy as OUT_OF_SCOPE_RULES above: narrow enough
 # that ordinary halachic Q&A is never over-refused, and higher-severity
 # classes are checked first in classify_safety() so an ambiguous query
@@ -735,8 +735,7 @@ def _call_gemini_model(
     """Low-level Gemini primary call using gemini-3.5-flash-lite. Falls back to Claude Haiku on any failure."""
     _PRIMARY_MODEL = _DEFAULT_GEMINI_MODEL
 
-    # Circuit-broken like every other outbound-provider call site (plan.md
-    # §26.1 / §24.5). An open 'gemini' circuit means FAIL_THRESHOLD
+    # Circuit-broken like every other outbound-provider call site. An open 'gemini' circuit means FAIL_THRESHOLD
     # consecutive failures were already recorded, so this call would almost
     # certainly burn the full request timeout before failing -- return the
     # same error-dict shape a real failure returns so _call_primary_model
@@ -997,7 +996,7 @@ def _normalize_structured_response(payload: Dict[str, Any], raw_text: str = "") 
         "summary": summary,
         "practical_steps": practical_steps,
         "rabbinic_disclaimer": disclaimer,
-        # §8.B-AGE.3: added backward-compatibly — absent/legacy payloads
+        # Added backward-compatibly — absent/legacy payloads
         # default to the safe, unrestricted class.
         "age_safe": True,
         "safety_class": "ok",
@@ -1174,7 +1173,7 @@ def _detect_out_of_scope_subject(query_text: str) -> Optional[str]:
 
 
 def classify_safety(query_text: str) -> str:
-    """Pre-synthesis safety routing (plan.md §8.B-AGE.2), run before the
+    """Pre-synthesis safety routing, run before the
     model call. Determines whether a question needs a professional/rabbi
     referral instead of a halachic ruling, or should stay answerable under
     the age-appropriate mode.
@@ -1288,8 +1287,7 @@ def validate_user_query(query: str) -> Dict[str, Any]:
 
 def validate_model_output(output_text: str, answer_language: str = "en") -> Dict[str, Any]:
     """Block responses that leak system/developer internals, or that slip
-    past the AGE_APPROPRIATE_DIRECTIVE with explicit content (plan.md
-    §8.B-AGE.4 — the prompt directive is layer one, this post-generation
+    past the AGE_APPROPRIATE_DIRECTIVE with explicit content (the prompt directive is layer one, this post-generation
     scan is layer two; never rely on the prompt alone)."""
     cleaned = _sanitize_model_output(output_text)
     lang = "he" if str(answer_language or "").strip().lower() == "he" else "en"
@@ -1315,15 +1313,15 @@ def validate_model_output(output_text: str, answer_language: str = "en") -> Dict
     }
 
 
-# Single source of truth for the 13+ age-appropriateness posture (plan.md
-# §8.B-AGE.1). Appended to every system prompt so it always applies,
+# Single source of truth for the 13+ age-appropriateness posture.
+# Appended to every system prompt so it always applies,
 # regardless of mode or which model answers. This constrains explicitness
 # and tone only — it never reduces scholarly depth or sourcing.
 AGE_APPROPRIATE_DIRECTIVE = """
 Age-appropriate output (mandatory, applies to every answer): assume the reader may be as young as 13. For sensitive halachic areas — family purity/niddah, mikveh, intimacy, marital relations, bodily functions — use clinical, respectful, educational language: explain that a topic exists, its halachic framework, and its sources; never provide sexually explicit, graphic, or titillating detail, technique, or anatomical description beyond what is strictly necessary to convey the halacha at an educational level. No profanity, no violence-as-detail, no graphic descriptions of self-harm or abuse. When a topic is genuinely intimate (e.g. hilchot niddah specifics, marital relations), give the halachic principles and source citations, then explicitly direct the reader to learn the practical details with a rabbi, teacher, or parent, rather than rendering them inline. This constrains explicitness and tone only — maintain full scholarly depth: multiple authorities, sources, and machloket, exactly as for any other topic.
 """.strip()
 
-# Single source of truth for the no-impersonation rule (plan.md §8.B.3).
+# Single source of truth for the no-impersonation rule.
 # Appended alongside AGE_APPROPRIATE_DIRECTIVE to every system prompt.
 NO_IMPERSONATION_DIRECTIVE = """
 Never claim to be a rabbi, posek, or religious authority, and never state or imply that your output constitutes p'sak halacha (a binding ruling). You are a research and synthesis tool: present sources, positions, and reasoning, and always defer final practical rulings to the reader's own rabbi.
@@ -1773,8 +1771,8 @@ def build_prompt(question, sefaria_sources, wiki, halachipedia=None, mode="balan
     )
     # Web/Halachipedia/HebrewBooks excerpts are third-party text (AI_SECURITY_REVIEW
     # M2): framed as untrusted data exactly like the system-prompt context sections.
-    # A wrapper is emitted only when its section actually has content (plan.md /
-    # AI_SECURITY_REVIEW follow-up F): every prompt otherwise carried two empty
+    # A wrapper is emitted only when its section actually has content (AI_SECURITY_REVIEW
+    # follow-up F): every prompt otherwise carried two empty
     # <retrieved_context> pairs even on a question with no web/Halachipedia hits,
     # pure token overhead with nothing inside to protect. PROMPT_VERSION bumped
     # for this (prompt text changes on the empty-section path) -- see
@@ -2050,7 +2048,7 @@ def _build_input_block_result(input_validation: Dict[str, Any]) -> Dict[str, Any
     shape can't silently drift between them the way it did before this was
     extracted -- the sync path returned no "structured" key at all here,
     so meta.safety_class fell back to "ok" even for a dangerous_or_illegal
-    domain refusal (plan.md §2 reconcile-then-consolidate discipline)."""
+    domain refusal."""
     refusal_subject = input_validation.get("refusal_subject")
     blocked_answer = "Request blocked by security policy. Please submit a direct halakhic question."
     blocked_error = "security_blocked_input"
@@ -2222,7 +2220,7 @@ async def _call_anthropic_httpx_model(
             "model": model_name,
         }
 
-    # Circuit-broken like the Gemini primary (plan.md §26.1), and gated ahead
+    # Circuit-broken like the Gemini primary, and gated ahead
     # of _get_async_client() so an open circuit skips client construction too.
     # Checked off-loop because is_healthy() re-probes inline (a blocking
     # requests.get) once a down circuit's RECOVERY_INTERVAL has elapsed --
@@ -2314,7 +2312,7 @@ async def _call_anthropic_agentic_turn(
     system_text: str,
     tools: List[Dict[str, Any]],
 ) -> Dict[str, Any]:
-    """One Anthropic Messages API turn with tool-use enabled (plan.md §9.4).
+    """One Anthropic Messages API turn with tool-use enabled.
 
     Sibling of _call_anthropic_httpx_model, reusing the same client/circuit/
     prompt-caching conventions, but returns the raw per-turn shape the
@@ -2326,7 +2324,7 @@ async def _call_anthropic_agentic_turn(
     Never raises -- a failure degrades to a populated "error" key, matching
     every other model-call function in this module.
 
-    Agentic mode is Anthropic-only for now (plan.md §9 is silent on which
+    Agentic mode is Anthropic-only for now (the original tool design was silent on which
     provider; Gemini is the app's primary model, Claude the fallback). This
     is a deliberate, documented scope decision, not an oversight: this
     module's ai_tools.get_tool_schemas() output already matches Anthropic's
@@ -2407,7 +2405,7 @@ async def _call_gemini_httpx_model(
     if not model_name:
         model_name = _DEFAULT_GEMINI_MODEL
 
-    # Circuit-broken like the sync primary (plan.md §26.1); off-loop for the
+    # Circuit-broken like the sync primary; off-loop for the
     # same half-open-reprobe reason as _call_anthropic_httpx_model's gate.
     # ask_ai_async() treats this error the same way it treats a real Gemini
     # failure, so the existing Anthropic fallback still runs.

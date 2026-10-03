@@ -4,9 +4,9 @@ Typography, normalization, and answer-formatting layer for Sh'elah.
 Contract: no Flask context. Every symbol here is pure in -> pure out — no
 `g`/`session`/`request`/`current_app`, no I/O, no imports from `app`. This
 module renders/normalizes AI-answer text for the UI; it does not fetch or
-retrieve anything (that's backend/utils/search_provider.py, Phase 2).
+retrieve anything (that's backend/utils/search_provider.py).
 
-Moved verbatim from app.py in Phase 1 of the backend refactor (see plan.md).
+Moved verbatim from app.py as part of the backend refactor.
 """
 
 import re
@@ -350,7 +350,7 @@ def format_source_citation(ref, title=None):
     ("Genesis 1:1"), or a bare section number with no book at all. This
     produces one consistent display string: underscores become spaces, the
     trailing numeric locator becomes colon-joined, and comma spacing is
-    normalized. Added for plan.md §9.2b's format_source_citation tool -- no
+    normalized. Added for the format_source_citation tool -- no
     equivalent existed elsewhere in the codebase (citation display was
     previously done ad hoc at each call site).
 

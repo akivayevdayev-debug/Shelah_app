@@ -10,7 +10,7 @@
 //
 // `date` is a separate key from the four mutually-exclusive view keys
 // because the calendar renders as an overlay on top of whatever view is
-// active underneath it (plan.md "implementation brief" §2).
+// active underneath it.
 //
 // `conversation` (a multi-turn conversation id) + `cv` (its display size) are
 // overlay keys for the same reason: the conversation UI sits on top of the

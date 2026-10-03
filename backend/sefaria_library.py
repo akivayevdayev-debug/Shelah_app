@@ -40,7 +40,7 @@ DISK_CACHE_TTL = 7 * 24 * 3600  # 7 days for disk cache
 
 # Thread-safe LRU+TTL cache (backend.cache.TTLCache — internally lock-guarded,
 # see cache.py). Cached values are treated as immutable after insertion
-# (plan.md §5.2): no caller mutates a returned HTTP payload in place.
+# No caller mutates a returned HTTP payload in place.
 #
 # redis_prefix makes this also read/write the shared cross-instance Redis
 # tier (backend/cache.py) -- every value stored here is a raw Sefaria API
@@ -102,7 +102,7 @@ def _fetch_failure_count():
 _TRAILING_CHAPTER_VERSE_RE = re.compile(r"^(\d+)(?::(\d+))?$")
 
 # Multi-key caches: mutate-in-place is a torn-read hazard under concurrency
-# (plan.md §5.2) — ts/report_mtime/data written as separate key assignments
+# — ts/report_mtime/data written as separate key assignments
 # means a concurrent reader could observe a fresh ts with stale data. These
 # use build-new-dict-then-atomic-swap instead: the lock below guards only the
 # writer's build-and-swap; readers stay lock-free by snapshotting the
@@ -1224,7 +1224,7 @@ def _fetch_category_contents_via_index_api(category_path):
     """Try Sefaria's /index/{path} endpoint for a category's contents.
     Split out of get_category_contents (SonarCloud python:S3776).
     """
-    # plan.md §8.C.5 security-audit pass: category_path is attacker-
+    # Security-audit fix: category_path is attacker-
     # controlled (Flask <path:category> converter, already percent-decoded)
     # and used to reach every other ref-building function here via
     # _encode_ref_path() -- this one built its outbound URL from a raw

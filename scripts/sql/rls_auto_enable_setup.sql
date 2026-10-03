@@ -1,6 +1,6 @@
 -- Sh'elah -- public.rls_auto_enable(): auto-enable RLS on new tables.
 --
--- Provenance (plan.md §30.4): this function existed live on the real
+-- Provenance: this function existed live on the real
 -- Supabase project with NO tracked source file anywhere in this repo
 -- until this pass -- surfaced by a Supabase Advisor scan flagging it as a
 -- SECURITY DEFINER function executable by anon/authenticated via

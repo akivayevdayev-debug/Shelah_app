@@ -33,7 +33,7 @@ class TestSetLocation:
         assert body["lat"] == 40.7
 
     def test_valid_coordinates_mark_session_permanent(self, test_client):
-        """plan.md §46 / Prompt 58: session.permanent = True is now set at
+        """Session.permanent = True is now set at
         this write site directly (not a blanket before_request hook), so
         the 30-day persistent cookie behavior must still hold here."""
         test_client.post(
@@ -164,7 +164,7 @@ class TestHolidaysFallbackChain:
             assert "Purim" in body[0]["title"]
 
     def test_year_query_param_is_coerced_not_interpolated_raw(self, test_client):
-        # plan.md §8.C.5 security-audit pass: `year` used to be dropped
+        # Security-audit fix: `year` used to be dropped
         # straight into the outbound Hebcal URL unvalidated, so a value like
         # "2026&geo=pos&latitude=1" injected extra query params onto the
         # real request. Assert the actual outbound URL only ever carries a
@@ -280,8 +280,7 @@ class TestParashaFallbackChain:
 #
 # /api/holidays is one of the four hebcal call sites that had zero
 # circuit-breaker wiring despite 'hebcal' already being a registered service
-# in backend/health_check.py (claude_code_prompts.md Prompt 3 status row,
-# closed under Prompt 17 item 1). Mirrors the 'nominatim' circuit-breaker
+# in backend/health_check.py. Mirrors the 'nominatim' circuit-breaker
 # tests below for _fetch_geocode_results/geocode_city in this same file. The
 # `_reset_api_health` autouse fixture in conftest.py resets the shared
 # `backend.health_check.health` singleton around every test.

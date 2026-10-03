@@ -7,7 +7,7 @@ Covers:
   - GET /dmca            → HTML (DMCA / copyright policy)
   - GET /licenses        → HTML (licenses & attribution page)
 
-plan.md §8.A: these are the four new legal pages Prompt 12 adds alongside
+These four legal pages sit alongside
 the pre-existing terms/privacy/accessibility routes (still in app.py).
 """
 

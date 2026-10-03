@@ -139,14 +139,14 @@ export function installDailyPrewarm() {
     }
 }
 
-// plan.md §19 Phase 2 -- the zman-clock rendering that used to live entirely
+// The zman-clock rendering that used to live entirely
 // inline in templates/index.html (initZmanim/fetchZmanimAPI/startCountdown
 // and friends). Unrelated to prewarmDailyStudy() above; the two features
-// share this file only because plan.md's Phase 2 goal ("give zmanim.js real
-// ownership of ... zmanim rendering") named this filename before anyone
-// noticed it was already taken by the daily-study prefetch feature.
+// share this file only because the zman-clock work was originally planned
+// under this filename before anyone noticed it was already taken by the
+// daily-study prefetch feature.
 //
-// Dependency contract (§19.9 constraint 3 -- no undeclared inline global):
+// Dependency contract (no undeclared inline global):
 // every function below that needs one of the inline classic-script globals
 // (t, isHebrewMode, translateHolidayName, formatOmerLabel,
 // formatWeeklyShabbatLabel, translateShabbatWarning, escapeHtml) takes an
@@ -558,7 +558,7 @@ export function getSunset() {
 }
 
 // The single "render current zmanimData to the DOM" function -- the
-// reconciliation §19.9 constraint 1 requires between fetchZmanimAPI's own
+// reconciliation between fetchZmanimAPI's own
 // first-render logic and templates/index.html's toggleLanguage(), which
 // duplicated about 80 lines of it for re-localizing the display on a
 // language switch. Both now call this (fetchZmanimAPI internally; the

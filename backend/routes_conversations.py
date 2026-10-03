@@ -21,12 +21,12 @@ defense-in-depth here, not the only thing standing between users' data
 (see TestApplicationLayerCrossUserIsolation in tests/test_routes_user.py
 for why that matters).
 
-Step 1 ("data model and routing") added conversation/message CRUD. Step 2
-adds ask_in_conversation() below: real multi-turn AI synthesis, passing
-this thread's prior turns into the prompt via claude.build_prompt()'s
-conversation_history param, with the minhag lock enforced server-side (the
-conversation row's own `minhag`, never the request body). The transcript
-UI, sidebar, search, and sharing are later steps and not implemented here.
+The routes cover conversation/message CRUD plus ask_in_conversation()
+below: real multi-turn AI synthesis, passing this thread's prior turns into
+the prompt via claude.build_prompt()'s conversation_history param, with the
+minhag lock enforced server-side (the conversation row's own `minhag`, never
+the request body). The transcript UI lives in the frontend; public sharing
+of stored answers is in backend/routes_answer_share.py.
 """
 
 from __future__ import annotations
@@ -160,7 +160,7 @@ def _fetch_own_conversation(supabase, conversation_id, user_id):
 @require_clerk_auth
 def create_conversation():
     """Start a new conversation. `minhag` is locked in at creation time --
-    the plan's minhag-lock rule means it is never changed on this thread
+    the minhag-lock rule means it is never changed on this thread
     again; a minhag switch means a new thread."""
     user_id = _require_user_id()
     if not user_id:
@@ -1090,7 +1090,7 @@ def _stream_conversation_ask(run):
 @routes_conversations.route("/api/conversations/<conversation_id>/ask", methods=["POST"])
 @require_clerk_auth
 def ask_in_conversation(conversation_id):
-    """Step 2: ask a follow-up question inside an existing thread, with
+    """Ask a follow-up question inside an existing thread, with
     real multi-turn context (this thread's prior complete turns are passed
     into the AI prompt via conversation_history).
 
@@ -1103,7 +1103,7 @@ def ask_in_conversation(conversation_id):
     copying them avoids repeating that mistake.
 
     minhag is read from the conversation row, never the request body --
-    that's the plan's minhag lock: set once in create_conversation() and
+    that's the minhag lock: set once in create_conversation() and
     never changed mid-thread.
 
     Cost limits: the same global cost breaker (503 `ai_paused`, with a

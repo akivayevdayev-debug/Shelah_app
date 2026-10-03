@@ -236,7 +236,7 @@ class TestUserPreferences:
     def test_get_preferences_queries_by_raw_clerk_user_id(
         self, test_client, authed, monkeypatch
     ):
-        """Regression (plan.md §29.6): the GET filter must use the raw Clerk
+        """Regression: the GET filter must use the raw Clerk
         `sub` string (e.g. "user_3DJ2PONd1x9zBnfVRlfiGhMzQPr") verbatim, never
         a value assumed to be a UUID -- the live `user_preferences.user_id`
         column must stay `text` (scripts/migrate_user_preferences_user_id_to_text.sql)
@@ -252,7 +252,7 @@ class TestUserPreferences:
     def test_put_preferences_upserts_raw_clerk_user_id_not_uuid(
         self, test_client, authed, monkeypatch
     ):
-        """Regression (plan.md §29.6): the PUT upsert payload must carry the
+        """Regression: the PUT upsert payload must carry the
         raw Clerk `sub` string as `user_id`, not a UUID -- this is what a
         `uuid`-typed live column rejects with PostgREST 22P02."""
         fake_client = _FakeSupabaseClient(data=[])
@@ -563,7 +563,7 @@ class TestAcceptLegalAuthenticated:
         assert response.get_json()["stored"] == "server"
 
     def test_accept_legal_failure_reaches_capture_backend_error(self, test_client, authed, monkeypatch):
-        """Regression test (plan.md §23.2.4): this is the exact function whose
+        """Regression test: this is the exact function whose
         prior on_conflict="clerk_id" bug silently dropped every legal-consent
         write with nothing but an app.logger.warning() nobody watched. A
         Supabase failure here must now be observable via
@@ -592,7 +592,7 @@ class TestAcceptLegalAuthenticated:
         assert response.get_json()["stored"] == "server"
 
     def test_accept_legal_with_age_attested_persists_it(self, test_client, authed, monkeypatch):
-        """plan.md §8.B-AGE.6: age attestation is stored alongside legal consent."""
+        """Age attestation is stored alongside legal consent."""
         client = _FakeSupabaseClient(data=[])
         monkeypatch.setattr(routes_user_module, "_get_supabase_client", lambda: client)
         response = test_client.post(
@@ -614,7 +614,7 @@ class TestAcceptLegalAuthenticated:
         assert "age_attested" not in record
 
     def test_accept_legal_persists_client_supplied_versions(self, test_client, authed, monkeypatch):
-        """plan.md §8.A.1/§8.D.2: the versions the consent modal displayed
+        """The versions the consent modal displayed
         must be recorded verbatim, not just "accepted: true" — that's what
         makes a later material-change re-prompt distinguishable from the
         prior acceptance."""
@@ -630,7 +630,7 @@ class TestAcceptLegalAuthenticated:
         assert record["legal_privacy_version"] == "3.1"
 
     def test_accept_legal_upserts_on_user_id_not_clerk_id(self, test_client, authed, monkeypatch):
-        """Regression test (plan.md §8.D): user_preferences' real primary key
+        """Regression test: user_preferences' real primary key
         is user_id -- there is no clerk_id column in the schema, so an
         on_conflict="clerk_id" upsert would be rejected by PostgREST on
         every real call. Consent records must key off user_id."""
@@ -802,7 +802,7 @@ class TestDeleteAskHistoryEntry:
 
 
 class TestApplicationLayerCrossUserIsolation:
-    """plan.md §21.2.4/§21.3 exit criterion: an application-layer test
+    """An application-layer test
     asserting cross-user isolation on every Supabase-backed route in this
     file, independent of whether RLS is live. RLS is defense-in-depth here,
     not the only thing standing between users' data -- every route below

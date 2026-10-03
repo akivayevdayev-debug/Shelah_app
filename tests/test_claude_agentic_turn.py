@@ -1,6 +1,6 @@
 """
 Tests for backend/claude._call_anthropic_agentic_turn() -- the raw
-Anthropic Messages API tool-use turn (plan.md §9.4, Prompt 20).
+Anthropic Messages API tool-use turn.
 
 Unlike tests/test_agent_loop.py (which stubs this function entirely to test
 the orchestration loop), these tests exercise the real function against the

@@ -2,13 +2,13 @@
 Characterization tests for backend/sefaria_library.py's memory-tier cache
 (_cache / _cached_get).
 
-Update (plan.md §5.2, Phase 5): _cache is now a backend.cache.TTLCache
+Update: _cache is now a backend.cache.TTLCache
 instance rather than a hand-rolled dict. An earlier pass deliberately left
 this cache as a plain dict because TTLCache fixes an entry's expiry at
 *write* time (from the ttl passed to .set()), whereas the old dict
 re-evaluated the ttl argument passed to *each read* against the stored
-timestamp — a real API difference. Phase 5 migrates it anyway per plan.md's
-explicit instruction. This is not observable in practice: every call site
+timestamp — a real API difference. It is migrated anyway, as explicitly
+instructed. This is not observable in practice: every call site
 passes a single, constant ttl per URL shape (e.g. the /name/ lookup always
 uses ttl=43200, /texts/ always ttl=86400), so no call ever re-reads the same
 URL with a different ttl than it was written with. These tests now exercise
@@ -92,7 +92,7 @@ class TestCachedGetMemoryTier:
 class TestCachedGetRedisTier:
     """Simulated cold-instance coverage for _cache's redis_prefix tier --
     this is the fix for /api/text/<ref> and /api/library/index's raw
-    Sefaria fetch (plan.md cross-instance cache task). No live Redis is
+    Sefaria fetch (the cross-instance cache task). No live Redis is
     available in this environment; a shared fake models what a real
     Upstash/Redis deployment provides: state visible to every concurrent
     instance, independent of any single instance's own process memory."""

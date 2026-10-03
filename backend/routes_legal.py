@@ -1,7 +1,7 @@
 """
 Legal-pages blueprint for Sh'elah.
 
-plan.md §8.A: routes for the legal/disclosure pages added alongside the
+Routes for the legal/disclosure pages added alongside the
 existing terms/privacy/accessibility pages (which still live in app.py —
 moving those is out of scope here). New routes belong in backend/ per
 .agents/ENGINEERING_RULES.md, so these four follow that rule from the

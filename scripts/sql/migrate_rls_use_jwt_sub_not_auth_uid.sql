@@ -3,7 +3,7 @@
 -- Run this once in the Supabase SQL Editor for your project. Idempotent --
 -- safe to re-run.
 --
--- Root cause (plan.md §21, Prompt 34, found 2026-08-31 during scripts/verify_rls.py's
+-- Root cause (found 2026-08-31 during scripts/verify_rls.py's
 -- live acceptance run): Supabase's built-in auth.uid() is defined to pull
 -- the JWT's `sub` claim and cast it directly to `uuid` -- correct for
 -- Supabase's own native auth (UUID user ids), but Clerk's `sub` claims are
@@ -14,7 +14,7 @@
 -- gets a chance to run -- that outer cast only wraps auth.uid()'s
 -- already-computed return value, it cannot protect against an exception
 -- thrown while computing it. This is a different, deeper failure mode than
--- plan.md §21.1 originally anticipated (auth.uid() resolving NULL and
+-- the one originally anticipated (auth.uid() resolving NULL and
 -- silently returning zero rows if Third-Party Auth were misconfigured) --
 -- it means NO Clerk-authenticated request can ever satisfy any policy that
 -- calls auth.uid(), REGARDLESS of whether Third-Party Auth is enabled or

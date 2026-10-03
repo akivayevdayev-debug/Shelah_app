@@ -1,12 +1,11 @@
 """
-Build-time glossary generator (plan.md §12.2.2).
+Build-time glossary generator.
 
 Seeds static/data/glossary.json from the SAME lexicon lookup path the AI
 assistant and the reader's word-lookup feature already use
 (`backend.helpers._lookup_hebrew_word_meaning`), so a term defined on the
 /glossary page and a term the AI defines inline stay consistent instead of
-drifting into two independent copies (plan.md §2 reconcile-then-consolidate
-rule).
+drifting into two independent copies.
 
 The live Sefaria lexicon lookup is a network call and not guaranteed to have
 an entry for every curated term, so each term also carries a hand-written

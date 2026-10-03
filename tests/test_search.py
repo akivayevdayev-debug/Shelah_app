@@ -229,7 +229,7 @@ class TestSearchWikipediaEdgeCases:
         assert await search_module.async_search_wikipedia("Error Page") is None
 
 
-# ─────────────────────────── Wikipedia User-Agent header (plan.md §27.1) ───
+# ─────────────────────────── Wikipedia User-Agent header ───────────────────
 #
 # Wikimedia's REST API documents a User-Agent policy and is known to 403/429
 # default-library User-Agent strings (python-requests/x.x, python-httpx/x.x).
@@ -310,8 +310,7 @@ class TestGetAsyncClient:
 #
 # get_daily_learning() is one of the four hebcal call sites that had zero
 # circuit-breaker wiring despite 'hebcal' already being a registered service
-# in backend/health_check.py (claude_code_prompts.md Prompt 3 status row,
-# closed under Prompt 17 item 1). The `_reset_api_health` autouse fixture in
+# in backend/health_check.py. The `_reset_api_health` autouse fixture in
 # conftest.py resets the shared `backend.health_check.health` singleton
 # around every test.
 

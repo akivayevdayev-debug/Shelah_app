@@ -1,4 +1,4 @@
-"""CDN/browser cache-tier classification (plan.md §14.3).
+"""CDN/browser cache-tier classification.
 
 Single source of truth for Cache-Control on the /api/* + /ask + /set_location
 surface, consulted from BOTH app.py's Flask ``after_request`` hook (routes
@@ -8,7 +8,7 @@ are matched before the WSGI mount and therefore never see Flask's hook at
 all). Before this module existed, that gap meant production /ask shipped with
 NO Cache-Control header whatsoever, not even an explicit no-store -- a
 correctness gap this module closes as a side effect of unifying the two call
-sites onto one table (plan.md §2: one policy, not two that can drift).
+sites onto one table (one policy, not two that can drift).
 
 Every route lands in exactly one tier below; anything unmatched falls back to
 the pre-existing blanket behavior (no-store for /api/*, /ask, /set_location;

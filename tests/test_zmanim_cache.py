@@ -3,7 +3,7 @@ Characterization tests for the hand-rolled Hebcal caches in
 backend/zmanim_engine.py (_HEBCAL_DAY_CACHE, _HEBCAL_MONTH_CACHE).
 
 Written BEFORE these caches are swapped to the shared backend.cache.TTLCache
-utility (plan.md §3.7/§4 cache consolidation) — asserts the externally
+utility (the cache consolidation) — asserts the externally
 observable behavior (repeat calls with the same args don't re-hit the
 network; different args/expiry do) that must survive the swap unchanged.
 """

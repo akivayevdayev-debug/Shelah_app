@@ -62,7 +62,7 @@ _WARNED_UNPRICED_MODELS: set[str] = set()
 
 
 def _warn_unpriced_model_once(model: str) -> None:
-    """Surface a price-table gap loudly (plan.md §20.1-C1): the original bug
+    """Surface a price-table gap loudly: the original bug
     was never the $0.0 arithmetic (that's correct behavior for a genuinely
     unknown model) -- it was that the gap was invisible. Fires once per
     process per model name; still returns $0.0, never guesses a price."""
@@ -108,8 +108,8 @@ def _insert_usage_row(row: dict[str, Any]) -> None:
         # Was logger.debug -- invisible at the project's default LOG_LEVEL=
         # INFO, which meant a schema mismatch/revoked key/paused project
         # could silently zero the entire cost ledger with no signal
-        # anywhere (plan.md §20.1-C3b, same failure shape as the
-        # accept_legal()/clerk_id bug in §23.1). Routed through the
+        # anywhere (same failure shape as the
+        # accept_legal()/clerk_id bug). Routed through the
         # project's structured-error funnel instead; the write itself
         # stays non-fatal to the request -- this changes visibility, not
         # control flow.
@@ -127,12 +127,11 @@ def _insert_usage_row(row: dict[str, Any]) -> None:
 def _settle_usage_reservation(reservation_id: str, row: dict[str, Any]) -> None:
     """Synchronous Supabase update — called via asyncio.to_thread.
 
-    Replaces a check_and_reserve_user_budget() placeholder row (plan.md
-    §20.2 Phase 20b, reservation lifecycle step 2) with the real
+    Replaces a check_and_reserve_user_budget() placeholder row (reservation lifecycle step 2) with the real
     provider/model/token counts/cost from the completed call, clearing
     `reserved` so it reads as a normal settled row from then on — this
     does NOT insert a second row, which would double-count the spend
-    Prompt 33a's price-table fix made real.
+    the corrected price table now records.
 
     created_at is deliberately excluded from the update: the row keeps the
     timestamp of when the budget was actually reserved (the day it counted
@@ -188,8 +187,8 @@ async def record_llm_call(
     Safe to await anywhere — the Supabase write runs in a thread so it
     never blocks the asyncio event loop.
 
-    If check_user_budget_and_enforce() reserved budget for this request
-    (plan.md §20.2 Phase 20b), this SETTLES that reservation in place with
+    If check_user_budget_and_enforce() reserved budget for this request,
+this SETTLES that reservation in place with
     the real cost instead of inserting a second row -- and clears the
     reservation so a second billed call in the same request (e.g. a Gemini
     primary call followed by a Claude fallback) inserts a normal additive
@@ -303,12 +302,12 @@ async def check_daily_budget_and_alert() -> dict[str, Any]:
     DAILY_BUDGET_USD isn't set, so this is a no-op until an operator sets a
     cap. Intended to be invoked once daily by a Vercel Cron job.
 
-    NOTE (plan.md §16.3 L3 / Prompt 29b): this is an after-the-fact ALERT
+    NOTE: this is an after-the-fact ALERT
     (cron-invoked, once/day, never blocks a call) -- the enforcement CEILING
     that phase specifies (checked before every provider call, trips a
     circuit breaker) is is_global_cost_breaker_tripped() below. Both read
     the same _daily_budget_usd()/_fetch_today_usage_rows() primitives
-    rather than maintaining two independent daily-total computations (§2
+    rather than maintaining two independent daily-total computations (a
     divergent-duplication anti-pattern).
     """
     threshold = _daily_budget_usd()
@@ -354,7 +353,7 @@ async def check_daily_budget_and_alert() -> dict[str, Any]:
     }
 
 
-# ── Global cost circuit breaker (plan.md §16.3-L3 / Prompt 29b) ─────────────
+# ── Global cost circuit breaker ─────────────────────────────────────────────
 # Checked before every /ask provider call (asgi.py::ask_async), unlike
 # check_daily_budget_and_alert() above which only runs once/day via cron.
 # A Supabase read on every single call would defeat its own purpose -- it
@@ -441,7 +440,7 @@ async def is_global_cost_breaker_tripped() -> dict[str, Any]:
 # Unlike check_daily_budget_and_alert() above (global total, cron-invoked
 # once/day, alert-only), this is checked before every AI provider call and
 # actually blocks the request — the enforcement mechanism referenced but not
-# implemented by that function's docstring (plan.md §16.3 L3 / Prompt 29b).
+# implemented by that function's docstring.
 
 _PER_USER_DAILY_BUDGET_ENV = "PER_USER_DAILY_BUDGET_USD"
 # Ships enabled by default (rather than opt-in like DAILY_BUDGET_USD) so the
@@ -471,9 +470,8 @@ def _fetch_today_usage_cost_for_key(key_column: str, key_value: str) -> float:
     misconfigured/un-migrated table degrades to "no cap enforced", not a
     broken /ask endpoint.
 
-    No longer called by check_user_budget_and_enforce() (plan.md §20.2
-    Phase 20b replaced that read-then-decide race with the atomic
-    _reserve_budget_or_deny() RPC below) — kept as a plain read helper for
+    No longer called by check_user_budget_and_enforce() (the atomic
+    _reserve_budget_or_deny() RPC below replaced that read-then-decide race) — kept as a plain read helper for
     any future "show my usage today" surface; still exercised directly by
     tests/test_cost_meter.py.
     """
@@ -504,9 +502,8 @@ def _fetch_today_usage_cost_for_key(key_column: str, key_value: str) -> float:
 _RESERVATION_TTL_MINUTES = 10  # must match scripts/sql/check_and_reserve_user_budget.sql
 
 # Worst-case single /ask call, used to reserve budget BEFORE dispatch
-# (plan.md §20.1-C2's second property: "a caller starting the day at $0
-# always gets one unbounded call through" — a running-total cap alone never
-# closes this, only a per-call reservation does).
+# (a running-total cap alone lets a caller starting the day at $0 get one
+# unbounded call through; only a per-call reservation closes that).
 #
 # Output: 3072 tokens (backend/claude.py's non-simple max_tokens, the
 # primary Gemini call) + 1024 tokens (the Claude fallback's max_tokens, if
@@ -539,7 +536,7 @@ def _reserve_budget_or_deny(
 ) -> dict[str, Any]:
     """Synchronous Supabase RPC call — called via asyncio.to_thread.
 
-    Atomic check-and-reserve (plan.md §20.1-C2 fix): the read and the write
+    Atomic check-and-reserve: the read and the write
     happen in ONE Postgres statement (scripts/sql/
     check_and_reserve_user_budget.sql), so concurrent callers for the same
     key see each other's reservations instead of racing on a stale read —
@@ -587,9 +584,9 @@ def _reserve_budget_or_deny(
 async def check_user_budget_and_enforce(user_id: str | None, client_ip: str = "") -> dict[str, Any]:
     """
     Enforce a per-caller daily AI spend ceiling BEFORE dispatching to a
-    model, atomically (plan.md §20.2 Phase 20b): the check and the budget
+    model, atomically: the check and the budget
     reservation happen in one Postgres statement, closing the check-then-
-    act race a plain read had (plan.md §20.1-C2 — N concurrent callers near
+    act race a plain read had (N concurrent callers near
     the cap could otherwise all read the same pre-spend total and all
     pass). Keys by authenticated user_id when available; falls back to a
     per-IP key for anonymous callers so unauthenticated /ask access still
@@ -629,8 +626,8 @@ async def check_user_budget_and_enforce(user_id: str | None, client_ip: str = ""
 
 
 def expire_stale_budget_reservations() -> dict[str, Any]:
-    """Delete abandoned budget-reservation rows (plan.md §20.2 Phase 20b,
-    reservation lifecycle step 3): a process that dies between RESERVE and
+    """Delete abandoned budget-reservation rows (reservation
+    lifecycle step 3): a process that dies between RESERVE and
     SETTLE (crash, cold-start eviction, request timeout) leaves a
     `reserved=true` row that would otherwise count against that caller's
     budget forever. Deletes rather than settles — no real spend happened,
@@ -638,8 +635,7 @@ def expire_stale_budget_reservations() -> dict[str, Any]:
 
     Safe to call repeatedly (idempotent). Intended to be invoked from the
     existing retention-enforce cron (backend/routes_privacy.py::
-    retention_enforce) rather than a new scheduled job, per plan.md §20.2's
-    explicit recommendation.
+    retention_enforce) rather than a new scheduled job.
     """
     try:
         from app import _get_supabase_client  # lazy import to avoid circular at module load

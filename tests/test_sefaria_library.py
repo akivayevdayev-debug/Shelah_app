@@ -632,7 +632,7 @@ class TestGetCategoryContents:
             assert sl.get_category_contents("") == []
 
     def test_special_chars_in_category_path_are_encoded_not_injected(self):
-        # plan.md §8.C.5 security-audit pass: category_path used to be
+        # Security-audit fix: category_path used to be
         # dropped straight into the outbound URL via a raw .replace("/", ",")
         # with no quoting, so "Tanakh#injected" would truncate the request
         # at a literal '#' fragment and "Tanakh?foo=bar" would inject an

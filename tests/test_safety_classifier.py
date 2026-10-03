@@ -1,5 +1,5 @@
 """
-Tests for the plan.md §8.B-AGE age-appropriate output & safety-routing layer
+Tests for the age-appropriate output & safety-routing layer
 in backend/claude.py: classify_safety(), the referral short-circuit in
 run_protected_ai_wrapper()/ask_claude()/ask_ai_async(), the post-generation
 explicit-content check in validate_model_output(), the backward-compatible
@@ -130,7 +130,7 @@ class TestClassifySafetyOverRefusalRegression:
 
 class TestClassifySafetyNoOverRefusalRegression:
     """Ordinary halachic Q&A must stay 'ok' — this is the regression guard
-    plan.md §8.B-AGE explicitly requires alongside the new routing."""
+    required alongside the new routing."""
 
     @pytest.mark.parametrize("query", [
         "What bracha do I make on bread?",

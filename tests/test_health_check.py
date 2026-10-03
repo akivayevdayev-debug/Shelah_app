@@ -173,7 +173,7 @@ class TestStatusSummary:
 
 
 class TestPublicRecordMethods:
-    """Phase 3: the public record_success()/record_failure() API used by
+    """The public record_success()/record_failure() API used by
     backend/utils/search_provider.py's network call sites."""
 
     def test_record_failure_below_threshold_stays_up(self, health):

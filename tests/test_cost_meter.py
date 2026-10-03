@@ -288,7 +288,7 @@ async def test_check_daily_budget_disabled_when_unset(monkeypatch, captured_aler
     # Disabled means no Supabase read is even attempted.
     assert fetch_called == []
     assert captured_alerts == []
-    # A no-op budget check must be loud, not silent (plan.md §16 Phase 9b) --
+    # A no-op budget check must be loud, not silent --
     # the historical incident this guards against is DAILY_BUDGET_USD being
     # empty in production for weeks with no signal anywhere.
     assert any("DAILY_BUDGET_USD is not set" in rec.message for rec in caplog.records)
@@ -493,7 +493,7 @@ def test_per_user_daily_budget_usd_invalid_value_falls_back_to_default(monkeypat
 
 # ─── check_user_budget_and_enforce ──────────────────────────────────────────
 #
-# plan.md §20.2 Phase 20b (Prompt 33b) replaced the read-then-decide race
+# The atomic reserve replaced the read-then-decide race
 # (_fetch_today_usage_cost_for_key) with an atomic check-and-reserve RPC
 # (_reserve_budget_or_deny). These tests were updated to monkeypatch the new
 # call site — see tests/test_cost_meter_budget_atomicity.py for the
@@ -697,7 +697,7 @@ async def test_record_llm_call_tags_client_key_when_anonymous(monkeypatch):
     assert captured["client_key"] == "ip:9.9.9.9"
 
 
-# ─── is_global_cost_breaker_tripped (plan.md §16.3-L3 / Prompt 29b) ─────────
+# ─── is_global_cost_breaker_tripped ─────────────────────────────────────────
 
 class _FakeBreakerStore:
     """Minimal get/setex stand-in for backend.rate_limit's shared store --

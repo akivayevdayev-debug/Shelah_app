@@ -1,5 +1,5 @@
 """
-Tests for backend/routes_privacy.py routes (plan.md §8.D privacy operations).
+Tests for backend/routes_privacy.py routes (privacy operations).
 
 Covers:
   - GET  /api/user/data-export      without auth → 401; with auth → returns
@@ -119,7 +119,7 @@ ALL_TABLES = [t for _key, t in routes_privacy_module._USER_DATA_TABLES]
 
 
 class TestUserDataTablesCompleteness:
-    """plan.md §39.1: answer_feedback is written with a real user_id
+    """answer_feedback is written with a real user_id
     (backend/routes_feedback.py) but was excluded from both export and
     delete -- regression coverage proving it's now included."""
 
@@ -424,7 +424,7 @@ class TestDeleteAccount:
         assert clerk_delete_calls == []
 
     def test_deletes_feedback_row_for_this_user(self, test_client, authed, monkeypatch):
-        """plan.md §39.1 integration check: a feedback row seeded for this
+        """Integration check: a feedback row seeded for this
         user must actually be deleted by delete_account(), not merely
         listed in _USER_DATA_TABLES."""
         feedback_table = routes_privacy_module.SUPABASE_ANSWER_FEEDBACK_TABLE

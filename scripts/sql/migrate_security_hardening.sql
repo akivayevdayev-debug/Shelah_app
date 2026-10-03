@@ -1,26 +1,26 @@
 -- Migration: close the unambiguous findings from a live Supabase Advisor
--- scan (plan.md §30, found 2026-08-21).
+-- scan.
 --
 -- Run this once in the Supabase SQL Editor for your project. Every
 -- statement here is idempotent / safe to re-run.
 --
 -- public.rls_auto_enable() is handled in its own file,
 -- scripts/sql/rls_auto_enable_setup.sql, now that its definition is known
--- (plan.md §30.4) -- run that file too.
+-- -- run that file too.
 --
--- Deliberately NOT included here (see plan.md §30 for why each is
--- excluded from this migration):
+-- Deliberately NOT included here (each is excluded from this migration
+-- for the reason given):
 --   - Grants on user_preferences / study_bookmarks / user_memories /
 --     ask_history -- these depend on the still-open question of whether
---     Supabase Third-Party Auth for Clerk is actually enabled (plan.md
---     §21, Prompt 34's "1b"). Revoking client-role access now could
---     silently break the intended auth.uid()-scoped RLS path if that
---     turns out to already be configured and working.
+--     Supabase Third-Party Auth for Clerk is actually enabled. Revoking
+--     client-role access now could silently break the intended
+--     auth.uid()-scoped RLS path if that turns out to already be
+--     configured and working.
 --   - Grants on community_knowledge / ai_usage_log -- already correct by
 --     design: community_knowledge is a deliberately public-read reference
 --     corpus (scripts/sql/rag_identity_cache_setup.sql); ai_usage_log has
 --     RLS enabled with zero policies, which already defaults to
---     deny-for-everyone-but-service-role (plan.md §21.2.3).
+--     deny-for-everyone-but-service-role.
 
 -- 1. Function search_path hardening (Supabase linter: function_search_path_mutable).
 -- Both functions already fully schema-qualify every non-builtin reference

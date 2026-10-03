@@ -37,7 +37,7 @@
 }
 
 /* ═══════════════════════════════════════════════════════ */
-/* DISCLAIMER BANNER — plan.md §8.B.1                       */
+/* DISCLAIMER BANNER                                        */
 /* Persistent, non-dismissible "not a halachic ruling"      */
 /* notice for AI answers. The conversation panel shows the  */
 /* referral / breaker-paused variants inside an answer turn */
@@ -97,7 +97,7 @@
     font-weight: 600;
 }
 
-/* Global cost-breaker-paused variant (plan.md §16.3-L3 / Prompt 29b) -- same
+/* Global cost-breaker-paused variant -- same
    warning color system as the referral banner (WCAG AA already verified for
    both themes there) but deliberately not font-weight: 600, so a routine
    budget-pause doesn't visually compete with an actual safety referral. */
@@ -913,7 +913,7 @@ body.search-loading .search-ai-sparkle {
     background: var(--ctrl-border);
 }
 
-/* ── Answer feedback widget (plan.md §12.4) ───────────────────────────── */
+/* ── Answer feedback widget ───────────────────────────────────────────── */
 
 .answer-feedback {
     display: flex;

@@ -27,7 +27,7 @@ class TestIndexRoute:
 
 
 class TestSentryBrowserIntegration:
-    """plan.md §17 STEP 1/5: SENTRY_DSN_BROWSER must be a true no-op when
+    """SENTRY_DSN_BROWSER must be a true no-op when
     unset (no script tag, no network call), and render the Sentry CDN
     <script>/SRI/config block when set — verified against the rendered
     index.html, not just the env var read."""
@@ -57,7 +57,7 @@ class TestSentryBrowserIntegration:
         assert '"abc123def"' in html
 
     def test_set_dsn_does_not_load_replay_bundle(self, monkeypatch, test_client):
-        """Deviation 6 (plan.md §17.3): omit the Replay integration entirely
+        """Deviation 6: omit the Replay integration entirely
         rather than zeroing its sample rates — verified by pinning the
         plain errors-only bundle filename, not a replay/tracing variant."""
         import app as flask_app_module
@@ -71,7 +71,7 @@ class TestSentryBrowserIntegration:
 
 
 class TestSentryCsp:
-    """plan.md §17 STEP 5: the Sentry CDN host must be allowed in script-src
+    """The Sentry CDN host must be allowed in script-src
     and the ingest host in connect-src, or the SDK fails silently (CSP
     blocks it with no visible error) — the worst failure mode for an error
     tracker. Guards the CSP wiring, not just the script tag."""
@@ -181,8 +181,8 @@ class TestServiceWorker:
 
 
 class TestViewTransitionsFlag:
-    """VIEW_TRANSITIONS=true opts every visitor into view transitions (audit
-    §2.3); off, the shell carries no marker and a browser opts in itself."""
+    """VIEW_TRANSITIONS=true opts every visitor into view transitions;
+    off, the shell carries no marker and a browser opts in itself."""
 
     @staticmethod
     def _html_tag(test_client, path="/"):

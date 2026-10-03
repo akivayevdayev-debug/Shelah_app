@@ -55,7 +55,7 @@ class TestInsertUsageRow:
         assert inserted == [{"provider": "anthropic", "model": "x"}]
 
     def test_client_exception_reaches_capture_backend_error(self, monkeypatch):
-        """Plan.md §20.1-C3b: a dead ledger must be audible (routed through
+        """A dead ledger must be audible (routed through
         the project's structured-error funnel), not swallowed at
         logger.debug where it's invisible at the default LOG_LEVEL=INFO."""
         import app

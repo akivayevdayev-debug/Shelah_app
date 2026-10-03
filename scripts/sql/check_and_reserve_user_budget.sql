@@ -1,8 +1,8 @@
--- plan.md §20.2 Phase 20b (Prompt 33b): atomic check-and-reserve for the
+-- Atomic check-and-reserve for the
 -- per-caller daily AI-spend ceiling.
 --
 -- Replaces the read-then-decide race in backend/cost_meter.py::
--- check_user_budget_and_enforce (plan.md §20.1-C2: the old code reads
+-- check_user_budget_and_enforce (the old code reads
 -- today's total, compares, and never writes -- N concurrent /ask requests
 -- from one caller near the cap all read the same pre-spend total and all
 -- pass) with a single Postgres statement, so concurrent callers for the
@@ -27,7 +27,7 @@ CREATE INDEX IF NOT EXISTS ai_usage_log_reserved_expiry_idx
     ON public.ai_usage_log (reserved, reservation_expires_at)
     WHERE reserved;
 
--- Reservation lifecycle (plan.md §20.2 Phase 20b STEP 2):
+-- Reservation lifecycle:
 --
 --   1. RESERVE -- check_and_reserve_user_budget() below inserts a
 --      placeholder row (cost_usd = the caller's worst-case single-call
@@ -40,7 +40,7 @@ CREATE INDEX IF NOT EXISTS ai_usage_log_reserved_expiry_idx
 --      call completes, UPDATEs that row in place with the real
 --      provider/model/token counts/cost and clears `reserved` -- it does
 --      NOT insert a second row (a second row would double-count the spend
---      Prompt 33a's price-table fix made real).
+--      the corrected price table now records).
 --
 --   3. EXPIRE -- if the caller's process dies between reserve and settle
 --      (crash, cold-start eviction, request timeout), the row is left with
@@ -80,7 +80,7 @@ BEGIN
     END IF;
 
     -- Serializes concurrent callers for this exact key so the SELECT+INSERT
-    -- below cannot race (plan.md §20.1-C2).
+    -- below cannot race.
     PERFORM pg_advisory_xact_lock(hashtextextended(p_key_column || ':' || p_key_value, 0));
 
     IF p_key_column = c_user_id_column THEN
@@ -119,5 +119,5 @@ $$;
 -- service-role-only: invoked exclusively via the server-side Supabase
 -- client (SUPABASE_SECRET_KEY), never from the browser. No GRANT to
 -- anon/authenticated -- matches ai_usage_log's own
--- no-RLS-because-service-role-only posture (plan.md §21.2.3).
+-- no-RLS-because-service-role-only posture.
 REVOKE ALL ON FUNCTION public.check_and_reserve_user_budget(TEXT, TEXT, NUMERIC, NUMERIC) FROM PUBLIC;

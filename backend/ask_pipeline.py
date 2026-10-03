@@ -1,6 +1,6 @@
 """
 Async ask pipeline for Sh'elah: home of the agentic tool-use loop
-(run_agentic_ask, plan.md §9 / Prompt 20).
+(run_agentic_ask).
 
 `run_agentic_ask()` is wired into both /ask entry points (app.py, asgi.py)
 behind the `claude.AI_AGENTIC_TOOLS` flag (env-default off). Self-contained
@@ -10,8 +10,7 @@ This module previously also held `run_ask_pipeline()` / `AskPipelineResult`,
 a staging implementation of a single shared Flask/ASGI orchestration
 pipeline that was never adopted: zero production importers, 0% production
 traffic, kept alive only by two dedicated test files whose entire purpose
-was stopping it from rotting silently. Deleted per `plan.md` §22 (Option B,
-re-scoped 2026-08-21 §27.3): the two live `/ask` handlers (`app.py`,
+was stopping it from rotting silently. Deleted (re-scoped 2026-08-21): the two live `/ask` handlers (`app.py`,
 `asgi.py`) remain independently implemented by deliberate decision, pinned
 to each other by `tests/test_ask_transport_parity.py` instead of being
 unified into a shared pipeline. If a shared pipeline is ever built again,
@@ -27,12 +26,12 @@ from typing import Any
 
 
 # ---------------------------------------------------------------------------
-# Agentic tool-use loop (plan.md §9.4, Prompt 20)
+# Agentic tool-use loop
 # ---------------------------------------------------------------------------
 
 AI_AGENTIC_MAX_ROUNDS = 4
 
-# §9.3's texts-first gate names: web_search stays excluded from the tool
+# The texts-first gate names: web_search stays excluded from the tool
 # schema until one of these has actually been tried and come back
 # insufficient in the current turn.
 _TEXTS_FIRST_TOOL_NAMES = frozenset({"search_judaic_texts", "search_library"})
@@ -43,7 +42,7 @@ def _tool_result_is_insufficient(result: Any) -> bool:
     an error, or an empty "results" list. Every ai_tools.py search-shaped
     handler (search_judaic_texts, search_library) returns {"query",
     "results": [...]}, so this one generic check covers both texts-first
-    tools without per-tool special-casing. Used only for the §9.3
+    tools without per-tool special-casing. Used only for the
     web_search gate below.
     """
     if not isinstance(result, dict):
@@ -94,7 +93,7 @@ async def _execute_tool_round(tool_use_calls: list, tool_exec_context: dict) -> 
         for tu, result in zip(tool_use_calls, tool_results)
     )
 
-    # Tool results are untrusted content (plan.md §9.5) -- sanitized
+    # Tool results are untrusted content -- sanitized
     # through the same _sanitize_model_output path used for raw model
     # output before being re-injected as the next turn's context.
     results_message = {
@@ -189,7 +188,7 @@ def _build_agentic_result(
         "is_fallback": False,
         "model": claude_module._CLAUDE_FALLBACK_MODEL,
         "rounds_used": rounds_used,
-        # §9.3 point 3: any answer that used web_search must be tagged
+        # Any answer that used web_search must be tagged
         # so the /ask call site (app.py/asgi.py) can pass
         # include_web_warning=True to _compose_answer_with_prefixes,
         # exactly like the pre-fetch RAG path already does when its
@@ -233,23 +232,22 @@ async def run_agentic_ask(
     conversation_history: list | None = None,
 ) -> dict[str, Any]:
     """Agent loop: tool_use -> execute -> tool_result -> repeat, hard-capped
-    at AI_AGENTIC_MAX_ROUNDS rounds (plan.md §9.4). Returns the same plain-
+    at AI_AGENTIC_MAX_ROUNDS rounds. Returns the same plain-
     dict shape as claude.ask_claude()/ask_ai_async() ({"answer",
     "structured", "confidence", "is_fallback", "model", "security", ...}),
     so it is a drop-in swap at both /ask entry points behind
     claude.AI_AGENTIC_TOOLS -- when the flag is off, callers never reach
     this function and behavior is byte-for-byte today's pre-fetch RAG path.
 
-    Tool execution is "parallel via asyncio.gather" as plan.md §9.4 asks,
-    but NOT routed through app.py's `_THREAD_POOL` as its literal text also
-    asks: backend/* must never import `app` (circular-import risk; the
+    Tool execution is parallel via asyncio.gather, but NOT routed through
+    app.py's `_THREAD_POOL` as the original design also suggested: backend/* must never import `app` (circular-import risk; the
     established rule this refactor enforces everywhere else, e.g.
     backend/rag.py's lazy `import app as _app` workaround). Every
     ai_tools.py handler already wraps its own blocking calls in
     asyncio.to_thread internally, so asyncio.gather() over execute_tool()
     coroutines is parallel and non-blocking without the illegal import.
     Documented here and in the agentic-layer findings section rather than
-    silently deviating from the plan's text.
+    silently deviating from the original design.
     """
     from backend import claude as claude_module
 
@@ -296,7 +294,7 @@ async def run_agentic_ask(
 
     system_text = _build_agentic_system_text(claude_module, dynamic_system_context)
 
-    # §9.4 location handling: only the resolved lat/lon/timezone travel into
+    # Location handling: only the resolved lat/lon/timezone travel into
     # tool execution context; get_zmanim/get_holidays return a "location
     # required" result (never a guess) when these are absent, per each
     # handler's own contract in backend/ai_tools.py.

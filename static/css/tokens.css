@@ -6,7 +6,7 @@
   Consumers (components, layout, feature sheets) reference ONLY token names —
   never raw hex values. Switching themes is done by toggling [data-theme] on
   <html>; the 574 scattered body.theme-dark overrides across 9 files become
-  one block here (§7.7 of the roadmap).
+  one block here.
 
   Load order: this file MUST precede all feature CSS sheets.
 
@@ -114,7 +114,7 @@
     --ctrl-border:        #d6d2c7;
     /* Was #2f4a67 / #223e5a -- a cool navy that read as a stray "blue"
        tint on icon-only controls like #settingsMenuBtn/#mobileLangToggle
-       (plan.md design pass, 2026-09-13). The dark-theme block's own
+       (design pass, 2026-09-13). The dark-theme block's own
        --ctrl-text (#999181/#b8b0a0, see below) is already a warm neutral,
        not navy -- this brings light mode's generic control-text color into
        the same warm family instead of a one-off dark-mode fix. Luminance-
@@ -142,7 +142,7 @@
     --ai-trust-border:    #d7cebc;
     /* --ai-warning-*: previously dark-theme-only (defined below at the
        [data-theme="dark"] block, never given a light value, so unused
-       anywhere — see plan.md §8.B.1). Completing the light half here so
+       anywhere). Completing the light half here so
        the safety-referral disclaimer banner has a real value in both
        themes; all three colors verified ≥4.5:1 against each other. */
     --ai-warning-bg:      #fef6e7;
@@ -463,8 +463,8 @@ body.theme-dark {
 
     /* ── Ink / text ─────────────────────────────────────────────────── */
     --ink-primary:        #c0bab0;
-    /* Lightened #807870 -> #888077 (2026-08, Prompt 18: 4.31:1 against
-       --surface-1) -> #999188 (2026-08-20, plan.md §26.2 / Prompt 39: the
+    /* Lightened #807870 -> #888077 (2026-08: 4.31:1 against
+       --surface-1) -> #999188 (2026-08-20: the
        dark-theme half of the pa11y-ci gate, run for the first time, caught
        this at 4.34:1 against --surface-2 -- the home page's card and footer
        surface -- on 15 elements). Each earlier pass fixed only the one
@@ -486,7 +486,7 @@ body.theme-dark {
     --accent-primary-hover: #789ab8;
     /* Was #b89028 -- a saturated mustard/brass that read as a harsh, out-
        of-place "yellow" against the rest of the muted dark palette
-       (plan.md design pass, 2026-09-13), most visible on the large solid
+       (design pass, 2026-09-13), most visible on the large solid
        fill of a checked .reader-switch toggle. Softened to a paler,
        lower-saturation champagne gold at the same hue (~43°) -- still
        reads as "gold," just creamier. Contrast only improved: as text
@@ -510,7 +510,7 @@ body.theme-dark {
     --ctrl-bg-hover:      #2d2b28;
     --ctrl-border:        #373532;
     /* Lightened from #888070 2026-08-20 for the same reason as
-       --ink-secondary above (plan.md §26.2 / Prompt 39): the dark-theme
+       --ink-secondary above: the dark-theme
        pa11y-ci run caught the topbar language button at 4.10:1 against
        --ctrl-bg/--surface-pill #23211f. Now 5.14:1 there and 4.52:1 against
        --ctrl-bg-hover, so the hovered state passes too. Keep in sync with

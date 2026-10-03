@@ -1,6 +1,6 @@
 """
-Direct unit tests for backend/rate_limit.py's store abstraction additions
-(plan.md §16.3-L3 / Prompt 29b): get()/setex() on _InMemoryStore and
+Direct unit tests for backend/rate_limit.py's store abstraction additions:
+get()/setex() on _InMemoryStore and
 _RedisStore, and the get_shared_store() accessor backend/cost_meter.py's
 global cost breaker reuses instead of opening a second Redis connection.
 
@@ -136,7 +136,7 @@ def test_get_shared_store_returns_the_module_level_store_singleton():
     assert rate_limit.get_shared_store() is rate_limit._store
 
 
-# ─── Identity-aware daily quota (plan.md §16.6 Phase 9c) ──────────────────────
+# ─── Identity-aware daily quota ───────────────────────────────────────────────
 # HTTP-roundtrip coverage of the per-minute allowance lives in
 # tests/test_ask.py::TestAskIdentityAwareQuotas; this exercises the daily
 # cap directly against _check() -- a real 200-request/day ceiling would be
@@ -186,7 +186,7 @@ async def test_daily_quota_does_not_apply_to_anonymous_callers(monkeypatch):
         fake_now[0] += 61
 
 
-# ─── Mitigation observability (plan.md §16.4) ─────────────────────────────────
+# ─── Mitigation observability ─────────────────────────────────────────────────
 
 async def test_check_logs_a_mitigation_event_on_per_minute_rejection(monkeypatch):
     calls = []

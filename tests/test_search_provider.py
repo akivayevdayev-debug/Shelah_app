@@ -1,7 +1,7 @@
 """
 Golden-master characterization tests for the retrieval & corpus-matching layer
-being extracted from app.py into backend/utils/search_provider.py (Phase 2 of
-the backend refactor in plan.md).
+being extracted from app.py into backend/utils/search_provider.py (part of
+the backend refactor).
 
 These pin the exact current output of the lemmatization, discovery-query,
 global-source-collection, local-corpus-match, and reconciled translation
@@ -315,8 +315,8 @@ def test_collect_external_global_sources_unmocked_domain_returns_empty(mock_outb
 
 
 def test_collect_external_global_sources_builds_entries_from_both_providers(mock_outbound_http):
-    """Anchors the D->B _collect_external_global_sources refactor (plan.md
-    §32.1): exercises the health-gated fetch, title/summary trust check, and
+    """Anchors the D->B _collect_external_global_sources refactor:
+    exercises the health-gated fetch, title/summary trust check, and
     both branches of the per-provider URL fallback (Halachipedia has no
     payload "url" so builds a /wiki/ slug; HebrewBooks' payload already
     carries one from urljoin, so no fallback needed) in one pass."""
@@ -479,7 +479,7 @@ def test_get_halakhic_sources_happy_path_returns_specific_api_sources(mock_outbo
 
 # ── Reconciled duplicate: _translate_text_google / _translate_text_mymemory ──
 # Canonical home is now backend/utils/search_provider.py (previously diverged
-# copies lived in both app.py and backend/helpers.py — see plan.md §2).
+# copies lived in both app.py and backend/helpers.py).
 
 def test_translate_text_google_empty_text_returns_empty_string():
     assert _translate_text_google("", "he", "en") == ""
@@ -530,7 +530,7 @@ def test_translate_text_mymemory_missing_response_data_returns_empty_string(mock
         assert _translate_text_mymemory("שבת", "he", "en") == ""
 
 
-# ─────────────── Phase 3: circuit-breaker hardening on network calls ───────────
+# ─────────────── Circuit-breaker hardening on network calls ─────────────────
 #
 # The `_reset_api_health` autouse fixture in conftest.py resets the shared
 # `backend.health_check.health` singleton around every test, so these tests
@@ -651,7 +651,7 @@ def test_translate_text_google_upstream_failure_opens_circuit_after_threshold(mo
 
 
 def test_get_halakhic_sources_fails_open_to_internal_ai_when_all_circuits_down(mock_outbound_http):
-    """Total fallback guarantee (plan.md §3.2): with sefaria/web circuits open,
+    """Total fallback guarantee: with sefaria/web circuits open,
     get_halakhic_sources still returns a well-formed payload, never raising."""
     for _ in range(FAIL_THRESHOLD):
         sp.health.record_failure("sefaria")

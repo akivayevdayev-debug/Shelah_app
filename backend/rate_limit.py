@@ -1,12 +1,12 @@
 """
-Unified rate-limit middleware for Sh'elah (plan.md §16 Phase 9a / §16.3-L2).
+Unified rate-limit middleware for Sh'elah.
 
-Prior state (plan.md §16.8.1): Flask-Limiter (app.py) and a second,
+Prior state: Flask-Limiter (app.py) and a second,
 independently-maintained in-process limiter (asgi.py, /ask only) enforced
 two policies that happened to agree but had nothing keeping them in sync --
 two stores, two key functions, two 429 body shapes. That is the "live,
-divergent duplication" failure mode plan.md §2/§16.3 singles out as this
-project's most dangerous anti-pattern, and it had been re-created in the
+divergent duplication" failure mode this project treats as its most
+dangerous anti-pattern, and it had been re-created in the
 security layer. This module replaces both with one policy table, one
 store, one key function, one 429 body shape, installed once as ASGI
 middleware on ``asgi.fastapi_app``.
@@ -15,8 +15,8 @@ Starlette's middleware stack wraps ``app.router`` -- which handles dispatch
 to ``Mount()``-ed sub-apps too -- so middleware registered here sees 100% of
 traffic exactly once, including every Flask route reached through
 ``asgi.py``'s ``WSGIMiddleware`` mount, before any route handler (FastAPI
-or Flask) runs. This module must not import ``app`` (plan.md §2 reuse
-rule -- backend/* must not depend on the Flask app module).
+or Flask) runs. This module must not import ``app`` (backend/* must not
+depend on the Flask app module).
 """
 
 from __future__ import annotations
@@ -42,32 +42,32 @@ from backend.logging_setup import _capture_backend_error, log_mitigation
 logger = logging.getLogger(__name__)
 
 
-# ─── Policy table (plan.md §16.3-L2) ───────────────────────────────────────
+# ─── Policy table ──────────────────────────────────────────────────────────
 # Every route falls into exactly one class; anything that matches no known
 # prefix falls into "cheap" -- the same generous-default bucket the removed
-# Flask-Limiter RATE_LIMIT_DEFAULT used to cover (plan.md §16.1 D4), so
+# Flask-Limiter RATE_LIMIT_DEFAULT used to cover, so
 # removing Flask-Limiter does not reopen D4.
 #
 # Anonymous/authenticated differentiation beyond a plain key swap, and
 # Clerk-sub keying for classes other than llm, were deliberately NOT built
-# in Phase 9a/9b -- that is Phase 9c ("identity & polish", plan.md §16.6),
-# implemented below via _Policy.authenticated_max_requests/daily_max_requests
-# for the llm class specifically (§16.3-L2's own example: "a yeshiva, day
-# school, or shul behind one CGNAT egress" needs a higher signed-in
-# allowance, not just a different bucket key).
+# in the first version of the limiter -- that is the "identity & polish"
+# layer, implemented below via
+# _Policy.authenticated_max_requests/daily_max_requests for the llm class
+# specifically ("a yeshiva, day school, or shul behind one CGNAT egress"
+# needs a higher signed-in allowance, not just a different bucket key).
 
 @dataclass(frozen=True)
 class _Policy:
     window_seconds: int
     max_requests: int
-    # Posture when the shared store is unreachable (plan.md §16.3-L2):
+    # Posture when the shared store is unreachable:
     # fail OPEN for read-only/library-ish traffic (a reader should not be
     # blocked because Redis blipped), fail CLOSED for the one class that
     # spends real USD per call (an unmetered /ask during a store outage is
     # a budget hole, not a degraded feature). This asymmetry is the whole
     # point and must not be "simplified" later.
     fail_open: bool
-    # Phase 9c identity-aware quotas (plan.md §16.3-L2, §16.6 Phase 9c).
+    # Identity-aware quotas.
     # None means "same as max_requests" / "no daily cap" -- only the llm
     # class sets these today; every other class keeps one flat per-minute
     # bucket regardless of auth state.
@@ -271,7 +271,7 @@ class _RateLimitStore:
 
 class _InMemoryStore(_RateLimitStore):
     """Sliding-window store ported from asgi.py's pre-unification in-process
-    limiter. Per-process only -- this IS plan.md §16.1 D3, kept solely as
+    limiter. Per-process only -- kept solely as
     the local-dev/test fallback when RATE_LIMIT_REDIS_URL is unset. Never
     the intended production store; see _build_store()'s startup warning.
 
@@ -326,7 +326,7 @@ class _InMemoryStore(_RateLimitStore):
 class _RedisStore(_RateLimitStore):
     """Fixed-window counter over Upstash Redis (or any rediss://-reachable
     Redis), matching the fixed-window algorithm Vercel's own edge WAF uses
-    (plan.md §16.3-L1) so the two layers behave consistently. INCR is
+ so the two layers behave consistently. INCR is
     atomic; EXPIRE is only set on the increment that creates the key (count
     == 1), so a steady stream of requests can't keep pushing the window
     forward -- classic "INCR then conditionally EXPIRE" fixed-window
@@ -454,8 +454,8 @@ def _build_store() -> _RateLimitStore:
             return _InMemoryStore()
     logger.warning(
         "RATE_LIMIT_REDIS_URL is not set -- rate limiting is falling back to "
-        "an in-process store. Fine for local dev, but per plan.md §16.1 "
-        "D3 this does NOT enforce a real limit across Vercel Fluid's "
+        "an in-process store. Fine for local dev, but this does NOT enforce "
+        "a real limit across Vercel Fluid's "
         "multiple concurrent instances. Do not deploy to production "
         "without RATE_LIMIT_REDIS_URL set."
     )
@@ -467,7 +467,7 @@ _store: _RateLimitStore = _build_store()
 
 def get_shared_store() -> _RateLimitStore:
     """Expose the module-level store for reuse outside the rate limiter
-    itself (plan.md §3 reuse rule / §16.3-L3) -- e.g. backend/cost_meter.py's
+    itself -- e.g. backend/cost_meter.py's
     global cost breaker caches its measurement here instead of opening a
     second Redis connection or inventing a second store abstraction."""
     return _store

@@ -1,5 +1,5 @@
 """
-Answer-feedback blueprint for Sh'elah (plan.md §12.4).
+Answer-feedback blueprint for Sh'elah.
 
 A single write-only endpoint: readers leave a thumbs up/down (and an
 optional short comment) on an AI answer. Feedback is accepted from

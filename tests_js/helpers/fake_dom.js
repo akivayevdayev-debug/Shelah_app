@@ -1,10 +1,10 @@
 /**
  * Minimal hand-built DOM fake for tests_js/zmanim.test.js — the first
- * extraction under plan.md §19 whose functions touch `document` directly
+ * extracted module whose functions touch `document` directly
  * (getElementById/querySelectorAll + classList/style/dataset/attribute
- * reads and writes), unlike Phase 0/1's DOM-free ai-service.js. Kept
+ * reads and writes), unlike the DOM-free ai-service.js. Kept
  * intentionally narrow: it implements only what static/js/zmanim.js's
- * Phase 2 exports actually call, not a general DOM shim.
+ * exports actually call, not a general DOM shim.
  */
 'use strict';
 

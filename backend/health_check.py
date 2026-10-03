@@ -140,8 +140,7 @@ class APIHealth:
     # is driven passively by callers reporting record_success()/record_failure()
     # around each real network call (used by backend/utils/search_provider.py
     # for translation providers and general web/global-source search).
-    # community_knowledge covers backend/rag.py::_retrieve_community_knowledge
-    # (plan.md §12.3.4).
+    # community_knowledge covers backend/rag.py::_retrieve_community_knowledge.
     _PASSIVE_SERVICES = ("translate_google", "translate_mymemory", "web", "nominatim", "community_knowledge")
 
     def __init__(self) -> None:

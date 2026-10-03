@@ -1,5 +1,5 @@
 """
-Clerk webhook blueprint (plan.md §39.2).
+Clerk webhook blueprint.
 
 Completeness backstop for account deletion: delete_account() (backend/
 routes_privacy.py) is the only code path in this repo that deletes

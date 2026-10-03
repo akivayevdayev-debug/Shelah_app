@@ -1,8 +1,7 @@
 """
 Pins the Flask (app.py) and ASGI (asgi.py) /ask handlers to each other on
-plan.md §22.3.2's six invariants -- Prompt 35 STEP 2, the actual deliverable
-of the ask_pipeline.py dead-code decision (plan.md §22). Only asgi.py's
-route is reachable in production (plan.md §16.1-D1: FastAPI's native POST
+six invariants -- the actual deliverable of the ask_pipeline.py dead-code
+decision. Only asgi.py's route is reachable in production (FastAPI's native POST
 /ask is registered before the WSGIMiddleware Flask mount, so Starlette's
 router always matches it first), but both implementations are kept by
 deliberate decision and must not silently drift from each other -- that is
@@ -15,7 +14,7 @@ fallback top-level key set), TestAiCitedSourcesSchemaParity,
 TestAiModelTimeoutWiring / TestAiTotalBudgetTimeout, and
 TestSafetyClassMetaPropagation.
 
-Invariant coverage map (plan.md §22.3.2):
+Invariant coverage map:
   a) top-level key set on every path       -> TestTopLevelKeySetEveryPath
      Adds the strict-block and security-blocked paths -- the two NOT
      already covered by test_ask.py::TestAskTransportKeySetParity's
@@ -37,10 +36,8 @@ Invariant coverage map (plan.md §22.3.2):
   d) classify_safety() before every synthesis call -> TestClassifySafetyInvoked
   e) per-user budget check present on both, or an explicit test asserting
      Flask is unreachable in production -> ALREADY COVERED, not duplicated
-     here per the coordination note in claude_code_prompts.md Prompt 35
-     STEP 2(e): tests/test_cost_meter_budget_atomicity.py::
-     test_flask_ask_route_is_unreachable_behind_the_asgi_mount (built under
-     Prompt 33b STEP 5). That test pins the FastAPI-route-before-Flask-
+     here: tests/test_cost_meter_budget_atomicity.py::
+     test_flask_ask_route_is_unreachable_behind_the_asgi_mount. That test pins the FastAPI-route-before-Flask-
      mount registration order that makes the budget-check asymmetry safe.
   f) identical meta key set on every response -> TestMetaKeySetParity
      "cached" (Flask) / "async" (ASGI) is a deliberate, accepted per-
@@ -253,9 +250,8 @@ class TestMetaKeySetParity:
     def test_flask_ai_failure_fallback_path_meta_keys(self, test_client, monkeypatch):
         """Patches both the legacy ask_claude entry point AND
         ask_pipeline.run_agentic_ask, since which one app.py actually calls
-        depends on claude.AI_AGENTIC_TOOLS (plan.md §9) -- this way the test
-        exercises the real failure path regardless of that flag's state
-        (plan.md §27.7)."""
+        depends on claude.AI_AGENTIC_TOOLS -- this way the test
+        exercises the real failure path regardless of that flag's state."""
         import backend.claude as claude_module
         import backend.ask_pipeline as ask_pipeline_module
         import app as flask_app_module
@@ -280,7 +276,7 @@ class TestMetaKeySetParity:
 
     async def test_fastapi_ai_failure_fallback_path_meta_keys(self, fastapi_client, monkeypatch):
         """See the Flask variant above for why both entry points are
-        patched (plan.md §27.7)."""
+        patched."""
         import backend.claude as claude_module
         import backend.ask_pipeline as ask_pipeline_module
 
@@ -314,8 +310,7 @@ class TestTimeoutBudgetParity:
         """Patches both the legacy ask_claude entry point AND
         ask_pipeline.run_agentic_ask, mirroring test_ask.py::
         TestAiTotalBudgetTimeout's FastAPI variant, since which one app.py
-        actually calls depends on claude.AI_AGENTIC_TOOLS (plan.md §9)
-        (plan.md §27.7)."""
+        actually calls depends on claude.AI_AGENTIC_TOOLS."""
         import backend.claude as claude_module
         import backend.ask_pipeline as ask_pipeline_module
         import app as flask_app_module
@@ -347,8 +342,7 @@ class TestTimeoutBudgetParity:
     def test_both_synthesis_functions_bound_on_the_shared_budget_constant(self):
         """Both the Flask-side and async-side dispatch were split out of
         their respective _run_ask_*_ai_synthesis() functions into their own
-        dedicated dispatch helpers (plan.md §32.1's D(21) -> B(8)/B(7)
-        complexity refactors) -- those are the functions that now actually
+        dedicated dispatch helpers (a complexity refactor) -- those are the functions that now actually
         call .result(timeout=...) / asyncio.wait_for(timeout=...), so check
         them directly rather than their (now-thin) callers."""
         import app as flask_app_module
@@ -375,10 +369,9 @@ class TestPromptSelectionThresholdParity:
     def test_flask_is_simple_flag_forces_compact_rendering(self, test_client, monkeypatch):
         """Patches both the legacy ask_claude entry point AND
         ask_pipeline.run_agentic_ask, since which one app.py actually calls
-        depends on claude.AI_AGENTIC_TOOLS (plan.md §9) -- without this,
+        depends on claude.AI_AGENTIC_TOOLS -- without this,
         the test silently verified nothing under the flag, since conftest's
-        mock_outbound_httpx fixture answers with structured=None regardless
-        (plan.md §27.7)."""
+        mock_outbound_httpx fixture answers with structured=None regardless."""
         import backend.claude as claude_module
         import backend.ask_pipeline as ask_pipeline_module
         import app as flask_app_module
@@ -415,7 +408,7 @@ class TestPromptSelectionThresholdParity:
 
     async def test_fastapi_is_simple_flag_forces_compact_rendering(self, fastapi_client, monkeypatch):
         """See the Flask variant above for why both entry points are
-        patched (plan.md §27.7)."""
+        patched."""
         import backend.claude as claude_module
         import backend.ask_pipeline as ask_pipeline_module
 

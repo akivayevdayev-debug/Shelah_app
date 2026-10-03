@@ -1,7 +1,7 @@
 -- Migration: convert user_preferences.prefs from text to jsonb.
 -- Run this once in the Supabase SQL Editor for your project.
 --
--- Provenance (plan.md §30): this file was an untracked, unnamed saved
+-- Provenance: this file was an untracked, unnamed saved
 -- snippet in the Supabase SQL Editor until this pass -- surfaced while
 -- reconciling the operator's saved-query list against this repo
 -- (2026-08-21). Its own inline comment cited "app.py:3089" as the reason;

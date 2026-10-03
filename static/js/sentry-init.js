@@ -3,19 +3,19 @@
  *
  * Wires up the Sentry Browser SDK (loaded separately from Sentry's own CDN
  * with an SRI hash, see templates/index.html) with the privacy and quota
- * discipline plan.md §17 requires:
+ * discipline this app requires:
  *
  * - True no-op when SENTRY_DSN_BROWSER is unset or the CDN script failed to
  *   load: no throw, no console warning, mirrors static/js/motion.js.
  * - sendDefaultPii: false + dataCollection{userInfo:false, httpBodies:[]} —
  *   the vendor-supported mechanism for keeping question/answer text out of
  *   Sentry. beforeSend/beforeBreadcrumb below are defence-in-depth on top of
- *   that, not a substitute for it (plan.md §17.3 deviation 5).
+ *   that, not a substitute for it.
  * - No Replay integration (this file only ever calls Sentry.init on the
  *   plain errors-only CDN bundle — see index.html's <script> comment).
- * - tracesSampleRate: 0 — errors only; tracing spend is a §14 cost decision.
+ * - tracesSampleRate: 0 — errors only; tracing spend is a cost decision.
  * - Noise filtering + a per-session cap, protecting the 5,000 events/month
- *   free-tier quota (plan.md §17.1).
+ *   free-tier quota.
  *
  * Loaded as a plain (non-module) script, synchronously, after the Sentry CDN
  * bundle and before any other app script — so it can capture errors from
@@ -34,7 +34,7 @@
     // Any of these keys, wherever they show up in a breadcrumb/event payload,
     // could carry question text, an AI answer, or a raw request/response
     // body. Halachic questions are frequently medical, marital, mental-
-    // health, or abuse-adjacent (plan.md §8.B/§8.D) — that text must never
+    // health, or abuse-adjacent — that text must never
     // reach a third-party error tracker.
     var SENSITIVE_HEADER_KEYS = ['authorization', 'cookie', 'set-cookie', 'x-clerk-auth-token', '__session'];
     // Matches app-chosen key names loosely (event.extra / event.contexts are
@@ -262,9 +262,8 @@
                 dsn: dsn,
                 environment: environment,
                 release: release,
-                // Overrides the vendor-suggested default (plan.md §17.3
-                // deviation 1) — request headers/cookies/IP must never be
-                // attached automatically.
+                // Overrides the vendor-suggested default — request
+                // headers/cookies/IP must never be attached automatically.
                 sendDefaultPii: false,
                 tracesSampleRate: 0,
                 dataCollection: {

@@ -1,8 +1,7 @@
 """
-Concurrency-safety tests for backend/sefaria_library.py's module-level caches
-(plan.md §5.2).
+Concurrency-safety tests for backend/sefaria_library.py's module-level caches.
 
-Covers the two race classes the phase targets:
+Covers the two race classes this file targets:
   - check-then-set windows on the TTLCache-backed caches (_cache,
     _resolved_title_ref_cache, _resolved_query_ref_cache, _search_query_cache)
   - torn multi-key reads on the atomic-swap caches (_title_catalog_cache,
@@ -61,7 +60,7 @@ def _reset_sefaria_library_caches():
 class TestHammerConcurrency:
     """N-thread hammer tests: no exceptions, consistent final state, bounded
     duplicate work under concurrent misses (some duplication under a
-    concurrent miss is explicitly accepted by plan.md §5.2 point 1 — the
+    concurrent miss is explicitly accepted — the
     guarantee is safety, not zero-duplication)."""
 
     def test_cached_get_sixteen_threads_no_exceptions_consistent_result(self, monkeypatch):
@@ -168,7 +167,7 @@ class TestTornReadRegression:
         """A reader thread continuously snapshots _title_catalog_cache while
         a writer thread forces repeated rebuild-and-swap cycles. The
         invariant (report_mtime fresh ⇒ data belongs to that same version)
-        must never be violated (plan.md §5.2 point 2)."""
+        must never be violated."""
         current_version = {"v": 0}
 
         def fake_load_adjustments():
@@ -222,9 +221,9 @@ class TestTornReadRegression:
 
 class TestImmutabilityContract:
     def test_title_catalog_row_mutation_is_visible_on_cache_hit(self, monkeypatch):
-        """Plan.md §5.2 point 4 explicitly rejects blanket deepcopy in the
-        critical section (it would serialize every reader behind an
-        O(payload) copy on the hottest read path). Cached rows are
+        """Blanket deepcopy in the critical section is explicitly rejected
+        (it would serialize every reader behind an O(payload) copy on the
+        hottest read path). Cached rows are
         contractually immutable-after-insert instead of defensively copied
         — callers must not mutate what _get_title_catalog() returns. This
         pins that contract precisely: a within-TTL cache hit returns the
@@ -302,7 +301,7 @@ class TestLockScope:
 
 class TestAtomicSwapFreshnessRace:
     def test_slower_thread_never_clobbers_a_fresher_concurrent_write(self, monkeypatch):
-        """Regression test for a confirmed Phase 5 concurrency-review
+        """Regression test for a confirmed concurrency-review
         finding: the writer-side re-check before each atomic dict-swap
         previously used strict equality (current mtime == mine) instead of
         an at-least-as-fresh comparison (>=). A thread that captured an

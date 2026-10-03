@@ -5,7 +5,7 @@ Originally this guarded against app.py never reading the RATELIMIT_ENABLED
 env var (Flask-Limiter's own switch was scoped to the Limiter constructor's
 `enabled` kwarg, not raw os.environ, so setting the env var did nothing).
 Flask-Limiter and asgi.py's separate in-process limiter have since been
-unified into backend/rate_limit.py (plan.md §16.3-L2 / §16.8.1), which reads
+unified into backend/rate_limit.py, which reads
 RATELIMIT_ENABLED itself as a plain module-level `os.environ.get(...)` at
 import time -- this test now guards that read directly.
 

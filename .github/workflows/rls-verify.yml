@@ -1,12 +1,12 @@
 name: RLS Live Verification
 
-# plan.md §21.2.2 STEP 4 / §21.3 exit criteria: this answers "is Postgres
-# RLS actually enforcing right now on the live deployment", which needs
+# This answers "is Postgres RLS actually enforcing right now on the live
+# deployment", which needs
 # live Supabase + Clerk credentials and a real deployed target. That's a
 # different question from ci.yml's per-push suite (which only proves the
-# app's own orchestration logic against mocked clients -- plan.md §21.2.2
-# rejected a mocked-client test for this exact reason: a mock cannot tell
-# you whether auth.uid() resolves in a real project). Manual/scheduled
+# app's own orchestration logic against mocked clients -- a mocked-client
+# test can't answer this question, because a mock cannot tell you whether
+# the JWT subject resolves in a real project). Manual/scheduled
 # only, never a per-PR gate -- blocking every push on a network round trip
 # to a live database is the wrong trade, and this needs secrets a PR from
 # a fork must never see.

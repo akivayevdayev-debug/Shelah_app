@@ -1,7 +1,7 @@
 -- Migration: normalize study_bookmarks.user_id to TEXT (Clerk user IDs).
 -- Run this once in the Supabase SQL Editor for your project.
 --
--- Provenance (plan.md §21, Prompt 34, found 2026-08-31): scripts/verify_rls.py's
+-- Provenance: scripts/verify_rls.py's
 -- first live run against the real project failed INSERT on study_bookmarks
 -- with `22P02 invalid input syntax for type uuid: "user_3Ih9j..."` -- the
 -- exact same failure scripts/migrate_user_preferences_user_id_to_text.sql
@@ -22,8 +22,8 @@
 -- actually exist on the table at run time, drops them, performs the type
 -- change, then recreates each one verbatim from what Postgres itself
 -- reported -- safe regardless of which policies are currently live or
--- what this repo does or doesn't know about (plan.md §21.1 already found
--- study_bookmarks's live policies were never independently confirmed
+-- what this repo does or doesn't know about (study_bookmarks's live
+-- policies were never independently confirmed
 -- against scripts/sql/SUPABASE_RLS_POLICIES.sql / bookmarks_and_preferences_setup.sql).
 --
 -- Idempotent: if the column is already `text`, `ALTER COLUMN ... TYPE text`

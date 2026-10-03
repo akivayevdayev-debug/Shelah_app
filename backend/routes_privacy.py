@@ -1,5 +1,5 @@
 """
-Privacy-operations blueprint for Sh'elah (plan.md §8.D).
+Privacy-operations blueprint for Sh'elah.
 
 Self-serve data-subject request (DSR) flow — "download my data" / "delete
 my account + data" — plus the scheduled retention-enforcement job that
@@ -53,7 +53,7 @@ _AI_USAGE_LOG_TABLE = "ai_usage_log"
 
 # (export key, table name) -- every table here is keyed by a `user_id`
 # text column holding the Clerk `sub` claim. Checked against every
-# app.py SUPABASE_*_TABLE constant (plan.md §39.1): SUPABASE_COMMUNITY_
+# app.py SUPABASE_*_TABLE constant: SUPABASE_COMMUNITY_
 # KNOWLEDGE_TABLE is the only other one and is documented (docs/DATABASE.md)
 # as a shared reference corpus with no user_id column, so it is correctly
 # excluded. conversations is the AI chat history; its messages and
@@ -74,8 +74,8 @@ _EXPORT_SELECTS = {
     SUPABASE_CONVERSATIONS_TABLE: "*, messages(*, citations(*))",
 }
 
-# plan.md §8.D retention windows enforced by the scheduled job below. The
-# other rows in that table (account info/inactivity, bookmarks, consent
+# Retention windows enforced by the scheduled job below. The other data
+# categories (account info/inactivity, bookmarks, consent
 # records, session cookies, Vercel-side security logs) are either
 # user-controlled, defensibility records kept intentionally, or owned by a
 # provider outside this app's Supabase project -- see docs/PRIVACY_OPERATIONS.md
@@ -148,7 +148,7 @@ def _order_conversation_thread(row):
 @routes_privacy.route("/api/user/data-export", methods=["GET"])
 @require_clerk_auth
 def export_user_data():
-    """plan.md §8.D.1: self-serve "download my data" -- a JSON export of
+    """self-serve "download my data" -- a JSON export of
     every Supabase row belonging to the signed-in user, across every
     user-scoped table this app writes to."""
     claims = getattr(g, "clerk_claims", {}) or {}
@@ -241,7 +241,7 @@ _DELETE_CONFIRMATION_PHRASE = "DELETE"
 @routes_privacy.route("/api/user/delete-account", methods=["POST"])
 @require_clerk_auth
 def delete_account():
-    """plan.md §8.D.1: self-serve "delete my account + data". Cascades
+    """self-serve "delete my account + data". Cascades
     through every Supabase table this app writes to for the user, then
     deletes the Clerk identity itself via Clerk's Backend API.
 
@@ -316,7 +316,7 @@ def _delete_rows_older_than(supabase, table_name, days):
 
 @routes_privacy.route("/api/devtools/retention-enforce", methods=["GET"])
 def retention_enforce():
-    """plan.md §8.D.5: scheduled job (Vercel Cron, see vercel.json) that
+    """Scheduled job (Vercel Cron, see vercel.json) that
     actually deletes data past the retention windows in templates/
     privacy.html §3, rather than leaving that a policy-only promise.
 
@@ -356,7 +356,7 @@ def retention_enforce():
         result["ok"] = False
         result["ai_usage_log"] = {"error": str(e)}
 
-    # plan.md §20.2 Phase 20b, reservation lifecycle step 3: sweep abandoned
+    # Reservation lifecycle step 3: sweep abandoned
     # atomic-budget reservations (process died between reserve and settle)
     # into this existing daily cron rather than standing up a new job.
     reservation_result = expire_stale_budget_reservations()

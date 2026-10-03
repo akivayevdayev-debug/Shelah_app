@@ -220,8 +220,7 @@ class TestCalendarEngineSingleton:
 #
 # get_parasha() is one of the four hebcal call sites that had zero
 # circuit-breaker wiring despite 'hebcal' already being a registered service
-# in backend/health_check.py (claude_code_prompts.md Prompt 3 status row,
-# closed under Prompt 17 item 1). The `_reset_api_health` autouse fixture in
+# in backend/health_check.py. The `_reset_api_health` autouse fixture in
 # conftest.py resets the shared `backend.health_check.health` singleton
 # around every test.
 

@@ -1,8 +1,7 @@
 """
-Tests for backend/ai_tools.py -- the agentic tool-use registry (plan.md
-§9.2/§9.2b, Prompt 20).
+Tests for backend/ai_tools.py -- the agentic tool-use registry.
 
-Per plan.md §9.6: each tool wrapper returns the right shape from mocked
+Each tool wrapper returns the right shape from mocked
 engines/APIs (offline, via monkeypatch on each handler's direct backend
 dependency -- more precise than relying on generic HTTP-layer mocking for
 functions whose exact response shape matters to the assertions here); and

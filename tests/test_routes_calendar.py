@@ -59,7 +59,7 @@ class TestZmanimSessionWriteOriginGuard:
             assert sess.get("lon") == -74.0
 
     def test_same_origin_request_marks_session_permanent(self, test_client):
-        """plan.md §46 / Prompt 58: `session.permanent = True` used to be
+        """`session.permanent = True` used to be
         set by an unconditional before_request hook on every request; it's
         now set only at each session-write call site instead (here,
         _remember_location_if_same_origin()). The persistent 30-day cookie

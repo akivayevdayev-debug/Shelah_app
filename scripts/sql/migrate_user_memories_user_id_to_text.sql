@@ -1,7 +1,7 @@
 -- Migration: normalize user_memories.user_id to TEXT (Clerk user IDs).
 -- Run this once in the Supabase SQL Editor for your project.
 --
--- Provenance (plan.md §21, Prompt 34, found 2026-08-31): scripts/verify_rls.py's
+-- Provenance: scripts/verify_rls.py's
 -- first live run against the real project failed INSERT on user_memories
 -- with `22P02 invalid input syntax for type uuid: "user_3Ih9j..."` -- the
 -- exact same failure scripts/migrate_user_preferences_user_id_to_text.sql
@@ -10,8 +10,8 @@
 -- too. backend/rag.py's _fetch_user_memory_summaries/_store_user_memory_summary
 -- query/insert user_memories.user_id with the raw Clerk `sub` claim (format
 -- `user_XXXXXXXX...`), which is not valid `uuid` syntax -- every real
--- personalization read/write silently fails this way. This is plan.md
--- §21.1's "dangerous one": these calls have NO user-visible symptom (the
+-- personalization read/write silently fails this way. This is the
+-- dangerous one: these calls have NO user-visible symptom (the
 -- write failure is swallowed via _capture_backend_error, kept non-fatal by
 -- design), so this exact bug could have been silently degrading
 -- personalization for every real user with nothing surfacing it before
@@ -26,8 +26,8 @@
 -- actually exist on the table at run time, drops them, performs the type
 -- change, then recreates each one verbatim from what Postgres itself
 -- reported -- safe regardless of which policies are currently live. This
--- matters more here than on any other table: plan.md §30.5 already found
--- this table's live policies had drifted into a contradictory state across
+-- matters more here than on any other table: this table's live policies
+-- had drifted into a contradictory state across
 -- two tracked SQL files before that was resolved 2026-08-31 -- discovering
 -- live policies at run time rather than assuming either tracked file is
 -- authoritative is exactly the caution that finding calls for.

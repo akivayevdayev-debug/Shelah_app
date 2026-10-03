@@ -2,7 +2,7 @@
 # cryptography, fastapi/starlette pins moved forward to close known CVEs
 # (see docs archive / commit history for the audit that drove this pass).
 # All four verified against the full pytest suite before pinning.
-# Sync status (2026-08-17, plan.md §8.C.4 pip-audit pass): starlette bumped
+# Sync status (2026-08-17, pip-audit pass): starlette bumped
 # 1.0.1 -> 1.3.1, the minimal version closing PYSEC-2026-248/249/2280/2281
 # (GHSA-jp82-jpqv-5vv3, GHSA-82w8-qh3p-5jfq, GHSA-wqp7-x3pw-xc5r,
 # GHSA-x746-7m8f-x49c) -- see docs/SECURITY.md. Deliberately not jumped to
@@ -19,11 +19,11 @@ flask==3.1.3
 fastapi==0.141.1
 starlette==1.3.1
 uvicorn==0.35.0
-# redis: backend/rate_limit.py's Upstash-backed shared store (plan.md §16.3-L2
-# / §16.1 D3). Replaces Flask-Limiter, which used to sit on app.py alongside
-# a second, independent in-process limiter in asgi.py -- both removed
-# (plan.md §16.8.1). Pinned to the version already resolved in this
-# environment; redis.asyncio (used here) has shipped in-package since 4.2.
+# redis: backend/rate_limit.py's Upstash-backed shared store. Replaces
+# Flask-Limiter, which used to sit on app.py alongside a second, independent
+# in-process limiter in asgi.py -- both removed. Pinned to the version
+# already resolved in this environment; redis.asyncio (used here) has
+# shipped in-package since 4.2.
 redis==7.4.0
 python-dotenv==1.2.2
 requests==2.33.1

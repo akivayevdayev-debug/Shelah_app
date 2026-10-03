@@ -39,7 +39,7 @@ def authed(monkeypatch):
 
 
 class TestDevtoolsBudgetCheck:
-    """GET /api/devtools/budget-check — daily AI-spend guardrail (§8.E.1),
+    """GET /api/devtools/budget-check — daily AI-spend guardrail,
     intended to be triggered by Vercel Cron. CRON_SECRET-gated, and fails
     closed (503) rather than open when CRON_SECRET isn't configured at all
     (security audit P3)."""
@@ -217,7 +217,7 @@ class TestRlsAudit:
         assert "strict_rls" in body
 
     def test_rls_audit_strict_rls_is_enforced_by_default(self, test_client, authed):
-        # Regression guard (plan.md §8.C.2): strict RLS must be the enforced
+        # Regression guard: strict RLS must be the enforced
         # default, not opt-in -- this test fails loudly if that literal is
         # ever flipped to an env-toggle or to False.
         response = test_client.get("/api/devtools/rls-audit", headers=AUTH_HEADERS)
@@ -225,10 +225,9 @@ class TestRlsAudit:
         assert body["strict_rls"] is True
 
     def test_rls_audit_reports_ask_history_table(self, test_client, authed):
-        # plan.md §8.C.2 security-audit pass: ask_history was missing from
+        # Security-audit fix: ask_history was missing from
         # this endpoint's reported posture -- regression guard against
-        # dropping it. Its own RLS policy was later dropped (plan.md §21
-        # STEP 6a, 2026-08-31; it's service-role-only by design, never
+        # dropping it. Its own RLS policy was later dropped (2026-08-31; it's service-role-only by design, never
         # queried through a user-scoped client) -- still listed here for
         # completeness, not as an RLS-coverage gap.
         response = test_client.get("/api/devtools/rls-audit", headers=AUTH_HEADERS)
@@ -236,10 +235,10 @@ class TestRlsAudit:
         assert "ask_history" in body["tables"]
 
     def test_rls_audit_has_observed_key_covering_rls_tables(self, test_client, authed):
-        # plan.md §21.2.2 STEP 5: the observed-query comparison (user-scoped
+        # The observed-query comparison (user-scoped
         # vs. service-role row count) must cover exactly the three tables an
         # RLS policy still governs -- ask_history is deliberately excluded
-        # (STEP 6a: no policy left to observe).
+        # (no policy left to observe).
         response = test_client.get("/api/devtools/rls-audit", headers=AUTH_HEADERS)
         body = response.get_json()
         assert set(body["observed"].keys()) == {
@@ -247,7 +246,7 @@ class TestRlsAudit:
 
 
 class TestClientErrors:
-    """POST /api/client-errors — plan.md §16.2/§16.4 hardening: same-origin
+    """POST /api/client-errors — hardening: same-origin
     required, stack capped well below the old 8000-char ceiling, and the
     spoofable client IP is never forwarded into the Sentry context."""
 
@@ -327,8 +326,8 @@ class TestClientErrors:
 
 
 class TestSegmentReport:
-    """POST /api/devtools/segment-report — plan.md §8.C.5 security-audit
-    pass: non-string JSON field values used to short-circuit the `or`
+    """POST /api/devtools/segment-report — security-audit
+    fix: non-string JSON field values used to short-circuit the `or`
     fallback and crash `.strip()` with an unhandled AttributeError -> 500."""
 
     def test_string_fields_returns_200(self, test_client):
@@ -392,7 +391,7 @@ class _Result:
 
 
 class TestFeedbackDigest:
-    """GET /api/devtools/feedback-digest — plan.md §12.4.3: recent
+    """GET /api/devtools/feedback-digest — recent
     answer-feedback rows, newest first, auth-gated because comments are
     reader-supplied free text."""
 
@@ -484,7 +483,7 @@ class TestFeedbackDigest:
 
 class TestObserveRlsRowCounts:
     """_observe_rls_row_counts compares a user-scoped row count with the
-    service-role ground truth (plan.md §21.2.2 STEP 5)."""
+    service-role ground truth."""
 
     TABLE_KEYS = {"user_preferences", "user_memories", "study_bookmarks"}
 
@@ -522,7 +521,7 @@ class TestObserveRlsRowCounts:
         }
 
     def test_scoped_zero_versus_service_rows_is_the_silent_rls_failure(self, monkeypatch, devtools_module):
-        # plan.md §21.1: when auth.uid() does not resolve, the scoped client
+        # When auth.uid() does not resolve, the scoped client
         # silently returns zero rows for a user who has data.
         self._clients(
             monkeypatch, devtools_module,

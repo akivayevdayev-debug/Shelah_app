@@ -34,9 +34,9 @@ _user_id_var: ContextVar[str] = ContextVar('user_id', default='')
 _client_key_var: ContextVar[str] = ContextVar('client_key', default='')
 _budget_reservation_var: ContextVar[str] = ContextVar('budget_reservation_id', default='')
 
-# Route classes for _traces_sampler (plan.md §17.3 deviation 7 / §17.5).
+# Route classes for _traces_sampler.
 # `/ask` and the fan-out routes are where wall-clock actually costs money
-# (§14's Provisioned Memory model bills I/O waits too, so a slow Sefaria
+# (Vercel's Provisioned Memory model bills I/O waits too, so a slow Sefaria
 # call inside /ask is a cost finding, not a perf curiosity) — sample those
 # meaningfully. Health checks and static assets are high-volume and tell us
 # nothing new on every hit — sample those at zero.
@@ -57,7 +57,7 @@ def _traces_sampler(sampling_context: dict) -> float:
     sampling context: `asgi_scope` for the FastAPI/Starlette layer that
     fronts every request (including ones later routed to the WSGI-mounted
     Flask app), `wsgi_environ` as a fallback for bare-Flask runs
-    (`python3 app.py`, no ASGI layer — see plan.md §16.1 D1).
+    (`python3 app.py`, no ASGI layer).
     """
     asgi_scope = sampling_context.get("asgi_scope") or {}
     path = asgi_scope.get("path") or ""
@@ -77,7 +77,7 @@ def _traces_sampler(sampling_context: dict) -> float:
 
 
 # Backend equivalent of static/js/sentry-init.js's makeBeforeSend() session
-# throttle (plan.md §17.6 T4): the Sentry free tier's "per-key rate limit"
+# throttle: the Sentry free tier's "per-key rate limit"
 # dashboard setting isn't available without a paid plan, so the same
 # dedupe-window + hard-cap protection is enforced here in code instead, one
 # quota-consuming project (backend) mirroring the other (browser). Process-
@@ -103,7 +103,7 @@ def _sentry_event_fingerprint(event: dict) -> str:
 def _sentry_before_send(event: dict, hint: dict) -> dict | None:
     """Drop a looping error's repeats and enforce a hard per-process cap
     before it counts against the 5,000-events/month free-tier quota
-    (plan.md §17.1/§17.6) — see the module comment above."""
+ — see the module comment above."""
     global _sentry_sent_count
 
     fingerprint = _sentry_event_fingerprint(event)
@@ -130,16 +130,15 @@ def _build_sentry_init_kwargs(dsn: str) -> dict:
 
     Split out from the module-level init call below so the exact arguments
     (send_default_pii=False, no hardcoded dsn, traces_sampler rather than a
-    flat traces_sample_rate — plan.md §17.3 deviations 1, 2 and 7) are
+    flat traces_sample_rate) are
     unit-testable without reloading this module or faking sys.modules.
     """
     return {
         "dsn": dsn,
-        # Overrides Sentry's vendor-suggested default of True (plan.md
-        # §17.3 deviation 1 — the single most dangerous line in the vendor
+        # Overrides Sentry's vendor-suggested default of True (the single most dangerous line in the vendor
         # snippet): request headers/cookies/IP must never be attached
         # automatically. Halachic questions are routinely medical/marital/
-        # mental-health/abuse-adjacent (§8.B/§8.D).
+        # mental-health/abuse-adjacent.
         "send_default_pii": False,
         "traces_sampler": _traces_sampler,
         "before_send": _sentry_before_send,
@@ -151,7 +150,7 @@ def _build_sentry_init_kwargs(dsn: str) -> dict:
 # Sentry is a true no-op unless SENTRY_DSN is set: no import errors, no
 # network calls, no warnings. Initialization happens once at module import.
 #
-# INIT-ORDERING (plan.md §17.4 — load-bearing, do not regress): Sentry
+# INIT-ORDERING (load-bearing, do not regress): Sentry
 # requires sentry_sdk.init() to run before the app object is constructed.
 # This module is imported by asgi.py (see the `from backend.logging_setup
 # import ...` line near the top of that file) well before
@@ -302,8 +301,7 @@ def get_client_key() -> str:
 
 
 def bind_budget_reservation(reservation_id: str | None = None) -> str:
-    """Set the current request's atomic budget-reservation id (plan.md
-    §20.2 Phase 20b). Mirrors bind_user_id()'s contextvar pattern: set once
+    """Set the current request's atomic budget-reservation id. Mirrors bind_user_id()'s contextvar pattern: set once
     when check_user_budget_and_enforce() reserves budget, read deep inside
     backend/claude.py by record_llm_call() so it can SETTLE the reservation
     with the real cost instead of inserting a second ai_usage_log row.
@@ -349,7 +347,7 @@ def submit_with_context(
 
 # Any of these substrings, found case-insensitively in a context dict key,
 # marks that value as carrying halachic question/answer text (routinely
-# medical/marital/mental-health/abuse-adjacent, plan.md §8.B/§8.D) rather
+# medical/marital/mental-health/abuse-adjacent) rather
 # than an operational value like a mode/id/count. Mirrors
 # static/js/sentry-init.js's SENSITIVE_KEY_SUBSTRINGS.
 _SENSITIVE_CONTEXT_KEY_SUBSTRINGS = (
@@ -396,7 +394,7 @@ def _scrub_error_context(context: dict) -> dict:
 
 def hash_user_id(user_id) -> str:
     """One-way digest of a Clerk `sub` for _capture_backend_error context
-    (plan.md §39.3): a real DELETE already removes this identity from
+    A real DELETE already removes this identity from
     every live table on account deletion, but the raw value would still
     persist in Sentry/webhook history for however long that store retains
     events. Mirrors backend/rate_limit.py's _hash_key -- same construction
@@ -480,7 +478,7 @@ def _post_error_webhook(app_logger, webhook_url: str, payload: dict) -> None:
         if webhook_resp.status_code >= 300:
             # Deliberately app.logger.warning, not _capture_backend_error --
             # this exists precisely because a broken webhook must not go
-            # silent again (plan.md §48: a malformed webhook target went
+            # silent again (a malformed webhook target once went
             # undetected for weeks because failures here were swallowed
             # with no trace anywhere). Recursing into _capture_backend_error
             # would also risk an infinite loop if the webhook itself is the
@@ -583,24 +581,24 @@ _mitigation_logger = logging.getLogger("shelah.mitigation")
 
 def log_mitigation(tier: str, route_class: str, key_hash: str, route: str) -> None:
     """One structured log line + Sentry breadcrumb per abuse-mitigation
-    action (plan.md §16.4 observability / Prompt 29c §16.6 Phase 9c).
+    action.
 
     Deliberately NOT routed through _capture_backend_error(): rate-limit
     429s and quota rejections are routine and expected under normal load
     (unlike a store outage, which IS still a _capture_backend_error event
     elsewhere in this file) -- turning every one into a Sentry *event* would
     burn the free-tier 5,000-events/month quota on ordinary traffic shaping
-    (see plan.md §17.1's DSN-exhaustion warning for why that quota is
+    (that quota is
     treated as itself attackable). A breadcrumb instead keeps routine
     mitigations visible as context on whatever real error/event follows,
     without costing quota.
 
-    tier is "waf" | "middleware" | "breaker" per plan.md §16.4's schema --
-    Turnstile challenges (backend/turnstile.py) also log as "middleware"
-    since Turnstile is L2 supporting hardening (§16.4 sits directly under
-    L2 in plan.md §16.3), not a fourth independent layer. key_hash must
+    tier is "waf" | "middleware" | "breaker" -- Turnstile challenges
+    (backend/turnstile.py) also log as "middleware" since Turnstile is
+    supporting hardening for the middleware layer, not a fourth independent
+    layer. key_hash must
     already be hashed by the caller -- this function never receives or logs
-    a raw IP or Clerk sub (plan.md §8.D privacy).
+    a raw IP or Clerk sub.
     """
     _mitigation_logger.info(
         "mitigation_triggered",

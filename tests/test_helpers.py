@@ -30,7 +30,7 @@ import requests
 from backend import helpers
 
 
-# ── Client IP resolution (plan.md §16.1 D2 regression coverage) ────────────────
+# ── Client IP resolution (regression coverage) ─────────────────────────────────
 #
 # app.py's _rate_limit_key/_extract_client_ip and asgi.py's _get_client_ip all
 # delegate here. The one behavior that must never regress: CF-Connecting-IP is

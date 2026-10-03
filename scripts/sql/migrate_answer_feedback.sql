@@ -1,4 +1,4 @@
--- Migration: create answer_feedback table (plan.md §12.4)
+-- Migration: create answer_feedback table
 -- Run this once in the Supabase SQL Editor for your project.
 --
 -- Each row is one thumbs up/down (+ optional comment) a reader leaves on an

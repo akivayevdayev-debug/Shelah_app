@@ -1,13 +1,12 @@
 -- Migration: replace ad-hoc/untracked RLS policies on user_preferences with
 -- the canonical, correctly-typed policy set. Idempotent -- safe to re-run.
 --
--- Root cause (found 2026-08-21/22 while live-verifying plan.md §29.6's fix):
+-- Root cause (found 2026-08-21/22 while live-verifying the earlier fix):
 -- scripts/migrate_user_preferences_user_id_to_text.sql fixed the COLUMN
 -- type (user_id uuid -> text), but that migration's own strategy was to
 -- discover whatever RLS policies were live and recreate them VERBATIM --
 -- including a policy named "Users can manage their own preferences" that is
--- in NO tracked SQL file in this repo (plan.md §30's 2026-08-21 update
--- already flagged this policy as a previously-unknown live artifact, likely
+-- in NO tracked SQL file in this repo (a previously-unknown live artifact, likely
 -- created via the Supabase dashboard's own wizard back when the column was
 -- still `uuid`). Preserving it verbatim carried its stale `::uuid`-typed
 -- comparison forward unchanged into the new `text` schema.

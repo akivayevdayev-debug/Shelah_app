@@ -1,8 +1,7 @@
 """
-Cloudflare Turnstile gate for anonymous /ask traffic (plan.md §16.3-L2 /
-§16.4 / §16.6 Phase 9c).
+Cloudflare Turnstile gate for anonymous /ask traffic.
 
-WHY TURNSTILE, NOT VERCEL BOTID (plan.md §16.4): BotID's server-side
+WHY TURNSTILE, NOT VERCEL BOTID: BotID's server-side
 verification SDK is JavaScript-only -- there is no Python entry point at
 any Vercel plan tier, and /ask's request handling is entirely Python
 (asgi.py's FastAPI route). BotID therefore cannot be wired into this
@@ -14,7 +13,7 @@ traffic it already suspects).
 
 This module owns two independent things:
   1. A per-anonymous-IP hourly threshold (backend.rate_limit's shared store
-     -- plan.md §3 reuse rule, not a second store) that decides whether a
+     -- reused, not a second store) that decides whether a
      challenge is required at all. Most anonymous callers never cross it.
   2. The `siteverify` HTTP call that checks a submitted token once a
      challenge *is* required.
@@ -58,7 +57,7 @@ def hash_ip(client_ip: str) -> str:
     """Public so callers (e.g. asgi.py's mitigation-logging call site) reuse
     this instead of re-implementing the same truncated-sha256 scheme
     backend/rate_limit.py's _hash_key() already uses for the same purpose --
-    never log a raw IP or Clerk sub (plan.md §8.D privacy)."""
+    never log a raw IP or Clerk sub."""
     return hashlib.sha256((client_ip or "").encode()).hexdigest()[:16]
 
 
@@ -66,17 +65,17 @@ async def is_challenge_required(client_ip: str) -> bool:
     """True once *client_ip* has made more than TURNSTILE_ANON_HOURLY_THRESHOLD
     anonymous /ask requests in the trailing hour.
 
-    Uses backend.rate_limit.get_shared_store() (plan.md §3 reuse rule --
-    the same cross-instance-safe store the rate limiter and the cost
-    breaker already share) under its own key namespace (`ts:hourly:...`),
+    Uses backend.rate_limit.get_shared_store() (reused rather than a
+    second store -- the same cross-instance-safe store the rate limiter and
+    the cost breaker already share) under its own key namespace (`ts:hourly:...`),
     so this counter cannot collide with either the per-minute `rl:llm:...`
     buckets or the cost breaker's cache key. Every anonymous /ask call
     increments this counter regardless of whether a challenge ends up being
     required, by design -- it is the count that decides the threshold.
 
-    Fails OPEN on a store error: Turnstile is anti-abuse polish (plan.md
-    §16.4 "supporting hardening"), not the budget-protecting llm-class
-    check that plan.md §16.3-L2 requires to fail closed -- a Redis blip
+    Fails OPEN on a store error: Turnstile is anti-abuse polish
+    (supporting hardening), not the budget-protecting llm-class
+    check, which must fail closed -- a Redis blip
     here should not additionally block anonymous /ask on top of whatever
     backend.rate_limit's own llm-class fail-closed posture already decided.
     """

@@ -1,7 +1,7 @@
 """
 Characterization tests for the _DAILY_STUDY_CACHE singleton entry in
 backend/sefaria.py (get_daily_study()), now backed by backend.cache.TTLCache
-(plan.md §3.5/§4 cache consolidation).
+(the cache consolidation).
 
 Note: get_daily_study() calls a hardcoded "https://www.sefaria.org/api/calendars"
 URL rather than the SEFARIA_API env var used elsewhere in the codebase, so the

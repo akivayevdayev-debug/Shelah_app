@@ -58,17 +58,17 @@ def stack_health():
     here as "the app is up and correctly protecting this route").
     """
     supabase_ready = bool(_get_supabase_client())
-    # plan.md §16.8.1 fix: this used to report Flask-Limiter's own numbers,
-    # which stopped being the limiter actually enforcing production /ask
-    # traffic once asgi.py grew its own independent one (an operator reading
-    # this endpoint got a confidently wrong answer). Now reports the one
-    # real enforcement point (backend.rate_limit.RateLimitMiddleware).
+    # Reports the one real enforcement point (backend.rate_limit.RateLimitMiddleware).
+    # This endpoint used to report Flask-Limiter's own numbers, which stopped
+    # being the limiter actually enforcing production /ask traffic once asgi.py
+    # grew its own independent one, so an operator reading it got a
+    # confidently wrong answer.
     return jsonify({
         "flask": True,
         "vercel": True,
         "security": {
             "limiter_enabled": rate_limit.RATELIMIT_ENABLED,
-            "limiter_store": "redis" if rate_limit.RATE_LIMIT_REDIS_URL else "in-memory (KNOWN GAP outside single-instance dev, plan.md §16.1 D3)",
+            "limiter_store": "redis" if rate_limit.RATE_LIMIT_REDIS_URL else "in-memory (KNOWN GAP outside single-instance dev)",
             "policy": {
                 cls: {"window_seconds": p.window_seconds, "max_requests": p.max_requests, "fail_open": p.fail_open}
                 for cls, p in rate_limit._POLICIES.items()
@@ -79,7 +79,7 @@ def stack_health():
                 else {
                     "configured": False,
                     "note": "DAILY_BUDGET_USD unset -- global cost breaker and "
-                    "budget-check cron are no-ops (plan.md §16 Phase 9b)",
+                    "budget-check cron are no-ops",
                 }
             ),
         },
@@ -122,7 +122,7 @@ def _feedback_digest_limit(raw):
 @routes_devtools.route("/api/devtools/feedback-digest", methods=["GET"])
 @require_clerk_auth
 def feedback_digest():
-    """Recent answer-feedback rows (plan.md §12.4.3), newest first.
+    """Recent answer-feedback rows, newest first.
 
     Auth-gated like /api/stack/health: feedback comments are free-text
     supplied by readers (sanitized, but not meant for public display), so
@@ -211,9 +211,9 @@ def devtools_reliability():
     })
 
 
-# plan.md §21/§21.2.2 STEP 5: which tables an owner-scoped RLS policy
+# Which tables an owner-scoped RLS policy
 # actually governs today. ask_history is deliberately excluded -- its
-# policy was dropped 2026-08-31 (STEP 6a): routes_user.py's history
+# policy was dropped 2026-08-31: routes_user.py's history
 # endpoints only ever read it through the service-role client, so a
 # per-user policy on it was dead weight, not a real second gate.
 _RLS_OBSERVED_TABLES = {
@@ -227,9 +227,8 @@ def _observe_rls_row_counts(user_id):
     """Compare a user-scoped-client row count against a service-role-client
     row count for the CALLER'S OWN rows, on each RLS-relevant table.
 
-    This is the "observed result of a real user-scoped query" plan.md
-    §21.2.2 STEP 5 asks for, not just policy presence. It catches the
-    specific silent failure §21.1 documents: if auth.uid() doesn't resolve,
+    This is the observed result of a real user-scoped query, not just policy
+    presence. It catches a specific silent failure: if auth.uid() doesn't resolve,
     every RLS policy evaluates false and the user-scoped client returns
     zero rows for a user who actually has data -- not an error, not a 403,
     just an empty result indistinguishable from "no data yet" until you
@@ -288,7 +287,7 @@ def devtools_rls_audit():
     """
     has_supabase_token = bool(_extract_supabase_access_token())
     user_id = _get_request_user_id()
-    # plan.md §21.2.2 STEP 5: only attempt the observed-query comparison when
+    # Only attempt the observed-query comparison when
     # there's a real signed-in caller with a Supabase-bearing token -- an
     # anonymous or tokenless request has no "own rows" to compare.
     observed = _observe_rls_row_counts(
@@ -299,7 +298,7 @@ def devtools_rls_audit():
             "user_preferences": SUPABASE_PREFS_TABLE,
             "user_memories": SUPABASE_USER_MEMORIES_TABLE,
             "study_bookmarks": SUPABASE_STUDY_BOOKMARKS_TABLE,
-            # Service-role-only by design (plan.md §21 STEP 6a, 2026-08-31)
+            # Service-role-only by design (since 2026-08-31)
             # -- no RLS policy governs this table's access anymore; listed
             # here for completeness, not as an RLS-coverage gap.
             "ask_history": SUPABASE_ASK_HISTORY_TABLE,
@@ -318,7 +317,7 @@ def devtools_rls_audit():
     })
 
 
-# plan.md §16.2/§16.4: unauthenticated, unrate-limited, and (until this
+# Unauthenticated, unrate-limited, and (until this
 # hardening) forwarding an attacker-controlled 8 KB stack straight to
 # Sentry — ~5,000 forged POSTs blind error monitoring for the rest of the
 # free-tier month. Cap kept well below the old 8000-char ceiling.
@@ -336,11 +335,11 @@ def client_errors():
         "stack": str(payload.get("stack") or "")[:_CLIENT_ERROR_STACK_MAX_CHARS],
         "component": str(payload.get("component") or "")[:120],
         "user_agent": (request.headers.get("User-Agent") or "")[:320],
-        # _extract_client_ip() intentionally omitted even though plan.md
-        # §16.1 D2 (spoofable CF-Connecting-IP) is fixed as of this commit:
-        # sending a raw IP to a third-party error tracker is a separate
-        # privacy call (§16.4 / §8.D — hash before logging, never log raw),
-        # not something to flip on as a side effect of the spoofing fix.
+        # _extract_client_ip() is intentionally omitted even though the
+        # spoofable CF-Connecting-IP issue is fixed: sending a raw IP to a
+        # third-party error tracker is a separate privacy call (hash before
+        # logging, never log raw), not something to flip on as a side effect
+        # of the spoofing fix.
     }
     _capture_backend_error("client_error_boundary", payload.get(
         "message") or "client_error", context)
@@ -351,7 +350,7 @@ def client_errors():
 @maybe_require_clerk_auth
 def report_segment_issue():
     payload = request.get_json(silent=True) or {}
-    # plan.md §8.C.5 security-audit pass: a non-string JSON value for any of
+    # Security-audit fix: a non-string JSON value for any of
     # these fields (e.g. {"kind": 1}) used to short-circuit the `or` fallback
     # and crash `.strip()` with an unhandled AttributeError -> 500. str()
     # first, matching the pattern client_errors() already uses above.

@@ -1,4 +1,4 @@
--- Sh'elah AI usage/cost ledger — base table (plan.md §23.2.1 / Prompt 36).
+-- Sh'elah AI usage/cost ledger — base table.
 --
 -- This table's CREATE TABLE was never committed anywhere in this repo —
 -- only later migrations that ALTER it (migrate_ai_usage_log_add_user_

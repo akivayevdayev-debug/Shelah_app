@@ -1,5 +1,5 @@
 """
-Dead-config lint (plan.md §23.4 invariant A).
+Dead-config lint.
 
 `AI_MODEL_TIMEOUT_SECONDS`/`MODEL_REQUEST_TIMEOUT_SECONDS` was defined via
 `_int_env(...)` for months without ever being passed to the SDK — a silently
@@ -76,19 +76,20 @@ class TestIntEnvConstantsAreUsed:
         )
 
 
-# ─── Dangling `plan.md §N` citation lint (plan.md §23.2.5 / §23.3) ───────────
+# ─── Dangling `plan.md §N` citation lint ─────────────────────────────────────
 #
-# A prior restructure of plan.md's §7 removed its numbered subsections while
-# eleven citations elsewhere in the repo (code, tests, ENGINEERING_RULES.md)
-# kept pointing at them (§7.13/§7.14) -- silently orphaning the spec for
-# invariants tests actively enforce. This lint is the promised "control that
-# makes this the last time" (plan.md §23.3): it asserts every `plan.md §N`
-# citation's *top-level* section number still exists as a heading in
-# plan.md, so a future restructure that deletes/renumbers a whole section
-# fails CI instead of leaving stale citations to rot unnoticed.
+# A prior restructure of one plan.md section removed its numbered subsections
+# while eleven citations elsewhere in the repo (code, tests,
+# ENGINEERING_RULES.md) kept pointing at them -- silently orphaning the spec
+# for invariants tests actively enforce. This lint is the control that
+# prevents a repeat: it asserts every `plan.md §N` citation's *top-level*
+# section number still exists as a heading in plan.md, so a future
+# restructure that deletes/renumbers a whole section fails CI instead of
+# leaving stale citations to rot unnoticed. (The codebase itself no longer
+# carries such citations; the lint stays as a guard for any that get added.)
 #
 # Deliberately top-level-only, not full dotted-path validation: the large
-# majority of citations (e.g. `§8.B.6`, `§20.1-C2`, `§14.4.4`) reference a
+# majority of citations (dotted, e.g. `§N.M.K`) reference a
 # numbered/lettered item inside a section's prose, not a separate markdown
 # heading -- validating those would need a full outline parser and produce
 # false positives on perfectly valid citations, not a "cheap" regex-only
@@ -146,5 +147,5 @@ class TestPlanMdCitationsResolve:
 
         assert not dangling, (
             "Found plan.md §N citations whose top-level section no longer exists "
-            "(plan.md §23.3 dangling-citation class of bug): " + "; ".join(dangling)
+            "(the dangling-citation class of bug): " + "; ".join(dangling)
         )

@@ -1,7 +1,7 @@
 """
 Supplementary coverage for app.py/asgi.py top-level routes not measured by
 --cov=backend (pytest.ini scopes coverage there since app.py is a documented
-migration candidate — see plan.md). This file ensures every one of the 12
+migration candidate). This file ensures every one of the 12
 top-level HTTP endpoints has a real request/response test: app.py's 10
 (/, /settings, /profile share one view function; /terms, /privacy,
 /accessibility, /manifest.webmanifest, /favicon.ico, /service-worker.js,

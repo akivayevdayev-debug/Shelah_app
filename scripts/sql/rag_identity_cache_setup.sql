@@ -64,7 +64,7 @@ for select
 to anon, authenticated
 using (true);
 
--- user_memories RLS: superseded 2026-08-31 (plan.md §21/§30.5). This table
+-- user_memories RLS: superseded 2026-08-31. This table
 -- used to be locked to `using (false)` for anon/authenticated here (server-
 -- role-only by design) before backend/rag.py grew a request-scoped-client
 -- read/write path. scripts/sql/SUPABASE_RLS_POLICIES.sql later added

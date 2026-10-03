@@ -1,5 +1,5 @@
 """
-Integration tests for request_id propagation — plan.md §7 / §8.E.1:
+Integration tests for request_id propagation:
 "structured JSON logging with a request ID generated per request and
 propagated across Flask, thread-pool work (_THREAD_POOL), and asyncio
 tasks (contextvars)."

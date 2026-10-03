@@ -1,7 +1,7 @@
 """
 Clerk authentication helpers for Sh'elah.
 
-Extracted verbatim from ``app.py`` (Phase 1, Step 1 of the zero-breakage
+Extracted verbatim from ``app.py`` (part of the zero-breakage
 backend split). This module owns direct Clerk JWT verification/handling:
 the cached JWKS client and bearer-token verification.
 
@@ -89,7 +89,7 @@ def _extract_bearer_token(authorization=None):
     route, which already parses this header once for
     ``extract_user_id_from_bearer_value``). Falls back to Flask's global
     `request` proxy only when no explicit value is given, so existing
-    Flask-side callers keep working unchanged. plan.md §35.1 -- fixes a
+    Flask-side callers keep working unchanged. This fixes a
     crash where this previously read `request` unconditionally, even from
     contexts with no Flask request pushed.
     """
@@ -134,8 +134,8 @@ def extract_user_id_from_bearer_value(authorization):
     Framework-agnostic (takes the header value directly rather than reading
     Flask's `request` global like _extract_bearer_token above), so both the
     WSGI stack and asgi.py/backend/rate_limit.py's ASGI-side code can share
-    one implementation instead of maintaining independent copies (plan.md
-    §2 duplication rule -- this used to be duplicated verbatim in asgi.py).
+    one implementation instead of maintaining independent copies (this used
+    to be duplicated verbatim in asgi.py).
     """
     header = str(authorization or "").strip()
     if not header.lower().startswith("bearer "):

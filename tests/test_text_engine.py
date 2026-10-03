@@ -1,7 +1,7 @@
 """
 Golden-master characterization tests for the text/formatting layer being
-extracted from app.py into backend/utils/text_engine.py (Phase 1 of the
-backend refactor in plan.md).
+extracted from app.py into backend/utils/text_engine.py (part of the
+backend refactor).
 
 These pin the exact current output of the typography/normalization functions
 so the move is provably behavior-preserving. Values were captured by

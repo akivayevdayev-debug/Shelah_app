@@ -244,8 +244,8 @@ class TestCaptureBackendError:
 
     def test_webhook_post_exception_is_logged_not_silent(self, monkeypatch):
         """A raising webhook POST (e.g. a malformed URL/credential in the env
-        var) must not vanish without a trace -- plan.md §48/§49.2 found that
-        exact failure mode went undetected for weeks. The caller still must
+        var) must not vanish without a trace -- that exact failure mode once
+        went undetected for weeks. The caller still must
         not raise."""
         import app as flask_app_module
         monkeypatch.setattr(flask_app_module.app.logger, "error", lambda *a, **k: None)
@@ -375,7 +375,7 @@ class TestCaptureBackendError:
         logging_setup._capture_backend_error("test_event", ValueError("boom"))
 
     def test_sentry_capture_includes_bound_request_id(self, monkeypatch):
-        """plan.md §8.E.1: _capture_backend_error must route request-id
+        """_capture_backend_error must route request-id
         context to Sentry, so an issue can be correlated back to its
         request's log lines."""
         import app as flask_app_module
@@ -530,7 +530,7 @@ class TestQuestionLengthBucket:
 
 
 class TestTracesSampler:
-    """plan.md §17.3 deviation 7: traces_sampler replaces the flat
+    """traces_sampler replaces the flat
     traces_sample_rate=0.1 — /ask and fan-out routes sample meaningfully,
     health/statics sample at zero."""
 
@@ -568,7 +568,7 @@ class TestTracesSampler:
         assert rate == logging_setup._TRACE_SAMPLE_RATE_DEFAULT
 
     def test_falls_back_to_wsgi_environ_when_no_asgi_scope(self):
-        """python3 app.py (bare Flask, no ASGI layer — plan.md §16.1 D1)
+        """python3 app.py (bare Flask, no ASGI layer)
         only populates wsgi_environ, never asgi_scope."""
         rate = logging_setup._traces_sampler({"wsgi_environ": {"PATH_INFO": "/ask"}})
         assert rate == logging_setup._TRACE_SAMPLE_RATE_ASK
@@ -578,7 +578,7 @@ class TestTracesSampler:
 
 
 class TestSentryInitKwargs:
-    """plan.md §17.3 deviations 1 and 2: verify the exact arguments that
+    """Verify the exact arguments that
     would be passed to sentry_sdk.init(), independent of whether SENTRY_DSN
     happens to be set in this test run."""
 
@@ -614,7 +614,7 @@ class TestSentryInitKwargs:
 
 
 class TestSentryBeforeSend:
-    """plan.md §17.6 T4: the backend's code-side substitute for Sentry's
+    """The backend's code-side substitute for Sentry's
     dashboard-only "per-key rate limit" (unavailable on the free plan) —
     mirrors static/js/sentry-init.js's makeBeforeSend() dedupe-window +
     hard-cap throttle, one project mirroring the other."""

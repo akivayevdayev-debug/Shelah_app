@@ -8,11 +8,11 @@ fallback ladder (specific API -> broad API -> internal AI knowledge), and the
 Google/MyMemory translation primitives. Imports only stdlib + backend.* leaf
 modules, never `app`.
 
-Moved verbatim from app.py in Phase 2 of the backend refactor (see plan.md).
+Moved verbatim from app.py as part of the backend refactor.
 `_translate_text_google` / `_translate_text_mymemory` (and their inseparable
 pure helpers `_is_translation_echo` / `_extract_google_translated_text`) were
-previously diverged, duplicated copies in both app.py and backend/helpers.py
-(plan.md §2); this is now the single canonical implementation, re-exported by
+previously diverged, duplicated copies in both app.py and backend/helpers.py;
+this is now the single canonical implementation, re-exported by
 both call sites.
 """
 

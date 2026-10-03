@@ -2,13 +2,13 @@
 -- P1 "No ceiling on cumulative AI spend").
 -- Run this once in the Supabase SQL Editor for your project.
 --
--- Provenance (plan.md §23.2.1): this file was untracked in git until this
+-- Provenance: this file was untracked in git until this
 -- pass -- provenance unknown as of 2026-08-21. Application code
 -- (backend/cost_meter.py) has depended on these columns for some time and
 -- the test suite covers the code path, but neither confirms whether/when
 -- this migration was actually run against the live Supabase project (no
 -- direct Postgres/information_schema access from this environment --
--- see scripts/generate_database_doc.py, plan.md §23.2.3).
+-- see scripts/generate_database_doc.py).
 --
 -- backend/cost_meter.py::record_llm_call now tags every inserted row with
 -- user_id (authenticated Clerk sub) or client_key (an "ip:<addr>" fallback

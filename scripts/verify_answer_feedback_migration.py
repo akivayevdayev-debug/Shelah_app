@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Live acceptance check for the answer_feedback migration (plan.md §29.7).
+Live acceptance check for the answer_feedback migration.
 
 Run this AFTER pasting scripts/migrate_answer_feedback.sql into the Supabase
 SQL Editor for the real project. It verifies -- against the live database,
@@ -15,7 +15,7 @@ feature depends on:
 
 (2) is checked two ways:
   - Structurally, via the existing get_schema_snapshot() RPC (service-role
-    only, plan.md §23.2.3): confirms live that zero SELECT policies exist on
+    only): confirms live that zero SELECT policies exist on
     the table. Postgres denies a command to every non-bypassrls role when no
     policy grants it, so zero SELECT policies means both anon AND
     authenticated are denied -- this does not require minting an

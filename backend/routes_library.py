@@ -517,7 +517,7 @@ def _build_word_meaning_response(raw_word, meaning, alternatives, source, reques
         "meaning": meaning,
         "alternatives": alternatives,
         "source": source,
-        # plan.md §8.F.4 / Prompt 18 item 4: label machine-translated
+        # Label machine-translated
         # definitions so the frontend never presents an online-translation
         # fallback as an authoritative, curated definition.
         "machine_translated": _is_machine_translated_source(source),

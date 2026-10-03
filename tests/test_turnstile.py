@@ -1,5 +1,5 @@
 """
-Direct unit tests for backend/turnstile.py (plan.md §16.4 / §16.6 Phase 9c).
+Direct unit tests for backend/turnstile.py.
 
 Integration coverage of the full /ask 403 flow lives in
 tests/test_ask.py::TestAskTurnstileGate; this file covers the module's

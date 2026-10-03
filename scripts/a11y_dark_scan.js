@@ -2,7 +2,7 @@
 'use strict';
 
 /**
- * Dark-theme half of the WCAG 2.1 AA gate (plan.md §26.2 / Prompt 39 STEP 2).
+ * Dark-theme half of the WCAG 2.1 AA gate.
  *
  * `pa11y-ci --config .pa11yci.json` only ever exercises light theme: headless
  * Chrome resolves `prefers-color-scheme` to light in CI, and — verified, not

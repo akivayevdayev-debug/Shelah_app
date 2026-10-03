@@ -1,5 +1,5 @@
 """
-Tests for backend/routes_conversations.py -- Step 1 (data model + routing)
+Tests for backend/routes_conversations.py -- data model + routing
 of the multi-turn AI conversation feature. Mirrors the fake-Supabase-client
 pattern in tests/test_routes_user.py, extended with a per-table map since a
 single route here can legitimately touch more than one table (e.g. creating

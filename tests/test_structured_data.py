@@ -1,17 +1,12 @@
 """
-Tests for the SEO/structured-data audit (plan.md §44.2.3, §44.2.4): the
+Tests for the SEO/structured-data audit: the
 og:image/twitter:image assets and JSON-LD blocks across the public templates.
 
-Scope note: §40/§52's legal-page/topbar CSS redesign landed 2026-09-01
-(see claude_code_prompts.md Prompt 52's resolution note), which unblocked
-/accessibility, /privacy, /terms here -- their og-image/structured-data
-edits are now included below. `/` (index.html) stays excluded: its own
-uncommitted diff turned out to be far larger than the CSS redesign alone
-(~2000 lines bundling several unrelated, untested features -- see that
-same resolution note), so it was deliberately left uncommitted and its
-og-image/JSON-LD portion couldn't be safely separated from the rest in
-this pass either. Extend STABLE_PAGES with "/" once index.html's diff is
-triaged and lands.
+Scope note: STABLE_PAGES covers the product and legal pages. `/`
+(index.html) is deliberately not in the list: its og-image/JSON-LD markup
+was never separated out from the rest of that large template when this test
+was written. Extend STABLE_PAGES with "/" once that markup has its own
+coverage.
 """
 
 import json

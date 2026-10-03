@@ -12,7 +12,7 @@ import logging
 import time
 from typing import Annotated, Any
 
-# plan.md §52: anyio.from_thread is never imported by anyio/__init__.py itself
+# Anyio.from_thread is never imported by anyio/__init__.py itself
 # (anyio uses a lazy __getattr__, so `anyio.from_thread` only exists as an
 # attribute once *something* has explicitly imported that submodule).
 # starlette.middleware.wsgi (mounted below via WSGIMiddleware) does `import
@@ -49,7 +49,7 @@ from backend.cache_policy import classify_cache_tier
 from backend.cost_meter import check_user_budget_and_enforce, is_global_cost_breaker_tripped
 from backend.rate_limit import RateLimitMiddleware
 from backend import turnstile as _turnstile
-# INIT-ORDERING (plan.md §17.4 — load-bearing, do not regress): this import
+# INIT-ORDERING (load-bearing, do not regress): this import
 # is what triggers backend/logging_setup.py's module-level sentry_sdk.init()
 # call (or confirms it already ran via an earlier import in this file, e.g.
 # `import app as flask_app_module` above, which itself imports
@@ -67,8 +67,8 @@ logger = logging.getLogger(__name__)
 
 
 def _get_client_ip(request: Request) -> str:
-    """Extract client IP from trusted Vercel proxy headers (plan.md §16.1 D2:
-    never CF-Connecting-IP -- this deployment has no Cloudflare in front of
+    """Extract client IP from trusted Vercel proxy headers (never
+    CF-Connecting-IP -- this deployment has no Cloudflare in front of
     it, so that header is attacker-controlled)."""
     remote_addr = request.client.host if request.client else None
     return _resolve_client_ip(request.headers, remote_addr=remote_addr)
@@ -79,7 +79,7 @@ class AskRequest(BaseModel):
     mode: str | None = None
     community: str | None = None
     language: str | None = None
-    # Cloudflare Turnstile token (plan.md §16.4 / §16.6 Phase 9c, backend/
+    # Cloudflare Turnstile token (backend/
     # turnstile.py). Only read/required once an anonymous caller has
     # crossed TURNSTILE_ANON_HOURLY_THRESHOLD and TURNSTILE_ENABLED=true;
     # ignored otherwise, so existing callers never need to send it.
@@ -167,7 +167,7 @@ async def _build_tool_context() -> dict[str, Any]:
 
 fastapi_app = FastAPI(title="Shelah ASGI", version="1.0.0")
 
-# plan.md §16.3-L2 / §16.8.2: the single rate-limit enforcement point for
+# The single rate-limit enforcement point for
 # both native FastAPI routes and every Flask route reached through the
 # WSGIMiddleware mount below (see backend/rate_limit.py's module docstring
 # for why one Starlette middleware registration covers both). Registered
@@ -180,11 +180,10 @@ fastapi_app.add_middleware(RateLimitMiddleware)
 
 _request_logger = get_logger("shelah.request.asgi")
 
-# plan.md §16.4 body cap, ASGI side: app.py's MAX_CONTENT_LENGTH only
+# Body cap, ASGI side: app.py's MAX_CONTENT_LENGTH only
 # protects requests that reach Werkzeug/Flask through the WSGIMiddleware
 # mount below -- it does nothing for this file's native FastAPI routes
-# (same reason the rate limiter needed its own independent check here, see
-# D1 in plan.md §16.1). Checked via the Content-Length header only (no body
+# (same reason the rate limiter needed its own independent check here). Checked via the Content-Length header only (no body
 # read) so an oversized request is rejected before any parsing work happens.
 _MAX_ASGI_BODY_BYTES = 256 * 1024
 
@@ -238,7 +237,7 @@ async def request_id_middleware(request: Request, call_next):
         for header_name, header_value in SECURITY_RESPONSE_HEADERS.items():
             if header_name not in response.headers:
                 response.headers[header_name] = header_value
-        # plan.md §14.3.1: native routes (POST /ask, GET /api/async/health)
+        # Native routes (POST /ask, GET /api/async/health)
         # never reach app.py's Flask after_request hook, so without this they
         # shipped with NO Cache-Control header at all. setdefault-style, same
         # as the security headers above -- a WSGI-routed response that
@@ -350,7 +349,7 @@ async def _collect_ask_async_context(
     _fetch_user_memory_summaries()'s Supabase-client construction: this
     route runs entirely inside FastAPI/Starlette with no Flask request
     context ever pushed, so that chain cannot fall back to reading Flask's
-    global `request` proxy the way Flask-side callers do (plan.md §35.1).
+    global `request` proxy the way Flask-side callers do.
     """
     # Each lookup also reports to the optional live-progress stream
     # (backend/ask_progress.py); with no stream bound that is a no-op.
@@ -468,8 +467,7 @@ def _ask_async_strict_block(mode, canonical_lens, ctx):
 
 
 def _ask_async_breaker_paused_payload(mode, canonical_lens, answer_language, ctx):
-    """Stage 2.5 of ask_async(): global cost-breaker guard (plan.md §16.3-L3
-    / Prompt 29b), or None if the breaker isn't tripped. Mirrors
+    """Stage 2.5 of ask_async(): global cost-breaker guard, or None if the breaker isn't tripped. Mirrors
     _ask_async_strict_block's payload shape -- same DEVTOOLS_STATS bump,
     same source list -- since this is also a no-LLM-call fallback response,
     just triggered by spend rather than source confidence.
@@ -507,8 +505,8 @@ async def _security_blocked_ask_async_payload(
     result, mode, canonical_lens, answer_language, user_id, question_was_sanitized, question, ctx,
 ):
     """The "security_blocked" branch of ask_async()'s AI-synthesis stage --
-    mirrors app.py's _security_blocked_ask_payload (plan.md §22.3.2's parity
-    suite, invariant: identical top-level/meta key set on the security-
+    mirrors app.py's _security_blocked_ask_payload (the transport-parity
+    suite's invariant: identical top-level/meta key set on the security-
     blocked path too, not just success/strict-block/fallback).
 
     Before this branch existed, ask_async() had no security_blocked handling
@@ -520,7 +518,7 @@ async def _security_blocked_ask_async_payload(
     on the blocked text, feeding it back into future prompts as if it were a
     genuine past answer. Wrong on a route this safety-critical, and this
     file is the only one of the two live /ask transports actually reachable
-    in production (plan.md §16.1-D1) -- app.py's ask_question() never hits
+    in production -- app.py's ask_question() never hits
     this bug only because it already special-cased security_blocked.
     """
     structured_payload = result.get("structured")
@@ -535,7 +533,7 @@ async def _security_blocked_ask_async_payload(
     flask_app_module.DEVTOOLS_STATS["answers_total"] += 1
     flask_app_module.DEVTOOLS_STATS["fallback_answers"] += 1
 
-    # Defensibility logging (plan.md §8.B.6) -- mirrors app.py's
+    # Defensibility logging -- mirrors app.py's
     # _security_blocked_ask_payload exactly. Deliberately does NOT call
     # _store_user_memory_summary, same reasoning as that function.
     history_id = await asyncio.to_thread(
@@ -591,7 +589,7 @@ async def _dispatch_ask_async_ai_synthesis_call(question, mode, canonical_lens, 
     so no thread-pool/asyncio.run() indirection is needed (contrast app.py's
     sync call site, which submits to _THREAD_POOL).
 
-    AI_AGENTIC_TOOLS (plan.md §9.4, Prompt 20, env-default off) swaps in the
+    AI_AGENTIC_TOOLS (env-default off) swaps in the
     agentic tool-use loop. Off (the default), this branch is never taken and
     behavior is byte-for-byte the pre-existing claude.ask_ai_async() call.
     """
@@ -661,7 +659,7 @@ def _extract_ask_async_raw_ai_answer(result, answer_language):
 
 
 def _resolve_ask_async_web_warning_flag(result, ctx):
-    """plan.md §9.3 point 3 -- see the matching comment in app.py's
+    """See the matching comment in app.py's
     _resolve_ask_web_warning_flag for the full rationale. Split out of
     _run_ask_async_ai_synthesis() (SonarCloud python:S3776)."""
     if "used_web_search" in result:
@@ -836,7 +834,7 @@ def _enforce_ask_async_auth_required(user_id):
 
 
 async def _enforce_ask_async_turnstile_gate(user_id, client_ip, turnstile_token):
-    """Turnstile gate (plan.md §16.4 / §16.6 Phase 9c, backend/turnstile.py):
+    """Turnstile gate (backend/turnstile.py):
     anonymous only -- a signed-in caller already has a per-account daily
     quota (backend/rate_limit.py's llm-class authenticated tier) and Clerk
     signup itself is a much stronger identity signal than a captcha would
@@ -1041,15 +1039,15 @@ async def _ask_async_impl(
     authorization: str | None,
 ) -> dict[str, Any]:
     # Bound in the outer except's error report even if an exception hits
-    # before these are ever assigned a real value (plan.md §32.1 -- avoids
+    # before these are ever assigned a real value (avoids
     # the "if 'x' in locals()" idiom, which would break once the assignment
     # sites below move into helper functions with their own local scopes).
     question = mode = canonical_lens = ""
 
-    # Rate limiting (plan.md §16.3-L2) now runs centrally in
+    # Rate limiting now runs centrally in
     # backend.rate_limit.RateLimitMiddleware, registered on fastapi_app
     # above -- it rejects with 429 before this handler is ever invoked, so
-    # there is no in-route check left here (plan.md §16.8.1: this route used
+    # there is no in-route check left here (this route used
     # to carry its own independent limiter; that duplication is removed).
     client_ip = _get_client_ip(request)
     user_id = extract_user_id_from_bearer_value(authorization)
@@ -1064,10 +1062,10 @@ async def _ask_async_impl(
     await _enforce_ask_async_budget(user_id, client_ip)
 
     mode, canonical_lens, answer_language = _resolve_ask_async_request_params(payload)
-    # plan.md §14.3.4 / Prompt 29b: identical key formula to app.py's (dead,
+    # Identical key formula to app.py's (dead,
     # unreachable-in-production) ask_question() route -- not read/written by
     # that route today, but keeping one formula rather than two avoids a
-    # §2 divergent-duplication trap if that route is ever revived.
+    # divergent-duplication trap if that route is ever revived.
     ask_cache_key = "|".join([
         question.lower(), answer_language, mode, canonical_lens.lower(), user_id or "anon",
     ])

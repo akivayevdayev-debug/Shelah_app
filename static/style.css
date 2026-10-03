@@ -2427,9 +2427,9 @@ body.mobile-panel-open {
     /* Was a hardcoded #64748b (the pre-2026-08-15 --ink-secondary value,
        see docs/ACCESSIBILITY_AUDIT.md finding 3) that never picked up the
        token fix, leaving this at 4.45:1 on --surface-0 -- WCAG 2.1 AA
-       needs 4.5:1. Caught by the automated pa11y-ci check (plan.md
-       §8.F.2 / Prompt 18 item 2); switched to the token so it now tracks
-       the fixed value (and the dark-theme override below). */
+       needs 4.5:1. Caught by the automated pa11y-ci check; switched to the
+       token so it now tracks the fixed value (and the dark-theme override
+       below). */
     color: var(--ink-secondary);
     font-weight: 700;
     margin-bottom: 0.85rem;
@@ -2582,7 +2582,7 @@ html.rtl .home-main-layout #popularTextsGrid {
     font-weight: 700;
 }
 
-/* Real WCAG 2.1 AA fixes (pa11y-ci, plan.md §8.F.2 / Prompt 18 item 2):
+/* Real WCAG 2.1 AA fixes (pa11y-ci):
    the zmanim/daily-pulse widget uses Tailwind's default .text-slate-500
    utility (#64748b) and a one-off custom hex for row labels and the "next
    zman" countdown -- both fail 4.5:1 against this widget's cream card
@@ -4817,7 +4817,7 @@ html.rtl #readerTopBar #readerLibraryTopBarBtn {
     background-color: var(--control-bg-hover) !important;
 }
 
-/* ── Analytics consent banner (plan.md §12.5.3) ───────────────────────── */
+/* ── Analytics consent banner ─────────────────────────────────────────── */
 
 #analyticsConsentBanner {
     position: fixed;

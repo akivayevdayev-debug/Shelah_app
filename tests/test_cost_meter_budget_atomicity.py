@@ -1,8 +1,7 @@
 """
-Tests for plan.md §20.2 Phase 20b (Prompt 33b) — making the per-user AI
-spend ceiling atomic.
+Tests for making the per-user AI spend ceiling atomic.
 
-Background (plan.md §20.1-C2): the old check_user_budget_and_enforce() read
+Background: the old check_user_budget_and_enforce() read
 today's total, compared it to the threshold, and never wrote anything —
 cost_meter.py:285-312 (pre-fix). A burst of N concurrent /ask requests from
 one caller near the cap could all read the same pre-spend total and all
@@ -11,8 +10,8 @@ pass, blowing through PER_USER_DAILY_BUDGET_USD in one shot.
 The fix replaces that read with a single atomic Postgres statement
 (scripts/sql/check_and_reserve_user_budget.sql) that checks the running
 total AND inserts a reservation row in one transaction, serialized per key
-via pg_advisory_xact_lock. This file's first test class is the STEP 0
-deliverable specified by the prompt: a concurrency test that demonstrably
+via pg_advisory_xact_lock. This file's first test class is the primary
+deliverable: a concurrency test that demonstrably
 fails against the old (read-only) implementation and passes against the new
 (atomic reserve) one.
 """
@@ -34,7 +33,7 @@ def _clear_budget_reservation_context():
     logging_setup.bind_budget_reservation("")
 
 
-# ─── STEP 0 — the concurrency deliverable ───────────────────────────────────
+# ─── The concurrency deliverable ────────────────────────────────────────────
 #
 # These fakes model the SAME two Supabase call shapes the real code uses:
 #   - OLD code: client.table("ai_usage_log").select(...).eq(...).gte(...)
@@ -127,7 +126,7 @@ _CONCURRENCY_STARTING_TOTAL_USD = 1.997
 
 
 class TestConcurrentBudgetReservationIsAtomic:
-    """plan.md §20.2 Phase 20b STEP 0 — the deliverable."""
+    """The deliverable."""
 
     async def _run_n_concurrent(self, monkeypatch, n: int, reserve_fn_name: str):
         import app as flask_app_module
@@ -158,13 +157,13 @@ class TestConcurrentBudgetReservationIsAtomic:
         )
 
     async def test_old_read_then_decide_implementation_fails_this_test(self, monkeypatch):
-        """Demonstrates the defect this fix closes (plan.md §20.1-C2): if
+        """Demonstrates the defect this fix closes: if
         check_user_budget_and_enforce() is forced back onto the OLD
         read-only call site (_fetch_today_usage_cost_for_key, which only
         ever calls .table(), never .rpc()), the same 20-concurrent-caller
         scenario allows ALL 20 through, because none of them observes any
-        of the others' (nonexistent) writes. This is the STEP 0 "confirm it
-        FAILS against current code" check, pinned permanently as a
+        of the others' (nonexistent) writes. This is the "confirm it
+        FAILS against the old code" check, pinned permanently as a
         regression test for the old code path rather than a one-off manual
         run — it asserts the OLD behavior IS broken, so it stays green
         forever and would only go red if _fetch_today_usage_cost_for_key
@@ -497,10 +496,10 @@ def test_expire_stale_budget_reservations_reaches_capture_backend_error_on_failu
     assert captured[0][0] == "budget_reservation_expiry_failed"
 
 
-# ─── STEP 5 — transport asymmetry: Flask's /ask has no budget check ────────
+# ─── Transport asymmetry: Flask's /ask has no budget check ──────────────────
 
 def test_flask_ask_route_is_unreachable_behind_the_asgi_mount():
-    """plan.md §20.2 Phase 20b STEP 5: check_user_budget_and_enforce() has
+    """check_user_budget_and_enforce() has
     exactly one non-test call site, asgi.py's native FastAPI POST /ask.
     Flask's POST /ask (app.py::ask_question) has NO budget check at all —
     defensible only because that route is unreachable in production.
@@ -510,7 +509,7 @@ def test_flask_ask_route_is_unreachable_behind_the_asgi_mount():
     router matches routes in registration order — the first match wins, so
     POST /ask always hits the FastAPI route. This test pins that ordering
     rather than leaving the asymmetry as an undocumented assumption (the
-    same discipline plan.md §22 applies to the ask_pipeline duplication):
+    same discipline applied to the ask_pipeline duplication):
     if a future refactor ever inverted this order, POST /ask requests would
     silently fall through to the Flask route with no spend ceiling at all.
     """

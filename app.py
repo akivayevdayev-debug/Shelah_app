@@ -78,8 +78,8 @@ from backend.cache_policy import classify_cache_tier, CACHE_TIER_PRIVATE
 
 # Module-level bounded executor — avoids creating/destroying a pool per request.
 # max_workers capped so Vercel serverless invocations don't spawn unbounded threads.
-# Sits below the import block rather than inside it (moved 2026-08-20, plan.md
-# §26.3): as the first non-import statement at module level it made ruff flag
+# Sits below the import block rather than inside it (moved 2026-08-20): as the first non-import statement at
+# module level it made ruff flag
 # every subsequent import in this file as E402. Nothing imported here depends
 # on the pool existing, so the position carried no meaning.
 _THREAD_POOL = ThreadPoolExecutor(max_workers=8)
@@ -145,7 +145,7 @@ DEVTOOLS_STATS = {
 }
 
 # _bounded_cache_set / _CACHE_MAX_SIZE: reconciled to backend/helpers.py as
-# part of the Phase 4 Finding A cleanup above -- re-imported as a back-compat
+# part of the cleanup above -- re-imported as a back-compat
 # shim (search: "Re-import shims"). Still used below against this file's own
 # ASK_RESPONSE_CACHE (a plain function taking `cache` as a parameter, so which
 # module defines it is irrelevant to callers).
@@ -155,7 +155,7 @@ ASK_RESPONSE_CACHE_TTL_SECONDS = 90
 
 # QUICK_TEXT_ALIASES, TRANSLATION_CACHE, TRANSLATION_SOURCE_CACHE, and
 # HEBREW_INTERPRETIVE_GLOSSARY: reconciled to backend/helpers.py as part of
-# the Phase 4 Finding A cleanup above. Unused elsewhere in this file (only the
+# the cleanup above. Unused elsewhere in this file (only the
 # now-deleted local translation/lookup functions read them) -- no shim import
 # needed here; backend/routes_library.py already imports QUICK_TEXT_ALIASES
 # directly from backend.helpers.
@@ -196,7 +196,7 @@ def _set_cached_ask_payload(cache_key, payload):
         return
 
 
-# Backend refactor cleanup (plan.md section 2): _join_with_and and
+# Backend refactor cleanup: _join_with_and and
 # _build_source_attribution_note were live duplicates between app.py and
 # backend/helpers.py. Canonical implementations now live in
 # backend/helpers.py (also fixes _join_with_and to defensively filter
@@ -208,7 +208,7 @@ def _set_cached_ask_payload(cache_key, payload):
 # RAG shim further below (search: "Re-import shims").
 
 
-# Phase 2 backend refactor (plan.md): retrieval, lemmatization, and
+# Backend refactor: retrieval, lemmatization, and
 # corpus-matching layer (Hebrew keyword extraction, discovery-query
 # building, Sefaria/external global source collection, local-JSON custom
 # matching, get_halakhic_sources) moved to backend/utils/search_provider.py.
@@ -219,7 +219,7 @@ def _set_cached_ask_payload(cache_key, payload):
 # RAG shim further below (search: "Re-import shims").
 
 
-# Backend refactor cleanup (plan.md section 2): _compact_ai_sources was a
+# Backend refactor cleanup: _compact_ai_sources was a
 # live, DIVERGED duplicate -- this file's copy used an HTML-tag regex that
 # left bare "<>" fragments unstripped, while backend/helpers.py's
 # test-anchored copy (already used by asgi.py's FastAPI path) fixed that.
@@ -231,7 +231,7 @@ def _set_cached_ask_payload(cache_key, payload):
 # _translate_hebrew_text_google, _translate_hebrew_text_mymemory,
 # _lookup_sefaria_lexicon, _translate_hebrew_text_online,
 # _translate_english_text_online, _fill_missing_english_lines: reconciled to
-# backend/helpers.py as part of the Phase 4 Finding A cleanup above. Their
+# backend/helpers.py as part of the cleanup above. Their
 # back-compat shim imports were removed 2026-08-01 -- nothing outside app.py
 # consumed them via `from app import`. Their local-only constants
 # (_SEFARIA_LEXICON_BASE, _PREFERRED_LEXICONS, _HTML_TAG_RE,
@@ -242,9 +242,9 @@ def _set_cached_ask_payload(cache_key, payload):
 # above. Unused elsewhere in this file -- no shim import needed here;
 # blueprints already import it directly from backend.helpers.
 
-# Phase 2 backend refactor (plan.md): _translate_text_google /
+# Backend refactor: _translate_text_google /
 # _translate_text_mymemory (previously diverged, duplicated in both app.py
-# and backend/helpers.py -- plan.md section 2) and their pure helpers
+# and backend/helpers.py) and their pure helpers
 # _is_translation_echo / _extract_google_translated_text moved to
 # backend/utils/search_provider.py as the single canonical implementation.
 # Re-imported here as back-compat shims (search: "Re-import shims").
@@ -254,7 +254,7 @@ def _set_cached_ask_payload(cache_key, payload):
 # _looks_like_transliteration, _hebrew_word_variant_candidates,
 # _parse_meaning_candidates, _collect_word_meaning_alternatives,
 # _lookup_hebrew_word_meaning: reconciled to backend/helpers.py as part of the
-# Phase 4 Finding A cleanup above. None of these had any internal caller left
+# cleanup above. None of these had any internal caller left
 # in app.py (backend/routes_library.py already called the backend.helpers
 # canonical copies directly), so their back-compat shim imports were removed
 # outright 2026-08-01 rather than kept as re-exports.
@@ -761,7 +761,7 @@ is_production_runtime = (
 )
 
 # Corpus validation is a developer/CI safety net, not a production request-path
-# need: it bills Active CPU on every cold start (Vercel §14.4.1). Skip it in
+# need: it bills Active CPU on every cold start (Vercel bills for it). Skip it in
 # production imports by default; VALIDATE_CUSTOMS_AT_STARTUP explicitly
 # overrides in either direction (e.g. force it on for a production canary).
 _validate_customs_env = os.environ.get(
@@ -786,17 +786,17 @@ if not _flask_secret:
     _flask_secret = os.urandom(32)
 app.secret_key = _flask_secret
 
-# Rate limiting (plan.md §16.3-L2 / §16.8.2): Flask-Limiter used to be
+# Rate limiting: Flask-Limiter used to be
 # installed here, independently of asgi.py's own /ask-only limiter -- two
 # stores, two key functions, two 429 shapes that had nothing keeping them in
-# sync (plan.md §16.8.1). Both are gone. The single enforcement point is now
+# sync. Both are gone. The single enforcement point is now
 # backend.rate_limit.RateLimitMiddleware, registered once on
 # asgi.fastapi_app, covering this Flask app's routes too via the
 # WSGIMiddleware mount in asgi.py. See backend/rate_limit.py for the policy
 # table, store, and RATE_LIMIT_REDIS_URL / RATELIMIT_ENABLED env vars.
 #
 # NOTE: this means `python3 app.py` (bare Flask, no ASGI layer -- local-dev
-# convenience only, never the production entrypoint; see plan.md §16.1 D1)
+# convenience only, never the production entrypoint)
 # now has no rate limiting of its own. Deliberate: a second limiter "just
 # for dev mode" is exactly the duplication this change removes elsewhere.
 
@@ -806,7 +806,7 @@ CLERK_PUBLISHABLE_KEY = (
     or os.environ.get("NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY")
     or ""
 ).strip()
-# plan.md §8.A.1/§8.D.2: single source of truth for the legal-document
+# Single source of truth for the legal-document
 # versions the click-through consent gate (templates/index.html) and
 # accept_legal() (backend/routes_user.py) both key off of. Bump either
 # constant whenever that document changes materially — the version travels
@@ -815,8 +815,8 @@ CLERK_PUBLISHABLE_KEY = (
 # on material version change" without any server round-trip.
 LEGAL_TERMS_VERSION = "2.0"
 LEGAL_PRIVACY_VERSION = "2.0"
-# Sentry Browser DSN — public by design (that's what a browser DSN is,
-# plan.md §17.1), but still env-only and a true no-op when unset: the
+# Sentry Browser DSN — public by design (that's what a browser DSN is),
+# but still env-only and a true no-op when unset: the
 # template only emits the CDN <script> tags when this is truthy (see the
 # index() route below and templates/index.html), mirroring the discipline
 # already applied to the server-side SENTRY_DSN in backend/logging_setup.py.
@@ -828,7 +828,7 @@ SENTRY_RELEASE = (os.environ.get("VERCEL_GIT_COMMIT_SHA") or "").strip()
 CLERK_JWT_ISSUER = (os.environ.get("CLERK_JWT_ISSUER")
                     or "").strip().rstrip("/")
 CLERK_AUDIENCE = (os.environ.get("CLERK_AUDIENCE") or "").strip()
-# Phase 4 backend refactor (plan.md §4): _in_prod_runtime / CLERK_ENFORCE_AUTH
+# Backend refactor: _in_prod_runtime / CLERK_ENFORCE_AUTH
 # were a live, byte-identical duplicate of backend/auth.py's copy (every
 # blueprint and asgi.py already imported the backend.auth version directly;
 # only app.py still carried its own). Canonical implementation now lives in
@@ -862,7 +862,7 @@ SUPABASE_ANSWER_FEEDBACK_TABLE = (os.environ.get(
 STRICT_SUPABASE_RLS = True
 _supabase_client = None
 
-# Deferred per plan.md §32.6: importing the supabase SDK is real module-load
+# Deferred: importing the supabase SDK is real module-load
 # work billed as Active CPU on every cold start (Vercel), even for requests
 # that never touch Supabase (calendar, library browsing, static pages, etc).
 # Loaded on first use by _ensure_supabase_loaded() below instead of at import
@@ -873,7 +873,7 @@ SyncClientOptions = None
 _supabase_loaded = False
 
 
-# _env_int: reconciled to backend/rag.py as part of the Phase 4 Finding A
+# _env_int: reconciled to backend/rag.py as part of the cleanup
 # cleanup above -- re-imported as a back-compat shim (search: "Re-import
 # shims"). Still used directly below and at this file's own call sites.
 # Deliberate: kept beside the config block it serves, not hoisted.
@@ -894,7 +894,7 @@ from backend.auth import (  # noqa: E402
     CLERK_ENFORCE_AUTH,
     maybe_require_clerk_auth,
 )
-# Cloudflare Turnstile (plan.md §16.4/§16.6 Phase 9c, backend/turnstile.py):
+# Cloudflare Turnstile (backend/turnstile.py):
 # reuse that module's env parsing as the single source of truth for the site
 # key/enabled flag instead of re-reading os.environ here, mirroring the
 # CLERK_PUBLISHABLE_KEY convention above but without duplicating the parsing.
@@ -939,8 +939,7 @@ def _extract_supabase_access_token(bearer_token=None):
     # No cookie fallback: nothing in this app ever sets sb-access-token /
     # supabase-access-token / sb-*-auth-token cookies -- templates/index.html's
     # authHeaders() always sends Authorization: Bearer. That branch was
-    # pre-Clerk native-Supabase-Auth leftover; removed 2026-08-31 (plan.md
-    # §21, STEP 8).
+    # pre-Clerk native-Supabase-Auth leftover; removed 2026-08-31.
     return _extract_bearer_token(bearer_token)
 
 
@@ -1018,7 +1017,7 @@ from backend.rag import (  # noqa: E402
 )
 # _knowledge_rows_to_customs, _fetch_user_memory_summaries,
 # _store_user_memory_summary: reconciled to backend/rag.py as part of the
-# Phase 4 Finding A cleanup above -- re-imported as back-compat shims (search
+# cleanup above -- re-imported as back-compat shims (search
 # above). backend/ask_pipeline.py already reaches into these via
 # flask_app_module.<name> attribute access, which keeps working unchanged
 # since the imported name still lives on the `app` module object.
@@ -1034,7 +1033,7 @@ def _build_interaction_summary(question, answer):
 
 
 # maybe_require_clerk_auth / require_clerk_auth: reconciled to
-# backend/auth.py as part of the Phase 4 auth cleanup above -- re-imported
+# backend/auth.py as part of the auth cleanup above -- re-imported
 # here as back-compat shims (search: "Re-import shims").
 
 
@@ -1065,9 +1064,10 @@ def _coerce_coordinate(value, min_value, max_value):
 # a long max-age means a stale shell won't even ask the server for a fresh
 # one until it expires. 5 minutes bounds that window without meaningfully
 # hurting cache-hit rate for a single browsing session. Raise this once
-# deploys are infrequent (plan.md §14.3 will also split this per-content-type
-# tier -- immutable/deterministic/corpus content deserves a much longer
-# s-maxage than the shell does; this single shared knob predates that work).
+# deploys are infrequent. (The per-content-type tiers in backend/cache_policy.py
+# are separate: immutable/deterministic/corpus content gets a much longer
+# s-maxage than the shell; this knob only governs the shell, /static/*, and
+# the manifest.)
 # Env var changes need a Vercel redeploy to take effect same as a code
 # change would, so there's no "tune without redeploying" benefit to keeping
 # this configurable -- it's a literal.
@@ -1080,7 +1080,7 @@ RESOURCE_RELOAD_SECONDS = 60 * 5
 # a security boundary. 30 days, independent of RESOURCE_RELOAD_SECONDS --
 # a user checking zmanim again next week shouldn't have to re-share their
 # location. `session.permanent = True` is set at each of those write sites
-# (not as a blanket before_request hook) -- plan.md §46 found that a
+# (not as a blanket before_request hook) -- a
 # global hook marks Flask's session "accessed" on every single request,
 # including static-asset/anonymous requests that never touch the session,
 # which makes Flask stamp `Vary: Cookie` on every response and permanently
@@ -1102,7 +1102,7 @@ app.config["SESSION_COOKIE_HTTPONLY"] = True
 app.config["SESSION_COOKIE_SAMESITE"] = "Lax"
 app.config["SESSION_COOKIE_SECURE"] = is_production_runtime
 app.config["SEND_FILE_MAX_AGE_DEFAULT"] = RESOURCE_RELOAD_SECONDS
-# plan.md §16.4 body cap: no route in this app accepts file uploads or any
+# Body cap: no route in this app accepts file uploads or any
 # payload larger than a small JSON body (the /ask question itself is capped
 # to MAX_INPUT_CHARS=1200 chars at the sanitizer). 256 KiB is generous
 # headroom for the largest legitimate body (bulk preference/bookmark JSON)
@@ -1166,7 +1166,7 @@ def apply_response_cache_policy(response):
     for header_name, header_value in SECURITY_RESPONSE_HEADERS.items():
         response.headers.setdefault(header_name, header_value)
 
-    # plan.md §14.3.1: explicit per-route cache tier (Immutable /
+    # Explicit per-route cache tier (Immutable /
     # Deterministic-by-date / Corpus-derived / Private), replacing the old
     # blanket /api/* -> no-store branch. classify_cache_tier() is the single
     # source of truth shared with asgi.py's native /ask + /api/async/health
@@ -1214,7 +1214,7 @@ def apply_response_cache_policy(response):
         return response
 
     if path in {"/robots.txt", "/sitemap.xml"}:
-        # plan.md §12.5.1: identical for every visitor and slow-changing —
+        # Identical for every visitor and slow-changing —
         # same treatment as manifest.webmanifest rather than falling through
         # to no explicit Cache-Control (neither is text/html so the generic
         # branch below never catches them).
@@ -1232,7 +1232,7 @@ def apply_response_cache_policy(response):
 
 
 # _parse_multi_value_arg, _extract_search_metadata_filters: reconciled to
-# backend/helpers.py as part of the Phase 4 Finding A cleanup above --
+# backend/helpers.py as part of the cleanup above --
 # re-imported as back-compat shims (search: "Re-import shims").
 
 
@@ -1741,10 +1741,10 @@ def _security_blocked_ask_payload(
         blocked_answer = "Request blocked by security policy. Please submit a direct halakhic question."
 
     # This branch covers every security_blocked_* case, including the
-    # §8.B-AGE safety-referral classes (medical/self-harm/abuse) built by
+    # age-safety referral classes (medical/self-harm/abuse) built by
     # claude._build_safety_referral_result -- those carry a real
     # safety_class/rabbinic_disclaimer on result["structured"] that must
-    # reach the UI so the referral banner (plan.md §8.B.1) renders instead
+    # reach the UI so the referral banner renders instead
     # of the ordinary answer chrome. Domain refusals set safety_class too
     # (claude.py's blocked_structured), defaulting to "ok" only for the
     # plain security_blocked_input/output cases that never classified.
@@ -1756,16 +1756,16 @@ def _security_blocked_ask_payload(
     DEVTOOLS_STATS["answers_total"] += 1
     DEVTOOLS_STATS["fallback_answers"] += 1
 
-    # Defensibility logging (plan.md §8.B.6) applies here too -- this branch
+    # Defensibility logging applies here too -- this branch
     # is exactly where the highest-risk safety-referral answers (medical /
     # self-harm / abuse) live, and skipping the log for them (as this
     # function previously did) would mean the interactions with the most
     # liability exposure were the ones never retained for dispute
     # reconstruction. Mirrored by asgi.py's own dedicated
-    # _security_blocked_ask_async_payload (plan.md §22.3.2 parity suite).
+    # _security_blocked_ask_async_payload (covered by the transport-parity tests).
     # Deliberately does NOT also call _store_user_memory_summary here --
     # that's a separate mechanism (fed back into future prompts as context)
-    # outside plan.md §8.B.6's scope.
+    # outside the scope of this defensibility logging.
     history_id = _store_ask_history(
         user_id,
         question,
@@ -1829,12 +1829,12 @@ def _dispatch_ask_ai_synthesis_call(question, mode, canonical_lens, answer_langu
 
     Bounded by AI_TOTAL_BUDGET_SECONDS via the module-level _THREAD_POOL so
     a slow/stuck model call can't hang this request indefinitely — mirrors
-    the asyncio.wait_for budget on the asgi.py async path (plan.md §23.4).
+    the asyncio.wait_for budget on the asgi.py async path.
     On timeout this raises concurrent.futures.TimeoutError, which is an
     Exception subclass and falls through to the existing fallback ladder,
     unchanged.
 
-    AI_AGENTIC_TOOLS (plan.md §9.4, Prompt 20, env-default off) swaps in
+    AI_AGENTIC_TOOLS (env-default off) swaps in
     the agentic tool-use loop; ask_pipeline.run_agentic_ask() is a
     coroutine function, so the thread-pool worker runs it via
     asyncio.run() -- that worker thread has no event loop of its own (only
@@ -1908,7 +1908,7 @@ def _extract_raw_ai_answer(result, answer_language):
 
 
 def _resolve_ask_web_warning_flag(result, ctx):
-    """plan.md §9.3 point 3: an agentic answer that actually invoked
+    """An agentic answer that actually invoked
     web_search must carry the same general-web warning as the pre-fetch
     path's tertiary-web-context fallback, even when the pre-fetch wiki
     context itself was empty (the two are unrelated when the flag is on

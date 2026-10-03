@@ -1,5 +1,5 @@
 """
-Tests for backend/cache_policy.py (plan.md §14.3, Prompt 28).
+Tests for backend/cache_policy.py.
 
 Covers both the pure classification function and its two call sites:
 app.py's Flask after_request hook (WSGI-mounted routes) and asgi.py's
@@ -97,10 +97,10 @@ def test_flask_response_gets_private_cache_header_for_ask(test_client):
     assert resp.headers.get("Cache-Control") == cache_policy.CACHE_TIER_PRIVATE
 
 
-# ─── plan.md §46 / Prompt 58: Vary: Cookie must not defeat CDN caching ──────
+# ─── Vary: Cookie must not defeat CDN caching ───────────────────────────────
 
 def test_static_asset_carries_no_vary_cookie_header(test_client):
-    """Regression test for plan.md §46: a static-asset request never reads
+    """Regression test: a static-asset request never reads
     or writes Flask's session, so it must not be marked "accessed" and must
     not get `Vary: Cookie` stamped on it -- that header becomes part of
     Vercel's edge-cache key and silently defeats CDN caching for every
@@ -137,10 +137,10 @@ def test_set_location_request_still_gets_vary_cookie_header(test_client):
 
 
 def test_daily_study_carries_no_vary_cookie_header(test_client):
-    """Regression test for plan.md §47: /api/daily-study is CACHE_TIER_DATED
+    """Regression test: /api/daily-study is CACHE_TIER_DATED
     (public, CDN-cacheable) but used to call get_engine(), which touches
     Flask's session even though get_daily_learning() never uses lat/lon --
-    a narrower recurrence of the same §46 defect on a route §46's own
+    a narrower recurrence of the same defect on a route the first
     verification pass didn't probe. Fixed by calling sefaria.get_daily_study()
     directly instead of going through get_engine()."""
     resp = test_client.get("/api/daily-study")

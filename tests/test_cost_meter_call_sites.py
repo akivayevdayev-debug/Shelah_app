@@ -1,6 +1,6 @@
 """
 Confirms backend.cost_meter.record_llm_call is invoked (mocked, no network)
-from every model call site in backend/claude.py — plan.md §8.E.1's "cost
+from every model call site in backend/claude.py — the "cost
 metering on every model call" requirement:
 
   - _call_gemini_model (sync primary) via _call_primary_model
@@ -46,7 +46,7 @@ def _warm_genai_sdk():
     _call_gemini_httpx_model treats as a hard "gemini_sdk_missing" error
     before ever reaching record_llm_call — passing only when an earlier
     test in a full-suite run happened to warm the module-level cache
-    first (plan.md §38.2). Calling the loader directly here removes that
+    first. Calling the loader directly here removes that
     ordering dependency; it's idempotent (short-circuits on
     _genai_loaded), so it's harmless for tests that don't need it.
     """

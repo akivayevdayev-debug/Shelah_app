@@ -1,13 +1,12 @@
 import { getState, setState } from "./state.js";
 import { ACCEPT_PROGRESS, isProgressResponse, readProgressStream } from "./ask-progress.js";
 
-// plan.md §19 Phase 1 (claude_code_prompts.md Prompt 32): this module is the
-// canonical POST /ask implementation. It absorbed the retry/timeout resilience
-// that used to live only in templates/index.html's inline askWithRetry() --
-// ported verbatim (constants, backoff, retryable-status/-error lists, attempt
-// telemetry) rather than reimplemented, per §19's reconcile-then-consolidate
-// mandate (the inline copy was the *stronger* implementation; the module was
-// not).
+// This module is the canonical POST /ask implementation. It absorbed the
+// retry/timeout resilience that used to live only in templates/index.html's
+// inline askWithRetry() -- ported verbatim (constants, backoff,
+// retryable-status/-error lists, attempt telemetry) rather than
+// reimplemented, because the inline copy was the *stronger* implementation;
+// the module was not.
 //
 // Return contract: askAi() returns the parsed JSON payload on success. On
 // failure it throws an Error whose:
@@ -20,7 +19,7 @@ import { ACCEPT_PROGRESS, isProgressResponse, readProgressStream } from "./ask-p
 //     from exhausting retries on a network error (AbortError/TypeError) rather
 //     than from a completed HTTP response
 // Callers branch on `.code` / `.status` for UI handling instead of inspecting
-// a raw Response, per Prompt 32 step 3 -- this is the ES-module-native shape
+// a raw Response -- this is the ES-module-native shape
 // and the only one `window.ShelahModules` can express cleanly.
 //
 // Live progress: askAi() asks the server for an NDJSON stream (see
@@ -69,7 +68,7 @@ async function waitBeforeRetry(onRetry, attempt) {
 // transient failures (abort/network/502/503/504) -- never on 4xx or a clean
 // response. Prevents the "times out after a couple of tries" failure mode
 // where the client gave up before the server's own graceful-fallback budget
-// had a fair chance to run (plan.md §23.4). `onRetry(attempt)` is an optional
+// had a fair chance to run. `onRetry(attempt)` is an optional
 // caller-supplied hook for retry-in-progress UI; this module owns no DOM.
 async function fetchAskWithRetry(requestBody, headers, onRetry) {
     let lastError = null;

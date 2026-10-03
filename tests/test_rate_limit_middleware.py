@@ -1,14 +1,14 @@
 """
 Coverage for RateLimitMiddleware's fail-open/fail-closed posture when the
-shared store is unreachable (plan.md §31.1 / §16.3-L2).
+shared store is unreachable.
 
 backend/rate_limit.py's _check() has one deliberately asymmetric branch: the
 `llm` policy class (_POLICIES["llm"].fail_open = False) fails CLOSED on a
 _StoreUnavailable -- an unmetered /ask during a store outage is a budget
 hole, not a degraded feature -- while every other class (fail_open = True)
 fails OPEN, so a Redis blip doesn't block ordinary reader/feedback traffic.
-This was the one branch the original Prompt 29a spec asked to be tested and
-never was (plan.md §31.1) -- confirmed uncovered by the full-suite coverage
+This branch was the one the original spec asked to be tested and
+never was -- confirmed uncovered by the full-suite coverage
 report. tests/test_rate_limit.py covers the store abstraction's get/setex
 surface; it does not stub incr() to raise, so it never exercises this
 `except _StoreUnavailable` branch either.

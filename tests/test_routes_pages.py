@@ -1,5 +1,5 @@
 """
-Tests for backend/routes_pages.py routes (plan.md §12.1, §12.2, §12.5.1).
+Tests for backend/routes_pages.py routes.
 
 Covers:
   - GET /about      -> HTML

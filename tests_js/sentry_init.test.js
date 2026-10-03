@@ -1,5 +1,5 @@
 /**
- * Tests for static/js/sentry-init.js — plan.md §17 STEP 2's required test:
+ * Tests for static/js/sentry-init.js — including the required test:
  * "submit a question through the instrumented path and assert the question
  * string appears nowhere in the captured event."
  *

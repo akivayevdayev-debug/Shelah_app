@@ -1,5 +1,5 @@
 """
-Agentic tool-use registry for the Sh'elah halachic AI (plan.md §9).
+Agentic tool-use registry for the Sh'elah halachic AI.
 
 Exposes existing backend functions as Anthropic/Gemini tool-use JSON
 schemas plus async executors, so the model can pull live Jewish-texts,
@@ -7,14 +7,14 @@ calendar/zmanim, and (last-resort only) web data instead of relying
 solely on the pre-fetched RAG context. This module is pure exposure —
 it wraps functions that already live in backend/*; the only genuinely
 new code here is convert_measurements' deterministic shiurim table
-(explicitly called for by plan.md §9.2b) and a small number of thin
+(no prior implementation existed to wrap) and a small number of thin
 handler-level compositions/fallbacks documented inline where the
-plan's tool catalog named a function that turned out not to exist
+original tool catalog named a function that turned out not to exist
 verbatim (see docs/AI_TOOLS.md "Implementation notes").
 
 Import discipline: backend.* only, never `app` -- this registry must
 be callable from any transport (Flask sync, FastAPI async) and from
-tests without booting the Flask app. Two tools in plan.md's tables
+tests without booting the Flask app. Two tools in the original tool catalog
 (get_community_profile, get_prayer_text) named app.py-only backing
 functions (_build_trusted_custom_sources, SIDDUR_SECTION_MAP /
 _get_prayer_refs); both are reimplemented here against backend-only
@@ -26,7 +26,7 @@ Every handler has the uniform signature
 and never raises -- execute_tool() is the single place that applies
 a timeout, a narrow exception catch, and health-circuit bookkeeping,
 so a handler bug degrades to a tool-shaped error result, not a crash
-of the whole agent loop (plan.md §9.5, fail-open).
+of the whole agent loop (fail-open).
 """
 
 from __future__ import annotations
@@ -290,7 +290,7 @@ async def _h_get_daily_study(arguments: dict, context: dict) -> dict:
     return await asyncio.to_thread(sefaria.get_daily_study)
 
 
-# ── 10. web_search (last-resort only; see §9.3 gating in ask_pipeline.py) ──
+# ── 10. web_search (last-resort only; see the gating in ask_pipeline.py) ──
 
 async def _h_web_search(arguments: dict, context: dict) -> dict:
     query = str(arguments.get("query") or "").strip()[:MAX_QUERY_CHARS]
@@ -355,7 +355,7 @@ async def _h_get_commentaries(arguments: dict, context: dict) -> dict:
 # ── 14. search_community_customs ────────────────────────────────────────────
 
 async def _h_search_community_customs(arguments: dict, context: dict) -> dict:
-    """Backs onto customs.search_customs. plan.md §9.2 also names
+    """Backs onto customs.search_customs. The original tool design also names
     backend.rag._retrieve_community_knowledge as a source for this
     tool, but that function does `import app as _app` internally
     (backend/rag.py:215, documented there as a deliberate circular-
@@ -398,7 +398,7 @@ async def _h_get_community_profile(arguments: dict, context: dict) -> dict:
     contract forbids. The trusted-sources synthesis is therefore not
     reproduced; this returns the community's own identity/history/
     core-authorities/minhagim fields directly instead, which covers
-    plan.md §9.2b's stated purpose ("background on a community's
+    the tool's stated purpose ("background on a community's
     halachic tradition and history for lens answers").
     """
     canonical = _canonicalize_community_name(str(arguments.get("community") or ""))
@@ -632,8 +632,8 @@ async def _h_get_daily_zmanim_summary(arguments: dict, context: dict) -> dict:
 
 # ── 20. convert_measurements ────────────────────────────────────────────────
 #
-# New deterministic table (plan.md §9.2b explicitly calls for this --
-# no prior implementation exists to wrap). Base figures are the
+# New deterministic table -- no prior implementation exists to wrap.
+# Base figures are the
 # commonly-published approximations for Chazon Ish and Rav Chaim
 # Naeh's shiurim; kav and mil are derived by multiplication from
 # revi'it/amah so the table stays internally consistent rather than
@@ -754,7 +754,7 @@ class ToolSpec:
     handler: Callable[[dict, dict], Awaitable[dict]]
     service: Optional[str] = None          # health_check service name to gate on; None = no external I/O
     timeout_seconds: float = 10.0
-    last_resort: bool = False              # True only for web_search (§9.3 orchestrator gate)
+    last_resort: bool = False              # True only for web_search (orchestrator gate)
 
 
 TOOLS: list[ToolSpec] = [
@@ -1074,7 +1074,7 @@ _TOOLS_BY_NAME: dict[str, ToolSpec] = {t.name: t for t in TOOLS}
 def get_tool_schemas(*, include_web_search: bool = False) -> list[dict]:
     """Anthropic/Gemini tool-use schema list. web_search is excluded by
     default — the orchestrator (backend/ask_pipeline.py) only passes
-    include_web_search=True once the last-resort gate (§9.3) has
+    include_web_search=True once the last-resort gate has
     actually been satisfied for the current turn.
     """
     return [
@@ -1086,7 +1086,7 @@ def get_tool_schemas(*, include_web_search: bool = False) -> list[dict]:
 
 async def execute_tool(name: str, arguments: dict, *, context: Optional[dict] = None) -> dict:
     """Run one tool call: timeout + narrow exception catch + health
-    record_success/record_failure, fail-open (plan.md §9.5). Never
+    record_success/record_failure, fail-open. Never
     raises — a failure degrades to {"error": ...}, so a single dead
     tool never crashes the agent loop.
     """

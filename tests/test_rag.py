@@ -237,7 +237,7 @@ class TestRetrieveCommunityKnowledge:
         assert result == []
 
     def test_open_circuit_short_circuits_before_querying(self, monkeypatch):
-        # plan.md §12.3.4: community_knowledge now goes through the same
+        # community_knowledge now goes through the same
         # APIHealth circuit breaker as translate/web/nominatim. When the
         # circuit is open, the query must never even be attempted.
         called = {"query": False}
@@ -364,7 +364,7 @@ class TestFetchUserMemorySummaries:
         assert result[0]["summary"] == "real"
 
     def test_bearer_token_threaded_to_client_factory(self, monkeypatch):
-        """Regression test for plan.md §35.1 / Prompt 47: the explicit
+        """Regression test: the explicit
         bearer_token param must reach _get_user_scoped_supabase_client()
         rather than being silently dropped, since that's what lets this
         chain skip Flask's global `request` proxy entirely when called
@@ -381,7 +381,7 @@ class TestFetchUserMemorySummaries:
         assert received == ["Bearer abc123"]
 
     def test_eq_filter_uses_exact_user_id_argument(self, monkeypatch):
-        """plan.md §21.3 exit criteria: cross-user isolation for this
+        """Cross-user isolation for this
         table cannot rely on RLS alone (backend/routes_devtools.py's
         rls-audit only observes row counts, it doesn't prove which user_id
         a given call filtered on). Pin the .eq("user_id", ...) call to the
@@ -435,8 +435,8 @@ class TestStoreAskHistory:
         assert result is None
 
     def test_insert_exception_reaches_capture_backend_error(self, monkeypatch):
-        """Regression test (plan.md §23.2.4): this is the defensibility-
-        logging table the accept_legal() clerk_id/user_id bug (§23.1) was
+        """Regression test: this is the defensibility-
+        logging table the accept_legal() clerk_id/user_id bug was
         about. A write failure here must stay non-fatal but must not vanish
         into a bare `except: return` — it has to reach
         _capture_backend_error() so it's visible in Sentry/structured logs."""
@@ -458,7 +458,7 @@ class TestStoreAskHistory:
         assert context["user_id_hash"] == hash_user_id("user-1")
 
     def test_safety_class_and_prompt_version_persisted(self, monkeypatch):
-        """plan.md §8.B.6 defensibility logging: a stored answer's safety
+        """Defensibility logging: a stored answer's safety
         routing outcome and governing prompt version must be reconstructable
         without retaining the full prompt text."""
         client = _FakeSupabaseClient()
@@ -522,7 +522,7 @@ class TestStoreUserMemorySummary:
         rag._store_user_memory_summary("user-1", "q", "a")  # should not raise
 
     def test_insert_exception_reaches_capture_backend_error(self, monkeypatch):
-        """Regression test (plan.md §23.2.4): kept non-fatal by design (a
+        """Regression test: kept non-fatal by design (a
         memory-write failure must never block the user response), but the
         failure itself must not be invisible — route it through
         _capture_backend_error() instead of a bare `except: return`."""
@@ -546,7 +546,7 @@ class TestStoreUserMemorySummary:
         assert context["user_id_hash"] == hash_user_id("user-1")
 
     def test_insert_payload_uses_exact_user_id_argument(self, monkeypatch):
-        """plan.md §21.3 exit criteria: pin the insert payload's user_id to
+        """Pin the insert payload's user_id to
         the exact argument passed in, for two different callers, so a
         future edit can't accidentally write one user's interaction
         summary under another user's id (a cross-user write, not just a

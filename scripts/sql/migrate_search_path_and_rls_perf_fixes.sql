@@ -47,7 +47,7 @@ begin;
 --
 -- Note for the operator: public.set_updated_at_timestamp() was already
 -- pinned to SET search_path = '' once before, in
--- scripts/sql/migrate_security_hardening.sql (2026-08-21, plan.md §30).
+-- scripts/sql/migrate_security_hardening.sql (2026-08-21).
 -- It is flagged mutable again in this scan because
 -- scripts/sql/rag_identity_cache_setup.sql defines it with a bare
 -- `create or replace function ...` (no SET search_path clause) --

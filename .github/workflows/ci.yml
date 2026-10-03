@@ -53,19 +53,15 @@ jobs:
         continue-on-error: true
 
       - name: Security scan — secrets + static analysis (pre-commit, all files)
-        # plan.md §8.C.4: the gitleaks/bandit hooks in .pre-commit-config.yaml
+        # The gitleaks/bandit hooks in .pre-commit-config.yaml
         # only run locally and are bypassable with --no-verify; this runs the
         # same hooks in CI against every file on every push so a skipped
         # local hook can't ship a secret or a bandit-flagged pattern.
         run: pre-commit run --all-files --show-diff-on-failure
 
       - name: Dependency vulnerability scan (pip-audit)
-        # plan.md §8.C.4 SCA gate. Non-blocking for now, matching the ruff
-        # step above -- this is the first pass wiring pip-audit in, and a
-        # hard-fail-on-CVE gate needs an established remediation workflow
-        # (e.g. for dev-only deps like pytest where a fix requires a major-
-        # version bump) before it can safely block merges. See
-        # docs/SECURITY.md for the current findings this surfaced.
+        # Software-composition-analysis (SCA) gate. See docs/SECURITY.md for
+        # the current dependency-audit posture and how advisories are handled.
         run: |
           # Each lock file audited separately, --disable-pip: the two files
           # pin some packages (e.g. pygments) at different versions for
@@ -117,16 +113,15 @@ jobs:
         run: npx --no-install puppeteer browsers install chrome
 
       - name: Node unit tests (node --test)
-        # plan.md §41.3: this suite was never wired into CI. tests_js/sentry_init.test.js
-        # (14 cases) verifies halachic question/answer text, Clerk auth tokens, and
-        # session cookies never reach Sentry (plan.md §17); Prompt 32/§19 Phase 0 added
-        # tests_js/reader_ui_semantic_bookmark.test.js (4 cases) with the same exposure.
-        # Both pass locally today (18/18) and gate PII-scrubbing correctness, so this is
-        # blocking rather than continue-on-error, unlike ruff/pip-audit above (which are
-        # non-blocking because their fix workflows aren't established yet). The glob form
+        # Runs the whole tests_js suite. tests_js/sentry_init.test.js verifies that
+        # halachic question/answer text, Clerk auth tokens, and session cookies never
+        # reach Sentry, and tests_js/reader_ui_semantic_bookmark.test.js covers the
+        # same exposure for the reader's bookmark payloads. These tests gate
+        # PII-scrubbing correctness, so the step is blocking, not continue-on-error.
+        # The glob form
         # (package.json's `test` script, `node --test tests_js/*.test.js`) sidesteps a
         # Node bug where a bare directory argument to `--test` throws
-        # `Cannot find module` (plan.md §41.4) — confirmed on Node v26.7.0 locally; this
+        # `Cannot find module` — confirmed on Node v26.7.0 locally; this
         # step is the first run against the CI runner's pinned Node 24 specifically.
         #
         # `npm run test:coverage` is the same suite (same files, same blocking
@@ -138,12 +133,11 @@ jobs:
         run: npm run test:coverage
 
       - name: Accessibility scan (pa11y-ci, WCAG2AA — light + dark theme)
-        # plan.md §8.F.2 / Prompt 18 item 2: automated axe/pa11y-style check
+        # Automated axe/pa11y-style check
         # for key pages, gating the job on any real WCAG 2.1 AA violation.
         # `npm run test:a11y` runs BOTH themes in this one step (light via
         # pa11y-ci, then dark via scripts/a11y_dark_scan.js) so a red run is
-        # one signal, not two -- plan.md §26.2 closed the dark-theme
-        # coverage hole this step shipped with. Chained with && : if light
+        # one signal, not two. Chained with && : if light
         # fails, dark is skipped, because the first failure is the one to
         # fix.
         # README.md's documented "Plain Flask mode" start command
@@ -152,8 +146,8 @@ jobs:
         # tests/conftest.py's offline test matrix (mock keys, auth
         # enforcement off) so this boots without any real external
         # credentials and never calls a live third-party API.
-        # RATELIMIT_ENABLED=false is now a no-op here: plan.md §16.8.1
-        # removed Flask-Limiter, and the replacement
+        # RATELIMIT_ENABLED=false is a no-op here: Flask carries no
+        # limiter, and the real one
         # (backend.rate_limit.RateLimitMiddleware) only runs on asgi.py's
         # fastapi_app, which this bare `python3 app.py` boot never goes
         # through. Left set rather than removed -- harmless, and documents

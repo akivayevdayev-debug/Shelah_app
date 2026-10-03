@@ -1,10 +1,10 @@
 """
-Tests for backend/routes_feedback.py (plan.md §12.4).
+Tests for backend/routes_feedback.py.
 
 Covers the happy path, validation errors, oversize/HTML-injection comment
 sanitization, and the rate limit. The non-rate-limit tests each use a
 distinct REMOTE_ADDR out of old habit, but it's no longer load-bearing:
-Flask itself carries no rate limiter (plan.md §16.8.1 -- Flask-Limiter
+Flask itself carries no rate limiter (Flask-Limiter was
 removed), only backend.rate_limit.RateLimitMiddleware does, and that only
 sees traffic routed through the ASGI layer (fastapi_client), not the bare
 Flask test_client these tests use.
@@ -102,8 +102,8 @@ class TestFeedbackRateLimit:
     async def test_requests_beyond_the_configured_limit_are_rate_limited(self, fastapi_client):
         """
         /api/feedback is served entirely by the Flask app mounted under
-        asgi.fastapi_app -- Flask itself enforces no rate limit of its own
-        (plan.md §16.8.1), so this must drive traffic through the ASGI layer
+        asgi.fastapi_app -- Flask itself enforces no rate limit of its own,
+so this must drive traffic through the ASGI layer
         (fastapi_client) where backend.rate_limit.RateLimitMiddleware
         actually intercepts requests before they reach Flask. Uses a
         dedicated TEST-NET-3 IP (RFC 5737, distinct from the ones

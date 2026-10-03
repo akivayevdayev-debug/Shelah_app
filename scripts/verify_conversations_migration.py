@@ -12,10 +12,10 @@ suite in tests/test_routes_conversations.py) cannot:
      RPC (service-role only, same approach as
      scripts/verify_answer_feedback_migration.py)?
 
-  2. END-TO-END (Step 1 sanity check) -- using the service-role client
+  2. END-TO-END -- using the service-role client
      (bypasses RLS, same as backend/routes_conversations.py's own fallback
      path when STRICT_SUPABASE_RLS is off), does the real schema actually
-     accept the exact shapes Step 1's routes read and write? Creates one
+     accept the exact shapes the routes read and write? Creates one
      conversation, one message, one citation, re-reads the conversation with
      the nested `citations(...)` embed create_message()/get_conversation()
      both rely on, then deletes the conversation (cascades to its message
@@ -135,7 +135,7 @@ def _check_structure(service) -> int:
 
 
 def _check_end_to_end(service) -> int:
-    """Step 1 sanity check: the exact insert/select shapes
+    """End-to-end sanity check: the exact insert/select shapes
     backend/routes_conversations.py's routes use, run against the live
     schema via the service-role client (bypasses RLS, same fallback path
     the routes themselves use when STRICT_SUPABASE_RLS is off)."""
@@ -246,7 +246,7 @@ def main() -> int:
     if failures:
         fail(f"{failures} check(s) failed")
         return 1
-    ok("all checks passed -- schema is live and Step 1's query shapes work end-to-end")
+    ok("all checks passed -- schema is live and the routes' query shapes work end-to-end")
     return 0
 
 

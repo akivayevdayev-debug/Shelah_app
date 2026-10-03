@@ -1,7 +1,7 @@
 """
 Retrieval-augmented-generation helpers for Sh'elah.
 
-Extracted verbatim from ``app.py`` (Phase 1, Step 1 of the zero-breakage
+Extracted verbatim from ``app.py`` (part of the zero-breakage
 backend split). This module owns ask-time tool context assembly, community
 knowledge retrieval/scoring, and answer prefix composition.
 
@@ -367,8 +367,7 @@ def _store_ask_history(
 ):
     """Persist a completed ask interaction to the per-user ask_history table.
 
-    safety_class/prompt_version are defensibility-logging metadata (plan.md
-    §8.B.6): they let a stored answer's §8.B-AGE safety-routing outcome and
+    safety_class/prompt_version are defensibility-logging metadata: they let a stored answer's safety-routing outcome and
     governing system-prompt version be reconstructed during a dispute,
     without retaining the full prompt text itself. Requires
     scripts/migrate_ask_history_safety_metadata.sql to have been applied —
@@ -407,9 +406,9 @@ def _store_ask_history(
         supabase.table(_app.SUPABASE_ASK_HISTORY_TABLE).insert(payload).execute()
         return payload["id"]
     except Exception as e:
-        # plan.md §23.2.4: a PostgREST schema error must never be
+        # A PostgREST schema error must never be
         # indistinguishable from success — this is the exact defensibility-
-        # logging table the accept_legal() clerk_id/user_id bug (§23.1) was
+        # logging table the accept_legal() clerk_id/user_id bug was
         # about, and safety_class/prompt_version are the columns
         # migrate_ask_history_safety_metadata.sql added. Keep the write
         # best-effort (never block the ask response), but make a failure
@@ -445,7 +444,7 @@ def _store_user_memory_summary(user_id, question, answer):
         supabase.table(_app.SUPABASE_USER_MEMORIES_TABLE).insert(payload).execute()
     except Exception as e:
         # Memory write failures should never block the user response path
-        # (kept non-fatal), but plan.md §23.2.4 requires the failure itself
+        # (kept non-fatal), but the failure itself must
         # stay observable rather than vanish into a bare `except: return`.
         _capture_backend_error("user_memory_store_failed", e, {"user_id_hash": hash_user_id(user_id)})
         return

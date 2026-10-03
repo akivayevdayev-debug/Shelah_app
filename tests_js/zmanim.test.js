@@ -1,11 +1,11 @@
 /**
- * plan.md §19 Phase 2 — the zman-clock rendering that used to live entirely
+ * The zman-clock rendering that used to live entirely
  * inline in templates/index.html (initZmanim/fetchZmanimAPI/startCountdown
  * and friends) now lives in static/js/zmanim.js, taking the seven
  * classic-script i18n/formatting globals (t, isHebrewMode,
  * translateHolidayName, formatOmerLabel, formatWeeklyShabbatLabel,
  * translateShabbatWarning, escapeHtml) as an explicit `deps` object instead
- * of reading them off `window` (§19.9 constraint 3).
+ * of reading them off `window`.
  *
  * Unlike tests_js/ai_service.test.js's DOM-free module, these functions
  * read and write `document` directly, so this file also exercises
@@ -13,7 +13,7 @@
  * (getElementById auto-vivifies elements; querySelectorAll supports only
  * the one attribute-presence selector zmanim.js actually uses).
  *
- * IMPORTANT CAVEAT (§19.9 constraint 6): these are fake-DOM unit tests of
+ * IMPORTANT CAVEAT: these are fake-DOM unit tests of
  * the extracted logic (row visibility, label text, countdown math, badge
  * markup). They are NOT a substitute for a real-browser check that the
  * next-zman highlight and countdown badge actually render correctly against

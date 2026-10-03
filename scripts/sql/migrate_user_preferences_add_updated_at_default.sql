@@ -3,7 +3,7 @@
 -- safe to re-run (SET DEFAULT is not additive, it just re-sets the same
 -- value each time).
 --
--- Provenance (plan.md §21, Prompt 34, found 2026-08-31): after the
+-- Provenance: after the
 -- auth.uid()-to-auth.jwt() fix (scripts/migrate_rls_use_jwt_sub_not_auth_uid.sql)
 -- resolved RLS itself, scripts/verify_rls.py's next live run passed cleanly
 -- for study_bookmarks and user_memories but failed differently for

@@ -6,7 +6,7 @@ Responsibilities:
 - Normalize different JSON shapes into a searchable in-memory structure.
 - Perform keyword and fuzzy matching for minhag/custom responses.
 
-Prompt 35 STEP 4 (plan.md §22.3.4) audit: this JSON path is NOT authoritative
+Audit note: this JSON path is NOT authoritative
 for the main /ask pre-fetch pipeline any more -- that pipeline gets its
 customs context from the Supabase `community_knowledge` table (populated
 by scripts/migrate_customs_to_supabase.py) via

@@ -99,9 +99,8 @@
          only matters if the app script never runs. -->
     <script>(function(){try{var d=document.documentElement,p=location.pathname,q=new URLSearchParams(location.search);if(/^\/(text|prayer|community)\/./.test(p)||/^\/history\/?$/.test(p)||q.get('text')||q.get('prayer')||q.get('community')||q.get('history')){d.setAttribute('data-cold-view',/^\/text\/./.test(p)||q.get('text')?'text':'');setTimeout(function(){d.removeAttribute('data-cold-view');},8000);}}catch(e){}})()</script>
     {% if sentry_dsn_browser %}
-    <!-- Sentry error monitoring (plan.md §17). Loaded from Sentry's own CDN
-         (not npm/jsdelivr — no frontend build step exists yet, see §7g /
-         Prompt 11) with an SRI hash, placed before the other CDN scripts
+    <!-- Sentry error monitoring. Loaded from Sentry's own CDN
+         (not npm/jsdelivr — no frontend bundling step exists yet) with an SRI hash, placed before the other CDN scripts
          below so it can capture their load errors too. This is the plain
          errors-only bundle: no Replay, no tracing code shipped at all
          (static/js/sentry-init.js also sets tracesSampleRate: 0 — belt and
@@ -258,7 +257,7 @@
     <!-- Skip-to-content link (keyboard accessibility) -->
     <a href="#mainContainer" class="skip-to-content">Skip to main content</a>
 
-    <!-- Privacy-respecting analytics consent banner (plan.md §12.5.3, §8.A.4).
+    <!-- Privacy-respecting analytics consent banner.
          Hidden until JS decides no prior choice is recorded. -->
     <section id="analyticsConsentBanner" class="hidden" aria-label="Analytics consent">
         <p>
@@ -329,7 +328,7 @@
                                 <span class="ai-hint-icon search-ai-sparkle" title="Powered by AI">{{ phosphor('sparkle', size=15, class='h-[15px] w-[15px]') }}</span>
                             </div>
                             <!-- Real submit control for keyboard/AT users -- WCAG 2.1 AA
-                                 (SC 3.2.2 / H32.2, caught by pa11y-ci, plan.md §8.F.2). The
+                                 (SC 3.2.2 / H32.2, caught by pa11y-ci). The
                                  search icon above is decorative; submission already works via
                                  Enter in #searchInput (see the form's 'submit' listener), but
                                  the form previously had no focusable/activatable submit
@@ -2187,7 +2186,7 @@
         "warning": "{{ phosphor_path('warning-circle') }}"
     }</script>
 
-    <!-- Privacy & Data Modal (plan.md §8.D self-serve DSR: download / delete) -->
+    <!-- Privacy & Data Modal (self-serve data request: download / delete) -->
     <style>
         /* Same material as the calendar and the chat panel: one warm surface,
            hairline dividers, serif title, navy as the only accent. Red is kept
@@ -3033,16 +3032,16 @@
             standard: '<path d="{{ phosphor_path("book-open") }}"/>',
         };
 
-        // Persistent, non-dismissible disclaimer banner (plan.md §8.B.1) --
+        // Persistent, non-dismissible disclaimer banner --
         // rendered fresh on every answer so it can never be scrolled-past-once
-        // and forgotten, and so referral-class answers (§8.B-AGE.2/.7) get a
+        // and forgotten, and so referral-class answers get a
         // visually distinct, prominent variant instead of blending into the
         // ordinary answer chrome.
         function renderDisclaimerBanner(bannerEl, safetyClass, breakerTripped) {
             if (!bannerEl) return;
             bannerEl.classList.remove('hidden');
             const isReferral = SAFETY_REFERRAL_UI_CLASSES.has(String(safetyClass || 'ok'));
-            // breakerTripped (plan.md §16.3-L3 / Prompt 29b) takes precedence over
+            // breakerTripped takes precedence over
             // the ordinary referral/note split -- the global cost breaker always
             // reports safety_class "ok" (asgi.py::_ask_async_breaker_paused_payload),
             // so these two states never actually collide in practice, but checking
@@ -4679,7 +4678,7 @@
         }
 
         // static/js/zmanim.js's installZmanim()/refreshZmanimDisplay()/
-        // fetchZmanimAPI() (plan.md §19 Phase 2) take these seven functions
+        // fetchZmanimAPI() take these seven functions
         // as an explicit deps object instead of reaching for window.* inside
         // the module -- this is the one place that builds it for the two
         // call sites that still live in this inline script (toggleLanguage's
@@ -10073,8 +10072,8 @@
         if (semanticBookmarkBtn) {
             semanticBookmarkBtn.addEventListener('click', saveSemanticBookmark);
             // Explicit, scope-independent signal for static/js/reader-ui.js's
-            // installSemanticBookmarking() guard (plan.md §19 Phase 0) — do not
-            // remove until the inline copy above is deleted (§19 Phase 3).
+            // installSemanticBookmarking() guard — do not
+            // remove until the inline copy above is deleted.
             window.__shelahLegacyBookmarkBound = true;
         }
         if (mobileNavBtn) {
@@ -12059,7 +12058,7 @@
         const SEARCH_LIFTOFF_MS = 420;
 
         // /ask retry/timeout resilience now lives in static/js/ai-service.js::askAi()
-        // (plan.md §19 Phase 1 / Prompt 32) -- this used to be an inline
+        // -- this used to be an inline
         // askWithRetry() duplicating that module. See ai-service.js's module
         // docstring for the ported behavior and the return contract.
         async function handleAiSearch(question) {
@@ -12116,11 +12115,11 @@
                 // Another question or answer replaced this one meanwhile.
                 if (!data) return;
 
-                // TODO(§19): appState.lastAiQuestion/.lastAiResponse duplicate
+                // TODO: appState.lastAiQuestion/.lastAiResponse duplicate
                 // state.ai.* (written by askAi() itself via setState()). Kept
                 // alongside the module convention this phase only -- collapsing
                 // the two schemes is a separate change once every reader of the
-                // legacy keys is migrated (plan.md §19 Phase 1 step 4).
+                // legacy keys is migrated.
                 appState.lastAiQuestion = question;
                 appState.lastAiResponse = data;
                 // Refresh history sidebar so the new entry appears immediately
@@ -12140,7 +12139,7 @@
                     });
                 }
             } catch (error) {
-                // TODO(§19): see the success-path note above -- same duplication.
+                // TODO: see the success-path note above -- same duplication.
                 appState.lastAiQuestion = '';
                 appState.lastAiResponse = null;
 
@@ -13069,9 +13068,8 @@
                 renderSearchSuggestions();
             }
 
-            // static/js/zmanim.js owns zmanimData and the full render (plan.md
-            // §19 Phase 2); this used to duplicate ~80 lines of
-            // fetchZmanimAPI's own render logic here. refreshZmanimDisplay()
+            // static/js/zmanim.js owns zmanimData and the full render; this used
+            // to duplicate ~80 lines of fetchZmanimAPI's own render logic here. refreshZmanimDisplay()
             // itself no-ops when the module hasn't fetched anything yet, so
             // no local zmanimData guard is needed -- just skip the call
             // entirely if the module bridge isn't up yet (e.g. this runs
@@ -13474,7 +13472,7 @@
             }
         }
 
-        // Self-recovery for the holidays calendar's events fetch (§13): a
+        // Self-recovery for the holidays calendar's events fetch: a
         // failed month fetch used to leave the grid showing no events with
         // no indication anything went wrong. One automatic retry, then a
         // visible retry control so it never gets permanently stuck.
@@ -14003,7 +14001,7 @@
             hideSearchSuggestions();
         });
 
-        // Answer feedback widget (plan.md §12.4). `container` is the target
+        // Answer feedback widget. `container` is the target
         // div, `data` is the /ask response (data.meta carries mode/language/
         // fallback/safety_class — the same fields on every response branch,
         // see app.py::ask_question), `queryTitle` is the raw question text
@@ -14137,7 +14135,7 @@
             return shown.type === 'home';
         }
 
-        // ─── Privacy & Data modal (plan.md §8.D self-serve DSR) ────────────────
+        // ─── Privacy & Data modal (self-serve data request) ────────────────────
         // Guards the delete-account request: closing the modal (backdrop
         // click / Escape / Close button) or resubmitting must not abandon
         // an in-flight irreversible delete request -- see
@@ -14369,10 +14367,10 @@
             }
         });
 
-        // Analytics consent gate (plan.md §12.5.3, §8.A.4). Vercel Web
+        // Analytics consent gate. Vercel Web
         // Analytics is cookieless and stores no cross-site identifier, but
         // it's still gated behind explicit opt-in rather than loaded by
-        // default, matching the consent-first stance the rest of §8.A takes
+        // default, matching the consent-first stance the rest of the app takes
         // on non-essential scripts.
         const ANALYTICS_CONSENT_KEY = "Sh'elahAnalyticsConsent";
 

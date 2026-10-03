@@ -1,5 +1,5 @@
 """
-Tests for backend/claude.py's sync/async loop-bridge (plan.md §5.1).
+Tests for backend/claude.py's sync/async loop-bridge.
 
 _call_primary_model_sync() is documented as only safe to call from a thread
 with no running event loop (Flask WSGI workers). These tests pin that fast
@@ -87,7 +87,7 @@ class TestBridgePath:
             asyncio.run(coroutine)
 
     def test_timeout_cancels_the_underlying_coroutine(self, monkeypatch):
-        """Regression test for a confirmed Phase 5 concurrency-review
+        """Regression test for a confirmed concurrency-review
         finding: concurrent.futures.Future.result(timeout=...) alone only
         stops the *caller* from waiting — it does not cancel the submitted
         work, so an abandoned bridge call could keep occupying a worker in

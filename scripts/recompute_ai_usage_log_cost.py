@@ -1,19 +1,19 @@
 """
 One-off backfill: recompute historical ai_usage_log.cost_usd using the
-current (post-Prompt-33a) backend.cost_meter._PRICE_PER_M table.
+current backend.cost_meter._PRICE_PER_M table, which prices the production Gemini model.
 
-Background (plan.md §20.1-C1 / §20a.5): every row written before this fix
+Background: every row written before this fix
 landed used a price table missing the production Gemini model
 ("gemini-3.5-flash-lite"), so any such row was inserted with cost_usd=0.0
 regardless of actual token usage. Each row still carries its real
 input_tokens/output_tokens, so an exact-for-currently-known-pricing
 recompute is possible — this script does that recompute, not a guess.
 
-NOT wired into any automated pipeline and NOT run as part of the Prompt 33a
-pass that authored it — mutating financial ledger rows against the only
-Supabase project this codebase has (no staging environment, see plan.md
-§22's "solo developer, no staging environment" note) is exactly the kind of
-action that needs a human at the keyboard reviewing --dry-run output first.
+NOT wired into any automated pipeline and NOT run when it was authored —
+mutating financial ledger rows against the only Supabase project this
+codebase has (solo developer, no staging environment) is exactly the kind
+of action that needs a human at the keyboard reviewing --dry-run output
+first.
 
 Usage:
     python3 scripts/recompute_ai_usage_log_cost.py                # dry run (default)
@@ -23,8 +23,7 @@ Requires SUPABASE_URL + SUPABASE_SECRET_KEY (service-role key — this must
 bypass RLS to touch every user's rows, not just the caller's own).
 
 After a real run, paste the printed pre/post totals into the commit message
-per plan.md §20a.5's "record the pre/post totals in the commit message"
-instruction.
+so the change is auditable.
 
 CAUTION — same-day rows and the live budget ceiling: check_user_budget_and_
 enforce() (cost_meter.py:285) sums TODAY's cost_usd per caller before every
@@ -156,7 +155,7 @@ def main() -> None:
 
     print(f"\nApplying {len(updates)} updates...")
     apply_updates(client, updates)
-    print("Done. Paste the pre/post totals above into the commit message (plan.md §20a.5).")
+    print("Done. Paste the pre/post totals above into the commit message.")
 
 
 if __name__ == "__main__":

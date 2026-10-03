@@ -1,8 +1,8 @@
 """
-Price-table integrity tests for backend/cost_meter.py (plan.md §20a / Prompt
-33a — "the cost ledger currently reads $0.00 for most production calls").
+Price-table integrity tests for backend/cost_meter.py (the cost ledger used to read
+$0.00 for most production calls).
 
-Background (plan.md §20.1-C1): `_PRICE_PER_M` did not contain an entry for
+Background: `_PRICE_PER_M` did not contain an entry for
 `gemini-3.5-flash-lite`, the production Gemini model
 (`backend.claude._DEFAULT_GEMINI_MODEL`). `estimate_cost_usd()` silently
 fell back to `_UNKNOWN_PRICE` (all zeros) for any unrecognized model, so
@@ -11,7 +11,7 @@ was logged to `ai_usage_log` at `cost_usd = 0.0`, with no warning anywhere.
 Both the per-user ceiling and the global daily alert read that column, so
 neither could ever fire on Gemini spend.
 
-Pre-fix verification (§20a.1's golden master, run before this file's
+Pre-fix verification (a golden master, run before this file's
 inverted assertions were written): `_PRICE_PER_M` had no
 "gemini-3.5-flash-lite" key, so
 `estimate_cost_usd("gemini-3.5-flash-lite", 1000, 1000) == 0.0` on the code
@@ -48,8 +48,8 @@ def test_unknown_model_still_returns_zero_cost():
 
 
 def test_production_gemini_model_is_priced():
-    """Was $0.0 via silent _UNKNOWN_PRICE fallback (plan.md §20.1-C1,
-    verified against pre-fix _PRICE_PER_M -- no dict key at all).
+    """Was $0.0 via silent _UNKNOWN_PRICE fallback (verified
+    against pre-fix _PRICE_PER_M -- no dict key at all).
     _PRICE_PER_M now carries a real, explicit entry for the production
     Gemini model -- $0.00 deliberately (2026-09-01: this project runs on
     Gemini's free tier), not because the key is missing. The distinction
@@ -110,7 +110,7 @@ class TestEveryDispatchableModelIsPriced:
 
 
 class TestUnpricedModelWarnsOnceLoudly:
-    """§20a.2's "loud runtime fallback": an unpriced model must never again
+    """The "loud runtime fallback": an unpriced model must never again
     fail silently. Still returns $0.0 -- the fix does not guess a price."""
 
     def test_first_lookup_of_an_unpriced_model_logs_a_warning(self, caplog):

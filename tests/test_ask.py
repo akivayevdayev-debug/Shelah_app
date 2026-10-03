@@ -126,7 +126,7 @@ class TestAskFlask:
 
         Patches both the legacy ask_claude entry point AND
         ask_pipeline.run_agentic_ask, since which one app.py actually calls
-        depends on claude.AI_AGENTIC_TOOLS (plan.md §9) -- this way the test
+        depends on claude.AI_AGENTIC_TOOLS -- this way the test
         exercises the real live failure path regardless of that flag's state.
 
         Uses a unique question string to avoid a cache hit from earlier tests
@@ -185,11 +185,11 @@ class TestAskRateLimit:
     async def test_requests_beyond_the_configured_limit_are_rate_limited(self, fastapi_client):
         """
         Rate limiting for /ask is now enforced centrally by
-        backend.rate_limit.RateLimitMiddleware (plan.md §16.3-L2), not by
+        backend.rate_limit.RateLimitMiddleware, not by
         Flask -- app.py's own /ask route (exercised by TestAskFlask above,
         reachable only via the bare Flask test_client / `python3 app.py` dev
-        mode) no longer carries a limiter of its own (plan.md §16.8.1:
-        Flask-Limiter removed). This drives real traffic through the ASGI
+        mode) no longer carries a limiter of its own (Flask-Limiter was
+        removed). This drives real traffic through the ASGI
         layer instead, where production traffic actually goes. Uses a
         dedicated TEST-NET-3 IP (RFC 5737) via X-Forwarded-For so this
         test's bucket can't collide with any other test's in the shared
@@ -210,7 +210,7 @@ class TestAskRateLimit:
         assert over_limit_response.status_code == 429
 
 
-# ─── Identity-aware quotas (plan.md §16.6 Phase 9c) ───────────────────────────
+# ─── Identity-aware quotas ────────────────────────────────────────────────────
 
 class TestAskIdentityAwareQuotas:
     """An authenticated caller and an anonymous caller behind the SAME IP
@@ -276,10 +276,10 @@ class TestAskIdentityAwareQuotas:
         assert over_limit.status_code == 429
 
 
-# ─── Authenticated memory retrieval, no Flask request context (plan.md §35.1) ─
+# ─── Authenticated memory retrieval, no Flask request context ─
 
 class TestAskAuthenticatedMemoryRetrieval:
-    """Regression coverage for plan.md §35.1 / Prompt 47: before the fix,
+    """Regression coverage: before the fix,
     _fetch_user_memory_summaries() unconditionally read Flask's global
     `request` proxy (via app._get_user_scoped_supabase_client() ->
     _get_request_supabase_client() -> _extract_supabase_access_token() ->
@@ -351,14 +351,13 @@ class TestAskAuthenticatedMemoryRetrieval:
         ]
 
 
-# ─── Turnstile gate (plan.md §16.4 / §16.6 Phase 9c) ──────────────────────────
+# ─── Turnstile gate ───────────────────────────────────────────────────────────
 
 class TestAskTurnstileGate:
     async def test_disabled_by_default_is_a_true_noop(self, fastapi_client):
-        """TURNSTILE_ENABLED is unset in the test environment -- Prompt 29c's
-        explicit VERIFY bar requires this to change nothing about /ask, even
-        for a caller who would otherwise be well past the anonymous hourly
-        threshold."""
+        """TURNSTILE_ENABLED is unset in the test environment -- an unconfigured
+        gate must change nothing about /ask, even for a caller who would
+        otherwise be well past the anonymous hourly threshold."""
         import backend.turnstile as turnstile_mod
 
         headers = {"X-Forwarded-For": "198.51.100.15"}
@@ -504,8 +503,8 @@ class TestAskFastAPI:
         assert "Strict-Transport-Security" in response.headers
 
     async def test_rate_limit_returns_429_on_excess(self, fastapi_client):
-        """backend.rate_limit.RateLimitMiddleware enforces this centrally now
-        (plan.md §16.3-L2); seed its in-memory store directly to simulate an
+        """backend.rate_limit.RateLimitMiddleware enforces this centrally now;
+        seed its in-memory store directly to simulate an
         exhausted window without needing N real round trips. No Authorization
         header is sent, so the request is keyed anonymously by IP, not
         user_id — see backend.rate_limit._build_key."""
@@ -537,7 +536,7 @@ class TestAskFastAPI:
             store._buckets.pop(key, None)
 
 
-# ─── ai_cited_sources schema parity (plan.md §23.4) ──────────────────────────
+# ─── ai_cited_sources schema parity ──────────────────────────────────────────
 #
 # Regression coverage for the confirmed bug: the ASGI handler silently omitted
 # ai_cited_sources on every path. The key must now be present (a list, possibly
@@ -601,7 +600,7 @@ class TestAiCitedSourcesSchemaParity:
 
 
 class TestAskTransportKeySetParity:
-    """plan.md §23.4 invariant B: the Flask and ASGI /ask handlers must return the
+    """Invariant: the Flask and ASGI /ask handlers must return the
     same top-level JSON key set on every path, so they can't silently drift the
     way the missing-`ai_cited_sources` bug did. `meta` is deliberately excluded
     from the comparison — each transport adds one legitimate, transport-specific
@@ -664,7 +663,7 @@ class TestAskTransportKeySetParity:
         assert set(response.json().keys()) == self.TOP_LEVEL_KEYS
 
 
-# ─── AI timeout/retry resilience (plan.md §23.4 invariant A) ───────────────────
+# ─── AI timeout/retry resilience ───────────────────────────────────────────────
 #
 # Regression coverage for the confirmed bug: AI_MODEL_TIMEOUT_SECONDS was defined
 # but never passed to the SDK clients, and there was no total-budget guard, so a
@@ -717,7 +716,7 @@ class TestAiTotalBudgetTimeout:
 
         Patches both the legacy ask_ai_async entry point AND
         ask_pipeline.run_agentic_ask, since which one asgi.py actually awaits
-        depends on claude.AI_AGENTIC_TOOLS (plan.md §9) -- this way the test
+        depends on claude.AI_AGENTIC_TOOLS -- this way the test
         exercises the real live timeout path regardless of that flag's state.
         """
         import asyncio
@@ -743,13 +742,13 @@ class TestAiTotalBudgetTimeout:
         assert "ai_cited_sources" in body
 
 
-# ─── safety_class meta propagation (plan.md §8.B.1 / §8.B-AGE.7) ──────────────
+# ─── safety_class meta propagation ────────────────────────────────────────────
 #
 # Regression coverage for the confirmed gap: backend/claude.py has classified
-# every query's safety_class since the §8.B-AGE work landed, and stored it to
-# ask_history for defensibility logging (§8.B.6) -- but never actually put it
+# every query's safety_class since the age-safety work landed, and stored it to
+# ask_history for defensibility logging -- but never actually put it
 # on the JSON response the frontend receives, so the UI had no way to render
-# the persistent disclaimer banner's referral variant (§8.B.1) for the exact
+# the persistent disclaimer banner's referral variant for the exact
 # medical/self-harm/abuse/domain-refusal cases that need it most. Also covers
 # the _store_ask_history wiring: the Flask security_blocked branch previously
 # skipped logging blocked/referral answers entirely, and the FastAPI success
@@ -792,7 +791,7 @@ class TestSafetyClassMetaPropagation:
         """Regression: _security_blocked_ask_payload previously returned
         without ever calling _store_ask_history, so referral/blocked
         interactions -- the highest-liability category -- were the only ones
-        never logged for defensibility (plan.md §8.B.6)."""
+        never logged for defensibility."""
         import app as flask_app_module
 
         calls = []
@@ -844,7 +843,7 @@ class TestSafetyClassMetaPropagation:
         """Regression: _run_ask_async_ai_synthesis's _store_ask_history call
         omitted safety_class/prompt_version entirely, silently defaulting to
         "ok"/None for every FastAPI-path request regardless of the query's
-        real classification (plan.md §8.B.6)."""
+        real classification."""
         import asgi as asgi_mod
 
         calls = []
@@ -867,7 +866,7 @@ class TestSafetyClassMetaPropagation:
 
 # ─── Degradation path: all circuits open still yields a well-formed answer ────
 #
-# claude_code_prompts.md Prompt 17 (§8.E) explicitly asks for "Tests for the
+# The degradation path needs explicit tests: "Tests for the
 # degradation path (all providers circuit-open still returns a well-formed
 # answer payload)". The AI-failure tests above (test_anthropic_failure_
 # meta_fallback_true, TestAiTotalBudgetTimeout) simulate AI failure with a
@@ -876,7 +875,7 @@ class TestSafetyClassMetaPropagation:
 # is driven by real circuit-breaker state.
 #
 # (The *primary* AI call site's own circuit gating -- absent when this class
-# was written, closed under Prompt 39 / plan.md §26.1 -- is covered
+# was written, since closed -- is covered
 # separately by TestAskPrimaryAiCircuitBreaker at the end of this file, which
 # forces the 'gemini'/'claude' circuits open and proves neither provider call
 # is attempted at all.)
@@ -886,7 +885,7 @@ class TestSafetyClassMetaPropagation:
 # _run_ask_async_fallback both call get_halakhic_sources(), which is gated on
 # is_healthy('sefaria')/is_healthy('web') (see tests/test_search_provider.py's
 # own circuit-breaker section for the unit-level version of this guarantee,
-# and plan.md line 137's "zero user-facing downtime" guarantee). These tests
+# and the "zero user-facing downtime" guarantee). These tests
 # exercise that same guarantee end-to-end through the real /ask route: with
 # every external circuit forced open via health.is_healthy, and the AI call
 # itself failing (matching every other AI-failure test's convention above),
@@ -945,10 +944,10 @@ class TestAskDegradationPath:
         assert meta.get("fallback") is True
 
 
-# ─── Primary AI call site is circuit-broken (plan.md §26.1 / Prompt 39) ───────
+# ─── Primary AI call site is circuit-broken ───────────────────────────────────
 #
 # 'gemini' and 'claude' have always been registered in
-# backend/health_check.py's _PROBES dict, but until Prompt 39 nothing
+# backend/health_check.py's _PROBES dict, but for a long time nothing
 # consulted is_healthy() for them before the primary /ask AI call -- only the
 # *fallback* stage was gated (see TestAskDegradationPath above). Every /ask
 # therefore dialed a known-dead provider and paid the full timeout before
@@ -1191,7 +1190,7 @@ class TestAskPrimaryAiCircuitBreaker:
         assert health_check_module.health._circuits["gemini"].failures == 0
 
 
-# ─── Global cost circuit breaker wiring (plan.md §16.3-L3, Prompt 29b) ──────
+# ─── Global cost circuit breaker wiring ─────────────────────────────────────
 
 class TestAskGlobalCostBreaker:
     """asgi.py::ask_async() checks is_global_cost_breaker_tripped() after the
@@ -1264,7 +1263,7 @@ class TestAskGlobalCostBreaker:
     async def test_breaker_tripped_serves_cached_answer_when_available(
         self, fastapi_client, monkeypatch,
     ):
-        """Prompt 29b wires the previously-dead ASK_RESPONSE_CACHE so a
+        """ASK_RESPONSE_CACHE is wired into the breaker-paused path so a
         breaker-paused request can still serve a real answer if an identical
         question was already synthesized (and cached) earlier today."""
         import asgi as asgi_module
