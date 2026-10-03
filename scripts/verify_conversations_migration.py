@@ -139,7 +139,7 @@ def _check_end_to_end(service) -> int:
     backend/routes_conversations.py's routes use, run against the live
     schema via the service-role client (bypasses RLS, same fallback path
     the routes themselves use when STRICT_SUPABASE_RLS is off)."""
-    print(f"\n=== End-to-end check: create_conversation -> create_message -> get_conversation ===")
+    print("\n=== End-to-end check: create_conversation -> create_message -> get_conversation ===")
     probe_user_id = "acceptance-test-user-conversations-migration"
     failures = 0
     conversation_id = None

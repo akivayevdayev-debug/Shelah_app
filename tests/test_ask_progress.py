@@ -299,6 +299,7 @@ class TestAskStreamRoute:
         assert any(line["type"] == "ping" for line in lines)
 
 
+@pytest.mark.usefixtures("authed")  # fakes the Clerk token; its value is never read
 class TestConversationAskStream:
     """Drives POST /api/conversations/<id>/ask through the real view with the
     retrieval/synthesis helpers replaced by ones that report steps."""
@@ -327,14 +328,14 @@ class TestConversationAskStream:
         monkeypatch.setattr(t.routes_conversations_module, "_dispatch_ask_ai_synthesis_call", dispatch)
         return client
 
-    def test_plain_request_is_unchanged_json(self, test_client, authed, conv, monkeypatch):
+    def test_plain_request_is_unchanged_json(self, test_client, conv, monkeypatch):
         self._setup(conv, monkeypatch)
         response = test_client.post(
             "/api/conversations/conv-1/ask", json={"question": "q"}, headers=conv.AUTH_HEADERS)
         assert response.status_code == 201
         assert response.get_json()["assistant_message"]["id"] == "msg-assistant-1"
 
-    def test_the_stream_reports_steps_then_the_same_body(self, test_client, authed, conv, monkeypatch):
+    def test_the_stream_reports_steps_then_the_same_body(self, test_client, conv, monkeypatch):
         self._setup(conv, monkeypatch)
         response = test_client.post(
             "/api/conversations/conv-1/ask", json={"question": "q"},
@@ -351,7 +352,7 @@ class TestConversationAskStream:
         assert last["body"]["assistant_message"]["id"] == "msg-assistant-1"
 
     def test_a_synthesis_failure_is_still_a_result_with_a_retryable_error_turn(
-        self, test_client, authed, conv, monkeypatch,
+        self, test_client, conv, monkeypatch,
     ):
         client = self._setup(conv, monkeypatch, dispatch_error=RuntimeError("model down"))
         response = test_client.post(
@@ -367,7 +368,7 @@ class TestConversationAskStream:
         assert stored_assistant_turns == ["error"]
 
     def test_a_refusal_before_any_step_is_the_ordinary_response(
-        self, test_client, authed, conv, monkeypatch,
+        self, test_client, conv, monkeypatch,
     ):
         client = conv._FakeSupabaseClient({conv.CONV_TABLE: conv._FakeQuery(data=[])})
         monkeypatch.setattr(conv.routes_conversations_module, "_get_user_scoped_supabase_client", lambda: client)
@@ -377,7 +378,7 @@ class TestConversationAskStream:
         assert response.status_code == 404
         assert response.mimetype == "application/json"
 
-    def test_an_ask_that_reports_no_steps_is_plain_json(self, test_client, authed, conv, monkeypatch):
+    def test_an_ask_that_reports_no_steps_is_plain_json(self, test_client, conv, monkeypatch):
         self._setup(conv, monkeypatch, steps=())
         monkeypatch.setattr(
             conv.routes_conversations_module, "_dispatch_ask_ai_synthesis_call",
@@ -389,7 +390,7 @@ class TestConversationAskStream:
         assert response.mimetype == "application/json"
 
     def test_the_worker_can_still_read_the_request_and_flask_globals(
-        self, test_client, authed, conv, monkeypatch,
+        self, test_client, conv, monkeypatch,
     ):
         seen = {}
         self._setup(conv, monkeypatch)
