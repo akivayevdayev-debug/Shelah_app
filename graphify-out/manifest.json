@@ -1,7 +1,7 @@
 {
   ".claude/settings.json": {
-    "mtime": 1790225849.0857654,
-    "ast_hash": "26417cfa92ca41976728d49e3e18f9e5",
+    "mtime": 1790988423.9780138,
+    "ast_hash": "ce3334e5066d8e1c50283e0828590cc1",
     "semantic_hash": ""
   },
   "app.py": {
@@ -190,8 +190,8 @@
     "semantic_hash": ""
   },
   "static/js/main.js": {
-    "mtime": 1790983754.5392108,
-    "ast_hash": "12a9c4669551649db48ed3617638f1c5",
+    "mtime": 1790988846.3818138,
+    "ast_hash": "668e0f0fb96b878cb9b963179600c016",
     "semantic_hash": ""
   },
   "static/js/reader-ui.js": {
@@ -205,8 +205,8 @@
     "semantic_hash": "67093389918cdfdfec53e654ed5a2d22"
   },
   "static/js/zmanim.js": {
-    "mtime": 1790799086.6713066,
-    "ast_hash": "c335a6546edb5123baf64b9e6c53a56f",
+    "mtime": 1790988846.3815656,
+    "ast_hash": "f8e8c349c1059489debc6a921ff372af",
     "semantic_hash": ""
   },
   "static/service-worker.js": {
@@ -415,9 +415,9 @@
     "semantic_hash": "38a53e95ded880782190ddf2f2810317"
   },
   ".claude/CLAUDE.md": {
-    "mtime": 1781032238.7508373,
-    "ast_hash": "7ab05324f65cb647d34b45342dc8b406",
-    "semantic_hash": "7ab05324f65cb647d34b45342dc8b406"
+    "mtime": 1790988425.4884171,
+    "ast_hash": "e1a845d9ca62c7600aa9b1ba24b57e4a",
+    "semantic_hash": ""
   },
   ".claude/skills/graphify/SKILL.md": {
     "mtime": 1780961065.2412925,
@@ -1795,8 +1795,8 @@
     "semantic_hash": ""
   },
   "static/js/calendar-detail.js": {
-    "mtime": 1790799372.7539494,
-    "ast_hash": "6e2e75acff4d8bdd3d9203ed525e96f7",
+    "mtime": 1790988846.382368,
+    "ast_hash": "4893bc70dc64a14cf51d4fe1bf2cc359",
     "semantic_hash": ""
   },
   "static/js/clerk-appearance.js": {
@@ -1875,8 +1875,8 @@
     "semantic_hash": ""
   },
   "static/js/conversation-ui.js": {
-    "mtime": 1790986210.289565,
-    "ast_hash": "472fe74c4411ba69896c2ca9e31f3de5",
+    "mtime": 1790988846.3810747,
+    "ast_hash": "2b67cbf6c9b13035af96ca3ba2f60091",
     "semantic_hash": ""
   },
   "tests_js/conversation_ui_helpers.test.js": {
@@ -2060,8 +2060,8 @@
     "semantic_hash": ""
   },
   "backend/siddur_lines.py": {
-    "mtime": 1790787841.0264955,
-    "ast_hash": "9108f07c3bd6381a37c1a1b67b096c8f",
+    "mtime": 1790988838.623903,
+    "ast_hash": "59f5a4ad680a9859cc5e77e5e58bd396",
     "semantic_hash": ""
   },
   "data/siddur/edot-hamizrach/services/arbit-shabbat.json": {
@@ -2240,8 +2240,8 @@
     "semantic_hash": ""
   },
   "scripts/verify_library_removals.py": {
-    "mtime": 1790787841.0280461,
-    "ast_hash": "d5df5bff2ef98da6c9af1b006b4e801e",
+    "mtime": 1790988838.6232598,
+    "ast_hash": "7b64c5a3482150516c14f964244ed164",
     "semantic_hash": ""
   },
   "static/js/ask-progress.js": {
@@ -2305,8 +2305,8 @@
     "semantic_hash": ""
   },
   "tests/test_verify_library_removals.py": {
-    "mtime": 1790787841.040005,
-    "ast_hash": "add7cfbe73062f302b53dd78dfe40b32",
+    "mtime": 1790988838.6235244,
+    "ast_hash": "fa75c14a2734f544ef6b0e1b9bcb5864",
     "semantic_hash": ""
   },
   "tests_js/ask_progress.test.js": {
