@@ -144,13 +144,16 @@ def main(argv: Optional[List[str]] = None, session=None, *,
     parser = argparse.ArgumentParser(description=__doc__.split("\n\n")[0])
     parser.parse_args(argv)
 
-    report = json.loads(report_path.read_text(encoding="utf-8"))
+    with open(report_path, encoding="utf-8") as handle:
+        report = json.load(handle)
     if session is not None:
         payload = run(report, session)
     else:
         with requests.Session() as owned_session:
             payload = run(report, owned_session)
-    output_path.write_text(json.dumps(payload, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+    with open(output_path, "w", encoding="utf-8") as handle:
+        json.dump(payload, handle, ensure_ascii=False, indent=2)
+        handle.write("\n")
     stats = payload["stats"]
     print(f"{stats['reinstated']} of {stats['removals']} removals reinstated -> {output_path}")
     return 0
