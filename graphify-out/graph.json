@@ -485,7 +485,7 @@
       "file_type": "code",
       "source_file": "app.py",
       "source_location": "L636",
-      "community": 32,
+      "community": 128,
       "norm_label": "_detect_community_in_text()",
       "id": "app_detect_community_in_text"
     },
@@ -647,7 +647,7 @@
       "file_type": "code",
       "source_file": "app.py",
       "source_location": "L1158",
-      "community": 2,
+      "community": 574,
       "norm_label": "apply_response_cache_policy()",
       "id": "app_apply_response_cache_policy"
     },
@@ -1646,7 +1646,7 @@
       "file_type": "code",
       "source_file": "asgi.py",
       "source_location": "L761",
-      "community": 115,
+      "community": 181,
       "norm_label": "_run_ask_async_fallback()",
       "id": "asgi_run_ask_async_fallback"
     },
@@ -1925,7 +1925,7 @@
       "file_type": "rationale",
       "source_file": "asgi.py",
       "source_location": "L764",
-      "community": 115,
+      "community": 181,
       "norm_label": "stage 4 of ask_async(): halakhic-source-discovery fallback, run when     _run_as",
       "id": "asgi_rationale_764"
     },
@@ -3248,7 +3248,7 @@
       "file_type": "code",
       "source_file": "backend/cache_policy.py",
       "source_location": "L1",
-      "community": 2,
+      "community": 574,
       "norm_label": "cache_policy.py",
       "id": "backend_cache_policy"
     },
@@ -3257,7 +3257,7 @@
       "file_type": "code",
       "source_file": "backend/cache_policy.py",
       "source_location": "L91",
-      "community": 2,
+      "community": 574,
       "norm_label": "classify_cache_tier()",
       "id": "backend_cache_policy_classify_cache_tier"
     },
@@ -3266,7 +3266,7 @@
       "file_type": "code",
       "source_file": "backend/cache_policy.py",
       "source_location": "L116",
-      "community": 2,
+      "community": 574,
       "norm_label": "_private_default()",
       "id": "backend_cache_policy_private_default"
     },
@@ -3275,7 +3275,7 @@
       "file_type": "rationale",
       "source_file": "backend/cache_policy.py",
       "source_location": "L1",
-      "community": 2,
+      "community": 574,
       "norm_label": "cdn/browser cache-tier classification (plan.md \u00a714.3).  single source of truth f",
       "id": "backend_cache_policy_rationale_1"
     },
@@ -3284,7 +3284,7 @@
       "file_type": "rationale",
       "source_file": "backend/cache_policy.py",
       "source_location": "L92",
-      "community": 2,
+      "community": 574,
       "norm_label": "return the cache-control value for (method, path), or none to leave     the head",
       "id": "backend_cache_policy_rationale_92"
     },
@@ -3293,7 +3293,7 @@
       "file_type": "rationale",
       "source_file": "backend/cache_policy.py",
       "source_location": "L117",
-      "community": 2,
+      "community": 574,
       "norm_label": "fail-safe default: every /api/* route plus the two historical     always-private",
       "id": "backend_cache_policy_rationale_117"
     },
@@ -3599,7 +3599,7 @@
       "file_type": "code",
       "source_file": "backend/claude.py",
       "source_location": "L167",
-      "community": 469,
+      "community": 273,
       "norm_label": "_model_call_timeout()",
       "id": "backend_claude_model_call_timeout"
     },
@@ -3653,7 +3653,7 @@
       "file_type": "code",
       "source_file": "backend/claude.py",
       "source_location": "L590",
-      "community": 252,
+      "community": 131,
       "norm_label": "_configure_gemini_client()",
       "id": "backend_claude_configure_gemini_client"
     },
@@ -3716,7 +3716,7 @@
       "file_type": "code",
       "source_file": "backend/claude.py",
       "source_location": "L703",
-      "community": 469,
+      "community": 252,
       "norm_label": "_generate_gemini_content_with_retry()",
       "id": "backend_claude_generate_gemini_content_with_retry"
     },
@@ -3725,7 +3725,7 @@
       "file_type": "code",
       "source_file": "backend/claude.py",
       "source_location": "L730",
-      "community": 273,
+      "community": 32,
       "norm_label": "_call_gemini_model()",
       "id": "backend_claude_call_gemini_model"
     },
@@ -3734,7 +3734,7 @@
       "file_type": "code",
       "source_file": "backend/claude.py",
       "source_location": "L850",
-      "community": 369,
+      "community": 32,
       "norm_label": "sanitize_user_query()",
       "id": "backend_claude_sanitize_user_query"
     },
@@ -4238,7 +4238,7 @@
       "file_type": "rationale",
       "source_file": "backend/claude.py",
       "source_location": "L168",
-      "community": 469,
+      "community": 273,
       "norm_label": "http timeout for the next model request: the per-request ceiling,     clamped to",
       "id": "backend_claude_rationale_168"
     },
@@ -4283,7 +4283,7 @@
       "file_type": "rationale",
       "source_file": "backend/claude.py",
       "source_location": "L591",
-      "community": 252,
+      "community": 131,
       "norm_label": "create/cache google-genai client; return error string on failure.",
       "id": "backend_claude_rationale_591"
     },
@@ -4310,7 +4310,7 @@
       "file_type": "rationale",
       "source_file": "backend/claude.py",
       "source_location": "L710",
-      "community": 469,
+      "community": 252,
       "norm_label": "gemini content generation, retried only on 429/503/504, with each     attempt's",
       "id": "backend_claude_rationale_710"
     },
@@ -4319,7 +4319,7 @@
       "file_type": "rationale",
       "source_file": "backend/claude.py",
       "source_location": "L735",
-      "community": 273,
+      "community": 32,
       "norm_label": "low-level gemini primary call using gemini-3.5-flash-lite. falls back to claude",
       "id": "backend_claude_rationale_735"
     },
@@ -4328,7 +4328,7 @@
       "file_type": "rationale",
       "source_file": "backend/claude.py",
       "source_location": "L851",
-      "community": 369,
+      "community": 32,
       "norm_label": "remove hidden/control/system-level characters from incoming user query.",
       "id": "backend_claude_rationale_851"
     },
@@ -4895,7 +4895,7 @@
       "file_type": "code",
       "source_file": "backend/cost_meter.py",
       "source_location": "L453",
-      "community": 335,
+      "community": 498,
       "norm_label": "_per_user_daily_budget_usd()",
       "id": "backend_cost_meter_per_user_daily_budget_usd"
     },
@@ -4913,7 +4913,7 @@
       "file_type": "code",
       "source_file": "backend/cost_meter.py",
       "source_location": "L527",
-      "community": 335,
+      "community": 498,
       "norm_label": "_max_single_ask_reservation_usd()",
       "id": "backend_cost_meter_max_single_ask_reservation_usd"
     },
@@ -4931,7 +4931,7 @@
       "file_type": "code",
       "source_file": "backend/cost_meter.py",
       "source_location": "L587",
-      "community": 335,
+      "community": 498,
       "norm_label": "check_user_budget_and_enforce()",
       "id": "backend_cost_meter_check_user_budget_and_enforce"
     },
@@ -5039,7 +5039,7 @@
       "file_type": "rationale",
       "source_file": "backend/cost_meter.py",
       "source_location": "L454",
-      "community": 335,
+      "community": 498,
       "norm_label": "configured per-caller daily spend cap (defaults to     _default_per_user_daily_b",
       "id": "backend_cost_meter_rationale_454"
     },
@@ -5057,7 +5057,7 @@
       "file_type": "rationale",
       "source_file": "backend/cost_meter.py",
       "source_location": "L528",
-      "community": 335,
+      "community": 498,
       "norm_label": "worst-case usd cost of one /ask call \u2014 reserved atomically before     dispatch s",
       "id": "backend_cost_meter_rationale_528"
     },
@@ -5075,7 +5075,7 @@
       "file_type": "rationale",
       "source_file": "backend/cost_meter.py",
       "source_location": "L588",
-      "community": 335,
+      "community": 498,
       "norm_label": "enforce a per-caller daily ai spend ceiling before dispatching to a     model, a",
       "id": "backend_cost_meter_rationale_588"
     },
@@ -6092,7 +6092,7 @@
       "file_type": "code",
       "source_file": "backend/helpers.py",
       "source_location": "L743",
-      "community": 461,
+      "community": 503,
       "norm_label": "_first_hit()",
       "id": "backend_helpers_first_hit"
     },
@@ -6101,7 +6101,7 @@
       "file_type": "code",
       "source_file": "backend/helpers.py",
       "source_location": "L781",
-      "community": 461,
+      "community": 503,
       "norm_label": "_lookup_hebrew_word_in_sefaria_lexicon()",
       "id": "backend_helpers_lookup_hebrew_word_in_sefaria_lexicon"
     },
@@ -6281,7 +6281,7 @@
       "file_type": "code",
       "source_file": "backend/helpers.py",
       "source_location": "L1190",
-      "community": 115,
+      "community": 181,
       "norm_label": "_compact_ai_sources()",
       "id": "backend_helpers_compact_ai_sources"
     },
@@ -6290,7 +6290,7 @@
       "file_type": "code",
       "source_file": "backend/helpers.py",
       "source_location": "L1204",
-      "community": 461,
+      "community": 503,
       "norm_label": "extract_ai_cited()",
       "id": "backend_helpers_extract_ai_cited"
     },
@@ -6299,7 +6299,7 @@
       "file_type": "code",
       "source_file": "backend/helpers.py",
       "source_location": "L1222",
-      "community": 115,
+      "community": 181,
       "norm_label": "_normalize_for_community_match()",
       "id": "backend_helpers_normalize_for_community_match"
     },
@@ -6308,7 +6308,7 @@
       "file_type": "code",
       "source_file": "backend/helpers.py",
       "source_location": "L1230",
-      "community": 115,
+      "community": 181,
       "norm_label": "_match_normalized_community_alias()",
       "id": "backend_helpers_match_normalized_community_alias"
     },
@@ -6317,7 +6317,7 @@
       "file_type": "code",
       "source_file": "backend/helpers.py",
       "source_location": "L1241",
-      "community": 115,
+      "community": 181,
       "norm_label": "_match_normalized_community_name()",
       "id": "backend_helpers_match_normalized_community_name"
     },
@@ -6506,7 +6506,7 @@
       "file_type": "rationale",
       "source_file": "backend/helpers.py",
       "source_location": "L744",
-      "community": 461,
+      "community": 503,
       "norm_label": "run fn(candidate) over candidates with bounded concurrency, resolving     as soo",
       "id": "backend_helpers_rationale_744"
     },
@@ -6515,7 +6515,7 @@
       "file_type": "rationale",
       "source_file": "backend/helpers.py",
       "source_location": "L782",
-      "community": 461,
+      "community": 503,
       "norm_label": "stage 2 of _lookup_hebrew_word_meaning(): sefaria lexicon lookup.     split out",
       "id": "backend_helpers_rationale_782"
     },
@@ -6623,7 +6623,7 @@
       "file_type": "rationale",
       "source_file": "backend/helpers.py",
       "source_location": "L1191",
-      "community": 115,
+      "community": 181,
       "norm_label": "trim bulky source payloads to the excerpt shape used by the ui.",
       "id": "backend_helpers_rationale_1191"
     },
@@ -6632,7 +6632,7 @@
       "file_type": "rationale",
       "source_file": "backend/helpers.py",
       "source_location": "L1205",
-      "community": 461,
+      "community": 503,
       "norm_label": "pull the ai's own citation list out of a structured /ask payload.      single so",
       "id": "backend_helpers_rationale_1205"
     },
@@ -6641,7 +6641,7 @@
       "file_type": "rationale",
       "source_file": "backend/helpers.py",
       "source_location": "L1223",
-      "community": 115,
+      "community": 181,
       "norm_label": "lowercase and strip non-alphanumeric characters, for fuzzy     community-name ma",
       "id": "backend_helpers_rationale_1223"
     },
@@ -6650,7 +6650,7 @@
       "file_type": "rationale",
       "source_file": "backend/helpers.py",
       "source_location": "L1231",
-      "community": 115,
+      "community": 181,
       "norm_label": "find a community_aliases entry whose normalized alias matches, or     none. spli",
       "id": "backend_helpers_rationale_1231"
     },
@@ -6659,7 +6659,7 @@
       "file_type": "rationale",
       "source_file": "backend/helpers.py",
       "source_location": "L1242",
-      "community": 115,
+      "community": 181,
       "norm_label": "find a communities entry whose normalized name matches, or none.     split out o",
       "id": "backend_helpers_rationale_1242"
     },
@@ -6803,7 +6803,7 @@
       "file_type": "code",
       "source_file": "backend/logging_setup.py",
       "source_location": "L299",
-      "community": 335,
+      "community": 498,
       "norm_label": "get_client_key()",
       "id": "backend_logging_setup_get_client_key"
     },
@@ -6902,7 +6902,7 @@
       "file_type": "code",
       "source_file": "backend/logging_setup.py",
       "source_location": "L397",
-      "community": 32,
+      "community": 128,
       "norm_label": "hash_user_id()",
       "id": "backend_logging_setup_hash_user_id"
     },
@@ -6965,7 +6965,7 @@
       "file_type": "code",
       "source_file": "backend/logging_setup.py",
       "source_location": "L543",
-      "community": 498,
+      "community": 128,
       "norm_label": "_capture_backend_error()",
       "id": "backend_logging_setup_capture_backend_error"
     },
@@ -7091,7 +7091,7 @@
       "file_type": "rationale",
       "source_file": "backend/logging_setup.py",
       "source_location": "L300",
-      "community": 335,
+      "community": 498,
       "norm_label": "return the current context's client_key (empty string if unset).",
       "id": "backend_logging_setup_rationale_300"
     },
@@ -7145,7 +7145,7 @@
       "file_type": "rationale",
       "source_file": "backend/logging_setup.py",
       "source_location": "L398",
-      "community": 32,
+      "community": 128,
       "norm_label": "one-way digest of a clerk `sub` for _capture_backend_error context     (plan.md",
       "id": "backend_logging_setup_rationale_398"
     },
@@ -7190,7 +7190,7 @@
       "file_type": "rationale",
       "source_file": "backend/logging_setup.py",
       "source_location": "L544",
-      "community": 498,
+      "community": 128,
       "norm_label": "sentry-style structured logger for backend failures and ai prompt issues.      u",
       "id": "backend_logging_setup_rationale_544"
     },
@@ -7505,7 +7505,7 @@
       "file_type": "code",
       "source_file": "backend/rag.py",
       "source_location": "L1",
-      "community": 32,
+      "community": 128,
       "norm_label": "rag.py",
       "id": "backend_rag"
     },
@@ -7523,7 +7523,7 @@
       "file_type": "code",
       "source_file": "backend/rag.py",
       "source_location": "L52",
-      "community": 32,
+      "community": 128,
       "norm_label": "_zmanim_snapshot_for_tool_context()",
       "id": "backend_rag_zmanim_snapshot_for_tool_context"
     },
@@ -7541,7 +7541,7 @@
       "file_type": "code",
       "source_file": "backend/rag.py",
       "source_location": "L105",
-      "community": 32,
+      "community": 128,
       "norm_label": "_keyword_match_score()",
       "id": "backend_rag_keyword_match_score"
     },
@@ -7550,7 +7550,7 @@
       "file_type": "code",
       "source_file": "backend/rag.py",
       "source_location": "L121",
-      "community": 32,
+      "community": 128,
       "norm_label": "_score_community_knowledge_row()",
       "id": "backend_rag_score_community_knowledge_row"
     },
@@ -7559,7 +7559,7 @@
       "file_type": "code",
       "source_file": "backend/rag.py",
       "source_location": "L136",
-      "community": 32,
+      "community": 128,
       "norm_label": "_community_filter_from_request()",
       "id": "backend_rag_community_filter_from_request"
     },
@@ -7568,7 +7568,7 @@
       "file_type": "code",
       "source_file": "backend/rag.py",
       "source_location": "L145",
-      "community": 32,
+      "community": 128,
       "norm_label": "_build_knowledge_text_or_filter()",
       "id": "backend_rag_build_knowledge_text_or_filter"
     },
@@ -7577,7 +7577,7 @@
       "file_type": "code",
       "source_file": "backend/rag.py",
       "source_location": "L162",
-      "community": 32,
+      "community": 128,
       "norm_label": "_run_community_knowledge_query()",
       "id": "backend_rag_run_community_knowledge_query"
     },
@@ -7586,7 +7586,7 @@
       "file_type": "code",
       "source_file": "backend/rag.py",
       "source_location": "L186",
-      "community": 32,
+      "community": 128,
       "norm_label": "_rank_community_knowledge_rows()",
       "id": "backend_rag_rank_community_knowledge_rows"
     },
@@ -7595,7 +7595,7 @@
       "file_type": "code",
       "source_file": "backend/rag.py",
       "source_location": "L217",
-      "community": 32,
+      "community": 128,
       "norm_label": "_retrieve_community_knowledge()",
       "id": "backend_rag_retrieve_community_knowledge"
     },
@@ -7604,7 +7604,7 @@
       "file_type": "code",
       "source_file": "backend/rag.py",
       "source_location": "L270",
-      "community": 32,
+      "community": 173,
       "norm_label": "_env_int()",
       "id": "backend_rag_env_int"
     },
@@ -7622,7 +7622,7 @@
       "file_type": "code",
       "source_file": "backend/rag.py",
       "source_location": "L312",
-      "community": 32,
+      "community": 128,
       "norm_label": "_fetch_user_memory_summaries()",
       "id": "backend_rag_fetch_user_memory_summaries"
     },
@@ -7631,7 +7631,7 @@
       "file_type": "code",
       "source_file": "backend/rag.py",
       "source_location": "L355",
-      "community": 32,
+      "community": 128,
       "norm_label": "_store_ask_history()",
       "id": "backend_rag_store_ask_history"
     },
@@ -7640,7 +7640,7 @@
       "file_type": "code",
       "source_file": "backend/rag.py",
       "source_location": "L421",
-      "community": 32,
+      "community": 128,
       "norm_label": "_store_user_memory_summary()",
       "id": "backend_rag_store_user_memory_summary"
     },
@@ -7649,7 +7649,7 @@
       "file_type": "rationale",
       "source_file": "backend/rag.py",
       "source_location": "L1",
-      "community": 32,
+      "community": 128,
       "norm_label": "retrieval-augmented-generation helpers for sh'elah.  extracted verbatim from ``a",
       "id": "backend_rag_rationale_1"
     },
@@ -7658,7 +7658,7 @@
       "file_type": "rationale",
       "source_file": "backend/rag.py",
       "source_location": "L53",
-      "community": 32,
+      "community": 128,
       "norm_label": "the small subset of zmanim values worth surfacing in the ai tool     context. sp",
       "id": "backend_rag_rationale_53"
     },
@@ -7667,7 +7667,7 @@
       "file_type": "rationale",
       "source_file": "backend/rag.py",
       "source_location": "L106",
-      "community": 32,
+      "community": 128,
       "norm_label": "sum of per-keyword topic/source/content hits. split out of     _score_community_",
       "id": "backend_rag_rationale_106"
     },
@@ -7676,7 +7676,7 @@
       "file_type": "rationale",
       "source_file": "backend/rag.py",
       "source_location": "L165",
-      "community": 32,
+      "community": 128,
       "norm_label": "runs the supabase community_knowledge select with optional     community-name/te",
       "id": "backend_rag_rationale_165"
     },
@@ -7685,7 +7685,7 @@
       "file_type": "rationale",
       "source_file": "backend/rag.py",
       "source_location": "L187",
-      "community": 32,
+      "community": 128,
       "norm_label": "score raw community-knowledge rows and drop keyword-irrelevant ones.     split o",
       "id": "backend_rag_rationale_187"
     },
@@ -7694,7 +7694,7 @@
       "file_type": "rationale",
       "source_file": "backend/rag.py",
       "source_location": "L368",
-      "community": 32,
+      "community": 128,
       "norm_label": "persist a completed ask interaction to the per-user ask_history table.      safe",
       "id": "backend_rag_rationale_368"
     },
@@ -9152,7 +9152,7 @@
       "file_type": "code",
       "source_file": "backend/routes_conversations.py",
       "source_location": "L681",
-      "community": 32,
+      "community": 128,
       "norm_label": "_store_error_placeholder_message()",
       "id": "backend_routes_conversations_store_error_placeholder_message"
     },
@@ -9161,7 +9161,7 @@
       "file_type": "code",
       "source_file": "backend/routes_conversations.py",
       "source_location": "L707",
-      "community": 524,
+      "community": 128,
       "norm_label": "_earlier_questions()",
       "id": "backend_routes_conversations_earlier_questions"
     },
@@ -9170,7 +9170,7 @@
       "file_type": "code",
       "source_file": "backend/routes_conversations.py",
       "source_location": "L721",
-      "community": 524,
+      "community": 128,
       "norm_label": "_synthesize_and_store_assistant_reply()",
       "id": "backend_routes_conversations_synthesize_and_store_assistant_reply"
     },
@@ -9476,7 +9476,7 @@
       "file_type": "rationale",
       "source_file": "backend/routes_conversations.py",
       "source_location": "L682",
-      "community": 32,
+      "community": 128,
       "norm_label": "best-effort status=error assistant message so the thread shows a     visible, re",
       "id": "backend_routes_conversations_rationale_682"
     },
@@ -9485,7 +9485,7 @@
       "file_type": "rationale",
       "source_file": "backend/routes_conversations.py",
       "source_location": "L708",
-      "community": 524,
+      "community": 128,
       "norm_label": "the thread's most recent user questions, newest first, for source     retrieval.",
       "id": "backend_routes_conversations_rationale_708"
     },
@@ -9494,7 +9494,7 @@
       "file_type": "rationale",
       "source_file": "backend/routes_conversations.py",
       "source_location": "L725",
-      "community": 524,
+      "community": 128,
       "norm_label": "runs ai synthesis for one conversation turn and persists the     assistant's rep",
       "id": "backend_routes_conversations_rationale_725"
     },
@@ -10259,7 +10259,7 @@
       "file_type": "code",
       "source_file": "backend/routes_library.py",
       "source_location": "L801",
-      "community": 836,
+      "community": 669,
       "norm_label": "_collect_community_name_suggestions()",
       "id": "backend_routes_library_collect_community_name_suggestions"
     },
@@ -10286,7 +10286,7 @@
       "file_type": "code",
       "source_file": "backend/routes_library.py",
       "source_location": "L831",
-      "community": 987,
+      "community": 836,
       "norm_label": "_collect_text_hit_suggestions()",
       "id": "backend_routes_library_collect_text_hit_suggestions"
     },
@@ -10655,7 +10655,7 @@
       "file_type": "rationale",
       "source_file": "backend/routes_library.py",
       "source_location": "L802",
-      "community": 836,
+      "community": 669,
       "norm_label": "split out of search_suggest() (sonarcloud python:s3776) -- see     _add_search_s",
       "id": "backend_routes_library_rationale_802"
     },
@@ -10682,7 +10682,7 @@
       "file_type": "rationale",
       "source_file": "backend/routes_library.py",
       "source_location": "L832",
-      "community": 987,
+      "community": 836,
       "norm_label": "split out of search_suggest() (sonarcloud python:s3776) -- see     _add_search_s",
       "id": "backend_routes_library_rationale_832"
     },
@@ -11492,7 +11492,7 @@
       "file_type": "code",
       "source_file": "backend/routes_user.py",
       "source_location": "L336",
-      "community": 32,
+      "community": 173,
       "norm_label": "semantic_bookmarks()",
       "id": "backend_routes_user_semantic_bookmarks"
     },
@@ -11501,7 +11501,7 @@
       "file_type": "code",
       "source_file": "backend/routes_user.py",
       "source_location": "L380",
-      "community": 32,
+      "community": 173,
       "norm_label": "api_preferences_alias()",
       "id": "backend_routes_user_api_preferences_alias"
     },
@@ -11519,7 +11519,7 @@
       "file_type": "code",
       "source_file": "backend/routes_user.py",
       "source_location": "L451",
-      "community": 32,
+      "community": 173,
       "norm_label": "get_ask_history_entry()",
       "id": "backend_routes_user_get_ask_history_entry"
     },
@@ -11528,7 +11528,7 @@
       "file_type": "code",
       "source_file": "backend/routes_user.py",
       "source_location": "L490",
-      "community": 32,
+      "community": 173,
       "norm_label": "delete_ask_history_entry()",
       "id": "backend_routes_user_delete_ask_history_entry"
     },
@@ -11627,7 +11627,7 @@
       "file_type": "rationale",
       "source_file": "backend/routes_user.py",
       "source_location": "L337",
-      "community": 32,
+      "community": 173,
       "norm_label": "persist and retrieve semantic bookmarks with notes and ai summaries.",
       "id": "backend_routes_user_rationale_337"
     },
@@ -11636,7 +11636,7 @@
       "file_type": "rationale",
       "source_file": "backend/routes_user.py",
       "source_location": "L381",
-      "community": 32,
+      "community": 173,
       "norm_label": "/api/preferences \u2192 /api/user/preferences (backward compat).",
       "id": "backend_routes_user_rationale_381"
     },
@@ -11654,7 +11654,7 @@
       "file_type": "rationale",
       "source_file": "backend/routes_user.py",
       "source_location": "L452",
-      "community": 32,
+      "community": 173,
       "norm_label": "return a single ask-history entry owned by the signed-in user, so a     deep lin",
       "id": "backend_routes_user_rationale_452"
     },
@@ -11663,7 +11663,7 @@
       "file_type": "rationale",
       "source_file": "backend/routes_user.py",
       "source_location": "L491",
-      "community": 32,
+      "community": 173,
       "norm_label": "delete a single history entry owned by the signed-in user.",
       "id": "backend_routes_user_rationale_491"
     },
@@ -11771,7 +11771,7 @@
       "file_type": "code",
       "source_file": "backend/search.py",
       "source_location": "L134",
-      "community": 501,
+      "community": 625,
       "norm_label": "search_halachipedia()",
       "id": "backend_search_search_halachipedia"
     },
@@ -11807,7 +11807,7 @@
       "file_type": "code",
       "source_file": "backend/search.py",
       "source_location": "L273",
-      "community": 874,
+      "community": 178,
       "norm_label": "async_search_wikipedia()",
       "id": "backend_search_async_search_wikipedia"
     },
@@ -11861,7 +11861,7 @@
       "file_type": "rationale",
       "source_file": "backend/search.py",
       "source_location": "L135",
-      "community": 501,
+      "community": 625,
       "norm_label": "search halachipedia mediawiki api for relevant articles",
       "id": "backend_search_rationale_135"
     },
@@ -11888,7 +11888,7 @@
       "file_type": "rationale",
       "source_file": "backend/search.py",
       "source_location": "L274",
-      "community": 874,
+      "community": 178,
       "norm_label": "async wikipedia summary lookup using httpx with shared cache semantics.",
       "id": "backend_search_rationale_274"
     },
@@ -12203,7 +12203,7 @@
       "file_type": "code",
       "source_file": "backend/sefaria_library.py",
       "source_location": "L524",
-      "community": 182,
+      "community": 43,
       "norm_label": "_normalize_requested_ref()",
       "id": "backend_sefaria_library_normalize_requested_ref"
     },
@@ -12491,7 +12491,7 @@
       "file_type": "code",
       "source_file": "backend/sefaria_library.py",
       "source_location": "L1012",
-      "community": 245,
+      "community": 461,
       "norm_label": "_score_catalog_title_match()",
       "id": "backend_sefaria_library_score_catalog_title_match"
     },
@@ -12500,7 +12500,7 @@
       "file_type": "code",
       "source_file": "backend/sefaria_library.py",
       "source_location": "L1024",
-      "community": 596,
+      "community": 461,
       "norm_label": "_apply_catalog_row_score_boosts()",
       "id": "backend_sefaria_library_apply_catalog_row_score_boosts"
     },
@@ -12509,7 +12509,7 @@
       "file_type": "code",
       "source_file": "backend/sefaria_library.py",
       "source_location": "L1036",
-      "community": 245,
+      "community": 461,
       "norm_label": "_score_catalog_row()",
       "id": "backend_sefaria_library_score_catalog_row"
     },
@@ -12527,7 +12527,7 @@
       "file_type": "code",
       "source_file": "backend/sefaria_library.py",
       "source_location": "L1080",
-      "community": 669,
+      "community": 245,
       "norm_label": "_tokenize_catalog_query()",
       "id": "backend_sefaria_library_tokenize_catalog_query"
     },
@@ -12617,7 +12617,7 @@
       "file_type": "code",
       "source_file": "backend/sefaria_library.py",
       "source_location": "L1281",
-      "community": 669,
+      "community": 383,
       "norm_label": "_flatten_text_with_path()",
       "id": "backend_sefaria_library_flatten_text_with_path"
     },
@@ -12653,7 +12653,7 @@
       "file_type": "code",
       "source_file": "backend/sefaria_library.py",
       "source_location": "L1358",
-      "community": 669,
+      "community": 383,
       "norm_label": "_build_text_lines()",
       "id": "backend_sefaria_library_build_text_lines"
     },
@@ -12716,7 +12716,7 @@
       "file_type": "code",
       "source_file": "backend/sefaria_library.py",
       "source_location": "L1445",
-      "community": 182,
+      "community": 43,
       "norm_label": "is_known_missing_text()",
       "id": "backend_sefaria_library_is_known_missing_text"
     },
@@ -12752,7 +12752,7 @@
       "file_type": "code",
       "source_file": "backend/sefaria_library.py",
       "source_location": "L1567",
-      "community": 483,
+      "community": 596,
       "norm_label": "_get_search_index_metadata()",
       "id": "backend_sefaria_library_get_search_index_metadata"
     },
@@ -12779,7 +12779,7 @@
       "file_type": "code",
       "source_file": "backend/sefaria_library.py",
       "source_location": "L1603",
-      "community": 483,
+      "community": 596,
       "norm_label": "_clean_string_list()",
       "id": "backend_sefaria_library_clean_string_list"
     },
@@ -12986,7 +12986,7 @@
       "file_type": "code",
       "source_file": "backend/sefaria_library.py",
       "source_location": "L2008",
-      "community": 625,
+      "community": 596,
       "norm_label": "_normalize_liturgy_title_text()",
       "id": "backend_sefaria_library_normalize_liturgy_title_text"
     },
@@ -13022,7 +13022,7 @@
       "file_type": "code",
       "source_file": "backend/sefaria_library.py",
       "source_location": "L2056",
-      "community": 625,
+      "community": 596,
       "norm_label": "_collect_liturgy_book_if_eligible()",
       "id": "backend_sefaria_library_collect_liturgy_book_if_eligible"
     },
@@ -13031,7 +13031,7 @@
       "file_type": "code",
       "source_file": "backend/sefaria_library.py",
       "source_location": "L2076",
-      "community": 43,
+      "community": 469,
       "norm_label": "_walk_liturgy_books()",
       "id": "backend_sefaria_library_walk_liturgy_books"
     },
@@ -13076,7 +13076,7 @@
       "file_type": "code",
       "source_file": "backend/sefaria_library.py",
       "source_location": "L2166",
-      "community": 43,
+      "community": 469,
       "norm_label": "_add_leaf_ref()",
       "id": "backend_sefaria_library_add_leaf_ref"
     },
@@ -13103,7 +13103,7 @@
       "file_type": "code",
       "source_file": "backend/sefaria_library.py",
       "source_location": "L2226",
-      "community": 182,
+      "community": 43,
       "norm_label": "get_index_leaf_refs()",
       "id": "backend_sefaria_library_get_index_leaf_refs"
     },
@@ -13454,7 +13454,7 @@
       "file_type": "rationale",
       "source_file": "backend/sefaria_library.py",
       "source_location": "L1013",
-      "community": 245,
+      "community": 461,
       "norm_label": "base score from how the title matches the joined query. split out of     _score_",
       "id": "backend_sefaria_library_rationale_1013"
     },
@@ -13463,7 +13463,7 @@
       "file_type": "rationale",
       "source_file": "backend/sefaria_library.py",
       "source_location": "L1025",
-      "community": 596,
+      "community": 461,
       "norm_label": "apply the special-case relevance boosts on top of the base title-     match scor",
       "id": "backend_sefaria_library_rationale_1025"
     },
@@ -13472,7 +13472,7 @@
       "file_type": "rationale",
       "source_file": "backend/sefaria_library.py",
       "source_location": "L1037",
-      "community": 245,
+      "community": 461,
       "norm_label": "relevance score for one title-catalog row against the query tokens.     returns",
       "id": "backend_sefaria_library_rationale_1037"
     },
@@ -13571,7 +13571,7 @@
       "file_type": "rationale",
       "source_file": "backend/sefaria_library.py",
       "source_location": "L1282",
-      "community": 669,
+      "community": 383,
       "norm_label": "flatten a sefaria nested-array text field into (path, string) pairs     for stru",
       "id": "backend_sefaria_library_rationale_1282"
     },
@@ -13652,7 +13652,7 @@
       "file_type": "rationale",
       "source_file": "backend/sefaria_library.py",
       "source_location": "L1446",
-      "community": 182,
+      "community": 43,
       "norm_label": "true only for a ref get_text() has already found doesn't exist (see     _missing",
       "id": "backend_sefaria_library_rationale_1446"
     },
@@ -13688,7 +13688,7 @@
       "file_type": "rationale",
       "source_file": "backend/sefaria_library.py",
       "source_location": "L1568",
-      "community": 483,
+      "community": 596,
       "norm_label": "cached get_index_entry() lookup for _add_search_library_result().     split out",
       "id": "backend_sefaria_library_rationale_1568"
     },
@@ -13706,7 +13706,7 @@
       "file_type": "rationale",
       "source_file": "backend/sefaria_library.py",
       "source_location": "L1604",
-      "community": 483,
+      "community": 596,
       "norm_label": "coerce `items` to a list of non-empty stringified entries. split out     of _res",
       "id": "backend_sefaria_library_rationale_1604"
     },
@@ -13850,7 +13850,7 @@
       "file_type": "rationale",
       "source_file": "backend/sefaria_library.py",
       "source_location": "L2009",
-      "community": 625,
+      "community": 596,
       "norm_label": "strip curly quotes/dashes and collapse whitespace for an exact-match     retry a",
       "id": "backend_sefaria_library_rationale_2009"
     },
@@ -13886,7 +13886,7 @@
       "file_type": "rationale",
       "source_file": "backend/sefaria_library.py",
       "source_location": "L2057",
-      "community": 625,
+      "community": 596,
       "norm_label": "add `node` to `books` if it's an eligible, not-yet-seen liturgy     title. retur",
       "id": "backend_sefaria_library_rationale_2057"
     },
@@ -13895,7 +13895,7 @@
       "file_type": "rationale",
       "source_file": "backend/sefaria_library.py",
       "source_location": "L2077",
-      "community": 43,
+      "community": 469,
       "norm_label": "recursive descent of the library index collecting liturgy prayer     books into",
       "id": "backend_sefaria_library_rationale_2077"
     },
@@ -13931,7 +13931,7 @@
       "file_type": "rationale",
       "source_file": "backend/sefaria_library.py",
       "source_location": "L2167",
-      "community": 43,
+      "community": 469,
       "norm_label": "append one leaf ref (title + non-empty path segments) if not     already seen, m",
       "id": "backend_sefaria_library_rationale_2167"
     },
@@ -13958,7 +13958,7 @@
       "file_type": "rationale",
       "source_file": "backend/sefaria_library.py",
       "source_location": "L2227",
-      "community": 182,
+      "community": 43,
       "norm_label": "build leaf refs from a text schema (e.g., full siddur structure).",
       "id": "backend_sefaria_library_rationale_2227"
     },
@@ -27530,7 +27530,7 @@
       "file_type": "code",
       "source_file": "static/js/conversation-ui.js",
       "source_location": "L127",
-      "community": 404,
+      "community": 499,
       "norm_label": "lang()",
       "id": "js_conversation_ui_lang"
     },
@@ -27548,7 +27548,7 @@
       "file_type": "code",
       "source_file": "static/js/conversation-ui.js",
       "source_location": "L138",
-      "community": 849,
+      "community": 771,
       "norm_label": "motion()",
       "id": "js_conversation_ui_motion"
     },
@@ -27557,7 +27557,7 @@
       "file_type": "code",
       "source_file": "static/js/conversation-ui.js",
       "source_location": "L142",
-      "community": 849,
+      "community": 771,
       "norm_label": "reducedmotion()",
       "id": "js_conversation_ui_reducedmotion"
     },
@@ -27611,7 +27611,7 @@
       "file_type": "code",
       "source_file": "static/js/conversation-ui.js",
       "source_location": "L173",
-      "community": 404,
+      "community": 499,
       "norm_label": "currentmode()",
       "id": "js_conversation_ui_currentmode"
     },
@@ -27755,7 +27755,7 @@
       "file_type": "code",
       "source_file": "static/js/conversation-ui.js",
       "source_location": "L510",
-      "community": 849,
+      "community": 771,
       "norm_label": "loadpreview()",
       "id": "js_conversation_ui_loadpreview"
     },
@@ -27935,7 +27935,7 @@
       "file_type": "code",
       "source_file": "static/js/conversation-ui.js",
       "source_location": "L911",
-      "community": 404,
+      "community": 748,
       "norm_label": "airoute()",
       "id": "js_conversation_ui_airoute"
     },
@@ -27998,7 +27998,7 @@
       "file_type": "code",
       "source_file": "static/js/conversation-ui.js",
       "source_location": "L982",
-      "community": 849,
+      "community": 771,
       "norm_label": "flipcontent()",
       "id": "js_conversation_ui_flipcontent"
     },
@@ -28007,7 +28007,7 @@
       "file_type": "code",
       "source_file": "static/js/conversation-ui.js",
       "source_location": "L986",
-      "community": 849,
+      "community": 771,
       "norm_label": "clearflip()",
       "id": "js_conversation_ui_clearflip"
     },
@@ -28016,7 +28016,7 @@
       "file_type": "code",
       "source_file": "static/js/conversation-ui.js",
       "source_location": "L994",
-      "community": 849,
+      "community": 771,
       "norm_label": "haltflip()",
       "id": "js_conversation_ui_haltflip"
     },
@@ -28025,7 +28025,7 @@
       "file_type": "code",
       "source_file": "static/js/conversation-ui.js",
       "source_location": "L1000",
-      "community": 849,
+      "community": 771,
       "norm_label": "stopflip()",
       "id": "js_conversation_ui_stopflip"
     },
@@ -28034,7 +28034,7 @@
       "file_type": "code",
       "source_file": "static/js/conversation-ui.js",
       "source_location": "L1005",
-      "community": 849,
+      "community": 771,
       "norm_label": "flipresize()",
       "id": "js_conversation_ui_flipresize"
     },
@@ -28070,7 +28070,7 @@
       "file_type": "code",
       "source_file": "static/js/conversation-ui.js",
       "source_location": "L1106",
-      "community": 580,
+      "community": 499,
       "norm_label": "syncaskexpanded()",
       "id": "js_conversation_ui_syncaskexpanded"
     },
@@ -28097,7 +28097,7 @@
       "file_type": "code",
       "source_file": "static/js/conversation-ui.js",
       "source_location": "L1160",
-      "community": 404,
+      "community": 499,
       "norm_label": "waitforauth()",
       "id": "js_conversation_ui_waitforauth"
     },
@@ -28169,7 +28169,7 @@
       "file_type": "code",
       "source_file": "static/js/conversation-ui.js",
       "source_location": "L1224",
-      "community": 404,
+      "community": 499,
       "norm_label": "askoneshot()",
       "id": "js_conversation_ui_askoneshot"
     },
@@ -28178,7 +28178,7 @@
       "file_type": "code",
       "source_file": "static/js/conversation-ui.js",
       "source_location": "L1230",
-      "community": 404,
+      "community": 499,
       "norm_label": "openconversation()",
       "id": "js_conversation_ui_openconversation"
     },
@@ -28232,7 +28232,7 @@
       "file_type": "code",
       "source_file": "static/js/conversation-ui.js",
       "source_location": "L1348",
-      "community": 499,
+      "community": 404,
       "norm_label": "maybeloadlist()",
       "id": "js_conversation_ui_maybeloadlist"
     },
@@ -28250,7 +28250,7 @@
       "file_type": "code",
       "source_file": "static/js/conversation-ui.js",
       "source_location": "L1366",
-      "community": 404,
+      "community": 499,
       "norm_label": "opensettings()",
       "id": "js_conversation_ui_opensettings"
     },
@@ -28286,7 +28286,7 @@
       "file_type": "code",
       "source_file": "static/js/conversation-ui.js",
       "source_location": "L1410",
-      "community": 404,
+      "community": 499,
       "norm_label": "cleartoast()",
       "id": "js_conversation_ui_cleartoast"
     },
@@ -28331,7 +28331,7 @@
       "file_type": "code",
       "source_file": "static/js/conversation-ui.js",
       "source_location": "L1500",
-      "community": 404,
+      "community": 499,
       "norm_label": "ontopask()",
       "id": "js_conversation_ui_ontopask"
     },
@@ -28340,7 +28340,7 @@
       "file_type": "code",
       "source_file": "static/js/conversation-ui.js",
       "source_location": "L1512",
-      "community": 404,
+      "community": 499,
       "norm_label": "onphoneask()",
       "id": "js_conversation_ui_onphoneask"
     },
@@ -28439,7 +28439,7 @@
       "file_type": "code",
       "source_file": "static/js/conversation-ui.js",
       "source_location": "L1634",
-      "community": 404,
+      "community": 499,
       "norm_label": "submitcomposer()",
       "id": "js_conversation_ui_submitcomposer"
     },
@@ -28520,7 +28520,7 @@
       "file_type": "code",
       "source_file": "static/js/conversation-ui.js",
       "source_location": "L1909",
-      "community": 404,
+      "community": 499,
       "norm_label": "onnoticeaction()",
       "id": "js_conversation_ui_onnoticeaction"
     },
@@ -28529,7 +28529,7 @@
       "file_type": "code",
       "source_file": "static/js/conversation-ui.js",
       "source_location": "L1925",
-      "community": 499,
+      "community": 404,
       "norm_label": "onauthchanged()",
       "id": "js_conversation_ui_onauthchanged"
     },
@@ -30725,7 +30725,7 @@
       "file_type": "code",
       "source_file": "static/js/source-cards.js",
       "source_location": "L309",
-      "community": 849,
+      "community": 771,
       "norm_label": "previewhtml()",
       "id": "js_source_cards_previewhtml"
     },
@@ -103283,7 +103283,7 @@
       "file_type": "rationale",
       "source_file": "backend/claude.py",
       "source_location": "L167",
-      "community": 469,
+      "community": 273,
       "norm_label": "http timeout for the next model request: the per-request ceiling,     clamped to",
       "id": "backend_claude_rationale_167"
     },
@@ -103328,7 +103328,7 @@
       "file_type": "rationale",
       "source_file": "backend/claude.py",
       "source_location": "L590",
-      "community": 252,
+      "community": 131,
       "norm_label": "create/cache google-genai client; return error string on failure.",
       "id": "backend_claude_rationale_590"
     },
@@ -103355,7 +103355,7 @@
       "file_type": "rationale",
       "source_file": "backend/claude.py",
       "source_location": "L709",
-      "community": 469,
+      "community": 252,
       "norm_label": "gemini content generation, retried only on 429/503/504, with each     attempt's",
       "id": "backend_claude_rationale_709"
     },
@@ -103364,7 +103364,7 @@
       "file_type": "rationale",
       "source_file": "backend/claude.py",
       "source_location": "L734",
-      "community": 273,
+      "community": 32,
       "norm_label": "low-level gemini primary call using gemini-3.5-flash-lite. falls back to claude",
       "id": "backend_claude_rationale_734"
     },
@@ -103373,7 +103373,7 @@
       "file_type": "rationale",
       "source_file": "backend/claude.py",
       "source_location": "L850",
-      "community": 369,
+      "community": 32,
       "norm_label": "remove hidden/control/system-level characters from incoming user query.",
       "id": "backend_claude_rationale_850"
     },
@@ -104174,7 +104174,7 @@
       "file_type": "rationale",
       "source_file": "backend/sefaria_library.py",
       "source_location": "L1004",
-      "community": 245,
+      "community": 461,
       "norm_label": "base score from how the title matches the joined query. split out of     _score_",
       "id": "backend_sefaria_library_rationale_1004"
     },
@@ -104183,7 +104183,7 @@
       "file_type": "rationale",
       "source_file": "backend/sefaria_library.py",
       "source_location": "L1016",
-      "community": 596,
+      "community": 461,
       "norm_label": "apply the special-case relevance boosts on top of the base title-     match scor",
       "id": "backend_sefaria_library_rationale_1016"
     },
@@ -104192,7 +104192,7 @@
       "file_type": "rationale",
       "source_file": "backend/sefaria_library.py",
       "source_location": "L1028",
-      "community": 245,
+      "community": 461,
       "norm_label": "relevance score for one title-catalog row against the query tokens.     returns",
       "id": "backend_sefaria_library_rationale_1028"
     },
@@ -104210,7 +104210,7 @@
       "file_type": "rationale",
       "source_file": "backend/sefaria_library.py",
       "source_location": "L1072",
-      "community": 669,
+      "community": 245,
       "norm_label": "normalize and tokenize a catalog search query. split out of     _search_index_ca",
       "id": "backend_sefaria_library_rationale_1072"
     },
@@ -104282,7 +104282,7 @@
       "file_type": "rationale",
       "source_file": "backend/sefaria_library.py",
       "source_location": "L1273",
-      "community": 669,
+      "community": 383,
       "norm_label": "flatten a sefaria nested-array text field into (path, string) pairs     for stru",
       "id": "backend_sefaria_library_rationale_1273"
     },
@@ -104318,7 +104318,7 @@
       "file_type": "rationale",
       "source_file": "backend/sefaria_library.py",
       "source_location": "L1350",
-      "community": 669,
+      "community": 383,
       "norm_label": "build the aligned {he, en, segment} lines list + flat he/en arrays     from a ra",
       "id": "backend_sefaria_library_rationale_1350"
     },
@@ -104354,7 +104354,7 @@
       "file_type": "rationale",
       "source_file": "backend/sefaria_library.py",
       "source_location": "L1437",
-      "community": 182,
+      "community": 43,
       "norm_label": "true only for a ref get_text() has already found doesn't exist (see     _missing",
       "id": "backend_sefaria_library_rationale_1437"
     },
@@ -104390,7 +104390,7 @@
       "file_type": "rationale",
       "source_file": "backend/sefaria_library.py",
       "source_location": "L1559",
-      "community": 483,
+      "community": 596,
       "norm_label": "cached get_index_entry() lookup for _add_search_library_result().     split out",
       "id": "backend_sefaria_library_rationale_1559"
     },
@@ -104408,7 +104408,7 @@
       "file_type": "rationale",
       "source_file": "backend/sefaria_library.py",
       "source_location": "L1595",
-      "community": 483,
+      "community": 596,
       "norm_label": "coerce `items` to a list of non-empty stringified entries. split out     of _res",
       "id": "backend_sefaria_library_rationale_1595"
     },
@@ -104543,7 +104543,7 @@
       "file_type": "rationale",
       "source_file": "backend/sefaria_library.py",
       "source_location": "L1987",
-      "community": 43,
+      "community": 469,
       "norm_label": "fetch a text's index record by title.",
       "id": "backend_sefaria_library_rationale_1987"
     },
@@ -104552,7 +104552,7 @@
       "file_type": "rationale",
       "source_file": "backend/sefaria_library.py",
       "source_location": "L2000",
-      "community": 625,
+      "community": 596,
       "norm_label": "strip curly quotes/dashes and collapse whitespace for an exact-match     retry a",
       "id": "backend_sefaria_library_rationale_2000"
     },
@@ -104588,7 +104588,7 @@
       "file_type": "rationale",
       "source_file": "backend/sefaria_library.py",
       "source_location": "L2048",
-      "community": 625,
+      "community": 596,
       "norm_label": "add `node` to `books` if it's an eligible, not-yet-seen liturgy     title. retur",
       "id": "backend_sefaria_library_rationale_2048"
     },
@@ -104597,7 +104597,7 @@
       "file_type": "rationale",
       "source_file": "backend/sefaria_library.py",
       "source_location": "L2068",
-      "community": 43,
+      "community": 469,
       "norm_label": "recursive descent of the library index collecting liturgy prayer     books into",
       "id": "backend_sefaria_library_rationale_2068"
     },
@@ -104633,7 +104633,7 @@
       "file_type": "rationale",
       "source_file": "backend/sefaria_library.py",
       "source_location": "L2158",
-      "community": 43,
+      "community": 469,
       "norm_label": "append one leaf ref (title + non-empty path segments) if not     already seen, m",
       "id": "backend_sefaria_library_rationale_2158"
     },
@@ -104660,7 +104660,7 @@
       "file_type": "rationale",
       "source_file": "backend/sefaria_library.py",
       "source_location": "L2218",
-      "community": 182,
+      "community": 43,
       "norm_label": "build leaf refs from a text schema (e.g., full siddur structure).",
       "id": "backend_sefaria_library_rationale_2218"
     },
@@ -104822,7 +104822,7 @@
       "file_type": "rationale",
       "source_file": "backend/sefaria_library.py",
       "source_location": "L1003",
-      "community": 245,
+      "community": 461,
       "norm_label": "base score from how the title matches the joined query. split out of     _score_",
       "id": "backend_sefaria_library_rationale_1003"
     },
@@ -104831,7 +104831,7 @@
       "file_type": "rationale",
       "source_file": "backend/sefaria_library.py",
       "source_location": "L1015",
-      "community": 596,
+      "community": 461,
       "norm_label": "apply the special-case relevance boosts on top of the base title-     match scor",
       "id": "backend_sefaria_library_rationale_1015"
     },
@@ -104840,7 +104840,7 @@
       "file_type": "rationale",
       "source_file": "backend/sefaria_library.py",
       "source_location": "L1027",
-      "community": 245,
+      "community": 461,
       "norm_label": "relevance score for one title-catalog row against the query tokens.     returns",
       "id": "backend_sefaria_library_rationale_1027"
     },
@@ -104858,7 +104858,7 @@
       "file_type": "rationale",
       "source_file": "backend/sefaria_library.py",
       "source_location": "L1071",
-      "community": 669,
+      "community": 245,
       "norm_label": "normalize and tokenize a catalog search query. split out of     _search_index_ca",
       "id": "backend_sefaria_library_rationale_1071"
     },
@@ -104939,7 +104939,7 @@
       "file_type": "rationale",
       "source_file": "backend/sefaria_library.py",
       "source_location": "L1272",
-      "community": 669,
+      "community": 383,
       "norm_label": "flatten a sefaria nested-array text field into (path, string) pairs     for stru",
       "id": "backend_sefaria_library_rationale_1272"
     },
@@ -104957,7 +104957,7 @@
       "file_type": "rationale",
       "source_file": "backend/sefaria_library.py",
       "source_location": "L1313",
-      "community": 669,
+      "community": 383,
       "norm_label": "try each resolved candidate ref for get_text() in order. returns     (data, reso",
       "id": "backend_sefaria_library_rationale_1313"
     },
@@ -104975,7 +104975,7 @@
       "file_type": "rationale",
       "source_file": "backend/sefaria_library.py",
       "source_location": "L1349",
-      "community": 669,
+      "community": 383,
       "norm_label": "build the aligned {he, en, segment} lines list + flat he/en arrays     from a ra",
       "id": "backend_sefaria_library_rationale_1349"
     },
@@ -105020,7 +105020,7 @@
       "file_type": "rationale",
       "source_file": "backend/sefaria_library.py",
       "source_location": "L1436",
-      "community": 182,
+      "community": 43,
       "norm_label": "true only for a ref get_text() has already found doesn't exist (see     _missing",
       "id": "backend_sefaria_library_rationale_1436"
     },
@@ -105056,7 +105056,7 @@
       "file_type": "rationale",
       "source_file": "backend/sefaria_library.py",
       "source_location": "L1556",
-      "community": 483,
+      "community": 596,
       "norm_label": "cached get_index_entry() lookup for _add_search_library_result().     split out",
       "id": "backend_sefaria_library_rationale_1556"
     },
@@ -105074,7 +105074,7 @@
       "file_type": "rationale",
       "source_file": "backend/sefaria_library.py",
       "source_location": "L1592",
-      "community": 483,
+      "community": 596,
       "norm_label": "coerce `items` to a list of non-empty stringified entries. split out     of _res",
       "id": "backend_sefaria_library_rationale_1592"
     },
@@ -105218,7 +105218,7 @@
       "file_type": "rationale",
       "source_file": "backend/sefaria_library.py",
       "source_location": "L1997",
-      "community": 625,
+      "community": 596,
       "norm_label": "strip curly quotes/dashes and collapse whitespace for an exact-match     retry a",
       "id": "backend_sefaria_library_rationale_1997"
     },
@@ -105245,7 +105245,7 @@
       "file_type": "rationale",
       "source_file": "backend/sefaria_library.py",
       "source_location": "L2029",
-      "community": 43,
+      "community": 469,
       "norm_label": "ask sefaria's /api/name/<title> completion endpoint for the canonical     index",
       "id": "backend_sefaria_library_rationale_2029"
     },
@@ -105254,7 +105254,7 @@
       "file_type": "rationale",
       "source_file": "backend/sefaria_library.py",
       "source_location": "L2045",
-      "community": 625,
+      "community": 596,
       "norm_label": "add `node` to `books` if it's an eligible, not-yet-seen liturgy     title. retur",
       "id": "backend_sefaria_library_rationale_2045"
     },
@@ -105299,7 +105299,7 @@
       "file_type": "rationale",
       "source_file": "backend/sefaria_library.py",
       "source_location": "L2155",
-      "community": 43,
+      "community": 469,
       "norm_label": "append one leaf ref (title + non-empty path segments) if not     already seen, m",
       "id": "backend_sefaria_library_rationale_2155"
     },
@@ -105317,7 +105317,7 @@
       "file_type": "rationale",
       "source_file": "backend/sefaria_library.py",
       "source_location": "L2215",
-      "community": 182,
+      "community": 43,
       "norm_label": "build leaf refs from a text schema (e.g., full siddur structure).",
       "id": "backend_sefaria_library_rationale_2215"
     },
@@ -105326,7 +105326,7 @@
       "file_type": "code",
       "source_file": "static/js/conversation-ui.js",
       "source_location": "L436",
-      "community": 849,
+      "community": 771,
       "norm_label": "fetchpreview()",
       "id": "js_conversation_ui_fetchpreview"
     },
@@ -105812,7 +105812,7 @@
       "file_type": "rationale",
       "source_file": "asgi.py",
       "source_location": "L726",
-      "community": 115,
+      "community": 181,
       "norm_label": "stage 4 of ask_async(): halakhic-source-discovery fallback, run when     _run_as",
       "id": "asgi_rationale_726"
     },
@@ -105938,7 +105938,7 @@
       "file_type": "rationale",
       "source_file": "backend/cache_policy.py",
       "source_location": "L83",
-      "community": 2,
+      "community": 574,
       "norm_label": "return the cache-control value for (method, path), or none to leave     the head",
       "id": "backend_cache_policy_rationale_83"
     },
@@ -105947,7 +105947,7 @@
       "file_type": "rationale",
       "source_file": "backend/cache_policy.py",
       "source_location": "L103",
-      "community": 2,
+      "community": 574,
       "norm_label": "fail-safe default: every /api/* route plus the two historical     always-private",
       "id": "backend_cache_policy_rationale_103"
     },
@@ -105965,7 +105965,7 @@
       "file_type": "rationale",
       "source_file": "backend/claude.py",
       "source_location": "L162",
-      "community": 469,
+      "community": 273,
       "norm_label": "http timeout for the next model request: the per-request ceiling,     clamped to",
       "id": "backend_claude_rationale_162"
     },
@@ -106010,7 +106010,7 @@
       "file_type": "rationale",
       "source_file": "backend/claude.py",
       "source_location": "L579",
-      "community": 252,
+      "community": 131,
       "norm_label": "create/cache google-genai client; return error string on failure.",
       "id": "backend_claude_rationale_579"
     },
@@ -106037,7 +106037,7 @@
       "file_type": "rationale",
       "source_file": "backend/claude.py",
       "source_location": "L698",
-      "community": 469,
+      "community": 252,
       "norm_label": "gemini content generation, retried only on 429/503/504, with each     attempt's",
       "id": "backend_claude_rationale_698"
     },
@@ -106046,7 +106046,7 @@
       "file_type": "rationale",
       "source_file": "backend/claude.py",
       "source_location": "L723",
-      "community": 273,
+      "community": 32,
       "norm_label": "low-level gemini primary call using gemini-3.5-flash-lite. falls back to claude",
       "id": "backend_claude_rationale_723"
     },
@@ -106730,7 +106730,7 @@
       "file_type": "rationale",
       "source_file": "backend/routes_conversations.py",
       "source_location": "L679",
-      "community": 32,
+      "community": 128,
       "norm_label": "best-effort status=error assistant message so the thread shows a     visible, re",
       "id": "backend_routes_conversations_rationale_679"
     },
@@ -106739,7 +106739,7 @@
       "file_type": "rationale",
       "source_file": "backend/routes_conversations.py",
       "source_location": "L705",
-      "community": 524,
+      "community": 128,
       "norm_label": "the thread's most recent user questions, newest first, for source     retrieval.",
       "id": "backend_routes_conversations_rationale_705"
     },
@@ -106748,7 +106748,7 @@
       "file_type": "rationale",
       "source_file": "backend/routes_conversations.py",
       "source_location": "L722",
-      "community": 524,
+      "community": 128,
       "norm_label": "runs ai synthesis for one conversation turn and persists the     assistant's rep",
       "id": "backend_routes_conversations_rationale_722"
     },
@@ -106892,7 +106892,7 @@
       "file_type": "rationale",
       "source_file": "backend/search.py",
       "source_location": "L123",
-      "community": 501,
+      "community": 625,
       "norm_label": "search halachipedia mediawiki api for relevant articles",
       "id": "backend_search_rationale_123"
     },
@@ -106919,7 +106919,7 @@
       "file_type": "rationale",
       "source_file": "backend/search.py",
       "source_location": "L262",
-      "community": 874,
+      "community": 178,
       "norm_label": "async wikipedia summary lookup using httpx with shared cache semantics.",
       "id": "backend_search_rationale_262"
     },
@@ -107243,7 +107243,7 @@
       "file_type": "rationale",
       "source_file": "backend/sefaria_library.py",
       "source_location": "L967",
-      "community": 245,
+      "community": 461,
       "norm_label": "base score from how the title matches the joined query. split out of     _score_",
       "id": "backend_sefaria_library_rationale_967"
     },
@@ -107252,7 +107252,7 @@
       "file_type": "rationale",
       "source_file": "backend/sefaria_library.py",
       "source_location": "L979",
-      "community": 596,
+      "community": 461,
       "norm_label": "apply the special-case relevance boosts on top of the base title-     match scor",
       "id": "backend_sefaria_library_rationale_979"
     },
@@ -107261,7 +107261,7 @@
       "file_type": "rationale",
       "source_file": "backend/sefaria_library.py",
       "source_location": "L991",
-      "community": 245,
+      "community": 461,
       "norm_label": "relevance score for one title-catalog row against the query tokens.     returns",
       "id": "backend_sefaria_library_rationale_991"
     },
@@ -107279,7 +107279,7 @@
       "file_type": "rationale",
       "source_file": "backend/sefaria_library.py",
       "source_location": "L1035",
-      "community": 669,
+      "community": 245,
       "norm_label": "normalize and tokenize a catalog search query. split out of     _search_index_ca",
       "id": "backend_sefaria_library_rationale_1035"
     },
@@ -107360,7 +107360,7 @@
       "file_type": "rationale",
       "source_file": "backend/sefaria_library.py",
       "source_location": "L1236",
-      "community": 669,
+      "community": 383,
       "norm_label": "flatten a sefaria nested-array text field into (path, string) pairs     for stru",
       "id": "backend_sefaria_library_rationale_1236"
     },
@@ -107423,7 +107423,7 @@
       "file_type": "rationale",
       "source_file": "backend/sefaria_library.py",
       "source_location": "L1400",
-      "community": 182,
+      "community": 43,
       "norm_label": "true only for a ref get_text() has already found doesn't exist (see     _missing",
       "id": "backend_sefaria_library_rationale_1400"
     },
@@ -107459,7 +107459,7 @@
       "file_type": "rationale",
       "source_file": "backend/sefaria_library.py",
       "source_location": "L1520",
-      "community": 483,
+      "community": 596,
       "norm_label": "cached get_index_entry() lookup for _add_search_library_result().     split out",
       "id": "backend_sefaria_library_rationale_1520"
     },
@@ -107585,7 +107585,7 @@
       "file_type": "rationale",
       "source_file": "backend/sefaria_library.py",
       "source_location": "L1961",
-      "community": 625,
+      "community": 596,
       "norm_label": "strip curly quotes/dashes and collapse whitespace for an exact-match     retry a",
       "id": "backend_sefaria_library_rationale_1961"
     },
@@ -107648,7 +107648,7 @@
       "file_type": "rationale",
       "source_file": "backend/sefaria_library.py",
       "source_location": "L2119",
-      "community": 43,
+      "community": 469,
       "norm_label": "append one leaf ref (title + non-empty path segments) if not     already seen, m",
       "id": "backend_sefaria_library_rationale_2119"
     },
@@ -107666,7 +107666,7 @@
       "file_type": "rationale",
       "source_file": "backend/sefaria_library.py",
       "source_location": "L2162",
-      "community": 182,
+      "community": 43,
       "norm_label": "build leaf refs from a text schema (e.g., full siddur structure).",
       "id": "backend_sefaria_library_rationale_2162"
     },
@@ -107747,7 +107747,7 @@
       "file_type": "code",
       "source_file": "static/js/conversation-ui.js",
       "source_location": "L434",
-      "community": 849,
+      "community": 771,
       "norm_label": "rendersources()",
       "id": "js_conversation_ui_rendersources"
     },
@@ -107765,7 +107765,7 @@
       "file_type": "code",
       "source_file": "static/js/conversation-ui.js",
       "source_location": "L481",
-      "community": 849,
+      "community": 771,
       "norm_label": "animatesourcecards()",
       "id": "js_conversation_ui_animatesourcecards"
     },
@@ -107963,7 +107963,7 @@
       "file_type": "rationale",
       "source_file": "backend/cache_policy.py",
       "source_location": "L82",
-      "community": 2,
+      "community": 574,
       "norm_label": "return the cache-control value for (method, path), or none to leave     the head",
       "id": "backend_cache_policy_rationale_82"
     },
@@ -107972,7 +107972,7 @@
       "file_type": "rationale",
       "source_file": "backend/cache_policy.py",
       "source_location": "L102",
-      "community": 2,
+      "community": 574,
       "norm_label": "fail-safe default: every /api/* route plus the two historical     always-private",
       "id": "backend_cache_policy_rationale_102"
     },
@@ -108539,7 +108539,7 @@
       "file_type": "rationale",
       "source_file": "backend/helpers.py",
       "source_location": "L1159",
-      "community": 115,
+      "community": 181,
       "norm_label": "trim bulky source payloads to the excerpt shape used by the ui.",
       "id": "backend_helpers_rationale_1159"
     },
@@ -108548,7 +108548,7 @@
       "file_type": "rationale",
       "source_file": "backend/helpers.py",
       "source_location": "L1173",
-      "community": 461,
+      "community": 503,
       "norm_label": "pull the ai's own citation list out of a structured /ask payload.      single so",
       "id": "backend_helpers_rationale_1173"
     },
@@ -108557,7 +108557,7 @@
       "file_type": "rationale",
       "source_file": "backend/helpers.py",
       "source_location": "L1199",
-      "community": 115,
+      "community": 181,
       "norm_label": "find a community_aliases entry whose normalized alias matches, or     none. spli",
       "id": "backend_helpers_rationale_1199"
     },
@@ -108566,7 +108566,7 @@
       "file_type": "rationale",
       "source_file": "backend/helpers.py",
       "source_location": "L1210",
-      "community": 115,
+      "community": 181,
       "norm_label": "find a communities entry whose normalized name matches, or none.     split out o",
       "id": "backend_helpers_rationale_1210"
     },
@@ -108899,7 +108899,7 @@
       "file_type": "rationale",
       "source_file": "backend/routes_conversations.py",
       "source_location": "L640",
-      "community": 32,
+      "community": 128,
       "norm_label": "best-effort status=error assistant message so the thread shows a     visible, re",
       "id": "backend_routes_conversations_rationale_640"
     },
@@ -108908,7 +108908,7 @@
       "file_type": "rationale",
       "source_file": "backend/routes_conversations.py",
       "source_location": "L669",
-      "community": 524,
+      "community": 128,
       "norm_label": "runs ai synthesis for one conversation turn and persists the     assistant's rep",
       "id": "backend_routes_conversations_rationale_669"
     },
@@ -109115,7 +109115,7 @@
       "file_type": "rationale",
       "source_file": "backend/logging_setup.py",
       "source_location": "L528",
-      "community": 498,
+      "community": 128,
       "norm_label": "sentry-style structured logger for backend failures and ai prompt issues.      u",
       "id": "backend_logging_setup_rationale_528"
     },
@@ -109403,7 +109403,7 @@
       "file_type": "rationale",
       "source_file": "backend/helpers.py",
       "source_location": "L743",
-      "community": 461,
+      "community": 503,
       "norm_label": "stage 2 of _lookup_hebrew_word_meaning(): sefaria lexicon lookup.     split out",
       "id": "backend_helpers_rationale_743"
     },
@@ -109511,7 +109511,7 @@
       "file_type": "rationale",
       "source_file": "backend/helpers.py",
       "source_location": "L1130",
-      "community": 115,
+      "community": 181,
       "norm_label": "trim bulky source payloads to the excerpt shape used by the ui.",
       "id": "backend_helpers_rationale_1130"
     },
@@ -109520,7 +109520,7 @@
       "file_type": "rationale",
       "source_file": "backend/helpers.py",
       "source_location": "L1144",
-      "community": 461,
+      "community": 503,
       "norm_label": "pull the ai's own citation list out of a structured /ask payload.      single so",
       "id": "backend_helpers_rationale_1144"
     },
@@ -109529,7 +109529,7 @@
       "file_type": "rationale",
       "source_file": "backend/helpers.py",
       "source_location": "L1162",
-      "community": 115,
+      "community": 181,
       "norm_label": "lowercase and strip non-alphanumeric characters, for fuzzy     community-name ma",
       "id": "backend_helpers_rationale_1162"
     },
@@ -109538,7 +109538,7 @@
       "file_type": "rationale",
       "source_file": "backend/helpers.py",
       "source_location": "L1170",
-      "community": 115,
+      "community": 181,
       "norm_label": "find a community_aliases entry whose normalized alias matches, or     none. spli",
       "id": "backend_helpers_rationale_1170"
     },
@@ -109547,7 +109547,7 @@
       "file_type": "rationale",
       "source_file": "backend/helpers.py",
       "source_location": "L1181",
-      "community": 115,
+      "community": 181,
       "norm_label": "find a communities entry whose normalized name matches, or none.     split out o",
       "id": "backend_helpers_rationale_1181"
     },
@@ -110645,7 +110645,7 @@
       "file_type": "rationale",
       "source_file": "backend/sefaria_library.py",
       "source_location": "L943",
-      "community": 245,
+      "community": 461,
       "norm_label": "base score from how the title matches the joined query. split out of     _score_",
       "id": "backend_sefaria_library_rationale_943"
     },
@@ -110654,7 +110654,7 @@
       "file_type": "rationale",
       "source_file": "backend/sefaria_library.py",
       "source_location": "L955",
-      "community": 596,
+      "community": 461,
       "norm_label": "apply the special-case relevance boosts on top of the base title-     match scor",
       "id": "backend_sefaria_library_rationale_955"
     },
@@ -110672,7 +110672,7 @@
       "file_type": "rationale",
       "source_file": "backend/sefaria_library.py",
       "source_location": "L1011",
-      "community": 669,
+      "community": 245,
       "norm_label": "normalize and tokenize a catalog search query. split out of     _search_index_ca",
       "id": "backend_sefaria_library_rationale_1011"
     },
@@ -110744,7 +110744,7 @@
       "file_type": "rationale",
       "source_file": "backend/sefaria_library.py",
       "source_location": "L1212",
-      "community": 669,
+      "community": 383,
       "norm_label": "flatten a sefaria nested-array text field into (path, string) pairs     for stru",
       "id": "backend_sefaria_library_rationale_1212"
     },
@@ -110780,7 +110780,7 @@
       "file_type": "rationale",
       "source_file": "backend/sefaria_library.py",
       "source_location": "L1289",
-      "community": 669,
+      "community": 383,
       "norm_label": "build the aligned {he, en, segment} lines list + flat he/en arrays     from a ra",
       "id": "backend_sefaria_library_rationale_1289"
     },
@@ -110834,7 +110834,7 @@
       "file_type": "rationale",
       "source_file": "backend/sefaria_library.py",
       "source_location": "L1478",
-      "community": 483,
+      "community": 596,
       "norm_label": "cached get_index_entry() lookup for _add_search_library_result().     split out",
       "id": "backend_sefaria_library_rationale_1478"
     },
@@ -110852,7 +110852,7 @@
       "file_type": "rationale",
       "source_file": "backend/sefaria_library.py",
       "source_location": "L1514",
-      "community": 483,
+      "community": 596,
       "norm_label": "coerce `items` to a list of non-empty stringified entries. split out     of _res",
       "id": "backend_sefaria_library_rationale_1514"
     },
@@ -110969,7 +110969,7 @@
       "file_type": "rationale",
       "source_file": "backend/sefaria_library.py",
       "source_location": "L1895",
-      "community": 625,
+      "community": 596,
       "norm_label": "heuristic match for equivalent work titles with minor spelling differences.",
       "id": "backend_sefaria_library_rationale_1895"
     },
@@ -110987,7 +110987,7 @@
       "file_type": "rationale",
       "source_file": "backend/sefaria_library.py",
       "source_location": "L1919",
-      "community": 625,
+      "community": 596,
       "norm_label": "strip curly quotes/dashes and collapse whitespace for an exact-match     retry a",
       "id": "backend_sefaria_library_rationale_1919"
     },
@@ -111023,7 +111023,7 @@
       "file_type": "rationale",
       "source_file": "backend/sefaria_library.py",
       "source_location": "L1967",
-      "community": 625,
+      "community": 596,
       "norm_label": "add `node` to `books` if it's an eligible, not-yet-seen liturgy     title. retur",
       "id": "backend_sefaria_library_rationale_1967"
     },
@@ -111275,7 +111275,7 @@
       "file_type": "code",
       "source_file": "static/js/conversation-ui.js",
       "source_location": "L865",
-      "community": 404,
+      "community": 771,
       "norm_label": "followuperrortext()",
       "id": "js_conversation_ui_followuperrortext"
     },
@@ -111302,7 +111302,7 @@
       "file_type": "code",
       "source_file": "static/js/conversation-ui.js",
       "source_location": "L905",
-      "community": 404,
+      "community": 499,
       "norm_label": "submitfollowup()",
       "id": "js_conversation_ui_submitfollowup"
     },
@@ -111311,7 +111311,7 @@
       "file_type": "code",
       "source_file": "static/js/conversation-ui.js",
       "source_location": "L941",
-      "community": 404,
+      "community": 499,
       "norm_label": "asklegacy()",
       "id": "js_conversation_ui_asklegacy"
     },
@@ -111824,7 +111824,7 @@
       "file_type": "rationale",
       "source_file": "backend/routes_conversations.py",
       "source_location": "L515",
-      "community": 32,
+      "community": 128,
       "norm_label": "best-effort status=error assistant message so the thread shows a     visible, re",
       "id": "backend_routes_conversations_rationale_515"
     },
@@ -111833,7 +111833,7 @@
       "file_type": "rationale",
       "source_file": "backend/routes_conversations.py",
       "source_location": "L544",
-      "community": 524,
+      "community": 128,
       "norm_label": "runs ai synthesis for one conversation turn and persists the     assistant's rep",
       "id": "backend_routes_conversations_rationale_544"
     },
@@ -112292,7 +112292,7 @@
       "file_type": "rationale",
       "source_file": "backend/sefaria_library.py",
       "source_location": "L1910",
-      "community": 625,
+      "community": 596,
       "norm_label": "strip curly quotes/dashes and collapse whitespace for an exact-match     retry a",
       "id": "backend_sefaria_library_rationale_1910"
     },
@@ -112319,7 +112319,7 @@
       "file_type": "rationale",
       "source_file": "backend/sefaria_library.py",
       "source_location": "L1958",
-      "community": 625,
+      "community": 596,
       "norm_label": "add `node` to `books` if it's an eligible, not-yet-seen liturgy     title. retur",
       "id": "backend_sefaria_library_rationale_1958"
     },
@@ -112328,7 +112328,7 @@
       "file_type": "rationale",
       "source_file": "backend/sefaria_library.py",
       "source_location": "L1978",
-      "community": 43,
+      "community": 469,
       "norm_label": "recursive descent of the library index collecting liturgy prayer     books into",
       "id": "backend_sefaria_library_rationale_1978"
     },
@@ -112526,7 +112526,7 @@
       "file_type": "rationale",
       "source_file": "backend/routes_user.py",
       "source_location": "L298",
-      "community": 32,
+      "community": 173,
       "norm_label": "persist and retrieve semantic bookmarks with notes and ai summaries.",
       "id": "backend_routes_user_rationale_298"
     },
@@ -112535,7 +112535,7 @@
       "file_type": "rationale",
       "source_file": "backend/routes_user.py",
       "source_location": "L342",
-      "community": 32,
+      "community": 173,
       "norm_label": "/api/preferences \u2192 /api/user/preferences (backward compat).",
       "id": "backend_routes_user_rationale_342"
     },
@@ -112553,7 +112553,7 @@
       "file_type": "rationale",
       "source_file": "backend/routes_user.py",
       "source_location": "L416",
-      "community": 32,
+      "community": 173,
       "norm_label": "delete a single history entry owned by the signed-in user.",
       "id": "backend_routes_user_rationale_416"
     },
@@ -113066,7 +113066,7 @@
       "file_type": "rationale",
       "source_file": "backend/claude.py",
       "source_location": "L506",
-      "community": 252,
+      "community": 131,
       "norm_label": "create/cache google-genai client; return error string on failure.",
       "id": "backend_claude_rationale_506"
     },
@@ -113075,7 +113075,7 @@
       "file_type": "rationale",
       "source_file": "backend/claude.py",
       "source_location": "L614",
-      "community": 469,
+      "community": 252,
       "norm_label": "retry gemini content generation only for resourceexhausted (429).",
       "id": "backend_claude_rationale_614"
     },
@@ -113084,7 +113084,7 @@
       "file_type": "rationale",
       "source_file": "backend/claude.py",
       "source_location": "L634",
-      "community": 273,
+      "community": 32,
       "norm_label": "low-level gemini primary call using gemini-3.5-flash-lite. falls back to claude",
       "id": "backend_claude_rationale_634"
     },
@@ -113093,7 +113093,7 @@
       "file_type": "rationale",
       "source_file": "backend/claude.py",
       "source_location": "L750",
-      "community": 369,
+      "community": 32,
       "norm_label": "remove hidden/control/system-level characters from incoming user query.",
       "id": "backend_claude_rationale_750"
     },
@@ -113741,7 +113741,7 @@
       "file_type": "rationale",
       "source_file": "backend/routes_conversations.py",
       "source_location": "L523",
-      "community": 32,
+      "community": 128,
       "norm_label": "best-effort status=error assistant message so the thread shows a     visible, re",
       "id": "backend_routes_conversations_rationale_523"
     },
@@ -113750,7 +113750,7 @@
       "file_type": "rationale",
       "source_file": "backend/routes_conversations.py",
       "source_location": "L552",
-      "community": 524,
+      "community": 128,
       "norm_label": "runs ai synthesis for one conversation turn and persists the     assistant's rep",
       "id": "backend_routes_conversations_rationale_552"
     },
@@ -114506,7 +114506,7 @@
       "file_type": "rationale",
       "source_file": "backend/routes_conversations.py",
       "source_location": "L435",
-      "community": 32,
+      "community": 128,
       "norm_label": "best-effort status=error assistant message so the thread shows a     visible, re",
       "id": "backend_routes_conversations_rationale_435"
     },
@@ -114920,7 +114920,7 @@
       "file_type": "rationale",
       "source_file": "asgi.py",
       "source_location": "L722",
-      "community": 115,
+      "community": 181,
       "norm_label": "stage 4 of ask_async(): halakhic-source-discovery fallback, run when     _run_as",
       "id": "asgi_rationale_722"
     },
@@ -115019,7 +115019,7 @@
       "file_type": "rationale",
       "source_file": "backend/cache_policy.py",
       "source_location": "L81",
-      "community": 2,
+      "community": 574,
       "norm_label": "return the cache-control value for (method, path), or none to leave     the head",
       "id": "backend_cache_policy_rationale_81"
     },
@@ -115028,7 +115028,7 @@
       "file_type": "rationale",
       "source_file": "backend/cache_policy.py",
       "source_location": "L101",
-      "community": 2,
+      "community": 574,
       "norm_label": "fail-safe default: every /api/* route plus the two historical     always-private",
       "id": "backend_cache_policy_rationale_101"
     },
@@ -115433,7 +115433,7 @@
       "file_type": "rationale",
       "source_file": "backend/sefaria_library.py",
       "source_location": "L927",
-      "community": 245,
+      "community": 461,
       "norm_label": "base score from how the title matches the joined query. split out of     _score_",
       "id": "backend_sefaria_library_rationale_927"
     },
@@ -115442,7 +115442,7 @@
       "file_type": "rationale",
       "source_file": "backend/sefaria_library.py",
       "source_location": "L939",
-      "community": 596,
+      "community": 461,
       "norm_label": "apply the special-case relevance boosts on top of the base title-     match scor",
       "id": "backend_sefaria_library_rationale_939"
     },
@@ -115451,7 +115451,7 @@
       "file_type": "rationale",
       "source_file": "backend/sefaria_library.py",
       "source_location": "L951",
-      "community": 245,
+      "community": 461,
       "norm_label": "relevance score for one title-catalog row against the query tokens.     returns",
       "id": "backend_sefaria_library_rationale_951"
     },
@@ -115469,7 +115469,7 @@
       "file_type": "rationale",
       "source_file": "backend/sefaria_library.py",
       "source_location": "L995",
-      "community": 669,
+      "community": 245,
       "norm_label": "normalize and tokenize a catalog search query. split out of     _search_index_ca",
       "id": "backend_sefaria_library_rationale_995"
     },
@@ -115514,7 +115514,7 @@
       "file_type": "rationale",
       "source_file": "backend/sefaria_library.py",
       "source_location": "L1196",
-      "community": 669,
+      "community": 383,
       "norm_label": "flatten a sefaria nested-array text field into (path, string) pairs     for stru",
       "id": "backend_sefaria_library_rationale_1196"
     },
@@ -115577,7 +115577,7 @@
       "file_type": "rationale",
       "source_file": "backend/sefaria_library.py",
       "source_location": "L1463",
-      "community": 483,
+      "community": 596,
       "norm_label": "cached get_index_entry() lookup for _add_search_library_result().     split out",
       "id": "backend_sefaria_library_rationale_1463"
     },
@@ -115595,7 +115595,7 @@
       "file_type": "rationale",
       "source_file": "backend/sefaria_library.py",
       "source_location": "L1499",
-      "community": 483,
+      "community": 596,
       "norm_label": "coerce `items` to a list of non-empty stringified entries. split out     of _res",
       "id": "backend_sefaria_library_rationale_1499"
     },
@@ -115649,7 +115649,7 @@
       "file_type": "rationale",
       "source_file": "backend/sefaria_library.py",
       "source_location": "L1667",
-      "community": 43,
+      "community": 469,
       "norm_label": "full text search across all of sefaria.     returns a list of results with refs,",
       "id": "backend_sefaria_library_rationale_1667"
     },
@@ -115748,7 +115748,7 @@
       "file_type": "rationale",
       "source_file": "backend/sefaria_library.py",
       "source_location": "L1943",
-      "community": 625,
+      "community": 596,
       "norm_label": "add `node` to `books` if it's an eligible, not-yet-seen liturgy     title. retur",
       "id": "backend_sefaria_library_rationale_1943"
     },
@@ -115757,7 +115757,7 @@
       "file_type": "rationale",
       "source_file": "backend/sefaria_library.py",
       "source_location": "L1963",
-      "community": 43,
+      "community": 469,
       "norm_label": "recursive descent of the library index collecting liturgy prayer     books into",
       "id": "backend_sefaria_library_rationale_1963"
     },
@@ -115793,7 +115793,7 @@
       "file_type": "rationale",
       "source_file": "backend/sefaria_library.py",
       "source_location": "L2053",
-      "community": 43,
+      "community": 469,
       "norm_label": "append one leaf ref (title + non-empty path segments) if not     already seen, m",
       "id": "backend_sefaria_library_rationale_2053"
     },
@@ -115802,7 +115802,7 @@
       "file_type": "rationale",
       "source_file": "backend/sefaria_library.py",
       "source_location": "L2096",
-      "community": 182,
+      "community": 43,
       "norm_label": "build leaf refs from a text schema (e.g., full siddur structure).",
       "id": "backend_sefaria_library_rationale_2096"
     },
@@ -116378,7 +116378,7 @@
       "file_type": "rationale",
       "source_file": "backend/claude.py",
       "source_location": "L613",
-      "community": 469,
+      "community": 252,
       "norm_label": "retry gemini content generation only for resourceexhausted (429).",
       "id": "backend_claude_rationale_613"
     },
@@ -116837,7 +116837,7 @@
       "file_type": "rationale",
       "source_file": "backend/claude.py",
       "source_location": "L504",
-      "community": 252,
+      "community": 131,
       "norm_label": "create/cache google-genai client; return error string on failure.",
       "id": "backend_claude_rationale_504"
     },
@@ -116855,7 +116855,7 @@
       "file_type": "rationale",
       "source_file": "backend/claude.py",
       "source_location": "L612",
-      "community": 469,
+      "community": 252,
       "norm_label": "retry gemini content generation only for resourceexhausted (429).",
       "id": "backend_claude_rationale_612"
     },
@@ -116864,7 +116864,7 @@
       "file_type": "rationale",
       "source_file": "backend/claude.py",
       "source_location": "L748",
-      "community": 369,
+      "community": 32,
       "norm_label": "remove hidden/control/system-level characters from incoming user query.",
       "id": "backend_claude_rationale_748"
     },
@@ -117710,7 +117710,7 @@
       "file_type": "rationale",
       "source_file": "asgi.py",
       "source_location": "L735",
-      "community": 115,
+      "community": 181,
       "norm_label": "stage 4 of ask_async(): halakhic-source-discovery fallback, run when     _run_as",
       "id": "asgi_rationale_735"
     },
@@ -117998,7 +117998,7 @@
       "file_type": "rationale",
       "source_file": "backend/claude.py",
       "source_location": "L490",
-      "community": 252,
+      "community": 131,
       "norm_label": "create/cache google-genai client; return error string on failure.",
       "id": "backend_claude_rationale_490"
     },
@@ -118007,7 +118007,7 @@
       "file_type": "rationale",
       "source_file": "backend/claude.py",
       "source_location": "L586",
-      "community": 469,
+      "community": 252,
       "norm_label": "retry gemini content generation only for resourceexhausted (429).",
       "id": "backend_claude_rationale_586"
     },
@@ -118016,7 +118016,7 @@
       "file_type": "rationale",
       "source_file": "backend/claude.py",
       "source_location": "L606",
-      "community": 273,
+      "community": 32,
       "norm_label": "low-level gemini primary call using gemini-3.5-flash-lite. falls back to claude",
       "id": "backend_claude_rationale_606"
     },
@@ -118025,7 +118025,7 @@
       "file_type": "rationale",
       "source_file": "backend/claude.py",
       "source_location": "L722",
-      "community": 369,
+      "community": 32,
       "norm_label": "remove hidden/control/system-level characters from incoming user query.",
       "id": "backend_claude_rationale_722"
     },
@@ -118286,7 +118286,7 @@
       "file_type": "rationale",
       "source_file": "backend/search.py",
       "source_location": "L258",
-      "community": 874,
+      "community": 178,
       "norm_label": "async wikipedia summary lookup using httpx with shared cache semantics.",
       "id": "backend_search_rationale_258"
     },
@@ -119186,7 +119186,7 @@
       "file_type": "rationale",
       "source_file": "asgi.py",
       "source_location": "L668",
-      "community": 115,
+      "community": 181,
       "norm_label": "stage 4 of ask_async(): halakhic-source-discovery fallback, run when     _run_as",
       "id": "asgi_rationale_668"
     },
@@ -119366,7 +119366,7 @@
       "file_type": "rationale",
       "source_file": "backend/claude.py",
       "source_location": "L576",
-      "community": 469,
+      "community": 252,
       "norm_label": "retry gemini content generation only for resourceexhausted (429).",
       "id": "backend_claude_rationale_576"
     },
@@ -119375,7 +119375,7 @@
       "file_type": "rationale",
       "source_file": "backend/claude.py",
       "source_location": "L596",
-      "community": 369,
+      "community": 32,
       "norm_label": "low-level gemini primary call using gemini-3.5-flash-lite. falls back to claude",
       "id": "backend_claude_rationale_596"
     },
@@ -119384,7 +119384,7 @@
       "file_type": "rationale",
       "source_file": "backend/claude.py",
       "source_location": "L712",
-      "community": 369,
+      "community": 32,
       "norm_label": "remove hidden/control/system-level characters from incoming user query.",
       "id": "backend_claude_rationale_712"
     },
@@ -119627,7 +119627,7 @@
       "file_type": "rationale",
       "source_file": "backend/cost_meter.py",
       "source_location": "L446",
-      "community": 335,
+      "community": 498,
       "norm_label": "configured per-caller daily spend cap (defaults to     _default_per_user_daily_b",
       "id": "backend_cost_meter_rationale_446"
     },
@@ -119645,7 +119645,7 @@
       "file_type": "rationale",
       "source_file": "backend/cost_meter.py",
       "source_location": "L520",
-      "community": 335,
+      "community": 498,
       "norm_label": "worst-case usd cost of one /ask call \u2014 reserved atomically before     dispatch s",
       "id": "backend_cost_meter_rationale_520"
     },
@@ -119663,7 +119663,7 @@
       "file_type": "rationale",
       "source_file": "backend/cost_meter.py",
       "source_location": "L580",
-      "community": 335,
+      "community": 498,
       "norm_label": "enforce a per-caller daily ai spend ceiling before dispatching to a     model, a",
       "id": "backend_cost_meter_rationale_580"
     },
@@ -119762,7 +119762,7 @@
       "file_type": "rationale",
       "source_file": "backend/helpers.py",
       "source_location": "L1045",
-      "community": 115,
+      "community": 181,
       "norm_label": "trim bulky source payloads to the excerpt shape used by the ui.",
       "id": "backend_helpers_rationale_1045"
     },
@@ -119771,7 +119771,7 @@
       "file_type": "rationale",
       "source_file": "backend/helpers.py",
       "source_location": "L1059",
-      "community": 461,
+      "community": 503,
       "norm_label": "pull the ai's own citation list out of a structured /ask payload.      single so",
       "id": "backend_helpers_rationale_1059"
     },
@@ -119870,7 +119870,7 @@
       "file_type": "rationale",
       "source_file": "backend/logging_setup.py",
       "source_location": "L260",
-      "community": 335,
+      "community": 498,
       "norm_label": "return the current context's client_key (empty string if unset).",
       "id": "backend_logging_setup_rationale_260"
     },
@@ -119915,7 +119915,7 @@
       "file_type": "rationale",
       "source_file": "backend/logging_setup.py",
       "source_location": "L358",
-      "community": 498,
+      "community": 128,
       "norm_label": "sentry-style structured logger for backend failures and ai prompt issues.      u",
       "id": "backend_logging_setup_rationale_358"
     },
@@ -120257,7 +120257,7 @@
       "file_type": "rationale",
       "source_file": "backend/routes_library.py",
       "source_location": "L670",
-      "community": 836,
+      "community": 669,
       "norm_label": "split out of search_suggest() (sonarcloud python:s3776) -- see     _add_search_s",
       "id": "backend_routes_library_rationale_670"
     },
@@ -120284,7 +120284,7 @@
       "file_type": "rationale",
       "source_file": "backend/routes_library.py",
       "source_location": "L700",
-      "community": 987,
+      "community": 836,
       "norm_label": "split out of search_suggest() (sonarcloud python:s3776) -- see     _add_search_s",
       "id": "backend_routes_library_rationale_700"
     },
@@ -120428,7 +120428,7 @@
       "file_type": "rationale",
       "source_file": "backend/routes_user.py",
       "source_location": "L299",
-      "community": 32,
+      "community": 173,
       "norm_label": "persist and retrieve semantic bookmarks with notes and ai summaries.",
       "id": "backend_routes_user_rationale_299"
     },
@@ -120437,7 +120437,7 @@
       "file_type": "rationale",
       "source_file": "backend/routes_user.py",
       "source_location": "L343",
-      "community": 32,
+      "community": 173,
       "norm_label": "/api/preferences \u2192 /api/user/preferences (backward compat).",
       "id": "backend_routes_user_rationale_343"
     },
@@ -120455,7 +120455,7 @@
       "file_type": "rationale",
       "source_file": "backend/routes_user.py",
       "source_location": "L382",
-      "community": 32,
+      "community": 173,
       "norm_label": "delete a single history entry owned by the signed-in user.",
       "id": "backend_routes_user_rationale_382"
     },
@@ -120482,7 +120482,7 @@
       "file_type": "rationale",
       "source_file": "backend/search.py",
       "source_location": "L117",
-      "community": 501,
+      "community": 625,
       "norm_label": "search halachipedia mediawiki api for relevant articles",
       "id": "backend_search_rationale_117"
     },
@@ -120509,7 +120509,7 @@
       "file_type": "rationale",
       "source_file": "backend/search.py",
       "source_location": "L232",
-      "community": 874,
+      "community": 178,
       "norm_label": "async wikipedia summary lookup using httpx with shared cache semantics.",
       "id": "backend_search_rationale_232"
     },
@@ -120707,7 +120707,7 @@
       "file_type": "rationale",
       "source_file": "backend/sefaria_library.py",
       "source_location": "L811",
-      "community": 245,
+      "community": 461,
       "norm_label": "relevance score for one title-catalog row against the query tokens.     returns",
       "id": "backend_sefaria_library_rationale_811"
     },
@@ -120770,7 +120770,7 @@
       "file_type": "rationale",
       "source_file": "backend/sefaria_library.py",
       "source_location": "L1088",
-      "community": 669,
+      "community": 383,
       "norm_label": "build the aligned {he, en, segment} lines list + flat he/en arrays     from a ra",
       "id": "backend_sefaria_library_rationale_1088"
     },
@@ -120779,7 +120779,7 @@
       "file_type": "rationale",
       "source_file": "backend/sefaria_library.py",
       "source_location": "L1216",
-      "community": 483,
+      "community": 596,
       "norm_label": "probe both the v3 and v2 sefaria api endpoints live (no cache).     returns a st",
       "id": "backend_sefaria_library_rationale_1216"
     },
@@ -120788,7 +120788,7 @@
       "file_type": "rationale",
       "source_file": "backend/sefaria_library.py",
       "source_location": "L1246",
-      "community": 483,
+      "community": 596,
       "norm_label": "cached get_index_entry() lookup for _add_search_library_result().     split out",
       "id": "backend_sefaria_library_rationale_1246"
     },
@@ -120851,7 +120851,7 @@
       "file_type": "rationale",
       "source_file": "backend/sefaria_library.py",
       "source_location": "L1596",
-      "community": 625,
+      "community": 596,
       "norm_label": "strip curly quotes/dashes and collapse whitespace for an exact-match     retry a",
       "id": "backend_sefaria_library_rationale_1596"
     },
@@ -120869,7 +120869,7 @@
       "file_type": "rationale",
       "source_file": "backend/sefaria_library.py",
       "source_location": "L1635",
-      "community": 43,
+      "community": 469,
       "norm_label": "recursive descent of the library index collecting liturgy prayer     books into",
       "id": "backend_sefaria_library_rationale_1635"
     },
@@ -120896,7 +120896,7 @@
       "file_type": "rationale",
       "source_file": "backend/sefaria_library.py",
       "source_location": "L1725",
-      "community": 43,
+      "community": 469,
       "norm_label": "append one leaf ref (title + non-empty path segments) if not     already seen, m",
       "id": "backend_sefaria_library_rationale_1725"
     },
@@ -120914,7 +120914,7 @@
       "file_type": "rationale",
       "source_file": "backend/sefaria_library.py",
       "source_location": "L1768",
-      "community": 182,
+      "community": 43,
       "norm_label": "build leaf refs from a text schema (e.g., full siddur structure).",
       "id": "backend_sefaria_library_rationale_1768"
     },
@@ -122624,7 +122624,7 @@
       "file_type": "rationale",
       "source_file": "asgi.py",
       "source_location": "L583",
-      "community": 115,
+      "community": 181,
       "norm_label": "stage 4 of ask_async(): halakhic-source-discovery fallback, run when     _run_as",
       "id": "asgi_rationale_583"
     },
@@ -123164,7 +123164,7 @@
       "file_type": "rationale",
       "source_file": "asgi.py",
       "source_location": "L574",
-      "community": 115,
+      "community": 181,
       "norm_label": "stage 4 of ask_async(): halakhic-source-discovery fallback, run when     _run_as",
       "id": "asgi_rationale_574"
     },
@@ -123272,7 +123272,7 @@
       "file_type": "rationale",
       "source_file": "backend/helpers.py",
       "source_location": "L952",
-      "community": 115,
+      "community": 181,
       "norm_label": "trim bulky source payloads to the excerpt shape used by the ui.",
       "id": "backend_helpers_rationale_952"
     },
@@ -123281,7 +123281,7 @@
       "file_type": "rationale",
       "source_file": "backend/helpers.py",
       "source_location": "L966",
-      "community": 461,
+      "community": 503,
       "norm_label": "pull the ai's own citation list out of a structured /ask payload.      single so",
       "id": "backend_helpers_rationale_966"
     },
@@ -123299,7 +123299,7 @@
       "file_type": "rationale",
       "source_file": "backend/logging_setup.py",
       "source_location": "L248",
-      "community": 335,
+      "community": 498,
       "norm_label": "return the current context's client_key (empty string if unset).",
       "id": "backend_logging_setup_rationale_248"
     },
@@ -123344,7 +123344,7 @@
       "file_type": "rationale",
       "source_file": "backend/logging_setup.py",
       "source_location": "L346",
-      "community": 498,
+      "community": 128,
       "norm_label": "sentry-style structured logger for backend failures and ai prompt issues.      u",
       "id": "backend_logging_setup_rationale_346"
     },
@@ -123632,7 +123632,7 @@
       "file_type": "rationale",
       "source_file": "asgi.py",
       "source_location": "L568",
-      "community": 115,
+      "community": 181,
       "norm_label": "stage 4 of ask_async(): halakhic-source-discovery fallback, run when     _run_as",
       "id": "asgi_rationale_568"
     },
@@ -124055,7 +124055,7 @@
       "file_type": "rationale",
       "source_file": "asgi.py",
       "source_location": "L523",
-      "community": 115,
+      "community": 181,
       "norm_label": "stage 4 of ask_async(): halakhic-source-discovery fallback, run when     _run_as",
       "id": "asgi_rationale_523"
     },
@@ -124064,7 +124064,7 @@
       "file_type": "rationale",
       "source_file": "backend/cost_meter.py",
       "source_location": "L366",
-      "community": 335,
+      "community": 498,
       "norm_label": "configured per-caller daily spend cap (defaults to     _default_per_user_daily_b",
       "id": "backend_cost_meter_rationale_366"
     },
@@ -124082,7 +124082,7 @@
       "file_type": "rationale",
       "source_file": "backend/cost_meter.py",
       "source_location": "L440",
-      "community": 335,
+      "community": 498,
       "norm_label": "worst-case usd cost of one /ask call \u2014 reserved atomically before     dispatch s",
       "id": "backend_cost_meter_rationale_440"
     },
@@ -124100,7 +124100,7 @@
       "file_type": "rationale",
       "source_file": "backend/cost_meter.py",
       "source_location": "L500",
-      "community": 335,
+      "community": 498,
       "norm_label": "enforce a per-caller daily ai spend ceiling before dispatching to a     model, a",
       "id": "backend_cost_meter_rationale_500"
     },
@@ -124343,7 +124343,7 @@
       "file_type": "rationale",
       "source_file": "backend/claude.py",
       "source_location": "L453",
-      "community": 252,
+      "community": 131,
       "norm_label": "create/cache google-genai client; return error string on failure.",
       "id": "backend_claude_rationale_453"
     },
@@ -124352,7 +124352,7 @@
       "file_type": "rationale",
       "source_file": "backend/claude.py",
       "source_location": "L565",
-      "community": 273,
+      "community": 32,
       "norm_label": "low-level gemini primary call using gemini-3.5-flash-lite. falls back to claude",
       "id": "backend_claude_rationale_565"
     },
@@ -124361,7 +124361,7 @@
       "file_type": "rationale",
       "source_file": "backend/claude.py",
       "source_location": "L681",
-      "community": 369,
+      "community": 32,
       "norm_label": "remove hidden/control/system-level characters from incoming user query.",
       "id": "backend_claude_rationale_681"
     },
@@ -124640,7 +124640,7 @@
       "file_type": "rationale",
       "source_file": "backend/sefaria_library.py",
       "source_location": "L1607",
-      "community": 43,
+      "community": 469,
       "norm_label": "recursive descent of the library index collecting liturgy prayer     books into",
       "id": "backend_sefaria_library_rationale_1607"
     },
@@ -124667,7 +124667,7 @@
       "file_type": "rationale",
       "source_file": "backend/sefaria_library.py",
       "source_location": "L1697",
-      "community": 43,
+      "community": 469,
       "norm_label": "append one leaf ref (title + non-empty path segments) if not     already seen, m",
       "id": "backend_sefaria_library_rationale_1697"
     },
@@ -124685,7 +124685,7 @@
       "file_type": "rationale",
       "source_file": "backend/sefaria_library.py",
       "source_location": "L1740",
-      "community": 182,
+      "community": 43,
       "norm_label": "build leaf refs from a text schema (e.g., full siddur structure).",
       "id": "backend_sefaria_library_rationale_1740"
     },
@@ -125513,7 +125513,7 @@
       "file_type": "rationale",
       "source_file": "backend/helpers.py",
       "source_location": "L949",
-      "community": 115,
+      "community": 181,
       "norm_label": "trim bulky source payloads to the excerpt shape used by the ui.",
       "id": "backend_helpers_rationale_949"
     },
@@ -125522,7 +125522,7 @@
       "file_type": "rationale",
       "source_file": "backend/helpers.py",
       "source_location": "L963",
-      "community": 461,
+      "community": 503,
       "norm_label": "pull the ai's own citation list out of a structured /ask payload.      single so",
       "id": "backend_helpers_rationale_963"
     },
@@ -125765,7 +125765,7 @@
       "file_type": "rationale",
       "source_file": "backend/rag.py",
       "source_location": "L52",
-      "community": 32,
+      "community": 128,
       "norm_label": "the small subset of zmanim values worth surfacing in the ai tool     context. sp",
       "id": "backend_rag_rationale_52"
     },
@@ -125774,7 +125774,7 @@
       "file_type": "rationale",
       "source_file": "backend/rag.py",
       "source_location": "L105",
-      "community": 32,
+      "community": 128,
       "norm_label": "sum of per-keyword topic/source/content hits. split out of     _score_community_",
       "id": "backend_rag_rationale_105"
     },
@@ -125783,7 +125783,7 @@
       "file_type": "rationale",
       "source_file": "backend/rag.py",
       "source_location": "L164",
-      "community": 32,
+      "community": 128,
       "norm_label": "runs the supabase community_knowledge select with optional     community-name/te",
       "id": "backend_rag_rationale_164"
     },
@@ -125792,7 +125792,7 @@
       "file_type": "rationale",
       "source_file": "backend/rag.py",
       "source_location": "L186",
-      "community": 32,
+      "community": 128,
       "norm_label": "score raw community-knowledge rows and drop keyword-irrelevant ones.     split o",
       "id": "backend_rag_rationale_186"
     },
@@ -125801,7 +125801,7 @@
       "file_type": "rationale",
       "source_file": "backend/rag.py",
       "source_location": "L361",
-      "community": 32,
+      "community": 128,
       "norm_label": "persist a completed ask interaction to the per-user ask_history table.      safe",
       "id": "backend_rag_rationale_361"
     },
@@ -125954,7 +125954,7 @@
       "file_type": "rationale",
       "source_file": "backend/rag.py",
       "source_location": "L50",
-      "community": 32,
+      "community": 128,
       "norm_label": "the small subset of zmanim values worth surfacing in the ai tool     context. sp",
       "id": "backend_rag_rationale_50"
     },
@@ -125963,7 +125963,7 @@
       "file_type": "rationale",
       "source_file": "backend/rag.py",
       "source_location": "L103",
-      "community": 32,
+      "community": 128,
       "norm_label": "sum of per-keyword topic/source/content hits. split out of     _score_community_",
       "id": "backend_rag_rationale_103"
     },
@@ -125972,7 +125972,7 @@
       "file_type": "rationale",
       "source_file": "backend/rag.py",
       "source_location": "L162",
-      "community": 32,
+      "community": 128,
       "norm_label": "runs the supabase community_knowledge select with optional     community-name/te",
       "id": "backend_rag_rationale_162"
     },
@@ -125981,7 +125981,7 @@
       "file_type": "rationale",
       "source_file": "backend/rag.py",
       "source_location": "L184",
-      "community": 32,
+      "community": 128,
       "norm_label": "score raw community-knowledge rows and drop keyword-irrelevant ones.     split o",
       "id": "backend_rag_rationale_184"
     },
@@ -125990,7 +125990,7 @@
       "file_type": "rationale",
       "source_file": "backend/rag.py",
       "source_location": "L359",
-      "community": 32,
+      "community": 128,
       "norm_label": "persist a completed ask interaction to the per-user ask_history table.      safe",
       "id": "backend_rag_rationale_359"
     },
@@ -126062,7 +126062,7 @@
       "file_type": "rationale",
       "source_file": "backend/routes_user.py",
       "source_location": "L376",
-      "community": 32,
+      "community": 173,
       "norm_label": "delete a single history entry owned by the signed-in user.",
       "id": "backend_routes_user_rationale_376"
     },
@@ -126359,7 +126359,7 @@
       "file_type": "rationale",
       "source_file": "asgi.py",
       "source_location": "L564",
-      "community": 115,
+      "community": 181,
       "norm_label": "stage 4 of ask_async(): halakhic-source-discovery fallback, run when     _run_as",
       "id": "asgi_rationale_564"
     },
@@ -126449,7 +126449,7 @@
       "file_type": "rationale",
       "source_file": "backend/claude.py",
       "source_location": "L442",
-      "community": 252,
+      "community": 131,
       "norm_label": "create/cache google-genai client; return error string on failure.",
       "id": "backend_claude_rationale_442"
     },
@@ -126458,7 +126458,7 @@
       "file_type": "rationale",
       "source_file": "backend/claude.py",
       "source_location": "L534",
-      "community": 469,
+      "community": 252,
       "norm_label": "retry gemini content generation only for resourceexhausted (429).",
       "id": "backend_claude_rationale_534"
     },
@@ -126467,7 +126467,7 @@
       "file_type": "rationale",
       "source_file": "backend/claude.py",
       "source_location": "L554",
-      "community": 273,
+      "community": 32,
       "norm_label": "low-level gemini primary call using gemini-3.5-flash-lite. falls back to claude",
       "id": "backend_claude_rationale_554"
     },
@@ -127043,7 +127043,7 @@
       "file_type": "rationale",
       "source_file": "asgi.py",
       "source_location": "L560",
-      "community": 115,
+      "community": 181,
       "norm_label": "stage 4 of ask_async(): halakhic-source-discovery fallback, run when     _run_as",
       "id": "asgi_rationale_560"
     },
@@ -127061,7 +127061,7 @@
       "file_type": "rationale",
       "source_file": "backend/claude.py",
       "source_location": "L421",
-      "community": 369,
+      "community": 32,
       "norm_label": "create/cache asyncanthropic client from environment at call-time.",
       "id": "backend_claude_rationale_421"
     },
@@ -127070,7 +127070,7 @@
       "file_type": "rationale",
       "source_file": "backend/claude.py",
       "source_location": "L441",
-      "community": 252,
+      "community": 131,
       "norm_label": "create/cache google-genai client; return error string on failure.",
       "id": "backend_claude_rationale_441"
     },
@@ -127079,7 +127079,7 @@
       "file_type": "rationale",
       "source_file": "backend/claude.py",
       "source_location": "L533",
-      "community": 469,
+      "community": 252,
       "norm_label": "retry gemini content generation only for resourceexhausted (429).",
       "id": "backend_claude_rationale_533"
     },
@@ -127088,7 +127088,7 @@
       "file_type": "rationale",
       "source_file": "backend/claude.py",
       "source_location": "L553",
-      "community": 369,
+      "community": 32,
       "norm_label": "low-level gemini primary call using gemini-3.5-flash-lite. falls back to claude",
       "id": "backend_claude_rationale_553"
     },
@@ -127097,7 +127097,7 @@
       "file_type": "rationale",
       "source_file": "backend/claude.py",
       "source_location": "L643",
-      "community": 369,
+      "community": 32,
       "norm_label": "remove hidden/control/system-level characters from incoming user query.",
       "id": "backend_claude_rationale_643"
     },
@@ -127718,7 +127718,7 @@
       "file_type": "rationale",
       "source_file": "backend/helpers.py",
       "source_location": "L932",
-      "community": 115,
+      "community": 181,
       "norm_label": "trim bulky source payloads to the excerpt shape used by the ui.",
       "id": "backend_helpers_rationale_932"
     },
@@ -127727,7 +127727,7 @@
       "file_type": "rationale",
       "source_file": "backend/helpers.py",
       "source_location": "L946",
-      "community": 461,
+      "community": 503,
       "norm_label": "pull the ai's own citation list out of a structured /ask payload.      single so",
       "id": "backend_helpers_rationale_946"
     },
@@ -127889,7 +127889,7 @@
       "file_type": "rationale",
       "source_file": "backend/routes_library.py",
       "source_location": "L665",
-      "community": 836,
+      "community": 669,
       "norm_label": "split out of search_suggest() (sonarcloud python:s3776) -- see     _add_search_s",
       "id": "backend_routes_library_rationale_665"
     },
@@ -127916,7 +127916,7 @@
       "file_type": "rationale",
       "source_file": "backend/routes_library.py",
       "source_location": "L695",
-      "community": 987,
+      "community": 836,
       "norm_label": "split out of search_suggest() (sonarcloud python:s3776) -- see     _add_search_s",
       "id": "backend_routes_library_rationale_695"
     },
@@ -128060,7 +128060,7 @@
       "file_type": "rationale",
       "source_file": "backend/search.py",
       "source_location": "L111",
-      "community": 501,
+      "community": 625,
       "norm_label": "search halachipedia mediawiki api for relevant articles",
       "id": "backend_search_rationale_111"
     },
@@ -128078,7 +128078,7 @@
       "file_type": "rationale",
       "source_file": "backend/search.py",
       "source_location": "L226",
-      "community": 874,
+      "community": 178,
       "norm_label": "async wikipedia summary lookup using httpx with shared cache semantics.",
       "id": "backend_search_rationale_226"
     },
@@ -128276,7 +128276,7 @@
       "file_type": "rationale",
       "source_file": "backend/cost_meter.py",
       "source_location": "L300",
-      "community": 335,
+      "community": 498,
       "norm_label": "configured per-caller daily spend cap (defaults to     _default_per_user_daily_b",
       "id": "backend_cost_meter_rationale_300"
     },
@@ -128294,7 +128294,7 @@
       "file_type": "rationale",
       "source_file": "backend/cost_meter.py",
       "source_location": "L345",
-      "community": 335,
+      "community": 498,
       "norm_label": "enforce a per-caller daily ai spend ceiling before dispatching to a     model. k",
       "id": "backend_cost_meter_rationale_345"
     },
@@ -128384,7 +128384,7 @@
       "file_type": "rationale",
       "source_file": "backend/logging_setup.py",
       "source_location": "L247",
-      "community": 335,
+      "community": 498,
       "norm_label": "return the current context's client_key (empty string if unset).",
       "id": "backend_logging_setup_rationale_247"
     },
@@ -128663,7 +128663,7 @@
       "file_type": "rationale",
       "source_file": "asgi.py",
       "source_location": "L570",
-      "community": 115,
+      "community": 181,
       "norm_label": "stage 4 of ask_async(): halakhic-source-discovery fallback, run when     _run_as",
       "id": "asgi_rationale_570"
     },
@@ -128717,7 +128717,7 @@
       "file_type": "rationale",
       "source_file": "backend/claude.py",
       "source_location": "L419",
-      "community": 252,
+      "community": 131,
       "norm_label": "create/cache google-genai client; return error string on failure.",
       "id": "backend_claude_rationale_419"
     },
@@ -128726,7 +128726,7 @@
       "file_type": "rationale",
       "source_file": "backend/claude.py",
       "source_location": "L511",
-      "community": 469,
+      "community": 252,
       "norm_label": "retry gemini content generation only for resourceexhausted (429).",
       "id": "backend_claude_rationale_511"
     },
@@ -128735,7 +128735,7 @@
       "file_type": "rationale",
       "source_file": "backend/claude.py",
       "source_location": "L531",
-      "community": 273,
+      "community": 32,
       "norm_label": "low-level gemini primary call using gemini-3.5-flash-lite. falls back to claude",
       "id": "backend_claude_rationale_531"
     },
@@ -128744,7 +128744,7 @@
       "file_type": "rationale",
       "source_file": "backend/claude.py",
       "source_location": "L621",
-      "community": 369,
+      "community": 32,
       "norm_label": "remove hidden/control/system-level characters from incoming user query.",
       "id": "backend_claude_rationale_621"
     },
@@ -129023,7 +129023,7 @@
       "file_type": "rationale",
       "source_file": "backend/cost_meter.py",
       "source_location": "L241",
-      "community": 335,
+      "community": 498,
       "norm_label": "configured per-caller daily spend cap (defaults to     _default_per_user_daily_b",
       "id": "backend_cost_meter_rationale_241"
     },
@@ -129041,7 +129041,7 @@
       "file_type": "rationale",
       "source_file": "backend/cost_meter.py",
       "source_location": "L286",
-      "community": 335,
+      "community": 498,
       "norm_label": "enforce a per-caller daily ai spend ceiling before dispatching to a     model. k",
       "id": "backend_cost_meter_rationale_286"
     },
@@ -129131,7 +129131,7 @@
       "file_type": "rationale",
       "source_file": "backend/helpers.py",
       "source_location": "L917",
-      "community": 115,
+      "community": 181,
       "norm_label": "trim bulky source payloads to the excerpt shape used by the ui.",
       "id": "backend_helpers_rationale_917"
     },
@@ -129140,7 +129140,7 @@
       "file_type": "rationale",
       "source_file": "backend/helpers.py",
       "source_location": "L931",
-      "community": 461,
+      "community": 503,
       "norm_label": "pull the ai's own citation list out of a structured /ask payload.      single so",
       "id": "backend_helpers_rationale_931"
     },
@@ -129212,7 +129212,7 @@
       "file_type": "rationale",
       "source_file": "backend/sefaria_library.py",
       "source_location": "L789",
-      "community": 245,
+      "community": 461,
       "norm_label": "relevance score for one title-catalog row against the query tokens.     returns",
       "id": "backend_sefaria_library_rationale_789"
     },
@@ -129239,7 +129239,7 @@
       "file_type": "rationale",
       "source_file": "backend/sefaria_library.py",
       "source_location": "L989",
-      "community": 669,
+      "community": 383,
       "norm_label": "flatten a sefaria nested-array text field into (path, string) pairs     for stru",
       "id": "backend_sefaria_library_rationale_989"
     },
@@ -129266,7 +129266,7 @@
       "file_type": "rationale",
       "source_file": "backend/sefaria_library.py",
       "source_location": "L1066",
-      "community": 669,
+      "community": 383,
       "norm_label": "build the aligned {he, en, segment} lines list + flat he/en arrays     from a ra",
       "id": "backend_sefaria_library_rationale_1066"
     },
@@ -129329,7 +129329,7 @@
       "file_type": "rationale",
       "source_file": "backend/sefaria_library.py",
       "source_location": "L1546",
-      "community": 625,
+      "community": 596,
       "norm_label": "strip curly quotes/dashes and collapse whitespace for an exact-match     retry a",
       "id": "backend_sefaria_library_rationale_1546"
     },
@@ -129338,7 +129338,7 @@
       "file_type": "rationale",
       "source_file": "backend/sefaria_library.py",
       "source_location": "L1585",
-      "community": 43,
+      "community": 469,
       "norm_label": "recursive descent of the library index collecting liturgy prayer     books into",
       "id": "backend_sefaria_library_rationale_1585"
     },
@@ -129356,7 +129356,7 @@
       "file_type": "rationale",
       "source_file": "backend/sefaria_library.py",
       "source_location": "L1675",
-      "community": 43,
+      "community": 469,
       "norm_label": "append one leaf ref (title + non-empty path segments) if not     already seen, m",
       "id": "backend_sefaria_library_rationale_1675"
     },
@@ -129365,7 +129365,7 @@
       "file_type": "rationale",
       "source_file": "backend/sefaria_library.py",
       "source_location": "L1718",
-      "community": 182,
+      "community": 43,
       "norm_label": "build leaf refs from a text schema (e.g., full siddur structure).",
       "id": "backend_sefaria_library_rationale_1718"
     },
@@ -129572,7 +129572,7 @@
       "file_type": "rationale",
       "source_file": "backend/routes_user.py",
       "source_location": "L286",
-      "community": 32,
+      "community": 173,
       "norm_label": "persist and retrieve semantic bookmarks with notes and ai summaries.",
       "id": "backend_routes_user_rationale_286"
     },
@@ -129581,7 +129581,7 @@
       "file_type": "rationale",
       "source_file": "backend/routes_user.py",
       "source_location": "L330",
-      "community": 32,
+      "community": 173,
       "norm_label": "/api/preferences \u2192 /api/user/preferences (backward compat).",
       "id": "backend_routes_user_rationale_330"
     },
@@ -129599,7 +129599,7 @@
       "file_type": "rationale",
       "source_file": "backend/routes_user.py",
       "source_location": "L369",
-      "community": 32,
+      "community": 173,
       "norm_label": "delete a single history entry owned by the signed-in user.",
       "id": "backend_routes_user_rationale_369"
     },
@@ -129671,7 +129671,7 @@
       "file_type": "rationale",
       "source_file": "backend/sefaria_library.py",
       "source_location": "L981",
-      "community": 669,
+      "community": 383,
       "norm_label": "flatten a sefaria nested-array text field into (path, string) pairs     for stru",
       "id": "backend_sefaria_library_rationale_981"
     },
@@ -129707,7 +129707,7 @@
       "file_type": "rationale",
       "source_file": "backend/sefaria_library.py",
       "source_location": "L1058",
-      "community": 669,
+      "community": 383,
       "norm_label": "build the aligned {he, en, segment} lines list + flat he/en arrays     from a ra",
       "id": "backend_sefaria_library_rationale_1058"
     },
@@ -129779,7 +129779,7 @@
       "file_type": "rationale",
       "source_file": "backend/sefaria_library.py",
       "source_location": "L1577",
-      "community": 43,
+      "community": 469,
       "norm_label": "recursive descent of the library index collecting liturgy prayer     books into",
       "id": "backend_sefaria_library_rationale_1577"
     },
@@ -130706,7 +130706,7 @@
       "file_type": "rationale",
       "source_file": "backend/routes_library.py",
       "source_location": "L657",
-      "community": 836,
+      "community": 669,
       "norm_label": "split out of search_suggest() (sonarcloud python:s3776) -- see     _add_search_s",
       "id": "backend_routes_library_rationale_657"
     },
@@ -130733,7 +130733,7 @@
       "file_type": "rationale",
       "source_file": "backend/routes_library.py",
       "source_location": "L687",
-      "community": 987,
+      "community": 836,
       "norm_label": "split out of search_suggest() (sonarcloud python:s3776) -- see     _add_search_s",
       "id": "backend_routes_library_rationale_687"
     },
@@ -131066,7 +131066,7 @@
       "file_type": "rationale",
       "source_file": "backend/claude.py",
       "source_location": "L393",
-      "community": 369,
+      "community": 32,
       "norm_label": "create/cache asyncanthropic client from environment at call-time.",
       "id": "backend_claude_rationale_393"
     },
@@ -131075,7 +131075,7 @@
       "file_type": "rationale",
       "source_file": "backend/claude.py",
       "source_location": "L413",
-      "community": 252,
+      "community": 131,
       "norm_label": "create/cache google-genai client; return error string on failure.",
       "id": "backend_claude_rationale_413"
     },
@@ -131084,7 +131084,7 @@
       "file_type": "rationale",
       "source_file": "backend/claude.py",
       "source_location": "L525",
-      "community": 273,
+      "community": 32,
       "norm_label": "low-level gemini primary call using gemini-3.5-flash-lite. falls back to claude",
       "id": "backend_claude_rationale_525"
     },
@@ -131093,7 +131093,7 @@
       "file_type": "rationale",
       "source_file": "backend/claude.py",
       "source_location": "L615",
-      "community": 369,
+      "community": 32,
       "norm_label": "remove hidden/control/system-level characters from incoming user query.",
       "id": "backend_claude_rationale_615"
     },
@@ -131300,7 +131300,7 @@
       "file_type": "rationale",
       "source_file": "backend/helpers.py",
       "source_location": "L693",
-      "community": 115,
+      "community": 181,
       "norm_label": "trim bulky source payloads to the excerpt shape used by the ui.",
       "id": "backend_helpers_rationale_693"
     },
@@ -131309,7 +131309,7 @@
       "file_type": "rationale",
       "source_file": "backend/helpers.py",
       "source_location": "L761",
-      "community": 461,
+      "community": 503,
       "norm_label": "pull the ai's own citation list out of a structured /ask payload.      single so",
       "id": "backend_helpers_rationale_761"
     },
@@ -131390,7 +131390,7 @@
       "file_type": "rationale",
       "source_file": "backend/logging_setup.py",
       "source_location": "L244",
-      "community": 498,
+      "community": 128,
       "norm_label": "sentry-style structured logger for backend failures and ai prompt issues.      u",
       "id": "backend_logging_setup_rationale_244"
     },
@@ -131399,7 +131399,7 @@
       "file_type": "rationale",
       "source_file": "backend/rag.py",
       "source_location": "L322",
-      "community": 32,
+      "community": 128,
       "norm_label": "persist a completed ask interaction to the per-user ask_history table.      safe",
       "id": "backend_rag_rationale_322"
     },
@@ -131669,7 +131669,7 @@
       "file_type": "rationale",
       "source_file": "backend/routes_user.py",
       "source_location": "L232",
-      "community": 32,
+      "community": 173,
       "norm_label": "persist and retrieve semantic bookmarks with notes and ai summaries.",
       "id": "backend_routes_user_rationale_232"
     },
@@ -131687,7 +131687,7 @@
       "file_type": "rationale",
       "source_file": "backend/search.py",
       "source_location": "L220",
-      "community": 874,
+      "community": 178,
       "norm_label": "async wikipedia summary lookup using httpx with shared cache semantics.",
       "id": "backend_search_rationale_220"
     },
@@ -131876,7 +131876,7 @@
       "file_type": "rationale",
       "source_file": "backend/sefaria_library.py",
       "source_location": "L1363",
-      "community": 625,
+      "community": 596,
       "norm_label": "strip curly quotes/dashes and collapse whitespace for an exact-match     retry a",
       "id": "backend_sefaria_library_rationale_1363"
     },
@@ -132407,7 +132407,7 @@
       "file_type": "rationale",
       "source_file": "backend/routes_user.py",
       "source_location": "L216",
-      "community": 32,
+      "community": 173,
       "norm_label": "persist and retrieve semantic bookmarks with notes and ai summaries.",
       "id": "backend_routes_user_rationale_216"
     },
@@ -132416,7 +132416,7 @@
       "file_type": "rationale",
       "source_file": "backend/routes_user.py",
       "source_location": "L314",
-      "community": 32,
+      "community": 173,
       "norm_label": "/api/preferences \u2192 /api/user/preferences (backward compat).",
       "id": "backend_routes_user_rationale_314"
     },
@@ -132434,7 +132434,7 @@
       "file_type": "rationale",
       "source_file": "backend/routes_user.py",
       "source_location": "L353",
-      "community": 32,
+      "community": 173,
       "norm_label": "delete a single history entry owned by the signed-in user.",
       "id": "backend_routes_user_rationale_353"
     },
@@ -133730,7 +133730,7 @@
       "file_type": "rationale",
       "source_file": "backend/claude.py",
       "source_location": "L410",
-      "community": 252,
+      "community": 131,
       "norm_label": "create/cache google-genai client; return error string on failure.",
       "id": "backend_claude_rationale_410"
     },
@@ -133739,7 +133739,7 @@
       "file_type": "rationale",
       "source_file": "backend/claude.py",
       "source_location": "L502",
-      "community": 469,
+      "community": 252,
       "norm_label": "retry gemini content generation only for resourceexhausted (429).",
       "id": "backend_claude_rationale_502"
     },
@@ -133748,7 +133748,7 @@
       "file_type": "rationale",
       "source_file": "backend/claude.py",
       "source_location": "L522",
-      "community": 273,
+      "community": 32,
       "norm_label": "low-level gemini primary call using gemini-3.1-flash-lite-preview. falls back to",
       "id": "backend_claude_rationale_522"
     },
@@ -133937,7 +133937,7 @@
       "file_type": "rationale",
       "source_file": "backend/helpers.py",
       "source_location": "L677",
-      "community": 115,
+      "community": 181,
       "norm_label": "trim bulky source payloads to the excerpt shape used by the ui.",
       "id": "backend_helpers_rationale_677"
     },
@@ -133946,7 +133946,7 @@
       "file_type": "rationale",
       "source_file": "backend/rag.py",
       "source_location": "L320",
-      "community": 32,
+      "community": 128,
       "norm_label": "persist a completed ask interaction to the per-user ask_history table.      safe",
       "id": "backend_rag_rationale_320"
     },
@@ -133991,7 +133991,7 @@
       "file_type": "rationale",
       "source_file": "backend/routes_user.py",
       "source_location": "L217",
-      "community": 32,
+      "community": 173,
       "norm_label": "persist and retrieve semantic bookmarks with notes and ai summaries.",
       "id": "backend_routes_user_rationale_217"
     },
@@ -134000,7 +134000,7 @@
       "file_type": "rationale",
       "source_file": "backend/routes_user.py",
       "source_location": "L315",
-      "community": 32,
+      "community": 173,
       "norm_label": "/api/preferences \u2192 /api/user/preferences (backward compat).",
       "id": "backend_routes_user_rationale_315"
     },
@@ -134018,7 +134018,7 @@
       "file_type": "rationale",
       "source_file": "backend/routes_user.py",
       "source_location": "L354",
-      "community": 32,
+      "community": 173,
       "norm_label": "delete a single history entry owned by the signed-in user.",
       "id": "backend_routes_user_rationale_354"
     },
@@ -134225,7 +134225,7 @@
       "file_type": "rationale",
       "source_file": "backend/search.py",
       "source_location": "L112",
-      "community": 501,
+      "community": 625,
       "norm_label": "search halachipedia mediawiki api for relevant articles",
       "id": "backend_search_rationale_112"
     },
@@ -134243,7 +134243,7 @@
       "file_type": "rationale",
       "source_file": "backend/search.py",
       "source_location": "L221",
-      "community": 874,
+      "community": 178,
       "norm_label": "async wikipedia summary lookup using httpx with shared cache semantics.",
       "id": "backend_search_rationale_221"
     },
@@ -134459,7 +134459,7 @@
       "file_type": "rationale",
       "source_file": "backend/claude.py",
       "source_location": "L409",
-      "community": 252,
+      "community": 131,
       "norm_label": "create/cache google-genai client; return error string on failure.",
       "id": "backend_claude_rationale_409"
     },
@@ -134468,7 +134468,7 @@
       "file_type": "rationale",
       "source_file": "backend/claude.py",
       "source_location": "L521",
-      "community": 273,
+      "community": 32,
       "norm_label": "low-level gemini primary call using gemini-3.1-flash-lite-preview. falls back to",
       "id": "backend_claude_rationale_521"
     },
@@ -134657,7 +134657,7 @@
       "file_type": "rationale",
       "source_file": "backend/logging_setup.py",
       "source_location": "L154",
-      "community": 498,
+      "community": 128,
       "norm_label": "sentry-style structured logger for backend failures and ai prompt issues.      u",
       "id": "backend_logging_setup_rationale_154"
     },
@@ -134909,7 +134909,7 @@
       "file_type": "rationale",
       "source_file": "backend/claude.py",
       "source_location": "L402",
-      "community": 252,
+      "community": 131,
       "norm_label": "create/cache google-genai client; return error string on failure.",
       "id": "backend_claude_rationale_402"
     },
@@ -134918,7 +134918,7 @@
       "file_type": "rationale",
       "source_file": "backend/claude.py",
       "source_location": "L494",
-      "community": 469,
+      "community": 252,
       "norm_label": "retry gemini content generation only for resourceexhausted (429).",
       "id": "backend_claude_rationale_494"
     },
@@ -134927,7 +134927,7 @@
       "file_type": "rationale",
       "source_file": "backend/claude.py",
       "source_location": "L514",
-      "community": 273,
+      "community": 32,
       "norm_label": "low-level gemini primary call using gemini-3.1-flash-lite-preview. falls back to",
       "id": "backend_claude_rationale_514"
     },
@@ -134936,7 +134936,7 @@
       "file_type": "rationale",
       "source_file": "backend/claude.py",
       "source_location": "L589",
-      "community": 369,
+      "community": 32,
       "norm_label": "remove hidden/control/system-level characters from incoming user query.",
       "id": "backend_claude_rationale_589"
     },
@@ -135044,7 +135044,7 @@
       "file_type": "rationale",
       "source_file": "backend/rag.py",
       "source_location": "L318",
-      "community": 32,
+      "community": 128,
       "norm_label": "persist a completed ask interaction to the per-user ask_history table.",
       "id": "backend_rag_rationale_318"
     },
@@ -135062,7 +135062,7 @@
       "file_type": "rationale",
       "source_file": "backend/claude.py",
       "source_location": "L346",
-      "community": 273,
+      "community": 32,
       "norm_label": "create/cache asyncanthropic client from environment at call-time.",
       "id": "backend_claude_rationale_346"
     },
@@ -135071,7 +135071,7 @@
       "file_type": "rationale",
       "source_file": "backend/claude.py",
       "source_location": "L366",
-      "community": 252,
+      "community": 131,
       "norm_label": "create/cache google-genai client; return error string on failure.",
       "id": "backend_claude_rationale_366"
     },
@@ -135080,7 +135080,7 @@
       "file_type": "rationale",
       "source_file": "backend/claude.py",
       "source_location": "L458",
-      "community": 469,
+      "community": 252,
       "norm_label": "retry gemini content generation only for resourceexhausted (429).",
       "id": "backend_claude_rationale_458"
     },
@@ -135089,7 +135089,7 @@
       "file_type": "rationale",
       "source_file": "backend/claude.py",
       "source_location": "L478",
-      "community": 273,
+      "community": 32,
       "norm_label": "low-level gemini primary call using gemini-3.1-flash-lite-preview. falls back to",
       "id": "backend_claude_rationale_478"
     },
@@ -135287,7 +135287,7 @@
       "file_type": "rationale",
       "source_file": "backend/claude.py",
       "source_location": "L234",
-      "community": 252,
+      "community": 131,
       "norm_label": "create/cache google-genai client; return error string on failure.",
       "id": "backend_claude_rationale_234"
     },
@@ -135296,7 +135296,7 @@
       "file_type": "rationale",
       "source_file": "backend/claude.py",
       "source_location": "L326",
-      "community": 469,
+      "community": 252,
       "norm_label": "retry gemini content generation only for resourceexhausted (429).",
       "id": "backend_claude_rationale_326"
     },
@@ -135440,7 +135440,7 @@
       "file_type": "rationale",
       "source_file": "backend/routes_user.py",
       "source_location": "L205",
-      "community": 32,
+      "community": 173,
       "norm_label": "persist and retrieve semantic bookmarks with notes and ai summaries.",
       "id": "backend_routes_user_rationale_205"
     },
@@ -135458,7 +135458,7 @@
       "file_type": "rationale",
       "source_file": "backend/routes_user.py",
       "source_location": "L303",
-      "community": 32,
+      "community": 173,
       "norm_label": "/api/preferences \u2192 /api/user/preferences (backward compat).",
       "id": "backend_routes_user_rationale_303"
     },
@@ -135566,7 +135566,7 @@
       "file_type": "rationale",
       "source_file": "backend/claude.py",
       "source_location": "L232",
-      "community": 252,
+      "community": 131,
       "norm_label": "create/cache google-genai client; return error string on failure.",
       "id": "backend_claude_rationale_232"
     },
@@ -135575,7 +135575,7 @@
       "file_type": "rationale",
       "source_file": "backend/claude.py",
       "source_location": "L324",
-      "community": 469,
+      "community": 252,
       "norm_label": "retry gemini content generation only for resourceexhausted (429).",
       "id": "backend_claude_rationale_324"
     },
@@ -135584,7 +135584,7 @@
       "file_type": "rationale",
       "source_file": "backend/claude.py",
       "source_location": "L344",
-      "community": 273,
+      "community": 32,
       "norm_label": "low-level gemini primary call using gemini-3.1-flash-lite-preview. falls back to",
       "id": "backend_claude_rationale_344"
     },
@@ -135881,7 +135881,7 @@
       "file_type": "rationale",
       "source_file": "backend/sefaria_library.py",
       "source_location": "L1330",
-      "community": 182,
+      "community": 43,
       "norm_label": "build leaf refs from a text schema (e.g., full siddur structure).",
       "id": "backend_sefaria_library_rationale_1330"
     },
@@ -136232,7 +136232,7 @@
       "file_type": "rationale",
       "source_file": "backend/routes_user.py",
       "source_location": "L203",
-      "community": 32,
+      "community": 173,
       "norm_label": "persist and retrieve semantic bookmarks with notes and ai summaries.",
       "id": "backend_routes_user_rationale_203"
     },
@@ -136250,7 +136250,7 @@
       "file_type": "rationale",
       "source_file": "backend/routes_user.py",
       "source_location": "L301",
-      "community": 32,
+      "community": 173,
       "norm_label": "/api/preferences \u2192 /api/user/preferences (backward compat).",
       "id": "backend_routes_user_rationale_301"
     },
@@ -136268,7 +136268,7 @@
       "file_type": "rationale",
       "source_file": "backend/routes_user.py",
       "source_location": "L340",
-      "community": 32,
+      "community": 173,
       "norm_label": "delete a single history entry owned by the signed-in user.",
       "id": "backend_routes_user_rationale_340"
     },
@@ -136475,7 +136475,7 @@
       "file_type": "rationale",
       "source_file": "backend/claude.py",
       "source_location": "L229",
-      "community": 252,
+      "community": 131,
       "norm_label": "create/cache google-genai client; return error string on failure.",
       "id": "backend_claude_rationale_229"
     },
@@ -136484,7 +136484,7 @@
       "file_type": "rationale",
       "source_file": "backend/claude.py",
       "source_location": "L321",
-      "community": 469,
+      "community": 252,
       "norm_label": "retry gemini content generation only for resourceexhausted (429).",
       "id": "backend_claude_rationale_321"
     },
@@ -136493,7 +136493,7 @@
       "file_type": "rationale",
       "source_file": "backend/claude.py",
       "source_location": "L341",
-      "community": 273,
+      "community": 32,
       "norm_label": "low-level gemini primary call using gemini-3.1-flash-lite-preview. falls back to",
       "id": "backend_claude_rationale_341"
     },
@@ -136502,7 +136502,7 @@
       "file_type": "rationale",
       "source_file": "backend/claude.py",
       "source_location": "L416",
-      "community": 369,
+      "community": 32,
       "norm_label": "remove hidden/control/system-level characters from incoming user query.",
       "id": "backend_claude_rationale_416"
     },
@@ -136736,7 +136736,7 @@
       "file_type": "rationale",
       "source_file": "backend/helpers.py",
       "source_location": "L675",
-      "community": 115,
+      "community": 181,
       "norm_label": "trim bulky source payloads to the excerpt shape used by the ui.",
       "id": "backend_helpers_rationale_675"
     },
@@ -136871,7 +136871,7 @@
       "file_type": "rationale",
       "source_file": "backend/routes_user.py",
       "source_location": "L200",
-      "community": 32,
+      "community": 173,
       "norm_label": "persist and retrieve semantic bookmarks with notes and ai summaries.",
       "id": "backend_routes_user_rationale_200"
     },
@@ -137744,7 +137744,7 @@
       "file_type": "rationale",
       "source_file": "backend/helpers.py",
       "source_location": "L757",
-      "community": 115,
+      "community": 181,
       "norm_label": "trim bulky source payloads to the excerpt shape used by the ui.",
       "id": "backend_helpers_rationale_757"
     },
@@ -137753,7 +137753,7 @@
       "file_type": "rationale",
       "source_file": "backend/helpers.py",
       "source_location": "L825",
-      "community": 461,
+      "community": 503,
       "norm_label": "pull the ai's own citation list out of a structured /ask payload.      single so",
       "id": "backend_helpers_rationale_825"
     },
@@ -137996,7 +137996,7 @@
       "file_type": "rationale",
       "source_file": "backend/helpers.py",
       "source_location": "L753",
-      "community": 115,
+      "community": 181,
       "norm_label": "trim bulky source payloads to the excerpt shape used by the ui.",
       "id": "backend_helpers_rationale_753"
     },
@@ -138005,7 +138005,7 @@
       "file_type": "rationale",
       "source_file": "backend/helpers.py",
       "source_location": "L821",
-      "community": 461,
+      "community": 503,
       "norm_label": "pull the ai's own citation list out of a structured /ask payload.      single so",
       "id": "backend_helpers_rationale_821"
     },
@@ -138023,7 +138023,7 @@
       "file_type": "rationale",
       "source_file": "backend/search.py",
       "source_location": "L101",
-      "community": 501,
+      "community": 625,
       "norm_label": "search halachipedia mediawiki api for relevant articles",
       "id": "backend_search_rationale_101"
     },
@@ -138041,7 +138041,7 @@
       "file_type": "rationale",
       "source_file": "backend/search.py",
       "source_location": "L210",
-      "community": 874,
+      "community": 178,
       "norm_label": "async wikipedia summary lookup using httpx with shared cache semantics.",
       "id": "backend_search_rationale_210"
     },
@@ -138707,7 +138707,7 @@
       "file_type": "rationale",
       "source_file": "backend/claude.py",
       "source_location": "L297",
-      "community": 469,
+      "community": 252,
       "norm_label": "retry gemini content generation only for resourceexhausted (429).",
       "id": "backend_claude_rationale_297"
     },
@@ -138716,7 +138716,7 @@
       "file_type": "rationale",
       "source_file": "backend/claude.py",
       "source_location": "L317",
-      "community": 273,
+      "community": 32,
       "norm_label": "low-level gemini primary call using gemini-3.1-flash-lite-preview. falls back to",
       "id": "backend_claude_rationale_317"
     },
@@ -138725,7 +138725,7 @@
       "file_type": "rationale",
       "source_file": "backend/claude.py",
       "source_location": "L392",
-      "community": 369,
+      "community": 32,
       "norm_label": "remove hidden/control/system-level characters from incoming user query.",
       "id": "backend_claude_rationale_392"
     },
@@ -138869,7 +138869,7 @@
       "file_type": "rationale",
       "source_file": "backend/logging_setup.py",
       "source_location": "L133",
-      "community": 498,
+      "community": 128,
       "norm_label": "sentry-style structured logger for backend failures and ai prompt issues.      u",
       "id": "backend_logging_setup_rationale_133"
     },
@@ -138896,7 +138896,7 @@
       "file_type": "rationale",
       "source_file": "backend/routes_user.py",
       "source_location": "L199",
-      "community": 32,
+      "community": 173,
       "norm_label": "persist and retrieve semantic bookmarks with notes and ai summaries.",
       "id": "backend_routes_user_rationale_199"
     },
@@ -138914,7 +138914,7 @@
       "file_type": "rationale",
       "source_file": "backend/routes_user.py",
       "source_location": "L297",
-      "community": 32,
+      "community": 173,
       "norm_label": "/api/preferences \u2192 /api/user/preferences (backward compat).",
       "id": "backend_routes_user_rationale_297"
     },
@@ -138950,7 +138950,7 @@
       "file_type": "rationale",
       "source_file": "backend/search.py",
       "source_location": "L113",
-      "community": 501,
+      "community": 625,
       "norm_label": "search halachipedia mediawiki api for relevant articles",
       "id": "backend_search_rationale_113"
     },
@@ -138968,7 +138968,7 @@
       "file_type": "rationale",
       "source_file": "backend/search.py",
       "source_location": "L222",
-      "community": 874,
+      "community": 178,
       "norm_label": "async wikipedia summary lookup using httpx with shared cache semantics.",
       "id": "backend_search_rationale_222"
     },
@@ -139490,7 +139490,7 @@
       "file_type": "rationale",
       "source_file": "backend/claude.py",
       "source_location": "L215",
-      "community": 252,
+      "community": 131,
       "norm_label": "create/cache google-genai client; return error string on failure.",
       "id": "backend_claude_rationale_215"
     },
@@ -139499,7 +139499,7 @@
       "file_type": "rationale",
       "source_file": "backend/claude.py",
       "source_location": "L298",
-      "community": 469,
+      "community": 252,
       "norm_label": "retry gemini content generation only for resourceexhausted (429).",
       "id": "backend_claude_rationale_298"
     },
@@ -139508,7 +139508,7 @@
       "file_type": "rationale",
       "source_file": "backend/claude.py",
       "source_location": "L318",
-      "community": 273,
+      "community": 32,
       "norm_label": "low-level gemini primary call using gemini-3.1-flash-lite-preview. falls back to",
       "id": "backend_claude_rationale_318"
     },
@@ -140003,7 +140003,7 @@
       "file_type": "rationale",
       "source_file": "backend/sefaria_library.py",
       "source_location": "L1329",
-      "community": 182,
+      "community": 43,
       "norm_label": "build leaf refs from a text schema (e.g., full siddur structure).",
       "id": "backend_sefaria_library_rationale_1329"
     },
@@ -140228,7 +140228,7 @@
       "file_type": "rationale",
       "source_file": "backend/claude.py",
       "source_location": "L194",
-      "community": 252,
+      "community": 131,
       "norm_label": "configure gemini client and return an error string on failure.",
       "id": "backend_claude_rationale_194"
     },
@@ -140237,7 +140237,7 @@
       "file_type": "rationale",
       "source_file": "backend/claude.py",
       "source_location": "L269",
-      "community": 469,
+      "community": 252,
       "norm_label": "retry gemini content generation only for resourceexhausted (429).",
       "id": "backend_claude_rationale_269"
     },
@@ -140246,7 +140246,7 @@
       "file_type": "rationale",
       "source_file": "backend/claude.py",
       "source_location": "L283",
-      "community": 273,
+      "community": 32,
       "norm_label": "low-level gemini primary call using gemini-3.1-flash-lite-preview. falls back to",
       "id": "backend_claude_rationale_283"
     },
@@ -140255,7 +140255,7 @@
       "file_type": "rationale",
       "source_file": "backend/claude.py",
       "source_location": "L358",
-      "community": 369,
+      "community": 32,
       "norm_label": "remove hidden/control/system-level characters from incoming user query.",
       "id": "backend_claude_rationale_358"
     },
@@ -142873,7 +142873,7 @@
       "source_file": "app.py",
       "source_location": "L3820",
       "_origin": "ast",
-      "community": 182,
+      "community": 43,
       "norm_label": "library_leaf_refs()",
       "id": "app_library_leaf_refs"
     },
@@ -143223,7 +143223,7 @@
       "source_file": "app.py",
       "source_location": "L3821",
       "_origin": "ast",
-      "community": 182,
+      "community": 43,
       "norm_label": "return leaf refs for a given index title to power section-grid selectors.",
       "id": "app_rationale_3821"
     },
@@ -368975,5 +368975,5 @@
       "confidence_score": 1.0
     }
   ],
-  "built_at_commit": "04bed6f082a9ec6db0c83420421be75f827262da"
+  "built_at_commit": "44f615aa2b447b3131b27bf17a43b538327d8757"
 }

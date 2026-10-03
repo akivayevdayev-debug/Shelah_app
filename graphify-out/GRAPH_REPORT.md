@@ -4,12 +4,12 @@
 - cluster-only mode — file stats not available
 
 ## Summary
-- 16052 nodes · 21870 edges · 1061 communities (751 shown, 310 thin omitted)
+- 16052 nodes · 21870 edges · 1058 communities (748 shown, 310 thin omitted)
 - Extraction: 99% EXTRACTED · 1% INFERRED · 0% AMBIGUOUS · INFERRED: 318 edges (avg confidence: 0.73)
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `04bed6f0`
+- Built from commit: `44f615aa`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
@@ -859,7 +859,6 @@
 - [[_COMMUNITY_Community 846|Community 846]]
 - [[_COMMUNITY_Community 847|Community 847]]
 - [[_COMMUNITY_Community 848|Community 848]]
-- [[_COMMUNITY_Community 849|Community 849]]
 - [[_COMMUNITY_Community 850|Community 850]]
 - [[_COMMUNITY_Community 851|Community 851]]
 - [[_COMMUNITY_Community 852|Community 852]]
@@ -884,7 +883,6 @@
 - [[_COMMUNITY_Community 871|Community 871]]
 - [[_COMMUNITY_Community 872|Community 872]]
 - [[_COMMUNITY_Community 873|Community 873]]
-- [[_COMMUNITY_Community 874|Community 874]]
 - [[_COMMUNITY_Community 875|Community 875]]
 - [[_COMMUNITY_Community 876|Community 876]]
 - [[_COMMUNITY_Community 877|Community 877]]
@@ -996,7 +994,6 @@
 - [[_COMMUNITY_Community 984|Community 984]]
 - [[_COMMUNITY_Community 985|Community 985]]
 - [[_COMMUNITY_Community 986|Community 986]]
-- [[_COMMUNITY_Community 987|Community 987]]
 - [[_COMMUNITY_Community 988|Community 988]]
 - [[_COMMUNITY_Community 989|Community 989]]
 - [[_COMMUNITY_Community 990|Community 990]]
@@ -1109,7 +1106,7 @@
 - **** — docs_integration_guide, docs_sources_registry, shelah_text_sources [INFERRED 0.90]
 - **** — docs_system_prompt_refactoring, docs_system_prompt_examples, docs_system_prompt_implementation [INFERRED 1.00]
 
-## Communities (1061 total, 310 thin omitted)
+## Communities (1058 total, 310 thin omitted)
 
 ### Community 0 - "Community 0"
 Cohesion: 0.06
@@ -1117,7 +1114,7 @@ Nodes (25): finalize_sources(), Any, Numbered source markers in a model answer. 
 
 ### Community 2 - "Community 2"
 Cohesion: 0.02
-Nodes (152): api_communities_alias(), api_health_alias(), api_preferences_alias(), apply_response_cache_policy(), _bold_halakhic_verdicts(), _bounded_cache_set(), _build_discovery_queries(), _build_interaction_summary() (+144 more)
+Nodes (140): api_communities_alias(), api_health_alias(), api_preferences_alias(), _bold_halakhic_verdicts(), _bounded_cache_set(), _build_discovery_queries(), _build_interaction_summary(), _build_last_resort_web_sources() (+132 more)
 
 ### Community 4 - "Community 4"
 Cohesion: 0.06
@@ -1228,8 +1225,8 @@ Cohesion: 0.04
 Nodes (46): additionalProperties, items, type, type, type, properties, type, description (+38 more)
 
 ### Community 32 - "Community 32"
-Cohesion: 0.03
-Nodes (74): _detect_community_in_text(), hash_user_id(), One-way digest of a Clerk `sub` for _capture_backend_error context     (plan.md, _build_knowledge_text_or_filter(), _community_filter_from_request(), _env_int(), _fetch_user_memory_summaries(), _keyword_match_score() (+66 more)
+Cohesion: 0.05
+Nodes (39): _call_gemini_model(), Low-level Gemini primary call using gemini-3.1-flash-lite-preview. Falls back to, Low-level Gemini primary call using gemini-3.1-flash-lite-preview. Falls back to, Low-level Gemini primary call using gemini-3.1-flash-lite-preview. Falls back to, Low-level Gemini primary call using gemini-3.1-flash-lite-preview. Falls back to, Low-level Gemini primary call using gemini-3.1-flash-lite-preview. Falls back to, Create/cache AsyncAnthropic client from environment at call-time., Remove hidden/control/system-level characters from incoming user query. (+31 more)
 
 ### Community 33 - "Community 33"
 Cohesion: 0.20
@@ -1273,7 +1270,7 @@ Nodes (25): graphify Command-Line Tool, Knowledge Graph Extraction and Analysis,
 
 ### Community 43 - "Community 43"
 Cohesion: 0.05
-Nodes (47): _add_leaf_ref(), _is_same_work_title(), leaf_refs_from_schema(), _normalize_title_for_compare(), Heuristic match for equivalent work titles with minor spelling differences., Heuristic match for equivalent work titles with minor spelling differences., Heuristic match for equivalent work titles with minor spelling differences., Heuristic match for equivalent work titles with minor spelling differences. (+39 more)
+Nodes (45): library_leaf_refs(), Return leaf refs for a given index title to power section-grid selectors., get_index_leaf_refs(), is_known_missing_text(), _is_same_work_title(), leaf_refs_from_schema(), _normalize_requested_ref(), _normalize_title_for_compare() (+37 more)
 
 ### Community 44 - "Community 44"
 Cohesion: 0.36
@@ -1512,8 +1509,8 @@ Cohesion: 0.15
 Nodes (13): list_todos(), POST branch of semantic_bookmarks(): validate the payload, optionally     AI-sum, POST branch of semantic_bookmarks(): validate the payload, optionally     AI-sum, POST branch of semantic_bookmarks(): validate the payload, optionally     AI-sum, POST branch of semantic_bookmarks(): validate the payload, optionally     AI-sum, Flask equivalent of the Next.js server query for todos., Flask equivalent of the Next.js server query for todos., Flask equivalent of the Next.js server query for todos. (+5 more)
 
 ### Community 115 - "Community 115"
-Cohesion: 0.01
-Nodes (192): Vercel serverless entrypoint.  Thin re-export of the canonical ASGI app in `asgi, ask_question(), ask_async(), _ask_async_breaker_paused_payload(), _ask_async_impl(), _ask_async_prayer_result(), _ask_async_progress_response(), _ask_async_strict_block() (+184 more)
+Cohesion: 0.02
+Nodes (154): Vercel serverless entrypoint.  Thin re-export of the canonical ASGI app in `asgi, ask_question(), ask_async(), _ask_async_breaker_paused_payload(), _ask_async_impl(), _ask_async_prayer_result(), _ask_async_progress_response(), _ask_async_strict_block() (+146 more)
 
 ### Community 116 - "Community 116"
 Cohesion: 0.09
@@ -1564,8 +1561,8 @@ Cohesion: 0.06
 Nodes (71): addDays(), animateIn(), ARROW_OUT, attachDrag(), bind(), boundaryRow(), CARET_LEFT, CARET_RIGHT (+63 more)
 
 ### Community 128 - "Community 128"
-Cohesion: 0.02
-Nodes (156): _answer_citations(), ask_in_conversation(), _conversation_stream_body(), _conversations_client(), create_conversation(), create_message(), delete_conversation(), _derive_title() (+148 more)
+Cohesion: 0.01
+Nodes (213): _detect_community_in_text(), _capture_backend_error(), hash_user_id(), Sentry-style structured logger for backend failures and AI prompt issues.      U, Sentry-style structured logger for backend failures and AI prompt issues.      U, Sentry-style structured logger for backend failures and AI prompt issues.      U, Sentry-style structured logger for backend failures and AI prompt issues.      U, Sentry-style structured logger for backend failures and AI prompt issues.      U (+205 more)
 
 ### Community 129 - "Community 129"
 Cohesion: 0.10
@@ -1576,8 +1573,8 @@ Cohesion: 0.06
 Nodes (24): _allow_budget(), _ctx(), _params_payload(), Behavioural coverage for the branches of asgi.py that the end-to-end /ask suite, Keep the /ask route tests hermetic: never consult the real spend meter     (test, Make every pipeline stage before `failing_stage` a benign no-op, and     `failin, Make every pipeline stage before `failing_stage` a benign no-op, and     `failin, ShelahEngine stand-in: get_library_text(ref) returns or raises whatever     the (+16 more)
 
 ### Community 131 - "Community 131"
-Cohesion: 0.06
-Nodes (34): _build_async_client(), _ensure_anthropic_loaded(), _fenced_block_body(), _get_async_client(), Create/cache AsyncAnthropic client from environment at call-time., Create/cache AsyncAnthropic client from environment at call-time., Create/cache AsyncAnthropic client from environment at call-time., Create/cache AsyncAnthropic client from environment at call-time. (+26 more)
+Cohesion: 0.04
+Nodes (55): _build_async_client(), _configure_gemini_client(), _ensure_anthropic_loaded(), _fenced_block_body(), _get_async_client(), Configure Gemini client and return an error string on failure., Create/cache AsyncAnthropic client from environment at call-time., Create/cache AsyncAnthropic client from environment at call-time. (+47 more)
 
 ### Community 132 - "Community 132"
 Cohesion: 0.05
@@ -1669,7 +1666,7 @@ Nodes (33): 0. Acknowledgement & understanding, 13.1 Cognitive-complexity refact
 
 ### Community 173 - "Community 173"
 Cohesion: 0.02
-Nodes (118): _capture_backend_error(), clerk_auth_me(), client_errors(), devtools_rls_audit(), _env_int(), _extract_bearer_token(), _extract_client_ip(), _extract_supabase_access_token() (+110 more)
+Nodes (152): _capture_backend_error(), clerk_auth_me(), client_errors(), devtools_rls_audit(), _env_int(), _extract_bearer_token(), _extract_client_ip(), _extract_supabase_access_token() (+144 more)
 
 ### Community 174 - "Community 174"
 Cohesion: 0.22
@@ -1688,20 +1685,20 @@ Cohesion: 0.10
 Nodes (20): get_dispatchable_models(), HalakhicContext, Structured container for AI context to simplify function signatures., Structured container for AI context to simplify function signatures., Structured container for AI context to simplify function signatures., Structured container for AI context to simplify function signatures., Structured container for AI context to simplify function signatures., Structured container for AI context to simplify function signatures. (+12 more)
 
 ### Community 178 - "Community 178"
-Cohesion: 0.12
-Nodes (16): AsyncClient, async_search_halachipedia(), _get_async_client(), Async Halachipedia search using MediaWiki API and httpx., Async Halachipedia search using MediaWiki API and httpx., Async Halachipedia search using MediaWiki API and httpx., Async Halachipedia search using MediaWiki API and httpx., Async Halachipedia search using MediaWiki API and httpx. (+8 more)
+Cohesion: 0.08
+Nodes (26): AsyncClient, async_search_halachipedia(), async_search_wikipedia(), _get_async_client(), Async Wikipedia summary lookup using httpx with shared cache semantics., Async Wikipedia summary lookup using httpx with shared cache semantics., Async Wikipedia summary lookup using httpx with shared cache semantics., Async Wikipedia summary lookup using httpx with shared cache semantics. (+18 more)
 
 ### Community 180 - "Community 180"
 Cohesion: 0.04
 Nodes (49): apply_output_validation(), ask_ai_async(), _call_gemini_httpx_model(), # NOTE: Changed behavior - now only block truly inappropriate content., Async Gemini primary call using google-genai SDK (replaces hand-rolled httpx)., Async Gemini primary call using google-genai SDK (replaces hand-rolled httpx)., Async AI entrypoint for ASGI deployments., Async AI entrypoint for ASGI deployments. (+41 more)
 
 ### Community 181 - "Community 181"
-Cohesion: 0.06
-Nodes (37): Stage 4 of ask_question(): halakhic-source-discovery fallback, run     when _run, Stage 3 of ask_question(): AI synthesis. Returns the response     payload for th, Stage 4 of ask_question(): halakhic-source-discovery fallback, run     when _run, Stage 4 of ask_question(): halakhic-source-discovery fallback, run     when _run, Stage 4 of ask_question(): halakhic-source-discovery fallback, run     when _run, Stage 4 of ask_question(): halakhic-source-discovery fallback, run     when _run, Stage 4 of ask_question(): halakhic-source-discovery fallback, run     when _run, Stage 4 of ask_question(): halakhic-source-discovery fallback, run     when _run (+29 more)
+Cohesion: 0.03
+Nodes (75): Stage 4 of ask_question(): halakhic-source-discovery fallback, run     when _run, Stage 3 of ask_question(): AI synthesis. Returns the response     payload for th, Stage 4 of ask_question(): halakhic-source-discovery fallback, run     when _run, Stage 4 of ask_question(): halakhic-source-discovery fallback, run     when _run, Stage 4 of ask_question(): halakhic-source-discovery fallback, run     when _run, Stage 4 of ask_question(): halakhic-source-discovery fallback, run     when _run, Stage 4 of ask_question(): halakhic-source-discovery fallback, run     when _run, Stage 4 of ask_question(): halakhic-source-discovery fallback, run     when _run (+67 more)
 
 ### Community 182 - "Community 182"
-Cohesion: 0.03
-Nodes (66): library_leaf_refs(), Return leaf refs for a given index title to power section-grid selectors., _first_differing_candidate(), get_index_entry(), get_index_leaf_refs(), _get_schema_for_entry(), is_known_missing_text(), _lookup_canonical_index_title() (+58 more)
+Cohesion: 0.05
+Nodes (47): _first_differing_candidate(), get_index_entry(), _get_schema_for_entry(), _lookup_canonical_index_title(), Fetch a text's index record by title., Fetch a text's index record by title., Ask Sefaria's /api/name/<title> completion endpoint for the canonical     index, Ask Sefaria's /api/name/<title> completion endpoint for the canonical     index (+39 more)
 
 ### Community 183 - "Community 183"
 Cohesion: 0.40
@@ -1901,8 +1898,8 @@ Cohesion: 0.25
 Nodes (7): AI Provider Order Verification, Build/Diagnostics, Final UI + Runtime Audit Results, Live Runtime Audit (Desktop + Mobile), Notes, Screenshots Captured, Verified UI Requirements
 
 ### Community 245 - "Community 245"
-Cohesion: 0.04
-Nodes (64): _add_first_section_ref(), _append_index_title_row(), _build_catalog_search_result(), _collect_catalog_search_results(), _flatten_index_title_children(), _flatten_index_titles(), _get_title_catalog(), _infer_nusach() (+56 more)
+Cohesion: 0.05
+Nodes (55): _add_first_section_ref(), _append_index_title_row(), _build_catalog_search_result(), _collect_catalog_search_results(), _flatten_index_title_children(), _flatten_index_titles(), _get_title_catalog(), _infer_nusach() (+47 more)
 
 ### Community 246 - "Community 246"
 Cohesion: 0.09
@@ -1914,7 +1911,7 @@ Nodes (7): Supplementary coverage tests for the three smallest-gap blueprints: b
 
 ### Community 252 - "Community 252"
 Cohesion: 0.04
-Nodes (52): _configure_gemini_client(), _ensure_genai_loaded(), _get_client(), Create/cache Anthropic client from environment at call-time., Create/cache Anthropic client from environment at call-time., Create/cache Anthropic client from environment at call-time., Create/cache Anthropic client from environment at call-time., Create/cache Anthropic client from environment at call-time. (+44 more)
+Nodes (52): _ensure_genai_loaded(), _generate_gemini_content_with_retry(), _get_client(), Create/cache Anthropic client from environment at call-time., Create/cache Anthropic client from environment at call-time., Create/cache Anthropic client from environment at call-time., Create/cache Anthropic client from environment at call-time., Create/cache Anthropic client from environment at call-time. (+44 more)
 
 ### Community 253 - "Community 253"
 Cohesion: 0.18
@@ -1985,8 +1982,8 @@ Cohesion: 0.11
 Nodes (19): _get_omer_info(), _get_weekly_shabbat_parasha(), Resolve this week's Shabbat parasha name (normalized without `Parashat` prefix)., Resolve this week's Shabbat parasha name (normalized without `Parashat` prefix)., Resolve this week's Shabbat parasha name (normalized without `Parashat` prefix)., Resolve this week's Shabbat parasha name (normalized without `Parashat` prefix)., Return Omer day information (1-49) or None when out of season., Resolve this week's Shabbat parasha name (normalized without `Parashat` prefix). (+11 more)
 
 ### Community 273 - "Community 273"
-Cohesion: 0.05
-Nodes (61): _build_dynamic_system_context(), _call_gemini_model(), _call_primary_model(), _call_primary_model_with_budget(), _condense_assistant_answer(), _extract_fenced_json_object(), _extract_first_json_object(), _extract_gemini_response_text() (+53 more)
+Cohesion: 0.06
+Nodes (45): _build_dynamic_system_context(), _call_primary_model(), _call_primary_model_with_budget(), _condense_assistant_answer(), _extract_fenced_json_object(), _extract_first_json_object(), _extract_gemini_response_text(), _format_extra_context() (+37 more)
 
 ### Community 274 - "Community 274"
 Cohesion: 0.08
@@ -2117,8 +2114,8 @@ Cohesion: 0.16
 Nodes (27): answeredResult(), askInConversation(), buildHeaders(), CODE_BY_BODY_CODE, codeForStatus(), ConversationApiError, conversationPath(), createConversation() (+19 more)
 
 ### Community 335 - "Community 335"
-Cohesion: 0.02
-Nodes (111): accept_legal(), devtools_heartbeat(), _get_supabase_client(), Record that a user has accepted the Terms of Service and Privacy Policy., Low-noise diagnostics endpoint for inspector/devtools mode., check_daily_budget_and_alert(), check_user_budget_and_enforce(), _daily_budget_usd() (+103 more)
+Cohesion: 0.03
+Nodes (90): accept_legal(), devtools_heartbeat(), _get_supabase_client(), Record that a user has accepted the Terms of Service and Privacy Policy., Low-noise diagnostics endpoint for inspector/devtools mode., check_daily_budget_and_alert(), _daily_budget_usd(), expire_stale_budget_reservations() (+82 more)
 
 ### Community 337 - "Community 337"
 Cohesion: 0.10
@@ -2225,8 +2222,8 @@ Cohesion: 0.08
 Nodes (9): A PostgREST PGRST303 timing rejection of the caller's token is         routine:, A raising webhook POST (e.g. a malformed URL/credential in the env         var), A wrong-audience token is a setup problem, not timing: it alerts., Discord (and most webhook targets) return a 4xx/5xx body rather than         rai, A raising webhook POST (e.g. a malformed URL/credential in the env         var), Discord's webhook API rejects arbitrary JSON (requires content/embeds)         a, Discord (and most webhook targets) return a 4xx/5xx body rather than         rai, Discord's webhook API rejects arbitrary JSON (requires content/embeds)         a (+1 more)
 
 ### Community 369 - "Community 369"
-Cohesion: 0.04
-Nodes (51): _advance_string_state(), _find_matching_brace_end(), Remove hidden/control/system-level characters from incoming user query., Remove hidden/control/system-level characters from incoming user query., Create/cache AsyncAnthropic client from environment at call-time., Remove hidden/control/system-level characters from incoming user query., Create/cache AsyncAnthropic client from environment at call-time., Low-level Gemini primary call using gemini-3.5-flash-lite. Falls back to Claude (+43 more)
+Cohesion: 0.06
+Nodes (32): _advance_string_state(), _find_matching_brace_end(), Scan forward from `start` (must be an opening '{') for the index of     its matc, Remove hidden/control/system-level characters from incoming user query., Scan forward from `start` (must be an opening '{') for the index of     its matc, Scan forward from `start` (must be an opening '{') for the index of     its matc, Sanitize + filter a list of free-text strings, dropping empties.     Split out o, Scan forward from `start` (must be an opening '{') for the index of     its matc (+24 more)
 
 ### Community 370 - "Community 370"
 Cohesion: 0.09
@@ -2281,8 +2278,8 @@ Cohesion: 0.20
 Nodes (9): 1. The billing model (plan.md §14.1), 2. Config corrections (plan.md §14.2), 3. The CDN cache-tier table (plan.md §14.3 — this prompt's main body of work), 4. Fast Origin Transfer (plan.md §14.5), 5. Invocation reduction & the "stay inactive" rule (plan.md §14.6), 6. Measurement, verification & guardrails (plan.md §14.7), 7. Exit criteria status (plan.md §14.9), 8. Explicitly not touched in this pass (+1 more)
 
 ### Community 383 - "Community 383"
-Cohesion: 0.05
-Nodes (48): _build_ref_candidate_titles(), _build_v3_lines(), _build_v3_result_dict(), _classify_v3_version_texts(), _extract_v3_flat_text_lists(), _is_v3_english_translation_version(), _is_v3_hebrew_source_version(), _parse_v3_response() (+40 more)
+Cohesion: 0.03
+Nodes (65): _build_ref_candidate_titles(), _build_text_lines(), _build_v3_lines(), _build_v3_result_dict(), _classify_v3_version_texts(), _extract_v3_flat_text_lists(), _flatten_text_with_path(), _is_v3_english_translation_version() (+57 more)
 
 ### Community 384 - "Community 384"
 Cohesion: 0.05
@@ -2358,7 +2355,7 @@ Nodes (9): submit_with_context() propagates contextvars (request_id) into     Th
 
 ### Community 404 - "Community 404"
 Cohesion: 0.06
-Nodes (63): ASK_SURFACE, isSignedIn(), aiRoute(), askFromSearch(), askLegacy(), askOneShot(), authReady, autosize() (+55 more)
+Nodes (50): ASK_SURFACE, isSignedIn(), askFromSearch(), authReady, autosize(), autosizeFollowUp(), bindEvents(), clerkConfigured() (+42 more)
 
 ### Community 405 - "Community 405"
 Cohesion: 0.04
@@ -2581,8 +2578,8 @@ Cohesion: 0.08
 Nodes (26): _call_anthropic_httpx_model(), Async Anthropic fallback using AsyncAnthropic SDK (replaces hand-rolled httpx)., Async Anthropic fallback using AsyncAnthropic SDK (replaces hand-rolled httpx)., Async Anthropic fallback using AsyncAnthropic SDK (replaces hand-rolled httpx)., Async Anthropic fallback using AsyncAnthropic SDK (replaces hand-rolled httpx)., Async Anthropic fallback using AsyncAnthropic SDK (replaces hand-rolled httpx)., Protected Claude wrapper with input and output validation., Async Anthropic fallback using AsyncAnthropic SDK (replaces hand-rolled httpx). (+18 more)
 
 ### Community 461 - "Community 461"
-Cohesion: 0.12
-Nodes (17): extract_ai_cited(), _first_hit(), _lookup_hebrew_word_in_sefaria_lexicon(), Pull the AI's own citation list out of a structured /ask payload.      Single so, Pull the AI's own citation list out of a structured /ask payload.      Single so, Pull the AI's own citation list out of a structured /ask payload.      Single so, Pull the AI's own citation list out of a structured /ask payload.      Single so, Stage 2 of _lookup_hebrew_word_meaning(): Sefaria lexicon lookup.     Split out (+9 more)
+Cohesion: 0.10
+Nodes (22): _apply_catalog_row_score_boosts(), Base score from how the title matches the joined query. Split out of     _score_, Base score from how the title matches the joined query. Split out of     _score_, Base score from how the title matches the joined query. Split out of     _score_, Apply the special-case relevance boosts on top of the base title-     match scor, Apply the special-case relevance boosts on top of the base title-     match scor, Apply the special-case relevance boosts on top of the base title-     match scor, Relevance score for one title-catalog row against the query tokens.     Returns (+14 more)
 
 ### Community 462 - "Community 462"
 Cohesion: 0.13
@@ -2613,8 +2610,8 @@ Cohesion: 0.13
 Nodes (15): _compact_ai_sources(), _parse_ip_geolocation_response(), Resolve prayer/service name to a list of Sefaria refs., Extract (lat, lon) from one IP-geolocation provider's response     shape, or (No, Extract (lat, lon) from one IP-geolocation provider's response     shape, or (No, Extract (lat, lon) from one IP-geolocation provider's response     shape, or (No, Extract (lat, lon) from one IP-geolocation provider's response     shape, or (No, Extract (lat, lon) from one IP-geolocation provider's response     shape, or (No (+7 more)
 
 ### Community 469 - "Community 469"
-Cohesion: 0.08
-Nodes (25): _generate_gemini_content_with_retry(), _model_call_timeout(), HTTP timeout for the next model request: the per-request ceiling,     clamped to, HTTP timeout for the next model request: the per-request ceiling,     clamped to, HTTP timeout for the next model request: the per-request ceiling,     clamped to, Retry Gemini content generation only for ResourceExhausted (429)., Retry Gemini content generation only for ResourceExhausted (429)., Retry Gemini content generation only for ResourceExhausted (429). (+17 more)
+Cohesion: 0.10
+Nodes (21): _add_leaf_ref(), Recursive descent of the library index collecting liturgy prayer     books into, Recursive descent of the library index collecting liturgy prayer     books into, Recursive descent of the library index collecting liturgy prayer     books into, Recursive descent of the library index collecting liturgy prayer     books into, Full text search across all of Sefaria.     Returns a list of results with refs,, Append one leaf ref (title + non-empty path segments) if not     already seen, m, Append one leaf ref (title + non-empty path segments) if not     already seen, m (+13 more)
 
 ### Community 470 - "Community 470"
 Cohesion: 0.20
@@ -2669,8 +2666,8 @@ Cohesion: 0.11
 Nodes (18): The "security_blocked" branch of ask_question()'s AI-synthesis     stage. Split, The "security_blocked" branch of ask_question()'s AI-synthesis     stage. Split, The "security_blocked" branch of ask_question()'s AI-synthesis     stage. Split, The "security_blocked" branch of ask_question()'s AI-synthesis     stage. Split, The "security_blocked" branch of ask_question()'s AI-synthesis     stage. Split, The "security_blocked" branch of ask_question()'s AI-synthesis     stage. Split, The "security_blocked" branch of ask_question()'s AI-synthesis     stage. Split, The "security_blocked" branch of ask_question()'s AI-synthesis     stage. Split (+10 more)
 
 ### Community 483 - "Community 483"
-Cohesion: 0.07
-Nodes (29): _categories_match_filter(), _clean_string_list(), _get_search_index_metadata(), Probe both the v3 and v2 Sefaria API endpoints live (no cache).     Returns a st, Cached get_index_entry() lookup for _add_search_library_result().     Split out, Cached get_index_entry() lookup for _add_search_library_result().     Split out, Cached get_index_entry() lookup for _add_search_library_result().     Split out, Coerce `items` to a list of non-empty stringified entries. Split out     of _res (+21 more)
+Cohesion: 0.14
+Nodes (14): _categories_match_filter(), Resolve categories from explicit_categories, falling back to     index_entry's o, Resolve categories from explicit_categories, falling back to     index_entry's o, Return the result's categories, or None if it fails the category filter., Return the result's categories, or None if it fails the category filter., Resolve categories from explicit_categories, falling back to     index_entry's o, Return the result's categories, or None if it fails the category filter., Resolve categories from explicit_categories, falling back to     index_entry's o (+6 more)
 
 ### Community 484 - "Community 484"
 Cohesion: 0.15
@@ -2729,20 +2726,20 @@ Cohesion: 0.10
 Nodes (16): checkUrl(), CONFIG_PATH, fs, loadConfig(), main(), pa11y, path, puppeteer (+8 more)
 
 ### Community 498 - "Community 498"
-Cohesion: 0.03
-Nodes (97): bind_cost_attribution(), budget_exhausted_message(), clear_cost_attribution(), client_key_for(), _evaluate_cost_gates(), evaluate_cost_gates_sync(), Any, Cost gates + spend attribution for sync (Flask WSGI) model-calling routes.  asgi (+89 more)
+Cohesion: 0.02
+Nodes (110): bind_cost_attribution(), budget_exhausted_message(), clear_cost_attribution(), client_key_for(), _evaluate_cost_gates(), evaluate_cost_gates_sync(), Any, Cost gates + spend attribution for sync (Flask WSGI) model-calling routes.  asgi (+102 more)
 
 ### Community 499 - "Community 499"
-Cohesion: 0.12
-Nodes (37): applyAttributes(), applyVisibility(), beginRename(), closeHistoryPop(), closeMenu(), closePanel(), decorateAnswerTurn(), deleteCurrent() (+29 more)
+Cohesion: 0.09
+Nodes (49): applyAttributes(), applyVisibility(), askLegacy(), askOneShot(), beginRename(), clearToast(), closeHistoryPop(), closeMenu() (+41 more)
 
 ### Community 500 - "Community 500"
 Cohesion: 0.15
 Nodes (22): _check_anon_role(), _check_anon_select_denied(), _check_structure(), _check_table_policies(), Colors, fail(), _find_table_meta(), info() (+14 more)
 
 ### Community 501 - "Community 501"
-Cohesion: 0.08
-Nodes (36): async_search_hebrewbooks(), _cached_lookup(), _cached_store(), _clean_html_text(), _parse_hebrewbooks_html(), External knowledge search connectors.  Contains lightweight wrappers for: - Wiki, Search Halachipedia MediaWiki API for relevant articles, Search Halachipedia MediaWiki API for relevant articles (+28 more)
+Cohesion: 0.10
+Nodes (28): async_search_hebrewbooks(), _cached_lookup(), _cached_store(), _clean_html_text(), _parse_hebrewbooks_html(), External knowledge search connectors.  Contains lightweight wrappers for: - Wiki, Best-effort keyword search in HebrewBooks public search endpoint., Extract a HebrewBooks search-result payload from a search-results page.      Ret (+20 more)
 
 ### Community 502 - "Community 502"
 Cohesion: 0.17
@@ -2750,7 +2747,7 @@ Nodes (10): The skip must return the same dict shape a real Gemini failure      
 
 ### Community 503 - "Community 503"
 Cohesion: 0.01
-Nodes (225): _set_cached_ask_payload(), _all_tokens_end_with_transliteration_suffix(), _apply_translation_metadata(), _best_definition_from_lexicon_entries(), _bounded_cache_set(), _candidate_definitions_from_lexicon_entry(), _clean_lexicon_definition_text(), _coerce_int() (+217 more)
+Nodes (242): _set_cached_ask_payload(), _all_tokens_end_with_transliteration_suffix(), _apply_translation_metadata(), _best_definition_from_lexicon_entries(), _bounded_cache_set(), _candidate_definitions_from_lexicon_entry(), _clean_lexicon_definition_text(), _coerce_int() (+234 more)
 
 ### Community 504 - "Community 504"
 Cohesion: 0.25
@@ -2830,7 +2827,7 @@ Nodes (6): 10.1 README.md — full update, 10.2 Licensing — recommendation: **
 
 ### Community 524 - "Community 524"
 Cohesion: 0.03
-Nodes (80): _coerce_and_validate_ai_result(), _compose_validated_ask_answer(), _dispatch_ask_ai_synthesis_call(), _extract_raw_ai_answer(), Stage 3 of ask_question(): AI synthesis. Returns the response     payload for th, Submit the AI-synthesis call (agentic tool-use loop or the plain     claude.ask_, Stage 3 of ask_question(): AI synthesis. Returns the response     payload for th, Submit the AI-synthesis call (agentic tool-use loop or the plain     claude.ask_ (+72 more)
+Nodes (71): _coerce_and_validate_ai_result(), _compose_validated_ask_answer(), _dispatch_ask_ai_synthesis_call(), _extract_raw_ai_answer(), Stage 3 of ask_question(): AI synthesis. Returns the response     payload for th, Submit the AI-synthesis call (agentic tool-use loop or the plain     claude.ask_, Stage 3 of ask_question(): AI synthesis. Returns the response     payload for th, Submit the AI-synthesis call (agentic tool-use loop or the plain     claude.ask_ (+63 more)
 
 ### Community 525 - "Community 525"
 Cohesion: 0.26
@@ -2993,8 +2990,8 @@ Cohesion: 0.11
 Nodes (10): assert, DATA, fakeNode(), fakeRoot(), fs, { loadEsmModule }, makeSiddur(), path (+2 more)
 
 ### Community 574 - "Community 574"
-Cohesion: 0.10
-Nodes (20): bind_request_id_context(), Bind a request_id (contextvars) for every request through this ASGI app.      as, Bind a request_id (contextvars) for every request through this ASGI app.      as, Bind a request_id (contextvars) for every request through this ASGI app.      as, Bind a request_id (contextvars) for every request through this ASGI app.      as, Bind a request_id (contextvars) for every request through this ASGI app.      as, Bind a request_id (contextvars) for every request through this ASGI app.      as, Bind a request_id (contextvars) for every request through this ASGI app.      as (+12 more)
+Cohesion: 0.06
+Nodes (32): apply_response_cache_policy(), bind_request_id_context(), Bind a request_id (contextvars) for every request through this ASGI app.      as, Bind a request_id (contextvars) for every request through this ASGI app.      as, Bind a request_id (contextvars) for every request through this ASGI app.      as, Bind a request_id (contextvars) for every request through this ASGI app.      as, Bind a request_id (contextvars) for every request through this ASGI app.      as, Bind a request_id (contextvars) for every request through this ASGI app.      as (+24 more)
 
 ### Community 576 - "Community 576"
 Cohesion: 0.26
@@ -3013,8 +3010,8 @@ Cohesion: 0.16
 Nodes (16): _APIError, _DB, _post(), Feedback linked to the stored answer it rates (deep-link Phase 6).  The owner se, test_a_failed_lookup_saves_unlinked_feedback(), test_any_other_insert_error_is_still_a_500(), test_before_the_link_migration_the_verdict_is_still_saved(), test_malformed_history_id_is_ignored_without_a_lookup() (+8 more)
 
 ### Community 580 - "Community 580"
-Cohesion: 0.21
-Nodes (16): ERROR_CODES, applyAiRoute(), communityOptions(), communityName(), CORNERS, lockLine(), minutesText(), noticeFor() (+8 more)
+Cohesion: 0.23
+Nodes (15): ERROR_CODES, applyAiRoute(), communityOptions(), communityName(), CORNERS, lockLine(), minutesText(), noticeFor() (+7 more)
 
 ### Community 581 - "Community 581"
 Cohesion: 0.12
@@ -3073,8 +3070,8 @@ Cohesion: 0.21
 Nodes (12): hebrewDate(), hebrewNumeral(), parashaAt(), parashaLabel(), parashaStartLabel(), parashotForRef(), parashotInChapter(), parseTorahRef() (+4 more)
 
 ### Community 596 - "Community 596"
-Cohesion: 0.07
-Nodes (29): Real-time availability probe for the upstream Sefaria API.     Returns status fo, sefaria_diagnostics(), _apply_catalog_row_score_boosts(), check_sefaria_availability(), _probe_sefaria_endpoint(), Apply the special-case relevance boosts on top of the base title-     match scor, Apply the special-case relevance boosts on top of the base title-     match scor, Apply the special-case relevance boosts on top of the base title-     match scor (+21 more)
+Cohesion: 0.04
+Nodes (55): Real-time availability probe for the upstream Sefaria API.     Returns status fo, sefaria_diagnostics(), check_sefaria_availability(), _clean_string_list(), _collect_liturgy_book_if_eligible(), _get_search_index_metadata(), _normalize_liturgy_title_text(), _probe_sefaria_endpoint() (+47 more)
 
 ### Community 598 - "Community 598"
 Cohesion: 0.22
@@ -3145,8 +3142,8 @@ Cohesion: 0.29
 Nodes (6): Features, Local Development, Payload Structure, Quick Start, Sentry Configuration, Sentry → Discord Relay (Cloudflare Worker)
 
 ### Community 625 - "Community 625"
-Cohesion: 0.11
-Nodes (18): _collect_liturgy_book_if_eligible(), _normalize_liturgy_title_text(), Strip curly quotes/dashes and collapse whitespace for an exact-match     retry a, Strip curly quotes/dashes and collapse whitespace for an exact-match     retry a, Strip curly quotes/dashes and collapse whitespace for an exact-match     retry a, Heuristic match for equivalent work titles with minor spelling differences., Strip curly quotes/dashes and collapse whitespace for an exact-match     retry a, Strip curly quotes/dashes and collapse whitespace for an exact-match     retry a (+10 more)
+Cohesion: 0.25
+Nodes (8): Search Halachipedia MediaWiki API for relevant articles, Search Halachipedia MediaWiki API for relevant articles, Search Halachipedia MediaWiki API for relevant articles, Search Halachipedia MediaWiki API for relevant articles, Search Halachipedia MediaWiki API for relevant articles, Search Halachipedia MediaWiki API for relevant articles, Search Halachipedia MediaWiki API for relevant articles, search_halachipedia()
 
 ### Community 626 - "Community 626"
 Cohesion: 0.20
@@ -3229,8 +3226,8 @@ Cohesion: 0.40
 Nodes (3): Privacy regression: _run_ask_question_fallback's _capture_backend_error     cont, End-to-end: even though _capture_backend_error scrubs "question" to         "[Fi, TestRunAskQuestionFallbackCapturesSafeDebugFields
 
 ### Community 669 - "Community 669"
-Cohesion: 0.09
-Nodes (23): _build_text_lines(), _flatten_text_with_path(), Normalize and tokenize a catalog search query. Split out of     _search_index_ca, Normalize and tokenize a catalog search query. Split out of     _search_index_ca, Build the aligned {he, en, segment} lines list + flat he/en arrays     from a ra, Build the aligned {he, en, segment} lines list + flat he/en arrays     from a ra, Normalize and tokenize a catalog search query. Split out of     _search_index_ca, Normalize and tokenize a catalog search query. Split out of     _search_index_ca (+15 more)
+Cohesion: 0.40
+Nodes (5): _collect_community_name_suggestions(), Split out of search_suggest() (SonarCloud python:S3776) -- see     _add_search_s, Split out of search_suggest() (SonarCloud python:S3776) -- see     _add_search_s, Split out of search_suggest() (SonarCloud python:S3776) -- see     _add_search_s, Split out of search_suggest() (SonarCloud python:S3776) -- see     _add_search_s
 
 ### Community 677 - "Community 677"
 Cohesion: 0.15
@@ -3338,7 +3335,7 @@ Nodes (15): build_payload(), fetch_schema(), main(), Any, Path, Resolve a CLI-su
 
 ### Community 748 - "Community 748"
 Cohesion: 0.06
-Nodes (55): syncAiRoute(), syncRoute(), AI_KEYS, AI_MODES, annotateEntry(), AUTH_PAGES, buildSearch(), buildUrl() (+47 more)
+Nodes (56): aiRoute(), syncAiRoute(), syncRoute(), AI_KEYS, AI_MODES, annotateEntry(), AUTH_PAGES, buildSearch() (+48 more)
 
 ### Community 749 - "Community 749"
 Cohesion: 0.40
@@ -3401,8 +3398,8 @@ Cohesion: 0.17
 Nodes (7): max is coerced via _coerce_int(min=1, max=260); an out-of-range value         mu, max is coerced via _coerce_int(min=1, max=260); an out-of-range value         mu, max is coerced via _coerce_int(min=1, max=260); an out-of-range value         mu, get_index_leaf_refs/get_index_entry raising must be swallowed (route         wra, get_index_leaf_refs/get_index_entry raising must be swallowed (route         wra, get_index_leaf_refs/get_index_entry raising must be swallowed (route         wra, TestLibraryLeafRefs
 
 ### Community 771 - "Community 771"
-Cohesion: 0.26
-Nodes (16): answerHtml(), citeHtml(), citesHtml(), customsHtml(), escapeText(), citationExcerpt(), icon(), markUnreadable() (+8 more)
+Cohesion: 0.13
+Nodes (29): animateSourceCards(), answerHtml(), citeHtml(), citesHtml(), clearFlip(), customsHtml(), escapeText(), fetchPreview() (+21 more)
 
 ### Community 775 - "Community 775"
 Cohesion: 0.15
@@ -3526,7 +3523,7 @@ Nodes (10): get_logger(), Return a named logger that inherits the JSON formatter
 
 ### Community 836 - "Community 836"
 Cohesion: 0.20
-Nodes (10): _add_search_suggestion(), _collect_community_name_suggestions(), Full-text search across Sefaria texts with report-based removal/fix filtering., Append one suggestion if not already seen (dedup by type+value).     Moved to mo, Append one suggestion if not already seen (dedup by type+value).     Moved to mo, Split out of search_suggest() (SonarCloud python:S3776) -- see     _add_search_s, Split out of search_suggest() (SonarCloud python:S3776) -- see     _add_search_s, Split out of search_suggest() (SonarCloud python:S3776) -- see     _add_search_s (+2 more)
+Nodes (10): _add_search_suggestion(), _collect_text_hit_suggestions(), Full-text search across Sefaria texts with report-based removal/fix filtering., Append one suggestion if not already seen (dedup by type+value).     Moved to mo, Append one suggestion if not already seen (dedup by type+value).     Moved to mo, Split out of search_suggest() (SonarCloud python:S3776) -- see     _add_search_s, Split out of search_suggest() (SonarCloud python:S3776) -- see     _add_search_s, Split out of search_suggest() (SonarCloud python:S3776) -- see     _add_search_s (+2 more)
 
 ### Community 840 - "Community 840"
 Cohesion: 0.47
@@ -3547,10 +3544,6 @@ Nodes (3): _FakeSumClient, _FakeSumQuery, test_fetch_today_usage_cost_for_key_su
 ### Community 848 - "Community 848"
 Cohesion: 0.40
 Nodes (4): If even the status=error placeholder's own insert() raises, that         excepti, If even the status=error placeholder's own insert() raises, that         excepti, If even the status=error placeholder's own insert() raises, that         excepti, If even the status=error placeholder's own insert() raises, that         excepti
-
-### Community 849 - "Community 849"
-Cohesion: 0.26
-Nodes (12): animateSourceCards(), clearFlip(), fetchPreview(), flipContent(), flipResize(), haltFlip(), loadPreview(), motion() (+4 more)
 
 ### Community 850 - "Community 850"
 Cohesion: 0.15
@@ -3623,10 +3616,6 @@ Nodes (12): generated_at_utc, machine_generated, method, reinstated, report, rep
 ### Community 872 - "Community 872"
 Cohesion: 0.25
 Nodes (4): _FailsOnFirstStringify, _log_record(), An extra-field value whose str() raises the first time and succeeds     afterwar, TestJSONFormatterExcTextAndFallback
-
-### Community 874 - "Community 874"
-Cohesion: 0.20
-Nodes (10): async_search_wikipedia(), Async Wikipedia summary lookup using httpx with shared cache semantics., Async Wikipedia summary lookup using httpx with shared cache semantics., Async Wikipedia summary lookup using httpx with shared cache semantics., Async Wikipedia summary lookup using httpx with shared cache semantics., Async Wikipedia summary lookup using httpx with shared cache semantics., Async Wikipedia summary lookup using httpx with shared cache semantics., Async Wikipedia summary lookup using httpx with shared cache semantics. (+2 more)
 
 ### Community 875 - "Community 875"
 Cohesion: 0.39
@@ -3892,10 +3881,6 @@ Nodes (6): _hebcal_event_from_item(), One Hebcal API item -> a FullCalendar even
 Cohesion: 0.40
 Nodes (5): _collect_prayer_suggestions(), Split out of search_suggest() (SonarCloud python:S3776) -- see     _add_search_s, Split out of search_suggest() (SonarCloud python:S3776) -- see     _add_search_s, Split out of search_suggest() (SonarCloud python:S3776) -- see     _add_search_s, Split out of search_suggest() (SonarCloud python:S3776) -- see     _add_search_s
 
-### Community 987 - "Community 987"
-Cohesion: 0.40
-Nodes (5): _collect_text_hit_suggestions(), Split out of search_suggest() (SonarCloud python:S3776) -- see     _add_search_s, Split out of search_suggest() (SonarCloud python:S3776) -- see     _add_search_s, Split out of search_suggest() (SonarCloud python:S3776) -- see     _add_search_s, Split out of search_suggest() (SonarCloud python:S3776) -- see     _add_search_s
-
 ### Community 988 - "Community 988"
 Cohesion: 0.25
 Nodes (4): Fewer than FAIL_THRESHOLD failures must not open the circuit., Exactly FAIL_THRESHOLD consecutive failures must open the circuit., Failures on one service do not affect another., TestCircuitOpening
@@ -4112,7 +4097,7 @@ _Questions this graph is uniquely positioned to answer:_
   _High betweenness centrality (0.030) - this node is a cross-community bridge._
 - **Why does `TestCommunityLensInstruction` connect `Community 967` to `Community 266`?**
   _High betweenness centrality (0.014) - this node is a cross-community bridge._
-- **Why does `get_text()` connect `Community 555` to `Community 2`, `Community 669`, `Community 30`, `Community 162`, `Community 34`, `Community 683`, `Community 306`, `Community 53`, `Community 182`, `Community 87`, `Community 101`, `Community 105`, `Community 363`, `Community 498`, `Community 115`, `Community 245`, `Community 503`, `Community 510`, `Community 383`?**
+- **Why does `get_text()` connect `Community 555` to `Community 2`, `Community 30`, `Community 162`, `Community 34`, `Community 683`, `Community 43`, `Community 306`, `Community 53`, `Community 461`, `Community 87`, `Community 101`, `Community 105`, `Community 363`, `Community 498`, `Community 115`, `Community 245`, `Community 503`, `Community 510`, `Community 383`?**
   _High betweenness centrality (0.014) - this node is a cross-community bridge._
 - **Are the 20 inferred relationships involving `TTLCache` (e.g. with `AsyncClient` and `Path`) actually correct?**
   _`TTLCache` has 20 INFERRED edges - model-reasoned connections that need verification._
