@@ -268,6 +268,20 @@ export function serviceMarkup(toc, where, payload, {
 
 // ─── Behavior ───────────────────────────────────────────────────────────────
 
+// Moves the picker's own strip, and nothing else, so `chip` is in view. Not
+// chip.scrollIntoView(): that scrolls every scrollable ancestor too, and a
+// scroll the script starts cancels the smooth scroll already under way on the
+// page -- picking a section far down the page died at the first section
+// boundary it crossed, with the URL stopped on that section.
+function revealChip(chip) {
+    const strip = chip.closest?.(".siddur-sections-list");
+    if (!strip) return;
+    const chipBox = chip.getBoundingClientRect();
+    const stripBox = strip.getBoundingClientRect();
+    if (chipBox.left < stripBox.left) strip.scrollLeft += chipBox.left - stripBox.left;
+    else if (chipBox.right > stripBox.right) strip.scrollLeft += chipBox.right - stripBox.right;
+}
+
 // Keeps the section picker (aria-current + progress) on the section being
 // read and calls onSection(slug) when it changes. The section counted as
 // being read is the last one whose top has passed a line a third of the
@@ -286,7 +300,7 @@ export function trackSections(root, { onSection = () => {}, win = globalThis.win
         chips.forEach((chip, key) => {
             if (key === slug) {
                 chip.setAttribute("aria-current", "location");
-                chip.scrollIntoView?.({ block: "nearest", inline: "nearest" });
+                revealChip(chip);
             } else {
                 chip.removeAttribute("aria-current");
             }

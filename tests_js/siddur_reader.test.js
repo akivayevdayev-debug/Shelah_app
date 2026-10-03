@@ -240,13 +240,35 @@ test('trackSections follows the scroll, quietly on open', async () => {
     assert.equal(root.chips[0].getAttribute('aria-current'), null);
     assert.equal(root.chips[1].getAttribute('aria-current'), 'location');
     assert.equal(root.progress.textContent, '2');
-    assert.deepEqual(root.chips[1].scrolled, [{ block: 'nearest', inline: 'nearest' }]);
+    assert.deepEqual(root.chips[1].scrolled, [], 'scrollIntoView would cancel a smooth scroll in flight on the page');
     // Same section again: no repeat.
     win.listeners.get('scroll')();
     win.flush();
     assert.deepEqual(seen, ['b']);
     stop();
     assert.equal(win.listeners.has('scroll'), false);
+});
+
+test('trackSections brings the current chip into view by moving only the picker strip', async () => {
+    const r = await reader();
+    const root = fakeTrackRoot();
+    const strip = { scrollLeft: 100, rect: { left: 0, right: 300 }, getBoundingClientRect() { return this.rect; } };
+    root.chips.forEach((chip) => { chip.closest = (sel) => (sel === '.siddur-sections-list' ? strip : null); });
+    const win = fakeWin();
+    r.trackSections(root, { win });
+    const move = (index, rect) => {
+        root.bodies.forEach((body, i) => { body.rect = { top: i <= index ? 0 : 5000 }; });
+        root.chips[index].rect = rect;
+        win.listeners.get('scroll')();
+        win.flush();
+    };
+    move(1, { left: 340, right: 420 });   // past the right edge: scrolls right by the overhang
+    assert.equal(strip.scrollLeft, 220);
+    move(2, { left: -30, right: 60 });    // past the left edge: scrolls left
+    assert.equal(strip.scrollLeft, 190);
+    move(1, { left: 50, right: 120 });    // already in view: stays put
+    assert.equal(strip.scrollLeft, 190);
+    root.chips.forEach((chip) => assert.deepEqual(chip.scrolled, []));
 });
 
 test('trackSections does nothing for a one-section page', async () => {

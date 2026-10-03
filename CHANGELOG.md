@@ -42,6 +42,7 @@ Everything since 1.0.0 (2026-09-16). Nothing has been tagged since, so this sect
 - **Library.** The April crawl's removals were almost entirely false positives (complex-schema works probed with bare titles); they are reinstated, and the crawler's key normalisation no longer drops Hebrew letters.
 - **Verification scripts.** The integration, feedback-migration and RLS checks no longer pass on a wrong or empty response.
 - **Test determinism.** Sefaria tests no longer read leftover disk caches, which had made coverage look better than it was.
+- **Siddur section picker.** Picking a section far down a service started a smooth scroll that stopped at the first section boundary it crossed, with the URL left on that section. The picker kept its active chip in view with `scrollIntoView`, which also moves the page and so cancels the scroll in progress; it now moves only its own strip.
 
 ### Security
 - The leaked Gemini key (rotated 2026-09-02) was scrubbed from the repository history; what remains exposed is described in `docs/SECURITY.md`.
