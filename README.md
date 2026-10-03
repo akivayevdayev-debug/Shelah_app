@@ -22,7 +22,7 @@ One quick but important thing before anything else: **Sh'elah is for learning, n
 - Refuses to touch anything medical, mental-health, or abuse-related. Instead of the AI trying to answer, it sends you to real help. Halacha touches sensitive stuff, and an ai is the wrong thing to be answering those questions.
 - Has safeguards against weird off-topic questions and prompt injection (because we don't want the site getting hacked °~°).
 - A Torah/Judaic text library with commentary and word translations, shown in English and Hebrew side by side (with proper RTL layout in Hebrew).
-- Community-aware answers and customs for 14 traditions: Ashkenaz, Sefardic, Yemenite (Teimani), Moroccan, Persian, Syrian, Bukharian, Iraqi, Ethiopian, Georgian, Greek/Romaniote, Mountain Jewish (Kavkazi), Turkish/Ottoman Sefardic, and more as I add them.
+- Community-aware answers and customs for 13 traditions: Ashkenaz, Sefardic, Yemenite (Teimani), Moroccan, Persian, Syrian, Bukharian, Iraqi, Ethiopian, Georgian, Greek/Romaniote, Mountain Jewish (Kavkazi), Turkish/Ottoman Sefardic, and more as I add them.
 - Prayer services (Shacharit, Mincha, Aaravit) that know about your community's nusach.
 - Daily study stuff like Daf Yomi and Mishna Yomit, pulled live from Hebcal.
 - Bookmarks and saved preferences once you sign in.
@@ -32,7 +32,7 @@ One quick but important thing before anything else: **Sh'elah is for learning, n
 - Works in English and Hebrew, light and dark mode, and on desktop, tablets, and phones.
 - Every page has a real link. A specific text, a prayer, a calendar day, an AI answer, even your settings. Send someone the link and it opens exactly where you were.
 - You can export or delete your own account and data yourself.
-- Keyboard and screen-reader support, bot protection, and a per-user daily AI spending cap so the site can stay free without me going broke (YIPEEEE!)
+- Keyboard and screen-reader support, rate limiting, and a per-user daily AI spending cap so the site can stay free without me going broke (YIPEEEE!)
 
 ## What was hard
 
@@ -89,7 +89,7 @@ When I first put Sh'elah up it could already answer questions using primary sour
 - Added self-serve privacy controls so you can export or delete your own account and data.
 - Added a feedback button on AI answers so people can flag bad ones directly.
 - Added keyboard/screen-reader support with tests for it in CI.
-- Fixed a security hole where a malicious link cited by the AI could run code, and put a bot check (Turnstile) in front of the AI endpoint.
+- Fixed a security hole where a malicious link cited by the AI could run code, and built a bot check (Turnstile) for the AI endpoint.
 - Fixed the browser caching bug from last time. For real this time. Pages actually get served from cache now.
 - Fixed a bunch of small annoying bugs: the page jumping back while scrolling, the wrong section getting highlighted, calendar color glitches, animations not loading.
 - Fixed a security-check script that had been quietly failing every single scheduled run for over a week. Nobody told me. Not even the script.
@@ -158,7 +158,7 @@ If anything at all is broken, email me at **akiva.yevda@gmail.com** and I'll try
 
 ## How the AI works (and how it stays in its lane) (Skip this if ur not into boring coding stuff)
 
-The `/ask` endpoint runs a retrieval pipeline: before the model sees your question at all, `backend/rag.py` pulls in live Sefaria results, the 14-community customs data, and your own saved context (if you're signed in). **Gemini is the main model, and Claude is the automatic backup** if Gemini errors out or is down (`backend/claude.py`). Both get the exact same guardrails, and there are tests that make sure that stays true.
+The `/ask` endpoint runs a retrieval pipeline: before the model sees your question at all, `backend/rag.py` pulls in live Sefaria results, the 13-community customs data, and your own saved context (if you're signed in). **Gemini is the main model, and Claude is the automatic backup** if Gemini errors out or is down (`backend/claude.py`). Both get the exact same guardrails, and there are tests that make sure that stays true.
 
 On top of that there's a tool-use layer (`backend/ai_tools.py`, 22 tools) so the AI can go fetch texts, zmanim, calendar dates, and Hebrew-date math when it actually needs them, instead of everything getting shoved into the prompt every time. It's switched on with `AI_AGENTIC_TOOLS=true` and is off by default. With it off, the AI still gets the Sefaria results, customs, and your saved context up front, just not the ability to go fetch more mid-answer. Why it's a switch: one question can turn into several tool rounds, which means several paid model calls, so it shouldn't be on until the rate limiter uses a shared store (`RATE_LIMIT_REDIS_URL`). Details in [docs/AI_TOOLS.md](docs/AI_TOOLS.md).
 
@@ -176,19 +176,19 @@ General web search (like Wikipedia) is a last resort for when the texts and the 
 - Every answer carries a disclaimer you can't dismiss ("Please consult with your local Rabbi for a final ruling"), both in the AI window and in the reader. The AI is never allowed to claim it's a rabbi or that anything it says is a binding ruling (`NO_IMPERSONATION_DIRECTIVE`).
 - A safety classifier (`classify_safety()` in `backend/claude.py`) catches medical, mental-health/self-harm, abuse/minor-safety, and dangerous/illegal stuff, and swaps the answer for a much more prominent referral to real help.
 - Minimum age is 13+ (16+ in the EU/UK), with an age confirmation. There's also an age-appropriate output layer, so sensitive topics (like niddah) stay clinical and educational instead of explicit, without dumbing down the sourcing. The whole policy is in [docs/AGE_AND_SAFETY_POLICY.md](docs/AGE_AND_SAFETY_POLICY.md).
-- Prompt injection defenses, Turnstile in front of the AI endpoint, sanitized links in answers (after the malicious-link thing from devlog 5 :|), sitewide rate limiting, and the per-user daily budget.
+- Prompt injection defenses, sanitized links in answers (after the malicious-link thing from devlog 5 :|), sitewide rate limiting, and the per-user daily budget. There's also a Turnstile bot check for anonymous asking that's built and wired up, but I currently have it switched off (`TURNSTILE_ENABLED`).
 - The full "here's what AI we use and how we handle your data" disclosure lives at [/ai-disclosure](https://shelah.org/ai-disclosure).
 
 ## The stack
 
-- **Backend:** Flask + FastAPI together. FastAPI handles the async AI `/ask` pipeline and Flask handles everything else (it's mounted inside the FastAPI app). New routes live in `backend/` as their own blueprints, not in `app.py`, which is still bigger than I'd like.
+- **Backend:** Flask + FastAPI together. FastAPI natively handles the async AI `POST /ask` pipeline and `GET /api/async/health`, and Flask handles everything else (it's mounted inside the FastAPI app, and most routes are Flask blueprints). New routes live in `backend/` as their own blueprints, not in `app.py`, which is still bigger than I'd like.
 - **Hosting:** Vercel, as one serverless function.
 - **Database:** Supabase (Postgres), with RLS so users can only see their own stuff.
 - **Auth:** Clerk.
 - **AI:** Gemini first, Claude as backup, with optional tool use (see above).
-- **Texts and calendar data:** Sefaria for texts, Hebcal for the calendar and zmanim, MyMemory / Google Translate for the translation fallback, plus the 14 community customs datasets in `customs/`.
+- **Texts and calendar data:** Sefaria for texts, Hebcal for the calendar and zmanim, MyMemory / Google Translate for the translation fallback, plus the 13 community customs datasets in `customs/`.
 - **Frontend:** plain HTML/CSS/JS (ES modules), Tailwind + DaisyUI, marked + DOMPurify for rendering AI answers safely.
-- **Keeping it alive:** Turnstile for bot checks, Sentry and a Discord webhook for errors, circuit breakers on every external service, SonarCloud for code quality, and a lot of CI.
+- **Keeping it alive:** Turnstile for bot checks (built, currently switched off), Sentry and a Discord webhook for errors, circuit breakers on every external service, SonarCloud for code quality, and a lot of CI.
 
 ### How it's wired together (ai made this part don't ask me how it all works I can't give u a clear answer unfortunately °—°)
 
@@ -232,8 +232,8 @@ The full breakdown is in [docs/SERVICE_ARCHITECTURE.md](docs/SERVICE_ARCHITECTUR
 | `backend/rate_limit.py` | The sitewide rate limiter (with its own circuit breaker) |
 | `backend/health_check.py` | Circuit breakers for external APIs |
 | `backend/cache.py`, `backend/cache_policy.py` | The shared caching layer and browser cache headers |
-| `backend/turnstile.py` | Bot check |
-| `backend/routes_*.py` | Blueprints: library, calendar, community, prayers, user, privacy, conversations, answer sharing, feedback, legal, webhooks, devtools, and the deep-link paths |
+| `backend/turnstile.py` | Bot check for anonymous `/ask` (off in production for now) |
+| `backend/routes_*.py` | Blueprints: library, calendar, community, prayers, user, privacy, conversations, siddur, answer sharing, feedback, legal, webhooks, devtools, and the deep-link paths |
 
 ## Running it locally (YES YOU TOO CAN RUN IT YOURSELF)
 
@@ -252,7 +252,7 @@ cp .env.example .env           # then fill in your keys
 
 Every environment variable (required vs optional, defaults, what each one does) is documented in [`docs/ENVIRONMENT.md`](docs/ENVIRONMENT.md). The ones you actually need to get going: `FLASK_SECRET_KEY`, `GEMINI_API_KEY` and/or `ANTHROPIC_API_KEY`, `CLERK_PUBLISHABLE_KEY`, `CLERK_JWT_ISSUER`, `SUPABASE_URL`, `SUPABASE_PUBLISHABLE_KEY`, and `SUPABASE_SECRET_KEY`.
 
-Heads up: `.env.example` is set up for local dev (`CLERK_ENFORCE_AUTH=false`), so don't ship it to production as-is. Production turns auth enforcement on automatically anyway, but set `DAILY_BUDGET_USD` and `CRON_SECRET` yourself before a real deploy. And never commit real keys (ask me how I know °~°).
+Heads up: `.env.example` is for local dev (`CLERK_ENFORCE_AUTH=false`), so don't ship it to production as-is. In the code, auth enforcement defaults to on when it runs on Vercel, but shelah.org sets `CLERK_ENFORCE_AUTH=false` on purpose, so anonymous asking is open there by design. You only need to sign in for the account stuff (bookmarks, saved preferences, conversations, answer history, sharing, and data export/delete); the exact list is in [docs/API.md](docs/API.md). Decide that one deliberately for your own deploy, and set `DAILY_BUDGET_USD` and `CRON_SECRET` yourself before a real deploy. And never commit real keys (ask me how I know °~°).
 
 Then run it:
 
@@ -269,9 +269,11 @@ pip install -r requirements-dev.txt
 pytest
 ```
 
+Right now that's 4,702 Python tests at 99.83% `backend/` coverage, plus 628 JS tests (`npm test`, which is `node --test tests_js/*.test.js`).
+
 - **Fully offline.** `tests/conftest.py` sets fake credentials and turns off auth enforcement, so everything external (Sefaria, Hebcal, Clerk, Supabase, Gemini, Anthropic) is mocked and you don't need any real keys.
 - **Coverage gate.** `pytest.ini` fails the build if `backend/` coverage drops under 85%. That number only goes up, never down.
-- **Golden-master rule.** Before I move or refactor anything, I write a test that pins down what it does *right now*, make sure it passes on the old code, then make the change and make sure the same test still passes. (Unless the whole point of the change is fixing that exact behavior, in which case the test gets flipped on purpose.) That's how I pulled a ton of code out of `app.py` into `backend/` without breaking stuff. More in `plan.md` §6.2.
+- **Golden-master rule.** Before I move or refactor anything, I write a test that pins down what it does *right now*, make sure it passes on the old code, then make the change and make sure the same test still passes. (Unless the whole point of the change is fixing that exact behavior, in which case the test gets flipped on purpose.) That's how I pulled a ton of code out of `app.py` into `backend/` without breaking stuff.
 - **CI** (`.github/workflows/ci.yml`) runs the whole suite with coverage, plus `ruff` (non-blocking for now), `pre-commit` with gitleaks + bandit for secrets and security (blocking), `pip-audit` for vulnerable dependencies (non-blocking for now), JS tests, a pa11y WCAG 2.1 AA scan of the main and legal pages in both light and dark mode, and SonarCloud. There's also a scheduled RLS check (`rls-verify.yml`) that makes sure the database access rules are still doing their job.
 
 ## Deploying
@@ -315,7 +317,7 @@ gunicorn app:app --bind 0.0.0.0:5001 --workers 4                   # WSGI (no as
 │   ├── service-worker.js   Offline support
 │   └── manifest.webmanifest
 │
-├── customs/                The 14 community customs datasets (+ schema.json)
+├── customs/                The 13 community customs datasets (+ schema.json)
 ├── docs/                   All the deep documentation (see below)
 ├── scripts/                Utility scripts + sql/ (Supabase schema and RLS policies)
 ├── tests/                  Python tests
