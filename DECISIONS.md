@@ -474,7 +474,7 @@ This is likely the single weakest area of the app, and it's not hidden — the c
 
 ## FastAPI-wraps-Flask via WSGIMiddleware
 
-- **What was chosen:** `asgi.py` defines exactly one native async route (`POST /ask`) plus a health endpoint, then mounts the entire legacy Flask app underneath: `fastapi_app.mount("/", WSGIMiddleware(flask_app_module.app))`, exporting `app = fastapi_app` as the actual ASGI callable Vercel serves.
+- **What was chosen:** `asgi.py` defines exactly one native async route (`POST /ask`) plus a health endpoint, then mounts the entire legacy Flask app underneath: `fastapi_app.mount("/", WSGIMiddleware(flask_app_module.app))`, exporting `app = fastapi_app` as the actual ASGI callable Vercel serves. *(Since 2026-10-03 the middleware is `a2wsgi.WSGIMiddleware` with `workers=40`, replacing the deprecated `starlette.middleware.wsgi` one; `docs/SECURITY.md` §4 has the two behaviours that matter.)*
 - **Where it lives:** `asgi.py:1-6` (docstring: "incremental async migration... keeps the existing Flask app intact"), `asgi.py:26,730,733`.
 - **Problem it solves:** `/ask` is the one latency-critical, I/O-heavy path — parallel Sefaria fetch, RAG assembly, two AI providers with fallback. Real `async`/`await` with `asyncio.gather` lets independent I/O run concurrently on one event loop instead of blocking Flask's synchronous worker model. The other ~48 routes are low-traffic, mostly synchronous CRUD where a full async rewrite would have been pure risk for no latency win.
 - **Alternatives that existed:** Rewrite everything in FastAPI, delete Flask. Run Flask directly on Vercel, keep `/ask` synchronous. Split `/ask` into its own separate function/service.

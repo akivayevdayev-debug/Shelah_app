@@ -30,7 +30,7 @@ via ``get_shared_store()`` -- a module-level ``redis.asyncio`` client. This
 module intentionally does NOT reuse that client. Every call site that needs
 this tier (get_library_index()/_cached_get() in sefaria_library.py,
 get_daily_study() in sefaria.py) runs as a synchronous Flask view executed
-in a worker thread by Starlette's WSGIMiddleware -- there is no running
+in a worker thread by a2wsgi's WSGIMiddleware -- there is no running
 asyncio event loop to await into, and redis.asyncio connections are bound
 to the event loop that first used them, so borrowing rate_limit's client
 from a different thread/loop is not safe. This module opens a second,

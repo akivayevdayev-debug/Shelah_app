@@ -234,11 +234,17 @@ entirely):
   - SonarCloud also analyses the repository (project key
     `akivayevdayev-debug_Shelah_app`); its security and reliability ratings on
     new code are tracked against the quality gate.
-- **Known follow-up:** `starlette.middleware.wsgi.WSGIMiddleware` — which
-  `asgi.py` uses to mount the entire Flask app inside the FastAPI app, the core
-  of this app's hybrid transport — is deprecated upstream ("will be removed in
-  a future release"). It works today; a future starlette major version could
-  remove it. Evaluate migrating to `a2wsgi` before that happens.
+- **Flask mount:** `asgi.py` mounts the entire Flask app inside the FastAPI app,
+  the core of this app's hybrid transport, with `a2wsgi.WSGIMiddleware`
+  (migrated 2026-10-03 from `starlette.middleware.wsgi`, which is deprecated
+  upstream and "will be removed in a future release"). Two behaviours of the
+  middleware matter and are pinned by `tests/test_wsgi_mount.py`: each request
+  runs in a copy of the caller's contextvars context, so per-request cost
+  attribution cannot leak between requests that share a worker thread, and the
+  worker count (`WSGI_WORKERS = 40`, matching the old anyio limiter; a2wsgi's
+  own default is 10) caps how many Flask views run at once. a2wsgi also
+  streams the request body to Flask instead of buffering it first, so Werkzeug
+  enforces `MAX_CONTENT_LENGTH` while reading.
 
 ## 5. Input validation & abuse
 
@@ -692,7 +698,6 @@ Items needing a human decision or an operator action, collected in one place:
   Support request.
 - **CSP `'unsafe-inline'`** (§3): blocked on refactoring 112 inline `onclick=`
   handlers and 40 `style=` attributes before a nonce-based policy is possible.
-- **`WSGIMiddleware` deprecation** (§4): plan the move to `a2wsgi`.
 - **Tailwind 3 → 4 migration** (§11) to clear the last `npm audit` chain
   (dev tooling only).
 - **Backups** (§9): the Supabase Free plan has no automated backups or PITR;

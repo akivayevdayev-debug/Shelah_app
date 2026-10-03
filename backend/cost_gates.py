@@ -102,7 +102,7 @@ def bind_cost_attribution(user_id: str | None, client_ip: str, reservation_id: s
 def clear_cost_attribution() -> None:
     """Undo bind_cost_attribution(), so a reused worker thread (e.g. Flask's
     threaded dev server, which doesn't run each request in a fresh context
-    copy the way Starlette's WSGIMiddleware does) can't attribute -- or
+    copy the way a2wsgi's WSGIMiddleware does) can't attribute -- or
     settle a leftover reservation for -- a later request's model spend to
     this caller."""
     bind_user_id("")

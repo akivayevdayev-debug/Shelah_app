@@ -19,6 +19,13 @@ flask==3.1.3
 fastapi==0.141.1
 starlette==1.3.1
 uvicorn==0.35.0
+# a2wsgi: asgi.py mounts the Flask app inside FastAPI with a2wsgi's
+# WSGIMiddleware. Replaces fastapi.middleware.wsgi.WSGIMiddleware, which is
+# starlette.middleware.wsgi under another name and is deprecated upstream
+# ("will be removed in a future release"; Starlette points at a2wsgi as the
+# replacement). Pure Python, no dependencies on 3.14. 1.10.10 copies the
+# contextvars context per request, which backend/cost_gates.py relies on.
+a2wsgi==1.10.10
 # redis: backend/rate_limit.py's Upstash-backed shared store. Replaces
 # Flask-Limiter, which used to sit on app.py alongside a second, independent
 # in-process limiter in asgi.py -- both removed. Pinned to the version
