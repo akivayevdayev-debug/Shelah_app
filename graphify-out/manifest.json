@@ -1605,8 +1605,8 @@
     "semantic_hash": ""
   },
   "CHANGELOG.md": {
-    "mtime": 1791017653.524426,
-    "ast_hash": "219213b7d23b07b2fe0a7f0d120712ba",
+    "mtime": 1791063474.9629529,
+    "ast_hash": "c6b6d21b7d58eb36fcb599655eb3a403",
     "semantic_hash": ""
   },
   "docs/AI_SECURITY_REVIEW.md": {
@@ -2255,8 +2255,8 @@
     "semantic_hash": ""
   },
   "static/js/siddur-reader.js": {
-    "mtime": 1790799386.7643096,
-    "ast_hash": "710faef6c171b18c71f8b3fe7527f135",
+    "mtime": 1791063444.8015106,
+    "ast_hash": "9c976e0ece9b5bab6de1ff2d9fb3d976",
     "semantic_hash": ""
   },
   "static/js/siddur.js": {
@@ -2330,8 +2330,8 @@
     "semantic_hash": ""
   },
   "tests_js/siddur_reader.test.js": {
-    "mtime": 1790798277.9921033,
-    "ast_hash": "4bffecdce717eac5c45a4ffba46bf675",
+    "mtime": 1791063311.4015281,
+    "ast_hash": "40c435bd42370c6ecd9f1c965bbbf258",
     "semantic_hash": ""
   },
   "docs/SITE_AUDIT_PROMPT.md": {
