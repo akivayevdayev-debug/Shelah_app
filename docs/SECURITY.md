@@ -638,30 +638,34 @@ the statements. **The migration was applied and verified live on 2026-09-03**
   Anon `INSERT` must use `returning=minimal`, since anon has no `SELECT` by
   design and an insert that asks for the row back fails with `42501`.
 
-## 11. `npm audit` — 5 high-severity findings, dev/build tooling only (checked 2026-10-03)
+## 11. `npm audit` — no findings (checked 2026-10-03)
 
-`npm audit` reports 5 high-severity advisories, all in one chain, in tooling
-that never ships to production or runs on any request path:
+`npm audit` reports 0 vulnerabilities. Everything it covers is dev and build
+tooling (`tailwindcss`, `pa11y-ci`, `puppeteer`, the Supabase CLI) that never
+ships to production or runs on any request path; the committed
+`static/css/tailwind.css` is the only output of it that is deployed.
 
-| Chain | Pulled in by | Fix |
-| --- | --- | --- |
-| `tailwindcss@3.4.19` → `chokidar` / `micromatch` / `fast-glob` → `braces` | `tailwindcss` (direct; run locally by `npm run build:css`, its output `static/css/tailwind.css` is committed) | needs Tailwind 4.x — a major-version migration |
+How the last findings were cleared, because two of them are pinned and should
+not be un-pinned by accident:
 
-The two `pa11y-ci` chains that used to sit beside it (`cheerio` → `undici` and
-`globby` → `glob` → `minimatch` → `brace-expansion`) were cleared on
-2026-10-03 with in-range lockfile updates (`undici` 6.29.0, `brace-expansion`
-1.1.21); nothing in `package.json` changed.
+- **`package.json` `overrides`:** `pa11y` ^10 and `puppeteer` ^25 (the
+  `extract-zip` symlink path traversal, [GHSA-jmr9-qjv8-65gv](https://github.com/advisories/GHSA-jmr9-qjv8-65gv),
+  came in through the older ones), and `@parcel/watcher` ^2.5.6. Tailwind 4's CLI
+  (`@tailwindcss/cli`) depends on `@parcel/watcher`, whose 2.5.1 release pulled in
+  `micromatch` → `braces`, which carries a high-severity advisory. 2.5.6 drops
+  that chain. Drop the override once `npm ls @parcel/watcher` shows the CLI
+  resolving 2.5.6 or later without it.
+- **Tailwind 3 → 4 (2026-10-03)** removed the five findings that had been
+  accepted as dev-only (`tailwindcss@3.4.19` → `chokidar` / `micromatch` /
+  `fast-glob` → `braces`). The migration is described in `DECISIONS.md`.
+- The two `pa11y-ci` chains (`cheerio` → `undici`, and `globby` → `glob` →
+  `minimatch` → `brace-expansion`) were cleared earlier the same day with
+  in-range lockfile updates.
 
-The earlier `extract-zip` finding (a symlink path traversal in `puppeteer`'s
-ZIP extraction, [GHSA-jmr9-qjv8-65gv](https://github.com/advisories/GHSA-jmr9-qjv8-65gv))
-is no longer in the tree: `package.json`'s `overrides` pin `pa11y` ^10 and
-`puppeteer` ^25.
-
-**Accepted risk, not a gap.** The `tailwindcss` chain only runs when a
-developer rebuilds the stylesheet from this repository's own input files, so
-it is not reachable through any input the deployed application accepts. It
-waits on a deliberate 3 → 4 migration (§13). Re-run `npm audit`
-periodically, or when `tailwindcss` / `pa11y-ci` / `puppeteer` cut a release.
+Re-run `npm audit` periodically, or when `tailwindcss` / `pa11y-ci` /
+`puppeteer` cut a release. This machine's `npm` rewrites the key order of
+every `package-lock.json` entry, so after a dependency change copy the
+lockfile aside, `git checkout` it, and patch only the entries that changed.
 
 ## 12. Shared answers & conversations
 
@@ -698,8 +702,6 @@ Items needing a human decision or an operator action, collected in one place:
   Support request.
 - **CSP `'unsafe-inline'`** (§3): blocked on refactoring 112 inline `onclick=`
   handlers and 40 `style=` attributes before a nonce-based policy is possible.
-- **Tailwind 3 → 4 migration** (§11) to clear the last `npm audit` chain
-  (dev tooling only).
 - **Backups** (§9): the Supabase Free plan has no automated backups or PITR;
   upgrade, or schedule the manual dump.
 - **Turnstile** (§8) is provisioned but off in production (both keys are set,

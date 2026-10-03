@@ -3216,10 +3216,10 @@ html.rtl .home-main-layout #popularTextsGrid {
    at 3:1). Darkened both stops ~17% in place, preserving the same hue and
    gradient shape; now 4.75-5.63:1 against the subtitle and 5.52-6.76:1
    against the white title. */
-.library-shell #textsMenuModal .bg-gradient-to-r.from-navy.to-blue-900,
-.library-shell #devtoolsInspectorModal .bg-gradient-to-r.from-navy.to-blue-900,
-.library-shell #sourceGraphModal .bg-gradient-to-r.from-navy.to-blue-900,
-.library-shell #communityTimelineModal .bg-gradient-to-r.from-navy.to-blue-900 {
+.library-shell #textsMenuModal .bg-linear-to-r.from-navy.to-blue-900,
+.library-shell #devtoolsInspectorModal .bg-linear-to-r.from-navy.to-blue-900,
+.library-shell #sourceGraphModal .bg-linear-to-r.from-navy.to-blue-900,
+.library-shell #communityTimelineModal .bg-linear-to-r.from-navy.to-blue-900 {
     background-image: linear-gradient(to right, #615a51, #6f685d) !important;
 }
 
@@ -4437,10 +4437,10 @@ html.theme-dark,
     color: var(--text-main) !important;
 }
 
-:is([data-theme="dark"], body.theme-dark) #textsMenuModal .bg-gradient-to-r.from-navy.to-blue-900,
-:is([data-theme="dark"], body.theme-dark) #devtoolsInspectorModal .bg-gradient-to-r.from-navy.to-blue-900,
-:is([data-theme="dark"], body.theme-dark) #sourceGraphModal .bg-gradient-to-r.from-navy.to-blue-900,
-:is([data-theme="dark"], body.theme-dark) #communityTimelineModal .bg-gradient-to-r.from-navy.to-blue-900 {
+:is([data-theme="dark"], body.theme-dark) #textsMenuModal .bg-linear-to-r.from-navy.to-blue-900,
+:is([data-theme="dark"], body.theme-dark) #devtoolsInspectorModal .bg-linear-to-r.from-navy.to-blue-900,
+:is([data-theme="dark"], body.theme-dark) #sourceGraphModal .bg-linear-to-r.from-navy.to-blue-900,
+:is([data-theme="dark"], body.theme-dark) #communityTimelineModal .bg-linear-to-r.from-navy.to-blue-900 {
     background-image: linear-gradient(to right, var(--surface-elevated), var(--surface-pill)) !important;
 }
 

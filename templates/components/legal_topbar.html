@@ -1,12 +1,12 @@
 {% from "components/icons.html" import phosphor %}
 <header role="banner"
-    class="topbar sticky top-0 z-[200] bg-white text-slate-800 py-1.5 px-2 lg:py-1.5 lg:px-3 shadow-sm border-b flex flex-wrap lg:flex-nowrap justify-between items-center flex-shrink-0 gap-1.5 lg:gap-2">
+    class="topbar sticky top-0 z-200 bg-white text-slate-800 py-1.5 px-2 lg:py-1.5 lg:px-3 shadow-xs border-b flex flex-wrap lg:flex-nowrap justify-between items-center shrink-0 gap-1.5 lg:gap-2">
     <button type="button" id="brandHomeBtn" class="topbar-brand flex items-center gap-1.5 shrink-0"
         aria-label="Go to home" onclick="goHome()">
         <span class="text-navy font-hebrew topbar-brand-icon font-semibold leading-tight">
             ש
         </span>
-        <span class="topbar-brand-title text-sm sm:text-base font-serif tracking-tight text-navy font-semibold leading-none text-start">
+        <span class="topbar-brand-title text-sm sm:text-base font-serif tracking-tight text-navy font-semibold leading-none sm:leading-6 text-start">
             <span class="block" data-en="Sh'elah" data-he="שאלה">Sh'elah</span>
             <span class="block text-[10px] font-normal text-slate-500 italic topbar-brand-subtitle"
                 data-en="Torah Encyclopedia" data-he="אנציקלופדיית תורה">Torah Encyclopedia</span>
@@ -14,7 +14,7 @@
     </button>
 
     <div id="topbarControls"
-        class="topbar-controls relative z-[110] flex gap-1.5 items-center flex-wrap justify-end w-full lg:w-auto ml-auto">
+        class="topbar-controls relative z-110 flex gap-1.5 items-center flex-wrap justify-end w-full lg:w-auto ml-auto">
         <!-- Theme Toggle — stands in for the main app's Quick Settings gear;
              legal pages carry no settings panel, so this is a direct
              icon-only light/dark toggle instead of a labeled "Appearance"
@@ -35,7 +35,7 @@
                 </button>
 
                 <div id="userProfileMenu"
-                    class="hidden absolute top-full right-0 w-44 max-w-[calc(100vw-1rem)] bg-white border border-slate-200 rounded-xl shadow-lg py-1.5 z-[999]">
+                    class="hidden absolute top-full right-0 w-44 max-w-[calc(100vw-1rem)] bg-white border border-slate-200 rounded-xl shadow-lg py-1.5 z-999">
                     <a id="userProfileLink" href="/profile"
                         class="topbar-user-menu-item block px-3 py-1.5 text-xs text-slate-700 hover:bg-slate-100 transition"
                         data-en="Profile" data-he="פרופיל">Profile</a>

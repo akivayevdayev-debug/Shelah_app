@@ -28,15 +28,17 @@
   },
   "homepage": "https://github.com/akivayevdayev-debug/Shelah_app#readme",
   "devDependencies": {
+    "@tailwindcss/cli": "^4.3.3",
     "@tailwindcss/typography": "^0.5.20",
     "pa11y-ci": "^4.1.1",
     "supabase": "^2.116.0",
-    "tailwindcss": "^3.4.19"
+    "tailwindcss": "^4.3.3"
   },
   "dependencies": {
     "@sentry/browser": "^10.69.0"
   },
   "overrides": {
+    "@parcel/watcher": "^2.5.6",
     "pa11y": "^10.0.0",
     "puppeteer": "^25.11.0"
   }

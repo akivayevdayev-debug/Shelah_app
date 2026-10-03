@@ -1,3 +1,115 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+/*
+  Tailwind v4, CSS-first. Build with `npm run build:css`; the output,
+  static/css/tailwind.css, is committed (Vercel serves it as a static file).
+
+  Why this does not `@import "tailwindcss"`: that entry point puts preflight
+  and every utility in a cascade layer, and any un-layered rule beats any
+  layered one regardless of specificity. This page also loads daisyUI from a
+  CDN (un-layered) and a dozen app stylesheets, so layered utilities would
+  lose to daisyUI's `button, select { padding: 0 }` reset and to element
+  rules in the app CSS, where Tailwind 3's class selectors used to win on
+  specificity. Importing preflight and utilities WITHOUT a layer() keeps the
+  Tailwind 3 cascade: they compete with the rest by specificity and, being
+  linked last, by order. Only the theme variables stay layered, so the
+  app's own --font-sans in tokens.css still wins over the one defined here.
+
+  Scan only the two places utility classes are written. v4 would otherwise
+  scan the whole repository (docs, tests, Python) and ship every false-positive
+  word it found as a utility.
+*/
+@import "tailwindcss/theme.css" theme(reference inline) source(none);
+@import "./tailwind.palette-v3.css";
+@import "tailwindcss/preflight.css";
+@import "tailwindcss/utilities.css" source(none);
+@source "../../templates/**/*.html";
+@source "../../static/js/**/*.js";
+@source inline("overflow-y-auto overflow-x-auto overflow-auto");
+
+@plugin "@tailwindcss/typography";
+
+/*
+  v4 only applies hover: styles on devices that can hover. The rest of the
+  app's CSS uses plain :hover, so keep that for hover: too instead of
+  changing how touch screens behave.
+*/
+@custom-variant hover (&:hover);
+
+@theme reference inline {
+  --font-sans: Inter, sans-serif;
+  /* The fallback faces are defined in static/css/tokens.css (audit L-12). */
+  --font-serif: Cardo, "Cardo Fallback", serif;
+  --font-hebrew: "Ezra SIL", "Ezra SIL Fallback", serif;
+  --color-navy: #002147;
+  --color-gold: #D4AF37;
+
+  /*
+    v4 gives each text-* size a unitless line-height ratio, which scales with
+    the font-size of a descendant that sets its own size (a text-[13px] inside
+    a text-sm). v3 used fixed rem lengths, which descendants inherit as-is.
+  */
+  --text-xs--line-height: 1rem;
+  --text-sm--line-height: 1.25rem;
+  --text-base--line-height: 1.5rem;
+  --text-lg--line-height: 1.75rem;
+  --text-xl--line-height: 1.75rem;
+  --text-2xl--line-height: 2rem;
+  --text-3xl--line-height: 2.25rem;
+  --text-4xl--line-height: 2.5rem;
+}
+
+/*
+  space-y-* with Tailwind 3's selector. v4 moved the gap to margin-bottom on
+  every child but the last, so the last *visible* child of a list whose real
+  last child is `hidden` keeps a trailing margin that v3 never drew (the
+  library tree and the settings panels toggle children with `hidden`).
+  A custom utility does not replace the built-in one, both are emitted. The
+  built-in computes its margins from --tw-space-y-reverse, so the second rule
+  sets that to a word: calc() over it is invalid at computed-value time and
+  the built-in margins fall back to 0, while every other margin declaration
+  (a child's own mb-*, the app's .sk-row { margin-bottom }) still applies.
+*/
+@utility space-y-* {
+  & > :not([hidden]) ~ :not([hidden]) {
+    margin-block-start: calc(0.25rem * --value(number));
+    margin-block-end: 0;
+  }
+
+  :where(&) > :not(:last-child) {
+    --tw-space-y-reverse: disabled;
+  }
+}
+
+/*
+  Compatibility with Tailwind 3's preflight, so migrating changed no look:
+  v3 drew default borders in gray-200 (v4: currentcolor), gave buttons a
+  pointer cursor (v4: default) and greyed placeholders (v4: 50% of the text
+  colour). Anything that needs a different value sets it explicitly. The
+  values are literal because v4 only emits the theme variables a utility
+  actually uses, so var(--color-gray-200) would silently fall back.
+*/
+*,
+::after,
+::before,
+::backdrop,
+::file-selector-button {
+  border-color: #e5e7eb;
+}
+
+button,
+[role="button"] {
+  cursor: pointer;
+}
+
+:disabled {
+  cursor: default;
+}
+
+input::placeholder,
+textarea::placeholder {
+  color: #9ca3af;
+}
+
+/* v4's `* { padding: 0 }` also strips the browser's own padding from <option>. */
+option {
+  padding: 0 2px 1px;
+}

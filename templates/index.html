@@ -141,7 +141,7 @@
             integrity="sha384-6ZdfL2Azuen6KYvcTkbxqJS1d7txbNWrVfmURkxNeCn7DtzhLRL6Fi6WGG6ZLdKn"
             crossorigin="anonymous"></script>
     <link rel="stylesheet" href="/static/css/tokens.css?v=20261003-t4">
-    <link rel="stylesheet" href="/static/style.css?v=20261002-s8">
+    <link rel="stylesheet" href="/static/style.css?v=20261003-s9">
     <!-- CSS modules (supplement style.css; do not replace) -->
     <link rel="stylesheet" href="/static/css/typography.css?v=20260817-v6">
     <link rel="stylesheet" href="/static/css/reader.css?v=20260930-rd11">
@@ -156,7 +156,7 @@
     <link rel="stylesheet" href="/static/css/calendar-detail.css?v=20260930-cd2">
     <link rel="stylesheet" href="/static/css/loading.css?v=20260930-l4">
     <!-- Tailwind CSS (pre-built; loads last so utilities override custom CSS — mirrors CDN runtime cascade behavior) -->
-    <link rel="stylesheet" href="/static/css/tailwind.css?v=20260926-f1">
+    <link rel="stylesheet" href="/static/css/tailwind.css?v=20261003-tw4">
 
     <!-- FullCalendar -->
     <script defer src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.15/index.global.min.js"
@@ -274,14 +274,14 @@
 
     <!-- Mobile drawer backdrop — starts below the topbar -->
     <div id="mobileDrawerBackdrop" aria-hidden="true"
-        class="hidden fixed left-0 right-0 bottom-0 bg-slate-900/45 backdrop-blur-[1px] z-[85] lg:hidden"
+        class="hidden fixed left-0 right-0 bottom-0 bg-slate-900/45 backdrop-blur-[1px] z-85 lg:hidden"
         style="top: var(--topbar-height, 3.4rem); transition: opacity 0.25s ease;">
     </div>
 
 
             <!-- TOP NAVIGATION BAR (Sefaria Style) -->
             <header role="banner"
-                class="topbar sticky top-0 z-[200] bg-white text-slate-800 py-1.5 px-2 lg:py-1.5 lg:px-3 shadow-sm border-b flex flex-wrap lg:flex-nowrap justify-between items-center flex-shrink-0 gap-1.5 lg:gap-2">
+                class="topbar sticky top-0 z-200 bg-white text-slate-800 py-1.5 px-2 lg:py-1.5 lg:px-3 shadow-xs border-b flex flex-wrap lg:flex-nowrap justify-between items-center shrink-0 gap-1.5 lg:gap-2">
                 <!-- mobileNavBtn removed: Library tab in bottom nav covers this action -->
 
                 <button type="button" id="brandHomeBtn" class="topbar-brand flex items-center gap-1.5 shrink-0"
@@ -289,7 +289,7 @@
                     <span class="text-navy font-hebrew topbar-brand-icon font-semibold leading-tight">
                         ש
                     </span>
-                    <span class="topbar-brand-title text-sm sm:text-base font-serif tracking-tight text-navy font-semibold leading-none text-start">
+                    <span class="topbar-brand-title text-sm sm:text-base font-serif tracking-tight text-navy font-semibold leading-none sm:leading-6 text-start">
                         <span class="block" data-en="Sh'elah" data-he="שאלה">Sh'elah</span>
                         <span class="block text-[10px] font-normal text-slate-500 italic topbar-brand-subtitle"
                             data-en="Torah Encyclopedia" data-he="אנציקלופדיית תורה">Torah Encyclopedia</span>
@@ -308,7 +308,7 @@
 
                 <!-- Top Navigation Menu Toggle + Search Bar -->
                 <div
-                    class="topbar-search-wrap relative z-40 order-3 w-full lg:order-none lg:w-auto flex-1 max-w-4xl flex items-center justify-center gap-2 min-w-0">
+                    class="topbar-search-wrap relative z-40 order-3 w-full lg:order-0 lg:w-auto flex-1 max-w-4xl flex items-center justify-center gap-2 min-w-0">
                     <div class="w-full min-w-0">
                         <!-- Search Form -->
                         <form id="searchForm" role="search" aria-label="Search texts" class="w-full relative min-w-0">
@@ -317,7 +317,7 @@
                                 placeholder="Ask Sh'elah about any topic, halachah, or custom..."
                                 data-en-placeholder="Ask Sh'elah about any topic, halachah, or custom..."
                                 data-he-placeholder="שאל את ש'אלה על כל נושא, הלכה או מנהג..."
-                                class="w-full bg-[#fbf8f1] hover:bg-[#f8f2e8] transition text-sm sm:text-base p-2 pl-4 pr-14 rounded-full border border-[#d8d0c2] focus:border-[#b8aa90] focus:ring-2 focus:ring-[#d9cdb8]/80 focus:bg-[#fffdf8] focus:outline-none"
+                                class="w-full bg-[#fbf8f1] hover:bg-[#f8f2e8] transition text-sm sm:text-base p-2 pl-4 pr-14 rounded-full border border-[#d8d0c2] focus:border-[#b8aa90] focus:ring-2 focus:ring-[#d9cdb8]/80 focus:bg-[#fffdf8] focus:outline-hidden"
                                 autocomplete="off" required>
                             <div id="searchIcon" class="absolute right-3 top-2 text-slate-400" aria-hidden="true">
                                 <!-- Wrapped separately from the AI badge below so
@@ -336,7 +336,7 @@
                             <button type="submit" class="sr-only">Search</button>
 
                             <div id="searchSuggestions"
-                                class="hidden absolute left-0 right-0 mt-2 bg-white border border-slate-200 rounded-2xl shadow-lg z-[80] max-h-80 overflow-y-auto">
+                                class="hidden absolute left-0 right-0 mt-2 bg-white border border-slate-200 rounded-2xl shadow-lg z-80 max-h-80 overflow-y-auto">
                             </div>
                             <!-- "Searching…" when suggestions are slow, then how many came
                                  (fetchOmniboxSuggestions). -->
@@ -375,20 +375,20 @@
                 </div>
 
                 <div id="topbarControls"
-                    class="topbar-controls relative z-[110] flex gap-1.5 items-center flex-wrap justify-end w-full lg:w-auto">
-                    <div id="settingsMenuContainer" class="relative z-[120] shrink-0">
+                    class="topbar-controls relative z-110 flex gap-1.5 items-center flex-wrap justify-end w-full lg:w-auto">
+                    <div id="settingsMenuContainer" class="relative z-120 shrink-0">
                         <button id="settingsMenuBtn" type="button" aria-expanded="false" aria-haspopup="true"
                             class="topbar-flat-btn text-[#7a6a52]" title="Open settings menu">
                             {{ phosphor('sliders-horizontal', size=16, class='h-4 w-4') }}
                         </button>
 
                         <div id="settingsPanel"
-                            class="hidden absolute bg-slate-50 border border-slate-300 rounded-xl shadow-lg p-2.5 z-[200] space-y-2.5 overflow-y-auto w-max max-w-[360px]">
+                            class="hidden absolute bg-slate-50 border border-slate-300 rounded-xl shadow-lg p-2.5 z-200 space-y-2.5 overflow-y-auto w-max max-w-[360px]">
                             <p class="text-[11px] uppercase tracking-widest text-slate-500 font-bold" data-en="Quick Settings"
                                 data-he="הגדרות מהירות">Quick Settings</p>
 
                             <button id="openAiSettingsBtn" type="button"
-                                class="w-full px-3 py-2 rounded bg-slate-100 text-slate-700 border border-slate-200 hover:bg-slate-200 transition font-semibold text-xs text-start">
+                                class="w-full px-3 py-2 rounded-sm bg-slate-100 text-slate-700 border border-slate-200 hover:bg-slate-200 transition font-semibold text-xs text-start">
                                 {{ phosphor('sparkle', size=14, class='h-3.5 w-3.5 shrink-0') }}
                                 <span class="flex-1">
                                     <span class="block" data-en="AI settings" data-he="הגדרות בינה מלאכותית">AI settings</span>
@@ -416,7 +416,7 @@
 
                             <div class="border-t border-slate-100 pt-2">
                                 <button id="themeToggleBtn" type="button"
-                                    class="w-full px-3 py-1.5 rounded bg-slate-100 text-slate-700 border border-slate-200 hover:bg-slate-200 transition font-semibold text-xs text-start"
+                                    class="w-full px-3 py-1.5 rounded-sm bg-slate-100 text-slate-700 border border-slate-200 hover:bg-slate-200 transition font-semibold text-xs text-start"
                                     aria-live="polite">
                                     <span id="themeToggleLabel" data-en="Appearance: Light" data-he="מראה: בהיר">Appearance:
                                         Light</span>
@@ -439,7 +439,7 @@
                                 <label id="exportFormatField" class="col-span-2 text-xs text-slate-600">
                                     <span data-en="Export format" data-he="פורמט ייצוא">Export format</span>
                                     <select id="exportFormatSelect"
-                                        class="mt-1 w-full px-2 py-1.5 rounded border border-slate-200 bg-slate-50 text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-400">
+                                        class="mt-1 w-full px-2 py-1.5 rounded-sm border border-slate-200 bg-slate-50 text-slate-700 focus:outline-hidden focus:ring-2 focus:ring-blue-400">
                                         <option value="txt" data-en="Text (.txt)" data-he="טקסט (.txt)">Text (.txt)</option>
                                         <option value="docx" data-en="Word (.docx)" data-he="וורד (.docx)">Word (.docx)</option>
                                         <option value="pdf" data-en="PDF (.pdf)" data-he="PDF (.pdf)">PDF (.pdf)</option>
@@ -493,7 +493,7 @@
                             </button>
 
                             <div id="userProfileMenu"
-                                class="hidden absolute top-full right-0 w-44 max-w-[calc(100vw-1rem)] bg-white border border-slate-200 rounded-xl shadow-lg py-1.5 z-[999]">
+                                class="hidden absolute top-full right-0 w-44 max-w-[calc(100vw-1rem)] bg-white border border-slate-200 rounded-xl shadow-lg py-1.5 z-999">
                                 <a id="userProfileLink" href="/profile"
                                     class="topbar-user-menu-item block px-3 py-1.5 text-xs text-slate-700 hover:bg-slate-100 transition"
                                     data-en="Profile" data-he="פרופיל">Profile</a>
@@ -556,14 +556,14 @@
                     </button>
 
                     <div id="readerSettingsPanel"
-                        class="hidden absolute reader-settings-dropdown top-full mt-1 w-[min(92vw,24rem)] rounded-xl p-3 z-[80] space-y-3 text-start">
+                        class="hidden absolute reader-settings-dropdown top-full mt-1 w-[min(92vw,24rem)] rounded-xl p-3 z-80 space-y-3 text-start">
                         <p class="text-[11px] uppercase tracking-widest text-slate-400 font-bold"
                             data-en="Reader Settings" data-he="הגדרות קריאה">Reader Settings</p>
 
                         <label class="block text-xs text-slate-600">
                             <span data-en="Layout" data-he="פריסה">Layout</span>
                             <select id="readerLayoutSelect"
-                                class="mt-1 w-full px-2 py-1.5 rounded border border-slate-200 bg-slate-50 text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-300">
+                                class="mt-1 w-full px-2 py-1.5 rounded-sm border border-slate-200 bg-slate-50 text-slate-700 focus:outline-hidden focus:ring-2 focus:ring-blue-300">
                                 <option value="bilingual" data-en="Side by Side (Hebrew Left)"
                                     data-he="דו-עמודי (עברית משמאל)">Side by Side (Hebrew Left)
                                 </option>
@@ -655,14 +655,14 @@
 
         <!-- Column 1: Library (Left) -->
         <nav id="leftSidebar" aria-label="Library navigation"
-            class="navigator-pane mobile-drawer mobile-drawer-left w-64 xl:w-72 border-r bg-white p-6 overflow-y-auto hidden lg:block flex-shrink-0 custom-scrollbar">
+            class="navigator-pane mobile-drawer mobile-drawer-left w-64 xl:w-72 border-r bg-white p-6 overflow-y-auto hidden lg:block shrink-0 custom-scrollbar">
             <div
                 class="library-sidebar-header flex lg:hidden items-center justify-between mb-4 pb-3 border-b border-slate-200">
                 <h3 class="text-xs font-bold text-slate-500 uppercase tracking-widest" data-en="Library"
                     data-he="ספרייה">
                     Library</h3>
                 <button id="closeLeftSidebarBtn" type="button"
-                    class="px-2 py-1 text-xs border border-slate-300 rounded bg-white hover:bg-slate-100 transition"
+                    class="px-2 py-1 text-xs border border-slate-300 rounded-sm bg-white hover:bg-slate-100 transition"
                     data-en="Close" data-he="סגור">Close</button>
             </div>
             <div
@@ -1108,7 +1108,7 @@
                     <p class="home-section-label" data-en="Parasha of the Week" data-he="פרשת השבוע">Parasha of the Week
                     </p>
                     <button id="homeParashaQuickLink" type="button"
-                        class="home-topic-title text-start font-serif text-3xl sm:text-4xl text-navy leading-tight hover:text-[#0f4d67] transition"
+                        class="home-topic-title text-start font-serif text-3xl sm:text-4xl text-navy leading-tight sm:leading-10 hover:text-[#0f4d67] transition"
                         onclick="readText('Genesis 1')">Parashat HaShavua</button>
                     <p class="mt-3 text-sm text-slate-600 max-w-2xl"
                         data-en="Start from today's anchor text, then branch into side commentaries and related sources."
@@ -1207,7 +1207,7 @@
 
                             <!-- City Search Popover -->
                             <div id="citySearchPopover"
-                                class="hidden absolute right-0 mt-1 z-[200] w-72 bg-[#faf7f0] border border-[#d7cebc] rounded-xl shadow-xl p-3"
+                                class="hidden absolute right-0 mt-1 z-200 w-72 bg-[#faf7f0] border border-[#d7cebc] rounded-xl shadow-xl p-3"
                                 style="top: auto;">
                                 <!-- text-[#64748b] (Tailwind slate-500) was 4.45:1 against this popover's #faf7f0 bg,
                                      under the 4.5:1 AA text threshold; #566175 clears 5.5:1+ here and against the
@@ -1216,7 +1216,7 @@
                                     data-en="Search by City" data-he="חיפוש לפי עיר">Search by City</p>
                                 <div class="flex gap-2">
                                     <input id="citySearchInput" type="text" aria-label="Search by city" placeholder="e.g. Jerusalem, New York..."
-                                        class="flex-1 text-sm px-3 py-1.5 rounded-lg border border-[#d7cebc] bg-white focus:outline-none focus:border-[#a09060] focus:ring-2 focus:ring-[#d9cdb8]/50"
+                                        class="flex-1 text-sm px-3 py-1.5 rounded-lg border border-[#d7cebc] bg-white focus:outline-hidden focus:border-[#a09060] focus:ring-2 focus:ring-[#d9cdb8]/50"
                                         data-en-placeholder="e.g. Jerusalem, New York..."
                                         data-he-placeholder="לדוגמה: ירושלים, ניו יורק" />
                                     <button id="citySearchSubmit" type="button" onclick="searchByCity()"
@@ -1430,23 +1430,23 @@
                         <!-- Populated via JS from /api/library/popular -->
                         <span class="sr-only" data-en="Loading library..." data-he="טוען ספרייה...">Loading
                             library...</span>
-                        <div class="p-3 rounded border border-[#ddd4c3] bg-[#fffaf1] space-y-2" aria-hidden="true">
+                        <div class="p-3 rounded-sm border border-[#ddd4c3] bg-[#fffaf1] space-y-2" aria-hidden="true">
                             <div class="sk-line" style="height:1.5rem;width:70%"></div>
                             <div class="sk-line" style="height:0.65rem;width:90%"></div>
                             <div class="sk-line" style="height:0.65rem;width:55%"></div>
                         </div>
-                        <div class="p-3 rounded border border-[#ddd4c3] bg-[#fffaf1] space-y-2" aria-hidden="true">
+                        <div class="p-3 rounded-sm border border-[#ddd4c3] bg-[#fffaf1] space-y-2" aria-hidden="true">
                             <div class="sk-line" style="height:1.5rem;width:60%"></div>
                             <div class="sk-line" style="height:0.65rem;width:85%"></div>
                             <div class="sk-line" style="height:0.65rem;width:65%"></div>
                         </div>
-                        <div class="p-3 rounded border border-[#ddd4c3] bg-[#fffaf1] space-y-2 hidden md:block"
+                        <div class="p-3 rounded-sm border border-[#ddd4c3] bg-[#fffaf1] space-y-2 hidden md:block"
                             aria-hidden="true">
                             <div class="sk-line" style="height:1.5rem;width:75%"></div>
                             <div class="sk-line" style="height:0.65rem;width:80%"></div>
                             <div class="sk-line" style="height:0.65rem;width:50%"></div>
                         </div>
-                        <div class="p-3 rounded border border-[#ddd4c3] bg-[#fffaf1] space-y-2 hidden md:block"
+                        <div class="p-3 rounded-sm border border-[#ddd4c3] bg-[#fffaf1] space-y-2 hidden md:block"
                             aria-hidden="true">
                             <div class="sk-line" style="height:1.5rem;width:65%"></div>
                             <div class="sk-line" style="height:0.65rem;width:90%"></div>
@@ -1467,7 +1467,7 @@
                     <nav id="readerKindBadge" aria-label="breadcrumb"
                         class="hidden flex justify-center items-center gap-2 text-sm text-slate-500 uppercase tracking-widest font-bold">
                         <ol class="flex items-center gap-2">
-                            <li><span class="bg-slate-100 px-3 py-1 rounded" data-en="Sh'elah Synthesis"
+                            <li><span class="bg-slate-100 px-3 py-1 rounded-sm" data-en="Sh'elah Synthesis"
                                     data-he="סינתזת שאילה">Sh'elah Synthesis</span></li>
                         </ol>
                     </nav>
@@ -1640,13 +1640,13 @@
            un-hides it once a text with commentary is open. Painting it and then
            taking it away moved the whole home grid (in RTL, its start edge). #}
         <aside id="rightSidebar" aria-label="Commentary panel"
-            class="pulse-pane mobile-drawer mobile-drawer-right w-80 border-l bg-slate-50 p-6 hidden flex-shrink-0 custom-scrollbar overflow-y-auto">
+            class="pulse-pane mobile-drawer mobile-drawer-right w-80 border-l bg-slate-50 p-6 hidden shrink-0 custom-scrollbar overflow-y-auto">
 
             <div class="flex lg:hidden items-center justify-between mb-4 pb-3 border-b border-slate-200">
                 <h3 class="text-xs font-bold text-slate-500 uppercase tracking-widest" data-en="Commentary"
                     data-he="מפרשים">Commentary</h3>
                 <button id="closeRightSidebarBtn" type="button"
-                    class="px-2 py-1 text-xs border border-slate-300 rounded bg-white hover:bg-slate-100 transition"
+                    class="px-2 py-1 text-xs border border-slate-300 rounded-sm bg-white hover:bg-slate-100 transition"
                     data-en="Close" data-he="סגור">Close</button>
             </div>
             <div class="hidden lg:flex items-center justify-between mb-4 pb-3 border-b border-slate-200">
@@ -1729,7 +1729,7 @@
 
     <!-- Calendar Modal -->
     <dialog id="calendarModal"
-        class="hidden fixed inset-0 z-[100] m-0 w-full h-full max-w-none max-h-none bg-slate-900/55 backdrop-blur-[3px] flex items-start justify-center px-4 pb-4 pt-14"
+        class="hidden fixed inset-0 z-100 m-0 w-full h-full max-w-none max-h-none bg-slate-900/55 backdrop-blur-[3px] flex items-start justify-center px-4 pb-4 pt-14"
         aria-labelledby="calendarModalTitle">
         <div class="bg-[#faf7f0] rounded-2xl shadow-2xl w-full max-w-4xl max-h-[90vh] overflow-hidden flex flex-col relative border border-[#d7cebc]"
             style="box-shadow: 0 24px 64px rgba(0,0,0,0.22), 0 4px 12px rgba(78,64,30,0.12);">
@@ -1737,7 +1737,7 @@
             <div class="flex items-center justify-between px-6 py-4 border-b border-[#d7cebc] bg-[#f5efe5]"
                 style="background: linear-gradient(135deg, #f5efe5 0%, #ede7d5 100%);">
                 <div class="flex items-center gap-3">
-                    <div class="w-8 h-8 rounded-full bg-[#1f3f63] flex items-center justify-center flex-shrink-0">
+                    <div class="w-8 h-8 rounded-full bg-[#1f3f63] flex items-center justify-center shrink-0">
                         {{ phosphor('calendar-blank', size=16, class='w-4 h-4 text-white') }}
                     </div>
                     <div>
@@ -1808,13 +1808,13 @@
 
     <!-- Texts Menu Modal (Browse Prayers, Communities, and Text Library) -->
     <div id="textsMenuModal"
-        class="fixed inset-0 z-[100] bg-slate-900/60 backdrop-blur-sm items-center justify-center p-4 hidden">
+        class="fixed inset-0 z-100 bg-slate-900/60 backdrop-blur-xs items-center justify-center p-4 hidden">
         <div
             class="bg-white rounded-2xl shadow-2xl w-full max-w-2xl max-h-[85vh] overflow-hidden flex flex-col relative">
             <button onclick="closeTextsMenu()" type="button" aria-label="Close"
                 class="absolute top-4 right-4 z-10 modal-close-icon-btn"><span class="contents" aria-hidden="true">{{ phosphor('x', size=20) }}</span></button>
 
-            <div class="bg-gradient-to-r from-navy to-blue-900 text-white px-6 py-4 border-b">
+            <div class="bg-linear-to-r from-navy to-blue-900 text-white px-6 py-4 border-b">
                 <h2 class="font-serif text-xl font-bold" data-en="Browse Jewish Library" data-he="עיון בספרייה היהודית">
                     Browse
                     Jewish Library</h2>
@@ -1854,11 +1854,11 @@
                     <div class="flex gap-2 mb-3">
                         <input id="libraryIndexFilterInput" type="text"
                             aria-label="Filter topics or texts"
-                            class="w-full px-3 py-2 rounded border border-slate-200 bg-slate-50 text-sm text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-300"
+                            class="w-full px-3 py-2 rounded-sm border border-slate-200 bg-slate-50 text-sm text-slate-700 focus:outline-hidden focus:ring-2 focus:ring-blue-300"
                             placeholder="Filter topics or texts..." data-en-placeholder="Filter topics or texts..."
                             data-he-placeholder="סנן נושאים או טקסטים..." />
                         <button id="libraryIndexFilterClear" type="button"
-                            class="px-3 py-2 rounded border border-slate-200 bg-slate-100 text-xs font-semibold text-slate-600 hover:bg-slate-200 transition"
+                            class="px-3 py-2 rounded-sm border border-slate-200 bg-slate-100 text-xs font-semibold text-slate-600 hover:bg-slate-200 transition"
                             data-en="Clear" data-he="נקה">Clear</button>
                     </div>
                     <output id="libraryIndexModal" class="block space-y-1 text-sm" aria-busy="true">
@@ -1874,7 +1874,7 @@
     </div>
 
     <dialog id="chapterGridModal" aria-labelledby="chapterGridTitle"
-        class="hidden fixed inset-0 z-[110] m-0 w-full h-full max-w-none max-h-none bg-slate-900/60 backdrop-blur-sm items-center justify-center p-4">
+        class="hidden fixed inset-0 z-110 m-0 w-full h-full max-w-none max-h-none bg-slate-900/60 backdrop-blur-xs items-center justify-center p-4">
         <div
             class="bg-white rounded-2xl shadow-2xl w-full max-w-4xl max-h-[88vh] overflow-hidden flex flex-col relative">
             <button id="closeChapterGridModalBtn" type="button"
@@ -2452,7 +2452,7 @@
     </style>
     <div id="privacyDataModal" role="dialog" aria-modal="true" aria-labelledby="privacyDataModalTitle"
         aria-describedby="privacyDataModalDesc"
-        class="hidden fixed inset-0 z-[109] backdrop-blur-sm items-center justify-center p-4">
+        class="hidden fixed inset-0 z-109 backdrop-blur-xs items-center justify-center p-4">
         <div class="privacy-card">
             <header class="privacy-head">
                 <span class="privacy-head__mark" aria-hidden="true">{{ phosphor('shield-check', size=16) }}</span>
@@ -2524,7 +2524,7 @@
 
     <!-- Library Category Browser Modal -->
     <div id="libraryCategoryModal"
-        class="hidden fixed inset-0 z-[108] bg-slate-900/60 backdrop-blur-sm items-center justify-center p-4">
+        class="hidden fixed inset-0 z-108 bg-slate-900/60 backdrop-blur-xs items-center justify-center p-4">
         <div
             class="bg-white rounded-2xl shadow-2xl w-full max-w-3xl max-h-[88vh] overflow-hidden flex flex-col relative">
             <button id="closeLibraryCategoryBtn" type="button"
@@ -2541,12 +2541,12 @@
     </div>
 
     <div id="devtoolsInspectorModal"
-        class="hidden fixed inset-0 z-[110] bg-slate-900/70 backdrop-blur-sm items-center justify-center p-4">
+        class="hidden fixed inset-0 z-110 bg-slate-900/70 backdrop-blur-xs items-center justify-center p-4">
         <div
             class="bg-white rounded-2xl shadow-2xl w-full max-w-3xl max-h-[85vh] overflow-hidden flex flex-col relative">
             <button id="closeDevtoolsInspectorBtn" type="button"
                 class="absolute top-4 right-4 z-10 modal-close-icon-btn" aria-label="Close"><span class="contents" aria-hidden="true">{{ phosphor('x', size=20) }}</span></button>
-            <div class="bg-gradient-to-r from-navy to-blue-900 text-white px-6 py-4 border-b">
+            <div class="bg-linear-to-r from-navy to-blue-900 text-white px-6 py-4 border-b">
                 <h2 class="font-serif text-xl font-bold" data-en="System Inspector" data-he="בודק מערכת">System
                     Inspector</h2>
                 <p class="text-blue-100 text-sm mt-1" data-en="Diagnostics and reliability logs" data-he="אבחון ולוגים">
@@ -5640,7 +5640,7 @@
                             ${q}
                         </button>
                         <button type="button"
-                            class="ask-history-del opacity-0 group-hover:opacity-100 flex-shrink-0"
+                            class="ask-history-del opacity-0 group-hover:opacity-100 shrink-0"
                             data-id="${id}"
                             aria-label="Delete"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" width="14" height="14" fill="currentColor" aria-hidden="true"><path d="{{ phosphor_path('x') }}"/></svg></button>
                     </div>`;
@@ -6980,12 +6980,12 @@
 
                     rows += `
                         <div class="grid grid-cols-1 lg:grid-cols-2 gap-3 border-b border-slate-100 pb-3 mb-3 last:border-b-0">
-                            <div class="bg-white border border-slate-200 rounded p-3">
+                            <div class="bg-white border border-slate-200 rounded-sm p-3">
                                 <p class="font-hebrew text-lg leading-[1.8]" dir="rtl">${leftHebrewDisplay || `<span class="text-slate-300">${t('—', '—')}</span>`}</p>
                                 ${transliterationMarkup(left.he || leftHebrewRaw)}
                                 ${leftEnglish ? `<p class="mt-2 text-sm text-slate-600">${leftEnglish}</p>` : ''}
                             </div>
-                            <div class="bg-white border border-slate-200 rounded p-3">
+                            <div class="bg-white border border-slate-200 rounded-sm p-3">
                                 <p class="font-hebrew text-lg leading-[1.8]" dir="rtl">${rightHebrewDisplay || `<span class="text-slate-300">${t('—', '—')}</span>`}</p>
                                 ${transliterationMarkup(right.he || rightHebrewRaw)}
                                 ${rightEnglish ? `<p class="mt-2 text-sm text-slate-600">${rightEnglish}</p>` : ''}
@@ -7413,8 +7413,8 @@
                 const isActive = Boolean(currentKey) && itemKey === currentKey;
                 const displayLabel = getShelfDisplayLabel(item) || String(item.label || item.value || '').trim();
                 const buttonClass = isActive
-                    ? `shelf-open shelf-open-active w-full ${alignClass} px-2 py-1 rounded border border-[#d7c8ad] bg-[#f2eadc] transition`
-                    : `shelf-open w-full ${alignClass} px-2 py-1 rounded hover:bg-slate-100 transition`;
+                    ? `shelf-open shelf-open-active w-full ${alignClass} px-2 py-1 rounded-sm border border-[#d7c8ad] bg-[#f2eadc] transition`
+                    : `shelf-open w-full ${alignClass} px-2 py-1 rounded-sm hover:bg-slate-100 transition`;
 
                 return `
                     <button class="${buttonClass}"
@@ -8012,7 +8012,7 @@
             // groups), so each group's buttons are built when it is opened.
             renderedCommentaryGroups = groupedCommentaries;
             return groupedCommentaries.map((group, index) => `
-                    <details class="rounded border border-slate-200 bg-slate-50 p-2" data-commentary-group="${index}">
+                    <details class="rounded-sm border border-slate-200 bg-slate-50 p-2" data-commentary-group="${index}">
                         <summary class="cursor-pointer text-sm font-semibold text-slate-700 flex items-center justify-between">
                             <span>${escapeHtml(group.author)}</span>
                             <span class="text-[11px] text-slate-500">${group.refs.length}</span>
@@ -8041,7 +8041,7 @@
                     <button type="button" onclick="openCommentaryInline(decodeURIComponent('${encoded}'))"
                         data-commentary-ref="${escapeHtml(ref)}"
                         dir="${refDir}"
-                        class="block w-full ${textAlignClass} px-3 py-2 rounded border border-slate-200 bg-white hover:bg-slate-100 text-sm text-slate-700 transition">
+                        class="block w-full ${textAlignClass} px-3 py-2 rounded-sm border border-slate-200 bg-white hover:bg-slate-100 text-sm text-slate-700 transition">
                         ${escapeHtml(displayRef)}
                     </button>
                 `;
@@ -9087,7 +9087,7 @@
                 const translit = appState.prefs.transliteration ? transliterationMarkup(heRaw) : '';
 
                 const hebrewBlock = he
-                    ? `<div class="source-he reader-text-he text-start font-hebrew text-2xl lg:text-3xl leading-[1.8] py-2" dir="rtl"><p>${he}</p>${translit}</div>`
+                    ? `<div class="source-he reader-text-he text-start font-hebrew text-2xl lg:text-3xl leading-[1.8] lg:leading-9 py-2" dir="rtl"><p>${he}</p>${translit}</div>`
                     : '';
                 const englishBlock = en
                     ? `<div class="source-en reader-text-en font-serif leading-relaxed py-2 text-slate-700 text-lg" dir="ltr"><p>${en}</p></div>`
@@ -9114,7 +9114,7 @@
                     return `
                         <div class="source-grid segment-row reader-text-row reader-single-row grid grid-cols-1 border-b border-slate-200 last:border-b-0" data-segment="${escapeHtml(String(line.segment || ''))}">
                             <span class="segment-label reader-row-right-label">${label}</span>
-                            <div class="source-he reader-text-he text-start font-hebrew text-2xl lg:text-3xl leading-[1.8] py-2" dir="rtl">
+                            <div class="source-he reader-text-he text-start font-hebrew text-2xl lg:text-3xl leading-[1.8] lg:leading-9 py-2" dir="rtl">
                                 ${hebrewLine}
                             </div>
                         </div>
@@ -9139,9 +9139,9 @@
                 if (bothPresent) {
                     const sideBySideLeft = layout === 'bilingual-reverse'
                         ? `<div class="source-en reader-text-en font-serif leading-relaxed py-2 text-slate-700 text-lg" dir="ltr"><p>${en}</p></div>`
-                        : `<div class="source-he reader-text-he text-start font-hebrew text-2xl lg:text-3xl leading-[1.8] py-2" dir="rtl"><p>${he}</p>${translit}</div>`;
+                        : `<div class="source-he reader-text-he text-start font-hebrew text-2xl lg:text-3xl leading-[1.8] lg:leading-9 py-2" dir="rtl"><p>${he}</p>${translit}</div>`;
                     const sideBySideRight = layout === 'bilingual-reverse'
-                        ? `<div class="source-he reader-text-he text-start font-hebrew text-2xl lg:text-3xl leading-[1.8] py-2" dir="rtl"><p>${he}</p>${translit}</div>`
+                        ? `<div class="source-he reader-text-he text-start font-hebrew text-2xl lg:text-3xl leading-[1.8] lg:leading-9 py-2" dir="rtl"><p>${he}</p>${translit}</div>`
                         : `<div class="source-en reader-text-en font-serif leading-relaxed py-2 text-slate-700 text-lg" dir="ltr"><p>${en}</p></div>`;
                     return `
                         <div class="source-grid segment-row reader-text-row reader-side-row grid grid-cols-1 lg:grid-cols-2 lg:gap-x-6 border-b border-slate-200 last:border-b-0" data-segment="${escapeHtml(String(line.segment || ''))}">
@@ -9156,7 +9156,7 @@
                 const singleContent = hebrewBlock || englishBlock;
                 const singleDir = he ? 'rtl' : 'ltr';
                 const singleClass = he
-                    ? 'source-he reader-text-he text-start font-hebrew text-2xl lg:text-3xl leading-[1.8] py-2'
+                    ? 'source-he reader-text-he text-start font-hebrew text-2xl lg:text-3xl leading-[1.8] lg:leading-9 py-2'
                     : 'source-en reader-text-en font-serif leading-relaxed py-2 text-slate-700 text-lg';
                 const singleInner = he ? `<p>${he}</p>${translit}` : `<p>${en}</p>`;
                 return `
@@ -10545,7 +10545,7 @@
 
                 return `
                     <button type="button"
-                        class="library-node-open block w-full ${alignClass} px-2 py-1 rounded hover:bg-slate-100 transition text-sm ${textClass}"
+                        class="library-node-open block w-full ${alignClass} px-2 py-1 rounded-sm hover:bg-slate-100 transition text-sm ${textClass}"
                         data-ref="${encodedRef}"
                         data-title="${encodedTitle}">
                         ${escapeHtml(leafDisplay)}
@@ -11194,11 +11194,11 @@
             const progressLabel = `${context.index + 1}/${context.total}`;
 
             const prevButton = context.prev
-                ? `<button onclick="displayPrayer(decodeURIComponent('${encodeURIComponent(context.prev.name)}'))" class="px-3 py-2 bg-slate-100 rounded hover:bg-slate-200 text-slate-700 text-sm font-medium">${t('Previous', 'הקודם')}: ${escapeHtml(getPrayerDisplayName(context.prev.name))}</button>`
+                ? `<button onclick="displayPrayer(decodeURIComponent('${encodeURIComponent(context.prev.name)}'))" class="px-3 py-2 bg-slate-100 rounded-sm hover:bg-slate-200 text-slate-700 text-sm font-medium">${t('Previous', 'הקודם')}: ${escapeHtml(getPrayerDisplayName(context.prev.name))}</button>`
                 : '<span></span>';
 
             const nextButton = context.next
-                ? `<button onclick="displayPrayer(decodeURIComponent('${encodeURIComponent(context.next.name)}'))" class="px-3 py-2 bg-slate-100 rounded hover:bg-slate-200 text-slate-700 text-sm font-medium">${t('Next', 'הבא')}: ${escapeHtml(getPrayerDisplayName(context.next.name))}</button>`
+                ? `<button onclick="displayPrayer(decodeURIComponent('${encodeURIComponent(context.next.name)}'))" class="px-3 py-2 bg-slate-100 rounded-sm hover:bg-slate-200 text-slate-700 text-sm font-medium">${t('Next', 'הבא')}: ${escapeHtml(getPrayerDisplayName(context.next.name))}</button>`
                 : '<span></span>';
 
             return `
@@ -11241,7 +11241,7 @@
                 const name = community.name || '';
                 const label = getCommunityDisplayName(name);
                 const encodedName = encodeURIComponent(name);
-                html += `<button onclick="displayCommunity(decodeURIComponent('${encodedName}'))" class="block w-full text-start px-3 py-2 rounded hover:bg-[#594176]/10 transition text-slate-700 hover:text-[#594176]">${escapeHtml(label)}</button>`;
+                html += `<button onclick="displayCommunity(decodeURIComponent('${encodedName}'))" class="block w-full text-start px-3 py-2 rounded-sm hover:bg-[#594176]/10 transition text-slate-700 hover:text-[#594176]">${escapeHtml(label)}</button>`;
             });
             list.innerHTML = html;
             list.setAttribute('aria-busy', 'false');
@@ -12878,7 +12878,7 @@
                         html += `
                         <button onclick="readText(decodeURIComponent('${encodedRef}'))"
                             dir="${isHebrewMode() ? 'rtl' : 'ltr'}"
-                            class="${alignClass} p-3 rounded border border-[#ddd4c3] hover:border-[${color}] hover:shadow-sm transition group bg-[#fffaf1]">
+                            class="${alignClass} p-3 rounded-sm border border-[#ddd4c3] hover:border-[${color}] hover:shadow-xs transition group bg-[#fffaf1]">
                             <div class="font-hebrew text-lg text-slate-700 group-hover:text-[${color}]">${escapeHtml(hebrewHeading)}</div>
                             <div class="text-xs font-serif text-slate-800 mt-1">${escapeHtml(title)}</div>
                             <div class="text-xs text-slate-500 mt-0.5">${escapeHtml(description)}</div>
