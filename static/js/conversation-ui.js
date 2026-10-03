@@ -17,10 +17,14 @@
 //                     button (desktop) or the phone Ask button; gone for
 //                     good once the AI has been used or the tip dismissed
 //
-// Sources: every citation (inline under an answer, and the cards in the
+// Sources: every citation (the list under an answer, and the cards in the
 // "Consulted N sources" drawer) opens the exact text in the reader and folds
 // the conversation to mini so the text is what's on screen. The cards are
-// .ai-source-box markup from source-cards.js.
+// .ai-source-box markup from source-cards.js. The answer itself never lists
+// its sources: the model tags each claim with a number ([1], [2]...), shown
+// as a small chip (citation-markers.js) whose card (citation-popover.js)
+// names the source and leads to it, and the list under the answer is the one
+// place the sources are written out.
 //
 // Routing (router.js): /chat/<id|new>[/<community>/<mode>][/mini|/full]. Opening pushes a
 // history entry, resizing replaces it, and once the first question creates
@@ -41,7 +45,9 @@ import { isSignedIn } from "./conversation-entry.js";
 import { closeOverlay, pushRoute, readRoute, routeUrl } from "./router.js";
 import { icon as phosphorIcon } from "./icons.js";
 import { activeLabel, createProgress, doneLabel, progressView } from "./ask-progress.js";
-import { sourceBadgeHtml, externalLinksHtml, previewHtml, hebrewRefName } from "./source-cards.js";
+import { sourceBadgeHtml, externalLinksHtml, previewHtml, hebrewRefName, readerRef } from "./source-cards.js";
+import { citeIdPrefix, injectMarkers, stripSourcesBlock } from "./citation-markers.js";
+import { createCitationPopover } from "./citation-popover.js";
 import {
     normalizeSize,
     expandedSize,
@@ -111,6 +117,8 @@ const ui = {
 
 let store = null;
 let els = null;
+// The card a numbered source chip opens (citation-popover.js); made in bindEvents.
+let citePop = null;
 let resolveAuth = null;
 const authReady = new Promise((resolve) => { resolveAuth = resolve; });
 
@@ -434,12 +442,19 @@ function renderNotice(notice) {
 }
 
 // One /api/text payload per cited ref, shared by the preview drawer (its
-// lines) and the Hebrew interface (its heRef).
+// lines), the source cards' chips (their excerpt) and the Hebrew interface
+// (its heRef). Resolves to `{ notFound: true }` when the library has no such
+// passage (so the source is shown as text rather than as a link that opens
+// nothing), and to null when the answer could not be had at all -- that one
+// is not cached, so asking again retries.
 function fetchSourceText(ref) {
     if (!ui.previews.has(ref)) {
         const request = fetch(`/api/text/${encodeURIComponent(ref)}?autotranslate=0`)
             .then((resp) => (resp.ok ? resp.json() : null))
-            .then((payload) => (payload && !payload.error ? payload : null))
+            .then((payload) => {
+                if (payload && !payload.error) return payload;
+                return payload?.error_type === "not_found" ? { notFound: true } : null;
+            })
             .catch(() => null);
         // A failed fetch is not cached, so reopening the preview retries it.
         request.then((payload) => { if (!payload) ui.previews.delete(ref); });
@@ -448,20 +463,48 @@ function fetchSourceText(ref) {
     return ui.previews.get(ref);
 }
 
-// In the Hebrew interface a citation's reference reads in Hebrew too. The
-// English ref renders first (it is what the reader link and the preview are
-// keyed on, and it is the fallback when Sefaria has no Hebrew spelling); the
-// Hebrew name replaces its text once the passage's payload arrives.
-function hydrateHebrewRefs(root) {
-    if (lang() !== "he") return;
-    for (const link of root.querySelectorAll(".conv-cite__ref[data-cite-ref]")) {
-        void fetchSourceText(link.dataset.citeRef).then((payload) => {
+// What each source in the list can do, once its passage is looked up: a ref
+// the library has opens in the reader (and in the Hebrew interface reads in
+// Hebrew -- the English ref renders first, since it is what the reader link
+// and the preview are keyed on and the fallback when Sefaria has no Hebrew
+// spelling); a ref it doesn't have (a responsum, a spelling Sefaria does not
+// know) is written out as plain text instead of a link that leads nowhere.
+function hydrateCitations(root) {
+    for (const item of root.querySelectorAll(".conv-cite[data-ref]")) {
+        const ref = item.dataset.ref;
+        if (!ref) continue;
+        void fetchSourceText(ref).then((payload) => {
+            if (!payload || !item.isConnected) return;
+            if (payload.notFound) {
+                markUnreadable(item);
+                return;
+            }
+            item.dataset.readable = "true";
+            if (lang() !== "he") return;
             const name = hebrewRefName(payload);
-            if (!name || !link.isConnected) return;
+            const link = item.querySelector(".conv-cite__ref[data-cite-ref]");
+            if (!name || !link) return;
             link.textContent = name;
             link.lang = "he";
         });
     }
+}
+
+function markUnreadable(item) {
+    item.dataset.readable = "false";
+    const link = item.querySelector(".conv-cite__ref[data-cite-ref]");
+    if (link) {
+        const plain = document.createElement("span");
+        plain.className = "conv-cite__ref conv-cite__ref--plain";
+        plain.setAttribute("dir", "auto");
+        plain.textContent = link.textContent;
+        link.replaceWith(plain);
+        const why = document.createElement("span");
+        why.className = "conv-cite__why";
+        why.textContent = tr("Can't be opened here", "לא ניתן לפתוח כאן");
+        plain.after(why);
+    }
+    item.querySelector(".conv-cite__preview")?.remove();
 }
 
 async function loadPreview(details) {
@@ -488,8 +531,8 @@ async function loadPreview(details) {
 // One cited source, inline under the answer that cites it: type, reference
 // (opens the reader), the model's one-line note, where else to read it, and
 // the text itself on demand (loaded when the disclosure opens -- loadPreview).
-function citeHtml(citation, index, l) {
-    const ref = citation.ref || "";
+function citeHtml(citation, index, l, idPrefix) {
+    const ref = readerRef(citation.ref);
     const excerpt = citationExcerpt(citation, l);
     const head = ref
         ? `${sourceBadgeHtml(ref, l)}<a href="${escapeText(routeUrl({ text: ref }))}" class="conv-cite__ref" data-cite-ref="${escapeText(ref)}" dir="auto">${escapeText(ref)}</a>`
@@ -501,7 +544,29 @@ function citeHtml(citation, index, l) {
             + `<summary>${icon("caret-down", "conv-cite__caret")}<span>${escapeText(tr("Preview the text", "הצג את הטקסט"))}</span></summary>`
             + '<div class="conv-cite__preview-body"></div></details>'
         : "";
-    return `<li class="conv-cite"><span class="conv-cite__num" aria-hidden="true">${index + 1}</span><span class="conv-cite__head">${head}</span>${note}${links}${preview}</li>`;
+    return `<li class="conv-cite" id="${escapeText(idPrefix)}-${index + 1}" data-ref="${escapeText(ref)}" data-readable="unknown" tabindex="-1">`
+        + `<span class="conv-cite__num" aria-hidden="true">${index + 1}</span><span class="conv-cite__head">${head}</span>${note}${links}${preview}</li>`;
+}
+
+// The sources written out under an answer: a heading and the numbered list
+// the chips in the answer lead to (each row's id is `${idPrefix}-<n>`).
+function citesHtml(citations, idPrefix, l) {
+    if (!citations.length) return "";
+    return `<h3 class="conv-cites__title" id="${escapeText(idPrefix)}-title">${escapeText(tr("Sources", "מקורות"))}</h3>`
+        + `<ol class="conv-cites" aria-labelledby="${escapeText(idPrefix)}-title">${citations.map((c, i) => citeHtml(c, i, l, idPrefix)).join("")}</ol>`;
+}
+
+// The answer's text with its claims tied to the sources list: the server's
+// own trailing "Sources" list is dropped (the list under the answer says it
+// once), and each [n] marker the model wrote becomes a chip.
+function answerBodyHtml(message, idPrefix) {
+    const citations = message.citations || [];
+    const content = citations.length ? stripSourcesBlock(message.content) : message.content;
+    return injectMarkers(answerHtml(content), {
+        citations,
+        idPrefix,
+        label: (n, c) => tr(`Source ${n}: ${c.ref}`, `מקור ${n}: ${c.ref}`),
+    });
 }
 
 function answerHtml(content) {
@@ -594,16 +659,16 @@ function turnInnerHtml(message, index, messages, l) {
                 messageId: message.id,
             });
         default: {
-            const cites = message.citations.length
-                ? `<ol class="conv-cites" aria-label="${escapeText(tr("Sources", "מקורות"))}">${message.citations.map((c, i) => citeHtml(c, i, l)).join("")}</ol>`
-                : "";
+            const idPrefix = citeIdPrefix(message.id);
+            const cites = citesHtml(message.citations, idPrefix, l);
+            const body = answerBodyHtml(message, idPrefix);
             // A search-bar answer (message.answer = its /ask payload) also
             // carries its safety banner, community customs, feedback and
             // Copy link; decorateAnswerTurn fills the hosts.
             const data = message.answer;
-            if (!data) return `<div class="conv-answer" dir="auto">${answerHtml(message.content)}</div>${cites}`;
+            if (!data) return `<div class="conv-answer" dir="auto">${body}</div>${cites}`;
             return '<div class="conv-turn__banner" data-answer-banner></div>'
-                + `<div class="conv-answer" dir="auto">${answerHtml(message.content)}</div>`
+                + `<div class="conv-answer" dir="auto">${body}</div>`
                 + customsHtml(data, l)
                 + cites
                 + '<div class="conv-turn__actions" data-answer-actions><div class="conv-turn__feedback"></div></div>';
@@ -716,7 +781,8 @@ function renderTurns(state, l) {
             if (message.answer && message.status === MESSAGE_STATUS.COMPLETE) {
                 decorateAnswerTurn(li, message, state.messages[index - 1]?.content);
             }
-            if (message.citations?.length) hydrateHebrewRefs(li);
+            if (message.citations?.length) hydrateCitations(li);
+            if (citePop && citePop.anchor() && !citePop.anchor().isConnected) citePop.close();
             // An answer arriving in place of its skeleton reveals block by
             // block (conversation.css .conv-turn--reveal); a timer, not
             // animationend, since the staggered children each fire one.
@@ -1050,6 +1116,7 @@ function closePanel({ fromRoute = false } = {}) {
     syncAskExpanded();
     closeMenu();
     closeHistoryPop();
+    citePop?.close();
     hide(els.panel, panelPreset());
     hide(els.scrim, "fade");
     hide(els.pip, "drawer");
@@ -1080,6 +1147,7 @@ function setSize(size, { fromRoute = false } = {}) {
     const previousSize = ui.size;
     ui.size = next;
     closeMenu();
+    citePop?.close();
     applyVisibility({ previousSize });
     if (!fromRoute) pushRoute({ cv: next }, { replace: true });
     // Crossing between the sheet and the phone's bar moves focus with it.
@@ -1688,6 +1756,11 @@ function focusables(root) {
 function onKeydown(event) {
     if (!els) return;
     if (event.key === "Escape") {
+        if (citePop?.isOpen()) {
+            event.preventDefault();
+            citePop.close({ restoreFocus: true });
+            return;
+        }
         if (!els.pop.classList.contains("hidden")) {
             event.preventDefault();
             closeHistoryPop({ restoreFocus: true });
@@ -1725,6 +1798,16 @@ function onKeydown(event) {
 function onDocumentClick(event) {
     const target = event.target;
     if (!(target instanceof Element)) return;
+
+    // A numbered source chip in an answer opens (or closes) its card; a click
+    // anywhere else closes an open card.
+    const mark = target.closest("[data-mark]");
+    if (mark && els.messages.contains(mark)) {
+        event.preventDefault();
+        citePop.toggle(mark);
+        return;
+    }
+    if (citePop.isOpen() && !citePop.contains(target)) citePop.close();
 
     // Outside clicks close the popover / menu.
     if (!els.pop.classList.contains("hidden") && !els.pop.contains(target) && !target.closest(".conv-history-trigger")) {
@@ -1900,6 +1983,28 @@ function bindEvents() {
     els.pipOpen.addEventListener("click", () => setSize("overlay"));
     els.jump.addEventListener("click", () => scrollToLatest(true));
     els.scroller.addEventListener("scroll", updateJumpButton, { passive: true });
+    citePop = createCitationPopover({
+        tr,
+        lang,
+        fetchPayload: fetchSourceText,
+        previewHtml,
+        openRef: openCitation,
+        reducedMotion,
+        bounds: () => els.scroller.getBoundingClientRect(),
+    });
+    // A card follows its chip as the text moves under it, and closes once the
+    // chip has scrolled out of view. The hover preview is mouse-only: touch
+    // has no hover, and tapping opens it.
+    els.scroller.addEventListener("scroll", () => citePop.sync(), { passive: true });
+    els.messages.addEventListener("pointerover", (event) => {
+        if (event.pointerType !== "mouse") return;
+        const mark = event.target.closest?.("[data-mark]");
+        if (mark) citePop.hoverIn(mark);
+    });
+    els.messages.addEventListener("pointerout", (event) => {
+        if (event.pointerType !== "mouse") return;
+        if (event.target.closest?.("[data-mark]")) citePop.hoverOut();
+    });
     els.noticeAction.addEventListener("click", onNoticeAction);
     els.minhagSelect.addEventListener("change", () => {
         ui.routeMinhag = null;
@@ -1977,6 +2082,7 @@ function bindEvents() {
     new MutationObserver(relocalize).observe(document.documentElement, { attributes: true, attributeFilter: ["lang", "dir"] });
     window.addEventListener("resize", () => {
         if (!els.pop.classList.contains("hidden") && ui.popTrigger) positionPop(ui.popTrigger);
+        citePop?.place();
         if (ui.tipAnchor) positionTip();
     }, { passive: true });
 

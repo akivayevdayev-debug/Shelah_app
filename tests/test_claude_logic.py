@@ -762,7 +762,7 @@ class TestAnswerDepthCalibration:
         assert claude.SIMPLE_ANSWER_MAX_TOKENS < claude.COMPLEX_ANSWER_MAX_TOKENS
 
     def test_prompt_version_reflects_the_rewrite(self):
-        assert claude.PROMPT_VERSION.startswith("2026-09-30")
+        assert claude.PROMPT_VERSION.startswith("2026-10-02")
 
 
 class TestBuildDynamicSystemContext:

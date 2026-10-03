@@ -251,6 +251,14 @@ The body is newline-delimited JSON, one object per line:
 - The HTTP status stays real. Streaming starts only after the pre-flight checks (validation, auth, Turnstile, budget) pass, so a refusal is still an ordinary `400`/`401`/`402`/`403`/`429`; an answer that never reports a step (the prayer shortcut) comes back as plain JSON. After streaming starts, failures arrive as an `error` line.
 - A client that disconnects mid-stream does not cancel the answer: it still finishes, is recorded, and is charged as on the plain path.
 
+**Source markers.** `answer` ties a claim to a source with a numbered marker, `[n]` (the 1-based position in `ai_cited_sources`), placed after the claim instead of naming the source in the prose: `"Kindling is forbidden on Shabbat.[1][2]"`. The server finalizes the list in `backend/citation_markers.py` before it is returned or stored (empty entries dropped, a source named twice kept once, capped at 6, the way the conversation UI caps its citations) and renumbers every marker to match, so a number always points at the right entry; a marker whose source did not survive is removed rather than left dangling. Only digits count (`[1]`, `[1, 2]` and `[1-3]` are markers; `[2a]` and `[the Rema]` stay text). Answers stored before markers existed simply have none. When an earlier turn is shown to the model as history its markers are stripped, since their numbers belong to another answer's list.
+
+The client (`static/js/citation-markers.js`, `citation-popover.js`) renders each marker as a small numbered chip, shows the sources once, in the sources area under the answer (it drops the duplicate trailing "Sources" list the server also puts in the answer's markdown), and opens a card on hover, click, tap or Enter with the reference, the model's one-line note, the first lines of the text, "Open in reader" and "Show in sources". A source the reader cannot open (not on Sefaria) shows plain text with a search link instead of a dead one.
+
+**Reference spellings.** `GET /api/text/<ref>` still answers an unresolvable reference with `200` and `{"error", "error_type": "not_found"}`. Before trying the reference as written it now tries Sefaria's title for a transliterated Mishneh Torah reference (`Hilchot Shabbat 2:1` and `Rambam, Hilchot Shabbat 2:1` resolve as `Mishneh Torah, Sabbath 2:1`; table in `backend/ref_aliases.py`), which is how the model tends to write them.
+
+**Outbound links.** Sources that Sefaria carries are opened in the site's own reader and are no longer linked to sefaria.org. Talmud and Tanakh references also link to AlHaTorah (`shas.alhatorah.org/Full/<Tractate>/<daf>`, the Bavli only, and `mg.alhatorah.org/Full/<Book>/<chapter>.<verse>`), with the tractate or book name normalised to the spelling each site accepts (`static/js/source-cards.js`: `alhatorahTractate`, `alhatorahBook`). Responsa and other works not on Sefaria link to a HebrewBooks search.
+
 ---
 
 ## Rate limiting & abuse mitigation

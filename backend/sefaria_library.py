@@ -28,6 +28,7 @@ from urllib.parse import quote, urlencode, unquote
 import os as _os
 
 from backend.cache import TTLCache, redis_cache_get, redis_cache_set
+from backend.ref_aliases import canonical_mishneh_torah_ref
 
 logger = logging.getLogger(__name__)
 
@@ -889,6 +890,14 @@ def _resolve_ref_candidates(raw_ref, max_candidates=12):
         seen.add(key)
         candidates.append(candidate)
 
+    # "Hilchot Shabbat 2" is not a title Sefaria knows ("Mishneh Torah,
+    # Sabbath 2" is): try the title first, so a transliterated Rambam ref is
+    # found without the failed lookups of its own spelling coming first.
+    alias = canonical_mishneh_torah_ref(raw)
+    if alias:
+        add(alias)
+        if ":" in alias:
+            add(alias.replace(":", "."))
     add(raw)
     if ":" in raw:
         add(raw.replace(":", "."))

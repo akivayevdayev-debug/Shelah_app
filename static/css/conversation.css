@@ -28,6 +28,9 @@
     --conv-send-bg: var(--accent-primary);
     --conv-panel-bg: var(--surface-1);
     --conv-hairline: var(--surface-border);
+    /* The outline of a small control (source chip, card button): 3:1 against
+       the surface in both themes, which the hairline above is not meant to be. */
+    --conv-edge: color-mix(in srgb, var(--ink-secondary) 82%, var(--surface-1));
     --conv-z-scrim: 210;
     --conv-z-panel: 220;
     --conv-z-pop: 240;
@@ -889,33 +892,45 @@ body.conv-modal-open {
 
 /* An answer replacing its skeleton reveals block by block. */
 .conv-turn--reveal .conv-answer > *,
-.conv-turn--reveal :is(.conv-customs, .conv-cites, .conv-turn__actions) {
+.conv-turn--reveal :is(.conv-customs, .conv-cites__title, .conv-cites, .conv-turn__actions) {
     animation: conv-rise 360ms var(--conv-ease) both;
 }
 .conv-turn--reveal .conv-answer > :nth-child(2) { animation-delay: 40ms; }
 .conv-turn--reveal .conv-answer > :nth-child(3) { animation-delay: 80ms; }
 .conv-turn--reveal .conv-answer > :nth-child(4) { animation-delay: 120ms; }
 .conv-turn--reveal .conv-answer > :nth-child(n + 5),
-.conv-turn--reveal :is(.conv-customs, .conv-cites) { animation-delay: 160ms; }
+.conv-turn--reveal :is(.conv-customs, .conv-cites__title, .conv-cites) { animation-delay: 160ms; }
 .conv-turn--reveal .conv-turn__actions { animation-delay: 220ms; }
 @keyframes conv-rise {
     from { opacity: 0; transform: translateY(6px); }
     to { opacity: 1; transform: none; }
 }
 
-/* Citations: one flat list under the answer that cites them. Each row is a
-   number, the source (type + reference, which opens the reader), the model's
-   one-line note, where else to read it, and the text on demand. No cards, no
-   per-type colour. */
+/* Sources: a heading and one flat list under the answer, the one place the
+   answer's sources are written out. Each row is a number, the source (type +
+   reference, which opens the reader), the model's one-line note, where else to
+   read it, and the text on demand. The numbered chips in the answer
+   (.conv-mark) lead to their row. No cards, no per-type colour. */
+.conv-cites__title {
+    margin: var(--sp-3) 0 0;
+    padding-block-start: var(--sp-3);
+    border-top: 1px solid var(--conv-hairline);
+    color: var(--conv-label);
+    font-size: var(--text-xs);
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+}
 .conv-cites {
     list-style: none;
-    margin: var(--sp-2) 0 0;
-    padding: var(--sp-3) 0 0;
+    margin: var(--sp-1) 0 0;
+    padding: 0;
     display: flex;
     flex-direction: column;
-    border-top: 1px solid var(--conv-hairline);
 }
 .conv-cite {
+    position: relative;
+    isolation: isolate;
     display: grid;
     grid-template-columns: var(--sp-6) 1fr;
     gap: var(--sp-1) var(--sp-2);
@@ -1011,6 +1026,214 @@ body.conv-modal-open {
         inset-block: calc(var(--sp-3) * -1);
         inset-inline: 0;
     }
+}
+
+/* The row a chip leads to: tinted while its card is open, and briefly after
+   "Show in sources" scrolls to it. The tint is a layer behind the row whose
+   opacity changes, so nothing repaints. */
+.conv-cite::before {
+    content: "";
+    position: absolute;
+    z-index: -1;
+    inset-block: 0;
+    inset-inline: calc(var(--sp-2) * -1);
+    border-radius: var(--radius-inner);
+    background: color-mix(in srgb, var(--accent-primary) 12%, transparent);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity var(--motion-dur-fast) var(--motion-ease-out);
+}
+.conv-cite--active::before { opacity: 1; }
+.conv-cite--flash::before { animation: conv-cite-flash 1400ms var(--motion-ease-out) both; }
+@keyframes conv-cite-flash {
+    0%, 100% { opacity: 0; }
+    18%, 60% { opacity: 1; }
+}
+.conv-cite:focus:not(:focus-visible) { outline: none; }
+/* A source the reader cannot open is written out, not linked. */
+.conv-cite__ref--plain { cursor: default; }
+.conv-cite__why {
+    color: var(--conv-label);
+    font-size: var(--text-xs);
+}
+
+/* Numbered source chips in the answer's text, after the claim a source
+   supports. A small pill, like Gemini's: it reads as a marker, not as a link,
+   and opens its card (.conv-citepop). */
+.conv-marks {
+    display: inline-flex;
+    gap: 2px;
+    margin-inline-start: 0.25em;
+    white-space: nowrap;
+}
+.conv-mark {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 1.7em;
+    height: 1.7em;
+    padding: 0 0.35em;
+    border: 1px solid var(--conv-edge);
+    border-radius: 999px;
+    background: color-mix(in srgb, var(--ink-primary) 7%, var(--surface-1));
+    color: var(--ink-primary);
+    font: inherit;
+    font-size: 0.72em;
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+    line-height: 1;
+    vertical-align: 0.2em;
+    cursor: pointer;
+    transition: background-color var(--motion-dur-fast) var(--motion-ease-out),
+        border-color var(--motion-dur-fast) var(--motion-ease-out),
+        transform var(--motion-dur-fast) var(--motion-ease-out);
+}
+.conv-mark:hover {
+    border-color: color-mix(in srgb, var(--accent-primary) 55%, transparent);
+    background: color-mix(in srgb, var(--accent-primary) 16%, var(--surface-1));
+}
+.conv-mark:active { transform: scale(0.94); }
+.conv-mark[aria-expanded="true"] {
+    border-color: var(--accent-primary);
+    background: var(--accent-primary);
+    color: var(--conv-on-accent);
+}
+.conv-mark:focus-visible {
+    outline: 2px solid var(--accent-primary);
+    outline-offset: 2px;
+}
+/* A small chip, a finger-sized target: the hit area grows invisibly. */
+@media (pointer: coarse) {
+    .conv-mark::after {
+        content: "";
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        width: max(100%, var(--hit-min));
+        height: var(--hit-min);
+        transform: translate(-50%, -50%);
+    }
+}
+
+/* The card a chip opens: the source, the model's note, the first lines of
+   the text, and the way on. */
+.conv-citepop {
+    position: fixed;
+    z-index: var(--conv-z-pop);
+    display: flex;
+    flex-direction: column;
+    gap: var(--sp-2);
+    width: min(21.5rem, calc(100vw - 2 * var(--sp-4)));
+    max-height: min(26rem, calc(100dvh - 2 * var(--sp-4)));
+    overflow: hidden;
+    padding: var(--surface-pad);
+    border-radius: var(--radius-popover);
+    border: 1px solid var(--glass-hairline);
+    background: var(--glass-bg);
+    backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-sat));
+    -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-sat));
+    box-shadow: var(--glass-shadow);
+    color: var(--ink-primary);
+    font-size: var(--text-sm);
+    text-align: start;
+    outline: none;
+    transform-origin: var(--citepop-origin, 50% 0);
+}
+.conv-citepop--in { animation: conv-citepop-in 160ms var(--conv-ease) both; }
+@keyframes conv-citepop-in {
+    from { opacity: 0; transform: scale(0.96); }
+    to { opacity: 1; transform: none; }
+}
+.conv-citepop__head {
+    display: flex;
+    align-items: center;
+    gap: var(--sp-2);
+    min-width: 0;
+}
+.conv-citepop__num {
+    flex: none;
+    display: grid;
+    place-items: center;
+    min-width: 22px;
+    height: 22px;
+    border-radius: 999px;
+    background: var(--accent-primary);
+    color: var(--conv-on-accent);
+    font-size: var(--text-xs);
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+}
+.conv-citepop__ref {
+    min-width: 0;
+    color: var(--ink-heading);
+    font-weight: 600;
+    overflow-wrap: anywhere;
+}
+.conv-citepop__note {
+    margin: 0;
+    color: var(--ink-secondary);
+}
+/* Only the passage scrolls, if it must: the head and the actions stay put. */
+.conv-citepop__text {
+    min-height: 0;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+}
+.conv-citepop__text[data-state="none"] { display: none; }
+.conv-citepop__text[data-state="loading"] {
+    display: flex;
+    flex-direction: column;
+    gap: var(--sp-2);
+}
+.conv-citepop__text .ai-src-box-he:last-child { border-bottom: 0; }
+/* A card previews, it does not reproduce: a few lines of each language, cut
+   with an ellipsis (a halacha can be a whole paragraph). */
+.conv-citepop__text :is(.ai-src-box-he, .ai-src-box-en) p {
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+.conv-citepop__text .ai-src-box-he p { -webkit-line-clamp: 3; line-clamp: 3; }
+.conv-citepop__text .ai-src-box-en p { -webkit-line-clamp: 2; line-clamp: 2; }
+.conv-citepop__head, .conv-citepop__note, .conv-citepop__actions { flex: none; }
+.conv-citepop__actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--sp-2);
+    padding-block-start: var(--sp-1);
+}
+.conv-citepop__action {
+    min-height: 36px;
+    padding-inline: var(--sp-3);
+    border: 1px solid var(--accent-primary);
+    border-radius: var(--radius-inner);
+    background: var(--accent-primary);
+    color: var(--conv-on-accent);
+    font: inherit;
+    font-size: var(--text-sm);
+    font-weight: 700;
+    cursor: pointer;
+    transition: transform var(--motion-dur-fast) var(--conv-ease),
+        background-color var(--motion-dur-fast) var(--motion-ease-out);
+}
+.conv-citepop__action:hover { background: var(--accent-primary-hover); border-color: var(--accent-primary-hover); }
+.conv-citepop__action:active { transform: scale(0.97); }
+.conv-citepop__action:focus-visible {
+    outline: 2px solid var(--accent-primary);
+    outline-offset: 2px;
+}
+.conv-citepop__action--quiet {
+    background: transparent;
+    border-color: var(--conv-edge);
+    color: var(--ink-primary);
+}
+.conv-citepop__action--quiet:hover {
+    background: color-mix(in srgb, var(--ink-primary) 7%, transparent);
+    border-color: var(--conv-edge);
+}
+@media (pointer: coarse) {
+    .conv-citepop__action { min-height: var(--hit-min); }
 }
 
 /* Jump to latest. */
@@ -1484,6 +1707,9 @@ body.theme-dark .topbar-ask-btn {
     .conv-panel,
     .conv-panel *,
     .conv-pop,
+    .conv-citepop,
+    .conv-citepop *,
+    .conv-mark,
     .conv-pip,
     .mobile-search-tray,
     .topbar-ask-btn,
@@ -1494,6 +1720,8 @@ body.theme-dark .topbar-ask-btn {
     }
     .ai-attention::after,
     .conv-notice,
+    .conv-citepop,
+    .conv-cite::before,
     .conv-jump {
         animation: none !important;
     }
