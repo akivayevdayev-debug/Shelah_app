@@ -421,12 +421,18 @@ Other controls:
 - `CLERK_ENFORCE_AUTH` (`backend/auth.py`) defaults to `True` whenever
   `VERCEL == "1"` or `FLASK_ENV == "production"` and can be overridden
   explicitly in either direction, so it fails toward enforcement in production
-  by default. The deployed value is not recorded in the repository, and
-  `.env.example` ships `CLERK_ENFORCE_AUTH=false` for local development, so a
-  copy of that file into the Vercel project's variables would silently turn
-  enforcement off; §13 lists the check.
+  when the variable is unset. **The production Vercel project sets it
+  explicitly** (the variable exists for Production, Preview and Development
+  and has for about 177 days; its production value, read on 2026-10-03 with
+  `vercel env run`, is `false`), which overrides that default: on the live
+  site the "Optional" routes, `/ask` included, accept anonymous callers. Those
+  callers are bounded by the per-IP `llm` rate limit (20/min) and the budget
+  gate keyed on the IP (`DECISIONS.md`); Turnstile, the other anonymous-`/ask`
+  control, is also off (`TURNSTILE_ENABLED=FALSE` in production, §8). Whether
+  open anonymous asking is intended is an operator decision; §13 records how
+  to change it.
 
-## 7. Vercel WAF (dashboard-configured) — entered 2026-08-26, last confirmed 2026-09-16
+## 7. Vercel WAF (dashboard-configured) — entered 2026-08-26, last confirmed 2026-10-03
 
 The one layer that makes a flood *free*: per Vercel's WAF rate-limiting docs,
 WAF-mitigated traffic incurs no CDN request, no Fast Data Transfer and no
@@ -446,10 +452,15 @@ one of the same three slots. All three are in use:
 2. **Deny common scanner paths:** `/.env`, `/.git/*`, `/wp-admin/*`,
    `/vendor/*`, `/phpmyadmin/*` — pure noise against this codebase, and each
    hit would otherwise cost a function invocation just to 404.
-3. **Deny non-`GET`/`POST`/`HEAD`/`OPTIONS` methods, site-wide.** ⚠️ The
-   dashboard showed this rule's action as **Log, not Deny**, on 2026-09-16 —
-   either this description is stale or the rule was never flipped out of its
-   testing phase. Needs a quick operator check (§13).
+3. **Deny non-`GET`/`POST`/`HEAD`/`OPTIONS` methods, site-wide.** ⚠️ This
+   rule's action is **Log, not Deny**: the dashboard showed it on 2026-09-16
+   and `vercel firewall rules list` showed it again on 2026-10-03, so it
+   observes and blocks nothing. Either the name is aspirational or the rule
+   was never flipped out of its testing phase. §13 has the one-line change.
+
+`vercel firewall rules list` on 2026-10-03 also showed all three rules enabled:
+"Rate limit /ask POST requests" (action Rate Limit, 100/60s), "Block sensitive
+paths" (Deny) and the Log-mode method rule above.
 
 No slot is held in reserve for incident response; if one is needed it has to
 come from merging two rules (e.g. scanner-path-deny and method-deny) or from
@@ -494,7 +505,9 @@ httpx (never a blocking `requests` call). The feature is gated behind
 `TURNSTILE_ENABLED` (default **off**), so every function in
 `backend/turnstile.py` is a true no-op — local dev and the test suite are
 unaffected — until an operator enables it and supplies `TURNSTILE_SECRET_KEY` /
-`TURNSTILE_SITE_KEY` in the deployment environment. (Separately, Clerk's Bot
+`TURNSTILE_SITE_KEY` in the deployment environment. As of 2026-10-03 the
+production project has both keys set and `TURNSTILE_ENABLED=FALSE`, so the gate
+is provisioned but off. (Separately, Clerk's Bot
 Sign-up Protection renders its own Turnstile challenge in an iframe, which is
 why the CSP's `frame-src` allows `challenges.cloudflare.com`.)
 
@@ -651,8 +664,14 @@ Items needing a human decision or an operator action, collected in one place:
 - **Git-history residual exposures** (§1): `refs/pull/2/head`–`5/head` and
   hash-addressable old commits still reachable on GitHub; needs a GitHub
   Support request.
-- **Vercel WAF rule 3** (§7) showed as *Log* rather than *Deny* on 2026-09-16;
-  confirm the intended action in the dashboard.
+- **Vercel WAF rule 3** (§7) is still *Log*, not *Deny* (2026-10-03). If
+  Deny is intended, either use the dashboard or run these two commands; the
+  first only stages a draft, and `publish` is what makes it live:
+
+  ```bash
+  vercel firewall rules edit rule_deny_non_standard_http_methods_PGVZQP --action deny
+  vercel firewall publish
+  ```
 - **CSP `'unsafe-inline'`** (§3): blocked on refactoring 112 inline `onclick=`
   handlers and 40 `style=` attributes before a nonce-based policy is possible.
 - **`WSGIMiddleware` deprecation** (§4): plan the move to `a2wsgi`.
@@ -662,11 +681,17 @@ Items needing a human decision or an operator action, collected in one place:
   blocking once a remediation workflow exists.
 - **Backups** (§9): the Supabase Free plan has no automated backups or PITR;
   upgrade, or schedule the manual dump.
-- **Confirm `CLERK_ENFORCE_AUTH` is not `false` in Vercel** (§6). The code
-  default there is `true`, so the variable should be unset. A signed-out
-  request to an **Optional** route should be a `401` on the live site.
-  `/api/accept-legal` is the safe probe: dormant, and for an anonymous caller
-  it only answers, never writes or calls a model.
+- **Decide whether anonymous asking should stay open** (§6).
+  `CLERK_ENFORCE_AUTH` is `false` on the production project, so signed-out
+  visitors can use `/ask`. The anonymous rate-limit tier, the Turnstile gate
+  and the README (which lists only bookmarks and saved preferences as
+  sign-in features) all fit that, but the repository never records it as a
+  decision. To require sign-in instead, delete the variable (the code then
+  defaults to `true` on Vercel) or set it to `true`, then redeploy; every
+  "Optional" route, `/ask` included, then answers `401` to a signed-out
+  caller, so check how the UI handles that first. To verify either state from
+  outside, `/api/accept-legal` is the safe probe: dormant, and for an
+  anonymous caller it only answers, never writes or calls a model.
 
   ```bash
   curl -s -w "\n%{http_code}\n" -X POST https://<your-domain>/api/accept-legal \
@@ -674,9 +699,10 @@ Items needing a human decision or an operator action, collected in one place:
   ```
 
   `401` (`{"error":"Authentication required"}`) means enforcement is on. `200`
-  (`{"stored":"client","success":true}`) means the variable is set to `false`;
-  remove it in Vercel → Settings → Environment Variables and redeploy. Don't
-  probe with `POST /ask {}`: the live `/ask` is the native FastAPI route,
+  (`{"stored":"client","success":true}`) means it is off, which is the current
+  production state. Don't probe with `POST /ask {}`: the live `/ask` is the native FastAPI route,
   which rejects an empty question with `400` before it looks at auth, so that
   request can't tell the two states apart.
-- **Turnstile** (§8) ships disabled; enabling it is an operator action.
+- **Turnstile** (§8) is off in production although both keys are set;
+  setting `TURNSTILE_ENABLED=true` and redeploying is the operator action. It
+  matters most while anonymous asking stays open (above).

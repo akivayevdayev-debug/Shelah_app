@@ -144,11 +144,12 @@ The full engineering review is [`docs/SECURITY.md`](SECURITY.md). Summary:
   as an open item.
 - **Authentication and authorization review — ✅ Done**
   (`docs/SECURITY.md` §6). `CLERK_AUDIENCE` is set in production.
-- **Auth enforcement on the live site — ⚠️ operator check.**
-  `CLERK_ENFORCE_AUTH` defaults to `true` on Vercel, so the "Optional" routes
-  (including `/ask`) require sign-in there, but the deployed value is not
-  recorded in the repository and `.env.example` ships `false` for local use.
-  The one-command check is in `docs/SECURITY.md` §13.
+- **Anonymous asking — ⚠️ operator decision.** The production Vercel project
+  sets `CLERK_ENFORCE_AUTH=false` explicitly (read 2026-10-03), so the
+  "Optional" routes, `/ask` included, work without signing in, bounded by the
+  anonymous rate limit and budget gate; Turnstile is also off. That overrides
+  the code's `true` default on Vercel. Keep it, or require sign-in: see
+  `docs/SECURITY.md` §6 and §13.
 - **Penetration test / external security review — not done.** The engineering
   review says outright that it is not a substitute for one.
 
@@ -201,7 +202,9 @@ Done:
   conditional on the WAF and global breaker above (both shipped).
 - **Edge WAF — ✅ entered 2026-08-26** (3 custom rules including the `/ask`
   rate limit). The rate-limit rule is in Enforce mode at 100 requests per
-  minute per IP+JA4, confirmed live 2026-09-16 (`docs/SECURITY.md` §7).
+  minute per IP+JA4, confirmed live 2026-09-16 and still listed as enabled on
+  2026-10-03. Its third rule, the non-standard-method rule, is still in Log
+  mode, not Deny (`docs/SECURITY.md` §7).
 - **Circuit breakers** are wired for Sefaria, web fetches, translation and
   Hebcal (all four Hebcal call sites), and for both AI providers.
 
