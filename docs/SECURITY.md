@@ -428,9 +428,26 @@ Other controls:
   site the "Optional" routes, `/ask` included, accept anonymous callers. Those
   callers are bounded by the per-IP `llm` rate limit (20/min) and the budget
   gate keyed on the IP (`DECISIONS.md`); Turnstile, the other anonymous-`/ask`
-  control, is also off (`TURNSTILE_ENABLED=FALSE` in production, §8). Whether
-  open anonymous asking is intended is an operator decision; §13 records how
-  to change it.
+  control, is also off (`TURNSTILE_ENABLED=FALSE` in production, §8). **Open
+  anonymous asking is deliberate** (operator decision, confirmed 2026-10-03):
+  the variable is meant to stay `false` there. Deleting it, or setting it to
+  `true`, would make every "Optional" route, `/ask` included, answer `401` to a
+  signed-out caller.
+
+  To see which state a deployment is in from outside, `POST /api/accept-legal`
+  is a safe probe: for an anonymous caller it only answers, and never writes
+  or calls a model.
+
+  ```bash
+  curl -s -w "\n%{http_code}\n" -X POST https://<your-domain>/api/accept-legal \
+    -H "Content-Type: application/json" -d '{}'
+  ```
+
+  `401` (`{"error":"Authentication required"}`) means enforcement is on; `200`
+  (`{"stored":"client","success":true}`) means it is off, which is the
+  production state. Don't probe with `POST /ask {}`: the live `/ask` is the
+  native FastAPI route, which rejects an empty question with `400` before it
+  looks at auth, so that request can't tell the two states apart.
 
 ## 7. Vercel WAF (dashboard-configured) — entered 2026-08-26, last confirmed 2026-10-03
 
@@ -452,11 +469,16 @@ one of the same three slots. All three are in use:
 2. **Deny common scanner paths:** `/.env`, `/.git/*`, `/wp-admin/*`,
    `/vendor/*`, `/phpmyadmin/*` — pure noise against this codebase, and each
    hit would otherwise cost a function invocation just to 404.
-3. **Deny non-`GET`/`POST`/`HEAD`/`OPTIONS` methods, site-wide.** ⚠️ This
-   rule's action is **Log, not Deny**: the dashboard showed it on 2026-09-16
-   and `vercel firewall rules list` showed it again on 2026-10-03, so it
-   observes and blocks nothing. Either the name is aspirational or the rule
-   was never flipped out of its testing phase. §13 has the one-line change.
+3. **Method rule, site-wide, action Log (on purpose).** The rule is named
+   "Deny non-standard HTTP methods" and its condition is `method does not
+   equal GET,POST,HEAD,OPTIONS`, but its action is **Log**, so it records
+   those requests and blocks nothing (dashboard 2026-09-16; `vercel firewall
+   rules list` and `rules inspect` 2026-10-03). Keep it on Log. The app itself
+   sends `PUT` (preferences), `PATCH` (rename or pin a conversation) and
+   `DELETE` (conversations, history entries, share links), so Deny blocks real
+   traffic; it was tried and broke the site (operator, 2026-10-03). Enforcing
+   it would first need those three methods added to the allow-list in the
+   condition.
 
 `vercel firewall rules list` on 2026-10-03 also showed all three rules enabled:
 "Rate limit /ask POST requests" (action Rate Limit, 100/60s), "Block sensitive
@@ -664,14 +686,6 @@ Items needing a human decision or an operator action, collected in one place:
 - **Git-history residual exposures** (§1): `refs/pull/2/head`–`5/head` and
   hash-addressable old commits still reachable on GitHub; needs a GitHub
   Support request.
-- **Vercel WAF rule 3** (§7) is still *Log*, not *Deny* (2026-10-03). If
-  Deny is intended, either use the dashboard or run these two commands; the
-  first only stages a draft, and `publish` is what makes it live:
-
-  ```bash
-  vercel firewall rules edit rule_deny_non_standard_http_methods_PGVZQP --action deny
-  vercel firewall publish
-  ```
 - **CSP `'unsafe-inline'`** (§3): blocked on refactoring 112 inline `onclick=`
   handlers and 40 `style=` attributes before a nonce-based policy is possible.
 - **`WSGIMiddleware` deprecation** (§4): plan the move to `a2wsgi`.
@@ -681,28 +695,18 @@ Items needing a human decision or an operator action, collected in one place:
   blocking once a remediation workflow exists.
 - **Backups** (§9): the Supabase Free plan has no automated backups or PITR;
   upgrade, or schedule the manual dump.
-- **Decide whether anonymous asking should stay open** (§6).
-  `CLERK_ENFORCE_AUTH` is `false` on the production project, so signed-out
-  visitors can use `/ask`. The anonymous rate-limit tier, the Turnstile gate
-  and the README (which lists only bookmarks and saved preferences as
-  sign-in features) all fit that, but the repository never records it as a
-  decision. To require sign-in instead, delete the variable (the code then
-  defaults to `true` on Vercel) or set it to `true`, then redeploy; every
-  "Optional" route, `/ask` included, then answers `401` to a signed-out
-  caller, so check how the UI handles that first. To verify either state from
-  outside, `/api/accept-legal` is the safe probe: dormant, and for an
-  anonymous caller it only answers, never writes or calls a model.
+- **Turnstile** (§8) is provisioned but off in production (both keys are set,
+  `TURNSTILE_ENABLED=FALSE`). Turning it on is one environment variable plus a
+  redeploy. It is the one bot-specific control for the anonymous `/ask` path
+  (§6), which is open by design, on top of the rate limits and the budget gate,
+  so it is the first lever to reach for if bot traffic ever shows up.
 
-  ```bash
-  curl -s -w "\n%{http_code}\n" -X POST https://<your-domain>/api/accept-legal \
-    -H "Content-Type: application/json" -d '{}'
-  ```
+### Settled, not open
 
-  `401` (`{"error":"Authentication required"}`) means enforcement is on. `200`
-  (`{"stored":"client","success":true}`) means it is off, which is the current
-  production state. Don't probe with `POST /ask {}`: the live `/ask` is the native FastAPI route,
-  which rejects an empty question with `400` before it looks at auth, so that
-  request can't tell the two states apart.
-- **Turnstile** (§8) is off in production although both keys are set;
-  setting `TURNSTILE_ENABLED=true` and redeploying is the operator action. It
-  matters most while anonymous asking stays open (above).
+Recorded so nobody re-opens them by accident:
+
+- **Anonymous asking stays open** (operator decision, confirmed 2026-10-03).
+  Production keeps `CLERK_ENFORCE_AUTH=false` (§6).
+- **WAF rule 3 stays on Log** (§7). Switching it to Deny blocks the `PUT`,
+  `PATCH` and `DELETE` requests the app makes and broke the site when it was
+  tried.

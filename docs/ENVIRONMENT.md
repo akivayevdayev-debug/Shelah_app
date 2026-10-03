@@ -1,6 +1,6 @@
 # Environment variables
 
-Every variable the code actually reads, checked against the `os.environ.get(...)` / `os.getenv(...)` calls in `backend/`, `app.py`, and `asgi.py`. Start from [`.env.example`](../.env.example) for local dev, but don't ship its defaults to production (`CLERK_ENFORCE_AUTH=false` especially, and set `DAILY_BUDGET_USD` / `CRON_SECRET` explicitly).
+Every variable the code actually reads, checked against the `os.environ.get(...)` / `os.getenv(...)` calls in `backend/`, `app.py`, and `asgi.py`. Start from [`.env.example`](../.env.example) for local dev, but don't copy its defaults to production wholesale: set `DAILY_BUDGET_USD` / `CRON_SECRET` explicitly, and treat `CLERK_ENFORCE_AUTH` as a deliberate choice (production sets it to `false` on purpose; see its row).
 
 ## Required
 
@@ -35,7 +35,7 @@ Every value below already has a working default in code. Set one only to overrid
 | `RATELIMIT_ENABLED` | `true` | Kill switch for the whole rate-limit middleware; read once at import time |
 | `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY` | — | Fallback name for `CLERK_PUBLISHABLE_KEY` |
 | `CLERK_AUDIENCE` | — | Audience claim expected in Clerk JWTs — recommended for production; unset skips JWT audience verification entirely |
-| `CLERK_ENFORCE_AUTH` | `true` when `VERCEL=1` or `FLASK_ENV=production`, else `false` | Explicitly force auth enforcement on protected `/api/*` routes, overriding the runtime-based auto-default. `.env.example` ships `false` for local development. On the production Vercel project it is set explicitly to `false` (checked 2026-10-03 with `vercel env run`), which overrides the `true` default there and lets anonymous callers use `/ask`; removing the variable, or setting it to `true`, turns enforcement on (`docs/SECURITY.md` §13) |
+| `CLERK_ENFORCE_AUTH` | `true` when `VERCEL=1` or `FLASK_ENV=production`, else `false` | Explicitly force auth enforcement on protected `/api/*` routes, overriding the runtime-based auto-default. `.env.example` ships `false` for local development. On the production Vercel project it is set explicitly to `false` on purpose (operator-confirmed; checked 2026-10-03 with `vercel env run`), which overrides the `true` default there so anonymous visitors can use `/ask`. Removing the variable or setting it to `true` would make signed-out callers get `401` (`docs/SECURITY.md` §6) |
 | `CLERK_SECRET_KEY` | — | Required for `/api/user/delete-account` to also delete the Clerk identity itself (not just Supabase rows) via Clerk's Backend API (`backend/routes_privacy.py`). Without it, account deletion still wipes Supabase data but reports `clerk_deleted=false` |
 | `SEFARIA_API` / `SEFARIA_V3_API` | `https://www.sefaria.org.il/api` / `.../api/v3` | Sefaria API base URL overrides — mainly used to point at a mock endpoint in CI/tests |
 | `VALIDATE_CUSTOMS_AT_STARTUP` | unset (off in production runtime, on elsewhere) | Validates the customs corpus at startup; skip in production to avoid billing cold-start CPU |

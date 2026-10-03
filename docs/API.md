@@ -16,7 +16,7 @@ Every route is served from one Vercel deployment. The base URL in production is 
 | **Cron secret** | `Authorization: Bearer <CRON_SECRET>`, compared in constant time. Fails closed (`503`) when `CRON_SECRET` is unset. |
 | **Svix signature** | Webhook signature check in place of a JWT. |
 
-`CLERK_ENFORCE_AUTH` defaults to `true` when `VERCEL=1` or `FLASK_ENV=production` and to `false` otherwise (`backend/auth.py`). The production Vercel project sets it to `false` explicitly (checked 2026-10-03), so on the live site the **Optional** routes, `/ask` included, run anonymously when no token is sent; they are `401` only where enforcement is on. See `docs/ENVIRONMENT.md` and `docs/SECURITY.md` §6 and §13.
+`CLERK_ENFORCE_AUTH` defaults to `true` when `VERCEL=1` or `FLASK_ENV=production` and to `false` otherwise (`backend/auth.py`). The production Vercel project sets it to `false` explicitly and on purpose (checked 2026-10-03), so on the live site the **Optional** routes, `/ask` included, run anonymously when no token is sent; they are `401` only where enforcement is on. See `docs/ENVIRONMENT.md` and `docs/SECURITY.md` §6 and §13.
 
 **Errors.** Flask routes return `{"error": "<message>"}`. The native FastAPI routes return `{"detail": "<message>"}`. A `429` always carries the rate-limiter body below, whichever stack answered.
 
@@ -108,7 +108,7 @@ After the view comes an optional **tail** of overlay and AI keys, all path segme
 
 Submit a halachic or Torah-study question and receive an AI-synthesised answer with source citations. Handled by the async FastAPI route in `asgi.py`. A synchronous Flask implementation of `/ask` still exists in `app.py`, but the native route shadows it and it is not reachable in production.
 
-- **Auth:** Optional. Required whenever `CLERK_ENFORCE_AUTH` is on (the code's default on Vercel, but set to `false` on the production project, so anonymous asking works there). Auth enriches the answer with the caller's memory summaries and records it in the caller's history.
+- **Auth:** Optional. Required whenever `CLERK_ENFORCE_AUTH` is on (the code's default on Vercel, but deliberately set to `false` on the production project, so anonymous asking works there). Auth enriches the answer with the caller's memory summaries and records it in the caller's history.
 - **Rate-limit class:** `llm` (fails closed).
 - **Cache:** `private, no-store`.
 - **Content-Type:** `application/json`
