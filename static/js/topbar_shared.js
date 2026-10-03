@@ -10,8 +10,8 @@
  * at all.
  *
  * Loaded as a plain classic <script> (not type="module") so its exports
- * become real globals, callable from onclick="..." attributes the same way
- * the functions themselves used to be before this was split out.
+ * become real globals, callable by name the same way
+ * the functions themselves were before this was split out.
  */
 (function (root) {
     'use strict';

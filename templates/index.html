@@ -285,7 +285,7 @@
                 <!-- mobileNavBtn removed: Library tab in bottom nav covers this action -->
 
                 <button type="button" id="brandHomeBtn" class="topbar-brand flex items-center gap-1.5 shrink-0"
-                    aria-label="Go to home" onclick="goHome()">
+                    aria-label="Go to home" data-onclick="goHome">
                     <span class="text-navy font-hebrew topbar-brand-icon font-semibold leading-tight">
                         ש
                     </span>
@@ -301,7 +301,7 @@
                    sidebar closed): painting it first narrowed the search box for a frame. #}
                 <button id="topbarLibraryBtn" type="button"
                     class="topbar-flat-btn hidden shrink-0 items-center gap-1.5 topbar-library-btn"
-                    onclick="openLibrarySidebar()" title="Library">
+                    data-onclick="openLibrarySidebar" title="Library">
                     {{ phosphor('book-open', size=20, class='h-5 w-5 shrink-0') }}
                     <span class="text-xs font-medium" data-en="Library" data-he="ספרייה">Library</span>
                 </button>
@@ -520,9 +520,9 @@
                          refreshHebrewDateDisplay makes) so nothing swaps later. -->
                     <script>(function(){var el=document.getElementById('hebrewDateDisplay');try{var v={};new Intl.DateTimeFormat('en-u-ca-hebrew',{day:'numeric',month:'long',year:'numeric'}).formatToParts(new Date()).forEach(function(x){v[x.type]=x.value;});var n={Tishri:'Tishrei',Heshvan:'Cheshvan',Tevet:'Teves',Nisan:'Nissan',Tamuz:'Tammuz','Adar I':'Adar 1','Adar II':'Adar 2'};if(el&&v.day&&v.month&&/^\d+$/.test(v.year||'')){var t=v.day+' '+(n[v.month]||v.month)+' '+v.year,r=window.ShelahHebrewRef,h=document.documentElement.getAttribute('lang')==='he'&&r?r.hebrewDate(v.day,n[v.month]||v.month,v.year):'';el.textContent=h||t;el.setAttribute('data-en',t);el.setAttribute('data-he',h);if(h)el.setAttribute('dir','rtl');}}catch(e){}})()</script>
                     <!-- Translator Toggles -->
-                    <button onclick="toggleLanguage('en')" class="hidden lg:inline-flex topbar-flat-btn font-serif lang-btn"
+                    <button data-onclick="toggleLanguage" data-onclick-arg="en" class="hidden lg:inline-flex topbar-flat-btn font-serif lang-btn"
                         data-lang="en">English</button>
-                    <button onclick="toggleLanguage('he')" class="hidden lg:inline-flex topbar-flat-btn font-hebrew lang-btn"
+                    <button data-onclick="toggleLanguage" data-onclick-arg="he" class="hidden lg:inline-flex topbar-flat-btn font-hebrew lang-btn"
                         data-lang="he">עברית</button>
                     <button id="mobileLangToggle" type="button" class="lg:hidden topbar-flat-btn" data-en="עברית"
                         data-he="English">עברית</button>
@@ -686,22 +686,22 @@
                             <summary class="text-slate-600 hover:text-[#004e5f] cursor-pointer font-medium text-sm">
                                 Torah (5 Books)</summary>
                             <ul class="ml-3 space-y-1 mt-1">
-                                <li><button id="parashaQuickLink" onclick="readText('Genesis 1')"
+                                <li><button id="parashaQuickLink" data-onclick="readText" data-onclick-arg="Genesis 1"
                                         class="menu-parasha-quick-link text-start text-[#1f3f63] hover:text-[#102b45] text-sm w-full py-0.5 font-serif">Parashat
                                         HaShavua</button></li>
-                                <li><button onclick="readText('Genesis 1')"
+                                <li><button data-onclick="readText" data-onclick-arg="Genesis 1"
                                         class="text-start text-slate-600 hover:text-[#004e5f] text-sm w-full py-0.5">Genesis
                                         (Bereishit)</button></li>
-                                <li><button onclick="readText('Exodus 1')"
+                                <li><button data-onclick="readText" data-onclick-arg="Exodus 1"
                                         class="text-start text-slate-600 hover:text-[#004e5f] text-sm w-full py-0.5">Exodus
                                         (Shemot)</button></li>
-                                <li><button onclick="readText('Leviticus 1')"
+                                <li><button data-onclick="readText" data-onclick-arg="Leviticus 1"
                                         class="text-start text-slate-600 hover:text-[#004e5f] text-sm w-full py-0.5">Leviticus
                                         (Vayikra)</button></li>
-                                <li><button onclick="readText('Numbers 1')"
+                                <li><button data-onclick="readText" data-onclick-arg="Numbers 1"
                                         class="text-start text-slate-600 hover:text-[#004e5f] text-sm w-full py-0.5">Numbers
                                         (Bamidbar)</button></li>
-                                <li><button onclick="readText('Deuteronomy 1')"
+                                <li><button data-onclick="readText" data-onclick-arg="Deuteronomy 1"
                                         class="text-start text-slate-600 hover:text-[#004e5f] text-sm w-full py-0.5">Deuteronomy
                                         (Devarim)</button></li>
                             </ul>
@@ -710,35 +710,35 @@
                             <summary class="text-slate-600 hover:text-[#004e5f] cursor-pointer font-medium text-sm">
                                 Prophets (Nevi'im)</summary>
                             <ul class="ml-3 space-y-1 mt-1">
-                                <li><button onclick="readText('Joshua 1')"
+                                <li><button data-onclick="readText" data-onclick-arg="Joshua 1"
                                         class="text-start text-slate-600 hover:text-[#004e5f] text-sm w-full py-0.5">Joshua
                                         (Yehoshua)</button>
                                 </li>
-                                <li><button onclick="readText('Judges 1')"
+                                <li><button data-onclick="readText" data-onclick-arg="Judges 1"
                                         class="text-start text-slate-600 hover:text-[#004e5f] text-sm w-full py-0.5">Judges
                                         (Shoftim)</button>
                                 </li>
-                                <li><button onclick="readText('I Samuel 1')"
+                                <li><button data-onclick="readText" data-onclick-arg="I Samuel 1"
                                         class="text-start text-slate-600 hover:text-[#004e5f] text-sm w-full py-0.5">I
                                         Samuel (Shmuel I)</button></li>
-                                <li><button onclick="readText('II Samuel 1')"
+                                <li><button data-onclick="readText" data-onclick-arg="II Samuel 1"
                                         class="text-start text-slate-600 hover:text-[#004e5f] text-sm w-full py-0.5">II
                                         Samuel (Shmuel II)</button></li>
-                                <li><button onclick="readText('I Kings 1')"
+                                <li><button data-onclick="readText" data-onclick-arg="I Kings 1"
                                         class="text-start text-slate-600 hover:text-[#004e5f] text-sm w-full py-0.5">I
                                         Kings (Melakhim I)</button></li>
-                                <li><button onclick="readText('II Kings 1')"
+                                <li><button data-onclick="readText" data-onclick-arg="II Kings 1"
                                         class="text-start text-slate-600 hover:text-[#004e5f] text-sm w-full py-0.5">II
                                         Kings (Melakhim II)</button></li>
-                                <li><button onclick="readText('Isaiah 1')"
+                                <li><button data-onclick="readText" data-onclick-arg="Isaiah 1"
                                         class="text-start text-slate-600 hover:text-[#004e5f] text-sm w-full py-0.5">Isaiah
                                         (Yeshayahu)</button>
                                 </li>
-                                <li><button onclick="readText('Jeremiah 1')"
+                                <li><button data-onclick="readText" data-onclick-arg="Jeremiah 1"
                                         class="text-start text-slate-600 hover:text-[#004e5f] text-sm w-full py-0.5">Jeremiah
                                         (Yirmiyahu)</button>
                                 </li>
-                                <li><button onclick="readText('Ezekiel 1')"
+                                <li><button data-onclick="readText" data-onclick-arg="Ezekiel 1"
                                         class="text-start text-slate-600 hover:text-[#004e5f] text-sm w-full py-0.5">Ezekiel
                                         (Yechezkel)</button>
                                 </li>
@@ -748,40 +748,40 @@
                                             class="text-slate-500 hover:text-[#004e5f] cursor-pointer font-medium text-[13px]">
                                             Trei Asar (The Twelve)</summary>
                                         <ul class="ml-3 mt-1 space-y-1">
-                                            <li><button onclick="readText('Hosea 1')"
+                                            <li><button data-onclick="readText" data-onclick-arg="Hosea 1"
                                                     class="text-start text-slate-600 hover:text-[#004e5f] text-sm w-full py-0.5">Hoshea
                                                     (Hosha)</button></li>
-                                            <li><button onclick="readText('Joel 1')"
+                                            <li><button data-onclick="readText" data-onclick-arg="Joel 1"
                                                     class="text-start text-slate-600 hover:text-[#004e5f] text-sm w-full py-0.5">Yoel</button>
                                             </li>
-                                            <li><button onclick="readText('Amos 1')"
+                                            <li><button data-onclick="readText" data-onclick-arg="Amos 1"
                                                     class="text-start text-slate-600 hover:text-[#004e5f] text-sm w-full py-0.5">Amos</button>
                                             </li>
-                                            <li><button onclick="readText('Obadiah 1')"
+                                            <li><button data-onclick="readText" data-onclick-arg="Obadiah 1"
                                                     class="text-start text-slate-600 hover:text-[#004e5f] text-sm w-full py-0.5">Ovadiah
                                                     (Obadiah)</button></li>
-                                            <li><button onclick="readText('Jonah 1')"
+                                            <li><button data-onclick="readText" data-onclick-arg="Jonah 1"
                                                     class="text-start text-slate-600 hover:text-[#004e5f] text-sm w-full py-0.5">Yonah
                                                     (Jonah)</button></li>
-                                            <li><button onclick="readText('Micah 1')"
+                                            <li><button data-onclick="readText" data-onclick-arg="Micah 1"
                                                     class="text-start text-slate-600 hover:text-[#004e5f] text-sm w-full py-0.5">Micah</button>
                                             </li>
-                                            <li><button onclick="readText('Nahum 1')"
+                                            <li><button data-onclick="readText" data-onclick-arg="Nahum 1"
                                                     class="text-start text-slate-600 hover:text-[#004e5f] text-sm w-full py-0.5">Nachum
                                                     (Nahum)</button></li>
-                                            <li><button onclick="readText('Habakkuk 1')"
+                                            <li><button data-onclick="readText" data-onclick-arg="Habakkuk 1"
                                                     class="text-start text-slate-600 hover:text-[#004e5f] text-sm w-full py-0.5">Habakkuk
                                                     (Chavakuk)</button></li>
-                                            <li><button onclick="readText('Zephaniah 1')"
+                                            <li><button data-onclick="readText" data-onclick-arg="Zephaniah 1"
                                                     class="text-start text-slate-600 hover:text-[#004e5f] text-sm w-full py-0.5">Tzefaniah
                                                     (Zephaniah)</button></li>
-                                            <li><button onclick="readText('Haggai 1')"
+                                            <li><button data-onclick="readText" data-onclick-arg="Haggai 1"
                                                     class="text-start text-slate-600 hover:text-[#004e5f] text-sm w-full py-0.5">Chaggai
                                                     (Haggai)</button></li>
-                                            <li><button onclick="readText('Zechariah 1')"
+                                            <li><button data-onclick="readText" data-onclick-arg="Zechariah 1"
                                                     class="text-start text-slate-600 hover:text-[#004e5f] text-sm w-full py-0.5">Zechariah
                                                     (Zechariah)</button></li>
-                                            <li><button onclick="readText('Malachi 1')"
+                                            <li><button data-onclick="readText" data-onclick-arg="Malachi 1"
                                                     class="text-start text-slate-600 hover:text-[#004e5f] text-sm w-full py-0.5">Malachi
                                                     (Malakhi)</button></li>
                                         </ul>
@@ -793,45 +793,45 @@
                             <summary class="text-slate-600 hover:text-[#004e5f] cursor-pointer font-medium text-sm">
                                 Writings (Ketuvim)</summary>
                             <ul class="ml-3 space-y-1 mt-1">
-                                <li><button onclick="readText('Psalms 1')"
+                                <li><button data-onclick="readText" data-onclick-arg="Psalms 1"
                                         class="text-start text-slate-600 hover:text-[#004e5f] text-sm w-full py-0.5">Psalms
                                         (Tehillim)</button></li>
-                                <li><button onclick="readText('Proverbs 1')"
+                                <li><button data-onclick="readText" data-onclick-arg="Proverbs 1"
                                         class="text-start text-slate-600 hover:text-[#004e5f] text-sm w-full py-0.5">Proverbs
                                         (Mishlei)</button></li>
-                                <li><button onclick="readText('Job 1')"
+                                <li><button data-onclick="readText" data-onclick-arg="Job 1"
                                         class="text-start text-slate-600 hover:text-[#004e5f] text-sm w-full py-0.5">Job
                                         (Iyov)</button></li>
-                                <li><button onclick="readText('Song of Songs 1')"
+                                <li><button data-onclick="readText" data-onclick-arg="Song of Songs 1"
                                         class="text-start text-slate-600 hover:text-[#004e5f] text-sm w-full py-0.5">Song
                                         of Songs (Shir HaShirim)</button></li>
-                                <li><button onclick="readText('Ruth 1')"
+                                <li><button data-onclick="readText" data-onclick-arg="Ruth 1"
                                         class="text-start text-slate-600 hover:text-[#004e5f] text-sm w-full py-0.5">Ruth</button>
                                 </li>
-                                <li><button onclick="readText('Lamentations 1')"
+                                <li><button data-onclick="readText" data-onclick-arg="Lamentations 1"
                                         class="text-start text-slate-600 hover:text-[#004e5f] text-sm w-full py-0.5">Lamentations
                                         (Eicha)</button></li>
-                                <li><button onclick="readText('Ecclesiastes 1')"
+                                <li><button data-onclick="readText" data-onclick-arg="Ecclesiastes 1"
                                         class="text-start text-slate-600 hover:text-[#004e5f] text-sm w-full py-0.5">Ecclesiastes
                                         (Kohelet)</button></li>
-                                <li><button onclick="readText('Esther 1')"
+                                <li><button data-onclick="readText" data-onclick-arg="Esther 1"
                                         class="text-start text-slate-600 hover:text-[#004e5f] text-sm w-full py-0.5">Esther
                                         (Megillat Esther)</button>
                                 </li>
-                                <li><button onclick="readText('Daniel 1')"
+                                <li><button data-onclick="readText" data-onclick-arg="Daniel 1"
                                         class="text-start text-slate-600 hover:text-[#004e5f] text-sm w-full py-0.5">Daniel
                                         (Daniyel)</button>
                                 </li>
-                                <li><button onclick="readText('Ezra 1')"
+                                <li><button data-onclick="readText" data-onclick-arg="Ezra 1"
                                         class="text-start text-slate-600 hover:text-[#004e5f] text-sm w-full py-0.5">Ezra</button>
                                 </li>
-                                <li><button onclick="readText('Nehemiah 1')"
+                                <li><button data-onclick="readText" data-onclick-arg="Nehemiah 1"
                                         class="text-start text-slate-600 hover:text-[#004e5f] text-sm w-full py-0.5">Nehemiah</button>
                                 </li>
-                                <li><button onclick="readText('I Chronicles 1')"
+                                <li><button data-onclick="readText" data-onclick-arg="I Chronicles 1"
                                         class="text-start text-slate-600 hover:text-[#004e5f] text-sm w-full py-0.5">I
                                         Chronicles</button></li>
-                                <li><button onclick="readText('II Chronicles 1')"
+                                <li><button data-onclick="readText" data-onclick-arg="II Chronicles 1"
                                         class="text-start text-slate-600 hover:text-[#004e5f] text-sm w-full py-0.5">II
                                         Chronicles</button></li>
                             </ul>
@@ -843,19 +843,19 @@
                     <summary class="font-semibold hover:text-[#8b5e34] list-none border-b pb-2 mb-2"
                         data-en="Torah Commentaries" data-he="מפרשי התורה">Torah Commentaries</summary>
                     <ul class="ml-2 space-y-1 border-l-2 pl-3 border-[#8b5e34]/30">
-                        <li><button onclick="openRashiCommentaryFromLibrary()"
+                        <li><button data-onclick="openRashiCommentaryFromLibrary"
                                 class="text-start text-slate-600 hover:text-[#8b5e34] text-sm w-full py-0.5">Rashi on
                                 Torah</button></li>
-                        <li><button onclick="readText('Ibn Ezra on Genesis 1:1')"
+                        <li><button data-onclick="readText" data-onclick-arg="Ibn Ezra on Genesis 1:1"
                                 class="text-start text-slate-600 hover:text-[#8b5e34] text-sm w-full py-0.5">Ibn Ezra on
                                 Torah</button></li>
-                        <li><button onclick="readText('Ramban on Genesis 1:1')"
+                        <li><button data-onclick="readText" data-onclick-arg="Ramban on Genesis 1:1"
                                 class="text-start text-slate-600 hover:text-[#8b5e34] text-sm w-full py-0.5">Ramban on
                                 Torah</button></li>
-                        <li><button onclick="readText('Sforno on Genesis 1:1')"
+                        <li><button data-onclick="readText" data-onclick-arg="Sforno on Genesis 1:1"
                                 class="text-start text-slate-600 hover:text-[#8b5e34] text-sm w-full py-0.5">Sforno on
                                 Torah</button></li>
-                        <li><button onclick="readText('Kli Yakar on Genesis 1:1')"
+                        <li><button data-onclick="readText" data-onclick-arg="Kli Yakar on Genesis 1:1"
                                 class="text-start text-slate-600 hover:text-[#8b5e34] text-sm w-full py-0.5">Kli Yakar
                                 on
                                 Torah</button></li>
@@ -865,31 +865,31 @@
                     <summary class="font-semibold hover:text-[#5a99b7] list-none border-b pb-2 mb-2" data-en="Mishnah"
                         data-he="משנה">Mishnah</summary>
                     <ul class="ml-2 space-y-1 border-l-2 pl-3 border-[#5a99b7]/30">
-                        <li><button onclick="readText('Mishnah Berakhot 1')"
+                        <li><button data-onclick="readText" data-onclick-arg="Mishnah Berakhot 1"
                                 class="text-start text-slate-600 hover:text-[#5a99b7] text-sm w-full py-0.5">Berakhot
                                 (Blessings)</button></li>
-                        <li><button onclick="readText('Mishnah Shabbat 1')"
+                        <li><button data-onclick="readText" data-onclick-arg="Mishnah Shabbat 1"
                                 class="text-start text-slate-600 hover:text-[#5a99b7] text-sm w-full py-0.5">Shabbat</button>
                         </li>
-                        <li><button onclick="readText('Mishnah Pesachim 1')"
+                        <li><button data-onclick="readText" data-onclick-arg="Mishnah Pesachim 1"
                                 class="text-start text-slate-600 hover:text-[#5a99b7] text-sm w-full py-0.5">Pesachim
                                 (Passover)</button></li>
-                        <li><button onclick="readText('Mishnah Sukkah 1')"
+                        <li><button data-onclick="readText" data-onclick-arg="Mishnah Sukkah 1"
                                 class="text-start text-slate-600 hover:text-[#5a99b7] text-sm w-full py-0.5">Sukkah</button>
                         </li>
-                        <li><button onclick="readText('Mishnah Beitzah 1')"
+                        <li><button data-onclick="readText" data-onclick-arg="Mishnah Beitzah 1"
                                 class="text-start text-slate-600 hover:text-[#5a99b7] text-sm w-full py-0.5">Yom
                                 Tov</button></li>
-                        <li><button onclick="readText('Mishnah Rosh Hashanah 1')"
+                        <li><button data-onclick="readText" data-onclick-arg="Mishnah Rosh Hashanah 1"
                                 class="text-start text-slate-600 hover:text-[#5a99b7] text-sm w-full py-0.5">Rosh
                                 Hashanah</button></li>
-                        <li><button onclick="readText('Mishnah Taanit 1')"
+                        <li><button data-onclick="readText" data-onclick-arg="Mishnah Taanit 1"
                                 class="text-start text-slate-600 hover:text-[#5a99b7] text-sm w-full py-0.5">Taanit
                                 (Fasting)</button></li>
-                        <li><button onclick="readText('Pirkei Avot 1')"
+                        <li><button data-onclick="readText" data-onclick-arg="Pirkei Avot 1"
                                 class="text-start text-slate-600 hover:text-[#5a99b7] text-sm w-full py-0.5">Pirkei Avot
                                 (Ethics)</button></li>
-                        <li><button onclick="readText('Mishnah Niddah 1')"
+                        <li><button data-onclick="readText" data-onclick-arg="Mishnah Niddah 1"
                                 class="text-start text-slate-600 hover:text-[#5a99b7] text-sm w-full py-0.5">Niddah
                                 (Family Purity)</button></li>
                     </ul>
@@ -905,7 +905,7 @@
                                     class="text-slate-500 hover:text-[#a08a4a] cursor-pointer font-medium text-[13px]"
                                     data-en="Seder Zeraim" data-he="סדר זרעים">Seder Zeraim</summary>
                                 <ul class="ml-3 mt-1 space-y-1">
-                                    <li><button onclick="readText('Berakhot 2a')"
+                                    <li><button data-onclick="readText" data-onclick-arg="Berakhot 2a"
                                             class="text-start text-slate-600 hover:text-[#a08a4a] text-sm w-full py-0.5">Berakhot</button>
                                     </li>
                                 </ul>
@@ -917,13 +917,13 @@
                                     class="text-slate-500 hover:text-[#a08a4a] cursor-pointer font-medium text-[13px]"
                                     data-en="Seder Moed" data-he="סדר מועד">Seder Moed</summary>
                                 <ul class="ml-3 mt-1 space-y-1">
-                                    <li><button onclick="readText('Shabbat 2a')"
+                                    <li><button data-onclick="readText" data-onclick-arg="Shabbat 2a"
                                             class="text-start text-slate-600 hover:text-[#a08a4a] text-sm w-full py-0.5">Shabbat</button>
                                     </li>
-                                    <li><button onclick="readText('Pesachim 2a')"
+                                    <li><button data-onclick="readText" data-onclick-arg="Pesachim 2a"
                                             class="text-start text-slate-600 hover:text-[#a08a4a] text-sm w-full py-0.5">Pesachim</button>
                                     </li>
-                                    <li><button onclick="readText('Sukkah 2a')"
+                                    <li><button data-onclick="readText" data-onclick-arg="Sukkah 2a"
                                             class="text-start text-slate-600 hover:text-[#a08a4a] text-sm w-full py-0.5">Sukkah</button>
                                     </li>
                                 </ul>
@@ -935,13 +935,13 @@
                                     class="text-slate-500 hover:text-[#a08a4a] cursor-pointer font-medium text-[13px]"
                                     data-en="Seder Nashim" data-he="סדר נשים">Seder Nashim</summary>
                                 <ul class="ml-3 mt-1 space-y-1">
-                                    <li><button onclick="readText('Kiddushin 2a')"
+                                    <li><button data-onclick="readText" data-onclick-arg="Kiddushin 2a"
                                             class="text-start text-slate-600 hover:text-[#a08a4a] text-sm w-full py-0.5">Kiddushin</button>
                                     </li>
-                                    <li><button onclick="readText('Gittin 2a')"
+                                    <li><button data-onclick="readText" data-onclick-arg="Gittin 2a"
                                             class="text-start text-slate-600 hover:text-[#a08a4a] text-sm w-full py-0.5">Gittin</button>
                                     </li>
-                                    <li><button onclick="readText('Niddah 2a')"
+                                    <li><button data-onclick="readText" data-onclick-arg="Niddah 2a"
                                             class="text-start text-slate-600 hover:text-[#a08a4a] text-sm w-full py-0.5">Niddah</button>
                                     </li>
                                 </ul>
@@ -953,7 +953,7 @@
                                     class="text-slate-500 hover:text-[#a08a4a] cursor-pointer font-medium text-[13px]"
                                     data-en="Seder Nezikin" data-he="סדר נזיקין">Seder Nezikin</summary>
                                 <ul class="ml-3 mt-1 space-y-1">
-                                    <li><button onclick="readText('Sanhedrin 37a')"
+                                    <li><button data-onclick="readText" data-onclick-arg="Sanhedrin 37a"
                                             class="text-start text-slate-600 hover:text-[#a08a4a] text-sm w-full py-0.5">Sanhedrin</button>
                                     </li>
                                 </ul>
@@ -965,25 +965,25 @@
                     <summary class="font-semibold hover:text-[#802f3e] list-none border-b pb-2 mb-2" data-en="Halakhah"
                         data-he="הלכה">Halakhah</summary>
                     <ul class="ml-2 space-y-1 border-l-2 pl-3 border-[#802f3e]/30">
-                        <li><button onclick="readText('Shulchan Arukh, Orach Chayim 1')"
+                        <li><button data-onclick="readText" data-onclick-arg="Shulchan Arukh, Orach Chayim 1"
                                 class="text-start text-slate-600 hover:text-[#802f3e] text-sm w-full py-0.5">Shulchan
                                 Arukh OC</button></li>
-                        <li><button onclick="readText('Shulchan Arukh, Yoreh Deah 1')"
+                        <li><button data-onclick="readText" data-onclick-arg="Shulchan Arukh, Yoreh Deah 1"
                                 class="text-start text-slate-600 hover:text-[#802f3e] text-sm w-full py-0.5">Shulchan
                                 Arukh YD</button></li>
-                        <li><button onclick="readText('Shulchan Arukh, Even HaEzer 1')"
+                        <li><button data-onclick="readText" data-onclick-arg="Shulchan Arukh, Even HaEzer 1"
                                 class="text-start text-slate-600 hover:text-[#802f3e] text-sm w-full py-0.5">Shulchan
                                 Arukh EH</button></li>
-                        <li><button onclick="readText('Shulchan Arukh, Choshen Mishpat 1')"
+                        <li><button data-onclick="readText" data-onclick-arg="Shulchan Arukh, Choshen Mishpat 1"
                                 class="text-start text-slate-600 hover:text-[#802f3e] text-sm w-full py-0.5">Shulchan
                                 Arukh CM</button></li>
-                        <li><button onclick="readText('Mishneh Torah, Torah Study 1')"
+                        <li><button data-onclick="readText" data-onclick-arg="Mishneh Torah, Torah Study 1"
                                 class="text-start text-slate-600 hover:text-[#802f3e] text-sm w-full py-0.5">Mishneh
                                 Torah</button></li>
-                        <li><button onclick="readText('Kitzur Shulchan Arukh 1')"
+                        <li><button data-onclick="readText" data-onclick-arg="Kitzur Shulchan Arukh 1"
                                 class="text-start text-slate-600 hover:text-[#802f3e] text-sm w-full py-0.5">Kitzur
                                 Shulchan Arukh</button></li>
-                        <li><button onclick="readText('Mishnah Berurah 1')"
+                        <li><button data-onclick="readText" data-onclick-arg="Mishnah Berurah 1"
                                 class="text-start text-slate-600 hover:text-[#802f3e] text-sm w-full py-0.5">Mishnah
                                 Berurah</button></li>
                     </ul>
@@ -1009,47 +1009,47 @@
                         data-en="Community Customs" data-he="מנהגים קהילתיים">Community Customs
                     </summary>
                     <ul class="ml-2 space-y-1 border-l-2 pl-3 border-[#594176]/30">
-                        <li><button onclick="displayCommunity('Ashkenaz')"
+                        <li><button data-onclick="displayCommunity" data-onclick-arg="Ashkenaz"
                                 class="text-start text-slate-600 hover:text-[#594176] text-sm w-full py-0.5"
                                 data-en="Ashkenaz" data-he="אשכנז">Ashkenaz</button>
                         </li>
-                        <li><button onclick="displayCommunity('Sefardic')"
+                        <li><button data-onclick="displayCommunity" data-onclick-arg="Sefardic"
                                 class="text-start text-slate-600 hover:text-[#594176] text-sm w-full py-0.5"
                                 data-en="Sefardic" data-he="ספרדי">Sefardic</button></li>
-                        <li><button onclick="displayCommunity('Iraqi')"
+                        <li><button data-onclick="displayCommunity" data-onclick-arg="Iraqi"
                                 class="text-start text-slate-600 hover:text-[#594176] text-sm w-full py-0.5"
                                 data-en="Iraqi" data-he="עיראקי">Iraqi</button></li>
-                        <li><button onclick="displayCommunity('Syrian')"
+                        <li><button data-onclick="displayCommunity" data-onclick-arg="Syrian"
                                 class="text-start text-slate-600 hover:text-[#594176] text-sm w-full py-0.5"
                                 data-en="Syrian" data-he="סורי">Syrian</button></li>
-                        <li><button onclick="displayCommunity('Yemenite')"
+                        <li><button data-onclick="displayCommunity" data-onclick-arg="Yemenite"
                                 class="text-start text-slate-600 hover:text-[#594176] text-sm w-full py-0.5"
                                 data-en="Yemenite" data-he="תימני">Yemenite</button></li>
-                        <li><button onclick="displayCommunity('Moroccan')"
+                        <li><button data-onclick="displayCommunity" data-onclick-arg="Moroccan"
                                 class="text-start text-slate-600 hover:text-[#594176] text-sm w-full py-0.5"
                                 data-en="Moroccan" data-he="מרוקאי">Moroccan</button></li>
-                        <li><button onclick="displayCommunity('Bukharian')"
+                        <li><button data-onclick="displayCommunity" data-onclick-arg="Bukharian"
                                 class="text-start text-slate-600 hover:text-[#594176] text-sm w-full py-0.5"
                                 data-en="Bukharian" data-he="בוכרי">Bukharian</button></li>
-                        <li><button onclick="displayCommunity('Persian')"
+                        <li><button data-onclick="displayCommunity" data-onclick-arg="Persian"
                                 class="text-start text-slate-600 hover:text-[#594176] text-sm w-full py-0.5"
                                 data-en="Persian" data-he="פרסי">Persian</button></li>
-                        <li><button onclick="displayCommunity('Ethiopian')"
+                        <li><button data-onclick="displayCommunity" data-onclick-arg="Ethiopian"
                                 class="text-start text-slate-600 hover:text-[#594176] text-sm w-full py-0.5"
                                 data-en="Ethiopian" data-he="אתיופי">Ethiopian</button></li>
-                        <li><button onclick="displayCommunity('Georgian')"
+                        <li><button data-onclick="displayCommunity" data-onclick-arg="Georgian"
                                 class="text-start text-slate-600 hover:text-[#594176] text-sm w-full py-0.5"
                                 data-en="Georgian" data-he="גרוזיני">Georgian</button></li>
-                        <li><button onclick="displayCommunity('Greek-Romaniote')"
+                        <li><button data-onclick="displayCommunity" data-onclick-arg="Greek-Romaniote"
                                 class="text-start text-slate-600 hover:text-[#594176] text-sm w-full py-0.5"
                                 data-en="Greek-Romaniote" data-he="רומניוטי">Greek-Romaniote</button></li>
-                        <li><button onclick="displayCommunity('Kavkazi')"
+                        <li><button data-onclick="displayCommunity" data-onclick-arg="Kavkazi"
                                 class="text-start text-slate-600 hover:text-[#594176] text-sm w-full py-0.5"
                                 data-en="Kavkazi" data-he="קווקזי">Kavkazi</button></li>
-                        <li><button onclick="displayCommunity('Turkish-Ottoman')"
+                        <li><button data-onclick="displayCommunity" data-onclick-arg="Turkish-Ottoman"
                                 class="text-start text-slate-600 hover:text-[#594176] text-sm w-full py-0.5"
                                 data-en="Turkish-Ottoman" data-he="טורקי-עות׳מאני">Turkish-Ottoman</button></li>
-                        <li><button onclick="displayCommunity('Israeli')"
+                        <li><button data-onclick="displayCommunity" data-onclick-arg="Israeli"
                                 class="text-start text-slate-600 hover:text-[#594176] text-sm w-full py-0.5"
                                 data-en="Israeli" data-he="ישראלי">Israeli</button></li>
                     </ul>
@@ -1109,7 +1109,7 @@
                     </p>
                     <button id="homeParashaQuickLink" type="button"
                         class="home-topic-title text-start font-serif text-3xl sm:text-4xl text-navy leading-tight sm:leading-10 hover:text-[#0f4d67] transition"
-                        onclick="readText('Genesis 1')">Parashat HaShavua</button>
+                        data-onclick="readText" data-onclick-arg="Genesis 1">Parashat HaShavua</button>
                     <p class="mt-3 text-sm text-slate-600 max-w-2xl"
                         data-en="Start from today's anchor text, then branch into side commentaries and related sources."
                         data-he="התחל מטקסט העוגן של היום ואז הסתעף למפרשים צדדיים ולמקורות קשורים.">
@@ -1121,7 +1121,7 @@
                     <section>
                         <p class="home-section-label mb-5" data-en="Library" data-he="ספרייה">Library</p>
                         <div class="space-y-6">
-                            <button type="button" onclick="openLibraryCategory('tanakh')"
+                            <button type="button" data-onclick="openLibraryCategory" data-onclick-arg="tanakh"
                                 class="home-library-link home-link-tanakh text-start w-full">
                                 <span class="home-library-title" data-en="Tanakh" data-he="תנ״ך">Tanakh</span>
                                 <span class="home-library-description"
@@ -1130,7 +1130,7 @@
                                     Nevi'im, and Ketuvim: the foundational text of Jewish learning and life.</span>
                             </button>
 
-                            <button type="button" onclick="openLibraryCategory('mishnah')"
+                            <button type="button" data-onclick="openLibraryCategory" data-onclick-arg="mishnah"
                                 class="home-library-link home-link-mishnah text-start w-full">
                                 <span class="home-library-title" data-en="Mishnah" data-he="משנה">Mishnah</span>
                                 <span class="home-library-description"
@@ -1139,7 +1139,7 @@
                                     rabbinic legal corpus, organized for practical study.</span>
                             </button>
 
-                            <button type="button" onclick="openLibraryCategory('talmud')"
+                            <button type="button" data-onclick="openLibraryCategory" data-onclick-arg="talmud"
                                 class="home-library-link home-link-talmud text-start w-full">
                                 <span class="home-library-title" data-en="Talmud" data-he="תלמוד">Talmud</span>
                                 <span class="home-library-description"
@@ -1148,7 +1148,7 @@
                                     on law, ethics, and scripture around the Mishnah.</span>
                             </button>
 
-                            <button type="button" onclick="openLibraryCategory('halakhah')"
+                            <button type="button" data-onclick="openLibraryCategory" data-onclick-arg="halakhah"
                                 class="home-library-link home-link-halakhah text-start w-full">
                                 <span class="home-library-title" data-en="Halakhah" data-he="הלכה">Halakhah</span>
                                 <span class="home-library-description"
@@ -1166,7 +1166,7 @@
                                     (Edot HaMizrach) siddur in prayer order, with what changes today.</span>
                             </a>
 
-                            <button type="button" onclick="openLibraryCategory('customs')"
+                            <button type="button" data-onclick="openLibraryCategory" data-onclick-arg="customs"
                                 class="home-library-link home-link-customs text-start w-full">
                                 <span class="home-library-title" data-en="Community Customs"
                                     data-he="מנהגים קהילתיים">Community Customs</span>
@@ -1177,7 +1177,7 @@
                                     more.</span>
                             </button>
 
-                            <button type="button" onclick="openLibraryCategory('kabbalah')"
+                            <button type="button" data-onclick="openLibraryCategory" data-onclick-arg="kabbalah"
                                 class="home-library-link home-link-thought text-start w-full">
                                 <span class="home-library-title" data-en="Kabbalah &amp; Thought"
                                     data-he="קבלה ומחשבה">Kabbalah &amp; Thought</span>
@@ -1197,7 +1197,7 @@
                                     <span id="zmanLoc" class="text-xs normal-case tracking-normal text-slate-500 sk-line"
                                         style="display:inline-block;width:4.5rem;height:0.75rem;vertical-align:middle;"></span>
                                     <button id="citySearchBtn" type="button" title="Search by city"
-                                        onclick="openCitySearch()"
+                                        data-onclick="openCitySearch"
                                         class="inline-flex items-center justify-center w-5 h-5 rounded-full border border-[#c8b88a] bg-[#faf5e8] hover:bg-[#f5edce] text-[#4a6a8a] transition hover:border-[#a09060] hover:text-[#1f3f63]"
                                         aria-label="Find location by city">
                                         <span class="contents" aria-hidden="true">{{ phosphor('map-pin', size=12, class='w-3 h-3') }}</span>
@@ -1219,7 +1219,7 @@
                                         class="flex-1 text-sm px-3 py-1.5 rounded-lg border border-[#d7cebc] bg-white focus:outline-hidden focus:border-[#a09060] focus:ring-2 focus:ring-[#d9cdb8]/50"
                                         data-en-placeholder="e.g. Jerusalem, New York..."
                                         data-he-placeholder="לדוגמה: ירושלים, ניו יורק" />
-                                    <button id="citySearchSubmit" type="button" onclick="searchByCity()"
+                                    <button id="citySearchSubmit" type="button" data-onclick="searchByCity"
                                         aria-label="Search city"
                                         class="px-3 py-1.5 rounded-lg bg-[#1f3f63] text-white text-sm font-semibold hover:bg-[#162d4a] transition">
                                         <span class="contents" aria-hidden="true">{{ phosphor('magnifying-glass', size=16, class='h-4 w-4') }}</span>
@@ -1363,7 +1363,7 @@
                                  Rosh Chodesh. A Yom Tov still adjusts when the answer lands. -->
                             <script>(function(){try{var d=new Date(),w=d.getDay(),rc=false;try{var n=Number(new Intl.DateTimeFormat('en-u-ca-hebrew',{day:'numeric'}).format(d));rc=n===1||n===30;}catch(e){}var on=function(id,v){var el=document.getElementById(id);if(el&&v)el.classList.remove('hidden');};on('zRowCandles',w===5);on('zRowMusaf',w===6||rc);on('zRowHavdalah',w===6);}catch(e){}})()</script>
 
-                            <button onclick="openCalendarModal()" class="home-calendar-btn">
+                            <button data-onclick="openCalendarModal" class="home-calendar-btn">
                                 {{ phosphor('calendar-blank', size=16, class='home-calendar-btn__icon') }}
                                 <span data-en="Monthly Holiday Calendar" data-he="לוח חגים חודשי">Monthly Holiday
                                     Calendar</span></button>
@@ -1377,14 +1377,14 @@
                                     <span class="text-slate-500" data-en="Today" data-he="היום">Today</span>
                                     <button type="button" id="holidayName"
                                         class="home-stat-link text-slate-700 text-end max-w-[60%] font-bold"
-                                        onclick="openTodayInCalendar()">Regular Day</button>
+                                        data-onclick="openTodayInCalendar">Regular Day</button>
                                 </div>
                                 <div class="flex justify-between items-center py-1.5 border-b border-slate-100">
                                     <span class="text-slate-500" data-en="This Week's Shabbat" data-he="שבת השבוע">This
                                         Week's Shabbat</span>
                                     <button type="button" id="shabbatWeekName"
                                         class="home-stat-link text-slate-700 text-end max-w-[60%] font-bold"
-                                        onclick="readText('Genesis 1')">--</button>
+                                        data-onclick="readText" data-onclick-arg="Genesis 1">--</button>
                                 </div>
                                 <div id="omerRow"
                                     class="hidden flex justify-between items-center py-1.5 border-b border-slate-100">
@@ -1760,7 +1760,7 @@
                         <span class="flex items-center gap-1"><span class="cal-legend-mark cal-legend-mark--shabbat"
                                 aria-hidden="true"></span><span data-en="Shabbat" data-he="שבת">Shabbat</span></span>
                     </div>
-                    <button onclick="closeCalendarModal()" type="button"
+                    <button data-onclick="closeCalendarModal" type="button"
                         class="w-8 h-8 flex items-center justify-center rounded-full border border-[#c8b88a] bg-white/70 hover:bg-white text-[#566175] hover:text-[#1f3f63] transition"
                         aria-label="Close calendar">
                         <span class="contents" aria-hidden="true">{{ phosphor('x', size=16) }}</span>
@@ -1811,7 +1811,7 @@
         class="fixed inset-0 z-100 bg-slate-900/60 backdrop-blur-xs items-center justify-center p-4 hidden">
         <div
             class="bg-white rounded-2xl shadow-2xl w-full max-w-2xl max-h-[85vh] overflow-hidden flex flex-col relative">
-            <button onclick="closeTextsMenu()" type="button" aria-label="Close"
+            <button data-onclick="closeTextsMenu" type="button" aria-label="Close"
                 class="absolute top-4 right-4 z-10 modal-close-icon-btn"><span class="contents" aria-hidden="true">{{ phosphor('x', size=20) }}</span></button>
 
             <div class="bg-linear-to-r from-navy to-blue-900 text-white px-6 py-4 border-b">
@@ -2464,7 +2464,7 @@
                         data-he="הורד או מחק את הנתונים האישיים המשויכים לחשבונך.">Download or delete the personal
                         data associated with your account.</p>
                 </div>
-                <button id="privacyDataModalCloseBtn" type="button" onclick="closePrivacyDataModal()"
+                <button id="privacyDataModalCloseBtn" type="button" data-onclick="closePrivacyDataModal"
                     class="privacy-close" aria-label="Close">
                     <span class="contents" aria-hidden="true">{{ phosphor('x', size=16) }}</span>
                 </button>
@@ -2478,7 +2478,7 @@
                         data-en="A JSON file with your AI chats, search and reading history, bookmarks, notes, preferences, study memories and AI usage logs."
                         data-he="קובץ JSON עם שיחות הבינה המלאכותית, היסטוריית החיפוש והקריאה, הסימניות, ההערות, ההעדפות, זיכרונות הלימוד ויומני השימוש בבינה מלאכותית שלך.">
                         A JSON file with your AI chats, search and reading history, bookmarks, notes, preferences, study memories and AI usage logs.</p>
-                    <button id="privacyDataExportBtn" type="button" onclick="handlePrivacyDataExport()"
+                    <button id="privacyDataExportBtn" type="button" data-onclick="handlePrivacyDataExport"
                         class="privacy-btn privacy-btn--primary">
                         {{ phosphor('download-simple', size=16) }}
                         <span data-en="Download JSON" data-he="הורד JSON">Download JSON</span>
@@ -2501,9 +2501,9 @@
                         </label>
                         <div class="privacy-confirm__row">
                             <input id="privacyDeleteConfirmInput" type="text" autocomplete="off" spellcheck="false"
-                                autocapitalize="characters" oninput="handlePrivacyDeleteConfirmInput()"
+                                autocapitalize="characters" data-oninput="handlePrivacyDeleteConfirmInput"
                                 class="privacy-input" placeholder="DELETE" />
-                            <button id="privacyDeleteAccountBtn" type="button" disabled onclick="handlePrivacyDeleteAccount()"
+                            <button id="privacyDeleteAccountBtn" type="button" disabled data-onclick="handlePrivacyDeleteAccount"
                                 class="privacy-btn privacy-btn--danger">
                                 <span data-en="Delete account" data-he="מחק חשבון">Delete account</span>
                             </button>
@@ -2994,12 +2994,20 @@
             return out.join('\n').replace(/\n{5,}/g, '\n\n\n\n').trim();
         }
 
+        // DOMPurify keeps data-* attributes by default. static/js/actions.js
+        // turns data-onclick/-oninput into calls to allowlisted functions, so
+        // HTML the model wrote must never be able to carry one (an inline
+        // onclick would have been stripped; a data attribute is not). A
+        // literal, not window.ShelahActions.ATTRIBUTES: that script loads
+        // after this one. tests/test_inline_handlers.py keeps the two equal.
+        const ACTION_ATTRIBUTES = ['data-onclick', 'data-onclick-arg', 'data-onclick-encoding', 'data-oninput'];
+
         function renderAnswerMarkdown(answerText) {
             const raw = normalizeMarkdownSpacing(String(answerText || 'No synthesis available.'));
             if (window.marked && typeof window.marked.parse === 'function') {
                 const html = marked.parse(raw);
                 return (window.DOMPurify && typeof window.DOMPurify.sanitize === 'function')
-                    ? DOMPurify.sanitize(html, { USE_PROFILES: { html: true } })
+                    ? DOMPurify.sanitize(html, { USE_PROFILES: { html: true }, FORBID_ATTR: ACTION_ATTRIBUTES })
                     : html;
             }
 
@@ -8038,7 +8046,7 @@
                 const textAlignClass = isHebrewMode() ? 'text-end' : 'text-start';
                 const refDir = isHebrewMode() ? 'rtl' : 'ltr';
                 return `
-                    <button type="button" onclick="openCommentaryInline(decodeURIComponent('${encoded}'))"
+                    <button type="button" data-onclick="openCommentaryInline" data-onclick-arg="${encoded}" data-onclick-encoding="uri"
                         data-commentary-ref="${escapeHtml(ref)}"
                         dir="${refDir}"
                         class="block w-full ${textAlignClass} px-3 py-2 rounded-sm border border-slate-200 bg-white hover:bg-slate-100 text-sm text-slate-700 transition">
@@ -8353,7 +8361,7 @@
                     <div class="rounded-lg border border-slate-200 bg-white px-3 py-3">
                         <div class="flex items-center justify-between gap-2 mb-2">
                             <p class="text-[11px] uppercase tracking-widest text-slate-500 font-bold">${t('Commentary', 'פירוש')}</p>
-                            <button type="button" onclick="renderSelectionInsightsChooser()"
+                            <button type="button" data-onclick="renderSelectionInsightsChooser"
                                 class="text-[11px] font-semibold text-[#004e5f] hover:underline">
                                 ${t('Back to list', 'חזרה לרשימה')}
                             </button>
@@ -8423,7 +8431,7 @@
                 selectionInsightsBody.innerHTML = `
                     <div class="rounded-lg border border-red-200 bg-red-50 px-3 py-3">
                         <p class="text-sm text-red-700 mb-2">${t('Unable to load commentary text right now.', 'לא ניתן לטעון כרגע את טקסט הפירוש.')}</p>
-                        <button type="button" onclick="renderSelectionInsightsChooser()"
+                        <button type="button" data-onclick="renderSelectionInsightsChooser"
                             class="text-[11px] font-semibold text-[#004e5f] hover:underline">
                             ${t('Back to linked commentaries', 'חזרה למפרשים מקושרים')}
                         </button>
@@ -11194,11 +11202,11 @@
             const progressLabel = `${context.index + 1}/${context.total}`;
 
             const prevButton = context.prev
-                ? `<button onclick="displayPrayer(decodeURIComponent('${encodeURIComponent(context.prev.name)}'))" class="px-3 py-2 bg-slate-100 rounded-sm hover:bg-slate-200 text-slate-700 text-sm font-medium">${t('Previous', 'הקודם')}: ${escapeHtml(getPrayerDisplayName(context.prev.name))}</button>`
+                ? `<button data-onclick="displayPrayer" data-onclick-arg="${encodeURIComponent(context.prev.name)}" data-onclick-encoding="uri" class="px-3 py-2 bg-slate-100 rounded-sm hover:bg-slate-200 text-slate-700 text-sm font-medium">${t('Previous', 'הקודם')}: ${escapeHtml(getPrayerDisplayName(context.prev.name))}</button>`
                 : '<span></span>';
 
             const nextButton = context.next
-                ? `<button onclick="displayPrayer(decodeURIComponent('${encodeURIComponent(context.next.name)}'))" class="px-3 py-2 bg-slate-100 rounded-sm hover:bg-slate-200 text-slate-700 text-sm font-medium">${t('Next', 'הבא')}: ${escapeHtml(getPrayerDisplayName(context.next.name))}</button>`
+                ? `<button data-onclick="displayPrayer" data-onclick-arg="${encodeURIComponent(context.next.name)}" data-onclick-encoding="uri" class="px-3 py-2 bg-slate-100 rounded-sm hover:bg-slate-200 text-slate-700 text-sm font-medium">${t('Next', 'הבא')}: ${escapeHtml(getPrayerDisplayName(context.next.name))}</button>`
                 : '<span></span>';
 
             return `
@@ -11241,7 +11249,7 @@
                 const name = community.name || '';
                 const label = getCommunityDisplayName(name);
                 const encodedName = encodeURIComponent(name);
-                html += `<button onclick="displayCommunity(decodeURIComponent('${encodedName}'))" class="block w-full text-start px-3 py-2 rounded-sm hover:bg-[#594176]/10 transition text-slate-700 hover:text-[#594176]">${escapeHtml(label)}</button>`;
+                html += `<button data-onclick="displayCommunity" data-onclick-arg="${encodedName}" data-onclick-encoding="uri" class="block w-full text-start px-3 py-2 rounded-sm hover:bg-[#594176]/10 transition text-slate-700 hover:text-[#594176]">${escapeHtml(label)}</button>`;
             });
             list.innerHTML = html;
             list.setAttribute('aria-busy', 'false');
@@ -12701,7 +12709,7 @@
                     linkEl.dataset.he = titleHe;
                     linkEl.textContent = isHebrewMode() ? titleHe : titleEn;
                     linkEl.title = openTip;
-                    linkEl.onclick = () => readText(ref);
+                    linkEl.setAttribute('data-onclick-arg', ref);
                 };
 
                 applyToElement(quickLink);
@@ -12715,7 +12723,7 @@
                 // like the two quick links above.
                 if (shabbatWeekLink) {
                     shabbatWeekLink.title = openTip;
-                    shabbatWeekLink.onclick = () => readText(ref);
+                    shabbatWeekLink.setAttribute('data-onclick-arg', ref);
                 }
             };
 
@@ -12876,7 +12884,7 @@
                             ? localizeLooseHebrewPhrase(getHebrewStaticLabel(t.description) || t.description)
                             : t.description;
                         html += `
-                        <button onclick="readText(decodeURIComponent('${encodedRef}'))"
+                        <button data-onclick="readText" data-onclick-arg="${encodedRef}" data-onclick-encoding="uri"
                             dir="${isHebrewMode() ? 'rtl' : 'ltr'}"
                             class="${alignClass} p-3 rounded-sm border border-[#ddd4c3] hover:border-[${color}] hover:shadow-xs transition group bg-[#fffaf1]">
                             <div class="font-hebrew text-lg text-slate-700 group-hover:text-[${color}]">${escapeHtml(hebrewHeading)}</div>
@@ -14496,6 +14504,15 @@
         }
         window.hydrateRoute = hydrateRoute;
     </script>
+    <!-- Delegated data-onclick / data-oninput dispatcher (replaces inline
+         onclick="..."; the CSP forbids those). It must come AFTER the inline
+         script above: its click listener is registered on `document` in the
+         capture phase, and capture listeners run in registration order. The
+         script above registers the one that records the clicked control
+         (markTriggerPending reads it), and an inline onclick used to run after
+         every capture listener, so this one has to as well.
+         tests/test_inline_handlers.py pins the order. -->
+    <script src="/static/js/actions.js?v=20261003-a1"></script>
     <!-- Motion One / motion.dev vanilla animation engine — static/js/motion.js wraps
          this as window.Motion; degrades gracefully to instant state-changes if this
          CDN script fails to load (see motion.js's _motionAnimate() fallback). -->

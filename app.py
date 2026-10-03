@@ -55,6 +55,7 @@ from backend.customs import (  # noqa: F401  (re-import shims; see below)
 )
 # Re-export shim, consumed by routes_devtools.py's `from app import api_health`.
 from backend.health_check import health as api_health  # noqa: F401
+from backend.csp import content_security_policy_for
 from backend.helpers import extract_ai_cited
 from backend.helpers import (
     _sanitize_answer_mode,
@@ -1158,11 +1159,16 @@ def log_request_completion(response):
 def apply_response_cache_policy(response):
     path = request.path or ""
 
+    # The Content-Security-Policy is per response: an HTML page's own inline
+    # <script> blocks are admitted by hash (backend/csp.py), computed from the
+    # body being sent. Set before the loop below so its setdefault leaves it.
+    response.headers["Content-Security-Policy"] = content_security_policy_for(response)
+
     # Security headers for every response — single source of truth is
     # backend.helpers.SECURITY_RESPONSE_HEADERS (also applied by asgi.py's
     # request_id_middleware for native FastAPI routes like /ask that bypass
-    # this Flask app entirely; see that constant's docstring for the CSP
-    # 'unsafe-inline' rationale).
+    # this Flask app entirely; the CSP value there is the no-inline-script
+    # default that those JSON routes need).
     for header_name, header_value in SECURITY_RESPONSE_HEADERS.items():
         response.headers.setdefault(header_name, header_value)
 

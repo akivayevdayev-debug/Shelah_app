@@ -12,10 +12,24 @@ The shell is migrating, one feature at a time, from its inline classic `<script>
 
 1. **No-flash bootstraps** (tiny inline scripts, run before first paint): theme (`data-theme` and `theme-dark` on `<html>`, from `localStorage["Sh'elahPrefs"].theme`, falling back to `prefers-color-scheme`), view transitions (`shelah.viewTransitions`), language and direction (`?lang=`, then the saved preference, then Hebrew by default for an Asia/Jerusalem time zone), a `auth-likely-in` class from the Clerk `__client_uat` cookie, and a `data-cold-view` flag for deep links to a text, prayer, community or history page so the shell shows a skeleton instead of the home grid.
 2. **Third-party scripts, each pinned** (SRI hash where the host allows it): Sentry browser bundle, `marked`, `DOMPurify` and FullCalendar from jsDelivr, DaisyUI's stylesheet, Clerk (publishable key from the server), Cloudflare Turnstile, `motion` (vanilla `animate()`), Vercel Speed Insights. The CSP that allows exactly these hosts is in `docs/SECURITY.md` §3.
-3. **Classic helper scripts** that expose window globals the inline script reads: `sentry-init.js`, `topbar_shared.js`, `hebrew-ref.js`, `community-labels.js`, `load-region.js`, `clerk-appearance.js`.
+3. **Classic helper scripts** that expose window globals the inline script reads: `sentry-init.js`, `topbar_shared.js`, `hebrew-ref.js`, `community-labels.js`, `load-region.js`, `clerk-appearance.js`. `actions.js` loads separately, **after** the big inline script (see "Click handlers" below).
 4. **The import map** (`module_import_map`, built by `backend/module_versions.py`): each module's plain URL (`/static/js/router.js`) maps to `/static/js/router.js?v=<12-char sha256 of its bytes>`. A changed module is a new URL and an unchanged one keeps its cached copy, so a CDN or service-worker cache can never hand a new `main.js` an old `router.js`. The entry `<script type="module">` tags (`motion.js`, `calendar-detail.js`, `main.js`) use `module_url(name)` for the same URL, so a module that is both an entry and an import runs once. Classic scripts (no top-level `import`/`export`) are not in the map; they carry a hand-bumped `?v=` query instead.
 
 Stylesheets load in this order (tokens first, always): `tokens.css`, `style.css`, `typography.css`, `reader.css`, `sidebar.css`, `halacha.css`, `prayer.css`, `siddur.css`, `ai.css`, `conversation.css`, `history.css`, `calendar.css`, `calendar-detail.css`, `loading.css`, `tailwind.css`. The legal pages use `legal.css` through `templates/components/legal_*.html`.
+
+### Click handlers
+
+There are no inline event-handler attributes: the Content-Security-Policy forbids them (`script-src-attr 'none'`, `docs/SECURITY.md` §3), and `tests/test_inline_handlers.py` fails the build on one. A button that calls a global function says so with data attributes:
+
+```html
+<button type="button" data-onclick="readText" data-onclick-arg="Genesis 1">
+<button type="button" data-onclick="goHome">
+<input data-oninput="handlePrivacyDeleteConfirmInput">
+```
+
+For an argument built from text at runtime, write it with `encodeURIComponent()` and add `data-onclick-encoding="uri"`; the dispatcher decodes it. HTML built in a JS template string follows the same rules. To make a new function callable this way, add its name to `ACTIONS` in `static/js/actions.js` (sorted; the list is a security boundary, and a test fails on a name that is not used or not defined). Code that wants a different target later changes the attribute, as `loadParashaQuickLink` does with `data-onclick-arg`; assigning `el.onclick = ...` on such an element would run both.
+
+`actions.js` loads after the big inline script on purpose. Its listener is a capture-phase listener on `document`, and those run in registration order; the inline script registers the one that records the clicked control, which `markTriggerPending` reads, and an inline `onclick` always ran after every capture listener. The legal pages load it from `components/legal_scripts.html`.
 
 ### Page zones in `index.html`
 
@@ -44,6 +58,7 @@ Other templates: `404`, `about`, `acceptable-use`, `accessibility`, `ai-disclosu
 | `main.js` | Imports the modules above, installs the router and conversation UI, exposes the bridges, calls `hydrateRoute(readRoute())` once |
 | `load-region.js` (classic) | One loading/failure/retry contract for every async region (section 7). `window.ShelahLoadRegion` |
 | `topbar_shared.js`, `hebrew-ref.js`, `community-labels.js` (classic) | Shared topbar helpers (also used by the legal pages), Hebrew numerals and verse-accurate parashah lookup, Hebrew names for the community-customs data |
+| `actions.js` (classic) | The click/input dispatcher that replaced inline `onclick=`: reads `data-onclick` / `data-onclick-arg` / `data-onclick-encoding` / `data-oninput`, resolves the name against a closed allowlist, calls the global function. `window.ShelahActions` |
 | `sentry-init.js` (classic) | Sentry browser init with the privacy and quota rules (drops ResizeObserver noise, scrubs PII); its `/api/client-errors` companion is in `reader-ui.js` |
 | `clerk-appearance.js` (classic) | Builds Clerk's `appearance` from the live tokens for the active theme (Clerk wants concrete colours, not `var(--token)`) |
 

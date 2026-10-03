@@ -2,7 +2,7 @@
 <header role="banner"
     class="topbar sticky top-0 z-200 bg-white text-slate-800 py-1.5 px-2 lg:py-1.5 lg:px-3 shadow-xs border-b flex flex-wrap lg:flex-nowrap justify-between items-center shrink-0 gap-1.5 lg:gap-2">
     <button type="button" id="brandHomeBtn" class="topbar-brand flex items-center gap-1.5 shrink-0"
-        aria-label="Go to home" onclick="goHome()">
+        aria-label="Go to home" data-onclick="goHome">
         <span class="text-navy font-hebrew topbar-brand-icon font-semibold leading-tight">
             ש
         </span>
@@ -62,9 +62,9 @@
         </div>
 
         <!-- Translator Toggles -->
-        <button onclick="toggleLanguage('en')" class="hidden lg:inline-flex topbar-flat-btn font-serif lang-btn"
+        <button data-onclick="toggleLanguage" data-onclick-arg="en" class="hidden lg:inline-flex topbar-flat-btn font-serif lang-btn"
             data-lang="en">English</button>
-        <button onclick="toggleLanguage('he')" class="hidden lg:inline-flex topbar-flat-btn font-hebrew lang-btn"
+        <button data-onclick="toggleLanguage" data-onclick-arg="he" class="hidden lg:inline-flex topbar-flat-btn font-hebrew lang-btn"
             data-lang="he">עברית</button>
         <button id="mobileLangToggle" type="button" class="lg:hidden topbar-flat-btn" data-en="עברית"
             data-he="English">עברית</button>

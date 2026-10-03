@@ -163,8 +163,9 @@ operator 2026-09-16.**
 
 ## 3. CSP / security headers
 
-`backend/helpers.py::SECURITY_RESPONSE_HEADERS` is the single source of truth,
-applied to every route on both transports (Flask `@app.after_request` and the
+`backend/helpers.py::SECURITY_RESPONSE_HEADERS` is the single source of truth
+(the CSP string itself is built in `backend/csp.py`), applied to every route on
+both transports (Flask `@app.after_request` and the
 native FastAPI `/ask` route in `asgi.py`, which bypasses the Flask/WSGI mount
 entirely):
 
@@ -183,14 +184,36 @@ entirely):
   browsers, can introduce vulnerabilities in old ones).
 - `'unsafe-eval'` is **not** present (resolved when the Tailwind CDN JIT
   compiler was replaced with a committed build, `static/css/tailwind.css`).
-- **`'unsafe-inline'` is still present** in `script-src`/`style-src`. Moving to
-  a nonce-based CSP was evaluated (decided 2026-08-15) and deliberately
-  deferred: `templates/index.html` still has 112 inline `onclick=` handlers and
-  40 inline `style=` attributes (counted 2026-10-02), and CSP2+ browsers drop
-  `'unsafe-inline'` entirely once a nonce is present, so a partial change
-  breaks every handler on the page. The real blocker is that markup refactor
-  (`onclick` → `addEventListener`, `style=` → classes), not the header. It is
-  tracked as an open item (§13).
+- **`script-src` has no `'unsafe-inline'`** (since 2026-10-03). The page's own
+  inline `<script>` blocks are admitted by SHA-256 hash, computed per response
+  from the HTML actually being sent (`backend/csp.py`, applied in Flask's
+  `after_request`). A nonce would not work: the HTML shell is cached at the CDN
+  (`public, max-age=300`), and a cached nonce is shared by every visitor. A hash
+  is a property of the bytes, so the cached header and the cached body stay in
+  step. Inline event-handler attributes are gone: markup uses `data-onclick` /
+  `data-oninput`, which `static/js/actions.js` dispatches from a closed
+  allowlist of 20 function names, and `script-src-attr 'none'` makes the
+  browser refuse any that are added back. Native FastAPI routes and non-HTML
+  responses get the policy with no hashes at all.
+  - `DOMPurify` is told to forbid the four `data-onclick*` / `data-oninput`
+    attributes in model-written HTML (it keeps `data-*` by default), so an
+    answer cannot carry a button that calls an allowlisted function.
+  - Guards: `tests/test_inline_handlers.py` fails the build on an inline
+    handler (including ones built in JS template strings), a `javascript:` URL,
+    or a `data-onclick` naming something off the allowlist;
+    `tests/test_csp.py` checks every rendered page's hash list against an
+    independent HTML parser, so a mismatch fails in CI instead of silently
+    blocking a bootstrap script in browsers (CSP blocks are invisible to curl).
+  - What it costs: editing an inline script changes its hash, which is
+    automatic, but anything that injects script into the page at runtime (a new
+    third-party snippet, a browser extension's page-world script) is blocked and
+    shows only in the browser console.
+- **`style-src` still has `'unsafe-inline'`.** About 70 `style=` attributes,
+  4 `<style>` blocks, and the styles Clerk and FullCalendar inject at runtime
+  depend on it, and CSP2+ browsers drop `'unsafe-inline'` once a nonce or hash is
+  present, so it cannot be tightened piecemeal. Open item (§13). It is the
+  smaller risk: injected CSS cannot run code, and `default-src`, `connect-src`,
+  `img-src` and `frame-src` limit what it can reach.
 
 ## 4. Supply chain
 
@@ -700,8 +723,9 @@ Items needing a human decision or an operator action, collected in one place:
 - **Git-history residual exposures** (§1): `refs/pull/2/head`–`5/head` and
   hash-addressable old commits still reachable on GitHub; needs a GitHub
   Support request.
-- **CSP `'unsafe-inline'`** (§3): blocked on refactoring 112 inline `onclick=`
-  handlers and 40 `style=` attributes before a nonce-based policy is possible.
+- **CSP `style-src 'unsafe-inline'`** (§3): about 70 `style=` attributes, 4
+  `<style>` blocks and the runtime styles Clerk and FullCalendar inject have to
+  move to classes or hashes first. The script half was done 2026-10-03.
 - **Backups** (§9): the Supabase Free plan has no automated backups or PITR;
   upgrade, or schedule the manual dump.
 - **Turnstile** (§8) is provisioned but off in production (both keys are set,

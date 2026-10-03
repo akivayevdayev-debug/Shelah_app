@@ -23,6 +23,7 @@ from flask import request as _flask_request
 # backend/utils/text_engine.py (backend refactor) —
 # re-imported here to avoid the divergent-duplicate constants that previously
 # existed in both files.
+from backend.csp import DEFAULT_CONTENT_SECURITY_POLICY
 from backend.utils.text_engine import HEBREW_DIACRITICS_RE, RABBI_FINAL_RULING_FOOTER
 # Backend refactor: HEBREW_WORD_GLOSSARY, _translate_text_google,
 # _translate_text_mymemory, _is_translation_echo, and _extract_google_translated_text
@@ -74,18 +75,12 @@ def _is_same_origin_request() -> bool:
 # audit P2 — headers previously only covered the Flask-routed half of the
 # app). Defined once here so the two transports can't drift out of sync.
 #
-# NOTE: a nonce-based, 'unsafe-inline'-free CSP is
-# NOT a simple rewrite here — templates/index.html has 112 inline onclick=
-# handlers and 43 inline style= attributes (verified 2026-08-01). Nonces only
-# cover <script>/<style> BLOCKS, not inline event-handler or style
-# attributes — adding a nonce to script-src/style-src makes CSP2+ browsers
-# drop 'unsafe-inline' entirely (per spec), which would break every onclick
-# handler and inline style on the page. The real blocker is that refactor
-# (onclick -> addEventListener, style= -> classes), not the Tailwind CDN JIT
-# compiler this comment used to cite — that part was already resolved
-# (Tailwind is a prebuilt static/css/tailwind.css now, see package.json's
-# build:css). DECISIONS.md records the options and why this isn't done
-# inline here.
+# The Content-Security-Policy is built in backend/csp.py: script-src has no
+# 'unsafe-inline' (inline scripts are admitted by hash, inline event handlers
+# are refused outright). The value below is the default for responses that are
+# not an HTML document with inline scripts; app.py's after_request replaces it
+# per HTML response with the hashes of that page's own scripts. style-src still
+# allows 'unsafe-inline' -- see backend/csp.py and docs/SECURITY.md.
 SECURITY_RESPONSE_HEADERS = {
     "X-Frame-Options": "SAMEORIGIN",
     "X-Content-Type-Options": "nosniff",
@@ -102,42 +97,7 @@ SECURITY_RESPONSE_HEADERS = {
     # HSTS: force HTTPS on every subsequent visit. Vercel terminates TLS in
     # front of this app, so this is safe to set unconditionally.
     "Strict-Transport-Security": "max-age=63072000; includeSubDomains; preload",
-    "Content-Security-Policy": (
-        "default-src 'self'; "
-        "script-src 'self' 'unsafe-inline' "
-        "https://cdn.jsdelivr.net "
-        "https://js.clerk.com https://clerk.com "
-        "https://challenges.cloudflare.com "
-        "https://browser.sentry-cdn.com; "
-        "worker-src 'self' blob:; "
-        "style-src 'self' 'unsafe-inline' "
-        "https://cdn.jsdelivr.net https://fonts.googleapis.com; "
-        "font-src 'self' data: https://fonts.gstatic.com; "
-        "img-src 'self' data: https:; "
-        # clerk.shelah.org: this project's custom Clerk Frontend API domain
-        # (Clerk Dashboard -> Domains). Without this, every ClerkJS
-        # fetch() -- sign-in, sign-up, session refresh -- is silently
-        # blocked by the browser's CSP before it leaves the page, since the
-        # publishable key routes ClerkJS at the custom domain, not the
-        # *.clerk.accounts.dev default already allowlisted below. Found via
-        # 2026-08-24 incident: CSP blocks are invisible to curl (which
-        # doesn't enforce CSP), so server-side probes looked healthy while
-        # every real browser failed identically.
-        "connect-src 'self' https://clerk.com https://*.clerk.accounts.dev "
-        "https://clerk.shelah.org "
-        "https://api.clerk.com https://clerk-telemetry.com "
-        "https://challenges.cloudflare.com "
-        "https://o4511830797975553.ingest.us.sentry.io; "
-        # frame-src: Clerk's Bot Sign-up Protection renders a Cloudflare
-        # Turnstile challenge in an iframe. With no frame-src directive this
-        # fell back to default-src 'self', blocking the iframe outright --
-        # confirmed live via a direct API probe returning
-        # "code":"captcha_missing_token" for a request with no token.
-        "frame-src https://challenges.cloudflare.com; "
-        "frame-ancestors 'none'; "
-        "base-uri 'self'; "
-        "form-action 'self';"
-    ),
+    "Content-Security-Policy": DEFAULT_CONTENT_SECURITY_POLICY,
 }
 
 # ── Answer-mode & source-attribution constants ────────────────────────────────

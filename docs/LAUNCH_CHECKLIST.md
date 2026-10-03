@@ -139,9 +139,9 @@ The full engineering review is [`docs/SECURITY.md`](SECURITY.md). Summary:
   `study_bookmarks` and `user_memories`, and the token diagnostic read
   `aud='authenticated'`.
 - **CSP, SRI, pinned dependencies, secret scanning — ✅ Done.** See
-  `docs/SECURITY.md` §3 and §4. `'unsafe-inline'` remains in the script and
-  style policies (inline `onclick` and `style=` attributes) and is tracked
-  as an open item.
+  `docs/SECURITY.md` §3 and §4. The script policy has no `'unsafe-inline'`
+  (inline scripts are admitted by hash). `'unsafe-inline'` remains in the style
+  policy (inline `style=` attributes) and is tracked as an open item.
 - **Authentication and authorization review — ✅ Done**
   (`docs/SECURITY.md` §6). `CLERK_AUDIENCE` is set in production.
 - **Anonymous asking — ✅ deliberate (operator decision, confirmed
