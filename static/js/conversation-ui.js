@@ -457,7 +457,7 @@ function fetchSourceText(ref) {
             })
             .catch(() => null);
         // A failed fetch is not cached, so reopening the preview retries it.
-        request.then((payload) => { if (!payload) ui.previews.delete(ref); });
+        void request.then((payload) => { if (!payload) ui.previews.delete(ref); });
         ui.previews.set(ref, request);
     }
     return ui.previews.get(ref);
@@ -1735,7 +1735,7 @@ function installSheetSwipe() {
         }
         const M = motion();
         const controls = M?.springAnimate?.(els.panel, { transform: [`translateY(${dy}px)`, "translateY(0px)"] }, M.APPLE_SPRING?.snappy);
-        if (controls) Promise.resolve(controls).finally(() => els.panel.style.removeProperty("transform"));
+        if (controls) void Promise.resolve(controls).finally(() => els.panel.style.removeProperty("transform"));
         else els.panel.style.removeProperty("transform");
     };
     [els.grabber, els.header].forEach((el) => {

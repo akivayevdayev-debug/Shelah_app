@@ -101,7 +101,7 @@ function initModules() {
     installGlobalErrorBoundary();
     installSemanticBookmarking();
     installDailyPrewarm();
-    installZmanim(buildZmanimDeps());
+    void installZmanim(buildZmanimDeps());
 
     window.ShelahModules = {
         askAi,

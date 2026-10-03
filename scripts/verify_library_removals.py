@@ -135,34 +135,24 @@ def run(report: Dict[str, Any], session, workers: int = 16,
     return build_payload(report, results, now())
 
 
-def _within_repo(path: Path) -> Path:
-    """Resolve a CLI-supplied path and reject one that escapes REPO_ROOT
-    (SonarCloud python-security:S8707) -- this script's --report/--output
-    are meant to point inside reports/, never at an arbitrary filesystem
-    path a caller (human or agent) might pass."""
-    resolved = path.resolve()
-    if resolved != REPO_ROOT and REPO_ROOT not in resolved.parents:
-        raise ValueError(f"path escapes the repo root ({REPO_ROOT}): {resolved}")
-    return resolved
-
-
-def main(argv: Optional[List[str]] = None, session=None) -> int:
+def main(argv: Optional[List[str]] = None, session=None, *,
+         report_path: Path = REPORT_PATH, output_path: Path = OUT_PATH) -> int:
+    # The files this reads and writes are fixed (REPORT_PATH, OUT_PATH): the
+    # command line takes no paths, so nothing a caller types can steer a read
+    # or a write outside reports/. report_path/output_path are for the tests,
+    # which point them at a temporary directory.
     parser = argparse.ArgumentParser(description=__doc__.split("\n\n")[0])
-    parser.add_argument("--report", type=Path, default=REPORT_PATH)
-    parser.add_argument("--output", type=Path, default=OUT_PATH)
-    args = parser.parse_args(argv)
-    args.report = _within_repo(args.report)
-    args.output = _within_repo(args.output)
+    parser.parse_args(argv)
 
-    report = json.loads(args.report.read_text(encoding="utf-8"))
+    report = json.loads(report_path.read_text(encoding="utf-8"))
     if session is not None:
         payload = run(report, session)
     else:
         with requests.Session() as owned_session:
             payload = run(report, owned_session)
-    args.output.write_text(json.dumps(payload, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+    output_path.write_text(json.dumps(payload, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
     stats = payload["stats"]
-    print(f"{stats['reinstated']} of {stats['removals']} removals reinstated -> {args.output}")
+    print(f"{stats['reinstated']} of {stats['removals']} removals reinstated -> {output_path}")
     return 0
 
 

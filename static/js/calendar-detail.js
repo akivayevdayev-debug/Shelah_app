@@ -141,8 +141,8 @@ function bind() {
     closeBtn = dialog.querySelector('.cal-detail__close');
     gripEl = dialog.querySelector('.cal-detail__drag');
 
-    dialog.addEventListener('cancel', (e) => { e.preventDefault(); close(); });      // Escape
-    dialog.addEventListener('click', (e) => { if (e.target === dialog || e.target === scrim) close(); });
+    dialog.addEventListener('cancel', (e) => { e.preventDefault(); void close(); });      // Escape
+    dialog.addEventListener('click', (e) => { if (e.target === dialog || e.target === scrim) void close(); });
     closeBtn.addEventListener('click', () => close());
     backBtn.addEventListener('click', () => showDay({ swap: true }));
     window.addEventListener('resize', () => { if (state.open && state.mode === 'popover') placePopover(); });
@@ -643,7 +643,7 @@ function followAnchor() {
     const tick = () => {
         followRaf = 0;
         if (!state.open || state.closing || state.mode !== 'popover') return;
-        if (!state.anchor?.isConnected) { close({ immediate: true }); return; }
+        if (!state.anchor?.isConnected) { void close({ immediate: true }); return; }
         const r = state.anchor.getBoundingClientRect();
         const box = `${r.left}|${r.top}|${r.width}|${r.height}|${window.innerWidth}|${window.innerHeight}`;
         if (last && box !== last) placePopover();
@@ -792,7 +792,7 @@ function dragEnd() {
     // Where the gesture is *going*, not where the finger let go.
     const projected = state.y + (velocity / 1000) * DECELERATION / (1 - DECELERATION);
     if (projected > height * 0.5) {
-        close({ velocity });
+        void close({ velocity });
         return;
     }
     scrim.style.transition = '';
@@ -870,7 +870,7 @@ function open({ anchor, dateKey, events = [], allEvents = events, event = null, 
     panel.style.left = ''; panel.style.top = '';
 
     const start = event ?? (events.length === 1 ? events[0] : null);
-    if (start) showEvent(start); else showDay();
+    if (start) void showEvent(start); else void showDay();
 
     state.open = true;
     state.closing = false;

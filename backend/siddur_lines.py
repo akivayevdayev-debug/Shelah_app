@@ -181,7 +181,7 @@ def _render_nodes(nodes) -> str:
 # iterations -- SonarCloud python:S8786 flagged the old \s*<br> ordering as
 # superlinear on pathological input (the caller's trailing .strip() makes
 # the two forms produce the same final text either way).
-_EDGE_BR_RE = re.compile(r"^\s*(?:<br>\s*)+|(?:<br>\s*)+$")
+_EDGE_BR_RE = re.compile(r"(?:^\s*(?:<br>\s*)+)|(?:(?:<br>\s*)+$)")
 
 
 def _render(nodes) -> str:

@@ -640,7 +640,7 @@ function showZmanimLoadError(location, deps) {
         retryBtn.textContent = deps.t ? deps.t('Retry', 'נסה שוב') : 'Retry';
         retryBtn.addEventListener('click', () => {
             clearZmanimLoadError();
-            fetchZmanimAPI(location, deps);
+            void fetchZmanimAPI(location, deps);
         });
 
         warningEl.append(msg, retryBtn);
@@ -666,7 +666,7 @@ function refetchWhenBack(location, deps) {
         document.removeEventListener('visibilitychange', onVisible);
         if (!document.getElementById('zmanimWarning')?.dataset.zmanimLoadError) return;
         clearZmanimLoadError();
-        fetchZmanimAPI(location, deps);
+        void fetchZmanimAPI(location, deps);
     };
     const onVisible = () => {
         if (document.visibilityState === 'visible') retry();
@@ -685,7 +685,7 @@ function scheduleZmanimRetry(location, deps) {
     zmanimRetryAttempts += 1;
     zmanimRetryTimer = setTimeout(() => {
         zmanimRetryTimer = null;
-        fetchZmanimAPI(location, deps);
+        void fetchZmanimAPI(location, deps);
     }, delay);
 }
 
