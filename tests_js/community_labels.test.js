@@ -47,22 +47,51 @@ test('sourceList() names each comma-separated source, keeping unknown ones', () 
     assert.equal(labels.sourceList('', 'he'), '');
 });
 
-test('every category, topic and source in customs/*.json has a Hebrew name', () => {
+test('every category in customs/*.json has a Hebrew name', () => {
+    // Topic titles are free-form research headings and fall back to the English;
+    // the categories are the fixed set the page groups and titles by.
     const dir = path.join(__dirname, '..', 'customs');
     const missing = new Set();
     for (const file of fs.readdirSync(dir)) {
         if (!file.endsWith('.json') || file === 'schema.json' || file === 'customs_db.json') continue;
         const data = JSON.parse(fs.readFileSync(path.join(dir, file), 'utf8'));
         for (const item of data.halacha_index || []) {
-            for (const text of [item.category, item.topic]) {
-                if (text && !labels.he(text)) missing.add(text);
-            }
-            for (const part of String(item.source || '').split(',')) {
-                if (part.trim() && !labels.he(part)) missing.add(part.trim());
-            }
+            if (item.category && !labels.he(item.category)) missing.add(item.category);
         }
     }
     assert.deepEqual([...missing], []);
+});
+
+test('an unknown topic shows as written in the Hebrew UI', () => {
+    assert.equal(labels.label('Hazarat HaShatz', 'he'), 'Hazarat HaShatz');
+    assert.equal(labels.sourceList("Magen Avot, 'Half Kaddish'", 'he'), "Magen Avot, 'Half Kaddish'");
+});
+
+test('confidence() gives a chip label and hint for entries to weigh, in either language', () => {
+    assert.deepEqual(labels.confidence('disputed', 'en'), {
+        key: 'disputed',
+        label: 'Disputed',
+        hint: 'Rabbis and sources differ on this.',
+        note: 'Rabbis differ on this. Each rabbi gives their own answer, so ask your own rabbi.',
+    });
+    assert.equal(labels.confidence('disputed', 'he').label, 'שנוי במחלוקת');
+    assert.equal(labels.confidence('regional', 'he').label, 'מקומי');
+    assert.equal(labels.confidence('needs-review', 'en').label, 'Needs review');
+    assert.equal(labels.confidence('Needs_Review', 'en').key, 'needs-review');
+    assert.equal(labels.confidence('needs-review', 'fr').label, 'Needs review');
+});
+
+test('every confidence note sends the reader to their own rabbi, in either language', () => {
+    for (const key of ['disputed', 'regional', 'needs-review']) {
+        assert.match(labels.confidence(key, 'en').note, /your own rabbi/, key);
+        assert.match(labels.confidence(key, 'he').note, /שאלו את הרב שלכם/, key);
+    }
+});
+
+test('confidence() shows no chip for well-attested or unrecognised values', () => {
+    for (const value of ['well-attested', '', null, undefined, 'constructor', '__proto__', 'bogus']) {
+        assert.equal(labels.confidence(value, 'en'), null, String(value));
+    }
 });
 
 test('attaches to window when loaded as a classic script', () => {

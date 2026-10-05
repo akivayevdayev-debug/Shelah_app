@@ -19,7 +19,7 @@ What each script does and what it needs. [`README.md`](README.md) classifies the
 |---|---|
 | `build_siddur.py` | Builds `data/siddur/edot-hamizrach/` from the public Sefaria-Export bucket: the schema, the Hebrew text and the English community translation, each version checked as CC0 or Public Domain, every line typed by `backend/siddur_lines.py`. Re-run when the export or the script's curated table of contents changes, and commit the output |
 | `generate_glossary_json.py` | Builds `static/data/glossary.json` from the same lexicon lookup the AI and the reader's word lookup use (`backend.helpers._lookup_hebrew_word_meaning`), accepting a result only if it is a real lexicon hit and otherwise using the curated fallback gloss. A build-time step, not a per-request fan-out |
-| `migrate_customs_to_supabase.py` | Seeds Supabase `community_knowledge` from `customs/*.json` with deterministic upserts (`--dry-run`, `--community <name>`) |
+| `migrate_customs_to_supabase.py` | Seeds Supabase `community_knowledge` from `customs/*.json` with deterministic upserts (`--dry-run`, `--community <lens key>`, `--prune`, `--emit-sql <dir>`) |
 | `crawl_library_leaves.py` | Re-crawls the Sefaria library tree and regenerates `reports/library_leaf_remove_fix_report.full.json`. Slow; the output is committed |
 | `generate_database_doc.py` | Regenerates `docs/DATABASE.md` from the live Supabase schema once `sql/introspect_schema.sql` has been applied; `--check` diffs the committed file against the live schema. Needs live credentials |
 

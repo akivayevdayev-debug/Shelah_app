@@ -1,441 +1,984 @@
 {
-  "version": "2.0",
+  "version": "3.0",
   "type": "academic_halachic_reference",
   "heritage_id": "sephardi",
   "name": "Sephardi",
   "aliases": [
     "Sefardi",
-    "Sephardic Jews"
+    "Sephardic Jews",
+    "Sephardim",
+    "Sefaradim",
+    "Edot HaMizrach (in Israeli usage)",
+    "Spanish and Portuguese Jews (Western subgroup)",
+    "Kahal Kadosh Sefaradim"
   ],
   "database_scope": {
-    "purpose": "Academic and halachic reference database for Sephardi heritage, minhagim, and halachic practice.",
-    "coverage_note": "This file models broad Sephardi practice and includes common halachic domains. Local customs may differ by city, family, rabbinic lineage, and diaspora community.",
-    "classification_note": "Sephardi halacha is commonly organized around the Shulchan Aruch and later Sephardi authorities."
+    "purpose": "Sourced reference for Sephardi minhagim and halachic practice. It records what the cited sources say, with a confidence level for each entry, and is not a psak.",
+    "coverage_note": "26 sourced topics and 5 distinctive customs, compiled from the cited sources in October 2026. Each entry carries a confidence level (well-attested, disputed, regional, needs-review). 19 topics have no community-specific source and are listed under 'gaps' rather than filled with generic text."
   },
   "identity": {
-    "primary_origin": "Iberian Jewish civilization before and after the 1492 expulsion from Spain",
+    "primary_origin": "The Iberian Peninsula (Spain and Portugal), before the expulsions of the 1490s",
     "secondary_centers": [
-      "Ottoman Empire",
-      "North Africa",
-      "Balkans",
-      "Levant",
-      "Italy",
-      "Western Europe",
-      "North and South America"
-    ],
-    "cultural_profile": [
-      "Strong text-based halachic tradition",
-      "Local minhagim preserved by city and family",
-      "Integration of rabbinic rulings with communal custom",
-      "Prayer rites shaped by regional migration history"
+      "Safed, where the Shulchan Aruch was composed in 1563",
+      "Western Sephardi centres: Amsterdam, London (Bevis Marks) and New York (Shearith Israel, founded 1654)",
+      "The Ottoman lands, Syria, Iraq and North Africa",
+      "Jerusalem",
+      "Israel"
     ]
   },
   "languages": [
-    "Hebrew",
-    "Ladino",
-    "Judeo-Spanish",
-    "Arabic in some communities",
-    "Turkish in some communities",
-    "French in some communities"
+    "Judeo-Spanish: for example the 'Morir habemos' exchange on Tisha B'Av in Amsterdam and New York",
+    "Portuguese: honours are announced in Portuguese in London, where Ladino is not used"
   ],
-  "genealogy": {
-    "common_surname_patterns": [
-      "Iberian surnames adapted after expulsion",
-      "Ottoman-era communal surnames",
-      "North African family names tied to towns or tribes",
-      "Names reflecting occupations, ancestry, or honorifics"
-    ],
-    "research_notes": [
-      "Surname spelling may vary by country and transliteration.",
-      "Community and town of origin often matter more than surname alone.",
-      "Genealogy should be cross-referenced with immigration records, cemetery records, ketubot, and communal archives."
-    ],
-    "recommended_genealogy_fields": [
-      "surname",
-      "alternate_spellings",
-      "town_of_origin",
-      "migration_route",
-      "community_branch",
-      "marriage_networks",
-      "ritual_minhag"
-    ]
-  },
+  "subgroups": [
+    {
+      "name": "Western Sephardi (Spanish and Portuguese)",
+      "note": "Amsterdam, London (Bevis Marks / Sha'ar Asamayim), New York (Shearith Israel, founded 1654) and daughter communities. Rite described by its own exponents as non-kabbalistic. Distinct pronunciation and Portuguese/Spanish liturgical usages."
+    },
+    {
+      "name": "Eastern Sephardi / Mizrahi",
+      "note": "Communities of the former Ottoman lands, Syria (Aleppo/Damascus), Iraq (Baghdad), North Africa (Morocco etc.). Liturgy shaped by Lurianic kabbalah. Practice rests heavily on Shulchan Arukh, Ben Ish Chai and Kaf HaChaim. Regional variants recorded per entry."
+    },
+    {
+      "name": "Jerusalemite Sephardi",
+      "note": "Old Yishuv Sephardi practice in Jerusalem; documented here only where a source explicitly names a Jerusalem custom (e.g., Kaf HaChaim on hagbaha; meat during all Nine Days)."
+    },
+    {
+      "name": "Modern Israeli Sephardi",
+      "note": "Contemporary practice shaped largely by R. Ovadia Yosef (Yabia Omer, Yechaveh Da'at, Chazon Ovadia) and Yalkut Yosef, plus R. Eliezer Melamed's Peninei Halakha which records Sephardi practice alongside Ashkenazi."
+    }
+  ],
   "historical_background": {
     "timeline": [
       {
-        "period": "Pre-1492",
-        "event": "Jewish life in Iberia flourished in multiple centers before the expulsion.",
-        "halachic_impact": "Local Iberian customs were diverse and not fully standardized."
+        "period": "16th century, Safed",
+        "event": "R. Yosef Karo composes the Shulchan Arukh (1563) on the basis of his Beit Yosef.",
+        "halachic_impact": "Becomes the binding code ('Maran') for Sephardic and Eastern communities; the Rema's glosses mark where Ashkenazi custom differs."
       },
       {
-        "period": "1492 and after",
-        "event": "Expulsion from Spain produced a widespread Sephardi diaspora.",
-        "halachic_impact": "Need for greater legal standardization increased."
+        "period": "Late 16th century",
+        "event": "R. Israel Najara (born Damascus c. 1555) publishes Zemirot Yisrael (Safed 1587; Salonica 1599/1600; Venice 1600).",
+        "halachic_impact": "His piyyutim become a core layer of the bakashot repertoire in Aleppo and Morocco."
       },
       {
-        "period": "16th century",
-        "event": "Shulchan Aruch became a major unifying halachic code.",
-        "halachic_impact": "Sephardi communities increasingly treated it as primary authority."
+        "period": "1654",
+        "event": "Twenty-three Jews of mostly Spanish-Portuguese origin from Recife, Brazil landed in New Amsterdam in September 1654 and founded Congregation Shearith Israel; they won permission from the Dutch West India Company to remain in 1655, and it was the only Jewish congregation in New York City from 1654 until 1825 (Shearith Israel, 'Congregational History'). Its earliest extant constitution dates from 1728 and is written in both English and Portuguese.",
+        "halachic_impact": "Establishes the Spanish-Portuguese minhag in North America; services conducted according to that rite to this day."
       },
       {
-        "period": "Ottoman and post-Ottoman eras",
-        "event": "Sephardi communities spread through the Mediterranean, Middle East, North Africa, and beyond.",
-        "halachic_impact": "Local minhagim developed within a shared Sephardi legal framework."
+        "period": "1872 / 1921",
+        "event": "Miqra Qodesh compiled by R. Mordechai Abadi in Aleppo (1872); Shir Yedidot printed in Marrakesh (1921).",
+        "halachic_impact": "Fix the Aleppo (same order each week) and Moroccan (weekly-changing) bakashot traditions."
+      },
+      {
+        "period": "20th century, Israel",
+        "event": "Mass immigration of Middle Eastern and North African Jews; R. Ovadia Yosef's rulings and Yalkut Yosef become widely followed.",
+        "halachic_impact": "Partial standardization of Israeli Sephardi practice around Maran, alongside surviving regional customs (e.g., Moroccan rice abstention, Mimouna)."
       }
     ]
   },
   "core_halachic_authorities": {
     "primary_codes": [
-      "Shulchan Aruch",
-      "Mishneh Torah",
-      "Beit Yosef"
+      "Shulchan Arukh (R. Yosef Karo, Safed, 1563) — 'Maran'",
+      "Beit Yosef (R. Yosef Karo) on the Tur",
+      "Mishneh Torah (Rambam)"
     ],
     "major_rishonim_base": [
-      "Rif",
       "Rambam",
-      "Rosh"
+      "Rif",
+      "Rosh (as weighed by Beit Yosef)",
+      "Rashba",
+      "Ramban"
     ],
-    "later_sephardi_poskim": [
-      "Rav Chaim Benveniste",
-      "Ben Ish Chai",
-      "Chida",
-      "Rav Ovadia Yosef",
-      "Rav Yosef Karo"
+    "later_poskim": [
+      "Ben Ish Chai (R. Yosef Hayyim of Baghdad)",
+      "Kaf HaChaim (R. Yaakov Chaim Sofer)",
+      "Birkei Yosef (Chida)",
+      "R. Ovadia Yosef: Yabia Omer, Yechaveh Da'at, Chazon Ovadia",
+      "Yalkut Yosef (R. Yitzhak Yosef)",
+      "Lev Chayim (R. Chaim Palache, Izmir)",
+      "R. Haim David Halevy (Mekor Hayyim)"
     ],
-    "decision_principle": "Follow Shulchan Aruch and established Sephardi minhag unless a community has a strong contrary inherited practice."
+    "decision_principle": "Eastern and modern Israeli Sephardim generally rule according to the Shulchan Arukh (Maran) where the Rema records a differing Ashkenazi custom, with local and kabbalistic (Lurianic) customs layered on top. The Western Spanish-Portuguese rite preserves an older, relatively non-kabbalistic order."
+  },
+  "runtime": {
+    "lens_key": "Sefardic",
+    "practice_baseline": "Practice rests on the Shulchan Arukh and Beit Yosef of R. Yosef Karo, as applied by the Ben Ish Chai, Kaf HaChaim and, in modern Israel, R. Ovadia Yosef and Yalkut Yosef; the Western Spanish-Portuguese rite follows its own congregational tradition.",
+    "parameters": []
   },
   "halacha_index": [
     {
       "index": "halacha.1",
       "category": "Prayer",
-      "topic": "Nusach and liturgy",
-      "summary": "Sephardi communities generally use Sephardi nusach with local additions or omissions.",
+      "topic": "Nusach and character of the rite",
+      "summary": "Eastern and Israeli Sephardim pray in a Sephardi/Edot HaMizrach nusach shaped by Lurianic kabbalah; the Western Spanish-Portuguese rite is explicitly described by its exponents as non-kabbalistic.",
       "common_practices": [
-        "Use a Sephardi siddur or community-specific rite",
-        "Incorporate Piyutim in some congregations",
-        "Maintain minhag-based variations for weekday and festival prayers",
-        "Preserve inherited nusach and pronunciation in public prayer.",
-        "Coordinate weekday, Shabbat, and festival insertions with local rabbinic guidance.",
-        "Maintain community niggunim and piyyutim where accepted."
+        "Service follows Shulchan Arukh rubrics",
+        "Much of the Western service is read aloud and sung by the congregation together with the Hazzan"
       ],
-      "notes": "Prayer practice may differ significantly among Moroccan, Syrian, Ottoman, Iraqi, and other Sephardi communities."
+      "variants": [
+        {
+          "subgroup": "Western (Spanish-Portuguese)",
+          "practice": "Tradition described as 'a non-kabbalistic one'; relatively few kabbalistic additions. At Shearith Israel, 'much of the service is read aloud and sung by the congregation together with the Hazzan', and each holiday has its own melody.",
+          "source": "London Sephardi Minhag (R. Jonathan Cohen), 'Kabbalah - not' page; Sephardic Studies, 'The Spanish and Portuguese Synagogue' (Shearith Israel)"
+        }
+      ],
+      "source": "London Sephardi Minhag, sites.google.com/site/londonsephardiminhag/kabbalah-not; sephardicstudies.org/csi.html",
+      "source_url": "http://www.sephardicstudies.org/csi.html",
+      "confidence": "needs-review",
+      "review_notes": "No Eastern siddur was opened for this entry; the Eastern nusach description is general and should be checked against a specific siddur (e.g., Tefillat Yesharim, Kol Ya'akov, Yalkut Yosef siddur).",
+      "topic_he": "נוסח ואופי הנוסח",
+      "summary_he": "ספרדים מזרחיים וישראלים מתפללים בנוסח ספרדי/עדות המזרח שעוצב בידי הקבלה הלוריאנית; הנוסח הספרדי-פורטוגזי המערבי מתואר במפורש בידי נציגיו כבלתי קבלי."
     },
     {
       "index": "halacha.2",
       "category": "Prayer",
-      "topic": "Tefillah order",
-      "summary": "The structure of prayers generally follows classical halachic order with Sephardi liturgical customs.",
+      "topic": "Elul selichot",
+      "summary": "Sephardim rise before dawn to say selichot and tachanunim from (the day after) Rosh Chodesh Elul until Yom Kippur.",
       "common_practices": [
-        "Maintain the traditional order of blessings and sections of prayer",
-        "Use communal custom for additions before and after services",
-        "Follow local synagogue practice for repetitions and responsa",
-        "Preserve inherited nusach and pronunciation in public prayer.",
-        "Coordinate weekday, Shabbat, and festival insertions with local rabbinic guidance.",
-        "Maintain community niggunim and piyyutim where accepted."
-      ]
+        "Selichot daily through Elul and the Ten Days of Repentance",
+        "Selichot are not said on Rosh Chodesh itself, because vidduy is not recited on Rosh Chodesh"
+      ],
+      "variants": [],
+      "source": "Shulchan Arukh, Orach Chayim 581:1 (Rema records that Ashkenazim begin only shortly before Rosh Hashana); Kaf HaChaim 581:15; Chazon Ovadia, Yamim Nora'im p. 2 (as cited by OU, 'Halacha According to the Sephardic Practice: The Month of Elul')",
+      "source_url": "https://www.sefaria.org/Shulchan_Arukh,_Orach_Chayim.581.1",
+      "confidence": "well-attested",
+      "review_notes": "Arukh HaShulchan OC 581 likewise records that 'the Sefardi communities have the custom to say these prayers from the beginning of Elul until after Yom Kippur.'",
+      "topic_he": "סליחות באלול",
+      "summary_he": "ספרדים קמים לפני עלות השחר לומר סליחות ותחנונים מ(היום שאחרי) ראש חודש אלול ועד יום כיפור."
     },
     {
       "index": "halacha.3",
       "category": "Shabbat",
-      "topic": "Candle lighting",
-      "summary": "Shabbat candle lighting is observed according to accepted halachic timeframes and communal custom.",
+      "topic": "Candle lighting: blessing order",
+      "summary": "Most Sephardic women recite the blessing 'lehadlik ner shel Shabbat' before lighting, following the general rule that a blessing precedes the mitzvah.",
       "common_practices": [
-        "Light before sunset or according to the local accepted cutoff",
-        "Use the customary blessing formula of the community",
-        "Preserve family-specific minhagim for number and placement of candles",
-        "Prepare practical needs before candle lighting to avoid melacha.",
-        "Use approved warming and lighting setups established before Shabbat.",
-        "Follow local zmanim for candle lighting, shekia, and havdalah."
-      ]
+        "Blessing first, then lighting"
+      ],
+      "variants": [
+        {
+          "subgroup": "Modern Israeli Sephardi",
+          "practice": "R. Ovadia Yosef rules that Sephardim recite the blessing before kindling.",
+          "source": "Yechaveh Da'at 2:33 (as cited in Torah.org, Weekly Halacha 5767 Shavuos, n. 15)"
+        },
+        {
+          "subgroup": "Families with an established practice of blessing after lighting; Western (Spanish-Portuguese)",
+          "practice": "Some poskim say those with a family practice of blessing after lighting may continue it; for the S&P rite, the London Sephardi Minhag states that 'the original S&P custom in both these cases is unclear, so it cannot be said that either option is incorrect.'",
+          "source": "Halachipedia, 'Shabbat Candles', section 'The order of candle lighting'; London Sephardi Minhag (R. Jonathan Cohen), 'Shabbat' page, Note 1"
+        }
+      ],
+      "source": "Yechaveh Da'at 2:33; Shulchan Arukh OC 263:5 (as cited in secondary sources)",
+      "source_url": "https://halachipedia.com/index.php?title=Lighting_Shabbat_candles",
+      "confidence": "disputed",
+      "review_notes": "Shulchan Arukh OC 263:5 was not opened directly. Do not present blessing-after as 'wrong' for Sephardic families with that tradition.",
+      "topic_he": "הדלקת נרות: סדר הברכה",
+      "summary_he": "רוב הנשים הספרדיות מברכות \"להדליק נר של שבת\" לפני ההדלקה, לפי הכלל שברכה קודמת למצווה."
     },
     {
       "index": "halacha.4",
       "category": "Shabbat",
-      "topic": "Kabbalat Shabbat",
-      "summary": "Friday night welcome prayers and songs vary by community but remain a major part of Sephardi Shabbat observance.",
-      "common_practices": [
-        "Recite customary psalms and liturgical songs",
-        "Use local synagogue melodies",
-        "Preserve family and city-based song traditions",
-        "Prepare practical needs before candle lighting to avoid melacha.",
-        "Use approved warming and lighting setups established before Shabbat.",
-        "Follow local zmanim for candle lighting, shekia, and havdalah."
-      ]
+      "topic": "Kabbalat Shabbat order",
+      "summary": "In the Western Spanish-Portuguese rite, the Friday-evening service traditionally opens with Psalm 29 (Mizmor leDavid) and Psalm 92, without the six-psalm sequence 95-99.",
+      "common_practices": [],
+      "variants": [
+        {
+          "subgroup": "Western (Spanish-Portuguese)",
+          "practice": "Psalm 29 and Psalm 92 form the preliminary Kabbalat Shabbat; melodies documented in London and Bayonne. Text attested in Isaac Pinto's 1765-66 New York prayer book.",
+          "source": "Milken Archive of Jewish Music, 'Shabbat' (Jewish Voices in the New World), liner notes by Neil W. Levin"
+        },
+        {
+          "subgroup": "Eastern Sephardi",
+          "practice": "Many Eastern communities recite Shir HaShirim between Minha and Kabbalat Shabbat (not the Spanish-Portuguese custom).",
+          "source": "Wikipedia, 'Sephardic law and customs'"
+        }
+      ],
+      "source": "Milken Archive of Jewish Music, 'Shabbat', Western Sephardi tradition",
+      "source_url": "https://www.milkenarchive.org/music/volumes/view/jewish-voices-in-the-new-world/work/shabbat/",
+      "confidence": "regional",
+      "review_notes": "Eastern Kabbalat Shabbat order (whether Psalms 95-99 precede Psalm 29) was not verified in an Eastern siddur; Shir HaShirim custom rests on a Wikipedia lead only and needs a primary source.",
+      "topic_he": "סדר קבלת שבת",
+      "summary_he": "בנוסח הספרדי-פורטוגזי המערבי נפתחת תפילת ערב שבת במסורת במזמור כט (מזמור לדוד) ובמזמור צב, בלי רצף ששת המזמורים צה-צט."
     },
     {
       "index": "halacha.5",
       "category": "Shabbat",
-      "topic": "Cooking and reheating",
-      "summary": "Food preparation on Shabbat follows standard halachic restrictions, with careful attention to warming food before Shabbat.",
-      "common_practices": [
-        "Prepare food before Shabbat",
-        "Use permitted warming arrangements according to local rabbinic guidance",
-        "Avoid prohibited cooking and direct heating during Shabbat",
-        "Prepare practical needs before candle lighting to avoid melacha.",
-        "Use approved warming and lighting setups established before Shabbat.",
-        "Follow local zmanim for candle lighting, shekia, and havdalah."
-      ]
+      "topic": "Shabbat table and priestly blessing (Spanish-Portuguese)",
+      "summary": "In London Spanish-Portuguese usage, Shalom Aleichem and Eshet Hayil are not part of the traditional custom, and the priestly blessing was traditionally given only on festivals.",
+      "common_practices": [],
+      "variants": [
+        {
+          "subgroup": "Western (Spanish-Portuguese), London",
+          "practice": "According to the London Sephardi Minhag, 'some ten or fifteen years ago' (no year given) the London kahal voted to part with the 350-year-old tradition and introduce Birkat Cohanim on Shabbat; 'no other S&P communities have followed suit', while among North African and Eastern Sephardim it is performed every Shabbat.",
+          "source": "London Sephardi Minhag (R. Jonathan Cohen), 'Shabbat' page"
+        }
+      ],
+      "source": "London Sephardi Minhag, 'Shabbat' page",
+      "source_url": "https://sites.google.com/site/londonsephardiminhag/shabbat",
+      "confidence": "needs-review",
+      "review_notes": "Single personal (though expert) source; verify against the Bevis Marks or Shearith Israel minhag.",
+      "topic_he": "שולחן השבת וברכת כהנים (ספרדי-פורטוגזי)",
+      "summary_he": "במנהג הספרדי-פורטוגזי בלונדון \"שלום עליכם\" ו\"אשת חיל\" אינם חלק מהמנהג המסורתי, וברכת כהנים ניתנה במסורת רק בחגים."
     },
     {
       "index": "halacha.6",
-      "category": "Shabbat",
-      "topic": "Carrying and eruv",
-      "summary": "Carrying outside permitted areas depends on the presence and status of an eruv.",
+      "category": "Rosh Hashana",
+      "topic": "Simanim (symbolic foods) and Yehi Ratzon",
+      "summary": "Sephardim hold a structured 'seder' of symbolic foods on the night(s) of Rosh Hashana, saying a Yehi Ratzon over each.",
       "common_practices": [
-        "Do not rely on carrying where no valid eruv exists",
-        "Follow local rabbinic standards for public and private domains",
-        "Use community practice to determine practical boundaries",
-        "Prepare practical needs before candle lighting to avoid melacha.",
-        "Use approved warming and lighting setups established before Shabbat.",
-        "Follow local zmanim for candle lighting, shekia, and havdalah."
-      ]
+        "Foods listed by Shulchan Arukh: beans (rubia/lubia), leeks, beets (silka), dates, pumpkin/gourd; commonly also pomegranate, apple in honey, and a head (of a ram or fish)",
+        "Ben Ish Chai's order begins with the date (ha'etz said over it, as one of the Seven Species), then lubia, leek, chard, gourd, pomegranate, apple",
+        "Yehi Ratzon recited after taking a bite, to avoid an interruption between blessing and eating",
+        "If a food cannot be eaten, one may look at it and say the Yehi Ratzon (Kaf HaChaim)",
+        "Most do the simanim on both nights; some only on the first"
+      ],
+      "variants": [
+        {
+          "subgroup": "Baghdadi / Eastern",
+          "practice": "Order and wording follow Ben Ish Chai; head of a male (rooster) preferred.",
+          "source": "Ben Ish Chai, Year One, Nitzavim 4; Kaf HaChaim 583:7, 583:11, 583:25"
+        },
+        {
+          "subgroup": "Libyan",
+          "practice": "Sugar and sesame seeds may replace fenugreek/string beans.",
+          "source": "My Jewish Learning, 'How To Lead A Sephardic Rosh Hashanah Seder' (citing Rahel Musleah)"
+        }
+      ],
+      "source": "Shulchan Arukh, Orach Chayim 583:1; Ben Ish Chai, Nitzavim 4; Kaf HaChaim 583",
+      "source_url": "https://www.sefaria.org/Shulchan_Arukh,_Orach_Chayim.583",
+      "confidence": "well-attested",
+      "review_notes": "The order of foods is not halachically critical; differing family orders are legitimate.",
+      "topic_he": "סימנים (מאכלי סמל) ויהי רצון",
+      "summary_he": "ספרדים עורכים \"סדר\" מובנה של מאכלי סמל בליל (או בלילות) ראש השנה, ואומרים \"יהי רצון\" על כל אחד."
     },
     {
       "index": "halacha.7",
-      "category": "Kashrut",
-      "topic": "Meat and dairy separation",
-      "summary": "Sephardi practice generally follows the standard waiting and separation rules established in classical halacha.",
-      "common_practices": [
-        "Maintain separate meat and dairy utensils",
-        "Observe the customary waiting period after meat before dairy according to community practice",
-        "Follow local rabbinic guidance on the handling of dishes and cookware",
-        "Keep clear separation of meat and dairy utensils, storage, and prep zones.",
-        "Verify supervision standards according to trusted local rabbinic authority.",
-        "Apply inherited waiting-time custom for meat and dairy under halachic guidance."
+      "category": "Yom Kippur",
+      "topic": "Kaparot",
+      "summary": "The Shulchan Arukh rules that the kaparot custom should be stopped, following the Rashba and Ramban; nonetheless many Sephardic communities adopted it under kabbalistic influence.",
+      "common_practices": [],
+      "variants": [
+        {
+          "subgroup": "Followers of Maran strictly",
+          "practice": "Do not perform kaparot; some recommend money instead of chickens.",
+          "source": "Shulchan Arukh OC 605:1; R. Haim David Halevy, Mekor Hayyim 4:216 (as cited by jewishideas.org)"
+        },
+        {
+          "subgroup": "Many Eastern Sephardim",
+          "practice": "Perform kaparot (often with chickens), following later kabbalistic sources (Ari, cited by Magen Avraham 605:1).",
+          "source": "Chabad.org, 'Shulchan Aruch: Chapter 605' notes: 'His view... is upheld today by many Sephardim, though others have adopted this custom.'"
+        }
       ],
-      "notes": "Specific waiting customs can differ in some communities, but the core separation is universal."
+      "source": "Shulchan Arukh, Orach Chayim 605:1",
+      "source_url": "https://www.sefaria.org/Shulchan_Arukh,_Orach_Chayim.605",
+      "confidence": "disputed",
+      "review_notes": "Do not tell a Sephardic user that kaparot is either required or forbidden for them; family custom varies.",
+      "topic_he": "כפרות",
+      "summary_he": "השולחן ערוך פוסק שיש לבטל את מנהג הכפרות, בהתאם לרשב\"א ולרמב\"ן; אף על פי כן אימצו אותו קהילות ספרדיות רבות בהשפעה קבלית."
     },
     {
       "index": "halacha.8",
-      "category": "Kashrut",
-      "topic": "Shechita and meat supervision",
-      "summary": "Kosher slaughter and meat supervision are central, with strong attention to local communal reliability.",
-      "common_practices": [
-        "Use a qualified shochet",
-        "Inspect meat and poultry through recognized supervision",
-        "Follow community standards on glatt and other stringencies where applicable",
-        "Keep clear separation of meat and dairy utensils, storage, and prep zones.",
-        "Verify supervision standards according to trusted local rabbinic authority.",
-        "Apply inherited waiting-time custom for meat and dairy under halachic guidance."
-      ]
+      "category": "Yom Kippur",
+      "topic": "Perpetual Hashcabot (Spanish-Portuguese)",
+      "summary": "At Shearith Israel, those listed in the Book of Perpetual Hashcabot are memorialized on Yom Kippur and at other fixed times.",
+      "common_practices": [],
+      "variants": [
+        {
+          "subgroup": "Western (Spanish-Portuguese), New York",
+          "practice": "A hashcaba for those listed is recited before services on Rosh Hodesh mornings and on the Shabbat afternoon after each person's anniversary of death, and they are also memorialized on Yom Kippur; the book dates back to 1718 and includes the names of congregants who left bequests for the future maintenance of the synagogue.",
+          "source": "Congregation Shearith Israel, 'Life Cycle Events' page"
+        }
+      ],
+      "source": "Congregation Shearith Israel, Life Cycle Events",
+      "source_url": "https://www.shearithisrael.org/resources/life-cycle-events/",
+      "confidence": "regional",
+      "review_notes": "Wording checked on the full Shearith Israel 'Life Cycle Events' page.",
+      "topic_he": "השכבות תמידיות (ספרדי-פורטוגזי)",
+      "summary_he": "בבית הכנסת שערית ישראל מזכירים את הרשומים בספר ההשכבות התמידיות ביום כיפור ובמועדים קבועים אחרים."
     },
     {
       "index": "halacha.9",
-      "category": "Kashrut",
-      "topic": "Stam yeinam and wine",
-      "summary": "Wine standards are observed carefully, especially in mixed social settings.",
+      "category": "Tefillin and tzitzit",
+      "topic": "Tefillin on Chol HaMoed",
+      "summary": "Sephardim do not wear tefillin on Chol HaMoed.",
       "common_practices": [
-        "Use kosher-certified wine for ritual purposes",
-        "Avoid questionable wine handling according to halachic norms",
-        "Follow local customs for Kiddush wine selection",
-        "Keep clear separation of meat and dairy utensils, storage, and prep zones.",
-        "Verify supervision standards according to trusted local rabbinic authority.",
-        "Apply inherited waiting-time custom for meat and dairy under halachic guidance."
-      ]
+        "No tefillin on Chol HaMoed of Pesach or Sukkot"
+      ],
+      "variants": [],
+      "source": "Shulchan Arukh OC 31:2; Beit Yosef OC 31 (the Spanish communities originally wore them per the Rosh, but stopped on seeing the Zohar); Kaf HaChaim 31:6 (as cited by shulchanaruchharav.com, 'Tefillin on Chol Hamoed')",
+      "source_url": "https://shulchanaruchharav.com/halacha/tefillin-on-chol-hamoed/",
+      "confidence": "well-attested",
+      "review_notes": "No Spanish-Portuguese-specific statement was found on this; the general Sephardic rule is applied to them only by inference, so the app should not assert it for S&P without review.",
+      "topic_he": "תפילין בחול המועד",
+      "summary_he": "ספרדים אינם מניחים תפילין בחול המועד."
     },
     {
       "index": "halacha.10",
-      "category": "Pesach",
-      "topic": "Kitniyot",
-      "summary": "Sephardi communities generally permit kitniyot on Pesach, subject to local minhag.",
-      "common_practices": [
-        "Rice and legumes are often permitted",
-        "Inspect food carefully for chametz contamination",
-        "Follow community custom regarding packaged foods and supervision",
-        "Review chametz cleaning and kashering checklists before the festival.",
-        "Follow community custom on kitniyot and festival kitchen workflow.",
-        "Use community haggadah flow and family minhagim within halachic structure."
+      "category": "Tefillin and tzitzit",
+      "topic": "Winding of the tefillin strap",
+      "summary": "Sephardim wind the arm strap outward over the arm and back in under it.",
+      "common_practices": [],
+      "variants": [
+        {
+          "subgroup": "Western (Spanish-Portuguese)",
+          "practice": "'Like all Sephardim the S&P wind the strap outwards over the arm, and back in under it.'",
+          "source": "London Sephardi Minhag, 'Tephillin' page"
+        }
       ],
-      "notes": "This is one of the most visible practical differences from Ashkenazi custom."
+      "source": "London Sephardi Minhag, 'Tephillin' page",
+      "source_url": "https://sites.google.com/site/londonsephardiminhag/tephillin",
+      "confidence": "needs-review",
+      "review_notes": "Single source; the claim that this applies to 'all Sephardim' was not independently verified.",
+      "topic_he": "כריכת רצועת התפילין",
+      "summary_he": "ספרדים כורכים את רצועת היד כלפי חוץ מעל הזרוע וחזרה פנימה מתחתיה."
     },
     {
       "index": "halacha.11",
-      "category": "Pesach",
-      "topic": "Chametz removal",
-      "summary": "Chametz is removed thoroughly before Pesach according to standard halachic requirements.",
-      "common_practices": [
-        "Search for chametz before Pesach",
-        "Sell or dispose of chametz properly",
-        "Use dedicated Pesach utensils or kasher equipment as needed",
-        "Review chametz cleaning and kashering checklists before the festival.",
-        "Follow community custom on kitniyot and festival kitchen workflow.",
-        "Use community haggadah flow and family minhagim within halachic structure."
-      ]
+      "category": "Fasts and Tisha B'Av",
+      "topic": "Tallit and tefillin on Tisha B'Av",
+      "summary": "Practice differs: some Sephardic communities wear neither tallit nor tefillin until Minha, while others wear tefillin in the morning.",
+      "common_practices": [],
+      "variants": [
+        {
+          "subgroup": "Western (Spanish-Portuguese), London",
+          "practice": "'Tallet and Tefillin are worn only at Minha.'",
+          "source": "London Sephardi Minhag, 'Fast of Ab' page"
+        },
+        {
+          "subgroup": "Moroccan and Persian",
+          "practice": "No tallit or tefillin at Shacharit; the hazzan and those at the Torah also do not wear a tallit.",
+          "source": "Halachipedia, 'When to Wear Tefillin', Tisha Be'Av section"
+        },
+        {
+          "subgroup": "Some other Sephardim",
+          "practice": "Wear tefillin at Shacharit until kinot, or at home before coming to synagogue.",
+          "source": "Halachipedia, 'When to Wear Tefillin', Tisha Be'Av section"
+        }
+      ],
+      "source": "London Sephardi Minhag, Fast of Ab; Halachipedia, When to Wear Tefillin",
+      "source_url": "https://halachipedia.com/index.php?title=When_to_Wear_Tefillin",
+      "confidence": "disputed",
+      "review_notes": "Ask the user's specific community; no single Sephardic rule.",
+      "topic_he": "טלית ותפילין בתשעה באב",
+      "summary_he": "המנהגים שונים: קהילות ספרדיות אחדות אינן עוטות טלית ותפילין עד המנחה, ואחרות מניחות תפילין בבוקר."
     },
     {
       "index": "halacha.12",
-      "category": "Pesach",
-      "topic": "Seder customs",
-      "summary": "The Seder follows the halachic order of the Haggadah with distinct Sephardi liturgical and musical traditions.",
-      "common_practices": [
-        "Use Sephardi Haggadot and piyutim where customary",
-        "Maintain family customs for songs and food order",
-        "Observe local minhagim for timing and reading customs",
-        "Review chametz cleaning and kashering checklists before the festival.",
-        "Follow community custom on kitniyot and festival kitchen workflow.",
-        "Use community haggadah flow and family minhagim within halachic structure."
-      ]
+      "category": "Fasts and Tisha B'Av",
+      "topic": "Spanish-Portuguese Tisha B'Av rituals",
+      "summary": "The Western rite has distinctive Tisha B'Av customs.",
+      "common_practices": [],
+      "variants": [
+        {
+          "subgroup": "Western (Spanish-Portuguese), London",
+          "practice": "People called to the Torah at Shacharit are called only as 'Cohen', 'Levi', 'Shelishi' without their names; a deliberately makeshift black curtain hangs before the Hechal doors; the Haftara is read verse by verse interspersed with a Spanish commentary.",
+          "source": "London Sephardi Minhag, 'Fast of Ab' page"
+        },
+        {
+          "subgroup": "Western (Spanish-Portuguese), Amsterdam and New York",
+          "practice": "Greeting 'Morir habemos' answered 'Ya lo sabemos'; described as unknown in London.",
+          "source": "London Sephardi Minhag, 'Fast of Ab' page"
+        }
+      ],
+      "source": "London Sephardi Minhag, 'Fast of Ab' page",
+      "source_url": "https://sites.google.com/site/londonsephardiminhag/fast-of-ab",
+      "confidence": "regional",
+      "review_notes": "Single expert source; regional to S&P congregations.",
+      "topic_he": "טקסי תשעה באב הספרדיים-פורטוגזיים",
+      "summary_he": "לנוסח המערבי מנהגים מיוחדים בתשעה באב."
     },
     {
       "index": "halacha.13",
-      "category": "Tefillin",
-      "topic": "Tefillin practice",
-      "summary": "Sephardi communities generally use the standard tefillin practice aligned with their halachic tradition.",
+      "category": "Fasts and Tisha B'Av",
+      "topic": "Nine Days: meat and wine",
+      "summary": "Most Sephardim eat meat and drink wine on Rosh Chodesh Av, abstaining from the end of that day, and continue abstaining until the end of the 10th of Av.",
       "common_practices": [
-        "Wear tefillin for weekday prayer",
-        "Follow accepted Sephardi arrangement and blessing practice",
-        "Use qualified tefillin checked according to halachic standards",
-        "Follow local minhag for wrapping style, knot positioning, and sequence.",
-        "Use checked batim and retzuot under reliable supervision.",
-        "Teach youth practical donning order with community standards."
-      ]
+        "Meat permitted on Rosh Chodesh Av",
+        "Abstention from the 2nd of Av",
+        "Stringent until the end of the day on the 10th of Av"
+      ],
+      "variants": [
+        {
+          "subgroup": "Jerusalemite Sephardi",
+          "practice": "R. Ovadia Yosef cites the Jerusalem custom of abstaining from meat during all Nine Days.",
+          "source": "R. David Pardo, 'Hilkhot Shiva Asar b'Tammuz v'Yemei Bein HaMeitzarim 5775' (OU-JLIC), n. 7"
+        },
+        {
+          "subgroup": "Some Sephardim",
+          "practice": "Abstain only during the week in which Tisha B'Av falls (one of three customs recorded in Shulchan Arukh).",
+          "source": "Shulchan Arukh OC 551:9"
+        }
+      ],
+      "source": "Peninei Halakha, Zemanim 8:13 ('Meat and Wine'), citing Mishnah Berurah 551:58 and Kaf HaChaim 551:125; Yechaveh Da'at 1:41 (as cited by Jewish Link)",
+      "source_url": "https://ph.yhb.org.il/en/05-08-13/",
+      "confidence": "well-attested",
+      "review_notes": "Variants are real; communities stricter than the majority (Jerusalem) should not be told meat on Rosh Chodesh is their custom.",
+      "topic_he": "תשעת הימים: בשר ויין",
+      "summary_he": "רוב הספרדים אוכלים בשר ושותים יין בראש חודש אב, ונמנעים מסוף אותו יום, וממשיכים להימנע עד סוף העשירי באב."
     },
     {
       "index": "halacha.14",
-      "category": "Tzitzit",
-      "topic": "Tallit and fringes",
-      "summary": "Tallit and tzitzit follow general halachic standards with community-specific customs in size, wrapping, and blessing practice.",
+      "category": "Fasts and Tisha B'Av",
+      "topic": "Nine Days: laundering and bathing",
+      "summary": "Most Sephardim apply the laundering prohibition only in the week in which Tisha B'Av falls; when Tisha B'Av falls on Sunday there is no such week.",
       "common_practices": [
-        "Wear tzitzit daily by customary standard",
-        "Use family or synagogue custom for tallit katan and tallit gadol",
-        "Follow local practice for blessing sequence",
-        "Follow local custom for tallit katan and tallit gadol usage.",
-        "Maintain knot and winding patterns according to inherited minhag.",
-        "Inspect tzitzit regularly for halachic validity."
-      ]
+        "Laundry restricted only in shavua shechal bo",
+        "If Tisha B'Av is on Sunday, the restriction applies only on Tisha B'Av itself",
+        "Haircuts avoided in the week before even according to Sephardim"
+      ],
+      "variants": [],
+      "source": "Peninei Halakha (R. Eliezer Melamed), 'Customs of the Nine Days' (Arutz Sheva); Shulchan Arukh OC 551:3-4; shulchanaruchharav.com, 'Sefaradi versus Ashkenazi customs during the Three Weeks'",
+      "source_url": "https://www.israelnationalnews.com/news/412511",
+      "confidence": "well-attested",
+      "review_notes": "R. Melamed notes the lenient custom 'was prevalent in Sephardic communities around the Land of Israel (Shulchan Gavoha 551:49) and in some communities in North Africa.'",
+      "topic_he": "תשעת הימים: כביסה ורחיצה",
+      "summary_he": "רוב הספרדים מחילים את איסור הכביסה רק בשבוע שבו חל תשעה באב; כשתשעה באב חל ביום ראשון אין שבוע כזה."
     },
     {
       "index": "halacha.15",
-      "category": "Lifecycle",
-      "topic": "Brit milah",
-      "summary": "Brit milah is performed according to halacha with communal celebration and inherited ceremony style.",
-      "common_practices": [
-        "Use a qualified mohel",
-        "Honor family naming customs",
-        "Preserve local liturgical songs and blessings",
-        "Keep core lifecycle ceremonies aligned with halachic requirements.",
-        "Document family minhagim for naming, honors, and celebration order.",
-        "Consult community rabbi for local protocol differences."
-      ]
+      "category": "Fasts and Tisha B'Av",
+      "topic": "Weddings during the Three Weeks",
+      "summary": "Sources conflict on whether Sephardim hold weddings between 17 Tammuz and Rosh Chodesh Av.",
+      "common_practices": [],
+      "variants": [
+        {
+          "subgroup": "Per Shulchan Arukh reading",
+          "practice": "Weddings permitted until Rosh Chodesh Av; prohibited from Rosh Chodesh until after Tisha B'Av.",
+          "source": "Shulchan Arukh and Rema OC 551:1-2 (as summarized by OU Torah, 'Marriage During the Three Weeks')"
+        },
+        {
+          "subgroup": "Per other reports",
+          "practice": "Sephardim generally avoid weddings during all Three Weeks as an inauspicious time.",
+          "source": "Wikipedia, 'The Nine Days'"
+        }
+      ],
+      "source": "Shulchan Arukh OC 551:1-2",
+      "source_url": "https://en.wikisource.org/wiki/Translation:Shulchan_Aruch/Orach_Chaim/551",
+      "confidence": "disputed",
+      "review_notes": "Unresolved conflict; refer to community rabbi.",
+      "topic_he": "חתונות בשלושת השבועות",
+      "summary_he": "המקורות סותרים אם ספרדים עורכים חתונות בין י\"ז בתמוז לראש חודש אב."
     },
     {
       "index": "halacha.16",
-      "category": "Lifecycle",
-      "topic": "Marriage and ketubah",
-      "summary": "Marriage follows standard halachic requirements, often with strong family and communal involvement.",
+      "category": "Omer",
+      "topic": "Omer mourning period dates",
+      "summary": "Sephardic mourning customs run from the start of the Omer until the morning of the 34th day; on Lag BaOmer itself music and dancing are permitted in honor of R. Shimon bar Yochai's hillula, but haircuts and weddings are not, and music resumes being prohibited on the night of the 34th.",
       "common_practices": [
-        "Use a valid ketubah",
-        "Perform kiddushin and nissuin properly",
-        "Observe local customs for engagement, dowry, and wedding sequence",
-        "Keep core lifecycle ceremonies aligned with halachic requirements.",
-        "Document family minhagim for naming, honors, and celebration order.",
-        "Consult community rabbi for local protocol differences."
-      ]
+        "No haircuts or shaving until the morning of the 34th",
+        "Rosh Chodesh Iyar is included; cutting hair then is called 'a mistake' by Shulchan Arukh",
+        "Music and dancing allowed on Lag BaOmer for the hillula",
+        "All restrictions lapse shortly after daybreak of the 34th (part of a day counts as a whole day)"
+      ],
+      "variants": [
+        {
+          "subgroup": "Turkish and Egyptian Sephardim",
+          "practice": "End all mourning customs on Lag BaOmer (the 33rd).",
+          "source": "R. Eliezer Melamed, 'Customs of Mourning during the Omer Period' (Revivim)"
+        },
+        {
+          "subgroup": "Followers of the Ari's customs",
+          "practice": "No haircuts until erev Shavuot.",
+          "source": "R. Eliezer Melamed, 'Customs of Mourning during the Omer Period' (Revivim)"
+        },
+        {
+          "subgroup": "Some Sephardic communities",
+          "practice": "Weddings already on Lag BaOmer.",
+          "source": "Peninei Halakha, Zemanim 3:4"
+        },
+        {
+          "subgroup": "Women",
+          "practice": "R. Ovadia Yosef writes that women are not included in the haircut restriction, though it is fitting to be stringent where not needed.",
+          "source": "Chazon Ovadia, Sefirat HaOmer 36 (as quoted in a Sefaria source sheet)"
+        }
+      ],
+      "source": "Shulchan Arukh, Orach Chayim 493:1-3; Peninei Halakha, Zemanim 3:2 and 3:4; R. Eliezer Melamed, 'Customs of Mourning during the Omer Period'",
+      "source_url": "https://en.yhb.org.il/customs-of-mourning-during-the-omer-period/",
+      "confidence": "well-attested",
+      "review_notes": "R. Melamed adds that although most Sephardim in Israel do not follow the Turkish/Egyptian leniency, in great need one may ask a Torah scholar.",
+      "topic_he": "תאריכי ימי האבלות בעומר",
+      "summary_he": "מנהגי האבלות הספרדיים נמשכים מתחילת העומר עד בוקר היום ה-34; בל\"ג בעומר עצמו מותרים מוזיקה וריקודים לכבוד הילולת רבי שמעון בר יוחאי, אך לא תספורת וחתונות, והמוזיקה חוזרת להיאסר בליל ה-34."
     },
     {
       "index": "halacha.17",
-      "category": "Family law",
-      "topic": "Niddah and family purity",
-      "summary": "Family purity laws are observed carefully and usually conservatively in traditional Sephardi communities.",
+      "category": "Pesach",
+      "topic": "Kitniyot",
+      "summary": "Sephardim never accepted the kitniyot prohibition and eat rice and legumes on Pesach, checking them for stray grain; several regional communities abstain from rice.",
       "common_practices": [
-        "Observe separation laws during niddah",
-        "Use mikveh according to local rabbinic guidance",
-        "Follow inherited customs where they do not conflict with halacha",
-        "Use a consistent halachic calendar and consultation process for sensitive questions.",
-        "Coordinate household observance with qualified rabbinic guidance.",
-        "Preserve family minhag where compatible with accepted psak."
-      ]
+        "Kitniyot eaten",
+        "Rice must be bought in packages certified kosher for Pesach or checked thoroughly three times (Peninei Halakha, Pesach 9:2, citing Ama Devar 1:62)"
+      ],
+      "variants": [
+        {
+          "subgroup": "Izmir (Turkey)",
+          "practice": "Custom not to eat rice on Pesach.",
+          "source": "Lev Chayim 2:94 (as cited in Peninei Halakha, Pesach 9:2)"
+        },
+        {
+          "subgroup": "Moroccan",
+          "practice": "Many Moroccan Jews refrain from rice and other dry kitniyot on Pesach.",
+          "source": "Peninei Halakha, Pesach 9:2"
+        },
+        {
+          "subgroup": "Baghdadi",
+          "practice": "Many laypeople did not eat rice; those who did checked it two or three times.",
+          "source": "Ben Ish Chai, Year One, Tzav 41 (as cited in Peninei Halakha, Pesach 9:2)"
+        }
+      ],
+      "source": "Beit Yosef OC 453 ('nobody worries about such things except for Ashkenazim'); Peninei Halakha, Pesach 9:2 'The Sephardic Custom'; Ama Devar 1:62",
+      "source_url": "https://ph.yhb.org.il/en/04-09-02/",
+      "confidence": "well-attested",
+      "review_notes": "Peninei Halakha: 'Each person should continue his ancestral custom.' Spices such as cumin, turmeric and fenugreek need inspection.",
+      "topic_he": "קטניות",
+      "summary_he": "ספרדים מעולם לא קיבלו את איסור הקטניות ואוכלים אורז וקטניות בפסח, ובודקים אותם לגרעינים תועים; כמה קהילות אזוריות נמנעות מאורז."
     },
     {
       "index": "halacha.18",
-      "category": "Mourning",
-      "topic": "Avelut",
-      "summary": "Mourning practice follows classical halachic structure with community-specific details.",
+      "category": "Pesach",
+      "topic": "Mimouna (post-Pesach)",
+      "summary": "Moroccan (and broader Maghrebi) Jews celebrate Mimouna on the night and day after Pesach with open homes and festive sweets.",
       "common_practices": [
-        "Observe shiva, shloshim, and yahrzeit customs",
-        "Use local synagogue or family prayer forms for memorials",
-        "Maintain inherited customs for mourning meals and recitation",
-        "Observe shiva, shloshim, and yahrzeit in the accepted local format.",
-        "Coordinate memorial prayer customs with synagogue practice.",
-        "Preserve condolence and visitation etiquette used by the community."
-      ]
+        "Open house with sweets such as mufleta",
+        "Blessings and visits between families",
+        "Muslim neighbors historically brought flour after Pesach"
+      ],
+      "variants": [
+        {
+          "subgroup": "Moroccan",
+          "practice": "One of the earliest references, according to Aish.com, is the diary of an unnamed 18th-century Jewish traveler from Italy, who recorded that 'on the final night of Passover, Moroccan Jews set the table with different kinds of fish and greet and bless each other'; some went at dawn to water sources.",
+          "source": "Aish.com, 'Mimouna: The Ultimate Passover Afterparty'; Chabad.org, 'Unpacking the Secrets of Mimouna'"
+        }
+      ],
+      "source": "My Jewish Learning, 'Mimouna: A Post-Passover Celebration'; Chabad.org, 'Unpacking the Secrets of Mimouna'",
+      "source_url": "https://www.myjewishlearning.com/article/maimouna-a-post-passover-celebration/",
+      "confidence": "regional",
+      "review_notes": "Origins are disputed (yahrzeit of R. Maimon, Arabic 'ma'amoun', 'ani ma'amin', folk/pagan roots). Not a halachic obligation; not a practice of Western S&P communities.",
+      "references": [
+        {
+          "title": "Mimouna: A Post-Passover Celebration",
+          "url": "https://www.myjewishlearning.com/article/maimouna-a-post-passover-celebration/"
+        },
+        {
+          "title": "Mimouna, a Unique Moroccan Jewish Tradition",
+          "url": "https://reformjudaism.org/mimouna-unique-moroccan-jewish-tradition"
+        }
+      ],
+      "topic_he": "מימונה (אחרי פסח)",
+      "summary_he": "יהודי מרוקו (והמגרב הרחב) חוגגים מימונה בלילה וביום שאחרי פסח, עם בתים פתוחים וממתקי חג."
     },
     {
       "index": "halacha.19",
-      "category": "Calendar",
-      "topic": "Chanukah",
-      "summary": "Chanukah observance follows standard halacha with local songs, foods, and liturgical additions.",
+      "category": "Chanukah",
+      "topic": "Number of menorahs",
+      "summary": "Sephardim light one menorah per household, adding one light each night, kindled by the head of the household on behalf of all.",
       "common_practices": [
-        "Light Chanukah candles nightly",
-        "Recite customary prayers and songs",
-        "Use community food customs where inherited",
-        "Anchor observance times to local halachic zmanim.",
-        "Coordinate fasts, selichot, and festival timing with community schedule.",
-        "Use a single trusted local calendar authority for consistency."
-      ]
+        "One chanukiah per household",
+        "Lights increase from one to eight"
+      ],
+      "variants": [],
+      "source": "Shulchan Arukh, Orach Chayim 671:2 (Maran follows Tosafot; the Rema rules each household member lights); Kaf HaChaim 671:6; Yedei Chayim 671:3 (as cited by OU, 'Hilchot and Minhagei Chanukah According to the Sephardic Practice')",
+      "source_url": "https://www.sefaria.org/Shulchan_Arukh,_Orach_Chayim.671.2",
+      "confidence": "well-attested",
+      "review_notes": "The Taz notes this is a rare case where Sephardim follow Tosafot. Students away from home raise separate questions; refer to a rabbi.",
+      "references": [
+        {
+          "title": "Sephardic Chanukah Lighting in a Yeshiva or University Dormitory - The Jewish Link",
+          "url": "https://jewishlink.news/sephardic-chanukah-lighting-in-a-yeshiva-or-university-dormitory/"
+        }
+      ],
+      "topic_he": "מספר החנוכיות",
+      "summary_he": "ספרדים מדליקים חנוכייה אחת לכל בית, ומוסיפים נר בכל לילה, והיא מודלקת בידי בעל הבית בשם כולם."
     },
     {
       "index": "halacha.20",
-      "category": "Calendar",
-      "topic": "Purim",
-      "summary": "Purim is celebrated with Megillah reading, gifts to the poor, food exchange, and communal joy.",
+      "category": "Torah reading",
+      "topic": "Hagbaha before the reading",
+      "summary": "Sephardim raise and display the open Torah scroll before the reading, not after.",
       "common_practices": [
-        "Read the Megillah publicly",
-        "Exchange mishloach manot",
-        "Maintain local Purim food and song customs",
-        "Anchor observance times to local halachic zmanim.",
-        "Coordinate fasts, selichot, and festival timing with community schedule.",
-        "Use a single trusted local calendar authority for consistency."
-      ]
+        "Scroll opened (traditionally three columns) and shown to all sides before reading",
+        "Congregation points at the text and says 'Vezot HaTorah'"
+      ],
+      "variants": [
+        {
+          "subgroup": "Jerusalemite Sephardi",
+          "practice": "Custom was to walk around the entire synagogue with the open scroll so all could see the text.",
+          "source": "Kaf HaChaim 134:13 (as cited in Sefaria sheet 'Hagba: Lifting the Torah, Uplifting Ourselves')"
+        }
+      ],
+      "source": "Shulchan Arukh, Orach Chayim 134:2 (Rema: Ashkenazi custom after reading); Ben Ish Chai, Year Two, Toldot 16 (as cited by Jewish Action); Masechet Soferim 14:14",
+      "source_url": "https://www.sefaria.org/Shulchan_Arukh,_Orach_Chayim.134.2",
+      "confidence": "well-attested",
+      "review_notes": "",
+      "topic_he": "הגבהה לפני הקריאה",
+      "summary_he": "ספרדים מגביהים ומציגים את ספר התורה הפתוח לפני הקריאה, ולא אחריה."
     },
     {
       "index": "halacha.21",
-      "category": "Calendar",
-      "topic": "Tishah B'Av and fasts",
-      "summary": "Fast-day practice is generally strict, with customs for mourning and recitation varying by community.",
-      "common_practices": [
-        "Observe full-day fasts as required",
-        "Use communal kinot or lamentations where customary",
-        "Follow local custom for restrictions on music, bathing, and greetings",
-        "Anchor observance times to local halachic zmanim.",
-        "Coordinate fasts, selichot, and festival timing with community schedule.",
-        "Use a single trusted local calendar authority for consistency."
-      ]
+      "category": "Torah reading",
+      "topic": "Hebrew pronunciation (Spanish-Portuguese)",
+      "summary": "The London Spanish-Portuguese tradition has a distinctive Hebrew pronunciation.",
+      "common_practices": [],
+      "variants": [
+        {
+          "subgroup": "Western (Spanish-Portuguese), London",
+          "practice": "Ayin traditionally pronounced 'ng' (e.g., 'Ba-ngaboor', 'Be-ngalma'); no distinction between bet with and without dagesh (both 'b'); pure vowels (segol and tsere both as in 'let'); vocal vs silent sheva and milra/mil'el stress strictly observed; 'Kal' for kol (Kal Nidrey).",
+          "source": "London Sephardi Minhag, 'Pronunciation' page"
+        },
+        {
+          "subgroup": "Western (Spanish-Portuguese), historic Hamburg",
+          "practice": "Moseh Abudiente's Grammatica hebraica describes ayin as 'Hgayn' with sound 'Hg'.",
+          "source": "Academic paper on Western Sephardic Hebrew pronunciation"
+        }
+      ],
+      "source": "London Sephardi Minhag, 'Pronunciation' page",
+      "source_url": "https://sites.google.com/site/londonsephardiminhag/pronunciation",
+      "confidence": "regional",
+      "review_notes": "Source notes the 'ng' ayin is now often ignored but ayin is still not treated as aleph. Torah cantillation (te'amim) melodies for any subgroup were not documented.",
+      "references": [
+        {
+          "title": "London Sephardi Minhag - Language",
+          "url": "https://sites.google.com/site/londonsephardiminhag/pronunciation"
+        }
+      ],
+      "topic_he": "הגיית העברית (ספרדי-פורטוגזי)",
+      "summary_he": "למסורת הספרדית-הפורטוגזית בלונדון הגיית עברית מיוחדת."
     },
     {
       "index": "halacha.22",
-      "category": "Education",
-      "topic": "Torah study and transmission",
-      "summary": "Transmission is text-based and community-based, with major importance placed on rabbinic learning and family tradition.",
+      "category": "Prayer",
+      "topic": "Language of synagogue announcements (Spanish-Portuguese)",
+      "summary": "In London, the announcement of who receives synagogue honours (mitsvot) has always been made in Portuguese; Ladino is not used there.",
+      "common_practices": [],
+      "variants": [
+        {
+          "subgroup": "Western (Spanish-Portuguese), London",
+          "practice": "Portuguese for mitsvot announcements; older community terms such as 'Sa'ar Asamayim', 'Heshaim', 'Askamot', 'Echal'.",
+          "source": "London Sephardi Minhag, 'Pronunciation' page"
+        }
+      ],
+      "source": "London Sephardi Minhag, 'Pronunciation' page",
+      "source_url": "https://sites.google.com/site/londonsephardiminhag/pronunciation",
+      "confidence": "regional",
+      "review_notes": "",
+      "topic_he": "שפת ההכרזות בבית הכנסת (ספרדי-פורטוגזי)",
+      "summary_he": "בלונדון ההכרזה על מי שמקבל כיבודים בבית הכנסת (מצוות) נעשית מאז ומתמיד בפורטוגזית; לדינו אינה משמשת שם."
+    },
+    {
+      "index": "halacha.23",
+      "category": "Kashrut",
+      "topic": "Fish with dairy",
+      "summary": "Beit Yosef warns against eating fish with milk for reasons of danger; many Sephardim avoid fish with dairy, but the scope of the custom differs.",
+      "common_practices": [],
+      "variants": [
+        {
+          "subgroup": "Modern Israeli Sephardi",
+          "practice": "R. Ovadia Yosef recommends refraining at least from fish with milk, even if some are lenient with fish and butter.",
+          "source": "Yechaveh Da'at 6:46 (as cited by Yeshivat Har Etzion VBM, 'More Precautionary Prohibitions')"
+        },
+        {
+          "subgroup": "Other Sephardim",
+          "practice": "Some Sephardim refrain even from cheese with fish (e.g., tuna melts); others are lenient.",
+          "source": "Yeshivat Har Etzion VBM, 'More Precautionary Prohibitions'"
+        }
+      ],
+      "source": "Beit Yosef, Yoreh De'ah 87; Taz YD 87:3 and Darkhei Moshe (who regard the Beit Yosef text as a scribal error for 'meat')",
+      "source_url": "https://www.etzion.org.il/en/halakha/yoreh-deah/kashrut-and-issur-veheter/more-precautionary-prohibitions",
+      "confidence": "disputed",
+      "review_notes": "The Shulchan Arukh YD 87:3 itself states fish and dairy are not prohibited even rabbinically as basar bechalav; the concern is only the Beit Yosef's health warning.",
+      "topic_he": "דג עם חלב",
+      "summary_he": "הבית יוסף מזהיר מאכילת דג עם חלב משום סכנה; ספרדים רבים נמנעים מדג עם חלב, אך היקף המנהג שונה."
+    },
+    {
+      "index": "halacha.24",
+      "category": "Brit milah and pidyon haben",
+      "topic": "Naming after living grandparents",
+      "summary": "Sephardim name children after living grandparents as an act of kibbud av va'em.",
       "common_practices": [
-        "Study halachic works and responsa",
-        "Teach children prayers, customs, and Torah reading",
-        "Preserve oral family minhag alongside written sources",
-        "Teach children both baseline halacha and family minhag distinctions.",
-        "Preserve community pronunciation and liturgical pedagogy.",
-        "Document oral traditions to reduce minhag drift across generations."
-      ]
+        "Naming after the newborn's living grandparents is considered an honor"
+      ],
+      "variants": [],
+      "source": "shulchanaruchharav.com, 'Naming one's son or daughter after one's father or mother while they're still alive' (citing Yalkut Me'am Lo'ez Shemot 20:12); Chabad.org, 'The Laws of Jewish Names'",
+      "source_url": "https://shulchanaruchharav.com/halacha/naming-ones-son-or-daughter-after-ones-father-or-mother-while-theyre-still-alive/",
+      "confidence": "well-attested",
+      "review_notes": "The source clarifies this refers to naming after the newborn's grandparents, not after a living parent himself. A claimed order (husband's parents before wife's) appears only in a popular source and is excluded pending review.",
+      "references": [
+        {
+          "title": "⚖️ Daily Halacha: Naming one’s son or daughter after one’s father or mother (the Grandparent of the newborn) while they’re still alive",
+          "url": "https://shulchanaruchharav.com/daily-halacha-naming-ones-son-or-daughter-after-ones-father-or-mother-the-grandparent-of-the-newborn-while-theyre-still-alive/"
+        }
+      ],
+      "topic_he": "קריאת שם על שם סבים חיים",
+      "summary_he": "ספרדים קוראים לילדים על שם סבים חיים כמעשה כיבוד אב ואם."
+    },
+    {
+      "index": "halacha.25",
+      "category": "Mourning",
+      "topic": "Hashkabah and nahala (Spanish-Portuguese)",
+      "summary": "In the Western rite, the memorial prayer is the Hashkabah (hashcaba), and the anniversary of death is called the nahala.",
+      "common_practices": [],
+      "variants": [
+        {
+          "subgroup": "Western (Spanish-Portuguese), New York",
+          "practice": "A hashcaba is chanted at the conclusion of services; men may receive an aliyah on the Shabbat morning following a loved one's nahala, at which time a hashcaba is recited; Shearith Israel states the Nahala is also observed on the 30th day from the date of burial and in the 11th month from the date of burial. Separate male and female hashcaba forms exist in the melody repertoire.",
+          "source": "Congregation Shearith Israel, 'Life Cycle Events'; sandpcentral.org, 'Melodies (alphabetical)'"
+        }
+      ],
+      "source": "Congregation Shearith Israel, Life Cycle Events",
+      "source_url": "https://www.shearithisrael.org/resources/life-cycle-events/",
+      "confidence": "regional",
+      "review_notes": "Eastern Sephardi hashkava and yahrzeit (azkara/nahala) customs were not documented from a primary source in this pass.",
+      "topic_he": "השכבה ונחלה (ספרדי-פורטוגזי)",
+      "summary_he": "בנוסח המערבי תפילת הזיכרון היא ההשכבה (hashcaba), ויום השנה לפטירה נקרא נחלה."
+    },
+    {
+      "index": "halacha.26",
+      "category": "Distinctive customs",
+      "topic": "Bakashot",
+      "summary": "Aleppo (Syrian) and Moroccan communities rise in the small hours of winter Shabbat mornings to sing bakashot until the morning service.",
+      "common_practices": [
+        "Sung in winter, beginning on Shabbat Bereshit"
+      ],
+      "variants": [
+        {
+          "subgroup": "Aleppo / Syrian (and Jerusalem)",
+          "practice": "Fixed order sung each week, from the Miqra Qodesh collection compiled by R. Mordechai Abadi (Aleppo, 1872); season runs until Shabbat HaGadol; Ades Synagogue, Jerusalem is a center.",
+          "source": "Jewish Music Research Centre, Hebrew University, 'Baqqashah (Pl. Baqqashot)'; The New Arab (Hadar Cohen)"
+        },
+        {
+          "subgroup": "Moroccan",
+          "practice": "Different bakashot each week from Shir Yedidot (Marrakesh 1921), organized by Andalusian musical modes; season runs until Shabbat Zakhor; revived in Israel by R. David Buzaglo.",
+          "source": "Jewish Music Research Centre, Hebrew University, 'Baqqashah (Pl. Baqqashot)'"
+        }
+      ],
+      "source": "Jewish Music Research Centre, Hebrew University of Jerusalem, 'Baqqashah (Pl. Baqqashot)'",
+      "source_url": "https://jewish-music.huji.ac.il/en/content/baqqashah-pl-baqqashot",
+      "confidence": "regional",
+      "review_notes": "Many piyyutim are by R. Israel Najara (Zemirot Yisrael). Amsterdam reportedly retains a few bakashot before the Shabbat service (unverified lead).",
+      "references": [
+        {
+          "title": "Baqqashah (Pl. Baqqashot)",
+          "url": "https://jewish-music.huji.ac.il/en/content/baqqashah-pl-baqqashot"
+        }
+      ],
+      "topic_he": "בקשות",
+      "summary_he": "קהילות חלב (סוריה) ומרוקו קמות בשעות הקטנות של בוקר שבתות החורף לשיר בקשות עד תפילת הבוקר."
     }
   ],
-  "unique_minhagim": {
-    "examples": [
-      "Ladino-based piyyutim in some communities",
-      "Local festival foods such as Sephardi sweets and fried dough in some regions",
-      "Distinct synagogue melodies by city or diaspora branch",
-      "Community-specific arrangements for Selichot and High Holidays"
-    ],
-    "notes": "These are examples of common Sephardi cultural patterns rather than universal rules."
-  },
-  "source_registry": {
-    "primary": [
-      "Shulchan Aruch",
-      "Beit Yosef",
-      "Mishneh Torah"
-    ],
-    "secondary": [
-      "Sephardi education resources",
-      "Sephardic genealogy databases",
-      "Community siddurim and local responsa"
-    ]
-  }
+  "unique_minhagim": [
+    {
+      "name": "Mimouna",
+      "description": "Moroccan/Maghrebi open-house celebration with sweets and blessings at the end of Pesach.",
+      "when": "Night and day after the last day of Pesach",
+      "source": "My Jewish Learning, 'Mimouna: A Post-Passover Celebration'",
+      "source_url": "https://www.myjewishlearning.com/article/maimouna-a-post-passover-celebration/",
+      "confidence": "regional",
+      "name_he": "מימונה",
+      "description_he": "חגיגת בית פתוח מרוקאית/מגרבית עם ממתקים וברכות בסוף פסח."
+    },
+    {
+      "name": "Bakashot (Shirat HaBakashot)",
+      "description": "Pre-dawn singing of kabbalistic piyyutim on winter Shabbatot; fixed weekly order in Aleppo tradition, rotating weekly in Moroccan tradition.",
+      "when": "Shabbat Bereshit to Shabbat Zakhor (Moroccan) or Shabbat HaGadol (Aleppo)",
+      "source": "Jewish Music Research Centre, Hebrew University, 'Baqqashah (Pl. Baqqashot)'",
+      "source_url": "https://jewish-music.huji.ac.il/en/content/baqqashah-pl-baqqashot",
+      "confidence": "regional",
+      "name_he": "בקשות (שירת הבקשות)",
+      "description_he": "שירת פיוטים קבליים לפני עלות השחר בשבתות החורף; סדר שבועי קבוע במסורת חלב, וסדר מתחלף מדי שבוע במסורת המרוקאית."
+    },
+    {
+      "name": "Rosh Hashana seder of simanim",
+      "description": "Structured sequence of symbolic foods with Yehi Ratzon formulas, ordered per Ben Ish Chai beginning with dates.",
+      "when": "Rosh Hashana nights",
+      "source": "Shulchan Arukh OC 583:1; Ben Ish Chai, Nitzavim 4",
+      "source_url": "https://www.sefaria.org/Shulchan_Arukh,_Orach_Chayim.583",
+      "confidence": "well-attested",
+      "name_he": "סדר סימנים בראש השנה",
+      "description_he": "רצף מובנה של מאכלי סמל עם נוסחי \"יהי רצון\", מסודר לפי הבן איש חי ומתחיל בתמרים."
+    },
+    {
+      "name": "Hashkabah",
+      "description": "Spanish-Portuguese memorial prayer chanted at the end of services and on the Shabbat after a nahala.",
+      "when": "After services; Shabbat after the nahala; Rosh Hodesh and Yom Kippur for the perpetual list",
+      "source": "Congregation Shearith Israel, Life Cycle Events",
+      "source_url": "https://www.shearithisrael.org/resources/life-cycle-events/",
+      "confidence": "regional",
+      "name_he": "השכבה",
+      "description_he": "תפילת זיכרון ספרדית-פורטוגזית הנאמרת בסוף התפילות ובשבת אחרי נחלה."
+    },
+    {
+      "name": "Morir habemos greeting",
+      "description": "Judeo-Spanish exchange on Tisha B'Av ('Morir habemos' / 'Ya lo sabemos') in Amsterdam and New York S&P congregations.",
+      "when": "Tisha B'Av",
+      "source": "London Sephardi Minhag, 'Fast of Ab' page",
+      "source_url": "https://sites.google.com/site/londonsephardiminhag/fast-of-ab",
+      "confidence": "needs-review",
+      "name_he": "ברכת \"מוריר אבמוס\"",
+      "description_he": "החלפת דברים ביהודית-ספרדית בתשעה באב (\"Morir habemos\" / \"Ya lo sabemos\") בקהילות ספרדיות-פורטוגזיות באמסטרדם ובניו יורק."
+    }
+  ],
+  "source_registry": [
+    {
+      "title": "Shulchan Arukh, Orach Chayim (493, 581, 583, 605, 671, 134)",
+      "author": "R. Yosef Karo",
+      "type": "primary",
+      "url": "https://www.sefaria.org/Shulchan_Arukh,_Orach_Chayim.493.2",
+      "used_for": "Omer, Elul selichot, simanim, kaparot, Chanukah, hagbaha (texts on Sefaria)"
+    },
+    {
+      "title": "Shulchan Arukh, Orach Chayim 551 (English translation)",
+      "author": "R. Yosef Karo (Wikisource translation)",
+      "type": "primary",
+      "url": "https://en.wikisource.org/wiki/Translation:Shulchan_Aruch/Orach_Chaim/551",
+      "used_for": "Three Weeks / Nine Days customs"
+    },
+    {
+      "title": "Peninei Halakha, Zemanim 3 (Omer) and 8:13 (Meat and Wine); Pesach 9:2 (Sephardic kitniyot custom)",
+      "author": "R. Eliezer Melamed",
+      "type": "primary",
+      "url": "https://ph.yhb.org.il/en/04-09-02/",
+      "used_for": "Omer dates, Nine Days, kitniyot regional variants"
+    },
+    {
+      "title": "Customs of Mourning during the Omer Period (Revivim)",
+      "author": "R. Eliezer Melamed",
+      "type": "primary",
+      "url": "https://en.yhb.org.il/customs-of-mourning-during-the-omer-period/",
+      "used_for": "Sephardi Omer practice; Turkish/Egyptian variant; Ari custom"
+    },
+    {
+      "title": "Customs of the Nine Days",
+      "author": "R. Eliezer Melamed (Arutz Sheva)",
+      "type": "primary",
+      "url": "https://www.israelnationalnews.com/news/412511",
+      "used_for": "Laundering, Rosh Chodesh Av meat"
+    },
+    {
+      "title": "Halacha According to the Sephardic Practice: The Month of Elul",
+      "author": "Orthodox Union",
+      "type": "reference",
+      "url": "https://www.ou.org/holidays/halacha-according-to-the-sephardic-practice-the-month-of-elul/",
+      "used_for": "Elul selichot; citations to Kaf HaChaim and Chazon Ovadia"
+    },
+    {
+      "title": "Hilchot and Minhagei Chanukah According to the Sephardic Practice",
+      "author": "Orthodox Union",
+      "type": "reference",
+      "url": "https://www.ou.org/holidays/hilchot-and-minhagei-chanukah-according-to-the-sephardic-practice/",
+      "used_for": "One menorah per household"
+    },
+    {
+      "title": "Halachipedia: Shabbat Candles; When to Wear Tefillin; Rosh Hashana",
+      "author": "Halachipedia editors",
+      "type": "reference",
+      "url": "https://halachipedia.com/index.php?title=When_to_Wear_Tefillin",
+      "used_for": "Candle-lighting order, Tisha B'Av tefillin variants, simanim"
+    },
+    {
+      "title": "More Precautionary Prohibitions",
+      "author": "Yeshivat Har Etzion VBM",
+      "type": "reference",
+      "url": "https://www.etzion.org.il/en/halakha/yoreh-deah/kashrut-and-issur-veheter/more-precautionary-prohibitions",
+      "used_for": "Fish and dairy"
+    },
+    {
+      "title": "Tefillin on Chol Hamoed",
+      "author": "shulchanaruchharav.com",
+      "type": "reference",
+      "url": "https://shulchanaruchharav.com/halacha/tefillin-on-chol-hamoed/",
+      "used_for": "Citations of SA 31:2, Beit Yosef, Kaf HaChaim 31:6"
+    },
+    {
+      "title": "London Sephardi Minhag (pages: Fast of Ab, Tephillin, Shabbat, Pronunciation, Kabbalah - not)",
+      "author": "R. Jonathan Cohen",
+      "type": "reference",
+      "url": "https://sites.google.com/site/londonsephardiminhag/fast-of-ab",
+      "used_for": "Spanish-Portuguese customs (London)"
+    },
+    {
+      "title": "Life Cycle Events",
+      "author": "Congregation Shearith Israel",
+      "type": "primary",
+      "url": "https://www.shearithisrael.org/resources/life-cycle-events/",
+      "used_for": "Hashcaba, nahala, Perpetual Hashcabot"
+    },
+    {
+      "title": "Shabbat (Jewish Voices in the New World)",
+      "author": "Milken Archive of Jewish Music / Neil W. Levin",
+      "type": "academic",
+      "url": "https://www.milkenarchive.org/music/volumes/view/jewish-voices-in-the-new-world/work/shabbat/",
+      "used_for": "Western Sephardi Kabbalat Shabbat"
+    },
+    {
+      "title": "Baqqashah (Pl. Baqqashot)",
+      "author": "Jewish Music Research Centre, Hebrew University of Jerusalem",
+      "type": "academic",
+      "url": "https://jewish-music.huji.ac.il/en/content/baqqashah-pl-baqqashot",
+      "used_for": "Bakashot traditions"
+    },
+    {
+      "title": "Hagba: Lifting the Torah, Uplifting Ourselves (source sheet)",
+      "author": "Sefaria Voices",
+      "type": "reference",
+      "url": "https://voices.sefaria.org/sheets/568284",
+      "used_for": "SA 134:2 text and Kaf HaChaim 134:13"
+    },
+    {
+      "title": "Mimouna: A Post-Passover Celebration",
+      "author": "My Jewish Learning",
+      "type": "reference",
+      "url": "https://www.myjewishlearning.com/article/maimouna-a-post-passover-celebration/",
+      "used_for": "Mimouna"
+    },
+    {
+      "title": "Congregational History",
+      "author": "Congregation Shearith Israel",
+      "type": "primary",
+      "url": "https://www.shearithisrael.org/about/our-history/congregational-history/",
+      "used_for": "Founding history 1654"
+    },
+    {
+      "title": "Hilkhot Shiva Asar b'Tammuz v'Yemei Bein HaMeitzarim 5775",
+      "author": "R. David Pardo (OU-JLIC)",
+      "type": "reference",
+      "url": "https://oujlic.org/content/uploads/2016/04/HalakhotoftheThreeWeeks5775.pdf",
+      "used_for": "Jerusalem custom on Nine Days meat"
+    }
+  ],
+  "gaps": [
+    "Shabbat Kiddush, seudot and Havdalah: no subgroup-specific Sephardic source found",
+    "Eastern Sephardi Kabbalat Shabbat order and Shir HaShirim before Kabbalat Shabbat (only a Wikipedia lead)",
+    "Rosh Hashana order of the day (shofar sounds count, Tashlich timing beyond a Halachipedia note)",
+    "Yom Kippur liturgy (Kal Nidre, Ne'ila customs, piyyutim) beyond kaparot and S&P hashcabot",
+    "Sukkot, Hoshana Rabba night vigil and Simchat Torah hakafot customs",
+    "Purim customs",
+    "Pesach seder customs (e.g., Moroccan custom of passing the seder plate over guests' heads appears only in a community newspaper) and matzah customs",
+    "Shavuot customs",
+    "Tzitzit customs",
+    "Torah cantillation (te'amim) traditions for each subgroup",
+    "Pidyon haben",
+    "Brit milah ceremony customs (e.g., the night-before 'Brit Yitzchak' gathering, Kisse Eliyahu) — only Wikipedia leads",
+    "Bar mitzvah and bat mitzvah customs",
+    "Wedding customs (henna, ketubah text, sheva berachot variations)",
+    "Niddah and mikveh practice specific to Sephardim (e.g., Shulchan Arukh vs Rema on harchakot)",
+    "Mourning, burial, shiva and yahrzeit practice for Eastern Sephardim (Eastern hashkava, azkara, arayat)",
+    "Calendar parameters (candle-lighting minutes, fast-end times) — no documented community-specific figure found",
+    "Ladino / Judeo-Arabic liturgical usage beyond London Portuguese announcements",
+    "Jerusalemite Sephardi customs as a distinct body (only two isolated notes found)"
+  ],
+  "disputes": [
+    "Fish with dairy: Beit Yosef warns of danger; Taz/Darkhei Moshe call it a scribal error; Sephardim differ on whether butter/cheese with fish is avoided (Yechaveh Da'at 6:46 vs lenient practice)",
+    "Kaparot: Shulchan Arukh OC 605:1 says to stop it; many Sephardim practice it anyway",
+    "Candle-lighting blessing order: most Sephardim bless before lighting (Yechaveh Da'at 2:33); some families keep blessing after",
+    "Weddings 17 Tammuz to Rosh Chodesh Av: permitted per Shulchan Arukh reading vs reports that Sephardim generally avoid them",
+    "Omer end: morning of the 34th (Shulchan Arukh, most Israeli Sephardim) vs Lag BaOmer (Turkish and Egyptian communities) vs erev Shavuot for haircuts (Ari's followers)",
+    "Rice on Pesach: generally permitted, but not eaten by Izmir, many Moroccan, and many Baghdadi families",
+    "Meat on Rosh Chodesh Av: most Sephardim permit; Jerusalem custom (per R. Ovadia Yosef as cited) abstains all Nine Days; some abstain only the week of Tisha B'Av",
+    "Tallit/tefillin at Shacharit of Tisha B'Av: S&P London and Moroccan/Persian wear only at Minha; other Sephardim wear tefillin in the morning"
+  ],
+  "needs_rabbinic_review": [
+    "All Spanish-Portuguese entries resting on the London Sephardi Minhag site (personal site of R. Jonathan Cohen) should be checked against official Bevis Marks / Shearith Israel minhag sources",
+    "Whether Spanish-Portuguese communities follow the general Sephardic Omer end-date and Chol HaMoed tefillin practice (no S&P-specific source found)",
+    "Weddings during the Three Weeks for Sephardim (conflicting sources)",
+    "Women's haircuts during the Omer (Chazon Ovadia as quoted secondhand)",
+    "Fish and dairy scope for each family tradition"
+  ]
 }

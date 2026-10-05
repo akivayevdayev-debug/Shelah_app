@@ -569,7 +569,7 @@ The current weekly portion. Returns `{"title", "heTitle", "ref", "source"}`, whe
 |---|---|
 | `GET /api/communities/list` | `[{"name": "Ashkenaz"}, …]`, the supported community names, sorted. Corpus-derived tier. |
 | `GET /api/communities` | Alias of the list above, kept for older clients. |
-| `GET /api/community/<name>` | One community's customs: `name`, `requested_name`, `heritage_id`, `primary_origin`, `customs` (keyed `category_topic`, each with `category`, `topic`, `ruling`, `common_practices`, `source`) and the full `raw_data`. The name accepts aliases and is canonicalised; an unknown name is a `404`, an unreadable file a `500`. |
+| `GET /api/community/<name>` | One community's customs: `name`, `requested_name`, `heritage_id`, `primary_origin`, `customs` (keyed `category_topic`, each with `category`, `topic` (original casing), `topic_he`, `ruling`, `ruling_he`, `common_practices`, `source`, and, where the file has them, `source_url`, `references`, `variants` and `confidence`; the `_he` fields are hand-written Hebrew, or an empty string), `major_authorities` (short names from the source registry), `distinctive_customs` (each with `name`, `name_he`, `description`, `description_he`, `when`, `source`, `source_url`, `confidence`), `disputes`, `gaps`, and the full `raw_data`. Reviewer-only fields (`review_notes`, `needs_rabbinic_review`) are stripped from every part of the response, `raw_data` included. The name accepts aliases and is canonicalised; an unknown name is a `404`, an unreadable file a `500`. |
 | `GET /api/community/<name>/timeline` | `{"name", "events": [{"title", "description", "approx_period"}]}`, at most 30 events built from the community file's origin and history fields. |
 
 ---

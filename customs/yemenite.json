@@ -1,434 +1,1408 @@
 {
-  "version": "2.0",
+  "version": "3.0",
   "type": "academic_halachic_reference",
   "heritage_id": "yemenite",
   "name": "Yemenite",
   "aliases": [
     "Teimani",
-    "Yemenite Jews"
+    "Yemenite Jews",
+    "Teimanim",
+    "Temanim",
+    "Yemeni Jews",
+    "Yehudei Teiman (יהודי תימן)"
   ],
   "database_scope": {
-    "purpose": "Academic and halachic reference database for Yemenite Jewish heritage, minhagim, and halachic practice.",
-    "coverage_note": "This file models broad Yemenite practice and includes common halachic domains. Local customs vary by region, family, and sub-tradition.",
-    "classification_note": "Yemenite halacha is often discussed as a highly preserved and textually conservative tradition, with distinct internal branches."
+    "purpose": "Sourced reference for Yemenite minhagim and halachic practice. It records what the cited sources say, with a confidence level for each entry, and is not a psak.",
+    "coverage_note": "38 sourced topics and 7 distinctive customs, compiled from the cited sources in October 2026. Each entry carries a confidence level (well-attested, disputed, regional, needs-review). 12 topics have no community-specific source and are listed under 'gaps' rather than filled with generic text."
   },
   "identity": {
-    "primary_origin": "Ancient Jewish communities in Yemen and the Arabian Peninsula",
+    "primary_origin": "Yemen, with Sana'a as its leading community",
     "secondary_centers": [
-      "Northern Yemen",
-      "Southern Yemen",
-      "San'a",
-      "Aden",
-      "Modern Israeli Yemenite diaspora"
-    ],
-    "cultural_profile": [
-      "Strong preservation of older liturgical forms",
-      "Careful oral transmission of prayer and legal practice",
-      "Distinctive community structure and family customs",
-      "Close connection between halacha, melody, and pronunciation"
+      "Israel (after the mass immigration)"
     ]
   },
   "languages": [
-    "Hebrew",
-    "Judeo-Arabic",
-    "Arabic",
-    "Liturgical Hebrew pronunciation with Yemenite features"
+    "Aramaic: the Omer count is said in Aramaic",
+    "Arabic: a child may ask the Mah Nishtanah in Arabic, and women recite an afternoon Arabic lamentation",
+    "Hebrew, Arabic and Aramaic: the paraliturgical anthology sung at Shabbat meals and celebrations"
   ],
-  "genealogy": {
-    "common_surname_patterns": [
-      "Patronymic-style surnames",
-      "Names tied to towns or tribes",
-      "Names reflecting ancestral occupations or honorifics",
-      "Family branches preserved through communal memory"
-    ],
-    "research_notes": [
-      "Surname spellings vary greatly across transliteration systems.",
-      "Genealogy often requires town, synagogue, and family oral history.",
-      "Marriage networks and migration records are especially important."
-    ],
-    "recommended_genealogy_fields": [
-      "surname",
-      "alternate_spellings",
-      "town_of_origin",
-      "family_branch",
-      "tribal_or_regional_link",
-      "migration_route",
-      "ritual_minhag"
-    ]
-  },
+  "subgroups": [
+    {
+      "name": "Baladi (בלדי)",
+      "note": "‘Local’ rite as copied in Yemen in manuscript Tiklalim; Mishneh Torah is the leading authority. Most Baladi worshippers follow the text fixed by Maharitz (R. Yihya Salah) in Etz Hayyim. Geridi: an unqualified ‘Yemenite siddur’ means the Baladi one."
+    },
+    {
+      "name": "Shami (שאמי)",
+      "note": "‘Eretz-Israel’ rite, essentially the Sephardic siddur with some Baladi retentions; also accepts Shulchan Aruch. Sar-Shalom: where Shami do not follow Baladi they generally follow Sephardic custom. Shami still follow the Tiklal for Seder additions, Shavuot, Hoshanot and selichot (Geridi)."
+    },
+    {
+      "name": "Dor Daim (דרדעים / Dor De'ah)",
+      "note": "Rambam-centered movement of R. Yihya Qafih, continued in scholarship by R. Yosef Qafih; Sar-Shalom: they preserve elements of Saadia Gaon's siddur with the Rambam's rulings. No longer an organized movement. Distinct documented practices are few in the sources opened."
+    }
+  ],
   "historical_background": {
     "timeline": [
       {
-        "period": "Early centuries",
-        "event": "Jewish communities established in Yemen and maintained long-term continuity.",
-        "halachic_impact": "Local halachic and liturgical forms developed with strong continuity."
+        "period": "Up to 17th century",
+        "event": "Yemenite siddurim had no Kabbalat Shabbat; the Shabbat evening service began with Mizmor Shir LeYom HaShabbat.",
+        "halachic_impact": "Lekha Dodi and Kabbalat Shabbat entered from printed books from the early 17th century (Gavra)."
       },
       {
-        "period": "Medieval era",
-        "event": "Rabbis and manuscripts helped preserve Yemenite legal tradition.",
-        "halachic_impact": "Texts and oral transmission reinforced community continuity."
+        "period": "18th century",
+        "event": "Shami (Sephardic-printed) influence spread under R. Shalom ben Aharon ha-Kohen Iraqi ‘al-Usta’ (1685–1780), Nasi of the Sana'a community, who according to the Encyclopedia of Yemenite Sages (teman.org.il) urged the switch from the Yemenite to the Sephardic siddur around 1728 (תפ״ח), causing a major dispute; Mori Yehuda Tza'di and Mori Pinchas ben Shlomo Iraqi opposed him, and his synagogue Knis al-Usta became the Shami centre. Maharitz wrote Etz Hayyim to anchor Baladi custom.",
+        "halachic_impact": "Parallel Baladi and Shami rites in the same towns."
       },
       {
-        "period": "Modern era",
-        "event": "Migration to Israel and other countries accelerated.",
-        "halachic_impact": "Some local customs were preserved, others adapted in diaspora settings."
+        "period": "1894 (5654)",
+        "event": "First printing of the Baladi Tiklal in Jerusalem with Etz Hayyim.",
+        "halachic_impact": "Fixed printed Baladi text (Geridi)."
       },
       {
-        "period": "20th century and after",
-        "event": "Community dispersion intensified after major political changes in Yemen.",
-        "halachic_impact": "Separate Yemenite sub-traditions continued within new communities."
+        "period": "Early 20th century, Sana'a",
+        "event": "Dor De'ah circle around R. Yihya Qafih.",
+        "halachic_impact": "Rambam-only, anti-Kabbalistic tendency; later partly reabsorbed into Baladi."
+      },
+      {
+        "period": "1952 and 1995",
+        "event": "R. Yosef Qafih publishes Tiklalim Shivat Tzion (5712) and Siach Yerushalayim (5755), whose notes mark Baladi/Shami differences.",
+        "halachic_impact": "Main modern Baladi reference texts."
+      },
+      {
+        "period": "After immigration to Israel",
+        "event": "Many Yemenite customs lapsed or were replaced; e.g., Geridi (Pesach §1): in Israel the special Pesach preparations made in Yemen lapsed, and only in some villages do Yemenites still bake matzah at home daily.",
+        "halachic_impact": "Gap between ancient custom and current Israeli Yemenite practice."
       }
     ]
   },
   "core_halachic_authorities": {
     "primary_codes": [
-      "Mishneh Torah",
-      "Shulchan Aruch",
-      "Yemenite legal tradition"
+      "Rambam, Mishneh Torah (Yemenite manuscript text, R. Yosef Qafih edition)",
+      "Tiklal with Maharitz's Etz Hayyim",
+      "Shulchan Aruch (Shami, alongside Rambam)"
     ],
     "major_rishonim_base": [
       "Rambam",
-      "Rif",
-      "Rosh"
+      "Saadia Gaon (siddur, Hoshanot)",
+      "Geonim"
     ],
-    "later_yemenite_poskim": [
-      "Rav Yihye Qafih",
-      "Rav Shalom Shabazi",
-      "Rav Yosef Kafih",
-      "Rav Meir Mazuz"
+    "later_poskim": [
+      "R. Yihya Salah (Maharitz)",
+      "R. Yihya Qafih",
+      "R. Yosef Qafih (Shivat Tzion, Siach Yerushalayim; Halikhot Teiman)",
+      "R. Ratzon Arusi (Mechon Mishnat HaRambam)",
+      "R. Yitzhak Ratzabi (Shulchan Arukh HaMekutzar)"
     ],
-    "decision_principle": "Follow inherited Yemenite tradition, often with a strong preference for textually conservative rulings and local transmission."
+    "decision_principle": "Baladi and Dor Daim: Rambam as binding decisor, but inherited Yemenite custom is preserved even where it diverges; Shami: Shulchan Aruch and Sephardic custom where not following Baladi. Zohar Amar (Sefer HaChilukim) stresses there is no single uniform Baladi custom."
+  },
+  "runtime": {
+    "lens_key": "Yemenite",
+    "practice_baseline": "Baladi and Dor Daim practice rests on the Rambam's Mishneh Torah and the Tiklal (Maharitz / Qafih editions); Shami practice adds the Shulchan Aruch and Sephardic siddur.",
+    "parameters": [
+      {
+        "key": "years_since_second_temple_destruction_rambam",
+        "value": "Gregorian year minus 69",
+        "unit": "years",
+        "source": "Sar-Shalom, Minhagim veDinim liYehudei Teiman, section 10 (2005 = 1936)"
+      },
+      {
+        "key": "years_since_first_temple_destruction_rambam",
+        "value": "second-Temple count plus 490",
+        "unit": "years",
+        "source": "Sar-Shalom, section 10 (2005 = 2426)"
+      },
+      {
+        "key": "years_since_second_temple_destruction_sephardic_variant",
+        "value": "Rambam count plus 1",
+        "unit": "years",
+        "source": "Sar-Shalom, section 10 (2005 = 1937)"
+      },
+      {
+        "key": "rosh_hashana_shofar_total_ancient_yemen",
+        "value": "40",
+        "unit": "blasts",
+        "source": "Sar-Shalom, shofar table"
+      },
+      {
+        "key": "rosh_hashana_shofar_total_baladi",
+        "value": "71",
+        "unit": "blasts",
+        "source": "Sar-Shalom, shofar table"
+      },
+      {
+        "key": "rosh_hashana_shofar_total_shami",
+        "value": "101",
+        "unit": "blasts",
+        "source": "Sar-Shalom, shofar table"
+      },
+      {
+        "key": "full_hallel_halleluya_responses",
+        "value": "123",
+        "unit": "responses",
+        "source": "Sar-Shalom, section 1"
+      }
+    ]
   },
   "halacha_index": [
     {
       "index": "halacha.1",
       "category": "Prayer",
-      "topic": "Nusach and pronunciation",
-      "summary": "Yemenite prayer rite is highly distinctive and often preserves older pronunciation and structure.",
+      "topic": "Nusach and siddur",
+      "summary": "Two main rites: Baladi (Tiklal, Rambam-aligned) and Shami (Sephardic-based). Dor Daim use Baladi with Rambam/Saadia orientation.",
       "common_practices": [
-        "Use Yemenite nusach in synagogue and home prayer",
-        "Preserve traditional Hebrew pronunciation",
-        "Maintain community-specific melodies and cantillation",
-        "Preserve inherited nusach and pronunciation in public prayer.",
-        "Coordinate weekday, Shabbat, and festival insertions with local rabbinic guidance.",
-        "Maintain community niggunim and piyyutim where accepted."
-      ]
+        "Shacharit: Petichah, Zemirot, Yotzer, Nefilat Panim with viddui, Torah Mon/Thu, Seder HaYom, Pitum HaKetoret and Aleinu",
+        "Shabbat Shacharit adds the Tiqqun",
+        "Kaddish de-Rabbanan text: de'atid lechadata alma",
+        "Le'ela le'ela in Kaddish all year"
+      ],
+      "variants": [
+        {
+          "subgroup": "Baladi",
+          "practice": "No Kaddish Yehe Shelama in the Baladi siddur; Mishnah of R. Hananya ben Akashya said to allow Kaddish de-Rabbanan.",
+          "source": "Sar-Shalom, section 1"
+        },
+        {
+          "subgroup": "Shami",
+          "practice": "Sephardic siddur text with some Baladi retentions.",
+          "source": "Geridi, ch. 1 §1"
+        },
+        {
+          "subgroup": "Dor Daim",
+          "practice": "Preserve elements of Saadia Gaon's siddur with Rambam rulings.",
+          "source": "Sar-Shalom, introduction"
+        }
+      ],
+      "source": "Geridi, Mi-Minhagei Yahadut Teiman, Yalkut Minhagim I (Jerusalem 1967), ch. 1 §§1–3; Sar-Shalom, Minhagim veDinim liYehudei Teiman, sections 1–2",
+      "source_url": "https://daat.ac.il/daat/toshba/minhagim/tey1.htm",
+      "confidence": "well-attested",
+      "review_notes": "Sar-Shalom: https://www.daat.ac.il/daat/toshba/halacha/minhagim-2.htm",
+      "references": [
+        {
+          "title": "ממנהגי יהדות תימן / שמעון גרידי",
+          "url": "https://daat.ac.il/daat/toshba/minhagim/tey1.htm"
+        },
+        {
+          "title": "מנהגים ודינים ליהודי תימן / רחמים שר-שלום",
+          "url": "https://www.daat.ac.il/daat/toshba/halacha/minhagim-2.htm"
+        },
+        {
+          "title": "מדף שלישי שאמי, בלדי, דרדעי - מטח",
+          "url": "https://kotar.cet.ac.il/kotarapp/index/Chapter.aspx?nBookID=111384862&nTocEntryID=111385556"
+        }
+      ],
+      "topic_he": "נוסח וסידור",
+      "summary_he": "שני נוסחים עיקריים: בלדי (תכלאל, מתאים לרמב\"ם) ושאמי (מבוסס ספרדי). דור דעים משתמשים בבלדי בהתאם לרמב\"ם ולרס\"ג."
     },
     {
       "index": "halacha.2",
       "category": "Prayer",
-      "topic": "Tefillah order",
-      "summary": "The order of prayer often reflects a conservative liturgical structure and close attention to texts.",
+      "topic": "Congregational order and Amidah repetition",
+      "summary": "Large parts of prayer said together aloud; some pray a single Amidah aloud with no repetition.",
       "common_practices": [
-        "Follow traditional Siddur structure",
-        "Retain customary piyyutim where preserved",
-        "Use community accepted insertions and omissions",
-        "Preserve inherited nusach and pronunciation in public prayer.",
-        "Coordinate weekday, Shabbat, and festival insertions with local rabbinic guidance.",
-        "Maintain community niggunim and piyyutim where accepted."
-      ]
+        "Shema in unison",
+        "No standing for Birkot HaShachar or Vayevarech David",
+        "Leader always wears a tallit",
+        "Nefilat panim seated, leaning left",
+        "Leading prayer is a rotated honor, not a paid post",
+        "Kohanim do not wash hands before Birkat Kohanim (Geridi)",
+        "Musaf: leader says the whole Amidah aloud, each says Elohai Netzor silently; some pray Musaf normally",
+        "Minchah ends without Aleinu",
+        "Arvit begins without Kaddish; Hashkivenu has 18 added verses",
+        "After Shacharit: Shalosh study"
+      ],
+      "variants": [
+        {
+          "subgroup": "Baladi / Dor Daim (Qafih)",
+          "practice": "Some pray one Amidah aloud with no repetition; R. Yosef Qafih identifies this as following an enactment of the Rambam.",
+          "source": "Sar-Shalom, section 1"
+        }
+      ],
+      "source": "Geridi ch. 1 §B 1–12; Sar-Shalom sections 1–2",
+      "source_url": "https://daat.ac.il/daat/toshba/minhagim/tey1.htm",
+      "confidence": "well-attested",
+      "review_notes": "Sar-Shalom: the Sephardic El Melekh order before Mon/Thu Torah reading has since spread.",
+      "topic_he": "סדר הציבור וחזרת העמידה",
+      "summary_he": "חלקים גדולים מהתפילה נאמרים יחד בקול רם; יש המתפללים עמידה אחת בקול רם בלי חזרה."
     },
     {
       "index": "halacha.3",
       "category": "Prayer",
-      "topic": "Torah reading cantillation",
-      "summary": "Torah reading and cantillation are strongly tied to inherited community tradition.",
+      "topic": "Kedusha and Hallel",
+      "summary": "Long Kedusha (mi-mekomkha malkenu tofia) at Shacharit and Minchah daily; full Keter at every Musaf. Full Hallel answered with Halleluya after each half-verse.",
       "common_practices": [
-        "Use Yemenite trop or recitation patterns",
-        "Maintain accurate communal reading customs",
-        "Train readers through oral and textual transmission",
-        "Preserve inherited nusach and pronunciation in public prayer.",
-        "Coordinate weekday, Shabbat, and festival insertions with local rabbinic guidance.",
-        "Maintain community niggunim and piyyutim where accepted."
-      ]
+        "Full Hallel: 123 Halleluya responses",
+        "Rosh Chodesh half-Hallel together aloud without blessing"
+      ],
+      "variants": [
+        {
+          "subgroup": "Dor Daim (part)",
+          "practice": "Some open the Kedusha with Keter, as Maharitz; a small minority insist on Nakdishkha.",
+          "source": "Gavra, nosachteiman.co.il"
+        }
+      ],
+      "source": "Sar-Shalom sections 1 and 5; Geridi ch. 3 §8",
+      "source_url": "https://www.daat.ac.il/daat/toshba/halacha/minhagim-2.htm",
+      "confidence": "well-attested",
+      "review_notes": "Dor Daim Kedusha variant is single-source.",
+      "topic_he": "קדושה והלל",
+      "summary_he": "קדושה ארוכה (\"ממקומך מלכנו תופיע\") בשחרית ובמנחה מדי יום; \"כתר\" מלא בכל מוסף. הלל שלם נענה ב\"הללויה\" אחרי כל חצי פסוק."
     },
     {
       "index": "halacha.4",
       "category": "Shabbat",
       "topic": "Candle lighting",
-      "summary": "Shabbat candle lighting follows standard halacha with Yemenite family and community custom.",
+      "summary": "The blessing over Shabbat candles is said before lighting.",
       "common_practices": [
-        "Light before Shabbat begins",
-        "Use inherited blessing and candle customs",
-        "Preserve number-of-candles customs where applicable",
-        "Prepare practical needs before candle lighting to avoid melacha.",
-        "Use approved warming and lighting setups established before Shabbat.",
-        "Follow local zmanim for candle lighting, shekia, and havdalah."
-      ]
+        "Bless, then light"
+      ],
+      "variants": [],
+      "source": "Sar-Shalom, section 3",
+      "source_url": "https://www.daat.ac.il/daat/toshba/halacha/minhagim-2.htm",
+      "confidence": "needs-review",
+      "review_notes": "No documented minutes-before-sunset figure found.",
+      "topic_he": "הדלקת נרות",
+      "summary_he": "הברכה על נרות שבת נאמרת לפני ההדלקה."
     },
     {
       "index": "halacha.5",
       "category": "Shabbat",
-      "topic": "Cooking and warming food",
-      "summary": "Shabbat cooking laws are observed carefully, with traditional warming methods used where permitted.",
+      "topic": "Kabbalat Shabbat and Friday night",
+      "summary": "Song of Songs read before Kabbalat Shabbat; Lekha Dodi with nekabbilah and seven times bo'i khalah; Vayekhulu said with Me'ein Sheva, not in the silent Amidah.",
       "common_practices": [
-        "Prepare food before Shabbat",
-        "Use permitted warming methods",
-        "Avoid prohibited cooking and direct heating",
-        "Prepare practical needs before candle lighting to avoid melacha.",
-        "Use approved warming and lighting setups established before Shabbat.",
-        "Follow local zmanim for candle lighting, shekia, and havdalah."
+        "Shir HaShirim, then Lekhu Neranenah psalms",
+        "After Mizmor LeDavid: Ana BeKhoach, El Na Karev, Lekha Dodi, Bar Yochai, Bameh Madlikin, Kaddish de-Rabbanan, Mizmor Shir",
+        "Short Hashkivenu ending ha-pores sukkat shalom … ve-al Yerushalayim",
+        "Me'ein Sheva: ha-Melekh ha-kadosh all year; me'on ha-berakhot",
+        "Some wear a tallit going to synagogue",
+        "No Friday-night Kiddush in synagogue (Geridi)",
+        "Rosh Chodesh on Shabbat: Shiru La'El Nevoni after Bar Yochai"
       ],
-      "notes": "Local practice may differ between communities that identify as Baladi or Shami in orientation."
+      "variants": [
+        {
+          "subgroup": "Pre-17th-century Yemenite",
+          "practice": "No Kabbalat Shabbat; service began with Mizmor Shir LeYom HaShabbat.",
+          "source": "Gavra, Mi-Teiman le-Tziyon (2011) pp. 81–102, nosachteiman.co.il"
+        },
+        {
+          "subgroup": "Baladi (Qafih editions)",
+          "practice": "Retain Ana BeKhoach, Lekha Dodi and Bar Yochai.",
+          "source": "Sar-Shalom, section 3"
+        }
+      ],
+      "source": "Sar-Shalom section 3; Geridi, Shabbat chapter",
+      "source_url": "https://www.daat.ac.il/daat/toshba/halacha/minhagim-2.htm",
+      "confidence": "disputed",
+      "review_notes": "Claims that Dor Daim omit Lekha Dodi appear on Wikipedia without specific sourcing; do not present as fact.",
+      "topic_he": "קבלת שבת וליל שבת",
+      "summary_he": "שיר השירים נקרא לפני קבלת שבת; \"לכה דודי\" עם \"נקבלה\" ו\"באי כלה\" שבע פעמים; \"ויכולו\" נאמר עם \"מעין שבע\", לא בעמידה הלחושה."
     },
     {
       "index": "halacha.6",
       "category": "Shabbat",
-      "topic": "Carrying and eruv",
-      "summary": "Carrying restrictions are observed according to halacha and local communal infrastructure.",
+      "topic": "Shabbat day, seudot and foods",
+      "summary": "Shacharit opens with the Tiqqun; kubaneh and hariss are Shabbat-morning foods; Diwan songs at meals.",
       "common_practices": [
-        "Do not carry where no valid eruv exists",
-        "Follow inherited local standards",
-        "Use communal guidance for urban and rural settings",
-        "Prepare practical needs before candle lighting to avoid melacha.",
-        "Use approved warming and lighting setups established before Shabbat.",
-        "Follow local zmanim for candle lighting, shekia, and havdalah."
-      ]
+        "Musaf middle blessing opens Le-Moshe tzivita",
+        "After Musaf study of the Rambam's Hilkhot Shabbat",
+        "In Yemen kubaneh eaten after Shacharit before the Torah reading; in Israel a light meal not counted among the three, often with eggs",
+        "Shabbat Minchah: three aliyot from next week's parashah"
+      ],
+      "variants": [],
+      "source": "Sar-Shalom section 3; Geridi, Shabbat chapter; Geridi ch. 3 Pesach §3",
+      "source_url": "https://www.daat.ac.il/daat/toshba/minhagim/tey-sha.htm",
+      "confidence": "well-attested",
+      "review_notes": "The tey-sha page rendered in broken encoding; details from its search excerpt.",
+      "topic_he": "יום השבת, סעודות ומאכלים",
+      "summary_he": "שחרית נפתחת בתיקון; קובנה והריס הם מאכלי בוקר שבת; שירי דיואן בסעודות."
     },
     {
       "index": "halacha.7",
-      "category": "Kashrut",
-      "topic": "Meat and dairy separation",
-      "summary": "Meat and dairy laws are observed strictly with community-specific details in timing and utensils.",
-      "common_practices": [
-        "Maintain separate vessels and cookware",
-        "Observe the community’s customary waiting period after meat",
-        "Avoid cross-contamination in kitchen practice",
-        "Keep clear separation of meat and dairy utensils, storage, and prep zones.",
-        "Verify supervision standards according to trusted local rabbinic authority.",
-        "Apply inherited waiting-time custom for meat and dairy under halachic guidance."
-      ]
+      "category": "Festivals",
+      "topic": "Yom Tov candle lighting",
+      "summary": "Three Yemenite customs on lighting candles on Yom Tov eve.",
+      "common_practices": [],
+      "variants": [
+        {
+          "subgroup": "Baladi",
+          "practice": "Do not light and do not bless; on Shabbat-Yom Tov bless only le-hadlik ner shel Shabbat. Some Baladi light without a blessing.",
+          "source": "Sar-Shalom, section 7"
+        },
+        {
+          "subgroup": "Shami",
+          "practice": "Light with a blessing every Yom Tov eve; on Shabbat-Yom Tov bless ner shel Shabbat ve-Yom Tov.",
+          "source": "Sar-Shalom, section 7"
+        }
+      ],
+      "source": "Sar-Shalom, section 7",
+      "source_url": "https://www.daat.ac.il/daat/toshba/halacha/minhagim-2.htm",
+      "confidence": "regional",
+      "review_notes": "Yom Kippur: weekday no obligation to light; on Shabbat bless ner shel Shabbat only (section 6).",
+      "references": [
+        {
+          "title": "מנהגים ודינים ליהודי תימן / רחמים שר-שלום",
+          "url": "https://www.daat.ac.il/daat/toshba/halacha/minhagim-2.htm"
+        }
+      ],
+      "topic_he": "הדלקת נרות ביום טוב",
+      "summary_he": "שלושה מנהגי תימן בהדלקת נרות בערב יום טוב."
     },
     {
       "index": "halacha.8",
-      "category": "Kashrut",
-      "topic": "Shechita and meat inspection",
-      "summary": "Slaughter and meat inspection follow strict halachic standards and communal trust structures.",
+      "category": "Calendar",
+      "topic": "Rosh Chodesh liturgy",
+      "summary": "Arvit opens with Sha'ar HaRachamim then Psalm 104; Shacharit psalms 98–99.",
       "common_practices": [
-        "Use qualified shochtim",
-        "Inspect animals and meat carefully",
-        "Follow local standards for glatt and supervision",
-        "Keep clear separation of meat and dairy utensils, storage, and prep zones.",
-        "Verify supervision standards according to trusted local rabbinic authority.",
-        "Apply inherited waiting-time custom for meat and dairy under halachic guidance."
-      ]
+        "Half-Hallel without blessing",
+        "Tefillin removed after the Song of the Day"
+      ],
+      "variants": [],
+      "source": "Geridi ch. 3 §8; Sar-Shalom section 5",
+      "source_url": "https://www.daat.ac.il/daat/toshba/minhagim/tey3.htm",
+      "confidence": "well-attested",
+      "review_notes": "",
+      "topic_he": "ליטורגיית ראש חודש",
+      "summary_he": "ערבית נפתחת ב\"שער הרחמים\" ואחר כך מזמור קד; שחרית מזמורים צח–צט."
     },
     {
       "index": "halacha.9",
-      "category": "Kashrut",
-      "topic": "Bishul akum and food preparation",
-      "summary": "Food preparation with non-Jews is handled carefully in accordance with standard halachic rules and Yemenite communal practice.",
+      "category": "High Holidays",
+      "topic": "Elul and Rosh Hashana order of the day",
+      "summary": "Ashmorot from the day after Rosh Chodesh Elul; Arvit opens with Achot Ketanah; Shacharit preceded by Shofet Kol HaAretz.",
       "common_practices": [
-        "Observe the rules of bishul akum",
-        "Use kosher supervision for processed foods",
-        "Follow local stringency customs where established",
-        "Keep clear separation of meat and dairy utensils, storage, and prep zones.",
-        "Verify supervision standards according to trusted local rabbinic authority.",
-        "Apply inherited waiting-time custom for meat and dairy under halachic guidance."
-      ]
+        "Hatarat nedarim after Shacharit Erev Rosh Hashana",
+        "Arvit: Ps. 81 and Ps. 1, 2, 150 in unison",
+        "Shofar blower receives the fifth aliyah",
+        "Greeting: tikatev be-sefer ha-chayim u-ve-sefer ha-zikaron",
+        "Psalms read before Minchah over the two days",
+        "Some slaughter a lamb or calf on the first morning"
+      ],
+      "variants": [
+        {
+          "subgroup": "Ancient Yemenite / Baladi",
+          "practice": "Musaf said once aloud by the leader, 10 blasts.",
+          "source": "Sar-Shalom, section 6"
+        },
+        {
+          "subgroup": "Shami",
+          "practice": "Silent Amidah and repetition, 30 blasts in repetition; some also in silent Amidah or Kaddish.",
+          "source": "Sar-Shalom, section 6"
+        }
+      ],
+      "source": "Geridi ch. 3 §9; Sar-Shalom section 6",
+      "source_url": "https://www.daat.ac.il/daat/toshba/minhagim/tey3.htm",
+      "confidence": "well-attested",
+      "review_notes": "Tashlich is not in the Tiklal; in Israel some practice it (Geridi).",
+      "topic_he": "אלול וסדר היום בראש השנה",
+      "summary_he": "אשמורות מהיום שאחרי ראש חודש אלול; ערבית נפתחת ב\"אחות קטנה\"; לפני שחרית \"שופט כל הארץ\"."
     },
     {
       "index": "halacha.10",
-      "category": "Pesach",
-      "topic": "Chametz removal",
-      "summary": "Chametz removal before Pesach is taken seriously and often preserved as a communal family event.",
+      "category": "High Holidays",
+      "topic": "Shofar blast totals",
+      "summary": "Blessing only at the seated blasts before Musaf in all customs; totals differ by subgroup.",
       "common_practices": [
-        "Search and remove chametz before Pesach",
-        "Kasher utensils where needed",
-        "Follow local customs for sale and disposal",
-        "Review chametz cleaning and kashering checklists before the festival.",
-        "Follow community custom on kitniyot and festival kitchen workflow.",
-        "Use community haggadah flow and family minhagim within halachic structure."
-      ]
+        "30 seated blasts before Musaf"
+      ],
+      "variants": [
+        {
+          "subgroup": "Ancient Yemenite",
+          "practice": "30 before Musaf + 10 in Musaf = 40.",
+          "source": "Sar-Shalom, shofar table"
+        },
+        {
+          "subgroup": "Baladi",
+          "practice": "30 before Shofet Kol HaAretz + 30 + 10 + 1 = 71; some add 30 after Adon Olam to reach 101.",
+          "source": "Sar-Shalom, shofar table"
+        },
+        {
+          "subgroup": "Shami",
+          "practice": "30 + 30 silent + 30 repetition + 10 Kaddish + 1 = 101.",
+          "source": "Sar-Shalom, shofar table"
+        }
+      ],
+      "source": "Sar-Shalom, section 6, table",
+      "source_url": "https://www.daat.ac.il/daat/toshba/halacha/minhagim-2.htm",
+      "confidence": "regional",
+      "review_notes": "Geridi confirms 10 blasts in Musaf and an ancient custom of 30 before dawn.",
+      "topic_he": "מספרי תקיעות השופר",
+      "summary_he": "ברכה רק בתקיעות הישיבה לפני מוסף בכל המנהגים; הסכומים שונים לפי עדת משנה."
     },
     {
       "index": "halacha.11",
-      "category": "Pesach",
-      "topic": "Kitniyot and grains",
-      "summary": "Yemenite practice differs from Ashkenazi custom and may include broader allowance of grains and staple foods according to local minhag.",
+      "category": "High Holidays",
+      "topic": "Rosh Hashana simanim",
+      "summary": "No special Rosh Hashana dish; omen foods are served specially before the meal.",
       "common_practices": [
-        "Follow community guidance on rice and legumes",
-        "Inspect food carefully for chametz contamination",
-        "Use inherited family custom when recognized by local rabbinic authority",
-        "Review chametz cleaning and kashering checklists before the festival.",
-        "Follow community custom on kitniyot and festival kitchen workflow.",
-        "Use community haggadah flow and family minhagim within halachic structure."
-      ]
+        "Simanim served before the meal"
+      ],
+      "variants": [],
+      "source": "Geridi ch. 3 §9.5",
+      "source_url": "https://www.daat.ac.il/daat/toshba/minhagim/tey3.htm",
+      "confidence": "needs-review",
+      "review_notes": "No list of Yemenite simanim found.",
+      "topic_he": "סימני ראש השנה",
+      "summary_he": "אין מאכל מיוחד לראש השנה; מאכלי סימן מוגשים במיוחד לפני הסעודה."
     },
     {
       "index": "halacha.12",
-      "category": "Pesach",
-      "topic": "Seder customs",
-      "summary": "The Seder is observed with Yemenite liturgical and melodic traditions.",
+      "category": "High Holidays",
+      "topic": "Yom Kippur",
+      "summary": "No kapparot; Kol Nidre night opens with Lekh Eli Teshukati and Shema Koli; Yere'im Shelachuni before Kol Nidre.",
       "common_practices": [
-        "Use Yemenite Haggadah traditions",
-        "Preserve family songs and recitation style",
-        "Follow community order for Seder plate and readings",
-        "Review chametz cleaning and kashering checklists before the festival.",
-        "Follow community custom on kitniyot and festival kitchen workflow.",
-        "Use community haggadah flow and family minhagim within halachic structure."
-      ]
+        "Erev YK Minchah aloud around 2 pm",
+        "Seudah mafseket sometimes in two parts: first with saman, then soup and meat",
+        "Kol Nidre plainly, three times",
+        "Barukh Shem aloud",
+        "Selichot from the Tiklal; Keter Malkhut at night or after Musaf",
+        "Seder HaAvodah of R. Yosi ben Yosi (some Ibn Ezra's)",
+        "Mishnayot Yoma read in turn after Musaf with fragrant herbs passed",
+        "Neilah opens with El Nora Alilah",
+        "Greeting: tevusar bi-mechilah u-selichah ve-khaparah; then Kiddush Levanah",
+        "Havdalah order: wine, candle, havdalah"
+      ],
+      "variants": [
+        {
+          "subgroup": "Baladi",
+          "practice": "Seder HaAvodah after the Musaf repetition, then nefilat apayim.",
+          "source": "Sar-Shalom, section 6"
+        },
+        {
+          "subgroup": "Shami",
+          "practice": "Seder HaAvodah inside Musaf; on Shabbat-YK night no nefilat panim before selichot.",
+          "source": "Sar-Shalom, section 6"
+        }
+      ],
+      "source": "Geridi ch. 3 §10; Sar-Shalom section 6",
+      "source_url": "https://www.daat.ac.il/daat/toshba/minhagim/tey3.htm",
+      "confidence": "well-attested",
+      "review_notes": "Absence of kapparot attested by both sources.",
+      "topic_he": "יום כיפור",
+      "summary_he": "אין כפרות; ליל כל נדרי נפתח ב\"לך אלי תשוקתי\" וב\"שמע קולי\"; \"יראים שלחוני\" לפני כל נדרי."
     },
     {
       "index": "halacha.13",
-      "category": "Tefillin",
-      "topic": "Tefillin practice",
-      "summary": "Tefillin are worn according to Yemenite custom, which may reflect distinctive binding and textual traditions.",
+      "category": "Festivals",
+      "topic": "Sukkot",
+      "summary": "Extra myrtle branches added; Yemenite etrogim large, ungrafted, without pitam; Saadia Gaon's Hoshanot recited with the Torah on the bimah.",
       "common_practices": [
-        "Wear tefillin on weekday mornings",
-        "Use traditionally prepared tefillin",
-        "Follow inherited wrapping and blessing customs",
-        "Follow local minhag for wrapping style, knot positioning, and sequence.",
-        "Use checked batim and retzuot under reliable supervision.",
-        "Teach youth practical donning order with community standards."
-      ]
+        "Lulav spine faces outward",
+        "Leshev ba-sukkah blessed standing, in every sukkah entered",
+        "Hoshanot of Saadia Gaon in both Baladi and Shami",
+        "Kohelet read in halves (Shabbat Chol HaMoed and Simchat Torah) with Targum Yonatan",
+        "No work at all on Chol HaMoed"
+      ],
+      "variants": [],
+      "source": "Geridi ch. 3 §11; Sar-Shalom section 7",
+      "source_url": "https://www.daat.ac.il/daat/toshba/minhagim/sukot.htm",
+      "confidence": "well-attested",
+      "review_notes": "",
+      "references": [
+        {
+          "title": "ממנהגי יהדות תימן / שמעון גרידי",
+          "url": "https://www.daat.ac.il/daat/toshba/minhagim/tey3.htm"
+        },
+        {
+          "title": "סוכות והושענא-רבא",
+          "url": "https://www.daat.ac.il/daat/toshba/minhagim/sukot.htm"
+        }
+      ],
+      "topic_he": "סוכות",
+      "summary_he": "מוסיפים ענפי הדס; אתרוגי תימן גדולים, בלתי מורכבים, בלי פיטם; הושענות רס\"ג נאמרות עם הספר על הבימה."
     },
     {
       "index": "halacha.14",
-      "category": "Tzitzit",
-      "topic": "Tallit and fringes",
-      "summary": "Tzitzit practice is standard in halachic terms but may preserve Yemenite style and pronunciation traditions.",
+      "category": "Festivals",
+      "topic": "Hoshana Rabba",
+      "summary": "Hakafot selichot around 2:30 am; seven hakafot with lulav and aravah; aravah beaten with chavat chavat ve-la barikh.",
       "common_practices": [
-        "Wear tzitzit according to communal norm",
-        "Use traditional tallit style where preserved",
-        "Preserve blessing and donning order",
-        "Follow local custom for tallit katan and tallit gadol usage.",
-        "Maintain knot and winding patterns according to inherited minhag.",
-        "Inspect tzitzit regularly for halachic validity."
-      ]
+        "Some repeat all Hoshanot",
+        "Aravah beaten on ground, vessel or bench"
+      ],
+      "variants": [
+        {
+          "subgroup": "Various",
+          "practice": "Some say hakafot with the night selichot; others all after Shacharit.",
+          "source": "Geridi ch. 3 §11.5"
+        }
+      ],
+      "source": "Geridi ch. 3 §11.5; Sar-Shalom section 7",
+      "source_url": "https://www.daat.ac.il/daat/toshba/minhagim/tey3.htm",
+      "confidence": "well-attested",
+      "review_notes": "",
+      "references": [
+        {
+          "title": "ממנהגי יהדות תימן / שמעון גרידי",
+          "url": "https://www.daat.ac.il/daat/toshba/minhagim/tey3.htm"
+        }
+      ],
+      "topic_he": "הושענא רבה",
+      "summary_he": "סליחות הקפות בסביבות 2:30 לפנות בוקר; שבע הקפות עם לולב וערבה; מכים את הערבה ב\"חבט חבט ולא בריך\"."
     },
     {
       "index": "halacha.15",
-      "category": "Lifecycle",
-      "topic": "Brit milah",
-      "summary": "Brit milah follows halacha with Yemenite family and communal customs in naming and celebration.",
+      "category": "Festivals",
+      "topic": "Shemini Atzeret / Simchat Torah",
+      "summary": "Tiklal Simchat Torah piyyutim used by Baladi and Shami; only one ‘chatan’ who finishes Devarim and continues into Bereshit.",
       "common_practices": [
-        "Use a qualified mohel",
-        "Preserve traditional naming customs",
-        "Include community songs or recitations where customary",
-        "Keep core lifecycle ceremonies aligned with halachic requirements.",
-        "Document family minhagim for naming, honors, and celebration order.",
-        "Consult community rabbi for local protocol differences."
-      ]
+        "No fixed number of hakafot; morning hakafot before maftir",
+        "Children called for u-le-Asher amar",
+        "Infants brought to synagogue; sweets distributed",
+        "Tikkun HaGeshem in Sephardic text"
+      ],
+      "variants": [
+        {
+          "subgroup": "Shami-influenced",
+          "practice": "Shami piyyutim with seven hakafot at night, Tiklal order by day.",
+          "source": "Geridi ch. 3 §12.3"
+        },
+        {
+          "subgroup": "Various",
+          "practice": "Reading Bereshit from a second scroll is a late custom absent from early Tiklalim.",
+          "source": "Sar-Shalom, section 7"
+        }
+      ],
+      "source": "Geridi ch. 3 §12; Sar-Shalom section 7",
+      "source_url": "https://www.daat.ac.il/daat/toshba/minhagim/tey3.htm",
+      "confidence": "well-attested",
+      "review_notes": "",
+      "topic_he": "שמיני עצרת / שמחת תורה",
+      "summary_he": "פיוטי תכלאל לשמחת תורה משמשים את הבלדי והשאמי; חתן אחד בלבד המסיים את דברים וממשיך לבראשית."
     },
     {
       "index": "halacha.16",
-      "category": "Lifecycle",
-      "topic": "Marriage and ketubah",
-      "summary": "Marriage is halachically standard but deeply shaped by family and community custom.",
+      "category": "Festivals",
+      "topic": "Chanukah",
+      "summary": "Lighting from sunset until after nightfall; in Yemen olive oil and wicks only.",
       "common_practices": [
-        "Use a valid ketubah",
-        "Perform kiddushin and nissuin properly",
-        "Observe family and regional customs in the wedding sequence",
-        "Keep core lifecycle ceremonies aligned with halachic requirements.",
-        "Document family minhagim for naming, honors, and celebration order.",
-        "Consult community rabbi for local protocol differences."
-      ]
+        "Minchah, home to light, back for Arvit",
+        "Friday: Shabbat candles then Chanukah (some reverse)",
+        "Motzaei Shabbat: synagogue before Havdalah, home after",
+        "Full Hallel with blessing"
+      ],
+      "variants": [
+        {
+          "subgroup": "Baladi / Dor Daim (Qafih)",
+          "practice": "Lighting time from sunset, per the Rambam as presented by R. Yosef Qafih.",
+          "source": "Sar-Shalom, section 8"
+        }
+      ],
+      "source": "Sar-Shalom section 8; Geridi ch. 3 §13",
+      "source_url": "https://www.daat.ac.il/daat/toshba/halacha/minhagim-2.htm",
+      "confidence": "well-attested",
+      "review_notes": "",
+      "references": [
+        {
+          "title": "מנהגים ודינים ליהודי תימן / רחמים שר-שלום",
+          "url": "https://www.daat.ac.il/daat/toshba/halacha/minhagim-2.htm"
+        }
+      ],
+      "topic_he": "חנוכה",
+      "summary_he": "הדלקה משקיעה ועד אחרי צאת הכוכבים; בתימן שמן זית ופתילות בלבד."
     },
     {
       "index": "halacha.17",
-      "category": "Family law",
-      "topic": "Niddah and mikveh",
-      "summary": "Family purity laws are observed carefully and are an important part of Yemenite religious continuity.",
+      "category": "Festivals",
+      "topic": "Purim",
+      "summary": "Reader recites Chasdei Hashem Azkir from a parchment before the Megillah blessings; after reading, responsive Barukh Mordechai / Arur Haman.",
       "common_practices": [
-        "Observe separation laws during niddah",
-        "Use mikveh according to halacha",
-        "Follow locally transmitted customs where they do not contradict law",
-        "Use a consistent halachic calendar and consultation process for sensitive questions.",
-        "Coordinate household observance with qualified rabbinic guidance.",
-        "Preserve family minhag where compatible with accepted psak."
-      ]
+        "Responsory three times each then reversed, ending ve-gam Charvonah zakhur la-tov",
+        "No Shoshanat Yaakov; Ps. 124 and Kaddish",
+        "Psalm of the day Ps. 83",
+        "Shabbat Zakhor: Mi Khamokha after haftarah"
+      ],
+      "variants": [
+        {
+          "subgroup": "Shami",
+          "practice": "Repeat the last verse of Vayavo Amalek to reach ten verses.",
+          "source": "Sar-Shalom, section 9"
+        }
+      ],
+      "source": "Geridi ch. 3 §15; Sar-Shalom section 9",
+      "source_url": "https://www.daat.ac.il/daat/toshba/minhagim/purim.htm",
+      "confidence": "well-attested",
+      "review_notes": "",
+      "references": [
+        {
+          "title": "מנהגים ודינים ליהודי תימן / רחמים שר-שלום",
+          "url": "https://www.daat.ac.il/daat/toshba/halacha/minhagim-2.htm"
+        }
+      ],
+      "topic_he": "פורים",
+      "summary_he": "הקורא אומר \"חסדי ה' אזכיר\" מקלף לפני ברכות המגילה; אחרי הקריאה אומרים בעניית הקהל \"ברוך מרדכי / ארור המן\"."
     },
     {
       "index": "halacha.18",
-      "category": "Mourning",
-      "topic": "Avelut",
-      "summary": "Mourning practices follow standard halachic structure with preserved community forms.",
+      "category": "Pesach",
+      "topic": "Kitniyot",
+      "summary": "Yemenite Jews treated rice and kitniyot as permitted on Pesach.",
       "common_practices": [
-        "Observe shiva and related periods",
-        "Use inherited recitation customs for memorials",
-        "Follow local norms for visitation and consolation",
-        "Observe shiva, shloshim, and yahrzeit in the accepted local format.",
-        "Coordinate memorial prayer customs with synagogue practice.",
-        "Preserve condolence and visitation etiquette used by the community."
-      ]
+        "Rice and legumes eaten"
+      ],
+      "variants": [],
+      "source": "Geridi ch. 3 §16.14",
+      "source_url": "https://www.daat.ac.il/daat/toshba/minhagim/pesach.htm",
+      "confidence": "needs-review",
+      "review_notes": "Geridi, Pesach §14, verbatim: ‘אין מאכלים המיוחדים לפסח. אורז וקטניות נהגו יהודי תימן בהיתר.’ (no foods special to Pesach; Yemenite Jews treated rice and legumes as permitted).",
+      "topic_he": "קטניות",
+      "summary_he": "יהודי תימן ראו באורז ובקטניות מותרים בפסח."
     },
     {
       "index": "halacha.19",
-      "category": "Calendar",
-      "topic": "High Holidays",
-      "summary": "Rosh Hashanah and Yom Kippur are observed with Yemenite melody, text, and customs.",
+      "category": "Pesach",
+      "topic": "Matzah",
+      "summary": "Matzah baked at home daily throughout Pesach in Yemen; blessing over one and a half loaves all seven days.",
       "common_practices": [
-        "Use Yemenite machzor or local rite",
-        "Preserve selichot and piyutim traditions",
-        "Follow communal custom for shofar and prayer sequence",
-        "Anchor observance times to local halachic zmanim.",
-        "Coordinate fasts, selichot, and festival timing with community schedule.",
-        "Use a single trusted local calendar authority for consistency."
-      ]
+        "Daily home baking still kept in some Israeli villages",
+        "Loaf and a half every meal"
+      ],
+      "variants": [],
+      "source": "Geridi ch. 3 §16.1 and §16.13",
+      "source_url": "https://www.daat.ac.il/daat/toshba/minhagim/pesach.htm",
+      "confidence": "well-attested",
+      "review_notes": "Soft Yemenite matzah described in secondary sources, which note Ashkenazi authorities dispute its use for non-Yemenites.",
+      "topic_he": "מצה",
+      "summary_he": "בתימן אפו מצה בבית מדי יום לאורך הפסח; ברכה על כיכר וחצי כל שבעת הימים."
     },
     {
       "index": "halacha.20",
-      "category": "Calendar",
-      "topic": "Chanukah",
-      "summary": "Chanukah observance follows halacha with local songs and customary family practices.",
+      "category": "Pesach",
+      "topic": "Seder customs",
+      "summary": "No seder plate; vegetables around the table and foods set before each participant; all dipping in charoset.",
       "common_practices": [
-        "Light candles nightly",
-        "Recite blessings and Hallel as required",
-        "Use traditional foods and melodies where preserved",
-        "Anchor observance times to local halachic zmanim.",
-        "Coordinate fasts, selichot, and festival timing with community schedule.",
-        "Use a single trusted local calendar authority for consistency."
-      ]
+        "Charoset made after bedikat chametz or Erev Yom Tov with children (Qafih, Agadeta de-Pischa p. 13)",
+        "Kiddush adds Saadia's Terumah hivdilanu",
+        "Child may ask Mah Nishtanah in Arabic and receives an egg",
+        "Haggadah read by all aloud in Mishnah chant; Dayenu responsive",
+        "Atah ga'alta added within Ga'al Yisrael",
+        "Song of Songs after; no Chad Gadya",
+        "No afikoman stealing, no Elijah's cup",
+        "Fifth cup optional, with Hallel HaGadol"
+      ],
+      "variants": [
+        {
+          "subgroup": "Baladi",
+          "practice": "Seder-night synagogue Hallel without blessing.",
+          "source": "Sar-Shalom section 7; Geridi ch. 3 §16.4"
+        },
+        {
+          "subgroup": "Shami",
+          "practice": "Seder-night synagogue Hallel with blessing before and after.",
+          "source": "Sar-Shalom, section 7"
+        },
+        {
+          "subgroup": "Baladi (Sar-Shalom)",
+          "practice": "Blessing on netilat yadayim before karpas.",
+          "source": "Sar-Shalom, section 7"
+        }
+      ],
+      "source": "Geridi ch. 3 §16; Sar-Shalom section 7",
+      "source_url": "https://www.daat.ac.il/daat/toshba/minhagim/pesach.htm",
+      "confidence": "well-attested",
+      "review_notes": "Netilah-with-blessing is single-source.",
+      "references": [
+        {
+          "title": "מנהגים ודינים ליהודי תימן / רחמים שר-שלום",
+          "url": "https://www.daat.ac.il/daat/toshba/halacha/minhagim-2.htm"
+        }
+      ],
+      "topic_he": "מנהגי הסדר",
+      "summary_he": "אין קערת סדר; ירקות מונחים סביב השולחן ומאכלים מונחים לפני כל משתתף; כולם טובלים בחרוסת."
     },
     {
       "index": "halacha.21",
-      "category": "Calendar",
-      "topic": "Purim",
-      "summary": "Purim is celebrated with public Megillah reading and traditional Yemenite community joy.",
+      "category": "Omer",
+      "topic": "Sefirat HaOmer and mourning period",
+      "summary": "Count in Aramaic led by the prayer leader; ancient Yemenite custom had no Omer mourning at all.",
       "common_practices": [
-        "Read Megillah publicly",
-        "Exchange gifts to the poor and friends",
-        "Preserve local musical or poetic customs",
-        "Anchor observance times to local halachic zmanim.",
-        "Coordinate fasts, selichot, and festival timing with community schedule.",
-        "Use a single trusted local calendar authority for consistency."
-      ]
+        "Leader says yesterday's count, blesses for all; congregation answers Amen and counts ha-idna … be-umra",
+        "If a night was missed, count by day without blessing"
+      ],
+      "variants": [
+        {
+          "subgroup": "Ancient custom / Qafih",
+          "practice": "No Omer mourning custom is mentioned in any old Yemenite siddur.",
+          "source": "Qafih, Halikhot Teiman, p. 52, quoted at masoret.co"
+        },
+        {
+          "subgroup": "Later practice",
+          "practice": "Ancient Yemenite custom did not forbid haircuts during Sefirah; they began acting strictly only later on.",
+          "source": "Peninei Halakha, Zemanim ch. 3"
+        }
+      ],
+      "source": "Geridi ch. 3 §16.16–17; Sar-Shalom section 7",
+      "source_url": "https://www.daat.ac.il/daat/toshba/minhagim/pesach.htm",
+      "confidence": "disputed",
+      "review_notes": "Geridi, Pesach §17, verbatim: ‘במנהגי תימן אין כל זכר לאבילות בימי העומר. חלק ממנהגי האבילות שנתקבלו בתימן, נקבעו לפני מאתים שנה, בערך ע״י אחד השדר״ים מא״י שביקר שם.’ He does not name the emissary; the Encyclopedia of Yemenite Sages (teman.org.il) instead credits the Omer haircut ban to Nasi R. Shalom Iraqi, citing Maharitz that he enforced it by force against Yemenite tradition and ancient custom. No documented Yemenite mourning dates; app should not assign dates.",
+      "references": [
+        {
+          "title": "מנהגים ודינים ליהודי תימן / רחמים שר-שלום",
+          "url": "https://www.daat.ac.il/daat/toshba/halacha/minhagim-2.htm"
+        },
+        {
+          "title": "ספירת העומר",
+          "url": "https://he.wikipedia.org/wiki/%D7%A1%D7%A4%D7%99%D7%A8%D7%AA_%D7%94%D7%A2%D7%95%D7%9E%D7%A8"
+        }
+      ],
+      "topic_he": "ספירת העומר ותקופת האבלות",
+      "summary_he": "הספירה בארמית בהובלת שליח הציבור; במנהג תימן הקדום לא הייתה אבלות העומר כלל."
     },
     {
       "index": "halacha.22",
-      "category": "Education",
-      "topic": "Torah transmission",
-      "summary": "Transmission is strongly oral and textual, with great emphasis on preserving precise recitation and interpretation.",
+      "category": "Festivals",
+      "topic": "Shavuot",
+      "summary": "Atzulah Lefanim before the Torah reading; Azharot of R. Shlomo ibn Gabirol after; Ruth with Targum in the afternoon.",
       "common_practices": [
-        "Memorize prayer and reading forms",
-        "Teach children the inherited pronunciation and melodies",
-        "Study halachic texts alongside communal practice",
-        "Teach children both baseline halacha and family minhag distinctions.",
-        "Preserve community pronunciation and liturgical pedagogy.",
-        "Document oral traditions to reduce minhag drift across generations."
-      ]
+        "Arvit opens with Ps. 68",
+        "Kiddush recited in synagogue (Sar-Shalom)",
+        "Levivot eaten; some save Pesach flour for them"
+      ],
+      "variants": [],
+      "source": "Geridi ch. 3 §18; Sar-Shalom section 7",
+      "source_url": "https://www.daat.ac.il/daat/toshba/minhagim/tey3.htm",
+      "confidence": "well-attested",
+      "review_notes": "",
+      "topic_he": "שבועות",
+      "summary_he": "\"אצולה לפנים\" לפני קריאת התורה; אזהרות רבי שלמה אבן גבירול אחריה; רות עם תרגום אחר הצהריים."
+    },
+    {
+      "index": "halacha.23",
+      "category": "Fasts and Tisha B'Av",
+      "topic": "Four minor fasts",
+      "summary": "Tiklal orders the fasts historically: 10 Tevet, 17 Tammuz, Tzom Gedalyah, Ta'anit Ester. Aneinu in all prayers including Arvit of the night before. Sources differ on whether the kohanim bless the congregation at Minchah.",
+      "common_practices": [
+        "Some rise before dawn to eat",
+        "Nefilat panim with short fast-specific kinot and viddui",
+        "No haftarah on the four fasts",
+        "Minchah with tallit and tefillin; tefillin removed in Arvit Shema",
+        "Psalm 83 (Ps. 22 for Ta'anit Ester)"
+      ],
+      "variants": [
+        {
+          "subgroup": "Geridi",
+          "practice": "No raising of the hands (nesiat kapayim) at Minchah of the fasts.",
+          "source": "Geridi ch. 3 §19"
+        },
+        {
+          "subgroup": "Sar-Shalom",
+          "practice": "The kohanim ascend at Minchah of the fasts.",
+          "source": "Sar-Shalom section 10"
+        }
+      ],
+      "source": "Geridi ch. 3 §19; Sar-Shalom section 10",
+      "source_url": "https://www.daat.ac.il/daat/toshba/minhagim/tey3.htm",
+      "confidence": "disputed",
+      "review_notes": "Geridi: no nesiat kapayim at Minchah; Sar-Shalom: kohanim ascend at Minchah of fasts.",
+      "references": [
+        {
+          "title": "צומות",
+          "url": "https://www.daat.ac.il/daat/toshba/minhagim/tsomot.htm"
+        },
+        {
+          "title": "ממנהגי יהדות תימן / שמעון גרידי",
+          "url": "https://www.daat.ac.il/daat/toshba/minhagim/tey3.htm"
+        }
+      ],
+      "topic_he": "ארבעת הצומות הקטנים",
+      "summary_he": "התכלאל מסדר את הצומות היסטורית: עשרה בטבת, י\"ז בתמוז, צום גדליה, תענית אסתר. \"עננו\" בכל התפילות כולל ערבית של הלילה שלפני. המקורות חלוקים אם הכהנים מברכים את הקהל במנחה."
+    },
+    {
+      "index": "halacha.24",
+      "category": "Fasts and Tisha B'Av",
+      "topic": "Three Weeks and Nine Days",
+      "summary": "No uniform Yemenite custom; many ate meat and drank wine until the seudah mafseket.",
+      "common_practices": [
+        "17 Tammuz–Rosh Chodesh Av: avoid quarrels; meat, wine, haircuts as usual"
+      ],
+      "variants": [
+        {
+          "subgroup": "Some (Geridi)",
+          "practice": "From Rosh Chodesh Av: no laundering and no cattle slaughter, but poultry slaughtered.",
+          "source": "Geridi ch. 3 §19.7"
+        },
+        {
+          "subgroup": "Others",
+          "practice": "Abstain from meat only at the meal before Tisha B'Av; Peninei Halakha: Yemenites eat meat and drink wine throughout the Nine Days, only abstaining at the seudah mafseket, as the Mishnah rules.",
+          "source": "Geridi ch. 3 §19.7; Peninei Halakha, Zemanim 8:13"
+        }
+      ],
+      "source": "Geridi ch. 3 §19.7; Peninei Halakha, Zemanim 8:13",
+      "source_url": "https://ph.yhb.org.il/en/05-08-13/",
+      "confidence": "disputed",
+      "review_notes": "Some pious fast Mondays and Thursdays (Geridi).",
+      "topic_he": "שלושת השבועות ותשעת הימים",
+      "summary_he": "אין מנהג תימני אחיד; רבים אכלו בשר ושתו יין עד הסעודה המפסקת."
+    },
+    {
+      "index": "halacha.25",
+      "category": "Fasts and Tisha B'Av",
+      "topic": "Tisha B'Av",
+      "summary": "Seudah mafseket of fatut saman; Eicha read by all aloud in two melodies; Shirat Ha'azinu replaces Shirat HaYam.",
+      "common_practices": [
+        "In darkness: Ps. 137, Ps. 79",
+        "Rachem replaces Tishkon",
+        "Eicha: one melody ch. 1, 2, 4; another ch. 3, 5",
+        "Morning tallit without blessing; some no tallit or tefillin",
+        "Black cover on the Torah",
+        "Haftarah prefaced with Jer. 6:16–17",
+        "Iyov read to the end",
+        "Count of years since the Destruction per the Rambam",
+        "Some women visit the cemetery"
+      ],
+      "variants": [
+        {
+          "subgroup": "Some",
+          "practice": "Add eggs or a little chalva to the seudah mafseket.",
+          "source": "Geridi ch. 3 §20.1"
+        }
+      ],
+      "source": "Geridi ch. 3 §20; Sar-Shalom section 10",
+      "source_url": "https://www.daat.ac.il/daat/toshba/minhagim/tey3.htm",
+      "confidence": "well-attested",
+      "review_notes": "",
+      "topic_he": "תשעה באב",
+      "summary_he": "סעודה מפסקת של פתות סמן; איכה נקראת בקול רם בידי כולם בשני ניגונים; שירת האזינו מחליפה את שירת הים."
+    },
+    {
+      "index": "halacha.26",
+      "category": "Tefillin and tzitzit",
+      "topic": "Tefillin",
+      "summary": "One blessing only when putting on tefillin; boys taught young, even at nine.",
+      "common_practices": [
+        "Single blessing"
+      ],
+      "variants": [],
+      "source": "Geridi ch. 1 §B.2; Geridi life-cycle chapter",
+      "source_url": "https://daat.ac.il/daat/toshba/minhagim/tey1.htm",
+      "confidence": "needs-review",
+      "review_notes": "Shami practice on blessings not documented.",
+      "references": [
+        {
+          "title": "ממנהגי יהדות תימן / שמעון גרידי",
+          "url": "https://daat.ac.il/daat/toshba/minhagim/tey1.htm"
+        }
+      ],
+      "topic_he": "תפילין",
+      "summary_he": "ברכה אחת בלבד בהנחת תפילין; נערים נלמדים בגיל צעיר, אפילו בן תשע."
+    },
+    {
+      "index": "halacha.27",
+      "category": "Tefillin and tzitzit",
+      "topic": "Tallit and tzitzit",
+      "summary": "All worshippers, including young children, wrap in tallitot; a minor who knows how to wrap is obligated for chinukh. In Yemen no tallit katan: everyone wore a fringed outer wrap.",
+      "common_practices": [
+        "Children wear tallit",
+        "Tzitzit tied per the Rambam with 7 or 13 chulyot and no intermediate knots"
+      ],
+      "variants": [],
+      "source": "Geridi ch. 1 §B.1; Sar-Shalom section 1; Geridi ch. 4 §21; Ptil Tekhelet FAQ",
+      "source_url": "https://www.tekhelet.com/faqs/are-yemenite-chulyot-different-from-the-rambam-or-not/",
+      "confidence": "needs-review",
+      "review_notes": "Tying method sourced only from a tekhelet-advocacy FAQ; Hilkhot Tzitzit 1:7–9 not opened.",
+      "references": [
+        {
+          "title": "ממנהגי יהדות תימן / שמעון גרידי",
+          "url": "https://daat.ac.il/daat/toshba/minhagim/tey1.htm"
+        },
+        {
+          "title": "מנהגים ודינים ליהודי תימן / רחמים שר-שלום",
+          "url": "https://www.daat.ac.il/daat/toshba/halacha/minhagim-2.htm"
+        }
+      ],
+      "topic_he": "טלית וציצית",
+      "summary_he": "כל המתפללים, כולל ילדים קטנים, מתעטפים בטליתות; קטן היודע להתעטף חייב מדין חינוך. בתימן לא היה טלית קטן: כולם לבשו מעטפת חיצונית עם ציציות."
+    },
+    {
+      "index": "halacha.28",
+      "category": "Torah reading",
+      "topic": "Reading, Targum and aliyot",
+      "summary": "Each oleh reads his own portion with cues from the hazzan; verse-by-verse Targum Onkelos (haftarah: Targum Yonatan), usually chanted by a child.",
+      "common_practices": [
+        "A minor may be counted among the olim",
+        "Many give the sixth aliyah to a child; four BUKHU Shabbatot reserved for children",
+        "Second scroll taken out only after the first is returned, during Ps. 19",
+        "Kohen adds Ki shem Hashem ekra before Barkhu",
+        "Special melody for Shirat HaYam and the Ten Commandments",
+        "No ‘chazak’ at the end of a book",
+        "Haftarah blessing: Rachem al Tziyon … boneh Yerushalayim; no Eliyahu"
+      ],
+      "variants": [
+        {
+          "subgroup": "Various",
+          "practice": "Tokhechah read quietly without ornament; some read it loudly.",
+          "source": "Geridi ch. 1 §C.13"
+        }
+      ],
+      "source": "Geridi ch. 1 §C; Sar-Shalom section 4",
+      "source_url": "https://daat.ac.il/daat/toshba/minhagim/tey1.htm",
+      "confidence": "well-attested",
+      "review_notes": "Geridi (1967): only a few synagogues still had a child translate; Sar-Shalom: usual.",
+      "references": [
+        {
+          "title": "18 Facts You Should Know About Yemenite Jews - Chabad.org",
+          "url": "https://www.chabad.org/library/article_cdo/aid/6763060/jewish/18-Facts-You-Should-Know-About-Yemenite-Jews.htm"
+        },
+        {
+          "title": "מנהגים ודינים ליהודי תימן / רחמים שר-שלום",
+          "url": "https://www.daat.ac.il/daat/toshba/halacha/minhagim-2.htm"
+        }
+      ],
+      "topic_he": "קריאה, תרגום ועליות",
+      "summary_he": "כל עולה קורא את חלקו בסימן מהחזן; תרגום אונקלוס פסוק אחר פסוק (בהפטרה: תרגום יונתן), בדרך כלל בנגינת ילד."
+    },
+    {
+      "index": "halacha.29",
+      "category": "Torah reading",
+      "topic": "Parashah joinings and haftarot",
+      "summary": "Three of Affliction marked DaCh'A (Divrei, Chazon, Eicha) per the Rambam; many haftarot differ from Sephardic custom.",
+      "common_practices": [
+        "In Israel Matot–Masei never joined; Pinchas always before Bein HaMetzarim",
+        "Isaiah 1 split; third Shabbat is Shabbat Eicha"
+      ],
+      "variants": [
+        {
+          "subgroup": "Baladi (Geridi)",
+          "practice": "Chukat and Balak always joined.",
+          "source": "Geridi ch. 1 §C.10"
+        },
+        {
+          "subgroup": "Dor Daim",
+          "practice": "Read Korach, Chukat and Balak over two Shabbatot, a parashah and a half each: first to Vayis'u mi-Kadesh (Num. 20:21), second to end of Balak.",
+          "source": "Sar-Shalom, section 4"
+        }
+      ],
+      "source": "Geridi ch. 1 §C.7–11; Sar-Shalom section 4",
+      "source_url": "https://www.daat.ac.il/daat/toshba/halacha/minhagim-2.htm",
+      "confidence": "regional",
+      "review_notes": "",
+      "topic_he": "חיבורי פרשיות והפטרות",
+      "summary_he": "שלוש דפורענות מסומנות \"דח\"א\" (דברים, חזון, איכה) לפי הרמב\"ם; הפטרות רבות שונות מהמנהג הספרדי."
+    },
+    {
+      "index": "halacha.30",
+      "category": "Kashrut",
+      "topic": "Chalitah (scalding meat)",
+      "summary": "Following the Rambam, Yemenite Jews scald salted meat in boiling water before cooking; practiced in most Yemenite communities up to immigration.",
+      "common_practices": [
+        "Chalitah after salting"
+      ],
+      "variants": [
+        {
+          "subgroup": "R. Yosef Qafih",
+          "practice": "Forbade Yemenites unscalded meat even after the fact.",
+          "source": "Tzohar, Lo tokhlu kol dam, citing Qafih on Ma'akhalot Asurot p. 157"
+        },
+        {
+          "subgroup": "R. Yitzhak Ratzabi and others",
+          "practice": "After the fact some permit unscalded meat, since hour-long salting satisfies the Rambam.",
+          "source": "Tzohar, citing Shulchan Arukh HaMekutzar; din.org.il"
+        }
+      ],
+      "source": "Net-Sah (Mechon Mishnat HaRambam), Chalitat basar ve-of; Tzohar",
+      "source_url": "https://net-sah.org/blog/25438",
+      "confidence": "disputed",
+      "review_notes": "Seen via search excerpts only.",
+      "references": [
+        {
+          "title": "Dor Daim",
+          "url": "https://en.wikipedia.org/wiki/Dor_Daim"
+        }
+      ],
+      "topic_he": "חליטה (הרתחת בשר)",
+      "summary_he": "בעקבות הרמב\"ם מרתיחים יהודי תימן בשר מלוח במים רותחים לפני הבישול; נהוג ברוב הקהילות התימניות עד העלייה."
+    },
+    {
+      "index": "halacha.31",
+      "category": "Kashrut",
+      "topic": "Kosher locusts",
+      "summary": "Yemenite Jews ate only locust species for which they held an ancestral tradition.",
+      "common_practices": [
+        "Desert locust eaten by tradition"
+      ],
+      "variants": [
+        {
+          "subgroup": "R. Ratzabi",
+          "practice": "Argues the tradition also covers the migratory locust.",
+          "source": "Biblical Natural History"
+        }
+      ],
+      "source": "R. Yosef Qafih as quoted in Slifkin; Biblical Natural History, Kosher Locust",
+      "source_url": "https://www.biblicalnaturalhistory.org/kosher-locust",
+      "confidence": "needs-review",
+      "review_notes": "Secondary quotation only.",
+      "topic_he": "חגבים כשרים",
+      "summary_he": "יהודי תימן אכלו רק מיני חגבים שהייתה להם עליהם מסורת מאבות."
+    },
+    {
+      "index": "halacha.32",
+      "category": "Lifecycle",
+      "topic": "Brit milah",
+      "summary": "Congregation and mohel say ze kisse shel Eliyahu ha-navi zakhur la-tov; baby brought in to ve-halleluya barukh asher kevodo male olam.",
+      "common_practices": [
+        "During peri'ah: Ahuv yevarekh ha-nimol ha-zeh, then alphabetical praises",
+        "Some wine sent to the mother",
+        "Father called up in the week of birth",
+        "Burying the foreskin, practiced in Yemen, lapsed in Israel",
+        "No zeved ha-bat"
+      ],
+      "variants": [],
+      "source": "Geridi, life-cycle chapter, Huledet banim",
+      "source_url": "https://www.daat.ac.il/daat/toshba/minhagim/tey-mish.htm",
+      "confidence": "needs-review",
+      "review_notes": "Single primary source.",
+      "topic_he": "ברית מילה",
+      "summary_he": "הקהל והמוהל אומרים \"זה כיסא של אליהו הנביא זכור לטוב\"; התינוק מובא ב\"והללויה ברוך אשר כבודו מלא עולם\"."
+    },
+    {
+      "index": "halacha.33",
+      "category": "Lifecycle",
+      "topic": "Bar / bat mitzvah",
+      "summary": "In Yemen there was no bar-mitzvah custom; what Yemenites do in Israel is taken from other communities.",
+      "common_practices": [
+        "Boys wore tefillin early"
+      ],
+      "variants": [],
+      "source": "Geridi, life-cycle chapter",
+      "source_url": "https://www.daat.ac.il/daat/toshba/minhagim/tey-mish.htm",
+      "confidence": "needs-review",
+      "review_notes": "No bat mitzvah custom documented.",
+      "topic_he": "בר / בת מצווה",
+      "summary_he": "בתימן לא היה מנהג בר מצווה; מה שתימנים עושים בישראל נלקח מעדות אחרות."
+    },
+    {
+      "index": "halacha.34",
+      "category": "Lifecycle",
+      "topic": "Weddings",
+      "summary": "Shabbat before the wedding week called Shabbat ha-Hatchalah; night before the chuppah called Laylat al-Henna; kiddushin not under the open sky.",
+      "common_practices": [
+        "After kiddushin a tallit spread over the couple with Ve-yiten lekha",
+        "Groom breaks bread instead of the mori; Ps. 45 before Birkat HaMazon",
+        "Shabbat after: Chatan na'im aleh before the groom's maftir",
+        "Farewell: Elohim yivneh beitekha"
+      ],
+      "variants": [],
+      "source": "Geridi, life-cycle chapter, Chatunah",
+      "source_url": "https://www.daat.ac.il/daat/toshba/minhagim/tey-mish.htm",
+      "confidence": "well-attested",
+      "review_notes": "Henna ritual widely described academically and varied by region; most wedding customs lapsed in Israel.",
+      "references": [
+        {
+          "title": "Yemen - Henna by Sienna",
+          "url": "https://hennabysienna.com/yemen.html"
+        },
+        {
+          "title": "The Bride's Henna Rituals: Symbols, Meanings and…",
+          "url": "https://www.folkstreams.net/contexts/the-brides-henna-rituals-symbols-meanings-and-changes-by-rachel-sharaby"
+        }
+      ],
+      "topic_he": "חתונות",
+      "summary_he": "השבת שלפני שבוע החתונה נקראת \"שבת התחלה\"; הלילה שלפני החופה נקרא \"ליל אל-חינה\"; קידושין לא תחת כיפת השמיים."
+    },
+    {
+      "index": "halacha.35",
+      "category": "Lifecycle",
+      "topic": "Niddah and mikveh",
+      "summary": "Yemenite practice codified on the Shulchan Aruch order with Rambam-based local custom.",
+      "common_practices": [
+        "Immersion after sunset",
+        "Wife may pour and set a cup before her husband, only not hand it directly (reported as common, per Rambam)",
+        "White undergarments during the seven clean days, contrary to the Rambam",
+        "Chuppat niddah does not complete marriage per Rambam; no repetition of kiddushin"
+      ],
+      "variants": [],
+      "source": "Hilkhot Taharah al pi minhagei Yahadut Teiman (maharitz.co.il), citing Shulchan Arukh HaMekutzar, Even HaEzer I §§151, 153, 157",
+      "source_url": "https://maharitz.co.il/?ArticleID=662&CategoryID=275",
+      "confidence": "needs-review",
+      "review_notes": "Page timed out; search excerpt only. Requires rabbinic review before display.",
+      "topic_he": "נידה ומקווה",
+      "summary_he": "מנהג תימן מקודד על סדר השולחן ערוך עם מנהג מקומי המבוסס על הרמב\"ם."
+    },
+    {
+      "index": "halacha.36",
+      "category": "Lifecycle",
+      "topic": "Mourning, burial and shiva",
+      "summary": "Keri'ah across the width of the garment; mourners sit on the floor; comforters say tenuchamu min ha-shamayim.",
+      "common_practices": [
+        "Some circle the deceased before burial (Tiklal, Anaf HaChayim, Jerusalem 5718, p. 217)",
+        "Escorts recite Vayehi No'am and Yoshev be-Seter aloud",
+        "Gen. 25:6 repeated until the grave is closed (not for women)",
+        "Comforters bring food each meal, with eggs and lentils; Ps. 49 before Birkat HaMazon",
+        "Candle burns all seven days",
+        "Mourners do not leave the house all seven days",
+        "Birkat Kohanim and Hallel in the mourner's house",
+        "Women's afternoon Arabic lamentation",
+        "Seventh night: se'udat havra'ah"
+      ],
+      "variants": [
+        {
+          "subgroup": "Israel practice (Tzohar)",
+          "practice": "Yemenite custom to tear immediately after death.",
+          "source": "Tzohar, Avelim guide"
+        }
+      ],
+      "source": "Geridi, life-cycle chapter, Avelut §§1–22",
+      "source_url": "https://www.daat.ac.il/daat/toshba/minhagim/tey-mish.htm",
+      "confidence": "well-attested",
+      "review_notes": "",
+      "topic_he": "אבלות, קבורה ושבעה",
+      "summary_he": "קריעה לרוחב הבגד; אבלים יושבים על הרצפה; המנחמים אומרים \"תנוחמו מן השמיים\"."
+    },
+    {
+      "index": "halacha.37",
+      "category": "Lifecycle",
+      "topic": "Kaddish year and yahrzeit",
+      "summary": "Yemenites vary on stopping Kaddish before 12 months; R. Ratzon Arusi rules the first yahrzeit on the burial date.",
+      "common_practices": [],
+      "variants": [
+        {
+          "subgroup": "Various Yemenite",
+          "practice": "Stop Kaddish one week, about two weeks, or even about three weeks before 12 months.",
+          "source": "R. Ratzon Arusi, net-sah.org"
+        },
+        {
+          "subgroup": "R. Ratzon Arusi",
+          "practice": "First-year yahrzeit on the day of burial; later years on the day of death; Yemenites lenient on grave visits in Nisan.",
+          "source": "R. Ratzon Arusi, net-sah.org FAQ 40709"
+        }
+      ],
+      "source": "R. Ratzon Arusi, Minhagei Teiman ba-Avelut",
+      "source_url": "https://net-sah.org/faq/40709",
+      "confidence": "disputed",
+      "review_notes": "Search excerpt; mourner leads Motzaei Shabbat Arvit within 12 months (Geridi §21).",
+      "topic_he": "שנת הקדיש ויארצייט",
+      "summary_he": "התימנים נבדלים בשאלה אם להפסיק לומר קדיש לפני 12 חודשים; הרב רצון ערוסי פוסק שהיארצייט הראשון הוא בתאריך הקבורה."
+    },
+    {
+      "index": "halacha.38",
+      "category": "Calendar",
+      "topic": "Minyan Shetarot and calendar observances",
+      "summary": "Yemenite Jews preserved Seleucid ‘Era of Contracts’ dating into modern times; some Yemenite communities still record it in ketubot. Tu BiShvat not mentioned in any Yemenite custom.",
+      "common_practices": [
+        "Seleucid-era dating in documents",
+        "Tu BiShvat: no observance",
+        "Destruction count on Tisha B'Av per Rambam"
+      ],
+      "variants": [],
+      "source": "Anzi, The Seleucid Era and Rhythms of Time Consciousness in Modern Jewish Yemen (Springer, 2025); Peninei Halakha, Zemanim 15:3; Geridi ch. 3 §14",
+      "source_url": "https://link.springer.com/article/10.1007/s10835-025-09475-7",
+      "confidence": "well-attested",
+      "review_notes": "Peninei Halakha: https://ph.yhb.org.il/en/15-03-03/",
+      "references": [
+        {
+          "title": "The Seleucid Era and Rhythms of Time Consciousness in Modern Jewish Yemen",
+          "url": "https://link.springer.com/article/10.1007/s10835-025-09475-7"
+        },
+        {
+          "title": "03. The Beginning of the Year",
+          "url": "https://ph.yhb.org.il/en/15-03-03/"
+        }
+      ],
+      "topic_he": "מניין שטרות ולוח שנה",
+      "summary_he": "יהודי תימן שימרו את הלוח \"מניין שטרות\" (התקופה הסלווקית) עד העת החדשה; כמה קהילות תימניות עדיין רושמות אותו בכתובות. ט\"ו בשבט אינו מוזכר באף מנהג תימני."
     }
   ],
-  "unique_minhagim": {
-    "examples": [
-      "Distinct Yemenite Hebrew pronunciation",
-      "Careful preservation of liturgical structure",
-      "Strong oral transmission of melodies and reading patterns",
-      "Community-specific piyyutim and ritual forms"
-    ],
-    "notes": "These are broad examples; Yemenite communities may differ internally by historical branch and place."
-  },
-  "source_registry": {
-    "primary": [
-      "Mishneh Torah",
-      "Shulchan Aruch",
-      "Yemenite communal tradition"
-    ],
-    "secondary": [
-      "Jewish studies reference works",
-      "Yemenite community siddurim",
-      "Historical and genealogical resources"
-    ]
-  }
+  "unique_minhagim": [
+    {
+      "name": "Targum in public reading",
+      "description": "Verse-by-verse Targum Onkelos with the Torah and Targum Yonatan with the haftarah; Megillot read verse, repeated by all, then Targum.",
+      "when": "Every Torah reading; festivals",
+      "source": "Geridi ch. 1 §C.4, ch. 3; Sar-Shalom section 4",
+      "source_url": "https://daat.ac.il/daat/toshba/minhagim/tey1.htm",
+      "confidence": "well-attested",
+      "references": [
+        {
+          "title": "Targum Onkelos",
+          "url": "https://en.wikipedia.org/wiki/Targum_Onkelos"
+        },
+        {
+          "title": "Targum",
+          "url": "https://en.wikipedia.org/wiki/Targum"
+        }
+      ],
+      "name_he": "תרגום בקריאה פומבית",
+      "description_he": "תרגום אונקלוס פסוק אחר פסוק עם התורה ותרגום יונתן עם ההפטרה; מגילות נקראות פסוק, חוזרים עליו כולם, ואחר כך התרגום."
+    },
+    {
+      "name": "Ashmorot",
+      "description": "Pre-dawn selichot, adults and children, from the day after Rosh Chodesh Elul to Erev Yom Kippur.",
+      "when": "Elul",
+      "source": "Geridi ch. 3 §9.1; Sar-Shalom section 6",
+      "source_url": "https://www.daat.ac.il/daat/toshba/minhagim/tey3.htm",
+      "confidence": "well-attested",
+      "name_he": "אשמורות",
+      "description_he": "סליחות לפני עלות השחר, מבוגרים וילדים, מהיום שאחרי ראש חודש אלול עד ערב יום כיפור."
+    },
+    {
+      "name": "Hoshanot of Saadia Gaon",
+      "description": "Said only by Yemenites, in both Baladi and Shami.",
+      "when": "Sukkot",
+      "source": "Geridi ch. 3 §11.4",
+      "source_url": "https://www.daat.ac.il/daat/toshba/minhagim/sukot.htm",
+      "confidence": "well-attested",
+      "name_he": "הושענות רס\"ג",
+      "description_he": "נאמרות רק בידי תימנים, הן בבלדי והן בשאמי."
+    },
+    {
+      "name": "Diwan",
+      "description": "Paraliturgical anthology for home and celebrations in Hebrew, Arabic and Aramaic; Shalom Shabazi's poems became its chief component.",
+      "when": "Shabbat meals, festivals, weddings, brit",
+      "source": "Jewish Music Research Centre, Hebrew University, ‘Diwan’",
+      "source_url": "https://jewish-music.huji.ac.il/en/content/diwan",
+      "confidence": "well-attested",
+      "name_he": "דיואן",
+      "description_he": "אנתולוגיה פרה-ליטורגית לבית ולשמחות בעברית, בערבית ובארמית; שיריו של שלום שבזי הפכו לרכיבה העיקרי שלה."
+    },
+    {
+      "name": "Purim Barukh Mordechai responsory",
+      "description": "Reader and congregation alternate blessings and curses, then reversed, ending with Charvonah.",
+      "when": "After Megillah",
+      "source": "Geridi ch. 3 §15.3",
+      "source_url": "https://www.daat.ac.il/daat/toshba/minhagim/purim.htm",
+      "confidence": "needs-review",
+      "name_he": "עניית \"ברוך מרדכי\" בפורים",
+      "description_he": "הקורא והקהל מתחלפים בברכות וקללות, ואחר כך בהיפוכן, ומסיימים ב\"חרבונה\"."
+    },
+    {
+      "name": "Aramaic Omer count",
+      "description": "The hazzan blesses and the congregation answers Amen and counts in Aramaic, e.g. Geridi's verbatim formula ‘האידנא תלתא ותלתין יומי בעומרא דאינון ארבעה שבועי וחמשא יומין’ (today is 33 days of the Omer, which are four weeks and five days).",
+      "when": "Omer",
+      "source": "Geridi ch. 3 §16.16; Sar-Shalom section 7",
+      "source_url": "https://www.daat.ac.il/daat/toshba/minhagim/pesach.htm",
+      "confidence": "well-attested",
+      "name_he": "ספירת עומר בארמית",
+      "description_he": "החזן מברך והקהל עונה אמן וסופר בארמית, למשל הנוסח המילולי של הגרידי \"האידנא תלתא ותלתין יומי בעומרא דאינון ארבעה שבועי וחמשא יומין\" (היום 33 ימים בעומר, שהם ארבעה שבועות וחמישה ימים)."
+    },
+    {
+      "name": "Shalosh",
+      "description": "Daily post-Shacharit study of Mishnah, Prophets and Writings.",
+      "when": "Weekday mornings",
+      "source": "Geridi ch. 1 §B.12; Sar-Shalom section 2",
+      "source_url": "https://daat.ac.il/daat/toshba/minhagim/tey1.htm",
+      "confidence": "well-attested",
+      "name_he": "שלוש",
+      "description_he": "לימוד יומי אחרי שחרית של משנה, נביאים וכתובים."
+    }
+  ],
+  "source_registry": [
+    {
+      "title": "Mi-Minhagei Yahadut Teiman, Yalkut Minhagim I (Jerusalem 1967), ch. 1",
+      "author": "Shimon Geridi",
+      "type": "primary",
+      "url": "https://daat.ac.il/daat/toshba/minhagim/tey1.htm",
+      "used_for": "Prayer, Torah reading"
+    },
+    {
+      "title": "Mi-Minhagei Yahadut Teiman, ch. 3 Festivals",
+      "author": "Shimon Geridi",
+      "type": "primary",
+      "url": "https://www.daat.ac.il/daat/toshba/minhagim/tey3.htm",
+      "used_for": "Calendar year"
+    },
+    {
+      "title": "Mi-Minhagei Yahadut Teiman, life cycle",
+      "author": "Shimon Geridi",
+      "type": "primary",
+      "url": "https://www.daat.ac.il/daat/toshba/minhagim/tey-mish.htm",
+      "used_for": "Brit, weddings, mourning"
+    },
+    {
+      "title": "Minhagim veDinim liYehudei Teiman",
+      "author": "Rahamim Sar-Shalom (based on Qafih Tiklalim)",
+      "type": "primary",
+      "url": "https://www.daat.ac.il/daat/toshba/halacha/minhagim-2.htm",
+      "used_for": "Subgroup variants"
+    },
+    {
+      "title": "Peninei Halakha, Zemanim",
+      "author": "R. Eliezer Melamed",
+      "type": "reference",
+      "url": "https://ph.yhb.org.il/en/05-08-13/",
+      "used_for": "Nine Days, Omer, calendar"
+    },
+    {
+      "title": "Derekh nosefet le-shamranut Yehudei Teiman ba-tefillah",
+      "author": "Moshe Gavra",
+      "type": "academic",
+      "url": "https://nosachteiman.co.il/דרך-נוספת-לשמרנות-יהודי-תימן-בתפילה-4/",
+      "used_for": "Kabbalat Shabbat history"
+    },
+    {
+      "title": "The Seleucid Era and Rhythms of Time Consciousness in Modern Jewish Yemen",
+      "author": "Menashe Anzi",
+      "type": "academic",
+      "url": "https://link.springer.com/article/10.1007/s10835-025-09475-7",
+      "used_for": "Calendar"
+    },
+    {
+      "title": "Minhagei Teiman ba-Avelut",
+      "author": "R. Ratzon Arusi",
+      "type": "responsa",
+      "url": "https://net-sah.org/faq/40709",
+      "used_for": "Kaddish, yahrzeit"
+    },
+    {
+      "title": "Chalitat basar ve-of",
+      "author": "Mechon Mishnat HaRambam",
+      "type": "responsa",
+      "url": "https://net-sah.org/blog/25438",
+      "used_for": "Chalitah"
+    },
+    {
+      "title": "Hilkhot Taharah al pi minhagei Yahadut Teiman",
+      "author": "maharitz.co.il",
+      "type": "primary",
+      "url": "https://maharitz.co.il/?ArticleID=662&CategoryID=275",
+      "used_for": "Niddah"
+    },
+    {
+      "title": "Mishneh Torah, Ma'akhalot Asurot 9:27–28",
+      "author": "Rambam",
+      "type": "primary",
+      "url": "https://mechon-mamre.org/i/5209.htm",
+      "used_for": "Meat-dairy gap note"
+    },
+    {
+      "title": "Diwan",
+      "author": "Jewish Music Research Centre, HUJI",
+      "type": "academic",
+      "url": "https://jewish-music.huji.ac.il/en/content/diwan",
+      "used_for": "Diwan"
+    },
+    {
+      "title": "Sefer HaChilukim, introduction",
+      "author": "Zohar Amar",
+      "type": "academic",
+      "url": "https://www.zoharamar.org.il/wp-content/uploads/%D7%97%D7%99%D7%9C%D7%95%D7%A7%D7%99%D7%9D-%D7%94%D7%A7%D7%93%D7%9E%D7%94.pdf",
+      "used_for": "Decision principle"
+    }
+  ],
+  "gaps": [
+    "Shabbat candle-lighting time offset",
+    "Shabbat Havdalah specifics (order documented only for Motzaei Yom Kippur)",
+    "Specific Rosh Hashana simanim foods and formulas",
+    "Mimouna-type post-Pesach custom: none documented for Yemen",
+    "Pidyon haben: no Yemenite-specific custom found",
+    "Bat mitzvah: no Yemenite custom documented",
+    "Pronunciation and trope: no source recorded here (see Morag, The Hebrew Language Tradition of the Yemenite Jews)",
+    "Meat-then-dairy waiting time: no Yemenite-specific source; Rambam Ma'akhalot Asurot 9:28 requires about six hours after poultry as after beast meat",
+    "Shami tefillin blessings and Shami lifecycle customs",
+    "Dor Daim practices beyond the Torah-reading split (omission of Kabbalistic texts is Wikipedia-only)",
+    "Current Omer mourning dates for Yemenites in Israel",
+    "Burial-shroud and tallit-in-burial customs"
+  ],
+  "disputes": [
+    "Birkat Kohanim at fast-day Minchah: Geridi (none) vs Sar-Shalom (kohanim ascend)",
+    "Nine Days: Geridi (no uniform custom; some avoid laundering and cattle slaughter from Rosh Chodesh Av) vs Peninei Halakha (meat throughout until the seudah mafseket)",
+    "Omer mourning: absent anciently (Geridi; Qafih) vs later stricter practice (Peninei Halakha)",
+    "Chukat–Balak: always joined (Geridi) vs Dor Daim split (Sar-Shalom)",
+    "Chalitah after the fact: Qafih forbids vs Ratzabi and others permit",
+    "Lekha Dodi among Dor Daim: Qafih's Baladi editions retain it; Wikipedia claims omission",
+    "Child Targum reader: rare in 1967 (Geridi) vs usual (Sar-Shalom)"
+  ],
+  "needs_rabbinic_review": [
+    "All niddah and mikveh entries",
+    "Chalitah requirements",
+    "Yom Tov candle-lighting blessing per subgroup",
+    "Omer and Nine Days observance today",
+    "Kaddish cessation and first yahrzeit date",
+    "Kosher locust identification"
+  ]
 }

@@ -544,11 +544,17 @@ class TestCommunityDetailSkipsNonDictHalachaEntries:
         assert body["primary_origin"] == "Testland"
         assert body["customs"] == {
             "prayer_kaddish": {
-                "category": "prayer",
-                "topic": "kaddish",
+                "category": "Prayer",
+                "topic": "Kaddish",
+                "topic_he": "",
                 "ruling": "Stand for it.",
+                "ruling_he": "",
                 "common_practices": ["stand"],
+                "variants": [],
+                "confidence": "",
                 "source": "Test Source 1",
+                "source_url": "",
+                "references": [],
             }
         }
         assert body["raw_data"] == data

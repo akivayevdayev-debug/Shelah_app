@@ -11,7 +11,7 @@ its exception handler.
 from __future__ import annotations
 
 import re
-from datetime import date
+from datetime import date, datetime
 
 import pytest
 import responses as responses_lib
@@ -115,11 +115,34 @@ class TestGetCommunityZmanimBranches:
     def test_bukharian_community_offsets_sunset_display(self, mock_outbound_http):
         result = ze.get_community_zmanim(NYC_LAT, NYC_LON, NYC_TZ, community="bukharian")
         assert "error" not in result
-        assert "(-20m)" in result["zmanim"]["Sunset"]
+        assert "(-18m)" in result["zmanim"]["Sunset"]
 
     def test_standard_community_no_offset_label(self, mock_outbound_http):
         result = ze.get_community_zmanim(NYC_LAT, NYC_LON, NYC_TZ, community="standard")
-        assert "(-20m)" not in result["zmanim"]["Sunset"]
+        assert "(-" not in result["zmanim"]["Sunset"]
+
+    def test_offset_comes_from_the_customs_file_not_the_code(self, monkeypatch):
+        monkeypatch.setattr(ze, "_customs_runtime_config", lambda: {
+            "testanian": {"parameters": [{"key": "sunset_display_offset_minutes", "value": "7"}]},
+            "nodefault": {"parameters": [{"key": "something_else", "value": 3}, "junk"]},
+            "badvalue": {"parameters": [{"key": "sunset_display_offset_minutes", "value": "soon"}]},
+            "negative": {"parameters": [{"key": "sunset_display_offset_minutes", "value": -5}]},
+        })
+        assert ze._sunset_display_offset_minutes("Testanian") == 7
+        assert ze._sunset_display_offset_minutes("nodefault") == 0
+        assert ze._sunset_display_offset_minutes("badvalue") == 0
+        assert ze._sunset_display_offset_minutes("negative") == 0
+        assert ze._sunset_display_offset_minutes("unknown") == 0
+        assert ze._sunset_display_offset_minutes(None) == 0
+
+    def test_sunset_display_shifts_only_when_an_offset_is_given(self):
+        sunset = datetime(2026, 10, 4, 18, 30)
+        assert ze._compute_sunset_display(sunset, 18) == datetime(2026, 10, 4, 18, 12)
+        assert ze._compute_sunset_display(sunset, 0) == sunset
+        assert ze._compute_sunset_display(None, 18) is None
+
+    def test_bukharian_file_declares_the_eighteen_minute_offset(self):
+        assert ze._sunset_display_offset_minutes("Bukharian") == 18
 
     def test_invalid_coordinates_return_error_shape(self, mock_outbound_http):
         result = ze.get_community_zmanim("not-a-number", "not-a-number", NYC_TZ)

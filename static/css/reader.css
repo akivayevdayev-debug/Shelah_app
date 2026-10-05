@@ -313,3 +313,105 @@ body.theme-dark #compareContainer {
     background: var(--surface-elevated);
     border-color: var(--surface-border);
 }
+
+/* ═══════════════════════════════════════════════════════ */
+/* COMMUNITY CUSTOMS: confidence chip, variants, notes */
+/* ═══════════════════════════════════════════════════════ */
+
+.community-confidence {
+    display: inline-block;
+    margin-inline-start: var(--sp-2);
+    padding: var(--sp-1) var(--sp-2);
+    border: 1px solid var(--surface-border);
+    border-radius: var(--radius-full);
+    background: var(--surface-pill);
+    color: var(--ink-secondary);
+    font-family: var(--font-sans);
+    font-size: var(--text-xs);
+    font-weight: 600;
+    line-height: 1.2;
+    vertical-align: middle;
+    white-space: nowrap;
+}
+
+/* The two that change how a reader should act on the entry get the warning tone. */
+.community-confidence[data-confidence="disputed"],
+.community-confidence[data-confidence="needs-review"] {
+    background: var(--ai-warning-bg);
+    border-color: var(--ai-warning-border);
+    color: var(--ai-warning-text);
+}
+
+/* "Ask your own rabbi", under an entry whose answer depends on the rabbi. */
+.community-rabbi-note {
+    margin-block: var(--sp-2) 0;
+    padding-inline-start: var(--sp-3);
+    border-inline-start: 3px solid var(--ai-warning-border);
+    color: var(--ink-secondary);
+    font-size: var(--text-sm);
+    line-height: 1.5;
+}
+
+.community-variants {
+    margin-top: var(--sp-2);
+}
+
+.community-subhead {
+    margin-bottom: var(--sp-1);
+    color: var(--ink-secondary);
+    font-size: var(--text-xs);
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+}
+
+.community-link {
+    color: var(--accent-primary);
+    text-decoration: underline;
+    text-underline-offset: 2px;
+    transition: color var(--motion-dur-fast) var(--motion-ease-out);
+}
+
+.community-link:hover {
+    color: var(--accent-primary-hover);
+}
+
+.community-link:focus-visible,
+.community-notes > summary:focus-visible {
+    outline: 2px solid var(--accent-primary);
+    outline-offset: 2px;
+    border-radius: var(--radius-xs);
+}
+
+.community-notes {
+    border-top: 1px solid var(--surface-border);
+}
+
+.community-notes > summary {
+    display: flex;
+    align-items: center;
+    gap: var(--sp-2);
+    min-height: 44px;
+    cursor: pointer;
+    color: var(--ink-heading);
+    font-weight: 600;
+}
+
+.community-notes[open] > summary {
+    margin-bottom: var(--sp-2);
+}
+
+.community-notes > ul {
+    padding-bottom: var(--sp-3);
+}
+
+.community-notes-count {
+    color: var(--ink-secondary);
+    font-weight: 400;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .community-link {
+        transition: none;
+    }
+}

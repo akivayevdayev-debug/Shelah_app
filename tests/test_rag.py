@@ -207,12 +207,44 @@ class TestRetrieveCommunityKnowledge:
         monkeypatch.setattr(app, "RAG_TOP_KNOWLEDGE_ROWS", 5)
         monkeypatch.setattr(app, "_extract_query_keywords", lambda q, max_keywords=10: ["shabbat"])
         monkeypatch.setattr(app, "SUPABASE_COMMUNITY_KNOWLEDGE_TABLE", "community_knowledge")
-        monkeypatch.setattr(app, "_normalize_rag_text", lambda text: str(text or ""))
+        monkeypatch.setattr(app, "_normalize_rag_text", lambda text, max_chars=360: str(text or ""))
         monkeypatch.setattr(app, "_detect_community_in_text", lambda q: None)
 
         result = rag._retrieve_community_knowledge("what about shabbat candles", canonical_lens="All")
         assert len(result) == 1
         assert result[0]["id"] == "1"
+
+    def test_row_content_is_kept_up_to_the_knowledge_cap_not_the_old_360(self, monkeypatch):
+        """3.0 rows carry practices, variants and a confidence caveat after the
+        summary; clipping them at 360 chars dropped most of it."""
+        content = "Summary. " + "Variants: Turkish: " + "x" * 600
+        rows = [{"id": "1", "community_name": "Ashkenaz", "topic": "shabbat candles",
+                 "halakhic_source": "SA", "content": content}]
+        monkeypatch.setattr(app, "_get_supabase_client", lambda: _FakeSupabaseClient(data=rows))
+        monkeypatch.setattr(app, "RAG_TOP_KNOWLEDGE_ROWS", 5)
+        monkeypatch.setattr(app, "_extract_query_keywords", lambda q, max_keywords=10: ["shabbat"])
+        monkeypatch.setattr(app, "SUPABASE_COMMUNITY_KNOWLEDGE_TABLE", "community_knowledge")
+        monkeypatch.setattr(app, "_detect_community_in_text", lambda q: None)
+
+        [row] = rag._retrieve_community_knowledge("shabbat candles", canonical_lens="All")
+
+        assert len(content) < rag.RAG_KNOWLEDGE_CONTENT_CHARS
+        assert row["content"] == content
+
+    def test_content_longer_than_the_knowledge_cap_is_ellipsised(self, monkeypatch):
+        rows = [{"id": "1", "community_name": "Ashkenaz", "topic": "shabbat candles",
+                 "halakhic_source": "SA", "content": "word " * 500}]
+        monkeypatch.setattr(app, "_get_supabase_client", lambda: _FakeSupabaseClient(data=rows))
+        monkeypatch.setattr(app, "RAG_TOP_KNOWLEDGE_ROWS", 5)
+        monkeypatch.setattr(app, "_extract_query_keywords", lambda q, max_keywords=10: ["shabbat"])
+        monkeypatch.setattr(app, "SUPABASE_COMMUNITY_KNOWLEDGE_TABLE", "community_knowledge")
+        monkeypatch.setattr(app, "_detect_community_in_text", lambda q: None)
+
+        [row] = rag._retrieve_community_knowledge("shabbat candles", canonical_lens="All")
+
+        cap = rag.RAG_KNOWLEDGE_CONTENT_CHARS
+        assert cap - 5 <= len(row["content"]) - 3 <= cap  # a trailing space at the cut is stripped
+        assert row["content"].endswith("...")
 
     def test_query_exception_returns_empty(self, monkeypatch):
         monkeypatch.setattr(app, "_get_supabase_client", lambda: _FakeSupabaseClient(error=RuntimeError("db down")))
@@ -230,7 +262,7 @@ class TestRetrieveCommunityKnowledge:
         monkeypatch.setattr(app, "RAG_TOP_KNOWLEDGE_ROWS", 5)
         monkeypatch.setattr(app, "_extract_query_keywords", lambda q, max_keywords=10: ["shabbat"])
         monkeypatch.setattr(app, "SUPABASE_COMMUNITY_KNOWLEDGE_TABLE", "community_knowledge")
-        monkeypatch.setattr(app, "_normalize_rag_text", lambda text: str(text or ""))
+        monkeypatch.setattr(app, "_normalize_rag_text", lambda text, max_chars=360: str(text or ""))
         monkeypatch.setattr(app, "_detect_community_in_text", lambda q: None)
 
         result = rag._retrieve_community_knowledge("shabbat query", canonical_lens="Ashkenaz")

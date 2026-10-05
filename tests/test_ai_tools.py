@@ -438,6 +438,70 @@ async def test_get_community_profile_withholds_a_profile_with_an_injection_marke
     assert "DAN" not in str(result)
 
 
+async def test_get_community_profile_carries_baseline_parameters_and_gaps(monkeypatch):
+    fake_data = {
+        "heritage_id": "ashkenaz",
+        "runtime": {
+            "lens_key": "Ashkenaz",
+            "practice_baseline": "the Rema's glosses.",
+            "parameters": [{"key": "meat_to_dairy_wait_majority", "value": "6", "unit": "hours"}] * 20,
+        },
+        "gaps": ["No community-specific source on X."] * 20,
+    }
+    monkeypatch.setattr(ai_tools, "_read_json", lambda path: fake_data)
+    result = await ai_tools.execute_tool("get_community_profile", {"community": "Ashkenaz"})
+    assert result["practice_baseline"] == "the Rema's glosses."
+    assert result["parameters"][0]["key"] == "meat_to_dairy_wait_majority"
+    assert len(result["parameters"]) == 12
+    assert len(result["gaps"]) == 10
+
+
+async def test_get_community_profile_tolerates_a_file_without_a_runtime_block(monkeypatch):
+    monkeypatch.setattr(ai_tools, "_read_json", lambda path: {"heritage_id": "yemenite", "runtime": "oops"})
+    result = await ai_tools.execute_tool("get_community_profile", {"community": "Yemenite"})
+    assert result["practice_baseline"] is None
+    assert result["parameters"] is None
+
+
+async def test_get_community_profile_renders_the_timeline_as_lines(monkeypatch):
+    fake_data = {"heritage_id": "yemenite", "historical_background": {"timeline": [
+        {"period": "1949", "event": "Operation Magic Carpet", "halachic_impact": "Baladi and Shami meet"},
+        {"period": "1882", "event": "First aliyah wave"},
+        {"event": "Undated event"},
+        "not a dict",
+        {"period": "", "event": ""},
+    ]}}
+    monkeypatch.setattr(ai_tools, "_read_json", lambda path: fake_data)
+    result = await ai_tools.execute_tool("get_community_profile", {"community": "Yemenite"})
+    assert result["historical_background"].split("\n") == [
+        "1949: Operation Magic Carpet (Baladi and Shami meet)",
+        "1882: First aliyah wave",
+        "Undated event",
+    ]
+
+
+def test_history_text_returns_other_shapes_unchanged():
+    assert ai_tools._history_text("plain text") == "plain text"
+    assert ai_tools._history_text(None) is None
+    assert ai_tools._history_text({"timeline": []}) == {"timeline": []}
+    assert ai_tools._history_text({"timeline": ["x"]}) == {"timeline": ["x"]}
+
+
+async def test_get_community_profile_for_every_real_community_is_complete():
+    from backend import customs
+    from backend.helpers import COMMUNITIES
+
+    for lens_key in COMMUNITIES:
+        if lens_key == "Israeli":
+            continue
+        result = await ai_tools.execute_tool("get_community_profile", {"community": lens_key})
+        assert "error" not in result, (lens_key, result)
+        assert result["practice_baseline"], lens_key
+        assert result["practice_baseline"] == customs.runtime_config()[lens_key.lower()]["practice_baseline"]
+        assert isinstance(result["unique_minhagim"], list) and result["unique_minhagim"], lens_key
+        assert "\n" in result["historical_background"] or len(result["historical_background"]) > 40, lens_key
+
+
 # ── 16. browse_library ───────────────────────────────────────────────────────
 
 async def test_browse_library_with_category_path(monkeypatch):

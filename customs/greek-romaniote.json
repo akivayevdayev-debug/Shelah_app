@@ -1,408 +1,1051 @@
 {
-  "version": "2.0",
+  "version": "3.0",
   "type": "academic_halachic_reference",
   "heritage_id": "greek_romaniote",
   "name": "Greek / Romaniote",
   "aliases": [
     "Romaniote",
     "Greek Jews",
-    "Yevani"
+    "Yevani",
+    "Romaniotes",
+    "Romaniots",
+    "Romaniotim (רומניוטים)",
+    "Yevanim (יוונים)",
+    "Bene Romania",
+    "Yanniotes (self-designation of Ioannina Jews)",
+    "Greek Romaniote"
   ],
   "database_scope": {
-    "purpose": "Academic and halachic reference database for Greek/Romaniote Jewish heritage, minhagim, and halachic practice.",
-    "coverage_note": "This file models broad Romaniote and Greek Jewish practice and includes common halachic domains. Local customs vary by city, island, family, and whether the community is Romaniote, later Sephardi, or mixed.",
-    "classification_note": "Romaniote Jewish practice is one of the oldest continuous Jewish traditions in Europe, with its own liturgy and community structure, later interacting with Sephardi settlement in many Greek centers."
+    "purpose": "Sourced reference for Greek / Romaniote minhagim and halachic practice. It records what the cited sources say, with a confidence level for each entry, and is not a psak.",
+    "coverage_note": "30 sourced topics and 4 distinctive customs, compiled from the cited sources in October 2026. Each entry carries a confidence level (well-attested, disputed, regional, needs-review). 18 topics have no community-specific source and are listed under 'gaps' rather than filled with generic text."
   },
   "identity": {
-    "primary_origin": "Historic Jewish communities of Greece and the broader Byzantine/Greek world",
+    "primary_origin": "Greece, above all Ioannina and Chalkis, from the Greek-speaking Jews of the Byzantine world",
     "secondary_centers": [
-      "Ioannina",
-      "Thessaloniki",
-      "Athens",
-      "Corfu",
-      "Patras",
-      "Crete",
-      "Greek diaspora communities in Israel, the United States, and Europe"
-    ],
-    "cultural_profile": [
-      "Ancient local Jewish continuity",
-      "Distinct Romaniote liturgy and communal rite",
-      "Later Sephardi influence in many cities",
-      "Strong city-based and synagogue-based identity"
+      "Athens (the Etz Hayyim synagogue, built in 1904)",
+      "Israel",
+      "the United States"
     ]
   },
   "languages": [
-    "Greek",
-    "Hebrew",
-    "Judeo-Greek in some historical settings",
-    "Ladino in Sephardi-influenced communities",
-    "English in diaspora"
+    "Judeo-Greek (Yevanic): a 14th-century translation of the Book of Jonah survives in a Romaniote machzor, and some texts are still read in it",
+    "Greek: Benjamin of Tudela recorded Greek-speaking Jews in Chalkis"
   ],
-  "genealogy": {
-    "common_surname_patterns": [
-      "Greek surnames with Jewish family history",
-      "Names adapted in Hebrew, Greek, Italian, and Ottoman records",
-      "Town-based and island-based lineages",
-      "Family names shaped by migration and conversion records"
-    ],
-    "research_notes": [
-      "Romaniote and Sephardi branches may share cities but differ in family origin.",
-      "Surname alone is often insufficient; synagogue affiliation and town history matter.",
-      "Ottoman, Greek, Italian, and modern immigration records should be cross-checked."
-    ],
-    "recommended_genealogy_fields": [
-      "surname",
-      "alternate_spellings",
-      "town_of_origin",
-      "family_branch",
-      "synagogue_affiliation",
-      "migration_route",
-      "ritual_minhag"
-    ]
-  },
+  "subgroups": [
+    {
+      "name": "Ioannina (Yannina, Janina)",
+      "note": "Historic centre of Romaniote Jewry. About 1,950 Jews in 1941; 1,870 deported 25 March 1944 (Jewish Museum of Greece). The synagogue's marble tablets carry the names of 1,832 Jews of Ioannina who perished (JTA, 2014). The Jewish Museum of Greece gives 50 Jews today; JTA (2014) says fewer than 50, most of them elderly. The old synagogue Kahal Kadosh Yashan (present form 1829) is still used for festivals, led by a specially invited rabbi. Includes historic Apulian/Sicilian-origin families (New Synagogue Kahal Kadosh Hadash, destroyed by the Germans), who kept some customs of their own. Diaspora continuation: Kehila Kedosha Janina, New York (1906/1927)."
+    },
+    {
+      "name": "Chalkis (Chalkida, Halkida, Chalcis)",
+      "note": "The Jewish Museum of Greece describes Chalkida as one of the oldest continuously inhabited Jewish communities in Europe; Benjamin of Tudela recorded about 200 Greek-speaking Jews there in 1159. Synagogue on Kotsou St. rebuilt in 1855 after the 1854 fire, funded by the Duchess of Plaisance. The Jewish Museum of Greece gives 325 Jews in 1940, only 18 lost in the Holocaust, and about 65 members today. Very little minhag-level documentation found."
+    },
+    {
+      "name": "Athens (post-war Athens community)",
+      "note": "The Romaniote synagogue is Etz Hayyim ('Ioanniotiki'), 8 Melidoni St., built 1904 (some sources say dedicated 1906) by Jews from Ioannina. It now opens mainly on High Holidays and special events. Beth Shalom (5 Melidoni St.), built 1935, is the community's Sephardic main synagogue for regular services. Both are under the Chief Rabbi of Athens (Gabriel Negrin)."
+    }
+  ],
   "historical_background": {
     "timeline": [
       {
-        "period": "Ancient and Byzantine era",
-        "event": "Jewish communities existed in Greece and the Byzantine world for many centuries.",
-        "halachic_impact": "A distinct local Jewish rite developed."
+        "period": "Hellenistic to Byzantine era",
+        "event": "Greek-speaking Jews (Rhomaniotes, 'inhabitants of Rhomania') settle across the Greek world. A synagogue in Ioannina is traditionally dated to the 9th century.",
+        "halachic_impact": "A distinct rite with Greek-language elements and a highly developed piyyut tradition takes shape (Mahzor Romania, Mahzor Corfu, Mahzor Kastoria, Mahzor Candia)."
       },
       {
-        "period": "Ottoman era",
-        "event": "Sephardi exiles arrived after 1492 and interacted with older Romaniote communities.",
-        "halachic_impact": "Some cities retained Romaniote customs, others became predominantly Sephardi."
+        "period": "1453-1526",
+        "event": "After the Ottoman conquest of Constantinople, Moses Capsali and then Elijah Mizrahi serve as rav manhig of the relocated Romaniote communities.",
+        "halachic_impact": "Mizrahi resisted Sephardic exiles' attempts to impose their customs where these contradicted local custom."
       },
       {
-        "period": "19th-20th centuries",
-        "event": "Modern nationalism, migration, and upheaval changed Greek Jewish life.",
-        "halachic_impact": "Local communities dispersed, preserving traditions abroad."
+        "period": "16th century",
+        "event": "Sephardim and Jews from Apulia and Sicily settle in Ioannina and are absorbed into the Romaniote community. Elsewhere most Romaniote communities are absorbed into Sephardic culture.",
+        "halachic_impact": "Sephardic influence enters through printed Sephardic prayer books, used with handwritten Romaniote notes because of printing constraints in the Ottoman Empire."
       },
       {
-        "period": "Postwar and modern period",
-        "event": "Many Greek Jews rebuilt communities in Israel and the diaspora.",
-        "halachic_impact": "Romaniote customs were preserved by smaller institutions and family memory."
+        "period": "25 March 1944",
+        "event": "Deportation of the Ioannina community to Auschwitz. Only 181 Ioannina Jews were alive at the war's end (112 camp survivors, 69 hidden or in the mountains).",
+        "halachic_impact": "Oral transmission broke sharply. The Jewish Museum of Greece calls the post-war community one 'with no elderly people' that had lost much of its collective memory and traditions."
+      },
+      {
+        "period": "Post-war to present",
+        "event": "Migration to Athens, Israel and the USA. By 2014 Cantor Haim Ischakis (Athens-born, parents from Ioannina and Chalkis) was described as the only person who knew the Romaniote Torah chant.",
+        "halachic_impact": "Most services in Greece are now Sephardic. Romaniote melodies and piyyutim survive on festivals and in recordings."
       }
     ]
   },
   "core_halachic_authorities": {
     "primary_codes": [
-      "Shulchan Aruch",
-      "Mishneh Torah",
-      "Romaniote communal tradition"
+      "Mahzor Romania (first printed in Venice; the Jewish Museum of Greece gives 1520, other sources 1523/1524)",
+      "Seder Tefillot ke-minhag Kehillot Romania (Venice 1545)",
+      "Shulchan Aruch and Beit Yosef of R. Joseph Caro (which records some Romaniote customs)"
     ],
     "major_rishonim_base": [
-      "Rambam",
-      "Rif",
-      "Rosh"
+      "Romaniote/Byzantine liturgical tradition linked by scholars to Late-Antique Palestinian piyyut and custom",
+      "Tobiah ben Eliezer, Lekah Tov (Byzantine context only; no specific practice sourced here)"
     ],
-    "later_authorities_and_guides": [
-      "Romaniote rabbis and communal leaders",
-      "Sephardi poskim in mixed communities",
-      "Modern Greek and Israeli rabbinic authorities"
+    "later_poskim": [
+      "Moses Capsali (d. c. 1498), rav manhig of the Romaniote communities of Constantinople",
+      "Elijah Mizrahi (d. 1526), his successor, who resisted Sephardic attempts to impose their customs",
+      "Ioannina rabbinate: marbitz Torah and an Ottoman-recognised Bet Din; 19th-century rabbis Shmuel David and Haim Shmuel Halevi ('Hashmal')"
     ],
-    "decision_principle": "Follow inherited community rite where preserved, while recognizing that many Greek Jewish communities adopted Sephardi halachic norms after the Ottoman period."
+    "decision_principle": "Documented practice rests on local minhag preserved by the community, its rabbi and the Bet Din. Since the Ottoman period printed Sephardic prayer books have been used with Romaniote additions. No codified Romaniote decision rule for conflicts with the Shulchan Aruch was found."
+  },
+  "runtime": {
+    "lens_key": "Greek-Romaniote",
+    "practice_baseline": "Practice follows local Romaniote minhag (Mahzor Romania tradition, Ioannina customs) on a halachic base that, from the Ottoman period on, used Sephardic prayer books and the Shulchan Aruch; present-day Greek services are mostly Sephardic in rite.",
+    "parameters": []
   },
   "halacha_index": [
     {
       "index": "halacha.1",
       "category": "Prayer",
-      "topic": "Romaniote nusach",
-      "summary": "Romaniote prayer has its own historical liturgical pattern, distinct from standard Sephardi and Ashkenazi rites.",
+      "topic": "Nusach: Mahzor Romania tradition",
+      "summary": "The Romaniote rite is set out in Mahzor Romania, which contains prayers for Sabbaths and festivals, piyyutim and moral-religious hymns for the High Holidays, special Sabbath prayers and kinot. Under Ottoman printing constraints Romaniotes used Sephardic prayer books with handwritten additions. Today most Greek Jews use the Sephardic (Lurianic) prayer book.",
       "common_practices": [
-        "Use Romaniote or mixed local siddurim where preserved",
-        "Preserve Greek or local melodies",
-        "Retain unique piyyutim and liturgical structure",
-        "Preserve inherited nusach and pronunciation in public prayer.",
-        "Coordinate weekday, Shabbat, and festival insertions with local rabbinic guidance.",
-        "Maintain community niggunim and piyyutim where accepted."
-      ]
+        "Romaniote piyyutim and Graeco-Hebrew hymns added on major festivals such as Rosh Hashana and Pesach",
+        "Sephardic prayer book as the base text, with Romaniote additions"
+      ],
+      "variants": [
+        {
+          "subgroup": "Ioannina",
+          "practice": "Uses the form based on Mahzor Romania and Minhag Bene Roma (the Italian rite).",
+          "source": "Jewish Museum of Greece, 'The Jewish Community of Ioannina – A Journey Through Time', section 'Religious life: synagogual liturgy'"
+        },
+        {
+          "subgroup": "Chalkis",
+          "practice": "Named with Ioannina as still using the form based on Mahzor Romania and Minhag Bene Roma.",
+          "source": "Jewish Museum of Greece, same section"
+        },
+        {
+          "subgroup": "Athens",
+          "practice": "Regular services are held in the Sephardic Beth Shalom. The Romaniote Etz Hayyim (rite listed as Romaniote and Sephardi) opens mainly on High Holidays.",
+          "source": "Jewish Community of Athens, 'Synagogue Etz Hayim (Tree of Life)'; Jewish Heritage Europe, Greece heritage sites"
+        }
+      ],
+      "source": "Jewish Museum of Greece, digital exhibition 'The Jewish Community of Ioannina – A Journey Through Time'",
+      "source_url": "https://jewishmuseum.gr/en/psifiaki-ekthesi/the-jewish-community-of-ioannina-a-journey-through-time/",
+      "confidence": "well-attested",
+      "review_notes": "Sephardic prayer books are documented as an influence adopted under Ottoman printing constraints. They do not define Romaniote identity. The date of the first printing is disputed (see disputes).",
+      "references": [
+        {
+          "title": "The Jewish Community of Ioannina – A Journey Through Time – Jewishmuseum",
+          "url": "https://jewishmuseum.gr/en/psifiaki-ekthesi/the-jewish-community-of-ioannina-a-journey-through-time/"
+        }
+      ],
+      "topic_he": "נוסח: מחזור רומניא",
+      "summary_he": "הנוסח הרומניוטי מובא ב\"מחזור רומניא\", הכולל תפילות לשבתות ולמועדים, פיוטים ומזמורים מוסריים-דתיים לימים הנוראים, תפילות שבת מיוחדות וקינות. בגלל מגבלות הדפוס העות'מאני השתמשו הרומניוטים בסידורים ספרדיים עם תוספות בכתב יד. כיום רוב יהודי יוון משתמשים בסידור הספרדי (האריז\"לי)."
     },
     {
       "index": "halacha.2",
       "category": "Prayer",
-      "topic": "Sephardi influence",
-      "summary": "Many Greek communities adopted Sephardi elements after 1492 while retaining older local traditions in some areas.",
+      "topic": "Order of service and chant",
+      "summary": "Ioannina-tradition informants report that the order of the service differs from the Sephardic one, that piyyutim mix Greek and Hebrew, and that the chanting style is distinct. Journalism and scholarship describe the melodies, including Torah chant, as heavily influenced by Byzantine music.",
       "common_practices": [
-        "Use Sephardi rite in Sephardi-influenced congregations",
-        "Preserve local Romaniote features where still practiced",
-        "Maintain synagogue-specific order and tunes",
-        "Preserve inherited nusach and pronunciation in public prayer.",
-        "Coordinate weekday, Shabbat, and festival insertions with local rabbinic guidance.",
-        "Maintain community niggunim and piyyutim where accepted."
-      ]
+        "Romaniote melodies for Shabbat, the High Holidays, the three festivals, Chanukah and Purim (recorded by Cantor Haim Ischakis)"
+      ],
+      "variants": [
+        {
+          "subgroup": "Ioannina diaspora (KKJ New York)",
+          "practice": "Weekly Shabbat and holiday services in Romaniote liturgy. Some texts are still read in Judeo-Greek.",
+          "source": "Kehila Kedosha Janina, 'Romaniote Liturgy' page"
+        }
+      ],
+      "source": "Yad Vashem education newsletter, 'The Romaniote Jews of Ioannina' (quoting Marcia Haddad Ikonomopoulos, KKJ museum director); Times of Israel/JTA, 2 April 2014",
+      "source_url": "https://wwv.yadvashem.org/yv/pdf-drupal/en/education/newsletter/ioannina.pdf",
+      "confidence": "well-attested",
+      "review_notes": "The specific differences in the order of service are not itemised in the sources opened. Treat specific ordering claims as gaps.",
+      "references": [
+        {
+          "title": "The Romaniote Jews of Ioannina",
+          "url": "https://wwv.yadvashem.org/yv/pdf-drupal/en/education/newsletter/ioannina.pdf"
+        },
+        {
+          "title": "Kehila Kedosha Janina — Grokipedia",
+          "url": "https://grokipedia.com/page/kehila_kedosha_janina"
+        }
+      ],
+      "topic_he": "סדר התפילה והנגינה",
+      "summary_he": "מקורות מהמסורת של יואנינה מדווחים שסדר התפילה שונה מהספרדי, שהפיוטים מערבים יוונית ועברית, ושסגנון הנגינה מיוחד. עיתונות ומחקר מתארים את הניגונים, כולל נגינת התורה, כמושפעים מאוד מהמוזיקה הביזנטית."
     },
     {
       "index": "halacha.3",
-      "category": "Prayer",
-      "topic": "Torah reading",
-      "summary": "Torah reading is central and may reflect local Greek cantillation or later Sephardi influence.",
+      "category": "Shabbat",
+      "topic": "Erev Shabbat, candle lighting and Friday meal (Ioannina)",
+      "summary": "In Ioannina a town crier walked through the Jewish neighbourhoods on Friday afternoon announcing the time of Shabbat. Shops shut and candles were lit just before sunset. Men went to synagogue and then home to the Sabbath meal, where they blessed the wine and wished their children good fortune. A KKJ alef explains that the priestly blessing was traditionally recited by father to child each Friday night.",
       "common_practices": [
-        "Use trained readers",
-        "Follow local trope or chant style",
-        "Preserve aliyah and honor customs",
-        "Preserve inherited nusach and pronunciation in public prayer.",
-        "Coordinate weekday, Shabbat, and festival insertions with local rabbinic guidance.",
-        "Maintain community niggunim and piyyutim where accepted."
-      ]
+        "Town crier announcing Shabbat",
+        "Candles lit just before sunset",
+        "Kiddush over wine",
+        "Father blesses the children"
+      ],
+      "variants": [],
+      "source": "Jewish Museum of Greece, 'A Journey Through Time', 'Religious life: Jewish holidays – Shabbat'; Yad Vashem newsletter (alef explanation)",
+      "source_url": "https://jewishmuseum.gr/en/psifiaki-ekthesi/the-jewish-community-of-ioannina-a-journey-through-time/",
+      "confidence": "regional",
+      "review_notes": "No minute offset is documented, so no runtime parameter is given. No distinctive Kiddush text documented.",
+      "references": [
+        {
+          "title": "The Jewish Community of Ioannina – A Journey Through Time – Jewishmuseum",
+          "url": "https://jewishmuseum.gr/en/psifiaki-ekthesi/the-jewish-community-of-ioannina-a-journey-through-time/"
+        }
+      ],
+      "topic_he": "ערב שבת, הדלקת נרות וסעודת ליל שבת (יואנינה)",
+      "summary_he": "ביואנינה עבר מכריז בשכונות היהודיות אחר הצהריים של יום שישי והודיע את זמן כניסת השבת. החנויות נסגרו והנרות הודלקו קצת לפני השקיעה. הגברים הלכו לבית הכנסת ומשם הביתה לסעודת השבת, שבה בירכו על היין ואיחלו לילדיהם מזל טוב. מקור של ה-KKJ (\"אלף\") מסביר שברכת כהנים נאמרה במסורת מאב לילד בכל ליל שבת."
     },
     {
       "index": "halacha.4",
       "category": "Shabbat",
-      "topic": "Candle lighting",
-      "summary": "Shabbat candle lighting follows halacha with family and community custom.",
+      "topic": "Shabbat-day arrangements (Ioannina)",
+      "summary": "On Shabbat morning a Christian neighbour lit the oil lamp in Jewish homes and, in winter, brought burning coals for the brazier. Weather permitting, families walked along the lake shore, otherwise they visited one another's homes.",
       "common_practices": [
-        "Light before Shabbat begins",
-        "Use customary blessing wording",
-        "Preserve family candle traditions where inherited",
-        "Prepare practical needs before candle lighting to avoid melacha.",
-        "Use approved warming and lighting setups established before Shabbat.",
-        "Follow local zmanim for candle lighting, shekia, and havdalah."
-      ]
+        "Non-Jewish neighbour tends lamp and brazier",
+        "Shabbat walks by Lake Pamvotis"
+      ],
+      "variants": [],
+      "source": "Jewish Museum of Greece, 'A Journey Through Time', Shabbat section",
+      "source_url": "https://jewishmuseum.gr/en/psifiaki-ekthesi/the-jewish-community-of-ioannina-a-journey-through-time/",
+      "confidence": "regional",
+      "review_notes": "Historical description only (see needs_rabbinic_review).",
+      "topic_he": "סידורי יום השבת (יואנינה)",
+      "summary_he": "בבוקר שבת הדליק שכן נוצרי את נר השמן בבתי היהודים, ובחורף הביא גחלים בוערות למחממת. כשמזג האוויר איפשר, הלכו המשפחות לאורך חוף האגם, ואחרת ביקרו זה בבית זה."
     },
     {
       "index": "halacha.5",
-      "category": "Shabbat",
-      "topic": "Meals and hospitality",
-      "summary": "Shabbat meals are central and often reflect Greek local foods under kosher guidelines.",
+      "category": "Rosh Hashana",
+      "topic": "Selihot and the call to prayer (Ioannina)",
+      "summary": "A town crier walked the Jewish quarter two or three hours before dawn calling 'Time for Selihot'. The men gathered in the synagogue at 06:00 for the prayers of repentance.",
       "common_practices": [
-        "Prepare food before Shabbat",
-        "Honor guests and family according to custom",
-        "Serve traditional Greek-Jewish foods where kosher",
-        "Prepare practical needs before candle lighting to avoid melacha.",
-        "Use approved warming and lighting setups established before Shabbat.",
-        "Follow local zmanim for candle lighting, shekia, and havdalah."
-      ]
+        "Pre-dawn Selihot call by a town crier"
+      ],
+      "variants": [],
+      "source": "Jewish Museum of Greece, 'A Journey Through Time', Rosh Hashanah section",
+      "source_url": "https://jewishmuseum.gr/en/psifiaki-ekthesi/the-jewish-community-of-ioannina-a-journey-through-time/",
+      "confidence": "regional",
+      "review_notes": "Simanim and the detailed order of the day are not documented (see gaps).",
+      "topic_he": "סליחות וקריאה לתפילה (יואנינה)",
+      "summary_he": "עבר מכריז הלך בשכונה היהודית שעתיים או שלוש לפני עלות השחר וקרא \"הגיע זמן הסליחות\". הגברים התכנסו בבית הכנסת בשש בבוקר לתפילות התשובה."
     },
     {
       "index": "halacha.6",
-      "category": "Shabbat",
-      "topic": "Cooking and warming",
-      "summary": "Cooking is prohibited on Shabbat, while warming methods are governed by halacha.",
+      "category": "Rosh Hashana",
+      "topic": "Tashlikh at the lake (Ioannina)",
+      "summary": "Tashlikh, the symbolic casting of sins into the lake accompanied by psalms, was the most dramatic part of Rosh Hashana in Ioannina. Christian townspeople and local officials often came to watch.",
       "common_practices": [
-        "Cook before Shabbat",
-        "Use permitted warming methods where accepted",
-        "Avoid prohibited cooking or reheating",
-        "Prepare practical needs before candle lighting to avoid melacha.",
-        "Use approved warming and lighting setups established before Shabbat.",
-        "Follow local zmanim for candle lighting, shekia, and havdalah."
-      ]
+        "Tashlikh at Lake Pamvotis"
+      ],
+      "variants": [],
+      "source": "Jewish Museum of Greece, 'A Journey Through Time', Rosh Hashanah section",
+      "source_url": "https://jewishmuseum.gr/en/psifiaki-ekthesi/the-jewish-community-of-ioannina-a-journey-through-time/",
+      "confidence": "regional",
+      "review_notes": "",
+      "topic_he": "תשליך באגם (יואנינה)",
+      "summary_he": "התשליך, השלכת החטאים באגם בדרך סמלית בליווי תהילים, היה החלק הדרמטי ביותר בראש השנה ביואנינה. תושבים נוצרים ופקידים מקומיים באו לא פעם לצפות."
     },
     {
       "index": "halacha.7",
-      "category": "Shabbat",
-      "topic": "Carrying and eruv",
-      "summary": "Carrying depends on valid eruv conditions and local rabbinic guidance.",
+      "category": "Yom Kippur",
+      "topic": "Name of the day and memorial candles (Ioannina)",
+      "summary": "Ioannina Jews called Yom Kippur simply 'Kippur' or 'High Day'. On the eve, each family brought to the morning service one flower-decorated candle for each male member. The candles stood at the family's place and stayed lit throughout the service, and large candles were often given as votive offerings.",
       "common_practices": [
-        "Check eruv validity",
-        "Follow local authority for public and private spaces",
-        "Do not carry where no eruv exists",
-        "Prepare practical needs before candle lighting to avoid melacha.",
-        "Use approved warming and lighting setups established before Shabbat.",
-        "Follow local zmanim for candle lighting, shekia, and havdalah."
-      ]
+        "One decorated candle per male family member, lit in synagogue"
+      ],
+      "variants": [],
+      "source": "Jewish Museum of Greece, 'A Journey Through Time', Yom Kippur section",
+      "source_url": "https://jewishmuseum.gr/en/psifiaki-ekthesi/the-jewish-community-of-ioannina-a-journey-through-time/",
+      "confidence": "regional",
+      "review_notes": "",
+      "topic_he": "שם היום ונרות זיכרון (יואנינה)",
+      "summary_he": "יהודי יואנינה קראו ליום כיפור פשוט \"כיפור\" או \"היום הגדול\". בערב החג הביאה כל משפחה לתפילת הבוקר נר מקושט בפרחים לכל בן זכר. הנרות עמדו במקום המשפחה ונשארו דולקים לאורך התפילה, ולא פעם נתנו נרות גדולים כמתנות נדר."
     },
     {
       "index": "halacha.8",
-      "category": "Kashrut",
-      "topic": "Meat and dairy separation",
-      "summary": "Meat and dairy separation is observed carefully with household and communal structure.",
+      "category": "Yom Kippur",
+      "topic": "Kapparot (Ioannina)",
+      "summary": "On the eve of Kippur every family slaughtered a cockerel for each male member for atonement.",
       "common_practices": [
-        "Keep separate utensils and cookware",
-        "Observe waiting periods after meat according to local custom",
-        "Maintain clean kitchen separation",
-        "Keep clear separation of meat and dairy utensils, storage, and prep zones.",
-        "Verify supervision standards according to trusted local rabbinic authority.",
-        "Apply inherited waiting-time custom for meat and dairy under halachic guidance."
-      ]
+        "Kapparot with a cockerel per male"
+      ],
+      "variants": [],
+      "source": "Jewish Museum of Greece, 'A Journey Through Time', Yom Kippur section",
+      "source_url": "https://jewishmuseum.gr/en/psifiaki-ekthesi/the-jewish-community-of-ioannina-a-journey-through-time/",
+      "confidence": "regional",
+      "review_notes": "Practice for women not stated.",
+      "topic_he": "כפרות (יואנינה)",
+      "summary_he": "בערב כיפור שחטה כל משפחה תרנגול לכל בן זכר לכפרה."
     },
     {
       "index": "halacha.9",
-      "category": "Kashrut",
-      "topic": "Shechita and supervision",
-      "summary": "Ritual slaughter and supervision are important to communal trust.",
+      "category": "Yom Kippur",
+      "topic": "Hashkavot (memorial prayers) at Kol Nidre",
+      "summary": "KKJ describes reciting Hashkavot and the individual names of the departed during the Kol Nidre service as a 'centuries-old Romaniote custom'.",
       "common_practices": [
-        "Use a qualified shochet",
-        "Inspect meat and utensils carefully",
-        "Follow recognized communal supervision",
-        "Keep clear separation of meat and dairy utensils, storage, and prep zones.",
-        "Verify supervision standards according to trusted local rabbinic authority.",
-        "Apply inherited waiting-time custom for meat and dairy under halachic guidance."
-      ]
+        "Hashkavot with names on Kol Nidre night"
+      ],
+      "variants": [
+        {
+          "subgroup": "Ioannina diaspora (KKJ New York)",
+          "practice": "Names of the departed read during Kol Nidre.",
+          "source": "KKJ Publications and Newsletters page"
+        }
+      ],
+      "source": "Kehila Kedosha Janina, Publications and Newsletters",
+      "source_url": "https://www.kkjsm.org/publications-and-newsletters",
+      "confidence": "needs-review",
+      "review_notes": "Community self-description. Not independently confirmed for Ioannina, Chalkis or Athens.",
+      "topic_he": "השכבות בכל נדרי",
+      "summary_he": "ה-KKJ מתאר את אמירת ההשכבות ושמות הנפטרים בתפילת כל נדרי כ\"מנהג רומניוטי בן מאות שנים\"."
     },
     {
       "index": "halacha.10",
-      "category": "Kashrut",
-      "topic": "Food customs",
-      "summary": "Greek Jewish cuisine is adapted to kosher practice and local traditions.",
+      "category": "Yom Kippur",
+      "topic": "Jonah haftarah with Judeo-Greek translation",
+      "summary": "A 14th-century Judeo-Greek (Yevanic) translation of the whole Book of Jonah survives in a Romaniote mahzor (Oxford, Bodleian Library MS Oppenheim Add. 8° 19). It was almost certainly used as a targum for the Jonah haftarah at Yom Kippur Minhah. The Jewish Museum of Greece also lists Jonah, in Greek in Hebrew characters, among Mahzor Romania's texts read on Yom Kippur.",
       "common_practices": [
-        "Use kosher ingredients and supervision",
-        "Preserve inherited recipes where possible",
-        "Check wine, cheese, and processed foods carefully",
-        "Keep clear separation of meat and dairy utensils, storage, and prep zones.",
-        "Verify supervision standards according to trusted local rabbinic authority.",
-        "Apply inherited waiting-time custom for meat and dairy under halachic guidance."
-      ]
+        "Jonah read at Yom Kippur Minhah, historically with a Greek rendering"
+      ],
+      "variants": [],
+      "source": "Open Siddur Project, 'Megillat Yonah with its Yevanic (Judeo-Greek) Targum ca. 14th c.' (transcription by Isaac Gantwerk Mayer; citing Julia G. Krivoruchko and D. C. Hesseling); Jewish Museum of Greece, liturgy section",
+      "source_url": "https://opensiddur.org/readings-and-sourcetexts/festival-and-fast-day-readings/jewish-readings/yom-kippur-readings/megillat-yonah-with-its-yevanic-judeo-greek-targum-ca-14th-c/",
+      "confidence": "well-attested",
+      "review_notes": "This is historical practice. Current use of the Greek targum in any subgroup is not documented. The museum also lists Greek Ruth (Shavuot) and Song of Songs (Pesach); its sentence pairs books and festivals in an order that needs checking against the mahzor.",
+      "references": [
+        {
+          "title": "💬 מגילת יונה",
+          "url": "https://opensiddur.org/readings-and-sourcetexts/festival-and-fast-day-readings/jewish-readings/yom-kippur-readings/megillat-yonah-with-its-yevanic-judeo-greek-targum-ca-14th-c/"
+        }
+      ],
+      "topic_he": "הפטרת יונה עם תרגום ליהודית-יוונית",
+      "summary_he": "תרגום יהודי-יווני (יוונית יהודית) מהמאה ה-14 של ספר יונה כולו שרד במחזור רומניוטי (אוקספורד, ספריית בודליאנה, כ\"י אופנהיים הוס' 8° 19). כמעט בוודאי שימש כתרגום להפטרת יונה במנחה של יום כיפור. המוזיאון היהודי של יוון מונה את יונה, ביוונית באותיות עבריות, בין הטקסטים של מחזור רומניא הנקראים ביום כיפור."
     },
     {
       "index": "halacha.11",
-      "category": "Pesach",
-      "topic": "Chametz removal",
-      "summary": "Chametz is removed thoroughly before Pesach.",
+      "category": "Sukkot",
+      "topic": "'Kalyvia' and the sukkah (Ioannina)",
+      "summary": "In Ioannina Sukkot was called Kalyvia ('the Huts'). Families built sukkot of canes and dry branches in gardens and on verandas, hung fruit and flowers from the roof, and ate and prayed in them. Kahal Kadosh Yashan had a permanent sukkah in its grounds where food was provided for the needy. During the service the congregation received a small posy called a 'lulav', which they fixed to the mezuzah on the door post.",
       "common_practices": [
-        "Search for chametz before Pesach",
-        "Sell or destroy chametz properly",
-        "Kasher utensils and surfaces as needed",
-        "Review chametz cleaning and kashering checklists before the festival.",
-        "Follow community custom on kitniyot and festival kitchen workflow.",
-        "Use community haggadah flow and family minhagim within halachic structure."
-      ]
+        "Home sukkah decorated with fruit and flowers",
+        "Communal permanent sukkah feeding the poor"
+      ],
+      "variants": [
+        {
+          "subgroup": "Chalkis",
+          "practice": "A citron (etrog) tree is planted in the synagogue courtyard and described as necessary for celebrating Sukkot.",
+          "source": "Jewish Community of Athens (athjcom.gr), 'Η Εβραϊκή Συναγωγή της Χαλκίδας' (2015)"
+        }
+      ],
+      "source": "Jewish Museum of Greece, 'A Journey Through Time', Sukkot section and synagogue architecture section",
+      "source_url": "https://jewishmuseum.gr/en/psifiaki-ekthesi/the-jewish-community-of-ioannina-a-journey-through-time/",
+      "confidence": "regional",
+      "review_notes": "The 'lulav' posy rests on one museum source. It is unclear whether this means the arba minim or a separate posy.",
+      "topic_he": "\"קליביה\" והסוכה (יואנינה)",
+      "summary_he": "ביואנינה נקרא סוכות \"קליביה\" (\"הסוכות\"). משפחות בנו סוכות מקנים וענפים יבשים בגנים ובמרפסות, תלו פירות ופרחים מהגג, ואכלו והתפללו בהן. בקהל קדוש ישן היתה סוכה קבועה בחצר, ובה סיפקו אוכל לנזקקים. במהלך התפילה קיבל הקהל זר קטן הנקרא \"לולב\", שאותו קבעו למזוזה בקורת הדלת."
     },
     {
       "index": "halacha.12",
-      "category": "Pesach",
-      "topic": "Kitniyot and grains",
-      "summary": "Many Greek communities follow Sephardi-style permissibility regarding kitniyot, though local custom should be checked.",
+      "category": "Chanukah",
+      "topic": "Home-centred Chanukah (Ioannina)",
+      "summary": "In Ioannina Chanukah was a home festival. Each night's lighting took place during a family meal. Typical foods were 'lallagit' pancakes, honey doughnuts and fritters. Greek Jews associated Chanukah with the heroine Judith.",
       "common_practices": [
-        "Rice and legumes may be used where community custom permits",
-        "Inspect foods for chametz contamination",
-        "Follow family and rabbinic guidance for packaged foods",
-        "Review chametz cleaning and kashering checklists before the festival.",
-        "Follow community custom on kitniyot and festival kitchen workflow.",
-        "Use community haggadah flow and family minhagim within halachic structure."
-      ]
+        "Lighting during the family meal",
+        "Fried foods: lallagit, honey doughnuts, fritters"
+      ],
+      "variants": [],
+      "source": "Jewish Museum of Greece, 'A Journey Through Time', Hanukkah section",
+      "source_url": "https://jewishmuseum.gr/en/psifiaki-ekthesi/the-jewish-community-of-ioannina-a-journey-through-time/",
+      "confidence": "regional",
+      "review_notes": "",
+      "topic_he": "חנוכה ביתי (יואנינה)",
+      "summary_he": "ביואנינה היה חנוכה חג ביתי. ההדלקה של כל לילה נערכה בעת סעודה משפחתית. המאכלים האופייניים היו לביבות \"לאלגיט\", סופגניות דבש וכיסונים. יהודי יוון קישרו את חנוכה עם הגיבורה יהודית."
     },
     {
       "index": "halacha.13",
-      "category": "Pesach",
-      "topic": "Seder practice",
-      "summary": "The Seder follows halachic structure with Greek or Sephardi local custom.",
+      "category": "Purim",
+      "topic": "Megillah, songs and foods (Ioannina)",
+      "summary": "The focus of Purim in Ioannina homes was the ceremonial reading of the Megillah, locally called the 'miglah'. Until 1940 people told comic parodies of sacred passages and sang songs. The best-known song was 'Kina Glossa', a Greek verse narrative of Esther in five-line rhyming stanzas. Purim plays in Judeo-Greek were staged. Foods included almond bread shaped as Haman's ears, koubetta/sousamato (sesame toffee) and 'Haman's fleas'. A megillah was the gift a father-in-law gave his son-in-law on his first married Purim.",
       "common_practices": [
-        "Use the accepted Haggadah rite",
-        "Preserve songs and recitation customs",
-        "Follow local food and symbolic customs",
-        "Review chametz cleaning and kashering checklists before the festival.",
-        "Follow community custom on kitniyot and festival kitchen workflow.",
-        "Use community haggadah flow and family minhagim within halachic structure."
-      ]
+        "Home Megillah reading",
+        "Costumes and masks",
+        "Kina Glossa song",
+        "Judeo-Greek Purim plays"
+      ],
+      "variants": [],
+      "source": "Jewish Museum of Greece, 'A Journey Through Time', Purim section and religious-objects section",
+      "source_url": "https://jewishmuseum.gr/en/psifiaki-ekthesi/the-jewish-community-of-ioannina-a-journey-through-time/",
+      "confidence": "regional",
+      "review_notes": "",
+      "references": [
+        {
+          "title": "The Jewish Community of Ioannina – A Journey Through Time – Jewishmuseum",
+          "url": "https://jewishmuseum.gr/en/psifiaki-ekthesi/the-jewish-community-of-ioannina-a-journey-through-time/"
+        }
+      ],
+      "topic_he": "מגילה, שירים ומאכלים (יואנינה)",
+      "summary_he": "במרכז הפורים בבתי יואנינה עמדה הקריאה החגיגית של המגילה, שנקראה במקום \"מיגלה\". עד 1940 סיפרו אנשים פרודיות קומיות על קטעים קדושים ושרו שירים. השיר הידוע ביותר היה \"קינה גלוסה\", סיפור אסתר בחרוזים יווניים בבתים של חמש שורות מחורזות. הועלו מחזות פורים ביהודית-יוונית. המאכלים כללו לחם שקדים בצורת אוזני המן, קובטה/סוסמטו (טופי שומשום) ו\"פרעושי המן\". מגילה הייתה המתנה שנתן חם לחתנו בפורים הראשון של נישואיו."
     },
     {
       "index": "halacha.14",
-      "category": "Lifecycle",
-      "topic": "Brit milah",
-      "summary": "Brit milah follows halacha with communal family celebration.",
+      "category": "Pesach",
+      "topic": "Hametz removal and kashering (Ioannina)",
+      "summary": "Ordinary crockery was kashered in boiling water, and until World War II the women of a neighbourhood did this together. On the eve of Pesach the family searched for hametz. The next morning the crumbs were thrown into the lake while prayers asking forgiveness of sins were said.",
       "common_practices": [
-        "Use a qualified mohel",
-        "Preserve naming and celebration customs",
-        "Include traditional prayers and songs",
-        "Keep core lifecycle ceremonies aligned with halachic requirements.",
-        "Document family minhagim for naming, honors, and celebration order.",
-        "Consult community rabbi for local protocol differences."
-      ]
+        "Communal kashering of crockery by boiling",
+        "Hametz crumbs cast into the lake with prayers"
+      ],
+      "variants": [],
+      "source": "Jewish Museum of Greece, 'A Journey Through Time', Pessah section",
+      "source_url": "https://jewishmuseum.gr/en/psifiaki-ekthesi/the-jewish-community-of-ioannina-a-journey-through-time/",
+      "confidence": "regional",
+      "review_notes": "Describes historical practice, not a halachic ruling on which utensils may be kashered.",
+      "topic_he": "הסרת חמץ והכשרת כלים (יואנינה)",
+      "summary_he": "כלי חרס רגילים הוכשרו במים רותחים, ועד מלחמת העולם השנייה עשו זאת נשות השכונה יחד. בערב פסח בדקה המשפחה חמץ. למחרת בבוקר הושלכו הפירורים לאגם בעת שנאמרו תפילות לבקשת סליחה על החטאים."
     },
     {
       "index": "halacha.15",
-      "category": "Lifecycle",
-      "topic": "Marriage and ketubah",
-      "summary": "Marriage is halachically standard and often marked by local Greek family customs.",
+      "category": "Pesach",
+      "topic": "Matzah",
+      "summary": "Housewives baked their own matzot, and there was a community bakery in Ioannina. Matzah was the only bread eaten during the eight days of Pesach.",
       "common_practices": [
-        "Use a valid ketubah",
-        "Perform kiddushin and nissuin properly",
-        "Observe local engagement and wedding customs",
-        "Keep core lifecycle ceremonies aligned with halachic requirements.",
-        "Document family minhagim for naming, honors, and celebration order.",
-        "Consult community rabbi for local protocol differences."
-      ]
+        "Home and communal matzah baking"
+      ],
+      "variants": [],
+      "source": "Jewish Museum of Greece, 'A Journey Through Time', Pessah section",
+      "source_url": "https://jewishmuseum.gr/en/psifiaki-ekthesi/the-jewish-community-of-ioannina-a-journey-through-time/",
+      "confidence": "regional",
+      "review_notes": "",
+      "topic_he": "מצה",
+      "summary_he": "עקרות בית אפו מצות בעצמן, וביואנינה פעלה מאפייה קהילתית. המצה הייתה הלחם היחיד שנאכל בשמונת ימי הפסח."
     },
     {
       "index": "halacha.16",
-      "category": "Family law",
-      "topic": "Niddah and mikveh",
-      "summary": "Family purity laws are observed carefully and are part of traditional continuity.",
+      "category": "Pesach",
+      "topic": "Kitniyot / rice",
+      "summary": "KKJ museum director Marcia Haddad Ikonomopoulos states that Sephardic Jews eat rice at Pesach while Jews from Ioannina do not.",
       "common_practices": [
-        "Observe niddah separation laws",
-        "Use mikveh according to halacha",
-        "Follow local rabbinic guidance in diaspora and Israel",
-        "Use a consistent halachic calendar and consultation process for sensitive questions.",
-        "Coordinate household observance with qualified rabbinic guidance.",
-        "Preserve family minhag where compatible with accepted psak."
-      ]
+        "No rice on Pesach (Ioannina)"
+      ],
+      "variants": [],
+      "source": "Yad Vashem, 'An Interview with Artemis Batis Miron' (remarks by Marcia Haddad Ikonomopoulos); Yad Vashem newsletter 'The Romaniote Jews of Ioannina'",
+      "source_url": "https://www.yadvashem.org/articles/interviews/batis.html",
+      "confidence": "needs-review",
+      "review_notes": "Covers rice only. No source found for other kitniyot (legumes, corn), so do not extend the rule. Both texts come from the same informant.",
+      "topic_he": "קטניות / אורז",
+      "summary_he": "מרסיה חדד איקונומופולוס, מנהלת מוזיאון ה-KKJ, מצהירה שיהודים ספרדים אוכלים אורז בפסח ואילו יהודי יואנינה אינם אוכלים."
     },
     {
       "index": "halacha.17",
-      "category": "Mourning",
-      "topic": "Avelut",
-      "summary": "Mourning follows standard halachic structure with family and communal support.",
+      "category": "Pesach",
+      "topic": "Seder ('Hova') customs",
+      "summary": "In Ioannina the first-night family gathering was called 'hova' (from Hebrew hov/hovah, duty). The eldest person read the Haggadah in Hebrew and in Greek. The table held a seder tray or basket with bitter greens, lamb, haroset and eggs dyed with onion skin. At the end girls were wished 'be both a bride and a lady' and boys 'be a bridegroom'.",
       "common_practices": [
-        "Observe shiva, shloshim, and yahrzeit customs",
-        "Use memorial prayers according to community practice",
-        "Maintain local condolence etiquette",
-        "Observe shiva, shloshim, and yahrzeit in the accepted local format.",
-        "Coordinate memorial prayer customs with synagogue practice.",
-        "Preserve condolence and visitation etiquette used by the community."
-      ]
+        "Haggadah in Hebrew and Greek",
+        "Onion-skin-dyed eggs",
+        "Closing wedding wishes to children"
+      ],
+      "variants": [
+        {
+          "subgroup": "Ioannina diaspora (New York)",
+          "practice": "Before the seder all place their hands on the table and say 'ze ha-shulhan asher lifnei Adonai'. Ehad Mi Yodea is sung in Greek ('ena pios kserei'), the Four Questions are said in Greek and Hebrew, there is a hard-boiled egg fight, and the meal opens with minestra (egg-lemon soup).",
+          "source": "KKJ Romaniote American Oral History Project (Jim Harris, Rubin Battino, Lauren Meller)"
+        },
+        {
+          "subgroup": "Ioannina",
+          "practice": "Had Gadya sung in a Greek translation, in makam hijaz.",
+          "source": "University of Washington Stroum Center for Jewish Studies, 'Had Gadya in Ladino: A Sephardic Passover Tradition?'"
+        }
+      ],
+      "source": "Jewish Museum of Greece, 'A Journey Through Time', Pessah section",
+      "source_url": "https://jewishmuseum.gr/en/psifiaki-ekthesi/the-jewish-community-of-ioannina-a-journey-through-time/",
+      "confidence": "well-attested",
+      "review_notes": "The Greek Haggadah and 'hova' are confirmed by both the museum and Yad Vashem (Artemis Miron recalls a Greek translation beside the Hebrew). The hands-on-table custom comes only from diaspora testimony.",
+      "references": [
+        {
+          "title": "The Jewish Community of Ioannina – A Journey Through Time – Jewishmuseum",
+          "url": "https://jewishmuseum.gr/en/psifiaki-ekthesi/the-jewish-community-of-ioannina-a-journey-through-time/"
+        },
+        {
+          "title": "An Interview with Artemis Batis Miron, a Survivor from Ioannina, Greece",
+          "url": "https://www.yadvashem.org/articles/interviews/batis.html"
+        }
+      ],
+      "topic_he": "מנהגי הסדר (\"חובה\")",
+      "summary_he": "ביואנינה כונתה התכנסות המשפחה בליל הראשון \"חובה\" (מהמילה העברית חוב/חובה). המבוגר ביותר קרא את ההגדה בעברית וביוונית. על השולחן הייתה קערת או סל סדר עם ירק מר, כבש, חרוסת וביצים צבועות בקליפת בצל. בסוף איחלו לבנות \"תהיי גם כלה וגם גבירה\" ולבנים \"תהיה חתן\"."
     },
     {
       "index": "halacha.18",
-      "category": "Calendar",
-      "topic": "High Holidays",
-      "summary": "Rosh Hashanah and Yom Kippur are observed with solemnity and inherited liturgical forms.",
+      "category": "Shavuot",
+      "topic": "Flowers and naming (Ioannina)",
+      "summary": "On Shavuot the Ioannina synagogue, especially the bima and the ehal, was decorated with floral garlands and vases. Local Turks therefore called Shavuot the 'Festival of Flowers' (Gioul Bairam). Greek-speaking Jews often called it 'Pentekosti'.",
       "common_practices": [
-        "Use the accepted machzor or local rite",
-        "Preserve selichot and shofar customs",
-        "Follow synagogue melody and order",
-        "Anchor observance times to local halachic zmanim.",
-        "Coordinate fasts, selichot, and festival timing with community schedule.",
-        "Use a single trusted local calendar authority for consistency."
-      ]
+        "Floral decoration of bima and ehal"
+      ],
+      "variants": [
+        {
+          "subgroup": "Ioannina diaspora (KKJ New York)",
+          "practice": "Special Romaniote holiday piyyutim are chanted at Shavuot morning services.",
+          "source": "KKJ Publications and Newsletters"
+        }
+      ],
+      "source": "Jewish Museum of Greece, 'A Journey Through Time', Shavuot section",
+      "source_url": "https://jewishmuseum.gr/en/psifiaki-ekthesi/the-jewish-community-of-ioannina-a-journey-through-time/",
+      "confidence": "regional",
+      "review_notes": "The specific Shavuot piyyutim are not named in the sources opened.",
+      "references": [
+        {
+          "title": "The Jewish Community of Ioannina – A Journey Through Time – Jewishmuseum",
+          "url": "https://jewishmuseum.gr/en/psifiaki-ekthesi/the-jewish-community-of-ioannina-a-journey-through-time/"
+        }
+      ],
+      "topic_he": "פרחים ושם החג (יואנינה)",
+      "summary_he": "בשבועות קושט בית הכנסת של יואנינה, ובמיוחד הבימה וארון הקודש, בזרי פרחים ובאגרטלים. לכן קראו הטורקים המקומיים לשבועות \"חג הפרחים\" (גיול ביירם). יהודים דוברי יוונית קראו לו לעיתים קרובות \"פנטקוסטי\"."
     },
     {
       "index": "halacha.19",
-      "category": "Calendar",
-      "topic": "Chanukah and Purim",
-      "summary": "Minor festivals are observed according to halacha and local Greek Jewish custom.",
+      "category": "Fasts and Tisha B'Av",
+      "topic": "Tisha B'Av ('Tsabiaf') and kinot",
+      "summary": "Greek Jews pronounced Tisha Be'Av as 'Tsabiaf', and in Yevanic a sad-looking person could be called tsabiaf or tsabiafikos. Mahzor Romania contained kinot (laments), some in Greek fifteen-syllable verse showing local influence.",
       "common_practices": [
-        "Light Chanukah candles nightly",
-        "Read the Megillah on Purim",
-        "Use family foods and celebration customs",
-        "Anchor observance times to local halachic zmanim.",
-        "Coordinate fasts, selichot, and festival timing with community schedule.",
-        "Use a single trusted local calendar authority for consistency."
-      ]
+        "Romaniote kinot"
+      ],
+      "variants": [],
+      "source": "Chabad.org, Menachem Posner, '15 Facts About the Jews of Greece' (verified with Chabad of Greece); Jewish Museum of Greece, liturgy section",
+      "source_url": "https://www.chabad.org/library/article_cdo/aid/5611606/jewish/15-Facts-About-the-Jews-of-Greece.htm",
+      "confidence": "needs-review",
+      "review_notes": "No source found for observance details (seating, reading order, which kinot are recited today).",
+      "references": [
+        {
+          "title": "15 Facts About the Jews of Greece",
+          "url": "https://www.chabad.org/library/article_cdo/aid/5611606/jewish/15-Facts-About-the-Jews-of-Greece.htm"
+        }
+      ],
+      "topic_he": "תשעה באב (\"צביאף\") וקינות",
+      "summary_he": "יהודי יוון הגו את תשעה באב \"צביאף\", וביוונית יהודית אפשר היה לכנות אדם עצוב המראה צביאף או צביאפיקוס. מחזור רומניא הכיל קינות, חלקן בחרוזי יוונית בני חמש עשרה הברות המעידים על השפעה מקומית."
     },
     {
       "index": "halacha.20",
-      "category": "Education",
-      "topic": "Torah transmission",
-      "summary": "Torah, prayer, and custom are transmitted through family memory and communal schooling.",
+      "category": "Torah reading",
+      "topic": "Reading from the upright tik; bima position",
+      "summary": "Romaniote practice requires the Torah to be read while still in its tik and upright. Scrolls are not removed from the tikkim when carried to the reading desk. In traditional Romaniote synagogues the tevah/bima stands on the far western wall facing the ark on the east, and Ioannina also had a floor-level tevah opposite the ehal. According to the KKJ museum director, women in Greek communities do not say blessings over the Torah or read from it.",
       "common_practices": [
-        "Teach children Hebrew and prayer",
-        "Preserve oral family memory",
-        "Use both formal study and inherited communal tradition",
-        "Teach children both baseline halacha and family minhag distinctions.",
-        "Preserve community pronunciation and liturgical pedagogy.",
-        "Document oral traditions to reduce minhag drift across generations."
-      ]
+        "Torah kept and read in an upright tik",
+        "Bima on the western wall"
+      ],
+      "variants": [
+        {
+          "subgroup": "Ioannina",
+          "practice": "Kahal Kadosh Yashan: raised bima on the west wall, floor-level tevah opposite the ehal, and a separate small 'minyan' building used for weekday services.",
+          "source": "Jewish Museum of Greece, synagogue architecture section"
+        },
+        {
+          "subgroup": "Athens",
+          "practice": "Etz Hayyim keeps the Romaniote layout: bimah on the western wall, ark on the eastern, Torah scrolls in wooden tikim.",
+          "source": "Jewish Community of Athens, 'Synagogue Etz Hayim (Tree of Life)'"
+        }
+      ],
+      "source": "Jewish Museum of Greece, textiles and objects section; Yad Vashem newsletter (Marcia Haddad Ikonomopoulos)",
+      "source_url": "https://jewishmuseum.gr/en/psifiaki-ekthesi/the-jewish-community-of-ioannina-a-journey-through-time/",
+      "confidence": "well-attested",
+      "review_notes": "KKJ New York is an exception, with the bimah in the centre. The statement about women rests on a single informant, and KKJ's modern bat mitzvah tutoring shows diaspora practice has changed.",
+      "references": [
+        {
+          "title": "Kehila Kedosha Janina",
+          "url": "https://en.wikipedia.org/wiki/Kehila_Kedosha_Janina"
+        },
+        {
+          "title": "15 Facts About the Jews of Greece",
+          "url": "https://www.chabad.org/library/article_cdo/aid/5611606/jewish/15-Facts-About-the-Jews-of-Greece.htm"
+        }
+      ],
+      "topic_he": "קריאה מתוך התיק הזקוף; מיקום הבימה",
+      "summary_he": "מנהג רומניוטי דורש לקרוא בתורה כשהיא עדיין בתיקה וזקופה. אין מוציאים את הספרים מהתיקים כשמובילים אותם אל שולחן הקריאה. בבתי כנסת רומניוטיים מסורתיים התיבה/הבימה עומדת בקיר המערבי הרחוק מול הארון שבמזרח, וביואנינה הייתה גם תיבה בגובה הרצפה מול ארון הקודש. לפי מנהלת מוזיאון ה-KKJ, נשים בקהילות יווניות אינן מברכות על התורה ואינן קוראות בה."
+    },
+    {
+      "index": "halacha.21",
+      "category": "Torah reading",
+      "topic": "Cantillation and aliyah calls",
+      "summary": "Romaniote Torah cantillation is a distinct tradition, recorded on 4 CDs from Cantor Haim Ischakis by the EZJM Hannover in 2016–2017. A diaspora informant notes that an oleh is called with his father's name and his family name.",
+      "common_practices": [
+        "Romaniote (Byzantine-influenced) Torah and haftarah chant"
+      ],
+      "variants": [
+        {
+          "subgroup": "Ioannina diaspora (KKJ New York)",
+          "practice": "Aliyah call includes father's name and family name. Bar/bat mitzvah students learn Torah and haftarah 'chanted in the centuries-old Greek Romaniote rite'.",
+          "source": "KKJ Oral History Project (Jesse Colchamiro); KKJ Bar & Bat Mitzvah Lessons page"
+        }
+      ],
+      "source": "European Center for Jewish Music (EZJM), Hannover, 'CD project Romaniote Tradition'; Times of Israel/JTA, 2 April 2014",
+      "source_url": "https://www.ezjm.hmtm-hannover.de/en/sonstige-seiten-nicht-im-menue/cd-project-romaniote-tradition/",
+      "confidence": "well-attested",
+      "review_notes": "",
+      "references": [
+        {
+          "title": "EZJM Hannover: CD project Romaniote Tradition",
+          "url": "https://www.ezjm.hmtm-hannover.de/en/sonstige-seiten-nicht-im-menue/cd-project-romaniote-tradition/"
+        },
+        {
+          "title": "Cantor Haim Ischakis - Institut Européen des Musiques Juives",
+          "url": "https://www.iemj.org/en/cantor-haim-ischakis/"
+        }
+      ],
+      "topic_he": "טעמי המקרא וקריאה לעלייה",
+      "summary_he": "טעמי התורה הרומניוטיים הם מסורת מיוחדת, שהוקלטה על 4 תקליטורים מהחזן חיים אישקיס בידי EZJM הנובר ב-2016–2017. מידע ממקור בגולה מציין שקוראים לעולה בשם אביו ובשם משפחתו."
+    },
+    {
+      "index": "halacha.22",
+      "category": "Torah reading",
+      "topic": "Oleh reads aloud with a prompter (Beit Yosef)",
+      "summary": "A research lead reports that Beit Yosef on Tur Orach Chaim 141 records that 'bnei Romania' (בני רומניא) have the oleh himself read aloud, with a prompter beside him who says each word first, so as not to embarrass those who are not expert in the reading.",
+      "common_practices": [],
+      "variants": [],
+      "source": "Beit Yosef, Orach Chaim 141 (Hebrew Wikisource); corroborated by Arukh HaShulchan OC 141:6 and Lieberman, Tosefta Kifshutah, Megillah 3:21",
+      "source_url": "https://www.sefaria.org/Beit_Yosef,_Orach_Chayim.141.2",
+      "confidence": "needs-review",
+      "review_notes": "The page did not render when opened, so the exact text and segment number are unverified. This describes 16th-century 'Romania' practice generally, not a specific subgroup.",
+      "topic_he": "העולה קורא בקול עם מקריא (בית יוסף)",
+      "summary_he": "כיוון מחקרי מדווח שהבית יוסף על הטור אורח חיים קמא מביא ש\"בני רומניא\" מקיימים שהעולה עצמו קורא בקול, ולצדו מקריא האומר כל מילה לפניו, כדי לא לבייש את מי שאינם בקיאים בקריאה."
+    },
+    {
+      "index": "halacha.23",
+      "category": "Kashrut",
+      "topic": "Shechita and home production (Ioannina)",
+      "summary": "The Ioannina community had a shohet and butchers selling kosher meat. Even without shops, people made their own kosher cheese (such as kaskavali) and wine, mainly for religious use.",
+      "common_practices": [
+        "Communal shohet",
+        "Home-made kosher cheese and wine"
+      ],
+      "variants": [],
+      "source": "Jewish Museum of Greece, 'Everyday life: life at work' and 'community institutions' sections",
+      "source_url": "https://jewishmuseum.gr/en/psifiaki-ekthesi/the-jewish-community-of-ioannina-a-journey-through-time/",
+      "confidence": "regional",
+      "review_notes": "No sources found on Romaniote halachic positions in kashrut (lung inspection standard, salting, waiting between meat and milk). See gaps.",
+      "topic_he": "שחיטה ותוצרת ביתית (יואנינה)",
+      "summary_he": "בקהילת יואנינה היו שוחט וקצבים שמכרו בשר כשר. גם ללא חנויות הכינו אנשים גבינה כשרה בעצמם (כגון קשקבל) ויין, בעיקר לשימוש דתי."
+    },
+    {
+      "index": "halacha.24",
+      "category": "Lifecycle",
+      "topic": "Brit milah, the Alef and post-birth protection",
+      "summary": "In Ioannina a boy's circumcision took place on the eighth day, followed by his naming, at home and led by the mohel. A distinctive custom was the writing of the 'Alef', a decorated circumcision certificate with prayers, divine names and angels, which hung on the wall as a charm for mother and child. For forty days after a birth, mother and baby were protected from evil spirits, especially Lilith, with customs and amulets. The typical celebration sweet was fnaroh (eggs, sugar, honey).",
+      "common_practices": [
+        "Brit at home with naming",
+        "Alef certificate/amulet",
+        "40-day protective customs",
+        "Fnaroh sweet"
+      ],
+      "variants": [
+        {
+          "subgroup": "Ioannina and other western Greek Romaniote communities",
+          "practice": "Alefs were produced in Ioannina, Trikala, Arta and Patras.",
+          "source": "KKJ, 'Customized Alefs'"
+        },
+        {
+          "subgroup": "Ioannina (Apulian/Sicilian-origin families)",
+          "practice": "Said to have kept special circumcision customs.",
+          "source": "USHMM collection description, Records of the Jewish Community of Ioannina"
+        }
+      ],
+      "source": "Jewish Museum of Greece, 'Cycle of life – part b'; Chabad.org '15 Facts About the Jews of Greece' (Alephiot)",
+      "source_url": "https://jewishmuseum.gr/en/psifiaki-ekthesi/the-jewish-community-of-ioannina-a-journey-through-time/",
+      "confidence": "well-attested",
+      "review_notes": "The content of the Sicilian-origin circumcision customs is not documented.",
+      "references": [
+        {
+          "title": "15 Facts About the Jews of Greece",
+          "url": "https://www.chabad.org/library/article_cdo/aid/5611606/jewish/15-Facts-About-the-Jews-of-Greece.htm"
+        }
+      ],
+      "topic_he": "ברית מילה, ה\"אלף\" והגנה אחרי לידה",
+      "summary_he": "ביואנינה נערכה מילת הבן ביום השמיני, ואחריה קריאת שמו, בבית ובהובלת המוהל. מנהג מיוחד היה כתיבת ה\"אלף\", תעודת מילה מקושטת עם תפילות, שמות קודש ומלאכים, שנתלתה על הקיר כקמיע לאם ולתינוק. במשך ארבעים יום אחרי לידה הוגנו האם והתינוק מפני רוחות רעות, ובעיקר לילית, במנהגים ובקמעות. מתיקת החגיגה האופיינית הייתה פנארו (ביצים, סוכר, דבש)."
+    },
+    {
+      "index": "halacha.25",
+      "category": "Lifecycle",
+      "topic": "Naming of girls",
+      "summary": "A small family celebration was held at home after a girl's naming ceremony. A 1955 Ioannina photograph caption calls this ceremony 'yevarech' (γιεβαρέχ). Both Romaniotes and Sephardim in Greece name children after their parents' parents.",
+      "common_practices": [
+        "Home naming celebration for girls ('yevarech')",
+        "Naming after grandparents"
+      ],
+      "variants": [],
+      "source": "Jewish Museum of Greece, 'Cycle of life – part b' and photo caption (12.2.1955); Yad Vashem newsletter (naming)",
+      "source_url": "https://jewishmuseum.gr/en/psifiaki-ekthesi/the-jewish-community-of-ioannina-a-journey-through-time/",
+      "confidence": "regional",
+      "review_notes": "The term 'yevarech' comes from a Greek caption only.",
+      "references": [
+        {
+          "title": "The Jewish Community of Ioannina – A Journey Through Time – Jewishmuseum",
+          "url": "https://jewishmuseum.gr/en/psifiaki-ekthesi/the-jewish-community-of-ioannina-a-journey-through-time/"
+        }
+      ],
+      "topic_he": "קריאת שם לבנות",
+      "summary_he": "אחרי טקס מתן שם לבת נערכה בבית חגיגה משפחתית קטנה. כיתוב לתצלום משנת 1955 מיואנינה קורא לטקס זה \"יברך\" (γιεβαρέχ). הן הרומניוטים והן הספרדים ביוון קוראים לילדים על שם הורי הוריהם."
+    },
+    {
+      "index": "halacha.26",
+      "category": "Lifecycle",
+      "topic": "Bar mitzvah / bat mitzvah",
+      "summary": "Ioannina boys became adults at 13, marked by a bar mitzvah in the synagogue. Afterwards they received tefillin, a tallit, a kippah and a siddur as presents. The last bar mitzvah in Ioannina was in 2000.",
+      "common_practices": [
+        "Synagogue bar mitzvah at 13",
+        "Gifts of tefillin, tallit, kippah, siddur"
+      ],
+      "variants": [
+        {
+          "subgroup": "Ioannina diaspora (KKJ New York)",
+          "practice": "Offers bar and bat mitzvah tutoring in Romaniote Torah and haftarah chant.",
+          "source": "KKJ Bar & Bat Mitzvah Lessons"
+        },
+        {
+          "subgroup": "Athens",
+          "practice": "Bar and bat mitzvahs are held in the Sephardic Beth Shalom.",
+          "source": "JGuide Europe, Athens"
+        }
+      ],
+      "source": "Jewish Museum of Greece, 'Cycle of life – part b'; Times of Israel/JTA 2014",
+      "source_url": "https://jewishmuseum.gr/en/psifiaki-ekthesi/the-jewish-community-of-ioannina-a-journey-through-time/",
+      "confidence": "regional",
+      "review_notes": "No traditional Romaniote bat mitzvah is documented. The diaspora bat mitzvah is a modern practice.",
+      "references": [
+        {
+          "title": "The Jewish Community of Ioannina – A Journey Through Time – Jewishmuseum",
+          "url": "https://jewishmuseum.gr/en/psifiaki-ekthesi/the-jewish-community-of-ioannina-a-journey-through-time/"
+        }
+      ],
+      "topic_he": "בר מצווה / בת מצווה",
+      "summary_he": "נערי יואנינה הפכו בוגרים בגיל 13, בבר מצווה בבית הכנסת. אחר כך קיבלו תפילין, טלית, כיפה וסידור במתנה. הבר מצווה האחרונה ביואנינה הייתה בשנת 2000."
+    },
+    {
+      "index": "halacha.27",
+      "category": "Lifecycle",
+      "topic": "Weddings (Ioannina)",
+      "summary": "Matches were made by parents or a matchmaker. The dowry was displayed at the bride's home on the Thursday before the wedding, and the ketubbah valued it in detail. Bride and groom exchanged presents, usually a long gold chain for the bride. Weddings took place in the first two weeks of the lunar month (waxing moon), never during major festivals, usually on Sunday afternoons in the synagogue, under a huppah of white cloth or a tallit on four poles. The bride immersed in the mikveh the day before.",
+      "common_practices": [
+        "Dowry display on the Thursday",
+        "Wedding in the first half of the lunar month",
+        "Sunday-afternoon synagogue wedding",
+        "Bride's immersion the day before"
+      ],
+      "variants": [
+        {
+          "subgroup": "Ioannina (pre-war)",
+          "practice": "The seven blessings were said about a year before the actual wedding. This was common but lost after the war.",
+          "source": "Yad Vashem newsletter, quoting Marcia Haddad Ikonomopoulos"
+        }
+      ],
+      "source": "Jewish Museum of Greece, 'Cycle of life – part a'",
+      "source_url": "https://jewishmuseum.gr/en/psifiaki-ekthesi/the-jewish-community-of-ioannina-a-journey-through-time/",
+      "confidence": "well-attested",
+      "review_notes": "Steven Bowman (Encyclopedia of Jews in the Islamic World) notes medieval wedding wreaths (stephanomata) and dowry arrangements as Byzantine-influenced Romaniote customs discussed in Beit Yosef. No specific Beit Yosef siman was verified.",
+      "references": [
+        {
+          "title": "Romaniote Jews",
+          "url": "https://en.wikipedia.org/wiki/Romaniote_Jews"
+        },
+        {
+          "title": "Article on Romaniots (Bene Romania) by Steven Bowman",
+          "url": "https://romaniote.blogspot.com/2012/12/article-on-romaniots-bene-romania-by.html"
+        }
+      ],
+      "topic_he": "חתונות (יואנינה)",
+      "summary_he": "הורים או שדכן סידרו את השידוכים. הנדוניה הוצגה בבית הכלה ביום חמישי שלפני החתונה, והכתובה העריכה אותה בפירוט. החתן והכלה החליפו מתנות, בדרך כלל שרשרת זהב ארוכה לכלה. חתונות נערכו בשבועיים הראשונים של החודש הירחי (ירח עולה), ולעולם לא במועדים גדולים, בדרך כלל בימי ראשון אחר הצהריים בבית הכנסת, תחת חופה מבד לבן או טלית על ארבעה עמודים. הכלה טבלה במקווה יום קודם."
+    },
+    {
+      "index": "halacha.28",
+      "category": "Niddah and mikveh",
+      "topic": "Domestic mikva'ot",
+      "summary": "Romaniote homes in Ioannina often had a basement cistern that served as a mikveh. The bride's immersion the day before the wedding is described as one of a woman's most important obligations.",
+      "common_practices": [
+        "Home cistern-mikveh (Ioannina)"
+      ],
+      "variants": [
+        {
+          "subgroup": "Athens",
+          "practice": "Athens' first mikveh was in the courtyard of the Romaniote Etz Hayyim synagogue.",
+          "source": "Jewish Community of Athens, 'Synagogue Etz Hayim (Tree of Life)'"
+        }
+      ],
+      "source": "Jewish Museum of Greece, 'Cycle of life – part a'",
+      "source_url": "https://jewishmuseum.gr/en/psifiaki-ekthesi/the-jewish-community-of-ioannina-a-journey-through-time/",
+      "confidence": "regional",
+      "review_notes": "No sources found on niddah counting, hefsek, or other details of taharat ha-mishpacha.",
+      "topic_he": "מקוואות ביתיים",
+      "summary_he": "בבתים רומניוטיים ביואנינה היה לעיתים קרובות בור מים במרתף ששימש מקווה. טבילת הכלה יום לפני החתונה מתוארת כאחת החובות החשובות ביותר של אישה."
+    },
+    {
+      "index": "halacha.29",
+      "category": "Mourning",
+      "topic": "Burial, shiva and the year-long candle (Ioannina)",
+      "summary": "Burial preparation is carried out by the Hevra Kedosha. Close family observe a seven-day shiva. A memorial candle is lit in the mourners' home and kept burning for a whole year.",
+      "common_practices": [
+        "Hevra Kedosha burial",
+        "Seven-day shiva",
+        "Candle kept burning for a year"
+      ],
+      "variants": [],
+      "source": "Jewish Museum of Greece, 'Cycle of life – part b'",
+      "source_url": "https://jewishmuseum.gr/en/psifiaki-ekthesi/the-jewish-community-of-ioannina-a-journey-through-time/",
+      "confidence": "regional",
+      "review_notes": "Yahrzeit practice not documented.",
+      "topic_he": "קבורה, שבעה ונר לשנה שלמה (יואנינה)",
+      "summary_he": "הכנת הקבורה נעשית בידי החברה קדישא. קרובי המשפחה הקרובים אבלים שבעה ימים. נר זיכרון מודלק בבית האבלים ונשאר דולק שנה שלמה."
+    },
+    {
+      "index": "halacha.30",
+      "category": "Calendar",
+      "topic": "Rosh Hodesh announcement in Judeo-Greek",
+      "summary": "Mahzor Romania contains a Judeo-Greek version of the announcement of the new month. A scholarly edition notes that this Greek announcement is absent from the printed editions but found in at least four more manuscripts of Mahzor Romania.",
+      "common_practices": [],
+      "variants": [],
+      "source": "Jewish Museum of Greece, liturgy section; 'Mahzor Romania and the Judeo-Greek Hymn ἕνας ὁ κύριος: Introduction, Critical Edition, and Commentary' (academia.edu abstract)",
+      "source_url": "https://jewishmuseum.gr/en/psifiaki-ekthesi/the-jewish-community-of-ioannina-a-journey-through-time/",
+      "confidence": "well-attested",
+      "review_notes": "See disputes.",
+      "references": [
+        {
+          "title": "The Jewish Community of Ioannina – A Journey Through Time – Jewishmuseum",
+          "url": "https://jewishmuseum.gr/en/psifiaki-ekthesi/the-jewish-community-of-ioannina-a-journey-through-time/"
+        }
+      ],
+      "topic_he": "הכרזת ראש חודש ביהודית-יוונית",
+      "summary_he": "מחזור רומניא מכיל נוסח יהודי-יווני של הכרזת החודש החדש. מהדורה מדעית מציינת שההכרזה היוונית הזאת חסרה במהדורות הדפוס אך נמצאת בלפחות ארבעה כתבי יד נוספים של מחזור רומניא."
     }
   ],
-  "unique_minhagim": {
-    "examples": [
-      "Distinct Romaniote liturgy",
-      "Greek-language Jewish heritage",
-      "Strong synagogue and city-based identity",
-      "Sephardi influence in many communities after 1492"
-    ],
-    "notes": "Greek/Romaniote practice should be indexed by city, island, and family branch wherever possible."
-  },
-  "source_registry": {
-    "primary": [
-      "Shulchan Aruch",
-      "Mishneh Torah",
-      "Romaniote communal tradition"
-    ],
-    "secondary": [
-      "Jewish studies reference works",
-      "Community archives and family records",
-      "Diaspora synagogue materials"
-    ]
-  }
+  "unique_minhagim": [
+    {
+      "name": "Irtaman",
+      "description": "A children's festival unique to Ioannina, seen as Purim's forerunner. Boys aged 5–15 went through the Jewish neighbourhoods early in the morning with cloth satchels, singing a Yevanic rhyme ('...Fifteen days to Purim...'). They were rewarded with nuts, grain, rolls, brioche with a red-dyed egg, money or small tin boxes.",
+      "when": "Two weeks before Purim; Chabad.org specifies the first day of Adar (Rosh Hodesh Adar)",
+      "source": "Jewish Museum of Greece, 'A Journey Through Time', Irtaman section; Chabad.org, '15 Facts About the Jews of Greece' #5",
+      "source_url": "https://jewishmuseum.gr/en/psifiaki-ekthesi/the-jewish-community-of-ioannina-a-journey-through-time/",
+      "confidence": "well-attested",
+      "references": [
+        {
+          "title": "15 Facts About the Jews of Greece",
+          "url": "https://www.chabad.org/library/article_cdo/aid/5611606/jewish/15-Facts-About-the-Jews-of-Greece.htm"
+        }
+      ],
+      "name_he": "אירטמן",
+      "description_he": "חג ילדים ייחודי ליואנינה, הנחשב מבשר הפורים. נערים בני 5–15 הלכו בבוקר מוקדם ברחבי השכונות היהודיות עם תרמילי בד ושרו חרוז ביוונית יהודית (\"...חמישה עשר יום לפורים...\"). הם קיבלו תגמול באגוזים, בדגנים, בלחמניות, בבריוש עם ביצה צבועה באדום, בכסף או בקופסאות פח קטנות."
+    },
+    {
+      "name": "Purimopoulo (Sicilian Purim / 'Little Purim')",
+      "description": "Celebrated in Ioannina until 1954 by Jews with Sicilian roots. It commemorated the escape of the Jews of Syracuse from the schemes of 'king Saragosanos' in the early 15th century, mostly through meetings, communal meals and a folk song. Its documented identity is Sicilian-origin within the Romaniote community.",
+      "when": "January or February (Hebrew date not given in source)",
+      "source": "Jewish Museum of Greece, 'A Journey Through Time', Little Purim section; USHMM collection description",
+      "source_url": "https://jewishmuseum.gr/en/psifiaki-ekthesi/the-jewish-community-of-ioannina-a-journey-through-time/",
+      "confidence": "regional",
+      "references": [
+        {
+          "title": "The Jewish Community of Ioannina – A Journey Through Time – Jewishmuseum",
+          "url": "https://jewishmuseum.gr/en/psifiaki-ekthesi/the-jewish-community-of-ioannina-a-journey-through-time/"
+        }
+      ],
+      "name_he": "פורימופולו (פורים סיציליאני / \"פורים הקטן\")",
+      "description_he": "נחגג ביואנינה עד 1954 בידי יהודים ממוצא סיציליאני. הוא הנציח את הצלת יהודי סירקוזה ממזימות \"המלך סראגוסנוס\" בתחילת המאה ה-15, בעיקר בהתכנסויות, בסעודות קהילתיות ובשיר עממי. זהותו המתועדת היא ממוצא סיציליאני בתוך הקהילה הרומניוטית."
+    },
+    {
+      "name": "Judeo-Greek (Yevanic) liturgical texts",
+      "description": "Greek-language liturgical and para-liturgical texts in Hebrew script: piyyutim and kinot in fifteen-syllable Greek verse; Greek translations of Jonah, Ruth and Song of Songs; the new-moon announcement; a Greek Had Gadya; and Judeo-Greek rubrics in some Romaniote Haggadot. Greetings such as 'Kalo Moed' remain in use.",
+      "when": "Year-round; festivals",
+      "source": "Jewish Museum of Greece liturgy section; Open Siddur Jonah targum; Chabad.org '15 Facts' #3",
+      "source_url": "https://opensiddur.org/readings-and-sourcetexts/festival-and-fast-day-readings/jewish-readings/yom-kippur-readings/megillat-yonah-with-its-yevanic-judeo-greek-targum-ca-14th-c/",
+      "confidence": "well-attested",
+      "references": [
+        {
+          "title": "The Jewish Community of Ioannina – A Journey Through Time – Jewishmuseum",
+          "url": "https://jewishmuseum.gr/en/psifiaki-ekthesi/the-jewish-community-of-ioannina-a-journey-through-time/"
+        },
+        {
+          "title": "רומניוטים",
+          "url": "https://he.wikipedia.org/wiki/%D7%A8%D7%95%D7%9E%D7%A0%D7%99%D7%95%D7%98%D7%99%D7%9D"
+        },
+        {
+          "title": "(PDF) \"Mahzor Romania and the Judeo-Greek Hymn ἕνας ὁ κύριος. Introduction, Critical Edition, and Commentary\"",
+          "url": "https://www.academia.edu/4904182/_Mahzor_Romania_and_the_Judeo_Greek_Hymn_%E1%BC%95%CE%BD%CE%B1%CF%82_%E1%BD%81_%CE%BA%CF%8D%CF%81%CE%B9%CE%BF%CF%82_Introduction_Critical_Edition_and_Commentary_"
+        }
+      ],
+      "name_he": "טקסטים ליטורגיים ביהודית-יוונית (יוונית יהודית)",
+      "description_he": "טקסטים ליטורגיים ופרה-ליטורגיים בשפה היוונית באותיות עבריות: פיוטים וקינות בחרוזי יוונית בני חמש עשרה הברות; תרגומים ליוונית של יונה, רות ושיר השירים; הכרזת החודש; \"חד גדיא\" ביוונית; והוראות (רוביריקות) ביהודית-יוונית בהגדות רומניוטיות אחדות. ברכות כגון \"קלו מועד\" עדיין בשימוש."
+    },
+    {
+      "name": "Synagogue textiles: tahshitim/shaddayot and broad mappah",
+      "description": "Ioannina Romaniotes sewed silver dedicatory plaques (tahshitim; KKJ calls them Shaddayoth) onto the parochet, which was often made from festive gold-embroidered dresses or bedspreads. The Romaniote mappah is broad, has loops along the top and covers the outside of the tik. 19th-century Ioannina mappot carry women-made dedicatory ribbons called 'garters'.",
+      "when": "Permanent synagogue furnishing",
+      "source": "Jewish Museum of Greece, textiles section; KKJ 'Current Exhibits'",
+      "source_url": "https://jewishmuseum.gr/en/psifiaki-ekthesi/the-jewish-community-of-ioannina-a-journey-through-time/",
+      "confidence": "well-attested",
+      "references": [
+        {
+          "title": "Current Exhibits",
+          "url": "https://www.kkjsm.org/current-exhibits"
+        }
+      ],
+      "name_he": "אריגי בית הכנסת: תחשיטים/שדיות ומפה רחבה",
+      "description_he": "הרומניוטים של יואנינה תפרו לוחיות הקדשה מכסף (תחשיטים; ה-KKJ קורא להן שדיות) על הפרוכת, שנעשתה לעיתים קרובות משמלות חגיגיות רקומות זהב או ממצעים. המפה הרומניוטית רחבה, בעלת לולאות לאורך החלק העליון, ומכסה את החלק החיצוני של התיק. מפות מיואנינה מהמאה ה-19 נושאות סרטי הקדשה שנעשו בידי נשים ונקראים \"בתי ברכיים\"."
+    }
+  ],
+  "source_registry": [
+    {
+      "title": "The Jewish Community of Ioannina – A Journey Through Time",
+      "author": "Jewish Museum of Greece",
+      "type": "academic",
+      "url": "https://jewishmuseum.gr/en/psifiaki-ekthesi/the-jewish-community-of-ioannina-a-journey-through-time/",
+      "used_for": "Most Ioannina entries"
+    },
+    {
+      "title": "The Romaniote Jews of Ioannina (education newsletter)",
+      "author": "Yad Vashem / Kehila Kedosha Janina",
+      "type": "academic",
+      "url": "https://wwv.yadvashem.org/yv/pdf-drupal/en/education/newsletter/ioannina.pdf",
+      "used_for": "Rice, tik, bima, women, seven blessings"
+    },
+    {
+      "title": "An Interview with Artemis Batis Miron",
+      "author": "Yad Vashem",
+      "type": "academic",
+      "url": "https://www.yadvashem.org/articles/interviews/batis.html",
+      "used_for": "Greek Haggadah; rice"
+    },
+    {
+      "title": "Romaniote American Oral History Project",
+      "author": "Kehila Kedosha Janina",
+      "type": "reference",
+      "url": "https://www.kkjsm.org/romaniote-oral-history-project",
+      "used_for": "Diaspora seder, aliyah call"
+    },
+    {
+      "title": "Publications and Newsletters (and related KKJ pages)",
+      "author": "Kehila Kedosha Janina",
+      "type": "reference",
+      "url": "https://www.kkjsm.org/publications-and-newsletters",
+      "used_for": "Kol Nidre, Shavuot, Alefs, shaddayot"
+    },
+    {
+      "title": "Megillat Yonah with its Yevanic Targum ca. 14th c.",
+      "author": "Open Siddur Project",
+      "type": "primary",
+      "url": "https://opensiddur.org/readings-and-sourcetexts/festival-and-fast-day-readings/jewish-readings/yom-kippur-readings/megillat-yonah-with-its-yevanic-judeo-greek-targum-ca-14th-c/",
+      "used_for": "Jonah targum"
+    },
+    {
+      "title": "Romaniots (Bene Romania)",
+      "author": "Steven Bowman, Encyclopedia of Jews in the Islamic World (Brill 2012)",
+      "type": "academic",
+      "url": "https://romaniote.blogspot.com/2012/12/article-on-romaniots-bene-romania-by.html",
+      "used_for": "Capsali/Mizrahi, rite, wreaths"
+    },
+    {
+      "title": "Mizraḥi, Elijah",
+      "author": "Joseph Hacker, Encyclopaedia Judaica",
+      "type": "reference",
+      "url": "https://www.encyclopedia.com/religion/encyclopedias-almanacs-transcripts-and-maps/mizrahi-elijah",
+      "used_for": "Mizrahi and Sephardic customs"
+    },
+    {
+      "title": "Greece's Romaniote Jews face extinction, 70 years after Auschwitz",
+      "author": "Gavin Rabinowitz, JTA / Times of Israel (2014)",
+      "type": "reference",
+      "url": "https://www.timesofisrael.com/greeces-romaniote-jews-face-extinction-70-years-after-auschwitz/",
+      "used_for": "Current state, chant, memorial tablets"
+    },
+    {
+      "title": "The Jewish Community of Chalkida (video page)",
+      "author": "Jewish Museum of Greece",
+      "type": "reference",
+      "url": "https://jewishmuseum.gr/en/video-en/the-jewish-community-of-chalkida/",
+      "used_for": "Chalkis population and continuity"
+    },
+    {
+      "title": "CD project Romaniote Tradition",
+      "author": "EZJM, HMTM Hannover",
+      "type": "academic",
+      "url": "https://www.ezjm.hmtm-hannover.de/en/sonstige-seiten-nicht-im-menue/cd-project-romaniote-tradition/",
+      "used_for": "Cantillation"
+    },
+    {
+      "title": "15 Facts About the Jews of Greece",
+      "author": "Menachem Posner, Chabad.org",
+      "type": "reference",
+      "url": "https://www.chabad.org/library/article_cdo/aid/5611606/jewish/15-Facts-About-the-Jews-of-Greece.htm",
+      "used_for": "Irtaman, Tsabiaf, Alephiot"
+    },
+    {
+      "title": "Synagogue Etz Hayim (Tree of Life)",
+      "author": "Jewish Community of Athens",
+      "type": "reference",
+      "url": "https://athjcom.gr/en/2024/03/08/the-jewish-synagogues-of-athens/",
+      "used_for": "Athens synagogue, mikveh"
+    },
+    {
+      "title": "Η Εβραϊκή Συναγωγή της Χαλκίδας",
+      "author": "Jewish Community of Athens",
+      "type": "reference",
+      "url": "https://athjcom.gr/2015/03/09/i-evraiki-sinagogi-tis-chalkidas/",
+      "used_for": "Chalkis etrog tree"
+    },
+    {
+      "title": "Heritage & Heritage Sites – Greece",
+      "author": "Jewish Heritage Europe",
+      "type": "reference",
+      "url": "https://jewish-heritage-europe.eu/greece/heritage-and-heritage-sites/",
+      "used_for": "Athens synagogues"
+    },
+    {
+      "title": "Had Gadya in Ladino: A Sephardic Passover Tradition?",
+      "author": "UW Stroum Center for Jewish Studies",
+      "type": "academic",
+      "url": "https://jewishstudies.washington.edu/sephardic-studies/had-gadya-ladino-passover/",
+      "used_for": "Greek Had Gadya"
+    },
+    {
+      "title": "Records from the Archives of the Jewish Community of Iannina",
+      "author": "USHMM",
+      "type": "reference",
+      "url": "https://collections.ushmm.org/search/catalog/irn60850",
+      "used_for": "Apulian/Sicilian customs"
+    }
+  ],
+  "gaps": [
+    "Kabbalat Shabbat order, Shabbat seudot structure, zemirot and Havdalah",
+    "Rosh Hashana simanim and detailed order of the day",
+    "Hoshana Rabba and Simchat Torah customs (Hebrew Wikipedia lists a Romaniote order of hoshanot, but no firmer source is recorded)",
+    "Kitniyot beyond rice",
+    "Mimouna-type post-Pesach custom: none found",
+    "Omer counting and mourning-period dates",
+    "Minor fasts and Tisha B'Av observance details",
+    "Tefillin and tzitzit (beyond tefillin as a bar mitzvah gift)",
+    "Pidyon haben",
+    "Kashrut halachic standards (lung inspection, salting, waiting times)",
+    "Niddah practice details",
+    "Yahrzeit customs and Hashkavah text",
+    "Hebrew pronunciation of the Romaniote tradition (only anecdotal diaspora testimony)",
+    "Bakashot: no evidence of a Romaniote bakashot tradition",
+    "Chalkis-specific holiday and life-cycle customs, including a reliable source for synagogue layout (only visitor reviews found)",
+    "Athens Etz Hayyim congregation's own minhag beyond High Holiday use and layout",
+    "Mahzor Romania textual features (Kedusha wording, Mizmor le-Todah before Baruch She'amar, haftarot from the old Land-of-Israel cycle with an annual Torah cycle, Hebrew Kol Nidrei, festival Musaf sacrifice verses): described only in Hebrew Wikipedia/Hamichlol and a Goldschmidt PDF, without a firmer source",
+    "'72 verses of Psalms' after Shabbat Musaf: reported in a single newspaper article (Makor Rishon), without a firmer source"
+  ],
+  "disputes": [
+    "Athens synagogue identity: the brief names Beth Shalom as Romaniote; the Jewish Community of Athens, Jewish Heritage Europe and JGuide Europe identify Etz Hayyim/'Ioanniotiki' (8 Melidoni St.) as Romaniote and Beth Shalom (5 Melidoni St.) as Sephardic",
+    "Etz Hayyim Athens date: built 1904 (Jewish Community of Athens) vs dedicated 1906 (Jewish Heritage Europe; JTA)",
+    "First printing of Mahzor Romania: Venice 1520 (Jewish Museum of Greece) vs 1523/1524 (other sources)",
+    "Judeo-Greek Rosh Hodesh announcement: the Jewish Museum of Greece says Mahzor Romania 'has' it; the critical-edition abstract says it is absent from printed versions",
+    "Torah cycle: older encyclopedic leads describe an early Romaniote triennial cycle; Hebrew Wikipedia's 'נוסח רומניא' says the Torah was completed annually with haftarot drawn from the triennial sedarim; Makor Rishon says Romaniotes once read triennially and later adopted the annual cycle",
+    "Basis of the rite: Zanet Battinou (quoted by JTA) calls it 'based on the Talmud Yerushalmi'; Bowman more cautiously describes a mix of Late-Antique Palestinian and Byzantine customs",
+    "Irtaman date: 'two weeks before Purim' (Jewish Museum of Greece) vs 'the first day of Adar' (Chabad.org)",
+    "Liturgical base in the Ioannina diaspora: KKJ says it uses the 'traditional Romaniote liturgy'; Hebrew-language encyclopedic leads say KKJ and the Jerusalem Ioannina synagogue pray in the Sephardic nusach while keeping some Romaniote piyyutim and melodies",
+    "Ioannina deportation count: 1,870 deported (Jewish Museum of Greece) vs 1,832 names of the murdered on the synagogue memorial tablets (JTA 2014)",
+    "Chalkis wartime figures: the Jewish Museum of Greece gives 325 in 1940 with 18 perishing; other sources cite 327 with 22 lost"
+  ],
+  "needs_rabbinic_review": [
+    "Beit Yosef OC 141 on 'bnei Romania' reading with a prompter: exact text and segment unverified",
+    "Non-Jewish neighbour lighting lamps and braziers on Shabbat (historical description; permissibility not addressed in source)",
+    "Kapparot with cockerels and the Yom Kippur memorial-candle custom: current applicability",
+    "Seven blessings recited a year before the wedding (pre-war Ioannina): do not present as current practice",
+    "Kashering ordinary crockery in boiling water for Pesach: historical description, not a ruling on materials",
+    "Women's Torah blessings and diaspora bat mitzvah practice",
+    "'Lulav' posy fixed to the mezuzah: clarify what object this is",
+    "Whether a given user's congregation follows Romaniote or Sephardic nusach must be confirmed locally"
+  ]
 }

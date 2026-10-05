@@ -258,7 +258,7 @@ def _retrieve_community_knowledge(query, canonical_lens="All", max_rows=None):
             "community_name": str(row.get("community_name") or "").strip(),
             "topic": str(row.get("topic") or "").strip(),
             "halakhic_source": str(row.get("halakhic_source") or "").strip(),
-            "content": _app._normalize_rag_text(row.get("content")),
+            "content": _app._normalize_rag_text(row.get("content"), max_chars=RAG_KNOWLEDGE_CONTENT_CHARS),
             "score": score,
         })
 
@@ -281,6 +281,11 @@ def _env_int(name, default):
 # constants -- see app.py's RAG_TOP_KNOWLEDGE_ROWS/RAG_MEMORY_ROWS comment.
 RAG_TOP_KNOWLEDGE_ROWS = 5
 RAG_MEMORY_ROWS = 2
+# A community_knowledge row's content is a summary plus practices, subgroup
+# variants and a confidence caveat (median ~410 chars, longest ~1500). Keep
+# enough of it that the prompt-side cap (claude.CUSTOMS_ROW_MAX_CHARS) is the
+# one that decides what the model sees.
+RAG_KNOWLEDGE_CONTENT_CHARS = 700
 
 
 # ── Knowledge-row helpers ─────────────────────────────────────────────────────

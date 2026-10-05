@@ -53,7 +53,7 @@ All tools wrap **existing** backend functions — this layer adds no new busines
 | `lookup_word_meaning` | `_lookup_hebrew_word_meaning` / `_lookup_english_word_meaning` (Sefaria lexicon, BDB, Jastrow) |
 | `translate_text` | `_translate_hebrew_text_online` (Google/MyMemory fallback) |
 | `search_community_customs` | `customs.search_customs` + RAG community-knowledge helpers |
-| `get_community_profile` | Reimplemented against backend-only data — see Implementation notes |
+| `get_community_profile` | Reimplemented against backend-only data — see Implementation notes. Returns the community's `practice_baseline` and `parameters` (from the file's `runtime` block), identity, languages, a short history, core authorities, distinctive customs and `gaps`; reviewer-only fields are never included |
 | `get_prayer_text` | `siddur_data.search_services` + `get_service` (the checked-in Edot HaMizrach siddur the `/siddur` reader serves), then `sefaria_library.get_index_leaf_refs` + `get_text` for names it doesn't hold — see Implementation notes |
 
 **Last resort:**

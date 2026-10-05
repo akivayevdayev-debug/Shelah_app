@@ -606,7 +606,7 @@ class TestRetrieveCommunityKnowledgeIgnoresMalformedRows:
         monkeypatch.setattr(app, "RAG_TOP_KNOWLEDGE_ROWS", 5)
         monkeypatch.setattr(app, "_extract_query_keywords", lambda q, max_keywords=10: ["shabbat"])
         monkeypatch.setattr(app, "SUPABASE_COMMUNITY_KNOWLEDGE_TABLE", "community_knowledge")
-        monkeypatch.setattr(app, "_normalize_rag_text", lambda text: str(text or ""))
+        monkeypatch.setattr(app, "_normalize_rag_text", lambda text, max_chars=360: str(text or ""))
         monkeypatch.setattr(app, "_detect_community_in_text", lambda q: None)
 
         result = rag._retrieve_community_knowledge("shabbat candles", canonical_lens="All")

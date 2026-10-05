@@ -1,417 +1,1149 @@
 {
-  "version": "2.0",
+  "version": "3.0",
   "type": "academic_halachic_reference",
   "heritage_id": "ashkenazi",
   "name": "Ashkenazi",
   "aliases": [
     "Ashkenazic Jews",
-    "Ashkenazim"
+    "Ashkenazim",
+    "Minhag Ashkenaz (Western/German rite)",
+    "Minhag Polin (Eastern European rite)",
+    "Yekkes (German Jews)",
+    "Litvaks",
+    "Chassidim"
   ],
   "database_scope": {
-    "purpose": "Academic and halachic reference database for Ashkenazi Jewish heritage, minhagim, and halachic practice.",
-    "coverage_note": "This file models broad Ashkenazi practice and includes common halachic domains. Local customs vary by region, yeshiva tradition, family, and denomination.",
-    "classification_note": "Ashkenazi halacha is traditionally organized around medieval Ashkenaz and later codifiers such as the Rema, Magen Avraham, Mishnah Berurah, and Aruch HaShulchan."
+    "purpose": "Sourced reference for Ashkenazi minhagim and halachic practice. It records what the cited sources say, with a confidence level for each entry, and is not a psak.",
+    "coverage_note": "26 sourced topics and 5 distinctive customs, compiled from the cited sources in October 2026. Each entry carries a confidence level (well-attested, disputed, regional, needs-review). 20 topics have no community-specific source and are listed under 'gaps' rather than filled with generic text."
   },
   "identity": {
-    "primary_origin": "Jewish communities of medieval and early modern Central and Eastern Europe",
+    "primary_origin": "Medieval Germany and the Rhineland, later Poland, Lithuania and the rest of Eastern Europe",
     "secondary_centers": [
-      "Germany",
-      "France",
-      "Poland",
-      "Lithuania",
-      "Belarus",
-      "Ukraine",
-      "Hungary",
-      "Russia",
-      "United States",
-      "Israel"
-    ],
-    "cultural_profile": [
-      "Strong legal and liturgical tradition",
-      "Wide range from Hasidic to Lithuanian and Modern Orthodox practice",
-      "Distinctive historical foods, languages, and folklore",
-      "Significant diaspora diversification"
+      "Frankfurt and the German communities (Minhag Ashkenaz proper)",
+      "Poland and Lithuania (Minhag Polin)",
+      "Hasidic courts such as Chabad-Lubavitch, Satmar, Belz and Ger",
+      "Washington Heights, New York (Kehal Adas Yeshurun)"
     ]
   },
-  "languages": [
-    "Hebrew",
-    "Yiddish",
-    "Judeo-German in historical contexts",
-    "English",
-    "Russian",
-    "Polish",
-    "German"
+  "subgroups": [
+    {
+      "name": "Hasidic (Nusach Sefard / Nusach Ari)",
+      "note": "Courts including Chabad-Lubavitch, Satmar, Belz, Ger, Vizhnitz, Bobov, Breslov, Munkacs and Skver. They pray Nusach Sefard, a Polish Ashkenazi base with Lurianic changes; Chabad uses its own Nusach Ari siddur compiled by R. Shneur Zalman of Liadi. Many customs follow the Ari and the Zohar rather than the Rema."
+    },
+    {
+      "name": "Litvish / Yeshivish",
+      "note": "Nusach Ashkenaz (Minhag Polin), shaped heavily by the Vilna Gaon (Gra) and, in Israel, by the Gra's disciples. The Mishnah Berurah is the dominant practical code."
+    },
+    {
+      "name": "German / Yekke (Minhag Ashkenaz proper)",
+      "note": "Western Ashkenazi rite of Frankfurt and the German communities, preserved by Kehal Adas Yeshurun (Washington Heights) and documented by Machon Moreshes Ashkenaz (R. Binyomin Shlomo Hamburger, Shorshei Minhag Ashkenaz)."
+    },
+    {
+      "name": "Modern Orthodox",
+      "note": "Mostly Nusach Ashkenaz, often following rulings of Rav Joseph B. Soloveitchik and Rav Moshe Feinstein. Where a Soloveitchik position is cited here, it is recorded as such."
+    },
+    {
+      "name": "Liturgical axis: Nusach Ashkenaz vs Nusach Sefard",
+      "note": "Cuts across the subgroups. Nusach Ashkenaz: Litvish, Yekke, most Modern Orthodox. Nusach Sefard / Ari: Hasidim and Jews of Hasidic descent."
+    }
   ],
-  "genealogy": {
-    "common_surname_patterns": [
-      "Patronymic surnames",
-      "Occupational surnames",
-      "Place-based surnames",
-      "Germanic, Slavic, and Hebrew-derived surnames"
-    ],
-    "research_notes": [
-      "Surname spelling changes are common across immigration records and transliteration systems.",
-      "Town of origin is often more useful than surname alone.",
-      "Cemetery records, ketubot, shtetl documents, and immigration papers are important sources."
-    ],
-    "recommended_genealogy_fields": [
-      "surname",
-      "alternate_spellings",
-      "town_of_origin",
-      "family_branch",
-      "migration_route",
-      "community_type",
-      "ritual_minhag"
-    ]
-  },
   "historical_background": {
     "timeline": [
       {
-        "period": "Medieval Germany and France",
-        "event": "Ashkenazi communities developed in Central Europe.",
-        "halachic_impact": "Distinct minhagim formed around prayer, law, and communal life."
+        "period": "c. 1160-1237",
+        "event": "R. Eleazar of Worms (Rokeach) records a chain of transmission of the Ashkenazi prayer text from the Kalonymide family of Mainz and Speyer.",
+        "halachic_impact": "Grounds the principle that the Ashkenazi liturgical text may not be altered; cited in Shorshei Minhag Ashkenaz (Peirushei Siddur HaTefillah LaRokeach vol. 1 p. 229)."
       },
       {
-        "period": "Late medieval and early modern period",
-        "event": "Communities spread eastward into Poland-Lithuania and beyond.",
-        "halachic_impact": "Ashkenazi law and custom diversified regionally."
+        "period": "early 14th century",
+        "event": "The Rosh, having fled Germany for Toledo, writes that he follows the tradition of the sages of Ashkenaz rather than local Sephardic tradition (Shu't HaRosh 20:20).",
+        "halachic_impact": "Classic precedent for adhering to Ashkenazi ancestral custom."
       },
       {
-        "period": "18th-19th centuries",
-        "event": "Hasidic and Lithuanian traditions emerged as major internal streams.",
-        "halachic_impact": "Different prayer, learning, and lifestyle norms developed."
+        "period": "14th century",
+        "event": "The Tur (OC 583) records that in Germany a sweet apple is eaten with honey on Rosh Hashana.",
+        "halachic_impact": "Origin of the Ashkenazi simanim custom later codified by the Rema."
       },
       {
-        "period": "19th-20th centuries",
-        "event": "Mass migration to North America and other regions transformed the diaspora.",
-        "halachic_impact": "New denominational and communal variations appeared."
+        "period": "1563-1572",
+        "event": "Shulchan Aruch published; the Rema adds glosses recording the custom of Ashkenaz/Poland.",
+        "halachic_impact": "The Rema becomes the baseline authority for all Ashkenazi subgroups."
+      },
+      {
+        "period": "16th century",
+        "event": "The Ari (R. Yitzchak Luria) in Safed; his customs and prayer arrangements later spread to Eastern Europe.",
+        "halachic_impact": "Basis of Nusach Sefard / Nusach Ari and of many Hasidic customs (Omer mourning, upsherin, tefillin on Chol HaMoed)."
+      },
+      {
+        "period": "late 18th century",
+        "event": "Rise of Hasidism; R. Shneur Zalman of Liadi compiles his siddur 'al pi nusach ha-Ari'; avoiding gebrokts gains prominence.",
+        "halachic_impact": "Creates the Nusach Ashkenaz vs Sefard axis and Hasidic Pesach stringencies."
+      },
+      {
+        "period": "early 19th century",
+        "event": "Chatam Sofer (Shu't OC 16) defends Nusach Ashkenaz against the Hasidic switch to Nusach Sefard.",
+        "halachic_impact": "Hungarian/German (Oberlander) communities keep Nusach Ashkenaz and related customs."
+      },
+      {
+        "period": "1810-1811",
+        "event": "R. Nachman of Breslov dies in Uman (1810); R. Nosson organizes the first Rosh Hashana gathering at his grave (1811).",
+        "halachic_impact": "Origin of the Breslov Rosh Hashana kibbutz in Uman."
+      },
+      {
+        "period": "1930s-1940s",
+        "event": "Destruction of German and East European Jewry; German refugees found communities such as Kehal Adas Yeshurun, New York.",
+        "halachic_impact": "Rav Shimon Schwab frames KAJ as heir to the 'thousand year old sacred minhag Ashkenaz' (quoted in Shorshei Minhag Ashkenaz)."
+      },
+      {
+        "period": "late 20th century",
+        "event": "R. Binyomin Shlomo Hamburger founds Machon Moreshes Ashkenaz and publishes Shorshei Minhag Ashkenaz.",
+        "halachic_impact": "Revives documented German custom; vol. 5 (5778) devoted to tefillin on Chol HaMoed."
       }
     ]
   },
   "core_halachic_authorities": {
     "primary_codes": [
-      "Rema",
+      "Shulchan Aruch (R. Yosef Karo, 1563) with the glosses (Mappah) of R. Moshe Isserles (Rema, d. 1572)",
+      "Tur (Arba'ah Turim) with Darkhei Moshe",
       "Mishnah Berurah",
       "Aruch HaShulchan",
-      "Chayei Adam",
-      "Chochmat Adam"
+      "Kitzur Shulchan Aruch",
+      "Shulchan Aruch HaRav (Chabad)"
     ],
     "major_rishonim_base": [
-      "Tosafot",
-      "Rosh",
-      "Mordechai",
-      "Tur"
+      "Rashi and the Tosafists",
+      "Rabbi Eleazar of Worms (Rokeach)",
+      "Rosh (R. Asher b. Yechiel)",
+      "Maharil",
+      "Terumat HaDeshen",
+      "Mordechai and Hagahot Maimoniyot"
     ],
-    "later_ashkenazi_poskim": [
-      "Rav Moshe Feinstein",
-      "Rav Yaakov Kamenetsky",
-      "Rav Shlomo Zalman Auerbach",
-      "Rav Yosef Shalom Elyashiv"
+    "later_poskim": [
+      "Magen Avraham",
+      "Taz",
+      "Shach",
+      "Chayei Adam / Chochmat Adam",
+      "Vilna Gaon (Biur HaGra, Ma'aseh Rav)",
+      "Chatam Sofer",
+      "Igrot Moshe (R. Moshe Feinstein)",
+      "R. Joseph B. Soloveitchik (as recorded in Nefesh HaRav)",
+      "Sefer HaMinhagim (Chabad)",
+      "Darkei Chaim VeShalom (Munkacs)"
     ],
-    "decision_principle": "Follow the accepted Ashkenazi minhag and later Ashkenazi codifiers, especially where they differ from Sephardi practice."
+    "decision_principle": "Where the Rema records Ashkenazi custom against the Shulchan Aruch, Ashkenazim follow the Rema. Later authorities (Magen Avraham, Mishnah Berurah, Aruch HaShulchan) refine that practice. Hasidic communities often switch to Lurianic/Zoharic practice instead, and followers of the Gra to his rulings. Ancestral custom (minhag avot) is treated as binding, as Shorshei Minhag Ashkenaz stresses."
+  },
+  "runtime": {
+    "lens_key": "Ashkenaz",
+    "practice_baseline": "Practice rests on the Shulchan Aruch as glossed by the Rema and refined by the Magen Avraham, Taz, Mishnah Berurah and Aruch HaShulchan, with Hasidic courts adding Lurianic customs and their own minhag books, and German communities following Minhag Ashkenaz.",
+    "parameters": [
+      {
+        "key": "shabbat_candle_lighting_offset_general",
+        "value": "18",
+        "unit": "minutes before sunset",
+        "source": "OU Torah, Halacha L'Maaseh, 'Shabbat Candles' (outorah.org/p/38238): 'In many countries, candle lighting time is 18 minutes before sunset.'"
+      },
+      {
+        "key": "shabbat_candle_lighting_offset_jerusalem",
+        "value": "40",
+        "unit": "minutes before sunset",
+        "source": "OU Torah, Halacha L'Maaseh (outorah.org/p/38238); Aish.com citing Minchas Yitzchak 9:20 and Badei HaShulchan 73:14"
+      },
+      {
+        "key": "shabbat_candle_lighting_offset_satmar_boro_park_uk",
+        "value": "15",
+        "unit": "minutes before sunset",
+        "source": "R. Ari Enkin, 'Candle Lighting Time', Dalet Amot of Halacha, OU Torah (outorah.org/p/34953), citing Machzor Divrei Yoel and Zemirot Divrei Yoel for the Satmar Rav"
+      },
+      {
+        "key": "meat_to_dairy_wait_majority",
+        "value": "6",
+        "unit": "hours",
+        "source": "Rema, Yoreh De'ah 89:1 (recommends six hours); OU Torah, Dalet Amot of Halacha, 'Waiting Between Meat and Dairy' (outorah.org/p/237857)"
+      },
+      {
+        "key": "meat_to_dairy_wait_german",
+        "value": "3",
+        "unit": "hours",
+        "source": "OU Torah, outorah.org/p/237857: 'German Jews generally wait three hours'; Darchei Teshuvah 89:3 cited by dinonline.org"
+      },
+      {
+        "key": "meat_to_dairy_wait_dutch",
+        "value": "1",
+        "unit": "hours",
+        "source": "Rema, Yoreh De'ah 89:1 (one-hour custom of his region, after birkat hamazon); OU Torah, outorah.org/p/237857: 'Dutch Jews generally wait one hour'"
+      }
+    ]
   },
   "halacha_index": [
     {
       "index": "halacha.1",
       "category": "Prayer",
-      "topic": "Nusach Ashkenaz and Nusach Sfard",
-      "summary": "Ashkenazi communities may use Nusach Ashkenaz, Nusach Sfard, or related variants depending on subcommunity.",
+      "topic": "Nusach: Ashkenaz vs Sefard vs Ari",
+      "summary": "Nusach Ashkenaz recites Baruch She'amar before Hodu; Nusach Sefard, used by Hasidim, follows the Ari in reciting Hodu before Baruch She'amar and adds 've-yatzmach purkanei vi-karev meshichei' in Kaddish. Chabad uses its own Nusach Ari siddur compiled by R. Shneur Zalman of Liadi.",
       "common_practices": [
-        "Use the community siddur",
-        "Preserve local tune and phrasing",
-        "Follow yeshiva or Hasidic custom where applicable",
-        "Preserve inherited nusach and pronunciation in public prayer.",
-        "Coordinate weekday, Shabbat, and festival insertions with local rabbinic guidance.",
-        "Maintain community niggunim and piyyutim where accepted."
-      ]
+        "Each family keeps its ancestral nusach",
+        "Hasidic courts daven Nusach Sefard; Chabad daven Nusach Ari (Siddur Tehillat Hashem)"
+      ],
+      "variants": [
+        {
+          "subgroup": "Litvish / Yeshivish, Modern Orthodox",
+          "practice": "Nusach Ashkenaz (Minhag Polin): Baruch She'amar precedes Hodu.",
+          "source": "18Forty, 'The Siddur Has a Lot of Prayers. Where Did They Come From?'"
+        },
+        {
+          "subgroup": "Hasidic (general)",
+          "practice": "Nusach Sefard: Hodu before Baruch She'amar; 've-yatzmach purkanei' in Kaddish.",
+          "source": "18Forty, 'The Siddur Has a Lot of Prayers'"
+        },
+        {
+          "subgroup": "Chabad",
+          "practice": "Nusach Ari as compiled by R. Shneur Zalman of Liadi, a distinct version, not identical with general Nusach Sefard.",
+          "source": "18Forty, ibid.; Yeshiva.co Ask the Rabbi #753"
+        },
+        {
+          "subgroup": "German / Yekke and Chatam Sofer communities",
+          "practice": "Minhag Ashkenaz proper. The Chatam Sofer argued that Rashi, the Tosafists, Maharam of Rothenburg, the Rosh and the Tur all prayed Nusach Ashkenaz.",
+          "source": "Shu't Chatam Sofer OC 16, quoted in Shorshei Minhag Ashkenaz (English synopsis), Introduction p. 14"
+        }
+      ],
+      "source": "Shu't Chatam Sofer, Orach Chaim 16 (as quoted in R. B. S. Hamburger, Shorshei Minhag Ashkenaz: Synopsis of Volumes I-IV, Machon Moreshes Ashkenaz 2010, p. 14)",
+      "source_url": "https://moreshesashkenaz.org/mm/samples/ShorsheiEnglishSample.pdf",
+      "confidence": "well-attested",
+      "review_notes": "Exact textual differences between individual Hasidic court siddurim are not documented here.",
+      "references": [
+        {
+          "title": "The Siddur Has a Lot of Prayers. Where Did They Come From? - 18Forty",
+          "url": "https://18forty.org/articles/the-siddur-has-a-lot-of-prayers-where-did-they-come-from/"
+        },
+        {
+          "title": "Nusach Ashkenaz",
+          "url": "https://en.wikipedia.org/wiki/Nusach_Ashkenaz"
+        }
+      ],
+      "topic_he": "נוסח: אשכנז, ספרד ונוסח האר\"י",
+      "summary_he": "נוסח אשכנז אומר \"ברוך שאמר\" לפני \"הודו\". נוסח ספרד, שבו משתמשים החסידים, הולך אחרי האר\"י ואומר \"הודו\" לפני \"ברוך שאמר\", ומוסיף בקדיש \"ויצמח פורקניה ויקרב משיחיה\". חב\"ד משתמשת בסידור נוסח האר\"י משלה, שערך רבי שניאור זלמן מליאדי."
     },
     {
       "index": "halacha.2",
       "category": "Prayer",
-      "topic": "Kaddish, Kedushah, and communal service",
-      "summary": "Prayer is highly structured and minyan-centered.",
+      "topic": "German (Yekke) synagogue customs",
+      "summary": "Shorshei Minhag Ashkenaz documents the following German customs as distinct chapters: a distinct pronunciation of the cholam, praying at a slow pace, waiting for the community leader to finish his Amidah, introducing Shema with 'Kel Melech Ne'eman', reading Shema aloud and with cantillation, omitting 'Go'alenu Hashem Tzevakot Shemo' before the morning Amidah, the congregation remaining silent during the chazzan's Kedusha, the chazzan wearing a tallit, omitting Berikh Shemei when the Torah is taken out, and reading the haftara from a scroll.",
       "common_practices": [
-        "Recite Kaddish in a minyan",
-        "Follow local order for davening",
-        "Maintain community minhag in repetition and responsive sections",
-        "Preserve inherited nusach and pronunciation in public prayer.",
-        "Coordinate weekday, Shabbat, and festival insertions with local rabbinic guidance.",
-        "Maintain community niggunim and piyyutim where accepted."
-      ]
+        "Slow, measured tefillah",
+        "Chazzan wears tallit at every service",
+        "Berikh Shemei omitted"
+      ],
+      "variants": [
+        {
+          "subgroup": "German / Yekke",
+          "practice": "As listed in the summary.",
+          "source": "Shorshei Minhag Ashkenaz synopsis, table of contents, pp. 21-101"
+        }
+      ],
+      "source": "R. Binyomin Shlomo Hamburger, Shorshei Minhag Ashkenaz: Minhag Ashkenaz Sources and Roots, Synopsis of Volumes I-IV (Bnei Brak 2010), table of contents",
+      "source_url": "https://moreshesashkenaz.org/mm/samples/ShorsheiEnglishSample.pdf",
+      "confidence": "regional",
+      "review_notes": "Only the table of contents and introduction were read; the specifics of each chapter (e.g. exact cholam sound) were not opened.",
+      "topic_he": "מנהגי בתי הכנסת של יהדות גרמניה (יקים)",
+      "summary_he": "הספר \"שורשי מנהג אשכנז\" מתעד מנהגים גרמניים אלה כפרקים נפרדים: הגייה מיוחדת של החולם, תפילה בקצב איטי, המתנה לראש הקהילה עד שיסיים את עמידתו, פתיחת קריאת שמע ב\"אל מלך נאמן\", קריאת שמע בקול רם ובטעמי המקרא, השמטת \"גואלנו ה' צבאות שמו\" לפני עמידת שחרית, שתיקת הקהל בקדושה של החזן, חזן הלובש טלית, השמטת \"בריך שמיה\" בהוצאת ספר התורה, וקריאת ההפטרה מתוך מגילה."
     },
     {
       "index": "halacha.3",
-      "category": "Prayer",
-      "topic": "Torah reading",
-      "summary": "Torah reading follows standard halachic practice with local trope variations.",
+      "category": "Tefillin and tzitzit",
+      "topic": "Tefillin on Chol HaMoed",
+      "summary": "The Shulchan Aruch (OC 31:2) forbids wearing tefillin on Chol HaMoed. The Rema records that the custom 'in all these regions' is to wear them with a beracha, said quietly in shul. Today practice splits sharply by subgroup.",
       "common_practices": [
-        "Use trained ba'alei kri'ah",
-        "Follow Ashkenazi trop or local variant",
-        "Preserve aliyah and honor customs",
-        "Preserve inherited nusach and pronunciation in public prayer.",
-        "Coordinate weekday, Shabbat, and festival insertions with local rabbinic guidance.",
-        "Maintain community niggunim and piyyutim where accepted."
-      ]
+        "Those who wear them remove them before Hallel",
+        "Do not mix customs within one minyan (Mishnah Berurah 31:8)"
+      ],
+      "variants": [
+        {
+          "subgroup": "German / Yekke (Frankfurt)",
+          "practice": "Wear with a beracha, recited quietly.",
+          "source": "Rema OC 31:2; Divrei Kehillos p. 329 as cited on KAYJ forum; Aish.com 'Tefillin on Chol HaMoed'"
+        },
+        {
+          "subgroup": "Hungarian / Chatam Sofer (Oberland) communities",
+          "practice": "Wear tefillin on Chol HaMoed.",
+          "source": "Minhagei Chasam Sofer 8:7, as cited by shulchanaruchharav.com 'Tefillin on Chol Hamoed'"
+        },
+        {
+          "subgroup": "Eastern European Ashkenazim who wear them",
+          "practice": "Many wear without a beracha, following the Taz.",
+          "source": "Taz OC 31:2, cited by R. Chaim Jachter, Kol Torah; Aruch HaShulchan OC 31:4 as summarized by Mekoros"
+        },
+        {
+          "subgroup": "Hasidic (general)",
+          "practice": "Do not wear tefillin on Chol HaMoed, following the Zohar.",
+          "source": "shulchanaruchharav.com 'Tefillin on Chol Hamoed': 'The Sefaradi and general Chassidic custom is not to put on Tefillin at all during Chol Hamoed'"
+        },
+        {
+          "subgroup": "Followers of the Gra / Brisk",
+          "practice": "Do not wear; Rav Chaim Soloveitchik did not wear tefillin on Chol HaMoed.",
+          "source": "Biur HaGra OC 31:2; R. Chaim Jachter, Kol Torah, 'Tefillin on Chol Hamoed'"
+        },
+        {
+          "subgroup": "All in Eretz Yisrael",
+          "practice": "Public custom is not to wear; those with a diaspora custom may wear privately.",
+          "source": "R. Chaim Jachter, Kol Torah; Halachipedia 'Tefillin on Chol HaMoed'"
+        }
+      ],
+      "source": "Shulchan Aruch and Rema, Orach Chaim 31:2; Mishnah Berurah 31:8; Igrot Moshe OC 5 (as cited)",
+      "source_url": "https://www.sefaria.org/Shulchan_Arukh,_Orach_Chayim.31.2",
+      "confidence": "disputed",
+      "review_notes": "R. Moshe Feinstein permits keeping one's custom even in a minyan with the other practice, as reported by JewishPress. Shorshei Minhag Ashkenaz vol. 5 is entirely devoted to this question.",
+      "references": [
+        {
+          "title": "Shulchan Aruch/Orach Chaim/31 - Wikisource, the free online library",
+          "url": "https://en.wikisource.org/wiki/Translation:Shulchan_Aruch/Orach_Chaim/31"
+        },
+        {
+          "title": "Q & A: Should I Wear Tefillin On Chol HaMoed? - The Jewish Press - JewishPress.com",
+          "url": "https://jewishpress.com/judaism/ask-the-rabbi/q-a-should-i-wear-tefillin-on-chol-hamoed/2019/10/16/"
+        }
+      ],
+      "topic_he": "תפילין בחול המועד",
+      "summary_he": "השולחן ערוך (או\"ח לא:ב) אוסר להניח תפילין בחול המועד. הרמ\"א מביא שהמנהג \"בכל המדינות האלה\" הוא להניחן בברכה, שנאמרת בלחש בבית הכנסת. כיום המנהג נחלק בחדות לפי עדות המשנה."
     },
     {
       "index": "halacha.4",
-      "category": "Shabbat",
-      "topic": "Candle lighting",
-      "summary": "Shabbat candle lighting follows halacha with family and community customs.",
-      "common_practices": [
-        "Light before sunset or accepted cutoff",
-        "Use customary blessing wording",
-        "Observe family candle traditions where inherited",
-        "Prepare practical needs before candle lighting to avoid melacha.",
-        "Use approved warming and lighting setups established before Shabbat.",
-        "Follow local zmanim for candle lighting, shekia, and havdalah."
-      ]
+      "category": "Tefillin and tzitzit",
+      "topic": "Tallit before marriage",
+      "summary": "In German custom boys and unmarried men wear a tallit at prayer. In most East European communities a tallit is worn only after marriage.",
+      "common_practices": [],
+      "variants": [
+        {
+          "subgroup": "German / Yekke",
+          "practice": "Boys begin wearing a tallit from a young age; R. Yechiel Michel Schlesinger wore a tallit while still unmarried at the Mir 'in accordance with the German custom'.",
+          "source": "Shorshei Minhag Ashkenaz synopsis, Introduction p. 11; Chabad.org '15 Facts About Yekkes'"
+        }
+      ],
+      "source": "Shorshei Minhag Ashkenaz synopsis, Introduction p. 11 (citing Eish Tamid, Jerusalem 1989, p. 826)",
+      "source_url": "https://moreshesashkenaz.org/mm/samples/ShorsheiEnglishSample.pdf",
+      "confidence": "regional",
+      "review_notes": "The East European post-marriage custom is implied by the anecdote but not independently sourced here.",
+      "topic_he": "טלית לפני הנישואין",
+      "summary_he": "במנהג גרמניה בחורים ורווקים עוטים טלית בתפילה. ברוב קהילות מזרח אירופה עוטים טלית רק אחרי הנישואין."
     },
     {
       "index": "halacha.5",
       "category": "Shabbat",
-      "topic": "Cooking and warming",
-      "summary": "Cooking is prohibited on Shabbat, and warming arrangements are governed by detailed community practice.",
+      "topic": "Candle-lighting time",
+      "summary": "Candles are lit before sunset, at a fixed offset set by local custom.",
       "common_practices": [
-        "Prepare food before Shabbat",
-        "Use permitted warming methods",
-        "Avoid prohibited cooking and rewarming actions",
-        "Prepare practical needs before candle lighting to avoid melacha.",
-        "Use approved warming and lighting setups established before Shabbat.",
-        "Follow local zmanim for candle lighting, shekia, and havdalah."
-      ]
+        "18 minutes before sunset, which R. Ari Enkin (OU Torah, 'Candle Lighting Time') calls 'the most widespread' custom"
+      ],
+      "variants": [
+        {
+          "subgroup": "Most diaspora communities",
+          "practice": "18 minutes before sunset.",
+          "source": "OU Torah, Halacha L'Maaseh, 'Shabbat Candles'"
+        },
+        {
+          "subgroup": "Jerusalem (all groups)",
+          "practice": "40 minutes before sunset; R. Ari Enkin derives it from 'a view which requires one to add half of a halachic hour to one's Shabbat', which reaches forty minutes at the height of summer.",
+          "source": "OU Torah, Halacha L'Maaseh; Aish.com citing Minchas Yitzchak 9:20, Sefer Eretz Yisrael p. 26, Badei HaShulchan 73:14"
+        },
+        {
+          "subgroup": "Satmar; Boro Park luach; UK calendars",
+          "practice": "15 minutes before sunset.",
+          "source": "R. Ari Enkin, Dalet Amot of Halacha, citing Machzor Divrei Yoel and Zemirot Divrei Yoel"
+        }
+      ],
+      "source": "OU Torah, 'Candle Lighting Time' (Dalet Amot of Halacha) and 'Shabbat Candles' (Halacha L'Maaseh)",
+      "source_url": "https://outorah.org/p/34953/",
+      "confidence": "regional",
+      "review_notes": "The 18-minute figure has no single clear origin, as Enkin notes. Enkin states that 'all calendars in the UK as well as the official Boro Park luach' list 15 minutes, but he does not name which Boro Park luach he means.",
+      "references": [
+        {
+          "title": "https://outorah.org/p/34953/",
+          "url": "https://outorah.org/p/34953/"
+        }
+      ],
+      "topic_he": "זמן הדלקת נרות",
+      "summary_he": "מדליקים נרות לפני השקיעה, במרווח קבוע שנקבע לפי המנהג המקומי."
     },
     {
       "index": "halacha.6",
       "category": "Shabbat",
-      "topic": "Carrying and eruv",
-      "summary": "Carrying outside a valid eruv is prohibited and often a major communal concern.",
+      "topic": "Kiddush and netilat yadayim",
+      "summary": "In German custom the hands are washed for bread before Kiddush on Shabbat and Yom Tov, and the bread is broken immediately after the Kiddush wine. Other Ashkenazim make Kiddush first and then wash.",
       "common_practices": [
-        "Check validity of the eruv",
-        "Follow local rabbinic guidance",
-        "Do not carry where no eruv exists",
-        "Prepare practical needs before candle lighting to avoid melacha.",
-        "Use approved warming and lighting setups established before Shabbat.",
-        "Follow local zmanim for candle lighting, shekia, and havdalah."
-      ]
+        "Kiddush, then washing (non-German Ashkenazim)"
+      ],
+      "variants": [
+        {
+          "subgroup": "German / Yekke",
+          "practice": "Wash before Kiddush.",
+          "source": "Rema OC 271:12 (custom not to be changed), as cited in JewishPress 'Washing Before Kiddush: Just For Yekkes?'; Shorshei Minhag Ashkenaz vol. 2 pp. 258ff; synopsis chapter 'Performing Netilat Yadayim Before Kiddush' p. 77"
+        }
+      ],
+      "source": "Rema, Orach Chaim 271:12; Shorshei Minhag Ashkenaz vol. 2 p. 258ff",
+      "source_url": "https://jewishpress.com/judaism/halacha-hashkafa/washing-before-kiddush-just-for-yekkes/2019/09/05/",
+      "confidence": "regional",
+      "review_notes": "R. Yaakov Hoffman (JewishPress, 2019) calls washing before Kiddush 'widespread (though not universal) among medieval Jewry – both Sefardic and Ashkenazic'. He writes that from about the 16th century the custom of washing after Kiddush gained popularity, tracing the shift to Taz 271:14 and the Biur HaGra.",
+      "references": [
+        {
+          "title": "15 Facts About Yekkes, the Jews of Germany - Chabad.org",
+          "url": "https://www.chabad.org/library/article_cdo/aid/5501801/jewish/15-Facts-About-Yekkes-the-Jews-of-Germany.htm"
+        }
+      ],
+      "topic_he": "קידוש ונטילת ידיים",
+      "summary_he": "במנהג גרמניה נוטלים ידיים לסעודה לפני הקידוש בשבת וביום טוב, ובוצעים את הלחם מיד אחרי יין הקידוש. אשכנזים אחרים מקדשים תחילה ואחר כך נוטלים ידיים."
     },
     {
       "index": "halacha.7",
-      "category": "Kashrut",
-      "topic": "Meat and dairy separation",
-      "summary": "Meat and dairy separation is strictly observed with clear kitchen segmentation.",
+      "category": "Rosh Hashana",
+      "topic": "Simanim",
+      "summary": "A sweet apple is dipped in honey at the start of the meal with the prayer for a sweet year. Nuts are avoided because the gematria of 'egoz' equals 'chet' (sin).",
       "common_practices": [
-        "Keep separate utensils and cookware",
-        "Observe waiting periods after meat before dairy according to Ashkenazi custom",
-        "Maintain separate dishes and cleaning systems",
-        "Keep clear separation of meat and dairy utensils, storage, and prep zones.",
-        "Verify supervision standards according to trusted local rabbinic authority.",
-        "Apply inherited waiting-time custom for meat and dairy under halachic guidance."
-      ]
+        "Apple in honey after hamotzi, with borei pri ha-etz and yehi ratzon",
+        "Avoid nuts"
+      ],
+      "variants": [],
+      "source": "Tur, Orach Chaim 583:1; Rema, Orach Chaim 583:1-2; Darkhei Moshe OC 583:3",
+      "source_url": "https://www.sefaria.org/sheets/79306",
+      "confidence": "well-attested",
+      "review_notes": "The Tur attributes the apple-and-honey custom specifically to Germany. Additional simanim (fish, head) are cited in Shulchan Aruch HaRav 583:2 per dinonline.",
+      "references": [
+        {
+          "title": "The Rosh Hashanah Simanim: Their Sources and Meaning",
+          "url": "https://www.sefaria.org/sheets/79306"
+        }
+      ],
+      "topic_he": "סימנים",
+      "summary_he": "בתחילת הסעודה טובלים תפוח מתוק בדבש ואומרים תפילה לשנה מתוקה. נמנעים מאגוזים, כי גימטריית \"אגוז\" כגימטריית \"חטא\"."
     },
     {
       "index": "halacha.8",
-      "category": "Kashrut",
-      "topic": "Kitniyot on Pesach",
-      "summary": "Ashkenazi custom generally avoids kitniyot on Pesach.",
-      "common_practices": [
-        "Do not eat rice, legumes, and other kitniyot as custom dictates",
-        "Keep kitniyot in the house if permitted by local practice",
-        "Use separate Pesach goods and supervision",
-        "Keep clear separation of meat and dairy utensils, storage, and prep zones.",
-        "Verify supervision standards according to trusted local rabbinic authority.",
-        "Apply inherited waiting-time custom for meat and dairy under halachic guidance."
-      ]
+      "category": "Rosh Hashana",
+      "topic": "Breslov Rosh Hashana in Uman",
+      "summary": "Breslov Hasidim travel to the grave of R. Nachman in Uman for Rosh Hashana, based on R. Nachman's statement 'my entire mission is Rosh Hashanah' and R. Nosson's organization of the gathering from 1811.",
+      "common_practices": [],
+      "variants": [
+        {
+          "subgroup": "Breslov",
+          "practice": "Rosh Hashana kibbutz at the tziyun in Uman.",
+          "source": "Breslov Research Institute, 'The Road to Uman #1' (breslov.org)"
+        }
+      ],
+      "source": "Breslov.org, 'The Road to Uman # 1' (translation commissioned by Breslov Research Institute for 'Uman, Uman, Rosh Hashanah')",
+      "source_url": "https://breslov.org/the-road-to-uman-1/",
+      "confidence": "regional",
+      "review_notes": "Primary Breslov texts (Chayei Moharan, Yemei Moharnat) were not opened directly.",
+      "topic_he": "ראש השנה של ברסלב באומן",
+      "summary_he": "חסידי ברסלב נוסעים לציון רבי נחמן באומן לראש השנה, על פי דברי רבי נחמן \"כל עיקר שלי הוא ראש השנה\" ועל פי ארגון ההתכנסות בידי רבי נתן משנת 1811."
     },
     {
       "index": "halacha.9",
-      "category": "Kashrut",
-      "topic": "Baked goods and chametz concerns",
-      "summary": "Pesach food preparation includes detailed concern for flour, wheat, and cross-contamination.",
+      "category": "Sukkot",
+      "topic": "Eating in the sukkah on Shemini Atzeret (diaspora)",
+      "summary": "The Shulchan Aruch (OC 668:1) rules that in the diaspora one eats in the sukkah on Shemini Atzeret without the beracha. Customs vary widely.",
       "common_practices": [
-        "Check labels and ingredients carefully",
-        "Use dedicated Pesach equipment",
-        "Avoid any chametz mixture",
-        "Keep clear separation of meat and dairy utensils, storage, and prep zones.",
-        "Verify supervision standards according to trusted local rabbinic authority.",
-        "Apply inherited waiting-time custom for meat and dairy under halachic guidance."
-      ]
+        "No 'leishev ba-sukkah' beracha",
+        "Not sleeping in the sukkah (Mishnah Berurah 668:6)"
+      ],
+      "variants": [
+        {
+          "subgroup": "Litvish / Modern Orthodox (per Shulchan Aruch)",
+          "practice": "All meals in the sukkah, without the beracha.",
+          "source": "Shulchan Aruch OC 668:1; etzion.org.il 'Shemini Atzeret and Simchat Torah (2)'"
+        },
+        {
+          "subgroup": "Chabad",
+          "practice": "Kiddush and all eating and drinking, even water, in the sukkah by night and day; not sleeping there; no Yehi Ratzon on leaving the sukkah.",
+          "source": "Chabad.org 'A Deeper Look at Shemini Atzeret'; shulchanaruchharav.com summary"
+        },
+        {
+          "subgroup": "Many Hasidic communities",
+          "practice": "Kiddush and a little food in the sukkah and the meal indoors, or not eating in the sukkah at all; the Baal Shem Tov did not eat in the sukkah on Shemini Atzeret.",
+          "source": "Halachically Speaking vol. 13 no. 17 (citing Meiros Einayim, Otzer Minhagei Chassidim); Kol Torah (R. Jachter, citing Rav Soloveitchik's explanation)"
+        }
+      ],
+      "source": "Shulchan Aruch, Orach Chaim 668:1; Mishnah Berurah 668:6; Aruch HaShulchan 668:3-5; Korban Netanel 4:7",
+      "source_url": "https://etzion.org.il/en/halakha/orach-chaim/holidays/shemini-atzeret-and-simchat-torah-2",
+      "confidence": "disputed",
+      "review_notes": "Positions of individual courts (Ger, Belz, Satmar, etc.) were not found. Nitei Gavriel (Four Species pp. 324-344) is the lead for them.",
+      "references": [
+        {
+          "title": "Shemini Atzeret and Simchat Torah (2)",
+          "url": "https://etzion.org.il/en/halakha/orach-chaim/holidays/shemini-atzeret-and-simchat-torah-2"
+        }
+      ],
+      "topic_he": "אכילה בסוכה בשמיני עצרת (בחוץ לארץ)",
+      "summary_he": "השולחן ערוך (או\"ח תרסח:א) פוסק שבחוץ לארץ אוכלים בסוכה בשמיני עצרת בלי ברכה. המנהגים בזה מגוונים מאוד."
     },
     {
       "index": "halacha.10",
-      "category": "Pesach",
-      "topic": "Chametz removal",
-      "summary": "Chametz is removed thoroughly before Pesach.",
-      "common_practices": [
-        "Search for chametz before Pesach",
-        "Sell or destroy chametz properly",
-        "Kasher surfaces and utensils as needed",
-        "Review chametz cleaning and kashering checklists before the festival.",
-        "Follow community custom on kitniyot and festival kitchen workflow.",
-        "Use community haggadah flow and family minhagim within halachic structure."
-      ]
+      "category": "Sukkot",
+      "topic": "Hakafot on the night of Shemini Atzeret",
+      "summary": "Hasidic communities, Chabad included, also hold hakafot on the night of Shemini Atzeret in the diaspora, in addition to Simchat Torah.",
+      "common_practices": [],
+      "variants": [
+        {
+          "subgroup": "Hasidic incl. Chabad",
+          "practice": "Hakafot on Shemini Atzeret night.",
+          "source": "Chabad.org 'A Deeper Look at Shemini Atzeret / Simchat Torah'"
+        }
+      ],
+      "source": "Chabad.org, 'A Deeper Look at Shemini Atzeret / Simchat Torah'",
+      "source_url": "https://www.chabad.org/library/article_cdo/aid/1288162/jewish/A-Deeper-Look-at-Shemini-Atzeret-Simchat-Torah.htm",
+      "confidence": "needs-review",
+      "review_notes": "Single source.",
+      "topic_he": "הקפות בליל שמיני עצרת",
+      "summary_he": "קהילות חסידיות, ובהן חב\"ד, עורכות בחוץ לארץ הקפות גם בליל שמיני עצרת, נוסף על שמחת תורה."
     },
     {
       "index": "halacha.11",
-      "category": "Pesach",
-      "topic": "Seder and Haggadah",
-      "summary": "The Seder is structured according to halacha and Ashkenazi minhag.",
+      "category": "Chanukah",
+      "topic": "Who lights",
+      "summary": "Each household member lights their own menorah and adds a light each night (mehadrin min ha-mehadrin per the Rema). The candles of each person should be placed apart so the night's number is clear.",
       "common_practices": [
-        "Use Ashkenazi Haggadah tradition",
-        "Sing customary songs",
-        "Follow family and community seder order",
-        "Review chametz cleaning and kashering checklists before the festival.",
-        "Follow community custom on kitniyot and festival kitchen workflow.",
-        "Use community haggadah flow and family minhagim within halachic structure."
-      ]
+        "Each member lights",
+        "Blessings precede lighting"
+      ],
+      "variants": [],
+      "source": "Rema, Orach Chaim 671:2; Kitzur Shulchan Aruch 139:6",
+      "source_url": "https://www.chabad.org/holidays/chanukah/article_cdo/aid/4568664/jewish/Why-Add-a-Light-Each-Night-of-Chanukah.htm",
+      "confidence": "well-attested",
+      "review_notes": "Practice for wives and daughters varies ('classically the wife did not light', per NHBZ guide); refer to family custom.",
+      "topic_he": "מי מדליק",
+      "summary_he": "כל בן בית מדליק מנורה משלו ומוסיף נר בכל לילה (מהדרין מן המהדרין לפי הרמ\"א). יש להניח את נרותיו של כל אחד בנפרד, כדי שיהיה ברור מספר הנרות של אותו לילה."
     },
     {
       "index": "halacha.12",
-      "category": "Lifecycle",
-      "topic": "Brit milah",
-      "summary": "Brit milah follows halacha with Ashkenazi naming and celebration customs.",
-      "common_practices": [
-        "Use a qualified mohel",
-        "Observe naming customs",
-        "Use community songs and ceremonies where customary",
-        "Keep core lifecycle ceremonies aligned with halachic requirements.",
-        "Document family minhagim for naming, honors, and celebration order.",
-        "Consult community rabbi for local protocol differences."
-      ]
+      "category": "Purim",
+      "topic": "She-hecheyanu on Purim morning",
+      "summary": "German custom has a documented chapter on reciting She-hecheyanu at the morning Megillah reading.",
+      "common_practices": [],
+      "variants": [
+        {
+          "subgroup": "German / Yekke",
+          "practice": "She-hecheyanu recited at the morning reading.",
+          "source": "Shorshei Minhag Ashkenaz synopsis, chapter 'Reciting She-hecheyanu on Purim Morning', p. 124"
+        }
+      ],
+      "source": "Shorshei Minhag Ashkenaz synopsis, p. 124 (chapter title)",
+      "source_url": "https://moreshesashkenaz.org/mm/samples/ShorsheiEnglishSample.pdf",
+      "confidence": "needs-review",
+      "review_notes": "Only the chapter title was seen; the content and details were not read.",
+      "topic_he": "שהחיינו בבוקר פורים",
+      "summary_he": "במנהג גרמניה יש פרק מתועד על אמירת שהחיינו בקריאת המגילה בבוקר."
     },
     {
       "index": "halacha.13",
-      "category": "Lifecycle",
-      "topic": "Marriage and wedding customs",
-      "summary": "Marriage is halachically standard and often includes distinct Ashkenazi wedding customs.",
+      "category": "Pesach",
+      "topic": "Kitniyot",
+      "summary": "The custom of Ashkenaz is not to eat kitniyot (rice, legumes, etc.) on Pesach. They are not forbidden if they fall into a dish (batel be-rov), and may be kept in the house and used for benefit such as lamp oil.",
       "common_practices": [
-        "Use a valid ketubah",
-        "Perform kiddushin and nissuin properly",
-        "Observe ketubah reading, bedeken, and other local customs where relevant",
-        "Keep core lifecycle ceremonies aligned with halachic requirements.",
-        "Document family minhagim for naming, honors, and celebration order.",
-        "Consult community rabbi for local protocol differences."
-      ]
+        "Kitniyot not eaten",
+        "May own kitniyot",
+        "Mixtures batel be-rov (Chayei Adam 127; Mishnah Berurah 453:9)",
+        "Leniency in famine or illness (Mishnah Berurah 453:7; Aruch HaShulchan 453:5)"
+      ],
+      "variants": [],
+      "source": "Rema, Orach Chaim 453:1; Mishnah Berurah 453:7, 453:9; Aruch HaShulchan 453:5",
+      "source_url": "https://www.sefaria.org/Sheet.32416",
+      "confidence": "well-attested",
+      "review_notes": "Kitniyot oil and the scope of the category (e.g. mustard, per Taz 453:1) are debated; see etzion.org.il 'The Laws of Pesach - Kitniyot'.",
+      "topic_he": "קטניות",
+      "summary_he": "מנהג אשכנז הוא שלא לאכול קטניות (אורז, קטניות ועוד) בפסח. אין הן אסורות אם נפלו לתבשיל (בטל ברוב), ומותר להשאירן בבית ולהשתמש בהן להנאה, כגון שמן לנר."
     },
     {
       "index": "halacha.14",
-      "category": "Family law",
-      "topic": "Niddah and mikveh",
-      "summary": "Family purity laws are observed carefully and often strictly.",
-      "common_practices": [
-        "Observe niddah separation laws",
-        "Use mikveh according to halacha",
-        "Follow accepted community practice and rabbinic guidance",
-        "Use a consistent halachic calendar and consultation process for sensitive questions.",
-        "Coordinate household observance with qualified rabbinic guidance.",
-        "Preserve family minhag where compatible with accepted psak."
-      ]
+      "category": "Pesach",
+      "topic": "Gebrokts (matzah wetted after baking)",
+      "summary": "Chabad.org states that 'many communities, chassidic ones in particular' avoid gebrokts (matzah that came in contact with water after it was fully baked) on the first seven days of Pesach, and Chabad deliberately eats gebrokts on the eighth day. The custom gained prominence around the end of the 18th century.",
+      "common_practices": [],
+      "variants": [
+        {
+          "subgroup": "Chabad and many Hasidim",
+          "practice": "No gebrokts for the first seven days; eat gebrokts on the last day (prepared after nightfall).",
+          "source": "Chabad.org, 'Gebrokts: Wetted Matzah' (Yehuda Shurpin)"
+        },
+        {
+          "subgroup": "Litvish / German / Modern Orthodox",
+          "practice": "No general avoidance is documented.",
+          "source": "Chabad.org, ibid. (custom described as chiefly Hasidic)"
+        }
+      ],
+      "source": "Chabad.org, 'Gebrokts: Wetted Matzah'; Shulchan Aruch HaRav OC 460 (cited there)",
+      "source_url": "https://www.chabad.org/holidays/passover/pesach_cdo/aid/265990/jewish/Gebrokts-Wetted-Matzah.htm",
+      "confidence": "regional",
+      "review_notes": "Non-Hasidic Ashkenazim eating gebrokts is the default, but no positive source for it was opened. Belz eighth-day gebrokts is reported only on a forum and is excluded.",
+      "topic_he": "גברוקטס (מצה שנרטבה אחרי האפייה)",
+      "summary_he": "לפי אתר חב\"ד, \"קהילות רבות, חסידיות בעיקר\" נמנעות מגברוקטס (מצה שבאה במגע עם מים אחרי שנאפתה כולה) בשבעת ימי הפסח הראשונים, וחב\"ד אוכלת גברוקטס במכוון ביום השמיני. המנהג תפס מקום בולט בסביבות סוף המאה ה-18."
     },
     {
       "index": "halacha.15",
-      "category": "Mourning",
-      "topic": "Avelut",
-      "summary": "Mourning customs are highly structured and widely observed.",
-      "common_practices": [
-        "Observe shiva, shloshim, and yahrzeit customs",
-        "Recite Kaddish according to community practice",
-        "Use Yizkor or related memorial forms where customary",
-        "Observe shiva, shloshim, and yahrzeit in the accepted local format.",
-        "Coordinate memorial prayer customs with synagogue practice.",
-        "Preserve condolence and visitation etiquette used by the community."
-      ]
+      "category": "Pesach",
+      "topic": "Chabad Pesach customs",
+      "summary": "Chabad does not eat matzah from thirty days before Pesach. On the last day of Pesach it holds Moshiach's Seudah (Moshiach's meal).",
+      "common_practices": [],
+      "variants": [
+        {
+          "subgroup": "Chabad",
+          "practice": "No matzah from 30 days before Pesach; Moshiach's Seudah on Acharon shel Pesach.",
+          "source": "Chabad.org 'Halachot Uminhagim - Laws and Customs of Passover'; Chabad.org 'Eighth Day: Gebrokts and Moshiach's Feast'"
+        }
+      ],
+      "source": "Chabad.org, 'Halachot Uminhagim — Laws and Customs of Passover'",
+      "source_url": "https://www.chabad.org/library/article_cdo/aid/2833737/jewish/Halachot-Uminhagim-Laws-and-Customs-of-Passover.htm",
+      "confidence": "regional",
+      "review_notes": "",
+      "topic_he": "מנהגי פסח של חב\"ד",
+      "summary_he": "חב\"ד אינה אוכלת מצה מתחילת שלושים יום לפני פסח. באחרון של פסח היא עורכת את סעודת משיח."
     },
     {
       "index": "halacha.16",
-      "category": "Calendar",
-      "topic": "High Holidays",
-      "summary": "Rosh Hashanah and Yom Kippur are observed with serious communal prayer and distinct liturgy.",
-      "common_practices": [
-        "Use the community machzor",
-        "Preserve selichot and shofar customs",
-        "Follow local tune and reading traditions",
-        "Anchor observance times to local halachic zmanim.",
-        "Coordinate fasts, selichot, and festival timing with community schedule.",
-        "Use a single trusted local calendar authority for consistency."
-      ]
+      "category": "Pesach",
+      "topic": "Hallel in synagogue on the first night",
+      "summary": "Shorshei Minhag Ashkenaz documents the recitation of Hallel in the synagogue on the first night of Pesach as a German custom.",
+      "common_practices": [],
+      "variants": [
+        {
+          "subgroup": "German / Yekke",
+          "practice": "Hallel in shul at Maariv on the first night.",
+          "source": "Shorshei Minhag Ashkenaz synopsis, chapter title p. 127"
+        }
+      ],
+      "source": "Shorshei Minhag Ashkenaz synopsis, p. 127 (chapter title)",
+      "source_url": "https://moreshesashkenaz.org/mm/samples/ShorsheiEnglishSample.pdf",
+      "confidence": "needs-review",
+      "review_notes": "Chapter title only; it is not established whether German practice is to say it or to omit it. Hasidic Nusach Sefard practice was not sourced.",
+      "topic_he": "הלל בבית הכנסת בליל הסדר",
+      "summary_he": "הספר \"שורשי מנהג אשכנז\" מתעד את אמירת ההלל בבית הכנסת בליל פסח הראשון כמנהג גרמני."
     },
     {
       "index": "halacha.17",
-      "category": "Calendar",
-      "topic": "Chanukah",
-      "summary": "Chanukah is observed with candle lighting, Hallel, and customary songs and foods.",
+      "category": "Omer",
+      "topic": "Mourning-period dates",
+      "summary": "Weddings and haircuts are avoided during part of the Omer. The Rema records two main customs, and must-not-combine-leniencies applies (Rema 493:3).",
       "common_practices": [
-        "Light candles nightly",
-        "Recite blessings and Hallel",
-        "Use family food customs and songs",
-        "Anchor observance times to local halachic zmanim.",
-        "Coordinate fasts, selichot, and festival timing with community schedule.",
-        "Use a single trusted local calendar authority for consistency."
-      ]
+        "No weddings or haircuts during the chosen 33 days",
+        "Lag BaOmer: haircuts, a little rejoicing, no Tachanun (Rema 493:2)",
+        "Ba'alei brit (father, sandek, mohel) may cut hair (Rema 493:2; MB 493:12)"
+      ],
+      "variants": [
+        {
+          "subgroup": "Rema custom A",
+          "practice": "From Pesach until Lag BaOmer; haircut on the 33rd day (or Friday if Lag BaOmer is Sunday).",
+          "source": "Rema OC 493:2 citing Maharil"
+        },
+        {
+          "subgroup": "Rema custom B",
+          "practice": "From Rosh Chodesh Iyar until Shavuot, except Lag BaOmer.",
+          "source": "Rema OC 493:3; Darkhei Moshe 493:3"
+        },
+        {
+          "subgroup": "Lithuania and northern Poland",
+          "practice": "From the first day of Rosh Chodesh Iyar until the morning of 3 Sivan.",
+          "source": "R. Yirmiyohu Kaganoff, 'The Mourning Period of Sefirah'; Mishnah Berurah 493:15"
+        },
+        {
+          "subgroup": "Chabad (following the Ari)",
+          "practice": "From the day after Pesach until the day before Shavuot, suspended only on Lag BaOmer.",
+          "source": "Chabad.org 'Mourning Observances of the Sefirat HaOmer Period'"
+        },
+        {
+          "subgroup": "Rav Soloveitchik's students (Modern Orthodox)",
+          "practice": "Omer mourning modelled on the twelve months for a parent; shaving permitted; private music permitted, public celebrations not.",
+          "source": "Nefesh HaRav pp. 191-2, cited by etzion.org.il and Halachipedia"
+        }
+      ],
+      "source": "Shulchan Aruch and Rema, Orach Chaim 493:1-3; Mishnah Berurah 493:6, 493:15; Aruch HaShulchan 493:4",
+      "source_url": "https://etzion.org.il/en/halakha/orach-chaim/holidays/sefirat-ha-omer-mourning-practices-during-omer",
+      "confidence": "disputed",
+      "review_notes": "Rav Moshe Feinstein forbids music during the Omer (Igrot Moshe OC 2:137) and allows changing one's set of days year to year (Igrot Moshe OC 1:159), as cited by etzion.org.il and Cong. KINS.",
+      "references": [
+        {
+          "title": "Mourning and Music in the Omer",
+          "url": "https://www.mayimachronim.com/mourning-and-music-in-the-omer/"
+        },
+        {
+          "title": "Mourning's End - Understanding Sefira and Lag B'Omer - Beyond BT",
+          "url": "https://beyondbt.com/2019/05/22/mournings-end-understanding-sefira-and-lag-bomer/"
+        }
+      ],
+      "topic_he": "תאריכי ימי האבלות",
+      "summary_he": "נמנעים מחתונות ומתספורת בחלק מימי העומר. הרמ\"א מביא שני מנהגים עיקריים, ואין לערבב קולות משני המנהגים (רמ\"א תצג:ג)."
     },
     {
       "index": "halacha.18",
-      "category": "Calendar",
-      "topic": "Purim",
-      "summary": "Purim is celebrated with public Megillah reading and communal joy.",
+      "category": "Shavuot",
+      "topic": "Dairy, greenery, night study, and the time of Kiddush",
+      "summary": "It is customary to eat dairy on the first day, originally as a dairy course followed by meat, with a separate challah. Kiddush is delayed until nightfall so the Omer weeks are 'complete'. The night is spent in Torah study.",
       "common_practices": [
-        "Read the Megillah publicly",
-        "Exchange mishloach manot and gifts to the poor",
-        "Follow local minhag on costumes, meals, and celebration",
-        "Anchor observance times to local halachic zmanim.",
-        "Coordinate fasts, selichot, and festival timing with community schedule.",
-        "Use a single trusted local calendar authority for consistency."
-      ]
+        "Dairy then meat (Rema 494:3)",
+        "Kiddush after nightfall (Magen Avraham 494:1)",
+        "All-night learning (Mishnah Berurah 494:1)"
+      ],
+      "variants": [
+        {
+          "subgroup": "Many communities",
+          "practice": "Decorating the shul with greenery.",
+          "source": "Rema OC 494:2 (as cited in NHBZ Guide to Shavuot 5786)"
+        },
+        {
+          "subgroup": "Followers of the Gra; per Aruch HaShulchan and Igrot Moshe",
+          "practice": "Refrain from greenery.",
+          "source": "Aruch HaShulchan OC 494:6; Igrot Moshe YD 4:11:5 (as cited ibid.)"
+        },
+        {
+          "subgroup": "German / Yekke",
+          "practice": "Distinct customs on the time of Arvit and Kiddush and on Tikkun Leil Shavuot are documented.",
+          "source": "Shorshei Minhag Ashkenaz synopsis, pp. 134 and 139 (chapter titles)"
+        }
+      ],
+      "source": "Rema, Orach Chaim 494:2-3; Magen Avraham 494:1, 494:6; Mishnah Berurah 494:1, 494:12",
+      "source_url": "https://jewishaction.com/religion/jewish-law/whats-the-truth-about-a-dairy-meal-on-shavuot/",
+      "confidence": "well-attested",
+      "review_notes": "Rabbi Dr. Ari Z. Zivotofsky (Jewish Action, 'What's the Truth about... a Dairy Meal on Shavuot?', 2025) labels as a 'misconception' the idea that 'it is a time-honored custom to eat a milchig (dairy) meal on Shavuot'; the original custom was a dairy appetizer before a meat meal.",
+      "topic_he": "מאכלי חלב, ירק, לימוד בלילה וזמן הקידוש",
+      "summary_he": "נהוג לאכול מאכלי חלב ביום הראשון, בתחילה כמנה חלבית ואחריה בשרית, עם חלה נפרדת. מאחרים את הקידוש עד צאת הכוכבים, כדי ששבועות העומר יהיו \"תמימות\". הלילה עובר בלימוד תורה."
     },
     {
       "index": "halacha.19",
-      "category": "Education",
-      "topic": "Torah study",
-      "summary": "Learning is central, especially in yeshiva, cheder, and home education traditions.",
+      "category": "Kashrut",
+      "topic": "Waiting between meat and dairy",
+      "summary": "The Rema records the custom of waiting one hour after a meat meal and birkat hamazon, but recommends six hours. Ashkenazi subgroups preserve different waiting times.",
       "common_practices": [
-        "Study Torah, Gemara, and halacha regularly",
-        "Teach children Hebrew and prayer",
-        "Preserve family custom through education",
-        "Teach children both baseline halacha and family minhag distinctions.",
-        "Preserve community pronunciation and liturgical pedagogy.",
-        "Document oral traditions to reduce minhag drift across generations."
-      ]
+        "Six hours, which OU Torah (R. Ari Enkin) calls 'the most widespread custom'; 'one whose family's custom is to wait six hours may not change to the three-hour or one-hour custom'",
+        "Wait after hard cheese as after meat (Rema YD 89:2)"
+      ],
+      "variants": [
+        {
+          "subgroup": "East European Ashkenazim (Litvish, Hasidic, most Modern Orthodox)",
+          "practice": "Six hours.",
+          "source": "Rema YD 89:1; Shach 89:8"
+        },
+        {
+          "subgroup": "German / Yekke (and many English communities)",
+          "practice": "Three hours.",
+          "source": "Darchei Teshuvah 89:3 as cited by dinonline.org; OU Torah outorah.org/p/237857"
+        },
+        {
+          "subgroup": "Dutch",
+          "practice": "One hour.",
+          "source": "Rema YD 89:1; OU Torah outorah.org/p/237857"
+        }
+      ],
+      "source": "Shulchan Aruch and Rema, Yoreh De'ah 89:1",
+      "source_url": "https://outorah.org/p/237857",
+      "confidence": "regional",
+      "review_notes": "OU Torah notes that many German authorities themselves required six hours, and that R. Elyashiv held all in Israel must wait six. A family custom of six should not be changed.",
+      "topic_he": "המתנה בין בשר לחלב",
+      "summary_he": "הרמ\"א מביא את המנהג להמתין שעה אחת אחרי סעודת בשר וברכת המזון, אך ממליץ על שש שעות. עדות המשנה האשכנזיות שומרות על זמני המתנה שונים."
     },
     {
       "index": "halacha.20",
-      "category": "Community",
-      "topic": "Subgroups and minhag",
-      "summary": "Ashkenazi practice includes important internal divisions such as Hasidic, Lithuanian, and modern community variants.",
+      "category": "Brit milah and pidyon haben",
+      "topic": "Brit milah customs",
+      "summary": "German custom makes a Torah binder (Wimpel) from the cloth used at the brit and later brings it to the synagogue (Schultragen). German custom also has a documented chapter on reciting She-hecheyanu at a brit. The Munkacs custom of a wide sandek's chair is reported by a secondary source.",
+      "common_practices": [],
+      "variants": [
+        {
+          "subgroup": "German / Yekke",
+          "practice": "Wimpel from the brit cloth; Schultragen; She-hecheyanu at the brit.",
+          "source": "Shorshei Minhag Ashkenaz synopsis, chapters pp. 179, 191, 206"
+        },
+        {
+          "subgroup": "Munkacs",
+          "practice": "A very wide chair so it appears as two seats, one for Eliyahu and one for the sandek.",
+          "source": "Darkei Chaim VeShalom 519, as cited by shulchanaruchharav.com 'Where the Sandek should sit'"
+        }
+      ],
+      "source": "Shorshei Minhag Ashkenaz synopsis (2010), table of contents",
+      "source_url": "https://moreshesashkenaz.org/mm/samples/ShorsheiEnglishSample.pdf",
+      "confidence": "regional",
+      "review_notes": "Munkacs item is second-hand (not opened in Darkei Chaim VeShalom itself).",
+      "references": [
+        {
+          "title": "https://moreshesashkenaz.org/mm/samples/ShorsheiEnglishSample.pdf",
+          "url": "https://moreshesashkenaz.org/mm/samples/ShorsheiEnglishSample.pdf"
+        }
+      ],
+      "topic_he": "מנהגי ברית מילה",
+      "summary_he": "במנהג גרמניה עושים וימפל (חגורת ספר תורה) מהבד ששימש בברית, ומביאים אותו מאוחר יותר לבית הכנסת (שולטראגן). במנהג גרמניה יש גם פרק מתועד על אמירת שהחיינו בברית. מנהג מונקאטש של כיסא רחב לסנדק מובא ממקור משני."
+    },
+    {
+      "index": "halacha.21",
+      "category": "Lifecycle",
+      "topic": "Upsherin (first haircut)",
+      "summary": "Many Hasidic communities leave a boy's hair uncut until his third Hebrew birthday and then hold an upsherin, leaving the peyot. The custom stems from the Ari's circle in Safed and Meron. It was never part of Minhag Ashkenaz.",
+      "common_practices": [],
+      "variants": [
+        {
+          "subgroup": "Chabad and most Hasidim",
+          "practice": "At the third Hebrew birthday; the boy then begins wearing kippah and tzitzit.",
+          "source": "Chabad.org 'The Basics of the Upsherin'; Chabad.org 'The Upsherin'"
+        },
+        {
+          "subgroup": "Ger, Skver",
+          "practice": "At age two.",
+          "source": "Mishpacha Magazine 'Upsheren' (Skver); shulchanaruchharav.com 'When to perform the Upsherinish', footnote citing Peulas Tzadik 3:236 (Gur, Skver)"
+        },
+        {
+          "subgroup": "German / Yekke",
+          "practice": "No chalaka; hair cut when needed, already within the first months.",
+          "source": "Shorshei Minhag Ashkenaz vol. 3 pp. 251-267, chapter 'Cutting A Boy's Hair Without Doing a Chalaka'"
+        },
+        {
+          "subgroup": "Chatam Sofer",
+          "practice": "Opposed the Meron chalaka.",
+          "source": "Shorshei Minhag Ashkenaz, ibid."
+        }
+      ],
+      "source": "Shorshei Minhag Ashkenaz, 'Cutting A Boy's Hair Without Doing a Chalaka (Upsherin)', pp. 212ff of the synopsis",
+      "source_url": "https://web.stevens.edu/golem/llevine/rsrh/shorshei_hair_cutting.pdf",
+      "confidence": "disputed",
+      "review_notes": "The Ger age-two custom rests on secondary sources; Peulas Tzadik was not opened.",
+      "references": [
+        {
+          "title": "The Basics of the Upsherin - A Boy's First Haircut - Chabad.org",
+          "url": "https://www.chabad.org/library/article_cdo/aid/710724/jewish/The-Basics-of-the-Upsherin.htm"
+        },
+        {
+          "title": "First Haircut",
+          "url": "https://www.kveller.com/article/first-haircut/"
+        }
+      ],
+      "topic_he": "אופשערן (תספורת ראשונה)",
+      "summary_he": "קהילות חסידיות רבות מניחות לשערו של הילד לגדול עד יום הולדתו השלישי העברי, ואז עורכות אופשערן ומשאירות את הפאות. המנהג נובע מחוגו של האר\"י בצפת ובמירון. הוא מעולם לא היה חלק ממנהג אשכנז."
+    },
+    {
+      "index": "halacha.22",
+      "category": "Weddings",
+      "topic": "Wedding-day fast and chuppah",
+      "summary": "The chatan and kallah fast on the day of their chuppah, reciting Aneinu at Mincha, as on a personal Yom Kippur. The chuppah is held under the open sky as a blessing that their descendants be as the stars. Weddings are preferably scheduled early in the month.",
       "common_practices": [
-        "Index by subgroup where possible",
-        "Record liturgy and ritual differences",
-        "Preserve local and yeshiva-derived minhagim",
-        "Prioritize communal unity where multiple minhag streams meet.",
-        "Record synagogue protocol for honors, leadership, and service flow.",
-        "Use local beit din or rabbinic authority for conflict resolution."
-      ]
+        "Fast until the chuppah",
+        "Al Chet / viduy at Mincha",
+        "Outdoor chuppah (Rema EH 61:1)",
+        "Wedding early in the month (Rema EH 64:3; SA YD 179:2)"
+      ],
+      "variants": [
+        {
+          "subgroup": "Chabad (some circles)",
+          "practice": "The father of the bride also fasts.",
+          "source": "Institute for Jewish Ideas and Ideals, 'Comparative Study of the Sephardic and Ashkenazic Wedding Ceremony'"
+        },
+        {
+          "subgroup": "German / Yekke",
+          "practice": "Chuppat tallit (tallit spread over bride and groom), throwing wheat on the couple, two chuppot on the wedding day, Mahnführen, singing for the groom in shul.",
+          "source": "Shorshei Minhag Ashkenaz synopsis, chapters pp. 143-173; R. Yaakov Kamenetsky endorsing chuppat tallit (Introduction p. 12)"
+        }
+      ],
+      "source": "Rema, Even HaEzer 61:1 and Orach Chaim 573:1; Sefer HaRokeach 353; Maharam Mintz 109",
+      "source_url": "https://www.jewishideas.org/article/comparative-study-sephardic-and-ashkenazic-wedding-ceremony",
+      "confidence": "well-attested",
+      "review_notes": "The fast is not held on days when fasting is forbidden, such as Rosh Chodesh; see Eretz Hemdah Ask the Rabbi vol. III.",
+      "references": [
+        {
+          "title": "Comparative Study of the Sephardic and Ashkenazic Wedding Ceremony",
+          "url": "https://www.jewishideas.org/article/comparative-study-sephardic-and-ashkenazic-wedding-ceremony"
+        },
+        {
+          "title": "The Wedding Day",
+          "url": "https://etzion.org.il/sites/default/files/2023-07/deracheha-wedding-day-sofi.pdf"
+        }
+      ],
+      "topic_he": "צום ביום החתונה וחופה",
+      "summary_he": "החתן והכלה צמים ביום חופתם ואומרים \"עננו\" במנחה, כמו ביום כיפור אישי. החופה נערכת תחת כיפת השמיים, כברכה שצאצאיהם יהיו ככוכבים. עדיף לקבוע חתונות בתחילת החודש."
+    },
+    {
+      "index": "halacha.23",
+      "category": "Weddings",
+      "topic": "Married women's hair (Satmar)",
+      "summary": "Former Satmar women describe a communal requirement for married women to shave their heads.",
+      "common_practices": [],
+      "variants": [
+        {
+          "subgroup": "Satmar",
+          "practice": "Head shaved after marriage, as reported in memoir accounts.",
+          "source": "The Forward, 'Ex-Hasidic Woman Marks Five Years Since She Shaved Her Head'; Frieda Vizel podcast #32"
+        }
+      ],
+      "source": "Forward (first-person essay); friedavizel.com podcast #32",
+      "source_url": "https://forward.com/culture/187128/ex-hasidic-woman-marks-five-years-since-she-shaved/",
+      "confidence": "needs-review",
+      "review_notes": "Only anecdotal accounts by former members; no Satmar halachic source found. Claims about Belz are unreliable and are excluded. Do not display without review.",
+      "topic_he": "שיער נשים נשואות (סאטמר)",
+      "summary_he": "נשים שעזבו את סאטמר מתארות דרישה קהילתית שנשים נשואות יגלחו את ראשן."
+    },
+    {
+      "index": "halacha.24",
+      "category": "Mourning",
+      "topic": "Yahrzeit",
+      "summary": "On a parent's yahrzeit the child recites Kaddish. Fasting is described by the Rema as a mitzvah. The child avoids weddings and similar music celebrations.",
+      "common_practices": [
+        "Kaddish on the yahrzeit day itself (not the preceding Shabbat)",
+        "Avoid weddings and sheva berachot on the yahrzeit (Darkhei Moshe YD 391:3; Shach and Taz agree for every year)",
+        "Fast not observed on Rosh Chodesh (Chochmat Adam 171:11)"
+      ],
+      "variants": [
+        {
+          "subgroup": "Ashkenazim generally",
+          "practice": "Kaddish only on the yahrzeit day.",
+          "source": "shulchanaruchharav.com 'Chapter 28: The Yartzite', citing Rema YD 376:4"
+        },
+        {
+          "subgroup": "Contemporary practice",
+          "practice": "Fasting on the yahrzeit is no longer common.",
+          "source": "shulchanaruchharav.com, ibid.; Chabad.org 'Yahrzeit Prayers'"
+        }
+      ],
+      "source": "Rema, Yoreh De'ah 376:4 (Kaddish, citing Maharil); Rema YD 376:4/402:12 (fast); Darkhei Moshe YD 391:3",
+      "source_url": "https://rabbikaganoff.com/fasting-and-feasting-on-a-yahrtzeit/",
+      "confidence": "disputed",
+      "review_notes": "Sources number the fast passage differently (Kaganoff: 376:5 and 402:12); verify the seif. Sources differ on whether fasting is still the practice.",
+      "topic_he": "יארצייט",
+      "summary_he": "ביום היארצייט של הורה הילד אומר קדיש. הרמ\"א מתאר את הצום כמצווה. הילד נמנע מחתונות ומשמחות דומות שיש בהן מוזיקה."
+    },
+    {
+      "index": "halacha.25",
+      "category": "Distinctive customs",
+      "topic": "Nittel Nacht",
+      "summary": "Many Hasidic communities refrain from Torah study on Christmas eve (Nittel). Munkacs sources also limit marital relations that night, with leniency after midnight on a mikveh night.",
+      "common_practices": [],
+      "variants": [
+        {
+          "subgroup": "Munkacs",
+          "practice": "No Torah study on Nittel; marital relations avoided (lenient after midnight on mikveh night).",
+          "source": "Darkei Chaim VeShalom 825, 828, as cited by shulchanaruchharav.com 'Custom of Nittle Nacht'"
+        }
+      ],
+      "source": "Darkei Chaim VeShalom 825, 828 (as cited by a secondary source)",
+      "source_url": "https://shulchanaruchharav.com/custom-of-nittle-nacht/",
+      "confidence": "needs-review",
+      "review_notes": "Second-hand section numbers only; other courts' practice (e.g. Chabad) not sourced here.",
+      "topic_he": "ניטל נאכט",
+      "summary_he": "קהילות חסידיות רבות נמנעות מלימוד תורה בערב חג המולד (ניטל). מקורות מונקאטש מגבילים גם תשמיש המיטה באותו לילה, ומקלים אחרי חצות בליל טבילה."
+    },
+    {
+      "index": "halacha.26",
+      "category": "Calendar",
+      "topic": "New Year greetings from 15 Av",
+      "summary": "Munkacs sources say one begins wishing 'Leshana Tova' from the 15th of Av.",
+      "common_practices": [],
+      "variants": [
+        {
+          "subgroup": "Munkacs",
+          "practice": "Leshana Tova greetings from Tu B'Av.",
+          "source": "Darkei Chaim VeShalom 684 and Shaar Yisachar, as cited by shulchanaruchharav.com 'Customs of Elul'"
+        }
+      ],
+      "source": "Darkei Chaim VeShalom 684 (as cited by a secondary source)",
+      "source_url": "https://shulchanaruchharav.com/customs-of-elul",
+      "confidence": "needs-review",
+      "review_notes": "Single secondary source.",
+      "topic_he": "ברכות לשנה החדשה מט\"ו באב",
+      "summary_he": "מקורות מונקאטש אומרים שמתחילים לאחל \"לשנה טובה\" מט\"ו באב."
     }
   ],
-  "unique_minhagim": {
-    "examples": [
-      "Avoidance of kitniyot on Pesach",
-      "Different nusach traditions such as Ashkenaz and Sfard",
-      "Strong yahrzeit and Yizkor memorial culture",
-      "Distinct wedding customs such as bedeken in some communities"
-    ],
-    "notes": "Ashkenazi practice is extremely diverse and should be indexed by subgroup and location."
-  },
-  "source_registry": {
-    "primary": [
-      "Rema",
-      "Mishnah Berurah",
-      "Aruch HaShulchan",
-      "Chayei Adam"
-    ],
-    "secondary": [
-      "Ashkenazi community siddurim and minhag guides",
-      "Jewish studies reference works",
-      "Genealogical and shtetl records"
-    ]
-  }
+  "unique_minhagim": [
+    {
+      "name": "Wimpel and Schultragen",
+      "description": "A Torah binder sewn from the cloth used at a boy's brit, later brought by the child to the synagogue (Schultragen) and used to wrap the Sefer Torah.",
+      "when": "Brit, then the child's first visit to shul",
+      "source": "Shorshei Minhag Ashkenaz synopsis, pp. 191, 206",
+      "source_url": "https://moreshesashkenaz.org/mm/samples/ShorsheiEnglishSample.pdf",
+      "confidence": "regional",
+      "name_he": "וימפל ושולטראגן",
+      "description_he": "חגורת ספר תורה התפורה מהבד ששימש בברית של בן, שהילד מביא אותה מאוחר יותר לבית הכנסת (שולטראגן) והיא משמשת לעטיפת ספר התורה."
+    },
+    {
+      "name": "Breslov Rosh Hashana kibbutz",
+      "description": "Gathering of Breslov Hasidim at R. Nachman's grave in Uman, organized by R. Nosson from 1811.",
+      "when": "Rosh Hashana",
+      "source": "Breslov.org, 'The Road to Uman # 1'",
+      "source_url": "https://breslov.org/the-road-to-uman-1/",
+      "confidence": "regional",
+      "name_he": "הקיבוץ של ראש השנה בברסלב",
+      "description_he": "התכנסות של חסידי ברסלב על קבר רבי נחמן באומן, שרבי נתן ארגן מאז 1811."
+    },
+    {
+      "name": "Moshiach's Seudah",
+      "description": "Festive meal on the last day of Pesach focused on the future redemption, with gebrokts eaten deliberately.",
+      "when": "Acharon shel Pesach",
+      "source": "Chabad.org, 'Eighth Day: Gebrokts and Moshiach's Feast'",
+      "source_url": "https://www.chabad.org/holidays/passover/pesach_cdo/aid/2565785/jewish/Eighth-Day-Gebrokts-and-Moshiachs-Feast.htm",
+      "confidence": "regional",
+      "name_he": "סעודת משיח",
+      "description_he": "סעודה חגיגית באחרון של פסח, המוקדשת לגאולה העתידה, שבה אוכלים גברוקטס במכוון."
+    },
+    {
+      "name": "Upsherin",
+      "description": "First haircut ceremony leaving the peyot, at age three (age two in Ger and Skver); not practiced in Minhag Ashkenaz.",
+      "when": "Third (or second) Hebrew birthday",
+      "source": "Chabad.org 'The Basics of the Upsherin'; Shorshei Minhag Ashkenaz vol. 3 pp. 251-267",
+      "source_url": "https://www.chabad.org/library/article_cdo/aid/710724/jewish/The-Basics-of-the-Upsherin.htm",
+      "confidence": "disputed",
+      "name_he": "אופשערן",
+      "description_he": "טקס התספורת הראשונה שבו משאירים את הפאות, בגיל שלוש (בגיל שנתיים בגור ובסקווירא). אינו נהוג במנהג אשכנז."
+    },
+    {
+      "name": "Chuppat tallit",
+      "description": "Spreading a tallit over the bride and groom under the chuppah, a German custom R. Yaakov Kamenetsky called 'definitely proper to follow'.",
+      "when": "Wedding",
+      "source": "Shorshei Minhag Ashkenaz synopsis, Introduction p. 12 and chapter p. 167",
+      "source_url": "https://moreshesashkenaz.org/mm/samples/ShorsheiEnglishSample.pdf",
+      "confidence": "regional",
+      "name_he": "חופת טלית",
+      "description_he": "פריסת טלית מעל החתן והכלה תחת החופה, מנהג גרמני שרבי יעקב קמניצקי כינה \"ראוי בהחלט ללכת אחריו\"."
+    }
+  ],
+  "source_registry": [
+    {
+      "title": "Shulchan Arukh, Orach Chayim 31:2 (with Rema)",
+      "author": "R. Yosef Karo; R. Moshe Isserles",
+      "type": "primary",
+      "url": "https://www.sefaria.org/Shulchan_Arukh,_Orach_Chayim.31.2",
+      "used_for": "Tefillin on Chol HaMoed"
+    },
+    {
+      "title": "Shorshei Minhag Ashkenaz, Synopsis of Volumes I-IV",
+      "author": "R. Binyomin Shlomo Hamburger, Machon Moreshes Ashkenaz, 2010",
+      "type": "academic",
+      "url": "https://moreshesashkenaz.org/mm/samples/ShorsheiEnglishSample.pdf",
+      "used_for": "German customs; Chatam Sofer OC 16"
+    },
+    {
+      "title": "Shorshei Minhag Ashkenaz, 'Cutting A Boy's Hair Without Doing a Chalaka'",
+      "author": "R. Binyomin Shlomo Hamburger",
+      "type": "academic",
+      "url": "https://web.stevens.edu/golem/llevine/rsrh/shorshei_hair_cutting.pdf",
+      "used_for": "Upsherin"
+    },
+    {
+      "title": "Kitniyot on Passover (source sheet)",
+      "author": "Sefaria",
+      "type": "reference",
+      "url": "https://www.sefaria.org/Sheet.32416",
+      "used_for": "Rema OC 453:1"
+    },
+    {
+      "title": "Sefirat Ha-Omer: Mourning Practices During the Omer",
+      "author": "Yeshivat Har Etzion (VBM)",
+      "type": "reference",
+      "url": "https://etzion.org.il/en/halakha/orach-chaim/holidays/sefirat-ha-omer-mourning-practices-during-omer",
+      "used_for": "Omer dates"
+    },
+    {
+      "title": "Candle Lighting Time",
+      "author": "R. Ari Enkin, OU Torah",
+      "type": "reference",
+      "url": "https://outorah.org/p/34953/",
+      "used_for": "Candle-lighting offsets"
+    },
+    {
+      "title": "Tefillin on Chol Hamoed",
+      "author": "R. Chaim Jachter, Kol Torah",
+      "type": "reference",
+      "url": "https://www.koltorah.org/halachah/tefillin-on-chol-hamoed-by-rabbi-howard-jachter",
+      "used_for": "Tefillin variants"
+    },
+    {
+      "title": "Washing Before Kiddush: Just For Yekkes?",
+      "author": "JewishPress",
+      "type": "reference",
+      "url": "https://jewishpress.com/judaism/halacha-hashkafa/washing-before-kiddush-just-for-yekkes/2019/09/05/",
+      "used_for": "German Kiddush"
+    },
+    {
+      "title": "Sitting in the Sukkah on Shemini Atzeres",
+      "author": "R. Moishe Dovid Lebovits, Halachically Speaking",
+      "type": "reference",
+      "url": "https://thehalacha.com/wp-content/uploads/Vol13Issue17.pdf",
+      "used_for": "Hasidic sukkah custom"
+    },
+    {
+      "title": "Gebrokts: Wetted Matzah",
+      "author": "Yehuda Shurpin, Chabad.org",
+      "type": "reference",
+      "url": "https://www.chabad.org/holidays/passover/pesach_cdo/aid/265990/jewish/Gebrokts-Wetted-Matzah.htm",
+      "used_for": "Gebrokts"
+    },
+    {
+      "title": "What's the Truth about a Dairy Meal on Shavuot?",
+      "author": "Jewish Action",
+      "type": "reference",
+      "url": "https://jewishaction.com/religion/jewish-law/whats-the-truth-about-a-dairy-meal-on-shavuot/",
+      "used_for": "Shavuot dairy"
+    },
+    {
+      "title": "Waiting Between Meat and Dairy",
+      "author": "OU Torah",
+      "type": "reference",
+      "url": "https://outorah.org/p/237857",
+      "used_for": "6/3/1 hours"
+    },
+    {
+      "title": "Comparative Study of the Sephardic and Ashkenazic Wedding Ceremony",
+      "author": "Institute for Jewish Ideas and Ideals",
+      "type": "academic",
+      "url": "https://www.jewishideas.org/article/comparative-study-sephardic-and-ashkenazic-wedding-ceremony",
+      "used_for": "Wedding fast"
+    },
+    {
+      "title": "Fasting and Feasting on a Yahrtzeit",
+      "author": "R. Yirmiyohu Kaganoff",
+      "type": "reference",
+      "url": "https://rabbikaganoff.com/fasting-and-feasting-on-a-yahrtzeit/",
+      "used_for": "Yahrzeit"
+    },
+    {
+      "title": "The Road to Uman # 1",
+      "author": "Breslov Research Institute",
+      "type": "reference",
+      "url": "https://breslov.org/the-road-to-uman-1/",
+      "used_for": "Uman"
+    },
+    {
+      "title": "Custom of Nittle Nacht (and related pages)",
+      "author": "shulchanaruchharav.com",
+      "type": "reference",
+      "url": "https://shulchanaruchharav.com/custom-of-nittle-nacht/",
+      "used_for": "Munkacs citations"
+    }
+  ],
+  "gaps": [
+    "Kabbalat Shabbat order and Lecha Dodi customs by subgroup",
+    "Havdalah customs (e.g. spices, candle) by subgroup",
+    "Shabbat seudot and seudah shlishit customs",
+    "Order of the day of Rosh Hashana, including the German shofar sounds and Musaf blowing (Shorshei Minhag Ashkenaz has chapters on these, but no sourced content is recorded here)",
+    "Yom Kippur (kittel, kapparot, Kol Nidrei customs) - no subgroup-specific source opened",
+    "Hoshana Rabba customs",
+    "Purim customs beyond the German She-hecheyanu chapter",
+    "Seder customs (kittel, matzah shape, machine vs hand matzah by subgroup)",
+    "Post-Pesach Mimouna-type custom: none documented for Ashkenazim",
+    "Fasts and Tisha B'Av customs by subgroup",
+    "Tzitzit customs (techelet, number of windings, Chabad vs others)",
+    "Torah reading trope and pronunciation beyond the German cholam",
+    "Pidyon haben",
+    "Bar mitzvah and bat mitzvah customs",
+    "Niddah and mikveh customs by subgroup",
+    "Burial, shiva and tombstone customs",
+    "Baruch Hashem Le'olam in weekday Maariv (only a Wikipedia lead found)",
+    "Belz, Vizhnitz and Bobov court-specific minhagim (minhag books not reachable)",
+    "Ger and Belz positions on sukkah on Shemini Atzeret and gebrokts",
+    "Shtreimel and hat customs"
+  ],
+  "disputes": [
+    "Tefillin on Chol HaMoed: Shulchan Aruch forbids; Rema wears with beracha; Taz without beracha; Gra, Hasidim and all of Eretz Yisrael do not wear.",
+    "Omer mourning dates: Pesach to Lag BaOmer vs Rosh Chodesh Iyar to Shavuot vs Rosh Chodesh Iyar to 3 Sivan vs entire Omer except Lag BaOmer (Chabad); Soloveitchik permits shaving and private music, Igrot Moshe forbids music.",
+    "Sukkah on Shemini Atzeret: Shulchan Aruch and Chabad eat everything in the sukkah; many Hasidim make Kiddush only or do not eat there.",
+    "Meat-to-dairy wait: six hours (Rema's recommendation, majority) vs three (German) vs one (Dutch, Rema's base custom).",
+    "Shavuot greenery: Rema endorses; Aruch HaShulchan and Igrot Moshe report refraining (Gra).",
+    "Yahrzeit fast: Rema calls it a mitzvah; contemporary sources say it is no longer customary.",
+    "Upsherin: age three (Chabad, most Hasidim) vs age two (Ger, Skver) vs not practiced (Minhag Ashkenaz, Chatam Sofer opposed the Meron chalaka)."
+  ],
+  "needs_rabbinic_review": [
+    "Satmar head-shaving after marriage (anecdotal sources only)",
+    "Ger upsherin at age two (secondary sources; Peulas Tzadik 3:236 not opened)",
+    "All Munkacs entries drawn second-hand from Darkei Chaim VeShalom section numbers",
+    "German customs known only from chapter titles in Shorshei Minhag Ashkenaz (Purim She-hecheyanu, first-night Hallel)",
+    "Exact seif numbering of the Rema on yahrzeit fasting (YD 376:4 vs 376:5 and 402:12)",
+    "Chabad hakafot on Shemini Atzeret night (single source)"
+  ]
 }

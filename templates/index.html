@@ -122,7 +122,7 @@
     <script type="importmap">{{ module_import_map | tojson }}</script>
     <script src="/static/js/topbar_shared.js?v=20260925-l10"></script>
     <script src="/static/js/hebrew-ref.js?v=20260925-v2"></script>
-    <script src="/static/js/community-labels.js?v=20260925-v1"></script>
+    <script src="/static/js/community-labels.js?v=20261004-v2"></script>
     <!-- window.ShelahLoadRegion: how async regions load, fail and retry (audit L-8). -->
     <script src="/static/js/load-region.js?v=20260926-l8"></script>
     <!-- DaisyUI component library (non-destructive — adds .btn, .card etc. utility classes) -->
@@ -144,7 +144,7 @@
     <link rel="stylesheet" href="/static/style.css?v=20261003-s9">
     <!-- CSS modules (supplement style.css; do not replace) -->
     <link rel="stylesheet" href="/static/css/typography.css?v=20260817-v6">
-    <link rel="stylesheet" href="/static/css/reader.css?v=20260930-rd11">
+    <link rel="stylesheet" href="/static/css/reader.css?v=20261004-rd12">
     <link rel="stylesheet" href="/static/css/sidebar.css?v=20260930-sb3">
     <link rel="stylesheet" href="/static/css/halacha.css?v=20260817-v6">
     <link rel="stylesheet" href="/static/css/prayer.css?v=20260930-v7">
@@ -3599,9 +3599,11 @@
                             ? item.common_practices.map(p => `<li class="ml-4 list-disc text-slate-600">${escapeHtml(p)}</li>`).join('')
                             : '';
                         html += `<div class="border border-slate-200 rounded-lg p-3 bg-white hover:bg-slate-50 transition">
-                            <p class="font-semibold text-navy text-sm" dir="auto">${escapeHtml(communityLabelText(item.topic))}</p>
-                            ${item.summary ? `<p class="text-slate-600 text-sm mt-1">${escapeHtml(item.summary)}</p>` : ''}
-                            ${practices ? `<ul class="text-sm mt-2 space-y-1">${practices}</ul>` : ''}
+                            <p class="font-semibold text-navy text-sm" dir="auto">${escapeHtml(isHebrewMode() && item.topic_he ? String(item.topic_he).trim() : communityLabelText(item.topic))}${communityConfidenceChip(item.confidence)}</p>
+                            ${communityText(item, 'summary') ? `<p class="text-slate-600 text-sm mt-1" dir="auto">${escapeHtml(communityText(item, 'summary'))}</p>` : ''}
+                            ${communityRabbiNote(item.confidence)}
+                            ${practices ? `<ul class="text-sm mt-2 space-y-1" dir="auto">${practices}</ul>` : ''}
+                            ${communityVariantsHtml(item.variants)}
                         </div>`;
                     });
                     html += `</div></div>`;
@@ -11688,8 +11690,8 @@
                 clearCompareReference(false);
                 document.getElementById('readerSources').innerHTML = '';
 
-                const majorSources = Array.isArray(communityData?.raw_data?.source_registry?.primary)
-                    ? communityData.raw_data.source_registry.primary.slice(0, 4).join(', ')
+                const majorSources = Array.isArray(communityData?.major_authorities)
+                    ? communityData.major_authorities.slice(0, 4).join(', ')
                     : '';
 
                 sidebarContent.innerHTML = `
@@ -11744,6 +11746,107 @@
             return labels ? labels.sourceList(text, lang) : String(text || '').trim();
         }
 
+        // A "weigh this" chip for entries the research marked disputed, regional
+        // or thinly sourced. Words, not colour alone; well-attested shows none.
+        function communityConfidenceChip(confidence) {
+            const info = window.ShelahCommunityLabels?.confidence(confidence, isHebrewMode() ? 'he' : 'en');
+            if (!info) return '';
+            return `<span class="community-confidence" data-confidence="${escapeHtml(info.key)}" title="${escapeHtml(info.hint)}">${escapeHtml(info.label)}</span>`;
+        }
+
+        // The line under a disputed, regional or thinly sourced entry: rabbis rule
+        // differently, so the reader asks their own. Nothing for well-attested.
+        function communityRabbiNote(confidence) {
+            const info = window.ShelahCommunityLabels?.confidence(confidence, isHebrewMode() ? 'he' : 'en');
+            if (!info) return '';
+            return `<p class="community-rabbi-note" data-confidence="${escapeHtml(info.key)}" dir="auto">${escapeHtml(info.note)}</p>`;
+        }
+
+        // The hand-written Hebrew of a field ("topic_he") in Hebrew mode; the English otherwise or when there is none.
+        function communityText(item, field) {
+            const english = String(item?.[field] ?? '').trim();
+            if (!isHebrewMode()) return english;
+            return String(item?.[`${field}_he`] ?? '').trim() || english;
+        }
+
+        // Subgroup differences: "Turkish: no rice." One line each.
+        function communityVariantsHtml(variants) {
+            const rows = (Array.isArray(variants) ? variants : [])
+                .filter((v) => v && typeof v === 'object' && String(v.practice || '').trim())
+                .map((v) => {
+                    const subgroup = String(v.subgroup || '').trim();
+                    return `<li>${subgroup ? `<span class="font-semibold">${escapeHtml(subgroup)}:</span> ` : ''}${escapeHtml(String(v.practice).trim())}</li>`;
+                });
+            if (!rows.length) return '';
+            return `<div class="community-variants">
+                <p class="community-subhead">${t('Where communities differ', 'הבדלים בין עדות')}</p>
+                <ul class="list-disc ml-5 text-slate-600 text-sm space-y-1" dir="auto">${rows.join('')}</ul>
+            </div>`;
+        }
+
+        function communityExternalLink(url, text) {
+            const href = safeHref(url);
+            if (href === '#') return escapeHtml(text);
+            return `<a class="community-link" href="${href}" target="_blank" rel="noopener noreferrer">${escapeHtml(text)}<span class="sr-only"> ${t('(opens in a new tab)', '(נפתח בלשונית חדשה)')}</span></a>`;
+        }
+
+        // "Source: X" (linked when the entry names the page it came from), then
+        // up to three further references that are not the same page.
+        function communitySourceHtml(item) {
+            const source = communitySourceText(item.source);
+            const sourceUrl = String(item.source_url || '').trim();
+            const refs = (Array.isArray(item.references) ? item.references : [])
+                .filter((r) => r && r.url && r.title && String(r.url).trim() !== sourceUrl)
+                .slice(0, 3);
+            if (!source && !refs.length) return '';
+            const parts = [];
+            if (source) {
+                parts.push(`<span class="font-semibold">${t('Source:', 'מקור:')}</span> ${sourceUrl ? communityExternalLink(sourceUrl, source) : escapeHtml(source)}`);
+            }
+            if (refs.length) {
+                parts.push(`<span class="font-semibold">${t('Also:', 'ראו גם:')}</span> ${refs.map((r) => communityExternalLink(r.url, r.title)).join(' · ')}`);
+            }
+            return `<p class="text-slate-500 text-xs mt-1" dir="auto">${parts.join(' &nbsp;|&nbsp; ')}</p>`;
+        }
+
+        // "Disputes" and "gaps" from the research: what sources disagree on, and
+        // what this page does not (yet) document. Collapsed; native <details>.
+        function communityNotesHtml(communityData) {
+            const block = (title, items, intro = '') => items.length
+                ? `<details class="community-notes">
+                        <summary>${escapeHtml(title)} <span class="community-notes-count">(${items.length})</span></summary>
+                        ${intro ? `<p class="community-rabbi-note" dir="auto">${escapeHtml(intro)}</p>` : ''}
+                        <ul class="list-disc ml-5 text-slate-600 text-sm space-y-1" dir="auto">${items.map((x) => `<li>${escapeHtml(x)}</li>`).join('')}</ul>
+                   </details>`
+                : '';
+            const list = (value) => (Array.isArray(value) ? value : []).map((x) => String(x || '').trim()).filter(Boolean);
+            const html = block(t('Where sources disagree', 'היכן המקורות חלוקים'), list(communityData?.disputes),
+                    t('Rabbis differ on these points. Each rabbi gives their own answer, so ask your own rabbi.',
+                      'רבנים חלוקים בנקודות אלה. כל רב משיב על פי הכרעתו, ולכן שאלו את הרב שלכם.'))
+                + block(t('Not yet documented', 'עדיין לא מתועד'), list(communityData?.gaps));
+            return html ? `<div class="prayer-clean-row py-2"><div class="prayer-clean-en" dir="ltr">${html}</div></div>` : '';
+        }
+
+        function communityDistinctiveHtml(communityData) {
+            const items = (Array.isArray(communityData?.distinctive_customs) ? communityData.distinctive_customs : [])
+                .filter((c) => c && c.name);
+            if (!items.length) return '';
+            const rows = items.map((c) => `
+                <div class="prayer-clean-row border-b border-slate-200 last:border-b-0 py-2">
+                    <div class="prayer-clean-en" dir="ltr">
+                        <div class="font-semibold text-slate-800" dir="auto">${escapeHtml(communityText(c, 'name'))}${communityConfidenceChip(c.confidence)}</div>
+                        ${communityText(c, 'description') ? `<p class="text-slate-700 mt-1" dir="auto">${escapeHtml(communityText(c, 'description'))}</p>` : ''}
+                        ${communityRabbiNote(c.confidence)}
+                        ${c.when ? `<p class="text-slate-500 text-xs mt-1" dir="auto"><span class="font-semibold">${t('When:', 'מתי:')}</span> ${escapeHtml(c.when)}</p>` : ''}
+                        ${communitySourceHtml(c)}
+                    </div>
+                </div>`).join('');
+            return `
+                <div class="prayer-clean-row border-b border-slate-200 py-2">
+                    <div class="prayer-clean-en" dir="ltr"><h3 class="font-bold text-slate-800" dir="auto">${t('Distinctive customs', 'מנהגים ייחודיים')}</h3></div>
+                </div>${rows}`;
+        }
+
         function renderCommunityContent(communityData) {
             const communityName = String(communityData?.name || '').trim();
             const communityLabel = getCommunityDisplayName(communityName);
@@ -11782,9 +11885,10 @@
                 entries.forEach((item) => {
                     const category = String(item.category || '').trim();
                     const topic = String(item.topic || '').trim();
-                    const title = [category, topic].filter(Boolean).map(communityLabelText).join(': ') || t('Custom Entry', 'פריט מנהג');
-                    const ruling = String(item.ruling || '').trim();
-                    const source = communitySourceText(item.source);
+                    const topicHe = isHebrewMode() ? String(item.topic_he || '').trim() : '';
+                    const title = [category && communityLabelText(category), topicHe || (topic && communityLabelText(topic))]
+                        .filter(Boolean).join(': ') || t('Custom Entry', 'פריט מנהג');
+                    const ruling = communityText(item, 'ruling');
                     const practices = Array.isArray(item.common_practices)
                         ? item.common_practices.map((entry) => String(entry || '').trim()).filter(Boolean)
                         : [];
@@ -11792,17 +11896,22 @@
                     rows += `
                         <div class="prayer-clean-row border-b border-slate-200 last:border-b-0 py-2">
                             <div class="prayer-clean-en" dir="ltr">
-                                <div class="font-semibold text-slate-800 capitalize" dir="auto">${escapeHtml(title)}</div>
-                                ${ruling ? `<p class="text-slate-700 mt-1">${escapeHtml(ruling)}</p>` : ''}
-                                ${source ? `<p class="text-slate-500 text-xs mt-1" dir="auto"><span class="font-semibold">${t('Source:', 'מקור:')}</span> ${escapeHtml(source)}</p>` : ''}
+                                <div class="font-semibold text-slate-800" dir="auto">${escapeHtml(title)}${communityConfidenceChip(item.confidence)}</div>
+                                ${ruling ? `<p class="text-slate-700 mt-1" dir="auto">${escapeHtml(ruling)}</p>` : ''}
+                                ${communityRabbiNote(item.confidence)}
+                                ${communitySourceHtml(item)}
                                 ${practices.length
-                            ? `<ul class="list-disc ml-5 text-slate-600 text-sm space-y-1 mt-2">${practices.map((entry) => `<li>${escapeHtml(entry)}</li>`).join('')}</ul>`
+                            ? `<ul class="list-disc ml-5 text-slate-600 text-sm space-y-1 mt-2" dir="auto">${practices.map((entry) => `<li>${escapeHtml(entry)}</li>`).join('')}</ul>`
                             : ''}
+                                ${communityVariantsHtml(item.variants)}
                             </div>
                         </div>
                     `;
                 });
             }
+
+            rows += communityDistinctiveHtml(communityData);
+            rows += communityNotesHtml(communityData);
 
             return `<div class="prayer-clean-lines">${rows}</div>`;
         }

@@ -1,8 +1,10 @@
 /**
  * Hebrew names for the community-customs data (customs/*.json), which is
- * written in English: the categories, topics, source authorities and origin
- * lines the customs page and modal show as titles. Rulings and practice lists
- * are prose and stay as written.
+ * written in English: the categories, source authorities and origin lines the
+ * customs page and modal show as titles, and the confidence chips. Rulings and
+ * practice lists are prose and stay as written. Topic titles are free-form
+ * research headings: the older ones below keep a Hebrew name, the rest show
+ * as written (label() falls back to the English).
  *
  * Loaded as a plain classic <script> before index.html's inline script, which
  * reads window.ShelahCommunityLabels; node tests require() it.
@@ -25,6 +27,19 @@
         shabbat: 'שבת',
         tefillin: 'תפילין',
         tzitzit: 'ציצית',
+        'authority and sources': 'סמכות ומקורות',
+        'brit milah and pidyon haben': 'ברית מילה ופדיון הבן',
+        'distinctive customs': 'מנהגים ייחודיים',
+        "fasts and tisha b'av": 'תעניות ותשעה באב',
+        festivals: 'מועדים',
+        omer: 'ספירת העומר',
+        'rosh hashana': 'ראש השנה',
+        shavuot: 'שבועות',
+        'status and rabbinate': 'מעמד ורבנות',
+        sukkot: 'סוכות',
+        'tefillin and tzitzit': 'תפילין וציצית',
+        weddings: 'חתונות',
+        'yom kippur': 'יום כיפור',
 
         // Topics
         avelut: 'אבלות',
@@ -202,7 +217,40 @@
         return raw.split(/\s*,\s*/).filter(Boolean).map((part) => label(part, lang)).join(', ');
     }
 
-    const api = { he, label, sourceList };
+    // The confidence chip and the line under the entry. "well-attested" (and
+    // anything unrecognised) shows neither: they mark entries a reader should
+    // weigh, in words, not colour. Each note sends the reader to their own
+    // rabbi, because different rabbis rule differently.
+    const CONFIDENCE = {
+        disputed: {
+            en: ['Disputed', 'Rabbis and sources differ on this.',
+                'Rabbis differ on this. Each rabbi gives their own answer, so ask your own rabbi.'],
+            he: ['שנוי במחלוקת', 'רבנים ומקורות חלוקים בנושא זה.',
+                'רבנים חלוקים בנושא זה. כל רב משיב על פי הכרעתו, ולכן שאלו את הרב שלכם.'],
+        },
+        regional: {
+            en: ['Regional', 'Applies to some places or subgroups only.',
+                'This is not the custom everywhere. Ask your own rabbi which custom applies to you.'],
+            he: ['מקומי', 'נוהג רק בחלק מהמקומות או מעדות המשנה.',
+                'אין זה המנהג בכל מקום. שאלו את הרב שלכם איזה מנהג חל עליכם.'],
+        },
+        'needs-review': {
+            en: ['Needs review', 'Thinly sourced; not yet confirmed by a second source.',
+                'This rests on little source material. Ask your own rabbi before relying on it.'],
+            he: ['טעון בדיקה', 'מבוסס על מקור דל; טרם אושר במקור נוסף.',
+                'הדבר מבוסס על מקורות מועטים. שאלו את הרב שלכם לפני שתסמכו עליו.'],
+        },
+    };
+
+    // {key, label, hint, note} in the UI language, or null when nothing is shown.
+    function confidence(value, lang) {
+        const key = String(value ?? '').trim().toLowerCase().replace(/[\s_]+/g, '-');
+        if (!Object.prototype.hasOwnProperty.call(CONFIDENCE, key)) return null;
+        const [text, hint, note] = CONFIDENCE[key][lang === 'he' ? 'he' : 'en'];
+        return { key, label: text, hint, note };
+    }
+
+    const api = { he, label, sourceList, confidence };
 
     if (typeof module !== 'undefined' && module.exports) {
         module.exports = api;

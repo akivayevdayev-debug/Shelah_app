@@ -1,436 +1,1121 @@
 {
-  "version": "2.0",
+  "version": "3.0",
   "type": "academic_halachic_reference",
   "heritage_id": "bukharan",
   "name": "Bukharan",
   "aliases": [
     "Bukhari",
     "Bukharian",
-    "Bukharian Jews"
+    "Bukharian Jews",
+    "Bukharan Jews",
+    "Bukharim",
+    "Bokharan Jews",
+    "Central Asian Jews",
+    "Yahudi",
+    "Isroel (self-designation)"
   ],
   "database_scope": {
-    "purpose": "Academic and halachic reference database for Bukharan Jewish heritage, minhagim, and halachic practice.",
-    "coverage_note": "This file models broad Bukharan practice and includes common halachic domains. Local customs vary by city, family, rabbinic lineage, and migration history.",
-    "classification_note": "Bukharan Jewish tradition is a Central Asian Jewish heritage with strong Persian, Turkish, and regional influence, while remaining broadly within a traditional halachic framework."
+    "purpose": "Sourced reference for Bukharan minhagim and halachic practice. It records what the cited sources say, with a confidence level for each entry, and is not a psak.",
+    "coverage_note": "29 sourced topics and 7 distinctive customs, compiled from the cited sources in October 2026. Each entry carries a confidence level (well-attested, disputed, regional, needs-review). 20 topics have no community-specific source and are listed under 'gaps' rather than filled with generic text."
   },
   "identity": {
-    "primary_origin": "Central Asia, especially the historic Jewish communities of Bukhara and surrounding regions",
+    "primary_origin": "Bukhara and the Emirate of Bukhara in Central Asia",
     "secondary_centers": [
-      "Bukhara",
       "Samarkand",
       "Tashkent",
-      "Central Asian diaspora communities",
-      "Israel",
-      "New York",
-      "Other urban diaspora centers"
-    ],
-    "cultural_profile": [
-      "Strong communal continuity and family networks",
-      "Central Asian liturgical and musical traditions",
-      "Distinctive foodways and festival customs",
-      "Preservation of local identity across migration"
+      "Jerusalem (the Bukharim quarter, founded in 1891) and the rest of Israel",
+      "Queens, New York (Forest Hills, Rego Park, Kew Gardens Hills)"
     ]
   },
   "languages": [
-    "Bukhari",
-    "Hebrew",
-    "Russian",
-    "Uzbek in some historical settings",
-    "Tajik in some historical settings"
+    "Judeo-Tajik (Bukhari): the language of the community's law code, Likutei Dinim (1900)",
+    "Judeo-Persian: the older tafsir literature studied in Bukhara, such as a tafsir of Pirkei Avot"
   ],
-  "genealogy": {
-    "common_surname_patterns": [
-      "Names tied to towns or regions",
-      "Patronymic surnames",
-      "Persian or Turkic-root names adapted over time",
-      "Russified spellings during the Soviet period"
-    ],
-    "research_notes": [
-      "Surname spellings may vary substantially across transliteration systems.",
-      "Migration records are often as important as surnames.",
-      "Family oral history and community membership can be crucial to identification."
-    ],
-    "recommended_genealogy_fields": [
-      "surname",
-      "alternate_spellings",
-      "town_of_origin",
-      "community_branch",
-      "migration_route",
-      "language_used",
-      "ritual_minhag"
-    ]
-  },
+  "subgroups": [
+    {
+      "name": "Bukhara (Emirate of Bukhara / historical Central Asia)",
+      "note": "Historic center from the 16th century. Jewish quarters were Mahalla-ye Kohna, Mahalla-ye Now and Amirabad. Rabbi Yosef Maman's reforms began here; he arrived in 1793 and, according to the Jewish Virtual Library, 'served the Bukharan Jews for thirty years, until he died in 1823.' The community was led by a kalantar (chief administrator) and a molla-ye kalan (chief rabbi). The Jewish Virtual Library reports that Bukhara today has 'only 100 to 150 Jews, but probably no more than five families who keep kosher and follow Jewish traditions.'"
+    },
+    {
+      "name": "Samarkand",
+      "note": "Largest concentration of Central Asian Jews in the 1926 Soviet census (7,740). Chabad influence dates from 1897, when R. Shlomo Yehuda Leib Eliezerov settled there and founded a cheder and yeshiva in Samarkand and Tashkent (CrownHeights.info; Chabad.org dates his arrival to 1890). At least one documented Samarkand synagogue prayed in the Bukharian nusach but followed Chabad customs such as reciting all of Tehillim on Shabbat Mevarchim."
+    },
+    {
+      "name": "Israeli Bukharian community",
+      "note": "In 1890 seven community members formed the Hovevei Zion Association of the Jewish communities of Bukhara, Samarkand and Tashkent, which bought land for the Jerusalem Bukharim quarter (Rehovot) in 1891. About 1,500 Bukharan Jews emigrated in the first aliyah, which lasted until World War I (Jewish Virtual Library). According to the Jewish Virtual Library, more than 70,000 Jews have left Uzbekistan since independence, many for Israel and the US. Israeli Sephardic rabbinic authority (Rav Yitzhak Yosef) treats the community as bound by the Shulchan Aruch."
+    },
+    {
+      "name": "Queens (New York) Bukharian diaspora",
+      "note": "Centered in Forest Hills, Rego Park, Kew Gardens Hills and Hillcrest. The Jewish Virtual Library estimates about 50,000 of the roughly 70,000 Bukharan Jews in the US live in Queens. The Bukharian Times editor Rafael Nektalov told the Times of Israel: 'We had only one synagogue 30 years ago. Now we have 40.' Institutions include the Bukharian Jewish Community Center, which has Chabad ties. Local rabbis such as Rabbi Nissan Shalomayev publish 'What is the Bukharian Custom?' halachic articles in the Bukharian Jewish Link. Practice ranges widely in observance level."
+    }
+  ],
   "historical_background": {
     "timeline": [
       {
-        "period": "Early Central Asian period",
-        "event": "Jewish communities developed in the Bukhara region and surrounding Central Asian cities.",
-        "halachic_impact": "Distinct local practice formed alongside broader Jewish halacha."
+        "period": "10th century",
+        "event": "Jewish sources mention a distinct Central Asian rite, Minhag Khorasan.",
+        "halachic_impact": "The pre-Sephardic local rite, later described as the Persian or Khorasani rite."
       },
       {
-        "period": "Islamic and regional rule",
-        "event": "Communities lived under changing local political systems.",
-        "halachic_impact": "Family and communal structures preserved religious practice."
+        "period": "16th-18th centuries",
+        "event": "Bukhara becomes the main center. Links with Iranian Jewry are cut under the Safavids. Religious observance declines, and forced conversion produces the crypto-Jewish chala community.",
+        "halachic_impact": "The community could no longer maintain its own religious leadership by the late 18th century."
       },
       {
-        "period": "Russian imperial and Soviet eras",
-        "event": "Administrative and political changes transformed public life and records.",
-        "halachic_impact": "Prayer, marriage, and education increasingly depended on oral and family transmission."
+        "period": "1793-1823",
+        "event": "Rabbi Yosef Maman Maghribi, a native of Tetuan who had settled in Safed, arrives in Bukhara as a fundraising emissary and stays. He serves the community for thirty years, until his death in 1823 (Jewish Virtual Library).",
+        "halachic_impact": "Replaced the Khorasani rite with the 'Spanish rite' (nusach Sefarad), set up an academy to ordain rabbis and shochtim, and introduced regular Zohar study."
       },
       {
-        "period": "Modern diaspora",
-        "event": "Large migration to Israel, the United States, and elsewhere.",
-        "halachic_impact": "Many customs were preserved in diaspora synagogues and family networks."
+        "period": "Late 18th-19th centuries",
+        "event": "R. Zecharia Matzliach of Yemen opposes Maman's changes to the nusach.",
+        "halachic_impact": "An early, documented dispute over liturgy."
+      },
+      {
+        "period": "1890-1914",
+        "event": "The Hovevei Zion Association of Bukhara, Samarkand and Tashkent is formed (1890) and buys land for the Jerusalem Bukharim quarter (1891). About 1,500 emigrate before World War I.",
+        "halachic_impact": "The Jerusalem Bukharim quarter becomes a center for printing Bukhori religious literature."
+      },
+      {
+        "period": "1897",
+        "event": "R. Shlomo Yehuda Leib Eliezerov, sent by the fifth Chabad Rebbe, settles in Uzbekistan and founds a cheder and yeshiva in Samarkand and Tashkent.",
+        "halachic_impact": "Beginning of Chabad influence. Bukharian rabbis today trace some customs (sheva brachot outside the home; avoiding kitniyot) to this influence."
+      },
+      {
+        "period": "1900",
+        "event": "R. Avraham Aminov Talmudi publishes Likutei Dinim, in six volumes, in vocalized Judeo-Tajik, with an approbation from Rishon LeZion R. Yaakov Shaul Elyashar.",
+        "halachic_impact": "The community's own practical code covering the whole year, distributed free in Bukhara and Samarkand."
+      },
+      {
+        "period": "Soviet era (c. 1920s-1991)",
+        "event": "Public religious life is suppressed and rabbis are arrested.",
+        "halachic_impact": "Home gatherings, above all the yushvo memorial, became the main setting for prayer and teaching. Life-cycle rites were kept more widely than calendar observance."
+      },
+      {
+        "period": "1990s-present",
+        "event": "Mass emigration: according to the Jewish Virtual Library, more than 70,000 Jews have left Uzbekistan since independence, many to Israel and the US, about 50,000 of them settling in Queens.",
+        "halachic_impact": "Diaspora rabbis are re-examining which customs are authentically Bukharian and which come from outside influence."
       }
     ]
   },
   "core_halachic_authorities": {
     "primary_codes": [
-      "Shulchan Aruch",
-      "Mishneh Torah",
-      "local Bukharan custom"
+      "Shulchan Aruch (Maran R. Yosef Karo)",
+      "Likutei Dinim (R. Avraham Aminov Talmudi, 1900, Judeo-Tajik; described as the accepted code of law for the Bukharian community)"
     ],
     "major_rishonim_base": [
       "Rambam",
       "Rif",
-      "Rosh"
+      "Rosh",
+      "Tur"
     ],
-    "later_authorities_and_guides": [
-      "Sephardi poskim used in diaspora settings",
-      "Local Central Asian rabbis",
-      "Community minhag-based guidance"
+    "later_poskim": [
+      "Ben Ish Chai (R. Yosef Chaim of Baghdad)",
+      "Kaf HaChaim",
+      "R. Ovadia Yosef",
+      "R. Yitzhak Yosef (Yalkut Yosef)",
+      "R. Ben Tzion Abba Shaul (Ohr LeTzion)",
+      "R. Ben Tzion Mutzafi (Mevaseret Tzion)",
+      "R. Yisrael Chaim Motayev (Mishmeret HaMinhagim; Oseh Chayil responsa)",
+      "R. Rafael Shamsiyev (Bechori Yisrael)",
+      "R. Nissan Shalomayev (Hillel Omer, 2023)"
     ],
-    "decision_principle": "Follow inherited Bukharan community custom within the broad framework of traditional halacha, with attention to local family and synagogue norms."
+    "decision_principle": "Sephardic: the rulings of the Shulchan Aruch are binding (stated by R. Yitzhak Yosef and cited by R. Nissan Shalomayev). A local custom overrides a ruling only if it is old and was set by recognized Torah scholars. Customs traced to later Ashkenazi (Chabad) influence are treated as open to challenge by some Bukharian rabbis."
+  },
+  "runtime": {
+    "lens_key": "Bukharian",
+    "practice_baseline": "Sephardic practice based on the Shulchan Aruch as read by the Ben Ish Chai, Kaf HaChaim and the Yosef school, supplemented by the community's own Likutei Dinim (1900) and Mishmeret HaMinhagim.",
+    "parameters": [
+      {
+        "key": "sunset_display_offset_minutes",
+        "value": 18,
+        "unit": "minutes",
+        "source": "Set by the Sh'elah maintainers for the zmanim page; the community research gives no Bukharian-specific sunset offset."
+      }
+    ]
   },
   "halacha_index": [
     {
       "index": "halacha.1",
       "category": "Prayer",
-      "topic": "Nusach and liturgy",
-      "summary": "Bukharan prayer practice is traditional and community-centered, often with distinctive Central Asian melodies and local text traditions.",
+      "topic": "Nusach (prayer rite)",
+      "summary": "Bukharian Jews pray in the Sephardic rite. It replaced the older Persian/Khorasani rite after Rabbi Yosef Maman's arrival in 1793.",
       "common_practices": [
-        "Use Bukharan or Bukharan-adjacent siddurim where available",
-        "Preserve local melodies and recitation patterns",
-        "Retain festival and communal piyyutim where customary",
-        "Preserve inherited nusach and pronunciation in public prayer.",
-        "Coordinate weekday, Shabbat, and festival insertions with local rabbinic guidance.",
-        "Maintain community niggunim and piyyutim where accepted."
-      ]
+        "Sephardic (Spanish-rite) siddur",
+        "The community considers itself Sephardic"
+      ],
+      "variants": [
+        {
+          "subgroup": "Bukhara (pre-1793)",
+          "practice": "Persian rite (nusach Paras), also called the Khorasani rite.",
+          "source": "Encyclopedia of World Cultures, 'Bukharan Jews' (Kotler); Encyclopaedia Iranica, 'Bukhara vii' (Zand)"
+        },
+        {
+          "subgroup": "Samarkand",
+          "practice": "At least one synagogue prayed in the Bukharian nusach while its leaders followed Chabad customs, such as reciting all of Tehillim before prayers on Shabbat Mevarchim followed by an hour of Chassidut study.",
+          "source": "Chabad Library (chabadlibrary.org/books/11200004149), memoir describing Samarkand"
+        }
+      ],
+      "source": "Encyclopaedia Iranica, 'BUKHARA vii. Bukharan Jews', M. Zand, Vol. IV fasc. 5, pp. 530-545",
+      "source_url": "https://www.iranicaonline.org/articles/bukhara-vii/",
+      "confidence": "well-attested",
+      "review_notes": "Iranica: Maman's reforms included 'replacement of the Khorasani rite with the so-called Spanish rite (nosah sefarad)'. This is corroborated by the Encyclopedia of World Cultures. The Persian rite is sometimes linked to Saadia Gaon's siddur, but only in secondary sources.",
+      "references": [
+        {
+          "title": "BUKHARA vii. Bukharan Jews",
+          "url": "https://www.iranicaonline.org/articles/bukhara-vii/"
+        }
+      ],
+      "topic_he": "נוסח התפילה",
+      "summary_he": "יהודי בוכרה מתפללים בנוסח ספרד. הוא החליף את הנוסח הפרסי-ח'ורסאני הקדום יותר אחרי בואו של רבי יוסף ממן ב-1793."
     },
     {
       "index": "halacha.2",
       "category": "Prayer",
-      "topic": "Hebrew pronunciation",
-      "summary": "Hebrew recitation may preserve Central Asian phonetic and melodic features.",
+      "topic": "Prayer melodies (shashmaqam)",
+      "summary": "One community member reports that Bukharian prayer melodies come from the Central Asian shashmaqam musical system and differ from those of other Jewish communities.",
       "common_practices": [
-        "Follow inherited pronunciation in prayer and Torah reading",
-        "Use family and community models for vowel and consonant sounds",
-        "Teach pronunciation orally across generations",
-        "Preserve inherited nusach and pronunciation in public prayer.",
-        "Coordinate weekday, Shabbat, and festival insertions with local rabbinic guidance.",
-        "Maintain community niggunim and piyyutim where accepted."
-      ]
+        "Shashmaqam-based tunes for prayers"
+      ],
+      "variants": [],
+      "source": "Manashe Khaimov, 'How my Bukharian community celebrates Chanukah', Intermountain Jewish News, 19 Dec 2019",
+      "source_url": "https://www.ijn.com/how-my-bukharian-community-celebrates-chanukah/",
+      "confidence": "needs-review",
+      "review_notes": "Single first-person account from Samarkand. Strictly, shashmaqam means 'six maqams' (six modal suites); the article calls it 'six notes'.",
+      "topic_he": "ניגוני התפילה (שאשמקום)",
+      "summary_he": "חבר קהילה אחד מדווח שניגוני התפילה הבוכריים נובעים ממערכת השאשמקום, המסורת המוזיקלית של מרכז אסיה, ושהם שונים מאלה של קהילות יהודיות אחרות."
     },
     {
       "index": "halacha.3",
       "category": "Prayer",
-      "topic": "Torah reading",
-      "summary": "Torah reading is treated with care and may reflect local cantillation and honor customs.",
+      "topic": "Birkat Kohanim: father covering his son",
+      "summary": "During the priestly blessing, a Bukharian father covers his son's head and places his hands on it. Rav Motayev discusses the source of this custom.",
       "common_practices": [
-        "Use trained ba'alei kri'ah from the community",
-        "Follow local trop or chant style",
-        "Preserve aliyah distribution customs",
-        "Preserve inherited nusach and pronunciation in public prayer.",
-        "Coordinate weekday, Shabbat, and festival insertions with local rabbinic guidance.",
-        "Maintain community niggunim and piyyutim where accepted."
-      ]
+        "Father covers son's head and places his hands on it during Birkat Kohanim"
+      ],
+      "variants": [],
+      "source": "R. Yisrael Chaim Motayev, Mishmeret HaMinhagim, as reproduced in Hillel Haimov's newsletter (gilyon no. 4)",
+      "source_url": "https://fliphtml5.com/dlmdj/aubc/%D7%92%D7%9C%D7%99%D7%95%D7%9F_%D7%9E%D7%A1_4/",
+      "confidence": "needs-review",
+      "review_notes": "Seen only in a search snippet of the newsletter; the full text was not read. The custom is described as found 'in several communities including' the Bukharian one.",
+      "topic_he": "ברכת כהנים: האב מכסה את בנו",
+      "summary_he": "בשעת ברכת כהנים אב בוכרי מכסה את ראש בנו ומניח עליו את ידיו. הרב מוטייב דן במקור המנהג."
     },
     {
       "index": "halacha.4",
-      "category": "Shabbat",
-      "topic": "Candle lighting",
-      "summary": "Shabbat candle lighting follows halacha with family and community custom in timing and format.",
+      "category": "Prayer",
+      "topic": "Zohar study",
+      "summary": "Regular Zohar study was one of Maman's reforms and remains central. It is part of the yushvo memorial and of everyday piety.",
       "common_practices": [
-        "Light before Shabbat begins",
-        "Use customary blessing wording",
-        "Follow family traditions for number and arrangement of candles",
-        "Prepare practical needs before candle lighting to avoid melacha.",
-        "Use approved warming and lighting setups established before Shabbat.",
-        "Follow local zmanim for candle lighting, shekia, and havdalah."
-      ]
+        "Zohar reading in groups",
+        "Zohar and Mishnayot at yahrzeit gatherings"
+      ],
+      "variants": [],
+      "source": "Encyclopaedia Iranica, 'BUKHARA vii' (Zand); Likutei Dinim as cited by R. Nissan Shalomayev, Bukharian Jewish Link, 17 Jul 2024",
+      "source_url": "https://www.iranicaonline.org/articles/bukhara-vii/",
+      "confidence": "well-attested",
+      "review_notes": "Iranica lists 'introduction of regular study of the Zohar' among Maman's reforms. Likutei Dinim describes Zohar study at the yushvo.",
+      "references": [
+        {
+          "title": "BUKHARA vii. Bukharan Jews",
+          "url": "https://www.iranicaonline.org/articles/bukhara-vii/"
+        }
+      ],
+      "topic_he": "לימוד זוהר",
+      "summary_he": "לימוד זוהר קבוע היה אחד מתיקוניו של ממן והוא נשאר מרכזי. הוא חלק מהישיבו (עצרת הזיכרון) ומהאדיקות היומיומית."
     },
     {
       "index": "halacha.5",
       "category": "Shabbat",
-      "topic": "Meals and hospitality",
-      "summary": "Shabbat meals and hospitality are central to Bukharan communal culture.",
+      "topic": "Friday night before washing for bread",
+      "summary": "A community member asked a halachic Q&A site about two practices: tasting and blessing foods on the table between Kiddush and netilat yadayim, and reciting verses ('LeDavid Hashem ro'i', 'Einei chol') before the blessing over bread. The respondents disputed whether the first practice causes an unnecessary blessing.",
       "common_practices": [
-        "Prepare food before Shabbat",
-        "Honor guests and family according to community custom",
-        "Use traditional dishes and table customs",
-        "Prepare practical needs before candle lighting to avoid melacha.",
-        "Use approved warming and lighting setups established before Shabbat.",
-        "Follow local zmanim for candle lighting, shekia, and havdalah."
-      ]
+        "Eating appetizers with their own blessings before washing (reported)",
+        "Reciting Tehillim verses before HaMotzi (reported)",
+        "Not eating bread together with fish (reported)"
+      ],
+      "variants": [
+        {
+          "subgroup": "The respondent on din.org.il",
+          "practice": "Calls the blessing before washing questionable, as a possible unnecessary blessing (berakha she-eina tzerikha).",
+          "source": "din.org.il, 19 Oct. 2015"
+        },
+        {
+          "subgroup": "Commenters on the same page",
+          "practice": "Defend it as a widespread Sephardic practice.",
+          "source": "din.org.il, 19 Oct. 2015"
+        }
+      ],
+      "source": "din.org.il, 'Minhagei Bukhara: mekoram / akhila be-leil Shabbat lifnei netilat yadayim', 19 Oct 2015",
+      "source_url": "https://din.org.il/2015/10/19/%D7%9E%D7%A0%D7%94%D7%92%D7%99-%D7%91%D7%95%D7%9B%D7%A8%D7%94-%D7%9E%D7%A7%D7%95%D7%A8%D7%9D-%D7%90%D7%9B%D7%99%D7%9C%D7%94-%D7%91%D7%9C%D7%99%D7%9C-%D7%A9%D7%91%D7%AA-%D7%9C%D7%A4%D7%A0%D7%99/",
+      "confidence": "disputed",
+      "review_notes": "Reported by a questioner. The site's rabbi called the pre-washing blessing questionable (a possible berakha she-eina tzerikha), while commenters defended it as a widespread Sephardic practice. The page blocked full retrieval, so this is based on the snippet only.",
+      "references": [
+        {
+          "title": "מנהגי בוכרה - מקורם / אכילה בליל שבת לפני נטילת ידים",
+          "url": "https://din.org.il/2015/10/19/%D7%9E%D7%A0%D7%94%D7%92%D7%99-%D7%91%D7%95%D7%9B%D7%A8%D7%94-%D7%9E%D7%A7%D7%95%D7%A8%D7%9D-%D7%90%D7%9B%D7%99%D7%9C%D7%94-%D7%91%D7%9C%D7%99%D7%9C-%D7%A9%D7%91%D7%AA-%D7%9C%D7%A4%D7%A0%D7%99/"
+        }
+      ],
+      "topic_he": "ליל שבת לפני נטילת ידיים לסעודה",
+      "summary_he": "חבר קהילה שאל אתר שו\"ת הלכתי על שני מנהגים: טעימת מאכלים וברכה עליהם על השולחן בין הקידוש לנטילת ידיים, ואמירת פסוקים (\"לדוד ה' רועי\", \"עיני כל\") לפני ברכת הלחם. המשיבים נחלקו אם המנהג הראשון גורם לברכה שאינה צריכה."
     },
     {
       "index": "halacha.6",
-      "category": "Shabbat",
-      "topic": "Cooking and warming",
-      "summary": "Cooking is prohibited on Shabbat while permitted warming methods may be used according to halacha.",
+      "category": "Sukkot",
+      "topic": "Sukkah decoration",
+      "summary": "The traditional Bukharian sukkah is hung with colorful silk and woven fabrics, and the floor is covered with embroidered rugs and cushions instead of chairs. This reportedly continues in New York and Israel.",
       "common_practices": [
-        "Cook before Shabbat",
-        "Use permitted warming arrangements if accepted locally",
-        "Avoid direct cooking or prohibited manipulation",
-        "Prepare practical needs before candle lighting to avoid melacha.",
-        "Use approved warming and lighting setups established before Shabbat.",
-        "Follow local zmanim for candle lighting, shekia, and havdalah."
-      ]
+        "Silk and woven textiles",
+        "Embroidered rugs and floor cushions"
+      ],
+      "variants": [],
+      "source": "Jewish Journal, 'Around the Jewish World, Distinct Traditions for Sukkot', 12 Oct 2011, citing Esther Shkalim, A Mosaic of Israel's Traditions",
+      "source_url": "https://jewishjournal.com/culture/travel/97027/",
+      "confidence": "needs-review",
+      "review_notes": "Second-hand, and only the search snippet was read. This is decorative custom, not halacha.",
+      "topic_he": "קישוט הסוכה",
+      "summary_he": "הסוכה הבוכרית המסורתית מקושטת בבדי משי ובאריגים צבעוניים, והרצפה מכוסה בשטיחים רקומים ובכריות במקום כסאות. לפי הדיווחים המנהג נמשך בניו יורק ובישראל."
     },
     {
       "index": "halacha.7",
-      "category": "Shabbat",
-      "topic": "Carrying and eruv",
-      "summary": "Carrying depends on valid eruv status and local communal arrangement.",
+      "category": "Chanukah",
+      "topic": "Menorah and gifts",
+      "summary": "In Samarkand families lit a flat oil menorah with cotton wicks, preparing olive oil especially for the holiday because local oil was cottonseed. Children received gifts on only one night. Fried dough cookies (hushquiliq) are a holiday food.",
       "common_practices": [
-        "Do not carry where no valid eruv exists",
-        "Follow local rabbinic guidance on public and private domains",
-        "Use community standards rather than assumptions",
-        "Prepare practical needs before candle lighting to avoid melacha.",
-        "Use approved warming and lighting setups established before Shabbat.",
-        "Follow local zmanim for candle lighting, shekia, and havdalah."
-      ]
+        "Flat oil menorah with cotton wicks",
+        "Olive oil preferred",
+        "Gifts on a single night",
+        "Fried 'twig' cookies"
+      ],
+      "variants": [
+        {
+          "subgroup": "Queens diaspora",
+          "practice": "A standing menorah is now common for safety, though the author still prefers oil to candles.",
+          "source": "Khaimov, Intermountain Jewish News, 2019"
+        }
+      ],
+      "source": "Manashe Khaimov, 'How my Bukharian community celebrates Chanukah', Intermountain Jewish News, 19 Dec 2019",
+      "source_url": "https://www.ijn.com/how-my-bukharian-community-celebrates-chanukah/",
+      "confidence": "regional",
+      "review_notes": "Single first-person account (Samarkand). The cookie recipe is credited to Amnun Kimyagarov, Classic Central Asian (Bukharian) Jewish Cuisine and Customs (2010).",
+      "references": [
+        {
+          "title": "How my Bukharian community celebrates Chanukah",
+          "url": "https://www.ijn.com/how-my-bukharian-community-celebrates-chanukah/"
+        }
+      ],
+      "topic_he": "חנוכייה ומתנות",
+      "summary_he": "בסמרקנד הדליקו המשפחות חנוכייה שטוחה של שמן עם פתילות כותנה, והכינו שמן זית במיוחד לחג כי השמן המקומי היה שמן גרעיני כותנה. הילדים קיבלו מתנות רק בלילה אחד. עוגיות בצק מטוגנות (חושקיליק) הן מאכל החג."
     },
     {
       "index": "halacha.8",
-      "category": "Kashrut",
-      "topic": "Meat and dairy separation",
-      "summary": "Meat and dairy separation follows standard halacha with inherited community timing and kitchen practice.",
+      "category": "Pesach",
+      "topic": "Kitniyot",
+      "summary": "There is no single Bukharian practice. A Bukharian rabbi documents three customs, and a community writer reports that the community eats kitniyot.",
       "common_practices": [
-        "Keep separate meat and dairy utensils",
-        "Observe the customary waiting period after meat according to community practice",
-        "Maintain careful kitchen separation",
-        "Keep clear separation of meat and dairy utensils, storage, and prep zones.",
-        "Verify supervision standards according to trusted local rabbinic authority.",
-        "Apply inherited waiting-time custom for meat and dairy under halachic guidance."
-      ]
+        "Rice eaten; rice dishes are central to the cuisine"
+      ],
+      "variants": [
+        {
+          "subgroup": "A small part of the community",
+          "practice": "No rice and no other legumes.",
+          "source": "Bechori Yisrael vol. 4, 5:1, cited by R. N. Shalomayev"
+        },
+        {
+          "subgroup": "General",
+          "practice": "Rice eaten but other legumes avoided, because rice is a staple and forbidding it would be a decree the public could not bear.",
+          "source": "R. N. Shalomayev, Bukharian Jewish Link, 10 Apr 2024"
+        },
+        {
+          "subgroup": "Some families",
+          "practice": "No rice on the first two days of Pesach; rice eaten on the remaining days. Dr. Giora Fuzailov attributes this to respect for Ashkenazi emissaries; another explanation points to Ashkenazi refugees hosted during WWII.",
+          "source": "R. N. Shalomayev citing Fuzailov and the Haggadah of the Bukharian Jews by R. Bechor Baruch (Malayev)"
+        },
+        {
+          "subgroup": "Queens diaspora (community writer)",
+          "practice": "'We eat kitniyot, so we always have a variety of rice dishes.'",
+          "source": "Manashe Khaimov, My Jewish Learning, 6 Apr 2020"
+        }
+      ],
+      "source": "R. Nissan Shalomayev, 'Bukharian Custom of Kitniyot on Pesach', Bukharian Jewish Link, 10 Apr 2024",
+      "source_url": "https://www.bukharianjewishlink.com/index.php/feature/5535-bukharian-custom-of-kitniyot-on-pesach",
+      "confidence": "disputed",
+      "review_notes": "Shalomayev states that avoiding kitniyot 'is not an old custom': Likutei Dinim (Siman 145:4) only suggests following the Rama as a 'good' custom and does not record it as the Bukharian practice. He suggests Chabad influence. Whether the custom can be annulled (hatarat nedarim) is referred to a halachic authority.",
+      "references": [
+        {
+          "title": "Bukharian Custom of Kitniyot on Pesach",
+          "url": "https://www.bukharianjewishlink.com/index.php/feature/5535-bukharian-custom-of-kitniyot-on-pesach"
+        }
+      ],
+      "topic_he": "קטניות",
+      "summary_he": "אין מנהג בוכרי אחד. רב בוכרי מתעד שלושה מנהגים, וכותב מהקהילה מדווח שהקהילה אוכלת קטניות."
     },
     {
       "index": "halacha.9",
-      "category": "Kashrut",
-      "topic": "Shechita",
-      "summary": "Ritual slaughter is central and relies on trusted shochtim and communal supervision.",
+      "category": "Pesach",
+      "topic": "Checking rice",
+      "summary": "Bukharian custom is to check rice for wheat kernels three times before Pesach use, away from children and distractions.",
       "common_practices": [
-        "Use a qualified shochet",
-        "Inspect knives and meat according to halacha",
-        "Rely on accepted supervision and local trust structures",
-        "Keep clear separation of meat and dairy utensils, storage, and prep zones.",
-        "Verify supervision standards according to trusted local rabbinic authority.",
-        "Apply inherited waiting-time custom for meat and dairy under halachic guidance."
-      ]
+        "Rice sorted three times"
+      ],
+      "variants": [],
+      "source": "R. Rafael Shamsiyev, Bechori Yisrael vol. 4, 5:1, cited in R. N. Shalomayev, Bukharian Jewish Link, 10 Apr 2024",
+      "source_url": "https://www.bukharianjewishlink.com/index.php/feature/5535-bukharian-custom-of-kitniyot-on-pesach",
+      "confidence": "needs-review",
+      "review_notes": "Shalomayev adds that someone pressed for time may rely on one very thorough check, since rice is cleaner today. That is his own note, not part of the custom.",
+      "references": [
+        {
+          "title": "Bukharian Custom of Kitniyot on Pesach",
+          "url": "https://www.bukharianjewishlink.com/index.php/feature/5535-bukharian-custom-of-kitniyot-on-pesach"
+        }
+      ],
+      "topic_he": "בדיקת אורז",
+      "summary_he": "המנהג הבוכרי הוא לבדוק את האורז שלוש פעמים לפני השימוש בו בפסח, הרחק מילדים ומהסחות דעת, כדי לוודא שאין בו גרעיני חיטה."
     },
     {
       "index": "halacha.10",
-      "category": "Kashrut",
-      "topic": "Food customs",
-      "summary": "Bukharan cuisine includes traditional dishes that must be prepared under kosher standards.",
+      "category": "Pesach",
+      "topic": "Matzah",
+      "summary": "Some families still bake their own matzah in the old-country style, resembling laffa flatbread. Many in the US now use store-bought matzah. Matzah is eaten dipped in a meat soup (oshi masozgoshak).",
       "common_practices": [
-        "Use kosher supervision for processed foods",
-        "Check ingredients for wine, gelatin, and other concerns",
-        "Keep traditional recipes within halachic limits",
-        "Keep clear separation of meat and dairy utensils, storage, and prep zones.",
-        "Verify supervision standards according to trusted local rabbinic authority.",
-        "Apply inherited waiting-time custom for meat and dairy under halachic guidance."
-      ]
+        "Home-baked soft, laffa-like matzah (some families)",
+        "Matzah broken into meat soup"
+      ],
+      "variants": [],
+      "source": "Manashe Khaimov, 'Bukharian Passover Traditions and Recipes', My Jewish Learning, 6 Apr 2020",
+      "source_url": "https://www.myjewishlearning.com/2020/04/06/bukharian-passover-traditions-and-recipes/",
+      "confidence": "needs-review",
+      "review_notes": "Single community-writer source. No halachic source on Bukharian matzah baking was found.",
+      "topic_he": "מצה",
+      "summary_he": "משפחות אחדות עדיין אופות מצה בעצמן בסגנון הארץ הישנה, הדומה ללאפה. רבים בארצות הברית משתמשים היום במצה מוכנה מהחנות. אוכלים את המצה כשהיא טבולה במרק בשר (אושי מסוזגושאק)."
     },
     {
       "index": "halacha.11",
       "category": "Pesach",
-      "topic": "Chametz removal",
-      "summary": "Chametz removal before Pesach is strict and usually organized carefully in the home.",
+      "topic": "Seder table and seder plate",
+      "summary": "Participants sit by seniority, elders nearest the host, traditionally men and women on opposite sides. Young people bring water around for hand-washing. Cups are rinsed with water after each cup so wines are not mixed. The seder plate has a lamb foot instead of a shank and romaine lettuce instead of horseradish. The charoset is chaliko (raisins, walnuts and apple, sometimes dried apricot).",
       "common_practices": [
-        "Search for and remove chametz",
-        "Use Pesach-dedicated utensils or kasher equipment",
-        "Follow local practice for sale of chametz",
-        "Review chametz cleaning and kashering checklists before the festival.",
-        "Follow community custom on kitniyot and festival kitchen workflow.",
-        "Use community haggadah flow and family minhagim within halachic structure."
-      ]
+        "Seating by seniority",
+        "Cup rinsed between cups (an honored role)",
+        "Lamb foot (zeroa)",
+        "Romaine as maror",
+        "Chaliko charoset"
+      ],
+      "variants": [
+        {
+          "subgroup": "Queens diaspora",
+          "practice": "Some families now alternate seating man-woman-woman-man.",
+          "source": "Khaimov, My Jewish Learning, 2020"
+        }
+      ],
+      "source": "Manashe Khaimov, 'Bukharian Passover Traditions and Recipes', My Jewish Learning, 6 Apr 2020",
+      "source_url": "https://www.myjewishlearning.com/2020/04/06/bukharian-passover-traditions-and-recipes/",
+      "confidence": "needs-review",
+      "review_notes": "Detailed, but from a single community source.",
+      "topic_he": "שולחן הסדר וקערת הסדר",
+      "summary_he": "המסובים יושבים לפי ותק, הזקנים הקרובים ביותר לבעל הבית, ובדרך כלל גברים ונשים בצדדים מנוגדים. צעירים מביאים מים לנטילת ידיים. שוטפים את הכוסות במים אחרי כל כוס כדי שהיינות לא יתערבבו. בקערת הסדר יש רגל כבש במקום זרוע, וחסה רומית במקום חזרת. החרוסת היא חליקו (צימוקים, אגוזי מלך ותפוח, לפעמים משמש מיובש)."
     },
     {
       "index": "halacha.12",
       "category": "Pesach",
-      "topic": "Kitniyot and rice",
-      "summary": "Bukharan Pesach practice is generally compatible with Sephardi-style permissibility of kitniyot, subject to local custom.",
+      "topic": "Haggadah and seder songs",
+      "summary": "Bukharians have their own Haggadah containing Bukhori (Judeo-Tajik) songs in Hebrew letters. They do not sing Echad Mi Yodea; they sing 'Yakumin Ki Medonad' in Bukhori, and have their own version of Chad Gadya called 'Jon Buzghole'.",
       "common_practices": [
-        "Rice and legumes may be used where community custom permits",
-        "Inspect food for chametz contamination",
-        "Follow family and rabbinic guidance for all packaged foods",
-        "Review chametz cleaning and kashering checklists before the festival.",
-        "Follow community custom on kitniyot and festival kitchen workflow.",
-        "Use community haggadah flow and family minhagim within halachic structure."
-      ]
+        "Bukhori-language songs in the Haggadah",
+        "Yakumin Ki Medonad in place of Echad Mi Yodea",
+        "Jon Buzghole"
+      ],
+      "variants": [],
+      "source": "Manashe Khaimov, My Jewish Learning, 6 Apr 2020",
+      "source_url": "https://www.myjewishlearning.com/2020/04/06/bukharian-passover-traditions-and-recipes/",
+      "confidence": "needs-review",
+      "review_notes": "A Haggadah of the Bukharian Jews by R. Bechor Baruch (Malayev) is cited by R. Shalomayev but was not opened. Shimon Hakham's 1904 Bukhori Haggadah translation is known only from a secondary lead.",
+      "references": [
+        {
+          "title": "Bukharian Custom of Kitniyot on Pesach",
+          "url": "https://www.bukharianjewishlink.com/index.php/feature/5535-bukharian-custom-of-kitniyot-on-pesach"
+        }
+      ],
+      "topic_he": "הגדה ושירי הסדר",
+      "summary_he": "לבוכרים יש הגדה משלהם ובה שירים בבוכורי (יהודית-טג'יקית) באותיות עבריות. הם אינם שרים \"אחד מי יודע\"; הם שרים \"יקומין כי מדונד\" בבוכורי, ויש להם גרסה משלהם ל\"חד גדיא\" בשם \"ז'ון בוזגולה\"."
     },
     {
       "index": "halacha.13",
       "category": "Pesach",
-      "topic": "Seder and Haggadah",
-      "summary": "The Seder is structured according to halacha and enriched by Bukharan family custom.",
+      "topic": "Afikoman 'whipping'",
+      "summary": "Before the afikoman is found, an elder goes around the table asking who has it and lightly 'whips' everyone with a towel, so they feel a little of the slaves' pain. Seders include skits of escaping Egypt.",
       "common_practices": [
-        "Use the accepted Haggadah rite",
-        "Preserve songs and recital patterns",
-        "Use community foods and symbolic customs where inherited",
-        "Review chametz cleaning and kashering checklists before the festival.",
-        "Follow community custom on kitniyot and festival kitchen workflow.",
-        "Use community haggadah flow and family minhagim within halachic structure."
-      ]
+        "Towel 'whipping' by an elder",
+        "Exodus skits"
+      ],
+      "variants": [],
+      "source": "Manashe Khaimov, My Jewish Learning, 6 Apr 2020",
+      "source_url": "https://www.myjewishlearning.com/2020/04/06/bukharian-passover-traditions-and-recipes/",
+      "confidence": "needs-review",
+      "review_notes": "Single source.",
+      "topic_he": "\"הצלפת\" האפיקומן",
+      "summary_he": "לפני שמוצאים את האפיקומן, זקן מסובב סביב השולחן ושואל מי נטל אותו, ו\"מצליף\" קלות בכולם במגבת, כדי שירגישו מעט מכאבם של העבדים. בסדרים יש מערכונים על יציאת מצרים."
     },
     {
       "index": "halacha.14",
-      "category": "Tefillin",
-      "topic": "Tefillin practice",
-      "summary": "Tefillin are worn daily on weekdays in the standard halachic manner with community-specific binding customs.",
+      "category": "Pesach",
+      "topic": "Festive dress at the seder (jomah)",
+      "summary": "Men and women wear the jomah, a colorful kaftan embroidered with gold, at the seder as a sign of royalty and freedom.",
       "common_practices": [
-        "Wear tefillin for weekday prayer",
-        "Use properly checked tefillin",
-        "Follow family custom for wrapping and blessing",
-        "Follow local minhag for wrapping style, knot positioning, and sequence.",
-        "Use checked batim and retzuot under reliable supervision.",
-        "Teach youth practical donning order with community standards."
-      ]
+        "Jomah kaftan worn at the seder"
+      ],
+      "variants": [
+        {
+          "subgroup": "Israeli Bukharian community",
+          "practice": "Families wear Bukharian clothing on seder night.",
+          "source": "Adina Meshulam, 'Al ha-kippa ha-bukharit u-she'ar minhagim', HaKesher HaRav Dori, 2016"
+        }
+      ],
+      "source": "Manashe Khaimov, My Jewish Learning, 6 Apr 2020",
+      "source_url": "https://www.myjewishlearning.com/2020/04/06/bukharian-passover-traditions-and-recipes/",
+      "confidence": "well-attested",
+      "review_notes": "Two independent community accounts, one from the US and one from Israel. The Israeli account was seen only in a search snippet.",
+      "topic_he": "לבוש חגיגי בסדר (ג'ומה)",
+      "summary_he": "גברים ונשים לובשים בליל הסדר את הג'ומה, קפטן צבעוני רקום בזהב, כסימן למלכות ולחירות."
     },
     {
       "index": "halacha.15",
-      "category": "Tzitzit",
-      "topic": "Tallit and fringes",
-      "summary": "Tzitzit observance follows halacha with traditional Bukharan tallit customs preserved in some families.",
+      "category": "Fasts and Tisha B'Av",
+      "topic": "The Nine Days and Tisha B'Av",
+      "summary": "Bukharan communities reportedly read different kinot in the synagogue on each day from Rosh Chodesh Av to Tisha B'Av. Shochtim hid their slaughtering knives and walked fully barefoot on the night of Tisha B'Av.",
       "common_practices": [
-        "Wear tzitzit according to communal norm",
-        "Use customary tallit style where preserved",
-        "Maintain inherited blessing sequence",
-        "Follow local custom for tallit katan and tallit gadol usage.",
-        "Maintain knot and winding patterns according to inherited minhag.",
-        "Inspect tzitzit regularly for halachic validity."
-      ]
+        "Daily kinot from Rosh Chodesh Av",
+        "Shochtim put away knives; barefoot on the night of the 9th"
+      ],
+      "variants": [],
+      "source": "Ortal Mogus, 'Kotzim al ha-mitpallelim...: minhagei Tisha B'Av misaviv la-olam', Ynet, 30 Jul 2020 (drawing on the 'HaLuach HaIvri' project)",
+      "source_url": "https://www.ynet.co.il/judaism/article/HJh5krg11w",
+      "confidence": "needs-review",
+      "review_notes": "Journalistic compilation. The Bukhara passage was seen in the search snippet; the fetched text cut off before it. Needs confirmation from a Bukharian kinot book or minhag work.",
+      "topic_he": "תשעת הימים ותשעה באב",
+      "summary_he": "לפי הדיווחים, בקהילות בוכרה קראו בבית הכנסת קינות שונות בכל יום מראש חודש אב עד תשעה באב. השוחטים הסתירו את סכיני השחיטה והלכו יחפים לחלוטין בליל תשעה באב."
     },
     {
       "index": "halacha.16",
-      "category": "Lifecycle",
-      "topic": "Brit milah",
-      "summary": "Brit milah is performed according to halacha with strong communal celebration and naming traditions.",
+      "category": "Calendar",
+      "topic": "Pirkei Avot with Judeo-Persian tafsir",
+      "summary": "According to a cited bibliographic source, a Judeo-Persian translation and commentary (tafsir) of Pirkei Avot was studied in Bukhara and its districts on the Shabbatot of the summer cycle beginning after Pesach.",
       "common_practices": [
-        "Use a qualified mohel",
-        "Preserve inherited naming customs",
-        "Include community songs and ceremonial structure where customary",
-        "Keep core lifecycle ceremonies aligned with halachic requirements.",
-        "Document family minhagim for naming, honors, and celebration order.",
-        "Consult community rabbi for local protocol differences."
-      ]
+        "Summer Shabbat study of Avot in Judeo-Persian translation"
+      ],
+      "variants": [],
+      "source": "Encyclopaedia Iranica, 'JUDEO-PERSIAN COMMUNITIES ix. Judeo-Persian Literature', citing Ya'ari (1942)",
+      "source_url": "https://www.iranicaonline.org/articles/judeo-persian-ix-judeo-persian-literature/",
+      "confidence": "needs-review",
+      "review_notes": "Seen in the search snippet only. The snippet's end date ('Shmini Atzeret [the last day of Rosh-Hashanah]') looks garbled and should be checked against the original.",
+      "topic_he": "פרקי אבות עם תפסיר יהודי-פרסי",
+      "summary_he": "לפי מקור ביבליוגרפי מצוטט, תרגום ופירוש (תפסיר) יהודי-פרסי של פרקי אבות נלמד בבוכרה ובסביבתה בשבתות מחזור הקיץ, שמתחיל אחרי פסח."
     },
     {
       "index": "halacha.17",
-      "category": "Lifecycle",
-      "topic": "Marriage and ketubah",
-      "summary": "Marriage is halachically standard but deeply influenced by family and community networks.",
+      "category": "Kashrut",
+      "topic": "Separate ovens for bread and meat pastry",
+      "summary": "In Samarkand, bread baked in an oven used for meat may not be eaten with dairy, so bread was baked in one tandir and meat samsa in another.",
       "common_practices": [
-        "Use a valid ketubah",
-        "Perform kiddushin and nissuin properly",
-        "Observe family customs for engagement, gifts, and wedding sequence",
-        "Keep core lifecycle ceremonies aligned with halachic requirements.",
-        "Document family minhagim for naming, honors, and celebration order.",
-        "Consult community rabbi for local protocol differences."
-      ]
+        "Dedicated tandir ovens for bread vs. meat pastries"
+      ],
+      "variants": [],
+      "source": "Manashe Khaimov, 'How My Bukharian Jewish Community Celebrates Hanukkah', SAMi blog",
+      "source_url": "https://www.samiglobal.org/blog/how-my-bukharian-jewish-community-celebrates-hanukkah",
+      "confidence": "needs-review",
+      "review_notes": "Seen in the search snippet only. This matches general halacha on bread baked with meat (Shulchan Aruch YD 97), but is reported as local practice.",
+      "topic_he": "תנורים נפרדים ללחם ולבורקס בשר",
+      "summary_he": "בסמרקנד אסור לאכול עם חלב לחם שנאפה בתנור ששימש לבשר, ולכן אפו לחם בתנדיר אחד וסמסה בשר באחר."
     },
     {
       "index": "halacha.18",
-      "category": "Family law",
-      "topic": "Niddah and mikveh",
-      "summary": "Family purity laws are a major part of traditional observance and are maintained with care.",
+      "category": "Kashrut",
+      "topic": "Shechita training",
+      "summary": "Maman's academy ordained shochtim. Historically, Bukharian khakhams combined the roles of rabbi, shochet, mohel and cantor.",
       "common_practices": [
-        "Observe niddah separation laws",
-        "Use mikveh according to halacha",
-        "Follow inherited customs where accepted by community authority",
-        "Use a consistent halachic calendar and consultation process for sensitive questions.",
-        "Coordinate household observance with qualified rabbinic guidance.",
-        "Preserve family minhag where compatible with accepted psak."
-      ]
+        "Locally trained and ordained shochtim (historical)"
+      ],
+      "variants": [],
+      "source": "Encyclopaedia Iranica, 'BUKHARA vii' (Zand); Encyclopedia of World Cultures, 'Bukharan Jews' (Kotler)",
+      "source_url": "https://www.iranicaonline.org/articles/bukhara-vii/",
+      "confidence": "well-attested",
+      "review_notes": "Historical and institutional. No current Bukharian-specific shechita stringency was found.",
+      "references": [
+        {
+          "title": "BUKHARA vii. Bukharan Jews",
+          "url": "https://www.iranicaonline.org/articles/bukhara-vii/"
+        }
+      ],
+      "topic_he": "הכשרת שוחטים",
+      "summary_he": "הישיבה של ממן הסמיכה שוחטים. מבחינה היסטורית חכמים בוכרים כיהנו כרב, שוחט, מוהל וחזן גם יחד."
     },
     {
       "index": "halacha.19",
-      "category": "Mourning",
-      "topic": "Avelut",
-      "summary": "Mourning follows standard halachic structure with strong family support and memorial customs.",
-      "common_practices": [
-        "Observe shiva, shloshim, and yahrzeit customs",
-        "Use customary prayers for memorials",
-        "Preserve family etiquette for consolation",
-        "Observe shiva, shloshim, and yahrzeit in the accepted local format.",
-        "Coordinate memorial prayer customs with synagogue practice.",
-        "Preserve condolence and visitation etiquette used by the community."
-      ]
+      "category": "Prayer",
+      "topic": "Blessing on samsa / gozhgidzha (meat-filled pastry)",
+      "summary": "The poskim the community follows disagree. The Ben Ish Chai and Kaf HaChaim (168:137) follow the Taz: a filled pastry is mezonot unless a meal's worth is eaten. R. Ovadia Yosef follows the Magen Avraham: meat-filled dough is hamotzi.",
+      "common_practices": [],
+      "variants": [
+        {
+          "subgroup": "Followers of Ben Ish Chai / Kaf HaChaim",
+          "practice": "Mezonot (unless a meal-sized amount is eaten).",
+          "source": "R. N. Shalomayev, Bukharian Jewish Link, 8 May 2024"
+        },
+        {
+          "subgroup": "Followers of R. Ovadia Yosef",
+          "practice": "Hamotzi.",
+          "source": "R. N. Shalomayev, Bukharian Jewish Link, 8 May 2024"
+        }
+      ],
+      "source": "R. Nissan Shalomayev, 'Blessing on Samsa/Gozhgidzha or Beechak', Bukharian Jewish Link, 8 May 2024 (Shulchan Aruch OC 168; Taz 168:6; Magen Avraham 168:44)",
+      "source_url": "https://bukharianjewishlink.com/index.php/feature/5573-blessing-on-samsa-gozhgidzha-or-beechak",
+      "confidence": "disputed",
+      "review_notes": "The article has a section 'Minhag of the Bucharian Jews' citing Likutei Dinim, but the fetched text cut off before it. The Bukharian ruling itself has not been captured. Send to rabbinic review.",
+      "references": [
+        {
+          "title": "Blessing on Samsa/Gozhgidzha or Beechak",
+          "url": "https://bukharianjewishlink.com/index.php/feature/5573-blessing-on-samsa-gozhgidzha-or-beechak"
+        }
+      ],
+      "topic_he": "ברכה על סמסה / גוז'גי'ז'ה (בצק ממולא בשר)",
+      "summary_he": "הפוסקים שהקהילה הולכת אחריהם חלוקים. הבן איש חי וכף החיים (קסח:קלז) הולכים אחרי הט\"ז: מאפה ממולא הוא מזונות, אלא אם אוכלים שיעור סעודה. רבי עובדיה יוסף הולך אחרי המגן אברהם: בצק ממולא בשר הוא המוציא."
     },
     {
       "index": "halacha.20",
-      "category": "Calendar",
-      "topic": "High Holidays",
-      "summary": "Rosh Hashanah and Yom Kippur are marked by solemn prayer, traditional melody, and community continuity.",
+      "category": "Lifecycle",
+      "topic": "Brit milah and postpartum confinement (chillah)",
+      "summary": "Circumcision (milo) is on the eighth day. Historically khakhams served as mohalim. Bukharian Jews of earlier generations kept chillah, a confinement after birth and after marriage during which women did not leave the house.",
       "common_practices": [
-        "Use the community machzor or rite",
-        "Preserve selichot and shofar customs",
-        "Follow local synagogue order and family practice",
-        "Anchor observance times to local halachic zmanim.",
-        "Coordinate fasts, selichot, and festival timing with community schedule.",
-        "Use a single trusted local calendar authority for consistency."
-      ]
+        "Milo on the 8th day",
+        "Historical chillah confinement"
+      ],
+      "variants": [],
+      "source": "Encyclopedia of World Cultures, 'Bukharan Jews' (Kotler); R. N. Shalomayev, 'Sheva Brachot In Restaurants And Shuls', Bukharian Jewish Link, 28 Feb 2024",
+      "source_url": "https://www.bukharianjewishlink.com/index.php/feature/5453-sheva-brachot-in-restaurants-and-shuls",
+      "confidence": "needs-review",
+      "review_notes": "Shalomayev calls chillah a 'superstitious custom' and gives no length; a commonly repeated '40 days' is not documented in the sources read. No source was found for brit-eve vigils, choice of sandak, or pidyon haben.",
+      "references": [
+        {
+          "title": "Bukharan Jews | Encyclopedia.com",
+          "url": "https://www.encyclopedia.com/humanities/encyclopedias-almanacs-transcripts-and-maps/bukharan-jews"
+        },
+        {
+          "title": "Sheva Brachot In Restaurants And Shuls",
+          "url": "https://www.bukharianjewishlink.com/index.php/feature/5453-sheva-brachot-in-restaurants-and-shuls"
+        }
+      ],
+      "topic_he": "ברית מילה ו\"חילה\" אחרי לידה",
+      "summary_he": "המילה (מילו) נעשית ביום השמיני. מבחינה היסטורית חכמים שימשו מוהלים. יהודי בוכרה בדורות קודמים שמרו על \"חילה\", תקופת התבודדות אחרי לידה ואחרי נישואין שבה נשים לא יצאו מהבית."
     },
     {
       "index": "halacha.21",
-      "category": "Calendar",
-      "topic": "Chanukah and Purim",
-      "summary": "Minor festivals are observed with standard halacha and distinctive Bukharan family joy and foods.",
+      "category": "Lifecycle",
+      "topic": "Bar mitzvah (tefillinbandon)",
+      "summary": "At 13 a boy goes through a coming-of-age ceremony called tefillinbandon, literally 'tefillin-binding'.",
       "common_practices": [
-        "Light Chanukah candles nightly",
-        "Read the Megillah on Purim",
-        "Preserve local food, song, and gift customs",
-        "Anchor observance times to local halachic zmanim.",
-        "Coordinate fasts, selichot, and festival timing with community schedule.",
-        "Use a single trusted local calendar authority for consistency."
-      ]
+        "Tefillinbandon ceremony at 13"
+      ],
+      "variants": [],
+      "source": "Encyclopedia of World Cultures, 'Bukharan Jews' (I. Kotler), via Encyclopedia.com",
+      "source_url": "https://www.encyclopedia.com/humanities/encyclopedias-almanacs-transcripts-and-maps/bukharan-jews",
+      "confidence": "needs-review",
+      "review_notes": "The name is attested, but the ceremony itself is not described in any source read. No bat mitzvah custom was found.",
+      "topic_he": "בר מצווה (תפילינבנדון)",
+      "summary_he": "בגיל 13 עובר הנער טקס בגרות בשם תפילינבנדון, כלומר \"קשירת תפילין\" מילולית."
     },
     {
       "index": "halacha.22",
-      "category": "Education",
-      "topic": "Torah transmission",
-      "summary": "Torah, prayer, and custom are transmitted through family memory, teachers, and communal continuity.",
+      "category": "Lifecycle",
+      "topic": "Wedding sequence",
+      "summary": "The traditional wedding week includes a bride price (kalin) and a dowry, the bride's visit to the bath or mikveh, a women's henna celebration or eyebrow rite, writing of the ketubah, and the chuppah (hupo) followed by the feast (tuy). Sources disagree on which day each step falls.",
       "common_practices": [
-        "Teach children prayers and readings",
-        "Preserve oral family custom",
-        "Use both texts and community tradition in education",
-        "Teach children both baseline halacha and family minhag distinctions.",
-        "Preserve community pronunciation and liturgical pedagogy.",
-        "Document oral traditions to reduce minhag drift across generations."
-      ]
+        "Kalin (bride price) and dowry",
+        "Bride's ritual immersion",
+        "Henna / eyebrow rite",
+        "Chuppah on Wednesday",
+        "Wedding feast (tuy)"
+      ],
+      "variants": [
+        {
+          "subgroup": "Central Asia (ethnographic)",
+          "practice": "Sunday: bride taken to the baths. Monday: women celebrate painting the bride's hands with henna. Wednesday: chuppah by a rabbi, then the feast.",
+          "source": "Encyclopedia of World Cultures, 'Bukharan Jews' (Kotler)"
+        },
+        {
+          "subgroup": "Hebrew encyclopedic summary",
+          "practice": "Sunday: mikveh. Monday: kosh-chinon (first shaping of the bride's eyebrows). Tuesday: ketubah written.",
+          "source": "HaMichlol, 'Nisuim be-yahadut Bukhara' (citing Dan Benaya Seri, Chatuna Bukharit, Keter 2006)"
+        }
+      ],
+      "source": "Encyclopedia of World Cultures, 'Bukharan Jews' (I. Kotler)",
+      "source_url": "https://www.encyclopedia.com/humanities/encyclopedias-almanacs-transcripts-and-maps/bukharan-jews",
+      "confidence": "disputed",
+      "review_notes": "The two sources disagree on Monday's rite (henna vs. eyebrows). Treat this as historical ethnography, not current halacha. Levirate marriage and chalitza ('halitso') were practiced historically.",
+      "references": [
+        {
+          "title": "Bukharan Jews | Encyclopedia.com",
+          "url": "https://www.encyclopedia.com/humanities/encyclopedias-almanacs-transcripts-and-maps/bukharan-jews"
+        }
+      ],
+      "topic_he": "סדר החתונה",
+      "summary_he": "שבוע החתונה המסורתי כולל מוהר (קלין) ונדוניה, ביקור הכלה במרחץ או במקווה, חגיגת חינה של נשים או טקס העיצוב של הגבות, כתיבת הכתובה והחופה (הופו) ואחריה המשתה (טוי). המקורות חלוקים באיזה יום חל כל שלב."
+    },
+    {
+      "index": "halacha.23",
+      "category": "Lifecycle",
+      "topic": "Koshchinon (bride's eyebrow rite)",
+      "summary": "Before the wedding, and before her mikveh immersion according to one account, married women gather while a koshchin shapes the bride's eyebrows for the first time with a blade and thread, with special songs and food.",
+      "common_practices": [
+        "First eyebrow shaping of the bride",
+        "Women's songs and food"
+      ],
+      "variants": [
+        {
+          "subgroup": "Israeli Bukharian community",
+          "practice": "Still performed by some brides, before the mikveh.",
+          "source": "Deborah Danan, 'The Bukhari Renaissance Woman', Jewish Journal"
+        },
+        {
+          "subgroup": "Historical sequence",
+          "practice": "Monday, after the Sunday mikveh.",
+          "source": "HaMichlol, 'Nisuim be-yahadut Bukhara'"
+        }
+      ],
+      "source": "Deborah Danan, 'The Bukhari Renaissance Woman', Jewish Journal",
+      "source_url": "https://jewishjournal.com/israel/228619/bukhari-renaissance-woman/",
+      "confidence": "disputed",
+      "review_notes": "The custom itself is attested by two sources, but they disagree on whether it comes before or after the mikveh. Both were seen as search snippets.",
+      "topic_he": "קושצ'ינון (טקס הגבות של הכלה)",
+      "summary_he": "לפני החתונה, ולפי גרסה אחת לפני טבילתה במקווה, מתכנסות נשים נשואות בשעה שקושצ'ין מעצבת את גבות הכלה בפעם הראשונה בעזרת סכין וחוט, בשירים מיוחדים ובמאכלים."
+    },
+    {
+      "index": "halacha.24",
+      "category": "Lifecycle",
+      "topic": "Sheva brachot outside the couple's home",
+      "summary": "Many Bukharians today recite all seven blessings at sheva brachot meals held in restaurants or other homes. A Queens Bukharian rabbi argues the original custom was to recite them only in the couple's home, following the Shulchan Aruch (EH 62) and Likutei Dinim.",
+      "common_practices": [
+        "Current widespread practice: full sheva brachot at any venue"
+      ],
+      "variants": [
+        {
+          "subgroup": "Historical Bukhara",
+          "practice": "Sheva brachot only in the couple's (usually the parents') home, where the couple stayed during chillah.",
+          "source": "R. N. Shalomayev citing Likutei Dinim 131:1 and Mishmeret HaMinhagim 11"
+        },
+        {
+          "subgroup": "Current community practice (Queens / Israel)",
+          "practice": "All seven blessings recited outside the home; Shalomayev attributes this to Chabad emissaries in Uzbekistan.",
+          "source": "R. N. Shalomayev, Bukharian Jewish Link, 28 Feb 2024"
+        }
+      ],
+      "source": "R. Nissan Shalomayev, 'Sheva Brachot In Restaurants And Shuls', Bukharian Jewish Link, 28 Feb 2024",
+      "source_url": "https://www.bukharianjewishlink.com/index.php/feature/5453-sheva-brachot-in-restaurants-and-shuls",
+      "confidence": "disputed",
+      "review_notes": "R. Motayev reports that the elders said there was 'no custom' of reciting the blessings outside the home. Shalomayev acknowledges that 'some current Bukharian rabbis' accept the current practice. Yalkut Yosef (Sova Semachot 17:6) requires the couple's home, a minyan and two panim chadashot. The first night may be held anywhere.",
+      "references": [
+        {
+          "title": "Sheva Brachot In Restaurants And Shuls",
+          "url": "https://www.bukharianjewishlink.com/index.php/feature/5453-sheva-brachot-in-restaurants-and-shuls"
+        }
+      ],
+      "topic_he": "שבע ברכות מחוץ לבית בני הזוג",
+      "summary_he": "בוכרים רבים אומרים היום את כל שבע הברכות בסעודות שבע ברכות הנערכות במסעדות או בבתים אחרים. רב בוכרי מקווינס טוען שהמנהג המקורי היה לאומרן רק בבית בני הזוג, על פי השולחן ערוך (אבן העזר סב) ו\"לקוטי דינים\"."
+    },
+    {
+      "index": "halacha.25",
+      "category": "Mourning",
+      "topic": "Yushvo (yahrzeit / memorial gathering)",
+      "summary": "On a parent's yahrzeit, families host a gathering where Torah scholars study Mishnayot and Zohar and recite Kaddish and hashkava, followed by a meal. Likutei Dinim calls it 'leil yeshiva' (yushvo).",
+      "common_practices": [
+        "Mishnayot and Zohar study",
+        "Kaddish and hashkava",
+        "Memorial meal with divrei Torah",
+        "Customs begin from the Shabbat before the yahrzeit"
+      ],
+      "variants": [
+        {
+          "subgroup": "Bukhara (pre-Soviet, per Likutei Dinim)",
+          "practice": "Held by wealthy families; praised only if the study is serious and the meal has words of Torah. If it becomes frivolous, the money should go to the poor instead.",
+          "source": "Likutei Dinim, trans. R. Hillel Haimoff, cited by R. N. Shalomayev"
+        },
+        {
+          "subgroup": "Soviet-era Central Asia",
+          "practice": "The yushvo became the main covert setting for prayer and religious teaching.",
+          "source": "Prof. Alanna Cooper, cited by R. N. Shalomayev, Bukharian Jewish Link, 31 Jul 2024"
+        },
+        {
+          "subgroup": "Queens diaspora (current)",
+          "practice": "Often held as a large restaurant or catering-hall dinner with speeches and poetry. A local rabbi criticizes missing blessings and heavy drinking and urges a return to an evening of Torah study.",
+          "source": "R. N. Shalomayev, Bukharian Jewish Link, 31 Jul 2024"
+        }
+      ],
+      "source": "R. Nissan Shalomayev, 'All You Need To Know About Yushvo', Bukharian Jewish Link, 17 Jul 2024 (excerpt from Hillel Omer)",
+      "source_url": "https://www.bukharianjewishlink.com/index.php/feature/5707-all-you-need-to-know-about-yushvo",
+      "confidence": "well-attested",
+      "review_notes": "Corroborated by Alanna Cooper (academic) and by Encyclopaedia Iranica on how widely life-cycle observance continued. Shulchan Aruch YD 376:4 and 402:12 record fasting on a parent's yahrzeit; the yushvo is presented as a later substitute based on Torah study and charity.",
+      "topic_he": "ישיבו (יארצייט / התכנסות זיכרון)",
+      "summary_he": "ביום היארצייט של הורה המשפחות מארחות התכנסות שבה תלמידי חכמים לומדים משניות וזוהר ואומרים קדיש והשכבה, ואחריה סעודה. \"לקוטי דינים\" קורא לה \"ליל ישיבה\" (ישיבו)."
+    },
+    {
+      "index": "halacha.26",
+      "category": "Mourning",
+      "topic": "Monthly yushvo in the first year",
+      "summary": "During the first year of mourning, a yushvo is held each month on the date of death, in addition to the shiva practices common to all Jews.",
+      "common_practices": [
+        "Monthly memorial meal on the date of death during year one"
+      ],
+      "variants": [],
+      "source": "Alanna Cooper, 'Who Are the Bukharan Jews?', My Jewish Learning",
+      "source_url": "https://www.myjewishlearning.com/article/who-are-the-bukharan-jews/",
+      "confidence": "needs-review",
+      "review_notes": "Academic author. The passage was seen in the search snippet; the fetched text cut off earlier.",
+      "topic_he": "ישיבו חודשי בשנה הראשונה",
+      "summary_he": "במשך שנת האבל הראשונה נערך ישיבו בכל חודש בתאריך הפטירה, נוסף על דיני השבעה הנוהגים אצל כל היהודים."
+    },
+    {
+      "index": "halacha.27",
+      "category": "Mourning",
+      "topic": "Kaddish and women's roles in mourning",
+      "summary": "Sons recite Kaddish daily for the first year and annually afterwards. Historically each neighborhood's women elected a kayvani, who organized the women's side of weddings, instructed brides, and organized the mourners' performance.",
+      "common_practices": [
+        "Sons' daily Kaddish in year one",
+        "Historical kayvani office"
+      ],
+      "variants": [],
+      "source": "Encyclopaedia Iranica, 'BUKHARA vii' (Zand); Encyclopedia of World Cultures (Kotler)",
+      "source_url": "https://www.iranicaonline.org/articles/bukhara-vii/",
+      "confidence": "regional",
+      "review_notes": "The kayvani office was historical Bukhara. Seen in the search snippet of the Iranica article.",
+      "references": [
+        {
+          "title": "Religion and expressive culture - Bukharan Jews",
+          "url": "https://www.everyculture.com/Russia-Eurasia-China/Bukharan-Jews-Religion-and-Expressive-Culture.html"
+        }
+      ],
+      "topic_he": "קדיש ותפקידי נשים באבל",
+      "summary_he": "בנים אומרים קדיש מדי יום בשנה הראשונה ובכל שנה אחריה. מבחינה היסטורית נשות כל שכונה בחרו \"קיוואני\", שארגנה את צד הנשים בחתונות, הדריכה כלות וארגנה את מילוי תפקידי האבלים."
+    },
+    {
+      "index": "halacha.28",
+      "category": "Torah reading",
+      "topic": "Hashkava during the Torah reading",
+      "summary": "Today the custom is to recite hashkava (the memorial prayer) even between aliyot, not only once at the end of the reading as the Rama records. It is linked to a charity pledge, and it is preferable that the children of the deceased recite it.",
+      "common_practices": [
+        "Hashkava between aliyot",
+        "Charity pledge with hashkava"
+      ],
+      "variants": [],
+      "source": "R. Nissan Shalomayev, 'History Of Hashkavah Prayer For The Deceased', Bukharian Jewish Link, 27 Mar 2024",
+      "source_url": "https://bukharianjewishlink.com/index.php/feature/5509-history-of-hashkavah-prayer-for-the-deceased",
+      "confidence": "needs-review",
+      "review_notes": "Seen in the search snippet. It is not explicit whether this describes Bukharian practice specifically or Sephardic practice generally.",
+      "references": [
+        {
+          "title": "History Of Hashkavah Prayer For The Deceased",
+          "url": "https://bukharianjewishlink.com/index.php/feature/5509-history-of-hashkavah-prayer-for-the-deceased"
+        }
+      ],
+      "topic_he": "השכבה בזמן קריאת התורה",
+      "summary_he": "כיום נוהגים לומר השכבה (תפילת הזיכרון) גם בין העליות, ולא רק פעם אחת בסוף הקריאה כפי שהרמ\"א מביא. היא קשורה בנדר צדקה, ורצוי שילדי הנפטר יאמרו אותה."
+    },
+    {
+      "index": "halacha.29",
+      "category": "Distinctive customs",
+      "topic": "Bukhori (Judeo-Tajik) halachic and liturgical literature",
+      "summary": "Practical halacha reached the community through vocalized Judeo-Tajik works such as Likutei Dinim (6 vols., 1900), written for 'all strata of the people including women and children'. Religious texts were also widely translated into Bukhori, including a Haggadah and Megillat Esther.",
+      "common_practices": [
+        "Likutei Dinim as the accepted code",
+        "Bukhori translations of liturgy and Tanakh"
+      ],
+      "variants": [],
+      "source": "Bucharim.com, 'Echad haya Avraham' (biography of R. Avraham Aminov Talmudi); R. N. Shalomayev, Bukharian Jewish Link, 28 Feb 2024",
+      "source_url": "https://bucharim.com/%D7%90%D7%97%D7%93-%D7%94%D7%99%D7%94-%D7%90%D7%91%D7%A8%D7%94%D7%9D/",
+      "confidence": "well-attested",
+      "review_notes": "Likutei Dinim received an approbation from Rishon LeZion R. Yaakov Shaul Elyashar and was distributed free in Bukhara and Samarkand.",
+      "references": [
+        {
+          "title": "אחד היה אברהם",
+          "url": "https://bucharim.com/%D7%90%D7%97%D7%93-%D7%94%D7%99%D7%94-%D7%90%D7%91%D7%A8%D7%94%D7%9D/"
+        }
+      ],
+      "topic_he": "ספרות הלכתית וליטורגית בבוכורי (יהודית-טג'יקית)",
+      "summary_he": "ההלכה המעשית הגיעה לקהילה דרך חיבורים מנוקדים ביהודית-טג'יקית כמו \"לקוטי דינים\" (6 כרכים, 1900), שנכתב ל\"כל שכבות העם, כולל נשים וילדים\". גם טקסטים דתיים תורגמו בהרחבה לבוכורי, ובהם הגדה ומגילת אסתר."
     }
   ],
-  "unique_minhagim": {
-    "examples": [
-      "Central Asian communal meals and hospitality norms",
-      "Distinct Bukhari language use in family and liturgical settings",
-      "Strong preservation of music and ceremonial forms",
-      "Town-based identity tied to Bukhara and Samarkand"
-    ],
-    "notes": "These are broad examples rather than universal rules. Bukharan practice should be indexed by subcommunity and migration history where possible."
-  },
-  "source_registry": {
-    "primary": [
-      "Shulchan Aruch",
-      "Mishneh Torah",
-      "local Bukharan tradition"
-    ],
-    "secondary": [
-      "Jewish studies reference works",
-      "Jewish community databases",
-      "Central Asian community histories"
-    ]
-  }
+  "unique_minhagim": [
+    {
+      "name": "Yushvo",
+      "description": "Yahrzeit or memorial gathering with Mishnayot and Zohar study, Kaddish, hashkava and a meal. Held monthly in the first year and annually after that.",
+      "when": "Yahrzeit; monthly during the first year of mourning",
+      "source": "Likutei Dinim via R. N. Shalomayev, Bukharian Jewish Link, 17 Jul 2024; Alanna Cooper, My Jewish Learning",
+      "source_url": "https://www.bukharianjewishlink.com/index.php/feature/5707-all-you-need-to-know-about-yushvo",
+      "confidence": "well-attested",
+      "name_he": "ישיבו",
+      "description_he": "יארצייט או התכנסות זיכרון עם לימוד משניות וזוהר, קדיש, השכבה וסעודה. נערכת מדי חודש בשנה הראשונה ומדי שנה אחר כך."
+    },
+    {
+      "name": "Kushelik at the yushvo",
+      "description": "Paper-thin fried dough dusted with sugar, eaten before the rest of the yushvo meal and described as symbolizing the soul's ascent.",
+      "when": "Opening of a yushvo meal",
+      "source": "My Jewish Learning (The Nosher), 'Bukharian Jews Honor Lost Loved Ones With This Traditional Dinner'",
+      "source_url": "https://www.myjewishlearning.com/the-nosher/bukharian-jews-honor-lost-loved-ones-with-this-traditional-dinner/",
+      "confidence": "needs-review",
+      "name_he": "קושליק בישיבו",
+      "description_he": "בצק מטוגן דק כנייר ומפוזר בסוכר, שאוכלים לפני שאר סעודת הישיבו, ומתוארת כסמל לעליית הנשמה."
+    },
+    {
+      "name": "Jomah at the seder",
+      "description": "Gold-embroidered kaftan worn by men and women at the seder.",
+      "when": "Seder night",
+      "source": "Manashe Khaimov, My Jewish Learning, 2020",
+      "source_url": "https://www.myjewishlearning.com/2020/04/06/bukharian-passover-traditions-and-recipes/",
+      "confidence": "well-attested",
+      "name_he": "ג'ומה בליל הסדר",
+      "description_he": "קפטן רקום בזהב שגברים ונשים לובשים בליל הסדר."
+    },
+    {
+      "name": "Yakumin Ki Medonad and Jon Buzghole",
+      "description": "Bukhori-language seder songs, sung instead of Echad Mi Yodea and as a Bukharian Chad Gadya.",
+      "when": "End of the seder",
+      "source": "Manashe Khaimov, My Jewish Learning, 2020",
+      "source_url": "https://www.myjewishlearning.com/2020/04/06/bukharian-passover-traditions-and-recipes/",
+      "confidence": "needs-review",
+      "name_he": "יקומין כי מדונד וז'ון בוזגולה",
+      "description_he": "שירי סדר בשפת הבוכורי, הנשרים במקום \"אחד מי יודע\" וכגרסה בוכרית של \"חד גדיא\"."
+    },
+    {
+      "name": "Koshchinon",
+      "description": "The bride's first eyebrow shaping, done in the company of married women with songs and food.",
+      "when": "Days before the wedding",
+      "source": "Deborah Danan, Jewish Journal",
+      "source_url": "https://jewishjournal.com/israel/228619/bukhari-renaissance-woman/",
+      "confidence": "regional",
+      "name_he": "קושצ'ינון",
+      "description_he": "עיצוב הגבות הראשון של הכלה, בחברת נשים נשואות עם שירים ומאכלים."
+    },
+    {
+      "name": "Tefillinbandon",
+      "description": "Name of the bar mitzvah ceremony, literally 'tefillin-binding'.",
+      "when": "Age 13",
+      "source": "Encyclopedia of World Cultures (Kotler)",
+      "source_url": "https://www.encyclopedia.com/humanities/encyclopedias-almanacs-transcripts-and-maps/bukharan-jews",
+      "confidence": "needs-review",
+      "name_he": "תפילינבנדון",
+      "description_he": "שם טקס הבר מצווה, כלומר \"קשירת תפילין\" מילולית."
+    },
+    {
+      "name": "Sozanda",
+      "description": "Women's ensembles of music and dance (three or four women) performing at weddings, circumcisions and other life-cycle celebrations in Bukhara and Samarkand.",
+      "when": "Life-cycle celebrations",
+      "source": "Jewish Virtual Library / Encyclopaedia Judaica, 'Bukhara'",
+      "source_url": "https://jewishvirtuallibrary.org/bukhara",
+      "confidence": "regional",
+      "name_he": "סוזנדה",
+      "description_he": "הרכבי מוזיקה וריקוד של נשים (שלוש או ארבע) המופיעים בחתונות, בבריתות ובשמחות אחרות במחזור החיים בבוכרה ובסמרקנד."
+    }
+  ],
+  "source_registry": [
+    {
+      "title": "BUKHARA vii. Bukharan Jews",
+      "author": "Michael Zand (Encyclopaedia Iranica)",
+      "type": "academic",
+      "url": "https://www.iranicaonline.org/articles/bukhara-vii/",
+      "used_for": "History, Maman reforms, nusach, Zohar, shochtim academy, communal structure, kayvani"
+    },
+    {
+      "title": "Bukharan Jews (Encyclopedia of World Cultures)",
+      "author": "Igor Kotler",
+      "type": "reference",
+      "url": "https://www.encyclopedia.com/humanities/encyclopedias-almanacs-transcripts-and-maps/bukharan-jews",
+      "used_for": "Nusach Paras to Sefarad, milo, tefillinbandon, wedding sequence, kaddish, khakhams"
+    },
+    {
+      "title": "Virtual Jewish World: Bukharan Jews",
+      "author": "Joanna Sloame (Jewish Virtual Library)",
+      "type": "reference",
+      "url": "https://www.jewishvirtuallibrary.org/bukharan-jews",
+      "used_for": "Population figures (Bukhara today, Queens, emigration), first aliyah, Maman's dates"
+    },
+    {
+      "title": "Weekly Story: Helping the Jews in Uzbekistan and Georgia",
+      "author": "CrownHeights.info",
+      "type": "reference",
+      "url": "https://crownheights.info",
+      "used_for": "R. Eliezerov's 1897 settlement in Uzbekistan (homepage only; article URL not captured)"
+    },
+    {
+      "title": "All You Need To Know About 'Yushvo'",
+      "author": "R. Nissan Shalomayev (Bukharian Jewish Link; excerpt from Hillel Omer)",
+      "type": "primary",
+      "url": "https://www.bukharianjewishlink.com/index.php/feature/5707-all-you-need-to-know-about-yushvo",
+      "used_for": "Yushvo; Likutei Dinim text"
+    },
+    {
+      "title": "All You Need To Know About 'Yushvo' Yahrtzeit / Memorial Meal (part 2)",
+      "author": "R. Nissan Shalomayev",
+      "type": "primary",
+      "url": "https://www.bukharianjewishlink.com/index.php/feature/5744-all-you-need-to-know-about-yushvo-yahrtzeit-memorial-meal",
+      "used_for": "Soviet-era yushvo (citing Cooper); critique of current practice"
+    },
+    {
+      "title": "Bukharian Custom of Kitniyot on Pesach",
+      "author": "R. Nissan Shalomayev",
+      "type": "primary",
+      "url": "https://www.bukharianjewishlink.com/index.php/feature/5535-bukharian-custom-of-kitniyot-on-pesach",
+      "used_for": "Kitniyot variants, rice checking (Bechori Yisrael), Likutei Dinim 145:4"
+    },
+    {
+      "title": "Sheva Brachot In Restaurants And Shuls",
+      "author": "R. Nissan Shalomayev",
+      "type": "primary",
+      "url": "https://www.bukharianjewishlink.com/index.php/feature/5453-sheva-brachot-in-restaurants-and-shuls",
+      "used_for": "Sheva brachot dispute, chillah, Likutei Dinim 131:1, Mishmeret HaMinhagim 11, Rav Yitzhak Yosef on acceptance of Shulchan Aruch"
+    },
+    {
+      "title": "Blessing on Samsa/Gozhgidzha or Beechak",
+      "author": "R. Nissan Shalomayev",
+      "type": "primary",
+      "url": "https://bukharianjewishlink.com/index.php/feature/5573-blessing-on-samsa-gozhgidzha-or-beechak",
+      "used_for": "Bracha dispute on meat pastries"
+    },
+    {
+      "title": "History Of Hashkavah Prayer For The Deceased",
+      "author": "R. Nissan Shalomayev",
+      "type": "primary",
+      "url": "https://bukharianjewishlink.com/index.php/feature/5509-history-of-hashkavah-prayer-for-the-deceased",
+      "used_for": "Hashkava between aliyot"
+    },
+    {
+      "title": "Echad haya Avraham (biography of R. Avraham Aminov Talmudi)",
+      "author": "Bucharim.com",
+      "type": "reference",
+      "url": "https://bucharim.com/%D7%90%D7%97%D7%93-%D7%94%D7%99%D7%94-%D7%90%D7%91%D7%A8%D7%94%D7%9D/",
+      "used_for": "Likutei Dinim publication details"
+    },
+    {
+      "title": "Bukharian Passover Traditions and Recipes",
+      "author": "Manashe Khaimov (My Jewish Learning / Be'chol Lashon)",
+      "type": "reference",
+      "url": "https://www.myjewishlearning.com/2020/04/06/bukharian-passover-traditions-and-recipes/",
+      "used_for": "Seder customs, matzah, kitniyot (community view), jomah"
+    },
+    {
+      "title": "How my Bukharian community celebrates Chanukah",
+      "author": "Manashe Khaimov (Intermountain Jewish News)",
+      "type": "reference",
+      "url": "https://www.ijn.com/how-my-bukharian-community-celebrates-chanukah/",
+      "used_for": "Chanukah, shashmaqam prayer tunes"
+    },
+    {
+      "title": "How My Bukharian Jewish Community Celebrates Hanukkah",
+      "author": "Manashe Khaimov (SAMi)",
+      "type": "reference",
+      "url": "https://www.samiglobal.org/blog/how-my-bukharian-jewish-community-celebrates-hanukkah",
+      "used_for": "Separate tandir ovens"
+    },
+    {
+      "title": "Who Are the Bukharan Jews?",
+      "author": "Alanna Cooper (My Jewish Learning)",
+      "type": "academic",
+      "url": "https://www.myjewishlearning.com/article/who-are-the-bukharan-jews/",
+      "used_for": "Monthly yushvo in the first year"
+    },
+    {
+      "title": "Minhagei Bukhara: mekoram / akhila be-leil Shabbat lifnei netilat yadayim",
+      "author": "din.org.il",
+      "type": "responsa",
+      "url": "https://din.org.il/2015/10/19/%D7%9E%D7%A0%D7%94%D7%92%D7%99-%D7%91%D7%95%D7%9B%D7%A8%D7%94-%D7%9E%D7%A7%D7%95%D7%A8%D7%9D-%D7%90%D7%9B%D7%99%D7%9C%D7%94-%D7%91%D7%9C%D7%99%D7%9C-%D7%A9%D7%91%D7%AA-%D7%9C%D7%A4%D7%A0%D7%99/",
+      "used_for": "Friday night pre-washing customs (reported)"
+    },
+    {
+      "title": "Minhagei Tisha B'Av misaviv la-olam",
+      "author": "Ortal Mogus (Ynet)",
+      "type": "reference",
+      "url": "https://www.ynet.co.il/judaism/article/HJh5krg11w",
+      "used_for": "Nine Days kinot and shochtim custom"
+    },
+    {
+      "title": "Gilyon no. 4 (reproducing Mishmeret HaMinhagim)",
+      "author": "Hillel Haimov",
+      "type": "primary",
+      "url": "https://fliphtml5.com/dlmdj/aubc/%D7%92%D7%9C%D7%99%D7%95%D7%9F_%D7%9E%D7%A1_4/",
+      "used_for": "Birkat Kohanim custom"
+    },
+    {
+      "title": "Nisuim be-yahadut Bukhara",
+      "author": "HaMichlol",
+      "type": "reference",
+      "url": "https://www.hamichlol.org.il/%D7%A0%D7%99%D7%A9%D7%95%D7%90%D7%99%D7%9D_%D7%91%D7%99%D7%94%D7%93%D7%95%D7%AA_%D7%91%D7%95%D7%9B%D7%A8%D7%94",
+      "used_for": "Wedding sequence variant"
+    },
+    {
+      "title": "The Bukhari Renaissance Woman",
+      "author": "Deborah Danan (Jewish Journal)",
+      "type": "reference",
+      "url": "https://jewishjournal.com/israel/228619/bukhari-renaissance-woman/",
+      "used_for": "Koshchinon"
+    },
+    {
+      "title": "Bukhara, Uzbekistan",
+      "author": "Jewish Virtual Library / Encyclopaedia Judaica",
+      "type": "reference",
+      "url": "https://jewishvirtuallibrary.org/bukhara",
+      "used_for": "Maman introduces Sephardi rite; sozanda"
+    },
+    {
+      "title": "JUDEO-PERSIAN COMMUNITIES ix. Judeo-Persian Literature",
+      "author": "Encyclopaedia Iranica",
+      "type": "academic",
+      "url": "https://www.iranicaonline.org/articles/judeo-persian-ix-judeo-persian-literature/",
+      "used_for": "Pirkei Avot tafsir study"
+    },
+    {
+      "title": "Chabad Library memoir on Samarkand",
+      "author": "chabadlibrary.org",
+      "type": "reference",
+      "url": "https://chabadlibrary.org/books/11200004149",
+      "used_for": "Samarkand synagogue with Bukharian nusach and Chabad customs"
+    }
+  ],
+  "gaps": [
+    "Shabbat candle-lighting time (minutes before sunset): no Bukharian-specific figure documented",
+    "Kabbalat Shabbat order, Shabbat Kiddush text variants, seudot and Havdalah: no Bukharian-specific source",
+    "Rosh Hashana simanim and order of the day: the only article found in a Bukharian outlet (R. Eli Mansour, Bukharian Jewish Link, 2020) gives the Ben Ish Chai order and the Syrian 'lubia' custom; it does not document a Bukharian custom",
+    "Yom Kippur: no distinctive custom found",
+    "Hoshana Rabba and Simchat Torah: no distinctive custom found (a Queens shul holds all-night learning on Hoshana Rabba and Shavuot, which is not a communal minhag)",
+    "Purim: no distinctive custom found",
+    "Mimouna-type post-Pesach custom: none found",
+    "Omer counting and mourning-period dates: not found",
+    "Shavuot: no distinctive custom found",
+    "Fasts other than Tisha B'Av: not found",
+    "Tefillin (Rashi / Rabbeinu Tam practice) and tzitzit: not found",
+    "Torah-reading pronunciation and cantillation (trope): not found",
+    "Pidyon haben: not found",
+    "Bat mitzvah: not found",
+    "Niddah and mikveh practice beyond the bride's pre-wedding immersion: not found",
+    "Burial practices, shiva details and grave visits: not found beyond the yushvo",
+    "Calendar: no distinctive calendar practice documented",
+    "Bakashot or a piyyut cycle: not found; Judeo-Tajik piyyutim and Bukharian siddur/machzor editions not identified",
+    "Burning ispand (espand/ispandut, Peganum harmala): no sourced description is recorded here",
+    "Unique communal holidays: none found"
+  ],
+  "disputes": [
+    "Kitniyot on Pesach: three internal customs (no kitniyot at all; rice only; no rice on the first two days only). One community writer says the community eats kitniyot. R. Shalomayev says the restriction is not old and may come from Chabad influence.",
+    "Sheva brachot outside the couple's home: widespread current practice vs. Likutei Dinim, Mishmeret HaMinhagim and the Shulchan Aruch as read by R. Shalomayev.",
+    "Yushvo format: Torah-study evening (Likutei Dinim; R. Shalomayev) vs. the current large restaurant memorial dinner.",
+    "Blessing on samsa: mezonot (Ben Ish Chai, Kaf HaChaim, Taz) vs. hamotzi (R. Ovadia Yosef, Magen Avraham).",
+    "Wedding-week sequence: henna on Monday (Kotler) vs. kosh-chinon on Monday and the ketubah on Tuesday (HaMichlol / Seri); whether koshchinon comes before or after the mikveh.",
+    "Historical nusach: R. Yosef Maman's Sephardic reform vs. R. Zecharia Matzliach's defense of the older local rite.",
+    "Pre-washing foods on Friday night: defended as a Sephardic practice vs. called a questionable unnecessary blessing (din.org.il).",
+    "Date of R. Eliezerov's arrival in Central Asia: 1897 (CrownHeights.info) vs. 1890 (Chabad.org)."
+  ],
+  "needs_rabbinic_review": [
+    "Whether a Bukharian family that has avoided kitniyot (or rice on the first two days) may drop the custom, and whether hatarat nedarim is required",
+    "Reciting full sheva brachot at restaurant or other-venue meals",
+    "Blessing on samsa / gozhgidzha and beechak according to Bukharian custom (the Likutei Dinim section was not captured)",
+    "Eating and blessing foods between Kiddush and netilat yadayim on Friday night",
+    "Yushvo format and the use of alcohol or entertainment",
+    "Confirming the Nine Days kinot and shochtim customs against a Bukharian kinot or minhag book",
+    "Confirming the Birkat Kohanim father-covering custom from the full text of Mishmeret HaMinhagim"
+  ]
 }

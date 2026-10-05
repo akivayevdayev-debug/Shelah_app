@@ -62,8 +62,10 @@ does; this file just classifies how often you'd run them.
 ## One-time (setup / migration)
 
 - **`migrate_customs_to_supabase.py`** — seeds `community_knowledge` from the
-  `customs/*.json` files. Supports `--dry-run` and `--community <name>`. Run
-  once per environment, or after a customs-data change you want pushed.
+  `customs/*.json` files. Supports `--dry-run`, `--community <lens key>`, `--prune`
+  (delete rows the JSON no longer has) and `--emit-sql DIR` (write SQL files for the
+  Supabase SQL Editor instead of connecting). Run once per environment, or after a
+  customs-data change you want pushed.
 - **`build_siddur.py`** — rebuilds the checked-in siddur
   (`data/siddur/edot-hamizrach/`) from the public Sefaria-Export bucket:
   curated table of contents plus typed lines per service. Refuses any text

@@ -379,6 +379,22 @@ class TestFormatCustoms:
     def test_empty_input(self):
         assert claude.format_customs(None) == ""
 
+    def test_a_3_0_row_keeps_its_caveat_and_variants_within_the_default_cap(self):
+        ruling = (
+            "Rice is permitted. " + "Confidence: disputed. Rabbis differ; give each side and tell the user to ask their own rabbi. "
+            + "Variants: Turkish: No rice. Common practices: " + "x" * 120
+        )
+        assert len(ruling) < claude.CUSTOMS_ROW_MAX_CHARS
+        result = claude.format_customs([{"community": "Sefardic", "topic": "Kitniyot", "ruling": ruling}])
+        assert "ask their own rabbi" in result
+        assert "Turkish: No rice." in result
+        assert not result.rstrip().endswith("...")
+
+    def test_a_row_over_the_cap_is_cut_with_an_ellipsis(self):
+        result = claude.format_customs([{"community": "C", "ruling": "word " * 400}])
+        assert result.rstrip().endswith("...")
+        assert len(result) < claude.CUSTOMS_ROW_MAX_CHARS + 80
+
     def test_drops_a_row_carrying_a_prompt_injection_marker(self):
         """AI_SECURITY_REVIEW follow-up E: community_knowledge rows are
         community-submitted free text, the same untrusted-channel shape as
@@ -694,14 +710,56 @@ class TestCommunityLensInstruction:
     def test_named_community_is_answered_first_and_not_defaulted_to_ashkenazi(self):
         text = claude._community_lens_instruction("Sefardic")
         assert text.startswith("Sephardic.")
-        assert "Shulchan Arukh of Maran" in text
+        assert "Beit Yosef of R. Yosef Karo" in text
         assert "Never present Ashkenazi practice as the default" in text
 
     def test_ashkenaz_leads_with_the_rema(self):
-        assert "Rema's glosses" in claude._community_lens_instruction("Ashkenaz")
+        assert "glossed by the Rema" in claude._community_lens_instruction("Ashkenaz")
 
     def test_yemenite_follows_the_rambam(self):
         assert "Rambam's Mishneh Torah" in claude._community_lens_instruction("yemenite")
+
+    @pytest.mark.parametrize("value", [
+        "Ashkenaz", "Sefardic", "Yemenite", "Iraqi", "Syrian", "Moroccan", "Persian", "Bukharian",
+        "Georgian", "Kavkazi", "Turkish-Ottoman", "Greek-Romaniote", "Ethiopian",
+    ])
+    def test_the_baseline_in_the_prompt_is_the_one_in_the_communitys_customs_file(self, value):
+        from backend import customs
+        baseline = customs.runtime_config()[value.lower()]["practice_baseline"]
+        assert baseline, value
+        assert " ".join(baseline.split()).rstrip(".") in claude._community_lens_instruction(value)
+
+    def test_georgian_and_ethiopian_are_no_longer_handed_the_sephardic_codes(self):
+        # They used to share one hard-coded "Shulchan Arukh of Maran ... Kaf HaChaim" baseline,
+        # which their own research reports contradict.
+        assert "Kaf HaChaim" not in claude._community_lens_instruction("Georgian")
+        assert "Ge'ez Orit" in claude._community_lens_instruction("Ethiopian")
+
+    def test_correcting_a_baseline_in_the_data_changes_the_prompt(self, monkeypatch):
+        monkeypatch.setattr(claude, "_customs_runtime_config", lambda: {
+            "yemenite": {"name": "Yemenite", "practice_baseline": "a corrected baseline.\n  Second line."},
+        })
+        text = claude._community_lens_instruction("Yemenite")
+        assert "rests on: a corrected baseline. Second line. Mention" in text
+
+    def test_a_community_with_a_file_but_no_label_uses_the_files_name(self, monkeypatch):
+        monkeypatch.setattr(claude, "_customs_runtime_config", lambda: {
+            "newland": {"name": "Newlandish", "practice_baseline": "the Newland codes"},
+        })
+        text = claude._community_lens_instruction("Newland")
+        assert text.startswith("Newlandish. Answer for a Newlandish reader first")
+        assert "rests on: the Newland codes." in text
+
+    def test_a_known_community_whose_file_is_missing_gets_the_generic_baseline(self, monkeypatch):
+        monkeypatch.setattr(claude, "_customs_runtime_config", lambda: {})
+        text = claude._community_lens_instruction("Yemenite")
+        assert text.startswith("Yemenite.")
+        assert "rests on: that community's own published practice." in text
+
+    def test_israeli_has_no_file_and_keeps_its_code_side_baseline(self):
+        text = claude._community_lens_instruction("Israeli")
+        assert text.startswith("Israeli.")
+        assert "current Israeli practice" in text
 
     @pytest.mark.parametrize("value", [
         "Bukharian", "Persian", "Ethiopian", "Georgian", "Greek-Romaniote", "Iraqi",
@@ -792,6 +850,21 @@ class TestBuildDynamicSystemContext:
         assert '<retrieved_context source="user_memory_last_interactions">' in result
         assert '<retrieved_context source="request_tool_context">' in result
         assert result.count("</retrieved_context>") == 3
+
+    def test_a_full_load_of_long_rows_still_closes_every_section(self):
+        """The ceiling must hold five maximum-length community rows plus memories
+        and tool context; a hard slice would cut the trailing sections and the
+        closing boundary tag."""
+        rows = [{"community": "Sefardic", "topic": f"Topic {i}", "source": "Shulchan Aruch OC 253",
+                 "ruling": "word " * 400} for i in range(5)]
+        result = claude._build_dynamic_system_context(
+            customs=rows,
+            user_memories=[{"summary": "m" * 400}, {"summary": "n" * 400}],
+            extra_context={"location": "Jerusalem"},
+        )
+        assert len(result) <= claude.DYNAMIC_CONTEXT_MAX_CHARS
+        assert result.count("</retrieved_context>") == 3
+        assert "REQUEST TOOL CONTEXT" in result
 
     def test_core_system_prompt_names_retrieved_context_non_authoritative(self):
         assert "<retrieved_context>" in claude.CORE_SYSTEM_PROMPT or "retrieved_context" in claude.CORE_SYSTEM_PROMPT

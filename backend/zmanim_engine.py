@@ -21,6 +21,7 @@ from timezonefinder import TimezoneFinder
 import requests
 from backend.calendar_service import calendar_engine
 from backend.cache import TTLCache
+from backend.customs import runtime_config as _customs_runtime_config
 from backend.health_check import health
 
 logger = logging.getLogger(__name__)
@@ -345,9 +346,25 @@ def _compute_shabbat_warning(is_friday, sunset, now):
     return ""
 
 
-def _compute_sunset_display(sunset, community):
-    if community.lower() == "bukharian" and sunset:
-        return sunset - timedelta(minutes=20)
+_SUNSET_OFFSET_PARAMETER = "sunset_display_offset_minutes"
+
+
+def _sunset_display_offset_minutes(community):
+    """Minutes a community's shown sunset runs ahead of astronomical sunset, read from
+    the `runtime.parameters` of that community's customs file. 0 when it declares none."""
+    entry = _customs_runtime_config().get(str(community or "").strip().lower()) or {}
+    for parameter in entry.get("parameters") or []:
+        if isinstance(parameter, dict) and parameter.get("key") == _SUNSET_OFFSET_PARAMETER:
+            try:
+                return max(0, int(parameter.get("value")))
+            except (TypeError, ValueError):
+                return 0
+    return 0
+
+
+def _compute_sunset_display(sunset, offset_minutes):
+    if offset_minutes and sunset:
+        return sunset - timedelta(minutes=offset_minutes)
     return sunset
 
 
@@ -468,7 +485,8 @@ def get_community_zmanim(lat, lon, timezone_str=None, community="standard"):
 
         # Custom Community Offsets
         shabbat_warning = _compute_shabbat_warning(is_friday, sunset, now)
-        sunset_display = _compute_sunset_display(sunset, community)
+        sunset_offset = _sunset_display_offset_minutes(community)
+        sunset_display = _compute_sunset_display(sunset, sunset_offset)
 
         def fmt(t):
             return t.strftime('%I:%M %p') if t else "N/A"
@@ -529,7 +547,7 @@ def get_community_zmanim(lat, lon, timezone_str=None, community="standard"):
                 "Latest Musaf": fmt(latest_musaf),
                 "Plag HaMincha": fmt(plag),
                 "Candle Lighting": fmt(candle_lighting),
-                "Sunset": fmt(sunset_display) + (" (-20m)" if community.lower() == "bukharian" else ""),
+                "Sunset": fmt(sunset_display) + (f" (-{sunset_offset}m)" if sunset_offset else ""),
                 "Arvit (Maariv)": fmt(maariv_time),
                 "Nightfall (3 Stars)": fmt(nightfall_3stars),
                 "Fast Ends": fmt(fast_ends),

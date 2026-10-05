@@ -1,5 +1,5 @@
 {
-  "version": "2.0",
+  "version": "3.0",
   "type": "academic_halachic_reference",
   "heritage_id": "mountain_kavkazi",
   "name": "Mountain (Kavkazi)",
@@ -7,437 +7,1194 @@
     "Juhuro",
     "Juhuri",
     "Mountain Jews",
-    "Kavkazi Jews"
+    "Kavkazi Jews",
+    "Juhur",
+    "Gorsky / Gorskie evrei (Горские евреи)",
+    "Yehudei he-Harim (יהודי ההרים)",
+    "Yehudei Kavkaz (יהודי קווקז)",
+    "Dagchifut",
+    "Tats (Soviet-era misnomer; per EJE, 17,109 Mountain Jews in the 1970 census and about 22,000 in 1979 called themselves Tats to avoid being registered as Jews)"
   ],
   "database_scope": {
-    "purpose": "Academic and halachic reference database for Mountain Jewish heritage, minhagim, and halachic practice.",
-    "coverage_note": "This file models broad Mountain Jewish practice and includes common halachic domains. Local customs vary by town, family, and migration history.",
-    "classification_note": "Mountain Jewish practice is often described as a distinct Caucasus tradition with historical interaction with Persian, Turkic, Russian, and broader Sephardi frameworks."
+    "purpose": "Sourced reference for Mountain (Kavkazi) minhagim and halachic practice. It records what the cited sources say, with a confidence level for each entry, and is not a psak.",
+    "coverage_note": "30 sourced topics and 7 distinctive customs, compiled from the cited sources in October 2026. Each entry carries a confidence level (well-attested, disputed, regional, needs-review). 13 topics have no community-specific source and are listed under 'gaps' rather than filled with generic text."
   },
   "identity": {
-    "primary_origin": "Ancient Jewish communities of the Caucasus region, especially Dagestan and Azerbaijan",
+    "primary_origin": "The eastern Caucasus: Dagestan (Derbent) and northern Azerbaijan (Quba)",
     "secondary_centers": [
-      "Derbent",
-      "Quba / Red Village",
-      "Dagestan",
-      "Azerbaijan",
-      "Russian diaspora",
-      "Israeli diaspora"
-    ],
-    "cultural_profile": [
-      "Strong preservation of communal identity",
-      "Town-based and family-based continuity",
-      "Distinctive Juhuri language and oral tradition",
-      "Interaction of Jewish law with Caucasus social structure"
+      "Baku",
+      "The North Caucasus (Nalchik, Grozny)",
+      "Israel (Hadera, Kiryat Yam, Be'er Ya'akov)",
+      "Brooklyn, New York"
     ]
   },
   "languages": [
-    "Juhuri",
-    "Hebrew",
-    "Russian",
-    "Azerbaijani in some communities",
-    "Persian loanwords in some speech traditions"
+    "Juhuri: the community's language; the Haggadah is read in Juhuri translation at the second seder, and the first Juhuri books were printed in Vilna in 1908-1909"
   ],
-  "genealogy": {
-    "common_surname_patterns": [
-      "Hebrew-root surnames with Russian suffixes",
-      "Family names tied to local towns or villages",
-      "Patronymic surnames",
-      "Russified spellings from the imperial and Soviet periods"
-    ],
-    "research_notes": [
-      "Surname spellings often vary by transliteration and historical period.",
-      "Village, synagogue, and family lineage are often more reliable than surname alone.",
-      "Community records may reflect Russian, Soviet, Azerbaijani, or Israeli documentation formats."
-    ],
-    "recommended_genealogy_fields": [
-      "surname",
-      "alternate_spellings",
-      "town_of_origin",
-      "community_branch",
-      "migration_route",
-      "language_used",
-      "ritual_minhag"
-    ]
-  },
+  "subgroups": [
+    {
+      "name": "Dagestan (Derbent, Makhachkala/Petrovsk, Buynaksk/Temir-Khan-Shura, Khasavyurt, former villages Majalis, Nyugdi, Mamrach)",
+      "note": "Derbent was the seat of the Mountain Jewish chief rabbinate (R. Eliyahu b. Mishael, then the Yitzchaki dynasty), recognised for southern Dagestan and Azerbaijan."
+    },
+    {
+      "name": "Azerbaijan (Quba / Krasnaya Sloboda / Qirmizi Qesebe, Baku, Oghuz/Vartashen)",
+      "note": "Krasnaya Sloboda was a federation of quarter-communities by place of origin, each with its own synagogue and rabbis. Vartashen is the best-documented community for 19th-century festival ritual (Bezhanov, 1894)."
+    },
+    {
+      "name": "North Caucasus (Nalchik/Kabardino-Balkaria, Grozny/Chechnya, Pyatigorsk, Kizlyar)",
+      "note": "The northern district rabbinate sat in Temir-Khan-Shura. Grozny's synagogue was confiscated in 1963 and the community dispersed in the 1990s. Few Grozny-specific customs are documented."
+    },
+    {
+      "name": "Diaspora (Israel, Brooklyn, Moscow, Toronto, Germany)",
+      "note": "Brooklyn: Kavkazi Jewish Congregation / Beit Knesset Ohr haMizrah, Ocean Parkway (opened 2001). Israel: Hadera, Kiryat Yam, Be'er Ya'akov; Jerusalem synagogue Ohel Yona."
+    }
+  ],
   "historical_background": {
     "timeline": [
       {
-        "period": "Early settlement era",
-        "event": "Jewish communities developed in the Caucasus over long historical periods.",
-        "halachic_impact": "Local custom and communal identity became strongly rooted."
+        "period": "Late 16th-early 17th c.",
+        "event": "Venice-printed books reach the Caucasus; in Quba, books printed in Venice in the late 16th and early 17th c. were kept until the early 20th c. (EJE).",
+        "halachic_impact": "A lost local manuscript nusach was displaced by the Sephardi nusach, still used today (Dymshits 1999; EJE 'Горские евреи')."
       },
       {
-        "period": "Persian and regional influence",
-        "event": "Mountain Jews interacted with surrounding Persian and Caucasus cultures.",
-        "halachic_impact": "Some customs reflected regional social and linguistic influence while retaining Jewish legal structure."
+        "period": "17th-early 19th c.",
+        "event": "Local works: piyyutim of Elisha b. Shmuel of Aba-Sava; R. Gershon Lala's Rambam commentary; R. Mattatiah b. Shmuel Mizrachi of Shemakha's kabbalistic 'Kol Mevaser' (1806-1828).",
+        "halachic_impact": "Little local halachic literature; higher authority came from Iran, Iraq and Eretz Israel."
       },
       {
-        "period": "Russian imperial period",
-        "event": "Political and administrative change brought Russian influence.",
-        "halachic_impact": "Names, records, and public life were increasingly Russified."
+        "period": "c. 1805-1848",
+        "event": "R. Eliyahu b. Mishael founds the Derbent chief rabbinate, studies in Jerusalem and Baghdad, and sends students to Belaya Tserkov in the late 1820s.",
+        "halachic_impact": "Standardised liturgy; start of Ashkenazi-yeshiva training for Mountain Jewish rabbis."
       },
       {
-        "period": "Soviet period",
-        "event": "Religious practice was pressured underground.",
-        "halachic_impact": "Oral transmission and family observance became especially important."
+        "period": "1860s-1907",
+        "event": "Russian authorities recognise the Derbent chief rabbis as crown rabbis; two districts (south: Derbent; north: Temir-Khan-Shura).",
+        "halachic_impact": "Chief rabbis act as dayanim and train shochtim and moelim; the village 'rabbi' is mainly shochet, mohel, melamed and chazzan."
       },
       {
-        "period": "Modern diaspora",
-        "event": "Large-scale migration to Israel, Russia, and elsewhere.",
-        "halachic_impact": "Some customs remained intact while others adapted to new communal settings."
+        "period": "1908-1910",
+        "event": "Machzor Ohalei Yaakov printed in Jerusalem; first Juhuri books printed in Vilna (1908 'Zionism'; 1909 siddur 'Kol Tefilla' with parallel Hebrew, tr. Asaf Pinkhasov).",
+        "halachic_impact": "A community-authored High Holiday machzor; the first vernacular siddur."
+      },
+      {
+        "period": "1920s-1980s",
+        "event": "Soviet synagogue closures and repression of rabbis; by perestroika six synagogues remained (Baku, Quba, Derbent, Buynaksk, Makhachkala, Nalchik), and Oghuz reopened in 1994.",
+        "halachic_impact": "Practice survived mainly in life-cycle and home ritual; festival meanings sometimes shifted to folk explanations."
+      },
+      {
+        "period": "1970s-present",
+        "event": "Mass emigration to Israel, the US and Moscow. American Gorski leaders put their own community at 10,000-20,000, mostly in Brooklyn, with smaller groups in Detroit and Pennsylvania (Hadassah 2008).",
+        "halachic_impact": "Diaspora communities may follow outside rabbinic leadership while keeping their own customs. Brooklyn's official rabbi is Yosef Elishevitz, 'a Lubavitch of Ashkenazic origin'; 'our elders tell him our customs, and he accommodates our traditions' (Hadassah 2008). Selected customs (rice, Govgil) persist."
       }
     ]
   },
   "core_halachic_authorities": {
     "primary_codes": [
-      "Shulchan Aruch",
-      "Mishneh Torah",
-      "local community tradition"
+      "Shulchan Aruch as the general Sephardi baseline; R. Bentsion Zilber explicitly treats the Mountain Jewish community as 'part of Sephardi society' when applying it to Omer practice"
     ],
     "major_rishonim_base": [
-      "Rambam",
-      "Rif",
-      "Rosh"
+      "No community-specific rishon documented; an 18th-c. commentary on Rambam's Mishneh Torah by R. Gershon Lala b. Moshe Nakdi of Aba-Sava is recorded (Dymshits 1999)"
     ],
-    "later_authorities_and_guides": [
-      "Regional Sephardi authorities used in diaspora settings",
-      "Community rabbis and shochtim",
-      "Modern poskim consulted in Israel and Russia"
+    "later_poskim": [
+      "Chida (R. Chaim Yosef David Azulai): his order of prayers was introduced in all communities by R. Eliyahu b. Mishael (per Davidov)",
+      "R. Eliyahu b. Mishael of Derbent (1781-1848), first chief rabbi",
+      "R. Yitzchak b. Yaakov (1795-1877), dayan and chief rabbi of Derbent",
+      "R. Yaakov Yitzchaki (1846-1917), chief rabbi of Derbent, author of Machzor Ohalei Yaakov (Jerusalem 1908, 1910) and responsa",
+      "R. Hizgil b. Avraham Mishailov, northern-district chief rabbi (Temir-Khan-Shura, 1885-1904)"
     ],
-    "decision_principle": "Follow inherited community practice, typically within a Sephardi-adjacent halachic framework, while preserving local Mountain Jewish minhagim where established."
+    "decision_principle": "Documented practice combines a Sephardi liturgical base (imported Venice/Livorno printed books; the Chida's prayer order) with local minhag passed down orally through family and community ritual ('orthopraxy, not orthodoxy', Dymshits). Hadassah Magazine (2008) says the community 'had earlier sent their rabbinical students to Baghdad, began to send them to Lithuanian yeshivot—albeit without adopting Ashkenazic customs.' Where custom and Shulchan Aruch differ, contemporary rabbis (e.g. R. Zilber on Omer weddings) have accepted the inherited custom."
+  },
+  "runtime": {
+    "lens_key": "Kavkazi",
+    "practice_baseline": "Sephardi-rite practice resting on the Shulchan Aruch and the Chida's prayer order as introduced by the Derbent rabbinate, overlaid with distinct Caucasian community minhagim.",
+    "parameters": []
   },
   "halacha_index": [
     {
       "index": "halacha.1",
       "category": "Prayer",
-      "topic": "Nusach and liturgy",
-      "summary": "Mountain Jewish prayer practice generally reflects a traditional rite with local historical development and Juhuri-based explanation in some settings.",
+      "topic": "Nusach and prayer order",
+      "summary": "Mountain Jews pray in the Sephardi rite. An earlier local manuscript nusach did not survive; it was replaced by Sephardi books printed in Venice and Livorno (c. late 16th-early 17th c.). R. Eliyahu b. Mishael instituted the Chida's prayer order in all communities.",
       "common_practices": [
-        "Use community siddurim or inherited prayer order",
-        "Preserve local melodies and pronunciations",
-        "Retain communal piyyutim and festival readings where customary",
-        "Preserve inherited nusach and pronunciation in public prayer.",
-        "Coordinate weekday, Shabbat, and festival insertions with local rabbinic guidance.",
-        "Maintain community niggunim and piyyutim where accepted."
-      ]
+        "Sephardi siddur; Vilna-printed books used alongside Livorno ones after annexation",
+        "The rabbi leads aloud; less literate worshippers answer 'Baruch hu u-varuch shemo' and 'Amen'"
+      ],
+      "variants": [
+        {
+          "subgroup": "Brooklyn",
+          "practice": "A congregant's grandfather's siddur was a Turkish-printed Sephardi siddur with Ladino instructions (per adviser R. Moshe Scharhon).",
+          "source": "Hadassah Magazine, Jan. 2008"
+        },
+        {
+          "subgroup": "Israel",
+          "practice": "Machzor Ohalei Yaakov by R. Yaakov Yitzchaki, described by a reprint seller as nusach Edot HaMizrach.",
+          "source": "HebrewBooks #51105, #51106; sefer.org.il (commercial)"
+        }
+      ],
+      "source": "V. Dymshits (ed.), Gorskie evrei: istoriya, etnografiya, kul'tura (DAAT/Znanie, 1999), ch. 'Religioznaya zhizn' i obychai' (Russian); A. Davidov, Mudretsy Kavkaza, 'Nastavniki i uchitelya' (Russian); EJE (ORT), 'Горские евреи'",
+      "source_url": "http://www.istok.ru/library/199-gorskie-evrei-15-religioznaya-zhizn-i-obychai-gorskih-evreev.html",
+      "confidence": "well-attested",
+      "review_notes": "The Chida attribution rests on Davidov alone. An Aish.com claim of a separate 'Nusach Kavkazi' has no scholarly support and is not adopted here.",
+      "references": [
+        {
+          "title": "Религиозная жизнь и обычаи горских евреев / Главы / Библиотека / Еврейская интернет библиотека",
+          "url": "http://www.istok.ru/library/199-gorskie-evrei-15-religioznaya-zhizn-i-obychai-gorskih-evreev.html"
+        },
+        {
+          "title": "The Jews Who Rode with Daggers",
+          "url": "https://aish.com/the-jews-who-rode-with-daggers/"
+        }
+      ],
+      "topic_he": "נוסח וסדר התפילה",
+      "summary_he": "יהודי ההרים מתפללים בנוסח ספרד. נוסח כתב יד מקומי קדום יותר לא שרד; הוא הוחלף בספרים ספרדיים שנדפסו בוונציה ובליוורנו (בערך סוף המאה ה-16 ותחילת ה-17). רבי אליהו בן מיכאל קבע בכל הקהילות את סדר התפילה של החיד\"א."
     },
     {
       "index": "halacha.2",
       "category": "Prayer",
-      "topic": "Hebrew pronunciation",
-      "summary": "Hebrew recitation may preserve distinctive Caucasus phonetic patterns.",
+      "topic": "Synagogue (nimaz) layout",
+      "summary": "The synagogue is called 'nimaz'. Traditionally there was no women's gallery; worshippers sat on carpets. The ark (heikhal) is on the western wall and the teva in the centre. Women came on Yom Kippur and stood at the entrance and windows.",
       "common_practices": [
-        "Use inherited pronunciation in prayer and Torah reading",
-        "Preserve older family vocalization traditions where taught",
-        "Teach pronunciation through oral transmission",
-        "Preserve inherited nusach and pronunciation in public prayer.",
-        "Coordinate weekday, Shabbat, and festival insertions with local rabbinic guidance.",
-        "Maintain community niggunim and piyyutim where accepted."
-      ]
+        "Carpets; formerly floor seating, now benches"
+      ],
+      "variants": [
+        {
+          "subgroup": "Quba",
+          "practice": "Visitors were asked to remove shoes before entering.",
+          "source": "Intermountain Jewish News, 'Letter from Azerbaijan' (single journalistic observation)"
+        },
+        {
+          "subgroup": "Brooklyn",
+          "practice": "Rugs in sanctuary and beit midrash; main sanctuary unused on weekdays.",
+          "source": "Hadassah Magazine, Jan. 2008"
+        }
+      ],
+      "source": "Dymshits 1999 (citing Anisimov); Davidov, 'Chtenie Tory' (Russian)",
+      "source_url": "http://www.istok.ru/library/199-gorskie-evrei-15-religioznaya-zhizn-i-obychai-gorskih-evreev.html",
+      "confidence": "well-attested",
+      "review_notes": "Shoe removal comes from a single journalistic report and is unverified.",
+      "references": [
+        {
+          "title": "Бейт кнессет-синагога-нимаз (Обычаи и традиции) / Главы / Библиотека / Еврейская интернет библиотека",
+          "url": "http://www.istok.ru/library/130-mudretsy-kavkaza-6-beyt-knesset-sinagoga-nimaz-obychai-i-traditsii.html"
+        },
+        {
+          "title": "Чтение Торы (Обычаи и традиции) / Главы / Библиотека / Еврейская интернет библиотека",
+          "url": "http://www.istok.ru/library/130-mudretsy-kavkaza-4-chtenie-tory-obychai-i-traditsii.html"
+        }
+      ],
+      "topic_he": "מבנה בית הכנסת (נימאז)",
+      "summary_he": "בית הכנסת נקרא \"נימאז\". במסורת לא הייתה עזרת נשים; המתפללים ישבו על שטיחים. ארון הקודש (היכל) בקיר המערבי והתיבה במרכז. נשים באו ביום כיפור ועמדו בכניסה ובחלונות."
     },
     {
       "index": "halacha.3",
-      "category": "Prayer",
-      "topic": "Torah reading",
-      "summary": "Torah reading is communal and highly traditional, with local reading melodies and pacing.",
+      "category": "Torah reading",
+      "topic": "Torah dress, pointers and aliyot",
+      "summary": "The Torah scroll wears two soft covers, an inner one of white cloth and an outer one of velvet or silk, and is read lying on a table. Rimonim act as the crown; no keter is used. Two silver pointers joined by a chain are held like a divider.",
       "common_practices": [
-        "Use trained ba'alei kri'ah from the community",
-        "Follow local cantillation style",
-        "Preserve traditional honor distribution during aliyot",
-        "Preserve inherited nusach and pronunciation in public prayer.",
-        "Coordinate weekday, Shabbat, and festival insertions with local rabbinic guidance.",
-        "Maintain community niggunim and piyyutim where accepted."
-      ]
+        "Seven aliyot plus maftir are bought; mourners' relatives have priority",
+        "The oleh names deceased relatives for El Male Rachamim",
+        "The congregation repeats the haftarah blessings after the maftir",
+        "Go up to the bimah on the right, down on the left"
+      ],
+      "variants": [
+        {
+          "subgroup": "Vartashen (1894)",
+          "practice": "Torah described as kept in a gilded wooden case.",
+          "source": "Dymshits 1999, citing Bezhanov"
+        }
+      ],
+      "source": "Dymshits 1999, 'Ritual'naya utvar''; Davidov, 'Chtenie Tory (Obychai i traditsii)' (Russian)",
+      "source_url": "http://www.istok.ru/library/130-mudretsy-kavkaza-4-chtenie-tory-obychai-i-traditsii.html",
+      "confidence": "well-attested",
+      "review_notes": "Dymshits calls the double soft cover unique among Jewish communities. For trope, see gaps.",
+      "references": [
+        {
+          "title": "Религиозная жизнь и обычаи горских евреев / Главы / Библиотека / Еврейская интернет библиотека",
+          "url": "http://www.istok.ru/library/199-gorskie-evrei-15-religioznaya-zhizn-i-obychai-gorskih-evreev.html"
+        },
+        {
+          "title": "Чтение Торы (Обычаи и традиции) / Главы / Библиотека / Еврейская интернет библиотека",
+          "url": "http://www.istok.ru/library/130-mudretsy-kavkaza-4-chtenie-tory-obychai-i-traditsii.html"
+        }
+      ],
+      "topic_he": "לבוש ספר התורה, יד ועליות",
+      "summary_he": "ספר התורה לבוש שני כיסויים רכים, פנימי מבד לבן וחיצוני ממשי קטיפה או משי, ונקרא כשהוא מונח על שולחן. הרימונים משמשים כתר; לא משתמשים בכתר. שתי ידות כסף המחוברות בשרשרת מוחזקות כמו מחוגה."
     },
     {
       "index": "halacha.4",
       "category": "Shabbat",
-      "topic": "Candle lighting",
-      "summary": "Shabbat candle lighting is observed according to standard halacha with strong family custom.",
+      "topic": "Motzaei Shabbat: night of Elijah (Shev Ileh-Novi)",
+      "summary": "The night after Shabbat is 'Shev Ileh-Novi', the night of Elijah the Prophet. Wives cooked khinkal in case Elijah came as a poor guest; folk belief held that whoever hosted him would grow rich.",
       "common_practices": [
-        "Light before sunset or according to accepted local cutoff",
-        "Use family custom for number and arrangement of candles",
-        "Recite the customary blessing",
-        "Prepare practical needs before candle lighting to avoid melacha.",
-        "Use approved warming and lighting setups established before Shabbat.",
-        "Follow local zmanim for candle lighting, shekia, and havdalah."
-      ]
+        "Cooking khinkal after Shabbat"
+      ],
+      "variants": [],
+      "source": "Dymshits 1999, 'Verovaniya, obychai, obryady', quoting I. Anisimov (1888) (Russian)",
+      "source_url": "http://www.istok.ru/library/199-gorskie-evrei-17-verovaniya-obychii-obryady.html",
+      "confidence": "needs-review",
+      "review_notes": "A 19th-century folk custom with a single source; it is ethnography, not halacha. Other Shabbat topics: see gaps.",
+      "topic_he": "מוצאי שבת: ליל אליהו (שב אילה-נבי)",
+      "summary_he": "הלילה שאחרי שבת הוא \"שב אילה-נבי\", ליל אליהו הנביא. נשים בישלו חינקל למקרה שאליהו יבוא כאורח עני; אמונה עממית גרסה שמי שיארח אותו יתעשר."
     },
     {
       "index": "halacha.5",
-      "category": "Shabbat",
-      "topic": "Shabbat meals",
-      "summary": "Shabbat meals are central to communal identity and often preserve traditional foods and seating customs.",
+      "category": "Rosh Hashana",
+      "topic": "Simanim, night and Tashlich",
+      "summary": "Chickens and rams are slaughtered the day before. In the evening there is a ram's head, pumpkin and fish, with dates, honey, carrot and apple after the evening prayer, and blessings over wine and all the foods. After the meal, half of Tehillim is said; by day Tehillim twice through, and Mishnah at night. People avoid sleeping. Tashlich is at the river, shaking the edges of garments.",
       "common_practices": [
-        "Prepare food before Shabbat",
-        "Use customary family dishes",
-        "Preserve guest and honor traditions around the table",
-        "Prepare practical needs before candle lighting to avoid melacha.",
-        "Use approved warming and lighting setups established before Shabbat.",
-        "Follow local zmanim for candle lighting, shekia, and havdalah."
-      ]
+        "Ram's head, pumpkin, fish, dates, honey, carrot, apple",
+        "Tashlich at a river"
+      ],
+      "variants": [
+        {
+          "subgroup": "Vartashen (1894)",
+          "practice": "One fast day before and one after the festival.",
+          "source": "Dymshits 1999, citing Bezhanov"
+        }
+      ],
+      "source": "Dymshits 1999, 'Rosh a-Shana', quoting Bezhanov (1894) (Russian)",
+      "source_url": "http://www.istok.ru/library/199-gorskie-evrei-15-religioznaya-zhizn-i-obychai-gorskih-evreev.html",
+      "confidence": "regional",
+      "review_notes": "Bezhanov was an outside observer who leaves out the shofar (Dymshits).",
+      "topic_he": "סימנים, ליל ראש השנה ותשליך",
+      "summary_he": "שוחטים תרנגולות ואיילים יום לפני כן. בערב יש ראש איל, דלעת ודג, עם תמרים, דבש, גזר ותפוח אחרי תפילת הערב, וברכות על יין ועל כל המאכלים. אחרי הסעודה אומרים חצי מהתהילים; ביום תהילים פעמיים, ומשנה בלילה. נמנעים משינה. התשליך בנהר, תוך ניעור שולי הבגדים."
     },
     {
       "index": "halacha.6",
-      "category": "Shabbat",
-      "topic": "Cooking and warming",
-      "summary": "Cooking is prohibited on Shabbat, while permitted warming arrangements may be used according to halacha.",
+      "category": "Yom Kippur",
+      "topic": "Kyupyur: kapparot and candles",
+      "summary": "Yom Kippur ('Kyupyur') is the most revered day, with the highest synagogue attendance even under Soviet rule. Kapparot is performed. Before the pre-fast meal, a candle is lit at home for each household member and for deceased relatives, especially parents. At the end of the fast, all kiss the rabbi's hand and the young kiss the elders' hands, asking forgiveness.",
       "common_practices": [
-        "Cook before Shabbat",
-        "Use permitted warming arrangements when accepted locally",
-        "Avoid direct reheating and prohibited manipulation",
-        "Prepare practical needs before candle lighting to avoid melacha.",
-        "Use approved warming and lighting setups established before Shabbat.",
-        "Follow local zmanim for candle lighting, shekia, and havdalah."
-      ]
+        "Kapparot with a fowl per person",
+        "Household and memorial candles"
+      ],
+      "variants": [
+        {
+          "subgroup": "Vartashen (1894)",
+          "practice": "A very large candle and 50 small ones lit in the synagogue; many stay all night.",
+          "source": "Dymshits 1999, citing Bezhanov"
+        },
+        {
+          "subgroup": "Krasnaya Sloboda",
+          "practice": "A white garment hung on the bimah for the rabbi to wear on Yom Kippur.",
+          "source": "Dymshits 1999"
+        }
+      ],
+      "source": "Dymshits 1999, 'Iom Kipur' (Russian); Encyclopedia of World Cultures, 'Mountain Jews'",
+      "source_url": "http://www.istok.ru/library/199-gorskie-evrei-15-religioznaya-zhizn-i-obychai-gorskih-evreev.html",
+      "confidence": "well-attested",
+      "review_notes": "Dymshits links the candles to Nowruz practice; this is an interpretation.",
+      "references": [
+        {
+          "title": "Религиозная жизнь и обычаи горских евреев / Главы / Библиотека / Еврейская интернет библиотека",
+          "url": "http://www.istok.ru/library/199-gorskie-evrei-15-religioznaya-zhizn-i-obychai-gorskih-evreev.html"
+        },
+        {
+          "title": "Mountain Jews | Encyclopedia.com",
+          "url": "https://www.encyclopedia.com/humanities/encyclopedias-almanacs-transcripts-and-maps/mountain-jews"
+        }
+      ],
+      "topic_he": "קיופיור: כפרות ונרות",
+      "summary_he": "יום כיפור (\"קיופיור\") הוא היום הנערץ ביותר, עם הנוכחות הגבוהה ביותר בבית הכנסת אפילו בשלטון הסובייטי. מקיימים כפרות. לפני הסעודה המפסקת מדליקים בבית נר לכל בן בית ולקרובים שנפטרו, בייחוד להורים. בסוף הצום כולם מנשקים את יד הרב והצעירים מנשקים את ידי הזקנים, ומבקשים סליחה."
     },
     {
       "index": "halacha.7",
-      "category": "Shabbat",
-      "topic": "Carrying and eruv",
-      "summary": "Carrying outside permitted domains depends on valid eruv status and communal infrastructure.",
+      "category": "Sukkot",
+      "topic": "Sukkah",
+      "summary": "The sukkah is now built in the synagogue courtyard. Formerly each courtyard had one, using the arbor ('chordog') or a booth with carpet walls and branches on top. Kiddush is made in the sukkah.",
       "common_practices": [
-        "Do not carry where no valid eruv exists",
-        "Follow local rabbinic guidance on public space",
-        "Use communal standards rather than assumptions",
-        "Prepare practical needs before candle lighting to avoid melacha.",
-        "Use approved warming and lighting setups established before Shabbat.",
-        "Follow local zmanim for candle lighting, shekia, and havdalah."
-      ]
+        "Marking the sukkah site with a stick after Yom Kippur (Vartashen)"
+      ],
+      "variants": [
+        {
+          "subgroup": "General (Dymshits fieldwork)",
+          "practice": "Kiddush in the sukkah, but people did not stay in it all day.",
+          "source": "Dymshits 1999"
+        },
+        {
+          "subgroup": "Vartashen (1894)",
+          "practice": "Supper in the sukkah; 'they live seven days in the sukkah'.",
+          "source": "Dymshits 1999, citing Bezhanov"
+        }
+      ],
+      "source": "Dymshits 1999, 'Sukkot' (Russian)",
+      "source_url": "http://www.istok.ru/library/199-gorskie-evrei-15-religioznaya-zhizn-i-obychai-gorskih-evreev.html",
+      "confidence": "disputed",
+      "review_notes": "The sources disagree on how much time was spent in the sukkah.",
+      "topic_he": "סוכה",
+      "summary_he": "הסוכה נבנית היום בחצר בית הכנסת. בעבר הייתה אחת בכל חצר, בגפן הסוכך (\"חורדוג\") או בסוכה עם קירות שטיחים וענפים על גביה. עושים קידוש בסוכה."
     },
     {
       "index": "halacha.8",
-      "category": "Kashrut",
-      "topic": "Meat and dairy separation",
-      "summary": "Meat and dairy separation follows standard halacha with community-specific timing and utensil customs.",
+      "category": "Sukkot",
+      "topic": "Hoshana Rabba ('Aravo')",
+      "summary": "Hoshana Rabba is called 'Aravo' (willow) and is specially honoured. Willows are brought to the synagogue, then taken home and kept for a year. Men read Tehillim all night in the synagogue; the night is believed to seal one's fate.",
       "common_practices": [
-        "Keep separate meat and dairy vessels",
-        "Follow community custom for waiting periods",
-        "Maintain clean separation in home kitchens",
-        "Keep clear separation of meat and dairy utensils, storage, and prep zones.",
-        "Verify supervision standards according to trusted local rabbinic authority.",
-        "Apply inherited waiting-time custom for meat and dairy under halachic guidance."
-      ]
+        "Keeping the aravot for a year",
+        "All-night Tehillim"
+      ],
+      "variants": [
+        {
+          "subgroup": "19th-c. villages",
+          "practice": "Girls held all-night gatherings with dance, song contests and fortune-telling.",
+          "source": "Dymshits 1999, quoting Anisimov"
+        }
+      ],
+      "source": "Dymshits 1999, 'Sukkot' (Russian)",
+      "source_url": "http://www.istok.ru/library/199-gorskie-evrei-15-religioznaya-zhizn-i-obychai-gorskih-evreev.html",
+      "confidence": "well-attested",
+      "review_notes": "The girls' divination is folk custom.",
+      "topic_he": "הושענא רבה (\"אראבו\")",
+      "summary_he": "הושענא רבה נקרא \"אראבו\" (ערבה) ומכובד במיוחד. מביאים ערבות לבית הכנסת, אחר כך לוקחים אותן הביתה ושומרים אותן שנה. גברים אומרים תהילים כל הלילה בבית הכנסת; מאמינים שבלילה זה נחתם הגורל."
     },
     {
       "index": "halacha.9",
-      "category": "Kashrut",
-      "topic": "Shechita",
-      "summary": "Ritual slaughter is a major communal responsibility and is performed by trusted shochtim.",
-      "common_practices": [
-        "Use a qualified shochet",
-        "Inspect knives and meat carefully",
-        "Follow recognized communal supervision",
-        "Keep clear separation of meat and dairy utensils, storage, and prep zones.",
-        "Verify supervision standards according to trusted local rabbinic authority.",
-        "Apply inherited waiting-time custom for meat and dairy under halachic guidance."
-      ]
+      "category": "Chanukah",
+      "topic": "Status of Chanukah",
+      "summary": "Sources disagree. Dymshits found Chanukah not specially honoured, and most informants could not recall it. The Encyclopedia of World Cultures calls 'Khanukoi' the major winter holiday.",
+      "common_practices": [],
+      "variants": [
+        {
+          "subgroup": "1990s fieldwork",
+          "practice": "Barely remembered by elderly informants.",
+          "source": "Dymshits 1999"
+        },
+        {
+          "subgroup": "Soviet-era Dagestan",
+          "practice": "'Khanukoi' as the major winter holiday.",
+          "source": "Encyclopedia of World Cultures"
+        }
+      ],
+      "source": "Dymshits 1999 (Russian); Encyclopedia of World Cultures via Encyclopedia.com",
+      "source_url": "https://www.encyclopedia.com/humanities/encyclopedias-almanacs-transcripts-and-maps/mountain-jews",
+      "confidence": "disputed",
+      "review_notes": "No distinctive lighting custom is documented.",
+      "references": [
+        {
+          "title": "Религиозная жизнь и обычаи горских евреев / Главы / Библиотека / Еврейская интернет библиотека",
+          "url": "http://www.istok.ru/library/199-gorskie-evrei-15-religioznaya-zhizn-i-obychai-gorskih-evreev.html"
+        }
+      ],
+      "topic_he": "מעמד חנוכה",
+      "summary_he": "המקורות חלוקים. דימשיץ מצא שחנוכה אינו מכובד במיוחד, ורוב המשיבים לא זכרו אותו. האנציקלופדיה של תרבויות העולם קוראת ל\"חנוקוי\" חג החורף הגדול."
     },
     {
       "index": "halacha.10",
-      "category": "Kashrut",
-      "topic": "Milk, meat, and local foodways",
-      "summary": "Traditional foods are prepared under strict kosher practice and reflect mountain-region culinary habits.",
+      "category": "Purim",
+      "topic": "Purim (Omunu / Gomonu / Hamano)",
+      "summary": "Purim is one of the most popular festivals; its names come from Haman. On the Fast of Esther, women prepare 'hasido' halva (roasted flour, butter, honey or sugar, nuts) and thin lavash. The evening meal is 'kute heshil' flour soup with honey, with relatives invited and meals sent to the needy.",
       "common_practices": [
-        "Use kosher supervision for processed foods",
-        "Maintain inherited family recipes within halachic constraints",
-        "Check ingredients for gelatin, wine, and other concerns",
-        "Keep clear separation of meat and dairy utensils, storage, and prep zones.",
-        "Verify supervision standards according to trusted local rabbinic authority.",
-        "Apply inherited waiting-time custom for meat and dairy under halachic guidance."
-      ]
+        "Hasido halva",
+        "Food sent to the poor",
+        "Children born on Purim named Ester, Purim or Mordechai"
+      ],
+      "variants": [
+        {
+          "subgroup": "Vartashen (1894)",
+          "practice": "Children carve a Haman figure on a board and beat it until it is erased, stamping, with music.",
+          "source": "gorskie.ru, 'Purim-omunu' (2016)"
+        },
+        {
+          "subgroup": "Brooklyn",
+          "practice": "Called 'Hamano'; 'hadassoh' flour-and-honey halva instead of hamentaschen.",
+          "source": "Hadassah Magazine, Jan. 2008"
+        }
+      ],
+      "source": "gorskie.ru 2016 (Russian); Dymshits 1999; Encyclopedia of World Cultures",
+      "source_url": "https://gorskie.ru/juhuro/culture/item/11569-traditsii-gorskikh-evreev-purim-omunu",
+      "confidence": "well-attested",
+      "review_notes": "gorskie.ru reports that the traveller Joseph Shmuel (1837) found Purim unobserved; by the late 19th c. it was widely kept.",
+      "references": [
+        {
+          "title": "Религиозная жизнь и обычаи горских евреев / Главы / Библиотека / Еврейская интернет библиотека",
+          "url": "http://www.istok.ru/library/199-gorskie-evrei-15-religioznaya-zhizn-i-obychai-gorskih-evreev.html"
+        },
+        {
+          "title": "Традиции горских евреев: Пурим-омуну - GORSKIE.ru",
+          "url": "https://gorskie.ru/juhuro/culture/item/11569-traditsii-gorskikh-evreev-purim-omunu"
+        }
+      ],
+      "topic_he": "פורים (אומונו / גומונו / האמנו)",
+      "summary_he": "פורים הוא אחד החגים הפופולריים ביותר; שמותיו נגזרים מהמן. בתענית אסתר מכינות נשים חלווה \"חסידו\" (קמח קלוי, חמאה, דבש או סוכר, אגוזים) ולבש דק. סעודת הערב היא מרק קמח \"קוטה חשיל\" עם דבש, כשקרובים מוזמנים וסעודות נשלחות לנזקקים."
     },
     {
       "index": "halacha.11",
       "category": "Pesach",
-      "topic": "Chametz removal",
-      "summary": "Chametz removal before Pesach is strict and often deeply rooted in family observance.",
+      "topic": "Kitniyot: rice",
+      "summary": "Rice is eaten on Pesach but not on the first two days (Yom Tov); it is cooked from Chol HaMoed. R. Avigdor Yunaev (Jerusalem) explains this as deference to Caucasian Ashkenazim at shared seders, extended to both diaspora Yom Tov days.",
       "common_practices": [
-        "Search and remove chametz before Pesach",
-        "Use dedicated Pesach utensils or kasher equipment",
-        "Follow local guidance for bedikat chametz and sale of chametz",
-        "Review chametz cleaning and kashering checklists before the festival.",
-        "Follow community custom on kitniyot and festival kitchen workflow.",
-        "Use community haggadah flow and family minhagim within halachic structure."
-      ]
+        "No rice on the first two days",
+        "Rice on Chol HaMoed"
+      ],
+      "variants": [],
+      "source": "Interview with R. Avigdor Yunaev, Evreiskii zhurnal, 29 Mar 2018 (Russian); Chabad.org, '19 Facts About the Mountain Jews'",
+      "source_url": "https://jewishmagazine.ru/articles/intervyu/ravvin-avigdor-junaev-chtoby-vospitat-detej-nado-byt-vospitannymi-roditeljami/",
+      "confidence": "well-attested",
+      "review_notes": "The custom is consistently reported; the explanation is one rabbi's view. Practice in Israel (one or two days) is undocumented.",
+      "references": [
+        {
+          "title": "The Jews Who Rode with Daggers",
+          "url": "https://aish.com/the-jews-who-rode-with-daggers/"
+        },
+        {
+          "title": "19 Facts About the “Mountain Jews” - Chabad.org",
+          "url": "https://www.chabad.org/library/article_cdo/aid/6569869/jewish/19-Facts-About-the-Mountain-Jews.htm"
+        },
+        {
+          "title": "Для кого рис в Песах не хамец - Сила Теилим",
+          "url": "https://silatehilim.com/%D1%80%D0%B8%D1%81-%D0%B2-%D0%BF%D0%B5%D1%81%D0%B0%D1%85-%D0%BD%D0%B5-%D0%BA%D0%B8%D1%82%D0%BD%D0%B8%D1%91%D1%82/"
+        }
+      ],
+      "topic_he": "קטניות: אורז",
+      "summary_he": "אורז נאכל בפסח אך לא בשני הימים הראשונים (יום טוב); הוא מבושל מחול המועד. הרב אביגדור יונייב (ירושלים) מסביר זאת כהתחשבות באשכנזים הקווקזיים בסדרים משותפים, שהורחבה לשני ימי הטוב של הגולה."
     },
     {
       "index": "halacha.12",
       "category": "Pesach",
-      "topic": "Kitniyot and grain customs",
-      "summary": "Kavkazi (Mountain Jewish) Pesach practice is often strict in family minhag; many households avoid garlic, beans, and soy during the festival, even when broader Sephardi communities permit some kitniyot.",
+      "topic": "Additional food restrictions",
+      "summary": "The Mountain Jewish community of Azerbaijan avoids pickles, sugar and cheese on Pesach; JTA (2021) puts it at about 8,000 people, most of Azerbaijan's Jews. Yaniv Naftaliev (Israel community leader) explains this as dating from when no rabbinically supervised factories existed. In 19th-c. Vartashen: no dried fish or sweets for eight days, and many would not eat another family's matzah.",
       "common_practices": [
-        "Many Kavkazi homes avoid garlic on Pesach by inherited family minhag",
-        "Many Kavkazi homes avoid beans and soy on Pesach by inherited family minhag",
-        "Rice and legumes may be used where community custom permits",
-        "Inspect food carefully for chametz contamination",
-        "Follow family and rabbinic tradition for all grain products",
-        "Review chametz cleaning and kashering checklists before the festival.",
-        "Follow community custom on kitniyot and festival kitchen workflow.",
-        "Use community haggadah flow and family minhagim within halachic structure."
-      ]
+        "No pickled foods, sugar or cheese"
+      ],
+      "variants": [
+        {
+          "subgroup": "Azerbaijan",
+          "practice": "No lamb shank on the seder plate.",
+          "source": "C. Liphshiz, JTA 2021"
+        },
+        {
+          "subgroup": "Vartashen (1894)",
+          "practice": "No dried fish or sweets.",
+          "source": "Dymshits 1999, citing Bezhanov"
+        }
+      ],
+      "source": "JTA/Zman Yisrael, 'בלי חמוצים, סוכר או גבינות' (Hebrew, 27 Mar 2021); Dymshits 1999",
+      "source_url": "https://www.zman.co.il/208836/",
+      "confidence": "well-attested",
+      "review_notes": "This is a stringency based on supervision; its application today is a rabbinic question.",
+      "topic_he": "איסורי מאכל נוספים",
+      "summary_he": "קהילת יהודי ההרים באזרבייג'ן נמנעת ממלפפונים חמוצים, סוכר וגבינה בפסח; סוכנות JTA (2021) מעריכה אותם בכ-8,000 איש, רוב יהודי אזרבייג'ן. יניב נפתלייב (מנהיג הקהילה בישראל) מסביר זאת כמתארך מזמן שלא היו מפעלים בהשגחה רבנית. בוורטשן של המאה ה-19: אין דגים מיובשים או מתוקים שמונה ימים, ורבים לא אכלו מצה של משפחה אחרת."
     },
     {
       "index": "halacha.13",
       "category": "Pesach",
-      "topic": "Seder practice",
-      "summary": "The Seder combines standard halachic structure with local songs, foods, and recitation forms.",
+      "topic": "Matzah baking (19th-c. Vartashen)",
+      "summary": "Wheat is bought from a threshing floor untouched by rain and stored in a new clay jug, then hand-sorted 30 days before Pesach. The mill is cleaned and inspected by the rabbi, and the flour kept from the sun. Only men (15-20) bake, each with one fixed task, all saying it is 'for matzah'.",
       "common_practices": [
-        "Read the Haggadah in the accepted local rite",
-        "Preserve family songs and explanations",
-        "Use community custom for matzah, maror, and afikoman practice",
-        "Review chametz cleaning and kashering checklists before the festival.",
-        "Follow community custom on kitniyot and festival kitchen workflow.",
-        "Use community haggadah flow and family minhagim within halachic structure."
-      ]
+        "Dough in 2.75-funt portions",
+        "Water drawn the day before",
+        "A new tandoor not used for ordinary bread",
+        "Under-baked matzah may not be returned to the oven",
+        "New knives"
+      ],
+      "variants": [],
+      "source": "Dymshits 1999, 'Pesakh', quoting Bezhanov (1894) (Russian)",
+      "source_url": "http://www.istok.ru/library/199-gorskie-evrei-15-religioznaya-zhizn-i-obychai-gorskih-evreev.html",
+      "confidence": "regional",
+      "review_notes": "Historical, single community. The same source describes kashering tinned copper by boiling with a clay-sealed rim.",
+      "topic_he": "אפיית מצות (וורטשן של המאה ה-19)",
+      "summary_he": "קונים חיטה מגורן שלא ירד עליה גשם ומאחסנים אותה בכד חימר חדש, ומיינים אותה ביד שלושים יום לפני פסח. הרב מנקה ובודק את הטחנה, והקמח נשמר מהשמש. רק גברים (15-20) אופים, כל אחד במשימה קבועה אחת, וכולם אומרים שזה \"לשם מצה\"."
     },
     {
       "index": "halacha.14",
-      "category": "Tefillin",
-      "topic": "Tefillin practice",
-      "summary": "Tefillin are used according to standard halacha and community custom for placement and wrapping.",
+      "category": "Pesach",
+      "topic": "Seder customs",
+      "summary": "The Haggadah is read in Hebrew at the first seder and in Juhuri translation at the second. A thorny plant (a blue thorn also used as an amulet) is eaten with the maror. For the plagues, wine is poured ten times into a broken clay vessel with ash and an eggshell.",
       "common_practices": [
-        "Wear tefillin on weekday mornings",
-        "Use properly checked tefillin",
-        "Follow inherited wrapping and blessing customs",
-        "Follow local minhag for wrapping style, knot positioning, and sequence.",
-        "Use checked batim and retzuot under reliable supervision.",
-        "Teach youth practical donning order with community standards."
-      ]
+        "Home-made wine",
+        "Haroset of pounded fruit",
+        "Thorn dish 'kisani burochoi'"
+      ],
+      "variants": [
+        {
+          "subgroup": "Derbent",
+          "practice": "A seder melody composed by R. Avraham b. Chanukah, heir of R. Eliyahu b. Mishael.",
+          "source": "Dymshits 1999"
+        }
+      ],
+      "source": "Dymshits 1999, 'Pesakh' (Russian)",
+      "source_url": "http://www.istok.ru/library/199-gorskie-evrei-15-religioznaya-zhizn-i-obychai-gorskih-evreev.html",
+      "confidence": "well-attested",
+      "review_notes": "Gorskie.ru describes the thorn dish as nettle-based; sources differ on the plant.",
+      "references": [
+        {
+          "title": "Верования, обычии, обряды / Главы / Библиотека / Еврейская интернет библиотека",
+          "url": "http://www.istok.ru/library/199-gorskie-evrei-17-verovaniya-obychii-obryady.html"
+        },
+        {
+          "title": "Песах: история исхода, свободы и традиции еврейского народа - GORSKIE.ru",
+          "url": "https://gorskie.ru/jewish/item/89272-pesakh-istoriya-iskhoda-svobody-i-traditsii-evrejskogo-naroda"
+        }
+      ],
+      "topic_he": "מנהגי הסדר",
+      "summary_he": "ההגדה נקראת בעברית בסדר הראשון ובתרגום ליהודית-טאתית (ג'והורי) בשני. צמח קוצני (קוץ כחול המשמש גם קמיע) נאכל עם המרור. בעשר המכות יוצקים יין עשר פעמים לכלי חימר שבור עם אפר וקליפת ביצה."
     },
     {
       "index": "halacha.15",
-      "category": "Tzitzit",
-      "topic": "Tallit and fringes",
-      "summary": "Tzitzit practice is standard halachically, with local tallit customs preserved in family life.",
+      "category": "Pesach",
+      "topic": "Nisan: no cemetery visits; 1 Nisan bonfires",
+      "summary": "No cemetery visits during Pesach and Nisan; Nisan yahrzeits are marked before or after the month. Bonfires are lit on 1 Nisan. Pre-Pesach cleaning starts with the carpets, where meals were eaten.",
       "common_practices": [
-        "Wear tzitzit by communal norm",
-        "Use customary tallit styles where preserved",
-        "Preserve family blessing order and fabric custom",
-        "Follow local custom for tallit katan and tallit gadol usage.",
-        "Maintain knot and winding patterns according to inherited minhag.",
-        "Inspect tzitzit regularly for halachic validity."
-      ]
+        "No cemetery in Nisan",
+        "Moving Nisan yahrzeits",
+        "Bonfires on 1 Nisan"
+      ],
+      "variants": [],
+      "source": "JTA (C. Liphshiz, 2021) via STMEGI (Russian); G. Zakharyayev in Vestnik Kavkaza",
+      "source_url": "https://stmegi.com/gorskie_evrei/posts/87612/gorskie-evrei-khranyat-mnogovekovye-traditsii-pesakha-/",
+      "confidence": "well-attested",
+      "review_notes": "Davidov adds that cemetery visits are forbidden on all Torah festivals.",
+      "references": [
+        {
+          "title": "Евреи Азербайджана сохраняют многовековые пасхальные традиции",
+          "url": "https://vestikavkaza.ru/articles/evrei-azerbajdzana-sohranaut-mnogovekovye-pashalnye-tradicii.html"
+        },
+        {
+          "title": "Горские евреи хранят многовековые традиции Песаха - STMEGI",
+          "url": "https://stmegi.com/gorskie_evrei/posts/87612/gorskie-evrei-khranyat-mnogovekovye-traditsii-pesakha-/"
+        }
+      ],
+      "topic_he": "ניסן: אין ביקור בבית קברות; מדורות בא' בניסן",
+      "summary_he": "אין ביקורי בית קברות במשך פסח וניסן; יארצייטים של ניסן מצוינים לפני החודש או אחריו. מדליקים מדורות בא' בניסן. ניקיון לפני פסח מתחיל בשטיחים, שעליהם אכלו."
     },
     {
       "index": "halacha.16",
-      "category": "Lifecycle",
-      "topic": "Brit milah",
-      "summary": "Brit milah is performed according to halacha with strong communal ceremony and naming customs.",
-      "common_practices": [
-        "Use a qualified mohel",
-        "Observe inherited naming practices",
-        "Include traditional songs and blessings where customary",
-        "Keep core lifecycle ceremonies aligned with halachic requirements.",
-        "Document family minhagim for naming, honors, and celebration order.",
-        "Consult community rabbi for local protocol differences."
-      ]
+      "category": "Pesach",
+      "topic": "End of Pesach: grass in the chimney",
+      "summary": "On the evening of the eighth day, people climbed onto the roof and threw a bunch of fresh grass down the chimney to mark spring.",
+      "common_practices": [],
+      "variants": [],
+      "source": "Dymshits 1999, 'Pesakh' (Russian)",
+      "source_url": "http://www.istok.ru/library/199-gorskie-evrei-15-religioznaya-zhizn-i-obychai-gorskih-evreev.html",
+      "confidence": "needs-review",
+      "review_notes": "Single source; place not specified.",
+      "topic_he": "סוף הפסח: עשב בארובה",
+      "summary_he": "בערב היום השמיני עלו אנשים לגג והשליכו צרור עשב טרי מטה בארובה לציון האביב."
     },
     {
       "index": "halacha.17",
-      "category": "Lifecycle",
-      "topic": "Marriage and ketubah",
-      "summary": "Marriage follows halacha and is often shaped by strong community endogamy and family alliance.",
+      "category": "Omer",
+      "topic": "Weddings after Pesach",
+      "summary": "Mountain Jews (mainly from Krasnaya Sloboda) hold weddings from the end of Pesach (Govgil) until 1 Iyar, considered the most auspicious time. R. Bentsion Zilber notes the Shulchan Aruch keeps mourning until the morning of the 34th day. Because several valid customs exist, he accepts that they may continue.",
       "common_practices": [
-        "Use a valid ketubah",
-        "Perform kiddushin and nissuin properly",
-        "Preserve family customs for engagement and wedding sequence",
-        "Keep core lifecycle ceremonies aligned with halachic requirements.",
-        "Document family minhagim for naming, honors, and celebration order.",
-        "Consult community rabbi for local protocol differences."
-      ]
+        "Weddings between Govgil and 1 Iyar"
+      ],
+      "variants": [
+        {
+          "subgroup": "Krasnaya Sloboda origin",
+          "practice": "Until 1 Iyar (some say until 1 May).",
+          "source": "Toldot.com, R. B. Zilber, 2012"
+        },
+        {
+          "subgroup": "General",
+          "practice": "Govgil as a day for betrothals.",
+          "source": "STMEGI, 'Pesakh: Prazdnik chistoi dushi'"
+        }
+      ],
+      "source": "Toldot.com Q&A, answer by R. Bentsion Zilber (Russian), citing Shulchan Aruch",
+      "source_url": "https://toldot.com/urava/ask/urava_7185.html",
+      "confidence": "regional",
+      "review_notes": "The end point of Omer mourning is not documented; see gaps.",
+      "topic_he": "חתונות אחרי פסח",
+      "summary_he": "יהודי ההרים (בעיקר מקרסנאיה סלובודה) עורכים חתונות מסוף פסח (גובגיל) עד א' באייר, הנחשב לזמן המוצלח ביותר. הרב בנציון זילבר מציין שהשולחן ערוך שומר על האבלות עד בוקר היום ה-34. מפני שיש כמה מנהגים תקפים, הוא מקבל שאפשר להמשיך בהם."
     },
     {
       "index": "halacha.18",
-      "category": "Family law",
-      "topic": "Niddah and mikveh",
-      "summary": "Family purity laws are observed carefully and are a major marker of continuity.",
-      "common_practices": [
-        "Observe niddah separation laws",
-        "Use mikveh according to halacha",
-        "Retain inherited customs where they do not conflict with law",
-        "Use a consistent halachic calendar and consultation process for sensitive questions.",
-        "Coordinate household observance with qualified rabbinic guidance.",
-        "Preserve family minhag where compatible with accepted psak."
-      ]
+      "category": "Omer",
+      "topic": "Lag BaOmer",
+      "summary": "Lag BaOmer is a 'quiet' minor day with little ritual form (STMEGI, citing Anisimov 1888). Sources disagree on whether the spring bonfire day 'Sha'ame Vassal' is Lag BaOmer.",
+      "common_practices": [],
+      "variants": [
+        {
+          "subgroup": "Brooklyn (A. Elazarov)",
+          "practice": "'Sha'ame Vassal' is a name for Lag BaOmer.",
+          "source": "Hadassah Magazine, Jan. 2008"
+        },
+        {
+          "subgroup": "Russian anthropologists (Yehuda Cherni, Vsevolod Miller, per Hadassah 2008) and Dymshits",
+          "practice": "Spring bonfires (Majalis, Nyugdi, Quba) are a separate pre-Jewish spring custom; in Krasnaya Sloboda (1997) only pre-bat-mitzvah girls took part.",
+          "source": "Dymshits 1999"
+        }
+      ],
+      "source": "STMEGI, 'Lag ba-Omer u gorskikh evreev' (Russian); Hadassah 2008; Dymshits 1999",
+      "source_url": "https://stmegi.com/gorskie_evrei/posts/138315/lag-ba-omer-u-gorskikh-evreev-traditsii-istoriya-i-sovremennost/",
+      "confidence": "disputed",
+      "review_notes": "The NLI Piyut site lists a Mountain Jewish recording of 'Bar Yochai'.",
+      "references": [
+        {
+          "title": "Лаг ба-Омер у горских евреев: традиции, история и современность - STMEGI",
+          "url": "https://stmegi.com/gorskie_evrei/posts/138315/lag-ba-omer-u-gorskikh-evreev-traditsii-istoriya-i-sovremennost/"
+        }
+      ],
+      "topic_he": "ל\"ג בעומר",
+      "summary_he": "ל\"ג בעומר הוא יום משני \"שקט\" עם מעט צורת טקס (STMEGI, בציטוט אניסימוב 1888). המקורות חלוקים אם יום המדורות של האביב \"שעמה ואסל\" הוא ל\"ג בעומר."
     },
     {
       "index": "halacha.19",
-      "category": "Mourning",
-      "topic": "Avelut",
-      "summary": "Mourning follows standard halachic structure with strong family and communal support.",
+      "category": "Shavuot",
+      "topic": "Asalta",
+      "summary": "Shavuot is 'Asalta' (the sweet one), when sweets are eaten. Rabbis and literate men read Torah and Prophets all night in the synagogue. In the morning they immerse in the synagogue-courtyard mikveh, then pray and read the 613 commandments. Families bereaved that year are visited.",
       "common_practices": [
-        "Observe shiva, shloshim, and yahrzeit customs",
-        "Use customary memorial prayer forms",
-        "Maintain local visitation and condolence etiquette",
-        "Observe shiva, shloshim, and yahrzeit in the accepted local format.",
-        "Coordinate memorial prayer customs with synagogue practice.",
-        "Preserve condolence and visitation etiquette used by the community."
-      ]
+        "All-night reading",
+        "Morning mikveh",
+        "Reading the 613 mitzvot"
+      ],
+      "variants": [
+        {
+          "subgroup": "Vartashen (1894)",
+          "practice": "Repeated on the second day.",
+          "source": "Dymshits 1999, citing Bezhanov"
+        }
+      ],
+      "source": "Dymshits 1999, 'Shavuot' (Russian)",
+      "source_url": "http://www.istok.ru/library/199-gorskie-evrei-15-religioznaya-zhizn-i-obychai-gorskih-evreev.html",
+      "confidence": "regional",
+      "review_notes": "Dymshits notes Shavuot became less popular in the Soviet period.",
+      "topic_he": "אסלטה",
+      "summary_he": "שבועות הוא \"אסלטה\" (המתוק), שבו אוכלים ממתקים. רבנים ואנשים משכילים קוראים תורה ונביאים כל הלילה בבית הכנסת. בבוקר טובלים במקווה שבחצר בית הכנסת, ואחר כך מתפללים וקוראים את תרי\"ג המצוות. מבקרים משפחות שאבלו באותה שנה."
     },
     {
       "index": "halacha.20",
-      "category": "Calendar",
-      "topic": "High Holidays",
-      "summary": "Rosh Hashanah and Yom Kippur are observed with local solemnity, prayer forms, and selichot traditions.",
+      "category": "Fasts and Tisha B'Av",
+      "topic": "Tisha B'Av (Suruni / Mayrom-ovoi)",
+      "summary": "Tisha B'Av is one of the most important days. Candles are lit in every home and Eicha is read in dim synagogues, sitting on the floor; people sleep in their clothes. After morning prayers, people go to the cemetery barefoot or in non-leather shoes to visit family graves with Hashkava and Kaddish, and give generous tzedakah.",
       "common_practices": [
-        "Use the community machzor or rite",
-        "Preserve selichot and shofar customs",
-        "Follow local synagogue order and melodies",
-        "Anchor observance times to local halachic zmanim.",
-        "Coordinate fasts, selichot, and festival timing with community schedule.",
-        "Use a single trusted local calendar authority for consistency."
-      ]
+        "Home candles",
+        "Floor-sitting for Eicha",
+        "Cemetery visit to family graves"
+      ],
+      "variants": [
+        {
+          "subgroup": "Krasnaya Sloboda (1990s)",
+          "practice": "Thousands, including emigrants, gather; most explained the day as mourning for Mayrom (Miriam) and her seven martyred sons rather than the Temple.",
+          "source": "Dymshits 1999"
+        },
+        {
+          "subgroup": "Vartashen (1894)",
+          "practice": "Explicitly mourning Jerusalem: Eicha, Job, ashes, barefoot.",
+          "source": "Dymshits 1999, citing Bezhanov"
+        },
+        {
+          "subgroup": "Davidov",
+          "practice": "Both the Temple and Mayrom's sons are mourned.",
+          "source": "Davidov, 'Suruni 9 Ava'"
+        }
+      ],
+      "source": "Davidov, Mudretsy Kavkaza, 'Suruni 9 Ava (Obychai i traditsii)' (Russian); Dymshits 1999",
+      "source_url": "http://www.istok.ru/library/130-mudretsy-kavkaza-28-suruni-9-ava-obychai-i-traditsii.html",
+      "confidence": "well-attested",
+      "review_notes": "Davidov: if 9 Av falls on Shabbat, the fast moves to Sunday.",
+      "references": [
+        {
+          "title": "Религиозная жизнь и обычаи горских евреев / Главы / Библиотека / Еврейская интернет библиотека",
+          "url": "http://www.istok.ru/library/199-gorskie-evrei-15-religioznaya-zhizn-i-obychai-gorskih-evreev.html"
+        },
+        {
+          "title": "מרכז המורשת הבינלאומי ליהדות קווקז » מסורת ומורשת רוחנית",
+          "url": "https://www.kjci.org/%D7%9E%D7%A1%D7%95%D7%A8%D7%AA-%D7%95%D7%9E%D7%95%D7%A8%D7%A9%D7%AA-%D7%A8%D7%95%D7%97%D7%A0%D7%99%D7%AA/"
+        }
+      ],
+      "topic_he": "תשעה באב (סורוני / מאירום-אובוי)",
+      "summary_he": "תשעה באב הוא אחד הימים החשובים ביותר. מדליקים נרות בכל בית וקוראים איכה בבתי כנסת עמומים, בישיבה על הרצפה; ישנים בבגדים. אחרי תפילת הבוקר הולכים אנשים לבית הקברות יחפים או בנעליים שאינן מעור לבקר בקברי המשפחה עם השכבה וקדיש, ונותנים צדקה בנדיבות."
     },
     {
       "index": "halacha.21",
-      "category": "Calendar",
-      "topic": "Chanukah and Purim",
-      "summary": "Minor festivals are celebrated with standard halacha and community-specific foods, songs, and customs.",
+      "category": "Fasts and Tisha B'Av",
+      "topic": "From Rosh Chodesh Av",
+      "summary": "From 1 Av, for two weeks: no meat, no river or sea bathing (washing for Shabbat is allowed), no laundry, no celebrations, no new clothes. Mourning ends the day after the fast, when weddings are held.",
       "common_practices": [
-        "Light Chanukah candles nightly",
-        "Read the Megillah on Purim",
-        "Preserve family songs, foods, and gift customs",
-        "Anchor observance times to local halachic zmanim.",
-        "Coordinate fasts, selichot, and festival timing with community schedule.",
-        "Use a single trusted local calendar authority for consistency."
-      ]
+        "No meat from 1 Av",
+        "Weddings right after the fast"
+      ],
+      "variants": [],
+      "source": "Davidov, 'Suruni 9 Ava (Obychai i traditsii)' (Russian)",
+      "source_url": "http://www.istok.ru/library/130-mudretsy-kavkaza-28-suruni-9-ava-obychai-i-traditsii.html",
+      "confidence": "needs-review",
+      "review_notes": "Single source. 'Two weeks' from 1 Av runs past 9 Av; the end point needs checking.",
+      "topic_he": "מראש חודש אב",
+      "summary_he": "מא' באב, במשך שבועיים: אין בשר, אין רחיצה בנהר או בים (רחיצה לשבת מותרת), אין כביסה, אין שמחות, אין בגדים חדשים. האבלות מסתיימת ביום שאחרי הצום, כשעורכים חתונות."
     },
     {
       "index": "halacha.22",
-      "category": "Education",
-      "topic": "Torah transmission",
-      "summary": "Torah and custom are transmitted through family memory, oral teaching, and local communal institutions.",
+      "category": "Kashrut",
+      "topic": "Shechita",
+      "summary": "The shochet is the central religious figure; in villages any shochet is called 'rabbi'. In 19th-c. Quba, each quarter-community ate only meat slaughtered by its own shochet. In the late Soviet period, poultry was slaughtered in synagogue courtyards.",
       "common_practices": [
-        "Teach children prayers and reading forms",
-        "Preserve family stories and genealogy",
-        "Use both texts and oral tradition in instruction",
-        "Teach children both baseline halacha and family minhag distinctions.",
-        "Preserve community pronunciation and liturgical pedagogy.",
-        "Document oral traditions to reduce minhag drift across generations."
-      ]
+        "Meat from one's own community shochet",
+        "Strict separation of meat and dairy"
+      ],
+      "variants": [
+        {
+          "subgroup": "Kabardino-Balkaria",
+          "practice": "Pork, horse and rabbit forbidden; meat and dairy kept apart.",
+          "source": "KBR regional ethnography page 'Evrei: traditsii i obychai' (Russian)"
+        },
+        {
+          "subgroup": "Brooklyn",
+          "practice": "Most buy kosher meat and keep separate dishes; more secular families may eat out non-kosher.",
+          "source": "Hadassah Magazine, Jan. 2008"
+        }
+      ],
+      "source": "Dymshits 1999, 'Ravvinat i ravviny', citing I. Chorny (Russian)",
+      "source_url": "http://www.istok.ru/library/199-gorskie-evrei-15-religioznaya-zhizn-i-obychai-gorskih-evreev.html",
+      "confidence": "well-attested",
+      "review_notes": "",
+      "topic_he": "שחיטה",
+      "summary_he": "השוחט הוא הדמות הדתית המרכזית; בכפרים כל שוחט נקרא \"רבי\". בקובה של המאה ה-19 אכלה כל קהילת רובע רק בשר ששחט השוחט שלה. בסוף התקופה הסובייטית נשחטו עופות בחצרות בתי הכנסת."
+    },
+    {
+      "index": "halacha.23",
+      "category": "Lifecycle",
+      "topic": "Brit milah",
+      "summary": "Milah is on the eighth day, even on Shabbat. It is postponed for illness, and if a sibling died after circumcision, but not for mourning. The night before, 'Brit-Yitzchak' is held: Torah study by father, relatives and friends (Davidov notes it has become a festive meal). Ten men are present.",
+      "common_practices": [
+        "Mother hands the baby to the grandmother, who hands him to the sandak",
+        "All rise and say 'Baruch ha-ba'",
+        "One large and several small candles",
+        "Kosher wine on the baby's lips",
+        "Periah and metzitzah required",
+        "Name given in the blessing",
+        "Tehillim at the bed's head against the evil eye",
+        "Meal with wine, fish, meat and fruit",
+        "Gifts to guests: socks and handkerchiefs for men, headscarves for women"
+      ],
+      "variants": [
+        {
+          "subgroup": "Soviet-era Dagestan",
+          "practice": "Often performed by a physician.",
+          "source": "Encyclopedia of World Cultures"
+        }
+      ],
+      "source": "Davidov, Mudretsy Kavkaza, 'Brit-mila (Obychai i traditsii)' (Russian)",
+      "source_url": "http://www.istok.ru/library/130-mudretsy-kavkaza-19-brit-mila-obychai-i-traditsii.html",
+      "confidence": "well-attested",
+      "review_notes": "The Encyclopedia of World Cultures says 'seventh day', which conflicts with Davidov; see disputes.",
+      "references": [
+        {
+          "title": "Mountain Jews | Encyclopedia.com",
+          "url": "https://www.encyclopedia.com/humanities/encyclopedias-almanacs-transcripts-and-maps/mountain-jews"
+        }
+      ],
+      "topic_he": "ברית מילה",
+      "summary_he": "המילה ביום השמיני, גם בשבת. היא נדחית בגלל מחלה, ואם אח מת אחרי מילה, אך לא בגלל אבלות. בלילה שלפני כן נערכת \"ברית יצחק\": לימוד תורה בידי האב, קרובים וחברים (דבידוב מציין שהיא הפכה לסעודה חגיגית). עשרה גברים נוכחים."
+    },
+    {
+      "index": "halacha.24",
+      "category": "Lifecycle",
+      "topic": "Naming",
+      "summary": "Boys are named at the milah, girls at the Torah on the first Shabbat after birth. Names usually follow grandparents and deceased relatives, in Juhuri forms: Moshe→Mishi, Yehuda→Evdo, Binyamin→Beneimi, Leah→Lio, Tzipora→Sipro.",
+      "common_practices": [
+        "After the first-year memorial, a granddaughter under 12 may receive the deceased grandmother's name as an added name"
+      ],
+      "variants": [],
+      "source": "Davidov, 'Brit-mila' and 'Traur' (Russian); Encyclopedia of World Cultures",
+      "source_url": "http://www.istok.ru/library/130-mudretsy-kavkaza-19-brit-mila-obychai-i-traditsii.html",
+      "confidence": "well-attested",
+      "review_notes": "",
+      "topic_he": "מתן שם",
+      "summary_he": "בנים נקראים בשמם במילה, בנות בתורה בשבת הראשונה אחרי הלידה. השמות הולכים בדרך כלל אחרי סבים וקרובים שנפטרו, בצורות ג'והורי: משה→מישי, יהודה→אבדו, בנימין→בנאימי, לאה→ליו, צפורה→סיפרו."
+    },
+    {
+      "index": "halacha.25",
+      "category": "Lifecycle",
+      "topic": "Bar mitzvah",
+      "summary": "At a bar mitzvah, women, who otherwise did not enter the synagogue hall, came in holding lit candles to hear the Torah reading. The Juhuri term reported is 'tefilinvenim'.",
+      "common_practices": [
+        "Women enter with candles"
+      ],
+      "variants": [],
+      "source": "Davidov, 'Chtenie Tory' (Russian); STMEGI, 'Traditsii i religioznye obychai: dehmerd'",
+      "source_url": "http://www.istok.ru/library/130-mudretsy-kavkaza-4-chtenie-tory-obychai-i-traditsii.html",
+      "confidence": "needs-review",
+      "review_notes": "The term comes from one page not opened by the lead researcher.",
+      "references": [
+        {
+          "title": "Чтение Торы (Обычаи и традиции) / Главы / Библиотека / Еврейская интернет библиотека",
+          "url": "http://www.istok.ru/library/130-mudretsy-kavkaza-4-chtenie-tory-obychai-i-traditsii.html"
+        }
+      ],
+      "topic_he": "בר מצווה",
+      "summary_he": "בבר מצווה נכנסו נשים, שמלבד זאת לא נכנסו לאולם בית הכנסת, כשהן מחזיקות נרות דולקים, כדי לשמוע את קריאת התורה. המונח בג'והורי המדווח הוא \"תפילינבנים\"."
+    },
+    {
+      "index": "halacha.26",
+      "category": "Lifecycle",
+      "topic": "Weddings",
+      "summary": "Sequence: matchmaking; the 'tonoi' contract (tnaim) setting the date and a bride-payment for the trousseau; the dowry listed by the rabbi with two witnesses; then celebrations starting separately in both houses. On the wedding day bride and groom fast and immerse 'as on Yom Kippur'. The bride must go to the mikveh: 'a bride who has not immersed is forbidden to the groom'.",
+      "common_practices": [
+        "Velvet chuppah on four poles in the bride's courtyard before nightfall",
+        "Groom wears a tallit",
+        "Rabbi reads the ketubah and performs kiddushin and nissuin",
+        "Groom covers the bride's head with a scarf and breaks a glass",
+        "Candles, zurna and drums",
+        "Sweets and rice thrown",
+        "Money placed in the dancing bride's hand"
+      ],
+      "variants": [
+        {
+          "subgroup": "19th c. (Anisimov)",
+          "practice": "Groom bathes in the river; ash placed on his forehead for Jerusalem; Psalm 137 sung.",
+          "source": "Dymshits 1999"
+        },
+        {
+          "subgroup": "North Caucasus",
+          "practice": "'Mikveh' by bathing in a river or bathhouse, depending on season.",
+          "source": "Yu. I. Murzakhanov, 'Svadebnye obryady gorskikh evreev Severnogo Kavkaza' (CyberLeninka)"
+        }
+      ],
+      "source": "Davidov, Mudretsy Kavkaza, 'Sem'ya (Obychai i traditsii)' (Russian)",
+      "source_url": "http://www.istok.ru/library/130-mudretsy-kavkaza-35-semya-obychai-i-traditsii.html",
+      "confidence": "well-attested",
+      "review_notes": "Historical early marriage and polygamy (EJE: Rabbeinu Gershom's ban was not accepted) are not current practice.",
+      "topic_he": "חתונות",
+      "summary_he": "הסדר: שידוך; חוזה ה\"טונוי\" (תנאים) הקובע את התאריך ותשלום כלה לנדוניה; הנדוניה שהרב רושם בפני שני עדים; ואחר כך חגיגות המתחילות בנפרד בשני הבתים. ביום החתונה צמים החתן והכלה וטובלים \"כמו ביום כיפור\". הכלה חייבת ללכת למקווה: \"כלה שלא טבלה אסורה לחתן\"."
+    },
+    {
+      "index": "halacha.27",
+      "category": "Niddah and mikveh",
+      "topic": "Mikveh",
+      "summary": "Mikveh use is documented for brides before the wedding and for men on Shavuot morning. A new mikveh was built beside the active Gilyaki synagogue in Krasnaya Sloboda.",
+      "common_practices": [
+        "Bridal immersion required"
+      ],
+      "variants": [],
+      "source": "Davidov, 'Sem'ya'; Dymshits 1999 (Russian)",
+      "source_url": "http://www.istok.ru/library/130-mudretsy-kavkaza-35-semya-obychai-i-traditsii.html",
+      "confidence": "needs-review",
+      "review_notes": "No niddah practice was found; see gaps.",
+      "references": [
+        {
+          "title": "Семья (Обычаи и традиции) / Главы / Библиотека / Еврейская интернет библиотека",
+          "url": "http://www.istok.ru/library/130-mudretsy-kavkaza-35-semya-obychai-i-traditsii.html"
+        }
+      ],
+      "topic_he": "מקווה",
+      "summary_he": "השימוש במקווה מתועד לכלות לפני החתונה ולגברים בבוקר שבועות. מקווה חדש נבנה ליד בית הכנסת הפעיל של הגילקים בקרסנאיה סלובודה."
+    },
+    {
+      "index": "halacha.28",
+      "category": "Mourning",
+      "topic": "Death, tahara and funeral",
+      "summary": "The body is laid on the floor, covered with a sheet, with a candle or lamp, and Tehillim is read beside it. An accident victim is not brought into the house. Tahara is done in a trough, and the body is dressed in 'akhireti' (white linen shroud sewn with linen thread). A man is covered with a tallit with torn tzitzit, a woman with a large shawl.",
+      "common_practices": [
+        "Seven stops reciting Psalm 91 on the way to the cemetery (Derbent to Nalchik)",
+        "Bier set at least four steps before the cemetery, feet west, for hesped and Kaddish",
+        "A coin paid for the plot",
+        "Women and the deceased's children do not attend the burial",
+        "Burial about 1.5 m deep, feet west, boards above",
+        "Earth from the grave bottom given to mourners",
+        "No talk over the fresh grave",
+        "Mourners leave last, barefoot or with earth in their shoes",
+        "Return by a different road"
+      ],
+      "variants": [
+        {
+          "subgroup": "Azerbaijan",
+          "practice": "Seven hakafot for a man; seven Psalms for a woman or child.",
+          "source": "Davidov, 'Traur'"
+        },
+        {
+          "subgroup": "Nalchik / others",
+          "practice": "Keriah after burial in Nalchik; elsewhere during preparations or at the door.",
+          "source": "Davidov, 'Traur'"
+        }
+      ],
+      "source": "A. Davidov, Mudretsy Kavkaza, 'Traur (Obychai i traditsii)', reprinted gorskie.ru 4 Aug 2015 (Russian)",
+      "source_url": "https://gorskie.ru/juhuro/culture/item/9313-obychai-i-traditsii-gorskikh-evreev-traur",
+      "confidence": "well-attested",
+      "review_notes": "The Encyclopedia of World Cultures confirms same-day burial with the whole community attending.",
+      "references": [
+        {
+          "title": "Траур (Обычаи и традиции) / Главы / Библиотека / Еврейская интернет библиотека",
+          "url": "http://www.istok.ru/library/130-mudretsy-kavkaza-39-traur-obychai-i-traditsii.html"
+        }
+      ],
+      "topic_he": "מוות, טהרה והלוויה",
+      "summary_he": "הגופה מונחת על הרצפה, מכוסה בסדין, עם נר או מנורה, ואומרים תהילים לצדה. קורבן תאונה אינו מובא לבית. הטהרה נעשית בעביט, והגופה לבושה \"אחירטי\" (תכריכי פשתן לבנים תפורים בחוט פשתן). גבר מכוסה בטלית עם ציציות קרועות, אישה בצעיף גדול."
+    },
+    {
+      "index": "halacha.29",
+      "category": "Mourning",
+      "topic": "Shiva, Chulya (30) and Sal (year)",
+      "summary": "Shiva counts from the burial, with a candle burning for seven days. Mourners sit on the floor, women and men in separate rooms. Every household sends food for the mourners' meal ('Borokho'): hard-boiled eggs, beans, plain rice, fish. Meat and vodka are served when the deceased died old. On day 7 the rabbi ends shiva and the family visits the grave, women first; the same is done on day 30 ('Chulya') and at the year ('Sal'). Sources differ on whether the second memorial falls on day 30 or day 40.",
+      "common_practices": [
+        "Rabbi breaks three lavash ('Mesi')",
+        "Minyan at home for seven days",
+        "Mourners skip Monday/Thursday Torah readings, Purim and Chanukah",
+        "Mourners usually go up to the Torah on the fourth Shabbat, buying maftir",
+        "Seat change and haircut after 30 days",
+        "No weddings or festive visits for a year",
+        "No black clothing",
+        "No mourning for an infant under 31 days"
+      ],
+      "variants": [
+        {
+          "subgroup": "Soviet-era Dagestan",
+          "practice": "Memorials at 7 days, 40 days and 1 year; mourning called 'yos'.",
+          "source": "Encyclopedia of World Cultures"
+        },
+        {
+          "subgroup": "Davidov (Mountain Jewish custom)",
+          "practice": "The second memorial falls on day 30 ('Chulya').",
+          "source": "Davidov, 'Traur' (Russian)"
+        }
+      ],
+      "source": "Davidov, 'Traur' (Russian)",
+      "source_url": "https://gorskie.ru/juhuro/culture/item/9313-obychai-i-traditsii-gorskikh-evreev-traur",
+      "confidence": "disputed",
+      "review_notes": "Day 30 (Davidov) versus day 40 (ethnography): both are recorded.",
+      "topic_he": "שבעה, \"חולייה\" (30) ו\"סל\" (שנה)",
+      "summary_he": "השבעה נמנית מהקבורה, כשנר דולק שבעה ימים. האבלים יושבים על הרצפה, נשים וגברים בחדרים נפרדים. כל משק בית שולח אוכל לסעודת האבלים (\"בורוחו\"): ביצים קשות, שעועית, אורז פשוט, דג. בשר וודקה מוגשים כשהנפטר מת זקן. ביום השביעי הרב מסיים את השבעה והמשפחה מבקרת בקבר, הנשים תחילה; כך עושים ביום השלושים (\"חולייה\") ובשנה (\"סל\"). המקורות חלוקים אם ההזכרה השנייה חלה ביום ה-30 או ביום ה-40."
+    },
+    {
+      "index": "halacha.30",
+      "category": "Mourning",
+      "topic": "Kaddish and yahrzeit ('taanit')",
+      "summary": "Kaddish is said for 11 months, ten times daily (four 'Al Yisrael' and six 'Yatom'); it resumes on the evening of the 30th day before the first anniversary. The first 'Sal' is counted 12 months from burial, later ones from the date of death. The yahrzeit is called 'taanit' because children are obliged to fast for their parents. Candles are lit at home and in synagogue, with Mishnah, Tehillim and Kaddish, and an aliyah on the Shabbat.",
+      "common_practices": [
+        "Food brought to synagogue for ancestors' yahrzeits",
+        "Gravestone by the first year",
+        "Evening services end with Hashkava for the year's dead"
+      ],
+      "variants": [],
+      "source": "Davidov, 'Traur' (Russian)",
+      "source_url": "https://gorskie.ru/juhuro/culture/item/9313-obychai-i-traditsii-gorskikh-evreev-traur",
+      "confidence": "needs-review",
+      "review_notes": "A first anniversary on Shabbat, Yom Tov, Purim or 9 Av is moved 'на день вперёд'; the direction (earlier or later) is ambiguous.",
+      "references": [
+        {
+          "title": "Траур (Обычаи и традиции) / Главы / Библиотека / Еврейская интернет библиотека",
+          "url": "http://www.istok.ru/library/130-mudretsy-kavkaza-39-traur-obychai-i-traditsii.html"
+        },
+        {
+          "title": "Обычаи и традиции горских евреев: траур - GORSKIE.ru",
+          "url": "https://gorskie.ru/juhuro/culture/item/9313-obychai-i-traditsii-gorskikh-evreev-traur"
+        }
+      ],
+      "topic_he": "קדיש ויארצייט (\"תענית\")",
+      "summary_he": "אומרים קדיש 11 חודשים, עשר פעמים ביום (ארבעה \"על ישראל\" ושישה \"יתום\"); הוא חוזר בערב היום השלושים לפני יום השנה הראשון. ה\"סל\" הראשון נמנה 12 חודשים מהקבורה, ואלה שאחריו מיום הפטירה. היארצייט נקרא \"תענית\" כי הילדים חייבים לצום על הוריהם. מדליקים נרות בבית ובבית הכנסת, עם משנה, תהילים וקדיש, ועלייה לתורה בשבת."
     }
   ],
-  "unique_minhagim": {
-    "examples": [
-      "Juhuri language preserved in religious explanation and family life",
-      "Strong oral continuity after Soviet suppression",
-      "Town-based identity such as Derbent or Quba/Red Village",
-      "Distinct synagogue melodies and honor customs"
-    ],
-    "notes": "These are broad patterns rather than universal rules. Mountain Jewish communities should be indexed by locality where possible."
-  },
-  "source_registry": {
-    "primary": [
-      "Shulchan Aruch",
-      "Mishneh Torah",
-      "local Mountain Jewish tradition"
-    ],
-    "secondary": [
-      "Jewish languages resources",
-      "Jewish community databases",
-      "regional historical studies"
-    ]
-  }
+  "unique_minhagim": [
+    {
+      "name": "Govgil (גבגיל; 'govlei geulah')",
+      "description": "The day after Pesach. That night new bread and sweet flatbreads are baked; families spend the day outdoors picnicking with relatives and guests. A bowl of sweets or fruit is ringed with young grass and topped with about five gold items or coins. A blessing is sung: 'Imishev shev Govgili, sabah ruz Donili…', rendered by STMEGI as 'Today we are freed from our chains, and tomorrow, with the help of the Almighty and the prophet Daniel, may we all be fed and healthy in Jerusalem!' A traditional betrothal time; in Israel celebrated publicly (e.g. Kiryat Yam) and compared to Mimouna.",
+      "when": "Day after Pesach ends",
+      "source": "STMEGI, 'Govgil' i Mimuna'; STMEGI, 'Pesakh: Prazdnik chistoi dushi'; JTA 2021",
+      "source_url": "https://stmegi.com/posts/57445/govgil-i-mimuna-prazdniki-vesny-i-osvobozhdeniya/",
+      "confidence": "well-attested",
+      "references": [
+        {
+          "title": "Govgil",
+          "url": "https://en.wikipedia.org/wiki/Govgil"
+        },
+        {
+          "title": "Песах: Праздник Чистой Души - STMEGI",
+          "url": "https://stmegi.com/judaism/posts/45493/prazdnik-chistoy-dushchi17/"
+        }
+      ],
+      "name_he": "גובגיל (גבגיל; \"גובלי גאולה\")",
+      "description_he": "היום שאחרי פסח. באותו לילה אופים לחם חדש ולחמניות מתוקות; משפחות מבלות את היום בחוץ בפיקניק עם קרובים ואורחים. קערת ממתקים או פירות מוקפת עשב צעיר ובראשה כחמישה פריטי זהב או מטבעות. שרים ברכה: \"אימישב שב גובגילי, סבה רוז דונילי…\", שמתורגמת בידי STMEGI \"היום משוחררים מכבלינו, ומחר, בעזרת הקב\"ה והנביא דניאל, נהיה כולנו שבעים ובריאים בירושלים!\". זמן אירוסין מסורתי; בישראל נחגג בפומבי (למשל בקריית ים) ומושווה למימונה."
+    },
+    {
+      "name": "Bonfires of 1 Nisan",
+      "description": "Bonfires on Rosh Chodesh Nisan, with shashlik according to gorskie.ru.",
+      "when": "1 Nisan",
+      "source": "JTA 2021 via STMEGI; gorskie.ru 'Pesakh'",
+      "source_url": "https://stmegi.com/gorskie_evrei/posts/87612/gorskie-evrei-khranyat-mnogovekovye-traditsii-pesakha-/",
+      "confidence": "well-attested",
+      "name_he": "מדורות א' בניסן",
+      "description_he": "מדורות בראש חודש ניסן, עם שישליק לפי gorskie.ru."
+    },
+    {
+      "name": "Bilingual seder",
+      "description": "Haggadah in Hebrew on the first night and in Juhuri on the second.",
+      "when": "Seder nights",
+      "source": "Dymshits 1999",
+      "source_url": "http://www.istok.ru/library/199-gorskie-evrei-15-religioznaya-zhizn-i-obychai-gorskih-evreev.html",
+      "confidence": "needs-review",
+      "name_he": "סדר דו-לשוני",
+      "description_he": "הגדה בעברית בלילה הראשון ובג'והורי בשני."
+    },
+    {
+      "name": "Shev-Idor",
+      "description": "A folk 'night of Idor' before spring: the housewife presents a tray of fruit saved through the year, the master blesses and all pray for a fruitful year. Dymshits compares it to Tu BiShvat; its date is unrecorded.",
+      "when": "Before spring",
+      "source": "Dymshits 1999, quoting Anisimov",
+      "source_url": "http://www.istok.ru/library/199-gorskie-evrei-17-verovaniya-obychii-obryady.html",
+      "confidence": "needs-review",
+      "name_he": "שב-אידור",
+      "description_he": "\"ליל אידור\" עממי לפני האביב: עקרת הבית מציגה מגש פירות ששמרה כל השנה, בעל הבית מברך והכול מתפללים לשנה פוריה. דימשיץ משווה אותו לט\"ו בשבט; תאריכו אינו מתועד."
+    },
+    {
+      "name": "Machzor Ohalei Yaakov",
+      "description": "High Holiday machzor with commentary by R. Yaakov Yitzchaki: vol. 1 Selichot/Rosh Hashana (Jerusalem 1908), vol. 2 Yom Kippur (1910). Planned parts for the festivals and fasts remained in manuscript.",
+      "when": "Elul-Tishrei",
+      "source": "HebrewBooks #51105, #51106; STMEGI; Davidov",
+      "source_url": "https://hebrewbooks.org/51105",
+      "confidence": "well-attested",
+      "name_he": "מחזור אוהלי יעקב",
+      "description_he": "מחזור לימים הנוראים עם פירוש של רבי יעקב יצחקי: כרך א' סליחות/ראש השנה (ירושלים 1908), כרך ב' יום כיפור (1910). החלקים המתוכננים למועדים ולתעניות נשארו בכתב יד."
+    },
+    {
+      "name": "Juhuri siddur 'Kol Tefilla'",
+      "description": "First Juhuri prayer book, Vilna 1909, with parallel Hebrew, translated by Asaf Pinkhasov of Derbent.",
+      "when": "Year-round",
+      "source": "Cyclowiki; Wikipedia 'Asaf Pinkhasov'",
+      "source_url": "https://en.wikipedia.org/wiki/Asaf_Pinkhasov",
+      "confidence": "needs-review",
+      "name_he": "סידור ג'והורי \"קול תפילה\"",
+      "description_he": "סידור התפילה הג'והורי הראשון, וילנה 1909, עם עברית מקבילה, בתרגום אסף פינחסוב מדרבנט."
+    },
+    {
+      "name": "Local piyyut and recordings",
+      "description": "Piyyutim by Elisha b. Shmuel ha-Katan of Aba-Sava (three published by I. Chorny). The NLI holds Caucasus-tradition recordings of 'Yom Zeh Mechubad', 'Lecha Dodi' and 'Bar Yochai'.",
+      "when": "Shabbat, festivals",
+      "source": "Dymshits 1999; NLI Piyut site",
+      "source_url": "https://www.nli.org.il/he/discover/music/jewish-music/piyut/traditions/the-mountain-jews-east-caucasia",
+      "confidence": "regional",
+      "references": [
+        {
+          "title": "Религиозная жизнь и обычаи горских евреев / Главы / Библиотека / Еврейская интернет библиотека",
+          "url": "http://www.istok.ru/library/199-gorskie-evrei-15-religioznaya-zhizn-i-obychai-gorskih-evreev.html"
+        }
+      ],
+      "name_he": "פיוט מקומי והקלטות",
+      "description_he": "פיוטים של אלישע בן שמואל הקטן מאבא-סבא (שלושה פורסמו בידי י' צ'ורני). הספרייה הלאומית מחזיקה הקלטות ממסורת הקווקז של \"יום זה מכובד\", \"לכה דודי\" ו\"בר יוחאי\"."
+    }
+  ],
+  "source_registry": [
+    {
+      "title": "Gorskie evrei: istoriya, etnografiya, kul'tura",
+      "author": "V. Dymshits (ed.), DAAT/Znanie 1999 (Russian)",
+      "type": "academic",
+      "url": "http://www.istok.ru/library/199-gorskie-evrei-15-religioznaya-zhizn-i-obychai-gorskih-evreev.html",
+      "used_for": "Nusach, synagogue, festivals (incl. Bezhanov 1894, Anisimov 1888), rabbinate"
+    },
+    {
+      "title": "Verovaniya, obychai, obryady (chapter)",
+      "author": "V. Dymshits (ed.), 1999 (Russian)",
+      "type": "academic",
+      "url": "http://www.istok.ru/library/199-gorskie-evrei-17-verovaniya-obychii-obryady.html",
+      "used_for": "Folk beliefs, Elijah night, spring festivals"
+    },
+    {
+      "title": "Mudretsy Kavkaza",
+      "author": "R. Adam Davidov; Center for Torah of Mountain Jews (Russian)",
+      "type": "primary",
+      "url": "http://www.istok.ru/library/130-mudretsy-kavkaza.html",
+      "used_for": "Milah, wedding, mourning, Tisha B'Av, Torah reading, rabbinic history"
+    },
+    {
+      "title": "Obychai i traditsii gorskikh evreev: traur",
+      "author": "gorskie.ru 2015 (Davidov reprint, Russian)",
+      "type": "primary",
+      "url": "https://gorskie.ru/juhuro/culture/item/9313-obychai-i-traditsii-gorskikh-evreev-traur",
+      "used_for": "Mourning and yahrzeit"
+    },
+    {
+      "title": "Q&A on weddings after Pesach",
+      "author": "R. Bentsion Zilber, Toldot.com 2012 (Russian)",
+      "type": "responsa",
+      "url": "https://toldot.com/urava/ask/urava_7185.html",
+      "used_for": "Omer weddings"
+    },
+    {
+      "title": "Interview: R. Avigdor Yunaev",
+      "author": "Evreiskii zhurnal 2018 (Russian)",
+      "type": "reference",
+      "url": "https://jewishmagazine.ru/articles/intervyu/ravvin-avigdor-junaev-chtoby-vospitat-detej-nado-byt-vospitannymi-roditeljami/",
+      "used_for": "Rice on Pesach"
+    },
+    {
+      "title": "Mountain Jews (Encyclopedia of World Cultures)",
+      "author": "Gale via Encyclopedia.com",
+      "type": "academic",
+      "url": "https://www.encyclopedia.com/humanities/encyclopedias-almanacs-transcripts-and-maps/mountain-jews",
+      "used_for": "Holiday names, kapparot, mourning, milah"
+    },
+    {
+      "title": "The Mountain Jews of Brooklyn",
+      "author": "Hadassah Magazine 2008",
+      "type": "reference",
+      "url": "https://www.hadassahmagazine.org/2008/01/14/feature-mountain-jews-brooklyn/",
+      "used_for": "Brooklyn practice"
+    },
+    {
+      "title": "Traditsii gorskikh evreev: Purim-omunu",
+      "author": "gorskie.ru 2016 (Russian)",
+      "type": "reference",
+      "url": "https://gorskie.ru/juhuro/culture/item/11569-traditsii-gorskikh-evreev-purim-omunu",
+      "used_for": "Purim"
+    },
+    {
+      "title": "בלי חמוצים, סוכר או גבינות",
+      "author": "C. Liphshiz (JTA), Zman Yisrael 2021 (Hebrew)",
+      "type": "reference",
+      "url": "https://www.zman.co.il/208836/",
+      "used_for": "Pesach restrictions"
+    },
+    {
+      "title": "Gorskie evrei khranyat traditsii Pesakha; Govgil' i Mimuna; Lag ba-Omer u gorskikh evreev",
+      "author": "STMEGI (Russian)",
+      "type": "reference",
+      "url": "https://stmegi.com/gorskie_evrei/posts/87612/gorskie-evrei-khranyat-mnogovekovye-traditsii-pesakha-/",
+      "used_for": "Nisan customs, Govgil, Lag BaOmer"
+    },
+    {
+      "title": "Machzor Ohalei Yaakov",
+      "author": "R. Yaakov Yitzchaki, Jerusalem 1908/1910",
+      "type": "siddur",
+      "url": "https://hebrewbooks.org/51105",
+      "used_for": "Community liturgy"
+    },
+    {
+      "title": "הפיוט והתפילה במסורת קווקז",
+      "author": "National Library of Israel",
+      "type": "reference",
+      "url": "https://www.nli.org.il/he/discover/music/jewish-music/piyut/traditions/the-mountain-jews-east-caucasia",
+      "used_for": "Recorded liturgy"
+    },
+    {
+      "title": "Горские евреи (EJE)",
+      "author": "EJE/ORT editors (Russian)",
+      "type": "reference",
+      "url": "https://eleven.co.il/diaspora/ethno-linguistic-groups/11277/",
+      "used_for": "Nusach statement, polygamy"
+    }
+  ],
+  "gaps": [
+    "Shabbat candle lighting, Kabbalat Shabbat, Kiddush, seudot and Havdalah: no community-specific source",
+    "Kitniyot other than rice",
+    "Shemini Atzeret / Simchat Torah",
+    "End of Omer mourning and haircut customs",
+    "Minor fasts other than the Vartashen Rosh Hashana fasts",
+    "Tefillin and tzitzit (only an anecdote that elders wore a tallit katan)",
+    "Torah pronunciation and cantillation: NLI recordings exist but no written description",
+    "Pidyon haben",
+    "Bat mitzvah",
+    "Niddah practice",
+    "Calendar and zmanim: no documented offsets, so parameters are empty",
+    "Chechnya/Grozny-specific customs",
+    "Bakashot: no evidence of a tradition"
+  ],
+  "disputes": [
+    "Brit milah day: Encyclopedia of World Cultures says the seventh day; Davidov and halacha say the eighth (probably an error in the encyclopedia).",
+    "Memorial day: 30th (Davidov) versus 40th (Encyclopedia of World Cultures).",
+    "Chanukah: barely remembered (Dymshits) versus the major winter holiday (Encyclopedia of World Cultures).",
+    "Sukkah dwelling: Kiddush only (Dymshits) versus seven days (Bezhanov, Vartashen).",
+    "Tisha B'Av: mourning for Mayrom's sons (1990s Krasnaya Sloboda informants) versus the Temple (Bezhanov; Davidov includes both).",
+    "Sha'ame Vassal: Lag BaOmer (Brooklyn activist) versus a separate spring custom (ethnographers).",
+    "Shabbat weapons: rabbis banned weapons in synagogue on Shabbat versus daggers never removed (Dymshits reports both)."
+  ],
+  "needs_rabbinic_review": [
+    "Rice on one or two days of Pesach in Israel",
+    "End point of the restrictions from Rosh Chodesh Av",
+    "Direction of the first-yahrzeit postponement",
+    "Govgil-to-1 Iyar weddings versus Shulchan Aruch",
+    "Children's yahrzeit fast ('taanit') on days when fasting is not done",
+    "Pesach sugar, cheese and pickle restrictions where certified products exist",
+    "Metzitzah as stated by Davidov",
+    "Folk customs (Elijah night, Shev-Idor, Aravo divination) to be presented as ethnography, not halacha"
+  ]
 }

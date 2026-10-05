@@ -412,12 +412,20 @@ async def _h_get_community_profile(arguments: dict, context: dict) -> dict:
     except (OSError, ValueError) as exc:
         return {"error": f"could not load profile for {canonical}: {exc}"}
 
+    runtime = data.get("runtime") if isinstance(data.get("runtime"), dict) else {}
     profile = {
         "community": canonical,
         "heritage_id": data.get("heritage_id"),
         "identity": data.get("identity"),
         "languages": data.get("languages"),
-        "historical_background": _truncate(data.get("historical_background"), 1200),
+        "practice_baseline": runtime.get("practice_baseline"),
+        # Sourced numbers and rules (waiting times, date rules, ...): the model
+        # should quote these rather than recall them.
+        "parameters": _cap_nested(runtime.get("parameters"), 12),
+        "historical_background": _truncate(_history_text(data.get("historical_background")), 1200),
+        # Topics with no community-specific source, so the model can say so
+        # instead of guessing.
+        "gaps": _cap_nested(data.get("gaps")),
         # These two fields are dicts-of-lists in the community JSON schema
         # (e.g. {"primary_codes": [...], "later_yemenite_poskim": [...]}),
         # not flat lists -- cap each inner list rather than the outer dict.
@@ -432,6 +440,28 @@ async def _h_get_community_profile(arguments: dict, context: dict) -> dict:
     if withhold_injected(profile, source="get_community_profile") is None:
         return {"error": f"profile content withheld for {canonical}"}
     return profile
+
+
+def _history_text(background: Any) -> Any:
+    """A readable form of a community's historical_background: one line per
+    timeline entry ("period: event (halachic impact)"). Anything else is
+    returned as it is."""
+    timeline = background.get("timeline") if isinstance(background, dict) else None
+    if not isinstance(timeline, list) or not timeline:
+        return background
+    lines = []
+    for entry in timeline:
+        if not isinstance(entry, dict):
+            continue
+        period = str(entry.get("period") or "").strip()
+        event = str(entry.get("event") or "").strip()
+        impact = str(entry.get("halachic_impact") or "").strip()
+        line = f"{period}: {event}" if period and event else (period or event)
+        if line and impact:
+            line += f" ({impact})"
+        if line:
+            lines.append(line)
+    return "\n".join(lines) if lines else background
 
 
 def _cap_nested(value: Any, max_items: int = 10) -> Any:

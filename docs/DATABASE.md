@@ -91,15 +91,15 @@ User-saved texts, references, and AI answers. Base table: [`scripts/sql/bookmark
 
 ### `community_knowledge`
 
-Shared reference knowledge base (not user-scoped). Base table: [`scripts/sql/rag_identity_cache_setup.sql`](../scripts/sql/rag_identity_cache_setup.sql). Populated by `scripts/migrate_customs_to_supabase.py`.
+Shared reference knowledge base (not user-scoped). Base table: [`scripts/sql/rag_identity_cache_setup.sql`](../scripts/sql/rag_identity_cache_setup.sql). Populated by `scripts/migrate_customs_to_supabase.py` from `customs/*.json` (see [`customs/DEVELOPER_NOTES.md`](../customs/DEVELOPER_NOTES.md)). `--prune` removes rows the JSON no longer has; `--emit-sql DIR` writes the same load as SQL files for the Supabase SQL Editor.
 
 | Column | Type | Nullable | Default | Description |
 |---|---|---|---|---|
 | `id` | `text` | NOT NULL | — | Deterministic content hash — primary key |
-| `community_name` | `text` | NOT NULL | — | Community/tradition key (e.g. `sefardic`) |
-| `topic` | `text` | NOT NULL | — | Halakhic topic |
+| `community_name` | `text` | NOT NULL | — | Community lens key, taken from each file's `runtime.lens_key` and equal to a `backend/helpers.COMMUNITIES` key (e.g. `Sefardic`, `Kavkazi`, `Turkish-Ottoman`). `/ask` retrieval matches it with `ilike`. |
+| `topic` | `text` | NOT NULL | — | Halakhic topic (`Distinctive custom: <name>` for `unique_minhagim` rows) |
 | `halakhic_source` | `text` | NOT NULL | — | Source citation |
-| `content` | `text` | NOT NULL | — | Reference text |
+| `content` | `text` | NOT NULL | — | Reference text: summary, a one-line confidence caveat (disputed, regional and needs-review entries tell the reader to ask their own rabbi), subgroup variants, common practices, notes (capped at 2200 characters). Variants come before common practices so both sides of a machloket survive the prompt's per-row cut. No Hebrew is stored. Reviewer-only fields are never written. |
 | `created_at` | `timestamptz` | NOT NULL | `now()` | Creation timestamp |
 | `updated_at` | `timestamptz` | NOT NULL | `now()` | Last update timestamp (trigger) |
 

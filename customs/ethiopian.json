@@ -1,404 +1,1327 @@
 {
-  "version": "2.0",
+  "version": "3.0",
   "type": "academic_halachic_reference",
   "heritage_id": "ethiopian",
   "name": "Ethiopian",
   "aliases": [
     "Beta Israel",
-    "Ethiopian Jews"
+    "Ethiopian Jews",
+    "Beta Israel (ביתא ישראל)",
+    "Bet Israel",
+    "Ethiopian Jews (יהודי אתיופיה)",
+    "Kayla (historical/regional)",
+    "Falasha (פלאשים; pejorative exonym meaning 'landless'; avoid)"
   ],
   "database_scope": {
-    "purpose": "Academic and halachic reference database for Ethiopian Jewish heritage, minhagim, and halachic practice.",
-    "coverage_note": "This file models broad Beta Israel practice and includes common halachic domains. Local customs vary by village, family, and the degree of later rabbinic integration.",
-    "classification_note": "Ethiopian Jewish practice is historically distinct from both Ashkenazi and Sephardi frameworks, with its own scriptural, liturgical, and communal traditions."
+    "purpose": "Sourced reference for Ethiopian minhagim and halachic practice. It records what the cited sources say, with a confidence level for each entry, and is not a psak.",
+    "coverage_note": "35 sourced topics and 6 distinctive customs, compiled from the cited sources in October 2026. Each entry carries a confidence level (well-attested, disputed, regional, needs-review). 15 topics have no community-specific source and are listed under 'gaps' rather than filled with generic text."
   },
   "identity": {
-    "primary_origin": "Ethiopia, especially the communities historically associated with Beta Israel",
+    "primary_origin": "Northern Ethiopia: the Gondar region (Dembia), Tigray, Semien and Quara",
     "secondary_centers": [
-      "Gondar",
-      "Wollo",
-      "Tigray",
-      "Addis Ababa",
-      "Israeli Ethiopian diaspora communities"
-    ],
-    "cultural_profile": [
-      "Distinct biblical and liturgical tradition",
-      "Strong communal identity and oral transmission",
-      "Historically separate ritual development",
-      "Later integration with mainstream rabbinic Jewish practice in many settings"
+      "Gondar / Dembia",
+      "Tigray / Walqayit",
+      "Semien (Simien)",
+      "Quara (Qwara)",
+      "Israel (since Operation Moses in 1984 and Operation Solomon in 1991)"
     ]
   },
   "languages": [
-    "Amharic",
-    "Tigrinya",
-    "Hebrew",
-    "Ge'ez in liturgical contexts",
-    "English in diaspora"
+    "Ge'ez: the language of the Orit and of the community's liturgical books",
+    "Amharic and Tigrinya: the languages the prayers and readings are translated into; Tigrinya is spoken by the Tigrean communities",
+    "Agaw: passages in the liturgy (Shelemay 1986)"
   ],
-  "genealogy": {
-    "common_surname_patterns": [
-      "Patronymic naming patterns",
-      "Place-based identity markers",
-      "Family names adapted in modern civil records"
-    ],
-    "research_notes": [
-      "Genealogy may depend more on village and family memory than on fixed surnames.",
-      "Migration records and community testimony are often important.",
-      "Record both pre-migration Ethiopian identity and post-migration surname forms."
-    ],
-    "recommended_genealogy_fields": [
-      "surname",
-      "alternate_spellings",
-      "village_of_origin",
-      "regional_branch",
-      "migration_route",
-      "ritual_minhag",
-      "language_used"
-    ]
-  },
+  "subgroups": [
+    {
+      "name": "Gondar / Dembia",
+      "note": "The largest population and the source of most documented practice. Kaplan (Encyclopaedia Judaica) notes it benefited more from world-Jewry education efforts than Tigray did. Most came via Sudan from 1984 or in Operation Solomon (1991)."
+    },
+    {
+      "name": "Tigray / Walqayit",
+      "note": "Encyclopaedia Judaica (Kaplan): the modern Tigrean communities 'appear to have originated in 1862'. They speak Tigrinya and had 'no common leadership' with Gondar. Most pre-1984 immigrants came from Tigre and Walqayit. A 'latent hostility' with Gondar carried over into Israel. No ritual differences are documented."
+    },
+    {
+      "name": "Semien (Simien)",
+      "note": "Seat of the last Beta Israel autonomous rule, ended in 1626 (Ethiopian Jewry Heritage Center). No distinct ritual is documented."
+    },
+    {
+      "name": "Quara (Qwara)",
+      "note": "Emigration was blocked by rebel control and took place 1992–1999, about 5,000 people (Ethiopian Jewry Heritage Center). The liturgy contains Agaw passages (Shelemay 1986), but no source links them to Qwara."
+    },
+    {
+      "name": "Gojjam; Lasta / Wag",
+      "note": "No documented ritual differences found."
+    },
+    {
+      "name": "Kessim and monks (kahenat/qesoch, maloksewoch)",
+      "note": "Leadership tradition that holds the Orit and the oral tradition."
+    },
+    {
+      "name": "Falash Mura / Zera Beta Israel",
+      "note": "Descendants of Beta Israel who converted to Christianity from the 19th century. About 50,000 have come to Israel in waves, and conversion is required (Ethiopian Jewry Heritage Center)."
+    },
+    {
+      "name": "Ethiopian Israelis",
+      "note": "About 177,600 people in 2024, about 2.3% of Israel's Jewish population, per Israel's Central Bureau of Statistics (Sigd 2025 release, reported by JNS). The Ethiopian Jewry Heritage Center splits this as 93,400 Ethiopia-born and 84,200 Israel-born. Practice ranges from Orit/kessim tradition to Shulchan Aruch, often mixed."
+    }
+  ],
   "historical_background": {
     "timeline": [
       {
-        "period": "Ancient and medieval Ethiopia",
-        "event": "Jewish communities developed and preserved distinct practice.",
-        "halachic_impact": "A separate ritual tradition emerged."
+        "period": "1414–1430",
+        "event": "Emperor Yeshaq: those not baptised lose their land and become 'Felase' (landless).",
+        "halachic_impact": "Possible origin of 'Falasha' and background to later conversions (Ethiopian Jewry Heritage Center)."
       },
       {
-        "period": "Modern Ethiopian kingdom era",
-        "event": "Beta Israel lived as a distinct community under changing regional conditions.",
-        "halachic_impact": "Community continuity remained strong despite social pressures."
+        "period": "15th century",
+        "event": "Abba Sabra and Saga Amlak lead a revival. Prayers and purity laws are attributed to them.",
+        "halachic_impact": "Source of the strict purity boundaries (Ethiopian Jewry Heritage Center)."
       },
       {
-        "period": "20th century",
-        "event": "Wider rabbinic recognition and connection increased.",
-        "halachic_impact": "Halachic integration and dialogue expanded."
+        "period": "1435; 16th century",
+        "event": "R. Elijah of Ferrara reports they have 'the Torah and an oral commentary', 'neither the Talmud nor our poskim', and Esther but not Chanukah. The Radbaz rules they are of the tribe of Dan.",
+        "halachic_impact": "Precedent for R. Ovadia Yosef (Avi Harel)."
       },
       {
-        "period": "Late 20th century and after",
-        "event": "Mass aliyah to Israel transformed communal life.",
-        "halachic_impact": "Practice adapted to new rabbinic and institutional contexts."
+        "period": "1862",
+        "event": "Abba Mahari's march toward Jerusalem. Survivors settle in Tigray.",
+        "halachic_impact": "Origin of the Tigray/Gondar split (Encyclopaedia Judaica)."
+      },
+      {
+        "period": "1904 onward",
+        "event": "Faitlovitch introduces Sabbath candles and post-biblical holidays, and discourages sacrifice and the seclusion of menstruating women.",
+        "halachic_impact": "First rabbinic-style changes (Jewish Virtual Library)."
+      },
+      {
+        "period": "1921",
+        "event": "R. Kook and R. Yaakov Meir call to save the 'Falashas'.",
+        "halachic_impact": "Treats them as Jews (Avi Harel)."
+      },
+      {
+        "period": "1954",
+        "event": "R. Herzog requires giyur lechumra (precautionary conversion): immersion plus hatafat dam brit (a symbolic drop of blood from the circumcision site).",
+        "halachic_impact": "Start of the precautionary-conversion requirement (Moav, Deot 86). Upheld by the Supreme Court for marriage in 1966 (Harel)."
+      },
+      {
+        "period": "7 Adar I 5733 (1973)",
+        "event": "R. Ovadia Yosef: 'הפלאשים הם יהודים שחייבים להצילם מטמיעה ומהתבוללות ולהחיש עלייתם ארצה… ולחנכם ברוח תורתנו' ('The Falashas are Jews whom we must save from assimilation, hasten their aliyah… and educate in the spirit of our Torah').",
+        "halachic_impact": "Recognition of Jewish status."
+      },
+      {
+        "period": "1974–1975",
+        "event": "R. Goren recognises them. An inter-ministerial team rules them Jews for the Law of Return (April 1975, per Harel), and the Ethiopian Jewry Heritage Center states that the State 'accepted Rabbi Ovadia's ruling and on July 25, 1975, included Ethiopian Jewry under the Law of Return.'",
+        "halachic_impact": "Aliyah eligibility. Conversion was still demanded for marriage."
+      },
+      {
+        "period": "5 November 1984",
+        "event": "Chief Rabbinate Council: 'בחזקת יהודים' (presumed Jews), but conversion by circumcision, immersion and acceptance of mitzvot 'due to concern of intermixture'.",
+        "halachic_impact": "Formal condition for marriage (Moav)."
+      },
+      {
+        "period": "Nov 1984 – Jan 1985",
+        "event": "Operation Moses: more than 6,000 people according to the Ethiopian Jewry Heritage Center, while the World Jewish Congress (2020) says it began on 18 November 1984 and brought 'approximately 8,000 Ethiopian Jews… aboard 30 flights'.",
+        "halachic_impact": "Mass arrival brings the conversion question to a head."
+      },
+      {
+        "period": "1985",
+        "event": "The Council drops hatafat dam but keeps immersion and a halachic undertaking. Goren and Yosef publicly disagree. A month-long protest at Hechal Shlomo begins 5 September. The Rabbinate then confines doubt to individual marriage cases.",
+        "halachic_impact": "Extra scrutiny of individual marriage files (JTA 1985; Moav)."
+      },
+      {
+        "period": "24–25 May 1991",
+        "event": "Operation Solomon: 14,325 Ethiopian Jews flown nonstop on 35 Israeli aircraft (IAF C-130s and El Al 747s) 'to safety in Israel in 36 hours' (Israel Hayom, 25 May 2021).",
+        "halachic_impact": "Almost the whole community now under Israeli religious jurisdiction."
+      },
+      {
+        "period": "1992–2003",
+        "event": "Tzaban Commission (September 1992): Falash Mura are not Jews under the Law of Return. In 2002 R. Amar, with R. Ovadia, rules them of Jewish descent and to be returned to Judaism.",
+        "halachic_impact": "Falash Mura conversion or return after arrival."
+      },
+      {
+        "period": "30 June 2008",
+        "event": "The Knesset passes the Sigd Law.",
+        "halachic_impact": "Sigd becomes a state holiday."
+      },
+      {
+        "period": "19 Feb 2018; Nov 2018",
+        "event": "The State recognises kessim as spiritual leaders, with 20 funded posts and no authority over weddings.",
+        "halachic_impact": "State recognition, not Rabbinate recognition."
+      },
+      {
+        "period": "Nov 2019 (published 19 Jan 2020)",
+        "event": "The Chief Rabbinate Council re-adopts R. Ovadia's ruling. R. Yehuda Deri: 'קהילת יהודי אתיופיה הם יהודים כשרים לכל דבר' ('The Ethiopian Jewish community are Jews, fully kosher in every respect').",
+        "halachic_impact": "Ends the formal basis for special checks. Does not apply to Falash Mura."
+      },
+      {
+        "period": "2020–2023",
+        "event": "Operation Tzur Israel: the first phase brought 2,000 people on 9 flights between December 2020 and 11 March 2021, per the Jewish Agency. A late-2021 government decision approved 3,000 new immigrants in total (Times of Israel, June 2022). eJewishPhilanthropy (July 2023) reports about 5,000 arrivals across two phases. Times of Israel estimates about 40,000 have come under the Law of Entry since 1992.",
+        "halachic_impact": "Conversion still required (Jerusalem Post)."
       }
     ]
   },
   "core_halachic_authorities": {
     "primary_codes": [
-      "Biblical tradition as preserved in Beta Israel practice",
-      "Rabbinic halacha as adopted in later integration",
-      "Local Ethiopian communal custom"
+      "Orit: the Ge'ez Octateuch (the Five Books of Moses plus Joshua, Judges and Ruth), handwritten on parchment as a bound book",
+      "Te'ezaza Sanbat ('Precepts of the Sabbath')",
+      "Liturgical books: Mäṣḥafä Sa'atat (Book of Hours); 'Sefer Cahen' (NACOEJ)",
+      "Other Ge'ez works: Enoch, Jubilees, Baruch, Ezra books, Gadla Avraham/Yitzhak/Ya'akov"
     ],
-    "major_textual_base": [
-      "Torah",
-      "Community liturgical tradition",
-      "Later rabbinic guidance in integration settings"
+    "major_rishonim_base": [
+      "Not part of traditional Beta Israel practice, which had no Talmud",
+      "For Israeli status rulings: Radbaz (מארץ כוש הם משבט דן בלי ספק, 'those from Kush are of the tribe of Dan without doubt'; tinok shenishba, a Jew raised without knowledge of the law) and Maharikash"
     ],
-    "later_authorities_and_guides": [
-      "Israeli rabbinic authorities",
-      "Beta Israel community leaders",
-      "Religious educators and dayanim working with Ethiopian communities"
+    "later_poskim": [
+      "R. Yitzhak HaLevi Herzog (1954)",
+      "R. Ovadia Yosef (7 Adar I 5733 / 1973)",
+      "R. Shlomo Goren (1974/75)",
+      "R. Avraham Shapira and R. Mordechai Eliyahu (1984–85)",
+      "R. Shlomo Amar (Falash Mura, 2002)",
+      "Chief Rabbinate Council (November 2019)",
+      "Community rabbis R. Yosef Hadane and R. Sharon Shalom"
     ],
-    "decision_principle": "Preserve inherited Beta Israel tradition where possible, while recognizing that many Ethiopian Jews now observe mainstream halacha under rabbinic guidance."
+    "decision_principle": "Traditional law is the written Torah as found in the Ge'ez Orit, interpreted through the kessim's and monks' oral tradition. NACOEJ: 'the Written Law and oral interpretations… passed down from generation to generation, of the community's own holy writings'. There was no Talmud. Authority was local: each village followed its kes and elders, under a regional liqa kahenat (chief priest). In Israel, the Chief Rabbinate applies Shulchan Aruch-based halacha to personal status, marriage, conversion and kashrut, and does not treat kessim as rabbis. Since 2018 the State recognises kessim as 'spiritual leaders' with limited, non-marital functions."
+  },
+  "runtime": {
+    "lens_key": "Ethiopian",
+    "practice_baseline": "Traditional practice rests on the Ge'ez Orit and kessim oral tradition, not the Talmud or Shulchan Aruch; in Israel personal status is governed by Chief Rabbinate application of Shulchan Aruch-based halacha.",
+    "parameters": [
+      {
+        "key": "sigd_date",
+        "value": "29 Cheshvan (50 days after Yom Kippur)",
+        "unit": "Hebrew date",
+        "source": "Ethiopian Jewry Heritage Center, 'The Sigd Holiday' (Sigd Law 2008)"
+      },
+      {
+        "key": "sigd_shabbat_shift",
+        "value": "If 29 Cheshvan is Shabbat, observe on Thursday 27 Cheshvan",
+        "unit": "date rule",
+        "source": "Ethiopian Jewry Heritage Center, 'The Sigd Holiday'"
+      },
+      {
+        "key": "shavuot_maerrar_date",
+        "value": "12th of the third month; 50 days counted from the day after the end of Pesach",
+        "unit": "Hebrew date",
+        "source": "NACOEJ, 'Holidays, Festivals and Fasts', p. 3"
+      },
+      {
+        "key": "yom_kippur_fast_min_age",
+        "value": "7",
+        "unit": "years (children over seven fast)",
+        "source": "NACOEJ, 'Holidays, Festivals and Fasts', p. 1"
+      },
+      {
+        "key": "minor_fast_window",
+        "value": "sunrise to sunset",
+        "unit": "fast hours",
+        "source": "NACOEJ, 'Holidays, Festivals and Fasts', p. 5"
+      },
+      {
+        "key": "menstrual_seclusion_days",
+        "value": "7",
+        "unit": "days (traditional, Ethiopia)",
+        "source": "NACOEJ, 'Religious Practices', p. 6"
+      },
+      {
+        "key": "postpartum_separation_days",
+        "value": "40 (son) / 80 (daughter)",
+        "unit": "days",
+        "source": "NACOEJ, 'Religious Practices', p. 6"
+      }
+    ]
   },
   "halacha_index": [
     {
       "index": "halacha.1",
-      "category": "Prayer",
-      "topic": "Nusach and liturgy",
-      "summary": "Ethiopian Jewish liturgy historically used distinct forms and scriptural patterns rather than a standard Sephardi or Ashkenazi rite.",
+      "category": "Authority and sources",
+      "topic": "The Orit and canon",
+      "summary": "The holiest text is the Orit: the Ge'ez Octateuch, handwritten on parchment as a bound book. The Prophets and Writings are secondary. Enoch, Jubilees, Baruch and the Ezra books are also sacred.",
       "common_practices": [
-        "Use community prayer tradition where preserved",
-        "Recite prayers in inherited forms and language style",
-        "Preserve communal readings and liturgical memory",
-        "Preserve inherited nusach and pronunciation in public prayer.",
-        "Coordinate weekday, Shabbat, and festival insertions with local rabbinic guidance.",
-        "Maintain community niggunim and piyyutim where accepted."
-      ]
+        "The Orit is kept in the mesgid's inner sanctum (kadesta kedusan) or in a kes's home",
+        "Since 2016 the National Library of Israel holds a digitised Orit, and a 2024 project with Tel Aviv University's 'Orit Guardians' programme is digitising more manuscripts"
+      ],
+      "variants": [],
+      "source": "NACOEJ, 'Religious Practices of Ethiopian Jews', pp. 2–3; Times of Israel, NLI digitization report (Oct. 2024)",
+      "source_url": "https://nacoej.org/media/attachments/2022/04/20/topic_3_teacher_resource_religious_practices.pdf",
+      "confidence": "well-attested",
+      "review_notes": "No firm line between canonical and non-canonical texts.",
+      "topic_he": "האורית והקנון",
+      "summary_he": "הטקסט הקדוש ביותר הוא האורית: שמונת הספרים הראשונים בגעז, כתובים ביד על קלף בצורת ספר כרוך. הנביאים והכתובים משניים. גם חנוך, היובלים, ברוך וספרי עזרא קדושים."
     },
     {
       "index": "halacha.2",
-      "category": "Prayer",
-      "topic": "Ge'ez and Hebrew usage",
-      "summary": "Liturgical language may include Ge'ez traditions alongside Hebrew use in modern settings.",
+      "category": "Authority and sources",
+      "topic": "Kessim, monks and elders",
+      "summary": "Kessim led prayer, offered sacrifices, ruled on purity, marriage and divorce, taught, mediated disputes, imposed sanctions and accepted converts. Monks (maloksewoch) trained and ordained them. Each region had a liqa kahenat (chief priest).",
       "common_practices": [
-        "Use Hebrew in synagogues and schools where adopted",
-        "Preserve older liturgical formulas where known",
-        "Teach language and text together",
-        "Preserve inherited nusach and pronunciation in public prayer.",
-        "Coordinate weekday, Shabbat, and festival insertions with local rabbinic guidance.",
-        "Maintain community niggunim and piyyutim where accepted."
-      ]
+        "Training from about age 7–8",
+        "Ordained only after marriage and with the community's approval",
+        "A kes marries only a virgin",
+        "Kessim wear white turbans and garments",
+        "Supported by first fruits and donations",
+        "Not hereditary descendants of Aaron (NACOEJ)"
+      ],
+      "variants": [
+        {
+          "subgroup": "Areas without monks (late 19th century onward)",
+          "practice": "Kessim took over ordination",
+          "source": "Ethiopian Jewry Heritage Center, 'About Ethiopian Jewry'"
+        }
+      ],
+      "source": "Ethiopian Jewry Heritage Center, 'About Ethiopian Jewry'; NACOEJ, 'Religious Practices', p. 1",
+      "source_url": "https://ethiopianjhc.org.il/en/ethiopian-jewry/about-ethiopian-jewry/",
+      "confidence": "well-attested",
+      "review_notes": "Encyclopaedia Judaica (Kaplan): no centralised institutions; 'Chaque commune est autonomie et indépendante' ('each commune is autonomous and independent', Halévy).",
+      "references": [
+        {
+          "title": "Operation Solomon: The Daring Rescue of the Ethiopian Jews - PDF Free Download",
+          "url": "https://epdf.pub/operation-solomon-the-daring-rescue-of-the-ethiopian-jews.html"
+        }
+      ],
+      "topic_he": "קייסים, נזירים וזקנים",
+      "summary_he": "הקייסים הובילו את התפילה, הקריבו קורבנות, פסקו בענייני טהרה, נישואין וגירושין, לימדו, גישרו בסכסוכים, הטילו סנקציות וקיבלו גרים. נזירים (מלוקסוצ'ים) הכשירו והסמיכו אותם. בכל אזור היה ליקה כהנת (כהן גדול)."
     },
     {
       "index": "halacha.3",
-      "category": "Prayer",
-      "topic": "Torah and scriptural focus",
-      "summary": "Scripture and biblical tradition are central to Ethiopian Jewish religious life.",
+      "category": "Authority and sources",
+      "topic": "Israeli recognition of kessim",
+      "summary": "The Chief Rabbinate does not recognise kessim as rabbis because they were not trained in the Oral Law. On 19 February 2018 the Ministerial Committee chaired by PM Netanyahu recognised them as 'spiritual leaders'. November 2018 recommendations allow kessim to conduct holiday ceremonies, the pre-burial part of funerals, and mourning and purification rites, but not weddings. Twenty funded positions were created.",
       "common_practices": [
-        "Read and study Torah regularly",
-        "Preserve scriptural memory and community teaching",
-        "Maintain strong public reading traditions",
-        "Preserve inherited nusach and pronunciation in public prayer.",
-        "Coordinate weekday, Shabbat, and festival insertions with local rabbinic guidance.",
-        "Maintain community niggunim and piyyutim where accepted."
-      ]
+        "Appointment panel: the local religious council, the local kes and a Ministry-appointed kes",
+        "Ethiopian-origin rabbis are to sit on religious councils"
+      ],
+      "variants": [],
+      "source": "Al-Monitor, D. Zaken (2 Mar. 2018); Haaretz (8 Nov. 2018); JTA archive on the kessim protests",
+      "source_url": "https://www.al-monitor.com/originals/2018/03/israel-ethiopia-benjamin-netanyahu-kessim-chief-rabbinate.html",
+      "confidence": "well-attested",
+      "review_notes": "Earlier, Rabbinate-ordained Ethiopian rabbis could serve only Ethiopian communities. How far the 2018 framework has been implemented by 2026 is unverified.",
+      "references": [
+        {
+          "title": "Israeli recognition of Ethiopian religious leaders just a start - AL-MONITOR: The Middle Eastʼs leading independent news source since 2012",
+          "url": "https://www.al-monitor.com/originals/2018/03/israel-ethiopia-benjamin-netanyahu-kessim-chief-rabbinate.html"
+        },
+        {
+          "title": "Government approves status of Ethiopian 'kessim'",
+          "url": "https://www.israelnationalnews.com/news/242148"
+        },
+        {
+          "title": "Behind the Headlines: Controversy over Role of Kessim is Latest to Galvanize Ethiopians - Jewish Telegraphic Agency",
+          "url": "https://www.jta.org/archive/behind-the-headlines-controversy-over-role-of-kessim-is-latest-to-galvanize-ethiopians"
+        },
+        {
+          "title": "Govt. approves recognition of Ethiopian religious leaders",
+          "url": "https://www.jpost.com/israel-news/govt-approves-recognition-of-ethiopian-religious-leaders-543034"
+        },
+        {
+          "title": "Ethiopian Jewish leaders make gains in Israel - AL-MONITOR: The Middle Eastʼs leading independent news source since 2012",
+          "url": "https://www.al-monitor.com/originals/2018/11/israel-ethiopia-kessim-chief-rabbinate-ultra-orthodox.html"
+        },
+        {
+          "title": "At Last, Israel Recognizes Ethiopian Spiritual Leaders - Israel News",
+          "url": "https://haaretz.com/israel-news/at-last-israel-recognizes-ethiopian-spiritual-leaders-1.6634234"
+        }
+      ],
+      "topic_he": "ההכרה הישראלית בקייסים",
+      "summary_he": "הרבנות הראשית אינה מכירה בקייסים כרבנים, מפני שלא הוכשרו בתורה שבעל פה. ב-19 בפברואר 2018 ועדת השרים בראשות ראש הממשלה נתניהו הכירה בהם כ\"מנהיגים רוחניים\". המלצות נובמבר 2018 מתירות לקייסים לערוך טקסי חג, את החלק שלפני הקבורה בלוויה, וטקסי אבל וטהרה, אך לא חתונות. נוצרו עשרים תקנים ממומנים."
     },
     {
       "index": "halacha.4",
-      "category": "Shabbat",
-      "topic": "Shabbat observance",
-      "summary": "Shabbat is observed as a core covenantal practice, with details varying by community and later integration.",
-      "common_practices": [
-        "Cease labor on Shabbat according to accepted practice",
-        "Use community guidance for candle lighting and prayer",
-        "Preserve traditional household observance",
-        "Prepare practical needs before candle lighting to avoid melacha.",
-        "Use approved warming and lighting setups established before Shabbat.",
-        "Follow local zmanim for candle lighting, shekia, and havdalah."
-      ]
+      "category": "Status and Rabbinate",
+      "topic": "R. Ovadia Yosef 1973 ruling",
+      "summary": "Ruling of 7 Adar I 5733: the 'Falashas' are Jews whom Israel must save from assimilation, bring on aliyah and educate in the Torah. It relies on the Radbaz, Maharikash, R. Hildesheimer, R. Kook and R. Herzog. The April 1975 inter-ministerial finding under the Law of Return rests on it, and the Ethiopian Jewry Heritage Center dates the State's formal inclusion of Ethiopian Jewry under the Law of Return to 25 July 1975.",
+      "common_practices": [],
+      "variants": [],
+      "source": "Avi Harel (2015), quoting the ruling; Ethiopian Jewry Heritage Center",
+      "source_url": "https://www.xn--7dbl2a.com/2015/11/23/%D7%90%D7%91%D7%99-%D7%94%D7%A8%D7%90%D7%9C-%D7%94%D7%95%D7%99%D7%9B%D7%95%D7%97-%D7%A2%D7%9C/",
+      "confidence": "well-attested",
+      "review_notes": "The Yabia Omer text was not opened. Sources disagree on whether he required symbolic conversion at first (see disputes).",
+      "references": [
+        {
+          "title": "Beta Israel | Encyclopedia.com",
+          "url": "https://www.encyclopedia.com/religion/encyclopedias-almanacs-transcripts-and-maps/beta-israel"
+        },
+        {
+          "title": "Beta Israel",
+          "url": "https://en.wikipedia.org/wiki/Beta_Israel"
+        }
+      ],
+      "topic_he": "פסק רבי עובדיה יוסף משנת 1973",
+      "summary_he": "פסק מז' באדר א' תשל\"ג: ה\"פלשים\" הם יהודים שישראל חייבת להצילם מהתבוללות, להעלותם ולחנכם בתורה. הוא נשען על הרדב\"ז, המהרי\"קש, רבי הילדסהיימר, הרב קוק והרב הרצוג. הקביעה הבין-משרדית מאפריל 1975 לפי חוק השבות נשענת עליו, ומרכז המורשת של יהדות אתיופיה מתארך את הכללתה הרשמית של יהדות אתיופיה בחוק השבות ל-25 ביולי 1975."
     },
     {
       "index": "halacha.5",
-      "category": "Shabbat",
-      "topic": "Cooking and food preparation",
-      "summary": "Cooking restrictions are observed with strong attention to preparing food before Shabbat.",
-      "common_practices": [
-        "Prepare food before Shabbat",
-        "Avoid prohibited cooking during Shabbat",
-        "Follow local rabbinic guidance in modern settings",
-        "Prepare practical needs before candle lighting to avoid melacha.",
-        "Use approved warming and lighting setups established before Shabbat.",
-        "Follow local zmanim for candle lighting, shekia, and havdalah."
-      ]
+      "category": "Status and Rabbinate",
+      "topic": "R. Shlomo Goren's recognition",
+      "summary": "R. Goren initially held back, then recognised them: 'You are our brothers, you are our blood and our flesh. You are true Jews.' In 1985 he said neither immersion nor symbolic circumcision was required. Sources date his first recognition to 1974 or 1975, and he and R. Ovadia Yosef publicly disagreed in 1985.",
+      "common_practices": [],
+      "variants": [
+        {
+          "subgroup": "R. Shlomo Goren",
+          "practice": "Recognised them as Jews. In 1985 he said neither immersion nor symbolic circumcision was required.",
+          "source": "Jewish Virtual Library; JTA, 18 Jul. 1985"
+        },
+        {
+          "subgroup": "Chief Rabbinate Council (5 Nov. 1984; revised early 1985)",
+          "practice": "Presumed them Jews but required immersion and an undertaking to observe halacha, out of concern for intermixture.",
+          "source": "Ariel Moav, Deot 86 (2018); JTA, 5 Mar. 1985"
+        }
+      ],
+      "source": "Jewish Virtual Library; JTA, 18 Jul. 1985",
+      "source_url": "https://www.jta.org/archive/chief-rabbis-insist-that-ethiopian-jews-must-undergo-ritual-immersion",
+      "confidence": "disputed",
+      "review_notes": "Dated 1974 or 1975 depending on the source. Primary letter not found.",
+      "references": [
+        {
+          "title": "Who are the Ethiopian Jews?",
+          "url": "https://jewishvirtuallibrary.org/who-are-the-ethiopian-jews"
+        },
+        {
+          "title": "Ethiopian Jews in Israel",
+          "url": "https://en.wikipedia.org/wiki/Ethiopian_Jews_in_Israel"
+        },
+        {
+          "title": "Shedding image as bystanders to history, Ethiopian Jews reclaim their exodus saga",
+          "url": "https://www.timesofisrael.com/shedding-image-as-bystanders-to-history-ethiopian-jews-reclaim-their-exodus-saga/"
+        }
+      ],
+      "topic_he": "הכרתו של הרב שלמה גורן",
+      "summary_he": "הרב גורן הסס בתחילה ואחר כך הכיר בהם: \"אתם אחינו, אתם דמנו ובשרנו. אתם יהודים אמיתיים\". ב-1985 אמר שאין צורך לא בטבילה ולא בהטפת דם ברית. המקורות מתארכים את הכרתו הראשונה ל-1974 או ל-1975, והוא והרב עובדיה יוסף נחלקו בפומבי ב-1985."
     },
     {
       "index": "halacha.6",
-      "category": "Shabbat",
-      "topic": "Community gathering",
-      "summary": "Shabbat is often marked by communal prayer and shared observance.",
+      "category": "Status and Rabbinate",
+      "topic": "Giyur lechumra, 1954–1985",
+      "summary": "R. Herzog (1954) required immersion and hatafat dam. The Council (5 November 1984) required circumcision, immersion and acceptance of mitzvot. In early 1985 the Council under R. Shapira and R. Eliyahu dropped hatafat dam (the men were already circumcised) but kept immersion and an undertaking to observe halacha.",
       "common_practices": [
-        "Gather for prayer and reading",
-        "Preserve community meal customs",
-        "Use inherited songs and teachings where transmitted",
-        "Prepare practical needs before candle lighting to avoid melacha.",
-        "Use approved warming and lighting setups established before Shabbat.",
-        "Follow local zmanim for candle lighting, shekia, and havdalah."
-      ]
+        "Immersion before three rabbis, without a blessing (Moav)",
+        "Marriage certificates refused to those who had not immersed"
+      ],
+      "variants": [
+        {
+          "subgroup": "Post-1985 compromise",
+          "practice": "Reportedly, immersion before marriage only in cases of doubt",
+          "source": "Kulanu, 'Return of a Lost Tribe' (an advocacy organization)"
+        }
+      ],
+      "source": "Ariel Moav, Deot 86 (2018); JTA, 5 Mar. and 18 Jul. 1985",
+      "source_url": "https://toravoda.org.il/%D7%9B%D7%AA%D7%91%D7%94/%D7%99%D7%94%D7%95%D7%93%D7%99%D7%9D-%D7%99%D7%95%D7%A6%D7%90%D7%99-%D7%90%D7%AA%D7%99%D7%95%D7%A4%D7%99%D7%94-%D7%9E%D7%95%D7%9C-%D7%94%D7%9E%D7%9E%D7%A1%D7%93-%D7%94%D7%93%D7%AA%D7%99-%D7%9B%D7%A8/",
+      "confidence": "well-attested",
+      "review_notes": "Hechal Shlomo protest from 5 September 1985 (Ono Academic College). See Kaplan, Social Science Information 27:3 (1988).",
+      "references": [
+        {
+          "title": "יהודים יוצאי אתיופיה מול הממסד הדתי: כרוניקה של אי־הכרה / אריאל מואב - נאמני תורה ועבודה",
+          "url": "https://toravoda.org.il/%D7%9B%D7%AA%D7%91%D7%94/%D7%99%D7%94%D7%95%D7%93%D7%99%D7%9D-%D7%99%D7%95%D7%A6%D7%90%D7%99-%D7%90%D7%AA%D7%99%D7%95%D7%A4%D7%99%D7%94-%D7%9E%D7%95%D7%9C-%D7%94%D7%9E%D7%9E%D7%A1%D7%93-%D7%94%D7%93%D7%AA%D7%99-%D7%9B%D7%A8/"
+        },
+        {
+          "title": "Unit 8: PROTESTS OF THE BETA ISRAEL - Ono Academic College",
+          "url": "https://www.ono.ac.il/eng/unit-8-protests-of-the-beta-israel/"
+        }
+      ],
+      "topic_he": "גיור לחומרה, 1954–1985",
+      "summary_he": "הרב הרצוג (1954) דרש טבילה והטפת דם. מועצת הרבנות (5 בנובמבר 1984) דרשה מילה, טבילה וקבלת מצוות. בתחילת 1985 המועצה בראשות הרב שפירא והרב אליהו ביטלה את הטפת הדם (הגברים כבר היו מולים) אך השאירה את הטבילה ואת ההתחייבות לשמור הלכה."
     },
     {
       "index": "halacha.7",
-      "category": "Kashrut",
-      "topic": "Dietary separation",
-      "summary": "Ethiopian Jewish food practice historically included its own methods of purity and separation.",
-      "common_practices": [
-        "Maintain food discipline according to community norms",
-        "Follow rabbinic guidance in integrated settings",
-        "Preserve inherited food rules where still known",
-        "Keep clear separation of meat and dairy utensils, storage, and prep zones.",
-        "Verify supervision standards according to trusted local rabbinic authority.",
-        "Apply inherited waiting-time custom for meat and dairy under halachic guidance."
-      ]
+      "category": "Status and Rabbinate",
+      "topic": "2019/2020 Council re-adoption",
+      "summary": "In November 2019 the Chief Rabbinate Council adopted R. Ovadia's ruling. Kan reported it on 19 January 2020. R. Yehuda Deri: they are fully kosher Jews, to be checked only as all communities are. Excludes the Falash Mura.",
+      "common_practices": [],
+      "variants": [],
+      "source": "JTA, M. Oster (21 Jan. 2020); Haaretz (Hebrew), 19 Jan. 2020",
+      "source_url": "https://www.jta.org/quick-reads/israels-chief-rabbinate-officially-recognizes-ethiopian-beta-israel-community-as-jewish",
+      "confidence": "well-attested",
+      "review_notes": "R. Sharon Shalom called it 'too little too late' and said no official document had been seen.",
+      "references": [
+        {
+          "title": "Israel's Chief Rabbinate officially recognizes Ethiopian Beta Israel community as Jewish - Jewish Telegraphic Agency",
+          "url": "https://www.jta.org/quick-reads/israels-chief-rabbinate-officially-recognizes-ethiopian-beta-israel-community-as-jewish"
+        },
+        {
+          "title": "לאחר שנים של אפליה ממוסדת, הרבנות הראשית הכירה ביהדותם של ביתא ישראל - אתר החדשות דבר",
+          "url": "https://www.davar1.co.il/206968/"
+        },
+        {
+          "title": "הרבנות הראשית אישרה מחדש את ההחלטה להכיר ביהדותם של יוצאי אתיופיה - חינוך וחברה",
+          "url": "https://www.haaretz.co.il/news/education/2020-01-19/ty-article/0000017f-db2a-db5a-a57f-db6a940e0000"
+        }
+      ],
+      "topic_he": "אימוץ מחדש בידי המועצה, 2019/2020",
+      "summary_he": "בנובמבר 2019 אימצה מועצת הרבנות הראשית את פסק הרב עובדיה. תאגיד \"כאן\" דיווח על כך ב-19 בינואר 2020. הרב יהודה דרעי: הם יהודים כשרים לגמרי, ויש לבדוק אותם רק כפי שבודקים את כל העדות. הדבר אינו כולל את הפלשמורה."
     },
     {
       "index": "halacha.8",
-      "category": "Kashrut",
-      "topic": "Meat and slaughter",
-      "summary": "Meat preparation and slaughter practices were governed by community tradition and later rabbinic integration.",
+      "category": "Status and Rabbinate",
+      "topic": "Marriage registration",
+      "summary": "Repeated extra scrutiny, notably in Petah Tikva. The Rabbinate arranged for 14 Ethiopian-community rabbis to register and perform marriages. An October 2013 law allows couples to register anywhere in the country.",
       "common_practices": [
-        "Use kosher supervision where available",
-        "Follow local standards for slaughter and inspection",
-        "Preserve traditional food practices where compatible with halacha",
-        "Keep clear separation of meat and dairy utensils, storage, and prep zones.",
-        "Verify supervision standards according to trusted local rabbinic authority.",
-        "Apply inherited waiting-time custom for meat and dairy under halachic guidance."
-      ]
+        "Tzohar asks Ethiopian immigrants for 'confirmation of your Jewish identity from an authorised rabbi from your community'",
+        "Kessim cannot officiate legally recognised weddings"
+      ],
+      "variants": [],
+      "source": "Times of Israel (Petah Tikva report); Tzohar 'Marriage Registration' guide",
+      "source_url": "https://www.timesofisrael.com/petah-tikva-chief-rabbi-reportedly-refuses-ethiopian-marriages/",
+      "confidence": "well-attested",
+      "review_notes": "R. Yosef Hadane was forced to retire in 2016, reportedly over his criticism. Current procedure is unverified.",
+      "references": [
+        {
+          "title": "Ethiopian-Israeli chief rabbi said fired for anti-racism stance",
+          "url": "https://www.timesofisrael.com/ethiopian-israeli-chief-rabbi-said-fired-over-anti-racism-stance/"
+        },
+        {
+          "title": "Controversy rages after Chief Rabbi of Israeli-Ethiopian community pushed aside",
+          "url": "https://www.jpost.com/Israel-News/Controversy-rages-after-Chief-Rabbi-of-Israeli-Ethiopian-community-pushed-aside-457296"
+        },
+        {
+          "title": "Yosef Hadane",
+          "url": "https://en.wikipedia.org/wiki/Yosef_Hadane"
+        }
+      ],
+      "topic_he": "רישום נישואין",
+      "summary_he": "בדיקה חוזרת ומוגברת, בעיקר בפתח תקווה. הרבנות סידרה ש-14 רבנים מהעדה האתיופית ירשמו וייערכו נישואין. חוק מאוקטובר 2013 מאפשר לזוגות להירשם בכל מקום בארץ."
     },
     {
       "index": "halacha.9",
-      "category": "Kashrut",
-      "topic": "Food purity and utensils",
-      "summary": "Utensil and food separation practices reflect both traditional Ethiopian custom and modern rabbinic guidance.",
+      "category": "Status and Rabbinate",
+      "topic": "Falash Mura status",
+      "summary": "The Tzaban Commission (1992) found them not Jews under the Law of Return. R. Amar (2002), seconded by R. Ovadia, ruled those of maternal Jewish descent must be brought and returned to Judaism. They enter only by government decision, conditional on Orthodox conversion. Some within the Beta Israel community deny maternal Jewish descent for recent applicants.",
       "common_practices": [
-        "Use separate utensils where required",
-        "Follow community guidance for cooking vessels",
-        "Adapt home practice to halachic supervision in diaspora",
-        "Keep clear separation of meat and dairy utensils, storage, and prep zones.",
-        "Verify supervision standards according to trusted local rabbinic authority.",
-        "Apply inherited waiting-time custom for meat and dairy under halachic guidance."
-      ]
+        "Two years at a Beersheba absorption centre with conversion",
+        "Pre-aliyah study, tallit and tefillin in Gondar under R. Menachem Waldman",
+        "At least 11 government resolutions since 1992"
+      ],
+      "variants": [
+        {
+          "subgroup": "Schechter Institute (2007)",
+          "practice": "Treats them as apostates (mumarim) returning to Judaism",
+          "source": "Schechter, Responsa in a Moment 1:5"
+        },
+        {
+          "subgroup": "Tzaban Commission (1992)",
+          "practice": "Not Jews under the Law of Return.",
+          "source": "Jerusalem Post, 'A painful 30-year saga'"
+        },
+        {
+          "subgroup": "R. Amar (2002), seconded by R. Ovadia Yosef",
+          "practice": "Of Jewish descent through the mother: to be brought to Israel and returned to Judaism through Orthodox conversion.",
+          "source": "Ynet on R. Amar"
+        }
+      ],
+      "source": "Schechter Institutes (2007); Jerusalem Post, 'A painful 30-year saga'; Ynet on R. Amar",
+      "source_url": "https://schechter.edu/how-can-apostates-such-as-the-falash-mura-return-to-judaism-responsa-in-a-moment-volume-1-issue-no-5-january-2007/",
+      "confidence": "disputed",
+      "review_notes": "Some within Beta Israel deny maternal descent for recent applicants. No 2025–26 decision verified.",
+      "references": [
+        {
+          "title": "How Can Apostates Such as the Falash Mura Return to Judaism? - The Schechter Institutes",
+          "url": "https://schechter.edu/how-can-apostates-such-as-the-falash-mura-return-to-judaism-responsa-in-a-moment-volume-1-issue-no-5-january-2007/"
+        },
+        {
+          "title": "Chief rabbi: Bring all of Falash Mura to Israel",
+          "url": "https://www.ynetnews.com/articles/0,7340,L-3495242,00.html"
+        },
+        {
+          "title": "Falash Mura",
+          "url": "https://en.wikipedia.org/wiki/Falash_Mura"
+        },
+        {
+          "title": "Top Ethiopian rabbi: Gov’t must make final decision on immigration",
+          "url": "https://www.pressreader.com/israel/jerusalem-post/20190204/281599536738644"
+        }
+      ],
+      "topic_he": "מעמד הפלשמורה",
+      "summary_he": "ועדת צבן (1992) קבעה שהם אינם יהודים לפי חוק השבות. הרב עמאר (2002), בהסכמת הרב עובדיה, פסק שמי שיש לו מוצא יהודי מצד האם יש להביאו ולהחזירו ליהדות. הם נכנסים רק בהחלטת ממשלה, בתנאי גיור אורתודוקסי. יש בתוך קהילת בית ישראל מי שמכחישים מוצא יהודי מצד האם אצל המבקשים האחרונים."
     },
     {
       "index": "halacha.10",
-      "category": "Pesach",
-      "topic": "Passover observance",
-      "summary": "Pesach is a major festival and may preserve unique Ethiopian scriptural and communal features.",
+      "category": "Prayer",
+      "topic": "Nusach and order of service",
+      "summary": "Prayer in the mesgid is in Ge'ez. The congregation answers 'Amen' and sings known passages. Three weekday services: dawn, midday and dusk. Shabbat and festivals add services attended by the whole community.",
       "common_practices": [
-        "Remove chametz before Pesach",
-        "Use community customs for seder or pre-seder observance",
-        "Follow rabbinic guidance for modern halachic practice",
-        "Review chametz cleaning and kashering checklists before the festival.",
-        "Follow community custom on kitniyot and festival kitchen workflow.",
-        "Use community haggadah flow and family minhagim within halachic structure."
-      ]
+        "Prayer faces Jerusalem",
+        "Prostration, dance, drums and cymbals",
+        "Shoes removed",
+        "Only priests cover their heads",
+        "Women sit separately",
+        "Blessings open 'Itbarek Egzi'abeher Amlak Israel… Amlak of all flesh and all spirit'"
+      ],
+      "variants": [
+        {
+          "subgroup": "Monastic Office",
+          "practice": "Seven times daily until the last monk in the Ambober area died in the late 1960s",
+          "source": "Shelemay (1986)"
+        }
+      ],
+      "source": "NACOEJ, 'Religious Practices', p. 3; Shelemay, 'Jewish Liturgical Forms in the Falasha Liturgy?' (1986)",
+      "source_url": "https://nacoej.org/media/attachments/2022/04/20/topic_3_teacher_resource_religious_practices.pdf",
+      "confidence": "well-attested",
+      "review_notes": "The liturgy includes Agaw passages (Shelemay).",
+      "topic_he": "נוסח וסדר התפילה",
+      "summary_he": "התפילה במסגיד היא בגעז. הקהל עונה \"אמן\" ושר קטעים מוכרים. שלוש תפילות בימי חול: עלות השחר, צהריים ובין הערביים. בשבת ובחגים נוספות תפילות שכל הקהילה משתתפת בהן."
     },
     {
       "index": "halacha.11",
-      "category": "Pesach",
-      "topic": "Matzah and festival foods",
-      "summary": "Pesach foods are prepared carefully and may reflect local Ethiopian taste and tradition.",
+      "category": "Shabbat",
+      "topic": "Preparation and fire prohibition",
+      "summary": "Preparation begins on Thursday and work stops at midday Friday. Women cook only after immersing. Stoves are put out before sunset and the embers doused. Food is eaten cold unless it was buried while warm. A light lit only for illumination may burn on Friday night until it goes out.",
       "common_practices": [
-        "Use kosher matzah",
-        "Prepare foods according to local custom and rabbinic guidance",
-        "Observe festival restrictions carefully",
-        "Review chametz cleaning and kashering checklists before the festival.",
-        "Follow community custom on kitniyot and festival kitchen workflow.",
-        "Use community haggadah flow and family minhagim within halachic structure."
-      ]
+        "A Shabbat-only candle",
+        "A robe with no belt, so no knots are tied",
+        "No leaving the village",
+        "Self-defence permitted"
+      ],
+      "variants": [
+        {
+          "subgroup": "Faitlovitch-influenced",
+          "practice": "Rabbinic candle lighting introduced",
+          "source": "Jewish Virtual Library"
+        }
+      ],
+      "source": "NACOEJ, 'Religious Practices', pp. 2, 4–5 (with a Te'ezaza Sanbat translation)",
+      "source_url": "https://nacoej.org/media/attachments/2022/04/20/topic_3_teacher_resource_religious_practices.pdf",
+      "confidence": "needs-review",
+      "review_notes": "Single source. No Kabbalat Shabbat or Havdalah rite is documented.",
+      "topic_he": "הכנה ואיסור אש",
+      "summary_he": "ההכנה מתחילה ביום חמישי והעבודה פוסקת בצהרי יום שישי. נשים מבשלות רק אחרי טבילה. מכבים את התנורים לפני השקיעה ומכבים את הגחלים. אוכלים אוכל קר, אלא אם נקבר כשהוא חם. אור שהודלק רק לצורך תאורה רשאי לדלוק בליל שבת עד שיכבה."
     },
     {
       "index": "halacha.12",
-      "category": "Lifecycle",
-      "topic": "Brit milah",
-      "summary": "Brit milah is performed as a covenantal act and may be accompanied by community-specific celebration.",
+      "category": "Shabbat",
+      "topic": "Maswaet loaf and Shabbat meal",
+      "summary": "After morning prayers each woman's maswaet ('gift offering') or baraketeh ('blessing') loaf is brought to the mesgid. The kahenat bless it and cut it in a special way, and it is eaten with a beer-like drink at a communal feast.",
       "common_practices": [
-        "Use a qualified mohel or accepted halachic procedure",
-        "Preserve naming customs where known",
-        "Celebrate with community participation",
-        "Keep core lifecycle ceremonies aligned with halachic requirements.",
-        "Document family minhagim for naming, honors, and celebration order.",
-        "Consult community rabbi for local protocol differences."
-      ]
+        "Greeting 'Sanbat salam'",
+        "Second meal later in the day",
+        "Orit read in the local language, then a sermon"
+      ],
+      "variants": [],
+      "source": "NACOEJ, 'Religious Practices', p. 4",
+      "source_url": "https://nacoej.org/media/attachments/2022/04/20/topic_3_teacher_resource_religious_practices.pdf",
+      "confidence": "needs-review",
+      "review_notes": "No separate Kiddush over wine is documented.",
+      "topic_he": "לחם המסואט וסעודת השבת",
+      "summary_he": "אחרי תפילת הבוקר מביאה כל אישה את לחם המסואט שלה (\"מנחה\") או הברכתה (\"ברכה\") למסגיד. הכהנת מברכות עליו וחותכות אותו בדרך מיוחדת, והוא נאכל עם משקה דמוי בירה בסעודה משותפת."
     },
     {
       "index": "halacha.13",
-      "category": "Lifecycle",
-      "topic": "Marriage and family formation",
-      "summary": "Marriage customs were traditionally community-centered and are now often aligned with broader halacha.",
-      "common_practices": [
-        "Use a valid ketubah in modern practice",
-        "Observe marriage according to halachic standards",
-        "Preserve family and community customs where compatible",
-        "Keep core lifecycle ceremonies aligned with halachic requirements.",
-        "Document family minhagim for naming, honors, and celebration order.",
-        "Consult community rabbi for local protocol differences."
-      ]
+      "category": "Shabbat",
+      "topic": "Seventh Sabbath (Legata Sanbat)",
+      "summary": "Sabbaths run in cycles of seven, each with its own sunset prayer. The seventh is the holiest, with a special sanctification service.",
+      "common_practices": [],
+      "variants": [],
+      "source": "NACOEJ, 'Religious Practices', p. 5",
+      "source_url": "https://nacoej.org/media/attachments/2022/04/20/topic_3_teacher_resource_religious_practices.pdf",
+      "confidence": "needs-review",
+      "review_notes": "Single source.",
+      "topic_he": "השבת השביעית (לגטה סנבת)",
+      "summary_he": "השבתות מתנהלות במחזורי שבע, ולכל אחת תפילת שקיעה משלה. השביעית היא הקדושה ביותר, עם תפילת קידוש מיוחדת."
     },
     {
       "index": "halacha.14",
-      "category": "Family law",
-      "topic": "Family purity",
-      "summary": "Family purity norms are observed according to the level of halachic integration and local guidance.",
-      "common_practices": [
-        "Observe separation laws in mainstream halachic settings",
-        "Use mikveh where required",
-        "Receive instruction from knowledgeable authorities",
-        "Use a consistent halachic calendar and consultation process for sensitive questions.",
-        "Coordinate household observance with qualified rabbinic guidance.",
-        "Preserve family minhag where compatible with accepted psak."
-      ]
+      "category": "Festivals",
+      "topic": "Rosh Hashana (Berhan Saraka / Ba'ala Matqe)",
+      "summary": "1st of the seventh month, one day. There is no shofar (the kahenat say the method was forgotten), so drums and cymbals are beaten. Prayers mention the shofar and the Binding of Isaac. Food preparation is the only work allowed.",
+      "common_practices": [],
+      "variants": [],
+      "source": "NACOEJ, 'Holidays, Festivals and Fasts', p. 1",
+      "source_url": "https://nacoej.org/media/attachments/2022/04/20/topic_3_teacher_resource_holiday.pdf",
+      "confidence": "needs-review",
+      "review_notes": "No simanim are documented.",
+      "references": [
+        {
+          "title": "download text",
+          "url": "https://digital.bentley.umich.edu/djnews/djn.2005.09.29.001/22/download_text"
+        }
+      ],
+      "topic_he": "ראש השנה (ברהן סרקה / בעלה מטקה)",
+      "summary_he": "א' בחודש השביעי, יום אחד. אין שופר (הכהנת אומרים שהדרך נשכחה), ולכן מכים בתופים ובצלצלים. התפילות מזכירות את השופר ואת עקדת יצחק. הכנת אוכל היא העבודה היחידה המותרת."
     },
     {
       "index": "halacha.15",
-      "category": "Mourning",
-      "topic": "Avelut",
-      "summary": "Mourning follows halachic norms in modern communities, with possible retention of older communal forms.",
+      "category": "Festivals",
+      "topic": "Yom Kippur (Astasreyo)",
+      "summary": "10 Tishrei, evening to evening. Everyone over seven fasts. People ask forgiveness and pray through the night. 'Afflict your souls' is read as physical affliction: staying awake and jumping rhythmically. There is a memorial service.",
       "common_practices": [
-        "Observe shiva and memorial customs",
-        "Use community prayer and remembrance practices",
-        "Follow local guidance on mourning procedures",
-        "Observe shiva, shloshim, and yahrzeit in the accepted local format.",
-        "Coordinate memorial prayer customs with synagogue practice.",
-        "Preserve condolence and visitation etiquette used by the community."
-      ]
+        "Seeds are scattered for birds at the end of the day",
+        "The fast is broken at the mesgid with drinks and pastries blessed by the kes"
+      ],
+      "variants": [
+        {
+          "subgroup": "Some (Yom Kippur on Shabbat)",
+          "practice": "Bake the maswaet and taste a little or give it to children",
+          "source": "NACOEJ, p. 2"
+        },
+        {
+          "subgroup": "Others",
+          "practice": "Do not bake at all",
+          "source": "NACOEJ, p. 2"
+        },
+        {
+          "subgroup": "Others",
+          "practice": "Bake it and eat it after the fast",
+          "source": "NACOEJ, p. 2"
+        }
+      ],
+      "source": "NACOEJ, 'Holidays, Festivals and Fasts', pp. 1–2",
+      "source_url": "https://nacoej.org/media/attachments/2022/04/20/topic_3_teacher_resource_holiday.pdf",
+      "confidence": "needs-review",
+      "review_notes": "Single source for detail.",
+      "topic_he": "יום כיפור (אסתסריו)",
+      "summary_he": "י' בתשרי, מערב עד ערב. כל מי שמעל גיל שבע צם. מבקשים סליחה ומתפללים כל הלילה. \"ועניתם את נפשותיכם\" נקרא כענוי גופני: ערות וקפיצות בקצב. יש תפילת זיכרון."
     },
     {
       "index": "halacha.16",
-      "category": "Calendar",
-      "topic": "High Holidays",
-      "summary": "Rosh Hashanah and Yom Kippur are observed according to mainstream halacha in most current communities, with traces of older practice in some settings.",
-      "common_practices": [
-        "Use accepted machzor or local prayer book",
-        "Observe fasting and prayer carefully",
-        "Preserve communal memory where available",
-        "Anchor observance times to local halachic zmanim.",
-        "Coordinate fasts, selichot, and festival timing with community schedule.",
-        "Use a single trusted local calendar authority for consistency."
-      ]
+      "category": "Festivals",
+      "topic": "Sukkot (Ba'ala Masallat)",
+      "summary": "From 15 Tishrei. A booth is built by the house or mesgid; otherwise a dwelling made entirely of trees counts. There are no Four Species. New crops are brought for the kes's blessing. Creative labour is forbidden, but cooking and travel are allowed. Sources differ on how long it lasts.",
+      "common_practices": [],
+      "variants": [
+        {
+          "subgroup": "NACOEJ",
+          "practice": "Eight days.",
+          "source": "NACOEJ, 'Holidays, Festivals and Fasts', p. 2"
+        },
+        {
+          "subgroup": "Other published summaries",
+          "practice": "15 to 21 Tishrei."
+        }
+      ],
+      "source": "NACOEJ, 'Holidays, Festivals and Fasts', p. 2",
+      "source_url": "https://nacoej.org/media/attachments/2022/04/20/topic_3_teacher_resource_holiday.pdf",
+      "confidence": "disputed",
+      "review_notes": "NACOEJ gives 8 days; lead sources give 15–21. No Hoshana Rabba or Simchat Torah.",
+      "references": [
+        {
+          "title": "https://nacoej.org/media/attachments/2022/04/20/topic_3_teacher_resource_religious_practices.pdf",
+          "url": "https://nacoej.org/media/attachments/2022/04/20/topic_3_teacher_resource_religious_practices.pdf"
+        },
+        {
+          "title": "1 NACOEJ CURRICULUM ETHIOPIAN JEWS ARE PART OF THE WORLDWIDE JEWISH COMMUNITY",
+          "url": "https://nacoej.org/media/attachments/2022/04/20/topic_3_teacher_resource_holiday.pdf"
+        },
+        {
+          "title": "Haymanot - Wikiwand",
+          "url": "https://www.wikiwand.com/en/articles/Haymanot"
+        }
+      ],
+      "topic_he": "סוכות (בעלה מסלת)",
+      "summary_he": "מט\"ו בתשרי. בונים סוכה ליד הבית או המסגיד; אחרת נחשב גם משכן העשוי כולו מעצים. אין ארבעת המינים. מביאים יבול חדש לברכת הקייס. אסורה מלאכה יצירתית, אך הבישול והנסיעה מותרים. המקורות חלוקים כמה זמן החג נמשך."
     },
     {
       "index": "halacha.17",
-      "category": "Calendar",
-      "topic": "Chanukah and Purim",
-      "summary": "These festivals are observed in line with standard halacha in most modern settings.",
+      "category": "Festivals",
+      "topic": "Pesach (Fasika)",
+      "summary": "On 14 Nisan the paschal sacrifice is offered on a stone altar, roasted, and eaten on the eve of the 15th without breaking bones. For seven days there is no leaven. Dishes are replaced, and the five grains, 'certain forms of legume', fermented foods and non-fresh milk products are avoided. A special matzah, kitta, is baked. The kahenat tell the Exodus story orally.",
       "common_practices": [
-        "Light Chanukah candles",
-        "Read the Megillah on Purim",
-        "Observe family and synagogue customs",
-        "Anchor observance times to local halachic zmanim.",
-        "Coordinate fasts, selichot, and festival timing with community schedule.",
-        "Use a single trusted local calendar authority for consistency."
-      ]
+        "New utensils and clothing; nothing is bought from Christians",
+        "The kes inspects houses on the eve",
+        "Bathing in the river",
+        "Outdoor seder seated on the ground",
+        "14 Nisan is a fast for everyone"
+      ],
+      "variants": [
+        {
+          "subgroup": "Gondar (testimony of Malka Avraham)",
+          "practice": "Kes inspection at 4–5 pm; printed Haggadot arrived only shortly before 1991",
+          "source": "NACOEJ, pp. 5–6, citing Amit Women (1991)"
+        }
+      ],
+      "source": "NACOEJ, 'Holidays, Festivals and Fasts', pp. 3, 5–6",
+      "source_url": "https://nacoej.org/media/attachments/2022/04/20/topic_3_teacher_resource_holiday.pdf",
+      "confidence": "well-attested",
+      "review_notes": "The sacrifice is also reported by the Jewish Virtual Library. Not practised in Israel. Kitniyot scope is unspecified.",
+      "references": [
+        {
+          "title": "https://nacoej.org/media/attachments/2022/04/20/topic_3_teacher_resource_religious_practices.pdf",
+          "url": "https://nacoej.org/media/attachments/2022/04/20/topic_3_teacher_resource_religious_practices.pdf"
+        },
+        {
+          "title": "Who are the Ethiopian Jews?",
+          "url": "https://jewishvirtuallibrary.org/who-are-the-ethiopian-jews"
+        }
+      ],
+      "topic_he": "פסח (פסיקה)",
+      "summary_he": "בי\"ד בניסן מקריבים את קורבן הפסח על מזבח אבן, צולים אותו ואוכלים אותו בערב ט\"ו בלי לשבור עצם. במשך שבעה ימים אין חמץ. מחליפים כלים, ונמנעים מחמשת המינים, מ\"צורות מסוימות של קטניות\", ממאכלים מותססים ומוצרי חלב שאינם טריים. אופים מצה מיוחדת, קיטה. הכהנת מספרים את סיפור יציאת מצרים בעל פה."
     },
     {
       "index": "halacha.18",
-      "category": "Education",
-      "topic": "Torah transmission",
-      "summary": "Education combines traditional Ethiopian transmission with modern Jewish study.",
-      "common_practices": [
-        "Teach Torah and Hebrew literacy",
-        "Preserve oral community memory",
-        "Use both Ethiopian and mainstream Jewish educational frameworks",
-        "Teach children both baseline halacha and family minhag distinctions.",
-        "Preserve community pronunciation and liturgical pedagogy.",
-        "Document oral traditions to reduce minhag drift across generations."
-      ]
+      "category": "Festivals",
+      "topic": "End of Pesach",
+      "summary": "Beer is brewed and bread baked, and the first portions go to the kes.",
+      "common_practices": [],
+      "variants": [],
+      "source": "NACOEJ, 'Holidays, Festivals and Fasts', p. 3",
+      "source_url": "https://nacoej.org/media/attachments/2022/04/20/topic_3_teacher_resource_holiday.pdf",
+      "confidence": "needs-review",
+      "review_notes": "Not a Mimouna.",
+      "topic_he": "סוף הפסח",
+      "summary_he": "מבשלים בירה ואופים לחם, והמנות הראשונות הולכות לקייס."
     },
     {
       "index": "halacha.19",
-      "category": "Community",
-      "topic": "Community authority",
-      "summary": "Ethiopian Jewish communities have historically relied on elders and later on rabbinic institutions.",
-      "common_practices": [
-        "Respect community elders and leaders",
-        "Use qualified rabbinic guidance in integrated settings",
-        "Preserve heritage alongside mainstream observance",
-        "Prioritize communal unity where multiple minhag streams meet.",
-        "Record synagogue protocol for honors, leadership, and service flow.",
-        "Use local beit din or rabbinic authority for conflict resolution."
-      ]
+      "category": "Festivals",
+      "topic": "Shavuot (Ma'rar) count",
+      "summary": "'The morrow after the day of rest' is read as the day after the seventh day of Pesach, so Ma'rar falls on 12 of the third month. It is the day the Torah was given. New crops and the maswaet are blessed.",
+      "common_practices": [],
+      "variants": [],
+      "source": "NACOEJ, 'Holidays, Festivals and Fasts', p. 3",
+      "source_url": "https://nacoej.org/media/attachments/2022/04/20/topic_3_teacher_resource_holiday.pdf",
+      "confidence": "needs-review",
+      "review_notes": "No Omer blessing or mourning period is documented.",
+      "topic_he": "ספירת שבועות (מערר)",
+      "summary_he": "\"ממחרת השבת\" נקרא כיום שאחרי היום השביעי של פסח, ולכן המערר חל ב-12 לחודש השלישי. זה היום שבו ניתנה התורה. מברכים על יבול חדש ועל המסואט."
     },
     {
       "index": "halacha.20",
-      "category": "Community",
-      "topic": "Heritage preservation",
-      "summary": "A major concern is preserving Beta Israel identity while functioning within broader Jewish institutional life.",
+      "category": "Festivals",
+      "topic": "Purim / Fast of Esther",
+      "summary": "Esther is in the canon, but there is no festive rejoicing. Kahenat and elders fast for three days, eating only at night.",
+      "common_practices": [],
+      "variants": [
+        {
+          "subgroup": "Some",
+          "practice": "Fast on the 11th of the 11th month",
+          "source": "NACOEJ, p. 2"
+        },
+        {
+          "subgroup": "Others",
+          "practice": "Fast on the 12th or 13th",
+          "source": "NACOEJ, p. 2"
+        }
+      ],
+      "source": "NACOEJ, 'Holidays, Festivals and Fasts', p. 2",
+      "source_url": "https://nacoej.org/media/attachments/2022/04/20/topic_3_teacher_resource_holiday.pdf",
+      "confidence": "disputed",
+      "review_notes": "NACOEJ calls the date 'unclear'.",
+      "topic_he": "פורים / תענית אסתר",
+      "summary_he": "אסתר בקנון, אך אין שמחת חג. כהנת וזקנים צמים שלושה ימים ואוכלים רק בלילה."
+    },
+    {
+      "index": "halacha.21",
+      "category": "Festivals",
+      "topic": "Chanukah",
+      "summary": "Not traditionally observed. R. Elijah of Ferrara (1435): 'ויש להם מגילת אסתר אבל לא חנוכה' ('they have the Scroll of Esther but not Chanukah'). Faitlovitch introduced it, and most in Israel now observe it.",
+      "common_practices": [],
+      "variants": [],
+      "source": "NACOEJ, p. 4; Avi Harel (2015); Jewish Virtual Library",
+      "source_url": "https://nacoej.org/media/attachments/2022/04/20/topic_3_teacher_resource_holiday.pdf",
+      "confidence": "well-attested",
+      "review_notes": "Records its absence from the traditional calendar.",
+      "references": [
+        {
+          "title": "Who are the Ethiopian Jews?",
+          "url": "https://jewishvirtuallibrary.org/who-are-the-ethiopian-jews"
+        },
+        {
+          "title": "1 NACOEJ CURRICULUM ETHIOPIAN JEWS ARE PART OF THE WORLDWIDE JEWISH COMMUNITY",
+          "url": "https://nacoej.org/media/attachments/2022/04/20/topic_3_teacher_resource_holiday.pdf"
+        },
+        {
+          "title": "https://www.xn--7dbl2a.com/2015/11/23/%D7%90%D7%91%D7%99-%D7%94%D7%A8%D7%90%D7%9C-%D7%94%D7%95%D7%99%D7%9B%D7%95%D7%97-%D7%A2%D7%9C/",
+          "url": "https://www.xn--7dbl2a.com/2015/11/23/%D7%90%D7%91%D7%99-%D7%94%D7%A8%D7%90%D7%9C-%D7%94%D7%95%D7%99%D7%9B%D7%95%D7%97-%D7%A2%D7%9C/"
+        }
+      ],
+      "topic_he": "חנוכה",
+      "summary_he": "לא נחגג במסורת. רבי אליהו מפרארה (1435): \"ויש להם מגילת אסתר אבל לא חנוכה\". פייטלוביץ' הכניס אותו, ורוב העדה בישראל מקיימת אותו כיום."
+    },
+    {
+      "index": "halacha.22",
+      "category": "Fasts and Tisha B'Av",
+      "topic": "Fasts and mourning for Jerusalem",
+      "summary": "Fasts are kept mainly by the kahenat and the pious, sunrise to sunset: Mondays and Thursdays; the eve of the new moon; 14 Nisan; 1–9 Tammuz (First Temple); 1–17 Av (Jerusalem); 1–10 Elul; and the period from Rosh Hashana to Yom Kippur. Sources differ on the Tammuz fast: 1 to 9 Tammuz, or 1 to 10 Tammuz.",
       "common_practices": [
-        "Document oral traditions and family memory",
-        "Record village and regional identity",
-        "Preserve ritual memory where possible",
-        "Prioritize communal unity where multiple minhag streams meet.",
-        "Record synagogue protocol for honors, leadership, and service flow.",
-        "Use local beit din or rabbinic authority for conflict resolution."
-      ]
+        "Community-wide fasts: Yom Kippur, Sigd morning, 14 Nisan"
+      ],
+      "variants": [
+        {
+          "subgroup": "NACOEJ",
+          "practice": "The Tammuz fast runs 1 to 9 Tammuz.",
+          "source": "NACOEJ, 'Holidays, Festivals and Fasts', p. 5"
+        },
+        {
+          "subgroup": "Other published summaries",
+          "practice": "The Tammuz fast runs 1 to 10 Tammuz."
+        }
+      ],
+      "source": "NACOEJ, 'Holidays, Festivals and Fasts', p. 5",
+      "source_url": "https://nacoej.org/media/attachments/2022/04/20/topic_3_teacher_resource_holiday.pdf",
+      "confidence": "disputed",
+      "review_notes": "Lead sources give Tammuz as 1–10. There is no single-day 9 Av fast.",
+      "references": [
+        {
+          "title": "What Ethiopian Jewry can teach us about moving from destruction to redemption",
+          "url": "https://www.ynetnews.com/jewish-world/article/hj71104jrgg"
+        },
+        {
+          "title": "Beta Israel - Infogalactic: the planetary knowledge core",
+          "url": "https://infogalactic.com/info/Beta_Israel"
+        }
+      ],
+      "topic_he": "תעניות ואבלות על ירושלים",
+      "summary_he": "הצומות נשמרים בעיקר בידי הכהנת והאדוקים, מזריחה עד שקיעה: שני וחמישי; ערב ראש חודש; י\"ד בניסן; א'–ט' בתמוז (בית ראשון); א'–י\"ז באב (ירושלים); א'–י' באלול; והתקופה מראש השנה עד יום כיפור. המקורות חלוקים בצום תמוז: א' עד ט' בתמוז, או א' עד י' בתמוז."
+    },
+    {
+      "index": "halacha.23",
+      "category": "Festivals",
+      "topic": "Monthly and minor festivals",
+      "summary": "Work stops on every new moon. The 10th, 12th and 15th of each month recall Yom Kippur, Shavuot, and Pesach/Sukkot. 1 Nisan is the Festival of Lissan. The 12th of the ninth month is a harvest festival. The 18th of the sixth month commemorates the patriarchs.",
+      "common_practices": [],
+      "variants": [],
+      "source": "NACOEJ, 'Holidays, Festivals and Fasts', p. 4",
+      "source_url": "https://nacoej.org/media/attachments/2022/04/20/topic_3_teacher_resource_holiday.pdf",
+      "confidence": "needs-review",
+      "review_notes": "Single source.",
+      "topic_he": "חגים חודשיים וחגים קטנים",
+      "summary_he": "העבודה פוסקת בכל ראש חודש. העשירי, השנים עשר והחמישה עשר בכל חודש מזכירים את יום כיפור, שבועות, ופסח וסוכות. א' בניסן הוא חג הליסאן. י\"ב בחודש התשיעי הוא חג קציר. י\"ח בחודש השישי מציין את האבות."
+    },
+    {
+      "index": "halacha.24",
+      "category": "Calendar",
+      "topic": "Lunar calendar",
+      "summary": "The community's own lunar calendar. The rabbinic leap rules and the year count since creation were unknown, but festival dates are 'very close' to those of other Jews. Months: Lissan, Tomas, Ab, Lul, Tahasrein, Tabt. Months are counted from Nisan.",
+      "common_practices": [],
+      "variants": [],
+      "source": "NACOEJ, 'Holidays, Festivals and Fasts', p. 1",
+      "source_url": "https://nacoej.org/media/attachments/2022/04/20/topic_3_teacher_resource_holiday.pdf",
+      "confidence": "needs-review",
+      "review_notes": "Do not compute traditional dates algorithmically.",
+      "references": [
+        {
+          "title": "CD I",
+          "url": "https://jewish-music.huji.ac.il/sites/default/files/attachments/Beta%20Yisrael%20ENG%20cover%20and%20booklet.pdf"
+        }
+      ],
+      "topic_he": "לוח שנה ירחי",
+      "summary_he": "לוח השנה הירחי של העדה עצמה. כללי העיבור הרבניים ומניין השנים מבריאת העולם לא היו ידועים, אך מועדי החגים \"קרובים מאוד\" לאלה של שאר היהודים. החודשים: ליסאן, תומס, אב, לול, תהסרין, טבט. החודשים נמנים מניסן."
+    },
+    {
+      "index": "halacha.25",
+      "category": "Distinctive customs",
+      "topic": "Sigd in Ethiopia",
+      "summary": "29 Cheshvan. Still fasting, communities climb a mountain led by the kahenat carrying the Orit, prostrating as they go. At the summit, facing Jerusalem, the kahenat read the Orit, Ezra and Nehemiah, the dead are remembered, and sermons are given. In the afternoon they descend and break the fast with sacrificial beef and dancing.",
+      "common_practices": [
+        "Immersion and white clothes",
+        "Translation into Amharic or Tigrinya",
+        "Covenant renewal (Nehemiah 8–10)"
+      ],
+      "variants": [],
+      "source": "NACOEJ, p. 4; Israel National News (R. Sharon Shalom); NYPL blog (2021)",
+      "source_url": "https://nacoej.org/media/attachments/2022/04/20/topic_3_teacher_resource_holiday.pdf",
+      "confidence": "well-attested",
+      "review_notes": "Kessim date it to Ezra; scholars link it to the 15th-century monastic movement.",
+      "references": [
+        {
+          "title": "1 NACOEJ CURRICULUM ETHIOPIAN JEWS ARE PART OF THE WORLDWIDE JEWISH COMMUNITY",
+          "url": "https://nacoej.org/media/attachments/2022/04/20/topic_3_teacher_resource_holiday.pdf"
+        }
+      ],
+      "topic_he": "הסיגד באתיופיה",
+      "summary_he": "כ\"ט בחשוון. עדיין בצום, הקהילות מטפסות על הר בראשות הכהנת הנושאים את האורית, ומשתחוות בדרך. בפסגה, בפנים לירושלים, הכהנת קוראות מהאורית, מעזרא ומנחמיה, מזכירים את המתים ונישאות דרשות. אחר הצהריים יורדים ושוברים את הצום בבשר בקר מקורבן וברקודים."
+    },
+    {
+      "index": "halacha.26",
+      "category": "Distinctive customs",
+      "topic": "Sigd in Israel",
+      "summary": "Held in Israel since the early 1980s at the Western Wall and the Armon HaNatziv promenade. The Sigd Law (30 June 2008, MK Uri Ariel) sets a state ceremony, school activities and an elective day off.",
+      "common_practices": [
+        "Kessim read under colourful umbrellas",
+        "Fasting until the afternoon"
+      ],
+      "variants": [
+        {
+          "subgroup": "29 Cheshvan on Shabbat",
+          "practice": "Thursday 27 Cheshvan",
+          "source": "Ethiopian Jewry Heritage Center"
+        }
+      ],
+      "source": "Ethiopian Jewry Heritage Center, 'The Sigd Holiday'",
+      "source_url": "https://ethiopianjhc.org.il/en/the-sigd-holiday/",
+      "confidence": "well-attested",
+      "review_notes": "",
+      "references": [
+        {
+          "title": "Sigd",
+          "url": "https://theisraelbible.com/holiday/sigd/"
+        },
+        {
+          "title": "Cheshvan 29: Sigd - the holiday of Ethiopian Jewry",
+          "url": "https://www.israelnationalnews.com/news/418036"
+        },
+        {
+          "title": "Discover Sigd, the Ancient Ethiopian Jewish Holiday",
+          "url": "https://www.hadassahmagazine.org/2025/11/06/discover-sigd-the-ancient-ethiopian-jewish-holiday/"
+        }
+      ],
+      "topic_he": "הסיגד בישראל",
+      "summary_he": "נחגג בישראל מראשית שנות ה-80 בכותל המערבי ובטיילת ארמון הנציב. חוק הסיגד (30 ביוני 2008, ח\"כ אורי אריאל) קובע טקס ממלכתי, פעילויות בבתי ספר ויום חופשה לבחירה."
+    },
+    {
+      "index": "halacha.27",
+      "category": "Tefillin and tzitzit",
+      "topic": "Tefillin, tzitzit, mezuzah",
+      "summary": "These were not traditional (NACOEJ attributes this to isolation). Many in Israel and in the Gondar compounds have adopted them.",
+      "common_practices": [],
+      "variants": [],
+      "source": "NACOEJ, 'Religious Practices', p. 1",
+      "source_url": "https://nacoej.org/media/attachments/2022/04/20/topic_3_teacher_resource_religious_practices.pdf",
+      "confidence": "needs-review",
+      "review_notes": "",
+      "references": [
+        {
+          "title": "https://nacoej.org/media/attachments/2022/04/20/topic_3_teacher_resource_religious_practices.pdf",
+          "url": "https://nacoej.org/media/attachments/2022/04/20/topic_3_teacher_resource_religious_practices.pdf"
+        }
+      ],
+      "topic_he": "תפילין, ציצית, מזוזה",
+      "summary_he": "אלה לא היו מסורתיים (NACOEJ מייחסת זאת לבידוד). רבים בישראל ובמתחמי גונדר אימצו אותם."
+    },
+    {
+      "index": "halacha.28",
+      "category": "Torah reading",
+      "topic": "Reading the Orit",
+      "summary": "On Shabbat the Orit is read in the vernacular with a sermon. At Sigd it is read in Ge'ez and translated. There is no Hebrew trope.",
+      "common_practices": [],
+      "variants": [
+        {
+          "subgroup": "Tigray-origin",
+          "practice": "Vernacular is Tigrinya",
+          "source": "Encyclopaedia Judaica (Kaplan); Shelemay 1986"
+        }
+      ],
+      "source": "NACOEJ, 'Religious Practices', p. 4",
+      "source_url": "https://nacoej.org/media/attachments/2022/04/20/topic_3_teacher_resource_religious_practices.pdf",
+      "confidence": "needs-review",
+      "review_notes": "No lectionary cycle documented.",
+      "references": [
+        {
+          "title": "https://nacoej.org/media/attachments/2022/04/20/topic_3_teacher_resource_religious_practices.pdf",
+          "url": "https://nacoej.org/media/attachments/2022/04/20/topic_3_teacher_resource_religious_practices.pdf"
+        },
+        {
+          "title": "The Sigd - Brought to Israel by Beta Israel",
+          "url": "https://www.israelnationalnews.com/news/187702"
+        },
+        {
+          "title": "Sigd, the Pilgrimage Holiday of Ethiopian Jews",
+          "url": "https://www.nypl.org/blog/2021/10/28/sigd-pilgrimage-holiday-ethiopian-jews"
+        }
+      ],
+      "topic_he": "קריאה באורית",
+      "summary_he": "בשבת קוראים באורית בשפת הדיבור עם דרשה. בסיגד היא נקראת בגעז ומתורגמת. אין טעמי מקרא עבריים."
+    },
+    {
+      "index": "halacha.29",
+      "category": "Kashrut",
+      "topic": "Slaughter and food rules",
+      "summary": "The kes slaughters facing Jerusalem, after a blessing that includes the Ten Commandments. The blood is covered, the meat cut small, soaked, washed and dried, and always cooked. The sciatic nerve and certain fats are removed. Meat and milk are not cooked together. Poultry is not counted as meat. Food touched by gentiles is forbidden.",
+      "common_practices": [],
+      "variants": [],
+      "source": "NACOEJ, 'Religious Practices', p. 5",
+      "source_url": "https://nacoej.org/media/attachments/2022/04/20/topic_3_teacher_resource_religious_practices.pdf",
+      "confidence": "needs-review",
+      "review_notes": "In Israel the Rabbinate standard applies (see disputes on the Barkan winery case).",
+      "topic_he": "שחיטה ודיני מאכלים",
+      "summary_he": "הקייס שוחט בפנים לירושלים, אחרי ברכה הכוללת את עשרת הדיברות. מכסים את הדם, חותכים את הבשר לחתיכות קטנות, משרים, שוטפים ומייבשים, ותמיד מבשלים אותו. מסירים את גיד הנשה ואת חלבים מסוימים. אין מבשלים בשר וחלב יחד. עוף אינו נחשב בשר. אוכל שנגעו בו גויים אסור."
+    },
+    {
+      "index": "halacha.30",
+      "category": "Niddah and mikveh",
+      "topic": "Corpse impurity and boundaries",
+      "summary": "Villages are built near water. Corpse impurity is removed with mai manzeh ('water of sprinkling', made with red heifer ash), applied on days 3 and 7, followed by immersion, with seven days spent outside the village. Non-Jews are treated as impure.",
+      "common_practices": [],
+      "variants": [],
+      "source": "NACOEJ, 'Religious Practices', p. 6",
+      "source_url": "https://nacoej.org/media/attachments/2022/04/20/topic_3_teacher_resource_religious_practices.pdf",
+      "confidence": "well-attested",
+      "review_notes": "Also reported by the Jewish Virtual Library.",
+      "topic_he": "טומאת מת וגבולות",
+      "summary_he": "כפרים נבנים ליד מים. טומאת מת מוסרת במי מנזה (\"מי הזאה\", העשויים באפר פרה אדומה), בימים השלישי והשביעי, ואחריהם טבילה, ושבעה ימים מחוץ לכפר. גויים נחשבים טמאים."
+    },
+    {
+      "index": "halacha.31",
+      "category": "Niddah and mikveh",
+      "topic": "Menstrual and postpartum seclusion",
+      "summary": "In Ethiopia women went to the yadam gojo ('hut of blood') for seven days, with a stone boundary and food left outside. They immersed at nightfall with a friend checking. After birth they stayed in the hut until day 8 (son) or 14 (daughter) and were separate for 40 or 80 days.",
+      "common_practices": [],
+      "variants": [
+        {
+          "subgroup": "Ethiopian Israelis",
+          "practice": "Some follow rabbinic niddah, some keep the custom, some combine both; huts improvised in hallways and on balconies",
+          "source": "Lilith, 'Seven-Day Spa'; Cairn/Clio on Beta Israel women"
+        }
+      ],
+      "source": "NACOEJ, 'Religious Practices', p. 6",
+      "source_url": "https://nacoej.org/media/attachments/2022/04/20/topic_3_teacher_resource_religious_practices.pdf",
+      "confidence": "well-attested",
+      "review_notes": "Describes custom, not a ruling.",
+      "topic_he": "הפרדת נידה ויולדת",
+      "summary_he": "באתיופיה הלכו נשים ל\"יאדם גוג'ו\" (\"סוכת הדם\") שבעה ימים, עם גבול של אבנים ואוכל שמניחים בחוץ. הן טבלו בשקיעה כשחברה בודקת. אחרי לידה נשארו בסוכה עד היום השמיני (בן) או הארבעה עשר (בת) והיו נפרדות ארבעים או שמונים יום."
+    },
+    {
+      "index": "halacha.32",
+      "category": "Lifecycle",
+      "topic": "Brit milah",
+      "summary": "Circumcision is on the eighth day, postponed to Sunday if that day is Shabbat.",
+      "common_practices": [
+        "In 1985 the Council dropped hatafat dam because the men were already circumcised"
+      ],
+      "variants": [],
+      "source": "NACOEJ, 'Religious Practices', p. 5; Jewish Women's Archive",
+      "source_url": "https://nacoej.org/media/attachments/2022/04/20/topic_3_teacher_resource_religious_practices.pdf",
+      "confidence": "well-attested",
+      "review_notes": "Who performed the circumcision is unknown.",
+      "references": [
+        {
+          "title": "Ethiopian Jewish Women",
+          "url": "https://jwa.org/encyclopedia/article/ethiopian-jewish-women"
+        },
+        {
+          "title": "1 NACOEJ CURRICULUM ETHIOPIAN JEWS ARE PART OF THE WORLDWIDE JEWISH COMMUNITY",
+          "url": "https://nacoej.org/media/attachments/2022/04/20/topic_3_teacher_resource_marriage.pdf"
+        }
+      ],
+      "topic_he": "ברית מילה",
+      "summary_he": "המילה ביום השמיני, ונדחית ליום ראשון אם היום ההוא שבת."
+    },
+    {
+      "index": "halacha.33",
+      "category": "Lifecycle",
+      "topic": "Weddings",
+      "summary": "The fathers arrange the match. Three days of celebration beforehand; the bride dyes her hands and feet red. The kes ties a white-and-red cord (kesherah) from the groom's feet to his forehead. A marriage document 'similar to the standard Jewish Ketuba' is signed by the groom, bride, two witnesses, the kes and a guarantor. Blessing: 'Be fruitful and multiply.' Seven days of celebration, then seven days alone together.",
+      "common_practices": [],
+      "variants": [],
+      "source": "NACOEJ, 'Traditional Marriage Ceremony', pp. 1–2",
+      "source_url": "https://nacoej.org/media/attachments/2022/04/20/topic_3_teacher_resource_marriage.pdf",
+      "confidence": "needs-review",
+      "review_notes": "In Israel, weddings go through the Rabbinate.",
+      "topic_he": "חתונות",
+      "summary_he": "האבות מסדרים את השידוך. שלושה ימי חגיגה לפני כן; הכלה צובעת את ידיה ורגליה באדום. הקייס קושר חוט לבן-אדום (קשרה) מרגלי החתן אל מצחו. מסמך נישואין \"הדומה לכתובה היהודית הרגילה\" נחתם בידי החתן, הכלה, שני עדים, הקייס וערב. הברכה: \"פרו ורבו\". שבעה ימי חגיגה, ואחר כך שבעה ימים לבדם."
+    },
+    {
+      "index": "halacha.34",
+      "category": "Lifecycle",
+      "topic": "Mourning and tazkar",
+      "summary": "Funerals and the tazkar (commemoration of the dead) gather the community for feasts and prayers led by the kes. Hebrew University booklet fragments indicate a kes on days 3 and 7, a tazkar at the end of the seven days and on the first anniversary (optionally every year), and an animal slaughtered the afternoon before.",
+      "common_practices": [
+        "Seeds scattered on Yom Kippur",
+        "The dead remembered at Sigd"
+      ],
+      "variants": [],
+      "source": "NACOEJ, 'Traditional Marriage Ceremony', p. 1; Arom, Alvarez-Pereyre, Ben-Dor & Tourny, 'The Liturgy of Beta Israel' booklet (AMTI 0114, 2019)",
+      "source_url": "https://jewish-music.huji.ac.il/en/content/liturgy-beta-israel-music-ethiopian-jewish-prayer",
+      "confidence": "needs-review",
+      "review_notes": "A NACOEJ narrative says eight days. Do not use the Ethiopian Orthodox tazkar schedule.",
+      "references": [
+        {
+          "title": "1 NACOEJ CURRICULUM ETHIOPIAN JEWS ARE PART OF THE WORLDWIDE JEWISH COMMUNITY",
+          "url": "https://nacoej.org/media/attachments/2022/04/20/topic_3_teacher_resource_marriage.pdf"
+        },
+        {
+          "title": "1 1 NACOEJ CURRICULUM ETHIOPIAN JEWS ARE PART OF THE WORLDWIDE",
+          "url": "https://nacoej.org/media/attachments/2022/04/20/topic_2_informational_narrative.pdf"
+        }
+      ],
+      "topic_he": "אבלות ותזכר",
+      "summary_he": "הלוויות והתזכר (הנצחת המתים) מכנסות את הקהילה לסעודות ולתפילות בהובלת הקייס. קטעים מחוברת של האוניברסיטה העברית מעידים על קייס בימים השלישי והשביעי, תזכר בסוף שבעת הימים ובשנה הראשונה (ולפי הרצון מדי שנה), ובהמה שנשחטה אחר הצהריים של היום הקודם."
+    },
+    {
+      "index": "halacha.35",
+      "category": "Lifecycle",
+      "topic": "Accepting converts",
+      "summary": "Accepting converts was one of the three roles of the kes.",
+      "common_practices": [],
+      "variants": [],
+      "source": "Ethiopian Jewry Heritage Center, 'About Ethiopian Jewry'",
+      "source_url": "https://ethiopianjhc.org.il/en/ethiopian-jewry/about-ethiopian-jewry/",
+      "confidence": "needs-review",
+      "review_notes": "Procedure not described.",
+      "topic_he": "קבלת גרים",
+      "summary_he": "קבלת גרים הייתה אחד משלושת תפקידיו של הקייס."
     }
   ],
-  "unique_minhagim": {
-    "examples": [
-      "Distinct Ethiopian liturgical and biblical tradition",
-      "Strong use of oral transmission",
-      "Village-based identity markers",
-      "Later integration with mainstream rabbinic life"
-    ],
-    "notes": "Ethiopian Jewish practice should be treated as its own heritage stream, not simply as a variant of Sephardi or Ashkenazi custom."
-  },
-  "source_registry": {
-    "primary": [
-      "Torah",
-      "Beta Israel communal tradition",
-      "Later rabbinic guidance"
-    ],
-    "secondary": [
-      "Academic studies of Beta Israel",
-      "Community oral histories",
-      "Modern Israeli and diaspora educational sources"
-    ]
-  }
+  "unique_minhagim": [
+    {
+      "name": "Sigd (Mehlella)",
+      "description": "Fast, mountain pilgrimage, Orit and Nehemiah readings, then a feast.",
+      "when": "29 Cheshvan",
+      "source": "NACOEJ, p. 4; Ethiopian Jewry Heritage Center",
+      "source_url": "https://ethiopianjhc.org.il/en/the-sigd-holiday/",
+      "confidence": "well-attested",
+      "name_he": "הסיגד (מהללה)",
+      "description_he": "צום, עלייה לרגל להר, קריאה באורית ובנחמיה, ואחר כך סעודה."
+    },
+    {
+      "name": "Seeds for the birds",
+      "description": "Grain scattered for birds, symbolising departed souls.",
+      "when": "End of Yom Kippur",
+      "source": "NACOEJ, 'Holidays', p. 2",
+      "source_url": "https://nacoej.org/media/attachments/2022/04/20/topic_3_teacher_resource_holiday.pdf",
+      "confidence": "needs-review",
+      "name_he": "זרעים לציפורים",
+      "description_he": "גרעינים המפוזרים לציפורים, כסמל לנשמות הנפטרים."
+    },
+    {
+      "name": "Kesherah",
+      "description": "White-and-red wedding cord tied on the groom.",
+      "when": "Wedding eve",
+      "source": "NACOEJ, 'Marriage', p. 1",
+      "source_url": "https://nacoej.org/media/attachments/2022/04/20/topic_3_teacher_resource_marriage.pdf",
+      "confidence": "needs-review",
+      "name_he": "קשרה",
+      "description_he": "חוט נישואין לבן-אדום הנקשר על החתן."
+    },
+    {
+      "name": "Maswaet loaf",
+      "description": "Bread blessed by the kahenat.",
+      "when": "Shabbat, Shavuot, 1 Nisan",
+      "source": "NACOEJ, 'Religious Practices', p. 4",
+      "source_url": "https://nacoej.org/media/attachments/2022/04/20/topic_3_teacher_resource_religious_practices.pdf",
+      "confidence": "needs-review",
+      "name_he": "לחם המסואט",
+      "description_he": "לחם שהכהנת מברכות עליו."
+    },
+    {
+      "name": "Commemoration of the Patriarchs",
+      "description": "Reading of the Gadla Avraham, Yitzhak and Ya'akov.",
+      "when": "18th of the sixth month",
+      "source": "NACOEJ, 'Holidays', p. 4",
+      "source_url": "https://nacoej.org/media/attachments/2022/04/20/topic_3_teacher_resource_holiday.pdf",
+      "confidence": "needs-review",
+      "name_he": "הנצחת האבות",
+      "description_he": "קריאת \"גדלה אברהם\", \"גדלה יצחק\" ו\"גדלה יעקב\"."
+    },
+    {
+      "name": "Memorial Day for those who died on the way",
+      "description": "State ceremony at Mount Herzl. The Ethiopian Jewry Heritage Center commemorates about 1,620 named dead and says the frequently cited 4,000 deaths on the Sudan route 'has not yet been proven'. JTA (2014) gives 4,000 as the Israeli government's estimate.",
+      "when": "28 Iyar",
+      "source": "Jerusalem Post editorial; Ethiopian Jewry Heritage Center",
+      "source_url": "https://www.jpost.com/opinion/ethiopian-aliyah-to-israel-commemoration-discrimination-editorial-667798",
+      "confidence": "well-attested",
+      "name_he": "יום הזיכרון לנספים בדרך",
+      "description_he": "טקס ממלכתי בהר הרצל. מרכז המורשת של יהדות אתיופיה מנציח כ-1,620 מתים בשמם ואומר שהמספר המצוטט תדיר, 4,000 מתים בנתיב סודאן, \"טרם הוכח\". סוכנות JTA (2014) מביאה 4,000 כאומדן ממשלת ישראל."
+    }
+  ],
+  "source_registry": [
+    {
+      "title": "Religious Practices of Ethiopian Jews",
+      "author": "NACOEJ",
+      "type": "reference",
+      "url": "https://nacoej.org/media/attachments/2022/04/20/topic_3_teacher_resource_religious_practices.pdf",
+      "used_for": "Prayer, Shabbat, kashrut, purity"
+    },
+    {
+      "title": "Holidays, Festivals and Fasts of the Ethiopian Jews",
+      "author": "NACOEJ",
+      "type": "reference",
+      "url": "https://nacoej.org/media/attachments/2022/04/20/topic_3_teacher_resource_holiday.pdf",
+      "used_for": "Calendar, festivals, fasts"
+    },
+    {
+      "title": "Traditional Marriage Ceremony",
+      "author": "NACOEJ",
+      "type": "reference",
+      "url": "https://nacoej.org/media/attachments/2022/04/20/topic_3_teacher_resource_marriage.pdf",
+      "used_for": "Weddings, tazkar"
+    },
+    {
+      "title": "About Ethiopian Jewry; The Sigd Holiday",
+      "author": "Ethiopian Jewry Heritage Center",
+      "type": "academic",
+      "url": "https://ethiopianjhc.org.il/en/ethiopian-jewry/about-ethiopian-jewry/",
+      "used_for": "History, kessim, demographics"
+    },
+    {
+      "title": "Beta Israel (Encyclopaedia Judaica)",
+      "author": "Steven Kaplan",
+      "type": "academic",
+      "url": "https://www.encyclopedia.com/religion/encyclopedias-almanacs-transcripts-and-maps/beta-israel",
+      "used_for": "Subgroups"
+    },
+    {
+      "title": "Jewish Liturgical Forms in the Falasha Liturgy? (1986)",
+      "author": "Kay Kaufman Shelemay",
+      "type": "academic",
+      "url": "https://jewish-music.huji.ac.il/media/2352/download?attachment=",
+      "used_for": "Liturgy"
+    },
+    {
+      "title": "The Liturgy of Beta Israel (AMTI 0114)",
+      "author": "Arom, Alvarez-Pereyre, Ben-Dor, Tourny",
+      "type": "siddur",
+      "url": "https://jewish-music.huji.ac.il/en/content/liturgy-beta-israel-music-ethiopian-jewish-prayer",
+      "used_for": "Tazkar"
+    },
+    {
+      "title": "כרוניקה של אי־הכרה (Deot 86)",
+      "author": "Ariel Moav",
+      "type": "academic",
+      "url": "https://toravoda.org.il/%D7%9B%D7%AA%D7%91%D7%94/%D7%99%D7%94%D7%95%D7%93%D7%99%D7%9D-%D7%99%D7%95%D7%A6%D7%90%D7%99-%D7%90%D7%AA%D7%99%D7%95%D7%A4%D7%99%D7%94-%D7%9E%D7%95%D7%9C-%D7%94%D7%9E%D7%9E%D7%A1%D7%93-%D7%94%D7%93%D7%AA%D7%99-%D7%9B%D7%A8/",
+      "used_for": "Rabbinate decisions 1954–1985"
+    },
+    {
+      "title": "הוויכוח על חובת הגיור לחומרה",
+      "author": "Avi Harel",
+      "type": "academic",
+      "url": "https://www.xn--7dbl2a.com/2015/11/23/%D7%90%D7%91%D7%99-%D7%94%D7%A8%D7%90%D7%9C-%D7%94%D7%95%D7%99%D7%9B%D7%95%D7%97-%D7%A2%D7%9C/",
+      "used_for": "1973 ruling text"
+    },
+    {
+      "title": "JTA 1985 archive; JTA 2020",
+      "author": "JTA",
+      "type": "reference",
+      "url": "https://www.jta.org/archive/chief-rabbis-insist-that-ethiopian-jews-must-undergo-ritual-immersion",
+      "used_for": "1985 and 2020 rulings"
+    },
+    {
+      "title": "Israeli recognition of Ethiopian religious leaders",
+      "author": "Al-Monitor",
+      "type": "reference",
+      "url": "https://www.al-monitor.com/originals/2018/03/israel-ethiopia-benjamin-netanyahu-kessim-chief-rabbinate.html",
+      "used_for": "Kessim 2018"
+    },
+    {
+      "title": "How Can Apostates Such as the Falash Mura Return?",
+      "author": "Schechter Institutes",
+      "type": "responsa",
+      "url": "https://schechter.edu/how-can-apostates-such-as-the-falash-mura-return-to-judaism-responsa-in-a-moment-volume-1-issue-no-5-january-2007/",
+      "used_for": "Falash Mura"
+    }
+  ],
+  "gaps": [
+    "Kabbalat Shabbat and Havdalah",
+    "Rosh Hashana simanim",
+    "Hoshana Rabba and Simchat Torah",
+    "Omer count and mourning dates",
+    "Kitniyot scope",
+    "Mimouna-type custom",
+    "Single-day Tisha B'Av",
+    "Pidyon haben",
+    "Bar/bat mitzvah",
+    "Who performed circumcisions",
+    "Full tazkar timing",
+    "Regional ritual differences (Semien, Gojjam, Lasta/Wag, Qwara)",
+    "Torah lectionary and trope",
+    "Primary texts of the Yosef and Goren rulings",
+    "2025–2026 Rabbinate and government policy"
+  ],
+  "disputes": [
+    "Whether R. Ovadia's 1973 ruling required symbolic conversion: Times of Israel says yes; Ynet, Moav and Harel say no",
+    "Goren recognition dated 1974 vs. 1975",
+    "Content of the conversion requirement: 1984 vs. 1985 versions; Kulanu reports an exemption that other sources do not confirm",
+    "Implementation of the 2019/20 decision",
+    "Falash Mura: zera Yisrael (Amar/Yosef) vs. apostates (Schechter) vs. denial of descent by some in the community",
+    "Edah Haredit non-recognition (Barkan Winery, 2018)",
+    "Sukkot 8 days vs. 15–21 Tishrei",
+    "Tammuz fast 1–9 vs. 1–10",
+    "Fast of Esther date",
+    "Mourning 7 vs. 8 days",
+    "Origins: tribe of Dan vs. Agaw adoption of Judaism (the community rejects the latter)"
+  ],
+  "needs_rabbinic_review": [
+    "Niddah: traditional vs. rabbinic practice",
+    "Brit milah on Shabbat",
+    "Kashrut differences",
+    "Shavuot date calculation",
+    "Marriage documentation for Ethiopian-born and Falash Mura-descended users",
+    "Scope of kes functions under the 2018 framework",
+    "Current force of the 1973, 1984, 1985 and 2019 rulings"
+  ]
 }

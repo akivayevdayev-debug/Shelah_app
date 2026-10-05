@@ -1,5 +1,5 @@
 {
-  "version": "2.0",
+  "version": "3.0",
   "type": "academic_halachic_reference",
   "heritage_id": "turkish",
   "name": "Turkish-Ottoman",
@@ -8,419 +8,950 @@
     "Ottoman Sephardi",
     "Turkish Jews",
     "turkish-ottoman-sefardic",
-    "Ladino-speaking Jews of Turkey"
+    "Ladino-speaking Jews of Turkey",
+    "Judeo-Spanish Jews",
+    "Ladino-speaking Sephardim",
+    "Levantine Sepharadim",
+    "Eastern Sephardim",
+    "Rodesli / Rhodesli (Rhodes)"
   ],
   "database_scope": {
-    "purpose": "Academic and halachic reference database for Turkish Jewish heritage, minhagim, and halachic practice.",
-    "coverage_note": "This file models broad Ottoman Sephardi and Turkish Jewish practice and includes common halachic domains. Local customs vary by city, family, rabbinic lineage, and subgroup (e.g., Istanbul vs. Izmir, Sephardi vs. Ashkenazi/Romaniote elements).",
-    "classification_note": "Turkish Jewish practice is typically Sephardi‑oriented, shaped by Ottoman and later Turkish social and legal structures, with distinctive communal and family minhagim."
+    "purpose": "Sourced reference for Turkish-Ottoman minhagim and halachic practice. It records what the cited sources say, with a confidence level for each entry, and is not a psak.",
+    "coverage_note": "26 sourced topics and 7 distinctive customs, compiled from the cited sources in October 2026. Each entry carries a confidence level (well-attested, disputed, regional, needs-review). 16 topics have no community-specific source and are listed under 'gaps' rather than filled with generic text."
   },
   "identity": {
-    "primary_origin": "Ottoman Empire Jewish communities, especially Turkish‑based Sephardi settlements after 1492",
+    "primary_origin": "The Ottoman Sephardi centres of Istanbul, Izmir and Rhodes",
     "secondary_centers": [
-      "Istanbul (Constantinople)",
-      "Izmir (Smyrna)",
-      "Edirne",
-      "Bursa",
-      "Manissa",
-      "Turkey-wide diaspora communities in Israel, United States, Latin America, and Europe"
-    ],
-    "cultural_profile": [
-      "Strong Sephardi textual and liturgical tradition adapted to Anatolian life",
-      "Vibrant Ladino language and culture",
-      "Communal interaction with Turkish majority and minority groups",
-      "Unique blend of Iberian, Ottoman, and Balkan cultural elements"
+      "Salonika-descended families",
+      "Tekirdag and the Marmara region",
+      "Seattle (Ezra Bessaroth and Sephardic Bikur Holim)"
     ]
   },
   "languages": [
-    "Ladino (Judeo‑Spanish)",
-    "Hebrew",
-    "Turkish",
-    "Greek in some families",
-    "French or Italian in some diaspora contexts"
+    "Ladino (Judeo-Spanish): Istanbul was a centre of Ladino printing, and Ladino Purim koplas were printed in Livorno (1902) and Istanbul (1922-23)"
   ],
-  "genealogy": {
-    "common_surname_patterns": [
-      "Iberian exile surnames adapted in Ottoman forms",
-      "Names reflecting cities or regions (e.g., Constantinopoli, Izmiri)",
-      "Occupational and honorific surnames",
-      "Names influenced by Ottoman and later Turkish transliteration"
-    ],
-    "research_notes": [
-      "Surname spellings vary widely by Ladino, Turkish, Hebrew, and Western scripts.",
-      "Family oral history and synagogue records are crucial for tracing Ottoman‑era lineages.",
-      "Migration paths often run through Istanbul, Izmir, or Bursa to modern diaspora centers."
-    ],
-    "recommended_genealogy_fields": [
-      "surname",
-      "alternate_spellings",
-      "town_of_origin",
-      "family_branch",
-      "immigration_wave",
-      "ritual_minhag",
-      "language_used"
-    ]
-  },
+  "subgroups": [
+    {
+      "name": "Istanbul (Constantinople)",
+      "note": "Ottoman capital and a center of Ladino printing. Hazzan Isaac Azose reports finding Siddur Sefer Avodat Ashana in use in an Istanbul synagogue in 1992."
+    },
+    {
+      "name": "Izmir (Smyrna)",
+      "note": "Seat of R. Hayyim Palachi (1788-1868). Izmir's Pesach rice practice is documented separately from general Sephardic practice."
+    },
+    {
+      "name": "Rhodes (Rodesli)",
+      "note": "The best-documented subgroup, through the Rhodes Jewish Historical Foundation and Congregation Ezra Bessaroth (Seattle), which keeps the Rhodes liturgy and customs."
+    },
+    {
+      "name": "Salonika-descended",
+      "note": "A major Ladino center destroyed in the Holocaust. Documented here mainly for Shavuot and Pesach kitniyot."
+    },
+    {
+      "name": "Seattle Turkish (Sephardic Bikur Holim, Tekirdag/Marmara origin)",
+      "note": "Its minhagim are recorded alongside the Rhodes minhagim in Siddur Zehut Yosef (ed. Hazzan Isaac Azose)."
+    }
+  ],
   "historical_background": {
     "timeline": [
       {
-        "period": "Byzantine and early Ottoman era",
-        "event": "Jewish communities existed in Anatolia and the Aegean region before and after Ottoman conquest.",
-        "halachic_impact": "Local customs blended with later Sephardi traditions."
+        "period": "18th century",
+        "event": "Ladino Purim koplas composed by Ribi Ya'akov Uziel and Ribi Yom Tov Magula, later printed in Livorno (1902) and Istanbul (1922-23).",
+        "halachic_impact": "Ladino became a vehicle for passing holiday custom to lay people."
       },
       {
-        "period": "1492 and after",
-        "event": "Sultan Bayezid II welcomed Sephardi exiles into the Ottoman Empire.",
-        "halachic_impact": "Iberian Sephardi practice became dominant in many Turkish communities."
+        "period": "1840",
+        "event": "Blood libel on Rhodes, later declared false by a firman from Sultan Abd al-Majid. Both events fell on 14 Adar.",
+        "halachic_impact": "Purim on Rhodes became a double festival with special prayers."
       },
       {
-        "period": "Tanzimat and modern reforms",
-        "event": "Ottoman modernization and later Republic of Turkey changed legal and social status.",
-        "halachic_impact": "Communal institutions and religious practice adapted to new national frameworks."
+        "period": "19th century",
+        "event": "Chief Rabbi Rahamim Yehuda Israel of Rhodes issued a responsum forbidding banging during the Megillah.",
+        "halachic_impact": "A rabbinic attempt to restrict a popular custom."
       },
       {
-        "period": "20th century and after",
-        "event": "Emigration and upheaval transformed the demographic landscape.",
-        "halachic_impact": "Diaspora communities preserved Turkish Sephardi liturgy and family customs."
+        "period": "Early 20th century",
+        "event": "Emigration from Rhodes and Turkey to Seattle, where Ezra Bessaroth (Rhodes) and Sephardic Bikur Holim (Turkish) were founded.",
+        "halachic_impact": "Siddur Zehut Yosef (2002) records Rhodes and Turkish minhagim side by side."
+      },
+      {
+        "period": "1936-1939",
+        "event": "R. Michel Albagli served as Chief Rabbi of Rhodes, then served Rhodesli communities in the US.",
+        "halachic_impact": "He handwrote a Ladino pidyon haben text in the Rhodes tradition (1955)."
+      },
+      {
+        "period": "WWII",
+        "event": "The Salonika and Rhodes communities were destroyed in the Holocaust.",
+        "halachic_impact": "Their customs survive mainly in memoirs and in diaspora practice."
       }
     ]
   },
   "core_halachic_authorities": {
     "primary_codes": [
-      "Shulchan Aruch",
-      "Beit Yosef",
-      "Mishneh Torah"
+      "Shulchan Aruch (R. Yosef Karo)"
     ],
     "major_rishonim_base": [
-      "Rif",
-      "Rambam",
-      "Rosh"
+      "Not specifically verified for this community in this research"
     ],
-    "later_turkish_poskim": [
-      "Rav Hayyim Bechor Chazzan",
-      "Rav Refael Saban",
-      "Rav Yosef Faur",
-      "Community rabbis of Istanbul and Izmir"
+    "later_poskim": [
+      "R. Hayyim Palachi of Izmir (Moed Lekhol Hai; Lev Hayim)",
+      "R. Hayyim Benveniste (Keneset HaGedolah)",
+      "R. Yosef Molho of Salonika (Shulhan Gavoha)",
+      "R. Yaakov Culi (Me'am Lo'ez)",
+      "R. Rahamim Yehuda Israel (Chief Rabbi of Rhodes, 19th c.)",
+      "R. Reuven Eliyahu Israel (last Chief Rabbi of Rhodes)",
+      "R. Shem Tov Gaguine (Keter Shem Tov)"
     ],
-    "decision_principle": "Follow Shulchan Aruch with Sephardi methodology, while respecting established Ottoman and Turkish communal minhagim and adapting to modern conditions."
+    "decision_principle": "The sources treat the Shulchan Aruch as the baseline, with each city's local minhag layered on top; local minhag is sometimes stricter, as with Pesach rice in Izmir and Salonika. No formal statement of a decision principle from a Turkish-Ottoman posek was located."
+  },
+  "runtime": {
+    "lens_key": "Turkish-Ottoman",
+    "practice_baseline": "Practice rests on the Shulchan Aruch as interpreted by Ottoman-era local rabbis (Palachi, Benveniste, Molho, the Chief Rabbis of Rhodes). City-specific minhag is preserved today mainly in diaspora congregations.",
+    "parameters": [
+      {
+        "key": "omer_haircut_permitted_from",
+        "value": "34",
+        "unit": "day of the Omer, from the morning",
+        "source": "Shulchan Aruch OC 493:2, as presented by R. Simon Hassan, 'Sephardic Practices During the Omer' (2014)"
+      },
+      {
+        "key": "kaddish_for_parent_initial_period",
+        "value": "11",
+        "unit": "months; stops at the 11-month meldado and resumes for one month at the 12-month meldado",
+        "source": "R. Simon Hassan, 'Sephardic Custom and Law When a Close Relative Passes Away' (2014)"
+      },
+      {
+        "key": "meldado_months_first_year",
+        "value": "7, 9, 11, 12",
+        "unit": "months, counted from burial",
+        "source": "R. Simon Hassan (2014); UW Stroum Center 'Meldado' exhibit"
+      }
+    ]
   },
   "halacha_index": [
     {
       "index": "halacha.1",
       "category": "Prayer",
-      "topic": "Nusach and liturgy",
-      "summary": "Turkish Sephardi prayer follows Sephardi nusach with local Ottoman and Anatolian melodies and textual additions.",
+      "topic": "Nusach and siddur",
+      "summary": "Community members describe the Rhodes nusach as 'neither Sefard nor Ari'. In Seattle, Siddur Zehut Yosef (ed. Isaac Azose) records the Rhodes and Turkish minhagim and is the standard siddur for both Sephardic congregations.",
       "common_practices": [
-        "Use Sephardi siddurim adjusted to local rite where customary",
-        "Preserve Ladino‑based piyyutim and piyutim in Hebrew",
-        "Follow synagogue order for weekday, Shabbat, and festival services",
-        "Preserve inherited nusach and pronunciation in public prayer.",
-        "Coordinate weekday, Shabbat, and festival insertions with local rabbinic guidance.",
-        "Maintain community niggunim and piyyutim where accepted."
-      ]
+        "Siddur Zehut Yosef",
+        "Ladino passages retained"
+      ],
+      "variants": [
+        {
+          "subgroup": "Rhodes (Seattle)",
+          "practice": "Nusach of Rhodes",
+          "source": "Where What When (2022), interview with Jeffrey Alhadeff"
+        },
+        {
+          "subgroup": "Istanbul",
+          "practice": "Siddur Sefer Avodat Ashana in synagogue use (1992)",
+          "source": "Isaac Azose, comment on the UW Stroum Center Purim article (2016)"
+        }
+      ],
+      "source": "Where What When, 'The Island of Rhodes' (2022)",
+      "source_url": "https://www.wherewhatwhen.com/article/the-island-of-rhodes",
+      "confidence": "needs-review",
+      "review_notes": "The 'neither Sefard nor Ari' description comes from a lay interview. The order of service was not verified from the siddur itself.",
+      "references": [
+        {
+          "title": "The Island of Rhodes",
+          "url": "https://www.wherewhatwhen.com/article/the-island-of-rhodes"
+        }
+      ],
+      "topic_he": "נוסח וסידור",
+      "summary_he": "בני הקהילה מתארים את נוסח רודוס כ\"לא ספרד ולא האר\"י\". בסיאטל, הסידור \"זהות יוסף\" (בעריכת יצחק אזוזי) מתעד את מנהגי רודוס וטורקיה והוא הסידור הסטנדרטי לשתי הקהילות הספרדיות."
     },
     {
       "index": "halacha.2",
       "category": "Prayer",
-      "topic": "Torah reading and seating",
-      "summary": "Torah reading and seating customs reflect local synagogue protocol and inherited Ottoman-Sephardi community norms.",
-      "common_practices": [
-        "Read Torah with Sephardi trop or local variant",
-        "Honor elders and family leaders appropriately",
-        "Preserve local synagogue etiquette for aliyot and seating",
-        "Preserve inherited nusach and pronunciation in public prayer.",
-        "Coordinate weekday, Shabbat, and festival insertions with local rabbinic guidance.",
-        "Maintain community niggunim and piyyutim where accepted."
-      ]
+      "topic": "Pronunciation of the letter he",
+      "summary": "Hazzan Isaac Azose testifies that the older Levantine tradition did not pronounce he: Elo'enu, Agada, Allel, Birkat Amazon. He cites the grammar Magen David (David Moskona, Vienna 1897) and the table of contents of an Istanbul siddur.",
+      "common_practices": [],
+      "variants": [
+        {
+          "subgroup": "Older Seattle generation",
+          "practice": "Silent he",
+          "source": "Azose comment"
+        },
+        {
+          "subgroup": "Most Sephardim today",
+          "practice": "He pronounced as 'h'",
+          "source": "Azose (who concedes this) and a dissenting commenter on the same page"
+        }
+      ],
+      "source": "UW Stroum Center, 'Sephardic Purim Customs from the Old World to the Pacific Northwest' (2015), comments section",
+      "source_url": "https://jewishstudies.washington.edu/sephardic-studies/sephardic-purim-customs-from-the-old-world-to-the-pacific-northwest/",
+      "confidence": "disputed",
+      "review_notes": "Single expert testimony, disputed on the same page.",
+      "topic_he": "הגיית האות ה\"א",
+      "summary_he": "החזן יצחק אזוזי מעיד שהמסורת הלבנטינית הקדומה לא הגתה את ה\"א: \"אלוקנו\", \"אגדה\", \"אלל\", \"ברכת אמזון\". הוא מצטט את הדקדוק \"מגן דוד\" (דוד מוסקונה, וינה 1897) ואת תוכן העניינים של סידור מקושטא."
     },
     {
       "index": "halacha.3",
-      "category": "Prayer",
-      "topic": "Head coverings and synagogue decorum",
-      "summary": "Synagogue decorum follows halachic standards together with locally inherited community customs.",
-      "common_practices": [
-        "Maintain local rules for separation and seating",
-        "Use modest dress standards",
-        "Preserve inherited customs for bowing and blessings",
-        "Preserve inherited nusach and pronunciation in public prayer.",
-        "Coordinate weekday, Shabbat, and festival insertions with local rabbinic guidance.",
-        "Maintain community niggunim and piyyutim where accepted."
-      ]
+      "category": "Shabbat",
+      "topic": "Morning schedule and meal (Rhodes)",
+      "summary": "In Rhodes, Shabbat morning prayer was at sunrise (netz). It was followed by a dairy breakfast (desayuno) of borekas, empanadas and spinach-cheese quajado.",
+      "common_practices": [],
+      "variants": [
+        {
+          "subgroup": "Rhodes",
+          "practice": "As above",
+          "source": "Where What When (2022)"
+        }
+      ],
+      "source": "Where What When (2022)",
+      "source_url": "https://www.wherewhatwhen.com/article/the-island-of-rhodes",
+      "confidence": "needs-review",
+      "review_notes": "Single-family testimony.",
+      "topic_he": "סדר הבוקר והסעודה (רודוס)",
+      "summary_he": "ברודוס התקיימה תפילת שחרית של שבת בנץ החמה. אחריה בא ארוחת בוקר חלבית (דסאיונו) של בורקס, אמפנדות וקג'דו תרד וגבינה."
     },
     {
       "index": "halacha.4",
       "category": "Shabbat",
-      "topic": "Candle lighting",
-      "summary": "Shabbat candle lighting follows Sephardi halacha with family‑and‑city customs in timing and arrangement.",
-      "common_practices": [
-        "Light before Shabbat begins",
-        "Use customary blessing wording",
-        "Preserve number‑of‑candles customs where inherited",
-        "Prepare practical needs before candle lighting to avoid melacha.",
-        "Use approved warming and lighting setups established before Shabbat.",
-        "Follow local zmanim for candle lighting, shekia, and havdalah."
-      ]
+      "topic": "Preparation (Rhodes)",
+      "summary": "Shabbat cooking and cleaning began on Thursday night. On Friday, families went to the Turkish bath (banyo turko / hamam).",
+      "common_practices": [],
+      "variants": [
+        {
+          "subgroup": "Rhodes",
+          "practice": "As above",
+          "source": "Rhodes Jewish Museum, citing E. F. Menasce"
+        }
+      ],
+      "source": "Rhodes Jewish Historical Foundation, 'Customs & Traditions'",
+      "source_url": "https://rhodesjewishmuseum.org/la-juderia/customs-traditions/",
+      "confidence": "regional",
+      "review_notes": "Describes pre-WWII practice.",
+      "topic_he": "הכנות (רודוס)",
+      "summary_he": "בישולי השבת וניקיונה התחילו בליל חמישי. ביום שישי הלכו משפחות למרחץ הטורקי (בניו טורקו / חמאם)."
     },
     {
       "index": "halacha.5",
-      "category": "Shabbat",
-      "topic": "Shabbat meals",
-      "summary": "Shabbat and holiday meals are central and often feature Anatolian‑Sephardi foods.",
+      "category": "Rosh Hashana",
+      "topic": "Yehi Ratsones (simanim)",
+      "summary": "Seven foods are eaten one at a time, each after a yehi ratson in Hebrew and Ladino ('Sea veluntad delantre de ti...'): apple in honey, leek (prasa), spinach (spinaka), dates (datiles), pumpkin (kalavasa), black-eyed peas (fijones), and a sheep's or fish head or cheek meat (kavesa). Borei peri ha'etz is said over the apple.",
       "common_practices": [
-        "Prepare food before Shabbat",
-        "Honor guests and family according to local custom",
-        "Use traditional dishes and condiments",
-        "Prepare practical needs before candle lighting to avoid melacha.",
-        "Use approved warming and lighting setups established before Shabbat.",
-        "Follow local zmanim for candle lighting, shekia, and havdalah."
-      ]
+        "Kiddush, washing and hamotzi, then the simanim",
+        "Leek and spinach served as quajado or keftes",
+        "Sugar or honey on the table"
+      ],
+      "variants": [
+        {
+          "subgroup": "Rhodes (Ezra Bessaroth)",
+          "practice": "Seven-item order after hamotzi, with Ladino texts",
+          "source": "Enrique Levy, eSefarad"
+        },
+        {
+          "subgroup": "Rhodes (historical)",
+          "practice": "Sugar placed on the table",
+          "source": "Rhodes Jewish Museum"
+        },
+        {
+          "subgroup": "Rhodes (Alhadeff family)",
+          "practice": "Sugar instead of honey",
+          "source": "Where What When (2022)"
+        }
+      ],
+      "source": "eSefarad, 'The Sephardic Way to Celebrate Rosh Hashana: Yehi Ratsones'; Rhodes Jewish Museum",
+      "source_url": "https://esefarad.com/the-sephardic-way-to-celebrate-rosh-hashana-yehi-ratsones/",
+      "confidence": "well-attested",
+      "review_notes": "The order and whether it comes before or after hamotzi vary by family.",
+      "topic_he": "יהי רצונות (סימנים)",
+      "summary_he": "אוכלים שבעה מאכלים בזה אחר זה, כל אחד אחרי \"יהי רצון\" בעברית ובלדינו (\"Sea veluntad delantre de ti...\"): תפוח בדבש, כרתי (פראסה), תרד (ספינאקה), תמרים (דאטילס), דלעת (קלבסה), שעועית שחורת עין (פיז'ונס), וראש כבש או דג או בשר לחיים (קבסה). \"בורא פרי העץ\" נאמר על התפוח."
     },
     {
       "index": "halacha.6",
-      "category": "Shabbat",
-      "topic": "Cooking and carrying",
-      "summary": "Cooking and carrying are restricted according to standard halacha, with local customs for warming and eruv‑like arrangements where accepted.",
-      "common_practices": [
-        "Cook before Shabbat",
-        "Use permitted warming methods under halachic guidance",
-        "Avoid direct cooking or prohibited carrying",
-        "Prepare practical needs before candle lighting to avoid melacha.",
-        "Use approved warming and lighting setups established before Shabbat.",
-        "Follow local zmanim for candle lighting, shekia, and havdalah."
-      ]
+      "category": "Rosh Hashana",
+      "topic": "Pre-Rosh Hashana restriction (Rhodes)",
+      "summary": "In the weeks before Rosh Hashana, salt and eggs were not given to people outside the home, as a symbol of abundance.",
+      "common_practices": [],
+      "variants": [
+        {
+          "subgroup": "Rhodes",
+          "practice": "As above",
+          "source": "A. Galante, Histoire des Juifs de Rhodes (1935)"
+        }
+      ],
+      "source": "Rhodes Jewish Museum (superstitions list)",
+      "source_url": "https://rhodesjewishmuseum.org/la-juderia/customs-traditions/",
+      "confidence": "regional",
+      "review_notes": "Folk custom, not halacha.",
+      "topic_he": "הגבלה לפני ראש השנה (רודוס)",
+      "summary_he": "בשבועות שלפני ראש השנה לא נתנו מלח וביצים לאנשים מחוץ לבית, כסמל לשפע."
     },
     {
       "index": "halacha.7",
-      "category": "Kashrut",
-      "topic": "Meat and dairy",
-      "summary": "Meat and dairy separation follows Sephardi standards, with practical customs shaped by Ottoman and later Turkish food environments.",
-      "common_practices": [
-        "Keep separate utensils and cookware",
-        "Observe customary waiting periods after meat",
-        "Maintain clean separation in home kitchens",
-        "Keep clear separation of meat and dairy utensils, storage, and prep zones.",
-        "Verify supervision standards according to trusted local rabbinic authority.",
-        "Apply inherited waiting-time custom for meat and dairy under halachic guidance."
-      ]
+      "category": "Yom Kippur",
+      "topic": "Rose water at Neila (Rhodes)",
+      "summary": "Before Neila, worshippers dipped handkerchiefs in rose water (agua de flor), and the synagogue filled with its scent.",
+      "common_practices": [],
+      "variants": [
+        {
+          "subgroup": "Rhodes",
+          "practice": "As above",
+          "source": "M. D. Angel, The Jews of Rhodes"
+        }
+      ],
+      "source": "Rhodes Jewish Museum, quoting Angel",
+      "source_url": "https://rhodesjewishmuseum.org/la-juderia/customs-traditions/",
+      "confidence": "regional",
+      "review_notes": "Angel's book itself was not opened.",
+      "topic_he": "מי ורדים בנעילה (רודוס)",
+      "summary_he": "לפני נעילה טבלו מתפללים מטפחות במי ורדים (agua de flor), ובית הכנסת התמלא בריחם."
     },
     {
       "index": "halacha.8",
-      "category": "Kashrut",
-      "topic": "Shechita and supervision",
-      "summary": "Ritual slaughter and supervision were central to communal kashrut and remain important in diaspora settings.",
-      "common_practices": [
-        "Use qualified shochtim",
-        "Inspect animals and meat carefully",
-        "Follow local standards for supervision and glatt stringency where customary",
-        "Keep clear separation of meat and dairy utensils, storage, and prep zones.",
-        "Verify supervision standards according to trusted local rabbinic authority.",
-        "Apply inherited waiting-time custom for meat and dairy under halachic guidance."
-      ]
+      "category": "Sukkot",
+      "topic": "Sukkah decoration (Rhodes)",
+      "summary": "Sukkot were covered with palm branches and myrtle. They were decorated with fruit and with embroideries (cevres) on the walls, and families studied the tikkun inside.",
+      "common_practices": [],
+      "variants": [
+        {
+          "subgroup": "Rhodes",
+          "practice": "As above",
+          "source": "Laura Varon, The Juderia"
+        }
+      ],
+      "source": "Rhodes Jewish Museum",
+      "source_url": "https://rhodesjewishmuseum.org/la-juderia/customs-traditions/",
+      "confidence": "regional",
+      "review_notes": "Hoshana Rabba and Simchat Torah are in gaps.",
+      "topic_he": "קישוט הסוכה (רודוס)",
+      "summary_he": "הסוכות כוסו בענפי דקל והדס. הן קושטו בפירות וברקמות (סֶבְרֶס) על הקירות, ומשפחות למדו בתוכן את התיקון."
     },
     {
       "index": "halacha.9",
-      "category": "Kashrut",
-      "topic": "Wine and beverages",
-      "summary": "Wine standards are respected for ritual and social use, often under local supervision.",
-      "common_practices": [
-        "Use kosher wine for Kiddush and Havdalah",
-        "Follow local minhag on handling and storage",
-        "Observe communal standards in commercial and family settings",
-        "Keep clear separation of meat and dairy utensils, storage, and prep zones.",
-        "Verify supervision standards according to trusted local rabbinic authority.",
-        "Apply inherited waiting-time custom for meat and dairy under halachic guidance."
-      ]
+      "category": "Chanukah",
+      "topic": "Hanukiya and festivities",
+      "summary": "Rhodes used tin hanukiyot burning olive oil, with pine-needle wicks wrapped in cotton, displayed in windows. Burmuelos were eaten, and in the 1920s families held a picnic called 'el dia di la Miranda'. The holiday is also called Fiesta de las Kandelikas.",
+      "common_practices": [],
+      "variants": [
+        {
+          "subgroup": "Rhodes (historical)",
+          "practice": "As above",
+          "source": "R. A. Levy, I Remember Rhodes"
+        },
+        {
+          "subgroup": "Rhodes (Alhadeff family)",
+          "practice": "One menorah per family",
+          "source": "Where What When (2022)"
+        }
+      ],
+      "source": "Rhodes Jewish Museum; Where What When",
+      "source_url": "https://rhodesjewishmuseum.org/la-juderia/customs-traditions/",
+      "confidence": "regional",
+      "review_notes": "The one-menorah practice comes from a single family.",
+      "references": [
+        {
+          "title": "Customs & Traditions – Rhodes Jewish Museum",
+          "url": "https://rhodesjewishmuseum.org/la-juderia/customs-traditions/"
+        }
+      ],
+      "topic_he": "חנוכייה וחגיגות",
+      "summary_he": "ברודוס השתמשו בחנוכיות פח שדלקו בשמן זית, עם פתילות מסיכות אורן עטופות כותנה, שהוצגו בחלונות. אכלו בורמואלוס, ובשנות ה-20 ערכו משפחות פיקניק בשם \"el dia di la Miranda\". החג נקרא גם Fiesta de las Kandelikas."
     },
     {
       "index": "halacha.10",
-      "category": "Pesach",
-      "topic": "Pesach customs",
-      "summary": "Pesach practice is broadly Sephardi, with city‑specific variations in foods and customs.",
-      "common_practices": [
-        "Remove chametz carefully before Pesach",
-        "Kasher utensils or use dedicated Pesach sets",
-        "Follow local guidance on kitniyot and regional dishes",
-        "Review chametz cleaning and kashering checklists before the festival.",
-        "Follow community custom on kitniyot and festival kitchen workflow.",
-        "Use community haggadah flow and family minhagim within halachic structure."
-      ]
+      "category": "Purim",
+      "topic": "Megillah, mishloah manot, koplas",
+      "summary": "In Rhodes, children delivered platters of sweets (platikos) with the blessing 'Bivas komo l'agua freska, ke tengas la kaza yena komo il guevo'. Other customs: huevos de Haman, Ladino koplas (Livorno 1902; Istanbul 5683), and the saying 'Purim lanu, Pesah en la mano'.",
+      "common_practices": [],
+      "variants": [
+        {
+          "subgroup": "Rhodes (Seattle, 1930s, discontinued)",
+          "practice": "Extra second-night reading of the Megillah in Ladino",
+          "source": "Elazar Behar oral history"
+        },
+        {
+          "subgroup": "Rhodes (19th c.)",
+          "practice": "Chief Rabbi Rahamim Yehuda Israel forbade banging during the Megillah",
+          "source": "Responsum, translated by R. Yossi Azose"
+        }
+      ],
+      "source": "UW Stroum Center Purim article (2015); Rhodes Jewish Museum",
+      "source_url": "https://jewishstudies.washington.edu/sephardic-studies/sephardic-purim-customs-from-the-old-world-to-the-pacific-northwest/",
+      "confidence": "well-attested",
+      "review_notes": "The Ladino reading was in addition to the required readings.",
+      "references": [
+        {
+          "title": "Customs & Traditions – Rhodes Jewish Museum",
+          "url": "https://rhodesjewishmuseum.org/la-juderia/customs-traditions/"
+        }
+      ],
+      "topic_he": "מגילה, משלוח מנות, קופלאס",
+      "summary_he": "ברודוס הביאו ילדים מגשי ממתקים (פלטיקוס) עם הברכה \"Bivas komo l'agua freska, ke tengas la kaza yena komo il guevo\". מנהגים נוספים: huevos de Haman, קופלאס בלדינו (ליוורנו 1902; קושטא תרפ\"ג), והאמרה \"Purim lanu, Pesah en la mano\"."
     },
     {
       "index": "halacha.11",
       "category": "Pesach",
-      "topic": "Seder and Haggadah",
-      "summary": "The Seder combines halachic structure with Turkish Sephardi piyutim, melodies, and family foods.",
-      "common_practices": [
-        "Use accepted Haggadah rite",
-        "Sing piyyutim in Ladino and Hebrew",
-        "Preserve local customs for seder plate and sequence",
-        "Review chametz cleaning and kashering checklists before the festival.",
-        "Follow community custom on kitniyot and festival kitchen workflow.",
-        "Use community haggadah flow and family minhagim within halachic structure."
-      ]
+      "topic": "Kitniyot and rice",
+      "summary": "Disputed. The subgroups are recorded separately below.",
+      "common_practices": [],
+      "variants": [
+        {
+          "subgroup": "Izmir",
+          "practice": "No rice",
+          "source": "R. H. Palachi, Lev Hayim 2:94, as cited in Peninei Halakha, Pesah 9:2"
+        },
+        {
+          "subgroup": "Turkey (general)",
+          "practice": "No rice",
+          "source": "Moed Lekhol Hai 2:7, cited by R. A. Asulin (2014)"
+        },
+        {
+          "subgroup": "Salonika",
+          "practice": "No kitniyot except mustard",
+          "source": "Shulhan Gavoha OC 453:1, cited by R. A. Asulin (2014)"
+        },
+        {
+          "subgroup": "Rhodes (Alhadeff family)",
+          "practice": "Kitniyot eaten, but not rice",
+          "source": "Where What When (2022)"
+        }
+      ],
+      "source": "R. Eliezer Melamed, Peninei Halakha, Pesah 9:2",
+      "source_url": "https://ph.yhb.org.il/en/04-09-02/",
+      "confidence": "disputed",
+      "review_notes": "HIGH RISK. Show only the user's subgroup and refer them to their rabbi. The primary texts were not opened.",
+      "topic_he": "קטניות ואורז",
+      "summary_he": "שנוי במחלוקת. עדות המשנה מתועדות בנפרד להלן."
     },
     {
       "index": "halacha.12",
-      "category": "Lifecycle",
-      "topic": "Brit milah",
-      "summary": "Brit milah is performed according to halacha with strong communal and family ceremony.",
-      "common_practices": [
-        "Use a qualified mohel",
-        "Observe naming traditions and blessings",
-        "Preserve songs and family customs",
-        "Keep core lifecycle ceremonies aligned with halachic requirements.",
-        "Document family minhagim for naming, honors, and celebration order.",
-        "Consult community rabbi for local protocol differences."
-      ]
+      "category": "Pesach",
+      "topic": "Seder (Rhodes)",
+      "summary": "The Agada was read in Ladino and Hebrew. 'Todo el ken tiene ambre venga i koma' was recited, and the seder ended with 'Un kavritiko' and 'Ken supiese i entendiese'.",
+      "common_practices": [],
+      "variants": [
+        {
+          "subgroup": "Rhodes",
+          "practice": "As above",
+          "source": "I. J. Levy, Jewish Rhodes: A Lost Culture"
+        }
+      ],
+      "source": "Rhodes Jewish Museum",
+      "source_url": "https://rhodesjewishmuseum.org/la-juderia/customs-traditions/",
+      "confidence": "regional",
+      "review_notes": "",
+      "topic_he": "הסדר (רודוס)",
+      "summary_he": "ההגדה נקראה בלדינו ובעברית. אמרו \"Todo el ken tiene ambre venga i koma\", והסדר הסתיים ב\"Un kavritiko\" וב\"Ken supiese i entendiese\"."
     },
     {
       "index": "halacha.13",
-      "category": "Lifecycle",
-      "topic": "Marriage and celebrations",
-      "summary": "Marriage follows halacha and includes local family celebration customs that vary by city and lineage.",
-      "common_practices": [
-        "Use a valid ketubah",
-        "Perform kiddushin and nissuin according to Sephardi custom",
-        "Observe local customs for engagement, gifts, and wedding festivities",
-        "Keep core lifecycle ceremonies aligned with halachic requirements.",
-        "Document family minhagim for naming, honors, and celebration order.",
-        "Consult community rabbi for local protocol differences."
-      ]
+      "category": "Pesach",
+      "topic": "Shir HaShirim (Rhodes)",
+      "summary": "Before Mincha on the first two days of Pesach, the Song of Songs was sung verse by verse in Hebrew and then Judeo-Spanish.",
+      "common_practices": [],
+      "variants": [
+        {
+          "subgroup": "Rhodes",
+          "practice": "As above",
+          "source": "M. D. Angel"
+        }
+      ],
+      "source": "Rhodes Jewish Museum",
+      "source_url": "https://rhodesjewishmuseum.org/la-juderia/customs-traditions/",
+      "confidence": "regional",
+      "review_notes": "",
+      "topic_he": "שיר השירים (רודוס)",
+      "summary_he": "לפני מנחה בשני הימים הראשונים של פסח שרו את שיר השירים פסוק אחר פסוק בעברית ואחר כך ביהודית-ספרדית."
     },
     {
       "index": "halacha.14",
-      "category": "Family law",
-      "topic": "Niddah and mikveh",
-      "summary": "Family purity laws are observed carefully, often conservatively, in traditional Turkish communities.",
-      "common_practices": [
-        "Observe niddah separation laws",
-        "Use mikveh according to halacha",
-        "Follow local rabbinic guidance for household practice",
-        "Use a consistent halachic calendar and consultation process for sensitive questions.",
-        "Coordinate household observance with qualified rabbinic guidance.",
-        "Preserve family minhag where compatible with accepted psak."
-      ]
+      "category": "Pesach",
+      "topic": "Last-day picnic (Rhodes)",
+      "summary": "A picnic on the last day of Pesach was 'a must', at Rodini, Trianda or Sirinella. This is the closest thing to a Mimouna-type custom that was found.",
+      "common_practices": [],
+      "variants": [
+        {
+          "subgroup": "Rhodes",
+          "practice": "As above",
+          "source": "Sami Modiano, For This I Lived"
+        }
+      ],
+      "source": "Rhodes Jewish Museum",
+      "source_url": "https://rhodesjewishmuseum.org/la-juderia/customs-traditions/",
+      "confidence": "regional",
+      "review_notes": "Do not label this Mimouna.",
+      "references": [
+        {
+          "title": "Customs & Traditions – Rhodes Jewish Museum",
+          "url": "https://rhodesjewishmuseum.org/la-juderia/customs-traditions/"
+        }
+      ],
+      "topic_he": "פיקניק ביום האחרון (רודוס)",
+      "summary_he": "פיקניק ביום האחרון של פסח היה \"חובה\", ברודיני, בטריאנדה או בסיריניה. זה הדבר הקרוב ביותר למנהג מסוג מימונה שנמצא."
     },
     {
       "index": "halacha.15",
-      "category": "Mourning",
-      "topic": "Funeral customs",
-      "summary": "Mourning follows halachic structure with Anatolian‑Sephardi elements such as specific foods and symbolism.",
-      "common_practices": [
-        "Observe shiva and related customs",
-        "Use traditional foods and drinks at levaya or shiva settings",
-        "Preserve local customs for memorial prayers and visits",
-        "Observe shiva, shloshim, and yahrzeit in the accepted local format.",
-        "Coordinate memorial prayer customs with synagogue practice.",
-        "Preserve condolence and visitation etiquette used by the community."
-      ]
+      "category": "Omer",
+      "topic": "Mourning period",
+      "summary": "No weddings in the first 33 days. No haircuts until the morning of day 34, after which all restrictions end. Live music is avoided except on Lag LaOmer, and so are new garments that require shehehiyanu. Women are not included in the haircut custom.",
+      "common_practices": [],
+      "variants": [
+        {
+          "subgroup": "Seattle Sephardic Bikur Holim",
+          "practice": "As above",
+          "source": "R. Simon Hassan (2014)"
+        }
+      ],
+      "source": "Shulchan Aruch OC 493:1-2; R. Simon Hassan (2014)",
+      "source_url": "http://askrabbihassan.blogspot.com/2014/04/sephardic-practices-during-omer.html",
+      "confidence": "well-attested",
+      "review_notes": "General Sephardic rule as applied in a Turkish-origin congregation.",
+      "topic_he": "תקופת האבלות",
+      "summary_he": "אין חתונות ב-33 הימים הראשונים. אין תספורת עד בוקר היום ה-34, ואחריו כל ההגבלות מסתיימות. נמנעים ממוזיקה חיה פרט ל\"לג לעומר\", וכן מבגדים חדשים הטעונים שהחיינו. נשים אינן כלולות במנהג התספורת."
     },
     {
       "index": "halacha.16",
-      "category": "Calendar",
-      "topic": "High Holidays",
-      "summary": "Rosh Hashanah and Yom Kippur are observed with seriousness and rich local melodies and piyyutim.",
-      "common_practices": [
-        "Use the Sephardi machzor or local rite",
-        "Preserve selichot and shofar customs",
-        "Follow synagogue‑specific order and family traditions",
-        "Anchor observance times to local halachic zmanim.",
-        "Coordinate fasts, selichot, and festival timing with community schedule.",
-        "Use a single trusted local calendar authority for consistency."
-      ]
+      "category": "Shavuot",
+      "topic": "Shavuot customs",
+      "summary": "Velada (all-night study), azharot before Ruth, the Ladino song 'La Ketubah de la Ley', and dairy foods. In Salonika, families went on park outings with enchusa, sotlach and raki.",
+      "common_practices": [],
+      "variants": [
+        {
+          "subgroup": "Salonika",
+          "practice": "Park outings",
+          "source": "Sa'adi Besalel a-Levi memoir; Bouena Sarfatty"
+        }
+      ],
+      "source": "Ty Alhadeff, 'Salonican Shavuot Traditions', My Jewish Learning (2017)",
+      "source_url": "https://www.myjewishlearning.com/2017/05/24/salonican-shavuot-traditions/",
+      "confidence": "regional",
+      "review_notes": "A rose-water custom in Izmir attributed to Palachi was seen only in a search snippet and needs review.",
+      "topic_he": "מנהגי שבועות",
+      "summary_he": "ולדה (לימוד כל הלילה), אזהרות לפני רות, השיר הלדינו \"La Ketubah de la Ley\", ומאכלי חלב. בסלוניקי יצאו משפחות לטיולים בפארקים עם אנצ'וסה, סוטלאץ' וראקי."
     },
     {
       "index": "halacha.17",
-      "category": "Calendar",
-      "topic": "Chanukah",
-      "summary": "Chanukah is celebrated with standard halacha and family lighting customs, often accompanied by traditional foods.",
-      "common_practices": [
-        "Light candles nightly",
-        "Recite blessings according to local custom",
-        "Prepare traditional Turkish‑Sephardi Chanukah foods",
-        "Anchor observance times to local halachic zmanim.",
-        "Coordinate fasts, selichot, and festival timing with community schedule.",
-        "Use a single trusted local calendar authority for consistency."
-      ]
+      "category": "Lifecycle",
+      "topic": "Brit milah",
+      "summary": "A shemira watch is kept the night before, with a sword hung in the room (Rhodes). The godparents are the kitado and kitada; paternal grandparents are honored for the first son and maternal grandparents for the next. Rue (ruda) is placed on the pillow.",
+      "common_practices": [],
+      "variants": [
+        {
+          "subgroup": "Rhodes",
+          "practice": "Procession to the synagogue carried by the ketada",
+          "source": "Angel; Menasce"
+        },
+        {
+          "subgroup": "Seattle",
+          "practice": "Order of grandparent honors; ruda",
+          "source": "UW Stroum Center"
+        }
+      ],
+      "source": "UW Stroum Center, 'Berit Mila: Reclaiming the Sephardic Circumcision Ceremony'; Rhodes Jewish Museum",
+      "source_url": "https://jewishstudies.washington.edu/exploring-sephardic-life-cycle-customs/berit-mila-sephardic-circumcision-ceremony",
+      "confidence": "well-attested",
+      "review_notes": "Present the folk elements as custom, not halacha.",
+      "references": [
+        {
+          "title": "Customs & Traditions – Rhodes Jewish Museum",
+          "url": "https://rhodesjewishmuseum.org/la-juderia/customs-traditions/"
+        }
+      ],
+      "topic_he": "ברית מילה",
+      "summary_he": "שומרים שמירה בלילה שלפני כן, וחרב תלויה בחדר (רודוס). הסנדקים הם ה\"קיטאדו\" וה\"קיטאדה\"; סבים מצד האב מכובדים בבן הראשון וסבים מצד האם בבא אחריו. מניחים רותם (רודה) על הכרית."
     },
     {
       "index": "halacha.18",
-      "category": "Calendar",
-      "topic": "Purim",
-      "summary": "Purim is communal and festive, with public Megillah reading and celebratory foods.",
-      "common_practices": [
-        "Read the Megillah publicly",
-        "Exchange gifts to the poor and friends",
-        "Observe local Purim celebrations and foods",
-        "Anchor observance times to local halachic zmanim.",
-        "Coordinate fasts, selichot, and festival timing with community schedule.",
-        "Use a single trusted local calendar authority for consistency."
-      ]
+      "category": "Lifecycle",
+      "topic": "Girls' naming (las fadas)",
+      "summary": "Girls were named at home, in the arms of the quitada, at a ceremony called las fadas.",
+      "common_practices": [],
+      "variants": [
+        {
+          "subgroup": "Rhodes",
+          "practice": "As above",
+          "source": "Menasce"
+        }
+      ],
+      "source": "Rhodes Jewish Museum",
+      "source_url": "https://rhodesjewishmuseum.org/la-juderia/customs-traditions/",
+      "confidence": "regional",
+      "review_notes": "",
+      "topic_he": "קריאת שם לבנות (לאס פאדאס)",
+      "summary_he": "בנות נקראו בשמן בבית, בזרועות הקיטאדה, בטקס שנקרא \"לאס פאדאס\"."
     },
     {
       "index": "halacha.19",
-      "category": "Education",
-      "topic": "Torah and language transmission",
-      "summary": "Transmission is strongly text‑based and also includes Ladino and oral traditions.",
-      "common_practices": [
-        "Teach children Hebrew and prayer forms",
-        "Preserve Ladino phrases and piyyutim",
-        "Use both formal study and family‑based education",
-        "Teach children both baseline halacha and family minhag distinctions.",
-        "Preserve community pronunciation and liturgical pedagogy.",
-        "Document oral traditions to reduce minhag drift across generations."
-      ]
+      "category": "Lifecycle",
+      "topic": "Pidyon haben",
+      "summary": "R. Michel Albagli handwrote a Ladino ceremony text in the Rhodes tradition (1955). Rue was used at the celebration.",
+      "common_practices": [],
+      "variants": [],
+      "source": "Rhodes Jewish Museum; UW Stroum Center",
+      "source_url": "https://rhodesjewishmuseum.org/la-juderia/customs-traditions/",
+      "confidence": "needs-review",
+      "review_notes": "The content of the text was not reproduced.",
+      "references": [
+        {
+          "title": "Customs & Traditions – Rhodes Jewish Museum",
+          "url": "https://rhodesjewishmuseum.org/la-juderia/customs-traditions/"
+        }
+      ],
+      "topic_he": "פדיון הבן",
+      "summary_he": "הרב מישל אלבגלי כתב בכתב יד נוסח טקס בלדינו במסורת רודוס (1955). רותם שימשה בחגיגה."
     },
     {
       "index": "halacha.20",
-      "category": "Community",
-      "topic": "Synagogue and communal structure",
-      "summary": "Turkish Jewry historically maintained strong synagogue‑based communities and communal leadership.",
-      "common_practices": [
-        "Organize life around main synagogues and smaller kehillot",
-        "Follow recognized rabbinic authority",
-        "Preserve local customs for synagogue governance and ritual",
-        "Prioritize communal unity where multiple minhag streams meet.",
-        "Record synagogue protocol for honors, leadership, and service flow.",
-        "Use local beit din or rabbinic authority for conflict resolution."
-      ]
+      "category": "Lifecycle",
+      "topic": "Bar mitzvah",
+      "summary": "In Rhodes, the boy first put on tefillin on a Monday or Thursday and read the perasha the following Shabbat. There were never bat mitzvahs in Rhodes.",
+      "common_practices": [],
+      "variants": [
+        {
+          "subgroup": "Rhodes",
+          "practice": "As above",
+          "source": "R. A. Levy"
+        }
+      ],
+      "source": "Rhodes Jewish Museum",
+      "source_url": "https://rhodesjewishmuseum.org/la-juderia/customs-traditions/",
+      "confidence": "regional",
+      "review_notes": "Historical.",
+      "topic_he": "בר מצווה",
+      "summary_he": "ברודוס הניח הנער תפילין לראשונה ביום שני או חמישי וקרא את הפרשה בשבת שלאחר מכן. ברודוס מעולם לא היו בת מצווה."
     },
     {
       "index": "halacha.21",
-      "category": "Community",
-      "topic": "Interactions with majority society",
-      "summary": "Halachic norms regulated behavior in a Muslim‑majority Ottoman and later Turkish context.",
-      "common_practices": [
-        "Observe Shabbat and kashrut carefully in public life",
-        "Use halachic leniency or stringency where applicable for social harmony",
-        "Preserve customs related to interactions with neighbors",
-        "Prioritize communal unity where multiple minhag streams meet.",
-        "Record synagogue protocol for honors, leadership, and service flow.",
-        "Use local beit din or rabbinic authority for conflict resolution."
-      ]
+      "category": "Lifecycle",
+      "topic": "Wedding (Rhodes)",
+      "summary": "Weddings were held on Friday, with the baño de novia (bridal bath) on Thursday. The trousseau was displayed (vijita). The bride walked in procession to the synagogue after asking her parents' permission in Ladino and kissing the mezuzah. The couple was covered with a talet for the seven blessings, the ketubah was read, and a glass was broken.",
+      "common_practices": [],
+      "variants": [
+        {
+          "subgroup": "Rhodes",
+          "practice": "As above",
+          "source": "Menasce; R. A. Levy"
+        }
+      ],
+      "source": "Rhodes Jewish Museum",
+      "source_url": "https://rhodesjewishmuseum.org/la-juderia/customs-traditions/",
+      "confidence": "regional",
+      "review_notes": "Verify the order of the ceremony.",
+      "topic_he": "חתונה (רודוס)",
+      "summary_he": "חתונות נערכו ביום שישי, עם \"באניו די נוביה\" (טבילת כלה) ביום חמישי. הוצגה הנדוניה (ויז'יטה). הכלה צעדה בתהלוכה לבית הכנסת אחרי שביקשה רשות מהוריה בלדינו ונישקה את המזוזה. בני הזוג כוסו בטלית לשבע הברכות, הכתובה נקראה, וכוס נשברה."
+    },
+    {
+      "index": "halacha.22",
+      "category": "Lifecycle",
+      "topic": "Avraham Seev",
+      "summary": "On the Shabbat after the wedding, an extra Sefer Torah is opened after the haftarah. The hatan says the blessings, and Gen. 24:1-7 is read, alternating with the Aramaic targum, each verse in a different makam.",
+      "common_practices": [],
+      "variants": [
+        {
+          "subgroup": "Seattle Rhodes and Turkish",
+          "practice": "Separate Sefer Torah, with berakhot",
+          "source": "Siddur Zehut Yosef p. 375"
+        },
+        {
+          "subgroup": "Most other Sephardim",
+          "practice": "Read from a Humash, without berakhot",
+          "source": "R. Azose's comment (2015)"
+        }
+      ],
+      "source": "R. Simon Hassan, 'What is an Avraham Seev?' (2015)",
+      "source_url": "http://askrabbihassan.blogspot.com/2015/01/what-is-avraham-seev.html",
+      "confidence": "regional",
+      "review_notes": "R. Azose cites Keneset HaGedolah on the custom in Tire, Turkey; that text was not opened.",
+      "topic_he": "אברהם זקן",
+      "summary_he": "בשבת שאחרי החתונה פותחים ספר תורה נוסף אחרי ההפטרה. החתן אומר את הברכות, וקוראים בראשית כד:א-ז, לסירוגין עם התרגום הארמי, כל פסוק במקאם אחר."
+    },
+    {
+      "index": "halacha.23",
+      "category": "Mourning",
+      "topic": "Aninut, keriah, seudat havraa, siete",
+      "summary": "Onenim are exempt from berakhot and prayer before the burial. After it, they say Baruch Dayan HaEmet and tear keriah (left side for parents, right for others). The first meal is supplied by the community and consists of round foods (huevos haminados, panezikos, olives, raisins; the Ladino 'pasas' puns on 'esto va pasar'). On the Shabbat of the siete, the mourner sits facing the congregation.",
+      "common_practices": [],
+      "variants": [
+        {
+          "subgroup": "Rhodes (historical)",
+          "practice": "'Sentar en siete' on the floor around a white cloth, with endechadoras (lamenting women)",
+          "source": "V. Alhadeff, Le Chene de Rhodes"
+        }
+      ],
+      "source": "R. Simon Hassan (2014); UW Stroum Center 'Meldado'",
+      "source_url": "http://askrabbihassan.blogspot.com/2014/11/sephardic-custom-and-law-when-close.html",
+      "confidence": "well-attested",
+      "review_notes": "",
+      "references": [
+        {
+          "title": "Sephardic Custom and Law When a Close Relative Passes Away",
+          "url": "http://askrabbihassan.blogspot.com/2014/11/sephardic-custom-and-law-when-close.html"
+        },
+        {
+          "title": "Meldado: Jewish Memorial Services and the Boundaries of Sacred Space - UW Stroum Center for Jewish Studies",
+          "url": "https://jewishstudies.washington.edu/exploring-sephardic-life-cycle-customs/meldado-jewish-memorial-services/"
+        }
+      ],
+      "topic_he": "אנינות, קריעה, סעודת הברעה, סייטה",
+      "summary_he": "אונן פטור מברכות ומתפילה לפני הקבורה. אחריה אומרים \"ברוך דיין האמת\" וקורעים (בצד שמאל על הורים, בימין על אחרים). הסעודה הראשונה מסופקת בידי הקהילה ומורכבת ממאכלים עגולים (huevos haminados, פנזיקוס, זיתים, צימוקים; \"פאסאס\" בלדינו משחק בצליל \"esto va pasar\"). בשבת של ה\"סייטה\" יושב האבל פנים אל הקהל."
+    },
+    {
+      "index": "halacha.24",
+      "category": "Mourning",
+      "topic": "Funeral (Rhodes)",
+      "summary": "The Bikur Holim society kept watch at the deathbed. Rohesim and rohesas prepared the body. Only men walked in the procession; women and kohanim did not. The cry 'Pasa la misva!' announced the procession.",
+      "common_practices": [],
+      "variants": [
+        {
+          "subgroup": "Rhodes",
+          "practice": "As above",
+          "source": "A. Hasson; R. A. Levy"
+        }
+      ],
+      "source": "Rhodes Jewish Museum",
+      "source_url": "https://rhodesjewishmuseum.org/la-juderia/customs-traditions/",
+      "confidence": "regional",
+      "review_notes": "",
+      "topic_he": "הלוויה (רודוס)",
+      "summary_he": "חברת ביקור חולים שמרה ליד מיטת הגוסס. רוחצים ורוחצות הכינו את הגופה. רק גברים צעדו בתהלוכה; נשים וכהנים לא. הקריאה \"Pasa la misva!\" הודיעה על התהלוכה."
+    },
+    {
+      "index": "halacha.25",
+      "category": "Mourning",
+      "topic": "Kaddish and the meldado cycle",
+      "summary": "Kaddish for a parent is said for 11 months and again for the month following the 12-month meldado; for other relatives, 30 days, though many say it for a year. Meldados are held after the siete, at the sheloshim (korte de mes), and at 7, 9, 11 and 12 months, counted from burial. They consist of Psalms (Alpha Beta) and mishnayot arranged by acrostic, plus a meal. They were once held at home.",
+      "common_practices": [],
+      "variants": [
+        {
+          "subgroup": "Ladino speakers",
+          "practice": "The term 'yahrzeit' is also used",
+          "source": "UW Stroum Center, citing Keter Shem Tov"
+        }
+      ],
+      "source": "UW Stroum Center, 'Meldado'; R. Simon Hassan (2014)",
+      "source_url": "https://jewishstudies.washington.edu/exploring-sephardic-life-cycle-customs/meldado-jewish-memorial-services/",
+      "confidence": "well-attested",
+      "review_notes": "",
+      "references": [
+        {
+          "title": "Sephardic Custom and Law When a Close Relative Passes Away",
+          "url": "http://askrabbihassan.blogspot.com/2014/11/sephardic-custom-and-law-when-close.html"
+        }
+      ],
+      "topic_he": "קדיש ומחזור המלדאדו",
+      "summary_he": "אומרים קדיש על הורה 11 חודשים, ושוב בחודש שלאחר המלדאדו של 12 החודשים; על קרובים אחרים, 30 יום, אך רבים אומרים אותו שנה. מלדאדוס נערכים אחרי ה\"סייטה\", בשלושים (\"קורטי די מס\"), ובחודשים 7, 9, 11 ו-12, מנוי מהקבורה. הם מורכבים מתהילים (אלפא בית) ומשניות המסודרות לפי ראשי תיבות, ועוד סעודה. פעם נערכו בבית."
+    },
+    {
+      "index": "halacha.26",
+      "category": "Prayer",
+      "topic": "Ladino translations",
+      "summary": "R. Reuven Eliyahu Israel translated Psalms, Proverbs and High Holiday poems into Judeo-Spanish. Ezra Bessaroth continues to use his booklet.",
+      "common_practices": [],
+      "variants": [],
+      "source": "Rhodes Jewish Museum; isaacazose.com",
+      "source_url": "https://rhodesjewishmuseum.org/la-juderia/customs-traditions/",
+      "confidence": "regional",
+      "review_notes": "Trope is in gaps.",
+      "references": [
+        {
+          "title": "Customs & Traditions – Rhodes Jewish Museum",
+          "url": "https://rhodesjewishmuseum.org/la-juderia/customs-traditions/"
+        },
+        {
+          "title": "The High Holidays in Ladino: a Rhodesli Custom from Romania to Johannesburg, Seattle, and Beyond - UW Stroum Center for Jewish Studies",
+          "url": "https://jewishstudies.washington.edu/sephardic-studies/high-holidays-in-ladino/"
+        }
+      ],
+      "topic_he": "תרגומים ללדינו",
+      "summary_he": "הרב ראובן אליהו ישראל תרגם ליהודית-ספרדית תהילים, משלי ופיוטי ימים נוראים. קהילת עזרא בסרות ממשיכה להשתמש בחוברתו."
     }
   ],
-  "unique_minhagim": {
-    "examples": [
-      "Use of Ladino and Ladino‑piyutim in synagogue and home life",
-      "Ottoman-Sephardi piyyut and melody traditions in communal prayer",
-      "City-based custom variation (for example Istanbul, Izmir, and Bursa)",
-      "Family-centered lifecycle and hospitality traditions within halachic practice",
-      "Strong city‑based distinctions such as Istanbul vs. Izmir vs. Bursa"
-    ],
-    "notes": "Turkish Jewish practice is diverse; subgroup and city‑of‑origin information should be recorded whenever possible."
-  },
-  "source_registry": {
-    "primary": [
-      "Shulchan Aruch",
-      "Beit Yosef",
-      "Rav Chaim Palachi",
-      "Rav Refael Saban"
-    ],
-    "secondary": [
-      "Turkish community archives and publications",
-      "JewishGen Ottoman/Turkish collections",
-      "Ladino‑language and Sephardic education resources"
-    ]
-  }
+  "unique_minhagim": [
+    {
+      "name": "Purim of Rhodes",
+      "description": "A double Purim, with special prayers and hymns, commemorating the 1840 libel.",
+      "when": "14 Adar",
+      "source": "Jewish Encyclopedia (1906), 'Purims, Special'",
+      "source_url": "https://www.jewishencyclopedia.com/articles/12450-purims-special",
+      "confidence": "needs-review",
+      "name_he": "פורים של רודוס",
+      "description_he": "פורים כפול, עם תפילות ומזמורים מיוחדים, לציון עלילת הדם של 1840."
+    },
+    {
+      "name": "Purim of Saragossa",
+      "description": "Local Purim with its own megillah, kept in Constantinople, Magnesia, Smyrna, Aidin, Salonica and Jerusalem.",
+      "when": "17 or 18 Shevat",
+      "source": "Jewish Encyclopedia (1906)",
+      "source_url": "https://www.jewishencyclopedia.com/articles/12450-purims-special",
+      "confidence": "disputed",
+      "name_he": "פורים של סרגוסה",
+      "description_he": "פורים מקומי עם מגילה משלו, שנשמר בקושטא, מגנסיה, איזמיר, איידין, סלוניקי וירושלים."
+    },
+    {
+      "name": "Purim de los Ladrones (Gumeldjina)",
+      "description": "Local Purim commemorating the escape from brigands in 1786.",
+      "when": "22 Elul",
+      "source": "Jewish Encyclopedia (1906)",
+      "source_url": "https://www.jewishencyclopedia.com/articles/12450-purims-special",
+      "confidence": "regional",
+      "name_he": "פורים דה לוס לדרונס (גומלג'ינה)",
+      "description_he": "פורים מקומי לציון הצלה מפורצים ב-1786."
+    },
+    {
+      "name": "Purim of Angora",
+      "description": "Local Purim of Ankara.",
+      "when": "11 Iyyar",
+      "source": "Jewish Encyclopedia (1906), citing Keneset HaGedolah § 682",
+      "source_url": "https://www.jewishencyclopedia.com/articles/12450-purims-special",
+      "confidence": "needs-review",
+      "name_he": "פורים של אנגורה",
+      "description_he": "פורים מקומי של אנקרה."
+    },
+    {
+      "name": "Avraham Seev",
+      "description": "Torah ceremony for a hatan on the Shabbat after the wedding.",
+      "when": "Shabbat after the wedding",
+      "source": "Siddur Zehut Yosef p. 375",
+      "source_url": "http://askrabbihassan.blogspot.com/2015/01/what-is-avraham-seev.html",
+      "confidence": "regional",
+      "name_he": "אברהם זקן",
+      "description_he": "טקס תורה לחתן בשבת שאחרי החתונה."
+    },
+    {
+      "name": "Escalating greeting (Rhodes)",
+      "description": "A greeting is answered with a fuller one: 'Shabbat shalom' with 'Shabbat shalom umevorach'; 'Moadim lesimcha' with 'Hagim uzmanim lesasson'.",
+      "when": "Shabbat and Yom Tov",
+      "source": "Where What When (2022)",
+      "source_url": "https://www.wherewhatwhen.com/article/the-island-of-rhodes",
+      "confidence": "needs-review",
+      "name_he": "ברכה הולכת וגדלה (רודוס)",
+      "description_he": "על ברכה עונים בברכה מלאה יותר: \"שבת שלום\" ב\"שבת שלום ומבורך\"; \"מועדים לשמחה\" ב\"חגים וזמנים לששון\"."
+    },
+    {
+      "name": "La Ketubah de la Ley",
+      "description": "Ladino Shavuot song framing the Torah as a marriage contract.",
+      "when": "Shavuot",
+      "source": "My Jewish Learning (2017)",
+      "source_url": "https://www.myjewishlearning.com/2017/05/24/salonican-shavuot-traditions/",
+      "confidence": "regional",
+      "name_he": "לה קטובה דה לה לֶיי (La Ketubah de la Ley)",
+      "description_he": "שיר שבועות בלדינו המציג את התורה כחוזה נישואין."
+    }
+  ],
+  "source_registry": [
+    {
+      "title": "Customs & Traditions",
+      "author": "Rhodes Jewish Historical Foundation",
+      "type": "academic",
+      "url": "https://rhodesjewishmuseum.org/la-juderia/customs-traditions/",
+      "used_for": "Rhodes holidays and life cycle"
+    },
+    {
+      "title": "Sephardic Purim Customs from the Old World to the Pacific Northwest",
+      "author": "Ty Alhadeff, UW Stroum Center",
+      "type": "academic",
+      "url": "https://jewishstudies.washington.edu/sephardic-studies/sephardic-purim-customs-from-the-old-world-to-the-pacific-northwest/",
+      "used_for": "Purim; pronunciation"
+    },
+    {
+      "title": "Berit Mila: Reclaiming the Sephardic Circumcision Ceremony",
+      "author": "UW Stroum Center",
+      "type": "academic",
+      "url": "https://jewishstudies.washington.edu/exploring-sephardic-life-cycle-customs/berit-mila-sephardic-circumcision-ceremony",
+      "used_for": "Brit milah"
+    },
+    {
+      "title": "Meldado",
+      "author": "UW Stroum Center",
+      "type": "academic",
+      "url": "https://jewishstudies.washington.edu/exploring-sephardic-life-cycle-customs/meldado-jewish-memorial-services/",
+      "used_for": "Mourning and memorials"
+    },
+    {
+      "title": "Ask Rabbi Hassan (mourning, Omer and Avraham Seev posts)",
+      "author": "R. Simon Hassan, Sephardic Bikur Holim, Seattle",
+      "type": "responsa",
+      "url": "http://askrabbihassan.blogspot.com/",
+      "used_for": "Mourning, Omer, Avraham Seev"
+    },
+    {
+      "title": "Shulchan Arukh OC 493",
+      "author": "R. Yosef Karo",
+      "type": "primary",
+      "url": "https://www.sefaria.org/Shulchan_Arukh,_Orach_Chayim.493",
+      "used_for": "Omer"
+    },
+    {
+      "title": "Yehi Ratsones",
+      "author": "Enrique Levy, eSefarad",
+      "type": "reference",
+      "url": "https://esefarad.com/the-sephardic-way-to-celebrate-rosh-hashana-yehi-ratsones/",
+      "used_for": "Rosh Hashana"
+    },
+    {
+      "title": "Purims, Special",
+      "author": "Jewish Encyclopedia (1906)",
+      "type": "reference",
+      "url": "https://www.jewishencyclopedia.com/articles/12450-purims-special",
+      "used_for": "Local Purims"
+    },
+    {
+      "title": "Peninei Halakha, Pesah 9:2",
+      "author": "R. Eliezer Melamed",
+      "type": "reference",
+      "url": "https://ph.yhb.org.il/en/04-09-02/",
+      "used_for": "Izmir rice custom"
+    },
+    {
+      "title": "Halakha u-ma'amarim (kitniyot)",
+      "author": "R. Avraham Asulin",
+      "type": "reference",
+      "url": "https://moreshet-morocco.com/2014/04/13/%D7%94%D7%A8%D7%91-%D7%90%D7%91%D7%A8%D7%94%D7%9D-%D7%90%D7%A1%D7%95%D7%9C%D7%99%D7%9F-%D7%94%D7%9C%D7%9B%D7%94-%D7%95%D7%9E%D7%90%D7%9E%D7%A8%D7%99%D7%9D-%D7%9E%D7%90%D7%AA-%D7%97%D7%9B%D7%9D-44/",
+      "used_for": "Cited by a secondary source for Turkey and Salonika"
+    },
+    {
+      "title": "Salonican Shavuot Traditions",
+      "author": "Ty Alhadeff",
+      "type": "academic",
+      "url": "https://www.myjewishlearning.com/2017/05/24/salonican-shavuot-traditions/",
+      "used_for": "Shavuot"
+    },
+    {
+      "title": "The Island of Rhodes",
+      "author": "Judy Landman, Where What When",
+      "type": "reference",
+      "url": "https://www.wherewhatwhen.com/article/the-island-of-rhodes",
+      "used_for": "Rhodes family testimony"
+    }
+  ],
+  "gaps": [
+    "Order of service for Istanbul, Izmir and Salonika",
+    "Candle-lighting offsets, Kiddush, seudah shelishit, Havdalah",
+    "Rosh Hashana shofar customs and Tashlich",
+    "Yom Kippur beyond rose water",
+    "Hoshana Rabba and Simchat Torah",
+    "Matzah customs",
+    "Tisha B'Av and fasts (Ladino kinot and haftarah: leads only)",
+    "Tefillin and tzitzit (talet and tefillin at fast-day Mincha): no firm source found",
+    "Torah trope",
+    "Maftirim (Edirne/Istanbul Shabbat hymn tradition): no source found",
+    "Kashrut",
+    "Niddah and mikveh beyond the bridal bath",
+    "Calendar",
+    "Tu Bishvat 'Fruticas': no detailed source found",
+    "No Mimouna-type custom found",
+    "Istanbul- and Izmir-specific life-cycle customs"
+  ],
+  "disputes": [
+    "Pesach rice and kitniyot (see the Pesach entry)",
+    "Purim of Saragossa: Saragossa, Spain or Syracuse, Sicily; 17 or 18 Shevat",
+    "Silent vs. pronounced he",
+    "Sugar vs. honey on Rosh Hashana",
+    "Whether the simanim come before or after hamotzi"
+  ],
+  "needs_rabbinic_review": [
+    "Kitniyot for each subgroup: check Moed Lekhol Hai 2:7, Lev Hayim 2:94 and Shulhan Gavoha 453 in the original",
+    "Order of the Rhodes wedding ceremony",
+    "Kaddish schedule and how meldado dates are counted",
+    "Whether Avraham Seev berakhot are said outside Seattle",
+    "Izmir Shavuot rose-water custom",
+    "Whether one hanukiya per family is communal minhag",
+    "Folk and evil-eye customs must be presented as custom, not halacha"
+  ]
 }

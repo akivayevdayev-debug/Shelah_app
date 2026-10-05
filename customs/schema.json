@@ -1,14 +1,29 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
   "title": "Sh'elah Community Custom File",
-  "description": "Schema for customs/*.json community halacha reference files.",
+  "description": "Schema for customs/*.json community halacha reference files (format 3.0).",
   "type": "object",
   "required": ["version", "heritage_id", "name", "halacha_index"],
   "additionalProperties": true,
+  "definitions": {
+    "reference": {
+      "type": "object",
+      "required": ["title"],
+      "properties": {
+        "title": { "type": "string", "minLength": 1 },
+        "url": { "type": "string" }
+      }
+    },
+    "confidence": {
+      "type": "string",
+      "enum": ["well-attested", "disputed", "regional", "needs-review"],
+      "description": "well-attested: several independent sources agree. disputed: rabbis or sources conflict; list each position as a variant. regional: limited to a place or subgroup. needs-review: thin or single-source. The last three tell the reader to ask their own rabbi."
+    }
+  },
   "properties": {
     "version": {
       "type": "string",
-      "description": "File format version, e.g. \"2.0\""
+      "description": "File format version, e.g. \"3.0\""
     },
     "type": {
       "type": "string"
@@ -21,7 +36,7 @@
     "name": {
       "type": "string",
       "minLength": 1,
-      "description": "Human-readable community name"
+      "description": "Human-readable community name. Also the community_name written to Supabase community_knowledge, so renaming it re-keys every row."
     },
     "aliases": {
       "type": "array",
@@ -31,27 +46,173 @@
       "type": "object",
       "properties": {
         "purpose": { "type": "string" },
-        "coverage_note": { "type": "string" },
-        "classification_note": { "type": "string" }
+        "coverage_note": { "type": "string" }
       }
     },
     "identity": {
-      "type": "object"
+      "type": "object",
+      "description": "Where the community comes from, as the research states it.",
+      "properties": {
+        "primary_origin": { "type": "string" },
+        "secondary_centers": { "type": "array", "items": { "type": "string" } }
+      }
     },
     "languages": {
-      "type": "object"
+      "type": "array",
+      "items": { "type": "string" },
+      "description": "Languages the research names for the community. Left out when the research is silent."
+    },
+    "subgroups": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["name"],
+        "properties": {
+          "name": { "type": "string", "minLength": 1 },
+          "note": { "type": "string" }
+        }
+      }
+    },
+    "historical_background": {
+      "type": "object",
+      "properties": {
+        "timeline": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "period": { "type": "string" },
+              "event": { "type": "string" },
+              "halachic_impact": { "type": "string" }
+            }
+          }
+        }
+      }
+    },
+    "core_halachic_authorities": {
+      "type": "object",
+      "properties": {
+        "primary_codes": { "type": "array", "items": { "type": "string" } },
+        "major_rishonim_base": { "type": "array", "items": { "type": "string" } },
+        "later_poskim": { "type": "array", "items": { "type": "string" } },
+        "decision_principle": { "type": "string" }
+      }
+    },
+    "runtime": {
+      "type": "object",
+      "description": "Values the code reads instead of hard-coding them.",
+      "required": ["lens_key"],
+      "properties": {
+        "lens_key": {
+          "type": "string",
+          "minLength": 1,
+          "description": "The canonical community key the app uses for lens filtering (backend/helpers.COMMUNITIES). Written to Supabase community_knowledge.community_name, which the /ask retrieval matches with ilike. A guard test keeps it in step with COMMUNITIES."
+        },
+        "practice_baseline": {
+          "type": "string",
+          "description": "One sentence naming the codes and poskim this community's practice rests on. Fed to the AI as the community lens."
+        },
+        "parameters": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["key", "value"],
+            "properties": {
+              "key": { "type": "string" },
+              "value": {},
+              "unit": { "type": "string" },
+              "source": { "type": "string" }
+            }
+          }
+        }
+      }
     },
     "halacha_index": {
-      "type": "object",
-      "description": "Core halachic topic mappings for this community"
+      "type": "array",
+      "minItems": 1,
+      "description": "One entry per documented topic. (category, topic) must be unique within a file.",
+      "items": {
+        "type": "object",
+        "required": ["category", "topic", "summary"],
+        "properties": {
+          "index": { "type": "string" },
+          "category": { "type": "string", "minLength": 1 },
+          "topic": { "type": "string", "minLength": 1 },
+          "topic_he": { "type": "string", "description": "The topic in Hebrew, written for this entry. Shown in the Hebrew UI." },
+          "summary": { "type": "string", "minLength": 1 },
+          "summary_he": { "type": "string", "description": "The summary in Hebrew, written for this entry. Shown in the Hebrew UI." },
+          "common_practices": { "type": "array", "items": { "type": "string" } },
+          "variants": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": ["subgroup", "practice"],
+              "properties": {
+                "subgroup": { "type": "string" },
+                "practice": { "type": "string" },
+                "source": { "type": "string" }
+              }
+            }
+          },
+          "source": { "type": "string" },
+          "source_url": { "type": "string" },
+          "references": { "type": "array", "items": { "$ref": "#/definitions/reference" } },
+          "confidence": { "$ref": "#/definitions/confidence" },
+          "notes": {
+            "type": "string",
+            "description": "Optional user-facing supporting text, appended to the Supabase content."
+          },
+          "review_notes": {
+            "type": "string",
+            "description": "Reviewer and provenance notes (what was and was not opened). Never shown to users or sent to the AI."
+          }
+        }
+      }
     },
     "unique_minhagim": {
       "type": "array",
-      "items": { "type": "object" }
+      "items": {
+        "type": "object",
+        "required": ["name", "description"],
+        "properties": {
+          "name": { "type": "string", "minLength": 1 },
+          "name_he": { "type": "string", "description": "The custom's name in Hebrew. Shown in the Hebrew UI." },
+          "description": { "type": "string" },
+          "description_he": { "type": "string", "description": "The description in Hebrew. Shown in the Hebrew UI." },
+          "when": { "type": "string" },
+          "source": { "type": "string" },
+          "source_url": { "type": "string" },
+          "references": { "type": "array", "items": { "$ref": "#/definitions/reference" } },
+          "confidence": { "$ref": "#/definitions/confidence" }
+        }
+      }
     },
     "source_registry": {
       "type": "array",
-      "items": { "type": "object" }
+      "items": {
+        "type": "object",
+        "required": ["title"],
+        "properties": {
+          "title": { "type": "string", "minLength": 1 },
+          "author": { "type": "string" },
+          "type": { "type": "string" },
+          "url": { "type": "string" },
+          "used_for": { "type": "string" }
+        }
+      }
+    },
+    "gaps": {
+      "type": "array",
+      "items": { "type": "string" },
+      "description": "Topics with no community-specific source. Listed instead of padded with generic text."
+    },
+    "disputes": {
+      "type": "array",
+      "items": { "type": "string" }
+    },
+    "needs_rabbinic_review": {
+      "type": "array",
+      "items": { "type": "string" }
     }
   }
 }

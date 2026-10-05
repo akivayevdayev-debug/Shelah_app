@@ -1,406 +1,1367 @@
 {
-  "version": "2.0",
+  "version": "3.0",
   "type": "academic_halachic_reference",
   "heritage_id": "iraqi",
   "name": "Iraqi",
   "aliases": [
     "Baghdadi",
     "Babylonian",
-    "Iraqi Jews"
+    "Iraqi Jews",
+    "Yehudei Bavel (יהודי בבל)",
+    "Bavlim (בבלים)",
+    "Bagdadim",
+    "Baghdadi Jews"
   ],
   "database_scope": {
-    "purpose": "Academic and halachic reference database for Iraqi Jewish heritage, minhagim, and halachic practice.",
-    "coverage_note": "This file models broad Iraqi Jewish practice and includes common halachic domains. Local customs vary by city, family, synagogue, and migration history.",
-    "classification_note": "Iraqi Jewish practice is one of the most historically important Mizrahi traditions, shaped by Babylonian Jewish learning and later Sephardi influence."
+    "purpose": "Sourced reference for Iraqi minhagim and halachic practice. It records what the cited sources say, with a confidence level for each entry, and is not a psak.",
+    "coverage_note": "38 sourced topics and 10 distinctive customs, compiled from the cited sources in October 2026. Each entry carries a confidence level (well-attested, disputed, regional, needs-review). 12 topics have no community-specific source and are listed under 'gaps' rather than filled with generic text."
   },
   "identity": {
-    "primary_origin": "Historic Jewish communities of Iraq, especially Baghdad, Basra, and Mosul",
+    "primary_origin": "Baghdad and the rest of Iraq (Babylonia)",
     "secondary_centers": [
-      "Baghdad",
       "Basra",
       "Mosul",
-      "Iraqi Jewish diaspora in Israel",
-      "Iraqi Jewish communities in the United Kingdom, India, Singapore, and North America"
-    ],
-    "cultural_profile": [
-      "Strong Babylonian rabbinic heritage",
-      "Sephardi-aligned liturgy in many settings",
-      "Distinctive Arabic-speaking and commercial communal culture",
-      "High value placed on scholarship, family continuity, and communal memory"
+      "Kurdistan",
+      "The Baghdadi diaspora in India (Calcutta, Bombay) and the Far East",
+      "Israel"
     ]
   },
   "languages": [
-    "Hebrew",
-    "Arabic",
-    "Judeo-Arabic",
-    "English in diaspora",
-    "some Aramaic scholarly inheritance"
+    "Judeo-Arabic: the piyyutim of Rav Yosef Chaim and the Judeo-Arabic sharh sung with the pizmonim",
+    "Kurdish: in Kurdistan the liturgy was translated and customs explained in Kurdish (Amedi, Yalkut Minhagim)"
   ],
-  "genealogy": {
-    "common_surname_patterns": [
-      "Arabic-root surnames",
-      "Names tied to cities, trades, or honorifics",
-      "Family names adapted in English, Hebrew, and colonial records"
-    ],
-    "research_notes": [
-      "Family branch and city are often more helpful than surname alone.",
-      "Migration records from Iraq to India, Israel, and other centers are important.",
-      "Orthographic changes across scripts are common."
-    ],
-    "recommended_genealogy_fields": [
-      "surname",
-      "alternate_spellings",
-      "town_of_origin",
-      "family_branch",
-      "migration_route",
-      "synagogue_affiliation",
-      "ritual_minhag"
-    ]
-  },
+  "subgroups": [
+    {
+      "name": "Baghdadi",
+      "note": "Primary subgroup, covered fully. Includes the Baghdadi diaspora in India (Calcutta, Bombay) and the Far East, which kept Baghdad custom in prayer, speech, dress and food according to Ben-Yaakov's history of Babylonian Jewry."
+    },
+    {
+      "name": "Basra",
+      "note": "Follows Baghdad generally; had its own 'Yom Nes' on 2 Nisan (miracle of 1879), recorded only by Ben-Yaakov."
+    },
+    {
+      "name": "Kurdistan",
+      "note": "Note-level coverage only. Recorded as variants where Yitzhak Amedi's chapter in Yalkut Minhagim (1967) differs from Baghdad: Kurdish-language translation of liturgy, Tashlich, kapparot, malkot, Omer shaving rule, wedding fasting, sandek, mourning customs."
+    },
+    {
+      "name": "Mosul",
+      "note": "No primary or academic source on Mosul-specific halachic practice is cited here. Morag (Encyclopaedia Judaica) describes the Aramaic-speaking Jews of Zakho near Mosul as distinguishing all six begadkefat letters, but that concerns Zakho, not Arabic-speaking Mosul Jews."
+    }
+  ],
   "historical_background": {
     "timeline": [
       {
-        "period": "Ancient Babylonian era",
-        "event": "Jewish learning in Babylonia became foundational to Rabbinic Judaism.",
-        "halachic_impact": "The Bavli and Babylonian rabbinic tradition shaped global Jewish law."
+        "period": "762 onward",
+        "event": "Baghdad founded as Abbasid capital; Jewish community becomes Iraq's largest and seat of the Exilarch; Sura and Pumbedita yeshivot move to Baghdad by the end of the 9th century.",
+        "halachic_impact": "Geonic heritage underlies community identity; Rav Hai Gaon records synagogue sukkot in Baghdad."
       },
       {
-        "period": "Islamic era",
-        "event": "Jewish communities flourished in Iraq under changing political rule.",
-        "halachic_impact": "Community institutions, commerce, and scholarship developed strongly."
+        "period": "1638 (16 Tevet 5399)",
+        "event": "Ottoman Sultan Murad IV retakes Baghdad from Persia; the day is fixed as a Yom Nes.",
+        "halachic_impact": "No Tachanun/Vidui on the anniversary (date disputed: 16 or 17 Tevet)."
       },
       {
-        "period": "Ottoman and modern periods",
-        "event": "Iraqi Jews maintained strong identity in Baghdad and other centers.",
-        "halachic_impact": "Sephardi influence and local Babylonian tradition coexisted."
+        "period": "1733 (11 Av 5493)",
+        "event": "Persians defeated attempting to reoccupy Baghdad; fixed as Yom Nes.",
+        "halachic_impact": "No Tachanun/Vidui on 11 Av in Baghdad."
       },
       {
-        "period": "20th century and after",
-        "event": "Mass emigration to Israel, India-linked routes, Europe, and the Americas transformed the community.",
-        "halachic_impact": "Diaspora communities worked to preserve liturgy, cuisine, and family practice."
+        "period": "1743-1773",
+        "event": "Rav Tzadka Hutzin serves as rabbi of Baghdad.",
+        "halachic_impact": "Institutes the Rosh Hashana Hatima and exempts pregnant women from the Tisha B'Av fast because of the heat."
+      },
+      {
+        "period": "1813-1889",
+        "event": "Rav Abdallah Somekh heads Midrash Beit Zilkha.",
+        "halachic_impact": "Zivchei Tzedek becomes the Yoreh De'ah and shechita handbook for Baghdadi Jews."
+      },
+      {
+        "period": "1860",
+        "event": "Baghdad rabbis permit the lulav blessing before sunrise because of crowding over scarce etrogim.",
+        "halachic_impact": "Early lulav taking became Baghdad practice."
+      },
+      {
+        "period": "1832/1834/1835-1909",
+        "event": "Rav Yosef Chaim (Ben Ish Chai) leads Baghdad without formal office for about 50 years.",
+        "halachic_impact": "Ben Ish Chai halachot become the de facto code; he adds Beit Yaakov, Shir shel Yom and Mizmor Shir to Chanukah prayers in the late 19th century."
+      },
+      {
+        "period": "1894 and 1921",
+        "event": "Rabbis forbid betrothing girls under 16 (1894); a 13-clause communal 'haskama' curbs dowry and wedding costs (1921).",
+        "halachic_impact": "Changes marriage age and wedding customs."
+      },
+      {
+        "period": "Mid-20th century",
+        "event": "Mass emigration to Israel and elsewhere.",
+        "halachic_impact": "Ben-Yaakov records many customs lapsing or merging into general Israeli Edot HaMizrach practice (e.g. Jerusalem-style chuppah with tallit, costumes on Purim)."
       }
     ]
   },
   "core_halachic_authorities": {
     "primary_codes": [
-      "Shulchan Aruch",
-      "Mishneh Torah",
-      "Babylonian rabbinic tradition"
+      "Shulchan Aruch (Rav Yosef Karo)",
+      "Ben Ish Chai (Halachot), Rav Yosef Chaim of Baghdad, first published 1898/1899",
+      "Zivchei Tzedek on Shulchan Aruch Yoreh De'ah, Rav Abdallah Somekh (Baghdad 1899)"
     ],
     "major_rishonim_base": [
-      "Rambam",
-      "Rif",
-      "Rosh"
+      "Rambam (Iraqi Haftarot for Shemot and Bo described as 'following the custom of Maimonides' by Kahal Joseph)",
+      "Geonic Babylonian tradition (Rav Hai Gaon cited for synagogue sukkot in Baghdad)"
     ],
-    "later_authorities_and_guides": [
-      "Baghdad rabbis such as the Ben Ish Chai",
-      "Rav Abdallah Somekh",
-      "Rav Yosef Chaim",
-      "Local Iraqi communal rabbis"
+    "later_poskim": [
+      "Rav Yosef Chaim (Ben Ish Chai): Rav Pe'alim, Torah Lishmah, Hukkei HaNashim, Od Yosef Chai",
+      "Rav Abdallah Somekh: Zivchei Tzedek and responsa",
+      "Rav Tzadka Hutzin (Baghdad rabbinate 1743-1773): instituted Hatima and the Tisha B'Av exemption for pregnant women",
+      "Rav Moshe Chaim (d. 1838): abolished Al HaNissim on the second day of Purim",
+      "Kabbalists of Beit El, Jerusalem (Rashash), whose customs the Ben Ish Chai adopted and passed to Iraqi Jews"
     ],
-    "decision_principle": "Follow established Iraqi minhag, often with strong respect for Babylonian scholarship and Sephardi-style legal structure."
+    "decision_principle": "Shulchan Aruch as the base, read through Lurianic Kabbalah and strong deference to established local Baghdad custom; Rav Somekh explicitly cites 'minhag mevatel halacha' and 'see how the public practices'. The Ben Ish Chai functioned as the 'Shulchan Aruch' of Iraqi Jewry."
+  },
+  "runtime": {
+    "lens_key": "Iraqi",
+    "practice_baseline": "Shulchan Aruch, as applied by the Ben Ish Chai and Rav Abdallah Somekh's Zivchei Tzedek, together with documented Baghdad local custom.",
+    "parameters": []
   },
   "halacha_index": [
     {
       "index": "halacha.1",
       "category": "Prayer",
-      "topic": "Nusach and liturgy",
-      "summary": "Iraqi prayer tradition is often Sephardi in framework while preserving distinctive Babylonian and local Iraqi forms.",
+      "topic": "Nusach and order of service",
+      "summary": "Iraqi Jews pray Nusach Sefarad as used by most Edot HaMizrach, printed in siddurim 'ke-minhag Yehudei Bavel ve-agapeha'; the common siddurim are 'Tefillat Yesharim' (Salah Mansour) and 'Or Yesharim' (Yitzhak Bakal), both printed in Jerusalem.",
       "common_practices": [
-        "Use Iraqi siddurim or accepted Sephardi rite",
-        "Preserve local melodies and prayers",
-        "Include piyyutim and special festival additions where customary",
-        "Preserve inherited nusach and pronunciation in public prayer.",
-        "Coordinate weekday, Shabbat, and festival insertions with local rabbinic guidance.",
-        "Maintain community niggunim and piyyutim where accepted."
-      ]
+        "Birkot HaShachar said at home after washing and dressing.",
+        "Many begin Shacharit at Baruch She'amar; the pious (chasidim) start from 'Elokeinu ve-Elokei avoteinu zochreinu', the Akeida, Pitum HaKetoret, Seder HaMa'arachot, Eizehu Mekoman and the 13 Middot.",
+        "After Psalm 30, the congregation stands and the chazan says 'Hashem Hu HaElokim' twice and 'Hashem Melech...' twice, repeated by the congregation.",
+        "Some precede Shacharit and Mincha with Patach Eliyahu in Aramaic.",
+        "Vatikin (earliest possible) Shacharit is the norm; Arvit is usually prayed straight after Mincha while still day, with Shema at its proper time said at home.",
+        "The terms used are 'Amidah' and 'Arvit'.",
+        "Adon Olam closes the early-morning pizmonim and is treated as almost part of the service."
+      ],
+      "variants": [],
+      "source": "Avraham Ben-Yaakov, 'Mi-minhagei Yehudei Bavel', in Yalkut Minhagim vol. 1 (Jerusalem: Government Printer, 5727/1967), ch. 1 sec. A-B",
+      "source_url": "https://www.daat.ac.il/daat/toshba/minhagim/bav1.htm",
+      "confidence": "needs-review",
+      "review_notes": "Single compilation. Ben-Yaakov describes practice in Baghdad and among Iraqi immigrants in Israel in the 1960s.",
+      "topic_he": "נוסח וסדר התפילה",
+      "summary_he": "יהודי עיראק מתפללים נוסח ספרד כפי שנוהגות רוב עדות המזרח, המודפס בסידורים \"כמנהג יהודי בבל ואגפיה\"; הסידורים הנפוצים הם \"תפילת ישרים\" (סאלח מנסור) ו\"אור ישרים\" (יצחק בקל), שניהם נדפסו בירושלים."
     },
     {
       "index": "halacha.2",
       "category": "Prayer",
-      "topic": "Torah reading",
-      "summary": "Torah reading is central and reflects strong scholarly and communal discipline.",
+      "topic": "Yom Nes days without Tachanun",
+      "summary": "Baghdad Jews alone omit Nefilat Apayim and Vidui on 11 Av and on the Tevet anniversary of deliverance from Persian conquest; Basra Jews alone omit them on 2 Nisan. Sources date the Tevet deliverance to 16 or 17 Tevet.",
       "common_practices": [
-        "Use trained readers",
-        "Follow local cantillation",
-        "Preserve aliyah and honor customs",
-        "Preserve inherited nusach and pronunciation in public prayer.",
-        "Coordinate weekday, Shabbat, and festival insertions with local rabbinic guidance.",
-        "Maintain community niggunim and piyyutim where accepted."
-      ]
+        "No Tachanun/Vidui on 11 Av in Baghdad (1733 Persian defeat).",
+        "No Tachanun/Vidui on the Tevet Yom Nes (1638 Ottoman reconquest)."
+      ],
+      "variants": [
+        {
+          "subgroup": "Basra",
+          "practice": "No Tachanun on 2 Nisan for the 1879 miracle; formerly read the 'Megillat Paras' of Rav Yaakov Elyashar in the synagogue and sent mishloach manot; in recent years reduced to omitting Tachanun and saying 'Yehi shem'.",
+          "source": "Ben-Yaakov, Yalkut Minhagim, ch. 1 sec. A §9 (https://www.daat.ac.il/daat/toshba/minhagim/bav1.htm)"
+        },
+        {
+          "subgroup": "Ben-Yaakov, Yalkut Minhagim",
+          "practice": "The Tevet Yom Nes is 17 Tevet.",
+          "source": "Ben-Yaakov, Yalkut Minhagim, ch. 1 sec. A §8"
+        },
+        {
+          "subgroup": "Encyclopaedia Judaica, 'Baghdad'",
+          "practice": "The conquest is dated 16 Tevet 5399.",
+          "source": "Encyclopaedia Judaica, 'Baghdad' (via encyclopedia.com)"
+        }
+      ],
+      "source": "Ben-Yaakov, Yalkut Minhagim, ch. 1 sec. A §8; Encyclopaedia Judaica, 'Baghdad' (via encyclopedia.com)",
+      "source_url": "https://www.daat.ac.il/daat/toshba/minhagim/bav1.htm",
+      "confidence": "disputed",
+      "review_notes": "Ben-Yaakov gives 17 Tevet; Encyclopaedia Judaica gives the conquest date as 16 Tevet 5399. Both agree on 11 Av. The app should not compute the Tevet date without rabbinic review.",
+      "references": [
+        {
+          "title": "Baghdad | Encyclopedia.com",
+          "url": "https://www.encyclopedia.com/places/asia/iraq-political-geography/baghdad"
+        }
+      ],
+      "topic_he": "ימי נס ללא תחנון",
+      "summary_he": "יהודי בגדאד בלבד מדלגים על נפילת אפיים ועל וידוי בי\"א באב ובתאריך הטבת של ההצלה מכיבוש פרס; יהודי בצרה בלבד מדלגים עליהם בב' בניסן. המקורות מתארכים את הצלת טבת לט\"ז או לי\"ז בטבת."
     },
     {
       "index": "halacha.3",
       "category": "Prayer",
-      "topic": "Study and synagogue life",
-      "summary": "Learning and prayer are tightly linked in Iraqi Jewish tradition.",
+      "topic": "Synagogue order and Torah honors",
+      "summary": "In Iraq aliyot were sold, especially the Mashlim (final aliyah) and Maftir; on the Yamim Noraim and festivals all aliyot were sold. The sixth aliyah is the most honored.",
       "common_practices": [
-        "Maintain a strong study culture",
-        "Use synagogue as a communal learning center",
-        "Preserve local teaching methods and recitation",
-        "Preserve inherited nusach and pronunciation in public prayer.",
-        "Coordinate weekday, Shabbat, and festival insertions with local rabbinic guidance.",
-        "Maintain community niggunim and piyyutim where accepted."
-      ]
+        "Ranking of aliyot: sixth, then third, first, second, fourth, fifth.",
+        "Few additional aliyot ('dilug') are added.",
+        "In some places boys were called to Maftir, the first time with sweets and flowers thrown.",
+        "When a father is called up, his sons, grandsons and sons-in-law stand; afterwards they kiss his hand.",
+        "In Iraq the shamash announced 'Kevod peloni ben peloni ya'aleh be-chavod'."
+      ],
+      "variants": [],
+      "source": "Ben-Yaakov, Yalkut Minhagim, ch. 1 sec. B §4-6",
+      "source_url": "https://www.daat.ac.il/daat/toshba/minhagim/bav1.htm",
+      "confidence": "needs-review",
+      "review_notes": "",
+      "topic_he": "סדר בית הכנסת וכיבודי התורה",
+      "summary_he": "בעיראק נמכרו עליות, ובמיוחד המשלים (העלייה האחרונה) והמפטיר; בימים הנוראים ובמועדים נמכרו כל העליות. העלייה השישית היא המכובדת ביותר."
     },
     {
       "index": "halacha.4",
-      "category": "Shabbat",
-      "topic": "Candle lighting",
-      "summary": "Shabbat candle lighting is observed carefully with family customs and timing.",
+      "category": "Calendar",
+      "topic": "Rosh Chodesh",
+      "summary": "On the Shabbat before Rosh Chodesh the new month is announced with a special 'Yehi ratzon... be-siman tov yehe Rosh Chodesh...' text while the whole congregation stands; women light candles on the eve of Rosh Chodesh and refrain from work.",
       "common_practices": [
-        "Light before Shabbat begins",
-        "Use customary blessing wording",
-        "Preserve family candle traditions where inherited",
-        "Prepare practical needs before candle lighting to avoid melacha.",
-        "Use approved warming and lighting setups established before Shabbat.",
-        "Follow local zmanim for candle lighting, shekia, and havdalah."
-      ]
+        "Barchi Nafshi sung to a special tune at Arvit of Rosh Chodesh.",
+        "Women light two lights (more than one) on the eve of Rosh Chodesh and do not sew.",
+        "No eggs eaten and no nail-cutting on Rosh Chodesh.",
+        "Tefillin removed before Musaf after the Kaddish following the return of the Torah, per the Ari.",
+        "Rosh Chodesh piyyutim include 'Sha'ar HaRachamim', 'Chodesh yeshu'a', 'Rosh Chodesh le-Yisrael' (Rav Yosef Chaim)."
+      ],
+      "variants": [
+        {
+          "subgroup": "Kurdistan",
+          "practice": "Women observe Rosh Chodesh with sanctity, light candles in the evening and refrain from all work except food preparation; elderly women bake a special thin bread.",
+          "source": "Yitzhak Amedi, 'Mi-minhagei Yahadut Kurdistan', Yalkut Minhagim vol. 1, ch. 3 sec. 7 (https://www.daat.ac.il/daat/toshba/minhagim/kur3.htm)"
+        }
+      ],
+      "source": "Ben-Yaakov, Yalkut Minhagim, ch. 3 sec. 7 §1-8; Ben Ish Chai vol. 2, Vayikra §1 and Hukkei HaNashim §43 (as summarized in Ariel Picard, 'Ben Ish Hai', Shalvi/Hyman Encyclopedia of Jewish Women)",
+      "source_url": "https://www.daat.ac.il/daat/toshba/minhagim/bav3.htm",
+      "confidence": "well-attested",
+      "review_notes": "Women's candle-lighting and abstaining from work is attested by both Ben-Yaakov and the Ben Ish Chai (via Picard). The other details rest on Ben-Yaakov alone.",
+      "topic_he": "ראש חודש",
+      "summary_he": "בשבת שלפני ראש חודש מכריזים על החודש החדש בנוסח מיוחד \"יהי רצון... בסימן טוב יהא ראש חודש...\" כשכל הקהל עומד; נשים מדליקות נרות בערב ראש חודש ונמנעות ממלאכה."
     },
     {
       "index": "halacha.5",
-      "category": "Shabbat",
-      "topic": "Meals and hospitality",
-      "summary": "Shabbat meals often reflect a strong hospitality ethic and traditional Iraqi cuisine.",
+      "category": "Prayer",
+      "topic": "Kiddush Levana",
+      "summary": "Baghdad custom is to jump three times while saying three times 'Be-siman tov tehei lanu u-le-chol Yisrael', 'Baruch yotzrech...', 'David melech Yisrael chai ve-kayam' and 'Amen netzach sela va'ed'.",
       "common_practices": [
-        "Prepare food before Shabbat",
-        "Honor guests and family according to custom",
-        "Serve traditional Iraqi-Jewish dishes where kosher",
-        "Prepare practical needs before candle lighting to avoid melacha.",
-        "Use approved warming and lighting setups established before Shabbat.",
-        "Follow local zmanim for candle lighting, shekia, and havdalah."
-      ]
+        "Then 'Lev tahor bera li' seven times, Psalms 121 and 150, Tanna devei Rabbi Yishmael and Kaddish Al Yisrael.",
+        "Some add Isaiah 30:26 and Ezekiel 16:13; ends with 'Shalom aleichem' three times."
+      ],
+      "variants": [],
+      "source": "Ben-Yaakov, Yalkut Minhagim, ch. 3 sec. 7 §9",
+      "source_url": "https://www.daat.ac.il/daat/toshba/minhagim/bav3.htm",
+      "confidence": "needs-review",
+      "review_notes": "",
+      "topic_he": "קידוש לבנה",
+      "summary_he": "מנהג בגדאד הוא לקפוץ שלוש פעמים תוך אמירה שלוש פעמים \"בסימן טוב תהא לנו ולכל ישראל\", \"ברוך יוצרך...\", \"דוד מלך ישראל חי וקיים\" ו\"אמן נצח סלה ועד\"."
     },
     {
       "index": "halacha.6",
       "category": "Shabbat",
-      "topic": "Cooking and warming",
-      "summary": "Cooking is prohibited on Shabbat, while permitted warming methods may be used under halachic guidance.",
+      "topic": "Candle lighting",
+      "summary": "In Iraq women lit seven wicks in a sesame-oil lamp called 'qrayi' (קראיי) for Shabbat; in Israel many now use ordinary candles.",
       "common_practices": [
-        "Cook before Shabbat",
-        "Use permitted warming arrangements where accepted",
-        "Avoid prohibited cooking and direct heating",
-        "Prepare practical needs before candle lighting to avoid melacha.",
-        "Use approved warming and lighting setups established before Shabbat.",
-        "Follow local zmanim for candle lighting, shekia, and havdalah."
-      ]
+        "Seven wicks in a sesame-oil lamp ('qrayi')."
+      ],
+      "variants": [],
+      "source": "Ben-Yaakov, 'Shabbat - Mi-minhagei Yehudei Bavel', Yalkut Minhagim vol. 1, ch. 2, Seder Yom HaShabbat §1",
+      "source_url": "https://daat.ac.il/daat/toshba/minhagim/bav-sha.htm",
+      "confidence": "needs-review",
+      "review_notes": "No documented Baghdad-specific number of minutes before sunset was found; no runtime parameter is provided.",
+      "references": [
+        {
+          "title": "שבת - ממנהגי יהודי בבל",
+          "url": "https://daat.ac.il/daat/toshba/minhagim/bav-sha.htm"
+        }
+      ],
+      "topic_he": "הדלקת נרות",
+      "summary_he": "בעיראק הדליקו נשים שבע פתילות בנר שמן שומשום הנקרא \"קראיי\" (קראיי) לשבת; בישראל רבים משתמשים כיום בנרות רגילים."
     },
     {
       "index": "halacha.7",
       "category": "Shabbat",
-      "topic": "Carrying and eruv",
-      "summary": "Carrying outside a valid eruv is prohibited and depends on local infrastructure.",
+      "topic": "Erev Shabbat and Kabbalat Shabbat",
+      "summary": "Mincha and Arvit of Friday night are prayed while it is still day, to add from the weekday to the holy; each person reads Shir HaShirim privately before the service.",
       "common_practices": [
-        "Check eruv validity",
-        "Follow local rabbinic guidance",
-        "Do not carry where no eruv exists",
-        "Prepare practical needs before candle lighting to avoid melacha.",
-        "Use approved warming and lighting setups established before Shabbat.",
-        "Follow local zmanim for candle lighting, shekia, and havdalah."
-      ]
+        "Erev Shabbat Mincha is like a weekday Mincha, except Psalm 93 ('Hashem malach ge'ut lavesh') replaces 'Lamnatzeach bi-neginot'.",
+        "Preparations begin Thursday; in Iraq only men did the shopping."
+      ],
+      "variants": [],
+      "source": "Ben-Yaakov, Yalkut Minhagim, ch. 2, Tefillot Shabbat §1-2 and Hachanot §2-3",
+      "source_url": "https://daat.ac.il/daat/toshba/minhagim/bav-sha.htm",
+      "confidence": "needs-review",
+      "review_notes": "Ben-Yaakov does not describe the Kabbalat Shabbat psalms or Lecha Dodi in detail for Baghdad.",
+      "references": [
+        {
+          "title": "שבת - ממנהגי יהודי בבל",
+          "url": "https://daat.ac.il/daat/toshba/minhagim/bav-sha.htm"
+        }
+      ],
+      "topic_he": "ערב שבת וקבלת שבת",
+      "summary_he": "מתפללים מנחה וערבית של ליל שבת כשעדיין יום, כדי להוסיף מהחול על הקודש; כל אדם קורא שיר השירים לעצמו לפני התפילה."
     },
     {
       "index": "halacha.8",
-      "category": "Kashrut",
-      "topic": "Meat and dairy separation",
-      "summary": "Meat and dairy separation is strictly observed and embedded in the home kitchen.",
+      "category": "Shabbat",
+      "topic": "Shabbat Shacharit, Musaf and Mincha",
+      "summary": "Before Baruch She'amar, Psalms 19, 33, 34, 90, 91, 98, 121-124 and 136 are added; after Musaf: Kaddish Titkabal, Kol Yisrael, Pitum HaKetoret, Tanna devei Eliyahu, Kaddish Al Yisrael and Aleinu.",
       "common_practices": [
-        "Keep separate utensils and cookware",
-        "Observe waiting periods after meat according to community custom",
-        "Maintain strict household separation",
-        "Keep clear separation of meat and dairy utensils, storage, and prep zones.",
-        "Verify supervision standards according to trusted local rabbinic authority.",
-        "Apply inherited waiting-time custom for meat and dairy under halachic guidance."
-      ]
+        "In Iraq the service did not end with Yigdal (in Israel it is now sung).",
+        "Shabbat Mincha opens with Psalm 84, the Tamid, Pitum HaKetoret and Ashrei, then Uva le-Tziyon; after the Amidah, Tzidkatcha and Psalm 111.",
+        "Shacharit is prayed early; late starts customary elsewhere are not tolerated.",
+        "Special pizmonim on Shabbat Zachor ('Simeni rosh', 'Mi chamocha' with Judeo-Arabic sharh), Shabbat Shira ('Yashir Yisrael'), Shabbat HaGadol ('Shabbat zeh Shabbat HaGadol', R. Sasson Mordechai Shindookh), and before the Ten Commandments ('Yom yom odeh')."
+      ],
+      "variants": [],
+      "source": "Ben-Yaakov, Yalkut Minhagim, ch. 2, Tefillot Shabbat §3-7 and Seder Yom HaShabbat §3",
+      "source_url": "https://daat.ac.il/daat/toshba/minhagim/bav-sha.htm",
+      "confidence": "needs-review",
+      "review_notes": "",
+      "topic_he": "שחרית, מוסף ומנחה של שבת",
+      "summary_he": "לפני \"ברוך שאמר\" מוסיפים מזמורי תהילים יט, לג, לד, צ, צא, צח, קכא-קכד וקלו; אחרי מוסף: קדיש תתקבל, כל ישראל, פיטום הקטורת, תנא דבי אליהו, קדיש על ישראל ועלינו."
     },
     {
       "index": "halacha.9",
-      "category": "Kashrut",
-      "topic": "Shechita and supervision",
-      "summary": "Ritual slaughter and kosher supervision are central communal concerns.",
+      "category": "Shabbat",
+      "topic": "Kiddush and seudot",
+      "summary": "On returning from synagogue, some circle the table twice and bless over myrtle, mint or rehan ('borei atzei/isbei besamim'), adding 'reiach nichoach ishe la-Hashem'; some read Mishna Kelim 1 ('Eser kedushot'), a Zohar passage and 'Atkinu se'udata' before Kiddush.",
       "common_practices": [
-        "Use qualified shochtim",
-        "Inspect meat and utensils carefully",
-        "Follow recognized community supervision",
-        "Keep clear separation of meat and dairy utensils, storage, and prep zones.",
-        "Verify supervision standards according to trusted local rabbinic authority.",
-        "Apply inherited waiting-time custom for meat and dairy under halachic guidance."
-      ]
+        "After Kiddush the father blesses the children, who kiss his hands; he distributes HaMotzi from oldest to youngest.",
+        "Pizmonim sung before the main course: 'Baruch ba be-shem Hashem' (Shindookh), 'Dror yikra', 'Ki eshmera Shabbat', 'Yom HaShabbat ein kamohu', 'Yoducha ra'ayonai' (Najara).",
+        "Friday night: fresh greens, then rice with chicken soup; after Birkat HaMazon, fruits for 'borei pri ha-etz/ha-adama' blessings, preferably a new fruit for Shehecheyanu.",
+        "Shabbat hamin called 'tbit' or 'tanuri' (rice and chicken), with 'hashwa' (stuffed chicken skin) and eggs set on top.",
+        "On Shabbat day, Mincha Gedola is prayed and then the midday meal is eaten."
+      ],
+      "variants": [],
+      "source": "Ben-Yaakov, Yalkut Minhagim, ch. 2, Ma'achalei Shabbat §1-4 and Seder Yom HaShabbat §2, 6",
+      "source_url": "https://daat.ac.il/daat/toshba/minhagim/bav-sha.htm",
+      "confidence": "needs-review",
+      "review_notes": "The source does not specify a distinct Seuda Shlishit custom for Baghdad.",
+      "topic_he": "קידוש וסעודות",
+      "summary_he": "בחזרה מבית הכנסת יש המקיפים את השולחן פעמיים ומברכים על הדס, נענע או ריחן (\"בורא עצי/עשבי בשמים\"), ומוסיפים \"ריח ניחוח אשה לה'\"; יש הקוראים משנה כלים א' (\"עשר קדושות\"), קטע מהזוהר ו\"אתקינו סעודתא\" לפני הקידוש."
     },
     {
       "index": "halacha.10",
-      "category": "Kashrut",
-      "topic": "Wine and ritual use",
-      "summary": "Wine for Kiddush and other rituals is handled carefully.",
+      "category": "Shabbat",
+      "topic": "Motzaei Shabbat and Havdalah",
+      "summary": "Arvit of Motzaei Shabbat adds Psalms 90 and 91 after the Amidah, doubling the last verse; afterwards many say 'Veyiten lecha', 'HaMavdil' and piyyutim of Rav Yosef Chaim about Eliyahu.",
       "common_practices": [
-        "Use kosher wine for ritual use",
-        "Follow local customs on handling and purchase",
-        "Observe communal standards in food and beverage supervision",
-        "Keep clear separation of meat and dairy utensils, storage, and prep zones.",
-        "Verify supervision standards according to trusted local rabbinic authority.",
-        "Apply inherited waiting-time custom for meat and dairy under halachic guidance."
-      ]
+        "Ben Ish Chai piyyutim 'El Eliyahu' and 'Al bayit zeh ve-yoshvehu'.",
+        "Two Judeo-Arabic piyyutim by Rav Yosef Chaim: 'Pinchas ibn El'azar yitsamma' and 'Habib Allah, Rab Eliyahu'."
+      ],
+      "variants": [],
+      "source": "Ben-Yaakov, Yalkut Minhagim, ch. 2, Tefillot Shabbat §5 and Seder Yom HaShabbat §8",
+      "source_url": "https://daat.ac.il/daat/toshba/minhagim/bav-sha.htm",
+      "confidence": "needs-review",
+      "review_notes": "The Havdalah blessing order itself is not described as distinctive.",
+      "topic_he": "מוצאי שבת והבדלה",
+      "summary_he": "בערבית של מוצאי שבת מוסיפים אחרי העמידה את תהילים צ וצא, תוך כפל הפסוק האחרון; אחר כך רבים אומרים \"ויתן לך\", \"המבדיל\" ופיוטי רב יוסף חיים על אליהו."
     },
     {
       "index": "halacha.11",
-      "category": "Pesach",
-      "topic": "Chametz removal",
-      "summary": "Chametz is removed thoroughly before Pesach.",
+      "category": "High Holidays",
+      "topic": "Elul, Selichot and Hatarat Nedarim",
+      "summary": "In Iraq the shamash went house to house waking people for Selichot from the night after Rosh Chodesh Elul; Hatarat Nedarim is performed on 19 Av (40 days before Rosh Hashana), on the eve of Rosh Chodesh Elul (40 days before Yom Kippur), and on the eves of Rosh Hashana and Yom Kippur.",
       "common_practices": [
-        "Search for chametz before Pesach",
-        "Sell or destroy chametz properly",
-        "Kasher utensils and surfaces as needed",
-        "Review chametz cleaning and kashering checklists before the festival.",
-        "Follow community custom on kitniyot and festival kitchen workflow.",
-        "Use community haggadah flow and family minhagim within halachic structure."
-      ]
+        "The Hatarat Nedarim text is the one set by the Chida, printed in Babylonian-rite selichot and machzorim.",
+        "Small minyanim use three releasers; large ones use ten.",
+        "Children recite 'Adon HaSelichot' in the synagogue."
+      ],
+      "variants": [
+        {
+          "subgroup": "Kurdistan",
+          "practice": "Selichot from the night of 2 Elul about 1.5 hours before dawn, preceded by Tikkun Chatzot; some synagogues blow tashrat/tashat/tarat after Selichot; Hatarat Nedarim on erev Rosh Hashana before three releasers, in some synagogues a doubled order with ten men, explained in Kurdish.",
+          "source": "Amedi, Yalkut Minhagim, ch. 3 sec. 8 §2-7 (https://www.daat.ac.il/daat/toshba/minhagim/kur3.htm)"
+        }
+      ],
+      "source": "Ben-Yaakov, Yalkut Minhagim, ch. 3 sec. 8 §1-3",
+      "source_url": "https://www.daat.ac.il/daat/toshba/minhagim/bav3.htm",
+      "confidence": "needs-review",
+      "review_notes": "",
+      "topic_he": "אלול, סליחות והתרת נדרים",
+      "summary_he": "בעיראק עבר השמש מבית לבית והעיר אנשים לסליחות מלילה שאחרי ראש חודש אלול; התרת נדרים נעשית בי\"ט באב (40 יום לפני ראש השנה), בערב ראש חודש אלול (40 יום לפני יום כיפור) ובערבי ראש השנה ויום כיפור."
     },
     {
       "index": "halacha.12",
-      "category": "Pesach",
-      "topic": "Kitniyot and regional foods",
-      "summary": "Iraqi Pesach practice is generally compatible with Sephardi permissibility of kitniyot, subject to local custom.",
+      "category": "Rosh Hashana",
+      "topic": "Simanim (seder of Rosh Hashana night)",
+      "summary": "On both nights, Iraqi Jews eat and bless in this order: a seasonal fruit for 'ha-etz' (usually grapes), a seasonal fruit for 'ha-adama' (usually watermelon), dates, rubia/lubia beans, gourd (kara), leek (karti), green beet leaves (silka), sweet pomegranate, apple cooked in sugar, and a sheep's head.",
       "common_practices": [
-        "Rice and legumes may be used where community custom permits",
-        "Inspect food for chametz contamination",
-        "Follow family and rabbinic guidance for packaged foods",
-        "Review chametz cleaning and kashering checklists before the festival.",
-        "Follow community custom on kitniyot and festival kitchen workflow.",
-        "Use community haggadah flow and family minhagim within halachic structure."
-      ]
+        "Date: 'she-yitamu oyveinu'. Lubia (the Judeo-Arabic name) for 'she-yirbu zechuyoteinu'.",
+        "Beet leaves are often raw and inedible, so they are held during the Yehi Ratzon and put back.",
+        "The apple is cooked in sugar, not dipped in honey; some add 'ke-devash'.",
+        "If there is no sheep's head, a chicken head (male preferred) or an onion head is used, but never a goat's head; in that case 've-tizkor lanu akedato' is omitted.",
+        "In Rav Yosef Chaim's house the whole seder was repeated at the Rosh Hashana day meal.",
+        "Until about the 1940s every family slaughtered a sheep on the night before Rosh Hashana for the head; the rabbis abolished this (and animal kapparot) because of the burden on the poor."
+      ],
+      "variants": [
+        {
+          "subgroup": "Kurdistan",
+          "practice": "Before Kiddush, the householder says Patach Eliyahu and verses repeated 10-13 times; bread dipped in sugar (salt cellar holds sugar and salt); fruits first, then dates, lubia, leek, gourd, sweet pomegranate, apples in sugar, sheep's or (male) chicken head; walnuts avoided; Tehillim books 1-2 read after the meal.",
+          "source": "Amedi, Yalkut Minhagim, ch. 3 sec. 9 §5-9 (https://www.daat.ac.il/daat/toshba/minhagim/kur3.htm)"
+        }
+      ],
+      "source": "Ben-Yaakov, Yalkut Minhagim, ch. 3 sec. 9 §1, §5; Ben Ish Chai, Halachot Year 1, Nitzavim §4 (Sefaria)",
+      "source_url": "https://www.sefaria.org/Ben_Ish_Hai,_Halachot_1st_Year,_Nitzavim.4",
+      "confidence": "well-attested",
+      "review_notes": "The Ben Ish Chai (Nitzavim 4) prescribes this as the order on both nights beginning with dates. The Sefaria page opened only partially (its summary text loaded); Ben-Yaakov puts ha-etz and ha-adama fruits before the dates. Treat the opening position as a minor variation: Ben-Yaakov's fruits-first order versus Ben Ish Chai's 'dates first'.",
+      "references": [
+        {
+          "title": "Ben Ish Hai, Halachot 1st Year, Nitzavim 4",
+          "url": "https://www.sefaria.org/Ben_Ish_Hai,_Halachot_1st_Year,_Nitzavim.4"
+        }
+      ],
+      "topic_he": "סימנים (סדר ליל ראש השנה)",
+      "summary_he": "בשני הלילות אוכלים יהודי עיראק ומברכים בסדר זה: פרי עונה לברכת \"העץ\" (בדרך כלל ענבים), פרי עונה לברכת \"האדמה\" (בדרך כלל אבטיח), תמרים, שעועית רוביא/לוביא, דלעת (קרע), כרתי (כרתי), עלי סלק ירוקים (סילקא), רימון מתוק, תפוח מבושל בסוכר וראש כבש."
     },
     {
       "index": "halacha.13",
-      "category": "Pesach",
-      "topic": "Seder practice",
-      "summary": "The Seder is marked by halachic structure and Iraqi family customs.",
+      "category": "Rosh Hashana",
+      "topic": "Order of the day and customs",
+      "summary": "White clothes are worn on Rosh Hashana and Yom Kippur and black is forbidden; nothing sharp, sour or salty is eaten; sugar replaces salt on the table; daytime sleep is avoided.",
       "common_practices": [
-        "Use accepted Haggadah rite",
-        "Preserve songs and recitation customs",
-        "Follow local food and symbolic customs",
-        "Review chametz cleaning and kashering checklists before the festival.",
-        "Follow community custom on kitniyot and festival kitchen workflow.",
-        "Use community haggadah flow and family minhagim within halachic structure."
-      ]
+        "Hair is cut on erev Rosh Hashana, preferably before midday (Ben Ish Chai).",
+        "The pious fast on erev Rosh Hashana, visit graves of tzaddikim and some immerse in a mikveh.",
+        "Many read Ben Ish Chai 'bakashot' from Leshon Chachamim before Kiddush.",
+        "Children (age 9+) 'snatch' and sing piyyut lines: 'Achot ketana' (first night), 'Chon tachon' (second night), 'Et sha'arei ratzon' after the Torah reading, 'Elohai al tedineni', 'Yedei rashim', 'Hashem yom lecha e'eroch', 'Yah shimcha arommimcha'.",
+        "Shofar sounds differ from other communities: a long 'tuuu' tekia, shevarim as three short blasts in one breath, and a teru'a of many short trills.",
+        "Bitter coffee is drunk sweet or avoided because its dark colour resembles black.",
+        "Women are meticulous about hearing the shofar in Elul, on both days of Rosh Hashana and at the end of Yom Kippur (Ben Ish Chai, Hukkei HaNashim §43).",
+        "Women immerse before Rosh Hashana and erev Yom Kippur (Ben Ish Chai, Nitzavim §3; Rav Pe'alim 4 YD 16)."
+      ],
+      "variants": [
+        {
+          "subgroup": "Kurdistan",
+          "practice": "Tashlich on the first day after Mincha around a pit, shaking garment hems; 100 shofar blasts with 30 during the silent Amidah; piyyutim in Hebrew and Kurdish; Tehillim read twice ('kofer'); no daytime sleep.",
+          "source": "Amedi, Yalkut Minhagim, ch. 3 sec. 9 §10-17 (https://www.daat.ac.il/daat/toshba/minhagim/kur3.htm)"
+        }
+      ],
+      "source": "Ben-Yaakov, Yalkut Minhagim, ch. 3 sec. 9 §2-10 and sec. 11 §3; Ben Ish Chai, Halachot Year 1, Nitzavim §3",
+      "source_url": "https://www.daat.ac.il/daat/toshba/minhagim/bav3.htm",
+      "confidence": "well-attested",
+      "review_notes": "Ben Ish Chai Nitzavim 3 (Sefaria, opened only partially) confirms the haircut and white clothes. Ben-Yaakov does not mention Tashlich for Baghdad; that is a gap for Baghdad.",
+      "references": [
+        {
+          "title": "Ben Ish Hai, Halachot 1st Year, Nitzavim 3",
+          "url": "https://www.sefaria.org/Ben_Ish_Hai,_Halachot_1st_Year,_Nitzavim.3"
+        }
+      ],
+      "topic_he": "סדר היום ומנהגים",
+      "summary_he": "לובשים לבן בראש השנה וביום כיפור ושחור אסור; אין אוכלים דבר חד, חמוץ או מלוח; סוכר מחליף את המלח על השולחן; נמנעים משינה ביום."
     },
     {
       "index": "halacha.14",
-      "category": "Lifecycle",
-      "topic": "Brit milah",
-      "summary": "Brit milah is performed with halachic precision and family celebration.",
+      "category": "High Holidays",
+      "topic": "Kapparot",
+      "summary": "Formerly white fowl were used (a rooster per male, a hen per female, two hens and a rooster for a pregnant woman), plus an extra bird for the poor; Baghdad rabbis abolished this and allowed redeeming the birds with a small sum, but many in Baghdad and most in Israel continued with fowl.",
       "common_practices": [
-        "Use a qualified mohel",
-        "Observe naming and blessing customs",
-        "Preserve songs and family traditions",
-        "Keep core lifecycle ceremonies aligned with halachic requirements.",
-        "Document family minhagim for naming, honors, and celebration order.",
-        "Consult community rabbi for local protocol differences."
-      ]
+        "When money is used, the head of the family circles it over each person's head saying 'zeh chalifati...' and gives it to the poor.",
+        "On erev Yom Kippur after Mincha: Hatarat Nedarim, then malkot; many perform the release at dawn after Selichot."
+      ],
+      "variants": [
+        {
+          "subgroup": "Kurdistan",
+          "practice": "Fowl slaughtered at home by the shochet, who also circles them over the heads; malkot with a special ox-hide strap with donkey-hide thongs at a synagogue pillar, 39 strokes while reciting 'Ve-Hu rachum' three times.",
+          "source": "Amedi, Yalkut Minhagim, ch. 3 sec. 10 §1-2 (https://www.daat.ac.il/daat/toshba/minhagim/kur3.htm)"
+        },
+        {
+          "subgroup": "Baghdad rabbis",
+          "practice": "Abolished fowl and allowed redeeming the birds with a small sum of money.",
+          "source": "Ben-Yaakov, Yalkut Minhagim, ch. 3 sec. 10 §2-3"
+        },
+        {
+          "subgroup": "Many in Baghdad and most in Israel",
+          "practice": "Continued to use fowl.",
+          "source": "Ben-Yaakov, Yalkut Minhagim, ch. 3 sec. 10 §2-3"
+        }
+      ],
+      "source": "Ben-Yaakov, Yalkut Minhagim, ch. 3 sec. 10 §2-3",
+      "source_url": "https://www.daat.ac.il/daat/toshba/minhagim/bav3.htm",
+      "confidence": "disputed",
+      "review_notes": "Ben-Yaakov himself records both the rabbinic abolition and the continuing popular practice. Community practice is divided.",
+      "topic_he": "כפרות",
+      "summary_he": "בעבר השתמשו בעופות לבנים (תרנגול לכל זכר, תרנגולת לכל נקבה, שתי תרנגולות ותרנגול לאישה הרה), ועוד עוף נוסף לעני; רבני בגדאד ביטלו זאת והתירו לפדות את העופות בסכום קטן, אך רבים בבגדאד ורוב הציבור בישראל המשיכו בעופות."
     },
     {
       "index": "halacha.15",
-      "category": "Lifecycle",
-      "topic": "Marriage and ketubah",
-      "summary": "Marriage is halachically standard and often strongly family-centered.",
+      "category": "Yom Kippur",
+      "topic": "Yom Kippur prayers and customs",
+      "summary": "The Yom Kippur text follows the Babylonian-rite machzor; the one distinctive addition is the piyyut 'Sha'a ba be-eimot ve-tzo'ek ba-garon' (R. Sasson b. Mordechai Shindookh) before the Torah reading.",
       "common_practices": [
-        "Use a valid ketubah",
-        "Perform kiddushin and nissuin properly",
-        "Observe local engagement and wedding customs",
-        "Keep core lifecycle ceremonies aligned with halachic requirements.",
-        "Document family minhagim for naming, honors, and celebration order.",
-        "Consult community rabbi for local protocol differences."
-      ]
+        "In Baghdad 'Lecha Eli teshukati' before Kol Nidrei was said individually, not by the chazan, who began at 'Shema koli'; in Israel men with pleasant voices now sing it verse by verse.",
+        "Piyyutim taught to children: 'Shin'anim sha'ananim', 'Adir ve-na'or... Mi El kamocha' (in every service), 'Yah shema evyonecha' (in every Selichot), 'El nora alila' (opening Ne'ila).",
+        "One or two 'somchim' stand beside the chazan to read and sing Selichot and piyyutim.",
+        "After the fast (and after Tisha B'Av) an almond-milk drink made from steeped ground almonds is drunk; many cook hamin and buy 'gurg' flatbread.",
+        "Women are obligated to eat on erev Yom Kippur because they must fast (Ben Ish Chai, Torah Lishmah §162)."
+      ],
+      "variants": [
+        {
+          "subgroup": "Kurdistan",
+          "practice": "The first Torah scroll is auctioned and its buyer ('ba'al Kol Nidrei') says Shehecheyanu; the chacham asks the congregation to forgive one another; Ezekiel 40-43 is read between Musaf and Mincha; Havdala and Kiddush Levana follow, then work on the sukkah.",
+          "source": "Amedi, Yalkut Minhagim, ch. 3 sec. 10 §4-6 (https://www.daat.ac.il/daat/toshba/minhagim/kur3.htm)"
+        }
+      ],
+      "source": "Ben-Yaakov, Yalkut Minhagim, ch. 3 sec. 11 §1-5",
+      "source_url": "https://www.daat.ac.il/daat/toshba/minhagim/bav3.htm",
+      "confidence": "needs-review",
+      "review_notes": "The online Ben-Yaakov text names the almond drink 'חגיגי'; the name and its transliteration should be checked against the printed edition.",
+      "references": [
+        {
+          "title": "יום הכיפורים",
+          "url": "https://www.daat.ac.il/daat/toshba/minhagim/kipur.htm"
+        }
+      ],
+      "topic_he": "תפילות יום כיפור ומנהגיו",
+      "summary_he": "נוסח יום כיפור הולך אחרי מחזור נוסח בבל; התוספת המיוחדת היחידה היא הפיוט \"שעה בא באימות וצועק בגרון\" (רבי ששון בן מרדכי שינדוך) לפני קריאת התורה."
     },
     {
       "index": "halacha.16",
-      "category": "Family law",
-      "topic": "Niddah and mikveh",
-      "summary": "Family purity laws are observed carefully and are central to traditional practice.",
+      "category": "Sukkot",
+      "topic": "Sukka and Four Species",
+      "summary": "Sukkot were often permanent structures in house courtyards, roofed with palm fronds, with fruits hung from the schach; a 'qrayi' lamp for the festival and a single-wick 'qandil' for the Ushpizin of the day are hung inside.",
       "common_practices": [
-        "Observe niddah separation laws",
-        "Use mikveh according to halacha",
-        "Follow local rabbinic guidance for household practice",
-        "Use a consistent halachic calendar and consultation process for sensitive questions.",
-        "Coordinate household observance with qualified rabbinic guidance.",
-        "Preserve family minhag where compatible with accepted psak."
-      ]
+        "Each evening a poor person is given dinner as 'the Ushpizin's portion', or money instead.",
+        "No Hoshanot on Shabbat Chol HaMoed (Baghdad custom).",
+        "Because etrogim were scarce, Baghdad rabbis in 1860 permitted the lulav blessing before sunrise for public need; many blessed at dawn in the house of Rav Yosef Chaim and his descendants.",
+        "Formerly synagogue sukkot existed in Baghdad; the Ben Ish Chai records the custom lapsed about 40 years before his writing.",
+        "Women sleep in the sukka to be with their husbands but are not strict about eating there (Hukkei HaNashim §43)."
+      ],
+      "variants": [
+        {
+          "subgroup": "Kurdistan",
+          "practice": "Seven beams laid on the sukka walls for the seven Ushpizin and a 'Chair of the Fathers' (kursit babawata) set in a corner; one synagogue lulav auctioned on Yom Kippur to a 'ba'al ha-lulav' who passes it among the congregation all week.",
+          "source": "Amedi, Yalkut Minhagim, ch. 3 sec. 11 §1-4 (https://www.daat.ac.il/daat/toshba/minhagim/kur3.htm)"
+        }
+      ],
+      "source": "Ben-Yaakov, Yalkut Minhagim, ch. 3 sec. 12 §1-8, citing Ben Ish Chai, Mar'ot Yechezkel (in Od Yosef Chai) 1c",
+      "source_url": "https://www.daat.ac.il/daat/toshba/minhagim/bav3.htm",
+      "confidence": "needs-review",
+      "review_notes": "The 1860 pre-sunrise lulav ruling is historically specific; Ben-Yaakov notes it spread 'for some reason' to Shema and prayer as well. That extension should not be treated as normative without rabbinic review.",
+      "topic_he": "סוכה וארבעת המינים",
+      "summary_he": "סוכות היו לעיתים קרובות מבנים קבועים בחצרות הבתים, מקורים בכפות תמרים ופירות תלויים מהסכך; בפנים תולים נר \"קראיי\" לחג ו\"קנדיל\" בפתילה אחת לאושפיזין של היום."
     },
     {
       "index": "halacha.17",
-      "category": "Mourning",
-      "topic": "Avelut",
-      "summary": "Mourning follows standard halachic structure with strong family and communal support.",
+      "category": "Sukkot",
+      "topic": "Hoshana Rabba",
+      "summary": "People stay awake all night of Hoshana Rabba reading the order in 'Kri'ei Mo'ed' (printed in Baghdad and Jerusalem), with prayers for the seven Ushpizin interspersed in the Tehillim, sung to special tunes.",
       "common_practices": [
-        "Observe shiva, shloshim, and yahrzeit customs",
-        "Use memorial prayer forms according to local practice",
-        "Maintain condolence etiquette and community structure",
-        "Observe shiva, shloshim, and yahrzeit in the accepted local format.",
-        "Coordinate memorial prayer customs with synagogue practice.",
-        "Preserve condolence and visitation etiquette used by the community."
-      ]
+        "A spiced drink called 'megli' (sugar, ginger and cardamom boiled in water) is served to ward off sleep on this night and on Shavuot night."
+      ],
+      "variants": [
+        {
+          "subgroup": "Kurdistan",
+          "practice": "Called 'Lel Araba'; 'Tikkun Karet' study all night; willows bound in fives; beating the willows on the ground five times saying 'chavit chavit ve-la barich'; lulav and willows kept to burn with chametz.",
+          "source": "Amedi, Yalkut Minhagim, ch. 3 sec. 11 §5-7 (https://www.daat.ac.il/daat/toshba/minhagim/kur3.htm)"
+        }
+      ],
+      "source": "Ben-Yaakov, Yalkut Minhagim, ch. 3 sec. 12 §10",
+      "source_url": "https://www.daat.ac.il/daat/toshba/minhagim/bav3.htm",
+      "confidence": "needs-review",
+      "review_notes": "The Ben Ish Chai permits women to join the Hoshana Rabba tikkun but not the Shavuot one (Rav Pe'alim 1, Sod Yesharim §9, per Picard).",
+      "topic_he": "הושענא רבה",
+      "summary_he": "נשארים ערים כל לילה של הושענא רבה וקוראים את הסדר מתוך \"קריאי מועד\" (שנדפס בבגדאד ובירושלים), כשתפילות לשבעת האושפיזין שזורות בתהילים ונשרות בניגונים מיוחדים."
     },
     {
       "index": "halacha.18",
-      "category": "Calendar",
-      "topic": "High Holidays",
-      "summary": "Rosh Hashanah and Yom Kippur are observed with seriousness and local liturgical tradition.",
+      "category": "Sukkot",
+      "topic": "Shemini Atzeret and Simchat Torah",
+      "summary": "Iraqi synagogues gather at midday on Shemini Atzeret before Mincha and read all five books of the Torah, with the chazan handing each person a parasha in order, ending with the last verses of Devarim, 'Hadran alach Oraita' and the opening of Bereshit.",
       "common_practices": [
-        "Use the community machzor or accepted rite",
-        "Preserve selichot and shofar customs",
-        "Follow synagogue order and family tradition",
-        "Anchor observance times to local halachic zmanim.",
-        "Coordinate fasts, selichot, and festival timing with community schedule.",
-        "Use a single trusted local calendar authority for consistency."
-      ]
+        "'Tzam'a nafshi' at Shacharit of Shemini Atzeret.",
+        "The Aramaic piyyut 'Medakar avdachon kodamchon' added at the start of Tikkun HaGeshem (and of Tikkun HaTal on Pesach).",
+        "On Simchat Torah all Torah scrolls are taken out and set by a wall from the night until the end of the day; everyone, including women after the service, files past to kiss them.",
+        "Long hakafot with many piyyutim printed in 'Hakafot le-Simchat Torah' booklets."
+      ],
+      "variants": [
+        {
+          "subgroup": "Kurdistan",
+          "practice": "Synagogue honors sold for the whole year on Simchat Torah; Chatan Torah, Chatan Bereshit and in some places 'Chatan Me'ona'; final verses read with Kurdish translation; hakafot up to three times (night, before Mincha, after Arvit).",
+          "source": "Amedi, Yalkut Minhagim, ch. 3 sec. 12 (https://www.daat.ac.il/daat/toshba/minhagim/kur3.htm)"
+        }
+      ],
+      "source": "Ben-Yaakov, Yalkut Minhagim, ch. 3 sec. 13 §1-5",
+      "source_url": "https://www.daat.ac.il/daat/toshba/minhagim/bav3.htm",
+      "confidence": "needs-review",
+      "review_notes": "",
+      "topic_he": "שמיני עצרת ושמחת תורה",
+      "summary_he": "בתי הכנסת העיראקיים מתכנסים בצהריים בשמיני עצרת לפני מנחה וקוראים את חמשת חומשי התורה, כשהחזן נותן לכל אדם פרשה לפי הסדר, ומסיימים בפסוקים האחרונים של דברים, \"הדרן עלך אורייתא\" ותחילת בראשית."
     },
     {
       "index": "halacha.19",
-      "category": "Calendar",
-      "topic": "Chanukah and Purim",
-      "summary": "Minor festivals are observed according to halacha and Iraqi Jewish custom.",
+      "category": "Chanukah",
+      "topic": "Lighting",
+      "summary": "In Baghdad an unmarried son, even an adult, does not light but relies on his father; a married son lights his own lights in his own room without a blessing, relying on hearing his father's blessing.",
       "common_practices": [
-        "Light Chanukah candles nightly",
-        "Read the Megillah on Purim",
-        "Use family foods and celebration customs",
-        "Anchor observance times to local halachic zmanim.",
-        "Coordinate fasts, selichot, and festival timing with community schedule.",
-        "Use a single trusted local calendar authority for consistency."
-      ]
+        "Lighting is inside the house, not outside, for fear of the Muslim authorities; olive oil in cups set in silver menorahs, with water below the oil.",
+        "Rav Somekh: he blessed aloud while his sons stood ready by their own menorahs, then each lit and said 'HaNerot halalu'.",
+        "Dairy foods are eaten in memory of Yehudit (Chemdat Yamim).",
+        "If a yahrzeit falls on Chanukah, the grave visit is made before Chanukah.",
+        "On erev Rosh Chodesh Tevet Baghdad Jews visited the tomb of Yehoshua Kohen Gadol and lit a candle for Rabbi Meir Ba'al HaNes.",
+        "Formerly no Beit Yaakov or Shir shel Yom, only Mizmor Shir Chanukat HaBayit; Rav Yosef Chaim instituted all three at the end of the 19th century.",
+        "'Ma'oz Tzur' was unknown in Iraq; local piyyutim include 'Yatza limloch mi-beit surim', 'Yah hatzel yona mechaka', 'Yitro'a'u af yashiru' (when Rosh Chodesh Tevet falls on Shabbat)."
+      ],
+      "variants": [
+        {
+          "subgroup": "Kurdistan",
+          "practice": "The chazan lights in synagogue between Mincha and Arvit and says 'Vihi no'am' seven times; women do not work while the lights burn; leftover oil and wicks are burned on the eighth day.",
+          "source": "Amedi, Yalkut Minhagim, ch. 3 sec. 13 (https://www.daat.ac.il/daat/toshba/minhagim/kur3.htm)"
+        }
+      ],
+      "source": "Rav Abdallah Somekh, Responsa Zivchei Tzedek vol. 2, Orach Chaim §37 (Baghdad 1899, p. 46), as quoted on HaChacham HaYomi; Ben-Yaakov, Yalkut Minhagim, ch. 3 sec. 14 §1-8",
+      "source_url": "https://www.hyomi.org.il/%D7%97%D7%9B%D7%9D-%D7%A2%D7%91%D7%93%D7%90%D7%9C%D7%9C%D7%94-%D7%A1%D7%95%D7%9E%D7%9A",
+      "confidence": "well-attested",
+      "review_notes": "Rav Somekh's responsum and Ben-Yaakov agree on the unmarried-son rule; Rav Somekh adds explicitly that the married son lights without a blessing. Kahal Joseph also holds an 1887 Calcutta pamphlet, 'Sefer Pirsume Nisa', with 138 Judeo-Arabic rules for Chanukah (not opened).",
+      "topic_he": "הדלקה",
+      "summary_he": "בבגדאד בן רווק, אפילו בוגר, אינו מדליק אלא סומך על אביו; בן נשוי מדליק את נרותיו בחדרו בלא ברכה, וסומך על שמיעת ברכת אביו."
     },
     {
       "index": "halacha.20",
-      "category": "Education",
-      "topic": "Torah transmission",
-      "summary": "Torah study, especially around the Talmud and halacha, is central to Iraqi Jewish identity.",
+      "category": "Purim",
+      "topic": "Two-day Purim and Megillah",
+      "summary": "Because it is doubtful whether Baghdad, Basra and other Iraqi cities were walled in Joshua's time, Purim is kept on both 14 and 15 Adar; on the second day the Megillah is read without the preceding blessing and the final blessing is said without God's name and kingship, and 'Vayavo Amalek' is read from the Torah.",
       "common_practices": [
-        "Teach children Hebrew and prayer",
-        "Preserve oral family memory",
-        "Use both formal scholarship and inherited communal tradition",
-        "Teach children both baseline halacha and family minhag distinctions.",
-        "Preserve community pronunciation and liturgical pedagogy.",
-        "Document oral traditions to reduce minhag drift across generations."
-      ]
+        "Formerly Al HaNissim was also said on the second day; Rav Moshe Chaim (d. 1838) abolished this for fear of an improper interruption but kept the Torah reading; the Purim feast and mishloach manot continue on the second day.",
+        "The congregation stands for the Megillah blessings; the reader says 'Birshut mori ve-rabotai'; the Megillah is rolled up before the final blessing.",
+        "The four 'redemption verses' are said aloud by the congregation and repeated by the reader.",
+        "Machatzit HaShekel is collected between Mincha and Arvit on Purim night with a white cloth.",
+        "Women hear the Megillah from a man rather than reading themselves (Ben Ish Chai vol. 1, Laws of Purim, per Picard).",
+        "Costumes were not customary in Iraq; musicians went house to house instead.",
+        "Writing 'Haman' and 'Vayzata' on a slip and erasing them with beer ('tenu shechar le-oved').",
+        "Purim sweets: 'masafan', 'hadji bada', baklawa, quince 'luzina', 'zangula', 'sambusak bi-tawa' (filled with chickpeas, in memory of Daniel's seeds)."
+      ],
+      "variants": [
+        {
+          "subgroup": "Kurdistan",
+          "practice": "Purim called 'Megla'; the Megillah is read again at home in Kurdish for the women; a large candle held by the holder of the 'kisse ve-sha'ava' honor during the reading.",
+          "source": "Amedi, Yalkut Minhagim, ch. 3 sec. 15 §4-8 (https://www.daat.ac.il/daat/toshba/minhagim/kur3.htm)"
+        }
+      ],
+      "source": "Ben-Yaakov, Yalkut Minhagim, ch. 3 sec. 16 §1-12",
+      "source_url": "https://www.daat.ac.il/daat/toshba/minhagim/bav3.htm",
+      "confidence": "needs-review",
+      "review_notes": "The two-day Purim with blessing rules is halachically significant and rests here on one compilation; confirm with Ben Ish Chai (Tetzaveh/Purim laws) before relying on it.",
+      "topic_he": "פורים בן יומיים ומגילה",
+      "summary_he": "מפני שמסופק אם בגדאד, בצרה וערים עיראקיות אחרות היו מוקפות חומה בימי יהושע, חוגגים פורים בי\"ד ובט\"ו באדר; ביום השני קוראים את המגילה בלי הברכה שלפניה, ואת הברכה האחרונה אומרים בלי שם ומלכות, וקוראים \"ויבוא עמלק\" בתורה."
+    },
+    {
+      "index": "halacha.21",
+      "category": "Pesach",
+      "topic": "Kitniyot and rice",
+      "summary": "Iraqi custom eats kitniyot including rice, but it must be checked several times; at the same time many Baghdad laypeople refrained from rice on Pesach.",
+      "common_practices": [
+        "Those who eat rice check it two or three times beforehand (Ben Ish Chai, Year 1, Tzav §41, as cited by Peninei Halakha).",
+        "Each person should continue his ancestral custom (Peninei Halakha)."
+      ],
+      "variants": [
+        {
+          "subgroup": "Kurdistan",
+          "practice": "Rice is sorted three or four times and kept in tied cloth bags; rice is the basis of all Pesach meals.",
+          "source": "Amedi, Yalkut Minhagim, ch. 3 sec. 16 §1, §22 (https://www.daat.ac.il/daat/toshba/minhagim/kur3.htm)"
+        },
+        {
+          "subgroup": "Ben Ish Chai (Baghdad)",
+          "practice": "Rice is eaten, after checking it two or three times beforehand.",
+          "source": "Ben Ish Chai, Year 1, Tzav §41, as cited by Peninei Halakha"
+        },
+        {
+          "subgroup": "Many Baghdad laypeople",
+          "practice": "Did not eat rice on Pesach.",
+          "source": "R. Eliezer Melamed, Peninei Halakha, Pesach 9:2"
+        }
+      ],
+      "source": "R. Eliezer Melamed, Peninei Halakha, Laws of Pesach 9:2 'The Sephardic Custom', citing Ben Ish Chai Year 1 Tzav §41",
+      "source_url": "https://ph.yhb.org.il/en/04-09-02/",
+      "confidence": "disputed",
+      "review_notes": "Peninei Halakha states 'In Baghdad, many laypeople did not eat rice on Pesach.' Families differ; the app should ask the user's family custom rather than assume rice is eaten. Ben Ish Chai Tzav 41 was not opened directly.",
+      "references": [
+        {
+          "title": "ארכיון 09 – The Practice of Prohibiting Kitniyot - Peninei Halakha",
+          "url": "https://ph.yhb.org.il/en/category/pesah/09-kitniyot/"
+        }
+      ],
+      "topic_he": "קטניות ואורז",
+      "summary_he": "המנהג העיראקי אוכל קטניות, כולל אורז, אך יש לבדוק אותו כמה פעמים; יחד עם זה רבים מהאנשים הפשוטים בבגדאד נמנעו מאורז בפסח."
+    },
+    {
+      "index": "halacha.22",
+      "category": "Pesach",
+      "topic": "Matzah",
+      "summary": "Regular matzot are thin round 'jradiq'; in addition, thick matzot called 'sedarim' (singular 'seder') are baked on erev Pesach for the Seder, kneaded only with 'mayim shelanu' drawn at dusk the evening before.",
+      "common_practices": [
+        "Families bought guarded wheat (chitta shemura), ground it and baked in clay ovens under an expert rabbi's supervision; mainly men did this.",
+        "The pious fire the oven with their saved lulavim.",
+        "The pious burn chametz together with the Hoshana Rabba willows."
+      ],
+      "variants": [
+        {
+          "subgroup": "Kurdistan",
+          "practice": "Seder matzot marked with one, two or three notches as Kohen, Levi and Yisrael; the Levi matzah is broken for Yachatz.",
+          "source": "Amedi, Yalkut Minhagim, ch. 3 sec. 16 §9, §14 (https://www.daat.ac.il/daat/toshba/minhagim/kur3.htm)"
+        }
+      ],
+      "source": "Ben-Yaakov, Yalkut Minhagim, ch. 3 sec. 17 §3-5",
+      "source_url": "https://www.daat.ac.il/daat/toshba/minhagim/bav3.htm",
+      "confidence": "needs-review",
+      "review_notes": "The Ben Ish Chai advises that a menstruant woman preferably not touch the drawn water for matzah (Zav §17, per Picard).",
+      "topic_he": "מצה",
+      "summary_he": "המצות הרגילות הן ג'רדיק דקות ועגולות; נוסף על כך אופים בערב פסח לסדר מצות עבות הנקראות \"סדרים\" (יחיד: \"סדר\"), הנלושות רק ב\"מים שלנו\" שנשאבו בין הערביים בערב הקודם."
+    },
+    {
+      "index": "halacha.23",
+      "category": "Pesach",
+      "topic": "Seder customs",
+      "summary": "The Seder plate holds three 'sedarim' matzot, maror (lettuce), chazeret ('handaba'), karpas, zeroa, egg and charoset; charoset is date syrup ('silan') made in Tishrei and thickened with ground almonds; the Haggada is read with a Judeo-Arabic 'sharh' translation.",
+      "common_practices": [
+        "Karpas dipped in vinegar, lemon or bitter-orange juice.",
+        "Yachatz: the middle matzah split into a 'dalet' shape (kept on the plate) and a 'vav' shape (afikoman), wrapped in silk and tied diagonally on a young son's chest or back with a mock 1,000-gold-lira penalty if stolen.",
+        "Ha Lachma Anya said three times ('Ha', 'Ha', 'Kiha'), in Aramaic and Arabic sharh; then the plate is removed.",
+        "Some have the afikoman-keeper dress as a traveller and knock at the door: 'From where? Egypt. Where to? Jerusalem.'",
+        "At the ten plagues the father spills wine into an old vessel while participants call curses on Israel's enemies; the vessel is thrown far from the house.",
+        "There is no Kos Eliyahu.",
+        "Haggada additions: 'Amru rabboteinu', 'U-minayin she-natan lanu et mamonam', 'Emunim archu shevach' and 'Ata ga'alta'; 'Adir bimlucha' is not said; Chad Gadya and Echad Mi Yode'a often skipped.",
+        "Pesach pizmonim: 'Melech go'el u-moshi'a' (R. Moshe Hutzin) and 'Nachon libo' (R. Nissim b. Saleh Yosef Matzliach).",
+        "Raisin wine was often made in Iraq."
+      ],
+      "variants": [
+        {
+          "subgroup": "Kurdistan",
+          "practice": "Large shared Sedarim; 'Asader tecka' (R. Yaakov Chabiba) sung while setting the plate; charoset 'haliq' from dates with walnuts/peanuts or sesame; afikoman given to the most honored guest; the child knocks on the door with his head; 32 drops of wine and water at the plagues in Hebrew and Kurdish; Haggada translated into Kurdish.",
+          "source": "Amedi, Yalkut Minhagim, ch. 3 sec. 16 §8-26 (https://www.daat.ac.il/daat/toshba/minhagim/kur3.htm)"
+        }
+      ],
+      "source": "Ben-Yaakov, Yalkut Minhagim, ch. 3 sec. 17 §2, §6-15",
+      "source_url": "https://www.daat.ac.il/daat/toshba/minhagim/bav3.htm",
+      "confidence": "needs-review",
+      "review_notes": "Babylonian-rite Haggadot exist in print, e.g. Rav Shlomo Bechor Hutzin's Haggada (Leghorn 1887) and Rav David Hai Einy's Hebrew-Arabic-English Haggada (Jerusalem 1905), listed by Kahal Joseph; they were not opened.",
+      "references": [
+        {
+          "title": "פסח",
+          "url": "https://www.daat.ac.il/daat/toshba/minhagim/pesach.htm"
+        },
+        {
+          "title": "Books About Our Customs & Minhagim",
+          "url": "https://www.kahaljoseph.org/learning/books-about-our-customs-and-minhagim/"
+        }
+      ],
+      "topic_he": "מנהגי הסדר",
+      "summary_he": "בקערת הסדר שלוש מצות \"סדרים\", מרור (חסה), חזרת (\"חנדבה\"), כרפס, זרוע, ביצה וחרוסת; החרוסת היא סילאן (דבש תמרים) המיוצר בתשרי ומעובה בשקדים טחונים; ההגדה נקראת עם תרגום \"שרח\" ביהודית-ערבית."
+    },
+    {
+      "index": "halacha.24",
+      "category": "Omer",
+      "topic": "Counting and Lag BaOmer",
+      "summary": "The blessing is 'al sefirat ha-omer' and the count is 'Ha-yom... yom la-omer, she-hem...'; the chazan blesses first, then the congregation, and all say 'HaRachaman Hu yachazir avodat Beit HaMikdash'.",
+      "common_practices": [
+        "Psalm 67 and Ana Be-Choach follow.",
+        "On the first night (some every night) bakashot and 'Le-shem yichud' precede the count.",
+        "Some hold a small salt crystal while blessing and keep it all year as a good sign.",
+        "Lag BaOmer: Hillula of Rabbi Shimon bar Yochai in some synagogues reading 'Sefer Hillula Rabba' (Baghdad 1908); many lamps lit; the piyyut 'Ve-amartem ko le-chai' by Rav Yosef Chaim.",
+        "There is no bonfire custom in Babylonia."
+      ],
+      "variants": [
+        {
+          "subgroup": "Kurdistan",
+          "practice": "Count also at Shacharit without blessing using 'ba-omer' (night with blessing: 'la-omer'); no shaving from Pesach until Lag BaOmer; Lag BaOmer bonfires were almost unknown.",
+          "source": "Amedi, Yalkut Minhagim, ch. 3 sec. 17 §1-3 (https://www.daat.ac.il/daat/toshba/minhagim/kur3.htm)"
+        }
+      ],
+      "source": "Ben-Yaakov, Yalkut Minhagim, ch. 3 sec. 18 §1-6",
+      "source_url": "https://www.daat.ac.il/daat/toshba/minhagim/bav3.htm",
+      "confidence": "needs-review",
+      "review_notes": "No Baghdad-specific source for the Omer mourning-period dates was found; see gaps.",
+      "topic_he": "ספירת העומר ול\"ג בעומר",
+      "summary_he": "הברכה היא \"על ספירת העומר\" והספירה היא \"היום... יום לעומר, שהם...\"; החזן מברך ראשון, אחר כך הקהל, וכולם אומרים \"הרחמן הוא יחזיר עבודת בית המקדש\"."
+    },
+    {
+      "index": "halacha.25",
+      "category": "Shavuot",
+      "topic": "Mishmara vigil and day customs",
+      "summary": "On Shavuot night families gather at the head of the family's home, rabbis' homes or synagogues for an all-night 'Mishmara' (of at least ten men, for Kaddish) reading from Tanach, Midrash and Idra Rabba per 'Sefer Kri'ei Mo'ed' (Baghdad 1910); mourners sponsor a Mishmara for the deceased.",
+      "common_practices": [
+        "A break at midnight called 'zman ha-berachot' with fruits; coffee, tea and 'megli' served.",
+        "Vatikin prayer at dawn, then sleep.",
+        "After sleeping, 'kahi' (layered buttered fried pastry dipped in silan or sugar) is eaten.",
+        "No vigil on the second night, apart from the pious reading a few portions and the 613 mitzvot.",
+        "The Ben Ish Chai permitted Kiddush before dark on the second night in Baghdad and Basra because of the summer heat; the first night requires certain night ('sheva shabbatot temimot').",
+        "'Yom yom odeh' sung before the Ten Commandments aliyah; Ruth and the Azharot read during the day.",
+        "Called 'Eid al-Ziyara' because of visits to graves of the righteous (Yechezkel at Kifl, Ezra near Basra, Yehoshua Kohen Gadol in Baghdad, Chanania-Mishael-Azaria in Kirkuk)."
+      ],
+      "variants": [
+        {
+          "subgroup": "Kurdistan",
+          "practice": "Also called 'Idat Ziyara' (pilgrimage to local tombs); dairy breakfast (rice in milk, 'madira', cheese-filled 'kadi'); the night tikkun reads all five books distributed by parasha.",
+          "source": "Amedi, Yalkut Minhagim, ch. 3 sec. 18 §1-4 (https://www.daat.ac.il/daat/toshba/minhagim/kur3.htm)"
+        },
+        {
+          "subgroup": "Ben-Yaakov (Baghdad practice)",
+          "practice": "Women stay awake nearby and listen, and those who can read follow the reading.",
+          "source": "Ben-Yaakov, Yalkut Minhagim, ch. 3 sec. 19"
+        },
+        {
+          "subgroup": "Ben Ish Chai",
+          "practice": "Women should not take part in the Shavuot eve tikkun.",
+          "source": "Rav Pe'alim 1, Sod Yesharim §9 (per Picard)"
+        }
+      ],
+      "source": "Ben-Yaakov, Yalkut Minhagim, ch. 3 sec. 19 §1-7",
+      "source_url": "https://www.daat.ac.il/daat/toshba/minhagim/bav3.htm",
+      "confidence": "disputed",
+      "review_notes": "On women's participation, Ben-Yaakov describes women staying awake nearby, listening, and those who can read reading along; the Ben Ish Chai rules women should not take part in the Shavuot eve tikkun (Rav Pe'alim 1, Sod Yesharim §9, per Picard).",
+      "references": [
+        {
+          "title": "שבת - ממנהגי יהודי בבל",
+          "url": "https://daat.ac.il/daat/toshba/minhagim/bav-sha.htm"
+        }
+      ],
+      "topic_he": "משמרה ומנהגי היום",
+      "summary_he": "בליל שבועות מתכנסות משפחות בראש בית המשפחה, בבתי רבנים או בבתי כנסת ל\"משמרה\" של כל הלילה (של עשרה גברים לפחות, לקדיש), הקוראים מהתנ\"ך, ממדרש ומאידרא רבא לפי \"ספר קריאי מועד\" (בגדאד 1910); אבלים נותנים חסות למשמרה לעילוי הנפטר."
+    },
+    {
+      "index": "halacha.26",
+      "category": "Fasts and Tisha B'Av",
+      "topic": "Four fasts and Bein HaMetzarim",
+      "summary": "From 17 Tammuz joyous events are reduced; in the week of Tisha B'Av no meat or wine, laundering, haircuts or new clothes; some refrain from meat and wine from the night of 2 Av to the night of 10 Av.",
+      "common_practices": [
+        "When Tisha B'Av falls on Shabbat and is postponed to Sunday, laundry is done in the preceding week and haircuts are treated leniently.",
+        "Slaughter was done on Tisha B'Av for the meal on the night of the 10th; on days without meat even a brit meal is meatless.",
+        "Engagements are made after 17 Tammuz, but not from Rosh Chodesh Av to 9 Av.",
+        "A groom does not fast a public fast falling within his seven days of feasting."
+      ],
+      "variants": [
+        {
+          "subgroup": "Kurdistan",
+          "practice": "17 Tammuz-9 Av called 'hazini' (mourning); from Rosh Chodesh Av no laundry, bathing or meat; stricter about Ta'anit Esther and 17 Tammuz than Tzom Gedalia and 10 Tevet; 17 Tammuz called 'tzom sahyon zura' (small thirst fast).",
+          "source": "Amedi, Yalkut Minhagim, ch. 3 sec. 19 §1-3 (https://www.daat.ac.il/daat/toshba/minhagim/kur3.htm)"
+        }
+      ],
+      "source": "Ben-Yaakov, Yalkut Minhagim, ch. 3 sec. 20 §1-6",
+      "source_url": "https://www.daat.ac.il/daat/toshba/minhagim/bav3.htm",
+      "confidence": "needs-review",
+      "review_notes": "",
+      "topic_he": "ארבעת הצומות ובין המצרים",
+      "summary_he": "מי\"ז בתמוז ממעטים באירועי שמחה; בשבוע של תשעה באב אין בשר ויין, כביסה, תספורת או בגדים חדשים; יש הנמנעים מבשר ויין מליל ב' באב עד ליל י' באב."
+    },
+    {
+      "index": "halacha.27",
+      "category": "Fasts and Tisha B'Av",
+      "topic": "Tisha B'Av",
+      "summary": "On Tisha B'Av morning each man puts on tzitzit and tefillin at home and says only Shema, then prays Shacharit in synagogue without them; Baghdad custom says 'Ha'azinu' instead of 'Az Yashir'.",
+      "common_practices": [
+        "Full 'Sim Shalom' said in the silent Arvit and Shacharit Amidah; only the chazan uses the shortened form in the repetition.",
+        "The Shacharit Haftara is read with an extended Judeo-Arabic 'sharh', with weeping lines after each verse; afterwards Eicha with Arabic sharh and 'Qissat Chana ve-Zecharya' in Judeo-Arabic are read publicly.",
+        "Rav Yosef Chaim himself said Az Yashir as usual and Ha'azinu after the Amidah.",
+        "Rav Tzadka Hutzin ruled that pregnant women do not fast on Tisha B'Av because of the intense heat.",
+        "The almond drink breaks the fast."
+      ],
+      "variants": [
+        {
+          "subgroup": "Kurdistan",
+          "practice": "Called 'tzom sahyon urwa' (great thirst fast); the parochet reversed, lights extinguished after Eicha with the years since the destruction announced; some put on tefillin at home, others in synagogue as usual; a myrtle twig used as the pointer; on return the wife breaks a clay vessel before her husband.",
+          "source": "Amedi, Yalkut Minhagim, ch. 3 sec. 20 §1-7 (https://www.daat.ac.il/daat/toshba/minhagim/kur3.htm)"
+        }
+      ],
+      "source": "Ben-Yaakov, Yalkut Minhagim, ch. 3 sec. 21 §1-6",
+      "source_url": "https://www.daat.ac.il/daat/toshba/minhagim/bav3.htm",
+      "confidence": "needs-review",
+      "review_notes": "The pregnant-women exemption is a halachic ruling recorded by one source; it is listed for rabbinic review and must not be presented as a personal ruling. Kahal Joseph distributes a Tisha B'Av Haftara pamphlet 'with translation and commentary in Judeo-Arabic' (not opened).",
+      "references": [
+        {
+          "title": "צומות",
+          "url": "https://www.daat.ac.il/daat/toshba/minhagim/tsomot.htm"
+        }
+      ],
+      "topic_he": "תשעה באב",
+      "summary_he": "בבוקר תשעה באב מניח כל איש ציצית ותפילין בבית ואומר רק שמע, ואחר כך מתפלל שחרית בבית הכנסת בלעדיהם; מנהג בגדאד אומר \"האזינו\" במקום \"אז ישיר\"."
+    },
+    {
+      "index": "halacha.28",
+      "category": "Tefillin and tzitzit",
+      "topic": "Tallit and tzitzit",
+      "summary": "Iraqi Jews insist on a tallit of sheep's wool and wrap the tallit gadol in the Ari's manner: after the blessing the head alone is covered, the right corners are thrown over the left shoulder, pause the time of walking four amot, then the left corners, pause again, then lower the tallit over the body.",
+      "common_practices": [
+        "The tallit katan is made one and a quarter amot long and three-quarters of an amah wide ('amat ha-medina')."
+      ],
+      "variants": [],
+      "source": "Ben-Yaakov, Yalkut Minhagim, ch. 4 sec. 22 §1-3",
+      "source_url": "https://www.daat.ac.il/daat/toshba/minhagim/bav4.htm",
+      "confidence": "needs-review",
+      "review_notes": "The Ben Ish Chai holds that women do not wear tzitzit or tefillin for Kabbalistic reasons (Rav Pe'alim 1, Sod Yesharim §12, per Picard).",
+      "topic_he": "טלית וציצית",
+      "summary_he": "יהודי עיראק מקפידים על טלית של צמר כבשים ועוטפים את הטלית הגדולה בדרך האר\"י: אחרי הברכה מכסים את הראש בלבד, מטילים את הכנפיים הימניות על הכתף השמאלית, מחכים כשיעור הליכת ארבע אמות, אחר כך הכנפיים השמאליות, מחכים שוב, ואז מורידים את הטלית על הגוף."
+    },
+    {
+      "index": "halacha.29",
+      "category": "Tefillin and tzitzit",
+      "topic": "Tefillin",
+      "summary": "The hand tefillin is put on sitting and the head tefillin standing; the blessing is said after placing the hand tefillin on the biceps, then it is tied and tightened immediately; one blessing only, none over the head tefillin, as in all Edot HaMizrach.",
+      "common_practices": [
+        "While winding on the hand, 'Ve-erastich li le-olam...' (Hosea 2:21-22) is said, followed by 'Kadesh li' and 'Ve-haya ki yeviacha'.",
+        "Many of the pious wear both Rashi and Rabbeinu Tam tefillin.",
+        "Tefillin removed before Musaf of Rosh Chodesh."
+      ],
+      "variants": [],
+      "source": "Ben-Yaakov, Yalkut Minhagim, ch. 4 sec. 23 §1-4",
+      "source_url": "https://www.daat.ac.il/daat/toshba/minhagim/bav4.htm",
+      "confidence": "needs-review",
+      "review_notes": "",
+      "topic_he": "תפילין",
+      "summary_he": "תפילין של יד מניחים בישיבה ושל ראש בעמידה; הברכה נאמרת אחרי הנחת תפילין של יד על הזרוע, ואחר כך קושרים ומהדקים מיד; ברכה אחת בלבד, ואין ברכה על תפילין של ראש, כבכל עדות המזרח."
+    },
+    {
+      "index": "halacha.30",
+      "category": "Torah reading",
+      "topic": "Distinctive Haftarot (Shemot and Bo)",
+      "summary": "On Shemot and Bo Iraqi Jews read Haftarot different from most other communities, described by Kahal Joseph as 'following the custom of Maimonides' and handed out on special sheets for over 100 years.",
+      "common_practices": [
+        "Shemot: Ezekiel 16:1-14 ('Ben adam hoda et Yerushalayim et to'avoteha'), instead of the Sephardi Jeremiah 1:1-2:3.",
+        "Bo: Isaiah 18:7-19:25 ('Ba-et ha-hi yuval shai'), instead of Jeremiah 46:13-28."
+      ],
+      "variants": [],
+      "source": "Kahal Joseph Congregation (Los Angeles), 'Books About Our Customs & Minhagim' (Iraqi Haftarot Shemot and Bo pamphlet); Hebrew Wikisource, 'Va-yavinu ba-mikra / Haftarot le-Shabbatot u-Mo'adim'; Rambam's Haftarah list as quoted in Wikisource 'Chevel Nachalato 5:8'; R. Oury Cherki (ravsherki.org)",
+      "source_url": "https://www.kahaljoseph.org/learning/books-about-our-customs-and-minhagim/",
+      "confidence": "needs-review",
+      "review_notes": "The existence of distinct Iraqi Haftarot is confirmed by Kahal Joseph. The verse ranges come from Wikisource (an openly edited site) and Rabbi Cherki's essay, checked against Rambam's list ending at 'va-yetze lach shem' (Ezek. 16:14); the Kahal Joseph PDF could not be opened. Some modern Iraqi congregations may use the standard Sephardi Haftarot.",
+      "topic_he": "הפטרות מיוחדות (שמות ובא)",
+      "summary_he": "בשמות ובא קוראים יהודי עיראק הפטרות שונות מרוב העדות האחרות, שקהל יוסף מתאר כ\"כמנהג הרמב\"ם\" ושמחלקים על דפים מיוחדים יותר ממאה שנה."
+    },
+    {
+      "index": "halacha.31",
+      "category": "Torah reading",
+      "topic": "Pronunciation and trope",
+      "summary": "Iraqi (Baghdad) Hebrew reading belongs to the Sephardi vowel family but has distinctive consonants: soft tav as interdental [θ]; bet always plosive [b] with no 'v'; qof as [q]; soft dalet as [ð] only in 'Adonai' and in 'echad' of the first verse of Shema, otherwise [d].",
+      "common_practices": [
+        "Some merging of tsere/segol with chiriq 'to some extent' (Morag).",
+        "Torah reading is in maqam Sigah in the Jerusalem-Sephardi family of traditions (secondary sources only)."
+      ],
+      "variants": [
+        {
+          "subgroup": "Kurdistan (Zakho)",
+          "practice": "The Aramaic-speaking Jews of Zakho distinguish plosive and fricative forms of all six begadkefat letters, one of only two traditions to do so.",
+          "source": "Shelomo Morag, 'Pronunciations of Hebrew', Encyclopaedia Judaica (encyclopedia.com)"
+        }
+      ],
+      "source": "Shelomo Morag, 'Pronunciations of Hebrew', Encyclopaedia Judaica (2nd ed.), via encyclopedia.com",
+      "source_url": "https://www.encyclopedia.com/religion/encyclopedias-almanacs-transcripts-and-maps/pronunciations-hebrew",
+      "confidence": "regional",
+      "review_notes": "Pronunciation is academically attested. Cantillation melody differences between Baghdad and Mosul are unverified. J. Mansour, 'The Arabic dialect of the Jews of Baghdad and the pronunciation of Hebrew', JJS 8 (1957) 187-198, is cited but was not read.",
+      "topic_he": "הגייה וטעמים",
+      "summary_he": "קריאת העברית העיראקית (הבגדאדית) שייכת למשפחת התנועות הספרדית אך יש לה עיצורים מיוחדים: תי\"ו רפה כבין-שיניים [θ]; בי\"ת תמיד נפץ [b] בלי \"v\"; קו\"ף כ-[q]; דל\"ת רפה כ-[ð] רק ב\"אדוני\" וב\"אחד\" בפסוק הראשון של קריאת שמע, ובשאר המקרים [d]."
+    },
+    {
+      "index": "halacha.32",
+      "category": "Kashrut",
+      "topic": "Shechita and Yoreh De'ah authority",
+      "summary": "Rav Abdallah Somekh's 'Zivchei Tzedek' on Shulchan Aruch Yoreh De'ah (shechita, treifot and more; two parts printed Baghdad 1899, a third part with ribbit and niddah first printed Jerusalem 1969) is the community's practical-halacha handbook for meat.",
+      "common_practices": [],
+      "variants": [],
+      "source": "Abdallah Somekh, Sefer Zivchei Tzedek, Baghdad 5659/1899 (National Library of Israel catalogue record; HebrewBooks #32211)",
+      "source_url": "https://hebrewbooks.org/32211",
+      "confidence": "needs-review",
+      "review_notes": "The book's existence and scope are verified through the NLI catalogue and HebrewBooks, but its specific rulings were not opened. No specific Baghdadi kashrut stringency is recorded here; see gaps.",
+      "topic_he": "שחיטה וסמכות ביורה דעה",
+      "summary_he": "\"זבחי צדק\" של הרב עבדאללה סומך על שולחן ערוך יורה דעה (שחיטה, טריפות ועוד; שני חלקים נדפסו בבגדאד 1899, חלק שלישי עם ריבית ונידה נדפס לראשונה בירושלים 1969) הוא ספר ההלכה המעשית של הקהילה בענייני בשר."
+    },
+    {
+      "index": "halacha.33",
+      "category": "Lifecycle",
+      "topic": "Birth and brit milah",
+      "summary": "On the sixth night after a birth a 'Shasha' (ששה) celebration is held, breaking a jug and throwing sweets and popcorn to guests (mostly children); a girl is named at this event. The night before the brit is 'Eqd al-Yas' ('binding the myrtle'): a festive meal with songs and clapping beside Eliyahu's chair, brought from the synagogue.",
+      "common_practices": [
+        "The father of the baby is called to the Torah with special ceremony on the Shabbat before the brit, with piyyutim, sweets and flowers.",
+        "The baby is carried to the brit by the father's mother, who may cede the honor to a daughter, an unmarried girl or a childless woman as a segula.",
+        "The father is the sandek.",
+        "The greeting for a son is 'siman tov'; for a daughter 'mazal tov'."
+      ],
+      "variants": [
+        {
+          "subgroup": "Kurdistan",
+          "practice": "The 'Shasha' is held on the night before the brit with study of 'Brit Olam' and a 'qandala' candle tray auctioned; the brit usually in synagogue after Shacharit; the maternal grandfather is sandek; Shabbat before is 'Shabbat Avi HaBen'.",
+          "source": "Amedi, Yalkut Minhagim, ch. 5 sec. 24 §5-8 (https://daat.ac.il/daat/toshba/minhagim/kur5.htm)"
+        }
+      ],
+      "source": "Ben-Yaakov, 'Ba-mishpacha - Mi-minhagei Yehudei Bavel', Yalkut Minhagim vol. 1, Huledet Banim §1-6",
+      "source_url": "https://www.daat.ac.il/daat/toshba/minhagim/bav-mish.htm",
+      "confidence": "regional",
+      "review_notes": "Baghdadi and Kurdish timing of the 'Shasha' and the sandek differ; record separately. Ben-Yaakov notes the preference for sons; the Ben Ish Chai criticized negative reactions to a girl's birth (Hukkei HaNashim §6, per Picard).",
+      "references": [
+        {
+          "title": "במשפחה - ממנהגי יהודי בבל",
+          "url": "https://www.daat.ac.il/daat/toshba/minhagim/bav-mish.htm"
+        }
+      ],
+      "topic_he": "לידה וברית מילה",
+      "summary_he": "בליל השישי אחרי לידה נערכת חגיגת \"ששה\" (ששה), שוברים כד וזורקים ממתקים ופופקורן לאורחים (בעיקר ילדים); בת מקבלת שם באירוע זה. הלילה שלפני הברית הוא \"עקד אל-יאס\" (\"קשירת ההדס\"): סעודה חגיגית עם שירים ומחיאות כפיים ליד כיסא אליהו שהובא מבית הכנסת."
+    },
+    {
+      "index": "halacha.34",
+      "category": "Lifecycle",
+      "topic": "Bar and bat mitzvah",
+      "summary": "Ben-Yaakov says Babylonian bar mitzvah ceremonies in Israel follow the common pattern with no distinctively Babylonian custom. For girls, the Ben Ish Chai rules that the day she becomes obligated is marked by wearing a new garment and saying Shehecheyanu, but without the festive meal held for boys.",
+      "common_practices": [
+        "Girl: new garment and Shehecheyanu on reaching bat mitzvah; no festive meal (Ben Ish Chai vol. 1, Re'eh §17).",
+        "In some places boys were called to Maftir with sweets and flowers thrown, to train them in mitzvot (Ben-Yaakov ch. 1 sec. B §4)."
+      ],
+      "variants": [
+        {
+          "subgroup": "Kurdistan",
+          "practice": "Tefillin first put on a Torah-reading day with a procession to synagogue; no Tachanun that day; a relative of marriageable age removes the boy's tefillin the first time as a segula for a good match; the boy gives a derasha at the evening meal and the father says 'Baruch she-petarani'.",
+          "source": "Amedi, Yalkut Minhagim, ch. 5 sec. 25 §1-5 (https://daat.ac.il/daat/toshba/minhagim/kur5.htm)"
+        }
+      ],
+      "source": "Ben Ish Chai, Halachot Year 1, Re'eh §17 (as summarized in Picard, 'Ben Ish Hai', Shalvi/Hyman Encyclopedia of Jewish Women); Ben-Yaakov, Yalkut Minhagim, Bar-Mitzva",
+      "source_url": "https://jwa.org/encyclopedia/article/ben-ish-hai",
+      "confidence": "needs-review",
+      "review_notes": "Ben Ish Chai Re'eh 17 was not opened directly.",
+      "references": [
+        {
+          "title": "במשפחה - ממנהגי יהודי בבל",
+          "url": "https://www.daat.ac.il/daat/toshba/minhagim/bav-mish.htm"
+        }
+      ],
+      "topic_he": "בר ובת מצווה",
+      "summary_he": "בן יעקב אומר שטקסי בר מצווה בבליים בישראל הולכים בדרך הרגילה בלי מנהג בבלי מיוחד. לגבי בנות פוסק הבן איש חי שהיום שבו היא מתחייבת במצוות מצוין בלבישת בגד חדש ואמירת שהחיינו, אך בלי הסעודה החגיגית שנערכת לבנים."
+    },
+    {
+      "index": "halacha.35",
+      "category": "Lifecycle",
+      "topic": "Weddings",
+      "summary": "In Baghdad kiddushin are performed at or near the shidduch, with no separate erusin at the chuppah; the erusin blessing is said over wine and ends 'ha-mekadesh amo Yisrael al yedei chuppa be-kiddushin', with 've-hitir lanu et ha-nesu'ot lanu'.",
+      "common_practices": [
+        "The groom shows the witnesses the coin or ring and says 'Harei at mekudeshet...' before giving it, not after.",
+        "With coin kiddushin, the bride's hand is wrapped in a silk cloth; most use a silver or gold ring engraved with a 'heh', placed on the index finger of the right hand.",
+        "The groom breaks a small new lead-glazed porcelain coffee cup, not a glass, against the wall; detailed Baghdad rules govern when the cup is broken.",
+        "A curtain called 'khidir' is spread before the bride during Sheva Berachot; the groom does not wear a tallit (chuppa at night after Arvit); in Israel the Jerusalem custom with a spread tallit is now followed.",
+        "Only the groom fasts on the wedding day, not the bride.",
+        "Gifts (sivlonot) are not treated as kiddushin.",
+        "The groom does no work during the seven days of feasting and does not go out alone, 'like a king'.",
+        "The groom does not fast a public fast or yahrzeit falling in his seven days.",
+        "In Baghdad kiddushin were performed publicly by a fixed hereditary 'mekadesh' who recorded ketubot in a register.",
+        "Rav Moshe Chaim refused to ban music at weddings but abolished non-Jews playing before the groom on Shabbat.",
+        "The song 'Ma navu alei he-harim' is a hallmark of Iraqi weddings and Sheva Berachot (secondary source only)."
+      ],
+      "variants": [
+        {
+          "subgroup": "Kurdistan",
+          "practice": "Both bride and groom fast on the wedding day; Sheva Berachot often held the night before the chuppa, before dawn, for protection; a mohar (bride-price) is negotiated by the chacham; the groom leads Musaf on the Shabbat after the wedding.",
+          "source": "Amedi, Yalkut Minhagim, ch. 5 sec. 23 §4-14 (https://daat.ac.il/daat/toshba/minhagim/kur5.htm)"
+        }
+      ],
+      "source": "Ben-Yaakov, 'Ba-mishpacha', Yalkut Minhagim vol. 1, Chatuna §1-17",
+      "source_url": "https://www.daat.ac.il/daat/toshba/minhagim/bav-mish.htm",
+      "confidence": "needs-review",
+      "review_notes": "Ben-Yaakov stresses that in Israel distinct Babylonian wedding custom has largely blurred into common Edot HaMizrach practice. The blessing-text wording is liturgically significant; confirm against a Babylonian-rite siddur.",
+      "topic_he": "חתונות",
+      "summary_he": "בבגדאד נעשים הקידושין בשעת השידוך או סמוך לה, בלי אירוסין נפרדים בחופה; ברכת האירוסין נאמרת על יין ומסתיימת \"המקדש עמו ישראל על ידי חופה וקידושין\", עם \"והתיר לנו את הנשואות לנו\"."
+    },
+    {
+      "index": "halacha.36",
+      "category": "Niddah and mikveh",
+      "topic": "Niddah and mikveh",
+      "summary": "The Ben Ish Chai rules that the hefsek tahara may be performed only after six days from the onset of menstruation (five after a stain or virginal blood); brides from families that waited seven days may follow the city's six-day majority practice without hatarat nedarim, but those who already practiced seven need hatarat nedarim to change.",
+      "common_practices": [
+        "A woman may immerse on the eighth day, by day, if she cannot hide a night immersion from her household (Rav Pe'alim 2 YD 33).",
+        "While menstruating, a woman still recites blessings and prays, but attends synagogue only on Rosh Hashana and Yom Kippur (Hukkei HaNashim §39).",
+        "Women, married and unmarried, customarily immerse before Rosh Hashana and erev Yom Kippur (Rav Pe'alim 4 YD 16; Ben Ish Chai Nitzavim §3)."
+      ],
+      "variants": [],
+      "source": "Ben Ish Chai vol. 2, Tzav §7-8; Rav Pe'alim vol. 2 YD §17, §33; vol. 4 YD §18; Hukkei HaNashim §39 (all as summarized in Ariel Picard, 'Ben Ish Hai', Shalvi/Hyman Encyclopedia of Jewish Women, 2009)",
+      "source_url": "https://jwa.org/encyclopedia/article/ben-ish-hai",
+      "confidence": "needs-review",
+      "review_notes": "Secondary summary of primary works; the primary texts were not opened. The six-day minimum before hefsek is a halachic count requiring rabbinic review before any app logic uses it.",
+      "topic_he": "נידה ומקווה",
+      "summary_he": "הבן איש חי פוסק שהפסק טהרה יכול להיעשות רק אחרי שישה ימים מתחילת הווסת (חמישה אחרי כתם או דם בתולים); כלות ממשפחות שהמתינו שבעה ימים רשאיות ללכת אחרי מנהג הרוב בעיר של שישה ימים בלי התרת נדרים, אך מי שכבר נהגו שבעה צריכות התרת נדרים כדי לשנות."
+    },
+    {
+      "index": "halacha.37",
+      "category": "Mourning",
+      "topic": "Death, shiva and yahrzeit",
+      "summary": "All water standing in a house where someone died is poured out, as is the water in the next two neighbouring houses; it may not be used even for washing hands or laundry. Mourners are comforted with 'Tenuchamu min ha-shamayim'.",
+      "common_practices": [
+        "Ben-Yaakov states that other mourning customs are shared with many communities and not distinctively Babylonian.",
+        "Mourners sponsor a Shavuot-night 'Mishmara' and Rosh Hashana 'Hatima' for the soul of the deceased.",
+        "If a yahrzeit falls on Chanukah, the grave visit is made before Chanukah."
+      ],
+      "variants": [
+        {
+          "subgroup": "Kurdistan",
+          "practice": "Sons do not follow their father's bier beyond the courtyard gate; hands washed before entering after the burial, without passing the vessel hand to hand; community supplies all shiva meals; 'Seudat Resh Tamnia' on the seventh night, meals at 30 days and year's end; Shabbat 'Mishmara' readings by parasha during the year; Kaddish stops a week before the yahrzeit week; fasting and grave visit on the yahrzeit.",
+          "source": "Amedi, Yalkut Minhagim, ch. 5 sec. 26 §1-11 (https://daat.ac.il/daat/toshba/minhagim/kur5.htm)"
+        }
+      ],
+      "source": "Ben-Yaakov, 'Ba-mishpacha', Yalkut Minhagim vol. 1, Avelut §1-2; ch. 3 sec. 9 §7, sec. 14 §3, sec. 19 §1",
+      "source_url": "https://www.daat.ac.il/daat/toshba/minhagim/bav-mish.htm",
+      "confidence": "needs-review",
+      "review_notes": "The Ben Ish Chai rules a woman does not recite Kaddish for her parents (Torah Lishmah §27, per Picard). Baghdadi burial, keria and shiva-prayer specifics were not found; see gaps.",
+      "references": [
+        {
+          "title": "Ben Ish Hai",
+          "url": "https://jwa.org/encyclopedia/article/ben-ish-hai"
+        }
+      ],
+      "topic_he": "מוות, שבעה ויארצייט",
+      "summary_he": "כל המים העומדים בבית שבו מת אדם נשפכים, וכן המים בשני הבתים השכנים הבאים; אסור להשתמש בהם אפילו ליטילת ידיים או לכביסה. מנחמים את האבלים ב\"תנוחמו מן השמים\"."
+    },
+    {
+      "index": "halacha.38",
+      "category": "Calendar",
+      "topic": "Festival days and local calendar",
+      "summary": "Iraq kept Yom Tov Sheni shel Galuyot (two-day festivals), two-day Purim, and local 'Yom Nes' days; Baghdad and Basra had separate miracle days. Sources date the Tevet Yom Nes to 16 or 17 Tevet.",
+      "common_practices": [
+        "Two-day festivals in Iraq (e.g. second night of Shavuot observed).",
+        "Purim on 14 and 15 Adar.",
+        "Yom Nes: 11 Av and 16/17 Tevet (Baghdad); 2 Nisan (Basra)."
+      ],
+      "variants": [
+        {
+          "subgroup": "Ben-Yaakov, Yalkut Minhagim",
+          "practice": "The Tevet Yom Nes is 17 Tevet.",
+          "source": "Ben-Yaakov, Yalkut Minhagim, ch. 1 sec. A §8-9"
+        },
+        {
+          "subgroup": "Encyclopaedia Judaica, 'Baghdad'",
+          "practice": "The conquest is dated 16 Tevet 5399.",
+          "source": "Encyclopaedia Judaica, 'Baghdad' (via encyclopedia.com)"
+        }
+      ],
+      "source": "Ben-Yaakov, Yalkut Minhagim, ch. 1 sec. A §8-9; ch. 3 sec. 16 §5; ch. 3 sec. 19 §3",
+      "source_url": "https://www.daat.ac.il/daat/toshba/minhagim/bav3.htm",
+      "confidence": "disputed",
+      "review_notes": "The Tevet date differs between Ben-Yaakov (17) and Encyclopaedia Judaica (16). The Anu Museum also mentions a Yom Nes on 17 Adar for the British entry into Baghdad (1917); that is a single secondary source, not included as a rule.",
+      "topic_he": "ימי חג ולוח שנה מקומי",
+      "summary_he": "עיראק קיימה יום טוב שני של גלויות (חגים בני יומיים), פורים בן יומיים וימי \"יום נס\" מקומיים; לבגדאד ולבצרה היו ימי נס נפרדים. המקורות מתארכים את יום הנס של טבת לט\"ז או לי\"ז בטבת."
     }
   ],
-  "unique_minhagim": {
-    "examples": [
-      "Strong Babylonian scholarly identity",
-      "Sephardi-aligned rite with Iraqi distinctives",
-      "Family and synagogue-centered communal culture",
-      "Traditions tied to Baghdad, Basra, and Mosul"
-    ],
-    "notes": "Iraqi Jewish practice should be indexed by city and family branch whenever possible."
-  },
-  "source_registry": {
-    "primary": [
-      "Shulchan Aruch",
-      "Mishneh Torah",
-      "Babylonian rabbinic tradition"
-    ],
-    "secondary": [
-      "Iraqi Jewish community sources",
-      "Jewish studies reference works",
-      "Genealogical and historical collections"
-    ]
-  }
+  "unique_minhagim": [
+    {
+      "name": "Hatima (חתימה) on Rosh Hashana",
+      "description": "Unique to the Babylonian community: after the morning meal on both days of Rosh Hashana, at least ten men gather at the family head's home, a sage's home or the synagogue and read the whole of Tehillim (two chapters each in turn), then Idra Rabba on day one and Idra Zuta on day two, with fruit and cake blessings between, usually dedicated to the souls of the deceased. Instituted by Rav Tzadka Hutzin (Baghdad rabbinate 1743-1773) and kept for about 200 years.",
+      "when": "Both days of Rosh Hashana, late morning",
+      "source": "Ben-Yaakov, Yalkut Minhagim, ch. 3 sec. 9 §7",
+      "source_url": "https://www.daat.ac.il/daat/toshba/minhagim/bav3.htm",
+      "confidence": "needs-review",
+      "name_he": "חתימה בראש השנה",
+      "description_he": "ייחודי לקהילת בבל: אחרי סעודת הבוקר בשני ימי ראש השנה מתכנסים עשרה גברים לפחות בבית ראש המשפחה, בבית חכם או בבית הכנסת וקוראים את כל התהילים (שני פרקים כל אחד בתורו), ואחר כך אידרא רבא ביום הראשון ואידרא זוטא ביום השני, עם ברכות על פירות ועוגה ביניהם, בדרך כלל לעילוי נשמות הנפטרים. נתקן בידי הרב צדקה חוצין (רבנות בגדאד 1743-1773) ונשמר כ-200 שנה."
+    },
+    {
+      "name": "Mishmara (משמרה) on Shavuot night",
+      "description": "All-night study of at least ten men from 'Kri'ei Mo'ed', with a midnight 'zman ha-berachot', ending with vatikin; also sponsored in memory of the dead.",
+      "when": "First night of Shavuot",
+      "source": "Ben-Yaakov, Yalkut Minhagim, ch. 3 sec. 19 §1",
+      "source_url": "https://www.daat.ac.il/daat/toshba/minhagim/bav3.htm",
+      "confidence": "needs-review",
+      "name_he": "משמרה בליל שבועות",
+      "description_he": "לימוד כל הלילה של עשרה גברים לפחות מתוך \"קריאי מועד\", עם \"זמן הברכות\" בחצות, ומסתיים בוותיקין; נתמך גם לזכר המתים."
+    },
+    {
+      "name": "Yom Nes (יום נס) days",
+      "description": "Local deliverance days on which Baghdad omitted Tachanun (11 Av; 16 or 17 Tevet) and Basra did so on 2 Nisan.",
+      "when": "11 Av; 16/17 Tevet; 2 Nisan (Basra)",
+      "source": "Ben-Yaakov, Yalkut Minhagim, ch. 1 sec. A §8-9; Encyclopaedia Judaica 'Baghdad'",
+      "source_url": "https://www.encyclopedia.com/places/asia/iraq-political-geography/baghdad",
+      "confidence": "disputed",
+      "name_he": "ימי נס (יום נס)",
+      "description_he": "ימי הצלה מקומיים שבהם דילגה בגדאד על תחנון (י\"א באב; ט\"ז או י\"ז בטבת) ובצרה עשתה כן בב' בניסן."
+    },
+    {
+      "name": "Post-Pesach 'green year' greeting (סנתך כצ'רה)",
+      "description": "On the night after Pesach, youths make bunches of greens and lightly whip parents, relatives and acquaintances, calling 'Sintak khadra' ('may your year be green') as a sign of success. This is the documented Iraqi end-of-Pesach custom; there is no Mimouna as such.",
+      "when": "Motzaei Pesach",
+      "source": "Ben-Yaakov, Yalkut Minhagim, ch. 3 sec. 17 §17",
+      "source_url": "https://www.daat.ac.il/daat/toshba/minhagim/bav3.htm",
+      "confidence": "needs-review",
+      "references": [
+        {
+          "title": "ממנהגי יהודי בבל / אברהם בן-יעקב",
+          "url": "https://www.daat.ac.il/daat/toshba/minhagim/bav3.htm"
+        }
+      ],
+      "name_he": "ברכת \"שנה ירוקה\" אחרי פסח (סנתך כצ'רה)",
+      "description_he": "בלילה שאחרי פסח עושים בני נוער צרורות ירק ומצליפים קלות בהורים, בקרובים ובמכרים, וקוראים \"סינתק חדרה\" (\"תהיה שנתך ירוקה\") כסימן להצלחה. זהו המנהג העיראקי המתועד לסוף פסח; אין מימונה ככזו."
+    },
+    {
+      "name": "Kiddush Levana jumps",
+      "description": "Three jumps during the 'Be-siman tov tehei lanu' and related lines of Birkat HaLevana (Baghdad custom).",
+      "when": "Monthly Kiddush Levana",
+      "source": "Ben-Yaakov, Yalkut Minhagim, ch. 3 sec. 7 §9",
+      "source_url": "https://www.daat.ac.il/daat/toshba/minhagim/bav3.htm",
+      "confidence": "needs-review",
+      "name_he": "קפיצות בקידוש לבנה",
+      "description_he": "שלוש קפיצות בזמן \"בסימן טוב תהא לנו\" ושורות קרובות בברכת הלבנה (מנהג בגדאד)."
+    },
+    {
+      "name": "Shasha (ששה) and Eqd al-Yas (קשירת ההדס)",
+      "description": "Sixth-night birth celebration (girl named then) and the festive myrtle-binding night before a brit.",
+      "when": "6th night after birth; night before brit",
+      "source": "Ben-Yaakov, 'Ba-mishpacha', Huledet Banim §3, §5",
+      "source_url": "https://www.daat.ac.il/daat/toshba/minhagim/bav-mish.htm",
+      "confidence": "regional",
+      "name_he": "ששה (ששה) ועקד אל-יאס (קשירת ההדס)",
+      "description_he": "חגיגת לידה בליל השישי (שבה מקבלת הבת שם) וליל קשירת ההדס החגיגי שלפני הברית."
+    },
+    {
+      "name": "Eid al-Ziyara (עיד אל-זיארה)",
+      "description": "Shavuot pilgrimages to tombs of Yechezkel (Kifl), Ezra (near Basra), Yehoshua Kohen Gadol and Sheikh Yitzhak Gaon (Baghdad), Chanania-Mishael-Azaria (Kirkuk).",
+      "when": "Shavuot",
+      "source": "Ben-Yaakov, Yalkut Minhagim, ch. 3 sec. 19 §7",
+      "source_url": "https://www.daat.ac.il/daat/toshba/minhagim/bav3.htm",
+      "confidence": "regional",
+      "name_he": "עיד אל-זיארה (עיד אל-זיארה)",
+      "description_he": "עליות לרגל בשבועות לקברי יחזקאל (כפל), עזרא (ליד בצרה), יהושע כהן גדול ושייח' יצחק גאון (בגדאד), חנניה מישאל ועזריה (כרכוכ)."
+    },
+    {
+      "name": "Judeo-Arabic sharh (שרח) translations",
+      "description": "The Haggada, the Tisha B'Av Haftara, Eicha and some Shabbat Zachor piyyutim are read with Judeo-Arabic translation; the Ben Ish Chai wrote 'Hukkei HaNashim' (Qanun al-Nisa, Baghdad 1906) in Judeo-Arabic for women.",
+      "when": "Pesach Seder, Tisha B'Av, Shabbat Zachor",
+      "source": "Ben-Yaakov, Yalkut Minhagim, ch. 3 sec. 17 §12, sec. 21 §4-5; Picard, 'Ben Ish Hai' (JWA)",
+      "source_url": "https://jwa.org/encyclopedia/article/ben-ish-hai",
+      "confidence": "well-attested",
+      "name_he": "תרגומי \"שרח\" ביהודית-ערבית (שרח)",
+      "description_he": "ההגדה, הפטרת תשעה באב, איכה וכמה פיוטי שבת זכור נקראים עם תרגום ליהודית-ערבית; הבן איש חי כתב את \"חוקי הנשים\" (קאנון אל-נסא, בגדאד 1906) ביהודית-ערבית לנשים."
+    },
+    {
+      "name": "Babylonian pizmonim and piyyutim",
+      "description": "Locally composed piyyutim by poets such as R. Sasson b. Mordechai Shindookh, R. Yosef Chaim and Ezra b. Sasson, printed in Baghdad, India and Jerusalem pizmon books, are sung on Shabbat, Rosh Chodesh, the festivals, Purim and Chanukah.",
+      "when": "Throughout the year",
+      "source": "Ben-Yaakov, Yalkut Minhagim, ch. 2-3 passim",
+      "source_url": "https://www.daat.ac.il/daat/toshba/minhagim/bav3.htm",
+      "confidence": "needs-review",
+      "name_he": "פזמונים ופיוטים בבליים",
+      "description_he": "פיוטים שחוברו מקומית בידי משוררים כרבי ששון בן מרדכי שינדוך, רבי יוסף חיים ועזרא בן ששון, ושנדפסו בספרי פזמונים בבגדאד, בהודו ובירושלים, נשרים בשבת, בראש חודש, במועדים, בפורים ובחנוכה."
+    },
+    {
+      "name": "Almond-milk drink and megli",
+      "description": "A steeped-almond milk drink breaks the Yom Kippur and Tisha B'Av fasts; a ginger-cardamom 'megli' keeps people awake on Hoshana Rabba and Shavuot nights (not served at the Hatima because it is sharp).",
+      "when": "Motzaei Yom Kippur, Motzaei Tisha B'Av, Hoshana Rabba and Shavuot nights",
+      "source": "Ben-Yaakov, Yalkut Minhagim, ch. 3 sec. 11 §5, sec. 12 §10",
+      "source_url": "https://www.daat.ac.il/daat/toshba/minhagim/bav3.htm",
+      "confidence": "needs-review",
+      "name_he": "משקה חלב שקדים ומגלי",
+      "description_he": "משקה חלב שקדים שהושרו במים שובר את הצום ביום כיפור ובתשעה באב; \"מגלי\" של ג'ינג'ר וקרדמון מחזיק אנשים ערים בלילות הושענא רבה ושבועות (אינו מוגש בחתימה כי הוא חריף)."
+    }
+  ],
+  "source_registry": [
+    {
+      "title": "Mi-minhagei Yehudei Bavel (ממנהגי יהודי בבל), in Yalkut Minhagim vol. 1",
+      "author": "Avraham Ben-Yaakov (ed.); Jerusalem: Government Printer, 5727/1967",
+      "type": "primary",
+      "url": "https://www.daat.ac.il/daat/toshba/minhagim/bav.htm",
+      "used_for": "Main source for Baghdadi prayer, Shabbat, festivals, fasts, tzitzit/tefillin (bav1, bav-sha, bav3, bav4 pages)"
+    },
+    {
+      "title": "Ba-mishpacha - Mi-minhagei Yehudei Bavel",
+      "author": "Avraham Ben-Yaakov",
+      "type": "primary",
+      "url": "https://www.daat.ac.il/daat/toshba/minhagim/bav-mish.htm",
+      "used_for": "Weddings, birth, bar mitzvah, mourning"
+    },
+    {
+      "title": "Mi-minhagei Yahadut Kurdistan, in Yalkut Minhagim vol. 1 (ch. 3 and ch. 5)",
+      "author": "Yitzhak Amedi",
+      "type": "primary",
+      "url": "https://www.daat.ac.il/daat/toshba/minhagim/kur3.htm",
+      "used_for": "Kurdistan variants for festivals, fasts and life cycle (also https://daat.ac.il/daat/toshba/minhagim/kur5.htm)"
+    },
+    {
+      "title": "Ben Ish Hai, Halachot 1st Year, Nitzavim 3-4",
+      "author": "Rav Yosef Chaim of Baghdad",
+      "type": "primary",
+      "url": "https://www.sefaria.org/Ben_Ish_Hai,_Halachot_1st_Year,_Nitzavim.4",
+      "used_for": "Rosh Hashana simanim order; erev Rosh Hashana haircut and white clothes (pages loaded only partially; summary text read)"
+    },
+    {
+      "title": "Responsa Zivchei Tzedek vol. 2, OC §37 (quoted on HaChacham HaYomi)",
+      "author": "Rav Abdallah Somekh",
+      "type": "responsa",
+      "url": "https://www.hyomi.org.il/%D7%97%D7%9B%D7%9D-%D7%A2%D7%91%D7%93%D7%90%D7%9C%D7%9C%D7%94-%D7%A1%D7%95%D7%9E%D7%9A",
+      "used_for": "Chanukah lighting by sons; principle of following custom"
+    },
+    {
+      "title": "Sefer Zivchei Tzedek, part 1 (Baghdad 1899)",
+      "author": "Rav Abdallah Somekh",
+      "type": "responsa",
+      "url": "https://hebrewbooks.org/32211",
+      "used_for": "The Baghdadi Yoreh De'ah handbook (catalogue entry)"
+    },
+    {
+      "title": "Ben Ish Hai (entry), Shalvi/Hyman Encyclopedia of Jewish Women",
+      "author": "Ariel Picard (2009), Jewish Women's Archive",
+      "type": "academic",
+      "url": "https://jwa.org/encyclopedia/article/ben-ish-hai",
+      "used_for": "Ben Ish Chai rulings on niddah, women's mitzvot, Rosh Chodesh, bat mitzvah, Kaddish, Purim, sukka"
+    },
+    {
+      "title": "Peninei Halakha, Laws of Pesach ch. 9 (Kitniyot), sec. 2",
+      "author": "R. Eliezer Melamed",
+      "type": "reference",
+      "url": "https://ph.yhb.org.il/en/category/pesah/09-kitniyot/",
+      "used_for": "Baghdad rice-on-Pesach custom and Ben Ish Chai Tzav 41 citation"
+    },
+    {
+      "title": "Books About Our Customs & Minhagim",
+      "author": "Kahal Joseph Congregation, Los Angeles",
+      "type": "siddur",
+      "url": "https://www.kahaljoseph.org/learning/books-about-our-customs-and-minhagim/",
+      "used_for": "Iraqi Haftarot for Shemot and Bo; list of Baghdadi liturgical prints (Haggadot, Pirsume Nisa)"
+    },
+    {
+      "title": "Va-yavinu ba-mikra / Haftarot le-Shabbatot u-Mo'adim (Hebrew Wikisource)",
+      "author": "Wikisource contributors",
+      "type": "reference",
+      "url": "https://he.wikisource.org/wiki/%D7%95%D7%99%D7%91%D7%99%D7%A0%D7%95_%D7%91%D7%9E%D7%A7%D7%A8%D7%90/%D7%94%D7%A4%D7%98%D7%A8%D7%95%D7%AA_%D7%9C%D7%A9%D7%91%D7%AA%D7%95%D7%AA_%D7%95%D7%9E%D7%95%D7%A2%D7%93%D7%99%D7%9D",
+      "used_for": "Verse ranges for Babylonian Haftarot (Shemot, Bo) - lead-level source, cross-checked with Rambam list"
+    },
+    {
+      "title": "Article on the Haftara of Shemot",
+      "author": "R. Oury Cherki",
+      "type": "reference",
+      "url": "https://ravsherki.org/index.php/2013-02-13-17-15-16/330-2013-01-24-21-11-20/196-196/501-2017-05-22-17-56-12/4894-2015-01-02-08-05-45",
+      "used_for": "Baghdad and Tunis reading Ezekiel 16 for Shemot"
+    },
+    {
+      "title": "Pronunciations of Hebrew, Encyclopaedia Judaica",
+      "author": "Shelomo Morag",
+      "type": "academic",
+      "url": "https://www.encyclopedia.com/religion/encyclopedias-almanacs-transcripts-and-maps/pronunciations-hebrew",
+      "used_for": "Iraqi and Zakho Hebrew pronunciation"
+    },
+    {
+      "title": "Baghdad, Encyclopaedia Judaica",
+      "author": "Encyclopaedia Judaica (via encyclopedia.com)",
+      "type": "academic",
+      "url": "https://www.encyclopedia.com/places/asia/iraq-political-geography/baghdad",
+      "used_for": "Yom Nes dates (16 Tevet 5399; 11 Av 5493), community history"
+    },
+    {
+      "title": "Sefer Zivchei Tzedek (catalogue record)",
+      "author": "National Library of Israel",
+      "type": "reference",
+      "url": "https://www.nli.org.il/en/books/NNL_ALEPH990020239330205171/NLI",
+      "used_for": "Bibliographic verification of Zivchei Tzedek"
+    }
+  ],
+  "gaps": [
+    "Omer mourning-period dates: no Baghdad-specific source found for when haircuts and weddings resume; Sephardi practice generally follows Shulchan Aruch OC 493 (morning of the 34th day), but that is not recorded here as a Baghdadi entry.",
+    "Pidyon haben: no distinctive Baghdadi custom found.",
+    "Burial practice, keria details, shiva prayer order and yahrzeit customs for Baghdad (only Kurdish details found).",
+    "Candle-lighting minutes before sunset and fast start/end offsets: no documented Baghdadi number found; parameters left empty.",
+    "Tashlich in Baghdad: not mentioned by Ben-Yaakov (documented only for Kurdistan).",
+    "Kabbalat Shabbat psalms and Lecha Dodi practice specific to Baghdad.",
+    "Seuda Shlishit customs specific to Baghdad.",
+    "Specific kashrut rulings of Zivchei Tzedek (e.g. treifot stringencies, meat-and-milk waiting time): no source recorded.",
+    "Mosul: no primary or academic halachic or minhag source found.",
+    "Torah cantillation: no source documents the Baghdad and Mosul melody differences, and the haftara verse ranges are not given here.",
+    "Ben Ish Chai rulings on Purim, Pesach (Tzav 41) and niddah (Tzav 7-8) are cited only through secondary summaries.",
+    "Rav Ovadia Yosef's treatment of Baghdadi practice: not covered here."
+  ],
+  "disputes": [
+    "Date of the Tevet Yom Nes: 17 Tevet (Ben-Yaakov, Yalkut Minhagim) vs 16 Tevet 5399 (Encyclopaedia Judaica, 'Baghdad').",
+    "Rice on Pesach: rice is eaten after being checked two or three times (Ben Ish Chai Tzav 41 per Peninei Halakha) vs 'In Baghdad, many laypeople did not eat rice on Pesach' (Peninei Halakha); families differ.",
+    "Women at the Shavuot night vigil: Ben-Yaakov describes women staying up nearby, listening and reading along; the Ben Ish Chai rules women should not participate in the Shavuot eve tikkun (Rav Pe'alim 1, Sod Yesharim §9).",
+    "Kapparot: rabbinic abolition in favour of money redemption vs continued slaughter of fowl by many in Baghdad and most in Israel (Ben-Yaakov records both).",
+    "Order of the opening simanim: Ben-Yaakov places ha-etz and ha-adama fruits before the dates; Ben Ish Chai Nitzavim 4 summary says dates first.",
+    "Kurdistan vs Baghdad on the brit: sandek is the father (Baghdad) vs the maternal grandfather (Kurdistan); 'Shasha' on the sixth night after birth (Baghdad) vs the night before the brit (Kurdistan).",
+    "Wedding fast: only the groom (Baghdad) vs both bride and groom (Kurdistan)."
+  ],
+  "needs_rabbinic_review": [
+    "Two-day Purim blessing rules (second-day Megillah without the opening blessing; closing blessing without Shem u-Malchut).",
+    "Exemption of pregnant women from the Tisha B'Av fast (Rav Tzadka Hutzin) - historical climate-based ruling.",
+    "Six-day minimum before hefsek tahara and hatarat nedarim for brides changing from a seven-day family custom (Ben Ish Chai).",
+    "1860 permission to take the lulav before sunrise and its reported spread to Shema and prayer.",
+    "Ben Ish Chai's permission for early Kiddush on the second night of Shavuot in Baghdad and Basra because of heat.",
+    "Married son lighting Chanukah lights without a blessing, relying on his father's blessing (Rav Somekh).",
+    "Whether a user's family eats rice/kitniyot on Pesach.",
+    "Omer mourning end date for Baghdadi families (no community-specific source found).",
+    "Haftarot for Shemot and Bo: confirm verse ranges against a Babylonian-rite Chumash or the Kahal Joseph pamphlet."
+  ]
 }

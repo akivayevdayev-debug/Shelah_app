@@ -1,440 +1,1081 @@
 {
-  "version": "2.0",
+  "version": "3.0",
   "type": "academic_halachic_reference",
   "heritage_id": "moroccan",
   "name": "Moroccan",
   "aliases": [
     "Maghrebi",
     "Moroccan Jews",
-    "Marrakesh/Fez/Tangier traditions"
+    "Marrakesh/Fez/Tangier traditions",
+    "Minhag Morocco",
+    "Yahadut Maroko (יהדות מרוקו)",
+    "Maghrebi Moroccan Jewry",
+    "Ha-Ma'arav ha-Pnimi (המערב הפנימי)"
   ],
   "database_scope": {
-    "purpose": "Academic and halachic reference database for Moroccan Jewish heritage, minhagim, and halachic practice.",
-    "coverage_note": "This file models broad Moroccan practice and includes common halachic domains. Local customs vary by city, family, rabbinic lineage, and the distinction between toshavim and megorashim.",
-    "classification_note": "Moroccan halacha is Sephardi in broad framework, but it contains multiple strong regional and historical subtraditions."
+    "purpose": "Sourced reference for Moroccan minhagim and halachic practice. It records what the cited sources say, with a confidence level for each entry, and is not a psak.",
+    "coverage_note": "28 sourced topics and 5 distinctive customs, compiled from the cited sources in October 2026. Each entry carries a confidence level (well-attested, disputed, regional, needs-review). 21 topics have no community-specific source and are listed under 'gaps' rather than filled with generic text."
   },
   "identity": {
-    "primary_origin": "Historic Jewish communities of Morocco and the wider Maghreb",
+    "primary_origin": "Morocco: the indigenous Toshavim and the Iberian Megorashim who arrived after 1391, 1492 and 1497",
     "secondary_centers": [
-      "Fez",
+      "Fez, Sefrou and Meknes",
+      "Tetouan, Tangier and Larache in the north",
+      "Rabat and Sale",
       "Marrakesh",
-      "Casablanca",
-      "Tangier",
-      "Rabat",
-      "Tetouan",
-      "Essaouira",
-      "Jewish diaspora communities in Israel, France, Canada, and Latin America"
-    ],
-    "cultural_profile": [
-      "Strong preservation of city-based minhagim",
-      "Distinct liturgical and melodic traditions",
-      "Blend of ancient North African and Sephardi exilic customs",
-      "Highly developed rabbinic and communal literature"
+      "Mogador (Essaouira)",
+      "Tafilalt and the Atlas"
     ]
   },
   "languages": [
-    "Hebrew",
-    "Arabic",
-    "Haketia in some communities",
-    "French in modern diaspora settings",
-    "Spanish/Portuguese in some family histories"
+    "Haketia (Judeo-Spanish): spoken in the northern cities of Tetouan, Tangier and Larache",
+    "Judeo-Arabic: piyyutim sung alongside Hebrew ones"
   ],
-  "genealogy": {
-    "common_surname_patterns": [
-      "Names tied to towns or regions",
-      "Arabic-root surnames",
-      "Spanish-Portuguese exile surnames in megorashim families",
-      "Occupational, tribal, or honorific surnames"
-    ],
-    "research_notes": [
-      "Moroccan genealogy often requires distinguishing between toshavim and megorashim.",
-      "Surname spellings vary by French, Spanish, English, Arabic, and Hebrew transcription.",
-      "Cemetery records, ketubot, communal ledgers, and synagogue membership lists are especially useful."
-    ],
-    "recommended_genealogy_fields": [
-      "surname",
-      "alternate_spellings",
-      "town_of_origin",
-      "family_branch",
-      "toshavim_or_megorashim",
-      "migration_route",
-      "ritual_minhag"
-    ]
-  },
+  "subgroups": [
+    {
+      "name": "Megorashim (מגורשים)",
+      "note": "Descendants of the Iberian expellees of 1391, 1492 and 1497. Until recently the most reliable marker distinguishing them from Toshavim was the ketubah rite: Castilian for Megorashim, indigenous for Toshavim. Source: Patrilineal Genetic Ancestry of Moroccan Jews, Genealogy 10(2):66, citing Zafrani 1998."
+    },
+    {
+      "name": "Toshavim (תושבים)",
+      "note": "Pre-expulsion indigenous Moroccan Jews, including Berber-area communities. The same Genealogy study notes that adopting Haketia in northern cities has been misread as evidence of Megorashi origin in families that are actually of Toshavi descent, and that the distinction is cultural and liturgical rather than genetic."
+    },
+    {
+      "name": "Northern / Spanish-Moroccan (Tetouan, Tangier, Larache, Arzila; Haketia-speaking)",
+      "note": "Distinct practices are documented for Omer haircuts (34th day), Pesach chickpeas (many eat them) and wedding dress (white on the wedding day in Tangier)."
+    },
+    {
+      "name": "Fez, Sefrou, Meknes (interior Megorashi-rite cities)",
+      "note": "Lag BaOmer haircuts follow the Pri Hadash. In Fez, cemeteries were not visited in Nissan (R. Yosef Messas). Meknes had its own Shehecheyanu custom for a boy's first tefillin."
+    },
+    {
+      "name": "Rabat / Sale",
+      "note": "Cemetery visits and memorial meals in Nissan, including on Hol HaMoed (R. Shalom Messas)."
+    },
+    {
+      "name": "Marrakesh",
+      "note": "Shir Yedidot bakashot anthology published there in 1921. According to a genealogical blog citing R. Yehuda Abenatar, some Marrakesh families followed Megorashi customs and others Toshavi ones (a single blog-level source)."
+    },
+    {
+      "name": "Mogador / Essaouira",
+      "note": "Home of the hazzanim who standardized the bakashot (R. David Yefalah, R. David Elqayim, R. David Afriat)."
+    },
+    {
+      "name": "Tafilalt and the southeast; Atlas / Berber-area communities",
+      "note": "A genealogical blog reports R. Yehuda Abenatar of Fez (1655-1733) as writing that Tafilalt Jews did not follow the Megorashi ordinances (a single blog-level source). Henna ceremonies for children's milestones are reported in the High Atlas."
+    }
+  ],
   "historical_background": {
     "timeline": [
       {
-        "period": "Ancient and early medieval era",
-        "event": "Jewish communities existed across Morocco and the Maghreb for many centuries.",
-        "halachic_impact": "Local North African custom developed alongside broader Jewish law."
+        "period": "Antiquity to 15th c.",
+        "event": "Indigenous Jewish communities (Toshavim) present in Morocco.",
+        "halachic_impact": "Their own ketubah rite and customs survived in some places, e.g., southeastern communities that did not adopt the Megorashi takkanot."
       },
       {
-        "period": "1492 and after",
-        "event": "Sephardi exiles from Spain and Portugal settled in Morocco.",
-        "halachic_impact": "Megorashim customs entered and interacted with older toshavim traditions."
+        "period": "1391, 1492, 1497",
+        "event": "Iberian expellees (Megorashim) settle, above all in Fez, Tetouan, Marrakesh and the north.",
+        "halachic_impact": "Castilian ketubah rite and the Takkanot of the Castilian exiles in Fez. Moroccan Jewry largely adopted the Andalusian Sephardic rite."
       },
       {
-        "period": "Ottoman and early modern periods",
-        "event": "Rabbinic literature and intercommunity contact expanded.",
-        "halachic_impact": "Many communities accepted the Shulchan Aruch while preserving local customs."
+        "period": "1782",
+        "event": "Death of R. Amram ben Diwan at Ouezzane.",
+        "halachic_impact": "His tomb at Asjen became a major hillula pilgrimage site."
       },
       {
-        "period": "20th century and after",
-        "event": "Large-scale emigration changed the demographic map of Moroccan Jewry.",
-        "halachic_impact": "Diaspora communities preserved rabbinic and family practice in new countries."
+        "period": "1921",
+        "event": "Shir Yedidot published in Marrakesh. Mogador and Marrakesh hazzanim standardize the bakashot.",
+        "halachic_impact": "Fixes the winter bakashot cycle; each of the 22 Sabbaths on which the bakashot are performed has its own repertoire of piyyutim (Jewish Music Research Centre, Hebrew University)."
+      },
+      {
+        "period": "1948-1967",
+        "event": "Mass emigration, with the majority leaving for Israel, France and North America; Jewish Action (2018) estimates the remaining Jewish population of Morocco at under 3,000.",
+        "halachic_impact": "Moroccan minhag meets other Sephardic standards. Mimouna becomes a mass public celebration in Israel from the mid-1960s."
+      },
+      {
+        "period": "1978-2003",
+        "event": "R. Shalom Messas serves as Sephardic Chief Rabbi of Jerusalem after being Chief Rabbi of Morocco.",
+        "halachic_impact": "Defends Moroccan customs in Israel, sometimes disputing R. Ovadia Yosef."
       }
     ]
   },
   "core_halachic_authorities": {
     "primary_codes": [
-      "Shulchan Aruch",
-      "Beit Yosef",
-      "Mishneh Torah"
+      "Shulchan Aruch (R. Yosef Karo), Orach Chaim and Yoreh De'ah",
+      "Rema, cited where Moroccan custom coincides with him (e.g., kitniyot) but not as the binding code"
     ],
     "major_rishonim_base": [
-      "Rif",
-      "Rambam",
-      "Rosh"
+      "Rif (half-Hallel blessing only with a minyan)",
+      "Rambam (text of Bibhilu in his Haggadah; Kiddush at Seuda Shelishit)",
+      "Rosh, Berachot 2:5 (Likro/Ligmor distinction, as reported by Jewish Link)",
+      "Geonim (end-of-Shabbat time)"
     ],
-    "later_moroccan_poskim": [
-      "Rav Shalom Messas",
-      "Rav Yosef Messas",
-      "Rav Shlomo Amar",
-      "Moroccan communal dayanim and rabbis"
+    "later_poskim": [
+      "R. Yosef Messas: Mayim Haim, Otzar HaMikhtavim",
+      "R. Shalom Messas: Shemesh U-Magen, Tevu'ot Shemesh",
+      "R. David Ovadia: Nahagu Ha'am",
+      "R. Yosef Benaim: Noheg BeHokhma",
+      "R. Raphael Baruch Toledano: Kitzur Shulchan Aruch",
+      "R. Yaakov ibn Tzur: Mishpat U-Tzedaka BeYaakov",
+      "R. Yitzhak Ben Oualid: Vayomer Yitzhak",
+      "R. Raphael Ankawa: To'afot Re'em, Pa'amonei Zahav",
+      "R. Shlomo ibn Danan: Bakesh Shlomo",
+      "R. Haim Messas: Leket HaKemah",
+      "Modern compendia: Magen Avot (R. Mordechai Lebhar); Ateret Avot (R. Moshe Suissa); Meshulchan Avotenu (Meir Atiya)"
     ],
-    "decision_principle": "Follow the Shulchan Aruch as primary authority while preserving established Moroccan minhagim and, where accepted locally, additional rulings from Moroccan rabbinic tradition."
+    "decision_principle": "The Shulchan Aruch is the base code, but established local Moroccan custom is binding, even where it is stricter (kitniyot, Nine Days) or diverges from other Sephardim (Hallel blessing). Custom often differs by city, and Moroccan poskim such as R. Shalom Messas explicitly defended Moroccan minhag against levelling to a single Sephardic standard."
+  },
+  "runtime": {
+    "lens_key": "Moroccan",
+    "practice_baseline": "Shulchan Aruch as interpreted through Moroccan local custom and the rulings of Moroccan poskim (Messas family, Ovadia, Benaim, Toledano), with city-level variants.",
+    "parameters": [
+      {
+        "key": "chanukah_ideal_lighting_window",
+        "value": "30",
+        "unit": "minutes from tzeit ha-kokhavim",
+        "source": "Shulchan Aruch OC 672:1 as applied in Magen Avot, 'What Comes First, Arvit or Hanukkah Lighting?' (moroccanhalacha.com)"
+      }
+    ]
   },
   "halacha_index": [
     {
       "index": "halacha.1",
       "category": "Prayer",
-      "topic": "Nusach and liturgy",
-      "summary": "Moroccan prayer uses a Sephardi framework with strong local tradition and city-based variation.",
+      "topic": "Hazarat HaShatz (repetition of the Amida)",
+      "summary": "In many Moroccan communities the Amida was not repeated at certain prayers. Instead the hazzan says the first three blessings aloud with the congregation, then Kedusha, then everyone continues silently, and the hazzan raises his voice again from Retzeh to the end.",
       "common_practices": [
-        "Use Moroccan siddurim or accepted local rite",
-        "Preserve piyutim and local melodies",
-        "Follow synagogue and family custom for weekday and festival prayers",
-        "Preserve inherited nusach and pronunciation in public prayer.",
-        "Coordinate weekday, Shabbat, and festival insertions with local rabbinic guidance.",
-        "Maintain community niggunim and piyyutim where accepted."
-      ]
+        "Heikha (abridged aloud) Kedusha format at some services"
+      ],
+      "variants": [
+        {
+          "subgroup": "View of R. Yosef Messas",
+          "practice": "The Amida need not be repeated; repetition was the exception.",
+          "source": "R. Yosef Messas, Mayim Haim vol. I §41, as cited by Magen Avot"
+        },
+        {
+          "subgroup": "View of R. Shalom Messas",
+          "practice": "The dispensation was circumstantial, not based on the Rambam, so full repetition is favored (R. Ovadia Yosef concurs).",
+          "source": "R. Shalom Messas, Shemesh U-Magen vol. IV §45, as cited by Magen Avot"
+        }
+      ],
+      "source": "Magen Avot, 'Hazarat Hashatz: What's the Minhag?'",
+      "source_url": "https://www.moroccanhalacha.com/hazarat-hashatz-whats-the-minhag/",
+      "confidence": "disputed",
+      "review_notes": "Read via search excerpt; the full page was not opened.",
+      "topic_he": "חזרת הש\"ץ (חזרת העמידה)",
+      "summary_he": "בקהילות מרוקאיות רבות לא חזרו על העמידה בתפילות מסוימות. במקום זאת אומר החזן את שלוש הברכות הראשונות בקול רם עם הקהל, אחר כך קדושה, ואז כולם ממשיכים בלחש, והחזן מרים שוב את קולו מ\"רצה\" ועד הסוף."
     },
     {
       "index": "halacha.2",
       "category": "Prayer",
-      "topic": "Piyutim and poetry",
-      "summary": "Poetic and liturgical composition is highly developed and central to Moroccan worship.",
+      "topic": "Hallel blessings (Rosh Hodesh and half-Hallel)",
+      "summary": "Moroccans say 'Ligmor et haHallel' over full Hallel and 'Likro et haHallel' over half-Hallel. A blessing is said over the Rosh Hodesh half-Hallel, but only with a minyan, following the Rif.",
       "common_practices": [
-        "Recite piyutim on Shabbat and festivals where customary",
-        "Use local maqam or melody traditions in some communities",
-        "Preserve family and regional liturgical cycles",
-        "Preserve inherited nusach and pronunciation in public prayer.",
-        "Coordinate weekday, Shabbat, and festival insertions with local rabbinic guidance.",
-        "Maintain community niggunim and piyyutim where accepted."
-      ]
+        "Blessing on half-Hallel only in a minyan",
+        "Different blessing wording for full vs half Hallel"
+      ],
+      "variants": [
+        {
+          "subgroup": "R. David Ovadia",
+          "practice": "Blessing even when praying alone, like Rabbenu Tam.",
+          "source": "Magen Avot, citing R. David Ovadia"
+        },
+        {
+          "subgroup": "Traditional Moroccan, Tunisian and Turkish synagogues",
+          "practice": "The cantor says the blessings before and after Hallel aloud and the congregation answers Amen; individuals praying alone omit them.",
+          "source": "Peninei Halakha (R. Eliezer Melamed), Mo'adim, Rosh Chodesh ch. 12"
+        }
+      ],
+      "source": "Magen Avot, 'Should Hallel be Recited on Rosh Hodesh?'; Jewish Link, 'A Bracha on Chatzi Hallel?' (cites Rosh, Berachot 2:5, and Magen Avot OC 422)",
+      "source_url": "https://www.moroccanhalacha.com/should-hallel-be-recited-on-rosh-hodesh/",
+      "confidence": "disputed",
+      "review_notes": "Contrasts with the Shulchan Aruch OC 422:2 report of Eretz Yisrael custom (no blessing on half-Hallel). Peninei Halakha URL: https://ph.yhb.org.il/en/05-01-12/",
+      "references": [
+        {
+          "title": "https://www.moroccanhalacha.com/should-hallel-be-recited-on-rosh-hodesh/",
+          "url": "https://www.moroccanhalacha.com/should-hallel-be-recited-on-rosh-hodesh/"
+        }
+      ],
+      "topic_he": "ברכות ההלל (ראש חודש וחצי הלל)",
+      "summary_he": "המרוקאים אומרים \"לגמור את ההלל\" על הלל שלם ו\"לקרוא את ההלל\" על חצי הלל. מברכים על חצי הלל של ראש חודש, אך רק במניין, בהתאם לרי\"ף."
     },
     {
       "index": "halacha.3",
       "category": "Prayer",
-      "topic": "Selichot and penitential prayers",
-      "summary": "Selichot are often a major feature of Moroccan religious life, especially before the High Holidays.",
-      "common_practices": [
-        "Recite selichot according to community schedule",
-        "Use local melodies and cadence",
-        "Preserve communal traditions for special nights and public prayer",
-        "Preserve inherited nusach and pronunciation in public prayer.",
-        "Coordinate weekday, Shabbat, and festival insertions with local rabbinic guidance.",
-        "Maintain community niggunim and piyyutim where accepted."
-      ]
+      "topic": "Kedusha de-Sidra on Motza'ei Shabbat before a Yom Tov week",
+      "summary": "If a Yom Tov falls in the coming week, Shuva Hashem ad Matai and Yoshev Beseter Elyon are omitted, but the last verse, Orekh Yamim Asbi'ehu, is said twice before continuing.",
+      "common_practices": [],
+      "variants": [],
+      "source": "R. Shalom Messas, Shemesh U-Magen vol. III §85:6; R. David Ovadia, Nahagu Ha'am, Arvit §8, both as cited by Magen Avot",
+      "source_url": "https://www.moroccanhalacha.com/",
+      "confidence": "needs-review",
+      "review_notes": "Read via search excerpt of the site homepage.",
+      "topic_he": "קדושה דסידרא במוצאי שבת לפני שבוע של יום טוב",
+      "summary_he": "אם חל יום טוב בשבוע הקרוב, מדלגים על \"שובה ה' עד מתי\" ועל \"יושב בסתר עליון\", אך את הפסוק האחרון, \"ארך ימים אשביעהו\", אומרים פעמיים לפני שממשיכים."
     },
     {
       "index": "halacha.4",
-      "category": "Shabbat",
-      "topic": "Candle lighting",
-      "summary": "Shabbat candle lighting follows standard halacha with family and city-based customs.",
-      "common_practices": [
-        "Light before Shabbat begins",
-        "Use customary blessing wording",
-        "Preserve traditions for the number and arrangement of candles",
-        "Prepare practical needs before candle lighting to avoid melacha.",
-        "Use approved warming and lighting setups established before Shabbat.",
-        "Follow local zmanim for candle lighting, shekia, and havdalah."
-      ]
+      "category": "Prayer",
+      "topic": "Half Kaddish after Alenu",
+      "summary": "Moroccans say Hatzi Kaddish after Alenu. The reason given is that Morocco had many young orphans for whom the full Kaddish Yehe Shelama was too much, and the custom stayed for everyone obliged to say Kaddish.",
+      "common_practices": [],
+      "variants": [],
+      "source": "Magen Avot, 'Half Kaddish'",
+      "source_url": "https://www.moroccanhalacha.com/half-kaddish/",
+      "confidence": "needs-review",
+      "review_notes": "Single source, read via search excerpt; no posek named.",
+      "topic_he": "חצי קדיש אחרי עלינו",
+      "summary_he": "המרוקאים אומרים חצי קדיש אחרי עלינו. הטעם הניתן הוא שבמרוקו היו יתומים צעירים רבים שקדיש \"יהא שלמא\" המלא היה קשה להם, והמנהג נשאר לכל מי שחייב לומר קדיש."
     },
     {
       "index": "halacha.5",
       "category": "Shabbat",
-      "topic": "Meals and hospitality",
-      "summary": "Shabbat meals are central to Moroccan life and often include distinctive traditional foods.",
+      "topic": "End of Shabbat time",
+      "summary": "Moroccan custom follows the Geonim, not Rabbenu Tam, for when Shabbat ends.",
       "common_practices": [
-        "Prepare food before Shabbat",
-        "Honor guests and family with customary hospitality",
-        "Use traditional Moroccan dishes where kosher and appropriate",
-        "Prepare practical needs before candle lighting to avoid melacha.",
-        "Use approved warming and lighting setups established before Shabbat.",
-        "Follow local zmanim for candle lighting, shekia, and havdalah."
-      ]
+        "Motza'ei Shabbat reckoned by the Geonim's view"
+      ],
+      "variants": [],
+      "source": "R. Yitzhak Benoualid, Likutei Dinim vol. II p. 212; R. Shlomo ibn Danan, Bakesh Shlomo §28; R. Raphael Ankawa, To'afot Re'em §49; R. Shalom Messas, Shemesh U-Magen vol. I §26 (all as cited by Magen Avot)",
+      "source_url": "https://www.moroccanhalacha.com/",
+      "confidence": "well-attested",
+      "review_notes": "Four Moroccan authorities agree, but all are reached through one secondary compilation, read via search excerpt. No minute offset is given, so no runtime parameter is set.",
+      "topic_he": "זמן צאת השבת",
+      "summary_he": "המנהג המרוקאי הולך אחרי הגאונים, לא אחרי רבנו תם, לעניין זמן סיום השבת."
     },
     {
       "index": "halacha.6",
       "category": "Shabbat",
-      "topic": "Cooking and warming",
-      "summary": "Cooking is prohibited on Shabbat while approved warming methods may be used.",
+      "topic": "Candle lighting",
+      "summary": "The common Moroccan custom is to light two Shabbat candles. The Rema's penalty of an extra candle for a woman who forgot is applied leniently today, essentially only for wilful neglect.",
       "common_practices": [
-        "Cook before Shabbat",
-        "Use permitted warming arrangements under halachic guidance",
-        "Avoid direct cooking or prohibited manipulation",
-        "Prepare practical needs before candle lighting to avoid melacha.",
-        "Use approved warming and lighting setups established before Shabbat.",
-        "Follow local zmanim for candle lighting, shekia, and havdalah."
-      ]
+        "Two candles"
+      ],
+      "variants": [],
+      "source": "Magen Avot, 'How many Shabbat candles should one light?' (cites SA OC 263:1, Kaf HaChaim, R. Ovadia Yosef)",
+      "source_url": "https://www.moroccanhalacha.com/how-many-shabbat-candles-should-one-light/",
+      "confidence": "needs-review",
+      "review_notes": "Read via search excerpt. No Moroccan minutes-before-sunset figure was found.",
+      "topic_he": "הדלקת נרות",
+      "summary_he": "המנהג המרוקאי הנפוץ הוא להדליק שני נרות שבת. עונשו של הרמ\"א בנר נוסף לאישה ששכחה מיושם היום בהקלה, בעיקרו רק למזלזלת בכוונה."
     },
     {
       "index": "halacha.7",
       "category": "Shabbat",
-      "topic": "Carrying and eruv",
-      "summary": "Carrying depends on valid eruv status and local communal infrastructure.",
+      "topic": "Seuda Shelishit: wine and Kiddush",
+      "summary": "The common custom is not to make formal Kiddush at Seuda Shelishit, but it is considered proper to drink wine during the meal. R. Shalom Messas, citing his uncle R. David Messas and Tikkunei Shabbat, notes that 'yayin' and 'Gog uMagog' have the same gematria. R. David Messas also cites the Arizal against Kiddush at this meal.",
       "common_practices": [
-        "Do not carry where no valid eruv exists",
-        "Follow local rabbinic guidance on public and private space",
-        "Use community standards rather than assumptions",
-        "Prepare practical needs before candle lighting to avoid melacha.",
-        "Use approved warming and lighting setups established before Shabbat.",
-        "Follow local zmanim for candle lighting, shekia, and havdalah."
-      ]
+        "Wine during Seuda Shelishit without formal Kiddush"
+      ],
+      "variants": [],
+      "source": "R. Shalom Messas, Shemesh U-Magen vol. I §65, as cited by Magen Avot, 'Kiddush for Seuda Shelishit'",
+      "source_url": "https://www.moroccanhalacha.com/kiddush-for-seuda-shelishit/",
+      "confidence": "needs-review",
+      "review_notes": "Read via search excerpt.",
+      "topic_he": "סעודה שלישית: יין וקידוש",
+      "summary_he": "המנהג הנפוץ הוא שלא לקדש קידוש רשמי בסעודה שלישית, אך נחשב ראוי לשתות יין בסעודה. הרב שלום משאש, בשם דודו הרב דוד משאש וב\"תיקוני שבת\", מציין ש\"יין\" ו\"גוג ומגוג\" שווים בגימטריה. הרב דוד משאש מצטט גם את האר\"י נגד קידוש בסעודה זו."
     },
     {
       "index": "halacha.8",
-      "category": "Kashrut",
-      "topic": "Meat and dairy separation",
-      "summary": "Meat and dairy separation is observed carefully, with practical customs varying across families and cities.",
-      "common_practices": [
-        "Keep separate utensils and cookware",
-        "Observe customary waiting periods after meat according to local practice",
-        "Maintain a clean and supervised kitchen",
-        "Keep clear separation of meat and dairy utensils, storage, and prep zones.",
-        "Verify supervision standards according to trusted local rabbinic authority.",
-        "Apply inherited waiting-time custom for meat and dairy under halachic guidance."
-      ]
+      "category": "Prayer",
+      "topic": "Blessings on mashed fruit and on bananas",
+      "summary": "Moroccan custom says Shehakol over fruits and vegetables that have changed form (mashed or crushed), and Borei Peri HaAdama over bananas, following the Shulchan Aruch.",
+      "common_practices": [],
+      "variants": [
+        {
+          "subgroup": "R. Yosef Messas",
+          "practice": "Had a different reasoning on bananas; R. Shalom Messas defends it but rules by the Shulchan Aruch.",
+          "source": "R. Shalom Messas, Shemesh U-Magen vol. II §11, as cited by Magen Avot"
+        }
+      ],
+      "source": "Magen Avot, Daily Halacha archive",
+      "source_url": "http://www.moroccanhalacha.com/page/15/",
+      "confidence": "needs-review",
+      "review_notes": "Read via search excerpt.",
+      "topic_he": "ברכות על פירות מרוסקים ועל בננות",
+      "summary_he": "המנהג המרוקאי אומר \"שהכול\" על פירות וירקות ששינו צורתם (מרוסקים או כתושים), ו\"בורא פרי האדמה\" על בננות, בהתאם לשולחן ערוך."
     },
     {
       "index": "halacha.9",
-      "category": "Kashrut",
-      "topic": "Shechita",
-      "summary": "Ritual slaughter and meat supervision are central to communal kashrut standards.",
+      "category": "Rosh Hashana",
+      "topic": "Seder of simanim (night meal)",
+      "summary": "After Kiddush, washing and breaking bread, the simanim are eaten in this order, each with its Yehi Ratzon and a sung Moroccan melody: dates; white beans (lubia); leek; beet; gourd; pomegranate (two alternative formulas); apple dipped in honey, or apple cooked with sugar; and the head of a ram or fish, with an added line recalling the Akeda over a ram's head.",
       "common_practices": [
-        "Use a qualified shochet",
-        "Inspect knives and meat carefully",
-        "Rely on recognized community supervision",
-        "Keep clear separation of meat and dairy utensils, storage, and prep zones.",
-        "Verify supervision standards according to trusted local rabbinic authority.",
-        "Apply inherited waiting-time custom for meat and dairy under halachic guidance."
-      ]
+        "Borei peri ha-etz on the first date",
+        "Borei peri ha-adama on beans only if HaMotzi was not said",
+        "Apple cooked in sugar as an alternative to honey"
+      ],
+      "variants": [],
+      "source": "Avner Azoulay, 'Rosh Hashanah Seder among North African Jews', Institut Europeen des Musiques Juives",
+      "source_url": "https://www.iemj.org/en/le-seder-de-roch-hachana-chez-les-juifs-d-afrique-du-nord/",
+      "confidence": "needs-review",
+      "review_notes": "Presented as North African in general, with recordings in the Moroccan rite. Order and items vary by family.",
+      "references": [
+        {
+          "title": "Rosh Hashanah Seder among North African Jews - Institut Européen des Musiques Juives",
+          "url": "https://www.iemj.org/en/le-seder-de-roch-hachana-chez-les-juifs-d-afrique-du-nord/"
+        }
+      ],
+      "topic_he": "סדר הסימנים (סעודת הלילה)",
+      "summary_he": "אחרי קידוש, נטילה ובציעת הלחם אוכלים את הסימנים בסדר זה, כל אחד עם \"יהי רצון\" וניגון מרוקאי: תמרים; שעועית לבנה (לוביה); כרתי; סלק; דלעת; רימון (שני נוסחים חלופיים); תפוח טבול בדבש או תפוח מבושל בסוכר; וראש איל או דג, עם שורה נוספת המזכירה את העקדה בראש איל."
     },
     {
       "index": "halacha.10",
-      "category": "Kashrut",
-      "topic": "Wine and ritual beverages",
-      "summary": "Wine handling is treated carefully for Kiddush, Havdalah, and other ritual uses.",
-      "common_practices": [
-        "Use kosher wine or accepted alternatives",
-        "Follow local custom on handling and supervision",
-        "Observe communal norms for blessing sequence",
-        "Keep clear separation of meat and dairy utensils, storage, and prep zones.",
-        "Verify supervision standards according to trusted local rabbinic authority.",
-        "Apply inherited waiting-time custom for meat and dairy under halachic guidance."
-      ]
+      "category": "Yom Kippur",
+      "topic": "Hashkavot on Kol Nidre night",
+      "summary": "In some Moroccan cities, Hashkavot (prayers for the departed) for local sages were said right after Kol Nidre.",
+      "common_practices": [],
+      "variants": [],
+      "source": "Magen Avot, 'What are some customs of the night of Yom Kippur?' (cites Siddur Beit HaKaporet, Dinei Hashkavot §4, for Gibraltar, and Algerian and Tunisian parallels)",
+      "source_url": "https://www.moroccanhalacha.com/what-are-some-customs-of-the-night-of-yom-kippur/",
+      "confidence": "regional",
+      "review_notes": "No specific Moroccan posek or city is named.",
+      "topic_he": "השכבות בליל כל נדרי",
+      "summary_he": "בכמה ערים מרוקאיות נאמרו השכבות לחכמי המקום מיד אחרי כל נדרי."
     },
     {
       "index": "halacha.11",
-      "category": "Pesach",
-      "topic": "Chametz removal",
-      "summary": "Chametz removal before Pesach is careful and often family-organized.",
-      "common_practices": [
-        "Search for chametz before Pesach",
-        "Sell or dispose of chametz properly",
-        "Use dedicated Pesach utensils or kasher equipment",
-        "Review chametz cleaning and kashering checklists before the festival.",
-        "Follow community custom on kitniyot and festival kitchen workflow.",
-        "Use community haggadah flow and family minhagim within halachic structure."
-      ]
+      "category": "Chanukah",
+      "topic": "Arvit before lighting",
+      "summary": "Moroccan custom is to pray Arvit first and then light. It is preferable to bring Arvit forward so the lighting falls within its ideal window; if Arvit would make one miss the 30-minute window after tzeit, one lights first. Jews in Morocco used the Muslim Maghreb call to prayer as a sign that lighting time was approaching.",
+      "common_practices": [],
+      "variants": [],
+      "source": "R. David Ovadia, Nahagu Ha'am; R. Raphael Ankawa, Pa'amonei Zahav, both as cited by Magen Avot",
+      "source_url": "https://www.moroccanhalacha.com/what-comes-first-arvit-or-hanukkah-lighting/",
+      "confidence": "needs-review",
+      "review_notes": "Read via search excerpt.",
+      "topic_he": "ערבית לפני ההדלקה",
+      "summary_he": "המנהג המרוקאי הוא להתפלל ערבית תחילה ואחר כך להדליק. עדיף להקדים ערבית כדי שההדלקה תיפול בתוך חלונה האידיאלי; אם ערבית תגרום לפספס את חלון שלושים הדקות אחרי צאת הכוכבים, מדליקים תחילה. יהודי מרוקו השתמשו בקריאה המוסלמית לתפילת המגרב כסימן שזמן ההדלקה מתקרב."
     },
     {
       "index": "halacha.12",
-      "category": "Pesach",
-      "topic": "Kitniyot and regional foods",
-      "summary": "Moroccan Pesach practice is generally compatible with Sephardi permission of kitniyot, though local custom matters greatly.",
-      "common_practices": [
-        "Rice and legumes may be used where permitted",
-        "Inspect foods for chametz contamination",
-        "Follow family and rabbinic guidance for packaged foods",
-        "Review chametz cleaning and kashering checklists before the festival.",
-        "Follow community custom on kitniyot and festival kitchen workflow.",
-        "Use community haggadah flow and family minhagim within halachic structure."
+      "category": "Chanukah",
+      "topic": "Order of the three blessings",
+      "summary": "Two customs are recorded. One says all three blessings and then lights. The other says Lehadlik, lights, and says She'asa Nissim and Shehecheyanu during or after the lighting, a practice reported for Eretz Yisrael, Egypt and Maghreb cities including Morocco.",
+      "common_practices": [],
+      "variants": [
+        {
+          "subgroup": "R. Yehoshua Maman",
+          "practice": "Said all three blessings, then lit.",
+          "source": "Magen Avot, 'Should One Recite all the Blessings Before Lighting?'"
+        },
+        {
+          "subgroup": "Maghreb practice per cited authority",
+          "practice": "First blessing, lighting, then the other two.",
+          "source": "Magen Avot, same page"
+        }
       ],
-      "notes": "Some Moroccan subgroups preserve very specific local Pesach customs."
+      "source": "Magen Avot, 'Should One Recite all the Blessings Before Lighting?'",
+      "source_url": "http://www.moroccanhalacha.com/should-one-recite-all-the-blessings-before-lighting/",
+      "confidence": "disputed",
+      "review_notes": "The page quotes an authority (vol. 4 §74) as uncertain what the authentic Moroccan custom is and treats both as legitimate. Read via search excerpt.",
+      "references": [
+        {
+          "title": "Should One Recite all the Blessings Before Lighting?",
+          "url": "http://www.moroccanhalacha.com/should-one-recite-all-the-blessings-before-lighting/"
+        }
+      ],
+      "topic_he": "סדר שלוש הברכות",
+      "summary_he": "מתועדים שני מנהגים. אחד אומר את כל שלוש הברכות ואחר כך מדליק. השני אומר \"להדליק\", מדליק, ואומר \"שעשה נסים\" ו\"שהחיינו\" במהלך ההדלקה או אחריה, נוהג המדווח על ארץ ישראל, מצרים וערי המגרב, כולל מרוקו."
     },
     {
       "index": "halacha.13",
       "category": "Pesach",
-      "topic": "Seder practice",
-      "summary": "The Seder follows halachic structure with rich Moroccan song and food traditions.",
+      "topic": "Kitniyot",
+      "summary": "Rice is not eaten on Pesach; R. Yaakov ibn Tzur records that the rabbis of Morocco unanimously prohibited it, out of concern for mixed-in grain. Other kitniyot were not formally prohibited, but R. Yosef Benaim, R. David Ovadia and R. Haim Messas explain that the custom is to avoid them. Individual families keep further stringencies.",
       "common_practices": [
-        "Use community Haggadot or annotated family copies",
-        "Preserve songs, readings, and piyutim",
-        "Follow local custom for seder foods and sequence",
-        "Review chametz cleaning and kashering checklists before the festival.",
-        "Follow community custom on kitniyot and festival kitchen workflow.",
-        "Use community haggadah flow and family minhagim within halachic structure."
-      ]
+        "No rice",
+        "General avoidance of other kitniyot",
+        "Keep any known family stringency"
+      ],
+      "variants": [
+        {
+          "subgroup": "Families (various)",
+          "practice": "Some avoid chickpeas (hummus, because it sounds like hametz) and sugar (because bread was sometimes dipped in it).",
+          "source": "Magen Avot, 'Is Rice Permitted on Pesah?'"
+        },
+        {
+          "subgroup": "Spanish-Moroccans",
+          "practice": "Many traditionally eat chickpeas on Pesach.",
+          "source": "MK (Montreal Kosher), 'Kashrut Challenges in the Modern-Day Food Industry'"
+        },
+        {
+          "subgroup": "Certain families and cities",
+          "practice": "Also avoid corn, sugar and sesame.",
+          "source": "MK, same article"
+        },
+        {
+          "subgroup": "Some Moroccan families",
+          "practice": "Eat legumes, fresh beans and fresh peas, but not rice.",
+          "source": "Jewish Rhody, 'Moroccan Passover traditions'"
+        }
+      ],
+      "source": "R. Yaakov ibn Tzur, Mishpat U-Tzedaka BeYaakov vol. I §9, as cited by Magen Avot",
+      "source_url": "https://www.moroccanhalacha.com/is-rice-permitted-on-pesah/",
+      "confidence": "disputed",
+      "review_notes": "The rice prohibition is well-attested. The scope beyond rice is disputed: Magen Avot says avoid kitniyot generally, while MK and Jewish Rhody say most kitniyot other than rice and chickpeas were eaten. Defer to family custom.",
+      "topic_he": "קטניות",
+      "summary_he": "אורז אינו נאכל בפסח; רבי יעקב אבן צור מתעד שרבני מרוקו אסרו אותו פה אחד, מחשש לתערובת דגן. קטניות אחרות לא נאסרו רשמית, אך רבי יוסף בן נאים, רבי דוד אובדיה ורבי חיים משאש מסבירים שהמנהג הוא להימנע מהן. משפחות פרטיות שומרות חומרות נוספות."
     },
     {
       "index": "halacha.14",
-      "category": "Lifecycle",
-      "topic": "Brit milah",
-      "summary": "Brit milah is performed according to halacha with strong ceremonial family traditions.",
+      "category": "Pesach",
+      "topic": "Bibhilu at the seder",
+      "summary": "As the opening of Maggid, the head of the household passes the seder plate over the heads of everyone present while chanting 'Bibhilu yatzanu mi-Mitzrayim' (in haste we left Egypt), a text found in the Rambam's Haggadah. Reasons given: to provoke the children's questions; to symbolize the Clouds of Glory (R. Yosef Benaim); and a kabbalistic reading of the ten items on the plate (R. Haim Palagi).",
       "common_practices": [
-        "Use a qualified mohel",
-        "Observe naming and celebration customs",
-        "Preserve traditional blessings and songs",
-        "Keep core lifecycle ceremonies aligned with halachic requirements.",
-        "Document family minhagim for naming, honors, and celebration order.",
-        "Consult community rabbi for local protocol differences."
-      ]
+        "Plate circled over each participant before Ha Lachma Anya"
+      ],
+      "variants": [],
+      "source": "R. Yosef Benaim, Noheg BeHokhma; R. Raphael Baruch Toledano, Kitzur Shulchan Aruch p. 147; Rambam, Hilchot Hametz U-Matza, Nusach HaHaggada (as cited by Magen Avot)",
+      "source_url": "https://www.moroccanhalacha.com/bibhilou-whats-the-significance/",
+      "confidence": "well-attested",
+      "review_notes": "Corroborated by Jewish Rhody and Chabad.org descriptions. The HIDA records the custom in Tunisia too.",
+      "references": [
+        {
+          "title": "11 Sephardic Passover Traditions - Chabad.org",
+          "url": "https://www.chabad.org/holidays/passover/pesach_cdo/aid/6385522/jewish/11-Sephardic-Passover-Traditions.htm"
+        },
+        {
+          "title": "Bibhilou: What’s the Significance? - Magen Avot - Moroccan Daily Halacha & Shiurim B'SD.",
+          "url": "https://www.moroccanhalacha.com/bibhilou-whats-the-significance/"
+        },
+        {
+          "title": "Moroccan Passover traditions",
+          "url": "https://www.jewishrhody.com/stories/moroccan-passover-traditions,8255"
+        }
+      ],
+      "topic_he": "בבהילו בסדר",
+      "summary_he": "בפתיחת המגיד מעביר בעל הבית את קערת הסדר מעל ראשי כל הנוכחים תוך שירת \"בבהילו יצאנו ממצרים\" (בחיפזון יצאנו ממצרים), נוסח המצוי בהגדת הרמב\"ם. הטעמים הניתנים: לעורר את שאלות הילדים; לסמל את ענני הכבוד (רבי יוסף בן נאים); וקריאה קבלית של עשרת הפריטים שבקערה (רבי חיים פלאג'י)."
     },
     {
       "index": "halacha.15",
-      "category": "Lifecycle",
-      "topic": "Marriage and henna customs",
-      "summary": "Marriage follows halacha and may include henna and other North African customs.",
+      "category": "Pesach",
+      "topic": "Mimouna (night and day after Pesach)",
+      "summary": "A post-Pesach celebration of renewal and good fortune. In North Africa it involved Muslim neighbours giving or selling green stalks and wheat to Jews in the evening, sometimes lending clothes to young people who dressed in Muslim garb, and inviting Jews to picnic on their land. Goldberg documents reversal motifs such as men dressing as women and children striking parents with green stalks.",
       "common_practices": [
-        "Use a valid ketubah",
-        "Perform kiddushin and nissuin properly",
-        "Observe local customs for pre-wedding celebration and henna",
-        "Keep core lifecycle ceremonies aligned with halachic requirements.",
-        "Document family minhagim for naming, honors, and celebration order.",
-        "Consult community rabbi for local protocol differences."
-      ]
+        "Open homes with sweets after Pesach",
+        "Green stalks and wheat as symbols"
+      ],
+      "variants": [
+        {
+          "subgroup": "Israel",
+          "practice": "From the mid-1960s, mass public Mimouna gatherings that grew as large as 100,000 people by the end of the decade (Goldberg).",
+          "source": "Harvey E. Goldberg, 'Mimouna Festival', Encyclopedia of the Modern Middle East and North Africa"
+        }
+      ],
+      "source": "Harvey E. Goldberg, 'The Mimuna and the Minority Status of Moroccan Jews', Ethnology 17 (1978): 75-87",
+      "source_url": "https://www.encyclopedia.com/humanities/encyclopedias-almanacs-transcripts-and-maps/mimouna-festival",
+      "confidence": "well-attested",
+      "review_notes": "The etymology of the name is uncertain; do not present any single derivation as fact.",
+      "references": [
+        {
+          "title": "Mimouna Festival",
+          "url": "https://www.encyclopedia.com/humanities/encyclopedias-almanacs-transcripts-and-maps/mimouna-festival"
+        },
+        {
+          "title": "(PDF) The Mimuna and Minority Status of Moroccan Jews. Ethnology 17:75 87, 1978",
+          "url": "https://www.academia.edu/10108633/The_Mimuna_and_Minority_Status_of_Moroccan_Jews_Ethnology_17_75_87_1978"
+        }
+      ],
+      "topic_he": "מימונה (הלילה והיום שאחרי פסח)",
+      "summary_he": "חגיגה של התחדשות ומזל טוב אחרי פסח. בצפון אפריקה נתנו שכנים מוסלמים או מכרו ליהודים ערב קני ירק וחיטה, לפעמים השאילו בגדים לצעירים שהתלבשו בלבוש מוסלמי, והזמינו יהודים לפיקניק באדמתם. גולדברג מתעד מוטיבים של היפוך כמו גברים המתלבשים כנשים וילדים המכים הורים בקני ירק."
     },
     {
       "index": "halacha.16",
-      "category": "Family law",
-      "topic": "Niddah and mikveh",
-      "summary": "Family purity laws are observed carefully and are a central part of traditional practice.",
+      "category": "Omer",
+      "topic": "Haircuts and the end of the mourning period",
+      "summary": "Moroccan cities differed. Tangier and Tetouan followed the Shulchan Aruch (OC 493:2) and waited until the morning of the 34th day. Fez, Sefrou and Meknes relied on the Pri Hadash and allowed haircuts on the 33rd day (Lag BaOmer). Kabbalistic practice waits until Shavuot.",
       "common_practices": [
-        "Observe separation laws during niddah",
-        "Use mikveh according to halacha",
-        "Follow local rabbinic guidance for household practice",
-        "Use a consistent halachic calendar and consultation process for sensitive questions.",
-        "Coordinate household observance with qualified rabbinic guidance.",
-        "Preserve family minhag where compatible with accepted psak."
-      ]
+        "Whoever has the 33rd-day custom may keep it; otherwise wait for the 34th"
+      ],
+      "variants": [
+        {
+          "subgroup": "Tangier, Tetouan",
+          "practice": "Haircuts from the morning of the 34th day.",
+          "source": "Magen Avot, 'Lag BaOmer and Haircuts'"
+        },
+        {
+          "subgroup": "Fez, Sefrou, Meknes",
+          "practice": "Haircuts on the 33rd day.",
+          "source": "Magen Avot, 'Lag BaOmer and Haircuts'"
+        },
+        {
+          "subgroup": "Followers of the Arizal",
+          "practice": "No haircut until Shavuot.",
+          "source": "Magen Avot, 'Lag BaOmer and Haircuts'"
+        }
+      ],
+      "source": "Magen Avot, 'Lag BaOmer and Haircuts'",
+      "source_url": "https://www.moroccanhalacha.com/lag-baomer-and-haircuts/",
+      "confidence": "regional",
+      "review_notes": "Related customs, read via search excerpt of 'Sefirat HaOmer: Shaving': Moroccan custom is strict against shaving on Fridays of the Omer; when Lag BaOmer falls on Sunday, 33rd-day followers may cut their hair on the Friday before (R. Yosef Benaim, Noheg BeHokhma p. 49); women may cut their hair; cutting nails is permitted (R. Yitzhak ibn Danan, LeYitzhak Re'ah). URL: https://www.moroccanhalacha.com/sefirat-haomer-shaving/",
+      "references": [
+        {
+          "title": "Sefirat HaOmer: Shaving - Magen Avot - Moroccan Daily Halacha & Shiurim B'SD.",
+          "url": "https://www.moroccanhalacha.com/sefirat-haomer-shaving/"
+        }
+      ],
+      "topic_he": "תספורת וסוף ימי האבלות",
+      "summary_he": "ערי מרוקו נחלקו. טנג'יר וטטואן הלכו אחרי השולחן ערוך (או\"ח תצג:ב) והמתינו עד בוקר היום ה-34. פאס, צפרו ומכנס נשענו על הפרי חדש והתירו תספורת ביום ה-33 (ל\"ג בעומר). מנהג קבלי ממתין עד שבועות."
     },
     {
       "index": "halacha.17",
-      "category": "Mourning",
-      "topic": "Avelut and hashkava",
-      "summary": "Mourning follows halachic structure and may include distinctive memorial customs such as hashkava practices.",
+      "category": "Fasts and Tisha B'Av",
+      "topic": "Nine Days: bathing and shaving",
+      "summary": "The widely held Moroccan custom was not to bathe during the entire Nine Days and not to shave from Rosh Hodesh Av; some stop shaving from the 17th of Tammuz. Magen Avot reports that many rabbis allow lukewarm washing to remove dirt.",
       "common_practices": [
-        "Observe shiva, shloshim, and yahrzeit customs",
-        "Use memorial prayer forms where customary",
-        "Maintain family etiquette for condolence and remembrance",
-        "Observe shiva, shloshim, and yahrzeit in the accepted local format.",
-        "Coordinate memorial prayer customs with synagogue practice.",
-        "Preserve condolence and visitation etiquette used by the community."
-      ]
+        "No shaving from Rosh Hodesh Av",
+        "Traditional abstention from bathing for all Nine Days"
+      ],
+      "variants": [
+        {
+          "subgroup": "Some individuals",
+          "practice": "Stop shaving from 17 Tammuz.",
+          "source": "Magen Avot"
+        }
+      ],
+      "source": "Magen Avot, 'The Nine Days and the Week of Tisha Be'Av' (cites Meshulchan Avotenu, Tishat HaYamim; SA OC 551:16)",
+      "source_url": "https://www.moroccanhalacha.com/the-nine-days-and-the-week-of-tisha-beav/",
+      "confidence": "needs-review",
+      "review_notes": "The lukewarm-water leniency is the page author's contemporary discussion, not a documented Moroccan custom.",
+      "topic_he": "תשעת הימים: רחיצה וגילוח",
+      "summary_he": "המנהג המרוקאי הרווח היה לא להתרחץ במשך כל תשעת הימים ולא להתגלח מראש חודש אב; יש שמפסיקים לגלח מי\"ז בתמוז. \"מגן אבות\" מדווח שרבנים רבים מתירים רחיצה בפושרים כדי להסיר לכלוך."
     },
     {
       "index": "halacha.18",
-      "category": "Calendar",
-      "topic": "High Holidays",
-      "summary": "Rosh Hashanah and Yom Kippur are observed with solemnity, selichot, and local melody traditions.",
+      "category": "Fasts and Tisha B'Av",
+      "topic": "Nine Days: meat, including on Shabbat",
+      "summary": "In Morocco meat was not eaten during the entire Nine Days. On Shabbat, three customs depended on family and city: no meat even on Shabbat; meat on Shabbat; or only dried or preserved meat on Shabbat.",
       "common_practices": [
-        "Use the Moroccan machzor or accepted rite",
-        "Preserve selichot and shofar customs",
-        "Follow local synagogue melodies and order",
-        "Anchor observance times to local halachic zmanim.",
-        "Coordinate fasts, selichot, and festival timing with community schedule.",
-        "Use a single trusted local calendar authority for consistency."
-      ]
+        "No meat on weekdays of the Nine Days"
+      ],
+      "variants": [
+        {
+          "subgroup": "Families keeping the aveilut custom",
+          "practice": "No meat even on Shabbat ('many Moroccans', per R. Bouskila, as an old aveilut tradition).",
+          "source": "R. Gad Bouskila, interview in Jewish Action (Summer 2018)"
+        },
+        {
+          "subgroup": "Other families",
+          "practice": "Meat on Shabbat.",
+          "source": "Same"
+        },
+        {
+          "subgroup": "Other families (e.g., R. Bouskila's mother, Casablanca)",
+          "practice": "Only preserved or dried meat in the Shabbat dafina.",
+          "source": "Same"
+        }
+      ],
+      "source": "Barbara Bensoussan, 'Sephardic Kinot: Exploring Moroccan Tradition', Jewish Action, Summer 2018 (interview with R. Gad Bouskila)",
+      "source_url": "https://jewishaction.com/religion/jewish-culture/sephardic-kinot-exploring-moroccan-tradition/",
+      "confidence": "disputed",
+      "review_notes": "R. Bouskila reports that R. Ovadia Yosef ruled one should eat meat on Shabbat, while R. Shalom Messas wrote a teshuva allowing Moroccans to keep abstaining. The teshuva's citation was not given.",
+      "references": [
+        {
+          "title": "Sephardic Kinot: Exploring Moroccan Tradition - Jewish Action",
+          "url": "https://jewishaction.com/religion/jewish-culture/sephardic-kinot-exploring-moroccan-tradition/"
+        }
+      ],
+      "topic_he": "תשעת הימים: בשר, גם בשבת",
+      "summary_he": "במרוקו לא אכלו בשר במשך כל תשעת הימים. בשבת היו שלושה מנהגים, לפי המשפחה והעיר: אין בשר גם בשבת; בשר בשבת; או רק בשר מיובש או משומר בשבת."
     },
     {
       "index": "halacha.19",
-      "category": "Calendar",
-      "topic": "Chanukah",
-      "summary": "Chanukah is celebrated with standard halacha and local wordings and customs.",
+      "category": "Fasts and Tisha B'Av",
+      "topic": "Tisha B'Av day customs and kinot",
+      "summary": "Everyone (men, women and children) sits on the floor in synagogue until midday. The shamash places ashes on people's heads and the men lift their kippot to receive them. After midday the women clean the house and change the sheets and the men slaughter to restock meat, as preparation for the Mashiach, who a midrash says will come on Tisha B'Av. R. Gad Bouskila (rav of Netivot Israel, Brooklyn) estimates that about 100 kinot were composed after 1492 on the Spanish Inquisition and Expulsion, and says Moroccan and Tunisian communities added their own kinot 150-200 years ago; the sung kinah 'Madu'a be-leil Pesach' is also recited.",
       "common_practices": [
-        "Light candles nightly",
-        "Recite blessings according to community custom",
-        "Preserve family food and song traditions",
-        "Anchor observance times to local halachic zmanim.",
-        "Coordinate fasts, selichot, and festival timing with community schedule.",
-        "Use a single trusted local calendar authority for consistency."
-      ]
+        "Ashes on heads",
+        "Sitting on the floor until midday",
+        "Kinot divided into Kinot HaGedolot and Kinot HaKetanot"
+      ],
+      "variants": [
+        {
+          "subgroup": "Older members in Morocco",
+          "practice": "Some wore flax sackcloth under the tallit katan.",
+          "source": "R. Gad Bouskila, Jewish Action"
+        },
+        {
+          "subgroup": "Moroccan minhag per Halachipedia",
+          "practice": "Tallit and tefillin not worn at Shacharit, only at Mincha.",
+          "source": "Halachipedia, 'Tisha BeAv'"
+        }
+      ],
+      "source": "Barbara Bensoussan, 'Sephardic Kinot: Exploring Moroccan Tradition', Jewish Action, Summer 2018",
+      "source_url": "https://jewishaction.com/religion/jewish-culture/sephardic-kinot-exploring-moroccan-tradition/",
+      "confidence": "needs-review",
+      "review_notes": "This is one rabbi's eyewitness account from Casablanca. The tallit and tefillin claim rests on Halachipedia (a lead only) and needs primary confirmation.",
+      "references": [
+        {
+          "title": "Moroccan Jewish Religious Practices",
+          "url": "https://moroccanjews.org/home/moroccan-jewish-culture/moroccan-jewish-religious-practices-2/"
+        }
+      ],
+      "topic_he": "מנהגי יום תשעה באב וקינות",
+      "summary_he": "כולם (גברים, נשים וילדים) יושבים על הרצפה בבית הכנסת עד חצות. השמש מניח אפר על ראשי האנשים והגברים מרימים את כיפותיהם לקבלו. אחרי חצות הנשים מנקות את הבית ומחליפות סדינים והגברים שוחטים כדי לחדש מלאי בשר, כהכנה למשיח, שלפי מדרש יבוא בתשעה באב. הרב גד בוסקילה (רב נתיבות ישראל, ברוקלין) מעריך שנתחברו כ-100 קינות אחרי 1492 על האינקוויזיציה והגירוש מספרד, ואומר שקהילות מרוקו ותוניסיה הוסיפו קינות משלהן לפני 150-200 שנה; נאמרת גם הקינה הנשרת \"מדוע בליל פסח\"."
     },
     {
       "index": "halacha.20",
-      "category": "Calendar",
-      "topic": "Purim",
-      "summary": "Purim is communal and festive with public Megillah reading and special foods.",
+      "category": "Tefillin and tzitzit",
+      "topic": "First tefillin ('Tefilin' as the name for bar mitzvah)",
+      "summary": "In Morocco the bar mitzvah was simply called 'Tefilin'. Boys often began wearing tefillin and were called to the Torah before 13: R. Yosef Messas says as early as seven, more commonly around eleven. Halachic adulthood still begins at 13. Shehecheyanu is said on first wearing tefillin.",
       "common_practices": [
-        "Read the Megillah publicly",
-        "Exchange gifts to the poor and friends",
-        "Observe local Purim foods and celebration customs",
-        "Anchor observance times to local halachic zmanim.",
-        "Coordinate fasts, selichot, and festival timing with community schedule.",
-        "Use a single trusted local calendar authority for consistency."
-      ]
+        "Pre-13 tefillin celebration",
+        "Shehecheyanu at first tefillin"
+      ],
+      "variants": [
+        {
+          "subgroup": "Meknes",
+          "practice": "The boy puts on a new tallit, then tefillin, and says Shehecheyanu on the tallit with the tefillin in mind.",
+          "source": "R. Shalom Messas, approbation to Ateret Shlomo, as cited by Magen Avot"
+        },
+        {
+          "subgroup": "R. Yitzhak Ben Oualid",
+          "practice": "Preferred waiting until 13 to be called to the Torah, but the custom was earlier.",
+          "source": "Vayomer Yitzhak, OC, Hilchot Sefer Torah §15"
+        }
+      ],
+      "source": "R. Yosef Messas, Otzar HaMikhtavim vol. III §843; Siddur Beit Oved, Hilchot Tefillin §4; R. Shlomo Dayan, Ateret Shlomo §3 (as cited by Magen Avot, 'Celebrating One's Tefilin')",
+      "source_url": "https://www.moroccanhalacha.com/celebrating-ones-tefilin/",
+      "confidence": "well-attested",
+      "review_notes": "Several named Moroccan authorities agree on the early celebration.",
+      "topic_he": "תפילין ראשונות (\"תפילין\" כשם לבר מצווה)",
+      "summary_he": "במרוקו נקראה הבר מצווה פשוט \"תפילין\". נערים התחילו לא פעם להניח תפילין ונקראו לתורה לפני גיל 13: הרב יוסף משאש אומר שכבר מגיל שבע, ובדרך כלל בסביבות גיל אחד עשר. הבגרות ההלכתית עדיין מתחילה בגיל 13. אומרים שהחיינו בהנחה ראשונה של תפילין."
     },
     {
       "index": "halacha.21",
-      "category": "Education",
-      "topic": "Torah transmission",
-      "summary": "Education emphasizes rabbinic learning, communal memory, and family traditions.",
+      "category": "Tefillin and tzitzit",
+      "topic": "Rabbenu Tam tefillin; folding the straps",
+      "summary": "Magen Avot states that the custom in Morocco was not to wear Rabbenu Tam tefillin, giving the appearance of arrogance as the reason. An older Moroccan custom folds the shel rosh straps like dove wings, recalling Elisha Ba'al HaKenafayim.",
       "common_practices": [
-        "Teach children prayers and readings",
-        "Preserve family and local custom",
-        "Use both text study and oral transmission",
-        "Teach children both baseline halacha and family minhag distinctions.",
-        "Preserve community pronunciation and liturgical pedagogy.",
-        "Document oral traditions to reduce minhag drift across generations."
-      ]
+        "Shel rosh straps folded like dove wings (older generation)"
+      ],
+      "variants": [],
+      "source": "R. Israel Elnekave, Menorat HaMa'or vol. I p. 70, as cited by Magen Avot, 'How are Tefilin Removed?'; Magen Avot Tefillin category page",
+      "source_url": "https://www.moroccanhalacha.com/how-are-tefilin-removed/",
+      "confidence": "needs-review",
+      "review_notes": "Read via search excerpts only. The Rabbenu Tam point is a one-line teaser; the full article was not read.",
+      "references": [
+        {
+          "title": "Tefillin",
+          "url": "https://www.moroccanhalacha.com/category/moroccan-daily-halachot/tefillin-morrocan-daily-halachot/"
+        }
+      ],
+      "topic_he": "תפילין דרבנו תם; קיפול הרצועות",
+      "summary_he": "\"מגן אבות\" קובע שהמנהג במרוקו היה שלא להניח תפילין דרבנו תם, והטעם הניתן הוא מראית עין של גאווה. מנהג מרוקאי עתיק יותר מקפל את רצועות התפילין של ראש כמו כנפי יונה, זכר לאלישע בעל הכנפיים."
     },
     {
       "index": "halacha.22",
-      "category": "Community",
-      "topic": "Toshavim and megorashim",
-      "summary": "A major internal distinction in Moroccan heritage is between older local Jews and exiled Sephardi arrivals.",
+      "category": "Lifecycle",
+      "topic": "Henna for the bar mitzvah boy",
+      "summary": "Moroccan Jews, in both south and north, held a henna ceremony for boys on the evening before their bar mitzvah celebration.",
+      "common_practices": [],
+      "variants": [
+        {
+          "subgroup": "High Atlas communities",
+          "practice": "Henna also for children's milestones such as weaning, first haircut or five teeth.",
+          "source": "Henna by Sienna, 'Jewish Henna Traditions in Morocco' (cites Joseph Chetrit 2003)"
+        }
+      ],
+      "source": "Henna by Sienna, 'Jewish Henna Traditions in Morocco', citing Joseph Chetrit (2003), Tiqsei ha-hinna ba-hatuna ha-yehudit be-Maroqo",
+      "source_url": "https://hennabysienna.com/morocco.html",
+      "confidence": "needs-review",
+      "review_notes": "Non-academic site summarizing academic work. The Chetrit article itself was not opened.",
+      "topic_he": "חינה לבר המצווה",
+      "summary_he": "יהודי מרוקו, בדרום ובצפון כאחד, ערכו טקס חינה לנערים בערב שלפני חגיגת הבר מצווה שלהם."
+    },
+    {
+      "index": "halacha.23",
+      "category": "Brit milah and pidyon haben",
+      "topic": "Night before the brit: Tahdid / Brit Yitzchak / Zohar",
+      "summary": "On the night before the brit, family and friends gather (at least a minyan) in the home of mother and baby. They read Zohar, the Priestly Blessing and Psalms 91 and 121. In the Tahdid (from Arabic hadid, metal) a knife or sword is passed over the walls and openings of the room; the sword and a book of Psalms are placed by the child and an amulet hangs over the crib until morning. Moroccans celebrate both a Shalom Zachar and this Zohar evening.",
       "common_practices": [
-        "Index lineage by subgroup when possible",
-        "Note city-specific and family-specific minhagim",
-        "Distinguish inherited practice from later external influence",
-        "Prioritize communal unity where multiple minhag streams meet.",
-        "Record synagogue protocol for honors, leadership, and service flow.",
-        "Use local beit din or rabbinic authority for conflict resolution."
-      ]
+        "Zohar reading the night before",
+        "Sword or knife passed over the room",
+        "Throne of Elijah brought from the synagogue to the home and decorated with colorful fabrics"
+      ],
+      "variants": [
+        {
+          "subgroup": "Sefrou",
+          "practice": "Throne of Elijah placed near a doorpost of the child's home, for long life.",
+          "source": "Chabad.org, 'Additional Sephardic Circumcision Customs'"
+        },
+        {
+          "subgroup": "Southern / Saharan (per Yalalla, quoted)",
+          "practice": "Women jokingly 'hold' the mother and baby hostage and barter with the men; swords tapped on the four corners and the crib; Judeo-Arabic and Hebrew piyyutim.",
+          "source": "Jewish Monster Hunting reading list, quoting yalalla.org.uk"
+        }
+      ],
+      "source": "The CJN, 'The night before the brit milah'; Chabad.org, 'Additional Sephardic Circumcision Customs'",
+      "source_url": "https://thecjn.ca/opinion/perspectives/night-brit-milah/",
+      "confidence": "regional",
+      "review_notes": "Names vary (Tahdid, Talamon, Brit Yitzchak). All sources are popular rather than halachic. Some Moroccan brit customs, such as rose petals, are attested only on mohel websites and are omitted.",
+      "references": [
+        {
+          "title": "The night before the brit milah",
+          "url": "https://thecjn.ca/opinion/perspectives/night-brit-milah/"
+        },
+        {
+          "title": "Sephardic Customs for Brit Milah",
+          "url": "https://blog.miamimohel.com/sephardic-customs-for-brit-milah"
+        }
+      ],
+      "topic_he": "הלילה שלפני הברית: תחדיד / ברית יצחק / זוהר",
+      "summary_he": "בלילה שלפני הברית מתכנסים משפחה וחברים (מניין לפחות) בבית האם והתינוק. קוראים זוהר, ברכת כהנים ותהילים צא וקכא. בתחדיד (מהערבית חדיד, מתכת) מעבירים סכין או חרב מעל קירות החדר ופתחיו; החרב וספר תהילים מונחים ליד הילד וקמע תלוי מעל העריסה עד הבוקר. המרוקאים חוגגים הן שלום זכר והן ערב זוהר זה."
+    },
+    {
+      "index": "halacha.24",
+      "category": "Weddings",
+      "topic": "Henna ceremony and wedding customs",
+      "summary": "In Morocco weddings were customarily held on Wednesday night, with the henna celebration at the bride's parents' home the day before. The bride, dressed in red in some communities, has henna applied to her hands and sometimes feet; henna is also put on the right hand of everyone present. Many communities held several henna nights. The berberisca or keswa kbira ('grand dress') is worn at the henna in some communities and under the chuppah in others.",
+      "common_practices": [
+        "Henna night before the wedding",
+        "Wednesday-night wedding"
+      ],
+      "variants": [
+        {
+          "subgroup": "Tangier",
+          "practice": "Bride wears white on the wedding day and the 'big dress' at the Noche de novia.",
+          "source": "Morasha, 'Wedding in Morocco'"
+        },
+        {
+          "subgroup": "Various communities",
+          "practice": "Henna mixed into the bride's hair with cloves, sugar and egg (azmomeg); 18th-century travellers recorded designs drawn on brides' faces and hands.",
+          "source": "Henna by Sienna (cites Chetrit 2003; Romanelli 1792; Lempriere 1793)"
+        }
+      ],
+      "source": "Morasha, 'Wedding in Morocco'",
+      "source_url": "https://www.morasha.com.br/en/laws-customs-and-traditions/wedding-in-morocco.html",
+      "confidence": "regional",
+      "review_notes": "Ethnographic custom, not halacha. The kiddushin and ketubah procedure is not covered.",
+      "references": [
+        {
+          "title": "Moroccan Jewish Religious Practices",
+          "url": "https://moroccanjews.org/home/moroccan-jewish-culture/moroccan-jewish-religious-practices-2/"
+        }
+      ],
+      "topic_he": "טקס החינה ומנהגי חתונה",
+      "summary_he": "במרוקו נערכו חתונות בדרך כלל בליל רביעי, עם חגיגת החינה בבית הוריה של הכלה יום קודם. הכלה, הלבושה אדום בקהילות מסוימות, מקבלת חינה על ידיה ולעיתים גם על רגליה; חינה מונחת גם על היד הימנית של כל הנוכחים. קהילות רבות ערכו כמה לילות חינה. הברבריסקה או הקסווה כבירה (\"השמלה הגדולה\") נלבשת בחינה בקהילות מסוימות ותחת החופה באחרות."
+    },
+    {
+      "index": "halacha.25",
+      "category": "Mourning",
+      "topic": "Shiva conclusion and shloshim: Mishmara",
+      "summary": "In the Moroccan community, visitors leaving a house of mourning say 'Min hashamayim tenuhamu' (may you be comforted from Heaven). At the end of shiva a special meal and study session, the mishmara, is held: the deceased is eulogized again and mourners are urged to repent. Another mishmara with food is held at the cemetery on the 30th day.",
+      "common_practices": [
+        "Mishmara at the end of shiva",
+        "Mishmara at the grave on day 30",
+        "Many mourners begin a year of strict observance"
+      ],
+      "variants": [],
+      "source": "Ron Wolfson, 'Sephardic Customs During Shiva', My Jewish Learning, reprinted from A Time to Mourn, A Time to Comfort",
+      "source_url": "https://www.myjewishlearning.com/article/sephardic-customs-during-shiva/",
+      "confidence": "needs-review",
+      "review_notes": "Single secondary source with no posek cited. The same source attributes kriah on returning home, sitting on the floor or pillows, and Zohar study to 'most Sephardic communities', not specifically to Moroccans.",
+      "topic_he": "סיום השבעה ושלושים: משמרה",
+      "summary_he": "בקהילה המרוקאית אומרים המבקרים העוזבים בית אבל \"מן השמיים תנוחמו\". בסוף השבעה נערכת סעודה מיוחדת ושיעור, המשמרה: מספידים שוב את הנפטר ומעודדים את האבלים לשוב בתשובה. משמרה נוספת עם כיבוד נערכת בבית הקברות ביום השלושים."
+    },
+    {
+      "index": "halacha.26",
+      "category": "Mourning",
+      "topic": "Cemetery visits in Nissan",
+      "summary": "There were two opposite city customs. In Rabat, people visited cemeteries to say Tehillim and hold memorial meals (seudot mitzvah) for the dead, many even on Hol HaMoed. In Fez, cemeteries were not visited during Nissan, following the Arizal, though many visited the grave of a prominent rabbi. Magen Avot concludes that those with a custom of visiting may keep it.",
+      "common_practices": [],
+      "variants": [
+        {
+          "subgroup": "Rabat",
+          "practice": "Visits and memorial meals in Nissan, including Hol HaMoed.",
+          "source": "R. Shalom Messas, Shemesh U-Magen vol. IV, OC §66"
+        },
+        {
+          "subgroup": "Fez",
+          "practice": "No cemetery visits in Nissan (except a great rabbi's grave).",
+          "source": "R. Yosef Messas, Mayim Haim vol. II §132, citing Sha'ar HaKavanot"
+        }
+      ],
+      "source": "Magen Avot, 'May One Visit a Cemetery in Nissan?'",
+      "source_url": "https://www.moroccanhalacha.com/may-one-visit-a-cemetery-in-nissan/",
+      "confidence": "regional",
+      "review_notes": "Opened by the research subagent.",
+      "topic_he": "ביקורי בית קברות בניסן",
+      "summary_he": "היו שני מנהגי ערים הפוכים. ברבאט ביקרו אנשים בבתי קברות לומר תהילים ולערוך סעודות מצווה לנפטרים, רבים אפילו בחול המועד. בפאס לא ביקרו בבתי קברות בניסן, לפי האר\"י, אף שרבים ביקרו בקבר של רב בולט. \"מגן אבות\" מסיק שמי שנוהג לבקר רשאי להמשיך בכך."
+    },
+    {
+      "index": "halacha.27",
+      "category": "Mourning",
+      "topic": "Nahala (yahrzeit) and fasting",
+      "summary": "Moroccan usage calls the yahrzeit 'Nahala'. Someone who customarily fasts on a relative's Nahala should not fast when it falls on Isru Hag (e.g., the day after Shavuot), and should move the fast to another day.",
+      "common_practices": [
+        "Term 'Nahala' for yahrzeit",
+        "Custom of fasting on the Nahala (for those who keep it)"
+      ],
+      "variants": [],
+      "source": "Magen Avot, 'Customs of Isru Hag Shavuot'",
+      "source_url": "http://www.moroccanhalacha.com/customs-of-isru-hag-shavuot/",
+      "confidence": "needs-review",
+      "review_notes": "No posek cited on the page.",
+      "topic_he": "נחלה (יארצייט) וצום",
+      "summary_he": "בלשון המרוקאים נקרא היארצייט \"נחלה\". מי שנוהג לצום ביום הנחלה של קרוב אינו צם כשהיא חלה באסרו חג (למשל למחרת שבועות), ומעביר את הצום ליום אחר."
+    },
+    {
+      "index": "halacha.28",
+      "category": "Prayer",
+      "topic": "Bakashot (Shirat HaBakashot)",
+      "summary": "On winter Shabbat mornings, from 2-3 a.m. until the Shacharit prayer (per the Hebrew University Jewish Music Research Centre), Moroccan communities sing bakashot from the Shir Yedidot anthology (Marrakesh, 1921). The cycle runs from Shabbat Bereshit to Shabbat Zachor. Each Shabbat is tied to a nouba (Andalusian musical mode) of the 11 listed. Unlike the fixed Aleppo service, the piyyutim change weekly, opening with Dodi Yarad le-Gano and Yedid Nefesh.",
+      "common_practices": [
+        "Shabbat Bereshit to Shabbat Zachor",
+        "Weekly nouba",
+        "Largely performed by trained paytanim with solo and choral parts"
+      ],
+      "variants": [],
+      "source": "Jewish Music Research Centre, Hebrew University, 'Baqqashah (pl. Baqqashot)'; IEMJ, 'Baqqachot' (interview with Ariel Danan)",
+      "source_url": "https://jewish-music.huji.ac.il/en/content/baqqashah-pl-baqqashot",
+      "confidence": "well-attested",
+      "review_notes": "One popular source (The New Arab) says the season runs until Passover. HUJI and IEMJ both say until Shabbat Zachor for the Moroccan rite (Passover is the Aleppo endpoint), and that is followed here. IEMJ URL: https://www.iemj.org/en/les-baqqachot/",
+      "references": [
+        {
+          "title": "Baqqashah (Pl. Baqqashot)",
+          "url": "https://jewish-music.huji.ac.il/en/content/baqqashah-pl-baqqashot"
+        },
+        {
+          "title": "Baqqachot - Institut Européen des Musiques Juives",
+          "url": "https://www.iemj.org/en/les-baqqachot/"
+        },
+        {
+          "title": "Preserving Jewish Syrian & Moroccan Baqashot through exile",
+          "url": "https://www.newarab.com/opinion/preserving-jewish-syrian-moroccan-baqashot-through-exile"
+        }
+      ],
+      "topic_he": "בקשות (שירת הבקשות)",
+      "summary_he": "בבוקר שבתות החורף, משעה שתיים-שלוש בלילה ועד תפילת שחרית (לפי המרכז לחקר המוזיקה היהודית באוניברסיטה העברית), שרות קהילות מרוקו בקשות מהאנתולוגיה \"שיר ידידות\" (מראקש, 1921). המחזור נמשך משבת בראשית עד שבת זכור. כל שבת קשורה לנובה (מקאם אנדלוסי) מתוך 11 הרשומים. בניגוד לסדר הקבוע של חלב, הפיוטים משתנים מדי שבוע, ופותחים ב\"דודי ירד לגנו\" וב\"ידיד נפש\"."
     }
   ],
-  "unique_minhagim": {
-    "examples": [
-      "Hashkava communal memorial practice in some communities",
-      "Henna customs associated with weddings",
-      "Strong city-based differentiation such as Fez, Marrakesh, Tangier, and Tetouan",
-      "Rich piyut and melody traditions"
-    ],
-    "notes": "Moroccan halachic life is highly diverse; city and family subgrouping is important for accurate indexing."
-  },
-  "source_registry": {
-    "primary": [
-      "Shulchan Aruch",
-      "Beit Yosef",
-      "Mishneh Torah",
-      "Moroccan rabbinic literature"
-    ],
-    "secondary": [
-      "JewishGen Morocco Database",
-      "National Library of Israel Moroccan collections",
-      "Moroccan communal archives"
-    ]
-  }
+  "unique_minhagim": [
+    {
+      "name": "Mimouna",
+      "description": "Post-Pesach celebration of renewal and good fortune involving green stalks, wheat, open homes, and historically reciprocity with Muslim neighbours.",
+      "when": "Night and day after the last day of Pesach",
+      "source": "Harvey E. Goldberg, Ethnology 17 (1978): 75-87; Goldberg, Encyclopedia of the Modern Middle East and North Africa",
+      "source_url": "https://www.encyclopedia.com/humanities/encyclopedias-almanacs-transcripts-and-maps/mimouna-festival",
+      "confidence": "well-attested",
+      "name_he": "מימונה",
+      "description_he": "חגיגה של התחדשות ומזל טוב אחרי פסח, הכוללת קני ירק, חיטה, בתים פתוחים, ומבחינה היסטורית הדדיות עם שכנים מוסלמים."
+    },
+    {
+      "name": "Bibhilu",
+      "description": "Seder plate passed over each participant's head while chanting Bibhilu yatzanu mi-Mitzrayim.",
+      "when": "Seder night, start of Maggid",
+      "source": "R. Yosef Benaim, Noheg BeHokhma; R. Raphael Baruch Toledano, Kitzur SA p. 147 (via Magen Avot)",
+      "source_url": "https://www.moroccanhalacha.com/bibhilou-whats-the-significance/",
+      "confidence": "well-attested",
+      "name_he": "בבהילו",
+      "description_he": "קערת הסדר מועברת מעל ראשו של כל משתתף תוך שירת \"בבהילו יצאנו ממצרים\"."
+    },
+    {
+      "name": "Hillula at saints' tombs",
+      "description": "Pilgrimage and celebration at tombs of venerated rabbis, with candle auctions, piyyutim and festive meals. Ben-Ami's list (Wayne State University Press, 1998; Hebrew original Magnes Press, 1984) documents 656 saints, 25 of them women, drawn from more than 1,200 testimonies. The hillula of R. Amram ben Diwan at Asjen near Ouezzane is held on Lag BaOmer, and the hillula of R. Eliezer Davila in Rabat on 3 Adar.",
+      "when": "Saint-specific dates; R. Amram ben Diwan on Lag BaOmer",
+      "source": "Issachar Ben-Ami, Saint Veneration Among the Jews in Morocco (Wayne State University Press, 1998), as described by Diarna and the publisher listing",
+      "source_url": "http://archive.diarna.org/site/detail/public/25/",
+      "confidence": "well-attested",
+      "references": [
+        {
+          "title": "Moroccan Jewish Religious Practices",
+          "url": "https://moroccanjews.org/home/moroccan-jewish-culture/moroccan-jewish-religious-practices-2/"
+        }
+      ],
+      "name_he": "הילולה בקברי צדיקים",
+      "description_he": "עלייה לרגל וחגיגה בקברי רבנים נערצים, עם מכירת נרות, פיוטים וסעודות חג. רשימתו של בן עמי (הוצאת אוניברסיטת וויין סטייט, 1998; המקור העברי בהוצאת מאגנס, 1984) מתעדת 656 קדושים, 25 מהם נשים, שנלקחו מיותר מ-1,200 עדויות. הילולת רבי עמרם בן דיוואן באסג'ן ליד ואזאן נערכת בל\"ג בעומר, והילולת רבי אליעזר דאבילה ברבאט בג' באדר."
+    },
+    {
+      "name": "Tahdid / Brit Yitzchak",
+      "description": "Protective ceremony with a sword or knife, Zohar reading and psalms on the night before a brit.",
+      "when": "Night before brit milah",
+      "source": "The CJN, 'The night before the brit milah'",
+      "source_url": "https://thecjn.ca/opinion/perspectives/night-brit-milah/",
+      "confidence": "regional",
+      "name_he": "תחדיד / ברית יצחק",
+      "description_he": "טקס הגנה עם חרב או סכין, קריאת זוהר ותהילים בלילה שלפני ברית."
+    },
+    {
+      "name": "Ashes on Tisha B'Av",
+      "description": "The shamash places ashes on worshippers' heads, and after midday the house is cleaned in anticipation of the Mashiach.",
+      "when": "Tisha B'Av",
+      "source": "R. Gad Bouskila, Jewish Action, Summer 2018",
+      "source_url": "https://jewishaction.com/religion/jewish-culture/sephardic-kinot-exploring-moroccan-tradition/",
+      "confidence": "needs-review",
+      "name_he": "אפר בתשעה באב",
+      "description_he": "השמש מניח אפר על ראשי המתפללים, ואחרי חצות מנקים את הבית בציפייה למשיח."
+    }
+  ],
+  "source_registry": [
+    {
+      "title": "Magen Avot: Moroccan Daily Halacha (moroccanhalacha.com)",
+      "author": "Magen Avot (associated with R. Mordechai Lebhar's Magen Avot series)",
+      "type": "reference",
+      "url": "https://www.moroccanhalacha.com/",
+      "used_for": "Most halachic entries; cites Shemesh U-Magen, Mayim Haim, Nahagu Ha'am, Noheg BeHokhma, Kitzur SA Toledano and others."
+    },
+    {
+      "title": "Peninei Halakha, Mo'adim: Rosh Chodesh, ch. 12 (Hallel on Rosh Chodesh)",
+      "author": "R. Eliezer Melamed",
+      "type": "reference",
+      "url": "https://ph.yhb.org.il/en/05-01-12/",
+      "used_for": "Moroccan cantor reciting the Hallel blessings for the congregation"
+    },
+    {
+      "title": "A Bracha on Chatzi Hallel? Sephardic and Ashkenazic Practices",
+      "author": "Jewish Link",
+      "type": "reference",
+      "url": "https://jewishlink.news/features/24659-a-bracha-on-chatzi-hallel-sephardic-and-ashkenazic-practices",
+      "used_for": "Rosh Berachot 2:5 as the basis of the Likro/Ligmor distinction"
+    },
+    {
+      "title": "Rosh Hashanah Seder among North African Jews",
+      "author": "Avner Azoulay (IEMJ)",
+      "type": "reference",
+      "url": "https://www.iemj.org/en/le-seder-de-roch-hachana-chez-les-juifs-d-afrique-du-nord/",
+      "used_for": "Order and texts of the simanim"
+    },
+    {
+      "title": "The Mimuna and the Minority Status of Moroccan Jews (Ethnology 17, 1978); Mimouna Festival (encyclopedia entry)",
+      "author": "Harvey E. Goldberg",
+      "type": "academic",
+      "url": "https://www.encyclopedia.com/humanities/encyclopedias-almanacs-transcripts-and-maps/mimouna-festival",
+      "used_for": "Mimouna"
+    },
+    {
+      "title": "Saint Veneration Among the Jews in Morocco",
+      "author": "Issachar Ben-Ami",
+      "type": "academic",
+      "url": "https://books.google.com/books/about/Saint_Veneration_Among_the_Jews_in_Moroc.html?id=Hk9wCuiT7bEC",
+      "used_for": "Hillula and saint veneration (publisher description)"
+    },
+    {
+      "title": "Baqqashah (pl. Baqqashot)",
+      "author": "Jewish Music Research Centre, Hebrew University of Jerusalem",
+      "type": "academic",
+      "url": "https://jewish-music.huji.ac.il/en/content/baqqashah-pl-baqqashot",
+      "used_for": "Bakashot season, Shir Yedidot"
+    },
+    {
+      "title": "Baqqachot (interview with Ariel Danan)",
+      "author": "IEMJ",
+      "type": "reference",
+      "url": "https://www.iemj.org/en/les-baqqachot/",
+      "used_for": "Nouba cycle, season dates"
+    },
+    {
+      "title": "Sephardic Kinot: Exploring Moroccan Tradition",
+      "author": "Barbara Bensoussan, interview with R. Gad Bouskila (Jewish Action, Summer 2018)",
+      "type": "reference",
+      "url": "https://jewishaction.com/religion/jewish-culture/sephardic-kinot-exploring-moroccan-tradition/",
+      "used_for": "Nine Days meat, Tisha B'Av customs, kinot"
+    },
+    {
+      "title": "Patrilineal Genetic Ancestry of Moroccan Jews",
+      "author": "Genealogy 10(2):66 (MDPI)",
+      "type": "academic",
+      "url": "https://doi.org/10.3390/genealogy10020066",
+      "used_for": "Megorashim and Toshavim ketubah-rite criterion; Haketia caveat (citing Zafrani 1998)"
+    },
+    {
+      "title": "Kashrut Challenges in the Modern-Day Food Industry",
+      "author": "MK (Montreal Kosher)",
+      "type": "reference",
+      "url": "https://mk.ca/kashrut-challenges-in-the-modern-day-food-industry/",
+      "used_for": "Kitniyot variants (rice, chickpeas, Spanish-Moroccans)"
+    },
+    {
+      "title": "Moroccan Passover traditions",
+      "author": "Jewish Rhody",
+      "type": "reference",
+      "url": "https://www.jewishrhody.com/stories/moroccan-passover-traditions,8255",
+      "used_for": "Kitniyot variant; Bibhilu corroboration"
+    },
+    {
+      "title": "The night before the brit milah",
+      "author": "The CJN",
+      "type": "reference",
+      "url": "https://thecjn.ca/opinion/perspectives/night-brit-milah/",
+      "used_for": "Tahdid / Brit Yitzchak"
+    },
+    {
+      "title": "Additional Sephardic Circumcision Customs",
+      "author": "Chabad.org",
+      "type": "reference",
+      "url": "https://www.chabad.org/library/article_cdo/aid/144126/jewish/Additional-Sephardic-Circumcision-Customs.htm",
+      "used_for": "Throne of Elijah; Sefrou doorpost custom"
+    },
+    {
+      "title": "Wedding in Morocco",
+      "author": "Morasha",
+      "type": "reference",
+      "url": "https://www.morasha.com.br/en/laws-customs-and-traditions/wedding-in-morocco.html",
+      "used_for": "Henna and wedding customs; Tangier variant"
+    },
+    {
+      "title": "Jewish Henna Traditions in Morocco",
+      "author": "Henna by Sienna (cites Joseph Chetrit 2003)",
+      "type": "reference",
+      "url": "https://hennabysienna.com/morocco.html",
+      "used_for": "Bar mitzvah henna; multiple henna nights; Atlas children's henna"
+    },
+    {
+      "title": "Sephardic Customs During Shiva",
+      "author": "Ron Wolfson (My Jewish Learning)",
+      "type": "reference",
+      "url": "https://www.myjewishlearning.com/article/sephardic-customs-during-shiva/",
+      "used_for": "Mishmara; condolence formula"
+    },
+    {
+      "title": "Shrine of Haim Ben Diwan at Ouirgane",
+      "author": "Diarna",
+      "type": "reference",
+      "url": "http://archive.diarna.org/site/detail/public/25/",
+      "used_for": "R. Amram ben Diwan hillula on Lag BaOmer"
+    }
+  ],
+  "gaps": [
+    "Nusach and order of service in full (Kabbalat Shabbat order, Avarekh et Shem, Psalm 16 melody and similar points appear only in Wikipedia or forum posts)",
+    "Kabbalat Shabbat, Friday-night Kiddush posture, Havdalah: no Moroccan-specific primary source verified",
+    "Rosh Hashana order of the day (shofar customs, the hymn before the repetition): no source found",
+    "Yom Kippur liturgy beyond Kol Nidre-night Hashkavot, and Moroccan kapparot practice: no source found",
+    "Sukkot, Hoshana Rabba, Simchat Torah: no source found",
+    "Purim: no source found",
+    "Matzah customs (hand or machine, baking practice): no source found",
+    "Shavuot: no distinctive practice verified (only the Isru Hag Nahala note)",
+    "Minor fasts (10 Tevet, 17 Tammuz, Fast of Esther, Gedalia): no distinctive practice verified",
+    "Tefillin on Hol HaMoed: no Moroccan-specific source found",
+    "Tzitzit and tallit: no distinctive practice verified",
+    "Torah reading pronunciation and Moroccan te'amim, including the haftara variant between general Moroccan and Spanish-Moroccan: only Wikipedia found; needs a primary or academic source",
+    "Kashrut: the Fez Megorashim-Toshavim terefah (lung inspection) controversy appears only in a Wikipedia lead; no verified source on Moroccan shechita or bedika standards",
+    "Pidyon haben: no source found",
+    "Bat mitzvah: no source found",
+    "Niddah and mikveh: no Moroccan-specific source found",
+    "Burial practice, Hashkava text at funerals, women at funerals, Kaddish for 11 vs 12 months: no reliable source found",
+    "Calendar: no distinctive Moroccan calendrical practice or time offsets documented",
+    "Takkanot of the Castilian exiles in Fez (from 1494) on marriage and inheritance: found only in blog-level sources",
+    "Judeo-Arabic sharh translations and Haketia liturgical use: no source found",
+    "Specific Casablanca, Safi, Mazagan, Agadir/Sous and Draa customs: none verified"
+  ],
+  "disputes": [
+    "Kitniyot scope: Magen Avot (citing Benaim, Ovadia and H. Messas) says avoid kitniyot generally, while MK and Jewish Rhody say most kitniyot other than rice (and chickpeas for many) were eaten; Spanish-Moroccans often eat chickpeas.",
+    "Hazarat HaShatz: R. Yosef Messas (Mayim Haim I §41) treats non-repetition as normative; R. Shalom Messas (Shemesh U-Magen IV §45) treats it as circumstantial and favors repeating.",
+    "Lag BaOmer haircuts: 33rd day (Fez, Sefrou, Meknes, per the Pri Hadash) vs 34th day (Tangier, Tetouan, per SA 493:2).",
+    "Meat on Shabbat during the Nine Days: three family and city customs; R. Ovadia Yosef requires meat while R. Shalom Messas permits Moroccans to abstain.",
+    "Chanukah blessings: all three before lighting (R. Yehoshua Maman) vs first blessing, lighting, then the other two (reported Maghreb practice).",
+    "Cemetery visits in Nissan: Rabat permitted (Shemesh U-Magen IV OC §66) vs Fez refrained (Mayim Haim II §132).",
+    "Hallel blessing for an individual: Moroccan custom per the Rif is minyan only; R. David Ovadia permits it alone.",
+    "R. Amram ben Diwan: Diarna places his hillula on Lag BaOmer, while NerTzaddik lists his date of death in Av 5542 (9 or 15 Av); the hillula date does not match the death date."
+  ],
+  "needs_rabbinic_review": [
+    "Kitniyot beyond rice: families should follow their own known custom; the app should not default to a single rule.",
+    "Nine Days bathing: the original custom was strict, and the modern lukewarm leniency is a contemporary author's view.",
+    "Hazarat HaShatz practice in a given synagogue.",
+    "Tisha B'Av tallit and tefillin only at Mincha (Halachipedia claim, primary source unverified).",
+    "Rabbenu Tam tefillin not worn in Morocco (single teaser line).",
+    "Seuda Shelishit wine and Kiddush, and Kedusha de-Sidra omissions (search excerpts only).",
+    "Mourning entries (mishmara, Nahala fasting), which rest on single secondary sources."
+  ]
 }

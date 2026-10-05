@@ -42,14 +42,29 @@ customs corpus — not on individual synthesized answers.
 ## What IS reviewed today: the customs corpus pipeline
 
 The community-customs data under `customs/*.json` (`ashkenaz.json`,
-`sefardic.json`, `yemenite.json`, etc.) is hand-authored/curated JSON, not
-scraped or AI-generated. Per `customs/DEVELOPER_NOTES.md`, editing
-guidance is to preserve valid JSON/UTF-8, keep topic/category fields
-consistent for matcher quality, and include source metadata (halakhic
-authorities, poskim, codes) where possible for transparency. This is a
-data-curation and engineering discipline, not a rabbinic review process —
-there is no sign-off step by a halakhic authority recorded anywhere in
-the repo.
+`sefardic.json`, `yemenite.json`, etc.) is not scraped, but it is **not
+hand-authored or rabbinically reviewed either**. The current thirteen
+files (format 3.0) were compiled from one AI-assisted research run per
+community, each pointed at primary and scholarly sources, and then
+converted into the JSON schema. Each entry carries its own `source`,
+`source_url` or `references`, and a `confidence` label (`well-attested`,
+`disputed`, `regional`, `needs-review`); the stored and displayed text
+says so for anything weaker than well-attested, and for those entries (disputed,
+regional, needs-review) tells the reader to ask their own rabbi. A disputed
+entry lists each position as its own variant instead of picking one. The
+Hebrew shown in the Hebrew UI (`topic_he`, `summary_he`, `name_he`,
+`description_he`) was written by hand from the English entries, not
+machine-translated at request time, and has had no separate review. Topics with no
+community-specific source are listed under `gaps` instead of filled in,
+and each file keeps a reviewer-only `needs_rabbinic_review` list and
+per-entry `review_notes` (what was and was not opened) that never reach
+users or the model. Per `customs/DEVELOPER_NOTES.md`, editing guidance is
+to preserve valid JSON/UTF-8, keep topic/category fields consistent for
+matcher quality, and cite a source and confidence for every entry. This
+is a data-curation and engineering discipline, not a rabbinic review
+process — there is no sign-off step by a halakhic authority recorded
+anywhere in the repo, and the `needs_rabbinic_review` lists are the
+worklist for one.
 
 Two automated checks sit around that data:
 
@@ -57,10 +72,13 @@ Two automated checks sit around that data:
    `validate_all_customs_at_startup()` in `backend/customs.py` walks every
    `customs/*.json` file (skipping the aggregated `customs_db.json` and
    `schema.json`) and checks two things only: that the file parses as
-   valid JSON, and — for structured (v2.x) files — that the required
-   top-level fields `heritage_id`, `name`, and `halacha_index` are present
-   and non-empty. It logs an error per offending file and continues; it
-   never raises, so one bad file cannot crash the app. **This is a
+   valid JSON, and — for structured (v2.x and 3.0) files — that the
+   required top-level fields `heritage_id`, `name`, and `halacha_index`
+   are present and non-empty. (A separate test,
+   `tests/test_customs.py::TestRealCustomsFiles`, keeps every file's
+   `runtime.lens_key` in step with the lens keys in
+   `backend/helpers.COMMUNITIES`; it runs in CI, not at startup.) It logs an
+   error per offending file and continues; it never raises, so one bad file cannot crash the app. **This is a
    structural/schema check, not a content-accuracy or halakhic-accuracy
    check** — it cannot detect a wrong citation, a misattributed ruling, or
    a factually incorrect summary, only a malformed or incomplete file. Per
@@ -75,9 +93,10 @@ Two automated checks sit around that data:
    `halacha_index` shape and a legacy flat `{community: {topic: entry}}`
    shape), normalizes each entry's text, derives a deterministic id via
    `sha256(community|topic|source)`, and upserts rows into Supabase's
-   `community_knowledge` table (`--dry-run` and `--community <name>`
-   filters are supported). This is an ETL/deterministic-upsert step, not
-   a content-review step — it does not evaluate whether a ruling is
+   `community_knowledge` table, keyed by each file's `runtime.lens_key`
+   (`--dry-run`, `--community <lens key>`, `--prune` and `--emit-sql DIR`
+   are supported). Reviewer-only fields are left out of the rows. This is an
+   ETL/deterministic-upsert step, not a content-review step — it does not evaluate whether a ruling is
    correct, only reshapes and loads what is already in the JSON files.
 
 A related but separate tool, `scripts/crawl_library_leaves.py`, crawls
@@ -98,7 +117,7 @@ accurate.
 | Per-answer human review | — | No human reviews individual AI-synthesized answers before they reach users (`docs/DPIA.md` §2) |
 | Rabbinic endorsement | — | No rabbinic advisor, board, or hechsher-equivalent endorsement of the app or its content |
 | Customs JSON schema check | `validate_all_customs_at_startup()` — required-fields + valid-JSON check at startup/CI | Does not check halakhic accuracy of the content |
-| Customs data authorship | Hand-curated JSON files with source-metadata conventions (`customs/DEVELOPER_NOTES.md`) | No recorded halakhic sign-off step on that authorship |
+| Customs data authorship | AI-assisted research compiled into JSON files, each entry with a source and a confidence label, gaps listed rather than filled (`customs/DEVELOPER_NOTES.md`) | No recorded halakhic sign-off step; the `needs_rabbinic_review` lists are unreviewed |
 | Sefaria library link health | `scripts/crawl_library_leaves.py` — machine-generated remove/fix report on ref loadability | Does not validate the substantive accuracy of Sefaria's text or Sh'elah's use of it |
 | User-facing disclosure | `templates/ai-disclosure.html` §3/§4/§5 — hallucination risks, what the AI does not do, "always consult your rabbi" | — |
 

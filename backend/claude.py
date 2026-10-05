@@ -27,6 +27,7 @@ from tenacity import retry, wait_random_exponential, stop_after_attempt, retry_i
 
 from backend.citation_markers import finalize_sources, remap_markers, strip_markers
 from backend.cost_meter import record_llm_call
+from backend.customs import runtime_config as _customs_runtime_config
 from backend.health_check import health
 from backend.logging_setup import get_request_id, submit_with_context
 from backend.retrieval_guard import withhold_injected
@@ -1396,7 +1397,16 @@ def format_sefaria_sources(sources, max_items=4, max_chars=180):
     return output
 
 
-def format_customs(customs, max_items=5, max_chars=220):
+# Per-row cap for community-knowledge text in the prompt, and the ceiling for
+# the whole dynamic context (customs + memories + tool context). Sized for the
+# 3.0 rows, which carry the summary, a confidence caveat, practices and subgroup
+# variants (median ~410 chars); the old 220/2200 clipped half of all summaries
+# mid-sentence and cut off nearly every variant.
+CUSTOMS_ROW_MAX_CHARS = 600
+DYNAMIC_CONTEXT_MAX_CHARS = 4200
+
+
+def format_customs(customs, max_items=5, max_chars=CUSTOMS_ROW_MAX_CHARS):
     """Format community knowledge snippets from Supabase rows."""
     output = ""
     for c in (customs or [])[:max_items]:
@@ -1682,29 +1692,31 @@ def _format_conversation_history(
     return "\n".join(reversed(kept))
 
 
-# Baseline literature each community's practice rests on, for the prompt's
-# community-lens instruction. Deliberately coarse: it names what to lead with,
-# not a ruling, so the model is not handed claims it cannot source.
-_SEPHARDIC_BASELINE = (
-    "the Shulchan Arukh of Maran R. Yosef Karo (not the Rema's Ashkenazi glosses) and later "
-    "Sephardic poskim such as the Kaf HaChaim and R. Ovadia Yosef, plus that community's own customs"
-)
-_COMMUNITY_PRACTICE = {
-    "ashkenaz": ("Ashkenazi", "the Shulchan Arukh with the Rema's glosses, the Mishnah Berurah and later Ashkenazi poskim"),
-    "sefardic": ("Sephardic", _SEPHARDIC_BASELINE),
-    "yemenite": ("Yemenite", "the Rambam's Mishneh Torah (Baladi custom; Shami Yemenites follow the Shulchan Arukh)"),
-    "iraqi": ("Iraqi (Baghdadi)", "the Shulchan Arukh as read by the Ben Ish Chai, plus Baghdadi custom"),
-    "syrian": ("Syrian", _SEPHARDIC_BASELINE),
-    "moroccan": ("Moroccan", _SEPHARDIC_BASELINE),
-    "persian": ("Persian", _SEPHARDIC_BASELINE),
-    "bukharian": ("Bukharian", _SEPHARDIC_BASELINE),
-    "georgian": ("Georgian", _SEPHARDIC_BASELINE),
-    "kavkazi": ("Kavkazi (Mountain Jewish)", _SEPHARDIC_BASELINE),
-    "turkish-ottoman": ("Turkish-Ottoman", _SEPHARDIC_BASELINE),
-    "greek-romaniote": ("Romaniote", "the Romaniote tradition and its local customs"),
-    "ethiopian": ("Ethiopian (Beta Israel)", "the Beta Israel tradition as ruled on by the community's own rabbinic leaders and the Israeli Chief Rabbinate"),
-    "israeli": ("Israeli", "current Israeli practice, noting the Ashkenazi/Sephardic difference wherever the two diverge"),
+# Display names for the prompt's community-lens instruction, keyed by lens key
+# (lower case). What each community's practice rests on is NOT kept here: it is
+# each community's customs file (runtime.practice_baseline, read through
+# customs.runtime_config()), so correcting a community's baseline is a data edit.
+# Only a community with no file of its own keeps a baseline in code.
+_COMMUNITY_LABELS = {
+    "ashkenaz": "Ashkenazi",
+    "sefardic": "Sephardic",
+    "yemenite": "Yemenite",
+    "iraqi": "Iraqi (Baghdadi)",
+    "syrian": "Syrian",
+    "moroccan": "Moroccan",
+    "persian": "Persian",
+    "bukharian": "Bukharian",
+    "georgian": "Georgian",
+    "kavkazi": "Kavkazi (Mountain Jewish)",
+    "turkish-ottoman": "Turkish-Ottoman",
+    "greek-romaniote": "Romaniote",
+    "ethiopian": "Ethiopian (Beta Israel)",
+    "israeli": "Israeli",
 }
+_CODE_ONLY_BASELINES = {
+    "israeli": "current Israeli practice, noting the Ashkenazi/Sephardic difference wherever the two diverge",
+}
+_GENERIC_BASELINE = "that community's own published practice"
 _COMMUNITY_ALIASES = {
     "ashkenazi": "ashkenaz", "ashkenazic": "ashkenaz",
     "sephardic": "sefardic", "sephardi": "sefardic", "sefardi": "sefardic",
@@ -1733,18 +1745,22 @@ def _community_lens_instruction(community_lens) -> str:
             "(Ashkenazi, Sephardic, Yemenite, ...), say so in a sentence or two and name which "
             "community holds which view; where it does not split, do not mention communities."
         )
-    name, baseline = _COMMUNITY_PRACTICE.get(key, (None, None))
+    config = _customs_runtime_config().get(key) or {}
+    name = _COMMUNITY_LABELS.get(key) or config.get("name")
     if name is None:
         label = re.sub(r"\s+", " ", re.sub(r"[^\w\s-]", "", raw)).strip()
         name = label[:_UNKNOWN_COMMUNITY_MAX_CHARS].strip() or "unspecified"
-        baseline = "that community's own published practice"
+        basis = _GENERIC_BASELINE
+    else:
+        basis = config.get("practice_baseline") or _CODE_ONLY_BASELINES.get(key) or _GENERIC_BASELINE
+    basis = re.sub(r"\s+", " ", basis).strip().rstrip(".")
     return (
         f"{name}. Answer for a {name} reader first and treat that community's practice as the "
-        f"ruling (it rests on {baseline}). Mention another community's practice only where it "
-        "differs in a way that changes what this reader should do, and name which community it "
-        f"is. Never present Ashkenazi practice as the default for a non-Ashkenazi reader (or the "
-        f"reverse). If the provided sources do not settle {name} custom, say so plainly rather "
-        "than guessing."
+        f"ruling. What that practice rests on: {basis}. Mention another community's practice "
+        "only where it differs in a way that changes what this reader should do, and name which "
+        "community it is. Never present Ashkenazi practice as the default for a non-Ashkenazi "
+        f"reader (or the reverse). If the provided sources do not settle {name} custom, say so "
+        "plainly rather than guessing."
     )
 
 
@@ -1899,7 +1915,7 @@ def _build_dynamic_system_context(customs, user_memories, extra_context):
     if not sections:
         sections.append("No additional dynamic context provided.")
 
-    return _sanitize_prompt_payload("\n\n".join(sections), max_chars=2200)
+    return _sanitize_prompt_payload("\n\n".join(sections), max_chars=DYNAMIC_CONTEXT_MAX_CHARS)
 
 
 async def _call_claude_model(

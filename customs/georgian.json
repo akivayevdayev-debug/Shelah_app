@@ -1,408 +1,1015 @@
 {
-  "version": "2.0",
+  "version": "3.0",
   "type": "academic_halachic_reference",
   "heritage_id": "georgian",
   "name": "Georgian",
   "aliases": [
     "Georgian Jews",
     "Gurj",
-    "Qartveli Yidn"
+    "Qartveli Yidn",
+    "Gruzinim (גרוזינים)",
+    "Kartveli Ebraelebi",
+    "Ebraeli",
+    "Gurjim",
+    "Yehudei Gruzia (יהודי גרוזיה)"
   ],
   "database_scope": {
-    "purpose": "Academic and halachic reference database for Georgian Jewish heritage, minhagim, and halachic practice.",
-    "coverage_note": "This file models broad Georgian Jewish practice and includes common halachic domains. Local customs vary by city, family, and migration history.",
-    "classification_note": "Georgian Jewish practice is a distinct Caucasus Jewish tradition with deep local continuity, later interacting with Sephardi and broader rabbinic norms."
+    "purpose": "Sourced reference for Georgian minhagim and halachic practice. It records what the cited sources say, with a confidence level for each entry, and is not a psak.",
+    "coverage_note": "30 sourced topics and 7 distinctive customs, compiled from the cited sources in October 2026. Each entry carries a confidence level (well-attested, disputed, regional, needs-review). 17 topics have no community-specific source and are listed under 'gaps' rather than filled with generic text."
   },
   "identity": {
-    "primary_origin": "Historic Jewish communities of Georgia, especially Tbilisi, Kutaisi, and surrounding regions",
+    "primary_origin": "Georgia: Kartli in the east (Tbilisi, Tskhinvali, Gori) and Imereti in the west (Kutaisi)",
     "secondary_centers": [
-      "Tbilisi",
-      "Kutaisi",
-      "Batumi",
-      "Gori",
-      "Georgia-wide diaspora communities",
-      "Israel",
-      "Russia",
-      "United States"
-    ],
-    "cultural_profile": [
-      "Strong Georgian language and identity",
-      "Distinct synagogue and family customs",
-      "Long historical continuity in the Caucasus",
-      "Blend of local Georgian culture and Jewish ritual tradition"
+      "Mtskheta (the earliest documented Jewish presence)",
+      "Israel (mainly Lod, Bat Yam, Ashdod and Holon after the 1971-1981 aliyah)"
     ]
   },
   "languages": [
-    "Judeo-Georgian",
-    "Georgian",
-    "Hebrew",
-    "Russian",
-    "English in diaspora"
+    "Georgian, in its Jewish form called Judeo-Georgian (Jewish Language Project)"
   ],
-  "genealogy": {
-    "common_surname_patterns": [
-      "Georgian surnames ending in -shvili, -dze, and related forms",
-      "Family names adapted in Russian or Hebrew transliteration",
-      "Town-based and lineage-based identity markers"
-    ],
-    "research_notes": [
-      "Many families are identified by town, synagogue, and extended kin network.",
-      "Surname spelling can change significantly between Georgian, Russian, Hebrew, and English records.",
-      "Oral family memory is often important alongside civil records."
-    ],
-    "recommended_genealogy_fields": [
-      "surname",
-      "alternate_spellings",
-      "town_of_origin",
-      "family_branch",
-      "migration_route",
-      "language_used",
-      "ritual_minhag"
-    ]
-  },
+  "subgroups": [
+    {
+      "name": "Kartli (East Georgia)",
+      "note": "Eastern communities such as Tbilisi, Tskhinvali, Gori, Surami and Kareli. The ethnographic survey by Arbel and Magal gives several customs specific to Kartli or to Kareli and Akhaltsikhe, which lies to the south. Tskhinvali came under Lithuanian rabbinic influence from the 1890s (R. Avraham ha-Levi Khvoles)."
+    },
+    {
+      "name": "Kutaisi (West Georgia / Imereti)",
+      "note": "Western centre that includes Kulashi, Oni and Sachkhere. Chabad emissaries were active here from 1916 (R. Shmuel Levitin's yeshiva in Kutaisi)."
+    },
+    {
+      "name": "Israeli Georgian",
+      "note": "About 30,000 people arrived in the 1971-1981 aliyah (Encyclopaedia Judaica: about 70% of the 55,382 Jews counted in the 1970 census left for Israel in the following decade). They settled mainly in Lod, Bat Yam, Ashdod, Holon and Rehovot. Arbel and Magal record traditional wedding customs fading by the late 1980s, and observant Gruzinim increasingly following Chabad customs. Siddur Tefillat Refael (2007) is a printed 'nusach Yehudei Gruzia' siddur produced in Israel."
+    }
+  ],
   "historical_background": {
     "timeline": [
       {
-        "period": "Ancient and medieval era",
-        "event": "Jewish communities established longstanding roots in Georgia.",
-        "halachic_impact": "Local Georgian Jewish custom developed with strong continuity."
+        "period": "6th c. BCE (tradition)",
+        "event": "Georgian chronicles say Jews fleeing Nebuchadnezzar's conquest of Jerusalem came to Kartli and settled near Mtskheta.",
+        "halachic_impact": "Underpins the community's self-identity as an ancient eastern (Babylonian-oriented) community."
       },
       {
-        "period": "Imperial Russian period",
-        "event": "Georgia entered broader Russian political structures.",
-        "halachic_impact": "Naming, recordkeeping, and public life increasingly reflected Russian administration."
+        "period": "1st-4th c. CE",
+        "event": "Archaeological evidence of Jews at Mtskheta. Gravestones in Aramaic and Hebrew are reported.",
+        "halachic_impact": "None directly documented."
       },
       {
-        "period": "Soviet era",
-        "event": "Religious life faced pressure and limitation.",
-        "halachic_impact": "Family and oral transmission became especially important."
+        "period": "Late 9th c.",
+        "event": "The 'Tiflis sect' of Abu Imran al-Tiflisi rejected some halachot, including marriage and kashrut laws, and existed for at least 300 years (Encyclopaedia Judaica, 'Georgia').",
+        "halachic_impact": "This is a historical sect. It is not the rite of later Georgian Jewry."
       },
       {
-        "period": "Modern diaspora",
-        "event": "Large migration to Israel and elsewhere expanded Georgian Jewish communities abroad.",
-        "halachic_impact": "Some customs were preserved, others adapted to new settings."
+        "period": "12th c.",
+        "event": "Abraham Ibn Daud lists Georgia among rabbinic (non-Karaite) lands. Benjamin of Tudela says the Exilarch appointed rabbis and hazzanim there.",
+        "halachic_impact": "Rabbinic practice under Babylonian authority."
+      },
+      {
+        "period": "Late 14th-19th c.",
+        "event": "Encyclopaedia Judaica records serfdom 'over a five-hundred-year period, starting from the end of the 14th century'. Scattered rural communities lost religious knowledge; in 1780 Reineggs reports urban Jews calling rural Jews 'Canaanites'.",
+        "halachic_impact": "Local and possibly garbled practice. Arbel and Magal note that isolated communities sometimes miscalculated festival dates for lack of a calendar."
+      },
+      {
+        "period": "1860s-1870s",
+        "event": "The traveller Joseph Judah Chorny documents Georgian Jewish customs (Sefer ha-Massa'ot, 1884).",
+        "halachic_impact": "The main early eyewitness source for festival and life-cycle customs."
+      },
+      {
+        "period": "1864-1871",
+        "event": "Serfdom abolished. Jews urbanise around their own synagogues, each led by a gabbai and a hakham.",
+        "halachic_impact": "Synagogue-centred communal religious life."
+      },
+      {
+        "period": "Late 1890s-1906",
+        "event": "R. Avraham ha-Levi Khvoles, a student of R. Yitzchak Elchanan Spektor, becomes rabbi of Tskhinvali, founds the first talmud torah in Georgia in 1906, with about 400 pupils (Encyclopaedia Judaica), and sends students to Lithuanian yeshivot.",
+        "halachic_impact": "Brings in Lithuanian-Ashkenazi learning and customs. Birnbaum says the students 'brought nusach Ashkenaz' to some communities."
+      },
+      {
+        "period": "1916-1946",
+        "event": "In 1916 a delegation of Georgian Jews visited Rabbi Sholom Dovber in Rostov, and he sent R. Shmuel Levitin to Kutaisi (Chabad.org). Chabadpedia ('Georgia') says Yeshivat Tomchei Temimim Kutaisi had about 600 students at its peak; CrownHeights.info gives 400.",
+        "halachic_impact": "Chabad influence, strongest in western Georgia."
+      },
+      {
+        "period": "1937",
+        "event": "Nine hakhams, two of them Ashkenazim, arrested in Tskhinvali and killed.",
+        "halachic_impact": "Loss of rabbinic leadership."
+      },
+      {
+        "period": "1969-1981",
+        "event": "On 6 August 1969 the heads of 18 Georgian families wrote to the UN; Encyclopaedia Judaica calls the letter 'the first document of the aliyah movement in the Soviet Union to receive wide publicity in the West'. About 30,000 reached Israel by 1981; EJ notes that about 70% of the 55,382 Jews in the 1970 census left for Israel in the following decade.",
+        "halachic_impact": "Separate Georgian synagogues in Israel. Customs then erode under Israeli and Chabad influence."
+      },
+      {
+        "period": "2007",
+        "event": "Siddur Tefillat Refael, 'according to the nusach of Georgian Jews, including halachot and minhagim', is published in Ramla, edited by R. Avraham Alashvili.",
+        "halachic_impact": "A printed siddur of the community's own nusach. Its contents are not summarised here."
       }
     ]
   },
   "core_halachic_authorities": {
     "primary_codes": [
-      "Shulchan Aruch",
-      "Mishneh Torah",
-      "local Georgian Jewish tradition"
+      "Sephardi-type halachic rulings (described generically as 'pesika sefaradit' by Birnbaum). No source names a specific code adopted by the community."
     ],
     "major_rishonim_base": [
-      "Rambam",
-      "Rif",
-      "Rosh"
+      "No community-specific rishonim are documented. Historically the community was oriented to Babylonian/Baghdadi authority: Benjamin of Tudela records the Exilarch appointing rabbis and hazzanim for Georgian communities, and Encyclopaedia Judaica notes the medieval link to Baghdad via Persia."
     ],
-    "later_authorities_and_guides": [
-      "Sephardi poskim used in Georgian diaspora settings",
-      "Local Georgian rabbis and community leaders",
-      "Modern halachic authorities in Israel and diaspora"
+    "later_poskim": [
+      "19th-20th c. Lithuanian-trained rabbis (R. Avraham ha-Levi Khvoles, Tskhinvali, from the late 1890s)",
+      "Chabad emissaries from 1916 (R. Shmuel Levitin, Kutaisi)",
+      "Israeli Georgian hakhamim, e.g. Hakham Refael Alashvili (d. 2005), whose son R. Avraham Alashvili edited Siddur Tefillat Refael. No published responsa by these figures were found."
     ],
-    "decision_principle": "Follow inherited Georgian Jewish custom within a traditional halachic framework, often leaning Sephardi in liturgy and legal orientation where local custom permits."
+    "decision_principle": "The community's own oral tradition, transmitted by the local hakham, who combined the roles of rabbi, hazzan, shochet, mohel and teacher. It sits on a Sephardi/Mizrahi base, with documented Ashkenazi (Lithuanian) and Chabad layers from the 19th-20th centuries. Arbel and Magal state that no Georgian responsa literature, halachic rulings or communal pinkasim are known."
+  },
+  "runtime": {
+    "lens_key": "Georgian",
+    "practice_baseline": "Practice rests on an orally transmitted Sephardi/Mizrahi-type tradition led by local hakhamim, overlaid in the modern period with Lithuanian-Ashkenazi and Chabad influence; no single written code is documented as the community's standard.",
+    "parameters": []
   },
   "halacha_index": [
     {
       "index": "halacha.1",
       "category": "Prayer",
-      "topic": "Nusach and liturgy",
-      "summary": "Georgian prayer practice is traditional and community-centered, with local rite and melody.",
+      "topic": "Nusach (prayer rite)",
+      "summary": "Georgian synagogues describe their rite as Sephardi ('nusach sefaradi'), distinct from Chabad and Ashkenaz. One scholarly-journalistic source instead says some communities took on nusach Ashkenaz after 19th-century study in Lithuanian yeshivot.",
       "common_practices": [
-        "Use Georgian or Sephardi-adjacent siddurim where customary",
-        "Preserve local melodies and recitation patterns",
-        "Retain piyutim and festival additions where inherited",
-        "Preserve inherited nusach and pronunciation in public prayer.",
-        "Coordinate weekday, Shabbat, and festival insertions with local rabbinic guidance.",
-        "Maintain community niggunim and piyyutim where accepted."
-      ]
+        "Rabbi Rahamim Mordechaishvili of the Tbilisi Great Synagogue (2015): 'We pray in nusach sefaradi... not Chabad and not Ashkenaz.'"
+      ],
+      "variants": [
+        {
+          "subgroup": "Kartli (Tbilisi)",
+          "practice": "Sephardi nusach at the Great Synagogue.",
+          "source": "Tali Farkash, 'Yehudei Gruzia mechakim la-mashiach', Ynet, 18.10.2015 (interview with R. Rahamim Mordechaishvili)"
+        },
+        {
+          "subgroup": "Communities influenced by Lithuanian-trained rabbis",
+          "practice": "Students sent to Lithuanian and East European yeshivot 'brought nusach Ashkenaz to communities in Georgia', creating 'a mixture of Sephardi pesika with Ashkenazi customs'.",
+          "source": "Eliyahu Birnbaum, 'Gruzia, Tbilisi – Yahadut alfei ha-shanim', Makor Rishon, on Daat"
+        },
+        {
+          "subgroup": "Israeli Georgian",
+          "practice": "Among observant Gruzinim, Chabad customs increasingly replace older Georgian customs.",
+          "source": "Rachel Arbel and Lily Magal, 'Masoret, minhagim ve-orach chayim', World Congress of Georgian Jews site"
+        }
+      ],
+      "source": "Ynet, Farkash 18.10.2015; Birnbaum (Daat); Arbel & Magal (World Congress of Georgian Jews)",
+      "source_url": "https://www.ynet.co.il/articles/0,7340,L-4712534,00.html",
+      "confidence": "disputed",
+      "review_notes": "Do not assume one nusach for all Gruzinim. Ask which synagogue a user belongs to: a Georgian community synagogue, Chabad, or Ashkenazi.",
+      "references": [
+        {
+          "title": "יהודי גאורגיה מחכים למשיח. \"ועד אז - אנחנו כאן\"",
+          "url": "https://www.ynet.co.il/articles/0,7340,L-4712534,00.html"
+        }
+      ],
+      "topic_he": "נוסח התפילה",
+      "summary_he": "בתי הכנסת הגרוזיניים מתארים את נוסחם כספרדי (\"נוסח ספרדי\"), שונה מחב\"ד ומאשכנז. מקור מחקרי-עיתונאי אחד אומר במקום זאת שקהילות אחדות קיבלו נוסח אשכנז אחרי לימודים בישיבות ליטא במאה ה-19."
     },
     {
       "index": "halacha.2",
       "category": "Prayer",
-      "topic": "Hebrew pronunciation",
-      "summary": "Hebrew recitation may preserve Georgian/Caucasus pronunciations in older communities.",
+      "topic": "Community siddur",
+      "summary": "Siddur Tefillat Refael is a printed siddur 'according to the nusach of Georgian Jews, with Tehillim, including halachot and minhagim according to the custom of Georgian Jews'. It was edited by R. Avraham Alashvili, son of Hakham Refael Alashvili.",
       "common_practices": [
-        "Use inherited pronunciation in prayer and Torah reading",
-        "Teach community-specific phonetic patterns",
-        "Preserve oral transmission of melodies and trop",
-        "Preserve inherited nusach and pronunciation in public prayer.",
-        "Coordinate weekday, Shabbat, and festival insertions with local rabbinic guidance.",
-        "Maintain community niggunim and piyyutim where accepted."
-      ]
+        "Published in a second, corrected edition: Ramla, Machon HaSefer, 5767/2007, 1021 pp."
+      ],
+      "variants": [],
+      "source": "National Library of Israel catalogue record NNL_ALEPH990026026340205171",
+      "source_url": "https://www.nli.org.il/he/books/NNL_ALEPH990026026340205171/NLI",
+      "confidence": "needs-review",
+      "review_notes": "Only the catalogue record was seen, not the book's contents. The editor is a Chabad hasid, so the halachot section may reflect Chabad rulings; this needs checking against the text. Do not confuse it with the widely sold Edot HaMizrach 'Siddur Tefillat Refael' (Chida siddur), a different book.",
+      "references": [
+        {
+          "title": "אברהם אלאשוילי",
+          "url": "https://chabadpedia.co.il/index.php/%D7%90%D7%91%D7%A8%D7%94%D7%9D_%D7%90%D7%9C%D7%90%D7%A9%D7%95%D7%99%D7%9C%D7%99"
+        },
+        {
+          "title": "אברהם אלאשוילי",
+          "url": "https://he.wikipedia.org/wiki/%D7%90%D7%91%D7%A8%D7%94%D7%9D_%D7%90%D7%9C%D7%90%D7%A9%D7%95%D7%99%D7%9C%D7%99"
+        }
+      ],
+      "topic_he": "סידור הקהילה",
+      "summary_he": "\"סידור תפילת רפאל\" הוא סידור מודפס \"כנוסח יהודי גרוזיה, עם תהילים, ובו הלכות ומנהגים כמנהג יהודי גרוזיה\". את הסידור ערך רבי אברהם אלשוילי, בנו של החכם רפאל אלשוילי."
     },
     {
       "index": "halacha.3",
       "category": "Prayer",
-      "topic": "Torah reading",
-      "summary": "Torah reading is central, with local cantillation and aliyah customs.",
+      "topic": "Synagogue layout and conduct",
+      "summary": "Synagogue interiors follow the Mizrahi pattern, with a large raised wooden teva (the Georgian term for the bimah) in the centre or opposite the ark. Chorny recorded that after prayers each man circled the teva once and left by the opposite side, and that a man returning from an aliyah went round the synagogue kissing the hats of those seated.",
       "common_practices": [
-        "Use trained ba'alei kri'ah",
-        "Follow local cantillation and honor customs",
-        "Preserve synagogue etiquette and reading order",
-        "Preserve inherited nusach and pronunciation in public prayer.",
-        "Coordinate weekday, Shabbat, and festival insertions with local rabbinic guidance.",
-        "Maintain community niggunim and piyyutim where accepted."
-      ]
+        "Using the word 'teva' rather than 'bimah' for the reading platform",
+        "Pledging donations aloud during prayers on Shabbat and festivals; the Torah reading was sometimes delayed until the wealthy had pledged"
+      ],
+      "variants": [
+        {
+          "subgroup": "Kutaisi, Kulashi",
+          "practice": "The teva is framed by four pillars reaching the ceiling.",
+          "source": "Arbel & Magal, section 'Beit ha-knesset'"
+        }
+      ],
+      "source": "Arbel & Magal, 'Masoret, minhagim ve-orach chayim' (citing Chorny); Jewish Language Project, 'Judeo-Georgian' (Lomtadze & Enoch) for the term teva",
+      "source_url": "http://www.georgianjews.org/stat.php?id=133&lang=he",
+      "confidence": "needs-review",
+      "review_notes": "The circling and hat-kissing customs are 19th-century observations. Their current practice is undocumented.",
+      "references": [
+        {
+          "title": "Georgian Jews World Congress",
+          "url": "http://www.georgianjews.org/stat.php?id=133&lang=he"
+        },
+        {
+          "title": "Judeo-Georgian - Jewish Language Project",
+          "url": "https://www.jewishlanguages.org/judeo-georgian"
+        }
+      ],
+      "topic_he": "מבנה בית הכנסת והתנהגות בו",
+      "summary_he": "פנים בתי הכנסת הולם את הדגם המזרחי, עם תיבה גדולה מעץ מוגבהת (כך נקראת הבימה בגרוזינית) במרכז או מול ארון הקודש. צ'ורני תיעד שאחרי התפילה סבב כל איש פעם אחת סביב התיבה ויצא מהצד הנגדי, ושמי שחזר מעלייה לתורה הלך סביב בית הכנסת ונישק את כובעי היושבים."
     },
     {
       "index": "halacha.4",
-      "category": "Shabbat",
-      "topic": "Candle lighting",
-      "summary": "Shabbat candle lighting follows halacha with family and community custom.",
+      "category": "Prayer",
+      "topic": "Birkat Kohanim",
+      "summary": "One source reports that Georgian communities recite Birkat Kohanim every Shabbat, rather than only on festivals or daily. The community has almost no kohanim; Encyclopaedia Judaica notes the community's claim that there are none among them.",
       "common_practices": [
-        "Light before Shabbat begins",
-        "Use customary blessing wording",
-        "Preserve family traditions for candle arrangement",
-        "Prepare practical needs before candle lighting to avoid melacha.",
-        "Use approved warming and lighting setups established before Shabbat.",
-        "Follow local zmanim for candle lighting, shekia, and havdalah."
-      ]
+        "Birkat Kohanim on Shabbat (reported)"
+      ],
+      "variants": [],
+      "source": "Birnbaum, Makor Rishon/Daat ('they have a unique custom to recite Birkat Kohanim every Shabbat'); Encyclopaedia Judaica, 'Georgia' (on the absence of kohanim)",
+      "source_url": "https://www.daat.ac.il/he-il/history/yehudi-olami/gruziya.htm",
+      "confidence": "needs-review",
+      "review_notes": "This is a single journalistic source with no subgroup specified. Check it against Siddur Tefillat Refael and a Georgian hakham.",
+      "references": [
+        {
+          "title": "גרוזיה, טביליסי - יהדות אלפי השנים / אליהו בירנבוים",
+          "url": "https://www.daat.ac.il/he-il/kehilot/yehudi-olami/gruziya.htm"
+        }
+      ],
+      "topic_he": "ברכת כהנים",
+      "summary_he": "מקור אחד מדווח שקהילות גרוזיה אומרות ברכת כהנים בכל שבת, ולא רק בחגים או מדי יום. בקהילה כמעט אין כהנים; האנציקלופדיה יודאיקה מציינת את טענת הקהילה שאין כהנים בקרבה."
     },
     {
       "index": "halacha.5",
       "category": "Shabbat",
-      "topic": "Meals and hospitality",
-      "summary": "Shabbat meals are a major part of Georgian Jewish life and often include strong hospitality norms.",
+      "topic": "Shabbat afternoon derasha and pre-Arvit singing",
+      "summary": "Every Shabbat the congregation came early, before Mincha, to hear a derasha from the hakham. Before Arvit, young men gathered in alternating groups ('mishmar mul mishmar') to sing old hymns, as described in the introduction to Yaakov Hananashvili's piyyut collection.",
       "common_practices": [
-        "Prepare food before Shabbat",
-        "Honor guests and elders",
-        "Use traditional Georgian-Jewish foods within kosher practice",
-        "Prepare practical needs before candle lighting to avoid melacha.",
-        "Use approved warming and lighting setups established before Shabbat.",
-        "Follow local zmanim for candle lighting, shekia, and havdalah."
-      ]
+        "Hakham's Shabbat derasha before Mincha",
+        "Antiphonal singing of piyyutim before Arvit on Shabbat"
+      ],
+      "variants": [],
+      "source": "Arbel & Magal, section 'Beit ha-knesset' (citing the preface to Yaakov Hananashvili's piyyut collection)",
+      "source_url": "http://www.georgianjews.org/stat.php?id=133&lang=he",
+      "confidence": "needs-review",
+      "review_notes": "The Hananashvili collection itself was not located.",
+      "topic_he": "דרשת שבת אחר הצהריים ושירה לפני ערבית",
+      "summary_he": "בכל שבת הקהל הגיע מוקדם, לפני מנחה, כדי לשמוע דרשה מהחכם. לפני ערבית התכנסו צעירים בקבוצות מתחלפות (\"משמר מול משמר\") ושרו מזמורים עתיקים, כמתואר בהקדמה לאוסף הפיוטים של יעקב חננשוילי."
     },
     {
       "index": "halacha.6",
       "category": "Shabbat",
-      "topic": "Cooking and warming",
-      "summary": "Cooking is prohibited on Shabbat, and warming arrangements follow accepted halachic practice.",
+      "topic": "Shabbat food (hatmana)",
+      "summary": "In towns and villages the courtyard clay oven (tone), used for baking bread, was also used to keep dishes warm for Shabbat. One oven sometimes served several families.",
       "common_practices": [
-        "Cook before Shabbat",
-        "Use permitted warming methods where accepted",
-        "Avoid direct cooking or prohibited manipulation",
-        "Prepare practical needs before candle lighting to avoid melacha.",
-        "Use approved warming and lighting setups established before Shabbat.",
-        "Follow local zmanim for candle lighting, shekia, and havdalah."
-      ]
+        "Keeping Shabbat dishes warm in the courtyard tone oven"
+      ],
+      "variants": [],
+      "source": "Arbel & Magal, section 'Ha-shechuna ve-ha-bayit'",
+      "source_url": "http://www.georgianjews.org/stat.php?id=133&lang=he",
+      "confidence": "needs-review",
+      "review_notes": "Describes historical domestic practice. No specific halachic method of hatmana is documented.",
+      "topic_he": "אוכל שבת (התמנה)",
+      "summary_he": "בעיירות ובכפרים תנור החימר שבחצר (טונה), ששימש לאפיית לחם, שימש גם לשמירת תבשילים חמים לשבת. לעיתים תנור אחד שירת כמה משפחות."
     },
     {
       "index": "halacha.7",
       "category": "Shabbat",
-      "topic": "Carrying and eruv",
-      "summary": "Carrying outside a valid eruv is prohibited and depends on local infrastructure.",
+      "topic": "Kiddush wine",
+      "summary": "For kashrut reasons Jews made their own wine at home. Because the wine was also used for kiddush, making it was the men's task. Pressing took place after the September harvest as a family celebration.",
       "common_practices": [
-        "Check eruv validity",
-        "Follow local rabbinic guidance",
-        "Do not carry where no eruv exists",
-        "Prepare practical needs before candle lighting to avoid melacha.",
-        "Use approved warming and lighting setups established before Shabbat.",
-        "Follow local zmanim for candle lighting, shekia, and havdalah."
-      ]
+        "Home-made wine produced by men, used for kiddush"
+      ],
+      "variants": [],
+      "source": "Arbel & Magal, section 'Ha-mitbach'",
+      "source_url": "http://www.georgianjews.org/stat.php?id=133&lang=he",
+      "confidence": "needs-review",
+      "review_notes": "",
+      "topic_he": "יין קידוש",
+      "summary_he": "משיקולי כשרות עשו היהודים יין בבית. מפני שהיין שימש גם לקידוש, עשייתו הייתה מלאכת הגברים. הדריכה נערכה אחרי הבציר של ספטמבר כחגיגה משפחתית."
     },
     {
       "index": "halacha.8",
-      "category": "Kashrut",
-      "topic": "Meat and dairy separation",
-      "summary": "Meat and dairy separation is maintained in the home and community kitchen.",
+      "category": "Rosh Hashana",
+      "topic": "Eve of Rosh Hashana customs",
+      "summary": "Before Rosh Hashana people asked one another whether either owed the other anything, answering 'halali' ('released', from Arabic halal). After returning from synagogue on the eve, everyone kissed the mother of the family and the father gave moral guidance for the coming year. An older woman brought vessels of river water into the house and sprinkled the doorposts, saying 'As these vessels are full of water, so may our house be filled with blessing and plenty.'",
       "common_practices": [
-        "Keep separate utensils and cookware",
-        "Observe waiting periods after meat according to local custom",
-        "Maintain clean kitchen separation",
-        "Keep clear separation of meat and dairy utensils, storage, and prep zones.",
-        "Verify supervision standards according to trusted local rabbinic authority.",
-        "Apply inherited waiting-time custom for meat and dairy under halachic guidance."
-      ]
+        "Mutual release of debts ('halali')",
+        "Kissing the mother; father's moral instruction",
+        "Sprinkling river water on the doorposts"
+      ],
+      "variants": [],
+      "source": "Arbel & Magal, section 'Chagim u-mo'adim'",
+      "source_url": "http://www.georgianjews.org/stat.php?id=133&lang=he",
+      "confidence": "needs-review",
+      "review_notes": "No Georgian-specific simanim list or order of service was found; see gaps.",
+      "topic_he": "מנהגי ערב ראש השנה",
+      "summary_he": "לפני ראש השנה שאלו אנשים זה את זה אם אחד חב לחברו משהו, וענו \"חלאלי\" (\"מחול\", מהערבית חלאל). אחרי החזרה מבית הכנסת בערב החג כולם נישקו את אם המשפחה, והאב נתן הדרכה מוסרית לשנה הבאה. אישה מבוגרת הכניסה לבית כלים עם מי נהר ורססה את המזוזות, באומרה: \"כשם שהכלים האלה מלאים מים, כך יתמלא ביתנו ברכה ושפע\"."
     },
     {
       "index": "halacha.9",
-      "category": "Kashrut",
-      "topic": "Shechita and meat supervision",
-      "summary": "Meat supervision is central to community trust and observance.",
+      "category": "Yom Kippur",
+      "topic": "Erev Yom Kippur",
+      "summary": "Kapparot were performed with a rooster for a man and a hen for a woman; for a pregnant woman, a hen and two eggs. On the night before Yom Kippur people went to synagogue for hatarat nedarim, remembered the dead, cooked the dishes the dead had loved and sent them to the poor. Before the seuda mafseket every family member lit tall candles (kilaptari), and each family brought one candle to the synagogue. Everyone asked forgiveness of family, relatives and friends.",
       "common_practices": [
-        "Use a qualified shochet",
-        "Inspect meat and utensils carefully",
-        "Follow recognized supervision and communal standards",
-        "Keep clear separation of meat and dairy utensils, storage, and prep zones.",
-        "Verify supervision standards according to trusted local rabbinic authority.",
-        "Apply inherited waiting-time custom for meat and dairy under halachic guidance."
-      ]
+        "Kapparot: rooster for a man, hen for a woman, hen plus two eggs for a pregnant woman",
+        "Hatarat nedarim in synagogue the night before",
+        "Sending the favourite dishes of the dead to the poor",
+        "Tall kilaptari candles lit before the seuda mafseket; one per family brought to synagogue"
+      ],
+      "variants": [],
+      "source": "Arbel & Magal, section 'Chagim u-mo'adim'",
+      "source_url": "http://www.georgianjews.org/stat.php?id=133&lang=he",
+      "confidence": "needs-review",
+      "review_notes": "The Kol Nidrei wording and melodies reportedly differ between East and West Georgia; this is unverified (see needs_rabbinic_review).",
+      "references": [
+        {
+          "title": "כל נדרי - האנציקלופדיה היהודית",
+          "url": "https://jewiki.org.il/w/%D7%9B%D7%9C_%D7%A0%D7%93%D7%A8%D7%99"
+        }
+      ],
+      "topic_he": "ערב יום כיפור",
+      "summary_he": "כפרות נעשו בתרנגול לגבר ובתרנגולת לאישה; לאישה הרה, בתרנגולת ובשתי ביצים. בלילה שלפני יום כיפור הלכו לבית הכנסת להתרת נדרים, זכרו את המתים, בישלו את המאכלים שהמתים אהבו ושלחו אותם לעניים. לפני סעודה מפסקת הדליק כל בן משפחה נרות גבוהים (קילפטרי), וכל משפחה הביאה נר אחד לבית הכנסת. כולם ביקשו סליחה ממשפחתם, מקרוביהם ומחבריהם."
     },
     {
       "index": "halacha.10",
-      "category": "Kashrut",
-      "topic": "Food customs",
-      "summary": "Georgian Jewish cuisine is adapted to kosher practice and local tradition.",
+      "category": "Sukkot",
+      "topic": "Sukkah and Chol HaMoed",
+      "summary": "The sukkah was decorated with fine fabrics, greenery and fruit, and a chair was set in it for Eliyahu ha-Navi. The Chol HaMoed days were days of joy with dancing by young men and women. Chol HaMoed was also an accepted occasion for a groom to visit his betrothed's village.",
       "common_practices": [
-        "Use kosher ingredients and supervision",
-        "Preserve traditional recipes where possible",
-        "Check wine, cheese, and processed foods carefully",
-        "Keep clear separation of meat and dairy utensils, storage, and prep zones.",
-        "Verify supervision standards according to trusted local rabbinic authority.",
-        "Apply inherited waiting-time custom for meat and dairy under halachic guidance."
-      ]
+        "Chair for Eliyahu in the sukkah",
+        "Decorating the sukkah with fabrics and fruit"
+      ],
+      "variants": [],
+      "source": "Arbel & Magal, sections 'Chagim u-mo'adim' and 'Ha-chatuna'",
+      "source_url": "http://www.georgianjews.org/stat.php?id=133&lang=he",
+      "confidence": "needs-review",
+      "review_notes": "No source on tefillin on Chol HaMoed was found.",
+      "topic_he": "סוכה וחול המועד",
+      "summary_he": "הסוכה קושטה בבדים משובחים, בירק ובפירות, ושמו בה כיסא לאליהו הנביא. ימי חול המועד היו ימי שמחה עם ריקודי צעירים וצעירות. חול המועד היה גם עת מקובלת לחתן לבקר בכפר של ארוסתו."
     },
     {
       "index": "halacha.11",
-      "category": "Pesach",
-      "topic": "Chametz removal",
-      "summary": "Chametz is removed carefully before Pesach.",
+      "category": "Sukkot",
+      "topic": "Hoshana Rabba night",
+      "summary": "On the night of Hoshana Rabba people gathered at the home of someone who had a sukkah for a tikkun, recited Tehillim in the synagogue and stayed awake all night. Women also took part in the vigil, walking about and sitting around the synagogue.",
       "common_practices": [
-        "Search for and remove chametz before Pesach",
-        "Use Pesach-specific utensils or kasher equipment",
-        "Follow local customs for sale or disposal",
-        "Review chametz cleaning and kashering checklists before the festival.",
-        "Follow community custom on kitniyot and festival kitchen workflow.",
-        "Use community haggadah flow and family minhagim within halachic structure."
-      ]
+        "Tikkun in a sukkah",
+        "All-night Tehillim in synagogue",
+        "Women keep vigil around the synagogue"
+      ],
+      "variants": [],
+      "source": "Arbel & Magal, section 'Chagim u-mo'adim' (quoting Chorny)",
+      "source_url": "http://www.georgianjews.org/stat.php?id=133&lang=he",
+      "confidence": "needs-review",
+      "review_notes": "",
+      "topic_he": "ליל הושענא רבה",
+      "summary_he": "בליל הושענא רבה התכנסו אנשים בבית מי שהייתה לו סוכה לתיקון, אמרו תהילים בבית הכנסת והיו ערים כל הלילה. גם נשים השתתפו בשמירה, התהלכו וישבו סביב בית הכנסת."
     },
     {
       "index": "halacha.12",
-      "category": "Pesach",
-      "topic": "Kitniyot and grains",
-      "summary": "Georgian practice is generally closer to Sephardi patterns regarding kitniyot, though local custom matters.",
+      "category": "Sukkot",
+      "topic": "Simchat Torah",
+      "summary": "Chorny describes the hakafot: all the men stood on the long benches; children went first carrying lit candles and scrolls wrapped with apples and silk kerchiefs; the Torah bearers followed, then men dancing and singing; people were lifted and carried on others' hands. On the day itself people visited one another to make kiddush and blessings over fruit and pastries, and dancing to drums and pipes continued into the night.",
       "common_practices": [
-        "Rice and legumes may be used where permitted",
-        "Inspect food for chametz contamination",
-        "Follow family and rabbinic guidance",
-        "Review chametz cleaning and kashering checklists before the festival.",
-        "Follow community custom on kitniyot and festival kitchen workflow.",
-        "Use community haggadah flow and family minhagim within halachic structure."
-      ]
+        "Children leading the hakafot with candles and apple-decorated scrolls",
+        "Carrying people aloft",
+        "Visiting from house to house for kiddush on the day"
+      ],
+      "variants": [],
+      "source": "Arbel & Magal, section 'Chagim u-mo'adim' (quoting J.J. Chorny, Sefer ha-Massa'ot, 1884)",
+      "source_url": "http://www.georgianjews.org/stat.php?id=133&lang=he",
+      "confidence": "needs-review",
+      "review_notes": "A 19th-century eyewitness account. Current practice is unverified.",
+      "topic_he": "שמחת תורה",
+      "summary_he": "צ'ורני מתאר את ההקפות: כל הגברים עמדו על הספסלים הארוכים; ילדים הלכו ראשונים ונשאו נרות דולקים וספרי תורה עטופים בתפוחים ובמטפחות משי; אחריהם הלכו נושאי התורה, ואחריהם גברים רוקדים ושרים; אנשים הורמו ונישאו על ידיים. ביום עצמו ביקרו אנשים זה את זה לקדש ולברך על פירות ועל מאפים, והריקודים לצלילי תופים וחלילים נמשכו אל תוך הלילה."
     },
     {
       "index": "halacha.13",
-      "category": "Pesach",
-      "topic": "Seder practice",
-      "summary": "The Seder combines halachic structure with Georgian family customs and melody.",
+      "category": "Chanukah",
+      "topic": "Chanukah lamps",
+      "summary": "Chanukah lights were made in halved potatoes, hollowed out and filled with oil and wicks.",
       "common_practices": [
-        "Use accepted Haggadah rite",
-        "Preserve songs and recitation style",
-        "Follow local food and symbolic customs",
-        "Review chametz cleaning and kashering checklists before the festival.",
-        "Follow community custom on kitniyot and festival kitchen workflow.",
-        "Use community haggadah flow and family minhagim within halachic structure."
-      ]
+        "Potato oil-lamps for Chanukah"
+      ],
+      "variants": [],
+      "source": "Arbel & Magal, section 'Chagim u-mo'adim'",
+      "source_url": "http://www.georgianjews.org/stat.php?id=133&lang=he",
+      "confidence": "needs-review",
+      "review_notes": "",
+      "topic_he": "נרות חנוכה",
+      "summary_he": "נרות חנוכה נעשו בתפוחי אדמה חצויים, חלולים וממולאים בשמן ובפתילות."
     },
     {
       "index": "halacha.14",
-      "category": "Lifecycle",
-      "topic": "Brit milah",
-      "summary": "Brit milah follows halacha with communal family celebration.",
+      "category": "Purim",
+      "topic": "Purim celebration and horse riding",
+      "summary": "Natan Eliashvili calls Purim 'the merriest and most beloved festival of the people'. Celebration began after the Megillah reading and lasted all night; for a whole week 'the table did not end', with mishloach manot, visiting, piyyutim and dancing. A distinctive custom was riding horses: formerly in a large procession 'like a militia' with songs, and in Chorny's time individually, with young boys racing on horseback.",
       "common_practices": [
-        "Use a qualified mohel",
-        "Preserve naming and celebration customs",
-        "Include traditional prayers and songs",
-        "Keep core lifecycle ceremonies aligned with halachic requirements.",
-        "Document family minhagim for naming, honors, and celebration order.",
-        "Consult community rabbi for local protocol differences."
-      ]
+        "Week-long Purim feasting and visiting",
+        "Riding horses on Purim"
+      ],
+      "variants": [],
+      "source": "Arbel & Magal, section 'Chagim u-mo'adim' (quoting N. Eliashvili and Chorny)",
+      "source_url": "http://www.georgianjews.org/stat.php?id=133&lang=he",
+      "confidence": "needs-review",
+      "review_notes": "A historical custom; its continuation is unverified.",
+      "topic_he": "חגיגת פורים ורכיבה על סוסים",
+      "summary_he": "נתן אליאשוילי קורא לפורים \"החג העליז והאהוב ביותר בעם\". החגיגה התחילה אחרי קריאת המגילה ונמשכה כל הלילה; שבוע שלם \"השולחן לא תם\", עם משלוח מנות, ביקורים, פיוטים וריקודים. מנהג ייחודי היה רכיבה על סוסים: בעבר בתהלוכה גדולה \"כמו מיליציה\" עם שירים, ובימי צ'ורני ביחידות, כשנערים צעירים מתחרים במרוץ על גב סוסים."
     },
     {
       "index": "halacha.15",
-      "category": "Lifecycle",
-      "topic": "Marriage and ketubah",
-      "summary": "Marriage is halachically standard and often marked by strong family participation.",
+      "category": "Pesach",
+      "topic": "Matzah production",
+      "summary": "Landowners set aside a plot to grow wheat for matzah flour. While the flour was ground, wax candles were lit inside the millstones so that the flour would not become chametz, or so that 'the sitra achra and demons' would not rule over it. Synagogue compounds often contained a matzah bakery along with a mikveh and a slaughterhouse.",
       "common_practices": [
-        "Use a valid ketubah",
-        "Perform kiddushin and nissuin properly",
-        "Observe local engagement and wedding customs",
-        "Keep core lifecycle ceremonies aligned with halachic requirements.",
-        "Document family minhagim for naming, honors, and celebration order.",
-        "Consult community rabbi for local protocol differences."
-      ]
+        "Own wheat field for matzah",
+        "Candles lit in the mill during grinding",
+        "Matzah bakeries attached to synagogues"
+      ],
+      "variants": [
+        {
+          "subgroup": "Kutaisi",
+          "practice": "Traditional ovens are still used to bake matzah at the Kutaisi synagogue (travel-industry report).",
+          "source": "GIL Travel, 'Kosher Travel in Georgia' (2024)"
+        }
+      ],
+      "source": "Arbel & Magal, sections 'Chagim u-mo'adim' and 'Beit ha-knesset'",
+      "source_url": "http://www.georgianjews.org/stat.php?id=133&lang=he",
+      "confidence": "needs-review",
+      "review_notes": "The Kutaisi variant comes from a commercial travel site and is a lead only.",
+      "topic_he": "הכנת מצות",
+      "summary_he": "בעלי אדמות הקצו חלקה לגידול חיטה לקמח המצות. בזמן טחינת הקמח הדליקו נרות שעווה בתוך אבני הריחיים כדי שהקמח לא יהפוך לחמץ, או כדי ש\"הסטרא אחרא והשדים\" לא ישלטו בו. בחצרות בתי הכנסת היתה לעיתים קרובות מאפיית מצות לצד מקווה ובית שחיטה."
     },
     {
       "index": "halacha.16",
-      "category": "Family law",
-      "topic": "Niddah and mikveh",
-      "summary": "Family purity laws are observed carefully and are part of traditional continuity.",
-      "common_practices": [
-        "Observe niddah separation laws",
-        "Use mikveh according to halacha",
-        "Follow local rabbinic guidance in diaspora and Israel",
-        "Use a consistent halachic calendar and consultation process for sensitive questions.",
-        "Coordinate household observance with qualified rabbinic guidance.",
-        "Preserve family minhag where compatible with accepted psak."
-      ]
+      "category": "Pesach",
+      "topic": "Kitniyot and rice",
+      "summary": "Sources conflict. Birnbaum lists 'the Ashkenazi custom of not eating kitniyot on Pesach' among Georgian customs of unknown origin. The rabbi of the Tbilisi Great Synagogue says Ashkenazi rabbis who came to Georgia 'were angry when they saw them eating rice on Pesach', which implies rice was eaten. An anonymous Otzar HaChochma forum post (hearsay) claims Georgian Jews avoid kitniyot except corn.",
+      "common_practices": [],
+      "variants": [
+        {
+          "subgroup": "Unspecified (Georgia)",
+          "practice": "Do not eat kitniyot.",
+          "source": "Birnbaum, Makor Rishon/Daat"
+        },
+        {
+          "subgroup": "Kartli (Tbilisi), historical",
+          "practice": "Rice eaten on Pesach, to the displeasure of Ashkenazi rabbis.",
+          "source": "Ynet, Farkash 18.10.2015 (R. Rahamim Mordechaishvili)"
+        }
+      ],
+      "source": "Birnbaum (Daat); Ynet 18.10.2015",
+      "source_url": "https://www.daat.ac.il/he-il/history/yehudi-olami/gruziya.htm",
+      "confidence": "disputed",
+      "review_notes": "Do not present either position as 'the' Georgian custom. Users should follow their family tradition and ask a Georgian hakham. Passover potato dishes (e.g. labda) are documented in secondary food writing, but no halachic source was found.",
+      "references": [
+        {
+          "title": "גרוזיה, טביליסי - יהדות אלפי השנים / אליהו בירנבוים",
+          "url": "https://www.daat.ac.il/he-il/kehilot/yehudi-olami/gruziya.htm"
+        },
+        {
+          "title": "יהודי גאורגיה מחכים למשיח. \"ועד אז - אנחנו כאן\"",
+          "url": "https://www.ynet.co.il/articles/0,7340,L-4712534,00.html"
+        },
+        {
+          "title": "Georgian Jews of the Caucasus: history, culture",
+          "url": "http://www.khazaria.com/georgianjews.html"
+        }
+      ],
+      "topic_he": "קטניות ואורז",
+      "summary_he": "המקורות סותרים. בירנבאום מונה \"את המנהג האשכנזי של אי אכילת קטניות בפסח\" בין מנהגי גרוזיה שמוצאם אינו ידוע. רב בית הכנסת הגדול בטביליסי אומר שרבנים אשכנזים שבאו לגרוזיה \"כעסו כשראו אותם אוכלים אורז בפסח\", ומכאן שאכלו אורז. פוסט אנונימי בפורום של אוצר החכמה (שמועה בלבד) טוען שיהודי גרוזיה נמנעים מקטניות מלבד תירס."
     },
     {
       "index": "halacha.17",
-      "category": "Mourning",
-      "topic": "Avelut",
-      "summary": "Mourning follows standard halachic structure with family and communal support.",
+      "category": "Pesach",
+      "topic": "Seder ('Hagada') customs",
+      "summary": "Georgian Jews call the seder night 'Hagada'. The extended family gathered at the patriarch's house. The Haggadah was read in Hebrew on the first night and, on the second night, in Georgian as well. During the reading a boy dressed for travel knocked at the door; the diners questioned him ('Who are you?' 'A Jew!'), refused tzitzit as proof, admitted him only once he cried 'I am circumcised like you', and he said he had come from Jerusalem (or Egypt). After the reading, and through Chol HaMoed, people played games with red-dyed eggs.",
       "common_practices": [
-        "Observe shiva, shloshim, and yahrzeit customs",
-        "Use memorial prayers according to community practice",
-        "Maintain local condolence etiquette",
-        "Observe shiva, shloshim, and yahrzeit in the accepted local format.",
-        "Coordinate memorial prayer customs with synagogue practice.",
-        "Preserve condolence and visitation etiquette used by the community."
-      ]
+        "Second-night Haggadah reading also in Georgian",
+        "Door-knocking 'traveller' dialogue",
+        "Red-egg games after the seder and on Chol HaMoed"
+      ],
+      "variants": [
+        {
+          "subgroup": "Tskhinvali (Kartli)",
+          "practice": "At 'be-chol dor va-dor' the hakham wrapped a matzah in a kerchief, put it on his shoulder and walked four cubits to show how Israel left Egypt with bread on their shoulders.",
+          "source": "Arbel & Magal, section 'Chagim u-mo'adim' (quoting Chorny)"
+        }
+      ],
+      "source": "Arbel & Magal, section 'Chagim u-mo'adim'",
+      "source_url": "http://www.georgianjews.org/stat.php?id=133&lang=he",
+      "confidence": "regional",
+      "review_notes": "Mostly 19th-century descriptions.",
+      "topic_he": "מנהגי הסדר (\"הגדה\")",
+      "summary_he": "יהודי גרוזיה קוראים לליל הסדר \"הגדה\". המשפחה המורחבת התכנסה בבית ראש המשפחה. את ההגדה קראו בעברית בליל הראשון, ובליל השני גם בגרוזינית. בשעת הקריאה דפק נער לבוש לדרך על הדלת; המסובים חקרו אותו (\"מי אתה?\" \"יהודי!\"), סירבו לקבל ציצית כהוכחה, הכניסו אותו רק כשצעק \"אני מהול כמוכם\", והוא אמר שבא מירושלים (או ממצרים). אחרי הקריאה, ובמשך חול המועד, שיחקו במשחקים בביצים צבועות באדום."
     },
     {
       "index": "halacha.18",
-      "category": "Calendar",
-      "topic": "High Holidays",
-      "summary": "Rosh Hashanah and Yom Kippur are observed with solemnity and inherited liturgical forms.",
-      "common_practices": [
-        "Use the accepted machzor or local rite",
-        "Preserve selichot and shofar customs",
-        "Follow synagogue melody and order",
-        "Anchor observance times to local halachic zmanim.",
-        "Coordinate fasts, selichot, and festival timing with community schedule.",
-        "Use a single trusted local calendar authority for consistency."
-      ]
+      "category": "Shavuot",
+      "topic": "Shavuot betrothal gift (Akhaltsikhe)",
+      "summary": "In Akhaltsikhe, engaged families exchanged gift trays (dzghvini) on festivals with festival foods. On Shavuot a calf was added to the gift, its horns decorated with red or white ribbon and lit candles and a gold coin hung on its neck; it was later slaughtered for a feast.",
+      "common_practices": [],
+      "variants": [
+        {
+          "subgroup": "Akhaltsikhe (southern Georgia)",
+          "practice": "Decorated calf sent as a Shavuot betrothal gift.",
+          "source": "Arbel & Magal, section 'Ha-chatuna'"
+        }
+      ],
+      "source": "Arbel & Magal, section 'Ha-chatuna'",
+      "source_url": "http://www.georgianjews.org/stat.php?id=133&lang=he",
+      "confidence": "regional",
+      "review_notes": "Akhaltsikhe is not one of the three requested subgroups. No general Georgian Shavuot liturgical custom was found.",
+      "topic_he": "מתנת אירוסין בשבועות (אחלציחה)",
+      "summary_he": "באחלציחה החליפו משפחות מאורסים מגשי מתנות (דזגוויני) בחגים עם מאכלי חג. בשבועות נוסף למתנה עגל, שקרניו קושטו בסרט אדום או לבן ונרות דולקים, ומטבע זהב נתלה על צווארו; מאוחר יותר נשחט לסעודה."
     },
     {
       "index": "halacha.19",
-      "category": "Calendar",
-      "topic": "Chanukah and Purim",
-      "summary": "Minor festivals are observed according to halacha and local Georgian Jewish custom.",
+      "category": "Kashrut",
+      "topic": "Home salting of meat",
+      "summary": "Georgian Jews salt meat at home and will not accept meat already salted (by a butcher), regarding home salting as 'minhag ha-makom'. Kashrut observance is high: about 80% of the Tbilisi community keep kosher, five kosher butchers operate there, and a mobile shochet serves the villages.",
       "common_practices": [
-        "Light Chanukah candles nightly",
-        "Read the Megillah on Purim",
-        "Use family food and celebration customs",
-        "Anchor observance times to local halachic zmanim.",
-        "Coordinate fasts, selichot, and festival timing with community schedule.",
-        "Use a single trusted local calendar authority for consistency."
-      ]
+        "Kashering (melicha) meat at home",
+        "Kosher meat from community shochtim"
+      ],
+      "variants": [],
+      "source": "Birnbaum, Makor Rishon/Daat",
+      "source_url": "https://www.daat.ac.il/he-il/history/yehudi-olami/gruziya.htm",
+      "confidence": "needs-review",
+      "review_notes": "",
+      "references": [
+        {
+          "title": "גרוזיה, טביליסי - יהדות אלפי השנים / אליהו בירנבוים",
+          "url": "https://www.daat.ac.il/he-il/kehilot/yehudi-olami/gruziya.htm"
+        }
+      ],
+      "topic_he": "מליחת בשר בבית",
+      "summary_he": "יהודי גרוזיה מולחים בשר בבית ואינם מקבלים בשר שכבר הולח (בידי קצב), ורואים במליחה בבית \"מנהג המקום\". שמירת הכשרות גבוהה: כ-80% מהקהילה בטביליסי שומרים כשרות, פועלים שם חמישה קצבים כשרים, ושוחט נע משרת את הכפרים."
     },
     {
       "index": "halacha.20",
-      "category": "Education",
-      "topic": "Torah transmission",
-      "summary": "Torah, prayer, and custom are transmitted through family memory and communal schooling.",
+      "category": "Kashrut",
+      "topic": "Role of the hakham as shochet",
+      "summary": "The hakham led the synagogue group's religious life, combining the roles of rabbi, hazzan, shochet, mohel and teacher of the medreshe (cheder).",
       "common_practices": [
-        "Teach children Hebrew and prayer",
-        "Preserve oral family memory",
-        "Use both text study and inherited communal tradition",
-        "Teach children both baseline halacha and family minhag distinctions.",
-        "Preserve community pronunciation and liturgical pedagogy.",
-        "Document oral traditions to reduce minhag drift across generations."
-      ]
+        "Shechita performed by the community hakham"
+      ],
+      "variants": [],
+      "source": "Encyclopaedia Judaica, 'Georgia' (2007), via Jewish Virtual Library; Arbel & Magal, 'Beit ha-knesset'",
+      "source_url": "https://jewishvirtuallibrary.org/georgia-2",
+      "confidence": "well-attested",
+      "review_notes": "",
+      "topic_he": "תפקיד החכם כשוחט",
+      "summary_he": "החכם הוביל את חיי הדת של קבוצת בית הכנסת, וצירף את תפקידי הרב, החזן, השוחט, המוהל ומורה המדרשה (החדר)."
+    },
+    {
+      "index": "halacha.21",
+      "category": "Lifecycle",
+      "topic": "Brit milah",
+      "summary": "The brit was usually held in the synagogue; the mother did not attend. The sandak of a first son was usually the mother's father or eldest brother; sandaka'ut was believed to atone for a year's sins. The night before, a pillow called 'Kise Eliyahu' and a round tray with nine cups, nine pairs of candles, a silver cup with cloves, black wine, sugar crystals and cotton were prepared. Before the brit the baby was given a little black wine with sugar (bangi). On arrival the hazzan sang 'Beruchim atem kehal emunim' and 'Hodu la-Hashem'; the father greeted the congregation ('Kahal, shalom aleichem') and handed the child to the sandak. The hakham-mohel blessed the wine and the cloves, which were passed round to drink and smell. A celebratory meal with piyyutim followed.",
+      "common_practices": [
+        "Brit in the synagogue",
+        "Kise Eliyahu pillow",
+        "Blessing over cloves (besamim) and wine at the brit",
+        "The wedding kilaptari candle lit at each son's brit"
+      ],
+      "variants": [],
+      "source": "Arbel & Magal, section 'Leida u-brit mila'",
+      "source_url": "http://www.georgianjews.org/stat.php?id=133&lang=he",
+      "confidence": "needs-review",
+      "review_notes": "Giving wine to the infant is a historical practice; do not present it as guidance.",
+      "topic_he": "ברית מילה",
+      "summary_he": "הברית נערכה בדרך כלל בבית הכנסת; האם לא נכחה. סנדק הבן הבכור היה בדרך כלל אבי האם או אחיה הבכור; האמינו שהסנדקאות מכפרת על עוונות שנה. בלילה שלפני כן הכינו כרית בשם \"כיסא אליהו\" ומגש עגול עם תשע כוסות, תשעה זוגות נרות, גביע כסף עם ציפורן, יין שחור, גבישי סוכר וצמר גפן. לפני הברית נתנו לתינוק מעט יין שחור עם סוכר (בנגי). עם ההגעה שר החזן \"ברוכים אתם קהל אמונים\" ו\"הודו לה'\"; האב בירך את הקהל (\"קהל, שלום עליכם\") ומסר את הילד לסנדק. החכם-המוהל בירך על היין ועל הציפורן, שהועברו מיד ליד כדי לשתות ולהריח. אחר כך נערכה סעודה חגיגית עם פיוטים."
+    },
+    {
+      "index": "halacha.22",
+      "category": "Lifecycle",
+      "topic": "Naming",
+      "summary": "A first son was named after a relative from the father's family. Weak children were often named Avraham, Yitzchak or Chaim. A daughter was named on the first Shabbat after birth.",
+      "common_practices": [
+        "Girl named on the first Shabbat after birth",
+        "First son named for a paternal relative"
+      ],
+      "variants": [],
+      "source": "Arbel & Magal, section 'Leida u-brit mila'",
+      "source_url": "http://www.georgianjews.org/stat.php?id=133&lang=he",
+      "confidence": "needs-review",
+      "review_notes": "",
+      "topic_he": "מתן שם",
+      "summary_he": "בן בכור נקרא על שם קרוב מצד האב. ילדים חלשים נקראו לעיתים קרובות אברהם, יצחק או חיים. בת קיבלה שם בשבת הראשונה אחרי הלידה."
+    },
+    {
+      "index": "halacha.23",
+      "category": "Niddah and mikveh",
+      "topic": "Post-partum impurity period and mikveh",
+      "summary": "A new mother was considered impure and stayed at home for 40 days after a son and 60 days after a daughter. At the end she went to the bathhouse and immersed in the mikveh, accompanied by a well-wishing woman (artgholi). Afterwards she went to synagogue, circled it three times, kissed its walls and prayed. If a dog, cat or pig crossed her path on the way home, she immersed again.",
+      "common_practices": [
+        "Mikveh immersion at 40 days (son) or 60 days (daughter)",
+        "Circling the synagogue three times after immersion"
+      ],
+      "variants": [],
+      "source": "Arbel & Magal, section 'Leida u-brit mila'",
+      "source_url": "http://www.georgianjews.org/stat.php?id=133&lang=he",
+      "confidence": "needs-review",
+      "review_notes": "The 40/80-day periods of Leviticus 12 are not what is described; the 60-day figure for a daughter is the ethnographic report. This is a custom description, not a ruling.",
+      "topic_he": "תקופת הטומאה אחרי לידה ומקווה",
+      "summary_he": "אם טרייה נחשבה טמאה ושהתה בבית 40 יום אחרי בן ו-60 יום אחרי בת. בסוף הלכה למרחץ וטבלה במקווה, בליווי אישה שהביעה ברכה (ארגולי). אחר כך הלכה לבית הכנסת, סבבה אותו שלוש פעמים, נישקה את קירותיו והתפללה. אם כלב, חתול או חזיר חצה את דרכה בחזרה הביתה, טבלה שוב."
+    },
+    {
+      "index": "halacha.24",
+      "category": "Niddah and mikveh",
+      "topic": "Bridal and groom's immersion; family purity",
+      "summary": "On the day before the wedding the bride was taken to the bathhouse and then to the mikveh. The dadi (chief bridesmaid, a close female relative) filled a large silver or copper cup with mikveh water, poured it over the bride's head and blessed her. On the wedding day the shoshpini (best man) took the groom to the mikveh. In the first days of marriage the groom's mother supervised the bride's days of purity and taught her if she miscalculated. Encyclopaedia Judaica and Arbel and Magal state that family purity was maintained under Soviet rule.",
+      "common_practices": [
+        "Dadi pours mikveh water over the bride",
+        "Groom immerses on the wedding day",
+        "Mother-in-law instructs the bride in purity calculations"
+      ],
+      "variants": [
+        {
+          "subgroup": "Akhaltsikhe",
+          "practice": "The bride goes to the bath in the morning, accompanied by a large crowd with song and music.",
+          "source": "Arbel & Magal, 'Ha-chatuna'"
+        },
+        {
+          "subgroup": "Kutaisi and Tskhinvali",
+          "practice": "The bride and her escorts go to the bathhouse only after dark, the bride's face covered so she will not be recognised.",
+          "source": "Arbel & Magal, 'Ha-chatuna'"
+        }
+      ],
+      "source": "Arbel & Magal, section 'Ha-chatuna'",
+      "source_url": "http://www.georgianjews.org/stat.php?id=133&lang=he",
+      "confidence": "regional",
+      "review_notes": "No Georgian-specific niddah halachot (counting, bedikot, stringencies) were found.",
+      "references": [
+        {
+          "title": "Georgian Jews World Congress",
+          "url": "http://www.georgianjews.org/stat.php?id=133&lang=he"
+        }
+      ],
+      "topic_he": "טבילת כלה וחתן; טהרת המשפחה",
+      "summary_he": "ביום שלפני החתונה הובאה הכלה למרחץ ואחר כך למקווה. הדדי (שושבינה ראשית, קרובה משפחה) מילאה גביע גדול של כסף או נחושת במי מקווה, שפכה אותם על ראש הכלה וברכה אותה. ביום החתונה לקח השושפיני (שושבין) את החתן למקווה. בימים הראשונים לנישואין השגיחה אם החתן על ימי טהרת הכלה והדריכה אותה אם טעתה בחישוב. האנציקלופדיה יודאיקה וארבל ומגל מציינים שטהרת המשפחה נשמרה בתקופת השלטון הסובייטי."
+    },
+    {
+      "index": "halacha.25",
+      "category": "Lifecycle",
+      "topic": "Betrothal (erusin) and kiddushin",
+      "summary": "Betrothal involved stages: a handshake oath (khelis dakvra), announcement, financial agreement (garigeba), exchange of pledges, and betrothal (nishnoba). In the past kiddushin were sometimes performed at the betrothal, with a coin or ring given to the bride in the presence of a hakham and the words 'harei at mekudeshet'. In Akhaltsikhe (per Chorny) the hakham acted as the groom's agent and handed the bride a coin. Where no kiddushin were performed, the engagement could be undone by returning the gifts, without a get. The betrothal was symbolised by a sugar cone (tavi-shakari in the west; shakar-puri in the east).",
+      "common_practices": [
+        "Sugar cone as betrothal symbol"
+      ],
+      "variants": [
+        {
+          "subgroup": "Kutaisi and Tskhinvali",
+          "practice": "Entering the bride's house right foot first with the blessing 'siman tov u-mazal tov'; the groom's parents give the bride the sugar cone saying 'May your life be sweet as sugar'; the couple exchange gold coins (nishani).",
+          "source": "Arbel & Magal, 'Ha-chatuna'"
+        },
+        {
+          "subgroup": "Akhaltsikhe",
+          "practice": "The hakham, as the groom's agent, effects kiddushin with a coin at the betrothal.",
+          "source": "Arbel & Magal, 'Ha-chatuna' (citing Chorny)"
+        }
+      ],
+      "source": "Arbel & Magal, section 'Ha-chatuna'",
+      "source_url": "http://www.georgianjews.org/stat.php?id=133&lang=he",
+      "confidence": "disputed",
+      "review_notes": "Arbel and Magal state that the evidence on kiddushin at betrothal is not clear-cut, and it is unclear whether this was done in all cases. This has major halachic consequences (need for a get) and requires rabbinic review.",
+      "references": [
+        {
+          "title": "Georgian Jews World Congress",
+          "url": "http://www.georgianjews.org/stat.php?id=133&lang=he"
+        }
+      ],
+      "topic_he": "אירוסין וקידושין",
+      "summary_he": "האירוסין עברו שלבים: שבועת לחיצת יד (חליס דקורה), הודעה, הסכם כספי (גריגבה), החלפת משכונות ואירוסין (נישנובה). בעבר נערכו לעיתים קידושין בשעת האירוסין, עם מטבע או טבעת לכלה בפני חכם ובמילים \"הרי את מקודשת\". באחלציחה (לפי צ'ורני) פעל החכם כשליח החתן ומסר לכלה מטבע. כשלא נערכו קידושין, אפשר היה לבטל את האירוסין בהחזרת המתנות, בלי גט. האירוסין סומלו בחרוט סוכר (טבי-שקרי במערב; שקר-פורי במזרח)."
+    },
+    {
+      "index": "halacha.26",
+      "category": "Lifecycle",
+      "topic": "Wedding ceremony (chuppa / 'ketuba')",
+      "summary": "The ceremony, itself called 'ketuba', took place at the bride's home or in the synagogue. By a custom still followed, the groom's tallit serves as the chuppa: he wraps himself and blesses, then young male relatives hold its four corners over the couple. The ketubah, wrapped in white cloth, is held at the top by the bride and groom and at the bottom by the shoshpini and dadi. The hakham reads it and sometimes repeats it in Georgian. After drinking, the groom recites 'Im eshkachech Yerushalayim' under the hakham's guidance, dripping wine on the floor with each word (guests try to taste the drops), then smashes the glass. A procession with candles and 'Et dodim kalla' brings the bride to the groom's house.",
+      "common_practices": [
+        "Groom's tallit used as chuppa",
+        "Ketubah held by the couple, best man and dadi",
+        "Ketubah read in Hebrew and sometimes in Georgian",
+        "Wine dripped while reciting 'Im eshkachech'",
+        "Kilaptari candle held by the shoshpini, kept for future britot"
+      ],
+      "variants": [
+        {
+          "subgroup": "Kartli",
+          "practice": "After the chuppa a female relative dances the kabaluli before the couple with a yeast cake topped with lit candles; the stubs are kept against witchcraft.",
+          "source": "Arbel & Magal, 'Ha-chatuna'"
+        },
+        {
+          "subgroup": "Akhaltsikhe and Kareli",
+          "practice": "Henna night on the eve of the wedding (Wednesday), not practised in other parts of Georgia.",
+          "source": "Arbel & Magal, 'Ha-chatuna'"
+        },
+        {
+          "subgroup": "East Georgia",
+          "practice": "Papis chama ('porridge eating') feast at the groom's and bride's homes the night before.",
+          "source": "Arbel & Magal, 'Ha-chatuna'"
+        },
+        {
+          "subgroup": "Akhaltsikhe",
+          "practice": "Chuppa at the groom's house with a bridal canopy (ajla) made of synagogue parochot, where the couple slept for the first seven nights (until the 1920s).",
+          "source": "Arbel & Magal, 'Ha-chatuna'"
+        },
+        {
+          "subgroup": "Israeli Georgian",
+          "practice": "Most traditional wedding customs had disappeared by the late 1980s and been replaced by the standard Israeli wedding-hall format.",
+          "source": "Arbel & Magal, introduction"
+        }
+      ],
+      "source": "Arbel & Magal, section 'Ha-chatuna'",
+      "source_url": "http://www.georgianjews.org/stat.php?id=133&lang=he",
+      "confidence": "well-attested",
+      "review_notes": "The tallit-chuppa is explicitly described as 'accepted also today'. Wedding-week customs include a 'Shabbat chatan' aliyah and the groom and best man sitting on special white-covered cushions in synagogue all week.",
+      "topic_he": "טקס החתונה (חופה / \"כתובה\")",
+      "summary_he": "הטקס, שנקרא עצמו \"כתובה\", נערך בבית הכלה או בבית הכנסת. לפי מנהג הנהוג עד היום, טליתו של החתן משמשת חופה: הוא מתעטף ומברך, ואחר כך צעירים קרובים מחזיקים את ארבע כנפיה מעל בני הזוג. הכתובה, עטופה בבד לבן, מוחזקת בחלקה העליון בידי הכלה והחתן ובחלקה התחתון בידי השושפיני והדדי. החכם קורא אותה ולפעמים חוזר עליה בגרוזינית. אחרי השתייה אומר החתן \"אם אשכחך ירושלים\" בהדרכת החכם, ומטפטף יין על הרצפה בכל מילה (האורחים מנסים לטעום מהטיפות), ואחר כך שובר את הכוס. תהלוכה עם נרות ועם \"את דודים כלה\" מוביל את הכלה לבית החתן."
+    },
+    {
+      "index": "halacha.27",
+      "category": "Mourning",
+      "topic": "Deathbed, tahara and burial",
+      "summary": "There was no formal chevra kadisha; the whole community took part in tahara and burial. Those who washed the body (tani-banelebi) were held in awe. At the deathbed, in the hakham's presence, family released the dying person's vows with the cry 'mechila'. Clay jugs used for the tahara water were broken afterwards. Funerals proceeded 'with candles and songs and melodies'; music, sometimes with drum, clarinet and accordion, continues to this day. For anyone over 13 the procession stops in the synagogue courtyard for the hakham's eulogy, after which the women leave. A bag of earth from Eretz Yisrael is placed under the head. The body is carried in a coffin but not buried in it (a recent practice). A woman's ketubah was buried with her.",
+      "common_practices": [
+        "Community-wide tahara (no chevra kadisha)",
+        "Deathbed 'mechila'",
+        "Eulogy at the synagogue courtyard",
+        "Earth from Eretz Yisrael in the grave",
+        "Wife's ketubah buried with her"
+      ],
+      "variants": [
+        {
+          "subgroup": "Kutaisi",
+          "practice": "The deceased was buried with the silver ring engraved with his name that he wore in life, so he would remember his name at the resurrection.",
+          "source": "Arbel & Magal, 'Avelut u-kevura'"
+        },
+        {
+          "subgroup": "Israeli Georgian / modern",
+          "practice": "Displaying photographs of the deceased at home, in the procession and on the gravestone (from Christian surroundings); some erect statues, especially in Akhaltsikhe.",
+          "source": "Arbel & Magal, 'Avelut u-kevura'"
+        }
+      ],
+      "source": "Arbel & Magal, section 'Avelut u-kevura'",
+      "source_url": "http://www.georgianjews.org/stat.php?id=133&lang=he",
+      "confidence": "needs-review",
+      "review_notes": "Funeral music, photographs and statues are documented customs that conflict with standard halachic norms. Record them as custom only; they need rabbinic review before any guidance is given.",
+      "references": [
+        {
+          "title": "Georgian Jews World Congress",
+          "url": "http://www.georgianjews.org/stat.php?id=133&lang=he"
+        },
+        {
+          "title": "Евреи Российской империи • Arzamas",
+          "url": "https://arzamas.academy/materials/2203"
+        }
+      ],
+      "topic_he": "שכיבת מרע, טהרה וקבורה",
+      "summary_he": "לא הייתה חברה קדישא רשמית; כל הקהילה השתתפה בטהרה ובקבורה. מי שרחצו את הגופה (טני-בנלבי) זכו ליראת כבוד. ליד מיטת הגוסס, בנוכחות החכם, התירו בני המשפחה את נדריו בקריאת \"מחילה\". כדי החימר ששימשו למי הטהרה נשברו אחר כך. הלוויות התנהלו \"בנרות, בשירים ובניגונים\"; מוזיקה, לעיתים עם תוף, קלרינט ואקורדיון, נמשכת עד היום. לכל מי שמעל גיל 13 עוצרת התהלוכה בחצר בית הכנסת להספד החכם, ואחריו הנשים עוזבות. תחת הראש מניחים שקית עפר מארץ ישראל. הגופה מובלת בארון אך אינה נקברת בו (נוהג חדש). כתובתה של האישה נקברה עמה."
+    },
+    {
+      "index": "halacha.28",
+      "category": "Mourning",
+      "topic": "Shiva, sheloshim and the year",
+      "summary": "On returning from the cemetery the men ate a meal of wine, bread, beans, dairy and eggs. The zimun formula was 'Nevarech la-menachem avelim she-achalnu mi-shelo', answered 'Baruch ha-menachem avelim she-achalnu mi-shelo u-ve-tuvo chayinu'. Dairy meals with the hakham's derashot were held on each of the seven days. The mourners came to synagogue for prayers and sat on the floor before the ark with the hakham standing behind them, kissed his hands after Shacharit, and he recited 'El male rachamim'. On Shabbat the whole congregation visited the mourners after morning prayers. Large meals, now with meat, were held at the end of shiva and at sheloshim. On the 30th day the family went to the cemetery: women spread the deceased's clothes on the grave and lamented, and men 'opened a table'. For the eleven months, meals were held each Rosh Chodesh with hakhamim invited, and an oil lamp (kandili) burned in the home. A large meal marked the end of the year.",
+      "common_practices": [
+        "Mourners' zimun formula 'nevarech la-menachem avelim'",
+        "Dairy meals during shiva",
+        "Meat meals at the end of shiva and at sheloshim",
+        "Rosh Chodesh memorial meals for eleven months",
+        "Kandili oil lamp for the year"
+      ],
+      "variants": [
+        {
+          "subgroup": "Kutaisi",
+          "practice": "Where the body had lain, two candles were lit beside a small vessel of flour, a small stone, a cup of water and a row of broken eggs.",
+          "source": "Arbel & Magal, 'Avelut u-kevura'"
+        }
+      ],
+      "source": "Arbel & Magal, section 'Avelut u-kevura' (partly citing Chorny)",
+      "source_url": "http://www.georgianjews.org/stat.php?id=133&lang=he",
+      "confidence": "needs-review",
+      "review_notes": "",
+      "topic_he": "שבעה, שלושים והשנה",
+      "summary_he": "בשובם מבית הקברות אכלו הגברים סעודה של יין, לחם, שעועית, חלב וביצים. נוסח הזימון היה \"נברך למנחם אבלים שאכלנו משלו\", והמענה \"ברוך מנחם אבלים שאכלנו משלו ובטובו חיינו\". בכל אחד משבעת הימים נערכו סעודות חלביות עם דרשות החכם. האבלים באו לבית הכנסת לתפילות וישבו על הרצפה לפני הארון כשהחכם עומד מאחוריהם, נישקו את ידיו אחרי שחרית, והוא אמר \"אל מלא רחמים\". בשבת ביקר כל הקהל את האבלים אחרי תפילת הבוקר. סעודות גדולות, הפעם עם בשר, נערכו בסוף השבעה ובשלושים. ביום השלושים הלכה המשפחה לבית הקברות: נשים פרשו את בגדי המנוח על הקבר ובכו, וגברים \"פתחו שולחן\". במשך אחד עשר החודשים נערכו סעודות בכל ראש חודש עם חכמים מוזמנים, ונר שמן (קנדילי) דלק בבית. סעודה גדולה ציינה את סוף השנה."
+    },
+    {
+      "index": "halacha.29",
+      "category": "Torah reading",
+      "topic": "Hebrew pronunciation (reading tradition)",
+      "summary": "Encyclopaedia Judaica classes the Georgian reading tradition within the Sephardi group (qamatz = patach, tzere = segol), with distinctive consonants: bet is always [b] (no soft vet); pe is always [p] (no fricative fe); chet is [x]; ayin is a glottalized uvular stop [q'] initially and finally, a voiced uvular fricative between vowels; tet is a glottalized [t']; qof is a velar-uvular affricate; tzadi is [s], identical to samech; alef has [h] as a free variant.",
+      "common_practices": [
+        "Bet always [b]",
+        "Pe always [p]",
+        "Ayin as glottalized uvular [q']",
+        "Tet as ejective [t']",
+        "Tzadi as [s]"
+      ],
+      "variants": [],
+      "source": "Shelomo Morag, 'Pronunciations of Hebrew', Encyclopaedia Judaica (via Encyclopedia.com)",
+      "source_url": "https://www.encyclopedia.com/religion/encyclopedias-almanacs-transcripts-and-maps/pronunciations-hebrew",
+      "confidence": "needs-review",
+      "review_notes": "One authoritative academic source. No Georgian-specific trope (cantillation) melodies were found.",
+      "topic_he": "הגיית העברית (מסורת הקריאה)",
+      "summary_he": "האנציקלופדיה יודאיקה מסווגת את מסורת הקריאה הגרוזינית בקבוצה הספרדית (קמץ = פתח, צירה = סגול), עם עיצורים מיוחדים: בי\"ת תמיד [b] (אין ו\"ו רפה); פ\"א תמיד [p] (אין פ\"א רפויה); חי\"ת היא [x]; עי\"ן היא עצור אובולרי מוגלוטל [q'] בראש מילה ובסופה, וחוכך אובולרי קולי בין תנועות; טי\"ת היא [t'] מוגלוטלית; קו\"ף היא אפריקטה ולארית-אובולרית; צד\"י היא [s], זהה לסמ\"ך; לאל\"ף יש [h] כחלופה חופשית."
+    },
+    {
+      "index": "halacha.30",
+      "category": "Distinctive customs",
+      "topic": "Language and liturgical vernacular",
+      "summary": "Georgian Jews speak Georgian (96.6% in the 1926 census), with a Hebrew-laden jargon (Qivruli) and many Hebraisms for religious life, e.g. xaxami (hakham), pesaxi, maca, ketuba (used for 'wedding'), teva (bimah). Georgian was used alongside Hebrew in some rituals: the Haggadah on the second seder night and ketubah explanations.",
+      "common_practices": [
+        "Religious Hebraisms with Georgian grammar",
+        "Georgian used alongside Hebrew in the seder and wedding"
+      ],
+      "variants": [],
+      "source": "Jewish Language Project, 'Judeo-Georgian' (T. Lomtadze & R. Enoch); Encyclopaedia Judaica, 'Georgia'; Arbel & Magal",
+      "source_url": "https://www.jewishlanguages.org/judeo-georgian",
+      "confidence": "well-attested",
+      "review_notes": "",
+      "references": [
+        {
+          "title": "Georgia",
+          "url": "https://jewishvirtuallibrary.org/georgia-2"
+        },
+        {
+          "title": "Judeo-Georgian - Jewish Language Project",
+          "url": "https://www.jewishlanguages.org/judeo-georgian"
+        }
+      ],
+      "topic_he": "שפה ולשון הקודש בעם",
+      "summary_he": "יהודי גרוזיה מדברים גרוזינית (96.6% במפקד 1926), עם ז'רגון עמוס עברית (קיברולי) ועם הרבה עיבריות לחיי הדת, למשל חחמי (חכם), פסחי, מצה, כתובה (המשמשת במקום \"חתונה\"), תבה (בימה). הגרוזינית שימשה לצד העברית בכמה טקסים: ההגדה בליל הסדר השני והסברי הכתובה."
     }
   ],
-  "unique_minhagim": {
-    "examples": [
-      "Strong Georgian language and identity retention",
-      "Caucasus synagogue and family customs",
-      "Town-based subidentities such as Tbilisi and Kutaisi",
-      "Preservation of melody and oral transmission across generations"
-    ],
-    "notes": "Georgian Jewish practice should be indexed by locality and family branch where possible."
-  },
-  "source_registry": {
-    "primary": [
-      "Shulchan Aruch",
-      "Mishneh Torah",
-      "local Georgian Jewish tradition"
-    ],
-    "secondary": [
-      "Jewish language and history resources",
-      "Community archives and family records",
-      "Modern diaspora Jewish educational materials"
-    ]
-  }
+  "unique_minhagim": [
+    {
+      "name": "Toast for the captive Shechinah",
+      "description": "At the Georgian supra (feast) led by a tamada, Jews dedicate the first toast to the Shechinah and to Eretz Yisrael, called 'the blessing for the captive Shechinah', expressing longing for redemption. At a meal of mourning the first cup honours the deceased. Hakhamim gave derashot at seudot mitzva.",
+      "when": "Festive and mitzva meals",
+      "source": "Arbel & Magal, section 'Minhagei shulchan'",
+      "source_url": "http://www.georgianjews.org/stat.php?id=133&lang=he",
+      "confidence": "needs-review",
+      "name_he": "כוסית לשכינה השבויה",
+      "description_he": "בסופרה הגרוזינית (סעודה חגיגית) שמנהל טמאדה מקדישים היהודים את הכוסית הראשונה לשכינה ולארץ ישראל, ונקראת \"ברכת השכינה השבויה\", והיא מבטאת כמיהה לגאולה. בסעודת אבל הכוס הראשונה מכבדת את המנוח. החכמים נשאו דרשות בסעודות מצווה."
+    },
+    {
+      "name": "Seder 'traveller' at the door",
+      "description": "A boy dressed for a journey knocks during the Haggadah and must prove his Jewishness (tzitzit rejected, circumcision accepted) before being admitted as a guest 'from Jerusalem' or 'from Egypt'.",
+      "when": "Pesach seder night",
+      "source": "Arbel & Magal, 'Chagim u-mo'adim' (citing Chorny)",
+      "source_url": "http://www.georgianjews.org/stat.php?id=133&lang=he",
+      "confidence": "needs-review",
+      "name_he": "\"הנוסע\" בדלת בליל הסדר",
+      "description_he": "נער לבוש לדרך דופק במהלך ההגדה ועליו להוכיח את יהדותו (ציצית נדחית, מילה מתקבלת) לפני שמכניסים אותו כאורח \"מירושלים\" או \"ממצרים\"."
+    },
+    {
+      "name": "Purim horse riding",
+      "description": "Riding horses on Purim, formerly in a large singing procession and later individually, including boys racing.",
+      "when": "Purim",
+      "source": "Arbel & Magal, 'Chagim u-mo'adim' (citing Chorny and N. Eliashvili)",
+      "source_url": "http://www.georgianjews.org/stat.php?id=133&lang=he",
+      "confidence": "needs-review",
+      "name_he": "רכיבה על סוסים בפורים",
+      "description_he": "רכיבה על סוסים בפורים, בעבר בתהלוכה גדולה ושר ואחר כך ביחידות, כולל נערים המתחרים במרוץ."
+    },
+    {
+      "name": "Kabaluli wedding dance",
+      "description": "A female relative of the groom dances before the couple holding a candle-topped yeast cake (kabaluli, from Hebrew 'kabbala', reception); a woman from the bride's side answers with another cake; guests place money on the cake.",
+      "when": "After the chuppa",
+      "source": "Arbel & Magal, 'Ha-chatuna'",
+      "source_url": "http://www.georgianjews.org/stat.php?id=133&lang=he",
+      "confidence": "regional",
+      "name_he": "ריקוד החתונה קבלולי",
+      "description_he": "קרובה משפחה של החתן רוקדת לפני בני הזוג כשהיא מחזיקה עוגת שמרים עם נר בראשה (קבלולי, מהמילה העברית \"קבלה\", קבלת פנים); אישה מצד הכלה עונה בעוגה אחרת; האורחים מניחים כסף על העוגה."
+    },
+    {
+      "name": "Tallit as chuppa",
+      "description": "The groom's tallit, held by four young relatives, serves as the wedding canopy.",
+      "when": "Wedding",
+      "source": "Arbel & Magal, 'Ha-chatuna'",
+      "source_url": "http://www.georgianjews.org/stat.php?id=133&lang=he",
+      "confidence": "well-attested",
+      "name_he": "טלית כחופה",
+      "description_he": "טלית החתן, המוחזקת בידי ארבעה קרובים צעירים, משמשת חופה."
+    },
+    {
+      "name": "Kilaptari candles",
+      "description": "Tall beeswax candles made by the groom's mother are held at the wedding and kept, then lit at each son's brit. Kilaptari candles are also lit by each family member before the Yom Kippur seuda mafseket, with one brought to the synagogue.",
+      "when": "Wedding, brit milah, Erev Yom Kippur",
+      "source": "Arbel & Magal, 'Ha-chatuna' and 'Chagim u-mo'adim'",
+      "source_url": "http://www.georgianjews.org/stat.php?id=133&lang=he",
+      "confidence": "needs-review",
+      "name_he": "נרות קילפטרי",
+      "description_he": "נרות שעוות דבורים גבוהים שאם החתן הכינה מוחזקים בחתונה ונשמרים, ואחר כך מודלקים בברית של כל בן. נרות קילפטרי מודלקים גם בידי כל בן משפחה לפני סעודה מפסקת של יום כיפור, ואחד מהם מובא לבית הכנסת."
+    },
+    {
+      "name": "Sanatreli ritual 'sale' of a child",
+      "description": "A child born after long waiting, or into a family that had lost children, was given an unusual name and ritually 'sold' through a hole in the wall to another family, which raised him for some years; at age nine his hair was cut for the first time and his family 'bought' him back, donating Torah ornaments to the synagogue.",
+      "when": "Infancy to age nine",
+      "source": "Arbel & Magal, 'Leida u-brit mila'",
+      "source_url": "http://www.georgianjews.org/stat.php?id=133&lang=he",
+      "confidence": "needs-review",
+      "name_he": "\"מכירה\" טקסית של ילד (סנטרלי)",
+      "description_he": "ילד שנולד אחרי המתנה ארוכה, או למשפחה שאיבדה ילדים, קיבל שם יוצא דופן ו\"נמכר\" בטקס דרך חור בקיר למשפחה אחרת, שגידלה אותו כמה שנים; בגיל תשע נגזז שערו לראשונה ומשפחתו \"קנתה\" אותו בחזרה ותרמה קישוטי תורה לבית הכנסת."
+    }
+  ],
+  "source_registry": [
+    {
+      "title": "Masoret, minhagim ve-orach chayim (Tradition, customs and way of life)",
+      "author": "Rachel Arbel and Lily Magal (World Congress of Georgian Jews; from the exhibition/book project on Georgian Jewry)",
+      "type": "academic",
+      "url": "http://www.georgianjews.org/stat.php?id=133&lang=he",
+      "used_for": "Most festival, life-cycle, synagogue, mourning and regional customs; cites Chorny (1860s-70s), N. Eliashvili, Koboshvili paintings and interviews"
+    },
+    {
+      "title": "Georgia (Encyclopaedia Judaica, 2nd ed., 2007)",
+      "author": "Encyclopaedia Judaica (via Jewish Virtual Library)",
+      "type": "reference",
+      "url": "https://jewishvirtuallibrary.org/georgia-2",
+      "used_for": "History, hakham's roles, Khvoles, Chabad, Soviet-era observance, aliyah figures, claim of no kohanim"
+    },
+    {
+      "title": "Pronunciations of Hebrew (Encyclopaedia Judaica)",
+      "author": "Shelomo Morag",
+      "type": "academic",
+      "url": "https://www.encyclopedia.com/religion/encyclopedias-almanacs-transcripts-and-maps/pronunciations-hebrew",
+      "used_for": "Georgian Hebrew reading tradition"
+    },
+    {
+      "title": "Gruzia, Tbilisi – Yahadut alfei ha-shanim",
+      "author": "Eliyahu Birnbaum (Makor Rishon, on Daat)",
+      "type": "reference",
+      "url": "https://www.daat.ac.il/he-il/history/yehudi-olami/gruziya.htm",
+      "used_for": "Mixed Sephardi/Ashkenazi character, kitniyot, weekly Birkat Kohanim, home salting of meat"
+    },
+    {
+      "title": "Yehudei Gruzia mechakim la-mashiach",
+      "author": "Tali Farkash (Ynet, 18.10.2015)",
+      "type": "reference",
+      "url": "https://www.ynet.co.il/articles/0,7340,L-4712534,00.html",
+      "used_for": "Sephardi nusach statement by R. Rahamim Mordechaishvili; rice on Pesach"
+    },
+    {
+      "title": "Siddur Tefillat Refael al pi nusach Yehudei Gruzia",
+      "author": "R. Avraham Alashvili (ed.), Machon HaSefer, Ramla 2007 (NLI catalogue record)",
+      "type": "siddur",
+      "url": "https://www.nli.org.il/he/books/NNL_ALEPH990026026340205171/NLI",
+      "used_for": "Existence of a printed community siddur with halachot and minhagim (contents not examined)"
+    },
+    {
+      "title": "Judeo-Georgian",
+      "author": "Tamari Lomtadze and Reuven Enoch (Jewish Language Project)",
+      "type": "academic",
+      "url": "https://www.jewishlanguages.org/judeo-georgian",
+      "used_for": "Language, religious Hebraisms, term teva"
+    },
+    {
+      "title": "Kosher Travel in Georgia: Your Ultimate Guide for 2024",
+      "author": "GIL Travel",
+      "type": "reference",
+      "url": "https://www.giltravel.com/blog/kosher-travel-georgia-guide/",
+      "used_for": "Matzah baking in Kutaisi"
+    }
+  ],
+  "gaps": [
+    "Order of service (Shacharit/Mincha/Arvit details), Kabbalat Shabbat order, Lecha Dodi text and melodies: no source found.",
+    "Shabbat candle-lighting time and blessing customs, Shabbat Kiddush text, seudot and Havdalah: no Georgian-specific source.",
+    "Rosh Hashana simanim and shofar customs: no Georgian-specific source.",
+    "Yom Kippur liturgy beyond Erev Yom Kippur customs (the Kol Nidrei variants are not firmly sourced).",
+    "Mimouna-type post-Pesach celebration: none documented for Georgian Jews. Govgil is a Mountain Jewish custom and must not be attributed to Georgian Jews.",
+    "Omer counting customs and the mourning-period dates (which 33 or 34 days, Lag BaOmer practice): not documented.",
+    "Shavuot liturgy and customs (apart from the Akhaltsikhe betrothal gift).",
+    "The Three Weeks, the Nine Days, Tisha B'Av, Tzom Gedalia, 10 Tevet, 17 Tammuz, Ta'anit Esther: no Georgian-specific source.",
+    "Tefillin (including Chol HaMoed practice) and tzitzit customs: not documented, apart from the tallit-chuppa and the tallit bag given to a groom.",
+    "Torah cantillation (trope) melodies and aliyah customs: not documented.",
+    "Pidyon haben: not documented. The near-absence of kohanim reported in Encyclopaedia Judaica and Birnbaum makes this a significant open question.",
+    "Bar mitzvah and bat mitzvah: no Georgian-specific source.",
+    "Niddah halachot (counting, bedikot, stringencies): not documented beyond mikveh customs.",
+    "Yahrzeit practice beyond the first year: not documented.",
+    "Calendar: no distinctive calendar documented (only historical reports of date errors in isolated communities).",
+    "Kartli vs Kutaisi liturgical differences: largely undocumented apart from one Kol Nidrei report that is not firmly sourced.",
+    "Piyyutim/bakashot repertoire: the Yaakov Hananashvili piyyut collection is referred to, but no description of its contents is recorded here."
+  ],
+  "disputes": [
+    "Kitniyot/rice on Pesach: Birnbaum (Daat) says Georgian Jews do not eat kitniyot; R. Rahamim Mordechaishvili (Ynet 2015) implies they ate rice; an anonymous forum post claims kitniyot are avoided except corn. Unresolved.",
+    "Nusach: Sephardi (R. Mordechaishvili, Tbilisi) versus partly Ashkenazi in communities influenced by Lithuanian yeshiva graduates (Birnbaum), with growing Chabad influence among observant Israeli Gruzinim (Arbel & Magal).",
+    "Kiddushin at betrothal: Arbel & Magal state the evidence is ambiguous on whether kiddushin were performed at the betrothal in all cases or only some."
+  ],
+  "needs_rabbinic_review": [
+    "Weekly Shabbat Birkat Kohanim (single source; Birnbaum).",
+    "Kiddushin at betrothal and the consequent need for a get if an engagement is broken.",
+    "Kol Nidrei: a Jewiki snippet relayed by a sub-researcher (not opened directly) reports the older Sephardi wording in East Georgia (Tbilisi), the 'past and future' wording in West Georgia, and two unique Georgian melodies. Unverified.",
+    "Post-partum seclusion of 40 days after a son and 60 after a daughter, followed by mikveh: this differs from the halachic periods.",
+    "Funeral music, photographs and statues on graves: documented custom that conflicts with common halachic norms.",
+    "Contents of Siddur Tefillat Refael (2007) need to be checked directly to confirm nusach and halachic positions, including possible Chabad (Shulchan Aruch HaRav) influence."
+  ]
 }

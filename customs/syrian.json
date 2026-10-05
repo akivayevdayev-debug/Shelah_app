@@ -1,444 +1,1048 @@
 {
-  "version": "2.0",
+  "version": "3.0",
   "type": "academic_halachic_reference",
   "heritage_id": "syrian",
   "name": "Syrian",
   "aliases": [
     "Halabi",
     "Shami",
-    "Syrian Jews"
+    "Syrian Jews",
+    "Halabi / Halebi / Chalabi (Aleppo)",
+    "Shami / Shamie (Damascus)",
+    "Aram Soba (Aram Tzova) Jewry",
+    "SY (colloquial, US)"
   ],
   "database_scope": {
-    "purpose": "Academic and halachic reference database for Syrian Jewish heritage, minhagim, and halachic practice.",
-    "coverage_note": "This file models broad Syrian Jewish practice and includes common halachic domains. Local customs vary by city, family, synagogue, and migration history.",
-    "classification_note": "Syrian Jewish practice is generally Sephardi in halachic orientation, combining ancient Levantine Jewish continuity with post-1492 Sephardi influence."
+    "purpose": "Sourced reference for Syrian minhagim and halachic practice. It records what the cited sources say, with a confidence level for each entry, and is not a psak.",
+    "coverage_note": "24 sourced topics and 8 distinctive customs, compiled from the cited sources in October 2026. Each entry carries a confidence level (well-attested, disputed, regional, needs-review). 15 topics have no community-specific source and are listed under 'gaps' rather than filled with generic text."
   },
   "identity": {
-    "primary_origin": "Ancient Jewish communities of Syria, especially Aleppo and Damascus",
+    "primary_origin": "Aleppo and Damascus in Syria",
     "secondary_centers": [
-      "Aleppo (Halab / Aram Tzova)",
-      "Damascus (Sham)",
-      "Beirut",
-      "Istanbul and Ottoman-era diaspora",
-      "New York",
-      "Brooklyn",
-      "Los Angeles",
-      "Israeli diaspora communities"
-    ],
-    "cultural_profile": [
-      "Strong communal structure",
-      "Deep attachment to synagogue tradition",
-      "Highly preserved family and marriage customs",
-      "Rich liturgical and musical heritage"
+      "Safed and Jerusalem (close ties from the 16th century)",
+      "Brooklyn, New York",
+      "Deal, New Jersey"
     ]
   },
   "languages": [
-    "Hebrew",
-    "Arabic",
-    "Judeo-Arabic in historical settings",
-    "English in diaspora settings",
-    "Ladino in some Sephardi-influenced contexts"
+    "Arabic: the community grew from native Arabic-speaking (Musta'arabi) Jews and Sephardi exiles",
+    "Judeo-Arabic: the Pesach table exchange and the Judeo-Arabic translation of the Torah (Sharh)"
   ],
-  "genealogy": {
-    "common_surname_patterns": [
-      "Family names tied to rabbis, judges, merchants, or ancestors",
-      "Aleppan and Damascene family lineages",
-      "Names preserved through ketubot and communal registers",
-      "Variant transliterations in English, French, Arabic, and Hebrew"
-    ],
-    "research_notes": [
-      "Syrian Jewish genealogy often depends on family branch and community origin more than surname alone.",
-      "Aleppo and Damascus lineages should be separated when possible.",
-      "Marriage networks are often essential for reconstruction of family trees."
-    ],
-    "recommended_genealogy_fields": [
-      "surname",
-      "alternate_spellings",
-      "town_of_origin",
-      "community_branch",
-      "rabbinic_lineage",
-      "marriage_networks",
-      "migration_route",
-      "ritual_minhag"
-    ]
-  },
+  "subgroups": [
+    {
+      "name": "Aleppo (Halabi)",
+      "note": "Jews of Aleppo (Halab, Hebrew Aram Soba). The community was formed from native Arabic-speaking (Musta'arabi) Jews and Sephardi exiles who came after 1492. Most of the documented customs here come from this subgroup, mainly through the minhag book Derech Eretz as cited by Rabbi Eli Mansour."
+    },
+    {
+      "name": "Damascus (Shami)",
+      "note": "Jews of Damascus (al-Sham). Historically they had separate synagogues and schools and married separately from Halabis. Their documented customs here are limited to a separate bakashot order and 16th-century legal customs. Modern Shami ritual differences are mostly undocumented in the sources consulted."
+    },
+    {
+      "name": "US diaspora (Brooklyn / Deal, NJ)",
+      "note": "Size estimates vary: 75,000 (Wikipedia, 'Syrian Jews'); about 90,000 for the New York and New Jersey communities in 2007 (Wikipedia, 'Syrian Jewish communities of the United States'); or 'more than 50,000, mostly in Brooklyn and Deal, N.J.' by the community's own count (JTA, 2004). Centered around Ocean Parkway, Brooklyn, with a satellite community in Deal, NJ. Halabi and Shami descendants now intermarry freely. Shared institutions include the 1935 Edict, the 1964 'Shir Ushbaha Hallel VeZimrah' pizmonim book and the rulings of Hakhamim Kassin, Ben Haim and Mansour."
+    }
+  ],
   "historical_background": {
     "timeline": [
       {
-        "period": "Ancient era",
-        "event": "Jewish communities existed in Syria in antiquity.",
-        "halachic_impact": "A long-standing local Jewish presence created durable communal institutions."
+        "period": "Biblical tradition",
+        "event": "The community identifies Aleppo with Aram Soba and Damascus with Aram Dameseq, both conquered by King David.",
+        "halachic_impact": "This is the basis for treating Aleppo as having partial Land-of-Israel status for some laws. Per Wikipedia only, some such laws extend to Aleppo but not Damascus. Needs review."
       },
       {
-        "period": "Medieval era",
-        "event": "Aleppo and Damascus became major Jewish centers.",
-        "halachic_impact": "Communal custom and rabbinic leadership became highly developed."
+        "period": "16th century",
+        "event": "Sephardi exiles arrive after 1492. Damascus has close ties to Safed and Jerusalem, and in doubtful cases local practice relied on 'minhag Dameshek'.",
+        "halachic_impact": "Separate Sephardi groups in Aleppo, the 'Kahal Kadosh Sepharadim', kept Spanish customs such as the extra Chanukah candle. Damascus ketubah and inheritance customs were cited across the region."
       },
       {
-        "period": "Post-1492",
-        "event": "Sephardi refugees joined Syrian Jewish communities after expulsion from Spain.",
-        "halachic_impact": "Sephardi ritual influence increased while older local structures remained."
+        "period": "17th century",
+        "event": "The Sabbatean movement wins followers in Syria.",
+        "halachic_impact": "According to Rabbi Mansour, the Hakhamim cut back messianic references in the liturgy, which is why the four 'Halevi' stanzas of Lecha Dodi are omitted."
       },
       {
-        "period": "Ottoman era",
-        "event": "Syrian Jews flourished in commerce and communal life under Ottoman rule.",
-        "halachic_impact": "Distinct communal authority and synagogue culture were reinforced."
+        "period": "1908–1920s",
+        "event": "Mass emigration to New York, first to Manhattan, then Brooklyn.",
+        "halachic_impact": "Halabi and Shami immigrants first kept separate synagogues, schools and marriages."
       },
       {
-        "period": "20th century diaspora",
-        "event": "Large-scale migration to the Americas and Israel.",
-        "halachic_impact": "Syrian customs were preserved through tightly organized diaspora institutions."
+        "period": "1935",
+        "event": "Chief Rabbi Jacob Kassin and four rabbis, including Bet Din head Hakham Haim Tawil, issue the Proclamation (Edict) on converts. It was clarified in 1946 and 1972 and reaffirmed in 1984.",
+        "halachic_impact": "The community does not accept converts for marriage. In current practice this has been extended into a blanket ban."
+      },
+      {
+        "period": "1964",
+        "event": "'Shir Ushbaha Hallel VeZimrah' (the Red pizmonim book) is published in Jerusalem for the Aleppo community of Brooklyn.",
+        "halachic_impact": "It became the community's standard pizmonim collection and the reference for the weekly maqam."
+      },
+      {
+        "period": "1970s–present",
+        "event": "Year-round settlement in Deal, NJ: in the 1970s it 'lured tens of families to buy homes in the Deal area', and it now has 'hundreds of families in the winter months and thousands in the summer' (Gina Doueck, Conversations 29). According to Doueck, 'The last wave of immigrants arrived in the 1990s', and 'the number of Jews in Syria today is five or fewer persons.' A trend toward Haredi practice follows.",
+        "halachic_impact": "Gina Doueck (Conversations 29) contrasts 'the traditional, more practical approach' of Hakhamim Haim Tawil (1860–1942), Matloub Abadi (1887–1970) and Jacob Kassin (1900–1994) with Haredi practices brought in from Lakewood and Israel, such as 'full-time learning in kollel, women using wigs for hair covering instead of the traditional snood'."
       }
     ]
   },
   "core_halachic_authorities": {
     "primary_codes": [
-      "Shulchan Aruch",
-      "Mishneh Torah",
-      "Sephardi communal psak"
+      "Shulchan Aruch (Maran R. Yosef Karo)",
+      "Writings and customs of the Arizal (R. Yitzhak Luria), followed where they differ from Maran (e.g., Kapparot)"
     ],
     "major_rishonim_base": [
-      "Rambam",
-      "Rif",
-      "Rosh"
+      "Rambam (historically influential in Aleppo; some Halab prayer books follow his Chanukah blessing text)",
+      "Rashba (cited as opposing Kapparot)"
     ],
-    "later_syrian_poskim": [
-      "Rav Shmuel Laniado",
-      "Rav Yosef Chaim",
-      "Rav Ovadia Yosef",
-      "Syrian communal rabbinic leadership"
+    "later_poskim": [
+      "Ben Ish Hai (R. Yosef Haim of Baghdad)",
+      "Kaf HaHaim (R. Yaakov Haim Sofer)",
+      "Eretz Haim (R. Haim Sutton of Aleppo)",
+      "Hacham Eliyahu Hamoui (Aleppo)",
+      "Derech Eretz (minhag book of the Aleppo community)",
+      "Hacham Ovadia Yosef / Yalkut Yosef",
+      "Hacham Bension Abba Shaul (Or Le'Sion)",
+      "Hakham Jacob S. Kassin (Chief Rabbi, Brooklyn)",
+      "Hakham Baruch Ben Haim (Brooklyn)",
+      "Rabbi Eli J. Mansour (Edmond J. Safra Synagogue, Brooklyn; Ohel Yaacob, Deal)"
     ],
-    "decision_principle": "Follow Shulchan Aruch and inherited Syrian communal custom, with strong weight given to local Sephardi-Syrian minhag and established communal rulings."
+    "decision_principle": "Shulchan Aruch as the base. Kabbalistic practice of the Arizal, as transmitted by the Ben Ish Hai and Kaf HaHaim, is followed where the two conflict. Specific Aleppo customs recorded in Derech Eretz and the Halab siddurim are kept where they exist. Rabbi Mansour states: 'We, of course, treat all the customs and practices of the Arizal with the utmost seriousness and respect, as they reflect the customs of the Kabbalistic tradition, which we follow.'"
+  },
+  "runtime": {
+    "lens_key": "Syrian",
+    "practice_baseline": "Practice rests on the Shulchan Aruch read through the Arizal, the Ben Ish Hai and the Kaf HaHaim, together with specific Aleppo customs (Derech Eretz, Eretz Haim) as taught in the US by Hakhamim Kassin, Ben Haim and Rabbi Eli Mansour.",
+    "parameters": []
   },
   "halacha_index": [
     {
       "index": "halacha.1",
       "category": "Prayer",
-      "topic": "Nusach and liturgy",
-      "summary": "Syrian Jews generally follow Sephardi liturgy with deeply preserved Syrian melodies, piyyutim, and synagogue customs.",
+      "topic": "Nusach and liturgical base",
+      "summary": "Syrian synagogues pray from 'Aram Soba' (Aleppo) siddurim. The Kol Yaakob siddur is cited as a source for Halab custom. The rite is Sephardi and Kabbalistic, following the Arizal where he differs from the Shulchan Aruch.",
       "common_practices": [
-        "Use Syrian Sephardi siddur or machzor tradition",
-        "Preserve bakkashot and other local hymn traditions",
-        "Follow synagogue-specific rite and melody",
-        "Preserve inherited nusach and pronunciation in public prayer.",
-        "Coordinate weekday, Shabbat, and festival insertions with local rabbinic guidance.",
-        "Maintain community niggunim and piyyutim where accepted."
-      ]
+        "Siddurim 'keminhag Aram Soba' in Brooklyn synagogues",
+        "Kol Yaakob weekday siddur cited as a record of Halab custom",
+        "Arizal's customs followed over Maran where they conflict"
+      ],
+      "variants": [
+        {
+          "subgroup": "Damascus (Shami)",
+          "practice": "Its liturgy is reported to differ from Aleppo's 'in some details, mostly because of its greater proximity to the Holy Land'.",
+          "source": "Wikipedia, 'Syrian Jews'"
+        }
+      ],
+      "source": "Rabbi Eli J. Mansour, 'Select Halachot on Yom Kippur' (DailyHalacha archive, 2015), section 'The Custom of Kapparot'; Hanna Zemer, 'Nusach Aram Soba – Halab she-be-Flatbush' (1995)",
+      "source_url": "http://g-ddirecttorah.com/PDF/YomKippurHalachot2015.pdf",
+      "confidence": "needs-review",
+      "review_notes": "The Zemer essay was seen only as a search excerpt. The detailed textual differences between the Aleppo and Damascus siddurim are a gap.",
+      "references": [
+        {
+          "title": "Page 1 of 29 From The Archives of www.DAILYHALACHA.com",
+          "url": "http://g-ddirecttorah.com/PDF/YomKippurHalachot2015.pdf"
+        },
+        {
+          "title": "Syrian Jews",
+          "url": "https://en.wikipedia.org/wiki/Syrian_Jews"
+        },
+        {
+          "title": "History of the Jews in The Land of Israel: History of the Jews in Syria",
+          "url": "http://historyofthejewsinisrael.blogspot.com/2016/08/history-of-jews-in-syria.html"
+        }
+      ],
+      "topic_he": "נוסח ובסיס ליטורגי",
+      "summary_he": "בתי הכנסת הסוריים מתפללים מסידורי \"ארם צובא\" (חלב). הסידור \"קול יעקב\" מצוטט כמקור למנהג חלב. הנוסח ספרדי וקבלי, והולך אחרי האר\"י כשהוא חולק על השולחן ערוך."
     },
     {
       "index": "halacha.2",
-      "category": "Prayer",
-      "topic": "Bakkashot",
-      "summary": "Winter Shabbat morning hymn traditions are a major Syrian communal feature.",
+      "category": "Shabbat",
+      "topic": "Kabbalat Shabbat order (Halab)",
+      "summary": "Friday night begins with Psalm 29 (Mizmor LeDavid Havu) and goes straight to Lecha Dodi, without Ana BeKho'ah. Next come Mizmor Shir and Hashem Malach with no Kaddish, then Kol Yisrael, Bameh Madlikin and 'Rabbi Hananya ben Akashya' (not 'Amar Rabbi Elazar'). Kaddish Al Yisrael follows, then Mizmor Shir and Hashem Malach again, said seated, then Kaddish seated. The congregation stands for Barechu, when the extra Shabbat soul is received.",
       "common_practices": [
-        "Sing bakkashot in season where customary",
-        "Use community-established tune cycles",
-        "Preserve repertoire by family and congregation",
-        "Preserve inherited nusach and pronunciation in public prayer.",
-        "Coordinate weekday, Shabbat, and festival insertions with local rabbinic guidance.",
-        "Maintain community niggunim and piyyutim where accepted."
-      ]
+        "No Ana BeKho'ah before Lecha Dodi",
+        "Mizmor Shir / Hashem Malach recited twice, the second time seated",
+        "Stand for Barechu"
+      ],
+      "variants": [
+        {
+          "subgroup": "US diaspora (Brooklyn / Deal, NJ)",
+          "practice": "Described as 'still observed by the Syrian Jewish community today'.",
+          "source": "DailyHalacha #2341"
+        }
+      ],
+      "source": "Rabbi Eli J. Mansour, DailyHalacha.com, 'The Friday Night Prayer Service According to the Custom of Halab' (id 2341)",
+      "source_url": "http://www.dailyhalacha.com/m/halacha.aspx?id=2341",
+      "confidence": "regional",
+      "review_notes": "Single detailed source for Aleppo/US. Damascus order not found.",
+      "topic_he": "סדר קבלת שבת (חלב)",
+      "summary_he": "ליל שבת מתחיל במזמור כט (\"הבו לה'\") ועובר ישר ל\"לכה דודי\", בלי \"אנא בכוח\". אחר כך באים \"מזמור שיר\" ו\"ה' מלך\" בלי קדיש, ואחריהם \"כל ישראל\", \"במה מדליקין\" ו\"רבי חנניה בן עקשיא\" (לא \"אמר רבי אלעזר\"). אחר כך קדיש על ישראל, ואחריו שוב \"מזמור שיר\" ו\"ה' מלך\" בישיבה, ואז קדיש בישיבה. הקהל עומד ל\"ברכו\", כשמקבלים את הנשמה היתרה של שבת."
     },
     {
       "index": "halacha.3",
-      "category": "Prayer",
-      "topic": "Torah reading",
-      "summary": "Torah reading is carefully preserved with communal reading melody and honor distribution.",
+      "category": "Shabbat",
+      "topic": "Lecha Dodi: omission of the four 'Halevi' stanzas",
+      "summary": "Syrian custom omits the stanzas Hitna'ari, Lo Teboshi, VeHayu LiMshisa and Yamin USmol, which spell 'Halevi'. Only the stanzas spelling 'Shlomo' are sung. The reason given is the Sabbatean episode: the Hakhamim cut back explicit messianic references.",
       "common_practices": [
-        "Use trained ba'alei kri'ah",
-        "Follow accepted Syrian cantillation",
-        "Maintain synagogue norms for aliyot and honors",
-        "Preserve inherited nusach and pronunciation in public prayer.",
-        "Coordinate weekday, Shabbat, and festival insertions with local rabbinic guidance.",
-        "Maintain community niggunim and piyyutim where accepted."
-      ]
+        "Lecha Dodi ends with the stanza beginning 'Hit'oreri'"
+      ],
+      "variants": [],
+      "source": "Rabbi Eli J. Mansour, DailyHalacha.com id 2341",
+      "source_url": "http://www.dailyhalacha.com/m/halacha.aspx?id=2341",
+      "confidence": "regional",
+      "review_notes": "Stated as 'the custom in Syria', but documented from one source. Whether Damascus followed it is not separately confirmed.",
+      "topic_he": "לכה דודי: השמטת ארבעת בתי \"הלוי\"",
+      "summary_he": "המנהג הסורי משמיט את הבתים \"התנערי\", \"לא תבושי\", \"והיו למשיסה\" ו\"ימין ושמאל\", המרכיבים את השם \"הלוי\". שרים רק את הבתים המרכיבים \"שלמה\". הסיבה הניתנת היא פרשת השבתאות: החכמים צמצמו אזכורים משיחיים מפורשים."
     },
     {
       "index": "halacha.4",
       "category": "Shabbat",
-      "topic": "Candle lighting",
-      "summary": "Shabbat candle lighting is observed according to halacha and family tradition.",
+      "topic": "Weekly maqam (melodic mode) for Shabbat prayers",
+      "summary": "A different Arabic maqam is used each Shabbat for Shaharit, chosen by the theme of the parasha, following the Red pizmonim book 'Shir Ushbaha Hallel VeZimrah'. The main maqamat are Rast, Mahour, Ajam, Nahwand, Saba, Sigah, Bayat, Hoseni, Rahawi/Nawah and Hijaz. Pizmonim melodies are fitted to the prayers.",
       "common_practices": [
-        "Light before Shabbat begins",
-        "Use inherited blessing and candle-count customs",
-        "Preserve family-specific timing and arrangement traditions",
-        "Prepare practical needs before candle lighting to avoid melacha.",
-        "Use approved warming and lighting setups established before Shabbat.",
-        "Follow local zmanim for candle lighting, shekia, and havdalah."
-      ]
+        "Hazzan applies the maqam of the week on Shabbat; not applied on weekdays",
+        "High Holiday melodies are older and drawn from Golden-Age piyyutim and Selihot (list on p. 569 of the Red book)"
+      ],
+      "variants": [
+        {
+          "subgroup": "Damascus / Beirut traditions",
+          "practice": "'Slight variations in the maqam choices by the Beirut...' traditions are noted. The Damascus-specific choices are not recorded here.",
+          "source": "Sephardic Pizmonim Project, 'Maqam of the Week, Book of Numbers' (2009)"
+        }
+      ],
+      "source": "Sephardic Pizmonim Project, 'Maqam of the Week: Book of Numbers – Summer 2009' and 'High Holidays' festival page",
+      "source_url": "https://pizmonim.org/articles/MaqamBemidbar.pdf",
+      "confidence": "well-attested",
+      "review_notes": "The maqam assignments for each parasha are in the Pizmonim Project tables. The app should pull them from there rather than this summary.",
+      "references": [
+        {
+          "title": "Syrian Jews",
+          "url": "https://en.wikipedia.org/wiki/Syrian_Jews"
+        },
+        {
+          "title": "Maqam of the Week Book of Numbers -- Summer 2009 T he Middle Eastern Sephardic",
+          "url": "https://pizmonim.org/articles/MaqamBemidbar.pdf"
+        }
+      ],
+      "topic_he": "מקאם שבועי לתפילות השבת",
+      "summary_he": "בכל שבת משתמשים במקאם ערבי אחר לשחרית, הנבחר לפי נושא הפרשה, לפי ספר הפזמונים האדום \"שיר ושבחה הלל וזמרה\". המקאמות העיקריים הם ראסט, מאהור, עג'ם, נהאוונד, סבא, סיגה, בייאת, חוסייני, רהאווי/נוואה וחיג'אז. ניגוני הפזמונים מותאמים לתפילות."
     },
     {
       "index": "halacha.5",
-      "category": "Shabbat",
-      "topic": "Shabbat meals",
-      "summary": "Shabbat meals are central to Syrian Jewish life and include inherited hospitality customs.",
+      "category": "Distinctive customs",
+      "topic": "Bakashot (Shirat HaBaqashot)",
+      "summary": "On winter Shabbat mornings Aleppian congregations gather before dawn to sing a fixed cycle of bakashot until Shaharit. The text is the same every week and opens with 'El Mistater'. It follows a maqam system that changes from week to week, with poems from the Spanish Golden Age and by Aleppo poets. In the Aleppian tradition the season runs from Sukkot to Shabbat HaGadol.",
       "common_practices": [
-        "Prepare food before Shabbat",
-        "Use traditional Syrian dishes",
-        "Honor guests and family members according to communal etiquette",
-        "Prepare practical needs before candle lighting to avoid melacha.",
-        "Use approved warming and lighting setups established before Shabbat.",
-        "Follow local zmanim for candle lighting, shekia, and havdalah."
-      ]
+        "Begins well before dawn on winter Shabbatot",
+        "Fixed text each week (unlike the Moroccan weekly cycle)",
+        "Passed down orally from paytan to student",
+        "Collection: Miqra Qodesh, compiled by Rabbi Mordechai Abadi in Aleppo in 1872 (Hadar Cohen, The New Arab)"
+      ],
+      "variants": [
+        {
+          "subgroup": "Aleppo (Halabi)",
+          "practice": "Practised from Shabbat Bereshit until Shabbat HaGadol.",
+          "source": "Hebrew University Jewish Music Research Centre, 'Baqqashah (Pl. Baqqashot)'"
+        },
+        {
+          "subgroup": "Damascus (Shami)",
+          "practice": "Had its own printed order, 'Baqashot of Shabbat', Beirut 1913 (Damascus tradition). It opens with the petiha 'El Yaqshib LaQol Tahanunai', includes 'Qabel Tefilati' and omits 'Ani Ashava' and 'Odeh El Hai', which appear in the Aleppo editions.",
+          "source": "Sephardic Pizmonim Project, Baqashot section comparison table (pizmonim.com/section.php?maqam=Baqashot)"
+        },
+        {
+          "subgroup": "US diaspora (Brooklyn / Deal, NJ)",
+          "practice": "JTA (May 6, 2014) quotes organizer Thomas saying bakashot 'have also experienced a resurgence in the local Syrian community'. The article adds that among Syrian Jews 'there is a set group of 66 bakashot that are recited completely or in part each week.'",
+          "source": "JTA, 'Bringing back bakashot' (May 6, 2014), via The Jewish Standard"
+        }
+      ],
+      "source": "Hibba Center / Zalman Shazar Center, 'The Baqashot Tradition of Aleppo's Jewish Community'; HUJI Jewish Music Research Centre; IEMJ 'Baqqachot'",
+      "source_url": "https://jewish-music.huji.ac.il/en/content/baqqashah-pl-baqqashot",
+      "confidence": "well-attested",
+      "review_notes": "Sources disagree on the season. The HUJI source gives Sukkot to Shabbat HaGadol for Aleppians. Wikipedia ('Baqashot') says 'from the Jewish festival of Sukkot through Purim', and JTA (2014) says 'in the months between Sukkot and Passover'. One AI-written encyclopedia claims Damascus had no bakashot, which the 1913 Damascus-tradition book contradicts.",
+      "references": [
+        {
+          "title": "14 Facts About Syrian Jews - Chabad.org",
+          "url": "https://www.chabad.org/library/article_cdo/aid/5585072/jewish/14-Facts-About-Syrian-Jews.htm"
+        },
+        {
+          "title": "The Baqashot Tradition of Aleppo’s Jewish Community — Hibba Center",
+          "url": "https://shop.hibba.org/en/bakashot/"
+        },
+        {
+          "title": "Baqqachot - Institut Européen des Musiques Juives",
+          "url": "https://www.iemj.org/en/les-baqqachot/"
+        },
+        {
+          "title": "Syrian Jews — Grokipedia",
+          "url": "https://grokipedia.com/page/Syrian_Jews"
+        }
+      ],
+      "topic_he": "בקשות (שירת הבקשות)",
+      "summary_he": "בבקרי שבת של החורף מתכנסות קהילות חלביות לפני עלות השחר לשיר מחזור קבוע של בקשות עד שחרית. הנוסח זהה בכל שבוע ופותח ב\"אל מסתתר\". הוא הולך לפי מערכת מקאמים המשתנה משבוע לשבוע, עם שירים מתור הזהב של ספרד ושל משוררי חלב. במסורת החלבית העונה נמשכת מסוכות עד שבת הגדול."
     },
     {
       "index": "halacha.6",
-      "category": "Shabbat",
-      "topic": "Cooking and warming",
-      "summary": "Cooking is prohibited on Shabbat, while permitted warming methods may be used according to halacha.",
+      "category": "Rosh Hashana",
+      "topic": "Simanim (symbolic foods) and their order",
+      "summary": "Following the Ben Ish Hai, the order is: date (with HaEtz covering all tree fruits), any HaAdama food (covering the rest), then Lubia (black-eyed peas, the community's custom instead of Rubia) with the word 'She'telabebenu' in the Yehi Ratzon. Next come leek (Karti), Swiss chard, gourd, pomegranate and apple, then sheep's head or fish head according to family custom. The Yehi Ratzon is said after taking a bite, to avoid an interruption.",
       "common_practices": [
-        "Cook before Shabbat",
-        "Use permitted warming arrangements if accepted locally",
-        "Avoid direct cooking and prohibited adjustments",
-        "Prepare practical needs before candle lighting to avoid melacha.",
-        "Use approved warming and lighting setups established before Shabbat.",
-        "Follow local zmanim for candle lighting, shekia, and havdalah."
-      ]
+        "Lubia rather than Rubia",
+        "Over the apple the word 'Ki'dbash' is omitted: 'Shana Tova U'mutka Me'reshit Shana Ve'ad Aharit Shana'",
+        "Some dip the apple in sugar rather than honey (Ben Ish Hai); follow family custom",
+        "One who cannot eat a siman looks at or points to it and says the Yehi Ratzon (Kaf HaHaim)",
+        "Eaten on the first night; some do both nights"
+      ],
+      "variants": [
+        {
+          "subgroup": "US diaspora (Brooklyn / Deal, NJ)",
+          "practice": "Lubia, and the shortened apple formula without Ki'dbash, are described as 'our community's custom' / 'our custom'.",
+          "source": "Mansour, Select Halachot on Rosh Hashana (2020), p. 11"
+        }
+      ],
+      "source": "Rabbi Eli J. Mansour, 'Select Halachot on Rosh Hashana' (iTorah archive, Sept. 14, 2020), 'The Order of the Simanim', p. 11; 'One Who Cannot Eat the Traditional Rosh Hashanah Foods', p. 10",
+      "source_url": "https://www.learntorah.com/contentlibrary/guides/Rosh%20Hashana%20Halachot%202020.pdf",
+      "confidence": "regional",
+      "review_notes": "Mansour says the order 'is not critical'. Aleppo- or Damascus-specific orders before emigration were not found.",
+      "references": [
+        {
+          "title": "Rosh Hashana",
+          "url": "https://www.bukharianjewishlink.com/index.php/feature/2969-rosh-hashana-the-order-of-the-simanim"
+        },
+        {
+          "title": "Page 1 of 36 From The Archives of www.iTORAH.com",
+          "url": "https://www.learntorah.com/contentlibrary/guides/Rosh%20Hashana%20Halachot%202020.pdf"
+        }
+      ],
+      "topic_he": "סימנים (מאכלי סמל) וסדרם",
+      "summary_he": "לפי הבן איש חי הסדר הוא: תמר (כשברכת \"העץ\" פוטרת את כל פירות העץ), כל מאכל \"האדמה\" (הפוטר את השאר), ואחר כך לוביא (שעועית שחורת עין, מנהג הקהילה במקום רוביא) עם המילה \"שנתלבבנו\" ב\"יהי רצון\". אחר כך באים כרתי, תרד עלים, דלעת, רימון ותפוח, ואחר כך ראש כבש או ראש דג לפי מנהג המשפחה. ה\"יהי רצון\" נאמר אחרי נגיסה, כדי למנוע הפסק."
     },
     {
       "index": "halacha.7",
-      "category": "Shabbat",
-      "topic": "Carrying and eruv",
-      "summary": "Carrying depends on the validity of the local eruv and communal standards.",
+      "category": "Yom Kippur",
+      "topic": "Kapparot with a chicken",
+      "summary": "Although the Shulchan Aruch (following the Rashba) calls for abolishing Kapparot, the community follows the Arizal and performs it with a chicken: a rooster for each male, a hen for each female, and for a pregnant woman one hen for herself plus a hen and a rooster for the fetus. The chicken is swung three times while saying 'Zeh Halifati, Zeh Temurati, Zeh Kaparati'. Preferred time is early morning of Ereb Yom Kippur. Money given to charity is an acceptable alternative.",
       "common_practices": [
-        "Do not carry where no valid eruv exists",
-        "Follow local rabbinic guidance",
-        "Observe neighborhood-specific rules carefully",
-        "Prepare practical needs before candle lighting to avoid melacha.",
-        "Use approved warming and lighting setups established before Shabbat.",
-        "Follow local zmanim for candle lighting, shekia, and havdalah."
-      ]
+        "Owner covers the blood (Kisui HaDam) with a blessing",
+        "Use the formula 'Zeh HaTarnegol Yelech LeMita Ve'ikanes Ani...' (Kaf HaHaim)",
+        "Declare it 'beli neder'"
+      ],
+      "variants": [
+        {
+          "subgroup": "Aleppo (Halabi)",
+          "practice": "Codified by the Aleppo authority Eretz Haim (R. Haim Sutton).",
+          "source": "Mansour, Select Halachot on Yom Kippur (2015), p. 3"
+        }
+      ],
+      "source": "Rabbi Eli J. Mansour, 'Select Halachot on Yom Kippur' (DailyHalacha archive, Sept. 19, 2015), 'The Custom of Kapparot', pp. 3–4",
+      "source_url": "http://g-ddirecttorah.com/PDF/YomKippurHalachot2015.pdf",
+      "confidence": "regional",
+      "review_notes": "This contradicts Shulchan Aruch OC 605 on purpose, following the Arizal.",
+      "references": [
+        {
+          "title": "Daily Halacha Podcast - Daily Halacha By Rabbi Eli J. Mansour",
+          "url": "https://www.dailyhalacha.com/podcast.asp"
+        }
+      ],
+      "topic_he": "כפרות בתרנגול",
+      "summary_he": "אף שהשולחן ערוך (בעקבות הרשב\"א) קורא לבטל את הכפרות, הקהילה הולכת אחרי האר\"י ומקיימת אותן בתרנגול: תרנגול לכל זכר, תרנגולת לכל נקבה, ולאישה הרה תרנגולת אחת בעבורה ועוד תרנגולת ותרנגול בעבור העובר. מניפים את העוף שלוש פעמים ואומרים \"זה חליפתי, זה תמורתי, זה כפרתי\". הזמן המועדף הוא בוקר מוקדם של ערב יום כיפור. כסף שניתן לצדקה הוא חלופה מקובלת."
     },
     {
       "index": "halacha.8",
-      "category": "Kashrut",
-      "topic": "Meat and dairy separation",
-      "summary": "Syrian kitchens maintain strict meat and dairy separation as a central halachic norm.",
+      "category": "Yom Kippur",
+      "topic": "Candle lighting before Yom Kippur",
+      "summary": "In Halab the accepted custom was either not to light Yom Kippur candles or to light them without a blessing. When Yom Kippur falls on Shabbat, the blessing 'LeHadlik Ner Shel Shabbat VeYom HaKippurim' is said.",
       "common_practices": [
-        "Keep separate meat and dairy utensils",
-        "Observe customary waiting period after meat according to family and community practice",
-        "Maintain clean separation in home and institutional kitchens",
-        "Keep clear separation of meat and dairy utensils, storage, and prep zones.",
-        "Verify supervision standards according to trusted local rabbinic authority.",
-        "Apply inherited waiting-time custom for meat and dairy under halachic guidance."
-      ]
+        "No blessing on weekday Yom Kippur candles (Halab custom)",
+        "Women who are not in synagogue for Kal Nidre still say Shehehiyanu"
+      ],
+      "variants": [
+        {
+          "subgroup": "Hacham Eliyahu Hamoui (Aleppo)",
+          "practice": "No blessing is said, even when Yom Kippur falls on Shabbat.",
+          "source": "DailyHalacha (Mansour), Yom Kippur candle-lighting halacha"
+        },
+        {
+          "subgroup": "The consensus view, according to Rabbi Mansour",
+          "practice": "The blessing is said when Yom Kippur falls on Shabbat.",
+          "source": "DailyHalacha (Mansour), Yom Kippur candle-lighting halacha"
+        }
+      ],
+      "source": "Rabbi Eli J. Mansour, 'Select Halachot on Yom Kippur' (2015), 'Candle Lighting', p. 22, citing Derech Eretz and the Kol Yaakob weekday siddur",
+      "source_url": "http://g-ddirecttorah.com/PDF/YomKippurHalachot2015.pdf",
+      "confidence": "disputed",
+      "review_notes": "The wording was read from search excerpts of this PDF and the DailyHalacha podcast page; the fetched copy was cut off before p. 22. Needs to be checked against the full text.",
+      "topic_he": "הדלקת נרות לפני יום כיפור",
+      "summary_he": "בחלב המנהג המקובל היה שלא להדליק נרות ליום כיפור או להדליק אותם בלי ברכה. כשיום כיפור חל בשבת אומרים את הברכה \"להדליק נר של שבת ושל יום הכיפורים\"."
     },
     {
       "index": "halacha.9",
-      "category": "Kashrut",
-      "topic": "Shechita and supervision",
-      "summary": "Meat supervision is handled carefully through trusted communal standards.",
+      "category": "Chanukah",
+      "topic": "The extra candle (second shamash)",
+      "summary": "In Rabbi Mansour's words, 'There is a custom observed by some Jews with roots in Aleppo to light an extra candle each night of Hanukah': three on the first night (one for the mitzvah and two 'shamash'), four on the second, and so on. Derech Eretz says the custom belonged specifically to the 'Kahal Kadosh Sepharadim', the Aleppo group that kept Spanish customs.",
       "common_practices": [
-        "Use qualified shochtim and mashgichim",
-        "Inspect meat and poultry under accepted supervision",
-        "Observe local stringencies on glatt or alternative standards where established",
-        "Keep clear separation of meat and dairy utensils, storage, and prep zones.",
-        "Verify supervision standards according to trusted local rabbinic authority.",
-        "Apply inherited waiting-time custom for meat and dairy under halachic guidance."
-      ]
+        "The extra candle is placed away from or higher than the mitzvah candles",
+        "Those whose forebears did not keep it light the standard number"
+      ],
+      "variants": [
+        {
+          "subgroup": "Aleppo (Halabi), Sephardi-descended families",
+          "practice": "Light the extra candle. Derech Eretz gives two reasons in the name of R. Yitzhak Tawil: (1) these wealthy families normally kept two lamps lit, so two Chanukah lights would not be noticed; (2) concern about 'zugot' (pairs).",
+          "source": "DailyHalacha #2595"
+        },
+        {
+          "subgroup": "US diaspora (Brooklyn / Deal, NJ)",
+          "practice": "Mansour (#745) says the extra candle should not be placed in the menorah, and should be lit only after the whole lighting, including Hanerot Halalu, is finished.",
+          "source": "DailyHalacha #745"
+        },
+        {
+          "subgroup": "Damascus (Shami)",
+          "practice": "No documentation that Damascus families keep this custom. Sources describe it only for Aleppo.",
+          "source": "Absence in all sources consulted"
+        }
+      ],
+      "source": "Rabbi Eli J. Mansour, DailyHalacha.com, 'The Custom Among Some Syrian Jews to Light an Extra Candle on Hanukah' (id 2595), citing Derech Eretz",
+      "source_url": "http://www.dailyhalacha.com/m/halacha.aspx?id=2595",
+      "confidence": "well-attested",
+      "review_notes": "The custom is well attested; the reason is disputed. Popular sources say it is gratitude for a refuge after 1492 (Forward; Chabad). #745 attributes it to 'a miracle that happened to Syrian Jews one year'. Derech Eretz gives practical reasons. Do not apply it to every Syrian family.",
+      "references": [
+        {
+          "title": "History of the Jews in The Land of Israel: History of the Jews in Syria",
+          "url": "http://historyofthejewsinisrael.blogspot.com/2016/08/history-of-jews-in-syria.html"
+        },
+        {
+          "title": "14 Facts About Syrian Jews - Chabad.org",
+          "url": "https://www.chabad.org/library/article_cdo/aid/5585072/jewish/14-Facts-About-Syrian-Jews.htm"
+        },
+        {
+          "title": "What a Syrian Hanukkah Custom Can Teach Us About Refugees",
+          "url": "https://forward.com/opinion/325492/what-a-syrian-hanukkah-custom-can-teach-us-about-refugees/"
+        },
+        {
+          "title": "Hanukah Candles",
+          "url": "http://www.dailyhalacha.com/m/halacha.aspx?id=745"
+        }
+      ],
+      "topic_he": "הנר הנוסף (שמש שני)",
+      "summary_he": "בדברי הרב מנסור, \"יש מנהג שמקיימים יהודים מסוימים ששורשיהם בחלב להדליק נר נוסף בכל לילה של חנוכה\": שלושה בלילה הראשון (אחד למצווה ושניים \"שמש\"), ארבעה בשני, וכן הלאה. \"דרך ארץ\" אומר שהמנהג שייך דווקא ל\"קהל קדוש ספרדים\", קבוצת חלב ששמרה מנהגי ספרד."
     },
     {
       "index": "halacha.10",
-      "category": "Kashrut",
-      "topic": "Wine",
-      "summary": "Wine for ritual and table use follows strict supervision and communal trust norms.",
+      "category": "Chanukah",
+      "topic": "Text of the blessing",
+      "summary": "The Syrian community says 'LeHadlik Ner Hanukah' (Shulchan Aruch and Arizal), not 'LeHadlik Ner Shel Hanukah', even though the Rambam has 'Shel' and some Halab prayer books follow him. Derech Eretz records no fixed custom for when Hanerot Halalu begins.",
       "common_practices": [
-        "Use kosher wine for Kiddush and ritual needs",
-        "Avoid questionable handling of wine",
-        "Follow communal practice for wine brands and supervision",
-        "Keep clear separation of meat and dairy utensils, storage, and prep zones.",
-        "Verify supervision standards according to trusted local rabbinic authority.",
-        "Apply inherited waiting-time custom for meat and dairy under halachic guidance."
-      ]
+        "'LeHadlik Ner Hanukah'"
+      ],
+      "variants": [
+        {
+          "subgroup": "Aleppo (Halabi)",
+          "practice": "Some Halab prayer books print 'Ner Shel Hanukah' (Rambam).",
+          "source": "Mansour, 'Hanukah – The Berachot Over the Candle Lighting' (iTorah)"
+        }
+      ],
+      "source": "Rabbi Eli J. Mansour, 'Hanukah – The Berachot Over the Candle Lighting', iTorah.com lecture 20275",
+      "source_url": "https://itorah.com/lecture/audio/rabbi-eli-mansour/hanukah-the-berachot-over-the-candle-lighting/20275/6",
+      "confidence": "needs-review",
+      "review_notes": "Read from a search excerpt of the lecture text, not the full page.",
+      "topic_he": "נוסח הברכה",
+      "summary_he": "הקהילה הסורית אומרת \"להדליק נר חנוכה\" (שולחן ערוך והאר\"י), ולא \"להדליק נר של חנוכה\", אף שלרמב\"ם יש \"של\" וסידורי חלב אחדים הולכים אחריו. \"דרך ארץ\" אינו מתעד מנהג קבוע לגבי המועד שבו מתחילים \"הנרות הללו\"."
     },
     {
       "index": "halacha.11",
-      "category": "Pesach",
-      "topic": "Chametz removal",
-      "summary": "Chametz removal before Pesach is performed carefully and thoroughly.",
+      "category": "Purim",
+      "topic": "Five 'verses of redemption' read aloud",
+      "summary": "In Aleppo the congregation sings five verses of the Megillah aloud, in the Aleppo Megillah melody: 'Ish Yehudi', 'BaLaila HaHu', 'UMordechai Yatza', 'LaYehudim Hayta Ora' and 'Ki Mordechai HaYehudi'. Most communities read only the first four aloud.",
       "common_practices": [
-        "Search for chametz before Pesach",
-        "Remove or sell chametz properly",
-        "Use dedicated Pesach utensils or kashering where required",
-        "Review chametz cleaning and kashering checklists before the festival.",
-        "Follow community custom on kitniyot and festival kitchen workflow.",
-        "Use community haggadah flow and family minhagim within halachic structure."
-      ]
+        "Congregation sings the verses in the Megillah melody"
+      ],
+      "variants": [
+        {
+          "subgroup": "Aleppo (Halabi)",
+          "practice": "The whole community adopted the Musta'arabi customs for the Torah reading and Al HaNissim on both days of Purim. The details are not recorded here.",
+          "source": "Aleppo Jewry Heritage Center, 'Customs of Halab special to Purim'"
+        }
+      ],
+      "source": "Aleppo Jewry Heritage Center (Merkaz Moreshet Aram Tzova), 'מנהגי חלב המיוחדים לימי הפורים'",
+      "source_url": "https://aleppojews.co.il/%D7%9E%D7%A7%D7%91%D7%A5-%D7%9E%D7%9E%D7%A0%D7%94%D7%92%D7%99-%D7%97%D7%9C%D7%91-%D7%94%D7%9E%D7%99%D7%95%D7%97%D7%93%D7%99%D7%9D-%D7%9C%D7%99%D7%9E%D7%99-%D7%94%D7%A4%D7%95%D7%A8%D7%99%D7%9D/",
+      "confidence": "needs-review",
+      "review_notes": "The page blocked fetching; content is from the search excerpt only. A related NLI booklet: 'Purim... minhagei Purim shel yehudei Aram Tzova', ed. Moshe Cohen.",
+      "references": [
+        {
+          "title": "מנהגי חלב המיוחדים לימי הפורים",
+          "url": "https://aleppojews.co.il/%D7%9E%D7%A7%D7%91%D7%A5-%D7%9E%D7%9E%D7%A0%D7%94%D7%92%D7%99-%D7%97%D7%9C%D7%91-%D7%94%D7%9E%D7%99%D7%95%D7%97%D7%93%D7%99%D7%9D-%D7%9C%D7%99%D7%9E%D7%99-%D7%94%D7%A4%D7%95%D7%A8%D7%99%D7%9D/"
+        }
+      ],
+      "topic_he": "חמשת \"פסוקי הגאולה\" הנקראים בקול",
+      "summary_he": "בחלב שר הקהל חמישה פסוקים מהמגילה בקול, בניגון מגילת חלב: \"איש יהודי\", \"בלילה ההוא\", \"ומרדכי יצא\", \"ליהודים היתה אורה\" ו\"כי מרדכי היהודי\". רוב הקהילות קוראות בקול רק את הארבעה הראשונים."
     },
     {
       "index": "halacha.12",
       "category": "Pesach",
-      "topic": "Kitniyot",
-      "summary": "Syrian practice generally permits kitniyot in the Sephardi tradition, subject to local custom.",
+      "topic": "Kitniyot and rice",
+      "summary": "Syrian Jews eat rice and kitniyot on Pesach. Rice traditionally accompanies the lamb shanks served at the seder.",
       "common_practices": [
-        "Rice and legumes may be permitted",
-        "Inspect all packaged foods carefully",
-        "Follow inherited family and synagogue standards",
-        "Review chametz cleaning and kashering checklists before the festival.",
-        "Follow community custom on kitniyot and festival kitchen workflow.",
-        "Use community haggadah flow and family minhagim within halachic structure."
-      ]
+        "Rice eaten on Pesach (checked for grain)",
+        "Lamb shanks served as an entree, eaten only at Pesach"
+      ],
+      "variants": [],
+      "source": "Halachipedia, 'Kitniyot' ('Syrians eat rice on Pesach'); JTA, 'A Syrian Passover seder' (2004)",
+      "source_url": "https://www.halachipedia.com/index.php?title=Kitniyot",
+      "confidence": "needs-review",
+      "review_notes": "Both read only as search excerpts; neither is a primary Syrian halachic text. The rule for checking rice comes from general Sephardic sources (Peninei Halakha; Star-K), not Syrian ones.",
+      "references": [
+        {
+          "title": "Kitniyot - Halachipedia",
+          "url": "https://www.halachipedia.com/index.php?title=Kitniyot"
+        }
+      ],
+      "topic_he": "קטניות ואורז",
+      "summary_he": "יהודי סוריה אוכלים אורז וקטניות בפסח. האורז מלווה במסורת את שוקי הכבש המוגשים בסדר."
     },
     {
       "index": "halacha.13",
       "category": "Pesach",
-      "topic": "Seder customs",
-      "summary": "The Seder is observed with Syrian family order, melodies, and communal customs.",
+      "topic": "Seder: the 'Misharotam' afikoman ritual",
+      "summary": "The afikoman is wrapped in a napkin or sack and placed with the right hand over the left shoulder while saying 'Misharotam' (Exodus 12:34). The table asks in Judeo-Arabic 'Minwen jaiyeh?' (Where are you coming from?) – 'Mimmisrayim'; 'Lawen rayech?' (Where are you going?) – 'Liyerushalayim'; 'Ishu zawatek?' (What are you carrying?) – 'Matzah'. The sack is passed around the table.",
       "common_practices": [
-        "Use Syrian Haggadah traditions",
-        "Preserve family songs and recitation order",
-        "Follow local customs for matzah, maror, and afikoman",
-        "Review chametz cleaning and kashering checklists before the festival.",
-        "Follow community custom on kitniyot and festival kitchen workflow.",
-        "Use community haggadah flow and family minhagim within halachic structure."
-      ]
+        "Each participant takes a turn",
+        "Exchange in Judeo-Arabic"
+      ],
+      "variants": [
+        {
+          "subgroup": "Aleppo (Halabi)",
+          "practice": "Family version from Aleppo transcribed by Asher Shasho Levy; it is done after the leader breaks the middle matzah.",
+          "source": "Jewish Language Project, 'Other Parts of Haggadah'"
+        }
+      ],
+      "source": "Sarina Roffe, Community Magazine, reprinted as 'Rich traditions unique to Syrian Jews' (Point of No Return, Jan. 2018)",
+      "source_url": "https://www.jewishrefugees.org.uk/2018/01/rich-traditions-unique-to-syrian-jews.html",
+      "confidence": "well-attested",
+      "review_notes": "Roffe contrasts this with the Moroccan practice of waving the seder plate overhead ('Bibhilu'). Do not attribute Bibhilu to Syrians.",
+      "references": [
+        {
+          "title": "Rich traditions unique to Syrian Jews • Point of No Return",
+          "url": "https://www.jewishrefugees.org.uk/2018/01/rich-traditions-unique-to-syrian-jews.html"
+        }
+      ],
+      "topic_he": "הסדר: טקס האפיקומן \"משארותם\"",
+      "summary_he": "האפיקומן עטוף במפית או בשק ומונח ביד ימין מעל הכתף השמאלית תוך אמירת \"משארותם\" (שמות יב:לד). השולחן שואל ביהודית-ערבית \"מנוין ג'איה?\" (מאין אתה בא?) – \"ממצרים\"; \"לוין ראיח?\" (לאן אתה הולך?) – \"לירושלים\"; \"איש זוואתק?\" (מה אתה נושא?) – \"מצה\". השק עובר סביב השולחן."
     },
     {
       "index": "halacha.14",
-      "category": "Tefillin",
-      "topic": "Tefillin practice",
-      "summary": "Tefillin are worn daily on weekdays in the standard halachic manner.",
+      "category": "Pesach",
+      "topic": "Fast of the Firstborn",
+      "summary": "Firstborn males are exempted by attending a seudat mitzvah on Ereb Pesah. In the Syrian community firstborn women do not fast.",
       "common_practices": [
-        "Wear tefillin for weekday prayer",
-        "Use properly checked tefillin",
-        "Follow inherited wrapping and blessing customs",
-        "Follow local minhag for wrapping style, knot positioning, and sequence.",
-        "Use checked batim and retzuot under reliable supervision.",
-        "Teach youth practical donning order with community standards."
-      ]
+        "Siyum or seudat mitzvah after Shaharit"
+      ],
+      "variants": [],
+      "source": "Sarina Roffe, 'Rich traditions unique to Syrian Jews' (Community Magazine)",
+      "source_url": "https://www.jewishrefugees.org.uk/2018/01/rich-traditions-unique-to-syrian-jews.html",
+      "confidence": "needs-review",
+      "review_notes": "One journalistic source.",
+      "topic_he": "תענית בכורות",
+      "summary_he": "בכורים זכרים נפטרים בהשתתפות בסעודת מצווה בערב פסח. בקהילה הסורית בכורות נשים אינן צמות."
     },
     {
       "index": "halacha.15",
-      "category": "Tzitzit",
-      "topic": "Tallit and fringes",
-      "summary": "Tzitzit are observed according to halacha with Syrian family customs in tallit style and blessing practice.",
+      "category": "Omer",
+      "topic": "Mourning period and haircuts",
+      "summary": "The Sephardic custom taught in the community is that men do not cut their hair until the morning of the 34th day of the Omer (not the night before). Weddings preferably wait until the night after the 34th. Three-year-old boys may have their first haircut on Lag BaOmer itself. Women are not restricted.",
       "common_practices": [
-        "Wear tzitzit by communal norm",
-        "Use family custom for tallit materials and size",
-        "Preserve inherited donning order",
-        "Follow local custom for tallit katan and tallit gadol usage.",
-        "Maintain knot and winding patterns according to inherited minhag.",
-        "Inspect tzitzit regularly for halachic validity."
-      ]
+        "Haircuts from the morning of the 34th",
+        "Father, mohel and sandak may cut their hair for a brit; the father may also for a pidyon haben"
+      ],
+      "variants": [
+        {
+          "subgroup": "US diaspora (Brooklyn / Deal, NJ)",
+          "practice": "Mansour also records that 'some Sephardim' do not cut their hair until Erev Shavuot (the Arizal's practice).",
+          "source": "DailyHalacha readID 269"
+        },
+        {
+          "subgroup": "Sephardic custom taught in the community",
+          "practice": "Men do not cut their hair until the morning of the 34th day of the Omer.",
+          "source": "DailyHalacha (Mansour), 'When are Haircuts Allowed During the Omer?'"
+        }
+      ],
+      "source": "Rabbi Eli J. Mansour, DailyHalacha.com, 'When are Haircuts Allowed During the Omer?' (id 2694); 'Lag Ba'omer: Haircuts...' (readID 269)",
+      "source_url": "https://www.dailyhalacha.com/m/halacha.aspx?id=2694",
+      "confidence": "disputed",
+      "review_notes": "Presented as general Sephardic custom (Shulchan Aruch OC 493:2), not specifically Halabi or Shami. Read from search excerpts.",
+      "references": [
+        {
+          "title": "When are Haircuts Allowed During the Omer?",
+          "url": "https://www.dailyhalacha.com/m/halacha.aspx?id=2694"
+        },
+        {
+          "title": "This year <em>Lag B’omer</em> will be on Sunday. When am I permitted to get a haircut?",
+          "url": "https://oukosher.org/halacha-yomis/this-year-lag-bomer-will-be-on-sunday-when-am-i-permitted-to-get-a-haircut/"
+        }
+      ],
+      "topic_he": "ימי האבלות ותספורת",
+      "summary_he": "המנהג הספרדי הנלמד בקהילה הוא שגברים אינם גוזרים שיער עד בוקר היום ה-34 בעומר (לא בלילה שלפניו). חתונות ממתינות רצוי עד הלילה שאחרי ה-34. ילדים בני שלוש רשאים לקבל תספורת ראשונה בל\"ג בעומר עצמו. נשים אינן מוגבלות."
     },
     {
       "index": "halacha.16",
-      "category": "Lifecycle",
-      "topic": "Brit milah",
-      "summary": "Brit milah is a major communal event with strong ceremonial traditions.",
+      "category": "Torah reading",
+      "topic": "Aliyah divisions and the Judeo-Arabic Sharh",
+      "summary": "Aleppo has its own set of stopping points for aliyot, published by Hakham Yosef Mosseri (Brooklyn) in the tikkun korim 'Birkat Abraham' (Sephardic Heritage Foundation). Aleppo also had its own Judeo-Arabic translation of the Torah (Sharh), edited by Prof. Yitzhak Avishur.",
       "common_practices": [
-        "Use a qualified mohel",
-        "Preserve naming customs and seating order",
-        "Include traditional songs and blessings where customary",
-        "Keep core lifecycle ceremonies aligned with halachic requirements.",
-        "Document family minhagim for naming, honors, and celebration order.",
-        "Consult community rabbi for local protocol differences."
-      ]
+        "Stopping points for each aliyah follow minhag Aram Soba",
+        "The Pizmonim Project publishes the 'proper Syrian Torah Aliyot Stops'"
+      ],
+      "variants": [],
+      "source": "Aleppo Jewry Heritage Center, 'Aliyot in the Torah reading according to minhag Aram Soba' (from 'Birkat Abraham', H. Yosef Mosseri); Y. Avishur, 'The Aleppo Sharh of the Torah'",
+      "source_url": "https://aleppojews.co.il/%D7%A2%D7%9C%D7%99%D7%95%D7%AA-%D7%91%D7%A7%D7%A8%D7%99%D7%90%D7%AA-%D7%A1%D7%A4%D7%A8-%D7%AA%D7%95%D7%A8%D7%94-%D7%9C%D7%A4%D7%99-%D7%9E%D7%A0%D7%94%D7%92-%D7%90%D7%A8%D7%9D-%D7%A6%D7%95%D7%91%D7%90/",
+      "confidence": "needs-review",
+      "review_notes": "Read from search excerpts only. Pronunciation and trope are a gap.",
+      "references": [
+        {
+          "title": "עליות בקריאת ספר תורה לפי מנהג ארם צובא",
+          "url": "https://aleppojews.co.il/%D7%A2%D7%9C%D7%99%D7%95%D7%AA-%D7%91%D7%A7%D7%A8%D7%99%D7%90%D7%AA-%D7%A1%D7%A4%D7%A8-%D7%AA%D7%95%D7%A8%D7%94-%D7%9C%D7%A4%D7%99-%D7%9E%D7%A0%D7%94%D7%92-%D7%90%D7%A8%D7%9D-%D7%A6%D7%95%D7%91%D7%90/"
+        }
+      ],
+      "topic_he": "חלוקת עליות ו\"שרח\" ביהודית-ערבית",
+      "summary_he": "לחלב יש מערכת משלה של נקודות עצירה לעליות, שפרסם החכם יוסף מוסרי (ברוקלין) בתיקון קוראים \"ברכת אברהם\" (קרן המורשת הספרדית). לחלב היה גם תרגום משלה של התורה ליהודית-ערבית (שרח), בעריכת פרופ' יצחק אבישור."
     },
     {
       "index": "halacha.17",
-      "category": "Lifecycle",
-      "topic": "Marriage and ketubah",
-      "summary": "Marriage is halachically standard but highly structured by Syrian communal custom.",
+      "category": "Brit milah and pidyon haben",
+      "topic": "Seniyet Eliyahu HaNabi and other brit customs",
+      "summary": "At every brit a two-level tray with candles, 'Seniyet Eliyahu HaNabi', is passed around. Guests light candles and give charity, and some take a coin for good mazal. The grandmother carrying the baby wears a gold-threaded family shawl passed down through generations of women. Knafe is the customary food.",
       "common_practices": [
-        "Use a valid ketubah",
-        "Perform kiddushin and nissuin properly",
-        "Follow family customs for ring or coin traditions, feasts, and ceremonial order",
-        "Keep core lifecycle ceremonies aligned with halachic requirements.",
-        "Document family minhagim for naming, honors, and celebration order.",
-        "Consult community rabbi for local protocol differences."
-      ]
+        "Candle tray of Eliyahu HaNabi",
+        "Heirloom family shawl worn by the grandmother",
+        "Knafe served"
+      ],
+      "variants": [],
+      "source": "Sarina Roffe, 'Rich traditions unique to Syrian Jews' (Community Magazine)",
+      "source_url": "https://www.jewishrefugees.org.uk/2018/01/rich-traditions-unique-to-syrian-jews.html",
+      "confidence": "needs-review",
+      "review_notes": "One source. Roffe says she has never seen the shawl custom written about and calls it a family custom ('among many Jewish families'), so it is not universal.",
+      "topic_he": "\"סניית אליהו הנביא\" ומנהגי ברית נוספים",
+      "summary_he": "בכל ברית מעבירים מגש דו-קומתי עם נרות, \"סניית אליהו הנביא\". אורחים מדליקים נרות ונותנים צדקה, ויש הלוקחים מטבע למזל טוב. הסבתא הנושאת את התינוק עוטה צעיף משפחתי רקום חוטי זהב שעובר בדורות של נשים. הכנאפה היא המאכל המקובל."
     },
     {
       "index": "halacha.18",
-      "category": "Family law",
-      "topic": "Niddah and mikveh",
-      "summary": "Family purity laws are observed carefully and are a major feature of Syrian communal life.",
-      "common_practices": [
-        "Observe niddah separation laws",
-        "Use mikveh according to halacha",
-        "Follow local rabbinic guidance on family practice",
-        "Use a consistent halachic calendar and consultation process for sensitive questions.",
-        "Coordinate household observance with qualified rabbinic guidance.",
-        "Preserve family minhag where compatible with accepted psak."
-      ]
+      "category": "Brit milah and pidyon haben",
+      "topic": "Family shawl at pidyon haben",
+      "summary": "The grandmother wears the same heirloom family shawl when a firstborn son is brought for redemption by the Kohen.",
+      "common_practices": [],
+      "variants": [],
+      "source": "Sarina Roffe, 'Rich traditions unique to Syrian Jews' (Community Magazine)",
+      "source_url": "https://www.jewishrefugees.org.uk/2018/01/rich-traditions-unique-to-syrian-jews.html",
+      "confidence": "needs-review",
+      "review_notes": "Family custom, one source.",
+      "topic_he": "צעיף משפחתי בפדיון הבן",
+      "summary_he": "הסבתא עוטה את אותו צעיף המשפחה היקר כשבן בכור מובא לפדיון אצל הכהן."
     },
     {
       "index": "halacha.19",
-      "category": "Mourning",
-      "topic": "Avelut",
-      "summary": "Mourning follows standard halachic structure with strong communal support and memorial forms.",
+      "category": "Weddings",
+      "topic": "Swanee (gift trays for the bride)",
+      "summary": "In Syria the groom's side sent money to the bride for her pre-wedding mikveh visit. This grew into the swanee: gifts (nightgown, perfume, evening bag, jewelry) on decorated trays with white flowers and sugared almonds, displayed at the bride's home at a tea or evening party. Today the bride's mother also sends gifts to the groom.",
       "common_practices": [
-        "Observe shiva, shloshim, and yahrzeit customs",
-        "Use inherited memorial prayers",
-        "Maintain Syrian community etiquette for consolation",
-        "Observe shiva, shloshim, and yahrzeit in the accepted local format.",
-        "Coordinate memorial prayer customs with synagogue practice.",
-        "Preserve condolence and visitation etiquette used by the community."
-      ]
+        "Gift trays displayed at the bride's home",
+        "Often combined with an American bridal shower",
+        "Engagement foods: shob el boz (cornstarch pudding) and maziye (almond drink)"
+      ],
+      "variants": [
+        {
+          "subgroup": "US diaspora (Brooklyn / Deal, NJ)",
+          "practice": "Gifts are now also given to the groom (e.g., a tallit bag).",
+          "source": "The Jewish Link, 'Blended Weddings'"
+        }
+      ],
+      "source": "Sarina Roffe, 'Rich traditions unique to Syrian Jews' (Community Magazine)",
+      "source_url": "https://www.jewishrefugees.org.uk/2018/01/rich-traditions-unique-to-syrian-jews.html",
+      "confidence": "well-attested",
+      "review_notes": "The name is probably from Arabic 'seniyeh' (tray), per community forum comments, which are not authoritative.",
+      "topic_he": "סוואני (מגשי מתנות לכלה)",
+      "summary_he": "בסוריה שלח צד החתן כסף לכלה לביקורה במקווה לפני החתונה. מכאן התפתח הסוואני: מתנות (כתונת לילה, בושם, תיק ערב, תכשיטים) על מגשים מקושטים בפרחים לבנים ושקדים מסוכרים, המוצגים בבית הכלה בתה או במסיבת ערב. כיום שולחת גם אם הכלה מתנות לחתן."
     },
     {
       "index": "halacha.20",
-      "category": "Calendar",
-      "topic": "High Holidays",
-      "summary": "Rosh Hashanah and Yom Kippur are observed with elevated liturgy, selichot, and communal melody.",
+      "category": "Weddings",
+      "topic": "The 1935 Edict on converts (marriage eligibility)",
+      "summary": "In February 1935 (Adar 5695) Chief Rabbi Jacob Kassin and four rabbis, including Bet Din head Hakham Haim Tawil, proclaimed that 'no male or female member of our community has the right to intermarry with non-Jews; this law covers conversions, which we consider to be fictitious and valueless', and that no community rabbinic court may convert non-Jews who seek to marry in. The 1946 clarification: 'Our community will never accept any converts, male or female, for marriage. The rabbi will not perform any religious ceremonies for such couples.' It was reaffirmed in 1972 and 1984.",
       "common_practices": [
-        "Use Syrian machzor or rite",
-        "Preserve selichot and shofar customs",
-        "Follow local synagogue order and musical tradition",
-        "Anchor observance times to local halachic zmanim.",
-        "Coordinate fasts, selichot, and festival timing with community schedule.",
-        "Use a single trusted local calendar authority for consistency."
-      ]
+        "Current practice is a full ban on marriage with converts, including descendants of converts married by Rabbi Kassin"
+      ],
+      "variants": [
+        {
+          "subgroup": "US diaspora (Brooklyn / Deal, NJ)",
+          "practice": "Rabbi Zevulun Lieberman (1988): 'Our ban... does not apply to descendants of people who underwent a legitimate conversion prior to 1935.' A disciple of Rabbi Kassin says he married sincere converts. Current practice is stricter than either.",
+          "source": "Gina Doueck, Conversations 29"
+        },
+        {
+          "subgroup": "Current community practice",
+          "practice": "A blanket exclusion of converts, including descendants of converts married by Rabbi Kassin.",
+          "source": "Gina Doueck, Conversations 29"
+        }
+      ],
+      "source": "Gina Doueck (pen name), 'The Syrian Jewish Community, Then and Now', Conversations issue 29 (Institute for Jewish Ideas and Ideals)",
+      "source_url": "https://www.jewishideas.org/article/syrian-jewish-community-then-and-now",
+      "confidence": "disputed",
+      "review_notes": "The edict itself is well attested. Its scope (marriage-motivated conversions only, or all converts and descendants) is disputed between its original wording and current practice. It covers the US community, not historical Aleppo or Damascus.",
+      "references": [
+        {
+          "title": "Syrian Jewish Community in North America - UPG North America",
+          "url": "https://upgnorthamerica.com/project/syrian-jewish-community-in-north-america/"
+        }
+      ],
+      "topic_he": "התקנה משנת 1935 בעניין גרים (זכאות לנישואין)",
+      "summary_he": "בפברואר 1935 (אדר תרצ\"ה) הכריזו הרב הראשי יעקב קסין וארבעה רבנים, ובהם ראש בית הדין החכם חיים טוויל, ש\"אין לשום חבר או חברה בקהילתנו זכות להינשא לגויים; חוק זה מכסה גיורים, שאנו רואים בהם פיקטיביים וחסרי ערך\", וש\"אסור לשום בית דין קהילתי לגייר גויים המבקשים להינשא לקהילה\". ההבהרה של 1946: \"קהילתנו לא תקבל לעולם גרים או גיורות לנישואין. הרב לא יקיים שום טקס דתי לזוגות כאלה\". היא אושרה מחדש ב-1972 וב-1984."
     },
     {
       "index": "halacha.21",
-      "category": "Calendar",
-      "topic": "Chanukah and Purim",
-      "summary": "Minor festivals are celebrated with standard halacha and distinctive Syrian cultural expression.",
-      "common_practices": [
-        "Light Chanukah candles nightly",
-        "Read the Megillah on Purim",
-        "Preserve family foods, songs, and charity customs",
-        "Anchor observance times to local halachic zmanim.",
-        "Coordinate fasts, selichot, and festival timing with community schedule.",
-        "Use a single trusted local calendar authority for consistency."
-      ]
+      "category": "Weddings",
+      "topic": "Halabi–Shami endogamy",
+      "summary": "In Syria and among first-generation US immigrants, Shami and Halabi Jews kept separate schools, synagogues and marriages. Second-generation immigrants mixed and intermarried. Today there are few if any objections, and marriages with Ashkenazim are increasing.",
+      "common_practices": [],
+      "variants": [
+        {
+          "subgroup": "Aleppo (Halabi)",
+          "practice": "Historically married within the group.",
+          "source": "Doueck, Conversations 29"
+        },
+        {
+          "subgroup": "Damascus (Shami)",
+          "practice": "Historically married within the group.",
+          "source": "Doueck, Conversations 29"
+        }
+      ],
+      "source": "Gina Doueck, 'The Syrian Jewish Community, Then and Now', Conversations 29",
+      "source_url": "https://www.jewishideas.org/article/syrian-jewish-community-then-and-now",
+      "confidence": "regional",
+      "review_notes": "Social custom, not halacha.",
+      "references": [
+        {
+          "title": "Syrian Jews",
+          "url": "https://en.wikipedia.org/wiki/Syrian_Jews"
+        },
+        {
+          "title": "Lyn Julius The Jews of Syria",
+          "url": "https://www.lockdownuniversity.org/lectures/1823-the-jews-of-syria/transcript"
+        }
+      ],
+      "topic_he": "נישואין פנימיים חלבים–שאמים",
+      "summary_he": "בסוריה ובקרב מהגרים בני הדור הראשון בארצות הברית שמרו יהודי שאם וחלב על בתי ספר, בתי כנסת ונישואין נפרדים. בני הדור השני התערבבו והתחתנו זה עם זה. כיום יש מעט התנגדויות, אם בכלל, והנישואין עם אשכנזים הולכים וגדלים."
     },
     {
       "index": "halacha.22",
-      "category": "Education",
-      "topic": "Torah transmission",
-      "summary": "Torah and custom are transmitted through schools, families, and communal institutions.",
+      "category": "Weddings",
+      "topic": "Damascus ketubah and inheritance customs (historical)",
+      "summary": "In the 16th century the Damascus ketubah had both an up-front and a deferred payment ('mukdam u-me'uhar'). Under the old Land-of-Israel/Damascus enactment a wife's heirs shared equally; the Safed sages replaced this so her heirs took one third. Other towns relied on 'minhag Dameshek' in doubtful cases, and Jerusalem's custom is described as being like Damascus's.",
+      "common_practices": [],
+      "variants": [
+        {
+          "subgroup": "Damascus (Shami)",
+          "practice": "Historical legal custom.",
+          "source": "Rivlin, Reshumot 1926, note 116"
+        }
+      ],
+      "source": "Eliezer and Yosef Yoel Rivlin, 'Le-korot ha-Yehudim be-Dameshek ba-me'ah ha-revi'it la-elef ha-shishi', Reshumot (Dvir, 1926), Project Ben-Yehuda",
+      "source_url": "https://benyehuda.org/read/10779",
+      "confidence": "needs-review",
+      "review_notes": "Historical (16th c.); not evidence of current Shami practice. Key passages came to the research subagent via search excerpts.",
+      "topic_he": "כתובת דמשק ומנהגי ירושה (היסטורי)",
+      "summary_he": "במאה ה-16 הייתה בכתובת דמשק תשלום מראש ותשלום נדחה (\"מוקדם ומאוחר\"). לפי התקנה הישנה של ארץ ישראל/דמשק חלקו יורשי האישה שווה בשווה; חכמי צפת החליפו אותה בכך שיורשיה לקחו שליש. ערים אחרות נשענו על \"מנהג דמשק\" במקרים מסופקים, ומנהג ירושלים מתואר כדומה למנהג דמשק."
+    },
+    {
+      "index": "halacha.23",
+      "category": "Mourning",
+      "topic": "Arayat / Mishmara memorial study sessions",
+      "summary": "In the Syrian community a memorial meal and study session (Arayat or Mishmara) with a eulogy is held at the end of shiva, at 30 days, at the end of the (11-month) year and on each anniversary, usually in the synagogue. Visitors to the shiva house are commonly offered breakfast after prayers and refreshments through the day. Visitors say a blessing for the elevation of the soul when they eat.",
       "common_practices": [
-        "Teach children prayers and reading forms",
-        "Preserve rabbinic and family tradition",
-        "Use both texts and oral instruction",
-        "Teach children both baseline halacha and family minhag distinctions.",
-        "Preserve community pronunciation and liturgical pedagogy.",
-        "Document oral traditions to reduce minhag drift across generations."
-      ]
+        "Arayat at the end of shiva, at 30 days, at the year's end and annually",
+        "Food offered to shiva visitors"
+      ],
+      "variants": [],
+      "source": "Mona Daniella blog, category 'Mishmara \"Arayat\"'",
+      "source_url": "https://www.monadaniella.com/blog/category/mishmara-arayat",
+      "confidence": "needs-review",
+      "review_notes": "A single non-rabbinic blog, read via search excerpt. Must be checked against a rabbinic source before publishing.",
+      "topic_he": "מושבי לימוד לזיכרון (ערייאת / משמרה)",
+      "summary_he": "בקהילה הסורית נערכת סעודת זיכרון ומושב לימוד (ערייאת או משמרה) עם הספד בסוף השבעה, בשלושים, בסוף השנה (של אחד עשר החודשים) ובכל יום שנה, בדרך כלל בבית הכנסת. למבקרים בבית השבעה מציעים בדרך כלל ארוחת בוקר אחרי התפילה וכיבוד במשך היום. המבקרים אומרים ברכה לעילוי הנשמה כשהם אוכלים."
+    },
+    {
+      "index": "halacha.24",
+      "category": "Distinctive customs",
+      "topic": "Pizmonim canon",
+      "summary": "Pizmonim (para-liturgical hymns) arranged by maqam form the community's song repertoire for life-cycle and synagogue use. The US standard is 'Shir Ushbaha Hallel VeZimrah' (the Red book), published in Jerusalem in 1964 for Brooklyn's Aleppo community, based on Hakham Raphael Haim Cohen's 'Shir Ushbaha' (Jerusalem 1905/1921).",
+      "common_practices": [
+        "Pizmonim melodies used for prayer texts on Shabbat and festivals",
+        "The Sephardic Pizmonim Project preserves recordings (Hazzan Gabriel A. Shrem collection)"
+      ],
+      "variants": [],
+      "source": "Sephardic Pizmonim Project, 'Introduction' index (pizmonim.com) and 'Overview: Welcome'",
+      "source_url": "https://www.pizmonim.com/section.php?maqam=Introduction",
+      "confidence": "well-attested",
+      "review_notes": "Wikipedia gives 1959 as the year compilation started; pizmonim.org gives 1964 as the publication year. These describe different events.",
+      "references": [
+        {
+          "title": "Syrian Jews",
+          "url": "https://en.wikipedia.org/wiki/Syrian_Jews"
+        },
+        {
+          "title": "Pizmonim",
+          "url": "https://en.wikipedia.org/wiki/Pizmonim"
+        },
+        {
+          "title": "Pizmonim.org - Introduction",
+          "url": "https://www.pizmonim.com/section.php?maqam=Introduction"
+        }
+      ],
+      "topic_he": "קנון הפזמונים",
+      "summary_he": "פזמונים (מזמורים פרה-ליטורגיים) המסודרים לפי מקאם הם רפרטואר השירה של הקהילה לשימוש במחזור החיים ובבית הכנסת. התקן בארצות הברית הוא \"שיר ושבחה הלל וזמרה\" (הספר האדום), שיצא בירושלים ב-1964 לקהילת חלב בברוקלין, על פי \"שיר ושבחה\" של החכם רפאל חיים כהן (ירושלים 1905/1921)."
     }
   ],
-  "unique_minhagim": {
-    "examples": [
-      "Bakkashot hymn tradition",
-      "Strong emphasis on synagogue music and liturgy",
-      "Family-based communal endogamy in some historical periods",
-      "Distinct Aleppo and Damascus branches with overlapping but separate customs"
-    ],
-    "notes": "Syrian Jewish practice should be indexed by branch and city where possible, especially for Aleppo and Damascus lineages."
-  },
-  "source_registry": {
-    "primary": [
-      "Shulchan Aruch",
-      "Mishneh Torah",
-      "Syrian communal tradition"
-    ],
-    "secondary": [
-      "Jewish studies reference works",
-      "Syrian synagogue tradition",
-      "Community histories and genealogical records"
-    ]
-  }
+  "unique_minhagim": [
+    {
+      "name": "Extra Chanukah candle (second shamash)",
+      "description": "One extra candle each night, kept by Aleppo families descended from the 'Kahal Kadosh Sepharadim'. It is placed apart from the mitzvah candles.",
+      "when": "Each night of Chanukah",
+      "source": "Rabbi Eli Mansour, DailyHalacha id 2595, citing Derech Eretz",
+      "source_url": "http://www.dailyhalacha.com/m/halacha.aspx?id=2595",
+      "confidence": "well-attested",
+      "name_he": "נר נוסף בחנוכה (שמש שני)",
+      "description_he": "נר נוסף אחד בכל לילה, ששומרות משפחות חלב היורדות מ\"קהל קדוש ספרדים\". הוא מונח בנפרד מנרות המצווה."
+    },
+    {
+      "name": "Winter Shabbat bakashot",
+      "description": "Pre-dawn singing of a fixed bakashot cycle opening with 'El Mistater', organized by maqam. Damascus had a separate order (Beirut 1913).",
+      "when": "Winter Shabbatot, Sukkot to Shabbat HaGadol (Aleppo)",
+      "source": "HUJI Jewish Music Research Centre; Hibba Center; Pizmonim Project",
+      "source_url": "https://jewish-music.huji.ac.il/en/content/baqqashah-pl-baqqashot",
+      "confidence": "well-attested",
+      "references": [
+        {
+          "title": "The Baqashot Tradition of Aleppo’s Jewish Community — Hibba Center",
+          "url": "https://shop.hibba.org/en/bakashot/"
+        },
+        {
+          "title": "Baqqachot - Institut Européen des Musiques Juives",
+          "url": "https://www.iemj.org/en/les-baqqachot/"
+        }
+      ],
+      "name_he": "בקשות בשבתות החורף",
+      "description_he": "שירה לפני עלות השחר של מחזור בקשות קבוע הפותח ב\"אל מסתתר\", מסודר לפי מקאם. לדמשק היה סדר נפרד (ביירות 1913)."
+    },
+    {
+      "name": "Maqam of the week",
+      "description": "Shabbat Shaharit is chanted in a maqam chosen to match the parasha, following the Red pizmonim book.",
+      "when": "Every Shabbat",
+      "source": "Sephardic Pizmonim Project, Maqam of the Week (2009)",
+      "source_url": "https://pizmonim.org/articles/MaqamBemidbar.pdf",
+      "confidence": "well-attested",
+      "name_he": "מקאם השבוע",
+      "description_he": "שחרית של שבת נאמרת במקאם הנבחר בהתאם לפרשה, לפי ספר הפזמונים האדום."
+    },
+    {
+      "name": "Misharotam",
+      "description": "Afikoman carried on the shoulder, with a Judeo-Arabic exchange: 'Minwen jaiyeh? Mimmisrayim. Lawen rayech? Liyerushalayim.'",
+      "when": "Pesach seder",
+      "source": "Sarina Roffe, Community Magazine; Jewish Language Project",
+      "source_url": "https://www.jewishrefugees.org.uk/2018/01/rich-traditions-unique-to-syrian-jews.html",
+      "confidence": "well-attested",
+      "name_he": "משארותם",
+      "description_he": "אפיקומן הנישא על הכתף, עם שיחה ביהודית-ערבית: \"מנוין ג'איה? ממצרים. לוין ראיח? לירושלים.\""
+    },
+    {
+      "name": "Seniyet Eliyahu HaNabi",
+      "description": "Two-level candle tray passed at a brit; guests light candles and give tzedakah.",
+      "when": "Brit milah",
+      "source": "Sarina Roffe, Community Magazine",
+      "source_url": "https://www.jewishrefugees.org.uk/2018/01/rich-traditions-unique-to-syrian-jews.html",
+      "confidence": "needs-review",
+      "name_he": "סניית אליהו הנביא",
+      "description_he": "מגש נרות דו-קומתי המועבר בברית; אורחים מדליקים נרות ונותנים צדקה."
+    },
+    {
+      "name": "Swanee",
+      "description": "Display of gift trays for the bride, and now also for the groom.",
+      "when": "Before the wedding",
+      "source": "Sarina Roffe, Community Magazine; The Jewish Link",
+      "source_url": "https://www.jewishrefugees.org.uk/2018/01/rich-traditions-unique-to-syrian-jews.html",
+      "confidence": "well-attested",
+      "name_he": "סוואני",
+      "description_he": "הצגת מגשי מתנות לכלה, וכיום גם לחתן."
+    },
+    {
+      "name": "Tikkun Hasot in the Aleppo synagogue",
+      "description": "Accounts say the Halab synagogue filled at midnight with men saying Tikkun Hasot, who then stayed to learn Torah.",
+      "when": "Midnight (historical)",
+      "source": "Rabbi Eli Mansour, Daily Halacha Podcast description",
+      "source_url": "https://podcasts.apple.com/us/podcast/daily-halacha-podcast-daily-halacha-by-rabbi-eli-j-mansour/id389061788",
+      "confidence": "needs-review",
+      "name_he": "תיקון חצות בבית הכנסת של חלב",
+      "description_he": "לפי עדויות התמלא בית הכנסת בחלב בחצות בגברים שאמרו תיקון חצות, ואחר כך נשארו ללמוד תורה."
+    },
+    {
+      "name": "Damascus 'Red Synagogue' lament",
+      "description": "A lament unique to Damascus Jewry, 'Qissat al-Jami' al-Ahmar' (story of the Red Synagogue).",
+      "when": "Not specified in the source",
+      "source": "Rivlin, Reshumot (1926)",
+      "source_url": "https://benyehuda.org/read/10779",
+      "confidence": "needs-review",
+      "name_he": "קינת \"בית הכנסת האדום\" בדמשק",
+      "description_he": "קינה ייחודית ליהדות דמשק, \"קיסת אל-ג'אמע אל-אחמר\" (סיפור בית הכנסת האדום)."
+    }
+  ],
+  "source_registry": [
+    {
+      "title": "DailyHalacha.com: 'The Custom Among Some Syrian Jews to Light an Extra Candle on Hanukah' (id 2595)",
+      "author": "Rabbi Eli J. Mansour",
+      "type": "responsa",
+      "url": "http://www.dailyhalacha.com/m/halacha.aspx?id=2595",
+      "used_for": "Chanukah extra candle; Derech Eretz citation"
+    },
+    {
+      "title": "DailyHalacha.com: 'The Friday Night Prayer Service According to the Custom of Halab' (id 2341)",
+      "author": "Rabbi Eli J. Mansour",
+      "type": "responsa",
+      "url": "http://www.dailyhalacha.com/m/halacha.aspx?id=2341",
+      "used_for": "Kabbalat Shabbat order; Lecha Dodi"
+    },
+    {
+      "title": "Select Halachot on Rosh Hashana (2020)",
+      "author": "Rabbi Eli J. Mansour",
+      "type": "responsa",
+      "url": "https://www.learntorah.com/contentlibrary/guides/Rosh%20Hashana%20Halachot%202020.pdf",
+      "used_for": "Simanim order; Lubia; apple formula"
+    },
+    {
+      "title": "Select Halachot on Yom Kippur (2015)",
+      "author": "Rabbi Eli J. Mansour",
+      "type": "responsa",
+      "url": "http://g-ddirecttorah.com/PDF/YomKippurHalachot2015.pdf",
+      "used_for": "Kapparot; Yom Kippur candles; Arizal-first principle"
+    },
+    {
+      "title": "DailyHalacha.com: Omer haircut halachot (id 2694; readID 269)",
+      "author": "Rabbi Eli J. Mansour",
+      "type": "responsa",
+      "url": "https://www.dailyhalacha.com/m/halacha.aspx?id=2694",
+      "used_for": "Omer mourning dates"
+    },
+    {
+      "title": "Hanukah – The Berachot Over the Candle Lighting",
+      "author": "Rabbi Eli J. Mansour",
+      "type": "responsa",
+      "url": "https://itorah.com/lecture/audio/rabbi-eli-mansour/hanukah-the-berachot-over-the-candle-lighting/20275/6",
+      "used_for": "Chanukah blessing text"
+    },
+    {
+      "title": "Derech Eretz (minhag book of the Aleppo community)",
+      "author": "Not confirmed",
+      "type": "primary",
+      "url": "",
+      "used_for": "Cited through Mansour"
+    },
+    {
+      "title": "Maqam of the Week: Book of Numbers (2009); Introduction; High Holidays",
+      "author": "Sephardic Pizmonim Project",
+      "type": "reference",
+      "url": "https://pizmonim.org/articles/MaqamBemidbar.pdf",
+      "used_for": "Weekly maqam; pizmonim canon; Damascus bakashot order"
+    },
+    {
+      "title": "Baqqashah (Pl. Baqqashot)",
+      "author": "Jewish Music Research Centre, Hebrew University",
+      "type": "academic",
+      "url": "https://jewish-music.huji.ac.il/en/content/baqqashah-pl-baqqashot",
+      "used_for": "Bakashot season and practice"
+    },
+    {
+      "title": "The Baqashot Tradition of Aleppo's Jewish Community",
+      "author": "Hibba Center and Zalman Shazar Center",
+      "type": "reference",
+      "url": "https://shop.hibba.org/en/bakashot/",
+      "used_for": "Bakashot description"
+    },
+    {
+      "title": "Baqqachot",
+      "author": "Institut Européen des Musiques Juives",
+      "type": "reference",
+      "url": "https://www.iemj.org/en/les-baqqachot/",
+      "used_for": "Fixed text opening with El Mistater"
+    },
+    {
+      "title": "Rich traditions unique to Syrian Jews (from Community Magazine)",
+      "author": "Sarina Roffe",
+      "type": "reference",
+      "url": "https://www.jewishrefugees.org.uk/2018/01/rich-traditions-unique-to-syrian-jews.html",
+      "used_for": "Brit, pidyon haben, swanee, Misharotam, firstborn fast"
+    },
+    {
+      "title": "Other Parts of Haggadah",
+      "author": "Jewish Language Project (Asher Shasho Levy transcription)",
+      "type": "academic",
+      "url": "https://www.jewishlanguages.org/other-parts-of-haggadah",
+      "used_for": "Aleppo Misharotam text"
+    },
+    {
+      "title": "The Syrian Jewish Community, Then and Now (Conversations 29)",
+      "author": "Gina Doueck (pen name)",
+      "type": "reference",
+      "url": "https://www.jewishideas.org/article/syrian-jewish-community-then-and-now",
+      "used_for": "1935 Edict text and scope; Halabi–Shami endogamy; history"
+    },
+    {
+      "title": "Customs of Halab special to Purim; Aliyot according to minhag Aram Soba",
+      "author": "Aleppo Jewry Heritage Center (Merkaz Moreshet Aram Tzova)",
+      "type": "reference",
+      "url": "https://aleppojews.co.il/",
+      "used_for": "Purim verses; Torah aliyot"
+    },
+    {
+      "title": "Le-korot ha-Yehudim be-Dameshek",
+      "author": "Eliezer and Yosef Yoel Rivlin",
+      "type": "academic",
+      "url": "https://benyehuda.org/read/10779",
+      "used_for": "Damascus 16th-c. ketubah and inheritance customs; Damascus lament"
+    },
+    {
+      "title": "Kitniyot",
+      "author": "Halachipedia",
+      "type": "reference",
+      "url": "https://www.halachipedia.com/index.php?title=Kitniyot",
+      "used_for": "Rice on Pesach"
+    },
+    {
+      "title": "Mishmara 'Arayat'",
+      "author": "Mona Daniella (blog)",
+      "type": "reference",
+      "url": "https://www.monadaniella.com/blog/category/mishmara-arayat",
+      "used_for": "Arayat memorial sessions (weak)"
+    }
+  ],
+  "gaps": [
+    "Shabbat candle lighting time and blessing, Kiddush, seudot, Havdalah: no Syrian-specific source found",
+    "Rosh Hashana order of the day (shofar count, piyyutim) beyond general Sephardic rulings",
+    "Sukkot, Hoshana Rabba (Wikipedia alone says High Holiday maqam is used), Simchat Torah hakafot customs specific to Syria",
+    "Shavuot customs",
+    "Fast days and Tisha B'Av: an Aleppo 'Qissat Yirmeyahu' booklet (ed. Menahem Yedid) exists, but no source describes its use",
+    "Tefillin and tzitzit (e.g., Hol HaMoed practice) for Syrians specifically",
+    "Torah reading pronunciation and trope (Aleppo Hebrew reading tradition)",
+    "Kashrut (e.g., meat–dairy waiting time, bishul akum) Syrian-specific practice",
+    "Bar/bat mitzvah customs",
+    "Niddah and mikveh, beyond the historical gift of mikveh money to the bride",
+    "Burial practice, shiva details, yahrzeit (Arayat only weakly sourced)",
+    "Calendar specifics",
+    "Damascus (Shami) liturgy, Purim, weddings, mourning: lead is Rabbi Netanel Hanin, 'Massa Dameshek' (2 vols., 2023–24), not consulted",
+    "US Shami synagogues (Ahi Ezer, Beth-El of Flatbush) practice: nothing citable found",
+    "Mimouna-type post-Pesach custom: none documented for Syrians"
+  ],
+  "disputes": [
+    "Reason for the extra Chanukah candle: practical reasons in Derech Eretz (lamps, zugot) vs. gratitude for refuge (popular sources) vs. 'a miracle that happened to Syrian Jews' (DailyHalacha #745)",
+    "Where the extra Chanukah candle goes: away from or higher than the mitzvah candles on the menorah (#2595) vs. not in the menorah at all (#745)",
+    "Yom Kippur candle blessing when it falls on Shabbat: Hacham Eliyahu Hamoui says no blessing; consensus (per Mansour) says a blessing",
+    "Omer haircuts: until the morning of the 34th vs. until Erev Shavuot (some Sephardim, following the Arizal)",
+    "Scope of the 1935 Edict: marriage-motivated conversions after 1935 only (1946 clarification; Lieberman 1988) vs. current blanket exclusion including descendants",
+    "Bakashot season: until Shabbat HaGadol (HUJI, for Aleppians) vs. 'from the Jewish festival of Sukkot through Purim' (Wikipedia, 'Baqashot') vs. 'in the months between Sukkot and Passover' (JTA, 2014)",
+    "Whether some Land-of-Israel laws apply to Aleppo or Damascus (Wikipedia only; contradictory footnotes)"
+  ],
+  "needs_rabbinic_review": [
+    "Yom Kippur candle blessing (text read from excerpts; check against Derech Eretz / Kol Yaakob)",
+    "Arayat/Mishmara mourning schedule (blog-only)",
+    "Omer start and end dates used for any app reminders",
+    "Any application of the 1935 Edict in the app (sensitive; describe, do not rule)",
+    "Pesach kitniyot: confirm which kitniyot beyond rice are customary and the checking requirements",
+    "Kapparot details (number of chickens for a pregnant woman; ultrasound reliance per Yalkut Yosef)"
+  ]
 }
