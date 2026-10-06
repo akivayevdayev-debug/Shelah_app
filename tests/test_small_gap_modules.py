@@ -107,6 +107,8 @@ class TestShelahEngineGetLibraryText:
         )
         result = engine.get_library_text("Nonexistent Ref")
         assert result["lines"][0]["en"] == "Text not found"
+        # Marked so the /ask collectors drop it instead of citing the error text.
+        assert result["unavailable"] is True
 
     def test_exception_returns_fallback_shape(self, monkeypatch):
         engine = data_service.ShelahEngine()
@@ -117,6 +119,7 @@ class TestShelahEngineGetLibraryText:
         monkeypatch.setattr(data_service, "get_text", _raise)
         result = engine.get_library_text("Genesis 1:1")
         assert result["lines"][0]["en"] == "Failed to fetch source."
+        assert result["unavailable"] is True
 
     def test_happy_path_returns_ref_and_lines(self, monkeypatch):
         engine = data_service.ShelahEngine()
@@ -127,6 +130,7 @@ class TestShelahEngineGetLibraryText:
         result = engine.get_library_text("Genesis 1:1")
         assert result["ref"] == "Genesis 1:1"
         assert result["lines"] == [{"he": "x", "en": "y"}]
+        assert "unavailable" not in result
 
     def test_get_customs_delegates_to_customs_module(self, monkeypatch):
         engine = data_service.ShelahEngine()
@@ -178,15 +182,18 @@ class TestGetDailyStudyDoubleFailure:
         sefaria_module._DAILY_STUDY_CACHE.clear()
 
 
-class TestFindRefsForQuestionFallback:
-    def test_no_keyword_match_returns_default_refs(self):
-        result = sefaria_module.find_refs_for_question("completely unrelated gibberish xyzabc123")
-        assert "Shulchan_Arukh,_Orach_Chayim.1" in result
-        assert "Rambam,_Mishneh_Torah,_Laws_of_Prayer.1" in result
+class TestFindRefsForQuestionNoMatch:
+    def test_no_keyword_match_returns_no_refs(self):
+        # The old fallback handed Orach Chayim 1 and the Rambam's Laws of
+        # Prayer to every unmatched question, and the model cited them.
+        assert sefaria_module.find_refs_for_question("completely unrelated gibberish xyzabc123") == []
+
+    def test_there_is_no_default_ref_table(self):
+        assert not hasattr(sefaria_module, "_DEFAULT_REFS")
 
     def test_max_seven_refs_returned(self):
         result = sefaria_module.find_refs_for_question("shabbat")
-        assert len(result) <= 7
+        assert 0 < len(result) <= 7
 
 
 class TestFindRefsForQuestionContext:
@@ -196,7 +203,7 @@ class TestFindRefsForQuestionContext:
         alone = sefaria_module.find_refs_for_question("What about for a woman?")
         with_context = sefaria_module.find_refs_for_question(
             "What about for a woman?", ["Do I have to hear the shofar?"])
-        assert alone == list(sefaria_module._DEFAULT_REFS)
+        assert alone == []
         assert with_context == sefaria_module._match_topic_refs("shofar")
 
     def test_follow_up_and_context_refs_alternate(self):
@@ -207,9 +214,8 @@ class TestFindRefsForQuestionContext:
         assert set(result) <= set(own) | set(earlier)
         assert len(result) <= 7
 
-    def test_nothing_anywhere_falls_back(self):
-        assert sefaria_module.find_refs_for_question("And then?", ["Hmm?"]) == list(
-            sefaria_module._DEFAULT_REFS)
+    def test_nothing_anywhere_returns_no_refs(self):
+        assert sefaria_module.find_refs_for_question("And then?", ["Hmm?"]) == []
 
     def test_stop_words_of_phrases_do_not_match_alone(self):
         # "on" (from "work on shabbat") used to pull Shabbat refs into any

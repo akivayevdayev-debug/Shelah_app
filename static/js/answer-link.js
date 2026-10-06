@@ -1,15 +1,17 @@
-// "Copy link" for a stored AI answer: in the action row of the conversation
+// "Share" for a stored AI answer: in the action row of the conversation
 // panel's answer turn (#convAnswerLink, moved there by conversation-ui.js).
 //
-// The default link is the owner's private deep link, `/answer/<ask_history id>`
-// (router.js `chat` key, hydrated by index.html's hydrateChatId): it opens the
-// answer for its owner when signed in, and for nobody else. main.js plugs
-// public links in through `getLinkUrl` (static/js/answer-share.js: POST
-// .../share, then `/a/<share token>`), so the button, its "Copied!" flash
-// and the manual-copy fallback stay as they are. `getLinkUrl` resolves to a
-// URL string, or to `{ url, note }` when the copied link needs a visible
-// caveat (e.g. a private fallback link). Only stored answers have an id --
-// signed-out answers never do -- so the control stays hidden for them.
+// It copies a public link, `/a/<share token>` (static/js/answer-share.js:
+// POST .../share, then the token's link): anyone holding it can read the
+// answer, signed out. main.js plugs that in through `getLinkUrl`; the default
+// below is the owner's private deep link, `/answer/<ask_history id>` (router.js
+// `chat` key, hydrated by index.html's hydrateChatId), which opens for the
+// account that asked it, or for the device that did while signed out
+// (backend/device_identity.py). The button, its "Copied!" flash and the
+// manual-copy fallback stay as they are. `getLinkUrl` resolves to a URL
+// string, or to `{ url, note }` when the copied link needs a visible caveat
+// (e.g. a private fallback link). Only stored answers have an id, so the
+// control stays hidden for a one-shot that was not saved.
 //
 // The markup lives in templates/index.html so the icons can come from the
 // phosphor() macro; this module only wires it. main.js installs the one

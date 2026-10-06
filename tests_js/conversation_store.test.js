@@ -154,6 +154,66 @@ test('showAnswer: a shared answer (/a/<token>) is never a seed', async () => {
     assert.equal(store.getState().messages[0].content, 'Q?');
 });
 
+test('showSharedConversation shows a shared chat read-only, with its title, turns and last sources', async () => {
+    const { createConversationStore, MESSAGE_STATUS, SOURCES_PHASE } = await loadStore();
+    const store = createConversationStore({ api: makeApi() });
+
+    store.showSharedConversation({
+        conversation: true,
+        title: ' Dishwashers ',
+        messages: [
+            { role: 'user', content: 'Q1?', created_at: '2026-10-01T10:00:00Z', citations: [] },
+            { role: 'assistant', content: 'A1.', created_at: '2026-10-01T10:00:05Z', citations: [{ ordinal: 1, source_ref: 'Shabbat 12a', excerpt_en: 'x', url: 'https://www.sefaria.org/Shabbat.12a' }] },
+            { role: 'user', content: 'Q2?', citations: [] },
+            { role: 'assistant', content: 'A2.', citations: [{ ordinal: 1, source_ref: 'Yoreh De\'ah 95:3' }] },
+        ],
+    });
+
+    const state = store.getState();
+    // The public answer view: nothing of the viewer's own, so no seed to follow up from.
+    assert.deepEqual(state.answerView, { historyId: null, isPublic: true, request: null, title: 'Dishwashers' });
+    assert.equal(state.conversation, null);
+    assert.equal(state.minhagLocked, false);
+    assert.deepEqual(state.messages.map((m) => [m.role, m.content, m.status]), [
+        ['user', 'Q1?', MESSAGE_STATUS.COMPLETE],
+        ['assistant', 'A1.', MESSAGE_STATUS.COMPLETE],
+        ['user', 'Q2?', MESSAGE_STATUS.COMPLETE],
+        ['assistant', 'A2.', MESSAGE_STATUS.COMPLETE],
+    ]);
+    // Local ids only: the public payload carries no row ids to render from.
+    assert.equal(new Set(state.messages.map((m) => m.id)).size, 4);
+    assert.ok(state.messages.every((m) => m.id !== null));
+    assert.equal(state.sources.phase, SOURCES_PHASE.DONE);
+    assert.equal(state.sources.messageId, state.messages[3].id);
+    assert.deepEqual(state.sources.citations.map((c) => c.ref), ["Yoreh De'ah 95:3"]);
+});
+
+test('showSharedConversation without an answer has no sources, and an empty payload is harmless', async () => {
+    const { createConversationStore, SOURCES_PHASE } = await loadStore();
+    const store = createConversationStore({ api: makeApi() });
+
+    store.showSharedConversation({ conversation: true, messages: [{ role: 'user', content: 'Only a question' }] });
+    assert.equal(store.getState().sources.phase, SOURCES_PHASE.IDLE);
+    assert.equal(store.getState().answerView.title, '');
+
+    store.showSharedConversation(null);
+    assert.deepEqual(store.getState().messages, []);
+});
+
+test('following up on a shared conversation starts a thread of the viewer\'s own', async () => {
+    const { createConversationStore } = await loadStore();
+    const api = makeApi();
+    const store = createConversationStore({ api });
+    store.showSharedConversation({ conversation: true, title: 'T', messages: [{ role: 'user', content: 'Q?' }, { role: 'assistant', content: 'A.' }] });
+
+    await store.send('And another?', { mode: 'balanced', language: 'en' });
+
+    // Seeded from nothing: a public chat is never an ask_history row to continue.
+    assert.equal(api.calls.find(([name]) => name === 'create')[1].fromHistoryId, undefined);
+    assert.equal(store.getState().answerView, null);
+    assert.equal(store.getState().messages.some((m) => m.content === 'Q?'), false);
+});
+
 test('askSearch: pending turns while asking, then the answer view with its request', async () => {
     const { createConversationStore, MESSAGE_STATUS, SOURCES_PHASE } = await loadStore();
     const pending = deferred();

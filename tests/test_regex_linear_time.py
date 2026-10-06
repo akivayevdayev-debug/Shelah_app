@@ -115,7 +115,7 @@ def test_out_of_scope_needs_the_topic_and_no_halachic_context_on_the_first_line(
     assert claude._detect_out_of_scope_subject("debug the electricity meter") is None
     assert claude._detect_out_of_scope_subject("quantum mechanics of a vaccine") is None
     assert claude._detect_out_of_scope_subject("quantum  mechanics") == "Pure Science (no medical/halachic context)"
-    assert claude._detect_out_of_scope_subject("best anime") == "Pop Culture (explicitly non-religious)"
+    assert claude._detect_out_of_scope_subject("best anime") == "Entertainment, sports and celebrities"
 
 
 def test_out_of_scope_only_reads_the_first_line_as_before():

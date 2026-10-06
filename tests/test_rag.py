@@ -11,6 +11,8 @@ module in, since that's the actual integration seam these functions use.
 from __future__ import annotations
 
 
+import pytest
+
 import backend.rag as rag
 import app
 from backend.logging_setup import hash_user_id
@@ -249,7 +251,7 @@ class TestRetrieveCommunityKnowledge:
     def test_query_exception_returns_empty(self, monkeypatch):
         monkeypatch.setattr(app, "_get_supabase_client", lambda: _FakeSupabaseClient(error=RuntimeError("db down")))
         monkeypatch.setattr(app, "RAG_TOP_KNOWLEDGE_ROWS", 5)
-        monkeypatch.setattr(app, "_extract_query_keywords", lambda q, max_keywords=10: [])
+        monkeypatch.setattr(app, "_extract_query_keywords", lambda q, max_keywords=10: ["shabbat"])
         monkeypatch.setattr(app, "SUPABASE_COMMUNITY_KNOWLEDGE_TABLE", "community_knowledge")
         monkeypatch.setattr(app, "_detect_community_in_text", lambda q: None)
         assert rag._retrieve_community_knowledge("query") == []
@@ -288,7 +290,7 @@ class TestRetrieveCommunityKnowledge:
     def test_query_failure_records_circuit_failure(self, monkeypatch):
         monkeypatch.setattr(app, "_get_supabase_client", lambda: _FakeSupabaseClient(error=RuntimeError("db down")))
         monkeypatch.setattr(app, "RAG_TOP_KNOWLEDGE_ROWS", 5)
-        monkeypatch.setattr(app, "_extract_query_keywords", lambda q, max_keywords=10: [])
+        monkeypatch.setattr(app, "_extract_query_keywords", lambda q, max_keywords=10: ["shabbat"])
         monkeypatch.setattr(app, "SUPABASE_COMMUNITY_KNOWLEDGE_TABLE", "community_knowledge")
         monkeypatch.setattr(app, "_detect_community_in_text", lambda q: None)
 
@@ -301,7 +303,7 @@ class TestRetrieveCommunityKnowledge:
     def test_query_success_records_circuit_success(self, monkeypatch):
         monkeypatch.setattr(app, "_get_supabase_client", lambda: _FakeSupabaseClient(data=[]))
         monkeypatch.setattr(app, "RAG_TOP_KNOWLEDGE_ROWS", 5)
-        monkeypatch.setattr(app, "_extract_query_keywords", lambda q, max_keywords=10: [])
+        monkeypatch.setattr(app, "_extract_query_keywords", lambda q, max_keywords=10: ["shabbat"])
         monkeypatch.setattr(app, "SUPABASE_COMMUNITY_KNOWLEDGE_TABLE", "community_knowledge")
         monkeypatch.setattr(app, "_detect_community_in_text", lambda q: None)
 
@@ -595,3 +597,75 @@ class TestStoreUserMemorySummary:
             insert_calls = [c for c in client.query.calls if c[0] == "insert"]
             assert len(insert_calls) == 1
             assert insert_calls[0][1][0]["user_id"] == uid
+
+
+# ─────────────────────── customs relevance (irrelevant-customs fix) ─────────
+
+def _row(topic, content="", source="", community="Ashkenaz", row_id="1"):
+    return {"id": row_id, "community_name": community, "topic": topic,
+            "halakhic_source": source, "content": content}
+
+
+class TestDistinctiveKeywords:
+    def test_everyday_words_and_community_names_are_not_topics(self):
+        assert rag._distinctive_keywords(
+            ["can", "eat", "shabbat", "candles", "sephardic", "customs", "dairy"]
+        ) == ["shabbat", "candles", "dairy"]
+
+    def test_duplicates_short_and_blank_words_are_dropped(self):
+        assert rag._distinctive_keywords(["Mikveh", "mikveh", "of", "", None]) == ["mikveh"]
+
+    def test_empty_input(self):
+        assert rag._distinctive_keywords(None) == []
+
+
+class TestKeywordMatchesWholeWords:
+    def test_a_keyword_no_longer_matches_inside_another_word(self):
+        # "eat" in "great", "use" in "house", "day" in "today" scored every row
+        assert not rag._keyword_in("eat", "a great house")
+        assert not rag._keyword_in("use", "the house")
+
+    def test_plural_and_suffix_forms_still_match(self):
+        assert rag._keyword_in("candles", "lighting a candle")
+        assert rag._keyword_in("candle", "lighting candles")
+        assert rag._keyword_in("shabbat", "shabbat's candles")
+
+    def test_hebrew_keyword_matches_inside_a_prefixed_word(self):
+        assert rag._keyword_in("שבת", "הדלקת נרות בשבת")
+
+
+class TestOnTopic:
+    def test_a_row_sharing_only_an_umbrella_word_is_off_topic(self):
+        # asked about the mikveh on Shabbat, a row on Shabbat candles is not it
+        assert not rag._is_on_topic(["mikveh", "shabbat"], "shabbat candles", "", "lighting")
+        assert rag._is_on_topic(["mikveh", "shabbat"], "mikveh visits", "", "on shabbat")
+
+    def test_only_umbrella_keywords_means_any_hit_is_on_topic(self):
+        assert rag._is_on_topic(["shabbat"], "shabbat candles", "", "")
+
+    def test_rank_drops_the_umbrella_only_row_and_keeps_the_specific_one(self):
+        rows = [
+            _row("Shabbat candle lighting", "when to light on shabbat", row_id="candles"),
+            _row("Mikveh on Shabbat", "going to the mikveh on shabbat night", row_id="mikveh"),
+        ]
+        ranked = rag._rank_community_knowledge_rows(rows, ["mikveh", "shabbat"], None, "All")
+        assert [row["id"] for _, row in ranked] == ["mikveh"]
+
+
+class TestRetrieveSkipsQuestionsWithNoTopic:
+    def test_only_generic_words_means_no_query_and_no_customs(self, monkeypatch):
+        monkeypatch.setattr(app, "_get_supabase_client", lambda: _FakeSupabaseClient(data=[_row("anything")]))
+        monkeypatch.setattr(app, "_extract_query_keywords", lambda q, max_keywords=10: ["can", "eat", "customs"])
+        monkeypatch.setattr(rag, "_run_community_knowledge_query",
+                            lambda *a, **k: pytest.fail("must not query without a topic keyword"))
+        assert rag._retrieve_community_knowledge("can I eat, what are the customs") == []
+
+    def test_a_row_matching_only_a_generic_word_is_not_returned(self, monkeypatch):
+        rows = [_row("Wedding customs", "the great feast the family eats", row_id="1")]
+        monkeypatch.setattr(app, "_get_supabase_client", lambda: _FakeSupabaseClient(data=rows))
+        monkeypatch.setattr(app, "RAG_TOP_KNOWLEDGE_ROWS", 5)
+        monkeypatch.setattr(app, "_extract_query_keywords", lambda q, max_keywords=10: ["eat", "mikveh"])
+        monkeypatch.setattr(app, "SUPABASE_COMMUNITY_KNOWLEDGE_TABLE", "community_knowledge")
+        monkeypatch.setattr(app, "_normalize_rag_text", lambda text, max_chars=360: str(text or ""))
+        monkeypatch.setattr(app, "_detect_community_in_text", lambda q: None)
+        assert rag._retrieve_community_knowledge("can I eat before the mikveh", canonical_lens="All") == []

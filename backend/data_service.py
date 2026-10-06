@@ -60,7 +60,13 @@ class ShelahEngine:
             # Reuse the centralized library client so caching and flattening are consistent.
             data = get_text(reference)
             if data.get("error"):
-                return {"ref": reference, "lines": [{"he": "", "en": data.get("error", "Failed to fetch source.")}]}
+                # "unavailable" lets the /ask collectors drop this stand-in
+                # instead of showing "Failed to fetch source." as a source.
+                return {
+                    "ref": reference,
+                    "lines": [{"he": "", "en": data.get("error", "Failed to fetch source.")}],
+                    "unavailable": True,
+                }
 
             return {
                 "ref": data.get("ref", reference),
@@ -68,4 +74,4 @@ class ShelahEngine:
             }
         except Exception as e:
             logger.warning("[Engine] get_library_text error: %s", e)
-            return {"ref": reference, "lines": [{"he": "", "en": "Failed to fetch source."}]}
+            return {"ref": reference, "lines": [{"he": "", "en": "Failed to fetch source."}], "unavailable": True}

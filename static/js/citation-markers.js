@@ -57,6 +57,34 @@ export function splitMarkers(text) {
     return parts;
 }
 
+// `markdown` with each source cited once per segment, at the segment's end:
+// a segment is a line (a paragraph, list item or heading), every marker in it
+// is lifted out and one ascending "[n]" per distinct source goes after its last
+// character -- not a "[1]" after every sentence resting on source 1. Mirrors
+// backend/citation_markers.py's consolidate_markers, which the server applies to
+// a new answer; applying it here too tidies older stored answers. A segment whose
+// markers are already one trailing group is unchanged, so it is idempotent.
+// Lines inside a code fence are left alone.
+export function consolidateMarkers(markdown) {
+    const lines = String(markdown ?? "").split("\n");
+    let inFence = false;
+    return lines.map((line) => {
+        if (line.trimStart().startsWith("```")) {
+            inFence = !inFence;
+            return line;
+        }
+        if (inFence) return line;
+        const numbers = new Set();
+        const body = line.replace(RUN, (_all, _spaces, run) => {
+            for (const n of markerNumbers(run)) numbers.add(n);
+            return "";
+        });
+        if (!numbers.size) return line;
+        const group = [...numbers].sort((a, b) => a - b).map((n) => `[${n}]`).join("");
+        return body.trimEnd() + group;
+    }).join("\n");
+}
+
 // An answer's markdown without its trailing "Sources" block (the label line
 // and the bullet list under it, which the server renders last). Left whole when
 // anything else follows the list, so a stray "Sources" word mid-answer never

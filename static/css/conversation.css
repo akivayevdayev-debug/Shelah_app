@@ -461,6 +461,12 @@ body.conv-modal-open {
 
 /* ── Settings menu ───────────────────────────────────────────────── */
 .conv-menu-wrap { position: relative; }
+/* Phones: the menu hangs from the header's edge, not from the kebab. The
+   kebab sits two buttons in from that edge, so a menu right-aligned to it
+   runs off a 320px screen. */
+.conv-panel[data-layout="mobile"] .conv-header { position: relative; }
+.conv-panel[data-layout="mobile"] .conv-menu-wrap { position: static; }
+.conv-panel[data-layout="mobile"] .conv-menu { inset-inline-end: var(--sp-4); }
 .conv-menu {
     position: absolute;
     inset-block-start: calc(100% + var(--sp-1));
@@ -555,6 +561,29 @@ body.conv-modal-open {
 .conv-menu__item:hover { background: var(--ctrl-bg-hover); }
 .conv-menu__item--danger { color: var(--conv-danger); }
 .conv-panel:not([data-has-thread="true"]) .conv-needs-thread { display: none; }
+
+/* Share (a public link to the whole conversation, conversation-share.js):
+   the header's icon button on desktop, a menu row on phones, nothing on the
+   mini widget. A live link badges the button -- a dot, not just a color --
+   and adds "Stop sharing" to the menu. */
+.conv-panel[data-layout="mobile"] .conv-share-btn,
+.conv-panel[data-size="mini"] .conv-share-btn,
+.conv-panel[data-layout="desktop"] .conv-menu-share,
+.conv-panel:not([data-shared="true"]) .conv-needs-share { display: none; }
+.conv-share-btn { position: relative; }
+.conv-share-btn[data-shared="true"] { color: var(--accent-primary); }
+.conv-share-btn[data-shared="true"]::after {
+    content: "";
+    position: absolute;
+    inset-block-start: var(--sp-2);
+    inset-inline-end: var(--sp-2);
+    width: var(--sp-2);
+    height: var(--sp-2);
+    border-radius: var(--radius-full);
+    background: var(--accent-primary);
+    box-shadow: 0 0 0 2px var(--conv-panel-bg);
+}
+.conv-share-btn[aria-busy="true"] { cursor: progress; }
 
 /* ── Lock line ───────────────────────────────────────────────────── */
 .conv-lockline {

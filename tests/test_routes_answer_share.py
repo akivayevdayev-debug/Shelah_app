@@ -16,6 +16,7 @@ import pytest
 from postgrest.exceptions import APIError
 
 import backend.auth as auth_module
+import backend.device_identity as device_identity
 import backend.routes_answer_share as share_module
 import backend.routes_user as routes_user_module
 from backend.rate_limit import classify_route
@@ -71,8 +72,22 @@ class _Query:
         self._payload = payload
         return self
 
+    def delete(self):
+        self._op = "delete"
+        return self
+
     def eq(self, key, value):
         self._filters.append((key, value))
+        return self
+
+    def in_(self, key, values):
+        self._filters.append((key, list(values)))
+        return self
+
+    def is_(self, *a, **k):
+        return self
+
+    def lte(self, *a, **k):
         return self
 
     def order(self, *a, **k):
@@ -87,11 +102,16 @@ class _Query:
             raise table.error
         if self._op == "update" and table.before_update:
             table.before_update(table)
-        matched = [r for r in table.rows if all(r.get(k) == v for k, v in self._filters)]
+        matched = [
+            r for r in table.rows
+            if all((r.get(k) in v) if isinstance(v, list) else r.get(k) == v for k, v in self._filters)
+        ]
         if self._op == "update":
             for r in matched:
                 r.update(self._payload)
             table.update_calls.append((self._payload, list(self._filters)))
+        if self._op == "delete":
+            table.rows[:] = [r for r in table.rows if r not in matched]
         # Every column comes back, whatever was selected -- so the tests
         # below prove the route's own whitelist keeps user_id/id out.
         return _Result([dict(r) for r in matched])
@@ -108,11 +128,16 @@ class _FakeTable:
 
 
 class _FakeClient:
+    """Only ask_history is stored; any other table (the conversations the
+    public link also looks in) is empty."""
+
     def __init__(self, table):
         self._table = table
 
     def table(self, name):
-        return _Query(self._table)
+        if name == share_module.SUPABASE_ASK_HISTORY_TABLE:
+            return _Query(self._table)
+        return _Query(_FakeTable(rows=[]))
 
 
 @pytest.fixture
@@ -362,3 +387,80 @@ class TestPublicAnswer:
 
 def test_public_answer_route_is_rate_limited_as_fanout():
     assert classify_route("/api/public/answer/sharedTokenBBBBBBBBBBB") == "fanout"
+
+
+# ── Signed-out answers: owned by the device cookie, not an account ───────────
+
+DEVICE_TOKEN = "d" * 40
+DEVICE_OWNER = device_identity.owner_for_token(DEVICE_TOKEN)
+OTHER_DEVICE_TOKEN = "e" * 40
+
+
+def _device_client(test_client, token=DEVICE_TOKEN):
+    test_client.set_cookie(device_identity.DEVICE_COOKIE, token, domain="localhost")
+    return test_client
+
+
+class TestDeviceOwner:
+    """A signed-out visitor holding the cookie a signed-out /ask set can open,
+    share and unshare that answer; nobody else can."""
+
+    @pytest.fixture
+    def device_row(self, db):
+        db.rows[0]["user_id"] = DEVICE_OWNER
+        return db
+
+    def test_device_opens_its_own_answer(self, test_client, device_row):
+        _device_client(test_client)
+        response = test_client.get(f"/api/user/history/{ENTRY_ID}")
+        assert response.status_code == 200
+        assert response.get_json()["question"].startswith("May I carry")
+
+    def test_another_device_gets_404(self, test_client, device_row):
+        _device_client(test_client, OTHER_DEVICE_TOKEN)
+        assert test_client.get(f"/api/user/history/{ENTRY_ID}").status_code == 404
+
+    def test_no_cookie_and_no_token_is_401(self, test_client, device_row):
+        assert test_client.get(f"/api/user/history/{ENTRY_ID}").status_code == 401
+
+    def test_a_malformed_cookie_is_not_an_identity(self, test_client, device_row):
+        _device_client(test_client, "short")
+        assert test_client.get(f"/api/user/history/{ENTRY_ID}").status_code == 401
+
+    def test_device_shares_and_stops_sharing(self, test_client, device_row):
+        _device_client(test_client)
+        created = test_client.post(_share_url())
+        assert created.status_code == 201
+        token = created.get_json()["share_token"]
+        assert test_client.get(f"/api/public/answer/{token}").status_code == 200
+        _, filters = device_row.update_calls[0]
+        assert ("user_id", DEVICE_OWNER) in filters
+
+        assert test_client.delete(_share_url()).status_code == 200
+        assert test_client.get(f"/api/public/answer/{token}").status_code == 404
+
+    def test_another_device_cannot_share_it(self, test_client, device_row):
+        _device_client(test_client, OTHER_DEVICE_TOKEN)
+        assert test_client.post(_share_url()).status_code == 404
+        assert device_row.rows[0]["is_public"] is False
+
+    def test_device_deletes_its_own_answer_only(self, test_client, device_row):
+        _device_client(test_client, OTHER_DEVICE_TOKEN)
+        assert test_client.delete(f"/api/user/history/{ENTRY_ID}").status_code == 200
+        assert len(device_row.rows) == 1  # not theirs: nothing was removed
+
+        _device_client(test_client)
+        assert test_client.delete(f"/api/user/history/{ENTRY_ID}").status_code == 200
+        assert device_row.rows == []
+
+    def test_signed_in_after_the_fact_still_opens_the_device_answer(self, test_client, device_row, monkeypatch):
+        """The account and the device are both owners, so signing in does not
+        orphan what was asked signed out on this browser."""
+        _as(monkeypatch, OWNER_ID)
+        _device_client(test_client)
+        response = test_client.get(f"/api/user/history/{ENTRY_ID}", headers=AUTH_HEADERS)
+        assert response.status_code == 200
+
+    def test_an_account_does_not_open_someone_elses_device_answer(self, test_client, device_row, monkeypatch):
+        _as(monkeypatch, OTHER_ID)
+        assert test_client.get(f"/api/user/history/{ENTRY_ID}", headers=AUTH_HEADERS).status_code == 404

@@ -861,6 +861,42 @@ class TestAskInConversation:
         assert response.status_code == 201
         assert response.get_json()["assistant_message"]["content"] == "Blocked."
 
+    def test_off_topic_question_is_refused_before_any_retrieval(self, test_client, authed, monkeypatch):
+        """A literature question in a Torah thread: no retrieval, no model call,
+        and the stored assistant turn is the refusal with no citations."""
+        client = _FakeSupabaseClient({
+            CONV_TABLE: _FakeQuery(data=[{"id": "conv-1", "minhag": None}]),
+            MSG_TABLE: _FakeQuery(
+                select_data=[[
+                    {"role": "user", "content": "Can I cook on Shabbat?"},
+                    {"role": "assistant", "content": "Cooking is forbidden.", "status": "complete"},
+                ]],
+                insert_data=[
+                    {"id": "msg-user-1", "role": "user", "content": "Who wrote Hamlet?", "status": "complete"},
+                    {"id": "msg-assistant-1", "role": "assistant", "content": "x", "status": "complete"},
+                ],
+            ),
+        })
+        monkeypatch.setattr(routes_conversations_module, "_get_user_scoped_supabase_client", lambda: client)
+
+        def _must_not_run(*a, **k):
+            raise AssertionError("retrieval and the model must not run for an off-topic question")
+
+        monkeypatch.setattr(routes_conversations_module, "get_engine", _must_not_run)
+        monkeypatch.setattr(routes_conversations_module, "_collect_ask_question_context", _must_not_run)
+        monkeypatch.setattr(routes_conversations_module, "_dispatch_ask_ai_synthesis_call", _must_not_run)
+
+        response = test_client.post(
+            "/api/conversations/conv-1/ask", json={"question": "Who wrote Hamlet?"}, headers=AUTH_HEADERS
+        )
+
+        assert response.status_code == 201
+        stored = client.table(MSG_TABLE).insert_calls[-1][0][0]
+        assert stored["role"] == "assistant"
+        assert stored["status"] == "complete"
+        assert "outside what I can help with" in stored["content"]
+        assert client.table(CIT_TABLE).insert_calls == []
+
     def test_synthesis_exception_stores_error_placeholder_message(self, test_client, authed, monkeypatch):
         client = _FakeSupabaseClient({
             CONV_TABLE: _FakeQuery(data=[{"id": "conv-1", "minhag": None}]),

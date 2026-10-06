@@ -367,3 +367,44 @@ test('a placement without a status region still revokes', async () => {
     await revoke.fire('click');
     assert.equal(line.classList.contains('hidden'), true);
 });
+
+// ── conversations: same client and store, another base path ─────────────
+
+test('createShareApi can target conversations, and maps 409 empty_conversation', async () => {
+    const m = await load();
+    const requests = [];
+    const api = m.createShareApi({
+        basePath: m.CONVERSATION_SHARE_PATH,
+        fetchImpl: async (url, opts) => { requests.push([url, opts.method]); return jsonResponse(201, { shared: true, share_token: TOKEN }); },
+        getHeaders: async () => ({}),
+    });
+    assert.deepEqual(await api.create(ID), { shared: true, token: TOKEN });
+    assert.deepEqual(requests, [[`/api/conversations/${ID}/share`, 'POST']]);
+
+    const empty = m.createShareApi({
+        basePath: m.CONVERSATION_SHARE_PATH,
+        fetchImpl: async () => jsonResponse(409, { code: 'empty_conversation' }),
+        getHeaders: async () => ({}),
+    });
+    await assert.rejects(empty.create(ID), (err) => err instanceof m.NothingToShareError && err.name === 'NothingToShareError');
+    // Any other 409 is an ordinary failure.
+    const other = m.createShareApi({ fetchImpl: async () => jsonResponse(409, { code: 'else' }), getHeaders: async () => ({}) });
+    await assert.rejects(other.create(ID), (err) => !(err instanceof m.NothingToShareError) && /409/.test(err.message));
+});
+
+test('refreshOnShare posts every time, so a conversation share moves its snapshot forward', async () => {
+    const m = await load();
+    const api = fakeApi();
+    const share = m.createAnswerShare({ api, getOrigin: () => ORIGIN, privateFallback: false, refreshOnShare: true });
+    assert.equal(await share.linkFor(ID), `${ORIGIN}/a/${TOKEN}`);
+    assert.equal(await share.linkFor(ID), `${ORIGIN}/a/${TOKEN}`);
+    assert.deepEqual(api.calls, [['create', ID], ['create', ID]]);
+});
+
+test('without the private fallback, an unavailable share is an error, not an /answer/<id> link', async () => {
+    const m = await load();
+    const api = fakeApi({ create: async () => { throw new m.ShareUnavailableError(); } });
+    const share = m.createAnswerShare({ api, getOrigin: () => ORIGIN, privateFallback: false });
+    await assert.rejects(share.linkFor(ID), (err) => err instanceof m.ShareUnavailableError);
+    assert.equal(share.peek(ID), null);
+});

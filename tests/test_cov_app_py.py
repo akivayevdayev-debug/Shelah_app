@@ -147,6 +147,11 @@ class TestPrayerPayloadHebrew:
 
 # ─── _collect_primary_sources_sync ──────────────────────────────────────────
 
+def _source(ref):
+    """A fetched source with some text, as get_library_text returns one."""
+    return {"ref": ref, "lines": [{"en": f"text of {ref}", "he": ""}]}
+
+
 class _FakeEngine:
     """Engine stub whose get_library_text records every ref it is asked for."""
 
@@ -158,7 +163,7 @@ class _FakeEngine:
     def get_library_text(self, ref):
         with self._lock:
             self.requested.append(ref)
-        outcome = self._responses.get(ref, {"ref": ref})
+        outcome = self._responses.get(ref, _source(ref))
         if isinstance(outcome, Exception):
             raise outcome
         return outcome
@@ -176,13 +181,13 @@ class TestCollectPrimarySourcesSync:
         sources = app._collect_primary_sources_sync("q", engine)
 
         assert sorted(engine.requested) == ["Exodus 2:2", "Genesis 1:1"]
-        assert sources == [{"ref": "Genesis 1:1"}, {"ref": "Exodus 2:2"}]
+        assert sources == [_source("Genesis 1:1"), _source("Exodus 2:2")]
 
     def test_refs_are_stripped_before_being_fetched(self, monkeypatch):
         monkeypatch.setattr(app.sefaria, "find_refs_for_question", lambda question: ["  Genesis 1:1  "])
         engine = _FakeEngine({})
 
-        assert app._collect_primary_sources_sync("q", engine) == [{"ref": "Genesis 1:1"}]
+        assert app._collect_primary_sources_sync("q", engine) == [_source("Genesis 1:1")]
         assert engine.requested == ["Genesis 1:1"]
 
     def test_a_failing_source_is_dropped_without_losing_the_others(self, monkeypatch):
@@ -194,14 +199,27 @@ class TestCollectPrimarySourcesSync:
 
         sources = app._collect_primary_sources_sync("q", engine)
 
-        assert sources == [{"ref": "Genesis 1:1"}, {"ref": "Exodus 2:2"}]
+        assert sources == [_source("Genesis 1:1"), _source("Exodus 2:2")]
         assert sorted(engine.requested) == ["Bad 9:9", "Exodus 2:2", "Genesis 1:1"]
 
     def test_non_dict_source_payloads_are_dropped(self, monkeypatch):
         monkeypatch.setattr(app.sefaria, "find_refs_for_question", lambda question: ["A 1:1", "B 2:2"])
         engine = _FakeEngine({"A 1:1": "not a dict"})
 
-        assert app._collect_primary_sources_sync("q", engine) == [{"ref": "B 2:2"}]
+        assert app._collect_primary_sources_sync("q", engine) == [_source("B 2:2")]
+
+    @pytest.mark.parametrize("stand_in", [
+        # What get_library_text returns for a ref Sefaria could not serve.
+        {"ref": "A 1:1", "lines": [{"he": "", "en": "Failed to fetch source."}], "unavailable": True},
+        {"ref": "A 1:1", "lines": []},
+        {"ref": "A 1:1", "lines": [{"he": " ", "en": ""}]},
+        {"ref": "A 1:1"},
+    ])
+    def test_a_source_that_failed_to_load_or_has_no_text_is_dropped(self, monkeypatch, stand_in):
+        monkeypatch.setattr(app.sefaria, "find_refs_for_question", lambda question: ["A 1:1", "B 2:2"])
+        engine = _FakeEngine({"A 1:1": stand_in})
+
+        assert app._collect_primary_sources_sync("q", engine) == [_source("B 2:2")]
 
     def test_only_blank_refs_mean_no_lookups_at_all(self, monkeypatch):
         monkeypatch.setattr(app.sefaria, "find_refs_for_question", lambda question: ["", None, "  "])
@@ -691,7 +709,7 @@ class TestStartupBlueprintRegistration:
     def test_a_clean_import_registers_every_blueprint_on_the_new_app(self, monkeypatch, startup_stubs):
         module = _load_copy(monkeypatch)
 
-        assert len(module.app.blueprints) == 15
+        assert len(module.app.blueprints) == 16
         assert module.app.blueprints.keys() == flask_app_module.app.blueprints.keys()
         # The registration list and its helper names are cleaned up afterwards.
         for leaked in ("_BLUEPRINTS", "_importlib", "_mod_path", "_bp_name", "_mod", "_bp"):
@@ -700,7 +718,7 @@ class TestStartupBlueprintRegistration:
     @pytest.mark.parametrize("failing_path, blueprints_registered_before", [
         ("backend.routes_library", 0),
         ("backend.routes_calendar", 4),
-        ("backend.routes_webhooks", 14),
+        ("backend.routes_webhooks", 15),
     ])
     def test_a_failing_import_aborts_startup_with_the_offending_module_named(
         self, monkeypatch, startup_stubs, caplog, failing_path, blueprints_registered_before,

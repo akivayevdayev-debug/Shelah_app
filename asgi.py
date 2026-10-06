@@ -13,14 +13,15 @@ import time
 from typing import Annotated, Any
 
 from a2wsgi import WSGIMiddleware
-from fastapi import FastAPI, Header, HTTPException, Request
+from fastapi import FastAPI, Header, HTTPException, Request, Response
 from fastapi.responses import JSONResponse, StreamingResponse
 from pydantic import BaseModel, Field
 
 import app as flask_app_module
 from backend import ask_pipeline, ask_progress, claude, search
-from backend.ask_payloads import build_ai_answer_payload, build_source_fallback_payload
+from backend.ask_payloads import build_ai_answer_payload, build_source_fallback_payload, is_usable_primary_source
 from backend.auth import CLERK_ENFORCE_AUTH, extract_user_id_from_bearer_value
+from backend.device_identity import bind_device, release_device, request_is_secure, set_device_cookie
 from backend.utils.search_provider import get_halakhic_sources
 from backend import sefaria as _backend_sefaria
 from backend.data_service import ShelahEngine
@@ -127,7 +128,7 @@ async def _collect_primary_sources(question: str) -> tuple[list[str], list[dict[
         engine = ShelahEngine()
         try:
             source = await asyncio.to_thread(engine.get_library_text, ref)
-            return source if isinstance(source, dict) else None
+            return source if is_usable_primary_source(source) else None
         except Exception as exc:
             logger.debug("Source load failed for ref=%r: %s", ref, exc)
             return None
@@ -1011,11 +1012,23 @@ async def _ask_async_progress_response(request, payload, authorization):
 async def ask_async(
     request: Request,
     payload: AskRequest,
+    response: Response,
     authorization: Annotated[str | None, Header()] = None,
 ) -> dict[str, Any] | StreamingResponse:
-    if ask_progress.wants_stream(request.headers.get("accept")):
-        return await _ask_async_progress_response(request, payload, authorization)
-    return await _ask_async_impl(request, payload, authorization)
+    # A signed-out visitor (no Authorization header) has the answer saved under
+    # their device, so its /answer/<id> link opens in this browser
+    # (backend/device_identity.py). The first such answer sets the cookie.
+    binding = None if (authorization or "").strip() else bind_device(request.cookies)
+    try:
+        if ask_progress.wants_stream(request.headers.get("accept")):
+            result = await _ask_async_progress_response(request, payload, authorization)
+        else:
+            result = await _ask_async_impl(request, payload, authorization)
+    finally:
+        release_device(binding)
+    secure = request_is_secure(request.url.scheme, request.headers.get("x-forwarded-proto"))
+    set_device_cookie(result if isinstance(result, StreamingResponse) else response, binding, secure=secure)
+    return result
 
 
 async def _ask_async_impl(
@@ -1059,6 +1072,14 @@ async def _ask_async_impl(
         prayer_result = _ask_async_prayer_result(question, mode, canonical_lens)
         if prayer_result is not None:
             return prayer_result
+
+        off_topic_result = claude.off_topic_block_result(question, answer_language)
+        if off_topic_result is not None:
+            return await _security_blocked_ask_async_payload(
+                off_topic_result, mode, canonical_lens, answer_language, user_id,
+                question_was_sanitized, question,
+                {"knowledge_rows": [], "user_memory_summaries": []},
+            )
 
         ctx = await _collect_ask_async_context(
             question, canonical_lens, user_id, answer_language, bearer_token=authorization,

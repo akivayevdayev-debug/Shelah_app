@@ -42,6 +42,7 @@ from datetime import datetime, timedelta, timezone
 from flask import Blueprint, Response, copy_current_request_context, current_app, jsonify, request, g
 
 from backend.auth import require_clerk_auth
+from backend.device_identity import filter_owner, history_owners
 from backend import ask_progress, claude
 from backend.cost_gates import (
     bind_cost_attribution,
@@ -217,7 +218,9 @@ def create_conversation():
 def _load_history_seed(user_id, entry_id):
     """The caller's own ask_history row as a thread's first turn, or None
     when the id is malformed, not theirs, has no answer, or can't be read.
-    Read with the service client and the caller's user_id, the same way
+    "Theirs" is their account or the device they answered signed out on
+    (backend/device_identity.py), so an answer asked before signing in can
+    still be followed up. Read with the service client, the same way
     routes_user.get_ask_history_entry() reads it."""
     entry_id = str(entry_id or "").strip()
     if not _HISTORY_ID_RE.match(entry_id):
@@ -226,15 +229,13 @@ def _load_history_seed(user_id, entry_id):
     if not supabase:
         return None
     try:
-        result = (
+        query = (
             supabase
             .table(SUPABASE_ASK_HISTORY_TABLE)
             .select("id,question,answer,ai_cited_sources,community")
             .eq("id", entry_id)
-            .eq("user_id", user_id)
-            .limit(1)
-            .execute()
         )
+        result = filter_owner(query, history_owners(user_id)).limit(1).execute()
     except Exception as e:
         _capture_backend_error("conversation_seed_lookup_failed", e, {"user_id_hash": hash_user_id(user_id)})
         return None
@@ -728,16 +729,23 @@ def _synthesize_and_store_assistant_reply(
     also guard the user-message insert that happens before this is called
     -- a synthesis failure must not undo the already-saved user turn."""
     try:
-        engine = get_engine()
-        ctx = _collect_ask_question_context(
-            question, canonical_lens, user_id, answer_language, engine,
-            retrieval_context=_earlier_questions(conversation_history))
-        result = _dispatch_ask_ai_synthesis_call(
-            question, mode, canonical_lens, answer_language, ctx, engine,
-            conversation_history=conversation_history,
-        )
-        result, result_error = _coerce_and_validate_ai_result(
-            result, question, mode, answer_language)
+        # A question that is plainly not about Jewish law or learning is refused
+        # before any retrieval, whatever the thread so far was about.
+        ctx = None
+        result = claude.off_topic_block_result(question, answer_language)
+        if result is not None:
+            result_error = str(result.get("error") or "")
+        else:
+            engine = get_engine()
+            ctx = _collect_ask_question_context(
+                question, canonical_lens, user_id, answer_language, engine,
+                retrieval_context=_earlier_questions(conversation_history))
+            result = _dispatch_ask_ai_synthesis_call(
+                question, mode, canonical_lens, answer_language, ctx, engine,
+                conversation_history=conversation_history,
+            )
+            result, result_error = _coerce_and_validate_ai_result(
+                result, question, mode, answer_language)
 
         if result_error.startswith("security_blocked"):
             answer_text = str(result.get("answer") or "").strip() or (

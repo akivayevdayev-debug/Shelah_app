@@ -236,7 +236,7 @@ reflected in `privacy.html` §5.
 | Activity | Data subjects | Categories of data | Purpose | Recipients | Retention | Security measures |
 |---|---|---|---|---|---|---|
 | Account creation & auth | Registered users | Name, email, auth tokens | Provide the Service, secure login | Clerk | Until deletion or 1yr inactivity (`privacy.html` §3) | Clerk-managed password hashing; HTTPS/TLS 1.2+ |
-| Halachic Q&A (ask pipeline) | Registered + anonymous users | Question text, AI answer, cited sources, community/mode/language settings | Generate and store the AI answer, per-user history | Google Gemini, Anthropic Claude, Sefaria, Supabase | 90 days, then deleted (automated — §5 below) | RLS-scoped table, encryption at rest (Supabase) |
+| Halachic Q&A (ask pipeline) | Registered + anonymous users | Question text, AI answer, cited sources, community/mode/language settings; for a signed-out asker, a one-way hash of the `shelah_device` cookie | Generate and store the AI answer, per-user history, and let a signed-out asker reopen their own answer on the device that asked it | Google Gemini, Anthropic Claude, Sefaria, Supabase | 90 days, then deleted (automated — §5 below) | RLS-scoped table, encryption at rest (Supabase) |
 | User preferences & study data | Registered users | UI prefs, bookmarks, study notes, AI summaries | Personalize reading experience | Supabase only | Until user deletes or account deletion | RLS-scoped table |
 | Conversation memory | Registered users | Short AI-generated summaries of prior interactions | Personalize future answers | Supabase, (indirectly) Gemini/Claude at inference time | Until account deletion | RLS blocks all client access; service-role only |
 | AI usage/cost metering | Registered + anonymous (IP-keyed) users | Model name, token counts, estimated cost, `user_id` or `client_key` | Enforce per-caller budget caps | Supabase only | 90 days, then deleted (automated — §5 below) | Service-role only, not client-readable |
@@ -276,6 +276,17 @@ full retention table):
   these would defeat their purpose.
 - **Session cookies** — client-side, deleted on logout; not a server-side
   retention concern.
+- **Device cookie (`shelah_device`)** — a functional cookie set by the first
+  signed-out `/ask` (random value, `HttpOnly`, `SameSite=Lax`, one year; only
+  its SHA-256 is stored, as `ask_history.user_id = device:<hash>`). It is not a
+  tracking id and is never sent to a third party. The answer it unlocks is
+  an ordinary `ask_history` row, so the 90-day `retention_enforce` window
+  deletes it with every other row; the cookie itself is the browser's to
+  clear. A signed-out answer is not reachable from an account's data export or
+  delete-account flow (nothing links the device to a `sub` until the person
+  signs in on the same browser); a DSR for one is handled by the answer's
+  owner deleting it from its page, or manually by `user_id` once the person
+  supplies the cookie value.
 - **Security logs (IP, access logs) — 30 days** — these are Vercel's own
   platform request logs, not rows in this app's Supabase project; their
   retention is configured in the Vercel dashboard, not enforceable from

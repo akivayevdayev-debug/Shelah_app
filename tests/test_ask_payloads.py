@@ -174,3 +174,27 @@ class TestSourceFallbackPayload:
 
         assert meta["fallback_detail"]["reason"] == reason
         assert "SECRET" not in repr(meta)
+
+
+class TestIsUsablePrimarySource:
+    @pytest.mark.parametrize("source", [
+        {"ref": "A 1", "lines": [{"en": "text", "he": ""}]},
+        {"ref": "A 1", "lines": [{"he": "טקסט"}]},
+        {"ref": "A 1", "lines": [{"en": ""}, {"en": "later line"}]},
+    ])
+    def test_a_fetched_source_with_text_is_usable(self, source):
+        assert ask_payloads.is_usable_primary_source(source) is True
+
+    @pytest.mark.parametrize("source", [
+        None,
+        "not a dict",
+        ["A 1"],
+        {"ref": "A 1"},
+        {"ref": "A 1", "lines": "text"},
+        {"ref": "A 1", "lines": []},
+        {"ref": "A 1", "lines": ["text"]},
+        {"ref": "A 1", "lines": [{"en": " ", "he": ""}]},
+        {"ref": "A 1", "lines": [{"he": "", "en": "Failed to fetch source."}], "unavailable": True},
+    ])
+    def test_a_failed_empty_or_malformed_source_is_not(self, source):
+        assert ask_payloads.is_usable_primary_source(source) is False

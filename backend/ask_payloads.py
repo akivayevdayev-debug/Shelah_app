@@ -19,6 +19,23 @@ from backend import claude
 from backend.helpers import _coarse_ai_error_reason
 
 
+def is_usable_primary_source(source: Any) -> bool:
+    """True for a fetched primary source worth showing the model and the
+    reader: a dict whose fetch succeeded and that has some text. A ref that
+    failed to load comes back as a stand-in whose only "text" is the error
+    message (``unavailable``), and a ref with no lines has nothing to cite;
+    either would otherwise appear as a source for the question."""
+    if not isinstance(source, dict) or source.get("unavailable"):
+        return False
+    lines = source.get("lines")
+    if not isinstance(lines, list):
+        return False
+    return any(
+        isinstance(line, dict) and (str(line.get("en") or "").strip() or str(line.get("he") or "").strip())
+        for line in lines
+    )
+
+
 def build_ai_answer_payload(
     *,
     result: Dict[str, Any],

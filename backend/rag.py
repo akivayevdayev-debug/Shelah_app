@@ -24,8 +24,11 @@ including the async path in ``asgi.py`` — keep working unchanged.
 import os
 import re
 
+from backend.device_identity import current_history_owner
 from backend.logging_setup import _capture_backend_error, hash_user_id
 from backend.health_check import health
+from backend.helpers import COMMUNITY_ALIASES
+from backend.sefaria import UMBRELLA_KEYWORDS
 
 
 def _compose_answer_with_prefixes(body_text, *, include_web_warning=False, source_attribution_note=""):
@@ -102,6 +105,60 @@ def _build_ask_tool_context(engine):
     return context
 
 
+# Words that say nothing about WHAT a question is about. community_knowledge
+# rows are ~400-char summaries full of everyday English, so matching these
+# ("eat" inside "great", "use" inside "house", "can", "custom", "community")
+# made nearly every row look relevant and the model was handed unrelated
+# customs for every question. Community names are here too: the community is
+# applied as a filter, not as a topic.
+_CUSTOMS_STOPWORDS = frozenset({
+    "the", "and", "for", "with", "from", "that", "this", "these", "those", "are",
+    "was", "were", "been", "being", "have", "has", "had", "does", "did", "doing",
+    "can", "could", "may", "might", "must", "shall", "should", "will", "would",
+    "not", "but", "nor", "any", "all", "some", "each", "every", "other", "another",
+    "same", "also", "just", "only", "very", "much", "many", "more", "most", "less",
+    "least", "than", "then", "there", "their", "them", "they", "you", "your",
+    "yours", "our", "ours", "his", "her", "hers", "its", "him", "she", "let",
+    "what", "when", "where", "which", "while", "who", "whom", "whose", "why", "how",
+    "about", "above", "after", "before", "during", "into", "onto", "over", "under",
+    "between", "without", "within", "against", "around", "through", "until",
+    "again", "ever", "never", "always", "often", "still", "even", "else",
+    "tell", "explain", "describe", "give", "show", "need", "want", "like", "know",
+    "think", "say", "said", "ask", "please", "use", "used", "using", "make",
+    "made", "take", "took", "get", "got", "getting", "going", "come", "see",
+    "look", "find", "keep", "put", "eat", "eating", "drink", "wear", "wearing",
+    "day", "days", "time", "times", "week", "year", "years", "way", "thing",
+    "things", "someone", "something", "anyone", "anything", "person", "people",
+    "allowed", "permitted", "permissible", "forbidden", "prohibited", "okay",
+    "right", "wrong", "good", "bad", "best", "better", "able", "possible",
+    "custom", "customs", "minhag", "minhagim", "tradition", "traditions",
+    "traditional", "practice", "practices", "practise", "community",
+    "communities", "jewish", "jews", "halacha", "halachah", "halakhah",
+    "halakha", "halachic", "law", "laws", "rule", "rules", "ruling",
+    "question", "answer", "what's", "isn't", "don't", "doesn't",
+    *COMMUNITY_ALIASES,
+    *(word for alias in COMMUNITY_ALIASES for word in alias.split()),
+})
+
+
+def _distinctive_keywords(keywords):
+    """The question's keywords that carry a topic, in order: no stopwords, no
+    community names, no duplicates."""
+    kept = []
+    for keyword in keywords or []:
+        word = str(keyword or "").strip().lower()
+        if len(word) >= 3 and word not in _CUSTOMS_STOPWORDS and word not in kept:
+            kept.append(word)
+    return kept
+
+
+def _keyword_in(keyword, text):
+    """keyword starts a word of text, plural or not ("candles" finds "candle"
+    and "candles") -- but "eat" no longer finds "great"."""
+    stem = keyword[:-1] if len(keyword) > 4 and keyword.endswith("s") else keyword
+    return re.search(r"(?<![a-z0-9])" + re.escape(stem), text) is not None
+
+
 def _keyword_match_score(keywords, topic, source, content):
     """Sum of per-keyword topic/source/content hits. Split out of
     _score_community_knowledge_row() to keep this loop out of that
@@ -109,13 +166,26 @@ def _keyword_match_score(keywords, topic, source, content):
     """
     score = 0
     for keyword in keywords:
-        if keyword in topic:
+        if _keyword_in(keyword, topic):
             score += 8
-        if keyword in source:
+        if _keyword_in(keyword, source):
             score += 4
-        if keyword in content:
+        if _keyword_in(keyword, content):
             score += 2
     return score
+
+
+def _is_on_topic(keywords, topic, source, content):
+    """Whether a row is about what the question asks, not just near it. A
+    question about the mikveh on Shabbat must not get a row on lighting
+    Shabbat candles because both say "Shabbat": when the question has any
+    keyword more specific than an umbrella one ("shabbat", "kosher",
+    "prayer"), the row has to mention one of those."""
+    anchors = [keyword for keyword in keywords if keyword not in UMBRELLA_KEYWORDS]
+    if not anchors:
+        return True
+    haystack = f"{topic} {source} {content}"
+    return any(_keyword_in(anchor, haystack) for anchor in anchors)
 
 
 def _score_community_knowledge_row(row, keywords, canonical_lens):
@@ -210,6 +280,14 @@ def _rank_community_knowledge_rows(rows, keywords, community_filter, canonical_l
         if keyword_score <= 0:
             continue  # off-topic for this question; skip regardless of community match
 
+        if not _is_on_topic(
+            keywords,
+            str(row.get("topic") or "").lower(),
+            str(row.get("halakhic_source") or "").lower(),
+            str(row.get("content") or "").lower(),
+        ):
+            continue  # shares only a broad word ("shabbat") with the question
+
         ranked.append((score, row))
     return ranked
 
@@ -224,7 +302,9 @@ def _retrieve_community_knowledge(query, canonical_lens="All", max_rows=None):
         return []
 
     target_rows = max_rows or _app.RAG_TOP_KNOWLEDGE_ROWS
-    keywords = _app._extract_query_keywords(query, max_keywords=10)
+    keywords = _distinctive_keywords(_app._extract_query_keywords(query, max_keywords=14))
+    if not keywords:
+        return []  # nothing in the question names a topic a custom could be about
     community_filter = _community_filter_from_request(query, canonical_lens)
     text_or_filter = _build_knowledge_text_or_filter(keywords)
 
@@ -378,14 +458,19 @@ def _store_ask_history(
     scripts/migrate_ask_history_safety_metadata.sql to have been applied —
     see that file.
 
+    ``user_id`` is the Clerk sub. Signed out, the answer is saved under the
+    request's device instead (backend/device_identity.py), so its link is tied
+    to that browser; with neither there is nothing to attach it to.
+
     Returns the stored row's id (str) on success, or None if nothing was
-    stored (no user_id, no configured client, or the insert raised) — the
-    id lets the /ask response carry a deep link (?chat=<id>) back to this
+    stored (no owner, no configured client, or the insert raised) — the
+    id lets the /ask response carry a deep link (/answer/<id>) back to this
     exact answer.
     """
     import app as _app
     from uuid import uuid4
 
+    user_id = user_id or current_history_owner()
     if not user_id:
         return None
 

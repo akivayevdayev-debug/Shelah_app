@@ -986,7 +986,7 @@ body.search-loading .search-ai-sparkle {
     flex-shrink: 0;
 }
 
-/* "Copy link" on a stored answer (static/js/answer-link.js), in the
+/* "Share" (copies a public link) on a stored answer (static/js/answer-link.js), in the
    conversation panel's answer turn. Clicking flashes a green "Copied!" face
    for ~1.6s; both faces share one grid cell so the swap never changes the
    button's width, and the state is carried by the icon + label, not by

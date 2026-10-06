@@ -264,7 +264,7 @@ async def run_agentic_ask(
 
     input_validation = claude_module.validate_user_query(question)
     if input_validation["blocked"]:
-        return claude_module._build_input_block_result(input_validation)
+        return claude_module._build_input_block_result(input_validation, answer_language)
 
     sanitized_query = input_validation["sanitized_query"]
 

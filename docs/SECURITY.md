@@ -404,7 +404,7 @@ pre-fetch sections via `build_prompt()`, and the agentic `web_search` /
   found 0 false positives.
 - The pre-fetch sections are wrapped in `<retrieved_context>` tags that both
   system prompts name as data, never instructions (emitted only for non-empty
-  sections; `PROMPT_VERSION` is `2026-10-02-source-markers-v4` and the wrapper
+  sections; `PROMPT_VERSION` is `2026-10-06-scope-and-sources-v5` and the wrapper
   is unchanged in it).
 
 It is a conservative phrase heuristic — bare "you are now" and "ignore any
@@ -446,11 +446,27 @@ Other controls:
   `@require_clerk_auth` or `@maybe_require_clerk_auth` as appropriate and
   filters by the JWT's own `sub` claim — no route trusts a client-supplied
   `user_id` (no IDOR pattern found).
+- Public share links (`/a/<token>`, answers and conversations): the token is
+  `secrets.token_urlsafe(16)`; the public read selects only reader-visible
+  columns, never a user id or row id, and a malformed, unknown or revoked
+  token is the same `404`. A shared conversation is a snapshot pinned to a
+  message id, so turns added after the share stay private until the owner
+  shares again (`backend/routes_conversation_share.py`).
 - Session cookie flags (`app.py`): `SESSION_COOKIE_HTTPONLY=True`,
   `SESSION_COOKIE_SAMESITE="Lax"`, `SESSION_COOKIE_SECURE=is_production_runtime`.
-  The native FastAPI `/ask` route relies purely on Bearer tokens with no
-  cookie/session dependency; the Flask session cookie only ever holds calendar
-  lat/lon, never auth state.
+  The Flask session cookie only ever holds calendar lat/lon, never auth state.
+- Device cookie (`backend/device_identity.py`): a signed-out `/ask` (no Bearer
+  token) sets `shelah_device`, a 32-character random value, `HttpOnly`,
+  `SameSite=Lax`, `Path=/`, one year, `Secure` in production or over HTTPS. Only
+  its SHA-256 is stored, as `ask_history.user_id = device:<hash>`; a stolen
+  table does not yield a usable cookie, and the `device:` prefix cannot collide
+  with a Clerk `sub`. It is a bearer secret for that browser's own signed-out
+  answers only: `GET`/`DELETE /api/user/history/<id>` and the answer share
+  routes accept it (`require_history_owner`), the history *list* and the
+  conversation routes do not, and a signed-in caller's account always
+  applies. `SameSite=Lax` is the CSRF defence for those state-changing routes:
+  a cross-site request never carries the cookie. A foreign or guessed answer id
+  is the same `404` as a missing one.
 - `CLERK_ENFORCE_AUTH` (`backend/auth.py`) defaults to `True` whenever
   `VERCEL == "1"` or `FLASK_ENV == "production"` and can be overridden
   explicitly in either direction, so it fails toward enforcement in production

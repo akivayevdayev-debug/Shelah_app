@@ -11,6 +11,11 @@ has been cleaned up, so the list is finalised here, in one place: empty
 entries are dropped, a source named twice is kept once, the list is capped
 like the conversation UI's citation list, and every marker is renumbered to
 match. Markers that point at nothing are removed rather than left dangling.
+
+A source is also shown only once per text segment (a paragraph or a list item,
+i.e. a line): consolidate_markers() takes the markers out of the segment's
+sentences and puts one ascending ``[n]`` group, each number once, at the end of
+the segment -- not a ``[1]`` after every sentence that rests on source 1.
 """
 
 from __future__ import annotations
@@ -100,3 +105,36 @@ def strip_markers(text: str) -> str:
     """``text`` without any marker -- for earlier turns shown to the model,
     whose numbers belong to an answer (and source list) it is not writing."""
     return _RUN_RE.sub("", str(text or ""))
+
+
+def _consolidate_line(line: str) -> str:
+    numbers: List[int] = []
+
+    def take(match: "re.Match[str]") -> str:
+        numbers.extend(_numbers_in(match.group(2)))
+        return ""
+
+    body = _RUN_RE.sub(take, line)
+    if not numbers:
+        return line
+    return body.rstrip() + "".join(f"[{n}]" for n in sorted(set(numbers)))
+
+
+def consolidate_markers(text: str) -> str:
+    """``text`` with each source cited once per segment, at the segment's end.
+
+    A segment is a line: a paragraph, a list item or a heading. Every marker in
+    it is removed from where it stood and one ``[n]`` per distinct source,
+    ascending, is appended after the segment's last character ("Kindling is
+    forbidden.[1] Cooking too.[1][2]" becomes "Kindling is forbidden. Cooking
+    too.[1][2]"). A segment whose markers are already one trailing group is
+    returned unchanged, so applying this twice changes nothing. Lines inside a
+    code fence are left alone."""
+    lines = str(text or "").split("\n")
+    in_fence = False
+    for index, line in enumerate(lines):
+        if line.lstrip().startswith("```"):
+            in_fence = not in_fence
+        elif not in_fence:
+            lines[index] = _consolidate_line(line)
+    return "\n".join(lines)

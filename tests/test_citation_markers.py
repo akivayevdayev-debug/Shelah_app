@@ -7,6 +7,7 @@ import pytest
 from backend import claude
 from backend.citation_markers import (
     MAX_CITED_SOURCES,
+    consolidate_markers,
     finalize_sources,
     remap_markers,
     source_key,
@@ -109,6 +110,47 @@ class TestStripMarkers:
         assert strip_markers("Shabbat 31b [the Rema]") == "Shabbat 31b [the Rema]"
 
 
+class TestConsolidateMarkers:
+    def test_each_source_once_at_the_end_of_the_paragraph(self):
+        assert consolidate_markers(
+            "Kindling is forbidden.[1] Cooking too.[1][2] And more.[1]"
+        ) == "Kindling is forbidden. Cooking too. And more.[1][2]"
+
+    def test_each_paragraph_and_list_item_is_its_own_segment(self):
+        text = "One.[1] Again.[1]\n\nTwo.[2]\n- item.[3] item.[3]\n1. step.[3][1]"
+        assert consolidate_markers(text) == (
+            "One. Again.[1]\n\nTwo.[2]\n- item. item.[3]\n1. step.[1][3]")
+
+    def test_a_source_may_recur_in_a_later_paragraph(self):
+        assert consolidate_markers("A.[1]\n\nB.[1]") == "A.[1]\n\nB.[1]"
+
+    def test_ascending_with_lists_and_ranges_expanded(self):
+        assert consolidate_markers("A.[3] B.[1, 2] C.[2]") == "A. B. C.[1][2][3]"
+        assert consolidate_markers("A.[1-3]") == "A.[1][2][3]"
+
+    @pytest.mark.parametrize("text", [
+        "Already.[1][2]", "No markers here.", "", "A.[1]\n\nB.[1][2]",
+        "A code line:[1]\n```\nx[1] y[1]\n```",
+    ])
+    def test_a_tidy_segment_is_unchanged(self, text):
+        assert consolidate_markers(text) == text
+
+    def test_idempotent(self):
+        once = consolidate_markers("A.[2] B.[1]  [2]\n\nC.[3] D.[3]")
+        assert once == "A. B.[1][2]\n\nC. D.[3]"
+        assert consolidate_markers(once) == once
+
+    def test_text_that_is_not_a_marker_is_left_alone(self):
+        assert consolidate_markers("See [2a] and [the Rema].[1] Yes.[1]") == (
+            "See [2a] and [the Rema]. Yes.[1]")
+
+    def test_a_code_fence_is_left_alone(self):
+        assert consolidate_markers("```\nx[1] y[1]\n```\nz[1] w[1]") == "```\nx[1] y[1]\n```\nz w[1]"
+
+    def test_none_is_empty(self):
+        assert consolidate_markers(None) == ""
+
+
 class TestNormalizedAnswers:
     def _normalize(self, **payload):
         return claude._normalize_structured_response(payload)
@@ -121,9 +163,29 @@ class TestNormalizedAnswers:
             practical_steps=["Do not light.[3]"],
         )
         assert out["sources"] == ["Shabbat 73b — the 39 labors", "Mishneh Torah, Sabbath 12 — kindling"]
-        assert out["ruling"] == "Kindling is forbidden.[2] Cooking too.[1]"
+        # Renumbered, then each source once at the end of the paragraph.
+        assert out["ruling"] == "Kindling is forbidden. Cooking too.[1][2]"
         assert out["summary"] == "Recap.[2]"
         assert out["practical_steps"] == ["Do not light.[2]"]
+
+    def test_a_source_repeated_after_every_sentence_is_cited_once(self):
+        out = self._normalize(
+            ruling="Cooking is forbidden.[1] Reheating is cooking.[1] Warming is too.[1][2]",
+            sources=["Shabbat 73b — labors", "Mishneh Torah, Sabbath 3 — cooking"],
+            summary="Recap.[1] More.[1]",
+            practical_steps=["Do not cook.[1] Not even warm.[1]", "Ask a rabbi.[2]"],
+        )
+        assert out["ruling"] == "Cooking is forbidden. Reheating is cooking. Warming is too.[1][2]"
+        assert out["summary"] == "Recap. More.[1]"
+        assert out["practical_steps"] == ["Do not cook. Not even warm.[1]", "Ask a rabbi.[2]"]
+
+    def test_two_sources_that_are_one_after_cleanup_are_cited_once(self):
+        out = self._normalize(
+            ruling="Cooking is forbidden.[1] Reheating too.[2]",
+            sources=["Shabbat 73b — labors", "shabbat 73b"],
+        )
+        assert out["sources"] == ["Shabbat 73b — labors"]
+        assert out["ruling"] == "Cooking is forbidden. Reheating too.[1]"
 
     def test_markers_with_no_sources_are_dropped(self):
         out = self._normalize(ruling="Permitted.[1]", sources=[])
@@ -144,6 +206,15 @@ class TestPromptsAskForMarkers:
 
     def test_the_request_prompt_asks_for_markers(self):
         assert "SOURCE MARKERS" in claude.build_prompt("can I light a fire", [], [])
+
+    def test_the_prompts_ask_for_one_group_at_the_end_of_each_paragraph(self):
+        for prompt in (
+            claude.CORE_SYSTEM_PROMPT,
+            claude.SIMPLE_SYSTEM_PROMPT,
+            claude.build_prompt("can I light a fire", [], []),
+        ):
+            assert "once per" in prompt
+            assert "end of" in prompt
 
     def test_a_follow_up_sees_earlier_answers_without_markers(self):
         body, cited = claude._condense_assistant_answer(

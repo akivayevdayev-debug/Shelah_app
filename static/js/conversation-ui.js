@@ -39,6 +39,11 @@
 // conversation seeded from its ask_history row. Decision A1: conversations
 // are saved per Clerk user, so signed out the composer asks a new one-shot
 // question instead, and an answer on screen offers "Sign in to follow up".
+//
+// Sharing: an answer's own Share control (answer-link.js) and, for a saved
+// conversation, the header's Share button (conversation-share.js) both copy
+// a public /a/<token> link. A conversation link opens read-only through
+// showPublicConversation.
 
 import { createConversationStore, MESSAGE_STATUS } from "./conversation-store.js";
 import { isSignedIn } from "./conversation-entry.js";
@@ -46,8 +51,9 @@ import { closeOverlay, pushRoute, readRoute, routeUrl } from "./router.js";
 import { icon as phosphorIcon } from "./icons.js";
 import { activeLabel, createProgress, doneLabel, progressView } from "./ask-progress.js";
 import { sourceBadgeHtml, externalLinksHtml, previewHtml, hebrewRefName, readerRef } from "./source-cards.js";
-import { citeIdPrefix, injectMarkers, stripSourcesBlock } from "./citation-markers.js";
+import { citeIdPrefix, consolidateMarkers, injectMarkers, stripSourcesBlock } from "./citation-markers.js";
 import { createCitationPopover } from "./citation-popover.js";
+import { createConversationShare } from "./conversation-share.js";
 import {
     normalizeSize,
     expandedSize,
@@ -112,10 +118,13 @@ const ui = {
     tipObserver: null,
     previews: new Map(),      // ref -> Promise<text payload | null>: the sources drawer and Hebrew ref names
     publicState: null,        // "loading" | "gone" | "error" while a shared link resolves;
-                              // "saved" | "saved-gone" | "saved-error" for an /answer/<id> one
+                              // "saved" | "saved-signin" | "saved-gone" | "saved-error" for an /answer/<id> one
+    sharing: false,           // a Share press is in flight
+    shareLoadedFor: null,     // the conversation whose share state was last fetched
 };
 
 let store = null;
+let shareControl = null;
 let els = null;
 // The card a numbered source chip opens (citation-popover.js); made in bindEvents.
 let citePop = null;
@@ -239,6 +248,7 @@ function collectElements() {
         menuDraft: $("convMenuMinhagDraft"),
         minhagSelect: $("convMinhagSelect"),
         pinLabel: $("convPinLabel"),
+        shareBtn: $("convShareBtn"),
         themeBtn: $("convThemeBtn"),
         expandBtn: $("convExpandBtn"),
         lockLine: $("convLockLine"),
@@ -308,13 +318,13 @@ function render() {
     els.panel.dataset.sending = state.sending ? "true" : "false";
     els.pip.dataset.sending = state.sending ? "true" : "false";
 
-    // An /answer/<id> link: loading until Clerk knows who this is, then
-    // (signed out) a prompt to sign in in the answer's place (audit L-5).
+    // An /answer/<id> link: loading until it is fetched -- with the account's
+    // token, or the device cookie when signed out -- then, if neither holds
+    // the answer, a prompt to sign in in its place (audit L-5).
     const savedLink = String(ui.publicState || "").startsWith("saved");
-    const savedNeedsSignIn = ui.publicState === "saved" && ui.authResolved && !ui.signedIn && clerkConfigured();
 
     // Header.
-    const question = answerView ? state.messages.find((m) => m.role === "user")?.content : "";
+    const question = answerView ? (state.answerView.title || state.messages.find((m) => m.role === "user")?.content) : "";
     const title = conversation?.title
         || question
         || (ui.publicState ? (savedLink ? tr("Saved answer", "תשובה שמורה") : tr("Shared answer", "תשובה משותפת")) : "")
@@ -344,10 +354,11 @@ function render() {
         btn.setAttribute("aria-checked", btn.dataset.convMode === currentMode() ? "true" : "false");
     });
     els.pinLabel.textContent = conversation?.pinnedAt ? tr("Unpin", "בטל הצמדה") : tr("Pin", "הצמד");
+    syncShare(conversation);
 
     // Body: loading / empty / transcript.
     const loading = state.loadStatus === "loading" || (ui.awaitingOpenId && !ui.authResolved) || ui.publicState === "loading"
-        || (ui.publicState === "saved" && !savedNeedsSignIn);
+        || ui.publicState === "saved";
     els.loading.classList.toggle("hidden", !loading);
     els.empty.classList.toggle("hidden", loading || hasMessages || state.loadStatus === "error");
     els.signedOutHint.classList.toggle("hidden", !clerkConfigured() || ui.signedIn || !ui.authResolved);
@@ -364,12 +375,14 @@ function render() {
     } else if (state.lastError) notice = noticeFor(state.lastError, l);
     else if (ui.awaitingOpenId && ui.authResolved && !ui.signedIn && clerkConfigured()) {
         notice = { tone: "info", text: tr("Sign in to open this conversation.", "התחבר כדי לפתוח את השיחה הזו."), action: "sign-in" };
-    } else if (savedNeedsSignIn) {
-        notice = { tone: "info", text: tr("Sign in to see this saved answer.", "התחבר כדי לראות את התשובה השמורה."), action: "sign-in" };
+    } else if (ui.publicState === "saved-signin") {
+        notice = { tone: "info", text: tr(
+            "Sign in to see this saved answer, or open the link on the device that saved it.",
+            "התחבר כדי לראות את התשובה השמורה, או פתח את הקישור במכשיר שבו נשמרה."), action: "sign-in" };
     } else if (ui.publicState === "saved-gone") {
         notice = { tone: "info", text: tr(
-            "This saved answer isn't available. It may have been deleted, or saved under another account.",
-            "התשובה השמורה אינה זמינה. ייתכן שנמחקה, או שנשמרה בחשבון אחר.") };
+            "This saved answer isn't available. It may have been deleted, or saved under another account or device.",
+            "התשובה השמורה אינה זמינה. ייתכן שנמחקה, או שנשמרה בחשבון או במכשיר אחר.") };
     } else if (ui.publicState === "saved-error") {
         notice = { tone: "warn", text: tr(
             "Couldn't load this saved answer. Check your connection and reload the page to try again.",
@@ -434,6 +447,7 @@ function renderNotice(notice) {
         "retry-open": tr("Try again", "נסה שוב"),
         new: tr("Start a new one", "התחל שיחה חדשה"),
         undo: tr("Undo", "בטל"),
+        "stop-share": tr("Stop sharing", "הפסקת שיתוף"),
     };
     const label = labels[notice.action];
     els.noticeAction.classList.toggle("hidden", !label);
@@ -558,10 +572,13 @@ function citesHtml(citations, idPrefix, l) {
 
 // The answer's text with its claims tied to the sources list: the server's
 // own trailing "Sources" list is dropped (the list under the answer says it
-// once), and each [n] marker the model wrote becomes a chip.
+// once), each source is cited once per paragraph, at the paragraph's end, and
+// each [n] marker the model wrote becomes a chip.
 function answerBodyHtml(message, idPrefix) {
     const citations = message.citations || [];
-    const content = citations.length ? stripSourcesBlock(message.content) : message.content;
+    const content = citations.length
+        ? consolidateMarkers(stripSourcesBlock(message.content))
+        : message.content;
     return injectMarkers(answerHtml(content), {
         citations,
         idPrefix,
@@ -1206,17 +1223,29 @@ function showPublicUnavailable(gone) {
     scheduleRender();
 }
 
+// A shared conversation (/a/<token> whose payload is a conversation): its
+// turns, read-only.
+function showPublicConversation(item) {
+    if (!item) return;
+    ui.publicState = null;
+    store.showSharedConversation(item);
+    presentAnswer();
+}
+
 // An /answer/<id> link (the classic script's hydrateChatId): the answer's
-// loading state while Clerk and the fetch resolve. Signed out, render()
-// swaps it for a sign-in prompt and the URL stays, so signing in opens it.
+// loading state while Clerk and the fetch resolve. The fetch carries the
+// account's token when signed in and the device cookie either way, so a
+// signed-out visitor on the device that asked it gets the answer too.
 function showSavedLoading() {
     store.startNew({ minhag: defaultMinhag() });
     ui.publicState = "saved";
     presentAnswer();
 }
 
-function showSavedUnavailable(gone) {
-    ui.publicState = gone ? "saved-gone" : "saved-error";
+// `signIn`: neither the account nor the device holds the answer, and the
+// visitor is signed out, so the URL stays and signing in opens it.
+function showSavedUnavailable(gone, { signIn = false } = {}) {
+    ui.publicState = signIn ? "saved-signin" : gone ? "saved-gone" : "saved-error";
     scheduleRender();
 }
 
@@ -1410,6 +1439,67 @@ function showToast(text, action) {
 function clearToast() {
     clearTimeout(ui.toastTimer);
     ui.toast = null;
+}
+
+// ── sharing ────────────────────────────────────────────────────────────
+
+// The header's Share button shows once the conversation is saved; "Stop
+// sharing" joins the menu while its public link is live. The state is
+// fetched once per conversation, then kept by the share store.
+function syncShare(conversation) {
+    const shared = Boolean(conversation && shareControl?.peek(conversation.id)?.shared);
+    els.panel.dataset.shared = shared ? "true" : "false";
+    if (els.shareBtn) {
+        const label = shared
+            ? tr("Shared publicly. Copy the link again", "משותף לציבור. העתק את הקישור שוב")
+            : tr("Share this conversation publicly", "שתף את השיחה בציבור");
+        els.shareBtn.dataset.shared = shared ? "true" : "false";
+        els.shareBtn.setAttribute("aria-label", label);
+        els.shareBtn.title = label;
+    }
+    if (!conversation) {
+        ui.shareLoadedFor = null;
+    } else if (ui.shareLoadedFor !== conversation.id) {
+        ui.shareLoadedFor = conversation.id;
+        void shareControl?.load(conversation.id);
+    }
+}
+
+async function shareConversation() {
+    const conversation = store.getState().conversation;
+    if (!conversation || ui.sharing || !shareControl) return;
+    ui.sharing = true;
+    els.shareBtn?.setAttribute("aria-busy", "true");
+    try {
+        const result = await shareControl.publish(conversation.id);
+        // Another thread came on screen while the link was made: the notice
+        // would be about the wrong conversation.
+        if (store.getState().conversation?.id !== conversation.id) return;
+        if (result.status === "copied") {
+            showToast(tr(
+                "Public link copied. Anyone with it can read this chat as it is now.",
+                "הקישור הציבורי הועתק. כל מי שיש לו אותו יכול לקרוא את השיחה כפי שהיא עכשיו."), "stop-share");
+        } else if (result.status === "manual") {
+            showToast(`${tr("Couldn't copy automatically. Copy this link:", "לא ניתן היה להעתיק אוטומטית. העתק/י את הקישור:")} ${result.url}`, "stop-share");
+        } else if (result.status === "empty") {
+            showToast(tr("There's nothing to share yet. Ask a question first.", "אין עדיין מה לשתף. שאל/י שאלה קודם."));
+        } else {
+            showToast(tr("Couldn't create a link. Try again.", "לא ניתן היה ליצור קישור. נסה/י שוב."));
+        }
+    } finally {
+        ui.sharing = false;
+        els.shareBtn?.removeAttribute("aria-busy");
+    }
+}
+
+async function stopSharing() {
+    const conversation = store.getState().conversation;
+    if (!conversation || !shareControl) return;
+    const stopped = await shareControl.stop(conversation.id);
+    if (store.getState().conversation?.id !== conversation.id) return;
+    showToast(stopped
+        ? tr("Sharing stopped. The old link no longer works.", "השיתוף הופסק. הקישור הישן כבר לא עובד.")
+        : tr("Couldn't stop sharing. Try again.", "לא ניתן היה להפסיק את השיתוף. נסה/י שוב."));
 }
 
 function beginRename() {
@@ -1895,6 +1985,14 @@ function handleAction(action, button) {
             if (conversation) void store.setPinned(conversation.id, !conversation.pinnedAt);
             break;
         }
+        case "share":
+            closeMenu();
+            void shareConversation();
+            break;
+        case "stop-share":
+            closeMenu();
+            void stopSharing();
+            break;
         case "delete":
             void deleteCurrent();
             break;
@@ -1911,6 +2009,9 @@ function onNoticeAction() {
     if (action === "undo") {
         clearToast();
         void store.undoRemove();
+    } else if (action === "stop-share") {
+        clearToast();
+        void stopSharing();
     } else if (action === "sign-in") {
         if (typeof window.handleSignIn === "function") void window.handleSignIn();
     } else if (action === "retry-open") {
@@ -2118,6 +2219,8 @@ export function installConversationUI({ storeFactory = createConversationStore }
         }),
     });
     store.subscribe(scheduleRender);
+    shareControl = createConversationShare();
+    shareControl.subscribe(scheduleRender);
 
     ui.layout = effectiveLayout();
     ui.signedIn = isSignedIn();
@@ -2144,6 +2247,7 @@ export function installConversationUI({ storeFactory = createConversationStore }
         markAiUsed,
         askFromSearch,
         showAnswer: showStoredAnswer,
+        showPublicConversation,
         showPublicLoading,
         showPublicUnavailable,
         showSavedLoading,

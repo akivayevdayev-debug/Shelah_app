@@ -33,8 +33,8 @@ Every route is served from one Vercel deployment. The base URL in production is 
 | [Pages](#pages) | `/`, `/settings`, `/profile`, `/terms`, `/privacy`, `/accessibility`, `/about`, `/help`, `/glossary`, `/ai-disclosure`, `/acceptable-use`, `/dmca`, `/licenses`, `/robots.txt`, `/sitemap.xml`, `/llms.txt`, `/manifest.webmanifest`, `/favicon.ico`, `/service-worker.js` |
 | [Deep-link paths](#deep-link-paths) | `/text/…`, `/prayer/…`, `/siddur[/…]`, `/community/…`, `/calendar/…`, `/answer/…`, `/a/…`, `/chat/…`, `/history[/…]`, `/signin` |
 | [Ask](#ask-pipeline) | `POST /ask` |
-| [Conversations](#conversations) | `/api/conversations` (+ `/<id>`, `/<id>/messages`, `/<id>/restore`, `/<id>/ask`) |
-| [History and sharing](#answer-history-and-sharing) | `/api/user/history` (+ `/<id>`, `/<id>/share`), `/api/public/answer/<token>` |
+| [Conversations](#conversations) | `/api/conversations` (+ `/<id>`, `/<id>/messages`, `/<id>/restore`, `/<id>/ask`, `/<id>/share`) |
+| [History and sharing](#answer-history-and-sharing) | `/api/user/history` (+ `/<id>`, `/<id>/share`), `/api/public/answer/<token>`; [conversation sharing](#conversation-sharing) and [device identity](#device-identity) |
 | [Library and texts](#library-and-texts) | `/api/library/*`, `/api/texts-index`, `/api/text/<ref>` (+ `/links`, `/graph`), `/api/sidebar/<ref>`, `/api/search/suggest`, `/api/word/meaning`, `/api/export/chapter`, `/api/diagnostics/sefaria` |
 | [Prayers and siddur](#prayers-and-siddur) | `/api/prayers/list`, `/api/prayer/<name>`, `/api/siddur/v2/*`, `/api/siddur/full/*`, `/api/siddur/section-refs/*` |
 | [Calendar and location](#calendar-and-location) | `/set_location`, `/api/geocode`, `/api/zmanim` (+ `/month`, `/days`), `/api/daily-study`, `/api/holidays`, `/api/parasha` |
@@ -108,7 +108,7 @@ After the view comes an optional **tail** of overlay and AI keys, all path segme
 
 Submit a halachic or Torah-study question and receive an AI-synthesised answer with source citations. Handled by the async FastAPI route in `asgi.py`. A synchronous Flask implementation of `/ask` still exists in `app.py`, but the native route shadows it and it is not reachable in production.
 
-- **Auth:** Optional. Required whenever `CLERK_ENFORCE_AUTH` is on (the code's default on Vercel, but deliberately set to `false` on the production project, so anonymous asking works there). Auth enriches the answer with the caller's memory summaries and records it in the caller's history.
+- **Auth:** Optional. Required whenever `CLERK_ENFORCE_AUTH` is on (the code's default on Vercel, but deliberately set to `false` on the production project, so anonymous asking works there). Auth enriches the answer with the caller's memory summaries and records it in the caller's history. A signed-out caller's answer is recorded too, under their **device**: the first signed-out `/ask` that succeeds sets a `shelah_device` cookie (see [Device identity](#device-identity)), and the returned `history_id` opens at `/answer/<id>` in that browser only.
 - **Rate-limit class:** `llm` (fails closed).
 - **Cache:** `private, no-store`.
 - **Content-Type:** `application/json`
@@ -143,7 +143,7 @@ The question is sanitised before use (hidden and control characters removed, whi
     }
   ],
   "ai_cited_sources": [ "string, one per source the model cites, written 'Ref — one-line note'" ],
-  "history_id": "string (uuid) | null, the stored ask_history row, for the /answer/<id> deep link",
+  "history_id": "string (uuid) | null, the stored ask_history row (the caller's account, or their device when signed out), for the /answer/<id> deep link and the Share button; null when nothing was stored (a cached answer, the model-failure fallback)",
   "meta": {
     "mode": "string",
     "language": "string",
@@ -166,13 +166,14 @@ The question is sanitised before use (hidden and control characters removed, whi
 }
 ```
 
-`sources` is trimmed for transfer (at most 8 entries, 3 lines each, 280 characters per line). Three cases return a `200` with a smaller `meta` and no model call:
+`sources` is trimmed for transfer (at most 8 entries, 3 lines each, 280 characters per line). Four cases return a `200` with a smaller `meta` and no model call:
 
 | Case | Signal |
 |---|---|
 | Strict mode, no primary source matched with enough confidence | `meta.strict_blocked: true`, `meta.fallback: true`, `confidence: 0.2` |
 | The global daily cost breaker is tripped | `meta.breaker_tripped: true`, `meta.fallback: true`, `confidence: 0.0`; a previously cached answer for the same question is served instead when one exists, with `meta.cached: true` |
 | A prayer-service keyword (Shacharit, Mincha, Maariv, Kiddush, Havdalah) | A short pointer to the prayer sections, `confidence: 0.85`, `sources` naming Sefaria Liturgy |
+| A question that is plainly not about Jewish law or learning (literature, trivia, coding, and the like) | A short refusal naming the subject, `confidence: 0`, no sources or customs; `meta.security.input.blocked: true`, `reasons: ["off_topic_subject"]` and `refusal_subject`. The keyword gate answers before any retrieval, so it costs no Sefaria, Supabase or model call; a question that gets past it can still be refused by the model's own `out_of_scope` verdict (the same refusal, with the model's answer, sources and customs dropped). The check is per question, so an off-topic question is refused even in the middle of a run of Torah questions, and the same applies to a follow-up in a conversation. |
 
 **Errors:**
 
@@ -204,9 +205,11 @@ The body is newline-delimited JSON, one object per line:
 - The HTTP status stays real. Streaming starts only after the pre-flight checks (validation, auth, Turnstile, budget) pass, so a refusal is still an ordinary `400`/`401`/`402`/`403`/`429`; an answer that never reports a step (the prayer shortcut) comes back as plain JSON. After streaming starts, failures arrive as an `error` line.
 - A client that disconnects mid-stream does not cancel the answer: it still finishes, is recorded, and is charged as on the plain path.
 
-**Source markers.** `answer` ties a claim to a source with a numbered marker, `[n]` (the 1-based position in `ai_cited_sources`), placed after the claim instead of naming the source in the prose: `"Kindling is forbidden on Shabbat.[1][2]"`. The server finalises the list in `backend/citation_markers.py` before it is returned or stored (empty entries dropped, a source named twice kept once, capped at 6, the way the conversation UI caps its citations) and renumbers every marker to match, so a number always points at the right entry; a marker whose source did not survive is removed rather than left dangling. Only digits count (`[1]`, `[1, 2]` and `[1-3]` are markers; `[2a]` and `[the Rema]` stay text). Answers stored before markers existed simply have none. When an earlier turn is shown to the model as history its markers are stripped, since their numbers belong to another answer's list.
+**Source markers.** `answer` ties a claim to a source with a numbered marker, `[n]` (the 1-based position in `ai_cited_sources`), placed after the claim instead of naming the source in the prose: `"Kindling is forbidden on Shabbat.[1][2]"`. The server finalises the list in `backend/citation_markers.py` before it is returned or stored (empty entries dropped, a source named twice kept once, capped at 6, the way the conversation UI caps its citations) and renumbers every marker to match, so a number always points at the right entry; a marker whose source did not survive is removed rather than left dangling. A source is shown **once per text segment** (a paragraph or a list item): the markers are taken out of the segment's sentences and one ascending group (`[1][2]`) is put at the segment's end, instead of a `[1]` after every sentence that rests on source 1. The same source may appear again in a later segment. Only digits count (`[1]`, `[1, 2]` and `[1-3]` are markers; `[2a]` and `[the Rema]` stay text). Answers stored before markers existed simply have none. When an earlier turn is shown to the model as history its markers are stripped, since their numbers belong to another answer's list.
 
 The client (`static/js/citation-markers.js`, `citation-popover.js`) renders each marker as a small numbered chip, shows the sources once, in the sources area under the answer (it drops the duplicate trailing "Sources" list the server also puts in the answer's markdown), and opens a card on hover, click, tap or Enter with the reference, the model's one-line note, the first lines of the text, "Open in reader" and "Show in sources". A source the reader cannot open (not on Sefaria) shows plain text with a search link instead of a dead one.
+
+**Which sources are pulled.** Sources come from what the question actually names or matches (`backend/sefaria.py: find_refs_for_question`); a question that matches nothing gets **no** Sefaria sources, not a stock fallback such as Orach Chayim 1 or Human Dispositions 1, and the answer then says so (an unmatched question may still reach the web-context tier, which carries its own warning). Community customs are included only when the custom is about the question's subject, not merely the same community, and a ref that failed to load (an `unavailable` stand-in) or has no text is dropped from the sources the model and the reader see (`backend/ask_payloads.py: is_usable_primary_source`).
 
 **Reference spellings.** `GET /api/text/<ref>` answers an unresolvable reference with `200` and `{"error", "error_type": "not_found"}`. Before trying the reference as written it tries Sefaria's title for a transliterated Mishneh Torah reference (`Hilchot Shabbat 2:1` and `Rambam, Hilchot Shabbat 2:1` resolve as `Mishneh Torah, Sabbath 2:1`; table in `backend/ref_aliases.py`), which is how the model tends to write them.
 
@@ -228,6 +231,9 @@ The client (`static/js/citation-markers.js`, `citation-popover.js`) renders each
 | `DELETE /api/conversations/<id>` | Soft delete (sets `deleted_at`), so the client can offer Undo. Returns `{"ok": true}`. |
 | `POST /api/conversations/<id>/restore` | Undo a soft delete. Owner-only and idempotent: restoring a thread that is not deleted returns it unchanged. |
 | `POST /api/conversations/<id>/ask` | Ask a follow-up with real multi-turn context. |
+| `GET /api/conversations/<id>/share` | The owner's share state: `{"shared": true, "share_token": "…", "path": "/a/<token>"}`, or `{"shared": false}`. See [Conversation sharing](#conversation-sharing). |
+| `POST /api/conversations/<id>/share` | Make the conversation public as it stands now. |
+| `DELETE /api/conversations/<id>/share` | Stop sharing. |
 
 ### `POST /api/conversations/<id>/ask`
 
@@ -257,26 +263,49 @@ The client (`static/js/citation-markers.js`, `citation-popover.js`) renders each
 
 ### History (`backend/routes_user.py`)
 
-Stored in `ask_history`, which is **service-role only** (RLS on, no policies); every route filters on the caller's verified `sub`. All **Clerk**; `cheap`; `private, no-store`.
+Stored in `ask_history`, which is **service-role only** (RLS on, no policies); every route filters on the caller's owner id: the verified `sub` of a signed-in caller, and/or the `device:` owner a signed-out caller's cookie names (see [Device identity](#device-identity)). The list route is **Clerk** only; the per-entry routes (`GET`/`DELETE /api/user/history/<id>` and the share routes below) take **Clerk or a device cookie**. `cheap`; `private, no-store`.
 
 | Route | Purpose |
 |---|---|
 | `GET /api/user/history` | One page of the caller's answers, newest first. Query: `limit` (1–50, default 20), `cursor` (the previous page's `next_cursor`; an invalid one is a `400`), `q` (case-insensitive substring of the question, up to 200 characters). Returns `{"items": [...], "next_cursor": "string \| null"}`. |
-| `GET /api/user/history/<id>` | One entry, so `/answer/<id>` can hydrate it. A malformed id, a missing id and someone else's id all answer the same `404`. |
-| `DELETE /api/user/history/<id>` | Delete one entry. Returns `{"ok": true}`. |
+| `GET /api/user/history/<id>` | One entry, so `/answer/<id>` can hydrate it. A signed-in caller reads their account's entries and any saved under their device; a signed-out caller with a device cookie reads that device's. A malformed id, a missing id and someone else's id all answer the same `404`; no account and no device cookie is a `401`. |
+| `DELETE /api/user/history/<id>` | Delete one entry (same owners as the read). Returns `{"ok": true}`. |
 
 An entry holds `id, question, answer, sources, ai_cited_sources, community, mode, language, created_at`. Entries older than 90 days are removed by the retention job.
 
 ### Sharing (`backend/routes_answer_share.py`)
 
-The owner can mint a public link for one stored answer; anyone holding `/a/<token>` can read it without signing in. The token is unguessable (`secrets.token_urlsafe(16)`); the public read selects only answer columns and never `user_id` or the row id. These need the columns from `scripts/sql/migrate_ask_history_share.sql`; until it has been applied they answer `503 {"code": "share_unavailable"}`.
+The owner can mint a public link for one stored answer, signed in or on the device that asked it; anyone holding `/a/<token>` can read it without signing in. The owner's own address-bar link (`/answer/<id>`, `/chat/<id>`) stays private: it opens only for the account, or the device, that saved it, and a signed-out answer's link needs that device's cookie. The token is unguessable (`secrets.token_urlsafe(16)`); the public read selects only answer columns and never `user_id` or the row id. These need the columns from `scripts/sql/migrate_ask_history_share.sql`; until it has been applied they answer `503 {"code": "share_unavailable"}`.
 
 | Route | Auth | Purpose |
 |---|---|---|
-| `GET /api/user/history/<id>/share` | Clerk | The owner's share state for the answer: `{"shared": true, "share_token": "…", "path": "/a/<token>"}`, or `{"shared": false}`. |
-| `POST /api/user/history/<id>/share` | Clerk | Make the answer public. Idempotent: an already-shared answer keeps its token (`200`), otherwise a new one is minted (`201`). The write is a compare-and-set, so two concurrent shares cannot overwrite a link someone has already copied. |
-| `DELETE /api/user/history/<id>/share` | Clerk | Stop sharing. The token is cleared and the old link `404`s for good; sharing again mints a new one. The owner's own `/answer/<id>` link is untouched. Returns `{"shared": false}`. |
-| `GET /api/public/answer/<token>` | Public | The shared answer: `question, answer, sources, ai_cited_sources, community, mode, language, created_at`, `meta` (`safety_class`, `mode`, `language`) and `public: true`. A malformed, unknown, revoked or private token all answer the same `404`, so the response never says whether a token once existed. Always `noindex`. Rate-limit class `fanout` (per IP). |
+| `GET /api/user/history/<id>/share` | Clerk or device | The owner's share state for the answer: `{"shared": true, "share_token": "…", "path": "/a/<token>"}`, or `{"shared": false}`. |
+| `POST /api/user/history/<id>/share` | Clerk or device | Make the answer public. Idempotent: an already-shared answer keeps its token (`200`), otherwise a new one is minted (`201`). The write is a compare-and-set, so two concurrent shares cannot overwrite a link someone has already copied. |
+| `DELETE /api/user/history/<id>/share` | Clerk or device | Stop sharing. The token is cleared and the old link `404`s for good; sharing again mints a new one. The owner's own `/answer/<id>` link is untouched. Returns `{"shared": false}`. |
+| `GET /api/public/answer/<token>` | Public | The shared answer (or, for a conversation token, the shared conversation, below): `question, answer, sources, ai_cited_sources, community, mode, language, created_at`, `meta` (`safety_class`, `mode`, `language`) and `public: true`. A malformed, unknown, revoked or private token all answer the same `404`, so the response never says whether a token once existed. Always `noindex`. Rate-limit class `fanout` (per IP). |
+
+
+### Conversation sharing
+
+`backend/routes_conversation_share.py`. A whole multi-turn conversation can be shared with the **same `/a/<token>` link shape** as an answer: `GET /api/public/answer/<token>` looks for a stored answer with that token first and, finding none, for a live conversation. One link shape, one router key and one public viewer cover both. The owner routes are **Clerk** (a conversation always belongs to an account), use the caller's RLS-scoped client and also filter on the verified `sub`; no migration is needed (`conversations.share_id`, `share_snapshot_msg_id`, `shared_at` come from `scripts/sql/conversations_setup.sql`).
+
+| Route | Purpose |
+|---|---|
+| `GET /api/conversations/<id>/share` | `{"shared": true, "share_token": "…", "path": "/a/<token>"}` or `{"shared": false}`. `404` for an unknown or foreign conversation. |
+| `POST /api/conversations/<id>/share` | Share the chat **as it stands now**. The first share mints an unguessable token (`201`); sharing again keeps the token and moves the snapshot to the newest finished turn (`200`), so a link already sent shows the newer turns only when the owner chooses to. A first share is a compare-and-set, so two concurrent shares cannot overwrite a copied link. A conversation with no finished turn is `409 {"code": "empty_conversation"}`. |
+| `DELETE /api/conversations/<id>/share` | Stop sharing: the token, snapshot and `shared_at` are cleared, the old link `404`s for good, and sharing again mints a new token. The owner's `/chat/<id>` is untouched. Returns `{"shared": false}`. |
+
+A shared conversation is a **snapshot**: turns added after the share are not public until the owner shares again. The public payload from `GET /api/public/answer/<token>` is `{"conversation": true, "title", "minhag", "created_at", "shared_at", "messages": [{"role", "content", "created_at", "citations": [{"ordinal", "source_ref", "excerpt_he", "excerpt_en", "url"}]}], "public": true}`: only turns up to and including the pinned message, finished and not superseded, oldest first (at most 200), and never a user id or any row id. Same `404`, `noindex` and `fanout` rate limit as an answer token.
+
+### Device identity
+
+`backend/device_identity.py`. A signed-out visitor has no account, so their answers are tied to their **device** instead, which is what makes the private `/answer/<id>` link work when signed out.
+
+- The first successful signed-out `/ask` (a request without a bearer token) sets the cookie `shelah_device`: 32 random URL-safe characters, `HttpOnly`, `SameSite=Lax`, `Path=/`, one year, `Secure` in production or whenever the request came over HTTPS. A signed-in answer never sets or reads it.
+- The answer is saved in `ask_history.user_id` as `device:<sha256 of the cookie>`. Only the hash is stored, and the `device:` prefix cannot collide with a Clerk `sub` (`user_…`), so no migration is needed. The cookie is the secret: it is never sent anywhere but this site and carries no profile or tracking id.
+- `GET`/`DELETE /api/user/history/<id>` and the answer share routes accept the account and the device together (`require_history_owner`), so signing in on the same browser keeps the signed-out answers reachable. `GET /api/user/history` (the list) stays account-only; there is no signed-out history list.
+- `SameSite=Lax` is also what keeps the state-changing device routes (share, revoke, delete) safe from CSRF: a cross-site request does not carry the cookie.
+- Signed-out answers fall under the same 90-day retention as signed-in ones.
 
 ---
 

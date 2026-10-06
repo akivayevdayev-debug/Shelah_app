@@ -129,7 +129,9 @@ function initialThreadState(draftMinhag) {
         // A search-bar answer (/ask, saved to ask_history) shown as the
         // thread's first turn before any conversation row exists:
         // { historyId, isPublic, request }. The first follow-up turns it into
-        // a conversation (ensureConversation). null for ordinary threads.
+        // a conversation (ensureConversation). A shared conversation read from
+        // its /a/<token> link is the same view, with the chat's `title`. null
+        // for ordinary threads.
         answerView: null,
     };
 }
@@ -296,6 +298,26 @@ export function createConversationStore({ api = defaultApi, getPrefs = () => ({}
             answerView: viewFor(data),
             messages,
             sources: { phase: SOURCES_PHASE.DONE, citations: messages[1].citations, messageId: messages[1].id },
+        });
+    }
+
+    // A shared conversation (GET /api/public/answer/<token> with
+    // `conversation: true`, backend/routes_conversation_share.py): its turns as
+    // the owner shared them, read-only. It has no row of the viewer's own and
+    // no history id to seed a follow-up from, so it is the public answer view:
+    // asking anything starts a thread of their own.
+    function showSharedConversation(data) {
+        generation += 1;
+        const messages = (Array.isArray(data?.messages) ? data.messages : [])
+            .map((raw) => ({ ...normalizeMessage({ ...raw, id: null }), id: nextLocalId() }));
+        const lastAnswer = [...messages].reverse().find((m) => m.role === "assistant");
+        setState({
+            ...initialThreadState(getPrefs()?.community),
+            answerView: { historyId: null, isPublic: true, request: null, title: String(data?.title || "").trim() },
+            messages,
+            sources: lastAnswer
+                ? { phase: SOURCES_PHASE.DONE, citations: lastAnswer.citations, messageId: lastAnswer.id }
+                : { phase: SOURCES_PHASE.IDLE, citations: [], messageId: null },
         });
     }
 
@@ -687,6 +709,7 @@ export function createConversationStore({ api = defaultApi, getPrefs = () => ({}
         startNew,
         open,
         showAnswer,
+        showSharedConversation,
         askSearch,
         refresh,
         setDraftMinhag,

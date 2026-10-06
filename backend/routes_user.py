@@ -24,6 +24,7 @@ from backend.auth import (
     require_clerk_auth,
     maybe_require_clerk_auth,
 )
+from backend.device_identity import filter_owner, require_history_owner
 
 from app import (
     STRICT_SUPABASE_RLS,
@@ -447,16 +448,15 @@ def get_ask_history():
 
 
 @routes_user.route("/api/user/history/<entry_id>", methods=["GET"])
-@require_clerk_auth
+@require_history_owner
 def get_ask_history_entry(entry_id):
-    """Return a single ask-history entry owned by the signed-in user, so a
-    deep link (/answer/<id>) can hydrate that exact answer. 404s both when the
-    id doesn't exist and when it belongs to someone else, so a caller can
-    never distinguish "not found" from "not yours"."""
-    claims = getattr(g, "clerk_claims", {}) or {}
-    user_id = str(claims.get("sub") or "").strip()
-    if not user_id:
-        return jsonify({"error": _ERR_MISSING_USER_IDENTITY}), 401
+    """Return a single ask-history entry owned by the caller -- their account,
+    or the device a signed-out answer was saved under -- so a deep link
+    (/answer/<id>) can hydrate that exact answer. 404s both when the id
+    doesn't exist and when it belongs to someone else, so a caller can never
+    distinguish "not found" from "not yours"."""
+    owners = g.history_owners
+    user_id = owners[0]
     # ids are uuids: anything else can't exist, and would only make
     # Postgres raise (22P02) -- a 500 instead of the honest 404.
     if not _HISTORY_ID_RE.match(str(entry_id or "")):
@@ -467,15 +467,13 @@ def get_ask_history_entry(entry_id):
         return jsonify({"error": _ERR_SUPABASE_NOT_CONFIGURED}), 503
 
     try:
-        result = (
+        query = (
             supabase
             .table(SUPABASE_ASK_HISTORY_TABLE)
             .select(_HISTORY_COLUMNS)
             .eq("id", str(entry_id))
-            .eq("user_id", user_id)
-            .limit(1)
-            .execute()
         )
+        result = filter_owner(query, owners).limit(1).execute()
         rows = result.data or []
         if not rows:
             return jsonify({"error": "Not found"}), 404
@@ -486,22 +484,22 @@ def get_ask_history_entry(entry_id):
 
 
 @routes_user.route("/api/user/history/<entry_id>", methods=["DELETE"])
-@require_clerk_auth
+@require_history_owner
 def delete_ask_history_entry(entry_id):
-    """Delete a single history entry owned by the signed-in user."""
-    claims = getattr(g, "clerk_claims", {}) or {}
-    user_id = str(claims.get("sub") or "").strip()
-    if not user_id:
-        return jsonify({"error": _ERR_MISSING_USER_IDENTITY}), 401
+    """Delete a single history entry owned by the caller (their account, or
+    the device a signed-out answer was saved under)."""
+    owners = g.history_owners
+    user_id = owners[0]
 
     supabase = _get_supabase_client()
     if not supabase:
         return jsonify({"error": _ERR_SUPABASE_NOT_CONFIGURED}), 503
 
     try:
-        supabase.table(SUPABASE_ASK_HISTORY_TABLE).delete().eq(
-            "id", str(entry_id)
-        ).eq("user_id", user_id).execute()
+        filter_owner(
+            supabase.table(SUPABASE_ASK_HISTORY_TABLE).delete().eq("id", str(entry_id)),
+            owners,
+        ).execute()
         return jsonify({"ok": True})
     except Exception as e:
         _capture_backend_error("ask_history_delete_failed", e, {"user_id_hash": hash_user_id(user_id), "entry_id": entry_id})

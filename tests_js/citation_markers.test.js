@@ -33,6 +33,51 @@ test('markerNumbers reads lists and ranges, ascending and without repeats', asyn
     assert.deepEqual(c.markerNumbers('[1-40]'), [1]);
 });
 
+test('consolidateMarkers cites each source once per paragraph, at the end of it', async () => {
+    const c = await load();
+    assert.equal(
+        c.consolidateMarkers('Kindling is forbidden.[1] Cooking too.[1][2] And more.[1]'),
+        'Kindling is forbidden. Cooking too. And more.[1][2]',
+    );
+    assert.equal(
+        c.consolidateMarkers('One.[1] Again.[1]\n\nTwo.[2]\n- item.[3] item.[3]\n1. step.[3][1]'),
+        'One. Again.[1]\n\nTwo.[2]\n- item. item.[3]\n1. step.[1][3]',
+    );
+});
+
+test('consolidateMarkers lists the sources ascending and expands lists and ranges', async () => {
+    const c = await load();
+    assert.equal(c.consolidateMarkers('A.[3] B.[1, 2] C.[2]'), 'A. B. C.[1][2][3]');
+    assert.equal(c.consolidateMarkers('A.[1-3]'), 'A.[1][2][3]');
+});
+
+test('consolidateMarkers is idempotent and leaves marker-free text and non-markers alone', async () => {
+    const c = await load();
+    const once = c.consolidateMarkers('A.[2] B.[1]  [2]');
+    assert.equal(once, 'A. B.[1][2]');
+    assert.equal(c.consolidateMarkers(once), once);
+    assert.equal(c.consolidateMarkers('No markers here.'), 'No markers here.');
+    assert.equal(c.consolidateMarkers(''), '');
+    assert.equal(c.consolidateMarkers(null), '');
+    assert.equal(c.consolidateMarkers('See [2a] and [the Rema].[1] Yes.[1]'), 'See [2a] and [the Rema]. Yes.[1]');
+});
+
+test('consolidateMarkers leaves a code fence alone', async () => {
+    const c = await load();
+    assert.equal(c.consolidateMarkers('```\nx[1] y[1]\n```\nz[1] w[1]'), '```\nx[1] y[1]\n```\nz w[1]');
+});
+
+test('consolidated markers render as one chip group per paragraph', async () => {
+    const c = await load();
+    const html = c.injectMarkers(
+        '<p>' + c.consolidateMarkers('Kindling is forbidden.[1] Cooking too.[1][2]') + '</p>',
+        { citations: CITES, idPrefix: 'conv-cite-m1' },
+    );
+    assert.equal((html.match(/data-mark="1"/g) || []).length, 1);
+    assert.equal((html.match(/data-mark="2"/g) || []).length, 1);
+    assert.equal((html.match(/class="conv-marks"/g) || []).length, 1);
+});
+
 test('splitMarkers separates text from marker groups and takes the spaces before a group', async () => {
     const c = await load();
     assert.deepEqual(c.splitMarkers('Forbidden.[1][2] Next [3].'), [

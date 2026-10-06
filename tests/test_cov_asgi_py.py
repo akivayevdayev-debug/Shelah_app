@@ -92,6 +92,19 @@ async def test_collect_primary_sources_swallows_and_logs_a_failed_ref_load(monke
     assert "sefaria exploded" in failures[0].getMessage()
 
 
+async def test_collect_primary_sources_drops_a_ref_that_failed_to_load(monkeypatch):
+    monkeypatch.setattr(
+        asgi._backend_sefaria, "find_refs_for_question", lambda question: ["Good 1", "Down 2"])
+    good = {"ref": "Good 1", "lines": [{"en": "text"}]}
+    down = {"ref": "Down 2", "lines": [{"he": "", "en": "Failed to fetch source."}], "unavailable": True}
+    monkeypatch.setattr(asgi, "ShelahEngine", lambda: _StubEngine({"Good 1": good, "Down 2": down}))
+
+    refs, sources = await asgi._collect_primary_sources("q")
+
+    assert refs == ["Good 1", "Down 2"]
+    assert sources == [good]
+
+
 async def test_collect_primary_sources_treats_non_list_refs_as_no_refs(monkeypatch):
     monkeypatch.setattr(asgi._backend_sefaria, "find_refs_for_question", lambda q: None)
     engine_factory = mock.MagicMock()

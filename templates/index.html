@@ -149,8 +149,8 @@
     <link rel="stylesheet" href="/static/css/halacha.css?v=20260817-v6">
     <link rel="stylesheet" href="/static/css/prayer.css?v=20260930-v7">
     <link rel="stylesheet" href="/static/css/siddur.css?v=20261002-s8">
-    <link rel="stylesheet" href="/static/css/ai.css?v=20261002-ai6">
-    <link rel="stylesheet" href="/static/css/conversation.css?v=20261003-cv11">
+    <link rel="stylesheet" href="/static/css/ai.css?v=20261006-ai7">
+    <link rel="stylesheet" href="/static/css/conversation.css?v=20261006-cv12">
     <link rel="stylesheet" href="/static/css/history.css?v=20260926-rd1">
     <link rel="stylesheet" href="/static/css/calendar.css?v=20260926-f1">
     <link rel="stylesheet" href="/static/css/calendar-detail.css?v=20260930-cd2">
@@ -1929,6 +1929,13 @@
                     <p id="convSubtitle" class="conv-subtitle"></p>
                 </div>
                 <div class="conv-header__actions">
+                    <!-- Public link to the whole conversation (static/js/conversation-share.js).
+                         Saved threads only; on phones it moves into the menu. -->
+                    <button type="button" id="convShareBtn" class="conv-icon-btn conv-share-btn conv-needs-thread"
+                        data-conv-action="share" data-shared="false"
+                        aria-label="Share this conversation publicly" title="Share this conversation publicly">
+                        {{ phosphor('share-network', size=16, class='h-4 w-4') }}
+                    </button>
                     <div class="conv-menu-wrap">
                         <!-- The one settings control: full page also shows the community on it. -->
                         <button type="button" id="convMenuBtn" class="conv-icon-btn conv-menu-btn" aria-haspopup="true"
@@ -1973,6 +1980,14 @@
                                 <button type="button" class="conv-menu__item conv-needs-thread" data-conv-action="rename">
                                     {{ phosphor('pencil-simple', size=14, class='h-3.5 w-3.5') }}
                                     <span data-en="Rename" data-he="שנה שם">Rename</span>
+                                </button>
+                                <button type="button" class="conv-menu__item conv-menu-share conv-needs-thread" data-conv-action="share">
+                                    {{ phosphor('share-network', size=14, class='h-3.5 w-3.5') }}
+                                    <span data-en="Share conversation" data-he="שתף שיחה">Share conversation</span>
+                                </button>
+                                <button type="button" class="conv-menu__item conv-needs-thread conv-needs-share" data-conv-action="stop-share">
+                                    {{ phosphor('globe-simple', size=14, class='h-3.5 w-3.5') }}
+                                    <span data-en="Stop sharing" data-he="הפסקת שיתוף">Stop sharing</span>
                                 </button>
                                 <button type="button" class="conv-menu__item conv-needs-thread" data-conv-action="pin">
                                     {{ phosphor('push-pin', size=14, class='h-3.5 w-3.5') }}
@@ -2080,15 +2095,17 @@
                     educational information, not a halachic ruling. Ask your rabbi for practical guidance.</p>
             </div>
         </div>
-        <!-- Copy link for a search-bar answer (static/js/answer-link.js +
+        <!-- Share (a public link) for a search-bar answer (static/js/answer-link.js +
              answer-share.js). conversation-ui.js moves it into the answer turn
              showing it, and back here before that turn re-renders. -->
         <div id="convAnswerLinkPark" hidden>
             <div id="convAnswerLink" class="answer-link hidden">
-                <button type="button" class="answer-link-btn" data-state="idle">
+                <button type="button" class="answer-link-btn" data-state="idle"
+                    aria-label="Share this answer publicly" title="Share this answer publicly"
+                    data-aria-en="Share this answer publicly" data-aria-he="שתף את התשובה בציבור">
                     <span class="answer-link-btn__face answer-link-btn__face--idle">
-                        <span class="contents" aria-hidden="true">{{ phosphor('link-simple', size=16) }}</span>
-                        <span data-en="Copy link" data-he="העתק קישור">Copy link</span>
+                        <span class="contents" aria-hidden="true">{{ phosphor('share-network', size=16) }}</span>
+                        <span data-en="Share" data-he="שיתוף">Share</span>
                     </span>
                     <span class="answer-link-btn__face answer-link-btn__face--copied" aria-hidden="true">
                         <span class="contents" aria-hidden="true">{{ phosphor('check', size=16) }}</span>
@@ -3764,6 +3781,8 @@
         };
         let commentaryAvailableForCurrentSelection = false;
         let syncedPrefsUserId = null;
+        // Whether the last refreshAuthUi() saw a signed-in user (null: not yet run).
+        let lastAuthSignedIn = null;
         let shulScrollFrame = null;
         let inspectorPollInterval = null;
         // Tracks the previous applyShulMode() enabled state so it can reset the
@@ -5053,6 +5072,8 @@
             const email = user?.primaryEmailAddress?.emailAddress || user?.emailAddresses?.[0]?.emailAddress || '';
             const displayName = user?.firstName || user?.username || email || '';
             const userId = user?.id || null;
+            const wasSignedIn = lastAuthSignedIn;
+            lastAuthSignedIn = Boolean(user);
 
             if (user) {
                 authControls.style.display = 'flex';
@@ -5084,6 +5105,14 @@
                 settleAuthSlot();
                 closeUserProfileMenu();
                 syncedPrefsUserId = null;
+                // A page loaded on an /answer/<id> link signed out: Clerk has
+                // now settled with nobody, so the link is tried with the
+                // device cookie alone (see hydrateChatId). Once per change of
+                // who is signed in, not on every Clerk event.
+                if (wasSignedIn !== false) {
+                    const chatRoute = window.ShelahRouter?.readRoute();
+                    if (chatRoute?.chat) void hydrateChatId(chatRoute.chat);
+                }
                 // Hide and clear history when signed out
                 const histSec = document.getElementById('askHistorySection');
                 if (histSec) histSec.classList.add('hidden');
@@ -5093,11 +5122,19 @@
             document.dispatchEvent(new CustomEvent('shelah:auth-changed', { detail: { signedIn: Boolean(user) } }));
         }
 
+        // Clerk will never report anyone (it failed to load): an /answer/<id>
+        // link that was waiting on it is tried with the device cookie alone.
+        function settleSavedLinkWithoutClerk() {
+            const route = window.ShelahRouter?.readRoute();
+            if (route?.chat) void hydrateChatId(route.chat, { settled: true });
+        }
+
         async function initClerkAuth() {
             if (!isClerkConfigured()) return;
             if (!window.Clerk) {
                 console.warn('Clerk script did not load.');
                 settleAuthSlot({ hide: true });
+                settleSavedLinkWithoutClerk();
                 return;
             }
 
@@ -5106,6 +5143,7 @@
                 if (!publishableKey) {
                     console.warn('Clerk publishable key is missing.');
                     settleAuthSlot({ hide: true });
+                    settleSavedLinkWithoutClerk();
                     return;
                 }
 
@@ -5119,6 +5157,7 @@
             } catch (err) {
                 console.error('Failed to initialize Clerk:', err);
                 settleAuthSlot({ hide: true });
+                settleSavedLinkWithoutClerk();
             }
         }
 
@@ -5836,25 +5875,36 @@
             displayAskHistoryPage();
         });
 
-        // Resolves an /answer/<id> (old: ?chat=<id>) deep link against the caller's own history
-        // (GET /api/user/history/<id> is scoped server-side to the verified
-        // Clerk user, so a stale/foreign/deleted id 404s and just clears the
-        // URL instead of erroring visibly).
-        async function hydrateChatId(id) {
+        // Resolves an /answer/<id> (old: ?chat=<id>) deep link against the
+        // caller's own history. GET /api/user/history/<id> is scoped
+        // server-side to who is asking: the verified Clerk user (bearer
+        // token) and/or, signed out, the device that saved the answer
+        // (backend/device_identity.py: the shelah_device cookie, which a
+        // same-origin fetch sends by itself). A stale/foreign/deleted id 404s.
+        // Signed in that is a dead link and the URL goes; signed out it may
+        // be an account's answer, so the URL stays and the panel offers
+        // sign-in, which brings the visitor back here (refreshAuthUi).
+        // `settled: true` skips waiting for Clerk (it failed to load).
+        let chatHydrating = null;
+        async function hydrateChatId(id, { settled = false } = {}) {
             if (!id) return;
             const conversationUi = window.ShelahConversationUI;
             if (conversationUi?.reopenAnswer?.(id)) return;
-            if (!isClerkConfigured()) return;
+            // Clerk's several auth events re-enter here for the same link.
+            if (chatHydrating === id) return;
             // The answer's loading state from the start (audit L-5), not a
-            // silent return to home: Clerk may still be deciding who this is.
-            // Signed out once it has, the panel asks to sign in and the URL
-            // stays, so signing in (refreshAuthUi) comes back here to open it.
+            // silent return to home.
             conversationUi?.showSavedLoading?.();
-            if (!window.Clerk?.session) return;
+            // Clerk is still deciding who this is: its first settle
+            // (refreshAuthUi) comes back here, and the bearer token (if any)
+            // must be on the request or an account's answer would 404.
+            if (!settled && isClerkConfigured() && !window.Clerk?.loaded) return;
+            const signedIn = Boolean(window.Clerk?.session);
+            chatHydrating = id;
             let resp = null;
             try {
                 const headers = await authHeaders();
-                resp = await fetch(`/api/user/history/${encodeURIComponent(id)}`, { headers });
+                resp = await fetch(`/api/user/history/${encodeURIComponent(id)}`, { headers, cache: 'no-store' });
                 const item = resp.ok ? await resp.json() : null;
                 if (window.ShelahRouter?.readRoute().chat !== id) return;
                 if (item) {
@@ -5863,6 +5913,13 @@
                 }
             } catch (_) {
                 if (window.ShelahRouter?.readRoute().chat !== id) return;
+            } finally {
+                chatHydrating = null;
+            }
+            const missing = resp?.status === 404 || (resp?.status === 401 && !signedIn);
+            if (missing && !signedIn && isClerkConfigured() && !settled) {
+                conversationUi?.showSavedUnavailable?.(true, { signIn: true });
+                return;
             }
             // Not this account's, or deleted: the link is dead, so it goes.
             // Anything else keeps it for a reload to try again.
@@ -5871,10 +5928,13 @@
             conversationUi?.showSavedUnavailable?.(gone);
         }
 
-        // Resolves an /a/<share token> (old: ?a=) public link (backend/routes_answer_share.py).
+        // Resolves an /a/<share token> (old: ?a=) public link
+        // (backend/routes_answer_share.py; a conversation's link,
+        // backend/routes_conversation_share.py, is the same shape and answers
+        // with `conversation: true` and its turns).
         // No auth: it works signed out, and opens the answer read-only -- no
-        // Copy link / Stop sharing (the payload carries no history id), no
-        // follow-up hint. Visitors can still rate it (feedbackAnswerLink). A 404 means
+        // Share / Stop sharing (the payload carries no history id), no
+        // follow-up hint. Visitors can still rate an answer (feedbackAnswerLink). A 404 means
         // the link was revoked, never existed, or the answer was deleted: the
         // key is cleared and the visitor is told. Other failures keep the key
         // so a reload can retry.
@@ -5891,6 +5951,11 @@
             }
             // The visitor may have navigated elsewhere while this loaded.
             if (window.ShelahRouter?.readRoute().a !== token) return;
+            if (item?.conversation && Array.isArray(item.messages)) {
+                if (searchInput) searchInput.value = '';
+                window.ShelahConversationUI?.showPublicConversation(item);
+                return;
+            }
             if (item?.answer) {
                 // share_token stays on this client-side copy: feedback sends it
                 // (feedbackAnswerLink) since the payload carries no row id.

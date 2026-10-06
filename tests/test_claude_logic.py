@@ -303,10 +303,11 @@ class TestValidateUserQuery:
         assert result["blocked"] is True
         assert "inappropriate_content" in result["reasons"]
 
-    def test_borderline_domain_alone_not_blocked(self):
+    def test_off_topic_subject_is_blocked(self):
         result = claude.validate_user_query("solve this algebra polynomial equation")
-        assert "borderline_domain_detected" in result["reasons"]
-        assert result["blocked"] is False
+        assert result["reasons"] == ["off_topic_subject"]
+        assert result["blocked"] is True
+        assert result["refusal_subject"] == "Pure Math (no halachic context)"
 
 
 class TestValidateModelOutput:
@@ -820,7 +821,7 @@ class TestAnswerDepthCalibration:
         assert claude.SIMPLE_ANSWER_MAX_TOKENS < claude.COMPLEX_ANSWER_MAX_TOKENS
 
     def test_prompt_version_reflects_the_rewrite(self):
-        assert claude.PROMPT_VERSION.startswith("2026-10-02")
+        assert claude.PROMPT_VERSION.startswith("2026-10-06")
 
 
 class TestBuildDynamicSystemContext:

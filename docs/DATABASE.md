@@ -131,12 +131,12 @@ Server-generated per-user interaction-summary memory, used to build ask-time ide
 
 ### `ask_history`
 
-Per-user record of completed `/ask` interactions, including defensibility-logging metadata. Base table: [`scripts/sql/migrate_ask_history.sql`](../scripts/sql/migrate_ask_history.sql). Additive columns: [`scripts/sql/migrate_ask_history_safety_metadata.sql`](../scripts/sql/migrate_ask_history_safety_metadata.sql).
+Per-user record of completed `/ask` interactions, including defensibility-logging metadata. Base table: [`scripts/sql/migrate_ask_history.sql`](../scripts/sql/migrate_ask_history.sql). Additive columns: [`scripts/sql/migrate_ask_history_safety_metadata.sql`](../scripts/sql/migrate_ask_history_safety_metadata.sql) and the public-share columns in [`scripts/sql/migrate_ask_history_share.sql`](../scripts/sql/migrate_ask_history_share.sql).
 
 | Column | Type | Nullable | Default | Description |
 |---|---|---|---|---|
 | `id` | `uuid` | NOT NULL | `gen_random_uuid()` | Row ID |
-| `user_id` | `text` | NOT NULL | — | Clerk `sub` claim |
+| `user_id` | `text` | NOT NULL | — | The owner: a Clerk `sub` claim (`user_…`), or `device:<sha256 of the shelah_device cookie>` for an answer asked while signed out (`backend/device_identity.py`). Plain text, so the prefix needs no migration and cannot collide with a Clerk id |
 | `question` | `text` | NOT NULL | — | User's question (truncated to 2000 chars by the app) |
 | `answer` | `text` | NOT NULL | `''` | AI answer (truncated to 10000 chars by the app) |
 | `sources` | `jsonb` | NOT NULL | `'[]'` | Source list |
@@ -147,6 +147,10 @@ Per-user record of completed `/ask` interactions, including defensibility-loggin
 | `safety_class` | `text` | NOT NULL | `'ok'` | Safety-routing outcome (`ok`, `medical`, `mental_health_or_self_harm`, `abuse_or_minor_safety`, `dangerous_or_illegal`) |
 | `prompt_version` | `text` | YES | — | Governing system-prompt version |
 | `created_at` | `timestamptz` | NOT NULL | `now()` | Creation timestamp |
+| `share_token` | `text` | YES | — | Unguessable public-link token while shared (unique where not null); cleared on revoke |
+| `is_public` | `boolean` | NOT NULL | `false` | Whether `/a/<share_token>` is live |
+| `shared_at` | `timestamptz` | YES | — | When the answer was first shared |
+| `share_revoked_at` | `timestamptz` | YES | — | When sharing was last stopped |
 
 **Primary key**: `id` · **Index**: `(user_id, created_at DESC)`
 

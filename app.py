@@ -46,8 +46,9 @@ from backend.logging_setup import (
     get_logger,
     submit_with_context,
 )
-from backend.ask_payloads import build_ai_answer_payload, build_source_fallback_payload
+from backend.ask_payloads import build_ai_answer_payload, build_source_fallback_payload, is_usable_primary_source
 from backend.customs import validate_all_customs_at_startup
+from backend.device_identity import issues_device_cookie
 from backend.customs import (  # noqa: F401  (re-import shims; see below)
     _collect_trusted_authority_candidates,
     _dedupe_source_labels,
@@ -1511,7 +1512,7 @@ def _collect_primary_sources_sync(question, engine, context=()):
                 source_data = future.result(timeout=3)
             except Exception:
                 continue
-            if isinstance(source_data, dict):
+            if is_usable_primary_source(source_data):
                 primary_sources.append(source_data)
     return primary_sources
 
@@ -2201,6 +2202,7 @@ def _build_ask_critical_error_context(local_vars):
 
 @app.route("/ask", methods=["POST"])
 @maybe_require_clerk_auth
+@issues_device_cookie
 def ask_question():
     data = request.get_json(silent=True) or {}
     parsed_request = _parse_and_validate_ask_question_request(data)
@@ -2226,6 +2228,15 @@ def ask_question():
         if prayer_payload is not None:
             _set_cached_ask_payload(ask_cache_key, prayer_payload)
             return jsonify(prayer_payload)
+
+        off_topic_result = claude.off_topic_block_result(question, answer_language)
+        if off_topic_result is not None:
+            payload = _security_blocked_ask_payload(
+                off_topic_result, mode, canonical_lens, [], [], user_id,
+                question_was_sanitized, question=question, answer_language=answer_language,
+            )
+            _set_cached_ask_payload(ask_cache_key, payload)
+            return jsonify(payload)
 
         ctx = _collect_ask_question_context(
             question, canonical_lens, user_id, answer_language, engine)
@@ -2291,6 +2302,7 @@ _BLUEPRINTS = [
     ("backend.routes_user", "routes_user"),
     ("backend.routes_conversations", "routes_conversations"),
     ("backend.routes_answer_share", "routes_answer_share"),
+    ("backend.routes_conversation_share", "routes_conversation_share"),
     ("backend.routes_spa_paths", "routes_spa_paths"),
     ("backend.routes_devtools", "routes_devtools"),
     ("backend.routes_legal", "routes_legal"),
