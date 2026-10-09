@@ -2071,13 +2071,14 @@
                         data-en="Ask a question and follow up as much as you like. Every answer cites its sources."
                         data-he="שאל שאלה והמשך לשאול כרצונך. כל תשובה מציינת את מקורותיה.">Ask a question and follow up
                         as much as you like. Every answer cites its sources.</p>
-                    <!-- Signed out: a question still gets an answer (a one-shot /ask),
-                         but follow-ups need an account -- say so up front. -->
+                    <!-- Signed out: a question still gets an answer (a one-shot /ask) and
+                         can be followed up, within the guest limits (backend/guest_cap.py)
+                         -- say so up front. -->
                     <p id="convSignedOutHint" class="conv-empty__hint conv-signin-callout hidden">
                         <span class="conv-signin-callout__icon" aria-hidden="true">{{ phosphor('lock-simple', size=16) }}</span>
                         <span class="conv-signin-callout__text"
-                            data-en="Follow-up questions need an account. Sign in to ask follow-ups and save your conversations."
-                            data-he="שאלות המשך דורשות חשבון. התחבר/י כדי לשאול שאלות המשך ולשמור את השיחות שלך.">Follow-up questions need an account. Sign in to ask follow-ups and save your conversations.</span>
+                            data-en="You can ask as a guest. Sign in to save your conversations and keep going without limits."
+                            data-he="אפשר לשאול כאורח. התחברו כדי לשמור את השיחות ולהמשיך ללא הגבלה.">You can ask as a guest. Sign in to save your conversations and keep going without limits.</span>
                         <button type="button" class="conv-link-btn" data-conv-action="sign-in" data-en="Sign in" data-he="התחברות">Sign in</button>
                     </p>
                     <!-- A few places to start; pressing one fills the question box (it does not send). -->
@@ -2125,6 +2126,12 @@
                         {{ phosphor('x', size=12, class='h-3 w-3') }}
                     </button>
                 </div>
+                <!-- A signed-out visitor's allowance is running low (or spent): says so above
+                     the box, with the way out (conversation-ui.js render, guestBannerText). -->
+                <p id="convGuestBanner" class="conv-signin-follow hidden" role="status">
+                    <span id="convGuestBannerText" class="conv-signin-follow__text"></span>
+                    <button type="button" class="conv-signin-follow__btn" data-conv-action="sign-in" data-en="Sign in" data-he="התחברות">Sign in</button>
+                </p>
                 <form id="convComposer" class="conv-composer" novalidate>
                     <div class="conv-composer__fill">
                         <label for="convInput" class="sr-only" data-en="Ask a question" data-he="שאל שאלה">Ask a question</label>
@@ -2142,16 +2149,24 @@
                         </button>
                     </div>
                 </form>
-                <!-- Signed out, an answer on screen can't be followed up (Decision A1):
-                     this takes the composer's place (conversation-ui.js render). -->
-                <p id="convSignInFollowUp" class="conv-signin-follow hidden">
-                    <span class="conv-signin-follow__text" data-en="Sign in to ask follow-up questions." data-he="התחבר/י כדי לשאול שאלות המשך.">Sign in to ask follow-up questions.</span>
-                    <button type="button" class="conv-signin-follow__btn" data-conv-action="sign-in" data-en="Sign in" data-he="התחברות">Sign in</button>
-                </p>
                 <p class="conv-disclaimer"
                     data-en="AI-generated educational information, not a halachic ruling. Ask your rabbi for practical guidance."
                     data-he="מידע חינוכי שנוצר על ידי בינה מלאכותית, לא פסיקה הלכתית. שאל את רבך להנחיה מעשית.">AI-generated
                     educational information, not a halachic ruling. Ask your rabbi for practical guidance.</p>
+                <!-- The guest limit was reached (backend/guest_cap.py). A native modal dialog:
+                     it traps focus and closes on Escape by itself. Words are set by
+                     conversation-ui.js (guestCapCopy) from the server's reason. -->
+                <dialog id="convGuestCap" class="conv-capdialog" aria-labelledby="convGuestCapTitle" aria-describedby="convGuestCapBody">
+                    <div class="conv-capdialog__card">
+                        <h2 id="convGuestCapTitle" class="conv-capdialog__title"></h2>
+                        <p id="convGuestCapBody" class="conv-capdialog__body"></p>
+                        <div class="conv-capdialog__actions">
+                            <button type="button" class="conv-capdialog__btn conv-capdialog__btn--primary" data-conv-action="guest-sign-in" data-en="Sign in" data-he="התחברות">Sign in</button>
+                            <button type="button" class="conv-capdialog__btn" data-conv-action="guest-sign-up" data-en="Create free account" data-he="יצירת חשבון חינם">Create free account</button>
+                            <button type="button" class="conv-capdialog__btn conv-capdialog__btn--quiet" data-conv-action="guest-cap-close" data-en="Not now" data-he="לא עכשיו">Not now</button>
+                        </div>
+                    </div>
+                </dialog>
             </div>
         </div>
         <!-- Share (a public link) for a search-bar answer (static/js/answer-link.js +
@@ -5403,6 +5418,25 @@
 
         async function handleSignIn() {
             await openAuthRoute('signin');
+        }
+
+        // "Create free account" in the guest-limit dialog: Clerk's own sign-up
+        // modal, back to this same page afterwards. Without Clerk's sign-up
+        // (or if it fails to open) the sign-in modal offers it too.
+        async function handleSignUp() {
+            if (!window.Clerk?.openSignUp) {
+                await handleSignIn();
+                return;
+            }
+            try {
+                await window.Clerk.openSignUp({
+                    fallbackRedirectUrl: window.location.href,
+                    appearance: window.ShelahClerkAppearance?.(),
+                });
+            } catch (error) {
+                console.warn('Unable to open the Clerk sign-up modal:', error);
+                await handleSignIn();
+            }
         }
 
         async function handleSignOut() {
@@ -12301,7 +12335,9 @@
         // -- this used to be an inline
         // askWithRetry() duplicating that module. See ai-service.js's module
         // docstring for the ported behavior and the return contract.
-        async function handleAiSearch(question) {
+        // `followUp`: a signed-out visitor's follow-up on the answers on screen
+        // (conversation-ui.js), not a fresh question from the search bar.
+        async function handleAiSearch(question, { followUp = false } = {}) {
             const sanitizedQuestion = sanitizeQuestionInput(question);
             if (!sanitizedQuestion) return;
             question = sanitizedQuestion;
@@ -12351,7 +12387,7 @@
                     mode: appState.prefs.mode,
                     community: appState.prefs.community,
                     language: isHebrewMode() ? 'he' : 'en',
-                });
+                }, { followUp });
                 // Another question or answer replaced this one meanwhile.
                 if (!data) return;
 
@@ -12399,6 +12435,9 @@
                         try { window.turnstile.reset(turnstileWidget); } catch (_err) { /* widget not ready yet */ }
                     }
                     logReliability('ai-turnstile-required');
+                } else if (error?.code === 'guest_cap_reached') {
+                    // Not a failure: the guest limit, which the panel's dialog explains.
+                    logReliability('ai-guest-cap', { reason: error.reason });
                 } else if (error?.status === 401) {
                     logReliability('ai-response-error', { message: 'session expired' });
                 } else if (typeof error?.status === 'number') {

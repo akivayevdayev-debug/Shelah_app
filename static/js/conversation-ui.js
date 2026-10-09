@@ -63,6 +63,8 @@ import {
     communityName,
     lockLine,
     noticeFor,
+    guestBannerText,
+    guestCapCopy,
     snapCorner,
     logicalCorner,
     citationExcerpt,
@@ -301,7 +303,11 @@ function collectElements() {
         tip: $("aiDiscoveryTip"),
         tipTry: $("aiDiscoveryTipTry"),
         tipDismiss: $("aiDiscoveryTipDismiss"),
-        signInFollowUp: $("convSignInFollowUp"),
+        guestBanner: $("convGuestBanner"),
+        guestBannerText: $("convGuestBannerText"),
+        guestCap: $("convGuestCap"),
+        guestCapTitle: $("convGuestCapTitle"),
+        guestCapBody: $("convGuestCapBody"),
         answerLink: $("convAnswerLink"),
         answerLinkPark: $("convAnswerLinkPark"),
         lists: [...document.querySelectorAll("[data-conv-list]")],
@@ -331,11 +337,6 @@ function render() {
     if (hasMessages) ui.publicState = null;
     const answerView = Boolean(state.answerView) && !conversation;
     const hasAnswer = state.messages.some((m) => m.answer);
-    // Signed out, an answer on screen can't be followed up: the composer
-    // gives way to "Sign in to follow up". No Clerk (local dev): it asks
-    // another one-shot question instead.
-    const followUpLocked = answerView && hasAnswer && !ui.signedIn && clerkConfigured();
-
     els.panel.dataset.hasThread = conversation ? "true" : "false";
     els.panel.dataset.answerView = answerView || ui.publicState ? "true" : "false";
     els.panel.dataset.sending = state.sending ? "true" : "false";
@@ -425,12 +426,19 @@ function render() {
 
 
     // Composer.
-    const continues = !answerView || (ui.signedIn && Boolean(state.answerView?.historyId));
+    // A signed-out visitor follows up on the answers on screen too, up to the
+    // guest limits (backend/guest_cap.py); a shared answer or one that was
+    // never saved starts a new question.
+    const continues = !answerView
+        || (ui.signedIn && Boolean(state.answerView?.historyId))
+        || (!ui.signedIn && store.canContinueAsGuest());
     els.input.placeholder = !hasMessages
         ? tr("Ask a question…", "שאל שאלה…")
         : continues ? tr("Ask a follow-up…", "שאל שאלת המשך…") : tr("Ask a new question…", "שאל שאלה חדשה…");
-    els.composer.classList.toggle("hidden", followUpLocked);
-    els.signInFollowUp?.classList.toggle("hidden", !followUpLocked);
+    // As the guest allowance runs low it says so, above the box.
+    const guestNote = !ui.signedIn && !conversation ? guestBannerText(state.guestUsage, l) : null;
+    els.guestBanner?.classList.toggle("hidden", !guestNote);
+    if (guestNote && els.guestBannerText) els.guestBannerText.textContent = guestNote;
     syncSendDisabled();
 
     // Minimised bar.
@@ -1271,15 +1279,55 @@ function presentAnswer() {
 // handleAiSearch: ask through /ask and show it here. Resolves the payload,
 // or null when another question or answer replaced it meanwhile; rejects
 // (after showing the failure on the turn) for the caller's side effects.
-function askFromSearch(question, request = {}) {
+function askFromSearch(question, request = {}, { followUp = false } = {}) {
     ui.publicState = null;
     // Follow-ups (and the URL) use the settings this answer was asked with:
     // the search bar asks with the visitor's own community.
     if (request.mode) ui.mode = request.mode;
     ui.routeMinhag = null;
-    const pending = store.askSearch(question, request);
+    const pending = followUp
+        ? store.askGuestFollowUp(question, request)
+        : store.askSearch(question, request);
     presentAnswer();
+    pending.catch((error) => {
+        if (error?.code === "guest_cap_reached") onGuestCapRefused(error, question, followUp);
+    });
     return pending;
+}
+
+// ── guest limits ───────────────────────────────────────────────────────
+
+// The server refused a guest question (backend/guest_cap.py). A refused
+// follow-up leaves no turn behind, so the words go back in the box -- they are
+// waiting for the visitor after sign-in; a refused new question stays on screen
+// as a failed turn with its Retry.
+function onGuestCapRefused(error, question, followUp) {
+    if (followUp && !els.input.value.trim()) {
+        els.input.value = question;
+        autosize();
+        syncSendDisabled();
+    }
+    openGuestCap(error.reason, error.usage);
+}
+
+function openGuestCap(reason, usage) {
+    const dialog = els.guestCap;
+    if (!dialog || typeof dialog.showModal !== "function") return;
+    const copy = guestCapCopy(reason, usage, lang());
+    els.guestCapTitle.textContent = copy.title;
+    els.guestCapBody.textContent = copy.body;
+    if (!dialog.open) dialog.showModal();
+}
+
+function closeGuestCap() {
+    if (els.guestCap?.open) els.guestCap.close();
+}
+
+// Sign-in is open over the panel: the dialog is done either way.
+function signInFromGuestCap({ create = false } = {}) {
+    closeGuestCap();
+    if (create && typeof window.handleSignUp === "function") void window.handleSignUp();
+    else if (typeof window.handleSignIn === "function") void window.handleSignIn();
 }
 
 // A stored answer: history, shelf, /answer/<id>, /a/<token>.
@@ -1327,9 +1375,10 @@ function showSavedUnavailable(gone, { signIn = false } = {}) {
     scheduleRender();
 }
 
-// Signed out (Decision A1), a question is a one-shot /ask of its own.
-function askOneShot(question) {
-    if (typeof window.handleAiSearch === "function") void window.handleAiSearch(question);
+// Signed out, a question is a one-shot /ask (Decision A1); `followUp` names the
+// answers on screen as the conversation it continues (guest limits apply).
+function askOneShot(question, { followUp = false } = {}) {
+    if (typeof window.handleAiSearch === "function") void window.handleAiSearch(question, { followUp });
 }
 
 // Open (or resume) the conversation UI. `fresh` starts a new thread first;
@@ -1858,9 +1907,16 @@ async function submitComposer() {
     if (state.sending || state.loadStatus === "loading") return;
     await waitForAuth();
     if (!ui.signedIn) {
+        const followUp = store.canContinueAsGuest();
+        // This conversation's guest allowance is spent: say so before sending
+        // anything. The question stays in the box for after sign-in.
+        if (followUp && store.guestCapReached()) {
+            openGuestCap("thread_questions", store.getState().guestUsage);
+            return;
+        }
         els.input.value = "";
         autosize();
-        askOneShot(text);
+        askOneShot(text, { followUp });
         return;
     }
     els.input.value = "";
@@ -2017,6 +2073,9 @@ function focusables(root) {
 
 function onKeydown(event) {
     if (!els) return;
+    // The sign-in dialog is a native modal: it closes itself on Escape and
+    // keeps focus inside, so the panel behind it stays out of both.
+    if (els.guestCap?.open) return;
     if (event.key === "Escape") {
         if (citePop?.isOpen()) {
             event.preventDefault();
@@ -2171,6 +2230,15 @@ function handleAction(action, button) {
             closeHistoryPop();
             if (typeof window.handleSignIn === "function") void window.handleSignIn();
             break;
+        case "guest-sign-in":
+            signInFromGuestCap();
+            break;
+        case "guest-sign-up":
+            signInFromGuestCap({ create: true });
+            break;
+        case "guest-cap-close":
+            closeGuestCap();
+            break;
         case "rename":
             beginRename();
             break;
@@ -2235,6 +2303,7 @@ function onAuthChanged(event) {
         resolveAuth();
     }
     if (signedIn && !was) {
+        closeGuestCap();
         ui.listLoadedAt = 0;
         maybeLoadList(true);
         if (ui.awaitingOpenId) {
@@ -2281,6 +2350,15 @@ function bindEvents() {
     document.addEventListener("click", onDocumentClick);
     document.addEventListener("keydown", onKeydown);
     document.addEventListener("shelah:auth-changed", onAuthChanged);
+
+    // The guest-limit dialog: a click on its backdrop dismisses it like Escape
+    // does, and focus goes back to the box the question is waiting in.
+    els.guestCap?.addEventListener("click", (event) => {
+        if (event.target === els.guestCap) closeGuestCap();
+    });
+    els.guestCap?.addEventListener("close", () => {
+        if (ui.open) els.input.focus({ preventScroll: true });
+    });
 
     els.scrim.addEventListener("click", () => closePanel());
     els.menuBtn.addEventListener("click", () => openMenu(els.menuBtn));

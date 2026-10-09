@@ -133,6 +133,10 @@ function initialThreadState(draftMinhag) {
         // its /a/<token> link is the same view, with the chat's `title`. null
         // for ordinary threads.
         answerView: null,
+        // The counters of a signed-out visitor's conversation, from the last
+        // answer's `guest` object (backend/guest_cap.py); null for a signed-in
+        // thread, a stored answer, or before the first answer.
+        guestUsage: null,
     };
 }
 
@@ -160,10 +164,19 @@ export function answerCitations(data) {
 
 // The one-shot /ask client (ai-service.js askAi) throws plain Errors carrying
 // .status / .code / .name; map them onto the codes the notices understand.
-export const SEARCH_ERROR_CODES = Object.freeze({ TURNSTILE: "turnstile_required", TIMEOUT: "timeout" });
+export const SEARCH_ERROR_CODES = Object.freeze({
+    TURNSTILE: "turnstile_required",
+    TIMEOUT: "timeout",
+    GUEST_CAP: "guest_cap_reached",
+});
+
+// A guest follow-up asks for at most this many earlier answers to be counted
+// (the server reads no more than it allows a conversation anyway).
+const GUEST_HISTORY_IDS_MAX = 12;
 
 function searchErrorCode(error) {
     if (error?.code === SEARCH_ERROR_CODES.TURNSTILE) return SEARCH_ERROR_CODES.TURNSTILE;
+    if (error?.code === SEARCH_ERROR_CODES.GUEST_CAP) return SEARCH_ERROR_CODES.GUEST_CAP;
     if (error?.name === "AbortError") return SEARCH_ERROR_CODES.TIMEOUT;
     switch (error?.status) {
         case 401: return ERROR_CODES.UNAUTHORIZED;
@@ -211,6 +224,17 @@ export function createConversationStore({ api = defaultApi, getPrefs = () => ({}
             message: String(error?.message || "Something went wrong"),
             retryAfter: error?.retryAfter ?? null,
         };
+    }
+
+    // errorInfo() for a one-shot /ask failure. A guest-limit refusal also
+    // carries which limit it was and the counters, for the modal.
+    function searchErrorInfo(error) {
+        const info = { ...errorInfo(error), code: searchErrorCode(error) };
+        if (info.code === SEARCH_ERROR_CODES.GUEST_CAP) {
+            info.reason = error.reason || "thread_questions";
+            info.usage = error.usage || null;
+        }
+        return info;
     }
 
     // The onProgress hook handed to the ask clients. Steps from a request the
@@ -349,15 +373,102 @@ export function createConversationStore({ api = defaultApi, getPrefs = () => ({}
                 answerView: viewFor(data, request),
                 messages,
                 sources: { phase: SOURCES_PHASE.DONE, citations: messages[1].citations, messageId: ids[1] },
+                guestUsage: data?.meta?.guest || null,
             });
             return data;
         } catch (error) {
             if (myGeneration !== generation) return null;
             setState({
                 sending: false,
-                lastError: { ...errorInfo(error), code: searchErrorCode(error) },
+                lastError: searchErrorInfo(error),
                 messages: [{ ...normalizeMessage({ role: "user", content: text }), id: ids[0], status: MESSAGE_STATUS.FAILED }],
                 sources: { phase: SOURCES_PHASE.IDLE, citations: [], messageId: null },
+            });
+            throw error;
+        }
+    }
+
+    // ── signed-out follow-ups ───────────────────────────────────────────
+
+    // The ids of this view's earlier answers (ask_history rows), oldest first.
+    // A shared (public) answer is someone else's, and an answer that was never
+    // saved has no id: neither can be followed up.
+    function guestHistoryIds() {
+        if (!state.answerView || state.conversation || state.answerView.isPublic) return [];
+        const ids = state.messages
+            .filter((m) => m.role === "assistant" && m.status === MESSAGE_STATUS.COMPLETE && m.answer && !m.answer.public)
+            .map((m) => String(m.answer.history_id || m.answer.id || "").trim())
+            .filter(Boolean);
+        return ids.slice(-GUEST_HISTORY_IDS_MAX);
+    }
+
+    // True when a signed-out question would continue the answers on screen.
+    function canContinueAsGuest() {
+        return guestHistoryIds().length > 0;
+    }
+
+    // The conversation has used up its guest allowance, so the next question
+    // is answered with the sign-in prompt instead. The day's limit is left to
+    // the server: it can lift while this panel stays open.
+    function guestCapReached() {
+        const usage = state.guestUsage;
+        return Boolean(usage) && usage.binding === "thread" && Number(usage.remaining) <= 0 && canContinueAsGuest();
+    }
+
+    // A signed-out visitor's follow-up: a one-shot /ask that names the earlier
+    // answers of this conversation. The server uses only the ones this device
+    // owns, gives them to the model as the conversation so far and counts them
+    // against the guest limits (backend/guest_cap.py). With nothing on screen
+    // to follow up on it is simply a new question.
+    //
+    // A question the limits refuse leaves no turn behind (it goes back to the
+    // composer, and the error carries the counters for the sign-in modal);
+    // any other failure keeps it as a FAILED turn with a Retry.
+    async function askGuestFollowUp(question, request = {}) {
+        const text = String(question || "").trim();
+        if (!text || typeof askAnswer !== "function") return null;
+        if (!canContinueAsGuest()) return askSearch(text, request);
+
+        const myGeneration = generation;
+        const ids = [nextLocalId(), nextLocalId()];
+        const historyIds = guestHistoryIds();
+        setState({
+            sending: true,
+            progress: createProgress(),
+            lastError: null,
+            messages: [
+                ...state.messages,
+                { ...normalizeMessage({ role: "user", content: text }), id: ids[0], status: MESSAGE_STATUS.PENDING },
+                { ...normalizeMessage({ role: "assistant" }), id: ids[1], status: MESSAGE_STATUS.PENDING },
+            ],
+            sources: { phase: SOURCES_PHASE.SEARCHING, citations: [], messageId: ids[1] },
+        });
+        try {
+            const data = await askAnswer(text, request, { onProgress: progressSink(myGeneration), historyIds });
+            if (myGeneration !== generation) return null;
+            const turns = answerTurns(text, data, ids);
+            setState({
+                sending: false,
+                answerView: viewFor(data, request),
+                messages: replaceLocal(ids, turns),
+                sources: { phase: SOURCES_PHASE.DONE, citations: turns[1].citations, messageId: ids[1] },
+                guestUsage: data?.meta?.guest || null,
+            });
+            return data;
+        } catch (error) {
+            if (myGeneration !== generation) return null;
+            const info = searchErrorInfo(error);
+            const refused = info.code === SEARCH_ERROR_CODES.GUEST_CAP;
+            const kept = state.messages.filter((m) => m.id !== ids[1]);
+            const lastAnswer = [...kept].reverse().find((m) => m.role === "assistant" && m.status === MESSAGE_STATUS.COMPLETE);
+            setState({
+                sending: false,
+                lastError: info,
+                messages: refused
+                    ? kept.filter((m) => m.id !== ids[0])
+                    : kept.map((m) => (m.id === ids[0] ? { ...m, status: MESSAGE_STATUS.FAILED } : m)),
+                sources: lastAnswer ? sourcesFor(lastAnswer) : { phase: SOURCES_PHASE.IDLE, citations: [], messageId: null },
+                ...(refused && info.usage ? { guestUsage: info.usage } : {}),
             });
             throw error;
         }
@@ -390,14 +501,18 @@ export function createConversationStore({ api = defaultApi, getPrefs = () => ({}
         });
         if (myGeneration !== generation) return null;
         const conversation = normalizeHeader(created);
-        const patch = { conversation, minhagLocked: true, answerView: null };
+        const patch = { conversation, minhagLocked: true, answerView: null, guestUsage: null };
         if (seedId) {
+            // The thread is seeded from the answer being followed up -- the
+            // latest one on screen. A signed-out conversation of several
+            // answers keeps its earlier turns above it, as plain history.
             const seeded = (created?.messages || []).map(normalizeMessage);
-            const shown = state.messages.filter((m) => m.answer);
-            const payload = shown[0]?.answer || null;
+            const shownAt = state.messages.map((m) => Boolean(m.answer)).lastIndexOf(true);
+            const payload = shownAt >= 0 ? state.messages[shownAt].answer : null;
             const lastSeeded = [...seeded].reverse().find((m) => m.role === "assistant");
             if (lastSeeded && payload) lastSeeded.answer = payload;
-            const localIds = state.messages.slice(0, 2).map((m) => m.id);
+            const localIds = (shownAt > 0 ? state.messages.slice(shownAt - 1, shownAt + 1) : state.messages.slice(0, 2))
+                .map((m) => m.id);
             patch.messages = seeded.length ? replaceLocal(localIds, seeded) : state.messages;
         }
         setState(patch);
@@ -601,8 +716,11 @@ export function createConversationStore({ api = defaultApi, getPrefs = () => ({}
         let question = null;
         let dropIds = [];
         if (target.role === "user" && target.status === MESSAGE_STATUS.FAILED && state.answerView && !state.conversation) {
-            // A failed search-bar question is asked again the same way.
-            return askSearch(target.content, state.answerView.request || {}).then(Boolean, () => false);
+            // A failed search-bar question is asked again the same way; a
+            // signed-out follow-up is asked again as a follow-up (a failed first
+            // question leaves nothing to follow up on, so it is a new question).
+            setState({ messages: state.messages.filter((m) => m.id !== target.id), lastError: null });
+            return askGuestFollowUp(target.content, state.answerView.request || {}).then(Boolean, () => false);
         }
         if (target.role === "user" && target.status === MESSAGE_STATUS.FAILED) {
             question = target.content;
@@ -711,6 +829,10 @@ export function createConversationStore({ api = defaultApi, getPrefs = () => ({}
         showAnswer,
         showSharedConversation,
         askSearch,
+        askGuestFollowUp,
+        canContinueAsGuest,
+        guestCapReached,
+        guestHistoryIds,
         refresh,
         setDraftMinhag,
         send,

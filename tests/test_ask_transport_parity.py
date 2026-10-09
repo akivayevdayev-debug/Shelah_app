@@ -40,8 +40,8 @@ Invariant coverage map:
      test_flask_ask_route_is_unreachable_behind_the_asgi_mount. That test pins the FastAPI-route-before-Flask-
      mount registration order that makes the budget-check asymmetry safe.
   f) identical meta key set on every response -> TestMetaKeySetParity
-     "cached" (Flask) / "async" (ASGI) is a deliberate, accepted per-
-     transport tag -- the same exception test_ask.py::
+     "cached" (Flask) / "async" and "guest" (ASGI) are deliberate, accepted per-
+     transport tags -- the same exception test_ask.py::
      TestAskTransportKeySetParity's docstring already documents for the
      top-level comparison. Excluded here the same way, then every other
      meta key must match exactly.
@@ -69,7 +69,10 @@ import time
 from tests.test_ask import TestAskTransportKeySetParity
 
 TOP_LEVEL_KEYS = TestAskTransportKeySetParity.TOP_LEVEL_KEYS
-KNOWN_TRANSPORT_TAGS = {"cached", "async"}
+# "guest" is the signed-out caller's allowance (backend/guest_cap.py). Only the
+# FastAPI route enforces it, as it is the only one reachable in production, and
+# it sits in meta (never top level) so the top-level key set stays identical.
+KNOWN_TRANSPORT_TAGS = {"cached", "async", "guest"}
 
 
 def _meta_keys_minus_transport_tag(meta: dict) -> set:

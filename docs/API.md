@@ -121,7 +121,8 @@ Submit a halachic or Torah-study question and receive an AI-synthesised answer w
   "mode": "string, 'balanced' | 'practical' | 'sources' | 'strict' (optional, default 'balanced'; an unknown value falls back to 'balanced')",
   "community": "string, community lens such as 'Ashkenaz' or 'Sefardic' (optional, default 'All'; names and aliases are canonicalised)",
   "language": "string, 'en' | 'he' (optional, default 'en')",
-  "turnstile_token": "string, Cloudflare Turnstile response token (optional; only read once an anonymous caller has crossed the hourly threshold, see Rate limiting)"
+  "turnstile_token": "string, Cloudflare Turnstile response token (optional; only read once an anonymous caller has crossed the hourly threshold, see Rate limiting)",
+  "history_ids": "array of strings, the history_id of each earlier answer in this signed-out conversation, oldest first (optional; see Guest limits; ignored for a signed-in caller)"
 }
 ```
 
@@ -161,7 +162,8 @@ The question is sanitised before use (hidden and control characters removed, whi
     "security": "object",
     "safety_class": "string, 'ok' unless the answer was classed otherwise",
     "rabbinic_disclaimer": "string",
-    "async": true
+    "async": true,
+    "guest": "object, only for a signed-out caller with a device: how much of the guest allowance is used (see Guest limits)"
   }
 }
 ```
@@ -182,7 +184,7 @@ The question is sanitised before use (hidden and control characters removed, whi
 | `400` | `No valid question provided` |
 | `401` | Authentication required (`CLERK_ENFORCE_AUTH` on and no valid token) |
 | `402` | Daily AI usage limit reached for this account (per-user budget, `PER_USER_DAILY_BUDGET_USD`); try again after midnight UTC |
-| `403` | Turnstile verification required or failed (anonymous callers past the hourly threshold; only when `TURNSTILE_ENABLED=true`) |
+| `403` | Turnstile verification required or failed (anonymous callers past the hourly threshold; only when `TURNSTILE_ENABLED=true`), or `guest_cap_reached`: a signed-out caller has used their guest allowance (see Guest limits) |
 | `429` | Rate limit exceeded, either the per-minute bucket or the signed-in daily quota |
 | `500` | An internal error occurred (reported to Sentry) |
 
@@ -361,6 +363,43 @@ Anonymous `/ask` traffic past a per-IP hourly request threshold is challenged wi
 
 Supply a solved token in the request body's `turnstile_token` field to pass the gate.
 
+### Guest limits (`backend/guest_cap.py`)
+
+A signed-out visitor can follow up on an answer, up to a point, after which the next question asks them to sign in. The check is on the server (`asgi.py`: `_enforce_ask_async_guest_cap`, run after Turnstile and before the budget check) and there is no schema change.
+
+- **What counts.** Per conversation: 8 questions, or about 24,000 answer tokens, whichever runs out first. One document-style request per conversation (a study guide, a table: what `claude.question_profile` calls a study question) does not count toward the 8 and brings 6,000 tokens of its own. Per device: 24 questions (about three full conversations) in any rolling 24 hours, which is also what bounds someone who starts a new conversation for every question. The answer being written always finishes; it is the next question that is refused.
+- **How the server knows.** The client sends `history_ids`, the `history_id` of each earlier answer of the conversation. Only rows the caller's device owns (`ask_history.user_id = device:<hash>`, see [Device identity](#device-identity)) are loaded, so a forged or foreign id yields nothing. Those rows are also what the model sees as the conversation so far and what source retrieval reads as the earlier questions, so a follow-up such as "and for a woman?" keeps its topic. Questions are counted as rows, tokens are estimated from each stored answer's length, and the day's count is the device's rows in the last 24 hours (index `(user_id, created_at DESC)`).
+- **The response.** Every `/ask` response for a signed-out caller carries `meta.guest` (in `meta`, not at the top level, so the Flask and FastAPI handlers keep the same top-level keys):
+
+  ```json
+  {
+    "questions_used": 3, "questions_limit": 8,
+    "tokens_used": 5120, "tokens_limit": 24000,
+    "daily_used": 5, "daily_limit": 24,
+    "remaining": 5,
+    "binding": "thread"
+  }
+  ```
+
+  `remaining` is the smaller of what is left in the conversation and in the day, and `binding` (`"thread"` or `"daily"`) says which one that is, so the banner ("2 questions left") and the dialog agree.
+- **The refusal.** `403` with `detail`:
+
+  ```json
+  {
+    "error": "You've reached the guest limit for this conversation. Sign in to keep going.",
+    "code": "guest_cap_reached",
+    "reason": "daily | thread_questions | thread_tokens",
+    "usage": { "…": "the same object as meta.guest" }
+  }
+  ```
+
+  The day's count is checked first, since it is the one a new conversation cannot escape. A refusal costs no retrieval and no model call.
+- **Answer cache.** An answer that depends on earlier turns is cached under a key that includes their ids, so it is never served for the same words asked elsewhere.
+- **Fails open.** A database error while measuring is reported (`guest_cap_lookup_failed`) and the question is allowed: the same outage means nothing is being stored either.
+- **Signed-in callers** ignore `history_ids` and are never counted here; they have conversations (`/api/conversations/<id>/ask`) and the daily quota above.
+- **What it does not stop.** Clearing cookies mints a new device and starts the count over; the per-IP rate limit, the global budget and the WAF are the backstops there. A client that omits `history_ids` is not bound by the per-conversation numbers, only by the day's 24. If Turnstile is ever switched on, set `TURNSTILE_ANON_HOURLY_THRESHOLD` to 8 or more, or a guest meets the challenge before the cap.
+- The Flask `/ask` in `app.py` is shadowed in production by the FastAPI route and is not changed.
+
 ### Env var matrix
 
 | Variable | Default | Purpose |
@@ -371,6 +410,10 @@ Supply a solved token in the request body's `turnstile_token` field to pass the 
 | `TURNSTILE_SECRET_KEY` | unset | Cloudflare Turnstile server secret. Required once `TURNSTILE_ENABLED=true`; with the flag on and this empty, every challenged request is rejected (fails closed). |
 | `TURNSTILE_SITE_KEY` | unset | Cloudflare Turnstile public site key (not a secret; for the frontend widget). |
 | `TURNSTILE_ANON_HOURLY_THRESHOLD` | `5` | Anonymous requests per IP per trailing hour before a challenge is owed. |
+| `GUEST_THREAD_MAX_QUESTIONS` | `8` | Questions a signed-out visitor can ask in one conversation. |
+| `GUEST_THREAD_MAX_TOKENS` | `24000` | Estimated answer tokens in one guest conversation. |
+| `GUEST_DOC_EXTRA_TOKENS` | `6000` | Tokens added once a conversation has its one document-style request. |
+| `GUEST_DAILY_MAX_QUESTIONS` | `24` | Questions per device in any rolling 24 hours. |
 | `PER_USER_DAILY_BUDGET_USD` | `2.00` | Per-signed-in-caller daily AI spend ceiling, a good-faith guardrail rather than an anti-abuse control. `0` disables it. |
 | `DAILY_BUDGET_USD` | unset (breaker inert) | Global cross-caller daily spend ceiling (`backend/cost_meter.py`), the real ceiling against a multi-account attacker. |
 

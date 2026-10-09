@@ -603,6 +603,39 @@ value in a log store.
 `TURNSTILE_ANON_HOURLY_THRESHOLD` — see `.env.example` for defaults and
 `docs/API.md` for the full policy/env matrix alongside the `RATE_LIMIT_*` vars.
 
+**Guest conversation limits (2026-10-09).** Anonymous `/ask` is open by design
+(§6), and a signed-out visitor can now follow up on an answer, so the cost of
+one anonymous caller is bounded by what they can do in a day: 8 questions per
+conversation (about 24,000 answer tokens, one document-style request free) and
+24 questions per device in any rolling 24 hours, then a sign-in prompt
+(`backend/guest_cap.py`, `docs/API.md` "Guest limits"). Properties worth
+knowing when reviewing it:
+
+- **Server-authoritative.** The client names its earlier answers (`history_ids`);
+  the server loads only rows whose `ask_history.user_id` is the caller's own
+  `device:<hash>` (§5, device identity), so a forged id loads nothing and a
+  signed-in caller's id is never readable this way. Usage is derived from those
+  rows, not from a number the client sends, so there is no counter to tamper with.
+- **Same rows, two jobs.** The rows that are counted are also the conversation the
+  model sees and the earlier questions source retrieval reads, so a caller cannot
+  have a conversation counted as one thing and answered as another.
+- **Bounded lookups.** At most 12 ids (`MAX_HISTORY_IDS`) are looked up, each
+  matched against a strict `[A-Za-z0-9-]{8,64}` pattern; one `select` by id plus one
+  `count` over the existing `(user_id, created_at DESC)` index. A refusal happens
+  before retrieval and before any model call.
+- **Fails open.** A database error while measuring is reported
+  (`guest_cap_lookup_failed`, Sentry) and the question is allowed: the same outage
+  means nothing is being stored, and "guests cannot ask" is worse than a skipped
+  limit. The per-IP rate limit, the global breaker and the WAF still apply.
+- **Not an anti-abuse control on its own.** Clearing cookies mints a new device and
+  resets the count. That is the same ceiling as the per-user budget (DECISIONS.md,
+  "Per-user AI spend ceiling"): the cap makes a casual visitor sign in, and the
+  per-IP limit, `DAILY_BUDGET_USD` and the WAF are what stop a determined one. A
+  client that leaves out `history_ids` is bound only by the day's 24.
+- **Turnstile.** If `TURNSTILE_ENABLED` is ever turned on, keep
+  `TURNSTILE_ANON_HOURLY_THRESHOLD` at 8 or more, or a guest meets the challenge
+  before the cap.
+
 ## 9. Account-deletion completeness
 
 `/api/user/delete-account` (`backend/routes_privacy.py`) was audited.

@@ -70,7 +70,7 @@ Other templates: `404`, `about`, `acceptable-use`, `accessibility`, `ai-disclosu
 |---|---|
 | `ai-service.js` | `askAi(question, options)`: the canonical `POST /ask` client. 3 attempts, 60 s per attempt, backoff 1200 ms times the attempt number, retrying only 502/503/504 and network `AbortError`/`TypeError`; one auth-header refresh and retry on 401; never retries a 4xx. Asks for `application/x-ndjson` and reports each pipeline step to `options.onProgress`; a server that answers plain JSON is handled the same. Throws an `Error` with `.status`, `.code` (for example `turnstile_required`), `.attempts` |
 | `ask-progress.js` | Turns the NDJSON progress lines into a small state object and view; owns no DOM |
-| `conversation-entry.js` | Which Ask surface a question opens: signed in uses the multi-turn conversation UI, signed out uses a one-shot `/ask` answer in the same panel with a sign-in prompt in place of the composer |
+| `conversation-entry.js` | Which Ask surface a question opens: signed in uses the multi-turn conversation UI, signed out uses a one-shot `/ask` answer in the same panel, and the composer stays: each follow-up is another `/ask` carrying `history_ids` (see [Guest follow-ups](#guest-follow-ups)) |
 | `conversation-api.js` | Network client for `/api/conversations/*`; throws `ConversationApiError` with a `.code` the UI branches on |
 | `conversation-store.js` | View-model for one thread: header, transcript, the "sources consulted" disclosure, the sidebar list. Owns no DOM; every surface renders from `getState()` |
 | `conversation-ui.js` | Renders the store into `#convPanel` and wires every entry point (topbar Ask button, phone tray, history popover, one-time discovery tip). Exposed as `window.ShelahConversationUI` |
@@ -79,6 +79,15 @@ Other templates: `404`, `about`, `acceptable-use`, `accessibility`, `ai-disclosu
 | `citation-markers.js`, `citation-popover.js` | The `[n]` chips after a claim, and the card a chip opens (source, one-line note, first lines, open-in-reader or jump to the list row) |
 | `answer-link.js`, `answer-share.js` | "Copy link" for a stored answer (owner link `/answer/<id>`) and public share links (`/a/<token>`, `POST …/share`, revoke) |
 | `ask-history.js` | The `/history` page (keyset-paged `GET /api/user/history`, searchable) and the shelf's stored-answer entries. `window.ShelahAskHistory` |
+
+#### Guest follow-ups
+
+A signed-out visitor keeps the composer. Their first question is the one-shot `/ask` (`window.handleAiSearch` → `ShelahConversationUI.askFromSearch`); a follow-up is `store.askGuestFollowUp`, another `/ask` that carries `history_ids`, the `history_id` of each earlier answer in the panel (`askAi`'s `historyIds` option). The server owns the limits (`docs/API.md`, "Guest limits"); the client only reflects them:
+
+- Each answer's `meta.guest` (`store.guestUsage`) drives `#convGuestBanner`, the line above the composer. It appears when `GUEST_WARN_AT` (2) questions are left ("2 questions left in this guest conversation. Sign in to keep going."), names the day instead when the day's allowance is what binds, and turns into the limit notice at zero. The wording is `guestBannerText` / `guestCapCopy` in `conversation-ui-helpers.js` (English and Hebrew).
+- When the conversation's own allowance is spent, the next send does not reach the network (`guestCapReached`; the day's allowance is left to the server, since it can lift while the panel stays open); if the server refuses anyway (`403` with `code: "guest_cap_reached"`, surfaced by `ai-service.js` as an error carrying `.reason` and `.usage`), the turn is removed from the thread and the typed question goes back into the composer. Either way the native `<dialog id="convGuestCap">` opens (Sign in, Create free account, Not now). Escape and Not now close it and return focus to the composer; the thread stays readable and the question stays typed.
+- After signing in mid-thread, `ensureConversation` seeds the account conversation from the latest answer (`fromHistoryId`); the earlier guest turns stay visible above it, but the continued conversation contains only that latest guest answer.
+- The dialog is centered by `margin: auto` in `.conv-capdialog`: the page's reset zeroes every margin, which cancels the browser's own centering of a modal dialog, so the rule restates it.
 
 ### Reading
 

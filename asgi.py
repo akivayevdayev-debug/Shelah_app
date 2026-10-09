@@ -18,10 +18,12 @@ from fastapi.responses import JSONResponse, StreamingResponse
 from pydantic import BaseModel, Field
 
 import app as flask_app_module
-from backend import ask_pipeline, ask_progress, claude, search
+from backend import ask_pipeline, ask_progress, claude, guest_cap, search
 from backend.ask_payloads import build_ai_answer_payload, build_source_fallback_payload, is_usable_primary_source
 from backend.auth import CLERK_ENFORCE_AUTH, extract_user_id_from_bearer_value
-from backend.device_identity import bind_device, release_device, request_is_secure, set_device_cookie
+from backend.device_identity import (
+    bind_device, current_history_owner, release_device, request_is_secure, set_device_cookie,
+)
 from backend.utils.search_provider import get_halakhic_sources
 from backend import sefaria as _backend_sefaria
 from backend.data_service import ShelahEngine
@@ -70,6 +72,11 @@ class AskRequest(BaseModel):
     # crossed TURNSTILE_ANON_HOURLY_THRESHOLD and TURNSTILE_ENABLED=true;
     # ignored otherwise, so existing callers never need to send it.
     turnstile_token: str | None = None
+    # A signed-out visitor's follow-up: the ids of the earlier answers of this
+    # conversation (ask_history rows). Only rows the visitor's device owns are
+    # used (backend/guest_cap.py); signed-in callers follow up in a
+    # conversation instead and this is ignored for them.
+    history_ids: list[str] | None = Field(default=None, max_length=32)
 
 
 def _select_source_line_text(line: dict[str, Any], use_hebrew: bool) -> str:
@@ -117,10 +124,14 @@ def _safe_json_payload(value: Any, default: Any) -> Any:
     return value if isinstance(value, type(default)) else default
 
 
-async def _collect_primary_sources(question: str) -> tuple[list[str], list[dict[str, Any]]]:
+async def _collect_primary_sources(
+    question: str, context: tuple = (),
+) -> tuple[list[str], list[dict[str, Any]]]:
+    """``context``: a follow-up's earlier questions, newest first, so a short
+    "and for a woman?" is searched with the topic it follows from."""
     primary_refs = await asyncio.to_thread(
         _backend_sefaria.find_refs_for_question,
-        question,
+        *((question, context) if context else (question,)),
     )
     refs = primary_refs if isinstance(primary_refs, list) else []
 
@@ -325,6 +336,7 @@ async def _within(stage: str, awaitable, default):
 
 async def _collect_ask_async_context(
     question, canonical_lens, user_id, answer_language, bearer_token=None,
+    retrieval_context=(),
 ):
     """Stage 1 of ask_async(): parallel source/knowledge/tool-context
     collection. Returns a context dict consumed by the strict-guard and
@@ -339,9 +351,12 @@ async def _collect_ask_async_context(
     """
     # Each lookup also reports to the optional live-progress stream
     # (backend/ask_progress.py); with no stream bound that is a no-op.
+    # Earlier questions go in only when a guest follow-up has some, so every
+    # other call is exactly what it was before they existed.
+    primary_args = (question, retrieval_context) if retrieval_context else (question,)
     primary_task = asyncio.create_task(ask_progress.track(
         ask_progress.STAGE_SOURCES,
-        _within("primary", _collect_primary_sources(question), ([], []))))
+        _within("primary", _collect_primary_sources(*primary_args), ([], []))))
     halachipedia_task = asyncio.create_task(ask_progress.track(
         ask_progress.STAGE_COMMENTARY,
         _within("halachipedia", search.async_search_halachipedia(question), None)))
@@ -596,6 +611,8 @@ async def _dispatch_ask_async_ai_synthesis_call(question, mode, canonical_lens, 
         "answer_language": answer_language,
         "tool_context": tool_context,
     }
+    if ctx.get("conversation_history"):
+        call_kwargs["conversation_history"] = ctx["conversation_history"]
 
     ai_synthesis_coro = (
         ask_pipeline.run_agentic_ask(**call_kwargs)
@@ -844,6 +861,42 @@ async def _enforce_ask_async_turnstile_gate(user_id, client_ip, turnstile_token)
             )
 
 
+async def _enforce_ask_async_guest_cap(user_id, question, history_ids):
+    """Guest conversation limits (backend/guest_cap.py): signed-out callers
+    only. Loads the device's earlier answers in this conversation and raises
+    403 ``guest_cap_reached`` (the shape turnstile_required uses) once the
+    conversation or the day is used up. Returns the loaded thread, which also
+    carries the history the model is given, or None when there is nothing to
+    measure (signed in, no device, no database)."""
+    if user_id:
+        return None
+    thread = await asyncio.to_thread(
+        guest_cap.load_thread, current_history_owner(), history_ids, question)
+    if thread is None:
+        return None
+    reason = guest_cap.refusal_reason(thread)
+    if reason:
+        raise HTTPException(
+            status_code=403, detail=guest_cap.refusal_payload(thread, reason))
+    return thread
+
+
+def _attach_guest_usage(guest, result):
+    """The guest's counters, as ``meta.guest``, on a copy of ``result`` (the
+    answer cache hands out shared payloads, so the original is left alone). In
+    ``meta`` and not at the top level because the Flask and ASGI ``/ask`` must
+    return the same top-level keys (tests/test_ask.py, TestAskTransportKeySetParity);
+    ``meta`` is where a transport-specific field belongs. An answer that was not
+    stored is not counted, which is how the next request will find it too."""
+    if guest is None or not isinstance(result, dict):
+        return result
+    stored = bool(result.get("history_id"))
+    meta = result.get("meta")
+    meta = dict(meta) if isinstance(meta, dict) else {}
+    meta["guest"] = guest_cap.usage_payload(guest, result.get("answer"), stored=stored)
+    return {**result, "meta": meta}
+
+
 async def _enforce_ask_async_budget(user_id, client_ip):
     """Raise 402 once the caller's daily AI usage budget is exhausted.
     Split out of ask_async() (SonarCloud python:S3776)."""
@@ -1057,6 +1110,7 @@ async def _ask_async_impl(
     bind_client_key("" if user_id else f"ip:{client_ip}")
 
     await _enforce_ask_async_turnstile_gate(user_id, client_ip, payload.turnstile_token)
+    guest = await _enforce_ask_async_guest_cap(user_id, question, payload.history_ids)
     await _enforce_ask_async_budget(user_id, client_ip)
 
     mode, canonical_lens, answer_language = _resolve_ask_async_request_params(payload)
@@ -1067,37 +1121,43 @@ async def _ask_async_impl(
     ask_cache_key = "|".join([
         question.lower(), answer_language, mode, canonical_lens.lower(), user_id or "anon",
     ])
+    if guest is not None and guest.rows:
+        # A follow-up's answer depends on the turns before it.
+        ask_cache_key += f"|thread:{guest.cache_scope}"
 
     try:
         prayer_result = _ask_async_prayer_result(question, mode, canonical_lens)
         if prayer_result is not None:
-            return prayer_result
+            return _attach_guest_usage(guest, prayer_result)
 
         off_topic_result = claude.off_topic_block_result(question, answer_language)
         if off_topic_result is not None:
-            return await _security_blocked_ask_async_payload(
+            return _attach_guest_usage(guest, await _security_blocked_ask_async_payload(
                 off_topic_result, mode, canonical_lens, answer_language, user_id,
                 question_was_sanitized, question,
                 {"knowledge_rows": [], "user_memory_summaries": []},
-            )
+            ))
 
         ctx = await _collect_ask_async_context(
             question, canonical_lens, user_id, answer_language, bearer_token=authorization,
+            retrieval_context=guest.retrieval_context if guest is not None else (),
         )
+        if guest is not None and guest.rows:
+            ctx["conversation_history"] = guest.history
 
         strict_result = _ask_async_strict_block(mode, canonical_lens, ctx)
         if strict_result is not None:
-            return strict_result
+            return _attach_guest_usage(guest, strict_result)
 
         breaker_response = await _resolve_ask_async_breaker_response(
             ask_cache_key, mode, canonical_lens, answer_language, ctx)
         if breaker_response is not None:
-            return breaker_response
+            return _attach_guest_usage(guest, breaker_response)
 
-        return await _run_ask_async_synthesis_or_fallback(
+        return _attach_guest_usage(guest, await _run_ask_async_synthesis_or_fallback(
             question, mode, canonical_lens, answer_language, user_id,
             question_was_sanitized, ctx, ask_cache_key,
-        )
+        ))
 
     except HTTPException:
         raise

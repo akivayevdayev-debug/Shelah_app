@@ -186,6 +186,14 @@ export function noticeFor(error, lang = "en") {
                 text: tr({ en: "The answer took too long. Please try again.", he: "התשובה התעכבה יותר מדי. נסה שוב." }, lang),
                 action: null,
             };
+        case "guest_cap_reached":
+            // The sign-in modal says the rest (guestCapCopy); this is what is
+            // left on the page once it is dismissed.
+            return {
+                tone: "info",
+                text: guestCapCopy(error.reason, error.usage, lang).title,
+                action: "sign-in",
+            };
         default:
             return {
                 tone: "warn",
@@ -193,6 +201,67 @@ export function noticeFor(error, lang = "en") {
                 action: null,
             };
     }
+}
+
+// ── signed-out limits (backend/guest_cap.py) ──────────────────────────────
+
+// How many questions a guest has left, below which the composer warns.
+export const GUEST_WARN_AT = 2;
+
+// The sign-in modal's words when a guest question is refused. `reason` is the
+// server's: "thread_questions" | "thread_tokens" | "daily"; `usage` its counters.
+export function guestCapCopy(reason, usage, lang = "en") {
+    const limit = Number(usage?.questions_limit) > 0 ? Number(usage.questions_limit) : 8;
+    if (reason === "daily") {
+        return {
+            title: tr({ en: "You've used today's guest questions", he: "השתמשתם בשאלות האורחים של היום" }, lang),
+            body: tr({
+                en: "Sign in or create a free account to keep asking. Your conversations will be saved.",
+                he: "התחברו או פתחו חשבון חינם כדי להמשיך לשאול. השיחות שלכם יישמרו.",
+            }, lang),
+        };
+    }
+    const title = tr({
+        en: "You've reached the guest limit for this conversation",
+        he: "הגעתם למגבלת האורחים בשיחה הזו",
+    }, lang);
+    const waiting = tr({
+        en: "This conversation, its sources, and the question you just typed will be waiting for you.",
+        he: "השיחה, המקורות והשאלה שהקלדתם יחכו לכם.",
+    }, lang);
+    const allowance = reason === "thread_tokens"
+        ? tr({
+            en: "This conversation has used its guest allowance. Sign in or create a free account to keep going.",
+            he: "השיחה הזו ניצלה את מכסת האורחים שלה. התחברו או פתחו חשבון חינם כדי להמשיך.",
+        }, lang)
+        : tr({
+            en: `Guests can ask up to ${limit} questions per conversation. Sign in or create a free account to keep going.`,
+            he: `אורחים יכולים לשאול עד ${limit} שאלות בשיחה. התחברו או פתחו חשבון חינם כדי להמשיך.`,
+        }, lang);
+    return { title, body: `${allowance} ${waiting}` };
+}
+
+// The line above the composer as a guest's allowance runs low, or null while
+// there is plenty (or no count at all, e.g. a stored answer or a signed-in
+// thread). `usage` is the `guest` object an answer carries.
+export function guestBannerText(usage, lang = "en") {
+    if (!usage || !Number.isFinite(Number(usage.remaining))) return null;
+    const left = Number(usage.remaining);
+    if (left > GUEST_WARN_AT) return null;
+    const today = usage.binding === "daily";
+    if (left <= 0) {
+        return today
+            ? tr({ en: "You've used today's guest questions. Sign in to keep asking.", he: "השתמשתם בשאלות האורחים של היום. התחברו כדי להמשיך לשאול." }, lang)
+            : tr({ en: "You've reached the guest limit for this conversation. Sign in to keep going.", he: "הגעתם למגבלת האורחים בשיחה הזו. התחברו כדי להמשיך." }, lang);
+    }
+    if (today) {
+        return left === 1
+            ? tr({ en: "1 guest question left today. Sign in to keep asking.", he: "נותרה שאלת אורח אחת להיום. התחברו כדי להמשיך לשאול." }, lang)
+            : tr({ en: `${left} guest questions left today. Sign in to keep asking.`, he: `נותרו ${left} שאלות אורח להיום. התחברו כדי להמשיך לשאול.` }, lang);
+    }
+    return left === 1
+        ? tr({ en: "1 question left in this guest conversation. Sign in to keep going.", he: "נותרה שאלה אחת בשיחת האורחים הזו. התחברו כדי להמשיך." }, lang)
+        : tr({ en: `${left} questions left in this guest conversation. Sign in to keep going.`, he: `נותרו ${left} שאלות בשיחת האורחים הזו. התחברו כדי להמשיך.` }, lang);
 }
 
 // Nearest corner for a dragged mini widget, from its centre point.

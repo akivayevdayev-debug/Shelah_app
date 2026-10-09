@@ -547,6 +547,9 @@ async def test_ask_route_returns_the_synthesis_payload_when_no_stage_fails(fasta
             monkeypatch.setattr(asgi, name, mock.AsyncMock(return_value=benign))
         else:
             monkeypatch.setattr(asgi, name, mock.MagicMock(return_value=None))
+    # The guest gate (and the usage it attaches to meta) has its own coverage in
+    # tests/test_guest_cap.py; this test is about the chain of stages.
+    monkeypatch.setattr(asgi, "_enforce_ask_async_guest_cap", mock.AsyncMock(return_value=None))
     capture = mock.MagicMock()
     monkeypatch.setattr(asgi, "_capture_backend_error", capture)
 

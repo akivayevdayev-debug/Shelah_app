@@ -557,6 +557,16 @@ This is likely the single weakest area of the app, and it's not hidden — the c
   - Does Vercel's production build use the hash-locked files? No — only CI does; Vercel installs from `requirements.txt` directly, unpinned at the transitive level.
   - Does a CVE found by `pip-audit` block a merge? No — see Suspicious below.
 
+## Python version: stays on 3.14 while 3.15 is verified compatible
+
+> Checked 2026-10-09 against CPython 3.15.0rc3.
+
+- **What was chosen:** `.python-version`, CI (`ci.yml`) and the lock files stay on 3.14. Moving to 3.15 was asked for and investigated rather than flipped, because two things outside the code block it.
+- **What was verified:** The whole Python suite passed on a 3.15.0rc3 interpreter, built from source where no wheel existed, and `ruff` is clean. No code change is needed for 3.15.
+- **Blockers:** (1) Vercel's Python runtime supports 3.12, 3.13 and 3.14 only, and an unsupported `.python-version` falls back to 3.12 without failing the build, so flipping the file would deploy a different interpreter than the one tested. (2) The hash-locked, binary-only lock files (`pip install --require-hashes --only-binary=:all:`) need `cp315` wheels, and the ones this app depends on do not publish them yet (numpy, PyYAML, timezonefinder among them); `--only-binary` is deliberate (§ supply chain above), so building from source is not the answer.
+- **Switch checklist, when both clear:** Vercel lists 3.15 and the dependencies publish `cp315` wheels → set `.python-version` and `ci.yml`'s `python-version` to 3.15, regenerate both locks with `uv pip compile --generate-hashes --python-version 3.15`, run the suite and `pip-audit`, and check `rls-verify.yml` (which pins 3.12 on its own and is unaffected).
+- **What would break if flipped early:** CI could not install the locked dependencies, or production would quietly run 3.12.
+
 ### Suspicious / thin areas — deployment & infra
 
 1. **The current `vercel.json` region/cron/memory config is entirely uncommitted at the time of this audit.** `git show HEAD:vercel.json` has no `regions` key and no `crons` key. The working tree and index already contain the region pin and both cron jobs, with the invalid `memory: 1024` key removed — none of this is in git history yet. **This should be committed before treating the region/cron decisions above as "shipped."**
@@ -641,6 +651,24 @@ This is likely the single weakest area of the app, and it's not hidden — the c
   - Does `/api/stack/health` still describe the old two-limiter shape? No — its `security` block now reads `rate_limit.RATELIMIT_ENABLED`, `rate_limit.RATE_LIMIT_REDIS_URL`, and the live `_POLICIES` table directly off the module, closing the prior "confidently wrong answer" gap.
   - Is the fail-open/fail-closed posture actually tested? Yes, since 2026-08-26.
   - What's still open? Full identity-aware quotas for classes other than `llm` (deliberately deferred) and the edge WAF layer's own rules, which are a separate concern from this middleware.
+
+## Guest conversation limits — derived from stored rows, no counter, no schema change
+
+> Added 2026-10-09. Numbers approved by the repo owner the same day.
+
+- **What was chosen:** A signed-out visitor can follow up on an answer, up to 8 questions or about 24,000 answer tokens per conversation (whichever first), with one document-style request (a study guide or table) free and +6,000 tokens; and 24 questions per device in any rolling 24 hours. Past a limit the next question gets a `403 guest_cap_reached` and the client opens a sign-in dialog; the answer in progress always finishes, the thread stays readable and the typed question is kept.
+- **Where it lives:** `backend/guest_cap.py` (limits, `load_thread`, `usage_payload`), the gate and the `meta.guest` attachment in `asgi.py` (`_enforce_ask_async_guest_cap`, `_attach_guest_usage`), the client in `static/js/conversation-store.js` (`askGuestFollowUp`) and `conversation-ui.js` (banner, `<dialog id="convGuestCap">`). `docs/API.md` "Guest limits" is the contract; `docs/SECURITY.md` §8 the threat discussion.
+- **Problem it solves:** Anonymous `/ask` is open on purpose (`CLERK_ENFORCE_AUTH=false`), and once guests could hold a conversation, one anonymous caller could run an unbounded one. The product answer is "sign in to keep going", and the limit has to be real, not a banner.
+- **How:** The client sends `history_ids`; the server loads only the rows the caller's `device:<hash>` owns and derives everything from them (questions are rows, tokens are estimated from stored answer length, the day's count is the owner's rows since 24 hours ago on the existing `(user_id, created_at DESC)` index). Those same rows are the model's conversation history and the earlier questions for source retrieval, so what is counted is exactly what is answered from, and a forged id loads nothing.
+- **Alternatives that existed:** A counter in Redis keyed by device (a second source of truth that can disagree with what was stored, and one more thing to fail closed or open); a counter in a signed cookie or in the client (forgeable, or trivially cleared with no server-side ceiling); a new `guest_conversations` table (a migration and a row to retain and delete, for state the answers already imply); a per-IP daily count (shared NATs punish many guests for one).
+- **Why this won:** No new store, no migration, nothing to expire, and the count cannot drift from the history because it is the history.
+- **Tradeoffs, accepted:** Clearing cookies mints a new device and starts over (the per-IP limit, `DAILY_BUDGET_USD` and the WAF are the backstops; this makes a casual visitor sign in, it does not stop a determined one). Token usage is an estimate (`len(answer) / 3`, deliberately pessimistic). A client that omits `history_ids` is bound only by the day's 24. After signing in mid-thread the account conversation continues from the latest guest answer only (`fromHistoryId`); the earlier guest turns stay on screen but are not part of what the model is given. Every lookup fails open: a database error is reported and the question allowed, because the same outage means nothing is being stored.
+- **Parity with the Flask `/ask`:** deliberately not mirrored. The Flask route is shadowed in production by the FastAPI one and has no device identity either. The usage object is `meta.guest` (not a top-level key), and `tests/test_ask_transport_parity.py` lists `guest` beside `cached` and `async` as an accepted per-transport meta tag; the top-level key-set invariant is untouched.
+- **What would break if removed:** An unbounded anonymous conversation against the model, bounded only by the per-minute IP limit.
+- **Follow-up questions I should be able to answer:**
+  - Why not just require sign-in for follow-ups? Because a first answer without a way to ask "and for a woman?" is a poor first experience, and the cap converts the visitor at the moment they have a reason to.
+  - Does it interact with Turnstile? Only if Turnstile is switched on: keep `TURNSTILE_ANON_HOURLY_THRESHOLD` at 8 or more, or a guest meets the challenge before the cap.
+  - Where are the numbers set? `GUEST_THREAD_MAX_QUESTIONS`, `GUEST_THREAD_MAX_TOKENS`, `GUEST_DOC_EXTRA_TOKENS`, `GUEST_DAILY_MAX_QUESTIONS` (`.env.example`).
 
 ### Suspicious / thin areas — caching, rate-limiting, cost control
 

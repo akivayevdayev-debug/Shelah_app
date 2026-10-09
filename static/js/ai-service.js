@@ -15,6 +15,9 @@ import { ACCEPT_PROGRESS, isProgressResponse, readProgressStream } from "./ask-p
 //     (absent for network/timeout failures where no response ever arrived)
 //   - `.code` is the backend's structured error code (e.g. "turnstile_required"),
 //     when the response body carried one under `detail.code`
+//   - `.reason` and `.usage` accompany "guest_cap_reached": which limit was hit
+//     ("thread_questions" | "thread_tokens" | "daily") and the counters, as in the
+//     `guest` object a successful answer carries
 //   - `.attempts` is the number of fetch attempts made, when the failure came
 //     from exhausting retries on a network error (AbortError/TypeError) rather
 //     than from a completed HTTP response
@@ -118,6 +121,9 @@ export async function askAi(question, options = {}) {
     const language = String(options.language || state?.prefs?.language || "en");
     const onRetry = typeof options.onRetry === "function" ? options.onRetry : null;
     const onProgress = typeof options.onProgress === "function" ? options.onProgress : null;
+    const historyIds = Array.isArray(options.historyIds)
+        ? options.historyIds.map((id) => String(id || "").trim()).filter(Boolean)
+        : [];
 
     setState({
         ai: {
@@ -137,6 +143,9 @@ export async function askAi(question, options = {}) {
             // (backend/turnstile.py); optional, ignored server-side unless an
             // anonymous caller has crossed the hourly threshold.
             turnstile_token: window.__turnstileToken || "",
+            // A signed-out follow-up: the earlier answers of this conversation.
+            // The server only uses the ones this device owns (backend/guest_cap.py).
+            ...(historyIds.length ? { history_ids: historyIds } : {}),
         });
 
         const baseHeaders = { "Content-Type": "application/json", Accept: ACCEPT_PROGRESS };
@@ -179,6 +188,8 @@ export async function askAi(question, options = {}) {
             error.status = failedStatus;
             if (detail && typeof detail === "object" && detail.code) {
                 error.code = detail.code;
+                if (detail.reason) error.reason = detail.reason;
+                if (detail.usage && typeof detail.usage === "object") error.usage = detail.usage;
             }
             throw error;
         }

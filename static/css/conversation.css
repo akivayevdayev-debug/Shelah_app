@@ -457,7 +457,7 @@ body.conv-modal-open {
     .topbar-ask-btn, .ai-tip__try, .ai-tip__dismiss, .conv-signin-follow__btn,
     .conv-cite__preview > summary, .mobile-search-tray__ask, .conv-pip__open, .conv-cite a,
     .conv-select, .conv-mic, .conv-sharepop__btn, .conv-toast__action, .conv-toast__close,
-    .conv-suggest__btn, .conv-sidebar__brand):focus-visible {
+    .conv-suggest__btn, .conv-sidebar__brand, .conv-capdialog__btn):focus-visible {
     outline: 2px solid var(--accent-primary);
     outline-offset: 2px;
 }
@@ -1737,7 +1737,8 @@ body.conv-modal-open {
 }
 .conv-panel[data-size="mini"] .conv-disclaimer { display: none; }
 
-/* Signed out, under a search-bar answer: in place of the composer. */
+/* Signed out, as the guest allowance runs low (or is spent): a line above the
+   composer, with the way out. */
 .conv-signin-follow {
     display: flex;
     flex-wrap: wrap;
@@ -1771,6 +1772,85 @@ body.conv-modal-open {
     transition: transform var(--motion-dur-fast) var(--conv-ease);
 }
 .conv-signin-follow__btn:active { transform: scale(0.97); }
+
+/* ── Guest limit dialog ──────────────────────────────────────────────
+   A native modal <dialog>: the browser traps focus, draws the backdrop and
+   closes it on Escape. Opaque surface, so the text keeps its contrast over
+   the page behind. */
+.conv-capdialog {
+    /* The page's reset zeroes every margin, which cancels the UA's
+       `margin: auto` that centres a modal dialog; restate it. */
+    inset: 0;
+    margin: auto;
+    width: min(26rem, calc(100vw - 2 * var(--sp-4)));
+    max-width: none;
+    max-height: calc(100dvh - 2 * var(--sp-4));
+    overflow-y: auto;
+    padding: 0;
+    border: 1px solid var(--glass-hairline);
+    border-radius: var(--radius-popover);
+    background: var(--surface-1);
+    color: var(--ink-primary);
+    box-shadow: var(--glass-shadow);
+}
+.conv-capdialog::backdrop { background: rgba(15, 23, 42, 0.5); }
+.conv-capdialog[open] { animation: conv-rise 220ms var(--conv-ease) both; }
+.conv-capdialog__card {
+    display: grid;
+    gap: var(--sp-3);
+    padding: var(--sp-6);
+}
+.conv-capdialog__title {
+    margin: 0;
+    font-size: var(--text-lg);
+    font-weight: 700;
+    line-height: 1.3;
+    color: var(--ink-heading);
+}
+.conv-capdialog__body {
+    margin: 0;
+    font-size: var(--text-sm);
+    line-height: 1.55;
+    color: var(--ink-secondary);
+}
+.conv-capdialog__actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--sp-2);
+    margin-block-start: var(--sp-2);
+}
+.conv-capdialog__btn {
+    min-height: var(--hit-min);
+    padding: 0 var(--sp-4);
+    border: 1px solid var(--ctrl-border);
+    border-radius: var(--radius-full);
+    background: transparent;
+    color: var(--ink-primary);
+    font: inherit;
+    font-size: var(--text-sm);
+    font-weight: 600;
+    cursor: pointer;
+    transition:
+        transform var(--motion-dur-fast) var(--conv-ease),
+        background-color var(--motion-dur-fast) var(--conv-ease);
+}
+.conv-capdialog__btn:hover { background: var(--surface-2); }
+.conv-capdialog__btn:active { transform: scale(0.97); }
+.conv-capdialog__btn--primary {
+    border-color: transparent;
+    background: var(--conv-send-bg);
+    color: var(--conv-on-accent);
+    font-weight: 700;
+}
+.conv-capdialog__btn--primary:hover { background: var(--conv-send-bg); filter: brightness(1.06); }
+.conv-capdialog__btn--quiet { border-color: transparent; color: var(--ink-secondary); }
+@media (max-width: 480px) {
+    .conv-capdialog__actions { flex-direction: column; }
+    .conv-capdialog__btn { width: 100%; }
+}
+@media (prefers-reduced-motion: reduce) {
+    .conv-capdialog[open] { animation: none; }
+}
 
 /* A search-bar answer isn't a conversation yet: no minhag lock to show. */
 .conv-panel[data-answer-view="true"][data-layout][data-size] :is(.conv-menu-btn__minhag, .conv-lockline, .conv-subtitle) { display: none; }
