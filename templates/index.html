@@ -1900,7 +1900,19 @@
     <section id="convPanel" class="conv-panel hidden" data-size="overlay" data-layout="desktop"
         role="dialog" aria-modal="true" aria-labelledby="convTitle" tabindex="-1">
         <aside class="conv-sidebar" aria-labelledby="convSidebarHeading">
-            <p class="conv-sidebar__brand font-serif" data-en="Sh'elah" data-he="שאלה">Sh'elah</p>
+            <!-- The homepage lockup (same classes as #brandHomeBtn in the top bar),
+                 so the full page reads as part of the same site. -->
+            <button type="button" class="topbar-brand conv-sidebar__brand flex items-center gap-1.5 shrink-0"
+                aria-label="Go to home" data-aria-en="Go to home" data-aria-he="חזרה לדף הבית" data-conv-action="home">
+                <span class="text-navy font-hebrew topbar-brand-icon font-semibold leading-tight">
+                    ש
+                </span>
+                <span class="topbar-brand-title text-sm sm:text-base font-serif tracking-tight text-navy font-semibold leading-none sm:leading-6 text-start">
+                    <span class="block" data-en="Sh'elah" data-he="שאלה">Sh'elah</span>
+                    <span class="block text-[10px] font-normal text-slate-500 italic topbar-brand-subtitle"
+                        data-en="Torah Encyclopedia" data-he="אנציקלופדיית תורה">Torah Encyclopedia</span>
+                </span>
+            </button>
             <button type="button" class="conv-new-btn" data-conv-action="new">
                 {{ phosphor('plus', size=14, class='h-3.5 w-3.5') }}
                 <span data-en="New conversation" data-he="שיחה חדשה">New conversation</span>
@@ -1927,11 +1939,30 @@
                 <div class="conv-header__actions">
                     <!-- Public link to the whole conversation (static/js/conversation-share.js).
                          Saved threads only; on phones it moves into the menu. -->
-                    <button type="button" id="convShareBtn" class="conv-icon-btn conv-share-btn conv-needs-thread"
-                        data-conv-action="share" data-shared="false"
-                        aria-label="Share this conversation publicly" title="Share this conversation publicly">
-                        {{ phosphor('share-network', size=16, class='h-4 w-4') }}
-                    </button>
+                    <div class="conv-share-wrap conv-needs-thread">
+                        <button type="button" id="convShareBtn" class="conv-icon-btn conv-share-btn"
+                            data-conv-action="share" data-shared="false" aria-haspopup="dialog" aria-expanded="false"
+                            aria-controls="convSharePop"
+                            aria-label="Share this conversation publicly" title="Share this conversation publicly">
+                            {{ phosphor('share-network', size=16, class='h-4 w-4') }}
+                        </button>
+                        <!-- Already shared: pressing Share asks before it stops, rather
+                             than copying the link again behind the user's back. -->
+                        <div id="convSharePop" class="conv-sharepop hidden" role="dialog" aria-modal="false"
+                            aria-labelledby="convSharePopTitle">
+                            <p id="convSharePopTitle" class="conv-sharepop__title"
+                                data-en="Stop sharing public link?" data-he="להפסיק את השיתוף הציבורי?">Stop sharing public link?</p>
+                            <p class="conv-sharepop__text"
+                                data-en="Anyone with the link can still read this chat until you stop."
+                                data-he="כל מי שיש לו את הקישור יכול לקרוא את השיחה עד שתפסיק/י את השיתוף.">Anyone with the link can still read this chat until you stop.</p>
+                            <div class="conv-sharepop__actions">
+                                <button type="button" class="conv-sharepop__btn conv-sharepop__btn--quiet" data-conv-action="share-copy"
+                                    data-en="Copy link" data-he="העתק קישור">Copy link</button>
+                                <button type="button" class="conv-sharepop__btn conv-sharepop__btn--danger" data-conv-action="share-stop"
+                                    data-en="Stop sharing" data-he="הפסק שיתוף">Stop sharing</button>
+                            </div>
+                        </div>
+                    </div>
                     <div class="conv-menu-wrap">
                         <!-- The one settings control: full page also shows the community on it. -->
                         <button type="button" id="convMenuBtn" class="conv-icon-btn conv-menu-btn" aria-haspopup="true"
@@ -1996,10 +2027,12 @@
                             </div>
                         </div>
                     </div>
-                    <button type="button" id="convThemeBtn" class="conv-icon-btn conv-only-full-desktop"
-                        aria-label="Toggle light or dark theme" title="Light / dark"
-                        data-aria-en="Toggle light or dark theme" data-aria-he="החלף מצב בהיר או כהה">
-                        {{ phosphor('sun', size=16, class='h-4 w-4') }}
+                    <!-- Shows the theme it switches to: the moon while the page is light,
+                         the sun while it is dark (conversation.css .conv-theme-btn). -->
+                    <button type="button" id="convThemeBtn" class="conv-icon-btn conv-theme-btn conv-only-full-desktop"
+                        aria-label="Switch to dark theme" title="Switch to dark theme">
+                        <span class="conv-theme-btn__moon">{{ phosphor('moon', size=16, class='h-4 w-4') }}</span>
+                        <span class="conv-theme-btn__sun">{{ phosphor('sun', size=16, class='h-4 w-4') }}</span>
                     </button>
                     <button type="button" class="conv-icon-btn conv-only-overlay-desktop" data-conv-size="mini"
                         aria-label="Pop out to floating widget" title="Pop out to floating widget"
@@ -2047,6 +2080,17 @@
                             data-he="שאלות המשך דורשות חשבון. התחבר/י כדי לשאול שאלות המשך ולשמור את השיחות שלך.">Follow-up questions need an account. Sign in to ask follow-ups and save your conversations.</span>
                         <button type="button" class="conv-link-btn" data-conv-action="sign-in" data-en="Sign in" data-he="התחברות">Sign in</button>
                     </p>
+                    <!-- A few places to start; pressing one fills the question box (it does not send). -->
+                    <ul class="conv-suggest" aria-label="Questions to start with" data-aria-en="Questions to start with" data-aria-he="שאלות להתחלה">
+                        <li><button type="button" class="conv-suggest__btn" data-conv-suggest
+                            data-en="What blessing do I say when I see a rainbow?" data-he="איזו ברכה מברכים כשרואים קשת בענן?">What blessing do I say when I see a rainbow?</button></li>
+                        <li><button type="button" class="conv-suggest__btn" data-conv-suggest
+                            data-en="Why do we read Bamidbar before Shavuot?" data-he="מדוע קוראים את פרשת במדבר לפני שבועות?">Why do we read Bamidbar before Shavuot?</button></li>
+                        <li><button type="button" class="conv-suggest__btn" data-conv-suggest
+                            data-en="Can one dishwasher be used for meat and dairy?" data-he="האם אפשר להשתמש במדיח כלים אחד לבשרי ולחלבי?">Can one dishwasher be used for meat and dairy?</button></li>
+                        <li><button type="button" class="conv-suggest__btn" data-conv-suggest
+                            data-en="What does the Rambam teach about teshuvah?" data-he="מה מלמד הרמב״ם על תשובה?">What does the Rambam teach about teshuvah?</button></li>
+                    </ul>
                 </div>
                 <div id="convLoading" class="conv-loading hidden" aria-hidden="true">
                     <div class="conv-skel conv-skel--bubble"></div>
@@ -2069,10 +2113,29 @@
             </div>
 
             <div class="conv-composer-shell">
+                <!-- A passing confirmation ("Public link copied"): floats over the page
+                     above the composer, so nothing on screen moves when it comes or goes. -->
+                <div id="convToast" class="conv-toast hidden" role="status" aria-live="polite" data-tone="success">
+                    <span class="conv-toast__icon conv-toast__icon--success" aria-hidden="true">{{ phosphor('check-circle', size=18, class='h-[18px] w-[18px]') }}</span>
+                    <span class="conv-toast__icon conv-toast__icon--warn" aria-hidden="true">{{ phosphor('warning', size=18, class='h-[18px] w-[18px]') }}</span>
+                    <span id="convToastText" class="conv-toast__text"></span>
+                    <button type="button" id="convToastAction" class="conv-toast__action hidden"></button>
+                    <button type="button" id="convToastClose" class="conv-toast__close"
+                        aria-label="Dismiss" data-aria-en="Dismiss" data-aria-he="סגור">
+                        {{ phosphor('x', size=12, class='h-3 w-3') }}
+                    </button>
+                </div>
                 <form id="convComposer" class="conv-composer" novalidate>
                     <div class="conv-composer__fill">
                         <label for="convInput" class="sr-only" data-en="Ask a question" data-he="שאל שאלה">Ask a question</label>
                         <textarea id="convInput" rows="1" dir="auto" maxlength="2000" autocomplete="off"></textarea>
+                        <!-- Dictation with the device's own speech recognition
+                             (conversation-voice.js). Hidden where the browser has none. -->
+                        <button type="button" id="convMicBtn" class="conv-mic hidden" aria-pressed="false"
+                            aria-label="Dictate your question" title="Dictate your question"
+                            data-aria-en="Dictate your question" data-aria-he="הכתבת השאלה">
+                            {{ phosphor('microphone', size=16, class='h-4 w-4') }}
+                        </button>
                         <button type="submit" id="convSendBtn" class="conv-send" aria-label="Send" title="Send"
                             data-aria-en="Send" data-aria-he="שלח">
                             {{ phosphor('arrow-up', size=14, class='h-3.5 w-3.5') }}

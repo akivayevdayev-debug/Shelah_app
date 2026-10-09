@@ -51,9 +51,10 @@ import { closeOverlay, pushRoute, readRoute, routeUrl } from "./router.js";
 import { icon as phosphorIcon } from "./icons.js";
 import { activeLabel, createProgress, doneLabel, progressView } from "./ask-progress.js";
 import { sourceBadgeHtml, externalLinksHtml, previewHtml, hebrewRefName, readerRef } from "./source-cards.js";
-import { citeIdPrefix, consolidateMarkers, injectMarkers, stripSourcesBlock } from "./citation-markers.js";
+import { citeIdPrefix, injectMarkers, placeMarkers, stripSourcesBlock } from "./citation-markers.js";
 import { createCitationPopover } from "./citation-popover.js";
 import { createConversationShare } from "./conversation-share.js";
+import { createVoiceInput } from "./conversation-voice.js";
 import {
     normalizeSize,
     expandedSize,
@@ -65,6 +66,8 @@ import {
     snapCorner,
     logicalCorner,
     citationExcerpt,
+    conversationGroup,
+    conversationGroupLabel,
     turnSignature,
 } from "./conversation-ui-helpers.js";
 
@@ -72,7 +75,11 @@ const MOBILE_QUERY = "(max-width: 1023px)";
 const CORNER_KEY = "shelah.conv.corner";
 const AUTH_TIMEOUT_MS = 10000;
 const LIST_STALE_MS = 30000;
-const TOAST_MS = 8000;
+// A toast with nothing to press leaves quickly; one carrying an action (Undo,
+// Stop sharing) stays long enough to be reached.
+const TOAST_MS = 5000;
+const TOAST_ACTION_MS = 8000;
+const VOICE_NOTICE_KEY = "shelah.conv.voiceNotice";
 const NEAR_BOTTOM_PX = 96;
 const SWIPE_CLOSE_PX = 120;
 // A step's name stays up at least this long before the next replaces it, so a
@@ -101,7 +108,8 @@ const ui = {
     returnFocus: null,
     popTrigger: null,
     menuOpen: false,
-    toast: null,              // { text, action } -- e.g. delete + Undo
+    sharePopOpen: false,
+    toast: null,              // { text, action, tone } -- e.g. delete + Undo
     toastTimer: null,
     listLoadedAt: 0,
     renderQueued: false,
@@ -125,6 +133,7 @@ const ui = {
 
 let store = null;
 let shareControl = null;
+let voice = null;
 let els = null;
 // The card a numbered source chip opens (citation-popover.js); made in bindEvents.
 let citePop = null;
@@ -219,6 +228,14 @@ function writeFlag(key) {
     }
 }
 
+function clearFlag(key) {
+    try {
+        window.localStorage.removeItem(key);
+    } catch (_err) {
+        // Blocked storage: nothing was stored to clear.
+    }
+}
+
 function saveCorner(corner) {
     try {
         window.localStorage.setItem(CORNER_KEY, corner);
@@ -249,6 +266,7 @@ function collectElements() {
         minhagSelect: $("convMinhagSelect"),
         pinLabel: $("convPinLabel"),
         shareBtn: $("convShareBtn"),
+        sharePop: $("convSharePop"),
         themeBtn: $("convThemeBtn"),
         expandBtn: $("convExpandBtn"),
         lockLine: $("convLockLine"),
@@ -261,8 +279,13 @@ function collectElements() {
         notice: $("convNotice"),
         noticeText: $("convNoticeText"),
         noticeAction: $("convNoticeAction"),
+        toast: $("convToast"),
+        toastText: $("convToastText"),
+        toastAction: $("convToastAction"),
+        toastClose: $("convToastClose"),
         composer: $("convComposer"),
         input: $("convInput"),
+        micBtn: $("convMicBtn"),
         send: $("convSendBtn"),
         pip: $("convPip"),
         pipOpen: $("convPipOpen"),
@@ -366,10 +389,10 @@ function render() {
     renderTurns(state, l);
     const progress = state.sending ? renderStatus(state, l) : null;
 
-    // Notice: toast > load error > send error > awaiting sign-in.
+    // Notice: load error > send error > awaiting sign-in. A passing
+    // confirmation is not one of these: it is the toast, drawn apart below.
     let notice = null;
-    if (ui.toast) notice = { tone: "info", ...ui.toast };
-    else if (state.loadStatus === "error") {
+    if (state.loadStatus === "error") {
         notice = noticeFor(state.loadError, l);
         if (notice && !notice.action) notice.action = "retry-open";
     } else if (state.lastError) notice = noticeFor(state.lastError, l);
@@ -397,6 +420,8 @@ function render() {
             "לא ניתן היה לטעון את התשובה המשותפת. בדוק/י את החיבור וטען/י מחדש את הדף.") };
     }
     renderNotice(notice);
+    renderToast();
+    syncThemeBtn();
 
 
     // Composer.
@@ -437,11 +462,7 @@ function syncSendDisabled() {
     els.send.disabled = !els.input.value.trim() || state.sending || state.loadStatus === "loading";
 }
 
-function renderNotice(notice) {
-    els.notice.classList.toggle("hidden", !notice);
-    if (!notice) return;
-    els.notice.dataset.tone = notice.tone || "warn";
-    els.noticeText.textContent = notice.text;
+function noticeActionLabel(action) {
     const labels = {
         "sign-in": tr("Sign in", "התחברות"),
         "retry-open": tr("Try again", "נסה שוב"),
@@ -449,10 +470,46 @@ function renderNotice(notice) {
         undo: tr("Undo", "בטל"),
         "stop-share": tr("Stop sharing", "הפסקת שיתוף"),
     };
-    const label = labels[notice.action];
+    return labels[action] || "";
+}
+
+function renderNotice(notice) {
+    els.notice.classList.toggle("hidden", !notice);
+    if (!notice) return;
+    els.notice.dataset.tone = notice.tone || "warn";
+    els.noticeText.textContent = notice.text;
+    const label = noticeActionLabel(notice.action);
     els.noticeAction.classList.toggle("hidden", !label);
     els.noticeAction.dataset.action = notice.action || "";
     if (label) els.noticeAction.textContent = label;
+}
+
+// The toast floats over the page, so it comes and goes without moving
+// anything. It enters and leaves with the menus' own motion.
+function renderToast() {
+    const toast = ui.toast;
+    const showing = !els.toast.classList.contains("hidden") && !els.toast.classList.contains("is-hiding");
+    if (!toast) {
+        if (showing) void hide(els.toast, "popover");
+        return;
+    }
+    els.toast.dataset.tone = toast.tone || "success";
+    els.toastText.textContent = toast.text;
+    const label = noticeActionLabel(toast.action);
+    els.toastAction.classList.toggle("hidden", !label);
+    els.toastAction.dataset.action = toast.action || "";
+    if (label) els.toastAction.textContent = label;
+    if (!showing) void show(els.toast, "popover");
+}
+
+// The theme button names where it goes (the icon swap is CSS, off the page's
+// data-theme); its label has to follow the theme and the language.
+function syncThemeBtn() {
+    if (!els.themeBtn) return;
+    const dark = document.documentElement.getAttribute("data-theme") === "dark";
+    const label = dark ? tr("Switch to light theme", "עבור למצב בהיר") : tr("Switch to dark theme", "עבור למצב כהה");
+    els.themeBtn.setAttribute("aria-label", label);
+    els.themeBtn.title = label;
 }
 
 // One /api/text payload per cited ref, shared by the preview drawer (its
@@ -572,12 +629,13 @@ function citesHtml(citations, idPrefix, l) {
 
 // The answer's text with its claims tied to the sources list: the server's
 // own trailing "Sources" list is dropped (the list under the answer says it
-// once), each source is cited once per paragraph, at the paragraph's end, and
-// each [n] marker the model wrote becomes a chip.
+// once), each marker sits right after the excerpt that rests on its source
+// (once for a run of sentences on one source), and each [n] marker the model
+// wrote becomes a chip.
 function answerBodyHtml(message, idPrefix) {
     const citations = message.citations || [];
     const content = citations.length
-        ? consolidateMarkers(stripSourcesBlock(message.content))
+        ? placeMarkers(stripSourcesBlock(message.content))
         : message.content;
     return injectMarkers(answerHtml(content), {
         citations,
@@ -761,6 +819,10 @@ function renderTurns(state, l) {
 
     const seen = new Set();
     const nextKeys = new Set(state.messages.map((message) => String(message.id)));
+    // Whether this pass added, changed or removed a turn. Only that may move
+    // the scroll: a render for any other reason (a menu opening, a link
+    // copied, the list refreshing) must leave the reader where they are.
+    let turnsChanged = false;
     let previous = null;
     state.messages.forEach((message, index) => {
         const key = String(message.id);
@@ -780,6 +842,7 @@ function renderTurns(state, l) {
             entry.li.dataset.turnKey = key;
         }
         if (!entry) {
+            turnsChanged = true;
             const li = document.createElement("li");
             li.dataset.turnKey = key;
             entry = { li, sig: null };
@@ -790,6 +853,7 @@ function renderTurns(state, l) {
             }
         }
         if (entry.sig !== sig) {
+            turnsChanged = true;
             const li = entry.li;
             li.className = `conv-turn conv-turn--${message.role}${message.status === MESSAGE_STATUS.FAILED ? " conv-turn--failed" : ""}${li.classList.contains("conv-turn--enter") ? " conv-turn--enter" : ""}`;
             li.setAttribute("aria-busy", message.status === MESSAGE_STATUS.PENDING ? "true" : "false");
@@ -818,6 +882,7 @@ function renderTurns(state, l) {
     });
     for (const [key, entry] of ui.turns) {
         if (!seen.has(key)) {
+            turnsChanged = true;
             if (els.answerLink && entry.li.contains(els.answerLink)) parkAnswerLink();
             entry.li.remove();
             ui.turns.delete(key);
@@ -828,7 +893,10 @@ function renderTurns(state, l) {
     // thread being (re)loaded renders all at once.
     ui.animateInserts = state.loadStatus !== "loading";
 
-    if (ui.forceScroll || nearBottom) {
+    // Following the newest turn is for a reader who is already at the bottom:
+    // jumping them back up to the latest question on every unrelated render
+    // is what sent the page up when Settings or Share was pressed.
+    if (ui.forceScroll || (nearBottom && turnsChanged)) {
         ui.forceScroll = false;
         requestAnimationFrame(() => scrollToLatest(false));
     }
@@ -879,10 +947,18 @@ function renderLists(state, l) {
     } else {
         const options = communityOptions();
         const currentId = state.conversation?.id;
+        const now = Date.now();
+        let group = null;
         html = list.items.map((item) => {
             const meta = [communityName(item.minhag, l, options), relativeTime(item.updatedAt || item.createdAt, { lang: l })]
                 .filter(Boolean).join(" · ");
-            return `<li><button type="button" class="conv-list__item" data-conv-open="${escapeText(item.id)}" aria-current="${item.id === currentId ? "true" : "false"}">`
+            // A heading each time the day-bucket changes (the list arrives
+            // newest first, pinned ones ahead).
+            const bucket = conversationGroup(item, { now });
+            const heading = bucket === group ? ""
+                : `<li class="conv-list__group" aria-hidden="true">${escapeText(conversationGroupLabel(bucket, l))}</li>`;
+            group = bucket;
+            return `${heading}<li><button type="button" class="conv-list__item" data-conv-open="${escapeText(item.id)}" aria-current="${item.id === currentId ? "true" : "false"}">`
                 + `<span class="conv-list__text"><span class="conv-list__title" dir="auto">${escapeText(item.title || tr("Untitled conversation", "שיחה ללא שם"))}</span>`
                 + `<span class="conv-list__meta">${escapeText(meta)}</span></span>`
                 + `${item.pinnedAt ? `${icon("pin", "conv-list__pin")}<span class="sr-only">${escapeText(tr("Pinned", "מוצמד"))}</span>` : ""}</button></li>`;
@@ -1132,7 +1208,9 @@ function closePanel({ fromRoute = false } = {}) {
     ui.publicState = null;
     syncAskExpanded();
     closeMenu();
+    closeSharePop();
     closeHistoryPop();
+    voice?.abort();
     citePop?.close();
     hide(els.panel, panelPreset());
     hide(els.scrim, "fade");
@@ -1351,6 +1429,7 @@ function openHistoryPop(trigger) {
         return;
     }
     closeMenu();
+    closeSharePop();
     ui.popTrigger = trigger;
     maybeLoadList();
     render();
@@ -1406,6 +1485,7 @@ function openMenu(trigger) {
         return;
     }
     closeHistoryPop();
+    closeSharePop();
     ui.menuOpen = true;
     render();
     show(els.menu, "popover", trigger);
@@ -1426,13 +1506,19 @@ function closeMenu({ restoreFocus = false } = {}) {
 
 // ── thread actions ─────────────────────────────────────────────────────
 
-function showToast(text, action) {
+function armToastTimer() {
     clearTimeout(ui.toastTimer);
-    ui.toast = { text, action };
+    if (!ui.toast) return;
     ui.toastTimer = setTimeout(() => {
         ui.toast = null;
         scheduleRender();
-    }, TOAST_MS);
+    }, ui.toast.action ? TOAST_ACTION_MS : TOAST_MS);
+}
+
+// tone: "success" (a check), "warn" (a triangle) or "info" (no mark).
+function showToast(text, action, tone = "success") {
+    ui.toast = { text, action, tone };
+    armToastTimer();
     scheduleRender();
 }
 
@@ -1441,22 +1527,40 @@ function clearToast() {
     ui.toast = null;
 }
 
+// The toast waits while it is being read: pointer over it, or focus inside.
+function pauseToast() {
+    clearTimeout(ui.toastTimer);
+}
+
+function onToastAction() {
+    const action = els.toastAction.dataset.action;
+    clearToast();
+    if (action === "undo") void store.undoRemove();
+    else if (action === "stop-share") void stopSharing();
+    scheduleRender();
+}
+
 // ── sharing ────────────────────────────────────────────────────────────
 
 // The header's Share button shows once the conversation is saved; "Stop
 // sharing" joins the menu while its public link is live. The state is
 // fetched once per conversation, then kept by the share store.
+function isShared(conversation) {
+    return Boolean(conversation && shareControl?.peek(conversation.id)?.shared);
+}
+
 function syncShare(conversation) {
-    const shared = Boolean(conversation && shareControl?.peek(conversation.id)?.shared);
+    const shared = isShared(conversation);
     els.panel.dataset.shared = shared ? "true" : "false";
     if (els.shareBtn) {
         const label = shared
-            ? tr("Shared publicly. Copy the link again", "משותף לציבור. העתק את הקישור שוב")
+            ? tr("Shared publicly. Copy the link or stop sharing", "משותף לציבור. העתק את הקישור או הפסק את השיתוף")
             : tr("Share this conversation publicly", "שתף את השיחה בציבור");
         els.shareBtn.dataset.shared = shared ? "true" : "false";
         els.shareBtn.setAttribute("aria-label", label);
         els.shareBtn.title = label;
     }
+    if (!shared && ui.sharePopOpen) closeSharePop();
     if (!conversation) {
         ui.shareLoadedFor = null;
     } else if (ui.shareLoadedFor !== conversation.id) {
@@ -1480,11 +1584,11 @@ async function shareConversation() {
                 "Public link copied. Anyone with it can read this chat as it is now.",
                 "הקישור הציבורי הועתק. כל מי שיש לו אותו יכול לקרוא את השיחה כפי שהיא עכשיו."), "stop-share");
         } else if (result.status === "manual") {
-            showToast(`${tr("Couldn't copy automatically. Copy this link:", "לא ניתן היה להעתיק אוטומטית. העתק/י את הקישור:")} ${result.url}`, "stop-share");
+            showToast(`${tr("Couldn't copy automatically. Copy this link:", "לא ניתן היה להעתיק אוטומטית. העתק/י את הקישור:")} ${result.url}`, "stop-share", "info");
         } else if (result.status === "empty") {
-            showToast(tr("There's nothing to share yet. Ask a question first.", "אין עדיין מה לשתף. שאל/י שאלה קודם."));
+            showToast(tr("There's nothing to share yet. Ask a question first.", "אין עדיין מה לשתף. שאל/י שאלה קודם."), undefined, "info");
         } else {
-            showToast(tr("Couldn't create a link. Try again.", "לא ניתן היה ליצור קישור. נסה/י שוב."));
+            showToast(tr("Couldn't create a link. Try again.", "לא ניתן היה ליצור קישור. נסה/י שוב."), undefined, "warn");
         }
     } finally {
         ui.sharing = false;
@@ -1497,9 +1601,32 @@ async function stopSharing() {
     if (!conversation || !shareControl) return;
     const stopped = await shareControl.stop(conversation.id);
     if (store.getState().conversation?.id !== conversation.id) return;
-    showToast(stopped
-        ? tr("Sharing stopped. The old link no longer works.", "השיתוף הופסק. הקישור הישן כבר לא עובד.")
-        : tr("Couldn't stop sharing. Try again.", "לא ניתן היה להפסיק את השיתוף. נסה/י שוב."));
+    if (stopped) showToast(tr("Sharing stopped. The old link no longer works.", "השיתוף הופסק. הקישור הישן כבר לא עובד."));
+    else showToast(tr("Couldn't stop sharing. Try again.", "לא ניתן היה להפסיק את השיתוף. נסה/י שוב."), undefined, "warn");
+}
+
+// The header's Share button when the conversation is already public: it asks
+// before doing anything, under the button (a small card, not a modal). Copy
+// link re-copies; Stop sharing revokes. Anywhere else (phones, where Share is
+// a row of the menu) the row's own wording says what it does.
+function openSharePop() {
+    if (!els.sharePop || ui.sharePopOpen) return;
+    closeMenu();
+    closeHistoryPop();
+    ui.sharePopOpen = true;
+    els.shareBtn.setAttribute("aria-expanded", "true");
+    void show(els.sharePop, "popover", els.shareBtn);
+    requestAnimationFrame(() => {
+        els.sharePop.querySelector("button")?.focus({ preventScroll: true });
+    });
+}
+
+function closeSharePop({ restoreFocus = false } = {}) {
+    if (!els?.sharePop || !ui.sharePopOpen) return;
+    ui.sharePopOpen = false;
+    els.shareBtn.setAttribute("aria-expanded", "false");
+    void hide(els.sharePop, "popover");
+    if (restoreFocus) els.shareBtn.focus({ preventScroll: true });
 }
 
 function beginRename() {
@@ -1724,6 +1851,9 @@ function tryFromTip() {
 async function submitComposer() {
     const text = els.input.value.trim();
     if (!text) return;
+    // Sending ends dictation, and a word still in flight must not land in the
+    // emptied box.
+    voice?.abort();
     const state = store.getState();
     if (state.sending || state.loadStatus === "loading") return;
     await waitForAuth();
@@ -1739,6 +1869,48 @@ async function submitComposer() {
     ui.forceScroll = true;
     // A refused question stays in the transcript as FAILED with a Retry.
     await store.send(text, { mode: currentMode(), language: lang() });
+}
+
+// Dictation (conversation-voice.js): the button exists only where the browser
+// has speech recognition. Chrome and others hand the audio to their vendor's
+// service, so the first use says so, once per device.
+function voiceErrorText(kind) {
+    switch (kind) {
+        case "denied":
+            return tr("Microphone access is blocked. Allow it in your browser's site settings to dictate.",
+                "הגישה למיקרופון חסומה. אפשר/י אותה בהגדרות האתר בדפדפן כדי להכתיב.");
+        case "no-mic":
+            return tr("No microphone was found.", "לא נמצא מיקרופון.");
+        case "network":
+            return tr("Dictation needs an internet connection.", "הכתבה דורשת חיבור לאינטרנט.");
+        default:
+            return tr("Your browser can't dictate in this language.", "הדפדפן לא תומך בהכתבה בשפה זו.");
+    }
+}
+
+function installVoice() {
+    if (!els.micBtn) return;
+    voice = createVoiceInput({
+        input: els.input,
+        button: els.micBtn,
+        getLang: lang,
+        onState: (listening) => {
+            const label = listening ? tr("Stop dictation", "עצור הכתבה") : tr("Dictate your question", "הכתבת השאלה");
+            els.micBtn.setAttribute("aria-label", label);
+            els.micBtn.title = label;
+            if (!listening || readFlag(VOICE_NOTICE_KEY)) return;
+            writeFlag(VOICE_NOTICE_KEY);
+            showToast(tr(
+                "Dictation uses your browser's speech recognition. Some browsers send the audio to their provider to transcribe it.",
+                "ההכתבה משתמשת בזיהוי הדיבור של הדפדפן. בדפדפנים מסוימים האודיו נשלח לספק שלהם לצורך תמלול."), undefined, "info");
+        },
+        onError: (kind) => {
+            // No audio went anywhere: the first-use note is still owed.
+            clearFlag(VOICE_NOTICE_KEY);
+            showToast(voiceErrorText(kind), undefined, "warn");
+        },
+    });
+    els.micBtn.classList.toggle("hidden", !voice);
 }
 
 function autosize() {
@@ -1861,6 +2033,11 @@ function onKeydown(event) {
             closeMenu({ restoreFocus: true });
             return;
         }
+        if (ui.sharePopOpen) {
+            event.preventDefault();
+            closeSharePop({ restoreFocus: true });
+            return;
+        }
         if (ui.open && isModalSize(ui.size) && !(ui.layout === "mobile" && ui.size === "mini")) {
             event.preventDefault();
             closePanel();
@@ -1905,6 +2082,18 @@ function onDocumentClick(event) {
     }
     if (ui.menuOpen && !els.menu.contains(target) && !target.closest("#convMenuBtn")) {
         closeMenu();
+    }
+    if (ui.sharePopOpen && !els.sharePop.contains(target) && !target.closest("#convShareBtn")) {
+        closeSharePop();
+    }
+
+    // A suggested question fills the box and leaves the sending to the visitor.
+    const suggest = target.closest("[data-conv-suggest]");
+    if (suggest && els.panel.contains(suggest)) {
+        els.input.value = suggest.textContent.trim();
+        els.input.focus();
+        autosize();
+        return;
     }
 
     const trigger = target.closest(".conv-history-trigger");
@@ -1972,6 +2161,12 @@ function handleAction(action, button) {
         case "close":
             closePanel();
             break;
+        case "home":
+            // The sidebar's lockup: the panel closes, then the page goes home
+            // (the page's own goHome would leave this panel covering it).
+            closePanel();
+            window.goHome?.();
+            break;
         case "sign-in":
             closeHistoryPop();
             if (typeof window.handleSignIn === "function") void window.handleSignIn();
@@ -1987,7 +2182,21 @@ function handleAction(action, button) {
         }
         case "share":
             closeMenu();
+            // Already public: the header button asks first (see openSharePop).
+            if (button === els.shareBtn && isShared(store.getState().conversation)) {
+                if (ui.sharePopOpen) closeSharePop();
+                else openSharePop();
+            } else {
+                void shareConversation();
+            }
+            break;
+        case "share-copy":
+            closeSharePop({ restoreFocus: true });
             void shareConversation();
+            break;
+        case "share-stop":
+            closeSharePop({ restoreFocus: true });
+            void stopSharing();
             break;
         case "stop-share":
             closeMenu();
@@ -2006,13 +2215,7 @@ function handleAction(action, button) {
 
 function onNoticeAction() {
     const action = els.noticeAction.dataset.action;
-    if (action === "undo") {
-        clearToast();
-        void store.undoRemove();
-    } else if (action === "stop-share") {
-        clearToast();
-        void stopSharing();
-    } else if (action === "sign-in") {
+    if (action === "sign-in") {
         if (typeof window.handleSignIn === "function") void window.handleSignIn();
     } else if (action === "retry-open") {
         const id = readRoute().conversation;
@@ -2107,6 +2310,15 @@ function bindEvents() {
         if (event.target.closest?.("[data-mark]")) citePop.hoverOut();
     });
     els.noticeAction.addEventListener("click", onNoticeAction);
+    els.toastAction.addEventListener("click", onToastAction);
+    els.toastClose.addEventListener("click", () => {
+        clearToast();
+        scheduleRender();
+    });
+    for (const [enter, leave] of [["pointerenter", "pointerleave"], ["focusin", "focusout"]]) {
+        els.toast.addEventListener(enter, pauseToast);
+        els.toast.addEventListener(leave, armToastTimer);
+    }
     els.minhagSelect.addEventListener("change", () => {
         ui.routeMinhag = null;
         store.setDraftMinhag(els.minhagSelect.value);
@@ -2116,6 +2328,10 @@ function bindEvents() {
         const dark = document.documentElement.getAttribute("data-theme") === "dark";
         if (typeof window.setThemePreference === "function") window.setThemePreference(dark ? "light" : "dark");
     });
+    // The theme can change from anywhere (the site's own settings, the system):
+    // keep the button's label honest.
+    new MutationObserver(syncThemeBtn).observe(document.documentElement, { attributes: true, attributeFilter: ["data-theme"] });
+    installVoice();
 
     els.composer.addEventListener("submit", (event) => {
         event.preventDefault();

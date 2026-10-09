@@ -54,6 +54,34 @@ export function relativeTime(iso, { now = Date.now(), lang = "en" } = {}) {
     }
 }
 
+// The heading a saved conversation sits under in the list: pinned ones first,
+// then by the calendar day it last moved ("Today", "Yesterday", the 6 days
+// before that, then everything older).
+export function conversationGroup(item, { now = Date.now() } = {}) {
+    if (item?.pinnedAt) return "pinned";
+    const then = Date.parse(item?.updatedAt || item?.createdAt || "");
+    if (!Number.isFinite(then)) return "earlier";
+    const startOfToday = new Date(now);
+    startOfToday.setHours(0, 0, 0, 0);
+    const behind = startOfToday.getTime() - then;
+    const day = 24 * 60 * 60 * 1000;
+    if (behind <= 0) return "today";
+    if (behind <= day) return "yesterday";
+    if (behind <= 6 * day) return "week";
+    return "earlier";
+}
+
+export function conversationGroupLabel(group, lang = "en") {
+    const labels = {
+        pinned: { en: "Pinned", he: "מוצמדות" },
+        today: { en: "Today", he: "היום" },
+        yesterday: { en: "Yesterday", he: "אתמול" },
+        week: { en: "Previous 7 days", he: "7 הימים הקודמים" },
+        earlier: { en: "Earlier", he: "קודם" },
+    };
+    return tr(labels[group] || labels.earlier, lang);
+}
+
 // Localized community name; the stored value is the English option value.
 export function communityName(minhag, lang = "en", options = []) {
     const value = String(minhag || "").trim();

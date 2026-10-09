@@ -100,3 +100,26 @@ test('turnSignature changes when status, content, or citations change', async ()
     assert.equal(h.turnSignature(cited), h.turnSignature({ ...cited }));
     assert.equal(h.turnSignature(null), '');
 });
+
+test('conversationGroup sorts pinned first, then by calendar day', async () => {
+    const h = await load();
+    const now = new Date(2026, 9, 9, 15, 0, 0).getTime(); // Fri 9 Oct 2026, 15:00 local
+    const at = (daysAgo, hour = 12) => new Date(2026, 9, 9 - daysAgo, hour, 0, 0).toISOString();
+    assert.equal(h.conversationGroup({ pinnedAt: at(40), updatedAt: at(40) }, { now }), 'pinned');
+    assert.equal(h.conversationGroup({ updatedAt: at(0, 9) }, { now }), 'today');
+    assert.equal(h.conversationGroup({ updatedAt: at(1, 23) }, { now }), 'yesterday');
+    assert.equal(h.conversationGroup({ updatedAt: at(4) }, { now }), 'week');
+    assert.equal(h.conversationGroup({ updatedAt: at(7) }, { now }), 'earlier');
+    // updatedAt wins; createdAt is the fallback; nothing parseable is just "earlier".
+    assert.equal(h.conversationGroup({ createdAt: at(0, 9) }, { now }), 'today');
+    assert.equal(h.conversationGroup({ updatedAt: 'not a date' }, { now }), 'earlier');
+    assert.equal(h.conversationGroup(null, { now }), 'earlier');
+});
+
+test('conversationGroupLabel is localized and falls back to Earlier', async () => {
+    const h = await load();
+    assert.equal(h.conversationGroupLabel('today', 'en'), 'Today');
+    assert.equal(h.conversationGroupLabel('today', 'he'), 'היום');
+    assert.equal(h.conversationGroupLabel('week', 'en'), 'Previous 7 days');
+    assert.equal(h.conversationGroupLabel('nope', 'en'), 'Earlier');
+});

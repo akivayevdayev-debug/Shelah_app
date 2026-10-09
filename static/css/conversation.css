@@ -54,6 +54,13 @@
        over the fill (see .ai-tip__try below): black at 10% is the old
        brightness(0.9); white at 13% matches brightness(1.12)'s luminance. */
     --conv-fill-hover: rgb(0 0 0 / 0.1);
+    /* The full page's conversation list sits a shade off the page, not a
+       whole panel-tone away: --surface-1 against --surface-0 read as a slab of
+       cream in the light theme. Dark keeps --surface-1, which is already only
+       a step lighter than its page. */
+    --conv-sidebar-bg: color-mix(in srgb, var(--surface-1) 42%, var(--surface-0));
+    /* A figure's own column on the full page (transcript, composer, toast). */
+    --conv-column: 760px;
 }
 
 [data-theme="dark"],
@@ -61,11 +68,13 @@ html.theme-dark,
 body.theme-dark {
     --conv-on-accent: var(--surface-0);
     --conv-fill-hover: rgb(255 255 255 / 0.13);
+    --conv-sidebar-bg: var(--surface-1);
 }
 @media (prefers-color-scheme: dark) {
     :root:not([data-theme="light"]) {
         --conv-on-accent: var(--surface-0);
         --conv-fill-hover: rgb(255 255 255 / 0.13);
+        --conv-sidebar-bg: var(--surface-1);
     }
 }
 
@@ -167,18 +176,32 @@ body.conv-modal-open {
     display: flex;
     flex-direction: column;
     gap: var(--sp-3);
-    flex: 0 0 clamp(220px, 20vw, 280px);
-    padding: var(--sp-4) var(--sp-3);
+    flex: 0 0 clamp(232px, 20vw, 288px);
+    padding: var(--sp-4) var(--sp-3) var(--sp-3);
     border-inline-end: 1px solid var(--conv-hairline);
-    background: var(--surface-1);
+    background: var(--conv-sidebar-bg);
     overflow-y: auto;
+    overscroll-behavior: contain;
 }
+/* The homepage lockup (index.html #brandHomeBtn): the hebrew letter, the name
+   and "Torah Encyclopedia" come from the same utility classes, so only the
+   placement is set here. */
 .conv-sidebar__brand {
-    margin: 0;
+    align-self: flex-start;
+    min-height: var(--hit-min);
+    margin-block-end: var(--sp-1);
     padding-inline: var(--sp-2);
-    font-size: var(--text-xl);
+    border: 0;
+    border-radius: var(--radius-inner);
+    background: transparent;
+    cursor: pointer;
+}
+.conv-sidebar .conv-eyebrow {
+    padding-block-start: var(--sp-2);
+    font-size: var(--text-xs);
     font-weight: 700;
-    color: var(--ink-heading);
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
 }
 
 .conv-new-btn,
@@ -203,6 +226,7 @@ body.conv-modal-open {
 .conv-pop__new:hover { background: var(--ctrl-bg-hover); }
 .conv-new-btn:active,
 .conv-pop__new:active { transform: scale(0.97); }
+.conv-sidebar .conv-new-btn { width: 100%; }
 
 .conv-eyebrow {
     margin: 0;
@@ -221,7 +245,17 @@ body.conv-modal-open {
     flex-direction: column;
     gap: 2px;
 }
+.conv-list__group {
+    padding: var(--sp-3) var(--sp-2) var(--sp-1);
+    color: var(--ink-secondary);
+    font-size: var(--text-xs);
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+}
+.conv-list__group:first-child { padding-block-start: var(--sp-1); }
 .conv-list__item {
+    position: relative;
     display: flex;
     align-items: center;
     gap: var(--sp-2);
@@ -237,7 +271,24 @@ body.conv-modal-open {
     transition: background-color var(--motion-dur-fast) var(--motion-ease-out);
 }
 .conv-list__item:hover { background: var(--ctrl-bg-hover); }
-.conv-list__item[aria-current="true"] { background: var(--ctrl-bg-hover); }
+/* The open conversation: a tint and a bar on its leading edge, so it is not
+   told apart by colour alone. */
+.conv-list__item[aria-current="true"] {
+    background: color-mix(in srgb, var(--accent-primary) 10%, transparent);
+}
+.conv-list__item[aria-current="true"]::before {
+    content: "";
+    position: absolute;
+    inset-block: var(--sp-3);
+    inset-inline-start: 0;
+    width: 3px;
+    border-radius: var(--radius-full);
+    background: var(--accent-primary);
+}
+.conv-list__item[aria-current="true"] .conv-list__title { color: var(--ink-heading); }
+/* The tint darkens the row's ground, so its small line reaches for the body ink
+   to hold 4.5:1 (secondary ink on the tint measures 4.1). */
+.conv-list__item[aria-current="true"] .conv-list__meta { color: var(--ink-primary); }
 .conv-list__text {
     display: flex;
     flex-direction: column;
@@ -316,6 +367,13 @@ body.conv-modal-open {
     border-bottom: 0;
     padding-top: var(--sp-1);
 }
+/* Full page: the header is the page's own, not a dialog's -- more air at the
+   sides, a larger serif title, and a hairline that is felt rather than seen. */
+.conv-panel[data-layout="desktop"][data-size="full"] .conv-header {
+    padding-inline: var(--sp-6);
+    border-bottom-color: color-mix(in srgb, var(--conv-hairline) 60%, transparent);
+}
+.conv-panel[data-layout="desktop"][data-size="full"] .conv-title { font-size: var(--text-xl); }
 
 .conv-heading {
     flex: 1;
@@ -398,7 +456,8 @@ body.conv-modal-open {
     .conv-mode-opt, .conv-menu__item, .conv-link-btn, .conv-jump, .conv-turn__retry,
     .topbar-ask-btn, .ai-tip__try, .ai-tip__dismiss, .conv-signin-follow__btn,
     .conv-cite__preview > summary, .mobile-search-tray__ask, .conv-pip__open, .conv-cite a,
-    .conv-select):focus-visible {
+    .conv-select, .conv-mic, .conv-sharepop__btn, .conv-toast__action, .conv-toast__close,
+    .conv-suggest__btn, .conv-sidebar__brand):focus-visible {
     outline: 2px solid var(--accent-primary);
     outline-offset: 2px;
 }
@@ -458,6 +517,20 @@ body.conv-modal-open {
 }
 .conv-panel[data-size="full"] .conv-menu-btn:hover { background: var(--ctrl-bg-hover); }
 .conv-menu-btn:not([data-locked="true"]) .conv-menu-btn__minhag > svg { display: none; }
+/* A phone's full page has one short line for the title: the community already
+   rides on the settings pill, so the subtitle that repeats it steps aside and a
+   long community name shortens instead of squeezing the title. */
+.conv-panel[data-layout="mobile"][data-size="full"] .conv-subtitle { display: none; }
+.conv-panel[data-layout="mobile"][data-size="full"] .conv-menu-btn__minhag > span {
+    max-width: 6.5rem;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+/* On a phone's width the pill keeps its icons and drops the name (the menu
+   it opens says the community), so the conversation's title still reads. */
+@media (max-width: 26rem) {
+    .conv-panel[data-layout="mobile"][data-size="full"] .conv-menu-btn__minhag > span { display: none; }
+}
 
 /* ── Settings menu ───────────────────────────────────────────────── */
 .conv-menu-wrap { position: relative; }
@@ -484,6 +557,22 @@ body.conv-modal-open {
     -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-sat));
     box-shadow: var(--glass-shadow);
 }
+/* Full page: the settings pill is wider than a button, and a 280px card
+   end-aligned to it overhung one side. It hangs centred under the pill
+   instead (the motion preset scales it about the pill's own centre, so the
+   open and close stay symmetric). */
+.conv-panel[data-layout="desktop"][data-size="full"] .conv-menu {
+    inset-inline-end: auto;
+    inset-inline-start: 50%;
+    translate: -50% 0;
+}
+[dir="rtl"] .conv-panel[data-layout="desktop"][data-size="full"] .conv-menu { translate: 50% 0; }
+.conv-menu .conv-eyebrow {
+    font-size: var(--text-xs);
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+}
 .conv-menu__note {
     margin: 0;
     padding-inline: var(--sp-2);
@@ -491,17 +580,37 @@ body.conv-modal-open {
     color: var(--ink-primary);
 }
 .conv-menu__note:empty { display: none; }
-.conv-menu__field { display: block; padding-inline: var(--sp-1); }
+.conv-menu__field { position: relative; display: block; padding-inline: var(--sp-1); }
+/* The select's own arrow is dropped for one drawn in the page's ink, so it
+   sits the same distance from the edge in every browser and in RTL. */
+.conv-menu__field::after {
+    content: "";
+    position: absolute;
+    inset-block-start: 50%;
+    inset-inline-end: calc(var(--sp-1) + var(--sp-3));
+    width: 12px;
+    height: 12px;
+    margin-block-start: -6px;
+    background: var(--ink-secondary);
+    -webkit-mask: var(--icon-caret-right) center / contain no-repeat;
+    mask: var(--icon-caret-right) center / contain no-repeat;
+    transform: rotate(90deg);
+    pointer-events: none;
+}
 .conv-select {
     width: 100%;
     min-height: var(--hit-min);
-    padding: var(--sp-2) var(--sp-3);
+    padding: var(--sp-2) calc(var(--sp-3) + 20px) var(--sp-2) var(--sp-3);
+    appearance: none;
+    -webkit-appearance: none;
+    text-overflow: ellipsis;
     border-radius: var(--radius-inner);
     border: 1px solid var(--ctrl-border);
     background: var(--ctrl-bg);
     color: var(--ink-primary);
     font-size: var(--text-sm);
 }
+[dir="rtl"] .conv-select { padding: var(--sp-2) var(--sp-3) var(--sp-2) calc(var(--sp-3) + 20px); }
 .conv-menu__rule {
     height: 1px;
     margin-inline: var(--sp-2);
@@ -566,10 +675,11 @@ body.conv-modal-open {
    the header's icon button on desktop, a menu row on phones, nothing on the
    mini widget. A live link badges the button -- a dot, not just a color --
    and adds "Stop sharing" to the menu. */
-.conv-panel[data-layout="mobile"] .conv-share-btn,
-.conv-panel[data-size="mini"] .conv-share-btn,
+.conv-panel[data-layout="mobile"] .conv-share-wrap,
+.conv-panel[data-size="mini"] .conv-share-wrap,
 .conv-panel[data-layout="desktop"] .conv-menu-share,
 .conv-panel:not([data-shared="true"]) .conv-needs-share { display: none; }
+.conv-share-wrap { position: relative; }
 .conv-share-btn { position: relative; }
 .conv-share-btn[data-shared="true"] { color: var(--accent-primary); }
 .conv-share-btn[data-shared="true"]::after {
@@ -584,6 +694,88 @@ body.conv-modal-open {
     box-shadow: 0 0 0 2px var(--conv-panel-bg);
 }
 .conv-share-btn[aria-busy="true"] { cursor: progress; }
+
+/* "Stop sharing public link?": asked under the Share button when its link is
+   already live. A small card in the menu's own material, not a modal. */
+.conv-sharepop {
+    position: absolute;
+    inset-block-start: calc(100% + var(--sp-1));
+    inset-inline-end: 0;
+    z-index: 5;
+    display: flex;
+    flex-direction: column;
+    gap: var(--sp-1);
+    width: min(272px, calc(100vw - 2 * var(--sp-4)));
+    padding: var(--sp-3) var(--sp-3) var(--sp-2);
+    border-radius: var(--radius-popover);
+    border: 1px solid var(--glass-hairline);
+    background: var(--glass-bg);
+    backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-sat));
+    -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-sat));
+    box-shadow: var(--glass-shadow);
+    text-align: start;
+}
+.conv-sharepop__title {
+    margin: 0;
+    color: var(--ink-heading);
+    font-size: var(--text-sm);
+    font-weight: 700;
+}
+.conv-sharepop__text {
+    margin: 0;
+    color: var(--ink-secondary);
+    font-size: var(--text-xs);
+    line-height: 1.5;
+}
+.conv-sharepop__actions {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+    gap: var(--sp-2);
+    padding-block-start: var(--sp-2);
+}
+.conv-sharepop__btn {
+    min-height: 36px;
+    padding: 0 var(--sp-3);
+    border: 1px solid var(--accent-primary);
+    border-radius: var(--radius-full);
+    background: var(--accent-primary);
+    color: var(--conv-on-accent);
+    font: inherit;
+    font-size: var(--text-sm);
+    font-weight: 700;
+    cursor: pointer;
+    transition: background-color var(--motion-dur-fast) var(--motion-ease-out),
+        transform var(--motion-dur-fast) var(--motion-ease-out);
+}
+.conv-sharepop__btn:active { transform: scale(0.97); }
+.conv-sharepop__btn--quiet {
+    border-color: var(--conv-edge);
+    background: transparent;
+    color: var(--ink-primary);
+}
+.conv-sharepop__btn--quiet:hover { background: var(--ctrl-bg-hover); }
+/* Stopping is the destructive choice: red outline and text, never a fill the
+   eye could mistake for the safe action. --accent-red clears 4.5:1 on the card
+   in both themes. */
+.conv-sharepop__btn--danger {
+    border-color: var(--conv-danger);
+    background: transparent;
+    color: var(--conv-danger);
+}
+.conv-sharepop__btn--danger:hover { background: color-mix(in srgb, var(--conv-danger) 10%, transparent); }
+@media (pointer: coarse) {
+    .conv-sharepop__btn { min-height: var(--hit-min); }
+}
+
+/* The theme button shows where it goes: the moon while the page is light, the
+   sun while it is dark. The page always carries data-theme="light|dark"
+   (index.html's head script), whatever the visitor's preference. */
+.conv-theme-btn__moon,
+.conv-theme-btn__sun { display: inline-flex; }
+.conv-theme-btn__sun { display: none; }
+:is([data-theme="dark"], html.theme-dark, body.theme-dark) .conv-theme-btn__moon { display: none; }
+:is([data-theme="dark"], html.theme-dark, body.theme-dark) .conv-theme-btn__sun { display: inline-flex; }
 
 /* ── Lock line ───────────────────────────────────────────────────── */
 .conv-lockline {
@@ -633,6 +825,8 @@ body.conv-modal-open {
     color: var(--ink-heading);
 }
 .conv-panel[data-size="mini"] .conv-empty__title { font-size: var(--text-md); }
+.conv-panel[data-size="full"] .conv-empty { padding-block-end: var(--sp-12); }
+.conv-panel[data-size="full"] .conv-empty__title { font-size: var(--text-2xl); }
 .conv-empty__text,
 .conv-empty__hint {
     margin: 0;
@@ -662,6 +856,53 @@ body.conv-modal-open {
     color: var(--accent-primary);
 }
 .conv-signin-callout__text { flex: 1 1 16ch; }
+
+/* Places to start, under the empty conversation: quiet rows, not cards.
+   Pressing one only fills the question box (conversation-ui.js). */
+.conv-suggest {
+    list-style: none;
+    display: grid;
+    gap: var(--sp-1);
+    width: min(100%, 34rem);
+    margin: var(--sp-4) 0 0;
+    padding: 0;
+}
+.conv-suggest__btn {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--sp-3);
+    width: 100%;
+    min-height: var(--hit-min);
+    padding: var(--sp-2) var(--sp-4);
+    border: 1px solid var(--conv-hairline);
+    border-radius: var(--radius-lg);
+    background: transparent;
+    color: var(--ink-primary);
+    font: inherit;
+    font-size: var(--text-sm);
+    text-align: start;
+    cursor: pointer;
+    transition: background-color var(--motion-dur-fast) var(--motion-ease-out),
+        border-color var(--motion-dur-fast) var(--motion-ease-out),
+        transform var(--motion-dur-fast) var(--motion-ease-out);
+}
+.conv-suggest__btn::after {
+    content: "";
+    flex: none;
+    width: 12px;
+    height: 12px;
+    background: var(--ink-secondary);
+    -webkit-mask: var(--icon-caret-right) center / contain no-repeat;
+    mask: var(--icon-caret-right) center / contain no-repeat;
+}
+[dir="rtl"] .conv-suggest__btn::after { transform: scaleX(-1); }
+.conv-suggest__btn:hover {
+    background: var(--ctrl-bg-hover);
+    border-color: var(--conv-edge);
+}
+.conv-suggest__btn:active { transform: scale(0.99); }
+.conv-panel[data-size="mini"] .conv-suggest { display: none; }
 
 .conv-link-btn {
     display: inline-flex;
@@ -1293,8 +1534,82 @@ body.conv-modal-open {
 }
 .conv-notice .conv-link-btn { color: inherit; min-height: 32px; }
 
+/* ── Toast (a passing confirmation) ──────────────────────────────── */
+/* Floats just above the composer in the menus' own material, so a "Public link
+   copied" never pushes the transcript or the composer around. Errors that need
+   an answer stay in .conv-notice above. */
+.conv-toast {
+    position: absolute;
+    /* Under the menus (5): an open menu covers a toast, never the reverse. */
+    z-index: 4;
+    inset-inline: var(--sp-4);
+    inset-block-end: calc(100% + var(--sp-1));
+    width: fit-content;
+    max-width: min(34rem, calc(100% - 2 * var(--sp-4)));
+    margin-inline: auto;
+    display: flex;
+    align-items: center;
+    gap: var(--sp-2);
+    padding: var(--sp-1) var(--sp-1) var(--sp-1) var(--sp-3);
+    border-radius: var(--radius-popover);
+    border: 1px solid var(--glass-hairline);
+    background: var(--glass-bg);
+    backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-sat));
+    -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-sat));
+    box-shadow: var(--glass-shadow);
+    color: var(--ink-primary);
+    font-size: var(--text-sm);
+    line-height: 1.4;
+    text-align: start;
+}
+[dir="rtl"] .conv-toast { padding: var(--sp-1) var(--sp-3) var(--sp-1) var(--sp-1); }
+.conv-toast__icon { display: inline-flex; flex: none; color: var(--accent-primary); }
+.conv-toast__icon--warn { display: none; color: var(--ai-warning-text); }
+.conv-toast[data-tone="warn"] .conv-toast__icon--success { display: none; }
+.conv-toast[data-tone="warn"] .conv-toast__icon--warn { display: inline-flex; }
+/* "info" is a plain statement (no check mark to earn, no warning to heed). */
+.conv-toast[data-tone="info"] .conv-toast__icon { display: none; }
+.conv-toast__text { flex: 1 1 auto; min-width: 0; padding-block: var(--sp-1); overflow-wrap: anywhere; }
+.conv-toast__action,
+.conv-toast__close {
+    position: relative;
+    display: inline-flex;
+    flex: none;
+    align-items: center;
+    justify-content: center;
+    min-height: 32px;
+    border: 0;
+    border-radius: var(--radius-full);
+    background: transparent;
+    font: inherit;
+    cursor: pointer;
+    transition: background-color var(--motion-dur-fast) var(--motion-ease-out);
+}
+.conv-toast__action {
+    padding: 0 var(--sp-3);
+    color: var(--accent-primary);
+    font-size: var(--text-sm);
+    font-weight: 700;
+}
+.conv-toast__action.hidden { display: none; }
+.conv-toast__close {
+    width: 32px;
+    color: var(--ink-secondary);
+}
+.conv-toast__action:hover,
+.conv-toast__close:hover { background: var(--ctrl-bg-hover); }
+/* A finger-sized target around the small controls. */
+.conv-toast__action::after,
+.conv-toast__close::after {
+    content: "";
+    position: absolute;
+    inset-block: -6px;
+    inset-inline: -2px;
+}
+
 /* ── Composer shell ──────────────────────────────────────────────── */
 .conv-composer-shell {
+    position: relative;
     display: flex;
     flex-direction: column;
     gap: var(--sp-2);
@@ -1312,17 +1627,25 @@ body.conv-modal-open {
 .conv-composer__fill {
     display: flex;
     align-items: flex-end;
-    gap: var(--sp-2);
+    gap: var(--sp-1);
     padding: var(--sp-1);
     padding-inline-start: var(--sp-4);
-    border-radius: 24px;
+    border-radius: 26px;
     border: 1px solid var(--ctrl-border);
     background: var(--surface-1);
     box-shadow: var(--shadow-sm);
-    transition: border-color var(--motion-dur-fast) var(--motion-ease-out);
+    transition: border-color var(--motion-dur-fast) var(--motion-ease-out),
+        box-shadow var(--motion-dur-fast) var(--motion-ease-out);
 }
+/* The focus state is the box itself (the textarea draws no outline): a
+   stronger edge and a soft halo, both beyond 3:1 against the page. */
 .conv-composer__fill:focus-within {
-    border-color: color-mix(in srgb, var(--accent-primary) 55%, var(--ctrl-border));
+    border-color: var(--accent-primary);
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent-primary) 18%, transparent), var(--shadow-sm);
+}
+.conv-panel[data-size="full"] .conv-composer__fill { box-shadow: var(--shadow-md); }
+.conv-panel[data-size="full"] .conv-composer__fill:focus-within {
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent-primary) 18%, transparent), var(--shadow-md);
 }
 .conv-composer textarea {
     flex: 1;
@@ -1363,6 +1686,48 @@ body.conv-modal-open {
     opacity: 0.45;
     transform: none;
 }
+
+/* Dictation (conversation-voice.js). Same 36px disc as Send, but quiet until
+   it is listening: then it fills like Send and a ring pulses around it, and
+   aria-pressed carries the state for everyone else. */
+.conv-mic {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex: none;
+    width: 36px;
+    height: 36px;
+    padding: 0;
+    border: 0;
+    border-radius: var(--radius-full);
+    background: transparent;
+    color: var(--ink-secondary);
+    cursor: pointer;
+    transition: background-color var(--motion-dur-fast) var(--motion-ease-out),
+        color var(--motion-dur-fast) var(--motion-ease-out),
+        transform var(--motion-dur-fast) var(--motion-ease-out);
+}
+.conv-mic.hidden { display: none; }
+/* 44px hit area around the 36px disc. */
+.conv-mic::after { content: ""; position: absolute; inset: -4px; border-radius: inherit; }
+.conv-mic:hover { background: var(--ctrl-bg-hover); color: var(--ink-primary); }
+.conv-mic:active { transform: scale(0.97); }
+.conv-mic[aria-pressed="true"] {
+    background: var(--accent-primary);
+    color: var(--conv-on-accent);
+}
+.conv-mic[aria-pressed="true"]:hover { background: var(--accent-primary-hover); }
+.conv-mic[aria-pressed="true"]::before {
+    content: "";
+    position: absolute;
+    inset: -3px;
+    border: 2px solid var(--accent-primary);
+    border-radius: inherit;
+    pointer-events: none;
+    animation: shelah-attention-ping 1.6s var(--motion-ease-out) infinite;
+}
+.conv-mic:disabled { cursor: not-allowed; opacity: 0.45; }
 
 .conv-disclaimer {
     margin: 0;
@@ -1735,6 +2100,7 @@ body.theme-dark .topbar-ask-btn {
         animation: none !important;
     }
     .conv-signin-follow,
+    .conv-mic::before,
     .conv-turn--reveal *,
     .conv-live-dot,
     .conv-status__now,
@@ -1753,6 +2119,8 @@ body.theme-dark .topbar-ask-btn {
    against the dark-mode block there). */
 @media (prefers-reduced-transparency: reduce) {
     .conv-menu,
+    .conv-sharepop,
+    .conv-toast,
     .conv-pop,
     .conv-pip,
     .mobile-search-tray,
