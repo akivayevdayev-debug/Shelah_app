@@ -154,11 +154,11 @@ def test_cited_sources_become_citations_on_the_answer_only(test_client, db):
     assert db.written("citations")[0][0]["message_id"] == "msg-2"
 
 
-def test_citations_are_capped_at_six(test_client, db):
-    db.history[0]["ai_cited_sources"] = [f"Genesis {n}:1" for n in range(1, 10)]
+def test_citations_are_capped_at_ten(test_client, db):
+    db.history[0]["ai_cited_sources"] = [f"Genesis {n}:1" for n in range(1, 14)]
     body = _create(test_client, from_history_id=ENTRY).get_json()
 
-    assert len(body["messages"][1]["citations"]) == 6
+    assert len(body["messages"][1]["citations"]) == 10
 
 
 def test_an_answer_without_citations_writes_no_citation_rows(test_client, db):

@@ -201,7 +201,8 @@ class TestRenderStructuredMarkdown:
         }
         result = claude.render_structured_markdown(structured, is_simple=False)
         assert "## Direct Answer" in result
-        assert "## Deeper Reasoning" in result
+        assert "## What to do" in result
+        assert "## Deeper Reasoning" not in result
         assert "- Do X." in result
 
     def test_prohibited_flag_adds_status_label(self):
@@ -704,7 +705,7 @@ class TestFollowUpHistoryCondensing:
         )
         assert "resolving references" in prompt
         assert "20." not in claude.build_prompt("and what about Shabbat?", [], [])
-        assert "20. The QUESTION may point back to CONVERSATION SO FAR" in prompt
+        assert "20. The QUESTION may point back to the earlier turns of this conversation" in prompt
 
 
 class TestCommunityLensInstruction:
@@ -821,7 +822,7 @@ class TestAnswerDepthCalibration:
         assert claude.SIMPLE_ANSWER_MAX_TOKENS < claude.COMPLEX_ANSWER_MAX_TOKENS
 
     def test_prompt_version_reflects_the_rewrite(self):
-        assert claude.PROMPT_VERSION.startswith("2026-10-06")
+        assert claude.PROMPT_VERSION.startswith("2026-10-09")
 
 
 class TestBuildDynamicSystemContext:

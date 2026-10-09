@@ -35,6 +35,10 @@ def test_estimate_cost_usd_known_model_matches_manual_math():
     assert result == pytest.approx((10_000 * 3.00 + 2_000 * 15.00) / 1_000_000)
 
 
+def test_the_haiku_5_5_fallback_is_priced():
+    assert cost_meter.estimate_cost_usd("claude-haiku-5-5", 1_000_000, 1_000_000) == pytest.approx(0.60)
+
+
 def test_estimate_cost_usd_is_case_insensitive():
     """Model lookup lowercases before indexing into _PRICE_PER_M."""
     lower = cost_meter.estimate_cost_usd("claude-haiku-4-5", 1_000, 1_000)

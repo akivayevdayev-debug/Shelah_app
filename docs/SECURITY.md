@@ -19,7 +19,7 @@ requests and incident handling.
 
 ## Reporting a vulnerability
 
-Email **akiva.yevda@gmail.com** (the same contact used across `terms.html`,
+Email **contact@shelah.org** (the same contact used across `terms.html`,
 `privacy.html`, and `dmca.html`) with details and, if possible, steps to
 reproduce. Please do not open a public GitHub issue for a suspected
 vulnerability, and do not test against other users' accounts or data. There is
@@ -404,7 +404,7 @@ pre-fetch sections via `build_prompt()`, and the agentic `web_search` /
   found 0 false positives.
 - The pre-fetch sections are wrapped in `<retrieved_context>` tags that both
   system prompts name as data, never instructions (emitted only for non-empty
-  sections; `PROMPT_VERSION` is `2026-10-06-scope-and-sources-v5` and the wrapper
+  sections; `PROMPT_VERSION` is `2026-10-09-answer-shapes-v6` and the wrapper
   is unchanged in it).
 
 It is a conservative phrase heuristic — bare "you are now" and "ignore any

@@ -90,10 +90,10 @@ def test_render_structured_markdown_uses_hebrew_labels_only_for_he():
     english = claude.render_structured_markdown(structured, answer_language="fr")
 
     assert "## תשובה ישירה" in hebrew
-    assert "**צעדים מעשיים**" in hebrew
+    assert "## מה לעשות" in hebrew
     assert "## סיכום" in hebrew
     assert "## Direct Answer" in english
-    assert "**Practical Steps**" in english
+    assert "## What to do" in english
     assert "## Summary" in english
     assert "**Sources**" in english
     assert "תשובה ישירה" not in english
@@ -408,3 +408,27 @@ def test_local_match_key_is_case_insensitive_on_value_and_tolerates_gaps():
     assert search_provider._local_match_key({"file": "f", "field": "Title", "value": "ABC", "pointer": "root"}) == \
         ("f", "Title", "abc", "root")
     assert search_provider._local_match_key({}) == ("", "", "", "")
+
+
+def test_agentic_system_blocks_cache_the_fixed_text_and_leave_the_context_uncached():
+    blocks = ask_pipeline._build_agentic_system_blocks(claude, "DYNAMIC CONTEXT")
+
+    assert blocks[0]["cache_control"] == {"type": "ephemeral"}
+    assert blocks[0]["text"] == f"{claude.CORE_SYSTEM_PROMPT}\n\n{ask_pipeline._AGENTIC_TOOLS_PREAMBLE}"
+    assert blocks[1] == {"type": "text", "text": "DYNAMIC CONTEXT"}
+    assert len(ask_pipeline._build_agentic_system_blocks(claude, "")) == 1
+
+
+async def test_run_agentic_ask_sends_the_thread_as_real_messages_not_pasted_text():
+    turn = {"text": '{"ruling": "Yes."}', "tool_uses": [], "content_blocks": [], "stop_reason": "end_turn", "error": None}
+    agentic = AsyncMock(return_value=turn)
+    history = [{"role": "user", "content": "Can I cook on Yom Tov?"},
+               {"role": "assistant", "content": "Yes, for the day itself."}]
+    with patch.object(claude, "_call_anthropic_agentic_turn", new=agentic):
+        await ask_pipeline.run_agentic_ask(
+            question="and on Shabbat?", sefaria_sources=[], customs=[], conversation_history=history)
+
+    messages = agentic.call_args.args[0]
+    assert [m["role"] for m in messages] == ["user", "assistant", "user"]
+    assert messages[0]["content"] == "Can I cook on Yom Tov?"
+    assert "Can I cook on Yom Tov?" not in messages[-1]["content"]

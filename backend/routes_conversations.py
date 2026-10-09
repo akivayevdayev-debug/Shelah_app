@@ -91,9 +91,9 @@ _CONVERSATION_HEADER_COLUMNS = "id,title,title_is_custom,minhag,pinned_at,create
 _HISTORY_ID_RE = re.compile(r"^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$", re.I)
 # A search-bar answer names each cited source "Ref — note" (the prompt's em
 # dash separator; static/js/conversation-store.js answerCitations splits it
-# the same way and shows at most six).
+# the same way and shows at most ten).
 _CITED_SOURCE_RE = re.compile(r"^(.*?)\s[–—]\s(.*)$", re.S)
-_MAX_SEED_CITATIONS = 6
+_MAX_SEED_CITATIONS = 10
 # Earlier user questions a follow-up's source retrieval draws on.
 _MAX_RETRIEVAL_CONTEXT_QUESTIONS = 3
 _AI_PAUSED_MESSAGE = "AI answers are paused for today. Please try again after midnight UTC."

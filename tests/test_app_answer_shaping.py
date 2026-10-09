@@ -265,7 +265,7 @@ class TestCoerceAiAnswerShape:
         out = app._coerce_ai_answer_shape(result, "Can I?", "balanced")
         assert "## Direct Answer" in out["answer"]
         assert "It is permitted." in out["answer"]
-        assert "**Practical Steps**" in out["answer"]
+        assert "## What to do" in out["answer"]
         assert "Shulchan Arukh" in out["answer"]
         assert out["structured"]["ruling"] == "It is permitted."
 
@@ -278,7 +278,7 @@ class TestCoerceAiAnswerShape:
                                                  "practical_steps": ["נוח"], "sources": []}}
         out = app._coerce_ai_answer_shape(result, "שאלה", "balanced", answer_language="he")
         assert "## תשובה ישירה" in out["answer"]
-        assert "**צעדים מעשיים**" in out["answer"]
+        assert "## מה לעשות" in out["answer"]
 
     def test_a_leaked_json_answer_is_repaired_end_to_end(self):
         raw = '```json\n{"ruling": "Wait until three stars.", "summary": "Short.", "practical_steps": ["Look up"]}\n```'

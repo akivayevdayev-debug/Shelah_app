@@ -131,8 +131,8 @@ class TestExtractFirstJsonObjectScanning:
 
 class TestRenderFullMarkdownProhibitedStatus:
     HEADERS = dict(
-        direct_header="## Answer", status_label="**Status: prohibited**", deeper_header="## Deeper",
-        steps_label="Steps", summary_header="## Summary", sources_label="Sources",
+        direct_header="## Answer", status_label="**Status: prohibited**", steps_header="## Steps",
+        summary_header="## Summary", sources_label="Sources",
     )
 
     def test_a_prohibited_ruling_gets_the_status_label(self):
@@ -339,7 +339,12 @@ class TestAsyncAnthropicFallback:
         result = await claude._call_anthropic_httpx_model("prompt", "EXTRA CONTEXT")
 
         [call] = messages.calls
-        assert call["system"][0]["text"] == f"{claude.CORE_SYSTEM_PROMPT}\n\nEXTRA CONTEXT"
+        # The fixed prompt is a cached block; the per-request context follows it
+        # uncached, so one changing sentence never invalidates the cache.
+        core, dynamic = call["system"]
+        assert core["text"] == claude.CORE_SYSTEM_PROMPT
+        assert core["cache_control"] == {"type": "ephemeral"}
+        assert dynamic == {"type": "text", "text": "EXTRA CONTEXT"}
         assert call["messages"] == [{"role": "user", "content": "prompt"}]
         assert result["is_fallback"] is True
         assert health._circuits["claude"].failures == 0

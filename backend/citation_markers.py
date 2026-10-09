@@ -12,10 +12,11 @@ entries are dropped, a source named twice is kept once, the list is capped
 like the conversation UI's citation list, and every marker is renumbered to
 match. Markers that point at nothing are removed rather than left dangling.
 
-A source is also shown only once per text segment (a paragraph or a list item,
-i.e. a line): consolidate_markers() takes the markers out of the segment's
-sentences and puts one ascending ``[n]`` group, each number once, at the end of
-the segment -- not a ``[1]`` after every sentence that rests on source 1.
+A marker sits where the claim it backs ends: place_markers() leaves each
+``[n]`` right after the excerpt that rests on source n -- not gathered at the
+bottom of the paragraph -- and shows a source once for a run of consecutive
+sentences that all rest on it (at the run's last sentence), never as
+``[1]`` after every one of them.
 """
 
 from __future__ import annotations
@@ -25,8 +26,10 @@ from typing import Any, Callable, Dict, List, Optional, Tuple
 
 # The conversation UI shows at most this many citations
 # (routes_conversations._MAX_SEED_CITATIONS, conversation-store.js), so a marker
-# can never usefully point past it.
-MAX_CITED_SOURCES = 6
+# can never usefully point past it. A learning answer that walks through a
+# whole passage may cite up to ten (the prompt allows it); a one-point answer
+# usually cites two to four.
+MAX_CITED_SOURCES = 10
 
 # One marker -- "[1]", "[1, 2]", "[1,2]", "[1-3]", "[1\u20133]" -- and a run of
 # adjacent ones ("[1][2]"), with the spaces before the run (never a line break)
@@ -34,6 +37,9 @@ MAX_CITED_SOURCES = 6
 # (plus separators): "[2a]" and "[the Rema]" are text, not markers.
 _ONE = r"\[\d{1,2}(?:\s*[,;]\s*\d{1,2}|\s*[-\u2013]\s*\d{1,2})*\]"
 _RUN_RE = re.compile(rf"([ \t]*)((?:{_ONE})+)")
+# Markers separated only by spaces ("[1] [2]") belong to one sentence too, so
+# place_markers() reads them as one run (and writes them back flush: "[1][2]").
+_SPACED_RUN_RE = re.compile(rf"([ \t]*)((?:{_ONE})(?:[ \t]*(?:{_ONE}))*)")
 _NUMBER_OR_RANGE_RE = re.compile(r"(\d{1,2})(?:\s*[-\u2013]\s*(\d{1,2}))?")
 _NOTE_SPLIT_RE = re.compile(r"\s+[—–]\s+")
 
@@ -107,34 +113,75 @@ def strip_markers(text: str) -> str:
     return _RUN_RE.sub("", str(text or ""))
 
 
-def _consolidate_line(line: str) -> str:
-    numbers: List[int] = []
-
-    def take(match: "re.Match[str]") -> str:
-        numbers.extend(_numbers_in(match.group(2)))
-        return ""
-
-    body = _RUN_RE.sub(take, line)
-    if not numbers:
-        return line
-    return body.rstrip() + "".join(f"[{n}]" for n in sorted(set(numbers)))
+# A sentence boundary inside a span: terminal punctuation (plus closing quotes or
+# brackets), whitespace, then more text. Initials and common abbreviations
+# ("R. Yochanan", "Dr. Smith", "e.g. the") end in a period but not a sentence.
+_BOUNDARY_RE = re.compile(r"[.!?\u2026\u05c3]+[\"'\u201d\u2019)\]]*\s+(?=\S)")
+_LAST_WORD_RE = re.compile(r"(\S+)$")
+_ABBREVIATIONS = frozenset({
+    "r", "rabbi", "rav", "dr", "mr", "mrs", "st", "vs", "cf", "etc", "ibid", "e.g", "i.e",
+    "b", "bar", "ben", "no", "vol", "ch", "chap", "sec", "par", "ex", "lev", "num", "deut", "gen",
+})
 
 
-def consolidate_markers(text: str) -> str:
-    """``text`` with each source cited once per segment, at the segment's end.
+def _sentence_count(span: str) -> int:
+    """How many sentences ``span`` holds (at least one when it has any text)."""
+    text = span.strip()
+    if not text:
+        return 0
+    count = 1
+    for match in _BOUNDARY_RE.finditer(text):
+        word = _LAST_WORD_RE.search(text[: match.start()])
+        previous = word.group(1).strip("([\"'\u201c").lower() if word else ""
+        if previous in _ABBREVIATIONS or re.fullmatch(r"[a-z]", previous):
+            continue
+        count += 1
+    return count
 
-    A segment is a line: a paragraph, a list item or a heading. Every marker in
-    it is removed from where it stood and one ``[n]`` per distinct source,
-    ascending, is appended after the segment's last character ("Kindling is
-    forbidden.[1] Cooking too.[1][2]" becomes "Kindling is forbidden. Cooking
-    too.[1][2]"). A segment whose markers are already one trailing group is
-    returned unchanged, so applying this twice changes nothing. Lines inside a
-    code fence are left alone."""
+
+def place_markers(text: str) -> str:
+    """``text`` with each marker at the end of the excerpt it backs, once per run.
+
+    A marker belongs to the text between it and the marker before it. When the
+    very next excerpt is a single sentence that rests on the same source, the
+    source is left off the earlier one and shown after the later one, so a run
+    of consecutive sentences from one source carries one marker, at its last
+    sentence ("Kindling is forbidden.[1] Cooking too.[1][2]" becomes "Kindling
+    is forbidden. Cooking too.[1][2]"). A source cited again after a passage
+    from a different source is shown again. Each marker group is ascending and
+    sits flush against the text it follows. Applying this twice changes
+    nothing. Lines inside a code fence are left alone."""
     lines = str(text or "").split("\n")
     in_fence = False
     for index, line in enumerate(lines):
         if line.lstrip().startswith("```"):
             in_fence = not in_fence
         elif not in_fence:
-            lines[index] = _consolidate_line(line)
+            lines[index] = _place_line(line)
     return "\n".join(lines)
+
+
+def _place_line(line: str) -> str:
+    runs = list(_SPACED_RUN_RE.finditer(line))
+    if not runs:
+        return line
+
+    spans: List[str] = []
+    cited: List[List[int]] = []
+    position = 0
+    for match in runs:
+        spans.append(line[position:match.start()])
+        cited.append(sorted(set(_numbers_in(match.group(2)))))
+        position = match.end()
+    tail = line[position:]
+
+    pieces: List[str] = []
+    for index, span in enumerate(spans):
+        numbers = cited[index]
+        following = index + 1
+        if following < len(spans) and _sentence_count(spans[following]) == 1:
+            numbers = [n for n in numbers if n not in cited[following]]
+        if numbers:
+            span = span.rstrip()
+        pieces.append(span + "".join(f"[{n}]" for n in numbers))
+    return "".join(pieces) + tail

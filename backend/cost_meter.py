@@ -36,6 +36,11 @@ _PRICE_PER_M = {
     "claude-sonnet-4-6":   {"input": 3.00,  "output": 15.00},
     "claude-opus-4-8":     {"input": 15.00, "output": 75.00},
     "claude-haiku-4-5":    {"input": 1.00,  "output": 5.00},
+    # Current Claude fallback (backend/claude.py:_CLAUDE_FALLBACK_MODEL),
+    # 2026-10-09. Cache reads bill at 0.1x and 5-minute cache writes at 1.25x
+    # of the input rate; backend/claude.py folds those into the input-token
+    # count it reports, so this flat rate stays correct.
+    "claude-haiku-5-5":    {"input": 0.10,  "output": 0.50},
     # Legacy / fallback
     "claude-3-5-sonnet":   {"input": 3.00,  "output": 15.00},
     "claude-3-opus":       {"input": 15.00, "output": 75.00},
@@ -505,20 +510,22 @@ _RESERVATION_TTL_MINUTES = 10  # must match scripts/sql/check_and_reserve_user_b
 # (a running-total cap alone lets a caller starting the day at $0 get one
 # unbounded call through; only a per-call reservation closes that).
 #
-# Output: 3072 tokens (backend/claude.py's non-simple max_tokens, the
-# primary Gemini call) + 1024 tokens (the Claude fallback's max_tokens, if
-# it also fires in the same request) = 4096, priced at the pricier of the
-# two dispatchable non-Gemini-default output rates (claude-haiku-4-5,
-# $5.00/1M) so the reservation covers either provider.
-# Input: CORE_SYSTEM_PROMPT (~5.1K chars) + the 2200-char sanitized dynamic
-# context cap (backend/claude.py::_sanitize_prompt_payload) + the 1200-char
-# MAX_INPUT_CHARS question cap ≈ 8500 chars, padded to 6000 tokens at a
-# conservative ~1.4 chars/token (denser than plain-English ~4 chars/token,
-# to cover Hebrew-heavy prompts).
-_MAX_SINGLE_ASK_OUTPUT_TOKENS = 4096
-_MAX_SINGLE_ASK_INPUT_TOKENS = 6000
-_MAX_SINGLE_ASK_INPUT_PRICE_PER_M = 1.00   # claude-haiku-4-5 input rate
-_MAX_SINGLE_ASK_OUTPUT_PRICE_PER_M = 5.00  # claude-haiku-4-5 output rate
+# Priced at the pricier dispatchable rate (claude-haiku-5-5; Gemini is free),
+# for the worst path: the agentic Claude loop, which re-sends the whole prompt
+# on each of its AI_AGENTIC_MAX_ROUNDS (4) rounds.
+# Input: one round is about 25K tokens at its largest (the ~14K-char
+# CORE_SYSTEM_PROMPT, up to 9K chars of thread history, the dynamic-context
+# and question caps, the per-request instructions, plus tool results, padded
+# at a conservative ~1.4 chars/token for Hebrew-heavy text), so 4 rounds are
+# bounded at 100K tokens.
+# Output: a round may spend up to the complex ceiling plus the thinking
+# headroom in backend/claude.py (3072 + 1536 = 4608 tokens), so 4 rounds are
+# bounded at ~20K. The single-shot path (a 6144-token study ceiling on Gemini
+# plus the same on the Claude fallback) sits well inside that.
+_MAX_SINGLE_ASK_OUTPUT_TOKENS = 20_000
+_MAX_SINGLE_ASK_INPUT_TOKENS = 100_000
+_MAX_SINGLE_ASK_INPUT_PRICE_PER_M = 0.10   # claude-haiku-5-5 input rate
+_MAX_SINGLE_ASK_OUTPUT_PRICE_PER_M = 0.50  # claude-haiku-5-5 output rate
 
 
 def _max_single_ask_reservation_usd() -> float:

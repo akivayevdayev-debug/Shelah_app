@@ -115,14 +115,14 @@ function askPayload(extra = {}) {
     };
 }
 
-test('answerCitations: splits "Ref — note", de-duplicates refs, caps at six', async () => {
+test('answerCitations: splits "Ref — note", de-duplicates refs, caps at ten', async () => {
     const { answerCitations } = await loadStore();
 
     assert.deepEqual(answerCitations(askPayload()).map((c) => [c.ordinal, c.ref, c.excerptEn]), [
         [0, 'Yalkut Yosef', 'dedicated use'],
         [1, 'Shulchan Arukh YD 95:3', ''],
     ]);
-    assert.equal(answerCitations({ ai_cited_sources: Array.from({ length: 9 }, (_, n) => `Genesis ${n + 1}:1`) }).length, 6);
+    assert.equal(answerCitations({ ai_cited_sources: Array.from({ length: 13 }, (_, n) => `Genesis ${n + 1}:1`) }).length, 10);
     assert.deepEqual(answerCitations({ ai_cited_sources: null }), []);
     assert.deepEqual(answerCitations(null), []);
 });

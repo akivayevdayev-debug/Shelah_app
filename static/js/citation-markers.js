@@ -17,7 +17,7 @@ const RUN = new RegExp(String.raw`([ \t]*)((?:${ONE})+)`, "g");
 const NUMBER_OR_RANGE = /(\d{1,2})(?:\s*[-–]\s*(\d{1,2}))?/g;
 
 // The conversation UI shows at most this many sources.
-export const MAX_MARKER = 6;
+export const MAX_MARKER = 10;
 
 export function escapeAttr(value) {
     return String(value ?? "")
@@ -57,15 +57,62 @@ export function splitMarkers(text) {
     return parts;
 }
 
-// `markdown` with each source cited once per segment, at the segment's end:
-// a segment is a line (a paragraph, list item or heading), every marker in it
-// is lifted out and one ascending "[n]" per distinct source goes after its last
-// character -- not a "[1]" after every sentence resting on source 1. Mirrors
-// backend/citation_markers.py's consolidate_markers, which the server applies to
-// a new answer; applying it here too tidies older stored answers. A segment whose
-// markers are already one trailing group is unchanged, so it is idempotent.
+// A sentence boundary inside a span: terminal punctuation (plus closing quotes
+// or brackets), whitespace, then more text. Initials and common abbreviations
+// ("R. Yochanan", "Dr. Smith") end in a period but not a sentence.
+const BOUNDARY = /[.!?\u2026\u05c3]+["'\u201d\u2019)\]]*\s+(?=\S)/g;
+const ABBREVIATIONS = new Set([
+    "r", "rabbi", "rav", "dr", "mr", "mrs", "st", "vs", "cf", "etc", "ibid", "e.g", "i.e",
+    "b", "bar", "ben", "no", "vol", "ch", "chap", "sec", "par", "ex", "lev", "num", "deut", "gen",
+]);
+// Markers separated only by spaces ("[1] [2]") belong to one sentence too.
+const SPACED_RUN = new RegExp(String.raw`([ \t]*)((?:${ONE})(?:[ \t]*(?:${ONE}))*)`, "g");
+
+function sentenceCount(span) {
+    const text = span.trim();
+    if (!text) return 0;
+    let count = 1;
+    for (const match of text.matchAll(BOUNDARY)) {
+        const word = /(\S+)$/.exec(text.slice(0, match.index));
+        const previous = word ? word[1].replace(/^[(["'\u201c]+|[(["'\u201c]+$/g, "").toLowerCase() : "";
+        if (ABBREVIATIONS.has(previous) || /^[a-z]$/.test(previous)) continue;
+        count += 1;
+    }
+    return count;
+}
+
+function placeInLine(line) {
+    const runs = [...line.matchAll(SPACED_RUN)];
+    if (!runs.length) return line;
+    const spans = [];
+    const cited = [];
+    let position = 0;
+    for (const match of runs) {
+        spans.push(line.slice(position, match.index));
+        cited.push(markerNumbers(match[2]));
+        position = match.index + match[0].length;
+    }
+    const tail = line.slice(position);
+    let out = "";
+    spans.forEach((span, index) => {
+        let numbers = cited[index];
+        const following = index + 1;
+        if (following < spans.length && sentenceCount(spans[following]) === 1) {
+            numbers = numbers.filter((n) => !cited[following].includes(n));
+        }
+        out += (numbers.length ? span.trimEnd() : span) + numbers.map((n) => `[${n}]`).join("");
+    });
+    return out + tail;
+}
+
+// `markdown` with each marker at the end of the excerpt it backs, once per run
+// of consecutive sentences on one source -- "Kindling is forbidden.[1] Cooking
+// too.[1][2]" becomes "Kindling is forbidden. Cooking too.[1][2]" -- instead of
+// a "[1]" after every sentence or all of them gathered at the paragraph's end.
+// Mirrors backend/citation_markers.py's place_markers, which the server applies
+// to a new answer; applying it here too tidies older stored answers. Idempotent.
 // Lines inside a code fence are left alone.
-export function consolidateMarkers(markdown) {
+export function placeMarkers(markdown) {
     const lines = String(markdown ?? "").split("\n");
     let inFence = false;
     return lines.map((line) => {
@@ -73,15 +120,7 @@ export function consolidateMarkers(markdown) {
             inFence = !inFence;
             return line;
         }
-        if (inFence) return line;
-        const numbers = new Set();
-        const body = line.replace(RUN, (_all, _spaces, run) => {
-            for (const n of markerNumbers(run)) numbers.add(n);
-            return "";
-        });
-        if (!numbers.size) return line;
-        const group = [...numbers].sort((a, b) => a - b).map((n) => `[${n}]`).join("");
-        return body.trimEnd() + group;
+        return inFence ? line : placeInLine(line);
     }).join("\n");
 }
 

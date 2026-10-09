@@ -138,9 +138,9 @@ function initialThreadState(draftMinhag) {
 
 // A search-bar answer's "Ref — note" strings (ai_cited_sources) as citations,
 // the same way the server seeds them when the answer becomes a conversation
-// (routes_conversations._seed_citations): de-duplicated by ref, capped at six.
+// (routes_conversations._seed_citations): de-duplicated by ref, capped at ten.
 const CITED_SOURCE_RE = /^(.*?)\s[\u2013\u2014]\s(.*)$/;
-const CITED_SOURCE_LIMIT = 6;
+const CITED_SOURCE_LIMIT = 10;
 
 export function answerCitations(data) {
     const cited = Array.isArray(data?.ai_cited_sources) ? data.ai_cited_sources : [];

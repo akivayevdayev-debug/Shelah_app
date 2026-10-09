@@ -33,44 +33,67 @@ test('markerNumbers reads lists and ranges, ascending and without repeats', asyn
     assert.deepEqual(c.markerNumbers('[1-40]'), [1]);
 });
 
-test('consolidateMarkers cites each source once per paragraph, at the end of it', async () => {
+test('placeMarkers marks a run of sentences on one source once, at its last sentence', async () => {
+    const c = await load();
+    assert.equal(c.placeMarkers('A.[1] B.[1] C.[1]'), 'A. B. C.[1]');
+    assert.equal(c.placeMarkers('A.[1] B.[1] C.[1][2] D.[2]'), 'A. B. C.[1] D.[2]');
+    assert.equal(
+        c.placeMarkers('Kindling is forbidden.[1] Cooking too.[1][2] And more.[1]'),
+        'Kindling is forbidden. Cooking too.[2] And more.[1]',
+    );
+});
+
+test('placeMarkers keeps each marker where its excerpt ends, not at the paragraph end', async () => {
     const c = await load();
     assert.equal(
-        c.consolidateMarkers('Kindling is forbidden.[1] Cooking too.[1][2] And more.[1]'),
-        'Kindling is forbidden. Cooking too. And more.[1][2]',
+        c.placeMarkers('Kindling is forbidden.[1] Cooking is too.[2] Plain.'),
+        'Kindling is forbidden.[1] Cooking is too.[2] Plain.',
     );
+    assert.equal(c.placeMarkers('Some say X[1] while others say Y.[2]'), 'Some say X[1] while others say Y.[2]');
+});
+
+test('placeMarkers treats each paragraph and list item as its own segment', async () => {
+    const c = await load();
     assert.equal(
-        c.consolidateMarkers('One.[1] Again.[1]\n\nTwo.[2]\n- item.[3] item.[3]\n1. step.[3][1]'),
+        c.placeMarkers('One.[1] Again.[1]\n\nTwo.[2]\n- item.[3] item.[3]\n1. step.[3][1]'),
         'One. Again.[1]\n\nTwo.[2]\n- item. item.[3]\n1. step.[1][3]',
     );
+    assert.equal(c.placeMarkers('A.[1]\n\nB.[1]'), 'A.[1]\n\nB.[1]');
 });
 
-test('consolidateMarkers lists the sources ascending and expands lists and ranges', async () => {
+test('placeMarkers lists the sources ascending and expands lists and ranges', async () => {
     const c = await load();
-    assert.equal(c.consolidateMarkers('A.[3] B.[1, 2] C.[2]'), 'A. B. C.[1][2][3]');
-    assert.equal(c.consolidateMarkers('A.[1-3]'), 'A.[1][2][3]');
+    assert.equal(c.placeMarkers('A.[3] B.[1, 2] C.[2]'), 'A.[3] B.[1] C.[2]');
+    assert.equal(c.placeMarkers('A.[1-3]'), 'A.[1][2][3]');
+    assert.equal(c.placeMarkers('A.[3][1]'), 'A.[1][3]');
 });
 
-test('consolidateMarkers is idempotent and leaves marker-free text and non-markers alone', async () => {
+test('placeMarkers does not read an abbreviation as the end of a sentence', async () => {
     const c = await load();
-    const once = c.consolidateMarkers('A.[2] B.[1]  [2]');
-    assert.equal(once, 'A. B.[1][2]');
-    assert.equal(c.consolidateMarkers(once), once);
-    assert.equal(c.consolidateMarkers('No markers here.'), 'No markers here.');
-    assert.equal(c.consolidateMarkers(''), '');
-    assert.equal(c.consolidateMarkers(null), '');
-    assert.equal(c.consolidateMarkers('See [2a] and [the Rema].[1] Yes.[1]'), 'See [2a] and [the Rema]. Yes.[1]');
+    assert.equal(c.placeMarkers('Dr. Smith said so.[1] Next.[1]'), 'Dr. Smith said so. Next.[1]');
+    assert.equal(c.placeMarkers('R. Yochanan taught it.[1] Then more.[1]'), 'R. Yochanan taught it. Then more.[1]');
 });
 
-test('consolidateMarkers leaves a code fence alone', async () => {
+test('placeMarkers is idempotent and leaves marker-free text and non-markers alone', async () => {
     const c = await load();
-    assert.equal(c.consolidateMarkers('```\nx[1] y[1]\n```\nz[1] w[1]'), '```\nx[1] y[1]\n```\nz w[1]');
+    const once = c.placeMarkers('A.[2] B.[1]  [2]\n\nC.[3] D.[3]');
+    assert.equal(once, 'A. B.[1][2]\n\nC. D.[3]');
+    assert.equal(c.placeMarkers(once), once);
+    assert.equal(c.placeMarkers('No markers here.'), 'No markers here.');
+    assert.equal(c.placeMarkers(''), '');
+    assert.equal(c.placeMarkers(null), '');
+    assert.equal(c.placeMarkers('See [2a] and [the Rema].[1] Yes.[1]'), 'See [2a] and [the Rema]. Yes.[1]');
 });
 
-test('consolidated markers render as one chip group per paragraph', async () => {
+test('placeMarkers leaves a code fence alone', async () => {
+    const c = await load();
+    assert.equal(c.placeMarkers('```\nx[1] y[1]\n```\nz[1] w[1]'), '```\nx[1] y[1]\n```\nz w[1]');
+});
+
+test('placed markers render as one chip per source for a run of sentences', async () => {
     const c = await load();
     const html = c.injectMarkers(
-        '<p>' + c.consolidateMarkers('Kindling is forbidden.[1] Cooking too.[1][2]') + '</p>',
+        '<p>' + c.placeMarkers('Kindling is forbidden.[1] Cooking too.[1][2]') + '</p>',
         { citations: CITES, idPrefix: 'conv-cite-m1' },
     );
     assert.equal((html.match(/data-mark="1"/g) || []).length, 1);
