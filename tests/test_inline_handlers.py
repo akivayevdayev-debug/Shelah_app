@@ -17,6 +17,8 @@ from pathlib import Path
 REPO = Path(__file__).resolve().parent.parent
 
 ACTIONS_JS = (REPO / "static/js/actions.js").read_text(encoding="utf-8")
+# How the templates ask for the dispatcher (backend/module_versions.asset_url).
+ACTIONS_TAG = "{{ asset_url('js/actions.js') }}"
 INDEX_HTML = (REPO / "templates/index.html").read_text(encoding="utf-8")
 
 
@@ -105,7 +107,7 @@ def test_the_dispatcher_loads_after_the_script_that_records_the_clicked_control(
     # script's listener records the clicked control (markTriggerPending reads
     # it), and an inline onclick always ran after every capture listener.
     tracker = INDEX_HTML.index("_lastClickedControl = event.target")
-    dispatcher = INDEX_HTML.index('<script src="/static/js/actions.js')
+    dispatcher = INDEX_HTML.index(f'<script src="{ACTIONS_TAG}"')
     assert dispatcher > tracker
 
 
@@ -113,6 +115,6 @@ def test_every_page_with_a_dispatcher_attribute_loads_the_dispatcher():
     for path in TEMPLATES:
         text = path.read_text(encoding="utf-8")
         if re.search(r"""\sdata-on(?:click|input)\s*=""", text) and path.name not in ("legal_topbar.html",):
-            assert "/static/js/actions.js" in text, f"{path.name} uses data-onclick but never loads actions.js"
+            assert ACTIONS_TAG in text, f"{path.name} uses data-onclick but never loads actions.js"
     # legal_topbar.html is included by pages that include legal_scripts.html.
-    assert "/static/js/actions.js" in (REPO / "templates/components/legal_scripts.html").read_text(encoding="utf-8")
+    assert ACTIONS_TAG in (REPO / "templates/components/legal_scripts.html").read_text(encoding="utf-8")

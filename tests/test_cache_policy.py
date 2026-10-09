@@ -221,3 +221,63 @@ def test_a_404_through_the_flask_hook_is_private(test_client):
     response = test_client.get("/api/siddur/v2/service/edot-hamizrach/not-a-service")
     assert response.status_code == 404
     assert response.headers["Cache-Control"] == cache_policy.CACHE_TIER_PRIVATE
+
+
+# ─── Content-hashed /static URLs are immutable ──────────────────────────────
+
+def test_static_asset_with_a_content_hash_is_cached_for_a_year_immutable(test_client):
+    from backend import module_versions
+
+    url = module_versions.asset_url("css/tokens.css")
+    assert "?v=" in url
+    resp = test_client.get(url)
+    assert resp.status_code == 200
+    assert resp.headers["Cache-Control"] == "public, max-age=31536000, immutable"
+
+
+def test_hashed_module_urls_from_the_import_map_are_immutable_too(test_client):
+    from backend import module_versions
+
+    resp = test_client.get(module_versions.module_url("main.js"))
+    assert resp.status_code == 200
+    assert "immutable" in resp.headers["Cache-Control"]
+
+
+@pytest.mark.parametrize("query", ["", "?v=20261003-t4", "?v=0123456789", "?v=0123456789ab&x=1"])
+def test_static_asset_without_a_content_hash_keeps_the_short_ttl(test_client, query):
+    """A hand-written version proves nothing about the bytes -- it is only as
+    good as someone remembering to bump it -- so it never gets the long TTL."""
+    resp = test_client.get(f"/static/css/tokens.css{query}")
+    assert resp.status_code == 200
+    cache_control = resp.headers["Cache-Control"]
+    if query == "?v=0123456789ab&x=1":
+        # `v` is still a hash here; extra params do not change what it names.
+        assert "immutable" in cache_control
+    else:
+        assert "immutable" not in cache_control
+        assert "max-age=300" in cache_control
+
+
+def test_a_missing_hashed_static_file_is_not_cached_immutable(test_client):
+    resp = test_client.get("/static/css/nope.css?v=0123456789ab")
+    assert resp.status_code == 404
+    assert "immutable" not in (resp.headers.get("Cache-Control") or "")
+
+
+def test_html_pages_and_the_service_worker_are_never_immutable(test_client):
+    for path in ("/", "/terms", "/service-worker.js"):
+        assert "immutable" not in test_client.get(path).headers.get("Cache-Control", ""), path
+
+
+def test_fonts_are_cached_for_a_month_without_a_hash(test_client):
+    """A font is requested by a fixed URL from a stylesheet, so it cannot carry
+    a content hash; a changed font ships under a new file name."""
+    resp = test_client.get("/static/fonts/SILEOT.woff2")
+    assert resp.status_code == 200
+    assert resp.headers["Cache-Control"] == "public, max-age=2592000"
+
+
+def test_a_missing_font_is_not_cached_for_a_month(test_client):
+    resp = test_client.get("/static/fonts/nope.woff2")
+    assert resp.status_code == 404
+    assert "2592000" not in (resp.headers.get("Cache-Control") or "")

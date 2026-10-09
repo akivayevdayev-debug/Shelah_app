@@ -71,10 +71,8 @@ pinned/loaded in this repo, confirmed against `package-lock.json` (npm
 devDependency) or the CDN `<script>`/`<link>` tags in `templates/index.html`
 (loaded at runtime, not npm-managed):
 
-- **Tailwind CSS** `3.4.19` (npm devDependency, `package-lock.json`) — MIT —
+- **Tailwind CSS** `4.3.3` (npm devDependency, `package-lock.json`) — MIT —
   https://github.com/tailwindlabs/tailwindcss
-- **DaisyUI** `4.12.24` (CDN, `templates/index.html`) — MIT —
-  https://github.com/saadeghi/daisyui
 - **marked** `15.0.12` (CDN, `templates/index.html`) — MIT —
   https://github.com/markedjs/marked
 

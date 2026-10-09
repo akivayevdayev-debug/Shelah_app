@@ -4,11 +4,11 @@
 
   Why this does not `@import "tailwindcss"`: that entry point puts preflight
   and every utility in a cascade layer, and any un-layered rule beats any
-  layered one regardless of specificity. This page also loads daisyUI from a
-  CDN (un-layered) and a dozen app stylesheets, so layered utilities would
-  lose to daisyUI's `button, select { padding: 0 }` reset and to element
-  rules in the app CSS, where Tailwind 3's class selectors used to win on
-  specificity. Importing preflight and utilities WITHOUT a layer() keeps the
+  layered one regardless of specificity. This page loads a dozen un-layered
+  app stylesheets (and used to load daisyUI, whose `button, select { padding: 0 }`
+  reset layered utilities would also have lost to), so layered utilities would
+  lose to the element rules in the app CSS, where Tailwind 3's class
+  selectors used to win on specificity. Importing preflight and utilities WITHOUT a layer() keeps the
   Tailwind 3 cascade: they compete with the rest by specificity and, being
   linked last, by order. Only the theme variables stay layered, so the
   app's own --font-sans in tokens.css still wins over the one defined here.

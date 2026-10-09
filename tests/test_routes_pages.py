@@ -9,6 +9,8 @@ Covers:
   - GET /sitemap.xml -> application/xml, lists stable public routes
 """
 
+from pathlib import Path
+
 
 class TestAboutRoute:
     def test_about_returns_200(self, test_client):
@@ -81,7 +83,7 @@ class TestSitemapXmlRoute:
     def test_sitemap_lists_stable_public_routes(self, test_client):
         body = test_client.get("/sitemap.xml").get_data(as_text=True)
         for path in ("/about", "/help", "/glossary", "/terms", "/privacy"):
-            assert f"<loc>https://shelah-app.vercel.app{path}</loc>" in body
+            assert f"<loc>https://shelah.org{path}</loc>" in body
 
     def test_sitemap_excludes_dynamic_routes(self, test_client):
         body = test_client.get("/sitemap.xml").get_data(as_text=True)
@@ -95,7 +97,7 @@ class TestSitemapXmlRoute:
 
         body = test_client.get("/sitemap.xml").get_data(as_text=True)
         locs = re.findall(r"<loc>(.*?)</loc>", body)
-        base = "https://shelah-app.vercel.app"
+        base = "https://shelah.org"
         texts = [loc for loc in locs if loc.startswith(f"{base}/text/")]
         assert len(texts) == 929, "every Tanakh chapter, once"
         for path in (
@@ -115,7 +117,7 @@ class TestSitemapXmlRoute:
         import re
 
         body = test_client.get("/sitemap.xml").get_data(as_text=True)
-        base = "https://shelah-app.vercel.app"
+        base = "https://shelah.org"
         locs = [loc for loc in re.findall(r"<loc>(.*?)</loc>", body)
                 if loc.startswith((f"{base}/text/", f"{base}/prayer/", f"{base}/community/"))]
         sample = [loc for loc in locs if "/text/" not in loc] + [
@@ -150,21 +152,73 @@ class TestLlmsTxtRoute:
         response = test_client.get("/llms.txt")
         assert "text/plain" in response.content_type.lower()
 
-    def test_llms_txt_urls_match_sitemap(self, test_client):
-        """The two routes both derive from _SITEMAP_PATHS -- assert they
-        can't silently drift apart from each other. The sitemap also lists
-        the library's pages; llms.txt keeps to the site's own."""
+    def test_llms_txt_is_utf8_text_not_html(self, test_client):
+        response = test_client.get("/llms.txt")
+        assert response.headers["Content-Type"] == "text/plain; charset=utf-8"
+        assert "<html" not in response.get_data(as_text=True).lower()
+
+    def test_llms_txt_is_a_markdown_map_of_links(self, test_client):
+        """llmstxt.org shape, which is what Lighthouse's agentic-browsing audit
+        reads: one H1, then `- [title](url): note` list items. A bare URL is
+        not a link to it ("File does not appear to contain any links")."""
+        import re
+
+        body = test_client.get("/llms.txt").get_data(as_text=True)
+        lines = body.splitlines()
+        assert lines[0] == "# Sh'elah"
+        assert sum(1 for line in lines if line.startswith("# ")) == 1
+        bullets = [line for line in lines if line.startswith("- ")]
+        assert bullets
+        link = re.compile(r"^- \[[^\]]+\]\(https://shelah\.org/[^)\s]*\): \S")
+        assert all(link.match(line) for line in bullets), [line for line in bullets if not link.match(line)]
+
+    def test_llms_txt_uses_only_the_canonical_host(self, test_client):
+        body = test_client.get("/llms.txt").get_data(as_text=True)
+        assert "shelah-app.vercel.app" not in body
+        assert "http://" not in body
+
+    def test_llms_txt_links_every_site_page_and_the_sitemap(self, test_client):
+        """llms.txt and /sitemap.xml share _SITEMAP_PATHS: assert the site's own
+        pages (the sitemap minus its ~950 library pages) are all linked, so the
+        two cannot silently drift apart."""
         import re
 
         llms_body = test_client.get("/llms.txt").get_data(as_text=True)
         sitemap_body = test_client.get("/sitemap.xml").get_data(as_text=True)
 
-        llms_urls = {line[2:] for line in llms_body.splitlines() if line.startswith("- ")}
+        llms_urls = set(re.findall(r"\]\((https://[^)]+)\)", llms_body))
         sitemap_urls = set(re.findall(r"<loc>(.*?)</loc>", sitemap_body))
-        library = re.compile(r"^https://shelah-app\.vercel\.app/(text|prayer|community|siddur)/")
+        library = re.compile(r"^https://shelah\.org/(text|prayer|community|siddur)/")
+        site_pages = {url for url in sitemap_urls if not library.match(url)}
 
-        assert llms_urls == {url for url in sitemap_urls if not library.match(url)}
-        assert llms_urls  # non-empty, guards against both sides silently going blank
+        assert site_pages <= llms_urls
+        assert "https://shelah.org/sitemap.xml" in llms_urls
+        assert site_pages  # guards against both sides silently going blank
+
+    def test_llms_txt_library_links_are_real_pages(self, test_client):
+        """Each library entry point is a page the sitemap also lists."""
+        import re
+
+        llms_body = test_client.get("/llms.txt").get_data(as_text=True)
+        sitemap_urls = set(re.findall(r"<loc>(.*?)</loc>", test_client.get("/sitemap.xml").get_data(as_text=True)))
+        library = re.compile(r"^https://shelah\.org/(text|prayer|community|siddur)/")
+        linked = [u for u in re.findall(r"\]\((https://[^)]+)\)", llms_body) if library.match(u)]
+        assert linked
+        assert set(linked) <= sitemap_urls
+
+    def test_every_sitemap_page_has_an_llms_entry(self):
+        from backend.routes_pages import _LLMS_PAGES, _SITEMAP_PATHS
+
+        assert {path for path, _c, _p in _SITEMAP_PATHS} == set(_LLMS_PAGES)
+
+    def test_linked_pages_exist(self, test_client):
+        """What llms.txt points at answers 200 (the report's "every URL has a
+        successful canonical response", checked against the app itself)."""
+        import re
+
+        body = test_client.get("/llms.txt").get_data(as_text=True)
+        for path in re.findall(r"\]\(https://shelah\.org(/[^)]*)\)", body):
+            assert test_client.get(path).status_code == 200, path
 
 
 class TestNewPagesLinkToLegalFooter:
@@ -217,3 +271,21 @@ class TestGlossaryDataFallback:
 
         assert response.status_code == 200
         assert "Kezayit" not in response.get_data(as_text=True)
+
+
+class TestCanonicalHost:
+    def test_no_template_names_the_old_vercel_host(self):
+        """The site's canonical host is page_meta.SITE_BASE_URL; the project's
+        Vercel URL is not a page anyone should be sent to (or an agent told of)."""
+        for template in (Path(__file__).resolve().parent.parent / "templates").rglob("*.html"):
+            assert "vercel.app" not in template.read_text(encoding="utf-8"), template.name
+
+    def test_every_static_page_canonical_is_on_the_canonical_host(self):
+        import re
+
+        from backend import page_meta
+
+        for template in (Path(__file__).resolve().parent.parent / "templates").glob("*.html"):
+            # (index.html's is filled in per URL from page_meta.canonical.)
+            for url in re.findall(r'<link rel="canonical" href="(https?://[^"]+)"', template.read_text(encoding="utf-8")):
+                assert url.startswith(page_meta.SITE_BASE_URL + "/") or url == page_meta.SITE_BASE_URL, (template.name, url)

@@ -9,9 +9,9 @@
     src="https://cdn.jsdelivr.net/npm/@clerk/clerk-js@5.127.0/dist/clerk.browser.js"
     integrity="sha384-9BfgqxUZJLeppMqmDGDPFU1zC63bMyEwEXG8xMcQwhDz5qU3WUR4PwpVcZ4fKU8D"></script>
 {% endif %}
-<script src="/static/js/clerk-appearance.js?v=20260926-rd1"></script>
-<script src="/static/js/topbar_shared.js?v=20260925-l10"></script>
-<script src="/static/js/actions.js?v=20261003-a1"></script>
+<script src="{{ asset_url('js/clerk-appearance.js') }}"></script>
+<script src="{{ asset_url('js/topbar_shared.js') }}"></script>
+<script src="{{ asset_url('js/actions.js') }}"></script>
 <script>
     // ===== APP STATE & CONSTANTS =====
     const LANGUAGE_MANUAL_KEY = 'preferredLanguageManual';

@@ -57,5 +57,5 @@ class TestStructuredData:
             blocks = [json.loads(b) for b in LD_JSON_RE.findall(html)]
             webpages = [b for b in blocks if b.get("@type") == "WebPage"]
             assert len(webpages) == 1, f"{path} should have exactly one WebPage block"
-            assert webpages[0]["url"] == f"https://shelah-app.vercel.app{path}"
+            assert webpages[0]["url"] == f"https://shelah.org{path}"
             assert "&amp;" not in json.dumps(webpages[0])

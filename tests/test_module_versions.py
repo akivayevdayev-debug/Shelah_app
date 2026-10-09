@@ -87,3 +87,62 @@ class TestShell:
         assert found.start() < html.index('<script type="module"')
         entry = re.search(r'<script type="module" src="(/static/js/main\.js[^"]*)"', html).group(1)
         assert entry == imports["/static/js/main.js"], "an entry and its import share one URL"
+
+
+@pytest.fixture
+def static_dir(tmp_path, monkeypatch):
+    (tmp_path / "css").mkdir()
+    monkeypatch.setattr(module_versions, "STATIC_DIR", tmp_path)
+    module_versions._file_digest.cache_clear()
+    yield tmp_path
+    module_versions._file_digest.cache_clear()
+
+
+class TestAssetUrl:
+    """asset_url: /static/<name>?v=<hash of its bytes>, for the templates'
+    stylesheets and classic scripts."""
+
+    def test_the_url_carries_a_hash_of_the_bytes(self, static_dir):
+        _write(static_dir / "css" / "reader.css", "a { color: red }\n")
+        url = module_versions.asset_url("css/reader.css")
+        assert re.fullmatch(r"/static/css/reader\.css\?v=[0-9a-f]{12}", url)
+        assert module_versions.is_content_hash(url.split("v=")[1])
+
+    def test_changed_bytes_are_a_new_url_and_the_same_bytes_are_the_same_url(self, static_dir):
+        css = static_dir / "css" / "reader.css"
+        _write(css, "a { color: red }\n")
+        first = module_versions.asset_url("css/reader.css")
+        _write(css, "a { color: red }\n", bump_mtime=True)
+        assert module_versions.asset_url("css/reader.css") == first
+        _write(css, "a { color: blue }\n", bump_mtime=True)
+        assert module_versions.asset_url("css/reader.css") != first
+
+    def test_a_file_that_is_not_there_gets_its_plain_url(self, static_dir):
+        assert module_versions.asset_url("css/missing.css") == "/static/css/missing.css"
+
+    def test_a_name_that_escapes_static_gets_its_plain_url_and_no_digest(self, static_dir):
+        (static_dir.parent / "secret.txt").write_text("nope")
+        assert "?v=" not in module_versions.asset_url("../secret.txt")
+
+    def test_only_a_twelve_digit_hash_counts_as_a_content_hash(self):
+        assert module_versions.is_content_hash("0123456789ab")
+        for version in (None, "", "20261009-cv16", "0123456789abc", "0123456789AB", "0123456789a"):
+            assert not module_versions.is_content_hash(version), version
+
+
+class TestShellAssetTags:
+    def test_every_stylesheet_and_script_tag_carries_a_content_hash(self, test_client):
+        html = test_client.get("/").get_data(as_text=True)
+        tags = re.findall(r'(?:href|src)="(/static/(?:css/|js/)?[\w.-]+\.(?:css|js))(\?v=[^"]*)?"', html)
+        assert tags
+        unversioned = [path for path, query in tags if not query]
+        hand_versioned = [path + q for path, q in tags if q and not module_versions.is_content_hash(q[3:])]
+        # Every tag asks asset_url: none keeps a version someone has to bump.
+        assert hand_versioned == []
+        assert unversioned == []
+
+    def test_a_legal_page_and_the_404_use_hashed_urls_too(self, test_client):
+        for path in ("/terms", "/about", "/definitely-not-a-page"):
+            html = test_client.get(path).get_data(as_text=True)
+            assert re.search(r'/static/css/tokens\.css\?v=[0-9a-f]{12}"', html), path
+            assert not re.search(r'/static/[\w./-]+\?v=\d{8}', html), path

@@ -208,7 +208,7 @@ class TestMissingText:
         assert _shell_marker(response.text)
 
 
-SITE = "https://shelah-app.vercel.app"
+SITE = "https://shelah.org"
 
 
 class TestPageMeta:
@@ -368,7 +368,7 @@ class TestLegacyQueryRedirect:
         response = test_client.get(path)
         assert response.status_code == 200
         html = response.get_data(as_text=True)
-        assert f'<link rel="canonical" href="https://shelah-app.vercel.app{canonical}">' in html
+        assert f'<link rel="canonical" href="https://shelah.org{canonical}">' in html
 
 
 class TestReaderKindBadge:

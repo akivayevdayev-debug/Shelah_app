@@ -22,7 +22,7 @@ from urllib.parse import quote
 
 from backend import siddur_data
 
-SITE_BASE_URL = "https://shelah-app.vercel.app"
+SITE_BASE_URL = "https://shelah.org"
 SITE_NAME = "Sh'elah"
 SITE_TITLE = "Sh'elah - Torah Encyclopedia"
 _TITLE_SEPARATOR = " · "

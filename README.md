@@ -154,7 +154,7 @@ Go to [shelah.org](https://shelah.org) and:
 - Check the prayer times for where you are, and poke around the calendar.
 - Go absolutely bananas!
 
-If anything at all is broken, email me at **akiva.yevda@gmail.com** and I'll try my best to fix it as soon as I can.
+If anything at all is broken, email me at **contact@shelah.org** and I'll try my best to fix it as soon as I can.
 
 ## How the AI works (and how it stays in its lane) (Skip this if ur not into boring coding stuff)
 
@@ -187,7 +187,7 @@ General web search (like Wikipedia) is a last resort for when the texts and the 
 - **Auth:** Clerk.
 - **AI:** Gemini first, Claude as backup, with optional tool use (see above).
 - **Texts and calendar data:** Sefaria for texts, Hebcal for the calendar and zmanim, MyMemory / Google Translate for the translation fallback, plus the 13 community customs datasets in `customs/`.
-- **Frontend:** plain HTML/CSS/JS (ES modules), Tailwind + DaisyUI, marked + DOMPurify for rendering AI answers safely.
+- **Frontend:** plain HTML/CSS/JS (ES modules), Tailwind, marked + DOMPurify for rendering AI answers safely.
 - **Keeping it alive:** Turnstile for bot checks (built, currently switched off), Sentry and a Discord webhook for errors, circuit breakers on every external service, SonarCloud for code quality, and a lot of CI.
 
 ### How it's wired together (ai made this part don't ask me how it all works I can't give u a clear answer unfortunately °—°)
@@ -360,5 +360,5 @@ Please **don't** open a public issue for it. Email the address in [docs/SECURITY
 - **My code:** [MIT licensed](LICENSE).
 - **The website's content:** all the text, branding, and media on the Sh'elah site are © 2026, all rights reserved.
 
-Sh'elah uses and shows a lot of third-party content that keeps its own license, and my MIT license **doesn't** relicense any of it: Sefaria (a mix of CC0, CC-BY, CC-BY-NC, and public domain, depending on the text), Hebcal, Wikipedia (CC-BY-SA), Halachipedia and HebrewBooks, the SILEOT font, and MIT-licensed libraries like Tailwind CSS, DaisyUI, marked, and DOMPurify. Full attributions are in [THIRD_PARTY_LICENSES.md](THIRD_PARTY_LICENSES.md).
+Sh'elah uses and shows a lot of third-party content that keeps its own license, and my MIT license **doesn't** relicense any of it: Sefaria (a mix of CC0, CC-BY, CC-BY-NC, and public domain, depending on the text), Hebcal, Wikipedia (CC-BY-SA), Halachipedia and HebrewBooks, the SILEOT font, and MIT-licensed libraries like Tailwind CSS, marked, and DOMPurify. Full attributions are in [THIRD_PARTY_LICENSES.md](THIRD_PARTY_LICENSES.md).
 

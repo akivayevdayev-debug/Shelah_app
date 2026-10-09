@@ -10,34 +10,34 @@
     <meta name="theme-color" content="#0c0c0b" media="(prefers-color-scheme: dark)">
     {% include 'components/theme_bootstrap.html' %}
     <title>AI Disclosure – Sh'elah</title>
-    <link rel="canonical" href="https://shelah-app.vercel.app/ai-disclosure">
+    <link rel="canonical" href="https://shelah.org/ai-disclosure">
     <script type="application/ld+json">
     {
         "@context": "https://schema.org",
         "@type": "WebPage",
         "name": "AI Disclosure – Sh'elah",
         "description": "Sh'elah AI Disclosure — which AI models we use, how RAG works, hallucination risk, and what the AI does not do.",
-        "url": "https://shelah-app.vercel.app/ai-disclosure"
+        "url": "https://shelah.org/ai-disclosure"
     }
     </script>
     <meta property="og:type" content="website">
     <meta property="og:title" content="AI Disclosure – Sh'elah">
     <meta property="og:description" content="Sh'elah AI Disclosure — which AI models we use, how RAG works, hallucination risk, and what the AI does not do.">
-    <meta property="og:url" content="https://shelah-app.vercel.app/ai-disclosure">
-    <meta property="og:image" content="https://shelah-app.vercel.app/static/og-image.png">
+    <meta property="og:url" content="https://shelah.org/ai-disclosure">
+    <meta property="og:image" content="https://shelah.org/static/og-image.png">
     <meta name="twitter:card" content="summary_large_image">
     <meta name="twitter:title" content="AI Disclosure – Sh'elah">
     <meta name="twitter:description" content="Sh'elah AI Disclosure — which AI models we use, how RAG works, hallucination risk, and what the AI does not do.">
-    <meta name="twitter:image" content="https://shelah-app.vercel.app/static/og-image.png">
+    <meta name="twitter:image" content="https://shelah.org/static/og-image.png">
     <link rel="icon" href="/static/favicon.svg" type="image/svg+xml">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Cardo:wght@400;700&family=Inter:wght@400;500;600&display=swap"
         rel="stylesheet">
-    <link rel="stylesheet" href="/static/css/tokens.css?v=20261003-t4">
-    <link rel="stylesheet" href="/static/style.css?v=20261003-s9">
-    <link rel="stylesheet" href="/static/css/tailwind.css?v=20261003-tw4">
-    <link rel="stylesheet" href="/static/css/legal.css?v=20260930-lg6">
+    <link rel="stylesheet" href="{{ asset_url('css/tokens.css') }}">
+    <link rel="stylesheet" href="{{ asset_url('style.css') }}">
+    <link rel="stylesheet" href="{{ asset_url('css/tailwind.css') }}">
+    <link rel="stylesheet" href="{{ asset_url('css/legal.css') }}">
 </head>
 
 <body class="font-sans min-h-screen overflow-x-hidden flex flex-col">
@@ -213,7 +213,7 @@
             </p>
             <p><strong data-en="Contact:" data-he="איש קשר:">Contact:</strong> Akiva Yevdayev</p>
             <p><strong data-en="Email:" data-he="דוא״ל:">Email:</strong> <a
-                    href="mailto:akiva.yevda@gmail.com">akiva.yevda@gmail.com</a></p>
+                    href="mailto:contact@shelah.org">contact@shelah.org</a></p>
 
             <hr class="my-8" style="border-color: var(--surface-border);">
 

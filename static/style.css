@@ -10,6 +10,18 @@
 
 html {
     scroll-behavior: smooth;
+    -webkit-tap-highlight-color: transparent;
+}
+
+/* Thin scrollbars tinted from the text colour (35%, 60% under the pointer)
+   in light and dark alike. These two rules came with the daisyUI stylesheet
+   this page used to load from a CDN (138 KiB, render-blocking, none of its
+   components in use); they are kept here so the scrollbars do not change. */
+* {
+    scrollbar-color: color-mix(in oklch, currentColor 35%, transparent) transparent;
+}
+:hover {
+    scrollbar-color: color-mix(in oklch, currentColor 60%, transparent) transparent;
 }
 
 /* A Hebrew first paint: the head script in index.html sets lang/dir (and

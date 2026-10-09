@@ -752,6 +752,13 @@ def _inject_current_year():
     return {"current_year": greg_date.today().year}
 
 
+@app.context_processor
+def _inject_asset_url():
+    # Every template's stylesheets and scripts: /static/<name>?v=<hash of its
+    # bytes> (backend/module_versions.py), so a changed file is a new URL.
+    return {"asset_url": module_versions.asset_url}
+
+
 # Configure structured JSON logging as early as possible so all log records
 # (including import-time warnings from sub-modules) use the JSON formatter.
 setup_logging()
@@ -1092,6 +1099,11 @@ RESOURCE_RELOAD_SECONDS = 60 * 5
 # on later session *reads* too, since `permanent` is itself persisted
 # inside the signed session cookie once first set.
 SESSION_RELOAD_SECONDS = 60 * 60 * 24 * 30
+# A /static URL whose ?v= is a content hash (see apply_response_cache_policy).
+STATIC_IMMUTABLE_CACHE_CONTROL = "public, max-age=31536000, immutable"
+# The fonts are requested by a fixed URL from CSS (no hash to put in it), and a
+# changed font ships under a new file name, so a month is safe.
+STATIC_FONT_CACHE_CONTROL = "public, max-age=2592000"
 STATIC_STALE_WHILE_REVALIDATE_SECONDS = max(
     60 * 60,
     min(60 * 60 * 24, RESOURCE_RELOAD_SECONDS // 2),
@@ -1208,6 +1220,16 @@ def apply_response_cache_policy(response):
         return response
 
     if path.startswith("/static/"):
+        if module_versions.is_content_hash(request.args.get("v")) and response.status_code == 200:
+            # /static/<file>?v=<hash of its bytes> (module_versions.asset_url,
+            # the import map): this URL can never name different bytes, so the
+            # browser keeps it for a year without asking again. A hand-written
+            # or missing version keeps the short TTL below.
+            response.headers["Cache-Control"] = STATIC_IMMUTABLE_CACHE_CONTROL
+            return response
+        if path.startswith("/static/fonts/") and response.status_code == 200:
+            response.headers["Cache-Control"] = STATIC_FONT_CACHE_CONTROL
+            return response
         response.headers["Cache-Control"] = (
             f"public, max-age={RESOURCE_RELOAD_SECONDS}, "
             f"stale-while-revalidate={STATIC_STALE_WHILE_REVALIDATE_SECONDS}"

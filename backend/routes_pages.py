@@ -27,7 +27,9 @@ from backend.helpers import COMMUNITIES
 
 routes_pages = Blueprint("pages", __name__)
 
-_SITE_BASE_URL = "https://shelah-app.vercel.app"
+# One canonical host for the sitemap, robots.txt, llms.txt and the pages' own
+# canonical/og tags.
+_SITE_BASE_URL = page_meta.SITE_BASE_URL
 
 # The site's own pages -- no /ask (personalized/dynamic), no
 # devtools/api. A parasha page is NOT included here because no crawlable HTML
@@ -163,8 +165,45 @@ def sitemap_xml():
     return Response(_sitemap_body(), mimetype="application/xml")
 
 
+# What /llms.txt says about each of the site's own pages: (section, title,
+# description). Keyed by the _SITEMAP_PATHS path so the two cannot drift -- a
+# test fails when a sitemap page has no entry here.
+_LLMS_PAGES = {
+    "/": ("Ask and study", "Sh'elah home", "Ask a halachic or Torah question in plain language; every answer cites its sources."),
+    "/about": ("About", "About Sh'elah", "A solo-built Torah library with community-aware customs and an AI assistant that cites primary sources and points back to your rabbi."),
+    "/help": ("About", "Help", "How to ask a good question, what the answer modes mean, reader features like Shul Mode and bookmarks, and a tour of the calendar and zmanim."),
+    "/glossary": ("About", "Glossary", "Halachic terms such as kezayit, muktzeh and eruv, defined the way the AI assistant defines them."),
+    "/ai-disclosure": ("About", "AI disclosure", "Which AI models are used, how retrieval works, the risk of hallucination, and what the AI does not do."),
+    "/terms": ("Legal and policies", "Terms of service", "The rules, disclaimers and legal terms for using the service."),
+    "/privacy": ("Legal and policies", "Privacy policy", "What data is collected, how it is used, who it is shared with, and your rights."),
+    "/acceptable-use": ("Legal and policies", "Acceptable use policy", "The rules for using the service responsibly."),
+    "/dmca": ("Legal and policies", "Copyright (DMCA) policy", "How to report claimed copyright infringement."),
+    "/accessibility": ("Legal and policies", "Accessibility statement", "The commitment to an accessible experience, what is implemented, and how to report an issue."),
+    "/licenses": ("Legal and policies", "Content licenses and credits", "Credit and license terms for the sources and libraries Sh'elah depends on."),
+}
+
+
+def _llms_library_links():
+    """Entry points into the library -- one representative page each. The
+    ~950 chapter and prayer pages are in /sitemap.xml, not repeated here."""
+    return [
+        (page_meta.text_path("Genesis 1"), "Tanakh reader", "Read any chapter of the Hebrew Bible, Hebrew and English side by side (shown: Genesis 1)."),
+        (siddur_data.siddur_path(siddur_data.DEFAULT_RITE), "Siddur", "The prayer book by service, in the Edot HaMizrach rite."),
+    ]
+
+
 @routes_pages.route("/llms.txt", methods=["GET"])
 def llms_txt():
+    """A Markdown map of the site for language-model agents (llmstxt.org): an
+    H1, a one-paragraph summary, then sections of `- [title](url): note`
+    links, every URL on the canonical host."""
+    sections = {}
+    for path, _changefreq, _priority in _SITEMAP_PATHS:
+        section, title, note = _LLMS_PAGES[path]
+        sections.setdefault(section, []).append((path, title, note))
+    sections.setdefault("Library", []).extend(_llms_library_links())
+    sections["For crawlers"] = [("/sitemap.xml", "Sitemap", "Every public page, including each Tanakh chapter, prayer, siddur service and community.")]
+
     lines = [
         "# Sh'elah",
         "",
@@ -173,12 +212,9 @@ def llms_txt():
         "> in primary sources (Talmud, Tanakh, halachic codes) via Sefaria,",
         "> with citations and awareness of differing community customs.",
         "",
-        "## Pages",
-        "",
     ]
-    # Iterate _SITEMAP_PATHS rather than hand-duplicating its list, so this
-    # route and /sitemap.xml can't silently drift apart from each other. (The
-    # sitemap's ~950 library pages stay out: this is the site's own pages.)
-    lines.extend(f"- {_SITE_BASE_URL}{path}" for path, _changefreq, _priority in _SITEMAP_PATHS)
-    lines.append("")
-    return Response("\n".join(lines), mimetype="text/plain")
+    for section, links in sections.items():
+        lines += [f"## {section}", ""]
+        lines += [f"- [{title}]({_SITE_BASE_URL}{path}): {note}" for path, title, note in links]
+        lines.append("")
+    return Response("\n".join(lines), mimetype="text/plain", headers={"Content-Type": "text/plain; charset=utf-8"})

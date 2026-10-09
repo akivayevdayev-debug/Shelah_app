@@ -9,7 +9,7 @@ retention cron is running (`CRON_SECRET` confirmed set in production
 
 Sh'elah is operated by a solo developer (Akiva Yevdayev), not a company
 with a dedicated privacy team — every "who does this" answer below is the
-same person, contactable at **akiva.yevda@gmail.com**.
+same person, contactable at **contact@shelah.org**.
 
 See [`docs/LAUNCH_CHECKLIST.md`](LAUNCH_CHECKLIST.md) (line 5, "Privacy
 operations") for how this document's items map onto the launch-gate
@@ -114,7 +114,7 @@ of a minor per `privacy.html` §8).
 For anything self-serve doesn't cover, or a user who can't or won't use
 the in-app flow:
 
-1. **Intake.** All requests arrive at akiva.yevda@gmail.com (the address
+1. **Intake.** All requests arrive at contact@shelah.org (the address
    published in `privacy.html` §6 and §12, and `terms.html`). Treat any
    email containing "delete my data", "access my data", "GDPR", "CCPA", or
    similar language as a DSR regardless of exact wording — data-protection
@@ -302,7 +302,7 @@ a *known* under-13 account on discovery is a retention obligation
 (distinct from age-gating at signup, which the policy deliberately
 doesn't do — see that doc's Operator decisions). This is the manual
 procedure for when that discovery happens (e.g. the user or a
-parent/guardian emails akiva.yevda@gmail.com, or it surfaces in a
+parent/guardian emails contact@shelah.org, or it surfaces in a
 support conversation):
 
 1. **Verify the claim.** Same identity check as the DSR manual procedure
@@ -327,7 +327,7 @@ support conversation):
 **Roles.** Solo-operated project — one person (Akiva Yevdayev) holds
 every role below until the project has more than one operator.
 
-- **Incident lead / DPO-equivalent contact:** akiva.yevda@gmail.com
+- **Incident lead / DPO-equivalent contact:** contact@shelah.org
 - **Technical responder:** same
 
 **Detection sources:** Sentry alerts, Supabase dashboard alerts/logs,
@@ -371,7 +371,7 @@ breach itself):**
 > data categories — be precise, not vague]. We [have fixed / are fixing]
 > the issue by [remediation]. We recommend you [specific action, if any —
 > e.g. nothing needed, or "sign out other sessions"]. If you have
-> questions, reply to this email or contact akiva.yevda@gmail.com.
+> questions, reply to this email or contact contact@shelah.org.
 
 **Regulator notification template (Art. 33, only if counsel confirms it's
 required):**
@@ -381,7 +381,7 @@ required):**
 > Categories and approximate number of records affected: [...]
 > Likely consequences: [...]
 > Measures taken or proposed: [...]
-> Contact point: Akiva Yevdayev, akiva.yevda@gmail.com
+> Contact point: Akiva Yevdayev, contact@shelah.org
 
 ## 7. DPIA
 

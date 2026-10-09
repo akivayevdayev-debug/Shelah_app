@@ -14,11 +14,11 @@
     <meta property="og:description" content="{{ page_meta.og_description }}">
     <meta property="og:type" content="website">
     <meta property="og:url" content="{{ page_meta.url }}">
-    <meta property="og:image" content="https://shelah-app.vercel.app/static/og-image.png">
+    <meta property="og:image" content="https://shelah.org/static/og-image.png">
     <meta name="twitter:card" content="summary_large_image">
     <meta name="twitter:title" content="{{ page_meta.title }}">
     <meta name="twitter:description" content="{{ page_meta.og_description }}">
-    <meta name="twitter:image" content="https://shelah-app.vercel.app/static/og-image.png">
+    <meta name="twitter:image" content="https://shelah.org/static/og-image.png">
     {% if page_meta.canonical %}<link rel="canonical" href="{{ page_meta.canonical }}">{% endif %}
     <script type="application/ld+json">
     {
@@ -27,7 +27,7 @@
         "name": "Sh'elah",
         "alternateName": "Sh'elah - Torah Encyclopedia",
         "description": "AI-powered Torah encyclopedia — search halacha, Talmud, Tanakh, and Jewish law with source citations and community-aware answers.",
-        "url": "https://shelah-app.vercel.app/",
+        "url": "https://shelah.org/",
         "applicationCategory": "EducationApplication"
     }
     </script>
@@ -36,7 +36,7 @@
         "@context": "https://schema.org",
         "@type": "WebSite",
         "name": "Sh'elah",
-        "url": "https://shelah-app.vercel.app/"
+        "url": "https://shelah.org/"
     }
     </script>
     <script type="application/ld+json">
@@ -44,8 +44,8 @@
         "@context": "https://schema.org",
         "@type": "Organization",
         "name": "Sh'elah",
-        "url": "https://shelah-app.vercel.app/",
-        "logo": "https://shelah-app.vercel.app/static/favicon-512.png"
+        "url": "https://shelah.org/",
+        "logo": "https://shelah.org/static/favicon-512.png"
     }
     </script>
     <script type="application/ld+json">
@@ -57,7 +57,7 @@
                 "@type": "ListItem",
                 "position": 1,
                 "name": "Sh'elah Synthesis",
-                "item": "https://shelah-app.vercel.app/"
+                "item": "https://shelah.org/"
             }
         ]
     }
@@ -69,6 +69,7 @@
     <link rel="manifest" href="/manifest.webmanifest">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
     <link rel="preload" href="/static/fonts/SILEOT.woff2" as="font" type="font/woff2" crossorigin>
     <!-- no-flash theme: read the real persisted prefs blob (Sh'elahPrefs.theme —
          see APP_PREFS_KEY/setThemePreference below) before first paint. Falls back
@@ -114,22 +115,17 @@
     <script src="https://browser.sentry-cdn.com/10.69.0/bundle.min.js"
             integrity="sha384-3CEt/dsT99DjKC3MgiUAiordZm0hoZjYMn6ioBvRKm+9A98CLWAUsQsk5XaPpjfU"
             crossorigin="anonymous"></script>
-    <script src="/static/js/sentry-init.js?v=20260731"></script>
+    <script src="{{ asset_url('js/sentry-init.js') }}"></script>
     {% endif %}
     <!-- Every ES module import goes to a URL carrying a hash of that module's
          bytes (backend/module_versions.py), so a deploy's main.js never runs
          an old router.js from a cache (audit L-10). Before any module loads. -->
     <script type="importmap">{{ module_import_map | tojson }}</script>
-    <script src="/static/js/topbar_shared.js?v=20260925-l10"></script>
-    <script src="/static/js/hebrew-ref.js?v=20260925-v2"></script>
-    <script src="/static/js/community-labels.js?v=20261004-v2"></script>
+    <script src="{{ asset_url('js/topbar_shared.js') }}"></script>
+    <script src="{{ asset_url('js/hebrew-ref.js') }}"></script>
+    <script src="{{ asset_url('js/community-labels.js') }}"></script>
     <!-- window.ShelahLoadRegion: how async regions load, fail and retry (audit L-8). -->
-    <script src="/static/js/load-region.js?v=20260926-l8"></script>
-    <!-- DaisyUI component library (non-destructive — adds .btn, .card etc. utility classes) -->
-    <link href="https://cdn.jsdelivr.net/npm/daisyui@4.12.24/dist/full.min.css" rel="stylesheet"
-          integrity="sha384-2V5uSMIWpBK7suX6yRDZH6ll7ktPJF2O58y0HSz+HiFCBCsmqZpxX1AZB4qAHuYI"
-          crossorigin="anonymous">
-
+    <script src="{{ asset_url('js/load-region.js') }}"></script>
     <!-- Scholarly Typography -->
     <link href="https://fonts.googleapis.com/css2?family=Cardo:wght@400;700&family=Inter:wght@400;500;600&display=swap"
         rel="stylesheet">
@@ -140,23 +136,23 @@
     <script defer src="https://cdn.jsdelivr.net/npm/dompurify@3.4.9/dist/purify.min.js"
             integrity="sha384-6ZdfL2Azuen6KYvcTkbxqJS1d7txbNWrVfmURkxNeCn7DtzhLRL6Fi6WGG6ZLdKn"
             crossorigin="anonymous"></script>
-    <link rel="stylesheet" href="/static/css/tokens.css?v=20261003-t4">
-    <link rel="stylesheet" href="/static/style.css?v=20261003-s9">
+    <link rel="stylesheet" href="{{ asset_url('css/tokens.css') }}">
+    <link rel="stylesheet" href="{{ asset_url('style.css') }}">
     <!-- CSS modules (supplement style.css; do not replace) -->
-    <link rel="stylesheet" href="/static/css/typography.css?v=20260817-v6">
-    <link rel="stylesheet" href="/static/css/reader.css?v=20261004-rd12">
-    <link rel="stylesheet" href="/static/css/sidebar.css?v=20260930-sb3">
-    <link rel="stylesheet" href="/static/css/halacha.css?v=20260817-v6">
-    <link rel="stylesheet" href="/static/css/prayer.css?v=20260930-v7">
-    <link rel="stylesheet" href="/static/css/siddur.css?v=20261002-s8">
-    <link rel="stylesheet" href="/static/css/ai.css?v=20261006-ai7">
-    <link rel="stylesheet" href="/static/css/conversation.css?v=20261006-cv12">
-    <link rel="stylesheet" href="/static/css/history.css?v=20260926-rd1">
-    <link rel="stylesheet" href="/static/css/calendar.css?v=20260926-f1">
-    <link rel="stylesheet" href="/static/css/calendar-detail.css?v=20260930-cd2">
-    <link rel="stylesheet" href="/static/css/loading.css?v=20260930-l4">
+    <link rel="stylesheet" href="{{ asset_url('css/typography.css') }}">
+    <link rel="stylesheet" href="{{ asset_url('css/reader.css') }}">
+    <link rel="stylesheet" href="{{ asset_url('css/sidebar.css') }}">
+    <link rel="stylesheet" href="{{ asset_url('css/halacha.css') }}">
+    <link rel="stylesheet" href="{{ asset_url('css/prayer.css') }}">
+    <link rel="stylesheet" href="{{ asset_url('css/siddur.css') }}">
+    <link rel="stylesheet" href="{{ asset_url('css/ai.css') }}">
+    <link rel="stylesheet" href="{{ asset_url('css/conversation.css') }}">
+    <link rel="stylesheet" href="{{ asset_url('css/history.css') }}">
+    <link rel="stylesheet" href="{{ asset_url('css/calendar.css') }}">
+    <link rel="stylesheet" href="{{ asset_url('css/calendar-detail.css') }}">
+    <link rel="stylesheet" href="{{ asset_url('css/loading.css') }}">
     <!-- Tailwind CSS (pre-built; loads last so utilities override custom CSS — mirrors CDN runtime cascade behavior) -->
-    <link rel="stylesheet" href="/static/css/tailwind.css?v=20261003-tw4">
+    <link rel="stylesheet" href="{{ asset_url('css/tailwind.css') }}">
 
     <!-- FullCalendar -->
     <script defer src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.15/index.global.min.js"
@@ -14686,16 +14682,16 @@
          (markTriggerPending reads it), and an inline onclick used to run after
          every capture listener, so this one has to as well.
          tests/test_inline_handlers.py pins the order. -->
-    <script src="/static/js/actions.js?v=20261003-a1"></script>
+    <script src="{{ asset_url('js/actions.js') }}"></script>
     <!-- Motion One / motion.dev vanilla animation engine — static/js/motion.js wraps
          this as window.Motion; degrades gracefully to instant state-changes if this
          CDN script fails to load (see motion.js's _motionAnimate() fallback). -->
     <script src="https://cdn.jsdelivr.net/npm/motion@12.43.0/dist/motion.js"
             integrity="sha384-hgVFh5YKDMdpcWEjpRqk2kPXOKBH7I9NBCKe3uR6dHKgy/BWPe8kyL01kiYuRn1u"
             crossorigin="anonymous"></script>
-    <script src="/static/js/clerk-appearance.js?v=20260926-rd1"></script>
+    <script src="{{ asset_url('js/clerk-appearance.js') }}"></script>
     <script type="module" src="{{ module_url('motion.js') }}"></script>
-    <script type="module" src="/static/js/calendar-detail.js?v=20260930-v15"></script>
+    <script type="module" src="{{ asset_url('js/calendar-detail.js') }}"></script>
     <script type="module" src="{{ module_url('main.js') }}"></script>
 </body>
 

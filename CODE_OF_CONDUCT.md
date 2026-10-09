@@ -59,7 +59,7 @@ public spaces.
 ## Enforcement
 
 Instances of abusive, harassing, or otherwise unacceptable behavior may be
-reported to the project maintainer at **akiva.yevda@gmail.com** (the same
+reported to the project maintainer at **contact@shelah.org** (the same
 contact listed in [docs/SECURITY.md](docs/SECURITY.md)). All complaints will
 be reviewed and investigated promptly and fairly. A security vulnerability is
 not a conduct report; send those privately as described in
