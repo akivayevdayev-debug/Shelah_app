@@ -22,7 +22,10 @@ from backend import guest_cap
 TOKEN = "g" * 40
 OWNER = device.owner_for_token(TOKEN)
 OTHER = device.owner_for_token("h" * 40)
-NOW = datetime(2026, 10, 9, 12, 0, tzinfo=timezone.utc)
+# The real clock, not a fixed date: the unit tests pass it in as `now`, but the
+# route tests run the daily window against the actual time, and rows pinned to
+# one calendar day fall out of that 24h window the next day.
+NOW = datetime.now(timezone.utc).replace(microsecond=0)
 
 
 def _row(n, *, owner=OWNER, question=None, answer="An answer.", age_hours=1.0):

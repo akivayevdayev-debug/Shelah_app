@@ -2153,8 +2153,11 @@ html.rtl #readerTopBar .reader-topbar-settings-label {
     color: #5a4a3a !important;
 }
 
+/* Prev/Next/Library at the ends of a text. 0.45 left the glyph at 2.3:1 on the
+   dark top bar and 1.9:1 on the light one, close to invisible; 0.62 is still
+   plainly off but legible (3.3:1 dark, 3.0:1 light). */
 #readerTopBar button:disabled {
-    opacity: 0.45;
+    opacity: 0.62;
     pointer-events: none;
 }
 
@@ -3711,10 +3714,12 @@ html.theme-dark,
     border-color: var(--control-border) !important;
 }
 
+/* Selects: the outline is the field's boundary, so it takes the 3:1
+   --conv-edge rather than the --surface-border divider (1.2:1 here). */
 :is([data-theme="dark"], body.theme-dark) #settingsPanel select,
 :is([data-theme="dark"], body.theme-dark) #readerSettingsPanel select {
     background-color: var(--surface-pill) !important;
-    border-color: var(--surface-border) !important;
+    border-color: var(--conv-edge) !important;
     color: var(--accent-cream) !important;
 }
 
@@ -4752,7 +4757,6 @@ html.rtl #readerTopBar #readerLibraryTopBarBtn {
 :is([data-theme="dark"], body.theme-dark) #settingsPanel .border-slate-100,
 :is([data-theme="dark"], body.theme-dark) #settingsPanel .border-slate-200 { border-color: var(--surface-border) !important; }
 
-:is([data-theme="dark"], body.theme-dark) #settingsPanel select,
 :is([data-theme="dark"], body.theme-dark) #settingsPanel input,
 :is([data-theme="dark"], body.theme-dark) #settingsPanel textarea,
 :is([data-theme="dark"], body.theme-dark) #settingsPanel button {

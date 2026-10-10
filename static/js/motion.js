@@ -147,6 +147,12 @@ export async function springMove(el, transform, { delay = 0 } = {}) {
 
 /**
  * Fade-only animation (tween, not spring — correct per ENGINEERING_RULES.md).
+ *
+ * The start value is passed explicitly, read from the element as it is now.
+ * With a bare target Motion animates from the value it cached for the element
+ * the last time it animated it, which is blind to a hand-written
+ * `style.opacity = '0'` (swapContent, crossFade). It saw "already at 1" and
+ * skipped the fade, so the content stayed hidden after the second change.
  */
 export async function fadeOpacity(el, to, { delay = 0, duration = 0.2 } = {}) {
     if (!el) return;
@@ -155,7 +161,9 @@ export async function fadeOpacity(el, to, { delay = 0, duration = 0.2 } = {}) {
         el.style.opacity = String(to);
         return;
     }
-    return animate(el, { opacity: to }, { delay, duration, easing: [0.25, 0, 0.3, 1] });
+    const from = Number.parseFloat(getComputedStyle(el).opacity);
+    const opacity = Number.isFinite(from) ? [from, to] : to;
+    return animate(el, { opacity }, { delay, duration, easing: [0.25, 0, 0.3, 1] });
 }
 
 /**

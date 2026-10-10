@@ -1681,9 +1681,16 @@ body.conv-modal-open {
 /* 44px hit area around the 36px disc. */
 .conv-send::after { content: ''; position: absolute; inset: -4px; }
 .conv-send:active:not(:disabled) { transform: scale(0.97); }
+/* Off is drawn as a flat, neutral disc with its arrow and outline in the page's
+   secondary ink, not as the accent fill at 45% opacity: that blend left the
+   dark theme's arrow at 1.5:1 against its disc and the disc at 2:1 against the
+   composer, so the button simply vanished. Resolved on the element (not a
+   :root token) so each theme's own ink and surface are the inputs. */
 .conv-send:disabled {
     cursor: not-allowed;
-    opacity: 0.45;
+    background: color-mix(in srgb, var(--ink-secondary) 18%, var(--conv-panel-bg));
+    color: var(--ink-secondary);
+    box-shadow: inset 0 0 0 1px var(--conv-edge);
     transform: none;
 }
 
@@ -1727,7 +1734,13 @@ body.conv-modal-open {
     pointer-events: none;
     animation: shelah-attention-ping 1.6s var(--motion-ease-out) infinite;
 }
-.conv-mic:disabled { cursor: not-allowed; opacity: 0.45; }
+/* Dimmed by mixing its ink toward the surface, not by opacity, so the icon
+   stays at 3:1 or better on either theme's composer. */
+.conv-mic:disabled {
+    cursor: not-allowed;
+    background: transparent;
+    color: color-mix(in srgb, var(--ink-secondary) 72%, var(--conv-panel-bg));
+}
 
 .conv-disclaimer {
     margin: 0;

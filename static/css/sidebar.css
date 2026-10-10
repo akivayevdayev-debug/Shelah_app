@@ -310,3 +310,41 @@ html.rtl #citySearchInput {
 }
 
 /* .ask-history-item:hover fully auto-flips via --surface-pill — no override needed. */
+
+/* Native <select> in the settings panels. The browser's own arrow sits a
+   different distance from the edge in every browser and flips unpredictably
+   in RTL, so it is dropped for one drawn in the page's ink at a fixed inset
+   (the same approach as .conv-menu__field in conversation.css). The wrapper
+   carries the top margin so the arrow centres on the control, not on the
+   control plus its margin. */
+.select-field {
+    position: relative;
+    display: block;
+    margin-block-start: var(--sp-1);
+}
+.select-field::after {
+    content: "";
+    position: absolute;
+    inset-block-start: 50%;
+    inset-inline-end: var(--sp-3);
+    width: 12px;
+    height: 12px;
+    margin-block-start: -6px;
+    background: var(--ink-secondary);
+    -webkit-mask: var(--icon-caret-right) center / contain no-repeat;
+    mask: var(--icon-caret-right) center / contain no-repeat;
+    transform: rotate(90deg);
+    pointer-events: none;
+}
+.select-field > select {
+    width: 100%;
+    margin: 0;
+    padding-inline-end: calc(var(--sp-3) + 12px + var(--sp-2));
+    appearance: none;
+    -webkit-appearance: none;
+    text-overflow: ellipsis;
+    /* A form field's outline needs 3:1 against its panel (WCAG 1.4.11). The
+       markup leaves the colour to this rule: the slate-200 border utility is
+       remapped with !important and is 1.2:1 in the dark theme. */
+    border-color: var(--conv-edge);
+}

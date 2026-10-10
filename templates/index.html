@@ -434,12 +434,14 @@
                             <div id="exportControls" class="export-text-only hidden grid grid-cols-2 gap-2 border-t border-slate-100 pt-2">
                                 <label id="exportFormatField" class="col-span-2 text-xs text-slate-600">
                                     <span data-en="Export format" data-he="פורמט ייצוא">Export format</span>
+                                    <span class="select-field">
                                     <select id="exportFormatSelect"
-                                        class="mt-1 w-full px-2 py-1.5 rounded-sm border border-slate-200 bg-slate-50 text-slate-700 focus:outline-hidden focus:ring-2 focus:ring-blue-400">
+                                        class="w-full px-2 py-1.5 rounded-sm border bg-slate-50 text-slate-700 focus:outline-hidden focus:ring-2 focus:ring-blue-400">
                                         <option value="txt" data-en="Text (.txt)" data-he="טקסט (.txt)">Text (.txt)</option>
                                         <option value="docx" data-en="Word (.docx)" data-he="וורד (.docx)">Word (.docx)</option>
                                         <option value="pdf" data-en="PDF (.pdf)" data-he="PDF (.pdf)">PDF (.pdf)</option>
                                     </select>
+                                    </span>
                                 </label>
                                 <button id="exportCitationBtn" type="button"
                                     class="col-span-2 px-2.5 py-1.5 rounded-lg bg-slate-100 text-slate-700 border border-slate-200 hover:bg-slate-200 transition font-semibold text-xs"
@@ -558,8 +560,9 @@
 
                         <label class="block text-xs text-slate-600">
                             <span data-en="Layout" data-he="פריסה">Layout</span>
+                            <span class="select-field">
                             <select id="readerLayoutSelect"
-                                class="mt-1 w-full px-2 py-1.5 rounded-sm border border-slate-200 bg-slate-50 text-slate-700 focus:outline-hidden focus:ring-2 focus:ring-blue-300">
+                                class="w-full px-2 py-1.5 rounded-sm border bg-slate-50 text-slate-700 focus:outline-hidden focus:ring-2 focus:ring-blue-300">
                                 <option value="bilingual" data-en="Side by Side (Hebrew Left)"
                                     data-he="דו-עמודי (עברית משמאל)">Side by Side (Hebrew Left)
                                 </option>
@@ -570,6 +573,7 @@
                                 <option value="english" data-en="English" data-he="אנגלית">English</option>
                                 <option value="hebrew" data-en="Hebrew" data-he="עברית">Hebrew</option>
                             </select>
+                            </span>
                         </label>
 
                         <label class="block text-xs text-slate-600">
@@ -2120,7 +2124,7 @@
                     <span class="conv-toast__icon conv-toast__icon--success" aria-hidden="true">{{ phosphor('check-circle', size=18, class='h-[18px] w-[18px]') }}</span>
                     <span class="conv-toast__icon conv-toast__icon--warn" aria-hidden="true">{{ phosphor('warning', size=18, class='h-[18px] w-[18px]') }}</span>
                     <span id="convToastText" class="conv-toast__text"></span>
-                    <button type="button" id="convToastAction" class="conv-toast__action hidden"></button>
+                    <button type="button" id="convToastAction" class="conv-toast__action hidden">Undo</button>
                     <button type="button" id="convToastClose" class="conv-toast__close"
                         aria-label="Dismiss" data-aria-en="Dismiss" data-aria-he="סגור">
                         {{ phosphor('x', size=12, class='h-3 w-3') }}
@@ -2155,11 +2159,12 @@
                     educational information, not a halachic ruling. Ask your rabbi for practical guidance.</p>
                 <!-- The guest limit was reached (backend/guest_cap.py). A native modal dialog:
                      it traps focus and closes on Escape by itself. Words are set by
-                     conversation-ui.js (guestCapCopy) from the server's reason. -->
+                     conversation-ui.js (guestCapCopy) from the server's reason; the text
+                     here is only a default so the heading is never empty. -->
                 <dialog id="convGuestCap" class="conv-capdialog" aria-labelledby="convGuestCapTitle" aria-describedby="convGuestCapBody">
                     <div class="conv-capdialog__card">
-                        <h2 id="convGuestCapTitle" class="conv-capdialog__title"></h2>
-                        <p id="convGuestCapBody" class="conv-capdialog__body"></p>
+                        <h2 id="convGuestCapTitle" class="conv-capdialog__title">You've reached the guest limit for this conversation</h2>
+                        <p id="convGuestCapBody" class="conv-capdialog__body">Sign in or create a free account to keep going.</p>
                         <div class="conv-capdialog__actions">
                             <button type="button" class="conv-capdialog__btn conv-capdialog__btn--primary" data-conv-action="guest-sign-in" data-en="Sign in" data-he="התחברות">Sign in</button>
                             <button type="button" class="conv-capdialog__btn" data-conv-action="guest-sign-up" data-en="Create free account" data-he="יצירת חשבון חינם">Create free account</button>

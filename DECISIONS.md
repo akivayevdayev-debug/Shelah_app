@@ -688,6 +688,17 @@ This is the area you already flagged as weakest. Concrete, ordered roughly by ex
 
 # 8. Error handling and observability
 
+## Fades name their start value; disabled controls are drawn, not dimmed
+
+> Added 2026-10-10, after the repo owner reported the reader text vanishing on any settings change.
+
+- **What was chosen:** `ShelahMotion.fadeOpacity(el, to)` reads the element's current opacity and animates `[from, to]`, instead of handing Motion a bare target. And a disabled control gets its own flat colours (a neutral fill, the secondary ink, an outline) rather than `opacity: 0.45` on its enabled look.
+- **Problem it solves:** `swapContent()` hides the reader by hand (`style.opacity = '0'`), swaps the text, then fades back to 1. Motion keeps the last value it animated for an element and starts a bare-target animation from *that*, so after the first swap it saw "already at 1", did nothing, and the text stayed at 0. The first settings change after a page load worked and every later one blanked the reader; a slider drag hit it on its second event. Separately, the dark theme's disabled Send button (accent fill at 45%) measured 1.5:1 for its arrow and 2:1 for the disc, so it disappeared.
+- **Alternatives that existed:** Clearing Motion's cached value after each hand-written opacity (reaches into the library); dropping the fade from `swapContent` (loses M-6); raising the disabled opacity (a patch per theme, and the blend still depends on what is behind it).
+- **Why this won:** An explicit start value is the documented way to run an animation from where the element is now, and `presentEl` already did it (`startOpacity`). Flat disabled colours resolve from each theme's own tokens, so both themes are checked by measuring, not by tuning an opacity.
+- **What would break if removed:** The reader blanks on the second settings change again (`tests_js/motion.test.js`, "fadeOpacity starts from the opacity the element has now").
+- **Not changed, on purpose:** the address bar. Reader display settings are the visitor's own and stay out of the URL (audit U-8); only a link that brought them keeps them.
+
 ## Dual Sentry setup (backend `sentry_sdk` + browser CDN bundle), conditional on env var
 
 - **What was chosen:** Two independent Sentry integrations, both gated purely by env-var presence, both structured so absence means zero SDK activity. Backend: `sentry_sdk.init()` at module import, guarded by a DSN check. Browser: the entire script block (CDN bundle + `sentry-init.js`) is wrapped in a Jinja conditional — when unset, the script tag itself is never emitted, not just an inert init call.

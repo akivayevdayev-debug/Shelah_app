@@ -239,6 +239,22 @@ test('fadeOpacity calls animate with a tween (not a spring)', async () => {
     assert.equal(transition.type, undefined, 'a fade is a tween, never a spring type');
 });
 
+test('fadeOpacity starts from the opacity the element has now, not from Motion\'s cached value', async () => {
+    // swapContent hides the element by hand (style.opacity = "0") and then
+    // fades it back in. A bare { opacity: 1 } target made Motion animate from
+    // the value it had cached (1), a no-op, so the reader text stayed hidden
+    // on every change after the first.
+    const { mod, animate } = await loadMotion();
+    const el = makeEl();
+    el.style.opacity = '0';
+    await mod.fadeOpacity(el, 1);
+    assert.deepEqual(animate.calls[0].keyframes, { opacity: [0, 1] });
+
+    el.style.opacity = '0.4';
+    await mod.fadeOpacity(el, 0);
+    assert.deepEqual(animate.calls[1].keyframes, { opacity: [0.4, 0] });
+});
+
 // ── crossFade ────────────────────────────────────────────────────────────
 
 test('crossFade no-ops when either element is missing', async () => {

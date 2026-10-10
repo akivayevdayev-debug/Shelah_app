@@ -220,6 +220,8 @@ Two layers, per `.agents/ENGINEERING_RULES.md`:
 
 Spring for movement, tween only for opacity and colour, animate only `transform` and `opacity`. Every helper checks `isMotionReduced()` first and falls back to an instant state change.
 
+`fadeOpacity` starts from the element's computed opacity (`[from, to]`). Motion remembers the last value it animated and would otherwise start a bare target from that, so code that sets `style.opacity` by hand and then fades back in (`swapContent`, `crossFade`) saw "already there" and left the element hidden.
+
 **Reduced motion.** `typography.css` carries the global `prefers-reduced-motion: reduce` fallback (near-zero durations, one iteration, no smooth scroll). Feature sheets (`loading.css`, `ai.css`, …) additionally set `animation: none` so the end state is static, and every skeleton disables its shimmer.
 
 ---
@@ -300,6 +302,8 @@ The checked-in Edot HaMizrach siddur (`data/siddur/`, built by `scripts/build_si
 - **Tailwind** (v4) is built, not loaded from a CDN: `npm run build:css` compiles `static/css/tailwind.input.css` into the committed, minified `tailwind.css`. There is no `tailwind.config.js`; the configuration is CSS-first, in the input file (`@source` globs for `templates/**/*.html` and `static/js/**/*.js`, the font, `navy` and `gold` theme values, the typography plugin). Re-run the build when you add a utility class that was not used before.
   The input file deliberately does **not** start with `@import "tailwindcss"`. That form puts preflight and the utilities in cascade layers, and layered rules lose to the un-layered app stylesheets (and, until it was removed, DaisyUI's), so padding, margin and radius utilities would stop applying to selects and buttons. It imports the theme, preflight and utilities pieces separately, without `layer()`, and loads last, as v3 did. It also keeps the v3 look on purpose: `tailwind.palette-v3.css` pins the v3 hex palette (v4's oklch palette shifts several colours), the theme is imported with `reference inline` so no `--color-*`, `--text-*`, `--radius-*` or `--font-*` variables are emitted that would collide with `tokens.css`, and the v3 line-heights, `space-y-*` behaviour and plain `:hover` variant are restored. Read the header comment in `tailwind.input.css` before changing any of it. Tailwind 4 targets Safari 16.4+, Chrome 111+ and Firefox 128+; the build includes its `@supports` fallback for older engines, and the app already needs `color-mix()` (Safari 16.2+, Chrome 111+, Firefox 113+).
 - **Touch targets** are at least 44 by 44 px, set with `min-height`/`min-width` or padding, never left to the content size.
+- **Native selects** in the settings panels sit in `<span class="select-field">` (`sidebar.css`): the browser arrow is dropped for one drawn in the page's ink at a fixed inset, so it lines up in every browser and in RTL, and the outline takes `--conv-edge` (3:1). Leave the colour to the stylesheet; the `border-slate-200` utility is remapped with `!important` and is 1.2:1 in dark.
+- **Disabled controls** are drawn, not dimmed: a neutral fill, `--ink-secondary` and an outline (see `.conv-send:disabled`), so they stay perceivable on both themes. `opacity` over an accent fill left the dark Send button at 1.5:1.
 - **Accessibility** is checked in both themes (`npm run test:a11y` runs pa11y-ci for light and `scripts/a11y_dark_scan.js` for dark); see `docs/ACCESSIBILITY_AUDIT.md` for the standing contrast findings.
 
 ---
