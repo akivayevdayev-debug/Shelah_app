@@ -3,7 +3,7 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 [![Python 3.14](https://img.shields.io/badge/python-3.14-blue.svg)](.github/workflows/ci.yml)
 [![Deployed on Vercel](https://img.shields.io/badge/deployed%20on-Vercel-black?logo=vercel&logoColor=white)](https://vercel.com)
-[![CI](https://github.com/akivayevdayev-debug/Shelah_app/actions/workflows/ci.yml/badge.svg)](https://github.com/akivayevdayev-debug/Shelah_app/actions/workflows/ci.yml)
+[![CI](https://github.com/akivayevdayev-debug/Shelah/actions/workflows/ci.yml/badge.svg)](https://github.com/akivayevdayev-debug/Shelah/actions/workflows/ci.yml)
 [![Quality gate status](https://sonarcloud.io/api/project_badges/measure?project=akivayevdayev-debug_Shelah_app&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=akivayevdayev-debug_Shelah_app)
 
 **[shelah.org](https://shelah.org)** — the Torah Encyclopedia — literally
@@ -240,8 +240,8 @@ The full breakdown is in [docs/SERVICE_ARCHITECTURE.md](docs/SERVICE_ARCHITECTUR
 You'll need Python 3.14 (that's what CI runs and what the lockfiles are built against, pinned in `.python-version`; 3.12+ might work but I haven't checked), plus your own Clerk project, Supabase project, and a Gemini and/or Anthropic API key.
 
 ```bash
-git clone https://github.com/akivayevdayev-debug/Shelah_app.git
-cd Shelah_app
+git clone https://github.com/akivayevdayev-debug/Shelah.git
+cd Shelah
 
 python3 -m venv .venv
 source .venv/bin/activate      # on Windows: .venv\Scripts\activate
